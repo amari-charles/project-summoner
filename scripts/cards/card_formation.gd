@@ -4,7 +4,7 @@ class_name CardFormation
 ## Formation preview helper for multi-unit spawns.
 ## Pure math utility — no card/simulation dependencies.
 ##
-## Note: Actual spawning uses C# formations via CardFactory/Simulation.
+## Note: Actual spawning uses C# formations via Card/Simulation.
 ## This is only used for UI spawn preview indicators.
 
 const FORMATION_TWO_ROW_MAX: int = 20

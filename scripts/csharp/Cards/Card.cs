@@ -1,5 +1,6 @@
 using Fateforged.Simulation;
 using Godot;
+using ProjectSummoner.Summons;
 
 namespace ProjectSummoner.Cards;
 
@@ -77,35 +78,72 @@ public partial class Card : Resource
 
     /// <summary>
     /// Check if this spell card needs click-targeting (Rally/Guard commands).
-    /// Delegates to CardFactory.
     /// </summary>
     public bool NeedsClickTargeting()
     {
         if (Type != (int)CardType.Spell)
             return false;
 
-        if (CardFactory.Instance == null)
-            return false;
-
-        return CardFactory.Instance.needs_click_targeting(CatalogId);
+        var def = CardCatalog.GetCard(CatalogId);
+        return def?.CommandType != null;
     }
 
     /// <summary>
     /// Get formation offset for a unit in this card's spawn group.
-    /// Delegates to CardFactory for formation calculation.
     /// </summary>
     public Vector3 GetFormationOffset(int unitIndex)
     {
         if (SpawnCount <= 1)
             return Vector3.Zero;
 
-        if (CardFactory.Instance == null)
+        var def = CardCatalog.GetCard(CatalogId);
+        if (def == null)
         {
-            GD.PushError("Card: CardFactory not available for formation offset.");
+            GD.PushWarning($"Card: Card not found for formation offset: {CatalogId}");
             return Vector3.Zero;
         }
 
-        return CardFactory.Instance.get_formation_offset_by_id(CatalogId, unitIndex, SpawnCount);
+        return def.Formation.GetOffset(unitIndex, SpawnCount);
+    }
+
+    /// <summary>
+    /// Calculate safe spawn positions for all units in this card's formation.
+    /// Used for spawn preview and actual spawning.
+    /// Respects team spawn boundaries and avoids overlapping existing units.
+    /// </summary>
+    public Godot.Collections.Array<Vector3> GetSafeSpawnPositions(
+        Vector3 centerPosition,
+        Node? battlefield,
+        float collisionRadius,
+        int team = 0)
+    {
+        var result = new Godot.Collections.Array<Vector3>();
+
+        if (battlefield == null)
+        {
+            GD.PushWarning("Card: Battlefield is null for safe spawn calculation");
+            return result;
+        }
+
+        var def = CardCatalog.GetCard(CatalogId);
+        if (def == null)
+        {
+            GD.PushWarning($"Card: Card not found in catalog: {CatalogId}");
+            return result;
+        }
+
+        var positions = SpawnPositionCalculator.CalculateFormationPositions(
+            def.Formation,
+            centerPosition,
+            SpawnCount,
+            battlefield.GetTree(),
+            collisionRadius > 0 ? collisionRadius : 0.5f,
+            team);
+
+        foreach (var pos in positions)
+            result.Add(pos);
+
+        return result;
     }
 
     /// <summary>

@@ -171,7 +171,7 @@ public static class UnitStatCalculator
     /// Logs warnings for missing or unknown keys.
     /// </summary>
     /// <param name="stats">Dictionary to validate</param>
-    /// <param name="source">Source name for logging (e.g., "CardFactory.execute_summon")</param>
+    /// <param name="source">Source name for logging (e.g., "Simulation.SpawnUnitsFromCard")</param>
     /// <returns>List of validation warnings (empty if valid)</returns>
     public static List<string> ValidateStatsDictionary(Dictionary<string, float> stats, string source = "")
     {

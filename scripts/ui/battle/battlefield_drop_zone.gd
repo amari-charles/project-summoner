@@ -327,37 +327,26 @@ func _find_3d_root(viewport: Viewport) -> Node:
 	return null
 
 ## Calculate safe spawn positions for preview
-## Single source of truth: delegates to C# CardFactory.get_safe_spawn_positions()
+## Delegates to Card.GetSafeSpawnPositions() which uses SpawnPositionCalculator
 func _calculate_safe_spawn_positions(center_pos: Vector3, card: Card, team: int = 0) -> Array[Vector3]:
 	var positions: Array[Vector3] = []
-
-	# CardFactory is a C# autoload - single source of truth for spawn positions
-	var card_factory: Node = get_node_or_null(CSharpAutoloads.CARD_FACTORY)
-	if not card_factory or not card_factory.has_method("get_safe_spawn_positions"):
-		# Fallback: just return formation offsets without safe spawn adjustment
-		for i: int in card.SpawnCount:
-			positions.append(center_pos + card.GetFormationOffset(i))
-		return positions
-
-	# Default separation radius (separation_radius removed from Card)
-	var separation_radius: float = 0.5
 
 	# Get battlefield reference
 	var battlefield: Node = get_node_or_null("/root/Main/Battlefield")
 	if not battlefield:
 		battlefield = get_tree().current_scene
 
-	# Call C# CardFactory for safe spawn positions (single source of truth)
-	var result: Variant = card_factory.get_safe_spawn_positions(
-		card.CatalogId, center_pos, battlefield, separation_radius, team)
+	# Card handles safe spawn calculation directly
+	var result: Variant = card.GetSafeSpawnPositions(center_pos, battlefield, 0.5, team)
 
 	if result is Array:
 		for pos: Variant in result:
 			if pos is Vector3:
 				positions.append(pos)
-		return positions
+		if positions.size() > 0:
+			return positions
 
-	# Fallback if C# call failed
+	# Fallback: formation offsets without safe spawn adjustment
 	for i: int in card.SpawnCount:
 		positions.append(center_pos + card.GetFormationOffset(i))
 	return positions
