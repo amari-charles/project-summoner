@@ -5,7 +5,7 @@ class_name SummonerSelectionScreen
 ##
 ## Part of onboarding flow. Player picks one of five summoners representing the
 ## four core elements (Earth, Fire, Wind, Water) plus a random option.
-## Summoner choice is saved to profile via ProfileRepo.set_starting_summoner()
+## Summoner choice is saved to profile via SummonerSelection.SetStartingSummoner()
 
 const _DeckConstants: GDScript = preload("res://scripts/data/deck_constants.gd")
 
@@ -75,7 +75,7 @@ func _on_summoner_selected(summoner_id: String) -> void:
 		print("SummonerSelection: Random selection chose: %s" % final_summoner_id)
 
 	# Save summoner choice to profile
-	var success: bool = ProfileRepo.set_starting_summoner(final_summoner_id, chosen_random)
+	var success: bool = SummonerSelection.SetStartingSummoner(final_summoner_id, chosen_random)
 	if success:
 		print("SummonerSelection: Successfully set starting summoner: %s (random: %s)" % [final_summoner_id, chosen_random])
 	else:
@@ -190,7 +190,7 @@ func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void
 		summoner_instance.add_trait("trait_fortune_favors_the_bold")
 
 	# Save SummonerInstance to profile
-	var save_success: bool = ProfileRepo.save_summoner_instance(summoner_instance)
+	var save_success: bool = SummonerSelection.SaveSummonerInstanceDict(summoner_instance.to_dict())
 	if save_success:
 		print("SummonerSelection: Saved SummonerInstance for '%s' (level %d)" % [
 			summoner_id, summoner_instance.level

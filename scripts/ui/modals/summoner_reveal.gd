@@ -23,7 +23,7 @@ func _ready() -> void:
 		continue_button.pressed.connect(_on_continue_pressed)
 
 	# Read summoner data from ProfileRepo (just saved by summoner_selection)
-	var unlocked: Array = ProfileRepo.get_unlocked_summoners()
+	var unlocked = SummonerSelection.GetUnlockedSummonerIdsArray()
 	if not unlocked.is_empty():
 		summoner_id = unlocked[0]  # Starting summoner is first unlocked
 

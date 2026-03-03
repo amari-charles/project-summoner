@@ -87,7 +87,7 @@ func _update_resources(delta: Dictionary) -> void:
 	ProfileRepo.update_resources(delta)
 
 func _is_summoner_unlocked(summoner_id: String) -> bool:
-	return ProfileRepo.is_summoner_unlocked(summoner_id)
+	return SummonerSelection.IsSummonerUnlocked(summoner_id)
 
 func _is_cosmetic_owned(cosmetic_id: String) -> bool:
 	return ProfileRepo.is_cosmetic_owned(cosmetic_id)

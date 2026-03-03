@@ -471,10 +471,6 @@ func _cmd_snapshot_delete(args: PackedStringArray) -> bool:
 	return success
 
 func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
-	if _repo == null:
-		push_error("DevConsole: ProfileRepo not available")
-		return false
-
 	if args.size() == 0:
 		print("DevConsole: Usage: /unlock_summoner <summoner_id>")
 		print("DevConsole: Valid IDs: summoner_cole, summoner_celine, summoner_mei, summoner_teo")
@@ -497,16 +493,12 @@ func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
 	}
 
 	# Save the instance (this also adds to unlocked_summoners)
-	_repo.call("save_summoner_instance", summoner_data)
+	SummonerSelection.SaveSummonerInstanceDict(summoner_data)
 	print("DevConsole: Summoner '%s' unlocked!" % summoner_id)
 
 	return true
 
 func _cmd_unlock_all_summoners() -> bool:
-	if _repo == null:
-		push_error("DevConsole: ProfileRepo not available")
-		return false
-
 	print("DevConsole: Unlocking all starting summoners...")
 
 	var summoners_to_unlock: Array[StringName] = SummonerIDs.ALL_STARTING.duplicate()
@@ -514,7 +506,7 @@ func _cmd_unlock_all_summoners() -> bool:
 	var unlocked_count: int = 0
 	for summoner_id: StringName in summoners_to_unlock:
 		# Check if already unlocked
-		if _repo.call("is_summoner_unlocked", String(summoner_id)):
+		if SummonerSelection.IsSummonerUnlocked(String(summoner_id)):
 			print("DevConsole: %s already unlocked, skipping" % summoner_id)
 			continue
 
@@ -523,7 +515,7 @@ func _cmd_unlock_all_summoners() -> bool:
 			"level": 1,
 			"xp": 0.0
 		}
-		_repo.call("save_summoner_instance", summoner_data)
+		SummonerSelection.SaveSummonerInstanceDict(summoner_data)
 		unlocked_count += 1
 		print("DevConsole: Unlocked %s" % summoner_id)
 

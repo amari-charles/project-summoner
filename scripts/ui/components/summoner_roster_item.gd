@@ -107,7 +107,7 @@ func refresh() -> void:
 	_update_active_display()
 
 func _get_computed_stats() -> Dictionary:
-	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(_summoner_id)
+	var summoner_instance_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(_summoner_id)
 	if summoner_instance_data.is_empty():
 		return {}
 

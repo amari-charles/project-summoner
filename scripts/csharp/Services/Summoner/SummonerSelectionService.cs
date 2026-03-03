@@ -192,6 +192,45 @@ public partial class SummonerSelectionService : Node
 	// GODOT INTEROP
 	// =========================================================================
 
+	/// <summary>Check if a specific summoner is unlocked.</summary>
+	public bool IsSummonerUnlocked(string summonerId)
+	{
+		if (_profileRepo == null) return false;
+		return _profileRepo.IsSummonerUnlocked(new SummonerId(summonerId));
+	}
+
+	/// <summary>
+	/// Set the starting summoner during initial profile setup.
+	/// Unlike SetActiveSummoner, this bypasses unlock checks and records the random flag.
+	/// </summary>
+	public bool SetStartingSummoner(string summonerId, bool chosenRandom)
+	{
+		if (_profileRepo == null) return false;
+		return _profileRepo.SetStartingSummoner(new SummonerId(summonerId), chosenRandom);
+	}
+
+	/// <summary>Get a specific summoner's instance data as dictionary for GDScript.</summary>
+	public Godot.Collections.Dictionary GetSummonerInstanceDict(string summonerId)
+	{
+		if (_profileRepo == null) return [];
+		var instance = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		if (instance == null) return [];
+		return DtoConverters.ToDict(instance);
+	}
+
+	/// <summary>Save a summoner instance from GDScript dictionary data.</summary>
+	public bool SaveSummonerInstanceDict(Godot.Collections.Dictionary data)
+	{
+		if (_profileRepo == null) return false;
+		var instance = DtoConverters.FromSummonerDict(data);
+		if (instance == null) return false;
+		return _profileRepo.SaveSummonerInstance(instance);
+	}
+
+	// =========================================================================
+	// GODOT INTEROP
+	// =========================================================================
+
 	/// <summary>Get active summoner instance as dictionary for GDScript.</summary>
 	public Godot.Collections.Dictionary GetActiveSummonerInstanceDict()
 	{

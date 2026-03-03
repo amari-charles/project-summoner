@@ -464,7 +464,7 @@ func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_us
 	# Send our deck and summoner instance data
 	var player_deck: Array = _get_player_deck()
 	var player_summoner_id: String = _get_active_summoner_id()
-	var summoner_data: Dictionary = ProfileRepo.get_summoner_instance(player_summoner_id)
+	var summoner_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(player_summoner_id)
 	if summoner_data.is_empty():
 		# No saved instance — create default from catalog config
 		var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(player_summoner_id))

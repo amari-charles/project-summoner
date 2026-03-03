@@ -75,12 +75,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 
 ## Get the first unlocked summoner from the profile
 func _get_first_unlocked_summoner() -> String:
-	if ProfileRepo.has_method("get_unlocked_summoners"):
-		var unlocked_variant: Variant = ProfileRepo.call("get_unlocked_summoners")
-		if unlocked_variant is Array:
-			var unlocked: Array = unlocked_variant
-			if unlocked.size() > 0:
-				var first_summoner: Variant = unlocked[0]
-				if first_summoner is String:
-					return first_summoner
+	var unlocked = SummonerSelection.GetUnlockedSummonerIdsArray()
+	if unlocked.size() > 0:
+		return unlocked[0]
 	return ""

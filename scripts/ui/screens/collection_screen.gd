@@ -241,12 +241,11 @@ func _refresh_deck_list() -> void:
 	# Create default deck if none exist (only if summoner is unlocked)
 	if deck_list_result.size() == 0 and Decks.has_method("CreateDeckFromDict"):
 		# Check if any summoners are unlocked - can't create deck without one
-		if ProfileRepo.has_method("get_unlocked_summoners"):
-			var unlocked: Variant = ProfileRepo.call("get_unlocked_summoners")
-			if unlocked is Array and unlocked.size() > 0:
-				var new_deck_id: Variant = Decks.call("CreateDeckFromDict", "My Deck", [], "")
-				if new_deck_id is String and not new_deck_id.is_empty():
-					_refresh_deck_list()
+		var unlocked = SummonerSelection.GetUnlockedSummonerIdsArray()
+		if unlocked.size() > 0:
+			var new_deck_id: Variant = Decks.call("CreateDeckFromDict", "My Deck", [], "")
+			if new_deck_id is String and not new_deck_id.is_empty():
+				_refresh_deck_list()
 		return
 
 	# Auto-select first deck if none selected

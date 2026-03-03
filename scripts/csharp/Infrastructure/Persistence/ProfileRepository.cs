@@ -29,11 +29,15 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     private Node? _gdProfileRepo;
 
-    // Events
+    // C# events (for C# consumers)
     public event Action<string>? ProfileLoaded;
     public event Action<string>? ProfileSaved;
     public event Action<string>? SaveFailed;
     public event Action? DataChanged;
+
+    // Godot signals (for GDScript consumers to connect() to)
+    [Signal]
+    public delegate void DataChangedGodotEventHandler();
 
     public override void _Ready()
     {
@@ -62,7 +66,11 @@ public partial class ProfileRepository : Node, IProfileRepository
     private void OnProfileLoaded(string profileId) => ProfileLoaded?.Invoke(profileId);
     private void OnProfileSaved(string profileId) => ProfileSaved?.Invoke(profileId);
     private void OnSaveFailed(string error) => SaveFailed?.Invoke(error);
-    private void OnDataChanged() => DataChanged?.Invoke();
+    private void OnDataChanged()
+    {
+        DataChanged?.Invoke();
+        EmitSignal(SignalName.DataChangedGodot);
+    }
 
     /// <summary>Check if the GDScript repository is connected and log error if not.</summary>
     private bool EnsureConnected(string methodName)
@@ -509,6 +517,21 @@ public partial class ProfileRepository : Node, IProfileRepository
         if (!EnsureConnected(nameof(UpdateSettings))) return;
         var gdSettings = DtoConverters.ToDict(settings);
         _gdProfileRepo!.Call("update_settings", gdSettings);
+    }
+
+    /// <summary>Get settings as dictionary for GDScript.</summary>
+    public Godot.Collections.Dictionary GetSettingsDict()
+    {
+        if (!EnsureConnected(nameof(GetSettingsDict)))
+            return new Godot.Collections.Dictionary();
+        return _gdProfileRepo!.Call("get_settings").AsGodotDictionary();
+    }
+
+    /// <summary>Update settings from GDScript dictionary.</summary>
+    public void UpdateSettingsDict(Godot.Collections.Dictionary settingsDict)
+    {
+        if (!EnsureConnected(nameof(UpdateSettingsDict))) return;
+        _gdProfileRepo!.Call("update_settings", settingsDict);
     }
 
     // =========================================================================

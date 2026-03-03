@@ -370,7 +370,7 @@ func _add_stat_row(label_text: String, value_text: String, value_color: Color) -
 
 
 func _get_computed_stats(summoner_id: String) -> Dictionary:
-	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(summoner_id)
+	var summoner_instance_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(summoner_id)
 	if summoner_instance_data.is_empty():
 		return {}
 
@@ -391,7 +391,7 @@ func _refresh_traits(config: SummonerConfig) -> void:
 		child.queue_free()
 
 	# Get summoner instance to access acquired traits
-	var summoner_instance_data: Dictionary = ProfileRepo.get_summoner_instance(_current_summoner_id)
+	var summoner_instance_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(_current_summoner_id)
 	var all_trait_ids: Array[String] = []
 
 	if not summoner_instance_data.is_empty():
