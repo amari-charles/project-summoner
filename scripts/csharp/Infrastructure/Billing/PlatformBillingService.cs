@@ -51,6 +51,11 @@ public partial class PlatformBillingService : Node
             return false;
         }
 
+        public override void initialize()
+        {
+            // Intentionally no-op: this provider just reports billing as unavailable.
+        }
+
         public override void purchase(string product_id)
         {
             EmitSignal("purchase_failed", product_id, _reason);
