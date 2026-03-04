@@ -120,8 +120,8 @@ The camera can pan within these bounds but cannot see beyond the 200×150 ground
 
 ## Related Files
 
-- `scenes/battlefield/base_battlefield_3d.tscn` - Battlefield scene with spawn markers
-- `scripts/battlefield/base_battlefield_3d.gd` - Spawn position configuration
-- `scripts/battlefield/camera_controller_3d.gd` - Camera bounds and panning
-- `scenes/battlefield/campaign_battle_3d.tscn` - Campaign battle setup
-- `scenes/battlefield/test_battle_vfx.tscn` - VFX test battle setup
+- `scenes/battle/battlefield/base_battlefield_3d.tscn` - Battlefield scene with spawn markers
+- `scripts/battle/battlefield/base_battlefield_3d.gd` - Spawn position configuration
+- `scripts/battle/battlefield/camera_controller_3d.gd` - Camera bounds and panning
+- `scenes/battle/battlefield/campaign_battle_3d.tscn` - Campaign battle setup
+- `scenes/battle/battlefield/test_battle_vfx.tscn` - VFX test battle setup

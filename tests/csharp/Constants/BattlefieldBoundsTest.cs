@@ -1,8 +1,8 @@
-namespace ProjectSummoner.Tests.Constants;
+namespace Fateforged.Tests.Constants;
 
 using GdUnit4;
 using Godot;
-using ProjectSummoner.Constants;
+using Fateforged.Constants;
 using static GdUnit4.Assertions;
 
 /// <summary>

@@ -346,12 +346,12 @@ Special story trait granted only to summoners created via Random selection:
 ### Services
 - `scripts/services/summoner_selection_service.gd` - SummonerSelection autoload
 - `scripts/services/summoner_progression_service.gd` - SummonerProgression autoload
-- `scripts/data/trait_catalog.gd` - TraitCatalog autoload
+- `scripts/infrastructure/data/trait_catalog.gd` - TraitCatalog autoload
 
 ### Data
-- `scripts/core/summoner_config.gd` - SummonerConfig resource class
+- `scripts/infrastructure/summoner_config.gd` - SummonerConfig resource class
 - `scripts/core/summoner_instance.gd` - SummonerInstance runtime class
-- `scripts/data/summoner_catalog.gd` - SummonerCatalog autoload (static configs)
+- `scripts/infrastructure/data/summoner_catalog.gd` - SummonerCatalog autoload (static configs)
 
 ### Modifier Integration (C#)
 - `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` - Provides unit modifiers from traits
@@ -363,9 +363,9 @@ Special story trait granted only to summoners created via Random selection:
 - `scripts/ui/summoner_icon_widget.gd` - Persistent summoner button
 
 ### Scenes
-- `scenes/ui/summoner_management_panel.tscn`
-- `scenes/ui/summoner_roster_item.tscn`
-- `scenes/ui/summoner_icon_widget.tscn`
+- `scenes/meta/components/summoner_management_panel.tscn`
+- `scenes/meta/components/summoner_roster_item.tscn`
+- `scenes/meta/components/summoner_icon_widget.tscn`
 
 ---
 

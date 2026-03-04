@@ -10,7 +10,7 @@ We evaluated several approaches for the ability system:
 |----------|-------------|---------|
 | **ECS (Data-Oriented)** | Entities are IDs, components are pure data, systems process in bulk | Overkill for <100 entities, complex setup |
 | **Component-Based** | Nodes as components attached to units, configured via exports | ✓ **Chosen** - Godot-native, intuitive |
-| **Inheritance-Based** | AbilityUnit extends Unit3D, override methods | Rigid hierarchies, can't mix abilities |
+| **Inheritance-Based** | AbilityUnit extends UnitVisual, override methods | Rigid hierarchies, can't mix abilities |
 | **Data-Driven (GAS-style)** | Abilities as resources, central ability system | Significant boilerplate for our scale |
 
 ### Architecture Trade-offs
@@ -61,7 +61,7 @@ classDiagram
 
     class BaseAbility {
         <<abstract>>
-        #Unit3D OwnerUnit
+        #UnitVisual OwnerUnit
         +bool IsActive
         +Setup(Unit3D unit)
         #Initialize()
@@ -111,11 +111,11 @@ The base class provides the framework for all abilities:
 public abstract partial class BaseAbility : Node
 {
     // === STATE ===
-    protected Unit3D? OwnerUnit { get; private set; }
+    protected UnitVisual? OwnerUnit { get; private set; }
     public bool IsActive { get; protected set; } = true;
 
     // === LIFECYCLE ===
-    public void Setup(Unit3D unit)              // Entry point - sets owner, calls hooks
+    public void Setup(UnitVisual unit)              // Entry point - sets owner, calls hooks
     protected virtual void Initialize()          // Override for custom init
     protected virtual void ConnectToUnitEvents() // Override to wire signals
 
@@ -125,9 +125,9 @@ public abstract partial class BaseAbility : Node
     public void Toggle()
 
     // === HELPERS ===
-    protected List<Unit3D> GetUnitsInRadius(Vector3 center, float radius,
+    protected List<UnitVisual> GetUnitsInRadius(Vector3 center, float radius,
         bool targetEnemies, bool targetAllies, bool includeSelf)
-    protected void ApplyDamage(Unit3D target, float damage, string damageType)
+    protected void ApplyDamage(UnitVisual target, float damage, string damageType)
     protected Node? SpawnVfx(string vfxId, Vector3 position, Node? parent = null)
 }
 ```
@@ -137,7 +137,7 @@ public abstract partial class BaseAbility : Node
 ```mermaid
 sequenceDiagram
     participant Scene as Unit Scene (.tscn)
-    participant Unit as Unit3D
+    participant Unit as UnitVisual
     participant Ability as BaseAbility
 
     Note over Scene: Scene loads with ability as child node
@@ -182,9 +182,9 @@ fire_spider_3d.tscn
 Units emit these signals that abilities can connect to:
 
 ```csharp
-// In Unit3D.cs
+// In UnitVisual.cs
 [Signal] public delegate void HpChangedEventHandler(float newHp, float maxHp);
-[Signal] public delegate void UnitDiedEventHandler(Unit3D unit);
+[Signal] public delegate void UnitDiedEventHandler(UnitVisual unit);
 [Signal] public delegate void UnitAttackedEventHandler(Node3D target);
 ```
 
@@ -318,7 +318,7 @@ var chargeAbility = new ChargeAbility
     BonusType = ChargeAbility.ChargeBonusType.Flat
 };
 unit.AddChild(chargeAbility);
-// Note: Setup() is called automatically by Unit3D.InitializeAbilities()
+// Note: Setup() is called automatically by UnitVisual.InitializeAbilities()
 ```
 
 ## Creating New Abilities
@@ -327,9 +327,9 @@ unit.AddChild(chargeAbility);
 
 ```csharp
 using Godot;
-using ProjectSummoner.Units;
+using Fateforged.View;
 
-namespace ProjectSummoner.Abilities;
+namespace Fateforged.View;
 
 [GlobalClass]
 public partial class MyAbility : BaseAbility
@@ -356,7 +356,7 @@ public partial class MyAbility : BaseAbility
     // === EVENT HANDLERS ===
     private void OnOwnerAttacked(Node3D target)
     {
-        if (!IsActive || target is not Unit3D targetUnit)
+        if (!IsActive || target is not UnitVisual targetUnit)
             return;
 
         // Do something when owner attacks
@@ -456,7 +456,7 @@ protected override void ConnectToUnitEvents()
     OwnerUnit.UnitDied += OnOwnerDied;
 }
 
-private void OnOwnerDied(Unit3D unit)
+private void OnOwnerDied(UnitVisual unit)
 {
     // Trigger effect once
     TriggerExplosion();
@@ -469,7 +469,7 @@ private void OnOwnerDied(Unit3D unit)
 Abilities can apply temporary stat modifiers using the modifier system:
 
 ```csharp
-private void ApplySlowModifier(Unit3D target)
+private void ApplySlowModifier(UnitVisual target)
 {
     target.Call("ApplyModifier", new Godot.Collections.Dictionary
     {
@@ -493,7 +493,7 @@ private void ApplySlowModifier(Unit3D target)
 | `scripts/csharp/Abilities/AuraAbility.cs` | Periodic area effects |
 | `scripts/csharp/Abilities/DeathExplosionAbility.cs` | AoE on death |
 | `scripts/csharp/Abilities/SlowOnHitAbility.cs` | Slow on attack |
-| `scripts/csharp/Units/Unit3D.cs` | Contains InitializeAbilities() |
+| `scripts/csharp/Battle/View/UnitVisual.cs` | Contains InitializeAbilities() |
 
 ## See Also
 

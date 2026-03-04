@@ -81,7 +81,7 @@ Labels should be **noun + short verb**, not code identifiers.
 | Bad | Good |
 |-----|------|
 | `TargetingService` | `Targeting Service` |
-| `CardServiceCS` | `Card Service` |
+| `CardService` | `Card Service` |
 | `ProfileRepositoryBridge` | `Profile Repository` |
 
 Add brief descriptions when helpful:
@@ -165,8 +165,8 @@ Connections:
 
 ```mermaid
 flowchart TB
-    CardServiceCS --> CardOwnershipHandler
-    CardServiceCS --> CardProgressionHandler
+    CardService --> CardOwnershipHandler
+    CardService --> CardProgressionHandler
     CardOwnershipHandler --> ProfileRepositoryCS
     CardProgressionHandler --> ProfileRepositoryCS
     ProfileRepositoryCS --> IProfileRepository

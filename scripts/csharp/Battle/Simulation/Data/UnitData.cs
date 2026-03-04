@@ -1,0 +1,139 @@
+using System.Collections.Generic;
+using Fateforged.Units;
+using Fateforged.Simulation.Enums;
+
+namespace Fateforged.Simulation.Data;
+
+/// <summary>
+/// Direction a blocked unit is flanking around an obstacle.
+/// </summary>
+public enum FlankDirection
+{
+    Left = -1,
+    None = 0,
+    Right = 1
+}
+
+/// <summary>
+/// Per-unit gameplay state stored in MatchState.
+/// Tracks ALL logical state for each spawned unit.
+/// The simulation operates exclusively on UnitData — Unit3D is a visual puppet.
+/// </summary>
+public class UnitData
+{
+    public int UnitId { get; set; }
+    public int NetworkId { get; set; } = -1;
+    public string CatalogId { get; set; } = "";
+    public Team Team { get; set; }
+
+    // HP
+    public float CurrentHp { get; set; }
+    public float MaxHp { get; set; }
+    public bool IsAlive { get; set; } = true;
+
+    // Position — owned by simulation, read by Unit3D for visuals
+    public SimVector3 Position { get; set; }
+
+    // Stats
+    public float AttackDamage { get; set; }
+    public float AttackSpeed { get; set; }
+    public float MoveSpeed { get; set; }
+    public float AttackRange { get; set; }
+    public float AggroRadius { get; set; } = 20f;
+    public float SeparationRadius { get; set; } = 0.5f;
+    public float CritChance { get; set; }
+    public float CritDamage { get; set; } = 1.5f;
+
+    // Damage type and defenses
+    public DamageType AttackType { get; set; } = DamageType.Physical;
+    public float PhysicalDefense { get; set; }
+    public float MagicDefense { get; set; }
+    public float Evasion { get; set; }
+
+    // Classification
+    public UnitType UnitType { get; set; }
+    public MovementLayer MovementLayer { get; set; }
+
+    // Element (int cast of Fateforged.Cards.Element enum)
+    public int ElementId { get; set; } // 0=Neutral
+
+    // Group relationships
+    public int? GroupId { get; set; }
+    public int? LeaderId { get; set; }
+
+    // Combat behavior configuration
+    public MovementStyle MovementStyle { get; set; } = MovementStyle.Direct;
+    public TargetingPriority TargetingPriority { get; set; } = TargetingPriority.Nearest;
+    public RetreatCondition RetreatCondition { get; set; } = RetreatCondition.Never;
+    public float KiteRange { get; set; }
+
+    // Buffs and triggers
+    public List<ActiveBuff> ActiveBuffs { get; set; } = new();
+    public List<TriggerConfig> Triggers { get; set; } = new();
+
+    // Targeting profile (extracted from TargetingConfig at registration)
+    public FallbackMovement FallbackMovement { get; set; }
+    public bool HasConeConstraint { get; set; }
+    public float ConeHalfAngle { get; set; } = 30f;
+    public float CloseRangeThreshold { get; set; } = 0.5f;
+    public TargetLayer TargetLayerFilter { get; set; }
+    public float DistanceScorerWeight { get; set; } = 1f;
+    public float HealthScorerWeight { get; set; }
+    public float FlightAltitude { get; set; }
+
+    // Velocity — computed by simulation each tick
+    public SimVector3 Velocity { get; set; }
+
+    // Facing
+    public bool IsFacingRight { get; set; }
+
+    // Targeting — simulation-owned
+    public int? TargetUnitId { get; set; }
+    public float TargetLockTimer { get; set; }
+
+    // Forced targeting (e.g., redirect spell)
+    public int? ForcedTargetUnitId { get; set; }
+    public float ForcedTargetTimer { get; set; }
+
+    // Combat cooldowns
+    public float AttackCooldown { get; set; }
+
+    // Behavior state (used by SimBehavior)
+    public BehaviorState BehaviorState { get; set; }
+    public float AttackAnimationTimer { get; set; }
+
+    // Ranged unit pending damage (replaces projectile physics)
+    public float ProjectileDelay { get; set; }
+    public float PendingDamageTimer { get; set; }
+    public int? PendingDamageTargetId { get; set; }
+    public float PendingDamageAmount { get; set; }
+
+    // Charge tracking (distance traveled since last attack — for charge ability)
+    public float DistanceTraveled { get; set; }
+
+    // Steering state (used by SimSteering)
+    public float BlockedTime { get; set; }
+    public SimVector3 LastPosition { get; set; }
+    public float FlankAngle { get; set; } = 90f;
+    public FlankDirection FlankDirection { get; set; }
+    public float FlankProgressTimer { get; set; }
+
+    // Death cleanup
+    public float DeathCleanupTimer { get; set; }
+
+    // Activation
+    public ActivationState ActivationState { get; set; }
+
+    // Spawn timer — unit stays Inactive until this counts down to 0, then self-activates.
+    // Set to casting duration at spawn time. 0 = no pending activation.
+    public float SpawnTimer { get; set; }
+
+    // Legacy field — kept for snapshot compatibility during migration
+    public int? TargetNetworkId { get; set; }
+
+    /// <summary>
+    /// Player units face right, enemy units face left.
+    /// Sprites are drawn facing left, so player units get flipped.
+    /// </summary>
+    public static bool DefaultFacingForTeam(Team team) => team == Team.Player;
+}

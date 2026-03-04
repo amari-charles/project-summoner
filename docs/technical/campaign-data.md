@@ -7,7 +7,7 @@ Campaign data defines battles, events, and progression structure. Data is define
 ## File Structure
 
 ```
-scripts/data/campaigns/
+scripts/infrastructure/data/campaigns/
 ├── onboarding_data.gd      # Tutorial/shared campaign
 ├── combat_arena_data.gd    # Dev testing arena
 └── academy_trials_data.gd  # Main per-summoner campaign
@@ -72,9 +72,9 @@ static func _get_battles() -> Array[Dictionary]:
 
 ## Adding a New Campaign
 
-1. Create `scripts/data/campaigns/my_campaign_data.gd`
+1. Create `scripts/infrastructure/data/campaigns/my_campaign_data.gd`
 2. Follow the pattern above with `get_campaign()` and `_get_battles()`
-3. Add campaign ID to `scripts/data/campaign_ids.gd`
+3. Add campaign ID to `scripts/infrastructure/data/campaign_ids.gd`
 4. Register in `CampaignService._load_campaigns()`:
    ```gdscript
    var campaign_data_sources: Array[Callable] = [
@@ -86,7 +86,7 @@ static func _get_battles() -> Array[Dictionary]:
 
 ## Adding a New Battle
 
-1. Add battle ID to `scripts/data/battle_ids.gd`
+1. Add battle ID to `scripts/infrastructure/data/battle_ids.gd`
 2. Add battle dictionary to the campaign's `_get_battles()` array
 3. Use `CardIDs` constants for all deck references
 4. Add localization entries for name/description keys

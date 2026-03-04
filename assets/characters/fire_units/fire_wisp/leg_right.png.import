@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8o8n03fnrs7n"
-path="res://.godot/imported/leg_right.png-2658f71c800a26e18ced1c58c1461a70.ctex"
+path="res://.godot/imported/leg_right.png-dae47aa5626d8682e770f6cd615d188e.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/characters/fire_units/fire_wisp/leg_right.png"
-dest_files=["res://.godot/imported/leg_right.png-2658f71c800a26e18ced1c58c1461a70.ctex"]
+dest_files=["res://.godot/imported/leg_right.png-dae47aa5626d8682e770f6cd615d188e.ctex"]
 
 [params]
 

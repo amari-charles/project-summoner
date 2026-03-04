@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EventSequence" load_steps=8 format=3]
 
-[ext_resource type="Script" path="res://scripts/resources/event_sequence.gd" id="1_sequence"]
-[ext_resource type="Script" path="res://scripts/resources/event_step.gd" id="2_step"]
+[ext_resource type="Script" path="res://scripts/infrastructure/data/event_sequence.gd" id="1_sequence"]
+[ext_resource type="Script" path="res://scripts/infrastructure/data/event_step.gd" id="2_step"]
 
 [sub_resource type="Resource" id="step_intro"]
 script = ExtResource("2_step")
@@ -23,9 +23,8 @@ stat_overrides = {
 
 [sub_resource type="Resource" id="step_wait_damage"]
 script = ExtResource("2_step")
-step_type = 4
-signal_source = "GameStateEvents"
-signal_name = "unit_damaged"
+step_type = 1
+wait_duration = 3.0
 
 [sub_resource type="Resource" id="step_tanky_warning"]
 script = ExtResource("2_step")

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://b2y7m3hv5nk4p"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Multiplayer/Matchmaking/MatchmakingService.cs" id="1_matchmaking"]
-
-[node name="MatchmakingService" type="Node"]
-script = ExtResource("1_matchmaking")

@@ -63,8 +63,8 @@
 - **Fix:** Initialize synchronously so services are ready when GDScript callers access them
 
 **Autoload Naming Convention:**
-- **Decision:** Use `CS` suffix for C# autoloads (CardServiceCS, EconomyServiceCS)
-- **Why:** Prevents class name conflicts in GDScript (Collection vs Collection class)
+- **Decision:** Originally used `CS` suffix for C# autoloads (CardServiceCS, EconomyServiceCS) to prevent class name conflicts
+- **Update:** All CS suffixes removed as of Phase 4+6. Autoloads now use clean names (e.g., `Economy`, `CardService`, `Decks`)
 - **Pattern:** GDScript sees autoload name, not class name
 
 ### Files Added

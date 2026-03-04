@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://bqj5kvx8m2nlr"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Services/LevelCapService.cs" id="1_main"]
-
-[node name="LevelCapService" type="Node"]
-script = ExtResource("1_main")

@@ -1,9 +1,9 @@
-namespace ProjectSummoner.Tests.Summoners;
+namespace Fateforged.Tests.Summoners;
 
 using System.Linq;
 using GdUnit4;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Summoners;
+using Fateforged.Cards;
+using Fateforged.Data.Summoners;
 using static GdUnit4.Assertions;
 
 /// <summary>

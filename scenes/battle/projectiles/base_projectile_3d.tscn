@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://base_projectile_3d"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Battle/View/ProjectileVisual.cs" id="1_script"]
+
+[node name="Projectile3D" type="Node3D"]
+script = ExtResource("1_script")

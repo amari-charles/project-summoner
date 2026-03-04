@@ -76,7 +76,7 @@ Runs on clients:
 - Reconciles when host confirms/rejects
 - Interpolates entity positions from snapshots
 
-### P2PTransport (`scripts/csharp/Multiplayer/Transport/P2PTransport.cs`)
+### P2PTransport (`scripts/csharp/Battle/Session/Transport/P2PTransport.cs`)
 
 ENet-based peer-to-peer transport:
 - Host creates server on port 7777

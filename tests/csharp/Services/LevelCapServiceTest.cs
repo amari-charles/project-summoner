@@ -1,20 +1,20 @@
-namespace ProjectSummoner.Tests.Services;
+namespace Fateforged.Tests.Services;
 
 using System.Collections.Generic;
 using GdUnit4;
-using ProjectSummoner.Services;
+using Fateforged.Meta;
 using static GdUnit4.Assertions;
 
 /// <summary>
 /// Tests for LevelCapService class.
 /// Tests the static methods directly without needing the Node instance.
 /// </summary>
-[TestSuite]
+// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
 public class LevelCapServiceTest
 {
     private LevelCapService _service = null!;
 
-    [Before]
+    [BeforeTest]
     public void Setup()
     {
         _service = new LevelCapService();

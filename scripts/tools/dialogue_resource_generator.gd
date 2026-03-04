@@ -23,7 +23,7 @@ extends EditorScript
 
 const LOCALIZATION_PATH: String = "res://localization/data/en.json"
 const DIALOGUE_OUTPUT_DIR: String = "res://resources/dialogue/"
-const DIALOGUE_SCRIPT_PATH: String = "res://scripts/dialogue/dialogue_data.gd"
+const DIALOGUE_SCRIPT_PATH: String = "res://scripts/infrastructure/dialogue/dialogue_data.gd"
 
 func _run() -> void:
 	print("DialogueResourceGenerator: Starting...")
@@ -72,7 +72,7 @@ func _run() -> void:
 		# Check if file already exists and has correct script path
 		if FileAccess.file_exists(output_path):
 			var existing_content: String = FileAccess.get_file_as_string(output_path)
-			if existing_content.contains("res://scripts/dialogue/dialogue_data.gd"):
+			if existing_content.contains("res://scripts/infrastructure/dialogue/dialogue_data.gd"):
 				# File exists and is correct, skip
 				skipped_count += 1
 				continue
@@ -95,7 +95,7 @@ func _generate_dialogue_resource(dialogue_id: String, output_path: String) -> vo
 	# Create correct format matching DialogueData class structure
 	var tres_content: String = """[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_dialogue"]
+[ext_resource type="Script" path="res://scripts/infrastructure/dialogue/dialogue_data.gd" id="1_dialogue"]
 
 [resource]
 script = ExtResource("1_dialogue")

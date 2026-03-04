@@ -201,7 +201,8 @@
       "close": "Close",
       "back": "Back",
       "cancel": "Cancel",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "unknown": "Unknown"
     },
     "pause_menu": {
       "resume": "Resume",
@@ -214,6 +215,7 @@
     "deck_size": "Deck: {count}",
     "hand_size": "Hand: {count}",
     "reward": {
+      "unknown_battle": "Unknown Battle",
       "first_clear_header": "First Clear",
       "every_battle_header": "Every Battle",
       "first_clear_claimed": "✓ Claimed",
@@ -254,6 +256,7 @@
       "level_capped_tooltip": "Cards above level {level} will be normalized to level {level}"
     },
     "collection": {
+      "default_deck_name": "My Deck",
       "empty_decks": "No decks yet. Click 'NEW DECK' to create one!",
       "rarity_label": "Rarity: {rarity}",
       "type_label": "Type: {type}",
@@ -473,7 +476,8 @@
       "disconnected": "Disconnected from host",
       "ready_to_play": "Ready to start!",
       "waiting_for_host": "Waiting for host...",
-      "match_starting": "Match starting..."
+      "match_starting": "Match starting...",
+      "default_opponent_name": "Opponent"
     },
     "events": {
       "title": "SPECIAL EVENTS",
@@ -512,6 +516,8 @@
       "leaderboard_title": "TOP PLAYERS",
       "your_rank": "Your Rank",
       "unranked": "Unranked",
+      "exchanging_data": "Exchanging match data...",
+      "exchange_timeout": "Failed to exchange data with opponent",
       "not_connected": "Not connected to server",
       "authenticating": "Authenticating...",
       "authentication_failed": "Authentication failed",
@@ -522,7 +528,8 @@
       "tier_diamond": "Diamond",
       "tier_master": "Master",
       "tier_grandmaster": "Grandmaster",
-      "tier_legend": "Legend"
+      "tier_legend": "Legend",
+      "unknown_player": "Unknown"
     },
     "reconnection": {
       "connection_lost": "Connection Lost",

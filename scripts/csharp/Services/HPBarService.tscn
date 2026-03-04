@@ -1,6 +1,0 @@
-[gd_scene load_steps=0 format=3 uid="uid://dh8xp2v6r4mkn"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Services/HPBarService.cs" id="1_service"]
-
-[node name="HPBarService" type="Node"]
-script = ExtResource("1_service")

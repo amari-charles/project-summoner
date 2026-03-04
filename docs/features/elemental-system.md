@@ -179,7 +179,7 @@ var modifiers = ModifierSystem.get_modifiers_for("unit", {"elemental_affinity": 
 
 ### Element Constants
 
-All element types are defined in `scripts/core/element_types.gd` as a global autoload (`ElementTypes`).
+All element types are defined in `scripts/infrastructure/element_types.gd` as a global autoload (`ElementTypes`).
 
 **Usage:**
 ```gdscript
@@ -235,7 +235,7 @@ var modifiers = ModifierSystem.get_modifiers_for("unit", categories, {})
 
 ### Element Interactions (Combat Matchups)
 
-When units deal damage, a multiplier is applied based on the attacker's element vs the defender's element. This is handled by `ElementMatchups` in `scripts/csharp/Constants/ElementMatchups.cs`.
+When units deal damage, a multiplier is applied based on the attacker's element vs the defender's element. This is handled by `ElementMatchups` in `scripts/csharp/Infrastructure/Constants/ElementMatchups.cs`.
 
 **Current Matchups (Core Cycle):**
 

@@ -34,7 +34,7 @@ Items and cards use a binding system to determine ownership:
 
 ### Services
 
-- **ItemService (C#)**: `scripts/csharp/Services/Items/ItemService.cs` - Core item logic
+- **ItemService (C#)**: `scripts/csharp/Meta/Services/Items/ItemService.cs` - Core item logic
 - **ItemService (GDScript)**: `scripts/services/item_service.gd` - GDScript wrapper, autoloaded as `Items`
 - **ItemCatalog**: Static item definitions with slots, modifiers, and binding types
 

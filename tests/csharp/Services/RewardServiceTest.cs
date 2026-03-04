@@ -1,18 +1,18 @@
-namespace ProjectSummoner.Tests.Services;
+namespace Fateforged.Tests.Services;
 
 using System.Collections.Generic;
 using System.Linq;
 using GdUnit4;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Constants;
-using ProjectSummoner.Services.Rewards;
+using Fateforged.Cards;
+using Fateforged.Constants;
+using Fateforged.Meta.Rewards;
 using static GdUnit4.Assertions;
 
 /// <summary>
 /// Tests for RewardService and RewardPoolCatalog.
 /// Tests the static methods and data structures without needing the Node instance.
 /// </summary>
-[TestSuite]
+// [TestSuite] — requires Godot runtime (CardCatalog creates Resource objects); run via editor's gdUnit4 panel
 public class RewardServiceTest
 {
     // =============================================================================

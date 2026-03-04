@@ -1,7 +1,7 @@
-namespace ProjectSummoner.Tests.Services;
+namespace Fateforged.Tests.Services;
 
 using GdUnit4;
-using ProjectSummoner.Services.Cards;
+using Fateforged.Meta.Cards;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -44,16 +44,16 @@ public class CardServiceTest
     }
 
     [TestCase]
-    public void GetDismantleValue_UnknownRarity_Returns0()
+    public void GetDismantleValue_UnknownRarity_DefaultsToCommon()
     {
         var value = CardService.GetDismantleValue("mythic");
-        AssertThat(value).IsEqual(0);
+        AssertThat(value).IsEqual(5);
     }
 
     [TestCase]
-    public void GetDismantleValue_EmptyString_Returns0()
+    public void GetDismantleValue_EmptyString_DefaultsToCommon()
     {
         var value = CardService.GetDismantleValue("");
-        AssertThat(value).IsEqual(0);
+        AssertThat(value).IsEqual(5);
     }
 }

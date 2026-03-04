@@ -68,7 +68,7 @@ HP = 45 * 1.2 = 54
 
 Summoner-specific bonuses from traits and items.
 
-**Source:** `ModifierService` via `SummonerModifierProvider`
+**Source:** `SimEffects` via `SummonerModifierProvider`
 
 **Example:** Fire Affinity trait gives +10% damage to fire units:
 ```
@@ -79,7 +79,7 @@ ATK = 9 * 1.1 = 9.9
 
 Context-specific modifiers for special battles.
 
-**Source:** `ModifierService` or battle configuration overrides
+**Source:** `SimEffects` or battle configuration overrides
 
 **Example:** Boss fight with +50% enemy HP:
 ```
@@ -90,7 +90,7 @@ HP = 54 * 1.5 = 81
 
 Temporary effects applied during battle from spells, abilities, or environmental effects.
 
-**Source:** `ModifierService` via runtime providers
+**Source:** `SimEffects` via runtime providers
 
 **Example:** Buff spell giving +25% attack speed for 10 seconds.
 
@@ -153,7 +153,7 @@ public static UnitStats Calculate(
 
 - `scripts/csharp/Units/UnitCatalog.cs` - Base stats registry
 - `scripts/csharp/Cards/CardCatalog.cs` - Card definitions with optional modifiers
-- `scripts/csharp/Stats/UnitStatCalculator.cs` - Pipeline implementation
-- `scripts/csharp/Stats/UnitStats.cs` - Stat container with modification methods
-- `scripts/csharp/Systems/Modifiers/StatModifier.cs` - Modifier definition
-- `scripts/csharp/Systems/Modifiers/ModifierService.cs` - Modifier collection and application
+- `scripts/csharp/Battle/Simulation/Stats/UnitStatCalculator.cs` - Pipeline implementation
+- `scripts/csharp/Battle/Simulation/Stats/UnitStats.cs` - Stat container with modification methods
+- `scripts/csharp/Battle/Simulation/Stats/StatModifier.cs` - Modifier definition
+- `scripts/csharp/Battle/Simulation/Combat/SimEffects.cs` - Buff/debuff system and modifier application

@@ -2,24 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Events;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Campaign;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Domain.Profile.Decks;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Domain.Profile.Inventory;
-using ProjectSummoner.Domain.Profile.Shop;
-using ProjectSummoner.Domain.Profile.Summoners;
-using ProjectSummoner.Services.Campaign;
-using ProjectSummoner.Services.Deck;
-using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
+using Fateforged.Cards;
+using Fateforged.Data.Events;
+using Fateforged.Data.Items;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Decks;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Shop;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Meta.Campaign;
+using Fateforged.Meta.Deck;
+using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
-namespace ProjectSummoner.Infrastructure.Persistence;
+namespace Fateforged.Infrastructure.Persistence;
 
 /// <summary>
 /// Centralized converters for Godot.Collections.Dictionary ↔ Domain model conversions.
@@ -563,7 +563,7 @@ public static class DtoConverters
     // =========================================================================
 
     /// <summary>Convert Meta to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(Meta meta)
+    public static Godot.Collections.Dictionary ToDict(AccountMeta meta)
     {
         var tutorialDict = new Godot.Collections.Dictionary();
         foreach (var (key, value) in meta.TutorialFlags)
@@ -591,11 +591,11 @@ public static class DtoConverters
     /// Convert Godot Dictionary to Meta.
     /// Returns default Meta if dict is null or empty.
     /// </summary>
-    public static Meta FromMetaDict(Godot.Collections.Dictionary? dict)
+    public static AccountMeta FromMetaDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return new Meta();
+        if (dict == null || dict.Count == 0) return new AccountMeta();
 
-        var meta = new Meta
+        var meta = new AccountMeta
         {
             SelectedDeck = GetString(dict, "selected_deck", ""),
             SelectedSummoner = GetString(dict, "selected_summoner", ""),

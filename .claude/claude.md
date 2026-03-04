@@ -60,6 +60,18 @@ Example: When implementing drag-and-drop for cards, remove click-to-play entirel
 - **Maintain quality**: no regressions, no reduction in safety checks, type weakness, or silent failures.
 - If a test appears incorrect or incomplete, state why and propose a fix, but do not change it without instruction.
 
+### Running Tests
+
+```bash
+# Headless (fast, skips Godot-runtime tests):
+dotnet test --settings test.runsettings
+
+# Full suite including Godot-runtime tests:
+# Run via Godot editor's gdUnit4 panel
+```
+
+Test suites that create `Godot.Collections.Dictionary`, `Godot.Collections.Array`, or load catalogs containing `Resource` subclasses (e.g., `CardConfig`) crash the headless test host. These suites have `[TestSuite]` commented out with a note to run via the editor.
+
 ### Persistence Philosophy
 **NEVER give up on a task without explicit permission.** When something doesn't work:
 1. Debug and investigate the root cause
@@ -146,13 +158,13 @@ This pattern provides:
 
 When GDScript needs C# enum values, use the **Mirror Enum Pattern**:
 
-1. Define a matching enum in `scripts/data/unit_constants.gd`
+1. Define a matching enum in `scripts/infrastructure/data/unit_constants.gd`
 2. Add a comment noting the C# source file it must match
 3. Cast to `int()` when passing to C# methods
 
 **Examples:**
-- `UnitConstants.Team` mirrors `scripts/csharp/Units/Enums.cs`
-- `UnitConstants.HurtboxCategory` mirrors `scripts/csharp/Combat/Hitbox/HurtboxCategory.cs`
+- `UnitConstants.Team` mirrors `scripts/csharp/Infrastructure/Data/Units/Enums.cs`
+- `UnitConstants.GameState` mirrors `scripts/csharp/Battle/View/BattleScene.cs`
 
 **Never hardcode C# enum int values directly** (e.g., `const CATEGORY: int = 2`). Always use the mirror enum for type safety and maintainability.
 
@@ -196,7 +208,7 @@ This is a Godot limitation with C# nullable reference types.
 
 **Example:** Event/battle configuration dictionaries should become C# classes:
 ```csharp
-// scripts/csharp/Data/BattleEventConfig.cs
+// scripts/csharp/Infrastructure/Data/BattleEventConfig.cs
 public class BattleEventConfig
 {
     public string BiomeId { get; set; }

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://card_service_001"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Services/Cards/CardService.cs" id="1_card_service"]
-
-[node name="CardService" type="Node"]
-script = ExtResource("1_card_service")

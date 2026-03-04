@@ -36,9 +36,9 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 - May be unfixable Godot behavior in headless mode
 
 **Related Files:**
-- scripts/vfx/vfx_manager.gd
-- scripts/csharp/Services/HPBarService.cs
-- scripts/csharp/Projectiles/ProjectileService.cs
+- scripts/battle/vfx/vfx_manager.gd
+- scripts/csharp/Battle/View/EntityManager.cs (HP bar lifecycle)
+- scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs
 
 ---
 
@@ -67,7 +67,7 @@ Visual bugs and potential errors during development/testing.
 
 **Related Files:**
 - scripts/systems/hp_bar_manager.gd
-- scripts/ui/battle/hp_bar.gd (if exists)
+- scripts/battle/ui/hp_bar.gd (if exists)
 
 ---
 
@@ -101,8 +101,8 @@ Reduces effective army size as blocked units don't contribute to combat.
 - Target acquisition succeeding but movement failing
 
 **Related Files:**
-- scripts/csharp/Units/Unit3D.cs (movement/pathfinding logic)
-- scripts/csharp/Units/RangedUnit3D.cs (Puff-specific behavior)
+- scripts/csharp/Battle/View/UnitVisual.cs (visual shell / movement sync)
+- scripts/csharp/Battle/Simulation/SimBehavior.cs (behavior logic, formerly in RangedUnit3D)
 - Blocked detection / flanking logic
 
 ---
@@ -209,7 +209,7 @@ Spawning is "messed up" when spawning as enemy in debug mode.
 Debug tool doesn't work correctly for testing enemy units.
 
 **Related Files:**
-- scripts/ui/debug/unit_spawner_panel.gd
+- scripts/battle/ui/debug/unit_spawner_panel.gd
 - Battlefield spawn logic
 
 ---
@@ -232,8 +232,8 @@ Wisps attack multiple enemies simultaneously, which may be unintended AOE behavi
 Affects combat balance - wisps are more effective than designed if they can hit multiple targets.
 
 **Related Files:**
-- scripts/csharp/Units/Unit3D.cs
-- scripts/csharp/Combat/ (targeting logic)
+- scripts/csharp/Battle/View/UnitVisual.cs (visual shell)
+- scripts/csharp/Battle/Simulation/Combat/ (targeting logic)
 - Card definitions for wisps
 
 ---
@@ -264,8 +264,8 @@ Reduces Puff combat effectiveness - time spent switching targets and repositioni
 3. Only reposition to chase a closer target if no valid targets are currently in cone range
 
 **Related Files:**
-- scripts/csharp/Units/RangedUnit3D.cs
-- scripts/csharp/Targeting/TargetingService.cs
+- scripts/csharp/Battle/Simulation/SimBehavior.cs (behavior logic, formerly in RangedUnit3D)
+- scripts/csharp/Battle/Simulation/SimTargeting.cs (targeting logic, formerly in TargetingService)
 - Cone attack range detection logic
 
 ---
@@ -292,12 +292,35 @@ ERROR:   - CardIDs.DUCKLING = 'duckling'
 Cosmetic startup error. No gameplay impact since duckling is correctly handled as a unit spawned by mama_duck.
 
 **Proposed Solution:**
-Remove `const DUCKLING: StringName = &"duckling"` from `scripts/data/card_ids.gd` since duckling is not a playable card.
+Remove `const DUCKLING: StringName = &"duckling"` from `scripts/infrastructure/data/card_ids.gd` since duckling is not a playable card.
 
 **Related Files:**
-- scripts/data/card_ids.gd (line 75)
-- scripts/data/card_catalog.gd (validation logic)
+- scripts/infrastructure/data/card_ids.gd (line 75)
+- scripts/infrastructure/data/card_catalog.gd (validation logic)
 
 ---
 
-*Last Updated: 2026-02-01 - Added CardIDs.DUCKLING validation error*
+#### Puff Pivot Point Off-Center When Turning
+**Status:** Open
+**Reported:** 2026-02-27
+**Component:** Units / Visual / Sprites
+
+**Description:**
+When Puff turns around (flips facing direction), it visually snaps to a different position because the pivot point is at the center of the sprite image, not the visual center of the character. Puff is not centered within its sprite sheet, so flipping the sprite causes an apparent position jump.
+
+**Expected Behavior:**
+Puff should pivot around its visual center, appearing to turn in place without shifting sideways.
+
+**Current Behavior:**
+Puff appears to teleport slightly left or right when changing facing direction because the flip mirrors around the image center, not the character center.
+
+**Proposed Solution:**
+Adjust the sprite offset so Puff's visual center aligns with the pivot point, or re-center Puff within the sprite sheet.
+
+**Related Files:**
+- Puff unit scene / sprite configuration
+- `scripts/csharp/Battle/View/UnitVisual.cs` (SetFacing method)
+
+---
+
+*Last Updated: 2026-02-27 - Added Puff pivot point off-center bug*

@@ -15,8 +15,8 @@ extends GutTest
 
 ## Returns true if C# runtime is available
 func _is_csharp_available() -> bool:
-	var spatial_grid: Node = get_node_or_null(CSharpAutoloads.SPATIAL_GRID)
-	return spatial_grid != null and spatial_grid.has_method("register_unit")
+	# C# runtime availability check (SpatialGrid autoload removed)
+	return true
 
 
 ## =============================================================================
@@ -59,45 +59,6 @@ func test_vfx_manager_pooled_effects_in_scene_tree() -> void:
 		pool_child_count,
 		total_pooled,
 		"Pool container child count should match total pooled effects"
-	)
-
-
-## =============================================================================
-## HPBARSERVICE POOL CONTAINER TESTS (C#)
-## =============================================================================
-
-func test_hp_bar_service_has_pool_container() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available, HPBarService won't initialize")
-		return
-
-	# Trigger lazy initialization
-	HPBarService.ForceInitialize()
-
-	var pool_container: Node3D = HPBarService.GetPoolContainer()
-	assert_not_null(pool_container, "HPBarService should have pool_container")
-	assert_true(
-		pool_container.get_parent() == HPBarService,
-		"pool_container should be child of HPBarService"
-	)
-
-
-func test_hp_bar_service_pooled_bars_in_scene_tree() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available, HPBarService won't initialize")
-		return
-
-	# Trigger lazy initialization
-	HPBarService.ForceInitialize()
-
-	var pool_container: Node3D = HPBarService.GetPoolContainer()
-	var pool_child_count: int = pool_container.get_child_count()
-	var pooled_count: int = HPBarService.GetPooledBarCount()
-
-	assert_eq(
-		pool_child_count,
-		pooled_count,
-		"Pool container child count should match pooled bar count"
 	)
 
 

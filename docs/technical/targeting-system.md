@@ -5,7 +5,7 @@ The targeting system controls how units acquire targets, validate attack constra
 ## Architecture Overview
 
 ```
-Unit3D
+UnitVisual
   └── GetTargetingConfig()
         ├── TargetingConfigRegistry.GetConfig(UnitId)  // Primary lookup
         ├── Exported TargetingConfig                    // Fallback
@@ -25,7 +25,7 @@ Units specify their `UnitId` in the scene file:
 UnitId = "puff"
 ```
 
-The registry is queried automatically via `Unit3D.GetTargetingConfig()`:
+The registry is queried automatically via `UnitVisual.GetTargetingConfig()`:
 ```csharp
 public static TargetingConfig GetConfig(string unitId)
 ```
@@ -42,7 +42,7 @@ private static void RegisterMyUnitConfig()
 {
     var config = new TargetingConfig
     {
-        Filter = new ValidTargetFilter(),
+        Filter = new SimTargetFilter(),
         Scorer = new DistanceScorer { MaxDistance = 10f },
         AttackConstraint = new RangeConstraint(),
         AggroRadius = 10f,
@@ -57,7 +57,7 @@ private static void RegisterMyUnitConfig()
 ### Filters
 Control which targets are valid candidates.
 
-- **ValidTargetFilter**: Filters out dead/invalid units (default)
+- **SimTargetFilter** (in `SimTargeting.cs`): Filters out dead/invalid units (default)
 
 ### Scorers
 Rank valid targets by priority. Higher scores = higher priority.
@@ -95,7 +95,7 @@ When a unit has a target in range but attack constraints aren't satisfied (e.g.,
 
 ### Strafe Movement Algorithm
 
-The strafe algorithm (`Unit3D.StrafeAroundTarget`) moves the unit perpendicular to the target direction to bring the target into the attack cone:
+The strafe algorithm (`UnitVisual.StrafeAroundTarget`) moves the unit perpendicular to the target direction to bring the target into the attack cone:
 
 1. Calculate angle to target on XZ plane
 2. Determine optimal facing direction (toward target's half-plane)
@@ -123,9 +123,9 @@ Target above unit, facing right:
 - **AggroRadius**: 0 - doesn't acquire targets
 - **AttackSpeed**: 0 - cannot attack
 
-## Integration with Unit3D
+## Integration with UnitVisual
 
-The targeting system integrates with `Unit3D.UpdateBehavior()`:
+The targeting system integrates with `UnitVisual.UpdateBehavior()`:
 
 ```
 1. No target? → MoveForward()

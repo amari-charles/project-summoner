@@ -10,13 +10,13 @@ var _original_profile_id: String = ""
 
 func before_all() -> void:
 	# Store original profile ID to restore after tests
-	_original_profile_id = ProfileRepo.get_current_profile_id()
+	_original_profile_id = ProfileRepo.GetCurrentProfileId()
 
 
 func before_each() -> void:
 	# Load a test profile to avoid modifying real data
-	ProfileRepo.load_profile("test_summoner_progression")
-	ProfileRepo.reset_profile()
+	ProfileRepo.LoadProfile("test_summoner_progression")
+	ProfileRepo.ResetProfile()
 	# Wait for services to be ready after profile change
 	await get_tree().process_frame
 
@@ -24,7 +24,7 @@ func before_each() -> void:
 func after_all() -> void:
 	# Restore original profile
 	if not _original_profile_id.is_empty():
-		ProfileRepo.load_profile(_original_profile_id)
+		ProfileRepo.LoadProfile(_original_profile_id)
 
 
 ## =============================================================================
@@ -39,7 +39,7 @@ func _create_summoner_with_xp(summoner_id: String, xp: int) -> void:
 		"level": 1,
 		"xp": xp
 	}
-	ProfileRepo.save_summoner_instance_dict(summoner_data)
+	ProfileRepo.SaveSummonerInstanceDict(summoner_data)
 	await get_tree().process_frame
 
 
@@ -50,21 +50,21 @@ func _create_summoner_with_xp(summoner_id: String, xp: int) -> void:
 func test_can_level_up_returns_false_when_no_xp() -> void:
 	await _create_summoner_with_xp("summoner_cole", 0)
 
-	assert_false(SummonerProgression.can_level_up("summoner_cole"))
+	assert_false(SummonerProgression.CanLevelUp("summoner_cole"))
 
 
 func test_can_level_up_returns_true_when_enough_xp() -> void:
 	# Level 1 -> 2 requires 100 XP
 	await _create_summoner_with_xp("summoner_cole", 100)
 
-	assert_true(SummonerProgression.can_level_up("summoner_cole"))
+	assert_true(SummonerProgression.CanLevelUp("summoner_cole"))
 
 
 func test_can_level_up_returns_false_when_just_under_threshold() -> void:
 	# Level 1 -> 2 requires 100 XP
 	await _create_summoner_with_xp("summoner_cole", 99)
 
-	assert_false(SummonerProgression.can_level_up("summoner_cole"))
+	assert_false(SummonerProgression.CanLevelUp("summoner_cole"))
 
 
 ## =============================================================================
@@ -75,12 +75,12 @@ func test_level_up_summoner_succeeds_when_valid() -> void:
 	# Set up summoner with enough XP
 	await _create_summoner_with_xp("summoner_cole", 100)
 
-	var success: bool = SummonerProgression.level_up_summoner("summoner_cole")
+	var success: bool = SummonerProgression.LevelUpSummoner("summoner_cole")
 
 	assert_true(success, "Level-up should succeed with enough XP")
 
 	# Verify level increased
-	var info: Dictionary = SummonerProgression.get_summoner_progression_info("summoner_cole")
+	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo("summoner_cole")
 	assert_eq(info.get("level"), 2, "Summoner should be level 2")
 
 
@@ -88,7 +88,7 @@ func test_level_up_summoner_fails_when_not_enough_xp() -> void:
 	# Set up summoner without enough XP
 	await _create_summoner_with_xp("summoner_cole", 50)
 
-	var success: bool = SummonerProgression.level_up_summoner("summoner_cole")
+	var success: bool = SummonerProgression.LevelUpSummoner("summoner_cole")
 
 	assert_false(success, "Level-up should fail without enough XP")
 	# Expect the warning from the C# service
@@ -98,9 +98,9 @@ func test_level_up_summoner_fails_when_not_enough_xp() -> void:
 func test_level_up_summoner_updates_level_correctly() -> void:
 	await _create_summoner_with_xp("summoner_cole", 100)
 
-	var success: bool = SummonerProgression.level_up_summoner("summoner_cole")
+	var success: bool = SummonerProgression.LevelUpSummoner("summoner_cole")
 	assert_true(success, "Level-up should succeed")
 
 	# Verify level was updated
-	var info: Dictionary = SummonerProgression.get_summoner_progression_info("summoner_cole")
+	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo("summoner_cole")
 	assert_eq(info.get("level"), 2, "Level should be updated to 2")

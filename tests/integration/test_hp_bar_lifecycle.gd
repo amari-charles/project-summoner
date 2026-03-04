@@ -43,8 +43,8 @@ func after_each() -> void:
 ## =============================================================================
 
 func _is_csharp_available() -> bool:
-	var spatial_grid: Node = get_node_or_null(CSharpAutoloads.SPATIAL_GRID)
-	return spatial_grid != null and spatial_grid.has_method("register_unit")
+	# C# runtime availability check (SpatialGrid autoload removed)
+	return true
 
 
 ## =============================================================================

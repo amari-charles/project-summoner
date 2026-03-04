@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://d2m8n4k6p9w2q"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Multiplayer/Ranking/RankingService.cs" id="1_ranking"]
-
-[node name="RankingService" type="Node"]
-script = ExtResource("1_ranking")

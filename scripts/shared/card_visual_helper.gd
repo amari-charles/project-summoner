@@ -1,0 +1,277 @@
+extends Node
+class_name CardVisualHelper
+
+## CardVisualHelper - Utility functions for card visual presentation
+##
+## Provides element-to-color mappings and visual styling helpers for cards
+
+## =============================================================================
+## ELEMENT COLOR MAPPING
+## =============================================================================
+
+## Get border/accent color for a card based on its elemental affinity
+## Returns the primary color for the element, or a neutral color if no affinity
+static func get_element_border_color(element_id: String) -> Color:
+	if element_id.is_empty():
+		return GameColorPalette.NEUTRAL_MID
+
+	match StringName(element_id.to_lower()):
+		# Neutral
+		ElementNameIDs.NEUTRAL:
+			return GameColorPalette.NEUTRAL_MID
+
+		# Core elements
+		ElementNameIDs.FIRE:
+			return GameColorPalette.FIRE_PRIMARY
+		ElementNameIDs.WATER:
+			return GameColorPalette.WATER_PRIMARY
+		ElementNameIDs.WIND:
+			return Color("#eeeeee")  # White with gray tint
+		ElementNameIDs.EARTH:
+			return GameColorPalette.EARTH_PRIMARY
+
+		# Outer elements
+		ElementNameIDs.LIGHTNING:
+			return GameColorPalette.STORM_PRIMARY
+		ElementNameIDs.SHADOW:
+			return Color("#4a0e4e")  # Deep purple-black
+		ElementNameIDs.POISON:
+			return Color("#8fbc8f")  # Toxic green
+		ElementNameIDs.LIFE:
+			return GameColorPalette.NATURE_PRIMARY
+		ElementNameIDs.DEATH:
+			return Color("#2f2f2f")  # Dark gray
+
+		# Occultist
+		ElementNameIDs.OCCULTIST:
+			return Color("#6a0dad")  # Deep occult purple
+
+		# Elevated elements
+		ElementNameIDs.HOLY:
+			return Color("#ffd700")  # Divine gold
+		ElementNameIDs.ICE:
+			return Color("#b0e0e6")  # Pale ice blue
+		ElementNameIDs.METAL:
+			return Color("#c0c0c0")  # Metallic silver
+		ElementNameIDs.SPIRIT:
+			return Color("#e6e6fa")  # Ethereal lavender
+
+		_:
+			push_warning("CardVisualHelper: Unknown element '%s', using neutral color" % element_id)
+			return GameColorPalette.NEUTRAL_MID
+
+## Get a secondary/lighter color for element (for glows, highlights)
+static func get_element_glow_color(element_id: String) -> Color:
+	var base_color: Color = get_element_border_color(element_id)
+	# Lighten the color and increase saturation slightly
+	return base_color.lightened(0.3)
+
+## Get gradient color pair for element background
+## Returns [dark_color, light_color] for radial gradient (center to edge)
+static func get_element_gradient_colors(element_id: String) -> Array[Color]:
+	match StringName(element_id.to_lower()):
+		# Neutral
+		ElementNameIDs.NEUTRAL:
+			return [Color("#3a3a3a"), Color("#6a6a6a")]  # Dark gray → Mid gray
+
+		# Core elements
+		ElementNameIDs.FIRE:
+			return [GameColorPalette.FIRE_DARK, GameColorPalette.FIRE_PRIMARY]  # Deep ember → Bright orange
+		ElementNameIDs.WATER:
+			return [GameColorPalette.WATER_DARK, GameColorPalette.WATER_PRIMARY]  # Deep ocean → Bright blue
+		ElementNameIDs.WIND:
+			return [Color("#e0e0e0"), Color("#ffffff")]  # Light gray → White
+		ElementNameIDs.EARTH:
+			return [GameColorPalette.EARTH_PRIMARY, GameColorPalette.EARTH_SECONDARY]  # Dark brown → Tan
+
+		# Outer elements
+		ElementNameIDs.LIGHTNING:
+			return [GameColorPalette.STORM_DARK, GameColorPalette.STORM_PRIMARY]  # Deep violet → Bright purple
+		ElementNameIDs.SHADOW:
+			return [Color("#1a0520"), Color("#4a0e4e")]  # Very dark purple → Deep purple-black
+		ElementNameIDs.POISON:
+			return [Color("#2d4a2d"), Color("#8fbc8f")]  # Dark green → Toxic green
+		ElementNameIDs.LIFE:
+			return [GameColorPalette.NATURE_DARK, GameColorPalette.NATURE_PRIMARY]  # Deep forest → Bright green
+		ElementNameIDs.DEATH:
+			return [Color("#1a1a1a"), Color("#2f2f2f")]  # Very dark → Dark gray
+
+		# Occultist
+		ElementNameIDs.OCCULTIST:
+			return [Color("#2d0547"), Color("#6a0dad")]  # Very dark purple → Deep occult purple
+
+		# Elevated elements
+		ElementNameIDs.HOLY:
+			return [Color("#c49a00"), Color("#ffd700")]  # Dark gold → Divine gold
+		ElementNameIDs.ICE:
+			return [Color("#6fa8b0"), Color("#b0e0e6")]  # Cool blue → Pale ice blue
+		ElementNameIDs.METAL:
+			return [Color("#808080"), Color("#c0c0c0")]  # Dark silver → Metallic silver
+		ElementNameIDs.SPIRIT:
+			return [Color("#a0a0d0"), Color("#e6e6fa")]  # Muted lavender → Ethereal lavender
+
+		_:
+			return [Color("#3a3a3a"), Color("#6a6a6a")]  # Default to neutral
+
+## Get element color from a card's elemental affinity
+## Handles both Card resources and Dictionary catalog data
+static func get_card_element_color(card_data: Variant) -> Color:
+	var catalog_dict: Dictionary = {}
+
+	# Handle Card resource vs Dictionary
+	if card_data is Card:
+		# Get catalog data from CardCatalog
+		var card_instance: Card = card_data
+		catalog_dict = CardCatalog.GetCardAsDict(card_instance.CatalogId)
+	elif card_data is Dictionary:
+		catalog_dict = card_data
+	else:
+		push_warning("CardVisualHelper: Invalid card_data type")
+		return GameColorPalette.NEUTRAL_MID
+
+	# Check if card has elemental affinity in categories
+	if catalog_dict.has("categories"):
+		var categories: Variant = catalog_dict.get("categories")
+		if categories is Dictionary:
+			var categories_dict: Dictionary = categories
+			if categories_dict.has("elemental_affinity"):
+				var affinity: Variant = categories_dict.get("elemental_affinity")
+				if affinity:
+					var affinity_id: String = str(affinity)
+					return get_element_border_color(affinity_id)
+
+	# Fallback: use card type-based colors (should rarely happen)
+	var card_type_variant: Variant = catalog_dict.get("card_type", UnitConstants.CardType.SUMMON)
+	var card_type: int = int(card_type_variant)  # Works for both int and enum values
+	if card_type == UnitConstants.CardType.SUMMON:
+		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
+	elif card_type == UnitConstants.CardType.SPELL:
+		return GameColorPalette.STORM_PRIMARY  # Spell
+	else:
+		return GameColorPalette.NEUTRAL_MID
+
+## =============================================================================
+## CARD TYPE ICON MAPPING
+## =============================================================================
+
+## Get icon path for a card based on its type and unit_type
+## Returns the appropriate icon for display in card UI
+static func get_card_type_icon_path(card_data: Variant) -> String:
+	var catalog_dict: Dictionary = {}
+
+	# Handle Card resource vs Dictionary
+	if card_data is Card:
+		var card_instance: Card = card_data
+		catalog_dict = CardCatalog.GetCardAsDict(card_instance.CatalogId)
+	elif card_data is Dictionary:
+		catalog_dict = card_data
+	else:
+		push_warning("CardVisualHelper: Invalid card_data type for icon lookup")
+		return ""
+
+	# Get card type and unit type
+	var card_type_variant: Variant = catalog_dict.get("card_type", UnitConstants.CardType.SUMMON)
+	var card_type: int = int(card_type_variant)  # Works for both int and enum values
+	var unit_type: StringName = catalog_dict.get("unit_type", UnitTypeIDs.MELEE)
+
+	# Map to icon path
+	if card_type == UnitConstants.CardType.SPELL:
+		return "res://assets/icons/card_types/wizard_hat.png"
+	elif card_type == UnitConstants.CardType.SUMMON:
+		match unit_type:
+			UnitTypeIDs.MELEE:
+				return "res://assets/icons/card_types/sword.png"
+			UnitTypeIDs.RANGED:
+				return "res://assets/icons/card_types/bow.png"
+			UnitTypeIDs.STRUCTURE:
+				return "res://assets/icons/card_types/tower.png"
+			_:
+				push_warning("CardVisualHelper: Unknown unit_type '%s', defaulting to sword" % unit_type)
+				return "res://assets/icons/card_types/sword.png"
+
+	return ""
+
+## =============================================================================
+## CARD LAYOUT HELPERS
+## =============================================================================
+
+## Calculate layout dimensions for a card of given size
+static func get_card_layout(card_size: Vector2, show_description: bool) -> Dictionary:
+	var layout: Dictionary = {}
+
+	# Border width (scales with card size)
+	var border_width: int = max(2, int(card_size.x * 0.025))
+	layout.border_width = border_width
+
+	# Cost circle (top-left corner)
+	var cost_circle_radius: float = card_size.x * 0.15
+	layout.cost_circle_radius = cost_circle_radius
+	var cost_circle_pos: Vector2 = Vector2(
+		float(cost_circle_radius + border_width + 4),
+		float(cost_circle_radius + border_width + 4)
+	)
+	layout.cost_circle_pos = cost_circle_pos
+
+	# Card name (top-middle)
+	var name_height: float = card_size.y * 0.12
+	layout.name_height = name_height
+	var name_rect: Rect2 = Rect2(
+		float(cost_circle_pos.x + cost_circle_radius + 4),
+		float(border_width + 4),
+		float(card_size.x - (cost_circle_pos.x + cost_circle_radius + 8)),
+		float(name_height)
+	)
+	layout.name_rect = name_rect
+
+	# Description (bottom area, optional)
+	var desc_height: float
+	var desc_rect: Rect2
+	if show_description:
+		desc_height = card_size.y * 0.25
+		desc_rect = Rect2(
+			float(border_width + 4),
+			float(card_size.y - desc_height - border_width - 4),
+			float(card_size.x - (border_width * 2) - 8),
+			float(desc_height)
+		)
+	else:
+		desc_height = 0.0
+		desc_rect = Rect2()
+	layout.desc_height = desc_height
+	layout.desc_rect = desc_rect
+
+	# Card art (center, fills remaining space)
+	var art_top: float = cost_circle_pos.y + cost_circle_radius + 4
+	var art_bottom: float = card_size.y - desc_height - border_width - 4
+	var art_rect: Rect2 = Rect2(
+		float(border_width + 4),
+		float(art_top),
+		float(card_size.x - (border_width * 2) - 8),
+		float(art_bottom - art_top)
+	)
+	layout.art_rect = art_rect
+
+	return layout
+
+## =============================================================================
+## TEXT FORMATTING
+## =============================================================================
+
+## Format card name for display (handle wrapping for long names)
+static func format_card_name(card_name: String, max_length: int = 20) -> String:
+	if card_name.length() <= max_length:
+		return card_name
+
+	# Try to wrap at word boundaries
+	var words: PackedStringArray = card_name.split(" ")
+	if words.size() > 1:
+		return "\n".join(words)
+
+	# If single long word, just truncate
+	return card_name.substr(0, max_length - 3) + "..."
+
+## Format description text for card (truncate if too long)
+static func format_card_description(desc: String, max_chars: int = 100) -> String:
+	if desc.length() <= max_chars:
+		return desc
+	return desc.substr(0, max_chars - 3) + "..."

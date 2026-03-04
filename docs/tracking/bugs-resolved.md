@@ -27,11 +27,11 @@ Architecture inconsistency: Melee hits went through HitResolver (which emits `Hi
 5. Added matching `FlashColor` export to SkeletalVisualComponent for consistency
 
 **Related Files:**
-- `scripts/csharp/Combat/Hitbox/HitResolver.cs` - Added ResolveProjectileHit, ResolveHitCore
+- `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitResolver.cs` - Added ResolveProjectileHit, ResolveHitCore
 - `scripts/csharp/Projectiles/Projectile3D.cs` - Route all damage through HitResolver
-- `scripts/csharp/Visual/SpriteVisualComponent.cs` - Added FlashColor export
-- `scripts/csharp/Visual/SkeletalVisualComponent.cs` - Added FlashColor export
-- `scenes/units/puff_3d.tscn` - Set FlashColor to pink (1.3, 0.85, 0.85, 1)
+- `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs` - Added FlashColor export
+- `scripts/csharp/Battle/View/Visual/SkeletalVisualComponent.cs` - Added FlashColor export
+- `scenes/battle/units/puff_3d.tscn` - Set FlashColor to pink (1.3, 0.85, 0.85, 1)
 
 ---
 
@@ -58,8 +58,8 @@ Applied fix to both visual components:
 - `SpriteVisualComponent.cs` (sprite-based units like Puff)
 
 **Related Files:**
-- scripts/csharp/Visual/SkeletalVisualComponent.cs
-- scripts/csharp/Visual/SpriteVisualComponent.cs
+- scripts/csharp/Battle/View/Visual/SkeletalVisualComponent.cs
+- scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs
 
 ---
 
@@ -77,7 +77,7 @@ Localization key mismatch. `reward_screen.gd` used plural `ui.rewards.guaranteed
 Fixed the key in `reward_screen.gd:356` to use `ui.reward.guaranteed` matching the localization file.
 
 **Related Files:**
-- scripts/ui/screens/reward_screen.gd
+- scripts/meta/screens/reward_screen.gd
 - localization/data/en.json
 
 ---
@@ -106,8 +106,8 @@ Applied fix to all 8 wisp variants:
 - shadow_wisp_3d.tscn
 
 **Related Files:**
-- scenes/units/*_wisp_3d.tscn
-- scripts/csharp/Visual/SkeletalVisualComponent.cs
+- scenes/battle/units/*_wisp_3d.tscn
+- scripts/csharp/Battle/View/Visual/SkeletalVisualComponent.cs
 
 ---
 
@@ -136,7 +136,7 @@ Two bugs in the GDScript/C# interop layer:
 - `scripts/csharp/Infrastructure/Persistence/DtoConverters.cs` - Added FromMetaDict, updated FromProfileDict
 - `scripts/csharp/Infrastructure/Persistence/IProfileRepository.cs` - Added UpdateProfileMeta
 - `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs` - Implemented UpdateProfileMeta
-- `scripts/csharp/Services/Summoner/SummonerSelectionService.cs` - Fixed SetActiveSummoner to use UpdateProfileMeta
+- `scripts/csharp/Meta/Services/Summoner/SummonerSelectionService.cs` - Fixed SetActiveSummoner to use UpdateProfileMeta
 
 ---
 
@@ -259,11 +259,11 @@ Updated both scene files (.tscn) and CardCatalog.cs (which overrides scene value
 Rule: `AttackRange > SeparationRadius + TargetBodySize`
 
 **Related Files:**
-- `scenes/units/fire_titan_3d.tscn` - AttackRange and SeparationRadius values
-- `scenes/units/fire_ant_3d.tscn` - AttackRange values
-- `scenes/units/fire_elemental_3d.tscn` - AttackRange values
-- `scenes/units/earth_sprite_3d.tscn` - AttackRange values
-- `scenes/units/rock_3d.tscn` - AttackRange values
+- `scenes/battle/units/fire_titan_3d.tscn` - AttackRange and SeparationRadius values
+- `scenes/battle/units/fire_ant_3d.tscn` - AttackRange values
+- `scenes/battle/units/fire_elemental_3d.tscn` - AttackRange values
+- `scenes/battle/units/earth_sprite_3d.tscn` - AttackRange values
+- `scenes/battle/units/rock_3d.tscn` - AttackRange values
 - `scripts/csharp/Cards/CardCatalog.cs` - AttackRange values for all card definitions
 - `scripts/csharp/Units/MeleeUnit3D.cs` - Attack range check logic
 
@@ -292,8 +292,8 @@ The existing `take_damage()` method and damage system were already working - the
 
 **Related Files:**
 - `scripts/core/summoner.gd` - Added `_setup_hurtbox()` method and hurtbox configuration constants
-- `scripts/csharp/Combat/Hitbox/HurtboxComponent.cs` - Existing component, no changes needed
-- `scripts/csharp/Combat/DamageSystem.cs` - Already supported GDScript `take_damage()` method
+- `scripts/csharp/Battle/Simulation/Combat/Hitbox/HurtboxComponent.cs` - Existing component, no changes needed
+- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` - Already supported GDScript `take_damage()` method
 
 ---
 
@@ -311,7 +311,7 @@ Added unified boundary enforcement system:
 3. Added boundary clamping in `UnitSteering.CorrectOverlaps()` - prevents pushing units out of bounds
 
 **Related Files:**
-- `scripts/csharp/Constants/BattlefieldBounds.cs` - New boundary constants and utilities
+- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs` - New boundary constants and utilities
 - `scripts/csharp/Units/Unit3D.cs` - Added EnforceBattlefieldBounds() call
 - `scripts/csharp/Movement/UnitSteering.cs` - Added boundary clamping in push logic
 
@@ -333,7 +333,7 @@ Added mass-based push resistance to `UnitSteering.CorrectOverlaps()`:
 
 **Related Files:**
 - `scripts/csharp/Movement/UnitSteering.cs` - Mass-based push resistance + boundary clamping
-- `scripts/csharp/Constants/BattlefieldBounds.cs` - Boundary utilities
+- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs` - Boundary utilities
 
 ---
 
@@ -354,8 +354,8 @@ Added team boundary enforcement to `SpawnPositionCalculator`:
 **Related Files:**
 - `scripts/csharp/Summons/SpawnPositionCalculator.cs` - Added team boundary enforcement
 - `scripts/csharp/Cards/CardFactory.cs` - Updated to pass team parameter
-- `scripts/csharp/Services/Interfaces/ICardFactory.cs` - Updated interface
-- `scripts/csharp/Constants/BattlefieldBounds.cs` - Team spawn validation utilities
+- `scripts/csharp/Meta/Services/Interfaces/ICardFactory.cs` - Updated interface
+- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs` - Team spawn validation utilities
 
 ---
 
@@ -381,8 +381,8 @@ Additionally, preview calculated all positions at once, but actual spawn calcula
 
 **Related Files:**
 - `scripts/csharp/Cards/CardFactory.cs` - Added get_safe_spawn_positions(), refactored execute_summon()
-- `scripts/ui/battle/battlefield_drop_zone.gd` - Now calls C# method
-- `scripts/battlefield/battlefield_constants.gd` - Removed duplicate functions
+- `scripts/battle/ui/battlefield_drop_zone.gd` - Now calls C# method
+- `scripts/battle/battlefield/battlefield_constants.gd` - Removed duplicate functions
 
 ---
 
@@ -399,7 +399,7 @@ Formation logic was duplicated across multiple files (Card.gd, CardFactory.cs, F
 - Deleted FormationHelper.cs (redundant)
 - SpawnPreview.cs uses simple inline default for initial positioning
 
-**Architecture Document:** See `docs/architecture/transformation-roadmap.md` for full details.
+**Architecture Document:** See `docs/archive/transformation-roadmap.md` for full details (archived — superseded by layered architecture migration).
 
 ---
 
@@ -427,11 +427,11 @@ Two related issues in the multi-unit spawn flow:
 
 **Solution Implemented:**
 1. In `scripts/cards/card.gd`: Call `SpatialGrid.update_unit_position(unit)` immediately after setting `unit.global_position`
-2. In `scripts/battlefield/battlefield_constants.gd`: Added `exclude_unit` parameter to `find_safe_spawn_position()` and `is_spawn_position_safe()` to skip the unit being spawned
+2. In `scripts/battle/battlefield/battlefield_constants.gd`: Added `exclude_unit` parameter to `find_safe_spawn_position()` and `is_spawn_position_safe()` to skip the unit being spawned
 
 **Related Files:**
 - `scripts/cards/card.gd:293-297` - SpatialGrid update after position set
-- `scripts/battlefield/battlefield_constants.gd:63,87` - exclude_unit parameter
+- `scripts/battle/battlefield/battlefield_constants.gd:63,87` - exclude_unit parameter
 
 ---
 
@@ -488,7 +488,7 @@ pos.Y = (worldHeight / 2.0f) - feetOffsetWorld;
 ```
 
 **Related Files:**
-- `scripts/csharp/Visual/SkeletalVisualComponent.cs` - Added FeetOffsetPixels, fixed SetupSpriteAlignment()
+- `scripts/csharp/Battle/View/Visual/SkeletalVisualComponent.cs` - Added FeetOffsetPixels, fixed SetupSpriteAlignment()
 
 ---
 
@@ -528,7 +528,7 @@ Three issues:
 
 **Related Files:**
 - scripts/core/summoner.gd - New `_load_summoner_from_profile()` function
-- scripts/data/summoner_catalog.gd - String to StringName conversion in lookup methods
+- scripts/infrastructure/data/summoner_catalog.gd - String to StringName conversion in lookup methods
 - scripts/core/deck_loader.gd - Removed bandaid fallback, now focuses only on card loading
 
 ---
@@ -554,7 +554,7 @@ Keep pooled objects IN the scene tree by adding them to a dedicated pool contain
 This ensures pooled objects are always in the scene tree (either in `pool_container` or `active_container`), eliminating orphan warnings. The scene tree also automatically handles cleanup when the autoload exits.
 
 **Related Files:**
-- `scripts/vfx/vfx_manager.gd` - Added pool_container, updated _init_pools, _get_from_pool, _on_effect_finished
+- `scripts/battle/vfx/vfx_manager.gd` - Added pool_container, updated _init_pools, _get_from_pool, _on_effect_finished
 - `scripts/ui/hp_bar_manager.gd` - Added pool_container, updated _init_pool, create_bar_for_unit, _return_to_pool
 - `scripts/projectiles/projectile_manager.gd` - Added pool_container, updated _create_pool_for, _return_to_pool
 
@@ -583,7 +583,7 @@ Added explicit battle state machine to BattleContext:
 5. **RewardScreen guard** - Validates `BattleState.VICTORY` before showing rewards, redirects otherwise
 
 **Related Files:**
-- `scripts/core/battle_context.gd` - BattleState enum, abandon_battle(), origin_scene tracking
+- `scripts/application/battle_context.gd` - BattleState enum, abandon_battle(), origin_scene tracking
 - `scripts/ui/pause_menu.gd` - Calls abandon_battle() on quit
 - `scripts/core/game_controller_3d.gd` - Sets battle states on start/end
 - `scripts/ui/reward_screen.gd` - State validation guard
@@ -687,7 +687,7 @@ Added pending reward state tracking:
    - Saves choice to pending state immediately when player picks (for choice rewards)
 
 **Related Files:**
-- `scripts/data/json_profile_repository.gd` - Added `pending_reward` to schema
+- `scripts/infrastructure/data/json_profile_repository.gd` - Added `pending_reward` to schema
 - `scripts/services/campaign_service.gd` - Added pending reward management methods
 - `scripts/ui/reward_screen.gd` - Complete rewrite of reward flow
 - `localization/data/en.json` - Added ui.reward localization keys
@@ -770,7 +770,7 @@ Standardized all WAL entries to use `{"action": "...", "params": {...}}` format:
 - `set_starting_hero` - changed from `"op"` to `"action"/"params"`
 
 **Related Files:**
-- `scripts/data/json_profile_repository.gd:246, 269-272`
+- `scripts/infrastructure/data/json_profile_repository.gd:246, 269-272`
 
 ---
 
@@ -789,7 +789,7 @@ Added more entropy sources:
 - Format: `"%x-%x-%x-%x"` with 4 components
 
 **Related Files:**
-- `scripts/data/json_profile_repository.gd:1013-1019`
+- `scripts/infrastructure/data/json_profile_repository.gd:1013-1019`
 
 ---
 
@@ -804,7 +804,7 @@ Backup files were rotated after the main write succeeded, meaning a crash betwee
 Reordered operations: rotate backups BEFORE writing new data. This ensures old data is preserved in backup chain before being overwritten.
 
 **Related Files:**
-- `scripts/data/json_profile_repository.gd:833-842`
+- `scripts/infrastructure/data/json_profile_repository.gd:833-842`
 
 ---
 
@@ -830,8 +830,8 @@ Safe patterns documented:
 3. Create resources dynamically in code (they're unique per-instance)
 
 **Related Files:**
-- `scripts/vfx/vfx_instance.gd` - Added isolation helpers and documentation
-- `scripts/vfx/fireball_spell_vfx.gd` - Uses new helper method
+- `scripts/battle/vfx/vfx_instance.gd` - Added isolation helpers and documentation
+- `scripts/battle/vfx/fireball_spell_vfx.gd` - Uses new helper method
 
 ---
 
@@ -910,9 +910,9 @@ Race condition between DialogueManager (autoload) and DialogueBox (scene node):
 Reset `_is_system_ready = false` in `DialogueManager.reset()` so each new scene's DialogueBox must reconnect. This ensures EventSequencer properly waits for the new DialogueBox to be ready.
 
 **Related Files:**
-- `scripts/services/dialogue_manager.gd:305` - Added `_is_system_ready = false` in reset()
-- `scripts/core/battle_dialogue_controller.gd` - Calls EventSequencer.play_sequence()
-- `scripts/services/event_sequencer.gd:196-207` - Checks is_system_ready() before dialogue
+- `scripts/application/dialogue_manager.gd:305` - Added `_is_system_ready = false` in reset()
+- `scripts/battle/battle_dialogue_controller.gd` - Calls EventSequencer.play_sequence()
+- `scripts/application/event_sequencer.gd:196-207` - Checks is_system_ready() before dialogue
 
 ---
 
@@ -960,7 +960,7 @@ When a battle with an event sequence is started (like charge_tutorial), the camp
 **Related Files:**
 - `scripts/ui/event_screen.gd:46-51` - Added _exit_tree cleanup
 - `scripts/ui/reward_screen.gd:74-75` - Where battle completion is triggered
-- `scripts/core/battle_context.gd:119-127` - Where victory triggers reward screen
+- `scripts/application/battle_context.gd:119-127` - Where victory triggers reward screen
 
 ---
 
@@ -1030,7 +1030,7 @@ Standardized ALL 17 dialogue files to use localization keys:
    ```
 
 **Related Files:**
-- `scripts/services/dialogue_manager.gd` - Simplified localization
+- `scripts/application/dialogue_manager.gd` - Simplified localization
 - `scripts/ui/dialogue_box.gd` - Added choice text localization
 - `localization/data/en.json` - All dialogue text entries
 - `resources/dialogue/*.tres` - All 17 dialogue files standardized

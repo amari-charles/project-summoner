@@ -25,7 +25,7 @@ The cleanup relied on `UnregisterFromExternalSystems()` being called before the 
 The `FloatingHPBar` now connects to the unit's `TreeExiting` signal, which fires *before* the unit is freed:
 
 ```csharp
-// scripts/csharp/UI/FloatingHPBar.cs
+// scripts/csharp/Battle/View/UI/FloatingHPBar.cs
 public void TrackUnit(Unit3D unit)
 {
     _trackedUnit = unit;
@@ -44,17 +44,17 @@ private void OnUnitExiting()
 
 | Action | File |
 |--------|------|
-| Created | `scripts/csharp/Services/HPBarService.cs` |
-| Created | `scripts/csharp/Services/HPBarService.tscn` |
-| Created | `scripts/csharp/UI/FloatingHPBar.cs` |
+| Created | `scripts/csharp/Meta/Services/HPBarService.cs` |
+| Created | `scripts/csharp/Meta/Services/HPBarService.tscn` |
+| Created | `scripts/csharp/Battle/View/UI/FloatingHPBar.cs` |
 | Modified | `scripts/csharp/Units/Unit3D.cs` - Direct C# calls |
 | Modified | `scripts/core/summoner.gd` - HPBarService reference |
 | Modified | `scripts/core/game_controller_3d.gd` - HPBarService reference |
 | Modified | `project.godot` - Updated autoload |
-| Modified | `scenes/ui/battle/floating_hp_bar.tscn` - C# script |
+| Modified | `scenes/battle/ui/floating_hp_bar.tscn` - C# script |
 | Modified | `tests/unit/test_pool_containers.gd` - Updated API |
-| Deleted | `scripts/ui/battle/hp_bar_manager.gd` |
-| Deleted | `scripts/ui/battle/floating_hp_bar.gd` |
+| Deleted | `scripts/battle/ui/hp_bar_manager.gd` |
+| Deleted | `scripts/battle/ui/floating_hp_bar.gd` |
 
 ### Additional Benefits
 
@@ -141,8 +141,8 @@ var bossSettings = HPBarSettings.Default
 |--------|------|
 | Created | `shaders/ui/hp_bar.gdshader` |
 | Created | `tests/integration/test_hp_bar_lifecycle.gd` |
-| Modified | `scripts/csharp/Services/HPBarService.cs` - Readonly settings, helper methods |
-| Modified | `scripts/csharp/UI/FloatingHPBar.cs` - Shader-based rendering |
+| Modified | `scripts/csharp/Meta/Services/HPBarService.cs` - Readonly settings, helper methods |
+| Modified | `scripts/csharp/Battle/View/UI/FloatingHPBar.cs` - Shader-based rendering |
 
 ### Integration Tests Added
 

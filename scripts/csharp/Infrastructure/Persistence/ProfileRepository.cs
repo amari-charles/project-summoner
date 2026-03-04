@@ -2,74 +2,108 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Campaign;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Domain.Profile.Decks;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Domain.Profile.Inventory;
-using ProjectSummoner.Domain.Profile.Shop;
-using ProjectSummoner.Domain.Profile.Summoners;
-using ProjectSummoner.Services.Deck;
-using ProjectSummoner.Services.Shop;
+using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Decks;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Shop;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Meta.Deck;
+using Fateforged.Meta.Shop;
+using Fateforged.Meta.Summoner;
+using GdDict = Godot.Collections.Dictionary;
+using GdArray = Godot.Collections.Array;
+using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
-namespace ProjectSummoner.Infrastructure.Persistence;
+namespace Fateforged.Infrastructure.Persistence;
 
 /// <summary>
-/// Repository that wraps the GDScript ProfileRepo autoload.
-/// Provides typed C# access to profile operations while delegating to existing GDScript implementation.
-/// This allows gradual migration - C# code gets type safety now, full C# impl can come later.
+/// Native C# profile repository. Owns all profile data in-memory as typed ProfileData.
+/// Handles JSON persistence via JsonProfileStore, migrations via ProfileMigrator,
+/// and debounced saves via Timer.
 /// </summary>
 public partial class ProfileRepository : Node, IProfileRepository
 {
     public static ProfileRepository? Instance { get; private set; }
 
-    private Node? _gdProfileRepo;
+    private const float AutosaveDelay = 0.5f;
+    private const int WalMaxEntries = 100;
 
-    // Events
+    private ProfileData _data = new();
+    private string _currentProfileId = "";
+    private readonly JsonProfileStore _store = new();
+    private Timer? _saveTimer;
+    private bool _pendingSave;
+
+    // C# events (for C# consumers)
     public event Action<string>? ProfileLoaded;
     public event Action<string>? ProfileSaved;
     public event Action<string>? SaveFailed;
     public event Action? DataChanged;
 
+    // Godot signals (for GDScript consumers to connect() to)
+    [Signal]
+    public delegate void DataChangedGodotEventHandler();
+
+    [Signal]
+    public delegate void ProfileLoadedGodotEventHandler(string profileId);
+
+    [Signal]
+    public delegate void ProfileSavedGodotEventHandler(string profileId);
+
+    [Signal]
+    public delegate void SaveFailedGodotEventHandler(string error);
+
+    // =========================================================================
+    // LIFECYCLE
+    // =========================================================================
+
     public override void _Ready()
     {
         Instance = this;
-        ConnectToGdScript();
+        SetupSaveTimer();
+
+        // Auto-load default profile
+        var defaultId = GetOrCreateDefaultProfile();
+        LoadProfile(new ProfileId(defaultId));
+        GD.Print("ProfileRepository: Initialized with native C# persistence");
     }
 
-    private void ConnectToGdScript()
+    public override void _Notification(int what)
     {
-        _gdProfileRepo = GetNode<Node>("/root/ProfileRepo");
-        if (_gdProfileRepo == null)
+        switch ((long)what)
         {
-            GD.PushError("ProfileRepository: ProfileRepo autoload not found");
-            return;
+            case NotificationWMCloseRequest:
+                SaveProfile(immediate: true);
+                break;
+            case NotificationApplicationPaused:
+                SaveProfile(immediate: true);
+                break;
+            case NotificationApplicationFocusOut:
+                if (_pendingSave) SaveProfile(immediate: true);
+                break;
         }
-
-        // Connect GDScript signals to C# events
-        _gdProfileRepo.Connect("profile_loaded", Callable.From<string>(OnProfileLoaded));
-        _gdProfileRepo.Connect("profile_saved", Callable.From<string>(OnProfileSaved));
-        _gdProfileRepo.Connect("save_failed", Callable.From<string>(OnSaveFailed));
-        _gdProfileRepo.Connect("data_changed", Callable.From(OnDataChanged));
-
-        GD.Print("ProfileRepository: Connected to GDScript ProfileRepo");
     }
 
-    private void OnProfileLoaded(string profileId) => ProfileLoaded?.Invoke(profileId);
-    private void OnProfileSaved(string profileId) => ProfileSaved?.Invoke(profileId);
-    private void OnSaveFailed(string error) => SaveFailed?.Invoke(error);
-    private void OnDataChanged() => DataChanged?.Invoke();
-
-    /// <summary>Check if the GDScript repository is connected and log error if not.</summary>
-    private bool EnsureConnected(string methodName)
+    private void SetupSaveTimer()
     {
-        if (_gdProfileRepo != null) return true;
-        GD.PushError($"ProfileRepository.{methodName}: GDScript ProfileRepo not connected");
-        return false;
+        _saveTimer = new Timer
+        {
+            OneShot = true,
+            WaitTime = AutosaveDelay
+        };
+        _saveTimer.Timeout += OnSaveTimerTimeout;
+        AddChild(_saveTimer);
+    }
+
+    private void OnSaveTimerTimeout()
+    {
+        if (_pendingSave) WriteSave();
     }
 
     // =========================================================================
@@ -78,59 +112,90 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     public bool LoadProfile(ProfileId profileId)
     {
-        if (!EnsureConnected(nameof(LoadProfile))) return false;
-        return (bool)_gdProfileRepo!.Call("load_profile", (string)profileId);
+        GD.Print($"ProfileRepository: Loading profile '{profileId}'...");
+        _currentProfileId = (string)profileId;
+
+        _store.EnsureProfileDir(_currentProfileId);
+        var dict = _store.LoadProfile(_currentProfileId);
+
+        if (dict != null)
+        {
+            ProfileMigrator.MigrateIfNeeded(dict);
+            _data = ProfileDataMapper.FromDictionary(dict, _currentProfileId);
+            GD.Print("ProfileRepository: Profile loaded successfully");
+        }
+        else
+        {
+            GD.Print("ProfileRepository: No save found, creating fresh profile");
+            CreateFreshProfile();
+            SaveProfile(immediate: true);
+        }
+
+        ProfileLoaded?.Invoke(_currentProfileId);
+        EmitSignal(SignalName.ProfileLoadedGodot, _currentProfileId);
+        EmitDataChanged();
+        return true;
     }
+
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool LoadProfile(string id) => LoadProfile(new ProfileId(id));
 
     public void SaveProfile(bool immediate = false)
     {
-        if (!EnsureConnected(nameof(SaveProfile))) return;
-        _gdProfileRepo!.Call("save_profile", immediate);
+        _pendingSave = true;
+        if (immediate)
+        {
+            _saveTimer?.Stop();
+            WriteSave();
+        }
+        else
+        {
+            _saveTimer?.Start(AutosaveDelay);
+        }
     }
 
-    public ProfileId GetCurrentProfileId()
-    {
-        if (!EnsureConnected(nameof(GetCurrentProfileId))) return ProfileId.None;
-        return new ProfileId((string)_gdProfileRepo!.Call("get_current_profile_id"));
-    }
+    public ProfileId GetCurrentProfileId() => new(_currentProfileId);
 
     public void ResetProfile()
     {
-        if (!EnsureConnected(nameof(ResetProfile))) return;
-        _gdProfileRepo!.Call("reset_profile");
+        GD.Print("ProfileRepository: Resetting profile...");
+        CreateFreshProfile();
+        SaveProfile(immediate: true);
+        EmitDataChanged();
     }
 
-    /// <summary>
-    /// Get partial profile metadata (Version, ProfileId, UpdatedAt, Resources, UnlockedSummoners, Meta).
-    /// NOTE: This is READ-ONLY metadata. To update fields, use specific update methods like UpdateProfileMeta().
-    /// </summary>
-    public ProfileData? GetProfileMetadata()
-    {
-        if (_gdProfileRepo == null) return null;
-        var dict = _gdProfileRepo.Call("snapshot").AsGodotDictionary();
-        return DtoConverters.FromProfileDict(dict);
-    }
+    public ProfileData? GetProfileMetadata() => _data;
 
     // =========================================================================
     // RESOURCE OPERATIONS
     // =========================================================================
 
-    public Resources GetResources()
-    {
-        if (!EnsureConnected(nameof(GetResources))) return new Resources();
-        var dict = _gdProfileRepo!.Call("get_resources").AsGodotDictionary();
-        return DtoConverters.FromResourcesDict(dict);
-    }
+    public Resources GetResources() => _data.Resources;
 
     public void UpdateResources(Dictionary<ResourceType, int> delta)
     {
-        if (!EnsureConnected(nameof(UpdateResources))) return;
-        var gdDelta = new Godot.Collections.Dictionary();
-        foreach (var kvp in delta)
+        foreach (var (resourceType, amount) in delta)
         {
-            gdDelta[kvp.Key.ToString().ToLowerInvariant()] = kvp.Value;
+            switch (resourceType)
+            {
+                case ResourceType.Gold:
+                    _data.Resources.Gold = Math.Max(0, _data.Resources.Gold + amount);
+                    break;
+                case ResourceType.Gems:
+                    _data.Resources.Gems = Math.Max(0, _data.Resources.Gems + amount);
+                    break;
+                case ResourceType.Essence:
+                    _data.Resources.Essence = Math.Max(0, _data.Resources.Essence + amount);
+                    break;
+                case ResourceType.Fragments:
+                    _data.Resources.Fragments = Math.Max(0, _data.Resources.Fragments + amount);
+                    break;
+            }
         }
-        _gdProfileRepo!.Call("update_resources", gdDelta);
+        _data.Resources.UpdatedAt = (long)Time.GetUnixTimeFromSystem();
+
+        AppendToWal("update_resources", delta);
+        MarkDirty();
     }
 
     // =========================================================================
@@ -138,61 +203,60 @@ public partial class ProfileRepository : Node, IProfileRepository
     // =========================================================================
 
     public SummonerId[] GetUnlockedSummoners()
-    {
-        if (!EnsureConnected(nameof(GetUnlockedSummoners))) return [];
-        var arr = _gdProfileRepo!.Call("get_unlocked_summoners").AsGodotArray();
-        var result = new List<SummonerId>();
-        foreach (var item in arr)
-        {
-            result.Add(new SummonerId(item.AsString()));
-        }
-        return [.. result];
-    }
+        => [.. _data.UnlockedSummoners];
 
     public bool IsSummonerUnlocked(SummonerId summonerId)
-    {
-        if (!EnsureConnected(nameof(IsSummonerUnlocked))) return false;
-        return (bool)_gdProfileRepo!.Call("is_summoner_unlocked", (string)summonerId);
-    }
+        => _data.UnlockedSummoners.Contains(summonerId);
 
     public bool UnlockSummoner(SummonerId summonerId)
     {
-        if (!EnsureConnected(nameof(UnlockSummoner))) return false;
-        return (bool)_gdProfileRepo!.Call("unlock_summoner", (string)summonerId);
+        if (_data.UnlockedSummoners.Contains(summonerId)) return false;
+        _data.UnlockedSummoners.Add(summonerId);
+        AppendToWal("unlock_summoner", new { summoner_id = (string)summonerId });
+        MarkDirty();
+        return true;
     }
+
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool UnlockSummoner(string id) => UnlockSummoner(new SummonerId(id));
 
     public bool SetStartingSummoner(SummonerId summonerId, bool chosenRandom)
     {
-        if (!EnsureConnected(nameof(SetStartingSummoner))) return false;
-        return (bool)_gdProfileRepo!.Call("set_starting_summoner", (string)summonerId, chosenRandom);
+        if (_data.UnlockedSummoners.Count > 0)
+        {
+            GD.PushError("ProfileRepository: Cannot set starting summoner - summoners already unlocked");
+            return false;
+        }
+
+        _data.UnlockedSummoners.Add(summonerId);
+        AppendToWal("set_starting_summoner",
+            new { summoner_id = (string)summonerId, chosen_random = chosenRandom });
+        MarkDirty();
+        return true;
     }
 
     public SummonerInstance? GetSummonerInstance(SummonerId summonerId)
-    {
-        if (!EnsureConnected(nameof(GetSummonerInstance))) return null;
-        var dict = _gdProfileRepo!.Call("get_summoner_instance", (string)summonerId).AsGodotDictionary();
-        return DtoConverters.FromSummonerDict(dict);
-    }
+        => _data.SummonerInstances.FirstOrDefault(s => s.SummonerId == summonerId);
 
     public SummonerInstance[] GetAllSummonerInstances()
-    {
-        if (!EnsureConnected(nameof(GetAllSummonerInstances))) return [];
-        var arr = _gdProfileRepo!.Call("get_summoner_instances").AsGodotArray();
-        var result = new List<SummonerInstance>();
-        foreach (var item in arr)
-        {
-            var dict = item.AsGodotDictionary();
-            var instance = DtoConverters.FromSummonerDict(dict);
-            if (instance != null) result.Add(instance);
-        }
-        return [.. result];
-    }
+        => [.. _data.SummonerInstances];
 
     public bool SaveSummonerInstance(SummonerInstance instance)
     {
-        if (!EnsureConnected(nameof(SaveSummonerInstance))) return false;
-        var dict = DtoConverters.ToDict(instance);
-        return (bool)_gdProfileRepo!.Call("save_summoner_instance_dict", dict);
+        var existing = _data.SummonerInstances.FindIndex(s => s.SummonerId == instance.SummonerId);
+        if (existing >= 0)
+            _data.SummonerInstances[existing] = instance;
+        else
+        {
+            _data.SummonerInstances.Add(instance);
+            // Also add to unlocked_summoners for compatibility
+            if (!_data.UnlockedSummoners.Contains(instance.SummonerId))
+                _data.UnlockedSummoners.Add(instance.SummonerId);
+        }
+
+        AppendToWal("save_summoner_instance", new { summoner_id = (string)instance.SummonerId });
+        MarkDirty();
+        return true;
     }
 
     // =========================================================================
@@ -200,77 +264,77 @@ public partial class ProfileRepository : Node, IProfileRepository
     // =========================================================================
 
     public CardInstanceId[] GrantCards(IEnumerable<(CardId catalogId, string rarity)> cards)
-    {
-        // Delegate to the full overload with default AccountWide binding
-        return GrantCards(cards.Select(c => (c.catalogId, c.rarity, ContentBinding.AccountWide, (SummonerId?)null)));
-    }
+        => GrantCards(cards.Select(c =>
+            (c.catalogId, c.rarity, ContentBinding.AccountWide, (SummonerId?)null)));
 
-    public CardInstanceId[] GrantCards(IEnumerable<(CardId catalogId, string rarity, ContentBinding binding, SummonerId? boundTo)> cards)
+    public CardInstanceId[] GrantCards(
+        IEnumerable<(CardId catalogId, string rarity, ContentBinding binding, SummonerId? boundTo)> cards)
     {
-        if (!EnsureConnected(nameof(GrantCards))) return [];
-        var gdCards = new Godot.Collections.Array();
+        var ids = new List<CardInstanceId>();
         foreach (var (catalogId, rarity, binding, boundTo) in cards)
         {
-            var cardDict = new Godot.Collections.Dictionary
+            var instanceId = new CardInstanceId(Guid.NewGuid().ToString());
+            var card = new CardInstance
             {
-                ["catalog_id"] = (string)catalogId,
-                ["rarity"] = rarity,
-                ["binding"] = (int)binding
+                Id = instanceId,
+                CatalogId = catalogId,
+                ProfileId = new ProfileId(_currentProfileId),
+                Rarity = rarity,
+                Level = 1,
+                Xp = 0,
+                Traits = [],
+                CreatedAt = (long)Time.GetUnixTimeFromSystem(),
+                Binding = binding,
+                BoundToSummonerId = binding == ContentBinding.SummonerBound ? boundTo : null
             };
-            if (binding == ContentBinding.SummonerBound && boundTo.HasValue && boundTo.Value.HasValue)
-            {
-                cardDict["bound_to"] = (string)boundTo.Value;
-            }
-            gdCards.Add(cardDict);
+            _data.Collection.Add(card);
+            ids.Add(instanceId);
         }
 
-        var result = _gdProfileRepo!.Call("grant_cards", gdCards).AsGodotArray();
-        var ids = new List<CardInstanceId>();
-        foreach (var item in result)
-        {
-            ids.Add(new CardInstanceId(item.AsString()));
-        }
+        AppendToWal("grant_cards", new { instance_ids = ids.Select(id => (string)id).ToArray() });
+        MarkDirty();
         return [.. ids];
     }
 
     public bool RemoveCard(CardInstanceId cardInstanceId)
     {
-        if (!EnsureConnected(nameof(RemoveCard))) return false;
-        return (bool)_gdProfileRepo!.Call("remove_card", (string)cardInstanceId);
+        var index = _data.Collection.FindIndex(c => c.Id == cardInstanceId);
+        if (index < 0)
+        {
+            GD.PushWarning($"ProfileRepository: Card instance '{cardInstanceId}' not found");
+            return false;
+        }
+
+        _data.Collection.RemoveAt(index);
+        AppendToWal("remove_card", new { card_instance_id = (string)cardInstanceId });
+        MarkDirty();
+        return true;
     }
 
-    public CardInstance[] ListCards()
-    {
-        if (!EnsureConnected(nameof(ListCards))) return [];
-        var arr = _gdProfileRepo!.Call("list_cards").AsGodotArray();
-        var result = new List<CardInstance>();
-        foreach (var item in arr)
-        {
-            var dict = item.AsGodotDictionary();
-            var card = DtoConverters.FromCardDict(dict);
-            if (card != null) result.Add(card);
-        }
-        return [.. result];
-    }
+    public CardInstance[] ListCards() => [.. _data.Collection];
 
     public int GetCardCount(CardId catalogId)
-    {
-        if (!EnsureConnected(nameof(GetCardCount))) return 0;
-        return (int)_gdProfileRepo!.Call("get_card_count", (string)catalogId);
-    }
+        => _data.Collection.Count(c => c.CatalogId == catalogId);
 
     public CardInstance? GetCard(CardInstanceId cardInstanceId)
-    {
-        if (!EnsureConnected(nameof(GetCard))) return null;
-        var dict = _gdProfileRepo!.Call("get_card", (string)cardInstanceId).AsGodotDictionary();
-        return DtoConverters.FromCardDict(dict);
-    }
+        => _data.Collection.FirstOrDefault(c => c.Id == cardInstanceId);
 
     public bool UpdateCard(CardInstanceId cardInstanceId, CardUpdate updates)
     {
-        if (!EnsureConnected(nameof(UpdateCard))) return false;
-        var gdUpdates = DtoConverters.ToDict(updates);
-        return (bool)_gdProfileRepo!.Call("update_card", (string)cardInstanceId, gdUpdates);
+        var card = _data.Collection.FirstOrDefault(c => c.Id == cardInstanceId);
+        if (card == null)
+        {
+            GD.PushWarning($"ProfileRepository: Card instance '{cardInstanceId}' not found for update");
+            return false;
+        }
+
+        if (updates.Xp.HasValue) card.Xp = updates.Xp.Value;
+        if (updates.Level.HasValue) card.Level = updates.Level.Value;
+        if (updates.Traits != null) card.Traits = updates.Traits;
+
+        AppendToWal("update_card", new { card_instance_id = (string)cardInstanceId });
+        MarkDirty();
+        return true;
     }
 
     // =========================================================================
@@ -279,37 +343,55 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     public DeckId UpsertDeck(Deck deck)
     {
-        if (!EnsureConnected(nameof(UpsertDeck))) return DeckId.None;
-        var gdDeck = DtoConverters.ToDict(deck);
-        return new DeckId((string)_gdProfileRepo!.Call("upsert_deck", gdDeck));
+        if (!deck.Id.HasValue || string.IsNullOrEmpty((string)deck.Id))
+        {
+            // Create new deck
+            var newId = new DeckId(Guid.NewGuid().ToString());
+            deck.Id = newId;
+            deck.ProfileId = new ProfileId(_currentProfileId);
+            _data.Decks.Add(deck);
+        }
+        else
+        {
+            // Update existing
+            var existing = _data.Decks.FindIndex(d => d.Id == deck.Id);
+            if (existing >= 0)
+            {
+                _data.Decks[existing].Name = deck.Name;
+                if (deck.SummonerId.HasValue)
+                    _data.Decks[existing].SummonerId = deck.SummonerId;
+                _data.Decks[existing].CardInstanceIds = deck.CardInstanceIds;
+                _data.Decks[existing].UpdatedAt = deck.UpdatedAt;
+            }
+            else
+            {
+                GD.PushWarning($"ProfileRepository: Deck '{deck.Id}' not found for update");
+                return DeckId.None;
+            }
+        }
+
+        MarkDirty();
+        return deck.Id;
     }
 
     public bool DeleteDeck(DeckId deckId)
     {
-        if (!EnsureConnected(nameof(DeleteDeck))) return false;
-        return (bool)_gdProfileRepo!.Call("delete_deck", (string)deckId);
+        var index = _data.Decks.FindIndex(d => d.Id == deckId);
+        if (index < 0)
+        {
+            GD.PushWarning($"ProfileRepository: Deck '{deckId}' not found");
+            return false;
+        }
+
+        _data.Decks.RemoveAt(index);
+        MarkDirty();
+        return true;
     }
 
-    public Deck[] ListDecks()
-    {
-        if (!EnsureConnected(nameof(ListDecks))) return [];
-        var arr = _gdProfileRepo!.Call("list_decks").AsGodotArray();
-        var result = new List<Deck>();
-        foreach (var item in arr)
-        {
-            var dict = item.AsGodotDictionary();
-            var deck = DtoConverters.FromDeckDict(dict);
-            if (deck != null) result.Add(deck);
-        }
-        return [.. result];
-    }
+    public Deck[] ListDecks() => [.. _data.Decks];
 
     public Deck? GetDeck(DeckId deckId)
-    {
-        if (!EnsureConnected(nameof(GetDeck))) return null;
-        var dict = _gdProfileRepo!.Call("get_deck", (string)deckId).AsGodotDictionary();
-        return DtoConverters.FromDeckDict(dict);
-    }
+        => _data.Decks.FirstOrDefault(d => d.Id == deckId);
 
     // =========================================================================
     // CAMPAIGN OPERATIONS
@@ -317,30 +399,109 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     public CampaignProgress GetCampaignProgress(SummonerId summonerId)
     {
-        if (!EnsureConnected(nameof(GetCampaignProgress))) return new CampaignProgress();
-        var dict = _gdProfileRepo!.Call("get_campaign_progress", (string)summonerId).AsGodotDictionary();
-        return DtoConverters.FromCampaignDict(dict) ?? new CampaignProgress();
+        var key = (string)summonerId;
+        if (string.IsNullOrEmpty(key))
+            key = GetActiveSummonerId();
+
+        if (string.IsNullOrEmpty(key))
+            return new CampaignProgress();
+
+        return _data.CampaignProgressMap.TryGetValue(key, out var progress)
+            ? progress
+            : new CampaignProgress();
     }
 
     public void UpdateCampaignProgress(SummonerId summonerId, CampaignProgress progress)
     {
-        if (!EnsureConnected(nameof(UpdateCampaignProgress))) return;
-        var gdProgress = DtoConverters.ToDict(progress);
-        _gdProfileRepo!.Call("update_campaign_progress", gdProgress, (string)summonerId);
+        var key = (string)summonerId;
+        if (string.IsNullOrEmpty(key))
+            key = GetActiveSummonerId();
+
+        if (string.IsNullOrEmpty(key))
+        {
+            GD.PushWarning("ProfileRepository: Cannot update campaign progress - no active summoner");
+            return;
+        }
+
+        _data.CampaignProgressMap[key] = progress;
+        AppendToWal("update_campaign_progress", new { summoner_id = key });
+        SaveProfile(immediate: true);
+        EmitDataChanged();
     }
 
     public CampaignProgress GetSharedCampaignProgress()
-    {
-        if (!EnsureConnected(nameof(GetSharedCampaignProgress))) return new CampaignProgress();
-        var dict = _gdProfileRepo!.Call("get_shared_campaign_progress").AsGodotDictionary();
-        return DtoConverters.FromCampaignDict(dict) ?? new CampaignProgress();
-    }
+        => _data.SharedCampaignProgress;
 
     public void UpdateSharedCampaignProgress(CampaignProgress progress)
     {
-        if (!EnsureConnected(nameof(UpdateSharedCampaignProgress))) return;
-        var gdProgress = DtoConverters.ToDict(progress);
-        _gdProfileRepo!.Call("update_shared_campaign_progress", gdProgress);
+        _data.SharedCampaignProgress = progress;
+        AppendToWal("update_shared_campaign_progress", null);
+        SaveProfile(immediate: true);
+        EmitDataChanged();
+    }
+
+    // =========================================================================
+    // CARAVAN PURCHASE TRACKING
+    // =========================================================================
+
+    public string[] GetCaravanPurchases(SummonerId summonerId)
+    {
+        var progress = GetCampaignProgress(summonerId);
+        // Caravan purchases stored as a list in pending_reward or a separate field
+        // Using the same pattern as GDScript: stored in campaign progress
+        if (progress.PendingReward != null &&
+            progress.PendingReward.TryGetValue("caravan_purchases", out var purchases) &&
+            purchases is List<object> purchaseList)
+        {
+            return purchaseList.Select(p => p.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToArray();
+        }
+        return [];
+    }
+
+    public void AddCaravanPurchase(string offeringId, SummonerId summonerId)
+    {
+        var key = (string)summonerId;
+        if (string.IsNullOrEmpty(key))
+            key = GetActiveSummonerId();
+
+        if (string.IsNullOrEmpty(key)) return;
+
+        var progress = GetCampaignProgress(new SummonerId(key));
+        progress.PendingReward ??= new Dictionary<string, object>();
+
+        List<object> purchases;
+        if (progress.PendingReward.TryGetValue("caravan_purchases", out var existing) &&
+            existing is List<object> existingList)
+        {
+            purchases = existingList;
+        }
+        else
+        {
+            purchases = [];
+            progress.PendingReward["caravan_purchases"] = purchases;
+        }
+
+        if (!purchases.Contains(offeringId))
+        {
+            purchases.Add(offeringId);
+            UpdateCampaignProgress(new SummonerId(key), progress);
+        }
+    }
+
+    public void ClearCaravanPurchases(SummonerId summonerId)
+    {
+        var key = (string)summonerId;
+        if (string.IsNullOrEmpty(key))
+            key = GetActiveSummonerId();
+
+        if (string.IsNullOrEmpty(key)) return;
+
+        var progress = GetCampaignProgress(new SummonerId(key));
+        if (progress.PendingReward != null)
+        {
+            progress.PendingReward.Remove("caravan_purchases");
+            UpdateCampaignProgress(new SummonerId(key), progress);
+        }
     }
 
     // =========================================================================
@@ -348,63 +509,84 @@ public partial class ProfileRepository : Node, IProfileRepository
     // =========================================================================
 
     public CosmeticId[] GetOwnedCosmetics()
-    {
-        if (!EnsureConnected(nameof(GetOwnedCosmetics))) return [];
-        var arr = _gdProfileRepo!.Call("get_owned_cosmetics").AsGodotArray();
-        var result = new List<CosmeticId>();
-        foreach (var item in arr)
-        {
-            result.Add(new CosmeticId(item.AsString()));
-        }
-        return [.. result];
-    }
+        => [.. _data.Cosmetics.Owned];
 
     public bool IsCosmeticOwned(CosmeticId cosmeticId)
-    {
-        if (!EnsureConnected(nameof(IsCosmeticOwned))) return false;
-        return (bool)_gdProfileRepo!.Call("is_cosmetic_owned", (string)cosmeticId);
-    }
+        => _data.Cosmetics.Owned.Contains(cosmeticId);
 
     public bool GrantCosmetic(CosmeticId cosmeticId)
     {
-        if (!EnsureConnected(nameof(GrantCosmetic))) return false;
-        return (bool)_gdProfileRepo!.Call("grant_cosmetic", (string)cosmeticId);
+        if (_data.Cosmetics.Owned.Contains(cosmeticId)) return false;
+        _data.Cosmetics.Owned.Add(cosmeticId);
+        AppendToWal("grant_cosmetic", new { cosmetic_id = (string)cosmeticId });
+        MarkDirty();
+        return true;
     }
+
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool GrantCosmetic(string id) => GrantCosmetic(new CosmeticId(id));
 
     public Dictionary<string, CosmeticId> GetEquippedCosmetics()
     {
-        if (!EnsureConnected(nameof(GetEquippedCosmetics))) return new Dictionary<string, CosmeticId>();
-        var dict = _gdProfileRepo!.Call("get_equipped_cosmetics").AsGodotDictionary();
-        var result = new Dictionary<string, CosmeticId>();
-        foreach (var key in dict.Keys)
+        return new Dictionary<string, CosmeticId>
         {
-            result[key.AsString()] = new CosmeticId(dict[key].AsString());
-        }
-        return result;
+            ["card_back"] = _data.Cosmetics.Equipped.CardBack,
+            ["ui_theme"] = _data.Cosmetics.Equipped.UiTheme
+        };
     }
 
     public bool EquipCosmetic(string slot, CosmeticId cosmeticId)
     {
-        if (!EnsureConnected(nameof(EquipCosmetic))) return false;
-        return (bool)_gdProfileRepo!.Call("equip_cosmetic", slot, (string)cosmeticId);
+        if (cosmeticId.HasValue && !IsCosmeticOwned(cosmeticId))
+        {
+            GD.PushWarning($"ProfileRepository: Cannot equip cosmetic '{cosmeticId}' - not owned");
+            return false;
+        }
+
+        switch (slot)
+        {
+            case "card_back":
+                _data.Cosmetics.Equipped.CardBack = cosmeticId;
+                break;
+            case "ui_theme":
+                _data.Cosmetics.Equipped.UiTheme = cosmeticId;
+                break;
+            default:
+                GD.PushWarning($"ProfileRepository: Unknown cosmetic slot '{slot}'");
+                return false;
+        }
+
+        AppendToWal("equip_cosmetic", new { slot, cosmetic_id = (string)cosmeticId });
+        MarkDirty();
+        return true;
     }
 
     public Dictionary<SummonerId, SkinId> GetSummonerSkins()
     {
-        if (!EnsureConnected(nameof(GetSummonerSkins))) return new Dictionary<SummonerId, SkinId>();
-        var dict = _gdProfileRepo!.Call("get_summoner_skins").AsGodotDictionary();
         var result = new Dictionary<SummonerId, SkinId>();
-        foreach (var key in dict.Keys)
-        {
-            result[new SummonerId(key.AsString())] = new SkinId(dict[key].AsString());
-        }
+        foreach (var (key, skinId) in _data.Cosmetics.SummonerSkins)
+            result[new SummonerId(key)] = skinId;
         return result;
     }
 
     public bool SetSummonerSkin(SummonerId summonerId, SkinId skinId)
     {
-        if (!EnsureConnected(nameof(SetSummonerSkin))) return false;
-        return (bool)_gdProfileRepo!.Call("set_summoner_skin", (string)summonerId, (string)skinId);
+        if (skinId.HasValue && !IsCosmeticOwned(new CosmeticId((string)skinId)))
+        {
+            GD.PushWarning($"ProfileRepository: Cannot set skin '{skinId}' - not owned");
+            return false;
+        }
+
+        var key = (string)summonerId;
+        if (!skinId.HasValue)
+            _data.Cosmetics.SummonerSkins.Remove(key);
+        else
+            _data.Cosmetics.SummonerSkins[key] = skinId;
+
+        AppendToWal("set_summoner_skin",
+            new { summoner_id = (string)summonerId, skin_id = (string)skinId });
+        MarkDirty();
+        return true;
     }
 
     // =========================================================================
@@ -412,45 +594,52 @@ public partial class ProfileRepository : Node, IProfileRepository
     // =========================================================================
 
     public EmoteId[] GetOwnedEmotes()
-    {
-        if (!EnsureConnected(nameof(GetOwnedEmotes))) return [];
-        var arr = _gdProfileRepo!.Call("get_owned_emotes").AsGodotArray();
-        var result = new List<EmoteId>();
-        foreach (var item in arr)
-        {
-            result.Add(new EmoteId(item.AsString()));
-        }
-        return [.. result];
-    }
+        => [.. _data.Emotes.Owned];
 
     public bool IsEmoteOwned(EmoteId emoteId)
-    {
-        if (!EnsureConnected(nameof(IsEmoteOwned))) return false;
-        return (bool)_gdProfileRepo!.Call("is_emote_owned", (string)emoteId);
-    }
+        => _data.Emotes.Owned.Contains(emoteId);
 
     public bool GrantEmote(EmoteId emoteId)
     {
-        if (!EnsureConnected(nameof(GrantEmote))) return false;
-        return (bool)_gdProfileRepo!.Call("grant_emote", (string)emoteId);
+        if (_data.Emotes.Owned.Contains(emoteId)) return false;
+        _data.Emotes.Owned.Add(emoteId);
+        AppendToWal("grant_emote", new { emote_id = (string)emoteId });
+        MarkDirty();
+        return true;
     }
+
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool GrantEmote(string id) => GrantEmote(new EmoteId(id));
 
     public EmoteId[] GetEquippedEmotes()
     {
-        if (!EnsureConnected(nameof(GetEquippedEmotes))) return [];
-        var arr = _gdProfileRepo!.Call("get_equipped_emotes").AsGodotArray();
-        var result = new List<EmoteId>();
-        foreach (var item in arr)
-        {
-            result.Add(new EmoteId(item.AsString()));
-        }
-        return [.. result];
+        // Ensure exactly 4 slots
+        while (_data.Emotes.Equipped.Count < 4)
+            _data.Emotes.Equipped.Add(EmoteId.None);
+        return [.. _data.Emotes.Equipped];
     }
 
     public bool EquipEmote(int slot, EmoteId emoteId)
     {
-        if (!EnsureConnected(nameof(EquipEmote))) return false;
-        return (bool)_gdProfileRepo!.Call("equip_emote", slot, (string)emoteId);
+        if (slot < 0 || slot >= 4)
+        {
+            GD.PushWarning($"ProfileRepository: Invalid emote slot {slot} (must be 0-3)");
+            return false;
+        }
+
+        if (emoteId.HasValue && !IsEmoteOwned(emoteId))
+        {
+            GD.PushWarning($"ProfileRepository: Cannot equip emote '{emoteId}' - not owned");
+            return false;
+        }
+
+        while (_data.Emotes.Equipped.Count < 4)
+            _data.Emotes.Equipped.Add(EmoteId.None);
+
+        _data.Emotes.Equipped[slot] = emoteId;
+        AppendToWal("equip_emote", new { slot, emote_id = (string)emoteId });
+        MarkDirty();
+        return true;
     }
 
     // =========================================================================
@@ -458,28 +647,36 @@ public partial class ProfileRepository : Node, IProfileRepository
     // =========================================================================
 
     public int GetPurchaseCount(string purchaseKey)
-    {
-        if (!EnsureConnected(nameof(GetPurchaseCount))) return 0;
-        return (int)_gdProfileRepo!.Call("get_purchase_count", purchaseKey);
-    }
+        => _data.ShopPurchases.TryGetValue(purchaseKey, out var count) ? count : 0;
 
     public bool IncrementPurchaseCount(string purchaseKey)
     {
-        if (!EnsureConnected(nameof(IncrementPurchaseCount))) return false;
-        return (bool)_gdProfileRepo!.Call("increment_purchase_count", purchaseKey);
+        _data.ShopPurchases[purchaseKey] =
+            _data.ShopPurchases.TryGetValue(purchaseKey, out var count) ? count + 1 : 1;
+        AppendToWal("shop_purchase", new { key = purchaseKey });
+        MarkDirty();
+        return true;
     }
 
     public ShopRefreshState GetShopRefreshState(ShopId shopId)
     {
-        if (!EnsureConnected(nameof(GetShopRefreshState))) return new ShopRefreshState();
-        var dict = _gdProfileRepo!.Call("get_shop_refresh_state", (string)shopId).AsGodotDictionary();
-        return DtoConverters.FromShopRefreshStateDict(dict);
+        var key = (string)shopId;
+        return _data.ShopRefreshStateMap.TryGetValue(key, out var state) ? state : new ShopRefreshState();
     }
 
     public bool IncrementShopRefreshEpoch(ShopId shopId)
     {
-        if (!EnsureConnected(nameof(IncrementShopRefreshEpoch))) return false;
-        return (bool)_gdProfileRepo!.Call("increment_shop_refresh_epoch", (string)shopId);
+        var key = (string)shopId;
+        if (!_data.ShopRefreshStateMap.TryGetValue(key, out var state))
+            state = new ShopRefreshState();
+
+        state.RefreshEpoch++;
+        state.LastRefreshAt = Time.GetDatetimeStringFromSystem();
+        _data.ShopRefreshStateMap[key] = state;
+
+        AppendToWal("shop_refresh", new { shop_id = key });
+        MarkDirty();
+        return true;
     }
 
     // =========================================================================
@@ -488,61 +685,565 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     public void UpdateProfileMeta(MetaUpdate updates)
     {
-        if (!EnsureConnected(nameof(UpdateProfileMeta))) return;
-        var gdDict = DtoConverters.ToDict(updates);
-        _gdProfileRepo!.Call("update_profile_meta", gdDict);
+        if (updates.SelectedDeck != null) _data.Meta.SelectedDeck = updates.SelectedDeck;
+        if (updates.SelectedSummoner != null) _data.Meta.SelectedSummoner = updates.SelectedSummoner;
+        if (updates.AnalyticsOptIn.HasValue) _data.Meta.AnalyticsOptIn = updates.AnalyticsOptIn.Value;
+
+        if (updates.TutorialFlags != null)
+        {
+            foreach (var (key, value) in updates.TutorialFlags)
+                _data.Meta.TutorialFlags[key] = value;
+        }
+
+        if (updates.Achievements != null)
+        {
+            foreach (var (key, value) in updates.Achievements)
+                _data.Meta.Achievements[key] = value;
+        }
+
+        MarkDirty();
     }
 
     // =========================================================================
     // SETTINGS OPERATIONS
     // =========================================================================
 
-    public Settings GetSettings()
-    {
-        if (!EnsureConnected(nameof(GetSettings))) return new Settings();
-        var dict = _gdProfileRepo!.Call("get_settings").AsGodotDictionary();
-        return DtoConverters.FromSettingsDict(dict);
-    }
+    public Settings GetSettings() => _data.Settings;
 
     public void UpdateSettings(Settings settings)
     {
-        if (!EnsureConnected(nameof(UpdateSettings))) return;
-        var gdSettings = DtoConverters.ToDict(settings);
-        _gdProfileRepo!.Call("update_settings", gdSettings);
+        _data.Settings = settings;
+        SaveProfile(immediate: true);
+        EmitDataChanged();
+    }
+
+    public GdDict GetSettingsDict() => DtoConverters.ToDict(_data.Settings);
+
+    public void UpdateSettingsDict(GdDict settingsDict)
+    {
+        _data.Settings = DtoConverters.FromSettingsDict(settingsDict);
+        SaveProfile(immediate: true);
+        EmitDataChanged();
     }
 
     // =========================================================================
     // ITEM OPERATIONS
     // =========================================================================
 
-    public List<ItemInstance> ListItems()
-    {
-        if (!EnsureConnected(nameof(ListItems))) return [];
-
-        var arr = _gdProfileRepo!.Call("list_items").AsGodotArray();
-        var result = new List<ItemInstance>();
-
-        foreach (var item in arr)
-        {
-            var dict = item.AsGodotDictionary();
-            var itemData = DtoConverters.FromItemDict(dict);
-            if (itemData != null) result.Add(itemData);
-        }
-
-        return result;
-    }
+    public List<ItemInstance> ListItems() => [.. _data.Items];
 
     public void SaveItems(List<ItemInstance> items)
     {
-        if (!EnsureConnected(nameof(SaveItems))) return;
-
-        var gdItems = new Godot.Collections.Array();
-        foreach (var item in items)
-        {
-            gdItems.Add(DtoConverters.ToDict(item));
-        }
-
-        _gdProfileRepo!.Call("save_items", gdItems);
+        _data.Items = [.. items];
+        MarkDirty();
     }
 
+    // =========================================================================
+    // GDSCRIPT INTEROP METHODS (dict-returning for GDScript forwarder)
+    // =========================================================================
+
+    /// <summary>Get full profile as dictionary (read-only snapshot).</summary>
+    public GdDict GetActiveProfileDict()
+        => ProfileDataMapper.ToDictionary(_data);
+
+    /// <summary>Get resources as dictionary for GDScript.</summary>
+    public GdDict GetResourcesDict()
+        => DtoConverters.ToDict(_data.Resources);
+
+    /// <summary>Update resources from GDScript dictionary delta.</summary>
+    public void UpdateResourcesDict(GdDict delta)
+    {
+        var typedDelta = new Dictionary<ResourceType, int>();
+        foreach (var key in delta.Keys)
+        {
+            var keyStr = key.AsString();
+            if (Enum.TryParse<ResourceType>(keyStr, ignoreCase: true, out var resourceType))
+                typedDelta[resourceType] = delta[key].AsInt32();
+        }
+        UpdateResources(typedDelta);
+    }
+
+    /// <summary>Get shop purchases as dictionary for GDScript.</summary>
+    public GdDict GetShopPurchasesDict()
+    {
+        var dict = new GdDict();
+        foreach (var (key, count) in _data.ShopPurchases)
+            dict[key] = count;
+        return dict;
+    }
+
+    /// <summary>Get shop refresh state for a shop as dictionary for GDScript.</summary>
+    public GdDict GetShopRefreshStateDict(string shopId)
+        => DtoConverters.ToDict(GetShopRefreshState(new ShopId(shopId)));
+
+    /// <summary>Get caravan purchases as array for GDScript.</summary>
+    public GdArray GetCaravanPurchasesArray(string summonerId)
+    {
+        var purchases = GetCaravanPurchases(
+            string.IsNullOrEmpty(summonerId) ? new SummonerId(GetActiveSummonerId()) : new SummonerId(summonerId));
+        var arr = new GdArray();
+        foreach (var p in purchases) arr.Add(p);
+        return arr;
+    }
+
+    /// <summary>Update profile meta from GDScript dictionary.</summary>
+    public void UpdateProfileMetaDict(GdDict metaDict)
+    {
+        var update = new MetaUpdate();
+        if (metaDict.ContainsKey("selected_deck"))
+            update.SelectedDeck = metaDict["selected_deck"].AsString();
+        if (metaDict.ContainsKey("selected_summoner"))
+            update.SelectedSummoner = metaDict["selected_summoner"].AsString();
+        if (metaDict.ContainsKey("analytics_opt_in"))
+            update.AnalyticsOptIn = metaDict["analytics_opt_in"].AsBool();
+        UpdateProfileMeta(update);
+    }
+
+    /// <summary>Update campaign progress from GDScript dictionary.</summary>
+    public void UpdateCampaignProgressDict(GdDict progressDict, string summonerId = "")
+    {
+        var key = string.IsNullOrEmpty(summonerId) ? GetActiveSummonerId() : summonerId;
+        if (string.IsNullOrEmpty(key))
+        {
+            GD.PushWarning("ProfileRepository: Cannot update campaign progress - no summoner");
+            return;
+        }
+
+        var existing = GetCampaignProgress(new SummonerId(key));
+        var existingDict = DtoConverters.ToDict(existing);
+
+        // Merge fields from progressDict into existing
+        foreach (var dictKey in progressDict.Keys)
+            existingDict[dictKey] = progressDict[dictKey];
+
+        var merged = DtoConverters.FromCampaignDict(existingDict) ?? new CampaignProgress();
+        UpdateCampaignProgress(new SummonerId(key), merged);
+    }
+
+    /// <summary>Get full profile data snapshot as dictionary.</summary>
+    public GdDict GetProfileDataSnapshot()
+        => ProfileDataMapper.ToDictionary(_data);
+
+    /// <summary>Load complete profile data from a dictionary snapshot.</summary>
+    public void LoadProfileData(GdDict profileData)
+    {
+        if (profileData.Count == 0)
+        {
+            GD.PushError("ProfileRepository: Cannot load empty profile data");
+            return;
+        }
+
+        GD.Print("ProfileRepository: Loading profile data from snapshot...");
+        _data = ProfileDataMapper.FromDictionary(profileData, _currentProfileId);
+        _data.ProfileId = new ProfileId(_currentProfileId);
+        _data.Resources.ProfileId = new ProfileId(_currentProfileId);
+        _data.UpdatedAt = (long)Time.GetUnixTimeFromSystem();
+
+        SaveProfile(immediate: true);
+        ProfileLoaded?.Invoke(_currentProfileId);
+        EmitSignal(SignalName.ProfileLoadedGodot, _currentProfileId);
+        EmitDataChanged();
+        GD.Print("ProfileRepository: Profile data loaded successfully");
+    }
+
+    /// <summary>Check if onboarding is complete.</summary>
+    public bool IsOnboardingComplete()
+    {
+        return _data.SharedCampaignProgress.CompletedBattles
+            .Any(b => (string)b == "event_caravan_tutorial");
+    }
+
+    /// <summary>Get active deck as array of {catalog_id, count} for multiplayer.</summary>
+    public GdArray GetActiveDeckArray()
+    {
+        var selectedDeckId = _data.Meta.SelectedDeck;
+        if (string.IsNullOrEmpty(selectedDeckId))
+            return [];
+
+        var deck = _data.Decks.FirstOrDefault(d => (string)d.Id == selectedDeckId);
+        if (deck == null)
+            return [];
+
+        // Convert card_instance_ids → {catalog_id, count} format
+        var catalogCounts = new Dictionary<string, int>();
+        foreach (var instanceId in deck.CardInstanceIds)
+        {
+            var card = _data.Collection.FirstOrDefault(c => c.Id == instanceId);
+            if (card == null) continue;
+            var catalogId = (string)card.CatalogId;
+            if (!string.IsNullOrEmpty(catalogId))
+                catalogCounts[catalogId] = catalogCounts.GetValueOrDefault(catalogId, 0) + 1;
+        }
+
+        var result = new GdArray();
+        foreach (var (catalogId, count) in catalogCounts)
+        {
+            result.Add(new GdDict
+            {
+                ["catalog_id"] = catalogId,
+                ["count"] = count
+            });
+        }
+        return result;
+    }
+
+    /// <summary>Get unlocked summoner IDs as Godot Array for GDScript.</summary>
+    public GdArray GetUnlockedSummonersArray()
+    {
+        var arr = new GdArray();
+        foreach (var s in _data.UnlockedSummoners) arr.Add((string)s);
+        return arr;
+    }
+
+    /// <summary>Get owned cosmetic IDs as Godot Array for GDScript.</summary>
+    public GdArray GetOwnedCosmeticsArray()
+    {
+        var arr = new GdArray();
+        foreach (var c in _data.Cosmetics.Owned) arr.Add((string)c);
+        return arr;
+    }
+
+    /// <summary>Get equipped cosmetics as Godot Dictionary for GDScript.</summary>
+    public GdDict GetEquippedCosmeticsDict()
+    {
+        return new GdDict
+        {
+            ["card_back"] = (string)_data.Cosmetics.Equipped.CardBack,
+            ["ui_theme"] = (string)_data.Cosmetics.Equipped.UiTheme
+        };
+    }
+
+    /// <summary>Get summoner skins as Godot Dictionary for GDScript.</summary>
+    public GdDict GetSummonerSkinsDict()
+    {
+        var dict = new GdDict();
+        foreach (var (key, skinId) in _data.Cosmetics.SummonerSkins)
+            dict[key] = (string)skinId;
+        return dict;
+    }
+
+    /// <summary>Get owned emote IDs as Godot Array for GDScript.</summary>
+    public GdArray GetOwnedEmotesArray()
+    {
+        var arr = new GdArray();
+        foreach (var e in _data.Emotes.Owned) arr.Add((string)e);
+        return arr;
+    }
+
+    /// <summary>Get equipped emotes as Godot Array for GDScript.</summary>
+    public GdArray GetEquippedEmotesArray()
+    {
+        var equipped = GetEquippedEmotes();
+        var arr = new GdArray();
+        foreach (var e in equipped) arr.Add((string)e);
+        return arr;
+    }
+
+    /// <summary>List all cards as Godot Array of Dictionaries for GDScript.</summary>
+    public GdArray ListCardsArray()
+    {
+        var arr = new GdArray();
+        foreach (var card in _data.Collection)
+            arr.Add(DtoConverters.ToDict(card));
+        return arr;
+    }
+
+    /// <summary>Get a card as Godot Dictionary for GDScript.</summary>
+    public GdDict GetCardDict(string cardInstanceId)
+    {
+        var card = _data.Collection.FirstOrDefault(c => (string)c.Id == cardInstanceId);
+        return card != null ? DtoConverters.ToDict(card) : new GdDict();
+    }
+
+    /// <summary>Grant cards from GDScript array of dicts. Returns array of instance IDs.</summary>
+    public GdArray GrantCardsFromDicts(GdArray cards)
+    {
+        var typedCards = new List<(CardId catalogId, string rarity, ContentBinding binding, SummonerId? boundTo)>();
+        foreach (var item in cards)
+        {
+            if (item.VariantType != Variant.Type.Dictionary) continue;
+            var dict = item.AsGodotDictionary();
+            var catalogId = GdGet(dict, "catalog_id", "").AsString();
+            var rarity = GdGet(dict, "rarity", "common").AsString();
+            var bindingInt = GdGet(dict, "binding", 0).AsInt32();
+            var binding = Enum.IsDefined(typeof(ContentBinding), bindingInt)
+                ? (ContentBinding)bindingInt
+                : ContentBinding.AccountWide;
+            var boundToStr = GdGet(dict, "bound_to", "").AsString();
+            SummonerId? boundTo = string.IsNullOrEmpty(boundToStr) ? null : new SummonerId(boundToStr);
+
+            typedCards.Add((new CardId(catalogId), rarity, binding, boundTo));
+        }
+
+        var ids = GrantCards(typedCards);
+        var result = new GdArray();
+        foreach (var id in ids) result.Add((string)id);
+        return result;
+    }
+
+    /// <summary>Update card from GDScript dictionary. Returns bool.</summary>
+    public bool UpdateCardFromDict(string cardInstanceId, GdDict updates)
+    {
+        var cardUpdate = new CardUpdate();
+        if (updates.ContainsKey("xp"))
+            cardUpdate.Xp = updates["xp"].AsInt32();
+        if (updates.ContainsKey("level"))
+            cardUpdate.Level = updates["level"].AsInt32();
+        if (updates.ContainsKey("upgrades"))
+        {
+            var traits = new List<CardTraitId>();
+            var arr = updates["upgrades"].AsGodotArray();
+            foreach (var t in arr)
+                traits.Add(new CardTraitId(t.AsString()));
+            cardUpdate.Traits = traits;
+        }
+        return UpdateCard(new CardInstanceId(cardInstanceId), cardUpdate);
+    }
+
+    /// <summary>Upsert deck from GDScript dictionary. Returns deck_id string.</summary>
+    public string UpsertDeckFromDict(GdDict deckDict)
+    {
+        var deck = DtoConverters.FromDeckDict(deckDict);
+        if (deck == null)
+        {
+            // Create new deck with the provided data
+            deck = new Deck
+            {
+                Id = DeckId.None,
+                SummonerId = new SummonerId(GdGet(deckDict, "summoner_id", "").AsString()),
+                Name = GdGet(deckDict, "name", "Untitled Deck").AsString(),
+            };
+
+            // Parse card_instance_ids if provided
+            if (deckDict.TryGetValue("card_instance_ids", out var cardsVar) && cardsVar.VariantType == Variant.Type.Array)
+            {
+                foreach (var c in cardsVar.AsGodotArray())
+                    deck.CardInstanceIds.Add(new CardInstanceId(c.AsString()));
+            }
+        }
+
+        var id = UpsertDeck(deck);
+        return (string)id;
+    }
+
+    /// <summary>List all decks as Godot Array of Dictionaries for GDScript.</summary>
+    public GdArray ListDecksArray()
+    {
+        var arr = new GdArray();
+        foreach (var deck in _data.Decks)
+            arr.Add(DtoConverters.ToDict(deck));
+        return arr;
+    }
+
+    /// <summary>Get a deck as Godot Dictionary for GDScript.</summary>
+    public GdDict GetDeckDict(string deckId)
+    {
+        var deck = _data.Decks.FirstOrDefault(d => (string)d.Id == deckId);
+        return deck != null ? DtoConverters.ToDict(deck) : new GdDict();
+    }
+
+    /// <summary>Get profile meta as dictionary for GDScript.</summary>
+    public GdDict GetProfileMetaDict()
+        => DtoConverters.ToDict(_data.Meta);
+
+    /// <summary>Get last match as dictionary for GDScript.</summary>
+    public GdDict GetLastMatchDict()
+    {
+        var dict = new GdDict();
+        dict["seed"] = _data.LastMatch.Seed.HasValue ? Variant.From(_data.LastMatch.Seed.Value) : new Variant();
+        dict["result"] = _data.LastMatch.Result != null ? Variant.From(_data.LastMatch.Result) : new Variant();
+        dict["duration_s"] = _data.LastMatch.DurationSeconds.HasValue
+            ? Variant.From(_data.LastMatch.DurationSeconds.Value)
+            : new Variant();
+        return dict;
+    }
+
+    /// <summary>Update last match from GDScript dictionary.</summary>
+    public void UpdateLastMatchDict(GdDict matchInfo)
+    {
+        if (matchInfo.TryGetValue("seed", out var seedVar) && seedVar.VariantType == Variant.Type.Int)
+            _data.LastMatch.Seed = seedVar.AsInt64();
+        if (matchInfo.TryGetValue("result", out var resultVar) && resultVar.VariantType == Variant.Type.String)
+            _data.LastMatch.Result = resultVar.AsString();
+        if (matchInfo.TryGetValue("duration_s", out var durVar))
+        {
+            if (durVar.VariantType == Variant.Type.Float)
+                _data.LastMatch.DurationSeconds = (float)durVar.AsDouble();
+            else if (durVar.VariantType == Variant.Type.Int)
+                _data.LastMatch.DurationSeconds = durVar.AsInt32();
+        }
+        SaveProfile(immediate: true);
+        EmitDataChanged();
+    }
+
+    /// <summary>Save summoner instance from GDScript dictionary (for test/interop).</summary>
+    public bool SaveSummonerInstanceDict(GdDict summonerData)
+    {
+        var instance = DtoConverters.FromSummonerDict(summonerData);
+        if (instance == null)
+        {
+            GD.PushError("ProfileRepository: SaveSummonerInstanceDict called with invalid data");
+            return false;
+        }
+        return SaveSummonerInstance(instance);
+    }
+
+    /// <summary>Get summoner instance as dictionary for GDScript.</summary>
+    public GdDict GetSummonerInstanceDict(string summonerId)
+    {
+        var instance = GetSummonerInstance(new SummonerId(summonerId));
+        return instance != null ? DtoConverters.ToDict(instance) : new GdDict();
+    }
+
+    /// <summary>Get all summoner instances as array for GDScript.</summary>
+    public GdArray GetSummonerInstancesArray()
+    {
+        var arr = new GdArray();
+        foreach (var inst in _data.SummonerInstances)
+            arr.Add(DtoConverters.ToDict(inst));
+        return arr;
+    }
+
+    /// <summary>Get campaign progress as dictionary for GDScript.</summary>
+    public GdDict GetCampaignProgressDict(string summonerId = "")
+    {
+        var progress = GetCampaignProgress(
+            string.IsNullOrEmpty(summonerId) ? new SummonerId(GetActiveSummonerId()) : new SummonerId(summonerId));
+        return DtoConverters.ToDict(progress);
+    }
+
+    /// <summary>Get shared campaign progress as dictionary for GDScript.</summary>
+    public GdDict GetSharedCampaignProgressDict()
+        => DtoConverters.ToDict(_data.SharedCampaignProgress);
+
+    /// <summary>Update shared campaign progress from GDScript dictionary.</summary>
+    public void UpdateSharedCampaignProgressDict(GdDict progressDict)
+    {
+        var existing = DtoConverters.ToDict(_data.SharedCampaignProgress);
+        foreach (var key in progressDict.Keys)
+            existing[key] = progressDict[key];
+        var merged = DtoConverters.FromCampaignDict(existing) ?? new CampaignProgress();
+        UpdateSharedCampaignProgress(merged);
+    }
+
+    // =========================================================================
+    // INTERNAL
+    // =========================================================================
+
+    private void MarkDirty()
+    {
+        SaveProfile();
+        EmitDataChanged();
+    }
+
+    private void EmitDataChanged()
+    {
+        DataChanged?.Invoke();
+        EmitSignal(SignalName.DataChangedGodot);
+    }
+
+    private void WriteSave()
+    {
+        if (!_pendingSave) return;
+        _pendingSave = false;
+
+        _data.UpdatedAt = (long)Time.GetUnixTimeFromSystem();
+        var dict = ProfileDataMapper.ToDictionary(_data);
+
+        if (_store.SaveProfile(_currentProfileId, dict))
+        {
+            ProfileSaved?.Invoke(_currentProfileId);
+            EmitSignal(SignalName.ProfileSavedGodot, _currentProfileId);
+        }
+        else
+        {
+            var error = "Failed to write save file";
+            SaveFailed?.Invoke(error);
+            EmitSignal(SignalName.SaveFailedGodot, error);
+            GD.PushError("ProfileRepository: Save failed!");
+        }
+    }
+
+    private void CreateFreshProfile()
+    {
+        var now = (long)Time.GetUnixTimeFromSystem();
+        _data = new ProfileData
+        {
+            Version = ProfileData.CurrentVersion,
+            ProfileId = new ProfileId(_currentProfileId),
+            UpdatedAt = now,
+            CatalogVersion = "1.0.0",
+            Resources = new Resources
+            {
+                Gold = 100,
+                Gems = 0,
+                Essence = 0,
+                Fragments = 0,
+                ProfileId = new ProfileId(_currentProfileId),
+                UpdatedAt = now
+            },
+            Meta = new AccountMeta
+            {
+                SelectedDeck = "",
+                SelectedSummoner = "",
+                TutorialFlags = [],
+                Achievements = [],
+                AnalyticsOptIn = false
+            },
+            Settings = new Settings
+            {
+                SfxVolume = 1.0f,
+                MusicVolume = 1.0f,
+                Lang = "en"
+            },
+            Cosmetics = new Cosmetics
+            {
+                Owned = [],
+                Equipped = new EquippedCosmetics
+                {
+                    CardBack = CosmeticId.None,
+                    UiTheme = CosmeticId.None
+                },
+                SummonerSkins = []
+            },
+            Emotes = new Emotes
+            {
+                Owned = [],
+                Equipped = [EmoteId.None, EmoteId.None, EmoteId.None, EmoteId.None]
+            }
+        };
+    }
+
+    private string GetOrCreateDefaultProfile()
+    {
+        var defaultId = "default";
+        _store.EnsureProfileDir(defaultId);
+        return defaultId;
+    }
+
+    private static string GetActiveSummonerId()
+        => SummonerSelectionService.Instance?.GetActiveSummonerId() ?? "";
+
+    /// <summary>Safe dictionary access — Godot.Collections.Dictionary lacks GetValueOrDefault.</summary>
+    private static Variant GdGet(GdDict dict, string key, Variant defaultValue)
+        => dict.TryGetValue(key, out var val) ? val : defaultValue;
+
+    private void AppendToWal(string action, object? parameters)
+    {
+        var walEntry = new Dictionary<string, object>
+        {
+            ["op_id"] = Guid.NewGuid().ToString(),
+            ["profile_id"] = _currentProfileId,
+            ["action"] = action,
+            ["timestamp"] = Time.GetUnixTimeFromSystem()
+        };
+        if (parameters != null)
+            walEntry["params"] = parameters;
+
+        _data.Wal.Add(walEntry);
+
+        // Trim WAL if too large
+        if (_data.Wal.Count > WalMaxEntries)
+            _data.Wal = _data.Wal.Skip(_data.Wal.Count - WalMaxEntries).ToList();
+    }
 }

@@ -114,7 +114,7 @@ var nearby = SpatialGrid.Instance.GetUnitsInRadius(position, radius);
 **Bad:** Same logic copy-pasted in multiple places.
 
 ```csharp
-// In GhostUnit3D.cs
+// In UnitGhost.cs
 if (movementLayer == MovementLayer.Air)
     altitude = flightAltitude;
 

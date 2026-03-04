@@ -76,11 +76,13 @@ docs/
 │   └── card-progression-economy.md     XP, resources
 ├── technical/                 Technical references
 │   ├── unit-stat-pipeline.md
-│   ├── integration-status.md
 │   └── vfx/
 ├── architecture/              Code architecture
-│   ├── system-architecture.md
-│   └── transformation-roadmap.md
+│   └── system-architecture.md
+├── migration/                 Layered architecture migration hub
+│   ├── README.md              Status, checklists, transition tables
+│   ├── architectural-issues.md  25 issues driving the migration
+│   └── documentation-guide.md  Architecture doc principles
 ├── workflows/                 Development workflows
 │   └── pr-review-guidelines.md
 ├── art/                       Art specifications
@@ -107,15 +109,17 @@ docs/
 - `data/animations/` - Animation frame data
 
 **`scenes/`** - Godot scene files (.tscn)
-- `scenes/battlefield/` - Battle scenes and battlefield components
-- `scenes/units/` - Unit scene templates
-- `scenes/ui/` - UI components
+- `scenes/battle/battlefield/` - Battle scenes and battlefield components
+- `scenes/battle/units/` - Unit scene templates
+- `scenes/` - Scene files (battle/, meta/, shared/)
 
-**`scripts/`** - GDScript code (.gd)
-- `scripts/core/` - Core game systems
-- `scripts/units/` - Unit behavior
-- `scripts/battlefield/` - Battlefield and camera logic
-- `scripts/ui/` - UI controllers
+**`scripts/`** - GDScript and C# code
+- `scripts/battle/` - Battle domain (animations, battlefield, VFX, battle UI)
+- `scripts/meta/` - Meta-game domain (screens, components, modals)
+- `scripts/shared/` - Reusable UI components (card_visual, styled_button, etc.)
+- `scripts/application/` - Lifecycle and orchestration (scene_manager, battle_context, etc.)
+- `scripts/infrastructure/` - Shared data, billing, audio, constants
+- `scripts/csharp/` - C# codebase (see `docs/technical/architecture.md`)
 
 **`resources/`** - Godot resources
 - `resources/animations/` - SpriteFrames and animation data
@@ -164,8 +168,8 @@ docs/
 
 1. Open project in Godot 4.5
 2. Run one of these test scenes:
-   - `scenes/battlefield/test_battle_vfx.tscn` - VFX sandbox (infinite mana/HP)
-   - `scenes/battlefield/campaign_battle_3d.tscn` - Real battle with progression
+   - `scenes/battle/battlefield/test_battle_vfx.tscn` - VFX sandbox (infinite mana/HP)
+   - `scenes/battle/battlefield/campaign_battle_3d.tscn` - Real battle with progression
 
 ### Making Changes
 
@@ -239,7 +243,7 @@ See [Todos](tracking/todos.md) for planned features and tasks.
 
 ### Modifying the Camera
 
-See [Camera Controller](../scripts/battlefield/camera_controller_3d.gd) - heavily commented for learning
+See [Camera Controller](../scripts/battle/battlefield/camera_controller_3d.gd) - heavily commented for learning
 
 ## Getting Help
 

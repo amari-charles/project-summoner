@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://p2p_transport"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Battle/Session/Transport/P2PTransport.cs" id="1_transport"]
+
+[node name="P2PTransport" type="Node"]
+script = ExtResource("1_transport")

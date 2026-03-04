@@ -69,5 +69,5 @@ Displays real-time metrics (only when panel is visible):
 ## Files
 
 - `scripts/debug/debug_menu.gd` - Main debug menu autoload
-- `scripts/csharp/Units/Unit3D.cs` - Target point and hitbox visualization
-- `scripts/csharp/Systems/SpatialGrid.cs` - Grid visualization and perf counters
+- `scripts/csharp/Battle/View/UnitVisual.cs` - Target point and hitbox visualization
+- `scripts/csharp/Battle/Simulation/Subsystems/SimSpatialGrid.cs` - Grid visualization and perf counters

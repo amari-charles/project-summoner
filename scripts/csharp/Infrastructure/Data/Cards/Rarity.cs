@@ -1,0 +1,12 @@
+namespace Fateforged.Cards;
+
+/// <summary>
+/// Card rarity tiers.
+/// </summary>
+public enum Rarity
+{
+    Common,
+    Rare,
+    Epic,
+    Legendary
+}

@@ -1,29 +1,29 @@
-namespace ProjectSummoner.Tests.Serialization;
+namespace Fateforged.Tests.Serialization;
 
 using System.Collections.Generic;
 using GdUnit4;
 using Godot;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Items;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile;
-using ProjectSummoner.Infrastructure.Persistence;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Campaign;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Domain.Profile.Decks;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Domain.Profile.Inventory;
-using ProjectSummoner.Domain.Profile.Summoners;
-using ProjectSummoner.Services.Campaign;
-using ProjectSummoner.Services.Deck;
+using Fateforged.Cards;
+using Fateforged.Data.Items;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Decks;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Meta.Campaign;
+using Fateforged.Meta.Deck;
 using static GdUnit4.Assertions;
-using ItemSlot = ProjectSummoner.Domain.Profile.Inventory.ItemSlot;
+using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
 /// <summary>
 /// Tests for DtoConverters - centralized Dict↔Domain conversions.
 /// </summary>
-[TestSuite]
+// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
 public class DtoConvertersTest
 {
     // =========================================================================
@@ -379,7 +379,7 @@ public class DtoConvertersTest
     [TestCase]
     public void Meta_RoundTrip_PreservesAllFields()
     {
-        var original = new Meta
+        var original = new AccountMeta
         {
             SelectedDeck = "deck_001",
             SelectedSummoner = "summoner_cole",

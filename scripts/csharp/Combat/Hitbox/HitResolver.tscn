@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://hit_resolver"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Combat/Hitbox/HitResolver.cs" id="1_script"]
-
-[node name="HitResolver" type="Node"]
-script = ExtResource("1_script")

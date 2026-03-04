@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
-using ProjectSummoner.Cards;
-using ProjectSummoner.Data.Summoners;
-using ProjectSummoner.Domain.Profile;
-using ProjectSummoner.Domain.Profile.Account;
-using ProjectSummoner.Domain.Profile.Campaign;
-using ProjectSummoner.Domain.Profile.Collection;
-using ProjectSummoner.Domain.Profile.Decks;
-using ProjectSummoner.Domain.Profile.Enums;
-using ProjectSummoner.Domain.Profile.Inventory;
-using ProjectSummoner.Domain.Profile.Shop;
-using ProjectSummoner.Domain.Profile.Summoners;
-using ProjectSummoner.Services.Deck;
-using ProjectSummoner.Services.Shop;
+using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Decks;
+using Fateforged.Domain.Profile.Enums;
+using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Shop;
+using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Meta.Deck;
+using Fateforged.Meta.Shop;
 
-namespace ProjectSummoner.Infrastructure.Persistence;
+namespace Fateforged.Infrastructure.Persistence;
 
 /// <summary>
 /// Profile repository interface for C# code.
@@ -94,6 +94,11 @@ public interface IProfileRepository
     void UpdateCampaignProgress(SummonerId summonerId, CampaignProgress progress);
     CampaignProgress GetSharedCampaignProgress();
     void UpdateSharedCampaignProgress(CampaignProgress progress);
+
+    // Caravan purchase tracking (campaign-scoped)
+    string[] GetCaravanPurchases(SummonerId summonerId);
+    void AddCaravanPurchase(string offeringId, SummonerId summonerId);
+    void ClearCaravanPurchases(SummonerId summonerId);
 
     // =========================================================================
     // COSMETIC OPERATIONS

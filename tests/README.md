@@ -12,7 +12,6 @@ tests/
 │   └── test_battle_context.gd
 ├── integration/       # Integration tests (future)
 ├── mocks/             # Mock implementations for testing
-│   ├── mock_profile_repo.gd
 │   ├── mock_economy_service.gd
 │   └── mock_collection_service.gd
 └── README.md
@@ -76,34 +75,10 @@ func test_something_works() -> void:
 
 ## Dependency Injection Pattern
 
-Services have been refactored to support dependency injection for testability:
-
-```gdscript
-# Service with injectable dependencies
-class_name SomeService
-
-var profile_repo: IProfileRepo = null
-
-func _ready() -> void:
-    # Fall back to autoload if not injected
-    if profile_repo == null:
-        profile_repo = ProfileRepo
-
-func init_for_testing(repo: IProfileRepo) -> void:
-    profile_repo = repo
-    # ... set up signal connections
-```
-
-This allows tests to inject mock implementations instead of using real autoloads.
+Services support dependency injection for testability. The C# `ProfileRepo` autoload
+is used directly (no GDScript wrapper or mock needed for integration tests).
 
 ## Mock Classes
-
-### MockProfileRepo
-
-In-memory implementation of `IProfileRepo`. Features:
-- Full interface implementation
-- Call tracking for spy assertions (`get_call_count()`, `get_call_args()`)
-- Test helpers (`reset()`, `set_resources()`, `set_campaign_progress()`)
 
 ### MockEconomyService
 

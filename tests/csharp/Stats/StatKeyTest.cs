@@ -1,7 +1,7 @@
-namespace ProjectSummoner.Tests.Stats;
+namespace Fateforged.Tests.Stats;
 
 using GdUnit4;
-using ProjectSummoner.Stats;
+using Fateforged.Stats;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -84,13 +84,24 @@ public class StatKeyTest
     {
         var all = StatKeyExtensions.All;
 
-        AssertThat(all.Length).IsEqual(6);
+        AssertThat(all.Length).IsEqual(28);
+        // Core unit stats
         AssertThat(all).Contains(StatKey.MaxHp);
         AssertThat(all).Contains(StatKey.AttackDamage);
-        AssertThat(all).Contains(StatKey.AttackSpeed);
         AssertThat(all).Contains(StatKey.MoveSpeed);
-        AssertThat(all).Contains(StatKey.AttackRange);
         AssertThat(all).Contains(StatKey.AggroRadius);
+        // Defensive stats
+        AssertThat(all).Contains(StatKey.Armor);
+        AssertThat(all).Contains(StatKey.MagicResist);
+        // Elemental bonuses
+        AssertThat(all).Contains(StatKey.FireDamageBonus);
+        AssertThat(all).Contains(StatKey.ShadowDamageBonus);
+        // Summoner/utility stats
+        AssertThat(all).Contains(StatKey.CastSpeed);
+        AssertThat(all).Contains(StatKey.ManaRegen);
+        // Economy stats
+        AssertThat(all).Contains(StatKey.GoldBonus);
+        AssertThat(all).Contains(StatKey.XpBonus);
     }
 
     [TestCase]

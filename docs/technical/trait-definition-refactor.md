@@ -10,7 +10,7 @@ Converted TraitCatalog's inline dictionary entries to public static readonly fie
 
 ## Changes Made
 
-### 1. TraitId Struct (scripts/csharp/Data/Traits/TraitId.cs)
+### 1. TraitId Struct (scripts/csharp/Infrastructure/Data/Traits/TraitId.cs)
 
 Converted from const string pattern to a strongly-typed struct:
 

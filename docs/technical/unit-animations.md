@@ -8,7 +8,7 @@ Floating units (spirits, elementals, ghosts) can use a bobbing animation to simu
 
 ### Enabling Bobbing
 
-In your unit scene (`.tscn`), set these properties on the `Unit3D` node:
+In your unit scene (`.tscn`), set these properties on the `UnitVisual` node:
 
 ```
 enable_bobbing = true
@@ -171,7 +171,7 @@ This creates a unit that bobs gently while idle and lunges forward when attackin
 ## Adding to New Units
 
 ### Sprite-based Units (simpler)
-1. Create your unit scene extending `Unit3D`
+1. Create your unit scene extending `UnitVisual`
 2. Set `enable_bobbing = true` if the unit should float
 3. Choose an `attack_style` (1-4) for procedural attack effects
 4. The visual component handles the rest automatically
@@ -179,6 +179,6 @@ This creates a unit that bobs gently while idle and lunges forward when attackin
 ### Skeletal Units (more expressive)
 1. Create a rig scene with pivots and AnimationPlayer
 2. Add a script to bridge animation events (attack_impact signal)
-3. Create your unit scene extending `Unit3D`
+3. Create your unit scene extending `UnitVisual`
 4. Add `SkeletalCharacter2D5Component` as "Visual" child
 5. Set `skeletal_scene` and `scale_factor` exports

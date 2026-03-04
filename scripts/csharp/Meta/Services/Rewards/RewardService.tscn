@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8kqhvx5y3nrl"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Meta/Services/Rewards/RewardService.cs" id="1_main"]
+
+[node name="RewardService" type="Node"]
+script = ExtResource("1_main")

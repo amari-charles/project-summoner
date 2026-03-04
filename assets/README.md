@@ -95,7 +95,7 @@ Mipmaps: false
 ## Resources
 
 - [Visual Style References](../docs/design/visual-style-references.md) - Analysis of Mini Warriors & Cult of the Lamb
-- [Color Palette](../resources/visual/color_palette.gd) - Game color definitions
+- [Color Palette](../scripts/shared/color_palette.gd) - Game color definitions
 - [Art Specifications](../docs/art/asset-specifications.md) - Detailed asset requirements
 
 ---

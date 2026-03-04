@@ -10,10 +10,8 @@ var context: Node  # BattleContext instance
 
 func before_each() -> void:
 	# Load the BattleContext script and create instance
-	var BattleContextScript: GDScript = load("res://scripts/core/battle_context.gd")
+	var BattleContextScript: GDScript = load("res://scripts/application/battle_context.gd")
 	context = BattleContextScript.new()
-	# Initialize for testing to avoid scene tree access errors
-	context.init_for_testing(null, null)
 
 
 func after_each() -> void:
@@ -255,14 +253,15 @@ func _make_mock_deck(instance_ids: Array) -> Array:
 	var deck: Array = []
 	for id: String in instance_ids:
 		var mock_card: MockCard = MockCard.new()
-		mock_card.instance_id = id
+		mock_card.InstanceId = id
 		deck.append(mock_card)
 	return deck
 
 
 ## Simple mock card class for testing
+## Property uses PascalCase to match C# Card.InstanceId (Godot only auto-converts casing for C# objects)
 class MockCard extends RefCounted:
-	var instance_id: String = ""
+	var InstanceId: String = ""
 
 
 ## =============================================================================

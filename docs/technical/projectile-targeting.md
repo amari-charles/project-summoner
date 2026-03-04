@@ -13,7 +13,7 @@ The targeting system involves three key calculations:
 
 ### How It Works
 
-Target position is calculated via `Unit3D.get_projectile_target_position()`:
+Target position is calculated via `UnitVisual.get_projectile_target_position()`:
 
 ```csharp
 public Vector3 get_projectile_target_position()
@@ -65,7 +65,7 @@ Their `GlobalPosition.Y` includes the flight altitude. The targeting calculation
 
 ## Spawn Position
 
-Spawn position uses `RangedUnit3D.GetProjectileSpawnPosition()`:
+Spawn position uses `UnitVisual.GetProjectileSpawnPosition()` (ranged spawn logic merged into UnitVisual):
 
 ```csharp
 public Vector3 GetProjectileSpawnPosition()
@@ -99,7 +99,7 @@ public static readonly ProjectileData WindPuff = new()
 
 ### How Tracking Works
 
-Every 0.1 seconds, `Projectile3D.UpdatePathTarget()` is called:
+Every 0.1 seconds, `ProjectileVisual.UpdatePathTarget()` is called:
 
 ```csharp
 private void UpdatePathTarget()
@@ -157,11 +157,11 @@ With deceleration, actual flight time is longer than predicted, causing consiste
 
 **Solution**: Use constant speed (`acceleration: 0`) for tracking projectiles.
 
-### 4. DamageSystem Method Names
+### 4. Damage Pipeline Method Names
 
-**Problem**: Projectiles call `damageSystem.Call("apply_damage", ...)` but C# uses PascalCase.
+**Problem**: Projectiles previously called `DamageSystem.Call("apply_damage", ...)`.
 
-**Solution**: DamageSystem has snake_case aliases: `apply_damage()`, `apply_healing()`.
+**Solution**: Damage logic now lives in `SimBehavior` + `SimEffects` in the simulation layer. Projectile hits are resolved via `SimProjectile.ApplyHit()` which calls `SimDamage.Calculate()`.
 
 ### 5. Collision Shape Missing
 
@@ -173,13 +173,13 @@ With deceleration, actual flight time is longer than predicted, causing consiste
 
 | File | Purpose |
 |------|---------|
-| `scripts/csharp/Units/Unit3D.cs` | `get_projectile_target_position()` |
-| `scripts/csharp/Units/RangedUnit3D.cs` | `SpawnProjectile()`, `GetProjectileSpawnPosition()` |
-| `scripts/csharp/Projectiles/Projectile3D.cs` | Path movement, tracking, collision |
+| `scripts/csharp/Battle/View/UnitVisual.cs` | `get_projectile_target_position()`, `GetProjectileSpawnPosition()` (ranged spawn logic merged here) |
+| `scripts/csharp/Battle/View/ProjectileVisual.cs` | Path movement, tracking, collision |
+| `scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs` | Simulation-layer projectile ticking, hit detection, damage application |
 | `scripts/csharp/Projectiles/ProjectileData.cs` | Projectile configuration data class |
-| `scripts/csharp/Data/Projectiles/ProjectileDefinitions.cs` | Static projectile definitions |
-| `scripts/csharp/Visual/SpriteVisualComponent.cs` | `GetSpriteHeight()`, sprite positioning |
-| `scenes/projectiles/base_projectile_3d.tscn` | Base scene with collision shape |
+| `scripts/csharp/Infrastructure/Data/Projectiles/ProjectileDefinitions.cs` | Static projectile definitions |
+| `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs` | `GetSpriteHeight()`, sprite positioning |
+| `scenes/battle/projectiles/base_projectile_3d.tscn` | Base scene with collision shape |
 
 ## Testing Checklist
 
