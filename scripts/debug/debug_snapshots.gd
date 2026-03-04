@@ -13,9 +13,8 @@ extends Node
 ## Directory for storing snapshots (gitignored)
 const SNAPSHOTS_DIR: String = "user://debug/snapshots/"
 
-## Service references.
-## Use Variant to avoid parser ambiguity with C# autoload symbols under strict warnings.
-var _repo: Variant = null
+## Service references
+var _repo: Variant = null  # ProfileRepo autoload (C# service)
 
 ## Cached list of available snapshots
 var _snapshot_cache: Array[Dictionary] = []

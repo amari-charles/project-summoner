@@ -18,4 +18,4 @@ Represents divine purpose, judgment, and sacred protection. Holy burns away corr
 
 ---
 
-*See also: [Fire Element](fire.md)*
+*See also: [Fire Element](../fire/overview.md)*

@@ -1,6 +1,6 @@
 # Fateforged - Current State
 
-**Last Updated:** 2026-03-03
+**Last Updated:** 2026-03-04
 **Version:** Pre-Alpha (Host-Authoritative Simulation)
 
 ## Project Overview
@@ -11,7 +11,7 @@ Fateforged is a 1v1 real-time tactical battler where players summon elemental cr
 
 ## Architecture
 
-The codebase uses a **hybrid architecture** — layer-based for battle, domain-based for meta-game. See [docs/technical/architecture.md](../technical/architecture.md) for full details.
+The codebase uses a **hybrid architecture** — layer-based for battle, domain-based for meta-game. See [System Architecture](../architecture/system-architecture.md) and [Graph-Of-Graphs Model](../architecture/graph-of-graphs.md) for canonical boundaries.
 
 ### Battle Domain (4-Layer Stack)
 
@@ -22,13 +22,11 @@ Simulation  →  Session  →  View  →  Input
 | Layer | Key Components | Language |
 |---|---|---|
 | **Simulation** (`Fateforged.Simulation`) | `Simulation`, `MatchState`, `DeterministicRng`, `SimAi`, Commands, Events | C# (pure, no Godot deps) |
-| **Session** (`Fateforged.Session`) | `LocalSession`, `CommandRouter`, `IGameSession`, `HostSession`*, `ClientSession`* | C# |
+| **Session** (`Fateforged.Session`) | `LocalSession`, `CommandRouter`, `IGameSession`, `NetworkSession`, `HostSession`, `ClientSession` | C# |
 | **View** (`Fateforged.View`) | `BattleScene`, `EntityManager`, `UnitVisual`, `ProjectileVisual`, `SummonerVisual`, `SpawnPositionCalculator` | C# |
 | **Input** (`Fateforged.Input`) | `InputCollector` | C# |
 
-*HostSession/ClientSession have transport stubs — deferred to multiplayer transport milestone.
-
-**Scene-tree bridge:** `SimulationNode` (C#) bridges the Simulation into the Godot scene tree. It owns `MatchState`, creates `LocalSession`, and runs the fixed-timestep game loop in `_PhysicsProcess`. Singleton via `SimulationNode.Current`.
+**Scene-tree bridge:** `SimulationNode` (C#) bridges Session+Simulation into the Godot scene tree. It owns `MatchState`, creates `LocalSession` by default, and swaps to `HostSession`/`ClientSession` in multiplayer via `ConfigureMultiplayerSession(...)`. Singleton via `SimulationNode.Current`.
 
 ### Meta Domain (Service-Based)
 
@@ -64,7 +62,8 @@ All C# autoloads with clean names (no CS suffix):
 | `NakamaGameClient` | Server communication |
 | `MatchmakingService` | Match queue, lobby |
 | `RankingService` | Elo calculation, rank tracking |
-| `P2PTransport` | Peer-to-peer connection |
+| `NakamaMatchTransport` | Ranked relay transport in battle |
+| `P2PTransport` | Peer-to-peer transport for local/direct matches |
 
 ---
 
@@ -115,7 +114,6 @@ dotnet test --settings test.runsettings
 
 ## Current Limitations
 
-- Multiplayer transport not wired (HostSession/ClientSession stubs)
 - No sound effects system (AudioManager autoload exists, content pending)
 - AI uses basic heuristics (no ML or advanced strategy)
 - See `docs/bugs.md` for known issues

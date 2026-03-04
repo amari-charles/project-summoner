@@ -2,6 +2,8 @@
 
 The gameplay subsystem covers everything that happens during a battle: simulation logic, session orchestration, visual rendering, and player input.
 
+This is a subgraph of the root architecture graph. For shared terminology and navigation rules, see [../graph-of-graphs.md](../graph-of-graphs.md).
+
 ## Layers
 
 Each layer has its own subtree with detailed documentation. The high-level overview lives in [target-architecture.md](../target-architecture.md).
@@ -23,6 +25,14 @@ Input ──pushes commands──▶ Session ◀──reads state── View
 ```
 
 Input and View are independent peers. Both depend on Session, not on each other.
+
+## Data/Event Flow (Authoritative Direction)
+
+```
+Simulation ──state/events──▶ Session ──state/events──▶ View
+```
+
+This is a different projection from dependency flow and should be named explicitly in discussions.
 
 ## Future Subtrees
 

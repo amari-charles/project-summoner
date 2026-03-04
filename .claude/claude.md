@@ -63,12 +63,14 @@ Example: When implementing drag-and-drop for cards, remove click-to-play entirel
 ### Running Tests
 
 ```bash
-# C# suite (includes runtime-required tests via test.runsettings):
-dotnet test --settings test.runsettings
+# Full local suite (C# + GUT):
+./tools/run_tests.sh
 
-# GDScript suite:
-"/Applications/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+# Fast loop (C# only):
+./tools/run_tests.sh --fast
 ```
+
+Tests that depend on Godot runtime types (`Godot.Collections.Dictionary`, `Resource`, scene/node APIs, etc.) must be explicitly marked with `[RequireGodotRuntime]` in gdUnit4 v5.
 
 ### Persistence Philosophy
 **NEVER give up on a task without explicit permission.** When something doesn't work:

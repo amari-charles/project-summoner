@@ -34,4 +34,4 @@ Focused on nurturing something—at peace, not concerned with the viewer.
 
 ---
 
-*See also: [Water Element](../../elements/water.md) | [Other Fateforgers](./)*
+*See also: [Water Element](../../../elements/water/overview.md) | [Other Fateforgers](./)*

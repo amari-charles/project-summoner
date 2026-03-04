@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Data.Projectiles;
+using Fateforged.Projectiles;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -163,17 +165,18 @@ public static class SimBehavior
                 }
                 else if (unit.UnitType == UnitType.Ranged)
                 {
-                    // Ranged: delayed damage (pending damage timer simulates projectile travel)
+                    float baseDamage = SimEffects.GetEffectiveAttackDamage(unit);
+
+                    // Ranged: optional windup, then spawn an authoritative projectile.
                     if (unit.ProjectileDelay > 0)
                     {
                         unit.PendingDamageTimer = unit.ProjectileDelay;
                         unit.PendingDamageTargetId = targetId;
-                        unit.PendingDamageAmount = unit.AttackDamage;
+                        unit.PendingDamageAmount = baseDamage;
                     }
                     else
                     {
-                        // Zero delay — instant damage
-                        ApplyMeleeDamageToUnit(unit, target!, state, events);
+                        SpawnProjectileOrApplyDirect(unit, target!, baseDamage, state, events);
                     }
                 }
 
@@ -266,16 +269,24 @@ public static class SimBehavior
         {
             attacker.PendingDamageTimer = attacker.ProjectileDelay;
             attacker.PendingDamageTargetId = summonerTargetId;
-            attacker.PendingDamageAmount = attacker.AttackDamage;
+            attacker.PendingDamageAmount = SimEffects.GetEffectiveAttackDamage(attacker);
             return;
         }
 
         // Immediate damage (melee or zero-delay ranged)
-        DealSummonerDamage(state, summoner, summonerTeam, attacker.AttackDamage, attacker.Team, attacker.UnitId, events);
+        DealSummonerDamage(
+            state,
+            summoner,
+            summonerTeam,
+            SimEffects.GetEffectiveAttackDamage(attacker),
+            attacker.Team,
+            attacker.UnitId,
+            events);
     }
 
     /// <summary>
-    /// Process pending ranged damage (projectile travel simulation).
+    /// Process delayed ranged outcomes after attack windup.
+    /// Unit targets spawn projectiles; summoner targets apply delayed direct damage.
     /// Called after all units have moved for the tick.
     /// </summary>
     public static void TickPendingDamage(UnitData unit, MatchState state, float delta, List<SimEvent> events)
@@ -303,11 +314,11 @@ public static class SimBehavior
             }
             else
             {
-                // Pending damage against a unit
+                // Delayed ranged attack on unit: spawn projectile (or direct fallback).
                 var target = state.GetAliveUnit(pendingTargetId);
                 if (target != null)
                 {
-                    ApplyUnitDamage(unit, target, unit.PendingDamageAmount, state, events);
+                    SpawnProjectileOrApplyDirect(unit, target, unit.PendingDamageAmount, state, events);
                 }
             }
 
@@ -340,6 +351,62 @@ public static class SimBehavior
         events.Add(new SummonerDamagedEvent(summonerTeam, damage, attackerUnitId));
         if (wasDestroyed)
             events.Add(new SummonerDestroyedEvent(summonerTeam, attackerUnitId));
+    }
+
+    private static void SpawnProjectileOrApplyDirect(
+        UnitData attacker, UnitData target, float baseDamage, MatchState state, List<SimEvent> events)
+    {
+        if (!TryResolveProjectileData(attacker, out var projectileData))
+        {
+            // Fallback for missing ranged definitions in tests or incomplete data.
+            ApplyUnitDamage(attacker, target, baseDamage, state, events);
+            return;
+        }
+
+        var startPos = attacker.Position;
+        var targetPos = target.Position;
+        if (projectileData.SpawnAtTargetHeight)
+            startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
+
+        SimProjectile.Spawn(
+            state,
+            sourceUnitId: attacker.UnitId,
+            targetUnitId: target.UnitId,
+            team: attacker.Team,
+            damage: baseDamage,
+            sourceElementId: attacker.ElementId,
+            movementType: projectileData.MovementType,
+            speed: projectileData.Speed,
+            lifetime: projectileData.Lifetime,
+            startPos: startPos,
+            targetPos: targetPos,
+            arcHeight: projectileData.ArcHeight,
+            pierceCount: projectileData.PierceCount,
+            aoeRadius: projectileData.AoeRadius,
+            steerStrength: projectileData.SteerStrength,
+            veerDelay: projectileData.VeerDelay,
+            veerAngle: projectileData.VeerAngle,
+            veerDuration: projectileData.VeerDuration
+        );
+    }
+
+    private static bool TryResolveProjectileData(UnitData attacker, out ProjectileData projectileData)
+    {
+        projectileData = null!;
+
+        if (string.IsNullOrEmpty(attacker.CatalogId))
+            return false;
+
+        var unitDef = UnitDefinitions.Get(attacker.CatalogId);
+        if (unitDef?.Ranged == null)
+            return false;
+
+        var resolved = ProjectileDefinitions.Get(unitDef.Ranged.ProjectileId);
+        if (resolved == null)
+            return false;
+
+        projectileData = resolved;
+        return true;
     }
 
     private static bool IsValidTarget(int? targetId, MatchState state)

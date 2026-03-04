@@ -51,35 +51,34 @@ For multiplayer with AI fill-in (e.g., opponent disconnects), the host creates a
 
 ## 2. StateInterpolator
 
-**Current:** `Multiplayer/Client/StateInterpolator.cs` — lerps entity positions between snapshots.
+**Current:** `Battle/View/StateInterpolator.cs` — lerps remote entity render positions between snapshots.
 
 ### Design
 
-`StateInterpolator` is owned by `ClientSession`. It runs **after** snapshot application and **before** View reads state.
+`StateInterpolator` is owned by `EntityManager` (View layer). `ClientSession` applies authoritative snapshot state; `EntityManager` smooths only rendered transforms.
 
 ```
-ClientSession.Tick(delta):
-  1. Apply latest snapshot to _localState     (discrete jump)
-  2. _interpolator.Update(delta)              (smooth positions)
-  3. Write interpolated positions into _localState
-  4. Fire SimEventsEmitted
-  → View reads _localState (sees smooth positions)
+ClientSession.ApplySnapshot(...):
+  1. Write authoritative state to _localState (discrete, deterministic)
+
+EntityManager._PhysicsProcess(delta):
+  1. Push latest target positions into _interpolator
+  2. _interpolator.Update(delta)
+  3. UnitVisual reads interpolated render position from EntityManager
 ```
 
-**Key invariant:** The View layer is completely unaware of interpolation. It just reads `IGameSession.GetState()` and gets smooth values. Interpolation is a Session-internal concern.
+**Key invariant:** Interpolation is render-only. Session state remains authoritative and unmodified by smoothing.
 
 ### Migration from Current
 
-Current `StateInterpolator` uses `networkId` keys and `Godot.Vector3`. Target version:
-- Uses `unitId` keys (via `IdentityMap` translation at snapshot application)
-- Uses `SimVector3` or writes directly into `UnitData.Position` fields
-- No Godot imports (pure C#, consistent with session layer)
+Current `StateInterpolator` uses `networkId` keys and `Godot.Vector3` in View space, keyed by `UnitId`.
+No mutation of `MatchState` positions.
 
 ### Edge Cases
 
 - **Teleports:** If distance > `SnapThreshold` (5.0), snap instead of interpolate. Prevents slow drift across the map on large state corrections.
 - **New entities:** First position is set to target (no interpolation from origin). Already handled by `SetTarget` initializing `CurrentPosition = targetPosition`.
-- **Removed entities:** Call `Remove(unitId)` when entity leaves MatchState. `ClientSession` handles this during snapshot diff.
+- **Removed entities:** `EntityManager` calls `Remove(unitId)` when shells/state entries disappear.
 
 ---
 

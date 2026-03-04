@@ -553,7 +553,8 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 		_pending_opponent_summoner_data
 	)
 
-	# TODO: Wire multiplayer authority via HostSession/ClientSession
+	# Multiplayer authority/session ownership is configured in BattleScene
+	# via SimulationNode.ConfigureMultiplayerSession().
 
 	# Brief delay then transition to battle
 	await get_tree().create_timer(BATTLE_TRANSITION_DELAY).timeout

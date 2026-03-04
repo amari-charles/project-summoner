@@ -43,9 +43,25 @@ public partial class NakamaGameClient : Node
     public bool UseSSL { get; set; } = false;
 
     /// <summary>
-    /// Path to session token storage.
+    /// Whether this runtime should use player2-local persisted identity/session files.
     /// </summary>
-    private const string SessionTokenPath = "user://nakama_session.dat";
+    private static bool IsPlayer2Instance => OS.GetCmdlineUserArgs().Contains("--player2");
+
+    /// <summary>
+    /// Path to session token storage.
+    /// Player2 test instance uses a dedicated file to avoid restoring player1's session.
+    /// </summary>
+    private static string SessionTokenPath => IsPlayer2Instance
+        ? "user://nakama_session_p2.dat"
+        : "user://nakama_session.dat";
+
+    /// <summary>
+    /// Path to persisted device ID.
+    /// Player2 test instance uses a dedicated file to keep test identities isolated.
+    /// </summary>
+    private static string DeviceIdPath => IsPlayer2Instance
+        ? "user://device_id_p2.dat"
+        : "user://device_id.dat";
 
     #endregion
 
@@ -515,33 +531,90 @@ public partial class NakamaGameClient : Node
         _activeMatchId = null;
     }
 
+    /// <summary>
+    /// Reconnect the realtime socket and rejoin the currently active match.
+    /// </summary>
+    public async Task<bool> ReconnectToActiveMatchAsync()
+    {
+        if (string.IsNullOrEmpty(_activeMatchId))
+        {
+            GD.PrintErr("[NakamaGameClient] Cannot reconnect: no active match ID");
+            return false;
+        }
+
+        return await ReconnectToMatchAsync(_activeMatchId);
+    }
+
+    /// <summary>
+    /// Reconnect the realtime socket and join a specific match by ID.
+    /// </summary>
+    public async Task<bool> ReconnectToMatchAsync(string matchId)
+    {
+        if (_client == null || _session == null)
+        {
+            GD.PrintErr("[NakamaGameClient] Cannot reconnect: client/session unavailable");
+            return false;
+        }
+
+        try
+        {
+            if (_session.IsExpired)
+            {
+                var refreshed = await RefreshSessionAsync();
+                if (!refreshed)
+                {
+                    GD.PrintErr("[NakamaGameClient] Cannot reconnect: session refresh failed");
+                    return false;
+                }
+            }
+
+            DisconnectSocket();
+
+            var socketConnected = await ConnectSocketAsync();
+            if (!socketConnected || _socket == null)
+            {
+                GD.PrintErr("[NakamaGameClient] Reconnect failed: socket did not connect");
+                return false;
+            }
+
+            _activeMatch = await _socket.JoinMatchAsync(matchId);
+            _activeMatchId = _activeMatch.Id;
+
+            GD.Print($"[NakamaGameClient] Rejoined match: {_activeMatchId}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[NakamaGameClient] Failed to reconnect match: {ex.Message}");
+            return false;
+        }
+    }
+
     #endregion
 
     #region Session Persistence
 
     private string GetOrCreateDeviceId()
     {
-        const string deviceIdPath = "user://device_id.dat";
-
         string deviceId;
 
-        if (FileAccess.FileExists(deviceIdPath))
+        if (FileAccess.FileExists(DeviceIdPath))
         {
-            using var file = FileAccess.Open(deviceIdPath, FileAccess.ModeFlags.Read);
+            using var file = FileAccess.Open(DeviceIdPath, FileAccess.ModeFlags.Read);
             deviceId = file?.GetAsText().Trim() ?? Guid.NewGuid().ToString();
         }
         else
         {
             deviceId = Guid.NewGuid().ToString();
 
-            using var writeFile = FileAccess.Open(deviceIdPath, FileAccess.ModeFlags.Write);
+            using var writeFile = FileAccess.Open(DeviceIdPath, FileAccess.ModeFlags.Write);
             writeFile?.StoreString(deviceId);
 
-            GD.Print($"[NakamaGameClient] Generated new device ID");
+            GD.Print($"[NakamaGameClient] Generated new device ID ({(IsPlayer2Instance ? "player2" : "player1")})");
         }
 
         // Use alternate identity for second test instance
-        if (OS.GetCmdlineUserArgs().Contains("--player2"))
+        if (IsPlayer2Instance)
         {
             GD.Print("[NakamaGameClient] --player2 flag detected, using alternate device ID");
             deviceId += "-p2";

@@ -57,6 +57,10 @@ public class CommandRouter
         if (spawn.Team < 0 || spawn.Team >= state.Summoners.Length)
             return new ValidationResult(false, "Invalid team index");
 
+        // SpawnUnitCommand is a debug/event bypass command and intentionally skips
+        // normal gameplay validation (game phase, catalog presence, mana, etc.).
+        // Execution path resolves missing catalog IDs safely at simulation layer.
+
         return Valid;
     }
 

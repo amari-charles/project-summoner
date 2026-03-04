@@ -23,4 +23,4 @@ A sturdy creature native to the elemental plane of earth. Pebblooms are patient 
 
 ---
 
-*See also: [Earth Element](../../elements/earth.md)*
+*See also: [Earth Element](../overview.md)*

@@ -34,4 +34,4 @@ Looking straight at the viewer, head on. Straightforward, steady gaze.
 
 ---
 
-*See also: [Earth Element](../../elements/earth.md) | [Other Fateforgers](./)*
+*See also: [Earth Element](../../../elements/earth/overview.md) | [Other Fateforgers](./)*

@@ -160,7 +160,7 @@ public record RedirectCommand(
 
 ### Decision: Input-Layer Component
 
-SummonPreview is **Input**. Although it renders visual feedback, its lifecycle is gesture-driven (created on drag start, destroyed on drag end). MatchState has no "drag in progress" concept, so EntityManager can't manage SummonPreview's lifecycle — InputCollector must own it. See [documentation-guide.md principle #10](../../migration/documentation-guide.md).
+SummonPreview is **Input**. Although it renders visual feedback, its lifecycle is gesture-driven (created on drag start, destroyed on drag end). MatchState has no "drag in progress" concept, so EntityManager can't manage SummonPreview's lifecycle — InputCollector must own it. See [documentation-guide.md principle #10](../../../migration/documentation-guide.md).
 
 ### Target Design
 

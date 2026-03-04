@@ -84,7 +84,7 @@ Units can only be spawned on the player's own half of the battlefield:
 
 ## 6 Combat and Interaction Assumptions
 
-*(Defined here only as battlefield-related rules; full combat logic lives in the [Combat System Spec](combat-system.md).)*
+*(Defined here only as battlefield-related rules; full combat logic lives in the [Combat System Spec](../combat/system.md).)*
 
 * Units automatically seek and attack nearest visible enemy.
 * Movement occurs freely in X and Y within bounds (no lanes).

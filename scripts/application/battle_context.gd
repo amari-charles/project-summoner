@@ -66,6 +66,11 @@ var debug_mode: bool = false
 ## Scene to return to after battle (campaign map, arena menu, etc.)
 var origin_scene: String = ""
 
+## Optional legacy authority provider bridge for multiplayer.
+## Session architecture no longer owns authority here, but C# interop still
+## reads this property during migration.
+var authority_provider: Variant = null
+
 ## All deck card instance IDs (for XP rewards on victory)
 ## Populated when battle starts via store_deck_card_ids()
 var _deck_card_instance_ids: Array[String] = []
@@ -216,6 +221,7 @@ func is_configured() -> bool:
 
 ## Clear battle context
 func clear() -> void:
+	_cleanup_authority_provider()
 	battle_config = {}
 	_battle_id = ""
 	biome_id = BiomeIDs.SUMMER_PLAINS
@@ -296,6 +302,57 @@ func reset() -> void:
 	clear()
 
 ## =============================================================================
+## AUTHORITY ACCESS (C# INTEROP COMPATIBILITY)
+## =============================================================================
+
+## Returns true for single-player, and host-only in multiplayer.
+func has_authority() -> bool:
+	if authority_provider is Object and is_instance_valid(authority_provider) and authority_provider.has_method("has_authority"):
+		return authority_provider.call("has_authority")
+
+	if current_mode != BattleMode.MULTIPLAYER:
+		return true
+
+	return battle_config.get("is_host", true)
+
+
+## Returns true when current battle is multiplayer.
+func is_multiplayer_battle() -> bool:
+	if authority_provider is Object and is_instance_valid(authority_provider) and authority_provider.has_method("is_multiplayer"):
+		return authority_provider.call("is_multiplayer")
+
+	if current_mode == BattleMode.MULTIPLAYER:
+		return true
+
+	return battle_config.get("is_multiplayer", false)
+
+
+## Local peer ID if provided by authority provider (default 0).
+func get_local_peer_id() -> int:
+	if authority_provider is Object and is_instance_valid(authority_provider) and authority_provider.has_method("get_local_peer_id"):
+		return authority_provider.call("get_local_peer_id")
+	return 0
+
+
+## Optional compatibility setter for legacy multiplayer glue.
+func set_authority_provider(provider: Variant) -> void:
+	_cleanup_authority_provider()
+	authority_provider = provider
+
+	if authority_provider is Object and is_instance_valid(authority_provider) and authority_provider.has_method("initialize"):
+		authority_provider.call("initialize")
+
+
+func get_authority_provider() -> Variant:
+	return authority_provider
+
+
+func _cleanup_authority_provider() -> void:
+	if authority_provider is Object and is_instance_valid(authority_provider) and authority_provider.has_method("cleanup"):
+		authority_provider.call("cleanup")
+	authority_provider = null
+
+## =============================================================================
 ## LEVEL CAP
 ## =============================================================================
 
@@ -354,4 +411,3 @@ func store_deck_card_ids(deck: Array) -> void:
 ## Get list of all deck card instance IDs
 func get_deck_card_ids() -> Array[String]:
 	return _deck_card_instance_ids.duplicate()
-

@@ -2,6 +2,8 @@
 
 *Last Updated: 2026-01-25*
 
+> For the current architecture vocabulary and navigation model, see [graph-of-graphs.md](graph-of-graphs.md) and [application-layer.md](application-layer.md).
+
 ## Guiding Principle
 
 **C# = Systems & Mechanics** | **GDScript = Orchestration & UI**

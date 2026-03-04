@@ -84,6 +84,9 @@ const SIMULATION_NODE: StringName = &"simulation_node"
 ## Input collector
 const INPUT_COLLECTOR: StringName = &"input_collector"
 
+## Match transport node (P2P/Nakama handoff between scenes)
+const MATCH_TRANSPORT: StringName = &"match_transport"
+
 # ============================================================================
 # UTILITY METHODS
 # ============================================================================
