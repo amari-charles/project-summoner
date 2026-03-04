@@ -18,10 +18,14 @@ namespace Fateforged.View;
 /// </summary>
 public partial class EntityManager : Node3D, ISimEventVisitor
 {
+    private const float ClientInterpolationSpeed = 14.0f;
+    private const float ClientSnapThreshold = 3.0f;
+
     private IGameSession? _session;
     private readonly Dictionary<int, UnitVisual> _unitRegistry = new();
     private readonly Dictionary<int, ProjectileVisual> _projectileRegistry = new();
     private readonly Dictionary<int, SummonerVisual> _summonerRegistry = new();
+    private readonly StateInterpolator _unitInterpolator = new();
 
     private bool _isPaused;
     private readonly List<int> _cleanupBuffer = new();
@@ -32,6 +36,8 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     {
         _session = session;
         _session.SimEventsEmitted += OnSimEvents;
+        _unitInterpolator.InterpolationSpeed = ClientInterpolationSpeed;
+        _unitInterpolator.SnapThreshold = ClientSnapThreshold;
     }
 
     /// <summary>
@@ -50,6 +56,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     {
         if (_session != null)
             _session.SimEventsEmitted -= OnSimEvents;
+        _unitInterpolator.Clear();
     }
 
     public void RegisterSummonerVisual(SummonerVisual shell, int teamIndex)
@@ -64,10 +71,17 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         if (_session == null || _isPaused) return;
 
         var state = _session.GetState();
+        var simNode = SimulationNode.Current;
+        bool useClientInterpolation = simNode != null && !simNode.IsHost;
 
         // Diff units: spawn shells for new IDs
         foreach (var (unitId, unitData) in state.Units)
         {
+            if (useClientInterpolation)
+            {
+                _unitInterpolator.SetTarget(unitId, simNode!.SimToLocal(unitData.Position));
+            }
+
             if (_unitRegistry.ContainsKey(unitId)) continue;
             if (!unitData.IsAlive) continue;
 
@@ -77,6 +91,9 @@ public partial class EntityManager : Node3D, ISimEventVisitor
                 _unitRegistry[unitId] = shell;
             }
         }
+
+        if (useClientInterpolation)
+            _unitInterpolator.Update(delta);
 
         // Diff projectiles: spawn shells for new IDs
         foreach (var (projId, projData) in state.Projectiles)
@@ -94,7 +111,12 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         {
             if (!IsInstanceValid(shell))
             {
+                _unitInterpolator.Remove(unitId);
                 _cleanupBuffer.Add(unitId);
+            }
+            else if (!state.Units.ContainsKey(unitId))
+            {
+                _unitInterpolator.Remove(unitId);
             }
         }
         foreach (var id in _cleanupBuffer)
@@ -158,6 +180,15 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     }
 
     // --- Event Dispatch ---
+
+    public Vector3 ResolveUnitRenderPosition(int unitId, Vector3 authoritativePosition)
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null || simNode.IsHost)
+            return authoritativePosition;
+
+        return _unitInterpolator.GetPosition(unitId) ?? authoritativePosition;
+    }
 
     private void OnSimEvents(IReadOnlyList<SimEvent> events)
     {

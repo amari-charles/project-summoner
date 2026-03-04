@@ -29,4 +29,10 @@ public interface IGameSession
     /// Session validates via CommandRouter before feeding to simulation.
     /// </summary>
     void SubmitCommand(ICommand command);
+
+    /// <summary>
+    /// Advance the session by delta time.
+    /// Local/host sessions tick Simulation; client sessions flush/apply network state.
+    /// </summary>
+    void Tick(float delta);
 }

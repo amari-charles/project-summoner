@@ -73,7 +73,8 @@ public static class BattleSessionFactory
 
             case DeckLoadStrategy.BattleContext:
                 GD.Print("[BattleSessionFactory] Loading enemy deck from BattleContext...");
-                LoadDeckFromBattleContext(config.RawConfig, result);
+                if (config.RawConfig != null)
+                    LoadDeckFromBattleContext(config.RawConfig, result);
                 if (result.Deck.Count == 0)
                 {
                     GD.PushWarning("[BattleSessionFactory] Failed to load from BattleContext, using STATIC deck");
@@ -113,6 +114,8 @@ public static class BattleSessionFactory
         if (totalCards > 0)
             GD.Print($"[BattleSessionFactory] Loaded {totalCards} cards (strategy={strategy})");
 
+        LoadSummonerStats(caller, config, localTeam, result);
+
         return result;
     }
 
@@ -139,7 +142,7 @@ public static class BattleSessionFactory
         // Auto-detect event_sequence battles with empty enemy deck
         if (localTeam == 1 && strategy == DeckLoadStrategy.BattleContext && config.HasEventSequence)
         {
-            if (config.RawConfig.ContainsKey("enemy_deck"))
+            if (config.RawConfig != null && config.RawConfig.ContainsKey("enemy_deck"))
             {
                 var enemyDeckVar = config.RawConfig["enemy_deck"];
                 if (enemyDeckVar.VariantType == Variant.Type.Array)
@@ -180,6 +183,12 @@ public static class BattleSessionFactory
     {
         var rawConfig = config.RawConfig;
 
+        if (rawConfig == null)
+        {
+            LoadDeckFromProfileServices(caller, result);
+            return;
+        }
+
         // Check for dev test deck override
         if (rawConfig.ContainsKey("dev_player_deck"))
         {
@@ -193,8 +202,6 @@ public static class BattleSessionFactory
             LoadDeckFromProfileServices(caller, result);
         }
 
-        // Load summoner stats from profile (always, even if deck fell back to static)
-        LoadSummonerFromProfile(caller, localTeam, result);
     }
 
     private static void LoadDeckFromProfileServices(Node caller, SummonerLoadResult result)
@@ -268,6 +275,21 @@ public static class BattleSessionFactory
     // SUMMONER STATS
     // =========================================================================
 
+    private static void LoadSummonerStats(
+        Node caller, BattleSessionConfig config, int localTeam, SummonerLoadResult result)
+    {
+        // Multiplayer enemy should use exchanged opponent summoner data when available.
+        if (config.IsMultiplayer && localTeam == 1)
+        {
+            if (config.RawConfig == null || !TryLoadOpponentSummonerStats(config.RawConfig, result))
+                GD.PushWarning("[BattleSessionFactory] Opponent summoner stats unavailable, using scene defaults");
+            return;
+        }
+
+        // Local player (and SP battles) load from local profile/autoload services.
+        LoadSummonerFromProfile(caller, localTeam, result);
+    }
+
     private static void LoadSummonerFromProfile(Node caller, int localTeam, SummonerLoadResult result)
     {
         var summonerSelection = caller.GetNodeOrNull("/root/SummonerSelection");
@@ -288,6 +310,46 @@ public static class BattleSessionFactory
         }
 
         var stats = summonerInstance.GetComputedStats();
+        ApplyComputedStats(localTeam, result, stats);
+    }
+
+    private static bool TryLoadOpponentSummonerStats(
+        Godot.Collections.Dictionary rawConfig, SummonerLoadResult result)
+    {
+        if (rawConfig.TryGetValue("opponent_summoner_data", out var opponentDataVar) &&
+            opponentDataVar.VariantType == Variant.Type.Dictionary)
+        {
+            var opponentData = opponentDataVar.AsGodotDictionary();
+            if (opponentData.Count > 0)
+            {
+                var instance = DtoConverters.FromSummonerDict(opponentData);
+                if (instance != null)
+                {
+                    var stats = instance.GetComputedStats();
+                    ApplyComputedStats(localTeam: 1, result, stats);
+                    GD.Print("[BattleSessionFactory] Applied opponent summoner stats from exchanged multiplayer data");
+                    return true;
+                }
+            }
+        }
+
+        // Fallback to base catalog stats for opponent summoner ID when exchange data isn't available.
+        string opponentSummonerId = rawConfig.GetValueOrDefault("opponent_summoner_id", "").ToString();
+        if (!string.IsNullOrEmpty(opponentSummonerId) && SummonerCatalog.HasSummoner(opponentSummonerId))
+        {
+            var fallbackInstance = new SummonerInstance { SummonerId = new SummonerId(opponentSummonerId) };
+            var stats = fallbackInstance.GetComputedStats();
+            ApplyComputedStats(localTeam: 1, result, stats);
+            GD.Print("[BattleSessionFactory] Applied fallback opponent base stats from catalog");
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void ApplyComputedStats(
+        int localTeam, SummonerLoadResult result, Dictionary<string, float> stats)
+    {
         if (stats.Count == 0) return;
 
         result.MaxMana = stats.GetValueOrDefault("max_mana", 100.0f);

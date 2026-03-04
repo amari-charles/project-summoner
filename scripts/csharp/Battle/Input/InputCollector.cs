@@ -355,7 +355,7 @@ public partial class InputCollector : Control
 
     private void CreateSpellPreview(Card card)
     {
-        var script = GD.Load<Script>("res://scripts/ui/battle/spell_preview.gd");
+        var script = GD.Load<Script>("res://scripts/battle/ui/spell_preview.gd");
         if (script == null) return;
 
         // SpellPreview extends Node3D — create via script attachment
@@ -393,7 +393,7 @@ public partial class InputCollector : Control
         if (_spawnZoneOverlay != null && IsInstanceValid(_spawnZoneOverlay))
             return;
 
-        var script = GD.Load<Script>("res://scripts/ui/battle/spawn_zone_overlay.gd");
+        var script = GD.Load<Script>("res://scripts/battle/ui/spawn_zone_overlay.gd");
         if (script == null) return;
 
         var overlay = new Node3D();

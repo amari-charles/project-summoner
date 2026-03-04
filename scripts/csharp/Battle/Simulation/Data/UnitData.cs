@@ -102,7 +102,9 @@ public class UnitData
     public BehaviorState BehaviorState { get; set; }
     public float AttackAnimationTimer { get; set; }
 
-    // Ranged unit pending damage (replaces projectile physics)
+    // Delayed ranged resolution buffers:
+    // - Unit targets: windup before spawning SimProjectileData
+    // - Summoner targets: windup before applying direct summoner damage
     public float ProjectileDelay { get; set; }
     public float PendingDamageTimer { get; set; }
     public int? PendingDamageTargetId { get; set; }

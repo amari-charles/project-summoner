@@ -20,6 +20,7 @@ Desktop.ini
 .gut_editor_config.json
 .gut_editor_shortcuts.cfg
 gdunit4_testadapter_v5/
+TestResults/
 
 # Claude Code local settings
 .claude/settings.local.json

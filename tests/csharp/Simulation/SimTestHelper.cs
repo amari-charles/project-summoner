@@ -98,12 +98,14 @@ public static class SimTestHelper
         float hp = 80f, float damage = 15f,
         float attackSpeed = 1f, float attackRange = 8f,
         float moveSpeed = 2.5f, float aggroRadius = 20f,
-        float projectileDelay = 0.5f)
+        float projectileDelay = 0.5f,
+        string catalogId = "puff")
     {
         int unitId = state.NextUnitId();
         var unit = new UnitData
         {
             UnitId = unitId,
+            CatalogId = catalogId,
             Team = (Team)team,
             CurrentHp = hp,
             MaxHp = hp,

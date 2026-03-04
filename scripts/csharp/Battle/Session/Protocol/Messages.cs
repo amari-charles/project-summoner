@@ -84,6 +84,7 @@ public readonly record struct StateSnapshot(
     float PrepTimeRemaining,
     SummonerState[] Summoners,
     UnitState[] Units,
+    ProjectileState[] Projectiles,
     int StateHash,
     bool IsOvertime
 );
@@ -229,7 +230,28 @@ public readonly record struct UnitState(
     bool IsAlive,
     int ActivationState,
     int BehaviorState,
-    bool IsFacingRight
+    bool IsFacingRight,
+    string CatalogId = "",
+    float SpawnTimer = 0f,
+    float AttackAnimationTimer = 0f
+);
+
+/// <summary>
+/// Projectile state for snapshots.
+/// Mirrors active projectile simulation state needed by client visuals.
+/// </summary>
+public readonly record struct ProjectileState(
+    int ProjectileId,
+    int SourceUnitId,
+    int TargetUnitId,
+    int Team,
+    int MovementType,
+    Vector3 CurrentPosition,
+    Vector3 Direction,
+    Vector3 TargetPosition,
+    float Progress,
+    float Speed,
+    bool IsDead
 );
 
 

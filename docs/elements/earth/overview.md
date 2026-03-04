@@ -20,4 +20,4 @@ Matter learns to shape itself—civilization and artifice emerge.
 
 ---
 
-*See also: [Teo (Earth Fateforger)](../characters/fateforgers/teo.md)*
+*See also: [Teo (Earth Fateforger)](../../lore/characters/fateforgers/teo.md)*

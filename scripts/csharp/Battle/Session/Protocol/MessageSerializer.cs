@@ -72,6 +72,7 @@ public class MessageSerializer
                 dict["prepTime"] = m.PrepTimeRemaining;
                 dict["summoners"] = SerializeSummoners(m.Summoners);
                 dict["units"] = SerializeUnits(m.Units);
+                dict["projectiles"] = SerializeProjectiles(m.Projectiles);
                 dict["hash"] = m.StateHash;
                 dict["overtime"] = m.IsOvertime;
                 break;
@@ -215,6 +216,9 @@ public class MessageSerializer
                 (float)dict["prepTime"],
                 DeserializeSummoners((Godot.Collections.Array)dict["summoners"]),
                 DeserializeUnits((Godot.Collections.Array)dict["units"]),
+                dict.ContainsKey("projectiles")
+                    ? DeserializeProjectiles((Godot.Collections.Array)dict["projectiles"])
+                    : System.Array.Empty<ProjectileState>(),
                 (int)dict["hash"],
                 (bool)dict["overtime"]
             ),
@@ -380,7 +384,10 @@ public class MessageSerializer
                 ["alive"] = u.IsAlive,
                 ["activation"] = u.ActivationState,
                 ["behavior"] = u.BehaviorState,
-                ["facing"] = u.IsFacingRight
+                ["facing"] = u.IsFacingRight,
+                ["catalogId"] = u.CatalogId ?? "",
+                ["spawnTimer"] = u.SpawnTimer,
+                ["attackAnim"] = u.AttackAnimationTimer
             };
             arr.Add(d);
         }
@@ -403,10 +410,60 @@ public class MessageSerializer
                 (bool)d["alive"],
                 (int)d["activation"],
                 d.ContainsKey("behavior") ? (int)d["behavior"] : 0,
-                d.ContainsKey("facing") ? (bool)d["facing"] : true
+                d.ContainsKey("facing") ? (bool)d["facing"] : true,
+                d.ContainsKey("catalogId") ? (string)d["catalogId"] : "",
+                d.ContainsKey("spawnTimer") ? (float)d["spawnTimer"] : 0f,
+                d.ContainsKey("attackAnim") ? (float)d["attackAnim"] : 0f
             );
         }
         return units;
+    }
+
+    private Godot.Collections.Array SerializeProjectiles(ProjectileState[] projectiles)
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var p in projectiles)
+        {
+            var d = new Dictionary
+            {
+                ["id"] = p.ProjectileId,
+                ["src"] = p.SourceUnitId,
+                ["target"] = p.TargetUnitId,
+                ["team"] = p.Team,
+                ["move"] = p.MovementType,
+                ["pos"] = SerializeVector3(p.CurrentPosition),
+                ["dir"] = SerializeVector3(p.Direction),
+                ["targetPos"] = SerializeVector3(p.TargetPosition),
+                ["progress"] = p.Progress,
+                ["speed"] = p.Speed,
+                ["dead"] = p.IsDead
+            };
+            arr.Add(d);
+        }
+        return arr;
+    }
+
+    private ProjectileState[] DeserializeProjectiles(Godot.Collections.Array arr)
+    {
+        var projectiles = new ProjectileState[arr.Count];
+        for (int i = 0; i < arr.Count; i++)
+        {
+            var d = (Dictionary)arr[i];
+            projectiles[i] = new ProjectileState(
+                ProjectileId: (int)d["id"],
+                SourceUnitId: d.ContainsKey("src") ? (int)d["src"] : -1,
+                TargetUnitId: d.ContainsKey("target") ? (int)d["target"] : -1,
+                Team: d.ContainsKey("team") ? (int)d["team"] : 0,
+                MovementType: d.ContainsKey("move") ? (int)d["move"] : 0,
+                CurrentPosition: DeserializeVector3(d["pos"]),
+                Direction: d.ContainsKey("dir") ? DeserializeVector3(d["dir"]) : Vector3.Zero,
+                TargetPosition: d.ContainsKey("targetPos") ? DeserializeVector3(d["targetPos"]) : Vector3.Zero,
+                Progress: d.ContainsKey("progress") ? (float)d["progress"] : 0f,
+                Speed: d.ContainsKey("speed") ? (float)d["speed"] : 0f,
+                IsDead: d.ContainsKey("dead") && (bool)d["dead"]
+            );
+        }
+        return projectiles;
     }
 
     private string[] ToStringArray(Godot.Collections.Array arr)

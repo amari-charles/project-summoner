@@ -35,6 +35,8 @@ const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
 
 ## Dynamically created UI elements
 var prep_timer_label: Label = null
+var reconnect_label: Label = null
+var _reconnect_reason: String = ""
 
 var game_controller: Node = null
 var player_summoner: Node3D = null
@@ -70,6 +72,7 @@ func _ready() -> void:
 
 	# Create prep timer label dynamically (large, center-top)
 	_create_prep_timer_label()
+	_create_reconnect_label()
 
 	# Connect restart button (always safe to do in _ready)
 	if restart_button:
@@ -97,6 +100,10 @@ func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 			game_controller.connect("PhaseChanged", _on_phase_changed)
 		if game_controller.has_signal("PrepTimerUpdated"):
 			game_controller.connect("PrepTimerUpdated", _on_prep_timer_updated)
+		if game_controller.has_signal("ReconnectStateChanged"):
+			game_controller.connect("ReconnectStateChanged", _on_reconnect_state_changed)
+		if game_controller.has_signal("ReconnectTimerUpdated"):
+			game_controller.connect("ReconnectTimerUpdated", _on_reconnect_timer_updated)
 	else:
 		push_error("GameUI: init() called with null game_controller!")
 
@@ -241,6 +248,46 @@ func _create_prep_timer_label() -> void:
 	prep_timer_label.visible = false
 	add_child(prep_timer_label)
 
+
+func _create_reconnect_label() -> void:
+	reconnect_label = Label.new()
+	reconnect_label.name = "ReconnectLabel"
+	reconnect_label.add_theme_font_size_override("font_size", 30)
+	reconnect_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+	reconnect_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	reconnect_label.add_theme_constant_override("outline_size", 3)
+	reconnect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reconnect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	reconnect_label.anchors_preset = Control.PRESET_CENTER
+	reconnect_label.offset_left = -320
+	reconnect_label.offset_right = 320
+	reconnect_label.offset_top = -40
+	reconnect_label.offset_bottom = 40
+	reconnect_label.visible = false
+	add_child(reconnect_label)
+
+
+func _on_reconnect_state_changed(reconnecting: bool, reason: String) -> void:
+	_reconnect_reason = reason
+	if reconnect_label == null:
+		return
+	if reconnecting:
+		reconnect_label.visible = true
+		reconnect_label.text = "Connection lost. Reconnecting..."
+	else:
+		reconnect_label.visible = false
+		reconnect_label.text = ""
+
+
+func _on_reconnect_timer_updated(remaining_seconds: float) -> void:
+	if reconnect_label == null or not reconnect_label.visible:
+		return
+	var seconds: int = maxi(0, ceili(remaining_seconds))
+	var suffix: String = ""
+	if not _reconnect_reason.is_empty():
+		suffix = "\n" + _reconnect_reason
+	reconnect_label.text = "Connection lost. Reconnecting... %ds" % seconds + suffix
+
 func _exit_tree() -> void:
 	if game_controller:
 		if game_controller.has_signal("TimeUpdated") and game_controller.is_connected("TimeUpdated", _on_time_updated):
@@ -251,6 +298,10 @@ func _exit_tree() -> void:
 			game_controller.disconnect("PhaseChanged", _on_phase_changed)
 		if game_controller.has_signal("PrepTimerUpdated") and game_controller.is_connected("PrepTimerUpdated", _on_prep_timer_updated):
 			game_controller.disconnect("PrepTimerUpdated", _on_prep_timer_updated)
+		if game_controller.has_signal("ReconnectStateChanged") and game_controller.is_connected("ReconnectStateChanged", _on_reconnect_state_changed):
+			game_controller.disconnect("ReconnectStateChanged", _on_reconnect_state_changed)
+		if game_controller.has_signal("ReconnectTimerUpdated") and game_controller.is_connected("ReconnectTimerUpdated", _on_reconnect_timer_updated):
+			game_controller.disconnect("ReconnectTimerUpdated", _on_reconnect_timer_updated)
 	if player_summoner:
 		if player_summoner.has_signal("ManaChanged") and player_summoner.is_connected("ManaChanged", _on_mana_changed):
 			player_summoner.disconnect("ManaChanged", _on_mana_changed)

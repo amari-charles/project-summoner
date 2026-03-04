@@ -33,6 +33,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private SpawnRevealComponent? _spawnReveal;
     private float _attackAnimTimer;
     private bool _isFacingRight;
+    private string _currentMoveAnim = "";
+    private EntityManager? _entityManager;
 
     // --- IDamageableVisual ---
 
@@ -44,6 +46,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         _session = session;
         _unitId = unitId;
+        _entityManager = GetParentOrNull<EntityManager>();
 
         // Find IVisualComponent child (may be named "Visual" or implement the interface)
         _visual = GetNodeOrNull<Node3D>("Visual") as IVisualComponent;
@@ -72,9 +75,17 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         // Set initial position from state so shell is never at origin
         var state = session.GetState();
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
+        {
+            Visible = false;
+            GD.PrintErr("[UnitVisual] SimulationNode.Current is null during Initialize");
+            return;
+        }
+
         if (state.Units.TryGetValue(unitId, out var unitData))
         {
-            GlobalPosition = SimulationNode.Current.SimToLocal(unitData.Position);
+            GlobalPosition = simNode.SimToLocal(unitData.Position);
 
             // Start spawn reveal if unit has a spawn timer
             if (unitData.SpawnTimer > 0)
@@ -95,7 +106,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
             // Set initial facing
             _isFacingRight = unitData.IsFacingRight;
-            if (!SimulationNode.Current.IsHost)
+            if (!simNode.IsHost)
                 _isFacingRight = !_isFacingRight;
             _visual?.SetFlipH(_isFacingRight);
         }
@@ -116,6 +127,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     public override void _PhysicsProcess(double delta)
     {
         if (_session == null || !_isAlive) return;
+        var simNode = SimulationNode.Current;
+        if (simNode == null) return;
 
         var state = _session.GetState();
         if (!state.Units.TryGetValue(_unitId, out var unitData))
@@ -139,11 +152,12 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (!Visible) Visible = true;
 
         // Sync position
-        GlobalPosition = SimulationNode.Current.SimToLocal(unitData.Position);
+        var authoritativePosition = simNode.SimToLocal(unitData.Position);
+        GlobalPosition = _entityManager?.ResolveUnitRenderPosition(_unitId, authoritativePosition) ?? authoritativePosition;
 
         // Sync facing (flip for client since X axis is mirrored)
         bool localFacing = unitData.IsFacingRight;
-        if (!SimulationNode.Current.IsHost)
+        if (!simNode.IsHost)
             localFacing = !localFacing;
 
         if (_isFacingRight != localFacing)
@@ -153,19 +167,27 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         }
 
         // Animation from BehaviorState (attack anim timer has priority)
+        if (unitData.AttackAnimationTimer > 0f && _attackAnimTimer <= 0f)
+            PlayAttackAnimation();
+
         if (_attackAnimTimer > 0)
         {
             _attackAnimTimer -= (float)delta;
         }
         else if (_visual != null)
         {
-            string anim = unitData.BehaviorState switch
+            string desiredMoveAnim = unitData.BehaviorState switch
             {
                 BehaviorState.Attacking => "idle",
                 BehaviorState.InRange => "idle",
                 _ => "walk"
             };
-            _visual.PlayAnimation(anim);
+
+            if (_currentMoveAnim != desiredMoveAnim || !_visual.IsPlaying())
+            {
+                _visual.PlayAnimation(desiredMoveAnim);
+                _currentMoveAnim = desiredMoveAnim;
+            }
         }
 
         // Update render priority for correct sprite layering
@@ -181,6 +203,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (_visual == null) return;
         _visual.PlayAnimation("attack");
         _attackAnimTimer = _visual.GetAnimationDuration("attack");
+        _currentMoveAnim = "attack";
     }
 
     public void FlashDamage()
@@ -198,6 +221,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (_visual != null)
         {
             _visual.PlayAnimation("death");
+            _currentMoveAnim = "death";
         }
 
         // Queue free after death animation completes

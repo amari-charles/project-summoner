@@ -30,10 +30,24 @@ The codebase uses a **hybrid architecture** — layer-based for battle, domain-b
 
 ## Battle Domain (Layer-Based)
 
-Four layers with strict downward-only dependencies:
+Battle is documented as a graph-of-graphs. The top-level gameplay projection has four nodes:
 
 ```
-Simulation  →  Session  →  View  →  Input
+Simulation, Session, View, Input
+```
+
+Dependency projection:
+
+```
+Input  →  Session  ←  View
+             ↓
+        Simulation
+```
+
+Authoritative data/event flow projection:
+
+```
+Simulation  →  Session  →  View
 ```
 
 | Layer | Namespace | Responsibility |
@@ -42,6 +56,8 @@ Simulation  →  Session  →  View  →  Input
 | **Session** | `Fateforged.Session` | Command routing, session management (Local/Host/Client/Network). Bridges input to simulation. |
 | **View** | `Fateforged.View` | Visual representation. EntityManager spawns UnitVisual/ProjectileVisual shells that read UnitData each frame. |
 | **Input** | `Fateforged.Input` | Player input collection. InputCollector handles drag-drop, click targeting. |
+
+See [../architecture/graph-of-graphs.md](../architecture/graph-of-graphs.md) for projection vocabulary.
 
 ### Key Patterns
 - `SimulationNode.Current` provides the active simulation instance

@@ -1,6 +1,9 @@
+using Fateforged.Data.Projectiles;
+using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Godot;
+using Fateforged.Units;
 
 namespace Fateforged.View;
 
@@ -16,6 +19,7 @@ public partial class ProjectileVisual : Node3D
     private IGameSession? _session;
     private int _projectileId;
     private bool _destroyed;
+    private bool _rotateToDirection = true;
 
     private Node3D? _visualModel;
 
@@ -26,13 +30,6 @@ public partial class ProjectileVisual : Node3D
         _session = session;
         _projectileId = projectileId;
 
-        // Create placeholder sphere mesh (iterate on full visual in later pass)
-        var mesh = new MeshInstance3D();
-        mesh.Mesh = new SphereMesh { Radius = 0.15f, Height = 0.3f };
-        mesh.Name = "Visual";
-        AddChild(mesh);
-        _visualModel = mesh;
-
         // Hide until first position sync (prevents ghost at 0,0,0)
         Visible = false;
 
@@ -40,7 +37,17 @@ public partial class ProjectileVisual : Node3D
         var state = session.GetState();
         if (state.Projectiles.TryGetValue(projectileId, out var projData))
         {
-            GlobalPosition = SimulationNode.Current.SimToLocal(projData.CurrentPosition);
+            var simNode = SimulationNode.Current;
+            if (simNode != null)
+                GlobalPosition = simNode.SimToLocal(projData.CurrentPosition);
+
+            var projectileData = ResolveProjectileData(state, projData.SourceUnitId);
+            _rotateToDirection = projectileData?.RotateToDirection ?? true;
+            SpawnVisual(projectileData);
+        }
+        else
+        {
+            SpawnVisual(null);
         }
     }
 
@@ -61,14 +68,21 @@ public partial class ProjectileVisual : Node3D
         if (!Visible) Visible = true;
 
         // Sync position
-        GlobalPosition = SimulationNode.Current.SimToLocal(projData.CurrentPosition);
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
+            return;
+
+        GlobalPosition = simNode.SimToLocal(projData.CurrentPosition);
 
         // Sync rotation toward movement direction
-        var dir = projData.Direction;
-        var godotDir = new Vector3(dir.X, dir.Y, dir.Z);
-        if (godotDir.LengthSquared() > 0.001f)
+        if (_rotateToDirection)
         {
-            LookAt(GlobalPosition + godotDir, Vector3.Up);
+            var dir = projData.Direction;
+            var godotDir = new Vector3(dir.X, dir.Y, dir.Z);
+            if (godotDir.LengthSquared() > 0.001f)
+            {
+                LookAt(GlobalPosition + godotDir, Vector3.Up);
+            }
         }
     }
 
@@ -83,5 +97,46 @@ public partial class ProjectileVisual : Node3D
             _visualModel.Visible = false;
 
         QueueFree();
+    }
+
+    private void SpawnVisual(ProjectileData? projectileData)
+    {
+        Node3D? visual = null;
+        if (projectileData?.VisualScene != null)
+        {
+            visual = projectileData.VisualScene.Instantiate<Node3D>();
+        }
+        else if (projectileData != null && !string.IsNullOrEmpty(projectileData.ModelScenePath)
+                 && ResourceLoader.Exists(projectileData.ModelScenePath))
+        {
+            var packed = ResourceLoader.Load<PackedScene>(projectileData.ModelScenePath);
+            if (packed != null)
+                visual = packed.Instantiate<Node3D>();
+        }
+
+        if (visual == null)
+        {
+            var mesh = new MeshInstance3D();
+            mesh.Mesh = new SphereMesh { Radius = 0.15f, Height = 0.3f };
+            mesh.Name = "VisualFallback";
+            visual = mesh;
+        }
+
+        AddChild(visual);
+        _visualModel = visual;
+    }
+
+    private static ProjectileData? ResolveProjectileData(Fateforged.Simulation.Data.MatchState state, int sourceUnitId)
+    {
+        if (!state.Units.TryGetValue(sourceUnitId, out var sourceUnit))
+            return null;
+        if (string.IsNullOrEmpty(sourceUnit.CatalogId))
+            return null;
+
+        var unitDef = UnitDefinitions.Get(sourceUnit.CatalogId);
+        if (unitDef?.Ranged == null)
+            return null;
+
+        return ProjectileDefinitions.Get(unitDef.Ranged.ProjectileId);
     }
 }

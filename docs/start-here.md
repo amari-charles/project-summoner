@@ -1,7 +1,7 @@
 # Getting Started with Fateforged
 
 **Status:** CURRENT
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-03-04
 **Purpose:** New developer onboarding and documentation guide
 
 Welcome to Fateforged! This document will help you get oriented with the project structure, key systems, and where to find information.
@@ -18,7 +18,7 @@ Welcome to Fateforged! This document will help you get oriented with the project
 | Learn the summoner system | [Summoner README](features/summoners/README.md) |
 | Create a new card | [Card System](features/cards/system.md) |
 | Add a new unit type | [Combat System](features/combat/system.md) |
-| Find art asset specs | [Asset Specifications](art/asset-specifications.md) |
+| Find art asset specs | [UI Assets](art/ui-assets.md) |
 | Check known bugs | [Bug Tracker](tracking/bugs.md) |
 | See latest design decisions | [Ideation Session](design/ideation-session-2026-01-19.md) |
 
@@ -79,10 +79,9 @@ docs/
 │   └── vfx/
 ├── architecture/              Code architecture
 │   └── system-architecture.md
-├── migration/                 Layered architecture migration hub
-│   ├── README.md              Status, checklists, transition tables
-│   ├── architectural-issues.md  25 issues driving the migration
-│   └── documentation-guide.md  Architecture doc principles
+├── migration/                 Active migration guidance
+│   ├── README.md              Migration status + archive links
+│   └── documentation-guide.md Architecture doc principles
 ├── workflows/                 Development workflows
 │   └── pr-review-guidelines.md
 ├── art/                       Art specifications
@@ -91,7 +90,7 @@ docs/
 │   └── characters/            Fateforgers and NPCs
 ├── tracking/                  Bugs and todos
 ├── elements/                  Elemental content
-└── archive/                   Outdated docs (historical only)
+└── archive/                   Historical docs (including migrated plans/checklists)
 ```
 
 ## Project Structure
@@ -119,7 +118,7 @@ docs/
 - `scripts/shared/` - Reusable UI components (card_visual, styled_button, etc.)
 - `scripts/application/` - Lifecycle and orchestration (scene_manager, battle_context, etc.)
 - `scripts/infrastructure/` - Shared data, billing, audio, constants
-- `scripts/csharp/` - C# codebase (see `docs/technical/architecture.md`)
+- `scripts/csharp/` - C# codebase (see `docs/architecture/system-architecture.md`)
 
 **`resources/`** - Godot resources
 - `resources/animations/` - SpriteFrames and animation data
@@ -145,7 +144,7 @@ docs/
 
 ### For Artists
 
-1. **[Asset Specifications](art/asset-specifications.md)** - Technical requirements for assets
+1. **[UI Assets](art/ui-assets.md)** - Technical requirements for assets
 2. **[Visual Style References](art/visual-style-references.md)** - Art style guidelines
 3. **`assets/README.md`** - How assets are organized
 

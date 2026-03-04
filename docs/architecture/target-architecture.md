@@ -1,10 +1,12 @@
 # Target Architecture
 
-High-level architectural redesign to resolve the 25 issues in `docs/migration/architectural-issues.md`.
+High-level architectural redesign to resolve the 25 issues captured in the archived migration issue list (`docs/archive/doc-reorg-2026-03/migration/architectural-issues.md`).
 
 ## 1. Layer Boundaries
 
-Three layers. Dependencies only flow **downward**. Each layer talks to the one below through a single entry point.
+Three top-level layers in the gameplay subgraph. Dependencies only flow **downward**. Each layer talks to the one below through a single entry point.
+
+Terminology note: this project uses a graph-of-graphs model. Each layer node can expand into its own internal subgraph (for example, `View` expands into `BattleScene`, `EntityManager`, `UnitVisual`, HUD, etc.). The diagram below is the top-level gameplay projection, not a full leaf-level graph. See [graph-of-graphs.md](graph-of-graphs.md) for vocabulary and projection rules.
 
 ```mermaid
 flowchart TB

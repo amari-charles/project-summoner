@@ -4,7 +4,7 @@ Visual feedback for in-progress gestures. Renders *input* state (drag position, 
 
 ## Why in Input
 
-Gesture feedback lifecycles are gesture-driven — created on drag start, destroyed on drag end. MatchState has no "drag in progress" concept, so EntityManager can't manage these components. InputCollector owns their lifecycles, so they live in Input, not View. See [documentation-guide.md principle #10](../../../migration/documentation-guide.md).
+Gesture feedback lifecycles are gesture-driven — created on drag start, destroyed on drag end. MatchState has no "drag in progress" concept, so EntityManager can't manage these components. InputCollector owns their lifecycles, so they live in Input, not View. See [documentation-guide.md principle #10](../../../../migration/documentation-guide.md).
 
 Gesture feedback CAN read `IGameSession.GetState()` for card data (Input already depends on Session).
 

@@ -22,4 +22,4 @@ Flame becomes sanctity. Energy with purpose, divine intention, and cleansing lig
 
 ---
 
-*See also: [Cole (Fire Fateforger)](../characters/fateforgers/cole.md)*
+*See also: [Cole (Fire Fateforger)](../../lore/characters/fateforgers/cole.md)*

@@ -2,7 +2,7 @@
 
 This document tracks planned features, improvements, and tasks for Fateforged.
 
-For completed tasks, see [todos-completed.md](todos-completed.md).
+For completed tasks, see [archive copy](../archive/doc-reorg-2026-03/tracking/todos-completed.md).
 
 **Status Legend:**
 - ⬜ Not Started
@@ -31,7 +31,7 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 
 **Completed (Phase 2-4):**
 - ✅ C# Protocol layer (Messages, MessageSerializer)
-- ✅ MatchSession orchestrator with HostRunner/ClientRunner
+- ✅ Session-layer architecture with `HostSession` / `ClientSession`
 - ✅ P2PTransport (ENet-based)
 - ✅ NetworkIdRegistry for entity sync
 - ✅ StateSnapshotBuilder and DesyncDetector
@@ -53,7 +53,7 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 - Host-authority model (client is render-only, no local simulation)
 - 10 Hz state snapshots for sync
 - Client prediction not yet implemented — currently pure snapshot interpolation
-- See `docs/multiplayer/ranked-system.md` for architecture
+- See `docs/multiplayer/architecture.md` for architecture boundaries
 - See `docs/technical/simulation-architecture.md` for simulation layer details
 
 **Related Systems:**

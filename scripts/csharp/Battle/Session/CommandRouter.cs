@@ -57,11 +57,9 @@ public class CommandRouter
         if (spawn.Team < 0 || spawn.Team >= state.Summoners.Length)
             return new ValidationResult(false, "Invalid team index");
 
-        if (state.Phase == GamePhase.GameOver)
-            return new ValidationResult(false, "Cannot spawn units after game over");
-
-        if (!state.CardDataMap.ContainsKey(spawn.CatalogId))
-            return new ValidationResult(false, $"Unknown catalog ID: {spawn.CatalogId}");
+        // SpawnUnitCommand is a debug/event bypass command and intentionally skips
+        // normal gameplay validation (game phase, catalog presence, mana, etc.).
+        // Execution path resolves missing catalog IDs safely at simulation layer.
 
         return Valid;
     }

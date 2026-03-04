@@ -17,4 +17,4 @@ Represents motion, freedom, and volatility. Wind cannot be held.
 
 ---
 
-*See also: [Mei (Wind Fateforger)](../characters/fateforgers/mei.md)*
+*See also: [Mei (Wind Fateforger)](../../lore/characters/fateforgers/mei.md)*

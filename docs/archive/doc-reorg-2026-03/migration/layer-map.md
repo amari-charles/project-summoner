@@ -73,7 +73,7 @@ Orchestrates simulation execution. Hides SP/MP differences behind `IGameSession`
 | `StateSnapshotBuilder` | `Multiplayer/Sync/StateSnapshotBuilder.cs` | Session | Deletes | Replaced by `SnapshotCodec` |
 | `DesyncDetector` | `Multiplayer/Sync/DesyncDetector.cs` | Session | Renames | → `DesyncChecker` (reads MatchState, not scene tree) |
 | `HostEventBroadcaster` | `Multiplayer/Authority/HostEventBroadcaster.cs` | Session | Moves | Broadcast logic absorbed into `HostSession` |
-| `StateInterpolator` | `Multiplayer/Client/StateInterpolator.cs` | Session | Moves | Writes interpolated values into MatchState before View reads |
+| `StateInterpolator` | `Battle/View/StateInterpolator.cs` | View | Moves | Render-only smoothing owned by EntityManager; does not mutate MatchState |
 | `PredictionBuffer` | `Multiplayer/Client/PredictionBuffer.cs` | Session | Moves | Client prediction, owned by `ClientSession` |
 | `ReconnectionHandler` | `Multiplayer/Core/ReconnectionHandler.cs` | Session | Moves | Reconnection logic, owned by `NetworkSession` |
 | `CoordinateTransform` | `Multiplayer/Core/CoordinateTransform.cs` | Session | Moves | Team-relative coordinate remapping at session boundary |

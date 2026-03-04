@@ -348,3 +348,88 @@ func test_configure_endless_sets_mode() -> void:
 	assert_eq(context.battle_state, context.BattleState.CONFIGURED)
 	# Expect the push_warning about not implemented
 	assert_engine_error("Endless mode not yet implemented")
+
+
+## =============================================================================
+## MULTIPLAYER AUTHORITY TESTS
+## =============================================================================
+
+func test_is_multiplayer_battle_false_by_default() -> void:
+	context.configure_practice_battle()
+	assert_false(context.is_multiplayer_battle())
+
+
+func test_is_multiplayer_battle_true_when_configured_multiplayer() -> void:
+	context.configure_multiplayer_battle(
+		"merlin",
+		"merriweather",
+		_make_multiplayer_deck("fire_wisp"),
+		_make_multiplayer_deck("pebbloom"),
+		true,
+		12345
+	)
+
+	assert_true(context.is_multiplayer_battle())
+
+
+func test_has_authority_true_for_single_player() -> void:
+	context.configure_practice_battle()
+	assert_true(context.has_authority())
+
+
+func test_has_authority_uses_is_host_for_multiplayer() -> void:
+	context.configure_multiplayer_battle(
+		"merlin",
+		"merriweather",
+		_make_multiplayer_deck("fire_wisp"),
+		_make_multiplayer_deck("pebbloom"),
+		false,
+		12345
+	)
+
+	assert_false(context.has_authority())
+
+
+func test_set_authority_provider_overrides_flags() -> void:
+	var provider: MockAuthorityProvider = MockAuthorityProvider.new(false, true, 42)
+	context.set_authority_provider(provider)
+
+	assert_true(provider.initialized)
+	assert_false(context.has_authority())
+	assert_true(context.is_multiplayer_battle())
+	assert_eq(context.get_local_peer_id(), 42)
+
+	context.clear()
+	assert_true(provider.cleaned_up)
+
+
+func _make_multiplayer_deck(catalog_id: String) -> Array:
+	return [{"catalog_id": catalog_id, "count": 1}]
+
+
+class MockAuthorityProvider extends RefCounted:
+	var _has_authority: bool = false
+	var _is_multiplayer: bool = true
+	var _peer_id: int = 0
+	var initialized: bool = false
+	var cleaned_up: bool = false
+
+	func _init(has_authority_flag: bool, is_multiplayer_flag: bool, peer_id: int) -> void:
+		_has_authority = has_authority_flag
+		_is_multiplayer = is_multiplayer_flag
+		_peer_id = peer_id
+
+	func initialize() -> void:
+		initialized = true
+
+	func cleanup() -> void:
+		cleaned_up = true
+
+	func has_authority() -> bool:
+		return _has_authority
+
+	func is_multiplayer() -> bool:
+		return _is_multiplayer
+
+	func get_local_peer_id() -> int:
+		return _peer_id

@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.Simulation;
 
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using GdUnit4;
@@ -203,7 +204,7 @@ public class SimBehaviorTest
     }
 
     // =========================================================================
-    // Ranged Pending Damage
+    // Ranged Projectile Spawning
     // =========================================================================
 
     [TestCase]
@@ -226,13 +227,32 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickPendingDamage_TimerExpired_AppliesDamage()
+    public void TickBehavior_RangedAttack_NoDelay_SpawnsProjectile()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, attackRange: 10f, projectileDelay: 0f);
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
+
+        unit.TargetUnitId = enemy.UnitId;
+        unit.AttackCooldown = 0f;
+
+        var events = new List<SimEvent>();
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+        var projectile = _state.Projectiles.Values.First();
+        AssertThat(projectile.SourceUnitId).IsEqual(unit.UnitId);
+        AssertThat(projectile.TargetUnitId).IsEqual(enemy.UnitId);
+    }
+
+    [TestCase]
+    public void TickPendingDamage_TimerExpired_SpawnsProjectile()
     {
         var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, damage: 20f);
         unit.CritChance = 0f;
         unit.ElementId = 0;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
-        enemy.Evasion = 0f;
 
         unit.PendingDamageTimer = 0.1f;
         unit.PendingDamageTargetId = enemy.UnitId;
@@ -241,15 +261,15 @@ public class SimBehaviorTest
         var events = new List<SimEvent>();
         SimBehavior.TickPendingDamage(unit, _state, 0.5f, events);
 
-        AssertThat(enemy.CurrentHp).IsLess(100f);
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
     }
 
     [TestCase]
-    public void TickPendingDamage_TargetDead_NoDamage()
+    public void TickPendingDamage_TargetDead_NoProjectileSpawned()
     {
         var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, damage: 20f);
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
-        enemy.IsAlive = false; // Dead before projectile arrives
+        enemy.IsAlive = false; // Dead before delayed spawn resolves
 
         unit.PendingDamageTimer = 0.1f;
         unit.PendingDamageTargetId = enemy.UnitId;
@@ -258,7 +278,8 @@ public class SimBehaviorTest
         var events = new List<SimEvent>();
         SimBehavior.TickPendingDamage(unit, _state, 0.5f, events);
 
-        AssertThat(enemy.CurrentHp).IsEqual(100f); // No damage applied
+        AssertThat(_state.Projectiles.Count).IsEqual(0);
+        AssertThat(enemy.CurrentHp).IsEqual(100f);
     }
 
     // =========================================================================

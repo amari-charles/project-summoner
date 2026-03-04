@@ -342,17 +342,17 @@ Verify the foundation is solid before building new layers.
 
 **SnapshotCodec** (211 LOC) — fully implemented: BinaryWriter/BinaryReader encode/decode, round-trip tests passing.
 
-**NetworkSession** (30 LOC) — abstract base with IdentityMap + SnapshotCodec fields. `HandleMessage` stub awaits transport wiring.
+**NetworkSession** — now owns transport lifecycle + protocol deserialize/route (session-layer networking boundary).
 
-**HostSession** (71 LOC) — fully implemented: constructor, Tick, SubmitCommand with CommandRouter validation, HandleRemoteCommand. Snapshot broadcast awaits transport wiring.
+**HostSession** — authoritative runtime: constructor with `IMatchTransport`, Tick, SubmitCommand with CommandRouter validation, remote command handling, periodic snapshot broadcast, match-end broadcast.
 
 **Tests:** IdentityMap, SnapshotCodec, HostSession tests all passing.
 
-### 3a.4: ClientSession — Multiplayer Client (partial)
+### 3a.4: ClientSession — Multiplayer Client ✅
 
-**ClientSession** (91 LOC) — ApplySnapshot fully implemented (copies all MatchState fields). Tick works. SubmitCommand awaits transport wiring.
+**ClientSession** — command send over transport, host snapshot apply into local MatchState, match-end handling, first-snapshot hook for battle start synchronization.
 
-**Deferred to multiplayer transport milestone:**
+**Still deferred (post-wiring enhancements):**
 - PredictionBuffer + reconciliation + rollback
 - Client prediction tests
 

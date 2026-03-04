@@ -22,4 +22,4 @@ A fox-like creature native to the elemental plane of fire. Fire Foxes are more i
 
 ---
 
-*See also: [Fire Element](../../elements/fire.md)*
+*See also: [Fire Element](../overview.md)*

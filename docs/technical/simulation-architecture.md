@@ -36,7 +36,7 @@ The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure
 3.  Phase timers / transitions (Preparation → Battle: activate units, refresh hands)
 4.  Tick casting (decrement timers, handle completions)
 5.  Tick spawn timers (activate units whose timer expired)
-6.  Tick units (cooldowns → targeting → behavior → movement → pending damage)
+6.  Tick units (cooldowns → targeting → behavior → movement → delayed ranged resolution)
 7.  Tick projectiles
 8.  Tick effects (buffs: decrement, periodic, remove expired)
 9.  Tick delayed effects (death explosions, timed AoE)
@@ -44,7 +44,7 @@ The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure
 11. Evaluate win conditions
 ```
 
-Each step produces events appended to that tick's event list. Order matters — targeting happens before behavior, movement before pending damage, effects before win condition evaluation.
+Each step produces events appended to that tick's event list. Order matters — targeting happens before behavior, movement before delayed ranged resolution, effects before win condition evaluation.
 
 ## Key Design Decisions
 
@@ -70,52 +70,38 @@ All death logic flows through `SimUtils.KillUnit()` — the single source of tru
 
 ## Multiplayer Coordination
 
-### HostRunner vs ClientRunner
+### Session Runtime Model
 
-Both implement `IMatchRunner` (`scripts/csharp/Multiplayer/Core/IMatchRunner.cs`). The concrete type is selected by `MultiplayerGameBridge` at match start and set on `SimulationNode.IsHost`.
+Multiplayer runtime is owned by the Session layer:
 
-**HostRunner** (`scripts/csharp/Multiplayer/Authority/HostRunner.cs`):
-- Subscribes to `SimulationNode.OnTickCompleted` to receive the `List<SimEvent>` produced each tick
-- Converts `SimEvent` objects into protocol messages (via `HostEventBroadcaster`, visitor pattern) and broadcasts them to all clients
-- Receives `CardPlayRequest`, `ForfeitRequest`, `StateHashReport`, and `Ping` messages from clients
-- Validates incoming `CardPlayRequest` via `RequestValidator` before submitting to the simulation
-- Submits accepted commands as `PlayCardCommand` to `SimulationNode.SubmitCommand()`
-- Broadcasts periodic `StateSnapshot` messages to clients (see Snapshot Frequency below)
-- On desync detection: immediately broadcasts a full snapshot to resync the client
+- `SimulationNode.Initialize(...)` starts with `LocalSession` by default.
+- `SimulationNode.ConfigureMultiplayerSession(transport, isHost)` swaps to:
+  - `HostSession` (authoritative simulation tick + snapshot broadcast)
+  - `ClientSession` (command send + snapshot apply, no deterministic tick)
 
-**ClientRunner** (`scripts/csharp/Multiplayer/Client/ClientRunner.cs`):
-- Never calls `Simulation.Tick()` — `SimulationNode.IsHost` is set to `false`
-- Receives `StateSnapshot`, `UnitSpawned`, `UnitDied`, `DamageDealt`, `SummonerDamaged`, and `MatchEnded` messages from the host
-- Routes `StateSnapshot` to `SimulationNode.ApplySnapshot()` for authoritative state application
-- Pre-registers incoming `UnitSpawned` units in `MatchState` before emitting the `RemoteUnitSpawned` signal, so that `UnitVisual._Ready()` can immediately claim the correct `UnitData`
-- Maintains a `StateInterpolator` that smoothly interpolates unit positions between 10Hz snapshots at the display frame rate
-- Sends `CardPlayRequest` (with canonical coordinates) for local card plays; applies an optimistic prediction locally while awaiting host confirmation
-- Rolls back optimistic predictions when the host responds with `CardPlayRejected`
-- Sends periodic `Ping` messages (every 1 second) to measure round-trip latency
-- Sends periodic `StateHashReport` messages to the host for desync detection
+`HostSession` responsibilities:
+- Receives `CardPlayRequest` / `ForfeitRequest` from transport.
+- Resolves authoritative team from sender identity (ignores payload team index).
+- Validates via `CommandRouter`, queues commands for simulation.
+- Ticks simulation and broadcasts periodic `StateSnapshot`.
+- Broadcasts `MatchEnded` and selected gameplay messages (`SummonerDamageFlash`).
+
+`ClientSession` responsibilities:
+- Sends local commands to host as protocol messages.
+- Applies host snapshots into local `MatchState` (`Summoners`, `Units`, `Projectiles`).
+- Emits derived visual events from snapshot deltas.
+- Handles reconnect grace window state.
 
 ### Snapshot Frequency
 
-The host broadcasts a full `StateSnapshot` every **100ms (10Hz)**.
+The host broadcasts a full `StateSnapshot` every **100ms (10Hz)** (`HostSession.SnapshotSendInterval = 0.1f`).
 
-This is defined as `SnapshotInterval = 0.1` in `HostRunner.cs` (line 34). The snapshot contains positions, HP, mana, casting state, hand/deck/discard for both summoners, and activation/behavior state for all alive units.
+The simulation still advances at **60Hz** (`SimulationNode.FIXED_DELTA = 1.0f / 60.0f`) on host.  
+Client-side motion smoothing is presentation-layer interpolation (`EntityManager` + `StateInterpolator`) over authoritative snapshot targets.
 
-The simulation itself ticks at **60Hz** (`FIXED_DELTA = 1.0f / 60.0f` in `SimulationNode.cs`, line 67), driven by `_PhysicsProcess` with a fixed-timestep accumulator. This means between each snapshot the host has already advanced ~6 simulation ticks.
+### State Hash Reporting
 
-The `ClientRunner` uses `StateInterpolator` to smooth the 10Hz positional data to the display frame rate so unit movement remains fluid on the client.
-
-### DesyncDetector
-
-`DesyncDetector` (`scripts/csharp/Multiplayer/Sync/DesyncDetector.cs`) runs on **both** host and client but serves different roles:
-
-**Client side** — called by `ClientRunner.ProcessFrame`:
-- Every `HashReportIntervalFrames` (60 frames, approximately 1 second at 60fps), the client computes a hash of its local `MatchState` via `StateSnapshotBuilder.ComputeHash()` and sends a `StateHashReport` to the host
-- The client also calls `DesyncDetector.ApplySnapshot()` on each received snapshot, comparing local hash against `snapshot.StateHash`; on mismatch it applies positional corrections and increments the mismatch counter
-
-**Host side** — called when a `StateHashReport` arrives:
-- `DesyncDetector.CheckClientHash()` computes the authoritative hash at the current server frame and compares it with the client-reported hash
-- If the frame lag between client and server exceeds `MaxFrameLagTolerance` (60 frames), the comparison is skipped to avoid false positives during catch-up
-- After `DesyncThreshold` (3) consecutive mismatches the detector fires `OnDesyncDetected`, which causes `HostRunner` to immediately broadcast a full `StateSnapshot` for resync
+`StateHashReport` remains in protocol as reserved/desync telemetry, but full hash-based correction flow is not wired in the current `HostSession`/`ClientSession` runtime path.
 
 ### Coordinate Transforms
 
@@ -127,7 +113,7 @@ The simulation stores all positions in **canonical (network) space**:
 - For the host, canonical and local are identical (no transform)
 - For the client, `LocalToCanonical` and `CanonicalToLocal` both mirror the X axis (`-v.X`)
 
-`SimulationNode` exposes `SimToLocal(SimVector3)` so presentation-layer code (UnitVisual, signals) always works in local space. All outgoing network messages use canonical coordinates; `ClientRunner` calls `CoordinateTransform.LocalToCanonical()` before sending `CardPlayRequest`.
+`SimulationNode` exposes `SimToLocal(SimVector3)` so presentation-layer code (UnitVisual, signals) always works in local space. Outgoing command positions are converted to canonical space before session submission.
 
 Team IDs in `MatchState` are also network-perspective: team 0 = host, team 1 = client. `SimulationNode.RemapTeam()` converts between local team (PLAYER=0, ENEMY=1 from GDScript) and network team. The host has `LocalPlayerIndex = 0` so no remapping occurs; the client has `LocalPlayerIndex = 1` and swaps 0↔1.
 
@@ -135,5 +121,6 @@ Team IDs in `MatchState` are also network-perspective: team 0 = host, team 1 = c
 
 ## See Also
 
-- **[Simulation Reference](simulation-reference.md)** — Mermaid diagrams, `MatchState` data structure reference, protocol message catalog
-- **[Simulation Walkthrough](simulation-walkthrough.md)** — Human-readable gameplay flow examples (card play, combat, win condition)
+- **[Graph-Of-Graphs Model](../architecture/graph-of-graphs.md)** — Shared architecture vocabulary and projection rules
+- **[Target Architecture](../architecture/target-architecture.md)** — Gameplay layer contracts and boundaries
+- **Archived deep references** — Historical simulation reference and walkthrough docs moved under `docs/archive/doc-reorg-2026-03/technical/`

@@ -79,6 +79,10 @@ public static class SimProjectile
                 proj.PathLength = startPos.DistanceTo(targetPos);
                 break;
 
+            case ProjectileMovementType.Homing:
+                proj.PathLength = startPos.DistanceTo(targetPos);
+                break;
+
             case ProjectileMovementType.Arc:
                 proj.PathLength = EstimateArcLength(startPos, targetPos, arcHeight);
                 break;
@@ -131,6 +135,9 @@ public static class SimProjectile
                 case ProjectileMovementType.Straight:
                     TickStraight(proj, delta);
                     break;
+                case ProjectileMovementType.Homing:
+                    TickHoming(proj, state, delta);
+                    break;
                 case ProjectileMovementType.Arc:
                     TickArc(proj, delta);
                     break;
@@ -150,6 +157,7 @@ public static class SimProjectile
 
             // Path completion check (for path-based types)
             if (!proj.IsDead && proj.MovementType != ProjectileMovementType.WeavingHoming
+                && proj.MovementType != ProjectileMovementType.Homing
                 && proj.Progress >= 1f)
             {
                 // Check direct hit on target at path end
@@ -223,6 +231,22 @@ public static class SimProjectile
         var tangent = (2f * u * (controlPoint - proj.StartPosition)) + (2f * t * (proj.TargetPosition - controlPoint));
         if (tangent.LengthSquared() > 0.001f)
             proj.Direction = tangent.Normalized();
+    }
+
+    private static void TickHoming(SimProjectileData proj, MatchState state, float delta)
+    {
+        var target = state.GetAliveUnit(proj.TargetUnitId);
+        if (target != null)
+            proj.TargetPosition = target.Position;
+
+        var toTarget = proj.TargetPosition - proj.CurrentPosition;
+        if (toTarget.LengthSquared() > 0.001f)
+        {
+            var desiredDirection = toTarget.Normalized();
+            SteerToward(proj, desiredDirection, delta);
+        }
+
+        proj.CurrentPosition += proj.Direction * (proj.Speed * delta);
     }
 
     private static void TickBallistic(SimProjectileData proj, float delta)
