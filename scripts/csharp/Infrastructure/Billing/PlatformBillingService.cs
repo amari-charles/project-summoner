@@ -1,4 +1,5 @@
 using Godot;
+using System.Collections.Generic;
 
 namespace Fateforged.Infrastructure.Billing;
 
@@ -78,6 +79,7 @@ public partial class PlatformBillingService : Node
 
     private BillingProvider? _provider;
     private bool _provider_initialized;
+    private readonly HashSet<string> _owned_products = [];
 
     public override void _Ready()
     {
@@ -125,7 +127,18 @@ public partial class PlatformBillingService : Node
 
     public bool is_product_owned(string product_id)
     {
-        return _provider?.is_product_owned(product_id) == true;
+        var internalProductId = _normalize_to_internal_product_id(product_id);
+        if (_owned_products.Contains(internalProductId))
+            return true;
+
+        if (_provider == null)
+            return false;
+
+        var providerProductId = _map_to_provider_product_id(internalProductId);
+        if (!string.IsNullOrEmpty(providerProductId))
+            return _provider.is_product_owned(providerProductId);
+
+        return _provider.is_product_owned(internalProductId);
     }
 
     public Platform get_platform()
@@ -243,17 +256,19 @@ public partial class PlatformBillingService : Node
 
     private void _on_provider_purchase_completed(string product_id, string transaction_id)
     {
-        EmitSignal("purchase_completed", product_id, transaction_id);
+        var internalProductId = _normalize_to_internal_product_id(product_id);
+        _owned_products.Add(internalProductId);
+        EmitSignal("purchase_completed", internalProductId, transaction_id);
     }
 
     private void _on_provider_purchase_failed(string product_id, string error)
     {
-        EmitSignal("purchase_failed", product_id, error);
+        EmitSignal("purchase_failed", _normalize_to_internal_product_id(product_id), error);
     }
 
     private void _on_provider_purchase_cancelled(string product_id)
     {
-        EmitSignal("purchase_cancelled", product_id);
+        EmitSignal("purchase_cancelled", _normalize_to_internal_product_id(product_id));
     }
 
     private void _on_provider_products_loaded(Godot.Collections.Array<BillingProduct> products)
@@ -263,11 +278,56 @@ public partial class PlatformBillingService : Node
 
     private void _on_provider_restore_completed(Godot.Collections.Array<string> restored_product_ids)
     {
-        EmitSignal("restore_completed", restored_product_ids);
+        var normalized = new Godot.Collections.Array<string>();
+        foreach (var productId in restored_product_ids)
+        {
+            var internalProductId = _normalize_to_internal_product_id(productId);
+            normalized.Add(internalProductId);
+            _owned_products.Add(internalProductId);
+        }
+
+        EmitSignal("restore_completed", normalized);
     }
 
     private void _on_provider_restore_failed(string error)
     {
         EmitSignal("restore_failed", error);
+    }
+
+    private string _normalize_to_internal_product_id(string product_id)
+    {
+        if (string.IsNullOrEmpty(product_id))
+            return product_id;
+
+        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        if (catalog == null)
+            return product_id;
+
+        return catalog.get_internal_product_id(product_id, _get_platform_key());
+    }
+
+    private string _map_to_provider_product_id(string internal_product_id)
+    {
+        if (string.IsNullOrEmpty(internal_product_id))
+            return internal_product_id;
+
+        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        if (catalog == null)
+            return internal_product_id;
+
+        return catalog.get_platform_product_id(internal_product_id, _get_platform_key());
+    }
+
+    private string _get_platform_key()
+    {
+        return current_platform switch
+        {
+            Platform.STEAM => "steam",
+            Platform.IOS => "ios",
+            Platform.ANDROID => "android",
+            Platform.WEB => "web",
+            Platform.EDITOR => "editor",
+            _ => "unknown",
+        };
     }
 }

@@ -138,19 +138,18 @@ public partial class AndroidBillingProvider : BillingProvider
 
     private void _on_purchase_success(string product_id, string transaction_id)
     {
-        var internalProductId = _normalize_product_id(product_id);
-        _owned_products.Add(internalProductId);
-        EmitSignal("purchase_completed", internalProductId, transaction_id);
+        _owned_products.Add(product_id);
+        EmitSignal("purchase_completed", product_id, transaction_id);
     }
 
     private void _on_purchase_failed(string product_id, string reason)
     {
-        EmitSignal("purchase_failed", _normalize_product_id(product_id), reason);
+        EmitSignal("purchase_failed", product_id, reason);
     }
 
     private void _on_purchase_cancelled(string product_id)
     {
-        EmitSignal("purchase_cancelled", _normalize_product_id(product_id));
+        EmitSignal("purchase_cancelled", product_id);
     }
 
     private void _on_restore_completed(Godot.Collections.Array product_ids)
@@ -158,7 +157,7 @@ public partial class AndroidBillingProvider : BillingProvider
         var restored = new Godot.Collections.Array<string>();
         foreach (var id in product_ids)
         {
-            var productId = _normalize_product_id(id.AsString());
+            var productId = id.AsString();
             restored.Add(productId);
             _owned_products.Add(productId);
         }
@@ -169,11 +168,5 @@ public partial class AndroidBillingProvider : BillingProvider
     private void _on_restore_failed(string error)
     {
         EmitSignal("restore_failed", error);
-    }
-
-    private string _normalize_product_id(string product_id)
-    {
-        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
-        return catalog?.get_internal_product_id(product_id, "android") ?? product_id;
     }
 }
