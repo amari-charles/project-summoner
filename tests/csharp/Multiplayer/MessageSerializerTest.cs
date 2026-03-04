@@ -9,7 +9,8 @@ using static GdUnit4.Assertions;
 /// <summary>
 /// Tests for MessageSerializer round-trip serialization.
 /// </summary>
-// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
+[TestSuite]
+[RequireGodotRuntime]
 public class MessageSerializerTest
 {
     private MessageSerializer _serializer = null!;
@@ -159,8 +160,10 @@ public class MessageSerializerTest
         AssertThat(typed.Position.Y).IsEqual(0f);
         AssertThat(typed.Position.Z).IsEqual(5f);
         AssertThat(typed.MatchTick).IsEqual(100L);
-        AssertThat(typed.SourceSequence).IsEqual(1);
-        AssertThat(typed.SourcePlayerIndex).IsEqual(0);
+        AssertThat(typed.SourceSequence.HasValue).IsTrue();
+        AssertThat(typed.SourcePlayerIndex.HasValue).IsTrue();
+        AssertThat(typed.SourceSequence.GetValueOrDefault()).IsEqual(1);
+        AssertThat(typed.SourcePlayerIndex.GetValueOrDefault()).IsEqual(0);
         AssertThat(typed.SpawnDuration).IsEqual(1.5f);
     }
 
@@ -175,7 +178,8 @@ public class MessageSerializerTest
         AssertThat(result).IsInstanceOf<UnitDied>();
         var typed = (UnitDied)result;
         AssertThat(typed.NetworkId).IsEqual(100);
-        AssertThat(typed.KillerNetworkId).IsEqual(50);
+        AssertThat(typed.KillerNetworkId.HasValue).IsTrue();
+        AssertThat(typed.KillerNetworkId.GetValueOrDefault()).IsEqual(50);
     }
 
     [TestCase]
@@ -210,7 +214,8 @@ public class MessageSerializerTest
         AssertThat(typed.TargetNetworkId).IsEqual(150);
         AssertThat(typed.Amount).IsEqual(25.5f);
         AssertThat(typed.IsCrit).IsTrue();
-        AssertThat(typed.SourceNetworkId).IsEqual(75);
+        AssertThat(typed.SourceNetworkId.HasValue).IsTrue();
+        AssertThat(typed.SourceNetworkId.GetValueOrDefault()).IsEqual(75);
     }
 
     [TestCase]
@@ -380,7 +385,8 @@ public class MessageSerializerTest
         AssertThat(typed.Units[1].Team).IsEqual(1);
         AssertThat(typed.Units[1].Position.X).IsEqual(5f);
         AssertThat(typed.Units[1].Position.Z).IsEqual(5f);
-        AssertThat(typed.Units[0].TargetNetworkId).IsEqual(2);
+        AssertThat(typed.Units[0].TargetNetworkId.HasValue).IsTrue();
+        AssertThat(typed.Units[0].TargetNetworkId.GetValueOrDefault()).IsEqual(2);
         AssertThat(typed.Units[1].TargetNetworkId).IsNull();
         AssertThat(typed.Units[0].BehaviorState).IsEqual(1);
         AssertThat(typed.Units[0].IsFacingRight).IsTrue();

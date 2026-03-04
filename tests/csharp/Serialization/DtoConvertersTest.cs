@@ -23,7 +23,8 @@ using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 /// <summary>
 /// Tests for DtoConverters - centralized Dict↔Domain conversions.
 /// </summary>
-// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
+[TestSuite]
+[RequireGodotRuntime]
 public class DtoConvertersTest
 {
     // =========================================================================
@@ -408,9 +409,9 @@ public class DtoConvertersTest
         AssertThat(result.TutorialFlags["intro_completed"]).IsTrue();
         AssertThat(result.TutorialFlags["combat_tutorial"]).IsFalse();
         // Achievement values preserve their types
-        AssertThat(result.Achievements["kills"]).IsEqual(42L);
-        AssertThat(result.Achievements["win_rate"]).IsEqual(0.75);
-        AssertThat(result.Achievements["has_trophy"]).IsEqual(true);
+        AssertThat((long)result.Achievements["kills"]).IsEqual(42L);
+        AssertThat((double)result.Achievements["win_rate"]).IsEqual(0.75);
+        AssertThat((bool)result.Achievements["has_trophy"]).IsEqual(true);
         AssertThat(result.Achievements["title"]).IsEqual("Champion");
     }
 
@@ -457,10 +458,10 @@ public class DtoConvertersTest
         var result = DtoConverters.FromMetaDict(dict);
 
         // Verify types are preserved (int becomes long in C#)
-        AssertThat(result.Achievements["int_value"]).IsInstanceOf<long>();
-        AssertThat(result.Achievements["float_value"]).IsInstanceOf<double>();
-        AssertThat(result.Achievements["bool_value"]).IsInstanceOf<bool>();
-        AssertThat(result.Achievements["string_value"]).IsInstanceOf<string>();
+        AssertThat(result.Achievements["int_value"] is long).IsTrue();
+        AssertThat(result.Achievements["float_value"] is double).IsTrue();
+        AssertThat(result.Achievements["bool_value"] is bool).IsTrue();
+        AssertThat(result.Achievements["string_value"] is string).IsTrue();
     }
 
     // =========================================================================

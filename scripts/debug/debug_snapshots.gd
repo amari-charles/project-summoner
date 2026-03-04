@@ -13,8 +13,9 @@ extends Node
 ## Directory for storing snapshots (gitignored)
 const SNAPSHOTS_DIR: String = "user://debug/snapshots/"
 
-## Service references
-var _repo = null  # ProfileRepo autoload (untyped to avoid CSharpScript parser error)
+## Service references.
+## Use Variant to avoid parser ambiguity with C# autoload symbols under strict warnings.
+var _repo: Variant = null
 
 ## Cached list of available snapshots
 var _snapshot_cache: Array[Dictionary] = []

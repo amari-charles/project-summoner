@@ -9,7 +9,8 @@ using static GdUnit4.Assertions;
 /// Tests for LevelCapService class.
 /// Tests the static methods directly without needing the Node instance.
 /// </summary>
-// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
+[TestSuite]
+[RequireGodotRuntime]
 public class LevelCapServiceTest
 {
     private LevelCapService _service = null!;

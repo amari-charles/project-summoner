@@ -78,12 +78,13 @@ func get_all_commands() -> Array[Dictionary]:
 const TEST_CARDS: Array = [CardIDs.FIRE_WISP, CardIDs.PEBBLOOM, CardIDs.PUFF, CardIDs.MANA_BOLT]
 const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
 
-## Service references (injected by autoload order)
-var _repo = null  # ProfileRepo autoload (untyped to avoid CSharpScript parser error)
-var _economy: Node = null  # Economy autoload
-var _collection: Node = null  # CardService autoload
-var _decks: Node = null  # Decks autoload
-var _snapshots: Node = null  # DebugSnapshots autoload
+## Service references (injected by autoload order).
+## Use Variant here because C# autoload symbols can resolve as script resources at parse-time.
+var _repo: Variant = null
+var _economy: Variant = null
+var _collection: Variant = null
+var _decks: Variant = null
+var _snapshots: Variant = null
 
 ## =============================================================================
 ## LIFECYCLE

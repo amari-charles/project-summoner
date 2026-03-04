@@ -6,6 +6,7 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]
+[RequireGodotRuntime]
 public class BattleSessionConfigTest
 {
     // =========================================================================
@@ -16,7 +17,7 @@ public class BattleSessionConfigTest
     public void ForPractice_SetsCorrectMode()
     {
         var config = BattleSessionConfig.ForPractice();
-        AssertThat(config.Mode).IsEqual(4); // PRACTICE
+        AssertThat(config.Mode).IsEqual(BattleMode.Practice);
     }
 
     [TestCase]
