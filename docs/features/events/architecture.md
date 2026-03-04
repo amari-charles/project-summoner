@@ -58,15 +58,14 @@ We're migrating from a tightly-coupled, `get_tree().paused`-driven system to a *
 
 ```gdscript
 # ❌ Bad: Direct coupling
-func _on_unit_died(unit: Unit3D) -> void:
+func _on_unit_died(unit: UnitVisual) -> void:
     quest_system.check_kill_objective(unit)
     achievement_system.track_kill(unit)
     analytics.log_unit_death(unit)
 
-# ✅ Good: Event-driven
-func _on_unit_died(unit: Unit3D) -> void:
-    GameStateEvents.unit_died.emit(unit, killer)
-    # QuestSystem, AchievementSystem, Analytics all subscribe independently
+# ✅ Good: Event-driven (SimEvents via ISimEventVisitor)
+# The simulation emits UnitDiedEvent, and BattleScene forwards it as a Godot signal.
+# QuestSystem, AchievementSystem, Analytics all subscribe independently.
 ```
 
 ### 2. Capabilities Instead of Global Pause
@@ -225,19 +224,19 @@ if CapabilityManager.is_enabled(Capability.PLAY_CARDS):
 CapabilityManager.unblock_capability(Capability.PLAY_CARDS, BlockReason.DIALOGUE_ACTIVE)
 ```
 
-### 2. GameStateEvents (Autoload)
+### 2. GameStateEvents / SimEvents
 
-**File:** `scripts/services/game_state_events.gd`
+**Original File:** `scripts/services/game_state_events.gd` (deleted)
+**Replacement:** Battle lifecycle events are now handled by `SimEvents` via `ISimEventVisitor` pattern in the simulation layer. `BattleScene.cs` (`scripts/csharp/Battle/View/BattleScene.cs`) forwards SimEvents as Godot signals for GDScript UI consumers.
 
-Specialized event hub for battle lifecycle and game state changes.
+**SimEvents (via ISimEventVisitor):**
+- `UnitRegisteredEvent`, `UnitDiedEvent` - Unit lifecycle
+- `DamageDealtEvent` - Combat events
+- `SummonerManaChangedEvent`, `CardDrawnEvent` - Player actions
+- `SummonerDamagedEvent` - Objective events
+- `GameOverEvent` - Battle lifecycle
 
-**Signals:**
-- `battle_started`, `battle_ended` - Battle lifecycle
-- `unit_spawned`, `unit_died` - Combat events
-- `card_played`, `mana_changed` - Player actions
-- `player_base_damaged`, `enemy_base_destroyed` - Objective events
-
-**Note:** GameStateEvents currently hosts both high-level state events AND core combat events. In the future, combat events may be split into a separate `CombatEvents` hub if the scope becomes too wide.
+**Note:** The old `GameStateEvents` GDScript autoload has been replaced by the typed `SimEvent` system. The simulation produces `SimEvent` lists each tick, and `SimulationNode` / `BattleScene` emit them as Godot signals.
 
 **Why specialized hubs?**
 - Clear dependencies (quest system only needs QuestEvents, not all game events)
@@ -404,7 +403,7 @@ func print_debug_capabilities() -> void:
     print("=============================\n")
 ```
 
-**2. GameStateEvents** - `scripts/services/game_state_events.gd`
+**2. SimEvents (via ISimEventVisitor)** - formerly `scripts/services/game_state_events.gd` (deleted; now handled by `BattleScene.cs` forwarding SimEvents as Godot signals)
 
 ```gdscript
 extends Node
@@ -676,7 +675,7 @@ func _find_hand_ui() -> Node:
 ```ini
 [autoload]
 CapabilityManager="*res://scripts/application/capability_manager.gd"
-GameStateEvents="*res://scripts/services/game_state_events.gd"
+# GameStateEvents has been replaced by SimEvents via ISimEventVisitor (no autoload needed)
 EventSequencer="*res://scripts/application/event_sequencer.gd"
 ```
 
@@ -774,7 +773,7 @@ This is required because:
 
 **Good:**
 ```gdscript
-signal unit_died(unit: Unit3D, killer: Unit3D)
+signal unit_died(unit: UnitVisual, killer: UnitVisual)
 signal card_played(card: Card, team: int)
 ```
 

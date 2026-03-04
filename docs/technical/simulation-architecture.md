@@ -2,7 +2,7 @@
 
 ## Overview
 
-The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure C# system with **no Godot dependencies**. It operates entirely on `MatchState` data and produces `SimEvent` lists that the presentation layer (SimulationNode, Unit3D) consumes.
+The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure C# system with **no Godot dependencies**. It operates entirely on `MatchState` data and produces `SimEvent` lists that the presentation layer (SimulationNode, UnitVisual) consumes.
 
 ### Design Principles
 
@@ -87,7 +87,7 @@ Both implement `IMatchRunner` (`scripts/csharp/Multiplayer/Core/IMatchRunner.cs`
 - Never calls `Simulation.Tick()` — `SimulationNode.IsHost` is set to `false`
 - Receives `StateSnapshot`, `UnitSpawned`, `UnitDied`, `DamageDealt`, `SummonerDamaged`, and `MatchEnded` messages from the host
 - Routes `StateSnapshot` to `SimulationNode.ApplySnapshot()` for authoritative state application
-- Pre-registers incoming `UnitSpawned` units in `MatchState` before emitting the `RemoteUnitSpawned` signal, so that `Unit3D._Ready()` can immediately claim the correct `UnitData`
+- Pre-registers incoming `UnitSpawned` units in `MatchState` before emitting the `RemoteUnitSpawned` signal, so that `UnitVisual._Ready()` can immediately claim the correct `UnitData`
 - Maintains a `StateInterpolator` that smoothly interpolates unit positions between 10Hz snapshots at the display frame rate
 - Sends `CardPlayRequest` (with canonical coordinates) for local card plays; applies an optimistic prediction locally while awaiting host confirmation
 - Rolls back optimistic predictions when the host responds with `CardPlayRejected`
@@ -127,7 +127,7 @@ The simulation stores all positions in **canonical (network) space**:
 - For the host, canonical and local are identical (no transform)
 - For the client, `LocalToCanonical` and `CanonicalToLocal` both mirror the X axis (`-v.X`)
 
-`SimulationNode` exposes `SimToLocal(SimVector3)` so presentation-layer code (Unit3D, signals) always works in local space. All outgoing network messages use canonical coordinates; `ClientRunner` calls `CoordinateTransform.LocalToCanonical()` before sending `CardPlayRequest`.
+`SimulationNode` exposes `SimToLocal(SimVector3)` so presentation-layer code (UnitVisual, signals) always works in local space. All outgoing network messages use canonical coordinates; `ClientRunner` calls `CoordinateTransform.LocalToCanonical()` before sending `CardPlayRequest`.
 
 Team IDs in `MatchState` are also network-perspective: team 0 = host, team 1 = client. `SimulationNode.RemapTeam()` converts between local team (PLAYER=0, ENEMY=1 from GDScript) and network team. The host has `LocalPlayerIndex = 0` so no remapping occurs; the client has `LocalPlayerIndex = 1` and swaps 0↔1.
 

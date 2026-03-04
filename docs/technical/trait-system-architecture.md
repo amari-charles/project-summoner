@@ -19,14 +19,14 @@ flowchart TB
         CMP[CardModifierProvider<br/>upgrade → StatModifier]
     end
 
-    subgraph Service["ModifierService"]
+    subgraph Service["SimEffects"]
         MS[GetModifiers]
         FILT[Filter by Conditions]
         AMP[Apply Amplification]
     end
 
     subgraph Units["Unit Stats"]
-        U3D[Unit3D]
+        U3D[UnitVisual]
         BS[BaseStats]
         FS[FinalStats]
     end
@@ -78,7 +78,7 @@ flowchart TB
         IMP[ItemModifierProvider<br/>item → StatModifier]
     end
 
-    subgraph Service["ModifierService"]
+    subgraph Service["SimEffects"]
         MS[GetModifiers]
         FILT[Filter by Conditions]
         AMP[Apply Amplification]
@@ -86,7 +86,7 @@ flowchart TB
     end
 
     subgraph Units["Unit Stats & Triggers"]
-        U3D[Unit3D]
+        U3D[UnitVisual]
         BS[BaseStats]
         FS[FinalStats]
         AT[ActiveTriggers<br/>duration & cooldown]
@@ -139,7 +139,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     participant C as Combat System
-    participant U as Unit3D
+    participant U as UnitVisual
     participant TE as TriggerEvaluator
     participant AT as ActiveTriggers
 
@@ -175,7 +175,7 @@ sequenceDiagram
 
 ### Modifier Providers
 
-Providers convert source data to `StatModifier` objects that the ModifierService can process:
+Providers convert source data to `StatModifier` objects that SimEffects can process:
 
 - **SummonerModifierProvider**: Reads summoner's traits from TraitCatalog
 - **CardModifierProvider**: Reads card upgrades from CardCatalog
@@ -227,9 +227,9 @@ public enum TriggerCondition
 - `scripts/csharp/Systems/Modifiers/ItemModifierProvider.cs`
 
 ### Service
-- `scripts/csharp/Systems/Modifiers/ModifierService.cs`
-- `scripts/csharp/Systems/Modifiers/StatModifier.cs`
-- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimEffects.cs`
+- `scripts/csharp/Battle/Simulation/Stats/StatModifier.cs`
+- `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs`
 
 ### Data Catalogs
 - `scripts/csharp/Infrastructure/Data/Traits/TraitCatalog.cs`
@@ -254,7 +254,7 @@ See `docs/features/equipment-system.md` for item system details.
 
 ### Battle Initialization
 
-At battle start, `game_controller_3d.gd` registers providers:
+At battle start, `BattleScene.cs` registers providers:
 
 ```gdscript
 func _register_summoner_provider() -> void:
@@ -275,13 +275,13 @@ When a unit spawns, it receives partitioned modifiers:
 
 ```csharp
 // In card spawning logic
-var (staticMods, triggeredMods) = ModifierService.Instance.GetModifiersPartitioned(context);
+var (staticMods, triggeredMods) = SimEffects.Instance.GetModifiersPartitioned(context);
 unit.InitializeWithPartitionedModifiers(staticMods, triggeredMods);
 ```
 
 ### Active Trigger Management
 
-Unit3D maintains a list of `ActiveTrigger` objects:
+UnitVisual maintains a list of `ActiveTrigger` objects:
 
 ```csharp
 private class ActiveTrigger
@@ -330,7 +330,7 @@ godot --headless --script res://addons/gdUnit4/bin/GdUnitCmdTool.gd -- \
 ```
 
 Test files:
-- `tests/csharp/Systems/Modifiers/StatModifierTest.cs`
-- `tests/csharp/Systems/Modifiers/TriggerConditionTest.cs`
-- `tests/csharp/Systems/Modifiers/ModifierServiceTest.cs`
+- `tests/csharp/Battle/Simulation/Stats/StatModifierTest.cs`
+- `tests/csharp/Battle/Simulation/Stats/TriggerConditionTest.cs`
+- `tests/csharp/Battle/Simulation/Combat/SimEffectsTest.cs`
 - `tests/csharp/Traits/TraitCatalogTest.cs` (includes triggered trait tests)

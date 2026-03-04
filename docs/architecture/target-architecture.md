@@ -334,7 +334,7 @@ flowchart TB
 
 C# class extending `Node3D`. The root of the battle visual layer. Owns all four top-level components (`EntityManager`, `Hud`, `Camera`, `Environment`) and wires `EntityManager` and `Hud` to `IGameSession` at init. No game logic — just typed accessors and initialization.
 
-**Today:** `GameController3D` (1048 lines) mixes this wiring role with game logic, UI orchestration, and state management (issue #25). `BattleScene` is what remains after game logic moves to Session.
+**Before migration:** `GameController3D` (1048 lines) mixed this wiring role with game logic, UI orchestration, and state management (issue #25). `BattleScene.cs` now replaces it as a thin C# facade after game logic moved to Session.
 
 ### EntityManager — lifecycle, event dispatch, registry
 
@@ -350,7 +350,7 @@ C# class. Accessed via `BattleScene.EntityManager`. The central coordinator for 
 
 **What it does NOT do:** Per-frame sync (shells do that themselves). Know about sprites, animations, or HP bars. Display HUD elements.
 
-**Today this is scattered across:** `Summoner._spawn_visual_unit()` handles spawning, `GameController3D._on_remote_unit_spawned()` handles network unit spawning, `SimulationNode._unit3DBySimId` is the registry, and `SimEventSignalEmitter` handles event conversion.
+**Before migration, this was scattered across:** `Summoner._spawn_visual_unit()` handled spawning, `GameController3D._on_remote_unit_spawned()` handled network unit spawning, `SimulationNode._unit3DBySimId` was the registry, and `SimEventSignalEmitter` handled event conversion. All of this is now consolidated in `EntityManager`.
 
 > Detail doc: [`gameplay/view/battlefield/`](gameplay/view/battlefield/)
 
@@ -364,7 +364,7 @@ C# class extending `Node3D`. A passive visual shell that reads its own `UnitStat
 
 **Loses (~1200 lines):** Targeting, behavior state machine, cooldowns, trigger system, `TakeDamage()`, signal subscriptions, `IsSimDriven` flag.
 
-**Today:** Unit3D is 2304 lines mixing game logic with rendering (issue #23).
+**Before migration:** Unit3D was 2304 lines mixing game logic with rendering (issue #23). Now replaced by `UnitVisual.cs` (visual-only shell) with game logic in sim subsystems.
 
 > Detail doc: [`gameplay/view/battlefield/unit-visual.md`](gameplay/view/battlefield/unit-visual.md)
 
@@ -384,7 +384,7 @@ C# class extending `Node3D`. Reads its own `ProjectileState` each frame, positio
 
 **What it does NOT do:** Collision detection, damage dealing, pierce logic, HitResolver calls. All of that lives in SimProjectile.
 
-**Today:** Projectile3D is 1128 lines mixing collision/damage with visual effects (issue #24).
+**Before migration:** Projectile3D was 1128 lines mixing collision/damage with visual effects (issue #24). Now replaced by `ProjectileVisual.cs` (visual-only shell) with logic in `SimProjectile.cs`.
 
 > Detail doc: [`gameplay/view/battlefield/projectile-visual.md`](gameplay/view/battlefield/projectile-visual.md)
 
@@ -394,7 +394,7 @@ GDScript UI components that read `IGameSession` independently. BattleHUD is NOT 
 
 **Components:** PhaseTimerDisplay, PlayerManaDisplay, SummonerHPDisplay, HandUI, GameOverOverlay. Each self-polls `IGameSession.GetState()` for continuous data. For discrete events (game over), HUD components subscribe to `IGameSession.SimEventsEmitted` directly.
 
-**Today:** `GameController3D._process()` manually pushes state to each UI panel with different codepaths for host vs client.
+**Before migration:** `GameController3D._process()` manually pushed state to each UI panel with different codepaths for host vs client. Now `BattleHUD` reads `IGameSession` independently.
 
 > Detail doc: [`gameplay/view/battle-hud.md`](gameplay/view/battle-hud.md)
 
@@ -458,18 +458,16 @@ flowchart LR
 
 ### Deletion Blockers
 
-Godot-side duplicates can't all be deleted immediately — some are still wired into the running game. This table tracks what blocks each deletion:
+All Godot-side duplicates have been deleted. UnitVisual replaced Unit3D as the visual shell, removing the references that previously blocked these deletions.
 
-| File to Delete | Status | Blocked By |
+| File Deleted | Status | Notes |
 |---------------|--------|-----------|
-| `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` + `.tscn` | Blocked | Unit3D still uses DamageSystem for Godot-side damage |
-| `scripts/csharp/Systems/Modifiers/ModifierService.cs` | Blocked | Unit3D applies modifiers through it |
-| `scripts/csharp/Projectiles/ProjectileService.cs` | Blocked | RangedUnit3D, DamageEffect reference it |
-| `scripts/csharp/Abilities/BaseAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
-| `scripts/csharp/Abilities/SlowOnHitAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
-| `scripts/csharp/Abilities/IAbilityConfig.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
-
-The remaining blocked deletions unblock when UnitVisual replaces Unit3D as the visual shell, at which point Unit3D's direct references to DamageSystem, ModifierService, and ProjectileService go away.
+| `DamageSystem.cs` + `.tscn` | **Deleted** | Damage logic now in `SimBehavior.cs` + `SimDamage.cs` |
+| `ModifierService.cs` | **Deleted** | Modifier logic now in `SimEffects.cs` |
+| `ProjectileService.cs` | **Deleted** | Projectile logic now in `SimProjectile.cs` |
+| `BaseAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
+| `SlowOnHitAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
+| `IAbilityConfig.cs` | **Deleted** | Was dead code — removed in architecture gap audit |
 
 ## Issue Resolution Map
 
@@ -486,6 +484,6 @@ The remaining blocked deletions unblock when UnitVisual replaces Unit3D as the v
 | #18 Four ID systems | `UnitId` in sim, `IdentityMap` bimap at session layer. O(1) both directions. |
 | #19 State constants | `BehaviorState` enum replaces const ints. |
 | #20-22 Dead code | Deleted. No `AuthorityProvider`, no prediction stubs, no Godot abilities. |
-| #23 Unit3D mixed concerns | UnitVisual: self-syncing visual shell. Game logic lives in sim subsystems. EntityManager routes events. |
-| #24 Projectile3D mixed concerns | ProjectileVisual: self-syncing visual shell. SimProjectile handles logic. No collision detection in view layer. |
-| #25 GameController3D mixed concerns | Game flow moves to Session. GameController3D becomes `BattleScene`: typed facade that owns EntityManager, Hud, Camera, Environment. |
+| #23 Unit3D mixed concerns | **Resolved.** `UnitVisual.cs`: self-syncing visual shell. Game logic lives in sim subsystems (`SimBehavior`, `SimDamage`). EntityManager routes events. |
+| #24 Projectile3D mixed concerns | **Resolved.** `ProjectileVisual.cs`: self-syncing visual shell. `SimProjectile` handles logic. No collision detection in view layer. |
+| #25 GameController3D mixed concerns | **Resolved.** Game flow moved to Session. `BattleScene.cs` is the thin typed facade that owns EntityManager, Hud, Camera, Environment. |

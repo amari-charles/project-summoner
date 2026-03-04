@@ -285,7 +285,7 @@ Units check flags during combat logic:
 
 ```gdscript
 # Example: Lifesteal
-func _deal_damage_to_target(target: Unit3D, damage: float):
+func _deal_damage_to_target(target: UnitVisual, damage: float):
     target.take_damage(damage)
 
     if active_modifiers.get("has_lifesteal", false):
@@ -293,7 +293,7 @@ func _deal_damage_to_target(target: Unit3D, damage: float):
         heal(damage * percent)
 
 # Example: Execute (double damage to low HP targets)
-func calculate_damage(target: Unit3D) -> float:
+func calculate_damage(target: UnitVisual) -> float:
     var dmg = attack_damage
 
     if active_modifiers.has("execute_threshold"):
@@ -384,7 +384,7 @@ After amplified modifier: 160 HP, 24 attack
 
 **Unit Combat Logic:**
 ```gdscript
-func calculate_damage(target: Unit3D) -> float:
+func calculate_damage(target: UnitVisual) -> float:
     var dmg = attack_damage
 
     if active_modifiers.has("execute_threshold"):
@@ -442,7 +442,7 @@ When a card spawns a unit:
 ```gdscript
 # card.gd
 func _summon_unit_3d(position: Vector3, team: int, gameplay_layer: Node):
-    var unit = unit_scene.instantiate() as Unit3D
+    var unit = unit_scene.instantiate() as UnitVisual
 
     # Get modifiers from system
     var context = {
@@ -502,14 +502,14 @@ func apply_modifiers(modifiers: Array, card_data: Dictionary):
         active_modifiers.merge(mod.get("flags", {}), true)
 ```
 
-### 3. ModifierService (Autoload)
+### 3. SimEffects (Simulation Layer)
 
-Central C# service that collects and filters modifiers:
+Central C# system that collects and filters modifiers (formerly `ModifierService` autoload):
 
 ```csharp
-// ModifierService.cs (autoload at /root/ModifierService)
+// SimEffects.cs (buff/debuff system, replaces former ModifierService autoload)
 [GlobalClass]
-public partial class ModifierService : Node, IModifierService
+public partial class SimEffects : Node, IModifierService
 {
     private readonly Dictionary<string, IModifierProvider> _providers = new();
 
@@ -597,18 +597,18 @@ public class SummonerModifierProvider : RefCounted, IModifierProvider
 }
 ```
 
-### 5. Battle Initialization (game_controller_3d.gd)
+### 5. Battle Initialization (BattleScene.cs)
 
 ```gdscript
 func _register_summoner_provider() -> void:
     # Load summoner instance from profile
     var summoner_instance = SummonerInstance.from_dict(summoner_data)
 
-    # Register summoner modifier provider with C# ModifierService
+    # Register summoner modifier provider with C# SimEffects
     # Uses factory method since GDScript can't instantiate C# classes directly
-    var modifier_service: Node = get_node_or_null("/root/ModifierService")
-    if modifier_service and modifier_service.has_method("register_summoner_provider"):
-        modifier_service.call("register_summoner_provider", summoner_instance, summoner_id)
+    var sim_effects: Node = get_node_or_null("/root/SimEffects")
+    if sim_effects and sim_effects.has_method("register_summoner_provider"):
+        sim_effects.call("register_summoner_provider", summoner_instance, summoner_id)
 ```
 
 ---
@@ -650,7 +650,7 @@ Use same system, but add/remove modifiers dynamically:
 
 ```gdscript
 # Add temporary buff
-func apply_buff(unit: Unit3D, duration: float):
+func apply_buff(unit: UnitVisual, duration: float):
     var buff_mod = {
         "source": "strength_potion",
         "stat_adds": {"attack_damage": 10},
@@ -728,18 +728,18 @@ var fire_mods = ModifierSystem.query() \
 ---
 
 *Last Updated: 2026-01-31*
-*Status: Implemented in C# - ModifierService autoload at /root/ModifierService*
+*Status: Implemented in C# - SimEffects in simulation layer (replaces former ModifierService autoload)*
 
 ## Current Implementation Files
 
-- `scripts/csharp/Systems/Modifiers/ModifierService.cs` - Central service (autoload)
-- `scripts/csharp/Systems/Modifiers/StatModifier.cs` - Typed modifier class
+- `scripts/csharp/Battle/Simulation/Combat/SimEffects.cs` - Buff/debuff/trigger system (replaces former ModifierService)
+- `scripts/csharp/Battle/Simulation/Stats/StatModifier.cs` - Typed modifier class
 - `scripts/csharp/Systems/Modifiers/ModifierContext.cs` - Query context
 - `scripts/csharp/Systems/Modifiers/IModifierProvider.cs` - Provider interface
 - `scripts/csharp/Systems/Modifiers/CardModifierProvider.cs` - Card upgrade modifiers
 - `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` - Summoner trait modifiers
 - `scripts/csharp/Systems/Modifiers/ItemModifierProvider.cs` - Equipped item modifiers
-- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` - Trigger condition enum
+- `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs` - Trigger condition enum
 
 ---
 
@@ -789,12 +789,12 @@ public class StatModifier
 
 ### Partitioned Modifier Resolution
 
-The `ModifierService.GetModifiersPartitioned()` method separates modifiers into:
+The `SimEffects.GetModifiersPartitioned()` method separates modifiers into:
 - **Static modifiers**: Always active, applied at unit spawn
 - **Triggered modifiers**: Stored and activated by combat events
 
 ```csharp
-var (staticMods, triggeredMods) = ModifierService.Instance.GetModifiersPartitioned(context);
+var (staticMods, triggeredMods) = SimEffects.Instance.GetModifiersPartitioned(context);
 
 // Apply static modifiers immediately
 unit.InitializeWithModifiers(staticMods);
@@ -838,9 +838,9 @@ new TraitModifier
 }
 ```
 
-### Unit3D Trigger Processing
+### UnitVisual Trigger Processing
 
-Unit3D tracks triggered modifiers and their active state:
+UnitVisual tracks triggered modifiers and their active state:
 
 ```csharp
 // Combat event handlers

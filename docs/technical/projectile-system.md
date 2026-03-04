@@ -4,7 +4,7 @@ Technical documentation for the projectile system including movement, accelerati
 
 ## Overview
 
-Projectiles are managed by `ProjectileService` (C# autoload) and use pooling for performance. Each projectile type is defined in `ProjectileDefinitions.cs` (static C# definitions) and accessed via `ProjectileCatalog` (C# autoload).
+Projectile simulation is managed by `SimProjectile` (in the simulation layer) and visual presentation by `ProjectileVisual` (in the view layer). Each projectile type is defined in `ProjectileDefinitions.cs` (static C# definitions) and accessed via `ProjectileCatalog` (C# autoload).
 
 ## Projectile Data Properties
 
@@ -219,7 +219,7 @@ This creates a quick 0.1 second fade-out, useful for fast projectiles like wind 
 
 Some units (like Puff) have charge-up attacks where the projectile should spawn partway through the animation rather than immediately.
 
-### Configuration (Unit3D)
+### Configuration (UnitVisual)
 
 ```gdscript
 @export var delayed_projectile: bool = false
@@ -341,15 +341,15 @@ Prediction disables when close to target (`< 2.0 units`) to prevent oscillation.
 
 ## Damage Routing
 
-All projectile damage is routed through `HitResolver` for consistent hit handling. This ensures the `HitConfirmed` signal is emitted for all damage sources, enabling VFX, audio, and UI systems to react uniformly.
+All projectile damage is routed through the simulation damage pipeline for consistent hit handling. In the simulation layer, `SimProjectile.ApplyHit()` calls `SimDamage.Calculate()` and emits `UnitDamagedEvent` / `ProjectileHitSimEvent`. The view layer (`ProjectileVisual`) reacts to these events for VFX, audio, and UI feedback.
 
 ### Architecture
 
 ```
-Projectile3D ──► HitResolver.ResolveProjectileHit() ──► DamageSystem.ApplyDamage()
-                         │
-                         ▼
-                  HitConfirmed signal ──► VFX/Audio systems
+SimProjectile.ApplyHit() ──► SimDamage.Calculate() ──► UnitDamagedEvent
+                                                         │
+                                                         ▼
+ProjectileVisual ◄── ProjectileHitSimEvent ──► VFX/Audio systems
 ```
 
 ### Methods
@@ -360,21 +360,19 @@ Projectile3D ──► HitResolver.ResolveProjectileHit() ──► DamageSystem
 | `HitTargetViaHurtbox()` | Hit detected via HurtboxComponent collision |
 | `ApplyAoeDamage()` | Area-of-effect damage to all enemies in radius |
 
-All three methods call `HitResolver.ResolveProjectileHit(source, target, damage, damageType, hitPosition)`.
+All three methods route through `SimProjectile.ApplyHit()` which calls `SimDamage.Calculate()`.
 
-### Why Not Call DamageSystem Directly?
+### Unified Damage Pipeline
 
-Previously, projectiles called `DamageSystem.ApplyDamage()` directly. This worked for damage dealing, but:
+Previously, projectiles called `DamageSystem.ApplyDamage()` directly. Now all damage (melee and ranged) flows through the same simulation pipeline (`SimDamage.Calculate()`), which:
 
-1. **No VFX feedback**: `HitConfirmed` signal wasn't emitted, so hit flashes didn't trigger
-2. **Inconsistent with melee**: Melee attacks used HitResolver, projectiles didn't
-3. **Missing kill detection**: `TargetKilled` flag wasn't computed for projectile kills
-
-Routing through HitResolver unifies the damage pipeline and ensures consistent behavior.
+1. **Emits consistent events**: `UnitDamagedEvent` and `ProjectileHitSimEvent` for VFX/audio
+2. **Unified with melee**: Both melee pending damage and projectile hits use the same damage calculation
+3. **Proper kill detection**: Death checks happen uniformly in the simulation layer
 
 ## Pooling
 
-Projectiles are pooled by `ProjectileService` for performance. Key reset behaviors:
+Projectile visuals are pooled by `EntityManager` for performance. Key reset behaviors:
 - `current_speed` resets to initial `speed`
 - Material alpha resets to 1.0
 - Particle emitters restart

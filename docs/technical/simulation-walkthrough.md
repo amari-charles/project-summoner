@@ -11,7 +11,7 @@
 ```
   ┌─────────────────────────────────────────────────────────────────────┐
   │                         INPUT LAYER                                 │
-  │   summoner.gd (player drag)  ·  AI Opponent  ·  ClientRunner       │
+  │   InputCollector.cs (player drag)  ·  AI Opponent  ·  ClientRunner  │
   │                                                                     │
   │   Rule: All input becomes a PlayCardCommand — no direct state       │
   │         mutation allowed                                            │
@@ -39,7 +39,7 @@
   │                                  │   │    SimEvents → Godot        │
   │  ClientRunner: receives events,  │   │    signals                  │
   │    never calls Tick(), applies   │   │                             │
-  │    snapshots for correction.     │   │  Unit3D / HUD / summoner:  │
+  │    snapshots for correction.     │   │  UnitVisual / HUD /         │
   │    Client shows presentation-    │   │    read MatchState,         │
   │    only prediction (ghost        │   │    react to signals         │
   │    placement, pending animation) │   │                             │
@@ -64,7 +64,7 @@
 
 > **Coordinate system**: All sim positions are **canonical** (host perspective). `CoordinateTransform` converts at the network boundary for all position-bearing commands and messages (summon placement, spell targets, unit positions, projectile origins).
 
-> **Godot nodes are derived views**: Godot nodes (`Unit3D`, HP bars, etc.) are derived views keyed by `UnitId`/`NetworkId` — they are never the source of truth.
+> **Godot nodes are derived views**: Godot nodes (`UnitVisual`, HP bars, etc.) are derived views keyed by `UnitId`/`NetworkId` — they are never the source of truth.
 
 ### Tick Order Contract
 
@@ -88,10 +88,10 @@ Each `Simulation.Tick(fixedDelta)` runs its systems in this fixed order. All flo
 
 ### Flow 1: Match Starts
 
-**Step 1**: `GameController3D._ready()` creates a `SimulationNode` child.
+**Step 1**: `BattleScene._Ready()` creates a `SimulationNode` child.
   → `SimulationNode._Ready()` sets `Current = this`, `ProcessPriority = -100`
 
-**Step 2**: `GameController3D` calls `SimulationNode.Initialize(prepDuration, matchDuration, winCondition)`.
+**Step 2**: `BattleScene` calls `SimulationNode.Initialize(prepDuration, matchDuration, winCondition)`.
   → Creates fresh `MatchState` with `Phase = Preparation`, `PrepTimeRemaining = prepDuration`
   → Creates `DeterministicRng` from `MatchSession.Current.Seed` (multiplayer) or timestamp (single-player)
   → Creates `Simulation(state)` instance
@@ -117,7 +117,7 @@ Each `Simulation.Tick(fixedDelta)` runs its systems in this fixed order. All flo
   → Emits: `PrepTimerUpdatedEvent(remaining)`
 
 **Step 3**: Player drags a **summon card** to the battlefield during prep.
-  → `summoner.gd` calls `SimulationNode.SubmitCommand(PlayCardCommand)`
+  → `InputCollector` calls `SimulationNode.SubmitCommand(PlayCardCommand)`
   → `PlayCardCommand` is enqueued into `MatchState.PendingCommandBuffer`
 
 **Step 4**: Casting begins (processed by `TickCasting()`).
@@ -159,9 +159,9 @@ Each `Simulation.Tick(fixedDelta)` runs its systems in this fixed order. All flo
 ### Flow 4: Player Plays a Summon Card
 
 **Step 1**: Player drags card from hand to battlefield.
-  → `summoner.gd` performs local sanity check (mana, hand index)
+  → `InputCollector` performs local sanity check (mana, hand index)
 
-**Step 2**: `summoner.gd` calls `AuthorityBridge.RequestCardPlay(cardIndex, position, summonerNode)`.
+**Step 2**: `InputCollector` calls `AuthorityBridge.RequestCardPlay(cardIndex, position, summonerNode)`.
   → In single-player: `LocalAuthority.RequestCardPlay()` validates and executes immediately
   → In multiplayer host: `HostAuthority.RequestCardPlay()` validates, executes, broadcasts
   → In multiplayer client: `ClientAuthority.RequestCardPlay()` sends `CardPlayRequest` to host
@@ -187,7 +187,7 @@ Each `Simulation.Tick(fixedDelta)` runs its systems in this fixed order. All flo
   → On `CastingCompletedEvent`, **sim** creates `UnitData` (from card catalog + spawn position) and adds to `MatchState.Units[unitId]`
   → Emits: `UnitRegisteredEvent(unitId, networkId, catalogId, team, position)`
   → `SimulationNode` converts `UnitRegisteredEvent` to a Godot signal
-  → Presentation layer listens, instantiates `Unit3D` scene at `spawnPosition`
+  → Presentation layer listens, instantiates `UnitVisual` scene at `spawnPosition`
 
 **Step 8**: Replacement draw — card moves to discard, new card drawn from deck.
   → `SummonerData.Hand[cardIndex]` replaced with top of `SummonerData.Deck`
@@ -302,7 +302,7 @@ What happens to **one unit** during `TickUnits()`:
   → Sim removes unit from `MatchState.Units`
   → Emits: `UnitRemovedEvent(unitId)`
   → `SimulationNode` converts to `UnitRemoved` Godot signal
-  → Presentation cleans up: unregisters from `SpatialGrid`, removes HP bar, destroys visual node
+  → Presentation cleans up: unregisters from `SimSpatialGrid`, removes HP bar, destroys visual node
 
 ---
 
@@ -418,7 +418,7 @@ What happens to **one unit** during `TickUnits()`:
 ### Flow 13: Multiplayer — Client Plays a Card
 
 **Step 1**: Client player drags card.
-  → `summoner.gd` calls `AuthorityBridge.RequestCardPlay(cardIndex, localPosition, summonerNode)`
+  → `InputCollector` calls `AuthorityBridge.RequestCardPlay(cardIndex, localPosition, summonerNode)`
 
 **Step 2**: `ClientAuthority.RequestCardPlay()` handles.
   → **Soft validation** (for UI feedback only): check hand size, mana
@@ -610,19 +610,19 @@ What happens to **one unit** during `TickUnits()`:
 | `MatchTimeUpdatedEvent` | Every tick during Battle | HUD (match clock) |
 | `SummonerHpChangedEvent` | Summoner takes damage | HUD (HP bar), game over check |
 | `SummonerManaChangedEvent` | Mana deducted for card play | HUD (mana display), hand UI |
-| `CastingStartedEvent` | Card play begins casting | summoner.gd (cast bar) |
-| `CastingCompletedEvent` | Cast timer reaches zero | summoner.gd (spawn unit / apply spell) |
+| `CastingStartedEvent` | Card play begins casting | SummonerVisual (cast bar) |
+| `CastingCompletedEvent` | Cast timer reaches zero | SummonerVisual (spawn unit / apply spell) |
 | `CardDrawnEvent` | New card drawn into hand slot | Hand UI (card display) |
 | `HandChangedEvent` | Hand contents change (draw, refresh) — always carries full hand array | Hand UI (full refresh) |
 | `DeckRecycledEvent` | Discard pile shuffled back into deck | HUD (deck counter), audio |
 | `UnitActivationChangedEvent` | Unit activation state changes (Inactive → Active) | Presentation (enable unit visuals) |
 | `AbilityTriggeredEvent` | Sim-owned ability fires (e.g., death explosion) | Presentation (VFX, audio) |
-| `UnitRegisteredEvent` | New unit added to MatchState | Presentation (create Unit3D node) |
-| `UnitRemovedEvent` | Unit removed from MatchState | Presentation (cleanup Unit3D) |
-| `UnitAttackedEvent` | Unit begins an attack | Unit3D (play attack animation) |
-| `UnitDamagedEvent` | Unit takes damage | Unit3D (flash, HP bar update), floating damage numbers |
-| `UnitDiedSimEvent` | Unit HP reaches zero | Unit3D (death anim), abilities (death triggers) |
-| `ProjectileHitSimEvent` | Projectile hits a unit | Projectile3D (impact VFX) |
+| `UnitRegisteredEvent` | New unit added to MatchState | Presentation (create UnitVisual node) |
+| `UnitRemovedEvent` | Unit removed from MatchState | Presentation (cleanup UnitVisual) |
+| `UnitAttackedEvent` | Unit begins an attack | UnitVisual (play attack animation) |
+| `UnitDamagedEvent` | Unit takes damage | UnitVisual (flash, HP bar update), floating damage numbers |
+| `UnitDiedSimEvent` | Unit HP reaches zero | UnitVisual (death anim), abilities (death triggers) |
+| `ProjectileHitSimEvent` | Projectile hits a unit | ProjectileVisual (impact VFX) |
 | `GameOverEvent` | Win condition met | HUD (result screen), MatchSession (broadcast) |
 
 ### All Commands

@@ -262,7 +262,7 @@ When the camera is zoomed in, players should be able to pan closer to the battle
 **Effort:** Medium
 
 **Description:**
-Armor and MagicResist stats are now defined in UnitStats but not yet integrated into combat. Need to implement damage reduction formulas in DamageSystem.
+Armor and MagicResist stats are now defined in UnitStats but not yet integrated into combat. Need to implement damage reduction formulas in `SimDamage` / `SimBehavior`.
 
 **Current State:**
 - `Armor` and `MagicResist` added to StatKey and UnitStats (default 0)
@@ -271,7 +271,7 @@ Armor and MagicResist stats are now defined in UnitStats but not yet integrated 
 
 **Requirements:**
 - Design damage reduction formula (percentage-based, flat, or diminishing returns)
-- Integrate into `DamageSystem.ApplyDamage()`:
+- Integrate into damage pipeline (`SimDamage` / `SimBehavior`):
   - Physical damage reduced by target's Armor
   - Elemental damage reduced by target's MagicResist
 - Use unit's `DamageProfile` to determine damage split
@@ -283,10 +283,10 @@ Armor and MagicResist stats are now defined in UnitStats but not yet integrated 
 3. **Diminishing returns**: Similar to percentage but caps effectiveness
 
 **Related Files:**
-- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` - Damage calculation
+- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - Damage calculation
 - `scripts/csharp/Battle/Simulation/Stats/UnitStats.cs` - Armor, MagicResist properties
-- `scripts/csharp/Units/DamageProfile.cs` - Physical/elemental ratio
-- `scripts/csharp/Units/UnitDefinition.cs` - DamageProfile property
+- `scripts/csharp/Infrastructure/Data/Units/DamageProfile.cs` - Physical/elemental ratio
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinition.cs` - DamageProfile property
 
 ---
 
@@ -299,13 +299,13 @@ Armor and MagicResist stats are now defined in UnitStats but not yet integrated 
 The `TriggerCondition.OnDeath` enum value is defined but not wired to combat events. Units die without triggering OnDeath modifiers.
 
 **Requirements:**
-- Wire up OnDeath trigger checking in Unit3D.OnDeath() method
+- Wire up OnDeath trigger checking in the simulation death pipeline (`SimBehavior` / `SimEffects`)
 - Handle death-time effects like "deal damage to nearby enemies on death"
 - Ensure cleanup still happens after trigger processing
 
 **Related Files:**
-- `scripts/csharp/Units/Unit3D.cs` - OnDeath method
-- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` - enum definition
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs` - behavior/death logic (formerly in Unit3D)
+- `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs` - enum definition
 - `docs/features/modifier-system.md` - documentation
 
 ---
@@ -325,8 +325,8 @@ The `TriggerCondition.Periodic` enum value is defined but not wired. Periodic tr
 - Example use case: "Heal 5 HP every 3 seconds"
 
 **Related Files:**
-- `scripts/csharp/Units/Unit3D.cs` - UpdateTriggers method, ActiveTrigger class
-- `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` - enum definition
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs` - trigger/behavior logic (formerly in Unit3D)
+- `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs` - enum definition
 - `docs/features/modifier-system.md` - documentation
 
 ---
@@ -354,7 +354,7 @@ Projectile collision with 2.5D sprite units is too precise - requires nearly pix
 
 **Related Files:**
 - `scenes/battle/projectiles/base_projectile_3d.tscn` - Projectile collision shape
-- `scripts/projectiles/projectile_3d.gd` - Hit detection logic
+- `scripts/csharp/Battle/View/ProjectileVisual.cs` - Visual hit/impact (formerly projectile_3d.gd)
 - `scenes/battle/units/*.tscn` - Unit collision shapes
 
 ---
@@ -379,8 +379,8 @@ Puff units (and possibly other units) get stuck in idle when blocked by other ch
 **Related Bug:** See bugs.md "Puff Units Get Stuck in Idle When Blocked by Other Units"
 
 **Related Files:**
-- scripts/csharp/Units/Unit3D.cs (UpdateBehavior, movement logic)
-- scripts/csharp/Units/RangedUnit3D.cs
+- scripts/csharp/Battle/View/UnitVisual.cs (visual shell / movement sync)
+- scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs (behavior logic, formerly in Unit3D/RangedUnit3D)
 - Blocked detection / flanking systems
 
 ---
@@ -416,7 +416,7 @@ Move character-specific animation logic (breathing, bobbing, attack styles) out 
 - Breathing animation: `enable_breathing`, `breathing_amplitude`, `breathing_speed` in base class
 - Bobbing animation: `enable_bobbing`, `bob_speed`, `bob_amplitude` in base class
 - Attack styles: `attack_style`, `cycle_attack_styles` in base class
-- Unit3D passes these to visual component via property setters
+- UnitVisual passes these to visual component via property setters
 
 **Problems:**
 - Every unit carries unused animation parameters
@@ -433,7 +433,7 @@ Units attach only the components they need.
 
 **Related Files:**
 - `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs`
-- `scripts/csharp/Units/Unit3D.cs`
+- `scripts/csharp/Battle/View/UnitVisual.cs`
 - `scenes/battle/units/puff_3d.tscn`
 
 ---
@@ -449,7 +449,7 @@ Units attach only the components they need.
 Audit the current pathfinding and targeting systems for robustness and efficiency. Identify potential issues with edge cases, performance bottlenecks, and areas for improvement.
 
 **Areas to Investigate:**
-- Target acquisition logic (`AcquireTarget()` in Unit3D.cs)
+- Target acquisition logic (in `SimBehavior.cs` / `SimTargeting.cs`)
 - Target lock timer and re-acquisition behavior
 - Flanking/pathfinding when blocked
 - Performance with large unit counts (N² targeting checks?)
@@ -483,11 +483,11 @@ Add support for melee attacks that only hit in a forward cone/arc instead of a f
 - Any enemy within AttackRange distance can be targeted, regardless of direction
 
 **Requirements:**
-- Add `AttackConeAngle` property to Unit3D/MeleeUnit3D (0 = full circle, 90 = forward half, etc.)
-- Modify `IsInAttackRange()` to check if target is within the cone angle
-- Add `AttackHitboxShape` enum (Sphere, Box, Capsule) to MeleeUnit3D
+- Add `AttackConeAngle` property to unit data/sim behavior (0 = full circle, 90 = forward half, etc.)
+- Modify attack range check in `SimBehavior` to check if target is within the cone angle
+- Add `AttackHitboxShape` enum (Sphere, Box, Capsule) for melee behavior
 - Add `AttackHitboxSize` vector for non-sphere shapes
-- Modify `SpawnMeleeHitbox()` to use configured shape (box for narrow forward attacks)
+- Modify melee hitbox spawning to use configured shape (box for narrow forward attacks)
 
 **Example Use Cases:**
 - Frog tongue: narrow forward box hitbox, ~45° targeting cone
@@ -495,8 +495,7 @@ Add support for melee attacks that only hit in a forward cone/arc instead of a f
 - Standard melee: full circle (current behavior, AttackConeAngle = 0)
 
 **Related Files:**
-- `scripts/csharp/Units/Unit3D.cs` - IsInAttackRange, base properties
-- `scripts/csharp/Units/MeleeUnit3D.cs` - SpawnMeleeHitbox, PerformAttackAction
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs` - attack range, behavior logic (formerly in Unit3D/MeleeUnit3D)
 - `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitboxComponent.cs` - CreateBoxShape already exists
 
 ---
@@ -1010,7 +1009,7 @@ Summoner secondary stats (`damage_bonus`, `damage_reduction`) are computed inter
 - These stats were removed from UI display (they cluttered the summoner screen with confusing "Defense: +X%" rows)
 - They exist in `SummonerInstance.get_computed_stats()` and are populated by traits
 - The trait "Fortune Favors the Bold" grants `damage_bonus` as a modifier
-- Unclear if `DamageSystem` or other combat code actually uses these values
+- Unclear if `SimDamage` / `SimBehavior` or other combat code actually uses these values
 
 **Questions to Answer:**
 - Are `damage_bonus` and `damage_reduction` actually applied during damage calculations?
@@ -1019,7 +1018,7 @@ Summoner secondary stats (`damage_bonus`, `damage_reduction`) are computed inter
 
 **Related Files:**
 - `scripts/infrastructure/data/summoner_instance.gd` - `get_computed_stats()`
-- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` - damage calculations
+- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - damage calculations
 - `scripts/infrastructure/data/trait_catalog.gd` - trait definitions
 
 ---
@@ -1156,10 +1155,10 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 **Effort:** Medium
 
 **Description:**
-Audit the codebase for places where the simulation (MatchState/UnitData) and the visual layer (Unit3D, GDScript controllers) track the same concept independently, creating desync risks.
+Audit the codebase for places where the simulation (MatchState/UnitData) and the visual layer (UnitVisual, GDScript controllers) track the same concept independently, creating desync risks.
 
 **Known Pattern:**
-The sim and visual layers sometimes manage parallel state (phase, activation, position) without a single source of truth. When one side changes state, the other may not be notified, leading to desyncs. Example: spawn reveal sets visual Unit3D to Inactive while the sim UnitData is Active — the sim moves the unit while the visual stays frozen.
+The sim and visual layers sometimes manage parallel state (phase, activation, position) without a single source of truth. When one side changes state, the other may not be notified, leading to desyncs. Example: spawn reveal sets visual UnitVisual to Inactive while the sim UnitData is Active — the sim moves the unit while the visual stays frozen.
 
 **Audit Checklist:**
 - [ ] Phase state: GDScript `current_phase` vs sim `GamePhase` — are all transitions synced?
@@ -1172,9 +1171,9 @@ The sim and visual layers sometimes manage parallel state (phase, activation, po
 If data belongs to an entity, put it on the entity. Avoid solving per-entity problems with global sweeps or cross-system coordination.
 
 **Related Files:**
-- `scripts/csharp/Battle/Simulation/SimulationNode.cs` — sim↔visual bridge
-- `scripts/csharp/Units/Unit3D.cs` — visual reads from sim
-- `scripts/core/game_controller_3d.gd` — GDScript phase tracking
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs` — sim-visual bridge
+- `scripts/csharp/Battle/View/UnitVisual.cs` — visual reads from sim
+- `scripts/csharp/Battle/View/BattleScene.cs` — phase tracking (formerly game_controller_3d.gd)
 
 ---
 
@@ -1295,7 +1294,7 @@ public class ChoiceEventDefinition : EventDefinition
 
 **Files to Update:**
 - `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignCatalogHandler.cs`
-- `scripts/services/campaign_service.gd`
+- `scripts/csharp/Meta/Services/Campaign.cs` (formerly campaign_service.gd)
 
 **Related:** See CLAUDE.md "Configurability Over Flags" and "When to Use C# vs GDScript"
 
@@ -1418,7 +1417,7 @@ switch (spec)
 - `scripts/csharp/Meta/Services/Rewards/RewardSpecFactory.cs`
 
 **Files to Refactor:**
-- `scripts/services/reward_service.gd` → `RewardService.cs`
+- `scripts/csharp/Meta/Services/RewardService.cs` (formerly reward_service.gd)
 - `scripts/meta/screens/reward_screen.gd`
 
 ---
@@ -1559,7 +1558,7 @@ public static class NodePropertyHelper
 
     public static int? GetTeam(Node3D target)
     {
-        if (target is Unit3D u) return u.Team;
+        if (target is UnitVisual u) return u.Team;
         return GetInt(target, "Team", "team");
     }
 
@@ -1568,10 +1567,10 @@ public static class NodePropertyHelper
 ```
 
 **Files with Duplicated Pattern:**
-- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` - IsAlive, Team checks
-- `scripts/csharp/Targeting/Filters/ValidTargetFilter.cs` - IsAlive, Team checks
+- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - IsAlive, Team checks (formerly DamageSystem.cs)
+- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs` - IsAlive, Team checks (formerly ValidTargetFilter.cs)
 - `scripts/csharp/Spells/Effects/SpellEffect.cs` - IsAlive check
-- `scripts/csharp/Units/Unit3D.cs` - Target property access
+- `scripts/csharp/Battle/View/UnitVisual.cs` - Target property access (formerly Unit3D.cs)
 - `scripts/gdscript/systems/spatial_grid.gd` - Team access
 
 **Notes:**
@@ -1594,9 +1593,9 @@ public static class NodePropertyHelper
 Every unit runs targeting + behavior + 3+ spatial grid queries per physics frame. This becomes the primary performance bottleneck at scale (40-100 units).
 
 **Current Behavior:**
-- `Unit3D._PhysicsProcess()` runs every frame for every active unit
-- `UnitSteering.CalculateSeparationForce()` queries spatial grid every frame
-- `UnitSteering.CalculateFlankForce()` queries spatial grid when blocked
+- `UnitVisual._PhysicsProcess()` runs every frame for every active unit
+- `SimSteering.CalculateSeparationForce()` queries spatial grid every frame
+- `SimSteering.CalculateFlankForce()` queries spatial grid when blocked
 - `UnitMovement.CorrectOverlaps()` triggers additional steering queries
 - Render priority recalculates every frame even when position unchanged
 
@@ -1607,9 +1606,9 @@ Every unit runs targeting + behavior + 3+ spatial grid queries per physics frame
 - Skip render priority calculation when position unchanged
 
 **Related Files:**
-- `scripts/csharp/Units/Unit3D.cs:463-494`
-- `scripts/csharp/Movement/UnitSteering.cs:56-136`
-- `scripts/csharp/Movement/UnitMovement.cs`
+- `scripts/csharp/Battle/View/UnitVisual.cs` (visual shell, formerly Unit3D.cs)
+- `scripts/csharp/Battle/Simulation/Movement/SimSteering.cs` (steering logic, formerly UnitSteering.cs)
+- `scripts/csharp/Battle/Simulation/Movement/` (movement logic)
 
 ---
 
@@ -1633,7 +1632,7 @@ Synchronous `load()` calls block the entire game during battle startup, causing 
 - Remove synchronous `_preload_unit_scenes()` stopgap
 
 **Related Files:**
-- `scripts/core/game_controller_3d.gd:125-141`
+- `scripts/csharp/Battle/View/BattleScene.cs` (unit preloading, formerly game_controller_3d.gd)
 - New: `scenes/shared/loading_screen.tscn`
 - New: `scripts/meta/screens/loading_screen.gd`
 
@@ -1645,13 +1644,13 @@ Synchronous `load()` calls block the entire game during battle startup, causing 
 
 ### 🟢 LOW PRIORITY
 
-#### Replace /root/VFXManager Lookup in Projectile3D
+#### Replace /root/VFXManager Lookup in ProjectileVisual
 **Status:** ⬜ Not Started
 **Category:** Architecture / Maintainability
 **Effort:** Trivial
 
 **Description:**
-`Projectile3D.cs` uses `GetNodeOrNull("/root/VFXManager")` to access the VFX manager autoload. Per code structure guidelines, Node-based scripts should use autoload globals directly.
+`ProjectileVisual.cs` uses `GetNodeOrNull("/root/VFXManager")` to access the VFX manager autoload. Per code structure guidelines, Node-based scripts should use autoload globals directly.
 
 **Current Behavior:**
 ```csharp
@@ -1663,7 +1662,7 @@ vfxManager?.Call("play_effect", HitVfx, impactPosition);
 Access `VFXManager` autoload directly without the `/root/` path prefix.
 
 **Related Files:**
-- `scripts/csharp/Projectiles/Projectile3D.cs:453-454`
+- `scripts/csharp/Battle/View/ProjectileVisual.cs` (formerly Projectile3D.cs)
 
 ---
 

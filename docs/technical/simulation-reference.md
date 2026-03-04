@@ -13,7 +13,7 @@ Four layers with strict data flow boundaries.
 ```mermaid
 flowchart TB
     subgraph InputLayer["INPUT LAYER"]
-        PlayerInput["Player Input\n(GDScript: summoner.gd)"]
+        PlayerInput["Player Input\n(C#: InputCollector.cs)"]
         AIOpponent["AI Opponent\n(submits same commands)"]
     end
 
@@ -34,8 +34,8 @@ flowchart TB
 
     subgraph PresentationLayer["PRESENTATION LAYER — READ-ONLY"]
         SimNode["SimulationNode (Bridge)\n• Converts SimEvents → Godot signals\n• Read-only API for GDScript\n• SubmitCommand() entry point"]
-        Unit3D["Unit3D\n🔒 READ-ONLY\n• Reads position/HP/target\n• Plays animations on events"]
-        SummonerGD["summoner.gd\n🔒 READ-ONLY\n• Reads mana/HP\n• Shows cast bar from events\n• Submits PlayCardCommand"]
+        UnitVisual["UnitVisual\n🔒 READ-ONLY\n• Reads position/HP/target\n• Plays animations on events"]
+        SummonerVisual["SummonerVisual.cs\n🔒 READ-ONLY\n• Reads mana/HP\n• Shows cast bar from events\n• Submits PlayCardCommand"]
         HUD["HUD / UI\n🔒 READ-ONLY\n• Mana display\n• Kill count\n• Phase indicator"]
     end
 
@@ -55,11 +55,11 @@ flowchart TB
     ClientRunner -->|"applies"| Snapshots
 
     Events --> SimNode
-    SimNode -->|"Godot signals"| Unit3D
-    SimNode -->|"Godot signals"| SummonerGD
+    SimNode -->|"Godot signals"| UnitVisual
+    SimNode -->|"Godot signals"| SummonerVisual
     SimNode -->|"Godot signals"| HUD
-    SimNode -->|"read API"| Unit3D
-    SimNode -->|"read API"| SummonerGD
+    SimNode -->|"read API"| UnitVisual
+    SimNode -->|"read API"| SummonerVisual
 ```
 
 ---
@@ -1132,12 +1132,12 @@ Full path from player input to visual result.
 ```mermaid
 sequenceDiagram
     participant Player as Player
-    participant SG as summoner.gd
+    participant SG as SummonerVisual.cs
     participant SN as SimulationNode
     participant CQ as Command Queue
     participant Tick as Simulation.Tick()
     participant SE as SimEffects
-    participant Pres as Presentation (Unit3D / HUD)
+    participant Pres as Presentation (UnitVisual / HUD)
 
     Note over Player, Pres: 1. Input Phase
     Player->>SG: Drag card to battlefield
@@ -1168,7 +1168,7 @@ sequenceDiagram
     Tick-->>SN: Emit CastingCompletedEvent
     Tick-->>SN: Emit UnitRegisteredEvent (per unit)
     Tick-->>SN: Emit CardDrawnEvent
-    SN-->>Pres: unit_registered signal → spawn Unit3D
+    SN-->>Pres: unit_registered signal → spawn UnitVisual
     SN-->>SG: hand_changed signal → update UI
 
     Note over Player, Pres: 4b. Cast Complete — Spell Card

@@ -37,8 +37,8 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 
 **Related Files:**
 - scripts/battle/vfx/vfx_manager.gd
-- scripts/csharp/Meta/Services/HPBarService.cs
-- scripts/csharp/Projectiles/ProjectileService.cs
+- scripts/csharp/Battle/View/EntityManager.cs (HP bar lifecycle)
+- scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs
 
 ---
 
@@ -101,8 +101,8 @@ Reduces effective army size as blocked units don't contribute to combat.
 - Target acquisition succeeding but movement failing
 
 **Related Files:**
-- scripts/csharp/Units/Unit3D.cs (movement/pathfinding logic)
-- scripts/csharp/Units/RangedUnit3D.cs (Puff-specific behavior)
+- scripts/csharp/Battle/View/UnitVisual.cs (visual shell / movement sync)
+- scripts/csharp/Battle/Simulation/SimBehavior.cs (behavior logic, formerly in RangedUnit3D)
 - Blocked detection / flanking logic
 
 ---
@@ -232,7 +232,7 @@ Wisps attack multiple enemies simultaneously, which may be unintended AOE behavi
 Affects combat balance - wisps are more effective than designed if they can hit multiple targets.
 
 **Related Files:**
-- scripts/csharp/Units/Unit3D.cs
+- scripts/csharp/Battle/View/UnitVisual.cs (visual shell)
 - scripts/csharp/Battle/Simulation/Combat/ (targeting logic)
 - Card definitions for wisps
 
@@ -264,8 +264,8 @@ Reduces Puff combat effectiveness - time spent switching targets and repositioni
 3. Only reposition to chase a closer target if no valid targets are currently in cone range
 
 **Related Files:**
-- scripts/csharp/Units/RangedUnit3D.cs
-- scripts/csharp/Targeting/TargetingService.cs
+- scripts/csharp/Battle/Simulation/SimBehavior.cs (behavior logic, formerly in RangedUnit3D)
+- scripts/csharp/Battle/Simulation/SimTargeting.cs (targeting logic, formerly in TargetingService)
 - Cone attack range detection logic
 
 ---
@@ -319,7 +319,7 @@ Adjust the sprite offset so Puff's visual center aligns with the pivot point, or
 
 **Related Files:**
 - Puff unit scene / sprite configuration
-- `scripts/csharp/Units/Unit3D.cs` (SetFacing method)
+- `scripts/csharp/Battle/View/UnitVisual.cs` (SetFacing method)
 
 ---
 

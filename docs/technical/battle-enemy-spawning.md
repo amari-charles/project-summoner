@@ -4,7 +4,7 @@ This document describes the two different ways enemies are spawned in battles.
 
 ## Pattern 1: Pre-loaded Enemy Deck (Standard Battles)
 
-Most battles use a pre-loaded enemy deck that's configured in `campaign_service.gd`.
+Most battles use a pre-loaded enemy deck that's configured in `Campaign.cs` (`scripts/csharp/Meta/Services/Campaign.cs`).
 
 **Battle Configuration:**
 ```gdscript
@@ -65,13 +65,13 @@ _battles["charge_tutorial"] = {
 
 ## Critical Implementation Details
 
-### Auto-Detection in Summoner
+### Auto-Detection in SummonerVisual
 
 The enemy summoner automatically detects event_sequence battles:
 
 ```gdscript
-// summoner.gd:76-83
-if team == Unit3D.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
+// SummonerVisual detects event_sequence battles
+if team == UnitVisual.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
     if BattleContext.battle_config.has("event_sequence") and
        BattleContext.battle_config.has("enemy_deck"):
         var enemy_deck_array: Array = BattleContext.battle_config.get("enemy_deck")
@@ -124,9 +124,8 @@ _battles["my_battle"] = {
 
 ## Related Files
 
-- `scripts/services/campaign_service.gd` - Battle definitions
-- `scripts/core/summoner.gd` - Deck loading strategy auto-detection
-- `scripts/core/enemy_deck_loader.gd` - Loads enemy decks from battle config
+- `scripts/csharp/Meta/Services/Campaign.cs` - Battle definitions
+- `scripts/csharp/Battle/View/SummonerVisual.cs` - Deck loading strategy auto-detection
+- `scripts/csharp/Battle/View/BattleScene.cs` - Deck loading and win condition handling
 - `scripts/battle/battle_dialogue_controller.gd` - Handles event_sequence playback
-- `scripts/core/game_controller_3d.gd` - Win condition handling
 - `scripts/infrastructure/data/win_condition_ids.gd` - Win condition type constants

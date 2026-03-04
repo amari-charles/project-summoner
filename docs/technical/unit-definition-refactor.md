@@ -18,11 +18,11 @@ classDiagram
         +UnitStats Stats
         +UnitType UnitType
         +MovementLayer MovementLayer
-        +ITargetingBehavior Targeting
+        +SimTargeting Targeting
         +RangedConfig? Ranged
         +FlyingConfig? Flying
         +VisualConfig Visual
-        +IAbilityConfig[] Abilities
+        +SimCardData[] Abilities
         +string ScenePath
     }
 
@@ -65,13 +65,15 @@ classDiagram
     UnitDefinition --> FlyingConfig
     UnitDefinition --> VisualConfig
     VisualConfig --> HurtboxConfig
-    UnitDefinition --> ITargetingBehavior
-    UnitDefinition --> IAbilityConfig
+    UnitDefinition --> SimTargeting
+    UnitDefinition --> SimCardData
 ```
 
 ---
 
 ## Targeting Behaviors (Interface Pattern)
+
+Targeting logic now lives in `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`. The interface pattern remains, but implementations have moved to the simulation layer.
 
 ```mermaid
 classDiagram
@@ -124,6 +126,8 @@ classDiagram
 
 ## Ability Configs (Interface Pattern)
 
+Ability configuration now lives in `scripts/csharp/Battle/Simulation/Data/SimCardData.cs`.
+
 ```mermaid
 classDiagram
     class IAbilityConfig {
@@ -169,17 +173,17 @@ sequenceDiagram
     participant Def as UnitDefinitions
     participant Spawner as UnitSpawner
     participant Scene as Scene File
-    participant Unit as Unit3D
+    participant Unit as UnitVisual
 
     Card->>Def: Get(unitId)
     Def-->>Card: UnitDefinition
     Card->>Spawner: SpawnUnit(scenePath, context)
     Spawner->>Scene: Load scene (visuals only)
-    Scene-->>Spawner: Unit3D instance
+    Scene-->>Spawner: UnitVisual instance
     Spawner->>Unit: ApplyDefinition(definition)
     Note over Unit: Stats, Targeting, Ranged, Flying applied
     Spawner->>Unit: Create & attach abilities
-    Note over Unit: IAbilityConfig.CreateAbility() for each
+    Note over Unit: SimCardData ability configs applied
 ```
 
 ---
@@ -202,7 +206,7 @@ public record UnitDefinition
     public required UnitType UnitType { get; init; }
     public MovementLayer MovementLayer { get; init; } = MovementLayer.Ground;
 
-    // Targeting (interface - each behavior is its own class)
+    // Targeting (interface - each behavior is its own class, implementations in SimTargeting.cs)
     public ITargetingBehavior Targeting { get; init; } = MeleeTargeting.Default;
 
     // Grouped Configs (null = not applicable)
@@ -331,16 +335,15 @@ public static readonly UnitDefinition Rock = new()
 |------|---------|
 | `scripts/csharp/Units/UnitDefinition.cs` | UnitDefinition record + grouped config records |
 | `scripts/csharp/Units/UnitDefinitions.cs` | All 19 unit definitions |
-| `scripts/csharp/Targeting/ITargetingBehavior.cs` | Interface + all implementations |
+| `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs` | Targeting interface + all implementations (formerly `ITargetingBehavior.cs`) |
 | `scripts/csharp/Projectiles/ProjectileId.cs` | Type-safe projectile ID struct |
-| `scripts/csharp/Abilities/IAbilityConfig.cs` | Interface + all implementations |
+| `scripts/csharp/Battle/Simulation/Data/SimCardData.cs` | Ability config interface + all implementations (formerly `IAbilityConfig.cs`) |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `scripts/csharp/Units/Unit3D.cs` | Add ApplyDefinition() method |
-| `scripts/csharp/Units/RangedUnit3D.cs` | Add ApplyDefinition() for ranged config |
+| `scripts/csharp/Battle/View/UnitVisual.cs` | Add ApplyDefinition() method (ranged config merged here; `RangedUnit3D.cs` deleted) |
 | `scripts/csharp/Summons/UnitSpawner.cs` | Look up and apply UnitDefinition on spawn |
 | `scripts/csharp/Cards/CardCatalog.cs` | Use UnitDefinitions.Get() for stats |
 | All 19 unit .tscn files | Remove stats, targeting, ability children |
@@ -349,7 +352,7 @@ public static readonly UnitDefinition Rock = new()
 
 | File | Reason |
 |------|--------|
-| `scripts/csharp/Targeting/TargetingConfigRegistry.cs` | Replaced by ITargetingBehavior |
+| `scripts/csharp/Targeting/TargetingConfigRegistry.cs` | Replaced by SimTargeting |
 | `scripts/csharp/Targeting/DefaultTargetingConfig.cs` | Absorbed into MeleeTargeting |
 | `scripts/csharp/Units/UnitCatalog.cs` | Replaced by UnitDefinitions |
 
@@ -364,7 +367,7 @@ public static readonly UnitDefinition Rock = new()
 5. Create UnitDefinition record
 6. Create UnitDefinitions.cs with all 19 units
 7. Update UnitSpawner to apply UnitDefinition on spawn
-8. Update Unit3D/RangedUnit3D with ApplyDefinition() method
+8. Update UnitVisual with ApplyDefinition() method (RangedUnit3D merged into UnitVisual)
 9. Update CardCatalog to use UnitDefinitions.Get() for stats
 10. Clean scene files (remove stats, targeting, ability children)
 11. Delete old files (TargetingConfigRegistry, DefaultTargetingConfig, UnitCatalog)

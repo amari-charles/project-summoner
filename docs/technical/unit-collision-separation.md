@@ -3,8 +3,8 @@
 **Status:** IMPLEMENTED (C#)
 **Last Updated:** 2026-01-03
 **Files:**
-- `scripts/csharp/Movement/UnitSteering.cs` - Steering logic
-- `scripts/csharp/Units/Unit3D.cs` - Integration
+- `scripts/csharp/Battle/Simulation/Movement/SimSteering.cs` - Steering logic
+- `scripts/csharp/Battle/View/UnitVisual.cs` - Integration
 
 ---
 
@@ -78,20 +78,20 @@ private const float FlankStrength = 1.2f;          // Lateral force when blocked
 
 ## Architecture
 
-The steering logic is encapsulated in `UnitSteering` class:
+The steering logic is encapsulated in the `SimSteering` class:
 
 ```csharp
-public class UnitSteering
+public class SimSteering
 {
-    public Vector3 CalculateSeparationForce(Unit3D unit, Node3D? currentTarget);
-    public Vector3 CalculateFlankForce(Unit3D unit, Node3D? currentTarget, float delta);
-    public void CorrectOverlaps(Unit3D unit);
-    public void UpdateBlockedState(Unit3D unit, float delta);
+    public Vector3 CalculateSeparationForce(UnitVisual unit, Node3D? currentTarget);
+    public Vector3 CalculateFlankForce(UnitVisual unit, Node3D? currentTarget, float delta);
+    public void CorrectOverlaps(UnitVisual unit);
+    public void UpdateBlockedState(UnitVisual unit, float delta);
     public void Reset();
 }
 ```
 
-Each `Unit3D` has a `_steering` instance and calls it from movement methods:
+Each `UnitVisual` has a `_steering` instance and calls it from movement methods:
 
 ```csharp
 // In MoveTowardTarget():
@@ -146,6 +146,6 @@ Each unit has a `SeparationRadius` property (exported) that controls movement sp
 
 ## Related Files
 
-- `scripts/csharp/Movement/UnitSteering.cs` - Steering implementation
-- `scripts/csharp/Units/Unit3D.cs` - Integration in movement methods
-- `scripts/csharp/Systems/SpatialGrid.cs` - Spatial queries for nearby units
+- `scripts/csharp/Battle/Simulation/Movement/SimSteering.cs` - Steering implementation
+- `scripts/csharp/Battle/View/UnitVisual.cs` - Integration in movement methods
+- `scripts/csharp/Battle/Simulation/Subsystems/SimSpatialGrid.cs` - Spatial queries for nearby units
