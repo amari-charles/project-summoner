@@ -473,7 +473,8 @@
       "disconnected": "Disconnected from host",
       "ready_to_play": "Ready to start!",
       "waiting_for_host": "Waiting for host...",
-      "match_starting": "Match starting..."
+      "match_starting": "Match starting...",
+      "default_opponent_name": "Opponent"
     },
     "events": {
       "title": "SPECIAL EVENTS",

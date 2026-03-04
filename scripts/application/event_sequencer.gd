@@ -328,7 +328,7 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 
 	# Create card from CardCatalog
 	# Get SimulationNode for spawning
-	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	var sim_node: Node = get_tree().get_first_node_in_group(GroupIDs.SIMULATION_NODE)
 	if not sim_node:
 		push_error("EventSequencer: SimulationNode not found")
 		return

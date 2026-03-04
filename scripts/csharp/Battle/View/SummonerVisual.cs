@@ -83,7 +83,16 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private const float MinFlashDuration = 0.05f;
     private const float FlashSpeedMultiplier = 0.3f;
     private const float RecentHitsDecayRate = 2.0f;
+    private const float FlashToWhiteRatio = 0.4f;
+    private const float FlashReturnRatio = 0.6f;
+    private const float ShakeOutRatio = 0.35f;
+    private const float ShakeReturnRatio = 0.25f;
     private float _recentHits;
+
+    // Tween duration constants
+    private const float DamageFlashToWhiteDuration = 0.05f;
+    private const float DamageFlashReturnDuration = 0.15f;
+    private const float DeathFadeDuration = 0.5f;
 
     // Collision shape constants
     private const float HurtboxRadius = 2.0f;
@@ -296,17 +305,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public void OnHpChanged(float hp, float maxHp)
     {
-        bool tookDamage = hp < _lastHp;
-        _lastHp = hp;
-        _lastMaxHp = maxHp;
-
-        EmitSignal(SignalName.HpChanged, hp, maxHp);
-
-        if (tookDamage && _isAlive)
-        {
-            _recentHits += 1.0f;
-            PlayHitFeedback();
-        }
+        ApplyHpUpdate(hp, maxHp);
     }
 
     public void OnSummonerDamaged(float damage)
@@ -336,8 +335,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         if (_sprite == null) return;
 
         var tween = CreateTween();
-        tween.TweenProperty(_sprite, "modulate", Colors.White, 0.05);
-        tween.TweenProperty(_sprite, "modulate", _originalColor, 0.15);
+        tween.TweenProperty(_sprite, "modulate", Colors.White, DamageFlashToWhiteDuration);
+        tween.TweenProperty(_sprite, "modulate", _originalColor, DamageFlashReturnDuration);
     }
 
     public void BeginDeath()
@@ -362,7 +361,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         if (_sprite != null)
         {
             var tween = CreateTween();
-            tween.TweenProperty(_sprite, "modulate:a", 0f, 0.5);
+            tween.TweenProperty(_sprite, "modulate:a", 0f, DeathFadeDuration);
         }
     }
 
@@ -378,10 +377,10 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         float intensityFactor = 1.0f + (_recentHits * FlashSpeedMultiplier);
         float flashDuration = Math.Max(MinFlashDuration, DefaultFlashDuration / intensityFactor);
 
-        float flashToWhite = flashDuration * 0.4f;
-        float flashReturn = flashDuration * 0.6f;
-        float shakeOut = flashDuration * 0.35f;
-        float shakeReturn = flashDuration * 0.25f;
+        float flashToWhite = flashDuration * FlashToWhiteRatio;
+        float flashReturn = flashDuration * FlashReturnRatio;
+        float shakeOut = flashDuration * ShakeOutRatio;
+        float shakeReturn = flashDuration * ShakeReturnRatio;
 
         _activeFeedbackTween = CreateTween();
         _activeFeedbackTween.SetParallel(true);
@@ -413,9 +412,14 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         {
             _lastIsCasting = summoner.IsCasting;
             if (summoner.IsCasting)
-                EmitSignal(SignalName.CastingStarted, new GodotObject(), summoner.CastingTimeTotal);
+            {
+                // MP client polling path has no card reference — null card emitted. See todos.md.
+                EmitSignal(SignalName.CastingStarted, (GodotObject)null!, summoner.CastingTimeTotal);
+            }
             else
-                EmitSignal(SignalName.CastingCompleted, new GodotObject());
+            {
+                EmitSignal(SignalName.CastingCompleted, (GodotObject)null!);
+            }
         }
 
         if (summoner.IsCasting)
@@ -440,18 +444,11 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         // Poll HP
         if (Math.Abs(summoner.CurrentHp - _lastHp) > 0.01f || Math.Abs(summoner.MaxHp - _lastMaxHp) > 0.01f)
         {
-            bool tookDamage = summoner.CurrentHp < _lastHp;
             float damage = _lastHp - summoner.CurrentHp;
-            _lastHp = summoner.CurrentHp;
-            _lastMaxHp = summoner.MaxHp;
-            EmitSignal(SignalName.HpChanged, summoner.CurrentHp, summoner.MaxHp);
+            bool tookDamage = ApplyHpUpdate(summoner.CurrentHp, summoner.MaxHp);
 
-            if (tookDamage && _isAlive)
-            {
-                _recentHits += 1.0f;
-                PlayHitFeedback();
+            if (tookDamage)
                 EmitSignal(SignalName.SummonerDamaged, this, damage);
-            }
         }
     }
 
@@ -468,6 +465,27 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     // =========================================================================
     // HELPERS
     // =========================================================================
+
+    /// <summary>
+    /// Shared HP update logic. Updates last-known values, emits HpChanged,
+    /// and triggers hit feedback on damage. Returns true if damage was taken.
+    /// </summary>
+    private bool ApplyHpUpdate(float hp, float maxHp)
+    {
+        bool tookDamage = hp < _lastHp;
+        _lastHp = hp;
+        _lastMaxHp = maxHp;
+
+        EmitSignal(SignalName.HpChanged, hp, maxHp);
+
+        if (tookDamage && _isAlive)
+        {
+            _recentHits += 1.0f;
+            PlayHitFeedback();
+        }
+
+        return tookDamage;
+    }
 
     private void RebuildHandCache(string[] catalogIds)
     {

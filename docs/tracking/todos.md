@@ -1718,3 +1718,17 @@ UI flow often depends on timers/awaits. If a signal never fires, the UI can hang
 - Lower priority - not causing observed issues currently
 
 ---
+
+## Multiplayer
+
+### 🟢 LOW PRIORITY
+
+#### Investigate MP Client Casting Signal
+**Status:** ⬜ Not Started
+
+Currently, SummonerVisual.PollMatchState emits CastingStarted and CastingCompleted with null card references because the MP client polling path has no card data in MatchState. Investigate whether the casting card ID should be stored in SummonerData so clients can reconstruct the Card object.
+
+**Related Files:**
+- `scripts/csharp/Battle/View/SummonerVisual.cs` (PollMatchState method)
+
+---

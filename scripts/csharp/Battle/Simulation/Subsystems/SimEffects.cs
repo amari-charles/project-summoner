@@ -338,14 +338,7 @@ public static class SimEffects
 
     private static void ApplyHeal(UnitData target, float amount, List<SimEvent> events)
     {
-        float previousHp = target.CurrentHp;
         target.CurrentHp = MathF.Min(target.CurrentHp + amount, target.MaxHp);
-        float actualHeal = target.CurrentHp - previousHp;
-
-        if (actualHeal > 0)
-        {
-            // Could add a HealEvent here if needed for visual feedback
-        }
     }
 
     private static void ApplyBuff(
@@ -475,22 +468,34 @@ public static class SimEffects
 
         if (effect.AoeRadius > 0)
         {
-            // Area effect — damage all enemies in radius
-            int enemyTeam = MatchState.GetEnemyTeam((int)effect.SourceTeam);
-            float radiusSq = effect.AoeRadius * effect.AoeRadius;
+            DamageUnitsInRadius(state, effect.Position, effect.AoeRadius,
+                effect.Value, effect.DamageType, effect.SourceTeam, effect.SourceUnitId, events);
+        }
+    }
 
-            foreach (var kvp in state.Units)
-            {
-                var candidate = kvp.Value;
-                if (!candidate.IsAlive) continue;
-                if ((int)candidate.Team != enemyTeam) continue;
+    /// <summary>
+    /// Damage all enemy units within a radius of a position.
+    /// Shared by ApplyAreaEffect (trigger-based) and ExecuteDelayedEffect (delayed explosions).
+    /// </summary>
+    private static void DamageUnitsInRadius(
+        MatchState state, SimVector3 center, float radius,
+        float damage, DamageType damageType, Team sourceTeam, int sourceUnitId,
+        List<SimEvent> events)
+    {
+        int enemyTeam = MatchState.GetEnemyTeam((int)sourceTeam);
+        float radiusSq = radius * radius;
 
-                float distSq = effect.Position.DistanceSquaredTo(candidate.Position);
-                if (distSq > radiusSq) continue;
+        foreach (var kvp in state.Units)
+        {
+            var candidate = kvp.Value;
+            if (!candidate.IsAlive) continue;
+            if ((int)candidate.Team != enemyTeam) continue;
 
-                ApplyDirectDamage(state, candidate, effect.Value, effect.DamageType,
-                    effect.SourceUnitId, effect.SourceTeam, events);
-            }
+            float distSq = center.DistanceSquaredTo(candidate.Position);
+            if (distSq > radiusSq) continue;
+
+            ApplyDirectDamage(state, candidate, damage, damageType,
+                sourceUnitId, sourceTeam, events);
         }
     }
 }

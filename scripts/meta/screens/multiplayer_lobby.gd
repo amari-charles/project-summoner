@@ -365,7 +365,7 @@ func _send_player_info() -> void:
 
 
 func _handle_player_info(message: Dictionary) -> void:
-	_opponent_name = message.get("name", "Opponent")
+	_opponent_name = message.get("name", Loc.t("ui.multiplayer.default_opponent_name"))
 	_opponent_summoner_id = message.get("summoner_id", SummonerIDs.DEFAULT)
 
 	if _is_host:
@@ -456,7 +456,7 @@ func _start_match(battle_seed: int, player_summoner: String, opponent_summoner: 
 
 
 func _get_active_summoner_id() -> String:
-	var summoner_selection: Node = get_node_or_null("/root/SummonerSelection")
+	var summoner_selection: Node = SummonerSelection
 	if summoner_selection and summoner_selection.has_method("get_selected_summoner_id"):
 		var selected: String = summoner_selection.get_selected_summoner_id()
 		if not selected.is_empty():

@@ -1,4 +1,5 @@
 using Fateforged.Simulation.Data;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation;
 
@@ -15,6 +16,17 @@ public enum WinConditionType
     TimedDestroy,
     /// <summary>Kill a target number of enemy units.</summary>
     KillCount
+}
+
+/// <summary>
+/// Reason a win condition was triggered.
+/// </summary>
+public static class WinReason
+{
+    public const string Survived = "Survived";
+    public const string TimeExpired = "Time expired";
+    public const string KillTargetReached = "Kill target reached";
+    public const string SummonerDestroyed = "Summoner destroyed";
 }
 
 /// <summary>
@@ -77,7 +89,7 @@ public class SurviveTimeWinCondition : IWinCondition
 
         // Survived long enough — player wins
         if (state.MatchTime >= TimeLimit)
-            return new WinConditionResult(0, "Survived");
+            return new WinConditionResult((int)Team.Player, WinReason.Survived);
 
         return null;
     }
@@ -102,7 +114,7 @@ public class TimedDestroyWinCondition : IWinCondition
 
         // Time ran out — player loses
         if (state.MatchTime >= TimeLimit)
-            return new WinConditionResult(1, "Time expired");
+            return new WinConditionResult((int)Team.Enemy, WinReason.TimeExpired);
 
         return null;
     }
@@ -128,7 +140,7 @@ public class KillCountWinCondition : IWinCondition
 
         // Kill target reached
         if (state.KillCount >= KillTarget)
-            return new WinConditionResult(0, "Kill target reached");
+            return new WinConditionResult((int)Team.Player, WinReason.KillTargetReached);
 
         return null;
     }
@@ -149,8 +161,8 @@ internal static class WinConditionHelper
         {
             if (!state.Summoners[i].IsAlive)
             {
-                int winner = i == 0 ? 1 : 0;
-                return new WinConditionResult(winner, "Summoner destroyed");
+                int winner = i == (int)Team.Player ? (int)Team.Enemy : (int)Team.Player;
+                return new WinConditionResult(winner, WinReason.SummonerDestroyed);
             }
         }
         return null;

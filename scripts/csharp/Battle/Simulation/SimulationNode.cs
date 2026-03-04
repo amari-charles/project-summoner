@@ -280,9 +280,8 @@ public partial class SimulationNode : Node, IGameSession
 
     /// <summary>
     /// Configure AI for a summoner. Called by BattleScene during init.
-    /// GDScript-callable: string enums parsed to C# enums.
     /// </summary>
-    public void ConfigureAi(int team, string aiType, string personality = "balanced",
+    public void ConfigureAi(int team, string aiType, AiPersonality personality = AiPersonality.Balanced,
         int difficulty = DefaultAiDifficulty, float intervalMin = DefaultAiIntervalMin, float intervalMax = DefaultAiIntervalMax,
         Godot.Collections.Array? scriptSteps = null)
     {
@@ -308,22 +307,10 @@ public partial class SimulationNode : Node, IGameSession
             return;
         }
 
-        var personalityLower = personality.ToLowerInvariant();
-        var pers = personalityLower switch
-        {
-            "aggressive" => AiPersonality.Aggressive,
-            "defensive" => AiPersonality.Defensive,
-            "spell_focused" => AiPersonality.SpellFocused,
-            _ => AiPersonality.Balanced
-        };
-
-        if (personalityLower is not ("aggressive" or "defensive" or "spell_focused" or "balanced"))
-            GD.PushWarning($"[SimulationNode] Unknown AI personality '{personality}', defaulting to Balanced");
-
         var config = new AiConfig
         {
             Type = type,
-            Personality = pers,
+            Personality = personality,
             Difficulty = difficulty,
             PlayIntervalMin = intervalMin,
             PlayIntervalMax = intervalMax
@@ -362,7 +349,7 @@ public partial class SimulationNode : Node, IGameSession
         summoner.Ai = config;
         SimAi.InitializeTimer(State, summoner);
 
-        GD.Print($"[SimulationNode] Configured AI: team={networkTeam} type={type} personality={pers} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]");
+        GD.Print($"[SimulationNode] Configured AI: team={networkTeam} type={type} personality={personality} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]");
     }
 
     // =========================================================================

@@ -41,8 +41,9 @@ var player_summoner: Node3D = null
 var enemy_summoner: Node3D = null
 var _initialized: bool = false  # Track initialization state
 
-## Player team value (matches UnitConstants.Team.PLAYER)
-const PLAYER_TEAM_VALUE: int = 0
+## Stat bar colors
+const HP_BAR_COLOR: Color = Color(0.85, 0.25, 0.25)
+const MANA_BAR_COLOR: Color = Color(0.3, 0.5, 0.9)
 
 func _ready() -> void:
 	# Minimal setup - find child nodes if not assigned via @export
@@ -159,24 +160,20 @@ func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
 
 ## Setup stat bar colors
 func _setup_hp_bars() -> void:
-	# Player HP bar - red
 	if player_hp_bar:
-		player_hp_bar.set_colors(Color(0.85, 0.25, 0.25))
+		player_hp_bar.set_colors(HP_BAR_COLOR)
 		player_hp_bar.set_label_config(true, "{current}/{max}")
 
-	# Player Mana bar - blue
 	if player_mana_bar:
-		player_mana_bar.set_colors(Color(0.3, 0.5, 0.9))
+		player_mana_bar.set_colors(MANA_BAR_COLOR)
 		player_mana_bar.set_label_config(true, "{current}/{max}")
 
-	# Enemy HP bar - red
 	if enemy_hp_bar:
-		enemy_hp_bar.set_colors(Color(0.85, 0.25, 0.25))
+		enemy_hp_bar.set_colors(HP_BAR_COLOR)
 		enemy_hp_bar.set_label_config(true, "{current}/{max}")
 
-	# Enemy Mana bar - blue
 	if enemy_mana_bar:
-		enemy_mana_bar.set_colors(Color(0.3, 0.5, 0.9))
+		enemy_mana_bar.set_colors(MANA_BAR_COLOR)
 		enemy_mana_bar.set_label_config(true, "{current}/{max}")
 
 ## Handle player HP changes
@@ -245,7 +242,6 @@ func _create_prep_timer_label() -> void:
 	prep_timer_label.visible = false
 	add_child(prep_timer_label)
 
-## Handle battle phase change (PREPARATION -> BATTLE)
 func _exit_tree() -> void:
 	if game_controller:
 		if game_controller.has_signal("TimeUpdated") and game_controller.is_connected("TimeUpdated", _on_time_updated):

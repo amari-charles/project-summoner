@@ -85,6 +85,12 @@ public static class GroupIDs
     /// <summary>Battle coordinator (BattleScene)</summary>
     public const string BattleCoordinator = "battle_coordinator";
 
+    /// <summary>Simulation node</summary>
+    public const string SimulationNode = "simulation_node";
+
+    /// <summary>Input collector</summary>
+    public const string InputCollector = "input_collector";
+
     // =========================================================================
     // UTILITY METHODS
     // =========================================================================

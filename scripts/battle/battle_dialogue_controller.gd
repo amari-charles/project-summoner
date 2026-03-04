@@ -10,6 +10,7 @@ class_name BattleDialogueController
 
 ## Card used for the tutorial enemy spawn
 const TUTORIAL_ENEMY_CARD_ID: String = "pebbloom"
+const TUTORIAL_ENEMY_SPAWN_POS: Vector3 = Vector3(2.5, 1, 0.0)
 
 ## Reference to game controller (for pausing)
 @onready var game_controller: Node = get_parent()
@@ -262,9 +263,7 @@ func _spawn_tutorial_enemy() -> void:
 
 	if debug_mode: print("BattleDialogueController: Card created successfully")
 
-	# Get battlefield and spawn position
-	# Just right of center field (2.5 units from center on enemy side)
-	var spawn_pos_3d: Vector3 = Vector3(2.5, 1, 0.0)
+	var spawn_pos_3d: Vector3 = TUTORIAL_ENEMY_SPAWN_POS
 	if debug_mode: print("BattleDialogueController: Spawn position: %s" % spawn_pos_3d)
 
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
@@ -276,7 +275,7 @@ func _spawn_tutorial_enemy() -> void:
 
 	# Spawn the unit directly via SpawnUnitCommand (team 1 = enemy)
 	if debug_mode: print("BattleDialogueController: Spawning tutorial enemy via SpawnAt...")
-	card.SpawnAt(spawn_pos_3d, 1)
+	card.SpawnAt(spawn_pos_3d, int(UnitConstants.Team.ENEMY))
 	if debug_mode: print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
 
 

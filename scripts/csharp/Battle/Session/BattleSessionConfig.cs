@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.AI;
 using Godot;
 
 namespace Fateforged.Session;
@@ -53,7 +54,7 @@ public class BattleSessionConfig
     // =========================================================================
 
     public string AiType { get; set; } = "heuristic";
-    public string AiPersonality { get; set; } = "balanced";
+    public AiPersonality AiPersonality { get; set; } = AiPersonality.Balanced;
     public int AiDifficulty { get; set; } = 3;
     public float AiIntervalMin { get; set; } = 3.0f;
     public float AiIntervalMax { get; set; } = 6.0f;
@@ -128,7 +129,8 @@ public class BattleSessionConfig
 
         // AI config
         cfg.AiType = config.GetValueOrDefault("ai_type", "heuristic").ToString()!;
-        cfg.AiPersonality = config.GetValueOrDefault("ai_personality", "balanced").ToString()!;
+        cfg.AiPersonality = ParseAiPersonality(
+            config.GetValueOrDefault("ai_personality", "balanced").ToString()!);
         cfg.AiDifficulty = (int)config.GetValueOrDefault("ai_difficulty", 3);
 
         var aiConfigVar = config.GetValueOrDefault("ai_config", default);
@@ -162,4 +164,19 @@ public class BattleSessionConfig
 
     /// <summary>Whether this is a multiplayer client (not the host).</summary>
     public bool IsMpClient => IsMultiplayer && !HasAuthority;
+
+    /// <summary>
+    /// Parse a GDScript AI personality string into the enum.
+    /// Returns Balanced for unrecognized values.
+    /// </summary>
+    public static AiPersonality ParseAiPersonality(string value)
+    {
+        return value.ToLowerInvariant() switch
+        {
+            "aggressive" => AiPersonality.Aggressive,
+            "defensive" => AiPersonality.Defensive,
+            "spell_focused" => AiPersonality.SpellFocused,
+            _ => AiPersonality.Balanced
+        };
+    }
 }

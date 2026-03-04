@@ -137,6 +137,9 @@ public partial class ProfileRepository : Node, IProfileRepository
         return true;
     }
 
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool LoadProfile(string id) => LoadProfile(new ProfileId(id));
+
     public void SaveProfile(bool immediate = false)
     {
         _pendingSave = true;

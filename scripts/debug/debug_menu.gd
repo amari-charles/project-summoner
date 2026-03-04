@@ -20,7 +20,6 @@ var _panel: PanelContainer
 var _fps_label: Label
 var _target_label: Label
 var _buttons: Dictionary = {}  # fps -> Button
-var _grid_button: Button
 var _skip_prep_button: Button
 var _spawn_boundary_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
@@ -159,13 +158,6 @@ func _create_ui() -> void:
 	var debug_separator: HSeparator = HSeparator.new()
 	vbox.add_child(debug_separator)
 
-	# Grid Lines toggle button
-	_grid_button = Button.new()
-	_grid_button.text = "Grid Lines: Off"
-	_grid_button.custom_minimum_size = Vector2(200, 32)
-	_grid_button.pressed.connect(_on_grid_toggle_pressed)
-	vbox.add_child(_grid_button)
-
 	# Skip Prep Phase button
 	_skip_prep_button = Button.new()
 	_skip_prep_button.text = "Skip Prep Phase"
@@ -267,10 +259,6 @@ func _create_ui() -> void:
 
 
 func _update_button_states() -> void:
-	# Update all toggle button text to match current state
-	if _grid_button:
-		_grid_button.text = "Grid Lines: Off"
-
 	if _spawn_boundary_button:
 		var bypass_enabled: bool = _bypass_spawn_boundary
 		var state: String = "Off" if bypass_enabled else "On"
@@ -312,12 +300,6 @@ func _set_fps(target: int) -> void:
 
 func _on_fps_button_pressed(fps: int) -> void:
 	_set_fps(fps)
-
-
-func _on_grid_toggle_pressed() -> void:
-	# Grid visualization removed (SpatialGrid deleted)
-	_grid_button.text = "Grid Lines: Off"
-	_save_settings()
 
 
 func _on_skip_prep_pressed() -> void:
@@ -539,7 +521,6 @@ func _save_settings() -> void:
 	var config: ConfigFile = ConfigFile.new()
 
 	# Save visualization toggles
-	config.set_value("debug_menu", "grid_lines", false)
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 
 	config.save(SETTINGS_PATH)

@@ -78,6 +78,12 @@ const GAME_UI: StringName = &"game_ui"
 ## Game controller references
 const GAME_CONTROLLER: StringName = &"game_controller"
 
+## Simulation node
+const SIMULATION_NODE: StringName = &"simulation_node"
+
+## Input collector
+const INPUT_COLLECTOR: StringName = &"input_collector"
+
 # ============================================================================
 # UTILITY METHODS
 # ============================================================================

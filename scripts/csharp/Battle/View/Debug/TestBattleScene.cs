@@ -86,11 +86,11 @@ public partial class TestBattleScene : BattleScene
     /// </summary>
     public new void EndGame(int winnerTeam)
     {
-        if (CurrentState == (int)GameState.GameOver)
+        if (CurrentState == GameState.GameOver)
             return;
 
-        CurrentState = (int)GameState.GameOver;
-        EmitSignal(SignalName.StateChanged, CurrentState);
+        CurrentState = GameState.GameOver;
+        EmitSignal(SignalName.StateChanged, (int)CurrentState);
         EmitSignal(SignalName.GameEnded, winnerTeam);
         GetTree().Paused = true;
 

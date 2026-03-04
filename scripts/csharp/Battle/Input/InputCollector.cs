@@ -53,7 +53,7 @@ public partial class InputCollector : Control
     {
         _playerSummoner = playerSummoner;
         _camera3D = GetViewport().GetCamera3D();
-        AddToGroup("input_collector");
+        AddToGroup(GroupIDs.InputCollector);
     }
 
     public override void _Ready()
@@ -226,7 +226,8 @@ public partial class InputCollector : Control
         var from = _camera3D.ProjectRayOrigin(screenPos);
         var to = from + _camera3D.ProjectRayNormal(screenPos) * RaycastMaxDistance;
 
-        float spawnY = 0f; // BattlefieldConstants.SPAWN_PLANE_HEIGHT
+        const float SpawnPlaneHeight = 0f;
+        float spawnY = SpawnPlaneHeight;
         float t = (spawnY - from.Y) / (to.Y - from.Y);
         if (t < 0 || t > 1)
             return Vector3.Zero;
@@ -457,7 +458,7 @@ public partial class InputCollector : Control
             return;
         }
 
-        int unitTeam = team == 0 ? TeamPlayer : TeamEnemy;
+        int unitTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
         card.SpawnAt(worldPos, unitTeam);
 
         // Activate newly spawned units immediately (debug mode bypasses prep phase)

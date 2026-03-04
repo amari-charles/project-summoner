@@ -40,7 +40,7 @@ public partial class BattleScene : Node3D
 	// STATE
 	// =========================================================================
 
-	public int CurrentState { get; set; } = (int)GameState.Setup;
+	public GameState CurrentState { get; set; } = GameState.Setup;
 
 	// Child components
 	public EntityManager? EntityManager { get; private set; }
@@ -162,7 +162,7 @@ public partial class BattleScene : Node3D
 
 	public override void _Process(double delta)
 	{
-		if (CurrentState != (int)GameState.Playing)
+		if (CurrentState != GameState.Playing)
 			return;
 
 		// MP client: poll MatchState for timer/phase sync
@@ -176,7 +176,7 @@ public partial class BattleScene : Node3D
 
 	public void StartGame()
 	{
-		CurrentState = (int)GameState.Playing;
+		CurrentState = GameState.Playing;
 
 		// Mark battle as in progress on BattleContext
 		GetNodeOrNull("/root/BattleContext")?.Call("start_battle");
@@ -186,28 +186,28 @@ public partial class BattleScene : Node3D
 		audio?.Call("play_music", audio.Get("MUSIC_BATTLE"));
 
 		EmitSignal(SignalName.GameStarted);
-		EmitSignal(SignalName.StateChanged, CurrentState);
+		EmitSignal(SignalName.StateChanged, (int)CurrentState);
 		EmitSignal(SignalName.PhaseChanged, (int)BattlePhase.Preparation);
 		EmitSignal(SignalName.PrepTimerUpdated, PreparationDuration);
 	}
 
 	public void PauseGame()
 	{
-		if (CurrentState == (int)GameState.Playing)
+		if (CurrentState == GameState.Playing)
 		{
-			CurrentState = (int)GameState.Paused;
+			CurrentState = GameState.Paused;
 			GetTree().Paused = true;
-			EmitSignal(SignalName.StateChanged, CurrentState);
+			EmitSignal(SignalName.StateChanged, (int)CurrentState);
 		}
 	}
 
 	public void ResumeGame()
 	{
-		if (CurrentState == (int)GameState.Paused)
+		if (CurrentState == GameState.Paused)
 		{
-			CurrentState = (int)GameState.Playing;
+			CurrentState = GameState.Playing;
 			GetTree().Paused = false;
-			EmitSignal(SignalName.StateChanged, CurrentState);
+			EmitSignal(SignalName.StateChanged, (int)CurrentState);
 		}
 	}
 
@@ -218,7 +218,7 @@ public partial class BattleScene : Node3D
 
 	public void UnfreezeGame()
 	{
-		if (CurrentState != (int)GameState.Paused)
+		if (CurrentState != GameState.Paused)
 			GetTree().Paused = false;
 	}
 
@@ -232,11 +232,11 @@ public partial class BattleScene : Node3D
 
 	public async void EndGame(int winnerTeam)
 	{
-		if (CurrentState == (int)GameState.GameOver)
+		if (CurrentState == GameState.GameOver)
 			return;
 
-		CurrentState = (int)GameState.GameOver;
-		EmitSignal(SignalName.StateChanged, CurrentState);
+		CurrentState = GameState.GameOver;
+		EmitSignal(SignalName.StateChanged, (int)CurrentState);
 		EmitSignal(SignalName.GameEnded, winnerTeam);
 		GetTree().Paused = true;
 
@@ -835,5 +835,5 @@ public partial class BattleScene : Node3D
 	// UTILITY
 	// =========================================================================
 
-	private Node? GetSimNode() => GetTree().GetFirstNodeInGroup("simulation_node");
+	private Node? GetSimNode() => GetTree().GetFirstNodeInGroup(GroupIDs.SimulationNode);
 }
