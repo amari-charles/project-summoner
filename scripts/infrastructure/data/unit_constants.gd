@@ -56,3 +56,18 @@ enum CardType {
 	SPELL = 1
 }
 
+## BattlePhase enum - matches BattleScene.BattlePhase / Fateforged.Simulation.Enums.GamePhase
+enum BattlePhase {
+	PREPARATION = 0,
+	BATTLE = 1,
+	GAME_OVER = 2
+}
+
+## GameState enum - matches BattleScene.GameState in scripts/csharp/Battle/View/BattleScene.cs
+enum GameState {
+	SETUP = 0,
+	PLAYING = 1,
+	PAUSED = 2,
+	GAME_OVER = 3
+}
+

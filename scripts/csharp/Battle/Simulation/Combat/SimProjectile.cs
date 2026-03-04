@@ -4,6 +4,7 @@ using Fateforged.Projectiles;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Subsystems;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -137,7 +138,7 @@ public static class SimProjectile
                     TickBallistic(proj, delta);
                     break;
                 case ProjectileMovementType.WeavingHoming:
-                    TickWeavingHoming(proj, state, delta);
+                    TickWeavingHoming(proj, state, delta, events);
                     break;
             }
 
@@ -252,7 +253,7 @@ public static class SimProjectile
             proj.Direction = velocity.Normalized();
     }
 
-    private static void TickWeavingHoming(SimProjectileData proj, MatchState state, float delta)
+    private static void TickWeavingHoming(SimProjectileData proj, MatchState state, float delta, List<SimEvent> events)
     {
         proj.PhaseTimer += delta;
 
@@ -300,7 +301,7 @@ public static class SimProjectile
                     float dist = proj.CurrentPosition.DistanceTo(target.Position);
                     if (dist < DirectHitDistanceThreshold)
                     {
-                        ApplyHit(proj, target, state, new List<SimEvent>());
+                        ApplyHit(proj, target, state, events);
                         proj.IsDead = true;
                         return;
                     }
@@ -388,13 +389,7 @@ public static class SimProjectile
     /// </summary>
     private static void ApplyHit(SimProjectileData proj, UnitData target, MatchState state, List<SimEvent> events)
     {
-        var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
-        SummonerData? attackerSummoner = null;
-        SummonerData? targetSummoner = null;
-
-        if (sourceUnit != null)
-            attackerSummoner = state.Summoners[(int)sourceUnit.Team];
-        targetSummoner = state.Summoners[(int)target.Team];
+        var (sourceUnit, attackerSummoner, targetSummoner) = ResolveSourceAndSummoners(proj, target, state);
 
         var (damage, isCrit) = SimDamage.Calculate(
             proj.Damage, sourceUnit, target, attackerSummoner, targetSummoner, state.Rng);
@@ -404,14 +399,12 @@ public static class SimProjectile
 
         if (target.CurrentHp <= 0)
         {
-            target.CurrentHp = 0;
-            target.IsAlive = false;
-            state.KillCount++;
-            events.Add(new UnitDiedSimEvent(target.UnitId, proj.SourceUnitId));
+            SimUtils.KillUnit(state, target, proj.SourceUnitId, events);
+            SimEffects.FireDeathTriggers(state, target, sourceUnit, events);
         }
 
         proj.PierceRemaining--;
-        events.Add(new ProjectileHitSimEvent(proj.ProjectileId, target.UnitId));
+        events.Add(new ProjectileHitEvent(proj.ProjectileId, target.UnitId));
     }
 
     /// <summary>
@@ -420,6 +413,8 @@ public static class SimProjectile
     private static void ApplyAoE(SimProjectileData proj, SimVector3 center, MatchState state, List<SimEvent> events)
     {
         float radiusSq = proj.AoeRadius * proj.AoeRadius;
+        var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
+        SummonerData? attackerSummoner = sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
 
         foreach (var kvp in state.Units)
         {
@@ -430,14 +425,7 @@ public static class SimProjectile
             float distSq = center.DistanceSquaredTo(unit.Position);
             if (distSq > radiusSq) continue;
 
-            var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
-            SummonerData? attackerSummoner = null;
-            SummonerData? targetSummoner = null;
-
-            if (sourceUnit != null)
-                attackerSummoner = state.Summoners[(int)sourceUnit.Team];
-            targetSummoner = state.Summoners[(int)unit.Team];
-
+            var targetSummoner = state.Summoners[(int)unit.Team];
             var (damage, isCrit) = SimDamage.Calculate(
                 proj.Damage, sourceUnit, unit, attackerSummoner, targetSummoner, state.Rng);
 
@@ -446,12 +434,23 @@ public static class SimProjectile
 
             if (unit.CurrentHp <= 0)
             {
-                unit.CurrentHp = 0;
-                unit.IsAlive = false;
-                state.KillCount++;
-                events.Add(new UnitDiedSimEvent(unit.UnitId, proj.SourceUnitId));
+                SimUtils.KillUnit(state, unit, proj.SourceUnitId, events);
+                SimEffects.FireDeathTriggers(state, unit, sourceUnit, events);
             }
         }
+    }
+
+    /// <summary>
+    /// Resolve the source unit and both summoners for damage calculation.
+    /// Shared by ApplyHit and ApplyAoE to eliminate duplicated lookup.
+    /// </summary>
+    private static (UnitData? sourceUnit, SummonerData? attackerSummoner, SummonerData? targetSummoner)
+        ResolveSourceAndSummoners(SimProjectileData proj, UnitData target, MatchState state)
+    {
+        var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
+        SummonerData? attackerSummoner = sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
+        var targetSummoner = state.Summoners[(int)target.Team];
+        return (sourceUnit, attackerSummoner, targetSummoner);
     }
 
     // =========================================================================

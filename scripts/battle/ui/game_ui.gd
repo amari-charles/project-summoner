@@ -247,16 +247,15 @@ func _create_prep_timer_label() -> void:
 
 ## Handle battle phase change (PREPARATION -> BATTLE)
 func _on_phase_changed(new_phase: int) -> void:
-	# BattleScene.BattlePhase: Preparation=0, Battle=1
 	if phase_label:
-		if new_phase == 0:  # Preparation
+		if new_phase == UnitConstants.BattlePhase.PREPARATION:
 			phase_label.text = Loc.t("ui.battle.phase_preparation")
 		else:
 			phase_label.text = Loc.t("ui.battle.phase_battle")
 		phase_label.visible = true
 
 	# Hide prep timer when entering battle phase
-	if prep_timer_label and new_phase == 1:  # Battle
+	if prep_timer_label and new_phase == UnitConstants.BattlePhase.BATTLE:
 		prep_timer_label.visible = false
 
 ## Handle preparation phase timer update

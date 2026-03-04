@@ -7,7 +7,7 @@ namespace Fateforged.View;
 /// <summary>
 /// Self-syncing visual shell for one projectile.
 /// Reads its own SimProjectileData from IGameSession.GetState() each frame.
-/// Exposes impact method called by EntityManager on ProjectileHitSimEvent.
+/// Exposes impact method called by EntityManager on ProjectileHitEvent.
 ///
 /// Replaces Projectile3D — collision/damage logic moves to SimProjectile.
 /// </summary>

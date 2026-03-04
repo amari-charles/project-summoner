@@ -4,6 +4,19 @@ using Godot;
 namespace Fateforged.Session;
 
 /// <summary>
+/// Battle mode — mirrors GDScript BattleContext.BattleMode enum ordinals.
+/// </summary>
+public enum BattleMode
+{
+    Campaign = 0,
+    Arena = 1,
+    Endless = 2,
+    // 3 is unused (gap in GDScript enum)
+    Practice = 4,
+    Multiplayer = 5
+}
+
+/// <summary>
 /// Typed battle configuration. Replaces untyped dict-based config from BattleContext.
 /// Built once by BattleScene at init via FromBattleContext(), then used throughout the battle.
 /// </summary>
@@ -13,7 +26,7 @@ public class BattleSessionConfig
     // BATTLE IDENTITY
     // =========================================================================
 
-    public int Mode { get; set; } // BattleMode enum value from BattleContext
+    public BattleMode Mode { get; set; }
     public long BattleSeed { get; set; }
 
     // =========================================================================
@@ -86,7 +99,7 @@ public class BattleSessionConfig
 
         var cfg = new BattleSessionConfig
         {
-            Mode = (int)battleContext.Get("current_mode"),
+            Mode = (BattleMode)(int)battleContext.Get("current_mode"),
             BattleSeed = (long)config.GetValueOrDefault("battle_seed", 0),
             RawConfig = config,
 
@@ -139,7 +152,7 @@ public class BattleSessionConfig
     {
         return new BattleSessionConfig
         {
-            Mode = 4, // PRACTICE
+            Mode = BattleMode.Practice,
             WinCondition = "destroy_base",
             AiType = "scripted",
             HasAuthority = true,

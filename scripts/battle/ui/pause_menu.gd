@@ -58,9 +58,8 @@ func _find_game_controller() -> void:
 	_on_game_state_changed(game_controller.CurrentState)
 
 ## Show/hide based on game state
-## BattleScene.GameState: Setup=0, Playing=1, Paused=2, GameOver=3
 func _on_game_state_changed(new_state: int) -> void:
-	visible = (new_state == 2)  # Paused
+	visible = (new_state == UnitConstants.GameState.PAUSED)
 
 ## Resume button - unpause game
 func _on_resume_pressed() -> void:

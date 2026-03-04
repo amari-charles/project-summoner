@@ -192,8 +192,11 @@ public class TriggerConfig
     /// <summary>For HpThreshold: the HP percentage threshold (0-1).</summary>
     public float Threshold { get; set; }
 
-    /// <summary>For Periodic: interval in seconds.</summary>
+    /// <summary>For Periodic: the fixed interval in seconds between ticks.</summary>
     public float Interval { get; set; }
+
+    /// <summary>For Periodic: countdown timer until next tick. Decremented each frame, resets to Interval.</summary>
+    public float PeriodicTimer { get; set; }
 
     /// <summary>Area of effect radius (0 = single target).</summary>
     public float AoeRadius { get; set; }

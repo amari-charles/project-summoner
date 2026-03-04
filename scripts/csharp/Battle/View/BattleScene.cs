@@ -336,7 +336,7 @@ public partial class BattleScene : Node3D
 
 		// Poll phase
 		int phase = (int)simNode.Call("GetPhase");
-		if (phase == 1) // Battle
+		if (phase == (int)Fateforged.Simulation.Enums.GamePhase.Battle)
 			EmitSignal(SignalName.PhaseChanged, (int)BattlePhase.Battle);
 	}
 
@@ -592,7 +592,7 @@ public partial class BattleScene : Node3D
 		if (root is Debug.TestBattleScene) return true;
 
 		// Check BattleContext practice mode
-		return _config.Mode == 4; // PRACTICE
+		return _config.Mode == BattleMode.Practice;
 	}
 
 	private void ConnectSimSignals()
@@ -610,7 +610,7 @@ public partial class BattleScene : Node3D
 		var simNode = GetSimNode() as SimulationNode;
 		if (simNode != null)
 		{
-			if (simNode.GetPhase() == 1) return; // Battle phase
+			if (simNode.GetPhase() == (int)Fateforged.Simulation.Enums.GamePhase.Battle) return;
 		}
 
 		if (!_config.HasAuthority)
@@ -689,19 +689,19 @@ public partial class BattleScene : Node3D
 	{
 		switch (_config.Mode)
 		{
-			case 0: // CAMPAIGN
+			case BattleMode.Campaign:
 				HandleCampaignCompletion(winnerTeam);
 				break;
-			case 1: // ARENA
+			case BattleMode.Arena:
 				GD.Print($"[BattleScene] Arena battle ended, winner: {winnerTeam}");
 				break;
-			case 2: // ENDLESS
+			case BattleMode.Endless:
 				GD.Print($"[BattleScene] Endless battle ended, winner: {winnerTeam}");
 				break;
-			case 4: // PRACTICE
+			case BattleMode.Practice:
 				GD.Print($"[BattleScene] Practice battle ended, winner: {winnerTeam}");
 				break;
-			case 5: // MULTIPLAYER
+			case BattleMode.Multiplayer:
 				HandleMultiplayerCompletion(winnerTeam);
 				break;
 		}

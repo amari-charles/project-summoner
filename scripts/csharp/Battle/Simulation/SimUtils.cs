@@ -44,6 +44,6 @@ public static class SimUtils
         target.IsAlive = false;
         target.DeathCleanupTimer = SimConstants.DeathCleanupSeconds;
         state.KillCount++;
-        events.Add(new UnitDiedSimEvent(target.UnitId, killerUnitId));
+        events.Add(new UnitDiedEvent(target.UnitId, killerUnitId));
     }
 }

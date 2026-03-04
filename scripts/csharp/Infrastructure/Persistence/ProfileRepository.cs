@@ -214,6 +214,9 @@ public partial class ProfileRepository : Node, IProfileRepository
         return true;
     }
 
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool UnlockSummoner(string id) => UnlockSummoner(new SummonerId(id));
+
     public bool SetStartingSummoner(SummonerId summonerId, bool chosenRandom)
     {
         if (_data.UnlockedSummoners.Count > 0)
@@ -517,6 +520,9 @@ public partial class ProfileRepository : Node, IProfileRepository
         return true;
     }
 
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool GrantCosmetic(string id) => GrantCosmetic(new CosmeticId(id));
+
     public Dictionary<string, CosmeticId> GetEquippedCosmetics()
     {
         return new Dictionary<string, CosmeticId>
@@ -598,6 +604,9 @@ public partial class ProfileRepository : Node, IProfileRepository
         MarkDirty();
         return true;
     }
+
+    /// <summary>GDScript boundary overload — Godot can't resolve explicit conversions from string.</summary>
+    public bool GrantEmote(string id) => GrantEmote(new EmoteId(id));
 
     public EmoteId[] GetEquippedEmotes()
     {

@@ -140,7 +140,7 @@ public class SimBehaviorTest
 
         SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        var died = SimTestHelper.FindEvent<UnitDiedSimEvent>(events);
+        var died = SimTestHelper.FindEvent<UnitDiedEvent>(events);
         AssertThat(died).IsNotNull();
         AssertThat(died!.UnitId).IsEqual(enemy.UnitId);
     }
@@ -477,7 +477,7 @@ public class SimBehaviorTest
         // Actually, FireTriggers applies the effect to `target`, which is the killed enemy
         // So the heal goes to the dead unit — this is correct per the code
         // Let's verify the OnDeath trigger fired instead
-        var died = SimTestHelper.FindEvent<UnitDiedSimEvent>(events);
+        var died = SimTestHelper.FindEvent<UnitDiedEvent>(events);
         AssertThat(died).IsNotNull();
     }
 

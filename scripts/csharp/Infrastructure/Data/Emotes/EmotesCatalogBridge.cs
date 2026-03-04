@@ -10,8 +10,9 @@ public partial class EmotesCatalogBridge : Node
 {
     public static EmotesCatalogBridge? Instance { get; private set; }
 
-    /// <summary>GDScript-compatible constant for max equipped emotes.</summary>
-    public const int MAX_EQUIPPED_EMOTES = EmotesCatalog.MaxEquippedEmotes;
+    /// <summary>GDScript-compatible constant for max equipped emotes.
+    /// Exposed as property because C# const fields are not visible to GDScript via Godot interop.</summary>
+    public int MAX_EQUIPPED_EMOTES => EmotesCatalog.MaxEquippedEmotes;
 
     private Node? _loc;
 

@@ -190,7 +190,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             shell.FlashDamage();
     }
 
-    public void Visit(UnitDiedSimEvent e)
+    public void Visit(UnitDiedEvent e)
     {
         if (_unitRegistry.TryGetValue(e.UnitId, out var shell))
             shell.BeginDeath();
@@ -202,7 +202,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             shell.ShowEvadeText();
     }
 
-    public void Visit(BuffAppliedSimEvent e)
+    public void Visit(BuffAppliedEvent e)
     {
         if (_unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
             shell.ShowBuffIcon(e.EffectType);
@@ -210,7 +210,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     // --- Projectile/Summoner/Spell visitors ---
 
-    public void Visit(ProjectileHitSimEvent e)
+    public void Visit(ProjectileHitEvent e)
     {
         if (_projectileRegistry.TryGetValue(e.ProjectileId, out var shell))
             shell.PlayImpactAndDestroy();
@@ -239,9 +239,9 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         GD.Print($"[EntityManager] SpellCastEvent: team={e.Team}, catalogId={e.CatalogId}");
     }
 
-    public void Visit(DelayedEffectFiredSimEvent e)
+    public void Visit(DelayedEffectFiredEvent e)
     {
-        GD.Print($"[EntityManager] DelayedEffectFiredSimEvent: type={e.EffectType}, radius={e.AoeRadius}");
+        GD.Print($"[EntityManager] DelayedEffectFiredEvent: type={e.EffectType}, radius={e.AoeRadius}");
     }
 
     // --- Summoner event dispatch (forwarded to SummonerVisual for signal emission) ---
@@ -296,7 +296,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     public void Visit(UnitRemovedEvent e) { }
     public void Visit(GameOverEvent e) { }
     public void Visit(UnitActivationChangedEvent e) { }
-    public void Visit(BuffExpiredSimEvent e) { }
+    public void Visit(BuffExpiredEvent e) { }
 
     // --- Global Control ---
 

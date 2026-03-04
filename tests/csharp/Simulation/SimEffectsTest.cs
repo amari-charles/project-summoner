@@ -150,7 +150,7 @@ public class SimEffectsTest
 
         AssertThat(unit.ActiveBuffs.Count).IsEqual(0);
 
-        var expired = SimTestHelper.FindEvent<BuffExpiredSimEvent>(events);
+        var expired = SimTestHelper.FindEvent<BuffExpiredEvent>(events);
         AssertThat(expired).IsNotNull();
         AssertThat(expired!.BuffId).IsEqual(99);
     }
@@ -214,7 +214,7 @@ public class SimEffectsTest
         AssertThat(unit.IsAlive).IsFalse();
         AssertThat(unit.CurrentHp).IsEqual(0f);
 
-        var died = SimTestHelper.FindEvent<UnitDiedSimEvent>(events);
+        var died = SimTestHelper.FindEvent<UnitDiedEvent>(events);
         AssertThat(died).IsNotNull();
     }
 

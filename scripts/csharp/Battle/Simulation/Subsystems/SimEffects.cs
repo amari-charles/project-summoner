@@ -50,7 +50,7 @@ public static class SimEffects
                     buff.Duration -= fixedDelta;
                     if (buff.Duration <= 0)
                     {
-                        events.Add(new BuffExpiredSimEvent(unit.UnitId, buff.BuffId, buff.EffectType));
+                        events.Add(new BuffExpiredEvent(unit.UnitId, buff.BuffId, buff.EffectType));
                         unit.ActiveBuffs.RemoveAt(i);
                     }
                 }
@@ -116,7 +116,7 @@ public static class SimEffects
 
             case EffectType.Shield:
                 ApplyShield(state, target, value, sourceUnitId, sourceTeam);
-                events.Add(new BuffAppliedSimEvent(target.UnitId, EffectType.Shield, value, -1));
+                events.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, value, -1));
                 break;
 
             case EffectType.AreaDamage:
@@ -363,7 +363,7 @@ public static class SimEffects
             SourceTeam = sourceTeam
         };
         target.ActiveBuffs.Add(buff);
-        events.Add(new BuffAppliedSimEvent(target.UnitId, effectType, value, duration));
+        events.Add(new BuffAppliedEvent(target.UnitId, effectType, value, duration));
     }
 
     private static void ApplyPeriodicTick(
@@ -395,12 +395,10 @@ public static class SimEffects
         {
             if (trigger.TriggerType != TriggerType.Periodic) continue;
 
-            trigger.Interval -= fixedDelta;
-            if (trigger.Interval <= 0)
+            trigger.PeriodicTimer -= fixedDelta;
+            if (trigger.PeriodicTimer <= 0)
             {
-                // Reset interval (Interval stores the original, but we reuse it as timer)
-                // We need a separate timer field — use Delay as periodic timer
-                trigger.Interval = trigger.Threshold; // Threshold doubles as reset interval for Periodic
+                trigger.PeriodicTimer += trigger.Interval;
 
                 if (trigger.AoeRadius > 0)
                 {
@@ -471,7 +469,7 @@ public static class SimEffects
     private static void ExecuteDelayedEffect(
         MatchState state, DelayedEffect effect, List<SimEvent> events)
     {
-        events.Add(new DelayedEffectFiredSimEvent(effect.Position, effect.EffectType, effect.AoeRadius));
+        events.Add(new DelayedEffectFiredEvent(effect.Position, effect.EffectType, effect.AoeRadius));
 
         if (effect.AoeRadius > 0)
         {

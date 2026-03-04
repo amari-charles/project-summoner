@@ -1014,11 +1014,11 @@ public class UnitDamagedEvent : SimEvent
 /// A unit died (for death animation, cleanup, kill tracking).
 /// </summary>
 [EventCategory(EventCategory.Broadcast)]
-public class UnitDiedSimEvent : SimEvent
+public class UnitDiedEvent : SimEvent
 {
     public int UnitId { get; }
     public int KillerUnitId { get; }
-    public UnitDiedSimEvent(int unitId, int killerUnitId)
+    public UnitDiedEvent(int unitId, int killerUnitId)
     { UnitId = unitId; KillerUnitId = killerUnitId; }
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
@@ -1027,11 +1027,11 @@ public class UnitDiedSimEvent : SimEvent
 /// A projectile hit a unit (for visual feedback — impact VFX, pierce tracking).
 /// </summary>
 [EventCategory(EventCategory.HostOnly)]
-public class ProjectileHitSimEvent : SimEvent
+public class ProjectileHitEvent : SimEvent
 {
     public int ProjectileId { get; }
     public int TargetUnitId { get; }
-    public ProjectileHitSimEvent(int projectileId, int targetUnitId)
+    public ProjectileHitEvent(int projectileId, int targetUnitId)
     { ProjectileId = projectileId; TargetUnitId = targetUnitId; }
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
@@ -1066,13 +1066,13 @@ public class AttackEvadedEvent : SimEvent
 /// A buff/debuff was applied to a unit (for visual feedback — VFX, status icons).
 /// </summary>
 [EventCategory(EventCategory.HostOnly)]
-public class BuffAppliedSimEvent : SimEvent
+public class BuffAppliedEvent : SimEvent
 {
     public int TargetUnitId { get; }
     public EffectType EffectType { get; }
     public float Value { get; }
     public float Duration { get; }
-    public BuffAppliedSimEvent(int targetUnitId, EffectType effectType, float value, float duration)
+    public BuffAppliedEvent(int targetUnitId, EffectType effectType, float value, float duration)
     { TargetUnitId = targetUnitId; EffectType = effectType; Value = value; Duration = duration; }
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
@@ -1081,12 +1081,12 @@ public class BuffAppliedSimEvent : SimEvent
 /// A buff/debuff expired on a unit (for visual cleanup).
 /// </summary>
 [EventCategory(EventCategory.HostOnly)]
-public class BuffExpiredSimEvent : SimEvent
+public class BuffExpiredEvent : SimEvent
 {
     public int TargetUnitId { get; }
     public int BuffId { get; }
     public EffectType EffectType { get; }
-    public BuffExpiredSimEvent(int targetUnitId, int buffId, EffectType effectType)
+    public BuffExpiredEvent(int targetUnitId, int buffId, EffectType effectType)
     { TargetUnitId = targetUnitId; BuffId = buffId; EffectType = effectType; }
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
@@ -1095,12 +1095,12 @@ public class BuffExpiredSimEvent : SimEvent
 /// A delayed effect fired (death explosion, timed AoE — for visual feedback).
 /// </summary>
 [EventCategory(EventCategory.HostOnly)]
-public class DelayedEffectFiredSimEvent : SimEvent
+public class DelayedEffectFiredEvent : SimEvent
 {
     public SimVector3 Position { get; }
     public EffectType EffectType { get; }
     public float AoeRadius { get; }
-    public DelayedEffectFiredSimEvent(SimVector3 position, EffectType effectType, float aoeRadius)
+    public DelayedEffectFiredEvent(SimVector3 position, EffectType effectType, float aoeRadius)
     { Position = position; EffectType = effectType; AoeRadius = aoeRadius; }
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }

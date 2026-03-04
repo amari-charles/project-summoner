@@ -10,10 +10,11 @@ public partial class CosmeticsCatalogBridge : Node
 {
     public static CosmeticsCatalogBridge? Instance { get; private set; }
 
-    /// <summary>GDScript-compatible CosmeticType constants (match GDScript enum ordinals).</summary>
-    public const int CARD_BACK = 0;
-    public const int UI_THEME = 1;
-    public const int SUMMONER_SKIN = 2;
+    /// <summary>GDScript-compatible CosmeticType constants (match GDScript enum ordinals).
+    /// Exposed as properties because C# const fields are not visible to GDScript via Godot interop.</summary>
+    public int CARD_BACK => 0;
+    public int UI_THEME => 1;
+    public int SUMMONER_SKIN => 2;
 
     private Node? _loc;
 

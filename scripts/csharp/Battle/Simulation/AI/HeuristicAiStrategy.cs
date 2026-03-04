@@ -147,7 +147,6 @@ public static class HeuristicAiStrategy
             return summoner.Position;
 
         int team = (int)summoner.Team;
-        bool isSpell = state.CardDataMap.TryGetValue(catalogId, out var cardData) && cardData.IsSpell;
         var battleState = EvaluateBattlefieldState(state, team, summoner);
         string zone = SelectSpawnZone(summoner.Ai.Personality, battleState);
 

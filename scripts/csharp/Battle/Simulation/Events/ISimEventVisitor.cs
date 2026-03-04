@@ -23,13 +23,13 @@ public interface ISimEventVisitor
     void Visit(SpellCastEvent e);
     void Visit(UnitAttackedEvent e);
     void Visit(UnitDamagedEvent e);
-    void Visit(UnitDiedSimEvent e);
-    void Visit(ProjectileHitSimEvent e);
+    void Visit(UnitDiedEvent e);
+    void Visit(ProjectileHitEvent e);
     void Visit(UnitActivationChangedEvent e);
     void Visit(AttackEvadedEvent e);
-    void Visit(BuffAppliedSimEvent e);
-    void Visit(BuffExpiredSimEvent e);
-    void Visit(DelayedEffectFiredSimEvent e);
+    void Visit(BuffAppliedEvent e);
+    void Visit(BuffExpiredEvent e);
+    void Visit(DelayedEffectFiredEvent e);
     void Visit(SummonerDamagedEvent e);
     void Visit(SummonerDestroyedEvent e);
 }

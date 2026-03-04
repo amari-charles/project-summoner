@@ -266,18 +266,7 @@ public static class SimBehavior
         }
 
         // Immediate damage (melee or zero-delay ranged)
-        float damage = attacker.AttackDamage;
-        var attackerSummoner = state.Summoners[(int)attacker.Team];
-        damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
-
-        summoner.CurrentHp -= damage;
-        if (summoner.CurrentHp <= 0)
-        {
-            summoner.CurrentHp = 0;
-            summoner.IsAlive = false;
-        }
-        events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
-        // GameOverEvent is emitted by Simulation.EvaluateWinConditions (step 10)
+        DealSummonerDamage(state, summoner, summonerTeam, attacker.AttackDamage, attacker.Team, events);
     }
 
     /// <summary>
@@ -304,18 +293,7 @@ public static class SimBehavior
                 var summoner = state.Summoners[summonerTeam];
                 if (summoner.IsAlive)
                 {
-                    float damage = unit.PendingDamageAmount;
-                    var attackerSummoner = state.Summoners[(int)unit.Team];
-                    damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
-
-                    summoner.CurrentHp -= damage;
-                    if (summoner.CurrentHp <= 0)
-                    {
-                        summoner.CurrentHp = 0;
-                        summoner.IsAlive = false;
-                    }
-                    events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
-                    // GameOverEvent is emitted by Simulation.EvaluateWinConditions (step 10)
+                    DealSummonerDamage(state, summoner, summonerTeam, unit.PendingDamageAmount, unit.Team, events);
                 }
             }
             else
@@ -353,6 +331,27 @@ public static class SimBehavior
             unit.PendingDamageTargetId = null;
             unit.PendingDamageAmount = 0;
         }
+    }
+
+    /// <summary>
+    /// Apply damage to a summoner with modifiers and emit HP changed event.
+    /// Shared by ApplyDamageToSummoner (immediate) and TickPendingDamage (delayed).
+    /// </summary>
+    private static void DealSummonerDamage(
+        MatchState state, SummonerData summoner, int summonerTeam,
+        float baseDamage, Team attackerTeam, List<SimEvent> events)
+    {
+        float damage = baseDamage;
+        var attackerSummoner = state.Summoners[(int)attackerTeam];
+        damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
+
+        summoner.CurrentHp -= damage;
+        if (summoner.CurrentHp <= 0)
+        {
+            summoner.CurrentHp = 0;
+            summoner.IsAlive = false;
+        }
+        events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
     }
 
     private static bool IsValidTarget(int? targetId, MatchState state)
