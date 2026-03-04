@@ -128,6 +128,9 @@ public partial class PlatformBillingService : Node
     public bool is_product_owned(string product_id)
     {
         var internalProductId = _normalize_to_internal_product_id(product_id);
+        if (_is_known_consumable_product(internalProductId))
+            return false;
+
         if (_owned_products.Contains(internalProductId))
             return true;
 
@@ -257,7 +260,8 @@ public partial class PlatformBillingService : Node
     private void _on_provider_purchase_completed(string product_id, string transaction_id)
     {
         var internalProductId = _normalize_to_internal_product_id(product_id);
-        _owned_products.Add(internalProductId);
+        if (_should_cache_owned_product(internalProductId))
+            _owned_products.Add(internalProductId);
         EmitSignal("purchase_completed", internalProductId, transaction_id);
     }
 
@@ -283,7 +287,8 @@ public partial class PlatformBillingService : Node
         {
             var internalProductId = _normalize_to_internal_product_id(productId);
             normalized.Add(internalProductId);
-            _owned_products.Add(internalProductId);
+            if (_should_cache_owned_product(internalProductId))
+                _owned_products.Add(internalProductId);
         }
 
         EmitSignal("restore_completed", normalized);
@@ -329,5 +334,20 @@ public partial class PlatformBillingService : Node
             Platform.EDITOR => "editor",
             _ => "unknown",
         };
+    }
+
+    private bool _is_known_consumable_product(string internal_product_id)
+    {
+        if (string.IsNullOrEmpty(internal_product_id))
+            return false;
+
+        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        var product = catalog?.get_product(internal_product_id);
+        return product != null && product.product_type == BillingProduct.ProductType.CONSUMABLE;
+    }
+
+    private bool _should_cache_owned_product(string internal_product_id)
+    {
+        return !_is_known_consumable_product(internal_product_id);
     }
 }

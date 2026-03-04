@@ -63,14 +63,12 @@ Example: When implementing drag-and-drop for cards, remove click-to-play entirel
 ### Running Tests
 
 ```bash
-# Headless (fast, skips Godot-runtime tests):
+# C# suite (includes runtime-required tests via test.runsettings):
 dotnet test --settings test.runsettings
 
-# Full suite including Godot-runtime tests:
-# Run via Godot editor's gdUnit4 panel
+# GDScript suite:
+"/Applications/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
-
-Test suites that create `Godot.Collections.Dictionary`, `Godot.Collections.Array`, or load catalogs containing `Resource` subclasses (e.g., `CardConfig`) crash the headless test host. These suites have `[TestSuite]` commented out with a note to run via the editor.
 
 ### Persistence Philosophy
 **NEVER give up on a task without explicit permission.** When something doesn't work:
@@ -364,4 +362,3 @@ When animating skeletal rigs with mirrored limbs (legs, arms), the math works as
    - Include tracks for leg rotation (reset to 0.0)
    - Include tracks for leg position (reset to neutral)
    - Otherwise legs stay in whatever walk position they were in when attack started
-

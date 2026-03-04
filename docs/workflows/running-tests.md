@@ -12,7 +12,7 @@ This project uses two testing frameworks:
 dotnet test --settings test.runsettings
 ```
 
-The `test.runsettings` file configures the GODOT_BIN path for the test adapter. Tests themselves don't require Godot runtime - they use pure C# types internally.
+The `test.runsettings` file configures the `GODOT_BIN` path for the test adapter and passes `--headless` for `[RequireGodotRuntime]` suites.
 
 ### Running Specific Tests
 
@@ -59,7 +59,7 @@ public class MyTest
 
 ### Key Features
 
-- **Runs without Godot runtime** - tests use pure C# types internally (~90ms for 74 tests)
+- Supports both pure C# tests and `[RequireGodotRuntime]` tests via the configured Godot .NET binary
 - Uses `test.runsettings` to configure the test adapter's GODOT_BIN path
 - Works with `dotnet test` command (CI/CD friendly)
 - IDE integration with VS Code, Rider, Visual Studio
