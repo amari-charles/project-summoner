@@ -82,7 +82,8 @@ func _input(event: InputEvent) -> void:
 func _create_ui() -> void:
 	# Create CanvasLayer to render on top of all game UI
 	var canvas_layer: CanvasLayer = CanvasLayer.new()
-	canvas_layer.layer = 100  # High layer to ensure visibility above game UI and HUD
+	const DEBUG_CANVAS_LAYER: int = 100
+	canvas_layer.layer = DEBUG_CANVAS_LAYER
 	add_child(canvas_layer)
 
 	# Main panel
@@ -524,5 +525,3 @@ func _save_settings() -> void:
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 
 	config.save(SETTINGS_PATH)
-
-

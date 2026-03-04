@@ -118,7 +118,7 @@ func _update_display() -> void:
 
 	# Set card name
 	if card_name:
-		card_name.text = catalog_data.get("card_name", "Unknown")
+		card_name.text = catalog_data.get("card_name", Loc.t("ui.common.unknown"))
 
 	# Set mana cost
 	if mana_cost:

@@ -29,7 +29,7 @@ var id: String = ""
 var name: String:
 	get:
 		var key: String = _str("name_key", "")
-		return Loc.t(key) if not key.is_empty() else "Unknown"
+		return Loc.t(key) if not key.is_empty() else Loc.t("ui.common.unknown")
 
 ## Event description (localized)
 ## C# outputs description_key (localization key), we translate it here

@@ -21,7 +21,6 @@ const _DeckConstants: GDScript = preload("res://scripts/infrastructure/data/deck
 const SUMMONER_RANDOM: String = "random"
 
 func _ready() -> void:
-	print("SummonerSelection: Initializing...")
 
 	# Set localized title and subtitle
 	title_label.text = Loc.t("summoner.selection_title").to_upper()
@@ -50,7 +49,6 @@ func _ready() -> void:
 	DialogueManager.start_dialogue("merlin_summoner_intro")
 
 func _on_merlin_dialogue_ended() -> void:
-	print("SummonerSelection: Merlin dialogue complete, showing summoner selection")
 	_show_summoner_selection()
 
 func _show_summoner_selection() -> void:
@@ -62,7 +60,6 @@ func _show_summoner_selection() -> void:
 
 func _on_summoner_selected(summoner_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	print("SummonerSelection: Player selected summoner: %s" % summoner_id)
 
 	# Handle random selection
 	var final_summoner_id: String = summoner_id

@@ -243,7 +243,7 @@ func _refresh_deck_list() -> void:
 		# Check if any summoners are unlocked - can't create deck without one
 		var unlocked = SummonerSelection.GetUnlockedSummonerIdsArray()
 		if unlocked.size() > 0:
-			var new_deck_id: Variant = Decks.call("CreateDeckFromDict", "My Deck", [], "")
+			var new_deck_id: Variant = Decks.call("CreateDeckFromDict", Loc.t("ui.collection.default_deck_name"), [], "")
 			if new_deck_id is String and not new_deck_id.is_empty():
 				_refresh_deck_list()
 		return
@@ -266,7 +266,6 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 
 
 func _on_deck_item_double_clicked(_deck_id: String) -> void:
-	# Double-click does the same as single-click (inline editing now)
 	pass
 
 
@@ -567,10 +566,10 @@ func _get_filtered_sorted_cards() -> Array:
 			continue
 
 		# Apply type filter
-		var card_type: int = catalog_data.get("card_type", 0)
-		if card_type == 0 and not show_summons:  # 0 = SUMMON
+		var card_type: int = catalog_data.get("card_type", UnitConstants.CardType.SUMMON)
+		if card_type == UnitConstants.CardType.SUMMON and not show_summons:
 			continue
-		if card_type == 1 and not show_spells:  # 1 = SPELL
+		if card_type == UnitConstants.CardType.SPELL and not show_spells:
 			continue
 
 		var card_name: String = catalog_data.get("card_name", "")

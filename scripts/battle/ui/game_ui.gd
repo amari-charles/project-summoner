@@ -119,7 +119,6 @@ func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 func _connect_to_summoner(summoner: Node) -> void:
 	if summoner.has_signal("ManaChanged"):
 		summoner.connect("ManaChanged", _on_mana_changed)
-		print("GameUI: Connected to PlayerSummoner ManaChanged signal")
 
 		# Manually trigger initial update with current values
 		var current_mana: float = summoner.get("Mana") if summoner.get("Mana") != null else 0.0

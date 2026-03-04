@@ -16,6 +16,15 @@ enum ScreenState { LOADING, READY, IN_QUEUE, MATCH_FOUND }
 const MATCH_FOUND_FEEDBACK_DELAY: float = 1.0
 ## Delay before transitioning to battle scene to ensure state is ready
 const BATTLE_TRANSITION_DELAY: float = 0.5
+## Timeout for deck exchange with opponent
+const DECK_EXCHANGE_TIMEOUT: float = 10.0
+
+## Network protocol constants
+## Op-code for deck exchange messages over Nakama match data
+const DECK_EXCHANGE_OP_CODE: int = 100
+
+## Default Elo rating for new players
+const DEFAULT_RATING: int = 1000
 
 ## UI References
 @onready var close_button: Button = %CloseButton
@@ -155,7 +164,7 @@ func _refresh_data() -> void:
 
 func _refresh_local_data() -> void:
 	# Use local data when services aren't available
-	var rating: int = 1000
+	var rating: int = DEFAULT_RATING
 	if _ranking_service and _ranking_service.has_method("GetRating"):
 		rating = _ranking_service.GetRating()
 
@@ -165,7 +174,7 @@ func _refresh_local_data() -> void:
 
 
 func _refresh_rating_display() -> void:
-	var rating: int = 1000
+	var rating: int = DEFAULT_RATING
 
 	if _ranking_service and _ranking_service.has_method("GetRating"):
 		rating = _ranking_service.GetRating()
@@ -318,58 +327,33 @@ func _populate_mock_leaderboard() -> void:
 	]
 
 	for entry: Dictionary in mock_data:
-		var row: HBoxContainer = _create_mock_leaderboard_row(entry)
+		var row: HBoxContainer = _create_leaderboard_row(entry)
 		leaderboard_list.add_child(row)
 
 
 func _create_leaderboard_row(entry: Variant) -> HBoxContainer:
+	# Normalize keys — service returns PascalCase, mock data uses snake_case
+	var rank_val: int = entry.get("Rank", entry.get("rank", 0))
+	var name_val: String = str(entry.get("DisplayName", entry.get("name", Loc.t("ui.ranked.unknown_player"))))
+	var rating_val: int = entry.get("Rating", entry.get("rating", 0))
+
 	var row: HBoxContainer = HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	# Rank
 	var rank_lbl: Label = Label.new()
 	rank_lbl.custom_minimum_size = Vector2(50, 0)
-	rank_lbl.text = "#%d" % entry.get("Rank", 0)
+	rank_lbl.text = "#%d" % rank_val
 	rank_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	row.add_child(rank_lbl)
 
-	# Name
 	var name_lbl: Label = Label.new()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.text = str(entry.get("DisplayName", "Unknown"))
+	name_lbl.text = name_val
 	row.add_child(name_lbl)
 
-	# Rating
 	var rating_lbl: Label = Label.new()
 	rating_lbl.custom_minimum_size = Vector2(80, 0)
-	rating_lbl.text = str(entry.get("Rating", 0))
-	rating_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	row.add_child(rating_lbl)
-
-	return row
-
-
-func _create_mock_leaderboard_row(entry: Dictionary) -> HBoxContainer:
-	var row: HBoxContainer = HBoxContainer.new()
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	# Rank
-	var rank_lbl: Label = Label.new()
-	rank_lbl.custom_minimum_size = Vector2(50, 0)
-	rank_lbl.text = "#%d" % entry.get("rank", 0)
-	rank_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(rank_lbl)
-
-	# Name
-	var name_lbl: Label = Label.new()
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.text = entry.get("name", "Unknown")
-	row.add_child(name_lbl)
-
-	# Rating
-	var rating_lbl: Label = Label.new()
-	rating_lbl.custom_minimum_size = Vector2(80, 0)
-	rating_lbl.text = str(entry.get("rating", 0))
+	rating_lbl.text = str(rating_val)
 	rating_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(rating_lbl)
 
@@ -429,7 +413,7 @@ func _on_authenticated(_user_id: String, _username: String) -> void:
 	_refresh_data()
 
 
-func _on_authentication_failed(error: String) -> void:
+func _on_authentication_failed(_error: String) -> void:
 	_set_state(ScreenState.READY)
 	status_label.text = Loc.t("ui.ranked.authentication_failed")
 	_refresh_local_data()
@@ -475,12 +459,11 @@ func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_us
 		}
 
 	var deck_json: String = JSON.stringify({"deck": player_deck, "summoner_instance": summoner_data})
-	_nakama_client.SendMatchData(100, deck_json)
+	_nakama_client.SendMatchData(DECK_EXCHANGE_OP_CODE, deck_json)
 
 	# Wait for opponent deck (with timeout)
-	var timeout: float = 10.0
 	var elapsed: float = 0.0
-	while not _opponent_deck_received and elapsed < timeout:
+	while not _opponent_deck_received and elapsed < DECK_EXCHANGE_TIMEOUT:
 		await get_tree().create_timer(0.1).timeout
 		elapsed += 0.1
 
@@ -504,7 +487,7 @@ func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_us
 
 
 func _on_match_data_received(match_id: String, op_code: int, data: String, sender_id: String) -> void:
-	if op_code != 100:
+	if op_code != DECK_EXCHANGE_OP_CODE:
 		return  # Not a deck exchange message
 
 	# Only process during active exchange
@@ -513,7 +496,7 @@ func _on_match_data_received(match_id: String, op_code: int, data: String, sende
 
 	# Validate this is for our current match
 	if match_id != _pending_match_info.get("match_id", ""):
-		print("OnlineScreen: Ignoring deck from wrong match %s" % match_id)
+		push_warning("OnlineScreen: Ignoring deck from wrong match %s" % match_id)
 		return
 
 	var parsed: Variant = JSON.parse_string(data)
@@ -521,12 +504,11 @@ func _on_match_data_received(match_id: String, op_code: int, data: String, sende
 		var dict: Dictionary = parsed
 		var deck: Array = dict.get("deck", [])
 		if deck.is_empty():
-			print("OnlineScreen: Ignoring empty opponent deck")
+			push_warning("OnlineScreen: Ignoring empty opponent deck")
 			return
 		_pending_opponent_deck = deck
 		_pending_opponent_summoner_data = dict.get("summoner_instance", {})
 		_opponent_deck_received = true
-		print("OnlineScreen: Received opponent deck (%d entries) and summoner data" % deck.size())
 
 
 func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String, opponent_deck: Array) -> void:
@@ -544,8 +526,6 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 
 	# Lexicographically smaller user ID is host (player 0)
 	var is_host: bool = local_user_id < opponent_user_id
-	var local_player_index: int = 0 if is_host else 1
-
 	# Generate deterministic seed from match ID
 	var battle_seed: int = match_id.hash()
 
@@ -583,12 +563,11 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 
 
 func _get_active_summoner_id() -> String:
-	var summoner_selection: Node = get_tree().root.get_node_or_null("SummonerSelection")
-	if summoner_selection and summoner_selection.has_method("GetActiveSummonerId"):
-		var selected: String = summoner_selection.GetActiveSummonerId()
+	if SummonerSelection and SummonerSelection.has_method("GetActiveSummonerId"):
+		var selected: String = SummonerSelection.GetActiveSummonerId()
 		if not selected.is_empty():
 			return selected
-	return "ignis"  # Default fallback
+	return SummonerIDs.DEFAULT
 
 
 func _get_player_deck() -> Array:

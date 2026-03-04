@@ -456,9 +456,8 @@ func _start_match(battle_seed: int, player_summoner: String, opponent_summoner: 
 
 
 func _get_active_summoner_id() -> String:
-	var summoner_selection: Node = SummonerSelection
-	if summoner_selection and summoner_selection.has_method("get_selected_summoner_id"):
-		var selected: String = summoner_selection.get_selected_summoner_id()
+	if SummonerSelection and SummonerSelection.has_method("GetActiveSummonerId"):
+		var selected: String = SummonerSelection.GetActiveSummonerId()
 		if not selected.is_empty():
 			return selected
 	return SummonerIDs.DEFAULT

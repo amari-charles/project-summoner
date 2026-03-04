@@ -116,8 +116,8 @@ func _create_trait_button(trait_data: Dictionary) -> Button:
 	var button: Button = Button.new()
 
 	var trait_id: String = trait_data.get("id", "")
-	var trait_name_val: Variant = trait_data.get("name", "Unknown")
-	var trait_name: String = trait_name_val if trait_name_val is String else "Unknown"
+	var trait_name_val: Variant = trait_data.get("name", Loc.t("ui.common.unknown"))
+	var trait_name: String = trait_name_val if trait_name_val is String else Loc.t("ui.common.unknown")
 	var description_val: Variant = trait_data.get("description", "")
 	var description: String = description_val if description_val is String else ""
 

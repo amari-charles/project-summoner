@@ -29,6 +29,11 @@ enum BattleState {
 	ABANDONED    ## Player quit mid-battle
 }
 
+## Practice battle defaults
+const PRACTICE_ENEMY_CATALOG_ID: String = "pebbloom"
+const PRACTICE_ENEMY_HP: float = 300.0
+const PRACTICE_AI_TYPE: String = "scripted"
+
 ## Current battle mode
 var current_mode: BattleMode = BattleMode.PRACTICE
 
@@ -123,9 +128,9 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 
 	# Use provided config or defaults
 	battle_config = config if not config.is_empty() else {
-		"enemy_deck": [{"catalog_id": "pebbloom", "count": 1}],
-		"enemy_hp": 300.0,
-		"ai_type": "scripted"
+		"enemy_deck": [{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
+		"enemy_hp": PRACTICE_ENEMY_HP,
+		"ai_type": PRACTICE_AI_TYPE
 	}
 
 	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)

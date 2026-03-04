@@ -91,8 +91,8 @@ func _load_card_data() -> void:
 	card_visual.set_card_data(catalog_data, false)
 
 	# Update info labels
-	var card_name_val: Variant = catalog_data.get("card_name", "Unknown")
-	card_name_label.text = card_name_val if card_name_val is String else "Unknown"
+	var card_name_val: Variant = catalog_data.get("card_name", Loc.t("ui.common.unknown"))
+	card_name_label.text = card_name_val if card_name_val is String else Loc.t("ui.common.unknown")
 
 	var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
 	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": String(rarity_val).capitalize()})
@@ -364,7 +364,7 @@ func _create_trait_box(trait_data: Dictionary) -> PanelContainer:
 
 	# Name label
 	var name_label: Label = Label.new()
-	name_label.text = trait_data.get("name", "Unknown")
+	name_label.text = trait_data.get("name", Loc.t("ui.common.unknown"))
 	name_label.add_theme_font_size_override("font_size", 16)
 	name_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	vbox.add_child(name_label)

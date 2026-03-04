@@ -201,7 +201,11 @@
       "close": "Close",
       "back": "Back",
       "cancel": "Cancel",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "unknown": "Unknown"
+    },
+    "collection": {
+      "default_deck_name": "My Deck"
     },
     "pause_menu": {
       "resume": "Resume",
@@ -214,6 +218,7 @@
     "deck_size": "Deck: {count}",
     "hand_size": "Hand: {count}",
     "reward": {
+      "unknown_battle": "Unknown Battle",
       "first_clear_header": "First Clear",
       "every_battle_header": "Every Battle",
       "first_clear_claimed": "✓ Claimed",
@@ -525,7 +530,8 @@
       "tier_diamond": "Diamond",
       "tier_master": "Master",
       "tier_grandmaster": "Grandmaster",
-      "tier_legend": "Legend"
+      "tier_legend": "Legend",
+      "unknown_player": "Unknown"
     },
     "reconnection": {
       "connection_lost": "Connection Lost",

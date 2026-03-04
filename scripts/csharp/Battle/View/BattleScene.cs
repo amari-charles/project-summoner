@@ -273,20 +273,20 @@ public partial class BattleScene : Node3D
 	public void AbandonBattle()
 	{
 		// Clear current_battle from profile to prevent stale state
-		var profileRepo = GetNodeOrNull("/root/ProfileRepo");
+		var profileRepo = GetNodeOrNull("ProfileRepo");
 		if (profileRepo != null && profileRepo.HasMethod("UpdateCampaignProgressDict"))
 		{
 			var clearDict = new Godot.Collections.Dictionary { { "current_battle", "" } };
-			profileRepo.Call("UpdateCampaignProgressDict", clearDict);
+			profileRepo.Call("UpdateCampaignProgressDict", clearDict, "");
 		}
 
 		// Clear any pending reward
-		var campaign = GetNodeOrNull("/root/Campaign");
+		var campaign = GetNodeOrNull("Campaign");
 		if (campaign != null && campaign.HasMethod("ClearPendingReward"))
 			campaign.Call("ClearPendingReward");
 
 		// Delegate state cleanup to BattleContext
-		var battleContext = GetNodeOrNull("/root/BattleContext");
+		var battleContext = GetNodeOrNull("BattleContext");
 		battleContext?.Call("abandon_battle");
 
 		_deckCardInstanceIds.Clear();

@@ -61,8 +61,6 @@ var is_flexible_reward: bool = false  ## True if using FLEXIBLE reward system
 ## =============================================================================
 
 func _ready() -> void:
-	print("RewardScreen: Initializing...")
-
 	# Connect buttons
 	continue_button.pressed.connect(_on_continue_pressed)
 
@@ -100,10 +98,8 @@ func _load_battle_results() -> void:
 		if pending_battle_id == current_battle_id:
 			# Resume pending reward
 			is_pending_reward = true
-			print("RewardScreen: Resuming pending reward for battle '%s'" % current_battle_id)
 		elif not pending_battle_id.is_empty():
 			# Stale pending reward - clear it
-			print("RewardScreen: Clearing stale pending reward (was '%s', current is '%s')" % [pending_battle_id, current_battle_id])
 			Campaign.ClearPendingReward()
 
 	if current_battle_id.is_empty():
@@ -124,7 +120,7 @@ func _load_battle_results() -> void:
 
 	# Get battle for display info
 	var battle: Dictionary = Campaign.GetBattle(current_battle_id)
-	battle_name_label.text = battle.get("name", "Unknown Battle")
+	battle_name_label.text = battle.get("name", Loc.t("ui.reward.unknown_battle"))
 
 	# Update state from spec
 	reward_type = spec.get("reward_type", RewardTypeIDs.FIXED)
@@ -242,7 +238,7 @@ func _display_card_reward_from_spec(card_spec: Dictionary) -> void:
 
 	if display_name.is_empty():
 		var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
-		display_name = card_data.get("card_name", "Unknown")
+		display_name = card_data.get("card_name", Loc.t("ui.common.unknown"))
 
 	if count > 1:
 		reward_card_label.text = "%dx %s" % [count, display_name]
@@ -304,7 +300,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 		if card_data.is_empty():
 			continue
 
-		var card_name: String = card_data.get("card_name", "Unknown")
+		var card_name: String = card_data.get("card_name", Loc.t("ui.common.unknown"))
 		var level: int = info.get("level", 1)
 		var can_level_up: bool = info.get("can_level_up", false)
 		var xp_progress: float = info.get("xp_progress", 0.0)
@@ -370,7 +366,6 @@ func _on_card_detail_closed(instance_id: String) -> void:
 
 ## Handle level-up completion - refresh the card item display
 func _on_level_up_completed(instance_id: String) -> void:
-	print("RewardScreen: Card %s leveled up, refreshing display" % instance_id)
 	_refresh_card_xp_item(instance_id)
 
 ## Handle level-up cancellation - clean up panel
@@ -396,7 +391,7 @@ func _refresh_card_xp_item(instance_id: String) -> void:
 			if card_data.is_empty():
 				continue
 
-			var card_name: String = card_data.get("card_name", "Unknown")
+			var card_name: String = card_data.get("card_name", Loc.t("ui.common.unknown"))
 			var level: int = info.get("level", 1)
 			var can_level_up: bool = info.get("can_level_up", false)
 			var xp_progress: float = info.get("xp_progress", 0.0)
@@ -415,13 +410,11 @@ func _get_rarity_color(rarity: StringName) -> Color:
 
 ## Get active summoner ID for reward theming
 func _get_active_summoner_id() -> String:
-	var profile: Dictionary = ProfileRepo.GetActiveProfileDict()
-	if profile.is_empty():
-		return ""
-	var meta: Variant = profile.get("meta", {})
-	if not meta is Dictionary:
-		return ""
-	return meta.get("active_summoner", "")
+	if SummonerSelection and SummonerSelection.has_method("GetActiveSummonerId"):
+		var selected: String = SummonerSelection.GetActiveSummonerId()
+		if not selected.is_empty():
+			return selected
+	return SummonerIDs.DEFAULT
 
 ## Show choice UI for flexible reward options
 func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
@@ -443,7 +436,7 @@ func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
 			# Fallback to catalog lookup
 			var catalog_id: String = option.get("catalog_id", "")
 			var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
-			display_name = card_data.get("card_name", "Unknown")
+			display_name = card_data.get("card_name", Loc.t("ui.common.unknown"))
 
 		var button: Button = Button.new()
 		var is_guaranteed: bool = option.get("is_guaranteed", false)
@@ -465,7 +458,6 @@ func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
 ## Handle flexible reward selection
 func _on_flexible_choice_selected(index: int) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	print("RewardScreen: Player chose flexible option %d" % index)
 	chosen_reward_index = index
 
 	# Save choice to pending reward state (persists if player exits)
@@ -594,5 +586,3 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 		else:
 			push_warning("RewardScreen: Failed to add card %s to deck" % card_instance_id)
 
-	if added_count > 0:
-		print("RewardScreen: Auto-added %d card(s) to deck (tutorial mode)" % added_count)

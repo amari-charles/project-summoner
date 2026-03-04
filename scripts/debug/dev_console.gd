@@ -79,7 +79,7 @@ const TEST_CARDS: Array = [CardIDs.FIRE_WISP, CardIDs.PEBBLOOM, CardIDs.PUFF, Ca
 const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
 
 ## Service references (injected by autoload order)
-var _repo: Node = null  # ProfileRepo autoload
+var _repo = null  # ProfileRepo autoload (untyped to avoid CSharpScript parser error)
 var _economy: Node = null  # Economy autoload
 var _collection: Node = null  # CardService autoload
 var _decks: Node = null  # Decks autoload

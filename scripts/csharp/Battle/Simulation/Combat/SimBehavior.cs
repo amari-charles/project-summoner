@@ -120,6 +120,13 @@ public static class SimBehavior
         SimVector3 tPos = targetPos.Value;
         int targetId = unit.TargetUnitId!.Value;
 
+        // If the target unit died between position resolution and this lookup, re-target next tick
+        if (!isSummonerTarget && target == null)
+        {
+            unit.BehaviorState = BehaviorState.NoTarget;
+            return new BehaviorResult { Movement = MoveForward };
+        }
+
         // Use XZ distance for range check (consistent with movement which ignores Y)
         float dx = unit.Position.X - tPos.X;
         float dz = unit.Position.Z - tPos.Z;

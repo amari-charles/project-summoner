@@ -57,7 +57,6 @@ func _ready() -> void:
 		else:
 			is_caravan_event = true
 			shop_id = event_shop_id
-			print("ShopScreen: Loaded as caravan event '%s' with shop_id '%s'" % [event_id, shop_id])
 
 			# Set up caravan-specific UI
 			_setup_caravan_ui()
@@ -127,8 +126,6 @@ func _setup_caravan_ui() -> void:
 	leave_complete_popup.cancel_button_text = Loc.t("shop.caravan.stay_button")
 	leave_complete_popup.confirmed.connect(_on_leave_complete_confirmed)
 	add_child(leave_complete_popup)
-
-	print("ShopScreen: Caravan UI set up")
 
 ## Set the shop ID and reload offerings (called by EventSequencer for caravans)
 func set_shop_id(new_shop_id: String) -> void:
@@ -231,7 +228,6 @@ func _on_data_changed() -> void:
 
 ## Handle caravan sequence completion (dialogue finished)
 func _on_caravan_sequence_complete(_sequence: Resource) -> void:
-	print("ShopScreen: Caravan sequence completed")
 	caravan_sequence_complete = true
 
 	# Show both leave buttons now that dialogue is complete
@@ -239,19 +235,16 @@ func _on_caravan_sequence_complete(_sequence: Resource) -> void:
 		leave_incomplete_button.visible = true
 	if leave_complete_button:
 		leave_complete_button.visible = true
-	print("ShopScreen: Leave buttons now visible")
 
 ## Handle "Leave" button (exit without completing - can return later)
 func _on_leave_incomplete_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	print("ShopScreen: Leave (incomplete) pressed")
 	if leave_incomplete_popup:
 		leave_incomplete_popup.popup_centered()
 
 ## Handle "Leave without purchasing" button (completes event - allows progression)
 func _on_leave_complete_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	print("ShopScreen: Leave (complete) pressed")
 	if leave_complete_popup:
 		# Update popup text based on whether player made a purchase
 		if has_purchased:
@@ -262,12 +255,10 @@ func _on_leave_complete_pressed() -> void:
 
 ## Handle leave incomplete confirmation (user wants to leave but can return)
 func _on_leave_incomplete_confirmed() -> void:
-	print("ShopScreen: Leave incomplete confirmed")
 	_leave_shop(false)  # Don't complete the event
 
 ## Handle leave complete confirmation (user wants to skip and move on)
 func _on_leave_complete_confirmed() -> void:
-	print("ShopScreen: Leave complete confirmed")
 	_leave_shop(true)  # Complete the event
 
 func _on_close_pressed() -> void:
@@ -287,16 +278,12 @@ func _leave_shop(complete_event: bool = true) -> void:
 		var event_id: String = EventContext.get_current_event_id()
 		if not event_id.is_empty():
 			if complete_event:
-				print("ShopScreen: Completing caravan event '%s'" % event_id)
 				EventContext.complete_event()
-			else:
-				print("ShopScreen: Leaving caravan event '%s' incomplete (can return)" % event_id)
 			EventContext.clear_event()
 
 	# Check if we have a return destination from NavigationContext
 	if NavigationContext.has_return():
 		var return_to: String = NavigationContext.pop_return()
-		print("ShopScreen: Returning to %s via NavigationContext" % return_to)
 		SceneManager.transition_to(return_to)
 	else:
 		# Default: return to campaign map (main hub)

@@ -87,7 +87,6 @@ var campaign_selector_modal: CampaignSelectorModal = null
 ## =============================================================================
 
 func _ready() -> void:
-	print("CampaignMap: Initializing...")
 
 	# Connect buttons
 	locator_button.pressed.connect(_on_center_latest_pressed)
@@ -128,10 +127,6 @@ func _ready() -> void:
 
 	# Auto-scroll to latest mission (deferred to next frame so nodes are fully laid out)
 	call_deferred("_on_center_latest_pressed")
-
-func _draw() -> void:
-	# Edge drawing is now handled by Line2D nodes in map_container
-	pass
 
 
 ## Get the color for an edge based on completion state
@@ -245,7 +240,6 @@ func _refresh_map() -> void:
 	var edges_array: Array = SafeTypeUtils.array(edges_variant)
 	graph_edges.assign(edges_array)
 
-	print("CampaignMap: Loaded %d nodes, %d edges from graph data" % [graph_nodes.size(), graph_edges.size()])
 
 	# Build a lookup for node positions (needed for edge drawing)
 	var node_positions: Dictionary = {}  # node_id -> Vector2
@@ -300,7 +294,6 @@ func _refresh_map() -> void:
 			is_completed
 		])
 
-	print("CampaignMap: Created %d event nodes, %d edge lines" % [event_nodes.size(), edge_lines.size()])
 
 ## Create a node from graph data (uses position from node data)
 func _create_graph_node(node_data: Dictionary, is_unlocked: bool, is_completed: bool) -> Control:
@@ -391,7 +384,6 @@ func _get_node_type_color(node_type: String) -> Color:
 func _on_event_node_clicked(event_id: String) -> void:
 	selected_event_id = event_id
 	_show_detail_panel_for_event(event_id)
-	print("CampaignMap: Selected event: %s" % event_id)
 
 func _show_popup() -> void:
 	# Center the popup on screen
@@ -524,19 +516,16 @@ func _on_panel_start_requested() -> void:
 
 	# Handle affinity selection event - route to summoner selection
 	if event_type == EventTypeIDs.AFFINITY:
-		print("CampaignMap: Starting affinity selection...")
 		SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)
 		return
 
 	# Handle first summon event - route to first card selection
 	if event_type == EventTypeIDs.FIRST_SUMMON:
-		print("CampaignMap: Starting first summon selection...")
 		SceneManager.transition_to(SceneManager.SCENE_FIRST_CARD_SELECTION)
 		return
 
 	# Handle caravan events - navigate directly to shop with event context
 	if event_type == EventTypeIDs.CARAVAN:
-		print("CampaignMap: Starting caravan event: %s" % selected_event_id)
 
 		# Check if event is already completed and not repeatable
 		var is_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(selected_event_id), false)
@@ -554,14 +543,9 @@ func _on_panel_start_requested() -> void:
 		SceneManager.transition_to(SceneManager.SCENE_CARAVAN_SCREEN)
 		return
 
-	# Handle battle events
-	print("CampaignMap: Starting battle event: %s" % selected_event_id)
+	# Handle battle events — store selected event in campaign service
+	ProfileRepo.UpdateCampaignProgressDict({"current_battle": selected_event_id}, "")
 
-	# Store selected event in campaign service
-	ProfileRepo.UpdateCampaignProgressDict({"current_battle": selected_event_id})
-
-	# Configure battle context
-	print("CampaignMap: Configuring BattleContext with battle_id='%s'" % selected_event_id)
 	BattleContext.configure_campaign_battle(selected_event_id)
 
 	# Launch battle scene - use custom scene_path if specified in battle config
@@ -570,16 +554,12 @@ func _on_panel_start_requested() -> void:
 		var custom_scene: String = BattleContext.battle_config.get("scene_path", "")
 		if not custom_scene.is_empty():
 			battle_scene = custom_scene
-			print("CampaignMap: Using custom battle scene: %s" % battle_scene)
-
-	print("CampaignMap: Launching battle scene...")
+			pass
 	SceneManager.transition_to(battle_scene)
 
 
 ## Handle choice made from choice panel
 func _on_choice_made(option_id: String) -> void:
-	print("CampaignMap: Player chose option '%s' for node '%s'" % [option_id, selected_event_id])
-
 	# Hide the detail panel
 	detail_panel.visible = false
 
@@ -599,11 +579,9 @@ func _on_choice_made(option_id: String) -> void:
 func _on_center_latest_pressed() -> void:
 	var latest_unlocked_id: String = _find_latest_unlocked_mission()
 	if latest_unlocked_id.is_empty():
-		print("CampaignMap: No unlocked missions to center on")
 		return
 
 	_scroll_to_event(latest_unlocked_id)
-	print("CampaignMap: Centered on latest mission: %s" % latest_unlocked_id)
 
 func _find_latest_unlocked_mission() -> String:
 	# Find the first unlocked but not completed node
@@ -697,32 +675,26 @@ func _on_hamburger_pressed() -> void:
 		nav_drawer.open()
 
 func _on_nav_collection_pressed() -> void:
-	print("CampaignMap: Opening Collection...")
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 
 func _on_nav_events_pressed() -> void:
-	print("CampaignMap: Opening Special Events...")
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SPECIAL_EVENTS)
 
 func _on_nav_online_pressed() -> void:
-	print("CampaignMap: Opening Online Play...")
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_ONLINE)
 
 func _on_nav_shop_pressed() -> void:
-	print("CampaignMap: Opening Premium Store...")
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_PREMIUM_STORE)
 
 func _on_nav_settings_pressed() -> void:
-	print("CampaignMap: Opening Settings...")
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SETTINGS)
 
 func _on_nav_quit_pressed() -> void:
-	print("CampaignMap: Quitting game...")
 	get_tree().quit()
 
 ## Redirect to summoner selection when no summoner is active
