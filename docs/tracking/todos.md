@@ -1177,6 +1177,37 @@ If data belongs to an entity, put it on the entity. Avoid solving per-entity pro
 
 ---
 
+#### Eliminate Dynamic Call() in BattleSessionFactory
+**Status:** ⬜ Not Started
+**Category:** Architecture / Type Safety
+**Effort:** Small
+
+**Description:**
+`BattleSessionFactory.cs` uses Godot's `Call()` (string-based dynamic dispatch) to invoke methods on C# autoloads (`Decks`, `CardService`, `ProfileRepo`, `SummonerSelection`). Since `Call()` takes a string method name, typos and renames fail silently at runtime — the compiler can't catch them.
+
+All 5 target services are C# classes with strongly-typed public methods. Replace `Call()` with direct typed access using `GetNodeOrNull<T>()` (already used elsewhere in the codebase):
+
+| Current (dynamic) | Replacement (typed) |
+|---|---|
+| `caller.GetNodeOrNull("/root/Decks")` + `Call("GetDeckDict", ...)` | `caller.GetNodeOrNull<DeckService>("/root/Decks")?.GetDeck(...)` |
+| `caller.GetNodeOrNull("/root/CardService")` + `Call("GetCardDict", ...)` | `caller.GetNodeOrNull<CardService>("/root/CardService")?.GetCard(...)` |
+| `caller.GetNodeOrNull("/root/ProfileRepo")` + `Call("GetActiveProfileDict")` | `ProfileRepository.Instance?.GetActiveProfileDict()` (static access, already used on line 282) |
+| `caller.GetNodeOrNull("/root/SummonerSelection")` + `Call("GetActiveSummonerId")` | `caller.GetNodeOrNull<SummonerSelectionService>(...)?.GetActiveSummonerId()` |
+
+**Benefits:**
+- Compile-time method name validation (renames break the build, not silently at runtime)
+- IDE IntelliSense for method signatures
+- Consistent with patterns already used by DeckService, CampaignService
+
+**Related Files:**
+- `scripts/csharp/Battle/Session/BattleSessionFactory.cs` — 5 Call() sites to replace
+- `scripts/csharp/Meta/Services/Deck/DeckService.cs` — typed methods available
+- `scripts/csharp/Meta/Services/Cards/CardService.cs` — typed methods available
+- `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs` — Instance pattern
+- `scripts/csharp/Meta/Services/Summoner/SummonerSelectionService.cs` — typed methods available
+
+---
+
 #### Audit for Global-Coordination-over-Local-State Anti-pattern
 **Status:** ⬜ Not Started
 **Category:** Architecture / Design Principles

@@ -206,7 +206,7 @@ public static class BattleSessionFactory
         string deckId = GetSelectedDeckId(caller, decksService);
         if (string.IsNullOrEmpty(deckId)) return;
 
-        var deckData = decksService.Call("get_deck", deckId);
+        var deckData = decksService.Call("GetDeckDict", deckId);
         if (deckData.VariantType != Variant.Type.Dictionary) return;
 
         var deckDict = deckData.AsGodotDictionary();
@@ -234,7 +234,7 @@ public static class BattleSessionFactory
         var profileRepo = caller.GetNodeOrNull("/root/ProfileRepo");
         if (profileRepo != null)
         {
-            var profile = profileRepo.Call("get_active_profile");
+            var profile = profileRepo.Call("GetActiveProfileDict");
             if (profile.VariantType == Variant.Type.Dictionary)
             {
                 var profileDict = profile.AsGodotDictionary();
@@ -250,7 +250,7 @@ public static class BattleSessionFactory
         }
 
         // Fallback to first available deck
-        var deckList = decksService.Call("list_decks");
+        var deckList = decksService.Call("ListDecksDict");
         if (deckList.VariantType == Variant.Type.Array)
         {
             var list = deckList.AsGodotArray();
