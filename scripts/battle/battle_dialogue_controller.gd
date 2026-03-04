@@ -273,7 +273,7 @@ func _spawn_tutorial_enemy() -> void:
 
 	if debug_mode: print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
 
-	# Spawn the unit directly via SpawnUnitCommand (team 1 = enemy)
+	# Spawn via SpawnUnitCommand through the command pipeline
 	if debug_mode: print("BattleDialogueController: Spawning tutorial enemy via SpawnAt...")
 	card.SpawnAt(spawn_pos_3d, int(UnitConstants.Team.ENEMY))
 	if debug_mode: print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)

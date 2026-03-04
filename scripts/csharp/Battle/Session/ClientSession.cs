@@ -23,7 +23,7 @@ public class ClientSession : NetworkSession
 
     public override void SubmitCommand(ICommand command)
     {
-        // TODO: send command to host over network (no transport wired yet)
+        // Deferred to multiplayer transport milestone — send command to host via IMatchTransport
         throw new NotImplementedException();
     }
 

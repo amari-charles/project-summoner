@@ -163,8 +163,8 @@ When GDScript needs C# enum values, use the **Mirror Enum Pattern**:
 3. Cast to `int()` when passing to C# methods
 
 **Examples:**
-- `UnitConstants.Team` mirrors `scripts/csharp/Units/Enums.cs`
-- `UnitConstants.HurtboxCategory` mirrors `scripts/csharp/Battle/Simulation/Combat/Hitbox/HurtboxCategory.cs`
+- `UnitConstants.Team` mirrors `scripts/csharp/Infrastructure/Data/Units/Enums.cs`
+- `UnitConstants.GameState` mirrors `scripts/csharp/Battle/View/BattleScene.cs`
 
 **Never hardcode C# enum int values directly** (e.g., `const CATEGORY: int = 2`). Always use the mirror enum for type safety and maintainability.
 

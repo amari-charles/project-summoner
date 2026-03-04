@@ -31,7 +31,7 @@ func _find_game_controller() -> void:
 	# Hide button when game ends
 	game_controller.connect("GameEnded", _on_game_ended)
 
-func _on_game_ended(_winner: int) -> void:
+func _on_game_ended(_winner: UnitConstants.Team) -> void:
 	visible = false
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -50,8 +50,7 @@ func _toggle_pause() -> void:
 		return
 
 	# Only allow pausing during active gameplay (not during setup or game over)
-	# BattleScene.GameState: Setup=0, Playing=1, Paused=2, GameOver=3
-	if game_controller.CurrentState == 1:  # Playing
+	if game_controller.CurrentState == UnitConstants.GameState.PLAYING:
 		game_controller.PauseGame()
-	elif game_controller.CurrentState == 2:  # Paused
+	elif game_controller.CurrentState == UnitConstants.GameState.PAUSED:
 		game_controller.ResumeGame()

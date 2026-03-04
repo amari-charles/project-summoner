@@ -14,10 +14,12 @@ public enum BehaviorState
 
 /// <summary>
 /// Movement intent produced by SimBehavior each tick.
-/// Tells SimSteering what kind of movement to perform.
+/// Tells SimMovement what kind of movement to perform.
 /// </summary>
-public enum MovementState
+public enum MovementResult
 {
     None = 0,
     Forward = 1,
+    TowardTarget = 2,
+    Strafe = 3,
 }

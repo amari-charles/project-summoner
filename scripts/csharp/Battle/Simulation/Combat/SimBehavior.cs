@@ -20,13 +20,6 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimBehavior
 {
-    // Behavior state constants — kept as int aliases for backwards compatibility
-    // with tests and multiplayer code. Canonical type is BehaviorState enum.
-    public const int NoTarget = (int)BehaviorState.NoTarget;
-    public const int Chasing = (int)BehaviorState.Chasing;
-    public const int InRange = (int)BehaviorState.InRange;
-    public const int Attacking = (int)BehaviorState.Attacking;
-
     private const float AttackAnimationDuration = 0.5f;
     private const float TargetLockDuration = 0.5f;
 
@@ -36,15 +29,9 @@ public static class SimBehavior
     /// </summary>
     public struct BehaviorResult
     {
-        public int Movement; // 0=None, 1=Forward, 2=TowardTarget, 3=Strafe
+        public MovementResult Movement;
         public int? MoveTargetId; // UnitId to move toward (for TowardTarget/Strafe)
     }
-
-    // Movement result constants
-    public const int MoveNone = 0;
-    public const int MoveForward = 1;
-    public const int MoveTowardTarget = 2;
-    public const int MoveStrafe = 3;
 
     /// <summary>
     /// Tick cooldowns for a unit (attack cooldown, target lock, forced target, attack animation).
@@ -104,7 +91,7 @@ public static class SimBehavior
         if (SimEffects.IsStunned(unit))
         {
             unit.BehaviorState = BehaviorState.InRange;
-            return new BehaviorResult { Movement = MoveNone };
+            return new BehaviorResult { Movement = MovementResult.None };
         }
 
         // Resolve target position — works for both unit and summoner targets
@@ -112,7 +99,7 @@ public static class SimBehavior
         if (!targetPos.HasValue)
         {
             unit.BehaviorState = BehaviorState.NoTarget;
-            return new BehaviorResult { Movement = MoveForward };
+            return new BehaviorResult { Movement = MovementResult.Forward };
         }
 
         bool isSummonerTarget = MatchState.IsSummonerTarget(unit.TargetUnitId);
@@ -124,7 +111,7 @@ public static class SimBehavior
         if (!isSummonerTarget && target == null)
         {
             unit.BehaviorState = BehaviorState.NoTarget;
-            return new BehaviorResult { Movement = MoveForward };
+            return new BehaviorResult { Movement = MovementResult.Forward };
         }
 
         // Use XZ distance for range check (consistent with movement which ignores Y)
@@ -147,13 +134,13 @@ public static class SimBehavior
                 {
                     FallbackMovement.Strafe => new BehaviorResult
                     {
-                        Movement = MoveStrafe,
+                        Movement = MovementResult.Strafe,
                         MoveTargetId = targetId
                     },
-                    FallbackMovement.Idle => new BehaviorResult { Movement = MoveNone },
+                    FallbackMovement.Idle => new BehaviorResult { Movement = MovementResult.None },
                     _ => new BehaviorResult
                     {
-                        Movement = MoveTowardTarget,
+                        Movement = MovementResult.TowardTarget,
                         MoveTargetId = targetId
                     }
                 };
@@ -194,19 +181,19 @@ public static class SimBehavior
                 unit.AttackAnimationTimer = AttackAnimationDuration;
                 events.Add(new UnitAttackedEvent(unit.UnitId, targetId));
 
-                return new BehaviorResult { Movement = MoveNone };
+                return new BehaviorResult { Movement = MovementResult.None };
             }
 
             // In range, waiting for cooldown
             unit.BehaviorState = BehaviorState.InRange;
-            return new BehaviorResult { Movement = MoveNone };
+            return new BehaviorResult { Movement = MovementResult.None };
         }
 
         // Out of range — chase
         unit.BehaviorState = BehaviorState.Chasing;
         return new BehaviorResult
         {
-            Movement = MoveTowardTarget,
+            Movement = MovementResult.TowardTarget,
             MoveTargetId = targetId
         };
     }
@@ -342,13 +329,17 @@ public static class SimBehavior
         damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
 
         summoner.CurrentHp -= damage;
+        bool wasDestroyed = false;
         if (summoner.CurrentHp <= 0)
         {
             summoner.CurrentHp = 0;
             summoner.IsAlive = false;
+            wasDestroyed = true;
         }
         events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
         events.Add(new SummonerDamagedEvent(summonerTeam, damage, attackerUnitId));
+        if (wasDestroyed)
+            events.Add(new SummonerDestroyedEvent(summonerTeam, attackerUnitId));
     }
 
     private static bool IsValidTarget(int? targetId, MatchState state)

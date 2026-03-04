@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
+using Fateforged.Stats;
 
 namespace Fateforged.Simulation.Commands;
 
@@ -32,9 +33,8 @@ public class SpawnUnitCommand : ICommand
 
     /// <summary>
     /// Optional stat overrides applied after template creation.
-    /// Keys: "max_hp", "move_speed", "attack_damage", "attack_speed", "attack_range"
     /// </summary>
-    public Dictionary<string, float>? StatOverrides { get; set; }
+    public Dictionary<StatKey, float>? StatOverrides { get; set; }
 
     /// <summary>
     /// If true, units activate immediately (no spawn timer).

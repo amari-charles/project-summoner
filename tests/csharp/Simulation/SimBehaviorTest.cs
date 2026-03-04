@@ -32,7 +32,7 @@ public class SimBehaviorTest
 
         var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(SimBehavior.MoveForward);
+        AssertThat(result.Movement).IsEqual(MovementResult.Forward);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.NoTarget);
     }
 
@@ -47,7 +47,7 @@ public class SimBehaviorTest
 
         var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(SimBehavior.MoveTowardTarget);
+        AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Chasing);
     }
 
@@ -63,7 +63,7 @@ public class SimBehaviorTest
 
         var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(SimBehavior.MoveNone);
+        AssertThat(result.Movement).IsEqual(MovementResult.None);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.InRange);
     }
 
@@ -82,7 +82,7 @@ public class SimBehaviorTest
 
         var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(SimBehavior.MoveNone);
+        AssertThat(result.Movement).IsEqual(MovementResult.None);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Attacking);
 
         var attacked = SimTestHelper.FindEvent<UnitAttackedEvent>(events);
@@ -100,7 +100,7 @@ public class SimBehaviorTest
 
         var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(SimBehavior.MoveNone);
+        AssertThat(result.Movement).IsEqual(MovementResult.None);
     }
 
     // =========================================================================
@@ -502,7 +502,7 @@ public class SimBehaviorTest
 
         var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(SimBehavior.MoveStrafe);
+        AssertThat(result.Movement).IsEqual(MovementResult.Strafe);
     }
 
     [TestCase]
@@ -521,6 +521,6 @@ public class SimBehaviorTest
 
         var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(SimBehavior.MoveNone);
+        AssertThat(result.Movement).IsEqual(MovementResult.None);
     }
 }

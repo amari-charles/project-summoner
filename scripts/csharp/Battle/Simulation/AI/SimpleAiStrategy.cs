@@ -1,6 +1,7 @@
 using System;
 using Fateforged.Constants;
 using Fateforged.Simulation.Data;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.AI;
 
@@ -54,7 +55,7 @@ public static class SimpleAiStrategy
         int team = (int)summoner.Team;
 
         float x;
-        if (team == 1) // Enemy: positive X
+        if ((Team)team == Team.Enemy) // Enemy: positive X
             x = state.Rng.RangeFloat(halfWidth * 0.1f, halfWidth * 0.9f);
         else // Player: negative X
             x = state.Rng.RangeFloat(-halfWidth * 0.9f, -halfWidth * 0.1f);

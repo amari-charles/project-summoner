@@ -287,12 +287,6 @@ func _refresh_map() -> void:
 		map_container.add_child(event_node)
 		event_nodes[node_id] = event_node
 
-		print("  - %s at %s (unlocked: %s, completed: %s)" % [
-			node_id,
-			node.get("position", Vector2.ZERO),
-			is_unlocked,
-			is_completed
-		])
 
 
 ## Create a node from graph data (uses position from node data)
@@ -554,7 +548,6 @@ func _on_panel_start_requested() -> void:
 		var custom_scene: String = BattleContext.battle_config.get("scene_path", "")
 		if not custom_scene.is_empty():
 			battle_scene = custom_scene
-			pass
 	SceneManager.transition_to(battle_scene)
 
 

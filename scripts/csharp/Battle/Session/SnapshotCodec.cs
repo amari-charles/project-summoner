@@ -47,6 +47,11 @@ public class SnapshotCodec
         return ms.ToArray();
     }
 
+    /// <summary>
+    /// Decode a snapshot into a read-only MatchState for client-side rendering.
+    /// Note: ID counters (_nextUnitId, etc.) are NOT restored — the client never
+    /// generates IDs. All ID assignment is host-authoritative.
+    /// </summary>
     public MatchState Decode(byte[] data)
     {
         using var ms = new MemoryStream(data);

@@ -53,7 +53,7 @@ public class BattleSessionConfig
     // AI CONFIG
     // =========================================================================
 
-    public string AiType { get; set; } = "heuristic";
+    public AiType AiType { get; set; } = AiType.Heuristic;
     public AiPersonality AiPersonality { get; set; } = AiPersonality.Balanced;
     public int AiDifficulty { get; set; } = 3;
     public float AiIntervalMin { get; set; } = 3.0f;
@@ -128,7 +128,7 @@ public class BattleSessionConfig
         };
 
         // AI config
-        cfg.AiType = config.GetValueOrDefault("ai_type", "heuristic").ToString()!;
+        cfg.AiType = ParseAiType(config.GetValueOrDefault("ai_type", "heuristic").ToString()!);
         cfg.AiPersonality = ParseAiPersonality(
             config.GetValueOrDefault("ai_personality", "balanced").ToString()!);
         cfg.AiDifficulty = (int)config.GetValueOrDefault("ai_difficulty", 3);
@@ -157,13 +157,29 @@ public class BattleSessionConfig
         {
             Mode = BattleMode.Practice,
             WinCondition = WinConditionType.DestroySummoner,
-            AiType = "scripted",
+            AiType = AiType.Scripted,
             HasAuthority = true,
         };
     }
 
     /// <summary>Whether this is a multiplayer client (not the host).</summary>
     public bool IsMpClient => IsMultiplayer && !HasAuthority;
+
+    /// <summary>
+    /// Parse a GDScript AI type string into the enum.
+    /// Returns Heuristic for unrecognized values.
+    /// </summary>
+    public static AiType ParseAiType(string value)
+    {
+        return value.ToLowerInvariant() switch
+        {
+            "simple" => AiType.Simple,
+            "heuristic" => AiType.Heuristic,
+            "scripted" => AiType.Scripted,
+            "passive" or "none" => AiType.None,
+            _ => AiType.Heuristic
+        };
+    }
 
     /// <summary>
     /// Parse a GDScript AI personality string into the enum.

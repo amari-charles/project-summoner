@@ -44,7 +44,7 @@ public class HostSession : NetworkSession
     public void Tick(float delta)
     {
         var events = _simulation.Tick(delta);
-        // TODO: broadcast snapshot to clients via transport (no transport wired yet)
+        // Deferred to multiplayer transport milestone — broadcast snapshot to clients via IMatchTransport
         if (events.Count > 0)
         {
             SimEventsEmitted?.Invoke(events);

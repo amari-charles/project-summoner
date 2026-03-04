@@ -39,8 +39,7 @@ var event: TypedEventData:
 ## =============================================================================
 
 func _ready() -> void:
-	print("EventContext: Initializing...")
-	print("EventContext: Ready")
+	pass
 
 ## =============================================================================
 ## EVENT CONFIGURATION

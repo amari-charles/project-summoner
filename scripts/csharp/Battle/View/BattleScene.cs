@@ -689,7 +689,7 @@ public partial class BattleScene : Node3D
 
 	private void BroadcastMatchEnd(int winnerTeam)
 	{
-		// TODO: Broadcast match end via HostSession/ClientSession transport
+		// Deferred to multiplayer transport milestone — broadcast match end via IMatchTransport
 		GD.Print($"[BattleScene] BroadcastMatchEnd called (winner={winnerTeam}) — pending multiplayer transport milestone");
 	}
 

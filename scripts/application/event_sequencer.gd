@@ -580,12 +580,4 @@ func _execute_open_caravan(step: Resource) -> void:
 ## Await a signal with timeout protection to prevent hangs
 ## Returns true if signal was received, false if timed out
 func _await_signal_with_timeout(sig: Signal, timeout_seconds: float) -> bool:
-	var received: bool = false
-	sig.connect(func() -> void: received = true, CONNECT_ONE_SHOT)
-
-	var elapsed: float = 0.0
-	while not received and elapsed < timeout_seconds:
-		await get_tree().process_frame
-		elapsed += get_process_delta_time()
-
-	return received
+	return await AsyncUtils.await_signal_with_timeout(get_tree(), sig, timeout_seconds)

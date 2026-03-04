@@ -9,6 +9,9 @@ class_name SummonerSelectionScreen
 
 const _DeckConstants: GDScript = preload("res://scripts/infrastructure/data/deck_constants.gd")
 
+## Trait granted when player chooses the random summoner option
+const RANDOM_SUMMONER_TRAIT_ID: String = "trait_fortune_favors_the_bold"
+
 @onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel
 @onready var subtitle_label: Label = $CenterContainer/VBoxContainer/SubtitleLabel
 @onready var select_button1: Button = %SelectButton1
@@ -170,7 +173,7 @@ func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void
 	# Build summoner instance data directly
 	var acquired_traits: Array = []
 	if chosen_random:
-		acquired_traits.append("trait_fortune_favors_the_bold")
+		acquired_traits.append(RANDOM_SUMMONER_TRAIT_ID)
 
 	var summoner_data: Dictionary = {
 		"summoner_id": summoner_id,

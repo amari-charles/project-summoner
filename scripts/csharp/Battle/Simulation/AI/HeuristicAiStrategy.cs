@@ -1,5 +1,6 @@
 using Fateforged.Constants;
 using Fateforged.Simulation.Data;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.AI;
 
@@ -372,7 +373,7 @@ public static class HeuristicAiStrategy
         }
 
         float x;
-        if (team == 1) // Enemy: positive X side
+        if ((Team)team == Team.Enemy)
         {
             x = rng.RangeFloat(halfWidth * zoneMin, halfWidth * zoneMax);
         }

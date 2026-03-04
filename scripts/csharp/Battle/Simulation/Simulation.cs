@@ -8,6 +8,7 @@ using Fateforged.Units;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Stats;
 using Fateforged.Simulation.Events;
 using Fateforged.Simulation.Subsystems;
 
@@ -510,7 +511,7 @@ public class Simulation
     /// Units are spread around the spawn position.
     /// Optional statOverrides are applied after template defaults (used by SpawnUnitCommand).
     /// </summary>
-    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, float spawnTimer, List<SimEvent> events, Dictionary<string, float>? statOverrides = null)
+    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, float spawnTimer, List<SimEvent> events, Dictionary<StatKey, float>? statOverrides = null)
     {
         int unitIndex = 0;
         int totalUnits = 0;
@@ -603,26 +604,26 @@ public class Simulation
     /// Apply runtime stat overrides to a newly created UnitData.
     /// Used by SpawnUnitCommand for debug/event/tutorial spawns with custom stats.
     /// </summary>
-    private static void ApplyStatOverrides(UnitData unit, Dictionary<string, float> overrides)
+    private static void ApplyStatOverrides(UnitData unit, Dictionary<StatKey, float> overrides)
     {
         foreach (var (key, value) in overrides)
         {
             switch (key)
             {
-                case "max_hp":
+                case StatKey.MaxHp:
                     unit.MaxHp = value;
                     unit.CurrentHp = value;
                     break;
-                case "move_speed":
+                case StatKey.MoveSpeed:
                     unit.MoveSpeed = value;
                     break;
-                case "attack_damage":
+                case StatKey.AttackDamage:
                     unit.AttackDamage = value;
                     break;
-                case "attack_speed":
+                case StatKey.AttackSpeed:
                     unit.AttackSpeed = value;
                     break;
-                case "attack_range":
+                case StatKey.AttackRange:
                     unit.AttackRange = value;
                     break;
             }

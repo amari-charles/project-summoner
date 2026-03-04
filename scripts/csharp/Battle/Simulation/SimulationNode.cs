@@ -281,27 +281,14 @@ public partial class SimulationNode : Node, IGameSession
     /// <summary>
     /// Configure AI for a summoner. Called by BattleScene during init.
     /// </summary>
-    public void ConfigureAi(int team, string aiType, AiPersonality personality = AiPersonality.Balanced,
+    public void ConfigureAi(int team, AiType aiType, AiPersonality personality = AiPersonality.Balanced,
         int difficulty = DefaultAiDifficulty, float intervalMin = DefaultAiIntervalMin, float intervalMax = DefaultAiIntervalMax,
         Godot.Collections.Array? scriptSteps = null)
     {
         int networkTeam = ToNetworkTeam(team);
         var summoner = State.Summoners[networkTeam];
 
-        var aiTypeLower = aiType.ToLowerInvariant();
-        var type = aiTypeLower switch
-        {
-            "simple" => AiType.Simple,
-            "heuristic" => AiType.Heuristic,
-            "scripted" => AiType.Scripted,
-            "passive" or "none" => AiType.None,
-            _ => AiType.Heuristic
-        };
-
-        if (aiTypeLower is not ("simple" or "heuristic" or "scripted" or "passive" or "none"))
-            GD.PushWarning($"[SimulationNode] Unknown AI type '{aiType}', defaulting to Heuristic");
-
-        if (type == AiType.None)
+        if (aiType == AiType.None)
         {
             summoner.Ai = null;
             return;
@@ -309,7 +296,7 @@ public partial class SimulationNode : Node, IGameSession
 
         var config = new AiConfig
         {
-            Type = type,
+            Type = aiType,
             Personality = personality,
             Difficulty = difficulty,
             PlayIntervalMin = intervalMin,
@@ -317,7 +304,7 @@ public partial class SimulationNode : Node, IGameSession
         };
 
         // Parse scripted steps
-        if (type == AiType.Scripted && scriptSteps != null && scriptSteps.Count > 0)
+        if (aiType == AiType.Scripted && scriptSteps != null && scriptSteps.Count > 0)
         {
             var steps = new ScriptedAiStep[scriptSteps.Count];
             for (int i = 0; i < scriptSteps.Count; i++)
@@ -349,7 +336,7 @@ public partial class SimulationNode : Node, IGameSession
         summoner.Ai = config;
         SimAi.InitializeTimer(State, summoner);
 
-        GD.Print($"[SimulationNode] Configured AI: team={networkTeam} type={type} personality={personality} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]");
+        GD.Print($"[SimulationNode] Configured AI: team={networkTeam} type={aiType} personality={personality} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]");
     }
 
     // =========================================================================
@@ -427,19 +414,25 @@ public partial class SimulationNode : Node, IGameSession
         PopulateSingleCard(catalogId, processed);
     }
 
-    private static System.Collections.Generic.Dictionary<string, float>? ConvertStatOverrides(
+    private static System.Collections.Generic.Dictionary<Stats.StatKey, float>? ConvertStatOverrides(
         Godot.Collections.Dictionary? gdDict)
     {
         if (gdDict == null || gdDict.Count == 0)
             return null;
 
-        var result = new System.Collections.Generic.Dictionary<string, float>();
+        var result = new System.Collections.Generic.Dictionary<Stats.StatKey, float>();
         foreach (var key in gdDict.Keys)
         {
             var keyStr = key.AsString();
+            var parsed = Stats.StatKeyExtensions.FromString(keyStr);
+            if (parsed == null)
+            {
+                GD.PushWarning($"[SimulationNode] Unknown stat override key: '{keyStr}'");
+                continue;
+            }
             var val = gdDict[key];
             if (val.VariantType == Variant.Type.Float || val.VariantType == Variant.Type.Int)
-                result[keyStr] = val.AsSingle();
+                result[parsed.Value] = val.AsSingle();
         }
         return result.Count > 0 ? result : null;
     }

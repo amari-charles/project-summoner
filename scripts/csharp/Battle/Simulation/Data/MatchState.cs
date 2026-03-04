@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Fateforged.Units;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
@@ -96,28 +95,43 @@ public class MatchState
 
     // =========================================================================
     // UNIT QUERY HELPERS (used by simulation for targeting/combat)
+    // Reusable lists to avoid per-tick LINQ allocations in hot paths.
     // =========================================================================
+
+    private readonly List<UnitData> _aliveActiveCache = new();
+    private readonly List<UnitData> _aliveActiveTeamCache = new();
 
     /// <summary>
     /// Get all alive, active units sorted by UnitId for deterministic iteration.
+    /// Returns a shared list — do not hold references across ticks.
     /// </summary>
     public List<UnitData> GetAliveActiveUnits()
     {
-        return Units.Values
-            .Where(u => u.IsAlive && u.ActivationState == ActivationState.Active)
-            .OrderBy(u => u.UnitId)
-            .ToList();
+        _aliveActiveCache.Clear();
+        foreach (var unit in Units.Values)
+        {
+            if (unit.IsAlive && unit.ActivationState == ActivationState.Active)
+                _aliveActiveCache.Add(unit);
+        }
+        _aliveActiveCache.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+        return _aliveActiveCache;
     }
 
     /// <summary>
     /// Get alive active units for a specific team.
+    /// Returns a shared list — do not hold references across ticks.
     /// </summary>
     public List<UnitData> GetAliveActiveUnitsForTeam(int team)
     {
-        return Units.Values
-            .Where(u => u.IsAlive && u.ActivationState == ActivationState.Active && u.Team == (Team)team)
-            .OrderBy(u => u.UnitId)
-            .ToList();
+        _aliveActiveTeamCache.Clear();
+        var targetTeam = (Team)team;
+        foreach (var unit in Units.Values)
+        {
+            if (unit.IsAlive && unit.ActivationState == ActivationState.Active && unit.Team == targetTeam)
+                _aliveActiveTeamCache.Add(unit);
+        }
+        _aliveActiveTeamCache.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+        return _aliveActiveTeamCache;
     }
 
     /// <summary>

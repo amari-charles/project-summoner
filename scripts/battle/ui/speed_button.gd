@@ -55,7 +55,7 @@ func _check_battle_mode() -> void:
 	else:
 		tooltip_text = Loc.t("ui.speed.enabled_tooltip")
 
-func _on_game_ended(_winner: int) -> void:
+func _on_game_ended(_winner: UnitConstants.Team) -> void:
 	visible = false
 
 func _on_pressed() -> void:

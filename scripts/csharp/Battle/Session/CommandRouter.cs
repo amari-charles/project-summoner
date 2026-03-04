@@ -54,6 +54,15 @@ public class CommandRouter
 
     private static ValidationResult ValidateSpawnUnit(SpawnUnitCommand spawn, MatchState state)
     {
+        if (spawn.Team < 0 || spawn.Team >= state.Summoners.Length)
+            return new ValidationResult(false, "Invalid team index");
+
+        if (state.Phase == GamePhase.GameOver)
+            return new ValidationResult(false, "Cannot spawn units after game over");
+
+        if (!state.CardDataMap.ContainsKey(spawn.CatalogId))
+            return new ValidationResult(false, $"Unknown catalog ID: {spawn.CatalogId}");
+
         return Valid;
     }
 

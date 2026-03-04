@@ -204,9 +204,6 @@
       "confirm": "Confirm",
       "unknown": "Unknown"
     },
-    "collection": {
-      "default_deck_name": "My Deck"
-    },
     "pause_menu": {
       "resume": "Resume",
       "settings": "Settings",
@@ -259,6 +256,7 @@
       "level_capped_tooltip": "Cards above level {level} will be normalized to level {level}"
     },
     "collection": {
+      "default_deck_name": "My Deck",
       "empty_decks": "No decks yet. Click 'NEW DECK' to create one!",
       "rarity_label": "Rarity: {rarity}",
       "type_label": "Type: {type}",

@@ -1,5 +1,6 @@
 using System;
 using Fateforged.Simulation.Combat;
+using Fateforged.Simulation.Enums;
 using Fateforged.Constants;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
@@ -33,12 +34,12 @@ public static class SimMovement
 
         switch (behavior.Movement)
         {
-            case SimBehavior.MoveForward:
+            case MovementResult.Forward:
                 velocity = CalculateForward(unit, state);
                 UpdateFacing(unit, new SimVector3(unit.Team == Team.Player ? 1f : -1f, 0, 0));
                 break;
 
-            case SimBehavior.MoveTowardTarget:
+            case MovementResult.TowardTarget:
             {
                 var targetPos = SimUtils.ResolveTargetPosition(behavior.MoveTargetId, state);
                 if (!targetPos.HasValue)
@@ -60,7 +61,7 @@ public static class SimMovement
                 break;
             }
 
-            case SimBehavior.MoveStrafe:
+            case MovementResult.Strafe:
             {
                 var targetPos = SimUtils.ResolveTargetPosition(behavior.MoveTargetId, state);
                 if (!targetPos.HasValue)
@@ -86,7 +87,7 @@ public static class SimMovement
                 break;
             }
 
-            default: // MoveNone
+            default: // MovementResult.None
                 unit.Velocity = SimVector3.Zero;
                 SimSteering.CorrectOverlaps(unit, state);
                 return;
