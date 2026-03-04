@@ -37,6 +37,36 @@ public partial class PlatformBillingService : Node
         WEB,
     }
 
+    private sealed partial class DisabledBillingProvider : BillingProvider
+    {
+        private readonly string _reason;
+
+        public DisabledBillingProvider(string reason)
+        {
+            _reason = reason;
+        }
+
+        public override bool is_available()
+        {
+            return false;
+        }
+
+        public override void purchase(string product_id)
+        {
+            EmitSignal("purchase_failed", product_id, _reason);
+        }
+
+        public override void restore_purchases()
+        {
+            EmitSignal("restore_failed", _reason);
+        }
+
+        public override string get_provider_name()
+        {
+            return "DisabledBilling";
+        }
+    }
+
     public static PlatformBillingService? Instance { get; private set; }
 
     public Platform current_platform = Platform.UNKNOWN;
@@ -159,10 +189,10 @@ public partial class PlatformBillingService : Node
         return current_platform switch
         {
             Platform.EDITOR => _create_stub_provider(),
-            Platform.STEAM => _create_with_fallback(new SteamBillingProvider(), "Steam"),
-            Platform.IOS => _create_with_fallback(new IOSBillingProvider(), "iOS"),
-            Platform.ANDROID => _create_with_fallback(new AndroidBillingProvider(), "Android"),
-            _ => _create_stub_provider(),
+            Platform.STEAM => _create_platform_provider(new SteamBillingProvider(), "Steam"),
+            Platform.IOS => _create_platform_provider(new IOSBillingProvider(), "iOS"),
+            Platform.ANDROID => _create_platform_provider(new AndroidBillingProvider(), "Android"),
+            _ => _create_disabled_provider("Billing is not supported on this platform"),
         };
     }
 
@@ -173,21 +203,24 @@ public partial class PlatformBillingService : Node
         return provider;
     }
 
-    private BillingProvider _create_with_fallback(BillingProvider provider, string platform_name)
+    private BillingProvider _create_platform_provider(BillingProvider provider, string platform_name)
     {
         provider.Name = $"{platform_name}Provider";
         AddChild(provider);
         provider.initialize();
         _provider_initialized = true;
 
-        if (provider.is_available())
-            return provider;
+        if (!provider.is_available())
+            GD.PushError($"{platform_name} billing provider unavailable; purchases are disabled for this session.");
 
-        GD.PushWarning($"{platform_name} billing provider unavailable, falling back to stub");
-        RemoveChild(provider);
-        provider.QueueFree();
-        _provider_initialized = false;
-        return _create_stub_provider();
+        return provider;
+    }
+
+    private BillingProvider _create_disabled_provider(string reason)
+    {
+        var provider = new DisabledBillingProvider(reason) { Name = "DisabledBillingProvider" };
+        AddChild(provider);
+        return provider;
     }
 
     private void _connect_provider_signals()
