@@ -54,6 +54,18 @@ public partial class BattleScene : Node3D
 	/// Max frames to wait for a single scene to load (~5 seconds at 60fps)
 	private const int SceneLoadTimeoutFrames = 300;
 
+	// Client defaults — host snapshots overwrite within ~100ms
+	private const float DefaultMana = 100f;
+	private const float DefaultMaxMana = 100f;
+	private const float DefaultCastSpeed = 1.0f;
+
+	// Emergency fallback deck (test mode only)
+	private const string EmergencyDeckCardId = "fire_wisp";
+	private const int EmergencyDeckSize = 3;
+
+	// BattleContext state: CONFIGURED (ready for battle)
+	private const int BattleContextConfigured = 1;
+
 	// =========================================================================
 	// SIGNALS (emitted for GDScript UI consumers)
 	// =========================================================================
@@ -73,7 +85,7 @@ public partial class BattleScene : Node3D
 	public override async void _Ready()
 	{
 		AddToGroup(GroupIDs.GameController);
-		AddToGroup("battle_coordinator");
+		AddToGroup(GroupIDs.BattleCoordinator);
 
 		// Build typed config from BattleContext (one-time read)
 		_config = BuildSessionConfig();
@@ -214,7 +226,7 @@ public partial class BattleScene : Node3D
 	{
 		GetTree().Paused = false;
 		var bc = GetNodeOrNull("/root/BattleContext");
-		bc?.Set("battle_state", 1); // CONFIGURED
+		bc?.Set("battle_state", BattleContextConfigured);
 		GetTree().ReloadCurrentScene();
 	}
 
@@ -476,7 +488,7 @@ public partial class BattleScene : Node3D
 		// Host snapshots overwrite these values within ~100ms
 		simNode.RegisterSummoner(
 			sv.Team, sv.MaxHpExport, sv.MaxHpExport,
-			100f, 100f, 1.0f,
+			DefaultMana, DefaultMaxMana, DefaultCastSpeed,
 			Array.Empty<string>(), sv.MaxHandSize,
 			sv.GlobalPosition
 		);
@@ -577,9 +589,9 @@ public partial class BattleScene : Node3D
 	private Godot.Collections.Array<Resource> CreateEmergencyDeck()
 	{
 		var deck = new Godot.Collections.Array<Resource>();
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < EmergencyDeckSize; i++)
 		{
-			var card = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
+			var card = BattleSessionFactory.CreateCardFromCatalog(EmergencyDeckCardId);
 			if (card != null) deck.Add(card);
 		}
 		return deck;

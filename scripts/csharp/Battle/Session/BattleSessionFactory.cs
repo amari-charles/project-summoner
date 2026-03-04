@@ -4,6 +4,7 @@ using Godot;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Infrastructure.Persistence;
+using Fateforged.View;
 
 namespace Fateforged.Session;
 
@@ -50,7 +51,7 @@ public static class BattleSessionFactory
         Node caller,
         BattleSessionConfig config,
         int localTeam,
-        int deckLoadStrategy,
+        DeckLoadStrategy deckLoadStrategy,
         float defaultMaxHp,
         int maxHandSize,
         Godot.Collections.Array<Resource> staticDeck)
@@ -61,16 +62,16 @@ public static class BattleSessionFactory
             MaxHp = defaultMaxHp,
         };
 
-        int strategy = ResolveStrategy(deckLoadStrategy, localTeam, config);
+        var strategy = ResolveStrategy(deckLoadStrategy, localTeam, config);
 
         switch (strategy)
         {
-            case 0: // STATIC
+            case DeckLoadStrategy.Static:
                 GD.Print("[BattleSessionFactory] Using STATIC starting deck");
                 result.Deck = new Godot.Collections.Array<Resource>(staticDeck);
                 break;
 
-            case 1: // BATTLE_CONTEXT
+            case DeckLoadStrategy.BattleContext:
                 GD.Print("[BattleSessionFactory] Loading enemy deck from BattleContext...");
                 LoadDeckFromBattleContext(config.RawConfig, result);
                 if (result.Deck.Count == 0)
@@ -80,7 +81,7 @@ public static class BattleSessionFactory
                 }
                 break;
 
-            case 2: // PROFILE
+            case DeckLoadStrategy.Profile:
                 GD.Print("[BattleSessionFactory] Loading deck from player profile...");
                 LoadDeckFromProfile(caller, config, localTeam, result);
                 if (result.Deck.Count == 0)
@@ -94,7 +95,7 @@ public static class BattleSessionFactory
                 }
                 break;
 
-            case 3: // DEFERRED
+            case DeckLoadStrategy.Deferred:
                 GD.Print("[BattleSessionFactory] Using DEFERRED strategy - deck will be set manually later");
                 result.IsDeferred = true;
                 break;
@@ -127,16 +128,16 @@ public static class BattleSessionFactory
     // STRATEGY RESOLUTION
     // =========================================================================
 
-    private static int ResolveStrategy(int strategy, int localTeam, BattleSessionConfig config)
+    private static DeckLoadStrategy ResolveStrategy(DeckLoadStrategy strategy, int localTeam, BattleSessionConfig config)
     {
         // Auto-correct strategy based on team
-        if (localTeam == 0 && strategy == 1) // Player with BATTLE_CONTEXT
-            strategy = 2; // Switch to PROFILE
-        else if (localTeam == 1 && strategy == 2) // Enemy with PROFILE
-            strategy = 1; // Switch to BATTLE_CONTEXT
+        if (localTeam == 0 && strategy == DeckLoadStrategy.BattleContext)
+            strategy = DeckLoadStrategy.Profile;
+        else if (localTeam == 1 && strategy == DeckLoadStrategy.Profile)
+            strategy = DeckLoadStrategy.BattleContext;
 
         // Auto-detect event_sequence battles with empty enemy deck
-        if (localTeam == 1 && strategy == 1 && config.HasEventSequence)
+        if (localTeam == 1 && strategy == DeckLoadStrategy.BattleContext && config.HasEventSequence)
         {
             if (config.RawConfig.ContainsKey("enemy_deck"))
             {
@@ -147,7 +148,7 @@ public static class BattleSessionFactory
                     if (arr.Count == 0)
                     {
                         GD.Print("[BattleSessionFactory] Battle uses event_sequence with empty enemy_deck - switching to DEFERRED");
-                        strategy = 3; // DEFERRED
+                        strategy = DeckLoadStrategy.Deferred;
                     }
                 }
             }

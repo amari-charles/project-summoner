@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.Session;
 
 using Fateforged.Session;
+using Fateforged.Simulation;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
@@ -55,7 +56,7 @@ public class BattleSessionConfigTest
     public void NewConfig_HasDefaultWinCondition()
     {
         var config = new BattleSessionConfig();
-        AssertThat(config.WinCondition).IsEqual("destroy_base");
+        AssertThat(config.WinCondition).IsEqual(WinConditionType.DestroySummoner);
     }
 
     // =========================================================================

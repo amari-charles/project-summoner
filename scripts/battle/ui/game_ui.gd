@@ -246,6 +246,28 @@ func _create_prep_timer_label() -> void:
 	add_child(prep_timer_label)
 
 ## Handle battle phase change (PREPARATION -> BATTLE)
+func _exit_tree() -> void:
+	if game_controller:
+		if game_controller.has_signal("TimeUpdated") and game_controller.is_connected("TimeUpdated", _on_time_updated):
+			game_controller.disconnect("TimeUpdated", _on_time_updated)
+		if game_controller.has_signal("GameEnded") and game_controller.is_connected("GameEnded", _on_game_ended):
+			game_controller.disconnect("GameEnded", _on_game_ended)
+		if game_controller.has_signal("PhaseChanged") and game_controller.is_connected("PhaseChanged", _on_phase_changed):
+			game_controller.disconnect("PhaseChanged", _on_phase_changed)
+		if game_controller.has_signal("PrepTimerUpdated") and game_controller.is_connected("PrepTimerUpdated", _on_prep_timer_updated):
+			game_controller.disconnect("PrepTimerUpdated", _on_prep_timer_updated)
+	if player_summoner:
+		if player_summoner.has_signal("ManaChanged") and player_summoner.is_connected("ManaChanged", _on_mana_changed):
+			player_summoner.disconnect("ManaChanged", _on_mana_changed)
+		if player_summoner.has_signal("HpChanged") and player_summoner.is_connected("HpChanged", _on_player_hp_changed):
+			player_summoner.disconnect("HpChanged", _on_player_hp_changed)
+	if enemy_summoner:
+		if enemy_summoner.has_signal("HpChanged") and enemy_summoner.is_connected("HpChanged", _on_enemy_hp_changed):
+			enemy_summoner.disconnect("HpChanged", _on_enemy_hp_changed)
+		if enemy_summoner.has_signal("ManaChanged") and enemy_summoner.is_connected("ManaChanged", _on_enemy_mana_changed):
+			enemy_summoner.disconnect("ManaChanged", _on_enemy_mana_changed)
+
+
 func _on_phase_changed(new_phase: int) -> void:
 	if phase_label:
 		if new_phase == UnitConstants.BattlePhase.PREPARATION:

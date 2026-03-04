@@ -5,6 +5,16 @@ using Fateforged.Simulation.Enums;
 namespace Fateforged.Simulation.Data;
 
 /// <summary>
+/// Direction a blocked unit is flanking around an obstacle.
+/// </summary>
+public enum FlankDirection
+{
+    Left = -1,
+    None = 0,
+    Right = 1
+}
+
+/// <summary>
 /// Per-unit gameplay state stored in MatchState.
 /// Tracks ALL logical state for each spawned unit.
 /// The simulation operates exclusively on UnitData — Unit3D is a visual puppet.
@@ -105,7 +115,7 @@ public class UnitData
     public float BlockedTime { get; set; }
     public SimVector3 LastPosition { get; set; }
     public float FlankAngle { get; set; } = 90f;
-    public int FlankDirection { get; set; } // -1=left, 0=none, 1=right
+    public FlankDirection FlankDirection { get; set; }
     public float FlankProgressTimer { get; set; }
 
     // Death cleanup

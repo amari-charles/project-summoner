@@ -35,7 +35,7 @@ public static class SimMovement
         {
             case SimBehavior.MoveForward:
                 velocity = CalculateForward(unit, state);
-                UpdateFacing(unit, new SimVector3(unit.Team == 0 ? 1f : -1f, 0, 0));
+                UpdateFacing(unit, new SimVector3(unit.Team == Team.Player ? 1f : -1f, 0, 0));
                 break;
 
             case SimBehavior.MoveTowardTarget:
@@ -44,7 +44,7 @@ public static class SimMovement
                 if (!targetPos.HasValue)
                 {
                     velocity = CalculateForward(unit, state);
-                    UpdateFacing(unit, new SimVector3(unit.Team == 0 ? 1f : -1f, 0, 0));
+                    UpdateFacing(unit, new SimVector3(unit.Team == Team.Player ? 1f : -1f, 0, 0));
                 }
                 else
                 {
@@ -66,7 +66,7 @@ public static class SimMovement
                 if (!targetPos.HasValue)
                 {
                     velocity = CalculateForward(unit, state);
-                    UpdateFacing(unit, new SimVector3(unit.Team == 0 ? 1f : -1f, 0, 0));
+                    UpdateFacing(unit, new SimVector3(unit.Team == Team.Player ? 1f : -1f, 0, 0));
                 }
                 else
                 {
@@ -122,7 +122,7 @@ public static class SimMovement
     /// </summary>
     private static SimVector3 CalculateForward(UnitData unit, MatchState state)
     {
-        float direction = unit.Team == 0 ? 1.0f : -1.0f;
+        float direction = unit.Team == Team.Player ? 1.0f : -1.0f;
         var moveDir = new SimVector3(direction, 0, 0);
         float effectiveSpeed = SimEffects.GetEffectiveMoveSpeed(unit);
 
@@ -155,7 +155,7 @@ public static class SimMovement
         MatchState state, float delta)
     {
         // For ground units, ignore Y difference
-        if (unit.MovementLayer == 0) // Ground
+        if (unit.MovementLayer == MovementLayer.Ground)
             targetPos.Y = unit.Position.Y;
 
         var direction = (targetPos - unit.Position);

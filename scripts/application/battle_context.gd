@@ -55,6 +55,9 @@ var biome_id: StringName = BiomeIDs.SUMMER_PLAINS
 ## Track if battle was configured (for debugging)
 var was_configured: bool = false
 
+## Set to true to enable verbose logging
+var debug_mode: bool = false
+
 ## Scene to return to after battle (campaign map, arena menu, etc.)
 var origin_scene: String = ""
 
@@ -82,7 +85,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
 	_battle_id = battle_id
 
-	print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
+	if debug_mode: print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
 	# Campaign is an autoload, access it directly
 	battle_config = Campaign.GetBattle(battle_id)
@@ -96,7 +99,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 	# Set level cap if configured (use typed accessor)
 	_level_cap = battle_event.level_cap
 	if _level_cap > 0:
-		print("BattleContext: Level cap set to %d" % _level_cap)
+		if debug_mode: print("BattleContext: Level cap set to %d" % _level_cap)
 
 	# Get enemy deck size safely
 	var enemy_deck_variant: Variant = battle_config.get("enemy_deck", [])
@@ -105,7 +108,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 		var enemy_deck_array: Array = enemy_deck_variant
 		enemy_deck_size = enemy_deck_array.size()
 
-	print("BattleContext: Configured campaign battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
+	if debug_mode: print("BattleContext: Configured campaign battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
 		battle_id,
 		battle_config.has("enemy_deck"),
 		enemy_deck_size
@@ -127,7 +130,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 
 	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
 
-	print("BattleContext: Configured practice battle")
+	if debug_mode: print("BattleContext: Configured practice battle")
 
 ## Configure for arena battle (future)
 func configure_arena_battle(_difficulty: int) -> void:
@@ -185,7 +188,7 @@ func configure_multiplayer_battle(
 
 	biome_id = BiomeIDs.SUMMER_PLAINS  # Could randomize or let host choose
 
-	print("BattleContext: Configured multiplayer battle (host: %s, seed: %d)" % [is_host, battle_seed])
+	if debug_mode: print("BattleContext: Configured multiplayer battle (host: %s, seed: %d)" % [is_host, battle_seed])
 
 ## Set ranked match info for match reporting after battle ends
 func set_ranked_match_info(info: Dictionary) -> void:
@@ -219,7 +222,7 @@ func clear() -> void:
 	_player_summoner_stats.clear()
 	_level_cap = 0
 
-	print("BattleContext: Cleared")
+	if debug_mode: print("BattleContext: Cleared")
 
 ## Get the scene to return to after battle
 func get_origin_scene() -> String:
@@ -234,7 +237,7 @@ func start_battle() -> void:
 		return
 
 	battle_state = BattleState.IN_PROGRESS
-	print("BattleContext: Battle started")
+	if debug_mode: print("BattleContext: Battle started")
 
 ## Mark battle as victory (called by GameController on player win)
 func end_battle_victory() -> void:
@@ -242,7 +245,7 @@ func end_battle_victory() -> void:
 		push_warning("BattleContext: end_battle_victory() called in invalid state: %d" % battle_state)
 		return
 	battle_state = BattleState.VICTORY
-	print("BattleContext: Battle ended - VICTORY")
+	if debug_mode: print("BattleContext: Battle ended - VICTORY")
 
 ## Mark battle as defeat (called by GameController on player loss)
 func end_battle_defeat() -> void:
@@ -250,7 +253,7 @@ func end_battle_defeat() -> void:
 		push_warning("BattleContext: end_battle_defeat() called in invalid state: %d" % battle_state)
 		return
 	battle_state = BattleState.DEFEAT
-	print("BattleContext: Battle ended - DEFEAT")
+	if debug_mode: print("BattleContext: Battle ended - DEFEAT")
 
 ## Abandon battle (called when player quits mid-battle)
 ## Sets state and clears local tracking. Service cleanup (profile, campaign)
@@ -259,7 +262,7 @@ func abandon_battle() -> void:
 	if battle_state == BattleState.NONE:
 		return
 
-	print("BattleContext: Battle abandoned")
+	if debug_mode: print("BattleContext: Battle abandoned")
 	battle_state = BattleState.ABANDONED
 	_deck_card_instance_ids.clear()
 
@@ -270,7 +273,7 @@ func abandon_battle() -> void:
 ## Set player summoner stats (called by Summoner when summoner is loaded)
 func set_player_summoner_stats(stats: Dictionary) -> void:
 	_player_summoner_stats = stats.duplicate()
-	print("BattleContext: Cached player summoner stats - damage_bonus: %.0f%%, damage_reduction: %.0f" % [
+	if debug_mode: print("BattleContext: Cached player summoner stats - damage_bonus: %.0f%%, damage_reduction: %.0f" % [
 		_player_summoner_stats.get("damage_bonus", 0.0),
 		_player_summoner_stats.get("damage_reduction", 0.0)
 	])
@@ -307,6 +310,7 @@ func get_effective_card_level(card_level: int) -> int:
 	if level_cap_service:
 		return level_cap_service.GetEffectiveLevel(card_level, _level_cap)
 	# Fallback if service not available
+	push_warning("BattleContext: LevelCapService unavailable, using inline fallback for get_effective_card_level")
 	if _level_cap <= 0:
 		return card_level
 	return mini(card_level, _level_cap)
@@ -318,6 +322,7 @@ func get_effective_card_upgrades(upgrades: Array) -> Array:
 	if level_cap_service:
 		return level_cap_service.GetEffectiveUpgradesArray(upgrades, _level_cap)
 	# Fallback if service not available
+	push_warning("BattleContext: LevelCapService unavailable, using inline fallback for get_effective_card_upgrades")
 	if _level_cap <= 0:
 		return upgrades.duplicate()
 	var max_upgrades: int = _level_cap - 1
@@ -339,7 +344,7 @@ func store_deck_card_ids(deck: Array) -> void:
 	for card: Variant in deck:
 		if card and card.InstanceId and not card.InstanceId.is_empty():
 			_deck_card_instance_ids.append(card.InstanceId)
-	print("BattleContext: Stored %d deck card IDs for XP rewards" % _deck_card_instance_ids.size())
+	if debug_mode: print("BattleContext: Stored %d deck card IDs for XP rewards" % _deck_card_instance_ids.size())
 
 ## Get list of all deck card instance IDs
 func get_deck_card_ids() -> Array[String]:

@@ -164,32 +164,8 @@ public static class SimTargeting
     /// <summary>
     /// Check if a unit can attack a target (cone constraint satisfied).
     /// Used by SimBehavior to decide between attacking and fallback movement.
+    /// Delegates to CanAttackPosition using the target's current position.
     /// </summary>
     public static bool CanAttack(UnitData unit, UnitData target)
-    {
-        if (!unit.HasConeConstraint)
-            return true;
-
-        var toTarget = target.Position - unit.Position;
-
-        // Very close — always OK
-        if (toTarget.Length() < unit.CloseRangeThreshold)
-            return true;
-
-        // Horizontal cone check (XZ plane only)
-        float hDx = toTarget.X;
-        float hDz = toTarget.Z;
-        float horizontalLen = MathF.Sqrt(hDx * hDx + hDz * hDz);
-        if (horizontalLen < unit.CloseRangeThreshold)
-            return true;
-
-        float angleToTarget = SimMath.RadToDeg(MathF.Atan2(hDz, hDx));
-        float facingAngle = unit.IsFacingRight ? 0f : 180f;
-
-        float angleDiff = angleToTarget - facingAngle;
-        while (angleDiff > 180f) angleDiff -= 360f;
-        while (angleDiff < -180f) angleDiff += 360f;
-
-        return MathF.Abs(angleDiff) <= unit.ConeHalfAngle;
-    }
+        => CanAttackPosition(unit, target.Position);
 }

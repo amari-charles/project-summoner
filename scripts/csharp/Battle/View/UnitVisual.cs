@@ -18,6 +18,11 @@ namespace Fateforged.View;
 /// </summary>
 public partial class UnitVisual : Node3D, IDamageableVisual
 {
+    private const float RenderPriorityScale = 3.0f;
+    private const float DeathAnimationDuration = 1.0f;
+    private const int RenderPriorityMin = -128;
+    private const int RenderPriorityMax = 127;
+
     private IGameSession? _session;
     private int _unitId;
     private bool _isAlive = true;
@@ -164,8 +169,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         }
 
         // Update render priority for correct sprite layering
-        float rawPriority = (-GlobalPosition.Z + GlobalPosition.Y) * 3.0f;
-        int priority = (int)Mathf.Clamp(rawPriority, -128, 127);
+        float rawPriority = (-GlobalPosition.Z + GlobalPosition.Y) * RenderPriorityScale;
+        int priority = (int)Mathf.Clamp(rawPriority, RenderPriorityMin, RenderPriorityMax);
         _visual?.SetRenderPriority(priority);
     }
 
@@ -196,18 +201,18 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         }
 
         // Queue free after death animation completes
-        GetTree().CreateTimer(1.0).Timeout += QueueFree;
+        GetTree().CreateTimer(DeathAnimationDuration).Timeout += QueueFree;
     }
 
     public void ShowBuffIcon(EffectType effectType)
     {
-        // Stub — full implementation in Milestone 2
+        // Stub — visual implementation pending
         GD.Print($"[UnitVisual] ShowBuffIcon: {effectType} on unit {_unitId}");
     }
 
     public void ShowEvadeText()
     {
-        // Stub — full implementation in Milestone 2
+        // Stub — visual implementation pending
         GD.Print($"[UnitVisual] ShowEvadeText on unit {_unitId}");
     }
 }

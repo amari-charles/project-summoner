@@ -95,11 +95,11 @@ func _ready() -> void:
 	# Wait for services to be ready
 	await get_tree().process_frame
 
-	_repo = get_node("/root/ProfileRepo")
-	_economy = get_node("/root/Economy")
-	_collection = get_node("/root/CardService")
-	_decks = get_node("/root/Decks")
-	_snapshots = get_node("/root/DebugSnapshots")
+	_repo = ProfileRepo
+	_economy = Economy
+	_collection = CardService
+	_decks = Decks
+	_snapshots = DebugSnapshots
 
 	print("DevConsole: Ready (F12 to open console - future)")
 

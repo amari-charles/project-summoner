@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Units;
+using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Enums;
 
@@ -28,7 +29,7 @@ public class MatchState
 
     // Win condition
     public int? WinnerTeam { get; set; }
-    public string WinCondition { get; set; } = "";
+    public WinConditionType WinCondition { get; set; } = WinConditionType.DestroySummoner;
     public int KillCount { get; set; }
     public float WinConditionTimeLimit { get; set; }
     public int WinConditionKillTarget { get; set; }

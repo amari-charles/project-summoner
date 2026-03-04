@@ -24,6 +24,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     private readonly Dictionary<int, SummonerVisual> _summonerRegistry = new();
 
     private bool _isPaused;
+    private readonly List<int> _cleanupBuffer = new();
 
     // --- Initialization ---
 
@@ -43,6 +44,12 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             Initialize(session);
         else
             GD.PrintErr($"[EntityManager] Node {sessionNode.Name} does not implement IGameSession");
+    }
+
+    public override void _ExitTree()
+    {
+        if (_session != null)
+            _session.SimEventsEmitted -= OnSimEvents;
     }
 
     public void RegisterSummonerVisual(SummonerVisual shell, int teamIndex)
@@ -82,35 +89,35 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         }
 
         // Clean up freed unit nodes
-        var toRemove = new List<int>();
+        _cleanupBuffer.Clear();
         foreach (var (unitId, shell) in _unitRegistry)
         {
             if (!IsInstanceValid(shell))
             {
-                toRemove.Add(unitId);
+                _cleanupBuffer.Add(unitId);
             }
         }
-        foreach (var id in toRemove)
+        foreach (var id in _cleanupBuffer)
         {
             _unitRegistry.Remove(id);
         }
 
         // Clean up freed or dead projectile nodes
-        toRemove.Clear();
+        _cleanupBuffer.Clear();
         foreach (var (projId, shell) in _projectileRegistry)
         {
             if (!IsInstanceValid(shell))
             {
-                toRemove.Add(projId);
+                _cleanupBuffer.Add(projId);
             }
             else if (!state.Projectiles.ContainsKey(projId))
             {
                 // Projectile removed from state — destroy shell
                 shell.PlayImpactAndDestroy();
-                toRemove.Add(projId);
+                _cleanupBuffer.Add(projId);
             }
         }
-        foreach (var id in toRemove)
+        foreach (var id in _cleanupBuffer)
         {
             _projectileRegistry.Remove(id);
         }
@@ -148,22 +155,6 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         AddChild(shell);
         shell.Initialize(_session!, projData.ProjectileId);
         return shell;
-    }
-
-    private void DestroyShell(int entityId)
-    {
-        if (_unitRegistry.TryGetValue(entityId, out var unitShell))
-        {
-            if (IsInstanceValid(unitShell))
-                unitShell.QueueFree();
-            _unitRegistry.Remove(entityId);
-        }
-        if (_projectileRegistry.TryGetValue(entityId, out var projShell))
-        {
-            if (IsInstanceValid(projShell))
-                projShell.QueueFree();
-            _projectileRegistry.Remove(entityId);
-        }
     }
 
     // --- Event Dispatch ---

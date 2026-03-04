@@ -189,7 +189,7 @@ public class HeuristicAiStrategyTest
     {
         var zone = HeuristicAiStrategy.SelectSpawnZone(AiPersonality.Aggressive,
             HeuristicAiStrategy.BattlefieldState.Winning);
-        AssertThat(zone).IsEqual("aggressive");
+        AssertThat(zone).IsEqual(HeuristicAiStrategy.SpawnZone.Aggressive);
     }
 
     [TestCase]
@@ -197,7 +197,7 @@ public class HeuristicAiStrategyTest
     {
         var zone = HeuristicAiStrategy.SelectSpawnZone(AiPersonality.Defensive,
             HeuristicAiStrategy.BattlefieldState.Losing);
-        AssertThat(zone).IsEqual("defensive");
+        AssertThat(zone).IsEqual(HeuristicAiStrategy.SpawnZone.Defensive);
     }
 
     [TestCase]
@@ -205,7 +205,7 @@ public class HeuristicAiStrategyTest
     {
         var zone = HeuristicAiStrategy.SelectSpawnZone(AiPersonality.Balanced,
             HeuristicAiStrategy.BattlefieldState.Even);
-        AssertThat(zone).IsEqual("neutral");
+        AssertThat(zone).IsEqual(HeuristicAiStrategy.SpawnZone.Neutral);
     }
 
     // =========================================================================

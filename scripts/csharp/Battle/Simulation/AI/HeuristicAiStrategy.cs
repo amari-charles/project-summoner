@@ -16,6 +16,8 @@ public static class HeuristicAiStrategy
 
     public enum BattlefieldState { LosingBadly, Losing, Even, Winning }
 
+    public enum SpawnZone { Defensive, Neutral, Aggressive }
+
     // =========================================================================
     // CARD SCORING CONSTANTS
     // =========================================================================
@@ -148,7 +150,7 @@ public static class HeuristicAiStrategy
 
         int team = (int)summoner.Team;
         var battleState = EvaluateBattlefieldState(state, team, summoner);
-        string zone = SelectSpawnZone(summoner.Ai.Personality, battleState);
+        var zone = SelectSpawnZone(summoner.Ai.Personality, battleState);
 
         return GetRandomPositionInZone(zone, team, state.Rng);
     }
@@ -316,33 +318,33 @@ public static class HeuristicAiStrategy
     /// <summary>
     /// Select which spawn zone based on personality and battlefield state.
     /// </summary>
-    public static string SelectSpawnZone(AiPersonality personality, BattlefieldState state)
+    public static SpawnZone SelectSpawnZone(AiPersonality personality, BattlefieldState state)
     {
         switch (personality)
         {
             case AiPersonality.Aggressive:
-                return state == BattlefieldState.Winning ? "aggressive" : "neutral";
+                return state == BattlefieldState.Winning ? SpawnZone.Aggressive : SpawnZone.Neutral;
             case AiPersonality.Defensive:
-                return state is BattlefieldState.LosingBadly or BattlefieldState.Losing ? "defensive" : "neutral";
+                return state is BattlefieldState.LosingBadly or BattlefieldState.Losing ? SpawnZone.Defensive : SpawnZone.Neutral;
             case AiPersonality.SpellFocused:
-                return "neutral";
+                return SpawnZone.Neutral;
             case AiPersonality.Balanced:
                 return state switch
                 {
-                    BattlefieldState.Losing => "defensive",
-                    BattlefieldState.LosingBadly => "defensive",
-                    BattlefieldState.Winning => "aggressive",
-                    _ => "neutral"
+                    BattlefieldState.Losing => SpawnZone.Defensive,
+                    BattlefieldState.LosingBadly => SpawnZone.Defensive,
+                    BattlefieldState.Winning => SpawnZone.Aggressive,
+                    _ => SpawnZone.Neutral
                 };
             default:
-                return "neutral";
+                return SpawnZone.Neutral;
         }
     }
 
     /// <summary>
-    /// Get a random position within a named zone using BattlefieldBounds constants.
+    /// Get a random position within a zone using BattlefieldBounds constants.
     /// </summary>
-    public static SimVector3 GetRandomPositionInZone(string zone, int team, DeterministicRng rng)
+    public static SimVector3 GetRandomPositionInZone(SpawnZone zone, int team, DeterministicRng rng)
     {
         float halfWidth = BattlefieldBounds.HalfWidth;
         float halfDepth = BattlefieldBounds.HalfDepth;
@@ -351,15 +353,15 @@ public static class HeuristicAiStrategy
         float zoneMin, zoneMax;
         switch (zone)
         {
-            case "defensive":
+            case SpawnZone.Defensive:
                 zoneMin = SpawnZoneDefensiveMin;
                 zoneMax = SpawnZoneDefensiveMax;
                 break;
-            case "aggressive":
+            case SpawnZone.Aggressive:
                 zoneMin = SpawnZoneAggressiveMin;
                 zoneMax = SpawnZoneAggressiveMax;
                 break;
-            case "neutral":
+            case SpawnZone.Neutral:
                 zoneMin = SpawnZoneNeutralMin;
                 zoneMax = SpawnZoneNeutralMax;
                 break;

@@ -1,5 +1,21 @@
 using Fateforged.Simulation.Data;
+
 namespace Fateforged.Simulation;
+
+/// <summary>
+/// Type of win condition for a battle. Determines how a match is won or lost.
+/// </summary>
+public enum WinConditionType
+{
+    /// <summary>Destroy the enemy summoner. Default mode.</summary>
+    DestroySummoner,
+    /// <summary>Survive for a specified duration.</summary>
+    SurviveTime,
+    /// <summary>Destroy enemy summoner within a time limit.</summary>
+    TimedDestroy,
+    /// <summary>Kill a target number of enemy units.</summary>
+    KillCount
+}
 
 /// <summary>
 /// Result of evaluating a win condition.
@@ -38,17 +54,7 @@ public interface IWinCondition
 public class DestroySummonerWinCondition : IWinCondition
 {
     public WinConditionResult? Evaluate(MatchState state)
-    {
-        for (int i = 0; i < state.Summoners.Length; i++)
-        {
-            if (!state.Summoners[i].IsAlive)
-            {
-                int winner = i == 0 ? 1 : 0;
-                return new WinConditionResult(winner, "Summoner destroyed");
-            }
-        }
-        return null;
-    }
+        => WinConditionHelper.CheckSummonerDeath(state);
 }
 
 /// <summary>
@@ -66,21 +72,12 @@ public class SurviveTimeWinCondition : IWinCondition
 
     public WinConditionResult? Evaluate(MatchState state)
     {
-        // Check summoner deaths first (either side)
-        for (int i = 0; i < state.Summoners.Length; i++)
-        {
-            if (!state.Summoners[i].IsAlive)
-            {
-                int winner = i == 0 ? 1 : 0;
-                return new WinConditionResult(winner, "Summoner destroyed");
-            }
-        }
+        var death = WinConditionHelper.CheckSummonerDeath(state);
+        if (death != null) return death;
 
         // Survived long enough — player wins
         if (state.MatchTime >= TimeLimit)
-        {
             return new WinConditionResult(0, "Survived");
-        }
 
         return null;
     }
@@ -100,21 +97,12 @@ public class TimedDestroyWinCondition : IWinCondition
 
     public WinConditionResult? Evaluate(MatchState state)
     {
-        // Check summoner deaths first
-        for (int i = 0; i < state.Summoners.Length; i++)
-        {
-            if (!state.Summoners[i].IsAlive)
-            {
-                int winner = i == 0 ? 1 : 0;
-                return new WinConditionResult(winner, "Summoner destroyed");
-            }
-        }
+        var death = WinConditionHelper.CheckSummonerDeath(state);
+        if (death != null) return death;
 
         // Time ran out — player loses
         if (state.MatchTime >= TimeLimit)
-        {
             return new WinConditionResult(1, "Time expired");
-        }
 
         return null;
     }
@@ -135,7 +123,28 @@ public class KillCountWinCondition : IWinCondition
 
     public WinConditionResult? Evaluate(MatchState state)
     {
-        // Check summoner deaths first
+        var death = WinConditionHelper.CheckSummonerDeath(state);
+        if (death != null) return death;
+
+        // Kill target reached
+        if (state.KillCount >= KillTarget)
+            return new WinConditionResult(0, "Kill target reached");
+
+        return null;
+    }
+}
+
+/// <summary>
+/// Shared helpers for win condition evaluation.
+/// </summary>
+internal static class WinConditionHelper
+{
+    /// <summary>
+    /// Check if any summoner has been destroyed.
+    /// Returns the winner (opposing team) or null if both are alive.
+    /// </summary>
+    internal static WinConditionResult? CheckSummonerDeath(MatchState state)
+    {
         for (int i = 0; i < state.Summoners.Length; i++)
         {
             if (!state.Summoners[i].IsAlive)
@@ -144,39 +153,42 @@ public class KillCountWinCondition : IWinCondition
                 return new WinConditionResult(winner, "Summoner destroyed");
             }
         }
-
-        // Kill target reached
-        if (state.KillCount >= KillTarget)
-        {
-            return new WinConditionResult(0, "Kill target reached");
-        }
-
         return null;
     }
 }
 
 /// <summary>
-/// Factory for creating IWinCondition from string identifiers (matches WinConditionIDs.gd).
+/// Factory for creating IWinCondition from WinConditionType and MatchState parameters.
 /// </summary>
 public static class WinConditionFactory
 {
-    // Constants matching WinConditionIDs.gd
-    public const string DESTROY_BASE = "destroy_base";
-    public const string SURVIVE_TIME = "survive_time";
-    public const string TIMED_DESTROY = "timed_destroy";
-    public const string KILL_COUNT = "kill_count";
-
     /// <summary>
-    /// Create a win condition from its string identifier and parameters from MatchState.
+    /// Create a win condition from the MatchState's WinConditionType and parameters.
     /// </summary>
     public static IWinCondition Create(MatchState state)
     {
         return state.WinCondition switch
         {
-            SURVIVE_TIME => new SurviveTimeWinCondition(state.WinConditionTimeLimit),
-            TIMED_DESTROY => new TimedDestroyWinCondition(state.WinConditionTimeLimit),
-            KILL_COUNT => new KillCountWinCondition(state.WinConditionKillTarget),
+            WinConditionType.SurviveTime => new SurviveTimeWinCondition(state.WinConditionTimeLimit),
+            WinConditionType.TimedDestroy => new TimedDestroyWinCondition(state.WinConditionTimeLimit),
+            WinConditionType.KillCount => new KillCountWinCondition(state.WinConditionKillTarget),
             _ => new DestroySummonerWinCondition()
+        };
+    }
+
+    /// <summary>
+    /// Parse a GDScript win condition string (from WinConditionIDs.gd) into the enum.
+    /// Returns DestroySummoner for unrecognized values.
+    /// </summary>
+    public static WinConditionType Parse(string value)
+    {
+        return value switch
+        {
+            "destroy_base" => WinConditionType.DestroySummoner,
+            "survive_time" => WinConditionType.SurviveTime,
+            "timed_destroy" => WinConditionType.TimedDestroy,
+            "kill_count" => WinConditionType.KillCount,
+            _ => WinConditionType.DestroySummoner
         };
     }
 }

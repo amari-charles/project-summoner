@@ -3,6 +3,7 @@ namespace Fateforged.Tests.Simulation;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
+using Fateforged.Units;
 using GdUnit4;
 using Fateforged.Cards;
 using static GdUnit4.Assertions;
@@ -311,7 +312,7 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         // Add a shield that can absorb all damage
-        SimEffects.ApplyShield(_state, target, 200f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 200f, attacker.UnitId, Team.Player);
 
         var (damage, _, _) = SimDamage.Calculate(
             100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
@@ -329,7 +330,7 @@ public class SimDamageTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         target.Evasion = 0f;
 
-        SimEffects.ApplyShield(_state, target, 30f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 30f, attacker.UnitId, Team.Player);
 
         var (damage, _, _) = SimDamage.Calculate(
             100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
@@ -348,9 +349,9 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         // Oldest shield added first (25 HP)
-        SimEffects.ApplyShield(_state, target, 25f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 25f, attacker.UnitId, Team.Player);
         // Newer shield (50 HP)
-        SimEffects.ApplyShield(_state, target, 50f, attacker.UnitId, 0);
+        SimEffects.ApplyShield(_state, target, 50f, attacker.UnitId, Team.Player);
 
         var (damage, _, _) = SimDamage.Calculate(
             100f, DamageType.Physical, attacker, target, null, null, _state.Rng);

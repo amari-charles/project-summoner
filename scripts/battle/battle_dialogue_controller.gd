@@ -8,6 +8,9 @@ class_name BattleDialogueController
 ##
 ## Supports ANY battle to have story dialogues, not just tutorials.
 
+## Card used for the tutorial enemy spawn
+const TUTORIAL_ENEMY_CARD_ID: String = "pebbloom"
+
 ## Reference to game controller (for pausing)
 @onready var game_controller: Node = get_parent()
 
@@ -29,6 +32,9 @@ var current_dialogue_id: String = ""
 ## Track if we've checked for nearby enemies (for "base_damaged_first" trigger)
 var checked_enemy_proximity: bool = false
 
+## Set to true to enable verbose logging
+var debug_mode: bool = false
+
 
 func _ready() -> void:
 	# Wait for game controller to be ready
@@ -39,7 +45,7 @@ func _ready() -> void:
 
 	# DEBUG: Skip tutorial intro events if flag is set
 	if debug_skip_tutorial_intro:
-		print("DEBUG: Skipping tutorial intro events")
+		if debug_mode: print("DEBUG: Skipping tutorial intro events")
 		triggered_dialogues["battle_start_first_trial_intro"] = true
 		triggered_dialogues["after_dialogue_first_trial_summon_prompt"] = true
 
@@ -62,7 +68,7 @@ func _load_dialogue_config() -> void:
 		return
 
 	dialogue_config = BattleContext.battle_config.get("dialogues", [])
-	print("BattleDialogueController: Loaded %d dialogue triggers" % dialogue_config.size())
+	if debug_mode: print("BattleDialogueController: Loaded %d dialogue triggers" % dialogue_config.size())
 
 
 ## Load and play an EventSequence (Phase 3: New System)
@@ -73,7 +79,7 @@ func _load_and_play_event_sequence(sequence_path: String) -> void:
 		return
 
 	var seq_id: String = sequence.get("sequence_id") if sequence.get("sequence_id") else "unknown"
-	print("BattleDialogueController: Playing EventSequence '%s'" % seq_id)
+	if debug_mode: print("BattleDialogueController: Playing EventSequence '%s'" % seq_id)
 
 	# Enable debug mode for tutorial sequences
 	if BattleContext.battle_config.get("is_tutorial", false):
@@ -95,6 +101,13 @@ func _connect_battle_events() -> void:
 		DialogueManager.dialogue_ended.connect(_on_dialogue_ended)
 
 
+func _exit_tree() -> void:
+	if game_controller and game_controller.has_signal("GameStarted") and game_controller.is_connected("GameStarted", _on_battle_started):
+		game_controller.disconnect("GameStarted", _on_battle_started)
+	if DialogueManager and DialogueManager.dialogue_ended.is_connected(_on_dialogue_ended):
+		DialogueManager.dialogue_ended.disconnect(_on_dialogue_ended)
+
+
 ## Check for enemy proximity (for "base_damaged_first" trigger)
 func _process(_delta: float) -> void:
 	# Only check if we haven't already triggered and we have dialogues configured
@@ -114,7 +127,7 @@ func _process(_delta: float) -> void:
 
 	for unit: Node in units:
 		# Skip if not an enemy unit
-		if not unit.has_method("get") or unit.get("team") != 1:  # Team 1 = enemy
+		if not unit.has_method("get") or unit.get("team") != UnitConstants.Team.ENEMY:
 			continue
 
 		# Get unit position - units are Node3D
@@ -126,7 +139,7 @@ func _process(_delta: float) -> void:
 		var distance: float = base_pos.distance_to(unit_pos)
 		if distance <= PROXIMITY_DISTANCE:
 			# Enemy is close! Trigger dialogue
-			print("BattleDialogueController: Enemy unit within %f units of player base - triggering proximity dialogue" % distance)
+			if debug_mode: print("BattleDialogueController: Enemy unit within %f units of player base - triggering proximity dialogue" % distance)
 			checked_enemy_proximity = true
 			_trigger_dialogues_by_type("base_damaged_first")
 			return
@@ -143,7 +156,7 @@ func _on_dialogue_ended() -> void:
 
 	# Find the dialogue that just ended
 	var last_dialogue_id: String = _get_last_played_dialogue_id()
-	print("BattleDialogueController: Dialogue ended: %s" % last_dialogue_id)
+	if debug_mode: print("BattleDialogueController: Dialogue ended: %s" % last_dialogue_id)
 
 	# Unfreeze game BEFORE triggering after_dialogue events
 	# This ensures any spawned units initialize in normal game state
@@ -172,7 +185,7 @@ func _trigger_dialogues_by_type(trigger_type: String) -> void:
 
 ## Trigger dialogues that happen after a specific dialogue
 func _trigger_after_dialogue(previous_dialogue_id: String) -> void:
-	print("BattleDialogueController: Checking after_dialogue triggers for: %s" % previous_dialogue_id)
+	if debug_mode: print("BattleDialogueController: Checking after_dialogue triggers for: %s" % previous_dialogue_id)
 	for config: Dictionary in dialogue_config:
 		var trigger: String = config.get("trigger", "")
 		var previous: String = config.get("previous", "")
@@ -185,7 +198,7 @@ func _trigger_after_dialogue(previous_dialogue_id: String) -> void:
 		if previous != previous_dialogue_id:
 			continue
 
-		print("BattleDialogueController: Found after_dialogue trigger - action: %s, dialogue: %s" % [config.get("action", "none"), config.get("dialogue_id", "none")])
+		if debug_mode: print("BattleDialogueController: Found after_dialogue trigger - action: %s, dialogue: %s" % [config.get("action", "none"), config.get("dialogue_id", "none")])
 
 		# Execute action if specified
 		if config.has("action"):
@@ -221,7 +234,7 @@ func _show_dialogue(config: Dictionary) -> void:
 
 ## Execute a special action (like spawning enemy)
 func _execute_action(action: String) -> void:
-	print("BattleDialogueController: Executing action: %s" % action)
+	if debug_mode: print("BattleDialogueController: Executing action: %s" % action)
 	match action:
 		"spawn_enemy":
 			_spawn_tutorial_enemy()
@@ -235,11 +248,11 @@ func _execute_action(action: String) -> void:
 
 ## Spawn the tutorial enemy (for first_trial)
 func _spawn_tutorial_enemy() -> void:
-	print("BattleDialogueController: _spawn_tutorial_enemy() called")
+	if debug_mode: print("BattleDialogueController: _spawn_tutorial_enemy() called")
 
 	# Create the enemy card from CardCatalog (same as enemy deck loader)
-	var card_id: String = "pebbloom"
-	print("BattleDialogueController: Creating card from CardCatalog: %s" % card_id)
+	var card_id: String = TUTORIAL_ENEMY_CARD_ID
+	if debug_mode: print("BattleDialogueController: Creating card from CardCatalog: %s" % card_id)
 
 	var card: Card = CardCatalog.CreateCard(card_id)
 
@@ -247,24 +260,24 @@ func _spawn_tutorial_enemy() -> void:
 		push_error("BattleDialogueController: Failed to create enemy card from CardCatalog (id: %s)" % card_id)
 		return
 
-	print("BattleDialogueController: Card created successfully")
+	if debug_mode: print("BattleDialogueController: Card created successfully")
 
 	# Get battlefield and spawn position
 	# Just right of center field (2.5 units from center on enemy side)
 	var spawn_pos_3d: Vector3 = Vector3(2.5, 1, 0.0)
-	print("BattleDialogueController: Spawn position: %s" % spawn_pos_3d)
+	if debug_mode: print("BattleDialogueController: Spawn position: %s" % spawn_pos_3d)
 
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if not battlefield:
 		push_error("BattleDialogueController: Battlefield not found")
 		return
 
-	print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
+	if debug_mode: print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
 
 	# Spawn the unit directly via SpawnUnitCommand (team 1 = enemy)
-	print("BattleDialogueController: Spawning tutorial enemy via SpawnAt...")
+	if debug_mode: print("BattleDialogueController: Spawning tutorial enemy via SpawnAt...")
 	card.SpawnAt(spawn_pos_3d, 1)
-	print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
+	if debug_mode: print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
 
 
 ## Check if a trigger should only happen once
@@ -292,28 +305,28 @@ func _get_last_played_dialogue_id() -> String:
 
 ## Action: Show hand UI but keep it disabled
 func _action_show_hand() -> void:
-	print("BattleDialogueController: Showing hand (disabled)")
+	if debug_mode: print("BattleDialogueController: Showing hand (disabled)")
 	var hand_ui: Node = _find_hand_ui()
 	if hand_ui and hand_ui is CanvasItem:
 		var canvas_item: CanvasItem = hand_ui as CanvasItem
 		canvas_item.visible = true
 		# Disable interaction by setting process_mode to DISABLED
 		canvas_item.process_mode = Node.PROCESS_MODE_DISABLED
-		print("BattleDialogueController: Hand UI shown and disabled")
+		if debug_mode: print("BattleDialogueController: Hand UI shown and disabled")
 	else:
 		push_warning("BattleDialogueController: Could not find HandUI")
 
 
 ## Action: Enable hand UI for interaction
 func _action_enable_hand() -> void:
-	print("BattleDialogueController: Enabling hand interaction")
+	if debug_mode: print("BattleDialogueController: Enabling hand interaction")
 	var hand_ui: Node = _find_hand_ui()
 	if hand_ui and hand_ui is CanvasItem:
 		var canvas_item: CanvasItem = hand_ui as CanvasItem
 		canvas_item.visible = true
 		# Enable interaction by setting process_mode back to INHERIT
 		canvas_item.process_mode = Node.PROCESS_MODE_INHERIT
-		print("BattleDialogueController: Hand UI enabled")
+		if debug_mode: print("BattleDialogueController: Hand UI enabled")
 	else:
 		push_warning("BattleDialogueController: Could not find HandUI")
 

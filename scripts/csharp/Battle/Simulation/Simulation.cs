@@ -192,6 +192,10 @@ public class Simulation
                 _state.Phase = GamePhase.GameOver;
                 events.Add(new GameOverEvent(winnerTeam, "Forfeit"));
                 break;
+
+            default:
+                Log?.Invoke($"[Simulation] Unknown command type: {cmd.GetType().Name}");
+                break;
         }
     }
 
@@ -641,7 +645,7 @@ public class Simulation
             {
                 SimEffects.ApplyEffect(
                     _state, effect.EffectType, effect.Value, effect.Duration,
-                    effect.DamageType, target, summonerSourceId, team, events);
+                    effect.DamageType, target, summonerSourceId, (Team)team, events);
             }
         }
     }

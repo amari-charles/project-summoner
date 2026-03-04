@@ -102,11 +102,11 @@ public static class SimSteering
             unit.BlockedTime += delta;
 
             // Phase 1: Choose flank direction
-            if (unit.BlockedTime > BlockedThreshold && unit.FlankDirection == 0)
+            if (unit.BlockedTime > BlockedThreshold && unit.FlankDirection == FlankDirection.None)
             {
                 // Alternate flank direction by unit ID so units go around from both sides.
                 // Intentionally opposite sign from separation lateral (line 81).
-                unit.FlankDirection = (unit.UnitId % 2 == 0) ? -1 : 1;
+                unit.FlankDirection = (unit.UnitId % 2 == 0) ? FlankDirection.Left : FlankDirection.Right;
                 unit.FlankAngle = FlankAngleMin;
                 unit.FlankProgressTimer = 0;
             }
@@ -126,7 +126,7 @@ public static class SimSteering
         {
             // Moving normally — reset flanking
             unit.BlockedTime = 0;
-            unit.FlankDirection = 0;
+            unit.FlankDirection = FlankDirection.None;
             unit.FlankAngle = FlankAngleMin;
             unit.FlankProgressTimer = 0;
         }
@@ -140,7 +140,7 @@ public static class SimSteering
     /// </summary>
     public static SimVector3 CalculateFlankForce(UnitData unit, UnitData target)
     {
-        if (unit.BlockedTime < BlockedThreshold || unit.FlankDirection == 0)
+        if (unit.BlockedTime < BlockedThreshold || unit.FlankDirection == FlankDirection.None)
             return SimVector3.Zero;
 
         var toTarget = (target.Position - unit.Position);
@@ -155,7 +155,7 @@ public static class SimSteering
         float forwardComponent = MathF.Cos(angleRad);
 
         SimVector3 lateralDir;
-        if (unit.FlankDirection < 0)
+        if (unit.FlankDirection == FlankDirection.Left)
             lateralDir = new SimVector3(-toTarget.Z, 0, toTarget.X);
         else
             lateralDir = new SimVector3(toTarget.Z, 0, -toTarget.X);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fateforged.Simulation;
 using Godot;
 
 namespace Fateforged.Session;
@@ -33,7 +34,7 @@ public class BattleSessionConfig
     // WIN CONDITION
     // =========================================================================
 
-    public string WinCondition { get; set; } = "destroy_base";
+    public WinConditionType WinCondition { get; set; } = WinConditionType.DestroySummoner;
     public float TimeLimit { get; set; }
     public int KillTarget { get; set; }
 
@@ -104,8 +105,8 @@ public class BattleSessionConfig
             RawConfig = config,
 
             // Win condition
-            WinCondition = config.GetValueOrDefault("win_condition", "").ToString() is { Length: > 0 } wc
-                ? wc : "destroy_base",
+            WinCondition = WinConditionFactory.Parse(
+                config.GetValueOrDefault("win_condition", "").ToString() ?? ""),
             TimeLimit = (float)config.GetValueOrDefault("time_limit", 0.0f),
             KillTarget = (int)config.GetValueOrDefault("kill_target", 0),
 
@@ -153,7 +154,7 @@ public class BattleSessionConfig
         return new BattleSessionConfig
         {
             Mode = BattleMode.Practice,
-            WinCondition = "destroy_base",
+            WinCondition = WinConditionType.DestroySummoner,
             AiType = "scripted",
             HasAuthority = true,
         };

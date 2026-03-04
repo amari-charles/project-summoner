@@ -20,6 +20,12 @@ public partial class InputCollector : Control
     private const int TeamPlayer = 0;
     private const int TeamEnemy = 1;
 
+    // Raycast / positioning constants
+    private const float RaycastMaxDistance = 1000f;
+    private const float DefaultSpellRadius = 5.0f;
+    private const float SpawnBoundaryEpsilon = 0.001f;
+    private const int NoTargetId = -1;
+
     // =========================================================================
     // STATE
     // =========================================================================
@@ -201,7 +207,7 @@ public partial class InputCollector : Control
             worldPos = ClampSpawnPosition(worldPos, TeamPlayer);
 
         var sim = GetSimNode();
-        sim?.QueuePlayCard(0, cardIndex, worldPos, -1);
+        sim?.QueuePlayCard(0, cardIndex, worldPos, NoTargetId);
     }
 
     // =========================================================================
@@ -218,7 +224,7 @@ public partial class InputCollector : Control
         }
 
         var from = _camera3D.ProjectRayOrigin(screenPos);
-        var to = from + _camera3D.ProjectRayNormal(screenPos) * 1000f;
+        var to = from + _camera3D.ProjectRayNormal(screenPos) * RaycastMaxDistance;
 
         float spawnY = 0f; // BattlefieldConstants.SPAWN_PLANE_HEIGHT
         float t = (spawnY - from.Y) / (to.Y - from.Y);
@@ -245,7 +251,7 @@ public partial class InputCollector : Control
         if (team == TeamPlayer && pos.X > 0f)
             clamped.X = 0f;
         else if (team == TeamEnemy && pos.X <= 0f)
-            clamped.X = 0.001f;
+            clamped.X = SpawnBoundaryEpsilon;
         return clamped;
     }
 
@@ -360,7 +366,7 @@ public partial class InputCollector : Control
         if (root3D != null)
         {
             root3D.AddChild(preview);
-            float radius = card.SpellRadius > 0 ? card.SpellRadius : 5.0f;
+            float radius = card.SpellRadius > 0 ? card.SpellRadius : DefaultSpellRadius;
             preview.Call("setup", radius);
             _spellPreview = preview;
         }

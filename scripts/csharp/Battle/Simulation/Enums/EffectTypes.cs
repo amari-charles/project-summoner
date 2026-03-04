@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Enums;
 
@@ -162,7 +163,7 @@ public class ActiveBuff
     public int SourceUnitId { get; set; }
 
     /// <summary>Source team (for team-based effects).</summary>
-    public int SourceTeam { get; set; }
+    public Team SourceTeam { get; set; }
 
     /// <summary>For shield buffs: remaining absorb HP.</summary>
     public float ShieldHp { get; set; }
@@ -239,5 +240,5 @@ public class DelayedEffect
     public int SourceUnitId { get; set; }
 
     /// <summary>Source team (for friendly fire filtering).</summary>
-    public int SourceTeam { get; set; }
+    public Team SourceTeam { get; set; }
 }

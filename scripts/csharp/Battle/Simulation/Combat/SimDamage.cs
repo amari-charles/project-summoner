@@ -102,7 +102,7 @@ public static class SimDamage
         }
 
         // 7. Round to 1 decimal place (matches DamageSystem)
-        damage = MathF.Round(damage * 10f) / 10f;
+        damage = SimUtils.RoundToOneDecimal(damage);
 
         return (damage, isCrit, false);
     }

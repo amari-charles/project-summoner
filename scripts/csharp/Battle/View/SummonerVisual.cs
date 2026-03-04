@@ -11,6 +11,21 @@ using Fateforged.UI;
 namespace Fateforged.View;
 
 /// <summary>
+/// How a summoner's deck is loaded at battle start.
+/// </summary>
+public enum DeckLoadStrategy
+{
+    /// <summary>Use the StartingDeck export array as-is.</summary>
+    Static = 0,
+    /// <summary>Load from BattleContext (enemy decks configured per-battle).</summary>
+    BattleContext = 1,
+    /// <summary>Load from player profile (selected deck + card instances).</summary>
+    Profile = 2,
+    /// <summary>Deck will be set manually later (e.g., event sequences).</summary>
+    Deferred = 3
+}
+
+/// <summary>
 /// Registered visual shell for one summoner.
 /// Same self-sync model as UnitVisual — reads its own SummonerData from
 /// IGameSession.GetState() each frame — but registered at battle init rather
@@ -29,8 +44,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     [Export] public int Team { get; set; } = 0;
     [Export] public float MaxHpExport { get; set; } = 300.0f;
     [Export] public int MaxHandSize { get; set; } = 4;
-    /// <summary>0=STATIC, 1=BATTLE_CONTEXT, 2=PROFILE, 3=DEFERRED</summary>
-    [Export] public int DeckLoadStrategy { get; set; } = 1;
+    [Export] public DeckLoadStrategy DeckLoadStrategy { get; set; } = DeckLoadStrategy.BattleContext;
     [Export] public Godot.Collections.Array<Resource> StartingDeck { get; set; } = new();
 
     // =========================================================================
@@ -240,16 +254,26 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     public void OnCastingStarted(int cardIndex, float duration, string catalogId)
     {
         var card = CreateCardResource(catalogId);
+        if (card == null)
+        {
+            GD.PrintErr($"[SummonerVisual] Failed to create card resource for catalogId={catalogId}");
+            return;
+        }
         _castingCard = card;
-        EmitSignal(SignalName.CardPlayed, (GodotObject?)card ?? new GodotObject());
-        EmitSignal(SignalName.CastingStarted, (GodotObject?)card ?? new GodotObject(), duration);
+        EmitSignal(SignalName.CardPlayed, card);
+        EmitSignal(SignalName.CastingStarted, card, duration);
     }
 
     public void OnCastingCompleted(int cardIndex)
     {
         var completed = _castingCard;
         _castingCard = null;
-        EmitSignal(SignalName.CastingCompleted, (GodotObject?)completed ?? new GodotObject());
+        if (completed == null)
+        {
+            GD.PrintErr("[SummonerVisual] CastingCompleted but no casting card was set");
+            return;
+        }
+        EmitSignal(SignalName.CastingCompleted, completed);
     }
 
     public void OnHandChanged(string[] catalogIds)
@@ -299,6 +323,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public void OnDeckRecycled()
     {
+        // Card count not available from DeckRecycledEvent (only carries Team) — pass 0 as stub
         EmitSignal(SignalName.DeckRecycled, 0);
     }
 
@@ -416,6 +441,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         if (Math.Abs(summoner.CurrentHp - _lastHp) > 0.01f || Math.Abs(summoner.MaxHp - _lastMaxHp) > 0.01f)
         {
             bool tookDamage = summoner.CurrentHp < _lastHp;
+            float damage = _lastHp - summoner.CurrentHp;
             _lastHp = summoner.CurrentHp;
             _lastMaxHp = summoner.MaxHp;
             EmitSignal(SignalName.HpChanged, summoner.CurrentHp, summoner.MaxHp);
@@ -424,7 +450,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
             {
                 _recentHits += 1.0f;
                 PlayHitFeedback();
-                EmitSignal(SignalName.SummonerDamaged, this, summoner.CurrentHp);
+                EmitSignal(SignalName.SummonerDamaged, this, damage);
             }
         }
     }

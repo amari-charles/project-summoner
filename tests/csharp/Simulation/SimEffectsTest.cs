@@ -3,6 +3,7 @@ namespace Fateforged.Tests.Simulation;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
+using Fateforged.Units;
 using GdUnit4;
 using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
@@ -31,7 +32,7 @@ public class SimEffectsTest
         target.Evasion = 0f;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Damage, 30f, 0f, DamageType.True, target, -1, 0, events);
+        SimEffects.ApplyEffect(_state, EffectType.Damage, 30f, 0f, DamageType.True, target, -1, Team.Player, events);
 
         AssertThat(target.CurrentHp).IsLess(100f);
     }
@@ -43,7 +44,7 @@ public class SimEffectsTest
         target.CurrentHp = 50f;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Heal, 20f, 0f, DamageType.Physical, target, -1, 0, events);
+        SimEffects.ApplyEffect(_state, EffectType.Heal, 20f, 0f, DamageType.Physical, target, -1, Team.Player, events);
 
         AssertThat(target.CurrentHp).IsEqual(70f);
     }
@@ -55,7 +56,7 @@ public class SimEffectsTest
         target.CurrentHp = 90f;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Heal, 50f, 0f, DamageType.Physical, target, -1, 0, events);
+        SimEffects.ApplyEffect(_state, EffectType.Heal, 50f, 0f, DamageType.Physical, target, -1, Team.Player, events);
 
         AssertThat(target.CurrentHp).IsEqual(100f);
     }
@@ -66,7 +67,7 @@ public class SimEffectsTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Shield, 50f, -1f, DamageType.Physical, target, -1, 0, events);
+        SimEffects.ApplyEffect(_state, EffectType.Shield, 50f, -1f, DamageType.Physical, target, -1, Team.Player, events);
 
         AssertThat(target.ActiveBuffs.Count).IsEqual(1);
         AssertThat(target.ActiveBuffs[0].EffectType).IsEqual(EffectType.Shield);
@@ -79,7 +80,7 @@ public class SimEffectsTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Slow, 0.3f, 5f, DamageType.Physical, target, -1, 0, events);
+        SimEffects.ApplyEffect(_state, EffectType.Slow, 0.3f, 5f, DamageType.Physical, target, -1, Team.Player, events);
 
         AssertThat(target.ActiveBuffs.Count).IsEqual(1);
         AssertThat(target.ActiveBuffs[0].EffectType).IsEqual(EffectType.Slow);
@@ -93,7 +94,7 @@ public class SimEffectsTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Stun, 0f, 2f, DamageType.Physical, target, -1, 0, events);
+        SimEffects.ApplyEffect(_state, EffectType.Stun, 0f, 2f, DamageType.Physical, target, -1, Team.Player, events);
 
         AssertThat(target.ActiveBuffs.Count).IsEqual(1);
         AssertThat(target.ActiveBuffs[0].EffectType).IsEqual(EffectType.Stun);
@@ -106,7 +107,7 @@ public class SimEffectsTest
         target.IsAlive = false;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Damage, 50f, 0f, DamageType.Physical, target, -1, 0, events);
+        SimEffects.ApplyEffect(_state, EffectType.Damage, 50f, 0f, DamageType.Physical, target, -1, Team.Player, events);
 
         // HP unchanged, no events (other than what might already exist)
         AssertThat(target.CurrentHp).IsEqual(100f);
@@ -232,7 +233,7 @@ public class SimEffectsTest
             Value = 50f,
             AoeRadius = 5f,
             Position = SimVector3.Zero,
-            SourceTeam = 0
+            SourceTeam = Team.Player
         });
         var events = new List<SimEvent>();
 
@@ -257,7 +258,7 @@ public class SimEffectsTest
             AoeRadius = 10f,
             Position = SimVector3.Zero,
             SourceUnitId = -1,
-            SourceTeam = 0
+            SourceTeam = Team.Player
         });
         var events = new List<SimEvent>();
 
@@ -277,7 +278,7 @@ public class SimEffectsTest
             Value = 10f,
             AoeRadius = 0f,
             Position = SimVector3.Zero,
-            SourceTeam = 0
+            SourceTeam = Team.Player
         });
         var events = new List<SimEvent>();
 
@@ -473,7 +474,7 @@ public class SimEffectsTest
     public void AbsorbWithShields_FullAbsorption()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        SimEffects.ApplyShield(_state, target, 100f, -1, 0);
+        SimEffects.ApplyShield(_state, target, 100f, -1, Team.Player);
 
         float remaining = SimEffects.AbsorbWithShields(target, 50f, null);
 
@@ -486,7 +487,7 @@ public class SimEffectsTest
     public void AbsorbWithShields_PartialAbsorption()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        SimEffects.ApplyShield(_state, target, 30f, -1, 0);
+        SimEffects.ApplyShield(_state, target, 30f, -1, Team.Player);
 
         float remaining = SimEffects.AbsorbWithShields(target, 50f, null);
 
@@ -498,8 +499,8 @@ public class SimEffectsTest
     public void AbsorbWithShields_OldestFirst()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        SimEffects.ApplyShield(_state, target, 20f, -1, 0); // Oldest
-        SimEffects.ApplyShield(_state, target, 50f, -1, 0); // Newer
+        SimEffects.ApplyShield(_state, target, 20f, -1, Team.Player); // Oldest
+        SimEffects.ApplyShield(_state, target, 50f, -1, Team.Player); // Newer
 
         float remaining = SimEffects.AbsorbWithShields(target, 30f, null);
 

@@ -42,6 +42,11 @@ public partial class SimulationNode : Node, IGameSession
     private bool _initialized;
 
     public const float FIXED_DELTA = 1.0f / 60.0f;
+    private const int SimulationProcessPriority = -100;
+    private const int DefaultAiDifficulty = 3;
+    private const float DefaultAiIntervalMin = 3.0f;
+    private const float DefaultAiIntervalMax = 6.0f;
+
     private float _accumulator;
 
     public bool IsHost { get; set; } = true;
@@ -105,7 +110,7 @@ public partial class SimulationNode : Node, IGameSession
 
     public override void _Ready()
     {
-        ProcessPriority = -100;
+        ProcessPriority = SimulationProcessPriority;
         ProcessMode = ProcessModeEnum.Always;
         Current = this;
         AddToGroup("simulation_node");
@@ -149,7 +154,7 @@ public partial class SimulationNode : Node, IGameSession
     // INITIALIZATION
     // =========================================================================
 
-    public void Initialize(float prepDuration, float matchDuration, string winCondition,
+    public void Initialize(float prepDuration, float matchDuration, WinConditionType winCondition,
         float winConditionTimeLimit = 0f, int winConditionKillTarget = 0, long seed = 0)
     {
         if (seed == 0)
@@ -278,13 +283,14 @@ public partial class SimulationNode : Node, IGameSession
     /// GDScript-callable: string enums parsed to C# enums.
     /// </summary>
     public void ConfigureAi(int team, string aiType, string personality = "balanced",
-        int difficulty = 3, float intervalMin = 3.0f, float intervalMax = 6.0f,
+        int difficulty = DefaultAiDifficulty, float intervalMin = DefaultAiIntervalMin, float intervalMax = DefaultAiIntervalMax,
         Godot.Collections.Array? scriptSteps = null)
     {
         int networkTeam = ToNetworkTeam(team);
         var summoner = State.Summoners[networkTeam];
 
-        var type = aiType.ToLowerInvariant() switch
+        var aiTypeLower = aiType.ToLowerInvariant();
+        var type = aiTypeLower switch
         {
             "simple" => AiType.Simple,
             "heuristic" => AiType.Heuristic,
@@ -293,19 +299,26 @@ public partial class SimulationNode : Node, IGameSession
             _ => AiType.Heuristic
         };
 
+        if (aiTypeLower is not ("simple" or "heuristic" or "scripted" or "passive" or "none"))
+            GD.PushWarning($"[SimulationNode] Unknown AI type '{aiType}', defaulting to Heuristic");
+
         if (type == AiType.None)
         {
             summoner.Ai = null;
             return;
         }
 
-        var pers = personality.ToLowerInvariant() switch
+        var personalityLower = personality.ToLowerInvariant();
+        var pers = personalityLower switch
         {
             "aggressive" => AiPersonality.Aggressive,
             "defensive" => AiPersonality.Defensive,
             "spell_focused" => AiPersonality.SpellFocused,
             _ => AiPersonality.Balanced
         };
+
+        if (personalityLower is not ("aggressive" or "defensive" or "spell_focused" or "balanced"))
+            GD.PushWarning($"[SimulationNode] Unknown AI personality '{personality}', defaulting to Balanced");
 
         var config = new AiConfig
         {

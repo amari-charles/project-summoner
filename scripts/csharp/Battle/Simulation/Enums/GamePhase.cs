@@ -1,9 +1,7 @@
 namespace Fateforged.Simulation.Enums;
 
 /// <summary>
-/// Phase of a match. Mirrors GDScript BattlePhase enum values
-/// in game_controller_3d.gd (PREPARATION=0, BATTLE=1) with
-/// the addition of GameOver=2.
+/// Phase of a match: Preparation (countdown), Battle (active gameplay), GameOver (result).
 /// </summary>
 public enum GamePhase
 {

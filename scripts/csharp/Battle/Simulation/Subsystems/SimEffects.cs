@@ -99,7 +99,7 @@ public static class SimEffects
         DamageType damageType,
         UnitData target,
         int sourceUnitId,
-        int sourceTeam,
+        Team sourceTeam,
         List<SimEvent> events)
     {
         if (!target.IsAlive) return;
@@ -176,7 +176,7 @@ public static class SimEffects
             {
                 // Single target effect
                 ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                    trigger.DamageType, target, unit.UnitId, (int)unit.Team, events);
+                    trigger.DamageType, target, unit.UnitId, unit.Team, events);
             }
 
             trigger.HasFired = true;
@@ -264,7 +264,7 @@ public static class SimEffects
     /// <summary>
     /// Apply a shield to a unit. Shields are consumed oldest-first during damage calculation.
     /// </summary>
-    public static void ApplyShield(MatchState state, UnitData target, float shieldHp, int sourceUnitId, int sourceTeam)
+    public static void ApplyShield(MatchState state, UnitData target, float shieldHp, int sourceUnitId, Team sourceTeam)
     {
         target.ActiveBuffs.Add(new ActiveBuff
         {
@@ -314,11 +314,11 @@ public static class SimEffects
 
     private static void ApplyDirectDamage(
         MatchState state, UnitData target, float baseDamage, DamageType damageType,
-        int sourceUnitId, int sourceTeam, List<SimEvent> events)
+        int sourceUnitId, Team sourceTeam, List<SimEvent> events)
     {
         // Get source unit for attacker stats (may be dead for delayed effects)
         UnitData? attacker = state.Units.TryGetValue(sourceUnitId, out var a) ? a : null;
-        var attackerSummoner = sourceTeam >= 0 && sourceTeam <= 1 ? state.Summoners[sourceTeam] : null;
+        var attackerSummoner = state.Summoners[(int)sourceTeam];
         var targetSummoner = (int)target.Team >= 0 && (int)target.Team <= 1 ? state.Summoners[(int)target.Team] : null;
 
         var (damage, isCrit, _) = SimDamage.Calculate(
@@ -350,7 +350,7 @@ public static class SimEffects
 
     private static void ApplyBuff(
         MatchState state, UnitData target, EffectType effectType, float value, float duration,
-        DamageType damageType, int sourceUnitId, int sourceTeam, List<SimEvent> events)
+        DamageType damageType, int sourceUnitId, Team sourceTeam, List<SimEvent> events)
     {
         var buff = new ActiveBuff
         {
@@ -372,7 +372,9 @@ public static class SimEffects
         switch (buff.EffectType)
         {
             case EffectType.Damage:
-                // DoT — damage the unit
+                // DoT intentionally bypasses SimDamage.Calculate — DoT effects apply flat
+                // damage that ignores defense, crit, and shields. This matches the design
+                // intent where DoT represents guaranteed damage over time.
                 unit.CurrentHp -= buff.Value;
                 events.Add(new UnitDamagedEvent(unit.UnitId, buff.SourceUnitId, buff.Value, false));
                 if (unit.CurrentHp <= 0)
@@ -424,7 +426,7 @@ public static class SimEffects
             {
                 // Fire the trigger effect on self
                 ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                    trigger.DamageType, unit, unit.UnitId, (int)unit.Team, events);
+                    trigger.DamageType, unit, unit.UnitId, unit.Team, events);
                 trigger.HasFired = true;
             }
         }
@@ -446,7 +448,7 @@ public static class SimEffects
             if (distSq > radiusSq) continue;
 
             ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                trigger.DamageType, candidate, source.UnitId, (int)source.Team, events);
+                trigger.DamageType, candidate, source.UnitId, source.Team, events);
         }
     }
 
@@ -462,7 +464,7 @@ public static class SimEffects
             AoeRadius = trigger.AoeRadius,
             Position = source.Position,
             SourceUnitId = source.UnitId,
-            SourceTeam = (int)source.Team
+            SourceTeam = source.Team
         });
     }
 
@@ -474,7 +476,7 @@ public static class SimEffects
         if (effect.AoeRadius > 0)
         {
             // Area effect — damage all enemies in radius
-            int enemyTeam = MatchState.GetEnemyTeam(effect.SourceTeam);
+            int enemyTeam = MatchState.GetEnemyTeam((int)effect.SourceTeam);
             float radiusSq = effect.AoeRadius * effect.AoeRadius;
 
             foreach (var kvp in state.Units)

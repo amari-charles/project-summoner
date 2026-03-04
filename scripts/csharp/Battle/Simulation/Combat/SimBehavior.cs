@@ -160,7 +160,7 @@ public static class SimBehavior
                 if (isSummonerTarget)
                 {
                     // Attacking a summoner
-                    ApplyDamageToSummoner(unit, targetId, state, delta, events);
+                    ApplyDamageToSummoner(unit, targetId, state, events);
                 }
                 else if (unit.UnitType == UnitType.Melee)
                 {
@@ -213,7 +213,21 @@ public static class SimBehavior
         UnitData attacker, UnitData target, MatchState state, List<SimEvent> events)
     {
         float baseDamage = SimEffects.GetEffectiveAttackDamage(attacker);
+        ApplyUnitDamage(attacker, target, baseDamage, state, events);
 
+        // Reset charge distance after attacking
+        attacker.DistanceTraveled = 0f;
+    }
+
+    /// <summary>
+    /// Shared damage pipeline for unit-vs-unit combat.
+    /// Calculates damage via SimDamage, applies HP reduction, emits events,
+    /// fires triggers (OnHit, OnDamaged, OnKill, OnDeath).
+    /// Used by both immediate melee and delayed ranged (pending damage) paths.
+    /// </summary>
+    private static void ApplyUnitDamage(
+        UnitData attacker, UnitData target, float baseDamage, MatchState state, List<SimEvent> events)
+    {
         var attackerSummoner = state.Summoners[(int)attacker.Team];
         var targetSummoner = state.Summoners[(int)target.Team];
         var (damage, isCrit) = SimDamage.Calculate(
@@ -221,9 +235,6 @@ public static class SimBehavior
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
-
-        // Reset charge distance after attacking
-        attacker.DistanceTraveled = 0f;
 
         // Fire OnHit triggers on attacker
         SimEffects.FireTriggers(state, attacker, TriggerType.OnHit, target, events);
@@ -250,7 +261,7 @@ public static class SimBehavior
     /// For ranged with projectile delay, the caller sets PendingDamageTargetId instead.
     /// </summary>
     private static void ApplyDamageToSummoner(
-        UnitData attacker, int summonerTargetId, MatchState state, float delta, List<SimEvent> events)
+        UnitData attacker, int summonerTargetId, MatchState state, List<SimEvent> events)
     {
         int summonerTeam = MatchState.GetSummonerTeamFromTargetId(summonerTargetId);
         var summoner = state.Summoners[summonerTeam];
@@ -302,29 +313,7 @@ public static class SimBehavior
                 var target = state.GetAliveUnit(pendingTargetId);
                 if (target != null)
                 {
-                    var attackerSummoner = state.Summoners[(int)unit.Team];
-                    var targetSummoner = state.Summoners[(int)target.Team];
-                    var (damage, isCrit) = SimDamage.Calculate(
-                        unit.PendingDamageAmount, unit, target, attackerSummoner, targetSummoner, state.Rng);
-
-                    target.CurrentHp -= damage;
-                    events.Add(new UnitDamagedEvent(target.UnitId, unit.UnitId, damage, isCrit));
-
-                    // Fire OnHit triggers on attacker
-                    SimEffects.FireTriggers(state, unit, TriggerType.OnHit, target, events);
-
-                    // Fire OnDamaged triggers on target (if still alive)
-                    if (target.IsAlive)
-                        SimEffects.FireTriggers(state, target, TriggerType.OnDamaged, unit, events);
-
-                    if (target.CurrentHp <= 0)
-                    {
-                        SimUtils.KillUnit(state, target, unit.UnitId, events);
-
-                        // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
-                        SimEffects.FireTriggers(state, unit, TriggerType.OnKill, target, events);
-                        SimEffects.FireDeathTriggers(state, target, unit, events);
-                    }
+                    ApplyUnitDamage(unit, target, unit.PendingDamageAmount, state, events);
                 }
             }
 
@@ -377,6 +366,6 @@ public static class SimBehavior
             damage *= 1f + attacker.DamageBonus / 100f;
         if (target.DamageReduction > 0f)
             damage = System.MathF.Max(damage - target.DamageReduction, 0f);
-        return System.MathF.Round(damage * 10f) / 10f;
+        return SimUtils.RoundToOneDecimal(damage);
     }
 }

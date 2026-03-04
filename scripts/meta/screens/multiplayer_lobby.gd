@@ -70,7 +70,7 @@ var _client_ready: bool = false
 
 ## Player info
 var _player_name: String = "Player"
-var _summoner_id: String = "ignis"
+var _summoner_id: String = SummonerIDs.DEFAULT
 
 ## Opponent info (received via network)
 var _opponent_name: String = ""
@@ -366,7 +366,7 @@ func _send_player_info() -> void:
 
 func _handle_player_info(message: Dictionary) -> void:
 	_opponent_name = message.get("name", "Opponent")
-	_opponent_summoner_id = message.get("summoner_id", "ignis")
+	_opponent_summoner_id = message.get("summoner_id", SummonerIDs.DEFAULT)
 
 	if _is_host:
 		host_status_label.text = Loc.t("ui.multiplayer.player_joined").format({"name": _opponent_name})
@@ -413,8 +413,8 @@ func _initiate_match_start() -> void:
 
 func _handle_start_match(message: Dictionary) -> void:
 	var battle_seed: int = message.get("seed", 0)
-	var host_summoner: String = message.get("host_summoner", "ignis")
-	var client_summoner: String = message.get("client_summoner", "ignis")
+	var host_summoner: String = message.get("host_summoner", SummonerIDs.DEFAULT)
+	var client_summoner: String = message.get("client_summoner", SummonerIDs.DEFAULT)
 
 	# Client starts match with reversed summoner order
 	_start_match(battle_seed, client_summoner, host_summoner, false)
@@ -461,7 +461,7 @@ func _get_active_summoner_id() -> String:
 		var selected: String = summoner_selection.get_selected_summoner_id()
 		if not selected.is_empty():
 			return selected
-	return "ignis"
+	return SummonerIDs.DEFAULT
 
 
 func _get_player_deck() -> Array:

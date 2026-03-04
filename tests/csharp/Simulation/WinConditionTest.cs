@@ -144,7 +144,7 @@ public class WinConditionTest
     [TestCase]
     public void Factory_Default_CreatesDestroySummoner()
     {
-        _state.WinCondition = "";
+        _state.WinCondition = WinConditionType.DestroySummoner;
         var wc = WinConditionFactory.Create(_state);
 
         AssertThat(wc).IsInstanceOf<DestroySummonerWinCondition>();
@@ -153,7 +153,7 @@ public class WinConditionTest
     [TestCase]
     public void Factory_SurviveTime_CreatesCorrectType()
     {
-        _state.WinCondition = "survive_time";
+        _state.WinCondition = WinConditionType.SurviveTime;
         _state.WinConditionTimeLimit = 120f;
         var wc = WinConditionFactory.Create(_state);
 
@@ -164,7 +164,7 @@ public class WinConditionTest
     [TestCase]
     public void Factory_KillCount_CreatesCorrectType()
     {
-        _state.WinCondition = "kill_count";
+        _state.WinCondition = WinConditionType.KillCount;
         _state.WinConditionKillTarget = 25;
         var wc = WinConditionFactory.Create(_state);
 
@@ -173,22 +173,35 @@ public class WinConditionTest
     }
 
     [TestCase]
-    public void Factory_Unknown_DefaultsToDestroySummoner()
-    {
-        _state.WinCondition = "some_unknown_mode";
-        var wc = WinConditionFactory.Create(_state);
-
-        AssertThat(wc).IsInstanceOf<DestroySummonerWinCondition>();
-    }
-
-    [TestCase]
     public void Factory_TimedDestroy_CreatesCorrectType()
     {
-        _state.WinCondition = "timed_destroy";
+        _state.WinCondition = WinConditionType.TimedDestroy;
         _state.WinConditionTimeLimit = 90f;
         var wc = WinConditionFactory.Create(_state);
 
         AssertThat(wc).IsInstanceOf<TimedDestroyWinCondition>();
         AssertThat(((TimedDestroyWinCondition)wc).TimeLimit).IsEqual(90f);
+    }
+
+    // =========================================================================
+    // Parse
+    // =========================================================================
+
+    [TestCase]
+    public void Parse_DestroyBase_ReturnsDestroySummoner()
+    {
+        AssertThat(WinConditionFactory.Parse("destroy_base")).IsEqual(WinConditionType.DestroySummoner);
+    }
+
+    [TestCase]
+    public void Parse_SurviveTime_ReturnsSurviveTime()
+    {
+        AssertThat(WinConditionFactory.Parse("survive_time")).IsEqual(WinConditionType.SurviveTime);
+    }
+
+    [TestCase]
+    public void Parse_Unknown_DefaultsToDestroySummoner()
+    {
+        AssertThat(WinConditionFactory.Parse("some_unknown_mode")).IsEqual(WinConditionType.DestroySummoner);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Subsystems;
@@ -10,6 +11,12 @@ namespace Fateforged.Simulation;
 /// </summary>
 public static class SimUtils
 {
+    /// <summary>
+    /// Round to one decimal place for deterministic damage results.
+    /// </summary>
+    public static float RoundToOneDecimal(float value)
+        => MathF.Round(value * 10f) / 10f;
+
     /// <summary>
     /// Resolve target position for either a unit or summoner target ID.
     /// Returns null if target is invalid/dead.

@@ -82,6 +82,9 @@ public static class GroupIDs
     /// <summary>Game controller references</summary>
     public const string GameController = "game_controller";
 
+    /// <summary>Battle coordinator (BattleScene)</summary>
+    public const string BattleCoordinator = "battle_coordinator";
+
     // =========================================================================
     // UTILITY METHODS
     // =========================================================================

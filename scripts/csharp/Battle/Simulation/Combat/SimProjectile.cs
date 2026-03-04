@@ -386,6 +386,9 @@ public static class SimProjectile
 
     /// <summary>
     /// Apply damage to a target unit from a projectile hit.
+    /// Projectile hits intentionally skip OnHit/OnDamaged triggers — projectile damage
+    /// goes through a separate pipeline (SimDamage.Calculate) and does not interact with
+    /// the trigger system. Triggers are reserved for melee combat in SimBehavior.
     /// </summary>
     private static void ApplyHit(SimProjectileData proj, UnitData target, MatchState state, List<SimEvent> events)
     {
@@ -409,6 +412,8 @@ public static class SimProjectile
 
     /// <summary>
     /// Apply AoE damage to all enemy units within radius.
+    /// AoE effects intentionally skip per-unit OnHit/OnDamaged triggers to avoid
+    /// trigger avalanches when many units are hit simultaneously.
     /// </summary>
     private static void ApplyAoE(SimProjectileData proj, SimVector3 center, MatchState state, List<SimEvent> events)
     {

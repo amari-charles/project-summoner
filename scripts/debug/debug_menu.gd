@@ -19,24 +19,15 @@ const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
 var _panel: PanelContainer
 var _fps_label: Label
 var _target_label: Label
-var _perf_label: Label  # Performance counters display
 var _buttons: Dictionary = {}  # fps -> Button
 var _grid_button: Button
 var _skip_prep_button: Button
-var _hurtbox_button: Button
-var _target_point_button: Button
-var _attack_range_button: Button
-var _separation_radius_button: Button
 var _spawn_boundary_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
 var _command_input: LineEdit  # Console command input
 var _command_output: Label  # Console command output
 var _autocomplete_list: ItemList  # Autocomplete suggestions
 var _autocomplete_visible: bool = false
-
-## Debug service reference (removed — UnitDebugService deleted in migration)
-var _unit_debug: Node = null
-
 
 ## =============================================================================
 ## LIFECYCLE
@@ -62,10 +53,6 @@ func _process(_delta: float) -> void:
 	if _fps_label:
 		var current_fps: float = Engine.get_frames_per_second()
 		_fps_label.text = "FPS: %.1f" % current_fps
-
-	# Update performance counters (only if visible to avoid overhead)
-	if _perf_label and _panel and _panel.visible:
-		_update_perf_counters()
 
 
 func _input(event: InputEvent) -> void:
@@ -186,58 +173,12 @@ func _create_ui() -> void:
 	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
 	vbox.add_child(_skip_prep_button)
 
-	# Hurtbox toggle button
-	_hurtbox_button = Button.new()
-	_hurtbox_button.text = "Hurtboxes: Off"
-	_hurtbox_button.custom_minimum_size = Vector2(200, 32)
-	_hurtbox_button.pressed.connect(_on_hurtbox_toggle_pressed)
-	vbox.add_child(_hurtbox_button)
-
-	# Target Point toggle button
-	_target_point_button = Button.new()
-	_target_point_button.text = "Target Points: Off"
-	_target_point_button.custom_minimum_size = Vector2(200, 32)
-	_target_point_button.pressed.connect(_on_target_point_toggle_pressed)
-	vbox.add_child(_target_point_button)
-
-	# Attack Range toggle button
-	_attack_range_button = Button.new()
-	_attack_range_button.text = "Attack Ranges: Off"
-	_attack_range_button.custom_minimum_size = Vector2(200, 32)
-	_attack_range_button.pressed.connect(_on_attack_range_toggle_pressed)
-	vbox.add_child(_attack_range_button)
-
-	# Separation Radius toggle button
-	_separation_radius_button = Button.new()
-	_separation_radius_button.text = "Separation Radius: Off"
-	_separation_radius_button.custom_minimum_size = Vector2(200, 32)
-	_separation_radius_button.pressed.connect(_on_separation_radius_toggle_pressed)
-	vbox.add_child(_separation_radius_button)
-
 	# Spawn Boundary Bypass toggle button
 	_spawn_boundary_button = Button.new()
 	_spawn_boundary_button.text = "Spawn Boundary: On"
 	_spawn_boundary_button.custom_minimum_size = Vector2(200, 32)
 	_spawn_boundary_button.pressed.connect(_on_spawn_boundary_toggle_pressed)
 	vbox.add_child(_spawn_boundary_button)
-
-	# Performance counters separator
-	var perf_separator: HSeparator = HSeparator.new()
-	vbox.add_child(perf_separator)
-
-	# Performance counters title
-	var perf_title: Label = Label.new()
-	perf_title.text = "Performance Counters"
-	perf_title.add_theme_font_size_override("font_size", 14)
-	perf_title.add_theme_color_override("font_color", Color(0.9, 0.7, 0.3))
-	vbox.add_child(perf_title)
-
-	# Performance counters label
-	_perf_label = Label.new()
-	_perf_label.text = "Units: --\nSummoner Lookups: --\nGrid Queries: --\nTarget Acquisitions: --\nPhysics Time: --"
-	_perf_label.add_theme_font_size_override("font_size", 12)
-	_perf_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	vbox.add_child(_perf_label)
 
 	# Console command separator
 	var console_separator: HSeparator = HSeparator.new()
@@ -330,22 +271,6 @@ func _update_button_states() -> void:
 	if _grid_button:
 		_grid_button.text = "Grid Lines: Off"
 
-	if _hurtbox_button and _unit_debug:
-		var state: String = "On" if _unit_debug.IsDebugHurtboxEnabled() else "Off"
-		_hurtbox_button.text = "Hurtboxes: %s" % state
-
-	if _target_point_button and _unit_debug:
-		var state: String = "On" if _unit_debug.IsDebugTargetPointEnabled() else "Off"
-		_target_point_button.text = "Target Points: %s" % state
-
-	if _attack_range_button and _unit_debug:
-		var state: String = "On" if _unit_debug.IsDebugAttackRangeEnabled() else "Off"
-		_attack_range_button.text = "Attack Ranges: %s" % state
-
-	if _separation_radius_button and _unit_debug:
-		var state: String = "On" if _unit_debug.IsDebugSeparationRadiusEnabled() else "Off"
-		_separation_radius_button.text = "Separation Radius: %s" % state
-
 	if _spawn_boundary_button:
 		var bypass_enabled: bool = _bypass_spawn_boundary
 		var state: String = "Off" if bypass_enabled else "On"
@@ -396,44 +321,12 @@ func _on_grid_toggle_pressed() -> void:
 
 
 func _on_skip_prep_pressed() -> void:
-	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller.has_method("SkipPrepPhase"):
 		game_controller.SkipPrepPhase()
 		print("[Debug] Skipped prep phase")
 	else:
 		print("[Debug] No game controller found - not in battle?")
-
-
-func _on_hurtbox_toggle_pressed() -> void:
-	if not _unit_debug: return
-	_unit_debug.ToggleDebugHurtbox()
-	var state: String = "On" if _unit_debug.IsDebugHurtboxEnabled() else "Off"
-	_hurtbox_button.text = "Hurtboxes: %s" % state
-	_save_settings()
-
-
-func _on_target_point_toggle_pressed() -> void:
-	if not _unit_debug: return
-	_unit_debug.ToggleDebugTargetPoint()
-	var state: String = "On" if _unit_debug.IsDebugTargetPointEnabled() else "Off"
-	_target_point_button.text = "Target Points: %s" % state
-	_save_settings()
-
-
-func _on_attack_range_toggle_pressed() -> void:
-	if not _unit_debug: return
-	_unit_debug.ToggleDebugAttackRange()
-	var state: String = "On" if _unit_debug.IsDebugAttackRangeEnabled() else "Off"
-	_attack_range_button.text = "Attack Ranges: %s" % state
-	_save_settings()
-
-
-func _on_separation_radius_toggle_pressed() -> void:
-	if not _unit_debug: return
-	_unit_debug.ToggleDebugSeparationRadius()
-	var state: String = "On" if _unit_debug.IsDebugSeparationRadiusEnabled() else "Off"
-	_separation_radius_button.text = "Separation Radius: %s" % state
-	_save_settings()
 
 
 func _on_spawn_boundary_toggle_pressed() -> void:
@@ -599,7 +492,7 @@ func _select_autocomplete_item(index: int) -> void:
 
 
 func _on_win_pressed() -> void:
-	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller.has_method("EndGame"):
 		game_controller.EndGame(int(UnitConstants.Team.PLAYER))
 		print("[Debug] Triggered instant WIN")
@@ -608,7 +501,7 @@ func _on_win_pressed() -> void:
 
 
 func _on_lose_pressed() -> void:
-	var game_controller: Node = get_tree().get_first_node_in_group("game_controller")
+	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller.has_method("EndGame"):
 		game_controller.EndGame(int(UnitConstants.Team.ENEMY))
 		print("[Debug] Triggered instant LOSE")
@@ -637,11 +530,6 @@ func _load_settings() -> void:
 		return  # No saved settings, use defaults
 
 	# Load visualization toggles
-	if _unit_debug:
-		_unit_debug.SetDebugHurtboxEnabled(config.get_value("debug_menu", "hurtboxes", false))
-		_unit_debug.SetDebugTargetPointEnabled(config.get_value("debug_menu", "target_points", false))
-		_unit_debug.SetDebugAttackRangeEnabled(config.get_value("debug_menu", "attack_ranges", false))
-		_unit_debug.SetDebugSeparationRadiusEnabled(config.get_value("debug_menu", "separation_radius", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
 
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
@@ -652,16 +540,8 @@ func _save_settings() -> void:
 
 	# Save visualization toggles
 	config.set_value("debug_menu", "grid_lines", false)
-	if _unit_debug:
-		config.set_value("debug_menu", "hurtboxes", _unit_debug.IsDebugHurtboxEnabled())
-		config.set_value("debug_menu", "target_points", _unit_debug.IsDebugTargetPointEnabled())
-		config.set_value("debug_menu", "attack_ranges", _unit_debug.IsDebugAttackRangeEnabled())
-		config.set_value("debug_menu", "separation_radius", _unit_debug.IsDebugSeparationRadiusEnabled())
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 
 	config.save(SETTINGS_PATH)
 
 
-func _update_perf_counters() -> void:
-	# Perf counters display (SpatialGrid removed — show placeholder)
-	_perf_label.text = ""
