@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Godot;
 using Godot.Collections;
 using Fateforged.Multiplayer.Backend;
@@ -12,11 +13,16 @@ namespace Fateforged.Multiplayer.Transport;
 public partial class NakamaMatchTransport : Node, IMatchTransport
 {
     private const long GameMessageOpCode = 200;
+    private const int ReconnectMaxAttempts = 30;
+    private const int ReconnectAttemptDelayMs = 1000;
 
     private string _matchId = "";
     private bool _isHost;
     private bool _isConnected;
     private int _localPeerId;
+    private bool _remotePeerConnected;
+    private bool _reconnectLoopActive;
+    private bool _disposed;
 
     #region IMatchTransport Properties
 
@@ -46,13 +52,17 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
         _isHost = isHost;
         _localPeerId = localPeerId;
         _isConnected = true;
+        _remotePeerConnected = true;
+        _disposed = false;
 
         // Listen for match data and presence from NakamaGameClient
         var nakama = NakamaGameClient.Instance;
         if (nakama != null)
         {
             nakama.MatchDataReceived += OnNakamaMatchData;
+            nakama.MatchPresenceJoined += OnNakamaPresenceJoined;
             nakama.MatchPresenceLeft += OnNakamaPresenceLeft;
+            nakama.SocketDisconnected += OnNakamaSocketDisconnected;
         }
 
         // Fire connected events
@@ -96,18 +106,25 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
     public void Disconnect()
     {
-        if (!_isConnected) return;
+        bool wasConnected = _isConnected;
         _isConnected = false;
+        _remotePeerConnected = false;
+        _reconnectLoopActive = false;
 
         var nakama = NakamaGameClient.Instance;
         if (nakama != null)
         {
             nakama.MatchDataReceived -= OnNakamaMatchData;
+            nakama.MatchPresenceJoined -= OnNakamaPresenceJoined;
             nakama.MatchPresenceLeft -= OnNakamaPresenceLeft;
+            nakama.SocketDisconnected -= OnNakamaSocketDisconnected;
         }
 
-        OnDisconnected?.Invoke("Disconnected");
-        GD.Print("[NakamaMatchTransport] Disconnected");
+        if (wasConnected)
+        {
+            OnDisconnected?.Invoke("Disconnected");
+            GD.Print("[NakamaMatchTransport] Disconnected");
+        }
     }
 
     #endregion
@@ -152,16 +169,89 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
     private void OnNakamaPresenceLeft(string matchId, string userId)
     {
         if (matchId != _matchId) return;
+        if (!_remotePeerConnected) return;
 
         int remotePeerId = _isHost ? 2 : 1;
+        _remotePeerConnected = false;
         GD.Print($"[NakamaMatchTransport] Peer left: {userId}");
         OnPeerDisconnected?.Invoke(remotePeerId);
+    }
+
+    private void OnNakamaPresenceJoined(string matchId, string userId, string username)
+    {
+        if (matchId != _matchId) return;
+
+        var nakama = NakamaGameClient.Instance;
+        if (nakama != null && userId == nakama.UserId)
+            return;
+        if (_remotePeerConnected)
+            return;
+
+        _remotePeerConnected = true;
+        int remotePeerId = _isHost ? 2 : 1;
+        GD.Print($"[NakamaMatchTransport] Peer rejoined: {username} ({userId})");
+        OnPeerConnected?.Invoke(remotePeerId);
+    }
+
+    private void OnNakamaSocketDisconnected()
+    {
+        if (_disposed || _reconnectLoopActive)
+            return;
+
+        _isConnected = false;
+        OnDisconnected?.Invoke("Socket disconnected");
+        _ = StartReconnectLoopAsync();
+    }
+
+    private async Task StartReconnectLoopAsync()
+    {
+        if (_disposed || _reconnectLoopActive)
+            return;
+
+        _reconnectLoopActive = true;
+
+        try
+        {
+            var nakama = NakamaGameClient.Instance;
+            if (nakama == null)
+                return;
+
+            for (int attempt = 1; attempt <= ReconnectMaxAttempts && !_disposed; attempt++)
+            {
+                GD.Print($"[NakamaMatchTransport] Reconnect attempt {attempt}/{ReconnectMaxAttempts}...");
+                bool rejoined = await nakama.ReconnectToMatchAsync(_matchId);
+                if (rejoined)
+                {
+                    _isConnected = true;
+                    OnConnected?.Invoke();
+
+                    if (_remotePeerConnected)
+                    {
+                        int remotePeerId = _isHost ? 2 : 1;
+                        OnPeerConnected?.Invoke(remotePeerId);
+                    }
+
+                    GD.Print("[NakamaMatchTransport] Reconnected to match");
+                    return;
+                }
+
+                await Task.Delay(ReconnectAttemptDelayMs);
+            }
+
+            OnDisconnected?.Invoke("Reconnect timeout");
+            GD.PrintErr("[NakamaMatchTransport] Reconnect timeout");
+        }
+        finally
+        {
+            _reconnectLoopActive = false;
+        }
     }
 
     #endregion
 
     public override void _ExitTree()
     {
+        _disposed = true;
         Disconnect();
     }
 }

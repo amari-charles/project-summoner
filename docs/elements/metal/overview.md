@@ -18,4 +18,4 @@ Represents craft, civilization, and forged strength. Metal is the element of too
 
 ---
 
-*See also: [Earth Element](earth.md)*
+*See also: [Earth Element](../earth/overview.md)*

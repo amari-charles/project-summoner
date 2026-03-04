@@ -18,4 +18,4 @@ Represents control, preservation, and clarity. Ice does not destroy—it holds a
 
 ---
 
-*See also: [Water Element](water.md)*
+*See also: [Water Element](../water/overview.md)*

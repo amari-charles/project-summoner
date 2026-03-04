@@ -14,9 +14,8 @@ Review the current changes following project guidelines and best practices.
      - Run `git log main..HEAD --oneline` to see commits in the PR
      - Run `git diff main...HEAD --stat` to see changed files vs main
      - Run `git diff main...HEAD` to see the full diff vs main
-   - Run both test suites to verify all tests pass:
-     - C# tests: `dotnet test --settings test.runsettings`
-     - GDScript tests: `"/Applications/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`
+   - Run full local suite to verify all tests pass:
+     - `./tools/run_tests.sh`
 
 3. Output your review using the format specified in pr-review-guidelines.md:
    - High-level summary

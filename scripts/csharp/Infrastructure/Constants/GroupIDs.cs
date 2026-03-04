@@ -91,6 +91,9 @@ public static class GroupIDs
     /// <summary>Input collector</summary>
     public const string InputCollector = "input_collector";
 
+    /// <summary>Match transport node (P2P/Nakama handoff between scenes)</summary>
+    public const string MatchTransport = "match_transport";
+
     // =========================================================================
     // UTILITY METHODS
     // =========================================================================

@@ -114,4 +114,4 @@ Collect → Build → Battle → Reward → Evolve
 ---
 
 *For detailed design, see: [Vision Document](vision.md)*
-*For technical details, see: [Current State](../current-state.md)*
+*For technical details, see: [Current State](current-state.md)*

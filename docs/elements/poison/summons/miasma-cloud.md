@@ -24,4 +24,4 @@ A toxic cloud creature that exudes poisonous vapors. Miasma Clouds are corrupted
 
 ---
 
-*See also: [Poison Element](../../elements/poison.md)*
+*See also: [Poison Element](../overview.md)*

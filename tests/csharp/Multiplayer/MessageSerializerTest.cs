@@ -340,6 +340,21 @@ public class MessageSerializerTest
             new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(1, 0, 1), Hp: 50, MaxHp: 100, TargetNetworkId: 2, IsAlive: true, ActivationState: 1, BehaviorState: 1, IsFacingRight: true),
             new UnitState(NetworkId: 2, Team: 1, Position: new Vector3(5, 0, 5), Hp: 30, MaxHp: 80, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 3, IsFacingRight: false)
         };
+        var projectiles = new[]
+        {
+            new ProjectileState(
+                ProjectileId: 10,
+                SourceUnitId: 1,
+                TargetUnitId: 2,
+                Team: 0,
+                MovementType: 0,
+                CurrentPosition: new Vector3(2f, 1f, 2f),
+                Direction: new Vector3(1f, 0f, 0f),
+                TargetPosition: new Vector3(5f, 0f, 5f),
+                Progress: 0.25f,
+                Speed: 7f,
+                IsDead: false)
+        };
 
         var original = new StateSnapshot(
             Frame: 1000L,
@@ -348,6 +363,7 @@ public class MessageSerializerTest
             PrepTimeRemaining: 0f,
             Summoners: summoners,
             Units: units,
+            Projectiles: projectiles,
             StateHash: 12345,
             IsOvertime: false
         );
@@ -386,6 +402,11 @@ public class MessageSerializerTest
         AssertThat(typed.Units[0].IsFacingRight).IsTrue();
         AssertThat(typed.Units[1].BehaviorState).IsEqual(3);
         AssertThat(typed.Units[1].IsFacingRight).IsFalse();
+        AssertThat(typed.Projectiles.Length).IsEqual(1);
+        AssertThat(typed.Projectiles[0].ProjectileId).IsEqual(10);
+        AssertThat(typed.Projectiles[0].CurrentPosition.X).IsEqual(2f);
+        AssertThat(typed.Projectiles[0].Direction.X).IsEqual(1f);
+        AssertThat(typed.Projectiles[0].TargetPosition.Z).IsEqual(5f);
     }
 
     [TestCase]
@@ -452,10 +473,25 @@ public class MessageSerializerTest
         {
             new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(4.5f, 0, 8.25f), Hp: 50, MaxHp: 100, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 0, IsFacingRight: true)
         };
+        var projectiles = new[]
+        {
+            new ProjectileState(
+                ProjectileId: 4,
+                SourceUnitId: 1,
+                TargetUnitId: -2,
+                Team: 0,
+                MovementType: 0,
+                CurrentPosition: new Vector3(1.5f, 0.2f, -2.25f),
+                Direction: new Vector3(0f, 0f, 1f),
+                TargetPosition: new Vector3(1.5f, 0.2f, 4f),
+                Progress: 0.6f,
+                Speed: 12f,
+                IsDead: false)
+        };
 
         var original = new StateSnapshot(
             Frame: 100L, MatchTime: 10f, Phase: 1, PrepTimeRemaining: 0f,
-            Summoners: summoners, Units: units, StateHash: 999, IsOvertime: false
+            Summoners: summoners, Units: units, Projectiles: projectiles, StateHash: 999, IsOvertime: false
         );
 
         var dict = _serializer.Serialize(original);
@@ -466,5 +502,8 @@ public class MessageSerializerTest
         AssertThat(result.Units[0].Position.X).IsEqual(4.5f);
         AssertThat(result.Units[0].Position.Y).IsEqual(0f);
         AssertThat(result.Units[0].Position.Z).IsEqual(8.25f);
+        AssertThat(result.Projectiles[0].CurrentPosition.X).IsEqual(1.5f);
+        AssertThat(result.Projectiles[0].CurrentPosition.Z).IsEqual(-2.25f);
+        AssertThat(result.Projectiles[0].TargetPosition.Z).IsEqual(4f);
     }
 }

@@ -2,6 +2,8 @@
 
 Reads game state and renders it. No game logic, no mutation — purely visual.
 
+For the boundary-level contract (graph position, edge types, invariants), read [layer-contract.md](layer-contract.md) first.
+
 ## Naming Convention
 
 **Role-based suffixes, not Godot node types.** This is a 2.5D game — the `3D` suffix reflects Godot plumbing, not the game's visual paradigm. Names describe what components DO.
@@ -74,6 +76,7 @@ BattleScene (top-level facade, wires everything to IGameSession)
 
 | Component | Doc |
 |-----------|-----|
+| View Layer Contract | [layer-contract.md](layer-contract.md) |
 | EntityManager | [battlefield/](battlefield/) |
 | UnitVisual | [battlefield/unit-visual.md](battlefield/unit-visual.md) |
 | ProjectileVisual | [battlefield/projectile-visual.md](battlefield/projectile-visual.md) |
@@ -110,4 +113,5 @@ Covers: HandUI split, SpellTargetingManager retirement, RedirectManager→Comman
 
 ## Client Interpolation
 
-`StateInterpolator` writes interpolated positions into MatchState before shells read it. The entire View layer is unaware of interpolation — it just gets smooth values.
+`EntityManager` owns a shared `StateInterpolator` that smooths remote unit render positions.
+It does not mutate `MatchState`; interpolation is render-only and consumed by `UnitVisual`.

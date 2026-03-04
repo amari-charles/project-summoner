@@ -16,7 +16,7 @@ public class BattleSessionConfigTest
     public void ForPractice_SetsCorrectMode()
     {
         var config = BattleSessionConfig.ForPractice();
-        AssertThat(config.Mode).IsEqual(4); // PRACTICE
+        AssertThat((int)config.Mode).IsEqual((int)BattleMode.Practice);
     }
 
     [TestCase]
@@ -49,7 +49,7 @@ public class BattleSessionConfigTest
     public void NewConfig_HasEmptyRankedMatchInfo()
     {
         var config = new BattleSessionConfig();
-        AssertThat(config.RankedMatchInfo.Count).IsEqual(0);
+        AssertThat(config.RankedMatchInfo == null || config.RankedMatchInfo.Count == 0).IsTrue();
     }
 
     [TestCase]

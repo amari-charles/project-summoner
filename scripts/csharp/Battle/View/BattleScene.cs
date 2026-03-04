@@ -4,6 +4,7 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Events;
 using Fateforged.Session;
+using Fateforged.Multiplayer.Transport;
 using Godot;
 using Fateforged.Constants;
 
@@ -77,6 +78,11 @@ public partial class BattleScene : Node3D
 	[Signal] public delegate void PhaseChangedEventHandler(int newPhase);
 	[Signal] public delegate void PrepTimerUpdatedEventHandler(float remaining);
 	[Signal] public delegate void InitializationCompleteEventHandler();
+	[Signal] public delegate void ReconnectStateChangedEventHandler(bool reconnecting, string reason);
+	[Signal] public delegate void ReconnectTimerUpdatedEventHandler(float remainingSeconds);
+
+	private bool _isShowingReconnectState;
+	private int _lastReconnectSeconds = -1;
 
 	// =========================================================================
 	// LIFECYCLE
@@ -168,6 +174,9 @@ public partial class BattleScene : Node3D
 		// MP client: poll MatchState for timer/phase sync
 		if (_config.IsMpClient)
 			PollMatchState();
+
+		if (_config.IsMultiplayer)
+			PollReconnectState();
 	}
 
 	// =========================================================================
@@ -272,8 +281,10 @@ public partial class BattleScene : Node3D
 	/// </summary>
 	public void AbandonBattle()
 	{
+		var root = GetTree().Root;
+
 		// Clear current_battle from profile to prevent stale state
-		var profileRepo = GetNodeOrNull("ProfileRepo");
+		var profileRepo = root.GetNodeOrNull("ProfileRepo");
 		if (profileRepo != null && profileRepo.HasMethod("UpdateCampaignProgressDict"))
 		{
 			var clearDict = new Godot.Collections.Dictionary { { "current_battle", "" } };
@@ -281,12 +292,12 @@ public partial class BattleScene : Node3D
 		}
 
 		// Clear any pending reward
-		var campaign = GetNodeOrNull("Campaign");
+		var campaign = root.GetNodeOrNull("Campaign");
 		if (campaign != null && campaign.HasMethod("ClearPendingReward"))
 			campaign.Call("ClearPendingReward");
 
 		// Delegate state cleanup to BattleContext
-		var battleContext = GetNodeOrNull("BattleContext");
+		var battleContext = root.GetNodeOrNull("BattleContext");
 		battleContext?.Call("abandon_battle");
 
 		_deckCardInstanceIds.Clear();
@@ -352,6 +363,31 @@ public partial class BattleScene : Node3D
 			EmitSignal(SignalName.PhaseChanged, (int)BattlePhase.Battle);
 	}
 
+	private void PollReconnectState()
+	{
+		var simNode = GetSimNode() as SimulationNode;
+		if (simNode == null)
+			return;
+
+		bool reconnecting = simNode.IsReconnecting();
+		if (reconnecting != _isShowingReconnectState)
+		{
+			_isShowingReconnectState = reconnecting;
+			_lastReconnectSeconds = -1;
+			EmitSignal(SignalName.ReconnectStateChanged, reconnecting, simNode.GetReconnectReason());
+		}
+
+		if (!reconnecting)
+			return;
+
+		int remaining = Mathf.CeilToInt(simNode.GetReconnectRemainingSeconds());
+		if (remaining != _lastReconnectSeconds)
+		{
+			_lastReconnectSeconds = remaining;
+			EmitSignal(SignalName.ReconnectTimerUpdated, remaining);
+		}
+	}
+
 	// =========================================================================
 	// INITIALIZATION HELPERS
 	// =========================================================================
@@ -411,15 +447,12 @@ public partial class BattleScene : Node3D
 		var simNode = new SimulationNode();
 		AddChild(simNode);
 
+		// Configure local perspective before init-dependent coordinate remapping.
+		simNode.IsHost = _config.HasAuthority;
+		simNode.LocalPlayerIndex = _config.HasAuthority ? 0 : 1;
+
 		simNode.Initialize(PreparationDuration, MatchDuration,
 			_config.WinCondition, _config.TimeLimit, _config.KillTarget, _config.BattleSeed);
-
-		// Client setup
-		if (_config.IsMpClient)
-		{
-			simNode.Set("IsHost", false);
-			simNode.Set("LocalPlayerIndex", 1);
-		}
 	}
 
 	private void InitEntityManager()
@@ -667,30 +700,61 @@ public partial class BattleScene : Node3D
 	{
 		if (!_config.IsMultiplayer) return;
 
-		// Create NakamaMatchTransport
-		var transport = new Fateforged.Multiplayer.Transport.NakamaMatchTransport();
-		AddChild(transport);
+		IMatchTransport? transport = null;
+		Node? transportNode = null;
 
-		// Get match ID
-		var nakama = GetTree().Root.GetNodeOrNull("NakamaGameClient");
-		string matchId = "";
-		if (nakama != null)
+		// Reuse handoff transport from P2P lobby when present.
+		var handoffNode = GetTree().GetFirstNodeInGroup(GroupIDs.MatchTransport);
+		if (handoffNode is IMatchTransport existingTransport && existingTransport.IsConnected)
 		{
-			var activeMatchId = nakama.Get("ActiveMatchId");
-			if (activeMatchId.VariantType != Variant.Type.Nil)
-				matchId = activeMatchId.ToString();
+			transport = existingTransport;
+			transportNode = handoffNode;
+			if (handoffNode.GetParent() != this)
+				handoffNode.Reparent(this);
+		}
+		else
+		{
+			if (handoffNode != null)
+				handoffNode.QueueFree();
+
+			// Ranked/Nakama path creates transport directly in battle scene.
+			var nakamaTransport = new NakamaMatchTransport();
+			AddChild(nakamaTransport);
+			transportNode = nakamaTransport;
+			transport = nakamaTransport;
+
+			var nakama = GetTree().Root.GetNodeOrNull("NakamaGameClient");
+			string matchId = "";
+			if (nakama != null)
+			{
+				var activeMatchId = nakama.Get("ActiveMatchId");
+				if (activeMatchId.VariantType != Variant.Type.Nil)
+					matchId = activeMatchId.ToString();
+			}
+
+			nakamaTransport.Initialize(matchId, _config.HasAuthority, _config.HasAuthority ? 1 : 2);
 		}
 
-		transport.Initialize(matchId, _config.HasAuthority, _config.HasAuthority ? 1 : 2);
+		if (transportNode != null && !transportNode.IsInGroup(GroupIDs.MatchTransport))
+			transportNode.AddToGroup(GroupIDs.MatchTransport);
 
-		// Multiplayer session wiring (HostSession/ClientSession) deferred to future milestone.
-		GD.Print("[BattleScene] Multiplayer transport initialized (session wiring pending future milestone)");
+		var simNode = GetSimNode() as SimulationNode;
+		if (simNode == null || transport == null)
+		{
+			GD.PrintErr("[BattleScene] Failed to configure multiplayer session (missing sim node or transport)");
+			return;
+		}
+
+		simNode.ConfigureMultiplayerSession(transport, _config.HasAuthority);
+		GD.Print("[BattleScene] Multiplayer session configured via HostSession/ClientSession");
 	}
 
 	private void BroadcastMatchEnd(int winnerTeam)
 	{
-		// Deferred to multiplayer transport milestone — broadcast match end via IMatchTransport
-		GD.Print($"[BattleScene] BroadcastMatchEnd called (winner={winnerTeam}) — pending multiplayer transport milestone");
+		var simNode = GetSimNode() as SimulationNode;
+		if (simNode == null) return;
+
+		simNode.BroadcastMatchEnded(winnerTeam, "BattleEnded");
 	}
 
 	// =========================================================================
@@ -788,7 +852,7 @@ public partial class BattleScene : Node3D
 	private void ReportRankedMatch(bool playerWon)
 	{
 		var matchInfo = _config.RankedMatchInfo;
-		if (matchInfo.Count == 0)
+		if (matchInfo == null || matchInfo.Count == 0)
 		{
 			GD.Print("[BattleScene] No ranked match info to report");
 			return;

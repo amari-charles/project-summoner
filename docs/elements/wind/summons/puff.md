@@ -23,4 +23,4 @@ A small cloud creature native to the elemental plane of wind. Puffs drift throug
 
 ---
 
-*See also: [Wind Element](../../elements/wind.md)*
+*See also: [Wind Element](../overview.md)*

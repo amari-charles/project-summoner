@@ -80,4 +80,4 @@ The world of Fateforged blends:
 
 ---
 
-*See also: [Narrative Arc](narrative-arc.md) | [Elements](elements/) | [Fateforgers](characters/fateforgers/)*
+*See also: [Narrative Arc](narrative-arc.md) | [Elements](../elements/README.md) | [Fateforgers](characters/fateforgers/)*

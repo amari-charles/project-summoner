@@ -17,6 +17,7 @@ using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
+using Fateforged.Data.Traits;
 using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
 namespace Fateforged.Infrastructure.Persistence;
@@ -45,7 +46,8 @@ public static class DtoConverters
             ["summoner_id"] = (string)instance.SummonerId,
             ["level"] = instance.Level,
             ["xp"] = instance.Xp,
-            ["equipped_items"] = equippedDict
+            ["equipped_items"] = equippedDict,
+            ["acquired_trait_ids"] = ToGodotArray(instance.AcquiredTraitIds.Select(t => (string)t))
         };
     }
 
@@ -85,12 +87,24 @@ public static class DtoConverters
             }
         }
 
+        var acquiredTraits = new List<TraitId>();
+        if (dict.TryGetValue("acquired_trait_ids", out var traitsVar) && traitsVar.VariantType == Variant.Type.Array)
+        {
+            foreach (var item in traitsVar.AsGodotArray())
+            {
+                var traitId = item.AsString();
+                if (!string.IsNullOrEmpty(traitId))
+                    acquiredTraits.Add(new TraitId(traitId));
+            }
+        }
+
         return new SummonerInstance
         {
             SummonerId = new SummonerId(summonerId),
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
-            EquippedItems = equippedItems
+            EquippedItems = equippedItems,
+            AcquiredTraitIds = acquiredTraits
         };
     }
 

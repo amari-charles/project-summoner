@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using Fateforged.Multiplayer.Core;
+using Fateforged.Multiplayer.Transport;
 using Fateforged.Session;
 using Fateforged.Cards;
 using Fateforged.Units;
@@ -14,8 +15,8 @@ using Fateforged.Simulation.Events;
 namespace Fateforged.Simulation;
 
 /// <summary>
-/// Scene-tree bridge for the simulation layer.
-/// Owns MatchState and Simulation. Implements IGameSession.
+/// Scene-tree bridge for the session/simulation stack.
+/// Owns match state initialization and delegates runtime behavior to IGameSession.
 ///
 /// Runs Tick() in _PhysicsProcess() with ProcessPriority = -100
 /// so it executes before visual nodes.
@@ -37,9 +38,10 @@ public partial class SimulationNode : Node, IGameSession
 
     public MatchState State { get; private set; } = new();
     private Simulation? _simulation;
-    private LocalSession? _localSession;
     private CommandRouter _commandRouter = new();
+    private IGameSession? _session;
     private bool _initialized;
+    private bool _firstSnapshotReceived;
 
     public const float FIXED_DELTA = 1.0f / 60.0f;
     private const int SimulationProcessPriority = -100;
@@ -49,8 +51,22 @@ public partial class SimulationNode : Node, IGameSession
 
     private float _accumulator;
 
-    public bool IsHost { get; set; } = true;
-    public int LocalPlayerIndex { get; set; } = 0;
+    private int _localPlayerIndex;
+    public int LocalPlayerIndex
+    {
+        get => _localPlayerIndex;
+        set
+        {
+            _localPlayerIndex = Mathf.Clamp(value, 0, 1);
+            LocalPlayer.Initialize(_localPlayerIndex);
+        }
+    }
+
+    public bool IsHost
+    {
+        get => LocalPlayerIndex == 0;
+        set => LocalPlayerIndex = value ? 0 : 1;
+    }
 
     // =========================================================================
     // TEAM / COORDINATE TRANSFORMS
@@ -82,20 +98,24 @@ public partial class SimulationNode : Node, IGameSession
     // IGameSession IMPLEMENTATION
     // =========================================================================
 
-    public MatchState GetState() => State;
+    public MatchState GetState() => _session?.GetState() ?? State;
 
     public event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
 
     public void SubmitCommand(ICommand cmd)
     {
-        if (_localSession != null)
+        if (_session != null)
         {
-            _localSession.SubmitCommand(cmd);
+            _session.SubmitCommand(cmd);
+            return;
         }
-        else
-        {
-            GD.PrintErr("[SimulationNode] SubmitCommand called before initialization — command rejected");
-        }
+
+        GD.PrintErr("[SimulationNode] SubmitCommand called before initialization — command rejected");
+    }
+
+    public void Tick(float delta)
+    {
+        _session?.Tick(delta);
     }
 
     // =========================================================================
@@ -118,6 +138,7 @@ public partial class SimulationNode : Node, IGameSession
 
     public override void _ExitTree()
     {
+        ClearSession();
         if (Current == this)
             Current = null;
     }
@@ -126,28 +147,56 @@ public partial class SimulationNode : Node, IGameSession
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!_initialized || _localSession == null)
+        if (!_initialized || _session == null)
             return;
 
 #if DEBUG
         if (!_invariantsChecked)
         {
             _invariantsChecked = true;
-            var violations = MatchStateInvariants.ValidatePostInit(State);
+            var violations = MatchStateInvariants.ValidatePostInit(GetState());
             foreach (var v in violations)
                 GD.PrintErr($"[SimulationNode] Post-init invariant violation: {v}");
         }
 #endif
 
-        if (!IsHost)
-            return;
-
-        _accumulator += (float)delta;
-        while (_accumulator >= FIXED_DELTA)
+        if (IsHost)
         {
-            _localSession.Tick(FIXED_DELTA);
-            _accumulator -= FIXED_DELTA;
+            _accumulator += (float)delta;
+            while (_accumulator >= FIXED_DELTA)
+            {
+                _session.Tick(FIXED_DELTA);
+                _accumulator -= FIXED_DELTA;
+            }
+            return;
         }
+
+        // Client sessions don't run deterministic simulation ticks.
+        _session.Tick((float)delta);
+    }
+
+    /// <summary>
+    /// Whether the active network session is currently waiting for reconnection.
+    /// </summary>
+    public bool IsReconnecting()
+    {
+        return _session is NetworkSession network && network.IsAwaitingReconnect;
+    }
+
+    /// <summary>
+    /// Remaining reconnect grace time in seconds.
+    /// </summary>
+    public float GetReconnectRemainingSeconds()
+    {
+        return _session is NetworkSession network ? network.ReconnectRemainingSeconds : 0f;
+    }
+
+    /// <summary>
+    /// Human-readable reconnect reason from the network session.
+    /// </summary>
+    public string GetReconnectReason()
+    {
+        return _session is NetworkSession network ? network.ReconnectReason : "";
     }
 
     // =========================================================================
@@ -176,11 +225,91 @@ public partial class SimulationNode : Node, IGameSession
         Simulation.Log = msg => GD.Print(msg);
         _simulation = new Simulation(State);
         _commandRouter = new CommandRouter();
-        _localSession = new LocalSession(_simulation, _commandRouter, State);
-        _localSession.SimEventsEmitted += events => SimEventsEmitted?.Invoke(events);
+
+        SetSession(new LocalSession(_simulation, _commandRouter, State));
         _initialized = true;
 
         GD.Print($"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, timeLimit={State.WinConditionTimeLimit}s, killTarget={winConditionKillTarget}, seed={seed})");
+    }
+
+    /// <summary>
+    /// Replace LocalSession with host/client session for multiplayer battles.
+    /// Called by BattleScene after transport setup.
+    /// </summary>
+    public void ConfigureMultiplayerSession(IMatchTransport transport, bool isHost)
+    {
+        if (!_initialized || _simulation == null)
+        {
+            GD.PrintErr("[SimulationNode] ConfigureMultiplayerSession called before Initialize");
+            return;
+        }
+
+        IsHost = isHost;
+
+        IGameSession session = isHost
+            ? new HostSession(_simulation, _commandRouter, State, transport)
+            : new ClientSession(State, transport, LocalPlayerIndex);
+
+        SetSession(session);
+    }
+
+    /// <summary>
+    /// Send an authoritative match-ended message to remote peers (host only).
+    /// </summary>
+    public void BroadcastMatchEnded(int localWinnerTeam, string reason = "MatchEnded")
+    {
+        if (_session is not HostSession hostSession)
+            return;
+
+        hostSession.BroadcastMatchEnd(ToNetworkTeam(localWinnerTeam), reason, State.MatchTime);
+    }
+
+    private void SetSession(IGameSession session)
+    {
+        if (_session != null)
+        {
+            _session.SimEventsEmitted -= OnSessionSimEvents;
+            if (_session is ClientSession oldClientSession)
+                oldClientSession.FirstSnapshotApplied -= OnClientFirstSnapshotApplied;
+            if (_session is IDisposable disposable)
+                disposable.Dispose();
+        }
+
+        _session = session;
+        _session.SimEventsEmitted += OnSessionSimEvents;
+
+        _firstSnapshotReceived = false;
+        if (_session is ClientSession clientSession)
+            clientSession.FirstSnapshotApplied += OnClientFirstSnapshotApplied;
+
+        _accumulator = 0f;
+    }
+
+    private void ClearSession()
+    {
+        if (_session == null)
+            return;
+
+        _session.SimEventsEmitted -= OnSessionSimEvents;
+        if (_session is ClientSession clientSession)
+            clientSession.FirstSnapshotApplied -= OnClientFirstSnapshotApplied;
+        if (_session is IDisposable disposable)
+            disposable.Dispose();
+        _session = null;
+    }
+
+    private void OnSessionSimEvents(IReadOnlyList<SimEvent> events)
+    {
+        SimEventsEmitted?.Invoke(events);
+    }
+
+    private void OnClientFirstSnapshotApplied()
+    {
+        if (_firstSnapshotReceived)
+            return;
+
+        _firstSnapshotReceived = true;
+        EmitSignal(SignalName.FirstSnapshotApplied);
     }
 
     // =========================================================================
@@ -343,14 +472,16 @@ public partial class SimulationNode : Node, IGameSession
     // GDSCRIPT-CALLABLE ACCESSORS (BattleScene polls these)
     // =========================================================================
 
-    public int GetPhase() => (int)State.Phase;
-    public float GetPrepTimeRemaining() => State.PrepTimeRemaining;
-    public float GetMatchTime() => State.MatchTime;
+    public int GetPhase() => (int)GetState().Phase;
+    public float GetPrepTimeRemaining() => GetState().PrepTimeRemaining;
+    public float GetMatchTime() => GetState().MatchTime;
+    public int GetWinnerTeam() => GetState().WinnerTeam ?? -1;
 
     public void SkipPreparation()
     {
-        if (State.Phase == GamePhase.Preparation)
-            State.PrepTimeRemaining = 0f;
+        var state = GetState();
+        if (state.Phase == GamePhase.Preparation)
+            state.PrepTimeRemaining = 0f;
     }
 
     // =========================================================================
@@ -359,27 +490,6 @@ public partial class SimulationNode : Node, IGameSession
 
     public void QueuePlayCard(int team, int cardIndex, Vector3 spawnPosition, int networkId = -1)
     {
-        // MP client: route through authority provider instead of local submission
-        if (!IsHost)
-        {
-            var battleContext = GetNodeOrNull("/root/BattleContext");
-            if (battleContext != null)
-            {
-                var authProvider = battleContext.Get("authority_provider");
-                if (authProvider.VariantType != Variant.Type.Nil)
-                {
-                    var provider = authProvider.AsGodotObject() as Node;
-                    if (provider != null && provider.HasMethod("request_card_play"))
-                    {
-                        provider.Call("request_card_play", cardIndex, spawnPosition);
-                        return;
-                    }
-                }
-            }
-            GD.PrintErr("[SimulationNode] MP client has no authority provider for card play!");
-            return;
-        }
-
         var cmd = new PlayCardCommand(ToNetworkTeam(team), cardIndex, ToSimCanonical(spawnPosition), networkId);
         SubmitCommand(cmd);
     }

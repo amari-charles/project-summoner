@@ -55,6 +55,7 @@ var _state: LobbyState = LobbyState.MENU
 
 ## C# Transport instance
 var _transport: Node = null
+var _handoff_transport: bool = false
 
 ## Whether we're hosting
 var _is_host: bool = false
@@ -445,14 +446,29 @@ func _start_match(battle_seed: int, player_summoner: String, opponent_summoner: 
 		battle_seed
 	)
 
-	# TODO: Wire multiplayer authority via HostSession/ClientSession
-	# LocalPlayer.NetworkIndex should be set when sessions are created
+	# Multiplayer authority/session ownership is configured in BattleScene
+	# via SimulationNode.ConfigureMultiplayerSession().
+
+	# Keep active transport alive across scene transition.
+	_handoff_transport_to_battle()
 
 	# Brief delay for UI feedback
 	await get_tree().create_timer(MATCH_START_DELAY).timeout
 
 	# Transition to battle (transport stays alive for the match)
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+
+
+func _handoff_transport_to_battle() -> void:
+	if _transport == null or not is_instance_valid(_transport):
+		return
+
+	if not _transport.is_in_group(GroupIDs.MATCH_TRANSPORT):
+		_transport.add_to_group(GroupIDs.MATCH_TRANSPORT)
+
+	_transport.reparent(get_tree().root)
+	_handoff_transport = true
+	_transport = null
 
 
 func _get_active_summoner_id() -> String:
@@ -483,4 +499,8 @@ func _on_back_pressed() -> void:
 
 
 func _exit_tree() -> void:
+	if _handoff_transport:
+		_handoff_transport = false
+		return
+
 	_cleanup_transport()

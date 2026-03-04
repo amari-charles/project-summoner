@@ -13,7 +13,7 @@ public enum BattleMode
     Campaign = 0,
     Arena = 1,
     Endless = 2,
-    // 3 is unused (gap in GDScript enum)
+    Tutorial = 3,
     Practice = 4,
     Multiplayer = 5
 }
@@ -47,7 +47,7 @@ public class BattleSessionConfig
     public bool HasEventSequence { get; set; }
 
     /// <summary>Raw battle_config dict — still needed by deck loading and summoner init.</summary>
-    public Godot.Collections.Dictionary RawConfig { get; set; } = new();
+    public Godot.Collections.Dictionary? RawConfig { get; set; }
 
     // =========================================================================
     // AI CONFIG
@@ -84,7 +84,7 @@ public class BattleSessionConfig
     public bool IsRankedMatch { get; set; }
 
     /// <summary>Ranked match info for match reporting (match_id, opponent data, etc.).</summary>
-    public Godot.Collections.Dictionary RankedMatchInfo { get; set; } = new();
+    public Godot.Collections.Dictionary? RankedMatchInfo { get; set; }
 
     // =========================================================================
     // FACTORY

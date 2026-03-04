@@ -11,7 +11,7 @@
 ```
   ┌─────────────────────────────────────────────────────────────────────┐
   │                         INPUT LAYER                                 │
-  │   InputCollector.cs (player drag)  ·  AI Opponent  ·  ClientRunner  │
+  │   InputCollector.cs (player drag)  ·  AI Opponent  ·  ClientSession │
   │                                                                     │
   │   Rule: All input becomes a PlayCardCommand — no direct state       │
   │         mutation allowed                                            │
@@ -27,27 +27,22 @@
   │   MatchState is the SINGLE SOURCE OF TRUTH                          │
   │                                                                     │
   │   Rule: ONLY simulation code writes to MatchState                   │
-  │   (Tick for progression, SnapshotApplier for client correction)     │
+  │   (Tick for progression, ClientSession.ApplySnapshot for correction)│
   └──────────────┬──────────────────────────────────────┬───────────────┘
                  │  SimEvent list                       │
                  ▼                                      │
   ┌──────────────────────────────────┐   ┌──────────────┴──────────────┐
-  │      MULTIPLAYER LAYER           │   │    PRESENTATION LAYER       │
+  │      SESSION LAYER               │   │    PRESENTATION LAYER       │
   │                                  │   │       (READ-ONLY)           │
-  │  HostRunner: drives Tick(),      │   │                             │
-  │    broadcasts events/snapshots   │   │  SimulationNode: converts   │
+  │  HostSession: drives Tick(),     │   │  SimulationNode: converts   │
+  │    broadcasts snapshots/events   │   │    SimEvents -> Godot       │
   │                                  │   │    SimEvents → Godot        │
-  │  ClientRunner: receives events,  │   │    signals                  │
-  │    never calls Tick(), applies   │   │                             │
-  │    snapshots for correction.     │   │  UnitVisual / HUD /         │
-  │    Client shows presentation-    │   │    read MatchState,         │
-  │    only prediction (ghost        │   │    react to signals         │
-  │    placement, pending animation) │   │                             │
-  │    until host confirms/rejects.  │   │  Rule: NEVER write to      │
-  │    Client never runs its own     │   │    MatchState               │
-  │    simulation — all state        │   │                             │
-  │    changes come from host        │   │                             │
-  │    events + snapshots.           │   │                             │
+  │  ClientSession: sends commands,  │   │  UnitVisual / HUD /         │
+  │    never runs deterministic tick,│   │    read MatchState,         │
+  │    applies authoritative         │   │    react to signals         │
+  │    snapshots from host.          │   │                             │
+  │                                  │   │  Rule: NEVER write to       │
+  │  Rule: Host is authoritative     │   │    MatchState               │
   │                                  │   │                             │
   │  Rule: Host is authoritative     │   │                             │
   └──────────────────────────────────┘   └─────────────────────────────┘
@@ -55,7 +50,7 @@
 
 ### The 6 Invariants
 
-1. **Single writer (simulation subsystem)**: Only simulation code mutates `MatchState`: `Simulation.Tick(fixedDelta)` during normal progression, plus an explicit correction path (`SnapshotApplier.Apply(snapshot)`) on clients. Presentation/GDScript never writes to `MatchState`.
+1. **Single writer (simulation subsystem)**: Only simulation code mutates `MatchState`: `Simulation.Tick(fixedDelta)` during normal progression, plus an explicit correction path (`ClientSession.ApplySnapshot(snapshot)`) on clients. Presentation/GDScript never writes to `MatchState`.
 2. **Commands in, events out**: Player input becomes `ICommand`, simulation produces `SimEvent`s.
 3. **Deterministic**: Same seed + same commands in same order = identical state within the same runtime/platform. Uses `DeterministicRng` (Xorshift32). Simulation runs at a **fixed timestep** (`fixedDelta`). Godot accumulates frame delta and calls `Tick(fixedDelta)` zero or more times per frame — never with a variable delta. Note: the sim uses floats; cross-machine drift is possible, so multiplayer relies on periodic snapshots as the authoritative source of truth to correct drift. This is a **server-authoritative event replication** architecture, not lockstep — determinism exists for replays, debugging, and predictable single-player behavior, not for multiplayer state agreement.
 4. **Host authority**: Host calls `Tick(fixedDelta)`. Client never calls `Tick(fixedDelta)` — it receives events and periodic snapshots.
@@ -74,7 +69,7 @@ Each `Simulation.Tick(fixedDelta)` runs its systems in this fixed order. All flo
 2. **Drain and execute due commands** — drain `PendingCommandBuffer` where `ExecuteFrame <= FrameNumber`, sort by `(ExecuteFrame, Team, Sequence)`, execute in order. Note: commands execute under the *current* phase — if Preparation expires this frame, commands scheduled for this frame still execute under Preparation (phase change happens at step 3).
 3. **Phase timers / transitions** — decrement `PrepTimeRemaining`, transition to Battle if expired (activate units, refresh hands). Phase acts as a gate: casting, units, and projectiles run under the phase that is current *after* this step. Implementation detail: delegates to `TickPreparationTimers()` when `Phase == Preparation`; no-op during Battle.
 4. **Tick casting** — decrement cast timers, handle completions (spawn units / apply spells), replacement draws
-5. **Tick units** — per alive active unit: cooldowns → targeting → behavior → movement → pending melee damage
+5. **Tick units** — per alive active unit: cooldowns → targeting → behavior → movement → delayed ranged resolution (`TickPendingDamage`)
 6. **Tick projectiles** — `SimProjectile.TickAll()`: advance, hit detect, apply damage, cleanup dead
 7. **Tick effects** — `SimEffects.TickBuffs()`: decrement durations, apply periodic (DoT/HoT), remove expired, fire periodic triggers
 8. **Tick delayed effects** — `SimEffects.TickDelayedEffects()`: process due ability timers (death explosions, etc.)
@@ -239,12 +234,13 @@ What happens to **one unit** during `TickUnits()`:
   → Reads `BehaviorResult.Movement` to decide: forward / toward target / strafe / none
   → Updates `unit.Position` and `unit.Velocity`
 
-**Step 5**: `SimBehavior.TickPendingDamage(unit, state, fixedDelta, events)` — resolve melee-timed hits.
+**Step 5**: `SimBehavior.TickPendingDamage(unit, state, fixedDelta, events)` — resolve delayed ranged outcomes.
   → Decrements `unit.PendingDamageTimer`
-  → When timer expires, applies damage to `unit.PendingDamageTargetId` via `SimDamage.Calculate()`
-  → (Ranged damage is handled by `SimProjectile.TickAll()` separately — see Flow 10)
+  → When timer expires:
+    - unit target: spawns authoritative `SimProjectileData` (canonical ranged path)
+    - summoner target: applies delayed direct summoner damage
 
-> **Ranged attacks — projectiles vs pending damage**: Ranged basic attacks spawn `SimProjectileData` tracked in `MatchState.Projectiles` (see Flow 10) — this is the **canonical model**. The `PendingDamageTimer` fields on `UnitData` are reserved for **melee-timed hits** (synchronizing damage with attack animation keyframes) or as a documented optimization fallback if full projectile simulation proves too expensive. When in doubt, use `SimProjectileData`.
+> **Ranged attacks — projectiles vs delayed fields**: Unit-vs-unit ranged attacks use `SimProjectileData` in `MatchState.Projectiles` (see Flow 10). `PendingDamage*` fields are a windup buffer before projectile spawn (or delayed summoner damage), not the final unit-damage mechanism.
 
 ---
 
@@ -255,8 +251,11 @@ What happens to **one unit** during `TickUnits()`:
   → Emits: `UnitAttackedEvent(attackerUnitId, targetUnitId)`
 
 **Step 2**: Branch by unit type:
-  → **Melee** (`UnitType == 0`): sets `unit.PendingDamageTimer` to sync damage with attack animation keyframe. When timer expires (`TickPendingDamage`), applies damage via Steps 3–5 below
-  → **Ranged** (`UnitType == 1`): calls `SimProjectile.Spawn(attacker, target, ...)` — creates `SimProjectileData` in `MatchState.Projectiles`. Damage is applied later when the projectile hits (see Flow 10 `ApplyHit`)
+  → **Melee** (`UnitType == 0`): applies immediate unit damage via `SimDamage.Calculate()` path.
+  → **Ranged** (`UnitType == 1`):
+    - if `ProjectileDelay > 0`: starts delayed windup via `PendingDamage*`, then spawns projectile in `TickPendingDamage`
+    - if no delay: spawns projectile immediately
+  → Projectile hits later resolve damage in `SimProjectile.ApplyHit()` (see Flow 10).
 
 **Step 3**: `SimDamage.Calculate(baseDamage, attacker, target, attackerSummoner, targetSummoner, rng)` (called by melee pending damage or projectile hit):
   → a. **Crit check**: `rng.NextFloat() < attacker.CritChance` → `damage *= attacker.CritDamage`
@@ -418,58 +417,37 @@ What happens to **one unit** during `TickUnits()`:
 ### Flow 13: Multiplayer — Client Plays a Card
 
 **Step 1**: Client player drags card.
-  → `InputCollector` calls `AuthorityBridge.RequestCardPlay(cardIndex, localPosition, summonerNode)`
+  → `InputCollector` calls into `SimulationNode.PlayCard(...)`.
+  → `SimulationNode` remaps team/perspective and converts local position to canonical before creating `PlayCardCommand`.
 
-**Step 2**: `ClientAuthority.RequestCardPlay()` handles.
-  → **Soft validation** (for UI feedback only): check hand size, mana
-  → Transform position: `CoordinateTransform.LocalToCanonical(localPosition)` (mirrors X axis for client)
-  → Store callback in `_pendingCallbacks[sequence]`
-  → Send `CardPlayRequest(sequence, playerIndex, cardIndex, canonicalPosition, timestamp)` to host
-  → Returns `Queued` status
+**Step 2**: `ClientSession.SubmitCommand()` handles.
+  → Builds `CardPlayRequest(sequence, playerIndex, cardIndex, canonicalPosition, timestamp)`.
+  → Sends request through `IMatchTransport` to host.
+  → Client does not run local deterministic sim prediction.
 
 **Step 3**: Host receives `CardPlayRequest`.
-  → `HostRunner.HandleCardPlayRequest()` → `RequestValidator.ValidateCardPlay()`
-  → Validates: mana, hand size, spawn position, player ready
+  → `HostSession.HandleMessage()` resolves authoritative team from sender identity.
+  → Validates via `CommandRouter.Validate(...)`.
+  → Queues accepted command for next simulation frame.
 
-**Step 4a**: Valid — Host executes.
-  → Reserve `NetworkId` via `NetworkIdRegistry`
-  → `GameStateProvider.ExecuteCardPlay()` — deducts mana, removes card, spawns unit
-  → Broadcast `CardPlayConfirmed` to requesting client
-  → Broadcast `UnitSpawned` to all clients
+**Step 4**: Host tick executes.
+  → `Simulation.Tick()` processes command.
+  → Summoner/card state and unit spawning happen in authoritative `MatchState`.
+  → Host emits gameplay events and broadcasts periodic `StateSnapshot` (10Hz).
 
-**Step 4b**: Invalid — Host rejects.
-  → Broadcast `CardPlayRejected(sequence, playerIndex, reason)`
-
-**Step 5**: Client receives `UnitSpawned` (or `CardPlayRejected`).
-  → `ClientAuthority.HandleUnitSpawned(msg)` matches `SourceSequence` to pending callback
-  → Transforms position back: `CoordinateTransform.CanonicalToLocal(msg.Position)`
-  → Executes stored callback — unit appears on client
-  → Removes from `_pendingCallbacks`
-
-**Step 6**: Periodic state sync.
-  → Host sends `StateSnapshot` every ~100ms via `StateSnapshotBuilder.Build()`
-  → Client applies snapshot to correct any drift
-
-> **Hand/deck replication**: In multiplayer, hand/deck state is replicated via `DeckSync` messages (event stream) and included in periodic `StateSnapshot`s (within `Summoners[]` data) for correction. The client never simulates deck draws — all deck state comes from the host. If `DeckSync` conflicts with `StateSnapshot.Summoners[]`, the snapshot wins and deck/hand UI is refreshed from snapshot data.
+**Step 5**: Client applies authoritative snapshot.
+  → `ClientSession.ApplySnapshot(StateSnapshot)` overwrites frame/phase/time + summoners + units + projectiles.
+  → Entities absent from snapshot are removed locally.
+  → `EntityManager` spawns/despawns shells from state diff and interpolates unit render positions.
 
 > **Events vs snapshots precedence**:
-> - Events apply in `ServerEventId` order (arrival order when transport is already ordered) and drive incremental presentation updates (spawn visuals, play damage VFX, update UI).
-> - Snapshots are authoritative corrections applied via `SnapshotApplier.Apply()` — they **overwrite** `FrameNumber`, `Phase`, `MatchTime`, and all included entity state (`Summoners[]`, `Units[]`).
-> - Snapshots are applied only if `snapshot.Frame >= lastAppliedSnapshotFrame`; late-arriving older snapshots are discarded to prevent time-travel.
+> - Snapshots are authoritative state (`FrameNumber`, `Phase`, `MatchTime`, `Summoners[]`, `Units[]`, `Projectiles[]`).
 > - On snapshot apply: overwrite all listed entity state. Entities present in `MatchState.Units` but absent from `snapshot.Units` are removed (they died on the host). Entities in the snapshot but not locally present are created. UX tradeoff: snapshot corrections may cause units to disappear without a local death animation if the client missed prior `UnitDied` events.
-> - **Projectiles are not replicated** in snapshots. Client projectile visuals are purely presentational, spawned from a `ProjectileFired` network message (preferred — allows travel-time visuals) or inferred from `DamageDealt` (fallback — instant hit). On snapshot apply, the client does not clear local projectile visuals — they are fire-and-forget presentation effects. Projectile visuals are purely cosmetic and may not reflect authoritative hit timing if corrected by a later snapshot (e.g., a projectile may visually fly toward a target that a snapshot already removed).
+> - **Projectiles are replicated** in `StateSnapshot.Projectiles[]`. On snapshot apply, clients upsert active projectile state and remove projectiles missing from the snapshot. `EntityManager` spawns/despawns `ProjectileVisual` shells from this authoritative list.
 > - **RNG is host-only**. Clients do not hold or advance `DeterministicRng` state. All RNG-dependent outcomes (crit, evasion, shuffle) are resolved by the host and communicated via events/snapshots.
-> - Discard any buffered events with `ServerFrame <= snapshot.Frame` — the snapshot already reflects them.
-> - Clear client-side predicted entities (ghost placements) not confirmed by `snapshot.Frame`. Pending `_pendingCallbacks` whose `Sequence` is not confirmed after `snapshot.Frame + graceWindow` are marked as rejected/timed out.
-> - If events and a snapshot arrive in the same network batch, apply the snapshot last (it is the more recent truth).
+> - Current transport expects ordered/reliable delivery from the match transport implementation; no explicit `ServerEventId` reordering layer exists in current session code.
 
-> **Network ordering contract**:
-> - All host→client messages include `ServerFrame` (the host `FrameNumber` at time of emission) and `ServerEventId` (monotonically increasing per host, across all message types).
-> - Client discards duplicate messages (same `ServerEventId`) and ignores event messages older than `lastAppliedSnapshotFrame`.
-> - If transport delivers messages out of order, `ServerEventId` is used to reorder within a frame before applying.
-> - Current transport assumes reliable ordered delivery (Godot high-level multiplayer). The `ServerEventId` field exists as a safety net for future transport changes.
-
-> **Client command tracking**: Clients do not enqueue `ICommand`s into `MatchState.PendingCommandBuffer` — that buffer is host-simulation-only. Client requests are tracked separately via `_pendingCallbacks[sequence]` for UX feedback (ghost placement, pending animation). Only the host simulation executes commands through `PendingCommandBuffer`.
+> **Hand/deck replication**: Hand/deck/discard are authoritative from host snapshots (`StateSnapshot.Summoners[]`). Client does not simulate deck progression locally.
 
 ---
 
@@ -553,9 +531,9 @@ What happens to **one unit** during `TickUnits()`:
 | Combat | `AttackCooldown` | `float` | Seconds until next attack |
 | Combat | `AttackAnimationTimer` | `float` | Remaining attack animation time |
 | Combat | `BehaviorState` | `int` | 0=NoTarget, 1=Chasing, 2=InRange, 3=Attacking |
-| Pending Dmg | `PendingDamageTimer` | `float` | Melee-timed hit delay (animation-synced damage). Not used for ranged — ranged uses `SimProjectileData` |
-| Pending Dmg | `PendingDamageTargetId` | `int?` | Who the pending melee damage hits |
-| Pending Dmg | `PendingDamageAmount` | `float` | How much pending melee damage |
+| Pending Dmg | `PendingDamageTimer` | `float` | Delayed ranged windup timer before resolving a pending outcome |
+| Pending Dmg | `PendingDamageTargetId` | `int?` | Pending delayed target (unit for projectile spawn, or summoner target ID) |
+| Pending Dmg | `PendingDamageAmount` | `float` | Base damage payload used when the delayed outcome resolves |
 | Lifecycle | `IsAlive` | `bool` | False when HP <= 0 |
 | Lifecycle | `DeathCleanupTimer` | `float` | Seconds remaining before dead unit is removed from MatchState. Set on death, ticked by sim. Gives presentation time to animate |
 | Lifecycle | `ActivationState` | `int` | 0=Inactive (prep), 1=Active (battle) |
@@ -621,8 +599,8 @@ What happens to **one unit** during `TickUnits()`:
 | `UnitRemovedEvent` | Unit removed from MatchState | Presentation (cleanup UnitVisual) |
 | `UnitAttackedEvent` | Unit begins an attack | UnitVisual (play attack animation) |
 | `UnitDamagedEvent` | Unit takes damage | UnitVisual (flash, HP bar update), floating damage numbers |
-| `UnitDiedSimEvent` | Unit HP reaches zero | UnitVisual (death anim), abilities (death triggers) |
-| `ProjectileHitSimEvent` | Projectile hits a unit | ProjectileVisual (impact VFX) |
+| `UnitDiedEvent` | Unit HP reaches zero | UnitVisual (death anim), abilities (death triggers) |
+| `ProjectileHitEvent` | Projectile hits a unit | ProjectileVisual (impact VFX) |
 | `GameOverEvent` | Win condition met | HUD (result screen), MatchSession (broadcast) |
 
 ### All Commands
@@ -638,7 +616,7 @@ What happens to **one unit** during `TickUnits()`:
 
 **Element**: `Neutral`, `Fire`, `Water`, `Wind`, `Earth`, `Lightning`, `Shadow`, `Poison`, `Life`, `Death`, `Occultist`, `Holy`, `Ice`, `Metal`, `Spirit`
 
-**MovementType** (SimProjectileData constants): `Straight (0)`, `Arc (1)`, `Ballistic (2)`, `WeavingHoming (3)`
+**MovementType** (SimProjectileData constants): `Straight (0)`, `Homing (1)`, `Arc (2)`, `Ballistic (3)`, `WeavingHoming (4)`
 
 **WeavingPhase** (SimProjectileData constants): `PhaseStraight (0)`, `PhaseVeering (1)`, `PhaseHoming (2)`
 
@@ -650,7 +628,7 @@ What happens to **one unit** during `TickUnits()`:
 
 **CardPlayStatus**: `Queued`, `Confirmed`, `Rejected`
 
-> **SimEvents vs network messages**: `SimEvent`s are the simulation's internal output — `Simulation.Tick()` returns a `List<SimEvent>`. On the host, `HostRunner` converts relevant `SimEvent`s into serialized **network messages** for the client (e.g., `UnitDamagedEvent` → `DamageDealt` message, `UnitDiedSimEvent` → `UnitDied` message). On the host side, `SimulationNode` also converts `SimEvent`s into Godot signals for local presentation. The client receives network messages only — it never sees raw `SimEvent` objects. The mapping is not guaranteed 1:1 — some `SimEvent`s map to a single network message (e.g., `UnitDamagedEvent` → `DamageDealt`), some may be coalesced, and some are host-only/local-only (e.g., internal bookkeeping events that don't need to cross the wire). Not every `SimEvent` must be networked.
+> **SimEvents vs network messages**: `SimEvent`s are the simulation's internal output — `Simulation.Tick()` returns a `List<SimEvent>`. `HostSession` may convert selected sim outcomes into protocol messages for clients (for example `MatchEnded` and `SummonerDamageFlash`) while snapshots remain the authoritative correction channel. `SimulationNode` also forwards local sim events to presentation. The mapping is not strictly 1:1 and can vary by message type.
 
 ### Network Messages (Client → Host)
 
@@ -663,20 +641,18 @@ What happens to **one unit** during `TickUnits()`:
 
 ### Network Messages (Host → Client)
 
-All host→client messages implicitly carry `ServerFrame` and `ServerEventId` (see network ordering contract above). Listed fields are domain-specific.
-
 | Message | Key Fields |
 |---------|-----------|
 | `CardPlayConfirmed` | `Sequence`, `PlayerIndex`, `CardIndex`, `Position`, `SpawnedUnitNetworkId` |
 | `CardPlayRejected` | `Sequence`, `PlayerIndex`, `Reason` |
-| `StateSnapshot` | `Frame`, `MatchTime`, `Phase`, `Summoners[]`, `Units[]`, `StateHash` |
+| `StateSnapshot` | `Frame`, `MatchTime`, `Phase`, `PrepTimeRemaining`, `Summoners[]`, `Units[]`, `Projectiles[]`, `StateHash`, `IsOvertime` |
 | `UnitSpawned` | `NetworkId`, `UnitType`, `Team`, `Position` (canonical), `SourceSequence`, `SourcePlayerIndex` |
 | `UnitDied` | `NetworkId`, `KillerNetworkId` |
-| `ProjectileFired` | `SourceNetworkId`, `TargetNetworkId`, `TargetPosition` (canonical), `MovementType`, `Speed` |
 | `DamageDealt` | `TargetNetworkId`, `Amount`, `IsCrit`, `SourceNetworkId` |
 | `SummonerDamaged` | `Team`, `Amount`, `NewHp` |
+| `SummonerDamageFlash` | `Team`, `Damage`, `AttackerUnitId` |
+| `SummonerDestroyed` | `Team`, `KillerUnitId` |
 | `MatchEnded` | `WinnerIndex`, `Reason`, `Duration` |
-| `DeckSync` | `NetworkTeam`, `Deck[]`, `Hand[]`, `Discard[]` |
 
 ---
 

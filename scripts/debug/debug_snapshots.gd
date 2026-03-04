@@ -14,7 +14,7 @@ extends Node
 const SNAPSHOTS_DIR: String = "user://debug/snapshots/"
 
 ## Service references
-var _repo = null  # ProfileRepo autoload (untyped to avoid CSharpScript parser error)
+var _repo: Variant = null  # ProfileRepo autoload (C# service)
 
 ## Cached list of available snapshots
 var _snapshot_cache: Array[Dictionary] = []

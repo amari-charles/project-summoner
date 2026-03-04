@@ -24,4 +24,4 @@ A storm cloud creature that crackles with electrical energy. Thunder Clouds are 
 
 ---
 
-*See also: [Lightning Element](../../elements/lightning.md)*
+*See also: [Lightning Element](../overview.md)*

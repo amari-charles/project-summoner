@@ -1,31 +1,31 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Fateforged.Multiplayer.Client;
+namespace Fateforged.View;
 
 /// <summary>
-/// Interpolates entity positions between server snapshots for smooth visuals.
+/// View-layer position interpolation for remote units.
+/// Consumes authoritative snapshot positions and outputs render-space smoothing only.
 /// </summary>
 public class StateInterpolator
 {
     /// <summary>
     /// Interpolation speed factor.
     /// Higher = snappier but less smooth.
-    /// Lower = smoother but may lag behind.
+    /// Lower = smoother but more visual latency.
     /// </summary>
     public float InterpolationSpeed { get; set; } = 15.0f;
 
     /// <summary>
     /// Maximum distance before snapping instead of interpolating.
-    /// Prevents weird slow movement on teleports.
+    /// Prevents slow drift on teleports or large corrections.
     /// </summary>
     public float SnapThreshold { get; set; } = 5.0f;
 
     private readonly Dictionary<int, InterpolationTarget> _targets = new();
 
     /// <summary>
-    /// Set the target position for an entity.
-    /// Called when a state snapshot is received.
+    /// Set the latest authoritative target position for an entity.
     /// </summary>
     public void SetTarget(int networkId, Vector3 targetPosition)
     {
@@ -38,13 +38,14 @@ public class StateInterpolator
             _targets[networkId] = new InterpolationTarget
             {
                 TargetPosition = targetPosition,
-                CurrentPosition = targetPosition // Start at target
+                CurrentPosition = targetPosition
             };
         }
     }
 
     /// <summary>
-    /// Get the interpolated position for an entity.
+    /// Get the current interpolated position for an entity.
+    /// Returns null when no target exists yet.
     /// </summary>
     public Vector3? GetPosition(int networkId)
     {
@@ -52,7 +53,7 @@ public class StateInterpolator
     }
 
     /// <summary>
-    /// Update interpolation for all entities.
+    /// Update interpolation for all tracked entities.
     /// </summary>
     public void Update(double delta)
     {
@@ -64,12 +65,10 @@ public class StateInterpolator
 
             if (distance > SnapThreshold)
             {
-                // Snap if too far
                 target.CurrentPosition = target.TargetPosition;
             }
             else if (distance > 0.01f)
             {
-                // Interpolate toward target
                 target.CurrentPosition = target.CurrentPosition.Lerp(
                     target.TargetPosition,
                     Mathf.Min(1.0f, InterpolationSpeed * dt)
@@ -79,7 +78,7 @@ public class StateInterpolator
     }
 
     /// <summary>
-    /// Remove an entity from interpolation (e.g., on death).
+    /// Stop tracking one entity.
     /// </summary>
     public void Remove(int networkId)
     {
@@ -87,7 +86,7 @@ public class StateInterpolator
     }
 
     /// <summary>
-    /// Clear all interpolation targets.
+    /// Clear all tracked interpolation state.
     /// </summary>
     public void Clear()
     {

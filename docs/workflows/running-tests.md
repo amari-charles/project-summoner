@@ -4,6 +4,22 @@ This project uses two testing frameworks:
 - **GdUnit4Net** for C# code (recommended for new tests)
 - **GUT (Godot Unit Test)** for GDScript code (legacy)
 
+## Quick Start (One Command)
+
+Run the default local test flow (C# then GUT):
+
+```bash
+./tools/run_tests.sh
+```
+
+Common variants:
+
+```bash
+./tools/run_tests.sh --fast         # dotnet only
+./tools/run_tests.sh --gut-only     # gut only
+./tools/run_tests.sh --dotnet-only  # dotnet only
+```
+
 ## C# Tests with GdUnit4Net
 
 ### Running All C# Tests
@@ -12,7 +28,12 @@ This project uses two testing frameworks:
 dotnet test --settings test.runsettings
 ```
 
-The `test.runsettings` file configures the GODOT_BIN path for the test adapter. Tests themselves don't require Godot runtime - they use pure C# types internally.
+The `test.runsettings` file configures the GODOT_BIN path for the test adapter.
+
+### Runtime-Dependent C# Suites
+
+A few C# suites intentionally require full Godot runtime types (for example `Godot.Collections.Dictionary` payload paths).  
+Mark these tests/suites with `[RequireGodotRuntime]` so `dotnet test` can execute them correctly via the gdUnit runtime bridge.
 
 ### Running Specific Tests
 
@@ -59,7 +80,7 @@ public class MyTest
 
 ### Key Features
 
-- **Runs without Godot runtime** - tests use pure C# types internally (~90ms for 74 tests)
+- **Most tests run without full Godot runtime** - fast CLI feedback for pure C# logic
 - Uses `test.runsettings` to configure the test adapter's GODOT_BIN path
 - Works with `dotnet test` command (CI/CD friendly)
 - IDE integration with VS Code, Rider, Visual Studio

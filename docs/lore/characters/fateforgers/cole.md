@@ -26,4 +26,4 @@ Looking down at the viewer with a cocky smile. You're the challenge he's been wa
 
 ---
 
-*See also: [Fire Element](../../elements/fire.md) | [Other Fateforgers](./)*
+*See also: [Fire Element](../../../elements/fire/overview.md) | [Other Fateforgers](./)*

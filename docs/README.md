@@ -1,6 +1,6 @@
 # Fateforged Documentation
 
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-03-04
 
 This is the central index for all Fateforged documentation. Start here to find what you need.
 
@@ -76,15 +76,17 @@ Implementation details for developers.
 
 ### Architecture
 - **[System Architecture](architecture/system-architecture.md)** - Overall code architecture
-- **[Layered Architecture Migration](migration/README.md)** - Migration hub: status, checklists, transition tables
+- **[Graph-Of-Graphs Model](architecture/graph-of-graphs.md)** - Shared architecture vocabulary and navigation model
+- **[Application Layer](architecture/application-layer.md)** - Scene/lifecycle orchestration boundaries
+- **[Layered Architecture Migration](migration/README.md)** - Migration reference + archive entrypoint
 - **[Game Requirements](architecture/game-requirements.md)** - Comprehensive gameplay requirements spec
 
 ### Technical References
+- **[Technical Index](technical/README.md)** - Scope and map for implementation-focused docs
 - **[Unit Stat Pipeline](technical/unit-stat-pipeline.md)** - How stats flow from catalog to battle
 - **[Campaign Data](technical/campaign-data.md)** - Campaign data structures
-- **[Multiplayer Architecture](multiplayer/architecture.md)** - Future multiplayer design
-- **[Simulation Reference](technical/simulation-reference.md)** - Mermaid diagrams and full data structure reference
-- **[Simulation Walkthrough](technical/simulation-walkthrough.md)** - Human-readable gameplay flow walkthroughs
+- **[Multiplayer Architecture](multiplayer/architecture.md)** - Current session-layer architecture and boundaries
+- **[Simulation Architecture](technical/simulation-architecture.md)** - Deterministic sim runtime + multiplayer coordination overview
 
 ### Workflows
 - **[PR Review Guidelines](workflows/pr-review-guidelines.md)** - Code review process
@@ -137,6 +139,7 @@ Major design choices and their rationale.
 
 - **[Bugs](tracking/bugs.md)** - Known issues
 - **[Todos](tracking/todos.md)** - Planned features
+- **[Docs Reorg Audit (2026-03-04)](tracking/docs-reorg-audit-2026-03-04.md)** - Documentation structure audit + archive log
 - **[Changelog](project/changelog.md)** - Release notes
 - **[Development History](project/development-history.md)** - Internal progress log
 
@@ -170,8 +173,9 @@ docs/
 ├── lore/               ← Worldbuilding
 ├── elements/           ← Elemental content
 ├── multiplayer/        ← Multiplayer design
+├── migration/          ← Active migration guidance + doc principles
 ├── tracking/           ← Bugs and todos
-└── archive/            ← Outdated docs (historical reference only)
+└── archive/            ← Historical docs (execution logs, superseded references)
 ```
 
 ---

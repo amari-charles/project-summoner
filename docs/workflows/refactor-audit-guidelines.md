@@ -246,4 +246,4 @@ When in doubt, remove the old code. It's easier to add back if needed than to ac
 
 ## Example Audit
 
-See `docs/architecture/refactor-audit-2026-01-25-campaign-graph.md` for a complete example.
+See `docs/archive/doc-reorg-2026-03/architecture/refactor-audit-2026-01-25-campaign-graph.md` for a complete example.

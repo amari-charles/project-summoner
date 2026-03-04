@@ -1,0 +1,306 @@
+namespace Fateforged.Tests.Session;
+
+using System;
+using System.Collections.Generic;
+using Fateforged.Multiplayer.Protocol;
+using Fateforged.Multiplayer.Transport;
+using Fateforged.Session;
+using Fateforged.Simulation;
+using Fateforged.Simulation.Commands;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
+using Fateforged.Tests.Simulation;
+using Fateforged.Units;
+using GdUnit4;
+using Godot;
+using Godot.Collections;
+using static GdUnit4.Assertions;
+
+[TestSuite]
+[RequireGodotRuntime]
+public class NetworkSessionWiringTest
+{
+    [TestCase]
+    public void ClientSession_SubmitPlayCard_SendsCardPlayRequest()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        var cmd = new PlayCardCommand(team: 1, cardIndex: 2, spawnPosition: new SimVector3(3f, 0f, -4f));
+        session.SubmitCommand(cmd);
+
+        AssertThat(transport.SentMessages.Count).IsEqual(1);
+        var messageType = serializer.GetMessageType(transport.SentMessages[0]);
+        AssertThat((int)messageType).IsEqual((int)MessageType.CardPlayRequest);
+    }
+
+    [TestCase]
+    public void ClientSession_ReceivesSnapshot_UpdatesLocalState_AndFiresFirstSnapshot()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        bool firstSnapshotFired = false;
+        session.FirstSnapshotApplied += () => firstSnapshotFired = true;
+
+        var snapshot = new StateSnapshot(
+            Frame: 42,
+            MatchTime: 12.5f,
+            Phase: (int)GamePhase.Battle,
+            PrepTimeRemaining: 0f,
+            Summoners:
+            [
+                new SummonerState(0, 95f, 100f, 8f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<string>(), System.Array.Empty<string>(), System.Array.Empty<string>()),
+                new SummonerState(1, 90f, 100f, 7f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<string>(), System.Array.Empty<string>(), System.Array.Empty<string>())
+            ],
+            Units:
+            [
+                new UnitState(10, 0, new Vector3(-5f, 0f, 0f), 100f, 100f, null, true, (int)ActivationState.Active, (int)BehaviorState.NoTarget, true)
+            ],
+            Projectiles:
+            [
+                new ProjectileState(
+                    ProjectileId: 99,
+                    SourceUnitId: 10,
+                    TargetUnitId: -2,
+                    Team: 0,
+                    MovementType: 0,
+                    CurrentPosition: new Vector3(-4f, 0.5f, 1f),
+                    Direction: new Vector3(1f, 0f, 0f),
+                    TargetPosition: new Vector3(5f, 0f, 1f),
+                    Progress: 0.4f,
+                    Speed: 9f,
+                    IsDead: false)
+            ],
+            StateHash: 0,
+            IsOvertime: false
+        );
+
+        transport.EmitMessage(1, serializer.Serialize(snapshot));
+        session.Tick(0.016f);
+
+        AssertThat(firstSnapshotFired).IsTrue();
+        AssertThat(state.FrameNumber).IsEqual(42);
+        AssertThat(state.Units.ContainsKey(10)).IsTrue();
+        AssertThat(state.Units[10].Position.X).IsEqual(-5f);
+        AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
+        AssertThat(state.Projectiles[99].CurrentPosition.X).IsEqual(-4f);
+        AssertThat(state.Projectiles[99].Direction.X).IsEqual(1f);
+    }
+
+    [TestCase]
+    public void HostSession_RemoteCardPlayRequest_QueuesValidatedCommand()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.CardDataMap["test_unit"] = SimTestHelper.CreateSummonCard("test_unit");
+        state.Summoners[1].Hand.Add("test_unit");
+        state.Summoners[1].Mana = 10f;
+
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var serializer = new MessageSerializer();
+        var session = new HostSession(simulation, router, state, transport);
+
+        var request = new CardPlayRequest(1, 1, 0, new Vector3(2f, 0f, 0f), 0);
+        transport.EmitMessage(2, serializer.Serialize(request));
+
+        AssertThat(state.PendingCommandBuffer.Count).IsEqual(1);
+        AssertThat(state.PendingCommandBuffer[0]).IsInstanceOf<PlayCardCommand>();
+        AssertThat(((PlayCardCommand)state.PendingCommandBuffer[0]).Team).IsEqual(1);
+    }
+
+    [TestCase]
+    public void HostSession_RemoteCardPlayRequest_IgnoresSpoofedPlayerIndex()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.CardDataMap["test_unit"] = SimTestHelper.CreateSummonCard("test_unit");
+        state.Summoners[1].Hand.Add("test_unit");
+        state.Summoners[1].Mana = 10f;
+
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var serializer = new MessageSerializer();
+        var session = new HostSession(simulation, router, state, transport);
+
+        // Sender is remote peer 2 but payload claims team 0.
+        var request = new CardPlayRequest(1, 0, 0, new Vector3(2f, 0f, 0f), 0);
+        transport.EmitMessage(2, serializer.Serialize(request));
+
+        AssertThat(state.PendingCommandBuffer.Count).IsEqual(1);
+        AssertThat(state.PendingCommandBuffer[0]).IsInstanceOf<PlayCardCommand>();
+        AssertThat(((PlayCardCommand)state.PendingCommandBuffer[0]).Team).IsEqual(1);
+    }
+
+    [TestCase]
+    public void HostSession_LocalPeerMessage_IsRejected()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.CardDataMap["test_unit"] = SimTestHelper.CreateSummonCard("test_unit");
+        state.Summoners[1].Hand.Add("test_unit");
+        state.Summoners[1].Mana = 10f;
+
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var serializer = new MessageSerializer();
+        var session = new HostSession(simulation, router, state, transport);
+
+        var request = new CardPlayRequest(1, 0, 0, new Vector3(2f, 0f, 0f), 0);
+        // Host local peer ID is 1 in this fake transport.
+        transport.EmitMessage(1, serializer.Serialize(request));
+
+        AssertThat(state.PendingCommandBuffer.Count).IsEqual(0);
+    }
+
+    [TestCase]
+    public void HostSession_Tick_BroadcastsSnapshots_AndMatchEnd()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var serializer = new MessageSerializer();
+        var session = new HostSession(simulation, router, state, transport);
+
+        session.SubmitCommand(new ForfeitCommand(0));
+        session.Tick(0.016f);
+        session.Tick(0.12f);
+
+        bool sawMatchEnded = false;
+        bool sawSnapshot = false;
+        foreach (var message in transport.BroadcastMessages)
+        {
+            var type = serializer.GetMessageType(message);
+            if (type == MessageType.MatchEnded) sawMatchEnded = true;
+            if (type == MessageType.StateSnapshot) sawSnapshot = true;
+        }
+
+        AssertThat(sawMatchEnded).IsTrue();
+        AssertThat(sawSnapshot).IsTrue();
+    }
+
+    [TestCase]
+    public void ClientSession_ReconnectTimeout_PeerDisconnect_LocalWins()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Phase = GamePhase.Battle;
+        var transport = new FakeTransport(isHost: false);
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        transport.EmitPeerDisconnected(peerId: 1);
+        session.Tick(31f);
+
+        AssertThat(state.Phase).IsEqual(GamePhase.GameOver);
+        AssertThat(state.WinnerTeam.HasValue).IsTrue();
+        AssertThat(state.WinnerTeam ?? -1).IsEqual(1);
+    }
+
+    [TestCase]
+    public void ClientSession_ReconnectTimeout_LocalSocketDisconnect_LocalLoses()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Phase = GamePhase.Battle;
+        var transport = new FakeTransport(isHost: false);
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        transport.EmitDisconnected("Socket disconnected");
+        session.Tick(31f);
+
+        AssertThat(state.Phase).IsEqual(GamePhase.GameOver);
+        AssertThat(state.WinnerTeam.HasValue).IsTrue();
+        AssertThat(state.WinnerTeam ?? -1).IsEqual(0);
+    }
+
+    [TestCase]
+    public void HostSession_ReconnectTimeout_LocalSocketDisconnect_HostLoses()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Phase = GamePhase.Battle;
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var session = new HostSession(simulation, router, state, transport);
+
+        transport.EmitDisconnected("Socket disconnected");
+        session.Tick(31f);
+
+        AssertThat(state.Phase).IsEqual(GamePhase.GameOver);
+        AssertThat(state.WinnerTeam.HasValue).IsTrue();
+        AssertThat(state.WinnerTeam ?? -1).IsEqual(1);
+    }
+
+    [TestCase]
+    public void HostSession_ReconnectTimeout_PeerDisconnect_HostWins()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Phase = GamePhase.Battle;
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var session = new HostSession(simulation, router, state, transport);
+
+        transport.EmitPeerDisconnected(peerId: 2);
+        session.Tick(31f);
+
+        AssertThat(state.Phase).IsEqual(GamePhase.GameOver);
+        AssertThat(state.WinnerTeam.HasValue).IsTrue();
+        AssertThat(state.WinnerTeam ?? -1).IsEqual(0);
+    }
+
+#pragma warning disable CS0067
+    private sealed class FakeTransport : IMatchTransport
+    {
+        public FakeTransport(bool isHost)
+        {
+            IsHost = isHost;
+        }
+
+        public bool IsConnected { get; private set; } = true;
+        public int LocalPeerId => IsHost ? 1 : 2;
+        public bool IsHost { get; }
+
+        public readonly List<Dictionary> SentMessages = new();
+        public readonly List<Dictionary> BroadcastMessages = new();
+        public readonly List<(int peerId, Dictionary message)> DirectMessages = new();
+
+        public event Action<int, Dictionary>? OnMessageReceived;
+        public event Action<int>? OnPeerConnected;
+        public event Action<int>? OnPeerDisconnected;
+        public event Action? OnConnected;
+        public event Action<string>? OnDisconnected;
+
+        public void Send(Dictionary message) => SentMessages.Add(message);
+        public void Broadcast(Dictionary message) => BroadcastMessages.Add(message);
+        public void SendTo(int peerId, Dictionary message) => DirectMessages.Add((peerId, message));
+        public void Host(int port) => IsConnected = true;
+        public void Connect(string address, int port) => IsConnected = true;
+        public void Disconnect()
+        {
+            IsConnected = false;
+            OnDisconnected?.Invoke("Disconnected");
+        }
+
+        public void EmitMessage(int senderId, Dictionary message)
+        {
+            OnMessageReceived?.Invoke(senderId, message);
+        }
+
+        public void EmitPeerDisconnected(int peerId)
+        {
+            OnPeerDisconnected?.Invoke(peerId);
+        }
+
+        public void EmitDisconnected(string reason)
+        {
+            IsConnected = false;
+            OnDisconnected?.Invoke(reason);
+        }
+    }
+#pragma warning restore CS0067
+}

@@ -38,4 +38,4 @@ Looking to the side, elsewhere—as if the viewer isn't interesting enough to ho
 
 ---
 
-*See also: [Wind Element](../../elements/wind.md) | [Other Fateforgers](./)*
+*See also: [Wind Element](../../../elements/wind/overview.md) | [Other Fateforgers](./)*

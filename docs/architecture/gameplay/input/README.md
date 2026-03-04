@@ -14,7 +14,7 @@ The Input layer has two responsibilities:
 
 View components render simulation state — their lifecycles are managed by EntityManager, which diffs MatchState to spawn/destroy shells. Gesture feedback renders *input state* (drag position, targeting state) — data that doesn't exist in MatchState. EntityManager can't manage "drag in progress" because that concept isn't in MatchState. InputCollector must own gesture feedback lifecycles, so they live in Input. Gesture feedback CAN read `session.GetState()` for card data (Input already depends on Session).
 
-See [documentation-guide.md principle #10](../../migration/documentation-guide.md) for the general rule.
+See [documentation-guide.md principle #10](../../../migration/documentation-guide.md) for the general rule.
 
 For the full design, see [target-architecture.md &sect;5](../../target-architecture.md#5-input).
 
