@@ -9,9 +9,9 @@ The core combat systems have been migrated from GDScript to C# for better type s
 | System | GDScript (Old) | C# (New) |
 |--------|----------------|----------|
 | Unit3D | `scripts/units/unit_3d.gd` | `scripts/csharp/Units/Unit3D.cs` |
-| DamageSystem | `scripts/combat/damage_system.gd` | `scripts/csharp/Combat/DamageSystem.cs` |
+| DamageSystem | `scripts/combat/damage_system.gd` | `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` |
 | SpatialGrid | `scripts/spatial/spatial_grid.gd` | `scripts/csharp/Systems/SpatialGrid.cs` |
-| CombatEvent | `scripts/combat/combat_event.gd` | `scripts/csharp/Combat/CombatEvent.cs` |
+| CombatEvent | `scripts/combat/combat_event.gd` | `scripts/csharp/Battle/Simulation/Combat/CombatEvent.cs` |
 
 ### GDScript → C# Interop Patterns
 
@@ -48,8 +48,8 @@ damage_system.ApplyDamage(source, target, damage, damage_type)
   - Combat events emitted via signals
   - Summoner trait bonuses applied automatically
 - **Files:**
-  - `scripts/csharp/Combat/DamageSystem.cs`
-  - `scripts/csharp/Combat/CombatEvent.cs`
+  - `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs`
+  - `scripts/csharp/Battle/Simulation/Combat/CombatEvent.cs`
 
 ### 2. HPBarManager
 - **Status:** ✅ Fully Integrated
@@ -69,7 +69,7 @@ damage_system.ApplyDamage(source, target, damage, damage_type)
   - Archer unit updated to use `projectile_id = "arrow"`
 - **Files Modified:**
   - `scripts/units/unit_3d.gd`
-  - `scenes/units/archer_3d.tscn`
+  - `scenes/battle/units/archer_3d.tscn`
 
 ## 🔧 Bug Fixes Applied
 
@@ -194,7 +194,7 @@ protected void Die()
 To test the integrated systems:
 
 1. **Launch a battle:**
-   - Scene: `scenes/battlefield/campaign_battle_3d.tscn`
+   - Scene: `scenes/battle/battlefield/campaign_battle_3d.tscn`
    - Or: Run any campaign battle from main menu
 
 2. **Verify DamageSystem:**

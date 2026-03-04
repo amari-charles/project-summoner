@@ -158,7 +158,7 @@ Before transitioning to the battle scene, both players exchange their deck and s
 
 ### Exchange Protocol
 
-`scripts/ui/screens/online_screen.gd` — `_exchange_deck_data()`
+`scripts/meta/screens/online_screen.gd` — `_exchange_deck_data()`
 
 1. Each player serializes their active deck and `SummonerInstance` via `SummonerInstance.to_dict()` which includes: `summoner_id`, `level`, `xp`, `acquired_trait_ids`
 2. Both are JSON-encoded and sent via `NakamaGameClient.SendMatchData(100, deck_json)`
@@ -204,7 +204,7 @@ Same signals → same handlers → same behavior regardless of role.
 
 ### SimEventSignalEmitter
 
-`scripts/csharp/Simulation/SimEventSignalEmitter.cs`
+`scripts/csharp/Battle/Simulation/SimEventSignalEmitter.cs`
 
 A visitor that converts `SimEvent` objects into Godot signal emissions on `SimulationNode`. Uses the visitor pattern for compile-time exhaustiveness: adding a new `SimEvent` subclass without a corresponding `Visit()` in `SimEventSignalEmitter` causes a compile error.
 
@@ -236,7 +236,7 @@ This produces smoother UI updates than relying solely on signals from 10 Hz snap
 
 ### NakamaMatchTransport
 
-`scripts/csharp/Multiplayer/Transport/NakamaMatchTransport.cs`
+`scripts/csharp/Battle/Session/Transport/NakamaMatchTransport.cs`
 
 Implements `IMatchTransport`. Routes all game messages through the Nakama relay using **opCode 200** (opCode 100 is reserved for the pre-battle deck exchange in GDScript).
 
@@ -370,7 +370,7 @@ scripts/csharp/Multiplayer/
     ├── RankingService.cs
     └── LeaderboardService.cs
 
-scripts/csharp/Simulation/
+scripts/csharp/Battle/Simulation/
 ├── SimulationNode.cs           # Scene bridge: owns MatchState, runs Tick()
 └── SimEventSignalEmitter.cs    # SimEvent → Godot signal visitor
 
@@ -378,7 +378,7 @@ scripts/core/
 ├── game_controller_3d.gd       # Pure view: reads SimulationNode, drives UI
 └── summoner.gd                 # Pure view: HP/mana/hand display only
 
-scripts/ui/screens/
+scripts/meta/screens/
 └── online_screen.gd            # Matchmaking UI + deck/summoner exchange
 ```
 

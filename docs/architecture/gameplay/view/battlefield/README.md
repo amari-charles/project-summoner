@@ -78,7 +78,7 @@ The current approach has every Unit3D subscribing to SimulationNode signals and 
 ## Stub
 
 ```csharp
-// scripts/csharp/View/EntityManager.cs
+// scripts/csharp/Battle/View/EntityManager.cs
 public partial class EntityManager : Node3D, ISimEventVisitor
 {
     private IGameSession? _session;

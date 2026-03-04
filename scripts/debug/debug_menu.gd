@@ -618,7 +618,7 @@ func _on_lose_pressed() -> void:
 
 func _on_snapshots_pressed() -> void:
 	# Load and show the snapshot manager scene
-	var snapshot_scene: PackedScene = load("res://scenes/ui/screens/snapshot_manager.tscn")
+	var snapshot_scene: PackedScene = load("res://scenes/meta/screens/snapshot_manager.tscn")
 	if snapshot_scene:
 		var snapshot_manager: Control = snapshot_scene.instantiate()
 		get_tree().root.add_child(snapshot_manager)

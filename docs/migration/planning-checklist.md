@@ -106,7 +106,7 @@ All specs documented in `docs/architecture/gameplay/view/design-specs.md`.
 
 **Depends on:** Phase 2 (layer assignments known)
 
-**Context for new sessions:** Read `docs/migration/layer-map.md` (Cross-cutting section), the `scripts/csharp/Cards/` directory listing, `scripts/csharp/Data/` directory listing, and `scripts/csharp/Constants/` directory listing.
+**Context for new sessions:** Read `docs/migration/layer-map.md` (Cross-cutting section), the `scripts/csharp/Cards/` directory listing, `scripts/csharp/Infrastructure/Data/` directory listing, and `scripts/csharp/Infrastructure/Constants/` directory listing.
 
 All specs documented in `docs/migration/cross-cutting-plan.md`.
 
@@ -198,7 +198,7 @@ All specs documented in `docs/migration/meta-game-plan.md`.
 
 - [x] **DamageSystem.cs** + `DamageSystem.tscn` + `IDamageSystem.cs` — 3 files, autoload. Resolves issue #1.
 - [x] **ModifierService.cs** + `ModifierService.tscn` + `IModifierService.cs` + 6 supporting files — autoload. Resolves issue #2.
-  - `StatModifier.cs` and `TriggerCondition.cs` **DO NOT DELETE** — relocate to `scripts/csharp/Stats/` (27+ consumers).
+  - `StatModifier.cs` and `TriggerCondition.cs` **DO NOT DELETE** — relocate to `scripts/csharp/Battle/Simulation/Stats/` (27+ consumers).
 - [x] **ProjectileService.cs** + `ProjectileService.tscn` — autoload. Resolves issue #3.
 - [x] 3 autoloads removed. Test: `ModifierServiceTest.cs` deleted; `StatModifierTest.cs` + `TriggerConditionTest.cs` relocated.
 
@@ -236,9 +236,9 @@ All specs documented in `docs/migration/meta-game-plan.md`.
 
 ### Tier 4 — Delete After Input Layer Migration
 
-- [x] **SpellTargetingManager** (`scripts/ui/battle/spell_targeting_manager.gd`, autoload) — retired when InputCollector handles spell targeting.
+- [x] **SpellTargetingManager** (`scripts/battle/ui/spell_targeting_manager.gd`, autoload) — retired when InputCollector handles spell targeting.
 - [x] **RedirectManager** (`scripts/managers/redirect_manager.gd`, autoload) — retired when InputCollector handles redirect commands.
-- [x] **BattlefieldDropZone** (`scripts/ui/battle/battlefield_drop_zone.gd`) — absorbed into InputCollector. 5 scene files updated.
+- [x] **BattlefieldDropZone** (`scripts/battle/ui/battlefield_drop_zone.gd`) — absorbed into InputCollector. 5 scene files updated.
 - [x] **BattleRNG** (`scripts/multiplayer/rng/battle_rng.gd`, autoload) + `rng_domain.gd` — 4 GDScript consumers migrated to sim's `DeterministicRng`.
 - [x] **player_input.gd** + **player_input_3d.gd** (`scripts/core/`) — replaced by InputCollector.
 - [x] 3 autoloads removed.

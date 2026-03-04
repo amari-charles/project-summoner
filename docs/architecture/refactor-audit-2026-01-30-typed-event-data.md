@@ -157,19 +157,19 @@
 
 | File | Change |
 |------|--------|
-| `scripts/ui/components/node_panels/typed_event_data.gd` | Core wrapper class with localization |
-| `scripts/core/safe_type_utils.gd` | **New** - Consolidated type coercion utilities |
-| `scripts/ui/components/node_panels/node_detail_panel_base.gd` | Simplified, uses TypedEventData |
-| `scripts/ui/components/node_panels/battle_node_panel.gd` | Uses typed accessors |
-| `scripts/ui/components/node_panels/caravan_node_panel.gd` | Uses typed accessors |
-| `scripts/ui/components/node_panels/choice_node_panel.gd` | Uses typed accessors |
-| `scripts/ui/components/node_panels/onboarding_node_panel.gd` | Uses typed accessors |
-| `scripts/ui/screens/campaign_map.gd` | Uses SafeTypeUtils, NodePanelFactory |
-| `scripts/core/battle_context.gd` | Added `battle_event` TypedEventData property |
-| `scripts/core/event_context.gd` | Added `event` TypedEventData property |
-| `scripts/data/event_type_ids.gd` | Added ELITE, BOSS, REST, STORY constants |
-| `scripts/csharp/Services/Campaign/CampaignService.cs` | Removed obsolete method |
-| `scripts/csharp/Services/Campaign/Handlers/CampaignCatalogHandler.cs` | Removed obsolete method |
+| `scripts/meta/components/node_panels/typed_event_data.gd` | Core wrapper class with localization |
+| `scripts/infrastructure/safe_type_utils.gd` | **New** - Consolidated type coercion utilities |
+| `scripts/meta/components/node_panels/node_detail_panel_base.gd` | Simplified, uses TypedEventData |
+| `scripts/meta/components/node_panels/battle_node_panel.gd` | Uses typed accessors |
+| `scripts/meta/components/node_panels/caravan_node_panel.gd` | Uses typed accessors |
+| `scripts/meta/components/node_panels/choice_node_panel.gd` | Uses typed accessors |
+| `scripts/meta/components/node_panels/onboarding_node_panel.gd` | Uses typed accessors |
+| `scripts/meta/screens/campaign_map.gd` | Uses SafeTypeUtils, NodePanelFactory |
+| `scripts/application/battle_context.gd` | Added `battle_event` TypedEventData property |
+| `scripts/application/event_context.gd` | Added `event` TypedEventData property |
+| `scripts/infrastructure/data/event_type_ids.gd` | Added ELITE, BOSS, REST, STORY constants |
+| `scripts/csharp/Meta/Services/Campaign/CampaignService.cs` | Removed obsolete method |
+| `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignCatalogHandler.cs` | Removed obsolete method |
 | `tests/unit/test_typed_event_data.gd` | **New** - 53 comprehensive tests |
 | `tests/mocks/mock_campaign_service_cs.gd` | Updated for new API |
 

@@ -48,9 +48,9 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 
 | File | Path | LOC |
 |------|------|-----|
-| `DamageSystem.cs` | `scripts/csharp/Combat/DamageSystem.cs` | 837 |
-| `DamageSystem.tscn` | `scripts/csharp/Combat/DamageSystem.tscn` | — |
-| `IDamageSystem.cs` | `scripts/csharp/Services/Interfaces/IDamageSystem.cs` | 109 |
+| `DamageSystem.cs` | `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` | 837 |
+| `DamageSystem.tscn` | `scripts/csharp/Battle/Simulation/Combat/DamageSystem.tscn` | — |
+| `IDamageSystem.cs` | `scripts/csharp/Meta/Services/Interfaces/IDamageSystem.cs` | 109 |
 | `.uid` files | `DamageSystem.cs.uid`, `IDamageSystem.cs.uid` | — |
 
 **ModifierService (714 LOC deleted, 401 LOC relocated):**
@@ -59,18 +59,18 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 |------|------|-----|--------|
 | `ModifierService.cs` | `scripts/csharp/Systems/Modifiers/ModifierService.cs` | 454 | Delete |
 | `ModifierService.tscn` | `scripts/csharp/Systems/Modifiers/ModifierService.tscn` | — | Delete |
-| `IModifierService.cs` | `scripts/csharp/Services/Interfaces/IModifierService.cs` | 49 | Delete |
+| `IModifierService.cs` | `scripts/csharp/Meta/Services/Interfaces/IModifierService.cs` | 49 | Delete |
 | `CardModifierProvider.cs` | `scripts/csharp/Systems/Modifiers/CardModifierProvider.cs` | 62 | Delete |
 | `ItemModifierProvider.cs` | `scripts/csharp/Systems/Modifiers/ItemModifierProvider.cs` | 30 | Delete |
 | `SummonerModifierProvider.cs` | `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` | 67 | Delete |
 | `IModifierProvider.cs` | `scripts/csharp/Systems/Modifiers/IModifierProvider.cs` | 22 | Delete |
 | `ModifierContext.cs` | `scripts/csharp/Systems/Modifiers/ModifierContext.cs` | 125 | Delete |
 | `ConditionKeys.cs` | `scripts/csharp/Systems/Modifiers/ConditionKeys.cs` | 50 | Delete |
-| **`StatModifier.cs`** | `scripts/csharp/Systems/Modifiers/StatModifier.cs` | 353 | **⚠️ RELOCATE to `scripts/csharp/Stats/`** |
-| **`TriggerCondition.cs`** | `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` | 48 | **⚠️ RELOCATE to `scripts/csharp/Stats/`** |
+| **`StatModifier.cs`** | `scripts/csharp/Systems/Modifiers/StatModifier.cs` | 353 | **⚠️ RELOCATE to `scripts/csharp/Battle/Simulation/Stats/`** |
+| **`TriggerCondition.cs`** | `scripts/csharp/Systems/Modifiers/TriggerCondition.cs` | 48 | **⚠️ RELOCATE to `scripts/csharp/Battle/Simulation/Stats/`** |
 | `.uid` files | All corresponding `.cs.uid` files | — | Delete/Relocate |
 
-> **DO NOT DELETE `StatModifier.cs` or `TriggerCondition.cs`.** These are pure data types used by 27+ files across the codebase (UnitStats, TraitDefinition, ItemService, LevelCapService, CardDefinition, UnitStatCalculator, etc.). They must be relocated to `scripts/csharp/Stats/` when the `Systems/Modifiers/` directory is otherwise emptied.
+> **DO NOT DELETE `StatModifier.cs` or `TriggerCondition.cs`.** These are pure data types used by 27+ files across the codebase (UnitStats, TraitDefinition, ItemService, LevelCapService, CardDefinition, UnitStatCalculator, etc.). They must be relocated to `scripts/csharp/Battle/Simulation/Stats/` when the `Systems/Modifiers/` directory is otherwise emptied.
 
 **ProjectileService (509 LOC):**
 
@@ -82,7 +82,7 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 
 ### Autoloads to Remove from `project.godot`
 
-1. `DamageSystem="*res://scripts/csharp/Combat/DamageSystem.tscn"`
+1. `DamageSystem="*res://scripts/csharp/Battle/Simulation/Combat/DamageSystem.tscn"`
 2. `ModifierService="*res://scripts/csharp/Systems/Modifiers/ModifierService.tscn"`
 3. `ProjectileService="*res://scripts/csharp/Projectiles/ProjectileService.tscn"`
 
@@ -109,7 +109,7 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 - [ ] Grep for `ProjectileService` — zero references remain
 - [ ] Grep for `IDamageSystem` — zero references remain
 - [ ] Grep for `IModifierService` — zero references remain
-- [ ] `StatModifier.cs` and `TriggerCondition.cs` exist in `scripts/csharp/Stats/`
+- [ ] `StatModifier.cs` and `TriggerCondition.cs` exist in `scripts/csharp/Battle/Simulation/Stats/`
 - [ ] 3 autoloads removed from `project.godot`
 
 ---
@@ -124,11 +124,11 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 
 | File | Path | LOC |
 |------|------|-----|
-| `HPBarService.cs` | `scripts/csharp/Services/HPBarService.cs` | 563 |
-| `HPBarService.tscn` | `scripts/csharp/Services/HPBarService.tscn` | — |
+| `HPBarService.cs` | `scripts/csharp/Meta/Services/HPBarService.cs` | 563 |
+| `HPBarService.tscn` | `scripts/csharp/Meta/Services/HPBarService.tscn` | — |
 | `.uid` file | `HPBarService.cs.uid` | — |
 
-**Autoload to remove:** `HPBarService="*res://scripts/csharp/Services/HPBarService.tscn"`
+**Autoload to remove:** `HPBarService="*res://scripts/csharp/Meta/Services/HPBarService.tscn"`
 
 **Replacement:** Each visual shell (`UnitVisual`, `SummonerVisual`) creates and owns its own HP bar. HP bars read health from `MatchState`. See [meta-game-plan.md §1](meta-game-plan.md#1-service-assessment-table).
 
@@ -136,7 +136,7 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 
 | File | Path | LOC |
 |------|------|-----|
-| `SimEventSignalEmitter.cs` | `scripts/csharp/Simulation/SimEventSignalEmitter.cs` | 109 |
+| `SimEventSignalEmitter.cs` | `scripts/csharp/Battle/Simulation/SimEventSignalEmitter.cs` | 109 |
 | `.uid` file | `SimEventSignalEmitter.cs.uid` | — |
 
 **Replacement:** `EntityManager` subscribes to `IGameSession.SimEventsEmitted` directly. Signal-based bridge no longer needed.
@@ -145,7 +145,7 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 
 | File | Path | LOC | Action |
 |------|------|-----|--------|
-| `SimulationNode.cs` | `scripts/csharp/Simulation/SimulationNode.cs` | 942 | **Slim to ~100 lines** |
+| `SimulationNode.cs` | `scripts/csharp/Battle/Simulation/SimulationNode.cs` | 942 | **Slim to ~100 lines** |
 
 **NOT a deletion** — SimulationNode becomes a thin Godot bridge (factory + accessor). Approximately 842 lines of game logic move to Session layer implementations. What stays: `_Ready()`, `_ExitTree()`, Simulation construction, public accessor.
 
@@ -165,26 +165,26 @@ BattleRNG is assigned to **Tier 4** (Input layer migration), when AI and summone
 
 **Scene files to update (20 files):** All unit scene files must be updated to reference `UnitVisual` instead of `MeleeUnit3D`/`RangedUnit3D`/`DucklingUnit3D`:
 
-- `scenes/units/puff_3d.tscn` (RangedUnit3D → UnitVisual)
-- `scenes/units/fire_spider_3d.tscn` (RangedUnit3D → UnitVisual)
-- `scenes/units/earth_rock_thrower_3d.tscn` (RangedUnit3D → UnitVisual)
-- `scenes/units/life_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/fire_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/lightning_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/shadow_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/fire_ant_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/fire_titan_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/stone_ape_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/water_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/rock_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/mama_duck_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/wind_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/water_frog_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/earth_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/duckling_3d.tscn` (DucklingUnit3D → UnitVisual)
-- `scenes/units/earth_sprite_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/death_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- `scenes/units/fire_boar_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/puff_3d.tscn` (RangedUnit3D → UnitVisual)
+- `scenes/battle/units/fire_spider_3d.tscn` (RangedUnit3D → UnitVisual)
+- `scenes/battle/units/earth_rock_thrower_3d.tscn` (RangedUnit3D → UnitVisual)
+- `scenes/battle/units/life_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/fire_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/lightning_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/shadow_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/fire_ant_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/fire_titan_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/stone_ape_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/water_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/rock_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/mama_duck_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/wind_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/water_frog_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/earth_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/duckling_3d.tscn` (DucklingUnit3D → UnitVisual)
+- `scenes/battle/units/earth_sprite_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/death_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- `scenes/battle/units/fire_boar_3d.tscn` (MeleeUnit3D → UnitVisual)
 
 ### Step 5: Additional Legacy Systems (~3,538 LOC)
 
@@ -250,8 +250,8 @@ Systems identified by deletion-sequence audit that were missing from the origina
 
 | File | Path | Action |
 |------|------|--------|
-| `SummonPreview.cs` | `scripts/csharp/Input/SummonPreview.cs` | **UPDATE** — rewrite to read `InputCollector` drag state + create preview from `UnitVisual` instead of `Unit3D`. See [view design-specs.md §4](../architecture/gameplay/view/design-specs.md). |
-| `UnitGhost.cs` | `scripts/csharp/Input/UnitGhost.cs` | **UPDATE** — rewrite to work with `UnitVisual` patterns instead of `Unit3D`. |
+| `SummonPreview.cs` | `scripts/csharp/Battle/Input/SummonPreview.cs` | **UPDATE** — rewrite to read `InputCollector` drag state + create preview from `UnitVisual` instead of `Unit3D`. See [view design-specs.md §4](../architecture/gameplay/view/design-specs.md). |
+| `UnitGhost.cs` | `scripts/csharp/Battle/Input/UnitGhost.cs` | **UPDATE** — rewrite to work with `UnitVisual` patterns instead of `Unit3D`. |
 | `CardFactory.cs` | `scripts/csharp/Cards/CardFactory.cs` | **UPDATE** — remove `ModifierService` references in Tier 1, `SpatialGrid` references in Tier 5. See [cross-cutting-plan.md §6](cross-cutting-plan.md). |
 
 ### Step 6: Projectile3D + ProjectileData (~1,445 LOC)
@@ -265,7 +265,7 @@ Systems identified by deletion-sequence audit that were missing from the origina
 **Replacement:** `ProjectileVisual` (visual shell, reads `SimProjectileData` from `MatchState`).
 
 **Scene files to update:**
-- `scenes/projectiles/base_projectile_3d.tscn` (Projectile3D → ProjectileVisual)
+- `scenes/battle/projectiles/base_projectile_3d.tscn` (Projectile3D → ProjectileVisual)
 
 ### Step 7: GameController3D + Test Controller (~1,225 LOC)
 
@@ -278,12 +278,12 @@ Systems identified by deletion-sequence audit that were missing from the origina
 **Replacement:** `BattleScene` (view layer facade).
 
 **Scene files to update:**
-- `scenes/battlefield/battle_3d.tscn` (game_controller_3d → BattleScene)
+- `scenes/battle/battlefield/battle_3d.tscn` (game_controller_3d → BattleScene)
 - Test scenes using `test_game_controller.gd` (update or delete)
 
 ### Autoloads to Remove from `project.godot`
 
-1. `HPBarService="*res://scripts/csharp/Services/HPBarService.tscn"`
+1. `HPBarService="*res://scripts/csharp/Meta/Services/HPBarService.tscn"`
 2. `UnitDebugService` — check `project.godot` for exact autoload path
 
 ### Test Files
@@ -425,7 +425,7 @@ None — no session-layer files are autoloads.
 
 | File | Path | LOC |
 |------|------|-----|
-| `spell_targeting_manager.gd` | `scripts/ui/battle/spell_targeting_manager.gd` | 375 |
+| `spell_targeting_manager.gd` | `scripts/battle/ui/spell_targeting_manager.gd` | 375 |
 | `.uid` file | `spell_targeting_manager.gd.uid` | — |
 
 **Replacement:** State machine + gesture handling moves to `InputCollector`. Circle/arrow preview rendering moves to View layer. See [view design-specs.md §2](../architecture/gameplay/view/design-specs.md).
@@ -443,17 +443,17 @@ None — no session-layer files are autoloads.
 
 | File | Path | LOC |
 |------|------|-----|
-| `battlefield_drop_zone.gd` | `scripts/ui/battle/battlefield_drop_zone.gd` | 515 |
+| `battlefield_drop_zone.gd` | `scripts/battle/ui/battlefield_drop_zone.gd` | 515 |
 | `.uid` file | `battlefield_drop_zone.gd.uid` | — |
 
 **Replacement:** Drop validation + command production → `InputCollector`. Preview management → View. See [view design-specs.md §8](../architecture/gameplay/view/design-specs.md).
 
 **Scene files to update (5 files):**
-- `scenes/ui/battle/battle_hud.tscn`
-- `scenes/battlefield/dev/test_collision.tscn`
-- `scenes/battlefield/dev/test_battle_abilities.tscn`
-- `scenes/battlefield/dev/test_battle_vfx.tscn`
-- `scenes/test/rally_guard_test.tscn`
+- `scenes/battle/ui/battle_hud.tscn`
+- `scenes/battle/battlefield/dev/test_collision.tscn`
+- `scenes/battle/battlefield/dev/test_battle_abilities.tscn`
+- `scenes/battle/battlefield/dev/test_battle_vfx.tscn`
+- `scenes/battle/debug/rally_guard_test.tscn`
 
 **BattleRNG + rng_domain (237 LOC):**
 
@@ -471,9 +471,9 @@ None — no session-layer files are autoloads.
 |----------|------|-------|-----------------|
 | `heuristic_ai.gd` | `scripts/ai/heuristic_ai.gd` | AI decision randomness, spawn position randomness (11 calls) | AI submits commands via `IGameSession`; sim handles randomness |
 | `summoner.gd` | `scripts/core/summoner.gd` | Deck shuffling (2 calls) | Session handles deck shuffle at battle init |
-| `online_screen.gd` | `scripts/ui/screens/online_screen.gd` | Seed initialization (1 call) | Session receives seed via `BattleConfig` |
-| `multiplayer_lobby.gd` | `scripts/ui/screens/multiplayer_lobby.gd` | Seed initialization (1 call) | Session receives seed via `BattleConfig` |
-| `DamageSystem.cs` | `scripts/csharp/Combat/DamageSystem.cs` | Crit rolls (1 call) | Already deleted in Tier 1 |
+| `online_screen.gd` | `scripts/meta/screens/online_screen.gd` | Seed initialization (1 call) | Session receives seed via `BattleConfig` |
+| `multiplayer_lobby.gd` | `scripts/meta/screens/multiplayer_lobby.gd` | Seed initialization (1 call) | Session receives seed via `BattleConfig` |
+| `DamageSystem.cs` | `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` | Crit rolls (1 call) | Already deleted in Tier 1 |
 
 **PlayerInput files (138 LOC):**
 
@@ -487,7 +487,7 @@ None — no session-layer files are autoloads.
 
 ### Autoloads to Remove from `project.godot`
 
-1. `SpellTargetingManager="*res://scripts/ui/battle/spell_targeting_manager.gd"`
+1. `SpellTargetingManager="*res://scripts/battle/ui/spell_targeting_manager.gd"`
 2. `RedirectManager="*res://scripts/managers/redirect_manager.gd"`
 3. `BattleRNG="*res://scripts/multiplayer/rng/battle_rng.gd"`
 
@@ -564,13 +564,13 @@ These are Unit3D combat capability interfaces. They have no purpose once visual 
 
 | File | Path | LOC |
 |------|------|-----|
-| `HitboxComponent.cs` | `scripts/csharp/Combat/Hitbox/HitboxComponent.cs` | 257 |
-| `HitboxLifetime.cs` | `scripts/csharp/Combat/Hitbox/HitboxLifetime.cs` | 31 |
-| `HitResolver.cs` | `scripts/csharp/Combat/Hitbox/HitResolver.cs` | 237 |
-| `HitResolver.tscn` | `scripts/csharp/Combat/Hitbox/HitResolver.tscn` | — |
-| `HitResult.cs` | `scripts/csharp/Combat/Hitbox/HitResult.cs` | 28 |
-| `HurtboxComponent.cs` | `scripts/csharp/Combat/Hitbox/HurtboxComponent.cs` | 206 |
-| `HurtboxCategory.cs` | `scripts/csharp/Combat/Hitbox/HurtboxCategory.cs` | 18 |
+| `HitboxComponent.cs` | `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitboxComponent.cs` | 257 |
+| `HitboxLifetime.cs` | `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitboxLifetime.cs` | 31 |
+| `HitResolver.cs` | `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitResolver.cs` | 237 |
+| `HitResolver.tscn` | `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitResolver.tscn` | — |
+| `HitResult.cs` | `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitResult.cs` | 28 |
+| `HurtboxComponent.cs` | `scripts/csharp/Battle/Simulation/Combat/Hitbox/HurtboxComponent.cs` | 206 |
+| `HurtboxCategory.cs` | `scripts/csharp/Battle/Simulation/Combat/Hitbox/HurtboxCategory.cs` | 18 |
 | `.uid` files | All corresponding `.cs.uid` files | — |
 
 **Replacement:** `SimProjectile` + `SimDamage` handle all hit detection and damage in the simulation layer.
@@ -587,12 +587,12 @@ These are Unit3D combat capability interfaces. They have no purpose once visual 
 
 ### GDScript Mirror Enum Update
 
-Remove `HurtboxCategory` mirror enum from `scripts/data/unit_constants.gd` (no longer needed once C# `HurtboxCategory.cs` is deleted).
+Remove `HurtboxCategory` mirror enum from `scripts/infrastructure/data/unit_constants.gd` (no longer needed once C# `HurtboxCategory.cs` is deleted).
 
 ### Autoloads to Remove from `project.godot`
 
 1. `TargetingConfigRegistryCS="*res://scripts/csharp/Targeting/TargetingConfigRegistryCS.tscn"`
-2. `HitResolver="*res://scripts/csharp/Combat/Hitbox/HitResolver.tscn"`
+2. `HitResolver="*res://scripts/csharp/Battle/Simulation/Combat/Hitbox/HitResolver.tscn"`
 3. `SpatialGrid="*res://scripts/csharp/Systems/SpatialGrid.tscn"`
 
 ### Test Files

@@ -62,7 +62,7 @@ If you find yourself doing any of these, stop and reconsider:
 These files are mutated **only** by `Simulation.Tick(fixedDelta)` (and `SnapshotApplier.Apply()` on clients):
 
 ```
-scripts/csharp/Simulation/
+scripts/csharp/Battle/Simulation/
 ├── MatchState.cs           # The state (ONLY Tick + SnapshotApplier write to this)
 ├── UnitData.cs             # Per-unit state
 ├── SummonerData.cs         # Per-summoner state
@@ -89,7 +89,7 @@ scripts/csharp/Simulation/
 ### Bridge-Owned (Connects sim to engine)
 
 ```
-scripts/csharp/Simulation/
+scripts/csharp/Battle/Simulation/
 ├── SimulationNode.cs       # Godot Node wrapping Simulation
 │                           # Exposes READ-ONLY API to GDScript
 │                           # Emits signals from SimEvents
@@ -130,7 +130,7 @@ scripts/csharp/Multiplayer/
 scripts/units/unit_3d.gd (or Unit3D.cs)
 scripts/core/summoner.gd
 scripts/ui/...
-scripts/battlefield/...
+scripts/battle/battlefield/...
 ```
 
 **Rule**: During Battle, these are READ-ONLY consumers. They react to signals and read from MatchState via `SimulationNode`'s read API.

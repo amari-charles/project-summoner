@@ -116,37 +116,37 @@ Reads game state and renders it. No game logic, no mutation.
 | `SpriteVisualComponent` | `Visual/SpriteVisualComponent.cs` | View | Stays | Sprite rendering |
 | `SpawnRevealComponent` | `Units/Components/SpawnRevealComponent.cs` | View | Stays | Spawn-in visual effect |
 | `FloatingHPBar` | `UI/FloatingHPBar.cs` | View | Stays | HP bar rendering |
-| `VFXManager` | `scripts/vfx/vfx_manager.gd` | View | Stays | VFX pooling + spawning |
-| `vfx_definition.gd` | `scripts/vfx/vfx_definition.gd` | View | Stays | VFX configuration |
-| `vfx_instance.gd` | `scripts/vfx/vfx_instance.gd` | View | Stays | VFX instance |
+| `VFXManager` | `scripts/battle/vfx/vfx_manager.gd` | View | Stays | VFX pooling + spawning |
+| `vfx_definition.gd` | `scripts/battle/vfx/vfx_definition.gd` | View | Stays | VFX configuration |
+| `vfx_instance.gd` | `scripts/battle/vfx/vfx_instance.gd` | View | Stays | VFX instance |
 | `VfxId` | `Vfx/VfxId.cs` | View | Stays | VFX identifier type |
-| Spell VFX scripts | `scripts/vfx/fireball_spell_vfx.gd`, `lightning_strike_vfx.gd` | View | Stays | Spell visual effects |
-| `redirect_indicator.gd` | ~~`scripts/vfx/redirect_indicator.gd`~~ | View | Deleted | Dead code — referenced deleted RedirectManager |
-| `BattlefieldVisuals3D` | `scripts/battlefield/battlefield_visuals_3d.gd` | View | Renames | → `BattlefieldEnvironment` |
-| `base_battlefield_3d.gd` | `scripts/battlefield/base_battlefield_3d.gd` | View | Stays | Base battlefield scene |
-| `biome_config.gd` | `scripts/battlefield/biome_config.gd` | View | Stays | Biome visual configuration |
-| `battlefield_constants.gd` | `scripts/battlefield/battlefield_constants.gd` | View | Stays | Battlefield dimensions |
-| `CameraController3D` | `scripts/battlefield/camera_controller_3d.gd` | View | Renames | → `BattleCamera` |
+| Spell VFX scripts | `scripts/battle/vfx/fireball_spell_vfx.gd`, `lightning_strike_vfx.gd` | View | Stays | Spell visual effects |
+| `redirect_indicator.gd` | ~~`scripts/battle/vfx/redirect_indicator.gd`~~ | View | Deleted | Dead code — referenced deleted RedirectManager |
+| `BattlefieldVisuals3D` | `scripts/battle/battlefield/battlefield_visuals_3d.gd` | View | Renames | → `BattlefieldEnvironment` |
+| `base_battlefield_3d.gd` | `scripts/battle/battlefield/base_battlefield_3d.gd` | View | Stays | Base battlefield scene |
+| `biome_config.gd` | `scripts/battle/battlefield/biome_config.gd` | View | Stays | Biome visual configuration |
+| `battlefield_constants.gd` | `scripts/battle/battlefield/battlefield_constants.gd` | View | Stays | Battlefield dimensions |
+| `CameraController3D` | `scripts/battle/battlefield/camera_controller_3d.gd` | View | Renames | → `BattleCamera` |
 | `UnitSteering` | `Movement/UnitSteering.cs` | View | Stays | Godot-side movement (reads SimMovement results) |
 | `SummonPreview` | `Input/SummonPreview.cs` | Input | Stays | Spawn preview visualization |
 | `UnitGhost` | `Input/UnitGhost.cs` | Input | Stays | Ghost preview unit |
 | `UnitDebugService` | `Units/UnitDebugService.cs` | View/Debug | Stays | Debug visualization |
 | `DamageProfile` | `Units/DamageProfile.cs` | View | Stays | Visual damage representation |
 | `Enums` | `Units/Enums.cs` | Cross-cutting | Stays | `ActivationState`, shared enums |
-| Animation scripts | `scripts/animations/*.gd` (3 files) | View | Stays | Animation configuration and control |
-| Unit rig scripts | `scripts/units/*.gd` (3 files) | View | Stays | Skeletal rig scripts |
+| Animation scripts | `scripts/battle/animations/*.gd` (3 files) | View | Stays | Animation configuration and control |
+| Unit rig scripts | `scripts/battle/animations/*_rig.gd` (3 files) | View | Stays | Skeletal rig scripts |
 
 ### Battle HUD (View — Independent Peer)
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `hand_ui.gd` | `scripts/ui/battle/hand_ui.gd` | View + Input | Splits | Card rendering → View (HUD); drag gesture → Input |
-| `game_ui.gd` | `scripts/ui/battle/game_ui.gd` | View | Stays | Battle HUD container |
-| `stat_bar.gd` | `scripts/ui/battle/stat_bar.gd` | View | Stays | HP/mana bars |
-| `pause_button.gd` | `scripts/ui/battle/pause_button.gd` | View | Stays | UI button |
-| `speed_button.gd` | `scripts/ui/battle/speed_button.gd` | View | Stays | Speed control UI |
-| `spell_preview.gd` | `scripts/ui/battle/spell_preview.gd` | View | Stays | Spell preview rendering |
-| `spawn_zone_overlay.gd` | `scripts/ui/battle/spawn_zone_overlay.gd` | View | Stays | Spawn zone visualization |
+| `hand_ui.gd` | `scripts/battle/ui/hand_ui.gd` | View + Input | Splits | Card rendering → View (HUD); drag gesture → Input |
+| `game_ui.gd` | `scripts/battle/ui/game_ui.gd` | View | Stays | Battle HUD container |
+| `stat_bar.gd` | `scripts/battle/ui/stat_bar.gd` | View | Stays | HP/mana bars |
+| `pause_button.gd` | `scripts/battle/ui/pause_button.gd` | View | Stays | UI button |
+| `speed_button.gd` | `scripts/battle/ui/speed_button.gd` | View | Stays | Speed control UI |
+| `spell_preview.gd` | `scripts/battle/ui/spell_preview.gd` | View | Stays | Spell preview rendering |
+| `spawn_zone_overlay.gd` | `scripts/battle/ui/spawn_zone_overlay.gd` | View | Stays | Spawn zone visualization |
 | `HPBarService` | `Services/HPBarService.cs` (autoload) | View | Moves | Creates HP bars — View-layer service |
 
 ---
@@ -165,7 +165,7 @@ Captures player intent, produces Commands.
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `battlefield_drop_zone.gd` | `scripts/ui/battle/battlefield_drop_zone.gd` | Input | Moves | Card drop detection → InputCollector |
+| `battlefield_drop_zone.gd` | `scripts/battle/ui/battlefield_drop_zone.gd` | Input | Moves | Card drop detection → InputCollector |
 | `player_input_3d.gd` | `scripts/core/player_input_3d.gd` | Input | Deletes | Replaced by InputCollector |
 | `player_input.gd` | `scripts/core/player_input.gd` | Input | Deletes | Replaced by InputCollector |
 | `summoner.gd` (input parts) | `scripts/core/summoner.gd` | Input | Splits | `play_card_3d()` command production → InputCollector |
@@ -184,7 +184,7 @@ Captures player intent, produces Commands.
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `SpellTargetingManager` | `scripts/ui/battle/spell_targeting_manager.gd` (autoload) | — | Deletes | Gesture → InputCollector; visuals → View |
+| `SpellTargetingManager` | `scripts/battle/ui/spell_targeting_manager.gd` (autoload) | — | Deletes | Gesture → InputCollector; visuals → View |
 | `RedirectManager` | `scripts/managers/redirect_manager.gd` (autoload) | — | Deletes | Redirect gesture → InputCollector producing RedirectCommand |
 
 ---
@@ -349,38 +349,38 @@ Types shared across multiple layers. Pure data, no game logic.
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `card_catalog.gd` | `scripts/data/card_catalog.gd` | Cross-cutting | Stays | GDScript catalog autoload |
-| `summoner_catalog.gd` | `scripts/data/summoner_catalog.gd` | Cross-cutting | Stays | GDScript catalog autoload |
-| `trait_catalog.gd` | `scripts/data/trait_catalog.gd` | Cross-cutting | Stays | GDScript catalog autoload |
-| `card_trait_catalog.gd` | `scripts/data/card_trait_catalog.gd` | Cross-cutting | Stays | GDScript catalog |
-| `cosmetics_catalog.gd` | `scripts/data/cosmetics_catalog.gd` | Cross-cutting | Stays | Cosmetics data |
-| `emotes_catalog.gd` | `scripts/data/emotes_catalog.gd` | Cross-cutting | Stays | Emotes data |
-| `content_binding.gd` | `scripts/data/content_binding.gd` | Cross-cutting | Stays | Content binding |
-| `unit_constants.gd` | `scripts/data/unit_constants.gd` | Cross-cutting | Stays | Mirror enum pattern for C# interop |
-| `deck_constants.gd` | `scripts/data/deck_constants.gd` | Cross-cutting | Stays | Deck rules |
-| All `*_ids.gd` files | `scripts/data/*_ids.gd` (17 files) | Cross-cutting | Stays | ID constant files |
+| `card_catalog.gd` | `scripts/infrastructure/data/card_catalog.gd` | Cross-cutting | Stays | GDScript catalog autoload |
+| `summoner_catalog.gd` | `scripts/infrastructure/data/summoner_catalog.gd` | Cross-cutting | Stays | GDScript catalog autoload |
+| `trait_catalog.gd` | `scripts/infrastructure/data/trait_catalog.gd` | Cross-cutting | Stays | GDScript catalog autoload |
+| `card_trait_catalog.gd` | `scripts/infrastructure/data/card_trait_catalog.gd` | Cross-cutting | Stays | GDScript catalog |
+| `cosmetics_catalog.gd` | `scripts/infrastructure/data/cosmetics_catalog.gd` | Cross-cutting | Stays | Cosmetics data |
+| `emotes_catalog.gd` | `scripts/infrastructure/data/emotes_catalog.gd` | Cross-cutting | Stays | Emotes data |
+| `content_binding.gd` | `scripts/infrastructure/data/content_binding.gd` | Cross-cutting | Stays | Content binding |
+| `unit_constants.gd` | `scripts/infrastructure/data/unit_constants.gd` | Cross-cutting | Stays | Mirror enum pattern for C# interop |
+| `deck_constants.gd` | `scripts/infrastructure/data/deck_constants.gd` | Cross-cutting | Stays | Deck rules |
+| All `*_ids.gd` files | `scripts/infrastructure/data/*_ids.gd` (17 files) | Cross-cutting | Stays | ID constant files |
 | `card_config.gd` | `scripts/cards/card_config.gd` | Cross-cutting | Stays | GDScript card config |
 | `card.gd` | `scripts/cards/card.gd` | Cross-cutting | Stays | GDScript card class |
-| `json_profile_repository.gd` | `scripts/data/json_profile_repository.gd` | Infrastructure | Stays | GDScript profile persistence |
-| `profile_repository.gd` | `scripts/data/profile_repository.gd` | Infrastructure | Stays | Profile repo interface |
+| `json_profile_repository.gd` | `scripts/infrastructure/data/json_profile_repository.gd` | Infrastructure | Stays | GDScript profile persistence |
+| `profile_repository.gd` | `scripts/infrastructure/data/profile_repository.gd` | Infrastructure | Stays | Profile repo interface |
 
 ### GDScript Core Utilities
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `element_types.gd` | `scripts/core/element_types.gd` (autoload) | Cross-cutting | Stays | Element type data |
-| `element_registry.gd` | `scripts/core/element_registry.gd` | Cross-cutting | Stays | Element lookup |
-| `fonts.gd` | `scripts/core/fonts.gd` (autoload) | View | Stays | Font resources |
-| `safe_type_utils.gd` | `scripts/core/safe_type_utils.gd` | Cross-cutting | Stays | Type safety utilities |
+| `element_types.gd` | `scripts/infrastructure/element_types.gd` (autoload) | Cross-cutting | Stays | Element type data |
+| `element_registry.gd` | `scripts/infrastructure/element_registry.gd` | Cross-cutting | Stays | Element lookup |
+| `fonts.gd` | `scripts/infrastructure/fonts.gd` (autoload) | View | Stays | Font resources |
+| `safe_type_utils.gd` | `scripts/infrastructure/safe_type_utils.gd` | Cross-cutting | Stays | Type safety utilities |
 | `base.gd` | `scripts/core/base.gd` | Cross-cutting | Stays | Base class |
-| `csharp_autoloads.gd` | `scripts/core/csharp_autoloads.gd` | Infrastructure | Stays | C# autoload initialization |
-| `physics_layers.gd` | `scripts/core/physics_layers.gd` (autoload) | Cross-cutting | Stays | Physics layer constants |
-| `summoner_config.gd` | `scripts/core/summoner_config.gd` | Cross-cutting | Stays | Summoner configuration |
+| `csharp_autoloads.gd` | `scripts/infrastructure/csharp_autoloads.gd` | Infrastructure | Stays | C# autoload initialization |
+| `physics_layers.gd` | `scripts/infrastructure/physics_layers.gd` (autoload) | Cross-cutting | Stays | Physics layer constants |
+| `summoner_config.gd` | `scripts/infrastructure/summoner_config.gd` | Cross-cutting | Stays | Summoner configuration |
 | `summoner_instance.gd` | `scripts/core/summoner_instance.gd` | Cross-cutting | Stays | Summoner instance data |
-| `summoner_registry.gd` | `scripts/core/summoner_registry.gd` | Cross-cutting | Stays | Summoner lookup |
+| `summoner_registry.gd` | `scripts/infrastructure/summoner_registry.gd` | Cross-cutting | Stays | Summoner lookup |
 | `deck_loader.gd` | `scripts/core/deck_loader.gd` | Cross-cutting | Stays | Deck loading utility |
 | `enemy_deck_loader.gd` | `scripts/core/enemy_deck_loader.gd` | Cross-cutting | Stays | Enemy deck loading |
-| `player_camera.gd` | `scripts/core/player_camera.gd` | View | Stays | Non-battle camera |
+| `player_camera.gd` | `scripts/battle/player_camera.gd` | View | Stays | Non-battle camera |
 
 ---
 
@@ -438,9 +438,9 @@ Services and domain objects outside the battle loop. Operate between battles.
 | `reward_service.gd` | `scripts/services/reward_service.gd` (autoload) | Meta-game | Stays | GDScript facade for `RewardServiceCS` |
 | `shop_service.gd` | `scripts/services/shop_service.gd` (autoload) | Meta-game | Stays | GDScript facade for `ShopServiceCS` |
 | `summoner_progression_service.gd` | `scripts/services/summoner_progression_service.gd` (autoload) | Meta-game | Stays | GDScript facade for `SummonerProgressionCS` |
-| `DialogueManager` | `scripts/services/dialogue_manager.gd` (autoload) | Meta-game | Stays | Dialogue orchestration |
-| `EventSequencer` | `scripts/services/event_sequencer.gd` (autoload) | Meta-game | Stays | Campaign event sequences |
-| `CapabilityManager` | `scripts/services/capability_manager.gd` (autoload) | Meta-game | Stays | Feature flags |
+| `DialogueManager` | `scripts/application/dialogue_manager.gd` (autoload) | Meta-game | Stays | Dialogue orchestration |
+| `EventSequencer` | `scripts/application/event_sequencer.gd` (autoload) | Meta-game | Stays | Campaign event sequences |
+| `CapabilityManager` | `scripts/application/capability_manager.gd` (autoload) | Meta-game | Stays | Feature flags |
 
 ### GDScript Resources
 
@@ -455,10 +455,10 @@ Services and domain objects outside the battle loop. Operate between battles.
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `dialogue_data.gd` | `scripts/dialogue/dialogue_data.gd` | Meta-game | Stays | Dialogue data |
-| `dialogue_choice.gd` | `scripts/dialogue/dialogue_choice.gd` | Meta-game | Stays | Dialogue choice data |
-| `battle_dialogue_controller.gd` | `scripts/core/battle_dialogue_controller.gd` | View | Stays | In-battle dialogue rendering |
-| `dialogue_box.gd` | `scripts/ui/components/dialogue_box.gd` | View | Stays | Dialogue UI component |
+| `dialogue_data.gd` | `scripts/infrastructure/dialogue/dialogue_data.gd` | Meta-game | Stays | Dialogue data |
+| `dialogue_choice.gd` | `scripts/infrastructure/dialogue/dialogue_choice.gd` | Meta-game | Stays | Dialogue choice data |
+| `battle_dialogue_controller.gd` | `scripts/battle/battle_dialogue_controller.gd` | View | Stays | In-battle dialogue rendering |
+| `dialogue_box.gd` | `scripts/shared/dialogue_box.gd` | View | Stays | Dialogue UI component |
 
 ---
 
@@ -494,11 +494,11 @@ Transport, persistence, matchmaking, ranking, scene navigation.
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `SceneManager` | `scripts/core/scene_manager.gd` (autoload) | Infrastructure | Stays | Scene transitions |
-| `SceneCoordinator` | `scripts/services/scene_coordinator.gd` (autoload) | Infrastructure | Stays | Scene flow coordination |
-| `NavigationContext` | `scripts/services/navigation_context.gd` (autoload) | Infrastructure | Stays | Navigation state |
-| `BattleContext` | `scripts/core/battle_context.gd` (autoload) | Infrastructure | Stays | Builds typed `BattleConfig` for session constructors (Decision #13) |
-| `EventContext` | `scripts/core/event_context.gd` (autoload) | Infrastructure | Stays | Campaign event context (same pattern as BattleContext) |
+| `SceneManager` | `scripts/application/scene_manager.gd` (autoload) | Infrastructure | Stays | Scene transitions |
+| `SceneCoordinator` | `scripts/application/scene_coordinator.gd` (autoload) | Infrastructure | Stays | Scene flow coordination |
+| `NavigationContext` | `scripts/application/navigation_context.gd` (autoload) | Infrastructure | Stays | Navigation state |
+| `BattleContext` | `scripts/application/battle_context.gd` (autoload) | Infrastructure | Stays | Builds typed `BattleConfig` for session constructors (Decision #13) |
+| `EventContext` | `scripts/application/event_context.gd` (autoload) | Infrastructure | Stays | Campaign event context (same pattern as BattleContext) |
 
 ### GDScript Multiplayer
 
@@ -513,11 +513,11 @@ Transport, persistence, matchmaking, ranking, scene navigation.
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `billing_catalog.gd` | `scripts/billing/billing_catalog.gd` (autoload) | Infrastructure | Stays | Billing product catalog |
-| `billing_product.gd` | `scripts/billing/billing_product.gd` | Infrastructure | Stays | Product data |
-| `billing_provider.gd` | `scripts/billing/billing_provider.gd` | Infrastructure | Stays | Provider interface |
-| `platform_billing.gd` | `scripts/billing/platform_billing.gd` (autoload) | Infrastructure | Stays | Platform integration |
-| `stub_billing_provider.gd` | `scripts/billing/stub_billing_provider.gd` | Infrastructure | Stays | Stub for dev |
+| `billing_catalog.gd` | `scripts/infrastructure/billing/billing_catalog.gd` (autoload) | Infrastructure | Stays | Billing product catalog |
+| `billing_product.gd` | `scripts/infrastructure/billing/billing_product.gd` | Infrastructure | Stays | Product data |
+| `billing_provider.gd` | `scripts/infrastructure/billing/billing_provider.gd` | Infrastructure | Stays | Provider interface |
+| `platform_billing.gd` | `scripts/infrastructure/billing/platform_billing.gd` (autoload) | Infrastructure | Stays | Platform integration |
+| `stub_billing_provider.gd` | `scripts/infrastructure/billing/stub_billing_provider.gd` | Infrastructure | Stays | Stub for dev |
 
 ---
 
@@ -527,7 +527,7 @@ Services callable by any layer. Not owned by Simulation, Session, View, or Input
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `AudioManager` | `scripts/services/audio_manager.gd` (autoload) | Standalone | Stays | Audio triggered from View (battle SFX), HUD (UI clicks), meta-game (music). No single layer owns all audio needs. |
+| `AudioManager` | `scripts/infrastructure/audio_manager.gd` (autoload) | Standalone | Stays | Audio triggered from View (battle SFX), HUD (UI clicks), meta-game (music). No single layer owns all audio needs. |
 
 ---
 
@@ -537,28 +537,28 @@ UI screens and modals — all GDScript, all View layer. Listed for completeness.
 
 | System | Current Location | Target Layer | Action | Rationale |
 |--------|-----------------|-------------|--------|-----------|
-| `title_screen.gd` | `scripts/ui/screens/title_screen.gd` | View | Stays | Title screen |
-| `campaign_map.gd` | `scripts/ui/screens/campaign_map.gd` | View | Stays | Campaign map |
-| `collection_screen.gd` | `scripts/ui/screens/collection_screen.gd` | View | Stays | Card collection |
-| `summoner_screen.gd` | `scripts/ui/screens/summoner_screen.gd` | View | Stays | Summoner details |
-| `summoner_selection.gd` | `scripts/ui/screens/summoner_selection.gd` | View | Stays | Summoner select |
-| `summoner_switch_screen.gd` | `scripts/ui/screens/summoner_switch_screen.gd` | View | Stays | Switch summoner |
-| `shop_screen.gd` | `scripts/ui/screens/shop_screen.gd` | View | Stays | Shop UI |
-| `caravan_screen.gd` | `scripts/ui/screens/caravan_screen.gd` | View | Stays | Caravan UI |
-| `event_screen.gd` | `scripts/ui/screens/event_screen.gd` | View | Stays | Event UI |
-| `reward_screen.gd` | `scripts/ui/screens/reward_screen.gd` | View | Stays | Reward UI |
-| `settings_screen.gd` | `scripts/ui/screens/settings_screen.gd` | View | Stays | Settings |
-| `multiplayer_lobby.gd` | `scripts/ui/screens/multiplayer_lobby.gd` | View | Stays | MP lobby |
-| `online_screen.gd` | `scripts/ui/screens/online_screen.gd` | View | Stays | Online menu |
-| `premium_store_screen.gd` | `scripts/ui/screens/premium_store_screen.gd` | View | Stays | Premium store |
-| `special_events_screen.gd` | `scripts/ui/screens/special_events_screen.gd` | View | Stays | Special events |
-| `first_card_selection.gd` | `scripts/ui/screens/first_card_selection.gd` | View | Stays | First card pick |
-| `snapshot_manager.gd` | `scripts/ui/screens/snapshot_manager.gd` | View | Stays | Debug snapshots |
-| All UI components | `scripts/ui/components/*.gd` (20+ files) | View | Stays | Shared UI components |
+| `title_screen.gd` | `scripts/meta/screens/title_screen.gd` | View | Stays | Title screen |
+| `campaign_map.gd` | `scripts/meta/screens/campaign_map.gd` | View | Stays | Campaign map |
+| `collection_screen.gd` | `scripts/meta/screens/collection_screen.gd` | View | Stays | Card collection |
+| `summoner_screen.gd` | `scripts/meta/screens/summoner_screen.gd` | View | Stays | Summoner details |
+| `summoner_selection.gd` | `scripts/meta/screens/summoner_selection.gd` | View | Stays | Summoner select |
+| `summoner_switch_screen.gd` | `scripts/meta/screens/summoner_switch_screen.gd` | View | Stays | Switch summoner |
+| `shop_screen.gd` | `scripts/meta/screens/shop_screen.gd` | View | Stays | Shop UI |
+| `caravan_screen.gd` | `scripts/meta/screens/caravan_screen.gd` | View | Stays | Caravan UI |
+| `event_screen.gd` | `scripts/meta/screens/event_screen.gd` | View | Stays | Event UI |
+| `reward_screen.gd` | `scripts/meta/screens/reward_screen.gd` | View | Stays | Reward UI |
+| `settings_screen.gd` | `scripts/meta/screens/settings_screen.gd` | View | Stays | Settings |
+| `multiplayer_lobby.gd` | `scripts/meta/screens/multiplayer_lobby.gd` | View | Stays | MP lobby |
+| `online_screen.gd` | `scripts/meta/screens/online_screen.gd` | View | Stays | Online menu |
+| `premium_store_screen.gd` | `scripts/meta/screens/premium_store_screen.gd` | View | Stays | Premium store |
+| `special_events_screen.gd` | `scripts/meta/screens/special_events_screen.gd` | View | Stays | Special events |
+| `first_card_selection.gd` | `scripts/meta/screens/first_card_selection.gd` | View | Stays | First card pick |
+| `snapshot_manager.gd` | `scripts/meta/screens/snapshot_manager.gd` | View | Stays | Debug snapshots |
+| All UI components | `scripts/meta/components/*.gd` (20+ files) | View | Stays | Shared UI components |
 | All UI modals | `scripts/ui/modals/*.gd` (6 files) | View | Stays | Modal dialogs |
-| UI styles | `scripts/ui/styles/button_style_factory.gd` | View | Stays | Style utilities |
-| Node panels | `scripts/ui/components/node_panels/*.gd` (7 files) | View | Stays | Campaign node panels |
-| Debug UI | `scripts/ui/debug/*.gd` (4 files) | Debug | Stays | Debug UI components |
+| UI styles | `scripts/shared/button_style_factory.gd` | View | Stays | Style utilities |
+| Node panels | `scripts/meta/components/node_panels/*.gd` (7 files) | View | Stays | Campaign node panels |
+| Debug UI | `scripts/battle/ui/debug/*.gd` (4 files) | Debug | Stays | Debug UI components |
 
 ---
 
@@ -620,7 +620,7 @@ Systems to be retired. Grouped by blocker. See `docs/migration/planning-checklis
 
 | System | Current Location | Blocked By | Action |
 |--------|-----------------|-----------|--------|
-| `SpellTargetingManager` (autoload) | `scripts/ui/battle/spell_targeting_manager.gd` | InputCollector handles spells | Deletes |
+| `SpellTargetingManager` (autoload) | `scripts/battle/ui/spell_targeting_manager.gd` | InputCollector handles spells | Deletes |
 | `RedirectManager` (autoload) | `scripts/managers/redirect_manager.gd` | InputCollector handles redirects | Deletes |
 
 ### Retired by Decision (No Blocker)
@@ -656,15 +656,15 @@ All Phase 1 decisions are settled. See `docs/architecture/decisions.md` #9–#16
 
 | System | Current Location | Assigned Layer | Decision |
 |--------|-----------------|---------------|----------|
-| `AudioManager` | `scripts/services/audio_manager.gd` (autoload) | Standalone service | Decision #10 |
+| `AudioManager` | `scripts/infrastructure/audio_manager.gd` (autoload) | Standalone service | Decision #10 |
 | AI system (5 files) | `scripts/ai/*.gd` + `scripts/core/simple_ai.gd` | Input (peer) | Decision #12 |
-| `BattleContext` | `scripts/core/battle_context.gd` (autoload) | Infrastructure (builds typed `BattleConfig` for Session) | Decision #13 |
-| `EventContext` | `scripts/core/event_context.gd` (autoload) | Infrastructure (same pattern as BattleContext) | Decision #13 |
+| `BattleContext` | `scripts/application/battle_context.gd` (autoload) | Infrastructure (builds typed `BattleConfig` for Session) | Decision #13 |
+| `EventContext` | `scripts/application/event_context.gd` (autoload) | Infrastructure (same pattern as BattleContext) | Decision #13 |
 | `GameStateEvents` | `scripts/services/game_state_events.gd` (autoload) | Meta-game (kept for non-battle; revisit Phase 6) | Decision #15 |
 | `BattleRNG` | `scripts/multiplayer/rng/battle_rng.gd` (autoload) | Delete queue (retired for gameplay; sim uses `DeterministicRng`) | Decision #16 |
 | `rng_domain.gd` | `scripts/multiplayer/rng/rng_domain.gd` | Delete queue (retired with `BattleRNG`) | Decision #16 |
 | `summoner.gd` (full) | `scripts/core/summoner.gd` | Splits: visual → View, deck/mana → Session init, input → Input | Decisions #9, #13 |
-| `hand_ui.gd` (input parts) | `scripts/ui/battle/hand_ui.gd` | Splits: card rendering → View (HUD), drag gesture → Input | Decision #9 |
+| `hand_ui.gd` (input parts) | `scripts/battle/ui/hand_ui.gd` | Splits: card rendering → View (HUD), drag gesture → Input | Decision #9 |
 
 ---
 

@@ -8,7 +8,7 @@ For the View layer overview, see [README.md](README.md). For the Input layer ove
 
 ## 1. HandUI Split
 
-**Current:** `scripts/ui/battle/hand_ui.gd` (813 lines) — handles both card rendering and drag gesture capture.
+**Current:** `scripts/battle/ui/hand_ui.gd` (813 lines) — handles both card rendering and drag gesture capture.
 
 ### Responsibility Breakdown
 
@@ -49,7 +49,7 @@ HandUI never calls `SubmitCommand`. It only provides visual affordances (which c
 
 ## 2. SpellTargetingManager Retirement
 
-**Current:** `scripts/ui/battle/spell_targeting_manager.gd` (375 lines) — autoload managing two-stage spell targeting (click to place circle, drag to set destination).
+**Current:** `scripts/battle/ui/spell_targeting_manager.gd` (375 lines) — autoload managing two-stage spell targeting (click to place circle, drag to set destination).
 
 ### Responsibility Breakdown
 
@@ -156,7 +156,7 @@ public record RedirectCommand(
 
 ## 4. SummonPreview Migration
 
-**Current:** `scripts/csharp/Input/SummonPreview.cs` + `UnitGhost.cs` (namespace `Fateforged.Input`) — shows ghost units at spawn location during card drag.
+**Current:** `scripts/csharp/Battle/Input/SummonPreview.cs` + `UnitGhost.cs` (namespace `Fateforged.Input`) — shows ghost units at spawn location during card drag.
 
 ### Decision: Input-Layer Component
 
@@ -179,7 +179,7 @@ SummonPreview reads `InputCollector.DragPosition` and `InputCollector.DraggedCar
 
 1. SummonPreview reads from InputCollector state instead of BattlefieldDropZone
 2. Remove direct coupling to BattlefieldDropZone's internal state
-3. No structural changes needed — it's already in `scripts/csharp/Input/`
+3. No structural changes needed — it's already in `scripts/csharp/Battle/Input/`
 
 ---
 
@@ -329,7 +329,7 @@ Redirect mouse handling (`_unhandled_input`, lines 676-789) and the raycast help
 
 ## 7. SimEventSignalEmitter Retirement
 
-**Current:** `scripts/csharp/Simulation/SimEventSignalEmitter.cs` (109 lines) — visitor that converts `SimEvent`s into Godot signals on `SimulationNode`.
+**Current:** `scripts/csharp/Battle/Simulation/SimEventSignalEmitter.cs` (109 lines) — visitor that converts `SimEvent`s into Godot signals on `SimulationNode`.
 
 ### Why It's Retired
 
@@ -383,7 +383,7 @@ These events have no signal today (lines 100-108): `UnitActivationChanged`, `Spe
 
 ## 8. BattlefieldDropZone Migration
 
-**Current:** `scripts/ui/battle/battlefield_drop_zone.gd` (515 lines) — handles card drop detection, spawn preview, and spell targeting forwarding.
+**Current:** `scripts/battle/ui/battlefield_drop_zone.gd` (515 lines) — handles card drop detection, spawn preview, and spell targeting forwarding.
 
 ### Responsibility Breakdown
 
@@ -421,7 +421,7 @@ These events have no signal today (lines 100-108): `UnitActivationChanged`, `Spe
 
 ## 9. GameUI Migration
 
-**Current:** `scripts/ui/battle/game_ui.gd` (283 lines) — manages all battle HUD elements (timers, HP/mana bars, phase labels, game over display).
+**Current:** `scripts/battle/ui/game_ui.gd` (283 lines) — manages all battle HUD elements (timers, HP/mana bars, phase labels, game over display).
 
 ### Assessment: ~95% View, No Decomposition Needed
 
@@ -455,7 +455,7 @@ BattleHUD:
 
 ## 10. SpawnZoneOverlay Migration
 
-**Current:** `scripts/ui/battle/spawn_zone_overlay.gd` (40 lines) — simple 3D mesh overlay showing invalid spawn zones.
+**Current:** `scripts/battle/ui/spawn_zone_overlay.gd` (40 lines) — simple 3D mesh overlay showing invalid spawn zones.
 
 ### Assessment: Pure View
 

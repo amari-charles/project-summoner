@@ -80,7 +80,7 @@ Owns visual sub-components:
 ## Stub
 
 ```csharp
-// scripts/csharp/View/UnitVisual.cs
+// scripts/csharp/Battle/View/UnitVisual.cs
 public partial class UnitVisual : Node3D
 {
     private IGameSession? _session;
@@ -89,10 +89,10 @@ public partial class UnitVisual : Node3D
     private bool _loggedMissing;
 
     // Sub-components (already exist in codebase)
-    // IVisualComponent  — scripts/csharp/Visual/IVisualComponent.cs
-    // ShadowComponent   — scripts/csharp/Visual/ShadowComponent.cs
+    // IVisualComponent  — scripts/csharp/Battle/View/Visual/IVisualComponent.cs
+    // ShadowComponent   — scripts/csharp/Battle/View/Visual/ShadowComponent.cs
     // SpawnRevealComponent — scripts/csharp/Units/Components/SpawnRevealComponent.cs
-    // FloatingHPBar via HPBarService — scripts/csharp/Services/HPBarService.cs
+    // FloatingHPBar via HPBarService — scripts/csharp/Meta/Services/HPBarService.cs
 
     public void Initialize(IGameSession session, int unitId) { throw new NotImplementedException(); }
 

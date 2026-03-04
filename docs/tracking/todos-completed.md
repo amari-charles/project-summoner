@@ -36,7 +36,7 @@ Complete rewrite of the simulation architecture to a host-authoritative model. A
 - ✅ Dead code cleanup: removed 10 unused SimulationNode methods, 3 dead ability scripts
 
 **Files Changed:**
-- `scripts/csharp/Simulation/` - Core simulation (Simulation.cs, SimulationNode.cs, MatchState, etc.)
+- `scripts/csharp/Battle/Simulation/` - Core simulation (Simulation.cs, SimulationNode.cs, MatchState, etc.)
 - `scripts/csharp/Multiplayer/` - HostRunner, ClientRunner, RequestValidator, StateSnapshotBuilder
 - `scripts/csharp/Units/Unit3D.cs` - Read-only presentation node
 - `scripts/core/summoner.gd` - Card play via command queue
@@ -85,14 +85,14 @@ Previously the multiplayer battle setup hardcoded the opponent summoner as "igni
 - ✅ Sync `MaxHp` from host to client in `UnitState` protocol message — clients were setting `MaxHp = CurrentHp`, so damaged units appeared at full health; added `MaxHp` to `UnitState`, `StateSnapshotBuilder`, `MessageSerializer`, and `ApplySnapshot`
 
 **Files Changed:**
-- `scripts/core/battle_context.gd` - Scope opponent summoner data out of BattleContext cache
+- `scripts/application/battle_context.gd` - Scope opponent summoner data out of BattleContext cache
 - `scripts/core/game_controller_3d.gd` - Pass opponent summoner data through battle init
 - `scripts/core/summoner.gd` - Add `set_summoner_instance()`, apply bonuses for any instance
-- `scripts/ui/screens/online_screen.gd` - Exchange summoner instance data during match setup
+- `scripts/meta/screens/online_screen.gd` - Exchange summoner instance data during match setup
 - `scripts/csharp/Multiplayer/Protocol/Messages.cs` - Add `MaxHp` to `UnitState`
 - `scripts/csharp/Multiplayer/Protocol/MessageSerializer.cs` - Serialize/deserialize `MaxHp`
 - `scripts/csharp/Multiplayer/Sync/StateSnapshotBuilder.cs` - Include `MaxHp` in snapshots
-- `scripts/csharp/Simulation/SimulationNode.cs` - Apply `MaxHp` in `ApplySnapshot`
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs` - Apply `MaxHp` in `ApplySnapshot`
 
 **Commits:** `2d8bfca4`, `846f068e`
 **Branch:** `feature/host-authoritative-sim`
@@ -119,7 +119,7 @@ The Premium Store contained placeholder items with plausible-sounding names. Fol
 
 **Files Changed:**
 - `localization/data/en.json` - Removed card back/theme entries, renamed emotes to PLACEHOLDER format
-- `scripts/data/cosmetics_catalog.gd` - Removed 4 placeholder cosmetics
+- `scripts/infrastructure/data/cosmetics_catalog.gd` - Removed 4 placeholder cosmetics
 - `scripts/services/shop_service.gd` - Removed 4 cosmetic offerings from premium store
 - `tests/unit/test_cosmetics_catalog.gd` - Updated to test default cosmetics
 
@@ -146,8 +146,8 @@ The Premium Store was incorrectly using Gold as its currency. Gold should only b
 **Files Changed:**
 - `localization/data/en.json` - Added mana stones label
 - `scripts/services/shop_service.gd` - Changed all premium offerings to use gems
-- `scripts/ui/screens/premium_store_screen.gd` - Display and check mana stones
-- `scripts/ui/components/premium_store_offering_item.gd` - Show mana stones price format
+- `scripts/meta/screens/premium_store_screen.gd` - Display and check mana stones
+- `scripts/meta/components/premium_store_offering_item.gd` - Show mana stones price format
 
 ---
 
@@ -160,10 +160,10 @@ The Premium Store was incorrectly using Gold as its currency. Gold should only b
 The card level-up UI displayed hardcoded placeholder text showing "Cost: 25 Gold" and "Your Gold: 100" even though card level-ups require only XP - there is no gold cost.
 
 **Resolution:**
-Removed the `CostContainer` node and its children (`CostLabel`, `GoldLabel`, `HSeparator3`) from `scenes/ui/modals/card_level_up_panel.tscn`. These were hardcoded placeholder labels that were never wired to any code.
+Removed the `CostContainer` node and its children (`CostLabel`, `GoldLabel`, `HSeparator3`) from `scenes/meta/modals/card_level_up_panel.tscn`. These were hardcoded placeholder labels that were never wired to any code.
 
 **Files Changed:**
-- `scenes/ui/modals/card_level_up_panel.tscn` - Removed misleading gold cost UI elements
+- `scenes/meta/modals/card_level_up_panel.tscn` - Removed misleading gold cost UI elements
 
 ---
 
@@ -183,7 +183,7 @@ Allow players to replay completed campaign battles for XP grinding, but without 
 - Gold/cards were already blocked for replays via `claim_battle_rewards()` guard
 
 **Files Changed:**
-- `scripts/ui/components/node_panels/node_detail_panel_base.gd` - Allow combat event replays
+- `scripts/meta/components/node_panels/node_detail_panel_base.gd` - Allow combat event replays
 
 ---
 
@@ -203,9 +203,9 @@ Card reward pools now exclude cards the player already owns, preventing duplicat
 - Set `ExcludeOwned = true` on all flexible reward configs in EventCatalog
 
 **Files Changed:**
-- `scripts/csharp/Services/Rewards/BattleRewardSpec.cs` - Added filtering logic
-- `scripts/csharp/Services/Rewards/RewardService.cs` - Pass owned IDs to spec builder
-- `scripts/csharp/Data/Events/EventCatalog.cs` - Set ExcludeOwned on all flexible rewards
+- `scripts/csharp/Meta/Services/Rewards/BattleRewardSpec.cs` - Added filtering logic
+- `scripts/csharp/Meta/Services/Rewards/RewardService.cs` - Pass owned IDs to spec builder
+- `scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs` - Set ExcludeOwned on all flexible rewards
 
 ---
 
@@ -257,16 +257,16 @@ Complete refactor of the battle reward system with type-safe C# pool system, com
 - C# handles all pool resolution via `DrawFromPoolEnum()` and `DrawWithFilterDict()`
 
 **Files Created:**
-- `scripts/csharp/Services/Rewards/RewardPoolId.cs` - Pool enum
-- `scripts/data/reward_constants.gd` - GDScript mirror enums
+- `scripts/csharp/Meta/Services/Rewards/RewardPoolId.cs` - Pool enum
+- `scripts/infrastructure/data/reward_constants.gd` - GDScript mirror enums
 
 **Files Changed:**
-- `scripts/csharp/Services/Rewards/RewardPoolCatalog.cs` - Pool definitions and resolution
-- `scripts/csharp/Services/Rewards/RewardService.cs` - New draw methods
+- `scripts/csharp/Meta/Services/Rewards/RewardPoolCatalog.cs` - Pool definitions and resolution
+- `scripts/csharp/Meta/Services/Rewards/RewardService.cs` - New draw methods
 - `scripts/services/campaign_service.gd` - completion guard, validation
 - `scripts/services/reward_service.gd` - uses C# pool methods
-- `scripts/ui/screens/reward_screen.gd` - simplified to display-only
-- `scripts/ui/screens/summoner_screen.gd` - fixed gold display signal
+- `scripts/meta/screens/reward_screen.gd` - simplified to display-only
+- `scripts/meta/screens/summoner_screen.gd` - fixed gold display signal
 
 ---
 
@@ -395,8 +395,8 @@ Removed GDScript wrapper services that were duplicating functionality already im
 
 **Files Modified:**
 - `project.godot` - Updated autoload config
-- `scripts/csharp/Services/Collection/CollectionService.cs` - Added cascade delete methods
-- `scripts/csharp/Services/Summoner/SummonerSelectionService.cs` - Added GameStateEvents connection
+- `scripts/csharp/Meta/Services/Collection/CollectionService.cs` - Added cascade delete methods
+- `scripts/csharp/Meta/Services/Summoner/SummonerSelectionService.cs` - Added GameStateEvents connection
 - 14+ GDScript callers updated to use PascalCase method names
 
 ---
@@ -463,7 +463,7 @@ Units could walk off the screen edge when there were no valid targets. No bounda
 - Added mass-based push resistance (mass = radius³) - Large units resist being pushed by small units
 
 **Files Changed:**
-- Created: `scripts/csharp/Constants/BattlefieldBounds.cs`
+- Created: `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs`
 - Modified: `scripts/csharp/Units/Unit3D.cs`, `scripts/csharp/Movement/UnitSteering.cs`
 - Tests: `tests/csharp/Constants/BattlefieldBoundsTest.cs`
 
@@ -487,8 +487,8 @@ When spawning units near crowded areas, the ring search algorithm could place un
 
 **Files Changed:**
 - Modified: `scripts/csharp/Summons/SpawnPositionCalculator.cs`
-- Modified: `scripts/csharp/Cards/CardFactory.cs`, `scripts/csharp/Services/Interfaces/ICardFactory.cs`
-- Modified: `scripts/ui/battle/battlefield_drop_zone.gd` (pass team parameter)
+- Modified: `scripts/csharp/Cards/CardFactory.cs`, `scripts/csharp/Meta/Services/Interfaces/ICardFactory.cs`
+- Modified: `scripts/battle/ui/battlefield_drop_zone.gd` (pass team parameter)
 - Tests: Extended `tests/csharp/Summons/SpawnPositionCalculatorTest.cs`
 
 **Related Bug Fixed:** See bugs-resolved.md - "Unit Spawn Boundary Can Be Bypassed When Blocked"
@@ -521,9 +521,9 @@ When spawning units near crowded areas, the ring search algorithm could place un
 - CardFactory reduced from 631 to 431 lines
 
 **Files Created:**
-- `scripts/csharp/Stats/StatKey.cs`
-- `scripts/csharp/Stats/UnitStats.cs`
-- `scripts/csharp/Stats/UnitStatCalculator.cs`
+- `scripts/csharp/Battle/Simulation/Stats/StatKey.cs`
+- `scripts/csharp/Battle/Simulation/Stats/UnitStats.cs`
+- `scripts/csharp/Battle/Simulation/Stats/UnitStatCalculator.cs`
 - `scripts/csharp/Summons/UnitSummon.cs`
 - `scripts/csharp/Summons/SummonResult.cs`
 - `scripts/csharp/Summons/SpawnPositionCalculator.cs`
@@ -534,7 +534,7 @@ When spawning units near crowded areas, the ring search algorithm could place un
 
 **Files Modified:**
 - `scripts/csharp/Cards/CardFactory.cs` - Uses extracted components
-- `scripts/csharp/Services/Interfaces/ICardFactory.cs` - Returns `SummonResult`
+- `scripts/csharp/Meta/Services/Interfaces/ICardFactory.cs` - Returns `SummonResult`
 - `scripts/csharp/Units/Unit3D.cs` - Added `AggroRadius` property
 - `scripts/cards/card.gd` - Stores `UnitSummon`, exposes `get_spawned_units()`
 
@@ -565,8 +565,8 @@ unit.TreeExiting += OnUnitExiting;  // Fires BEFORE unit is freed
 ```
 
 **Files Changed:**
-- Created: `scripts/csharp/Services/HPBarService.cs`, `HPBarService.tscn`
-- Created: `scripts/csharp/UI/FloatingHPBar.cs`
+- Created: `scripts/csharp/Meta/Services/HPBarService.cs`, `HPBarService.tscn`
+- Created: `scripts/csharp/Battle/View/UI/FloatingHPBar.cs`
 - Modified: `Unit3D.cs`, `summoner.gd`, `game_controller_3d.gd`, `project.godot`
 - Deleted: `hp_bar_manager.gd`, `floating_hp_bar.gd`
 
@@ -616,10 +616,10 @@ Removed the deprecated GDScript CardProgressionService, completing the migration
 
 **Files Updated:**
 - `scripts/cards/card.gd` - Removed fallback
-- `scripts/core/battle_context.gd` - Removed fallback
-- `scripts/ui/screens/collection_screen.gd` - Removed fallback
-- `scripts/ui/modals/card_level_up_panel.gd` - Removed fallback (3 places)
-- `scripts/ui/modals/card_detail_modal.gd` - Removed fallback (3 places)
+- `scripts/application/battle_context.gd` - Removed fallback
+- `scripts/meta/screens/collection_screen.gd` - Removed fallback
+- `scripts/meta/modals/card_level_up_panel.gd` - Removed fallback (3 places)
+- `scripts/meta/modals/card_detail_modal.gd` - Removed fallback (3 places)
 - `project.godot` - Removed CardProgression autoload
 
 ---
@@ -664,7 +664,7 @@ Created service interfaces to enable future dependency injection and unit testin
 - All interfaces use snake_case for GDScript-compatible method names
 
 **Related Files:**
-- `scripts/csharp/Services/Interfaces/`
+- `scripts/csharp/Meta/Services/Interfaces/`
 
 ---
 
@@ -734,7 +734,7 @@ Implemented a C# spell effect system with composition pattern. All spells now ex
 - `scripts/csharp/Cards/CardFactory.cs` - Bridge autoload
 - `scripts/csharp/Cards/SpellBuilder.cs` - Effect factory
 - `scripts/cards/card.gd` - Delegation only, all execution in C#
-- `scripts/data/card_catalog.gd` - Sets `_csharp_spell_id` for spell cards
+- `scripts/infrastructure/data/card_catalog.gd` - Sets `_csharp_spell_id` for spell cards
 
 ---
 
@@ -761,10 +761,10 @@ Implemented the system for unlocking additional summoners beyond the starting su
 
 **Related Files:**
 - `scripts/services/shop_service.gd` - Summoner offerings with pricing
-- `scripts/data/summoner_catalog.gd` - Purchasable summoner configs
-- `scripts/data/json_profile_repository.gd` - Unlock tracking
+- `scripts/infrastructure/data/summoner_catalog.gd` - Purchasable summoner configs
+- `scripts/infrastructure/data/json_profile_repository.gd` - Unlock tracking
 - `scripts/services/reward_service.gd` - Unlock granting
-- `scripts/ui/screens/premium_store_screen.gd` - Shop UI
+- `scripts/meta/screens/premium_store_screen.gd` - Shop UI
 - `scripts/debug/dev_console.gd` - Dev unlock commands
 
 ---
@@ -817,8 +817,8 @@ Created flying unit type that can move over obstacles and other units.
 
 **Related Files:**
 - `scripts/units/unit_3d.gd` - MovementLayer, TargetLayer enums, flight constants
-- `scenes/units/demon_imp_3d.tscn` - Flying unit with movement_layer=1 (AIR)
-- `scripts/data/card_catalog.gd` - Demon Imp card definition
+- `scenes/battle/units/demon_imp_3d.tscn` - Flying unit with movement_layer=1 (AIR)
+- `scripts/infrastructure/data/card_catalog.gd` - Demon Imp card definition
 
 ---
 
@@ -841,7 +841,7 @@ Implemented movement system for flying units including pathfinding and collision
 
 **Related Files:**
 - `scripts/units/unit_3d.gd` - Flying movement logic in _ready() and targeting
-- `scripts/core/physics_layers.gd` - FLYING_UNITS layer constant
+- `scripts/infrastructure/physics_layers.gd` - FLYING_UNITS layer constant
 
 ---
 
@@ -938,8 +938,8 @@ The codebase had TWO card catalog systems with incompatible data formats - `Card
 - `ContentCatalog` is now a focused "ProjectileCatalog" in function
 
 **Files Changed:**
-- `scripts/data/content_catalog.gd` - Removed card/unit loading, simplified to projectiles only
-- Deleted: `scripts/data/card_data.gd`, `scripts/data/unit_data.gd`
+- `scripts/infrastructure/data/content_catalog.gd` - Removed card/unit loading, simplified to projectiles only
+- Deleted: `scripts/infrastructure/data/card_data.gd`, `scripts/infrastructure/data/unit_data.gd`
 - Deleted: `data/cards/*.json`, `data/units/*.json`
 
 ---
@@ -975,8 +975,8 @@ CampaignService was bypassing the service layer and directly mutating `profile["
 Added `get_campaign_progress()` and `update_campaign_progress()` methods to both IProfileRepo interface and JsonProfileRepository implementation. Updated CampaignService to use these new methods.
 
 **Related Files:**
-- `scripts/data/profile_repository.gd`
-- `scripts/data/json_profile_repository.gd`
+- `scripts/infrastructure/data/profile_repository.gd`
+- `scripts/infrastructure/data/json_profile_repository.gd`
 - `scripts/services/campaign_service.gd`
 
 ---
@@ -993,7 +993,7 @@ Added `get_campaign_progress()` and `update_campaign_progress()` methods to both
 Changed `JsonProfileRepository` to `extends IProfileRepo`. The interface methods are now properly inherited and enforced.
 
 **Related Files:**
-- `scripts/data/json_profile_repository.gd`
+- `scripts/infrastructure/data/json_profile_repository.gd`
 
 ---
 
@@ -1028,7 +1028,7 @@ Replaced all hardcoded `hero_name` and `description` strings with `Loc.t()` call
 - Same pattern for all 5 heroes (fire, water, wind, earth, shadow_initiate)
 
 **Related Files:**
-- `scripts/data/hero_catalog.gd`
+- `scripts/infrastructure/data/hero_catalog.gd`
 
 ---
 
@@ -1041,7 +1041,7 @@ Replaced all hardcoded `hero_name` and `description` strings with `Loc.t()` call
 Rarity strings ("common", "rare", "epic", "legendary") were used as magic strings throughout the codebase.
 
 **Solution Implemented:**
-Created `scripts/data/rarity_ids.gd` with:
+Created `scripts/infrastructure/data/rarity_ids.gd` with:
 - StringName constants: `COMMON`, `RARE`, `EPIC`, `LEGENDARY`
 - `ALL_RARITIES` array for iteration
 - `get_tier()` method to get rarity index
@@ -1050,14 +1050,14 @@ Created `scripts/data/rarity_ids.gd` with:
 Updated all usages in:
 - `scripts/services/collection_service.gd` - match statements and default values
 - `scripts/services/campaign_service.gd` - reward card definitions
-- `resources/visual/color_palette.gd` - rarity color lookup
+- `scripts/shared/color_palette.gd` - rarity color lookup
 - `scripts/debug/dev_console.gd` - test data
 
 **Related Files:**
-- `scripts/data/rarity_ids.gd` (new)
+- `scripts/infrastructure/data/rarity_ids.gd` (new)
 - `scripts/services/collection_service.gd`
 - `scripts/services/campaign_service.gd`
-- `resources/visual/color_palette.gd`
+- `scripts/shared/color_palette.gd`
 - `scripts/debug/dev_console.gd`
 
 ---
@@ -1097,7 +1097,7 @@ CardCatalog used magic numbers `0` and `1` for card types instead of the `Card.C
 Replaced all `"card_type": 0` with `Card.CardType.SUMMON` and `"card_type": 1` with `Card.CardType.SPELL` throughout card_catalog.gd. Also updated comparison logic in `create_card_resource()` and `print_catalog_summary()`.
 
 **Related Files:**
-- `scripts/data/card_catalog.gd`
+- `scripts/infrastructure/data/card_catalog.gd`
 
 ---
 
@@ -1127,17 +1127,17 @@ Created 11 constants classes with StringName constants:
 Updated 30+ files to use these constants instead of magic strings.
 
 **Related Files:**
-- `scripts/data/card_ids.gd`
-- `scripts/data/projectile_ids.gd`
-- `scripts/data/vfx_ids.gd`
-- `scripts/data/rarity_ids.gd`
-- `scripts/data/biome_ids.gd`
-- `scripts/data/battle_ids.gd`
-- `scripts/data/group_ids.gd`
-- `scripts/data/event_type_ids.gd`
-- `scripts/data/reward_type_ids.gd`
-- `scripts/data/unit_type_ids.gd`
-- `scripts/data/element_name_ids.gd`
+- `scripts/infrastructure/data/card_ids.gd`
+- `scripts/infrastructure/data/projectile_ids.gd`
+- `scripts/infrastructure/data/vfx_ids.gd`
+- `scripts/infrastructure/data/rarity_ids.gd`
+- `scripts/infrastructure/data/biome_ids.gd`
+- `scripts/infrastructure/data/battle_ids.gd`
+- `scripts/infrastructure/data/group_ids.gd`
+- `scripts/infrastructure/data/event_type_ids.gd`
+- `scripts/infrastructure/data/reward_type_ids.gd`
+- `scripts/infrastructure/data/unit_type_ids.gd`
+- `scripts/infrastructure/data/element_name_ids.gd`
 
 ---
 
@@ -1314,7 +1314,7 @@ Campaign battles now support configurable win/loss conditions beyond simple base
 ```
 
 **Related Files:**
-- `scripts/data/win_condition_ids.gd` (new)
+- `scripts/infrastructure/data/win_condition_ids.gd` (new)
 - `scripts/core/game_controller_3d.gd`
 - `scripts/services/campaign_service.gd`
 
@@ -1416,7 +1416,7 @@ Implemented leveling system for cards and heroes that allows them to grow strong
 **Related Files:**
 - `scripts/services/card_progression_service.gd` - Card XP/levels
 - `scripts/services/hero_progression_service.gd` - Hero XP/levels (new)
-- `scripts/core/battle_context.gd` - Battle completion XP grants
+- `scripts/application/battle_context.gd` - Battle completion XP grants
 - `scripts/services/campaign_service.gd` - Battle XP reward definitions
 
 **Future Phases (tracked in design spec):**
@@ -1550,15 +1550,15 @@ Implemented the foundational hero system with traits, progression services, per-
 **Related Files:**
 - `scripts/services/hero_selection_service.gd` (new)
 - `scripts/services/hero_progression_service.gd` (new)
-- `scripts/data/trait_catalog.gd` (new)
+- `scripts/infrastructure/data/trait_catalog.gd` (new)
 - `scripts/core/hero_instance.gd` (updated for traits)
 - `scripts/core/hero_config.gd` (updated: innate_trait_ids)
-- `scripts/data/json_profile_repository.gd` (per-hero campaign progress)
+- `scripts/infrastructure/data/json_profile_repository.gd` (per-hero campaign progress)
 - `scripts/ui/hero_management_panel.gd` (new)
 - `scripts/ui/hero_icon_widget.gd` (new)
 - `scripts/ui/hero_roster_item.gd` (new)
 - `scripts/systems/hero_modifier_provider.gd` (updated)
-- `scripts/core/battle_context.gd` (hero stats caching)
+- `scripts/application/battle_context.gd` (hero stats caching)
 - `scripts/combat/damage_system.gd` (hero damage bonuses)
 - `docs/features/heroes/architecture.md` (updated)
 
@@ -1833,7 +1833,7 @@ When a card was played and a new card was drawn to replace it, the hand reordere
 Implemented core music system with playback, volume control, and transitions.
 
 **Solution Implemented:**
-- Created AudioManager autoload (`scripts/services/audio_manager.gd`)
+- Created AudioManager autoload (`scripts/infrastructure/audio_manager.gd`)
 - Audio bus setup (Master, Music, SFX) with dynamic creation
 - Crossfade transitions between music tracks (DEFAULT_CROSSFADE: 1.0s)
 - Volume control with linear-to-dB conversion
@@ -1841,7 +1841,7 @@ Implemented core music system with playback, volume control, and transitions.
 - Process mode set to PROCESS_MODE_ALWAYS for pause menu support
 
 **Related Files:**
-- `scripts/services/audio_manager.gd` (new)
+- `scripts/infrastructure/audio_manager.gd` (new)
 - `project.godot` - AudioManager autoload registration
 
 ---
@@ -1933,7 +1933,7 @@ Improved the visual presentation of cards in the player's hand.
 - Handles varying hand sizes dynamically
 
 **Related Files:**
-- `scripts/ui/battle/hand_ui.gd` - Complete hand display implementation
+- `scripts/battle/ui/hand_ui.gd` - Complete hand display implementation
 
 ---
 

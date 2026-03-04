@@ -21,15 +21,15 @@ DialogueManager is already configured in `project.godot` as an autoload singleto
 
 ### Core Components
 
-**DialogueData** (`scripts/dialogue/dialogue_data.gd`)
+**DialogueData** (`scripts/infrastructure/dialogue/dialogue_data.gd`)
 - Custom Resource containing dialogue content
 - Properties: dialogue_id, character_name, portrait, lines, choices, next_dialogue_id
 
-**DialogueChoice** (`scripts/dialogue/dialogue_choice.gd`)
+**DialogueChoice** (`scripts/infrastructure/dialogue/dialogue_choice.gd`)
 - Custom Resource for choice options
 - Properties: choice_text, next_dialogue_id, condition, action
 
-**DialogueManager** (`scripts/services/dialogue_manager.gd`)
+**DialogueManager** (`scripts/application/dialogue_manager.gd`)
 - Singleton service managing dialogue state and flow
 - Handles dialogue progression, choice selection, variable tracking
 - Emits signals for UI to react to
@@ -83,7 +83,7 @@ dialogue_manager.start_dialogue("simple_greeting")
 
 ### Adding DialogueBox to Your Scene
 
-1. Instance `scenes/ui/dialogue_box.tscn` in your scene
+1. Instance `scenes/shared/dialogue_box.tscn` in your scene
 2. Add as child of a CanvasLayer (to render above game)
 3. DialogueBox will automatically connect to DialogueManager
 
@@ -112,7 +112,7 @@ Edit `DialogueBox` node → Inspector → Typewriter Speed (default: 0.05)
 
 ### UI Styling
 
-Edit `scenes/ui/dialogue_box.tscn`:
+Edit `scenes/shared/dialogue_box.tscn`:
 - Modify Panel theme
 - Adjust font sizes
 - Change colors
@@ -171,7 +171,7 @@ func _on_npc_interacted():
 ```
 res://
 ├── resources/dialogue/        # Dialogue content (.tres files)
-├── scenes/ui/dialogue_box.tscn    # UI prefab
+├── scenes/shared/dialogue_box.tscn    # UI prefab
 ├── scripts/
 │   ├── dialogue/
 │   │   ├── dialogue_data.gd        # Resource class

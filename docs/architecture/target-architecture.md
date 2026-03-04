@@ -118,7 +118,7 @@ The Session decides **how** the simulation gets run — locally or over a networ
 - **`SimEventsEmitted`** — event/callback delivering discrete events (damage dealt, unit died, attack fired). The View subscribes to this for one-shot reactions like VFX and sound.
 
 ```csharp
-// scripts/csharp/Session/IGameSession.cs
+// scripts/csharp/Battle/Session/IGameSession.cs
 public interface IGameSession
 {
     MatchState GetState();
@@ -199,7 +199,7 @@ flowchart TB
 
 ### Session stubs
 
-All stubs are in `scripts/csharp/Session/`. Each method body throws `NotImplementedException`. Detailed stub listings are in [`gameplay/session/README.md`](gameplay/session/README.md#stubs).
+All stubs are in `scripts/csharp/Battle/Session/`. Each method body throws `NotImplementedException`. Detailed stub listings are in [`gameplay/session/README.md`](gameplay/session/README.md#stubs).
 
 | Stub File | Class | Key Responsibilities |
 |-----------|-------|---------------------|
@@ -462,7 +462,7 @@ Godot-side duplicates can't all be deleted immediately — some are still wired 
 
 | File to Delete | Status | Blocked By |
 |---------------|--------|-----------|
-| `scripts/csharp/Combat/DamageSystem.cs` + `.tscn` | Blocked | Unit3D still uses DamageSystem for Godot-side damage |
+| `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` + `.tscn` | Blocked | Unit3D still uses DamageSystem for Godot-side damage |
 | `scripts/csharp/Systems/Modifiers/ModifierService.cs` | Blocked | Unit3D applies modifiers through it |
 | `scripts/csharp/Projectiles/ProjectileService.cs` | Blocked | RangedUnit3D, DamageEffect reference it |
 | `scripts/csharp/Abilities/BaseAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |

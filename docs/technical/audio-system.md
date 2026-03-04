@@ -16,7 +16,7 @@ Buses are created dynamically at startup if they don't exist in the project sett
 
 ## Core Components
 
-### AudioManager (`scripts/services/audio_manager.gd`)
+### AudioManager (`scripts/infrastructure/audio_manager.gd`)
 
 Central autoload that manages all audio:
 

@@ -539,8 +539,8 @@ When testing tactical spells:
 - `scripts/units/unit_3d.gd:849-987` - Rally/Guard AI behavior
 - `scripts/units/unit_3d.gd:994-1041` - Guard formation calculator
 - `scripts/managers/redirect_manager.gd` - Enemy search for Charge targeting
-- `scripts/data/card_catalog.gd:425-540` - Rally/Guard/Charge card definitions
-- `scripts/data/card_ids.gd:24-26` - CardIDs constants (RALLY, GUARD, CHARGE)
+- `scripts/infrastructure/data/card_catalog.gd:425-540` - Rally/Guard/Charge card definitions
+- `scripts/infrastructure/data/card_ids.gd:24-26` - CardIDs constants (RALLY, GUARD, CHARGE)
 
 **Key Constants:**
 - Selection Radius: 8.0 units (all spells)

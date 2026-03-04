@@ -126,13 +126,13 @@ GDScript should be **thin glue**:
 
 | Feature | Old Location(s) | New Location(s) | Which Runs Today | Decision | Steps |
 |---------|-----------------|-----------------|------------------|----------|-------|
-| **Profile Persistence** | `scripts/data/json_profile_repository.gd` (560 LOC) + `scripts/data/profile_repository.gd` (250 LOC) | `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs` (548 LOC adapter) | **Both** — GDScript owns state, C# delegates via 42 `Call()` invocations | **Consolidate to C#** | 1. Port JSON persistence to C# 2. Migrate all GDScript callers to C# service APIs 3. Delete GDScript ProfileRepo |
-| **Shop Service** | `scripts/services/shop_service.gd` (635 LOC) | `scripts/csharp/Services/Shop/ShopService.cs` (550 LOC) | **Both** — GDScript owns catalog/billing, C# owns purchase validation | **Merge into C#** | 1. Move catalog definitions to C# Data 2. Move billing integration to C# 3. Delete GDScript shop_service.gd |
-| **Trait Catalogs** | `scripts/data/card_trait_catalog.gd` (230 LOC) | `scripts/csharp/Data/Traits/TraitCatalog.cs` | **Both** — GDScript for card traits, C# for summoner traits | **Merge into C# TraitCatalog** | 1. Add card trait definitions to C# TraitCatalog 2. Update card_detail_modal.gd to use C# bridge 3. Delete card_trait_catalog.gd |
-| **Battle Config** | `scripts/core/battle_context.gd` (421 LOC) — dict-based | No C# equivalent exists | **GDScript only** — C# reads via `GetNode()` + `Call()` | **Replace with typed C# class** | 1. Create `BattleSessionConfig.cs` 2. Refactor BattleScene to accept config parameter 3. Make BattleContext a thin setter that creates the C# config |
-| **Event Config** | `scripts/core/event_context.gd` (121 LOC) | No C# equivalent exists | **GDScript only** | **Replace with typed C# class** | 1. Create `EventSessionConfig.cs` 2. Refactor event screens to accept config parameter |
+| **Profile Persistence** | `scripts/infrastructure/data/json_profile_repository.gd` (560 LOC) + `scripts/infrastructure/data/profile_repository.gd` (250 LOC) | `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs` (548 LOC adapter) | **Both** — GDScript owns state, C# delegates via 42 `Call()` invocations | **Consolidate to C#** | 1. Port JSON persistence to C# 2. Migrate all GDScript callers to C# service APIs 3. Delete GDScript ProfileRepo |
+| **Shop Service** | `scripts/services/shop_service.gd` (635 LOC) | `scripts/csharp/Meta/Services/Shop/ShopService.cs` (550 LOC) | **Both** — GDScript owns catalog/billing, C# owns purchase validation | **Merge into C#** | 1. Move catalog definitions to C# Data 2. Move billing integration to C# 3. Delete GDScript shop_service.gd |
+| **Trait Catalogs** | `scripts/infrastructure/data/card_trait_catalog.gd` (230 LOC) | `scripts/csharp/Infrastructure/Data/Traits/TraitCatalog.cs` | **Both** — GDScript for card traits, C# for summoner traits | **Merge into C# TraitCatalog** | 1. Add card trait definitions to C# TraitCatalog 2. Update card_detail_modal.gd to use C# bridge 3. Delete card_trait_catalog.gd |
+| **Battle Config** | `scripts/application/battle_context.gd` (421 LOC) — dict-based | No C# equivalent exists | **GDScript only** — C# reads via `GetNode()` + `Call()` | **Replace with typed C# class** | 1. Create `BattleSessionConfig.cs` 2. Refactor BattleScene to accept config parameter 3. Make BattleContext a thin setter that creates the C# config |
+| **Event Config** | `scripts/application/event_context.gd` (121 LOC) | No C# equivalent exists | **GDScript only** | **Replace with typed C# class** | 1. Create `EventSessionConfig.cs` 2. Refactor event screens to accept config parameter |
 | **Game State Events** | `scripts/services/game_state_events.gd` (118 LOC) | `BattleScene.OnSimEventsEmitted()` + SimEvents | **GDScript exists but has zero emitters** — SimEvents replaced it | **Delete** | 1. Remove autoload 2. Delete file |
-| **Cosmetics/Emotes** | `scripts/data/cosmetics_catalog.gd`, `scripts/data/emotes_catalog.gd` | No C# equivalent | **GDScript only** | **Migrate to C# Data** | Create C# catalog classes |
+| **Cosmetics/Emotes** | `scripts/infrastructure/data/cosmetics_catalog.gd`, `scripts/infrastructure/data/emotes_catalog.gd` | No C# equivalent | **GDScript only** | **Migrate to C# Data** | Create C# catalog classes |
 
 ---
 
@@ -295,12 +295,12 @@ No change needed — current design is correct:
 
 #### Task 2.1: Create BattleSessionConfig ✅
 
-- **Status**: Complete — `scripts/csharp/Session/BattleSessionConfig.cs` (140 LOC)
+- **Status**: Complete — `scripts/csharp/Battle/Session/BattleSessionConfig.cs` (140 LOC)
 - **Goal**: Replace untyped dict-based battle configuration with typed C# class
 
 #### Task 2.2: Create BattleSessionFactory ✅
 
-- **Status**: Complete — `scripts/csharp/Session/BattleSessionFactory.cs` (362 LOC), BattleScene 916→644 LOC
+- **Status**: Complete — `scripts/csharp/Battle/Session/BattleSessionFactory.cs` (362 LOC), BattleScene 916→644 LOC
 - **Goal**: Centralize battle setup logic currently spread across BattleScene.cs
 
 #### Task 2.3: Reduce BattleContext to Thin Setter ✅
@@ -356,7 +356,7 @@ No change needed — current design is correct:
 
 - **Status**: Complete
 - **Goal**: Remove GDScript persistence files and autoload
-- **Files**: `scripts/data/json_profile_repository.gd` (deleted), `scripts/data/profile_repository.gd` (deleted), `tests/mocks/mock_profile_repo.gd` (deleted), `project.godot` (renamed autoload `ProfileRepositoryCS` → `ProfileRepo`, removed GDScript autoload)
+- **Files**: `scripts/infrastructure/data/json_profile_repository.gd` (deleted), `scripts/infrastructure/data/profile_repository.gd` (deleted), `tests/mocks/mock_profile_repo.gd` (deleted), `project.godot` (renamed autoload `ProfileRepositoryCS` → `ProfileRepo`, removed GDScript autoload)
 - **Changes**: 13 GDScript callers updated to PascalCase C# methods, 2 test files updated, `audio_manager.gd` inlined `safe_float()`, `battle_context.gd` removed `_profile_repo` injectable
 - **Success criteria**: `grep -r "ProfileRepositoryCS" --include="*.gd"` returns zero hits; `dotnet build` passes
 - **Dependencies**: Phase 3B + all remaining callers migrated ✅
@@ -369,13 +369,13 @@ No change needed — current design is correct:
 #### Task 4.1: Move Shop Catalog Definitions to C# Data ✅
 
 - **Completed**: Typed `ShopCatalog.cs` with `OfferingDefinition`, `PackCardEntry`, `ShopDefinition` classes
-- **Files**: `scripts/csharp/Services/Shop/ShopCatalog.cs` (new)
+- **Files**: `scripts/csharp/Meta/Services/Shop/ShopCatalog.cs` (new)
 - **Result**: 3 shop catalogs (general, caravan_tutorial, premium_store) fully typed in C#
 
 #### Task 4.2: Integrate Billing into C# ShopService ✅
 
 - **Completed**: Full purchase flow in C# including caravan (campaign gold), general (account gold/gems), and real-money (PlatformBilling signals)
-- **Files**: `scripts/csharp/Services/Shop/ShopService.cs` (rewritten — removed callbacks, direct service access)
+- **Files**: `scripts/csharp/Meta/Services/Shop/ShopService.cs` (rewritten — removed callbacks, direct service access)
 - **Result**: All 8 callback injections eliminated; services accessed via static Instance patterns
 
 #### Task 4.3: Delete GDScript Shop Wrapper ✅

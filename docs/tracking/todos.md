@@ -102,7 +102,7 @@ The `RequestValidator.cs` now validates card-in-hand, mana cost, and casting sta
 - Rate limiting to prevent action spam
 
 **Files:**
-- `scripts/csharp/Multiplayer/Authority/RequestValidator.cs`
+- `scripts/csharp/Battle/Session/RequestValidator.cs`
 
 ---
 
@@ -283,8 +283,8 @@ Armor and MagicResist stats are now defined in UnitStats but not yet integrated 
 3. **Diminishing returns**: Similar to percentage but caps effectiveness
 
 **Related Files:**
-- `scripts/csharp/Combat/DamageSystem.cs` - Damage calculation
-- `scripts/csharp/Stats/UnitStats.cs` - Armor, MagicResist properties
+- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` - Damage calculation
+- `scripts/csharp/Battle/Simulation/Stats/UnitStats.cs` - Armor, MagicResist properties
 - `scripts/csharp/Units/DamageProfile.cs` - Physical/elemental ratio
 - `scripts/csharp/Units/UnitDefinition.cs` - DamageProfile property
 
@@ -353,9 +353,9 @@ Projectile collision with 2.5D sprite units is too precise - requires nearly pix
 4. **Separate visual vs physics collision**: Large trigger area for projectile hits, smaller shape for unit-unit collision
 
 **Related Files:**
-- `scenes/projectiles/base_projectile_3d.tscn` - Projectile collision shape
+- `scenes/battle/projectiles/base_projectile_3d.tscn` - Projectile collision shape
 - `scripts/projectiles/projectile_3d.gd` - Hit detection logic
-- `scenes/units/*.tscn` - Unit collision shapes
+- `scenes/battle/units/*.tscn` - Unit collision shapes
 
 ---
 
@@ -432,9 +432,9 @@ Use composition pattern - create separate animation behavior components:
 Units attach only the components they need.
 
 **Related Files:**
-- `scripts/csharp/Visual/SpriteVisualComponent.cs`
+- `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs`
 - `scripts/csharp/Units/Unit3D.cs`
-- `scenes/units/puff_3d.tscn`
+- `scenes/battle/units/puff_3d.tscn`
 
 ---
 
@@ -497,7 +497,7 @@ Add support for melee attacks that only hit in a forward cone/arc instead of a f
 **Related Files:**
 - `scripts/csharp/Units/Unit3D.cs` - IsInAttackRange, base properties
 - `scripts/csharp/Units/MeleeUnit3D.cs` - SpawnMeleeHitbox, PerformAttackAction
-- `scripts/csharp/Combat/Hitbox/HitboxComponent.cs` - CreateBoxShape already exists
+- `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitboxComponent.cs` - CreateBoxShape already exists
 
 ---
 
@@ -667,8 +667,8 @@ Add optional support for upgrade-specific resource costs (essence, fragments, et
 - Would allow rare/powerful upgrades to require special resources from events
 
 **Related Code:**
-- `scripts/csharp/Services/Cards/Handlers/CardProgressionHandler.cs` - card progression
-- `scripts/data/card_upgrade_catalog.gd` - upgrade definitions
+- `scripts/csharp/Meta/Services/Cards/Handlers/CardProgressionHandler.cs` - card progression
+- `scripts/infrastructure/data/card_upgrade_catalog.gd` - upgrade definitions
 
 **Notes:**
 - Low priority - XP-only system is the core design
@@ -1018,9 +1018,9 @@ Summoner secondary stats (`damage_bonus`, `damage_reduction`) are computed inter
 - If kept, should they be surfaced differently (e.g., in trait tooltips)?
 
 **Related Files:**
-- `scripts/data/summoner_instance.gd` - `get_computed_stats()`
-- `scripts/csharp/Combat/DamageSystem.cs` - damage calculations
-- `scripts/data/trait_catalog.gd` - trait definitions
+- `scripts/infrastructure/data/summoner_instance.gd` - `get_computed_stats()`
+- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` - damage calculations
+- `scripts/infrastructure/data/trait_catalog.gd` - trait definitions
 
 ---
 
@@ -1046,8 +1046,8 @@ The summoner icon widget uses a circular clip shader with UV offset/scale params
 
 **Related Files:**
 - `shaders/ui/circular_clip.gdshader`
-- `scenes/ui/components/summoner_icon_widget.tscn`
-- `scripts/core/summoner_config.gd`
+- `scenes/meta/components/summoner_icon_widget.tscn`
+- `scripts/infrastructure/summoner_config.gd`
 
 **Notes:**
 - Low priority until more summoner portraits are added
@@ -1172,7 +1172,7 @@ The sim and visual layers sometimes manage parallel state (phase, activation, po
 If data belongs to an entity, put it on the entity. Avoid solving per-entity problems with global sweeps or cross-system coordination.
 
 **Related Files:**
-- `scripts/csharp/Simulation/SimulationNode.cs` — sim↔visual bridge
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs` — sim↔visual bridge
 - `scripts/csharp/Units/Unit3D.cs` — visual reads from sim
 - `scripts/core/game_controller_3d.gd` — GDScript phase tracking
 
@@ -1219,7 +1219,7 @@ Following the established CardCatalog/SummonerCatalog/TraitCatalog pattern, crea
 
 **Ideal State:**
 ```csharp
-// scripts/csharp/Data/Events/EventCatalog.cs
+// scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs
 public static class EventCatalog
 {
     private static readonly Dictionary<string, EventDefinition> _events = new();
@@ -1289,12 +1289,12 @@ public class ChoiceEventDefinition : EventDefinition
 4. Eventually move campaign data definitions to C#
 
 **Files to Create:**
-- `scripts/csharp/Data/Events/EventDefinition.cs` (base + subclasses)
-- `scripts/csharp/Data/Events/EventCatalog.cs`
-- `scripts/csharp/Data/Events/BattleRewardConfig.cs`
+- `scripts/csharp/Infrastructure/Data/Events/EventDefinition.cs` (base + subclasses)
+- `scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs`
+- `scripts/csharp/Infrastructure/Data/Events/BattleRewardConfig.cs`
 
 **Files to Update:**
-- `scripts/csharp/Services/Campaign/Handlers/CampaignCatalogHandler.cs`
+- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignCatalogHandler.cs`
 - `scripts/services/campaign_service.gd`
 
 **Related:** See CLAUDE.md "Configurability Over Flags" and "When to Use C# vs GDScript"
@@ -1340,8 +1340,8 @@ public class CampaignEdge
 ```
 
 **Files to Create:**
-- `scripts/csharp/Data/Campaigns/CampaignDefinition.cs`
-- `scripts/csharp/Data/Campaigns/CampaignCatalog.cs`
+- `scripts/csharp/Infrastructure/Data/Campaigns/CampaignDefinition.cs`
+- `scripts/csharp/Infrastructure/Data/Campaigns/CampaignCatalog.cs`
 
 ---
 
@@ -1360,7 +1360,7 @@ Replace the dictionary-based reward spec with polymorphic C# classes. The `get_r
 
 **Ideal State:**
 ```csharp
-// scripts/csharp/Data/Rewards/RewardSpec.cs
+// scripts/csharp/Infrastructure/Data/Rewards/RewardSpec.cs
 public abstract class RewardSpec
 {
     public int GoldReward { get; set; }
@@ -1414,12 +1414,12 @@ switch (spec)
 ```
 
 **Files to Create:**
-- `scripts/csharp/Data/Rewards/RewardSpec.cs` (base + subclasses)
-- `scripts/csharp/Services/Rewards/RewardSpecFactory.cs`
+- `scripts/csharp/Infrastructure/Data/Rewards/RewardSpec.cs` (base + subclasses)
+- `scripts/csharp/Meta/Services/Rewards/RewardSpecFactory.cs`
 
 **Files to Refactor:**
 - `scripts/services/reward_service.gd` → `RewardService.cs`
-- `scripts/ui/screens/reward_screen.gd`
+- `scripts/meta/screens/reward_screen.gd`
 
 ---
 
@@ -1459,10 +1459,10 @@ func _configure_impl() -> void:
 - Compile-time safety
 
 **Files to Update:**
-- `scripts/ui/components/node_panels/node_detail_panel_base.gd`
-- `scripts/ui/components/node_panels/battle_node_panel.gd`
-- `scripts/ui/components/node_panels/caravan_node_panel.gd`
-- `scripts/ui/components/node_panels/choice_node_panel.gd`
+- `scripts/meta/components/node_panels/node_detail_panel_base.gd`
+- `scripts/meta/components/node_panels/battle_node_panel.gd`
+- `scripts/meta/components/node_panels/caravan_node_panel.gd`
+- `scripts/meta/components/node_panels/choice_node_panel.gd`
 
 ---
 
@@ -1484,7 +1484,7 @@ Once EventCatalog and CampaignCatalog exist, move the actual campaign data defin
 
 **Ideal State:**
 ```csharp
-// scripts/csharp/Data/Campaigns/SummonersPathCampaign.cs
+// scripts/csharp/Infrastructure/Data/Campaigns/SummonersPathCampaign.cs
 public static class SummonersPathCampaign
 {
     public static CampaignDefinition Definition => new()
@@ -1517,12 +1517,12 @@ EventCatalog.Register(new BattleEventDefinition
 - IDE refactoring support for event IDs
 
 **Files to Delete (after migration):**
-- `scripts/data/campaigns/summoners_path_data.gd`
-- `scripts/data/campaigns/test_arena_data.gd`
+- `scripts/infrastructure/data/campaigns/summoners_path_data.gd`
+- `scripts/infrastructure/data/campaigns/test_arena_data.gd`
 
 **Files to Create:**
-- `scripts/csharp/Data/Campaigns/SummonersPathCampaign.cs`
-- `scripts/csharp/Data/Campaigns/TestArenaCampaign.cs`
+- `scripts/csharp/Infrastructure/Data/Campaigns/SummonersPathCampaign.cs`
+- `scripts/csharp/Infrastructure/Data/Campaigns/TestArenaCampaign.cs`
 
 ---
 
@@ -1568,7 +1568,7 @@ public static class NodePropertyHelper
 ```
 
 **Files with Duplicated Pattern:**
-- `scripts/csharp/Combat/DamageSystem.cs` - IsAlive, Team checks
+- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` - IsAlive, Team checks
 - `scripts/csharp/Targeting/Filters/ValidTargetFilter.cs` - IsAlive, Team checks
 - `scripts/csharp/Spells/Effects/SpellEffect.cs` - IsAlive check
 - `scripts/csharp/Units/Unit3D.cs` - Target property access
@@ -1634,8 +1634,8 @@ Synchronous `load()` calls block the entire game during battle startup, causing 
 
 **Related Files:**
 - `scripts/core/game_controller_3d.gd:125-141`
-- New: `scenes/ui/loading_screen.tscn`
-- New: `scripts/ui/screens/loading_screen.gd`
+- New: `scenes/shared/loading_screen.tscn`
+- New: `scripts/meta/screens/loading_screen.gd`
 
 ---
 
@@ -1711,8 +1711,8 @@ UI flow often depends on timers/awaits. If a signal never fires, the UI can hang
 - Ensure process_mode is set correctly for async sequences
 
 **Related Files:**
-- `scripts/ui/screens/title_screen.gd`
-- `scripts/ui/screens/event_screen.gd`
+- `scripts/meta/screens/title_screen.gd`
+- `scripts/meta/screens/event_screen.gd`
 
 **Notes:**
 - Lower priority - not causing observed issues currently

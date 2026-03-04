@@ -153,7 +153,7 @@ public static UnitStats Calculate(
 
 - `scripts/csharp/Units/UnitCatalog.cs` - Base stats registry
 - `scripts/csharp/Cards/CardCatalog.cs` - Card definitions with optional modifiers
-- `scripts/csharp/Stats/UnitStatCalculator.cs` - Pipeline implementation
-- `scripts/csharp/Stats/UnitStats.cs` - Stat container with modification methods
+- `scripts/csharp/Battle/Simulation/Stats/UnitStatCalculator.cs` - Pipeline implementation
+- `scripts/csharp/Battle/Simulation/Stats/UnitStats.cs` - Stat container with modification methods
 - `scripts/csharp/Systems/Modifiers/StatModifier.cs` - Modifier definition
 - `scripts/csharp/Systems/Modifiers/ModifierService.cs` - Modifier collection and application

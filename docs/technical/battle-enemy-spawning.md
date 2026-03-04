@@ -127,6 +127,6 @@ _battles["my_battle"] = {
 - `scripts/services/campaign_service.gd` - Battle definitions
 - `scripts/core/summoner.gd` - Deck loading strategy auto-detection
 - `scripts/core/enemy_deck_loader.gd` - Loads enemy decks from battle config
-- `scripts/core/battle_dialogue_controller.gd` - Handles event_sequence playback
+- `scripts/battle/battle_dialogue_controller.gd` - Handles event_sequence playback
 - `scripts/core/game_controller_3d.gd` - Win condition handling
-- `scripts/data/win_condition_ids.gd` - Win condition type constants
+- `scripts/infrastructure/data/win_condition_ids.gd` - Win condition type constants

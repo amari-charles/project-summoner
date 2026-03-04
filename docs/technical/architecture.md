@@ -80,15 +80,23 @@ Campaign.CompleteBattle(battle_id)
 
 All meta-game services are fully C#. No GDScript wrappers remain.
 
-## Multiplayer Domain
+## Networking & Multiplayer
 
-| Service | Namespace | Responsibility |
+Transport and session networking live under `Battle/Session/` (they're session implementation details).
+Matchmaking and ranking live under `Meta/` (they're persistent-state services like Economy or Campaign).
+Backend connectivity lives under `Infrastructure/` (like ProfileRepository).
+
+| Component | Location | Responsibility |
 |---|---|---|
-| **NakamaGameClient** | `Fateforged.Multiplayer.Backend` | Server communication |
-| **MatchmakingService** | `Fateforged.Multiplayer.Matchmaking` | Match queue, lobby |
-| **RankingService** | `Fateforged.Multiplayer.Ranking` | Elo calculation, rank tracking |
-| **MatchReporter** | `Fateforged.Multiplayer.Ranking` | Post-match result reporting |
-| **LeaderboardService** | `Fateforged.Multiplayer.Ranking` | Leaderboard queries |
+| **Transport/** | `Battle/Session/Transport/` | `IMatchTransport`, P2P, Nakama transport |
+| **Protocol/** | `Battle/Session/Protocol/` | Message serialization, wire format |
+| **Sync/** | `Battle/Session/Sync/` | Synchronization utilities |
+| **Client/** | `Battle/Session/Client/` | State interpolation for remote play |
+| **MatchmakingService** | `Meta/Matchmaking/` | Match queue, lobby (lobby-time service) |
+| **RankingService** | `Meta/Ranking/` | Elo calculation, rank tracking (post-battle service) |
+| **MatchReporter** | `Meta/Ranking/` | Post-match result reporting |
+| **LeaderboardService** | `Meta/Ranking/` | Leaderboard queries |
+| **NakamaGameClient** | `Infrastructure/Backend/` | Server communication (infrastructure) |
 
 ## Infrastructure (Shared)
 
@@ -111,27 +119,93 @@ Services and catalogs that all domains depend on. Never depends on domains.
 3. **Cross-domain coordination** uses context objects (`BattleContext`, `EventContext`) mediated by the Application layer (`SceneCoordinator`).
 4. **Shared identity** via catalog IDs — a `cardCatalogId` ties card data (catalog) → card ownership (CardService) → simulation spawn (Simulation) → visual display (View).
 
-## Namespace Map
+## Folder ↔ Namespace Map
+
+### C# (`scripts/csharp/`)
 
 ```
-Fateforged.Simulation.*       — Deterministic game logic
-Fateforged.Session            — Command routing, session types
-Fateforged.View.*             — Visual representation
-Fateforged.Input              — Player input collection
-Fateforged.Meta.*             — Meta-game services (Economy, Cards, Deck, etc.)
-Fateforged.Multiplayer.*      — Networking, matchmaking, ranking
-Fateforged.Infrastructure.*   — Persistence layer
-Fateforged.Cards.*            — Card definitions, configs, formations
-Fateforged.Data.*             — Game data catalogs (summoners, traits, events, items, projectiles)
-Fateforged.Domain.Profile.*   — Profile data model (resources, collection, decks, etc.)
-Fateforged.Stats              — Stat calculation, modifiers
-Fateforged.Constants          — Shared constants (battlefield bounds, element colors)
-Fateforged.Combat             — Combat-related types (damage, spells)
+scripts/csharp/
+  Battle/
+    Simulation/     → Fateforged.Simulation.*       Deterministic game logic
+    Session/        → Fateforged.Session             Command routing, session types
+      Transport/    → Fateforged.Multiplayer.*        Session networking (transport, protocol)
+      Protocol/     → Fateforged.Multiplayer.*        Wire format
+      Client/       → Fateforged.Multiplayer.*        State interpolation
+    View/           → Fateforged.View.*              Visual representation
+    Input/          → Fateforged.Input               Player input collection
+  Meta/
+    Services/       → Fateforged.Meta.*              Meta-game services (Economy, Cards, etc.)
+    Matchmaking/    → Fateforged.Multiplayer.*        Match queue (lobby-time service)
+    Ranking/        → Fateforged.Multiplayer.*        Elo, leaderboards (post-battle)
+    Domain/         → Fateforged.Domain.Profile.*    Profile data model
+  Infrastructure/
+    Persistence/    → Fateforged.Infrastructure.*    ProfileRepository
+    Backend/        → Fateforged.Multiplayer.*        NakamaGameClient (server connection)
+    Data/           → Fateforged.Data.*, Cards.*     Game data catalogs
+    Constants/      → Fateforged.Constants           Shared constants
+  Debug/            → Fateforged.Debug               Performance counters
 ```
+
+Note: Namespaces were NOT changed during the folder restructure. Some folders have namespaces
+that don't match their folder path (e.g., `Meta/Ranking/` uses `Fateforged.Multiplayer.Ranking`).
+This is intentional — the folder structure reflects architectural grouping while namespaces
+preserve API compatibility.
+
+### GDScript (`scripts/`)
+
+```
+scripts/
+  battle/                           Battle domain (View + Input layer GDScript)
+    animations/                       Unit animation configs and rig scripts
+    battlefield/                      Battlefield setup, biome config, camera
+    ui/                               Battle HUD (hand, stat bars, speed/pause buttons)
+      debug/                          Debug spawner panel, debug buttons
+    vfx/                              VFX manager, spell effects, shaders
+    player_camera.gd                  Battle camera control
+    battle_dialogue_controller.gd     In-battle dialogue sequencing
+  meta/                             Meta-game domain
+    screens/                          All meta-game screens (campaign, collection, shop, etc.)
+    components/                       Meta-specific UI widgets (card_widget, offering_card, etc.)
+      node_panels/                    Campaign map node detail panels
+    modals/                           Meta modals (summoner reveal, card level up, etc.)
+  shared/                           Reusable UI components (used by both battle and meta)
+    card_visual.gd                    Card rendering
+    styled_button.gd                  Styled button component
+    dialogue_box.gd                   Dialogue display
+    raised_panel.gd                   Panel styling
+    ...
+  application/                      Application layer (lifecycle, orchestration)
+    scene_manager.gd                  Scene transitions
+    scene_coordinator.gd              Cross-domain handoffs
+    battle_context.gd                 Battle config singleton
+    event_context.gd                  Event config singleton
+    capability_manager.gd             Feature capability toggling
+    event_sequencer.gd                Tutorial/event step sequencing
+    dialogue_manager.gd               Dialogue orchestration
+    navigation_context.gd             Navigation state
+  infrastructure/                   Shared data, platform services, utilities
+    data/                             ID constants, type enums, content bindings
+    billing/                          Platform billing (IAP integration)
+    dialogue/                         Dialogue data structures
+    element_types.gd                  Element type definitions
+    fonts.gd                          Font resource registry
+    physics_layers.gd                 Physics layer constants
+    audio_manager.gd                  Audio playback service
+    ...
+  debug/                            Debug tools (console, snapshots, menu)
+  tools/                            Editor tooling (dialogue generator)
+  csharp/                           C# codebase (see above)
+```
+
+The GDScript folder structure mirrors the same architectural layers as C#:
+- **battle/** and **meta/** are peer domains
+- **shared/** holds reusable components consumed by both domains
+- **application/** orchestrates domain handoffs (depends on battle + meta)
+- **infrastructure/** provides shared data and platform services (no domain dependencies)
 
 ## How to Add a New Service
 
-1. **Determine the domain**: Does it manage persistent player state? → `Fateforged.Meta`. Does it handle multiplayer? → `Fateforged.Multiplayer`. Is it shared data? → `Fateforged.Data` or `Fateforged.Infrastructure`.
+1. **Determine the domain**: Does it manage persistent player state? → `Meta/Services/`. Does it handle battle logic? → `Battle/Simulation/`. Is it shared data? → `Infrastructure/Data/`. Is it networking for sessions? → `Battle/Session/Transport/`.
 
 2. **Create the C# class** in the appropriate folder under `scripts/csharp/`:
    ```csharp
@@ -155,10 +229,10 @@ Fateforged.Combat             — Combat-related types (damage, spells)
 
 4. **Register in project.godot** under `[autoload]`:
    ```
-   MyFeature="*res://scripts/csharp/Services/MyFeature/MyFeatureService.tscn"
+   MyFeature="*res://scripts/csharp/Meta/Services/MyFeature/MyFeatureService.tscn"
    ```
 
-5. **Add a constant** in `scripts/core/csharp_autoloads.gd` (for optional `get_node_or_null()` access):
+5. **Add a constant** in `scripts/infrastructure/csharp_autoloads.gd` (for optional `get_node_or_null()` access):
    ```gdscript
    const MY_FEATURE: String = "/root/MyFeature"
    ```
@@ -174,6 +248,6 @@ Fateforged.Combat             — Combat-related types (damage, spells)
 - **Autoload name**: Clean name without suffix (e.g., `Economy`, not `EconomyServiceCS`)
 - **C# class**: `PascalCase` with `Service` suffix (e.g., `EconomyService`)
 - **Namespace**: `Fateforged.<Domain>.<Feature>` (e.g., `Fateforged.Meta.Economy`)
-- **File location**: `scripts/csharp/Services/<Feature>/` for meta services
+- **File location**: `scripts/csharp/Meta/Services/<Feature>/` for meta services
 - **Methods**: PascalCase from both C# and GDScript
 - **Signals**: PascalCase delegate naming (e.g., `CampaignGoldChangedEventHandler`)

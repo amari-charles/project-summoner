@@ -36,8 +36,8 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 - May be unfixable Godot behavior in headless mode
 
 **Related Files:**
-- scripts/vfx/vfx_manager.gd
-- scripts/csharp/Services/HPBarService.cs
+- scripts/battle/vfx/vfx_manager.gd
+- scripts/csharp/Meta/Services/HPBarService.cs
 - scripts/csharp/Projectiles/ProjectileService.cs
 
 ---
@@ -67,7 +67,7 @@ Visual bugs and potential errors during development/testing.
 
 **Related Files:**
 - scripts/systems/hp_bar_manager.gd
-- scripts/ui/battle/hp_bar.gd (if exists)
+- scripts/battle/ui/hp_bar.gd (if exists)
 
 ---
 
@@ -209,7 +209,7 @@ Spawning is "messed up" when spawning as enemy in debug mode.
 Debug tool doesn't work correctly for testing enemy units.
 
 **Related Files:**
-- scripts/ui/debug/unit_spawner_panel.gd
+- scripts/battle/ui/debug/unit_spawner_panel.gd
 - Battlefield spawn logic
 
 ---
@@ -233,7 +233,7 @@ Affects combat balance - wisps are more effective than designed if they can hit 
 
 **Related Files:**
 - scripts/csharp/Units/Unit3D.cs
-- scripts/csharp/Combat/ (targeting logic)
+- scripts/csharp/Battle/Simulation/Combat/ (targeting logic)
 - Card definitions for wisps
 
 ---
@@ -292,11 +292,11 @@ ERROR:   - CardIDs.DUCKLING = 'duckling'
 Cosmetic startup error. No gameplay impact since duckling is correctly handled as a unit spawned by mama_duck.
 
 **Proposed Solution:**
-Remove `const DUCKLING: StringName = &"duckling"` from `scripts/data/card_ids.gd` since duckling is not a playable card.
+Remove `const DUCKLING: StringName = &"duckling"` from `scripts/infrastructure/data/card_ids.gd` since duckling is not a playable card.
 
 **Related Files:**
-- scripts/data/card_ids.gd (line 75)
-- scripts/data/card_catalog.gd (validation logic)
+- scripts/infrastructure/data/card_ids.gd (line 75)
+- scripts/infrastructure/data/card_catalog.gd (validation logic)
 
 ---
 

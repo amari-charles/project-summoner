@@ -160,8 +160,8 @@ void ApplyGhostTint(Color tint);
 
 | File | Purpose |
 |------|---------|
-| `scripts/csharp/Visual/IVisualComponent.cs` | Interface definition |
-| `scripts/csharp/Visual/SpriteVisualComponent.cs` | Frame-based implementation |
-| `scripts/csharp/Visual/SkeletalVisualComponent.cs` | Skeletal rig implementation |
-| `scenes/units/sprite_character_2d5_component.tscn` | Sprite component scene |
-| `scenes/units/skeletal_character_2d5_component.tscn` | Skeletal component scene |
+| `scripts/csharp/Battle/View/Visual/IVisualComponent.cs` | Interface definition |
+| `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs` | Frame-based implementation |
+| `scripts/csharp/Battle/View/Visual/SkeletalVisualComponent.cs` | Skeletal rig implementation |
+| `scenes/battle/units/sprite_character_2d5_component.tscn` | Sprite component scene |
+| `scenes/battle/units/skeletal_character_2d5_component.tscn` | Skeletal component scene |

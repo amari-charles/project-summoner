@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://projectile_catalog"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Data/Projectiles/ProjectileCatalog.cs" id="1_script"]
-
-[node name="ProjectileCatalog" type="Node"]
-script = ExtResource("1_script")

@@ -25,7 +25,7 @@ Reads game state and renders it. No game logic, no mutation — purely visual.
 `BattleScene` is the top-level C# class (`Node3D`) that owns all battle visual components. It replaces `GameController3D` as a thin typed facade — no game logic, just wiring and accessors.
 
 ```csharp
-// scripts/csharp/View/BattleScene.cs
+// scripts/csharp/Battle/View/BattleScene.cs
 public partial class BattleScene : Node3D
 {
     private IGameSession? _session;

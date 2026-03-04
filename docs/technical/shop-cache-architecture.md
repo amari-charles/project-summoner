@@ -110,7 +110,7 @@ flowchart LR
 
 | File | Change |
 |------|--------|
-| `scripts/csharp/Services/Shop/ShopService.cs` | Removed `_purchaseCache`, delegates to `IProfileRepository` |
+| `scripts/csharp/Meta/Services/Shop/ShopService.cs` | Removed `_purchaseCache`, delegates to `IProfileRepository` |
 | `scripts/services/shop_service.gd` | Removed `LoadPurchaseCache()` call |
 
 ## Future Pattern

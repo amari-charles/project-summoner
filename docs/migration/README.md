@@ -161,7 +161,7 @@ Each layer has a single responsibility. Dependencies only flow downward. The sim
 
 | File to Delete | Status | Blocked By |
 |---------------|--------|-----------|
-| `scripts/csharp/Combat/DamageSystem.cs` + `.tscn` | Blocked | Unit3D still uses DamageSystem for Godot-side damage |
+| `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` + `.tscn` | Blocked | Unit3D still uses DamageSystem for Godot-side damage |
 | `scripts/csharp/Systems/Modifiers/ModifierService.cs` | Blocked | Unit3D applies modifiers through it |
 | `scripts/csharp/Projectiles/ProjectileService.cs` | Blocked | RangedUnit3D, DamageEffect reference it |
 | `scripts/csharp/Abilities/BaseAbility.cs` | **Deleted** | Was dead code — removed in architecture gap audit |

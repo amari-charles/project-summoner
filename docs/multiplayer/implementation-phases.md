@@ -62,7 +62,7 @@ Create an abstraction that allows the same game code to work under different aut
 
 | File | Changes |
 |------|---------|
-| `scripts/core/battle_context.gd` | Add `authority_provider: AuthorityProvider` property, initialize based on battle mode |
+| `scripts/application/battle_context.gd` | Add `authority_provider: AuthorityProvider` property, initialize based on battle mode |
 | `scripts/core/game_controller_3d.gd` | Check `authority_provider.has_authority()` before state changes |
 
 **Key Interface:**
@@ -108,7 +108,7 @@ signal action_rejected(action: GameAction, reason: String)
 | `scripts/multiplayer/authority/host_authority.gd` | ✅ Created | P2P host stub (full RPC in Phase 1.4) |
 | `scripts/multiplayer/authority/client_proxy.gd` | ✅ Created | P2P client stub (full RPC in Phase 1.4) |
 | `scripts/multiplayer/actions/game_action.gd` | ✅ Created | Base action class for serialization |
-| `scripts/core/battle_context.gd` | ✅ Modified | Added `authority_provider`, `has_authority()`, `set_authority_provider()` |
+| `scripts/application/battle_context.gd` | ✅ Modified | Added `authority_provider`, `has_authority()`, `set_authority_provider()` |
 | `scripts/core/game_controller_3d.gd` | ✅ Modified | Added authority checks to `end_game()`, win conditions |
 
 **How It Works:**
@@ -140,7 +140,7 @@ Replace all gameplay randomness with seeded RNG for deterministic multiplayer.
 | `scripts/multiplayer/rng/rng_domain.gd` | ✅ Created | Enum: DECK_SHUFFLE, AI_DECISIONS, COMBAT_CRITS, SPAWN_POSITIONS |
 | `scripts/core/summoner.gd` | ✅ Modified | `deck.shuffle()` → `BattleRNG.shuffle_array(deck, RNGDomain.Domain.DECK_SHUFFLE)` |
 | `scripts/ai/heuristic_ai.gd` | ✅ Modified | All `randf_range()` → `BattleRNG.randf_range(..., RNGDomain.Domain.*)` |
-| `scripts/csharp/Combat/DamageSystem.cs` | ✅ Modified | `GD.Randf()` → `GetSeededCritRoll()` calling BattleRNG |
+| `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` | ✅ Modified | `GD.Randf()` → `GetSeededCritRoll()` calling BattleRNG |
 | `project.godot` | ✅ Modified | Added BattleRNG autoload |
 
 **How It Works:**
@@ -219,11 +219,11 @@ Basic P2P networking for local testing before Nakama integration.
 | `scripts/multiplayer/connection/p2p_host.gd` | ✅ Created | Host a P2P match (ENetMultiplayerPeer) |
 | `scripts/multiplayer/connection/p2p_client.gd` | ✅ Created | Join a P2P match |
 | `scripts/multiplayer/sync/action_replicator.gd` | ✅ Created | RPC-based action replication |
-| `scenes/ui/screens/multiplayer_lobby.tscn` | ✅ Created | Lobby UI (create/join room) |
-| `scripts/ui/screens/multiplayer_lobby.gd` | ✅ Created | Lobby UI logic |
+| `scenes/meta/screens/multiplayer_lobby.tscn` | ✅ Created | Lobby UI (create/join room) |
+| `scripts/meta/screens/multiplayer_lobby.gd` | ✅ Created | Lobby UI logic |
 | `scripts/multiplayer/authority/host_authority.gd` | ✅ Updated | Full RPC implementation |
 | `scripts/multiplayer/authority/client_proxy.gd` | ✅ Updated | Full RPC implementation |
-| `scripts/core/scene_manager.gd` | ✅ Modified | Added SCENE_MULTIPLAYER_LOBBY constant |
+| `scripts/application/scene_manager.gd` | ✅ Modified | Added SCENE_MULTIPLAYER_LOBBY constant |
 | `localization/data/en.json` | ✅ Modified | Added multiplayer UI strings |
 
 **How It Works:**
@@ -380,7 +380,7 @@ func execute(context: BattleContext) -> void:
 |------|---------|
 | `scripts/core/summoner.gd` | `play_card_3d()` creates PlayCardAction, sends to authority |
 | `scripts/cards/card.gd` | Add `serialize()` / `deserialize()` methods |
-| `scripts/core/battle_context.gd` | Add `get_summoner_for_player(peer_id)` method |
+| `scripts/application/battle_context.gd` | Add `get_summoner_for_player(peer_id)` method |
 
 **Implementation Steps:**
 1. [x] Create protocol message types (C#)
@@ -403,11 +403,11 @@ func execute(context: BattleContext) -> void:
 | `scripts/csharp/Multiplayer/Authority/HostRunner.cs` | ✅ Created | Authoritative simulation, 10 Hz snapshots |
 | `scripts/csharp/Multiplayer/Authority/RequestValidator.cs` | ✅ Created | Validates all client requests |
 | `scripts/csharp/Multiplayer/Client/ClientRunner.cs` | ✅ Created | Prediction buffer, reconciliation |
-| `scripts/csharp/Multiplayer/Transport/IMatchTransport.cs` | ✅ Created | Transport abstraction interface |
-| `scripts/csharp/Multiplayer/Transport/P2PTransport.cs` | ✅ Created | ENet-based P2P implementation |
+| `scripts/csharp/Battle/Session/Transport/IMatchTransport.cs` | ✅ Created | Transport abstraction interface |
+| `scripts/csharp/Battle/Session/Transport/P2PTransport.cs` | ✅ Created | ENet-based P2P implementation |
 | `scripts/multiplayer/authority/multiplayer_authority.gd` | ✅ Created | GDScript bridge to C# MatchSession |
-| `scripts/core/battle_context.gd` | ✅ Modified | Added MULTIPLAYER mode, configure_multiplayer_battle() |
-| `scripts/ui/screens/multiplayer_lobby.gd` | ✅ Modified | Updated to configure BattleContext for multiplayer |
+| `scripts/application/battle_context.gd` | ✅ Modified | Added MULTIPLAYER mode, configure_multiplayer_battle() |
+| `scripts/meta/screens/multiplayer_lobby.gd` | ✅ Modified | Updated to configure BattleContext for multiplayer |
 
 **Key Interfaces:**
 ```csharp
@@ -513,7 +513,7 @@ Synchronize damage, healing, and combat effects across network.
 
 | File | Status | Description |
 |------|--------|-------------|
-| `scripts/csharp/Combat/DamageSystem.cs` | ✅ Modified | Added BroadcastDamageDealt and BroadcastSummonerDamage |
+| `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` | ✅ Modified | Added BroadcastDamageDealt and BroadcastSummonerDamage |
 
 **How It Works:**
 ```csharp
@@ -670,8 +670,8 @@ Install and configure Nakama .NET SDK.
 | File | Status | Description |
 |------|--------|-------------|
 | `Fateforged.csproj` | ✅ Modified | Added NakamaClient NuGet package (v3.21.1) |
-| `scripts/csharp/Multiplayer/Backend/NakamaGameClient.cs` | ✅ Created | Nakama client wrapper |
-| `scripts/csharp/Multiplayer/Backend/NakamaGameClient.tscn` | ✅ Created | Scene for autoload |
+| `scripts/csharp/Infrastructure/Backend/NakamaGameClient.cs` | ✅ Created | Nakama client wrapper |
+| `scripts/csharp/Infrastructure/Backend/NakamaGameClient.tscn` | ✅ Created | Scene for autoload |
 | `project.godot` | ✅ Modified | Added NakamaGameClient autoload |
 
 **NakamaGameClient Features:**
@@ -741,8 +741,8 @@ Implemented ranked queue via Nakama matchmaker.
 
 | File | Status | Description |
 |------|--------|-------------|
-| `scripts/csharp/Multiplayer/Matchmaking/MatchmakingService.cs` | ✅ Created | Queue management service |
-| `scripts/csharp/Multiplayer/Matchmaking/MatchmakingService.tscn` | ✅ Created | Scene for autoload |
+| `scripts/csharp/Meta/Matchmaking/MatchmakingService.cs` | ✅ Created | Queue management service |
+| `scripts/csharp/Meta/Matchmaking/MatchmakingService.tscn` | ✅ Created | Scene for autoload |
 | `project.godot` | ✅ Modified | Added MatchmakingService autoload |
 
 **MatchmakingService Features:**
@@ -786,8 +786,8 @@ Skill-based rating system.
 
 | File | Status | Description |
 |------|--------|-------------|
-| `scripts/csharp/Multiplayer/Ranking/EloCalculator.cs` | ✅ Created | Pure ELO calculation, tier/division logic |
-| `scripts/csharp/Multiplayer/Ranking/RankingService.cs` | ✅ Created | Rating persistence via ProfileRepo |
+| `scripts/csharp/Meta/Ranking/EloCalculator.cs` | ✅ Created | Pure ELO calculation, tier/division logic |
+| `scripts/csharp/Meta/Ranking/RankingService.cs` | ✅ Created | Rating persistence via ProfileRepo |
 
 **ELO Parameters (C#):**
 ```csharp
@@ -837,8 +837,8 @@ Report match outcomes to Nakama and update ratings.
 
 | File | Status | Description |
 |------|--------|-------------|
-| `scripts/csharp/Multiplayer/Ranking/MatchReporter.cs` | ✅ Created | Match reporting service |
-| `scripts/csharp/Multiplayer/Ranking/MatchReporter.tscn` | ✅ Created | Scene for autoload |
+| `scripts/csharp/Meta/Ranking/MatchReporter.cs` | ✅ Created | Match reporting service |
+| `scripts/csharp/Meta/Ranking/MatchReporter.tscn` | ✅ Created | Scene for autoload |
 | `project.godot` | ✅ Modified | Added MatchReporter autoload |
 
 **MatchReporter Features:**
@@ -876,9 +876,9 @@ Display ranked leaderboards.
 
 | File | Status | Description |
 |------|--------|-------------|
-| `scripts/csharp/Multiplayer/Ranking/LeaderboardService.cs` | ✅ Created | Fetch and cache leaderboard data via Nakama |
-| `scripts/csharp/Multiplayer/Ranking/LeaderboardService.tscn` | ✅ Created | Autoload scene |
-| `scripts/ui/screens/online_screen.gd` | ✅ Updated | Integrated leaderboard display |
+| `scripts/csharp/Meta/Ranking/LeaderboardService.cs` | ✅ Created | Fetch and cache leaderboard data via Nakama |
+| `scripts/csharp/Meta/Ranking/LeaderboardService.tscn` | ✅ Created | Autoload scene |
+| `scripts/meta/screens/online_screen.gd` | ✅ Updated | Integrated leaderboard display |
 
 **Features:**
 - Global top 100 players
@@ -916,7 +916,7 @@ Handle disconnections gracefully.
 | File | Purpose |
 |------|---------|
 | `scripts/multiplayer/connection/reconnection_handler.gd` | Reconnection logic |
-| `scenes/ui/overlays/reconnecting_overlay.tscn` | "Reconnecting..." UI |
+| `scenes/battle/ui/reconnection_overlay.tscn` | "Reconnecting..." UI |
 
 **Reconnection Flow:**
 1. Detect disconnection (peer_disconnected signal)
@@ -1000,10 +1000,10 @@ Complete UI for multiplayer experience.
 
 | Scene | Purpose |
 |-------|---------|
-| `scenes/ui/screens/multiplayer_menu.tscn` | Main MP menu (Play, Leaderboard, etc.) |
-| `scenes/ui/screens/match_loading.tscn` | Loading screen with opponent info |
-| `scenes/ui/screens/match_result.tscn` | Post-match results (rating change, stats) |
-| `scenes/ui/overlays/opponent_info.tscn` | In-battle opponent name/rating display |
+| `scenes/meta/screens/multiplayer_menu.tscn` | Main MP menu (Play, Leaderboard, etc.) |
+| `scenes/meta/screens/match_loading.tscn` | Loading screen with opponent info |
+| `scenes/meta/screens/match_result.tscn` | Post-match results (rating change, stats) |
+| `scenes/battle/ui/opponent_info.tscn` | In-battle opponent name/rating display |
 
 **Implementation Steps:**
 1. [ ] Create multiplayer menu

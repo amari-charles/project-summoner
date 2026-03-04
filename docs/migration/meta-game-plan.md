@@ -274,7 +274,7 @@ Services stay unchanged. Only the orchestration point moves from `BattleContext`
 
 ## 7. Billing
 
-**Files:** `scripts/billing/` (5 files) — `billing_catalog.gd`, `billing_product.gd`, `billing_provider.gd`, `platform_billing.gd`, `stub_billing_provider.gd`.
+**Files:** `scripts/infrastructure/billing/` (5 files) — `billing_catalog.gd`, `billing_product.gd`, `billing_provider.gd`, `platform_billing.gd`, `stub_billing_provider.gd`.
 
 **Assessment: Infrastructure layer. No migration needed.**
 

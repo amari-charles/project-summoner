@@ -48,4 +48,4 @@ Tint colors:
 
 ## Today
 
-`scripts/csharp/Input/SummonPreview.cs`, namespace `Fateforged.Input`. Both `SummonPreview` and `UnitGhost` live in this file. Lifecycle managed by `BattlefieldDropZone._create_spawn_preview()` / `_cleanup_spawn_preview()`. Target: InputCollector.
+`scripts/csharp/Battle/Input/SummonPreview.cs`, namespace `Fateforged.Input`. Both `SummonPreview` and `UnitGhost` live in this file. Lifecycle managed by `BattlefieldDropZone._create_spawn_preview()` / `_cleanup_spawn_preview()`. Target: InputCollector.

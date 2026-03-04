@@ -72,7 +72,7 @@ All of the above lives in `SimProjectile`.
 ## Stub
 
 ```csharp
-// scripts/csharp/View/ProjectileVisual.cs
+// scripts/csharp/Battle/View/ProjectileVisual.cs
 public partial class ProjectileVisual : Node3D
 {
     private IGameSession? _session;

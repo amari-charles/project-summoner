@@ -38,12 +38,12 @@ IGameSession                  <- Input + View talk to this only
 
 ## Stubs
 
-All stubs live in `scripts/csharp/Session/`. Method bodies throw `NotImplementedException`.
+All stubs live in `scripts/csharp/Battle/Session/`. Method bodies throw `NotImplementedException`.
 
 ### LocalSession
 
 ```csharp
-// scripts/csharp/Session/LocalSession.cs
+// scripts/csharp/Battle/Session/LocalSession.cs
 public class LocalSession : IGameSession
 {
     private readonly Simulation _simulation;
@@ -64,7 +64,7 @@ public class LocalSession : IGameSession
 ### NetworkSession (abstract base)
 
 ```csharp
-// scripts/csharp/Session/NetworkSession.cs
+// scripts/csharp/Battle/Session/NetworkSession.cs
 public abstract class NetworkSession : IGameSession
 {
     protected readonly IdentityMap _identityMap = new();
@@ -82,7 +82,7 @@ public abstract class NetworkSession : IGameSession
 ### HostSession
 
 ```csharp
-// scripts/csharp/Session/HostSession.cs
+// scripts/csharp/Battle/Session/HostSession.cs
 public class HostSession : NetworkSession
 {
     private readonly Simulation _simulation;
@@ -100,7 +100,7 @@ public class HostSession : NetworkSession
 ### ClientSession
 
 ```csharp
-// scripts/csharp/Session/ClientSession.cs
+// scripts/csharp/Battle/Session/ClientSession.cs
 public class ClientSession : NetworkSession
 {
     private readonly MatchState _localState = new();
@@ -115,7 +115,7 @@ public class ClientSession : NetworkSession
 ### CommandRouter
 
 ```csharp
-// scripts/csharp/Session/CommandRouter.cs
+// scripts/csharp/Battle/Session/CommandRouter.cs
 public class CommandRouter
 {
     public readonly record struct ValidationResult(bool IsValid, string Reason);
@@ -128,7 +128,7 @@ public class CommandRouter
 ### IdentityMap
 
 ```csharp
-// scripts/csharp/Session/IdentityMap.cs
+// scripts/csharp/Battle/Session/IdentityMap.cs
 public class IdentityMap
 {
     public int GetNetworkId(int unitId)
@@ -143,7 +143,7 @@ public class IdentityMap
 ### SnapshotCodec
 
 ```csharp
-// scripts/csharp/Session/SnapshotCodec.cs
+// scripts/csharp/Battle/Session/SnapshotCodec.cs
 public class SnapshotCodec
 {
     public byte[] Encode(MatchState state)

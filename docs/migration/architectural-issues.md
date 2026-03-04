@@ -137,7 +137,7 @@ Structural issues identified during the `feature/host-authoritative-sim` branch 
   - `NetworkTeam` struct — exists in `scripts/csharp/Multiplayer/Core/TeamIndex.cs`
   - GDScript `team` property — duck-typed access via `Get("team")`
   - Four ways to represent the same concept. `LocalTeam`/`NetworkTeam` exist but bare ints still dominate.
-  - **Resolution:** `Team` value type stub created in `scripts/csharp/Simulation/Team.cs`. Migration happens incrementally as callers are touched. Session remaps at network boundary.
+  - **Resolution:** `Team` value type stub created in `scripts/csharp/Battle/Simulation/Team.cs`. Migration happens incrementally as callers are touched. Session remaps at network boundary.
 
 - [ ] **#18 — Four ID systems for units**
   - `UnitId` — sim-internal identity (`UnitData.cs`)
@@ -150,7 +150,7 @@ Structural issues identified during the `feature/host-authoritative-sim` branch 
 - [x] **#19 — State constants inconsistency** ✅ Resolved (partial)
   - `ActivationState` — proper enum in `scripts/csharp/Units/Enums.cs:43-47`
   - Sim-side mirror: `ActivationInactive`/`ActivationActive` as `const int` in `SimConstants.cs:13-14`
-  - ~~Behavior states: `const int NoTarget = 0`, `Chasing = 1`, `InRange = 2`, `Attacking = 3` in `SimBehavior.cs:20-23`~~ **Now `BehaviorState` enum** in `scripts/csharp/Simulation/BehaviorState.cs`
+  - ~~Behavior states: `const int NoTarget = 0`, `Chasing = 1`, `InRange = 2`, `Attacking = 3` in `SimBehavior.cs:20-23`~~ **Now `BehaviorState` enum** in `scripts/csharp/Battle/Simulation/BehaviorState.cs`
   - Movement states: `const int MoveNone = 0`, `MoveForward = 1`, etc. in `SimBehavior.cs:48-51` — remain as const ints (movement result, not a state machine)
   - `GamePhase` — proper enum in `GamePhase.cs`
   - **Resolution:** `BehaviorState` enum created. `UnitData.BehaviorState` now uses the enum type. `SimBehavior` const ints are aliases of the enum. `MovementState` enum created for future use.
@@ -187,19 +187,19 @@ Structural issues identified during the `feature/host-authoritative-sim` branch 
   - Game logic: targeting (`UpdateTargeting()` lines 1506-1524), behavior state machine (`UpdateBehavior()` lines 1526-1606), attack cooldowns (`UpdateCooldowns()` lines 1479-1504), trigger system (lines 1019-1196), damage application (`TakeDamage()` line 1265)
   - View code: shadow creation (lines 564-584), visual component setup (lines 557-561), animation updates (`UpdateAnimation()` line 1702), debug visualization (`_Process()` lines 1982-2034), HP bar management (lines 1833-1853)
   - Target: Unit3D becomes a pure visual shell positioned by GameView. All combat logic lives in simulation subsystems.
-  - **Resolution:** `UnitVisual` stub exists in `scripts/csharp/View/UnitVisual.cs`. ✅ Addressed by design.
+  - **Resolution:** `UnitVisual` stub exists in `scripts/csharp/Battle/View/UnitVisual.cs`. ✅ Addressed by design.
 
 - [ ] **#24 — Projectile3D mixes hit detection with VFX**
   - 1128 lines coupling collision/damage with visual effects
   - Game logic: ground collision (lines 189-198), homing target tracking (lines 235-246), direct hit detection (lines 263-274), damage dealing via `HitResolver` (`HitTarget()` lines 510-553), pierce logic (lines 555-574), AoE damage (lines 603-643)
   - View code: visual scene instantiation (lines 157-161), material duplication (line 161), impact VFX via VFXManager (lines 580-601), fade-out tweens (`ExpireWithFade()` lines 649-705), particle management (lines 1055-1087)
   - Target: SimProjectile handles movement/collision/damage in the sim layer. ProjectileView is a visual shell that reads ProjectileState from MatchState.
-  - **Resolution:** `ProjectileVisual` stub exists in `scripts/csharp/View/ProjectileVisual.cs`. ✅ Addressed by design.
+  - **Resolution:** `ProjectileVisual` stub exists in `scripts/csharp/Battle/View/ProjectileVisual.cs`. ✅ Addressed by design.
 
 - [ ] **#25 — GameController3D mixes game state with UI orchestration**
   - 1048 lines coupling game flow with visual setup
   - Game logic: simulation initialization (lines 171-185), phase transitions (lines 324-366, 503-537), win condition setup and evaluation (lines 825-871), kill count objective tracking (lines 874-918), game start/end state (lines 390-466)
   - View code: UI panel initialization (lines 925-949), redirect input raycasting (lines 676-734), unit tinting for selection feedback (lines 792-818), game-over label display (lines 550-562), audio management (lines 99-103)
   - Target: game flow logic moves into Session layer. GameController3D becomes a thin orchestrator that wires Input and View to IGameSession.
-  - **Resolution:** `BattleScene` stub exists in `scripts/csharp/View/BattleScene.cs`. ✅ Addressed by design.
+  - **Resolution:** `BattleScene` stub exists in `scripts/csharp/Battle/View/BattleScene.cs`. ✅ Addressed by design.
 

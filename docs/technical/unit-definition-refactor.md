@@ -266,7 +266,7 @@ public static readonly UnitDefinition FireSpider = new()
     Ranged = new(ProjectileIds.FireWeb),
     Visual = new() { SeparationRadius = 0.4f, ShadowOpacity = 0.5f },
     Abilities = [new SlowOnHitConfig(SlowPercent: 0.3f, Duration: 2f)],
-    ScenePath = "res://scenes/units/fire_spider_3d.tscn"
+    ScenePath = "res://scenes/battle/units/fire_spider_3d.tscn"
 };
 ```
 
@@ -289,7 +289,7 @@ public static readonly UnitDefinition Puff = new()
         ShadowOpacity = 0.5f,
         Hurtbox = new(Horizontal: true, Height: 3f, Radius: 0.75f, Offset: new(1.4f, 0, 0))
     },
-    ScenePath = "res://scenes/units/puff_3d.tscn"
+    ScenePath = "res://scenes/battle/units/puff_3d.tscn"
 };
 ```
 
@@ -305,7 +305,7 @@ public static readonly UnitDefinition StoneApe = new()
     // Targeting defaults to MeleeTargeting.Default
     // Ranged = null (melee unit)
     // Flying = null (ground unit)
-    ScenePath = "res://scenes/units/stone_ape_3d.tscn"
+    ScenePath = "res://scenes/battle/units/stone_ape_3d.tscn"
 };
 ```
 
@@ -319,7 +319,7 @@ public static readonly UnitDefinition Rock = new()
     Stats = new(MaxHp: 500, AttackDamage: 0, AttackSpeed: 0, MoveSpeed: 0, AttackRange: 3f, AggroRadius: 0f),
     UnitType = UnitType.Melee,
     Targeting = PassiveTargeting.Default,
-    ScenePath = "res://scenes/units/rock_3d.tscn"
+    ScenePath = "res://scenes/battle/units/rock_3d.tscn"
 };
 ```
 

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://c7mk5p2h8qx4n"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Data/Summoners/SummonerCatalogBridge.cs" id="1_bridge"]
-
-[node name="SummonerCatalogBridge" type="Node"]
-script = ExtResource("1_bridge")

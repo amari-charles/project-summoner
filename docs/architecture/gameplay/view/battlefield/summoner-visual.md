@@ -84,7 +84,7 @@ All of the above is game state that lives in the Simulation layer (`SummonerData
 ## Stub
 
 ```csharp
-// scripts/csharp/View/SummonerVisual.cs
+// scripts/csharp/Battle/View/SummonerVisual.cs
 public partial class SummonerVisual : Node3D
 {
     private IGameSession? _session;

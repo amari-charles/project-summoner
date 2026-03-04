@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://stat_bar"]
+
+[ext_resource type="Script" path="res://scripts/battle/ui/stat_bar.gd" id="1_stat_bar_script"]
+
+[node name="StatBar" type="Control"]
+custom_minimum_size = Vector2(200, 24)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 24.0
+script = ExtResource("1_stat_bar_script")

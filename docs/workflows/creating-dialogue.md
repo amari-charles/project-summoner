@@ -39,7 +39,7 @@ The generator creates `.tres` files that look like this:
 ```tres
 [gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1_dialogue"]
+[ext_resource type="Script" path="res://scripts/infrastructure/dialogue/dialogue_data.gd" id="1_dialogue"]
 
 [resource]
 script = ExtResource("1_dialogue")
@@ -111,7 +111,7 @@ Your JSON entry is incomplete. Both fields are required:
 If you absolutely must create dialogue resources manually:
 
 1. **DO NOT** - Use the generator instead
-2. If you insist: Ensure script path is `res://scripts/dialogue/dialogue_data.gd`
+2. If you insist: Ensure script path is `res://scripts/infrastructure/dialogue/dialogue_data.gd`
 3. Use `script_class="DialogueData"` not `"Dialogue"`
 4. Reference localization keys, not literal text
 
@@ -147,6 +147,6 @@ The generator prevents all these errors.
 
 - `/localization/data/en.json` - Source of truth for all dialogue text
 - `/scripts/tools/dialogue_resource_generator.gd` - Auto-generates .tres files
-- `/scripts/dialogue/dialogue_data.gd` - DialogueData resource class
-- `/scripts/services/dialogue_manager.gd` - Runtime dialogue system
+- `/scripts/infrastructure/dialogue/dialogue_data.gd` - DialogueData resource class
+- `/scripts/application/dialogue_manager.gd` - Runtime dialogue system
 - `/resources/dialogue/` - Generated .tres files (don't edit manually!)

@@ -84,7 +84,7 @@ Settled decisions and open questions from architecture discussions. Each decisio
 
 **Reasoning:** Audio is triggered from too many places to belong to one layer: battle SFX (View), UI clicks (HUD), music (ambient/phase-driven), spatial summoning chants (View). Making it standalone avoids forcing audio routing through a single layer. Any code that needs to play a sound calls AudioManager directly.
 
-**Affects:** `scripts/services/audio_manager.gd` stays as an autoload, classified as a standalone service rather than belonging to any layer.
+**Affects:** `scripts/infrastructure/audio_manager.gd` stays as an autoload, classified as a standalone service rather than belonging to any layer.
 
 ### 11. Unit-Type-Specific Logic: Composition
 
@@ -108,7 +108,7 @@ Settled decisions and open questions from architecture discussions. Each decisio
 
 **Reasoning:** Session should own its configuration after init, not reach into a global autoload mid-battle. A typed config object (`BattleConfig`) codifies the contract — decks, summoners, biome, game mode — and is passed to `LocalSession(config)`, `HostSession(config)`, etc. The `BattleContext` autoload remains as the builder/holder during scene transition, but sessions don't depend on it after construction.
 
-**Affects:** `scripts/core/battle_context.gd` stays as autoload but becomes a `BattleConfig` builder. Session constructors take `BattleConfig` as a required parameter.
+**Affects:** `scripts/application/battle_context.gd` stays as autoload but becomes a `BattleConfig` builder. Session constructors take `BattleConfig` as a required parameter.
 
 ### 14. CardFactory: Cross-Cutting Utility (Base Stats Only)
 

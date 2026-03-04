@@ -10,7 +10,7 @@ var context: Node  # BattleContext instance
 
 func before_each() -> void:
 	# Load the BattleContext script and create instance
-	var BattleContextScript: GDScript = load("res://scripts/core/battle_context.gd")
+	var BattleContextScript: GDScript = load("res://scripts/application/battle_context.gd")
 	context = BattleContextScript.new()
 
 

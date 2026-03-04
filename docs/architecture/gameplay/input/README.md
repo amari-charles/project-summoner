@@ -59,7 +59,7 @@ The target consolidates Command-production into `InputCollector`.
 ## Stub
 
 ```csharp
-// scripts/csharp/Input/InputCollector.cs
+// scripts/csharp/Battle/Input/InputCollector.cs
 public partial class InputCollector : Node
 {
     private IGameSession? _session;

@@ -32,22 +32,22 @@
 ### Files to Cherry-Pick
 
 **Simulation core** (new files, add directly):
-- `scripts/csharp/Simulation/MatchState.cs`
-- `scripts/csharp/Simulation/UnitData.cs`
-- `scripts/csharp/Simulation/SummonerData.cs`
-- `scripts/csharp/Simulation/GamePhase.cs`
-- `scripts/csharp/Simulation/Simulation.cs`
-- `scripts/csharp/Simulation/SimBehavior.cs`
-- `scripts/csharp/Simulation/SimDamage.cs`
-- `scripts/csharp/Simulation/SimMovement.cs`
-- `scripts/csharp/Simulation/SimSteering.cs`
-- `scripts/csharp/Simulation/SimTargeting.cs`
-- `scripts/csharp/Simulation/SimProjectile.cs`
-- `scripts/csharp/Simulation/SimEvent.cs` (and event subtypes)
-- `scripts/csharp/Simulation/DeterministicRng.cs`
+- `scripts/csharp/Battle/Simulation/MatchState.cs`
+- `scripts/csharp/Battle/Simulation/UnitData.cs`
+- `scripts/csharp/Battle/Simulation/SummonerData.cs`
+- `scripts/csharp/Battle/Simulation/GamePhase.cs`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+- `scripts/csharp/Battle/Simulation/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/SimDamage.cs`
+- `scripts/csharp/Battle/Simulation/SimMovement.cs`
+- `scripts/csharp/Battle/Simulation/SimSteering.cs`
+- `scripts/csharp/Battle/Simulation/SimTargeting.cs`
+- `scripts/csharp/Battle/Simulation/SimProjectile.cs`
+- `scripts/csharp/Battle/Simulation/SimEvent.cs` (and event subtypes)
+- `scripts/csharp/Battle/Simulation/DeterministicRng.cs`
 
 **Infrastructure** (new files, add directly):
-- `scripts/csharp/Simulation/SimulationNode.cs` — **will be rewritten**, but bring the scaffold
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs` — **will be rewritten**, but bring the scaffold
 - `scripts/csharp/Multiplayer/Core/LocalPlayer.cs`
 - `scripts/csharp/Multiplayer/Sync/StateSnapshotBuilder.cs`
 - `scripts/csharp/Multiplayer/Sync/StateSnapshot.cs`
@@ -86,7 +86,7 @@
 - [ ] Client's `SimulationNode._PhysicsProcess` does NOT call `Tick()`
 
 ### Files Modified
-- `scripts/csharp/Simulation/SimulationNode.cs`
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
 - `scripts/csharp/Multiplayer/Client/ClientRunner.cs`
 
 ---
@@ -151,11 +151,11 @@
 - [ ] Existing combat behavior unchanged (backward-compatible additions)
 
 ### Files Modified
-- `scripts/csharp/Simulation/UnitData.cs`
-- `scripts/csharp/Simulation/SummonerData.cs`
-- `scripts/csharp/Simulation/SimDamage.cs`
-- New: `scripts/csharp/Simulation/SimEffects.cs`
-- New: `scripts/csharp/Simulation/EffectTypes.cs` (enums and data structures)
+- `scripts/csharp/Battle/Simulation/UnitData.cs`
+- `scripts/csharp/Battle/Simulation/SummonerData.cs`
+- `scripts/csharp/Battle/Simulation/SimDamage.cs`
+- New: `scripts/csharp/Battle/Simulation/SimEffects.cs`
+- New: `scripts/csharp/Battle/Simulation/EffectTypes.cs` (enums and data structures)
 
 ---
 
@@ -213,10 +213,10 @@
 - [ ] All card state changes flow through `Tick()`
 
 ### Files Modified
-- `scripts/csharp/Simulation/Simulation.cs`
-- `scripts/csharp/Simulation/SimulationNode.cs`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
 - `scripts/core/summoner.gd`
-- `scripts/csharp/Simulation/Commands/PlayCardCommand.cs`
+- `scripts/csharp/Battle/Simulation/Commands/PlayCardCommand.cs`
 
 ---
 
@@ -268,8 +268,8 @@
 
 ### Files Modified
 - `scripts/csharp/Units/Unit3D.cs` (or `scripts/units/unit_3d.gd`)
-- `scripts/csharp/Simulation/SimulationNode.cs`
-- `scripts/csharp/Combat/DamageSystem.cs` (add Battle-phase guard or remove)
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
+- `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` (add Battle-phase guard or remove)
 
 ---
 
@@ -312,12 +312,12 @@
 - [ ] Win condition determined by simulation predicates, not GDScript
 
 ### Files Modified
-- `scripts/csharp/Simulation/SimBehavior.cs`
-- `scripts/csharp/Simulation/SimDamage.cs`
-- `scripts/csharp/Simulation/Simulation.cs`
+- `scripts/csharp/Battle/Simulation/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/SimDamage.cs`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
 - `scripts/core/summoner.gd`
-- `scripts/csharp/Simulation/SimulationNode.cs`
-- New: `scripts/csharp/Simulation/WinCondition.cs` (predicate system)
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
+- New: `scripts/csharp/Battle/Simulation/WinCondition.cs` (predicate system)
 
 ---
 
@@ -381,11 +381,11 @@
 - [ ] Triggers fire deterministically based on sim events
 
 ### Files Modified
-- `scripts/csharp/Simulation/SimBehavior.cs`
-- `scripts/csharp/Simulation/SimEffects.cs`
-- `scripts/csharp/Simulation/SimDamage.cs` (shield integration)
-- `scripts/csharp/Simulation/SimTargeting.cs` (group targeting)
-- `scripts/csharp/Simulation/UnitData.cs` (charge tracking fields)
+- `scripts/csharp/Battle/Simulation/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/SimEffects.cs`
+- `scripts/csharp/Battle/Simulation/SimDamage.cs` (shield integration)
+- `scripts/csharp/Battle/Simulation/SimTargeting.cs` (group targeting)
+- `scripts/csharp/Battle/Simulation/UnitData.cs` (charge tracking fields)
 - `scripts/csharp/Units/Unit3D.cs` (remove trigger processing)
 
 ---
@@ -425,9 +425,9 @@
 - [ ] VFX plays on spell cast
 
 ### Files Modified
-- `scripts/csharp/Simulation/Simulation.cs`
-- `scripts/csharp/Simulation/SimEffects.cs` (spell-specific targeting)
-- `scripts/csharp/Simulation/Commands/PlayCardCommand.cs` (spell data)
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+- `scripts/csharp/Battle/Simulation/SimEffects.cs` (spell-specific targeting)
+- `scripts/csharp/Battle/Simulation/Commands/PlayCardCommand.cs` (spell data)
 
 ---
 

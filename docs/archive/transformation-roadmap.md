@@ -238,14 +238,14 @@ flowchart TB
 
 **Files:**
 - [x] CREATE: `scripts/csharp/Cards/PlayerCardInstance.cs` - Typed card instance data
-- [x] CREATE: `scripts/csharp/Data/CardUpgradeCatalog.cs` - Upgrade definitions in C#
-- [x] CREATE: `scripts/csharp/Services/PlayerCardService.cs` - Full domain service
-- [x] CREATE: `scripts/csharp/Services/PlayerCardService.tscn` - Autoload scene
+- [x] CREATE: `scripts/csharp/Infrastructure/Data/CardUpgradeCatalog.cs` - Upgrade definitions in C#
+- [x] CREATE: `scripts/csharp/Meta/Services/PlayerCardService.cs` - Full domain service
+- [x] CREATE: `scripts/csharp/Meta/Services/PlayerCardService.tscn` - Autoload scene
 - [x] MODIFY: `scripts/cards/card.gd` - Delegate to PlayerCardService
-- [x] MODIFY: `scripts/ui/modals/card_detail_modal.gd` - Use PlayerCardService
-- [x] MODIFY: `scripts/ui/modals/card_level_up_panel.gd` - Use PlayerCardService
-- [x] MODIFY: `scripts/ui/screens/collection_screen.gd` - Use PlayerCardService
-- [x] MODIFY: `scripts/core/battle_context.gd` - Use PlayerCardService
+- [x] MODIFY: `scripts/meta/modals/card_detail_modal.gd` - Use PlayerCardService
+- [x] MODIFY: `scripts/meta/modals/card_level_up_panel.gd` - Use PlayerCardService
+- [x] MODIFY: `scripts/meta/screens/collection_screen.gd` - Use PlayerCardService
+- [x] MODIFY: `scripts/application/battle_context.gd` - Use PlayerCardService
 - [x] MODIFY: `scripts/systems/card_modifier_provider.gd` - Fixed wrong autoload name, use PlayerCardService
 - [x] MODIFY: `project.godot` - Added PlayerCardService autoload
 - [x] DELETE: `scripts/services/card_progression_service.gd` - Fully replaced by C# PlayerCardService
@@ -264,8 +264,8 @@ flowchart TB
 - Used `is Unit3D` type check instead of `has_method("Activate")`
 
 **Files:**
-- [x] MODIFY: `scripts/ui/battle/battlefield_drop_zone.gd` - `_activate_recent_spawns()` now uses `is Unit3D`
-- [x] MODIFY: `scripts/vfx/lightning_strike_vfx.gd` - `_apply_damage()` now uses `is Unit3D`
+- [x] MODIFY: `scripts/battle/ui/battlefield_drop_zone.gd` - `_activate_recent_spawns()` now uses `is Unit3D`
+- [x] MODIFY: `scripts/battle/vfx/lightning_strike_vfx.gd` - `_apply_damage()` now uses `is Unit3D`
 - [N/A] `scripts/core/game_controller_3d.gd` - Duck-typing is GDScript-to-GDScript (acceptable)
 
 ---
@@ -330,7 +330,7 @@ flowchart TB
 - [x] DELETE: `scripts/csharp/Cards/Configs/FormationConfig.cs` - Replaced by FormationPresets
 - [x] DELETE: `scripts/csharp/Cards/Configs/GridFormationConfig.cs` - Replaced by FormationPresets
 - [x] DELETE: `scripts/csharp/Cards/Configs/GroupedLineFormationConfig.cs` - Replaced by FormationPresets
-- [x] MODIFY: `scripts/data/card_catalog.gd` - Now delegates to C# CardCatalogBridge
+- [x] MODIFY: `scripts/infrastructure/data/card_catalog.gd` - Now delegates to C# CardCatalogBridge
 - [x] MODIFY: `scripts/csharp/Cards/Configs/SummonCardConfig.cs` - Uses IFormationStrategy from CardCatalog
 
 ---
@@ -360,14 +360,14 @@ flowchart TB
 
 **Implementation Notes:**
 - All 4 main services already implement their interfaces
-- Interfaces located in `scripts/csharp/Services/Interfaces/`
+- Interfaces located in `scripts/csharp/Meta/Services/Interfaces/`
 - HPBarService interface skipped (only 3 callers, Godot-heavy, low testing benefit)
 
 **Files:**
-- [x] `scripts/csharp/Services/Interfaces/ICardFactory.cs` - 7 methods
-- [x] `scripts/csharp/Services/Interfaces/IDamageSystem.cs` - 16 methods
-- [x] `scripts/csharp/Services/Interfaces/IPlayerCardService.cs` - 20 methods
-- [x] `scripts/csharp/Services/Interfaces/IModifierService.cs` - 6 methods
+- [x] `scripts/csharp/Meta/Services/Interfaces/ICardFactory.cs` - 7 methods
+- [x] `scripts/csharp/Meta/Services/Interfaces/IDamageSystem.cs` - 16 methods
+- [x] `scripts/csharp/Meta/Services/Interfaces/IPlayerCardService.cs` - 20 methods
+- [x] `scripts/csharp/Meta/Services/Interfaces/IModifierService.cs` - 6 methods
 - [x] CardFactory implements ICardFactory
 - [x] DamageSystem implements IDamageSystem
 - [x] PlayerCardService implements IPlayerCardService

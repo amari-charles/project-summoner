@@ -232,8 +232,8 @@ public enum TriggerCondition
 - `scripts/csharp/Systems/Modifiers/TriggerCondition.cs`
 
 ### Data Catalogs
-- `scripts/csharp/Data/Traits/TraitCatalog.cs`
-- `scripts/csharp/Data/Items/ItemCatalog.cs`
+- `scripts/csharp/Infrastructure/Data/Traits/TraitCatalog.cs`
+- `scripts/csharp/Infrastructure/Data/Items/ItemCatalog.cs`
 
 ## Migration Notes
 

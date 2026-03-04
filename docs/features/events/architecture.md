@@ -202,7 +202,7 @@ on_event("card_played", filter: { card_type: "spell" }, do: unlock_feature())
 
 ### 1. CapabilityManager (Autoload)
 
-**File:** `scripts/services/capability_manager.gd`
+**File:** `scripts/application/capability_manager.gd`
 
 Central authority for "what can the player do right now?". Tracks blockers per capability with reasons.
 
@@ -247,7 +247,7 @@ Specialized event hub for battle lifecycle and game state changes.
 
 ### 3. EventSequencer (Autoload)
 
-**File:** `scripts/services/event_sequencer.gd`
+**File:** `scripts/application/event_sequencer.gd`
 
 Executes EventSequence resources step-by-step with proper async handling.
 
@@ -309,7 +309,7 @@ print("Tutorial complete!")
 
 ### Implementation Files
 
-**1. CapabilityManager** - `scripts/services/capability_manager.gd`
+**1. CapabilityManager** - `scripts/application/capability_manager.gd`
 
 ```gdscript
 extends Node
@@ -519,7 +519,7 @@ func get_step(index: int) -> EventStep:
     return steps[index]
 ```
 
-**5. EventSequencer** - `scripts/services/event_sequencer.gd`
+**5. EventSequencer** - `scripts/application/event_sequencer.gd`
 
 ```gdscript
 extends Node
@@ -675,9 +675,9 @@ func _find_hand_ui() -> Node:
 
 ```ini
 [autoload]
-CapabilityManager="*res://scripts/services/capability_manager.gd"
+CapabilityManager="*res://scripts/application/capability_manager.gd"
 GameStateEvents="*res://scripts/services/game_state_events.gd"
-EventSequencer="*res://scripts/services/event_sequencer.gd"
+EventSequencer="*res://scripts/application/event_sequencer.gd"
 ```
 
 ### Testing Phase 1
@@ -720,7 +720,7 @@ EventSequencer.play_sequence(seq)
 
 **DialogueManager must be registered as an autoload** in project.godot:
 ```
-DialogueManager="*res://scripts/services/dialogue_manager.gd"
+DialogueManager="*res://scripts/application/dialogue_manager.gd"
 ```
 
 This is required because:

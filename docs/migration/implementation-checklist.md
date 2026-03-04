@@ -4,7 +4,7 @@ Actionable, dependency-ordered checklist for building all four layers and deleti
 
 **Sources:** [deletion-sequence.md](deletion-sequence.md), [planning-checklist.md](planning-checklist.md), [session design-specs.md](../architecture/gameplay/session/design-specs.md), [view design-specs.md](../architecture/gameplay/view/design-specs.md), [cross-cutting-plan.md](cross-cutting-plan.md)
 
-**Stub files:** `scripts/csharp/Session/` (8 files), `scripts/csharp/View/` (5 files), `scripts/csharp/Input/` (1 file) — all throw `NotImplementedException`.
+**Stub files:** `scripts/csharp/Battle/Session/` (8 files), `scripts/csharp/Battle/View/` (5 files), `scripts/csharp/Battle/Input/` (1 file) — all throw `NotImplementedException`.
 
 > **Migration Principle: Don't Port 1:1.** When extracting logic from legacy files, don't mechanically move code to a new class with the same shape. Ask: in the new architecture, who OWNS this data? Put factory methods on the types themselves (e.g., `UnitDefinitions.BuildSimTemplate()`, `SimCardData.FromCardDefinition()`). Mark bridge code (e.g., old targeting → sim targeting) as temporary with the milestone where it dies.
 
@@ -36,7 +36,7 @@ Verify the foundation is solid before building new layers.
 
 ### IGameSession Interface
 
-- [x] `IGameSession` interface is finalized (`scripts/csharp/Session/IGameSession.cs`):
+- [x] `IGameSession` interface is finalized (`scripts/csharp/Battle/Session/IGameSession.cs`):
   - `MatchState GetState()`
   - `event Action<IReadOnlyList<SimEvent>> SimEventsEmitted`
   - `void SubmitCommand(ICommand command)`
@@ -61,7 +61,7 @@ Verify the foundation is solid before building new layers.
 
 ## Milestone 1: UnitVisual — Unblocks Tier 1 Deletions
 
-**Stub file:** `scripts/csharp/View/UnitVisual.cs`
+**Stub file:** `scripts/csharp/Battle/View/UnitVisual.cs`
 
 **Goal:** UnitVisual renders units by reading `UnitData` from `MatchState`. Once verified, delete DamageSystem, ModifierService, ProjectileService (3 autoloads).
 
@@ -98,17 +98,17 @@ Verify the foundation is solid before building new layers.
 ### 1.4: Tier 1 Deletions
 
 **Delete DamageSystem (837 LOC):**
-- [x] Delete `scripts/csharp/Combat/DamageSystem.cs` + `.tscn` + `.uid`
-- [x] Delete `scripts/csharp/Services/Interfaces/IDamageSystem.cs` + `.uid`
+- [x] Delete `scripts/csharp/Battle/Simulation/Combat/DamageSystem.cs` + `.tscn` + `.uid`
+- [x] Delete `scripts/csharp/Meta/Services/Interfaces/IDamageSystem.cs` + `.uid`
 - [x] Remove `DamageSystem` autoload from `project.godot`
 
 **Delete ModifierService (714 LOC deleted, 401 LOC relocated):**
 - [x] Delete `scripts/csharp/Systems/Modifiers/ModifierService.cs` + `.tscn`
-- [x] Delete `scripts/csharp/Services/Interfaces/IModifierService.cs`
+- [x] Delete `scripts/csharp/Meta/Services/Interfaces/IModifierService.cs`
 - [x] Delete `CardModifierProvider.cs`, `ItemModifierProvider.cs`, `SummonerModifierProvider.cs`
 - [x] Delete `IModifierProvider.cs`, `ModifierContext.cs`, `ConditionKeys.cs`
-- [x] **RELOCATE** `StatModifier.cs` → `scripts/csharp/Stats/StatModifier.cs` (27+ consumers!)
-- [x] **RELOCATE** `TriggerCondition.cs` → `scripts/csharp/Stats/TriggerCondition.cs`
+- [x] **RELOCATE** `StatModifier.cs` → `scripts/csharp/Battle/Simulation/Stats/StatModifier.cs` (27+ consumers!)
+- [x] **RELOCATE** `TriggerCondition.cs` → `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs`
 - [x] Remove `ModifierService` autoload from `project.godot`
 - [x] Delete `tests/csharp/Systems/Modifiers/ModifierServiceTest.cs`
 - [x] **RELOCATE** `StatModifierTest.cs` → `tests/csharp/Stats/StatModifierTest.cs`
@@ -130,7 +130,7 @@ Verify the foundation is solid before building new layers.
 - [x] Grep `ProjectileService` — zero references
 - [x] Grep `IDamageSystem` — zero references
 - [x] Grep `IModifierService` — zero references
-- [x] `StatModifier.cs` and `TriggerCondition.cs` exist in `scripts/csharp/Stats/`
+- [x] `StatModifier.cs` and `TriggerCondition.cs` exist in `scripts/csharp/Battle/Simulation/Stats/`
 - [x] 3 autoloads removed from `project.godot`
 
 ---
@@ -143,7 +143,7 @@ Verify the foundation is solid before building new layers.
 
 ### 2a: EntityManager — Central Lifecycle Coordinator
 
-**Stub file:** `scripts/csharp/View/EntityManager.cs`
+**Stub file:** `scripts/csharp/Battle/View/EntityManager.cs`
 
 - [x] `Initialize(IGameSession session)` — store session, subscribe to `SimEventsEmitted`
 - [x] `_PhysicsProcess(double delta)` — entity diffing:
@@ -173,7 +173,7 @@ Verify the foundation is solid before building new layers.
 
 ### 2b: ProjectileVisual — Self-Syncing Projectile Shell
 
-**Stub file:** `scripts/csharp/View/ProjectileVisual.cs`
+**Stub file:** `scripts/csharp/Battle/View/ProjectileVisual.cs`
 
 - [x] `Initialize(IGameSession session, int projectileId)` — store session ref and ID
 - [x] `_PhysicsProcess(double delta)` — read `SimProjectileData` from `MatchState`:
@@ -184,7 +184,7 @@ Verify the foundation is solid before building new layers.
 
 ### 2c: SummonerVisual — Self-Syncing Summoner Shell
 
-**Stub file:** `scripts/csharp/View/SummonerVisual.cs`
+**Stub file:** `scripts/csharp/Battle/View/SummonerVisual.cs`
 
 - [x] `Initialize(IGameSession session, int teamIndex)` — store session ref and team index
 - [x] `_PhysicsProcess(double delta)` — read `SummonerData` from `MatchState`:
@@ -197,7 +197,7 @@ Verify the foundation is solid before building new layers.
 
 ### 2d: BattleScene — Top-Level Facade
 
-**Stub file:** `scripts/csharp/View/BattleScene.cs`
+**Stub file:** `scripts/csharp/Battle/View/BattleScene.cs`
 
 - [x] `Initialize(IGameSession session)`:
   - Wire session to `EntityManager` (call `EntityManager.Initialize(session)`)
@@ -208,42 +208,42 @@ Verify the foundation is solid before building new layers.
 ### 2e: Scene File Updates
 
 **20 unit scenes — replace root script with UnitVisual:** ✅ Done (Batch C)
-- [x] `scenes/units/puff_3d.tscn` (RangedUnit3D → UnitVisual)
-- [x] `scenes/units/fire_spider_3d.tscn` (RangedUnit3D → UnitVisual)
-- [x] `scenes/units/earth_rock_thrower_3d.tscn` (RangedUnit3D → UnitVisual)
-- [x] `scenes/units/life_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/fire_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/lightning_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/shadow_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/fire_ant_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/fire_titan_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/stone_ape_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/water_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/rock_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/mama_duck_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/wind_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/water_frog_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/earth_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/duckling_3d.tscn` (DucklingUnit3D → UnitVisual)
-- [x] `scenes/units/earth_sprite_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/death_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
-- [x] `scenes/units/fire_boar_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/puff_3d.tscn` (RangedUnit3D → UnitVisual)
+- [x] `scenes/battle/units/fire_spider_3d.tscn` (RangedUnit3D → UnitVisual)
+- [x] `scenes/battle/units/earth_rock_thrower_3d.tscn` (RangedUnit3D → UnitVisual)
+- [x] `scenes/battle/units/life_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/fire_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/lightning_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/shadow_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/fire_ant_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/fire_titan_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/stone_ape_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/water_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/rock_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/mama_duck_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/wind_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/water_frog_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/earth_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/duckling_3d.tscn` (DucklingUnit3D → UnitVisual)
+- [x] `scenes/battle/units/earth_sprite_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/death_wisp_3d.tscn` (MeleeUnit3D → UnitVisual)
+- [x] `scenes/battle/units/fire_boar_3d.tscn` (MeleeUnit3D → UnitVisual)
 
 **1 projectile scene:** ✅ Done (Batch C)
-- [x] `scenes/projectiles/base_projectile_3d.tscn` (Projectile3D → ProjectileVisual)
+- [x] `scenes/battle/projectiles/base_projectile_3d.tscn` (Projectile3D → ProjectileVisual)
 
 **Battle scene:**
-- [x] `scenes/battlefield/battle_3d.tscn` (game_controller_3d → BattleScene)
+- [x] `scenes/battle/battlefield/battle_3d.tscn` (game_controller_3d → BattleScene)
 - [x] Update or delete test scenes using `test_game_controller.gd` — created `TestBattleScene.cs`, updated 3 dev scenes
 
 ### 2f: Tier 2 Deletions
 
 **Step 1 — HPBarService (563 LOC):** ✅ Done (Batch A)
-- [x] Delete `scripts/csharp/Services/HPBarService.cs` + `.tscn` + `.uid`
+- [x] Delete `scripts/csharp/Meta/Services/HPBarService.cs` + `.tscn` + `.uid`
 - [x] Remove `HPBarService` autoload from `project.godot`
 
 **Step 2 — SimEventSignalEmitter (109 LOC):** ✅ Done (Batch A)
-- [x] Delete `scripts/csharp/Simulation/SimEventSignalEmitter.cs` + `.uid`
+- [x] Delete `scripts/csharp/Battle/Simulation/SimEventSignalEmitter.cs` + `.uid`
 - [x] Remove signal declarations from `SimulationNode` that were only used by emitter
 
 **Step 3 — SimulationNode slim-down (~842 LOC removed):**
@@ -271,7 +271,7 @@ Verify the foundation is solid before building new layers.
 - [x] Remove `UnitDebugService` autoload from `project.godot` ✅ Done (cascade cleanup)
 
 **Files to UPDATE (not delete):**
-- [x] `scripts/csharp/Input/SummonPreview.cs` — fully implemented (292 LOC, includes embedded `UnitGhost` class), staged
+- [x] `scripts/csharp/Battle/Input/SummonPreview.cs` — fully implemented (292 LOC, includes embedded `UnitGhost` class), staged
 - [x] Update `SummonPreview.cs` to read `InputCollector` drag state — InputCollector implemented
 - [x] `CardFactory.cs` — verified clean (zero ModifierService refs)
 
@@ -321,7 +321,7 @@ Verify the foundation is solid before building new layers.
 
 ### 3a.1: CommandRouter — Validation Logic ✅
 
-**Stub file:** `scripts/csharp/Session/CommandRouter.cs`
+**Stub file:** `scripts/csharp/Battle/Session/CommandRouter.cs`
 
 - [x] Implement `Validate(ICommand command, MatchState state)` with pattern matching
 - [x] PlayCardCommand validation rules (player index, card index, mana, phase, casting state, card exists)
@@ -331,7 +331,7 @@ Verify the foundation is solid before building new layers.
 
 ### 3a.2: LocalSession — Singleplayer (Simplest Session) ✅
 
-**Stub file:** `scripts/csharp/Session/LocalSession.cs`
+**Stub file:** `scripts/csharp/Battle/Session/LocalSession.cs`
 
 - [x] Implement constructor, Tick, SubmitCommand, GetState
 - [x] Command validation via CommandRouter
@@ -378,13 +378,13 @@ All 11 files deleted in commit 698fd327. BroadcastFieldTest deleted. SimEventCov
 
 ## Milestone 3b: Input Layer — Unblocks Tier 4 Deletions
 
-**Stub file:** `scripts/csharp/Input/InputCollector.cs`
+**Stub file:** `scripts/csharp/Battle/Input/InputCollector.cs`
 
 **Parallel with Milestones 3a and 3c** — no cross-dependencies.
 
 ### 3b.1: InputCollector — Gesture→Command
 
-**Stub file:** `scripts/csharp/Input/InputCollector.cs`
+**Stub file:** `scripts/csharp/Battle/Input/InputCollector.cs`
 
 - [x] `Initialize(playerSummoner)` — stores summoner ref, finds Camera3D, adds to group
 - [x] `_CanDropData()` / `_DropData()` — DnD protocol for card drops, submits via `SimulationNode.QueuePlayCard()`
@@ -412,11 +412,11 @@ BattleRNG autoload deleted. Zero remaining consumers.
 
 ### 3b.4: Tier 4 Deletions
 
-- [x] Delete `scripts/ui/battle/spell_targeting_manager.gd` (375 LOC) + `.uid`
+- [x] Delete `scripts/battle/ui/spell_targeting_manager.gd` (375 LOC) + `.uid`
 - [x] Remove `SpellTargetingManager` autoload from `project.godot`
 - [x] Delete `scripts/managers/redirect_manager.gd` (402 LOC) + `.uid`
 - [x] Remove `RedirectManager` autoload from `project.godot`
-- [x] Delete `scripts/ui/battle/battlefield_drop_zone.gd` (515 LOC) + `.uid`
+- [x] Delete `scripts/battle/ui/battlefield_drop_zone.gd` (515 LOC) + `.uid`
 - [x] Delete `scripts/multiplayer/rng/battle_rng.gd` (207 LOC) + `.uid`
 - [x] Delete `scripts/multiplayer/rng/rng_domain.gd` (30 LOC) + `.uid`
 - [x] Remove `BattleRNG` autoload from `project.godot`
@@ -424,11 +424,11 @@ BattleRNG autoload deleted. Zero remaining consumers.
 - [x] Delete `scripts/core/player_input_3d.gd` (95 LOC) + `.uid`
 
 **Scene file updates (5 files) — replace BattlefieldDropZone with InputCollector:**
-- [x] `scenes/ui/battle/battle_hud.tscn`
-- [x] `scenes/battlefield/dev/test_collision.tscn`
-- [x] `scenes/battlefield/dev/test_battle_abilities.tscn`
-- [x] `scenes/battlefield/dev/test_battle_vfx.tscn`
-- [x] `scenes/test/rally_guard_test.tscn`
+- [x] `scenes/battle/ui/battle_hud.tscn`
+- [x] `scenes/battle/battlefield/dev/test_collision.tscn`
+- [x] `scenes/battle/battlefield/dev/test_battle_abilities.tscn`
+- [x] `scenes/battle/battlefield/dev/test_battle_vfx.tscn`
+- [x] `scenes/battle/debug/rally_guard_test.tscn`
 
 ### Gate: Tier 4 Complete ✅
 
