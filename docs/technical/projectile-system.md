@@ -6,6 +6,19 @@ Technical documentation for the projectile system including movement, accelerati
 
 Projectile simulation is managed by `SimProjectile` (in the simulation layer) and visual presentation by `ProjectileVisual` (in the view layer). Each projectile type is defined in `ProjectileDefinitions.cs` (static C# definitions) and accessed via `ProjectileCatalog` (C# autoload).
 
+## Multiplayer Sync Model
+
+In multiplayer, projectile gameplay remains host-authoritative in simulation, but projectile visuals on clients now use lifecycle messages instead of full per-snapshot projectile state.
+
+- Host keeps full `MatchState.Projectiles` and runs `SimProjectile` for hit/damage truth.
+- Regular `StateSnapshot` sync focuses on summoners/units and does not carry active projectile arrays.
+- Host broadcasts projectile lifecycle messages:
+  - `ProjectileSpawned` (seed visual flight state)
+  - `ProjectileImpact` (trigger impact reaction)
+  - `ProjectileDespawned` (cleanup fallback)
+- On reconnect, host sends `ProjectileSeedSnapshot` (`ActiveProjectileSeed[]`) so clients can rebuild currently active projectile visuals.
+- Client reconstructs visual projectile state from these messages and advances flight locally for render smoothness.
+
 ## Spell Projectile Execution Path
 
 Damage spells with `SpellProjectileId` now route through simulated projectiles instead of immediate direct damage.
@@ -27,7 +40,7 @@ Current targeting behavior:
 Notes:
 
 - A one-tick startup hold (`TimeAlive = -1`) is applied at spawn so new projectiles are visible for at least one render frame before simulation movement/expiry.
-- For spell projectile paths, speed is clamped to a minimum needed to reach the resolved target within projectile lifetime because sim-side acceleration curves are not yet modeled for spell casting.
+- Sim-side projectile speed now honors both acceleration (`speed + acceleration * delta`, with `min_speed` floor on deceleration) and speed easing (`speed_start/speed_end/speed_transition_duration/speed_easing/speed_ease_exponent`), matching projectile definition behavior.
 
 ## Projectile Data Properties
 

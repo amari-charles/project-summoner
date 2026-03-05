@@ -7,6 +7,9 @@ namespace Fateforged.Multiplayer.Protocol;
 /// These messages form the contract between host and client.
 /// Transport-agnostic: works for P2P, Nakama relay, or dedicated server.
 /// </summary>
+public interface IProtocolMessage;
+public interface IRealtimeProtocolMessage : IProtocolMessage;
+public interface IReconnectSeedProtocolMessage : IProtocolMessage;
 
 // ============================================================================
 // CLIENT → HOST MESSAGES
@@ -26,12 +29,12 @@ public readonly record struct CardPlayRequest(
     int CardIndex,
     Vector3 Position,
     long ClientTimestamp
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Client wants to forfeit/surrender the match.
 /// </summary>
-public readonly record struct ForfeitRequest(int PlayerIndex);
+public readonly record struct ForfeitRequest(int PlayerIndex) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Client reports their computed state hash for desync detection.
@@ -40,12 +43,12 @@ public readonly record struct StateHashReport(
     int PlayerIndex,
     long Frame,
     int Hash
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Client signals they are ready to start the match.
 /// </summary>
-public readonly record struct PlayerReady(int PlayerIndex, bool IsReady);
+public readonly record struct PlayerReady(int PlayerIndex, bool IsReady) : IRealtimeProtocolMessage;
 
 
 // ============================================================================
@@ -62,7 +65,7 @@ public readonly record struct CardPlayConfirmed(
     Vector3 Position,
     long ServerFrame,
     int SpawnedUnitNetworkId
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Host rejects a card play (not enough mana, invalid position, etc.)
@@ -71,7 +74,7 @@ public readonly record struct CardPlayRejected(
     int Sequence,
     int PlayerIndex,
     string Reason
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Periodic state snapshot for synchronization and desync correction.
@@ -87,7 +90,7 @@ public readonly record struct StateSnapshot(
     ProjectileState[] Projectiles,
     int StateHash,
     bool IsOvertime
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// A unit was spawned (from card play).
@@ -102,7 +105,7 @@ public readonly record struct UnitSpawned(
     int? SourceSequence,
     int? SourcePlayerIndex,
     float SpawnDuration
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// A unit died.
@@ -110,7 +113,7 @@ public readonly record struct UnitSpawned(
 public readonly record struct UnitDied(
     int NetworkId,
     int? KillerNetworkId
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Damage was dealt to a unit or summoner.
@@ -121,7 +124,7 @@ public readonly record struct DamageDealt(
     float Amount,
     bool IsCrit,
     int? SourceNetworkId
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Summoner took direct damage.
@@ -130,7 +133,7 @@ public readonly record struct SummonerDamaged(
     int Team,
     float Amount,
     float NewHp
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Summoner took damage — triggers visual flash on client.
@@ -140,7 +143,7 @@ public readonly record struct SummonerDamageFlash(
     int Team,
     float Damage,
     int AttackerUnitId
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Summoner was destroyed — triggers death animation on client.
@@ -148,7 +151,7 @@ public readonly record struct SummonerDamageFlash(
 public readonly record struct SummonerDestroyed(
     int Team,
     int KillerUnitId
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Match has ended.
@@ -157,7 +160,82 @@ public readonly record struct MatchEnded(
     int WinnerIndex,
     string Reason,
     float Duration
+) : IRealtimeProtocolMessage;
+
+/// <summary>
+/// Authoritative projectile spawn message for client-side visual simulation.
+/// </summary>
+public readonly record struct ProjectileSpawned(
+    int ProjectileId,
+    int SourceUnitId,
+    int TargetUnitId,
+    int Team,
+    int MovementType,
+    Vector3 CurrentPosition,
+    Vector3 Direction,
+    Vector3 TargetPosition,
+    float Speed,
+    string ProjectileCatalogId = "",
+    float Acceleration = 0f,
+    float MinSpeed = 1f,
+    bool UseSpeedEasing = false,
+    float SpeedStart = 0f,
+    float SpeedEnd = 0f,
+    float SpeedTransitionDuration = 1f,
+    int SpeedEasing = 0,
+    float SpeedEaseExponent = 2f,
+    float TimeAlive = 0f,
+    float Lifetime = 5f
+) : IRealtimeProtocolMessage;
+
+/// <summary>
+/// Authoritative projectile hit message for client-side impact visuals.
+/// </summary>
+public readonly record struct ProjectileImpact(
+    int ProjectileId,
+    int TargetUnitId
+) : IRealtimeProtocolMessage;
+
+/// <summary>
+/// Authoritative projectile removal message for cleanup on clients.
+/// </summary>
+public readonly record struct ProjectileDespawned(
+    int ProjectileId
+) : IRealtimeProtocolMessage;
+
+/// <summary>
+/// Seed state for one active projectile used after reconnect/late join recovery.
+/// </summary>
+public readonly record struct ActiveProjectileSeed(
+    int ProjectileId,
+    int SourceUnitId,
+    int TargetUnitId,
+    int Team,
+    int MovementType,
+    Vector3 CurrentPosition,
+    Vector3 Direction,
+    Vector3 TargetPosition,
+    float Speed,
+    string ProjectileCatalogId = "",
+    float Acceleration = 0f,
+    float MinSpeed = 1f,
+    bool UseSpeedEasing = false,
+    float SpeedStart = 0f,
+    float SpeedEnd = 0f,
+    float SpeedTransitionDuration = 1f,
+    int SpeedEasing = 0,
+    float SpeedEaseExponent = 2f,
+    float TimeAlive = 0f,
+    float Lifetime = 5f
 );
+
+/// <summary>
+/// Full active projectile seed snapshot sent after reconnect to rebuild client visuals.
+/// </summary>
+public readonly record struct ProjectileSeedSnapshot(
+    long Frame,
+    ActiveProjectileSeed[] Projectiles
+) : IReconnectSeedProtocolMessage;
 
 
 // ============================================================================
@@ -172,7 +250,7 @@ public readonly record struct MatchStarted(
     string MatchId,
     string[] PlayerIds,
     string[] SummonerIds
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Player info exchange during lobby.
@@ -182,13 +260,13 @@ public readonly record struct PlayerInfo(
     string PlayerId,
     string DisplayName,
     string SummonerId
-);
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Ping/pong for latency measurement.
 /// </summary>
-public readonly record struct Ping(long Timestamp);
-public readonly record struct Pong(long OriginalTimestamp, long ServerTimestamp);
+public readonly record struct Ping(long Timestamp) : IRealtimeProtocolMessage;
+public readonly record struct Pong(long OriginalTimestamp, long ServerTimestamp) : IRealtimeProtocolMessage;
 
 
 // ============================================================================
@@ -252,7 +330,17 @@ public readonly record struct ProjectileState(
     float Progress,
     float Speed,
     bool IsDead,
-    string ProjectileCatalogId = ""
+    string ProjectileCatalogId = "",
+    float Acceleration = 0f,
+    float MinSpeed = 1f,
+    bool UseSpeedEasing = false,
+    float SpeedStart = 0f,
+    float SpeedEnd = 0f,
+    float SpeedTransitionDuration = 1f,
+    int SpeedEasing = 0,
+    float SpeedEaseExponent = 2f,
+    float TimeAlive = 0f,
+    float Lifetime = 5f
 );
 
 
@@ -279,6 +367,10 @@ public enum MessageType : byte
     MatchEnded = 17,
     SummonerDamageFlash = 18,
     SummonerDestroyed = 19,
+    ProjectileSpawned = 24,
+    ProjectileImpact = 25,
+    ProjectileDespawned = 26,
+    ProjectileSeedSnapshot = 27,
 
     // Bidirectional
     MatchStarted = 20,

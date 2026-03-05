@@ -674,7 +674,11 @@ public class Simulation
 
         var projectileData = ProjectileDefinitions.Get(cardData.SpellProjectileId);
         if (projectileData == null)
-            return false;
+        {
+            Log?.Invoke(
+                $"[Simulation] ERROR: Spell '{cardData.CatalogId}' references unknown projectile '{cardData.SpellProjectileId}'.");
+            return true;
+        }
 
         float spawnSpeed = projectileData.Speed;
         var summoner = _state.Summoners[team];
@@ -692,22 +696,19 @@ public class Simulation
             {
                 var targets = ResolveSpellTargets(cardData, effect, team, castPosition, targetUnitId);
                 if (targets.Count == 0)
-                    return false;
+                    return true;
 
                 var target = targets[0];
                 resolvedTargetUnitId = target.UnitId;
                 targetPos = target.Position;
-
-                // Simulation projectiles do not currently apply acceleration curves.
-                // Ensure spell projectiles can still reach the resolved target within lifetime.
-                float minSpeedToReach = startPos.DistanceTo(targetPos) / MathF.Max(projectileData.Lifetime, 0.1f);
-                spawnSpeed = MathF.Max(spawnSpeed, minSpeedToReach);
                 break;
             }
 
             default:
                 // Only Position and NearestEnemy projectile spells are supported right now.
-                return false;
+                Log?.Invoke(
+                    $"[Simulation] ERROR: Projectile spell '{cardData.CatalogId}' uses unsupported targeting mode '{cardData.SpellTargetingMode}'.");
+                return true;
         }
 
         if (projectileData.SpawnAtTargetHeight)
@@ -733,7 +734,14 @@ public class Simulation
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,
             veerDuration: projectileData.VeerDuration,
-            projectileCatalogId: cardData.SpellProjectileId
+            projectileCatalogId: cardData.SpellProjectileId,
+            acceleration: projectileData.Acceleration,
+            minSpeed: projectileData.MinSpeed,
+            speedStart: projectileData.SpeedStart,
+            speedEnd: projectileData.SpeedEnd,
+            speedTransitionDuration: projectileData.SpeedTransitionDuration,
+            speedEasing: projectileData.SpeedEasing,
+            speedEaseExponent: projectileData.SpeedEaseExponent
         );
 
         return true;

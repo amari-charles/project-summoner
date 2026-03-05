@@ -197,6 +197,103 @@ public class MessageSerializerTest
     }
 
     [TestCase]
+    public void ProjectileSpawned_RoundTrip()
+    {
+        var original = new ProjectileSpawned(
+            ProjectileId: 99,
+            SourceUnitId: 10,
+            TargetUnitId: -2,
+            Team: 0,
+            MovementType: 0,
+            CurrentPosition: new Vector3(-4f, 0.5f, 1f),
+            Direction: new Vector3(1f, 0f, 0f),
+            TargetPosition: new Vector3(5f, 0f, 1f),
+            Speed: 9f,
+            ProjectileCatalogId: "weaving_bolt",
+            Acceleration: 5f,
+            MinSpeed: 2f,
+            UseSpeedEasing: true,
+            SpeedStart: 7f,
+            SpeedEnd: 13f,
+            SpeedTransitionDuration: 0.75f,
+            SpeedEasing: 2,
+            SpeedEaseExponent: 2.2f,
+            TimeAlive: 0.33f,
+            Lifetime: 4.0f
+        );
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<ProjectileSpawned>();
+        var typed = (ProjectileSpawned)result;
+        AssertThat(typed.ProjectileId).IsEqual(99);
+        AssertThat(typed.ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(typed.CurrentPosition.X).IsEqual(-4f);
+        AssertThat(typed.Speed).IsEqual(9f);
+        AssertThat(typed.UseSpeedEasing).IsTrue();
+        AssertThat(typed.SpeedEnd).IsEqual(13f);
+    }
+
+    [TestCase]
+    public void ProjectileImpact_RoundTrip()
+    {
+        var original = new ProjectileImpact(ProjectileId: 88, TargetUnitId: 123);
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<ProjectileImpact>();
+        var typed = (ProjectileImpact)result;
+        AssertThat(typed.ProjectileId).IsEqual(88);
+        AssertThat(typed.TargetUnitId).IsEqual(123);
+    }
+
+    [TestCase]
+    public void ProjectileDespawned_RoundTrip()
+    {
+        var original = new ProjectileDespawned(ProjectileId: 77);
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<ProjectileDespawned>();
+        var typed = (ProjectileDespawned)result;
+        AssertThat(typed.ProjectileId).IsEqual(77);
+    }
+
+    [TestCase]
+    public void ProjectileSeedSnapshot_RoundTrip()
+    {
+        var original = new ProjectileSeedSnapshot(
+            Frame: 123L,
+            Projectiles:
+            [
+                new ActiveProjectileSeed(
+                    ProjectileId: 99,
+                    SourceUnitId: 10,
+                    TargetUnitId: -2,
+                    Team: 0,
+                    MovementType: 0,
+                    CurrentPosition: new Vector3(-4f, 0.5f, 1f),
+                    Direction: new Vector3(1f, 0f, 0f),
+                    TargetPosition: new Vector3(5f, 0f, 1f),
+                    Speed: 9f,
+                    ProjectileCatalogId: "weaving_bolt")
+            ]);
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<ProjectileSeedSnapshot>();
+        var typed = (ProjectileSeedSnapshot)result;
+        AssertThat(typed.Frame).IsEqual(123L);
+        AssertThat(typed.Projectiles.Length).IsEqual(1);
+        AssertThat(typed.Projectiles[0].ProjectileId).IsEqual(99);
+        AssertThat(typed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
+    }
+
+    [TestCase]
     public void DamageDealt_RoundTrip()
     {
         var original = new DamageDealt(
@@ -349,6 +446,7 @@ public class MessageSerializerTest
         {
             new ProjectileState(
                 ProjectileId: 10,
+                ProjectileCatalogId: "weaving_bolt",
                 SourceUnitId: 1,
                 TargetUnitId: 2,
                 Team: 0,
@@ -358,7 +456,17 @@ public class MessageSerializerTest
                 TargetPosition: new Vector3(5f, 0f, 5f),
                 Progress: 0.25f,
                 Speed: 7f,
-                IsDead: false)
+                IsDead: false,
+                Acceleration: 6f,
+                MinSpeed: 2f,
+                UseSpeedEasing: true,
+                SpeedStart: 5f,
+                SpeedEnd: 20f,
+                SpeedTransitionDuration: 0.8f,
+                SpeedEasing: 1,
+                SpeedEaseExponent: 2.25f,
+                TimeAlive: 0.3f,
+                Lifetime: 3f)
         };
 
         var original = new StateSnapshot(
@@ -408,11 +516,7 @@ public class MessageSerializerTest
         AssertThat(typed.Units[0].IsFacingRight).IsTrue();
         AssertThat(typed.Units[1].BehaviorState).IsEqual(3);
         AssertThat(typed.Units[1].IsFacingRight).IsFalse();
-        AssertThat(typed.Projectiles.Length).IsEqual(1);
-        AssertThat(typed.Projectiles[0].ProjectileId).IsEqual(10);
-        AssertThat(typed.Projectiles[0].CurrentPosition.X).IsEqual(2f);
-        AssertThat(typed.Projectiles[0].Direction.X).IsEqual(1f);
-        AssertThat(typed.Projectiles[0].TargetPosition.Z).IsEqual(5f);
+        AssertThat(typed.Projectiles.Length).IsEqual(0);
     }
 
     [TestCase]
@@ -429,7 +533,7 @@ public class MessageSerializerTest
     [TestCase]
     public void Serialize_ThrowsForUnknownType()
     {
-        var unknownObj = new object();
+        var unknownObj = (IProtocolMessage)new UnknownProtocolMessage();
 
         AssertThrown(() => _serializer.Serialize(unknownObj))
             .IsInstanceOf<ArgumentException>();
@@ -483,6 +587,7 @@ public class MessageSerializerTest
         {
             new ProjectileState(
                 ProjectileId: 4,
+                ProjectileCatalogId: "mana_bolt",
                 SourceUnitId: 1,
                 TargetUnitId: -2,
                 Team: 0,
@@ -492,7 +597,17 @@ public class MessageSerializerTest
                 TargetPosition: new Vector3(1.5f, 0.2f, 4f),
                 Progress: 0.6f,
                 Speed: 12f,
-                IsDead: false)
+                IsDead: false,
+                Acceleration: -3f,
+                MinSpeed: 4f,
+                UseSpeedEasing: false,
+                SpeedStart: 12f,
+                SpeedEnd: 12f,
+                SpeedTransitionDuration: 1f,
+                SpeedEasing: 0,
+                SpeedEaseExponent: 2f,
+                TimeAlive: 1.2f,
+                Lifetime: 2.5f)
         };
 
         var original = new StateSnapshot(
@@ -508,8 +623,8 @@ public class MessageSerializerTest
         AssertThat(result.Units[0].Position.X).IsEqual(4.5f);
         AssertThat(result.Units[0].Position.Y).IsEqual(0f);
         AssertThat(result.Units[0].Position.Z).IsEqual(8.25f);
-        AssertThat(result.Projectiles[0].CurrentPosition.X).IsEqual(1.5f);
-        AssertThat(result.Projectiles[0].CurrentPosition.Z).IsEqual(-2.25f);
-        AssertThat(result.Projectiles[0].TargetPosition.Z).IsEqual(4f);
+        AssertThat(result.Projectiles.Length).IsEqual(0);
     }
 }
+
+public readonly record struct UnknownProtocolMessage : IProtocolMessage;

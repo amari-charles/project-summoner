@@ -302,11 +302,89 @@ public class SimulationIntegrationTest
 
         AssertThat(_state.Projectiles.Count).IsEqual(1);
         AssertThat(enemy.CurrentHp).IsEqual(enemy.MaxHp);
+        var initialProjectile = _state.Projectiles.Values.First();
+        AssertThat(initialProjectile.Speed).IsEqual(4f); // ManaBolt base Speed from projectile defs
+
+        _sim.Tick(Delta);
+        var acceleratedProjectile = _state.Projectiles.Values.First();
+        AssertThat(acceleratedProjectile.Speed).IsGreater(4f); // Acceleration is applied in sim
 
         for (int i = 0; i < 240 && enemy.CurrentHp >= enemy.MaxHp; i++)
             _sim.Tick(Delta);
 
         AssertThat(enemy.CurrentHp).IsLess(enemy.MaxHp);
+    }
+
+    [TestCase]
+    public void Tick_SpellCard_WeavingBolt_UsesSpeedEasingCurve()
+    {
+        var spell = SimTestHelper.CreateSpellCard(
+            "projectile_weaving_spell",
+            manaCost: 3,
+            damage: 35f,
+            radius: 0f,
+            targetingMode: SpellTargetingMode.NearestEnemy,
+            spellProjectileId: "weaving_bolt");
+        _state.CardDataMap["projectile_weaving_spell"] = spell;
+        _state.Summoners[0].Hand = new List<string> { "projectile_weaving_spell" };
+        _state.Summoners[0].Deck = new List<string> { "projectile_weaving_spell" };
+
+        // Keep target far enough so projectile remains alive while easing ramps.
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 45f, z: 0f);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(45f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+        var projectile = _state.Projectiles.Values.First();
+        AssertThat(projectile.Speed).IsEqual(28f); // WeavingBolt SpeedStart
+
+        float maxObservedSpeed = projectile.Speed;
+        for (int i = 0; i < 80; i++)
+        {
+            _sim.Tick(Delta);
+            if (_state.Projectiles.Count == 0)
+                break;
+            var p = _state.Projectiles.Values.First();
+            if (p.Speed > maxObservedSpeed)
+                maxObservedSpeed = p.Speed;
+        }
+
+        // Ease-in curve should accelerate above start speed toward SpeedEnd (60).
+        AssertThat(maxObservedSpeed).IsGreater(40f);
+        AssertThat(maxObservedSpeed).IsLessEqual(60f);
+    }
+
+    [TestCase]
+    public void Tick_SpellCard_InvalidProjectileId_DoesNotFallbackToInstantDamage()
+    {
+        var spell = SimTestHelper.CreateSpellCard(
+            "invalid_projectile_spell",
+            manaCost: 4,
+            damage: 40f,
+            radius: 8f,
+            targetingMode: SpellTargetingMode.Position,
+            spellProjectileId: "missing_projectile");
+        _state.CardDataMap["invalid_projectile_spell"] = spell;
+        _state.Summoners[0].Hand = new List<string> { "invalid_projectile_spell" };
+        _state.Summoners[0].Deck = new List<string> { "invalid_projectile_spell" };
+
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(0);
+        AssertThat(enemy.CurrentHp).IsEqual(enemy.MaxHp);
     }
 
     // =========================================================================

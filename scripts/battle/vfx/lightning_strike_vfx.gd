@@ -10,9 +10,6 @@ class_name LightningStrikeVFX
 ## Runtime state (received via receive_data)
 var start_position: Vector3 = Vector3.ZERO
 var end_position: Vector3 = Vector3.ZERO
-var spell_damage: float = 0.0
-var spell_team: int = 0
-var target_unit: Node3D = null
 
 ## Internal references
 var bolt_mesh: MeshInstance3D = null
@@ -43,18 +40,6 @@ func receive_data(data: Dictionary) -> void:
 	if data.has("end_position") and data.end_position is Vector3:
 		end_position = data.end_position
 
-	if data.has("damage"):
-		if data.damage is float:
-			spell_damage = data.damage
-		elif data.damage is int:
-			spell_damage = float(data.damage)
-
-	if data.has("team") and data.team is int:
-		spell_team = data.team
-
-	if data.has("target") and data.target is Node3D:
-		target_unit = data.target
-
 ## Start the lightning effect
 func _on_play() -> void:
 	if not bolt_mesh or not bolt_material:
@@ -68,9 +53,6 @@ func _on_play() -> void:
 	# Set shader to full visibility
 	bolt_material.set_shader_parameter("alpha", 1.0)
 	bolt_mesh.visible = true
-
-	# Apply damage immediately (lightning is instant)
-	_apply_damage()
 
 	# Animate: brief hold, then fade out
 	if animation_tween:
@@ -113,18 +95,6 @@ func _setup_bolt_geometry() -> void:
 	# QuadMesh default is 2x2, so we scale Y to length and X for width
 	bolt_mesh.scale = Vector3(1.0, length / 2.0, 1.0)
 
-## Apply single-target damage
-func _apply_damage() -> void:
-	if not target_unit or not is_instance_valid(target_unit):
-		return
-
-	if spell_damage <= 0:
-		return
-
-	# Apply damage to C# Unit3D (duck-typed since GDScript can't reference C# types directly)
-	if target_unit.has_method("TakeDamage"):
-		target_unit.TakeDamage(spell_damage)
-
 ## Update shader alpha (called by tween)
 func _set_alpha(value: float) -> void:
 	if bolt_material:
@@ -149,6 +119,3 @@ func _on_reset() -> void:
 	# Clear runtime state
 	start_position = Vector3.ZERO
 	end_position = Vector3.ZERO
-	spell_damage = 0.0
-	spell_team = 0
-	target_unit = null

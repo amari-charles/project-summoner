@@ -1675,6 +1675,73 @@ Synchronous `load()` calls block the entire game during battle startup, causing 
 
 ### 🟢 LOW PRIORITY
 
+#### Introduce Battle Composition Root + Dependency Injection
+**Status:** ⬜ Not Started
+**Category:** Architecture / Maintainability
+**Effort:** Medium
+
+**Description:**
+Battle systems still rely on service-locator style autoload lookups (`/root/...`) inside runtime systems (EntityManager, BattleScene, session wiring). This couples systems to scene tree naming and makes tests harder to isolate.
+
+**Proposed Fix:**
+- Define small service interfaces for battle dependencies (`IVfxService`, `IAudioService`, etc.)
+- Resolve autoload nodes once in a composition root (`BattleScene`/factory layer)
+- Inject typed dependencies into runtime systems instead of looking up autoloads from inside those systems
+- Keep dynamic `Call()` isolated behind adapter classes at interop boundaries
+
+**Related Files:**
+- `scripts/csharp/Battle/View/BattleScene.cs`
+- `scripts/csharp/Battle/View/EntityManager.cs`
+- `scripts/csharp/Battle/Session/BattleSessionFactory.cs`
+
+**Notes:**
+- Do this incrementally during normal battle refactors, not as one large rewrite.
+- Team decision: use lightweight, feature-scoped DI (small interfaces + explicit `Init(...)` injection from `BattleScene`).
+- Team decision: avoid a large global `GameServices` container; it can become another service locator.
+- Team decision: apply DI first to high fan-out battle services (`VFX`, `Audio`, session-related adapters), then expand only when it reduces duplication.
+
+---
+
+#### Move Tutorial Dialogue Triggers to Sim Events
+**Status:** ⬜ Not Started
+**Category:** Architecture / Battle Flow
+**Effort:** Medium
+
+**Description:**
+`battle_dialogue_controller.gd` still evaluates gameplay proximity conditions from scene nodes in `_process`. This is high-level orchestration logic, but trigger criteria are gameplay-derived and should come from simulation events/state to avoid visual/sim drift.
+
+**Proposed Fix:**
+- Emit explicit sim-side event(s) for tutorial trigger conditions (example: enemy entered base threat radius)
+- Consume those events in battle dialogue controller (or a dedicated bridge)
+- Remove per-frame node-group distance scans from GDScript
+
+**Related Files:**
+- `scripts/battle/battle_dialogue_controller.gd`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+- `scripts/csharp/Battle/View/EntityManager.cs`
+
+---
+
+#### Consolidate Battlefield Spawn Rules to C# Source-of-Truth
+**Status:** ⬜ Not Started
+**Category:** Architecture / Consistency
+**Effort:** Small
+
+**Description:**
+`battlefield_constants.gd` still carries spawn-rule helpers (`is_valid_spawn_position_for_team`, `clamp_spawn_position_for_team`) that mirror C# `BattlefieldBounds`. Mirrored rule logic can drift and bypass debug flags.
+
+**Proposed Fix:**
+- Keep visual constants in `battlefield_constants.gd` (overlay offsets, sizes)
+- Remove or deprecate spawn-rule helpers from GDScript
+- Route all spawn validation/clamping through `BattlefieldBounds` in C#
+
+**Related Files:**
+- `scripts/battle/battlefield/battlefield_constants.gd`
+- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs`
+- `scripts/csharp/Battle/Input/InputCollector.cs`
+
+---
+
 #### Replace /root/VFXManager Lookup in ProjectileVisual
 **Status:** ⬜ Not Started
 **Category:** Architecture / Maintainability

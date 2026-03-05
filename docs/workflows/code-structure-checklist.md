@@ -463,6 +463,69 @@ When migrating from `string` to typed IDs:
 
 ---
 
+## 14. Duplicate Rule Sources Across Layers
+
+**Bad:** Re-implementing gameplay constraints in multiple places (input, sim, debug UI) with slightly different logic.
+
+```csharp
+// DON'T DO THIS
+if (team == 0 && pos.X <= 0f) ...
+if (team == 1 && pos.X > 0f) ...
+// Same rules duplicated elsewhere with different edge handling
+```
+
+**Why it's bad:**
+- Debug toggles only affect one path
+- Preview/validation/clamping drift apart
+- Fixes land in one layer but regress in another
+
+**Fix:** Use one shared authority for each rule domain (for example, `BattlefieldBounds`) and route all callers through it:
+- Input validation
+- Preview coloring and clamping
+- Debug bypass toggles
+- Server/sim guard rails
+
+---
+
+## 15. Snapshot Payload Bloat from Visual-Only State
+
+**Bad:** Sending high-frequency visual/transient data in every state snapshot by default.
+
+```csharp
+// DON'T DO THIS FOR PURE VISUALS
+StateSnapshot(..., Projectiles: allActiveProjectiles, ...)
+```
+
+**Why it's bad:**
+- Bandwidth scales with effect count, not gameplay authority
+- Client interpolation cost grows with cosmetic intensity
+- Reconnect and regular sync concerns get mixed together
+
+**Fix:** Default to event-driven visuals for non-authoritative entities. Add explicit reconnect seed messages only when needed:
+- Runtime: spawn/impact/despawn events
+- Reconnect: compact seed list of currently active visuals
+- Snapshot: authoritative gameplay state only
+
+---
+
+## 16. Protocol Messages Without Replay/Reconnect Contract
+
+**Bad:** Adding new message/event types without defining how reconnect/replay should reconstruct client view state.
+
+**Why it's bad:**
+- Mid-match reconnects lose transient state
+- Different systems implement ad-hoc recovery paths
+- Networking behavior becomes implicit and brittle
+
+**Fix:** Each networked message type should explicitly declare one of:
+- Fully reconstructible from snapshot state
+- Requires dedicated reconnect seed payload
+- Fire-and-forget visual event (no recovery expected)
+
+Document this in protocol comments and enforce it in session handlers/tests.
+
+---
+
 ## Quick Reference Checklist
 
 Use during PR reviews:
@@ -480,3 +543,6 @@ Use during PR reviews:
 - [ ] Internal state not exposed through public API
 - [ ] Input validated at system boundaries
 - [ ] Domain IDs are strongly-typed (not raw strings)
+- [ ] Gameplay rules have one shared authority (no duplicated boundary logic)
+- [ ] Visual-only/transient state is not bloating regular snapshots
+- [ ] Every protocol message has explicit reconnect/replay behavior

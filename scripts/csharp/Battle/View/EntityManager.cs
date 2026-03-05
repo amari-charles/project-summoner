@@ -268,7 +268,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             ? simNode.SimToLocal(e.Position)
             : new Vector3(e.Position.X, e.Position.Y, e.Position.Z);
 
-        var vfxManager = GetNodeOrNull("/root/VFXManager");
+        var vfxManager = ResolveVfxManager();
         if (vfxManager == null || !vfxManager.HasMethod("play_effect"))
             return;
 
@@ -277,6 +277,15 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             customData["radius"] = card.SpellRadius;
 
         vfxManager.Call("play_effect", (string)card.SpellVfx, localPos, customData);
+    }
+
+    private Node? ResolveVfxManager()
+    {
+        var tree = GetTree();
+        if (tree == null)
+            return null;
+
+        return tree.Root.GetNodeOrNull("VFXManager");
     }
 
     public void Visit(DelayedEffectFiredEvent e)

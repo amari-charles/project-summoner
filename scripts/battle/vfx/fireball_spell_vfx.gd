@@ -5,7 +5,6 @@ extends VFXInstance
 @export var fall_duration: float = 0.8  ## How long the descent takes
 @export var start_offset: Vector3 = Vector3(-15, 25, 0)  ## Offset from target for start position
 @export var sprite_rotation_degrees: float = 0.0  ## Rotation of the sprite in degrees (Z-axis)
-@export var damage: float = 100.0  ## AOE damage on impact
 @export var damage_radius: float = 10.0  ## Fallback radius for AOE indicator sizing (overridden by Card's spell_radius at runtime)
 @export var explosion_vfx_id: String = VFXIDs.FIREBALL_EXPLOSION  ## VFX to spawn on impact
 @export var camera_shake_intensity: float = 0.2  ## Camera shake strength
@@ -18,11 +17,6 @@ var animated_sprite: AnimatedSprite3D = null
 var aoe_indicator: MeshInstance3D = null
 var tween: Tween = null
 var fade_tween: Tween = null  # Track fade tween for proper cleanup
-
-# Damage parameters (received from Card via receive_data)
-var spell_damage: float = 0.0
-var spell_team: int = 0  # UnitConstants.Team enum value
-var spell_battlefield: Node = null
 
 func _ready() -> void:
 	# Find child nodes
@@ -58,19 +52,6 @@ func receive_data(data: Dictionary) -> void:
 		else:
 			push_warning("FireballSpellVFX: Invalid radius type: %s (expected float or int)" % typeof(data.radius))
 
-	# Accept damage parameters from Card
-	if data.has("damage"):
-		if data.damage is float:
-			spell_damage = data.damage
-		elif data.damage is int:
-			spell_damage = data.damage  # Implicit int-to-float conversion
-
-	if data.has("team") and data.team is int:
-		spell_team = data.team
-
-	if data.has("battlefield") and data.battlefield is Node:
-		spell_battlefield = data.battlefield
-
 ## Override _on_play to start the descent animation
 func _on_play() -> void:
 	if not animated_sprite:
@@ -105,9 +86,6 @@ func _on_play() -> void:
 
 ## Called when fireball reaches target position
 func _on_impact() -> void:
-	# Apply AOE damage at impact
-	_apply_aoe_damage()
-
 	# Show and position AOE indicator at impact location
 	if aoe_indicator:
 		# Dynamically scale the indicator to match damage radius
@@ -166,40 +144,11 @@ func _on_impact() -> void:
 				stop()
 			)
 
-	# NOTE: VFX now handles damage application directly at impact
-	# This ensures perfect timing synchronization between visuals and gameplay
+	# Gameplay damage is resolved by C# simulation/event flow.
+	# This VFX remains visual-only.
 
 	# NOTE: stop() is now called after the AOE indicator fade completes (see fade_tween.finished above)
 	# This keeps the node active long enough for the indicator to be visible
-
-## Apply AOE damage to enemies in range
-func _apply_aoe_damage() -> void:
-	# Validate we have all required parameters
-	if spell_damage <= 0:
-		return  # No damage to apply
-
-	if not spell_battlefield:
-		push_error("FireballSpellVFX: Cannot apply damage - battlefield reference is null")
-		return
-
-	# Get scene tree for group lookup
-	var scene_tree: SceneTree = spell_battlefield.get_tree()
-	if not scene_tree:
-		push_error("FireballSpellVFX: Cannot apply damage - battlefield has no scene tree")
-		return
-
-	# Determine target group based on team
-	var target_group: StringName = GroupIDs.enemy_units_for(spell_team)  # 0 = PLAYER
-	var enemies: Array[Node] = scene_tree.get_nodes_in_group(target_group)
-
-	# Apply damage to all enemies in radius (C# uses PascalCase properties)
-	for enemy: Node in enemies:
-		if "IsAlive" in enemy and "Team" in enemy:
-			var enemy_unit: Node3D = enemy as Node3D
-			if enemy_unit.get("IsAlive"):
-				var distance: float = enemy_unit.global_position.distance_to(target_position)
-				if distance <= damage_radius:
-					enemy_unit.TakeDamage(spell_damage)
 
 ## Override _on_reset for pooling
 func _on_reset() -> void:
@@ -222,8 +171,3 @@ func _on_reset() -> void:
 		aoe_indicator.scale = Vector3.ONE  # Reset scale for next use
 
 	target_position = Vector3.ZERO
-
-	# Reset damage parameters
-	spell_damage = 0.0
-	spell_team = 0
-	spell_battlefield = null

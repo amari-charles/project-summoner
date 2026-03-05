@@ -387,7 +387,14 @@ public static class SimBehavior
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,
             veerDuration: projectileData.VeerDuration,
-            projectileCatalogId: (string)projectileData.ProjectileId
+            projectileCatalogId: (string)projectileData.ProjectileId,
+            acceleration: projectileData.Acceleration,
+            minSpeed: projectileData.MinSpeed,
+            speedStart: projectileData.SpeedStart,
+            speedEnd: projectileData.SpeedEnd,
+            speedTransitionDuration: projectileData.SpeedTransitionDuration,
+            speedEasing: projectileData.SpeedEasing,
+            speedEaseExponent: projectileData.SpeedEaseExponent
         );
     }
 

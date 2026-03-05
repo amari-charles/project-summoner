@@ -14,7 +14,7 @@ public class MessageSerializer
     /// <summary>
     /// Serialize a message to a Dictionary for RPC transmission.
     /// </summary>
-    public Dictionary Serialize(object message)
+    public Dictionary Serialize(IProtocolMessage message)
     {
         var dict = new Dictionary();
 
@@ -72,7 +72,6 @@ public class MessageSerializer
                 dict["prepTime"] = m.PrepTimeRemaining;
                 dict["summoners"] = SerializeSummoners(m.Summoners);
                 dict["units"] = SerializeUnits(m.Units);
-                dict["projectiles"] = SerializeProjectiles(m.Projectiles);
                 dict["hash"] = m.StateHash;
                 dict["overtime"] = m.IsOvertime;
                 break;
@@ -130,6 +129,47 @@ public class MessageSerializer
                 dict["duration"] = m.Duration;
                 break;
 
+            case ProjectileSpawned m:
+                dict["type"] = (int)MessageType.ProjectileSpawned;
+                dict["id"] = m.ProjectileId;
+                dict["catalogId"] = m.ProjectileCatalogId;
+                dict["src"] = m.SourceUnitId;
+                dict["target"] = m.TargetUnitId;
+                dict["team"] = m.Team;
+                dict["move"] = m.MovementType;
+                dict["pos"] = SerializeVector3(m.CurrentPosition);
+                dict["dir"] = SerializeVector3(m.Direction);
+                dict["targetPos"] = SerializeVector3(m.TargetPosition);
+                dict["speed"] = m.Speed;
+                dict["accel"] = m.Acceleration;
+                dict["minSpeed"] = m.MinSpeed;
+                dict["useSpeedEase"] = m.UseSpeedEasing;
+                dict["speedStart"] = m.SpeedStart;
+                dict["speedEnd"] = m.SpeedEnd;
+                dict["speedDur"] = m.SpeedTransitionDuration;
+                dict["speedEase"] = m.SpeedEasing;
+                dict["speedExp"] = m.SpeedEaseExponent;
+                dict["timeAlive"] = m.TimeAlive;
+                dict["lifetime"] = m.Lifetime;
+                break;
+
+            case ProjectileImpact m:
+                dict["type"] = (int)MessageType.ProjectileImpact;
+                dict["id"] = m.ProjectileId;
+                dict["target"] = m.TargetUnitId;
+                break;
+
+            case ProjectileDespawned m:
+                dict["type"] = (int)MessageType.ProjectileDespawned;
+                dict["id"] = m.ProjectileId;
+                break;
+
+            case ProjectileSeedSnapshot m:
+                dict["type"] = (int)MessageType.ProjectileSeedSnapshot;
+                dict["frame"] = m.Frame;
+                dict["projectiles"] = SerializeActiveProjectileSeeds(m.Projectiles);
+                break;
+
             case MatchStarted m:
                 dict["type"] = (int)MessageType.MatchStarted;
                 dict["seed"] = m.Seed;
@@ -167,7 +207,7 @@ public class MessageSerializer
     /// <summary>
     /// Deserialize a Dictionary back to a typed message.
     /// </summary>
-    public object Deserialize(Dictionary dict)
+    public IProtocolMessage Deserialize(Dictionary dict)
     {
         var type = (MessageType)(int)dict["type"];
 
@@ -216,9 +256,7 @@ public class MessageSerializer
                 (float)dict["prepTime"],
                 DeserializeSummoners((Godot.Collections.Array)dict["summoners"]),
                 DeserializeUnits((Godot.Collections.Array)dict["units"]),
-                dict.ContainsKey("projectiles")
-                    ? DeserializeProjectiles((Godot.Collections.Array)dict["projectiles"])
-                    : System.Array.Empty<ProjectileState>(),
+                System.Array.Empty<ProjectileState>(),
                 (int)dict["hash"],
                 (bool)dict["overtime"]
             ),
@@ -267,6 +305,45 @@ public class MessageSerializer
                 (int)dict["winner"],
                 (string)dict["reason"],
                 (float)dict["duration"]
+            ),
+
+            MessageType.ProjectileSpawned => new ProjectileSpawned(
+                ProjectileId: (int)dict["id"],
+                SourceUnitId: dict.ContainsKey("src") ? (int)dict["src"] : -1,
+                TargetUnitId: dict.ContainsKey("target") ? (int)dict["target"] : -1,
+                Team: dict.ContainsKey("team") ? (int)dict["team"] : 0,
+                MovementType: dict.ContainsKey("move") ? (int)dict["move"] : 0,
+                CurrentPosition: DeserializeVector3(dict["pos"]),
+                Direction: dict.ContainsKey("dir") ? DeserializeVector3(dict["dir"]) : Vector3.Zero,
+                TargetPosition: dict.ContainsKey("targetPos") ? DeserializeVector3(dict["targetPos"]) : Vector3.Zero,
+                Speed: dict.ContainsKey("speed") ? (float)dict["speed"] : 0f,
+                ProjectileCatalogId: dict.ContainsKey("catalogId") ? (string)dict["catalogId"] : "",
+                Acceleration: dict.ContainsKey("accel") ? (float)dict["accel"] : 0f,
+                MinSpeed: dict.ContainsKey("minSpeed") ? (float)dict["minSpeed"] : 1f,
+                UseSpeedEasing: dict.ContainsKey("useSpeedEase") && (bool)dict["useSpeedEase"],
+                SpeedStart: dict.ContainsKey("speedStart") ? (float)dict["speedStart"] : 0f,
+                SpeedEnd: dict.ContainsKey("speedEnd") ? (float)dict["speedEnd"] : 0f,
+                SpeedTransitionDuration: dict.ContainsKey("speedDur") ? (float)dict["speedDur"] : 1f,
+                SpeedEasing: dict.ContainsKey("speedEase") ? (int)dict["speedEase"] : 0,
+                SpeedEaseExponent: dict.ContainsKey("speedExp") ? (float)dict["speedExp"] : 2f,
+                TimeAlive: dict.ContainsKey("timeAlive") ? (float)dict["timeAlive"] : 0f,
+                Lifetime: dict.ContainsKey("lifetime") ? (float)dict["lifetime"] : 5f
+            ),
+
+            MessageType.ProjectileImpact => new ProjectileImpact(
+                ProjectileId: (int)dict["id"],
+                TargetUnitId: dict.ContainsKey("target") ? (int)dict["target"] : -1
+            ),
+
+            MessageType.ProjectileDespawned => new ProjectileDespawned(
+                ProjectileId: (int)dict["id"]
+            ),
+
+            MessageType.ProjectileSeedSnapshot => new ProjectileSeedSnapshot(
+                Frame: dict.ContainsKey("frame") ? (long)dict["frame"] : 0L,
+                Projectiles: dict.ContainsKey("projectiles")
+                    ? DeserializeActiveProjectileSeeds((Godot.Collections.Array)dict["projectiles"])
+                    : System.Array.Empty<ActiveProjectileSeed>()
             ),
 
             MessageType.MatchStarted => new MatchStarted(
@@ -419,7 +496,7 @@ public class MessageSerializer
         return units;
     }
 
-    private Godot.Collections.Array SerializeProjectiles(ProjectileState[] projectiles)
+    private Godot.Collections.Array SerializeActiveProjectileSeeds(ActiveProjectileSeed[] projectiles)
     {
         var arr = new Godot.Collections.Array();
         foreach (var p in projectiles)
@@ -435,24 +512,31 @@ public class MessageSerializer
                 ["pos"] = SerializeVector3(p.CurrentPosition),
                 ["dir"] = SerializeVector3(p.Direction),
                 ["targetPos"] = SerializeVector3(p.TargetPosition),
-                ["progress"] = p.Progress,
                 ["speed"] = p.Speed,
-                ["dead"] = p.IsDead
+                ["accel"] = p.Acceleration,
+                ["minSpeed"] = p.MinSpeed,
+                ["useSpeedEase"] = p.UseSpeedEasing,
+                ["speedStart"] = p.SpeedStart,
+                ["speedEnd"] = p.SpeedEnd,
+                ["speedDur"] = p.SpeedTransitionDuration,
+                ["speedEase"] = p.SpeedEasing,
+                ["speedExp"] = p.SpeedEaseExponent,
+                ["timeAlive"] = p.TimeAlive,
+                ["lifetime"] = p.Lifetime
             };
             arr.Add(d);
         }
         return arr;
     }
 
-    private ProjectileState[] DeserializeProjectiles(Godot.Collections.Array arr)
+    private ActiveProjectileSeed[] DeserializeActiveProjectileSeeds(Godot.Collections.Array arr)
     {
-        var projectiles = new ProjectileState[arr.Count];
+        var projectiles = new ActiveProjectileSeed[arr.Count];
         for (int i = 0; i < arr.Count; i++)
         {
             var d = (Dictionary)arr[i];
-            projectiles[i] = new ProjectileState(
+            projectiles[i] = new ActiveProjectileSeed(
                 ProjectileId: (int)d["id"],
-                ProjectileCatalogId: d.ContainsKey("catalogId") ? (string)d["catalogId"] : "",
                 SourceUnitId: d.ContainsKey("src") ? (int)d["src"] : -1,
                 TargetUnitId: d.ContainsKey("target") ? (int)d["target"] : -1,
                 Team: d.ContainsKey("team") ? (int)d["team"] : 0,
@@ -460,9 +544,18 @@ public class MessageSerializer
                 CurrentPosition: DeserializeVector3(d["pos"]),
                 Direction: d.ContainsKey("dir") ? DeserializeVector3(d["dir"]) : Vector3.Zero,
                 TargetPosition: d.ContainsKey("targetPos") ? DeserializeVector3(d["targetPos"]) : Vector3.Zero,
-                Progress: d.ContainsKey("progress") ? (float)d["progress"] : 0f,
                 Speed: d.ContainsKey("speed") ? (float)d["speed"] : 0f,
-                IsDead: d.ContainsKey("dead") && (bool)d["dead"]
+                ProjectileCatalogId: d.ContainsKey("catalogId") ? (string)d["catalogId"] : "",
+                Acceleration: d.ContainsKey("accel") ? (float)d["accel"] : 0f,
+                MinSpeed: d.ContainsKey("minSpeed") ? (float)d["minSpeed"] : 1f,
+                UseSpeedEasing: d.ContainsKey("useSpeedEase") && (bool)d["useSpeedEase"],
+                SpeedStart: d.ContainsKey("speedStart") ? (float)d["speedStart"] : 0f,
+                SpeedEnd: d.ContainsKey("speedEnd") ? (float)d["speedEnd"] : 0f,
+                SpeedTransitionDuration: d.ContainsKey("speedDur") ? (float)d["speedDur"] : 1f,
+                SpeedEasing: d.ContainsKey("speedEase") ? (int)d["speedEase"] : 0,
+                SpeedEaseExponent: d.ContainsKey("speedExp") ? (float)d["speedExp"] : 2f,
+                TimeAlive: d.ContainsKey("timeAlive") ? (float)d["timeAlive"] : 0f,
+                Lifetime: d.ContainsKey("lifetime") ? (float)d["lifetime"] : 5f
             );
         }
         return projectiles;
