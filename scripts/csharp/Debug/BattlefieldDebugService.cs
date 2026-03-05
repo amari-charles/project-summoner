@@ -1,17 +1,25 @@
 using Godot;
 using Fateforged.Constants;
 
-namespace Fateforged.Debug;
+namespace Fateforged.Infrastructure.Debug;
 
 /// <summary>
-/// Debug-only bridge for battlefield tuning toggles.
-/// Exposes shared C# boundary flags to GDScript debug UI via autoload.
+/// Small debug bridge exposed as an autoload so GDScript debug tools can
+/// control BattlefieldBounds static debug flags.
 /// </summary>
 [GlobalClass]
 public partial class BattlefieldDebugService : Node
 {
     public static BattlefieldDebugService? Instance { get; private set; }
 
+    // Unit visualization flags (read by UnitVisual, toggled by DebugMenu).
+    public bool HurtboxEnabled { get; set; }
+    public bool TargetPointEnabled { get; set; }
+    public bool AttackRangeEnabled { get; set; }
+    public bool SeparationRadiusEnabled { get; set; }
+
+    public bool AnyUnitDebugEnabled =>
+        HurtboxEnabled || TargetPointEnabled || AttackRangeEnabled || SeparationRadiusEnabled;
     public override void _Ready()
     {
         Instance = this;
@@ -38,4 +46,20 @@ public partial class BattlefieldDebugService : Node
         BattlefieldBounds.ToggleDebugBypassSpawnBoundary();
         return BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled();
     }
+
+    // Unit debug visualization API (GDScript-callable).
+    public bool IsDebugHurtboxEnabled() => HurtboxEnabled;
+    public bool IsDebugTargetPointEnabled() => TargetPointEnabled;
+    public bool IsDebugAttackRangeEnabled() => AttackRangeEnabled;
+    public bool IsDebugSeparationRadiusEnabled() => SeparationRadiusEnabled;
+
+    public void SetDebugHurtboxEnabled(bool enabled) => HurtboxEnabled = enabled;
+    public void SetDebugTargetPointEnabled(bool enabled) => TargetPointEnabled = enabled;
+    public void SetDebugAttackRangeEnabled(bool enabled) => AttackRangeEnabled = enabled;
+    public void SetDebugSeparationRadiusEnabled(bool enabled) => SeparationRadiusEnabled = enabled;
+
+    public void ToggleDebugHurtbox() => HurtboxEnabled = !HurtboxEnabled;
+    public void ToggleDebugTargetPoint() => TargetPointEnabled = !TargetPointEnabled;
+    public void ToggleDebugAttackRange() => AttackRangeEnabled = !AttackRangeEnabled;
+    public void ToggleDebugSeparationRadius() => SeparationRadiusEnabled = !SeparationRadiusEnabled;
 }

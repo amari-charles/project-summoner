@@ -57,6 +57,16 @@ Shows each unit's attack range as a yellow shape on the ground.
 
 Useful for debugging range issues (e.g., Fire Titans unable to attack each other) and understanding cone constraints.
 
+#### Camera Overlay
+Shows camera pan bounds directly on the battlefield.
+
+- Toggle source: Debug Menu button (`Camera Overlay`)
+- Overlay lives in `CameraController3D` and is debug-build only
+- Green rectangle = configured map bounds (`map_rect_xz`)
+- Red rectangle = current camera ground footprint (optional via `debug_show_camera_footprint_overlay`)
+
+This is intended as a temporary validation aid when adjusting map bounds and pan clamp behavior.
+
 ### Performance Counters
 
 Displays real-time metrics (only when panel is visible):
@@ -69,5 +79,14 @@ Displays real-time metrics (only when panel is visible):
 ## Files
 
 - `scripts/debug/debug_menu.gd` - Main debug menu autoload
-- `scripts/csharp/Battle/View/UnitVisual.cs` - Target point and hitbox visualization
+- `scripts/csharp/Battle/View/UnitVisual.cs` - Unit debug markers (hurtbox, target point, attack range, separation radius)
+- `scripts/csharp/Debug/BattlefieldDebugService.cs` - C# autoload bridge for debug flags used by GDScript + C#
 - `scripts/csharp/Battle/Simulation/Subsystems/SimSpatialGrid.cs` - Grid visualization and perf counters
+- `scripts/battle/battlefield/camera_controller_3d.gd` - Camera clamp math + pan bounds overlay
+
+## Architecture Notes
+
+- `DebugMenu` talks to `BattlefieldDebug` autoload directly (no `/root/...` lookup required in this Node script).
+- `BattlefieldDebugService` owns shared debug flag state.
+- `UnitVisual` reads those flags each frame and creates/frees marker meshes as needed.
+- Camera bounds are computed once by battlefield setup and passed into `CameraController3D` via `set_map_bounds(...)` (single source of truth).

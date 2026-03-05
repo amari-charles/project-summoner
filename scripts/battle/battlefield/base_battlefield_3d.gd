@@ -26,7 +26,7 @@ class_name BaseBattlefield3D
 @export var enemy_spawn_position: Vector3 = Vector3(40, 0, -7.5)
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
-@onready var camera: Camera3D = $Camera3D
+@onready var camera: CameraController3D = get_node_or_null("Camera3D") as CameraController3D
 @onready var background: MeshInstance3D = $Background
 @onready var player_spawn_marker: Marker3D = $PlayerSpawnMarker
 @onready var enemy_spawn_marker: Marker3D = $EnemySpawnMarker
@@ -35,7 +35,36 @@ class_name BaseBattlefield3D
 
 func _ready() -> void:
 	_apply_biome_from_context()
+	_configure_camera_bounds()
 	_apply_spawn_positions()
+
+func _configure_camera_bounds() -> void:
+	if not camera:
+		push_warning("BaseBattlefield3D: CameraController3D not found; cannot set map bounds")
+		return
+
+	var bounds_xz: Rect2 = get_ground_bounds_xz()
+	if bounds_xz.size == Vector2.ZERO:
+		push_warning("BaseBattlefield3D: Ground bounds unavailable; camera will keep existing bounds")
+		return
+
+	camera.set_map_bounds(bounds_xz)
+
+func get_ground_bounds_xz() -> Rect2:
+	if not background:
+		return Rect2()
+	if not background.mesh or not background.mesh is PlaneMesh:
+		return Rect2()
+
+	var plane_mesh: PlaneMesh = background.mesh as PlaneMesh
+	var width: float = plane_mesh.size.x * background.global_basis.x.length()
+	var depth: float = plane_mesh.size.y * background.global_basis.z.length()
+	var center: Vector3 = background.global_position
+
+	return Rect2(
+		Vector2(center.x - width * 0.5, center.z - depth * 0.5),
+		Vector2(width, depth)
+	)
 
 ## Load and apply biome from BattleContext
 func _apply_biome_from_context() -> void:

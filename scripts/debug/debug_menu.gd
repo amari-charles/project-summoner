@@ -21,8 +21,14 @@ var _fps_label: Label
 var _target_label: Label
 var _buttons: Dictionary = {}  # fps -> Button
 var _skip_prep_button: Button
+var _hurtbox_button: Button
+var _target_point_button: Button
+var _attack_range_button: Button
+var _separation_radius_button: Button
 var _spawn_boundary_button: Button
+var _camera_overlay_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
+var _unit_debug: Node
 var _command_input: LineEdit  # Console command input
 var _command_output: Label  # Console command output
 var _autocomplete_list: ItemList  # Autocomplete suggestions
@@ -40,6 +46,9 @@ func _ready() -> void:
 	# Always process, even when paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
+	# Resolve debug services once autoloads are initialized.
+	_unit_debug = _get_unit_debug_service()
+
 	# Load saved settings before creating UI
 	_load_settings()
 	_apply_spawn_boundary_bypass()
@@ -53,6 +62,9 @@ func _process(_delta: float) -> void:
 	if _fps_label:
 		var current_fps: float = Engine.get_frames_per_second()
 		_fps_label.text = "FPS: %.1f" % current_fps
+
+	if _panel and _panel.visible:
+		_refresh_camera_overlay_button_state()
 
 
 func _input(event: InputEvent) -> void:
@@ -167,12 +179,47 @@ func _create_ui() -> void:
 	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
 	vbox.add_child(_skip_prep_button)
 
+	# Hurtbox toggle button
+	_hurtbox_button = Button.new()
+	_hurtbox_button.text = "Hurtboxes: Off"
+	_hurtbox_button.custom_minimum_size = Vector2(200, 32)
+	_hurtbox_button.pressed.connect(_on_hurtbox_toggle_pressed)
+	vbox.add_child(_hurtbox_button)
+
+	# Target Point toggle button
+	_target_point_button = Button.new()
+	_target_point_button.text = "Target Points: Off"
+	_target_point_button.custom_minimum_size = Vector2(200, 32)
+	_target_point_button.pressed.connect(_on_target_point_toggle_pressed)
+	vbox.add_child(_target_point_button)
+
+	# Attack Range toggle button
+	_attack_range_button = Button.new()
+	_attack_range_button.text = "Attack Ranges: Off"
+	_attack_range_button.custom_minimum_size = Vector2(200, 32)
+	_attack_range_button.pressed.connect(_on_attack_range_toggle_pressed)
+	vbox.add_child(_attack_range_button)
+
+	# Separation Radius toggle button
+	_separation_radius_button = Button.new()
+	_separation_radius_button.text = "Separation Radius: Off"
+	_separation_radius_button.custom_minimum_size = Vector2(200, 32)
+	_separation_radius_button.pressed.connect(_on_separation_radius_toggle_pressed)
+	vbox.add_child(_separation_radius_button)
+
 	# Spawn Boundary Bypass toggle button
 	_spawn_boundary_button = Button.new()
 	_spawn_boundary_button.text = "Spawn Boundary: On"
 	_spawn_boundary_button.custom_minimum_size = Vector2(200, 32)
 	_spawn_boundary_button.pressed.connect(_on_spawn_boundary_toggle_pressed)
 	vbox.add_child(_spawn_boundary_button)
+
+	# Camera bounds overlay toggle button
+	_camera_overlay_button = Button.new()
+	_camera_overlay_button.text = "Camera Overlay: N/A"
+	_camera_overlay_button.custom_minimum_size = Vector2(200, 32)
+	_camera_overlay_button.pressed.connect(_on_camera_overlay_toggle_pressed)
+	vbox.add_child(_camera_overlay_button)
 
 	# Console command separator
 	var console_separator: HSeparator = HSeparator.new()
@@ -258,13 +305,41 @@ func _create_ui() -> void:
 
 	# Update button text to reflect loaded settings
 	_update_button_states()
+	_apply_spawn_boundary_bypass()
 
 
 func _update_button_states() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+
+	if _hurtbox_button and _unit_debug and _unit_debug.has_method("IsDebugHurtboxEnabled"):
+		var state: String = "On" if bool(_unit_debug.call("IsDebugHurtboxEnabled")) else "Off"
+		_hurtbox_button.text = "Hurtboxes: %s" % state
+
+	if _target_point_button and _unit_debug and _unit_debug.has_method("IsDebugTargetPointEnabled"):
+		var state: String = "On" if bool(_unit_debug.call("IsDebugTargetPointEnabled")) else "Off"
+		_target_point_button.text = "Target Points: %s" % state
+
+	if _attack_range_button and _unit_debug and _unit_debug.has_method("IsDebugAttackRangeEnabled"):
+		var state: String = "On" if bool(_unit_debug.call("IsDebugAttackRangeEnabled")) else "Off"
+		_attack_range_button.text = "Attack Ranges: %s" % state
+
+	if _separation_radius_button and _unit_debug and _unit_debug.has_method("IsDebugSeparationRadiusEnabled"):
+		var state: String = "On" if bool(_unit_debug.call("IsDebugSeparationRadiusEnabled")) else "Off"
+		_separation_radius_button.text = "Separation Radius: %s" % state
+
 	if _spawn_boundary_button:
+		var debug_service: Node = _get_battlefield_debug_service()
+		if debug_service and debug_service.has_method("IsSpawnBoundaryBypassEnabled"):
+			var bypass_var: Variant = debug_service.call("IsSpawnBoundaryBypassEnabled")
+			if bypass_var is bool:
+				_bypass_spawn_boundary = bypass_var
+
 		var bypass_enabled: bool = _bypass_spawn_boundary
 		var state: String = "Off" if bypass_enabled else "On"
 		_spawn_boundary_button.text = "Spawn Boundary: %s" % state
+
+	_refresh_camera_overlay_button_state()
 
 
 func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) -> void:
@@ -283,6 +358,8 @@ func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) ->
 func _toggle_panel() -> void:
 	if _panel:
 		_panel.visible = not _panel.visible
+		if _panel.visible:
+			_update_button_states()
 
 
 func _set_fps(target: int) -> void:
@@ -313,6 +390,46 @@ func _on_skip_prep_pressed() -> void:
 		print("[Debug] No game controller found - not in battle?")
 
 
+func _on_hurtbox_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugHurtbox"):
+		return
+	_unit_debug.call("ToggleDebugHurtbox")
+	_update_button_states()
+	_save_settings()
+
+
+func _on_target_point_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugTargetPoint"):
+		return
+	_unit_debug.call("ToggleDebugTargetPoint")
+	_update_button_states()
+	_save_settings()
+
+
+func _on_attack_range_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugAttackRange"):
+		return
+	_unit_debug.call("ToggleDebugAttackRange")
+	_update_button_states()
+	_save_settings()
+
+
+func _on_separation_radius_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugSeparationRadius"):
+		return
+	_unit_debug.call("ToggleDebugSeparationRadius")
+	_update_button_states()
+	_save_settings()
+
+
 func _on_spawn_boundary_toggle_pressed() -> void:
 	_bypass_spawn_boundary = !_bypass_spawn_boundary
 	var bypass_enabled: bool = _bypass_spawn_boundary
@@ -325,6 +442,19 @@ func _on_spawn_boundary_toggle_pressed() -> void:
 func _apply_spawn_boundary_bypass() -> void:
 	if BattlefieldDebug and BattlefieldDebug.has_method("SetSpawnBoundaryBypassEnabled"):
 		BattlefieldDebug.call("SetSpawnBoundaryBypassEnabled", _bypass_spawn_boundary)
+
+
+func _on_camera_overlay_toggle_pressed() -> void:
+	var camera: Node = _find_battle_camera_controller()
+	if not camera:
+		print("[Debug] No battle camera found - start a battle to toggle overlay")
+		_refresh_camera_overlay_button_state()
+		return
+
+	var enabled_var: Variant = camera.get("debug_show_pan_bounds_overlay")
+	var enabled: bool = enabled_var if enabled_var is bool else false
+	camera.set("debug_show_pan_bounds_overlay", not enabled)
+	_refresh_camera_overlay_button_state()
 
 
 func _on_command_submitted(command: String) -> void:
@@ -509,6 +639,46 @@ func _on_snapshots_pressed() -> void:
 			snapshot_manager.show_manager()
 
 
+func _get_battlefield_debug_service() -> Node:
+	return BattlefieldDebug if BattlefieldDebug else null
+
+
+func _get_unit_debug_service() -> Node:
+	return BattlefieldDebug if BattlefieldDebug else null
+
+
+func _find_battle_camera_controller() -> Node:
+	# Prefer active viewport camera first.
+	var active_camera: Camera3D = get_viewport().get_camera_3d()
+	if active_camera and active_camera.has_method("get_ground_footprint_xz"):
+		return active_camera
+
+	# Fallback: camera under battlefield root group.
+	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
+	if battlefield:
+		var battlefield_camera: Node = battlefield.get_node_or_null("Camera3D")
+		if battlefield_camera and battlefield_camera.has_method("get_ground_footprint_xz"):
+			return battlefield_camera
+
+	return null
+
+
+func _refresh_camera_overlay_button_state() -> void:
+	if not _camera_overlay_button:
+		return
+
+	var camera: Node = _find_battle_camera_controller()
+	if not camera:
+		_camera_overlay_button.text = "Camera Overlay: N/A"
+		_camera_overlay_button.disabled = true
+		return
+
+	_camera_overlay_button.disabled = false
+	var enabled_var: Variant = camera.get("debug_show_pan_bounds_overlay")
+	var enabled: bool = enabled_var if enabled_var is bool else false
+	_camera_overlay_button.text = "Camera Overlay: %s" % ("On" if enabled else "Off")
+
+
 ## =============================================================================
 ## SETTINGS PERSISTENCE
 ## =============================================================================
@@ -519,7 +689,19 @@ func _load_settings() -> void:
 	if err != OK:
 		return  # No saved settings, use defaults
 
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+
 	# Load visualization toggles
+	if _unit_debug:
+		if _unit_debug.has_method("SetDebugHurtboxEnabled"):
+			_unit_debug.call("SetDebugHurtboxEnabled", config.get_value("debug_menu", "hurtboxes", false))
+		if _unit_debug.has_method("SetDebugTargetPointEnabled"):
+			_unit_debug.call("SetDebugTargetPointEnabled", config.get_value("debug_menu", "target_points", false))
+		if _unit_debug.has_method("SetDebugAttackRangeEnabled"):
+			_unit_debug.call("SetDebugAttackRangeEnabled", config.get_value("debug_menu", "attack_ranges", false))
+		if _unit_debug.has_method("SetDebugSeparationRadiusEnabled"):
+			_unit_debug.call("SetDebugSeparationRadiusEnabled", config.get_value("debug_menu", "separation_radius", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
 
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
@@ -529,6 +711,17 @@ func _save_settings() -> void:
 	var config: ConfigFile = ConfigFile.new()
 
 	# Save visualization toggles
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if _unit_debug:
+		if _unit_debug.has_method("IsDebugHurtboxEnabled"):
+			config.set_value("debug_menu", "hurtboxes", _unit_debug.call("IsDebugHurtboxEnabled"))
+		if _unit_debug.has_method("IsDebugTargetPointEnabled"):
+			config.set_value("debug_menu", "target_points", _unit_debug.call("IsDebugTargetPointEnabled"))
+		if _unit_debug.has_method("IsDebugAttackRangeEnabled"):
+			config.set_value("debug_menu", "attack_ranges", _unit_debug.call("IsDebugAttackRangeEnabled"))
+		if _unit_debug.has_method("IsDebugSeparationRadiusEnabled"):
+			config.set_value("debug_menu", "separation_radius", _unit_debug.call("IsDebugSeparationRadiusEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 
 	config.save(SETTINGS_PATH)
