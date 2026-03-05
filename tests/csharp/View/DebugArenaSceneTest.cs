@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.View;
 
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Commands;
@@ -88,6 +89,23 @@ public partial class DebugArenaSceneTest
         AssertThat(projectileFreedOrQueued).IsTrue();
     }
 
+    [TestCase]
+    public void BuildPracticeConfig_UsesDebugDeckForPlayerAndEnemy()
+    {
+        var arena = CreateArenaNode();
+        var config = arena.BuildPracticeConfigPublic();
+
+        var playerDeck = config["dev_player_deck"].AsGodotArray();
+        var enemyDeck = config["enemy_deck"].AsGodotArray();
+        var expectedDeck = LoadDebugDeckEntries();
+
+        AssertThat(playerDeck.Count).IsEqual(expectedDeck.Count);
+        AssertThat(enemyDeck.Count).IsEqual(expectedDeck.Count);
+
+        AssertThat(DeckSignatures(playerDeck)).ContainsExactly(DeckSignatures(expectedDeck).ToArray());
+        AssertThat(DeckSignatures(enemyDeck)).ContainsExactly(DeckSignatures(expectedDeck).ToArray());
+    }
+
     private TestDebugArenaScene CreateArenaNode()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -147,11 +165,34 @@ public partial class DebugArenaSceneTest
         }
     }
 
+    private static Godot.Collections.Array LoadDebugDeckEntries()
+    {
+        using var file = FileAccess.Open("res://data/debug/debug_deck.json", FileAccess.ModeFlags.Read);
+        AssertThat(file).IsNotNull();
+
+        var parsed = Json.ParseString(file!.GetAsText());
+        AssertThat(parsed.VariantType).IsEqual(Variant.Type.Array);
+        return parsed.AsGodotArray();
+    }
+
+    private static IEnumerable<string> DeckSignatures(Godot.Collections.Array deck)
+    {
+        foreach (var item in deck)
+        {
+            var entry = item.AsGodotDictionary();
+            string catalogId = entry.GetValueOrDefault("catalog_id", "").AsString();
+            int count = entry.GetValueOrDefault("count", 0).AsInt32();
+            yield return $"{catalogId}:{count}";
+        }
+    }
+
     private sealed partial class TestDebugArenaScene : DebugArenaScene
     {
         public override async void _Ready()
         {
             await System.Threading.Tasks.Task.CompletedTask;
         }
+
+        public Godot.Collections.Dictionary BuildPracticeConfigPublic() => BuildPracticeConfig();
     }
 }

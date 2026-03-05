@@ -14,18 +14,49 @@ namespace Fateforged.View.Debug;
 public partial class DebugArenaScene : TestBattleScene
 {
     [Signal] public delegate void UnitsClearedEventHandler(int count);
+    private const string DebugDeckPath = "res://data/debug/debug_deck.json";
 
     private Node? _spawnerPanel;
 
     protected override Godot.Collections.Dictionary BuildPracticeConfig()
     {
+        var playerDeck = LoadDebugDeck();
+        var enemyDeck = (Godot.Collections.Array)playerDeck.Duplicate(true);
+
         return new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", BuildDeck("fire_wisp", 30) },
-            { "enemy_deck", BuildDeck("fire_wisp", 30) },
+            { "dev_player_deck", playerDeck },
+            { "enemy_deck", enemyDeck },
             { "enemy_hp", 999999.0 },
             { "ai_type", "none" }
         };
+    }
+
+    private static Godot.Collections.Array LoadDebugDeck()
+    {
+        if (!FileAccess.FileExists(DebugDeckPath))
+        {
+            GD.PushWarning($"[DebugArenaScene] Debug deck not found at {DebugDeckPath}, using fallback deck");
+            return BuildDeck("fire_wisp", 30);
+        }
+
+        using var file = FileAccess.Open(DebugDeckPath, FileAccess.ModeFlags.Read);
+        if (file == null)
+        {
+            GD.PushWarning("[DebugArenaScene] Failed to open debug deck file, using fallback deck");
+            return BuildDeck("fire_wisp", 30);
+        }
+
+        var parsed = Json.ParseString(file.GetAsText());
+        if (parsed.VariantType == Variant.Type.Array)
+        {
+            var deck = parsed.AsGodotArray();
+            if (deck.Count > 0)
+                return deck;
+        }
+
+        GD.PushWarning("[DebugArenaScene] Debug deck JSON invalid/empty, using fallback deck");
+        return BuildDeck("fire_wisp", 30);
     }
 
     public override async void _Ready()
