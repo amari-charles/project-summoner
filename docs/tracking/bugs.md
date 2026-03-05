@@ -191,29 +191,6 @@ Players can see outside the play area and experience jarring camera movement.
 
 ---
 
-#### Enemy Spawn Debug Mode Issues
-**Status:** Open
-**Reported:** 2026-01-13
-**Component:** Debug Tools / Spawning
-
-**Description:**
-When using the debug unit spawner panel with "Spawn as Enemy" toggled on, units spawn incorrectly.
-
-**Expected Behavior:**
-Units should spawn on the enemy side of the battlefield when "Spawn as Enemy" is enabled.
-
-**Current Behavior:**
-Spawning is "messed up" when spawning as enemy in debug mode.
-
-**Impact:**
-Debug tool doesn't work correctly for testing enemy units.
-
-**Related Files:**
-- scripts/battle/ui/debug/unit_spawner_panel.gd
-- Battlefield spawn logic
-
----
-
 #### Wisps Attack Multiple Enemies Simultaneously
 **Status:** Open
 **Reported:** 2026-01-27

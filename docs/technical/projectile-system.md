@@ -6,6 +6,29 @@ Technical documentation for the projectile system including movement, accelerati
 
 Projectile simulation is managed by `SimProjectile` (in the simulation layer) and visual presentation by `ProjectileVisual` (in the view layer). Each projectile type is defined in `ProjectileDefinitions.cs` (static C# definitions) and accessed via `ProjectileCatalog` (C# autoload).
 
+## Spell Projectile Execution Path
+
+Damage spells with `SpellProjectileId` now route through simulated projectiles instead of immediate direct damage.
+
+- Entry point: `Simulation.ExecuteSpellEffects()`
+- Projectile spawn gate: `TrySpawnSpellProjectile()`
+- Runtime simulation: `SimProjectile.TickAll()`
+
+Current targeting behavior:
+
+- `SpellTargetingMode.Position`
+- Spawns one projectile from summoner position to the cast position.
+- Damage is applied on projectile impact/expire (AoE), not on cast frame.
+
+- `SpellTargetingMode.NearestEnemy`
+- Resolves one target and spawns one projectile toward that target.
+- Damage is applied when the projectile hits, not immediately.
+
+Notes:
+
+- A one-tick startup hold (`TimeAlive = -1`) is applied at spawn so new projectiles are visible for at least one render frame before simulation movement/expiry.
+- For spell projectile paths, speed is clamped to a minimum needed to reach the resolved target within projectile lifetime because sim-side acceleration curves are not yet modeled for spell casting.
+
 ## Projectile Data Properties
 
 ### Movement

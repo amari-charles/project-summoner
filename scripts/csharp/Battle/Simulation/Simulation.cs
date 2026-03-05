@@ -643,12 +643,12 @@ public class Simulation
 
         foreach (var effect in cardData.SpellEffects)
         {
+            if (TrySpawnSpellProjectile(cardData, effect, team, position, targetUnitId))
+                continue;
+
             var targets = ResolveSpellTargets(cardData, effect, team, position, targetUnitId);
             foreach (var target in targets)
             {
-                if (TrySpawnSpellProjectile(cardData, effect, team, target))
-                    continue;
-
                 SimEffects.ApplyEffect(
                     _state, effect.EffectType, effect.Value, effect.Duration,
                     effect.DamageType, target, summonerSourceId, (Team)team, events);
@@ -657,14 +657,17 @@ public class Simulation
     }
 
     /// <summary>
-    /// Spawn a simulated projectile for single-target damage spells that define a projectile ID.
+    /// Spawn a simulated projectile for damage spells that define a projectile ID.
     /// Returns true when projectile path was used (caller should skip immediate effect application).
     /// </summary>
-    private bool TrySpawnSpellProjectile(SimCardData cardData, SimSpellEffect effect, int team, UnitData target)
+    private bool TrySpawnSpellProjectile(
+        SimCardData cardData,
+        SimSpellEffect effect,
+        int team,
+        SimVector3 castPosition,
+        int? targetUnitId)
     {
         if (effect.EffectType != EffectType.Damage)
-            return false;
-        if (cardData.SpellTargetingMode != SpellTargetingMode.NearestEnemy)
             return false;
         if (string.IsNullOrEmpty(cardData.SpellProjectileId))
             return false;
@@ -673,27 +676,59 @@ public class Simulation
         if (projectileData == null)
             return false;
 
+        float spawnSpeed = projectileData.Speed;
         var summoner = _state.Summoners[team];
         var startPos = summoner.Position;
-        var targetPos = target.Position;
+        var targetPos = castPosition;
+        int resolvedTargetUnitId = -1;
+
+        switch (cardData.SpellTargetingMode)
+        {
+            case SpellTargetingMode.Position:
+                // AoE spells travel to the selected cast position and explode there.
+                break;
+
+            case SpellTargetingMode.NearestEnemy:
+            {
+                var targets = ResolveSpellTargets(cardData, effect, team, castPosition, targetUnitId);
+                if (targets.Count == 0)
+                    return false;
+
+                var target = targets[0];
+                resolvedTargetUnitId = target.UnitId;
+                targetPos = target.Position;
+
+                // Simulation projectiles do not currently apply acceleration curves.
+                // Ensure spell projectiles can still reach the resolved target within lifetime.
+                float minSpeedToReach = startPos.DistanceTo(targetPos) / MathF.Max(projectileData.Lifetime, 0.1f);
+                spawnSpeed = MathF.Max(spawnSpeed, minSpeedToReach);
+                break;
+            }
+
+            default:
+                // Only Position and NearestEnemy projectile spells are supported right now.
+                return false;
+        }
+
         if (projectileData.SpawnAtTargetHeight)
             startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
 
+        float aoeRadius = effect.AoeRadius > 0f ? effect.AoeRadius : projectileData.AoeRadius;
         SimProjectile.Spawn(
             _state,
             sourceUnitId: MatchState.GetSummonerTargetId(team),
-            targetUnitId: target.UnitId,
+            targetUnitId: resolvedTargetUnitId,
             team: (Team)team,
             damage: effect.Value,
             sourceElementId: cardData.ElementId,
             movementType: projectileData.MovementType,
-            speed: projectileData.Speed,
+            speed: spawnSpeed,
             lifetime: projectileData.Lifetime,
             startPos: startPos,
             targetPos: targetPos,
             arcHeight: projectileData.ArcHeight,
             pierceCount: projectileData.PierceCount,
-            aoeRadius: projectileData.AoeRadius,
+            aoeRadius: aoeRadius,
             steerStrength: projectileData.SteerStrength,
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,

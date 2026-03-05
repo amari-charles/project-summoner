@@ -4,6 +4,31 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+## 2026-03 Fixes
+
+### Enemy Spawn Debug Mode Issues
+**Resolved:** 2026-03-04
+**Component:** Debug Tools / Spawning
+
+**Description:**
+When using the debug unit spawner panel with "Spawn as Enemy" toggled on, units spawned on invalid sides and preview/overlay behavior did not match debug boundary bypass settings.
+
+**Root Cause:**
+Spawn validation and clamping in `InputCollector` used hardcoded team boundary checks instead of shared `BattlefieldBounds`, while debug bypass state lived elsewhere.
+
+**Solution Implemented:**
+1. Replaced hardcoded `InputCollector` spawn checks with `BattlefieldBounds.IsValidSpawnPositionForTeam` and `ClampToValidSpawnZone`
+2. Made spawn preview and overlay respect debug bypass state from the same boundary source-of-truth
+3. Added `BattlefieldDebugService` C# autoload and wired `DebugMenu` boundary toggle into it
+
+**Related Files:**
+- `scripts/csharp/Battle/Input/InputCollector.cs`
+- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs`
+- `scripts/csharp/Debug/BattlefieldDebugService.cs`
+- `scripts/debug/debug_menu.gd`
+
+---
+
 ## 2026-01 Fixes
 
 ### Puff Projectiles Not Triggering Hit Flashes

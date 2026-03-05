@@ -243,6 +243,72 @@ public class SimulationIntegrationTest
         AssertThat(_state.Summoners[0].Mana).IsEqual(10f);
     }
 
+    [TestCase]
+    public void Tick_SpellCard_PositionProjectile_SpawnsProjectile_AndDelaysDamageUntilImpact()
+    {
+        var spell = SimTestHelper.CreateSpellCard(
+            "projectile_aoe_spell",
+            manaCost: 4,
+            damage: 40f,
+            radius: 8f,
+            targetingMode: SpellTargetingMode.Position,
+            spellProjectileId: "fireball");
+        _state.CardDataMap["projectile_aoe_spell"] = spell;
+        _state.Summoners[0].Hand = new List<string> { "projectile_aoe_spell" };
+        _state.Summoners[0].Deck = new List<string> { "projectile_aoe_spell" };
+
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+        AssertThat(enemy.CurrentHp).IsEqual(enemy.MaxHp);
+
+        for (int i = 0; i < 240 && enemy.CurrentHp >= enemy.MaxHp; i++)
+            _sim.Tick(Delta);
+
+        AssertThat(enemy.CurrentHp).IsLess(enemy.MaxHp);
+    }
+
+    [TestCase]
+    public void Tick_SpellCard_NearestEnemyProjectile_SpawnsProjectile_AndDamagesOnHit()
+    {
+        var spell = SimTestHelper.CreateSpellCard(
+            "projectile_single_spell",
+            manaCost: 3,
+            damage: 35f,
+            radius: 0f,
+            targetingMode: SpellTargetingMode.NearestEnemy,
+            spellProjectileId: "mana_bolt");
+        _state.CardDataMap["projectile_single_spell"] = spell;
+        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+        AssertThat(enemy.CurrentHp).IsEqual(enemy.MaxHp);
+
+        for (int i = 0; i < 240 && enemy.CurrentHp >= enemy.MaxHp; i++)
+            _sim.Tick(Delta);
+
+        AssertThat(enemy.CurrentHp).IsLess(enemy.MaxHp);
+    }
+
     // =========================================================================
     // Phase Transitions
     // =========================================================================
