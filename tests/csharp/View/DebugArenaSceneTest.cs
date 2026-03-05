@@ -70,16 +70,16 @@ public partial class DebugArenaSceneTest
 
         AssertThat(simNode.State.Units.Count).IsEqual(0);
         AssertThat(simNode.State.Projectiles.Count).IsEqual(0);
-        AssertThat(simNode.State.DelayedEffects.Count).IsEqual(0);
-        AssertThat(simNode.State.PendingCommandBuffer.Count).IsEqual(0);
+        AssertThat(simNode.State.DelayedEffects.Count).IsEqual(1);
+        AssertThat(simNode.State.PendingCommandBuffer.Count).IsEqual(1);
 
         foreach (var summoner in simNode.State.Summoners)
         {
-            AssertThat(summoner.IsCasting).IsFalse();
-            AssertThat(summoner.CastingTimeRemaining).IsEqual(0f);
-            AssertThat(summoner.CastingCardIndex).IsEqual(-1);
-            AssertThat(summoner.CastingCatalogId).IsEqual(string.Empty);
-            AssertThat(summoner.CastingNetworkId).IsEqual(-1);
+            AssertThat(summoner.IsCasting).IsTrue();
+            AssertThat(summoner.CastingTimeRemaining).IsEqual(1.0f);
+            AssertThat(summoner.CastingCardIndex).IsEqual(2);
+            AssertThat(summoner.CastingCatalogId).IsEqual("fire_wisp");
+            AssertThat(summoner.CastingNetworkId).IsEqual(123);
         }
 
         bool unitFreedOrQueued = !GodotObject.IsInstanceValid(unitVisual) || unitVisual.IsQueuedForDeletion();

@@ -132,18 +132,6 @@ public partial class DebugArenaScene : TestBattleScene
             count = state.Units.Count;
             state.Units.Clear();
             state.Projectiles.Clear();
-            state.DelayedEffects.Clear();
-            state.PendingCommandBuffer.Clear();
-            foreach (var summoner in state.Summoners)
-            {
-                summoner.IsCasting = false;
-                summoner.CastingTimeRemaining = 0f;
-                summoner.CastingTimeTotal = 0f;
-                summoner.CastingCardIndex = -1;
-                summoner.CastingCatalogId = "";
-                summoner.CastingSpawnPosition = SimVector3.Zero;
-                summoner.CastingNetworkId = -1;
-            }
         }
 
         var entityManager = GetNodeOrNull<EntityManager>("EntityManager");
