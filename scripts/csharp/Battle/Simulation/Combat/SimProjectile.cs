@@ -39,13 +39,15 @@ public static class SimProjectile
         SimVector3 startPos, SimVector3 targetPos,
         float arcHeight = 0f, int pierceCount = 0, float aoeRadius = 0f,
         float hitRadius = 2.5f, float steerStrength = 180f,
-        float veerDelay = 0.15f, float veerAngle = 25f, float veerDuration = 0.25f)
+        float veerDelay = 0.15f, float veerAngle = 25f, float veerDuration = 0.25f,
+        string projectileCatalogId = "")
     {
         int id = state.NextProjectileId();
 
         var proj = new SimProjectileData
         {
             ProjectileId = id,
+            ProjectileCatalogId = projectileCatalogId,
             SourceUnitId = sourceUnitId,
             TargetUnitId = targetUnitId,
             Team = team,

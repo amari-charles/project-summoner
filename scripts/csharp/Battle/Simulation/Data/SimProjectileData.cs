@@ -13,6 +13,7 @@ public class SimProjectileData
 {
     // Identity
     public int ProjectileId { get; set; }
+    public string ProjectileCatalogId { get; set; } = "";
     public int SourceUnitId { get; set; }
     public int TargetUnitId { get; set; }
     public Team Team { get; set; }

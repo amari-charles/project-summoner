@@ -251,7 +251,8 @@ public readonly record struct ProjectileState(
     Vector3 TargetPosition,
     float Progress,
     float Speed,
-    bool IsDead
+    bool IsDead,
+    string ProjectileCatalogId = ""
 );
 
 

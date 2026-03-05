@@ -322,6 +322,7 @@ public class ClientSession : NetworkSession
     private static void ApplySnapshotProjectileState(SimProjectileData dst, ProjectileState src)
     {
         dst.ProjectileId = src.ProjectileId;
+        dst.ProjectileCatalogId = src.ProjectileCatalogId ?? "";
         dst.SourceUnitId = src.SourceUnitId;
         dst.TargetUnitId = src.TargetUnitId;
         dst.Team = (Team)src.Team;

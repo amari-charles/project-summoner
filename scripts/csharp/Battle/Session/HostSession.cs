@@ -358,7 +358,8 @@ public class HostSession : NetworkSession
                 new Vector3(projectile.TargetPosition.X, projectile.TargetPosition.Y, projectile.TargetPosition.Z),
                 projectile.Progress,
                 projectile.Speed,
-                projectile.IsDead
+                projectile.IsDead,
+                projectile.ProjectileCatalogId
             ));
         }
 

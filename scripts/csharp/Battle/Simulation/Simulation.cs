@@ -732,7 +732,8 @@ public class Simulation
             steerStrength: projectileData.SteerStrength,
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,
-            veerDuration: projectileData.VeerDuration
+            veerDuration: projectileData.VeerDuration,
+            projectileCatalogId: cardData.SpellProjectileId
         );
 
         return true;

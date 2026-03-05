@@ -386,7 +386,8 @@ public static class SimBehavior
             steerStrength: projectileData.SteerStrength,
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,
-            veerDuration: projectileData.VeerDuration
+            veerDuration: projectileData.VeerDuration,
+            projectileCatalogId: (string)projectileData.ProjectileId
         );
     }
 

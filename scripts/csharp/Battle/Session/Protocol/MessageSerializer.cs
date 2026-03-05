@@ -427,6 +427,7 @@ public class MessageSerializer
             var d = new Dictionary
             {
                 ["id"] = p.ProjectileId,
+                ["catalogId"] = p.ProjectileCatalogId,
                 ["src"] = p.SourceUnitId,
                 ["target"] = p.TargetUnitId,
                 ["team"] = p.Team,
@@ -451,6 +452,7 @@ public class MessageSerializer
             var d = (Dictionary)arr[i];
             projectiles[i] = new ProjectileState(
                 ProjectileId: (int)d["id"],
+                ProjectileCatalogId: d.ContainsKey("catalogId") ? (string)d["catalogId"] : "",
                 SourceUnitId: d.ContainsKey("src") ? (int)d["src"] : -1,
                 TargetUnitId: d.ContainsKey("target") ? (int)d["target"] : -1,
                 Team: d.ContainsKey("team") ? (int)d["team"] : 0,
