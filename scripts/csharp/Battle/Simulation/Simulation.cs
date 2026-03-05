@@ -11,6 +11,8 @@ using Fateforged.Simulation.Enums;
 using Fateforged.Stats;
 using Fateforged.Simulation.Events;
 using Fateforged.Simulation.Subsystems;
+using Fateforged.Data.Projectiles;
+using Fateforged.Projectiles;
 
 namespace Fateforged.Simulation;
 
@@ -34,6 +36,8 @@ namespace Fateforged.Simulation;
 /// </summary>
 public class Simulation
 {
+    public const float FixedDeltaSeconds = 1.0f / 60.0f;
+
     private readonly MatchState _state;
     private IWinCondition? _winCondition;
 
@@ -641,6 +645,9 @@ public class Simulation
 
         foreach (var effect in cardData.SpellEffects)
         {
+            if (TrySpawnSpellProjectile(cardData, effect, team, position, targetUnitId))
+                continue;
+
             var targets = ResolveSpellTargets(cardData, effect, team, position, targetUnitId);
             foreach (var target in targets)
             {
@@ -649,6 +656,97 @@ public class Simulation
                     effect.DamageType, target, summonerSourceId, (Team)team, events);
             }
         }
+    }
+
+    /// <summary>
+    /// Spawn a simulated projectile for damage spells that define a projectile ID.
+    /// Returns true when projectile path was used (caller should skip immediate effect application).
+    /// </summary>
+    private bool TrySpawnSpellProjectile(
+        SimCardData cardData,
+        SimSpellEffect effect,
+        int team,
+        SimVector3 castPosition,
+        int? targetUnitId)
+    {
+        if (effect.EffectType != EffectType.Damage)
+            return false;
+        if (string.IsNullOrEmpty(cardData.SpellProjectileId))
+            return false;
+
+        var projectileData = ProjectileDefinitions.Get(cardData.SpellProjectileId);
+        if (projectileData == null)
+        {
+            Log?.Invoke(
+                $"[Simulation] ERROR: Spell '{cardData.CatalogId}' references unknown projectile '{cardData.SpellProjectileId}'.");
+            return true;
+        }
+
+        float spawnSpeed = projectileData.Speed;
+        var summoner = _state.Summoners[team];
+        var startPos = summoner.Position;
+        var targetPos = castPosition;
+        int resolvedTargetUnitId = -1;
+
+        switch (cardData.SpellTargetingMode)
+        {
+            case SpellTargetingMode.Position:
+                // AoE spells travel to the selected cast position and explode there.
+                break;
+
+            case SpellTargetingMode.NearestEnemy:
+            {
+                var targets = ResolveSpellTargets(cardData, effect, team, castPosition, targetUnitId);
+                if (targets.Count == 0)
+                    return true;
+
+                var target = targets[0];
+                resolvedTargetUnitId = target.UnitId;
+                targetPos = target.Position;
+                break;
+            }
+
+            default:
+                // Only Position and NearestEnemy projectile spells are supported right now.
+                Log?.Invoke(
+                    $"[Simulation] ERROR: Projectile spell '{cardData.CatalogId}' uses unsupported targeting mode '{cardData.SpellTargetingMode}'.");
+                return true;
+        }
+
+        if (projectileData.SpawnAtTargetHeight)
+            startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
+
+        float aoeRadius = effect.AoeRadius > 0f ? effect.AoeRadius : projectileData.AoeRadius;
+        SimProjectile.Spawn(
+            _state,
+            sourceUnitId: MatchState.GetSummonerTargetId(team),
+            targetUnitId: resolvedTargetUnitId,
+            team: (Team)team,
+            damage: effect.Value,
+            sourceElementId: cardData.ElementId,
+            movementType: projectileData.MovementType,
+            speed: spawnSpeed,
+            lifetime: projectileData.Lifetime,
+            startPos: startPos,
+            targetPos: targetPos,
+            arcHeight: projectileData.ArcHeight,
+            pierceCount: projectileData.PierceCount,
+            aoeRadius: aoeRadius,
+            steerStrength: projectileData.SteerStrength,
+            veerDelay: projectileData.VeerDelay,
+            veerAngle: projectileData.VeerAngle,
+            veerDuration: projectileData.VeerDuration,
+            projectileCatalogId: cardData.SpellProjectileId,
+            acceleration: projectileData.Acceleration,
+            minSpeed: projectileData.MinSpeed,
+            speedStart: projectileData.SpeedStart,
+            speedEnd: projectileData.SpeedEnd,
+            speedTransitionDuration: projectileData.SpeedTransitionDuration,
+            speedEasing: projectileData.SpeedEasing,
+            speedEaseExponent: projectileData.SpeedEaseExponent
+        );
+
+        return true;
     }
 
     /// <summary>

@@ -20,7 +20,6 @@ public partial class BattlefieldDebugService : Node
 
     public bool AnyUnitDebugEnabled =>
         HurtboxEnabled || TargetPointEnabled || AttackRangeEnabled || SeparationRadiusEnabled;
-
     public override void _Ready()
     {
         Instance = this;
@@ -32,20 +31,20 @@ public partial class BattlefieldDebugService : Node
             Instance = null;
     }
 
-    // Spawn boundary debug toggle.
-    public bool GetBypassSpawnBoundary()
+    public bool IsSpawnBoundaryBypassEnabled()
     {
         return BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled();
     }
 
-    public void SetBypassSpawnBoundary(bool enabled)
+    public void SetSpawnBoundaryBypassEnabled(bool enabled)
     {
         BattlefieldBounds.SetDebugBypassSpawnBoundary(enabled);
     }
 
-    public void ToggleBypassSpawnBoundary()
+    public bool ToggleSpawnBoundaryBypass()
     {
         BattlefieldBounds.ToggleDebugBypassSpawnBoundary();
+        return BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled();
     }
 
     // Unit debug visualization API (GDScript-callable).

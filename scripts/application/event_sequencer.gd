@@ -276,10 +276,8 @@ func _execute_wait_signal(step: Resource) -> void:  # EventStep parameter
 		push_warning("EventSequencer: WAIT_SIGNAL step has empty source or signal name")
 		return
 
-	# Try to get signal source (autoload or node path)
-	var source: Node = get_node_or_null("/root/" + signal_source)
-	if not source:
-		source = get_node_or_null(signal_source)
+	# Try to get signal source (autoload name or node path)
+	var source: Node = _resolve_node_reference(signal_source)
 
 	if not source:
 		push_error("EventSequencer: Signal source not found: %s" % signal_source)
@@ -370,8 +368,8 @@ func _execute_emit_signal(step: Resource) -> void:  # EventStep parameter
 		push_warning("EventSequencer: EMIT_SIGNAL step has empty hub or signal name")
 		return
 
-	# Get event hub
-	var hub: Node = get_node_or_null("/root/" + event_hub)
+	# Get event hub (autoload name or node path)
+	var hub: Node = _resolve_node_reference(event_hub)
 	if not hub:
 		push_error("EventSequencer: Event hub not found: %s" % event_hub)
 		return
@@ -484,6 +482,25 @@ func _execute_enable_hand(step: Resource) -> void:  # EventStep parameter
 func _find_hand_ui() -> Node:
 	# Try to find HandUI in current scene
 	return get_tree().get_first_node_in_group(GroupIDs.HAND_UI)
+
+func _resolve_node_reference(node_ref: String) -> Node:
+	if node_ref.is_empty():
+		return null
+
+	var root: Window = get_tree().root
+	# 1) Treat plain names as autoload names under root.
+	var by_root_name: Node = root.get_node_or_null(node_ref)
+	if by_root_name:
+		return by_root_name
+
+	# 2) Accept explicit /root/<Name> references for backwards-compatible data.
+	const ROOT_PREFIX: String = "/root/"
+	if node_ref.begins_with(ROOT_PREFIX):
+		var trimmed: String = node_ref.substr(ROOT_PREFIX.length())
+		return root.get_node_or_null(trimmed)
+
+	# 3) Fallback to relative/absolute node path resolution from this node.
+	return get_node_or_null(node_ref)
 
 ## Stop current sequence (emergency stop)
 func stop_sequence() -> void:

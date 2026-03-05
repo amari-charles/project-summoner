@@ -38,6 +38,8 @@ public class HostSession : NetworkSession
     private bool _disconnectTimeoutHandled;
     private DisconnectTimeoutOutcome _disconnectTimeoutOutcome = DisconnectTimeoutOutcome.None;
     private int _remotePeerId = -1;
+    private readonly HashSet<int> _knownProjectileIds = new();
+    private readonly List<int> _staleProjectileIds = new();
     private const float SnapshotSendInterval = 0.1f;
 
     public override event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
@@ -102,11 +104,22 @@ public class HostSession : NetworkSession
                         summonerDamaged.AttackerUnitId);
                     _transport.Broadcast(_messageSerializer.Serialize(flash));
                 }
+
+                if (evt is SpellCastEvent spellCast && _transport.IsConnected)
+                {
+                    var visual = new SpellCastVisual(
+                        Team: spellCast.Team,
+                        CatalogId: spellCast.CatalogId,
+                        Position: new Vector3(spellCast.Position.X, spellCast.Position.Y, spellCast.Position.Z));
+                    _transport.Broadcast(_messageSerializer.Serialize(visual));
+                }
             }
         }
 
         if (_transport.IsConnected)
         {
+            BroadcastProjectileLifecycle(events);
+
             _snapshotAccumulator += delta;
             if (_snapshotAccumulator >= SnapshotSendInterval)
             {
@@ -125,6 +138,8 @@ public class HostSession : NetworkSession
     protected override void HandleConnected()
     {
         _transportConnected = true;
+        if (_remotePeerId > 0)
+            SendProjectileSeedToPeer(_remotePeerId);
         TryResolveReconnect();
     }
 
@@ -140,10 +155,11 @@ public class HostSession : NetworkSession
     {
         _peerConnected = true;
         _remotePeerId = peerId;
+        SendProjectileSeedToPeer(peerId);
         TryResolveReconnect();
     }
 
-    protected override void HandleMessage(int senderId, object message)
+    protected override void HandleMessage(int senderId, IProtocolMessage message)
     {
         switch (message)
         {
@@ -238,6 +254,100 @@ public class HostSession : NetworkSession
     {
         var snapshot = BuildSnapshot();
         _transport.Broadcast(_messageSerializer.Serialize(snapshot));
+    }
+
+    private void BroadcastProjectileLifecycle(IReadOnlyList<SimEvent> events)
+    {
+        foreach (var projectile in _state.Projectiles.Values)
+        {
+            if (!_knownProjectileIds.Add(projectile.ProjectileId))
+                continue;
+
+            var spawned = new ProjectileSpawned(
+                ProjectileId: projectile.ProjectileId,
+                SourceUnitId: projectile.SourceUnitId,
+                TargetUnitId: projectile.TargetUnitId,
+                Team: (int)projectile.Team,
+                MovementType: (int)projectile.MovementType,
+                CurrentPosition: new Vector3(projectile.CurrentPosition.X, projectile.CurrentPosition.Y, projectile.CurrentPosition.Z),
+                Direction: new Vector3(projectile.Direction.X, projectile.Direction.Y, projectile.Direction.Z),
+                TargetPosition: new Vector3(projectile.TargetPosition.X, projectile.TargetPosition.Y, projectile.TargetPosition.Z),
+                Speed: projectile.Speed,
+                ProjectileCatalogId: projectile.ProjectileCatalogId,
+                Acceleration: projectile.Acceleration,
+                MinSpeed: projectile.MinSpeed,
+                UseSpeedEasing: projectile.UseSpeedEasing,
+                SpeedStart: projectile.SpeedStart,
+                SpeedEnd: projectile.SpeedEnd,
+                SpeedTransitionDuration: projectile.SpeedTransitionDuration,
+                SpeedEasing: (int)projectile.SpeedEasing,
+                SpeedEaseExponent: projectile.SpeedEaseExponent,
+                TimeAlive: projectile.TimeAlive,
+                Lifetime: projectile.Lifetime
+            );
+            _transport.Broadcast(_messageSerializer.Serialize(spawned));
+        }
+
+        foreach (var evt in events)
+        {
+            if (evt is not ProjectileHitEvent hitEvent)
+                continue;
+
+            _transport.Broadcast(_messageSerializer.Serialize(
+                new ProjectileImpact(hitEvent.ProjectileId, hitEvent.TargetUnitId)));
+        }
+
+        _staleProjectileIds.Clear();
+        foreach (var projectileId in _knownProjectileIds)
+        {
+            if (!_state.Projectiles.ContainsKey(projectileId))
+                _staleProjectileIds.Add(projectileId);
+        }
+
+        foreach (var staleProjectileId in _staleProjectileIds)
+        {
+            _knownProjectileIds.Remove(staleProjectileId);
+            _transport.Broadcast(_messageSerializer.Serialize(new ProjectileDespawned(staleProjectileId)));
+        }
+    }
+
+    private void SendProjectileSeedToPeer(int peerId)
+    {
+        var seed = BuildProjectileSeedSnapshot();
+        _transport.SendTo(peerId, _messageSerializer.Serialize(seed));
+    }
+
+    private ProjectileSeedSnapshot BuildProjectileSeedSnapshot()
+    {
+        var projectiles = new ActiveProjectileSeed[_state.Projectiles.Count];
+        int index = 0;
+        foreach (var projectile in _state.Projectiles.Values)
+        {
+            projectiles[index++] = new ActiveProjectileSeed(
+                ProjectileId: projectile.ProjectileId,
+                SourceUnitId: projectile.SourceUnitId,
+                TargetUnitId: projectile.TargetUnitId,
+                Team: (int)projectile.Team,
+                MovementType: (int)projectile.MovementType,
+                CurrentPosition: new Vector3(projectile.CurrentPosition.X, projectile.CurrentPosition.Y, projectile.CurrentPosition.Z),
+                Direction: new Vector3(projectile.Direction.X, projectile.Direction.Y, projectile.Direction.Z),
+                TargetPosition: new Vector3(projectile.TargetPosition.X, projectile.TargetPosition.Y, projectile.TargetPosition.Z),
+                Speed: projectile.Speed,
+                ProjectileCatalogId: projectile.ProjectileCatalogId,
+                Acceleration: projectile.Acceleration,
+                MinSpeed: projectile.MinSpeed,
+                UseSpeedEasing: projectile.UseSpeedEasing,
+                SpeedStart: projectile.SpeedStart,
+                SpeedEnd: projectile.SpeedEnd,
+                SpeedTransitionDuration: projectile.SpeedTransitionDuration,
+                SpeedEasing: (int)projectile.SpeedEasing,
+                SpeedEaseExponent: projectile.SpeedEaseExponent,
+                TimeAlive: projectile.TimeAlive,
+                Lifetime: projectile.Lifetime
+            );
+        }
+
+        return new ProjectileSeedSnapshot(_state.FrameNumber, projectiles);
     }
 
     private void BeginReconnect(string reason, DisconnectTimeoutOutcome timeoutOutcome)
@@ -344,24 +454,6 @@ public class HostSession : NetworkSession
             ));
         }
 
-        var projectiles = new List<ProjectileState>(_state.Projectiles.Count);
-        foreach (var projectile in _state.Projectiles.Values)
-        {
-            projectiles.Add(new ProjectileState(
-                projectile.ProjectileId,
-                projectile.SourceUnitId,
-                projectile.TargetUnitId,
-                (int)projectile.Team,
-                (int)projectile.MovementType,
-                new Vector3(projectile.CurrentPosition.X, projectile.CurrentPosition.Y, projectile.CurrentPosition.Z),
-                new Vector3(projectile.Direction.X, projectile.Direction.Y, projectile.Direction.Z),
-                new Vector3(projectile.TargetPosition.X, projectile.TargetPosition.Y, projectile.TargetPosition.Z),
-                projectile.Progress,
-                projectile.Speed,
-                projectile.IsDead
-            ));
-        }
-
         return new StateSnapshot(
             _state.FrameNumber,
             _state.MatchTime,
@@ -369,7 +461,7 @@ public class HostSession : NetworkSession
             _state.PrepTimeRemaining,
             summoners,
             units.ToArray(),
-            projectiles.ToArray(),
+            Array.Empty<ProjectileState>(),
             0,
             _state.IsOvertime
         );

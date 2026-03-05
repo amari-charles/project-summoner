@@ -46,10 +46,10 @@ Two camera boundary bugs were active:
 **Component:** Debug Tools / Spawning
 
 **Description:**
-Debug unit spawns with "Spawn as Enemy" could end up in invalid positions and did not consistently respect spawn-side boundary rules.
+Debug unit spawns with "Spawn as Enemy" could end up in invalid positions and did not consistently respect spawn-side boundary rules or debug bypass state.
 
 **Root Cause:**
-`InputCollector` debug DnD path did not validate/clamp debug spawn positions with the shared boundary utilities.
+`InputCollector` debug DnD path did not validate/clamp debug spawn positions with the shared boundary utilities, and bypass state was not routed through the same source-of-truth.
 
 **Solution Implemented:**
 1. Updated debug spawn preview/drop path to use `BattlefieldBounds.IsValidSpawnPositionForTeam()` and `BattlefieldBounds.ClampToValidSpawnZone()`
@@ -62,6 +62,7 @@ Debug unit spawns with "Spawn as Enemy" could end up in invalid positions and di
 - `scripts/csharp/Battle/Input/InputCollector.cs`
 - `scripts/debug/debug_menu.gd`
 - `scripts/csharp/Debug/BattlefieldDebugService.cs`
+- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs`
 
 ---
 

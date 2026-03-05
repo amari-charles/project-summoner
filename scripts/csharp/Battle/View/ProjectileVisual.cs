@@ -41,7 +41,7 @@ public partial class ProjectileVisual : Node3D
             if (simNode != null)
                 GlobalPosition = simNode.SimToLocal(projData.CurrentPosition);
 
-            var projectileData = ResolveProjectileData(state, projData.SourceUnitId);
+            var projectileData = ResolveProjectileData(state, projData);
             _rotateToDirection = projectileData?.RotateToDirection ?? true;
             SpawnVisual(projectileData);
         }
@@ -126,8 +126,16 @@ public partial class ProjectileVisual : Node3D
         _visualModel = visual;
     }
 
-    private static ProjectileData? ResolveProjectileData(Fateforged.Simulation.Data.MatchState state, int sourceUnitId)
+    private static ProjectileData? ResolveProjectileData(Fateforged.Simulation.Data.MatchState state, Fateforged.Simulation.Data.SimProjectileData projData)
     {
+        if (!string.IsNullOrEmpty(projData.ProjectileCatalogId))
+        {
+            var byProjectileId = ProjectileDefinitions.Get(projData.ProjectileCatalogId);
+            if (byProjectileId != null)
+                return byProjectileId;
+        }
+
+        int sourceUnitId = projData.SourceUnitId;
         if (!state.Units.TryGetValue(sourceUnitId, out var sourceUnit))
             return null;
         if (string.IsNullOrEmpty(sourceUnit.CatalogId))

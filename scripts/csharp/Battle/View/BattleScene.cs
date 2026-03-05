@@ -467,7 +467,11 @@ public partial class BattleScene : Node3D
 		var em = new EntityManager();
 		em.Name = "EntityManager";
 		AddChild(em);
-		em.Initialize(session);
+		var vfxManager = GetTree().Root.GetNodeOrNull("VFXManager");
+		IBattleVfxService vfxService = vfxManager != null
+			? new GodotVfxManagerService(vfxManager)
+			: NullBattleVfxService.Instance;
+		em.Initialize(session, vfxService);
 		EntityManager = em;
 	}
 

@@ -78,6 +78,7 @@ public partial class PlatformBillingService : Node
     public Platform current_platform = Platform.UNKNOWN;
 
     private BillingProvider? _provider;
+    private BillingCatalogService? _billingCatalog;
     private string? _provider_unavailable_message;
     private readonly HashSet<string> _owned_products = [];
 
@@ -85,7 +86,9 @@ public partial class PlatformBillingService : Node
     {
         Instance = this;
         current_platform = _detect_platform();
+        _billingCatalog = BillingCatalogService.Instance;
         _provider = _create_provider();
+        _provider.ConfigureCatalog(_billingCatalog);
         _connect_provider_signals();
         _provider.initialize();
 
@@ -303,7 +306,7 @@ public partial class PlatformBillingService : Node
         if (string.IsNullOrEmpty(product_id))
             return product_id;
 
-        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        var catalog = _get_billing_catalog();
         if (catalog == null)
             return product_id;
 
@@ -315,7 +318,7 @@ public partial class PlatformBillingService : Node
         if (string.IsNullOrEmpty(internal_product_id))
             return internal_product_id;
 
-        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        var catalog = _get_billing_catalog();
         if (catalog == null)
             return internal_product_id;
 
@@ -340,7 +343,7 @@ public partial class PlatformBillingService : Node
         if (string.IsNullOrEmpty(internal_product_id))
             return false;
 
-        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        var catalog = _get_billing_catalog();
         var product = catalog?.get_product(internal_product_id);
         return product != null && product.product_type == BillingProduct.ProductType.CONSUMABLE;
     }
@@ -348,5 +351,10 @@ public partial class PlatformBillingService : Node
     private bool _should_cache_owned_product(string internal_product_id)
     {
         return !_is_known_consumable_product(internal_product_id);
+    }
+
+    private BillingCatalogService? _get_billing_catalog()
+    {
+        return _billingCatalog ?? BillingCatalogService.Instance;
     }
 }

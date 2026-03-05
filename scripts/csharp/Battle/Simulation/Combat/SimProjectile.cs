@@ -39,13 +39,22 @@ public static class SimProjectile
         SimVector3 startPos, SimVector3 targetPos,
         float arcHeight = 0f, int pierceCount = 0, float aoeRadius = 0f,
         float hitRadius = 2.5f, float steerStrength = 180f,
-        float veerDelay = 0.15f, float veerAngle = 25f, float veerDuration = 0.25f)
+        float veerDelay = 0.15f, float veerAngle = 25f, float veerDuration = 0.25f,
+        string projectileCatalogId = "",
+        float acceleration = 0f, float minSpeed = 1f,
+        float? speedStart = null, float? speedEnd = null,
+        float speedTransitionDuration = 1f, SpeedEasingType speedEasing = SpeedEasingType.Linear,
+        float speedEaseExponent = 2f)
     {
         int id = state.NextProjectileId();
+        bool useSpeedEasing = speedStart.HasValue || speedEnd.HasValue;
+        float resolvedSpeedStart = speedStart ?? speed;
+        float resolvedSpeedEnd = speedEnd ?? speed;
 
         var proj = new SimProjectileData
         {
             ProjectileId = id,
+            ProjectileCatalogId = projectileCatalogId,
             SourceUnitId = sourceUnitId,
             TargetUnitId = targetUnitId,
             Team = team,
@@ -56,7 +65,17 @@ public static class SimProjectile
             TargetPosition = targetPos,
             CurrentPosition = startPos,
             LastPosition = startPos,
-            Speed = speed,
+            // Delay simulation by one tick so newly-spawned projectiles render at least one frame.
+            TimeAlive = -1f,
+            Speed = useSpeedEasing ? resolvedSpeedStart : speed,
+            Acceleration = acceleration,
+            MinSpeed = minSpeed,
+            UseSpeedEasing = useSpeedEasing,
+            SpeedStart = resolvedSpeedStart,
+            SpeedEnd = resolvedSpeedEnd,
+            SpeedTransitionDuration = speedTransitionDuration,
+            SpeedEasing = speedEasing,
+            SpeedEaseExponent = speedEaseExponent,
             Lifetime = lifetime,
             ArcHeight = arcHeight,
             PierceRemaining = pierceCount,
@@ -117,9 +136,17 @@ public static class SimProjectile
                 continue;
             }
 
+            // First frame after spawn: keep projectile alive and visible for render sync.
+            if (proj.TimeAlive < 0f)
+            {
+                proj.TimeAlive = 0f;
+                continue;
+            }
+
             // Save last position for line-segment hit detection
             proj.LastPosition = proj.CurrentPosition;
             proj.TimeAlive += delta;
+            TickSpeed(proj, delta);
 
             // Check lifetime
             if (proj.TimeAlive >= proj.Lifetime)
@@ -190,6 +217,38 @@ public static class SimProjectile
     // =========================================================================
     // PATH MOVEMENT
     // =========================================================================
+
+    private static void TickSpeed(SimProjectileData proj, float delta)
+    {
+        if (proj.UseSpeedEasing)
+        {
+            float duration = MathF.Max(proj.SpeedTransitionDuration, 0.0001f);
+            float t = SimMath.Clamp(proj.TimeAlive / duration, 0f, 1f);
+            float eased = EvaluateSpeedEasing(t, proj.SpeedEasing, proj.SpeedEaseExponent);
+            proj.Speed = proj.SpeedStart + ((proj.SpeedEnd - proj.SpeedStart) * eased);
+            return;
+        }
+
+        if (MathF.Abs(proj.Acceleration) < 0.0001f)
+            return;
+
+        proj.Speed += proj.Acceleration * delta;
+        if (proj.Acceleration < 0f && proj.Speed < proj.MinSpeed)
+            proj.Speed = proj.MinSpeed;
+    }
+
+    private static float EvaluateSpeedEasing(float t, SpeedEasingType easingType, float exponent)
+    {
+        float clampedT = SimMath.Clamp(t, 0f, 1f);
+        float safeExponent = MathF.Max(exponent, 0.0001f);
+        return easingType switch
+        {
+            SpeedEasingType.EaseIn => MathF.Pow(clampedT, safeExponent),
+            SpeedEasingType.EaseOut => 1f - MathF.Pow(1f - clampedT, safeExponent),
+            SpeedEasingType.EaseInOut => (1f - MathF.Cos(clampedT * MathF.PI)) * 0.5f,
+            _ => clampedT
+        };
+    }
 
     private static void TickStraight(SimProjectileData proj, float delta)
     {

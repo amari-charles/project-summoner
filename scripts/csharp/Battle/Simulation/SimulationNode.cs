@@ -43,7 +43,7 @@ public partial class SimulationNode : Node, IGameSession
     private bool _initialized;
     private bool _firstSnapshotReceived;
 
-    public const float FIXED_DELTA = 1.0f / 60.0f;
+    public const float FIXED_DELTA = global::Fateforged.Simulation.Simulation.FixedDeltaSeconds;
     private const int SimulationProcessPriority = -100;
     private const int DefaultAiDifficulty = 3;
     private const float DefaultAiIntervalMin = 3.0f;

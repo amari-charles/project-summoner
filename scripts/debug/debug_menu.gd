@@ -51,6 +51,7 @@ func _ready() -> void:
 
 	# Load saved settings before creating UI
 	_load_settings()
+	_apply_spawn_boundary_bypass()
 
 	# Create UI after a frame to ensure tree is ready
 	call_deferred("_create_ui")
@@ -304,7 +305,7 @@ func _create_ui() -> void:
 
 	# Update button text to reflect loaded settings
 	_update_button_states()
-	_sync_spawn_boundary_to_service()
+	_apply_spawn_boundary_bypass()
 
 
 func _update_button_states() -> void:
@@ -329,8 +330,8 @@ func _update_button_states() -> void:
 
 	if _spawn_boundary_button:
 		var debug_service: Node = _get_battlefield_debug_service()
-		if debug_service and debug_service.has_method("GetBypassSpawnBoundary"):
-			var bypass_var: Variant = debug_service.call("GetBypassSpawnBoundary")
+		if debug_service and debug_service.has_method("IsSpawnBoundaryBypassEnabled"):
+			var bypass_var: Variant = debug_service.call("IsSpawnBoundaryBypassEnabled")
 			if bypass_var is bool:
 				_bypass_spawn_boundary = bypass_var
 
@@ -434,8 +435,13 @@ func _on_spawn_boundary_toggle_pressed() -> void:
 	var bypass_enabled: bool = _bypass_spawn_boundary
 	var state: String = "Off" if bypass_enabled else "On"
 	_spawn_boundary_button.text = "Spawn Boundary: %s" % state
-	_sync_spawn_boundary_to_service()
+	_apply_spawn_boundary_bypass()
 	_save_settings()
+
+
+func _apply_spawn_boundary_bypass() -> void:
+	if BattlefieldDebug and BattlefieldDebug.has_method("SetSpawnBoundaryBypassEnabled"):
+		BattlefieldDebug.call("SetSpawnBoundaryBypassEnabled", _bypass_spawn_boundary)
 
 
 func _on_camera_overlay_toggle_pressed() -> void:
@@ -639,14 +645,6 @@ func _get_battlefield_debug_service() -> Node:
 
 func _get_unit_debug_service() -> Node:
 	return BattlefieldDebug if BattlefieldDebug else null
-
-
-func _sync_spawn_boundary_to_service() -> void:
-	var debug_service: Node = _get_battlefield_debug_service()
-	if not debug_service:
-		return
-	if debug_service.has_method("SetBypassSpawnBoundary"):
-		debug_service.call("SetBypassSpawnBoundary", _bypass_spawn_boundary)
 
 
 func _find_battle_camera_controller() -> Node:

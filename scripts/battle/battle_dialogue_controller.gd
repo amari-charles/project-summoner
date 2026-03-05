@@ -122,15 +122,12 @@ func _process(_delta: float) -> void:
 
 	var base_pos: Vector3 = player_base.global_position
 
-	# Check all units to see if any enemy units are close to player base
-	var units: Array = get_tree().get_nodes_in_group(GroupIDs.UNITS)
+	# Check enemy units to see if any are close to player base
+	var enemy_group: StringName = GroupIDs.enemy_units_for(UnitConstants.Team.PLAYER)
+	var units: Array = get_tree().get_nodes_in_group(enemy_group)
 	const PROXIMITY_DISTANCE: float = 15.0  # Trigger when enemy is within 15 units
 
 	for unit: Node in units:
-		# Skip if not an enemy unit
-		if not unit.has_method("get") or unit.get("team") != UnitConstants.Team.ENEMY:
-			continue
-
 		# Get unit position - units are Node3D
 		if not unit is Node3D:
 			continue
@@ -251,32 +248,23 @@ func _execute_action(action: String) -> void:
 func _spawn_tutorial_enemy() -> void:
 	if debug_mode: print("BattleDialogueController: _spawn_tutorial_enemy() called")
 
-	# Create the enemy card from CardCatalog (same as enemy deck loader)
 	var card_id: String = TUTORIAL_ENEMY_CARD_ID
-	if debug_mode: print("BattleDialogueController: Creating card from CardCatalog: %s" % card_id)
-
-	var card: Card = CardCatalog.CreateCard(card_id)
-
-	if not card:
-		push_error("BattleDialogueController: Failed to create enemy card from CardCatalog (id: %s)" % card_id)
-		return
-
-	if debug_mode: print("BattleDialogueController: Card created successfully")
-
 	var spawn_pos_3d: Vector3 = TUTORIAL_ENEMY_SPAWN_POS
 	if debug_mode: print("BattleDialogueController: Spawn position: %s" % spawn_pos_3d)
 
-	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
-	if not battlefield:
-		push_error("BattleDialogueController: Battlefield not found")
+	# Spawn via sim command queue (authoritative path).
+	var sim_node: Node = get_tree().get_first_node_in_group(GroupIDs.SIMULATION_NODE)
+	if not sim_node:
+		push_error("BattleDialogueController: SimulationNode not found")
 		return
 
-	if debug_mode: print("BattleDialogueController: Battlefield found: %s" % battlefield.name)
+	if not sim_node.has_method("QueueSpawnUnit"):
+		push_error("BattleDialogueController: SimulationNode missing QueueSpawnUnit()")
+		return
 
-	# Spawn via SpawnUnitCommand through the command pipeline
-	if debug_mode: print("BattleDialogueController: Spawning tutorial enemy via SpawnAt...")
-	card.SpawnAt(spawn_pos_3d, int(UnitConstants.Team.ENEMY))
-	if debug_mode: print("BattleDialogueController: Spawned tutorial enemy at %s" % spawn_pos_3d)
+	if debug_mode:
+		print("BattleDialogueController: Queueing tutorial enemy spawn via SimulationNode")
+	sim_node.call("QueueSpawnUnit", card_id, int(UnitConstants.Team.ENEMY), spawn_pos_3d, true, null)
 
 
 ## Check if a trigger should only happen once

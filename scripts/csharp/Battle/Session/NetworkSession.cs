@@ -39,7 +39,7 @@ public abstract class NetworkSession : IGameSession, IDisposable
     public abstract void SubmitCommand(ICommand command);
     public abstract void Tick(float delta);
 
-    protected abstract void HandleMessage(int senderId, object message);
+    protected abstract void HandleMessage(int senderId, IProtocolMessage message);
 
     protected virtual void HandleDisconnect(string reason)
     {
@@ -60,7 +60,7 @@ public abstract class NetworkSession : IGameSession, IDisposable
 
     private void OnTransportMessageReceived(int senderId, Dictionary message)
     {
-        object deserialized;
+        IProtocolMessage deserialized;
         try
         {
             deserialized = _messageSerializer.Deserialize(message);

@@ -11,6 +11,12 @@ using static GdUnit4.Assertions;
 [TestSuite]
 public class BattlefieldBoundsTest
 {
+    [BeforeTest]
+    public void ResetDebugBypass()
+    {
+        BattlefieldBounds.SetDebugBypassSpawnBoundary(false);
+    }
+
     // =========================================================================
     // ClampToBounds Tests
     // =========================================================================
@@ -290,5 +296,37 @@ public class BattlefieldBoundsTest
         AssertThat(BattlefieldBounds.MaxZ).IsEqual(40.0f);
         AssertThat(BattlefieldBounds.SpawnBoundaryX).IsEqual(0.0f);
         AssertThat(BattlefieldBounds.SpawnBoundaryEpsilon).IsEqual(0.001f);
+    }
+
+    [TestCase]
+    public void IsValidSpawnPositionForTeam_DebugBypassEnabled_IgnoresTeamBoundary()
+    {
+        BattlefieldBounds.SetDebugBypassSpawnBoundary(true);
+
+        AssertThat(BattlefieldBounds.IsValidSpawnPositionForTeam(new Vector3(10, 0, 0), 0)).IsTrue();
+        AssertThat(BattlefieldBounds.IsValidSpawnPositionForTeam(new Vector3(-10, 0, 0), 1)).IsTrue();
+    }
+
+    [TestCase]
+    public void ClampToValidSpawnZone_DebugBypassEnabled_OnlyClampsOuterBounds()
+    {
+        BattlefieldBounds.SetDebugBypassSpawnBoundary(true);
+        var position = new Vector3(10, 3, 6);
+
+        var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 0);
+
+        AssertThat(clamped).IsEqual(position);
+    }
+
+    [TestCase]
+    public void ToggleDebugBypassSpawnBoundary_TogglesState()
+    {
+        AssertThat(BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled()).IsFalse();
+
+        BattlefieldBounds.ToggleDebugBypassSpawnBoundary();
+        AssertThat(BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled()).IsTrue();
+
+        BattlefieldBounds.ToggleDebugBypassSpawnBoundary();
+        AssertThat(BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled()).IsFalse();
     }
 }
