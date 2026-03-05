@@ -88,6 +88,34 @@ This closes the previously tracked "partial" validation gap from the host-author
 
 ---
 
+### Investigate MP Client Casting Signal
+**Completed:** 2026-03-05
+**Category:** Multiplayer / Battle UI
+**Effort:** Small
+
+**Description:**
+Resolved MP client casting signal reconstruction so `SummonerVisual` no longer emits null casting card payloads during polling/reconnect scenarios.
+
+**Key Accomplishments:**
+- ✅ Added `CastingCatalogId` to realtime `SummonerState` protocol snapshot payload
+- ✅ Threaded `CastingCatalogId` through host snapshot build, serializer, and client snapshot apply
+- ✅ Updated MP polling casting flow in `SummonerVisual` to reconstruct `Card` payloads from authoritative state
+- ✅ Added runtime tests for `SummonerVisual` casting signal behavior and invalid-catalog failure path
+
+**PR Merge Date:** Pending (`#266`)
+
+**Files Changed:**
+- `scripts/csharp/Battle/Session/Protocol/Messages.cs`
+- `scripts/csharp/Battle/Session/Protocol/MessageSerializer.cs`
+- `scripts/csharp/Battle/Session/HostSession.cs`
+- `scripts/csharp/Battle/Session/ClientSession.cs`
+- `scripts/csharp/Battle/View/SummonerVisual.cs`
+- `tests/csharp/Multiplayer/MessageSerializerTest.cs`
+- `tests/csharp/Session/NetworkSessionWiringTest.cs`
+- `tests/csharp/View/SummonerVisualTest.cs`
+
+---
+
 ### Multiplayer Opponent Summoner Stats Exchange
 **Completed:** 2026-03-01
 **Category:** Multiplayer / Ranked Gameplay

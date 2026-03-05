@@ -429,7 +429,8 @@ public class HostSession : NetworkSession
                 s.ComputeCardHash(),
                 s.Hand.ToArray(),
                 s.Deck.ToArray(),
-                s.DiscardPile.ToArray()
+                s.DiscardPile.ToArray(),
+                s.CastingCatalogId
             );
         }
 

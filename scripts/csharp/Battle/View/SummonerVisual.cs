@@ -51,14 +51,14 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     // SIGNALS (PascalCase for GDScript consumers)
     // =========================================================================
 
-    [Signal] public delegate void CardPlayedEventHandler(GodotObject card);
-    [Signal] public delegate void CardDrawnEventHandler(GodotObject card);
+    [Signal] public delegate void CardPlayedEventHandler(Card card);
+    [Signal] public delegate void CardDrawnEventHandler(Card card);
     [Signal] public delegate void HandChangedEventHandler(Godot.Collections.Array hand);
     [Signal] public delegate void ManaChangedEventHandler(float current, float max);
     [Signal] public delegate void HpChangedEventHandler(float newHp, float maxHp);
-    [Signal] public delegate void CastingStartedEventHandler(GodotObject card, float duration);
+    [Signal] public delegate void CastingStartedEventHandler(Card card, float duration);
     [Signal] public delegate void CastingProgressEventHandler(float remaining, float total);
-    [Signal] public delegate void CastingCompletedEventHandler(GodotObject card);
+    [Signal] public delegate void CastingCompletedEventHandler(Card card);
     [Signal] public delegate void SummonerReadyEventHandler(Node3D summoner);
     [Signal] public delegate void SummonerDestroyedEventHandler(Node3D summoner);
     [Signal] public delegate void SummonerDamagedEventHandler(Node3D summoner, float damage);
@@ -103,7 +103,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private Card? _castingCard;
 
     // MP client polling: last-known values for delta detection
-    private bool _lastIsCasting;
+    private bool _castingStartSignaled;
+    private string _lastCastingCatalogId = "";
     private float _lastMana;
     private float _lastMaxMana;
     private float _lastHp;
@@ -196,7 +197,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         _lastMaxMana = summoner.MaxMana;
         _lastHp = summoner.CurrentHp;
         _lastMaxHp = summoner.MaxHp;
-        _lastIsCasting = summoner.IsCasting;
+        _castingStartSignaled = false;
+        _lastCastingCatalogId = "";
 
         // Emit initial hand so the UI shows starting cards without waiting for a HandChangedEvent.
         // SetSummonerHand() writes directly to MatchState with no event — host mode never polls,
@@ -262,26 +264,22 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public void OnCastingStarted(int cardIndex, float duration, string catalogId)
     {
-        var card = CreateCardResource(catalogId);
-        if (card == null)
-        {
-            GD.PrintErr($"[SummonerVisual] Failed to create card resource for catalogId={catalogId}");
-            return;
-        }
+        var card = CreateCardResourceRequired(catalogId, "OnCastingStarted");
         _castingCard = card;
+        _castingStartSignaled = true;
+        _lastCastingCatalogId = card.CatalogId;
         EmitSignal(SignalName.CardPlayed, card);
         EmitSignal(SignalName.CastingStarted, card, duration);
     }
 
     public void OnCastingCompleted(int cardIndex)
     {
-        var completed = _castingCard;
+        var completed = _castingCard ?? CreateCardResourceRequired(
+            _lastCastingCatalogId,
+            "OnCastingCompleted missing cached casting card");
         _castingCard = null;
-        if (completed == null)
-        {
-            GD.PrintErr("[SummonerVisual] CastingCompleted but no casting card was set");
-            return;
-        }
+        _castingStartSignaled = false;
+        _lastCastingCatalogId = "";
         EmitSignal(SignalName.CastingCompleted, completed);
     }
 
@@ -407,19 +405,19 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
         var summoner = _session.GetState().Summoners[_teamIndex];
 
-        // Poll casting state
-        if (summoner.IsCasting != _lastIsCasting)
+        // Poll casting state. Keep UI state self-healing for reconnect/mid-cast snapshots.
+        if (summoner.IsCasting)
         {
-            _lastIsCasting = summoner.IsCasting;
-            if (summoner.IsCasting)
+            if (!_castingStartSignaled)
             {
-                // MP client polling path has no card reference — null card emitted. See todos.md.
-                EmitSignal(SignalName.CastingStarted, (GodotObject)null!, summoner.CastingTimeTotal);
+                EmitCastingStartedFromSnapshot(summoner);
+                _castingStartSignaled = true;
             }
-            else
-            {
-                EmitSignal(SignalName.CastingCompleted, (GodotObject)null!);
-            }
+        }
+        else if (_castingStartSignaled)
+        {
+            EmitCastingCompletedFromCache();
+            _castingStartSignaled = false;
         }
 
         if (summoner.IsCasting)
@@ -503,6 +501,43 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         var def = CardCatalog.GetCard(catalogId);
         if (def == null) return null;
         return Card.FromDefinition(def);
+    }
+
+    private static Card CreateCardResourceRequired(string catalogId, string context)
+    {
+        if (string.IsNullOrWhiteSpace(catalogId))
+        {
+            string msg = $"[SummonerVisual] {context}: empty casting catalogId is invalid";
+            GD.PushError(msg);
+            throw new InvalidOperationException(msg);
+        }
+
+        var card = CreateCardResource(catalogId);
+        if (card != null)
+            return card;
+
+        string error = $"[SummonerVisual] {context}: unknown casting catalogId={catalogId}";
+        GD.PushError(error);
+        throw new InvalidOperationException(error);
+    }
+
+    private void EmitCastingStartedFromSnapshot(SummonerData summoner)
+    {
+        var card = CreateCardResourceRequired(summoner.CastingCatalogId, "MP snapshot casting start");
+        _castingCard = card;
+        _lastCastingCatalogId = card.CatalogId;
+        EmitSignal(SignalName.CardPlayed, card);
+        EmitSignal(SignalName.CastingStarted, card, summoner.CastingTimeTotal);
+    }
+
+    private void EmitCastingCompletedFromCache()
+    {
+        var completed = _castingCard ?? CreateCardResourceRequired(
+            _lastCastingCatalogId,
+            "MP snapshot casting complete missing cached casting card");
+        _castingCard = null;
+        _lastCastingCatalogId = "";
+        EmitSignal(SignalName.CastingCompleted, completed);
     }
 
     private void ConfigureCollisionShape()

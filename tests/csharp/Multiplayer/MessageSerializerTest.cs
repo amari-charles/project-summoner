@@ -451,11 +451,13 @@ public class MessageSerializerTest
             new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10,
                 IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
                 CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1, CardStateHash: 0,
-                Hand: new[] { "fire_wisp", "pebbloom" }, Deck: new[] { "aqua_sprite" }, DiscardPile: System.Array.Empty<string>()),
+                Hand: new[] { "fire_wisp", "pebbloom" }, Deck: new[] { "aqua_sprite" }, DiscardPile: System.Array.Empty<string>(),
+                CastingCatalogId: ""),
             new SummonerState(Team: 1, Hp: 80, MaxHp: 100, Mana: 7, MaxMana: 10,
                 IsCasting: true, CastingTimeRemaining: 1.5f, CastingTimeTotal: 2f,
                 CastingCardIndex: 2, CastingSpawnPosition: new Vector3(3, 0, 3), CastingNetworkId: 5, CardStateHash: 42,
-                Hand: new[] { "stone_golem" }, Deck: new[] { "fire_wisp", "pebbloom" }, DiscardPile: new[] { "aqua_sprite" })
+                Hand: new[] { "stone_golem" }, Deck: new[] { "fire_wisp", "pebbloom" }, DiscardPile: new[] { "aqua_sprite" },
+                CastingCatalogId: "fire_wisp")
         };
         var units = new[]
         {
@@ -518,6 +520,7 @@ public class MessageSerializerTest
         AssertThat(typed.Summoners[1].Hand).ContainsExactly(new[] { "stone_golem" });
         AssertThat(typed.Summoners[1].Deck).ContainsExactly(new[] { "fire_wisp", "pebbloom" });
         AssertThat(typed.Summoners[1].DiscardPile).ContainsExactly(new[] { "aqua_sprite" });
+        AssertThat(typed.Summoners[1].CastingCatalogId).IsEqual("fire_wisp");
         AssertThat(typed.Summoners[1].CastingSpawnPosition.X).IsEqual(3f);
         AssertThat(typed.Summoners[1].CastingSpawnPosition.Z).IsEqual(3f);
         AssertThat(typed.Units.Length).IsEqual(2);
@@ -597,7 +600,8 @@ public class MessageSerializerTest
             new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10,
                 IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
                 CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1, CardStateHash: 0,
-                Hand: System.Array.Empty<string>(), Deck: System.Array.Empty<string>(), DiscardPile: System.Array.Empty<string>())
+                Hand: System.Array.Empty<string>(), Deck: System.Array.Empty<string>(), DiscardPile: System.Array.Empty<string>(),
+                CastingCatalogId: "water_wisp")
         };
         var units = new[]
         {
@@ -643,6 +647,7 @@ public class MessageSerializerTest
         AssertThat(result.Units[0].Position.X).IsEqual(4.5f);
         AssertThat(result.Units[0].Position.Y).IsEqual(0f);
         AssertThat(result.Units[0].Position.Z).IsEqual(8.25f);
+        AssertThat(result.Summoners[0].CastingCatalogId).IsEqual("water_wisp");
         AssertThat(result.Projectiles.Length).IsEqual(0);
     }
 }

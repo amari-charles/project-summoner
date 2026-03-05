@@ -421,6 +421,7 @@ public class MessageSerializer
                 ["castCard"] = s.CastingCardIndex,
                 ["castPos"] = SerializeVector3(s.CastingSpawnPosition),
                 ["castNetId"] = s.CastingNetworkId,
+                ["castCatalog"] = s.CastingCatalogId ?? "",
                 ["cardHash"] = s.CardStateHash,
                 ["hand"] = ToGodotArray(s.Hand ?? System.Array.Empty<string>()),
                 ["deck"] = ToGodotArray(s.Deck ?? System.Array.Empty<string>()),
@@ -437,6 +438,9 @@ public class MessageSerializer
         for (int i = 0; i < arr.Count; i++)
         {
             var d = (Dictionary)arr[i];
+            if (!d.ContainsKey("castCatalog"))
+                throw new ArgumentException("StateSnapshot summoner payload missing required field: castCatalog");
+
             summoners[i] = new SummonerState(
                 (int)d["team"],
                 (float)d["hp"],
@@ -452,7 +456,8 @@ public class MessageSerializer
                 (int)d["cardHash"],
                 d.ContainsKey("hand") ? ToStringArray((Godot.Collections.Array)d["hand"]) : System.Array.Empty<string>(),
                 d.ContainsKey("deck") ? ToStringArray((Godot.Collections.Array)d["deck"]) : System.Array.Empty<string>(),
-                d.ContainsKey("discard") ? ToStringArray((Godot.Collections.Array)d["discard"]) : System.Array.Empty<string>()
+                d.ContainsKey("discard") ? ToStringArray((Godot.Collections.Array)d["discard"]) : System.Array.Empty<string>(),
+                (string)d["castCatalog"]
             );
         }
         return summoners;
