@@ -49,6 +49,47 @@ func test_camera_uses_perspective_projection() -> void:
 	)
 
 
+func test_projection_mode_toggle_switches_projection_and_zoom_domain() -> void:
+	_camera.set_projection_mode(_camera.PROJECTION_MODE_ORTHOGRAPHIC)
+	assert_eq(
+		_camera.projection,
+		Camera3D.PROJECTION_ORTHOGONAL,
+		"Projection toggle should switch to orthographic mode"
+	)
+
+	var start_size: float = _camera.size
+	_camera._apply_zoom(-4.0)
+	assert_lt(_camera.size, start_size, "Orthographic zoom in should decrease camera size")
+
+	_camera._apply_zoom(-9999.0)
+	assert_almost_eq(_camera.size, _camera.min_ortho_size, 0.001, "Ortho zoom in should clamp to min_ortho_size")
+
+	_camera._apply_zoom(9999.0)
+	assert_almost_eq(_camera.size, _camera.max_ortho_size, 0.001, "Ortho zoom out should clamp to max_ortho_size")
+
+	_camera.set_projection_mode(_camera.PROJECTION_MODE_PERSPECTIVE)
+	assert_eq(
+		_camera.projection,
+		Camera3D.PROJECTION_PERSPECTIVE,
+		"Projection toggle should switch back to perspective mode"
+	)
+
+
+func test_set_map_bounds_reorients_camera_when_facing_away_from_map() -> void:
+	_camera.rotate_y(PI)
+	_camera.force_update_transform()
+	_camera.set_map_bounds(_camera.map_rect_xz)
+
+	var forward_xz: Vector2 = Vector2(-_camera.global_basis.z.x, -_camera.global_basis.z.z).normalized()
+	var map_center: Vector2 = _camera.map_rect_xz.position + (_camera.map_rect_xz.size * 0.5)
+	var to_center: Vector2 = (map_center - Vector2(_camera.global_position.x, _camera.global_position.z)).normalized()
+	assert_gt(
+		forward_xz.dot(to_center),
+		0.0,
+		"Camera should be oriented toward map center after bounds are configured"
+	)
+
+
 func test_zoom_adjusts_fov_and_clamps_limits() -> void:
 	var start_fov: float = _camera.fov
 	_camera._apply_zoom(-4.0)

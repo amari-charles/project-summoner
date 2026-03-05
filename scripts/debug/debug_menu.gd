@@ -28,6 +28,7 @@ var _separation_radius_button: Button
 var _projectile_hit_geometry_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
+var _camera_projection_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
 var _unit_debug: Node
 var _command_input: LineEdit  # Console command input
@@ -66,6 +67,7 @@ func _process(_delta: float) -> void:
 
 	if _panel and _panel.visible:
 		_refresh_camera_overlay_button_state()
+		_refresh_camera_projection_button_state()
 
 
 func _input(event: InputEvent) -> void:
@@ -229,6 +231,13 @@ func _create_ui() -> void:
 	_camera_overlay_button.pressed.connect(_on_camera_overlay_toggle_pressed)
 	vbox.add_child(_camera_overlay_button)
 
+	# Camera projection mode toggle button
+	_camera_projection_button = Button.new()
+	_camera_projection_button.text = "Camera Mode: N/A"
+	_camera_projection_button.custom_minimum_size = Vector2(200, 32)
+	_camera_projection_button.pressed.connect(_on_camera_projection_toggle_pressed)
+	vbox.add_child(_camera_projection_button)
+
 	# Console command separator
 	var console_separator: HSeparator = HSeparator.new()
 	vbox.add_child(console_separator)
@@ -352,6 +361,7 @@ func _update_button_states() -> void:
 		_spawn_boundary_button.text = "Spawn Boundary: %s" % state
 
 	_refresh_camera_overlay_button_state()
+	_refresh_camera_projection_button_state()
 
 
 func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) -> void:
@@ -478,6 +488,17 @@ func _on_camera_overlay_toggle_pressed() -> void:
 	var enabled: bool = enabled_var if enabled_var is bool else false
 	camera.set("debug_show_pan_bounds_overlay", not enabled)
 	_refresh_camera_overlay_button_state()
+
+
+func _on_camera_projection_toggle_pressed() -> void:
+	var camera: Node = _find_battle_camera_controller()
+	if not camera or not camera.has_method("toggle_projection_mode"):
+		print("[Debug] Battle camera projection toggle unavailable")
+		_refresh_camera_projection_button_state()
+		return
+
+	camera.call("toggle_projection_mode")
+	_refresh_camera_projection_button_state()
 
 
 func _on_command_submitted(command: String) -> void:
@@ -700,6 +721,22 @@ func _refresh_camera_overlay_button_state() -> void:
 	var enabled_var: Variant = camera.get("debug_show_pan_bounds_overlay")
 	var enabled: bool = enabled_var if enabled_var is bool else false
 	_camera_overlay_button.text = "Camera Overlay: %s" % ("On" if enabled else "Off")
+
+
+func _refresh_camera_projection_button_state() -> void:
+	if not _camera_projection_button:
+		return
+
+	var camera: Node = _find_battle_camera_controller()
+	if not camera or not camera.has_method("get_projection_mode_name"):
+		_camera_projection_button.text = "Camera Mode: N/A"
+		_camera_projection_button.disabled = true
+		return
+
+	_camera_projection_button.disabled = false
+	var mode_name_var: Variant = camera.call("get_projection_mode_name")
+	var mode_name: String = mode_name_var if mode_name_var is String else "Unknown"
+	_camera_projection_button.text = "Camera Mode: %s" % mode_name
 
 
 ## =============================================================================

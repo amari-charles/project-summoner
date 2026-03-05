@@ -17,6 +17,13 @@ const CLAMP_EPSILON: float = 0.001
 const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
 const MAX_CLAMP_ITERATIONS: int = 4
 
+enum ProjectionMode {
+	PERSPECTIVE,
+	ORTHOGRAPHIC
+}
+const PROJECTION_MODE_PERSPECTIVE: int = ProjectionMode.PERSPECTIVE
+const PROJECTION_MODE_ORTHOGRAPHIC: int = ProjectionMode.ORTHOGRAPHIC
+
 # === Exports ===
 
 @export_group("Pan Settings")
@@ -34,18 +41,22 @@ const MAX_CLAMP_ITERATIONS: int = 4
 @export var center_if_too_big: bool = true
 
 @export_group("Projection")
+@export var projection_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
 @export var default_fov: float = 38.0
 @export var min_fov: float = 24.0  # Max zoom in
 @export var max_fov: float = 62.0  # Max zoom out (limited to prevent showing outside map)
 @export var perspective_near_clip: float = 0.5
 @export var perspective_far_clip: float = 260.0
+@export var default_ortho_size: float = 40.0
+@export var min_ortho_size: float = 20.0  # Max zoom in
+@export var max_ortho_size: float = 50.0  # Max zoom out
 
 @export_group("Zoom Controls")
 @export var zoom_speed: float = 2.0
 @export var zoom_enabled: bool = true
 
 @export_group("Zoom-Based Panning")
-## If true, vertical panning is only enabled when zoomed in (fov < default_fov)
+## If true, vertical panning is only enabled when zoomed in from default framing.
 @export var vertical_pan_only_when_zoomed: bool = true
 
 @export_group("Edge Panning")
@@ -71,6 +82,7 @@ const MAX_CLAMP_ITERATIONS: int = 4
 var is_panning: bool = false
 var last_mouse_position: Vector2
 var _max_fov_ceiling: float = -1.0
+var _max_ortho_size_ceiling: float = -1.0
 var _debug_overlay_mesh: MeshInstance3D
 var _debug_overlay_lines: ImmediateMesh
 var _debug_overlay_material: StandardMaterial3D
@@ -79,17 +91,13 @@ func _ready() -> void:
 	# Set process mode to ALWAYS so camera panning works during dialogues
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Perspective projection gives true depth/parallax across the battlefield.
-	projection = PROJECTION_PERSPECTIVE
-	near = perspective_near_clip
-	far = perspective_far_clip
 	# Wait one frame for transform initialization
 	await get_tree().process_frame
 	if _max_fov_ceiling < 0.0:
 		_max_fov_ceiling = max_fov
-	_refresh_zoom_limits()
-	fov = clamp(default_fov, min_fov, max_fov)
-	clamp_to_map()
+	if _max_ortho_size_ceiling < 0.0:
+		_max_ortho_size_ceiling = max_ortho_size
+	set_projection_mode(projection_mode, true)
 
 	var vp: Viewport = get_viewport()
 	if vp and not vp.size_changed.is_connected(_on_viewport_size_changed):
@@ -101,13 +109,19 @@ func _ready() -> void:
 
 func _on_viewport_size_changed() -> void:
 	_refresh_zoom_limits()
-	fov = clamp(fov, min_fov, max_fov)
+	_apply_zoom_limits(false)
 	clamp_to_map()
 
 func _refresh_zoom_limits() -> void:
-	var configured_max: float = _max_fov_ceiling if _max_fov_ceiling > 0.0 else max_fov
-	var solved_max: float = _solve_max_fov(configured_max)
-	max_fov = max(min_fov, min(configured_max, solved_max))
+	if is_perspective_mode():
+		var configured_max_fov: float = _max_fov_ceiling if _max_fov_ceiling > 0.0 else max_fov
+		var solved_max_fov: float = _solve_max_fov(configured_max_fov)
+		max_fov = max(min_fov, min(configured_max_fov, solved_max_fov))
+		return
+
+	var configured_max_size: float = _max_ortho_size_ceiling if _max_ortho_size_ceiling > 0.0 else max_ortho_size
+	var solved_max_size: float = _solve_max_ortho_size(configured_max_size)
+	max_ortho_size = max(min_ortho_size, min(configured_max_size, solved_max_size))
 
 func set_map_bounds(bounds_xz: Rect2) -> void:
 	if bounds_xz.size.x <= 0.0 or bounds_xz.size.y <= 0.0:
@@ -116,13 +130,77 @@ func set_map_bounds(bounds_xz: Rect2) -> void:
 	map_rect_xz = bounds_xz
 	if _max_fov_ceiling < 0.0:
 		_max_fov_ceiling = max_fov
+	if _max_ortho_size_ceiling < 0.0:
+		_max_ortho_size_ceiling = max_ortho_size
+	_ensure_camera_faces_map_center()
 	_refresh_zoom_limits()
-	fov = clamp(fov, min_fov, max_fov)
+	_apply_zoom_limits(false)
 	clamp_to_map()
 
 	if _is_debug_overlay_enabled():
 		_ensure_debug_overlay()
 		_update_debug_overlay()
+
+func set_projection_mode(mode: int, reset_zoom: bool = true) -> void:
+	var next_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
+	if mode == ProjectionMode.ORTHOGRAPHIC:
+		next_mode = ProjectionMode.ORTHOGRAPHIC
+
+	projection_mode = next_mode
+	if projection_mode == ProjectionMode.PERSPECTIVE:
+		projection = PROJECTION_PERSPECTIVE
+		near = perspective_near_clip
+		far = perspective_far_clip
+	else:
+		projection = PROJECTION_ORTHOGONAL
+
+	_refresh_zoom_limits()
+	_apply_zoom_limits(reset_zoom)
+	_ensure_camera_faces_map_center()
+	clamp_to_map()
+
+func toggle_projection_mode() -> void:
+	var next_mode: ProjectionMode = ProjectionMode.ORTHOGRAPHIC if is_perspective_mode() else ProjectionMode.PERSPECTIVE
+	set_projection_mode(next_mode, true)
+
+func get_projection_mode_name() -> String:
+	return "Perspective" if is_perspective_mode() else "Orthographic"
+
+func is_perspective_mode() -> bool:
+	return projection_mode == ProjectionMode.PERSPECTIVE
+
+func _apply_zoom_limits(reset_zoom: bool) -> void:
+	if is_perspective_mode():
+		if reset_zoom:
+			fov = clamp(default_fov, min_fov, max_fov)
+		else:
+			fov = clamp(fov, min_fov, max_fov)
+		return
+
+	if reset_zoom:
+		size = clamp(default_ortho_size, min_ortho_size, max_ortho_size)
+	else:
+		size = clamp(size, min_ortho_size, max_ortho_size)
+
+func _is_zoomed_in_for_vertical_pan() -> bool:
+	if is_perspective_mode():
+		return fov < default_fov
+	return size < default_ortho_size
+
+func _ensure_camera_faces_map_center() -> void:
+	var forward_xz: Vector2 = Vector2(-global_basis.z.x, -global_basis.z.z)
+	if forward_xz.length_squared() <= CLAMP_EPSILON:
+		return
+
+	var map_center_xz: Vector2 = map_rect_xz.position + map_rect_xz.size * 0.5
+	var camera_xz: Vector2 = Vector2(global_position.x, global_position.z)
+	var to_center: Vector2 = map_center_xz - camera_xz
+	if to_center.length_squared() <= CLAMP_EPSILON:
+		return
+
+	if forward_xz.normalized().dot(to_center.normalized()) < 0.0:
+		rotate_y(PI)
+		force_update_transform()
 
 func _solve_max_fov(configured_max: float) -> float:
 	var original_fov: float = fov
@@ -139,6 +217,23 @@ func _solve_max_fov(configured_max: float) -> float:
 			high = mid
 
 	fov = original_fov
+	return low
+
+func _solve_max_ortho_size(configured_max: float) -> float:
+	var original_size: float = size
+	var low: float = min_ortho_size
+	var high: float = max(configured_max, min_ortho_size)
+
+	for i: int in range(MAX_ZOOM_SOLVER_ITERATIONS):
+		var mid: float = (low + high) * 0.5
+		size = mid
+		var footprint: Rect2 = get_ground_footprint_xz()
+		if _footprint_fits_map(footprint):
+			low = mid
+		else:
+			high = mid
+
+	size = original_size
 	return low
 
 func _footprint_fits_map(footprint: Rect2) -> bool:
@@ -319,7 +414,10 @@ func _handle_zoom(event: InputEvent) -> void:
 
 func _apply_zoom(delta: float) -> void:
 	## Apply zoom change and re-clamp camera
-	fov = clamp(fov + delta, min_fov, max_fov)
+	if is_perspective_mode():
+		fov = clamp(fov + delta, min_fov, max_fov)
+	else:
+		size = clamp(size + delta, min_ortho_size, max_ortho_size)
 	# Clamp after zoom to adjust for new view size
 	clamp_to_map()
 
@@ -377,7 +475,7 @@ func _apply_pan_delta(delta: Vector2) -> void:
 
 	# Vertical panning (Z-axis) only allowed when zoomed in
 	var desired_dz: float = 0.0
-	if not vertical_pan_only_when_zoomed or fov < default_fov:
+	if not vertical_pan_only_when_zoomed or _is_zoomed_in_for_vertical_pan():
 		desired_dz = delta.y * pan_speed * TOUCH_TO_WORLD_SCALE
 
 	# Constrain movement before applying, so drag panning "stops at edge"
@@ -471,7 +569,7 @@ func _handle_keyboard_pan(delta: float) -> void:
 		pan_input.x -= 1.0
 
 	# Collect vertical input (only if zoomed in or restriction disabled)
-	if not vertical_pan_only_when_zoomed or fov < default_fov:
+	if not vertical_pan_only_when_zoomed or _is_zoomed_in_for_vertical_pan():
 		if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
 			pan_input.y -= 1.0  # Down = move toward negative Z (closer to camera)
 		if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
@@ -513,7 +611,7 @@ func _handle_edge_pan(delta: float) -> void:
 		pan_input.x = 1.0
 
 	# Check vertical edges (only if zoomed in or restriction disabled)
-	if not vertical_pan_only_when_zoomed or fov < default_fov:
+	if not vertical_pan_only_when_zoomed or _is_zoomed_in_for_vertical_pan():
 		if mouse_pos.y <= edge_pan_margin:
 			# Near top edge, pan up (away from camera)
 			pan_input.y = 1.0
@@ -521,16 +619,16 @@ func _handle_edge_pan(delta: float) -> void:
 			# Near bottom edge, pan down (toward camera)
 			pan_input.y = -1.0
 
-		if pan_input != Vector2.ZERO:
-			# Apply edge panning (no need to normalize, edges are mutually exclusive)
-			var desired_dx: float = pan_input.x * pan_speed * edge_pan_speed * delta
-			var desired_dz: float = pan_input.y * pan_speed * edge_pan_speed * delta
-			var constrained_pan: Vector2 = _constrain_pan_motion_to_map(desired_dx, desired_dz)
-			if constrained_pan == Vector2.ZERO:
-				return
-			position.x += constrained_pan.x
-			position.z += constrained_pan.y
-			clamp_to_map()
+	if pan_input != Vector2.ZERO:
+		# Apply edge panning (no need to normalize, edges are mutually exclusive)
+		var desired_dx: float = pan_input.x * pan_speed * edge_pan_speed * delta
+		var desired_dz: float = pan_input.y * pan_speed * edge_pan_speed * delta
+		var constrained_pan: Vector2 = _constrain_pan_motion_to_map(desired_dx, desired_dz)
+		if constrained_pan == Vector2.ZERO:
+			return
+		position.x += constrained_pan.x
+		position.z += constrained_pan.y
+		clamp_to_map()
 
 func _ensure_debug_overlay() -> void:
 	if _debug_overlay_mesh:
