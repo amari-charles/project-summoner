@@ -389,6 +389,71 @@ public class SimBehaviorTest
         AssertThat(unit.TargetLockTimer).IsGreater(0f);
     }
 
+    [TestCase]
+    public void TickTargeting_ConeCurrentAttackable_LockExpired_KeepsCurrentTarget()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 24f, aggroRadius: 24f);
+        unit.HasConeConstraint = true;
+        unit.ConeHalfAngle = 30f;
+        unit.CloseRangeThreshold = 0.5f;
+        unit.IsFacingRight = true;
+
+        var current = SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f); // In cone and in range
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 10f); // Closer but out of cone
+
+        unit.TargetUnitId = current.UnitId;
+        unit.TargetLockTimer = 0f;
+
+        SimBehavior.TickTargeting(unit, _state);
+
+        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value == current.UnitId).IsTrue();
+        AssertThat(unit.TargetLockTimer).IsGreater(0f);
+    }
+
+    [TestCase]
+    public void TickTargeting_ConeCurrentNotAttackable_LockExpired_SwitchesToAttackableTarget()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 24f, aggroRadius: 24f);
+        unit.HasConeConstraint = true;
+        unit.ConeHalfAngle = 30f;
+        unit.CloseRangeThreshold = 0.5f;
+        unit.IsFacingRight = true;
+
+        var closerOutOfCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 10f);
+        var inCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f);
+
+        unit.TargetUnitId = closerOutOfCone.UnitId;
+        unit.TargetLockTimer = 0f;
+
+        SimBehavior.TickTargeting(unit, _state);
+
+        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value == inCone.UnitId).IsTrue();
+    }
+
+    [TestCase]
+    public void TickTargeting_KeepCurrentDisabled_CanSwitchWhenLockExpires()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, aggroRadius: 20f);
+        unit.HasConeConstraint = false;
+        unit.DistanceScorerWeight = 0f;
+        unit.HealthScorerWeight = 100f;
+        unit.TargetPolicyId = TargetPolicyId.Legacy;
+
+        var currentInRange = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, hp: 100f);
+        var outOfRangeLowHp = SimTestHelper.CreateMeleeUnit(_state, 1, x: 6f, hp: 100f);
+        outOfRangeLowHp.CurrentHp = 10f;
+
+        unit.TargetUnitId = currentInRange.UnitId;
+        unit.TargetLockTimer = 0f;
+
+        SimBehavior.TickTargeting(unit, _state);
+
+        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value == outOfRangeLowHp.UnitId).IsTrue();
+    }
+
     // =========================================================================
     // Triggers (wired in Phase 5)
     // =========================================================================

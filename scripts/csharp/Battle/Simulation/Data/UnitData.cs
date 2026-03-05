@@ -79,6 +79,7 @@ public class UnitData
     public TargetLayer TargetLayerFilter { get; set; }
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
+    public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
     public float FlightAltitude { get; set; }
 
     // Velocity — computed by simulation each tick

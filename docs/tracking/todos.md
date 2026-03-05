@@ -1084,6 +1084,36 @@ All 5 target services are C# classes with strongly-typed public methods. Replace
 
 ---
 
+#### Replace Runtime Entity `int` IDs with Typed Value Objects
+**Status:** ⬜ Not Started
+**Category:** Architecture / Type Safety
+**Effort:** Medium
+
+**Description:**
+Simulation/runtime entity references still use raw `int` IDs in many places (`UnitId`, projectile IDs, target IDs, network IDs). This is brittle because ID domains can be mixed accidentally and invalid combinations are not caught at compile time.
+
+Migrate runtime IDs to strongly typed value objects (for example `UnitInstanceId`, `ProjectileInstanceId`, `NetworkEntityId`) while keeping deterministic behavior and snapshot/network compatibility.
+
+**Goals:**
+- Prevent ID-domain mixups at compile time
+- Improve readability of hot-path code (`MatchState`, targeting, combat, snapshots)
+- Reduce "magic negative ID" conventions for special targets
+
+**Migration Notes:**
+- Prefer `readonly record struct` wrappers around `int` values
+- Keep wire format/snapshots stable by converting at serialization boundaries
+- Do incrementally (type aliases/adapters first, then deep replacement)
+
+**Likely Files:**
+- `scripts/csharp/Battle/Simulation/Data/MatchState.cs`
+- `scripts/csharp/Battle/Simulation/Data/UnitData.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+- Session protocol/snapshot builders (`scripts/csharp/Battle/Session/...`)
+
+---
+
 #### Audit for Global-Coordination-over-Local-State Anti-pattern
 **Status:** ⬜ Not Started
 **Category:** Architecture / Design Principles

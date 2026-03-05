@@ -13,11 +13,33 @@ public static class SimTargeting
 {
 
     /// <summary>
+    /// Acquire a target using the unit's configured targeting policy.
+    /// </summary>
+    public static int? AcquireTarget(UnitData unit, MatchState state)
+    {
+        var policy = Targeting.TargetPolicyRegistry.Resolve(unit.TargetPolicyId);
+        return policy.SelectTarget(unit, state);
+    }
+
+    /// <summary>
+    /// Baseline target acquisition: score-only selection without attackable-now preference.
+    /// </summary>
+    public static int? AcquireTargetLegacy(UnitData unit, MatchState state)
+        => AcquireTargetCore(unit, state, prioritizeAttackableNow: false);
+
+    /// <summary>
+    /// Target acquisition that prefers currently attackable candidates, then falls back
+    /// to baseline score-only selection.
+    /// </summary>
+    public static int? AcquireTargetPreferAttackable(UnitData unit, MatchState state)
+        => AcquireTargetCore(unit, state, prioritizeAttackableNow: true);
+
+    /// <summary>
     /// Find the best target for a unit from all alive active enemy units.
     /// Group-aware: if unit has a LeaderId, copies leader's target.
     /// Returns the UnitId of the best target, or null if none found.
     /// </summary>
-    public static int? AcquireTarget(UnitData unit, MatchState state)
+    private static int? AcquireTargetCore(UnitData unit, MatchState state, bool prioritizeAttackableNow)
     {
         // Group targeting: follow leader's target if available
         if (unit.LeaderId.HasValue)
@@ -30,7 +52,9 @@ public static class SimTargeting
 
         int enemyTeam = MatchState.GetEnemyTeam((int)unit.Team);
         float bestScore = float.MinValue;
+        float bestAttackableScore = float.MinValue;
         int? bestId = null;
+        int? bestAttackableId = null;
 
         foreach (var kvp in state.Units)
         {
@@ -55,12 +79,24 @@ public static class SimTargeting
             float dist = MathF.Sqrt(distSq);
             float score = ScoreTarget(unit, candidate, dist);
 
+            if (prioritizeAttackableNow &&
+                dist <= unit.AttackRange &&
+                CanAttack(unit, candidate) &&
+                score > bestAttackableScore)
+            {
+                bestAttackableScore = score;
+                bestAttackableId = candidate.UnitId;
+            }
+
             if (score > bestScore)
             {
                 bestScore = score;
                 bestId = candidate.UnitId;
             }
         }
+
+        if (bestAttackableId.HasValue)
+            return bestAttackableId;
 
         if (bestId.HasValue)
             return bestId;
@@ -73,6 +109,23 @@ public static class SimTargeting
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Returns true if target is currently attackable by this unit:
+    /// within attack range and satisfying cone constraint.
+    /// </summary>
+    public static bool IsTargetAttackableNow(UnitData unit, int targetId, MatchState state)
+    {
+        var targetPosition = SimUtils.ResolveTargetPosition(targetId, state);
+        if (!targetPosition.HasValue || !IsWithinAttackRange(unit, targetPosition.Value))
+            return false;
+
+        if (MatchState.IsSummonerTarget(targetId))
+            return CanAttackPosition(unit, targetPosition.Value);
+
+        var target = state.GetAliveUnit(targetId);
+        return target != null && CanAttack(unit, target);
     }
 
     /// <summary>
@@ -168,4 +221,12 @@ public static class SimTargeting
     /// </summary>
     public static bool CanAttack(UnitData unit, UnitData target)
         => CanAttackPosition(unit, target.Position);
+
+    private static bool IsWithinAttackRange(UnitData unit, SimVector3 targetPosition)
+    {
+        float dx = unit.Position.X - targetPosition.X;
+        float dz = unit.Position.Z - targetPosition.Z;
+        float horizontalDistance = MathF.Sqrt(dx * dx + dz * dz);
+        return horizontalDistance <= unit.AttackRange;
+    }
 }
