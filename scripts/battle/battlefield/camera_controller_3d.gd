@@ -15,7 +15,7 @@ const MOUSE_TO_WORLD_SCALE: float = 0.01
 const TOUCH_TO_WORLD_SCALE: float = 0.01
 const CLAMP_EPSILON: float = 0.001
 const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
-const MAX_CLAMP_ITERATIONS: int = 8
+const MAX_CLAMP_ITERATIONS: int = 4
 
 # === Exports ===
 
@@ -274,10 +274,9 @@ func clamp_to_map() -> void:
 		if abs(dx) < CLAMP_EPSILON and abs(dz) < CLAMP_EPSILON:
 			return
 
-		# Perspective projection introduces slight coupling between position and
-		# footprint scale; iterate to converge fully inside bounds.
 		position.x += dx
 		position.z += dz
+		force_update_transform()
 
 func _input(event: InputEvent) -> void:
 	## Handle mouse and touch input for panning and zooming
