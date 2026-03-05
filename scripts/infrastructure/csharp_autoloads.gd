@@ -6,6 +6,7 @@ class_name CSharpAutoloads
 # Core services
 const CARD_SERVICE: String = "/root/CardService"
 const LEVEL_CAP_SERVICE: String = "/root/LevelCapService"
+const BATTLEFIELD_DEBUG: String = "/root/BattlefieldDebug"
 
 # Meta-game services (C# autoloads with clean names — GDScript wrappers deleted)
 const ECONOMY: String = "/root/Economy"

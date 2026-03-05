@@ -6,6 +6,41 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### Camera Boundary Issues (Scroll Wheel + Right-Click Drag)
+**Resolved:** 2026-03-05
+**Component:** Camera / Input
+
+**Description:**
+Two camera boundary bugs were active:
+1. Scroll-wheel zoom could expose space outside the battlefield.
+2. Right-click drag at boundary edges could feel glitchy (overshoot then snap back).
+
+**Root Cause:**
+- Zoom ceiling used a simplified size formula that did not account for the actual projected ground footprint.
+- Drag panning applied full movement first, then corrected by clamping, causing visible snap-back near edges.
+- Edge-pan and drag-pan needed explicit separation.
+
+**Solution Implemented:**
+1. Reworked bounds logic to use real projected footprint (`get_ground_footprint_xz`) for clamping.
+2. Added zoom-limit solver (`_solve_max_ortho_size`) that binary-searches max safe orthographic size.
+3. Added viewport resize handling (`size_changed`) to recompute safe zoom limits.
+4. Constrained drag movement before applying (`_constrain_pan_motion_to_map`) so panning stops cleanly at edges.
+5. Disabled edge-pan during active drag panning.
+6. Added temporary debug overlay toggle on camera to visualize:
+   - Green rectangle = map bounds
+   - Red rectangle = current camera footprint
+7. Added regression tests for zoom/pan boundary invariants and drag/edge-pan behavior.
+
+**Validation:**
+- Local suite run via `tools/run_tests.sh --gut-only`: 180/180 passing.
+
+**Related Files:**
+- `scripts/battle/battlefield/camera_controller_3d.gd`
+- `tests/unit/test_camera_controller_3d.gd`
+- `docs/tracking/bugs.md`
+
+---
+
 ### Enemy Spawn Debug Mode Issues
 **Resolved:** 2026-03-04
 **Component:** Debug Tools / Spawning
