@@ -5,6 +5,7 @@ using Fateforged.Projectiles;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Combat.Targeting;
 using Fateforged.Simulation.Subsystems;
 
 namespace Fateforged.Simulation.Combat;
@@ -62,6 +63,8 @@ public static class SimBehavior
     /// </summary>
     public static void TickTargeting(UnitData unit, MatchState state)
     {
+        var policy = TargetPolicyRegistry.Resolve(unit.TargetPolicyId);
+
         // Use forced target if available
         if (unit.ForcedTargetUnitId.HasValue)
         {
@@ -73,10 +76,22 @@ public static class SimBehavior
             unit.ForcedTargetUnitId = null;
         }
 
-        // Re-acquire target if lock expired or current target invalid
-        if (unit.TargetLockTimer <= 0 || !IsValidTarget(unit.TargetUnitId, state))
+        bool currentTargetIsValid = IsValidTarget(unit.TargetUnitId, state);
+
+        // Keep current target if policy allows and it's still attackable now.
+        // This avoids unnecessary target churn when lock expires.
+        if (unit.TargetLockTimer <= 0 &&
+            currentTargetIsValid &&
+            policy.ShouldKeepCurrentTarget(unit, state, unit.TargetUnitId))
         {
-            unit.TargetUnitId = SimTargeting.AcquireTarget(unit, state);
+            unit.TargetLockTimer = TargetLockDuration;
+            return;
+        }
+
+        // Re-acquire target if lock expired or current target invalid
+        if (unit.TargetLockTimer <= 0 || !currentTargetIsValid)
+        {
+            unit.TargetUnitId = policy.SelectTarget(unit, state);
             if (unit.TargetUnitId.HasValue)
                 unit.TargetLockTimer = TargetLockDuration;
         }

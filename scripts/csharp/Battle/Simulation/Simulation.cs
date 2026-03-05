@@ -560,6 +560,7 @@ public class Simulation
                     TargetLayerFilter = template.TargetLayerFilter,
                     DistanceScorerWeight = template.DistanceScorerWeight,
                     HealthScorerWeight = template.HealthScorerWeight,
+                    TargetPolicyId = template.TargetPolicyId,
                     FlightAltitude = template.FlightAltitude,
                     ProjectileDelay = template.ProjectileDelay,
                     AttackType = template.AttackType,

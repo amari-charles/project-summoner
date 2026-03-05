@@ -151,6 +151,7 @@ public class SimUnitTemplate
     public TargetLayer TargetLayerFilter { get; set; }
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
+    public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
 
     // Phase 1 fields
     public DamageType AttackType { get; set; } = DamageType.Physical;
