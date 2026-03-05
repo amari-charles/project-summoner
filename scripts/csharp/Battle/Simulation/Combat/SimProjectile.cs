@@ -56,6 +56,8 @@ public static class SimProjectile
             TargetPosition = targetPos,
             CurrentPosition = startPos,
             LastPosition = startPos,
+            // Delay simulation by one tick so newly-spawned projectiles render at least one frame.
+            TimeAlive = -1f,
             Speed = speed,
             Lifetime = lifetime,
             ArcHeight = arcHeight,
@@ -114,6 +116,13 @@ public static class SimProjectile
             if (proj.IsDead)
             {
                 toRemove.Add(kvp.Key);
+                continue;
+            }
+
+            // First frame after spawn: keep projectile alive and visible for render sync.
+            if (proj.TimeAlive < 0f)
+            {
+                proj.TimeAlive = 0f;
                 continue;
             }
 

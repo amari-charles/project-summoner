@@ -473,7 +473,7 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 
 	# Icon/symbol at top
 	var icon_label: Label = Label.new()
-	const SLOT_ICONS: Dictionary = {"wand": "\u{1FA84}", "ring1": "\u{1F48D}", "ring2": "\u{1F48D}", "robes": "\u{1F9E5}"}
+	const SLOT_ICONS: Dictionary = {"wand": "W", "ring1": "R", "ring2": "R", "robes": "C"}
 	icon_label.text = SLOT_ICONS.get(slot, "?")
 	icon_label.add_theme_font_size_override("font_size", 28)
 	icon_label.add_theme_color_override("font_color", accent_color.lightened(0.2) if is_empty else accent_color.lightened(0.3))

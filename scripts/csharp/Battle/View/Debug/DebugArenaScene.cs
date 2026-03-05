@@ -1,6 +1,7 @@
 using Godot;
 using Fateforged.Constants;
 using Fateforged.View;
+using Fateforged.Simulation;
 
 namespace Fateforged.View.Debug;
 
@@ -94,9 +95,20 @@ public partial class DebugArenaScene : TestBattleScene
 
     public void ClearAllUnits()
     {
-        var units = GetTree().GetNodesInGroup(GroupIDs.Units);
-        int count = units.Count;
+        int count = 0;
 
+        // Clear simulation source-of-truth first so visuals don't immediately respawn.
+        var simNode = SimulationNode.Current;
+        if (simNode != null)
+        {
+            var state = simNode.GetState();
+            count = state.Units.Count;
+            state.Units.Clear();
+            state.Projectiles.Clear();
+            state.DelayedEffects.Clear();
+        }
+
+        var units = GetTree().GetNodesInGroup(GroupIDs.Units);
         foreach (var unit in units)
         {
             if (IsInstanceValid(unit))

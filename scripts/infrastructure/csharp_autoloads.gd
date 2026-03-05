@@ -27,6 +27,7 @@ const PROJECTILE_CATALOG: String = "/root/ProjectileCatalog"
 
 # Infrastructure
 const PROFILE_REPO: String = "/root/ProfileRepo"
+const BATTLEFIELD_DEBUG: String = "/root/BattlefieldDebug"
 
 # Multiplayer services
 const NAKAMA_GAME_CLIENT: String = "/root/NakamaGameClient"

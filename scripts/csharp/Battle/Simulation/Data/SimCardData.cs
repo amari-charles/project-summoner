@@ -42,6 +42,11 @@ public class SimCardData
     /// <summary>Effects applied when this spell card is cast.</summary>
     public List<SimSpellEffect> SpellEffects { get; set; } = new();
 
+    /// <summary>
+    /// Projectile ID used by spell visuals/ballistics (empty = instant/non-projectile spell).
+    /// </summary>
+    public string SpellProjectileId { get; set; } = "";
+
     // =========================================================================
     // FACTORY
     // =========================================================================
@@ -74,6 +79,7 @@ public class SimCardData
             simCard.SpellRadius = card.SpellTargeting == SpellTargeting.SelectionRadius
                 ? card.SelectionRadius
                 : card.SpellRadius;
+            simCard.SpellProjectileId = (string)card.ProjectileId;
 
             if (card.SpellCategory == SpellCategory.Damage && card.SpellDamage > 0)
             {

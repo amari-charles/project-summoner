@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7c2wwxov4u8f"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Debug/BattlefieldDebugService.cs" id="1_script"]
+
+[node name="BattlefieldDebugService" type="Node"]
+script = ExtResource("1_script")

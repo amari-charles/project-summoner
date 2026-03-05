@@ -6,6 +6,7 @@ using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
+using Fateforged.Cards;
 
 namespace Fateforged.View;
 
@@ -258,7 +259,24 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     public void Visit(SpellCastEvent e)
     {
-        GD.Print($"[EntityManager] SpellCastEvent: team={e.Team}, catalogId={e.CatalogId}");
+        var card = CardCatalog.GetCard(e.CatalogId);
+        if (card == null || string.IsNullOrEmpty(card.SpellVfx))
+            return;
+
+        var simNode = SimulationNode.Current;
+        var localPos = simNode != null
+            ? simNode.SimToLocal(e.Position)
+            : new Vector3(e.Position.X, e.Position.Y, e.Position.Z);
+
+        var vfxManager = GetNodeOrNull("/root/VFXManager");
+        if (vfxManager == null || !vfxManager.HasMethod("play_effect"))
+            return;
+
+        var customData = new Godot.Collections.Dictionary();
+        if (card.SpellRadius > 0f)
+            customData["radius"] = card.SpellRadius;
+
+        vfxManager.Call("play_effect", (string)card.SpellVfx, localPos, customData);
     }
 
     public void Visit(DelayedEffectFiredEvent e)
