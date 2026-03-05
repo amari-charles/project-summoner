@@ -25,6 +25,7 @@ var _hurtbox_button: Button
 var _target_point_button: Button
 var _attack_range_button: Button
 var _separation_radius_button: Button
+var _projectile_hit_geometry_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
@@ -207,6 +208,13 @@ func _create_ui() -> void:
 	_separation_radius_button.pressed.connect(_on_separation_radius_toggle_pressed)
 	vbox.add_child(_separation_radius_button)
 
+	# Projectile Hit Geometry toggle button
+	_projectile_hit_geometry_button = Button.new()
+	_projectile_hit_geometry_button.text = "Projectile Hit Geometry: Off"
+	_projectile_hit_geometry_button.custom_minimum_size = Vector2(200, 32)
+	_projectile_hit_geometry_button.pressed.connect(_on_projectile_hit_geometry_toggle_pressed)
+	vbox.add_child(_projectile_hit_geometry_button)
+
 	# Spawn Boundary Bypass toggle button
 	_spawn_boundary_button = Button.new()
 	_spawn_boundary_button.text = "Spawn Boundary: On"
@@ -328,6 +336,10 @@ func _update_button_states() -> void:
 		var state: String = "On" if bool(_unit_debug.call("IsDebugSeparationRadiusEnabled")) else "Off"
 		_separation_radius_button.text = "Separation Radius: %s" % state
 
+	if _projectile_hit_geometry_button and _unit_debug and _unit_debug.has_method("IsDebugProjectileHitGeometryEnabled"):
+		var state: String = "On" if bool(_unit_debug.call("IsDebugProjectileHitGeometryEnabled")) else "Off"
+		_projectile_hit_geometry_button.text = "Projectile Hit Geometry: %s" % state
+
 	if _spawn_boundary_button:
 		var debug_service: Node = _get_battlefield_debug_service()
 		if debug_service and debug_service.has_method("IsSpawnBoundaryBypassEnabled"):
@@ -426,6 +438,16 @@ func _on_separation_radius_toggle_pressed() -> void:
 	if not _unit_debug or not _unit_debug.has_method("ToggleDebugSeparationRadius"):
 		return
 	_unit_debug.call("ToggleDebugSeparationRadius")
+	_update_button_states()
+	_save_settings()
+
+
+func _on_projectile_hit_geometry_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugProjectileHitGeometry"):
+		return
+	_unit_debug.call("ToggleDebugProjectileHitGeometry")
 	_update_button_states()
 	_save_settings()
 
@@ -702,6 +724,8 @@ func _load_settings() -> void:
 			_unit_debug.call("SetDebugAttackRangeEnabled", config.get_value("debug_menu", "attack_ranges", false))
 		if _unit_debug.has_method("SetDebugSeparationRadiusEnabled"):
 			_unit_debug.call("SetDebugSeparationRadiusEnabled", config.get_value("debug_menu", "separation_radius", false))
+		if _unit_debug.has_method("SetDebugProjectileHitGeometryEnabled"):
+			_unit_debug.call("SetDebugProjectileHitGeometryEnabled", config.get_value("debug_menu", "projectile_hit_geometry", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
 
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
@@ -722,6 +746,8 @@ func _save_settings() -> void:
 			config.set_value("debug_menu", "attack_ranges", _unit_debug.call("IsDebugAttackRangeEnabled"))
 		if _unit_debug.has_method("IsDebugSeparationRadiusEnabled"):
 			config.set_value("debug_menu", "separation_radius", _unit_debug.call("IsDebugSeparationRadiusEnabled"))
+		if _unit_debug.has_method("IsDebugProjectileHitGeometryEnabled"):
+			config.set_value("debug_menu", "projectile_hit_geometry", _unit_debug.call("IsDebugProjectileHitGeometryEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 
 	config.save(SETTINGS_PATH)

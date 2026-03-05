@@ -1,4 +1,5 @@
 using Fateforged.Data.Projectiles;
+using Fateforged.Infrastructure.Debug;
 using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
@@ -22,6 +23,12 @@ public partial class ProjectileVisual : Node3D
     private bool _rotateToDirection = true;
 
     private Node3D? _visualModel;
+    private MeshInstance3D? _debugHitRadiusMarker;
+    private MeshInstance3D? _debugAoeRadiusMarker;
+    private float _debugHitRadius = -1f;
+    private float _debugAoeRadius = -1f;
+    private ProjectileHitSpace _debugHitSpace = ProjectileHitSpace.GroundCylinder;
+    private ProjectileHitSpace _debugAoeHitSpace = ProjectileHitSpace.GroundCylinder;
 
     // --- Initialization (called by EntityManager at spawn) ---
 
@@ -86,6 +93,40 @@ public partial class ProjectileVisual : Node3D
         }
     }
 
+    public override void _Process(double delta)
+    {
+        bool debugEnabled = BattlefieldDebugService.Instance?.ProjectileHitGeometryEnabled == true;
+        bool anyMarkerExists = _debugHitRadiusMarker != null || _debugAoeRadiusMarker != null;
+        if (!debugEnabled && !anyMarkerExists)
+            return;
+
+        if (_session == null || _destroyed)
+        {
+            CleanupDebugMarkers();
+            return;
+        }
+
+        var state = _session.GetState();
+        if (!state.Projectiles.TryGetValue(_projectileId, out var projData) || projData.IsDead)
+        {
+            CleanupDebugMarkers();
+            return;
+        }
+
+        if (!debugEnabled)
+        {
+            CleanupDebugMarkers();
+            return;
+        }
+
+        UpdateDebugHitRadiusMarker(projData);
+
+        if (projData.AoeRadius > 0f)
+            UpdateDebugAoeRadiusMarker(projData);
+        else
+            FreeMarker(ref _debugAoeRadiusMarker);
+    }
+
     // --- Event Reactions (called by EntityManager) ---
 
     public void PlayImpactAndDestroy()
@@ -96,6 +137,7 @@ public partial class ProjectileVisual : Node3D
         if (_visualModel != null)
             _visualModel.Visible = false;
 
+        CleanupDebugMarkers();
         QueueFree();
     }
 
@@ -124,6 +166,123 @@ public partial class ProjectileVisual : Node3D
 
         AddChild(visual);
         _visualModel = visual;
+    }
+
+    private void UpdateDebugHitRadiusMarker(Fateforged.Simulation.Data.SimProjectileData projData)
+    {
+        float radius = Mathf.Max(0.05f, projData.HitRadius);
+        bool needsRebuild = _debugHitRadiusMarker == null ||
+                            !Mathf.IsEqualApprox(radius, _debugHitRadius) ||
+                            _debugHitSpace != projData.HitSpace;
+
+        if (needsRebuild)
+        {
+            FreeMarker(ref _debugHitRadiusMarker);
+            _debugHitRadiusMarker = CreateGeometryMarker(
+                radius,
+                projData.HitSpace,
+                new Color(0.2f, 0.9f, 1.0f, 0.28f),
+                100);
+            AddChild(_debugHitRadiusMarker);
+            _debugHitRadius = radius;
+            _debugHitSpace = projData.HitSpace;
+        }
+
+        PositionGeometryMarker(_debugHitRadiusMarker, projData.HitSpace);
+    }
+
+    private void UpdateDebugAoeRadiusMarker(Fateforged.Simulation.Data.SimProjectileData projData)
+    {
+        float radius = Mathf.Max(0.05f, projData.AoeRadius);
+        bool needsRebuild = _debugAoeRadiusMarker == null ||
+                            !Mathf.IsEqualApprox(radius, _debugAoeRadius) ||
+                            _debugAoeHitSpace != projData.HitSpace;
+
+        if (needsRebuild)
+        {
+            FreeMarker(ref _debugAoeRadiusMarker);
+            _debugAoeRadiusMarker = CreateGeometryMarker(
+                radius,
+                projData.HitSpace,
+                new Color(1.0f, 0.4f, 0.2f, 0.2f),
+                99);
+            AddChild(_debugAoeRadiusMarker);
+            _debugAoeRadius = radius;
+            _debugAoeHitSpace = projData.HitSpace;
+        }
+
+        PositionGeometryMarker(_debugAoeRadiusMarker, projData.HitSpace);
+    }
+
+    private void PositionGeometryMarker(MeshInstance3D? marker, ProjectileHitSpace hitSpace)
+    {
+        if (marker == null)
+            return;
+
+        if (hitSpace == ProjectileHitSpace.GroundCylinder)
+        {
+            marker.GlobalPosition = new Vector3(GlobalPosition.X, 0.04f, GlobalPosition.Z);
+            marker.Rotation = Vector3.Zero;
+            return;
+        }
+
+        marker.Position = Vector3.Zero;
+        marker.Rotation = Vector3.Zero;
+    }
+
+    private static MeshInstance3D CreateGeometryMarker(
+        float radius, ProjectileHitSpace hitSpace, Color color, int renderPriority)
+    {
+        var marker = new MeshInstance3D
+        {
+            Mesh = hitSpace == ProjectileHitSpace.GroundCylinder
+                ? new CylinderMesh
+                {
+                    TopRadius = radius,
+                    BottomRadius = radius,
+                    Height = 0.04f
+                }
+                : new SphereMesh
+                {
+                    Radius = radius,
+                    Height = radius * 2f
+                },
+            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+        };
+        return marker;
+    }
+
+    private static StandardMaterial3D CreateDebugMaterial(Color color, int renderPriority)
+    {
+        return new StandardMaterial3D
+        {
+            AlbedoColor = color,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = renderPriority
+        };
+    }
+
+    private void CleanupDebugMarkers()
+    {
+        FreeMarker(ref _debugHitRadiusMarker);
+        FreeMarker(ref _debugAoeRadiusMarker);
+        _debugHitRadius = -1f;
+        _debugAoeRadius = -1f;
+        _debugHitSpace = ProjectileHitSpace.GroundCylinder;
+        _debugAoeHitSpace = ProjectileHitSpace.GroundCylinder;
+    }
+
+    private static void FreeMarker(ref MeshInstance3D? marker)
+    {
+        if (marker == null)
+            return;
+
+        marker.QueueFree();
+        marker = null;
     }
 
     private static ProjectileData? ResolveProjectileData(Fateforged.Simulation.Data.MatchState state, Fateforged.Simulation.Data.SimProjectileData projData)

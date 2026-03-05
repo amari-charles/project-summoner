@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Fateforged.Projectiles;
 using Fateforged.Units;
 using Fateforged.Simulation.Enums;
@@ -66,8 +67,10 @@ public class SimProjectileData
 
     // Hit detection
     public float HitRadius { get; set; } = 2.5f;
+    public ProjectileHitSpace HitSpace { get; set; } = ProjectileHitSpace.GroundCylinder;
     public int PierceRemaining { get; set; }
     public float AoeRadius { get; set; }
+    public HashSet<int> HitUnitIds { get; } = new();
 
     // Cached path length
     public float PathLength { get; set; }

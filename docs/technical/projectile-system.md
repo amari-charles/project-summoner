@@ -78,6 +78,12 @@ Notes:
 |----------|------|---------|-------------|
 | `pierce_count` | int | 0 | Number of targets to pierce through (0 = hit first target) |
 | `aoe_radius` | float | 0.0 | Area of effect radius (0 = single target) |
+| `hit_radius` | float | 2.5 | Projectile contact radius used for overlap checks |
+| `hit_space` | string | "ground_cylinder" | Hit-space model: `ground_cylinder` or `sphere_3d` |
+
+Projectile contact uses first-contact math with target size:
+
+`effective_contact_radius = hit_radius + target.separation_radius`
 
 ### Weaving Homing Properties
 

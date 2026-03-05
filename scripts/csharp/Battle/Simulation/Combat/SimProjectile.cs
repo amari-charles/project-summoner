@@ -16,7 +16,6 @@ namespace Fateforged.Simulation.Combat;
 public static class SimProjectile
 {
     // Constants matching Projectile3D
-    private const float DirectHitDistanceThreshold = 2.5f;
     private const float VeerReferenceDistance = 25f;
     private const float VeerMinDistance = 12f;
 
@@ -26,6 +25,21 @@ public static class SimProjectile
     // Ballistic constants matching BallisticPath.cs
     private const float BallisticDefaultGravity = 9.8f;
     private const float BallisticMinTime = 0.01f;
+    private const float GeometryEpsilon = 0.000001f;
+
+    private readonly struct PendingHit
+    {
+        public PendingHit(UnitData unit, float segmentT, float distanceSq)
+        {
+            Unit = unit;
+            SegmentT = segmentT;
+            DistanceSq = distanceSq;
+        }
+
+        public UnitData Unit { get; }
+        public float SegmentT { get; }
+        public float DistanceSq { get; }
+    }
 
     /// <summary>
     /// Spawn a new projectile in MatchState.
@@ -38,7 +52,7 @@ public static class SimProjectile
         ProjectileMovementType movementType, float speed, float lifetime,
         SimVector3 startPos, SimVector3 targetPos,
         float arcHeight = 0f, int pierceCount = 0, float aoeRadius = 0f,
-        float hitRadius = 2.5f, float steerStrength = 180f,
+        float hitRadius = 2.5f, ProjectileHitSpace hitSpace = ProjectileHitSpace.GroundCylinder, float steerStrength = 180f,
         float veerDelay = 0.15f, float veerAngle = 25f, float veerDuration = 0.25f,
         string projectileCatalogId = "",
         float acceleration = 0f, float minSpeed = 1f,
@@ -81,6 +95,7 @@ public static class SimProjectile
             PierceRemaining = pierceCount,
             AoeRadius = aoeRadius,
             HitRadius = hitRadius,
+            HitSpace = hitSpace,
             SteerStrength = steerStrength,
         };
 
@@ -189,10 +204,9 @@ public static class SimProjectile
             {
                 // Check direct hit on target at path end
                 var target = state.GetAliveUnit(proj.TargetUnitId);
-                if (target != null)
+                if (target != null && !proj.HitUnitIds.Contains(target.UnitId))
                 {
-                    float dist = proj.CurrentPosition.DistanceTo(target.Position);
-                    if (dist < DirectHitDistanceThreshold)
+                    if (CanHitUnitAtPoint(proj, target, proj.CurrentPosition))
                     {
                         ApplyHit(proj, target, state, events);
                     }
@@ -379,10 +393,9 @@ public static class SimProjectile
                     SteerToward(proj, toTarget2.Normalized(), delta);
 
                 // Direct hit check
-                if (target != null)
+                if (target != null && !proj.HitUnitIds.Contains(target.UnitId))
                 {
-                    float dist = proj.CurrentPosition.DistanceTo(target.Position);
-                    if (dist < DirectHitDistanceThreshold)
+                    if (CanHitUnitAtPoint(proj, target, proj.CurrentPosition))
                     {
                         ApplyHit(proj, target, state, events);
                         proj.IsDead = true;
@@ -442,27 +455,59 @@ public static class SimProjectile
     /// </summary>
     private static void CheckHits(SimProjectileData proj, MatchState state, List<SimEvent> events)
     {
+        var pendingHits = new List<PendingHit>();
+
         foreach (var kvp in state.Units)
         {
             var unit = kvp.Value;
             if (!unit.IsAlive) continue;
             if (unit.Team == proj.Team) continue; // Don't hit friendly units
             if (unit.UnitId == proj.SourceUnitId) continue; // Don't hit source
+            if (proj.HitUnitIds.Contains(unit.UnitId)) continue; // Never hit same unit twice
 
-            float dist = PointToSegmentDistance(unit.Position, proj.LastPosition, proj.CurrentPosition);
-            if (dist <= proj.HitRadius)
+            float hitThreshold = MathF.Max(0f, proj.HitRadius + unit.SeparationRadius);
+            if (TryGetSegmentDistanceAndT(proj, unit, proj.LastPosition, proj.CurrentPosition,
+                    out float distSq, out float segmentT) &&
+                distSq <= hitThreshold * hitThreshold)
             {
-                ApplyHit(proj, unit, state, events);
+                pendingHits.Add(new PendingHit(unit, segmentT, distSq));
+            }
+        }
 
-                if (proj.PierceRemaining <= 0)
-                {
-                    // AoE on hit
-                    if (proj.AoeRadius > 0)
-                        ApplyAoE(proj, proj.CurrentPosition, state, events);
+        if (pendingHits.Count == 0)
+            return;
 
-                    proj.IsDead = true;
-                    return;
-                }
+        pendingHits.Sort((a, b) =>
+        {
+            int byT = a.SegmentT.CompareTo(b.SegmentT);
+            if (byT != 0)
+                return byT;
+
+            int byDist = a.DistanceSq.CompareTo(b.DistanceSq);
+            if (byDist != 0)
+                return byDist;
+
+            return a.Unit.UnitId.CompareTo(b.Unit.UnitId);
+        });
+
+        foreach (var hit in pendingHits)
+        {
+            var unit = hit.Unit;
+            if (!unit.IsAlive) continue;
+            if (proj.HitUnitIds.Contains(unit.UnitId)) continue;
+            if (unit.Team == proj.Team) continue;
+            if (unit.UnitId == proj.SourceUnitId) continue;
+
+            ApplyHit(proj, unit, state, events);
+
+            if (proj.PierceRemaining <= 0)
+            {
+                // AoE on hit
+                if (proj.AoeRadius > 0)
+                    ApplyAoE(proj, proj.CurrentPosition, state, events);
+
+                proj.IsDead = true;
+                return;
             }
         }
     }
@@ -489,6 +534,7 @@ public static class SimProjectile
             SimEffects.FireDeathTriggers(state, target, sourceUnit, events);
         }
 
+        proj.HitUnitIds.Add(target.UnitId);
         proj.PierceRemaining--;
         events.Add(new ProjectileHitEvent(proj.ProjectileId, target.UnitId));
     }
@@ -500,7 +546,6 @@ public static class SimProjectile
     /// </summary>
     private static void ApplyAoE(SimProjectileData proj, SimVector3 center, MatchState state, List<SimEvent> events)
     {
-        float radiusSq = proj.AoeRadius * proj.AoeRadius;
         var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
         SummonerData? attackerSummoner = sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
 
@@ -509,9 +554,11 @@ public static class SimProjectile
             var unit = kvp.Value;
             if (!unit.IsAlive) continue;
             if (unit.Team == proj.Team) continue;
+            if (proj.HitUnitIds.Contains(unit.UnitId)) continue;
 
-            float distSq = center.DistanceSquaredTo(unit.Position);
-            if (distSq > radiusSq) continue;
+            float radius = MathF.Max(0f, proj.AoeRadius + unit.SeparationRadius);
+            if (!CanHitUnitInRadius(proj, unit, center, radius))
+                continue;
 
             var targetSummoner = state.Summoners[(int)unit.Team];
             var (damage, isCrit) = SimDamage.Calculate(
@@ -603,19 +650,95 @@ public static class SimProjectile
     // GEOMETRY HELPERS
     // =========================================================================
 
+    private static bool CanHitUnitAtPoint(SimProjectileData proj, UnitData unit, SimVector3 point)
+    {
+        float radius = MathF.Max(0f, proj.HitRadius + unit.SeparationRadius);
+        return CanHitUnitInRadius(proj, unit, point, radius);
+    }
+
+    private static bool CanHitUnitInRadius(SimProjectileData proj, UnitData unit, SimVector3 center, float radius)
+    {
+        float radiusSq = radius * radius;
+        return UseGroundCylinder(proj, unit)
+            ? DistanceSquaredXZ(center, unit.Position) <= radiusSq
+            : center.DistanceSquaredTo(unit.Position) <= radiusSq;
+    }
+
+    private static bool TryGetSegmentDistanceAndT(
+        SimProjectileData proj, UnitData unit, SimVector3 segA, SimVector3 segB,
+        out float distanceSq, out float segmentT)
+    {
+        if (UseGroundCylinder(proj, unit))
+            return TryGetPointToSegmentDistanceSqXZ(unit.Position, segA, segB, out distanceSq, out segmentT);
+
+        return TryGetPointToSegmentDistanceSq(unit.Position, segA, segB, out distanceSq, out segmentT);
+    }
+
+    private static bool UseGroundCylinder(SimProjectileData proj, UnitData unit)
+    {
+        if (proj.HitSpace == ProjectileHitSpace.Sphere3D)
+            return false;
+
+        // Ground-cylinder gameplay only applies to grounded targets.
+        return unit.MovementLayer == MovementLayer.Ground;
+    }
+
     /// <summary>
-    /// Compute the minimum distance from a point to a line segment.
+    /// Compute squared distance and segment-t for a 3D point-to-segment query.
     /// </summary>
-    private static float PointToSegmentDistance(SimVector3 point, SimVector3 segA, SimVector3 segB)
+    private static bool TryGetPointToSegmentDistanceSq(
+        SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
     {
         var ab = segB - segA;
         float abLenSq = ab.LengthSquared();
-        if (abLenSq < 0.000001f)
-            return point.DistanceTo(segA);
+        if (abLenSq < GeometryEpsilon)
+        {
+            segmentT = 0f;
+            distanceSq = point.DistanceSquaredTo(segA);
+            return true;
+        }
 
-        float t = SimMath.Clamp(ab.Dot(point - segA) / abLenSq, 0f, 1f);
-        var closest = segA + ab * t;
-        return point.DistanceTo(closest);
+        segmentT = SimMath.Clamp(ab.Dot(point - segA) / abLenSq, 0f, 1f);
+        var closest = segA + ab * segmentT;
+        distanceSq = closest.DistanceSquaredTo(point);
+        return true;
+    }
+
+    /// <summary>
+    /// Compute squared distance and segment-t for a 2D XZ point-to-segment query.
+    /// </summary>
+    private static bool TryGetPointToSegmentDistanceSqXZ(
+        SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
+    {
+        float abX = segB.X - segA.X;
+        float abZ = segB.Z - segA.Z;
+        float abLenSq = (abX * abX) + (abZ * abZ);
+        if (abLenSq < GeometryEpsilon)
+        {
+            segmentT = 0f;
+            float dx0 = point.X - segA.X;
+            float dz0 = point.Z - segA.Z;
+            distanceSq = (dx0 * dx0) + (dz0 * dz0);
+            return true;
+        }
+
+        float apX = point.X - segA.X;
+        float apZ = point.Z - segA.Z;
+        segmentT = SimMath.Clamp(((abX * apX) + (abZ * apZ)) / abLenSq, 0f, 1f);
+
+        float closestX = segA.X + abX * segmentT;
+        float closestZ = segA.Z + abZ * segmentT;
+        float dx = point.X - closestX;
+        float dz = point.Z - closestZ;
+        distanceSq = (dx * dx) + (dz * dz);
+        return true;
+    }
+
+    private static float DistanceSquaredXZ(SimVector3 a, SimVector3 b)
+    {
+        float dx = a.X - b.X;
+        float dz = a.Z - b.Z;
+        return (dx * dx) + (dz * dz);
     }
 
     /// <summary>

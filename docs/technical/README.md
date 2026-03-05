@@ -1,7 +1,7 @@
 # Technical Docs Index
 
 **Status:** CURRENT  
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-03-05
 
 This folder is for implementation references.
 
@@ -26,6 +26,7 @@ This folder is for implementation references.
 
 - [simulation-architecture.md](simulation-architecture.md)
 - [projectile-system.md](projectile-system.md)
+- [hit-geometry-v1.md](hit-geometry-v1.md)
 - [projectile-targeting.md](projectile-targeting.md)
 - [targeting-system.md](targeting-system.md)
 - [ability-system.md](ability-system.md)

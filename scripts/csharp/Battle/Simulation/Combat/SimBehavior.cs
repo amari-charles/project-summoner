@@ -383,6 +383,8 @@ public static class SimBehavior
             arcHeight: projectileData.ArcHeight,
             pierceCount: projectileData.PierceCount,
             aoeRadius: projectileData.AoeRadius,
+            hitRadius: projectileData.HitRadius,
+            hitSpace: projectileData.HitSpace,
             steerStrength: projectileData.SteerStrength,
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,

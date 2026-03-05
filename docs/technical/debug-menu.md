@@ -29,16 +29,15 @@ Immediately transitions from prep phase to battle phase. Useful for testing comb
 #### Hurtboxes
 Shows each unit's combat hit detection volume as a green capsule.
 
-- Capsule radius = unit's `HurtboxRadius` property (defaults to 0.5 if not set)
+- Capsule radius = unit's `SeparationRadius` (current gameplay size proxy)
 - Capsule height = sprite height (calculated from visual component)
-- Used for: projectile collision detection, attack hit detection
+- Used for: visualizing unit body volume
 
 #### Separation Radius
 Shows each unit's movement separation radius as a purple circle on the ground.
 
 - Circle radius = unit's `SeparationRadius` property
-- Used for: unit-to-unit spacing during movement, preventing overlap
-- This is separate from HurtboxRadius - units can have different values for combat hit detection vs movement spacing
+- Used for: unit-to-unit spacing during movement and projectile first-contact sizing
 
 #### Target Points
 Shows where projectiles aim on each unit:
@@ -56,6 +55,14 @@ Shows each unit's attack range as a yellow shape on the ground.
 - Position = ground level (Y = 0.05) centered on unit
 
 Useful for debugging range issues (e.g., Fire Titans unable to attack each other) and understanding cone constraints.
+
+#### Projectile Hit Geometry
+Shows projectile gameplay hit volumes.
+
+- Disc marker for `GroundCylinder` hit-space projectiles
+- Sphere marker for `Sphere3D` hit-space projectiles
+- AoE marker shown when projectile has `AoeRadius > 0`
+- Helpful for validating projectile `hit_radius` and separation-radius edge contacts
 
 #### Camera Overlay
 Shows camera pan bounds directly on the battlefield.
@@ -80,6 +87,7 @@ Displays real-time metrics (only when panel is visible):
 
 - `scripts/debug/debug_menu.gd` - Main debug menu autoload
 - `scripts/csharp/Battle/View/UnitVisual.cs` - Unit debug markers (hurtbox, target point, attack range, separation radius)
+- `scripts/csharp/Battle/View/ProjectileVisual.cs` - Projectile hit geometry debug markers
 - `scripts/csharp/Debug/BattlefieldDebugService.cs` - C# autoload bridge for debug flags used by GDScript + C#
 - `scripts/csharp/Battle/Simulation/Subsystems/SimSpatialGrid.cs` - Grid visualization and perf counters
 - `scripts/battle/battlefield/camera_controller_3d.gd` - Camera clamp math + pan bounds overlay
