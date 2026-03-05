@@ -5,6 +5,7 @@ This document tracks known bugs and issues in Fateforged.
 For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 **Note:** When resolving a bug, move it to `bugs-resolved.md` with the resolution date and details.
+**Tracker Sync (2026-03-05):** Reviewed against `bugs-resolved.md`; moved Puff target-switch and Wisp multi-target bugs to resolved based on post-refactor validation.
 
 ---
 
@@ -117,62 +118,6 @@ Additional context
 ---
 
 
-#### Wisps Attack Multiple Enemies Simultaneously
-**Status:** Open
-**Reported:** 2026-01-27
-**Component:** Units / Combat / Targeting
-
-**Description:**
-Wisp units (Fire Wisp, Water Wisp, etc.) are attacking multiple enemies at once instead of targeting a single enemy.
-
-**Expected Behavior:**
-Wisps should target and attack one enemy at a time.
-
-**Current Behavior:**
-Wisps attack multiple enemies simultaneously, which may be unintended AOE behavior or a targeting issue.
-
-**Impact:**
-Affects combat balance - wisps are more effective than designed if they can hit multiple targets.
-
-**Related Files:**
-- scripts/csharp/Battle/View/UnitVisual.cs (visual shell)
-- scripts/csharp/Battle/Simulation/Combat/ (targeting logic)
-- Card definitions for wisps
-
----
-
-#### Puff Units Switch Targets Unnecessarily
-**Status:** Open
-**Reported:** 2026-01-31
-**Component:** Units / Targeting / Ranged AI
-
-**Description:**
-Puff units change targets even when they already have a valid target. Additionally, targeting prioritizes closer enemies that require movement over enemies already in cone range.
-
-**Expected Behavior:**
-1. Puffs should maintain their current target while it's still valid
-2. Targeting should prioritize enemies already within cone attack range before selecting closer enemies that would require repositioning
-
-**Current Behavior:**
-- Puffs switch targets frequently even when current target is still valid
-- Targeting selects the closest enemy overall, even if that enemy requires the Puff to move to get them in cone range
-- This causes unnecessary movement and target-switching when a valid target is already in range
-
-**Impact:**
-Reduces Puff combat effectiveness - time spent switching targets and repositioning could be spent attacking.
-
-**Proposed Solution:**
-1. Add target stickiness - don't switch targets unless current target is dead, out of range, or significantly worse
-2. Modify targeting priority: enemies in current cone range > enemies requiring movement
-3. Only reposition to chase a closer target if no valid targets are currently in cone range
-
-**Related Files:**
-- scripts/csharp/Battle/Simulation/SimBehavior.cs (behavior logic, formerly in RangedUnit3D)
-- scripts/csharp/Battle/Simulation/SimTargeting.cs (targeting logic, formerly in TargetingService)
-- Cone attack range detection logic
-
----
-
 #### Puff Pivot Point Off-Center When Turning
 **Status:** Open
 **Reported:** 2026-02-27
@@ -196,4 +141,4 @@ Adjust the sprite offset so Puff's visual center aligns with the pivot point, or
 
 ---
 
-*Last Updated: 2026-03-05 - Moved camera boundary issues (scroll + right-drag) to resolved*
+*Last Updated: 2026-03-05 - Moved Wisp multi-target bug to resolved after major refactor validation*
