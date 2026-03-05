@@ -151,7 +151,7 @@ public class CommandRouterTest
     [TestCase]
     public void PlayCard_RateLimited_RejectedForRapidRepeat()
     {
-        _state.MatchTime = 10.0f;
+        _state.FrameNumber = 100;
 
         var first = new PlayCardCommand(0, 0, SimVector3.Zero);
         var firstResult = _router.Validate(first, _state);
@@ -166,11 +166,28 @@ public class CommandRouterTest
     [TestCase]
     public void PlayCard_RateLimitWindowElapsed_AcceptsCommand()
     {
-        _state.MatchTime = 10.0f;
+        _state.FrameNumber = 100;
         var first = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
         AssertThat(first.IsValid).IsTrue();
 
-        _state.MatchTime = 10.1f; // > MinPlayCardIntervalSeconds
+        _state.FrameNumber = 103; // >= MinPlayCardIntervalFrames
+        var second = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
+        AssertThat(second.IsValid).IsTrue();
+    }
+
+    [TestCase]
+    public void PlayCard_RateLimit_DoesNotDependOnMatchTimeAdvancing()
+    {
+        _state.Phase = GamePhase.Preparation;
+        _state.MatchTime = 0f;
+        _state.FrameNumber = 10;
+
+        var first = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
+        AssertThat(first.IsValid).IsTrue();
+
+        // Preparation phase can keep MatchTime constant while FrameNumber advances.
+        _state.MatchTime = 0f;
+        _state.FrameNumber = 13;
         var second = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
         AssertThat(second.IsValid).IsTrue();
     }
