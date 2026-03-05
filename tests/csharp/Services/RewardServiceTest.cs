@@ -12,7 +12,8 @@ using static GdUnit4.Assertions;
 /// Tests for RewardService and RewardPoolCatalog.
 /// Tests the static methods and data structures without needing the Node instance.
 /// </summary>
-// [TestSuite] — requires Godot runtime (CardCatalog creates Resource objects); run via editor's gdUnit4 panel
+[TestSuite]
+[RequireGodotRuntime]
 public class RewardServiceTest
 {
     // =============================================================================
