@@ -74,6 +74,32 @@ func test_projection_mode_toggle_switches_projection_and_zoom_domain() -> void:
 		"Projection toggle should switch back to perspective mode"
 	)
 
+func test_projection_modes_use_independent_clamp_profiles() -> void:
+	_camera.horizontal_bounds_use_screen_sample = true
+	_camera.ortho_horizontal_bounds_use_screen_sample = false
+	_camera.vertical_far_clamp_margin = 1.25
+	_camera.ortho_vertical_far_clamp_margin = 0.0
+
+	_camera.set_projection_mode(_camera.PROJECTION_MODE_PERSPECTIVE)
+	assert_true(
+		_camera._is_horizontal_sample_bounds_enabled(),
+		"Perspective mode should use perspective horizontal sample profile"
+	)
+	var perspective_bounds: Rect2 = _camera._get_effective_map_bounds()
+
+	_camera.set_projection_mode(_camera.PROJECTION_MODE_ORTHOGRAPHIC)
+	assert_false(
+		_camera._is_horizontal_sample_bounds_enabled(),
+		"Orthographic mode should use orthographic horizontal sample profile"
+	)
+	var ortho_bounds: Rect2 = _camera._get_effective_map_bounds()
+
+	assert_gt(
+		perspective_bounds.size.y,
+		ortho_bounds.size.y,
+		"Perspective far clamp margin should be independent from orthographic margin"
+	)
+
 
 func test_set_map_bounds_reorients_camera_when_facing_away_from_map() -> void:
 	_camera.rotate_y(PI)
@@ -208,6 +234,55 @@ func test_horizontal_sample_mode_allows_more_side_pan_room() -> void:
 		sampled_x,
 		strict_x,
 		"Horizontal sample bounds should allow more left/right travel than strict full-frustum bounds"
+	)
+
+func test_horizontal_sample_mode_expands_solved_max_fov() -> void:
+	_camera.keep_aspect = Camera3D.KEEP_WIDTH
+	_camera.map_rect_xz = Rect2(Vector2(-50, -1000), Vector2(100, 2000))
+	_camera.transform = Transform3D(
+		Vector3(1, 0, 0),
+		Vector3(0, 0.819152, 0.573576),
+		Vector3(0, 0.573576, -0.819152),
+		Vector3(0, 30, -42.85)
+	)
+	_camera.min_fov = 24.0
+	_camera.max_fov = 110.0
+	_camera._max_fov_ceiling = 110.0
+	_camera.fov = 56.0
+	_camera.force_update_transform()
+	_camera.clamp_to_map()
+
+	_camera.horizontal_bounds_use_screen_sample = false
+	_camera._refresh_zoom_limits()
+	var strict_max_fov: float = _camera.max_fov
+
+	_camera.max_fov = 110.0
+	_camera._max_fov_ceiling = 110.0
+	_camera.horizontal_bounds_use_screen_sample = true
+	_camera.horizontal_bounds_screen_y = 0.92
+	_camera._refresh_zoom_limits()
+	var sampled_max_fov: float = _camera.max_fov
+
+	assert_gt(
+		sampled_max_fov,
+		strict_max_fov,
+		"Sample-based horizontal fitting should permit farther perspective zoom-out"
+	)
+
+func test_vertical_far_margin_allows_more_upward_pan_room() -> void:
+	_camera.vertical_pan_only_when_zoomed = false
+	_camera.vertical_far_clamp_margin = 0.0
+	_camera.clamp_to_map()
+	var strict_upward_room: float = _camera._constrain_pan_motion_to_map(0.0, 100000.0).y
+
+	_camera.vertical_far_clamp_margin = 1.25
+	_camera.clamp_to_map()
+	var margin_upward_room: float = _camera._constrain_pan_motion_to_map(0.0, 100000.0).y
+
+	assert_gt(
+		margin_upward_room,
+		strict_upward_room,
+		"Vertical far-side margin should provide more upward pan room"
 	)
 
 

@@ -45,6 +45,14 @@ const PROJECTION_MODE_ORTHOGRAPHIC: int = ProjectionMode.ORTHOGRAPHIC
 ## Normalized screen Y in [0,1] used when horizontal_bounds_use_screen_sample is enabled.
 ## 0.0 = top of screen, 0.5 = center, 1.0 = bottom.
 @export_range(0.0, 1.0, 0.01) var horizontal_bounds_screen_y: float = 0.5
+## Additional upward (positive Z / far side) clamp room, in world units.
+@export var vertical_far_clamp_margin: float = 0.0
+## Orthographic-only horizontal sample clamp toggle.
+@export var ortho_horizontal_bounds_use_screen_sample: bool = false
+## Orthographic-only normalized screen Y in [0,1] for sampled horizontal bounds.
+@export_range(0.0, 1.0, 0.01) var ortho_horizontal_bounds_screen_y: float = 0.5
+## Additional upward clamp room in orthographic mode, in world units.
+@export var ortho_vertical_far_clamp_margin: float = 0.0
 
 @export_group("Projection")
 @export var projection_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
@@ -246,8 +254,34 @@ func _footprint_fits_map(footprint: Rect2) -> bool:
 	if footprint.size == Vector2.ZERO:
 		return false
 
-	return footprint.size.x <= map_rect_xz.size.x + CLAMP_EPSILON \
-		and footprint.size.y <= map_rect_xz.size.y + CLAMP_EPSILON
+	var effective_map: Rect2 = _get_effective_map_bounds()
+	var effective_view_width_x: float = _get_effective_view_width_x(footprint)
+	return effective_view_width_x <= effective_map.size.x + CLAMP_EPSILON \
+		and footprint.size.y <= effective_map.size.y + CLAMP_EPSILON
+
+func _get_effective_map_bounds() -> Rect2:
+	var far_margin: float = max(_get_active_vertical_far_clamp_margin(), 0.0)
+	return Rect2(
+		map_rect_xz.position,
+		Vector2(map_rect_xz.size.x, map_rect_xz.size.y + far_margin)
+	)
+
+func _get_effective_view_width_x(footprint: Rect2) -> float:
+	var effective_width: float = footprint.size.x
+	if _is_horizontal_sample_bounds_enabled():
+		var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
+		if sample_x_bounds != Vector2.ZERO:
+			effective_width = sample_x_bounds.y - sample_x_bounds.x
+	return effective_width
+
+func _is_horizontal_sample_bounds_enabled() -> bool:
+	return horizontal_bounds_use_screen_sample if is_perspective_mode() else ortho_horizontal_bounds_use_screen_sample
+
+func _get_active_horizontal_bounds_screen_y() -> float:
+	return horizontal_bounds_screen_y if is_perspective_mode() else ortho_horizontal_bounds_screen_y
+
+func _get_active_vertical_far_clamp_margin() -> float:
+	return vertical_far_clamp_margin if is_perspective_mode() else ortho_vertical_far_clamp_margin
 
 func get_ground_footprint_xz() -> Rect2:
 	## Calculate the current ground-plane footprint of the camera view in XZ-space.
@@ -362,7 +396,7 @@ func _get_horizontal_sample_bounds_x() -> Vector2:
 	if w <= 0.0 or h <= 0.0:
 		return Vector2.ZERO
 
-	var sample_y: float = clamp(horizontal_bounds_screen_y, 0.0, 1.0) * h
+	var sample_y: float = clamp(_get_active_horizontal_bounds_screen_y(), 0.0, 1.0) * h
 	var left_screen: Vector2 = Vector2(0.0, sample_y)
 	var right_screen: Vector2 = Vector2(w, sample_y)
 
@@ -418,7 +452,7 @@ func clamp_to_map() -> void:
 		var view_max_x: float = view_min_x + footprint.size.x
 		var view_min_z: float = footprint.position.y
 		var view_max_z: float = view_min_z + footprint.size.y
-		if horizontal_bounds_use_screen_sample:
+		if _is_horizontal_sample_bounds_enabled():
 			var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
 			if sample_x_bounds != Vector2.ZERO:
 				view_min_x = sample_x_bounds.x
@@ -428,10 +462,11 @@ func clamp_to_map() -> void:
 		var view_center_z: float = view_min_z + footprint.size.y * 0.5
 
 		# Map bounds
-		var map_min_x: float = map_rect_xz.position.x
-		var map_min_z: float = map_rect_xz.position.y
-		var map_max_x: float = map_min_x + map_rect_xz.size.x
-		var map_max_z: float = map_min_z + map_rect_xz.size.y
+		var effective_map: Rect2 = _get_effective_map_bounds()
+		var map_min_x: float = effective_map.position.x
+		var map_min_z: float = effective_map.position.y
+		var map_max_x: float = map_min_x + effective_map.size.x
+		var map_max_z: float = map_min_z + effective_map.size.y
 
 		# Calculate view and map dimensions
 		var view_width: float = view_max_x - view_min_x
@@ -604,15 +639,16 @@ func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vecto
 	var view_max_x: float = view_min_x + footprint.size.x
 	var view_min_z: float = footprint.position.y
 	var view_max_z: float = view_min_z + footprint.size.y
-	if horizontal_bounds_use_screen_sample:
+	if _is_horizontal_sample_bounds_enabled():
 		var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
 		if sample_x_bounds != Vector2.ZERO:
 			view_min_x = sample_x_bounds.x
 			view_max_x = sample_x_bounds.y
-	var map_min_x: float = map_rect_xz.position.x
-	var map_max_x: float = map_min_x + map_rect_xz.size.x
-	var map_min_z: float = map_rect_xz.position.y
-	var map_max_z: float = map_min_z + map_rect_xz.size.y
+	var effective_map: Rect2 = _get_effective_map_bounds()
+	var map_min_x: float = effective_map.position.x
+	var map_max_x: float = map_min_x + effective_map.size.x
+	var map_min_z: float = effective_map.position.y
+	var map_max_z: float = map_min_z + effective_map.size.y
 
 	var min_dx: float
 	var max_dx: float
@@ -621,8 +657,8 @@ func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vecto
 
 	var view_width: float = view_max_x - view_min_x
 	var view_height: float = footprint.size.y
-	var map_width: float = map_rect_xz.size.x
-	var map_height: float = map_rect_xz.size.y
+	var map_width: float = effective_map.size.x
+	var map_height: float = effective_map.size.y
 
 	if view_width >= map_width:
 		# When view is wider than map, stay centered on X.
