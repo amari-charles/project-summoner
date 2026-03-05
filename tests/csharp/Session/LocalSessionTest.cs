@@ -72,6 +72,19 @@ public class LocalSessionTest
     }
 
     [TestCase]
+    public void SubmitCommand_DuplicatePendingPlay_Ignored()
+    {
+        var first = new PlayCardCommand(0, 0, new SimVector3(0f, 0f, 0f));
+        var duplicate = new PlayCardCommand(0, 0, new SimVector3(0f, 0f, 0f));
+
+        _session.SubmitCommand(first);
+        _session.SubmitCommand(duplicate);
+
+        AssertThat(_state.PendingCommandBuffer.Count).IsEqual(1);
+        AssertThat(_state.PendingCommandBuffer[0]).IsSame(first);
+    }
+
+    [TestCase]
     public void SubmitCommand_InvalidCommand_Rejected()
     {
         _state.Summoners[0].Mana = 0f; // Not enough mana

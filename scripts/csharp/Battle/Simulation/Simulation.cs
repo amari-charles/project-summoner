@@ -36,6 +36,8 @@ namespace Fateforged.Simulation;
 /// </summary>
 public class Simulation
 {
+    public const float FixedDeltaSeconds = 1.0f / 60.0f;
+
     private readonly MatchState _state;
     private IWinCondition? _winCondition;
 

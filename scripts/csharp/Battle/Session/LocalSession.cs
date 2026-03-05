@@ -30,6 +30,9 @@ public class LocalSession : IGameSession
 
     public void SubmitCommand(ICommand command)
     {
+        if (command is PlayCardCommand play && HasMatchingPendingPlay(play))
+            return;
+
         var result = _commandRouter.Validate(command, _state);
         if (!result.IsValid)
         {
@@ -39,6 +42,33 @@ public class LocalSession : IGameSession
 
         command.ExecuteFrame = _state.FrameNumber + 1;
         _state.PendingCommandBuffer.Add(command);
+    }
+
+    private bool HasMatchingPendingPlay(PlayCardCommand incoming)
+    {
+        foreach (var pending in _state.PendingCommandBuffer)
+        {
+            if (pending is not PlayCardCommand existing)
+                continue;
+
+            if (existing.Team != incoming.Team || existing.CardIndex != incoming.CardIndex)
+                continue;
+
+            if (!SamePosition(existing.SpawnPosition, incoming.SpawnPosition))
+                continue;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool SamePosition(SimVector3 a, SimVector3 b)
+    {
+        const float epsilon = 0.001f;
+        return Math.Abs(a.X - b.X) <= epsilon
+            && Math.Abs(a.Y - b.Y) <= epsilon
+            && Math.Abs(a.Z - b.Z) <= epsilon;
     }
 
     public void Tick(float delta)

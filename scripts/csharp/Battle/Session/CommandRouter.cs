@@ -1,9 +1,11 @@
+using System;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Constants;
 using System.Collections.Generic;
+using SimulationRuntime = Fateforged.Simulation.Simulation;
 
 namespace Fateforged.Session;
 
@@ -15,10 +17,12 @@ namespace Fateforged.Session;
 public class CommandRouter
 {
     private const float MinPlayCardIntervalSeconds = 0.05f;
+    private static readonly long MinPlayCardIntervalFrames =
+        Math.Max(1L, (long)Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds));
 
     public readonly record struct ValidationResult(bool IsValid, string Reason);
     public static readonly ValidationResult Valid = new(true, "");
-    private readonly Dictionary<int, float> _lastAcceptedPlayTimeByTeam = new();
+    private readonly Dictionary<int, long> _lastAcceptedPlayFrameByTeam = new();
 
     public ValidationResult Validate(ICommand command, MatchState state)
     {
@@ -60,10 +64,10 @@ public class CommandRouter
         if (!cardData.IsSpell && !BattlefieldBounds.IsValidSpawnPositionForTeam(play.SpawnPosition, play.Team))
             return new ValidationResult(false, "Spawn position outside team spawn zone");
 
-        if (IsRateLimited(play.Team, state.MatchTime))
+        if (IsRateLimited(play.Team, state.FrameNumber))
             return new ValidationResult(false, "Command rate limit exceeded");
 
-        _lastAcceptedPlayTimeByTeam[play.Team] = state.MatchTime;
+        _lastAcceptedPlayFrameByTeam[play.Team] = state.FrameNumber;
         return Valid;
     }
 
@@ -90,15 +94,15 @@ public class CommandRouter
         return Valid;
     }
 
-    private bool IsRateLimited(int team, float nowSeconds)
+    private bool IsRateLimited(int team, long nowFrame)
     {
-        if (!_lastAcceptedPlayTimeByTeam.TryGetValue(team, out var lastAcceptedSeconds))
+        if (!_lastAcceptedPlayFrameByTeam.TryGetValue(team, out var lastAcceptedFrame))
             return false;
 
-        // Match time can reset between sessions while reusing this router instance.
-        if (nowSeconds < lastAcceptedSeconds)
+        // Frame can reset between sessions while reusing this router instance.
+        if (nowFrame < lastAcceptedFrame)
             return false;
 
-        return nowSeconds - lastAcceptedSeconds < MinPlayCardIntervalSeconds;
+        return nowFrame - lastAcceptedFrame < MinPlayCardIntervalFrames;
     }
 }
