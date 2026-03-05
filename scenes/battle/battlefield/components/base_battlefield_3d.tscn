@@ -31,6 +31,7 @@ near = 0.5
 far = 260.0
 script = ExtResource("3_camera_controller")
 default_fov = 42.0
+vertical_pan_only_when_zoomed = false
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
