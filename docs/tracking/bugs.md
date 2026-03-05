@@ -116,51 +116,6 @@ Additional context
 
 ---
 
-#### Camera Scroll Wheel Boundary Issues
-**Status:** Open
-**Reported:** 2026-01-13
-**Component:** Camera / Input
-
-**Description:**
-When scrolling with the scroll wheel to zoom the camera, the camera can go past the boundary limits.
-
-**Expected Behavior:**
-Camera should respect battlefield boundaries at all zoom levels.
-
-**Current Behavior:**
-Scroll wheel zoom allows the camera view to extend past the intended battlefield boundaries.
-
-**Impact:**
-Players can see outside the play area, breaking immersion.
-
-**Related Files:**
-- Camera controller scripts
-- Battlefield boundary system
-
----
-
-#### Camera Right-Click Drag Boundary Issues
-**Status:** Open
-**Reported:** 2026-01-13
-**Component:** Camera / Input
-
-**Description:**
-When panning the camera with right-click and drag, the camera can go past the boundary limits and behaves erratically.
-
-**Expected Behavior:**
-Camera panning should respect battlefield boundaries smoothly.
-
-**Current Behavior:**
-Right-click drag panning allows the camera to go past boundaries and may exhibit buggy behavior.
-
-**Impact:**
-Players can see outside the play area and experience jarring camera movement.
-
-**Related Files:**
-- Camera controller scripts
-- Battlefield boundary system
-
----
 
 #### Wisps Attack Multiple Enemies Simultaneously
 **Status:** Open
@@ -241,4 +196,4 @@ Adjust the sprite offset so Puff's visual center aligns with the pivot point, or
 
 ---
 
-*Last Updated: 2026-03-05 - Moved enemy debug spawn boundary issue to resolved*
+*Last Updated: 2026-03-05 - Moved camera boundary issues (scroll + right-drag) to resolved*
