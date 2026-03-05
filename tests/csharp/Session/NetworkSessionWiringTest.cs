@@ -56,7 +56,7 @@ public class NetworkSessionWiringTest
             Summoners:
             [
                 new SummonerState(0, 95f, 100f, 8f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<string>(), System.Array.Empty<string>(), System.Array.Empty<string>()),
-                new SummonerState(1, 90f, 100f, 7f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<string>(), System.Array.Empty<string>(), System.Array.Empty<string>())
+                new SummonerState(1, 90f, 100f, 7f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<string>(), System.Array.Empty<string>(), System.Array.Empty<string>(), "fire_wisp")
             ],
             Units:
             [
@@ -74,6 +74,7 @@ public class NetworkSessionWiringTest
         AssertThat(state.FrameNumber).IsEqual(42);
         AssertThat(state.Units.ContainsKey(10)).IsTrue();
         AssertThat(state.Units[10].Position.X).IsEqual(-5f);
+        AssertThat(state.Summoners[1].CastingCatalogId).IsEqual("fire_wisp");
         AssertThat(state.Projectiles.Count).IsEqual(0);
     }
 

@@ -300,7 +300,8 @@ public readonly record struct SummonerState(
     int CardStateHash,
     string[] Hand,
     string[] Deck,
-    string[] DiscardPile
+    string[] DiscardPile,
+    string CastingCatalogId = ""
 );
 
 /// <summary>

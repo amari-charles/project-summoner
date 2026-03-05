@@ -240,6 +240,7 @@ public class ClientSession : NetworkSession
             dst.CastingTimeRemaining = src.CastingTimeRemaining;
             dst.CastingTimeTotal = src.CastingTimeTotal;
             dst.CastingCardIndex = src.CastingCardIndex;
+            dst.CastingCatalogId = src.CastingCatalogId ?? "";
             dst.CastingSpawnPosition = new SimVector3(src.CastingSpawnPosition.X, src.CastingSpawnPosition.Y, src.CastingSpawnPosition.Z);
             dst.CastingNetworkId = src.CastingNetworkId;
             dst.Hand.Clear();
