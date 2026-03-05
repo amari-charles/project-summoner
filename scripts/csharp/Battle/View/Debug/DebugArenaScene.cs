@@ -13,10 +13,6 @@ namespace Fateforged.View.Debug;
 [GlobalClass]
 public partial class DebugArenaScene : TestBattleScene
 {
-    private const int EnemyAiDifficulty = 3;
-    private const float EnemyAiIntervalMin = 3.0f;
-    private const float EnemyAiIntervalMax = 6.0f;
-
     [Signal] public delegate void UnitsClearedEventHandler(int count);
 
     private Node? _spawnerPanel;
@@ -120,10 +116,7 @@ public partial class DebugArenaScene : TestBattleScene
         simNode.ConfigureAi(
             1,
             AiType.Heuristic,
-            AiPersonality.Balanced,
-            EnemyAiDifficulty,
-            EnemyAiIntervalMin,
-            EnemyAiIntervalMax
+            AiPersonality.Balanced
         );
     }
 
