@@ -15,22 +15,20 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 - 🟡 Medium Priority
 - 🟢 Low Priority
 
+**Tracker Sync (2026-03-05):** Removed completed `Replace /root/VFXManager Lookup in ProjectileVisual`, moved Puff target-stickiness work to completed (PR `#270`), and removed Wisp single-target verification from active queue after post-refactor validation.
+
 ---
 
 ## AI-First Priority Queue (2026-03-05)
 
-1. Add reproducible regression tests for camera boundary behavior (scroll + right-drag)  
-   Why first: Turns two long-lived bugs into deterministic pass/fail checks.
-2. Fix camera boundary bugs based on new regression cases  
-   Why second: Player-facing issue with clear expected behavior and bounded surface area.
-3. Implement Puff target stickiness + cone-aware target preference  
-   Why third: Addresses active combat AI bug with direct balance impact.
-4. Verify/fix Wisp single-target behavior in simulation and projectile path  
-   Why fourth: Likely targeting/projectile pipeline issue with clear combat correctness outcome.
-5. Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`  
-   Why fifth: Type-safety win with moderate refactor cost and strong semantic benefit.
-6. Continue typed-internal service handler refactors (string boundary only at GDScript edge)  
-   Why sixth: Important cleanup, but lower immediate player impact than gameplay bugs.
+1. Investigate blocked-unit idle freeze and add deterministic regression coverage  
+   Why first: Prevents recurring "units stop contributing" failures in live matches.
+2. Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`  
+   Why second: Type-safety win with moderate refactor cost and strong semantic benefit.
+3. Continue typed-internal service handler refactors (string boundary only at GDScript edge)  
+   Why third: Important cleanup, but lower immediate player impact than gameplay bugs.
+4. Audit sim/visual desync points in battle flow  
+   Why fourth: High-priority correctness work that reduces hard-to-debug runtime drift.
 
 ---
 
@@ -813,7 +811,7 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 ---
 
 #### Add Loading Screen with Asset Preloading
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Async Preloading Implemented)
 **Category:** UI/UX / Performance
 **Effort:** Medium
 
@@ -821,10 +819,10 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 Create a loading screen that displays during battle transitions and preloads all unit assets asynchronously. This eliminates first-spawn initialization delays and provides a polished user experience.
 
 **Requirements:**
-- Loading screen scene with progress bar
-- Use `ResourceLoader.load_threaded_request()` for async loading
-- Preload all unit scenes from CardCatalog
-- Optionally show tips, lore, or artwork during loading
+- [ ] Loading screen scene with progress bar
+- [x] Use `ResourceLoader.load_threaded_request()` for async loading
+- [x] Preload all unit scenes from CardCatalog
+- [ ] Optionally show tips, lore, or artwork during loading
 
 **Technical Notes:**
 - Async unit preloading is now implemented (uses `ResourceLoader.load_threaded_request()`)
@@ -1432,27 +1430,6 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 
 ---
 
-#### Replace /root/VFXManager Lookup in ProjectileVisual
-**Status:** ⬜ Not Started
-**Category:** Architecture / Maintainability
-**Effort:** Trivial
-
-**Description:**
-`ProjectileVisual.cs` uses `GetNodeOrNull("/root/VFXManager")` to access the VFX manager autoload. Per code structure guidelines, Node-based scripts should use autoload globals directly.
-
-**Current Behavior:**
-```csharp
-var vfxManager = GetNodeOrNull("/root/VFXManager");
-vfxManager?.Call("play_effect", HitVfx, impactPosition);
-```
-
-**Proposed Fix:**
-Access `VFXManager` autoload directly without the `/root/` path prefix.
-
-**Related Files:**
-- `scripts/csharp/Battle/View/ProjectileVisual.cs` (formerly Projectile3D.cs)
-
----
 #### Refactor Hard-coded /root/ Paths to Service Locator
 **Status:** ⬜ Not Started
 **Category:** Architecture / Maintainability

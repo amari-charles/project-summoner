@@ -98,6 +98,61 @@ Implemented hit-geometry v1 for projectiles to make contacts more forgiving and 
 
 ---
 
+### Implement Puff Target Stickiness + Cone-Aware Target Preference
+**Completed:** 2026-03-05
+**Category:** Units & Combat / Targeting
+**Effort:** Medium
+
+**Description:**
+Implemented policy-based targeting to stop unnecessary target churn for Puff and other cone-sensitive units.
+
+**Key Accomplishments:**
+- ✅ Added policy-based targeting (`TargetPolicyId`, registry, and policy implementations)
+- ✅ Added `PreferAttackableAndStick` behavior to keep valid current targets
+- ✅ Prioritized attackable-now targets before score-only fallback selection
+- ✅ Added typed targeting profiles/tunables in unit definitions
+- ✅ Added simulation tests for cone-aware selection and lock-expiry keep-current behavior
+
+**PR Merge Date:** 2026-03-05 (`#270`)
+
+**Files Changed:**
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- `scripts/csharp/Battle/Simulation/Combat/Targeting/TargetPolicyRegistry.cs`
+- `scripts/csharp/Battle/Simulation/Combat/Targeting/PreferAttackableAndStickTargetPolicy.cs`
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
+- `tests/csharp/Simulation/SimBehaviorTest.cs`
+- `tests/csharp/Simulation/SimTargetingTest.cs`
+- `tests/csharp/Simulation/TargetPolicyRegistryTest.cs`
+- `tests/csharp/Simulation/UnitDefinitionsTargetingProfileTest.cs`
+
+---
+
+### Verify Wisp Single-Target Behavior After Major Refactor
+**Completed:** 2026-03-05
+**Category:** Units & Combat / Targeting
+**Effort:** Small
+
+**Description:**
+Validated the previously reported Wisp multi-target issue after the major simulation/targeting refactor and confirmed it is no longer reproducible in the current architecture.
+
+**Outcome:**
+- ✅ Verified current wisp behavior is single-target
+- ✅ Confirmed no additional code fix was required
+- ✅ Updated trackers to move the bug from active to resolved
+
+**Refactor Context:**
+- Host-authoritative simulation rewrite (`#260`)
+- Policy-based targeting refactor (`#270`)
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
+- `docs/tracking/bugs.md`
+- `docs/tracking/bugs-resolved.md`
+
+---
 ### Complete Multiplayer Request Validation
 **Completed:** 2026-03-05
 **Category:** Multiplayer / Anti-cheat

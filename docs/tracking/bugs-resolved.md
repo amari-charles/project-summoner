@@ -41,6 +41,61 @@ Two camera boundary bugs were active:
 
 ---
 
+### Puff Units Switch Targets Unnecessarily
+**Resolved:** 2026-03-05
+**Component:** Units / Targeting / Ranged AI
+
+**Description:**
+Puff units were switching targets too aggressively, often abandoning a currently attackable cone target to chase a different "higher score" target that required movement.
+
+**Root Cause:**
+Target re-acquisition used score-first selection after lock expiry and did not preserve a valid current target. Cone-attack units could switch to a closer but less immediately attackable target.
+
+**Solution Implemented:**
+1. Introduced policy-based target selection with explicit `TargetPolicyId` strategies.
+2. Added `PreferAttackableAndStickTargetPolicy` to keep current targets when still attackable.
+3. Updated targeting to prioritize attackable-now candidates before fallback score-only selection.
+4. Wired unit targeting profiles to use `PreferAttackableAndStick` where appropriate.
+5. Added simulation coverage for keep-current and cone-aware switching behavior.
+
+**PR Merge Date:** 2026-03-05 (`#270`)
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- `scripts/csharp/Battle/Simulation/Combat/Targeting/PreferAttackableAndStickTargetPolicy.cs`
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
+- `tests/csharp/Simulation/SimBehaviorTest.cs`
+- `tests/csharp/Simulation/SimTargetingTest.cs`
+
+---
+
+### Wisps Attack Multiple Enemies Simultaneously
+**Resolved:** 2026-03-05
+**Component:** Units / Combat / Targeting
+
+**Description:**
+Wisp units were previously reported as attacking multiple enemies simultaneously instead of honoring a single target.
+
+**Root Cause:**
+This issue appears to have been tied to pre-refactor targeting/combat flow. After the major host-authoritative simulation migration and follow-up targeting policy refactor, the old multi-target behavior is no longer reproducible.
+
+**Resolution Outcome:**
+1. Confirmed current sim path uses single-target acquisition/execution per unit attack tick.
+2. Verified post-refactor behavior in current build: wisps now behave as single-target units.
+3. No additional code fix required beyond merged refactor work.
+
+**Refactor Context:**
+- Host-authoritative simulation rewrite (merged 2026-03-04, `#260`)
+- Policy-based targeting refactor (merged 2026-03-05, `#270`)
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
+
+---
+
 ### Enemy Spawn Debug Mode Issues
 **Resolved:** 2026-03-04
 **Component:** Debug Tools / Spawning
