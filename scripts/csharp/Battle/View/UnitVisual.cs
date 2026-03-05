@@ -7,6 +7,8 @@ using Fateforged.Visual;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Infrastructure.Debug;
+using Fateforged.Constants;
+using Fateforged.Units;
 
 namespace Fateforged.View;
 
@@ -96,6 +98,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         if (state.Units.TryGetValue(unitId, out var unitData))
         {
+            RegisterGroups(unitData);
             GlobalPosition = simNode.SimToLocal(unitData.Position);
 
             // Start spawn reveal if unit has a spawn timer
@@ -131,6 +134,19 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         AddChild(hpBar);
         hpBar.Configure(HPBarSettings.Default);
         hpBar.TrackNode(this);
+    }
+
+    private void RegisterGroups(UnitData unitData)
+    {
+        AddToGroup(GroupIDs.Units);
+
+        if (unitData.Team == Team.Player)
+            AddToGroup(GroupIDs.PlayerUnits);
+        else
+            AddToGroup(GroupIDs.EnemyUnits);
+
+        if (unitData.MovementLayer == MovementLayer.Air)
+            AddToGroup(GroupIDs.FlyingUnits);
     }
 
     // --- Self-Sync (continuous, every frame) ---

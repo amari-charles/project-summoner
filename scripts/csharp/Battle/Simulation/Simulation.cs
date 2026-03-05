@@ -499,7 +499,14 @@ public class Simulation
         {
             if (!unit.IsAlive) continue;
             if (unit.ActivationState == ActivationState.Active) continue;
-            if (unit.SpawnTimer <= 0f) continue;
+
+            // Defensive: units with no remaining spawn timer should become active immediately.
+            if (unit.SpawnTimer <= 0f)
+            {
+                unit.SpawnTimer = 0f;
+                unit.ActivationState = ActivationState.Active;
+                continue;
+            }
 
             unit.SpawnTimer -= fixedDelta;
             if (unit.SpawnTimer <= 0f)
@@ -568,9 +575,8 @@ public class Simulation
                     MagicDefense = template.MagicDefense,
                     Evasion = template.Evasion,
                     IsFacingRight = UnitData.DefaultFacingForTeam((Team)team),
-                    // Always spawn inactive — self-activates when SpawnTimer expires (battle)
-                    // or when prep→battle transition fires (preparation)
-                    ActivationState = ActivationState.Inactive,
+                    // Spawn inactive when there is a reveal/cast delay; otherwise active immediately.
+                    ActivationState = spawnTimer > 0f ? ActivationState.Inactive : ActivationState.Active,
                     SpawnTimer = spawnTimer
                 };
 

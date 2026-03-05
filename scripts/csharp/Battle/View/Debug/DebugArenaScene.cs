@@ -2,35 +2,38 @@ using Godot;
 using Fateforged.Constants;
 using Fateforged.View;
 using Fateforged.Simulation;
+using Fateforged.Simulation.AI;
 
 namespace Fateforged.View.Debug;
 
 /// <summary>
-/// Debug Arena — infinite mana/HP, empty enemy deck, passive AI, manual unit spawning.
+/// Debug Arena — infinite mana/HP, manual unit spawning, enemy AI toggle.
 /// Replaces debug_arena_controller.gd. Used by scenes/battle/battlefield/dev/debug_arena.tscn.
 /// </summary>
 [GlobalClass]
 public partial class DebugArenaScene : TestBattleScene
 {
+    private const int EnemyAiDifficulty = 3;
+    private const float EnemyAiIntervalMin = 3.0f;
+    private const float EnemyAiIntervalMax = 6.0f;
+
     [Signal] public delegate void UnitsClearedEventHandler(int count);
 
     private Node? _spawnerPanel;
 
+    protected override Godot.Collections.Dictionary BuildPracticeConfig()
+    {
+        return new Godot.Collections.Dictionary
+        {
+            { "dev_player_deck", BuildDeck("fire_wisp", 30) },
+            { "enemy_deck", BuildDeck("fire_wisp", 30) },
+            { "enemy_hp", 999999.0 },
+            { "ai_type", "none" }
+        };
+    }
+
     public override async void _Ready()
     {
-        // Configure BattleContext for debug arena before parent init
-        var battleContext = GetNode("/root/BattleContext");
-        if (battleContext != null)
-        {
-            var config = new Godot.Collections.Dictionary
-            {
-                { "enemy_deck", new Godot.Collections.Array() }, // Empty = no AI spawning
-                { "enemy_hp", 999999.0 },
-                { "ai_type", "passive" }
-            };
-            battleContext.Call("configure_practice_battle", config);
-        }
-
         base._Ready();
 
         // Wait one frame for init to complete, then connect spawner panel
@@ -52,6 +55,15 @@ public partial class DebugArenaScene : TestBattleScene
 
         if (!_spawnerPanel.IsConnected("skip_prep_toggled", new Callable(this, MethodName.OnSkipPrepToggled)))
             _spawnerPanel.Connect("skip_prep_toggled", new Callable(this, MethodName.OnSkipPrepToggled));
+
+        if (_spawnerPanel.HasSignal("enemy_ai_toggled") &&
+            !_spawnerPanel.IsConnected("enemy_ai_toggled", new Callable(this, MethodName.OnEnemyAiToggled)))
+        {
+            _spawnerPanel.Connect("enemy_ai_toggled", new Callable(this, MethodName.OnEnemyAiToggled));
+        }
+
+        if (_spawnerPanel.HasMethod("get_enemy_ai_enabled"))
+            OnEnemyAiToggled((bool)_spawnerPanel.Call("get_enemy_ai_enabled"));
     }
 
     private Node? FindSpawnerPanel()
@@ -93,6 +105,28 @@ public partial class DebugArenaScene : TestBattleScene
             SkipPrepPhase();
     }
 
+    public void OnEnemyAiToggled(bool enabled)
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
+            return;
+
+        if (!enabled)
+        {
+            simNode.ConfigureAi(1, AiType.None);
+            return;
+        }
+
+        simNode.ConfigureAi(
+            1,
+            AiType.Heuristic,
+            AiPersonality.Balanced,
+            EnemyAiDifficulty,
+            EnemyAiIntervalMin,
+            EnemyAiIntervalMax
+        );
+    }
+
     public void ClearAllUnits()
     {
         int count = 0;
@@ -106,6 +140,27 @@ public partial class DebugArenaScene : TestBattleScene
             state.Units.Clear();
             state.Projectiles.Clear();
             state.DelayedEffects.Clear();
+            state.PendingCommandBuffer.Clear();
+            foreach (var summoner in state.Summoners)
+            {
+                summoner.IsCasting = false;
+                summoner.CastingTimeRemaining = 0f;
+                summoner.CastingTimeTotal = 0f;
+                summoner.CastingCardIndex = -1;
+                summoner.CastingCatalogId = "";
+                summoner.CastingSpawnPosition = SimVector3.Zero;
+                summoner.CastingNetworkId = -1;
+            }
+        }
+
+        var entityManager = GetNodeOrNull<EntityManager>("EntityManager");
+        if (entityManager != null)
+        {
+            foreach (var child in entityManager.GetChildren())
+            {
+                if (child is UnitVisual || child is ProjectileVisual)
+                    child.QueueFree();
+            }
         }
 
         var units = GetTree().GetNodesInGroup(GroupIDs.Units);

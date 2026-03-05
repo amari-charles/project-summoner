@@ -16,21 +16,7 @@ public partial class TestBattleScene : BattleScene
         var battleContext = GetNode("/root/BattleContext");
         if (battleContext != null)
         {
-            var config = new Godot.Collections.Dictionary
-            {
-                { "dev_player_deck", new Godot.Collections.Array
-                    {
-                        new Godot.Collections.Dictionary { { "catalog_id", "fire_wisp" }, { "count", 30 } }
-                    }
-                },
-                { "enemy_deck", new Godot.Collections.Array
-                    {
-                        new Godot.Collections.Dictionary { { "catalog_id", "fire_wisp" }, { "count", 30 } }
-                    }
-                },
-                { "enemy_hp", 999999.0 }
-            };
-            battleContext.Call("configure_practice_battle", config);
+            battleContext.Call("configure_practice_battle", BuildPracticeConfig());
         }
 
         // Force reload ProjectileCatalog
@@ -63,6 +49,29 @@ public partial class TestBattleScene : BattleScene
         }
 
         GD.Print("[TestBattleScene] Test mode ready!");
+    }
+
+    protected virtual Godot.Collections.Dictionary BuildPracticeConfig()
+    {
+        return new Godot.Collections.Dictionary
+        {
+            { "dev_player_deck", BuildDeck("fire_wisp", 30) },
+            { "enemy_deck", BuildDeck("fire_wisp", 30) },
+            { "enemy_hp", 999999.0 },
+            { "ai_type", "heuristic" }
+        };
+    }
+
+    protected static Godot.Collections.Array BuildDeck(string catalogId, int count)
+    {
+        return new Godot.Collections.Array
+        {
+            new Godot.Collections.Dictionary
+            {
+                { "catalog_id", catalogId },
+                { "count", count }
+            }
+        };
     }
 
     public override void _Process(double delta)
