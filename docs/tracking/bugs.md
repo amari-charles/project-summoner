@@ -6,6 +6,7 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 
 **Note:** When resolving a bug, move it to `bugs-resolved.md` with the resolution date and details.
 **Tracker Sync (2026-03-05):** Reviewed against `bugs-resolved.md`; moved Puff target-switch and Wisp multi-target bugs to resolved based on post-refactor validation.
+**Audit Sync (2026-03-05, evening):** Re-opened Puff pivot/flip bug after repro confirmation; migrated to metadata-driven pivot alignment and moved to resolved after validation. Blocked-idle and headless leak issues remain active pending explicit repro closure.
 
 ---
 
@@ -116,29 +117,4 @@ Additional context
 ```
 
 ---
-
-
-#### Puff Pivot Point Off-Center When Turning
-**Status:** Open
-**Reported:** 2026-02-27
-**Component:** Units / Visual / Sprites
-
-**Description:**
-When Puff turns around (flips facing direction), it visually snaps to a different position because the pivot point is at the center of the sprite image, not the visual center of the character. Puff is not centered within its sprite sheet, so flipping the sprite causes an apparent position jump.
-
-**Expected Behavior:**
-Puff should pivot around its visual center, appearing to turn in place without shifting sideways.
-
-**Current Behavior:**
-Puff appears to teleport slightly left or right when changing facing direction because the flip mirrors around the image center, not the character center.
-
-**Proposed Solution:**
-Adjust the sprite offset so Puff's visual center aligns with the pivot point, or re-center Puff within the sprite sheet.
-
-**Related Files:**
-- Puff unit scene / sprite configuration
-- `scripts/csharp/Battle/View/UnitVisual.cs` (SetFacing method)
-
----
-
-*Last Updated: 2026-03-05 - Moved Wisp multi-target bug to resolved after major refactor validation*
+*Last Updated: 2026-03-05 (evening) - Moved Puff pivot bug to resolved after metadata pivot + alignment fixes validated in battle*

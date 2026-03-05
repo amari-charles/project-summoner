@@ -6,6 +6,33 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### Puff Pivot Point Off-Center When Turning
+**Resolved:** 2026-03-05
+**Component:** Units / Visual / Sprites
+
+**Description:**
+Puff shifted/teleported sideways when changing facing direction because sprite flipping mirrored around texture center while Puff art was visually off-center.
+
+**Root Cause:**
+Horizontal compensation was previously tied to world-space visual offset patterns and lacked robust per-animation pivot metadata in sprite space.
+
+**Solution Implemented:**
+1. Replaced manual sprite-offset workflow with metadata-driven per-animation pivots (`AnimationPivotOffsets`).
+2. Applied pivot offset in viewport sprite space (`CharacterSprite.Position.X`) and mirrored on flip, while keeping `Sprite3D.Position.X = 0` so spawn/world anchors stay centered.
+3. Added runtime alignment refresh on animation/frame/scale changes to prevent drift during animated scale effects.
+4. Added regression tests for:
+   - flip mirror behavior with stable world anchor
+   - frame-size-driven re-alignment
+   - scale-change re-alignment
+5. Tuned Puff scene grounding/offset config (`FeetOffsetPixels`, pivot map) and validated in battle.
+
+**Related Files:**
+- `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs`
+- `scenes/battle/units/puff_3d.tscn`
+- `tests/csharp/View/SpriteVisualComponentTest.cs`
+
+---
+
 ### Camera Boundary Issues (Scroll Wheel + Right-Click Drag)
 **Resolved:** 2026-03-05
 **Component:** Camera / Input
