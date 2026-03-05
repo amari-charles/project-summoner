@@ -733,6 +733,8 @@ public class Simulation
             arcHeight: projectileData.ArcHeight,
             pierceCount: projectileData.PierceCount,
             aoeRadius: aoeRadius,
+            hitRadius: projectileData.HitRadius,
+            hitSpace: projectileData.HitSpace,
             steerStrength: projectileData.SteerStrength,
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,

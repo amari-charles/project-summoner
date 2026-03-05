@@ -147,6 +147,12 @@ public class ProjectileData
     /// <summary>AOE damage radius on impact (0 = no AOE).</summary>
     public float AoeRadius { get; set; } = 0f;
 
+    /// <summary>Projectile contact radius used for overlap checks.</summary>
+    public float HitRadius { get; set; } = 2.5f;
+
+    /// <summary>Hit-space model for overlap checks.</summary>
+    public ProjectileHitSpace HitSpace { get; set; } = ProjectileHitSpace.GroundCylinder;
+
     // =========================================================================
     // AUDIO
     // =========================================================================
@@ -194,6 +200,8 @@ public class ProjectileData
             HomingDelay = GetFloat(dict, "homing_delay", 0f),
             PierceCount = GetInt(dict, "pierce_count", 0),
             AoeRadius = GetFloat(dict, "aoe_radius", 0f),
+            HitRadius = GetFloat(dict, "hit_radius", 2.5f),
+            HitSpace = ParseHitSpace(GetString(dict, "hit_space", "ground_cylinder")),
             LaunchSound = GetString(dict, "launch_sound"),
             ImpactSound = GetString(dict, "impact_sound")
         };
@@ -311,6 +319,15 @@ public class ProjectileData
             "ease_out" or "easeout" => SpeedEasingType.EaseOut,
             "ease_in_out" or "easeinout" => SpeedEasingType.EaseInOut,
             _ => SpeedEasingType.Linear
+        };
+    }
+
+    private static ProjectileHitSpace ParseHitSpace(string value)
+    {
+        return value.ToLower() switch
+        {
+            "sphere_3d" or "sphere3d" or "sphere" => ProjectileHitSpace.Sphere3D,
+            _ => ProjectileHitSpace.GroundCylinder
         };
     }
 

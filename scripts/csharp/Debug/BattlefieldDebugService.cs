@@ -17,9 +17,11 @@ public partial class BattlefieldDebugService : Node
     public bool TargetPointEnabled { get; set; }
     public bool AttackRangeEnabled { get; set; }
     public bool SeparationRadiusEnabled { get; set; }
+    public bool ProjectileHitGeometryEnabled { get; set; }
 
     public bool AnyUnitDebugEnabled =>
         HurtboxEnabled || TargetPointEnabled || AttackRangeEnabled || SeparationRadiusEnabled;
+    public bool AnyProjectileDebugEnabled => ProjectileHitGeometryEnabled;
     public override void _Ready()
     {
         Instance = this;
@@ -52,14 +54,17 @@ public partial class BattlefieldDebugService : Node
     public bool IsDebugTargetPointEnabled() => TargetPointEnabled;
     public bool IsDebugAttackRangeEnabled() => AttackRangeEnabled;
     public bool IsDebugSeparationRadiusEnabled() => SeparationRadiusEnabled;
+    public bool IsDebugProjectileHitGeometryEnabled() => ProjectileHitGeometryEnabled;
 
     public void SetDebugHurtboxEnabled(bool enabled) => HurtboxEnabled = enabled;
     public void SetDebugTargetPointEnabled(bool enabled) => TargetPointEnabled = enabled;
     public void SetDebugAttackRangeEnabled(bool enabled) => AttackRangeEnabled = enabled;
     public void SetDebugSeparationRadiusEnabled(bool enabled) => SeparationRadiusEnabled = enabled;
+    public void SetDebugProjectileHitGeometryEnabled(bool enabled) => ProjectileHitGeometryEnabled = enabled;
 
     public void ToggleDebugHurtbox() => HurtboxEnabled = !HurtboxEnabled;
     public void ToggleDebugTargetPoint() => TargetPointEnabled = !TargetPointEnabled;
     public void ToggleDebugAttackRange() => AttackRangeEnabled = !AttackRangeEnabled;
     public void ToggleDebugSeparationRadius() => SeparationRadiusEnabled = !SeparationRadiusEnabled;
+    public void ToggleDebugProjectileHitGeometry() => ProjectileHitGeometryEnabled = !ProjectileHitGeometryEnabled;
 }

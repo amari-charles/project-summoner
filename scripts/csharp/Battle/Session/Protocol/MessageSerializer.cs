@@ -158,6 +158,8 @@ public class MessageSerializer
                 dict["speedExp"] = m.SpeedEaseExponent;
                 dict["timeAlive"] = m.TimeAlive;
                 dict["lifetime"] = m.Lifetime;
+                dict["hitRadius"] = m.HitRadius;
+                dict["hitSpace"] = m.HitSpace;
                 break;
 
             case ProjectileImpact m:
@@ -340,7 +342,9 @@ public class MessageSerializer
                 SpeedEasing: dict.ContainsKey("speedEase") ? (int)dict["speedEase"] : 0,
                 SpeedEaseExponent: dict.ContainsKey("speedExp") ? (float)dict["speedExp"] : 2f,
                 TimeAlive: dict.ContainsKey("timeAlive") ? (float)dict["timeAlive"] : 0f,
-                Lifetime: dict.ContainsKey("lifetime") ? (float)dict["lifetime"] : 5f
+                Lifetime: dict.ContainsKey("lifetime") ? (float)dict["lifetime"] : 5f,
+                HitRadius: dict.ContainsKey("hitRadius") ? (float)dict["hitRadius"] : 2.5f,
+                HitSpace: dict.ContainsKey("hitSpace") ? (int)dict["hitSpace"] : 0
             ),
 
             MessageType.ProjectileImpact => new ProjectileImpact(
@@ -540,7 +544,9 @@ public class MessageSerializer
                 ["speedEase"] = p.SpeedEasing,
                 ["speedExp"] = p.SpeedEaseExponent,
                 ["timeAlive"] = p.TimeAlive,
-                ["lifetime"] = p.Lifetime
+                ["lifetime"] = p.Lifetime,
+                ["hitRadius"] = p.HitRadius,
+                ["hitSpace"] = p.HitSpace
             };
             arr.Add(d);
         }
@@ -573,7 +579,9 @@ public class MessageSerializer
                 SpeedEasing: d.ContainsKey("speedEase") ? (int)d["speedEase"] : 0,
                 SpeedEaseExponent: d.ContainsKey("speedExp") ? (float)d["speedExp"] : 2f,
                 TimeAlive: d.ContainsKey("timeAlive") ? (float)d["timeAlive"] : 0f,
-                Lifetime: d.ContainsKey("lifetime") ? (float)d["lifetime"] : 5f
+                Lifetime: d.ContainsKey("lifetime") ? (float)d["lifetime"] : 5f,
+                HitRadius: d.ContainsKey("hitRadius") ? (float)d["hitRadius"] : 2.5f,
+                HitSpace: d.ContainsKey("hitSpace") ? (int)d["hitSpace"] : 0
             );
         }
         return projectiles;
