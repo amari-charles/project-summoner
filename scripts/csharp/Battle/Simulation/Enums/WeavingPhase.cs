@@ -2,11 +2,12 @@ namespace Fateforged.Simulation.Enums;
 
 /// <summary>
 /// Phase of weaving-homing projectile movement.
-/// Phase progression: Straight → Veering → Homing.
+/// Phase progression: Straight → VeeringOut → VeeringBack → Homing.
 /// </summary>
 public enum WeavingPhase
 {
     Straight = 0,
-    Veering = 1,
-    Homing = 2
+    VeeringOut = 1,
+    VeeringBack = 2,
+    Homing = 3
 }

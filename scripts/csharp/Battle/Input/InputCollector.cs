@@ -170,7 +170,10 @@ public partial class InputCollector : Control
         {
             CleanupSpawnPreview();
             CleanupSpawnZoneOverlay();
-            UpdateSpellPreview(worldPos, card);
+            var previewPos = IsAutoTargetSpell(card)
+                ? GetAutoTargetSpellPosition(worldPos)
+                : worldPos;
+            UpdateSpellPreview(previewPos, card);
         }
 
         return true;
@@ -204,6 +207,8 @@ public partial class InputCollector : Control
         // Clamp summon cards to valid spawn zone
         if (card.Type == (int)CardType.Summon)
             worldPos = ClampSpawnPosition(worldPos, TeamPlayer);
+        else if (card.Type == (int)CardType.Spell && IsAutoTargetSpell(card))
+            worldPos = GetAutoTargetSpellPosition(worldPos);
 
         var sim = GetSimNode();
         sim?.QueuePlayCard(0, cardIndex, worldPos, NoTargetId);
@@ -517,6 +522,22 @@ public partial class InputCollector : Control
     }
 
     private static SimulationNode? GetSimNode() => SimulationNode.Current;
+
+    private static bool IsAutoTargetSpell(Card card)
+    {
+        var def = CardCatalog.GetCard(card.CatalogId);
+        return def != null
+            && def.Type == CardType.Spell
+            && def.SpellTargeting == SpellTargeting.SingleTarget;
+    }
+
+    private Vector3 GetAutoTargetSpellPosition(Vector3 fallback)
+    {
+        if (_playerSummoner is Node3D summonerNode && IsInstanceValid(summonerNode))
+            return summonerNode.GlobalPosition;
+
+        return fallback;
+    }
 
     /// <summary>
     /// Safely get a string value from a Godot Dictionary.

@@ -1,74 +1,206 @@
-[gd_scene load_steps=8 format=3 uid="uid://mana_bolt_visual"]
+[gd_scene load_steps=23 format=3 uid="uid://mana_bolt_visual"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
-radius = 0.4
-height = 1.5
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bolt"]
-transparency = 1
-blend_mode = 1
-shading_mode = 0
-albedo_color = Color(0.6, 0.3, 1.0, 0.9)
-emission_enabled = true
-emission = Color(0.8, 0.5, 1.0, 1)
-emission_energy_multiplier = 8.0
-billboard_mode = 0
+[ext_resource type="Script" path="res://scripts/battle/projectiles/mana_bolt_visual.gd" id="1_script"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_core"]
-radius = 0.25
-height = 0.5
+radius = 0.12
+height = 0.24
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_core"]
 transparency = 1
 blend_mode = 1
 shading_mode = 0
-albedo_color = Color(1.0, 0.9, 1.0, 1.0)
+albedo_color = Color(0.96, 1, 1, 1)
 emission_enabled = true
-emission = Color(1.0, 1.0, 1.0, 1)
+emission = Color(0.72, 1, 0.97, 1)
+emission_energy_multiplier = 14.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_shell"]
+radius = 0.28
+height = 0.56
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shell"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(0.34, 0.96, 1, 0.2)
+emission_enabled = true
+emission = Color(0.36, 0.9, 1, 1)
+emission_energy_multiplier = 5.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_needle"]
+top_radius = 0.0
+bottom_radius = 0.1
+height = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_needle"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(0.93, 1, 1, 0.92)
+emission_enabled = true
+emission = Color(0.82, 1, 1, 1)
 emission_energy_multiplier = 10.0
 
-[sub_resource type="Gradient" id="Gradient_trail"]
-offsets = PackedFloat32Array(0, 0.3, 0.6, 1)
-colors = PackedColorArray(1.0, 0.8, 1.0, 1, 0.8, 0.5, 1.0, 0.8, 0.5, 0.2, 0.8, 0.4, 0.2, 0.0, 0.4, 0)
+[sub_resource type="CylinderMesh" id="CylinderMesh_wake"]
+top_radius = 0.04
+bottom_radius = 0.16
+height = 1.2
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wake"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(0.18, 0.8, 1, 0.45)
+emission_enabled = true
+emission = Color(0.21, 0.82, 1, 1)
+emission_energy_multiplier = 4.2
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring_a"]
+inner_radius = 0.22
+outer_radius = 0.26
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring_a"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(0.52, 1, 0.95, 0.36)
+emission_enabled = true
+emission = Color(0.6, 1, 0.95, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring_b"]
+inner_radius = 0.31
+outer_radius = 0.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring_b"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(0.22, 0.73, 1, 0.3)
+emission_enabled = true
+emission = Color(0.3, 0.78, 1, 1)
+emission_energy_multiplier = 4.8
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+offsets = PackedFloat32Array(0, 0.22, 0.58, 1)
+colors = PackedColorArray(0.9, 1, 1, 1, 0.43, 0.93, 1, 0.82, 0.16, 0.57, 1, 0.38, 0.03, 0.16, 0.36, 0)
+
+[sub_resource type="Curve" id="Curve_trail_scale"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.7, 0.58), -0.2, -0.2, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
 direction = Vector3(0, 0, 1)
-spread = 15.0
-initial_velocity_min = 2.0
-initial_velocity_max = 4.0
+spread = 18.0
+initial_velocity_min = 2.8
+initial_velocity_max = 5.2
 gravity = Vector3(0, 0, 0)
-scale_min = 0.3
-scale_max = 0.6
+scale_min = 0.1
+scale_max = 0.22
+scale_curve = SubResource("Curve_trail_scale")
 color_ramp = SubResource("Gradient_trail")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_particle"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trail_particle"]
 transparency = 1
 blend_mode = 1
 shading_mode = 0
 vertex_color_use_as_albedo = true
 albedo_color = Color(1, 1, 1, 1)
 emission_enabled = true
-emission = Color(0.8, 0.5, 1.0, 1)
-emission_energy_multiplier = 4.0
+emission = Color(0.42, 0.93, 1, 1)
+emission_energy_multiplier = 5.5
 billboard_mode = 3
 
-[sub_resource type="QuadMesh" id="QuadMesh_1"]
-material = SubResource("StandardMaterial3D_particle")
-size = Vector2(0.4, 0.4)
+[sub_resource type="QuadMesh" id="QuadMesh_trail"]
+material = SubResource("StandardMaterial3D_trail_particle")
+size = Vector2(0.18, 0.18)
+
+[sub_resource type="Gradient" id="Gradient_sparks"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.8, 1, 1, 0.95, 0.4, 0.86, 1, 0.56, 0.1, 0.28, 0.48, 0)
+
+[sub_resource type="Curve" id="Curve_sparks_scale"]
+_data = [Vector2(0, 0.8), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sparks"]
+direction = Vector3(0, 0, 1)
+spread = 42.0
+initial_velocity_min = 0.8
+initial_velocity_max = 1.8
+gravity = Vector3(0, 0, 0)
+scale_min = 0.05
+scale_max = 0.09
+scale_curve = SubResource("Curve_sparks_scale")
+color_ramp = SubResource("Gradient_sparks")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark_particle"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 1)
+emission_enabled = true
+emission = Color(0.65, 1, 1, 1)
+emission_energy_multiplier = 5.0
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="QuadMesh_sparks"]
+material = SubResource("StandardMaterial3D_spark_particle")
+size = Vector2(0.08, 0.08)
 
 [node name="ManaBoltVisual" type="Node3D"]
+script = ExtResource("1_script")
 
-[node name="BoltMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
-mesh = SubResource("CapsuleMesh_1")
-surface_material_override/0 = SubResource("StandardMaterial3D_bolt")
+[node name="BodyPivot" type="Node3D" parent="."]
 
-[node name="CoreGlow" type="MeshInstance3D" parent="."]
+[node name="Core" type="MeshInstance3D" parent="BodyPivot"]
 mesh = SubResource("SphereMesh_core")
 surface_material_override/0 = SubResource("StandardMaterial3D_core")
 
+[node name="OuterShell" type="MeshInstance3D" parent="BodyPivot"]
+mesh = SubResource("SphereMesh_shell")
+surface_material_override/0 = SubResource("StandardMaterial3D_shell")
+
+[node name="Needle" type="MeshInstance3D" parent="BodyPivot"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0.26)
+mesh = SubResource("CylinderMesh_needle")
+surface_material_override/0 = SubResource("StandardMaterial3D_needle")
+
+[node name="Wake" type="MeshInstance3D" parent="BodyPivot"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -0.42)
+mesh = SubResource("CylinderMesh_wake")
+surface_material_override/0 = SubResource("StandardMaterial3D_wake")
+
+[node name="RingAPivot" type="Node3D" parent="."]
+transform = Transform3D(0.940681, -0.0846347, -0.328684, 0, 0.968411, -0.249362, 0.339291, 0.23472, 0.911202, 0, 0, 0)
+
+[node name="RingA" type="MeshInstance3D" parent="RingAPivot"]
+mesh = SubResource("TorusMesh_ring_a")
+surface_material_override/0 = SubResource("StandardMaterial3D_ring_a")
+
+[node name="RingBPivot" type="Node3D" parent="."]
+transform = Transform3D(0.861414, 0.25699, 0.438733, -0.335244, 0.935992, 0.108579, -0.381263, -0.240571, 0.892522, 0, 0, 0)
+
+[node name="RingB" type="MeshInstance3D" parent="RingBPivot"]
+mesh = SubResource("TorusMesh_ring_b")
+surface_material_override/0 = SubResource("StandardMaterial3D_ring_b")
+
 [node name="TrailParticles" type="GPUParticles3D" parent="."]
-amount = 40
-lifetime = 0.4
-process_material = SubResource("ParticleProcessMaterial_1")
-draw_pass_1 = SubResource("QuadMesh_1")
+amount = 90
+lifetime = 0.34
+process_material = SubResource("ParticleProcessMaterial_trail")
+draw_pass_1 = SubResource("QuadMesh_trail")
+
+[node name="SparkParticles" type="GPUParticles3D" parent="."]
+amount = 24
+lifetime = 0.2
+process_material = SubResource("ParticleProcessMaterial_sparks")
+draw_pass_1 = SubResource("QuadMesh_sparks")
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+light_color = Color(0.5, 0.95, 1, 1)
+light_energy = 0.62
+omni_range = 3.0
+shadow_enabled = false

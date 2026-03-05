@@ -15,10 +15,6 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimProjectile
 {
-    // Constants matching Projectile3D
-    private const float VeerReferenceDistance = 25f;
-    private const float VeerMinDistance = 12f;
-
     // Arc path constants matching ArcPath.cs
     private const float ArcFullArcDistance = 5.0f;
 
@@ -364,7 +360,7 @@ public static class SimProjectile
             case WeavingPhase.Straight:
                 if (proj.PhaseTimer >= proj.ScaledVeerDelay)
                 {
-                    proj.WeavingPhase = WeavingPhase.Veering;
+                    proj.WeavingPhase = WeavingPhase.VeeringOut;
                     proj.PhaseTimer = 0f;
                 }
                 else
@@ -375,22 +371,47 @@ public static class SimProjectile
                 }
                 break;
 
-            case WeavingPhase.Veering:
+            case WeavingPhase.VeeringOut:
                 if (proj.PhaseTimer >= proj.ScaledVeerDuration)
+                {
+                    proj.WeavingPhase = WeavingPhase.VeeringBack;
+                    proj.PhaseTimer = 0f;
+                }
+                else
+                {
+                    var outTarget = BlendWithTarget(proj, proj.VeerDirection, WeavingHomingTuning.BlendOutTargetWeight);
+                    SteerToward(proj, outTarget, delta);
+                }
+                break;
+
+            case WeavingPhase.VeeringBack:
+                if (proj.PhaseTimer >= proj.ScaledCounterVeerDuration)
                 {
                     proj.WeavingPhase = WeavingPhase.Homing;
                     proj.PhaseTimer = 0f;
                 }
                 else
                 {
-                    SteerToward(proj, proj.VeerDirection, delta);
+                    var backTarget = BlendWithTarget(proj, proj.CounterVeerDirection, WeavingHomingTuning.BlendBackTargetWeight);
+                    SteerToward(proj, backTarget, delta);
                 }
                 break;
 
             case WeavingPhase.Homing:
                 var toTarget2 = (proj.TargetPosition - proj.CurrentPosition);
                 if (toTarget2.LengthSquared() > 0.001f)
-                    SteerToward(proj, toTarget2.Normalized(), delta);
+                {
+                    float distanceToTarget = toTarget2.Length();
+                    bool finalLock = distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
+                                     || proj.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
+                    var homingDirection = finalLock ? toTarget2.Normalized() : ApplyHomingWeave(proj, toTarget2);
+                    float settle = SimMath.Clamp(distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
+                    float steerScale = finalLock
+                        ? 1f
+                        : (WeavingHomingTuning.HomingFarSteerScale
+                           + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle)));
+                    SteerToward(proj, homingDirection, delta, steerScale);
+                }
 
                 // Direct hit check
                 if (target != null && !proj.HitUnitIds.Contains(target.UnitId))
@@ -408,13 +429,18 @@ public static class SimProjectile
         // Apply velocity
         proj.Velocity = proj.Direction * proj.Speed;
         proj.CurrentPosition += proj.Velocity * delta;
+
+        // Refresh direction from actual frame travel so visuals bank with weave motion.
+        var frameTravel = proj.CurrentPosition - proj.LastPosition;
+        if (frameTravel.LengthSquared() > 0.001f)
+            proj.Direction = frameTravel.Normalized();
     }
 
     /// <summary>
     /// Gradually steer the projectile toward a target direction.
     /// Mirrors Projectile3D.SteerToward().
     /// </summary>
-    private static void SteerToward(SimProjectileData proj, SimVector3 targetDirection, float delta)
+    private static void SteerToward(SimProjectileData proj, SimVector3 targetDirection, float delta, float steerScale = 1f)
     {
         if (targetDirection.LengthSquared() < 0.001f)
             return;
@@ -425,7 +451,8 @@ public static class SimProjectile
         dot = SimMath.Clamp(dot, -1f, 1f);
         float angleBetween = MathF.Acos(dot);
 
-        float maxRotation = SimMath.DegToRad(proj.SteerStrength) * delta;
+        float clampedScale = SimMath.Clamp(steerScale, 0f, 1f);
+        float maxRotation = SimMath.DegToRad(proj.SteerStrength * clampedScale) * delta;
 
         if (angleBetween <= maxRotation)
         {
@@ -624,25 +651,39 @@ public static class SimProjectile
         proj.Velocity = proj.Direction * speed;
 
         float distance = start.DistanceTo(target);
-        float distanceScale = SimMath.Clamp(distance / VeerReferenceDistance, 0f, 1f);
+        float distanceScale = SimMath.Clamp(distance / WeavingHomingTuning.VeerReferenceDistance, 0f, 1f);
 
-        if (distance < VeerMinDistance)
+        if (distance < WeavingHomingTuning.VeerMinDistance)
         {
             proj.ScaledVeerDelay = 0f;
             proj.ScaledVeerDuration = 0f;
+            proj.ScaledCounterVeerDuration = 0f;
             proj.WeavingPhase = WeavingPhase.Homing;
         }
         else
         {
             proj.ScaledVeerDelay = veerDelay * distanceScale;
-            proj.ScaledVeerDuration = veerDuration * distanceScale;
+            float weaveDuration = veerDuration * distanceScale;
+            proj.ScaledVeerDuration = weaveDuration;
+            // Slightly shorter counter-phase gives a tighter "S" before homing.
+            proj.ScaledCounterVeerDuration = weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
             float scaledVeerAngle = veerAngle * distanceScale;
 
             // Random left/right veer using deterministic RNG
             float veerSign = (rng != null && rng.NextFloat() > 0.5f) ? 1f : -1f;
-            float veerRadians = SimMath.DegToRad(scaledVeerAngle) * veerSign;
+            float pitchSign = (rng != null && rng.NextFloat() > 0.5f) ? 1f : -1f;
+            float veerYawRadians = SimMath.DegToRad(scaledVeerAngle) * veerSign;
+            float veerPitchRadians = SimMath.DegToRad(scaledVeerAngle * WeavingHomingTuning.VeerPitchRatio) * pitchSign;
 
-            proj.VeerDirection = RotateAround(proj.Direction, SimVector3.Up, veerRadians).Normalized();
+            var rightAxis = GetStableRightAxis(proj.Direction);
+            var outDir = RotateAround(proj.Direction, SimVector3.Up, veerYawRadians);
+            outDir = RotateAround(outDir, rightAxis, veerPitchRadians);
+
+            var backDir = RotateAround(proj.Direction, SimVector3.Up, -veerYawRadians * WeavingHomingTuning.VeerCounterYawRatio);
+            backDir = RotateAround(backDir, rightAxis, -veerPitchRadians * WeavingHomingTuning.VeerCounterPitchRatio);
+
+            proj.VeerDirection = outDir.Normalized();
+            proj.CounterVeerDirection = backDir.Normalized();
         }
 
         // WeavingHoming doesn't use PathLength (velocity-based, not progress-based)
@@ -652,6 +693,51 @@ public static class SimProjectile
     // =========================================================================
     // GEOMETRY HELPERS
     // =========================================================================
+
+    private static SimVector3 BlendWithTarget(SimProjectileData proj, SimVector3 weaveDirection, float targetWeight)
+    {
+        var toTarget = proj.TargetPosition - proj.CurrentPosition;
+        if (toTarget.LengthSquared() <= 0.001f)
+            return weaveDirection;
+
+        var desired = (weaveDirection * (1f - targetWeight)) + (toTarget.Normalized() * targetWeight);
+        if (desired.LengthSquared() <= 0.001f)
+            return weaveDirection;
+
+        return desired.Normalized();
+    }
+
+    private static SimVector3 ApplyHomingWeave(SimProjectileData proj, SimVector3 toTarget)
+    {
+        var targetDirection = toTarget.Normalized();
+        float targetDistance = toTarget.Length();
+        if (targetDistance <= GeometryEpsilon)
+            return targetDirection;
+
+        float arc = MathF.Max(0f, proj.ArcHeight);
+        if (arc <= GeometryEpsilon)
+            return targetDirection;
+
+        float settle = SimMath.Clamp(targetDistance / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
+        float yawAmplitude = SimMath.DegToRad(proj.ScaledCounterVeerDuration > 0f
+            ? proj.ScaledCounterVeerDuration * WeavingHomingTuning.HomingYawFromDurationScale
+            : 0f);
+        if (yawAmplitude <= GeometryEpsilon)
+            yawAmplitude = SimMath.DegToRad(MathF.Max(
+                WeavingHomingTuning.HomingYawFallbackMinDegrees,
+                arc * WeavingHomingTuning.HomingYawFallbackArcMultiplier));
+
+        float phase = (proj.TimeAlive * WeavingHomingTuning.HomingWeaveFrequency) + (proj.ProjectileId * 0.37f);
+        float yawOffset = MathF.Sin(phase) * yawAmplitude * WeavingHomingTuning.HomingWeaveYawRatio * settle;
+        float pitchOffset = MathF.Cos(phase * (WeavingHomingTuning.HomingWeavePitchFrequency
+                                               / WeavingHomingTuning.HomingWeaveFrequency))
+                            * yawAmplitude * WeavingHomingTuning.HomingWeavePitchRatio * settle;
+
+        var rightAxis = GetStableRightAxis(targetDirection);
+        var woven = RotateAround(targetDirection, SimVector3.Up, yawOffset);
+        woven = RotateAround(woven, rightAxis, pitchOffset);
+        return woven.Normalized();
+    }
 
     private static bool CanHitUnitAtPoint(SimProjectileData proj, UnitData unit, SimVector3 point)
     {
@@ -789,6 +875,16 @@ public static class SimProjectile
         float sin = MathF.Sin(angle);
         // Rodrigues: v*cos + (axis x v)*sin + axis*(axis . v)*(1 - cos)
         return v * cos + axis.Cross(v) * sin + axis * (axis.Dot(v) * (1f - cos));
+    }
+
+    private static SimVector3 GetStableRightAxis(SimVector3 forward)
+    {
+        var right = forward.Cross(SimVector3.Up);
+        if (right.LengthSquared() < GeometryEpsilon)
+            right = forward.Cross(SimVector3.Forward);
+        if (right.LengthSquared() < GeometryEpsilon)
+            right = SimVector3.Right;
+        return right.Normalized();
     }
 
     /// <summary>

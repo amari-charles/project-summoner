@@ -61,8 +61,10 @@ public class SimProjectileData
     public float PhaseTimer { get; set; }
     public SimVector3 Velocity { get; set; }
     public SimVector3 VeerDirection { get; set; }
+    public SimVector3 CounterVeerDirection { get; set; }
     public float ScaledVeerDelay { get; set; }
     public float ScaledVeerDuration { get; set; }
+    public float ScaledCounterVeerDuration { get; set; }
     public float SteerStrength { get; set; } = 180f;
 
     // Hit detection

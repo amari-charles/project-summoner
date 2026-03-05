@@ -303,16 +303,126 @@ public class SimulationIntegrationTest
         AssertThat(_state.Projectiles.Count).IsEqual(1);
         AssertThat(enemy.CurrentHp).IsEqual(enemy.MaxHp);
         var initialProjectile = _state.Projectiles.Values.First();
-        AssertThat(initialProjectile.Speed).IsEqual(4f); // ManaBolt base Speed from projectile defs
+        AssertThat(initialProjectile.Speed).IsEqual(18f); // ManaBolt SpeedStart from projectile defs
 
         _sim.Tick(Delta);
         var acceleratedProjectile = _state.Projectiles.Values.First();
-        AssertThat(acceleratedProjectile.Speed).IsGreater(4f); // Acceleration is applied in sim
+        AssertThat(acceleratedProjectile.Speed).IsGreater(18f); // Speed easing ramps toward SpeedEnd
 
         for (int i = 0; i < 240 && enemy.CurrentHp >= enemy.MaxHp; i++)
             _sim.Tick(Delta);
 
         AssertThat(enemy.CurrentHp).IsLess(enemy.MaxHp);
+    }
+
+    [TestCase]
+    public void Tick_SpellCard_NearestEnemyProjectile_ManaBolt_Uses3DWeave()
+    {
+        var spell = SimTestHelper.CreateSpellCard(
+            "projectile_single_spell",
+            manaCost: 3,
+            damage: 35f,
+            radius: 0f,
+            targetingMode: SpellTargetingMode.NearestEnemy,
+            spellProjectileId: "mana_bolt");
+        _state.CardDataMap["projectile_single_spell"] = spell;
+        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 18f, z: 0f);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(18f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+
+        float maxVerticalOffset = 0f;
+        for (int i = 0; i < 60 && _state.Projectiles.Count > 0; i++)
+        {
+            _sim.Tick(Delta);
+            if (_state.Projectiles.Count == 0)
+                break;
+
+            var projectile = _state.Projectiles.Values.First();
+            float verticalOffset = projectile.CurrentPosition.Y - projectile.StartPosition.Y;
+            if (verticalOffset < 0f)
+                verticalOffset = -verticalOffset;
+            if (verticalOffset > maxVerticalOffset)
+                maxVerticalOffset = verticalOffset;
+        }
+
+        AssertThat(maxVerticalOffset).IsGreater(0.35f);
+    }
+
+    [TestCase]
+    public void Tick_SpellCard_NearestEnemyProjectile_AutoTargetsNearestEnemyToCaster()
+    {
+        var spell = SimTestHelper.CreateSpellCard(
+            "projectile_single_spell",
+            manaCost: 3,
+            damage: 35f,
+            radius: 0f,
+            targetingMode: SpellTargetingMode.NearestEnemy,
+            spellProjectileId: "mana_bolt");
+        _state.CardDataMap["projectile_single_spell"] = spell;
+        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+
+        var nearToCaster = SimTestHelper.CreateMeleeUnit(_state, 1, x: -7f, z: 0f);
+        var nearToCursor = SimTestHelper.CreateMeleeUnit(_state, 1, x: 26f, z: 0f);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(26f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+
+        for (int i = 0; i < 240 && nearToCaster.CurrentHp >= nearToCaster.MaxHp; i++)
+            _sim.Tick(Delta);
+
+        AssertThat(nearToCaster.CurrentHp).IsLess(nearToCaster.MaxHp);
+        AssertThat(nearToCursor.CurrentHp).IsEqual(nearToCursor.MaxHp);
+    }
+
+    [TestCase]
+    public void Tick_SpellCard_NearestEnemyProjectile_ExplicitTarget_OverridesAutoTarget()
+    {
+        var spell = SimTestHelper.CreateSpellCard(
+            "projectile_single_spell",
+            manaCost: 3,
+            damage: 35f,
+            radius: 0f,
+            targetingMode: SpellTargetingMode.NearestEnemy,
+            spellProjectileId: "mana_bolt");
+        _state.CardDataMap["projectile_single_spell"] = spell;
+        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+
+        var nearToCaster = SimTestHelper.CreateMeleeUnit(_state, 1, x: -7f, z: 6f);
+        var explicitTarget = SimTestHelper.CreateMeleeUnit(_state, 1, x: 26f, z: 0f);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-7f, 0f, 6f))
+        {
+            ExecuteFrame = 1,
+            TargetUnitId = explicitTarget.UnitId
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+
+        for (int i = 0; i < 480 && explicitTarget.CurrentHp >= explicitTarget.MaxHp; i++)
+            _sim.Tick(Delta);
+
+        AssertThat(explicitTarget.CurrentHp).IsLess(explicitTarget.MaxHp);
+        AssertThat(nearToCaster.CurrentHp).IsEqual(nearToCaster.MaxHp);
     }
 
     [TestCase]

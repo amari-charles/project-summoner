@@ -166,6 +166,42 @@ public class NetworkSessionWiringTest
     }
 
     [TestCase]
+    public void ClientSession_ProjectileSeedSnapshot_WeavingProjectile_RestoresElapsedPhase()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        var seed = new ProjectileSeedSnapshot(
+            Frame: 50,
+            Projectiles:
+            [
+                new ActiveProjectileSeed(
+                    ProjectileId: 99,
+                    SourceUnitId: 10,
+                    TargetUnitId: -2,
+                    Team: 0,
+                    MovementType: (int)ProjectileMovementType.WeavingHoming,
+                    CurrentPosition: new Vector3(-4f, 0.5f, 1f),
+                    Direction: new Vector3(1f, 0f, 0f),
+                    TargetPosition: new Vector3(5f, 0f, 1f),
+                    Speed: 9f,
+                    ProjectileCatalogId: "weaving_bolt",
+                    TimeAlive: 2.0f,
+                    Lifetime: 4.0f)
+            ]);
+
+        transport.EmitMessage(1, serializer.Serialize(seed));
+        session.Tick(0f);
+
+        AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
+        var projectile = state.Projectiles[99];
+        AssertThat(projectile.WeavingPhase).IsEqual(WeavingPhase.Homing);
+        AssertThat(projectile.PhaseTimer).IsGreater(0.8f);
+    }
+
+    [TestCase]
     public void ClientSession_SpellCastVisualMessage_EmitsSpellCastEvent()
     {
         var state = SimTestHelper.CreateBattleState();
