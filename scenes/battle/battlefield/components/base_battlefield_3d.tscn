@@ -30,7 +30,7 @@ fov = 38.0
 near = 0.5
 far = 260.0
 script = ExtResource("3_camera_controller")
-default_fov = 42.0
+default_fov = 38.0
 vertical_pan_only_when_zoomed = false
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
