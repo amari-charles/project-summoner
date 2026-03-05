@@ -6,7 +6,7 @@ This project uses two testing frameworks:
 
 ## Quick Start (One Command)
 
-Run the default local test flow (C# then GUT):
+Run the default local test flow (typecheck, C#, then GUT):
 
 ```bash
 ./tools/run_tests.sh
@@ -15,10 +15,23 @@ Run the default local test flow (C# then GUT):
 Common variants:
 
 ```bash
-./tools/run_tests.sh --fast         # dotnet only
+./tools/run_tests.sh --fast         # typecheck + dotnet
 ./tools/run_tests.sh --gut-only     # gut only
-./tools/run_tests.sh --dotnet-only  # dotnet only
+./tools/run_tests.sh --dotnet-only  # typecheck + dotnet
+./tools/run_tests.sh --typecheck-only
+./tools/run_tests.sh --skip-typecheck
 ```
+
+## GDScript Type/Parse Check
+
+Use the dedicated checker to catch strict-typing parse/reload issues early:
+
+```bash
+./tools/check_gdscript_types.sh
+```
+
+This script opens the project in headless editor mode, scans the output for GDScript parse/compile/type diagnostics, and fails fast when it finds any.
+If needed, set `GODOT_BIN` or `GODOT_PATH` to point to your local Godot executable.
 
 ## C# Tests with GdUnit4Net
 
