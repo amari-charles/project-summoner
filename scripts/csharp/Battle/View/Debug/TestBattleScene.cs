@@ -12,15 +12,17 @@ public partial class TestBattleScene : BattleScene
 {
     public override async void _Ready()
     {
+        var root = GetTree().Root;
+
         // Configure BattleContext for practice mode before parent _Ready
-        var battleContext = GetNode("/root/BattleContext");
+        var battleContext = root.GetNodeOrNull("BattleContext");
         if (battleContext != null)
         {
             battleContext.Call("configure_practice_battle", BuildPracticeConfig());
         }
 
         // Force reload ProjectileCatalog
-        var projectileCatalog = GetNodeOrNull("/root/ProjectileCatalog");
+        var projectileCatalog = root.GetNodeOrNull("ProjectileCatalog");
         if (projectileCatalog != null && projectileCatalog.HasMethod("reload_projectiles"))
         {
             projectileCatalog.Call("reload_projectiles");

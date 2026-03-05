@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Projectiles;
 using Godot;
 using Godot.Collections;
 
@@ -159,7 +160,7 @@ public class MessageSerializer
                 dict["timeAlive"] = m.TimeAlive;
                 dict["lifetime"] = m.Lifetime;
                 dict["hitRadius"] = m.HitRadius;
-                dict["hitSpace"] = m.HitSpace;
+                dict["hitSpace"] = (int)m.HitSpace;
                 break;
 
             case ProjectileImpact m:
@@ -344,7 +345,7 @@ public class MessageSerializer
                 TimeAlive: dict.ContainsKey("timeAlive") ? (float)dict["timeAlive"] : 0f,
                 Lifetime: dict.ContainsKey("lifetime") ? (float)dict["lifetime"] : 5f,
                 HitRadius: dict.ContainsKey("hitRadius") ? (float)dict["hitRadius"] : 2.5f,
-                HitSpace: dict.ContainsKey("hitSpace") ? (int)dict["hitSpace"] : 0
+                HitSpace: ParseProjectileHitSpace(dict.ContainsKey("hitSpace") ? (int)dict["hitSpace"] : 0)
             ),
 
             MessageType.ProjectileImpact => new ProjectileImpact(
@@ -546,7 +547,7 @@ public class MessageSerializer
                 ["timeAlive"] = p.TimeAlive,
                 ["lifetime"] = p.Lifetime,
                 ["hitRadius"] = p.HitRadius,
-                ["hitSpace"] = p.HitSpace
+                ["hitSpace"] = (int)p.HitSpace
             };
             arr.Add(d);
         }
@@ -581,10 +582,19 @@ public class MessageSerializer
                 TimeAlive: d.ContainsKey("timeAlive") ? (float)d["timeAlive"] : 0f,
                 Lifetime: d.ContainsKey("lifetime") ? (float)d["lifetime"] : 5f,
                 HitRadius: d.ContainsKey("hitRadius") ? (float)d["hitRadius"] : 2.5f,
-                HitSpace: d.ContainsKey("hitSpace") ? (int)d["hitSpace"] : 0
+                HitSpace: ParseProjectileHitSpace(d.ContainsKey("hitSpace") ? (int)d["hitSpace"] : 0)
             );
         }
         return projectiles;
+    }
+
+    private static ProjectileHitSpace ParseProjectileHitSpace(int rawValue)
+    {
+        if (Enum.IsDefined(typeof(ProjectileHitSpace), rawValue))
+            return (ProjectileHitSpace)rawValue;
+
+        GD.PushWarning($"[MessageSerializer] Invalid projectile hit-space value '{rawValue}', defaulting to GroundCylinder");
+        return ProjectileHitSpace.GroundCylinder;
     }
 
     private string[] ToStringArray(Godot.Collections.Array arr)

@@ -3,6 +3,7 @@ using Fateforged.Constants;
 using Fateforged.View;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
+using Fateforged.Cards;
 
 namespace Fateforged.View.Debug;
 
@@ -36,15 +37,15 @@ public partial class DebugArenaScene : TestBattleScene
     {
         if (!FileAccess.FileExists(DebugDeckPath))
         {
-            GD.PushWarning($"[DebugArenaScene] Debug deck not found at {DebugDeckPath}, using fallback deck");
-            return BuildDeck("fire_wisp", 30);
+            GD.PushWarning($"[DebugArenaScene] Debug deck not found at {DebugDeckPath}, using all catalog summons");
+            return BuildFallbackDeckFromCatalogSummons();
         }
 
         using var file = FileAccess.Open(DebugDeckPath, FileAccess.ModeFlags.Read);
         if (file == null)
         {
-            GD.PushWarning("[DebugArenaScene] Failed to open debug deck file, using fallback deck");
-            return BuildDeck("fire_wisp", 30);
+            GD.PushWarning("[DebugArenaScene] Failed to open debug deck file, using all catalog summons");
+            return BuildFallbackDeckFromCatalogSummons();
         }
 
         var parsed = Json.ParseString(file.GetAsText());
@@ -55,8 +56,29 @@ public partial class DebugArenaScene : TestBattleScene
                 return deck;
         }
 
-        GD.PushWarning("[DebugArenaScene] Debug deck JSON invalid/empty, using fallback deck");
-        return BuildDeck("fire_wisp", 30);
+        GD.PushWarning("[DebugArenaScene] Debug deck JSON invalid/empty, using all catalog summons");
+        return BuildFallbackDeckFromCatalogSummons();
+    }
+
+    private static Godot.Collections.Array BuildFallbackDeckFromCatalogSummons()
+    {
+        var entries = new Godot.Collections.Array();
+        foreach (var cardDef in CardCatalog.GetAllCardsAsDict())
+        {
+            if (!cardDef.TryGetValue("card_type", out var cardTypeVar) || cardTypeVar.AsInt32() != (int)CardType.Summon)
+                continue;
+
+            string catalogId = cardDef.TryGetValue("catalog_id", out var catalogIdVar)
+                ? catalogIdVar.AsString()
+                : "";
+            entries.Add(new Godot.Collections.Dictionary
+            {
+                { "catalog_id", catalogId },
+                { "count", 1 }
+            });
+        }
+
+        return entries;
     }
 
     public override async void _Ready()

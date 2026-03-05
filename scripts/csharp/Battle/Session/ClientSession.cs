@@ -337,7 +337,7 @@ public class ClientSession : NetworkSession
             TimeAlive = spawned.TimeAlive,
             Lifetime = spawned.Lifetime,
             HitRadius = spawned.HitRadius,
-            HitSpace = (ProjectileHitSpace)spawned.HitSpace,
+            HitSpace = spawned.HitSpace,
             IsDead = false
         };
     }
