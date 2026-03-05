@@ -91,7 +91,7 @@ public class LocalSessionTest
     [TestCase]
     public void Integration_PlayCard_ThenTick_CastingStarted()
     {
-        var cmd = new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f));
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f));
         _session.SubmitCommand(cmd);
 
         var allEvents = new List<SimEvent>();

@@ -114,6 +114,67 @@ public class CommandRouterTest
         AssertThat(result.Reason).Contains("Not enough mana");
     }
 
+    [TestCase]
+    public void PlayCard_SpawnOutOfBounds_Rejected()
+    {
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(999f, 0f, 0f));
+        var result = _router.Validate(cmd, _state);
+        AssertThat(result.IsValid).IsFalse();
+        AssertThat(result.Reason).Contains("out of battlefield bounds");
+    }
+
+    [TestCase]
+    public void PlayCard_SpawnOnEnemySide_RejectedForSummon()
+    {
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f));
+        var result = _router.Validate(cmd, _state);
+        AssertThat(result.IsValid).IsFalse();
+        AssertThat(result.Reason).Contains("outside team spawn zone");
+    }
+
+    [TestCase]
+    public void PlayCard_Spell_AllowsEnemySideTarget()
+    {
+        _state.CardDataMap.Clear();
+        _state.Summoners[0].Hand.Clear();
+
+        var spell = SimTestHelper.CreateSpellCard("test_spell", manaCost: 3);
+        _state.CardDataMap["test_spell"] = spell;
+        _state.Summoners[0].Hand.Add("test_spell");
+        _state.Summoners[0].Mana = 10f;
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f));
+        var result = _router.Validate(cmd, _state);
+        AssertThat(result.IsValid).IsTrue();
+    }
+
+    [TestCase]
+    public void PlayCard_RateLimited_RejectedForRapidRepeat()
+    {
+        _state.MatchTime = 10.0f;
+
+        var first = new PlayCardCommand(0, 0, SimVector3.Zero);
+        var firstResult = _router.Validate(first, _state);
+        AssertThat(firstResult.IsValid).IsTrue();
+
+        var second = new PlayCardCommand(0, 0, SimVector3.Zero);
+        var secondResult = _router.Validate(second, _state);
+        AssertThat(secondResult.IsValid).IsFalse();
+        AssertThat(secondResult.Reason).Contains("rate limit");
+    }
+
+    [TestCase]
+    public void PlayCard_RateLimitWindowElapsed_AcceptsCommand()
+    {
+        _state.MatchTime = 10.0f;
+        var first = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
+        AssertThat(first.IsValid).IsTrue();
+
+        _state.MatchTime = 10.1f; // > MinPlayCardIntervalSeconds
+        var second = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
+        AssertThat(second.IsValid).IsTrue();
+    }
+
     // =========================================================================
     // ForfeitCommand validation
     // =========================================================================

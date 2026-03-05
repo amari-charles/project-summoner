@@ -139,7 +139,7 @@ Major design choices and their rationale.
 
 - **[Bugs](tracking/bugs.md)** - Known issues
 - **[Todos](tracking/todos.md)** - Planned features
-- **[Docs Reorg Audit (2026-03-04)](tracking/docs-reorg-audit-2026-03-04.md)** - Documentation structure audit + archive log
+- **[Docs Reorg Audit (2026-03-04)](archive/doc-reorg-2026-03/tracking/docs-reorg-audit-2026-03-04.md)** - Documentation structure audit + archive log
 - **[Changelog](project/changelog.md)** - Release notes
 - **[Development History](project/development-history.md)** - Internal progress log
 

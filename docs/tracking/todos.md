@@ -2,7 +2,7 @@
 
 This document tracks planned features, improvements, and tasks for Fateforged.
 
-For completed tasks, see [archive copy](../archive/doc-reorg-2026-03/tracking/todos-completed.md).
+For completed tasks, see [todos-completed.md](todos-completed.md).
 
 **Status Legend:**
 - ⬜ Not Started
@@ -14,6 +14,23 @@ For completed tasks, see [archive copy](../archive/doc-reorg-2026-03/tracking/to
 - 🔴 High Priority
 - 🟡 Medium Priority
 - 🟢 Low Priority
+
+---
+
+## AI-First Priority Queue (2026-03-05)
+
+1. Add reproducible regression tests for camera boundary behavior (scroll + right-drag)  
+   Why first: Turns two long-lived bugs into deterministic pass/fail checks.
+2. Fix camera boundary bugs based on new regression cases  
+   Why second: Player-facing issue with clear expected behavior and bounded surface area.
+3. Implement Puff target stickiness + cone-aware target preference  
+   Why third: Addresses active combat AI bug with direct balance impact.
+4. Verify/fix Wisp single-target behavior in simulation and projectile path  
+   Why fourth: Likely targeting/projectile pipeline issue with clear combat correctness outcome.
+5. Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`  
+   Why fifth: Type-safety win with moderate refactor cost and strong semantic benefit.
+6. Continue typed-internal service handler refactors (string boundary only at GDScript edge)  
+   Why sixth: Important cleanup, but lower immediate player impact than gameplay bugs.
 
 ---
 
@@ -45,7 +62,6 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 - ✅ Opponent deck/summoner exchange (commit `2d8bfca4`)
 
 **Remaining (Phase 4):**
-- [ ] Complete RequestValidator for spawn position/rate-limit checks
 - [ ] Polish: queue UI, match found animation
 - [ ] End-to-end testing with Nakama server
 
@@ -81,28 +97,6 @@ The client currently operates as a pure renderer — it applies host snapshots b
 - The simulation layer is already pure and Godot-free, making client prediction feasible
 - `DesyncDetector` already compares local vs host state — extend for prediction reconciliation
 - Low priority until latency becomes a user-facing issue
-
----
-
-#### Complete Multiplayer Request Validation
-**Status:** 🔄 In Progress
-**Category:** Multiplayer / Anti-cheat
-**Effort:** Small
-
-**Description:**
-The `RequestValidator.cs` now validates card-in-hand, mana cost, and casting state. Remaining checks are spawn position validation and rate limiting.
-
-**Completed Validation:**
-- ✅ Check if player has card in hand before allowing play
-- ✅ Check if player has enough mana for the card
-- ✅ Check if player is already casting
-
-**Missing Validation:**
-- Check if spawn position is valid for player's spawn zone
-- Rate limiting to prevent action spam
-
-**Files:**
-- `scripts/csharp/Battle/Session/RequestValidator.cs`
 
 ---
 
@@ -172,60 +166,20 @@ _progressHandler.SaveProgressInternal(activeSummoner);
 
 ---
 
-#### Type-safe domain objects for Dictionary<string, object>
+#### Complete PendingReward Typed Domain Object Migration
 **Status:** ⬜ Not Started
 **Category:** Architecture / Type Safety
 **Effort:** Small
 
 **Description:**
-Replace loose `Dictionary<string, object>` patterns with proper typed domain objects where the schema is fixed:
-- `CampaignProgress.PendingReward` → `PendingRewardData` class (battle_id, reward_type, choice_index)
-- `ProfileRepository.UpdateCard()` param → `CardUpdateDto` class (xp, level, upgrades)
+Finish migrating fixed-schema dictionaries to typed domain objects:
+- `CampaignProgress.PendingReward` → `PendingRewardData` class (`battle_id`, `reward_type`, `choice_index`)
 - Keep `StoryArcProgress.Flags` as dictionary (legitimately dynamic)
 
-This eliminates `ObjectToVariant` conversion complexity and improves type safety.
+**Audit Note (2026-03-05):**
+- `ProfileRepository.UpdateCard()` typed DTO migration is already complete (`CardUpdate`, merged 2026-01-27 in `#219`) and has been moved to `todos-completed.md`.
 
----
-
-#### Migrate deck_service.gd → DeckService.cs
-**Status:** ⬜ Not Started
-**Category:** Architecture / C# Migration
-**Effort:** Medium
-
-**Description:**
-Migrate deck management service from GDScript to C#.
-
----
-
-#### Migrate summoner_progression_service.gd → SummonerProgressionService.cs
-**Status:** ⬜ Not Started
-**Category:** Architecture / C# Migration
-**Effort:** Medium
-
-**Description:**
-Migrate summoner progression/leveling service from GDScript to C#.
-
----
-
-### 🟢 LOW PRIORITY
-
-#### Migrate campaign_service.gd → CampaignService.cs
-**Status:** ⬜ Not Started
-**Category:** Architecture / C# Migration
-**Effort:** Large
-
-**Description:**
-Migrate campaign management service from GDScript to C#.
-
----
-
-#### Migrate shop_service.gd → ShopService.cs
-**Status:** ⬜ Not Started
-**Category:** Architecture / C# Migration
-**Effort:** Large
-
-**Description:**
-Migrate shop/caravan service from GDScript to C#.
+This reduces `ObjectToVariant` conversion complexity and improves type safety where schema is fixed.
 
 ---
 
@@ -256,78 +210,28 @@ When the camera is zoomed in, players should be able to pan closer to the battle
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Implement Armor/MagicResist Damage Reduction Formulas
+#### Complete DamageProfile-Based Armor/MagicResist Integration
 **Status:** ⬜ Not Started
 **Category:** Units & Combat / Stats
 **Effort:** Medium
 
 **Description:**
-Armor and MagicResist stats are now defined in UnitStats but not yet integrated into combat. Need to implement damage reduction formulas in `SimDamage` / `SimBehavior`.
+Defense reduction is now active in `SimDamage` via `PhysicalDefense`/`MagicDefense`, but `DamageProfile` split damage is still not integrated.
 
 **Current State:**
-- `Armor` and `MagicResist` added to StatKey and UnitStats (default 0)
-- `DamageProfile` class created to define physical vs elemental damage split
-- No damage reduction currently applied based on these stats
+- Defense reduction is applied in `SimDamage` (diminishing returns: `100 / (100 + defense)`)
+- `DamageType` pipeline works for physical vs magic damage
+- `DamageProfile` exists but is still marked as a stub and not used for mixed physical/elemental split attacks
 
 **Requirements:**
-- Design damage reduction formula (percentage-based, flat, or diminishing returns)
-- Integrate into damage pipeline (`SimDamage` / `SimBehavior`):
-  - Physical damage reduced by target's Armor
-  - Elemental damage reduced by target's MagicResist
-- Use unit's `DamageProfile` to determine damage split
+- Integrate unit `DamageProfile` into damage pipeline for mixed attack splits
+- Apply split portions through appropriate defense lanes (physical vs magic)
 - Add UI indicators for damage types on cards
-
-**Formula Options:**
-1. **Flat reduction**: `finalDamage = max(0, damage - armor)`
-2. **Percentage**: `finalDamage = damage * (100 / (100 + armor))`
-3. **Diminishing returns**: Similar to percentage but caps effectiveness
 
 **Related Files:**
 - `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - Damage calculation
-- `scripts/csharp/Battle/Simulation/Stats/UnitStats.cs` - Armor, MagicResist properties
 - `scripts/csharp/Infrastructure/Data/Units/DamageProfile.cs` - Physical/elemental ratio
 - `scripts/csharp/Infrastructure/Data/Units/UnitDefinition.cs` - DamageProfile property
-
----
-
-#### Implement OnDeath Trigger for Modifier System
-**Status:** ⬜ Not Started
-**Category:** Units & Combat / Modifiers
-**Effort:** Small
-
-**Description:**
-The `TriggerCondition.OnDeath` enum value is defined but not wired to combat events. Units die without triggering OnDeath modifiers.
-
-**Requirements:**
-- Wire up OnDeath trigger checking in the simulation death pipeline (`SimBehavior` / `SimEffects`)
-- Handle death-time effects like "deal damage to nearby enemies on death"
-- Ensure cleanup still happens after trigger processing
-
-**Related Files:**
-- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs` - behavior/death logic (formerly in Unit3D)
-- `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs` - enum definition
-- `docs/features/modifier-system.md` - documentation
-
----
-
-#### Implement Periodic Trigger for Modifier System
-**Status:** ⬜ Not Started
-**Category:** Units & Combat / Modifiers
-**Effort:** Small
-
-**Description:**
-The `TriggerCondition.Periodic` enum value is defined but not wired. Periodic triggers should activate at intervals (using TriggerCooldown as interval).
-
-**Requirements:**
-- Add interval tracking to ActiveTrigger class (time since last activation)
-- Check periodic triggers in UpdateTriggers() method
-- Use TriggerCooldown as the activation interval
-- Example use case: "Heal 5 HP every 3 seconds"
-
-**Related Files:**
-- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs` - trigger/behavior logic (formerly in Unit3D)
-- `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs` - enum definition
-- `docs/features/modifier-system.md` - documentation
 
 ---
 
@@ -1232,149 +1136,6 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 
 ---
 
-#### Create EventCatalog with Typed Event Definitions
-**Status:** ⬜ Not Started
-**Category:** Architecture / Type Safety
-**Effort:** Large
-
-**Description:**
-Following the established CardCatalog/SummonerCatalog/TraitCatalog pattern, create a unified `EventCatalog` in C# that provides type-safe event definitions. This is the foundation for eliminating flag-based dictionaries throughout the campaign system.
-
-**Current State:**
-- Campaign data defined in GDScript dictionaries (`summoners_path_data.gd`, `test_arena_data.gd`)
-- Events are untyped dictionaries with 8+ optional flags
-- `CampaignCatalogHandler.cs` stores events as raw `Godot.Collections.Dictionary`
-- No query API (can't filter events by type, biome, reward type, etc.)
-- Manual validation in GDScript
-
-**Ideal State:**
-```csharp
-// scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs
-public static class EventCatalog
-{
-    private static readonly Dictionary<string, EventDefinition> _events = new();
-
-    // Lookup
-    public static EventDefinition? GetEvent(string id);
-    public static bool HasEvent(string id);
-    public static EventDefinition[] GetAllEvents();
-
-    // Queries (not possible today)
-    public static BattleEventDefinition[] GetBattlesByBiome(string biomeId);
-    public static BattleEventDefinition[] GetBattlesByDifficulty(int difficulty);
-    public static EventDefinition[] GetEventsByType<T>() where T : EventDefinition;
-
-    // GDScript bridge
-    public static Dictionary GetEventAsDict(string id);
-}
-```
-
-**Type-Specific Definitions:**
-```csharp
-// Base class
-public abstract class EventDefinition
-{
-    public string Id { get; set; }
-    public string NameKey { get; set; }
-    public string DescriptionKey { get; set; }
-    public bool Repeatable { get; set; }
-}
-
-// Battle-specific (only battle-relevant fields)
-public class BattleEventDefinition : EventDefinition
-{
-    public string BiomeId { get; set; }
-    public int Difficulty { get; set; }
-    public bool IsTutorial { get; set; }
-    public bool RequiresDeck { get; set; } = true;
-    public List<string> EnemyDeck { get; set; }
-    public BattleRewardConfig Rewards { get; set; }
-}
-
-// Caravan-specific (no RequiresDeck, no IsTutorial)
-public class CaravanEventDefinition : EventDefinition
-{
-    public string ShopId { get; set; }
-}
-
-// Choice-specific
-public class ChoiceEventDefinition : EventDefinition
-{
-    public List<ChoiceOption> Options { get; set; }
-}
-```
-
-**Benefits:**
-- Type safety - compile-time validation
-- IDE autocomplete for event properties
-- Query API for filtering (by biome, difficulty, type, etc.)
-- Automatic validation on load
-- Consistent with CardCatalog/SummonerCatalog pattern
-- Enables future features: achievements, analytics, difficulty scaling
-
-**Migration Path:**
-1. Create EventDefinition classes and EventCatalog
-2. EventCatalog loads from existing GDScript data (converts to typed objects)
-3. Update consumers to use typed objects instead of dictionaries
-4. Eventually move campaign data definitions to C#
-
-**Files to Create:**
-- `scripts/csharp/Infrastructure/Data/Events/EventDefinition.cs` (base + subclasses)
-- `scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs`
-- `scripts/csharp/Infrastructure/Data/Events/BattleRewardConfig.cs`
-
-**Files to Update:**
-- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignCatalogHandler.cs`
-- `scripts/csharp/Meta/Services/Campaign.cs` (formerly campaign_service.gd)
-
-**Related:** See CLAUDE.md "Configurability Over Flags" and "When to Use C# vs GDScript"
-
----
-
-#### Create CampaignCatalog for Campaign Graph Definitions
-**Status:** ⬜ Not Started
-**Category:** Architecture / Type Safety
-**Effort:** Medium
-**Depends On:** Create EventCatalog with Typed Event Definitions
-
-**Description:**
-Create a `CampaignCatalog` to hold typed campaign definitions (graph structure with nodes and edges). Works alongside EventCatalog.
-
-**Current State:**
-- Campaigns defined as dictionaries in GDScript
-- Graph structure: `{ campaign_id, name_key, nodes: [], edges: [] }`
-- No typed representation
-
-**Ideal State:**
-```csharp
-public class CampaignDefinition
-{
-    public string Id { get; set; }
-    public string NameKey { get; set; }
-    public List<CampaignNode> Nodes { get; set; }
-    public List<CampaignEdge> Edges { get; set; }
-}
-
-public class CampaignNode
-{
-    public string EventId { get; set; }  // References EventCatalog
-    public Vector2 Position { get; set; }
-}
-
-public class CampaignEdge
-{
-    public string FromEventId { get; set; }
-    public string ToEventId { get; set; }
-    public EdgeCondition? Condition { get; set; }
-}
-```
-
-**Files to Create:**
-- `scripts/csharp/Infrastructure/Data/Campaigns/CampaignDefinition.cs`
-- `scripts/csharp/Infrastructure/Data/Campaigns/CampaignCatalog.cs`
-
----
-
 #### Refactor Reward System to Typed RewardSpec Classes
 **Status:** ⬜ Not Started
 **Category:** Architecture / Flag Proliferation
@@ -1453,56 +1214,13 @@ switch (spec)
 
 ---
 
-### 🟡 MEDIUM PRIORITY
-
-#### Update Node Panels to Receive Typed EventDefinitions
-**Status:** ⬜ Not Started
-**Category:** Architecture / Type Safety
-**Effort:** Medium
-**Depends On:** Create EventCatalog with Typed Event Definitions
-
-**Description:**
-Node panels already use the correct pattern (type-specific implementations via `NodePanelFactory`). However, they receive untyped dictionaries. Update them to receive typed `EventDefinition` objects.
-
-**Current State:**
-```gdscript
-# Base receives untyped dictionary
-func configure(event: Dictionary, id: String) -> void:
-    event_data = event
-```
-
-**Ideal State:**
-```gdscript
-# Base receives typed object (or C# interop)
-func configure(event: EventDefinition, id: String) -> void:
-    _event = event
-
-# BattleNodePanel knows it has BattleEventDefinition
-func _configure_impl() -> void:
-    var battle := _event as BattleEventDefinition
-    deck_column.visible = battle.RequiresDeck
-```
-
-**Benefits:**
-- No more `event_data.get("requires_deck", true)` scattered everywhere
-- IDE autocomplete for available fields
-- Compile-time safety
-
-**Files to Update:**
-- `scripts/meta/components/node_panels/node_detail_panel_base.gd`
-- `scripts/meta/components/node_panels/battle_node_panel.gd`
-- `scripts/meta/components/node_panels/caravan_node_panel.gd`
-- `scripts/meta/components/node_panels/choice_node_panel.gd`
-
----
-
 ### 🟢 LOW PRIORITY
 
 #### Move Campaign Data Definitions to C#
 **Status:** ⬜ Not Started
 **Category:** Architecture / Consistency
 **Effort:** Medium
-**Depends On:** Create EventCatalog, Create CampaignCatalog
+**Depends On:** EventCatalog + CampaignCatalog (completed; next step is data-definition migration)
 
 **Description:**
 Once EventCatalog and CampaignCatalog exist, move the actual campaign data definitions from GDScript to C#. This completes the migration to fully typed campaign data.
@@ -1643,59 +1361,7 @@ Every unit runs targeting + behavior + 3+ spatial grid queries per physics frame
 
 ---
 
-#### Replace Synchronous Unit Preloading with Async Loading
-**Status:** ⬜ Not Started
-**Category:** Performance / Loading
-**Effort:** Medium
-
-**Description:**
-Synchronous `load()` calls block the entire game during battle startup, causing visible stutter.
-
-**Current Behavior:**
-- `_preload_unit_scenes()` loops through all card definitions
-- Calls `load()` + `instantiate()` + `queue_free()` synchronously in `_ready()`
-- Comment acknowledges: "NOTE: This is a synchronous stopgap that may cause brief stutter"
-
-**Proposed Fix:**
-- Use `ResourceLoader.load_threaded_request()` for unit scenes
-- Add loading screen scene with progress bar
-- Show loading screen during battle transitions
-- Remove synchronous `_preload_unit_scenes()` stopgap
-
-**Related Files:**
-- `scripts/csharp/Battle/View/BattleScene.cs` (unit preloading, formerly game_controller_3d.gd)
-- New: `scenes/shared/loading_screen.tscn`
-- New: `scripts/meta/screens/loading_screen.gd`
-
----
-
-### 🟡 MEDIUM PRIORITY
-
----
-
 ### 🟢 LOW PRIORITY
-
-#### Replace /root/VFXManager Lookup in ProjectileVisual
-**Status:** ⬜ Not Started
-**Category:** Architecture / Maintainability
-**Effort:** Trivial
-
-**Description:**
-`ProjectileVisual.cs` uses `GetNodeOrNull("/root/VFXManager")` to access the VFX manager autoload. Per code structure guidelines, Node-based scripts should use autoload globals directly.
-
-**Current Behavior:**
-```csharp
-var vfxManager = GetNodeOrNull("/root/VFXManager");
-vfxManager?.Call("play_effect", HitVfx, impactPosition);
-```
-
-**Proposed Fix:**
-Access `VFXManager` autoload directly without the `/root/` path prefix.
-
-**Related Files:**
-- `scripts/csharp/Battle/View/ProjectileVisual.cs` (formerly Projectile3D.cs)
-
----
 
 #### Refactor Hard-coded /root/ Paths to Service Locator
 **Status:** ⬜ Not Started
