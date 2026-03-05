@@ -183,6 +183,34 @@ func test_perspective_clamp_is_stable_at_edges() -> void:
 		_assert_footprint_inside_map("Repeated clamp must keep footprint inside map (iteration %d)" % i)
 
 
+func test_horizontal_sample_mode_allows_more_side_pan_room() -> void:
+	_camera.vertical_pan_only_when_zoomed = false
+	_camera.keep_aspect = Camera3D.KEEP_WIDTH
+	_camera.transform = Transform3D(
+		Vector3(1, 0, 0),
+		Vector3(0, 0.587785, 0.809017),
+		Vector3(0, 0.809017, -0.587785),
+		Vector3(0, 30, -25.17)
+	)
+	_camera.default_fov = 56.0
+	_camera.fov = 56.0
+	_camera.force_update_transform()
+	_camera.clamp_to_map()
+
+	_camera.horizontal_bounds_use_screen_sample = false
+	var strict_x: float = _camera._constrain_pan_motion_to_map(100000.0, 0.0).x
+
+	_camera.horizontal_bounds_use_screen_sample = true
+	_camera.horizontal_bounds_screen_y = 0.55
+	var sampled_x: float = _camera._constrain_pan_motion_to_map(100000.0, 0.0).x
+
+	assert_gt(
+		sampled_x,
+		strict_x,
+		"Horizontal sample bounds should allow more left/right travel than strict full-frustum bounds"
+	)
+
+
 func test_edge_pan_is_ignored_while_drag_panning() -> void:
 	# Oversized margin guarantees edge-pan input regardless cursor location.
 	_camera.edge_pan_margin = 100000.0

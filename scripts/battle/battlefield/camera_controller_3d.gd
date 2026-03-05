@@ -39,6 +39,12 @@ const PROJECTION_MODE_ORTHOGRAPHIC: int = ProjectionMode.ORTHOGRAPHIC
 @export var ground_y: float = 0.0
 ## If view is larger than map, center camera (true) or just clamp edges (false)
 @export var center_if_too_big: bool = true
+## If true, horizontal clamping uses a single screen-height sample instead of the
+## full frustum footprint. This better matches gameplay focus depth for perspective.
+@export var horizontal_bounds_use_screen_sample: bool = false
+## Normalized screen Y in [0,1] used when horizontal_bounds_use_screen_sample is enabled.
+## 0.0 = top of screen, 0.5 = center, 1.0 = bottom.
+@export_range(0.0, 1.0, 0.01) var horizontal_bounds_screen_y: float = 0.5
 
 @export_group("Projection")
 @export var projection_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
@@ -348,6 +354,56 @@ func _get_forward_depth(world_pos: Vector3) -> float:
 	var forward: Vector3 = -global_basis.z
 	return forward.dot(world_pos - global_position)
 
+func _get_horizontal_sample_bounds_x() -> Vector2:
+	var vp: Viewport = get_viewport()
+	var view_size: Vector2i = vp.get_visible_rect().size
+	var w: float = float(view_size.x)
+	var h: float = float(view_size.y)
+	if w <= 0.0 or h <= 0.0:
+		return Vector2.ZERO
+
+	var sample_y: float = clamp(horizontal_bounds_screen_y, 0.0, 1.0) * h
+	var left_screen: Vector2 = Vector2(0.0, sample_y)
+	var right_screen: Vector2 = Vector2(w, sample_y)
+
+	var left_origin: Vector3
+	var left_dir: Vector3
+	var right_origin: Vector3
+	var right_dir: Vector3
+
+	if is_perspective_mode():
+		var screen_size: Vector2 = Vector2(w, h)
+		left_origin = global_position
+		right_origin = global_position
+		left_dir = _get_perspective_ray_direction(left_screen, screen_size)
+		right_dir = _get_perspective_ray_direction(right_screen, screen_size)
+	else:
+		left_origin = project_ray_origin(left_screen)
+		right_origin = project_ray_origin(right_screen)
+		left_dir = project_ray_normal(left_screen)
+		right_dir = project_ray_normal(right_screen)
+
+	if abs(left_dir.y) < 0.0001 or abs(right_dir.y) < 0.0001:
+		return Vector2.ZERO
+
+	var left_t: float = (ground_y - left_origin.y) / left_dir.y
+	var right_t: float = (ground_y - right_origin.y) / right_dir.y
+	if left_t < 0.0 or right_t < 0.0:
+		return Vector2.ZERO
+
+	var left_point: Vector3 = left_origin + left_dir * left_t
+	var right_point: Vector3 = right_origin + right_dir * right_t
+
+	if is_perspective_mode():
+		var left_depth: float = _get_forward_depth(left_point)
+		var right_depth: float = _get_forward_depth(right_point)
+		if left_depth < near - CLAMP_EPSILON or left_depth > far + CLAMP_EPSILON:
+			return Vector2.ZERO
+		if right_depth < near - CLAMP_EPSILON or right_depth > far + CLAMP_EPSILON:
+			return Vector2.ZERO
+
+	return Vector2(min(left_point.x, right_point.x), max(left_point.x, right_point.x))
+
 func clamp_to_map() -> void:
 	## Clamps camera to keep ground footprint (projection) within map bounds
 	##
@@ -362,7 +418,13 @@ func clamp_to_map() -> void:
 		var view_max_x: float = view_min_x + footprint.size.x
 		var view_min_z: float = footprint.position.y
 		var view_max_z: float = view_min_z + footprint.size.y
-		var view_center_x: float = view_min_x + footprint.size.x * 0.5
+		if horizontal_bounds_use_screen_sample:
+			var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
+			if sample_x_bounds != Vector2.ZERO:
+				view_min_x = sample_x_bounds.x
+				view_max_x = sample_x_bounds.y
+
+		var view_center_x: float = (view_min_x + view_max_x) * 0.5
 		var view_center_z: float = view_min_z + footprint.size.y * 0.5
 
 		# Map bounds
@@ -542,6 +604,11 @@ func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vecto
 	var view_max_x: float = view_min_x + footprint.size.x
 	var view_min_z: float = footprint.position.y
 	var view_max_z: float = view_min_z + footprint.size.y
+	if horizontal_bounds_use_screen_sample:
+		var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
+		if sample_x_bounds != Vector2.ZERO:
+			view_min_x = sample_x_bounds.x
+			view_max_x = sample_x_bounds.y
 	var map_min_x: float = map_rect_xz.position.x
 	var map_max_x: float = map_min_x + map_rect_xz.size.x
 	var map_min_z: float = map_rect_xz.position.y
@@ -552,7 +619,7 @@ func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vecto
 	var min_dz: float
 	var max_dz: float
 
-	var view_width: float = footprint.size.x
+	var view_width: float = view_max_x - view_min_x
 	var view_height: float = footprint.size.y
 	var map_width: float = map_rect_xz.size.x
 	var map_height: float = map_rect_xz.size.y
