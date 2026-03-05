@@ -7,6 +7,7 @@ using GdUnit4;
 using Fateforged.Units;
 using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 [TestSuite]
 public class SimTargetingTest
@@ -172,6 +173,43 @@ public class SimTargetingTest
 
         AssertThat(targetId.HasValue).IsTrue();
         AssertThat(targetId!.Value == lowHp.UnitId).IsTrue();
+    }
+
+    [TestCase]
+    public void AcquireTarget_PolicyEnabled_PrefersAttackableNowEvenIfScoreLower()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, aggroRadius: 20f);
+        attacker.HasConeConstraint = false;
+        attacker.DistanceScorerWeight = 0f;
+        attacker.HealthScorerWeight = 100f;
+        attacker.TargetPolicyId = TargetPolicyId.PreferAttackable;
+
+        var inRangeHealthy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, hp: 100f);
+        var outOfRangeLowHp = SimTestHelper.CreateMeleeUnit(_state, 1, x: 6f, hp: 100f);
+        outOfRangeLowHp.CurrentHp = 10f;
+
+        var targetId = SimTargeting.AcquireTarget(attacker, _state);
+
+        AssertThat(targetId.HasValue).IsTrue();
+        AssertThat(targetId!.Value == inRangeHealthy.UnitId).IsTrue();
+    }
+
+    [TestCase]
+    public void AcquireTarget_ConeUnit_PrefersAttackableNowOverCloserOutOfCone()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 24f, aggroRadius: 24f);
+        attacker.HasConeConstraint = true;
+        attacker.ConeHalfAngle = 30f;
+        attacker.CloseRangeThreshold = 0.5f;
+        attacker.IsFacingRight = true;
+
+        var inCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f);
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 10f); // Closer but outside 30° cone
+
+        var targetId = SimTargeting.AcquireTarget(attacker, _state);
+
+        AssertThat(targetId.HasValue).IsTrue();
+        AssertThat(targetId!.Value == inCone.UnitId).IsTrue();
     }
 
     // =========================================================================
