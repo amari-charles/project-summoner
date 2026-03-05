@@ -634,11 +634,11 @@ func _on_snapshots_pressed() -> void:
 
 
 func _get_battlefield_debug_service() -> Node:
-	return get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
+	return BattlefieldDebug if BattlefieldDebug else null
 
 
 func _get_unit_debug_service() -> Node:
-	return get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
+	return BattlefieldDebug if BattlefieldDebug else null
 
 
 func _sync_spawn_boundary_to_service() -> void:
