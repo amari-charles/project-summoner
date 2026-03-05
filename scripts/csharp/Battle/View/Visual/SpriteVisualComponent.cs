@@ -1,5 +1,4 @@
 using Godot;
-
 namespace Fateforged.Visual;
 
 /// <summary>
@@ -50,14 +49,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     public float HeadOffsetPixels { get; set; } = 0.0f;
 
     /// <summary>
-    /// Pixel offset to shift the sprite rendering position.
-    /// Use for sprites where the character isn't centered in the texture.
-    /// Negative X shifts visual RIGHT (use when body is on LEFT side of texture).
-    /// Positive X shifts visual LEFT (use when body is on RIGHT side of texture).
-    /// Note: This only affects visual rendering. Shadow and collision remain at unit position.
+    /// Optional per-animation pivot offsets.
+    /// Key: animation name (e.g., "idle", "walk", "attack", "death").
+    /// Value: pixel offset relative to texture center.
     /// </summary>
     [Export]
-    public Vector2 SpriteOffsetPixels { get; set; } = Vector2.Zero;
+    public Godot.Collections.Dictionary<StringName, Vector2> AnimationPivotOffsets { get; set; } = new();
 
     /// <summary>
     /// Viewport size in pixels. Controls the rendering area.
@@ -139,6 +136,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     // Frame size cache (avoid expensive texture lookups on every facing change)
     private Vector2 _cachedFrameSize = Vector2.Zero;
     private string _cachedFrameSizeAnimation = "";
+    private int _cachedFrameSizeFrame = -1;
+    private string _lastAlignedAnimation = "";
+    private int _lastAlignedFrame = -1;
+    private Vector2 _lastAlignedScale = Vector2.Zero;
 
     // =========================================================================
     // LIFECYCLE
@@ -232,6 +233,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     {
         if (_characterSprite == null || _isAttacking)
             return;
+
+        RefreshAlignmentIfFrameOrAnimationChanged();
 
         float deltaF = (float)delta;
 
@@ -370,7 +373,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     public Vector3 GetShadowOffset()
     {
-        // SpriteOffsetPixels compensates for off-center characters in the texture.
+        // Pivot offsets compensate for off-center characters in the texture.
         // After compensation, the character body appears at unit center.
         // Shadow should be at unit center (under the character body).
         return Vector3.Zero;
@@ -503,7 +506,6 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
         // Center sprite horizontally in viewport
         var spritePos = _characterSprite.Position;
-        spritePos.X = _viewport.Size.X / 2.0f;
 
         // Position Sprite3D and CharacterSprite so:
         // 1. Entire sprite fits in viewport (no clipping)
@@ -527,17 +529,51 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             pos.Y = worldHeight / 2.0f;
         }
 
-        // Apply X offset to Sprite3D position in world space (moves visual relative to shadow)
-        // Negative offset = body is left of texture center, shift Sprite3D to center it
-        // Convert texture pixels -> viewport pixels (via scale) -> world units (via PixelSize)
-        float worldOffsetX = SpriteOffsetPixels.X * _characterSprite.Scale.X * _sprite3D.PixelSize;
-        pos.X = _isFlipped ? -worldOffsetX : worldOffsetX;
+        // Apply X offset within viewport (keeps world-space unit/shadow center stable).
+        // Offsets are mirrored on flip so off-center art pivots in place.
+        Vector2 spriteOffset = ResolveSpriteOffset();
+        float offsetX = spriteOffset.X;
+        float signedOffsetX = _isFlipped ? -offsetX : offsetX;
+        spritePos.X = (_viewport.Size.X / 2.0f) + (signedOffsetX * _characterSprite.Scale.X);
+
+        // Keep world-space X anchor at unit origin.
+        pos.X = 0.0f;
         _sprite3D.Position = pos;
 
         // Apply Y offset within viewport (Y offset doesn't need world-space movement)
-        spritePos.Y += SpriteOffsetPixels.Y * _characterSprite.Scale.Y;
+        spritePos.Y += spriteOffset.Y * _characterSprite.Scale.Y;
 
         _characterSprite.Position = spritePos;
+        _lastAlignedAnimation = _characterSprite.Animation;
+        _lastAlignedFrame = _characterSprite.Frame;
+        _lastAlignedScale = _characterSprite.Scale;
+    }
+
+    private void RefreshAlignmentIfFrameOrAnimationChanged()
+    {
+        if (_characterSprite == null)
+            return;
+
+        string anim = _characterSprite.Animation;
+        int frame = _characterSprite.Frame;
+        if (anim == _lastAlignedAnimation
+            && frame == _lastAlignedFrame
+            && _characterSprite.Scale == _lastAlignedScale)
+            return;
+
+        SetupSpriteAlignment();
+    }
+
+    private Vector2 ResolveSpriteOffset()
+    {
+        if (_characterSprite == null)
+            return Vector2.Zero;
+
+        StringName anim = _characterSprite.Animation;
+        if (!anim.IsEmpty && AnimationPivotOffsets.TryGetValue(anim, out Vector2 animOffset))
+            return animOffset;
+
+        return Vector2.Zero;
     }
 
     private Vector2 GetCurrentFrameSize()
@@ -549,10 +585,6 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (string.IsNullOrEmpty(anim))
             anim = "idle";
 
-        // Return cached size if animation hasn't changed
-        if (anim == _cachedFrameSizeAnimation && _cachedFrameSize != Vector2.Zero)
-            return _cachedFrameSize;
-
         if (!_characterSprite.SpriteFrames.HasAnimation(anim))
             return Vector2.Zero;
 
@@ -560,13 +592,20 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (frameCount == 0)
             return Vector2.Zero;
 
-        var frameTexture = _characterSprite.SpriteFrames.GetFrameTexture(anim, 0);
+        int frame = Mathf.Clamp(_characterSprite.Frame, 0, frameCount - 1);
+
+        // Return cached size if animation/frame hasn't changed
+        if (anim == _cachedFrameSizeAnimation && frame == _cachedFrameSizeFrame && _cachedFrameSize != Vector2.Zero)
+            return _cachedFrameSize;
+
+        var frameTexture = _characterSprite.SpriteFrames.GetFrameTexture(anim, frame);
         if (frameTexture == null)
             return Vector2.Zero;
 
         // Cache the result
         _cachedFrameSize = frameTexture.GetSize();
         _cachedFrameSizeAnimation = anim;
+        _cachedFrameSizeFrame = frame;
         return _cachedFrameSize;
     }
 

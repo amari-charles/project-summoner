@@ -65,6 +65,23 @@ Request validation now checks card-in-hand bounds, mana cost, and casting state 
 
 ## 2026-03 Completions
 
+### Allow Camera Panning Up to Boundary When Zoomed In
+**Completed:** 2026-03-05
+**Category:** Camera / Controls
+**Effort:** Small
+
+**Description:**
+Completed camera-boundary follow-through so zoom and pan use projected ground-footprint clamping, including zoom-limit solving and drag-pan pre-constrained motion at map edges.
+
+**PR Merge Date:** 2026-03-05 (`#267`)
+
+**Files Changed:**
+- `scripts/battle/battlefield/camera_controller_3d.gd`
+- `tests/unit/test_camera_controller_3d.gd`
+- `docs/tracking/bugs-resolved.md`
+
+---
+
 ### Improve Projectile Collision Detection for 2.5D Sprites
 **Completed:** 2026-03-05
 **Category:** Units & Combat / Projectiles

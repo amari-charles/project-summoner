@@ -16,6 +16,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 - 🟢 Low Priority
 
 **Tracker Sync (2026-03-05):** Removed completed `Replace /root/VFXManager Lookup in ProjectileVisual`, moved Puff target-stickiness work to completed (PR `#270`), and removed Wisp single-target verification from active queue after post-refactor validation.
+**Audit Sync (2026-03-05, evening):** Moved completed camera boundary/pan task to `todos-completed.md` based on merged camera bounds fixes (`#267`) and unit tests; updated directional/cone attack TODO to reflect partial completion (cone gating in targeting is shipped, hitbox-shape work remains).
 
 ---
 
@@ -181,29 +182,6 @@ This reduces `ObjectToVariant` conversion complexity and improves type safety wh
 
 ---
 
-## Camera & Controls
-
-### 🟡 MEDIUM PRIORITY
-
-#### Allow Camera Panning Up to Boundary When Zoomed In
-**Status:** ⬜ Not Started
-**Category:** Camera / Controls
-**Effort:** Small
-
-**Description:**
-When the camera is zoomed in, players should be able to pan closer to the battlefield boundaries than when zoomed out. Currently the panning limits may be too restrictive when zoomed in, preventing players from seeing units near the edges.
-
-**Requirements:**
-- Calculate dynamic pan limits based on current zoom level
-- Allow panning to show content up to the battlefield boundary
-- Ensure boundary enforcement is consistent across zoom levels
-
-**Notes:**
-- Related to camera boundary bugs (scroll wheel, right-click drag)
-- Should feel natural and not restrict visibility unnecessarily
-
----
-
 ## Units & Combat
 
 ### 🟡 MEDIUM PRIORITY
@@ -344,21 +322,19 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 
 
 #### Implement Directional/Cone Attack System
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Cone Targeting Shipped)
 **Category:** Units & Combat
 **Effort:** Medium
 
 **Description:**
 Add support for melee attacks that only hit in a forward cone/arc instead of a full circle. Useful for units with lunge attacks, tongue attacks, or other forward-facing abilities.
 
-**Current Behavior:**
-- `IsInAttackRange()` checks distance only (circular range)
-- `SpawnMeleeHitbox()` creates a sphere hitbox positioned forward
-- Any enemy within AttackRange distance can be targeted, regardless of direction
+**Current State:**
+- ✅ Cone-aware reachability/attack checks exist in simulation targeting (`SimTargeting` / `SimBehavior`)
+- ✅ Unit data includes cone tunables used by targeting profiles
+- ⬜ Melee hitbox shape configuration is still sphere-first; per-unit hitbox shape/size is not implemented
 
 **Requirements:**
-- Add `AttackConeAngle` property to unit data/sim behavior (0 = full circle, 90 = forward half, etc.)
-- Modify attack range check in `SimBehavior` to check if target is within the cone angle
 - Add `AttackHitboxShape` enum (Sphere, Box, Capsule) for melee behavior
 - Add `AttackHitboxSize` vector for non-sphere shapes
 - Modify melee hitbox spawning to use configured shape (box for narrow forward attacks)

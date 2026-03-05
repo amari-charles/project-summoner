@@ -32,18 +32,18 @@ All unit visuals implement the `IVisualComponent` interface, which provides a co
 | Parameter | Purpose |
 |-----------|---------|
 | `SpriteFramesResource` | The SpriteFrames resource containing animations |
-| `SpriteOffsetPixels` | Pixel offset for centering off-center sprites |
+| `AnimationPivotOffsets` | Per-animation pixel offsets for centering off-center sprites |
 | `FeetOffsetPixels` | Pixels from sprite bottom to feet (for grounding) |
 | `HeadOffsetPixels` | Pixels from sprite top to head (for height calculation) |
 | `ViewportSize` | Viewport dimensions in pixels (default: 512x512) |
 | `ScaleFactor` | Scale factor for the sprite (default: 5.12, 5.12) |
 
-### Centering with SpriteOffsetPixels
+### Centering with AnimationPivotOffsets
 
-If your character isn't centered in its texture (common when attack animations need extra space), use `SpriteOffsetPixels` to compensate:
+If your character isn't centered in its texture (common when attack animations need extra space), set per-animation offsets in `AnimationPivotOffsets`:
 
 ```
-Texture Layout:           After SpriteOffsetPixels = (+90, 0):
+Texture Layout:           After AnimationPivotOffsets["attack"] = (+90, 0):
 ┌─────────────────┐       ┌─────────────────┐
 │ ○               │       │        ○        │
 │/│\      →→→→→→→→│  ==>  │       /│\       │
@@ -54,7 +54,7 @@ Texture Layout:           After SpriteOffsetPixels = (+90, 0):
 
 - **Positive X**: Shifts rendering RIGHT (use when body is on LEFT side of texture)
 - **Negative X**: Shifts rendering LEFT (use when body is on RIGHT side of texture)
-- The offset automatically flips when the sprite flips direction
+- Offset is chosen per animation `StringName` (e.g., `&"idle"`, `&"walk"`, `&"attack"`) and automatically mirrors on flip
 
 ### Attack Effects
 
@@ -109,12 +109,12 @@ Rig Layout:                After FeetLocalPosition.X = 300:
 
 **Cause:** SkeletalVisualComponent expects scaled pivot positions, but frame-based sprites use unscaled offsets.
 
-**Fix:** Switch to SpriteVisualComponent and use `SpriteOffsetPixels` for centering.
+**Fix:** Switch to SpriteVisualComponent and use `AnimationPivotOffsets` for centering.
 
 ### Wrong Component Parameters
 
 **Sprite Component:**
-- `SpriteOffsetPixels` is in **pixels** (unscaled)
+- `AnimationPivotOffsets` values are in **pixels** (unscaled)
 - Values typically range from -200 to 200
 
 **Skeletal Component:**
