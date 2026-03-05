@@ -498,13 +498,16 @@ public static class SimProjectile
             if (unit.Team == proj.Team) continue;
             if (unit.UnitId == proj.SourceUnitId) continue;
 
+            var impactPoint = proj.LastPosition.Lerp(proj.CurrentPosition, hit.SegmentT);
             ApplyHit(proj, unit, state, events);
 
             if (proj.PierceRemaining <= 0)
             {
+                proj.CurrentPosition = impactPoint;
+
                 // AoE on hit
                 if (proj.AoeRadius > 0)
-                    ApplyAoE(proj, proj.CurrentPosition, state, events);
+                    ApplyAoE(proj, impactPoint, state, events);
 
                 proj.IsDead = true;
                 return;

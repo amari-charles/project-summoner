@@ -69,6 +69,8 @@ Candidates in a tick are sorted by:
 2. contact distance,  
 3. unit ID tie-break.
 
+When a non-piercing projectile hits during a segment, terminal AoE resolves at that same first-contact point (not the segment end).
+
 Code path:
 
 - `SimProjectile.CheckHits(...)` sort block.
@@ -107,5 +109,6 @@ Existing `Separation Radius` debug remains relevant because target size is part 
 - [ ] Projectile grazes target edge and still hits when `HitRadius + SeparationRadius` is enough.
 - [ ] Same projectile cannot repeatedly damage one stationary target over multiple ticks.
 - [ ] Two targets in one segment: nearer contact resolves first regardless of insertion order.
+- [ ] Fast projectile with AoE resolves splash from first-contact point, not end-of-segment.
 - [ ] `GroundCylinder` vs `Sphere3D` visibly differ in debug markers.
 - [ ] AoE affects edge targets based on radius + separation size.

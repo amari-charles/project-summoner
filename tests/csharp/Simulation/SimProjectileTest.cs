@@ -206,4 +206,44 @@ public class SimProjectileTest
         AssertThat(hitEvent).IsNotNull();
         AssertThat(hitEvent!.TargetUnitId).IsEqual(nearer.UnitId);
     }
+
+    [TestCase]
+    public void TickAll_NoPierceAoe_UsesFirstContactPointForSplash()
+    {
+        var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
+        source.ElementId = 0;
+        source.CritChance = 0f;
+
+        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1f, z: 0f, hp: 100f);
+        primary.Evasion = 0f;
+        primary.SeparationRadius = 0.2f;
+
+        var farEnd = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, z: 0f, hp: 100f);
+        farEnd.Evasion = 0f;
+        farEnd.SeparationRadius = 0.2f;
+
+        SimProjectile.Spawn(
+            _state,
+            sourceUnitId: source.UnitId,
+            targetUnitId: farEnd.UnitId,
+            team: source.Team,
+            damage: 20f,
+            sourceElementId: source.ElementId,
+            movementType: ProjectileMovementType.Straight,
+            speed: 40f,
+            lifetime: 2f,
+            startPos: new SimVector3(0f, 0f, 0f),
+            targetPos: new SimVector3(5f, 0f, 0f),
+            pierceCount: 0,
+            aoeRadius: 0.6f,
+            hitRadius: 0.25f,
+            hitSpace: ProjectileHitSpace.GroundCylinder);
+
+        var events = new List<SimEvent>();
+        SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay frame
+        SimProjectile.TickAll(_state, 0.2f, events);   // Covers primary contact and path end in one segment
+
+        AssertThat(primary.CurrentHp).IsLess(primary.MaxHp);
+        AssertThat(farEnd.CurrentHp).IsEqual(farEnd.MaxHp);
+    }
 }

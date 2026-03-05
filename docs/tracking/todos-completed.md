@@ -65,6 +65,39 @@ Request validation now checks card-in-hand bounds, mana cost, and casting state 
 
 ## 2026-03 Completions
 
+### Improve Projectile Collision Detection for 2.5D Sprites
+**Completed:** 2026-03-05
+**Category:** Units & Combat / Projectiles
+**Effort:** Medium
+
+**Description:**
+Implemented hit-geometry v1 for projectiles to make contacts more forgiving and deterministic for 2.5D gameplay:
+- First-contact segment resolution with deterministic nearest-contact ordering
+- Effective contact math using `projectile.HitRadius + target.SeparationRadius`
+- Hit-space modes (`GroundCylinder` and `Sphere3D`)
+- Per-projectile anti-repeat-hit guard
+- Debug overlay markers for projectile hit geometry and AoE radius
+
+**PR Merge Date:** Pending (`#269`)
+
+**Files Changed:**
+- `scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs`
+- `scripts/csharp/Battle/Simulation/Data/SimProjectileData.cs`
+- `scripts/csharp/Infrastructure/Data/Projectiles/ProjectileData.cs`
+- `scripts/csharp/Infrastructure/Data/Projectiles/ProjectileHitSpace.cs`
+- `scripts/csharp/Battle/View/ProjectileVisual.cs`
+- `scripts/csharp/Battle/Session/Protocol/Messages.cs`
+- `scripts/csharp/Battle/Session/Protocol/MessageSerializer.cs`
+- `scripts/csharp/Battle/Session/HostSession.cs`
+- `scripts/csharp/Battle/Session/ClientSession.cs`
+- `scripts/debug/debug_menu.gd`
+- `tests/csharp/Simulation/SimProjectileTest.cs`
+- `tests/csharp/Multiplayer/MessageSerializerTest.cs`
+- `tests/csharp/Session/NetworkSessionWiringTest.cs`
+- `docs/technical/hit-geometry-v1.md`
+
+---
+
 ### Complete Multiplayer Request Validation
 **Completed:** 2026-03-05
 **Category:** Multiplayer / Anti-cheat

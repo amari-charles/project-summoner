@@ -235,34 +235,6 @@ Defense reduction is now active in `SimDamage` via `PhysicalDefense`/`MagicDefen
 
 ---
 
-#### Improve Projectile Collision Detection for 2.5D Sprites
-**Status:** ⬜ Not Started
-**Category:** Units & Combat / Projectiles
-**Effort:** Medium
-**Priority:** 🟡 Medium
-
-**Description:**
-Projectile collision with 2.5D sprite units is too precise - requires nearly pixel-perfect accuracy to hit. Need a more forgiving collision system that accounts for visual sprite bounds rather than just the capsule collision shape.
-
-**Current Behavior:**
-- Projectiles use small sphere colliders (radius 0.2)
-- Units have capsule collision shapes that may not match visual sprite bounds
-- Hitting a unit requires the projectile to intersect the capsule precisely
-- Visually appears like projectiles "pass through" sprites
-
-**Proposed Solutions:**
-1. **Larger projectile collision shapes**: Increase projectile hitbox size
-2. **Sprite-aware collision**: Use sprite bounding box for hit detection
-3. **Proximity-based hits**: Trigger hit when projectile is within threshold distance of unit center
-4. **Separate visual vs physics collision**: Large trigger area for projectile hits, smaller shape for unit-unit collision
-
-**Related Files:**
-- `scenes/battle/projectiles/base_projectile_3d.tscn` - Projectile collision shape
-- `scripts/csharp/Battle/View/ProjectileVisual.cs` - Visual hit/impact (formerly projectile_3d.gd)
-- `scenes/battle/units/*.tscn` - Unit collision shapes
-
----
-
 #### Investigate Units Getting Stuck in Idle When Blocked
 **Status:** ⬜ Not Started
 **Category:** Units & Combat / Pathfinding
