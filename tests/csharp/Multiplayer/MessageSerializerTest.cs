@@ -4,6 +4,7 @@ using System;
 using GdUnit4;
 using Godot;
 using Fateforged.Multiplayer.Protocol;
+using Fateforged.Projectiles;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -221,7 +222,7 @@ public class MessageSerializerTest
             TimeAlive: 0.33f,
             Lifetime: 4.0f,
             HitRadius: 1.25f,
-            HitSpace: 1
+            HitSpace: ProjectileHitSpace.Sphere3D
         );
 
         var dict = _serializer.Serialize(original);
@@ -236,7 +237,7 @@ public class MessageSerializerTest
         AssertThat(typed.UseSpeedEasing).IsTrue();
         AssertThat(typed.SpeedEnd).IsEqual(13f);
         AssertThat(typed.HitRadius).IsEqual(1.25f);
-        AssertThat(typed.HitSpace).IsEqual(1);
+        AssertThat(typed.HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
     }
 
     [TestCase]
@@ -285,7 +286,7 @@ public class MessageSerializerTest
                     Speed: 9f,
                     ProjectileCatalogId: "weaving_bolt",
                     HitRadius: 0.75f,
-                    HitSpace: 1)
+                    HitSpace: ProjectileHitSpace.Sphere3D)
             ]);
 
         var dict = _serializer.Serialize(original);
@@ -298,7 +299,31 @@ public class MessageSerializerTest
         AssertThat(typed.Projectiles[0].ProjectileId).IsEqual(99);
         AssertThat(typed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
         AssertThat(typed.Projectiles[0].HitRadius).IsEqual(0.75f);
-        AssertThat(typed.Projectiles[0].HitSpace).IsEqual(1);
+        AssertThat(typed.Projectiles[0].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
+    }
+
+    [TestCase]
+    public void ProjectileSpawned_Deserialize_InvalidHitSpace_DefaultsToGroundCylinder()
+    {
+        var dict = _serializer.Serialize(new ProjectileSpawned(
+            ProjectileId: 1,
+            SourceUnitId: 1,
+            TargetUnitId: 2,
+            Team: 0,
+            MovementType: 0,
+            CurrentPosition: Vector3.Zero,
+            Direction: Vector3.Forward,
+            TargetPosition: Vector3.Forward,
+            Speed: 1f,
+            HitSpace: ProjectileHitSpace.GroundCylinder));
+
+        dict["hitSpace"] = 999;
+
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<ProjectileSpawned>();
+        var typed = (ProjectileSpawned)result;
+        AssertThat(typed.HitSpace).IsEqual(ProjectileHitSpace.GroundCylinder);
     }
 
     [TestCase]

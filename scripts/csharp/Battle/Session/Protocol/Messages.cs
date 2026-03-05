@@ -1,4 +1,5 @@
 using Godot;
+using Fateforged.Projectiles;
 
 namespace Fateforged.Multiplayer.Protocol;
 
@@ -196,7 +197,7 @@ public readonly record struct ProjectileSpawned(
     float TimeAlive = 0f,
     float Lifetime = 5f,
     float HitRadius = 2.5f,
-    int HitSpace = 0
+    ProjectileHitSpace HitSpace = ProjectileHitSpace.GroundCylinder
 ) : IRealtimeProtocolMessage;
 
 /// <summary>
@@ -239,7 +240,7 @@ public readonly record struct ActiveProjectileSeed(
     float TimeAlive = 0f,
     float Lifetime = 5f,
     float HitRadius = 2.5f,
-    int HitSpace = 0
+    ProjectileHitSpace HitSpace = ProjectileHitSpace.GroundCylinder
 );
 
 /// <summary>

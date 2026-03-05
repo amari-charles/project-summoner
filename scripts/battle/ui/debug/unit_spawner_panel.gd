@@ -16,9 +16,12 @@ const DEBUG_DECK_PATH: String = "res://data/debug/debug_deck.json"
 signal clear_requested()
 ## Signal emitted when skip prep phase is toggled
 signal skip_prep_toggled(skip: bool)
+## Signal emitted when enemy AI is toggled
+signal enemy_ai_toggled(enabled: bool)
 
 var _unit_buttons: Array[Control] = []
 var _skip_prep_phase: bool = false
+var _enemy_ai_enabled: bool = false
 
 
 func _ready() -> void:
@@ -67,6 +70,14 @@ func _build_ui() -> void:
 	team_toggle.toggled.connect(func(pressed: bool) -> void: spawn_as_enemy = pressed)
 	team_toggle.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	vbox.add_child(team_toggle)
+
+	# Enemy AI toggle
+	var enemy_ai_toggle: CheckButton = CheckButton.new()
+	enemy_ai_toggle.text = Loc.t("debug.spawner.enemy_ai")
+	enemy_ai_toggle.button_pressed = _enemy_ai_enabled
+	enemy_ai_toggle.toggled.connect(_on_enemy_ai_toggled)
+	enemy_ai_toggle.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	vbox.add_child(enemy_ai_toggle)
 
 	# Separator
 	vbox.add_child(HSeparator.new())
@@ -153,10 +164,20 @@ func get_skip_prep_phase() -> bool:
 	return _skip_prep_phase
 
 
+func get_enemy_ai_enabled() -> bool:
+	return _enemy_ai_enabled
+
+
 func _on_skip_prep_toggled(pressed: bool) -> void:
 	_skip_prep_phase = pressed
 	_save_settings()
 	skip_prep_toggled.emit(pressed)
+
+
+func _on_enemy_ai_toggled(pressed: bool) -> void:
+	_enemy_ai_enabled = pressed
+	_save_settings()
+	enemy_ai_toggled.emit(pressed)
 
 
 func _on_clear_pressed() -> void:
@@ -168,11 +189,13 @@ func _load_settings() -> void:
 	var err: Error = config.load(SETTINGS_PATH)
 	if err == OK:
 		_skip_prep_phase = config.get_value("debug_arena", "skip_prep_phase", false)
+		_enemy_ai_enabled = config.get_value("debug_arena", "enemy_ai_enabled", false)
 
 
 func _save_settings() -> void:
 	var config: ConfigFile = ConfigFile.new()
 	config.set_value("debug_arena", "skip_prep_phase", _skip_prep_phase)
+	config.set_value("debug_arena", "enemy_ai_enabled", _enemy_ai_enabled)
 	config.save(SETTINGS_PATH)
 
 

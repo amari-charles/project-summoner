@@ -2,35 +2,87 @@ using Godot;
 using Fateforged.Constants;
 using Fateforged.View;
 using Fateforged.Simulation;
+using Fateforged.Simulation.AI;
+using Fateforged.Cards;
 
 namespace Fateforged.View.Debug;
 
 /// <summary>
-/// Debug Arena — infinite mana/HP, empty enemy deck, passive AI, manual unit spawning.
+/// Debug Arena — infinite mana/HP, manual unit spawning, enemy AI toggle.
 /// Replaces debug_arena_controller.gd. Used by scenes/battle/battlefield/dev/debug_arena.tscn.
 /// </summary>
 [GlobalClass]
 public partial class DebugArenaScene : TestBattleScene
 {
     [Signal] public delegate void UnitsClearedEventHandler(int count);
+    private const string DebugDeckPath = "res://data/debug/debug_deck.json";
 
     private Node? _spawnerPanel;
 
-    public override async void _Ready()
+    protected override Godot.Collections.Dictionary BuildPracticeConfig()
     {
-        // Configure BattleContext for debug arena before parent init
-        var battleContext = GetNode("/root/BattleContext");
-        if (battleContext != null)
+        var playerDeck = LoadDebugDeck();
+        var enemyDeck = (Godot.Collections.Array)playerDeck.Duplicate(true);
+
+        return new Godot.Collections.Dictionary
         {
-            var config = new Godot.Collections.Dictionary
-            {
-                { "enemy_deck", new Godot.Collections.Array() }, // Empty = no AI spawning
-                { "enemy_hp", 999999.0 },
-                { "ai_type", "passive" }
-            };
-            battleContext.Call("configure_practice_battle", config);
+            { "dev_player_deck", playerDeck },
+            { "enemy_deck", enemyDeck },
+            { "enemy_hp", 999999.0 },
+            { "ai_type", "none" }
+        };
+    }
+
+    private static Godot.Collections.Array LoadDebugDeck()
+    {
+        if (!FileAccess.FileExists(DebugDeckPath))
+        {
+            GD.PushWarning($"[DebugArenaScene] Debug deck not found at {DebugDeckPath}, using all catalog summons");
+            return BuildFallbackDeckFromCatalogSummons();
         }
 
+        using var file = FileAccess.Open(DebugDeckPath, FileAccess.ModeFlags.Read);
+        if (file == null)
+        {
+            GD.PushWarning("[DebugArenaScene] Failed to open debug deck file, using all catalog summons");
+            return BuildFallbackDeckFromCatalogSummons();
+        }
+
+        var parsed = Json.ParseString(file.GetAsText());
+        if (parsed.VariantType == Variant.Type.Array)
+        {
+            var deck = parsed.AsGodotArray();
+            if (deck.Count > 0)
+                return deck;
+        }
+
+        GD.PushWarning("[DebugArenaScene] Debug deck JSON invalid/empty, using all catalog summons");
+        return BuildFallbackDeckFromCatalogSummons();
+    }
+
+    private static Godot.Collections.Array BuildFallbackDeckFromCatalogSummons()
+    {
+        var entries = new Godot.Collections.Array();
+        foreach (var cardDef in CardCatalog.GetAllCardsAsDict())
+        {
+            if (!cardDef.TryGetValue("card_type", out var cardTypeVar) || cardTypeVar.AsInt32() != (int)CardType.Summon)
+                continue;
+
+            string catalogId = cardDef.TryGetValue("catalog_id", out var catalogIdVar)
+                ? catalogIdVar.AsString()
+                : "";
+            entries.Add(new Godot.Collections.Dictionary
+            {
+                { "catalog_id", catalogId },
+                { "count", 1 }
+            });
+        }
+
+        return entries;
+    }
+
+    public override async void _Ready()
+    {
         base._Ready();
 
         // Wait one frame for init to complete, then connect spawner panel
@@ -52,6 +104,15 @@ public partial class DebugArenaScene : TestBattleScene
 
         if (!_spawnerPanel.IsConnected("skip_prep_toggled", new Callable(this, MethodName.OnSkipPrepToggled)))
             _spawnerPanel.Connect("skip_prep_toggled", new Callable(this, MethodName.OnSkipPrepToggled));
+
+        if (_spawnerPanel.HasSignal("enemy_ai_toggled") &&
+            !_spawnerPanel.IsConnected("enemy_ai_toggled", new Callable(this, MethodName.OnEnemyAiToggled)))
+        {
+            _spawnerPanel.Connect("enemy_ai_toggled", new Callable(this, MethodName.OnEnemyAiToggled));
+        }
+
+        if (_spawnerPanel.HasMethod("get_enemy_ai_enabled"))
+            OnEnemyAiToggled((bool)_spawnerPanel.Call("get_enemy_ai_enabled"));
     }
 
     private Node? FindSpawnerPanel()
@@ -93,6 +154,25 @@ public partial class DebugArenaScene : TestBattleScene
             SkipPrepPhase();
     }
 
+    public void OnEnemyAiToggled(bool enabled)
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
+            return;
+
+        if (!enabled)
+        {
+            simNode.ConfigureAi(1, AiType.None);
+            return;
+        }
+
+        simNode.ConfigureAi(
+            1,
+            AiType.Heuristic,
+            AiPersonality.Balanced
+        );
+    }
+
     public void ClearAllUnits()
     {
         int count = 0;
@@ -105,7 +185,16 @@ public partial class DebugArenaScene : TestBattleScene
             count = state.Units.Count;
             state.Units.Clear();
             state.Projectiles.Clear();
-            state.DelayedEffects.Clear();
+        }
+
+        var entityManager = GetNodeOrNull<EntityManager>("EntityManager");
+        if (entityManager != null)
+        {
+            foreach (var child in entityManager.GetChildren())
+            {
+                if (child is UnitVisual || child is ProjectileVisual)
+                    child.QueueFree();
+            }
         }
 
         var units = GetTree().GetNodesInGroup(GroupIDs.Units);

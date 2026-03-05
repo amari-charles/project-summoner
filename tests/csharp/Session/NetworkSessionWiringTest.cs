@@ -108,7 +108,7 @@ public class NetworkSessionWiringTest
             TimeAlive: 0.33f,
             Lifetime: 4.0f,
             HitRadius: 0.9f,
-            HitSpace: (int)ProjectileHitSpace.Sphere3D
+            HitSpace: ProjectileHitSpace.Sphere3D
         );
 
         transport.EmitMessage(1, serializer.Serialize(spawned));
@@ -152,7 +152,7 @@ public class NetworkSessionWiringTest
                     Speed: 9f,
                     ProjectileCatalogId: "weaving_bolt",
                     HitRadius: 1.1f,
-                    HitSpace: (int)ProjectileHitSpace.Sphere3D)
+                    HitSpace: ProjectileHitSpace.Sphere3D)
             ]);
 
         transport.EmitMessage(1, serializer.Serialize(seed));
@@ -327,7 +327,7 @@ public class NetworkSessionWiringTest
         AssertThat(seed.Projectiles[0].ProjectileId).IsEqual(99);
         AssertThat(seed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
         AssertThat(seed.Projectiles[0].HitRadius).IsEqual(1.3f);
-        AssertThat(seed.Projectiles[0].HitSpace).IsEqual((int)ProjectileHitSpace.Sphere3D);
+        AssertThat(seed.Projectiles[0].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
     }
 
     [TestCase]

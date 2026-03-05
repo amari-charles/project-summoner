@@ -462,8 +462,9 @@ func _on_spawn_boundary_toggle_pressed() -> void:
 
 
 func _apply_spawn_boundary_bypass() -> void:
-	if BattlefieldDebug and BattlefieldDebug.has_method("SetSpawnBoundaryBypassEnabled"):
-		BattlefieldDebug.call("SetSpawnBoundaryBypassEnabled", _bypass_spawn_boundary)
+	var battlefield_debug: Node = _get_battlefield_debug_service()
+	if battlefield_debug and battlefield_debug.has_method("SetSpawnBoundaryBypassEnabled"):
+		battlefield_debug.call("SetSpawnBoundaryBypassEnabled", _bypass_spawn_boundary)
 
 
 func _on_camera_overlay_toggle_pressed() -> void:
@@ -662,11 +663,11 @@ func _on_snapshots_pressed() -> void:
 
 
 func _get_battlefield_debug_service() -> Node:
-	return BattlefieldDebug if BattlefieldDebug else null
+	return get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
 
 
 func _get_unit_debug_service() -> Node:
-	return BattlefieldDebug if BattlefieldDebug else null
+	return _get_battlefield_debug_service()
 
 
 func _find_battle_camera_controller() -> Node:

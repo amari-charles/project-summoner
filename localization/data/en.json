@@ -1000,6 +1000,7 @@
     "spawner": {
       "title": "Spawn Units",
       "spawn_as_enemy": "Spawn as Enemy",
+      "enemy_ai": "Enemy AI Enabled",
       "skip_prep_phase": "Skip Prep Phase",
       "clear_all": "Clear All Units"
     },
