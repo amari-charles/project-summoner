@@ -283,7 +283,9 @@ public class HostSession : NetworkSession
                 SpeedEasing: (int)projectile.SpeedEasing,
                 SpeedEaseExponent: projectile.SpeedEaseExponent,
                 TimeAlive: projectile.TimeAlive,
-                Lifetime: projectile.Lifetime
+                Lifetime: projectile.Lifetime,
+                HitRadius: projectile.HitRadius,
+                HitSpace: (int)projectile.HitSpace
             );
             _transport.Broadcast(_messageSerializer.Serialize(spawned));
         }
@@ -343,7 +345,9 @@ public class HostSession : NetworkSession
                 SpeedEasing: (int)projectile.SpeedEasing,
                 SpeedEaseExponent: projectile.SpeedEaseExponent,
                 TimeAlive: projectile.TimeAlive,
-                Lifetime: projectile.Lifetime
+                Lifetime: projectile.Lifetime,
+                HitRadius: projectile.HitRadius,
+                HitSpace: (int)projectile.HitSpace
             );
         }
 

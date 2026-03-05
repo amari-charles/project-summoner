@@ -194,7 +194,9 @@ public readonly record struct ProjectileSpawned(
     int SpeedEasing = 0,
     float SpeedEaseExponent = 2f,
     float TimeAlive = 0f,
-    float Lifetime = 5f
+    float Lifetime = 5f,
+    float HitRadius = 2.5f,
+    int HitSpace = 0
 ) : IRealtimeProtocolMessage;
 
 /// <summary>
@@ -235,7 +237,9 @@ public readonly record struct ActiveProjectileSeed(
     int SpeedEasing = 0,
     float SpeedEaseExponent = 2f,
     float TimeAlive = 0f,
-    float Lifetime = 5f
+    float Lifetime = 5f,
+    float HitRadius = 2.5f,
+    int HitSpace = 0
 );
 
 /// <summary>

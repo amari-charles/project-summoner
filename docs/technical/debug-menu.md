@@ -29,7 +29,7 @@ Immediately transitions from prep phase to battle phase. Useful for testing comb
 #### Hurtboxes
 Shows each unit's combat hit detection volume as a green capsule.
 
-- Capsule radius = unit's `SeparationRadius` (current gameplay size proxy)
+- Capsule radius = `max(0.5, unit.SeparationRadius)` (current gameplay size proxy)
 - Capsule height = sprite height (calculated from visual component)
 - Used for: visualizing unit body volume
 

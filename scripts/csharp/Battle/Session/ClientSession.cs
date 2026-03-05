@@ -336,6 +336,8 @@ public class ClientSession : NetworkSession
             SpeedEaseExponent = spawned.SpeedEaseExponent,
             TimeAlive = spawned.TimeAlive,
             Lifetime = spawned.Lifetime,
+            HitRadius = spawned.HitRadius,
+            HitSpace = (ProjectileHitSpace)spawned.HitSpace,
             IsDead = false
         };
     }
@@ -381,7 +383,9 @@ public class ClientSession : NetworkSession
                 SpeedEasing: seed.SpeedEasing,
                 SpeedEaseExponent: seed.SpeedEaseExponent,
                 TimeAlive: seed.TimeAlive,
-                Lifetime: seed.Lifetime
+                Lifetime: seed.Lifetime,
+                HitRadius: seed.HitRadius,
+                HitSpace: seed.HitSpace
             ));
             _staleProjectileIds.Remove(seed.ProjectileId);
         }

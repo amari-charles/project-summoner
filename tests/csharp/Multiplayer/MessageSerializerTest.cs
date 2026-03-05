@@ -219,7 +219,9 @@ public class MessageSerializerTest
             SpeedEasing: 2,
             SpeedEaseExponent: 2.2f,
             TimeAlive: 0.33f,
-            Lifetime: 4.0f
+            Lifetime: 4.0f,
+            HitRadius: 1.25f,
+            HitSpace: 1
         );
 
         var dict = _serializer.Serialize(original);
@@ -233,6 +235,8 @@ public class MessageSerializerTest
         AssertThat(typed.Speed).IsEqual(9f);
         AssertThat(typed.UseSpeedEasing).IsTrue();
         AssertThat(typed.SpeedEnd).IsEqual(13f);
+        AssertThat(typed.HitRadius).IsEqual(1.25f);
+        AssertThat(typed.HitSpace).IsEqual(1);
     }
 
     [TestCase]
@@ -279,7 +283,9 @@ public class MessageSerializerTest
                     Direction: new Vector3(1f, 0f, 0f),
                     TargetPosition: new Vector3(5f, 0f, 1f),
                     Speed: 9f,
-                    ProjectileCatalogId: "weaving_bolt")
+                    ProjectileCatalogId: "weaving_bolt",
+                    HitRadius: 0.75f,
+                    HitSpace: 1)
             ]);
 
         var dict = _serializer.Serialize(original);
@@ -291,6 +297,8 @@ public class MessageSerializerTest
         AssertThat(typed.Projectiles.Length).IsEqual(1);
         AssertThat(typed.Projectiles[0].ProjectileId).IsEqual(99);
         AssertThat(typed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(typed.Projectiles[0].HitRadius).IsEqual(0.75f);
+        AssertThat(typed.Projectiles[0].HitSpace).IsEqual(1);
     }
 
     [TestCase]

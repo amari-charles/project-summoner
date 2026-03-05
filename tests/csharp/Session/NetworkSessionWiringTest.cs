@@ -106,7 +106,9 @@ public class NetworkSessionWiringTest
             SpeedEasing: 2,
             SpeedEaseExponent: 2.2f,
             TimeAlive: 0.33f,
-            Lifetime: 4.0f
+            Lifetime: 4.0f,
+            HitRadius: 0.9f,
+            HitSpace: (int)ProjectileHitSpace.Sphere3D
         );
 
         transport.EmitMessage(1, serializer.Serialize(spawned));
@@ -115,6 +117,8 @@ public class NetworkSessionWiringTest
         AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
         AssertThat(state.Projectiles[99].ProjectileCatalogId).IsEqual("weaving_bolt");
         AssertThat(state.Projectiles[99].Acceleration).IsEqual(5f);
+        AssertThat(state.Projectiles[99].HitRadius).IsEqual(0.9f);
+        AssertThat(state.Projectiles[99].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
 
         transport.EmitMessage(1, serializer.Serialize(new ProjectileImpact(99, 10)));
         session.Tick(0.016f);
@@ -146,7 +150,9 @@ public class NetworkSessionWiringTest
                     Direction: new Vector3(1f, 0f, 0f),
                     TargetPosition: new Vector3(5f, 0f, 1f),
                     Speed: 9f,
-                    ProjectileCatalogId: "weaving_bolt")
+                    ProjectileCatalogId: "weaving_bolt",
+                    HitRadius: 1.1f,
+                    HitSpace: (int)ProjectileHitSpace.Sphere3D)
             ]);
 
         transport.EmitMessage(1, serializer.Serialize(seed));
@@ -155,6 +161,8 @@ public class NetworkSessionWiringTest
         AssertThat(state.Projectiles.ContainsKey(1)).IsFalse();
         AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
         AssertThat(state.Projectiles[99].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(state.Projectiles[99].HitRadius).IsEqual(1.1f);
+        AssertThat(state.Projectiles[99].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
     }
 
     [TestCase]
@@ -296,7 +304,9 @@ public class NetworkSessionWiringTest
             Direction = new SimVector3(1f, 0f, 0f),
             TargetPosition = new SimVector3(5f, 0f, 1f),
             Speed = 9f,
-            Lifetime = 4f
+            Lifetime = 4f,
+            HitRadius = 1.3f,
+            HitSpace = ProjectileHitSpace.Sphere3D
         };
 
         var simulation = new Fateforged.Simulation.Simulation(state);
@@ -316,6 +326,8 @@ public class NetworkSessionWiringTest
         AssertThat(seed.Projectiles.Length).IsEqual(1);
         AssertThat(seed.Projectiles[0].ProjectileId).IsEqual(99);
         AssertThat(seed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(seed.Projectiles[0].HitRadius).IsEqual(1.3f);
+        AssertThat(seed.Projectiles[0].HitSpace).IsEqual((int)ProjectileHitSpace.Sphere3D);
     }
 
     [TestCase]

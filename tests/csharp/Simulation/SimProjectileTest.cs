@@ -55,6 +55,73 @@ public class SimProjectileTest
     }
 
     [TestCase]
+    public void TickAll_GroundCylinder_IgnoresVerticalOffsetForGroundTargets()
+    {
+        var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
+        source.ElementId = 0;
+        source.CritChance = 0f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1.5f, z: 0f, hp: 100f);
+        target.Evasion = 0f;
+        target.SeparationRadius = 0.5f;
+
+        SimProjectile.Spawn(
+            _state,
+            sourceUnitId: source.UnitId,
+            targetUnitId: target.UnitId,
+            team: source.Team,
+            damage: 20f,
+            sourceElementId: source.ElementId,
+            movementType: ProjectileMovementType.Straight,
+            speed: 10f,
+            lifetime: 3f,
+            startPos: new SimVector3(0f, 5f, 0f),
+            targetPos: new SimVector3(3f, 5f, 0f),
+            hitRadius: 0.2f,
+            hitSpace: ProjectileHitSpace.GroundCylinder);
+
+        var events = new List<SimEvent>();
+        SimProjectile.TickAll(_state, 0.016f, events);
+        SimProjectile.TickAll(_state, 0.2f, events);
+
+        AssertThat(target.CurrentHp).IsLess(100f);
+    }
+
+    [TestCase]
+    public void TickAll_Sphere3D_RespectsVerticalOffset()
+    {
+        var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
+        source.ElementId = 0;
+        source.CritChance = 0f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1.5f, z: 0f, hp: 100f);
+        target.Evasion = 0f;
+        target.SeparationRadius = 0.5f;
+
+        SimProjectile.Spawn(
+            _state,
+            sourceUnitId: source.UnitId,
+            targetUnitId: target.UnitId,
+            team: source.Team,
+            damage: 20f,
+            sourceElementId: source.ElementId,
+            movementType: ProjectileMovementType.Straight,
+            speed: 10f,
+            lifetime: 3f,
+            startPos: new SimVector3(0f, 5f, 0f),
+            targetPos: new SimVector3(3f, 5f, 0f),
+            hitRadius: 0.2f,
+            hitSpace: ProjectileHitSpace.Sphere3D);
+
+        var events = new List<SimEvent>();
+        SimProjectile.TickAll(_state, 0.016f, events);
+        SimProjectile.TickAll(_state, 0.2f, events);
+
+        AssertThat(target.CurrentHp).IsEqual(100f);
+        AssertThat(SimTestHelper.CountEvents<UnitDamagedEvent>(events)).IsEqual(0);
+    }
+
+    [TestCase]
     public void TickAll_DoesNotHitSameUnitTwice()
     {
         var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
