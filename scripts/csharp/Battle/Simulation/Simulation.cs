@@ -792,10 +792,15 @@ public class Simulation
 
             case SpellTargetingMode.NearestEnemy:
             {
-                // Single nearest enemy to position
+                // Single nearest enemy to caster
                 int enemyTeam = MatchState.GetEnemyTeam(team);
                 float bestDistSq = float.MaxValue;
                 UnitData? best = null;
+
+                // Single-target spells (Mana Bolt, Weaving Bolt) are auto-targeted.
+                // Use the caster summoner position as origin so cursor position does
+                // not change which enemy is selected.
+                var searchOrigin = _state.Summoners[team].Position;
 
                 // If a specific target was provided, use it directly
                 if (targetUnitId.HasValue)
@@ -811,7 +816,7 @@ public class Simulation
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
                     if ((int)unit.Team != enemyTeam) continue;
-                    float distSq = unit.Position.DistanceSquaredTo(position);
+                    float distSq = unit.Position.DistanceSquaredTo(searchOrigin);
                     if (distSq < bestDistSq)
                     {
                         bestDistSq = distSq;

@@ -55,19 +55,27 @@ public static class ProjectileDefinitions
         AoeRadius = 8.0f,
     };
 
-    /// <summary>Homing magical projectile with acceleration.</summary>
+    /// <summary>Arcane bolt that weaves briefly before locking onto its target.</summary>
     public static readonly ProjectileData ManaBolt = new()
     {
         ProjectileId = ProjectileIds.ManaBolt,
         ProjectileName = "Mana Bolt",
         ModelScenePath = "res://scenes/battle/projectiles/mana_bolt_visual.tscn",
-        MovementType = ProjectileMovementType.Homing,
-        Speed = 4.0f,
-        Acceleration = 40.0f,
-        Lifetime = 4.0f,
+        MovementType = ProjectileMovementType.WeavingHoming,
+        SpeedStart = 18.0f,
+        SpeedEnd = 42.0f,
+        SpeedTransitionDuration = 0.85f,
+        SpeedEasing = SpeedEasingType.EaseInOut,
+        SpeedEaseExponent = 2.35f,
+        VeerDelay = 0.02f,
+        VeerAngle = 58f,
+        VeerDuration = 0.34f,
+        SteerStrength = 330f,
+        ArcHeight = 3.0f,
+        Lifetime = 6.0f,
+        HitRadius = 0.75f,
         RotateToDirection = true,
-        ArcHeight = 2.5f,
-        HomingStrength = 3.0f,
+        SpawnAtTargetHeight = false,
     };
 
     /// <summary>Fast straight projectile for wind units.</summary>
@@ -130,6 +138,7 @@ public static class ProjectileDefinitions
         VeerAngle = 55f,
         VeerDuration = 0.5f,
         SteerStrength = 360f,
+        ArcHeight = 0.8f,
         Lifetime = 4.0f,
         RotateToDirection = true,
         SpawnAtTargetHeight = true,
