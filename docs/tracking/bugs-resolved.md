@@ -4,7 +4,75 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+## 2026-03 Fixes
+
+### Enemy Spawn Debug Mode Issues
+**Resolved:** 2026-03-04
+**Component:** Debug Tools / Spawning
+
+**Description:**
+Debug unit spawns with "Spawn as Enemy" could end up in invalid positions and did not consistently respect spawn-side boundary rules.
+
+**Root Cause:**
+`InputCollector` debug DnD path did not validate/clamp debug spawn positions with the shared boundary utilities.
+
+**Solution Implemented:**
+1. Updated debug spawn preview/drop path to use `BattlefieldBounds.IsValidSpawnPositionForTeam()` and `BattlefieldBounds.ClampToValidSpawnZone()`
+2. Applied clamping before `card.SpawnAt(...)` in debug drop flow
+3. Wired debug boundary bypass toggle through `BattlefieldDebugService` for consistent behavior with debug settings
+
+**PR Merge Date:** 2026-03-04 (`8cab9d0d`, merge commit not tagged with PR number)
+
+**Related Files:**
+- `scripts/csharp/Battle/Input/InputCollector.cs`
+- `scripts/debug/debug_menu.gd`
+- `scripts/csharp/Debug/BattlefieldDebugService.cs`
+
+---
+
+### CardIDs.DUCKLING References Non-Existent Card
+**Resolved:** 2026-03-04
+**Component:** Data / Card Catalog
+
+**Description:**
+`CardIDs` included `DUCKLING`, but duckling is a spawned unit (from `mama_duck`) rather than a playable card. This produced a startup validation error for a non-existent card ID.
+
+**Root Cause:**
+Stale `CardIDs` constant after card/unit catalog cleanup and C# catalog migration.
+
+**Solution Implemented:**
+Removed `DUCKLING` from `card_ids.gd` and kept duckling modeled only as a unit ID.
+
+**PR Merge Date:** 2026-03-04 (`#260`)
+
+**Related Files:**
+- `scripts/infrastructure/data/card_ids.gd`
+
+---
+
 ## 2026-01 Fixes
+
+### HP Bar Management Issues
+**Resolved:** 2026-01-09
+**Component:** UI / HP Bar Manager
+
+**Description:**
+HP bars had lifecycle and positioning issues, especially around mass cleanup scenarios (swarm units, clear-all, scene transitions).
+
+**Root Cause:**
+Legacy GDScript HP bar lifecycle relied on cleanup assumptions that failed during bulk frees and scene teardown.
+
+**Solution Implemented:**
+Migrated HP bars to C# service-driven lifecycle with explicit cleanup and integration tests. Legacy GDScript HP bar manager/scripts were removed.
+
+**PR Merge Date:** 2026-01-09 (`Merge feature/hp-bar-csharp-migration`)
+
+**Related Files:**
+- `scripts/csharp/Meta/Services/HPBarService.cs`
+- `scripts/csharp/Battle/View/UI/FloatingHPBar.cs`
+- `tests/integration/test_hp_bar_lifecycle.gd`
+
+---
 
 ### Puff Projectiles Not Triggering Hit Flashes
 **Resolved:** 2026-01-29

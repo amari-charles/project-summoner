@@ -95,6 +95,15 @@ public static class BattlefieldBounds
             && position.Z >= MinZ && position.Z <= MaxZ;
     }
 
+    /// <summary>
+    /// Simulation-layer overload for bounds check (no Godot Vector dependency).
+    /// </summary>
+    public static bool IsInBounds(SimVector3 position)
+    {
+        return position.X >= MinX && position.X <= MaxX
+            && position.Z >= MinZ && position.Z <= MaxZ;
+    }
+
     // =========================================================================
     // SPAWN ZONE UTILITY METHODS
     // =========================================================================
@@ -104,6 +113,21 @@ public static class BattlefieldBounds
     /// Player (team 0): X &lt;= 0, Enemy (team 1): X &gt; 0
     /// </summary>
     public static bool IsValidSpawnPositionForTeam(Vector3 position, int team)
+    {
+        if (_debugBypassSpawnBoundary)
+            return true;
+
+        if (team == 0) // Player
+            return position.X <= SpawnBoundaryX;
+        else // Enemy
+            return position.X > SpawnBoundaryX;
+    }
+
+    /// <summary>
+    /// Simulation-layer overload for spawn-side validation.
+    /// Player (team 0): X &lt;= 0, Enemy (team 1): X &gt; 0
+    /// </summary>
+    public static bool IsValidSpawnPositionForTeam(SimVector3 position, int team)
     {
         if (_debugBypassSpawnBoundary)
             return true;

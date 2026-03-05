@@ -208,7 +208,7 @@ func _start_hosting() -> void:
 func _generate_room_code() -> String:
 	# Get local IP address and format as room code
 	var ip_addresses: PackedStringArray = IP.get_local_addresses()
-	for ip in ip_addresses:
+	for ip: String in ip_addresses:
 		# Skip loopback and IPv6
 		if ip.begins_with("127.") or ip.contains(":"):
 			continue

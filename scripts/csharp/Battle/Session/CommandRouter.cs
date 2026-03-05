@@ -2,6 +2,8 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Constants;
+using System.Collections.Generic;
 
 namespace Fateforged.Session;
 
@@ -12,8 +14,11 @@ namespace Fateforged.Session;
 /// </summary>
 public class CommandRouter
 {
+    private const float MinPlayCardIntervalSeconds = 0.05f;
+
     public readonly record struct ValidationResult(bool IsValid, string Reason);
     public static readonly ValidationResult Valid = new(true, "");
+    private readonly Dictionary<int, float> _lastAcceptedPlayTimeByTeam = new();
 
     public ValidationResult Validate(ICommand command, MatchState state)
     {
@@ -26,7 +31,7 @@ public class CommandRouter
         };
     }
 
-    private static ValidationResult ValidatePlayCard(PlayCardCommand play, MatchState state)
+    private ValidationResult ValidatePlayCard(PlayCardCommand play, MatchState state)
     {
         if (play.Team < 0 || play.Team >= state.Summoners.Length)
             return new ValidationResult(false, "Invalid player index");
@@ -49,6 +54,16 @@ public class CommandRouter
         if (summoner.Mana < cardData.ManaCost)
             return new ValidationResult(false, "Not enough mana");
 
+        if (!BattlefieldBounds.IsInBounds(play.SpawnPosition))
+            return new ValidationResult(false, "Spawn position out of battlefield bounds");
+
+        if (!cardData.IsSpell && !BattlefieldBounds.IsValidSpawnPositionForTeam(play.SpawnPosition, play.Team))
+            return new ValidationResult(false, "Spawn position outside team spawn zone");
+
+        if (IsRateLimited(play.Team, state.MatchTime))
+            return new ValidationResult(false, "Command rate limit exceeded");
+
+        _lastAcceptedPlayTimeByTeam[play.Team] = state.MatchTime;
         return Valid;
     }
 
@@ -73,5 +88,17 @@ public class CommandRouter
             return new ValidationResult(false, "Game already over");
 
         return Valid;
+    }
+
+    private bool IsRateLimited(int team, float nowSeconds)
+    {
+        if (!_lastAcceptedPlayTimeByTeam.TryGetValue(team, out var lastAcceptedSeconds))
+            return false;
+
+        // Match time can reset between sessions while reusing this router instance.
+        if (nowSeconds < lastAcceptedSeconds)
+            return false;
+
+        return nowSeconds - lastAcceptedSeconds < MinPlayCardIntervalSeconds;
     }
 }

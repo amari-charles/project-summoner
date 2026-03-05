@@ -42,35 +42,6 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 
 ---
 
-#### HP Bar Management Issues
-**Status:** Open
-**Reported:** 2026-01-04
-**Component:** UI / HP Bar Manager
-
-**Description:**
-HP bars have multiple issues related to their lifecycle and positioning.
-
-**Issues:**
-1. **Swarm cleanup crash/bug:** When clicking "Clear Units" in debug mode, HP bars for swarm units don't clean up properly. May cause errors or orphaned UI elements.
-2. **Positioning relative to units:** HP bars are not positioned correctly relative to their units. The offset or anchor point appears to be wrong.
-
-**Expected Behavior:**
-- HP bars should be removed cleanly when their units are removed
-- HP bars should appear at a consistent, correct position above each unit's head
-
-**Current Behavior:**
-- Swarm unit HP bars misbehave on debug clear
-- HP bar positions don't match unit visual positions
-
-**Impact:**
-Visual bugs and potential errors during development/testing.
-
-**Related Files:**
-- scripts/systems/hp_bar_manager.gd
-- scripts/battle/ui/hp_bar.gd (if exists)
-
----
-
 #### Puff Units Get Stuck in Idle When Blocked by Other Units
 **Status:** Open
 **Reported:** 2026-01-05
@@ -191,29 +162,6 @@ Players can see outside the play area and experience jarring camera movement.
 
 ---
 
-#### Enemy Spawn Debug Mode Issues
-**Status:** Open
-**Reported:** 2026-01-13
-**Component:** Debug Tools / Spawning
-
-**Description:**
-When using the debug unit spawner panel with "Spawn as Enemy" toggled on, units spawn incorrectly.
-
-**Expected Behavior:**
-Units should spawn on the enemy side of the battlefield when "Spawn as Enemy" is enabled.
-
-**Current Behavior:**
-Spawning is "messed up" when spawning as enemy in debug mode.
-
-**Impact:**
-Debug tool doesn't work correctly for testing enemy units.
-
-**Related Files:**
-- scripts/battle/ui/debug/unit_spawner_panel.gd
-- Battlefield spawn logic
-
----
-
 #### Wisps Attack Multiple Enemies Simultaneously
 **Status:** Open
 **Reported:** 2026-01-27
@@ -270,36 +218,6 @@ Reduces Puff combat effectiveness - time spent switching targets and repositioni
 
 ---
 
-#### CardIDs.DUCKLING References Non-Existent Card
-**Status:** Open
-**Reported:** 2026-02-01
-**Component:** Data / Card Catalog
-
-**Description:**
-GDScript `CardIDs` contains a `DUCKLING` constant that references a card ID that doesn't exist in the card catalog. Duckling is only a `UnitId` (spawned by mama_duck card), not a playable card.
-
-**Expected Behavior:**
-All `CardIDs` constants should reference valid cards in the catalog.
-
-**Current Behavior:**
-On startup, the validation logs an error:
-```
-ERROR: CardCatalog: CardIDs constants reference non-existent cards:
-ERROR:   - CardIDs.DUCKLING = 'duckling'
-```
-
-**Impact:**
-Cosmetic startup error. No gameplay impact since duckling is correctly handled as a unit spawned by mama_duck.
-
-**Proposed Solution:**
-Remove `const DUCKLING: StringName = &"duckling"` from `scripts/infrastructure/data/card_ids.gd` since duckling is not a playable card.
-
-**Related Files:**
-- scripts/infrastructure/data/card_ids.gd (line 75)
-- scripts/infrastructure/data/card_catalog.gd (validation logic)
-
----
-
 #### Puff Pivot Point Off-Center When Turning
 **Status:** Open
 **Reported:** 2026-02-27
@@ -323,4 +241,4 @@ Adjust the sprite offset so Puff's visual center aligns with the pivot point, or
 
 ---
 
-*Last Updated: 2026-02-27 - Added Puff pivot point off-center bug*
+*Last Updated: 2026-03-05 - Moved enemy debug spawn boundary issue to resolved*
