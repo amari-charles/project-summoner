@@ -27,6 +27,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     private readonly Dictionary<int, ProjectileVisual> _projectileRegistry = new();
     private readonly Dictionary<int, SummonerVisual> _summonerRegistry = new();
     private readonly StateInterpolator _unitInterpolator = new();
+    private IBattleVfxService _vfxService = NullBattleVfxService.Instance;
 
     private bool _isPaused;
     private readonly List<int> _cleanupBuffer = new();
@@ -35,10 +36,16 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     public void Initialize(IGameSession session)
     {
+        Initialize(session, NullBattleVfxService.Instance);
+    }
+
+    public void Initialize(IGameSession session, IBattleVfxService? vfxService)
+    {
         _session = session;
         _session.SimEventsEmitted += OnSimEvents;
         _unitInterpolator.InterpolationSpeed = ClientInterpolationSpeed;
         _unitInterpolator.SnapThreshold = ClientSnapThreshold;
+        _vfxService = vfxService ?? NullBattleVfxService.Instance;
     }
 
     /// <summary>
@@ -268,24 +275,11 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             ? simNode.SimToLocal(e.Position)
             : new Vector3(e.Position.X, e.Position.Y, e.Position.Z);
 
-        var vfxManager = ResolveVfxManager();
-        if (vfxManager == null || !vfxManager.HasMethod("play_effect"))
-            return;
-
         var customData = new Godot.Collections.Dictionary();
         if (card.SpellRadius > 0f)
             customData["radius"] = card.SpellRadius;
 
-        vfxManager.Call("play_effect", (string)card.SpellVfx, localPos, customData);
-    }
-
-    private Node? ResolveVfxManager()
-    {
-        var tree = GetTree();
-        if (tree == null)
-            return null;
-
-        return tree.Root.GetNodeOrNull("VFXManager");
+        _vfxService.PlayEffect((string)card.SpellVfx, localPos, customData);
     }
 
     public void Visit(DelayedEffectFiredEvent e)

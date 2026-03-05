@@ -129,6 +129,13 @@ public class MessageSerializer
                 dict["duration"] = m.Duration;
                 break;
 
+            case SpellCastVisual m:
+                dict["type"] = (int)MessageType.SpellCastVisual;
+                dict["team"] = m.Team;
+                dict["catalogId"] = m.CatalogId;
+                dict["pos"] = SerializeVector3(m.Position);
+                break;
+
             case ProjectileSpawned m:
                 dict["type"] = (int)MessageType.ProjectileSpawned;
                 dict["id"] = m.ProjectileId;
@@ -305,6 +312,12 @@ public class MessageSerializer
                 (int)dict["winner"],
                 (string)dict["reason"],
                 (float)dict["duration"]
+            ),
+
+            MessageType.SpellCastVisual => new SpellCastVisual(
+                Team: dict.ContainsKey("team") ? (int)dict["team"] : 0,
+                CatalogId: dict.ContainsKey("catalogId") ? (string)dict["catalogId"] : "",
+                Position: DeserializeVector3(dict["pos"])
             ),
 
             MessageType.ProjectileSpawned => new ProjectileSpawned(

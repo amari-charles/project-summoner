@@ -72,8 +72,8 @@ public partial class ShopService : Node
         _economy = EconomyService.Instance;
         _rewardService = RewardService.Instance;
         _summonerSelection = SummonerSelectionService.Instance;
-        _platformBilling = GetNodeOrNull<PlatformBillingService>("/root/PlatformBilling");
-        _billingCatalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        _platformBilling = PlatformBillingService.Instance;
+        _billingCatalog = BillingCatalogService.Instance;
         _loc = GetNodeOrNull("/root/Loc");
 
         _catalog = ShopCatalog.BuildCatalog();

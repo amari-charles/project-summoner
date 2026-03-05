@@ -125,6 +125,12 @@ public class ClientSession : NetworkSession
             case SummonerDamageFlash flash:
                 _pendingEvents.Add(new SummonerDamagedEvent(flash.Team, flash.Damage, flash.AttackerUnitId));
                 break;
+            case SpellCastVisual spellCast:
+                _pendingEvents.Add(new SpellCastEvent(
+                    spellCast.Team,
+                    spellCast.CatalogId,
+                    new SimVector3(spellCast.Position.X, spellCast.Position.Y, spellCast.Position.Z)));
+                break;
             case ProjectileSpawned spawned:
                 HandleProjectileSpawned(spawned);
                 break;

@@ -163,6 +163,15 @@ public readonly record struct MatchEnded(
 ) : IRealtimeProtocolMessage;
 
 /// <summary>
+/// Authoritative spell cast visual cue. Keeps cast VFX deterministic across peers.
+/// </summary>
+public readonly record struct SpellCastVisual(
+    int Team,
+    string CatalogId,
+    Vector3 Position
+) : IRealtimeProtocolMessage;
+
+/// <summary>
 /// Authoritative projectile spawn message for client-side visual simulation.
 /// </summary>
 public readonly record struct ProjectileSpawned(
@@ -371,6 +380,7 @@ public enum MessageType : byte
     ProjectileImpact = 25,
     ProjectileDespawned = 26,
     ProjectileSeedSnapshot = 27,
+    SpellCastVisual = 28,
 
     // Bidirectional
     MatchStarted = 20,

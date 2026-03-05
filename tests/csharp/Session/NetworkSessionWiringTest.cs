@@ -157,6 +157,36 @@ public class NetworkSessionWiringTest
     }
 
     [TestCase]
+    public void ClientSession_SpellCastVisualMessage_EmitsSpellCastEvent()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        SpellCastEvent? seenEvent = null;
+        session.SimEventsEmitted += events =>
+        {
+            foreach (var evt in events)
+            {
+                if (evt is SpellCastEvent spellCast)
+                    seenEvent = spellCast;
+            }
+        };
+
+        transport.EmitMessage(1, serializer.Serialize(new SpellCastVisual(
+            Team: 0,
+            CatalogId: "fireball",
+            Position: new Vector3(3f, 0f, -1f))));
+        session.Tick(0.016f);
+
+        AssertThat(seenEvent != null).IsTrue();
+        AssertThat(seenEvent?.CatalogId ?? "").IsEqual("fireball");
+        AssertThat(seenEvent?.Position.X ?? 0f).IsEqual(3f);
+        AssertThat(seenEvent?.Position.Z ?? 0f).IsEqual(-1f);
+    }
+
+    [TestCase]
     public void HostSession_RemoteCardPlayRequest_QueuesValidatedCommand()
     {
         var state = SimTestHelper.CreateBattleState();

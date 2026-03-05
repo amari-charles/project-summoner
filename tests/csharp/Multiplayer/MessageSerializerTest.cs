@@ -350,6 +350,26 @@ public class MessageSerializerTest
     }
 
     [TestCase]
+    public void SpellCastVisual_RoundTrip()
+    {
+        var original = new SpellCastVisual(
+            Team: 0,
+            CatalogId: "fireball",
+            Position: new Vector3(4f, 0f, -2f)
+        );
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<SpellCastVisual>();
+        var typed = (SpellCastVisual)result;
+        AssertThat(typed.Team).IsEqual(0);
+        AssertThat(typed.CatalogId).IsEqual("fireball");
+        AssertThat(typed.Position.X).IsEqual(4f);
+        AssertThat(typed.Position.Z).IsEqual(-2f);
+    }
+
+    [TestCase]
     public void MatchStarted_RoundTrip()
     {
         var original = new MatchStarted(

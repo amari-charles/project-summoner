@@ -8,6 +8,8 @@ namespace Fateforged.Infrastructure.Billing;
 /// </summary>
 public partial class BillingProvider : Node
 {
+    private BillingCatalogService? _billingCatalog;
+
     [Signal]
     public delegate void purchase_completedEventHandler(string product_id, string transaction_id);
 
@@ -72,5 +74,15 @@ public partial class BillingProvider : Node
     public virtual string get_provider_name()
     {
         return "BaseProvider";
+    }
+
+    public void ConfigureCatalog(BillingCatalogService? billingCatalog)
+    {
+        _billingCatalog = billingCatalog;
+    }
+
+    protected BillingCatalogService? GetCatalog()
+    {
+        return _billingCatalog ?? BillingCatalogService.Instance;
     }
 }

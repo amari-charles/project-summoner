@@ -607,10 +607,8 @@ func _get_filtered_sorted_cards() -> Array:
 
 			var instance_id: String = instance.get("id", "")
 			var level: int = 1
-			# PlayerCardService is a C# autoload
-			var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-			if not instance_id.is_empty() and card_service and card_service.has_method("GetCardProgressionInfoDict"):
-				var result_info: Variant = card_service.GetCardProgressionInfoDict(instance_id)
+			if not instance_id.is_empty() and _card_service and _card_service.has_method("GetCardProgressionInfoDict"):
+				var result_info: Variant = _card_service.call("GetCardProgressionInfoDict", instance_id)
 				if result_info is Dictionary:
 					level = result_info.get("level", 1)
 

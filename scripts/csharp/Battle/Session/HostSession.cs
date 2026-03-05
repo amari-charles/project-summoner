@@ -104,6 +104,15 @@ public class HostSession : NetworkSession
                         summonerDamaged.AttackerUnitId);
                     _transport.Broadcast(_messageSerializer.Serialize(flash));
                 }
+
+                if (evt is SpellCastEvent spellCast && _transport.IsConnected)
+                {
+                    var visual = new SpellCastVisual(
+                        Team: spellCast.Team,
+                        CatalogId: spellCast.CatalogId,
+                        Position: new Vector3(spellCast.Position.X, spellCast.Position.Y, spellCast.Position.Z));
+                    _transport.Broadcast(_messageSerializer.Serialize(visual));
+                }
             }
         }
 
