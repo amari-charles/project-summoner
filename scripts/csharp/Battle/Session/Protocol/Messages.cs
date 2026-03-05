@@ -301,6 +301,7 @@ public readonly record struct SummonerState(
     string[] Hand,
     string[] Deck,
     string[] DiscardPile,
+    // Required for MP client UI reconstruction in PollMatchState and reconnect flow.
     string CastingCatalogId = ""
 );
 

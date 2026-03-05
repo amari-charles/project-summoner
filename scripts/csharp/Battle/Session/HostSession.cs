@@ -430,7 +430,7 @@ public class HostSession : NetworkSession
                 s.Hand.ToArray(),
                 s.Deck.ToArray(),
                 s.DiscardPile.ToArray(),
-                s.CastingCatalogId ?? ""
+                s.CastingCatalogId
             );
         }
 

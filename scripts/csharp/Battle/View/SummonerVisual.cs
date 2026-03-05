@@ -505,30 +505,20 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     private static Card CreateCardResourceRequired(string catalogId, string context)
     {
+        if (string.IsNullOrWhiteSpace(catalogId))
+        {
+            string msg = $"[SummonerVisual] {context}: empty casting catalogId is invalid";
+            GD.PushError(msg);
+            throw new InvalidOperationException(msg);
+        }
+
         var card = CreateCardResource(catalogId);
         if (card != null)
             return card;
 
-        string resolvedCatalogId = string.IsNullOrWhiteSpace(catalogId)
-            ? "__unknown_cast__"
-            : catalogId;
-        GD.PrintErr($"[SummonerVisual] {context}: failed to resolve card catalogId={catalogId}, emitting fallback card");
-        return CreateFallbackCard(resolvedCatalogId);
-    }
-
-    private static Card CreateFallbackCard(string catalogId)
-    {
-        return new Card
-        {
-            CatalogId = catalogId,
-            CardName = $"Unknown Card ({catalogId})",
-            Description = "Fallback card generated for casting signal recovery.",
-            Type = (int)CardType.Summon,
-            ManaCost = 0,
-            Cooldown = 0f,
-            SummonTime = 0f,
-            SpawnCount = 0
-        };
+        string error = $"[SummonerVisual] {context}: unknown casting catalogId={catalogId}";
+        GD.PushError(error);
+        throw new InvalidOperationException(error);
     }
 
     private void EmitCastingStartedFromSnapshot(SummonerData summoner)

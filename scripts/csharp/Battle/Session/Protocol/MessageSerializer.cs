@@ -438,6 +438,9 @@ public class MessageSerializer
         for (int i = 0; i < arr.Count; i++)
         {
             var d = (Dictionary)arr[i];
+            if (!d.ContainsKey("castCatalog"))
+                throw new ArgumentException("StateSnapshot summoner payload missing required field: castCatalog");
+
             summoners[i] = new SummonerState(
                 (int)d["team"],
                 (float)d["hp"],
@@ -454,7 +457,7 @@ public class MessageSerializer
                 d.ContainsKey("hand") ? ToStringArray((Godot.Collections.Array)d["hand"]) : System.Array.Empty<string>(),
                 d.ContainsKey("deck") ? ToStringArray((Godot.Collections.Array)d["deck"]) : System.Array.Empty<string>(),
                 d.ContainsKey("discard") ? ToStringArray((Godot.Collections.Array)d["discard"]) : System.Array.Empty<string>(),
-                d.ContainsKey("castCatalog") ? (string)d["castCatalog"] : ""
+                (string)d["castCatalog"]
             );
         }
         return summoners;
