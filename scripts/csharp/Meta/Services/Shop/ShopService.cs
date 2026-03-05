@@ -3,6 +3,7 @@ using Godot;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Enums;
+using Fateforged.Infrastructure.Billing;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Economy;
 using Fateforged.Meta.Rewards;
@@ -40,8 +41,8 @@ public partial class ShopService : Node
     private EconomyService? _economy;
     private RewardService? _rewardService;
     private SummonerSelectionService? _summonerSelection;
-    private Node? _platformBilling;
-    private Node? _billingCatalog;
+    private PlatformBillingService? _platformBilling;
+    private BillingCatalogService? _billingCatalog;
     private Node? _loc;
 
     // Typed catalog
@@ -71,8 +72,8 @@ public partial class ShopService : Node
         _economy = EconomyService.Instance;
         _rewardService = RewardService.Instance;
         _summonerSelection = SummonerSelectionService.Instance;
-        _platformBilling = GetNodeOrNull("/root/PlatformBilling");
-        _billingCatalog = GetNodeOrNull("/root/BillingCatalog");
+        _platformBilling = GetNodeOrNull<PlatformBillingService>("/root/PlatformBilling");
+        _billingCatalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
         _loc = GetNodeOrNull("/root/Loc");
 
         _catalog = ShopCatalog.BuildCatalog();
@@ -265,7 +266,7 @@ public partial class ShopService : Node
                     PurchaseKey = purchaseKey,
                     Offering = offering,
                 };
-                _platformBilling?.Call("purchase", productId);
+                _platformBilling?.purchase(productId);
                 GD.Print($"ShopService: Initiated real-money purchase for '{offeringId}'");
                 return true; // Async — result via billing signals
 
@@ -521,18 +522,18 @@ public partial class ShopService : Node
             // Direct billing product (gem pack, not a shop offering)
             if (_billingCatalog != null)
             {
-                var product = _billingCatalog.Call("get_product", productId);
-                if (product.Obj is GodotObject productObj)
+                var product = _billingCatalog.get_product(productId);
+                if (product != null)
                 {
-                    var gemsAmount = (int)productObj.Get("gems_amount");
+                    var gemsAmount = product.gems_amount;
                     if (gemsAmount > 0)
                     {
                         _economy?.AddGems(gemsAmount);
                         GD.Print($"ShopService: Granted {gemsAmount} gems from billing purchase");
                     }
 
-                    var productRewards = productObj.Get("rewards");
-                    if (productRewards.Obj is GdDict rewardsDict && rewardsDict.Count > 0)
+                    var rewardsDict = product.rewards;
+                    if (rewardsDict.Count > 0)
                     {
                         _rewardService?.GrantRewards(rewardsDict);
                         GD.Print("ShopService: Granted direct rewards from billing purchase");

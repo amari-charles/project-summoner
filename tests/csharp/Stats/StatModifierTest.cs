@@ -8,7 +8,8 @@ using static GdUnit4.Assertions;
 /// <summary>
 /// Tests for StatModifier, including trigger fields.
 /// </summary>
-// [TestSuite] — requires Godot runtime; run via editor's gdUnit4 panel
+[TestSuite]
+[RequireGodotRuntime]
 public class StatModifierTest
 {
     [TestCase]

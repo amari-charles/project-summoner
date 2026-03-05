@@ -10,7 +10,7 @@ var _original_profile_id: String = ""
 
 func before_all() -> void:
 	# Store original profile ID to restore after tests
-	_original_profile_id = ProfileRepo.GetCurrentProfileId()
+	_original_profile_id = ProfileRepo.GetActiveProfileDict().get("profile_id", "")
 
 
 func before_each() -> void:
