@@ -117,30 +117,6 @@ Additional context
 ---
 
 
-#### Wisps Attack Multiple Enemies Simultaneously
-**Status:** Open
-**Reported:** 2026-01-27
-**Component:** Units / Combat / Targeting
-
-**Description:**
-Wisp units (Fire Wisp, Water Wisp, etc.) are attacking multiple enemies at once instead of targeting a single enemy.
-
-**Expected Behavior:**
-Wisps should target and attack one enemy at a time.
-
-**Current Behavior:**
-Wisps attack multiple enemies simultaneously, which may be unintended AOE behavior or a targeting issue.
-
-**Impact:**
-Affects combat balance - wisps are more effective than designed if they can hit multiple targets.
-
-**Related Files:**
-- scripts/csharp/Battle/View/UnitVisual.cs (visual shell)
-- scripts/csharp/Battle/Simulation/Combat/ (targeting logic)
-- Card definitions for wisps
-
----
-
 #### Puff Units Switch Targets Unnecessarily
 **Status:** Open
 **Reported:** 2026-01-31
@@ -196,4 +172,4 @@ Adjust the sprite offset so Puff's visual center aligns with the pivot point, or
 
 ---
 
-*Last Updated: 2026-03-05 - Moved camera boundary issues (scroll + right-drag) to resolved*
+*Last Updated: 2026-03-05 - Moved camera boundary issues and wisp multi-target report to resolved*

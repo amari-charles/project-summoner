@@ -25,12 +25,10 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
    Why second: Player-facing issue with clear expected behavior and bounded surface area.
 3. Implement Puff target stickiness + cone-aware target preference  
    Why third: Addresses active combat AI bug with direct balance impact.
-4. Verify/fix Wisp single-target behavior in simulation and projectile path  
-   Why fourth: Likely targeting/projectile pipeline issue with clear combat correctness outcome.
-5. Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`  
-   Why fifth: Type-safety win with moderate refactor cost and strong semantic benefit.
-6. Continue typed-internal service handler refactors (string boundary only at GDScript edge)  
-   Why sixth: Important cleanup, but lower immediate player impact than gameplay bugs.
+4. Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`  
+   Why fourth: Type-safety win with moderate refactor cost and strong semantic benefit.
+5. Continue typed-internal service handler refactors (string boundary only at GDScript edge)  
+   Why fifth: Important cleanup, but lower immediate player impact than gameplay bugs.
 
 ---
 

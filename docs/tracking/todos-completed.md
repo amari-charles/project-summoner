@@ -65,6 +65,27 @@ Request validation now checks card-in-hand bounds, mana cost, and casting state 
 
 ## 2026-03 Completions
 
+### Verify Wisp Single-Target Behavior in Current Simulation
+**Completed:** 2026-03-05
+**Category:** Units / Combat / Targeting
+**Effort:** Small
+
+**Description:**
+Closed the follow-up TODO to verify legacy wisp multi-target behavior after the host-authoritative simulation refactor.
+
+**Outcome:**
+- ✅ Current typed definitions classify wisps as melee units
+- ✅ Sim melee attack path applies damage to one explicit target per attack event
+- ✅ Legacy report treated as no-repro in current architecture and moved from `bugs.md` to `bugs-resolved.md`
+
+**Files Reviewed:**
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
+- `scripts/csharp/Infrastructure/Data/Cards/CardDefinitions.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+
+---
+
 ### Complete Multiplayer Request Validation
 **Completed:** 2026-03-05
 **Category:** Multiplayer / Anti-cheat

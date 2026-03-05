@@ -6,6 +6,30 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### Wisps Attack Multiple Enemies Simultaneously (No Repro Post-Refactor)
+**Resolved:** 2026-03-05
+**Component:** Units / Combat / Targeting
+
+**Description:**
+An older report indicated wisp units could attack multiple enemies simultaneously.
+
+**Verification (2026-03-05):**
+- Reviewed current host-authoritative simulation attack path.
+- Wisps are currently defined as melee-only units in typed unit/card definitions.
+- Melee attack path applies damage to one explicit target per attack event.
+- No active Fire Wisp trigger wiring was found that would fan out unit attacks to AoE.
+
+**Conclusion:**
+Likely fixed as part of the simulation architecture refactor. Issue no longer tracked as an active bug.
+
+**Related Files:**
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
+- `scripts/csharp/Infrastructure/Data/Cards/CardDefinitions.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+
+---
+
 ### Camera Boundary Issues (Scroll Wheel + Right-Click Drag)
 **Resolved:** 2026-03-05
 **Component:** Camera / Input
