@@ -80,7 +80,10 @@ func _ready() -> void:
 
 	_active_camera = get_viewport().get_camera_3d()
 	if _active_camera != null:
-		_baseline_camera_depth = _get_camera_depth(_active_camera, global_position)
+		if _active_camera.projection == Camera3D.PROJECTION_PERSPECTIVE:
+			depth_scale_enabled = false
+		else:
+			_baseline_camera_depth = _get_camera_depth(_active_camera, global_position)
 
 
 func _process(delta: float) -> void:
@@ -139,10 +142,16 @@ func _update_depth_scale(delta: float) -> void:
 
 	if _active_camera == null or not is_instance_valid(_active_camera):
 		_active_camera = get_viewport().get_camera_3d()
+		if _active_camera != null and _active_camera.projection == Camera3D.PROJECTION_PERSPECTIVE:
+			scale = _base_root_scale
+			return
 		if _active_camera != null and _baseline_camera_depth <= 0.0:
 			_baseline_camera_depth = _get_camera_depth(_active_camera, global_position)
 
 	if _active_camera == null:
+		scale = _base_root_scale
+		return
+	if _active_camera.projection == Camera3D.PROJECTION_PERSPECTIVE:
 		scale = _base_root_scale
 		return
 

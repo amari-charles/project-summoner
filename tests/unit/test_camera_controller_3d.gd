@@ -6,6 +6,7 @@ extends GutTest
 ## - Scroll zoom must never expose outside map bounds
 ## - Large drag deltas must remain clamped
 ## - Edge-pan must not interfere with active drag panning
+## - Perspective camera may show foreground (near-camera) space below map min Z
 
 var _camera: CameraController3D
 
@@ -38,6 +39,30 @@ func after_each() -> void:
 func test_zoom_out_clamps_ground_footprint_inside_map() -> void:
 	_camera._apply_zoom(9999.0)  # Simulate aggressive scroll-wheel zoom out
 	_assert_footprint_inside_map("Zoom out must keep footprint inside map")
+
+
+func test_camera_uses_perspective_projection() -> void:
+	assert_eq(
+		_camera.projection,
+		Camera3D.PROJECTION_PERSPECTIVE,
+		"Battle camera should default to perspective projection"
+	)
+
+
+func test_zoom_adjusts_fov_and_clamps_limits() -> void:
+	var start_fov: float = _camera.fov
+	_camera._apply_zoom(-4.0)
+	assert_lt(_camera.fov, start_fov, "Zoom in should decrease FOV")
+
+	var zoomed_in_fov: float = _camera.fov
+	_camera._apply_zoom(4.0)
+	assert_gt(_camera.fov, zoomed_in_fov, "Zoom out should increase FOV")
+
+	_camera._apply_zoom(-9999.0)
+	assert_almost_eq(_camera.fov, _camera.min_fov, 0.001, "Zoom in should clamp to min_fov")
+
+	_camera._apply_zoom(9999.0)
+	assert_almost_eq(_camera.fov, _camera.max_fov, 0.001, "Zoom out should clamp to max_fov")
 
 
 func test_large_drag_delta_clamps_ground_footprint_inside_map() -> void:
@@ -82,7 +107,13 @@ func test_constrain_pan_motion_limits_single_step_to_available_room() -> void:
 		0.01,
 		"Constrained X pan should be capped to remaining room to the right boundary"
 	)
-	assert_almost_eq(constrained.y, 0.0, 0.0001, "Constrained Z should remain unchanged")
+
+	var start_position: Vector3 = _camera.position
+	_camera.position.x += constrained.x
+	_camera.position.z += constrained.y
+	_camera.clamp_to_map()
+	_assert_footprint_inside_map("Constrained pan result should keep footprint inside map limits")
+	_camera.position = start_position
 
 
 func test_edge_pan_is_ignored_while_drag_panning() -> void:
@@ -112,14 +143,6 @@ func _assert_footprint_inside_map(message_prefix: String) -> void:
 			message_prefix,
 			footprint.position.x,
 			map_rect.position.x
-		]
-	)
-	assert_true(
-		footprint.position.y >= map_rect.position.y - epsilon,
-		"%s: footprint min Z escaped map (%.3f < %.3f)" % [
-			message_prefix,
-			footprint.position.y,
-			map_rect.position.y
 		]
 	)
 	assert_true(

@@ -15,6 +15,7 @@ const MOUSE_TO_WORLD_SCALE: float = 0.01
 const TOUCH_TO_WORLD_SCALE: float = 0.01
 const CLAMP_EPSILON: float = 0.001
 const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
+const MAX_CLAMP_ITERATIONS: int = 8
 
 # === Exports ===
 
@@ -32,16 +33,19 @@ const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
 ## If view is larger than map, center camera (true) or just clamp edges (false)
 @export var center_if_too_big: bool = true
 
+@export_group("Projection")
+@export var default_fov: float = 38.0
+@export var min_fov: float = 24.0  # Max zoom in
+@export var max_fov: float = 62.0  # Max zoom out (limited to prevent showing outside map)
+@export var perspective_near_clip: float = 0.5
+@export var perspective_far_clip: float = 260.0
+
 @export_group("Zoom Controls")
-## Default orthographic size (camera starts at this zoom level)
-@export var default_ortho_size: float = 40.0
-@export var min_ortho_size: float = 20.0  # Max zoom in
-@export var max_ortho_size: float = 50.0  # Max zoom out (limited to prevent showing outside map)
 @export var zoom_speed: float = 2.0
 @export var zoom_enabled: bool = true
 
 @export_group("Zoom-Based Panning")
-## If true, vertical panning is only enabled when zoomed in (size < default_ortho_size)
+## If true, vertical panning is only enabled when zoomed in (fov < default_fov)
 @export var vertical_pan_only_when_zoomed: bool = true
 
 @export_group("Edge Panning")
@@ -66,7 +70,7 @@ const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
 # Pan state for mouse/touch input
 var is_panning: bool = false
 var last_mouse_position: Vector2
-var _max_ortho_size_ceiling: float = -1.0
+var _max_fov_ceiling: float = -1.0
 var _debug_overlay_mesh: MeshInstance3D
 var _debug_overlay_lines: ImmediateMesh
 var _debug_overlay_material: StandardMaterial3D
@@ -75,14 +79,16 @@ func _ready() -> void:
 	# Set process mode to ALWAYS so camera panning works during dialogues
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Ensure orthographic projection for true 2.5D
-	projection = PROJECTION_ORTHOGONAL
+	# Perspective projection gives true depth/parallax across the battlefield.
+	projection = PROJECTION_PERSPECTIVE
+	near = perspective_near_clip
+	far = perspective_far_clip
 	# Wait one frame for transform initialization
 	await get_tree().process_frame
-	if _max_ortho_size_ceiling < 0.0:
-		_max_ortho_size_ceiling = max_ortho_size
+	if _max_fov_ceiling < 0.0:
+		_max_fov_ceiling = max_fov
 	_refresh_zoom_limits()
-	size = clamp(default_ortho_size, min_ortho_size, max_ortho_size)
+	fov = clamp(default_fov, min_fov, max_fov)
 	clamp_to_map()
 
 	var vp: Viewport = get_viewport()
@@ -95,44 +101,44 @@ func _ready() -> void:
 
 func _on_viewport_size_changed() -> void:
 	_refresh_zoom_limits()
-	size = clamp(size, min_ortho_size, max_ortho_size)
+	fov = clamp(fov, min_fov, max_fov)
 	clamp_to_map()
 
 func _refresh_zoom_limits() -> void:
-	var configured_max: float = _max_ortho_size_ceiling if _max_ortho_size_ceiling > 0.0 else max_ortho_size
-	var solved_max: float = _solve_max_ortho_size(configured_max)
-	max_ortho_size = max(min_ortho_size, min(configured_max, solved_max))
+	var configured_max: float = _max_fov_ceiling if _max_fov_ceiling > 0.0 else max_fov
+	var solved_max: float = _solve_max_fov(configured_max)
+	max_fov = max(min_fov, min(configured_max, solved_max))
 
 func set_map_bounds(bounds_xz: Rect2) -> void:
 	if bounds_xz.size.x <= 0.0 or bounds_xz.size.y <= 0.0:
 		return
 
 	map_rect_xz = bounds_xz
-	if _max_ortho_size_ceiling < 0.0:
-		_max_ortho_size_ceiling = max_ortho_size
+	if _max_fov_ceiling < 0.0:
+		_max_fov_ceiling = max_fov
 	_refresh_zoom_limits()
-	size = clamp(size, min_ortho_size, max_ortho_size)
+	fov = clamp(fov, min_fov, max_fov)
 	clamp_to_map()
 
 	if _is_debug_overlay_enabled():
 		_ensure_debug_overlay()
 		_update_debug_overlay()
 
-func _solve_max_ortho_size(configured_max: float) -> float:
-	var original_size: float = size
-	var low: float = min_ortho_size
-	var high: float = max(configured_max, min_ortho_size)
+func _solve_max_fov(configured_max: float) -> float:
+	var original_fov: float = fov
+	var low: float = min_fov
+	var high: float = max(configured_max, min_fov)
 
 	for i: int in range(MAX_ZOOM_SOLVER_ITERATIONS):
 		var mid: float = (low + high) * 0.5
-		size = mid
+		fov = mid
 		var footprint: Rect2 = get_ground_footprint_xz()
 		if _footprint_fits_map(footprint):
 			low = mid
 		else:
 			high = mid
 
-	size = original_size
+	fov = original_fov
 	return low
 
 func _footprint_fits_map(footprint: Rect2) -> bool:
@@ -180,8 +186,9 @@ func get_ground_footprint_xz() -> Rect2:
 			var point: Vector3 = origin + dir * t
 			world_points.append(point)
 
-	# Need at least 2 valid intersections to proceed
-	if world_points.size() < 2:
+	# We need all 4 corners to intersect ground; otherwise part of the frustum
+	# points above the horizon and map clamping math becomes invalid.
+	if world_points.size() != 4:
 		return Rect2()
 
 	# Calculate footprint extents on ground (XZ plane)
@@ -206,72 +213,71 @@ func clamp_to_map() -> void:
 	##
 	## Uses corner ray-casting to calculate what the camera sees on the ground,
 	## then moves camera to keep that footprint inside map_rect_xz bounds.
-	## For orthographic cameras, moving camera in XZ translates footprint 1:1.
+	for i: int in range(MAX_CLAMP_ITERATIONS):
+		var footprint: Rect2 = get_ground_footprint_xz()
+		if footprint.size == Vector2.ZERO:
+			return
 
-	var footprint: Rect2 = get_ground_footprint_xz()
-	if footprint.size == Vector2.ZERO:
-		return
+		var view_min_x: float = footprint.position.x
+		var view_max_x: float = view_min_x + footprint.size.x
+		var view_min_z: float = footprint.position.y
+		var view_max_z: float = view_min_z + footprint.size.y
+		var view_center_x: float = view_min_x + footprint.size.x * 0.5
+		var view_center_z: float = view_min_z + footprint.size.y * 0.5
 
-	var view_min_x: float = footprint.position.x
-	var view_max_x: float = view_min_x + footprint.size.x
-	var view_min_z: float = footprint.position.y
-	var view_max_z: float = view_min_z + footprint.size.y
-	var view_center_x: float = view_min_x + footprint.size.x * 0.5
-	var view_center_z: float = view_min_z + footprint.size.y * 0.5
+		# Map bounds
+		var map_min_x: float = map_rect_xz.position.x
+		var map_min_z: float = map_rect_xz.position.y
+		var map_max_x: float = map_min_x + map_rect_xz.size.x
+		var map_max_z: float = map_min_z + map_rect_xz.size.y
 
-	# Map bounds
-	var map_min_x: float = map_rect_xz.position.x
-	var map_min_z: float = map_rect_xz.position.y
-	var map_max_x: float = map_min_x + map_rect_xz.size.x
-	var map_max_z: float = map_min_z + map_rect_xz.size.y
+		# Calculate view and map dimensions
+		var view_width: float = view_max_x - view_min_x
+		var view_height: float = view_max_z - view_min_z
+		var map_width: float = map_max_x - map_min_x
+		var map_height: float = map_max_z - map_min_z
 
-	# Calculate view and map dimensions
-	var view_width: float = view_max_x - view_min_x
-	var view_height: float = view_max_z - view_min_z
-	var map_width: float = map_max_x - map_min_x
-	var map_height: float = map_max_z - map_min_z
+		# Calculate translation needed to bring footprint inside bounds
+		var dx: float = 0.0
+		var dz: float = 0.0
+		var map_center_x: float = (map_min_x + map_max_x) * 0.5
+		var map_center_z: float = (map_min_z + map_max_z) * 0.5
 
-	# Calculate translation needed to bring footprint inside bounds
-	var dx: float = 0.0
-	var dz: float = 0.0
-	var map_center_x: float = (map_min_x + map_max_x) * 0.5
-	var map_center_z: float = (map_min_z + map_max_z) * 0.5
-
-	# If the view footprint is larger than the map on an axis, pin center on that axis.
-	if view_width >= map_width:
-		if center_if_too_big:
-			dx = map_center_x - view_center_x
+		# If the view footprint is larger than the map on an axis, pin center on that axis.
+		if view_width >= map_width:
+			if center_if_too_big:
+				dx = map_center_x - view_center_x
+			else:
+				# Fallback mode: keep one side pinned when oversized.
+				dx = map_min_x - view_min_x
 		else:
-			# Fallback mode: keep one side pinned when oversized.
-			dx = map_min_x - view_min_x
-	else:
-		# X-axis clamping
-		if view_min_x < map_min_x:
-			dx = map_min_x - view_min_x  # Need to move right
-		elif view_max_x > map_max_x:
-			dx = map_max_x - view_max_x  # Need to move left (negative)
+			# X-axis clamping
+			if view_min_x < map_min_x:
+				dx = map_min_x - view_min_x  # Need to move right
+			elif view_max_x > map_max_x:
+				dx = map_max_x - view_max_x  # Need to move left (negative)
 
-	if view_height >= map_height:
-		if center_if_too_big:
-			dz = map_center_z - view_center_z
+		if view_height >= map_height:
+			if center_if_too_big:
+				dz = map_center_z - view_center_z
+			else:
+				# Fallback mode: keep one side pinned when oversized.
+				dz = map_min_z - view_min_z
 		else:
-			# Fallback mode: keep one side pinned when oversized.
-			dz = map_min_z - view_min_z
-	else:
-		# Z-axis clamping
-		if view_min_z < map_min_z:
-			dz = map_min_z - view_min_z  # Need to move forward
-		elif view_max_z > map_max_z:
-			dz = map_max_z - view_max_z  # Need to move back (negative)
+			# Z-axis clamping
+			if view_min_z < map_min_z:
+				dz = map_min_z - view_min_z  # Need to move forward
+			elif view_max_z > map_max_z:
+				dz = map_max_z - view_max_z  # Need to move back (negative)
 
-	# STABILITY: Only apply correction if offset is significant (prevents micro-jitter)
-	if abs(dx) < CLAMP_EPSILON and abs(dz) < CLAMP_EPSILON:
-		return
+		# STABILITY: Only apply correction if offset is significant (prevents micro-jitter)
+		if abs(dx) < CLAMP_EPSILON and abs(dz) < CLAMP_EPSILON:
+			return
 
-	# Move camera to bring footprint inside bounds
-	# For orthographic cameras, moving camera XZ translates footprint 1:1
-	position.x += dx
-	position.z += dz
+		# Perspective projection introduces slight coupling between position and
+		# footprint scale; iterate to converge fully inside bounds.
+		position.x += dx
+		position.z += dz
 
 func _input(event: InputEvent) -> void:
 	## Handle mouse and touch input for panning and zooming
@@ -290,17 +296,17 @@ func _handle_zoom(event: InputEvent) -> void:
 		var mouse_event: InputEventMouseButton = event
 		if mouse_event.pressed:
 			if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
-				# Zoom in (decrease ortho size)
+				# Zoom in (decrease FOV)
 				_apply_zoom(-zoom_speed)
 			elif mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-				# Zoom out (increase ortho size)
+				# Zoom out (increase FOV)
 				_apply_zoom(zoom_speed)
 
 	# Support macOS/Linux trackpad pinch-to-zoom gesture
 	elif event is InputEventMagnifyGesture:
 		var magnify_event: InputEventMagnifyGesture = event
 		# factor > 1.0 means pinch out (zoom out), < 1.0 means pinch in (zoom in)
-		# We invert this to make pinch-in zoom in (decrease size)
+		# We invert this to make pinch-in zoom in (decrease FOV)
 		var zoom_delta: float = (1.0 - magnify_event.factor) * zoom_speed * 10.0
 		_apply_zoom(zoom_delta)
 
@@ -308,13 +314,13 @@ func _handle_zoom(event: InputEvent) -> void:
 	elif event is InputEventPanGesture:
 		var pan_gesture: InputEventPanGesture = event
 		# delta.y > 0 means scroll down, < 0 means scroll up
-		# Scroll up = zoom in (decrease size), scroll down = zoom out (increase size)
+		# Scroll up = zoom in (decrease FOV), scroll down = zoom out (increase FOV)
 		var zoom_delta: float = pan_gesture.delta.y * zoom_speed * 0.2
 		_apply_zoom(zoom_delta)
 
 func _apply_zoom(delta: float) -> void:
 	## Apply zoom change and re-clamp camera
-	size = clamp(size + delta, min_ortho_size, max_ortho_size)
+	fov = clamp(fov + delta, min_fov, max_fov)
 	# Clamp after zoom to adjust for new view size
 	clamp_to_map()
 
@@ -372,7 +378,7 @@ func _apply_pan_delta(delta: Vector2) -> void:
 
 	# Vertical panning (Z-axis) only allowed when zoomed in
 	var desired_dz: float = 0.0
-	if not vertical_pan_only_when_zoomed or size < default_ortho_size:
+	if not vertical_pan_only_when_zoomed or fov < default_fov:
 		desired_dz = delta.y * pan_speed * TOUCH_TO_WORLD_SCALE
 
 	# Constrain movement before applying, so drag panning "stops at edge"
@@ -382,6 +388,7 @@ func _apply_pan_delta(delta: Vector2) -> void:
 		return
 	position.x += constrained_pan.x
 	position.z += constrained_pan.y
+	clamp_to_map()
 
 func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vector2:
 	var footprint: Rect2 = get_ground_footprint_xz()
@@ -465,7 +472,7 @@ func _handle_keyboard_pan(delta: float) -> void:
 		pan_input.x -= 1.0
 
 	# Collect vertical input (only if zoomed in or restriction disabled)
-	if not vertical_pan_only_when_zoomed or size < default_ortho_size:
+	if not vertical_pan_only_when_zoomed or fov < default_fov:
 		if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
 			pan_input.y -= 1.0  # Down = move toward negative Z (closer to camera)
 		if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
@@ -485,6 +492,7 @@ func _handle_keyboard_pan(delta: float) -> void:
 			return
 		position.x += constrained_pan.x
 		position.z += constrained_pan.y
+		clamp_to_map()
 
 func _handle_edge_pan(delta: float) -> void:
 	## Pan the camera when mouse is near screen edges (RTS-style)
@@ -506,7 +514,7 @@ func _handle_edge_pan(delta: float) -> void:
 		pan_input.x = 1.0
 
 	# Check vertical edges (only if zoomed in or restriction disabled)
-	if not vertical_pan_only_when_zoomed or size < default_ortho_size:
+	if not vertical_pan_only_when_zoomed or fov < default_fov:
 		if mouse_pos.y <= edge_pan_margin:
 			# Near top edge, pan up (away from camera)
 			pan_input.y = 1.0
@@ -514,15 +522,16 @@ func _handle_edge_pan(delta: float) -> void:
 			# Near bottom edge, pan down (toward camera)
 			pan_input.y = -1.0
 
-	if pan_input != Vector2.ZERO:
-		# Apply edge panning (no need to normalize, edges are mutually exclusive)
-		var desired_dx: float = pan_input.x * pan_speed * edge_pan_speed * delta
-		var desired_dz: float = pan_input.y * pan_speed * edge_pan_speed * delta
-		var constrained_pan: Vector2 = _constrain_pan_motion_to_map(desired_dx, desired_dz)
-		if constrained_pan == Vector2.ZERO:
-			return
-		position.x += constrained_pan.x
-		position.z += constrained_pan.y
+		if pan_input != Vector2.ZERO:
+			# Apply edge panning (no need to normalize, edges are mutually exclusive)
+			var desired_dx: float = pan_input.x * pan_speed * edge_pan_speed * delta
+			var desired_dz: float = pan_input.y * pan_speed * edge_pan_speed * delta
+			var constrained_pan: Vector2 = _constrain_pan_motion_to_map(desired_dx, desired_dz)
+			if constrained_pan == Vector2.ZERO:
+				return
+			position.x += constrained_pan.x
+			position.z += constrained_pan.y
+			clamp_to_map()
 
 func _ensure_debug_overlay() -> void:
 	if _debug_overlay_mesh:
