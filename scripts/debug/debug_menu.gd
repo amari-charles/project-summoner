@@ -498,6 +498,8 @@ func _on_camera_projection_toggle_pressed() -> void:
 		return
 
 	camera.call("toggle_projection_mode")
+	if camera.has_method("get_projection_mode_name"):
+		print("[Debug] Camera mode -> %s" % camera.call("get_projection_mode_name"))
 	_refresh_camera_projection_button_state()
 
 
@@ -694,15 +696,20 @@ func _get_unit_debug_service() -> Node:
 func _find_battle_camera_controller() -> Node:
 	# Prefer active viewport camera first.
 	var active_camera: Camera3D = get_viewport().get_camera_3d()
-	if active_camera and active_camera.has_method("get_ground_footprint_xz"):
+	if active_camera and active_camera.has_method("set_projection_mode"):
 		return active_camera
 
-	# Fallback: camera under battlefield root group.
+	# Fallback: search under battlefield root group.
 	var battlefield: Node = get_tree().get_first_node_in_group("battlefield")
 	if battlefield:
-		var battlefield_camera: Node = battlefield.get_node_or_null("Camera3D")
-		if battlefield_camera and battlefield_camera.has_method("get_ground_footprint_xz"):
-			return battlefield_camera
+		var stack: Array[Node] = [battlefield]
+		while not stack.is_empty():
+			var node: Node = stack.pop_back()
+			if node.has_method("set_projection_mode"):
+				return node
+			for child_var: Variant in node.get_children():
+				if child_var is Node:
+					stack.append(child_var as Node)
 
 	return null
 
