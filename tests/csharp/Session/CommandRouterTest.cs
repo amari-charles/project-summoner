@@ -7,11 +7,13 @@ using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using GdUnit4;
 using Fateforged.Tests.Simulation;
+using SimulationRuntime = Fateforged.Simulation.Simulation;
 using static GdUnit4.Assertions;
 
 [TestSuite]
 public class CommandRouterTest
 {
+    private const float MinPlayCardIntervalSeconds = 0.05f;
     private CommandRouter _router = null!;
     private MatchState _state = null!;
 
@@ -166,11 +168,12 @@ public class CommandRouterTest
     [TestCase]
     public void PlayCard_RateLimitWindowElapsed_AcceptsCommand()
     {
+        long requiredFrameGap = (long)System.Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds);
         _state.FrameNumber = 100;
         var first = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
         AssertThat(first.IsValid).IsTrue();
 
-        _state.FrameNumber = 103; // >= MinPlayCardIntervalFrames
+        _state.FrameNumber = 100 + requiredFrameGap;
         var second = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
         AssertThat(second.IsValid).IsTrue();
     }
@@ -178,6 +181,7 @@ public class CommandRouterTest
     [TestCase]
     public void PlayCard_RateLimit_DoesNotDependOnMatchTimeAdvancing()
     {
+        long requiredFrameGap = (long)System.Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds);
         _state.Phase = GamePhase.Preparation;
         _state.MatchTime = 0f;
         _state.FrameNumber = 10;
@@ -187,7 +191,7 @@ public class CommandRouterTest
 
         // Preparation phase can keep MatchTime constant while FrameNumber advances.
         _state.MatchTime = 0f;
-        _state.FrameNumber = 13;
+        _state.FrameNumber = 10 + requiredFrameGap;
         var second = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
         AssertThat(second.IsValid).IsTrue();
     }

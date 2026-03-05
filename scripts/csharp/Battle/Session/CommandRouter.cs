@@ -1,9 +1,11 @@
+using System;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Constants;
 using System.Collections.Generic;
+using SimulationRuntime = Fateforged.Simulation.Simulation;
 
 namespace Fateforged.Session;
 
@@ -14,8 +16,9 @@ namespace Fateforged.Session;
 /// </summary>
 public class CommandRouter
 {
-    // At 60Hz simulation, 3 frames ~= 0.05 seconds.
-    private const long MinPlayCardIntervalFrames = 3;
+    private const float MinPlayCardIntervalSeconds = 0.05f;
+    private static readonly long MinPlayCardIntervalFrames =
+        Math.Max(1L, (long)Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds));
 
     public readonly record struct ValidationResult(bool IsValid, string Reason);
     public static readonly ValidationResult Valid = new(true, "");
