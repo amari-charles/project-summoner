@@ -43,34 +43,29 @@ public enum TargetLayer
 public enum UnitTargetingProfile
 {
     /// <summary>
-    /// Infer profile from core unit properties (passive, melee, ranged).
-    /// </summary>
-    Auto = 0,
-
-    /// <summary>
     /// Passive/non-combat unit. No chasing or attacking behavior.
     /// </summary>
-    Passive = 1,
+    Passive = 0,
 
     /// <summary>
     /// Ground melee profile: move toward enemies, prioritize ground.
     /// </summary>
-    MeleeGround = 2,
+    MeleeGround = 1,
 
     /// <summary>
     /// Ground ranged profile: move toward enemies when out of range.
     /// </summary>
-    RangedGround = 3,
+    RangedGround = 2,
 
     /// <summary>
     /// Ranged strafe profile: uses strafe fallback without cone gating.
     /// </summary>
-    RangedStrafe = 4,
+    RangedStrafe = 3,
 
     /// <summary>
     /// Flying cone profile: strafe fallback with cone attack constraint.
     /// </summary>
-    FlyingConeStrafe = 5
+    FlyingConeStrafe = 4
 }
 
 /// <summary>

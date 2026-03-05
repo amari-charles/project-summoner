@@ -35,11 +35,23 @@ public record UnitDefinition
     /// <summary>Whether this unit is Ground or Air.</summary>
     public MovementLayer MovementLayer { get; init; } = MovementLayer.Ground;
 
-    /// <summary>
-    /// Targeting profile used when building simulation templates.
-    /// Auto infers from stats/unit type.
-    /// </summary>
-    public UnitTargetingProfile TargetingProfile { get; init; } = UnitTargetingProfile.Auto;
+    /// <summary>Targeting profile used when building simulation templates.</summary>
+    public required UnitTargetingProfile TargetingProfile { get; init; }
+
+    /// <summary>Distance scoring weight for target selection.</summary>
+    public float TargetingDistanceScorerWeight { get; init; } = 1f;
+
+    /// <summary>Health scoring weight for target selection.</summary>
+    public float TargetingHealthScorerWeight { get; init; } = 10f;
+
+    /// <summary>Layer filter for target acquisition.</summary>
+    public TargetLayer TargetingLayerFilter { get; init; } = TargetLayer.GroundOnly;
+
+    /// <summary>Cone half-angle used when the profile has cone constraints.</summary>
+    public float TargetingConeHalfAngle { get; init; } = 30f;
+
+    /// <summary>Close-range threshold used for cone edge behavior.</summary>
+    public float TargetingCloseRangeThreshold { get; init; } = 0.5f;
 
     // =========================================================================
     // RANGED CONFIGURATION (null = not a ranged unit)
