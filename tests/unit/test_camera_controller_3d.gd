@@ -157,6 +157,32 @@ func test_constrain_pan_motion_limits_single_step_to_available_room() -> void:
 	_camera.position = start_position
 
 
+func test_perspective_clamp_is_stable_at_edges() -> void:
+	_camera.vertical_pan_only_when_zoomed = false
+	# Force a large move so clamp pushes to map boundary in perspective mode.
+	_camera.position.x += 10000.0
+	_camera.position.z += 10000.0
+	_camera.clamp_to_map()
+	var anchored_position: Vector3 = _camera.position
+	_assert_footprint_inside_map("Initial clamp after large move must remain inside map")
+
+	for i: int in range(5):
+		_camera.clamp_to_map()
+		assert_almost_eq(
+			_camera.position.x,
+			anchored_position.x,
+			0.001,
+			"Repeated clamp should not drift on X in perspective mode (iteration %d)" % i
+		)
+		assert_almost_eq(
+			_camera.position.z,
+			anchored_position.z,
+			0.001,
+			"Repeated clamp should not drift on Z in perspective mode (iteration %d)" % i
+		)
+		_assert_footprint_inside_map("Repeated clamp must keep footprint inside map (iteration %d)" % i)
+
+
 func test_edge_pan_is_ignored_while_drag_panning() -> void:
 	# Oversized margin guarantees edge-pan input regardless cursor location.
 	_camera.edge_pan_margin = 100000.0

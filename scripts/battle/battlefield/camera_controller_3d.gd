@@ -254,6 +254,9 @@ func get_ground_footprint_xz() -> Rect2:
 	var view_size: Vector2i = vp.get_visible_rect().size
 	var w: float = float(view_size.x)
 	var h: float = float(view_size.y)
+	if w <= 0.0 or h <= 0.0:
+		return Rect2()
+	var screen_size: Vector2 = Vector2(w, h)
 
 	# Define 4 screen corners
 	var screen_corners: Array[Vector2] = [
@@ -265,21 +268,40 @@ func get_ground_footprint_xz() -> Rect2:
 
 	# Project each corner to ground plane (y = ground_y)
 	var world_points: Array[Vector3] = []
-	for corner: Vector2 in screen_corners:
-		var origin: Vector3 = project_ray_origin(corner)
-		var dir: Vector3 = project_ray_normal(corner)
+	if is_perspective_mode():
+		for corner: Vector2 in screen_corners:
+			var origin: Vector3 = global_position
+			var dir: Vector3 = _get_perspective_ray_direction(corner, screen_size)
 
-		# Skip if ray is parallel to ground (shouldn't happen with tilted camera)
-		if abs(dir.y) < 0.0001:
-			continue
+			# Skip if ray is parallel to ground (would create unstable intersection).
+			if abs(dir.y) < 0.0001:
+				continue
 
-		# Calculate intersection with ground plane: t = (ground_y - origin.y) / dir.y
-		var t: float = (ground_y - origin.y) / dir.y
+			var t: float = (ground_y - origin.y) / dir.y
+			if t < 0.0:
+				continue
 
-		# Only consider intersections in front of camera
-		if t >= 0.0:
 			var point: Vector3 = origin + dir * t
+			var depth: float = _get_forward_depth(point)
+			if depth < near - CLAMP_EPSILON or depth > far + CLAMP_EPSILON:
+				continue
 			world_points.append(point)
+	else:
+		for corner: Vector2 in screen_corners:
+			var origin: Vector3 = project_ray_origin(corner)
+			var dir: Vector3 = project_ray_normal(corner)
+
+			# Skip if ray is parallel to ground (shouldn't happen with tilted camera)
+			if abs(dir.y) < 0.0001:
+				continue
+
+			# Calculate intersection with ground plane: t = (ground_y - origin.y) / dir.y
+			var t: float = (ground_y - origin.y) / dir.y
+
+			# Only consider intersections in front of camera
+			if t >= 0.0:
+				var point: Vector3 = origin + dir * t
+				world_points.append(point)
 
 	# We need all 4 corners to intersect ground; otherwise part of the frustum
 	# points above the horizon and map clamping math becomes invalid.
@@ -302,6 +324,29 @@ func get_ground_footprint_xz() -> Rect2:
 		Vector2(view_min_x, view_min_z),
 		Vector2(view_max_x - view_min_x, view_max_z - view_min_z)
 	)
+
+func _get_perspective_ray_direction(screen_pos: Vector2, screen_size: Vector2) -> Vector3:
+	var aspect: float = screen_size.x / screen_size.y
+	var half_fov_tan: float = tan(deg_to_rad(fov) * 0.5)
+
+	var tan_x: float
+	var tan_y: float
+	if keep_aspect == KEEP_WIDTH:
+		tan_x = half_fov_tan
+		tan_y = tan_x / aspect
+	else:
+		tan_y = half_fov_tan
+		tan_x = tan_y * aspect
+
+	# Convert screen pixels to normalized device coordinates in range [-1, 1].
+	var ndc_x: float = (screen_pos.x / screen_size.x) * 2.0 - 1.0
+	var ndc_y: float = 1.0 - (screen_pos.y / screen_size.y) * 2.0
+	var local_dir: Vector3 = Vector3(ndc_x * tan_x, ndc_y * tan_y, -1.0).normalized()
+	return (global_basis * local_dir).normalized()
+
+func _get_forward_depth(world_pos: Vector3) -> float:
+	var forward: Vector3 = -global_basis.z
+	return forward.dot(world_pos - global_position)
 
 func clamp_to_map() -> void:
 	## Clamps camera to keep ground footprint (projection) within map bounds
