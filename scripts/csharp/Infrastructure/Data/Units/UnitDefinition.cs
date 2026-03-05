@@ -35,6 +35,12 @@ public record UnitDefinition
     /// <summary>Whether this unit is Ground or Air.</summary>
     public MovementLayer MovementLayer { get; init; } = MovementLayer.Ground;
 
+    /// <summary>
+    /// Targeting profile used when building simulation templates.
+    /// Auto infers from stats/unit type.
+    /// </summary>
+    public UnitTargetingProfile TargetingProfile { get; init; } = UnitTargetingProfile.Auto;
+
     // =========================================================================
     // RANGED CONFIGURATION (null = not a ranged unit)
     // =========================================================================

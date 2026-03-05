@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Godot;
@@ -289,6 +290,7 @@ public static class UnitDefinitions
             AggroRadius = 0f
         },
         UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.Passive,
         Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
         ScenePath = "res://scenes/battle/units/rock_3d.tscn"
     };
@@ -350,6 +352,7 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Ranged,
         MovementLayer = MovementLayer.Air,
+        TargetingProfile = UnitTargetingProfile.FlyingConeStrafe,
         Ranged = new RangedConfig(ProjectileIds.WindPuff)
         {
             ProjectileDelay = 0.585f,
@@ -429,6 +432,7 @@ public static class UnitDefinitions
             AggroRadius = 16f
         },
         UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedStrafe,
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
         Visual = new VisualConfig { SeparationRadius = 0.25f, ShadowOpacity = 0.3f },
         ScenePath = "res://scenes/battle/units/duckling_3d.tscn"
@@ -548,49 +552,63 @@ public static class UnitDefinitions
 
     /// <summary>
     /// Set targeting profile fields based on unit definition.
-    /// Values inlined from the old MeleeTargeting, RangedGroundTargeting,
-    /// PassiveTargeting, PuffConeTargeting, DucklingTargeting implementations.
+    /// Profiles can be explicitly configured on UnitDefinition or inferred via Auto.
     /// </summary>
     private static void SetTargetingProfile(UnitDefinition def, SimUnitTemplate template)
     {
-        // Passive units (no aggro, stationary)
+        var profile = def.TargetingProfile == UnitTargetingProfile.Auto
+            ? InferTargetingProfile(def)
+            : def.TargetingProfile;
+
+        switch (profile)
+        {
+            case UnitTargetingProfile.Passive:
+                template.FallbackMovement = FallbackMovement.Idle;
+                template.TargetPolicyId = TargetPolicyId.Legacy;
+                return;
+
+            case UnitTargetingProfile.MeleeGround:
+                template.FallbackMovement = FallbackMovement.MoveToward;
+                template.HealthScorerWeight = 10f;
+                template.TargetLayerFilter = TargetLayer.GroundOnly;
+                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                return;
+
+            case UnitTargetingProfile.RangedGround:
+                template.FallbackMovement = FallbackMovement.MoveToward;
+                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                return;
+
+            case UnitTargetingProfile.RangedStrafe:
+                template.FallbackMovement = FallbackMovement.Strafe;
+                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                return;
+
+            case UnitTargetingProfile.FlyingConeStrafe:
+                template.FallbackMovement = FallbackMovement.Strafe;
+                template.HasConeConstraint = true;
+                template.ConeHalfAngle = 30f;
+                template.CloseRangeThreshold = 0.5f;
+                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                return;
+
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(profile), profile, "Unknown UnitTargetingProfile");
+        }
+    }
+
+    private static UnitTargetingProfile InferTargetingProfile(UnitDefinition def)
+    {
         if (def.Stats.AggroRadius <= 0f || def.Stats.AttackSpeed <= 0f)
-        {
-            template.FallbackMovement = FallbackMovement.Idle;
-            return;
-        }
+            return UnitTargetingProfile.Passive;
 
-        // Puff — flying cone attacker
-        if (def.Id == UnitIds.Puff)
+        return def.UnitType switch
         {
-            template.FallbackMovement = FallbackMovement.Strafe;
-            template.HasConeConstraint = true;
-            template.ConeHalfAngle = 30f;
-            template.CloseRangeThreshold = 0.5f;
-            return;
-        }
-
-        // Duckling — ranged strafe
-        if (def.Id == UnitIds.Duckling)
-        {
-            template.FallbackMovement = FallbackMovement.Strafe;
-            return;
-        }
-
-        // Melee units
-        if (def.UnitType == UnitType.Melee)
-        {
-            template.FallbackMovement = FallbackMovement.MoveToward;
-            template.HealthScorerWeight = 10f;
-            template.TargetLayerFilter = TargetLayer.GroundOnly;
-            return;
-        }
-
-        // Ranged ground units (artillery style — advance when out of range)
-        if (def.UnitType == UnitType.Ranged)
-        {
-            template.FallbackMovement = FallbackMovement.MoveToward;
-            return;
-        }
+            UnitType.Melee => UnitTargetingProfile.MeleeGround,
+            UnitType.Ranged => UnitTargetingProfile.RangedGround,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(def.UnitType), def.UnitType, "Unknown UnitType for targeting profile inference")
+        };
     }
 }

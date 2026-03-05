@@ -38,6 +38,42 @@ public enum TargetLayer
 }
 
 /// <summary>
+/// High-level targeting profile used to build simulation targeting fields.
+/// </summary>
+public enum UnitTargetingProfile
+{
+    /// <summary>
+    /// Infer profile from core unit properties (passive, melee, ranged).
+    /// </summary>
+    Auto = 0,
+
+    /// <summary>
+    /// Passive/non-combat unit. No chasing or attacking behavior.
+    /// </summary>
+    Passive = 1,
+
+    /// <summary>
+    /// Ground melee profile: move toward enemies, prioritize ground.
+    /// </summary>
+    MeleeGround = 2,
+
+    /// <summary>
+    /// Ground ranged profile: move toward enemies when out of range.
+    /// </summary>
+    RangedGround = 3,
+
+    /// <summary>
+    /// Ranged strafe profile: uses strafe fallback without cone gating.
+    /// </summary>
+    RangedStrafe = 4,
+
+    /// <summary>
+    /// Flying cone profile: strafe fallback with cone attack constraint.
+    /// </summary>
+    FlyingConeStrafe = 5
+}
+
+/// <summary>
 /// Activation state for spawn reveal system.
 /// </summary>
 public enum ActivationState
