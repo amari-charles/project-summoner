@@ -13,6 +13,7 @@ public class SimProjectileData
 {
     // Identity
     public int ProjectileId { get; set; }
+    public string ProjectileCatalogId { get; set; } = "";
     public int SourceUnitId { get; set; }
     public int TargetUnitId { get; set; }
     public Team Team { get; set; }
@@ -34,6 +35,14 @@ public class SimProjectileData
     // Progress (0 to 1 for path-based movement)
     public float Progress { get; set; }
     public float Speed { get; set; }
+    public float Acceleration { get; set; }
+    public float MinSpeed { get; set; } = 1f;
+    public bool UseSpeedEasing { get; set; }
+    public float SpeedStart { get; set; }
+    public float SpeedEnd { get; set; }
+    public float SpeedTransitionDuration { get; set; } = 1f;
+    public SpeedEasingType SpeedEasing { get; set; } = SpeedEasingType.Linear;
+    public float SpeedEaseExponent { get; set; } = 2f;
     public float TimeAlive { get; set; }
     public float Lifetime { get; set; } = 5f;
 

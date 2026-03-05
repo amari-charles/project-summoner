@@ -72,8 +72,8 @@ public partial class ShopService : Node
         _economy = EconomyService.Instance;
         _rewardService = RewardService.Instance;
         _summonerSelection = SummonerSelectionService.Instance;
-        _platformBilling = GetNodeOrNull<PlatformBillingService>("/root/PlatformBilling");
-        _billingCatalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        _platformBilling = PlatformBillingService.Instance;
+        _billingCatalog = BillingCatalogService.Instance;
         _loc = GetNodeOrNull("/root/Loc");
 
         _catalog = ShopCatalog.BuildCatalog();
@@ -86,11 +86,20 @@ public partial class ShopService : Node
 
     private void ConnectBillingSignals()
     {
+        ResolveBillingDependencies();
+
         if (_platformBilling != null)
         {
-            _platformBilling.Connect("purchase_completed", Callable.From<string, string>(OnBillingPurchaseCompleted));
-            _platformBilling.Connect("purchase_failed", Callable.From<string, string>(OnBillingPurchaseFailed));
-            _platformBilling.Connect("purchase_cancelled", Callable.From<string>(OnBillingPurchaseCancelled));
+            var onCompleted = Callable.From<string, string>(OnBillingPurchaseCompleted);
+            var onFailed = Callable.From<string, string>(OnBillingPurchaseFailed);
+            var onCancelled = Callable.From<string>(OnBillingPurchaseCancelled);
+
+            if (!_platformBilling.IsConnected("purchase_completed", onCompleted))
+                _platformBilling.Connect("purchase_completed", onCompleted);
+            if (!_platformBilling.IsConnected("purchase_failed", onFailed))
+                _platformBilling.Connect("purchase_failed", onFailed);
+            if (!_platformBilling.IsConnected("purchase_cancelled", onCancelled))
+                _platformBilling.Connect("purchase_cancelled", onCancelled);
         }
     }
 
@@ -258,6 +267,7 @@ public partial class ShopService : Node
                 return CompleteCurrencyPurchase(offering, offeringId, shopId, purchaseKey, price, CurrencyType.Gems);
 
             case CurrencyType.RealMoney:
+                ResolveBillingDependencies();
                 var productId = offering.ProductId ?? offeringId;
                 _pendingBillingPurchases[productId] = new PendingBillingPurchase
                 {
@@ -499,6 +509,7 @@ public partial class ShopService : Node
 
     private void OnBillingPurchaseCompleted(string productId, string transactionId)
     {
+        ResolveBillingDependencies();
         GD.Print($"ShopService: Billing purchase completed - product: {productId}, txn: {transactionId}");
 
         if (_pendingBillingPurchases.Remove(productId, out var pending))
@@ -565,6 +576,12 @@ public partial class ShopService : Node
         {
             EmitPurchaseFailed(pending.OfferingId, "Purchase cancelled");
         }
+    }
+
+    private void ResolveBillingDependencies()
+    {
+        _platformBilling ??= PlatformBillingService.Instance;
+        _billingCatalog ??= BillingCatalogService.Instance;
     }
 
     // =========================================================================

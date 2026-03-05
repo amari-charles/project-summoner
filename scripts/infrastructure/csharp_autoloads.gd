@@ -27,6 +27,7 @@ const PROJECTILE_CATALOG: String = "/root/ProjectileCatalog"
 
 # Infrastructure
 const PROFILE_REPO: String = "/root/ProfileRepo"
+const BATTLEFIELD_DEBUG: String = "/root/BattlefieldDebug"
 const BILLING_CATALOG: String = "/root/BillingCatalog"
 const PLATFORM_BILLING: String = "/root/PlatformBilling"
 

@@ -23,7 +23,6 @@ public partial class InputCollector : Control
     // Raycast / positioning constants
     private const float RaycastMaxDistance = 1000f;
     private const float DefaultSpellRadius = 5.0f;
-    private const float SpawnBoundaryEpsilon = 0.001f;
     private const int NoTargetId = -1;
 
     // =========================================================================
@@ -241,19 +240,13 @@ public partial class InputCollector : Control
 
     private static bool IsValidSpawnPosition(Vector3 pos, int team)
     {
-        if (team == TeamPlayer)
-            return pos.X <= 0f;
-        return pos.X > 0f;
+        return BattlefieldBounds.IsInBounds(pos)
+            && BattlefieldBounds.IsValidSpawnPositionForTeam(pos, team);
     }
 
     private static Vector3 ClampSpawnPosition(Vector3 pos, int team)
     {
-        var clamped = pos;
-        if (team == TeamPlayer && pos.X > 0f)
-            clamped.X = 0f;
-        else if (team == TeamEnemy && pos.X <= 0f)
-            clamped.X = SpawnBoundaryEpsilon;
-        return clamped;
+        return BattlefieldBounds.ClampToValidSpawnZone(pos, team);
     }
 
     // =========================================================================
@@ -390,6 +383,12 @@ public partial class InputCollector : Control
 
     private void ShowSpawnZoneOverlay()
     {
+        if (BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled())
+        {
+            CleanupSpawnZoneOverlay();
+            return;
+        }
+
         if (_spawnZoneOverlay != null && IsInstanceValid(_spawnZoneOverlay))
             return;
 
@@ -434,7 +433,9 @@ public partial class InputCollector : Control
         if (worldPos != Vector3.Zero)
         {
             int team = DictGetInt(data, "team", 1);
-            UpdateSpawnPreview(worldPos, card, true, team);
+            bool isValidZone = IsValidSpawnPosition(worldPos, team);
+            var clampedPos = ClampSpawnPosition(worldPos, team);
+            UpdateSpawnPreview(clampedPos, card, isValidZone, team);
         }
 
         return true;
@@ -443,6 +444,7 @@ public partial class InputCollector : Control
     private async void DropDebugSpawn(Vector2 atPosition, Godot.Collections.Dictionary data)
     {
         CleanupSpawnPreview();
+        CleanupSpawnZoneOverlay();
 
         if (!data.ContainsKey("card") || data["card"].AsGodotObject() is not Card card)
         {
@@ -459,6 +461,7 @@ public partial class InputCollector : Control
         }
 
         int unitTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
+        worldPos = ClampSpawnPosition(worldPos, unitTeam);
         card.SpawnAt(worldPos, unitTeam);
 
         // Activate newly spawned units immediately (debug mode bypasses prep phase)

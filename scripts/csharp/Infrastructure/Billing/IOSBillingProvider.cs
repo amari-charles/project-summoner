@@ -88,14 +88,14 @@ public partial class IOSBillingProvider : BillingProvider
 
     private void _load_products_from_catalog()
     {
-        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        var catalog = GetCatalog();
         _products = catalog?.get_all_products() ?? [];
         EmitSignal("products_loaded", _products);
     }
 
     private string _map_product_id(string product_id)
     {
-        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        var catalog = GetCatalog();
         return catalog?.get_platform_product_id(product_id, "ios") ?? "";
     }
 

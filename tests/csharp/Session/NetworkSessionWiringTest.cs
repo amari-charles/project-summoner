@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Multiplayer.Transport;
+using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
@@ -61,21 +62,7 @@ public class NetworkSessionWiringTest
             [
                 new UnitState(10, 0, new Vector3(-5f, 0f, 0f), 100f, 100f, null, true, (int)ActivationState.Active, (int)BehaviorState.NoTarget, true)
             ],
-            Projectiles:
-            [
-                new ProjectileState(
-                    ProjectileId: 99,
-                    SourceUnitId: 10,
-                    TargetUnitId: -2,
-                    Team: 0,
-                    MovementType: 0,
-                    CurrentPosition: new Vector3(-4f, 0.5f, 1f),
-                    Direction: new Vector3(1f, 0f, 0f),
-                    TargetPosition: new Vector3(5f, 0f, 1f),
-                    Progress: 0.4f,
-                    Speed: 9f,
-                    IsDead: false)
-            ],
+            Projectiles: System.Array.Empty<ProjectileState>(),
             StateHash: 0,
             IsOvertime: false
         );
@@ -87,9 +74,116 @@ public class NetworkSessionWiringTest
         AssertThat(state.FrameNumber).IsEqual(42);
         AssertThat(state.Units.ContainsKey(10)).IsTrue();
         AssertThat(state.Units[10].Position.X).IsEqual(-5f);
+        AssertThat(state.Projectiles.Count).IsEqual(0);
+    }
+
+    [TestCase]
+    public void ClientSession_ProjectileLifecycleMessages_UpdateLocalProjectileState()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        var spawned = new ProjectileSpawned(
+            ProjectileId: 99,
+            SourceUnitId: 10,
+            TargetUnitId: -2,
+            Team: 0,
+            MovementType: 0,
+            CurrentPosition: new Vector3(-4f, 0.5f, 1f),
+            Direction: new Vector3(1f, 0f, 0f),
+            TargetPosition: new Vector3(5f, 0f, 1f),
+            Speed: 9f,
+            ProjectileCatalogId: "weaving_bolt",
+            Acceleration: 5f,
+            MinSpeed: 2f,
+            UseSpeedEasing: true,
+            SpeedStart: 7f,
+            SpeedEnd: 13f,
+            SpeedTransitionDuration: 0.75f,
+            SpeedEasing: 2,
+            SpeedEaseExponent: 2.2f,
+            TimeAlive: 0.33f,
+            Lifetime: 4.0f
+        );
+
+        transport.EmitMessage(1, serializer.Serialize(spawned));
+        session.Tick(0.016f);
+
         AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
-        AssertThat(state.Projectiles[99].CurrentPosition.X).IsEqual(-4f);
-        AssertThat(state.Projectiles[99].Direction.X).IsEqual(1f);
+        AssertThat(state.Projectiles[99].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(state.Projectiles[99].Acceleration).IsEqual(5f);
+
+        transport.EmitMessage(1, serializer.Serialize(new ProjectileImpact(99, 10)));
+        session.Tick(0.016f);
+
+        AssertThat(state.Projectiles.ContainsKey(99)).IsFalse();
+    }
+
+    [TestCase]
+    public void ClientSession_ProjectileSeedSnapshot_RebuildsProjectileVisualState()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Projectiles[1] = new SimProjectileData { ProjectileId = 1 };
+
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        var seed = new ProjectileSeedSnapshot(
+            Frame: 50,
+            Projectiles:
+            [
+                new ActiveProjectileSeed(
+                    ProjectileId: 99,
+                    SourceUnitId: 10,
+                    TargetUnitId: -2,
+                    Team: 0,
+                    MovementType: 0,
+                    CurrentPosition: new Vector3(-4f, 0.5f, 1f),
+                    Direction: new Vector3(1f, 0f, 0f),
+                    TargetPosition: new Vector3(5f, 0f, 1f),
+                    Speed: 9f,
+                    ProjectileCatalogId: "weaving_bolt")
+            ]);
+
+        transport.EmitMessage(1, serializer.Serialize(seed));
+        session.Tick(0.016f);
+
+        AssertThat(state.Projectiles.ContainsKey(1)).IsFalse();
+        AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
+        AssertThat(state.Projectiles[99].ProjectileCatalogId).IsEqual("weaving_bolt");
+    }
+
+    [TestCase]
+    public void ClientSession_SpellCastVisualMessage_EmitsSpellCastEvent()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        SpellCastEvent? seenEvent = null;
+        session.SimEventsEmitted += events =>
+        {
+            foreach (var evt in events)
+            {
+                if (evt is SpellCastEvent spellCast)
+                    seenEvent = spellCast;
+            }
+        };
+
+        transport.EmitMessage(1, serializer.Serialize(new SpellCastVisual(
+            Team: 0,
+            CatalogId: "fireball",
+            Position: new Vector3(3f, 0f, -1f))));
+        session.Tick(0.016f);
+
+        AssertThat(seenEvent != null).IsTrue();
+        AssertThat(seenEvent?.CatalogId ?? "").IsEqual("fireball");
+        AssertThat(seenEvent?.Position.X ?? 0f).IsEqual(3f);
+        AssertThat(seenEvent?.Position.Z ?? 0f).IsEqual(-1f);
     }
 
     [TestCase]
@@ -183,6 +277,44 @@ public class NetworkSessionWiringTest
 
         AssertThat(sawMatchEnded).IsTrue();
         AssertThat(sawSnapshot).IsTrue();
+    }
+
+    [TestCase]
+    public void HostSession_PeerConnected_SendsProjectileSeedSnapshot()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Projectiles[99] = new SimProjectileData
+        {
+            ProjectileId = 99,
+            ProjectileCatalogId = "weaving_bolt",
+            SourceUnitId = 10,
+            TargetUnitId = -2,
+            Team = Team.Player,
+            MovementType = ProjectileMovementType.Straight,
+            CurrentPosition = new SimVector3(-4f, 0.5f, 1f),
+            Direction = new SimVector3(1f, 0f, 0f),
+            TargetPosition = new SimVector3(5f, 0f, 1f),
+            Speed = 9f,
+            Lifetime = 4f
+        };
+
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var serializer = new MessageSerializer();
+        var session = new HostSession(simulation, router, state, transport);
+
+        transport.EmitPeerConnected(peerId: 2);
+
+        AssertThat(transport.DirectMessages.Count).IsEqual(1);
+        var (_, msg) = transport.DirectMessages[0];
+        var type = serializer.GetMessageType(msg);
+        AssertThat(type).IsEqual(MessageType.ProjectileSeedSnapshot);
+
+        var seed = (ProjectileSeedSnapshot)serializer.Deserialize(msg);
+        AssertThat(seed.Projectiles.Length).IsEqual(1);
+        AssertThat(seed.Projectiles[0].ProjectileId).IsEqual(99);
+        AssertThat(seed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
     }
 
     [TestCase]
@@ -294,6 +426,11 @@ public class NetworkSessionWiringTest
         public void EmitPeerDisconnected(int peerId)
         {
             OnPeerDisconnected?.Invoke(peerId);
+        }
+
+        public void EmitPeerConnected(int peerId)
+        {
+            OnPeerConnected?.Invoke(peerId);
         }
 
         public void EmitDisconnected(string reason)

@@ -9,6 +9,12 @@ The targeting system involves three key calculations:
 2. **Target position** - Where the projectile aims
 3. **Path tracking** - How the projectile follows moving targets
 
+For spell cards, targeting mode now also determines projectile routing:
+
+- `Position` spells (example: Fireball) launch to the cast position and resolve damage on impact.
+- `NearestEnemy` spells (example: Mana Bolt) resolve one enemy target at cast time and damage on projectile hit.
+- Non-projectile spells still use direct `SimEffects.ApplyEffect()` paths.
+
 ## Target Position Calculation
 
 ### How It Works

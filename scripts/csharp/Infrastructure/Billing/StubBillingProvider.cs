@@ -145,7 +145,7 @@ public partial class StubBillingProvider : BillingProvider
 
     private void _load_stub_products()
     {
-        var catalog = GetNodeOrNull<BillingCatalogService>("/root/BillingCatalog");
+        var catalog = GetCatalog();
         if (catalog != null)
         {
             _products = catalog.get_all_products();

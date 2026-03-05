@@ -13,7 +13,6 @@ lifetime = 2.0
 auto_free = true
 fall_duration = 0.8
 start_offset = Vector3(0, 25, 0)
-damage = 100.0
 damage_radius = 10.0
 explosion_vfx_id = "fireball_explosion"
 camera_shake_intensity = 0.2

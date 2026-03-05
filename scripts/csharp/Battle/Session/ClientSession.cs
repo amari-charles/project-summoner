@@ -39,7 +39,6 @@ public class ClientSession : NetworkSession
     private readonly List<SimEvent> _pendingEvents = new();
     private readonly HashSet<int> _snapshotUnitIds = new();
     private readonly List<int> _staleUnitIds = new();
-    private readonly HashSet<int> _snapshotProjectileIds = new();
     private readonly List<int> _staleProjectileIds = new();
     private readonly int _localPlayerIndex;
     private int _nextCommandSequence = 1;
@@ -102,6 +101,8 @@ public class ClientSession : NetworkSession
             }
         }
 
+        TickClientProjectiles(delta);
+
         if (_pendingEvents.Count > 0)
         {
             SimEventsEmitted?.Invoke(_pendingEvents);
@@ -109,7 +110,7 @@ public class ClientSession : NetworkSession
         }
     }
 
-    protected override void HandleMessage(int senderId, object message)
+    protected override void HandleMessage(int senderId, IProtocolMessage message)
     {
         switch (message)
         {
@@ -123,6 +124,24 @@ public class ClientSession : NetworkSession
                 break;
             case SummonerDamageFlash flash:
                 _pendingEvents.Add(new SummonerDamagedEvent(flash.Team, flash.Damage, flash.AttackerUnitId));
+                break;
+            case SpellCastVisual spellCast:
+                _pendingEvents.Add(new SpellCastEvent(
+                    spellCast.Team,
+                    spellCast.CatalogId,
+                    new SimVector3(spellCast.Position.X, spellCast.Position.Y, spellCast.Position.Z)));
+                break;
+            case ProjectileSpawned spawned:
+                HandleProjectileSpawned(spawned);
+                break;
+            case ProjectileImpact impact:
+                HandleProjectileImpact(impact);
+                break;
+            case ProjectileDespawned despawned:
+                HandleProjectileDespawned(despawned);
+                break;
+            case ProjectileSeedSnapshot seedSnapshot:
+                ApplyProjectileSeedSnapshot(seedSnapshot);
                 break;
         }
     }
@@ -263,34 +282,6 @@ public class ClientSession : NetworkSession
             _localState.Units.Remove(staleId);
         }
 
-        _snapshotProjectileIds.Clear();
-        foreach (var src in snapshot.Projectiles)
-        {
-            int projectileId = src.ProjectileId;
-            _snapshotProjectileIds.Add(projectileId);
-
-            if (!_localState.Projectiles.TryGetValue(projectileId, out var projectile))
-            {
-                projectile = new SimProjectileData
-                {
-                    ProjectileId = projectileId
-                };
-                _localState.Projectiles[projectileId] = projectile;
-            }
-
-            ApplySnapshotProjectileState(projectile, src);
-        }
-
-        _staleProjectileIds.Clear();
-        foreach (var projectileId in _localState.Projectiles.Keys)
-        {
-            if (!_snapshotProjectileIds.Contains(projectileId))
-                _staleProjectileIds.Add(projectileId);
-        }
-
-        foreach (var staleProjectileId in _staleProjectileIds)
-            _localState.Projectiles.Remove(staleProjectileId);
-
         if (_firstSnapshotReceived)
             QueueDerivedUnitEvents(previousUnits, snapshot.Units, _snapshotUnitIds);
 
@@ -319,19 +310,171 @@ public class ClientSession : NetworkSession
         dst.AttackAnimationTimer = src.AttackAnimationTimer;
     }
 
-    private static void ApplySnapshotProjectileState(SimProjectileData dst, ProjectileState src)
+    private void HandleProjectileSpawned(ProjectileSpawned spawned)
     {
-        dst.ProjectileId = src.ProjectileId;
-        dst.SourceUnitId = src.SourceUnitId;
-        dst.TargetUnitId = src.TargetUnitId;
-        dst.Team = (Team)src.Team;
-        dst.MovementType = (ProjectileMovementType)src.MovementType;
-        dst.CurrentPosition = new SimVector3(src.CurrentPosition.X, src.CurrentPosition.Y, src.CurrentPosition.Z);
-        dst.Direction = new SimVector3(src.Direction.X, src.Direction.Y, src.Direction.Z);
-        dst.TargetPosition = new SimVector3(src.TargetPosition.X, src.TargetPosition.Y, src.TargetPosition.Z);
-        dst.Progress = src.Progress;
-        dst.Speed = src.Speed;
-        dst.IsDead = src.IsDead;
+        _localState.Projectiles[spawned.ProjectileId] = new SimProjectileData
+        {
+            ProjectileId = spawned.ProjectileId,
+            ProjectileCatalogId = spawned.ProjectileCatalogId ?? "",
+            SourceUnitId = spawned.SourceUnitId,
+            TargetUnitId = spawned.TargetUnitId,
+            Team = (Team)spawned.Team,
+            MovementType = (ProjectileMovementType)spawned.MovementType,
+            CurrentPosition = new SimVector3(spawned.CurrentPosition.X, spawned.CurrentPosition.Y, spawned.CurrentPosition.Z),
+            LastPosition = new SimVector3(spawned.CurrentPosition.X, spawned.CurrentPosition.Y, spawned.CurrentPosition.Z),
+            Direction = new SimVector3(spawned.Direction.X, spawned.Direction.Y, spawned.Direction.Z),
+            TargetPosition = new SimVector3(spawned.TargetPosition.X, spawned.TargetPosition.Y, spawned.TargetPosition.Z),
+            Speed = spawned.Speed,
+            Acceleration = spawned.Acceleration,
+            MinSpeed = spawned.MinSpeed,
+            UseSpeedEasing = spawned.UseSpeedEasing,
+            SpeedStart = spawned.SpeedStart,
+            SpeedEnd = spawned.SpeedEnd,
+            SpeedTransitionDuration = spawned.SpeedTransitionDuration,
+            SpeedEasing = (SpeedEasingType)spawned.SpeedEasing,
+            SpeedEaseExponent = spawned.SpeedEaseExponent,
+            TimeAlive = spawned.TimeAlive,
+            Lifetime = spawned.Lifetime,
+            IsDead = false
+        };
+    }
+
+    private void HandleProjectileImpact(ProjectileImpact impact)
+    {
+        if (_localState.Projectiles.TryGetValue(impact.ProjectileId, out var projectile))
+            projectile.IsDead = true;
+
+        _pendingEvents.Add(new ProjectileHitEvent(impact.ProjectileId, impact.TargetUnitId));
+    }
+
+    private void HandleProjectileDespawned(ProjectileDespawned despawned)
+    {
+        _localState.Projectiles.Remove(despawned.ProjectileId);
+    }
+
+    private void ApplyProjectileSeedSnapshot(ProjectileSeedSnapshot seedSnapshot)
+    {
+        _staleProjectileIds.Clear();
+        foreach (var projectileId in _localState.Projectiles.Keys)
+            _staleProjectileIds.Add(projectileId);
+
+        foreach (var seed in seedSnapshot.Projectiles)
+        {
+            HandleProjectileSpawned(new ProjectileSpawned(
+                ProjectileId: seed.ProjectileId,
+                SourceUnitId: seed.SourceUnitId,
+                TargetUnitId: seed.TargetUnitId,
+                Team: seed.Team,
+                MovementType: seed.MovementType,
+                CurrentPosition: seed.CurrentPosition,
+                Direction: seed.Direction,
+                TargetPosition: seed.TargetPosition,
+                Speed: seed.Speed,
+                ProjectileCatalogId: seed.ProjectileCatalogId,
+                Acceleration: seed.Acceleration,
+                MinSpeed: seed.MinSpeed,
+                UseSpeedEasing: seed.UseSpeedEasing,
+                SpeedStart: seed.SpeedStart,
+                SpeedEnd: seed.SpeedEnd,
+                SpeedTransitionDuration: seed.SpeedTransitionDuration,
+                SpeedEasing: seed.SpeedEasing,
+                SpeedEaseExponent: seed.SpeedEaseExponent,
+                TimeAlive: seed.TimeAlive,
+                Lifetime: seed.Lifetime
+            ));
+            _staleProjectileIds.Remove(seed.ProjectileId);
+        }
+
+        foreach (var staleProjectileId in _staleProjectileIds)
+            _localState.Projectiles.Remove(staleProjectileId);
+    }
+
+    private void TickClientProjectiles(float delta)
+    {
+        if (_localState.Projectiles.Count == 0)
+            return;
+
+        _staleProjectileIds.Clear();
+
+        foreach (var (projectileId, projectile) in _localState.Projectiles)
+        {
+            if (projectile.IsDead)
+            {
+                _staleProjectileIds.Add(projectileId);
+                continue;
+            }
+
+            TickClientProjectileSpeed(projectile, delta);
+            TickClientProjectileMovement(projectile, delta);
+
+            projectile.TimeAlive += delta;
+            if (projectile.TimeAlive >= MathF.Max(projectile.Lifetime, 0.01f))
+                _staleProjectileIds.Add(projectileId);
+        }
+
+        foreach (var staleProjectileId in _staleProjectileIds)
+            _localState.Projectiles.Remove(staleProjectileId);
+    }
+
+    private void TickClientProjectileMovement(SimProjectileData projectile, float delta)
+    {
+        projectile.LastPosition = projectile.CurrentPosition;
+
+        var direction = projectile.Direction;
+
+        bool canSteer = projectile.MovementType == ProjectileMovementType.Homing
+                        || projectile.MovementType == ProjectileMovementType.WeavingHoming;
+
+        if (canSteer)
+        {
+            if (projectile.TargetUnitId >= 0 && _localState.Units.TryGetValue(projectile.TargetUnitId, out var targetUnit))
+                projectile.TargetPosition = targetUnit.Position;
+
+            var desired = (projectile.TargetPosition - projectile.CurrentPosition).Normalized();
+            if (desired.LengthSquared() > 0.0001f)
+            {
+                float steerWeight = MathF.Min(1f, delta * 8f);
+                direction = direction.Lerp(desired, steerWeight).Normalized();
+                projectile.Direction = direction;
+            }
+        }
+
+        if (direction.LengthSquared() <= 0.0001f)
+            direction = (projectile.TargetPosition - projectile.CurrentPosition).Normalized();
+
+        projectile.CurrentPosition += direction * projectile.Speed * delta;
+    }
+
+    private static void TickClientProjectileSpeed(SimProjectileData projectile, float delta)
+    {
+        if (projectile.UseSpeedEasing)
+        {
+            float duration = MathF.Max(projectile.SpeedTransitionDuration, 0.0001f);
+            float t = Math.Clamp(projectile.TimeAlive / duration, 0f, 1f);
+            float eased = EvaluateSpeedEasing(t, projectile.SpeedEasing, projectile.SpeedEaseExponent);
+            projectile.Speed = projectile.SpeedStart + ((projectile.SpeedEnd - projectile.SpeedStart) * eased);
+            return;
+        }
+
+        if (MathF.Abs(projectile.Acceleration) < 0.0001f)
+            return;
+
+        projectile.Speed += projectile.Acceleration * delta;
+        if (projectile.Acceleration < 0f && projectile.Speed < projectile.MinSpeed)
+            projectile.Speed = projectile.MinSpeed;
+    }
+
+    private static float EvaluateSpeedEasing(float t, SpeedEasingType easingType, float exponent)
+    {
+        float clampedT = Math.Clamp(t, 0f, 1f);
+        float safeExponent = MathF.Max(exponent, 1f);
+        return easingType switch
+        {
+            SpeedEasingType.EaseIn => MathF.Pow(clampedT, safeExponent),
+            SpeedEasingType.EaseOut => 1f - MathF.Pow(1f - clampedT, safeExponent),
+            SpeedEasingType.EaseInOut => (1f - MathF.Cos(clampedT * MathF.PI)) * 0.5f,
+            _ => clampedT
+        };
     }
 
     private static Dictionary<int, UnitVisualSnapshot> CaptureUnitVisualState(Dictionary<int, UnitData> units)

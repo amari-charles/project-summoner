@@ -84,6 +84,7 @@ var active_popup: Control = null
 
 ## Widget cache for reuse (instance_id -> CardWidget)
 var _widget_cache: Dictionary = {}
+var _card_service: Node = null
 
 ## Double-click tracking for collection cards
 var last_clicked_card_id: String = ""
@@ -115,6 +116,8 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
+	_card_service = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
+
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
 
@@ -170,7 +173,8 @@ func _connect_services() -> void:
 	if Decks.has_signal("DeckDeleted"):
 		Decks.DeckDeleted.connect(_on_deck_deleted)
 
-	CardService.CollectionChanged.connect(_on_collection_changed)
+	if _card_service and _card_service.has_signal("CollectionChanged"):
+		_card_service.connect("CollectionChanged", Callable(self, "_on_collection_changed"))
 
 
 ## =============================================================================
@@ -241,7 +245,7 @@ func _refresh_deck_list() -> void:
 	# Create default deck if none exist (only if summoner is unlocked)
 	if deck_list_result.size() == 0 and Decks.has_method("CreateDeckFromDict"):
 		# Check if any summoners are unlocked - can't create deck without one
-		var unlocked = SummonerSelection.GetUnlockedSummonerIdsArray()
+		var unlocked: Array[String] = SummonerSelection.GetUnlockedSummonerIdsArray()
 		if unlocked.size() > 0:
 			var new_deck_id: Variant = Decks.call("CreateDeckFromDict", Loc.t("ui.collection.default_deck_name"), [], "")
 			if new_deck_id is String and not new_deck_id.is_empty():
@@ -325,7 +329,10 @@ func _refresh_deck_panel() -> void:
 		if not card_id is String:
 			continue
 
-		var card_data: Variant = CardService.GetCardDict(card_id)
+		if not _card_service or not _card_service.has_method("GetCardDict"):
+			continue
+
+		var card_data: Variant = _card_service.call("GetCardDict", card_id)
 		if not card_data is Dictionary or card_data.is_empty():
 			continue
 
@@ -462,7 +469,10 @@ func _on_rename_confirmed() -> void:
 ## =============================================================================
 
 func _refresh_collection() -> void:
-	var summary_result: Variant = CardService.GetCollectionSummaryDict()
+	if not _card_service or not _card_service.has_method("GetCollectionSummaryDict"):
+		return
+
+	var summary_result: Variant = _card_service.call("GetCollectionSummaryDict")
 	if not summary_result is Array:
 		return
 	collection_summary = summary_result
@@ -597,10 +607,8 @@ func _get_filtered_sorted_cards() -> Array:
 
 			var instance_id: String = instance.get("id", "")
 			var level: int = 1
-			# PlayerCardService is a C# autoload
-			var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-			if not instance_id.is_empty() and card_service and card_service.has_method("GetCardProgressionInfoDict"):
-				var result_info: Variant = card_service.GetCardProgressionInfoDict(instance_id)
+			if not instance_id.is_empty() and _card_service and _card_service.has_method("GetCardProgressionInfoDict"):
+				var result_info: Variant = _card_service.call("GetCardProgressionInfoDict", instance_id)
 				if result_info is Dictionary:
 					level = result_info.get("level", 1)
 

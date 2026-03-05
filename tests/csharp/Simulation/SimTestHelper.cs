@@ -203,7 +203,9 @@ public static class SimTestHelper
         string catalogId = "test_spell",
         int manaCost = 4,
         float damage = 50f,
-        float radius = 5f)
+        float radius = 5f,
+        SpellTargetingMode targetingMode = SpellTargetingMode.Position,
+        string spellProjectileId = "")
     {
         return new SimCardData
         {
@@ -211,8 +213,9 @@ public static class SimTestHelper
             ManaCost = manaCost,
             SummonTime = 0.5f,
             IsSpell = true,
-            SpellTargetingMode = SpellTargetingMode.Position,
+            SpellTargetingMode = targetingMode,
             SpellRadius = radius,
+            SpellProjectileId = spellProjectileId,
             SpellEffects = new List<SimSpellEffect>
             {
                 new()

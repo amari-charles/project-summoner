@@ -42,6 +42,7 @@ func _ready() -> void:
 
 	# Load saved settings before creating UI
 	_load_settings()
+	_apply_spawn_boundary_bypass()
 
 	# Create UI after a frame to ensure tree is ready
 	call_deferred("_create_ui")
@@ -317,7 +318,13 @@ func _on_spawn_boundary_toggle_pressed() -> void:
 	var bypass_enabled: bool = _bypass_spawn_boundary
 	var state: String = "Off" if bypass_enabled else "On"
 	_spawn_boundary_button.text = "Spawn Boundary: %s" % state
+	_apply_spawn_boundary_bypass()
 	_save_settings()
+
+
+func _apply_spawn_boundary_bypass() -> void:
+	if BattlefieldDebug and BattlefieldDebug.has_method("SetSpawnBoundaryBypassEnabled"):
+		BattlefieldDebug.call("SetSpawnBoundaryBypassEnabled", _bypass_spawn_boundary)
 
 
 func _on_command_submitted(command: String) -> void:
