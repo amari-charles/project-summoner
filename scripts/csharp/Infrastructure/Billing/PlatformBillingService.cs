@@ -78,7 +78,7 @@ public partial class PlatformBillingService : Node
     public Platform current_platform = Platform.UNKNOWN;
 
     private BillingProvider? _provider;
-    private bool _provider_initialized;
+    private string? _provider_unavailable_message;
     private readonly HashSet<string> _owned_products = [];
 
     public override void _Ready()
@@ -87,9 +87,10 @@ public partial class PlatformBillingService : Node
         current_platform = _detect_platform();
         _provider = _create_provider();
         _connect_provider_signals();
+        _provider.initialize();
 
-        if (!_provider_initialized)
-            _provider.initialize();
+        if (!is_available() && !string.IsNullOrEmpty(_provider_unavailable_message))
+            GD.PushError(_provider_unavailable_message);
 
         GD.Print($"[PlatformBilling] Platform: {current_platform}, Provider: {_provider.get_provider_name()}");
     }
@@ -207,6 +208,8 @@ public partial class PlatformBillingService : Node
 
     private BillingProvider _create_provider()
     {
+        _provider_unavailable_message = null;
+
         return current_platform switch
         {
             Platform.EDITOR => _create_stub_provider(),
@@ -228,11 +231,7 @@ public partial class PlatformBillingService : Node
     {
         provider.Name = $"{platform_name}Provider";
         AddChild(provider);
-        provider.initialize();
-        _provider_initialized = true;
-
-        if (!provider.is_available())
-            GD.PushError($"{platform_name} billing provider unavailable; purchases are disabled for this session.");
+        _provider_unavailable_message = $"{platform_name} billing provider unavailable; purchases are disabled for this session.";
 
         return provider;
     }
