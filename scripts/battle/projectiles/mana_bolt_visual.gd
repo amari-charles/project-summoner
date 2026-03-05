@@ -50,7 +50,7 @@ var _wake_material: StandardMaterial3D
 var _trail_material: ParticleProcessMaterial
 var _spark_material: ParticleProcessMaterial
 var _active_camera: Camera3D
-var _baseline_camera_distance: float = -1.0
+var _baseline_camera_depth: float = -1.0
 var _depth_scale_factor: float = 1.0
 
 
@@ -80,7 +80,7 @@ func _ready() -> void:
 
 	_active_camera = get_viewport().get_camera_3d()
 	if _active_camera != null:
-		_baseline_camera_distance = _active_camera.global_position.distance_to(global_position)
+		_baseline_camera_depth = _get_camera_depth(_active_camera, global_position)
 
 
 func _process(delta: float) -> void:
@@ -139,22 +139,29 @@ func _update_depth_scale(delta: float) -> void:
 
 	if _active_camera == null or not is_instance_valid(_active_camera):
 		_active_camera = get_viewport().get_camera_3d()
-		if _active_camera != null and _baseline_camera_distance <= 0.0:
-			_baseline_camera_distance = _active_camera.global_position.distance_to(global_position)
+		if _active_camera != null and _baseline_camera_depth <= 0.0:
+			_baseline_camera_depth = _get_camera_depth(_active_camera, global_position)
 
 	if _active_camera == null:
 		scale = _base_root_scale
 		return
 
-	var current_distance: float = _active_camera.global_position.distance_to(global_position)
-	if _baseline_camera_distance <= 0.0:
-		_baseline_camera_distance = current_distance
+	var current_depth: float = _get_camera_depth(_active_camera, global_position)
+	if _baseline_camera_depth <= 0.0:
+		_baseline_camera_depth = current_depth
 
-	var distance_delta: float = _baseline_camera_distance - current_distance
-	var target_scale: float = clamp(1.0 + (distance_delta * depth_scale_strength), depth_scale_min, depth_scale_max)
+	var depth_delta: float = _baseline_camera_depth - current_depth
+	var target_scale: float = clamp(1.0 + (depth_delta * depth_scale_strength), depth_scale_min, depth_scale_max)
 	var blend: float = clamp(delta * depth_scale_smoothing, 0.0, 1.0)
 	_depth_scale_factor = lerp(_depth_scale_factor, target_scale, blend)
 	scale = _base_root_scale * _depth_scale_factor
+
+
+func _get_camera_depth(camera: Camera3D, world_pos: Vector3) -> float:
+	var to_point: Vector3 = world_pos - camera.global_position
+	var camera_forward: Vector3 = -camera.global_basis.z
+	var projected_depth: float = camera_forward.dot(to_point)
+	return max(0.01, projected_depth)
 
 
 func _duplicate_surface_material(mesh: MeshInstance3D) -> StandardMaterial3D:

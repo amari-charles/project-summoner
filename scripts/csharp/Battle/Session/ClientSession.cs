@@ -23,19 +23,6 @@ public class ClientSession : NetworkSession
 {
     private const float ReconnectGraceSeconds = 30f;
     private const float ClientSteerFallback = 180f;
-    private const float ClientWeaveReferenceDistance = 10f;
-    private const float ClientWeaveMinDistance = 3f;
-    private const float ClientWeavePitchRatio = 0.45f;
-    private const float ClientWeaveCounterYawRatio = 0.85f;
-    private const float ClientWeaveCounterPitchRatio = 0.6f;
-    private const float ClientHomingWeaveSettleDistance = 10.0f;
-    private const float ClientHomingWeaveYawRatio = 0.55f;
-    private const float ClientHomingWeavePitchRatio = 0.28f;
-    private const float ClientHomingWeaveFrequency = 8.5f;
-    private const float ClientHomingWeavePitchFrequency = 6.2f;
-    private const float ClientHomingFarSteerScale = 0.38f;
-    private const float ClientHomingFinalLockDistance = 6.0f;
-    private const float ClientHomingFinalLockTime = 0.55f;
     private const float ClientVectorEpsilon = 0.0001f;
     private enum DisconnectTimeoutOutcome
     {
@@ -532,7 +519,7 @@ public class ClientSession : NetworkSession
                 }
                 else
                 {
-                    var desired = BlendWithTarget(projectile, projectile.VeerDirection, 0.06f);
+                    var desired = BlendWithTarget(projectile, projectile.VeerDirection, WeavingHomingTuning.BlendOutTargetWeight);
                     projectile.Direction = SteerToward(projectile.Direction, desired, projectile.SteerStrength, delta);
                 }
 
@@ -548,7 +535,7 @@ public class ClientSession : NetworkSession
                 }
                 else
                 {
-                    var desired = BlendWithTarget(projectile, projectile.CounterVeerDirection, 0.12f);
+                    var desired = BlendWithTarget(projectile, projectile.CounterVeerDirection, WeavingHomingTuning.BlendBackTargetWeight);
                     projectile.Direction = SteerToward(projectile.Direction, desired, projectile.SteerStrength, delta);
                 }
 
@@ -561,13 +548,14 @@ public class ClientSession : NetworkSession
                 if (toTarget.LengthSquared() > ClientVectorEpsilon)
                 {
                     float distanceToTarget = toTarget.Length();
-                    bool finalLock = distanceToTarget <= ClientHomingFinalLockDistance
-                                     || projectile.PhaseTimer >= ClientHomingFinalLockTime;
+                    bool finalLock = distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
+                                     || projectile.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
                     var desired = finalLock ? toTarget.Normalized() : ApplyClientHomingWeave(projectile, toTarget);
-                    float settle = Math.Clamp(distanceToTarget / ClientHomingWeaveSettleDistance, 0f, 1f);
+                    float settle = Math.Clamp(distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
                     float steerScale = finalLock
                         ? 1f
-                        : (ClientHomingFarSteerScale + ((1f - ClientHomingFarSteerScale) * (1f - settle)));
+                        : (WeavingHomingTuning.HomingFarSteerScale
+                           + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle)));
                     projectile.Direction = SteerToward(
                         projectile.Direction,
                         desired,
@@ -662,42 +650,45 @@ public class ClientSession : NetworkSession
         projectile.Velocity = projectile.Direction * projectile.Speed;
 
         float distance = projectile.CurrentPosition.DistanceTo(projectile.TargetPosition);
-        float distanceScale = Math.Clamp(distance / ClientWeaveReferenceDistance, 0f, 1f);
-        if (distance < ClientWeaveMinDistance)
+        float distanceScale = Math.Clamp(distance / WeavingHomingTuning.VeerReferenceDistance, 0f, 1f);
+        if (distance < WeavingHomingTuning.VeerMinDistance)
         {
             projectile.ScaledVeerDelay = 0f;
             projectile.ScaledVeerDuration = 0f;
             projectile.ScaledCounterVeerDuration = 0f;
             projectile.WeavingPhase = WeavingPhase.Homing;
-            return;
         }
-
-        projectile.ScaledVeerDelay = projectileData.VeerDelay * distanceScale;
-        float weaveDuration = projectileData.VeerDuration * distanceScale;
-        projectile.ScaledVeerDuration = weaveDuration;
-        projectile.ScaledCounterVeerDuration = weaveDuration * 0.85f;
-
-        float scaledVeerAngle = projectileData.VeerAngle * distanceScale;
-        float veerSign = (projectile.ProjectileId & 1) == 0 ? 1f : -1f;
-        float pitchSign = ((projectile.ProjectileId >> 1) & 1) == 0 ? 1f : -1f;
-        float veerYawRadians = Mathf.DegToRad(scaledVeerAngle) * veerSign;
-        float veerPitchRadians = Mathf.DegToRad(scaledVeerAngle * ClientWeavePitchRatio) * pitchSign;
-
-        var direction = ToGodot(projectile.Direction);
-        if (direction.LengthSquared() <= ClientVectorEpsilon)
+        else
         {
-            direction = ToGodot(projectile.TargetPosition - projectile.CurrentPosition).Normalized();
-            projectile.Direction = ToSim(direction);
+            projectile.ScaledVeerDelay = projectileData.VeerDelay * distanceScale;
+            float weaveDuration = projectileData.VeerDuration * distanceScale;
+            projectile.ScaledVeerDuration = weaveDuration;
+            projectile.ScaledCounterVeerDuration = weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
+
+            float scaledVeerAngle = projectileData.VeerAngle * distanceScale;
+            float veerSign = (projectile.ProjectileId & 1) == 0 ? 1f : -1f;
+            float pitchSign = ((projectile.ProjectileId >> 1) & 1) == 0 ? 1f : -1f;
+            float veerYawRadians = Mathf.DegToRad(scaledVeerAngle) * veerSign;
+            float veerPitchRadians = Mathf.DegToRad(scaledVeerAngle * WeavingHomingTuning.VeerPitchRatio) * pitchSign;
+
+            var direction = ToGodot(projectile.Direction);
+            if (direction.LengthSquared() <= ClientVectorEpsilon)
+            {
+                direction = ToGodot(projectile.TargetPosition - projectile.CurrentPosition).Normalized();
+                projectile.Direction = ToSim(direction);
+            }
+
+            var rightAxis = GetStableRightAxis(direction);
+            var outDir = RotateAround(direction, Vector3.Up, veerYawRadians);
+            outDir = RotateAround(outDir, rightAxis, veerPitchRadians);
+            var backDir = RotateAround(direction, Vector3.Up, -veerYawRadians * WeavingHomingTuning.VeerCounterYawRatio);
+            backDir = RotateAround(backDir, rightAxis, -veerPitchRadians * WeavingHomingTuning.VeerCounterPitchRatio);
+
+            projectile.VeerDirection = ToSim(outDir.Normalized());
+            projectile.CounterVeerDirection = ToSim(backDir.Normalized());
         }
 
-        var rightAxis = GetStableRightAxis(direction);
-        var outDir = RotateAround(direction, Vector3.Up, veerYawRadians);
-        outDir = RotateAround(outDir, rightAxis, veerPitchRadians);
-        var backDir = RotateAround(direction, Vector3.Up, -veerYawRadians * ClientWeaveCounterYawRatio);
-        backDir = RotateAround(backDir, rightAxis, -veerPitchRadians * ClientWeaveCounterPitchRatio);
-
-        projectile.VeerDirection = ToSim(outDir.Normalized());
-        projectile.CounterVeerDirection = ToSim(backDir.Normalized());
+        RestoreClientWeavingPhaseFromElapsedTime(projectile, MathF.Max(0f, projectile.TimeAlive));
     }
 
     private static SimVector3 BlendWithTarget(SimProjectileData projectile, SimVector3 weaveDirection, float targetWeight)
@@ -721,14 +712,17 @@ public class ClientSession : NetworkSession
         if (arc <= ClientVectorEpsilon)
             return targetDirection;
 
-        float settle = Math.Clamp(targetDistance / ClientHomingWeaveSettleDistance, 0f, 1f);
-        float yawAmplitudeDegrees = MathF.Max(22f, arc * 16f);
+        float settle = Math.Clamp(targetDistance / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
+        float yawAmplitudeDegrees = MathF.Max(
+            WeavingHomingTuning.HomingYawFallbackMinDegrees,
+            arc * WeavingHomingTuning.HomingYawFallbackArcMultiplier);
         float yawAmplitudeRadians = Mathf.DegToRad(yawAmplitudeDegrees);
 
-        float phase = (projectile.TimeAlive * ClientHomingWeaveFrequency) + (projectile.ProjectileId * 0.37f);
-        float yawOffset = MathF.Sin(phase) * yawAmplitudeRadians * ClientHomingWeaveYawRatio * settle;
-        float pitchOffset = MathF.Cos(phase * (ClientHomingWeavePitchFrequency / ClientHomingWeaveFrequency))
-                            * yawAmplitudeRadians * ClientHomingWeavePitchRatio * settle;
+        float phase = (projectile.TimeAlive * WeavingHomingTuning.HomingWeaveFrequency) + (projectile.ProjectileId * 0.37f);
+        float yawOffset = MathF.Sin(phase) * yawAmplitudeRadians * WeavingHomingTuning.HomingWeaveYawRatio * settle;
+        float pitchOffset = MathF.Cos(phase * (WeavingHomingTuning.HomingWeavePitchFrequency
+                                               / WeavingHomingTuning.HomingWeaveFrequency))
+                            * yawAmplitudeRadians * WeavingHomingTuning.HomingWeavePitchRatio * settle;
 
         var targetDirectionGodot = ToGodot(targetDirection);
         var rightAxis = GetStableRightAxis(targetDirectionGodot);
@@ -759,6 +753,38 @@ public class ClientSession : NetworkSession
 
         float weight = Mathf.Clamp(maxRotation / angle, 0f, 1f);
         return ToSim(current.Slerp(desired, weight).Normalized());
+    }
+
+    private static void RestoreClientWeavingPhaseFromElapsedTime(SimProjectileData projectile, float elapsedTime)
+    {
+        float remaining = MathF.Max(0f, elapsedTime);
+
+        if (remaining < projectile.ScaledVeerDelay)
+        {
+            projectile.WeavingPhase = WeavingPhase.Straight;
+            projectile.PhaseTimer = remaining;
+            return;
+        }
+        remaining -= projectile.ScaledVeerDelay;
+
+        if (remaining < projectile.ScaledVeerDuration)
+        {
+            projectile.WeavingPhase = WeavingPhase.VeeringOut;
+            projectile.PhaseTimer = remaining;
+            return;
+        }
+        remaining -= projectile.ScaledVeerDuration;
+
+        if (remaining < projectile.ScaledCounterVeerDuration)
+        {
+            projectile.WeavingPhase = WeavingPhase.VeeringBack;
+            projectile.PhaseTimer = remaining;
+            return;
+        }
+
+        remaining -= projectile.ScaledCounterVeerDuration;
+        projectile.WeavingPhase = WeavingPhase.Homing;
+        projectile.PhaseTimer = remaining;
     }
 
     private static Vector3 RotateAround(Vector3 vector, Vector3 axis, float radians)

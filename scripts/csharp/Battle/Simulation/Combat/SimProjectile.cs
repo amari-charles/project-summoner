@@ -15,21 +15,6 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimProjectile
 {
-    // Constants matching Projectile3D
-    private const float VeerReferenceDistance = 10f;
-    private const float VeerMinDistance = 3f;
-    private const float VeerPitchRatio = 0.45f;
-    private const float VeerCounterYawRatio = 0.85f;
-    private const float VeerCounterPitchRatio = 0.6f;
-    private const float HomingWeaveSettleDistance = 10.0f;
-    private const float HomingWeaveYawRatio = 0.55f;
-    private const float HomingWeavePitchRatio = 0.28f;
-    private const float HomingWeaveFrequency = 8.5f;
-    private const float HomingWeavePitchFrequency = 6.2f;
-    private const float HomingFarSteerScale = 0.38f;
-    private const float HomingFinalLockDistance = 6.0f;
-    private const float HomingFinalLockTime = 0.55f;
-
     // Arc path constants matching ArcPath.cs
     private const float ArcFullArcDistance = 5.0f;
 
@@ -394,7 +379,7 @@ public static class SimProjectile
                 }
                 else
                 {
-                    var outTarget = BlendWithTarget(proj, proj.VeerDirection, 0.06f);
+                    var outTarget = BlendWithTarget(proj, proj.VeerDirection, WeavingHomingTuning.BlendOutTargetWeight);
                     SteerToward(proj, outTarget, delta);
                 }
                 break;
@@ -407,7 +392,7 @@ public static class SimProjectile
                 }
                 else
                 {
-                    var backTarget = BlendWithTarget(proj, proj.CounterVeerDirection, 0.12f);
+                    var backTarget = BlendWithTarget(proj, proj.CounterVeerDirection, WeavingHomingTuning.BlendBackTargetWeight);
                     SteerToward(proj, backTarget, delta);
                 }
                 break;
@@ -417,12 +402,14 @@ public static class SimProjectile
                 if (toTarget2.LengthSquared() > 0.001f)
                 {
                     float distanceToTarget = toTarget2.Length();
-                    bool finalLock = distanceToTarget <= HomingFinalLockDistance || proj.PhaseTimer >= HomingFinalLockTime;
+                    bool finalLock = distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
+                                     || proj.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
                     var homingDirection = finalLock ? toTarget2.Normalized() : ApplyHomingWeave(proj, toTarget2);
-                    float settle = SimMath.Clamp(distanceToTarget / HomingWeaveSettleDistance, 0f, 1f);
+                    float settle = SimMath.Clamp(distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
                     float steerScale = finalLock
                         ? 1f
-                        : (HomingFarSteerScale + ((1f - HomingFarSteerScale) * (1f - settle)));
+                        : (WeavingHomingTuning.HomingFarSteerScale
+                           + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle)));
                     SteerToward(proj, homingDirection, delta, steerScale);
                 }
 
@@ -664,9 +651,9 @@ public static class SimProjectile
         proj.Velocity = proj.Direction * speed;
 
         float distance = start.DistanceTo(target);
-        float distanceScale = SimMath.Clamp(distance / VeerReferenceDistance, 0f, 1f);
+        float distanceScale = SimMath.Clamp(distance / WeavingHomingTuning.VeerReferenceDistance, 0f, 1f);
 
-        if (distance < VeerMinDistance)
+        if (distance < WeavingHomingTuning.VeerMinDistance)
         {
             proj.ScaledVeerDelay = 0f;
             proj.ScaledVeerDuration = 0f;
@@ -679,21 +666,21 @@ public static class SimProjectile
             float weaveDuration = veerDuration * distanceScale;
             proj.ScaledVeerDuration = weaveDuration;
             // Slightly shorter counter-phase gives a tighter "S" before homing.
-            proj.ScaledCounterVeerDuration = weaveDuration * 0.85f;
+            proj.ScaledCounterVeerDuration = weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
             float scaledVeerAngle = veerAngle * distanceScale;
 
             // Random left/right veer using deterministic RNG
             float veerSign = (rng != null && rng.NextFloat() > 0.5f) ? 1f : -1f;
             float pitchSign = (rng != null && rng.NextFloat() > 0.5f) ? 1f : -1f;
             float veerYawRadians = SimMath.DegToRad(scaledVeerAngle) * veerSign;
-            float veerPitchRadians = SimMath.DegToRad(scaledVeerAngle * VeerPitchRatio) * pitchSign;
+            float veerPitchRadians = SimMath.DegToRad(scaledVeerAngle * WeavingHomingTuning.VeerPitchRatio) * pitchSign;
 
             var rightAxis = GetStableRightAxis(proj.Direction);
             var outDir = RotateAround(proj.Direction, SimVector3.Up, veerYawRadians);
             outDir = RotateAround(outDir, rightAxis, veerPitchRadians);
 
-            var backDir = RotateAround(proj.Direction, SimVector3.Up, -veerYawRadians * VeerCounterYawRatio);
-            backDir = RotateAround(backDir, rightAxis, -veerPitchRadians * VeerCounterPitchRatio);
+            var backDir = RotateAround(proj.Direction, SimVector3.Up, -veerYawRadians * WeavingHomingTuning.VeerCounterYawRatio);
+            backDir = RotateAround(backDir, rightAxis, -veerPitchRadians * WeavingHomingTuning.VeerCounterPitchRatio);
 
             proj.VeerDirection = outDir.Normalized();
             proj.CounterVeerDirection = backDir.Normalized();
@@ -731,17 +718,20 @@ public static class SimProjectile
         if (arc <= GeometryEpsilon)
             return targetDirection;
 
-        float settle = SimMath.Clamp(targetDistance / HomingWeaveSettleDistance, 0f, 1f);
+        float settle = SimMath.Clamp(targetDistance / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
         float yawAmplitude = SimMath.DegToRad(proj.ScaledCounterVeerDuration > 0f
-            ? proj.ScaledCounterVeerDuration * 220f
+            ? proj.ScaledCounterVeerDuration * WeavingHomingTuning.HomingYawFromDurationScale
             : 0f);
         if (yawAmplitude <= GeometryEpsilon)
-            yawAmplitude = SimMath.DegToRad(MathF.Max(22f, arc * 16f));
+            yawAmplitude = SimMath.DegToRad(MathF.Max(
+                WeavingHomingTuning.HomingYawFallbackMinDegrees,
+                arc * WeavingHomingTuning.HomingYawFallbackArcMultiplier));
 
-        float phase = (proj.TimeAlive * HomingWeaveFrequency) + (proj.ProjectileId * 0.37f);
-        float yawOffset = MathF.Sin(phase) * yawAmplitude * HomingWeaveYawRatio * settle;
-        float pitchOffset = MathF.Cos(phase * (HomingWeavePitchFrequency / HomingWeaveFrequency))
-                            * yawAmplitude * HomingWeavePitchRatio * settle;
+        float phase = (proj.TimeAlive * WeavingHomingTuning.HomingWeaveFrequency) + (proj.ProjectileId * 0.37f);
+        float yawOffset = MathF.Sin(phase) * yawAmplitude * WeavingHomingTuning.HomingWeaveYawRatio * settle;
+        float pitchOffset = MathF.Cos(phase * (WeavingHomingTuning.HomingWeavePitchFrequency
+                                               / WeavingHomingTuning.HomingWeaveFrequency))
+                            * yawAmplitude * WeavingHomingTuning.HomingWeavePitchRatio * settle;
 
         var rightAxis = GetStableRightAxis(targetDirection);
         var woven = RotateAround(targetDirection, SimVector3.Up, yawOffset);
