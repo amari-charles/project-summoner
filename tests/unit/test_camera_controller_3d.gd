@@ -81,8 +81,8 @@ func test_projection_profiles_apply_mode_specific_transform_and_zoom() -> void:
 	perspective_profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
 	perspective_profile.camera_transform = Transform3D(
 		Vector3(1, 0, 0),
-		Vector3(0, 0.587785, 0.809017),
-		Vector3(0, 0.809017, -0.587785),
+		Vector3(0, 0.819152, 0.573576),
+		Vector3(0, 0.573576, -0.819152),
 		Vector3(0, 46.18, -54.61)
 	)
 	perspective_profile.keep_aspect = Camera3D.KEEP_WIDTH
