@@ -14,7 +14,7 @@ This directory contains worldbuilding, narrative, and character documentation fo
 
 #### Fateforgers (Playable)
 - **[Cole](characters/fateforgers/cole.md)** - Fire (White man)
-- **[Celine](characters/fateforgers/celine.md)** - Water (Black woman)
+- **[Selene](characters/fateforgers/selene.md)** - Water (Black woman)
 - **[Mei](characters/fateforgers/mei.md)** - Wind (Asian woman)
 - **[Teo](characters/fateforgers/teo.md)** - Earth (Hispanic man)
 - **[Kai Ise](characters/fateforgers/kai-ise.md)** - No element/Space Spirit companion (Asian man, isekai'd)

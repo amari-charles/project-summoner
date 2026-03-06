@@ -868,7 +868,7 @@ See `docs/technical/trait-system-architecture.md` for implementation details.
 | **Modifier Tag** | String label on a `StatModifier` for amplification targeting. |
 | **Static Modifier** | Always-active modifier applied at unit spawn (Trigger = Always). |
 | **Triggered Modifier** | Conditional modifier that activates on events (e.g., "below 50% HP", "on kill"). |
-| **Summoner** | Player character (Cole, Celine, etc.). Acquires traits at level-up. |
+| **Summoner** | Player character (Cole, Selene, etc.). Acquires traits at level-up. |
 | **Summon** | Creature type (Fire Wisp, etc.). Can acquire upgrades at card level-up. |
 | **Unit** | Ephemeral battlefield instance of a summon. Does NOT level up - receives modifiers at spawn. |
 | **Provider** | Class implementing `IModifierProvider` that supplies modifiers (e.g., `SummonerModifierProvider`). |

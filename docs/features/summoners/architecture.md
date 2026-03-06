@@ -57,7 +57,7 @@ var summoner_id: String = SummonerSelection.get_active_summoner_id()
 var config: SummonerConfig = SummonerSelection.get_active_summoner_config()
 
 # Switch summoners
-SummonerSelection.switch_summoner("summoner_celine")
+SummonerSelection.switch_summoner("summoner_selene")
 
 # List unlocked summoners
 var ids: Array[String] = SummonerSelection.get_unlocked_summoner_ids()
@@ -277,7 +277,7 @@ Campaign progress is stored per-summoner in ProfileRepo:
         "current_battle": null,
         "pending_reward": null
     },
-    "summoner_celine": {
+    "summoner_selene": {
         "completed_battles": ["battle_tutorial"],
         "current_battle": "battle_first_slime",
         "pending_reward": null

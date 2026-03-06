@@ -94,14 +94,14 @@ _Note: May commission additional characters in the future._
 | -------- | ------- | ---------------- | ------------------------------- | ---------------------------------------------------------- |
 | Cole     | Fire    | White man        | Arrogant, competitive, abrasive | Looking down at viewer with cocky smile                    |
 | Mei      | Wind    | Asian woman      | Elusive, self-interested, loner | Looking away, elsewhere - viewer not interesting enough    |
-| Celine   | Water   | Black woman      | Gentle, caring, relaxed         | Braids with silver cuffs/beads; peaceful, calm, unbothered |
+| Selene   | Water   | Black woman      | Gentle, caring, relaxed         | Braids with silver cuffs/beads; peaceful, calm, unbothered |
 | Teo      | Earth   | Hispanic man     | Direct, reliable, gym rat       | Bulky but not overly so                                    |
 
 **Element Colors:**
 
 - Fire (Cole): red
 - Wind (Mei): white
-- Water (Celine): blue
+- Water (Selene): blue
 - Earth (Teo): brown/green
 
 **Total:** 4 characters × (1 portrait + 1 in-game unit) = 8 images

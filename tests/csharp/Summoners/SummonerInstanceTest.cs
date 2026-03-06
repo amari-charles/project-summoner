@@ -102,12 +102,12 @@ public class SummonerInstanceTest
     {
         var instance = new SummonerInstance
         {
-            SummonerId = new SummonerId(SummonerIds.Celine)
+            SummonerId = new SummonerId(SummonerIds.Selene)
         };
 
         var allTraits = instance.GetAllTraitIds();
 
-        var def = SummonerCatalog.GetSummoner(SummonerIds.Celine)!;
+        var def = SummonerCatalog.GetSummoner(SummonerIds.Selene)!;
         AssertThat(allTraits.Count).IsEqual(def.InnateTraitIds.Length);
 
         foreach (var innateId in def.InnateTraitIds)
