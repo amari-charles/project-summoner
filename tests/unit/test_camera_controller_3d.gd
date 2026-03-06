@@ -83,7 +83,7 @@ func test_projection_profiles_apply_mode_specific_transform_and_zoom() -> void:
 		Vector3(1, 0, 0),
 		Vector3(0, 0.587785, 0.809017),
 		Vector3(0, 0.809017, -0.587785),
-		Vector3(0, 30, -25.17)
+		Vector3(0, 30, -42.85)
 	)
 	perspective_profile.keep_aspect = Camera3D.KEEP_WIDTH
 	perspective_profile.default_zoom = 56.0
@@ -124,7 +124,7 @@ func test_projection_profiles_apply_mode_specific_transform_and_zoom() -> void:
 
 	_camera.set_projection_mode(_camera.PROJECTION_MODE_PERSPECTIVE)
 	assert_eq(_camera.projection, Camera3D.PROJECTION_PERSPECTIVE, "Perspective profile should set perspective projection")
-	assert_almost_eq(_camera.position.z, -25.17, 0.001, "Perspective profile should apply perspective framing")
+	assert_almost_eq(_camera.position.z, -42.85, 0.001, "Perspective profile should apply perspective framing")
 	assert_almost_eq(_camera.default_fov, 56.0, 0.001, "Perspective profile should apply FOV defaults")
 	assert_false(_camera.vertical_pan_only_when_zoomed, "Perspective profile should allow vertical pan at default zoom")
 	assert_true(_camera.horizontal_bounds_use_screen_sample, "Perspective profile should enable sampled horizontal bounds")

@@ -25,7 +25,7 @@ glow_blend_mode = 1
 script = ExtResource("1_script")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.587785, 0.809017, 0, 0.809017, -0.587785, 0, 30, -25.17)
+transform = Transform3D(1, 0, 0, 0, 0.587785, 0.809017, 0, 0.809017, -0.587785, 0, 30, -42.85)
 current = true
 projection = 0
 keep_aspect = 0
