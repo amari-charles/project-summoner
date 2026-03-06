@@ -104,6 +104,10 @@ _Note: May commission additional characters in the future._
 - Water (Selene): blue
 - Earth (Teo): brown/green
 
+#### In-Game Unit Format
+
+Each summoner's in-game unit is a **single static image** (full body, standing pose). No sprite sheets or skeletal rigs needed — the engine handles all visual feedback (hit flash, death fade) via shader effects on the image.
+
 **Total:** 4 characters × (1 portrait + 1 in-game unit) = 8 images
 
 ---
@@ -132,21 +136,47 @@ A husband-and-wife merchant duo who run the traveling caravan shop.
 
 ## 3. Battlefield & Environment
 
-The battlefield is a **continuous 2D horizontal arena**. Starting with one biome — additional biomes can be commissioned later.
+The battlefield is a 3D plane viewed from a **35° top-down camera angle**. The environment uses a **two-layer approach** — a ground layer where gameplay happens and a separate background layer for atmospheric scenery.
+
+Starting with one biome (Grass/Plains). Additional biomes can be commissioned later.
 
 ### Grass/Plains Biome
 
-| Spec       | Value                                              |
-| ---------- | -------------------------------------------------- |
-| Dimensions | ~3000-4000px wide × 1080-1200px tall (exact TBD)   |
-| Format     | Single wide image (battlefield is wider than tall) |
-| Style      | Grass/plains terrain                               |
-| Colors     | Muted greens and earth tones                       |
-| Note       | Subtle texture variation to avoid flatness         |
+Two separate deliverables:
+
+#### Ground Texture
+
+The main gameplay surface — a hand-painted top-down view of the terrain. The engine's 35° camera adds perspective naturally; the art should be painted as a **flat top-down view**.
+
+| Spec       | Value                                                                                     |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| Dimensions | 4096×4096px minimum. 8192×8192px preferred if your workflow supports it, but not required. |
+| Aspect     | Square (5:4 gameplay area, but square texture with natural edges works best)               |
+| Style      | Hand-painted grass/earth terrain — forest clearing feel                                    |
+| Tiling     | **NOT tileable** — single unique painting with natural variation                           |
+| Colors     | Muted greens and earth tones                                                               |
+| Notes      | Subtle texture variation to avoid flatness. Slight blur at max zoom is acceptable.         |
+
+#### Background Strip
+
+A separate painted backdrop visible behind/above the ground — purely atmospheric, not interactive. For the grass/plains biome, this would be a **tree line and sky**.
+
+| Spec       | Value                                                                             |
+| ---------- | --------------------------------------------------------------------------------- |
+| Height     | ~2160px tall                                                                      |
+| Width      | **Horizontally seamless** (the engine will scroll it via parallax)                |
+| Style      | Atmospheric scenery — tree line fading into sky for the forest clearing biome     |
+| Notes      | This layer is disconnected from the ground. Think of it as the distant background |
+
+#### Edge Treatment
+
+The ground meets the background naturally — for the forest clearing biome, grass terrain transitions into the tree line. Exact edge treatment depends on the biome; we'll provide guidance but are open to artist interpretation.
 
 ### Reference Images
 
 <img src="references/ref_monster_chef_terrain.jpg" width="300"> <img src="references/ref_mini_warriors_battlefield.webp" width="300">
+
+_Reference for the two-layer concept: Mewgenics-style setup — distinct ground where gameplay happens, with a separate background layer behind it._
 
 _Note: May need additional biomes in the future._
 
