@@ -145,7 +145,6 @@ float GetAnimationDuration(string animName);
 float GetSpriteHeight();
 float GetSpriteWidth();
 float GetHpBarOffsetX();
-Vector3 GetShadowOffset();
 void FlashWhite();
 void SetFlipH(bool flip);
 void SetRenderPriority(int priority);

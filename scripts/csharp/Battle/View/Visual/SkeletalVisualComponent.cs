@@ -84,6 +84,12 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     public Color FlashColor { get; set; } = new Color(3.0f, 3.0f, 3.0f, 1.0f);
 
     // =========================================================================
+    // SHADOW
+    // =========================================================================
+
+    private Sprite3D? _shadowSprite3D;
+
+    // =========================================================================
     // NODE REFERENCES
     // =========================================================================
 
@@ -137,6 +143,15 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         }
     }
 
+    public override void _Process(double delta)
+    {
+        // Pin shadow to ground regardless of unit elevation (flying units)
+        if (_shadowSprite3D != null)
+        {
+            ShadowHelper.PinToGround(_shadowSprite3D, GlobalPosition.Y);
+        }
+    }
+
     private async void InstanceSkeletalSceneDeferred()
     {
         await InstanceSkeletalScene();
@@ -147,6 +162,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
         SetupSpriteAlignment();
         RandomizeAnimationPhase();
+        CreateShadowSprite();
     }
 
     // =========================================================================
@@ -249,13 +265,6 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         return contentWidth * ScaleFactor.X * _sprite3D.PixelSize;
     }
 
-    public Vector3 GetShadowOffset()
-    {
-        // Content is centered at viewport center (FeetLocalPosition.X determines horizontal center)
-        // Shadow offset is zero since the visual content is already centered
-        return Vector3.Zero;
-    }
-
     public float GetHpBarOffsetX()
     {
         return HpBarOffsetX;
@@ -314,6 +323,9 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     public void SetFlipH(bool flip)
     {
         _isFlipped = flip;
+
+        // Shadow doesn't need flip updates — the viewport texture already
+        // contains the flipped content, so the shadow silhouette updates automatically.
 
         if (_skeletalInstance == null || !_initializationComplete || _viewport == null)
             return;
@@ -503,6 +515,19 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         }
 
         return null;
+    }
+
+    private void CreateShadowSprite()
+    {
+        if (_sprite3D == null || _viewport == null)
+            return;
+
+        var result = ShadowHelper.CreateShadow(_sprite3D, _viewport);
+        if (result == null)
+            return;
+
+        (_shadowSprite3D, _) = result.Value;
+        AddChild(_shadowSprite3D);
     }
 
     private void SetupSpriteAlignment()

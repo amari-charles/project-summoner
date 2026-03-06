@@ -26,8 +26,7 @@ Exposes methods that EntityManager calls when events arrive:
 
 ### Sub-Components
 Owns visual sub-components:
-- `IVisualComponent` — sprite or skeletal rig
-- `ShadowComponent` — ground shadow
+- `IVisualComponent` — sprite or skeletal rig (shadows handled internally via `ShadowHelper`)
 - `SpawnRevealComponent` — spawn-in animation
 - HP bar display
 
@@ -56,8 +55,7 @@ Owns visual sub-components:
 |-----------|-----------|-------------|
 | Reads | `IGameSession` | Polls `GetState()` for own UnitState each frame |
 | Created by | `EntityManager` | Lifecycle managed externally |
-| Owns | `IVisualComponent` | Sprite or skeletal visual |
-| Owns | `ShadowComponent` | Ground shadow |
+| Owns | `IVisualComponent` | Sprite or skeletal visual (shadows internal via `ShadowHelper`) |
 
 ## Today
 
@@ -90,7 +88,7 @@ public partial class UnitVisual : Node3D
 
     // Sub-components (already exist in codebase)
     // IVisualComponent  — scripts/csharp/Battle/View/Visual/IVisualComponent.cs
-    // ShadowComponent   — scripts/csharp/Battle/View/Visual/ShadowComponent.cs
+    //   (shadows handled internally by IVisualComponent implementations via ShadowHelper)
     // SpawnRevealComponent — scripts/csharp/Units/Components/SpawnRevealComponent.cs
     // FloatingHPBar via HPBarService — scripts/csharp/Meta/Services/HPBarService.cs
 

@@ -112,6 +112,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     public Color FlashColor { get; set; } = new Color(3.0f, 3.0f, 3.0f, 1.0f);
 
     // =========================================================================
+    // SHADOW
+    // =========================================================================
+
+    private Sprite3D? _shadowSprite3D;
+
+    // =========================================================================
     // NODE REFERENCES
     // =========================================================================
 
@@ -210,6 +216,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         // Randomize animation frame
         RandomizeAnimationPhase();
 
+        // Create silhouette shadow (only for real units, not ghost previews)
+        if (underUnit3D)
+        {
+            CreateShadowSprite();
+        }
+
         // Show sprite after all initialization (only needed if we hid it above)
         // Ghost previews under Node3D don't need this since we didn't hide the sprite
         if (underUnit3D)
@@ -231,6 +243,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     public override void _Process(double delta)
     {
+        // Pin shadow to ground regardless of unit elevation (flying units)
+        if (_shadowSprite3D != null)
+        {
+            ShadowHelper.PinToGround(_shadowSprite3D, GlobalPosition.Y);
+        }
+
         if (_characterSprite == null || _isAttacking)
             return;
 
@@ -371,14 +389,6 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         return _viewport.Size.X * _sprite3D.PixelSize;
     }
 
-    public Vector3 GetShadowOffset()
-    {
-        // Pivot offsets compensate for off-center characters in the texture.
-        // After compensation, the character body appears at unit center.
-        // Shadow should be at unit center (under the character body).
-        return Vector3.Zero;
-    }
-
     public float GetHpBarOffsetX()
     {
         return HpBarOffsetX;
@@ -422,6 +432,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             // Re-apply alignment with correct offset direction
             SetupSpriteAlignment();
         }
+        // Shadow doesn't need flip updates — the viewport texture already
+        // contains the flipped content, so the shadow silhouette updates automatically.
     }
 
     public void SetRenderPriority(int priority)
@@ -492,6 +504,19 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     // =========================================================================
     // PRIVATE HELPERS
     // =========================================================================
+
+    private void CreateShadowSprite()
+    {
+        if (_sprite3D == null || _viewport == null)
+            return;
+
+        var result = ShadowHelper.CreateShadow(_sprite3D, _viewport);
+        if (result == null)
+            return;
+
+        (_shadowSprite3D, _) = result.Value;
+        AddChild(_shadowSprite3D);
+    }
 
     private void SetupSpriteAlignment()
     {

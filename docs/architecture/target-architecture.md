@@ -360,7 +360,7 @@ C# class. Accessed via `BattleScene.EntityManager`. The central coordinator for 
 
 C# class extending `Node3D`. A passive visual shell that reads its own `UnitState` from `IGameSession.GetState()` each frame in `_PhysicsProcess`. Positions the model, updates the HP bar, and sets the animation state. Exposes reaction methods — `PlayAttackAnimation()`, `FlashDamage()`, `BeginDeath()` — called by EntityManager on events.
 
-**Owns:** IVisualComponent (sprite or skeletal), ShadowComponent, SpawnRevealComponent.
+**Owns:** IVisualComponent (sprite or skeletal; shadows handled internally via `ShadowHelper`), SpawnRevealComponent.
 
 **Keeps (~1100 lines):** Visual component setup, position sync, HP bar, animation, reaction methods.
 

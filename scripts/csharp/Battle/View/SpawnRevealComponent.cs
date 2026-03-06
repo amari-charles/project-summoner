@@ -38,7 +38,6 @@ public class SpawnRevealComponent
 
     private readonly Node3D _owner;
     private readonly Func<IVisualComponent?> _getVisual;
-    private readonly Func<Node3D?> _getShadow;
     private readonly Func<Team> _getTeam;
 
     /// <summary>
@@ -60,17 +59,14 @@ public class SpawnRevealComponent
     /// </summary>
     /// <param name="owner">The owning Node3D (used for CreateTween, CallDeferred)</param>
     /// <param name="getVisual">Function to get the visual component</param>
-    /// <param name="getShadow">Function to get the shadow component</param>
     /// <param name="getTeam">Function to get the unit's team</param>
     public SpawnRevealComponent(
         Node3D owner,
         Func<IVisualComponent?> getVisual,
-        Func<Node3D?> getShadow,
         Func<Team> getTeam)
     {
         _owner = owner;
         _getVisual = getVisual;
-        _getShadow = getShadow;
         _getTeam = getTeam;
     }
 
@@ -85,13 +81,6 @@ public class SpawnRevealComponent
             return false;
 
         _isRevealing = true;
-
-        // Start shadow at scale 0 (will grow during reveal)
-        var shadow = _getShadow();
-        if (shadow != null)
-        {
-            shadow.Scale = Vector3.Zero;
-        }
 
         // Load shader if not cached
         _shaderCache ??= GD.Load<Shader>(ShaderPath);
@@ -132,13 +121,6 @@ public class SpawnRevealComponent
         // Animate progress from 0 to 1
         _tween = _owner.CreateTween();
         _tween.TweenMethod(Callable.From<float>(UpdateProgress), 0.0f, 1.0f, duration);
-
-        // Animate shadow growing alongside
-        var shadow = _getShadow();
-        if (shadow != null)
-        {
-            _tween.Parallel().TweenProperty(shadow, "scale", Vector3.One, duration);
-        }
 
         // Complete when done
         _tween.TweenCallback(Callable.From(Complete));
