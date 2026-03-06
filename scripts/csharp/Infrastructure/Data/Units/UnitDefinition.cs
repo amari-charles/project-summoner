@@ -151,12 +151,6 @@ public record VisualConfig
     /// <summary>Separation radius for collision avoidance.</summary>
     public float SeparationRadius { get; init; } = 0.5f;
 
-    /// <summary>Shadow opacity (0 = invisible, 1 = full).</summary>
-    public float ShadowOpacity { get; init; } = 0.6f;
-
-    /// <summary>Whether shadow is enabled.</summary>
-    public bool ShadowEnabled { get; init; } = true;
-
     /// <summary>Custom hurtbox configuration (null = use defaults).</summary>
     public HurtboxConfig? Hurtbox { get; init; }
 

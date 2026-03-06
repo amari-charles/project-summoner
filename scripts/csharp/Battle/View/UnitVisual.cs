@@ -32,7 +32,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private bool _loggedMissing;
 
     private IVisualComponent? _visual;
-    private ShadowComponent? _shadow;
     private SpawnRevealComponent? _spawnReveal;
     private float _attackAnimTimer;
     private bool _isFacingRight;
@@ -76,16 +75,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             }
         }
 
-        // Find optional shadow
-        foreach (var child in GetChildren())
-        {
-            if (child is ShadowComponent sc)
-            {
-                _shadow = sc;
-                break;
-            }
-        }
-
         // Set initial position from state so shell is never at origin
         var state = session.GetState();
         var simNode = SimulationNode.Current;
@@ -107,7 +96,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                 _spawnReveal = new SpawnRevealComponent(
                     this,
                     () => _visual,
-                    () => _shadow as Node3D,
                     () => unitData.Team
                 );
                 Visible = true; // Must be visible for reveal shader to render

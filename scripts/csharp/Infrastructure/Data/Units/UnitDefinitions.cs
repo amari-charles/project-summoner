@@ -37,7 +37,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/fire_wisp_3d.tscn"
     };
 
@@ -57,7 +57,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/water_wisp_3d.tscn"
     };
 
@@ -77,7 +77,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/wind_wisp_3d.tscn"
     };
 
@@ -97,7 +97,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/earth_wisp_3d.tscn"
     };
 
@@ -117,7 +117,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/lightning_wisp_3d.tscn"
     };
 
@@ -137,7 +137,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/life_wisp_3d.tscn"
     };
 
@@ -157,7 +157,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/death_wisp_3d.tscn"
     };
 
@@ -177,7 +177,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/shadow_wisp_3d.tscn"
     };
 
@@ -201,7 +201,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.8f, ShadowOpacity = 0.7f },
+        Visual = new VisualConfig { SeparationRadius = 0.8f },
         ScenePath = "res://scenes/battle/units/fire_titan_3d.tscn"
     };
 
@@ -221,7 +221,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.3f, ShadowOpacity = 0.5f },
+        Visual = new VisualConfig { SeparationRadius = 0.3f },
         ScenePath = "res://scenes/battle/units/fire_ant_3d.tscn"
     };
 
@@ -241,7 +241,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.6f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.6f},
         ScenePath = "res://scenes/battle/units/fire_boar_3d.tscn"
     };
 
@@ -261,7 +261,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
         Ranged = new RangedConfig(ProjectileIds.FireWeb),
-        Visual = new VisualConfig { SeparationRadius = 0.4f, ShadowOpacity = 0.5f },
+        Visual = new VisualConfig { SeparationRadius = 0.4f },
         ScenePath = "res://scenes/battle/units/fire_spider_3d.tscn"
     };
 
@@ -285,7 +285,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.6f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.6f},
         ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn"
     };
 
@@ -304,7 +304,7 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.Passive,
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/rock_3d.tscn"
     };
 
@@ -324,7 +324,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.7f, ShadowOpacity = 0.7f },
+        Visual = new VisualConfig { SeparationRadius = 0.7f },
         ScenePath = "res://scenes/battle/units/stone_ape_3d.tscn"
     };
 
@@ -344,7 +344,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
         Ranged = new RangedConfig(ProjectileIds.Rock),
-        Visual = new VisualConfig { SeparationRadius = 0.3f, ShadowOpacity = 0.4f },
+        Visual = new VisualConfig { SeparationRadius = 0.3f },
         ScenePath = "res://scenes/battle/units/earth_rock_thrower_3d.tscn"
     };
 
@@ -377,7 +377,6 @@ public static class UnitDefinitions
         Visual = new VisualConfig
         {
             SeparationRadius = 0.5f,
-            ShadowOpacity = 0.5f,
             HpBarOffsetY = 2.2f,
             TargetPointOffset = new Vector3(1.4f, 0f, 0f),
             Hurtbox = new HurtboxConfig
@@ -411,7 +410,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/water_frog_3d.tscn"
     };
 
@@ -431,7 +430,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f, ShadowOpacity = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f},
         ScenePath = "res://scenes/battle/units/mama_duck_3d.tscn"
     };
 
@@ -451,7 +450,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedStrafe,
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
-        Visual = new VisualConfig { SeparationRadius = 0.25f, ShadowOpacity = 0.3f },
+        Visual = new VisualConfig { SeparationRadius = 0.25f },
         ScenePath = "res://scenes/battle/units/duckling_3d.tscn"
     };
 
