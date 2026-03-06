@@ -50,7 +50,7 @@ func test_camera_uses_perspective_projection() -> void:
 
 
 func test_projection_mode_toggle_switches_projection_and_zoom_domain() -> void:
-	_camera.set_projection_mode(_camera.PROJECTION_MODE_ORTHOGRAPHIC)
+	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
 	assert_eq(
 		_camera.projection,
 		Camera3D.PROJECTION_ORTHOGONAL,
@@ -67,7 +67,7 @@ func test_projection_mode_toggle_switches_projection_and_zoom_domain() -> void:
 	_camera._apply_zoom(9999.0)
 	assert_almost_eq(_camera.size, _camera.max_ortho_size, 0.001, "Ortho zoom out should clamp to max_ortho_size")
 
-	_camera.set_projection_mode(_camera.PROJECTION_MODE_PERSPECTIVE)
+	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
 	assert_eq(
 		_camera.projection,
 		Camera3D.PROJECTION_PERSPECTIVE,
@@ -115,14 +115,14 @@ func test_projection_profiles_apply_mode_specific_transform_and_zoom() -> void:
 	_camera.orthographic_camera_profile = ortho_profile
 	_camera.apply_profile_transform_on_mode_switch = true
 
-	_camera.set_projection_mode(_camera.PROJECTION_MODE_ORTHOGRAPHIC)
+	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
 	assert_eq(_camera.projection, Camera3D.PROJECTION_ORTHOGONAL, "Ortho profile should set orthographic projection")
 	assert_almost_eq(_camera.position.z, -42.85, 0.001, "Ortho profile should restore old camera distance")
 	assert_almost_eq(_camera.default_ortho_size, 40.0, 0.001, "Ortho profile should apply orthographic zoom defaults")
 	assert_true(_camera.vertical_pan_only_when_zoomed, "Ortho profile should keep vertical pan gated by zoom")
 	assert_false(_camera.ortho_horizontal_bounds_use_screen_sample, "Ortho profile should keep strict horizontal bounds")
 
-	_camera.set_projection_mode(_camera.PROJECTION_MODE_PERSPECTIVE)
+	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
 	assert_eq(_camera.projection, Camera3D.PROJECTION_PERSPECTIVE, "Perspective profile should set perspective projection")
 	assert_almost_eq(_camera.position.z, -54.61, 0.001, "Perspective profile should apply perspective framing")
 	assert_almost_eq(_camera.default_fov, 72.0, 0.001, "Perspective profile should apply FOV defaults")
@@ -135,14 +135,14 @@ func test_projection_modes_use_independent_clamp_profiles() -> void:
 	_camera.vertical_far_clamp_margin = 1.25
 	_camera.ortho_vertical_far_clamp_margin = 0.0
 
-	_camera.set_projection_mode(_camera.PROJECTION_MODE_PERSPECTIVE)
+	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
 	assert_true(
 		_camera._is_horizontal_sample_bounds_enabled(),
 		"Perspective mode should use perspective horizontal sample profile"
 	)
 	var perspective_bounds: Rect2 = _camera._get_effective_map_bounds()
 
-	_camera.set_projection_mode(_camera.PROJECTION_MODE_ORTHOGRAPHIC)
+	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
 	assert_false(
 		_camera._is_horizontal_sample_bounds_enabled(),
 		"Orthographic mode should use orthographic horizontal sample profile"
@@ -370,6 +370,15 @@ func _assert_footprint_inside_map(message_prefix: String) -> void:
 			map_rect.position.x
 		]
 	)
+	if not _camera.is_perspective_mode():
+		assert_true(
+			footprint.position.y >= map_rect.position.y - epsilon,
+			"%s: footprint min Z escaped map (%.3f < %.3f)" % [
+				message_prefix,
+				footprint.position.y,
+				map_rect.position.y
+			]
+		)
 	assert_true(
 		(footprint.position.x + footprint.size.x) <= (map_rect.position.x + map_rect.size.x + epsilon),
 		"%s: footprint max X escaped map (%.3f > %.3f)" % [

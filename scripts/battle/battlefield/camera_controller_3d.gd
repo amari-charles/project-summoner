@@ -17,12 +17,7 @@ const CLAMP_EPSILON: float = 0.001
 const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
 const MAX_CLAMP_ITERATIONS: int = 4
 
-enum ProjectionMode {
-	PERSPECTIVE,
-	ORTHOGRAPHIC
-}
-const PROJECTION_MODE_PERSPECTIVE: int = ProjectionMode.PERSPECTIVE
-const PROJECTION_MODE_ORTHOGRAPHIC: int = ProjectionMode.ORTHOGRAPHIC
+const ProjectionMode = BattleCameraProjectionProfile.ProjectionMode
 
 # === Exports ===
 
@@ -163,13 +158,9 @@ func set_map_bounds(bounds_xz: Rect2) -> void:
 		_ensure_debug_overlay()
 		_update_debug_overlay()
 
-func set_projection_mode(mode: int, reset_zoom: bool = true) -> void:
-	var next_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
-	if mode == ProjectionMode.ORTHOGRAPHIC:
-		next_mode = ProjectionMode.ORTHOGRAPHIC
-
-	projection_mode = next_mode
-	_apply_mode_profile(next_mode)
+func set_projection_mode(mode: BattleCameraProjectionProfile.ProjectionMode, reset_zoom: bool = true) -> void:
+	projection_mode = mode
+	_apply_mode_profile(mode)
 	if projection_mode == ProjectionMode.PERSPECTIVE:
 		projection = PROJECTION_PERSPECTIVE
 	else:
