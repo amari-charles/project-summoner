@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BattleCameraProjectionProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battlefield/camera_projection_profile.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+projection_mode = 1
+camera_transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, 0.573576, -0.819152, 0, 30, -42.85)
+keep_aspect = 1
+near_clip = 0.5
+far_clip = 260.0
+default_zoom = 40.0
+min_zoom = 20.0
+max_zoom = 50.0
+vertical_pan_only_when_zoomed = true
+horizontal_bounds_use_screen_sample = false
+horizontal_bounds_screen_y = 0.5
+vertical_far_clamp_margin = 0.0

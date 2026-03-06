@@ -16,11 +16,6 @@ extends Node3D
 @export var ring_emission_max: float = 9.5
 @export var wake_emission_min: float = 3.0
 @export var wake_emission_max: float = 7.0
-@export var depth_scale_enabled: bool = true
-@export var depth_scale_strength: float = 0.012
-@export var depth_scale_min: float = 0.78
-@export var depth_scale_max: float = 1.28
-@export var depth_scale_smoothing: float = 12.0
 
 @onready var body_pivot: Node3D = $BodyPivot
 @onready var core_mesh: MeshInstance3D = $BodyPivot/Core
@@ -35,7 +30,6 @@ extends Node3D
 @onready var spark_particles: GPUParticles3D = $SparkParticles
 
 var _time: float = 0.0
-var _base_root_scale: Vector3 = Vector3.ONE
 var _base_body_position: Vector3 = Vector3.ZERO
 var _base_core_scale: Vector3 = Vector3.ONE
 var _base_shell_scale: Vector3 = Vector3.ONE
@@ -49,13 +43,9 @@ var _needle_material: StandardMaterial3D
 var _wake_material: StandardMaterial3D
 var _trail_material: ParticleProcessMaterial
 var _spark_material: ParticleProcessMaterial
-var _active_camera: Camera3D
-var _baseline_camera_depth: float = -1.0
-var _depth_scale_factor: float = 1.0
 
 
 func _ready() -> void:
-	_base_root_scale = scale
 	_base_body_position = body_pivot.position
 	_base_core_scale = core_mesh.scale
 	_base_shell_scale = shell_mesh.scale
@@ -78,14 +68,9 @@ func _ready() -> void:
 	trail_particles.emitting = true
 	spark_particles.emitting = true
 
-	_active_camera = get_viewport().get_camera_3d()
-	if _active_camera != null:
-		_baseline_camera_depth = _get_camera_depth(_active_camera, global_position)
-
 
 func _process(delta: float) -> void:
 	_time += delta
-	_update_depth_scale(delta)
 
 	ring_a_pivot.rotate_y(ring_a_speed * delta)
 	ring_b_pivot.rotate_x(ring_b_speed * delta)
@@ -130,38 +115,6 @@ func _process(delta: float) -> void:
 		_spark_material.initial_velocity_max = lerp(1.8, 4.2, inverse_pulse)
 		_spark_material.scale_min = lerp(0.05, 0.14, pulse)
 		_spark_material.scale_max = lerp(0.08, 0.22, pulse)
-
-
-func _update_depth_scale(delta: float) -> void:
-	if not depth_scale_enabled:
-		scale = _base_root_scale
-		return
-
-	if _active_camera == null or not is_instance_valid(_active_camera):
-		_active_camera = get_viewport().get_camera_3d()
-		if _active_camera != null and _baseline_camera_depth <= 0.0:
-			_baseline_camera_depth = _get_camera_depth(_active_camera, global_position)
-
-	if _active_camera == null:
-		scale = _base_root_scale
-		return
-
-	var current_depth: float = _get_camera_depth(_active_camera, global_position)
-	if _baseline_camera_depth <= 0.0:
-		_baseline_camera_depth = current_depth
-
-	var depth_delta: float = _baseline_camera_depth - current_depth
-	var target_scale: float = clamp(1.0 + (depth_delta * depth_scale_strength), depth_scale_min, depth_scale_max)
-	var blend: float = clamp(delta * depth_scale_smoothing, 0.0, 1.0)
-	_depth_scale_factor = lerp(_depth_scale_factor, target_scale, blend)
-	scale = _base_root_scale * _depth_scale_factor
-
-
-func _get_camera_depth(camera: Camera3D, world_pos: Vector3) -> float:
-	var to_point: Vector3 = world_pos - camera.global_position
-	var camera_forward: Vector3 = -camera.global_basis.z
-	var projected_depth: float = camera_forward.dot(to_point)
-	return max(0.01, projected_depth)
 
 
 func _duplicate_surface_material(mesh: MeshInstance3D) -> StandardMaterial3D:
