@@ -12,7 +12,7 @@ extends RefCounted
 ## Summoner ID enum - use this in code
 enum SummonerId {
 	COLE,    # Fire Fateforger
-	CELINE,  # Water Fateforger
+	SELENE,  # Water Fateforger
 	MEI,     # Wind Fateforger
 	TEO      # Earth Fateforger
 }
@@ -20,7 +20,7 @@ enum SummonerId {
 ## Enum → StringName mapping (for serialization)
 const ID_TO_KEY: Dictionary = {
 	SummonerId.COLE:   SummonerIDs.COLE,
-	SummonerId.CELINE: SummonerIDs.CELINE,
+	SummonerId.SELENE: SummonerIDs.SELENE,
 	SummonerId.MEI:    SummonerIDs.MEI,
 	SummonerId.TEO:    SummonerIDs.TEO
 }
@@ -28,7 +28,7 @@ const ID_TO_KEY: Dictionary = {
 ## StringName → Enum mapping (for deserialization)
 const KEY_TO_ID: Dictionary = {
 	SummonerIDs.COLE:   SummonerId.COLE,
-	SummonerIDs.CELINE: SummonerId.CELINE,
+	SummonerIDs.SELENE: SummonerId.SELENE,
 	SummonerIDs.MEI:    SummonerId.MEI,
 	SummonerIDs.TEO:    SummonerId.TEO
 }

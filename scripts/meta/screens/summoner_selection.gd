@@ -44,7 +44,7 @@ func _ready() -> void:
 	select_button2.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.COLE))
 	select_button3.pressed.connect(func() -> void: _on_summoner_selected(SUMMONER_RANDOM))
 	select_button4.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.MEI))
-	select_button5.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.CELINE))
+	select_button5.pressed.connect(func() -> void: _on_summoner_selected(SummonerIDs.SELENE))
 
 	# Start Merlin's introduction dialogue
 	await get_tree().process_frame
@@ -130,7 +130,7 @@ func _populate_summoner_buttons() -> void:
 		{button = select_button2, summoner_id = SummonerIDs.COLE},
 		# button3 is Random - handle separately
 		{button = select_button4, summoner_id = SummonerIDs.MEI},
-		{button = select_button5, summoner_id = SummonerIDs.CELINE},
+		{button = select_button5, summoner_id = SummonerIDs.SELENE},
 	]
 
 	for mapping: Dictionary in button_mappings:

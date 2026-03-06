@@ -20,4 +20,4 @@ Flow becomes control and stillness. Preservation through perfection.
 
 ---
 
-*See also: [Celine (Water Fateforger)](../../lore/characters/fateforgers/celine.md)*
+*See also: [Selene (Water Fateforger)](../../lore/characters/fateforgers/selene.md)*
