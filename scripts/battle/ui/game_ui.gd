@@ -21,8 +21,9 @@ const PREP_TIMER_COLOR_CRITICAL: Color = Color(1.0, 0.3, 0.3) ## Red
 const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
 
 @export var timer_label: Label = null
+@export var game_over_modal: PanelContainer = null
 @export var game_over_label: Label = null
-@export var restart_button: Button = null
+@export var continue_button: Button = null
 
 ## Stat bars for both players (HP = red, Mana = blue)
 @export var player_hp_bar: StatBar = null
@@ -51,10 +52,12 @@ func _ready() -> void:
 	# Minimal setup - find child nodes if not assigned via @export
 	if timer_label == null:
 		timer_label = get_node_or_null("TimerLabel")
+	if game_over_modal == null:
+		game_over_modal = get_node_or_null("GameOverModal")
 	if game_over_label == null:
-		game_over_label = get_node_or_null("GameOverLabel")
-	if restart_button == null:
-		restart_button = get_node_or_null("RestartButton")
+		game_over_label = get_node_or_null("GameOverModal/Content/GameOverLabel")
+	if continue_button == null:
+		continue_button = get_node_or_null("GameOverModal/Content/ContinueButton")
 
 	# Stat bars (all use StatBar now) - look in HUDContainer
 	if player_hp_bar == null:
@@ -74,10 +77,8 @@ func _ready() -> void:
 	_create_prep_timer_label()
 	_create_reconnect_label()
 
-	# Connect restart button (always safe to do in _ready)
-	if restart_button:
-		restart_button.pressed.connect(_on_restart_pressed)
-		restart_button.visible = false  # Hidden until game over
+	if continue_button:
+		continue_button.pressed.connect(_on_continue_pressed)
 
 ## Initialize GameUI with controller and summoner references
 ## Called by BattleCoordinator after summoners are ready
@@ -206,15 +207,18 @@ func _on_game_ended(winner: UnitConstants.Team) -> void:
 	if game_over_label:
 		var winner_text: String = Loc.t("ui.battle.player_wins") if winner == UnitConstants.Team.PLAYER else Loc.t("ui.battle.enemy_wins")
 		game_over_label.text = winner_text
-		game_over_label.visible = true
 
-	# Show restart button
-	if restart_button:
-		restart_button.visible = true
+	if continue_button:
+		continue_button.text = Loc.t("campaign.map.button_continue")
 
-func _on_restart_pressed() -> void:
-	if game_controller and game_controller.has_method("RestartGame"):
-		game_controller.call("RestartGame")
+	if game_over_modal:
+		game_over_modal.visible = true
+
+func _on_continue_pressed() -> void:
+	if game_over_modal:
+		game_over_modal.visible = false
+	if game_controller and game_controller.has_method("ContinueAfterGameOver"):
+		game_controller.call("ContinueAfterGameOver")
 
 ## =============================================================================
 ## TWO-PHASE BATTLE SYSTEM HANDLERS

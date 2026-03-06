@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://battle_hud"]
+[gd_scene load_steps=9 format=3 uid="uid://battle_hud"]
 
 [ext_resource type="Script" path="res://scripts/battle/ui/game_ui.gd" id="1_game_ui"]
 [ext_resource type="Script" path="res://scripts/csharp/Battle/Input/InputCollector.cs" id="2_drop_zone"]
@@ -6,6 +6,9 @@
 [ext_resource type="Script" path="res://scripts/battle/ui/speed_button.gd" id="4_speed_button"]
 [ext_resource type="Script" path="res://scripts/battle/ui/pause_button.gd" id="5_pause_button"]
 [ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/battle/ui/pause_menu.tscn" id="6_pause_menu"]
+
+[sub_resource type="StyleBoxFlat" id="game_over_bg"]
+bg_color = Color(0.05, 0.05, 0.1, 0.85)
 
 [node name="BattleHUD" type="CanvasLayer"]
 script = ExtResource("1_game_ui")
@@ -98,23 +101,31 @@ grow_vertical = 0
 text = "⏸ Pause"
 script = ExtResource("5_pause_button")
 
-[node name="GameOverLabel" type="Label" parent="."]
+[node name="GameOverModal" type="PanelContainer" parent="."]
 process_mode = 3
 visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -100.0
-offset_right = 300.0
-offset_bottom = 100.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("game_over_bg")
+
+[node name="Content" type="VBoxContainer" parent="GameOverModal"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 32
+
+[node name="GameOverLabel" type="Label" parent="GameOverModal/Content"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 72
-text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="GameOverModal/Content"]
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(220, 46)
+theme_override_font_sizes/font_size = 20
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
