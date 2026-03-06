@@ -1,3 +1,5 @@
+_Archived copy of the original art brief (v1). The character "Celine" was renamed to "Selene" in v2._
+
 # Art Commission Brief
 
 **Game:** Fateforged

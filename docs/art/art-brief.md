@@ -164,7 +164,7 @@ A separate painted backdrop visible behind/above the ground — purely atmospher
 | Spec       | Value                                                                             |
 | ---------- | --------------------------------------------------------------------------------- |
 | Height     | ~2160px tall                                                                      |
-| Width      | **Horizontally seamless** (the engine will scroll it via parallax)                |
+| Width      | **Horizontally seamless**, at least 4096px wide (wider is fine)                   |
 | Style      | Atmospheric scenery — tree line fading into sky for the forest clearing biome     |
 | Notes      | This layer is disconnected from the ground. Think of it as the distant background |
 
@@ -205,4 +205,4 @@ Visual effects for use in Godot. Scope is variable based on price. Examples belo
 
 ---
 
-_Document Version: 1.0_
+_Document Version: 2.0_
