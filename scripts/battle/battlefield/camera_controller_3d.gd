@@ -54,6 +54,14 @@ const PROJECTION_MODE_ORTHOGRAPHIC: int = ProjectionMode.ORTHOGRAPHIC
 ## Additional upward clamp room in orthographic mode, in world units.
 @export var ortho_vertical_far_clamp_margin: float = 0.0
 
+@export_group("Mode Profiles")
+## Optional perspective profile resource (transform + lens + clamp defaults).
+@export var perspective_camera_profile: BattleCameraProjectionProfile
+## Optional orthographic profile resource (transform + lens + clamp defaults).
+@export var orthographic_camera_profile: BattleCameraProjectionProfile
+## If true, switching projection mode applies the profile's transform exactly.
+@export var apply_profile_transform_on_mode_switch: bool = true
+
 @export_group("Projection")
 @export var projection_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
 @export var default_fov: float = 38.0
@@ -161,12 +169,13 @@ func set_projection_mode(mode: int, reset_zoom: bool = true) -> void:
 		next_mode = ProjectionMode.ORTHOGRAPHIC
 
 	projection_mode = next_mode
+	_apply_mode_profile(next_mode)
 	if projection_mode == ProjectionMode.PERSPECTIVE:
 		projection = PROJECTION_PERSPECTIVE
-		near = perspective_near_clip
-		far = perspective_far_clip
 	else:
 		projection = PROJECTION_ORTHOGONAL
+	near = perspective_near_clip
+	far = perspective_far_clip
 
 	_refresh_zoom_limits()
 	_apply_zoom_limits(reset_zoom)
@@ -182,6 +191,57 @@ func get_projection_mode_name() -> String:
 
 func is_perspective_mode() -> bool:
 	return projection_mode == ProjectionMode.PERSPECTIVE
+
+func _get_mode_profile(mode: ProjectionMode) -> BattleCameraProjectionProfile:
+	return perspective_camera_profile if mode == ProjectionMode.PERSPECTIVE else orthographic_camera_profile
+
+func _apply_mode_profile(mode: ProjectionMode) -> void:
+	var profile: BattleCameraProjectionProfile = _get_mode_profile(mode)
+	if not profile:
+		return
+
+	if int(profile.projection_mode) != int(mode):
+		push_warning(
+			"CameraController3D: Profile mode mismatch (expected %s, got %s)" % [
+				"Perspective" if mode == ProjectionMode.PERSPECTIVE else "Orthographic",
+				"Perspective" if int(profile.projection_mode) == int(ProjectionMode.PERSPECTIVE) else "Orthographic"
+			]
+		)
+
+	if apply_profile_transform_on_mode_switch:
+		transform = profile.camera_transform
+		force_update_transform()
+
+	keep_aspect = profile.keep_aspect
+	perspective_near_clip = profile.near_clip
+	perspective_far_clip = profile.far_clip
+	vertical_pan_only_when_zoomed = profile.vertical_pan_only_when_zoomed
+
+	var min_zoom: float = max(profile.min_zoom, 0.01)
+	var max_zoom: float = max(profile.max_zoom, min_zoom)
+	var default_zoom: float = clamp(profile.default_zoom, min_zoom, max_zoom)
+	var sample_y: float = clamp(profile.horizontal_bounds_screen_y, 0.0, 1.0)
+	var far_margin: float = max(profile.vertical_far_clamp_margin, 0.0)
+
+	if mode == ProjectionMode.PERSPECTIVE:
+		default_fov = default_zoom
+		min_fov = min_zoom
+		max_fov = max_zoom
+		_max_fov_ceiling = max_fov
+
+		horizontal_bounds_use_screen_sample = profile.horizontal_bounds_use_screen_sample
+		horizontal_bounds_screen_y = sample_y
+		vertical_far_clamp_margin = far_margin
+		return
+
+	default_ortho_size = default_zoom
+	min_ortho_size = min_zoom
+	max_ortho_size = max_zoom
+	_max_ortho_size_ceiling = max_ortho_size
+
+	ortho_horizontal_bounds_use_screen_sample = profile.horizontal_bounds_use_screen_sample
+	ortho_horizontal_bounds_screen_y = sample_y
+	ortho_vertical_far_clamp_margin = far_margin
 
 func _apply_zoom_limits(reset_zoom: bool) -> void:
 	if is_perspective_mode():

@@ -74,6 +74,61 @@ func test_projection_mode_toggle_switches_projection_and_zoom_domain() -> void:
 		"Projection toggle should switch back to perspective mode"
 	)
 
+func test_projection_profiles_apply_mode_specific_transform_and_zoom() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-10000, -10000), Vector2(20000, 20000))
+
+	var perspective_profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
+	perspective_profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
+	perspective_profile.camera_transform = Transform3D(
+		Vector3(1, 0, 0),
+		Vector3(0, 0.587785, 0.809017),
+		Vector3(0, 0.809017, -0.587785),
+		Vector3(0, 30, -25.17)
+	)
+	perspective_profile.keep_aspect = Camera3D.KEEP_WIDTH
+	perspective_profile.default_zoom = 56.0
+	perspective_profile.min_zoom = 24.0
+	perspective_profile.max_zoom = 82.0
+	perspective_profile.vertical_pan_only_when_zoomed = false
+	perspective_profile.horizontal_bounds_use_screen_sample = true
+	perspective_profile.horizontal_bounds_screen_y = 0.55
+	perspective_profile.vertical_far_clamp_margin = 1.25
+
+	var ortho_profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
+	ortho_profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC
+	ortho_profile.camera_transform = Transform3D(
+		Vector3(1, 0, 0),
+		Vector3(0, 0.819152, 0.573576),
+		Vector3(0, 0.573576, -0.819152),
+		Vector3(0, 30, -42.85)
+	)
+	ortho_profile.keep_aspect = Camera3D.KEEP_HEIGHT
+	ortho_profile.default_zoom = 40.0
+	ortho_profile.min_zoom = 20.0
+	ortho_profile.max_zoom = 50.0
+	ortho_profile.vertical_pan_only_when_zoomed = true
+	ortho_profile.horizontal_bounds_use_screen_sample = false
+	ortho_profile.horizontal_bounds_screen_y = 0.5
+	ortho_profile.vertical_far_clamp_margin = 0.0
+
+	_camera.perspective_camera_profile = perspective_profile
+	_camera.orthographic_camera_profile = ortho_profile
+	_camera.apply_profile_transform_on_mode_switch = true
+
+	_camera.set_projection_mode(_camera.PROJECTION_MODE_ORTHOGRAPHIC)
+	assert_eq(_camera.projection, Camera3D.PROJECTION_ORTHOGONAL, "Ortho profile should set orthographic projection")
+	assert_almost_eq(_camera.position.z, -42.85, 0.001, "Ortho profile should restore old camera distance")
+	assert_almost_eq(_camera.default_ortho_size, 40.0, 0.001, "Ortho profile should apply orthographic zoom defaults")
+	assert_true(_camera.vertical_pan_only_when_zoomed, "Ortho profile should keep vertical pan gated by zoom")
+	assert_false(_camera.ortho_horizontal_bounds_use_screen_sample, "Ortho profile should keep strict horizontal bounds")
+
+	_camera.set_projection_mode(_camera.PROJECTION_MODE_PERSPECTIVE)
+	assert_eq(_camera.projection, Camera3D.PROJECTION_PERSPECTIVE, "Perspective profile should set perspective projection")
+	assert_almost_eq(_camera.position.z, -25.17, 0.001, "Perspective profile should apply perspective framing")
+	assert_almost_eq(_camera.default_fov, 56.0, 0.001, "Perspective profile should apply FOV defaults")
+	assert_false(_camera.vertical_pan_only_when_zoomed, "Perspective profile should allow vertical pan at default zoom")
+	assert_true(_camera.horizontal_bounds_use_screen_sample, "Perspective profile should enable sampled horizontal bounds")
+
 func test_projection_modes_use_independent_clamp_profiles() -> void:
 	_camera.horizontal_bounds_use_screen_sample = true
 	_camera.ortho_horizontal_bounds_use_screen_sample = false
