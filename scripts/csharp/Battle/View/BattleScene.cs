@@ -66,9 +66,6 @@ public partial class BattleScene : Node3D
 	private const string EmergencyDeckCardId = "fire_wisp";
 	private const int EmergencyDeckSize = 3;
 
-	// BattleContext state: CONFIGURED (ready for battle)
-	private const int BattleContextConfigured = 1;
-
 	// =========================================================================
 	// SIGNALS (emitted for GDScript UI consumers)
 	// =========================================================================
@@ -231,14 +228,6 @@ public partial class BattleScene : Node3D
 	{
 		if (CurrentState != GameState.Paused)
 			GetTree().Paused = false;
-	}
-
-	public void RestartGame()
-	{
-		GetTree().Paused = false;
-		var bc = GetNodeOrNull("/root/BattleContext");
-		bc?.Set("battle_state", BattleContextConfigured);
-		GetTree().ReloadCurrentScene();
 	}
 
 	public void EndGame(int winnerTeam)
