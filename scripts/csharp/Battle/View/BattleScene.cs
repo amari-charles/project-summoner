@@ -51,6 +51,8 @@ public partial class BattleScene : Node3D
 
 	/// Deck card instance IDs for XP rewards (stored locally, no longer in BattleContext).
 	private List<string> _deckCardInstanceIds = new();
+	private int? _pendingCompletionWinnerTeam;
+	private bool _completionHandled;
 
 	/// Max frames to wait for a single scene to load (~5 seconds at 60fps)
 	private const int SceneLoadTimeoutFrames = 300;
@@ -239,12 +241,14 @@ public partial class BattleScene : Node3D
 		GetTree().ReloadCurrentScene();
 	}
 
-	public async void EndGame(int winnerTeam)
+	public void EndGame(int winnerTeam)
 	{
 		if (CurrentState == GameState.GameOver)
 			return;
 
 		CurrentState = GameState.GameOver;
+		_pendingCompletionWinnerTeam = winnerTeam;
+		_completionHandled = false;
 		EmitSignal(SignalName.StateChanged, (int)CurrentState);
 		EmitSignal(SignalName.GameEnded, winnerTeam);
 		GetTree().Paused = true;
@@ -267,11 +271,22 @@ public partial class BattleScene : Node3D
 				battleContext.Call("end_battle_defeat");
 		}
 
-		// Wait before transitioning
-		await ToSignal(GetTree().CreateTimer(2.0, true), SceneTreeTimer.SignalName.Timeout);
-		GetTree().Paused = false;
+		// Wait for local UI confirmation before transitioning.
+		// Multiplayer clients confirm independently on their own end-game UI.
+	}
 
-		// Handle completion based on mode
+	public void ContinueAfterGameOver()
+	{
+		if (CurrentState != GameState.GameOver)
+			return;
+		if (_completionHandled || !_pendingCompletionWinnerTeam.HasValue)
+			return;
+
+		_completionHandled = true;
+		int winnerTeam = _pendingCompletionWinnerTeam.Value;
+		_pendingCompletionWinnerTeam = null;
+
+		GetTree().Paused = false;
 		HandleCompletion(winnerTeam);
 	}
 

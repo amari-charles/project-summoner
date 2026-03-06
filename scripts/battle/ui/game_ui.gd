@@ -77,6 +77,7 @@ func _ready() -> void:
 	# Connect restart button (always safe to do in _ready)
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
+		restart_button.process_mode = Node.PROCESS_MODE_ALWAYS
 		restart_button.visible = false  # Hidden until game over
 
 ## Initialize GameUI with controller and summoner references
@@ -208,13 +209,16 @@ func _on_game_ended(winner: UnitConstants.Team) -> void:
 		game_over_label.text = winner_text
 		game_over_label.visible = true
 
-	# Show restart button
+	# Show continue button (legacy node name: restart_button)
 	if restart_button:
+		restart_button.text = Loc.t("campaign.map.button_continue")
 		restart_button.visible = true
 
 func _on_restart_pressed() -> void:
-	if game_controller and game_controller.has_method("RestartGame"):
-		game_controller.call("RestartGame")
+	if restart_button:
+		restart_button.visible = false
+	if game_controller and game_controller.has_method("ContinueAfterGameOver"):
+		game_controller.call("ContinueAfterGameOver")
 
 ## =============================================================================
 ## TWO-PHASE BATTLE SYSTEM HANDLERS
