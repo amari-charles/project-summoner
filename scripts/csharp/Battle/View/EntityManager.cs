@@ -125,6 +125,9 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             else if (!state.Units.ContainsKey(unitId))
             {
                 _unitInterpolator.Remove(unitId);
+                if (shell.IsAlive)
+                    shell.BeginDeath();
+                _cleanupBuffer.Add(unitId);
             }
         }
         foreach (var id in _cleanupBuffer)
