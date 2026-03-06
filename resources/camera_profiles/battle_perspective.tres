@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 projection_mode = 0
-camera_transform = Transform3D(1, 0, 0, 0, 0.587785, 0.809017, 0, 0.809017, -0.587785, 0, 30, -42.85)
+camera_transform = Transform3D(1, 0, 0, 0, 0.587785, 0.809017, 0, 0.809017, -0.587785, 0, 46.18, -54.61)
 keep_aspect = 0
 near_clip = 0.5
 far_clip = 260.0
