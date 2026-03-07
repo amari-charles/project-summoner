@@ -23,8 +23,11 @@ const DECK_EXCHANGE_TIMEOUT: float = 10.0
 ## Op-code for deck exchange messages over Nakama match data
 const DECK_EXCHANGE_OP_CODE: int = 100
 
-## Default Elo rating for new players
-const DEFAULT_RATING: int = 1000
+## Starting ELO for new players (must match STARTING_ELO in C#)
+const STARTING_ELO: int = 800
+
+## Top 20 threshold for Fateforged tier
+const FATEFORGED_THRESHOLD: int = 20
 
 ## UI References
 @onready var close_button: Button = %CloseButton
@@ -163,8 +166,7 @@ func _refresh_data() -> void:
 
 
 func _refresh_local_data() -> void:
-	# Use local data when services aren't available
-	var rating: int = DEFAULT_RATING
+	var rating: int = STARTING_ELO
 	if _ranking_service and _ranking_service.has_method("GetRating"):
 		rating = _ranking_service.GetRating()
 
@@ -174,7 +176,7 @@ func _refresh_local_data() -> void:
 
 
 func _refresh_rating_display() -> void:
-	var rating: int = DEFAULT_RATING
+	var rating: int = STARTING_ELO
 
 	if _ranking_service and _ranking_service.has_method("GetRating"):
 		rating = _ranking_service.GetRating()
@@ -185,52 +187,64 @@ func _refresh_rating_display() -> void:
 func _update_rating_display(rating: int) -> void:
 	rating_label.text = str(rating)
 
-	# Get tier name from RankingService (single source of truth)
-	var tier_name: String = _get_tier_name_from_service(rating)
-	var division: int = _get_division_from_service(rating)
-	var division_str: String = _int_to_roman(division)
+	# Check if player is Fateforged (top 20)
+	var is_fateforged: bool = _is_player_fateforged()
 
-	# Legend tier doesn't show division
-	if tier_name == "Legend":
-		tier_label.text = Loc.t("ui.ranked.tier_legend")
+	if is_fateforged:
+		tier_label.text = Loc.t("ui.ranked.tier_fateforged")
+		tier_label.add_theme_color_override("font_color", _get_tier_color("Fateforged"))
 	else:
+		# Get tier name from RankingService (single source of truth)
+		var tier_name: String = _get_tier_name_from_service(rating)
+		var division: int = _get_division_from_service(rating)
+		var division_str: String = _int_to_roman(division)
 		tier_label.text = Loc.t("ui.ranked.tier_" + tier_name.to_lower()) + " " + division_str
-
-	# Set tier color
-	tier_label.add_theme_color_override("font_color", _get_tier_color(tier_name))
+		tier_label.add_theme_color_override("font_color", _get_tier_color(tier_name))
 
 	# Rank display (placeholder until we get actual rank from leaderboard)
 	rank_label.text = Loc.t("ui.ranked.your_rank") + ": -"
 
 
+func _is_player_fateforged() -> bool:
+	if not _leaderboard_service:
+		return false
+	if not _leaderboard_service.has_method("IsTopTwenty"):
+		return false
+	var local_user_id: String = _get_local_user_id()
+	if local_user_id.is_empty():
+		return false
+	return _leaderboard_service.IsTopTwenty(local_user_id)
+
+
+func _get_local_user_id() -> String:
+	if _nakama_client:
+		var user_id_val: Variant = _nakama_client.get("UserId")
+		if user_id_val != null:
+			return str(user_id_val)
+	return ""
+
+
 func _get_tier_name_from_service(rating: int) -> String:
-	# Use RankingService as the single source of truth for tier thresholds
 	if _ranking_service and _ranking_service.has_method("GetTierNameForRating"):
 		return _ranking_service.GetTierNameForRating(rating)
 	# Fallback if service not available (matches EloCalculator.cs thresholds)
-	if rating >= 2000:
-		return "Legend"
-	elif rating >= 1800:
-		return "Grandmaster"
-	elif rating >= 1600:
-		return "Master"
+	if rating >= 1600:
+		return "Sage"
 	elif rating >= 1400:
-		return "Diamond"
+		return "Archmage"
 	elif rating >= 1200:
-		return "Platinum"
+		return "Mage"
 	elif rating >= 1000:
-		return "Gold"
+		return "Adept"
 	elif rating >= 800:
-		return "Silver"
+		return "Apprentice"
 	else:
-		return "Bronze"
+		return "Unbound"
 
 
 func _get_division_from_service(rating: int) -> int:
-	# Use RankingService as the single source of truth for division calculation
 	if _ranking_service and _ranking_service.has_method("GetDivisionForRating"):
 		return _ranking_service.GetDivisionForRating(rating)
-	# Fallback if service not available
 	return 1
 
 
@@ -244,23 +258,20 @@ func _int_to_roman(num: int) -> String:
 
 
 func _get_tier_color(tier_name: String) -> Color:
-	# Return color based on tier (tier_name is enum name from RankingService)
 	match tier_name:
-		"Legend":
-			return Color(1.0, 0.84, 0.0)  # Gold/Yellow - highest tier
-		"Grandmaster":
-			return Color(0.8, 0.2, 0.2)  # Red
-		"Master":
+		"Fateforged":
+			return Color(1.0, 0.84, 0.0)  # Gold/Yellow - exclusive tier
+		"Sage":
 			return Color(0.9, 0.3, 0.9)  # Purple
-		"Diamond":
+		"Archmage":
 			return Color(0.4, 0.8, 1.0)  # Light blue
-		"Platinum":
+		"Mage":
 			return Color(0.4, 0.9, 0.7)  # Teal
-		"Gold":
+		"Adept":
 			return Color(1.0, 0.84, 0.2)  # Gold
-		"Silver":
+		"Apprentice":
 			return Color(0.75, 0.75, 0.75)  # Silver
-		_:  # Bronze
+		_:  # Unbound
 			return Color(0.8, 0.5, 0.3)  # Bronze
 
 
@@ -268,16 +279,12 @@ func _refresh_stats_display() -> void:
 	var wins: int = 0
 	var losses: int = 0
 
-	# Get match history from MatchReporter if available
-	var match_reporter: Node = get_tree().root.get_node_or_null("MatchReporter")
-	if match_reporter:
-		var history: Variant = match_reporter.get("MatchHistory")
-		if history is Array:
-			for match_data: Variant in history:
-				if match_data.get("LocalPlayerWon"):
-					wins += 1
-				else:
-					losses += 1
+	# Get stats from RankingService
+	if _ranking_service:
+		if _ranking_service.has_method("GetWins"):
+			wins = _ranking_service.GetWins()
+		if _ranking_service.has_method("GetLosses"):
+			losses = _ranking_service.GetLosses()
 
 	_update_stats_display(wins, losses)
 
@@ -288,6 +295,7 @@ func _update_stats_display(wins: int, losses: int) -> void:
 
 	var total: int = wins + losses
 	if total > 0:
+		# GetWinRate() returns 0.0-1.0 ratio, multiply by 100 for display
 		var win_rate: float = float(wins) / float(total) * 100.0
 		win_rate_value.text = "%.0f%%" % win_rate
 	else:
@@ -513,11 +521,7 @@ func _on_match_data_received(match_id: String, op_code: int, data: String, sende
 
 func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String, opponent_deck: Array) -> void:
 	# Determine who is "host" based on user ID comparison (deterministic)
-	var local_user_id: String = ""
-	if _nakama_client:
-		var user_id_val: Variant = _nakama_client.get("UserId")
-		if user_id_val != null:
-			local_user_id = str(user_id_val)
+	var local_user_id: String = _get_local_user_id()
 
 	if local_user_id.is_empty():
 		push_error("OnlineScreen: Cannot start battle — local user ID is empty")
@@ -603,3 +607,6 @@ func _on_leaderboard_refreshed() -> void:
 				rank_label.text = Loc.t("ui.ranked.your_rank") + ": #%d" % rank_num
 			else:
 				rank_label.text = Loc.t("ui.ranked.your_rank") + ": " + Loc.t("ui.ranked.unranked")
+
+	# Re-check Fateforged status after leaderboard refresh
+	_refresh_rating_display()

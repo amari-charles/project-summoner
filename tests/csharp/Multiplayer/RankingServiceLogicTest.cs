@@ -1,36 +1,37 @@
 namespace Fateforged.Tests.Multiplayer;
 
 using System;
+using System.Collections.Generic;
 using GdUnit4;
 using Fateforged.Multiplayer.Ranking;
 using static GdUnit4.Assertions;
 
-/// <summary>
-/// Tests for RankingService logic that doesn't require scene tree.
-/// Note: Full integration testing requires Godot scene tree and ProfileRepo.
-/// </summary>
 [TestSuite]
 public class RankingServiceLogicTest
 {
-    [TestCase]
-    public void MatchHistoryEntry_DefaultValues()
-    {
-        var entry = new MatchHistoryEntry();
+    #region MatchRecord Tests
 
-        AssertThat(entry.MatchId).IsEmpty();
-        AssertThat(entry.OpponentId).IsEmpty();
-        AssertThat(entry.Won).IsFalse();
-        AssertThat(entry.RatingBefore).IsEqual(0);
-        AssertThat(entry.RatingAfter).IsEqual(0);
-        AssertThat(entry.RatingChange).IsEqual(0);
-        AssertThat(entry.PlayedAt).IsEqual(default(DateTime));
+    [TestCase]
+    public void MatchRecord_DefaultValues()
+    {
+        var record = new MatchRecord();
+
+        AssertThat(record.MatchId).IsEmpty();
+        AssertThat(record.OpponentId).IsEmpty();
+        AssertThat(record.Won).IsFalse();
+        AssertThat(record.RatingBefore).IsEqual(0);
+        AssertThat(record.RatingAfter).IsEqual(0);
+        AssertThat(record.RatingChange).IsEqual(0);
+        AssertThat(record.OpponentRatingBefore).IsEqual(0);
+        AssertThat(record.DurationSeconds).IsEqual(0f);
+        AssertThat(record.EndReason).IsEqual(MatchEndReason.SummonerDestroyed);
+        AssertThat(record.Timestamp).IsEqual(0L);
     }
 
     [TestCase]
-    public void MatchHistoryEntry_StoresAllProperties()
+    public void MatchRecord_StoresAllProperties()
     {
-        var playedAt = new DateTime(2026, 2, 4, 12, 0, 0);
-        var entry = new MatchHistoryEntry
+        var record = new MatchRecord
         {
             MatchId = "match-789",
             OpponentId = "opponent-user",
@@ -38,37 +39,41 @@ public class RankingServiceLogicTest
             RatingBefore = 1200,
             RatingAfter = 1216,
             RatingChange = 16,
-            PlayedAt = playedAt
+            OpponentRatingBefore = 1200,
+            DurationSeconds = 120.5f,
+            EndReason = MatchEndReason.Forfeit,
+            Timestamp = 1707091200L
         };
 
-        AssertThat(entry.MatchId).IsEqual("match-789");
-        AssertThat(entry.OpponentId).IsEqual("opponent-user");
-        AssertThat(entry.Won).IsTrue();
-        AssertThat(entry.RatingBefore).IsEqual(1200);
-        AssertThat(entry.RatingAfter).IsEqual(1216);
-        AssertThat(entry.RatingChange).IsEqual(16);
-        AssertThat(entry.PlayedAt).IsEqual(playedAt);
+        AssertThat(record.MatchId).IsEqual("match-789");
+        AssertThat(record.OpponentId).IsEqual("opponent-user");
+        AssertThat(record.Won).IsTrue();
+        AssertThat(record.RatingBefore).IsEqual(1200);
+        AssertThat(record.RatingAfter).IsEqual(1216);
+        AssertThat(record.RatingChange).IsEqual(16);
+        AssertThat(record.OpponentRatingBefore).IsEqual(1200);
+        AssertThat(record.DurationSeconds).IsEqual(120.5f);
+        AssertThat(record.EndReason).IsEqual(MatchEndReason.Forfeit);
+        AssertThat(record.Timestamp).IsEqual(1707091200L);
     }
 
     [TestCase]
-    public void MatchHistoryEntry_RatingChangeConsistency()
+    public void MatchRecord_RatingChangeConsistency()
     {
-        // Verify rating change matches before/after difference
-        var entry = new MatchHistoryEntry
+        var record = new MatchRecord
         {
             RatingBefore = 1200,
             RatingAfter = 1224,
             RatingChange = 24
         };
 
-        AssertThat(entry.RatingAfter - entry.RatingBefore).IsEqual(entry.RatingChange);
+        AssertThat(record.RatingAfter - record.RatingBefore).IsEqual(record.RatingChange);
     }
 
     [TestCase]
-    public void MatchHistoryEntry_NegativeRatingChange()
+    public void MatchRecord_NegativeRatingChange()
     {
-        // Verify loss scenario
-        var entry = new MatchHistoryEntry
+        var record = new MatchRecord
         {
             Won = false,
             RatingBefore = 1200,
@@ -76,10 +81,14 @@ public class RankingServiceLogicTest
             RatingChange = -16
         };
 
-        AssertThat(entry.Won).IsFalse();
-        AssertThat(entry.RatingChange).IsLess(0);
-        AssertThat(entry.RatingAfter).IsLess(entry.RatingBefore);
+        AssertThat(record.Won).IsFalse();
+        AssertThat(record.RatingChange).IsLess(0);
+        AssertThat(record.RatingAfter).IsLess(record.RatingBefore);
     }
+
+    #endregion
+
+    #region Win Rate Tests
 
     [TestCase]
     public void WinRateCalculation_ZeroMatches()
@@ -94,7 +103,7 @@ public class RankingServiceLogicTest
     {
         float winRate = CalculateWinRate(10, 10);
 
-        AssertThat(winRate).IsEqual(100f);
+        AssertThat(winRate).IsEqual(1.0f);
     }
 
     [TestCase]
@@ -102,7 +111,7 @@ public class RankingServiceLogicTest
     {
         float winRate = CalculateWinRate(10, 5);
 
-        AssertThat(winRate).IsEqual(50f);
+        AssertThat(winRate).IsEqual(0.5f);
     }
 
     [TestCase]
@@ -112,6 +121,18 @@ public class RankingServiceLogicTest
 
         AssertThat(winRate).IsEqual(0f);
     }
+
+    [TestCase]
+    public void WinRateCalculation_ThreeOutOfFour()
+    {
+        float winRate = CalculateWinRate(4, 3);
+
+        AssertThat(winRate).IsEqual(0.75f);
+    }
+
+    #endregion
+
+    #region Rating Clamping Tests
 
     [TestCase]
     public void RatingClamping_AtFloor()
@@ -137,10 +158,13 @@ public class RankingServiceLogicTest
         AssertThat(clamped).IsEqual(1500);
     }
 
+    #endregion
+
+    #region Record Match Tests
+
     [TestCase]
     public void RecordMatch_WinCalculation()
     {
-        // Simulate recording a win
         int currentRating = 1200;
         int opponentRating = 1200;
         bool won = true;
@@ -154,7 +178,6 @@ public class RankingServiceLogicTest
     [TestCase]
     public void RecordMatch_LossCalculation()
     {
-        // Simulate recording a loss
         int currentRating = 1200;
         int opponentRating = 1200;
         bool won = false;
@@ -168,14 +191,11 @@ public class RankingServiceLogicTest
     [TestCase]
     public void RecordMatch_UpsetWin()
     {
-        // Lower rated player beats higher rated - should gain more points
         int currentRating = 1000;
         int opponentRating = 1400;
         bool won = true;
 
         var (_, ratingChangeUpset) = SimulateRecordMatch(currentRating, opponentRating, won);
-
-        // Compare to even match
         var (_, ratingChangeEven) = SimulateRecordMatch(1000, 1000, true);
 
         AssertThat(ratingChangeUpset).IsGreater(ratingChangeEven);
@@ -184,40 +204,47 @@ public class RankingServiceLogicTest
     [TestCase]
     public void RecordMatch_ExpectedWin()
     {
-        // Higher rated player beats lower rated - should gain fewer points
         int currentRating = 1400;
         int opponentRating = 1000;
         bool won = true;
 
         var (_, ratingChangeExpected) = SimulateRecordMatch(currentRating, opponentRating, won);
-
-        // Compare to even match
         var (_, ratingChangeEven) = SimulateRecordMatch(1400, 1400, true);
 
         AssertThat(ratingChangeExpected).IsLess(ratingChangeEven);
     }
 
+    #endregion
+
+    #region MatchEndReason Tests
+
+    [TestCase]
+    public void MatchEndReason_HasExpectedValues()
+    {
+        AssertThat((int)MatchEndReason.SummonerDestroyed).IsEqual(0);
+        AssertThat((int)MatchEndReason.Forfeit).IsEqual(1);
+        AssertThat((int)MatchEndReason.Disconnect).IsEqual(2);
+        AssertThat((int)MatchEndReason.Timeout).IsEqual(3);
+    }
+
+    #endregion
+
+    #region Helpers
+
     /// <summary>
-    /// Helper method that mimics RankingService.GetWinRate() logic.
+    /// Mimics RankingService.GetWinRate() — returns 0.0-1.0 ratio.
     /// </summary>
     private static float CalculateWinRate(int totalMatches, int wins)
     {
         if (totalMatches == 0) return 0f;
-        return (float)wins / totalMatches * 100f;
+        return (float)wins / totalMatches;
     }
 
-    /// <summary>
-    /// Helper method that mimics RankingService.SetRating() clamping.
-    /// </summary>
     private static int ClampRating(int rating)
     {
         return Math.Clamp(rating, EloCalculator.EloFloor, EloCalculator.EloCeiling);
     }
 
-    /// <summary>
-    /// Simulates RankingService.RecordMatch() rating calculation.
-    /// Returns (newRating, ratingChange).
-    /// </summary>
     private static (int newRating, int ratingChange) SimulateRecordMatch(
         int currentRating, int opponentRating, bool won)
     {
@@ -235,4 +262,6 @@ public class RankingServiceLogicTest
 
         return (newRating, newRating - currentRating);
     }
+
+    #endregion
 }

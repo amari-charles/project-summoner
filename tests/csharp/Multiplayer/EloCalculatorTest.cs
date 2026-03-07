@@ -4,9 +4,6 @@ using GdUnit4;
 using Fateforged.Multiplayer.Ranking;
 using static GdUnit4.Assertions;
 
-/// <summary>
-/// Tests for EloCalculator rating calculations.
-/// </summary>
 [TestSuite]
 public class EloCalculatorTest
 {
@@ -15,38 +12,32 @@ public class EloCalculatorTest
     {
         var (winnerNew, loserNew) = EloCalculator.CalculateNewRatings(1200, 1200);
 
-        // Equal ratings: winner gains ~16, loser loses ~16 with K=32
         AssertThat(winnerNew).IsGreater(1200);
         AssertThat(loserNew).IsLess(1200);
-        AssertThat(winnerNew - 1200).IsEqual(1200 - loserNew); // Symmetric change
+        AssertThat(winnerNew - 1200).IsEqual(1200 - loserNew);
     }
 
     [TestCase]
     public void CalculateNewRatings_HigherRatedWinnerGainsLess()
     {
-        // Higher rated player wins - should gain fewer points
         var (winnerNew1, _) = EloCalculator.CalculateNewRatings(1500, 1200);
         var (winnerNew2, _) = EloCalculator.CalculateNewRatings(1200, 1200);
 
-        // Winner with higher rating gains less than equal rating winner
         AssertThat(winnerNew1 - 1500).IsLess(winnerNew2 - 1200);
     }
 
     [TestCase]
     public void CalculateNewRatings_LowerRatedWinnerGainsMore()
     {
-        // Lower rated player wins - should gain more points (upset bonus)
         var (winnerNew1, _) = EloCalculator.CalculateNewRatings(1200, 1500);
         var (winnerNew2, _) = EloCalculator.CalculateNewRatings(1200, 1200);
 
-        // Winner with lower rating gains more than equal rating winner
         AssertThat(winnerNew1 - 1200).IsGreater(winnerNew2 - 1200);
     }
 
     [TestCase]
     public void CalculateNewRatings_RespectsEloFloor()
     {
-        // Very low rated loser against high rated winner shouldn't go below floor
         var (_, loserNew) = EloCalculator.CalculateNewRatings(2000, 110);
 
         AssertThat(loserNew).IsGreaterEqual(EloCalculator.EloFloor);
@@ -55,7 +46,6 @@ public class EloCalculatorTest
     [TestCase]
     public void CalculateNewRatings_RespectsEloCeiling()
     {
-        // Very high rated winner shouldn't exceed ceiling
         var (winnerNew, _) = EloCalculator.CalculateNewRatings(2990, 1200);
 
         AssertThat(winnerNew).IsLessEqual(EloCalculator.EloCeiling);
@@ -77,32 +67,59 @@ public class EloCalculatorTest
 
         AssertThat(higher).IsGreater(0.5);
         AssertThat(lower).IsLess(0.5);
-        AssertThat(higher + lower).IsBetween(0.99, 1.01); // Should sum to ~1
+        AssertThat(higher + lower).IsBetween(0.99, 1.01);
     }
 
     [TestCase]
     public void GetTier_ReturnsCorrectTier()
     {
-        AssertThat(EloCalculator.GetTier(500)).IsEqual(RankTier.Bronze);
-        AssertThat(EloCalculator.GetTier(850)).IsEqual(RankTier.Silver);
-        AssertThat(EloCalculator.GetTier(1050)).IsEqual(RankTier.Gold);
-        AssertThat(EloCalculator.GetTier(1250)).IsEqual(RankTier.Platinum);
-        AssertThat(EloCalculator.GetTier(1450)).IsEqual(RankTier.Diamond);
-        AssertThat(EloCalculator.GetTier(1650)).IsEqual(RankTier.Master);
-        AssertThat(EloCalculator.GetTier(1850)).IsEqual(RankTier.Grandmaster);
-        AssertThat(EloCalculator.GetTier(2100)).IsEqual(RankTier.Legend);
+        AssertThat(EloCalculator.GetTier(500)).IsEqual(RankTier.Unbound);
+        AssertThat(EloCalculator.GetTier(850)).IsEqual(RankTier.Apprentice);
+        AssertThat(EloCalculator.GetTier(1050)).IsEqual(RankTier.Adept);
+        AssertThat(EloCalculator.GetTier(1250)).IsEqual(RankTier.Mage);
+        AssertThat(EloCalculator.GetTier(1450)).IsEqual(RankTier.Archmage);
+        AssertThat(EloCalculator.GetTier(1650)).IsEqual(RankTier.Sage);
     }
 
     [TestCase]
     public void GetTier_BoundaryValues()
     {
-        // Test exact boundary values
-        AssertThat(EloCalculator.GetTier(799)).IsEqual(RankTier.Bronze);
-        AssertThat(EloCalculator.GetTier(800)).IsEqual(RankTier.Silver);
-        AssertThat(EloCalculator.GetTier(999)).IsEqual(RankTier.Silver);
-        AssertThat(EloCalculator.GetTier(1000)).IsEqual(RankTier.Gold);
-        AssertThat(EloCalculator.GetTier(1999)).IsEqual(RankTier.Grandmaster);
-        AssertThat(EloCalculator.GetTier(2000)).IsEqual(RankTier.Legend);
+        AssertThat(EloCalculator.GetTier(799)).IsEqual(RankTier.Unbound);
+        AssertThat(EloCalculator.GetTier(800)).IsEqual(RankTier.Apprentice);
+        AssertThat(EloCalculator.GetTier(999)).IsEqual(RankTier.Apprentice);
+        AssertThat(EloCalculator.GetTier(1000)).IsEqual(RankTier.Adept);
+        AssertThat(EloCalculator.GetTier(1199)).IsEqual(RankTier.Adept);
+        AssertThat(EloCalculator.GetTier(1200)).IsEqual(RankTier.Mage);
+        AssertThat(EloCalculator.GetTier(1399)).IsEqual(RankTier.Mage);
+        AssertThat(EloCalculator.GetTier(1400)).IsEqual(RankTier.Archmage);
+        AssertThat(EloCalculator.GetTier(1599)).IsEqual(RankTier.Archmage);
+        AssertThat(EloCalculator.GetTier(1600)).IsEqual(RankTier.Sage);
+        AssertThat(EloCalculator.GetTier(2500)).IsEqual(RankTier.Sage);
+    }
+
+    [TestCase]
+    public void GetTier_NeverReturnsFateforged()
+    {
+        // GetTier is purely ELO-based, never returns Fateforged
+        for (int elo = 100; elo <= 3000; elo += 100)
+        {
+            AssertThat(EloCalculator.GetTier(elo)).IsNotEqual(RankTier.Fateforged);
+        }
+    }
+
+    [TestCase]
+    public void GetDisplayTier_ReturnsFateforgedWhenTopTwenty()
+    {
+        AssertThat(EloCalculator.GetDisplayTier(1800, true)).IsEqual(RankTier.Fateforged);
+        AssertThat(EloCalculator.GetDisplayTier(1200, true)).IsEqual(RankTier.Fateforged);
+    }
+
+    [TestCase]
+    public void GetDisplayTier_ReturnsEloTierWhenNotTopTwenty()
+    {
+        AssertThat(EloCalculator.GetDisplayTier(1800, false)).IsEqual(RankTier.Sage);
+        AssertThat(EloCalculator.GetDisplayTier(1200, false)).IsEqual(RankTier.Mage);
+        AssertThat(EloCalculator.GetDisplayTier(500, false)).IsEqual(RankTier.Unbound);
     }
 
     [TestCase]
@@ -118,9 +135,8 @@ public class EloCalculatorTest
     [TestCase]
     public void GetDivision_HigherWithinTierIsLowerDivision()
     {
-        // Higher ELO within same tier should have lower division number (I > II > III > IV)
-        var divLow = EloCalculator.GetDivision(1010);  // Low Gold
-        var divHigh = EloCalculator.GetDivision(1180); // High Gold
+        var divLow = EloCalculator.GetDivision(1210);  // Low Mage
+        var divHigh = EloCalculator.GetDivision(1380); // High Mage
 
         AssertThat(divLow).IsGreaterEqual(divHigh);
     }
@@ -128,42 +144,60 @@ public class EloCalculatorTest
     [TestCase]
     public void GetTierFloor_ReturnsCorrectValues()
     {
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Bronze)).IsEqual(0);
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Silver)).IsEqual(800);
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Gold)).IsEqual(1000);
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Platinum)).IsEqual(1200);
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Diamond)).IsEqual(1400);
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Master)).IsEqual(1600);
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Grandmaster)).IsEqual(1800);
-        AssertThat(EloCalculator.GetTierFloor(RankTier.Legend)).IsEqual(2000);
+        AssertThat(EloCalculator.GetTierFloor(RankTier.Unbound)).IsEqual(0);
+        AssertThat(EloCalculator.GetTierFloor(RankTier.Apprentice)).IsEqual(800);
+        AssertThat(EloCalculator.GetTierFloor(RankTier.Adept)).IsEqual(1000);
+        AssertThat(EloCalculator.GetTierFloor(RankTier.Mage)).IsEqual(1200);
+        AssertThat(EloCalculator.GetTierFloor(RankTier.Archmage)).IsEqual(1400);
+        AssertThat(EloCalculator.GetTierFloor(RankTier.Sage)).IsEqual(1600);
+    }
+
+    [TestCase]
+    public void GetTierCeiling_ReturnsCorrectValues()
+    {
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Unbound)).IsEqual(799);
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Apprentice)).IsEqual(999);
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Adept)).IsEqual(1199);
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Mage)).IsEqual(1399);
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Archmage)).IsEqual(1599);
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Sage)).IsEqual(EloCalculator.EloCeiling);
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Fateforged)).IsEqual(EloCalculator.EloCeiling);
     }
 
     [TestCase]
     public void FormatRating_IncludesTierAndDivision()
     {
-        var formatted = EloCalculator.FormatRating(1150);
+        var formatted = EloCalculator.FormatRating(1250);
 
-        AssertThat(formatted).Contains("Gold");
-        AssertThat(formatted).Contains("1150");
+        AssertThat(formatted).Contains("Mage");
+        AssertThat(formatted).Contains("1250");
     }
 
     [TestCase]
-    public void FormatRating_LegendHasNoDivision()
+    public void FormatRating_FateforgedHasNoDivision()
     {
-        var formatted = EloCalculator.FormatRating(2100);
+        var formatted = EloCalculator.FormatRating(2100, true);
 
-        AssertThat(formatted).Contains("Legend");
+        AssertThat(formatted).Contains("Fateforged");
         AssertThat(formatted).NotContains(" I ");
         AssertThat(formatted).NotContains(" II ");
     }
 
     [TestCase]
-    public void StartingElo_IsWithinPlatinumTier()
+    public void FormatRating_NonTopTwentyShowsSage()
+    {
+        var formatted = EloCalculator.FormatRating(2100, false);
+
+        AssertThat(formatted).Contains("Sage");
+        AssertThat(formatted).NotContains("Fateforged");
+    }
+
+    [TestCase]
+    public void StartingElo_IsWithinApprenticeTier()
     {
         var tier = EloCalculator.GetTier(EloCalculator.StartingElo);
 
-        // Starting ELO of 1200 is exactly at Platinum threshold
-        AssertThat(tier).IsEqual(RankTier.Platinum);
+        AssertThat(tier).IsEqual(RankTier.Apprentice);
     }
 
     [TestCase]
