@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Fateforged.Data.Events;
+using Fateforged.Meta.Campaign;
 
 namespace Fateforged.Domain.Profile.Campaign;
 
@@ -10,10 +12,10 @@ namespace Fateforged.Domain.Profile.Campaign;
 public class PendingRewardData
 {
     [JsonPropertyName("battle_id")]
-    public string BattleId { get; set; } = "";
+    public BattleId BattleId { get; set; }
 
     [JsonPropertyName("reward_type")]
-    public string RewardType { get; set; } = "fixed";
+    public RewardType RewardType { get; set; } = RewardType.Fixed;
 
     [JsonPropertyName("choice_index")]
     public int ChoiceIndex { get; set; } = -1;

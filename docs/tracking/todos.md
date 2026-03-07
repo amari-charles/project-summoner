@@ -24,7 +24,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 1. Investigate blocked-unit idle freeze and add deterministic regression coverage
    Why first: Prevents recurring "units stop contributing" failures in live matches.
-2. ✅ ~~Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`~~ (Done in PR #TBD)
+2. ✅ ~~Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`~~ (Done in PR #282)
 3. Continue typed-internal service handler refactors (string boundary only at GDScript edge)
    Why second: Important cleanup, but lower immediate player impact than gameplay bugs.
 4. Audit sim/visual desync points in battle flow

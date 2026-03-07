@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GdUnit4;
 using Godot;
 using Fateforged.Cards;
+using Fateforged.Data.Events;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
@@ -331,6 +332,86 @@ public class DtoConvertersTest
         AssertThat(result!.Choices).HasSize(2);
         AssertThat(result.Choices[new NodeId("node_choice_1")]).IsEqual(new ChoiceId("option_a"));
         AssertThat(result.Choices[new NodeId("node_choice_2")]).IsEqual(new ChoiceId("option_b"));
+    }
+
+    [TestCase]
+    public void CampaignProgress_RoundTrip_PreservesPendingReward()
+    {
+        var original = new CampaignProgress
+        {
+            CompletedBattles = [new BattleId("battle_1")],
+            Gold = 200,
+            PendingReward = new PendingRewardData
+            {
+                BattleId = new BattleId("boss_fight"),
+                RewardType = RewardType.Flexible,
+                ChoiceIndex = 2,
+                CaravanPurchases = ["offering_sword", "offering_shield"]
+            }
+        };
+
+        var dict = DtoConverters.ToDict(original);
+        var result = DtoConverters.FromCampaignDict(dict);
+
+        AssertThat(result).IsNotNull();
+        AssertThat(result!.PendingReward).IsNotNull();
+        AssertThat((string)result.PendingReward!.BattleId).IsEqual("boss_fight");
+        AssertThat(result.PendingReward.RewardType).IsEqual(RewardType.Flexible);
+        AssertThat(result.PendingReward.ChoiceIndex).IsEqual(2);
+        AssertThat(result.PendingReward.CaravanPurchases).HasSize(2);
+        AssertThat(result.PendingReward.CaravanPurchases).Contains("offering_sword");
+        AssertThat(result.PendingReward.CaravanPurchases).Contains("offering_shield");
+    }
+
+    [TestCase]
+    public void CampaignProgress_RoundTrip_PreservesNullPendingReward()
+    {
+        var original = new CampaignProgress
+        {
+            CompletedBattles = [new BattleId("battle_1")],
+            Gold = 100
+        };
+
+        var dict = DtoConverters.ToDict(original);
+        var result = DtoConverters.FromCampaignDict(dict);
+
+        AssertThat(result).IsNotNull();
+        AssertThat(result!.PendingReward).IsNull();
+    }
+
+    [TestCase]
+    public void PendingRewardData_ToDict_SerializesAllFields()
+    {
+        var pending = new PendingRewardData
+        {
+            BattleId = new BattleId("first_trial"),
+            RewardType = RewardType.Fixed,
+            ChoiceIndex = -1,
+            CaravanPurchases = ["item_a"]
+        };
+
+        var dict = DtoConverters.ToDict(pending);
+
+        AssertThat(dict["battle_id"].AsString()).IsEqual("first_trial");
+        AssertThat(dict["reward_type"].AsString()).IsEqual("fixed");
+        AssertThat(dict["choice_index"].AsInt32()).IsEqual(-1);
+        AssertThat(dict.ContainsKey("caravan_purchases")).IsTrue();
+        AssertThat(dict["caravan_purchases"].AsGodotArray().Count).IsEqual(1);
+    }
+
+    [TestCase]
+    public void PendingRewardData_ToDict_OmitsEmptyCaravanPurchases()
+    {
+        var pending = new PendingRewardData
+        {
+            BattleId = new BattleId("test_battle"),
+            RewardType = RewardType.None,
+            ChoiceIndex = 0
+        };
+
+        var dict = DtoConverters.ToDict(pending);
+
+        AssertThat(dict.ContainsKey("caravan_purchases")).IsFalse();
     }
 
     [TestCase]

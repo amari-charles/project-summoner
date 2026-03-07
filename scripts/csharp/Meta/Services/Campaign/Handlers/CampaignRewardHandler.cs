@@ -54,8 +54,8 @@ public class CampaignRewardHandler
 
         var pending = new PendingRewardData
         {
-            BattleId = battleId,
-            RewardType = rewardType,
+            BattleId = new BattleId(battleId),
+            RewardType = RewardTypeExtensions.FromStringId(rewardType),
             ChoiceIndex = choiceIndex
         };
 
@@ -80,23 +80,7 @@ public class CampaignRewardHandler
     public Godot.Collections.Dictionary GetPendingReward()
     {
         var pending = GetPendingRewardData();
-        if (pending == null) return new Godot.Collections.Dictionary();
-
-        var result = new Godot.Collections.Dictionary
-        {
-            ["battle_id"] = pending.BattleId,
-            ["reward_type"] = pending.RewardType,
-            ["choice_index"] = pending.ChoiceIndex
-        };
-
-        if (pending.CaravanPurchases.Count > 0)
-        {
-            var arr = new Godot.Collections.Array();
-            foreach (var p in pending.CaravanPurchases) arr.Add(p);
-            result["caravan_purchases"] = arr;
-        }
-
-        return result;
+        return pending != null ? DtoConverters.ToDict(pending) : new Godot.Collections.Dictionary();
     }
 
     /// <summary>Update choice index for a pending choice reward.</summary>
@@ -228,7 +212,7 @@ public class CampaignRewardHandler
             return (new Godot.Collections.Dictionary(), "");
         }
 
-        if (string.IsNullOrEmpty(pending.BattleId))
+        if (!pending.BattleId.HasValue)
         {
             GD.PushError("CampaignRewardHandler: Invalid pending reward - no battle_id");
             return (new Godot.Collections.Dictionary(), "");
