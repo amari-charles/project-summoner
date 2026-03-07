@@ -378,21 +378,15 @@ func get_ground_footprint_xz() -> Rect2:
 				continue
 			world_points.append(point)
 	else:
-		for corner: Vector2 in screen_corners:
-			var origin: Vector3 = project_ray_origin(corner)
-			var dir: Vector3 = project_ray_normal(corner)
-
-			# Skip if ray is parallel to ground (shouldn't happen with tilted camera)
-			if abs(dir.y) < 0.0001:
-				continue
-
-			# Calculate intersection with ground plane: t = (ground_y - origin.y) / dir.y
-			var t: float = (ground_y - origin.y) / dir.y
-
-			# Only consider intersections in front of camera
-			if t >= 0.0:
-				var point: Vector3 = origin + dir * t
-				world_points.append(point)
+		var dir: Vector3 = _get_ortho_ray_direction()
+		# Skip if ray is parallel to ground (shouldn't happen with tilted camera).
+		if abs(dir.y) >= 0.0001:
+			for corner: Vector2 in screen_corners:
+				var origin: Vector3 = _get_ortho_ray_origin(corner, screen_size)
+				var t: float = (ground_y - origin.y) / dir.y
+				if t >= 0.0:
+					var point: Vector3 = origin + dir * t
+					world_points.append(point)
 
 	# We need all 4 corners to intersect ground; otherwise part of the frustum
 	# points above the horizon and map clamping math becomes invalid.
@@ -439,6 +433,29 @@ func _get_forward_depth(world_pos: Vector3) -> float:
 	var forward: Vector3 = -global_basis.z
 	return forward.dot(world_pos - global_position)
 
+func _get_ortho_ray_origin(screen_pos: Vector2, screen_size: Vector2) -> Vector3:
+	## Compute ortho ray origin analytically (no Godot projection matrix).
+	var w: float = screen_size.x
+	var h: float = screen_size.y
+
+	var half_h: float
+	var half_w: float
+	if keep_aspect == KEEP_HEIGHT:
+		half_h = size * 0.5
+		half_w = half_h * (w / h)
+	else:
+		half_w = size * 0.5
+		half_h = half_w * (h / w)
+
+	var ndc_x: float = (screen_pos.x / w) * 2.0 - 1.0
+	var ndc_y: float = 1.0 - (screen_pos.y / h) * 2.0
+
+	return global_position + global_basis.x * (ndc_x * half_w) + global_basis.y * (ndc_y * half_h)
+
+func _get_ortho_ray_direction() -> Vector3:
+	## Ortho rays are all parallel — always the camera's forward vector.
+	return -global_basis.z
+
 func _get_horizontal_sample_bounds_x() -> Vector2:
 	var vp: Viewport = get_viewport()
 	var view_size: Vector2i = vp.get_visible_rect().size
@@ -456,17 +473,17 @@ func _get_horizontal_sample_bounds_x() -> Vector2:
 	var right_origin: Vector3
 	var right_dir: Vector3
 
+	var screen_size: Vector2 = Vector2(w, h)
 	if is_perspective_mode():
-		var screen_size: Vector2 = Vector2(w, h)
 		left_origin = global_position
 		right_origin = global_position
 		left_dir = _get_perspective_ray_direction(left_screen, screen_size)
 		right_dir = _get_perspective_ray_direction(right_screen, screen_size)
 	else:
-		left_origin = project_ray_origin(left_screen)
-		right_origin = project_ray_origin(right_screen)
-		left_dir = project_ray_normal(left_screen)
-		right_dir = project_ray_normal(right_screen)
+		left_origin = _get_ortho_ray_origin(left_screen, screen_size)
+		right_origin = _get_ortho_ray_origin(right_screen, screen_size)
+		left_dir = _get_ortho_ray_direction()
+		right_dir = left_dir
 
 	if abs(left_dir.y) < 0.0001 or abs(right_dir.y) < 0.0001:
 		return Vector2.ZERO
