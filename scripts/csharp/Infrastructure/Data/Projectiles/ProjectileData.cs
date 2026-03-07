@@ -131,12 +131,6 @@ public class ProjectileData
     /// </summary>
     public bool Tracking { get; set; } = false;
 
-    /// <summary>Turn rate for homing projectiles.</summary>
-    public float HomingStrength { get; set; } = 5f;
-
-    /// <summary>Time before homing starts.</summary>
-    public float HomingDelay { get; set; } = 0f;
-
     // =========================================================================
     // IMPACT
     // =========================================================================
@@ -196,8 +190,6 @@ public class ProjectileData
             VeerDuration = GetFloat(dict, "veer_duration", 0.25f),
             SteerStrength = GetFloat(dict, "steer_strength", 180f),
             Tracking = GetBool(dict, "tracking", false),
-            HomingStrength = GetFloat(dict, "homing_strength", 5f),
-            HomingDelay = GetFloat(dict, "homing_delay", 0f),
             PierceCount = GetInt(dict, "pierce_count", 0),
             AoeRadius = GetFloat(dict, "aoe_radius", 0f),
             HitRadius = GetFloat(dict, "hit_radius", 2.5f),

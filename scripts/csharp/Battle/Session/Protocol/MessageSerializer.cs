@@ -161,6 +161,8 @@ public class MessageSerializer
                 dict["lifetime"] = m.Lifetime;
                 dict["hitRadius"] = m.HitRadius;
                 dict["hitSpace"] = (int)m.HitSpace;
+                dict["veerDir"] = SerializeVector3(m.VeerDirection);
+                dict["counterVeerDir"] = SerializeVector3(m.CounterVeerDirection);
                 break;
 
             case ProjectileImpact m:
@@ -345,7 +347,9 @@ public class MessageSerializer
                 TimeAlive: dict.ContainsKey("timeAlive") ? (float)dict["timeAlive"] : 0f,
                 Lifetime: dict.ContainsKey("lifetime") ? (float)dict["lifetime"] : 5f,
                 HitRadius: dict.ContainsKey("hitRadius") ? (float)dict["hitRadius"] : 2.5f,
-                HitSpace: ParseProjectileHitSpace(dict.ContainsKey("hitSpace") ? (int)dict["hitSpace"] : 0)
+                HitSpace: ParseProjectileHitSpace(dict.ContainsKey("hitSpace") ? (int)dict["hitSpace"] : 0),
+                VeerDirection: dict.ContainsKey("veerDir") ? DeserializeVector3(dict["veerDir"]) : Vector3.Zero,
+                CounterVeerDirection: dict.ContainsKey("counterVeerDir") ? DeserializeVector3(dict["counterVeerDir"]) : Vector3.Zero
             ),
 
             MessageType.ProjectileImpact => new ProjectileImpact(
@@ -547,7 +551,9 @@ public class MessageSerializer
                 ["timeAlive"] = p.TimeAlive,
                 ["lifetime"] = p.Lifetime,
                 ["hitRadius"] = p.HitRadius,
-                ["hitSpace"] = (int)p.HitSpace
+                ["hitSpace"] = (int)p.HitSpace,
+                ["veerDir"] = SerializeVector3(p.VeerDirection),
+                ["counterVeerDir"] = SerializeVector3(p.CounterVeerDirection)
             };
             arr.Add(d);
         }
@@ -582,7 +588,9 @@ public class MessageSerializer
                 TimeAlive: d.ContainsKey("timeAlive") ? (float)d["timeAlive"] : 0f,
                 Lifetime: d.ContainsKey("lifetime") ? (float)d["lifetime"] : 5f,
                 HitRadius: d.ContainsKey("hitRadius") ? (float)d["hitRadius"] : 2.5f,
-                HitSpace: ParseProjectileHitSpace(d.ContainsKey("hitSpace") ? (int)d["hitSpace"] : 0)
+                HitSpace: ParseProjectileHitSpace(d.ContainsKey("hitSpace") ? (int)d["hitSpace"] : 0),
+                VeerDirection: d.ContainsKey("veerDir") ? DeserializeVector3(d["veerDir"]) : Vector3.Zero,
+                CounterVeerDirection: d.ContainsKey("counterVeerDir") ? DeserializeVector3(d["counterVeerDir"]) : Vector3.Zero
             );
         }
         return projectiles;

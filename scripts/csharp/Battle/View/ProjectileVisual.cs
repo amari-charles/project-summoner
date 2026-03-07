@@ -1,5 +1,6 @@
 using Fateforged.Data.Projectiles;
 using Fateforged.Infrastructure.Debug;
+using Fateforged.Infrastructure.Pooling;
 using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
@@ -13,13 +14,14 @@ namespace Fateforged.View;
 /// Reads its own SimProjectileData from IGameSession.GetState() each frame.
 /// Exposes impact method called by EntityManager on ProjectileHitEvent.
 ///
-/// Replaces Projectile3D — collision/damage logic moves to SimProjectile.
+/// Implements IPoolable for reuse via NodePool. Only EntityManager manages lifecycle —
+/// this class never self-destructs.
 /// </summary>
-public partial class ProjectileVisual : Node3D
+public partial class ProjectileVisual : Node3D, IPoolable
 {
     private IGameSession? _session;
     private int _projectileId;
-    private bool _destroyed;
+    private bool _deactivated;
     private bool _rotateToDirection = true;
 
     private Node3D? _visualModel;
@@ -30,12 +32,48 @@ public partial class ProjectileVisual : Node3D
     private ProjectileHitSpace _debugHitSpace = ProjectileHitSpace.GroundCylinder;
     private ProjectileHitSpace _debugAoeHitSpace = ProjectileHitSpace.GroundCylinder;
 
+    // --- IPoolable ---
+
+    public void OnAcquired()
+    {
+        SetPhysicsProcess(true);
+        SetProcess(true);
+    }
+
+    public void OnReleased()
+    {
+        Visible = false;
+        SetPhysicsProcess(false);
+        SetProcess(false);
+    }
+
+    public void ResetState()
+    {
+        _session = null;
+        _projectileId = 0;
+        _deactivated = false;
+        _rotateToDirection = true;
+
+        CleanupDebugMarkers();
+
+        // Free the visual model child so a fresh one is created on next Initialize
+        if (_visualModel != null)
+        {
+            _visualModel.QueueFree();
+            _visualModel = null;
+        }
+
+        Position = Vector3.Zero;
+        Rotation = Vector3.Zero;
+    }
+
     // --- Initialization (called by EntityManager at spawn) ---
 
     public void Initialize(IGameSession session, int projectileId)
     {
         _session = session;
         _projectileId = projectileId;
+        _deactivated = false;
 
         // Hide until first position sync (prevents ghost at 0,0,0)
         Visible = false;
@@ -62,12 +100,12 @@ public partial class ProjectileVisual : Node3D
 
     public override void _PhysicsProcess(double delta)
     {
-        if (_session == null || _destroyed) return;
+        if (_session == null || _deactivated) return;
 
         var state = _session.GetState();
         if (!state.Projectiles.TryGetValue(_projectileId, out var projData) || projData.IsDead)
         {
-            PlayImpactAndDestroy();
+            // Don't self-destruct — EntityManager will handle cleanup via Deactivate()
             return;
         }
 
@@ -100,7 +138,7 @@ public partial class ProjectileVisual : Node3D
         if (!debugEnabled && !anyMarkerExists)
             return;
 
-        if (_session == null || _destroyed)
+        if (_session == null || _deactivated)
         {
             CleanupDebugMarkers();
             return;
@@ -129,16 +167,19 @@ public partial class ProjectileVisual : Node3D
 
     // --- Event Reactions (called by EntityManager) ---
 
-    public void PlayImpactAndDestroy()
+    /// <summary>
+    /// Deactivate this visual (hide model, cleanup debug markers).
+    /// Does NOT free the node — EntityManager releases it back to the pool.
+    /// </summary>
+    public void Deactivate()
     {
-        if (_destroyed) return;
-        _destroyed = true;
+        if (_deactivated) return;
+        _deactivated = true;
 
         if (_visualModel != null)
             _visualModel.Visible = false;
 
         CleanupDebugMarkers();
-        QueueFree();
     }
 
     private void SpawnVisual(ProjectileData? projectileData)

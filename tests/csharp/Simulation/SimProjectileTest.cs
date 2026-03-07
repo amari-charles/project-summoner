@@ -246,4 +246,123 @@ public class SimProjectileTest
         AssertThat(primary.CurrentHp).IsLess(primary.MaxHp);
         AssertThat(farEnd.CurrentHp).IsEqual(farEnd.MaxHp);
     }
+
+    [TestCase]
+    public void TickAll_HomingProjectile_DiesAfterPassingDeadTarget()
+    {
+        var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
+        source.ElementId = 0;
+        source.CritChance = 0f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 0f, hp: 100f);
+        target.Evasion = 0f;
+        target.SeparationRadius = 0.5f;
+
+        int projId = SimProjectile.Spawn(
+            _state,
+            sourceUnitId: source.UnitId,
+            targetUnitId: target.UnitId,
+            team: source.Team,
+            damage: 20f,
+            sourceElementId: source.ElementId,
+            movementType: ProjectileMovementType.Homing,
+            speed: 15f,
+            lifetime: 6f,
+            startPos: new SimVector3(0f, 0f, 0f),
+            targetPos: new SimVector3(10f, 0f, 0f),
+            hitRadius: 0.1f,
+            steerStrength: 360f);
+
+        var events = new List<SimEvent>();
+        SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay
+
+        // Kill the target so the projectile loses its target
+        target.IsAlive = false;
+        target.CurrentHp = 0;
+
+        // Tick enough times for the projectile to pass through the dead target's position
+        for (int i = 0; i < 60; i++)
+            SimProjectile.TickAll(_state, 0.05f, events);
+
+        // Projectile should have been removed (died after passing target)
+        AssertThat(_state.Projectiles.ContainsKey(projId)).IsFalse();
+    }
+
+    [TestCase]
+    public void TickAll_StraightTracking_UpdatesTargetPositionWhenTargetMoves()
+    {
+        var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
+        source.ElementId = 0;
+        source.CritChance = 0f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 0f, hp: 100f);
+        target.Evasion = 0f;
+        target.SeparationRadius = 0.5f;
+
+        int projId = SimProjectile.Spawn(
+            _state,
+            sourceUnitId: source.UnitId,
+            targetUnitId: target.UnitId,
+            team: source.Team,
+            damage: 20f,
+            sourceElementId: source.ElementId,
+            movementType: ProjectileMovementType.Straight,
+            speed: 5f,
+            lifetime: 5f,
+            startPos: new SimVector3(0f, 0f, 0f),
+            targetPos: new SimVector3(10f, 0f, 0f),
+            hitRadius: 0.5f,
+            tracking: true);
+
+        var events = new List<SimEvent>();
+        SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay
+
+        // Move the target significantly
+        target.Position = new SimVector3(10f, 0f, 5f);
+
+        SimProjectile.TickAll(_state, 0.1f, events);
+
+        // Projectile's target position should have updated to follow the moving target
+        var proj = _state.Projectiles[projId];
+        AssertThat(proj.TargetPosition.Z).IsEqual(5f);
+    }
+
+    [TestCase]
+    public void TickAll_StraightNoTracking_DoesNotUpdateTargetPosition()
+    {
+        var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
+        source.ElementId = 0;
+        source.CritChance = 0f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 0f, hp: 100f);
+        target.Evasion = 0f;
+        target.SeparationRadius = 0.5f;
+
+        int projId = SimProjectile.Spawn(
+            _state,
+            sourceUnitId: source.UnitId,
+            targetUnitId: target.UnitId,
+            team: source.Team,
+            damage: 20f,
+            sourceElementId: source.ElementId,
+            movementType: ProjectileMovementType.Straight,
+            speed: 5f,
+            lifetime: 5f,
+            startPos: new SimVector3(0f, 0f, 0f),
+            targetPos: new SimVector3(10f, 0f, 0f),
+            hitRadius: 0.5f,
+            tracking: false);
+
+        var events = new List<SimEvent>();
+        SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay
+
+        // Move the target
+        target.Position = new SimVector3(10f, 0f, 5f);
+
+        SimProjectile.TickAll(_state, 0.1f, events);
+
+        // Target position should remain at original
+        var proj = _state.Projectiles[projId];
+        AssertThat(proj.TargetPosition.Z).IsEqual(0f);
+    }
 }

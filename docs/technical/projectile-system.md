@@ -414,8 +414,14 @@ Previously, projectiles called `DamageSystem.ApplyDamage()` directly. Now all da
 
 ## Pooling
 
-Projectile visuals are pooled by `EntityManager` for performance. Key reset behaviors:
-- `current_speed` resets to initial `speed`
-- Material alpha resets to 1.0
-- Particle emitters restart
-- Transform resets to origin
+Projectile visuals are pooled by `EntityManager` via `NodePool<ProjectileVisual>` (see `Infrastructure/Pooling/NodePool.cs`).
+
+`ProjectileVisual` implements `IPoolable`:
+- `OnAcquired()` — enables physics/process ticks
+- `OnReleased()` — hides node, disables ticks
+- `ResetState()` — clears session, ID, debug markers, frees visual model child
+
+Lifecycle is managed exclusively by `EntityManager`:
+- Spawn: `_projectilePool.Acquire()` → `Initialize()` → `AddChild()`
+- Cleanup: `Deactivate()` → `_projectilePool.Release()`
+- `ProjectileVisual` never self-destructs (no `QueueFree` in `_PhysicsProcess`)

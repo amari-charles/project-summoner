@@ -752,7 +752,8 @@ public class Simulation
             speedEnd: projectileData.SpeedEnd,
             speedTransitionDuration: projectileData.SpeedTransitionDuration,
             speedEasing: projectileData.SpeedEasing,
-            speedEaseExponent: projectileData.SpeedEaseExponent
+            speedEaseExponent: projectileData.SpeedEaseExponent,
+            tracking: projectileData.Tracking
         );
 
         return true;

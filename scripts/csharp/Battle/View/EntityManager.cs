@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fateforged.Infrastructure.Pooling;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Godot;
@@ -28,6 +29,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     private readonly Dictionary<int, SummonerVisual> _summonerRegistry = new();
     private readonly StateInterpolator _unitInterpolator = new();
     private IBattleVfxService _vfxService = NullBattleVfxService.Instance;
+    private NodePool<ProjectileVisual>? _projectilePool;
 
     private bool _isPaused;
     private readonly List<int> _cleanupBuffer = new();
@@ -46,6 +48,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         _unitInterpolator.InterpolationSpeed = ClientInterpolationSpeed;
         _unitInterpolator.SnapThreshold = ClientSnapThreshold;
         _vfxService = vfxService ?? NullBattleVfxService.Instance;
+        _projectilePool = new NodePool<ProjectileVisual>(this);
     }
 
     /// <summary>
@@ -65,6 +68,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         if (_session != null)
             _session.SimEventsEmitted -= OnSimEvents;
         _unitInterpolator.Clear();
+        _projectilePool?.Clear();
     }
 
     public void RegisterSummonerVisual(SummonerVisual shell, int teamIndex)
@@ -145,8 +149,8 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             }
             else if (!state.Projectiles.ContainsKey(projId))
             {
-                // Projectile removed from state — destroy shell
-                shell.PlayImpactAndDestroy();
+                // Projectile removed from state — deactivate and return to pool
+                ReleaseProjectile(shell);
                 _cleanupBuffer.Add(projId);
             }
         }
@@ -183,11 +187,17 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     private ProjectileVisual SpawnProjectileShell(SimProjectileData projData)
     {
-        var shell = new ProjectileVisual();
+        var shell = _projectilePool!.Acquire();
         shell.Name = $"ProjectileVisual_{projData.ProjectileId}";
         AddChild(shell);
         shell.Initialize(_session!, projData.ProjectileId);
         return shell;
+    }
+
+    private void ReleaseProjectile(ProjectileVisual shell)
+    {
+        shell.Deactivate();
+        _projectilePool?.Release(shell);
     }
 
     // --- Event Dispatch ---
@@ -246,7 +256,10 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     public void Visit(ProjectileHitEvent e)
     {
         if (_projectileRegistry.TryGetValue(e.ProjectileId, out var shell))
-            shell.PlayImpactAndDestroy();
+        {
+            ReleaseProjectile(shell);
+            _projectileRegistry.Remove(e.ProjectileId);
+        }
     }
 
     public void Visit(SummonerDamagedEvent e)

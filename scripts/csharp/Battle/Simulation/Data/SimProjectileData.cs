@@ -67,6 +67,13 @@ public class SimProjectileData
     public float ScaledCounterVeerDuration { get; set; }
     public float SteerStrength { get; set; } = 180f;
 
+    // Homing target-lost tracking (distance increasing = passed target)
+    public float PreviousDistanceToTarget { get; set; } = float.MaxValue;
+    public bool TargetLost { get; set; }
+
+    // Tracking (Straight/Arc follow moving targets)
+    public bool Tracking { get; set; }
+
     // Hit detection
     public float HitRadius { get; set; } = 2.5f;
     public ProjectileHitSpace HitSpace { get; set; } = ProjectileHitSpace.GroundCylinder;

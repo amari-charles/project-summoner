@@ -10,18 +10,17 @@ namespace Fateforged.Simulation.Combat;
 
 /// <summary>
 /// Pure deterministic projectile simulation operating on SimProjectileData.
-/// Mirrors Projectile3D path-based movement and hit detection.
+/// Movement/steering/geometry helpers are delegated to ProjectileMovement (shared with client).
 /// No Godot node dependencies — operates on MatchState data only.
 /// </summary>
 public static class SimProjectile
 {
-    // Arc path constants matching ArcPath.cs
-    private const float ArcFullArcDistance = 5.0f;
-
-    // Ballistic constants matching BallisticPath.cs
-    private const float BallisticDefaultGravity = 9.8f;
-    private const float BallisticMinTime = 0.01f;
     private const float GeometryEpsilon = 0.000001f;
+
+    // Static reusable buffers to avoid per-frame heap allocations.
+    // NOT thread-safe — TickAll must only be called from the physics thread.
+    private static readonly List<int> _toRemoveBuffer = new();
+    private static readonly List<PendingHit> _pendingHitsBuffer = new();
 
     private readonly struct PendingHit
     {
@@ -54,7 +53,8 @@ public static class SimProjectile
         float acceleration = 0f, float minSpeed = 1f,
         float? speedStart = null, float? speedEnd = null,
         float speedTransitionDuration = 1f, SpeedEasingType speedEasing = SpeedEasingType.Linear,
-        float speedEaseExponent = 2f)
+        float speedEaseExponent = 2f,
+        bool tracking = false)
     {
         int id = state.NextProjectileId();
         bool useSpeedEasing = speedStart.HasValue || speedEnd.HasValue;
@@ -93,6 +93,7 @@ public static class SimProjectile
             HitRadius = hitRadius,
             HitSpace = hitSpace,
             SteerStrength = steerStrength,
+            Tracking = tracking,
         };
 
         // Initialize direction
@@ -114,11 +115,11 @@ public static class SimProjectile
                 break;
 
             case ProjectileMovementType.Arc:
-                proj.PathLength = EstimateArcLength(startPos, targetPos, arcHeight);
+                proj.PathLength = ProjectileMovement.EstimateArcLength(startPos, targetPos, arcHeight);
                 break;
 
             case ProjectileMovementType.Ballistic:
-                InitBallistic(proj, startPos, targetPos, speed);
+                ProjectileMovement.InitBallistic(proj, startPos, targetPos, speed);
                 break;
 
             case ProjectileMovementType.WeavingHoming:
@@ -136,14 +137,14 @@ public static class SimProjectile
     /// </summary>
     public static void TickAll(MatchState state, float delta, List<SimEvent> events)
     {
-        var toRemove = new List<int>();
+        _toRemoveBuffer.Clear();
 
         foreach (var kvp in state.Projectiles)
         {
             var proj = kvp.Value;
             if (proj.IsDead)
             {
-                toRemove.Add(kvp.Key);
+                _toRemoveBuffer.Add(kvp.Key);
                 continue;
             }
 
@@ -157,13 +158,13 @@ public static class SimProjectile
             // Save last position for line-segment hit detection
             proj.LastPosition = proj.CurrentPosition;
             proj.TimeAlive += delta;
-            TickSpeed(proj, delta);
+            ProjectileMovement.TickSpeed(proj, delta);
 
             // Check lifetime
             if (proj.TimeAlive >= proj.Lifetime)
             {
                 proj.IsDead = true;
-                toRemove.Add(kvp.Key);
+                _toRemoveBuffer.Add(kvp.Key);
                 continue;
             }
 
@@ -171,16 +172,16 @@ public static class SimProjectile
             switch (proj.MovementType)
             {
                 case ProjectileMovementType.Straight:
-                    TickStraight(proj, delta);
+                    TickStraight(proj, state, delta);
                     break;
                 case ProjectileMovementType.Homing:
                     TickHoming(proj, state, delta);
                     break;
                 case ProjectileMovementType.Arc:
-                    TickArc(proj, delta);
+                    TickArc(proj, state, delta);
                     break;
                 case ProjectileMovementType.Ballistic:
-                    TickBallistic(proj, delta);
+                    ProjectileMovement.TickBallistic(proj, delta);
                     break;
                 case ProjectileMovementType.WeavingHoming:
                     TickWeavingHoming(proj, state, delta, events);
@@ -216,134 +217,70 @@ public static class SimProjectile
             }
 
             if (proj.IsDead)
-                toRemove.Add(kvp.Key);
+                _toRemoveBuffer.Add(kvp.Key);
         }
 
         // Remove dead projectiles
-        foreach (var id in toRemove)
+        foreach (var id in _toRemoveBuffer)
             state.Projectiles.Remove(id);
     }
 
     // =========================================================================
-    // PATH MOVEMENT
+    // PATH MOVEMENT (simulation-specific wrappers with MatchState access)
     // =========================================================================
 
-    private static void TickSpeed(SimProjectileData proj, float delta)
+    private static void TickStraight(SimProjectileData proj, MatchState state, float delta)
     {
-        if (proj.UseSpeedEasing)
+        ProjectileMovement.TickStraight(proj, delta, unitId =>
         {
-            float duration = MathF.Max(proj.SpeedTransitionDuration, 0.0001f);
-            float t = SimMath.Clamp(proj.TimeAlive / duration, 0f, 1f);
-            float eased = EvaluateSpeedEasing(t, proj.SpeedEasing, proj.SpeedEaseExponent);
-            proj.Speed = proj.SpeedStart + ((proj.SpeedEnd - proj.SpeedStart) * eased);
-            return;
-        }
-
-        if (MathF.Abs(proj.Acceleration) < 0.0001f)
-            return;
-
-        proj.Speed += proj.Acceleration * delta;
-        if (proj.Acceleration < 0f && proj.Speed < proj.MinSpeed)
-            proj.Speed = proj.MinSpeed;
+            var target = state.GetAliveUnit(unitId);
+            return target?.Position;
+        });
     }
 
-    private static float EvaluateSpeedEasing(float t, SpeedEasingType easingType, float exponent)
+    private static void TickArc(SimProjectileData proj, MatchState state, float delta)
     {
-        float clampedT = SimMath.Clamp(t, 0f, 1f);
-        float safeExponent = MathF.Max(exponent, 0.0001f);
-        return easingType switch
+        ProjectileMovement.TickArc(proj, delta, unitId =>
         {
-            SpeedEasingType.EaseIn => MathF.Pow(clampedT, safeExponent),
-            SpeedEasingType.EaseOut => 1f - MathF.Pow(1f - clampedT, safeExponent),
-            SpeedEasingType.EaseInOut => (1f - MathF.Cos(clampedT * MathF.PI)) * 0.5f,
-            _ => clampedT
-        };
-    }
-
-    private static void TickStraight(SimProjectileData proj, float delta)
-    {
-        if (proj.PathLength < 0.01f)
-        {
-            proj.Progress = 1f;
-            return;
-        }
-
-        proj.Progress += (proj.Speed * delta) / proj.PathLength;
-        proj.Progress = MathF.Min(proj.Progress, 1f);
-
-        // Linear interpolation
-        proj.CurrentPosition = proj.StartPosition.Lerp(proj.TargetPosition, proj.Progress);
-        proj.Direction = (proj.TargetPosition - proj.StartPosition);
-        if (proj.Direction.LengthSquared() > 0.001f)
-            proj.Direction = proj.Direction.Normalized();
-    }
-
-    private static void TickArc(SimProjectileData proj, float delta)
-    {
-        if (proj.PathLength < 0.01f)
-        {
-            proj.Progress = 1f;
-            return;
-        }
-
-        proj.Progress += (proj.Speed * delta) / proj.PathLength;
-        proj.Progress = MathF.Min(proj.Progress, 1f);
-
-        // Quadratic Bézier: B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
-        float t = proj.Progress;
-        var controlPoint = ComputeArcControlPoint(proj.StartPosition, proj.TargetPosition, proj.ArcHeight);
-
-        float u = 1f - t;
-        proj.CurrentPosition = (u * u * proj.StartPosition) + (2f * u * t * controlPoint) + (t * t * proj.TargetPosition);
-
-        // Direction from Bézier derivative
-        var tangent = (2f * u * (controlPoint - proj.StartPosition)) + (2f * t * (proj.TargetPosition - controlPoint));
-        if (tangent.LengthSquared() > 0.001f)
-            proj.Direction = tangent.Normalized();
+            var target = state.GetAliveUnit(unitId);
+            return target?.Position;
+        });
     }
 
     private static void TickHoming(SimProjectileData proj, MatchState state, float delta)
     {
         var target = state.GetAliveUnit(proj.TargetUnitId);
         if (target != null)
+        {
             proj.TargetPosition = target.Position;
+            proj.TargetLost = false;
+        }
+        else if (!proj.TargetLost)
+        {
+            proj.TargetLost = true;
+            proj.PreviousDistanceToTarget = proj.CurrentPosition.DistanceTo(proj.TargetPosition);
+        }
 
         var toTarget = proj.TargetPosition - proj.CurrentPosition;
         if (toTarget.LengthSquared() > 0.001f)
         {
             var desiredDirection = toTarget.Normalized();
-            SteerToward(proj, desiredDirection, delta);
+            ProjectileMovement.SteerToward(proj, desiredDirection, delta);
         }
 
         proj.CurrentPosition += proj.Direction * (proj.Speed * delta);
-    }
 
-    private static void TickBallistic(SimProjectileData proj, float delta)
-    {
-        if (proj.TotalTime < BallisticMinTime)
+        // Kill homing projectile after it passes the dead target's last known position
+        if (proj.TargetLost)
         {
-            proj.Progress = 1f;
-            return;
+            float currentDist = proj.CurrentPosition.DistanceTo(proj.TargetPosition);
+            if (currentDist > proj.PreviousDistanceToTarget)
+            {
+                proj.IsDead = true;
+                return;
+            }
+            proj.PreviousDistanceToTarget = currentDist;
         }
-
-        proj.Progress += (proj.Speed * delta) / proj.PathLength;
-        proj.Progress = MathF.Min(proj.Progress, 1f);
-
-        float time = proj.Progress * proj.TotalTime;
-
-        // Horizontal: start + velocity * time
-        var pos = proj.StartPosition + proj.HorizontalVelocity * time;
-
-        // Vertical: y0 + v0*t - 0.5*g*t²
-        pos.Y = proj.StartPosition.Y + proj.InitialVerticalVelocity * time - 0.5f * proj.Gravity * time * time;
-
-        proj.CurrentPosition = pos;
-
-        // Direction from velocity at time t
-        var velocity = proj.HorizontalVelocity;
-        velocity.Y = proj.InitialVerticalVelocity - proj.Gravity * time;
-        if (velocity.LengthSquared() > 0.001f)
-            proj.Direction = velocity.Normalized();
     }
 
     private static void TickWeavingHoming(SimProjectileData proj, MatchState state, float delta, List<SimEvent> events)
@@ -353,7 +290,15 @@ public static class SimProjectile
         // Update target position if target is still alive
         var target = state.GetAliveUnit(proj.TargetUnitId);
         if (target != null)
+        {
             proj.TargetPosition = target.Position;
+            proj.TargetLost = false;
+        }
+        else if (!proj.TargetLost)
+        {
+            proj.TargetLost = true;
+            proj.PreviousDistanceToTarget = proj.CurrentPosition.DistanceTo(proj.TargetPosition);
+        }
 
         switch (proj.WeavingPhase)
         {
@@ -379,8 +324,8 @@ public static class SimProjectile
                 }
                 else
                 {
-                    var outTarget = BlendWithTarget(proj, proj.VeerDirection, WeavingHomingTuning.BlendOutTargetWeight);
-                    SteerToward(proj, outTarget, delta);
+                    var outTarget = ProjectileMovement.BlendWithTarget(proj, proj.VeerDirection, WeavingHomingTuning.BlendOutTargetWeight);
+                    ProjectileMovement.SteerToward(proj, outTarget, delta);
                 }
                 break;
 
@@ -392,25 +337,26 @@ public static class SimProjectile
                 }
                 else
                 {
-                    var backTarget = BlendWithTarget(proj, proj.CounterVeerDirection, WeavingHomingTuning.BlendBackTargetWeight);
-                    SteerToward(proj, backTarget, delta);
+                    var backTarget = ProjectileMovement.BlendWithTarget(proj, proj.CounterVeerDirection, WeavingHomingTuning.BlendBackTargetWeight);
+                    ProjectileMovement.SteerToward(proj, backTarget, delta);
                 }
                 break;
 
             case WeavingPhase.Homing:
-                var toTarget2 = (proj.TargetPosition - proj.CurrentPosition);
-                if (toTarget2.LengthSquared() > 0.001f)
+            {
+                var toTarget = (proj.TargetPosition - proj.CurrentPosition);
+                if (toTarget.LengthSquared() > 0.001f)
                 {
-                    float distanceToTarget = toTarget2.Length();
+                    float distanceToTarget = toTarget.Length();
                     bool finalLock = distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
                                      || proj.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
-                    var homingDirection = finalLock ? toTarget2.Normalized() : ApplyHomingWeave(proj, toTarget2);
+                    var homingDirection = finalLock ? toTarget.Normalized() : ProjectileMovement.ApplyHomingWeave(proj, toTarget);
                     float settle = SimMath.Clamp(distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
                     float steerScale = finalLock
                         ? 1f
                         : (WeavingHomingTuning.HomingFarSteerScale
                            + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle)));
-                    SteerToward(proj, homingDirection, delta, steerScale);
+                    ProjectileMovement.SteerToward(proj, homingDirection, delta, steerScale);
                 }
 
                 // Direct hit check
@@ -424,6 +370,7 @@ public static class SimProjectile
                     }
                 }
                 break;
+            }
         }
 
         // Apply velocity
@@ -434,42 +381,17 @@ public static class SimProjectile
         var frameTravel = proj.CurrentPosition - proj.LastPosition;
         if (frameTravel.LengthSquared() > 0.001f)
             proj.Direction = frameTravel.Normalized();
-    }
 
-    /// <summary>
-    /// Gradually steer the projectile toward a target direction.
-    /// Mirrors Projectile3D.SteerToward().
-    /// </summary>
-    private static void SteerToward(SimProjectileData proj, SimVector3 targetDirection, float delta, float steerScale = 1f)
-    {
-        if (targetDirection.LengthSquared() < 0.001f)
-            return;
-
-        targetDirection = targetDirection.Normalized();
-
-        float dot = proj.Direction.Dot(targetDirection);
-        dot = SimMath.Clamp(dot, -1f, 1f);
-        float angleBetween = MathF.Acos(dot);
-
-        float clampedScale = SimMath.Clamp(steerScale, 0f, 1f);
-        float maxRotation = SimMath.DegToRad(proj.SteerStrength * clampedScale) * delta;
-
-        if (angleBetween <= maxRotation)
+        // Kill weaving projectile after it passes the dead target's last known position
+        if (proj.TargetLost && proj.WeavingPhase == WeavingPhase.Homing)
         {
-            proj.Direction = targetDirection;
-        }
-        else
-        {
-            var rotationAxis = proj.Direction.Cross(targetDirection);
-            if (rotationAxis.LengthSquared() < 0.001f)
+            float currentDist = proj.CurrentPosition.DistanceTo(proj.TargetPosition);
+            if (currentDist > proj.PreviousDistanceToTarget)
             {
-                rotationAxis = proj.Direction.Cross(SimVector3.Up);
-                if (rotationAxis.LengthSquared() < 0.001f)
-                    rotationAxis = proj.Direction.Cross(SimVector3.Right);
+                proj.IsDead = true;
+                return;
             }
-            rotationAxis = rotationAxis.Normalized();
-
-            proj.Direction = RotateAround(proj.Direction, rotationAxis, maxRotation).Normalized();
+            proj.PreviousDistanceToTarget = currentDist;
         }
     }
 
@@ -482,7 +404,7 @@ public static class SimProjectile
     /// </summary>
     private static void CheckHits(SimProjectileData proj, MatchState state, List<SimEvent> events)
     {
-        var pendingHits = new List<PendingHit>();
+        _pendingHitsBuffer.Clear();
 
         foreach (var kvp in state.Units)
         {
@@ -497,14 +419,14 @@ public static class SimProjectile
                     out float distSq, out float segmentT) &&
                 distSq <= hitThreshold * hitThreshold)
             {
-                pendingHits.Add(new PendingHit(unit, segmentT, distSq));
+                _pendingHitsBuffer.Add(new PendingHit(unit, segmentT, distSq));
             }
         }
 
-        if (pendingHits.Count == 0)
+        if (_pendingHitsBuffer.Count == 0)
             return;
 
-        pendingHits.Sort((a, b) =>
+        _pendingHitsBuffer.Sort((a, b) =>
         {
             int byT = a.SegmentT.CompareTo(b.SegmentT);
             if (byT != 0)
@@ -517,7 +439,7 @@ public static class SimProjectile
             return a.Unit.UnitId.CompareTo(b.Unit.UnitId);
         });
 
-        foreach (var hit in pendingHits)
+        foreach (var hit in _pendingHitsBuffer)
         {
             var unit = hit.Unit;
             if (!unit.IsAlive) continue;
@@ -607,7 +529,6 @@ public static class SimProjectile
 
     /// <summary>
     /// Resolve the source unit and both summoners for damage calculation.
-    /// Shared by ApplyHit and ApplyAoE to eliminate duplicated lookup.
     /// </summary>
     private static (UnitData? sourceUnit, SummonerData? attackerSummoner, SummonerData? targetSummoner)
         ResolveSourceAndSummoners(SimProjectileData proj, UnitData target, MatchState state)
@@ -621,25 +542,6 @@ public static class SimProjectile
     // =========================================================================
     // INITIALIZATION HELPERS
     // =========================================================================
-
-    private static void InitBallistic(SimProjectileData proj, SimVector3 start, SimVector3 end, float speed)
-    {
-        var displacement = end - start;
-        float horizontalDist = MathF.Sqrt(displacement.X * displacement.X + displacement.Z * displacement.Z);
-        float verticalDist = displacement.Y;
-
-        proj.TotalTime = MathF.Max(horizontalDist / speed, BallisticMinTime);
-
-        // v0 = (y + 0.5*g*t²) / t
-        proj.InitialVerticalVelocity = (verticalDist + 0.5f * proj.Gravity * proj.TotalTime * proj.TotalTime) / proj.TotalTime;
-
-        var horizontalDir = new SimVector3(displacement.X, 0, displacement.Z);
-        if (horizontalDir.LengthSquared() > 0.001f)
-            horizontalDir = horizontalDir.Normalized();
-        proj.HorizontalVelocity = horizontalDir * speed;
-
-        proj.PathLength = EstimateBallisticLength(proj);
-    }
 
     private static void InitWeavingHoming(
         SimProjectileData proj, SimVector3 start, SimVector3 target, float speed,
@@ -665,7 +567,6 @@ public static class SimProjectile
             proj.ScaledVeerDelay = veerDelay * distanceScale;
             float weaveDuration = veerDuration * distanceScale;
             proj.ScaledVeerDuration = weaveDuration;
-            // Slightly shorter counter-phase gives a tighter "S" before homing.
             proj.ScaledCounterVeerDuration = weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
             float scaledVeerAngle = veerAngle * distanceScale;
 
@@ -675,12 +576,12 @@ public static class SimProjectile
             float veerYawRadians = SimMath.DegToRad(scaledVeerAngle) * veerSign;
             float veerPitchRadians = SimMath.DegToRad(scaledVeerAngle * WeavingHomingTuning.VeerPitchRatio) * pitchSign;
 
-            var rightAxis = GetStableRightAxis(proj.Direction);
-            var outDir = RotateAround(proj.Direction, SimVector3.Up, veerYawRadians);
-            outDir = RotateAround(outDir, rightAxis, veerPitchRadians);
+            var rightAxis = ProjectileMovement.GetStableRightAxis(proj.Direction);
+            var outDir = ProjectileMovement.RotateAround(proj.Direction, SimVector3.Up, veerYawRadians);
+            outDir = ProjectileMovement.RotateAround(outDir, rightAxis, veerPitchRadians);
 
-            var backDir = RotateAround(proj.Direction, SimVector3.Up, -veerYawRadians * WeavingHomingTuning.VeerCounterYawRatio);
-            backDir = RotateAround(backDir, rightAxis, -veerPitchRadians * WeavingHomingTuning.VeerCounterPitchRatio);
+            var backDir = ProjectileMovement.RotateAround(proj.Direction, SimVector3.Up, -veerYawRadians * WeavingHomingTuning.VeerCounterYawRatio);
+            backDir = ProjectileMovement.RotateAround(backDir, rightAxis, -veerPitchRadians * WeavingHomingTuning.VeerCounterPitchRatio);
 
             proj.VeerDirection = outDir.Normalized();
             proj.CounterVeerDirection = backDir.Normalized();
@@ -691,53 +592,8 @@ public static class SimProjectile
     }
 
     // =========================================================================
-    // GEOMETRY HELPERS
+    // SIM-ONLY HELPERS (hit detection geometry)
     // =========================================================================
-
-    private static SimVector3 BlendWithTarget(SimProjectileData proj, SimVector3 weaveDirection, float targetWeight)
-    {
-        var toTarget = proj.TargetPosition - proj.CurrentPosition;
-        if (toTarget.LengthSquared() <= 0.001f)
-            return weaveDirection;
-
-        var desired = (weaveDirection * (1f - targetWeight)) + (toTarget.Normalized() * targetWeight);
-        if (desired.LengthSquared() <= 0.001f)
-            return weaveDirection;
-
-        return desired.Normalized();
-    }
-
-    private static SimVector3 ApplyHomingWeave(SimProjectileData proj, SimVector3 toTarget)
-    {
-        var targetDirection = toTarget.Normalized();
-        float targetDistance = toTarget.Length();
-        if (targetDistance <= GeometryEpsilon)
-            return targetDirection;
-
-        float arc = MathF.Max(0f, proj.ArcHeight);
-        if (arc <= GeometryEpsilon)
-            return targetDirection;
-
-        float settle = SimMath.Clamp(targetDistance / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
-        float yawAmplitude = SimMath.DegToRad(proj.ScaledCounterVeerDuration > 0f
-            ? proj.ScaledCounterVeerDuration * WeavingHomingTuning.HomingYawFromDurationScale
-            : 0f);
-        if (yawAmplitude <= GeometryEpsilon)
-            yawAmplitude = SimMath.DegToRad(MathF.Max(
-                WeavingHomingTuning.HomingYawFallbackMinDegrees,
-                arc * WeavingHomingTuning.HomingYawFallbackArcMultiplier));
-
-        float phase = (proj.TimeAlive * WeavingHomingTuning.HomingWeaveFrequency) + (proj.ProjectileId * 0.37f);
-        float yawOffset = MathF.Sin(phase) * yawAmplitude * WeavingHomingTuning.HomingWeaveYawRatio * settle;
-        float pitchOffset = MathF.Cos(phase * (WeavingHomingTuning.HomingWeavePitchFrequency
-                                               / WeavingHomingTuning.HomingWeaveFrequency))
-                            * yawAmplitude * WeavingHomingTuning.HomingWeavePitchRatio * settle;
-
-        var rightAxis = GetStableRightAxis(targetDirection);
-        var woven = RotateAround(targetDirection, SimVector3.Up, yawOffset);
-        woven = RotateAround(woven, rightAxis, pitchOffset);
-        return woven.Normalized();
-    }
 
     private static bool CanHitUnitAtPoint(SimProjectileData proj, UnitData unit, SimVector3 point)
     {
@@ -768,13 +624,9 @@ public static class SimProjectile
         if (proj.HitSpace == ProjectileHitSpace.Sphere3D)
             return false;
 
-        // Ground-cylinder gameplay only applies to grounded targets.
         return unit.MovementLayer == MovementLayer.Ground;
     }
 
-    /// <summary>
-    /// Compute squared distance and segment-t for a 3D point-to-segment query.
-    /// </summary>
     private static bool TryGetPointToSegmentDistanceSq(
         SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
     {
@@ -793,9 +645,6 @@ public static class SimProjectile
         return true;
     }
 
-    /// <summary>
-    /// Compute squared distance and segment-t for a 2D XZ point-to-segment query.
-    /// </summary>
     private static bool TryGetPointToSegmentDistanceSqXZ(
         SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
     {
@@ -828,86 +677,5 @@ public static class SimProjectile
         float dx = a.X - b.X;
         float dz = a.Z - b.Z;
         return (dx * dx) + (dz * dz);
-    }
-
-    /// <summary>
-    /// Compute arc control point (matches ArcPath.RecalculateControlPoint).
-    /// </summary>
-    private static SimVector3 ComputeArcControlPoint(SimVector3 start, SimVector3 end, float arcHeight)
-    {
-        float distance = start.DistanceTo(end);
-        float arcScale = SimMath.Clamp(distance / ArcFullArcDistance, 0f, 1f);
-        float effectiveArcHeight = arcHeight * arcScale;
-
-        return (start + end) / 2f + SimVector3.Up * effectiveArcHeight;
-    }
-
-    /// <summary>
-    /// Estimate arc path length using line segments (matches ArcPath.EstimateLength).
-    /// </summary>
-    private static float EstimateArcLength(SimVector3 start, SimVector3 end, float arcHeight)
-    {
-        const int segments = 8;
-        var control = ComputeArcControlPoint(start, end, arcHeight);
-        float length = 0f;
-
-        var prev = start;
-        for (int i = 1; i <= segments; i++)
-        {
-            float t = i / (float)segments;
-            float u = 1f - t;
-            var current = (u * u * start) + (2f * u * t * control) + (t * t * end);
-            length += prev.DistanceTo(current);
-            prev = current;
-        }
-
-        return MathF.Max(length, 0.1f);
-    }
-
-    /// <summary>
-    /// Rotate a vector around an axis by the given angle (radians).
-    /// Uses Rodrigues' rotation formula. Replaces Godot Vector3.Rotated().
-    /// </summary>
-    private static SimVector3 RotateAround(SimVector3 v, SimVector3 axis, float angle)
-    {
-        axis = axis.Normalized();
-        float cos = MathF.Cos(angle);
-        float sin = MathF.Sin(angle);
-        // Rodrigues: v*cos + (axis x v)*sin + axis*(axis . v)*(1 - cos)
-        return v * cos + axis.Cross(v) * sin + axis * (axis.Dot(v) * (1f - cos));
-    }
-
-    private static SimVector3 GetStableRightAxis(SimVector3 forward)
-    {
-        var right = forward.Cross(SimVector3.Up);
-        if (right.LengthSquared() < GeometryEpsilon)
-            right = forward.Cross(SimVector3.Forward);
-        if (right.LengthSquared() < GeometryEpsilon)
-            right = SimVector3.Right;
-        return right.Normalized();
-    }
-
-    /// <summary>
-    /// Estimate ballistic path length using line segments (matches BallisticPath.EstimateLength).
-    /// </summary>
-    private static float EstimateBallisticLength(SimProjectileData proj)
-    {
-        const int segments = 16;
-        float length = 0f;
-
-        var prev = proj.StartPosition;
-        for (int i = 1; i <= segments; i++)
-        {
-            float t = i / (float)segments;
-            float time = t * proj.TotalTime;
-
-            var pos = proj.StartPosition + proj.HorizontalVelocity * time;
-            pos.Y = proj.StartPosition.Y + proj.InitialVerticalVelocity * time - 0.5f * proj.Gravity * time * time;
-
-            length += prev.DistanceTo(pos);
-            prev = pos;
-        }
-
-        return MathF.Max(length, 0.1f);
     }
 }
