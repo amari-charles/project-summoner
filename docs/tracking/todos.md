@@ -20,16 +20,15 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
-## AI-First Priority Queue (2026-03-05)
+## AI-First Priority Queue (2026-03-06)
 
-1. Investigate blocked-unit idle freeze and add deterministic regression coverage  
+1. Investigate blocked-unit idle freeze and add deterministic regression coverage
    Why first: Prevents recurring "units stop contributing" failures in live matches.
-2. Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`  
-   Why second: Type-safety win with moderate refactor cost and strong semantic benefit.
-3. Continue typed-internal service handler refactors (string boundary only at GDScript edge)  
-   Why third: Important cleanup, but lower immediate player impact than gameplay bugs.
-4. Audit sim/visual desync points in battle flow  
-   Why fourth: High-priority correctness work that reduces hard-to-debug runtime drift.
+2. ✅ ~~Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`~~ (Done in PR #TBD)
+3. Continue typed-internal service handler refactors (string boundary only at GDScript edge)
+   Why second: Important cleanup, but lower immediate player impact than gameplay bugs.
+4. Audit sim/visual desync points in battle flow
+   Why third: High-priority correctness work that reduces hard-to-debug runtime drift.
 
 ---
 
@@ -166,7 +165,7 @@ _progressHandler.SaveProgressInternal(activeSummoner);
 ---
 
 #### Complete PendingReward Typed Domain Object Migration
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Architecture / Type Safety
 **Effort:** Small
 
@@ -1042,7 +1041,7 @@ If data belongs to an entity, put it on the entity. Avoid solving per-entity pro
 ---
 
 #### Eliminate Dynamic Call() in BattleSessionFactory
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Architecture / Type Safety
 **Effort:** Small
 
