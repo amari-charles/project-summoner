@@ -461,7 +461,11 @@ public partial class ProfileRepository : Node, IProfileRepository
 
         var typedId = new SummonerId(key);
         var progress = GetCampaignProgress(typedId);
-        progress.PendingReward ??= new PendingRewardData();
+        if (progress.PendingReward == null)
+        {
+            GD.PushWarning("ProfileRepository: AddCaravanPurchase called with no pending reward — creating empty one");
+            progress.PendingReward = new PendingRewardData();
+        }
 
         if (!progress.PendingReward.CaravanPurchases.Contains(offeringId))
         {
