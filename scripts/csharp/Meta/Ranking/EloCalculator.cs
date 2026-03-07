@@ -9,9 +9,9 @@ namespace Fateforged.Multiplayer.Ranking;
 public static class EloCalculator
 {
     /// <summary>
-    /// Starting ELO for new players (Mage floor).
+    /// Starting ELO for new players (Apprentice floor).
     /// </summary>
-    public const int StartingElo = 1200;
+    public const int StartingElo = 800;
 
     /// <summary>
     /// K-factor determines how much ratings change per match.

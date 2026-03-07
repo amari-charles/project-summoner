@@ -1,27 +1,17 @@
+using System.Text.Json.Serialization;
+
 namespace Fateforged.Multiplayer.Ranking;
 
 /// <summary>
 /// Why a match ended.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum MatchEndReason
 {
     SummonerDestroyed,
     Forfeit,
     Disconnect,
     Timeout
-}
-
-/// <summary>
-/// Input DTO — what callers provide when reporting a match.
-/// </summary>
-public class MatchResult
-{
-    public string MatchId { get; set; } = "";
-    public string WinnerUserId { get; set; } = "";
-    public string LoserUserId { get; set; } = "";
-    public int OpponentRating { get; set; } = EloCalculator.StartingElo;
-    public float DurationSeconds { get; set; }
-    public string EndReason { get; set; } = "summoner_destroyed";
 }
 
 /// <summary>
@@ -37,6 +27,6 @@ public class MatchRecord
     public int RatingChange { get; set; }
     public int OpponentRatingBefore { get; set; }
     public float DurationSeconds { get; set; }
-    public string EndReason { get; set; } = "";
+    public MatchEndReason EndReason { get; set; } = MatchEndReason.SummonerDestroyed;
     public long Timestamp { get; set; }
 }

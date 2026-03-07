@@ -24,7 +24,7 @@ public class RankingServiceLogicTest
         AssertThat(record.RatingChange).IsEqual(0);
         AssertThat(record.OpponentRatingBefore).IsEqual(0);
         AssertThat(record.DurationSeconds).IsEqual(0f);
-        AssertThat(record.EndReason).IsEmpty();
+        AssertThat(record.EndReason).IsEqual(MatchEndReason.SummonerDestroyed);
         AssertThat(record.Timestamp).IsEqual(0L);
     }
 
@@ -41,7 +41,7 @@ public class RankingServiceLogicTest
             RatingChange = 16,
             OpponentRatingBefore = 1200,
             DurationSeconds = 120.5f,
-            EndReason = "summoner_destroyed",
+            EndReason = MatchEndReason.Forfeit,
             Timestamp = 1707091200L
         };
 
@@ -53,7 +53,7 @@ public class RankingServiceLogicTest
         AssertThat(record.RatingChange).IsEqual(16);
         AssertThat(record.OpponentRatingBefore).IsEqual(1200);
         AssertThat(record.DurationSeconds).IsEqual(120.5f);
-        AssertThat(record.EndReason).IsEqual("summoner_destroyed");
+        AssertThat(record.EndReason).IsEqual(MatchEndReason.Forfeit);
         AssertThat(record.Timestamp).IsEqual(1707091200L);
     }
 
@@ -84,44 +84,6 @@ public class RankingServiceLogicTest
         AssertThat(record.Won).IsFalse();
         AssertThat(record.RatingChange).IsLess(0);
         AssertThat(record.RatingAfter).IsLess(record.RatingBefore);
-    }
-
-    #endregion
-
-    #region MatchResult Tests
-
-    [TestCase]
-    public void MatchResult_DefaultValues()
-    {
-        var result = new MatchResult();
-
-        AssertThat(result.MatchId).IsEmpty();
-        AssertThat(result.WinnerUserId).IsEmpty();
-        AssertThat(result.LoserUserId).IsEmpty();
-        AssertThat(result.OpponentRating).IsEqual(EloCalculator.StartingElo);
-        AssertThat(result.DurationSeconds).IsEqual(0f);
-        AssertThat(result.EndReason).IsEqual("summoner_destroyed");
-    }
-
-    [TestCase]
-    public void MatchResult_StoresAllProperties()
-    {
-        var result = new MatchResult
-        {
-            MatchId = "match-123",
-            WinnerUserId = "winner-id",
-            LoserUserId = "loser-id",
-            OpponentRating = 1500,
-            DurationSeconds = 120.5f,
-            EndReason = "forfeit"
-        };
-
-        AssertThat(result.MatchId).IsEqual("match-123");
-        AssertThat(result.WinnerUserId).IsEqual("winner-id");
-        AssertThat(result.LoserUserId).IsEqual("loser-id");
-        AssertThat(result.OpponentRating).IsEqual(1500);
-        AssertThat(result.DurationSeconds).IsEqual(120.5f);
-        AssertThat(result.EndReason).IsEqual("forfeit");
     }
 
     #endregion

@@ -5,6 +5,7 @@ using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Events;
 using Fateforged.Session;
 using Fateforged.Multiplayer.Transport;
+using Fateforged.Multiplayer.Ranking;
 using Godot;
 using Fateforged.Constants;
 
@@ -53,6 +54,7 @@ public partial class BattleScene : Node3D
 	private List<string> _deckCardInstanceIds = new();
 	private int? _pendingCompletionWinnerTeam;
 	private bool _completionHandled;
+	private MatchEndReason _matchEndReason = MatchEndReason.SummonerDestroyed;
 
 	/// Max frames to wait for a single scene to load (~5 seconds at 60fps)
 	private const int SceneLoadTimeoutFrames = 300;
@@ -327,6 +329,7 @@ public partial class BattleScene : Node3D
 			switch (evt)
 			{
 				case GameOverEvent e:
+					_matchEndReason = MapEndReason(e.Reason);
 					EndGame(simNode.RemapTeam(e.WinnerTeam));
 					break;
 				case PhaseChangedEvent e:
@@ -866,33 +869,29 @@ public partial class BattleScene : Node3D
 			return;
 		}
 
-		var rankingService = GetNodeOrNull<Fateforged.Multiplayer.Ranking.RankingService>("/root/RankingService");
-		if (rankingService == null || !rankingService.HasMethod("ReportMatchFromGDScript"))
+		var rankingService = GetNodeOrNull<RankingService>("/root/RankingService");
+		if (rankingService == null)
 		{
-			GD.Print("[BattleScene] RankingService.ReportMatchFromGDScript not available");
+			GD.Print("[BattleScene] RankingService not available");
 			return;
 		}
 
-		// Get local user ID from Nakama
-		string localUserId = "";
-		var nakama = GetNodeOrNull("/root/NakamaGameClient");
-		if (nakama != null)
-		{
-			var userIdVal = nakama.Get("UserId");
-			if (userIdVal.VariantType != Variant.Type.Nil)
-				localUserId = userIdVal.ToString();
-		}
-
-		string opponentUserId = matchInfo.GetValueOrDefault("opponent_user_id", "").ToString();
+		string matchId = matchInfo.GetValueOrDefault("match_id", "").ToString();
+		string opponentId = matchInfo.GetValueOrDefault("opponent_user_id", "").ToString();
 		int opponentRating = (int)matchInfo.GetValueOrDefault("opponent_rating",
-			Fateforged.Multiplayer.Ranking.EloCalculator.StartingElo);
-		string winnerUserId = playerWon ? localUserId : opponentUserId;
-		string loserUserId = playerWon ? opponentUserId : localUserId;
+			EloCalculator.StartingElo);
+		float duration = (GetSimNode() as SimulationNode)?.GetMatchTime() ?? 0f;
 
-		GD.Print($"[BattleScene] Reporting ranked match result — winner: {winnerUserId}");
-		rankingService.Call("ReportMatchFromGDScript",
-			matchInfo.GetValueOrDefault("match_id", "").ToString(),
-			winnerUserId, loserUserId, opponentRating, 0.0f, "summoner_destroyed");
+		GD.Print($"[BattleScene] Reporting ranked match — won: {playerWon}, reason: {_matchEndReason}");
+		rankingService.ReportMatch(playerWon, opponentRating, matchId, opponentId, duration, _matchEndReason);
+	}
+
+	private static MatchEndReason MapEndReason(string reason)
+	{
+		if (reason == "Forfeit") return MatchEndReason.Forfeit;
+		if (reason.StartsWith("Disconnected")) return MatchEndReason.Disconnect;
+		if (reason is "Time expired" or "Survived") return MatchEndReason.Timeout;
+		return MatchEndReason.SummonerDestroyed;
 	}
 
 	private void NavigateToScene(string scenePath)

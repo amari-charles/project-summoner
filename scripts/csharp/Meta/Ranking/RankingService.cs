@@ -110,9 +110,12 @@ public partial class RankingService : Node
     #region Match Recording
 
     /// <summary>
-    /// Record a match result and update rating.
+    /// Report a match result: update ELO, record history, fire signals,
+    /// and fire-and-forget Nakama submission.
     /// </summary>
-    public int RecordMatch(bool won, int opponentRating, string matchId, string opponentId)
+    public int ReportMatch(bool won, int opponentRating, string matchId,
+                           string opponentId, float durationSeconds,
+                           MatchEndReason endReason)
     {
         var currentRating = GetRating();
 
@@ -131,7 +134,7 @@ public partial class RankingService : Node
         var ratingChange = newRating - currentRating;
         SetRating(newRating);
 
-        AddToMatchHistory(new MatchRecord
+        var record = new MatchRecord
         {
             MatchId = matchId,
             OpponentId = opponentId,
@@ -140,12 +143,19 @@ public partial class RankingService : Node
             RatingAfter = newRating,
             RatingChange = ratingChange,
             OpponentRatingBefore = opponentRating,
+            DurationSeconds = durationSeconds,
+            EndReason = endReason,
             Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        });
+        };
+        AddToMatchHistory(record);
+
+        EmitSignal(SignalName.RatingChanged, currentRating, newRating, ratingChange);
+        EmitSignal(SignalName.MatchReported, matchId, ratingChange);
 
         GD.Print($"[RankingService] Match recorded: {(won ? "WIN" : "LOSS")} vs {opponentId}, " +
                  $"rating {currentRating} → {newRating} ({(ratingChange >= 0 ? "+" : "")}{ratingChange})");
 
+        _ = SubmitOrCacheAsync(record);
         return ratingChange;
     }
 
@@ -156,88 +166,20 @@ public partial class RankingService : Node
 
     #endregion
 
-    #region Match Reporting (merged from MatchReporter)
+    #region Match Reporting
 
-    /// <summary>
-    /// Report a match result. Updates ratings and submits to Nakama.
-    /// </summary>
-    public async Task<bool> ReportMatchAsync(MatchResult result)
+    private async Task SubmitOrCacheAsync(MatchRecord record)
     {
-        GD.Print($"[RankingService] Reporting match: {result.MatchId}, winner: {result.WinnerUserId}");
-
-        int localRating = GetRating();
-
-        var nakama = NakamaGameClient.Instance;
-        bool isLocalWinner = nakama?.UserId == result.WinnerUserId;
-
-        int winnerOldRating = isLocalWinner ? localRating : result.OpponentRating;
-        int loserOldRating = isLocalWinner ? result.OpponentRating : localRating;
-
-        var (winnerNewRating, loserNewRating) = EloCalculator.CalculateNewRatings(winnerOldRating, loserOldRating);
-
-        int localNewRating = isLocalWinner ? winnerNewRating : loserNewRating;
-        int ratingChange = localNewRating - localRating;
-
-        int oldRating = localRating;
-        SetRating(localNewRating);
-        EmitSignal(SignalName.RatingChanged, oldRating, localNewRating, ratingChange);
-
-        // Create record for history
-        string opponentId = isLocalWinner ? result.LoserUserId : result.WinnerUserId;
-        var record = new MatchRecord
-        {
-            MatchId = result.MatchId,
-            OpponentId = opponentId,
-            Won = isLocalWinner,
-            RatingBefore = oldRating,
-            RatingAfter = localNewRating,
-            RatingChange = ratingChange,
-            OpponentRatingBefore = result.OpponentRating,
-            DurationSeconds = result.DurationSeconds,
-            EndReason = result.EndReason,
-            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        };
-        AddToMatchHistory(record);
-
-        // Try to submit to Nakama
         bool submitted = await SubmitReportToNakamaAsync(record);
-
         if (submitted)
         {
-            GD.Print($"[RankingService] Match reported successfully. Rating change: {ratingChange:+#;-#;0}");
+            GD.Print($"[RankingService] Match submitted to Nakama: {record.MatchId}");
         }
         else
         {
             CacheOfflineReport(record);
-            GD.Print($"[RankingService] Match cached for later submission. Rating change: {ratingChange:+#;-#;0}");
+            GD.Print($"[RankingService] Match cached for later submission: {record.MatchId}");
         }
-
-        EmitSignal(SignalName.MatchReported, result.MatchId, ratingChange);
-        return true;
-    }
-
-    /// <summary>
-    /// GDScript-callable wrapper for ReportMatchAsync.
-    /// </summary>
-    public void ReportMatchFromGDScript(
-        string matchId,
-        string winnerUserId,
-        string loserUserId,
-        int opponentRating,
-        float durationSeconds,
-        string endReason)
-    {
-        var result = new MatchResult
-        {
-            MatchId = matchId,
-            WinnerUserId = winnerUserId,
-            LoserUserId = loserUserId,
-            OpponentRating = opponentRating,
-            DurationSeconds = durationSeconds,
-            EndReason = endReason
-        };
-
-        _ = ReportMatchAsync(result);
     }
 
     /// <summary>
@@ -447,7 +389,7 @@ public partial class RankingService : Node
                 ["rating_change"] = entry.RatingChange,
                 ["opponent_rating_before"] = entry.OpponentRatingBefore,
                 ["duration_seconds"] = entry.DurationSeconds,
-                ["end_reason"] = entry.EndReason,
+                ["end_reason"] = entry.EndReason.ToString(),
                 ["timestamp"] = entry.Timestamp
             };
             history.Insert(0, entryDict);
@@ -510,7 +452,9 @@ public partial class RankingService : Node
                     RatingChange = entryDict.ContainsKey("rating_change") ? entryDict["rating_change"].AsInt32() : 0,
                     OpponentRatingBefore = entryDict.ContainsKey("opponent_rating_before") ? entryDict["opponent_rating_before"].AsInt32() : 0,
                     DurationSeconds = entryDict.ContainsKey("duration_seconds") ? entryDict["duration_seconds"].AsSingle() : 0f,
-                    EndReason = entryDict.ContainsKey("end_reason") ? entryDict["end_reason"].AsString() : "",
+                    EndReason = entryDict.ContainsKey("end_reason")
+                        && Enum.TryParse<MatchEndReason>(entryDict["end_reason"].AsString(), out var parsedReason)
+                        ? parsedReason : MatchEndReason.SummonerDestroyed,
                     Timestamp = entryDict.ContainsKey("timestamp") ? entryDict["timestamp"].AsInt64() : 0L
                 });
             }

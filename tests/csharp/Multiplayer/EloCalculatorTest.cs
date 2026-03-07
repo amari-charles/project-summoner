@@ -193,11 +193,11 @@ public class EloCalculatorTest
     }
 
     [TestCase]
-    public void StartingElo_IsWithinMageTier()
+    public void StartingElo_IsWithinApprenticeTier()
     {
         var tier = EloCalculator.GetTier(EloCalculator.StartingElo);
 
-        AssertThat(tier).IsEqual(RankTier.Mage);
+        AssertThat(tier).IsEqual(RankTier.Apprentice);
     }
 
     [TestCase]

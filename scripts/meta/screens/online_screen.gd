@@ -24,7 +24,7 @@ const DECK_EXCHANGE_TIMEOUT: float = 10.0
 const DECK_EXCHANGE_OP_CODE: int = 100
 
 ## Starting ELO for new players (must match STARTING_ELO in C#)
-const STARTING_ELO: int = 1200
+const STARTING_ELO: int = 800
 
 ## Top 20 threshold for Fateforged tier
 const FATEFORGED_THRESHOLD: int = 20
