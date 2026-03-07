@@ -52,6 +52,9 @@ const EDGE_LOCKED_COLOR: Color = Color(0.4, 0.4, 0.5, 0.5)  # Grey for locked pa
 const DASH_LENGTH: float = 12.0  # Length of each dash
 const GAP_LENGTH: float = 8.0  # Length of gap between dashes
 
+## Background preloader for battle scene
+var _bg_preloader: ThreadedPreloader = null
+
 ## State
 var selected_event_id: String = ""
 var event_nodes: Dictionary = {}  # event_id -> Control (fast lookup)
@@ -87,6 +90,10 @@ var campaign_selector_modal: CampaignSelectorModal = null
 ## =============================================================================
 
 func _ready() -> void:
+	# Background-preload battle scene so it's cached when needed
+	_bg_preloader = ThreadedPreloader.new()
+	add_child(_bg_preloader)
+	_bg_preloader.LoadAll(PackedStringArray([SceneManager.SCENE_BATTLE_3D]))
 
 	# Connect buttons
 	locator_button.pressed.connect(_on_center_latest_pressed)
