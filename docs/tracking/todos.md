@@ -506,20 +506,6 @@ Add optional support for upgrade-specific resource costs (essence, fragments, et
 
 ---
 
-## Camera
-
-### 🔴 HIGH PRIORITY
-
-#### Fix Orthographic Camera Mode
-**Status:** ⬜ Not Started
-**Category:** Battle / Camera
-**Effort:** Small–Medium
-
-**Description:**
-The orthographic camera mode broke during the perspective camera implementation (PR #275). It should be restored to its original position and behavior. The ortho mode should function exactly as it did before the perspective camera was added — switching between ortho and perspective should be seamless.
-
----
-
 ## Visual Polish
 
 ### 🟡 MEDIUM PRIORITY
