@@ -318,10 +318,17 @@ public static class DtoConverters
         // Add pending_reward if present
         if (progress.PendingReward != null)
         {
-            var rewardDict = new Godot.Collections.Dictionary();
-            foreach (var (key, value) in progress.PendingReward)
+            var rewardDict = new Godot.Collections.Dictionary
             {
-                rewardDict[key] = ObjectToVariant(value);
+                ["battle_id"] = progress.PendingReward.BattleId,
+                ["reward_type"] = progress.PendingReward.RewardType,
+                ["choice_index"] = progress.PendingReward.ChoiceIndex
+            };
+            if (progress.PendingReward.CaravanPurchases.Count > 0)
+            {
+                var arr = new Godot.Collections.Array();
+                foreach (var p in progress.PendingReward.CaravanPurchases) arr.Add(p);
+                rewardDict["caravan_purchases"] = arr;
             }
             dict["pending_reward"] = rewardDict;
         }
@@ -377,14 +384,21 @@ public static class DtoConverters
         }
 
         // Parse pending_reward if present
-        Dictionary<string, object>? pendingReward = null;
+        PendingRewardData? pendingReward = null;
         if (dict.TryGetValue("pending_reward", out var rewardVar) && rewardVar.VariantType == Variant.Type.Dictionary)
         {
-            pendingReward = new Dictionary<string, object>();
             var rewardDict = rewardVar.AsGodotDictionary();
-            foreach (var key in rewardDict.Keys)
+            pendingReward = new PendingRewardData
             {
-                pendingReward[key.AsString()] = rewardDict[key].Obj ?? rewardDict[key].AsString();
+                BattleId = GetString(rewardDict, "battle_id", ""),
+                RewardType = GetString(rewardDict, "reward_type", "fixed"),
+                ChoiceIndex = GetInt(rewardDict, "choice_index", -1)
+            };
+            if (rewardDict.TryGetValue("caravan_purchases", out var purchasesVar) &&
+                purchasesVar.VariantType == Variant.Type.Array)
+            {
+                foreach (var p in purchasesVar.AsGodotArray())
+                    pendingReward.CaravanPurchases.Add(p.AsString());
             }
         }
 

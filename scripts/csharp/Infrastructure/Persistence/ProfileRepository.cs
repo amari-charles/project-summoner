@@ -447,15 +447,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     public string[] GetCaravanPurchases(SummonerId summonerId)
     {
         var progress = GetCampaignProgress(summonerId);
-        // Caravan purchases stored as a list in pending_reward or a separate field
-        // Using the same pattern as GDScript: stored in campaign progress
-        if (progress.PendingReward != null &&
-            progress.PendingReward.TryGetValue("caravan_purchases", out var purchases) &&
-            purchases is List<object> purchaseList)
-        {
-            return purchaseList.Select(p => p.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToArray();
-        }
-        return [];
+        if (progress.PendingReward == null) return [];
+        return progress.PendingReward.CaravanPurchases.ToArray();
     }
 
     public void AddCaravanPurchase(string offeringId, SummonerId summonerId)
@@ -466,25 +459,14 @@ public partial class ProfileRepository : Node, IProfileRepository
 
         if (string.IsNullOrEmpty(key)) return;
 
-        var progress = GetCampaignProgress(new SummonerId(key));
-        progress.PendingReward ??= new Dictionary<string, object>();
+        var typedId = new SummonerId(key);
+        var progress = GetCampaignProgress(typedId);
+        progress.PendingReward ??= new PendingRewardData();
 
-        List<object> purchases;
-        if (progress.PendingReward.TryGetValue("caravan_purchases", out var existing) &&
-            existing is List<object> existingList)
+        if (!progress.PendingReward.CaravanPurchases.Contains(offeringId))
         {
-            purchases = existingList;
-        }
-        else
-        {
-            purchases = [];
-            progress.PendingReward["caravan_purchases"] = purchases;
-        }
-
-        if (!purchases.Contains(offeringId))
-        {
-            purchases.Add(offeringId);
-            UpdateCampaignProgress(new SummonerId(key), progress);
+            progress.PendingReward.CaravanPurchases.Add(offeringId);
+            UpdateCampaignProgress(typedId, progress);
         }
     }
 
@@ -496,11 +478,12 @@ public partial class ProfileRepository : Node, IProfileRepository
 
         if (string.IsNullOrEmpty(key)) return;
 
-        var progress = GetCampaignProgress(new SummonerId(key));
+        var typedId = new SummonerId(key);
+        var progress = GetCampaignProgress(typedId);
         if (progress.PendingReward != null)
         {
-            progress.PendingReward.Remove("caravan_purchases");
-            UpdateCampaignProgress(new SummonerId(key), progress);
+            progress.PendingReward.CaravanPurchases.Clear();
+            UpdateCampaignProgress(typedId, progress);
         }
     }
 
