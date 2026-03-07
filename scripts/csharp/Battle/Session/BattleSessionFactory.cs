@@ -4,6 +4,9 @@ using Godot;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Cards;
+using Fateforged.Meta.Deck;
+using Fateforged.Meta.Summoner;
 using Fateforged.View;
 
 namespace Fateforged.Session;
@@ -206,67 +209,40 @@ public static class BattleSessionFactory
 
     private static void LoadDeckFromProfileServices(Node caller, SummonerLoadResult result)
     {
-        var decksService = caller.GetNodeOrNull("/root/Decks");
-        var cardService = caller.GetNodeOrNull("/root/CardService");
+        var decksService = caller.GetNodeOrNull<DeckService>("/root/Decks");
+        var cardService = caller.GetNodeOrNull<CardService>("/root/CardService");
         if (decksService == null || cardService == null) return;
 
         string deckId = GetSelectedDeckId(caller, decksService);
         if (string.IsNullOrEmpty(deckId)) return;
 
-        var deckData = decksService.Call("GetDeckDict", deckId);
-        if (deckData.VariantType != Variant.Type.Dictionary) return;
+        var deck = decksService.GetDeck(deckId);
+        if (deck == null) return;
 
-        var deckDict = deckData.AsGodotDictionary();
-        var instanceIdsVar = deckDict.GetValueOrDefault("card_instance_ids", new Godot.Collections.Array());
-        if (instanceIdsVar.VariantType != Variant.Type.Array) return;
-
-        var ids = instanceIdsVar.AsGodotArray();
-        foreach (var instanceId in ids)
+        foreach (var instanceId in deck.CardInstanceIds)
         {
-            var cardData = cardService.Call("GetCardDict", instanceId.ToString());
-            if (cardData.VariantType != Variant.Type.Dictionary) continue;
+            var cardInstance = cardService.GetCard((string)instanceId);
+            if (cardInstance == null) continue;
 
-            var cardDict = cardData.AsGodotDictionary();
-            string catalogId = cardDict.GetValueOrDefault("catalog_id", "").ToString();
-            if (!string.IsNullOrEmpty(catalogId))
-            {
-                var card = CreateCardFromCatalog(catalogId);
-                if (card != null) result.Deck.Add(card);
-            }
+            var card = CreateCardFromCatalog((string)cardInstance.CatalogId);
+            if (card != null) result.Deck.Add(card);
         }
     }
 
-    private static string GetSelectedDeckId(Node caller, Node decksService)
+    private static string GetSelectedDeckId(Node caller, DeckService decksService)
     {
-        var profileRepo = caller.GetNodeOrNull("/root/ProfileRepo");
-        if (profileRepo != null)
+        var profileData = ProfileRepository.Instance?.GetProfileMetadata();
+        if (profileData != null)
         {
-            var profile = profileRepo.Call("GetActiveProfileDict");
-            if (profile.VariantType == Variant.Type.Dictionary)
-            {
-                var profileDict = profile.AsGodotDictionary();
-                var metaVar = profileDict.GetValueOrDefault("meta", new Godot.Collections.Dictionary());
-                if (metaVar.VariantType == Variant.Type.Dictionary)
-                {
-                    var metaDict = metaVar.AsGodotDictionary();
-                    var selectedDeck = metaDict.GetValueOrDefault("selected_deck", "");
-                    if (selectedDeck.VariantType == Variant.Type.String)
-                        return selectedDeck.ToString();
-                }
-            }
+            var selectedDeck = profileData.Meta.SelectedDeck;
+            if (!string.IsNullOrEmpty(selectedDeck))
+                return selectedDeck;
         }
 
         // Fallback to first available deck
-        var deckList = decksService.Call("ListDecksDict");
-        if (deckList.VariantType == Variant.Type.Array)
-        {
-            var list = deckList.AsGodotArray();
-            if (list.Count > 0)
-            {
-                var firstDeck = list[0].AsGodotDictionary();
-                return firstDeck.GetValueOrDefault("id", "").ToString();
-            }
-        }
+        var decks = decksService.ListDecks();
+        if (decks.Length > 0)
+            return (string)decks[0].Id;
 
         return "";
     }
@@ -292,10 +268,10 @@ public static class BattleSessionFactory
 
     private static void LoadSummonerFromProfile(Node caller, int localTeam, SummonerLoadResult result)
     {
-        var summonerSelection = caller.GetNodeOrNull("/root/SummonerSelection");
+        var summonerSelection = caller.GetNodeOrNull<SummonerSelectionService>("/root/SummonerSelection");
         if (summonerSelection == null) return;
 
-        string summonerId = summonerSelection.Call("GetActiveSummonerId").AsString();
+        string summonerId = summonerSelection.GetActiveSummonerId();
         if (string.IsNullOrEmpty(summonerId)) return;
 
         GD.Print($"[BattleSessionFactory] Active summoner ID: '{summonerId}'");

@@ -318,12 +318,7 @@ public static class DtoConverters
         // Add pending_reward if present
         if (progress.PendingReward != null)
         {
-            var rewardDict = new Godot.Collections.Dictionary();
-            foreach (var (key, value) in progress.PendingReward)
-            {
-                rewardDict[key] = ObjectToVariant(value);
-            }
-            dict["pending_reward"] = rewardDict;
+            dict["pending_reward"] = ToDict(progress.PendingReward);
         }
 
         // Add story_arcs if present
@@ -335,6 +330,26 @@ public static class DtoConverters
                 arcsDict[arcId] = ToDict(arcProgress);
             }
             dict["story_arcs"] = arcsDict;
+        }
+
+        return dict;
+    }
+
+    /// <summary>Convert PendingRewardData to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(PendingRewardData pending)
+    {
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["battle_id"] = (string)pending.BattleId,
+            ["reward_type"] = pending.RewardType.ToStringId(),
+            ["choice_index"] = pending.ChoiceIndex
+        };
+
+        if (pending.CaravanPurchases.Count > 0)
+        {
+            var arr = new Godot.Collections.Array();
+            foreach (var p in pending.CaravanPurchases) arr.Add(p);
+            dict["caravan_purchases"] = arr;
         }
 
         return dict;
@@ -377,14 +392,21 @@ public static class DtoConverters
         }
 
         // Parse pending_reward if present
-        Dictionary<string, object>? pendingReward = null;
+        PendingRewardData? pendingReward = null;
         if (dict.TryGetValue("pending_reward", out var rewardVar) && rewardVar.VariantType == Variant.Type.Dictionary)
         {
-            pendingReward = new Dictionary<string, object>();
             var rewardDict = rewardVar.AsGodotDictionary();
-            foreach (var key in rewardDict.Keys)
+            pendingReward = new PendingRewardData
             {
-                pendingReward[key.AsString()] = rewardDict[key].Obj ?? rewardDict[key].AsString();
+                BattleId = new BattleId(GetString(rewardDict, "battle_id", "")),
+                RewardType = RewardTypeExtensions.FromStringId(GetString(rewardDict, "reward_type", "fixed")),
+                ChoiceIndex = GetInt(rewardDict, "choice_index", -1)
+            };
+            if (rewardDict.TryGetValue("caravan_purchases", out var purchasesVar) &&
+                purchasesVar.VariantType == Variant.Type.Array)
+            {
+                foreach (var p in purchasesVar.AsGodotArray())
+                    pendingReward.CaravanPurchases.Add(p.AsString());
             }
         }
 

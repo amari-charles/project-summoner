@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Economy;
 
@@ -51,11 +52,11 @@ public class CampaignRewardHandler
         var summonerId = _getActiveSummonerFunc();
         if (string.IsNullOrEmpty(summonerId)) return;
 
-        var pending = new System.Collections.Generic.Dictionary<string, object>
+        var pending = new PendingRewardData
         {
-            ["battle_id"] = battleId,
-            ["reward_type"] = rewardType,
-            ["choice_index"] = choiceIndex
+            BattleId = new BattleId(battleId),
+            RewardType = RewardTypeExtensions.FromStringId(rewardType),
+            ChoiceIndex = choiceIndex
         };
 
         var typedSummonerId = new SummonerId(summonerId);
@@ -66,24 +67,20 @@ public class CampaignRewardHandler
         GD.Print($"CampaignRewardHandler: Set pending reward for battle '{battleId}' (type: {rewardType})");
     }
 
-    /// <summary>Get the current pending reward.</summary>
-    public Godot.Collections.Dictionary GetPendingReward()
+    /// <summary>Get the current pending reward as typed data.</summary>
+    public PendingRewardData? GetPendingRewardData()
     {
         var summonerId = _getActiveSummonerFunc();
-        if (string.IsNullOrEmpty(summonerId)) return new Godot.Collections.Dictionary();
+        if (string.IsNullOrEmpty(summonerId)) return null;
 
-        var campaignProgress = _profileRepo.GetCampaignProgress(new SummonerId(summonerId));
+        return _profileRepo.GetCampaignProgress(new SummonerId(summonerId)).PendingReward;
+    }
 
-        if (campaignProgress.PendingReward == null || campaignProgress.PendingReward.Count == 0)
-            return new Godot.Collections.Dictionary();
-
-        // Convert to Godot Dictionary for GDScript compatibility
-        var result = new Godot.Collections.Dictionary();
-        foreach (var kvp in campaignProgress.PendingReward)
-        {
-            result[kvp.Key] = DtoConverters.ObjectToVariant(kvp.Value);
-        }
-        return result;
+    /// <summary>Get the current pending reward as Godot Dictionary for GDScript.</summary>
+    public Godot.Collections.Dictionary GetPendingReward()
+    {
+        var pending = GetPendingRewardData();
+        return pending != null ? DtoConverters.ToDict(pending) : new Godot.Collections.Dictionary();
     }
 
     /// <summary>Update choice index for a pending choice reward.</summary>
@@ -94,12 +91,12 @@ public class CampaignRewardHandler
 
         var typedSummonerId = new SummonerId(summonerId);
         var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
-        if (progress.PendingReward == null || progress.PendingReward.Count == 0)
+        if (progress.PendingReward == null)
         {
             GD.PushWarning("CampaignRewardHandler: No pending reward to update choice for");
             return;
         }
-        progress.PendingReward["choice_index"] = choiceIndex;
+        progress.PendingReward.ChoiceIndex = choiceIndex;
         _profileRepo.UpdateCampaignProgress(typedSummonerId, progress);
 
         GD.Print($"CampaignRewardHandler: Updated pending choice to index {choiceIndex}");
@@ -208,26 +205,23 @@ public class CampaignRewardHandler
     /// <summary>Claim the pending reward (grants cards and marks battle complete).</summary>
     public (Godot.Collections.Dictionary grantedCard, string battleId) ClaimPendingReward()
     {
-        var pending = GetPendingReward();
-        if (pending.Count == 0)
+        var pending = GetPendingRewardData();
+        if (pending == null)
         {
             GD.PushWarning("CampaignRewardHandler: No pending reward to claim");
             return (new Godot.Collections.Dictionary(), "");
         }
 
-        var battleId = pending.GetValueOrDefault("battle_id", "").AsString();
-        var choiceIndex = pending.GetValueOrDefault("choice_index", 0).AsInt32();
-
-        if (string.IsNullOrEmpty(battleId))
+        if (!pending.BattleId.HasValue)
         {
             GD.PushError("CampaignRewardHandler: Invalid pending reward - no battle_id");
             return (new Godot.Collections.Dictionary(), "");
         }
 
         // Grant the reward (only FIXED rewards - FLEXIBLE handled by RewardService)
-        var grantedCard = GrantBattleReward(battleId, choiceIndex);
+        var grantedCard = GrantBattleReward(pending.BattleId, pending.ChoiceIndex);
 
-        GD.Print($"CampaignRewardHandler: Claimed reward for battle '{battleId}'");
-        return (grantedCard, battleId);
+        GD.Print($"CampaignRewardHandler: Claimed reward for battle '{pending.BattleId}'");
+        return (grantedCard, pending.BattleId);
     }
 }

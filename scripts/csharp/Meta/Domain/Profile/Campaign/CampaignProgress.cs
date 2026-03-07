@@ -20,7 +20,7 @@ public class CampaignProgress
 
     /// <summary>Pending reward from last victory (if any).</summary>
     [JsonPropertyName("pending_reward")]
-    public Dictionary<string, object>? PendingReward { get; set; }
+    public PendingRewardData? PendingReward { get; set; }
 
     /// <summary>Per-story-arc progress tracking.</summary>
     [JsonPropertyName("story_arcs")]

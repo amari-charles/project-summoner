@@ -20,16 +20,14 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
-## AI-First Priority Queue (2026-03-05)
+## AI-First Priority Queue (2026-03-06)
 
-1. Investigate blocked-unit idle freeze and add deterministic regression coverage  
+1. Investigate blocked-unit idle freeze and add deterministic regression coverage
    Why first: Prevents recurring "units stop contributing" failures in live matches.
-2. Replace `CampaignProgress.PendingReward` dictionary with `PendingRewardData`  
-   Why second: Type-safety win with moderate refactor cost and strong semantic benefit.
-3. Continue typed-internal service handler refactors (string boundary only at GDScript edge)  
-   Why third: Important cleanup, but lower immediate player impact than gameplay bugs.
-4. Audit sim/visual desync points in battle flow  
-   Why fourth: High-priority correctness work that reduces hard-to-debug runtime drift.
+2. Continue typed-internal service handler refactors (string boundary only at GDScript edge)
+   Why second: Important cleanup, but lower immediate player impact than gameplay bugs.
+3. Audit sim/visual desync points in battle flow
+   Why third: High-priority correctness work that reduces hard-to-debug runtime drift.
 
 ---
 
@@ -162,23 +160,6 @@ _progressHandler.SaveProgressInternal(activeSummoner);
 - Lower priority - current pattern works correctly
 - Consider during natural refactoring of these files
 - `ChoiceTracker` already demonstrates the target pattern
-
----
-
-#### Complete PendingReward Typed Domain Object Migration
-**Status:** ⬜ Not Started
-**Category:** Architecture / Type Safety
-**Effort:** Small
-
-**Description:**
-Finish migrating fixed-schema dictionaries to typed domain objects:
-- `CampaignProgress.PendingReward` → `PendingRewardData` class (`battle_id`, `reward_type`, `choice_index`)
-- Keep `StoryArcProgress.Flags` as dictionary (legitimately dynamic)
-
-**Audit Note (2026-03-05):**
-- `ProfileRepository.UpdateCard()` typed DTO migration is already complete (`CardUpdate`, merged 2026-01-27 in `#219`) and has been moved to `todos-completed.md`.
-
-This reduces `ObjectToVariant` conversion complexity and improves type safety where schema is fixed.
 
 ---
 
@@ -1039,35 +1020,6 @@ If data belongs to an entity, put it on the entity. Avoid solving per-entity pro
 - `scripts/csharp/Battle/View/UnitVisual.cs` — visual reads from sim
 - `scripts/csharp/Battle/View/BattleScene.cs` — phase tracking (formerly game_controller_3d.gd)
 
----
-
-#### Eliminate Dynamic Call() in BattleSessionFactory
-**Status:** ⬜ Not Started
-**Category:** Architecture / Type Safety
-**Effort:** Small
-
-**Description:**
-`BattleSessionFactory.cs` uses Godot's `Call()` (string-based dynamic dispatch) to invoke methods on C# autoloads (`Decks`, `CardService`, `ProfileRepo`, `SummonerSelection`). Since `Call()` takes a string method name, typos and renames fail silently at runtime — the compiler can't catch them.
-
-All 5 target services are C# classes with strongly-typed public methods. Replace `Call()` with direct typed access using `GetNodeOrNull<T>()` (already used elsewhere in the codebase):
-
-| Current (dynamic) | Replacement (typed) |
-|---|---|
-| `caller.GetNodeOrNull("/root/Decks")` + `Call("GetDeckDict", ...)` | `caller.GetNodeOrNull<DeckService>("/root/Decks")?.GetDeck(...)` |
-| `caller.GetNodeOrNull("/root/CardService")` + `Call("GetCardDict", ...)` | `caller.GetNodeOrNull<CardService>("/root/CardService")?.GetCard(...)` |
-| `caller.GetNodeOrNull("/root/ProfileRepo")` + `Call("GetActiveProfileDict")` | `ProfileRepository.Instance?.GetActiveProfileDict()` (static access, already used on line 282) |
-| `caller.GetNodeOrNull("/root/SummonerSelection")` + `Call("GetActiveSummonerId")` | `caller.GetNodeOrNull<SummonerSelectionService>(...)?.GetActiveSummonerId()` |
-
-**Benefits:**
-- Compile-time method name validation (renames break the build, not silently at runtime)
-- IDE IntelliSense for method signatures
-- Consistent with patterns already used by DeckService, CampaignService
-
-**Related Files:**
-- `scripts/csharp/Battle/Session/BattleSessionFactory.cs` — 5 Call() sites to replace
-- `scripts/csharp/Meta/Services/Deck/DeckService.cs` — typed methods available
-- `scripts/csharp/Meta/Services/Cards/CardService.cs` — typed methods available
-- `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs` — Instance pattern
 - `scripts/csharp/Meta/Services/Summoner/SummonerSelectionService.cs` — typed methods available
 
 ---

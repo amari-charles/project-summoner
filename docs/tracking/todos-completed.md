@@ -4,6 +4,26 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## 2026-03 Completions
+
+### Complete PendingReward Typed Domain Object Migration
+**Completed:** 2026-03-06
+**Category:** Architecture / Type Safety
+**Effort:** Small
+
+Replaced `CampaignProgress.PendingReward` from `Dictionary<string, object>?` to typed `PendingRewardData` class with `BattleId`, `RewardType`, `ChoiceIndex`, and `CaravanPurchases` fields. Updated CampaignRewardHandler, ProfileRepository caravan methods, and DtoConverters serialization. GDScript API unchanged.
+
+---
+
+### Eliminate Dynamic Call() in BattleSessionFactory
+**Completed:** 2026-03-06
+**Category:** Architecture / Type Safety
+**Effort:** Small
+
+Replaced 5 dynamic `Call()` sites in `BattleSessionFactory.cs` with typed `GetNodeOrNull<T>()` calls to `DeckService`, `CardService`, `ProfileRepository`, and `SummonerSelectionService`. Eliminates runtime string-based dispatch and enables compile-time method validation.
+
+---
+
 ## 2026-02 Completions
 
 ### Host-Authoritative Simulation Rewrite (Phases 0-8)
