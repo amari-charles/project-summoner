@@ -21,7 +21,7 @@ func _ready() -> void:
 	_start_time_ms = Time.get_ticks_msec()
 
 	# Preload the target scene with real resource loading
-	var preloader: ResourcePreloader = ResourcePreloader.new()
+	var preloader: ThreadedPreloader = ThreadedPreloader.new()
 	add_child(preloader)
 	preloader.ProgressUpdated.connect(_on_progress_updated)
 	preloader.LoadAll(_get_preload_paths())
