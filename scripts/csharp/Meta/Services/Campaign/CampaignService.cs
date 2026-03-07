@@ -1,5 +1,7 @@
 using System;
 using Godot;
+using Fateforged.Data.Events;
+using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign.Handlers;
 using Fateforged.Meta.Cards;
@@ -12,9 +14,7 @@ namespace Fateforged.Meta.Campaign;
 /// Campaign Service - Manages campaign progression and battle rewards.
 ///
 /// Tracks which battles have been completed and handles reward distribution.
-/// Battle definitions are loaded from GDScript data files.
-///
-/// Uses Facade + Handlers pattern for clean separation of concerns.
+/// String-accepting facade for GDScript; delegates to typed handlers internally.
 /// </summary>
 [GlobalClass]
 public partial class CampaignService : Node
@@ -49,7 +49,7 @@ public partial class CampaignService : Node
 
 	// Callbacks for GDScript dependencies
 	private Func<string, string, string>? _grantCardFunc;
-	private Func<string>? _getActiveSummonerFunc;
+	private Func<SummonerId>? _getActiveSummonerFunc;
 
 	// =========================================================================
 	// LIFECYCLE
@@ -88,7 +88,7 @@ public partial class CampaignService : Node
 			var summonerSelection = GetNodeOrNull<SummonerSelectionService>("/root/SummonerSelection");
 			if (summonerSelection != null)
 			{
-				_getActiveSummonerFunc = () => summonerSelection.GetActiveSummonerId();
+				_getActiveSummonerFunc = () => SummonerId.FromString(summonerSelection.GetActiveSummonerId());
 			}
 		}
 
@@ -165,7 +165,7 @@ public partial class CampaignService : Node
 	/// <summary>Set active summoner getter.</summary>
 	public void SetActiveSummonerGetter(Callable getter)
 	{
-		_getActiveSummonerFunc = () => getter.Call().AsString();
+		_getActiveSummonerFunc = () => SummonerId.FromString(getter.Call().AsString());
 	}
 
 	// =========================================================================
@@ -174,7 +174,6 @@ public partial class CampaignService : Node
 
 	/// <summary>
 	/// Initialize campaign data from C# EventCatalog and CampaignCatalog.
-	/// This is the new preferred initialization method.
 	/// </summary>
 	public void InitializeCatalogs()
 	{
@@ -184,7 +183,7 @@ public partial class CampaignService : Node
 		_graphStore?.InitializeFromCatalog();
 
 		// Set default campaign if none is active
-		if (string.IsNullOrEmpty(GetCurrentCampaignId()))
+		if (!GetCurrentCampaignIdTyped().HasValue)
 		{
 			SetCurrentCampaign(Data.Events.CampaignIds.Default.Value);
 		}
@@ -193,35 +192,39 @@ public partial class CampaignService : Node
 	/// <summary>Check if a campaign exists.</summary>
 	public bool HasCampaign(string campaignId)
 	{
-		return Data.Events.CampaignCatalog.HasCampaign(new Data.Events.CampaignId(campaignId));
+		return Data.Events.CampaignCatalog.HasCampaign(CampaignId.FromString(campaignId));
 	}
 
 	/// <summary>Set the current campaign ID. Returns true if the campaign exists and was set.</summary>
 	public bool SetCurrentCampaign(string campaignId)
 	{
-		if (!Data.Events.CampaignCatalog.HasCampaign(new Data.Events.CampaignId(campaignId)))
+		var typedId = CampaignId.FromString(campaignId);
+		if (!Data.Events.CampaignCatalog.HasCampaign(typedId))
 			return false;
 
-		var oldId = _store?.CurrentCampaignId ?? "";
-		_progress?.SetCurrentCampaign(campaignId);
+		var oldId = _store?.CurrentCampaignId ?? CampaignId.None;
+		_progress?.SetCurrentCampaign(typedId);
 		_graphStore?.SetCurrentCampaign(campaignId);
 
 		// Sync completed nodes to graph store for unlock evaluation
 		if (_graphStore != null && _store != null)
 		{
-			_graphStore.LoadCompletedNodes(_store.CompletedBattles);
+			_graphStore.LoadCompletedNodes(_store.CompletedBattles.ConvertAll(b => b.Value));
 		}
 
-		if (oldId != campaignId)
+		if (oldId != typedId)
 		{
-			EmitSignal(SignalName.CampaignChanged, oldId, campaignId);
+			EmitSignal(SignalName.CampaignChanged, oldId.Value, campaignId);
 		}
 
 		return true;
 	}
 
-	/// <summary>Get the current campaign ID.</summary>
-	public string GetCurrentCampaignId() => _progress?.GetCurrentCampaignId() ?? "";
+	/// <summary>Get the current campaign ID (string for GDScript).</summary>
+	public string GetCurrentCampaignId() => _progress?.GetCurrentCampaignId().Value ?? "";
+
+	/// <summary>Get the current campaign ID (typed for C# callers).</summary>
+	public CampaignId GetCurrentCampaignIdTyped() => _progress?.GetCurrentCampaignId() ?? CampaignId.None;
 
 	// =========================================================================
 	// PROGRESS MANAGEMENT (delegates to CampaignProgressHandler)
@@ -235,7 +238,7 @@ public partial class CampaignService : Node
 		// Sync completed nodes to graph store for unlock evaluation
 		if (_graphStore != null && _store != null)
 		{
-			_graphStore.LoadCompletedNodes(_store.CompletedBattles);
+			_graphStore.LoadCompletedNodes(_store.CompletedBattles.ConvertAll(b => b.Value));
 		}
 	}
 
@@ -259,19 +262,19 @@ public partial class CampaignService : Node
 	/// <summary>Get a specific campaign's metadata.</summary>
 	public Godot.Collections.Dictionary GetCampaign(string campaignId)
 	{
-		return _catalog?.GetCampaign(campaignId) ?? [];
+		return _catalog?.GetCampaign(CampaignId.FromString(campaignId)) ?? [];
 	}
 
 	/// <summary>Check if a campaign is unlocked.</summary>
 	public bool IsCampaignUnlocked(string campaignId)
 	{
-		return _catalog?.IsCampaignUnlocked(campaignId) ?? false;
+		return _catalog?.IsCampaignUnlocked(CampaignId.FromString(campaignId)) ?? false;
 	}
 
 	/// <summary>Check if a campaign is complete.</summary>
 	public bool IsCampaignComplete(string campaignId)
 	{
-		return _progress?.IsCampaignComplete(campaignId) ?? false;
+		return _progress?.IsCampaignComplete(CampaignId.FromString(campaignId)) ?? false;
 	}
 
 	// =========================================================================
@@ -287,13 +290,13 @@ public partial class CampaignService : Node
 	/// <summary>Get a specific battle by ID.</summary>
 	public Godot.Collections.Dictionary GetBattle(string battleId)
 	{
-		return _catalog?.GetBattle(battleId) ?? [];
+		return _catalog?.GetBattle(EventId.FromString(battleId)) ?? [];
 	}
 
 	/// <summary>Check if a battle is completed.</summary>
 	public bool IsBattleCompleted(string battleId)
 	{
-		return _progress?.IsBattleCompleted(battleId) ?? false;
+		return _progress?.IsBattleCompleted(BattleId.FromString(battleId)) ?? false;
 	}
 
 	/// <summary>Check if a node is unlocked using graph-based unlock logic.</summary>
@@ -335,7 +338,10 @@ public partial class CampaignService : Node
 	/// <summary>Set a pending reward for a battle.</summary>
 	public void SetPendingReward(string battleId, string rewardType, int choiceIndex = -1)
 	{
-		_rewards?.SetPendingReward(battleId, rewardType, choiceIndex);
+		_rewards?.SetPendingReward(
+			BattleId.FromString(battleId),
+			RewardTypeExtensions.FromStringId(rewardType),
+			choiceIndex);
 	}
 
 	/// <summary>Get the current pending reward.</summary>
@@ -363,7 +369,7 @@ public partial class CampaignService : Node
 	/// <summary>Complete a battle (marks as completed and saves progress).</summary>
 	public void CompleteBattle(string battleId)
 	{
-		_progress?.CompleteBattle(battleId);
+		_progress?.CompleteBattle(BattleId.FromString(battleId));
 
 		// Also mark as completed in graph store for unlock evaluation
 		_graphStore?.CompleteNode(battleId);
@@ -407,17 +413,17 @@ public partial class CampaignService : Node
 	/// <summary>Grant battle reward and return granted card info.</summary>
 	public Godot.Collections.Dictionary GrantBattleReward(string battleId, int chosenIndex = 0)
 	{
-		return _rewards?.GrantBattleReward(battleId, chosenIndex) ?? [];
+		return _rewards?.GrantBattleReward(BattleId.FromString(battleId), chosenIndex) ?? [];
 	}
 
 	/// <summary>Claim the pending reward.</summary>
 	public Godot.Collections.Dictionary ClaimPendingReward()
 	{
-		var (grantedCard, battleId) = _rewards?.ClaimPendingReward() ?? ([], "");
+		var (grantedCard, battleId) = _rewards?.ClaimPendingReward() ?? ([], BattleId.None);
 
-		if (!string.IsNullOrEmpty(battleId))
+		if (battleId.HasValue)
 		{
-			CompleteBattle(battleId);
+			CompleteBattle(battleId.Value);
 			ClearPendingReward();
 		}
 
@@ -431,7 +437,7 @@ public partial class CampaignService : Node
 	/// <summary>Check if a specific battle is a tutorial battle.</summary>
 	public bool IsBattleTutorial(string battleId)
 	{
-		return _tutorial?.IsBattleTutorial(battleId) ?? false;
+		return _tutorial?.IsBattleTutorial(EventId.FromString(battleId)) ?? false;
 	}
 
 	/// <summary>Check if all tutorial battles have been completed.</summary>
@@ -462,7 +468,7 @@ public partial class CampaignService : Node
 		var targetId = summonerId;
 		if (string.IsNullOrEmpty(targetId))
 		{
-			targetId = _getActiveSummonerFunc?.Invoke() ?? "";
+			targetId = GetActiveSummonerId().Value;
 		}
 
 		var finalGold = GetCampaignGold();
@@ -538,8 +544,8 @@ public partial class CampaignService : Node
 	// PRIVATE HELPERS
 	// =========================================================================
 
-	private string GetActiveSummonerId()
+	private SummonerId GetActiveSummonerId()
 	{
-		return _getActiveSummonerFunc?.Invoke() ?? "";
+		return _getActiveSummonerFunc?.Invoke() ?? SummonerId.None;
 	}
 }

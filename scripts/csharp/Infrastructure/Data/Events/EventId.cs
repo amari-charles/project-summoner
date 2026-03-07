@@ -15,6 +15,9 @@ public readonly record struct EventId(string Value)
     /// <summary>Explicit conversion from string.</summary>
     public static explicit operator EventId(string value) => new(value);
 
+    /// <summary>Create an EventId from a string. Standardized factory for facade boundaries.</summary>
+    public static EventId FromString(string id) => new(id);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

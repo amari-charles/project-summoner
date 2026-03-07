@@ -7,6 +7,7 @@ namespace Fateforged.Meta.Deck.Handlers;
 
 /// <summary>
 /// Handles deck validation: validate deck, get validation errors.
+/// Fully typed API — facades handle string conversion.
 /// </summary>
 public class DeckValidationHandler
 {
@@ -31,7 +32,7 @@ public class DeckValidationHandler
     /// Validate a deck.
     /// Returns true if deck is valid and playable.
     /// </summary>
-    public bool ValidateDeck(string deckId, Func<string, string, bool>? cardOwnershipChecker = null, Action<string, string>? onValidationFailed = null)
+    public bool ValidateDeck(DeckId deckId, Func<string, string, bool>? cardOwnershipChecker = null, Action<string, string>? onValidationFailed = null)
     {
         var deck = _crud.GetDeck(deckId);
         if (deck == null)
@@ -86,7 +87,7 @@ public class DeckValidationHandler
     /// <summary>
     /// Get validation errors for a deck (for UI display).
     /// </summary>
-    public string[] GetValidationErrors(string deckId, Func<string, string, bool>? cardOwnershipChecker = null)
+    public string[] GetValidationErrors(DeckId deckId, Func<string, string, bool>? cardOwnershipChecker = null)
     {
         var errors = new List<string>();
 

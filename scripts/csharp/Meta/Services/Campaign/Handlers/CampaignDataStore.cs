@@ -1,31 +1,34 @@
 using System.Collections.Generic;
+using Fateforged.Data.Events;
+using Fateforged.Meta.Campaign;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
-/// Shared data store for campaign and battle data loaded from GDScript.
+/// Shared data store for campaign and battle data.
 /// All campaign handlers reference this shared state.
+/// Fully typed — no raw string keys or Godot.Collections.Dictionary values.
 /// </summary>
 public class CampaignDataStore
 {
-    /// <summary>Campaign data indexed by campaign_id.</summary>
-    public Dictionary<string, Godot.Collections.Dictionary> Campaigns { get; } = [];
+    /// <summary>Campaign definitions indexed by campaign ID.</summary>
+    public Dictionary<CampaignId, CampaignDefinition> Campaigns { get; } = [];
 
-    /// <summary>Battle data indexed by battle_id (across all campaigns).</summary>
-    public Dictionary<string, Godot.Collections.Dictionary> Battles { get; } = [];
+    /// <summary>Event definitions indexed by event ID (across all campaigns).</summary>
+    public Dictionary<EventId, EventDefinition> Events { get; } = [];
 
     /// <summary>Current campaign ID.</summary>
-    public string CurrentCampaignId { get; set; } = "";
+    public CampaignId CurrentCampaignId { get; set; } = CampaignId.None;
 
     /// <summary>List of completed battle IDs for the current campaign context.</summary>
-    public List<string> CompletedBattles { get; } = [];
+    public List<BattleId> CompletedBattles { get; } = [];
 
     /// <summary>Clear all data.</summary>
     public void Clear()
     {
         Campaigns.Clear();
-        Battles.Clear();
+        Events.Clear();
         CompletedBattles.Clear();
-        CurrentCampaignId = "";
+        CurrentCampaignId = CampaignId.None;
     }
 }

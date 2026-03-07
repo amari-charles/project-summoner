@@ -16,6 +16,9 @@ public readonly record struct CardId(string Value)
     /// <summary>Explicit conversion from string.</summary>
     public static explicit operator CardId(string value) => new(value);
 
+    /// <summary>Create a CardId from a string. Standardized factory for facade boundaries.</summary>
+    public static CardId FromString(string id) => new(id);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

@@ -15,6 +15,9 @@ public readonly record struct SummonerId(string Value)
     /// <summary>Explicit conversion from string.</summary>
     public static explicit operator SummonerId(string value) => new(value);
 
+    /// <summary>Create a SummonerId from a string. Standardized factory for facade boundaries.</summary>
+    public static SummonerId FromString(string id) => new(id);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

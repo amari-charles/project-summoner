@@ -15,6 +15,9 @@ public readonly record struct CampaignId(string Value)
     /// <summary>Explicit conversion from string.</summary>
     public static explicit operator CampaignId(string value) => new(value);
 
+    /// <summary>Create a CampaignId from a string. Standardized factory for facade boundaries.</summary>
+    public static CampaignId FromString(string id) => new(id);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

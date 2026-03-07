@@ -256,29 +256,40 @@ public partial class EconomyService : Node
 	public int GetCampaignGold() => GetCampaignGold("");
 
 	/// <summary>
-	/// Get campaign gold for a summoner (or active summoner if empty)
+	/// Get campaign gold for a summoner (or active summoner if empty).
+	/// String overload for GDScript boundary.
 	/// </summary>
 	public int GetCampaignGold(string summonerId)
 	{
-		if (_profileRepo == null) return 0;
-
 		var targetId = string.IsNullOrEmpty(summonerId)
-			? GetActiveSummonerId()
-			: summonerId;
+			? SummonerId.FromString(GetActiveSummonerId())
+			: SummonerId.FromString(summonerId);
+		return GetCampaignGold(targetId);
+	}
 
-		if (string.IsNullOrEmpty(targetId)) return 0;
+	/// <summary>Get campaign gold for a typed summoner ID.</summary>
+	public int GetCampaignGold(SummonerId summonerId)
+	{
+		if (_profileRepo == null || !summonerId.HasValue) return 0;
 
-		var progress = _profileRepo.GetCampaignProgress(new SummonerId(targetId));
+		var progress = _profileRepo.GetCampaignProgress(summonerId);
 		return progress?.Gold ?? 0;
 	}
 
 	/// <summary>Add campaign gold to active summoner.</summary>
 	public void AddCampaignGold(int amount) => AddCampaignGold(amount, "");
 
-	/// <summary>
-	/// Add campaign gold (positive amount only)
-	/// </summary>
+	/// <summary>Add campaign gold (string overload for GDScript boundary).</summary>
 	public void AddCampaignGold(int amount, string summonerId)
+	{
+		var targetId = string.IsNullOrEmpty(summonerId)
+			? SummonerId.FromString(GetActiveSummonerId())
+			: SummonerId.FromString(summonerId);
+		AddCampaignGold(amount, targetId);
+	}
+
+	/// <summary>Add campaign gold for a typed summoner ID (positive amount only).</summary>
+	public void AddCampaignGold(int amount, SummonerId summonerId)
 	{
 		if (amount <= 0)
 		{
@@ -292,38 +303,40 @@ public partial class EconomyService : Node
 			return;
 		}
 
-		var targetId = string.IsNullOrEmpty(summonerId)
-			? GetActiveSummonerId()
-			: summonerId;
-
-		if (string.IsNullOrEmpty(targetId))
+		if (!summonerId.HasValue)
 		{
 			GD.PushWarning("EconomyService.AddCampaignGold: No summoner specified and no active summoner");
 			return;
 		}
 
-		var typedTargetId = new SummonerId(targetId);
-		var progress = _profileRepo.GetCampaignProgress(typedTargetId);
+		var progress = _profileRepo.GetCampaignProgress(summonerId);
 		if (progress == null)
 		{
-			GD.PushWarning($"EconomyService.AddCampaignGold: No campaign progress for summoner '{targetId}'");
+			GD.PushWarning($"EconomyService.AddCampaignGold: No campaign progress for summoner '{summonerId}'");
 			return;
 		}
 
 		progress.Gold += amount;
-		_profileRepo.UpdateCampaignProgress(typedTargetId, progress);
+		_profileRepo.UpdateCampaignProgress(summonerId, progress);
 
-		GD.Print($"EconomyService: Added {amount} campaign gold to '{targetId}' (now: {progress.Gold})");
-		EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
+		GD.Print($"EconomyService: Added {amount} campaign gold to '{summonerId}' (now: {progress.Gold})");
+		EmitSignal(SignalName.CampaignGoldChanged, summonerId.Value, progress.Gold);
 	}
 
 	/// <summary>Spend campaign gold from active summoner.</summary>
 	public bool SpendCampaignGold(int amount) => SpendCampaignGold(amount, "");
 
-	/// <summary>
-	/// Spend campaign gold. Returns true if successful.
-	/// </summary>
+	/// <summary>Spend campaign gold (string overload for GDScript boundary).</summary>
 	public bool SpendCampaignGold(int amount, string summonerId)
+	{
+		var targetId = string.IsNullOrEmpty(summonerId)
+			? SummonerId.FromString(GetActiveSummonerId())
+			: SummonerId.FromString(summonerId);
+		return SpendCampaignGold(amount, targetId);
+	}
+
+	/// <summary>Spend campaign gold for a typed summoner ID. Returns true if successful.</summary>
+	public bool SpendCampaignGold(int amount, SummonerId summonerId)
 	{
 		if (!CanAffordCampaignGold(amount, summonerId))
 		{
@@ -332,33 +345,30 @@ public partial class EconomyService : Node
 			return false;
 		}
 
-		if (_profileRepo == null) return false;
+		if (_profileRepo == null || !summonerId.HasValue) return false;
 
-		var targetId = string.IsNullOrEmpty(summonerId)
-			? GetActiveSummonerId()
-			: summonerId;
-
-		if (string.IsNullOrEmpty(targetId)) return false;
-
-		var typedTargetId = new SummonerId(targetId);
-		var progress = _profileRepo.GetCampaignProgress(typedTargetId);
+		var progress = _profileRepo.GetCampaignProgress(summonerId);
 		if (progress == null) return false;
 
 		progress.Gold -= amount;
-		_profileRepo.UpdateCampaignProgress(typedTargetId, progress);
+		_profileRepo.UpdateCampaignProgress(summonerId, progress);
 
-		GD.Print($"EconomyService: Spent {amount} campaign gold from '{targetId}' (now: {progress.Gold})");
-		EmitSignal(SignalName.CampaignGoldChanged, targetId, progress.Gold);
+		GD.Print($"EconomyService: Spent {amount} campaign gold from '{summonerId}' (now: {progress.Gold})");
+		EmitSignal(SignalName.CampaignGoldChanged, summonerId.Value, progress.Gold);
 		return true;
 	}
 
 	/// <summary>Check affordability for active summoner.</summary>
 	public bool CanAffordCampaignGold(int amount) => CanAffordCampaignGold(amount, "");
 
-	/// <summary>
-	/// Check if player can afford campaign gold cost
-	/// </summary>
+	/// <summary>Check affordability (string overload for GDScript boundary).</summary>
 	public bool CanAffordCampaignGold(int amount, string summonerId)
+	{
+		return GetCampaignGold(summonerId) >= amount;
+	}
+
+	/// <summary>Check if player can afford campaign gold cost (typed).</summary>
+	public bool CanAffordCampaignGold(int amount, SummonerId summonerId)
 	{
 		return GetCampaignGold(summonerId) >= amount;
 	}
@@ -366,29 +376,29 @@ public partial class EconomyService : Node
 	/// <summary>Clear campaign gold for active summoner.</summary>
 	public void ClearCampaignGold() => ClearCampaignGold("");
 
-	/// <summary>
-	/// Clear all campaign gold (called when campaign ends)
-	/// </summary>
+	/// <summary>Clear all campaign gold (string overload for GDScript boundary).</summary>
 	public void ClearCampaignGold(string summonerId)
 	{
-		if (_profileRepo == null) return;
-
 		var targetId = string.IsNullOrEmpty(summonerId)
-			? GetActiveSummonerId()
-			: summonerId;
+			? SummonerId.FromString(GetActiveSummonerId())
+			: SummonerId.FromString(summonerId);
+		ClearCampaignGold(targetId);
+	}
 
-		if (string.IsNullOrEmpty(targetId)) return;
+	/// <summary>Clear all campaign gold for a typed summoner ID (called when campaign ends).</summary>
+	public void ClearCampaignGold(SummonerId summonerId)
+	{
+		if (_profileRepo == null || !summonerId.HasValue) return;
 
-		var typedTargetId = new SummonerId(targetId);
-		var progress = _profileRepo.GetCampaignProgress(typedTargetId);
+		var progress = _profileRepo.GetCampaignProgress(summonerId);
 		if (progress == null) return;
 
 		var previousGold = progress.Gold;
 		progress.Gold = 0;
-		_profileRepo.UpdateCampaignProgress(typedTargetId, progress);
+		_profileRepo.UpdateCampaignProgress(summonerId, progress);
 
-		GD.Print($"EconomyService: Cleared {previousGold} campaign gold from '{targetId}'");
-		EmitSignal(SignalName.CampaignGoldChanged, targetId, 0);
+		GD.Print($"EconomyService: Cleared {previousGold} campaign gold from '{summonerId}'");
+		EmitSignal(SignalName.CampaignGoldChanged, summonerId.Value, 0);
 	}
 
 	private string GetActiveSummonerId()

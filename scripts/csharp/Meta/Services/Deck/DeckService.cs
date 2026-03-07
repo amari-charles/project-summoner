@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Godot;
+using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Cards;
@@ -12,10 +13,7 @@ namespace Fateforged.Meta.Deck;
 /// <summary>
 /// Deck Service - Handles deck management operations.
 ///
-/// Provides methods for creating, updating, deleting, and validating decks.
-/// UI and gameplay code should call this, never the repository directly.
-///
-/// Uses Facade + Handlers pattern for clean separation of concerns.
+/// String-accepting facade for GDScript; delegates to typed handlers internally.
 /// </summary>
 [GlobalClass]
 public partial class DeckService : Node
@@ -170,13 +168,13 @@ public partial class DeckService : Node
     /// <summary>Get a specific deck by ID.</summary>
     public DeckModel? GetDeck(string deckId)
     {
-        return _isInitialized ? _crud.GetDeck(deckId) : null;
+        return _isInitialized ? _crud.GetDeck(DeckId.FromString(deckId)) : null;
     }
 
     /// <summary>Check if a deck exists.</summary>
     public bool HasDeck(string deckId)
     {
-        return _isInitialized && _crud.HasDeck(deckId);
+        return _isInitialized && _crud.HasDeck(DeckId.FromString(deckId));
     }
 
     /// <summary>Get deck count.</summary>
@@ -194,13 +192,13 @@ public partial class DeckService : Node
     /// <summary>Set the active deck. Returns true if successful.</summary>
     public bool SetActiveDeck(string deckId)
     {
-        return _isInitialized && _crud.SetActiveDeck(deckId);
+        return _isInitialized && _crud.SetActiveDeck(DeckId.FromString(deckId));
     }
 
     /// <summary>Get all decks for a specific summoner.</summary>
     public DeckModel[] ListDecksForSummoner(string summonerId)
     {
-        return _isInitialized ? _crud.ListDecksForSummoner(summonerId) : [];
+        return _isInitialized ? _crud.ListDecksForSummoner(SummonerId.FromString(summonerId)) : [];
     }
 
     // =========================================================================
@@ -215,7 +213,9 @@ public partial class DeckService : Node
     {
         if (!_isInitialized) return "";
 
-        var deckId = _crud.CreateDeck(deckName, cardInstanceIds, summonerId);
+        var typedCards = cardInstanceIds.Select(CardInstanceId.FromString).ToArray();
+        var typedSummoner = string.IsNullOrEmpty(summonerId) ? SummonerId.None : SummonerId.FromString(summonerId);
+        var deckId = _crud.CreateDeck(deckName, typedCards, typedSummoner);
 
         if (!string.IsNullOrEmpty(deckId))
         {
@@ -235,7 +235,11 @@ public partial class DeckService : Node
     {
         if (!_isInitialized) return false;
 
-        var success = _crud.UpdateDeck(deckId, deckName, cardInstanceIds, summonerId);
+        var typedDeckId = DeckId.FromString(deckId);
+        var typedCards = cardInstanceIds?.Select(CardInstanceId.FromString).ToArray();
+        var typedSummoner = !string.IsNullOrEmpty(summonerId) ? SummonerId.FromString(summonerId) : (SummonerId?)null;
+
+        var success = _crud.UpdateDeck(typedDeckId, deckName, typedCards, typedSummoner);
 
         if (success)
         {
@@ -250,7 +254,7 @@ public partial class DeckService : Node
     {
         if (!_isInitialized) return false;
 
-        var success = _crud.DeleteDeck(deckId);
+        var success = _crud.DeleteDeck(DeckId.FromString(deckId));
 
         if (success)
         {
@@ -263,7 +267,7 @@ public partial class DeckService : Node
     /// <summary>Get the summoner ID for a deck.</summary>
     public string GetDeckSummoner(string deckId)
     {
-        return _isInitialized ? _crud.GetDeckSummoner(deckId) : "";
+        return _isInitialized ? (string)_crud.GetDeckSummoner(DeckId.FromString(deckId)) : "";
     }
 
     /// <summary>
@@ -274,7 +278,10 @@ public partial class DeckService : Node
     {
         if (!_isInitialized) return false;
 
-        var success = _crud.SetDeckSummoner(deckId, summonerId, _summonerValidator);
+        var success = _crud.SetDeckSummoner(
+            DeckId.FromString(deckId),
+            SummonerId.FromString(summonerId),
+            _summonerValidator);
 
         if (success)
         {
@@ -296,7 +303,10 @@ public partial class DeckService : Node
     {
         if (!_isInitialized) return false;
 
-        var success = _cards.AddCardToDeck(deckId, cardInstanceId, _cardOwnershipChecker);
+        var success = _cards.AddCardToDeck(
+            DeckId.FromString(deckId),
+            CardInstanceId.FromString(cardInstanceId),
+            _cardOwnershipChecker);
 
         if (success)
         {
@@ -314,7 +324,9 @@ public partial class DeckService : Node
     {
         if (!_isInitialized) return false;
 
-        var success = _cards.RemoveCardFromDeck(deckId, cardInstanceId);
+        var success = _cards.RemoveCardFromDeck(
+            DeckId.FromString(deckId),
+            CardInstanceId.FromString(cardInstanceId));
 
         if (success)
         {
@@ -332,7 +344,7 @@ public partial class DeckService : Node
     {
         if (!_isInitialized) return 0;
 
-        var removedCount = _cards.CleanDeck(deckId, _cardOwnershipChecker);
+        var removedCount = _cards.CleanDeck(DeckId.FromString(deckId), _cardOwnershipChecker);
 
         if (removedCount > 0)
         {
@@ -352,7 +364,7 @@ public partial class DeckService : Node
     /// </summary>
     public bool ValidateDeck(string deckId)
     {
-        return _isInitialized && _validation.ValidateDeck(deckId, _cardOwnershipChecker, EmitValidationFailed);
+        return _isInitialized && _validation.ValidateDeck(DeckId.FromString(deckId), _cardOwnershipChecker, EmitValidationFailed);
     }
 
     /// <summary>
@@ -360,7 +372,7 @@ public partial class DeckService : Node
     /// </summary>
     public string[] GetValidationErrors(string deckId)
     {
-        return _isInitialized ? _validation.GetValidationErrors(deckId, _cardOwnershipChecker) : ["Service not initialized"];
+        return _isInitialized ? _validation.GetValidationErrors(DeckId.FromString(deckId), _cardOwnershipChecker) : ["Service not initialized"];
     }
 
     // =========================================================================
