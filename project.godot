@@ -57,7 +57,6 @@ DebugMenu="*res://scripts/debug/debug_menu.gd"
 LevelCapService="*res://scripts/csharp/Meta/Services/LevelCapService.tscn"
 NakamaGameClient="*res://scripts/csharp/Infrastructure/Backend/NakamaGameClient.tscn"
 RankingService="*res://scripts/csharp/Meta/Ranking/RankingService.tscn"
-MatchReporter="*res://scripts/csharp/Meta/Ranking/MatchReporter.tscn"
 MatchmakingService="*res://scripts/csharp/Meta/Matchmaking/MatchmakingService.tscn"
 LeaderboardService="*res://scripts/csharp/Meta/Ranking/LeaderboardService.tscn"
 

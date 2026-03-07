@@ -376,6 +376,30 @@ public partial class LeaderboardService : Node
         return null;
     }
 
+    /// <summary>
+    /// Check if a player is in the top 20 on the leaderboard.
+    /// Returns false if offline or player not found.
+    /// </summary>
+    public bool IsTopTwenty(string userId)
+    {
+        var position = GetPlayerPosition(userId);
+        return position.HasValue && position.Value <= 20;
+    }
+
+    /// <summary>
+    /// Get a player's position on the cached leaderboard.
+    /// Returns null if player not found or no data available.
+    /// </summary>
+    public int? GetPlayerPosition(string userId)
+    {
+        foreach (var entry in _cachedTopPlayers)
+        {
+            if (entry.UserId == userId)
+                return entry.Rank;
+        }
+        return null;
+    }
+
     private LeaderboardEntry CreateLocalPlayerEntry()
     {
         var rankingService = GetNodeOrNull<RankingService>("/root/RankingService");
@@ -383,12 +407,12 @@ public partial class LeaderboardService : Node
 
         var nakama = NakamaGameClient.Instance;
         string displayName = nakama?.Username ?? "You";
-        string oderId = nakama?.UserId ?? "local";
+        string ownerId = nakama?.UserId ?? "local";
 
         return new LeaderboardEntry
         {
             Rank = 0, // Unknown without server
-            UserId = oderId,
+            UserId = ownerId,
             DisplayName = displayName,
             Rating = rating,
             Tier = EloCalculator.GetTier(rating),
@@ -405,8 +429,10 @@ public partial class LeaderboardService : Node
         var entries = new List<LeaderboardEntry>();
         var random = new Random(42); // Fixed seed for consistent mock data
 
-        string[] mockNames = { "DragonSlayer", "ShadowMage", "IronKnight", "StormBringer", "FrostQueen",
-                               "BlazeMaster", "VoidWalker", "SunPriest", "NightHunter", "ThunderLord" };
+        string[] mockNames = { "PLACEHOLDER_PLAYER_1", "PLACEHOLDER_PLAYER_2", "PLACEHOLDER_PLAYER_3",
+                               "PLACEHOLDER_PLAYER_4", "PLACEHOLDER_PLAYER_5", "PLACEHOLDER_PLAYER_6",
+                               "PLACEHOLDER_PLAYER_7", "PLACEHOLDER_PLAYER_8", "PLACEHOLDER_PLAYER_9",
+                               "PLACEHOLDER_PLAYER_10" };
 
         for (int i = 0; i < 10; i++)
         {
@@ -481,10 +507,13 @@ public class LeaderboardEntry
     public bool IsCurrentPlayer { get; set; }
 
     /// <summary>
-    /// Get formatted rank string (e.g., "Gold II").
+    /// Get formatted rank string (e.g., "Mage II").
     /// </summary>
     public string GetFormattedTier()
     {
+        if (Tier == RankTier.Fateforged)
+            return "Fateforged";
+
         string divisionStr = Division switch
         {
             1 => "I",

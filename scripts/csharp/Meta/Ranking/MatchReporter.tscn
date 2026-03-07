@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://c4n8m2k5p7w3r"]
-
-[ext_resource type="Script" path="res://scripts/csharp/Meta/Ranking/MatchReporter.cs" id="1_reporter"]
-
-[node name="MatchReporter" type="Node"]
-script = ExtResource("1_reporter")

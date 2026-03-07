@@ -1,33 +1,49 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Godot;
+using Nakama;
+using Fateforged.Multiplayer.Backend;
 
 namespace Fateforged.Multiplayer.Ranking;
 
 /// <summary>
-/// Service for managing player rankings and match history.
-/// Persists ratings through ProfileRepo.
+/// Unified service for managing player rankings, match history, and match reporting.
+/// Persists ratings through ProfileRepo. Reports to Nakama when online, caches offline.
 /// </summary>
 public partial class RankingService : Node
 {
     #region Configuration
 
-    /// <summary>
-    /// Maximum number of match history entries to store.
-    /// </summary>
     private const int MaxMatchHistorySize = 50;
+    private const string MatchReportRpc = "report_match";
+    private const int MaxOfflineCache = 50;
+    private const string OfflineCachePath = "user://match_reports_cache.json";
 
     #endregion
 
-    /// <summary>
-    /// Profile repository for persistence.
-    /// </summary>
-    private Node? _profileRepo;
+    #region Signals
 
-    /// <summary>
-    /// Cached player rating (to avoid repeated lookups).
-    /// </summary>
+    [Signal]
+    public delegate void MatchReportedEventHandler(string matchId, int ratingChange);
+
+    [Signal]
+    public delegate void MatchReportFailedEventHandler(string matchId, string error);
+
+    [Signal]
+    public delegate void RatingChangedEventHandler(int oldRating, int newRating, int change);
+
+    #endregion
+
+    #region State
+
+    private Node? _profileRepo;
     private int? _cachedRating;
+    private readonly List<MatchRecord> _offlineReportCache = new();
+
+    public int PendingReportCount => _offlineReportCache.Count;
+
+    #endregion
 
     public override void _Ready()
     {
@@ -36,13 +52,12 @@ public partial class RankingService : Node
         {
             GD.PrintErr("[RankingService] ProfileRepo not found");
         }
+
+        LoadOfflineCache();
     }
 
     #region Rating Management
 
-    /// <summary>
-    /// Get the current player's rating.
-    /// </summary>
     public int GetRating()
     {
         if (_cachedRating.HasValue)
@@ -53,9 +68,6 @@ public partial class RankingService : Node
         return rating;
     }
 
-    /// <summary>
-    /// Set the player's rating.
-    /// </summary>
     public void SetRating(int rating)
     {
         rating = Math.Clamp(rating, EloCalculator.EloFloor, EloCalculator.EloCeiling);
@@ -63,49 +75,31 @@ public partial class RankingService : Node
         SaveRatingToProfile(rating);
     }
 
-    /// <summary>
-    /// Get the player's rank tier.
-    /// </summary>
     public RankTier GetTier()
     {
         return EloCalculator.GetTier(GetRating());
     }
 
-    /// <summary>
-    /// Get the player's division within their tier.
-    /// </summary>
     public int GetDivision()
     {
         return EloCalculator.GetDivision(GetRating());
     }
 
-    /// <summary>
-    /// Get formatted rank string (e.g., "Gold II (1150)").
-    /// </summary>
     public string GetFormattedRank()
     {
         return EloCalculator.FormatRating(GetRating());
     }
 
-    /// <summary>
-    /// Get tier name as a string (for GDScript interop).
-    /// </summary>
     public string GetTierName()
     {
         return GetTier().ToString();
     }
 
-    /// <summary>
-    /// Get tier name for a specific rating (for GDScript interop).
-    /// </summary>
     public string GetTierNameForRating(int rating)
     {
         return EloCalculator.GetTier(rating).ToString();
     }
 
-    /// <summary>
-    /// Get division for a specific rating (for GDScript interop).
-    /// </summary>
     public int GetDivisionForRating(int rating)
     {
         return EloCalculator.GetDivision(rating);
@@ -118,16 +112,10 @@ public partial class RankingService : Node
     /// <summary>
     /// Record a match result and update rating.
     /// </summary>
-    /// <param name="won">Whether the local player won</param>
-    /// <param name="opponentRating">Opponent's rating</param>
-    /// <param name="matchId">Unique match identifier</param>
-    /// <param name="opponentId">Opponent's player ID</param>
-    /// <returns>Rating change (positive for gain, negative for loss)</returns>
     public int RecordMatch(bool won, int opponentRating, string matchId, string opponentId)
     {
         var currentRating = GetRating();
 
-        // Calculate new ratings
         int newRating;
         if (won)
         {
@@ -141,12 +129,9 @@ public partial class RankingService : Node
         }
 
         var ratingChange = newRating - currentRating;
-
-        // Update rating
         SetRating(newRating);
 
-        // Record in match history
-        AddToMatchHistory(new MatchHistoryEntry
+        AddToMatchHistory(new MatchRecord
         {
             MatchId = matchId,
             OpponentId = opponentId,
@@ -154,7 +139,8 @@ public partial class RankingService : Node
             RatingBefore = currentRating,
             RatingAfter = newRating,
             RatingChange = ratingChange,
-            PlayedAt = DateTime.UtcNow
+            OpponentRatingBefore = opponentRating,
+            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         });
 
         GD.Print($"[RankingService] Match recorded: {(won ? "WIN" : "LOSS")} vs {opponentId}, " +
@@ -163,63 +149,196 @@ public partial class RankingService : Node
         return ratingChange;
     }
 
-    /// <summary>
-    /// Get recent match history.
-    /// </summary>
-    public List<MatchHistoryEntry> GetRecentMatches(int count = 10)
+    public List<MatchRecord> GetRecentMatches(int count = 10)
     {
         return LoadMatchHistoryFromProfile(count);
     }
 
     #endregion
 
-    #region Statistics
+    #region Match Reporting (merged from MatchReporter)
 
     /// <summary>
-    /// Get total matches played.
+    /// Report a match result. Updates ratings and submits to Nakama.
     /// </summary>
+    public async Task<bool> ReportMatchAsync(MatchResult result)
+    {
+        GD.Print($"[RankingService] Reporting match: {result.MatchId}, winner: {result.WinnerUserId}");
+
+        int localRating = GetRating();
+
+        var nakama = NakamaGameClient.Instance;
+        bool isLocalWinner = nakama?.UserId == result.WinnerUserId;
+
+        int winnerOldRating = isLocalWinner ? localRating : result.OpponentRating;
+        int loserOldRating = isLocalWinner ? result.OpponentRating : localRating;
+
+        var (winnerNewRating, loserNewRating) = EloCalculator.CalculateNewRatings(winnerOldRating, loserOldRating);
+
+        int localNewRating = isLocalWinner ? winnerNewRating : loserNewRating;
+        int ratingChange = localNewRating - localRating;
+
+        int oldRating = localRating;
+        SetRating(localNewRating);
+        EmitSignal(SignalName.RatingChanged, oldRating, localNewRating, ratingChange);
+
+        // Create record for history
+        string opponentId = isLocalWinner ? result.LoserUserId : result.WinnerUserId;
+        var record = new MatchRecord
+        {
+            MatchId = result.MatchId,
+            OpponentId = opponentId,
+            Won = isLocalWinner,
+            RatingBefore = oldRating,
+            RatingAfter = localNewRating,
+            RatingChange = ratingChange,
+            OpponentRatingBefore = result.OpponentRating,
+            DurationSeconds = result.DurationSeconds,
+            EndReason = result.EndReason,
+            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
+        AddToMatchHistory(record);
+
+        // Try to submit to Nakama
+        bool submitted = await SubmitReportToNakamaAsync(record);
+
+        if (submitted)
+        {
+            GD.Print($"[RankingService] Match reported successfully. Rating change: {ratingChange:+#;-#;0}");
+        }
+        else
+        {
+            CacheOfflineReport(record);
+            GD.Print($"[RankingService] Match cached for later submission. Rating change: {ratingChange:+#;-#;0}");
+        }
+
+        EmitSignal(SignalName.MatchReported, result.MatchId, ratingChange);
+        return true;
+    }
+
+    /// <summary>
+    /// GDScript-callable wrapper for ReportMatchAsync.
+    /// </summary>
+    public void ReportMatchFromGDScript(
+        string matchId,
+        string winnerUserId,
+        string loserUserId,
+        int opponentRating,
+        float durationSeconds,
+        string endReason)
+    {
+        var result = new MatchResult
+        {
+            MatchId = matchId,
+            WinnerUserId = winnerUserId,
+            LoserUserId = loserUserId,
+            OpponentRating = opponentRating,
+            DurationSeconds = durationSeconds,
+            EndReason = endReason
+        };
+
+        _ = ReportMatchAsync(result);
+    }
+
+    /// <summary>
+    /// Try to submit any cached offline reports.
+    /// </summary>
+    public async Task FlushOfflineCacheAsync()
+    {
+        if (_offlineReportCache.Count == 0) return;
+
+        GD.Print($"[RankingService] Flushing {_offlineReportCache.Count} cached reports");
+
+        var toSubmit = new List<MatchRecord>(_offlineReportCache);
+        _offlineReportCache.Clear();
+
+        foreach (var report in toSubmit)
+        {
+            bool submitted = await SubmitReportToNakamaAsync(report);
+            if (!submitted)
+            {
+                _offlineReportCache.Add(report);
+            }
+        }
+
+        SaveOfflineCache();
+    }
+
+    private async Task<bool> SubmitReportToNakamaAsync(MatchRecord record)
+    {
+        var nakama = NakamaGameClient.Instance;
+        if (nakama == null || !nakama.IsAuthenticated || nakama.Client == null || nakama.Session == null)
+        {
+            GD.Print("[RankingService] Cannot submit: not connected to Nakama");
+            return false;
+        }
+
+        try
+        {
+            var payload = System.Text.Json.JsonSerializer.Serialize(record);
+            var response = await nakama.Client.RpcAsync(nakama.Session, MatchReportRpc, payload);
+            GD.Print($"[RankingService] Server response: {response.Payload}");
+            return true;
+        }
+        catch (ApiResponseException ex)
+        {
+            GD.Print($"[RankingService] Server RPC not available: {ex.Message}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[RankingService] Failed to submit report: {ex.Message}");
+            EmitSignal(SignalName.MatchReportFailed, record.MatchId, ex.Message);
+            return false;
+        }
+    }
+
+    private void CacheOfflineReport(MatchRecord record)
+    {
+        _offlineReportCache.Add(record);
+
+        while (_offlineReportCache.Count > MaxOfflineCache)
+        {
+            _offlineReportCache.RemoveAt(0);
+        }
+
+        SaveOfflineCache();
+    }
+
+    #endregion
+
+    #region Statistics
+
     public int GetTotalMatches()
     {
         return GetStatistic("total_matches", 0);
     }
 
-    /// <summary>
-    /// Get total wins.
-    /// </summary>
     public int GetWins()
     {
         return GetStatistic("wins", 0);
     }
 
-    /// <summary>
-    /// Get total losses.
-    /// </summary>
     public int GetLosses()
     {
         return GetStatistic("losses", 0);
     }
 
     /// <summary>
-    /// Get win rate as percentage (0-100).
+    /// Get win rate as a 0.0-1.0 ratio.
     /// </summary>
     public float GetWinRate()
     {
         var total = GetTotalMatches();
         if (total == 0) return 0;
-        return (float)GetWins() / total * 100f;
+        return (float)GetWins() / total;
     }
 
-    /// <summary>
-    /// Get highest rating achieved.
-    /// </summary>
     public int GetPeakRating()
     {
         return GetStatistic("peak_rating", EloCalculator.StartingElo);
     }
 
-    /// <summary>
-    /// Get current win streak (0 if on loss streak).
-    /// </summary>
     public int GetWinStreak()
     {
         return GetStatistic("win_streak", 0);
@@ -260,7 +379,6 @@ public partial class RankingService : Node
             var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
             if (profile == null) return;
 
-            // Ensure ranked section exists
             Godot.Collections.Dictionary ranked;
             if (profile.ContainsKey("ranked"))
             {
@@ -274,7 +392,6 @@ public partial class RankingService : Node
 
             ranked["rating"] = rating;
 
-            // Update peak rating if needed
             var peakRating = ranked.ContainsKey("peak_rating") ? ranked["peak_rating"].AsInt32() : 0;
             if (rating > peakRating)
             {
@@ -289,7 +406,7 @@ public partial class RankingService : Node
         }
     }
 
-    private void AddToMatchHistory(MatchHistoryEntry entry)
+    private void AddToMatchHistory(MatchRecord entry)
     {
         if (_profileRepo == null) return;
 
@@ -298,7 +415,6 @@ public partial class RankingService : Node
             var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
             if (profile == null) return;
 
-            // Ensure ranked section exists
             Godot.Collections.Dictionary ranked;
             if (profile.ContainsKey("ranked"))
             {
@@ -310,7 +426,6 @@ public partial class RankingService : Node
                 profile["ranked"] = ranked;
             }
 
-            // Get or create match history array
             Godot.Collections.Array history;
             if (ranked.ContainsKey("match_history"))
             {
@@ -322,7 +437,6 @@ public partial class RankingService : Node
                 ranked["match_history"] = history;
             }
 
-            // Add new entry at beginning
             var entryDict = new Godot.Collections.Dictionary
             {
                 ["match_id"] = entry.MatchId,
@@ -331,11 +445,13 @@ public partial class RankingService : Node
                 ["rating_before"] = entry.RatingBefore,
                 ["rating_after"] = entry.RatingAfter,
                 ["rating_change"] = entry.RatingChange,
-                ["played_at"] = entry.PlayedAt.ToString("o")
+                ["opponent_rating_before"] = entry.OpponentRatingBefore,
+                ["duration_seconds"] = entry.DurationSeconds,
+                ["end_reason"] = entry.EndReason,
+                ["timestamp"] = entry.Timestamp
             };
             history.Insert(0, entryDict);
 
-            // Keep only recent matches
             while (history.Count > MaxMatchHistorySize)
             {
                 history.RemoveAt(history.Count - 1);
@@ -367,9 +483,9 @@ public partial class RankingService : Node
         }
     }
 
-    private List<MatchHistoryEntry> LoadMatchHistoryFromProfile(int count)
+    private List<MatchRecord> LoadMatchHistoryFromProfile(int count)
     {
-        var result = new List<MatchHistoryEntry>();
+        var result = new List<MatchRecord>();
         if (_profileRepo == null) return result;
 
         try
@@ -384,15 +500,18 @@ public partial class RankingService : Node
             for (int i = 0; i < Math.Min(count, history.Count); i++)
             {
                 var entryDict = history[i].AsGodotDictionary();
-                result.Add(new MatchHistoryEntry
+                result.Add(new MatchRecord
                 {
-                    MatchId = entryDict["match_id"].AsString(),
-                    OpponentId = entryDict["opponent_id"].AsString(),
-                    Won = entryDict["won"].AsBool(),
-                    RatingBefore = entryDict["rating_before"].AsInt32(),
-                    RatingAfter = entryDict["rating_after"].AsInt32(),
-                    RatingChange = entryDict["rating_change"].AsInt32(),
-                    PlayedAt = DateTime.Parse(entryDict["played_at"].AsString())
+                    MatchId = entryDict.ContainsKey("match_id") ? entryDict["match_id"].AsString() : "",
+                    OpponentId = entryDict.ContainsKey("opponent_id") ? entryDict["opponent_id"].AsString() : "",
+                    Won = entryDict.ContainsKey("won") && entryDict["won"].AsBool(),
+                    RatingBefore = entryDict.ContainsKey("rating_before") ? entryDict["rating_before"].AsInt32() : 0,
+                    RatingAfter = entryDict.ContainsKey("rating_after") ? entryDict["rating_after"].AsInt32() : 0,
+                    RatingChange = entryDict.ContainsKey("rating_change") ? entryDict["rating_change"].AsInt32() : 0,
+                    OpponentRatingBefore = entryDict.ContainsKey("opponent_rating_before") ? entryDict["opponent_rating_before"].AsInt32() : 0,
+                    DurationSeconds = entryDict.ContainsKey("duration_seconds") ? entryDict["duration_seconds"].AsSingle() : 0f,
+                    EndReason = entryDict.ContainsKey("end_reason") ? entryDict["end_reason"].AsString() : "",
+                    Timestamp = entryDict.ContainsKey("timestamp") ? entryDict["timestamp"].AsInt64() : 0L
                 });
             }
         }
@@ -425,6 +544,43 @@ public partial class RankingService : Node
         }
     }
 
+    private void SaveOfflineCache()
+    {
+        try
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(_offlineReportCache);
+            using var file = FileAccess.Open(OfflineCachePath, FileAccess.ModeFlags.Write);
+            file?.StoreString(json);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[RankingService] Failed to save offline cache: {ex.Message}");
+        }
+    }
+
+    private void LoadOfflineCache()
+    {
+        if (!FileAccess.FileExists(OfflineCachePath)) return;
+
+        try
+        {
+            using var file = FileAccess.Open(OfflineCachePath, FileAccess.ModeFlags.Read);
+            if (file == null) return;
+
+            var json = file.GetAsText();
+            var reports = System.Text.Json.JsonSerializer.Deserialize<List<MatchRecord>>(json);
+            if (reports != null)
+            {
+                _offlineReportCache.AddRange(reports);
+                GD.Print($"[RankingService] Loaded {reports.Count} cached reports");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[RankingService] Failed to load offline cache: {ex.Message}");
+        }
+    }
+
     #endregion
 
     /// <summary>
@@ -452,18 +608,4 @@ public partial class RankingService : Node
 
         GD.Print("[RankingService] Ranking data reset");
     }
-}
-
-/// <summary>
-/// Represents a match history entry.
-/// </summary>
-public class MatchHistoryEntry
-{
-    public string MatchId { get; set; } = "";
-    public string OpponentId { get; set; } = "";
-    public bool Won { get; set; }
-    public int RatingBefore { get; set; }
-    public int RatingAfter { get; set; }
-    public int RatingChange { get; set; }
-    public DateTime PlayedAt { get; set; }
 }

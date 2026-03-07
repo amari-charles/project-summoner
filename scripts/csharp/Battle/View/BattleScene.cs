@@ -866,10 +866,10 @@ public partial class BattleScene : Node3D
 			return;
 		}
 
-		var matchReporter = GetNodeOrNull("/root/MatchReporter");
-		if (matchReporter == null || !matchReporter.HasMethod("ReportMatchFromGDScript"))
+		var rankingService = GetNodeOrNull<Fateforged.Multiplayer.Ranking.RankingService>("/root/RankingService");
+		if (rankingService == null || !rankingService.HasMethod("ReportMatchFromGDScript"))
 		{
-			GD.Print("[BattleScene] MatchReporter.ReportMatchFromGDScript not available");
+			GD.Print("[BattleScene] RankingService.ReportMatchFromGDScript not available");
 			return;
 		}
 
@@ -884,12 +884,13 @@ public partial class BattleScene : Node3D
 		}
 
 		string opponentUserId = matchInfo.GetValueOrDefault("opponent_user_id", "").ToString();
-		int opponentRating = (int)matchInfo.GetValueOrDefault("opponent_rating", 1000);
+		int opponentRating = (int)matchInfo.GetValueOrDefault("opponent_rating",
+			Fateforged.Multiplayer.Ranking.EloCalculator.StartingElo);
 		string winnerUserId = playerWon ? localUserId : opponentUserId;
 		string loserUserId = playerWon ? opponentUserId : localUserId;
 
 		GD.Print($"[BattleScene] Reporting ranked match result — winner: {winnerUserId}");
-		matchReporter.Call("ReportMatchFromGDScript",
+		rankingService.Call("ReportMatchFromGDScript",
 			matchInfo.GetValueOrDefault("match_id", "").ToString(),
 			winnerUserId, loserUserId, opponentRating, 0.0f, "summoner_destroyed");
 	}

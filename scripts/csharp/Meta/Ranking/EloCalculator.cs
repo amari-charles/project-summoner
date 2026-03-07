@@ -4,19 +4,18 @@ namespace Fateforged.Multiplayer.Ranking;
 
 /// <summary>
 /// ELO rating calculation for ranked matches.
-/// Uses standard ELO formula with configurable K-factor.
+/// Uses standard ELO formula with static K-factor of 32.
 /// </summary>
 public static class EloCalculator
 {
     /// <summary>
-    /// Starting ELO for new players.
+    /// Starting ELO for new players (Mage floor).
     /// </summary>
     public const int StartingElo = 1200;
 
     /// <summary>
     /// K-factor determines how much ratings change per match.
-    /// Higher = more volatile, Lower = more stable.
-    /// 32 is standard for chess beginners, 16 for masters.
+    /// Static K=32 for all players.
     /// </summary>
     public const int KFactor = 32;
 
@@ -26,16 +25,13 @@ public static class EloCalculator
     public const int EloFloor = 100;
 
     /// <summary>
-    /// Maximum ELO ceiling (optional, for display purposes).
+    /// Maximum ELO ceiling (for display/clamping purposes).
     /// </summary>
     public const int EloCeiling = 3000;
 
     /// <summary>
     /// Calculate new ratings after a match.
     /// </summary>
-    /// <param name="winnerElo">Winner's current ELO</param>
-    /// <param name="loserElo">Loser's current ELO</param>
-    /// <returns>Tuple of (newWinnerElo, newLoserElo)</returns>
     public static (int WinnerNew, int LoserNew) CalculateNewRatings(int winnerElo, int loserElo)
     {
         return CalculateNewRatings(winnerElo, loserElo, KFactor);
@@ -62,30 +58,34 @@ public static class EloCalculator
     /// <summary>
     /// Calculate expected score (probability of winning) for player A against player B.
     /// </summary>
-    /// <param name="playerElo">Player A's ELO</param>
-    /// <param name="opponentElo">Player B's ELO</param>
-    /// <returns>Expected score between 0 and 1</returns>
     public static double GetExpectedScore(int playerElo, int opponentElo)
     {
         return 1.0 / (1.0 + Math.Pow(10, (opponentElo - playerElo) / 400.0));
     }
 
     /// <summary>
-    /// Get the rank tier for a given ELO.
+    /// Get the rank tier for a given ELO (purely ELO-based, never returns Fateforged).
     /// </summary>
     public static RankTier GetTier(int elo)
     {
         return elo switch
         {
-            < 800 => RankTier.Bronze,
-            < 1000 => RankTier.Silver,
-            < 1200 => RankTier.Gold,
-            < 1400 => RankTier.Platinum,
-            < 1600 => RankTier.Diamond,
-            < 1800 => RankTier.Master,
-            < 2000 => RankTier.Grandmaster,
-            _ => RankTier.Legend
+            < 800 => RankTier.Unbound,
+            < 1000 => RankTier.Apprentice,
+            < 1200 => RankTier.Adept,
+            < 1400 => RankTier.Mage,
+            < 1600 => RankTier.Archmage,
+            _ => RankTier.Sage
         };
+    }
+
+    /// <summary>
+    /// Get the display tier, accounting for Fateforged (top 20 leaderboard).
+    /// UI code should call this instead of GetTier() for display.
+    /// </summary>
+    public static RankTier GetDisplayTier(int elo, bool isTopTwenty)
+    {
+        return isTopTwenty ? RankTier.Fateforged : GetTier(elo);
     }
 
     /// <summary>
@@ -114,14 +114,13 @@ public static class EloCalculator
     {
         return tier switch
         {
-            RankTier.Bronze => 0,
-            RankTier.Silver => 800,
-            RankTier.Gold => 1000,
-            RankTier.Platinum => 1200,
-            RankTier.Diamond => 1400,
-            RankTier.Master => 1600,
-            RankTier.Grandmaster => 1800,
-            RankTier.Legend => 2000,
+            RankTier.Unbound => 0,
+            RankTier.Apprentice => 800,
+            RankTier.Adept => 1000,
+            RankTier.Mage => 1200,
+            RankTier.Archmage => 1400,
+            RankTier.Sage => 1600,
+            RankTier.Fateforged => 1600, // Same as Sage (leaderboard-based, not ELO-based)
             _ => 0
         };
     }
@@ -133,25 +132,32 @@ public static class EloCalculator
     {
         return tier switch
         {
-            RankTier.Bronze => 799,
-            RankTier.Silver => 999,
-            RankTier.Gold => 1199,
-            RankTier.Platinum => 1399,
-            RankTier.Diamond => 1599,
-            RankTier.Master => 1799,
-            RankTier.Grandmaster => 1999,
-            RankTier.Legend => EloCeiling,
+            RankTier.Unbound => 799,
+            RankTier.Apprentice => 999,
+            RankTier.Adept => 1199,
+            RankTier.Mage => 1399,
+            RankTier.Archmage => 1599,
+            RankTier.Sage => EloCeiling,
+            RankTier.Fateforged => EloCeiling,
             _ => EloCeiling
         };
     }
 
     /// <summary>
     /// Format ELO with tier and division for display.
-    /// Example: "Gold II (1150)"
+    /// Example: "Mage II (1250)"
     /// </summary>
     public static string FormatRating(int elo)
     {
-        var tier = GetTier(elo);
+        return FormatRating(elo, false);
+    }
+
+    /// <summary>
+    /// Format ELO with tier and division for display, with Fateforged support.
+    /// </summary>
+    public static string FormatRating(int elo, bool isTopTwenty)
+    {
+        var tier = GetDisplayTier(elo, isTopTwenty);
         var division = GetDivision(elo);
         var divisionNumeral = division switch
         {
@@ -162,9 +168,9 @@ public static class EloCalculator
             _ => ""
         };
 
-        // Legend tier doesn't have divisions
-        if (tier == RankTier.Legend)
-            return $"Legend ({elo})";
+        // Fateforged tier doesn't have divisions
+        if (tier == RankTier.Fateforged)
+            return $"Fateforged ({elo})";
 
         return $"{tier} {divisionNumeral} ({elo})";
     }
@@ -172,15 +178,15 @@ public static class EloCalculator
 
 /// <summary>
 /// Rank tiers from lowest to highest.
+/// Fateforged is exclusive to the top 20 on the leaderboard.
 /// </summary>
 public enum RankTier
 {
-    Bronze = 0,
-    Silver = 1,
-    Gold = 2,
-    Platinum = 3,
-    Diamond = 4,
-    Master = 5,
-    Grandmaster = 6,
-    Legend = 7
+    Unbound = 0,
+    Apprentice = 1,
+    Adept = 2,
+    Mage = 3,
+    Archmage = 4,
+    Sage = 5,
+    Fateforged = 6
 }
