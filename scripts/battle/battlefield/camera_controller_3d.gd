@@ -379,17 +379,14 @@ func get_ground_footprint_xz() -> Rect2:
 			world_points.append(point)
 	else:
 		for corner: Vector2 in screen_corners:
-			var origin: Vector3 = project_ray_origin(corner)
-			var dir: Vector3 = project_ray_normal(corner)
+			var ray: Array = _get_ortho_ray(corner, screen_size)
+			var origin: Vector3 = ray[0]
+			var dir: Vector3 = ray[1]
 
-			# Skip if ray is parallel to ground (shouldn't happen with tilted camera)
 			if abs(dir.y) < 0.0001:
 				continue
 
-			# Calculate intersection with ground plane: t = (ground_y - origin.y) / dir.y
 			var t: float = (ground_y - origin.y) / dir.y
-
-			# Only consider intersections in front of camera
 			if t >= 0.0:
 				var point: Vector3 = origin + dir * t
 				world_points.append(point)
@@ -439,6 +436,31 @@ func _get_forward_depth(world_pos: Vector3) -> float:
 	var forward: Vector3 = -global_basis.z
 	return forward.dot(world_pos - global_position)
 
+func _get_ortho_ray(screen_pos: Vector2, screen_size: Vector2) -> Array:
+	## Compute ortho ray origin + direction analytically (no Godot projection matrix).
+	## Returns [origin: Vector3, direction: Vector3].
+	var w: float = screen_size.x
+	var h: float = screen_size.y
+
+	var half_h: float
+	var half_w: float
+	if keep_aspect == KEEP_HEIGHT:
+		half_h = size * 0.5
+		half_w = half_h * (w / h)
+	else:
+		half_w = size * 0.5
+		half_h = half_w * (h / w)
+
+	var ndc_x: float = (screen_pos.x / w) * 2.0 - 1.0
+	var ndc_y: float = 1.0 - (screen_pos.y / h) * 2.0
+
+	var cam_right: Vector3 = global_basis.x
+	var cam_up: Vector3 = global_basis.y
+	var cam_forward: Vector3 = -global_basis.z
+
+	var origin: Vector3 = global_position + cam_right * (ndc_x * half_w) + cam_up * (ndc_y * half_h)
+	return [origin, cam_forward]
+
 func _get_horizontal_sample_bounds_x() -> Vector2:
 	var vp: Viewport = get_viewport()
 	var view_size: Vector2i = vp.get_visible_rect().size
@@ -456,17 +478,19 @@ func _get_horizontal_sample_bounds_x() -> Vector2:
 	var right_origin: Vector3
 	var right_dir: Vector3
 
+	var screen_size: Vector2 = Vector2(w, h)
 	if is_perspective_mode():
-		var screen_size: Vector2 = Vector2(w, h)
 		left_origin = global_position
 		right_origin = global_position
 		left_dir = _get_perspective_ray_direction(left_screen, screen_size)
 		right_dir = _get_perspective_ray_direction(right_screen, screen_size)
 	else:
-		left_origin = project_ray_origin(left_screen)
-		right_origin = project_ray_origin(right_screen)
-		left_dir = project_ray_normal(left_screen)
-		right_dir = project_ray_normal(right_screen)
+		var left_ray: Array = _get_ortho_ray(left_screen, screen_size)
+		left_origin = left_ray[0]
+		left_dir = left_ray[1]
+		var right_ray: Array = _get_ortho_ray(right_screen, screen_size)
+		right_origin = right_ray[0]
+		right_dir = right_ray[1]
 
 	if abs(left_dir.y) < 0.0001 or abs(right_dir.y) < 0.0001:
 		return Vector2.ZERO
