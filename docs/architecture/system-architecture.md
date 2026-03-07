@@ -83,7 +83,7 @@ flowchart LR
 | `ModifierService` | `ModifierService` | Stat modifiers from traits/upgrades |
 | `DamageSystem` | `DamageSystem` | Damage/healing application |
 | `HitResolver` | `HitResolver` | Hitbox collision resolution |
-| `ProjectileService` | `ProjectileService` | Projectile pooling and management |
+| `EntityManager` | `EntityManager` | Entity lifecycle, projectile pooling (`NodePool<ProjectileVisual>`) |
 
 ---
 

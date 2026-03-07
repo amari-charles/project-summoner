@@ -367,6 +367,76 @@ public class NetworkSessionWiringTest
     }
 
     [TestCase]
+    public void ProjectileSpawned_VeerDirections_RoundTripThroughSerializer()
+    {
+        var serializer = new MessageSerializer();
+        var original = new ProjectileSpawned(
+            ProjectileId: 42,
+            SourceUnitId: 1,
+            TargetUnitId: 2,
+            Team: 0,
+            MovementType: (int)ProjectileMovementType.WeavingHoming,
+            CurrentPosition: new Vector3(0f, 0f, 0f),
+            Direction: new Vector3(1f, 0f, 0f),
+            TargetPosition: new Vector3(10f, 0f, 0f),
+            Speed: 28f,
+            VeerDirection: new Vector3(0.7f, 0.1f, 0.5f),
+            CounterVeerDirection: new Vector3(-0.3f, -0.05f, 0.8f));
+
+        var dict = serializer.Serialize(original);
+        var deserialized = (ProjectileSpawned)serializer.Deserialize(dict);
+
+        AssertThat(deserialized.ProjectileId).IsEqual(42);
+        AssertThat(deserialized.VeerDirection.X).IsEqualApprox(0.7f, 0.01f);
+        AssertThat(deserialized.VeerDirection.Y).IsEqualApprox(0.1f, 0.01f);
+        AssertThat(deserialized.VeerDirection.Z).IsEqualApprox(0.5f, 0.01f);
+        AssertThat(deserialized.CounterVeerDirection.X).IsEqualApprox(-0.3f, 0.01f);
+        AssertThat(deserialized.CounterVeerDirection.Y).IsEqualApprox(-0.05f, 0.01f);
+        AssertThat(deserialized.CounterVeerDirection.Z).IsEqualApprox(0.8f, 0.01f);
+    }
+
+    [TestCase]
+    public void ProjectileSeedSnapshot_VeerDirections_RoundTripThroughSerializer()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Projectiles[77] = new SimProjectileData
+        {
+            ProjectileId = 77,
+            ProjectileCatalogId = "weaving_bolt",
+            SourceUnitId = 10,
+            TargetUnitId = -2,
+            Team = Team.Player,
+            MovementType = ProjectileMovementType.WeavingHoming,
+            CurrentPosition = new SimVector3(0f, 0f, 0f),
+            Direction = new SimVector3(1f, 0f, 0f),
+            TargetPosition = new SimVector3(5f, 0f, 1f),
+            Speed = 28f,
+            Lifetime = 4f,
+            VeerDirection = new SimVector3(0.6f, 0.2f, -0.4f),
+            CounterVeerDirection = new SimVector3(-0.5f, 0.1f, 0.7f)
+        };
+
+        var simulation = new Fateforged.Simulation.Simulation(state);
+        var router = new CommandRouter();
+        var transport = new FakeTransport(isHost: true);
+        var serializer = new MessageSerializer();
+        var session = new HostSession(simulation, router, state, transport);
+
+        transport.EmitPeerConnected(peerId: 2);
+
+        var (_, msg) = transport.DirectMessages[0];
+        var seed = (ProjectileSeedSnapshot)serializer.Deserialize(msg);
+        var proj = seed.Projectiles[0];
+
+        AssertThat(proj.VeerDirection.X).IsEqualApprox(0.6f, 0.01f);
+        AssertThat(proj.VeerDirection.Y).IsEqualApprox(0.2f, 0.01f);
+        AssertThat(proj.VeerDirection.Z).IsEqualApprox(-0.4f, 0.01f);
+        AssertThat(proj.CounterVeerDirection.X).IsEqualApprox(-0.5f, 0.01f);
+        AssertThat(proj.CounterVeerDirection.Y).IsEqualApprox(0.1f, 0.01f);
+        AssertThat(proj.CounterVeerDirection.Z).IsEqualApprox(0.7f, 0.01f);
+    }
+
+    [TestCase]
     public void ClientSession_ReconnectTimeout_PeerDisconnect_LocalWins()
     {
         var state = SimTestHelper.CreateBattleState();

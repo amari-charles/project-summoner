@@ -6,6 +6,100 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### Homing Projectiles Orbit Dead Targets Indefinitely
+**Resolved:** 2026-03-06
+**Component:** Simulation / Projectiles
+
+**Description:**
+Homing and WeavingHoming projectiles would orbit the last known position of a dead target until lifetime expiry (up to 6 seconds), making it look like projectiles "won't despawn."
+
+**Root Cause:**
+`TickHoming` continued steering toward `TargetPosition` when `GetAliveUnit` returned null. No path-completion check existed for Homing/WeavingHoming types.
+
+**Solution Implemented:**
+Track `PreviousDistanceToTarget` and `TargetLost` state on `SimProjectileData`. When the target dies and the projectile's distance to last known position starts increasing (it has passed through), kill it immediately.
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs`
+- `scripts/csharp/Battle/Simulation/Data/SimProjectileData.cs`
+
+---
+
+### Straight/Arc Projectiles Miss Moving Targets (Tracking Property Dead Code)
+**Resolved:** 2026-03-06
+**Component:** Simulation / Projectiles
+
+**Description:**
+WindPuff and Rock projectiles had `Tracking = true` in their definitions but the property was never read by the simulation. If the target moved, projectiles hit empty space and flew off until lifetime.
+
+**Root Cause:**
+`ProjectileData.Tracking` was defined and parsed but `SimProjectile.TickStraight()` and `TickArc()` never checked it — they interpolated a fixed path from start to original target position.
+
+**Solution Implemented:**
+Added `Tracking` field to `SimProjectileData`, threaded it through `Spawn()`, and implemented target position updates in `TickStraight`/`TickArc` via shared `ProjectileMovement` methods.
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs`
+- `scripts/csharp/Battle/Simulation/Combat/ProjectileMovement.cs` (new)
+- `scripts/csharp/Battle/Simulation/Data/SimProjectileData.cs`
+
+---
+
+### Client Arc/Ballistic Projectiles Render as Straight Lines
+**Resolved:** 2026-03-06
+**Component:** Multiplayer / Projectile Visuals
+
+**Description:**
+On multiplayer clients, Arc and Ballistic projectiles flew in straight lines instead of following their intended curves.
+
+**Root Cause:**
+`ClientSession.TickClientProjectileMovement()` used `direction * speed * delta` for all non-Homing types — a straight line. Arc and Ballistic path math was never implemented on the client.
+
+**Solution Implemented:**
+Extracted shared `ProjectileMovement` class with `TickArc()`, `TickBallistic()`, and all geometry helpers. Both `SimProjectile` (host) and `ClientSession` (client) now call the same shared methods, eliminating the discrepancy.
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/ProjectileMovement.cs` (new)
+- `scripts/csharp/Battle/Session/ClientSession.cs`
+
+---
+
+### Client Speed Easing Exponent Mismatch
+**Resolved:** 2026-03-06
+**Component:** Multiplayer / Projectile Visuals
+
+**Description:**
+Projectile speed curves differed between host and client, causing visual desync for projectiles with speed easing.
+
+**Root Cause:**
+Host clamped exponent to `MathF.Max(exponent, 0.0001f)` while client clamped to `MathF.Max(exponent, 1f)`, producing different easing curves.
+
+**Solution Implemented:**
+Shared `ProjectileMovement.EvaluateSpeedEasing()` with correct `0.0001f` minimum is used by both host and client.
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/ProjectileMovement.cs` (new)
+
+---
+
+### Client Weaving Projectiles Veer in Wrong Direction
+**Resolved:** 2026-03-06
+**Component:** Multiplayer / Projectile Visuals
+
+**Description:**
+WeavingHoming projectiles on client could veer in the opposite direction from the host because the client derived veer direction from `ProjectileId & 1` while the host used deterministic RNG.
+
+**Solution Implemented:**
+Added `VeerDirection` and `CounterVeerDirection` fields to `ProjectileSpawned` and `ActiveProjectileSeed` network messages. Host sends the exact veer vectors it computed; client uses them directly.
+
+**Related Files:**
+- `scripts/csharp/Battle/Session/Protocol/Messages.cs`
+- `scripts/csharp/Battle/Session/Protocol/MessageSerializer.cs`
+- `scripts/csharp/Battle/Session/HostSession.cs`
+- `scripts/csharp/Battle/Session/ClientSession.cs`
+
+---
+
 ### Puff Pivot Point Off-Center When Turning
 **Resolved:** 2026-03-05
 **Component:** Units / Visual / Sprites

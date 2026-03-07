@@ -285,7 +285,9 @@ public class HostSession : NetworkSession
                 TimeAlive: projectile.TimeAlive,
                 Lifetime: projectile.Lifetime,
                 HitRadius: projectile.HitRadius,
-                HitSpace: projectile.HitSpace
+                HitSpace: projectile.HitSpace,
+                VeerDirection: new Vector3(projectile.VeerDirection.X, projectile.VeerDirection.Y, projectile.VeerDirection.Z),
+                CounterVeerDirection: new Vector3(projectile.CounterVeerDirection.X, projectile.CounterVeerDirection.Y, projectile.CounterVeerDirection.Z)
             );
             _transport.Broadcast(_messageSerializer.Serialize(spawned));
         }
@@ -347,7 +349,9 @@ public class HostSession : NetworkSession
                 TimeAlive: projectile.TimeAlive,
                 Lifetime: projectile.Lifetime,
                 HitRadius: projectile.HitRadius,
-                HitSpace: projectile.HitSpace
+                HitSpace: projectile.HitSpace,
+                VeerDirection: new Vector3(projectile.VeerDirection.X, projectile.VeerDirection.Y, projectile.VeerDirection.Z),
+                CounterVeerDirection: new Vector3(projectile.CounterVeerDirection.X, projectile.CounterVeerDirection.Y, projectile.CounterVeerDirection.Z)
             );
         }
 

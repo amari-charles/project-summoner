@@ -197,7 +197,9 @@ public readonly record struct ProjectileSpawned(
     float TimeAlive = 0f,
     float Lifetime = 5f,
     float HitRadius = 2.5f,
-    ProjectileHitSpace HitSpace = ProjectileHitSpace.GroundCylinder
+    ProjectileHitSpace HitSpace = ProjectileHitSpace.GroundCylinder,
+    Vector3 VeerDirection = default,
+    Vector3 CounterVeerDirection = default
 ) : IRealtimeProtocolMessage;
 
 /// <summary>
@@ -240,7 +242,9 @@ public readonly record struct ActiveProjectileSeed(
     float TimeAlive = 0f,
     float Lifetime = 5f,
     float HitRadius = 2.5f,
-    ProjectileHitSpace HitSpace = ProjectileHitSpace.GroundCylinder
+    ProjectileHitSpace HitSpace = ProjectileHitSpace.GroundCylinder,
+    Vector3 VeerDirection = default,
+    Vector3 CounterVeerDirection = default
 );
 
 /// <summary>
