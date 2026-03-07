@@ -522,11 +522,10 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_sprite3D == null || _viewport == null)
             return;
 
-        var result = ShadowHelper.CreateShadow(_sprite3D, _viewport);
-        if (result == null)
+        _shadowSprite3D = ShadowHelper.CreateShadow(_sprite3D, _viewport);
+        if (_shadowSprite3D == null)
             return;
 
-        (_shadowSprite3D, _) = result.Value;
         AddChild(_shadowSprite3D);
     }
 

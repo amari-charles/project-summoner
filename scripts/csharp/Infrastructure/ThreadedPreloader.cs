@@ -77,7 +77,8 @@ public partial class ThreadedPreloader : Node
             return;
         }
 
-        float lastSubProgress = 0f;
+        float subProgressSum = 0f;
+        int inProgressCount = 0;
 
         for (int i = _pendingPaths.Count - 1; i >= 0; i--)
         {
@@ -99,14 +100,18 @@ public partial class ThreadedPreloader : Node
 
                 case ResourceLoader.ThreadLoadStatus.InProgress:
                     if (_progressArray.Count > 0)
-                        lastSubProgress = (float)_progressArray[0];
+                    {
+                        subProgressSum += (float)_progressArray[0];
+                        inProgressCount++;
+                    }
                     break;
             }
         }
 
         int pendingCount = _pendingPaths.Count;
         float completedCount = _totalCount - pendingCount;
-        float progress = (completedCount + (pendingCount > 0 ? lastSubProgress : 0f)) / _totalCount;
+        float avgSubProgress = inProgressCount > 0 ? subProgressSum / inProgressCount : 0f;
+        float progress = (completedCount + (pendingCount > 0 ? avgSubProgress : 0f)) / _totalCount;
         EmitSignal(SignalName.ProgressUpdated, Mathf.Clamp(progress, 0f, 1f));
 
         if (pendingCount == 0)
@@ -119,6 +124,7 @@ public partial class ThreadedPreloader : Node
     {
         IsLoading = false;
         SetProcess(false);
+        EmitSignal(SignalName.ProgressUpdated, 1.0f);
         EmitSignal(SignalName.Completed);
     }
 }

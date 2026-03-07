@@ -11,6 +11,7 @@ public static class ShadowHelper
     // Shadow appearance
     private const float ShadowOpacity = 0.5f;
     private const float SkewX = 0.8f;
+    private const float SkewY = 0.6f;
 
     // Positioning: diagonal offset simulating light from upper-left
     private const float DiagonalOffsetX = 0.2f;
@@ -24,16 +25,16 @@ public static class ShadowHelper
     private static Shader? _shaderCache;
 
     /// <summary>
-    /// Creates and returns a shadow Sprite3D with its ShaderMaterial.
-    /// The shadow is added as a child of the calling component.
+    /// Creates and returns a shadow Sprite3D.
+    /// The caller is responsible for adding the shadow as a child.
     /// FlipH is always true to correct for the horizontal mirror caused by the -90° X rotation.
     /// The viewport texture already contains the correctly-oriented content (both visual
     /// components flip their internal 2D content), so no per-unit flip adjustment is needed.
     /// </summary>
     /// <param name="parentSprite3D">The main Sprite3D used for rendering the unit.</param>
     /// <param name="viewport">The SubViewport providing the unit's texture.</param>
-    /// <returns>The created shadow Sprite3D and its ShaderMaterial.</returns>
-    public static (Sprite3D shadow, ShaderMaterial material)? CreateShadow(
+    /// <returns>The created shadow Sprite3D, or null if the shader failed to load.</returns>
+    public static Sprite3D? CreateShadow(
         Sprite3D parentSprite3D, SubViewport viewport)
     {
         _shaderCache ??= GD.Load<Shader>("res://shaders/vfx/silhouette_shadow.gdshader");
@@ -47,6 +48,7 @@ public static class ShadowHelper
         material.Shader = _shaderCache;
         material.SetShaderParameter("shadow_opacity", ShadowOpacity);
         material.SetShaderParameter("skew_x", SkewX);
+        material.SetShaderParameter("skew_y", SkewY);
 
         var viewportTexture = viewport.GetTexture();
         material.SetShaderParameter("sprite_texture", viewportTexture);
@@ -72,7 +74,7 @@ public static class ShadowHelper
         shadow.Position = new Vector3(DiagonalOffsetX, GroundClearance, spriteCenterZ + DiagonalOffsetZ);
         shadow.Scale = new Vector3(1.0f, ShadowScaleY, 1.0f);
 
-        return (shadow, material);
+        return shadow;
     }
 
     /// <summary>
