@@ -19,6 +19,7 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.HasConeConstraint).IsTrue();
         AssertThat(template.ConeHalfAngle).IsEqual(30f);
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
+        AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
     [TestCase]
@@ -29,6 +30,7 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.Strafe);
         AssertThat(template.HasConeConstraint).IsFalse();
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
+        AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
     [TestCase]
@@ -38,6 +40,7 @@ public class UnitDefinitionsTargetingProfileTest
 
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.Idle);
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.Legacy);
+        AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Direct);
     }
 
     [TestCase]
@@ -49,5 +52,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.GroundOnly);
         AssertThat(template.HealthScorerWeight).IsEqual(10f);
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
+        AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 }

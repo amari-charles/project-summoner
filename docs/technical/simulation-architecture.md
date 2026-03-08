@@ -15,7 +15,7 @@ The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure
 
 | File | Purpose |
 |------|---------|
-| `Simulation.cs` | Core tick loop (11-step contract), command execution, phase transitions, casting, spawning |
+| `Simulation.cs` | Core tick loop (12-step contract), command execution, phase transitions, casting, spawning |
 | `MatchState.cs` | Central state container: units, summoners, projectiles, commands, RNG |
 | `SimulationNode.cs` | **Godot bridge** — wraps Simulation, emits signals, handles coordinate transforms |
 | `SimConstants.cs` | Shared constants (ActivationState values, DeathCleanupSeconds) |
@@ -23,15 +23,19 @@ The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure
 | `Combat/SimBehavior.cs` | Unit behavior FSM: NoTarget → Chasing → InRange → Attacking |
 | `Combat/SimTargeting.cs` | Target acquisition: filter → score pipeline, summoner fallback |
 | `Combat/SimDamage.cs` | Damage calculation: evasion, crits, elemental matchups, defense, shields |
-| `Movement/SimMovement.cs` | Movement execution: forward, toward-target, strafe |
-| `Movement/SimSteering.cs` | Steering forces: separation, flanking, overlap correction |
+| `Movement/SimMovement.cs` | Movement execution pipeline: intent → ORCA → integrate → overlap correction |
+| `Movement/MovementIntent*.cs` | Intent contract and intent strategy selection (`DirectIntentGenerator`, optional `ContextIntentGenerator`) |
+| `Movement/OrcaAvoidance.cs` | Velocity obstacle solver for local collision avoidance |
+| `Movement/OverlapCorrection.cs` | Position-only safety pass for residual overlaps |
+| `Movement/FacingController.cs` | Stable facing updates with dead-zones/hold timer (avoids rapid flip jitter) |
 | `SimEffects.cs` | Buff/debuff/trigger system, periodic effects, delayed effects, stat queries |
 | `SimProjectile.cs` | Projectile simulation (movement, homing, pierce, AoE) |
 
-## Tick Order Contract (11 steps)
+## Tick Order Contract (12 steps)
 
 ```
 1.  Increment frame, advance match time (Battle only)
+1.5 Tick AI (produces PlayCardCommands into PendingCommandBuffer)
 2.  Drain and execute due commands (PlayCard, Forfeit)
 3.  Phase timers / transitions (Preparation → Battle: activate units, refresh hands)
 4.  Tick casting (decrement timers, handle completions)
@@ -42,6 +46,7 @@ The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure
 9.  Tick delayed effects (death explosions, timed AoE)
 10. Death cleanup (timer countdown, remove expired units)
 11. Evaluate win conditions
+12. Return events
 ```
 
 Each step produces events appended to that tick's event list. Order matters — targeting happens before behavior, movement before delayed ranged resolution, effects before win condition evaluation.

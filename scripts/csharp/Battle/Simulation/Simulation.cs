@@ -568,6 +568,7 @@ public class Simulation
                     DistanceScorerWeight = template.DistanceScorerWeight,
                     HealthScorerWeight = template.HealthScorerWeight,
                     TargetPolicyId = template.TargetPolicyId,
+                    MovementIntentStrategy = template.MovementIntentStrategy,
                     FlightAltitude = template.FlightAltitude,
                     ProjectileDelay = template.ProjectileDelay,
                     AttackType = template.AttackType,
