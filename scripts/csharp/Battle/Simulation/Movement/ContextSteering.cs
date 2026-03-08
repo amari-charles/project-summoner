@@ -26,9 +26,13 @@ public struct ContextMap
         Danger = danger;
     }
 
-    public static ContextMap Create()
+    public static ContextMap Create(float[] interest, float[] danger)
     {
-        return new ContextMap(new float[NumSlots], new float[NumSlots]);
+        if (interest.Length < NumSlots)
+            throw new ArgumentException("Interest buffer is smaller than NumSlots.", nameof(interest));
+        if (danger.Length < NumSlots)
+            throw new ArgumentException("Danger buffer is smaller than NumSlots.", nameof(danger));
+        return new ContextMap(interest, danger);
     }
 
     public void Clear()
@@ -95,13 +99,20 @@ public struct ContextMap
 /// </summary>
 public static class ContextSteering
 {
+    [ThreadStatic] private static float[]? _interestBuffer;
+    [ThreadStatic] private static float[]? _dangerBuffer;
+
     /// <summary>
     /// Main entry: compute preferred direction for a unit based on its behavior result.
     /// </summary>
     public static SimVector3 Resolve(
         UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state)
     {
-        var map = ContextMap.Create();
+        _interestBuffer ??= new float[ContextMap.NumSlots];
+        _dangerBuffer ??= new float[ContextMap.NumSlots];
+
+        var map = ContextMap.Create(_interestBuffer, _dangerBuffer);
+        map.Clear();
 
         switch (behavior.Movement)
         {

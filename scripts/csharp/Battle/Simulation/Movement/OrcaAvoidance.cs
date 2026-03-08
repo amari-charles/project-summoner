@@ -33,6 +33,7 @@ public static class OrcaAvoidance
     // Reusable list to avoid allocations per frame
     [ThreadStatic] private static List<OrcaLine>? _orcaLines;
     [ThreadStatic] private static List<UnitData>? _neighbors;
+    [ThreadStatic] private static List<float>? _neighborDistancesSq;
 
     /// <summary>
     /// Compute the closest safe velocity to preferredVelocity that avoids collisions.
@@ -42,9 +43,11 @@ public static class OrcaAvoidance
     {
         _orcaLines ??= new List<OrcaLine>(MaxNeighbors);
         _neighbors ??= new List<UnitData>(MaxNeighbors);
+        _neighborDistancesSq ??= new List<float>(MaxNeighbors);
 
         _orcaLines.Clear();
         _neighbors.Clear();
+        _neighborDistancesSq.Clear();
 
         // Gather neighbors
         float searchRadius = unit.SeparationRadius * NeighborSearchRadiusMultiplier;
@@ -52,8 +55,6 @@ public static class OrcaAvoidance
 
         foreach (var kvp in state.Units)
         {
-            if (_neighbors.Count >= MaxNeighbors) break;
-
             var other = kvp.Value;
             if (other.UnitId == unit.UnitId) continue;
             if (!other.IsAlive) continue;
@@ -64,8 +65,28 @@ public static class OrcaAvoidance
             float dz = unit.Position.Z - other.Position.Z;
             float distSq = dx * dx + dz * dz;
 
-            if (distSq < searchRadiusSq)
+            if (distSq >= searchRadiusSq) continue;
+
+            if (_neighbors.Count < MaxNeighbors)
+            {
                 _neighbors.Add(other);
+                _neighborDistancesSq.Add(distSq);
+                continue;
+            }
+
+            int farthestIndex = 0;
+            float farthestDistSq = _neighborDistancesSq[0];
+            for (int i = 1; i < _neighborDistancesSq.Count; i++)
+            {
+                if (_neighborDistancesSq[i] <= farthestDistSq) continue;
+                farthestDistSq = _neighborDistancesSq[i];
+                farthestIndex = i;
+            }
+
+            if (distSq >= farthestDistSq) continue;
+
+            _neighbors[farthestIndex] = other;
+            _neighborDistancesSq[farthestIndex] = distSq;
         }
 
         float invTimeHorizon = 1.0f / TimeHorizon;
