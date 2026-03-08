@@ -49,7 +49,7 @@ public class OrcaAvoidanceTest
         close.BehaviorState = BehaviorState.InRange;
 
         var preferredVelocity = new SimVector3(3f, 0f, 0f);
-        OrcaAvoidance.ComputeSafeVelocity(mover, preferredVelocity, _state);
+        var safeVelocity = OrcaAvoidance.ComputeSafeVelocity(mover, preferredVelocity, _state);
 
         var neighborsField = typeof(OrcaAvoidance).GetField(
             "_neighbors", BindingFlags.NonPublic | BindingFlags.Static);
@@ -58,5 +58,8 @@ public class OrcaAvoidanceTest
         AssertThat(selectedNeighbors).IsNotNull();
         AssertThat(selectedNeighbors!.Count).IsEqual(10);
         AssertThat(selectedNeighbors.Any(n => n.UnitId == close.UnitId)).IsTrue();
+
+        // Black-box guard: the close blocker should materially reduce forward speed.
+        AssertThat(safeVelocity.X).IsLess(preferredVelocity.X - 0.5f);
     }
 }
