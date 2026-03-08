@@ -8,6 +8,7 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 **Tracker Sync (2026-03-05):** Reviewed against `bugs-resolved.md`; moved Puff target-switch and Wisp multi-target bugs to resolved based on post-refactor validation.
 **Audit Sync (2026-03-05, evening):** Re-opened Puff pivot/flip bug after repro confirmation; migrated to metadata-driven pivot alignment and moved to resolved after validation. Blocked-idle and headless leak issues remain active pending explicit repro closure.
 **Tracker Sync (2026-03-08):** Blocked-idle issue moved to verification after movement pipeline + blocked-nav reset fixes and deterministic repro coverage landed; headless leak remains open/cosmetic.
+**Tracker Sync (2026-03-08, late):** Added resolved biome/checkerboard regression caused by StringName coercion mismatch to `bugs-resolved.md` (PR `#290`).
 
 ---
 
@@ -123,4 +124,4 @@ Additional context
 ```
 
 ---
-*Last Updated: 2026-03-08 - Synced tracker with post-2026-03-05 movement/type-safety/loading commits; blocked-idle bug now in verification*
+*Last Updated: 2026-03-08 (late) - Added missing resolved regression entry for biome/checkerboard visuals (PR #290)*

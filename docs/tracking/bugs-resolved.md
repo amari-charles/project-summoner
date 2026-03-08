@@ -6,6 +6,32 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### Battlefield Ground Checker/Biome Visuals Regress to Default
+**Resolved:** 2026-03-08
+**Component:** Battlefield / Biome Visuals / GDScript Interop
+
+**Description:**
+Ground checker/biome visuals appeared incorrect after typed-safety refactors. The battlefield fell back to default biome behavior despite valid battle context.
+
+**Root Cause:**
+`BattleContext.biome_id` is stored as `StringName`, but biome extraction path switched to `SafeTypeUtils.string(...)` at a point where the helper accepted only `String`. This produced an empty biome ID and triggered visual fallback.
+
+**Solution Implemented:**
+1. Updated `SafeTypeUtils.string()` to accept both `String` and `StringName`.
+2. Performed a broader coercion sweep to replace strict `Variant is String` guards in key UI/event/data flows.
+3. Added regression tests for StringName-safe coercion and typed event/property paths.
+
+**PR Merge Date:** 2026-03-08 (`#290`)
+
+**Related Files:**
+- `scripts/infrastructure/safe_type_utils.gd`
+- `scripts/battle/battlefield/base_battlefield_3d.gd`
+- `scripts/meta/components/node_panels/typed_event_data.gd`
+- `tests/unit/test_safe_type_utils.gd`
+- `tests/unit/test_typed_event_data.gd`
+
+---
+
 ### Homing Projectiles Orbit Dead Targets Indefinitely
 **Resolved:** 2026-03-06
 **Component:** Simulation / Projectiles

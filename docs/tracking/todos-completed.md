@@ -6,6 +6,45 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+### Eliminate Remaining GDScript Unsafe Variant Access Warnings
+**Completed:** 2026-03-08
+**Category:** Architecture / Type Safety
+**Effort:** Medium
+
+Completed a broad GDScript typed-API migration pass to remove unsafe Variant access patterns and tighten boundary checks across UI/application/service wrapper flows.
+
+**PR Merge Date:** 2026-03-08 (`#288`)
+
+**Representative Files Changed:**
+- `scripts/application/battle_context.gd`
+- `scripts/application/event_context.gd`
+- `scripts/application/scene_coordinator.gd`
+- `scripts/infrastructure/services/*.gd` (typed wrapper updates)
+- `scripts/meta/screens/reward_screen.gd`
+- `tests/unit/test_service_api_wrappers.gd`
+
+---
+
+### Normalize StringName-Safe String Coercion Across GDScript
+**Completed:** 2026-03-08
+**Category:** Architecture / Type Safety
+**Effort:** Medium
+
+Standardized Variant-to-string coercion to safely accept both `String` and `StringName` across event/UI/data paths, preventing silent fallbacks when values cross C#/GDScript boundaries.
+
+**PR Merge Date:** 2026-03-08 (`#290`)
+
+**Representative Files Changed:**
+- `scripts/infrastructure/safe_type_utils.gd`
+- `scripts/meta/components/node_panels/typed_event_data.gd`
+- `scripts/application/event_sequencer.gd`
+- `scripts/meta/screens/event_screen.gd`
+- `scripts/infrastructure/element_types.gd`
+- `tests/unit/test_safe_type_utils.gd`
+- `tests/unit/test_element_types.gd`
+
+---
+
 ### Refactor Service Handlers to Typed-Only Internal Methods
 **Completed:** 2026-03-08
 **Category:** Architecture / Type Safety
