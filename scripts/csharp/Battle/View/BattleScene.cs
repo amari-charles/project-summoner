@@ -84,6 +84,7 @@ public partial class BattleScene : Node3D
 
 	private bool _isShowingReconnectState;
 	private int _lastReconnectSeconds = -1;
+	private int _lastEmittedPhase = -1;
 
 	// =========================================================================
 	// LIFECYCLE
@@ -197,7 +198,11 @@ public partial class BattleScene : Node3D
 
 		EmitSignal(SignalName.GameStarted);
 		EmitSignal(SignalName.StateChanged, (int)CurrentState);
-		EmitSignal(SignalName.PhaseChanged, (int)BattlePhase.Preparation);
+		var simNode = GetSimNode() as SimulationNode;
+		var currentPhase = simNode != null
+			? ToUiPhaseValue((Fateforged.Simulation.Enums.GamePhase)simNode.GetPhase())
+			: (int)BattlePhase.Preparation;
+		EmitPhaseIfChanged(currentPhase);
 		EmitSignal(SignalName.PrepTimerUpdated, PreparationDuration);
 	}
 
@@ -333,7 +338,7 @@ public partial class BattleScene : Node3D
 					EndGame(simNode.RemapTeam(e.WinnerTeam));
 					break;
 				case PhaseChangedEvent e:
-					EmitSignal(SignalName.PhaseChanged, (int)e.NewPhase);
+					EmitPhaseIfChanged(ToUiPhaseValue(e.NewPhase));
 					break;
 				case PrepTimerUpdatedEvent e:
 					EmitSignal(SignalName.PrepTimerUpdated, e.Remaining);
@@ -366,8 +371,22 @@ public partial class BattleScene : Node3D
 
 		// Poll phase
 		int phase = (int)simNode.Call("GetPhase");
-		if (phase == (int)Fateforged.Simulation.Enums.GamePhase.Battle)
-			EmitSignal(SignalName.PhaseChanged, (int)BattlePhase.Battle);
+		EmitPhaseIfChanged(ToUiPhaseValue((Fateforged.Simulation.Enums.GamePhase)phase));
+	}
+
+	private void EmitPhaseIfChanged(int phase)
+	{
+		if (_lastEmittedPhase == phase)
+			return;
+		_lastEmittedPhase = phase;
+		EmitSignal(SignalName.PhaseChanged, phase);
+	}
+
+	private static int ToUiPhaseValue(Fateforged.Simulation.Enums.GamePhase phase)
+	{
+		return phase == Fateforged.Simulation.Enums.GamePhase.Preparation
+			? (int)BattlePhase.Preparation
+			: (int)BattlePhase.Battle;
 	}
 
 	private void PollReconnectState()
