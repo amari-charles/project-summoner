@@ -1,0 +1,250 @@
+using System;
+using Fateforged.Simulation.Combat;
+using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
+using Fateforged.Units;
+
+namespace Fateforged.Simulation.Movement;
+
+/// <summary>
+/// 12-slot direction map used by context steering.
+/// Each slot represents a 30° direction in the XZ plane.
+/// Interest = "I want to go this way", Danger = "I must avoid this direction".
+/// Final direction = weighted sum of interest slots masked by danger.
+/// </summary>
+public struct ContextMap
+{
+    public const int NumSlots = 12;
+    private const float SlotAngle = 360f / NumSlots; // 30°
+
+    public readonly float[] Interest;
+    public readonly float[] Danger;
+
+    private ContextMap(float[] interest, float[] danger)
+    {
+        Interest = interest;
+        Danger = danger;
+    }
+
+    public static ContextMap Create()
+    {
+        return new ContextMap(new float[NumSlots], new float[NumSlots]);
+    }
+
+    public void Clear()
+    {
+        Array.Clear(Interest, 0, NumSlots);
+        Array.Clear(Danger, 0, NumSlots);
+    }
+
+    /// <summary>
+    /// Resolve the best movement direction from interest masked by danger.
+    /// Returns a normalized direction or Zero if no viable direction.
+    /// </summary>
+    public SimVector3 ResolveDirection()
+    {
+        // Weighted sum of interest directions, masking out slots where danger >= interest
+        var result = SimVector3.Zero;
+        float totalWeight = 0f;
+
+        for (int i = 0; i < NumSlots; i++)
+        {
+            float interest = Interest[i];
+            if (interest <= 0f) continue;
+
+            // Mask: subtract danger from interest
+            float effective = interest - Danger[i];
+            if (effective <= 0f) continue;
+
+            var dir = SlotDirection(i);
+            result += dir * effective;
+            totalWeight += effective;
+        }
+
+        if (totalWeight < 0.001f || result.LengthSquared() < 0.0001f)
+            return SimVector3.Zero;
+
+        return result.Normalized();
+    }
+
+    /// <summary>
+    /// Get the slot index closest to a given XZ direction.
+    /// </summary>
+    public static int DirectionToSlot(SimVector3 dir)
+    {
+        float angle = MathF.Atan2(dir.Z, dir.X); // radians
+        if (angle < 0) angle += SimMath.Tau;
+        int slot = (int)MathF.Round(angle / SimMath.DegToRad(SlotAngle)) % NumSlots;
+        return slot;
+    }
+
+    /// <summary>
+    /// Cached unit direction vector for a given slot index.
+    /// </summary>
+    public static SimVector3 SlotDirection(int slotIndex)
+    {
+        float angle = SimMath.DegToRad(slotIndex * SlotAngle);
+        return new SimVector3(MathF.Cos(angle), 0f, MathF.Sin(angle));
+    }
+}
+
+/// <summary>
+/// Context steering resolver — computes a preferred movement direction from desire profiles.
+/// Each movement type (melee chase, ranged kite, forward march, strafe) fills
+/// interest/danger maps differently. The resolver picks the best composite direction.
+/// </summary>
+public static class ContextSteering
+{
+    /// <summary>
+    /// Main entry: compute preferred direction for a unit based on its behavior result.
+    /// </summary>
+    public static SimVector3 Resolve(
+        UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state)
+    {
+        var map = ContextMap.Create();
+
+        switch (behavior.Movement)
+        {
+            case MovementResult.Forward:
+                FillForwardProfile(unit, state, ref map);
+                break;
+
+            case MovementResult.TowardTarget:
+            {
+                var targetPos = ResolveTargetPosition(behavior.MoveTargetId, state);
+                if (!targetPos.HasValue)
+                {
+                    FillForwardProfile(unit, state, ref map);
+                }
+                else if (unit.UnitType == UnitType.Ranged)
+                {
+                    FillRangedProfile(unit, targetPos.Value, state, ref map);
+                }
+                else
+                {
+                    FillMeleeProfile(unit, targetPos.Value, state, ref map);
+                }
+                break;
+            }
+
+            case MovementResult.Strafe:
+            {
+                var targetPos = ResolveTargetPosition(behavior.MoveTargetId, state);
+                if (!targetPos.HasValue)
+                    FillForwardProfile(unit, state, ref map);
+                else
+                    FillStrafeProfile(unit, targetPos.Value, state, ref map);
+                break;
+            }
+
+            default:
+                return SimVector3.Zero;
+        }
+
+        return map.ResolveDirection();
+    }
+
+    /// <summary>
+    /// Melee profile: strong interest toward target position.
+    /// Interest falls off with angular distance from target direction.
+    /// </summary>
+    private static void FillMeleeProfile(
+        UnitData unit, SimVector3 targetPos, MatchState state, ref ContextMap map)
+    {
+        var toTarget = targetPos - unit.Position;
+        toTarget.Y = 0;
+        if (toTarget.LengthSquared() < 0.0625f) return; // Stop steering when within 0.25 units
+
+        var targetDir = toTarget.Normalized();
+
+        // Fill interest: peak at target direction, linear cosine falloff
+        for (int i = 0; i < ContextMap.NumSlots; i++)
+        {
+            var slotDir = ContextMap.SlotDirection(i);
+            float dot = targetDir.Dot(slotDir);
+
+            // Interest only in the forward hemisphere toward target
+            if (dot > 0f)
+            {
+                map.Interest[i] = dot;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ranged profile: interest toward target but also comfortable at range.
+    /// If already within attack range, less interest in closing further.
+    /// </summary>
+    private static void FillRangedProfile(
+        UnitData unit, SimVector3 targetPos, MatchState state, ref ContextMap map)
+    {
+        // Ranged units chasing a target behave like melee — they need to get in range
+        FillMeleeProfile(unit, targetPos, state, ref map);
+    }
+
+    /// <summary>
+    /// Forward profile: march toward enemy base.
+    /// Team 0 moves in +X, Team 1 moves in -X.
+    /// </summary>
+    private static void FillForwardProfile(
+        UnitData unit, MatchState state, ref ContextMap map)
+    {
+        float direction = unit.Team == Team.Player ? 1.0f : -1.0f;
+        var forwardDir = new SimVector3(direction, 0f, 0f);
+
+        // Strong interest in the forward direction, mild spread
+        for (int i = 0; i < ContextMap.NumSlots; i++)
+        {
+            var slotDir = ContextMap.SlotDirection(i);
+            float dot = forwardDir.Dot(slotDir);
+            if (dot > 0f)
+                map.Interest[i] = dot;
+        }
+    }
+
+    /// <summary>
+    /// Strafe profile: perpendicular movement around target.
+    /// Used when unit has cone constraint and needs to reposition.
+    /// </summary>
+    private static void FillStrafeProfile(
+        UnitData unit, SimVector3 targetPos, MatchState state, ref ContextMap map)
+    {
+        var toTarget = targetPos - unit.Position;
+        var horizontalToTarget = new SimVector3(toTarget.X, 0f, toTarget.Z);
+        if (horizontalToTarget.LengthSquared() < 0.0001f) return;
+
+        horizontalToTarget = horizontalToTarget.Normalized();
+
+        // Calculate angle to target for facing decision
+        float angleToTarget = SimMath.RadToDeg(MathF.Atan2(horizontalToTarget.Z, horizontalToTarget.X));
+        bool shouldFaceRight = MathF.Abs(angleToTarget) <= 90f;
+
+        // Calculate angle difference from facing
+        float facingAngle = shouldFaceRight ? 0f : 180f;
+        float angleDiff = angleToTarget - facingAngle;
+        while (angleDiff > 180f) angleDiff -= 360f;
+        while (angleDiff < -180f) angleDiff += 360f;
+
+        // Perpendicular to target direction
+        var strafeDir = new SimVector3(-horizontalToTarget.Z, 0f, horizontalToTarget.X);
+        // Choose direction that reduces angle difference
+        if (angleDiff < 0)
+            strafeDir = -strafeDir;
+
+        strafeDir = strafeDir.Normalized();
+
+        // Fill interest toward strafe direction
+        for (int i = 0; i < ContextMap.NumSlots; i++)
+        {
+            var slotDir = ContextMap.SlotDirection(i);
+            float dot = strafeDir.Dot(slotDir);
+            if (dot > 0f)
+                map.Interest[i] = dot;
+        }
+    }
+
+    private static SimVector3? ResolveTargetPosition(int? targetId, MatchState state)
+    {
+        return SimUtils.ResolveTargetPosition(targetId, state);
+    }
+}

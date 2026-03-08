@@ -23,8 +23,11 @@ The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure
 | `Combat/SimBehavior.cs` | Unit behavior FSM: NoTarget → Chasing → InRange → Attacking |
 | `Combat/SimTargeting.cs` | Target acquisition: filter → score pipeline, summoner fallback |
 | `Combat/SimDamage.cs` | Damage calculation: evasion, crits, elemental matchups, defense, shields |
-| `Movement/SimMovement.cs` | Movement execution: forward, toward-target, strafe |
-| `Movement/SimSteering.cs` | Steering forces: separation, flanking, overlap correction |
+| `Movement/SimMovement.cs` | Movement execution pipeline: intent → ORCA → integrate → overlap correction |
+| `Movement/MovementIntent*.cs` | Intent contract and intent strategy selection (`DirectIntentGenerator`, optional `ContextIntentGenerator`) |
+| `Movement/OrcaAvoidance.cs` | Velocity obstacle solver for local collision avoidance |
+| `Movement/OverlapCorrection.cs` | Position-only safety pass for residual overlaps |
+| `Movement/FacingController.cs` | Stable facing updates with dead-zones/hold timer (avoids rapid flip jitter) |
 | `SimEffects.cs` | Buff/debuff/trigger system, periodic effects, delayed effects, stat queries |
 | `SimProjectile.cs` | Projectile simulation (movement, homing, pierce, AoE) |
 

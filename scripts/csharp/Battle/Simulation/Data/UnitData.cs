@@ -5,16 +5,6 @@ using Fateforged.Simulation.Enums;
 namespace Fateforged.Simulation.Data;
 
 /// <summary>
-/// Direction a blocked unit is flanking around an obstacle.
-/// </summary>
-public enum FlankDirection
-{
-    Left = -1,
-    None = 0,
-    Right = 1
-}
-
-/// <summary>
 /// Per-unit gameplay state stored in MatchState.
 /// Tracks ALL logical state for each spawned unit.
 /// The simulation operates exclusively on UnitData — Unit3D is a visual puppet.
@@ -80,6 +70,7 @@ public class UnitData
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
     public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
+    public MovementIntentStrategy MovementIntentStrategy { get; set; } = MovementIntentStrategy.Context;
     public float FlightAltitude { get; set; }
 
     // Velocity — computed by simulation each tick
@@ -87,6 +78,16 @@ public class UnitData
 
     // Facing
     public bool IsFacingRight { get; set; }
+    public float FacingLockTimer { get; set; }
+
+    // Blocked-navigation assist (yield + side-step escape)
+    public int? NavigationTargetId { get; set; }
+    public float NavigationLastTargetDistance { get; set; } = -1f;
+    public float NavigationBlockedTime { get; set; }
+    public float NavigationYieldTimer { get; set; }
+    public float NavigationEscapeTimer { get; set; }
+    public bool NavigationEscapeQueued { get; set; }
+    public int NavigationEscapeDirectionSign { get; set; } = 1;
 
     // Targeting — simulation-owned
     public int? TargetUnitId { get; set; }
@@ -113,13 +114,6 @@ public class UnitData
 
     // Charge tracking (distance traveled since last attack — for charge ability)
     public float DistanceTraveled { get; set; }
-
-    // Steering state (used by SimSteering)
-    public float BlockedTime { get; set; }
-    public SimVector3 LastPosition { get; set; }
-    public float FlankAngle { get; set; } = 90f;
-    public FlankDirection FlankDirection { get; set; }
-    public float FlankProgressTimer { get; set; }
 
     // Death cleanup
     public float DeathCleanupTimer { get; set; }

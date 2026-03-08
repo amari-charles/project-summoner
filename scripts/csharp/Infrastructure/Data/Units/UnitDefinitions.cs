@@ -578,6 +578,7 @@ public static class UnitDefinitions
                 template.FallbackMovement = FallbackMovement.Idle;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
                 template.TargetPolicyId = TargetPolicyId.Legacy;
+                template.MovementIntentStrategy = MovementIntentStrategy.Direct;
                 return;
 
             case UnitTargetingProfile.MeleeGround:
@@ -585,18 +586,21 @@ public static class UnitDefinitions
                 template.HealthScorerWeight = def.TargetingHealthScorerWeight;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             case UnitTargetingProfile.RangedGround:
                 template.FallbackMovement = FallbackMovement.MoveToward;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             case UnitTargetingProfile.RangedStrafe:
                 template.FallbackMovement = FallbackMovement.Strafe;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             case UnitTargetingProfile.FlyingConeStrafe:
@@ -606,6 +610,7 @@ public static class UnitDefinitions
                 template.ConeHalfAngle = def.TargetingConeHalfAngle;
                 template.CloseRangeThreshold = def.TargetingCloseRangeThreshold;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
+                template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             default:
