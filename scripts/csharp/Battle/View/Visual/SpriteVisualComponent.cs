@@ -74,6 +74,13 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     [Export]
     public float HpBarOffsetX { get; set; } = 0.0f;
 
+    [ExportGroup("Shadow")]
+    [Export]
+    public ShadowProfilePreset ShadowPreset { get; set; } = ShadowProfilePreset.Default;
+
+    [Export]
+    public ShadowProfileResource? ShadowProfileOverride { get; set; }
+
     [ExportGroup("Animation Effects")]
     [Export]
     public bool EnableBobbing { get; set; } = false;
@@ -137,6 +144,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private Tween? _attackTween;
     private bool _isAttacking;
     private bool _isFlipped;
+    private ShadowProfile _shadowProfile = ShadowProfiles.FromPreset(ShadowProfilePreset.Default).Sanitize();
     private Color _originalModulate = Colors.White;
     private Tween? _flashTween;
 
@@ -158,10 +166,11 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _sprite3D = GetNodeOrNull<Sprite3D>("Sprite3D");
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _characterSprite = GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
+        _shadowProfile = ResolveShadowProfile();
 
         // Only hide/create runtime-only visuals when under UnitVisual.
-        // Ghost previews reparent Visual under UnitGhost and should not spawn shadows.
-        bool underUnitVisual = GetParent() is UnitVisual;
+        // Walk ancestry so wrapper nodes above Visual don't accidentally disable shadows.
+        bool underUnitVisual = IsUnderUnitVisual();
 
         if (underUnitVisual && _sprite3D != null)
         {
@@ -246,7 +255,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         // Pin shadow to ground regardless of unit elevation (flying units)
         if (_shadowSprite3D != null)
         {
-            ShadowHelper.PinToGround(_shadowSprite3D, GlobalPosition.Y);
+            ShadowHelper.PinToGround(_shadowSprite3D, GlobalPosition.Y, _shadowProfile);
         }
 
         if (_characterSprite == null || _isAttacking)
@@ -510,11 +519,32 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (_sprite3D == null || _viewport == null)
             return;
 
-        _shadowSprite3D = ShadowHelper.CreateShadow(_sprite3D, _viewport);
+        _shadowSprite3D = ShadowHelper.CreateShadow(_sprite3D, _viewport, _shadowProfile);
         if (_shadowSprite3D == null)
             return;
 
         AddChild(_shadowSprite3D);
+    }
+
+    private ShadowProfile ResolveShadowProfile()
+    {
+        if (ShadowProfileOverride != null)
+            return ShadowProfileOverride.ToShadowProfile();
+
+        return ShadowProfiles.FromPreset(ShadowPreset).Sanitize();
+    }
+
+    private bool IsUnderUnitVisual()
+    {
+        Node? current = GetParent();
+        while (current != null)
+        {
+            if (current is UnitVisual)
+                return true;
+            current = current.GetParent();
+        }
+
+        return false;
     }
 
     private void SetupSpriteAlignment()

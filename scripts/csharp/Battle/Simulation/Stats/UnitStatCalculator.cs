@@ -7,7 +7,7 @@ namespace Fateforged.Stats;
 
 /// <summary>
 /// Centralized unit stat calculation with documented order of operations.
-/// See docs/technical/unit-stat-pipeline.md for full architecture details.
+/// See docs/technical/runtime/unit-stat-pipeline.md for full architecture details.
 ///
 /// ORDER OF OPERATIONS (Unit Stat Pipeline):
 /// 1. Base stats from UnitCatalog (via card.UnitId) or CardDefinition (legacy)

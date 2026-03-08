@@ -178,5 +178,5 @@ res://
 │   │   └── dialogue_choice.gd      # Choice resource class
 │   ├── services/dialogue_manager.gd  # Singleton (autoload)
 │   └── ui/dialogue_box.gd          # UI controller
-└── docs/technical/dialogue-system.md  # This file
+└── docs/technical/infrastructure/dialogue-system.md  # This file
 ```

@@ -83,10 +83,10 @@ Implementation details for developers.
 
 ### Technical References
 - **[Technical Index](technical/README.md)** - Scope and map for implementation-focused docs
-- **[Unit Stat Pipeline](technical/unit-stat-pipeline.md)** - How stats flow from catalog to battle
-- **[Campaign Data](technical/campaign-data.md)** - Campaign data structures
+- **[Unit Stat Pipeline](technical/runtime/unit-stat-pipeline.md)** - How stats flow from catalog to battle
+- **[Campaign Data](technical/infrastructure/campaign-data.md)** - Campaign data structures
 - **[Multiplayer Architecture](multiplayer/architecture.md)** - Current session-layer architecture and boundaries
-- **[Simulation Architecture](technical/simulation-architecture.md)** - Deterministic sim runtime + multiplayer coordination overview
+- **[Simulation Architecture](technical/runtime/simulation-architecture.md)** - Deterministic sim runtime + multiplayer coordination overview
 
 ### Workflows
 - **[PR Review Guidelines](workflows/pr-review-guidelines.md)** - Code review process

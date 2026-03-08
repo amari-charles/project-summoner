@@ -274,13 +274,13 @@ Before finalizing any PR, ensure all related docs are updated:
 - `docs/todos-completed.md` - Move completed tasks to archive
 - `docs/bugs.md` - Update bug status if fixed
 - `docs/bugs-resolved.md` - Move resolved bugs to archive
-- `docs/technical/*.md` - Update technical docs when modifying complex systems
+- `docs/technical/**/*.md` - Update technical docs when modifying complex systems
 
 **IMPORTANT: When you see items marked as "✅ Fixed" or "✅ Completed" in bugs.md or todos.md, you MUST move them to the corresponding resolved/completed archive file. Do not leave fixed/completed items in the active docs.**
 
 **Technical Documentation**: When making significant changes to complex systems (projectiles, targeting, visual rendering, etc.), update or create docs in `docs/technical/`. These systems have subtle interactions that are easy to break. Key technical docs:
-- `docs/technical/projectile-system.md` - Projectile movement, paths, acceleration
-- `docs/technical/projectile-targeting.md` - Target position calculation, tracking, common pitfalls
+- `docs/technical/runtime/projectile-system.md` - Projectile movement, paths, acceleration
+- `docs/technical/runtime/projectile-targeting.md` - Target position calculation, tracking, common pitfalls
 
 This keeps documentation in sync with code changes and prevents stale task lists.
 

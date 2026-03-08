@@ -8,20 +8,6 @@ namespace Fateforged.Visual;
 /// </summary>
 public static class ShadowHelper
 {
-    // Shadow appearance
-    private const float ShadowOpacity = 0.5f;
-    private const float SkewX = 0.8f;
-    private const float SkewY = 0.6f;
-
-    // Positioning: diagonal offset simulating light from upper-left
-    private const float DiagonalOffsetX = 0.2f;
-    private const float DiagonalOffsetZ = 0.2f;
-    private const float GroundClearance = 0.01f;
-
-    // Shadow is slightly stretched along Z to look more natural on the ground
-    private const float ShadowScaleY = 1.1f;
-    private const int ShadowRenderPriority = -100;
-
     private static Shader? _shaderCache;
 
     /// <summary>
@@ -35,8 +21,9 @@ public static class ShadowHelper
     /// <param name="viewport">The SubViewport providing the unit's texture.</param>
     /// <returns>The created shadow Sprite3D, or null if the shader failed to load.</returns>
     public static Sprite3D? CreateShadow(
-        Sprite3D parentSprite3D, SubViewport viewport)
+        Sprite3D parentSprite3D, SubViewport viewport, ShadowProfile profile)
     {
+        ShadowProfile effectiveProfile = profile.Sanitize();
         _shaderCache ??= GD.Load<Shader>("res://shaders/vfx/silhouette_shadow.gdshader");
         if (_shaderCache == null)
         {
@@ -46,9 +33,9 @@ public static class ShadowHelper
 
         var material = new ShaderMaterial();
         material.Shader = _shaderCache;
-        material.SetShaderParameter("shadow_opacity", ShadowOpacity);
-        material.SetShaderParameter("skew_x", SkewX);
-        material.SetShaderParameter("skew_y", SkewY);
+        material.SetShaderParameter("shadow_opacity", effectiveProfile.Opacity);
+        material.SetShaderParameter("skew_x", effectiveProfile.SkewX);
+        material.SetShaderParameter("skew_y", effectiveProfile.SkewY);
 
         var viewportTexture = viewport.GetTexture();
         material.SetShaderParameter("sprite_texture", viewportTexture);
@@ -65,14 +52,18 @@ public static class ShadowHelper
         shadow.RotationDegrees = new Vector3(-90, 0, 0);
         shadow.FlipH = true;
         shadow.FlipV = true;
-        shadow.RenderPriority = ShadowRenderPriority;
+        shadow.RenderPriority = effectiveProfile.RenderPriority;
         shadow.MaterialOverride = material;
         shadow.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
         shadow.GIMode = GeometryInstance3D.GIModeEnum.Disabled;
 
         // Diagonal shadow: base Z aligns with sprite center, offset right and away from camera
-        shadow.Position = new Vector3(DiagonalOffsetX, GroundClearance, spriteCenterZ + DiagonalOffsetZ);
-        shadow.Scale = new Vector3(1.0f, ShadowScaleY, 1.0f);
+        shadow.Position = new Vector3(
+            effectiveProfile.OffsetX,
+            effectiveProfile.GroundClearance,
+            spriteCenterZ + effectiveProfile.OffsetZ
+        );
+        shadow.Scale = new Vector3(1.0f, effectiveProfile.ScaleY, 1.0f);
 
         return shadow;
     }
@@ -83,10 +74,11 @@ public static class ShadowHelper
     /// </summary>
     /// <param name="shadow">The shadow Sprite3D.</param>
     /// <param name="parentGlobalY">The GlobalPosition.Y of the owning component.</param>
-    public static void PinToGround(Sprite3D shadow, float parentGlobalY)
+    /// <param name="profile">Shadow profile containing ground clearance.</param>
+    public static void PinToGround(Sprite3D shadow, float parentGlobalY, ShadowProfile profile)
     {
         var pos = shadow.Position;
-        pos.Y = GroundClearance - parentGlobalY;
+        pos.Y = profile.GroundClearance - parentGlobalY;
         shadow.Position = pos;
     }
 }

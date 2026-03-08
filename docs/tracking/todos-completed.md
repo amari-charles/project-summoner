@@ -140,7 +140,7 @@ Implemented hit-geometry v1 for projectiles to make contacts more forgiving and 
 - `tests/csharp/Simulation/SimProjectileTest.cs`
 - `tests/csharp/Multiplayer/MessageSerializerTest.cs`
 - `tests/csharp/Session/NetworkSessionWiringTest.cs`
-- `docs/technical/hit-geometry-v1.md`
+- `docs/technical/runtime/hit-geometry-v1.md`
 
 ---
 
@@ -1672,7 +1672,7 @@ Audited codebase and implemented proper framerate-independent game mechanics to 
 **Solution Implemented:**
 - Enabled physics interpolation in project.godot for smooth motion at varying FPS
 - Created FPS Test Tool (`scripts/debug/fps_test_tool.gd`) with F5-F8 hotkeys
-- Created best practices documentation (`docs/technical/framerate-independence.md`)
+- Created best practices documentation (`docs/technical/rendering/framerate-independence.md`)
 
 **Testing:**
 - F5: 30 FPS (mobile simulation)
@@ -1683,7 +1683,7 @@ Audited codebase and implemented proper framerate-independent game mechanics to 
 **Related Files:**
 - `project.godot` - Added physics interpolation setting
 - `scripts/debug/fps_test_tool.gd` (new)
-- `docs/technical/framerate-independence.md` (new)
+- `docs/technical/rendering/framerate-independence.md` (new)
 
 ---
 
