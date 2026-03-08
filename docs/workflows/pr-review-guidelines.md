@@ -115,6 +115,24 @@ Documentation in `docs/` folder (especially `docs/technical/` for systems)
 
 Call out any place where behavior changed but tests or documentation clearly lag behind. For significant system changes, check if relevant docs in `docs/technical/` or `docs/features/` need updating.
 
+Tracker status updates (required)
+
+Every PR review must explicitly check tracker files when the change maps to a planned task/bug:
+- `docs/tracking/todos.md`
+- `docs/tracking/todos-completed.md`
+- `docs/tracking/bugs.md`
+- `docs/tracking/bugs-resolved.md`
+
+Required reviewer behavior:
+- If the PR fully completes a tracked task/bug, require moving it to the corresponding completed/resolved file.
+- If the PR only partially addresses a tracked task/bug, require a status/progress update in-place (do not mark complete) and explicitly list remaining scope.
+- If no tracker item applies, state that explicitly in the review output.
+
+Partial-fix rule:
+- Never silently treat a partial implementation as complete.
+- The review must call out partial completion and include what remains before closure.
+- Missing tracker updates for relevant work should be flagged as a review issue.
+
 Non-idiomatic / outdated usage
 
 Use of patterns or APIs that are inconsistent with the language, framework, or rest of the repo.
@@ -310,6 +328,8 @@ Over-accommodating legacy instead of simplifying (pre-launch)
 
 Incomplete updates (tests, types, docs)
 
+Tracker status alignment (full vs partial completion explicitly called out)
+
 Hard-coded node paths / root lookups
 
 Flag proliferation instead of interfaces (adding booleans to differentiate types)
@@ -319,3 +339,14 @@ Check off each item and list any problems found.
 Suggested next steps
 
 Clear, ordered list of what the author should do next to get this PR into mergeable shape.
+
+Tracker sync status (required section)
+
+- State one of:
+  - `Tracker updated correctly`
+  - `Tracker update required before merge`
+  - `No relevant tracker item`
+- For partial fixes, include:
+  - `What was completed`
+  - `What remains`
+  - `Where tracker status was updated`
