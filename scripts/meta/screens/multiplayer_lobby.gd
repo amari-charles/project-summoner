@@ -472,15 +472,14 @@ func _handoff_transport_to_battle() -> void:
 
 
 func _get_active_summoner_id() -> String:
-	if SummonerSelection and SummonerSelection.has_method("GetActiveSummonerId"):
-		var selected: String = SummonerSelection.GetActiveSummonerId()
-		if not selected.is_empty():
-			return selected
+	var selected: String = SummonerSelectionApi.get_active_summoner_id()
+	if not selected.is_empty():
+		return selected
 	return SummonerIDs.DEFAULT
 
 
 func _get_player_deck() -> Array:
-	return ProfileRepo.GetActiveDeckArray()
+	return ProfileRepoApi.get_active_deck_array()
 
 
 ## =============================================================================

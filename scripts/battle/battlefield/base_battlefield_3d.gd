@@ -69,11 +69,7 @@ func get_ground_bounds_xz() -> Rect2:
 ## Load and apply biome from BattleContext
 func _apply_biome_from_context() -> void:
 	var biome_id_variant: Variant = BattleContext.biome_id
-	var biome_id: String = ""
-	if biome_id_variant is StringName:
-		biome_id = String(biome_id_variant)
-	elif biome_id_variant is String:
-		biome_id = biome_id_variant
+	var biome_id: String = SafeTypeUtils.string(biome_id_variant, "")
 	if biome_id.is_empty():
 		push_warning("BaseBattlefield3D: No biome_id in BattleContext, using default visuals")
 		return

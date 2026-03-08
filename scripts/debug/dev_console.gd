@@ -79,10 +79,8 @@ const TEST_CARDS: Array = [CardIDs.FIRE_WISP, CardIDs.PEBBLOOM, CardIDs.PUFF, Ca
 const TEST_RARITIES: Array = [RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.COMMON, RarityIDs.RARE, RarityIDs.EPIC]  # Weighted
 
 ## Service references (injected by autoload order)
-var _repo: Variant = null  # ProfileRepo autoload (C# service)
-var _economy: Variant = null  # Economy autoload (C# service)
-var _collection: Variant = null  # CardService autoload (C# service)
-var _decks: Variant = null  # Decks autoload (C# service)
+var _economy: Object = null  # Economy autoload (C# service)
+var _decks: Object = null  # Decks autoload (C# service)
 var _snapshots: Node = null  # DebugSnapshots autoload
 
 ## =============================================================================
@@ -95,9 +93,7 @@ func _ready() -> void:
 	# Wait for services to be ready
 	await get_tree().process_frame
 
-	_repo = ProfileRepo
 	_economy = Economy
-	_collection = CardService
 	_decks = Decks
 	_snapshots = DebugSnapshots
 
@@ -176,24 +172,17 @@ func execute_command(command: String) -> bool:
 func _cmd_save_wipe() -> bool:
 	print("DevConsole: Wiping save data...")
 
-	if _repo == null:
-		push_error("DevConsole: Repo not available")
-		return false
-
-	_repo.call("reset_profile")
+	ProfileRepoApi.reset_profile()
 	print("DevConsole: Save wiped, fresh profile created")
 	print("DevConsole: Returning to title screen...")
 	SceneManager.transition_to(SceneManager.SCENE_TITLE_SCREEN)
 	return true
 
 func _cmd_grant_cards(args: PackedStringArray) -> bool:
-	if _collection == null:
-		push_error("DevConsole: Collection service not available")
-		return false
-
 	var count: int = 5  # Default
 	if args.size() > 0:
-		count = int(args[0])
+		var count_arg: String = args[0]
+		count = count_arg.to_int()
 
 	print("DevConsole: Granting %d random cards..." % count)
 
@@ -205,7 +194,7 @@ func _cmd_grant_cards(args: PackedStringArray) -> bool:
 		cards_to_grant.append(card_grant)
 
 	# Use PascalCase for C# method and correct method name for array input
-	var instance_ids: Array = _collection.call("GrantCardsFromArray", cards_to_grant)
+	var instance_ids: Array = CardServiceApi.grant_cards_from_array(cards_to_grant)
 	print("DevConsole: Granted %d cards (instance IDs: %s)" % [instance_ids.size(), str(instance_ids)])
 
 	return true
@@ -217,7 +206,8 @@ func _cmd_add_gold(args: PackedStringArray) -> bool:
 
 	var amount: int = 100  # Default
 	if args.size() > 0:
-		amount = int(args[0])
+		var amount_arg: String = args[0]
+		amount = amount_arg.to_int()
 
 	print("DevConsole: Adding %d gold..." % amount)
 	_economy.call("add_gold", amount)
@@ -233,7 +223,8 @@ func _cmd_add_essence(args: PackedStringArray) -> bool:
 
 	var amount: int = 50  # Default
 	if args.size() > 0:
-		amount = int(args[0])
+		var amount_arg: String = args[0]
+		amount = amount_arg.to_int()
 
 	print("DevConsole: Adding %d essence..." % amount)
 	_economy.call("add_essence", amount)
@@ -249,7 +240,8 @@ func _cmd_add_fragments(args: PackedStringArray) -> bool:
 
 	var amount: int = 10  # Default
 	if args.size() > 0:
-		amount = int(args[0])
+		var amount_arg: String = args[0]
+		amount = amount_arg.to_int()
 
 	print("DevConsole: Adding %d fragments..." % amount)
 	_economy.call("add_fragments", amount)
@@ -261,11 +253,7 @@ func _cmd_add_fragments(args: PackedStringArray) -> bool:
 func _cmd_corrupt_save() -> bool:
 	print("DevConsole: Corrupting main save file for recovery test...")
 
-	if _repo == null:
-		push_error("DevConsole: Repo not available")
-		return false
-
-	var profile_id: String = _repo.call("get_current_profile_id")
+	var profile_id: String = ProfileRepoApi.get_current_profile_id()
 	var profile_dir: String = "user://profiles/" + profile_id
 	var main_path: String = profile_dir + "/profile.json"
 
@@ -284,11 +272,7 @@ func _cmd_corrupt_save() -> bool:
 func _cmd_save_info() -> bool:
 	print("=== SAVE INFO ===")
 
-	if _repo == null:
-		push_error("DevConsole: Repo not available")
-		return false
-
-	var snapshot: Dictionary = _repo.call("snapshot")
+	var snapshot: Dictionary = ProfileRepoApi.snapshot()
 	print("Profile ID: %s" % snapshot.get("profile_id", "unknown"))
 	print("Version: %d" % snapshot.get("version", 0))
 	print("Updated At: %d" % snapshot.get("updated_at", 0))
@@ -301,13 +285,12 @@ func _cmd_save_info() -> bool:
 		print("Essence: %d" % essence)
 		print("Fragments: %d" % fragments)
 
-	if _collection:
-		var collection: Array = _collection.ListCardsDict()
-		print("Collection Size: %d cards" % collection.size())
+	var collection: Array = CardServiceApi.list_cards_dict()
+	print("Collection Size: %d cards" % collection.size())
 
-		var summary: Array = _collection.GetCollectionSummaryDict()
-		for entry: Dictionary in summary:
-			print("  - %s: %d cards (%s)" % [entry.catalog_id, entry.count, entry.rarity])
+	var summary: Array = CardServiceApi.get_collection_summary_dict()
+	for entry: Dictionary in summary:
+		print("  - %s: %d cards (%s)" % [entry.catalog_id, entry.count, entry.rarity])
 
 	if _decks:
 		var decks: Array = _decks.call("list_decks")
@@ -332,12 +315,8 @@ func _cmd_save_info() -> bool:
 func _cmd_save_reload() -> bool:
 	print("DevConsole: Force reloading save from disk...")
 
-	if _repo == null:
-		push_error("DevConsole: Repo not available")
-		return false
-
-	var profile_id: String = _repo.call("get_current_profile_id")
-	var success: bool = _repo.call("load_profile", profile_id)
+	var profile_id: String = ProfileRepoApi.get_current_profile_id()
+	var success: bool = ProfileRepoApi.load_profile(profile_id)
 
 	if success:
 		print("DevConsole: Save reloaded successfully")
@@ -347,8 +326,8 @@ func _cmd_save_reload() -> bool:
 	return success
 
 func _cmd_create_deck(args: PackedStringArray) -> bool:
-	if _decks == null or _collection == null:
-		push_error("DevConsole: Decks or Collection service not available")
+	if _decks == null:
+		push_error("DevConsole: Decks service not available")
 		return false
 
 	var deck_name: String = "Test Deck"
@@ -358,7 +337,7 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 	print("DevConsole: Creating test deck '%s'..." % deck_name)
 
 	# Get 30 random cards from collection
-	var collection: Array = _collection.ListCardsDict()
+	var collection: Array = CardServiceApi.list_cards_dict()
 	if collection.size() < 30:
 		print("DevConsole: Not enough cards in collection (need 30, have %d)" % collection.size())
 		print("DevConsole: Granting 30 cards first...")
@@ -369,10 +348,10 @@ func _cmd_create_deck(args: PackedStringArray) -> bool:
 			var catalog_id: String = TEST_CARDS[randi() % TEST_CARDS.size()]
 			var card_grant: Dictionary = {"catalog_id": catalog_id, "rarity": String(RarityIDs.COMMON)}
 			cards_to_grant.append(card_grant)
-		_collection.GrantCardsFromArray(cards_to_grant)
+		CardServiceApi.grant_cards_from_array(cards_to_grant)
 
 		# Refresh collection
-		collection = _collection.ListCardsDict()
+		collection = CardServiceApi.list_cards_dict()
 
 	# Take first 30 cards
 	var card_instance_ids: Array[String] = []
@@ -493,7 +472,7 @@ func _cmd_unlock_summoner(args: PackedStringArray) -> bool:
 	}
 
 	# Save the instance (this also adds to unlocked_summoners)
-	SummonerSelection.SaveSummonerInstanceDict(summoner_data)
+	SummonerSelectionApi.save_summoner_instance_dict(summoner_data)
 	print("DevConsole: Summoner '%s' unlocked!" % summoner_id)
 
 	return true
@@ -505,17 +484,18 @@ func _cmd_unlock_all_summoners() -> bool:
 
 	var unlocked_count: int = 0
 	for summoner_id: StringName in summoners_to_unlock:
+		var summoner_id_str: String = str(summoner_id)
 		# Check if already unlocked
-		if SummonerSelection.IsSummonerUnlocked(String(summoner_id)):
+		if SummonerSelectionApi.is_summoner_unlocked(summoner_id_str):
 			print("DevConsole: %s already unlocked, skipping" % summoner_id)
 			continue
 
 		var summoner_data: Dictionary = {
-			"summoner_id": String(summoner_id),
+			"summoner_id": summoner_id_str,
 			"level": 1,
 			"xp": 0.0
 		}
-		SummonerSelection.SaveSummonerInstanceDict(summoner_data)
+		SummonerSelectionApi.save_summoner_instance_dict(summoner_data)
 		unlocked_count += 1
 		print("DevConsole: Unlocked %s" % summoner_id)
 
@@ -551,7 +531,7 @@ func _cmd_items_grant(args: PackedStringArray) -> bool:
 	var item_id: String = args[0]
 	print("DevConsole: Granting item '%s'..." % item_id)
 
-	var instance_id: String = Items.GrantItem(item_id)
+	var instance_id: String = ItemsApi.grant_item(item_id)
 	if instance_id.is_empty():
 		print("DevConsole: Failed to grant item (invalid item_id?)")
 		return false
@@ -565,7 +545,7 @@ func _cmd_items_grant_all() -> bool:
 
 	var granted_count: int = 0
 	for item_id: String in TEST_ITEMS:
-		var instance_id: String = Items.GrantItem(item_id)
+		var instance_id: String = ItemsApi.grant_item(item_id)
 		if not instance_id.is_empty():
 			print("  Granted: %s -> %s" % [item_id, instance_id])
 			granted_count += 1
@@ -579,14 +559,14 @@ func _cmd_items_grant_all() -> bool:
 func _cmd_items_list() -> bool:
 	print("=== PLAYER ITEMS ===")
 
-	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
 	if summoner_id.is_empty():
 		print("No active summoner - select a summoner first")
 		print("====================")
 		return true
 
 	# Get equipped items
-	var equipped: Dictionary = Items.GetEquippedItemsDict(summoner_id)
+	var equipped: Dictionary = ItemsApi.get_equipped_items_dict(summoner_id)
 	print("Equipped on %s:" % summoner_id)
 	for slot: String in ["wand", "ring1", "ring2", "robes"]:
 		var instance_id: String = equipped.get(slot, "")
@@ -598,11 +578,11 @@ func _cmd_items_list() -> bool:
 	# Get all items for each slot
 	print("\nAvailable items:")
 	for slot: String in ["wand", "ring1", "ring2", "robes"]:
-		var items: Array[Dictionary] = Items.ListItemsForSlotDict(slot, summoner_id)
+		var items: Array[Dictionary] = ItemsApi.list_items_for_slot_dict(slot, summoner_id)
 		print("  %s slot: %d items" % [slot, items.size()])
 		for item: Dictionary in items:
 			var name_key: String = item.get("name_key", "")
-			var item_name: String = Loc.t(name_key) if not name_key.is_empty() else item.get("id", "?")
+			var item_name: String = Loc.t(name_key) if not name_key.is_empty() else SafeTypeUtils.string(item.get("id", "?"), "?")
 			var is_equipped: String = " [EQUIPPED]" if item.get("equipped_by", "") == summoner_id else ""
 			print("    - %s (%s)%s" % [item_name, item.get("instance_id", "?"), is_equipped])
 
@@ -617,7 +597,7 @@ func _cmd_items_equip(args: PackedStringArray) -> bool:
 		print("DevConsole: Use /items_list to see available instance IDs")
 		return false
 
-	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
 	if summoner_id.is_empty():
 		print("DevConsole: No active summoner - select a summoner first")
 		return false
@@ -627,7 +607,7 @@ func _cmd_items_equip(args: PackedStringArray) -> bool:
 
 	print("DevConsole: Equipping item '%s' to %s's %s slot..." % [instance_id, summoner_id, slot])
 
-	var success: bool = Items.EquipItemStr(summoner_id, instance_id, slot)
+	var success: bool = ItemsApi.equip_item_str(summoner_id, instance_id, slot)
 	if success:
 		print("DevConsole: Item equipped successfully!")
 	else:
@@ -638,6 +618,6 @@ func _cmd_items_equip(args: PackedStringArray) -> bool:
 
 func _cmd_items_clear() -> bool:
 	print("DevConsole: Clearing all items...")
-	Items.ClearAllItems()
+	ItemsApi.clear_all_items()
 	print("DevConsole: All items cleared!")
 	return true

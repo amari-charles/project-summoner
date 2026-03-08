@@ -194,9 +194,9 @@ class CardDisplay extends Control:
 
 		# Get current rotation
 		var current_rot_y_variant: Variant = shader_material.get_shader_parameter("rot_y_deg")
-		var current_rot_y: float = current_rot_y_variant if current_rot_y_variant is float else 0.0
+		var current_rot_y: float = SafeTypeUtils.float_val(current_rot_y_variant, 0.0)
 		var current_rot_x_variant: Variant = shader_material.get_shader_parameter("rot_x_deg")
-		var current_rot_x: float = current_rot_x_variant if current_rot_x_variant is float else 0.0
+		var current_rot_x: float = SafeTypeUtils.float_val(current_rot_x_variant, 0.0)
 
 		# Smooth lerp to target
 		var new_rot_y: float = lerp(current_rot_y, target_rot_y, TILT_SMOOTHING)
@@ -253,7 +253,7 @@ class CardDisplay extends Control:
 
 		# Check if we can afford this card
 		var summoner_mana_variant: Variant = hand_ui.summoner.get("Mana")
-		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
+		var summoner_mana: float = SafeTypeUtils.float_val(summoner_mana_variant, 0.0)
 		if summoner_mana < card.ManaCost:
 			return null
 
@@ -348,7 +348,7 @@ class CardDisplay extends Control:
 			rotation_tween.set_trans(Tween.TRANS_BACK)
 			rotation_tween.set_ease(Tween.EASE_IN_OUT)
 			var rot_x_variant: Variant = shader_material.get_shader_parameter("rot_x_deg")
-			var rot_x_start: float = rot_x_variant if rot_x_variant is float else 0.0
+			var rot_x_start: float = SafeTypeUtils.float_val(rot_x_variant, 0.0)
 			rotation_tween.tween_method(
 				func(val: float) -> void:
 					if shader_material:
@@ -358,7 +358,7 @@ class CardDisplay extends Control:
 				0.3
 			)
 			var rot_y_variant: Variant = shader_material.get_shader_parameter("rot_y_deg")
-			var rot_y_start: float = rot_y_variant if rot_y_variant is float else 0.0
+			var rot_y_start: float = SafeTypeUtils.float_val(rot_y_variant, 0.0)
 			rotation_tween.tween_method(
 				func(val: float) -> void:
 					if shader_material:
@@ -396,7 +396,7 @@ class CardDisplay extends Control:
 
 		# Only glow if card is affordable
 		var summoner_mana_variant: Variant = hand_ui.summoner.get("Mana") if hand_ui and hand_ui.summoner else null
-		var summoner_mana: float = summoner_mana_variant if summoner_mana_variant is float else 0.0
+		var summoner_mana: float = SafeTypeUtils.float_val(summoner_mana_variant, 0.0)
 		var can_afford: bool = hand_ui and hand_ui.summoner and summoner_mana >= card.ManaCost
 
 		if not can_afford:
@@ -572,7 +572,7 @@ func _create_card_display(card: Card, index: int) -> CardDisplay:
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Get catalog data to pass to CardVisual
-	var catalog_data: Dictionary = CardCatalog.GetCardAsDict(card.CatalogId)
+	var catalog_data: Dictionary = CardCatalogApi.get_card_as_dict(card.CatalogId)
 
 	# Set card data
 	card_visual.set_card_data(catalog_data)
@@ -631,7 +631,7 @@ func _update_availability() -> void:
 	var hand_variant: Variant = summoner.get("Hand")
 	var hand: Array = hand_variant if hand_variant is Array else []
 	var mana_variant: Variant = summoner.get("Mana")
-	var summoner_mana: float = mana_variant if mana_variant is float else 0.0
+	var summoner_mana: float = SafeTypeUtils.float_val(mana_variant, 0.0)
 
 	for i: int in range(card_displays.size()):
 		if i >= hand.size():

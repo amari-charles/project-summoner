@@ -100,7 +100,7 @@ func set_offering(new_offering: Dictionary) -> void:
 	_update_preview_color()
 
 	# Check if owned
-	var is_owned: bool = Shop.IsOfferingOwned(offering.get("offering_id", ""), "premium_store")
+	var is_owned: bool = ShopApi.is_offering_owned(offering.get("offering_id", ""), "premium_store")
 
 	if is_owned:
 		price_label.text = ""
@@ -114,7 +114,7 @@ func _update_preview_color() -> void:
 	match offering_type_name:
 		"summoner":
 			# Get element color for summoner
-			var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.get("summoner_id", "")))
+			var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(offering.get("summoner_id", "")))
 			if config:
 				var element: ElementTypes.Element = config.get_element()
 				var element_key: String = element.id.to_lower() if element else "neutral"

@@ -55,11 +55,12 @@ func _find_game_controller() -> void:
 	game_controller.connect("StateChanged", _on_game_state_changed)
 
 	# Sync initial state
-	_on_game_state_changed(game_controller.CurrentState)
+	_on_game_state_changed(game_controller.get("CurrentState"))
 
 ## Show/hide based on game state
-func _on_game_state_changed(new_state: int) -> void:
-	visible = (new_state == UnitConstants.GameState.PAUSED)
+func _on_game_state_changed(new_state: Variant) -> void:
+	var state: int = SafeTypeUtils.int_val(new_state, int(UnitConstants.GameState.PLAYING))
+	visible = (state == int(UnitConstants.GameState.PAUSED))
 
 ## Resume button - unpause game
 func _on_resume_pressed() -> void:
@@ -67,7 +68,8 @@ func _on_resume_pressed() -> void:
 	if not game_controller:
 		push_error("PauseMenu: Cannot resume - no game controller")
 		return
-	game_controller.ResumeGame()
+	if game_controller.has_method("ResumeGame"):
+		game_controller.call("ResumeGame")
 
 ## Settings button - show settings panel
 func _on_settings_pressed() -> void:
@@ -96,7 +98,7 @@ func _on_quit_pressed() -> void:
 
 	# Abandon via BattleScene (handles service cleanup + BattleContext state)
 	if game_controller and game_controller.has_method("AbandonBattle"):
-		game_controller.AbandonBattle()
+		game_controller.call("AbandonBattle")
 	else:
 		# Fallback if BattleScene not available
 		BattleContext.abandon_battle()

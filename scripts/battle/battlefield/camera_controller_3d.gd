@@ -203,7 +203,7 @@ func _apply_mode_profile(mode: ProjectionMode) -> void:
 		transform = profile.camera_transform
 		force_update_transform()
 
-	keep_aspect = profile.keep_aspect
+	keep_aspect = profile.keep_aspect as Camera3D.KeepAspect
 	perspective_near_clip = profile.near_clip
 	perspective_far_clip = profile.far_clip
 	vertical_pan_only_when_zoomed = profile.vertical_pan_only_when_zoomed
@@ -504,7 +504,7 @@ func _get_horizontal_sample_bounds_x() -> Vector2:
 		if right_depth < near - CLAMP_EPSILON or right_depth > far + CLAMP_EPSILON:
 			return Vector2.ZERO
 
-	return Vector2(min(left_point.x, right_point.x), max(left_point.x, right_point.x))
+	return Vector2(minf(left_point.x, right_point.x), maxf(left_point.x, right_point.x))
 
 func clamp_to_map() -> void:
 	## Clamps camera to keep ground footprint (projection) within map bounds

@@ -118,7 +118,7 @@ func _populate_unit_list(container: VBoxContainer) -> void:
 			continue
 
 		# Create Card from catalog
-		var card: Card = CardCatalog.CreateCard(catalog_id)
+		var card: Card = CardCatalogApi.create_card(catalog_id)
 		if not card:
 			push_warning("UnitSpawnerPanel: Failed to create card for '%s'" % catalog_id)
 			continue
@@ -149,7 +149,7 @@ func _load_debug_deck() -> Array:
 	# Fallback: create entries for all catalog summons
 	push_warning("UnitSpawnerPanel: Debug deck not found, using all catalog summons")
 	var entries: Array = []
-	var all_cards: Array[Dictionary] = CardCatalog.GetAllCardsAsDict()
+	var all_cards: Array[Dictionary] = CardCatalogApi.get_all_cards_as_dict()
 	for card_def: Dictionary in all_cards:
 		if card_def.get("card_type") == UnitConstants.CardType.SUMMON:
 			entries.append({"catalog_id": card_def.get("catalog_id", ""), "count": 1})

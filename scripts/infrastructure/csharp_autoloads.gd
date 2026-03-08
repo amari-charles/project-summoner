@@ -1,6 +1,6 @@
 class_name CSharpAutoloads
 ## Constants for C# autoload paths.
-## C# autoloads can be accessed directly by name from GDScript (e.g., Economy.GetGold()).
+## C# autoloads can be accessed directly by name from GDScript (e.g., EconomyApi.get_gold()).
 ## These constants exist for cases where get_node_or_null() is needed (e.g., optional dependencies).
 
 # Core services

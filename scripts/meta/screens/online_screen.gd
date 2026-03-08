@@ -456,7 +456,7 @@ func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_us
 	# Send our deck and summoner instance data
 	var player_deck: Array = _get_player_deck()
 	var player_summoner_id: String = _get_active_summoner_id()
-	var summoner_data: Dictionary = SummonerSelection.GetSummonerInstanceDict(player_summoner_id)
+	var summoner_data: Dictionary = SummonerSelectionApi.get_summoner_instance_dict(player_summoner_id)
 	if summoner_data.is_empty():
 		# No saved instance — create default data
 		summoner_data = {
@@ -568,15 +568,14 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 
 
 func _get_active_summoner_id() -> String:
-	if SummonerSelection and SummonerSelection.has_method("GetActiveSummonerId"):
-		var selected: String = SummonerSelection.GetActiveSummonerId()
-		if not selected.is_empty():
-			return selected
+	var selected: String = SummonerSelectionApi.get_active_summoner_id()
+	if not selected.is_empty():
+		return selected
 	return SummonerIDs.DEFAULT
 
 
 func _get_player_deck() -> Array:
-	return ProfileRepo.GetActiveDeckArray()
+	return ProfileRepoApi.get_active_deck_array()
 
 
 func _on_matchmaking_cancelled(reason: String) -> void:

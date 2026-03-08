@@ -129,8 +129,8 @@ func _connect_to_summoner(summoner: Node) -> void:
 		summoner.connect("ManaChanged", _on_mana_changed)
 
 		# Manually trigger initial update with current values
-		var current_mana: float = summoner.get("Mana") if summoner.get("Mana") != null else 0.0
-		var max_mana: float = summoner.get("MaxMana") if summoner.get("MaxMana") != null else 100.0
+		var current_mana: float = SafeTypeUtils.float_val(summoner.get("Mana"), 0.0)
+		var max_mana: float = SafeTypeUtils.float_val(summoner.get("MaxMana"), 100.0)
 		_on_mana_changed(current_mana, max_mana)
 	else:
 		push_warning("GameUI: PlayerSummoner found but has no ManaChanged signal")
@@ -141,8 +141,8 @@ func _connect_to_enemy_mana(summoner: Node) -> void:
 		summoner.connect("ManaChanged", _on_enemy_mana_changed)
 
 		# Trigger initial update
-		var current_mana: float = summoner.get("Mana") if summoner.get("Mana") != null else 0.0
-		var max_mana: float = summoner.get("MaxMana") if summoner.get("MaxMana") != null else 100.0
+		var current_mana: float = SafeTypeUtils.float_val(summoner.get("Mana"), 0.0)
+		var max_mana: float = SafeTypeUtils.float_val(summoner.get("MaxMana"), 100.0)
 		_on_enemy_mana_changed(current_mana, max_mana)
 
 func _on_enemy_mana_changed(current: float, maximum: float) -> void:
@@ -158,8 +158,8 @@ func _connect_to_hp_signals(summoner: Node, is_player: bool) -> void:
 			summoner.connect("HpChanged", _on_enemy_hp_changed)
 
 		# Trigger initial update
-		var current_hp: float = summoner.get("CurrentHp") if summoner.get("CurrentHp") != null else 0.0
-		var max_hp: float = summoner.get("MaxHp") if summoner.get("MaxHp") != null else 300.0
+		var current_hp: float = SafeTypeUtils.float_val(summoner.get("CurrentHp"), 0.0)
+		var max_hp: float = SafeTypeUtils.float_val(summoner.get("MaxHp"), 300.0)
 		if is_player:
 			_on_player_hp_changed(current_hp, max_hp)
 		else:

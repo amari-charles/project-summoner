@@ -27,7 +27,6 @@ var current_sequence: Resource = null  # EventSequence
 var current_step_index: int = -1
 var is_playing: bool = false
 var is_paused: bool = false
-var _resume_signal: Signal
 
 ## Debug mode
 var debug_mode: bool = false
@@ -56,7 +55,7 @@ func play_sequence(sequence: Resource) -> void:  # EventSequence parameter
 
 	var seq_id: String = sequence.get("sequence_id") if sequence.get("sequence_id") is String else "unknown"
 	var step_count_val: Variant = sequence.call("get_step_count")
-	var step_count: int = step_count_val if step_count_val is int else 0
+	var step_count: int = SafeTypeUtils.int_val(step_count_val, 0)
 
 	if debug_mode:
 		print("EventSequencer: Starting sequence '%s' with %d steps" % [seq_id, step_count])
@@ -77,8 +76,7 @@ func play_sequence(sequence: Resource) -> void:  # EventSequence parameter
 		var step: Resource = step_result if step_result is Resource else Resource.new()
 
 		var step_desc: String = step.get("description") if step.get("description") is String else "no description"
-		var step_type_val: Variant = step.get("step_type")
-		var step_type: int = step_type_val if step_type_val is int else 0
+		var step_type: int = SafeTypeUtils.int_val(step.get("step_type"), 0)
 		var step_type_name: String = EventStepClass.StepType.keys()[step_type] if EventStepClass else "unknown"
 
 		if debug_mode:
@@ -118,8 +116,7 @@ func resume_sequence() -> void:
 
 ## Execute a single step (async)
 func _execute_step(step: Resource) -> void:  # EventStep parameter
-	var step_type_variant: Variant = step.get("step_type")
-	var step_type_val: int = step_type_variant if step_type_variant is int else 0
+	var step_type_val: int = SafeTypeUtils.int_val(step.get("step_type"), 0)
 
 	if not EventStepClass:
 		push_error("EventSequencer: EventStep class not loaded")
@@ -175,8 +172,7 @@ func _execute_step(step: Resource) -> void:  # EventStep parameter
 ## =============================================================================
 
 func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
-	var dialogue_id_val: Variant = step.get("dialogue_id")
-	var dialogue_id: String = dialogue_id_val if dialogue_id_val is String else ""
+	var dialogue_id: String = SafeTypeUtils.string(step.get("dialogue_id"), "")
 
 	if debug_mode:
 		print("EventSequencer: _execute_dialogue called with dialogue_id='%s'" % dialogue_id)
@@ -259,15 +255,12 @@ func _execute_dialogue(step: Resource) -> void:  # EventStep parameter
 		push_error("EventSequencer: DialogueManager not found or doesn't have start_dialogue method")
 
 func _execute_wait_time(step: Resource) -> void:  # EventStep parameter
-	var wait_duration_val: Variant = step.get("wait_duration")
-	var wait_duration: float = wait_duration_val if wait_duration_val is float else 0.0
+	var wait_duration: float = SafeTypeUtils.float_val(step.get("wait_duration"), 0.0)
 	await get_tree().create_timer(wait_duration).timeout
 
 func _execute_wait_signal(step: Resource) -> void:  # EventStep parameter
-	var signal_source_val: Variant = step.get("signal_source")
-	var signal_name_val: Variant = step.get("signal_name")
-	var signal_source: String = signal_source_val if signal_source_val is String else ""
-	var signal_name: String = signal_name_val if signal_name_val is String else ""
+	var signal_source: String = SafeTypeUtils.string(step.get("signal_source"), "")
+	var signal_name: String = SafeTypeUtils.string(step.get("signal_name"), "")
 
 	if debug_mode:
 		print("EventSequencer: _execute_wait_signal - source: %s, signal: %s" % [signal_source, signal_name])
@@ -291,11 +284,16 @@ func _execute_wait_signal(step: Resource) -> void:  # EventStep parameter
 		print("EventSequencer: Waiting for signal '%s' from '%s'..." % [signal_name, signal_source])
 
 	# Get timeout from step or use default
-	var timeout_val: Variant = step.get("timeout")
-	var timeout: float = timeout_val if timeout_val is float else DEFAULT_SIGNAL_TIMEOUT_SECONDS
+	var timeout: float = SafeTypeUtils.float_val(step.get("timeout"), DEFAULT_SIGNAL_TIMEOUT_SECONDS)
+
+	var signal_variant: Variant = source.get(signal_name)
+	if not signal_variant is Signal:
+		push_error("EventSequencer: '%s.%s' is not a Signal" % [signal_source, signal_name])
+		return
+	var source_signal: Signal = signal_variant
 
 	# Wait for signal with timeout protection
-	var received: bool = await _await_signal_with_timeout(source.get(signal_name), timeout)
+	var received: bool = await _await_signal_with_timeout(source_signal, timeout)
 
 	if received:
 		if debug_mode:
@@ -304,17 +302,14 @@ func _execute_wait_signal(step: Resource) -> void:  # EventStep parameter
 		push_warning("EventSequencer: Signal '%s' from '%s' timed out after %.1fs" % [signal_name, signal_source, timeout])
 
 func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
-	var card_id_val: Variant = step.get("card_id")
-	var card_id: String = card_id_val if card_id_val is String else ""
+	var card_id: String = SafeTypeUtils.string(step.get("card_id"), "")
 	if card_id.is_empty():
 		push_warning("EventSequencer: SPAWN_UNIT step has empty card_id")
 		return
 
 	# Extract step properties
-	var spawn_position_val: Variant = step.get("spawn_position")
-	var team_val: Variant = step.get("team")
-	var spawn_position: Vector3 = spawn_position_val if spawn_position_val is Vector3 else Vector3.ZERO
-	var team: int = team_val if team_val is int else 0
+	var spawn_position: Vector3 = SafeTypeUtils.vector3(step.get("spawn_position"), Vector3.ZERO)
+	var team: int = SafeTypeUtils.int_val(step.get("team"), 0)
 
 	# CRITICAL: Unfreeze game before spawning
 	# Units need a running game state to initialize properly
@@ -332,24 +327,26 @@ func _execute_spawn_unit(step: Resource) -> void:  # EventStep parameter
 		return
 
 	# Collect stat overrides
-	var stat_overrides_val: Variant = step.get("stat_overrides")
-	var stat_overrides: Variant = stat_overrides_val if stat_overrides_val is Dictionary and not stat_overrides_val.is_empty() else null
+	var stat_overrides: Dictionary = SafeTypeUtils.dict(step.get("stat_overrides"))
+	var stat_overrides_payload: Variant = null
+	if not stat_overrides.is_empty():
+		stat_overrides_payload = stat_overrides
 
 	if debug_mode:
 		print("EventSequencer: Spawning %s at %s for team %d" % [card_id, spawn_position, team])
 
 	# Spawn directly via SpawnUnitCommand (no mana, no casting)
-	sim_node.QueueSpawnUnit(card_id, team, spawn_position, true, stat_overrides)
+	if not sim_node.has_method("QueueSpawnUnit"):
+		push_error("EventSequencer: SimulationNode missing QueueSpawnUnit()")
+		return
+	sim_node.call("QueueSpawnUnit", card_id, team, spawn_position, true, stat_overrides_payload)
 	if debug_mode:
 		print("EventSequencer: Unit spawn queued successfully")
 
 func _execute_set_capability(step: Resource) -> void:  # EventStep parameter
-	var enable_val: Variant = step.get("enable")
-	var capability_val: Variant = step.get("capability")
-	var block_reason_val: Variant = step.get("block_reason")
-	var enable: bool = enable_val if enable_val is bool else false
-	var capability: int = capability_val if capability_val is int else 0
-	var block_reason: int = block_reason_val if block_reason_val is int else 0
+	var enable: bool = SafeTypeUtils.bool_val(step.get("enable"), false)
+	var capability: int = SafeTypeUtils.int_val(step.get("capability"), 0)
+	var block_reason: int = SafeTypeUtils.int_val(step.get("block_reason"), 0)
 
 	if enable:
 		CapabilityManager.unblock_capability(capability, block_reason)
@@ -357,12 +354,9 @@ func _execute_set_capability(step: Resource) -> void:  # EventStep parameter
 		CapabilityManager.block_capability(capability, block_reason)
 
 func _execute_emit_signal(step: Resource) -> void:  # EventStep parameter
-	var event_hub_val: Variant = step.get("event_hub")
-	var emit_signal_name_val: Variant = step.get("emit_signal_name")
-	var signal_args_val: Variant = step.get("signal_args")
-	var event_hub: String = event_hub_val if event_hub_val is String else ""
-	var emit_signal_name: String = emit_signal_name_val if emit_signal_name_val is String else ""
-	var signal_args: Array = signal_args_val if signal_args_val is Array else []
+	var event_hub: String = SafeTypeUtils.string(step.get("event_hub"), "")
+	var emit_signal_name: String = SafeTypeUtils.string(step.get("emit_signal_name"), "")
+	var signal_args: Array = SafeTypeUtils.array(step.get("signal_args"))
 
 	if event_hub.is_empty() or emit_signal_name.is_empty():
 		push_warning("EventSequencer: EMIT_SIGNAL step has empty hub or signal name")
@@ -379,7 +373,11 @@ func _execute_emit_signal(step: Resource) -> void:  # EventStep parameter
 		return
 
 	# Emit signal with args
-	var signal_to_emit: Signal = hub.get(emit_signal_name)
+	var signal_variant: Variant = hub.get(emit_signal_name)
+	if not signal_variant is Signal:
+		push_error("EventSequencer: '%s.%s' is not a Signal" % [event_hub, emit_signal_name])
+		return
+	var signal_to_emit: Signal = signal_variant
 	match signal_args.size():
 		0:
 			signal_to_emit.emit()
@@ -393,12 +391,9 @@ func _execute_emit_signal(step: Resource) -> void:  # EventStep parameter
 			push_warning("EventSequencer: EMIT_SIGNAL with >3 args not yet supported")
 
 func _execute_custom_function(step: Resource) -> void:  # EventStep parameter
-	var target_node_path_val: Variant = step.get("target_node_path")
-	var function_name_val: Variant = step.get("function_name")
-	var function_args_val: Variant = step.get("function_args")
-	var target_node_path: String = target_node_path_val if target_node_path_val is String else ""
-	var function_name: String = function_name_val if function_name_val is String else ""
-	var function_args: Array = function_args_val if function_args_val is Array else []
+	var target_node_path: String = SafeTypeUtils.string(step.get("target_node_path"), "")
+	var function_name: String = SafeTypeUtils.string(step.get("function_name"), "")
+	var function_args: Array = SafeTypeUtils.array(step.get("function_args"))
 
 	if target_node_path.is_empty() or function_name.is_empty():
 		push_warning("EventSequencer: CUSTOM_FUNCTION step has empty node path or function name")
@@ -434,8 +429,7 @@ func _execute_custom_function(step: Resource) -> void:  # EventStep parameter
 		await result
 
 func _execute_move_camera(step: Resource) -> void:  # EventStep parameter
-	var camera_duration_val: Variant = step.get("camera_duration")
-	var camera_duration: float = camera_duration_val if camera_duration_val is float else 0.0
+	var camera_duration: float = SafeTypeUtils.float_val(step.get("camera_duration"), 0.0)
 
 	# TODO: Implement camera movement
 	push_warning("EventSequencer: MOVE_CAMERA not yet implemented")
@@ -446,16 +440,14 @@ func _execute_play_animation(_step: Resource) -> void:  # EventStep parameter
 	push_warning("EventSequencer: PLAY_ANIMATION not yet implemented")
 
 func _execute_fade_screen(step: Resource) -> void:  # EventStep parameter
-	var fade_duration_val: Variant = step.get("fade_duration")
-	var fade_duration: float = fade_duration_val if fade_duration_val is float else 0.0
+	var fade_duration: float = SafeTypeUtils.float_val(step.get("fade_duration"), 0.0)
 
 	# TODO: Implement screen fade
 	push_warning("EventSequencer: FADE_SCREEN not yet implemented")
 	await get_tree().create_timer(fade_duration).timeout
 
 func _execute_set_hand_visibility(step: Resource) -> void:  # EventStep parameter
-	var hand_visible_val: Variant = step.get("hand_visible")
-	var hand_visible: bool = hand_visible_val if hand_visible_val is bool else false
+	var hand_visible: bool = SafeTypeUtils.bool_val(step.get("hand_visible"), false)
 
 	var hand_ui: Node = _find_hand_ui()
 	if hand_ui and hand_ui is CanvasItem:
@@ -464,8 +456,7 @@ func _execute_set_hand_visibility(step: Resource) -> void:  # EventStep paramete
 		push_warning("EventSequencer: Could not find HandUI")
 
 func _execute_enable_hand(step: Resource) -> void:  # EventStep parameter
-	var hand_enabled_val: Variant = step.get("hand_enabled")
-	var hand_enabled: bool = hand_enabled_val if hand_enabled_val is bool else false
+	var hand_enabled: bool = SafeTypeUtils.bool_val(step.get("hand_enabled"), false)
 
 	var hand_ui: Node = _find_hand_ui()
 	if hand_ui and hand_ui is CanvasItem:
@@ -552,8 +543,7 @@ func reset() -> void:
 ## Current caravan flow: CampaignMap → ShopScreen (with EventContext) → Dialogue on top
 ## Alternative flow: EventScreen → Sequence → OPEN_CARAVAN step → ShopScreen → Resume
 func _execute_open_caravan(step: Resource) -> void:
-	var shop_id_val: Variant = step.get("shop_id")
-	var shop_id: String = shop_id_val if shop_id_val is String else ""
+	var shop_id: String = SafeTypeUtils.string(step.get("shop_id"), "")
 
 	if shop_id.is_empty():
 		push_warning("EventSequencer: OPEN_CARAVAN step has empty shop_id")

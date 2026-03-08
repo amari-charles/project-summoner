@@ -122,7 +122,7 @@ static func get_card_element_color(card_data: Variant) -> Color:
 	if card_data is Card:
 		# Get catalog data from CardCatalog
 		var card_instance: Card = card_data
-		catalog_dict = CardCatalog.GetCardAsDict(card_instance.CatalogId)
+		catalog_dict = CardCatalogApi.get_card_as_dict(card_instance.CatalogId)
 	elif card_data is Dictionary:
 		catalog_dict = card_data
 	else:
@@ -142,7 +142,7 @@ static func get_card_element_color(card_data: Variant) -> Color:
 
 	# Fallback: use card type-based colors (should rarely happen)
 	var card_type_variant: Variant = catalog_dict.get("card_type", UnitConstants.CardType.SUMMON)
-	var card_type: int = int(card_type_variant)  # Works for both int and enum values
+	var card_type: int = SafeTypeUtils.int_val(card_type_variant, UnitConstants.CardType.SUMMON)
 	if card_type == UnitConstants.CardType.SUMMON:
 		return GameColorPalette.PLAYER_ZONE_ACCENT  # Summon
 	elif card_type == UnitConstants.CardType.SPELL:
@@ -162,7 +162,7 @@ static func get_card_type_icon_path(card_data: Variant) -> String:
 	# Handle Card resource vs Dictionary
 	if card_data is Card:
 		var card_instance: Card = card_data
-		catalog_dict = CardCatalog.GetCardAsDict(card_instance.CatalogId)
+		catalog_dict = CardCatalogApi.get_card_as_dict(card_instance.CatalogId)
 	elif card_data is Dictionary:
 		catalog_dict = card_data
 	else:
@@ -171,7 +171,7 @@ static func get_card_type_icon_path(card_data: Variant) -> String:
 
 	# Get card type and unit type
 	var card_type_variant: Variant = catalog_dict.get("card_type", UnitConstants.CardType.SUMMON)
-	var card_type: int = int(card_type_variant)  # Works for both int and enum values
+	var card_type: int = SafeTypeUtils.int_val(card_type_variant, UnitConstants.CardType.SUMMON)
 	var unit_type: StringName = catalog_dict.get("unit_type", UnitTypeIDs.MELEE)
 
 	# Map to icon path

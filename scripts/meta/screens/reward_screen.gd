@@ -76,21 +76,21 @@ func _load_battle_results() -> void:
 	# This guards against navigating here without actually winning a battle
 	if BattleContext.battle_state != BattleContext.BattleState.VICTORY:
 		# Check for pending reward - player may have won, exited, and returned
-		var pending: Variant = Campaign.GetPendingReward()
+		var pending: Variant = CampaignApi.get_pending_reward()
 		if pending == null or not pending is Dictionary:
 			push_error("RewardScreen: Invalid battle state (%s) - not a victory!" % BattleContext.BattleState.keys()[BattleContext.battle_state])
 			SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 			return
 
 	# Get the current battle from profile (the battle we just won)
-	var profile: Dictionary = ProfileRepo.GetActiveProfileDict()
+	var profile: Dictionary = ProfileRepoApi.get_active_profile_dict()
 	if not profile.is_empty():
 		var campaign_progress: Variant = profile.get("campaign_progress", {})
 		if campaign_progress is Dictionary:
 			current_battle_id = campaign_progress.get("current_battle", "")
 
 	# Handle pending reward state
-	var pending_reward: Variant = Campaign.GetPendingReward()
+	var pending_reward: Variant = CampaignApi.get_pending_reward()
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
 		var pending_battle_id: String = pending_dict.get("battle_id", "")
@@ -100,26 +100,26 @@ func _load_battle_results() -> void:
 			is_pending_reward = true
 		elif not pending_battle_id.is_empty():
 			# Stale pending reward - clear it
-			Campaign.ClearPendingReward()
+			CampaignApi.clear_pending_reward()
 
 	if current_battle_id.is_empty():
 		push_error("RewardScreen: No current battle set!")
 		return
 
 	# Build reward spec params (previously computed inside the GDScript wrapper)
-	var is_completed: bool = Campaign.IsBattleCompleted(current_battle_id)
+	var is_completed: bool = CampaignApi.is_battle_completed(current_battle_id)
 	var pending_chosen_index: int = -1
 	if is_pending_reward and pending_reward is Dictionary:
 		pending_chosen_index = pending_reward.get("choice_index", -1)
 
 	# Get reward specification from C# service
-	var spec: Dictionary = RewardService.GetBattleRewardSpecAsDict(current_battle_id, is_completed, pending_chosen_index)
+	var spec: Dictionary = RewardServiceApi.get_battle_reward_spec_as_dict(current_battle_id, is_completed, pending_chosen_index)
 	# Convert reward_type string to StringName for GDScript compatibility
 	if spec.has("reward_type"):
-		spec["reward_type"] = StringName(spec.get("reward_type", "fixed"))
+		spec["reward_type"] = StringName(SafeTypeUtils.string(spec.get("reward_type", "fixed"), "fixed"))
 
 	# Get battle for display info
-	var battle: Dictionary = Campaign.GetBattle(current_battle_id)
+	var battle: Dictionary = CampaignApi.get_battle(current_battle_id)
 	battle_name_label.text = battle.get("name", Loc.t("ui.reward.unknown_battle"))
 
 	# Update state from spec
@@ -153,7 +153,7 @@ func _display_reward_spec(spec: Dictionary) -> void:
 
 	# Set pending reward if not already set (first time victory)
 	if not is_pending_reward:
-		Campaign.SetPendingReward(current_battle_id, reward_type, -1)
+		CampaignApi.set_pending_reward(current_battle_id, reward_type, -1)
 
 	# First time victory - show all rewards normally
 	first_clear_status.text = ""
@@ -215,7 +215,7 @@ func _display_first_clear_claimed(spec: Dictionary) -> void:
 		var display_name: String = card_spec.get("display_name", "")
 		if display_name.is_empty():
 			var catalog_id: String = card_spec.get("catalog_id", "")
-			var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
+			var card_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
 			display_name = card_data.get("card_name", "Card")
 		reward_card_label.text = display_name
 		reward_detail_label.text = ""
@@ -232,12 +232,12 @@ func _display_first_clear_claimed(spec: Dictionary) -> void:
 ## Display a card reward from normalized spec format
 func _display_card_reward_from_spec(card_spec: Dictionary) -> void:
 	var catalog_id: String = card_spec.get("catalog_id", "")
-	var rarity: StringName = StringName(card_spec.get("rarity", "common"))
+	var rarity: StringName = StringName(SafeTypeUtils.string(card_spec.get("rarity", "common"), "common"))
 	var count: int = card_spec.get("count", 1)
 	var display_name: String = card_spec.get("display_name", "")
 
 	if display_name.is_empty():
-		var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
+		var card_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
 		display_name = card_data.get("card_name", Loc.t("ui.common.unknown"))
 
 	if count > 1:
@@ -281,22 +281,16 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 	# Show XP amount header
 	card_xp_header_label.text = Loc.t("ui.reward.card_xp_header")
 	card_xp_amount_label.text = Loc.t("ui.reward.card_xp_each", {"amount": card_xp})
-
-	# Get card service for progression info
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		push_warning("RewardScreen: PlayerCardService not available for card XP display")
-		card_xp_section.visible = false
-		return
+	var rendered_card_count: int = 0
 
 	# Create card items for each deck card
 	for instance_id: String in deck_cards:
-		var info: Dictionary = card_service.GetCardProgressionInfoDict(instance_id)
+		var info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
 		if info.is_empty():
 			continue
 
 		var catalog_id: String = info.get("catalog_id", "")
-		var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
+		var card_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
 		if card_data.is_empty():
 			continue
 
@@ -307,6 +301,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 
 		var item: Control = CardXPItemScene.instantiate()
 		card_xp_grid.add_child(item)
+		rendered_card_count += 1
 
 		if item.has_method("setup"):
 			item.call("setup", instance_id, catalog_id, card_name, level, can_level_up, xp_progress)
@@ -314,15 +309,11 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 		if item.has_signal("clicked"):
 			item.clicked.connect(_on_card_xp_item_clicked)
 
-	card_xp_section.visible = true
+	card_xp_section.visible = rendered_card_count > 0
 
 ## Handle click on a card XP item - open card detail modal to view stats
 func _on_card_xp_item_clicked(instance_id: String) -> void:
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		return
-
-	var info: Dictionary = card_service.GetCardProgressionInfoDict(instance_id)
+	var info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
 	if info.is_empty():
 		return
 
@@ -375,19 +366,15 @@ func _on_level_up_cancelled(panel: Node) -> void:
 
 ## Refresh a specific card item after level-up
 func _refresh_card_xp_item(instance_id: String) -> void:
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		return
-
 	# Find the card item and update it
 	for child: Node in card_xp_grid.get_children():
 		if child is CardXPItem and child.instance_id == instance_id:
-			var info: Dictionary = card_service.GetCardProgressionInfoDict(instance_id)
+			var info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
 			if info.is_empty():
 				continue
 
 			var catalog_id: String = info.get("catalog_id", "")
-			var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
+			var card_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
 			if card_data.is_empty():
 				continue
 
@@ -411,7 +398,7 @@ func _get_rarity_color(rarity: StringName) -> Color:
 ## Get active summoner ID for reward theming
 func _get_active_summoner_id() -> String:
 	if SummonerSelection and SummonerSelection.has_method("GetActiveSummonerId"):
-		var selected: String = SummonerSelection.GetActiveSummonerId()
+		var selected: String = SummonerSelectionApi.get_active_summoner_id()
 		if not selected.is_empty():
 			return selected
 	return SummonerIDs.DEFAULT
@@ -435,7 +422,7 @@ func _show_flexible_choice_ui(options: Array[Dictionary]) -> void:
 		if display_name.is_empty():
 			# Fallback to catalog lookup
 			var catalog_id: String = option.get("catalog_id", "")
-			var card_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
+			var card_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
 			display_name = card_data.get("card_name", Loc.t("ui.common.unknown"))
 
 		var button: Button = Button.new()
@@ -461,7 +448,7 @@ func _on_flexible_choice_selected(index: int) -> void:
 	chosen_reward_index = index
 
 	# Save choice to pending reward state (persists if player exits)
-	Campaign.UpdatePendingChoice(index)
+	CampaignApi.update_pending_choice(index)
 
 	if index >= 0 and index < flexible_options.size():
 		# Hide choice UI and show selected card preview
@@ -482,7 +469,7 @@ func _on_continue_pressed() -> void:
 
 	if not reward_ready_to_claim:
 		# No reward to claim (replay or no rewards) - just clear any stale pending state
-		Campaign.ClearPendingReward()
+		CampaignApi.clear_pending_reward()
 		_check_summoner_level_up()
 		return
 
@@ -496,7 +483,7 @@ func _on_continue_pressed() -> void:
 		card_reward = flexible_options[0]
 
 	# Single unified call to claim all rewards (gold + cards)
-	var granted: Dictionary = Campaign.ClaimPendingReward()
+	var granted: Dictionary = CampaignApi.claim_pending_reward()
 
 	# Auto-add cards to deck if tutorial battle
 	if not granted.get("cards", []).is_empty():
@@ -511,7 +498,7 @@ func _check_summoner_level_up() -> void:
 		_transition_to_map()
 		return
 
-	if SummonerProgression.CanLevelUp(summoner_id):
+	if SummonerProgressionApi.can_level_up(summoner_id):
 		_show_summoner_level_up_modal(summoner_id)
 	else:
 		_transition_to_map()
@@ -534,7 +521,7 @@ func _show_summoner_level_up_modal(summoner_id: String) -> void:
 ## Handle summoner level-up completion - check for more level-ups (multi-level jumps)
 func _on_summoner_level_up_completed(summoner_id: String, _trait_id: String) -> void:
 	# Check if summoner can level up again (multi-level jumps)
-	if SummonerProgression.CanLevelUp(summoner_id):
+	if SummonerProgressionApi.can_level_up(summoner_id):
 		_show_summoner_level_up_modal(summoner_id)
 	else:
 		_transition_to_map()
@@ -554,7 +541,7 @@ func _transition_to_map() -> void:
 ## Automatically add granted cards to deck if this is a tutorial battle
 func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 	# Check if this is a tutorial battle
-	if not Campaign.IsBattleTutorial(current_battle_id):
+	if not CampaignApi.is_battle_tutorial(current_battle_id):
 		return  # Not a tutorial battle, don't auto-add
 
 	# Get card instance IDs that were granted
@@ -564,7 +551,7 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 		return
 
 	# Get active deck ID from profile
-	var profile: Dictionary = ProfileRepo.GetActiveProfileDict()
+	var profile: Dictionary = ProfileRepoApi.get_active_profile_dict()
 	if profile.is_empty():
 		push_error("RewardScreen: No active profile!")
 		return
@@ -581,8 +568,7 @@ func _auto_add_cards_to_deck(granted_card: Dictionary) -> void:
 	# Add cards to deck
 	var added_count: int = 0
 	for card_instance_id: String in instance_ids:
-		if Decks.AddCardToDeck(deck_id, card_instance_id):
+		if DecksApi.add_card_to_deck(deck_id, card_instance_id):
 			added_count += 1
 		else:
 			push_warning("RewardScreen: Failed to add card %s to deck" % card_instance_id)
-

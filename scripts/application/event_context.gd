@@ -48,7 +48,7 @@ func _ready() -> void:
 ## Configure event context (called before navigating to event screen)
 func configure_event(event_id: String, return_to_scene: String = "") -> void:
 	# Get event config from Campaign
-	var config: Dictionary = Campaign.GetBattle(event_id)
+	var config: Dictionary = CampaignApi.get_battle(event_id)
 
 	if config.is_empty():
 		push_error("EventContext: Event not found: %s" % event_id)
@@ -90,7 +90,7 @@ func complete_event() -> void:
 
 	# Mark complete in Campaign service (only if not repeatable)
 	if not repeatable:
-		Campaign.CompleteBattle(current_event_id)
+		CampaignApi.complete_battle(current_event_id)
 		print("EventContext: Marked event '%s' as complete" % current_event_id)
 	else:
 		print("EventContext: Event '%s' is repeatable - not marking as complete" % current_event_id)

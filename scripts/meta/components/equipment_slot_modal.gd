@@ -168,11 +168,11 @@ func _refresh() -> void:
 		child.queue_free()
 
 	# Get equipped item for this slot
-	var equipped: Dictionary = Items.GetEquippedItemsDict(_summoner_id)
+	var equipped: Dictionary = ItemsApi.get_equipped_items_dict(_summoner_id)
 	var equipped_instance_id: String = equipped.get(_current_slot, "")
 
 	# Get all items for this slot
-	var items_for_slot: Array[Dictionary] = Items.ListItemsForSlotDict(_current_slot, _summoner_id)
+	var items_for_slot: Array[Dictionary] = ItemsApi.list_items_for_slot_dict(_current_slot, _summoner_id)
 
 	# Show equipped item info
 	if equipped_instance_id.is_empty():
@@ -241,7 +241,7 @@ func _create_item_card(item: Dictionary, is_equipped: bool) -> PanelContainer:
 
 	# Item name
 	var name_key: String = item.get("name_key", "")
-	var item_name: String = Loc.t(name_key) if not name_key.is_empty() else item.get("id", "Unknown")
+	var item_name: String = Loc.t(name_key) if not name_key.is_empty() else SafeTypeUtils.string(item.get("id", "Unknown"), "Unknown")
 	var name_label: Label = Label.new()
 	name_label.text = item_name
 	name_label.add_theme_font_size_override("font_size", 16)
@@ -288,14 +288,14 @@ func _on_item_card_input(event: InputEvent, instance_id: String) -> void:
 
 
 func _equip_item(instance_id: String) -> void:
-	var success: bool = Items.EquipItemStr(_summoner_id, instance_id, _current_slot)
+	var success: bool = ItemsApi.equip_item_str(_summoner_id, instance_id, _current_slot)
 	if success:
 		item_equipped.emit(_current_slot, instance_id)
 		_refresh()
 
 
 func _on_unequip_pressed() -> void:
-	var success: bool = Items.UnequipItemStr(_summoner_id, _current_slot)
+	var success: bool = ItemsApi.unequip_item_str(_summoner_id, _current_slot)
 	if success:
 		item_unequipped.emit(_current_slot)
 		_refresh()

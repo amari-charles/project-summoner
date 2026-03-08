@@ -45,7 +45,7 @@ func set_summoner(summoner_id_param: String) -> void:
 	self.summoner_id = summoner_id_param
 
 	# Get summoner config from catalog
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(summoner_id))
 	if not config:
 		push_error("SummonerCard: Invalid summoner_id: %s" % summoner_id)
 		return
@@ -89,7 +89,8 @@ func _get_element_color(element: ElementTypes.Element) -> Color:
 		return Color.WHITE
 
 	# Match by element ID
-	match StringName(element.id):
+	var element_key: String = SafeTypeUtils.string(element.id, "neutral")
+	match StringName(element_key):
 		ElementNameIDs.FIRE:
 			return Color(1.0, 0.3, 0.2)  # Red
 		ElementNameIDs.WATER:

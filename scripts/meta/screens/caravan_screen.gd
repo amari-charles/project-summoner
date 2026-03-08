@@ -38,11 +38,11 @@ func _ready() -> void:
 	purchase_button.pressed.connect(_on_purchase_pressed)
 
 	# Connect shop signals
-	Shop.PurchaseCompleted.connect(_on_purchase_completed)
-	Shop.PurchaseFailed.connect(_on_purchase_failed)
+	Shop.connect("PurchaseCompleted", _on_purchase_completed)
+	Shop.connect("PurchaseFailed", _on_purchase_failed)
 
 	# Connect economy signals for campaign gold updates
-	Economy.CampaignGoldChanged.connect(_on_campaign_gold_changed)
+	Economy.connect("CampaignGoldChanged", _on_campaign_gold_changed)
 
 	# Get shop_id from EventContext
 	var event_id: String = EventContext.get_current_event_id()
@@ -59,12 +59,12 @@ func _ready() -> void:
 	_clear_detail_panel()
 
 func _exit_tree() -> void:
-	if Shop.PurchaseCompleted.is_connected(_on_purchase_completed):
-		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
-	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
-		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
-	if Economy.CampaignGoldChanged.is_connected(_on_campaign_gold_changed):
-		Economy.CampaignGoldChanged.disconnect(_on_campaign_gold_changed)
+	if Shop.is_connected("PurchaseCompleted", _on_purchase_completed):
+		Shop.disconnect("PurchaseCompleted", _on_purchase_completed)
+	if Shop.is_connected("PurchaseFailed", _on_purchase_failed):
+		Shop.disconnect("PurchaseFailed", _on_purchase_failed)
+	if Economy.is_connected("CampaignGoldChanged", _on_campaign_gold_changed):
+		Economy.disconnect("CampaignGoldChanged", _on_campaign_gold_changed)
 
 ## =============================================================================
 ## INITIALIZATION
@@ -76,7 +76,7 @@ func _load_offerings() -> void:
 		child.queue_free()
 
 	# Load offerings from ShopService
-	current_offerings = Shop.GetShopOfferings(shop_id)
+	current_offerings = ShopApi.get_shop_offerings(shop_id)
 
 	# Create offering cards
 	for offering: Dictionary in current_offerings:
@@ -86,7 +86,7 @@ func _load_offerings() -> void:
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
 
 func _update_gold_display() -> void:
-	var gold: int = Economy.GetCampaignGold()
+	var gold: int = EconomyApi.get_campaign_gold()
 	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
 
 ## =============================================================================
@@ -110,7 +110,7 @@ func _update_detail_panel(offering: Dictionary) -> void:
 	description_label.text = offering.get("description", "")
 
 	# Enable/disable purchase button based on affordability
-	var can_result: Dictionary = Shop.CanPurchaseOffering(offering.get("offering_id", ""), shop_id)
+	var can_result: Dictionary = ShopApi.can_purchase_offering(offering.get("offering_id", ""), shop_id)
 	purchase_button.disabled = not can_result.get("can_purchase", false)
 
 ## =============================================================================
@@ -122,7 +122,7 @@ func _on_purchase_pressed() -> void:
 	if selected_offering.is_empty():
 		return
 
-	Shop.PurchaseOffering(selected_offering.get("offering_id", ""), shop_id)
+	ShopApi.purchase_offering(selected_offering.get("offering_id", ""), shop_id)
 
 ## =============================================================================
 ## SIGNAL HANDLERS

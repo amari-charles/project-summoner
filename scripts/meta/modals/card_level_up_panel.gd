@@ -60,12 +60,7 @@ func open_for_card(p_card_instance_id: String) -> void:
 ## =============================================================================
 
 func _load_card_data() -> void:
-	# PlayerCardService is a C# autoload - access via get_node
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		push_error("CardLevelUpPanel: PlayerCardService not found")
-		return
-	var info: Dictionary = card_service.GetCardProgressionInfoDict(card_instance_id)
+	var info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_instance_id)
 	if info.is_empty():
 		push_error("CardLevelUpPanel: Failed to get progression info for %s" % card_instance_id)
 		return
@@ -73,7 +68,7 @@ func _load_card_data() -> void:
 	# Get card catalog data for name
 	var catalog_id: String = info.get("catalog_id", "")
 	var card_name: String = "Unknown Card"
-	var catalog_data: Dictionary = CardCatalog.GetCardAsDict(catalog_id)
+	var catalog_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
 	if not catalog_data.is_empty():
 		var name_val: Variant = catalog_data.get("card_name", "Unknown Card")
 		card_name = name_val if name_val is String else "Unknown Card"
@@ -97,11 +92,7 @@ func _populate_trait_choices() -> void:
 		button.queue_free()
 	trait_buttons.clear()
 
-	# Get available traits from PlayerCardService (C# autoload)
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		return
-	var traits: Array = card_service.GetAvailableTraits(card_instance_id)
+	var traits: Array = CardServiceApi.get_available_traits(card_instance_id)
 
 	# Create trait buttons
 	for trait_var: Variant in traits:
@@ -173,12 +164,7 @@ func _on_confirm_pressed() -> void:
 	if selected_trait_id.is_empty():
 		return
 
-	# PlayerCardService is a C# autoload
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		push_error("CardLevelUpPanel: PlayerCardService not found")
-		return
-	var success: bool = card_service.LevelUpCard(card_instance_id, selected_trait_id)
+	var success: bool = CardServiceApi.level_up_card(card_instance_id, selected_trait_id)
 
 	if success:
 		level_up_completed.emit(card_instance_id)
