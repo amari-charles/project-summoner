@@ -6,6 +6,29 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+### Audit Sim/Visual State Desync Points
+**Completed:** 2026-03-08
+**Category:** Architecture / Simulation
+**Effort:** Medium
+
+Completed a full desync audit pass across battle sim/view boundaries and closed remaining high-risk sync gaps.
+
+**Resolution Summary:**
+- ✅ Phase sync hardened: mapped sim `GamePhase` to UI phase values, deduped `PhaseChanged` emission, and added regression tests.
+- ✅ Summoner destruction sync fixed: removed duplicate destroy-signal path and validated single emission with tests.
+- ✅ Activation sync fixed: `UnitVisual` now respects sim `ActivationState` (inactive units no longer play walk/attack animation logic).
+- ✅ Position/death/targeting audit validated: no additional stale-position, alive/dead, or stale-target ownership issues found in current battle flow wiring.
+
+**Representative Files Changed:**
+- `scripts/csharp/Battle/View/BattleScene.cs`
+- `scripts/csharp/Battle/View/EntityManager.cs`
+- `scripts/csharp/Battle/View/UnitVisual.cs`
+- `tests/csharp/View/BattleSceneTest.cs`
+- `tests/csharp/View/EntityManagerTest.cs`
+- `tests/csharp/View/UnitVisualStateSyncTest.cs`
+
+---
+
 ### Investigate Units Getting Stuck in Idle When Blocked
 **Completed:** 2026-03-08
 **Category:** Units & Combat / Pathfinding
