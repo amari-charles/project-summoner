@@ -1,8 +1,10 @@
 namespace Fateforged.Tests.View;
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Fateforged.Session;
+using Fateforged.Simulation.Enums;
 using Fateforged.View;
 using GdUnit4;
 using Godot;
@@ -68,6 +70,34 @@ public class BattleSceneTest
         AssertThat(GetPrivateField<int?>(scene, "_pendingCompletionWinnerTeam").HasValue).IsFalse();
     }
 
+    [TestCase]
+    public void EmitPhaseIfChanged_DedupesRepeatedPhaseSignals()
+    {
+        var scene = CreateBattleScene();
+        var phases = new List<int>();
+        scene.Connect(BattleScene.SignalName.PhaseChanged, Callable.From<int>(phase => phases.Add(phase)));
+
+        InvokePrivateMethod(scene, "EmitPhaseIfChanged", (int)BattleScene.BattlePhase.Preparation);
+        InvokePrivateMethod(scene, "EmitPhaseIfChanged", (int)BattleScene.BattlePhase.Preparation);
+        InvokePrivateMethod(scene, "EmitPhaseIfChanged", (int)BattleScene.BattlePhase.Battle);
+
+        AssertThat(phases.Count).IsEqual(2);
+        AssertThat(phases[0]).IsEqual((int)BattleScene.BattlePhase.Preparation);
+        AssertThat(phases[1]).IsEqual((int)BattleScene.BattlePhase.Battle);
+    }
+
+    [TestCase]
+    public void ToUiPhaseValue_MapsSimulationPhasesToUiPhases()
+    {
+        int prepUi = (int)InvokePrivateStaticMethod(typeof(BattleScene), "ToUiPhaseValue", GamePhase.Preparation);
+        int battleUi = (int)InvokePrivateStaticMethod(typeof(BattleScene), "ToUiPhaseValue", GamePhase.Battle);
+        int gameOverUi = (int)InvokePrivateStaticMethod(typeof(BattleScene), "ToUiPhaseValue", GamePhase.GameOver);
+
+        AssertThat(prepUi).IsEqual((int)BattleScene.BattlePhase.Preparation);
+        AssertThat(battleUi).IsEqual((int)BattleScene.BattlePhase.Battle);
+        AssertThat(gameOverUi).IsEqual((int)BattleScene.BattlePhase.Battle);
+    }
+
     private BattleScene CreateBattleScene()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -91,5 +121,17 @@ public class BattleSceneTest
     {
         var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(target, value);
+    }
+
+    private static object? InvokePrivateMethod(object target, string methodName, params object[] args)
+    {
+        var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+        return method!.Invoke(target, args);
+    }
+
+    private static object? InvokePrivateStaticMethod(Type targetType, string methodName, params object[] args)
+    {
+        var method = targetType.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+        return method!.Invoke(null, args);
     }
 }
