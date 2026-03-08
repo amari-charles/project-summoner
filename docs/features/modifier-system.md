@@ -854,7 +854,7 @@ unit.OnKill(target);                  // Checks OnKill triggers
 // - HP-based trigger state changes
 ```
 
-See `docs/technical/trait-system-architecture.md` for implementation details.
+See `docs/technical/runtime/trait-system-architecture.md` for implementation details.
 
 ---
 

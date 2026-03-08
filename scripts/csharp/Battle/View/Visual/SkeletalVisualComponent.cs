@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using Fateforged.View;
 
 namespace Fateforged.Visual;
 
@@ -73,6 +74,14 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [Export]
     public float HpBarOffsetX { get; set; } = 0.0f;
 
+    [ExportGroup("Shadow")]
+    [Export]
+    public ShadowProfilePreset ShadowPreset { get; set; } = ShadowProfilePreset.Default;
+
+    [Export]
+    public ShadowProfileResource? ShadowProfileOverride { get; set; }
+
+    [ExportGroup("")]
     /// <summary>
     /// Color to flash when taking damage. Default is bright HDR white (3, 3, 3, 1).
     ///
@@ -105,6 +114,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
     private bool _isFlipped;
     private bool _initializationComplete;
+    private bool _underUnitVisual;
+    private ShadowProfile _shadowProfile = ShadowProfiles.FromPreset(ShadowProfilePreset.Default).Sanitize();
     private Color _originalModulate = Colors.White;
     private Tween? _flashTween;
     private List<CanvasItem>? _cachedSprites;
@@ -118,6 +129,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         _sprite3D = GetNodeOrNull<Sprite3D>("Sprite3D");
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _modelContainer = GetNodeOrNull<Node2D>("Sprite3D/SubViewport/ModelContainer");
+        _underUnitVisual = IsUnderUnitVisual();
+        _shadowProfile = ResolveShadowProfile();
 
         if (_viewport != null)
         {
@@ -148,7 +161,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         // Pin shadow to ground regardless of unit elevation (flying units)
         if (_shadowSprite3D != null)
         {
-            ShadowHelper.PinToGround(_shadowSprite3D, GlobalPosition.Y);
+            ShadowHelper.PinToGround(_shadowSprite3D, GlobalPosition.Y, _shadowProfile);
         }
     }
 
@@ -162,7 +175,10 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
         SetupSpriteAlignment();
         RandomizeAnimationPhase();
-        CreateShadowSprite();
+        if (_underUnitVisual)
+        {
+            CreateShadowSprite();
+        }
     }
 
     // =========================================================================
@@ -522,11 +538,32 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_sprite3D == null || _viewport == null)
             return;
 
-        _shadowSprite3D = ShadowHelper.CreateShadow(_sprite3D, _viewport);
+        _shadowSprite3D = ShadowHelper.CreateShadow(_sprite3D, _viewport, _shadowProfile);
         if (_shadowSprite3D == null)
             return;
 
         AddChild(_shadowSprite3D);
+    }
+
+    private ShadowProfile ResolveShadowProfile()
+    {
+        if (ShadowProfileOverride != null)
+            return ShadowProfileOverride.ToShadowProfile();
+
+        return ShadowProfiles.FromPreset(ShadowPreset).Sanitize();
+    }
+
+    private bool IsUnderUnitVisual()
+    {
+        Node? current = GetParent();
+        while (current != null)
+        {
+            if (current is UnitVisual)
+                return true;
+            current = current.GetParent();
+        }
+
+        return false;
     }
 
     private void SetupSpriteAlignment()

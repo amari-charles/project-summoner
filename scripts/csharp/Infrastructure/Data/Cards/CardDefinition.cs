@@ -60,7 +60,7 @@ public class CardDefinition
     /// <summary>
     /// References a unit type in UnitDefinitions. When set, base stats come from UnitDefinitions
     /// instead of the stat properties on this card. Use UnitModifier to apply variants.
-    /// See docs/technical/unit-stat-pipeline.md for the full stat pipeline.
+    /// See docs/technical/runtime/unit-stat-pipeline.md for the full stat pipeline.
     /// Note: If Summon is set, this is ignored for spawning (but may still be used for UI display).
     /// </summary>
     public UnitId UnitId { get; init; } = UnitId.None;

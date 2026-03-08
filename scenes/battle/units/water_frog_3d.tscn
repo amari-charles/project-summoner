@@ -11,9 +11,9 @@ script = ExtResource("1_unit_visual")
 SpriteFramesResource = ExtResource("3_frames")
 FeetOffsetPixels = 120.0
 AnimationPivotOffsets = {
-&"attack": Vector2(-460, 0),
-&"idle": Vector2(-500, 0),
-&"walk": Vector2(-500, 0)
+&"attack": Vector2(460, 0),
+&"idle": Vector2(500, 0),
+&"walk": Vector2(500, 0)
 }
 ViewportSize = Vector2i(1800, 1024)
 ScaleFactor = Vector2(0.6, 0.6)

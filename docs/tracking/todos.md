@@ -69,7 +69,7 @@ Add a ranked competitive mode where players battle against others (or AI) with m
 - 10 Hz state snapshots for sync
 - Client prediction not yet implemented — currently pure snapshot interpolation
 - See `docs/multiplayer/architecture.md` for architecture boundaries
-- See `docs/technical/simulation-architecture.md` for simulation layer details
+- See `docs/technical/runtime/simulation-architecture.md` for simulation layer details
 
 **Related Systems:**
 - Deck building/validation

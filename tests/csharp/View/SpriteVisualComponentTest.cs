@@ -2,6 +2,7 @@ namespace Fateforged.Tests.View;
 
 using System;
 using System.Collections.Generic;
+using Fateforged.View;
 using Fateforged.Visual;
 using GdUnit4;
 using Godot;
@@ -99,15 +100,71 @@ public partial class SpriteVisualComponentTest
         AssertThat(dxScale2).IsEqualApprox(dxScale1 * 2f, 0.01f);
     }
 
+    [TestCase]
+    public void SceneConfiguration_UsesAlphaCutDiscard_ForStableDepthOcclusion()
+    {
+        int spriteAlphaCut = GetSpriteAlphaCut("res://scenes/battle/units/sprite_character_2d5_component.tscn");
+        int skeletalAlphaCut = GetSpriteAlphaCut("res://scenes/battle/units/skeletal_character_2d5_component.tscn");
+
+        AssertThat(spriteAlphaCut).IsEqual(2);
+        AssertThat(skeletalAlphaCut).IsEqual(2);
+    }
+
+    [TestCase]
+    public void Ready_CreatesShadow_WhenUnitVisualIsAncestorThroughWrapper()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var unitVisual = new UnitVisual();
+        var wrapper = new Node3D();
+        var visual = InstantiateVisualScene();
+
+        root.AddChild(unitVisual);
+        _createdNodes.Add(unitVisual);
+        unitVisual.AddChild(wrapper);
+        wrapper.AddChild(visual);
+
+        int sprite3DCount = CountDirectChildSprite3Ds(visual);
+        AssertThat(sprite3DCount).IsEqual(2);
+    }
+
     private SpriteVisualComponent CreateVisual()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
-        var scene = GD.Load<PackedScene>("res://scenes/battle/units/sprite_character_2d5_component.tscn");
-        var visual = scene.Instantiate<SpriteVisualComponent>();
+        var visual = InstantiateVisualScene();
         root.AddChild(visual);
         _createdNodes.Add(visual);
         return visual;
+    }
+
+    private static SpriteVisualComponent InstantiateVisualScene()
+    {
+        var scene = GD.Load<PackedScene>("res://scenes/battle/units/sprite_character_2d5_component.tscn");
+        return scene.Instantiate<SpriteVisualComponent>();
+    }
+
+    private static int GetSpriteAlphaCut(string scenePath)
+    {
+        var scene = GD.Load<PackedScene>(scenePath);
+        var root = scene.Instantiate<Node3D>();
+        var sprite3D = root.GetNode<Sprite3D>("Sprite3D");
+        int alphaCut = sprite3D.Get("alpha_cut").AsInt32();
+        root.Free();
+        return alphaCut;
+    }
+
+    private static int CountDirectChildSprite3Ds(Node node)
+    {
+        int count = 0;
+        foreach (Node child in node.GetChildren())
+        {
+            if (child is Sprite3D)
+                count++;
+        }
+
+        return count;
     }
 
     private static SpriteFrames CreateFrames((int width, int height)[] sizes)

@@ -24,30 +24,38 @@ This folder is for implementation references.
 
 ### Runtime Systems
 
-- [simulation-architecture.md](simulation-architecture.md)
-- [projectile-system.md](projectile-system.md)
-- [hit-geometry-v1.md](hit-geometry-v1.md)
-- [projectile-targeting.md](projectile-targeting.md)
-- [targeting-system.md](targeting-system.md)
-- [ability-system.md](ability-system.md)
-- [trait-system-architecture.md](trait-system-architecture.md)
-- [unit-collision-separation.md](unit-collision-separation.md)
-- [unit-stat-pipeline.md](unit-stat-pipeline.md)
-- [battle-enemy-spawning.md](battle-enemy-spawning.md)
-- [reward-system-architecture.md](reward-system-architecture.md)
+- [runtime/simulation-architecture.md](runtime/simulation-architecture.md)
+- [runtime/projectile-system.md](runtime/projectile-system.md)
+- [runtime/hit-geometry-v1.md](runtime/hit-geometry-v1.md)
+- [runtime/projectile-targeting.md](runtime/projectile-targeting.md)
+- [runtime/targeting-system.md](runtime/targeting-system.md)
+- [runtime/ability-system.md](runtime/ability-system.md)
+- [runtime/trait-system-architecture.md](runtime/trait-system-architecture.md)
+- [runtime/unit-collision-separation.md](runtime/unit-collision-separation.md)
+- [runtime/unit-stat-pipeline.md](runtime/unit-stat-pipeline.md)
+- [runtime/battle-enemy-spawning.md](runtime/battle-enemy-spawning.md)
+- [runtime/reward-system-architecture.md](runtime/reward-system-architecture.md)
 
 ### Infrastructure / Platform
 
-- [campaign-data.md](campaign-data.md)
-- [save-system.md](save-system.md)
-- [audio-system.md](audio-system.md)
-- [dialogue-system.md](dialogue-system.md)
-- [debug-menu.md](debug-menu.md)
-- [scene-script-configuration.md](scene-script-configuration.md)
-- [framerate-independence.md](framerate-independence.md)
-- [strict-typing-validation.md](strict-typing-validation.md)
-- [shop-cache-architecture.md](shop-cache-architecture.md)
-- [gdscript-service-api-wrappers.md](gdscript-service-api-wrappers.md)
+- [infrastructure/campaign-data.md](infrastructure/campaign-data.md)
+- [infrastructure/save-system.md](infrastructure/save-system.md)
+- [infrastructure/audio-system.md](infrastructure/audio-system.md)
+- [infrastructure/dialogue-system.md](infrastructure/dialogue-system.md)
+- [infrastructure/shop-cache-architecture.md](infrastructure/shop-cache-architecture.md)
+- [infrastructure/gdscript-service-api-wrappers.md](infrastructure/gdscript-service-api-wrappers.md)
+
+### Rendering
+
+- [rendering/scene-script-configuration.md](rendering/scene-script-configuration.md)
+- [rendering/framerate-independence.md](rendering/framerate-independence.md)
+- [rendering/unit-animations.md](rendering/unit-animations.md)
+- [rendering/shadow-system.md](rendering/shadow-system.md)
+
+### Tooling
+
+- [tooling/debug-menu.md](tooling/debug-menu.md)
+- [tooling/strict-typing-validation.md](tooling/strict-typing-validation.md)
 
 ### VFX
 

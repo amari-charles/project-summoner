@@ -77,6 +77,16 @@ var ground_pos: Vector3 = target_position
 ground_pos.y = 0.01  # Slightly above ground, same as shadow components
 ```
 
+### Rule 5: Billboard Unit Sprites Must Participate in Depth
+
+For 2.5D unit body billboards (`Sprite3D`) that share screen space with projected silhouette shadows,
+set `alpha_cut = 2` (discard) in the scene resource.
+
+This is required so opaque body pixels write stable depth and correctly occlude the shadow pass,
+especially at far camera distances where depth precision is lower.
+
+See `shadow-system.md` for profile/preset architecture and override flow.
+
 ## Anti-Patterns to Avoid
 
 ### Anti-Pattern 1: Duplicate Configuration

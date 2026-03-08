@@ -471,7 +471,7 @@ New path classes:
 - `scripts/csharp/Projectiles/Paths/ArcPath.cs` - Bézier arc implementation
 - `scripts/csharp/Projectiles/Paths/BallisticPath.cs` - Parabolic path implementation
 - `tests/csharp/Projectiles/Paths/PathTests.cs` - Unit tests for path classes
-- `docs/technical/projectile-system.md` - Updated documentation
+- `docs/technical/runtime/projectile-system.md` - Updated documentation
 
 ---
 

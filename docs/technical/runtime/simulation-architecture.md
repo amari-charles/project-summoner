@@ -126,6 +126,6 @@ Team IDs in `MatchState` are also network-perspective: team 0 = host, team 1 = c
 
 ## See Also
 
-- **[Graph-Of-Graphs Model](../architecture/graph-of-graphs.md)** — Shared architecture vocabulary and projection rules
-- **[Target Architecture](../architecture/target-architecture.md)** — Gameplay layer contracts and boundaries
+- **[Graph-Of-Graphs Model](../../architecture/graph-of-graphs.md)** — Shared architecture vocabulary and projection rules
+- **[Target Architecture](../../architecture/target-architecture.md)** — Gameplay layer contracts and boundaries
 - **Archived deep references** — Historical simulation reference and walkthrough docs moved under `docs/archive/doc-reorg-2026-03/technical/`
