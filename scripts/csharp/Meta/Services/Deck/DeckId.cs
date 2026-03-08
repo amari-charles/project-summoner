@@ -15,6 +15,9 @@ public readonly record struct DeckId(string Value)
     /// <summary>Explicit conversion from string.</summary>
     public static explicit operator DeckId(string value) => new(value);
 
+    /// <summary>Create a DeckId from a string. Standardized factory for facade boundaries.</summary>
+    public static DeckId FromString(string id) => new(id);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

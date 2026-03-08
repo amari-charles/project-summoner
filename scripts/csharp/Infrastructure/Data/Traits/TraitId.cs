@@ -15,6 +15,9 @@ public readonly record struct TraitId(string Value)
     /// <summary>Explicit conversion from string.</summary>
     public static explicit operator TraitId(string value) => new(value);
 
+    /// <summary>Create a TraitId from a string. Standardized factory for facade boundaries.</summary>
+    public static TraitId FromString(string id) => new(id);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

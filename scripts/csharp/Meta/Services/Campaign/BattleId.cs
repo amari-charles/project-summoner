@@ -16,6 +16,9 @@ public readonly record struct BattleId(string Value)
     /// <summary>Explicit conversion from string.</summary>
     public static explicit operator BattleId(string value) => new(value);
 
+    /// <summary>Create a BattleId from a string. Standardized factory for facade boundaries.</summary>
+    public static BattleId FromString(string id) => new(id);
+
     /// <summary>Check if this ID has a value (not empty).</summary>
     public bool HasValue => !string.IsNullOrEmpty(Value);
 

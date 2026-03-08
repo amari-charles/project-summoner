@@ -1,10 +1,11 @@
-using System.Collections.Generic;
 using Godot;
+using Fateforged.Data.Events;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
 /// <summary>
 /// Handles tutorial-related queries.
+/// Typed API — facades handle string conversion.
 /// </summary>
 public class TutorialHandler
 {
@@ -23,23 +24,22 @@ public class TutorialHandler
     }
 
     /// <summary>Check if a specific battle is a tutorial battle.</summary>
-    public bool IsBattleTutorial(string battleId)
+    public bool IsBattleTutorial(EventId eventId)
     {
-        if (!_store.Battles.TryGetValue(battleId, out Godot.Collections.Dictionary? battle) || battle == null)
+        if (!_store.Events.TryGetValue(eventId, out var evt))
             return false;
 
-        return battle.GetValueOrDefault("is_tutorial", false).AsBool();
+        return evt is BattleEventDefinition battleEvt && battleEvt.IsTutorial;
     }
 
     /// <summary>Check if all tutorial battles have been completed.</summary>
     public bool IsTutorialComplete()
     {
-        foreach (Godot.Collections.Dictionary battle in _catalog.GetAllBattles())
+        foreach (var (eventId, evt) in _store.Events)
         {
-            if (battle.GetValueOrDefault("is_tutorial", false).AsBool())
+            if (evt is BattleEventDefinition battleEvt && battleEvt.IsTutorial)
             {
-                var battleId = battle.GetValueOrDefault("id", "").AsString();
-                if (!_progress.IsBattleCompleted(battleId))
+                if (!_progress.IsBattleCompleted(new BattleId(eventId.Value)))
                     return false;
             }
         }
@@ -52,12 +52,11 @@ public class TutorialHandler
     {
         var result = new Godot.Collections.Array<string>();
 
-        foreach (Godot.Collections.Dictionary battle in _catalog.GetAllBattles())
+        foreach (var (eventId, evt) in _store.Events)
         {
-            if (battle.GetValueOrDefault("is_tutorial", false).AsBool())
+            if (evt is BattleEventDefinition battleEvt && battleEvt.IsTutorial)
             {
-                var battleId = battle.GetValueOrDefault("id", "").AsString();
-                result.Add(battleId);
+                result.Add(eventId.Value);
             }
         }
 

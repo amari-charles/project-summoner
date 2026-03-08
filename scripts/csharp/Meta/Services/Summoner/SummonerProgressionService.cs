@@ -11,8 +11,7 @@ namespace Fateforged.Meta.Summoner;
 /// <summary>
 /// Summoner Progression Service - Handles XP and level management.
 ///
-/// Manages summoner XP gains and level-ups.
-/// UI and gameplay code should call this, never the repository directly.
+/// String-accepting facade for GDScript; typed overloads for C# callers.
 /// </summary>
 [GlobalClass]
 public partial class SummonerProgressionService : Node
@@ -120,16 +119,17 @@ public partial class SummonerProgressionService : Node
 	// XP OPERATIONS
 	// =========================================================================
 
-	/// <summary>
-	/// Grant XP to a summoner.
-	/// Returns the new total XP.
-	/// </summary>
-	public int GrantSummonerXp(string summonerId, int amount)
+	/// <summary>Grant XP to a summoner (string overload for GDScript boundary).</summary>
+	public int GrantSummonerXp(string summonerId, int amount) =>
+		GrantSummonerXp(SummonerId.FromString(summonerId), amount);
+
+	/// <summary>Grant XP to a summoner. Returns the new total XP.</summary>
+	public int GrantSummonerXp(SummonerId summonerId, int amount)
 	{
 		if (amount <= 0 || _profileRepo == null)
 			return 0;
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null)
 		{
 			GD.PushWarning($"SummonerProgressionService: Summoner instance not found: {summonerId}");
@@ -142,12 +142,12 @@ public partial class SummonerProgressionService : Node
 		summoner.Xp = newXp;
 		_profileRepo.SaveSummonerInstance(summoner);
 
-		EmitSignal(SignalName.SummonerXpChanged, summonerId, newXp, currentLevel);
+		EmitSignal(SignalName.SummonerXpChanged, summonerId.Value, newXp, currentLevel);
 
 		// Check if summoner can now level up
 		if (CanLevelUp(summonerId))
 		{
-			EmitSignal(SignalName.SummonerReadyToLevelUp, summonerId);
+			EmitSignal(SignalName.SummonerReadyToLevelUp, summonerId.Value);
 		}
 
 		return newXp;
@@ -176,12 +176,16 @@ public partial class SummonerProgressionService : Node
 		return XpThresholds[level - 1];
 	}
 
+	/// <summary>Get XP needed for the next level (string overload for GDScript boundary).</summary>
+	public int GetXpToNextLevel(string summonerId) =>
+		GetXpToNextLevel(SummonerId.FromString(summonerId));
+
 	/// <summary>Get XP needed for the next level from current XP.</summary>
-	public int GetXpToNextLevel(string summonerId)
+	public int GetXpToNextLevel(SummonerId summonerId)
 	{
 		if (_profileRepo == null) return 0;
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return 0;
 
 		if (summoner.Level >= MaxLevel)
@@ -191,12 +195,16 @@ public partial class SummonerProgressionService : Node
 		return Math.Max(0, nextLevelXp - summoner.Xp);
 	}
 
+	/// <summary>Get progress towards next level (string overload for GDScript boundary).</summary>
+	public float GetLevelProgress(string summonerId) =>
+		GetLevelProgress(SummonerId.FromString(summonerId));
+
 	/// <summary>Get progress towards next level as a percentage (0.0 - 1.0).</summary>
-	public float GetLevelProgress(string summonerId)
+	public float GetLevelProgress(SummonerId summonerId)
 	{
 		if (_profileRepo == null) return 0f;
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return 0f;
 
 		if (summoner.Level >= MaxLevel)
@@ -217,12 +225,16 @@ public partial class SummonerProgressionService : Node
 	// LEVEL-UP OPERATIONS
 	// =========================================================================
 
+	/// <summary>Check if a summoner can level up (string overload for GDScript boundary).</summary>
+	public bool CanLevelUp(string summonerId) =>
+		CanLevelUp(SummonerId.FromString(summonerId));
+
 	/// <summary>Check if a summoner has enough XP to level up.</summary>
-	public bool CanLevelUp(string summonerId)
+	public bool CanLevelUp(SummonerId summonerId)
 	{
 		if (_profileRepo == null) return false;
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return false;
 
 		if (summoner.Level >= MaxLevel)
@@ -232,15 +244,19 @@ public partial class SummonerProgressionService : Node
 		return summoner.Xp >= nextLevelXp;
 	}
 
+	/// <summary>Level up a summoner (string overload for GDScript boundary).</summary>
+	public bool LevelUpSummoner(string summonerId) =>
+		LevelUpSummoner(SummonerId.FromString(summonerId));
+
 	/// <summary>
 	/// Level up a summoner (requires only XP threshold met - no gold cost).
 	/// Returns true if successful.
 	/// </summary>
-	public bool LevelUpSummoner(string summonerId)
+	public bool LevelUpSummoner(SummonerId summonerId)
 	{
 		if (_profileRepo == null) return false;
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null)
 		{
 			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
@@ -272,7 +288,7 @@ public partial class SummonerProgressionService : Node
 			return false;
 		}
 
-		EmitSignal(SignalName.SummonerLeveledUp, summonerId, newLevel);
+		EmitSignal(SignalName.SummonerLeveledUp, summonerId.Value, newLevel);
 		return true;
 	}
 
@@ -283,14 +299,20 @@ public partial class SummonerProgressionService : Node
 	/// <summary>Get summoner progression info (for UI display).</summary>
 	public Godot.Collections.Dictionary GetSummonerProgressionInfo(string summonerId)
 	{
+		return GetSummonerProgressionInfo(SummonerId.FromString(summonerId));
+	}
+
+	/// <summary>Get summoner progression info (typed).</summary>
+	public Godot.Collections.Dictionary GetSummonerProgressionInfo(SummonerId summonerId)
+	{
 		if (_profileRepo == null) return [];
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return [];
 
 		return new Godot.Collections.Dictionary
 		{
-			["summoner_id"] = summonerId,
+			["summoner_id"] = summonerId.Value,
 			["level"] = summoner.Level,
 			["max_level"] = MaxLevel,
 			["xp"] = summoner.Xp,
@@ -333,25 +355,23 @@ public partial class SummonerProgressionService : Node
 	// TRAIT SELECTION (for level-up)
 	// =========================================================================
 
-	/// <summary>
-	/// Get traits available for a summoner to select at level-up.
-	/// Uses the unified tag-based eligibility system.
-	/// </summary>
-	/// <param name="summonerId">Summoner ID</param>
-	/// <param name="count">Number of traits to return (0 = all eligible)</param>
-	/// <returns>Array of trait dictionaries for UI display</returns>
+	/// <summary>Get traits available for a summoner to select at level-up (string overload for GDScript).</summary>
 	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
-		string summonerId, int count = 3)
+		string summonerId, int count = 3) =>
+		GetAvailableTraitsForSummoner(SummonerId.FromString(summonerId), count);
+
+	/// <summary>Get traits available for a summoner to select at level-up (typed).</summary>
+	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
+		SummonerId summonerId, int count = 3)
 	{
 		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
 
 		if (_profileRepo == null) return result;
 
-		var typedSummonerId = new SummonerId(summonerId);
-		var summoner = _profileRepo.GetSummonerInstance(typedSummonerId);
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return result;
 
-		var summonerDef = SummonerCatalog.GetSummoner(typedSummonerId);
+		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
 		if (summonerDef == null) return result;
 
 		var traits = TraitCatalog.GetAvailableTraitsForLevelUp(
@@ -369,18 +389,16 @@ public partial class SummonerProgressionService : Node
 		return result;
 	}
 
-	/// <summary>
-	/// Acquire a trait for a summoner.
-	/// </summary>
-	/// <param name="summonerId">Summoner ID</param>
-	/// <param name="traitIdString">Trait ID to acquire (as string for GDScript interop)</param>
-	/// <returns>True if successful</returns>
-	public bool AcquireTrait(string summonerId, string traitIdString)
+	/// <summary>Acquire a trait for a summoner (string overload for GDScript boundary).</summary>
+	public bool AcquireTrait(string summonerId, string traitIdString) =>
+		AcquireTrait(SummonerId.FromString(summonerId), TraitId.FromString(traitIdString));
+
+	/// <summary>Acquire a trait for a summoner (typed).</summary>
+	public bool AcquireTrait(SummonerId summonerId, TraitId traitId)
 	{
 		if (_profileRepo == null) return false;
 
-		var traitId = new Data.Traits.TraitId(traitIdString);
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null)
 		{
 			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
@@ -390,15 +408,15 @@ public partial class SummonerProgressionService : Node
 		// Check if already acquired
 		if (summoner.AcquiredTraitIds.Contains(traitId))
 		{
-			GD.PushWarning($"SummonerProgressionService: Trait already acquired: {traitIdString}");
+			GD.PushWarning($"SummonerProgressionService: Trait already acquired: {traitId}");
 			return false;
 		}
 
 		// Verify trait exists
-		var trait = TraitCatalog.GetTrait(traitIdString);
+		var trait = TraitCatalog.GetTrait(traitId.Value);
 		if (trait == null)
 		{
-			GD.PushWarning($"SummonerProgressionService: Trait not found: {traitIdString}");
+			GD.PushWarning($"SummonerProgressionService: Trait not found: {traitId}");
 			return false;
 		}
 
@@ -416,16 +434,18 @@ public partial class SummonerProgressionService : Node
 		return true;
 	}
 
-	/// <summary>
-	/// Get all traits a summoner has acquired.
-	/// </summary>
-	public Godot.Collections.Array<string> GetAcquiredTraits(string summonerId)
+	/// <summary>Get all traits a summoner has acquired (string overload for GDScript).</summary>
+	public Godot.Collections.Array<string> GetAcquiredTraits(string summonerId) =>
+		GetAcquiredTraits(SummonerId.FromString(summonerId));
+
+	/// <summary>Get all traits a summoner has acquired (typed).</summary>
+	public Godot.Collections.Array<string> GetAcquiredTraits(SummonerId summonerId)
 	{
 		var result = new Godot.Collections.Array<string>();
 
 		if (_profileRepo == null) return result;
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return result;
 
 		foreach (var traitId in summoner.AcquiredTraitIds)
@@ -440,15 +460,12 @@ public partial class SummonerProgressionService : Node
 	// STAT COMPUTATION (for GDScript callers)
 	// =========================================================================
 
-	/// <summary>
-	/// Get computed stats for a summoner with all trait modifiers applied.
-	/// Returns a Godot Dictionary with snake_case keys for GDScript consumption.
-	/// </summary>
+	/// <summary>Get computed stats for a summoner with all trait modifiers applied.</summary>
 	public Godot.Collections.Dictionary GetComputedStatsForSummoner(string summonerId)
 	{
 		if (_profileRepo == null) return [];
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(SummonerId.FromString(summonerId));
 		if (summoner == null) return [];
 
 		var stats = summoner.GetComputedStats();
@@ -458,14 +475,12 @@ public partial class SummonerProgressionService : Node
 		return result;
 	}
 
-	/// <summary>
-	/// Get all trait IDs for a summoner (innate + acquired).
-	/// </summary>
+	/// <summary>Get all trait IDs for a summoner (innate + acquired).</summary>
 	public Godot.Collections.Array<string> GetAllTraitIdsForSummoner(string summonerId)
 	{
 		if (_profileRepo == null) return [];
 
-		var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
+		var summoner = _profileRepo.GetSummonerInstance(SummonerId.FromString(summonerId));
 		if (summoner == null) return [];
 
 		var result = new Godot.Collections.Array<string>();

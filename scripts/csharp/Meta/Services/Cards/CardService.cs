@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using Fateforged.Cards;
 using Fateforged.Data;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
@@ -12,8 +13,7 @@ namespace Fateforged.Meta.Cards;
 /// <summary>
 /// Card Service - Unified service for card ownership and progression.
 ///
-/// Combines functionality from CollectionService (ownership) and PlayerCardService (progression).
-/// Uses Facade + Handlers pattern for clean separation of concerns.
+/// String-accepting facade for GDScript; delegates to typed handlers internally.
 /// </summary>
 [GlobalClass]
 public partial class CardService : Node
@@ -114,25 +114,25 @@ public partial class CardService : Node
     /// <summary>Get a specific card instance by ID.</summary>
     public CardInstance? GetCard(string cardInstanceId)
     {
-        return _ownership?.GetCard(cardInstanceId);
+        return _ownership?.GetCard(CardInstanceId.FromString(cardInstanceId));
     }
 
     /// <summary>Get count of cards by catalog ID.</summary>
     public int GetCardCount(string catalogId)
     {
-        return _ownership?.GetCardCount(catalogId) ?? 0;
+        return _ownership?.GetCardCount(CardId.FromString(catalogId)) ?? 0;
     }
 
     /// <summary>Check if player owns at least one of a card.</summary>
     public bool HasCard(string catalogId)
     {
-        return _ownership?.HasCard(catalogId) ?? false;
+        return _ownership?.HasCard(CardId.FromString(catalogId)) ?? false;
     }
 
     /// <summary>Get all instances of a specific catalog ID.</summary>
     public CardInstance[] GetCardsByCatalogId(string catalogId)
     {
-        return _ownership?.GetCardsByCatalogId(catalogId) ?? [];
+        return _ownership?.GetCardsByCatalogId(CardId.FromString(catalogId)) ?? [];
     }
 
     /// <summary>Get all AccountWide cards.</summary>
@@ -144,13 +144,13 @@ public partial class CardService : Node
     /// <summary>Get SummonerBound cards for a specific summoner.</summary>
     public CardInstance[] GetSummonerBoundCards(string summonerId)
     {
-        return _ownership?.GetSummonerBoundCards(summonerId) ?? [];
+        return _ownership?.GetSummonerBoundCards(Data.Summoners.SummonerId.FromString(summonerId)) ?? [];
     }
 
     /// <summary>Get all cards owned by a summoner (AccountWide + SummonerBound).</summary>
     public CardInstance[] GetOwnedCards(string summonerId)
     {
-        return _ownership?.GetOwnedCards(summonerId) ?? [];
+        return _ownership?.GetOwnedCards(Data.Summoners.SummonerId.FromString(summonerId)) ?? [];
     }
 
     /// <summary>Get collection grouped by catalog ID.</summary>
@@ -172,7 +172,8 @@ public partial class CardService : Node
     /// <summary>Grant cards to the player's collection.</summary>
     public string[] GrantCards(IEnumerable<(string catalogId, string rarity)> cards)
     {
-        var instanceIds = _ownership?.GrantCards(cards) ?? [];
+        var typedCards = cards.Select(c => (CardId.FromString(c.catalogId), c.rarity));
+        var instanceIds = _ownership?.GrantCards(typedCards) ?? [];
 
         if (instanceIds.Length > 0)
         {
@@ -182,19 +183,20 @@ public partial class CardService : Node
             EmitSignal(SignalName.CardsGranted, gdArray);
         }
 
-        return instanceIds;
+        return instanceIds.Select(id => (string)id).ToArray();
     }
 
     /// <summary>Grant a single card.</summary>
     public string GrantCard(string catalogId, string rarity = "common")
     {
-        return _ownership?.GrantCard(catalogId, rarity) ?? "";
+        var instanceId = _ownership?.GrantCard(CardId.FromString(catalogId), rarity) ?? CardInstanceId.None;
+        return instanceId;
     }
 
     /// <summary>Remove a card instance from the collection.</summary>
     public bool RemoveCard(string cardInstanceId)
     {
-        var success = _ownership?.RemoveCard(cardInstanceId) ?? false;
+        var success = _ownership?.RemoveCard(CardInstanceId.FromString(cardInstanceId)) ?? false;
         if (success)
         {
             EmitSignal(SignalName.CardRemoved, cardInstanceId);
@@ -215,10 +217,11 @@ public partial class CardService : Node
     /// <summary>Grant XP to a card.</summary>
     public int GrantXp(string cardInstanceId, int amount)
     {
-        var newXp = _progression?.GrantXp(cardInstanceId, amount) ?? 0;
+        var typedId = CardInstanceId.FromString(cardInstanceId);
+        var newXp = _progression?.GrantXp(typedId, amount) ?? 0;
         if (newXp > 0)
         {
-            var card = GetCard(cardInstanceId);
+            var card = _ownership?.GetCard(typedId);
             EmitSignal(SignalName.CardXpChanged, cardInstanceId, newXp, card?.Level ?? 1);
         }
         return newXp;
@@ -227,7 +230,9 @@ public partial class CardService : Node
     /// <summary>Grant XP to multiple cards.</summary>
     public Dictionary<string, int> GrantXpToCards(IEnumerable<string> cardInstanceIds, int amount)
     {
-        return _progression?.GrantXpToCards(cardInstanceIds, amount) ?? [];
+        var typedIds = cardInstanceIds.Select(CardInstanceId.FromString);
+        var typedResults = _progression?.GrantXpToCards(typedIds, amount) ?? [];
+        return typedResults.ToDictionary(kvp => (string)kvp.Key, kvp => kvp.Value);
     }
 
     /// <summary>Grant XP to multiple cards (GDScript-friendly).</summary>
@@ -263,13 +268,13 @@ public partial class CardService : Node
     /// <summary>Get XP needed for next level.</summary>
     public int GetXpToNextLevel(string cardInstanceId)
     {
-        return _progression?.GetXpToNextLevel(cardInstanceId) ?? 0;
+        return _progression?.GetXpToNextLevel(CardInstanceId.FromString(cardInstanceId)) ?? 0;
     }
 
     /// <summary>Get progress toward next level (0.0 - 1.0).</summary>
     public float GetLevelProgress(string cardInstanceId)
     {
-        return _progression?.GetLevelProgress(cardInstanceId) ?? 0f;
+        return _progression?.GetLevelProgress(CardInstanceId.FromString(cardInstanceId)) ?? 0f;
     }
 
     // =========================================================================
@@ -279,13 +284,15 @@ public partial class CardService : Node
     /// <summary>Check if card can level up (has enough XP).</summary>
     public bool CanLevelUp(string cardInstanceId)
     {
-        return _progression?.CanLevelUp(cardInstanceId) ?? false;
+        return _progression?.CanLevelUp(CardInstanceId.FromString(cardInstanceId)) ?? false;
     }
 
     /// <summary>Level up a card with chosen trait (XP-only, no gold cost).</summary>
     public bool LevelUpCard(string cardInstanceId, string traitId)
     {
-        var success = _progression?.LevelUpCard(cardInstanceId, traitId) ?? false;
+        var success = _progression?.LevelUpCard(
+            CardInstanceId.FromString(cardInstanceId),
+            CardTraitId.FromString(traitId)) ?? false;
         if (success)
         {
             var card = GetCard(cardInstanceId);
@@ -302,7 +309,7 @@ public partial class CardService : Node
     /// <summary>Get available traits for card's next level.</summary>
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraits(string cardInstanceId)
     {
-        var traits = _progression?.GetAvailableTraits(cardInstanceId) ?? [];
+        var traits = _progression?.GetAvailableTraits(CardInstanceId.FromString(cardInstanceId)) ?? [];
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var trait in traits)
         {
@@ -319,7 +326,7 @@ public partial class CardService : Node
     /// <summary>Get all traits applied to a card.</summary>
     public Godot.Collections.Array<string> GetAppliedTraits(string cardInstanceId)
     {
-        var traits = _progression?.GetAppliedTraits(cardInstanceId) ?? [];
+        var traits = _progression?.GetAppliedTraits(CardInstanceId.FromString(cardInstanceId)) ?? [];
         var result = new Godot.Collections.Array<string>();
         foreach (var t in traits)
             result.Add(t);
@@ -349,13 +356,13 @@ public partial class CardService : Node
     /// <summary>Get stat modifiers from card's traits (for C# callers).</summary>
     public Dictionary<string, float> GetTraitStatModifiersTyped(string cardInstanceId)
     {
-        return _progression?.GetTraitStatModifiers(cardInstanceId) ?? [];
+        return _progression?.GetTraitStatModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
     }
 
     /// <summary>Get stat modifiers from card's traits (for GDScript callers).</summary>
     public Godot.Collections.Dictionary GetTraitStatModifiers(string cardInstanceId)
     {
-        var mods = _progression?.GetTraitStatModifiers(cardInstanceId) ?? [];
+        var mods = _progression?.GetTraitStatModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
         var result = new Godot.Collections.Dictionary();
         foreach (var (stat, mult) in mods)
             result[stat] = mult;
@@ -369,7 +376,7 @@ public partial class CardService : Node
     /// <summary>Get card progression info.</summary>
     public Godot.Collections.Dictionary GetCardProgressionInfoDict(string cardInstanceId)
     {
-        var info = _progression?.GetCardProgressionInfo(cardInstanceId);
+        var info = _progression?.GetCardProgressionInfo(CardInstanceId.FromString(cardInstanceId));
         if (info == null)
             return [];
 

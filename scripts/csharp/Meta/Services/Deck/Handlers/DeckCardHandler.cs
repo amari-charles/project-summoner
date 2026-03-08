@@ -2,12 +2,12 @@ using System;
 using System.Linq;
 using Godot;
 using Fateforged.Cards;
-using DeckModel = Fateforged.Domain.Profile.Decks.Deck;
 
 namespace Fateforged.Meta.Deck.Handlers;
 
 /// <summary>
 /// Handles deck card operations: add/remove cards, clean deck.
+/// Fully typed API — facades handle string conversion.
 /// </summary>
 public class DeckCardHandler
 {
@@ -28,7 +28,7 @@ public class DeckCardHandler
     /// Add a card to a deck.
     /// Returns true if successful.
     /// </summary>
-    public bool AddCardToDeck(string deckId, string cardInstanceId, Func<string, string, bool>? cardOwnershipChecker = null)
+    public bool AddCardToDeck(DeckId deckId, CardInstanceId cardInstanceId, Func<string, string, bool>? cardOwnershipChecker = null)
     {
         var deck = _crud.GetDeck(deckId);
         if (deck == null)
@@ -45,8 +45,7 @@ public class DeckCardHandler
         }
 
         // Check if already in deck
-        var typedCardId = new CardInstanceId(cardInstanceId);
-        if (deck.CardInstanceIds.Contains(typedCardId))
+        if (deck.CardInstanceIds.Contains(cardInstanceId))
         {
             GD.PushWarning($"DeckCardHandler: Card instance already in deck: {cardInstanceId}");
             return false;
@@ -59,7 +58,7 @@ public class DeckCardHandler
             return false;
         }
 
-        var newCards = deck.CardInstanceIds.Select(id => (string)id).ToList();
+        var newCards = deck.CardInstanceIds.ToList();
         newCards.Add(cardInstanceId);
 
         return _crud.UpdateDeck(deckId, cardInstanceIds: [.. newCards]);
@@ -69,7 +68,7 @@ public class DeckCardHandler
     /// Remove a card from a deck.
     /// Returns true if successful.
     /// </summary>
-    public bool RemoveCardFromDeck(string deckId, string cardInstanceId)
+    public bool RemoveCardFromDeck(DeckId deckId, CardInstanceId cardInstanceId)
     {
         var deck = _crud.GetDeck(deckId);
         if (deck == null)
@@ -78,15 +77,14 @@ public class DeckCardHandler
             return false;
         }
 
-        var typedCardId = new CardInstanceId(cardInstanceId);
-        var index = deck.CardInstanceIds.IndexOf(typedCardId);
+        var index = deck.CardInstanceIds.IndexOf(cardInstanceId);
         if (index == -1)
         {
             GD.PushWarning($"DeckCardHandler: Card not found in deck: {cardInstanceId}");
             return false;
         }
 
-        var newCards = deck.CardInstanceIds.Select(id => (string)id).ToList();
+        var newCards = deck.CardInstanceIds.ToList();
         newCards.RemoveAt(index);
 
         return _crud.UpdateDeck(deckId, cardInstanceIds: [.. newCards]);
@@ -96,7 +94,7 @@ public class DeckCardHandler
     /// Clean a deck by removing cards not owned by the deck's summoner.
     /// Returns number of cards removed.
     /// </summary>
-    public int CleanDeck(string deckId, Func<string, string, bool>? cardOwnershipChecker = null)
+    public int CleanDeck(DeckId deckId, Func<string, string, bool>? cardOwnershipChecker = null)
     {
         var deck = _crud.GetDeck(deckId);
         if (deck == null) return 0;
@@ -112,7 +110,7 @@ public class DeckCardHandler
 
         if (removedCount > 0)
         {
-            _crud.UpdateDeck(deckId, cardInstanceIds: validCards.Select(id => (string)id).ToArray());
+            _crud.UpdateDeck(deckId, cardInstanceIds: [.. validCards]);
             GD.Print($"DeckCardHandler: Cleaned deck '{deckId}', removed {removedCount} cards not owned by summoner");
         }
 

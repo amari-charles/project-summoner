@@ -11,6 +11,7 @@ namespace Fateforged.Meta.Cards.Handlers;
 
 /// <summary>
 /// Handles card ownership operations: granting, removing, and querying cards.
+/// Fully typed API — facades handle string conversion.
 /// </summary>
 public class CardOwnershipHandler
 {
@@ -34,11 +35,10 @@ public class CardOwnershipHandler
     }
 
     /// <summary>Get SummonerBound cards for a specific summoner.</summary>
-    public CardInstance[] GetSummonerBoundCards(string summonerId)
+    public CardInstance[] GetSummonerBoundCards(SummonerId summonerId)
     {
-        var typedSummonerId = new SummonerId(summonerId);
         return _profileRepo.ListCards()
-            .Where(c => c.Binding == ContentBinding.SummonerBound && c.BoundToSummonerId == typedSummonerId)
+            .Where(c => c.Binding == ContentBinding.SummonerBound && c.BoundToSummonerId == summonerId)
             .ToArray();
     }
 
@@ -46,7 +46,7 @@ public class CardOwnershipHandler
     /// Get all cards owned by a summoner based on binding rules.
     /// Returns AccountWide cards + SummonerBound cards bound to this summoner.
     /// </summary>
-    public CardInstance[] GetOwnedCards(string summonerId)
+    public CardInstance[] GetOwnedCards(SummonerId summonerId)
     {
         return GetAccountWideCards()
             .Concat(GetSummonerBoundCards(summonerId))
@@ -64,28 +64,27 @@ public class CardOwnershipHandler
     }
 
     /// <summary>Get a specific card instance by ID.</summary>
-    public CardInstance? GetCard(string cardInstanceId)
+    public CardInstance? GetCard(CardInstanceId cardInstanceId)
     {
-        return _profileRepo.GetCard(new CardInstanceId(cardInstanceId));
+        return _profileRepo.GetCard(cardInstanceId);
     }
 
     /// <summary>Get count of cards by catalog ID.</summary>
-    public int GetCardCount(string catalogId)
+    public int GetCardCount(CardId catalogId)
     {
-        return _profileRepo.GetCardCount(new CardId(catalogId));
+        return _profileRepo.GetCardCount(catalogId);
     }
 
     /// <summary>Check if player owns at least one of a card.</summary>
-    public bool HasCard(string catalogId)
+    public bool HasCard(CardId catalogId)
     {
         return GetCardCount(catalogId) > 0;
     }
 
     /// <summary>Get all instances of a specific catalog ID.</summary>
-    public CardInstance[] GetCardsByCatalogId(string catalogId)
+    public CardInstance[] GetCardsByCatalogId(CardId catalogId)
     {
-        var typedCatalogId = new CardId(catalogId);
-        return _profileRepo.ListCards().Where(c => c.CatalogId == typedCatalogId).ToArray();
+        return _profileRepo.ListCards().Where(c => c.CatalogId == catalogId).ToArray();
     }
 
     /// <summary>
@@ -131,10 +130,10 @@ public class CardOwnershipHandler
     /// Grant cards to the player's collection.
     /// Returns array of created card instance IDs.
     /// </summary>
-    public string[] GrantCards(IEnumerable<(string catalogId, string rarity)> cards)
+    public CardInstanceId[] GrantCards(IEnumerable<(CardId catalogId, string rarity)> cards)
     {
         // Validate all cards exist in catalog
-        var validCards = new List<(string catalogId, string rarity)>();
+        var validCards = new List<(CardId catalogId, string rarity)>();
         foreach (var (catalogId, rarity) in cards)
         {
             if (CardCatalog.HasCard(catalogId))
@@ -153,31 +152,30 @@ public class CardOwnershipHandler
             return [];
         }
 
-        var typedCards = validCards.Select(c => (new CardId(c.catalogId), c.rarity));
-        var instanceIds = _profileRepo.GrantCards(typedCards);
+        var instanceIds = _profileRepo.GrantCards(validCards);
 
         GD.Print($"CardOwnershipHandler: Granted {instanceIds.Length} cards (requested: {cards.Count()}, valid: {validCards.Count})");
 
-        return instanceIds.Select(id => (string)id).ToArray();
+        return instanceIds;
     }
 
     /// <summary>
     /// Grant a single card (convenience method).
     /// Returns the card instance ID.
     /// </summary>
-    public string GrantCard(string catalogId, string rarity = "common")
+    public CardInstanceId GrantCard(CardId catalogId, string rarity = "common")
     {
         var instanceIds = GrantCards([(catalogId, rarity)]);
-        return instanceIds.Length > 0 ? instanceIds[0] : "";
+        return instanceIds.Length > 0 ? instanceIds[0] : CardInstanceId.None;
     }
 
     /// <summary>
     /// Remove a card instance from the collection.
     /// Returns true if successful.
     /// </summary>
-    public bool RemoveCard(string cardInstanceId)
+    public bool RemoveCard(CardInstanceId cardInstanceId)
     {
-        var success = _profileRepo.RemoveCard(new CardInstanceId(cardInstanceId));
+        var success = _profileRepo.RemoveCard(cardInstanceId);
 
         if (success)
         {
