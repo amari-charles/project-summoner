@@ -19,17 +19,16 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Audit Sync (2026-03-05, evening):** Moved completed camera boundary/pan task to `todos-completed.md` based on merged camera bounds fixes (`#267`) and unit tests; updated directional/cone attack TODO to reflect partial completion (cone gating in targeting is shipped, hitbox-shape work remains).
 **Tracker Sync (2026-03-08):** Moved completed typed-internal service handler refactor and loading-screen preloading work to `todos-completed.md`; updated blocked-idle investigation and `_PhysicsProcess` throttling entries to reflect merged movement/perf commits and remaining verification scope.
 **Tracker Sync (2026-03-08, late):** Added missing completion records for GDScript typed-API safety migration (`#288`) and StringName-safe coercion sweep (`#290`) to `todos-completed.md`; active queue unchanged aside from status notes.
+**Tracker Sync (2026-03-08, final):** Closed blocked-unit idle freeze item after manual signoff; moved remaining notes to `todos-completed.md` and refreshed AI priority queue to only open items.
 
 ---
 
-## AI-First Priority Queue (2026-03-08)
+## AI-First Priority Queue (2026-03-08, final)
 
-1. Finalize blocked-unit idle freeze closure (broad battle repro pass + tracker close)
-   Why first: Core movement fixes and deterministic tests landed, but explicit gameplay repro closure is still pending.
-2. Audit sim/visual desync points in battle flow
-   Why second: High-priority correctness work that reduces hard-to-debug runtime drift.
-3. Continue hot-path throttling in `_PhysicsProcess`
-   Why third: Recent movement/perf fixes landed, but full scale-target optimization plan is not complete yet.
+1. Audit sim/visual desync points in battle flow
+   Why first: High-priority correctness work that reduces hard-to-debug runtime drift.
+2. Continue hot-path throttling in `_PhysicsProcess`
+   Why second: Recent movement/perf fixes landed, but full scale-target optimization plan is not complete yet.
 
 ---
 
@@ -125,37 +124,6 @@ Defense reduction is now active in `SimDamage` via `PhysicalDefense`/`MagicDefen
 - `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - Damage calculation
 - `scripts/csharp/Infrastructure/Data/Units/DamageProfile.cs` - Physical/elemental ratio
 - `scripts/csharp/Infrastructure/Data/Units/UnitDefinition.cs` - DamageProfile property
-
----
-
-#### Investigate Units Getting Stuck in Idle When Blocked
-**Status:** 🔄 In Progress (Core movement/block-reset fixes landed; final repro closure pending)
-**Category:** Units & Combat / Pathfinding
-**Effort:** Medium
-**Priority:** 🔴 High
-
-**Description:**
-Puff units (and possibly other units) get stuck in idle when blocked by other characters. They don't move forward or find alternate positions. Affects both top and bottom units in formations - they may be stuck in pathfinding mode rather than truly idle.
-
-**Progress Update (2026-03-08):**
-- ✅ Shipped movement pipeline revamp and blocked-nav reset edge-case fix
-- ✅ Added deterministic coverage (`tests/csharp/Simulation/BlockedUnitReproTest.cs`)
-- 🔄 Pending manual in-battle regression sweep to explicitly close bug tracker entry
-
-**Investigation Areas:**
-- Why do blocked units stop trying to move?
-- Are units stuck in a pathfinding state? (not truly idle)
-- Is the flanking/pathfinding logic triggering correctly?
-- Is collision preventing all movement attempts?
-- Do units have a target but fail to path to attack range?
-- Is there a timeout or failure state in pathfinding that leaves units frozen?
-
-**Related Bug:** See bugs.md "Puff Units Get Stuck in Idle When Blocked by Other Units"
-
-**Related Files:**
-- scripts/csharp/Battle/View/UnitVisual.cs (visual shell / movement sync)
-- scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs (behavior logic, formerly in Unit3D/RangedUnit3D)
-- Blocked detection / flanking systems
 
 ---
 

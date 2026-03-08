@@ -6,6 +6,30 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+### Investigate Units Getting Stuck in Idle When Blocked
+**Completed:** 2026-03-08
+**Category:** Units & Combat / Pathfinding
+**Effort:** Medium
+
+Closed blocked-unit idle freeze follow-through after movement pipeline fixes, deterministic regression coverage, and manual validation signoff.
+
+**Resolution Summary:**
+- ✅ Movement/block reset fixes merged in movement pipeline refactor
+- ✅ Deterministic repro coverage added (`tests/csharp/Simulation/BlockedUnitReproTest.cs`)
+- ✅ Manual in-battle verification signoff completed (tracker close)
+
+**PR/Commit Context:**
+- PR `#287` (`refactor(simulation): movement intent + ORCA pipeline and stability fixes`)
+- Commit `27462750` (blocked-nav reset edge-case fix)
+
+**Representative Files Changed:**
+- `scripts/csharp/Battle/Simulation/Movement/BlockedNavigationController.cs`
+- `scripts/csharp/Battle/Simulation/Movement/SimMovement.cs`
+- `scripts/csharp/Battle/Simulation/Movement/SimSteering.cs`
+- `tests/csharp/Simulation/BlockedUnitReproTest.cs`
+
+---
+
 ### Eliminate Remaining GDScript Unsafe Variant Access Warnings
 **Completed:** 2026-03-08
 **Category:** Architecture / Type Safety

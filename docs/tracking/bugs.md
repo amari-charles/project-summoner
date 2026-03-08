@@ -9,6 +9,7 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 **Audit Sync (2026-03-05, evening):** Re-opened Puff pivot/flip bug after repro confirmation; migrated to metadata-driven pivot alignment and moved to resolved after validation. Blocked-idle and headless leak issues remain active pending explicit repro closure.
 **Tracker Sync (2026-03-08):** Blocked-idle issue moved to verification after movement pipeline + blocked-nav reset fixes and deterministic repro coverage landed; headless leak remains open/cosmetic.
 **Tracker Sync (2026-03-08, late):** Added resolved biome/checkerboard regression caused by StringName coercion mismatch to `bugs-resolved.md` (PR `#290`).
+**Tracker Sync (2026-03-08, final):** Closed blocked-idle bug after manual signoff; moved full entry to `bugs-resolved.md`.
 
 ---
 
@@ -43,47 +44,6 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 - scripts/battle/vfx/vfx_manager.gd
 - scripts/csharp/Battle/View/EntityManager.cs (HP bar lifecycle)
 - scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs
-
----
-
-#### Puff Units Get Stuck in Idle When Blocked by Other Units
-**Status:** In Verification
-**Reported:** 2026-01-05
-**Component:** Units / Pathfinding / Movement
-
-![Units stuck in idle when blocked](images/bug-units-stuck-idle-blocked.png)
-
-**Description:**
-Puff units get stuck in idle state when other characters are blocking their path. They don't attempt to move forward or find an alternate route to get into attack range. Affects units at both top and bottom of formations - possibly stuck in pathfinding mode.
-
-**Expected Behavior:**
-Units should navigate around obstacles or push forward to find a valid attack position.
-
-**Current Behavior:**
-- Units remain stuck in idle animation
-- They don't attempt to path around blocking units
-- Affects both top and bottom units in formation (not just back units)
-- Units may be stuck in pathfinding state rather than truly idle
-- Units have valid targets but can't reach them
-
-**Impact:**
-Reduces effective army size as blocked units don't contribute to combat.
-
-**Possible Causes:**
-- Pathfinding giving up too early when blocked
-- No "push through" or flanking behavior when stuck
-- Collision detection preventing movement entirely
-- Target acquisition succeeding but movement failing
-
-**Verification Update (2026-03-08):**
-- Merged movement pipeline + blocked-nav reset edge-case fix (`27462750`)
-- Added deterministic regression test coverage (`tests/csharp/Simulation/BlockedUnitReproTest.cs`)
-- Remaining closure criteria: explicit manual repro confirmation in live battle scenarios (mixed formations/top-bottom lanes)
-
-**Related Files:**
-- scripts/csharp/Battle/View/UnitVisual.cs (visual shell / movement sync)
-- scripts/csharp/Battle/Simulation/SimBehavior.cs (behavior logic, formerly in RangedUnit3D)
-- Blocked detection / flanking logic
 
 ---
 
@@ -124,4 +84,4 @@ Additional context
 ```
 
 ---
-*Last Updated: 2026-03-08 (late) - Added missing resolved regression entry for biome/checkerboard visuals (PR #290)*
+*Last Updated: 2026-03-08 (final) - Closed blocked-idle bug and moved to resolved archive*
