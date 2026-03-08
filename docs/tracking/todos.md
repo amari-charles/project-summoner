@@ -18,6 +18,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-05):** Removed completed `Replace /root/VFXManager Lookup in ProjectileVisual`, moved Puff target-stickiness work to completed (PR `#270`), and removed Wisp single-target verification from active queue after post-refactor validation.
 **Audit Sync (2026-03-05, evening):** Moved completed camera boundary/pan task to `todos-completed.md` based on merged camera bounds fixes (`#267`) and unit tests; updated directional/cone attack TODO to reflect partial completion (cone gating in targeting is shipped, hitbox-shape work remains).
 **Tracker Sync (2026-03-08):** Moved completed typed-internal service handler refactor and loading-screen preloading work to `todos-completed.md`; updated blocked-idle investigation and `_PhysicsProcess` throttling entries to reflect merged movement/perf commits and remaining verification scope.
+**Tracker Sync (2026-03-08, late):** Added missing completion records for GDScript typed-API safety migration (`#288`) and StringName-safe coercion sweep (`#290`) to `todos-completed.md`; active queue unchanged aside from status notes.
 
 ---
 
