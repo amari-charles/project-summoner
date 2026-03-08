@@ -6,6 +6,35 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### Puff Units Get Stuck in Idle When Blocked by Other Units
+**Resolved:** 2026-03-08
+**Component:** Units / Pathfinding / Movement
+
+![Units stuck in idle when blocked](images/bug-units-stuck-idle-blocked.png)
+
+**Description:**
+Puff units could get stuck in idle/pathfinding failure states when blocked by other units, reducing effective army participation.
+
+**Root Cause:**
+Blocked-navigation reset and movement intent handling had edge cases that could leave units in non-advancing behavior loops under congestion.
+
+**Solution Implemented:**
+1. Reworked movement intent + blocked-navigation pipeline and fixed blocked-reset edge case.
+2. Added deterministic regression coverage for the blocked-unit repro scenario.
+3. Completed manual in-battle validation signoff (mixed formations/top-bottom lane congestion).
+
+**PR/Commit Context:**
+- PR `#287` (`refactor(simulation): movement intent + ORCA pipeline and stability fixes`)
+- Commit `27462750` (blocked-nav reset edge-case fix)
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Movement/BlockedNavigationController.cs`
+- `scripts/csharp/Battle/Simulation/Movement/SimMovement.cs`
+- `scripts/csharp/Battle/Simulation/Movement/SimSteering.cs`
+- `tests/csharp/Simulation/BlockedUnitReproTest.cs`
+
+---
+
 ### Battlefield Ground Checker/Biome Visuals Regress to Default
 **Resolved:** 2026-03-08
 **Component:** Battlefield / Biome Visuals / GDScript Interop

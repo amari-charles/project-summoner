@@ -3,6 +3,8 @@ namespace Fateforged.Tests.View;
 using System.Collections.Generic;
 using System.Reflection;
 using Fateforged.Session;
+using Fateforged.Simulation.Enums;
+using Fateforged.Simulation;
 using Fateforged.View;
 using GdUnit4;
 using Godot;
@@ -68,6 +70,52 @@ public class BattleSceneTest
         AssertThat(GetPrivateField<int?>(scene, "_pendingCompletionWinnerTeam").HasValue).IsFalse();
     }
 
+    [TestCase]
+    public void StartGame_DedupesRepeatedPhaseSignals()
+    {
+        var scene = CreateBattleScene();
+        var simNode = CreateSimulationNode();
+        simNode.GetState().Phase = GamePhase.Battle;
+        var phases = new List<int>();
+        scene.Connect(BattleScene.SignalName.PhaseChanged, Callable.From<int>(phase => phases.Add(phase)));
+
+        scene.StartGame();
+        scene.StartGame();
+
+        AssertThat(phases.Count).IsEqual(1);
+        AssertThat(phases[0]).IsEqual((int)BattleScene.BattlePhase.Battle);
+    }
+
+    [TestCase]
+    public void StartGame_MapsPreparationPhase_FromSimulation()
+    {
+        var scene = CreateBattleScene();
+        var simNode = CreateSimulationNode();
+        simNode.GetState().Phase = GamePhase.Preparation;
+        var phases = new List<int>();
+        scene.Connect(BattleScene.SignalName.PhaseChanged, Callable.From<int>(phase => phases.Add(phase)));
+
+        scene.StartGame();
+
+        AssertThat(phases.Count).IsEqual(1);
+        AssertThat(phases[0]).IsEqual((int)BattleScene.BattlePhase.Preparation);
+    }
+
+    [TestCase]
+    public void StartGame_MapsGameOverPhase_ToBattleUiPhase()
+    {
+        var scene = CreateBattleScene();
+        var simNode = CreateSimulationNode();
+        simNode.GetState().Phase = GamePhase.GameOver;
+        var phases = new List<int>();
+        scene.Connect(BattleScene.SignalName.PhaseChanged, Callable.From<int>(phase => phases.Add(phase)));
+
+        scene.StartGame();
+
+        AssertThat(phases.Count).IsEqual(1);
+        AssertThat(phases[0]).IsEqual((int)BattleScene.BattlePhase.Battle);
+    }
+
     private BattleScene CreateBattleScene()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -81,6 +129,17 @@ public class BattleSceneTest
         return scene;
     }
 
+    private SimulationNode CreateSimulationNode()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var simNode = new SimulationNode { Name = $"SimulationNodeTest_{_createdNodes.Count}" };
+        root.AddChild(simNode);
+        _createdNodes.Add(simNode);
+        return simNode;
+    }
+
     private static T GetPrivateField<T>(object target, string fieldName)
     {
         var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -92,4 +151,5 @@ public class BattleSceneTest
         var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(target, value);
     }
+
 }

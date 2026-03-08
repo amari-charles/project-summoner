@@ -313,11 +313,6 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         EmitSignal(SignalName.SummonerDamaged, this, damage);
     }
 
-    public void OnSummonerDestroyed()
-    {
-        EmitSignal(SignalName.SummonerDestroyed, this);
-    }
-
     public void OnDeckRecycled()
     {
         // Card count not available from DeckRecycledEvent (only carries Team) — pass 0 as stub
