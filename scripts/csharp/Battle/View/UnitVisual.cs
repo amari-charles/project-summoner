@@ -181,8 +181,15 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             _visual?.SetFlipH(_isFacingRight);
         }
 
-        // Animation from BehaviorState (attack anim timer has priority)
-        if (unitData.AttackAnimationTimer > 0f && _attackAnimTimer <= 0f)
+        bool isActive = unitData.ActivationState == ActivationState.Active;
+
+        // Keep visuals aligned with simulation activation state.
+        // Inactive units should not play attack/walk animations.
+        if (!isActive)
+            _attackAnimTimer = 0f;
+
+        // Animation from BehaviorState (attack anim timer has priority while active)
+        if (isActive && unitData.AttackAnimationTimer > 0f && _attackAnimTimer <= 0f)
             PlayAttackAnimation();
 
         if (_attackAnimTimer > 0)
@@ -191,7 +198,9 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         }
         else if (_visual != null)
         {
-            string desiredMoveAnim = unitData.BehaviorState switch
+            string desiredMoveAnim = !isActive
+                ? "idle"
+                : unitData.BehaviorState switch
             {
                 BehaviorState.Attacking => "idle",
                 BehaviorState.InRange => "idle",
