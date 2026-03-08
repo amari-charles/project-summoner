@@ -93,10 +93,12 @@ func _load_summoner_cards() -> void:
 
 	# Store IDs and find active summoner index
 	for summoner_id: Variant in unlocked_ids:
-		if summoner_id is String:
-			_summoner_ids.append(summoner_id)
-			if summoner_id == _active_summoner_id:
-				_current_index = _summoner_ids.size() - 1
+		var summoner_id_str: String = SafeTypeUtils.string(summoner_id, "")
+		if summoner_id_str.is_empty():
+			continue
+		_summoner_ids.append(summoner_id_str)
+		if summoner_id_str == _active_summoner_id:
+			_current_index = _summoner_ids.size() - 1
 
 	# Create cards for visible range
 	_create_visible_cards()

@@ -14,7 +14,11 @@ extends RefCounted
 
 ## Extract a String from a Variant, returning default if not a String
 static func string(variant: Variant, default: String = "") -> String:
-	return variant if variant is String else default
+	if variant is String:
+		return variant
+	if variant is StringName:
+		return String(variant)
+	return default
 
 
 ## Extract an int from a Variant, returning default if not an int

@@ -42,9 +42,10 @@ class Element:
 		# Compare with another Element
 		if other is Element:
 			return id == other.id
-		# Compare with string
-		elif other is String:
-			return id == other
+		# Compare with string-like values (String/StringName)
+		var other_id: String = SafeTypeUtils.string(other, "")
+		if not other_id.is_empty():
+			return id == other_id
 		return false
 
 	## Check if this element should match a given affinity (including origin check)
@@ -56,8 +57,9 @@ class Element:
 		if origin_element != null:
 			if affinity is Element:
 				return origin_element.id == affinity.id
-			elif affinity is String:
-				return origin_element.id == affinity
+			var affinity_id: String = SafeTypeUtils.string(affinity, "")
+			if not affinity_id.is_empty():
+				return origin_element.id == affinity_id
 		return false
 
 ## =============================================================================
@@ -267,83 +269,73 @@ func from_string(element_id: String) -> Element:
 		push_error("ElementTypes: Unknown element ID '%s' - this will cause errors downstream!" % element_id)
 	return element
 
+
+func _element_id_from_variant(element: Variant) -> String:
+	if element is Element:
+		return element.id
+	return SafeTypeUtils.string(element, "")
+
 ## Check if a string or Element is valid
 func is_valid(element: Variant) -> bool:
-	if element is Element:
-		return element in get_all_elements()
-	elif element is String:
-		var element_str: String = element
-		return from_string(element_str) != null
-	return false
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return false
+	return from_string(element_str) != null
 
 ## Check if element is a core element
 func is_core(element: Variant) -> bool:
-	if element is Element:
-		return element.category == ElementCategoryIds.CORE
-	elif element is String:
-		var element_str: String = element
-		var elem: Element = from_string(element_str)
-		return elem != null and elem.category == ElementCategoryIds.CORE
-	return false
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return false
+	var elem: Element = from_string(element_str)
+	return elem != null and elem.category == ElementCategoryIds.CORE
 
 ## Check if element is an outer element
 func is_outer(element: Variant) -> bool:
-	if element is Element:
-		return element.category == ElementCategoryIds.OUTER
-	elif element is String:
-		var element_str: String = element
-		var elem: Element = from_string(element_str)
-		return elem != null and elem.category == ElementCategoryIds.OUTER
-	return false
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return false
+	var elem: Element = from_string(element_str)
+	return elem != null and elem.category == ElementCategoryIds.OUTER
 
 ## Check if element is elevated
 func is_elevated(element: Variant) -> bool:
-	if element is Element:
-		return element.category == ElementCategoryIds.ELEVATED
-	elif element is String:
-		var element_str: String = element
-		var elem: Element = from_string(element_str)
-		return elem != null and elem.category == ElementCategoryIds.ELEVATED
-	return false
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return false
+	var elem: Element = from_string(element_str)
+	return elem != null and elem.category == ElementCategoryIds.ELEVATED
 
 ## Get display name for element
 func get_display_name(element: Variant) -> String:
-	if element is Element:
-		return element.display_name
-	elif element is String:
-		var element_str: String = element
-		var elem: Element = from_string(element_str)
-		return elem.display_name if elem != null else element_str.capitalize()
-	return str(element)
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return str(element)
+	var elem: Element = from_string(element_str)
+	return elem.display_name if elem != null else element_str.capitalize()
 
 ## Get description for element
 func get_description(element: Variant) -> String:
-	if element is Element:
-		return element.description
-	elif element is String:
-		var element_str: String = element
-		var elem: Element = from_string(element_str)
-		return elem.description if elem != null else "Unknown element"
-	return "Unknown element"
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return "Unknown element"
+	var elem: Element = from_string(element_str)
+	return elem.description if elem != null else "Unknown element"
 
 ## Get origin element (for elevated elements)
 func get_origin(element: Variant) -> Element:
-	if element is Element:
-		return element.origin_element
-	elif element is String:
-		var element_str: String = element
-		var elem: Element = from_string(element_str)
-		return elem.origin_element if elem != null else null
-	return null
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return null
+	var elem: Element = from_string(element_str)
+	return elem.origin_element if elem != null else null
 
 ## Check if element can be elevated (is a base that has elevated form)
 func can_elevate(element: Variant) -> bool:
-	var elem: Element = null
-	if element is Element:
-		elem = element
-	elif element is String:
-		var element_str: String = element
-		elem = from_string(element_str)
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return false
+	var elem: Element = from_string(element_str)
 
 	if elem == null:
 		return false
@@ -355,12 +347,10 @@ func can_elevate(element: Variant) -> bool:
 
 ## Get elevated form of an element (if one exists)
 func get_elevation(element: Variant) -> Element:
-	var elem: Element = null
-	if element is Element:
-		elem = element
-	elif element is String:
-		var element_str: String = element
-		elem = from_string(element_str)
+	var element_str: String = _element_id_from_variant(element)
+	if element_str.is_empty():
+		return null
+	var elem: Element = from_string(element_str)
 
 	if elem == null:
 		return null
@@ -436,20 +426,12 @@ const ELEMENT_SYMBOLS: Dictionary = {
 
 ## Get UI color for an element
 func get_color(element: Variant) -> Color:
-	var element_id: String = ""
-	if element is Element:
-		element_id = element.id
-	elif element is String:
-		element_id = element
+	var element_id: String = _element_id_from_variant(element)
 	return ELEMENT_COLORS.get(element_id, ELEMENT_COLORS["neutral"])
 
 ## Get UI symbol for an element
 func get_symbol(element: Variant) -> String:
-	var element_id: String = ""
-	if element is Element:
-		element_id = element.id
-	elif element is String:
-		element_id = element
+	var element_id: String = _element_id_from_variant(element)
 	return ELEMENT_SYMBOLS.get(element_id, "?")
 
 ## =============================================================================

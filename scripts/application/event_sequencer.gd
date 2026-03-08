@@ -53,7 +53,7 @@ func play_sequence(sequence: Resource) -> void:  # EventSequence parameter
 		push_error("EventSequencer: Tried to play null sequence")
 		return
 
-	var seq_id: String = sequence.get("sequence_id") if sequence.get("sequence_id") is String else "unknown"
+	var seq_id: String = SafeTypeUtils.string(sequence.get("sequence_id"), "unknown")
 	var step_count_val: Variant = sequence.call("get_step_count")
 	var step_count: int = SafeTypeUtils.int_val(step_count_val, 0)
 
@@ -75,7 +75,7 @@ func play_sequence(sequence: Resource) -> void:  # EventSequence parameter
 			continue
 		var step: Resource = step_result if step_result is Resource else Resource.new()
 
-		var step_desc: String = step.get("description") if step.get("description") is String else "no description"
+		var step_desc: String = SafeTypeUtils.string(step.get("description"), "no description")
 		var step_type: int = SafeTypeUtils.int_val(step.get("step_type"), 0)
 		var step_type_name: String = EventStepClass.StepType.keys()[step_type] if EventStepClass else "unknown"
 
@@ -500,7 +500,7 @@ func stop_sequence() -> void:
 
 	var stopped_sequence: Resource = current_sequence
 	var sequence_id_val: Variant = stopped_sequence.get("sequence_id") if stopped_sequence else ""
-	var sequence_id: String = sequence_id_val if sequence_id_val is String else "unknown"
+	var sequence_id: String = SafeTypeUtils.string(sequence_id_val, "unknown")
 
 	if debug_mode:
 		print("EventSequencer: Stopping sequence '%s' (emergency stop)" % sequence_id)

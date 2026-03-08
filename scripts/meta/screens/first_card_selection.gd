@@ -47,7 +47,7 @@ func _on_card_selected(catalog_id: StringName) -> void:
 			var summoner_id: String = _get_first_unlocked_summoner()
 			if Decks.has_method("CreateDeckFromDict"):
 				var result: Variant = DecksApi.create_deck_from_dict(_DeckConstants.STARTER_DECK_NAME, [card_instance_id], summoner_id)
-				deck_id = result if result is String else ""
+				deck_id = SafeTypeUtils.string(result, "")
 
 		# Set as active deck
 		if deck_id != "":

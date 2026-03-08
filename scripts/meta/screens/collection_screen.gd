@@ -197,8 +197,7 @@ func _refresh_deck_list() -> void:
 	var active_deck_id: String = ""
 	if Decks.has_method("GetActiveDeckId"):
 		var active_id: Variant = DecksApi.get_active_deck_id()
-		if active_id is String:
-			active_deck_id = active_id
+		active_deck_id = SafeTypeUtils.string(active_id, "")
 
 	# Create deck items
 	for deck_item: Variant in deck_list_result:
@@ -326,10 +325,11 @@ func _refresh_deck_panel() -> void:
 
 	# Populate deck cards
 	for card_id: Variant in card_ids:
-		if not card_id is String:
+		var card_id_str: String = SafeTypeUtils.string(card_id, "")
+		if card_id_str.is_empty():
 			continue
 
-		var card_data: Dictionary = CardServiceApi.get_card_dict(card_id)
+		var card_data: Dictionary = CardServiceApi.get_card_dict(card_id_str)
 		if card_data.is_empty():
 			continue
 
@@ -346,7 +346,7 @@ func _refresh_deck_panel() -> void:
 		widget.tooltip_text = Loc.t("ui.collection.deck_card_remove_tooltip")
 
 		# Set progression info for level badge and XP bar
-		var prog_info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_id)
+		var prog_info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_id_str)
 		if not prog_info.is_empty():
 			widget.set_progression(prog_info)
 
@@ -545,8 +545,9 @@ func _get_selected_deck_card_ids() -> Array[String]:
 
 	var card_ids: Array = deck_result.get("card_instance_ids", [])
 	for card_id: Variant in card_ids:
-		if card_id is String:
-			result.append(card_id)
+		var card_id_str: String = SafeTypeUtils.string(card_id, "")
+		if not card_id_str.is_empty():
+			result.append(card_id_str)
 
 	return result
 

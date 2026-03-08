@@ -102,7 +102,7 @@ func _start_event() -> void:
 
 ## Event sequence completed
 func _on_event_sequence_complete(sequence: Resource) -> void:
-	var sequence_id: String = sequence.get("sequence_id") if sequence.get("sequence_id") is String else "unknown"
+	var sequence_id: String = SafeTypeUtils.string(sequence.get("sequence_id"), "unknown")
 	print("EventScreen: Event sequence completed: %s" % sequence_id)
 
 	# Disconnect signal

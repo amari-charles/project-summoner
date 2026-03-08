@@ -92,7 +92,7 @@ func _load_card_data() -> void:
 
 	# Update info labels
 	var card_name_val: Variant = catalog_data.get("card_name", Loc.t("ui.common.unknown"))
-	card_name_label.text = card_name_val if card_name_val is String else Loc.t("ui.common.unknown")
+	card_name_label.text = SafeTypeUtils.string(card_name_val, Loc.t("ui.common.unknown"))
 
 	var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
 	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": String(rarity_val).capitalize()})
@@ -107,7 +107,7 @@ func _load_card_data() -> void:
 	cost_label.text = Loc.t("ui.collection.cost_label", {"cost": mana_cost})
 
 	var description_val: Variant = catalog_data.get("description", "")
-	var description: String = description_val if description_val is String else ""
+	var description: String = SafeTypeUtils.string(description_val, "")
 	if description.is_empty():
 		description = Loc.t("ui.collection.no_description")
 	description_label.text = description
@@ -311,10 +311,11 @@ func _update_traits_display() -> void:
 
 	# Create a box for each applied trait
 	for trait_id: Variant in trait_ids:
-		if not trait_id is String:
+		var trait_id_str: String = SafeTypeUtils.string(trait_id, "")
+		if trait_id_str.is_empty():
 			continue
 
-		var trait_data: Dictionary = CardServiceApi.get_card_trait_dict(card_catalog_id, trait_id)
+		var trait_data: Dictionary = CardServiceApi.get_card_trait_dict(card_catalog_id, trait_id_str)
 		if trait_data.is_empty():
 			continue
 
