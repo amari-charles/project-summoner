@@ -71,7 +71,7 @@ func _load_card_data() -> void:
 	var catalog_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
 	if not catalog_data.is_empty():
 		var name_val: Variant = catalog_data.get("card_name", "Unknown Card")
-		card_name = name_val if name_val is String else "Unknown Card"
+		card_name = SafeTypeUtils.string(name_val, "Unknown Card")
 
 	# Update UI
 	card_name_label.text = card_name
@@ -108,9 +108,9 @@ func _create_trait_button(trait_data: Dictionary) -> Button:
 
 	var trait_id: String = trait_data.get("id", "")
 	var trait_name_val: Variant = trait_data.get("name", Loc.t("ui.common.unknown"))
-	var trait_name: String = trait_name_val if trait_name_val is String else Loc.t("ui.common.unknown")
+	var trait_name: String = SafeTypeUtils.string(trait_name_val, Loc.t("ui.common.unknown"))
 	var description_val: Variant = trait_data.get("description", "")
-	var description: String = description_val if description_val is String else ""
+	var description: String = SafeTypeUtils.string(description_val, "")
 
 	# Build button text with name and description
 	button.text = "%s\n%s" % [trait_name, description]

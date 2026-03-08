@@ -111,8 +111,9 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 	if traits_var is Array:
 		var traits_array: Array = traits_var
 		for trait_id_var: Variant in traits_array:
-			if trait_id_var is String:
-				config.innate_trait_ids.append(trait_id_var)
+			var trait_id: String = SafeTypeUtils.string(trait_id_var, "")
+			if not trait_id.is_empty():
+				config.innate_trait_ids.append(trait_id)
 
 	# Starter card
 	config.starter_card_id = data.get("starter_card_id", CardIDs.FIRE_WISP)

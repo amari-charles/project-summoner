@@ -748,7 +748,7 @@ func _refresh_camera_projection_button_state() -> void:
 
 	_camera_projection_button.disabled = false
 	var mode_name_var: Variant = camera.call("get_projection_mode_name")
-	var mode_name: String = mode_name_var if mode_name_var is String else "Unknown"
+	var mode_name: String = SafeTypeUtils.string(mode_name_var, "Unknown")
 	_camera_projection_button.text = "Camera Mode: %s" % mode_name
 
 

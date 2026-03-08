@@ -37,12 +37,11 @@ static func from_dict(data: Dictionary) -> VFXDefinition:
 
 	# Scene path needs to be loaded
 	var scene_path_variant: Variant = data.get("effect_scene_path", default_empty_string)
-	if scene_path_variant is String:
-		var scene_path: String = scene_path_variant
-		if not scene_path.is_empty():
-			var loaded_scene: Resource = load(scene_path)
-			if loaded_scene is PackedScene:
-				vfx.effect_scene = loaded_scene
+	var scene_path: String = SafeTypeUtils.string(scene_path_variant, "")
+	if not scene_path.is_empty():
+		var loaded_scene: Resource = load(scene_path)
+		if loaded_scene is PackedScene:
+			vfx.effect_scene = loaded_scene
 
 	var default_duration: float = 1.0
 	vfx.duration = data.get("duration", default_duration)
@@ -53,12 +52,11 @@ static func from_dict(data: Dictionary) -> VFXDefinition:
 
 	# Audio
 	var sound_path_variant: Variant = data.get("sound_path", default_empty_string)
-	if sound_path_variant is String:
-		var sound_path: String = sound_path_variant
-		if not sound_path.is_empty():
-			var loaded_sound: Resource = load(sound_path)
-			if loaded_sound is AudioStream:
-				vfx.play_sound = loaded_sound
+	var sound_path: String = SafeTypeUtils.string(sound_path_variant, "")
+	if not sound_path.is_empty():
+		var loaded_sound: Resource = load(sound_path)
+		if loaded_sound is AudioStream:
+			vfx.play_sound = loaded_sound
 	var default_sound_volume: float = 0.0
 	vfx.sound_volume = data.get("sound_volume", default_sound_volume)
 

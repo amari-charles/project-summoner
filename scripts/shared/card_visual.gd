@@ -215,7 +215,7 @@ func _get_element_id_from_card_data() -> String:
 	# Check if this is a Card resource, need to fetch from catalog
 	if card_data.has("catalog_id") and not card_data.has("categories"):
 		var catalog_id_variant: Variant = card_data.catalog_id
-		var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
+		var catalog_id: String = SafeTypeUtils.string(catalog_id_variant, "")
 		var catalog_dict_variant: Variant = CardCatalogApi.get_card_as_dict(catalog_id)
 		catalog_dict = catalog_dict_variant if catalog_dict_variant is Dictionary else {}
 
@@ -268,7 +268,7 @@ func _update_art() -> void:
 	var art_loaded: bool = false
 	if card_data.has("card_icon_path"):
 		var card_icon_path_variant: Variant = card_data.card_icon_path
-		var card_icon_path: String = card_icon_path_variant if card_icon_path_variant is String else ""
+		var card_icon_path: String = SafeTypeUtils.string(card_icon_path_variant, "")
 		if not card_icon_path.is_empty():
 			var texture: Texture2D = load(card_icon_path)
 			if texture and art_tex:

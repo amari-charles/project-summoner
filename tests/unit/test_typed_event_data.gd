@@ -93,6 +93,13 @@ func test_string_property_returns_value() -> void:
 	assert_eq(event.biome_id, "summer_plains")
 
 
+func test_string_property_accepts_stringname_values() -> void:
+	var data: Dictionary = {"biome_id": StringName("summer_plains")}
+	var event := TypedEventData.new(data, "test")
+
+	assert_eq(event.biome_id, "summer_plains")
+
+
 func test_string_property_returns_default_when_missing() -> void:
 	var event := TypedEventData.new({}, "test")
 

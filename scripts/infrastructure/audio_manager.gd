@@ -121,16 +121,17 @@ func _create_ui_player() -> void:
 func _preload_ui_sounds() -> void:
 	for sound_id: String in _SFX_SOUNDS:
 		var path_val: Variant = _SFX_SOUNDS[sound_id]
-		if path_val is String:
-			var path: String = path_val
-			if ResourceLoader.exists(path):
-				var stream: AudioStream = load(path)
-				if stream:
-					_ui_sound_cache[sound_id] = stream
-				else:
-					push_warning("AudioManager: Failed to load UI sound: %s" % path)
+		var path: String = SafeTypeUtils.string(path_val, "")
+		if path.is_empty():
+			continue
+		if ResourceLoader.exists(path):
+			var stream: AudioStream = load(path)
+			if stream:
+				_ui_sound_cache[sound_id] = stream
 			else:
-				push_warning("AudioManager: UI sound file not found: %s" % path)
+				push_warning("AudioManager: Failed to load UI sound: %s" % path)
+		else:
+			push_warning("AudioManager: UI sound file not found: %s" % path)
 
 
 ## =============================================================================

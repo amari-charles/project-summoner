@@ -179,7 +179,7 @@ func get_value(key: String, default: Variant = null) -> Variant:
 
 func _str(key: String, default: String = "") -> String:
 	var value: Variant = _data.get(key, default)
-	return value if value is String else default
+	return SafeTypeUtils.string(value, default)
 
 
 func _int(key: String, default: int = 0) -> int:

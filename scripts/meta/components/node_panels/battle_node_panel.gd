@@ -207,8 +207,7 @@ func _load_decks() -> void:
 	# Get active summoner ID to filter decks
 	var active_summoner_id: String = ""
 	var result: Variant = SummonerSelectionApi.get_active_summoner_id()
-	if result is String:
-		active_summoner_id = result
+	active_summoner_id = SafeTypeUtils.string(result, "")
 
 	# Get decks filtered by active summoner
 	var decks_array: Array
