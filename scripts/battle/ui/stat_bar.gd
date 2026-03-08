@@ -123,8 +123,8 @@ func _update_display(current: float, maximum: float, animate: bool) -> void:
 			value_label.text = label_format.replace("{current}", str(int(current))).replace("{max}", str(int(maximum)))
 
 ## Configure label visibility and format
-func set_label_config(visible: bool, format: String = "{current}/{max}") -> void:
-	show_label = visible
+func set_label_config(label_visible: bool, format: String = "{current}/{max}") -> void:
+	show_label = label_visible
 	label_format = format
 	if value_label:
-		value_label.visible = visible
+		value_label.visible = show_label

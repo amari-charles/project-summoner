@@ -49,8 +49,12 @@ func _toggle_pause() -> void:
 	if not game_controller:
 		return
 
+	var current_state: int = SafeTypeUtils.int_val(game_controller.get("CurrentState"), int(UnitConstants.GameState.PLAYING))
+
 	# Only allow pausing during active gameplay (not during setup or game over)
-	if game_controller.CurrentState == UnitConstants.GameState.PLAYING:
-		game_controller.PauseGame()
-	elif game_controller.CurrentState == UnitConstants.GameState.PAUSED:
-		game_controller.ResumeGame()
+	if current_state == int(UnitConstants.GameState.PLAYING):
+		if game_controller.has_method("PauseGame"):
+			game_controller.call("PauseGame")
+	elif current_state == int(UnitConstants.GameState.PAUSED):
+		if game_controller.has_method("ResumeGame"):
+			game_controller.call("ResumeGame")

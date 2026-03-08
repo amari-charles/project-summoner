@@ -33,7 +33,5 @@ static func get_event_type(event: Dictionary) -> StringName:
 	var type_value: Variant = event.get("event_type", EventTypeIDs.BATTLE)
 	if type_value is StringName:
 		return type_value
-	elif type_value is String:
-		return StringName(type_value)
-	else:
-		return EventTypeIDs.BATTLE
+	var type_str: String = SafeTypeUtils.string(type_value, String(EventTypeIDs.BATTLE))
+	return StringName(type_str)

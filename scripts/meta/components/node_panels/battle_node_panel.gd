@@ -120,7 +120,7 @@ func _update_difficulty_stars(difficulty: int) -> void:
 ## =============================================================================
 
 func _update_reward_display() -> void:
-	var is_completed: bool = Campaign.IsBattleCompleted(event.id)
+	var is_completed: bool = CampaignApi.is_battle_completed(event.id)
 
 	# Set headers
 	first_clear_header.text = Loc.t("campaign.rewards.first_clear_header")
@@ -134,7 +134,6 @@ func _update_reward_display() -> void:
 
 
 func _update_first_clear_section(is_completed: bool) -> void:
-	var catalog: Node = CardCatalog
 	var reward_lines: Array[String] = []
 
 	# Gold reward
@@ -151,7 +150,7 @@ func _update_first_clear_section(is_completed: bool) -> void:
 					var reward: Dictionary = SafeTypeUtils.dict(reward_item)
 					var count: int = SafeTypeUtils.int_val(reward.get("count", 1), 1)
 					var catalog_id: String = SafeTypeUtils.string(reward.get("catalog_id", ""))
-					var card_name: String = _get_card_display_name(catalog, catalog_id)
+					var card_name: String = _get_card_display_name(catalog_id)
 					if count > 1:
 						card_names.append("%dx %s" % [count, card_name])
 					else:
@@ -207,17 +206,17 @@ func _load_decks() -> void:
 
 	# Get active summoner ID to filter decks
 	var active_summoner_id: String = ""
-	var result: Variant = SummonerSelection.GetActiveSummonerId()
+	var result: Variant = SummonerSelectionApi.get_active_summoner_id()
 	if result is String:
 		active_summoner_id = result
 
 	# Get decks filtered by active summoner
 	var decks_array: Array
 	if not active_summoner_id.is_empty():
-		var decks_variant: Variant = Decks.ListDecksForSummonerDict(active_summoner_id)
+		var decks_variant: Variant = DecksApi.list_decks_for_summoner_dict(active_summoner_id)
 		decks_array = SafeTypeUtils.array(decks_variant)
 	else:
-		var decks_variant: Variant = Decks.ListDecksDict()
+		var decks_variant: Variant = DecksApi.list_decks_dict()
 		decks_array = SafeTypeUtils.array(decks_variant)
 	available_decks.assign(decks_array)
 
@@ -236,7 +235,7 @@ func _load_decks() -> void:
 		deck_selector.add_item(deck_name)
 
 	# Get currently selected deck from profile
-	var profile_variant: Variant = ProfileRepo.GetActiveProfileDict()
+	var profile_variant: Variant = ProfileRepoApi.get_active_profile_dict()
 	var profile: Dictionary = SafeTypeUtils.dict(profile_variant)
 	var found_deck: bool = false
 	if not profile.is_empty() and profile.has("meta"):
@@ -292,7 +291,7 @@ func _on_change_deck_pressed() -> void:
 
 
 func _save_deck_selection() -> void:
-	ProfileRepo.UpdateProfileMetaDict({"selected_deck": selected_deck_id})
+	ProfileRepoApi.update_profile_meta_dict({"selected_deck": selected_deck_id})
 
 
 func _update_deck_info() -> void:
@@ -337,7 +336,7 @@ func _update_deck_info() -> void:
 func _validate_selected_deck() -> bool:
 	if selected_deck_id.is_empty():
 		return false
-	var is_valid_variant: Variant = Decks.ValidateDeck(selected_deck_id)
+	var is_valid_variant: Variant = DecksApi.validate_deck(selected_deck_id)
 	return SafeTypeUtils.bool_val(is_valid_variant, false)
 
 

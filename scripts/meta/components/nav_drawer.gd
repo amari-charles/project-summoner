@@ -147,7 +147,7 @@ func _on_quit_pressed() -> void:
 
 
 func _update_collection_button_state() -> void:
-	var unlocked: Array = SummonerSelection.GetUnlockedSummonerIdsArray()
+	var unlocked: Array = SummonerSelectionApi.get_unlocked_summoner_ids_array()
 	var has_summoner: bool = unlocked.size() > 0
 
 	collection_button.disabled = not has_summoner

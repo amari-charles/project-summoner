@@ -31,7 +31,7 @@ func _ready() -> void:
 	icon_button.pressed.connect(_on_icon_pressed)
 
 	# Connect to summoner selection changes
-	SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
+	SummonerSelection.connect("SummonerChanged", _on_summoner_changed)
 
 	# Initial refresh
 	refresh()
@@ -42,7 +42,7 @@ func _ready() -> void:
 
 ## Refresh the display from current active summoner
 func refresh() -> void:
-	var summoner_id: String = SummonerSelection.GetActiveSummonerId()
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
 	if summoner_id.is_empty():
 		_show_no_summoner()
 		return
@@ -55,13 +55,13 @@ func refresh() -> void:
 
 func _update_display(summoner_id: String) -> void:
 	# Get summoner config
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(summoner_id))
 	if not config:
 		_show_no_summoner()
 		return
 
 	# Get summoner instance for level
-	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(summoner_id)
+	var info: Dictionary = SummonerProgressionApi.get_summoner_progression_info(summoner_id)
 	var level: int = info.get("level", 1)
 
 	# Get element

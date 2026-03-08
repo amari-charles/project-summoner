@@ -216,7 +216,7 @@ func _get_element_id_from_card_data() -> String:
 	if card_data.has("catalog_id") and not card_data.has("categories"):
 		var catalog_id_variant: Variant = card_data.catalog_id
 		var catalog_id: String = catalog_id_variant if catalog_id_variant is String else ""
-		var catalog_dict_variant: Variant = CardCatalog.GetCardAsDict(catalog_id)
+		var catalog_dict_variant: Variant = CardCatalogApi.get_card_as_dict(catalog_id)
 		catalog_dict = catalog_dict_variant if catalog_dict_variant is Dictionary else {}
 
 	# Extract element ID

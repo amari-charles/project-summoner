@@ -330,23 +330,28 @@ func _update_button_states() -> void:
 		_unit_debug = _get_unit_debug_service()
 
 	if _hurtbox_button and _unit_debug and _unit_debug.has_method("IsDebugHurtboxEnabled"):
-		var state: String = "On" if bool(_unit_debug.call("IsDebugHurtboxEnabled")) else "Off"
+		var enabled: bool = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugHurtboxEnabled"), false)
+		var state: String = "On" if enabled else "Off"
 		_hurtbox_button.text = "Hurtboxes: %s" % state
 
 	if _target_point_button and _unit_debug and _unit_debug.has_method("IsDebugTargetPointEnabled"):
-		var state: String = "On" if bool(_unit_debug.call("IsDebugTargetPointEnabled")) else "Off"
+		var enabled: bool = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugTargetPointEnabled"), false)
+		var state: String = "On" if enabled else "Off"
 		_target_point_button.text = "Target Points: %s" % state
 
 	if _attack_range_button and _unit_debug and _unit_debug.has_method("IsDebugAttackRangeEnabled"):
-		var state: String = "On" if bool(_unit_debug.call("IsDebugAttackRangeEnabled")) else "Off"
+		var enabled: bool = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugAttackRangeEnabled"), false)
+		var state: String = "On" if enabled else "Off"
 		_attack_range_button.text = "Attack Ranges: %s" % state
 
 	if _separation_radius_button and _unit_debug and _unit_debug.has_method("IsDebugSeparationRadiusEnabled"):
-		var state: String = "On" if bool(_unit_debug.call("IsDebugSeparationRadiusEnabled")) else "Off"
+		var enabled: bool = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugSeparationRadiusEnabled"), false)
+		var state: String = "On" if enabled else "Off"
 		_separation_radius_button.text = "Separation Radius: %s" % state
 
 	if _projectile_hit_geometry_button and _unit_debug and _unit_debug.has_method("IsDebugProjectileHitGeometryEnabled"):
-		var state: String = "On" if bool(_unit_debug.call("IsDebugProjectileHitGeometryEnabled")) else "Off"
+		var enabled: bool = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugProjectileHitGeometryEnabled"), false)
+		var state: String = "On" if enabled else "Off"
 		_projectile_hit_geometry_button.text = "Projectile Hit Geometry: %s" % state
 
 	if _spawn_boundary_button:
@@ -406,7 +411,7 @@ func _on_fps_button_pressed(fps: int) -> void:
 func _on_skip_prep_pressed() -> void:
 	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller.has_method("SkipPrepPhase"):
-		game_controller.SkipPrepPhase()
+		game_controller.call("SkipPrepPhase")
 		print("[Debug] Skipped prep phase")
 	else:
 		print("[Debug] No game controller found - not in battle?")
@@ -660,7 +665,7 @@ func _select_autocomplete_item(index: int) -> void:
 func _on_win_pressed() -> void:
 	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller.has_method("EndGame"):
-		game_controller.EndGame(int(UnitConstants.Team.PLAYER))
+		game_controller.call("EndGame", UnitConstants.Team.PLAYER)
 		print("[Debug] Triggered instant WIN")
 	else:
 		print("[Debug] No game controller found - not in battle?")
@@ -669,7 +674,7 @@ func _on_win_pressed() -> void:
 func _on_lose_pressed() -> void:
 	var game_controller: Node = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	if game_controller and game_controller.has_method("EndGame"):
-		game_controller.EndGame(int(UnitConstants.Team.ENEMY))
+		game_controller.call("EndGame", UnitConstants.Team.ENEMY)
 		print("[Debug] Triggered instant LOSE")
 	else:
 		print("[Debug] No game controller found - not in battle?")
@@ -679,10 +684,10 @@ func _on_snapshots_pressed() -> void:
 	# Load and show the snapshot manager scene
 	var snapshot_scene: PackedScene = load("res://scenes/meta/screens/snapshot_manager.tscn")
 	if snapshot_scene:
-		var snapshot_manager: Control = snapshot_scene.instantiate()
+		var snapshot_manager: Node = snapshot_scene.instantiate()
 		get_tree().root.add_child(snapshot_manager)
 		if snapshot_manager.has_method("show_manager"):
-			snapshot_manager.show_manager()
+			snapshot_manager.call("show_manager")
 
 
 func _get_battlefield_debug_service() -> Node:
@@ -709,7 +714,8 @@ func _find_battle_camera_controller() -> Node:
 				return node
 			for child_var: Variant in node.get_children():
 				if child_var is Node:
-					stack.append(child_var as Node)
+					var child_node: Node = child_var
+					stack.append(child_node)
 
 	return null
 

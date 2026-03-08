@@ -61,15 +61,17 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 
 	# Name: prefer name_key (C# bridge) over summoner_name (legacy)
 	if data.has("name_key"):
-		config.summoner_name = Loc.t(data.get("name_key", ""))
+		var name_key: String = SafeTypeUtils.string(data.get("name_key", ""), "")
+		config.summoner_name = Loc.t(name_key)
 	else:
-		config.summoner_name = data.get("summoner_name", "")
+		config.summoner_name = SafeTypeUtils.string(data.get("summoner_name", ""), "")
 
 	# Description: prefer description_key (C# bridge) over description (legacy)
 	if data.has("description_key"):
-		config.description = Loc.t(data.get("description_key", ""))
+		var description_key: String = SafeTypeUtils.string(data.get("description_key", ""), "")
+		config.description = Loc.t(description_key)
 	else:
-		config.description = data.get("description", "")
+		config.description = SafeTypeUtils.string(data.get("description", ""), "")
 
 	# Element: prefer element_id int (C# bridge) over element key/object (legacy)
 	if data.has("element_id"):
@@ -78,10 +80,12 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 		var element_var: Variant = data.get("element", &"neutral")
 		if element_var is ElementTypes.Element:
 			var elem: ElementTypes.Element = element_var
-			var key: StringName = StringName(elem.id)
+			var elem_key: String = SafeTypeUtils.string(elem.id, "neutral")
+			var key: StringName = StringName(elem_key)
 			config.element_id = ElementRegistry.get_id_from_key(key)
 		elif element_var is StringName or element_var is String:
-			var key: StringName = StringName(element_var)
+			var element_key: String = SafeTypeUtils.string(element_var, "neutral")
+			var key: StringName = StringName(element_key)
 			if ElementRegistry.is_valid_key(key):
 				config.element_id = ElementRegistry.get_id_from_key(key)
 			else:

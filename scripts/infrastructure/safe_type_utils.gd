@@ -26,9 +26,11 @@ static func int_val(variant: Variant, default: int = 0) -> int:
 ## Also converts int to float if needed
 static func float_val(variant: Variant, default: float = 0.0) -> float:
 	if variant is float:
-		return variant
+		var float_value: float = variant
+		return float_value
 	if variant is int:
-		return float(variant)
+		var int_value: int = variant
+		return float(int_value)
 	return default
 
 

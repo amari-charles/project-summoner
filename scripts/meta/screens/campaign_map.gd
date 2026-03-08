@@ -103,17 +103,17 @@ func _ready() -> void:
 
 	# Connect to campaign service
 	if Campaign.has_signal("BattleCompleted"):
-		Campaign.BattleCompleted.connect(_on_event_completed)
+		Campaign.connect("BattleCompleted", _on_event_completed)
 	if Campaign.has_signal("CampaignProgressChanged"):
-		Campaign.CampaignProgressChanged.connect(_on_progress_changed)
+		Campaign.connect("CampaignProgressChanged", _on_progress_changed)
 
 	# Connect to summoner selection changes
 	if SummonerSelection.has_signal("SummonerChanged"):
-		SummonerSelection.SummonerChanged.connect(_on_summoner_selection_changed)
+		SummonerSelection.connect("SummonerChanged", _on_summoner_selection_changed)
 
 	# Check for summoner selection requirement
 	# Handles first-game-start and post-wipe scenarios
-	if SummonerSelection.GetActiveSummonerId().is_empty():
+	if SummonerSelectionApi.get_active_summoner_id().is_empty():
 		call_deferred("_redirect_to_summoner_selection")
 		return  # Skip rest of setup
 
@@ -138,18 +138,19 @@ func _ready() -> void:
 
 ## Get the color for an edge based on completion state
 func _get_edge_color(from_id: String, to_id: String, edge: Dictionary) -> Color:
-	var from_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(from_id))
-	var to_unlocked: bool = SafeTypeUtils.bool_val(Campaign.IsBattleUnlocked(to_id))
+	var from_completed: bool = CampaignApi.is_battle_completed(from_id)
+	var to_unlocked: bool = CampaignApi.is_battle_unlocked(to_id)
 
 	# Check if edge has a condition (choice edges)
 	var condition: Variant = edge.get("condition")
 	if condition is Dictionary:
+		var condition_dict: Dictionary = condition
 		# Source must be completed for any conditional edge to be visible
 		if not from_completed:
 			return EDGE_LOCKED_COLOR
 
 		# Check if the choice matches the condition
-		var choice_matches: bool = _does_choice_match_condition(from_id, condition)
+		var choice_matches: bool = _does_choice_match_condition(from_id, condition_dict)
 		if choice_matches and to_unlocked:
 			return EDGE_ACTIVE_COLOR
 		elif choice_matches:
@@ -195,7 +196,7 @@ func _does_choice_match_condition(source_node_id: String, condition: Dictionary)
 		return true
 
 	# Get the choice that was made at the choice node
-	var made_choice: String = Campaign.GetChoice(choice_node_id)
+	var made_choice: String = CampaignApi.get_choice(choice_node_id)
 	return made_choice == required_value
 
 
@@ -238,7 +239,8 @@ func _refresh_map() -> void:
 	graph_edges.clear()
 
 	# Load graph data from campaign service
-	var campaign_data: Dictionary = Campaign.GetCampaign(Campaign.GetCurrentCampaignId())
+	var current_campaign_id: String = CampaignApi.get_current_campaign_id()
+	var campaign_data: Dictionary = CampaignApi.get_campaign(current_campaign_id)
 	var nodes_variant: Variant = campaign_data.get("nodes", [])
 	var nodes_array: Array = SafeTypeUtils.array(nodes_variant)
 	graph_nodes.assign(nodes_array)
@@ -287,8 +289,8 @@ func _refresh_map() -> void:
 			push_warning("CampaignMap: Node missing 'id', skipping")
 			continue
 
-		var is_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(node_id))
-		var is_unlocked: bool = SafeTypeUtils.bool_val(Campaign.IsBattleUnlocked(node_id))
+		var is_completed: bool = CampaignApi.is_battle_completed(node_id)
+		var is_unlocked: bool = CampaignApi.is_battle_unlocked(node_id)
 
 		var event_node: Control = _create_graph_node(node, is_unlocked, is_completed)
 		map_container.add_child(event_node)
@@ -464,7 +466,7 @@ func _setup_detail_panel_border() -> void:
 
 ## Show the appropriate detail panel for an event
 func _show_detail_panel_for_event(event_id: String) -> void:
-	var event: Dictionary = SafeTypeUtils.dict(Campaign.GetBattle(event_id))
+	var event: Dictionary = CampaignApi.get_battle(event_id)
 	if event.is_empty():
 		return
 
@@ -509,7 +511,7 @@ func _on_panel_start_requested() -> void:
 	if selected_event_id == "":
 		return
 
-	var event: Dictionary = SafeTypeUtils.dict(Campaign.GetBattle(selected_event_id))
+	var event: Dictionary = CampaignApi.get_battle(selected_event_id)
 	if event.is_empty():
 		return
 
@@ -529,7 +531,7 @@ func _on_panel_start_requested() -> void:
 	if event_type == EventTypeIDs.CARAVAN:
 
 		# Check if event is already completed and not repeatable
-		var is_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(selected_event_id), false)
+		var is_completed: bool = CampaignApi.is_battle_completed(selected_event_id)
 		var is_repeatable: bool = SafeTypeUtils.bool_val(event.get("repeatable", false), false)
 
 		if is_completed and not is_repeatable:
@@ -545,7 +547,7 @@ func _on_panel_start_requested() -> void:
 		return
 
 	# Handle battle events — store selected event in campaign service
-	ProfileRepo.UpdateCampaignProgressDict({"current_battle": selected_event_id}, "")
+	ProfileRepoApi.update_campaign_progress_dict({"current_battle": selected_event_id}, "")
 
 	BattleContext.configure_campaign_battle(selected_event_id)
 
@@ -564,10 +566,10 @@ func _on_choice_made(option_id: String) -> void:
 	detail_panel.visible = false
 
 	# Record the choice (this affects which edges are traversable)
-	Campaign.RecordChoice(selected_event_id, option_id)
+	CampaignApi.record_choice(selected_event_id, option_id)
 
 	# Mark the choice node as completed
-	Campaign.CompleteBattle(selected_event_id)
+	CampaignApi.complete_battle(selected_event_id)
 
 	# Refresh map to show newly unlocked paths
 	_refresh_map()
@@ -591,8 +593,8 @@ func _find_latest_unlocked_mission() -> String:
 
 	for node: Dictionary in graph_nodes:
 		var node_id: String = SafeTypeUtils.string(node.get("id", ""))
-		var is_completed: bool = SafeTypeUtils.bool_val(Campaign.IsBattleCompleted(node_id))
-		var is_unlocked: bool = SafeTypeUtils.bool_val(Campaign.IsBattleUnlocked(node_id))
+		var is_completed: bool = CampaignApi.is_battle_completed(node_id)
+		var is_unlocked: bool = CampaignApi.is_battle_unlocked(node_id)
 
 		if is_unlocked and not is_completed:
 			var pos: Variant = node.get("position", Vector2.ZERO)
@@ -747,9 +749,9 @@ func _update_campaign_banner_text() -> void:
 	if not campaign_banner:
 		return
 
-	var campaign_id: String = Campaign.GetCurrentCampaignId()
-	var banner_campaign_data: Dictionary = Campaign.GetCampaign(campaign_id)
-	var name_key: String = banner_campaign_data.get("name_key", "")
+	var campaign_id: String = CampaignApi.get_current_campaign_id()
+	var banner_campaign_data: Dictionary = CampaignApi.get_campaign(campaign_id)
+	var name_key: String = SafeTypeUtils.string(banner_campaign_data.get("name_key", ""), "")
 	if not name_key.is_empty():
 		campaign_banner.text = Loc.t(name_key)
 	else:
@@ -765,7 +767,7 @@ func _on_campaign_banner_pressed() -> void:
 	campaign_selector_modal.open()
 
 func _on_campaign_selected(campaign_id: String) -> void:
-	var success: bool = Campaign.SetCurrentCampaign(campaign_id)
+	var success: bool = CampaignApi.set_current_campaign(campaign_id)
 	if success:
 		_update_campaign_banner_text()
 		_refresh_map()
@@ -782,7 +784,7 @@ func _on_campaign_modal_closed() -> void:
 
 func _setup_summoner_icon() -> void:
 	# Only show summoner icon if a summoner has been selected
-	if SummonerSelection.GetActiveSummonerId().is_empty():
+	if SummonerSelectionApi.get_active_summoner_id().is_empty():
 		return
 
 	summoner_icon = SummonerIconWidgetScene.instantiate()
@@ -829,7 +831,8 @@ func _setup_gold_display() -> void:
 	)
 
 	# Connect to gold changes
-	Economy.CampaignGoldChanged.connect(_on_campaign_gold_changed)
+	if Economy.has_signal("CampaignGoldChanged"):
+		Economy.connect("CampaignGoldChanged", _on_campaign_gold_changed)
 
 	# Initial update
 	_update_gold_display()
@@ -837,7 +840,7 @@ func _setup_gold_display() -> void:
 func _update_gold_display() -> void:
 	if gold_label == null:
 		return
-	var gold: int = Economy.GetCampaignGold()
+	var gold: int = EconomyApi.get_campaign_gold()
 	gold_label.text = Loc.t("campaign.map.gold", {"amount": gold})
 
 func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
@@ -851,7 +854,7 @@ func _on_event_completed(_event_id: String) -> void:
 	_refresh_map()
 	# Refresh the active panel if visible
 	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
-		var event: Dictionary = SafeTypeUtils.dict(Campaign.GetBattle(selected_event_id))
+		var event: Dictionary = CampaignApi.get_battle(selected_event_id)
 		if not event.is_empty():
 			active_panel.configure(event, selected_event_id)
 
@@ -863,7 +866,7 @@ func _on_progress_changed() -> void:
 		summoner_icon.refresh()
 	# Refresh the active panel if visible
 	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
-		var event: Dictionary = SafeTypeUtils.dict(Campaign.GetBattle(selected_event_id))
+		var event: Dictionary = CampaignApi.get_battle(selected_event_id)
 		if not event.is_empty():
 			active_panel.configure(event, selected_event_id)
 
@@ -874,6 +877,6 @@ func _on_summoner_selection_changed(_old_summoner_id: String, _new_summoner_id: 
 	_refresh_map()
 	# Refresh the active panel if visible
 	if active_panel and detail_panel.visible and not selected_event_id.is_empty():
-		var event: Dictionary = SafeTypeUtils.dict(Campaign.GetBattle(selected_event_id))
+		var event: Dictionary = CampaignApi.get_battle(selected_event_id)
 		if not event.is_empty():
 			active_panel.configure(event, selected_event_id)

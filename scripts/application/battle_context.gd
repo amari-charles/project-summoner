@@ -69,7 +69,7 @@ var origin_scene: String = ""
 ## Optional legacy authority provider bridge for multiplayer.
 ## Session architecture no longer owns authority here, but C# interop still
 ## reads this property during migration.
-var authority_provider: Variant = null
+var authority_provider: Object = null
 
 ## All deck card instance IDs (for XP rewards on victory)
 ## Populated when battle starts via store_deck_card_ids()
@@ -98,7 +98,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 	if debug_mode: print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
 
 	# Campaign is an autoload, access it directly
-	battle_config = Campaign.GetBattle(battle_id)
+	battle_config = CampaignApi.get_battle(battle_id)
 
 	if battle_config.is_empty():
 		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
@@ -335,7 +335,7 @@ func get_local_peer_id() -> int:
 
 
 ## Optional compatibility setter for legacy multiplayer glue.
-func set_authority_provider(provider: Variant) -> void:
+func set_authority_provider(provider: Object) -> void:
 	_cleanup_authority_provider()
 	authority_provider = provider
 
@@ -343,7 +343,7 @@ func set_authority_provider(provider: Variant) -> void:
 		authority_provider.call("initialize")
 
 
-func get_authority_provider() -> Variant:
+func get_authority_provider() -> Object:
 	return authority_provider
 
 
@@ -369,8 +369,9 @@ func has_level_cap() -> bool:
 ## Get effective level for a card in this battle
 func get_effective_card_level(card_level: int) -> int:
 	var level_cap_service: Node = get_node_or_null(CSharpAutoloads.LEVEL_CAP_SERVICE)
-	if level_cap_service:
-		return level_cap_service.GetEffectiveLevel(card_level, _level_cap)
+	if level_cap_service and level_cap_service.has_method("GetEffectiveLevel"):
+		var level_val: Variant = level_cap_service.call("GetEffectiveLevel", card_level, _level_cap)
+		return SafeTypeUtils.int_val(level_val, card_level)
 	# Fallback if service not available
 	push_warning("BattleContext: LevelCapService unavailable, using inline fallback for get_effective_card_level")
 	if _level_cap <= 0:
@@ -381,8 +382,9 @@ func get_effective_card_level(card_level: int) -> int:
 ## Get effective upgrades for a card in this battle
 func get_effective_card_upgrades(upgrades: Array) -> Array:
 	var level_cap_service: Node = get_node_or_null(CSharpAutoloads.LEVEL_CAP_SERVICE)
-	if level_cap_service:
-		return level_cap_service.GetEffectiveUpgradesArray(upgrades, _level_cap)
+	if level_cap_service and level_cap_service.has_method("GetEffectiveUpgradesArray"):
+		var upgrades_val: Variant = level_cap_service.call("GetEffectiveUpgradesArray", upgrades, _level_cap)
+		return SafeTypeUtils.array(upgrades_val)
 	# Fallback if service not available
 	push_warning("BattleContext: LevelCapService unavailable, using inline fallback for get_effective_card_upgrades")
 	if _level_cap <= 0:
@@ -403,9 +405,19 @@ func get_effective_card_upgrades(upgrades: Array) -> Array:
 ## Called when battle starts (from Summoner initialization)
 func store_deck_card_ids(deck: Array) -> void:
 	_deck_card_instance_ids.clear()
-	for card: Variant in deck:
-		if card and card.InstanceId and not card.InstanceId.is_empty():
-			_deck_card_instance_ids.append(card.InstanceId)
+	for card_var: Variant in deck:
+		var instance_id: String = ""
+		if card_var is Dictionary:
+			var card_dict: Dictionary = card_var
+			instance_id = SafeTypeUtils.string(card_dict.get("InstanceId", card_dict.get("id", "")), "")
+		elif card_var is Object:
+			var card_obj: Object = card_var
+			var instance_id_variant: Variant = card_obj.get("InstanceId")
+			if instance_id_variant == null:
+				instance_id_variant = card_obj.get("id")
+			instance_id = SafeTypeUtils.string(instance_id_variant, "")
+		if not instance_id.is_empty():
+			_deck_card_instance_ids.append(instance_id)
 	if debug_mode: print("BattleContext: Stored %d deck card IDs for XP rewards" % _deck_card_instance_ids.size())
 
 ## Get list of all deck card instance IDs

@@ -134,7 +134,9 @@ func isolate_mesh_resources(mesh_instance: MeshInstance3D, isolate_mesh: bool = 
 		for surface_idx: int in range(mesh_instance.get_surface_override_material_count()):
 			var material: Material = mesh_instance.get_surface_override_material(surface_idx)
 			if material:
-				mesh_instance.set_surface_override_material(surface_idx, material.duplicate())
+				var duplicated_override: Resource = material.duplicate()
+				if duplicated_override is Material:
+					mesh_instance.set_surface_override_material(surface_idx, duplicated_override as Material)
 
 	# Duplicate materials embedded directly in the mesh resource
 	# These are set on the mesh itself, not as overrides on the MeshInstance3D
@@ -153,7 +155,9 @@ func isolate_mesh_resources(mesh_instance: MeshInstance3D, isolate_mesh: bool = 
 			for surface_idx: int in range(mesh_instance.mesh.get_surface_count()):
 				var surface_mat: Material = mesh_instance.mesh.surface_get_material(surface_idx)
 				if surface_mat:
-					mesh_instance.mesh.surface_set_material(surface_idx, surface_mat.duplicate())
+					var duplicated_surface: Resource = surface_mat.duplicate()
+					if duplicated_surface is Material:
+						mesh_instance.mesh.surface_set_material(surface_idx, duplicated_surface as Material)
 
 
 ## Convenience: Isolate all MeshInstance3D descendants (recursive)

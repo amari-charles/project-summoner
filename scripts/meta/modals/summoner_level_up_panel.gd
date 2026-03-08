@@ -62,7 +62,7 @@ func open_for_summoner(p_summoner_id: String) -> void:
 
 func _load_summoner_data() -> void:
 	# Get summoner progression info
-	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(summoner_id)
+	var info: Dictionary = SummonerProgressionApi.get_summoner_progression_info(summoner_id)
 	if info.is_empty():
 		push_error("SummonerLevelUpPanel: Failed to get progression info for %s" % summoner_id)
 		return
@@ -71,7 +71,7 @@ func _load_summoner_data() -> void:
 	var next_level: int = current_level + 1
 
 	# Get summoner name from config
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(summoner_id))
 	var summoner_name: String = summoner_id
 	if config:
 		summoner_name = config.summoner_name
@@ -89,7 +89,7 @@ func _populate_stat_preview() -> void:
 		child.queue_free()
 
 	# Get current config for base stats
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(summoner_id))
 	if not config:
 		return
 
@@ -118,7 +118,7 @@ func _populate_stat_preview() -> void:
 ## =============================================================================
 
 func _on_confirm_pressed() -> void:
-	var success: bool = SummonerProgression.LevelUpSummoner(summoner_id)
+	var success: bool = SummonerProgressionApi.level_up_summoner(summoner_id)
 
 	if success:
 		level_up_completed.emit(summoner_id)

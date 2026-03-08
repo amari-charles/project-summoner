@@ -167,11 +167,11 @@ func _ready() -> void:
 
 func _connect_services() -> void:
 	if Decks.has_signal("DeckChanged"):
-		Decks.DeckChanged.connect(_on_deck_changed)
+		Decks.connect("DeckChanged", _on_deck_changed)
 	if Decks.has_signal("DeckCreated"):
-		Decks.DeckCreated.connect(_on_deck_created)
+		Decks.connect("DeckCreated", _on_deck_created)
 	if Decks.has_signal("DeckDeleted"):
-		Decks.DeckDeleted.connect(_on_deck_deleted)
+		Decks.connect("DeckDeleted", _on_deck_deleted)
 
 	if _card_service and _card_service.has_signal("CollectionChanged"):
 		_card_service.connect("CollectionChanged", Callable(self, "_on_collection_changed"))
@@ -185,7 +185,7 @@ func _refresh_deck_list() -> void:
 	if not Decks.has_method("ListDecksDict"):
 		return
 
-	var deck_list_result: Variant = Decks.call("ListDecksDict")
+	var deck_list_result: Variant = DecksApi.list_decks_dict()
 	if not deck_list_result is Array:
 		return
 
@@ -196,7 +196,7 @@ func _refresh_deck_list() -> void:
 	# Get active deck ID
 	var active_deck_id: String = ""
 	if Decks.has_method("GetActiveDeckId"):
-		var active_id: Variant = Decks.call("GetActiveDeckId")
+		var active_id: Variant = DecksApi.get_active_deck_id()
 		if active_id is String:
 			active_deck_id = active_id
 
@@ -217,7 +217,7 @@ func _refresh_deck_list() -> void:
 			var card_count: int = deck.get("card_instance_ids", []).size()
 			var is_valid: bool = true
 			if Decks.has_method("GetValidationErrorsArray"):
-				var errors: Variant = Decks.call("GetValidationErrorsArray", deck_id)
+				var errors: Variant = DecksApi.get_validation_errors_array(deck_id)
 				is_valid = errors is Array and errors.size() == 0
 
 			item.call("setup", {
@@ -245,9 +245,9 @@ func _refresh_deck_list() -> void:
 	# Create default deck if none exist (only if summoner is unlocked)
 	if deck_list_result.size() == 0 and Decks.has_method("CreateDeckFromDict"):
 		# Check if any summoners are unlocked - can't create deck without one
-		var unlocked: Array[String] = SummonerSelection.GetUnlockedSummonerIdsArray()
+		var unlocked: Array[String] = SummonerSelectionApi.get_unlocked_summoner_ids_array()
 		if unlocked.size() > 0:
-			var new_deck_id: Variant = Decks.call("CreateDeckFromDict", Loc.t("ui.collection.default_deck_name"), [], "")
+			var new_deck_id: Variant = DecksApi.create_deck_from_dict(Loc.t("ui.collection.default_deck_name"), [], "")
 			if new_deck_id is String and not new_deck_id.is_empty():
 				_refresh_deck_list()
 		return
@@ -276,7 +276,7 @@ func _on_deck_item_double_clicked(_deck_id: String) -> void:
 func _on_deck_star_clicked(deck_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if Decks.has_method("SetActiveDeck"):
-		Decks.call("SetActiveDeck", deck_id)
+		DecksApi.set_active_deck(deck_id)
 		_refresh_deck_list()
 
 
@@ -285,7 +285,7 @@ func _on_deck_rename_clicked(deck_id: String) -> void:
 	deck_id_for_action = deck_id
 	# Get current deck name
 	if Decks.has_method("GetDeckDict"):
-		var deck: Variant = Decks.call("GetDeckDict", deck_id)
+		var deck: Variant = DecksApi.get_deck_dict(deck_id)
 		if deck is Dictionary:
 			rename_input.text = deck.get("name", "")
 	rename_dialog.popup_centered()
@@ -315,7 +315,7 @@ func _refresh_deck_panel() -> void:
 	if not Decks.has_method("GetDeckDict"):
 		return
 
-	var deck_result: Variant = Decks.call("GetDeckDict", selected_deck_id)
+	var deck_result: Variant = DecksApi.get_deck_dict(selected_deck_id)
 	if not deck_result is Dictionary or deck_result.is_empty():
 		return
 
@@ -329,15 +329,12 @@ func _refresh_deck_panel() -> void:
 		if not card_id is String:
 			continue
 
-		if not _card_service or not _card_service.has_method("GetCardDict"):
-			continue
-
-		var card_data: Variant = _card_service.call("GetCardDict", card_id)
-		if not card_data is Dictionary or card_data.is_empty():
+		var card_data: Dictionary = CardServiceApi.get_card_dict(card_id)
+		if card_data.is_empty():
 			continue
 
 		var catalog_id: String = card_data.get("catalog_id", "")
-		var catalog_data: Variant = CardCatalog.GetCardAsDict(catalog_id)
+		var catalog_data: Variant = CardCatalogApi.get_card_as_dict(catalog_id)
 		if not catalog_data is Dictionary or catalog_data.is_empty():
 			continue
 
@@ -349,11 +346,9 @@ func _refresh_deck_panel() -> void:
 		widget.tooltip_text = Loc.t("ui.collection.deck_card_remove_tooltip")
 
 		# Set progression info for level badge and XP bar
-		var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-		if card_service:
-			var prog_info: Variant = card_service.GetCardProgressionInfoDict(card_id)
-			if prog_info is Dictionary:
-				widget.set_progression(prog_info)
+		var prog_info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_id)
+		if not prog_info.is_empty():
+			widget.set_progression(prog_info)
 
 		# Click to show popup, double-click to remove from deck
 		widget.card_clicked.connect(_on_deck_card_clicked.bind(widget, card_id, catalog_id))
@@ -433,7 +428,7 @@ func _on_new_deck_confirmed() -> void:
 		deck_name = Loc.t("ui.collection.new_deck_default")
 
 	if Decks.has_method("CreateDeckFromDict"):
-		Decks.call("CreateDeckFromDict", deck_name, [], "")
+		DecksApi.create_deck_from_dict(deck_name, [], "")
 
 
 func _on_delete_confirmed() -> void:
@@ -441,7 +436,7 @@ func _on_delete_confirmed() -> void:
 		return
 
 	if Decks.has_method("DeleteDeck"):
-		var success: Variant = Decks.call("DeleteDeck", deck_id_for_action)
+		var success: Variant = DecksApi.delete_deck(deck_id_for_action)
 		if success is bool and success:
 			if selected_deck_id == deck_id_for_action:
 				selected_deck_id = ""
@@ -458,7 +453,7 @@ func _on_rename_confirmed() -> void:
 		return
 
 	if Decks.has_method("UpdateDeckFromDict"):
-		Decks.call("UpdateDeckFromDict", deck_id_for_action, new_name, [], "")
+		DecksApi.update_deck_from_dict(deck_id_for_action, new_name, [], "")
 		deck_id_for_action = ""
 		_refresh_deck_list()
 		_refresh_deck_panel()
@@ -469,12 +464,7 @@ func _on_rename_confirmed() -> void:
 ## =============================================================================
 
 func _refresh_collection() -> void:
-	if not _card_service or not _card_service.has_method("GetCollectionSummaryDict"):
-		return
-
-	var summary_result: Variant = _card_service.call("GetCollectionSummaryDict")
-	if not summary_result is Array:
-		return
+	var summary_result: Array = CardServiceApi.get_collection_summary_dict()
 	collection_summary = summary_result
 
 	# Get deck card IDs
@@ -533,11 +523,9 @@ func _refresh_collection() -> void:
 			_widget_cache[instance_id] = widget
 
 		# Set progression info for level badge and XP bar
-		var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-		if card_service:
-			var prog_info: Variant = card_service.GetCardProgressionInfoDict(instance_id)
-			if prog_info is Dictionary:
-				widget.set_progression(prog_info)
+		var prog_info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
+		if not prog_info.is_empty():
+			widget.set_progression(prog_info)
 
 		# Ensure correct order by moving to end (builds order as we iterate)
 		card_grid.move_child(widget, -1)
@@ -551,7 +539,7 @@ func _get_selected_deck_card_ids() -> Array[String]:
 	if not Decks.has_method("GetDeckDict"):
 		return result
 
-	var deck_result: Variant = Decks.call("GetDeckDict", selected_deck_id)
+	var deck_result: Variant = DecksApi.get_deck_dict(selected_deck_id)
 	if not deck_result is Dictionary:
 		return result
 
@@ -571,7 +559,7 @@ func _get_filtered_sorted_cards() -> Array:
 			continue
 
 		var catalog_id: String = entry.get("catalog_id", "")
-		var catalog_data: Variant = CardCatalog.GetCardAsDict(catalog_id)
+		var catalog_data: Variant = CardCatalogApi.get_card_as_dict(catalog_id)
 		if not catalog_data is Dictionary or catalog_data.is_empty():
 			continue
 
@@ -607,11 +595,12 @@ func _get_filtered_sorted_cards() -> Array:
 
 			var instance_id: String = instance.get("id", "")
 			var level: int = 1
-			if not instance_id.is_empty() and _card_service and _card_service.has_method("GetCardProgressionInfoDict"):
-				var result_info: Variant = _card_service.call("GetCardProgressionInfoDict", instance_id)
-				if result_info is Dictionary:
-					level = result_info.get("level", 1)
+			if not instance_id.is_empty():
+				var result_info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
+				if not result_info.is_empty():
+					level = SafeTypeUtils.int_val(result_info.get("level", 1), 1)
 
+			var rarity: String = SafeTypeUtils.string(catalog_data.get("rarity", "common"), "common").to_lower()
 			result.append({
 				"instance_id": instance_id,
 				"catalog_id": catalog_id,
@@ -619,8 +608,8 @@ func _get_filtered_sorted_cards() -> Array:
 				"catalog_data": catalog_data,
 				"card_name": card_name,
 				"mana_cost": catalog_data.get("mana_cost", 0),
-				"rarity": String(catalog_data.get("rarity", "common")).to_lower(),
-				"rarity_order": RARITY_ORDER.get(String(catalog_data.get("rarity", "common")).to_lower(), 0),
+				"rarity": rarity,
+				"rarity_order": RARITY_ORDER.get(rarity, 0),
 				"card_type": catalog_data.get("card_type", 0),
 				"level": level,
 				"element": card_element
@@ -880,7 +869,7 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 		return
 
 	if Decks.has_method("AddCardToDeck"):
-		var success: Variant = Decks.call("AddCardToDeck", selected_deck_id, card_instance_id)
+		var success: Variant = DecksApi.add_card_to_deck(selected_deck_id, card_instance_id)
 		if success is bool and success:
 			_refresh_deck_list()
 			_refresh_deck_panel()
@@ -951,7 +940,7 @@ func _remove_card_from_deck(card_instance_id: String) -> void:
 		return
 
 	if Decks.has_method("RemoveCardFromDeck"):
-		var success: Variant = Decks.call("RemoveCardFromDeck", selected_deck_id, card_instance_id)
+		var success: Variant = DecksApi.remove_card_from_deck(selected_deck_id, card_instance_id)
 		if success is bool and success:
 			_refresh_deck_list()
 			_refresh_deck_panel()
@@ -968,7 +957,7 @@ func _on_modal_closed(modal: Node) -> void:
 ## =============================================================================
 
 func _refresh_gold_display() -> void:
-	var resources: Dictionary = ProfileRepo.GetResourcesDict()
+	var resources: Dictionary = ProfileRepoApi.get_resources_dict()
 	var gold: int = resources.get("gold", 0)
 	gold_label.text = str(gold)
 

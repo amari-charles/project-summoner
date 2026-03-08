@@ -13,9 +13,6 @@ extends Node
 ## Directory for storing snapshots (gitignored)
 const SNAPSHOTS_DIR: String = "user://debug/snapshots/"
 
-## Service references
-var _repo: Variant = null  # ProfileRepo autoload (C# service)
-
 ## Cached list of available snapshots
 var _snapshot_cache: Array[Dictionary] = []
 
@@ -32,8 +29,6 @@ func _ready() -> void:
 	# Wait for services to be ready
 	await get_tree().process_frame
 
-	_repo = ProfileRepo
-
 	# Load snapshot list
 	refresh_snapshot_list()
 
@@ -44,18 +39,14 @@ func _ready() -> void:
 ## =============================================================================
 
 ## Save current profile state as a named snapshot
-## Returns: true on success
+	## Returns: true on success
 func save_snapshot(snapshot_name: String) -> bool:
-	if not _repo:
-		push_error("DebugSnapshots: ProfileRepo not available")
-		return false
-
 	if snapshot_name.is_empty():
 		push_error("DebugSnapshots: Snapshot name cannot be empty")
 		return false
 
 	# Get current profile data
-	var profile_data: Dictionary = _repo.call("get_profile_data")
+	var profile_data: Dictionary = ProfileRepoApi.get_profile_data()
 	if profile_data.is_empty():
 		push_error("DebugSnapshots: Failed to get profile data")
 		return false
@@ -88,10 +79,6 @@ func save_snapshot(snapshot_name: String) -> bool:
 ## Load a snapshot and restore profile state
 ## Returns: true on success
 func load_snapshot(snapshot_name: String) -> bool:
-	if not _repo:
-		push_error("DebugSnapshots: ProfileRepo not available")
-		return false
-
 	var file_path: String = _get_snapshot_path(snapshot_name)
 	if not FileAccess.file_exists(file_path):
 		push_error("DebugSnapshots: Snapshot not found: %s" % snapshot_name)
@@ -120,11 +107,9 @@ func load_snapshot(snapshot_name: String) -> bool:
 
 	# Restore profile data
 	var profile_data: Dictionary = snapshot["profile_data"]
-	if not _repo.has_method("load_profile_data"):
-		push_error("DebugSnapshots: ProfileRepo doesn't support load_profile_data()")
+	if not ProfileRepoApi.load_profile_data(profile_data):
+		push_error("DebugSnapshots: Failed to restore profile data")
 		return false
-
-	_repo.call("load_profile_data", profile_data)
 
 	print("DebugSnapshots: Loaded snapshot '%s' (created %s)" % [snapshot_name, snapshot.get("created_at", "unknown")])
 	return true

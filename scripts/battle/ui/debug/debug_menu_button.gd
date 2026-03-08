@@ -20,5 +20,5 @@ func _on_pressed() -> void:
 
 
 func _open_menu() -> void:
-	if game_controller:
-		game_controller.PauseGame()
+	if game_controller and game_controller.has_method("PauseGame"):
+		game_controller.call("PauseGame")

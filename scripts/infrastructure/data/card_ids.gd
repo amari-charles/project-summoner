@@ -6,7 +6,7 @@ class_name CardIDs
 ## This provides compile-time validation and autocomplete support.
 ##
 ## Usage:
-##   var card = CardCatalog.CreateCard(CardIDs.FIREBALL)
+##   var card = CardCatalogApi.create_card(CardIDs.FIREBALL)
 ##   var test_deck = [CardIDs.FIRE_WISP, CardIDs.PEBBLOOM, CardIDs.PUFF]
 ##
 ## When adding new cards:

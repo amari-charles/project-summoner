@@ -42,7 +42,10 @@ var description: String:
 var event_type: StringName:
 	get:
 		var type_val: Variant = _data.get("event_type", EventTypeIDs.BATTLE)
-		return StringName(type_val) if type_val is String else type_val
+		if type_val is StringName:
+			return type_val
+		var type_str: String = SafeTypeUtils.string(type_val, String(EventTypeIDs.BATTLE))
+		return StringName(type_str)
 
 ## Whether this event can be repeated after completion
 var repeatable: bool:
@@ -80,7 +83,10 @@ var enemy_hp: float:
 var reward_type: StringName:
 	get:
 		var type_val: Variant = _data.get("reward_type", RewardTypeIDs.FIXED)
-		return StringName(type_val) if type_val is String else type_val
+		if type_val is StringName:
+			return type_val
+		var type_str: String = SafeTypeUtils.string(type_val, String(RewardTypeIDs.FIXED))
+		return StringName(type_str)
 
 ## Gold reward amount
 var gold_reward: int:
@@ -141,7 +147,7 @@ func _init(data: Dictionary = {}, event_id: String = "") -> void:
 
 ## Create from event ID using Campaign service
 static func from_id(event_id: String) -> TypedEventData:
-	var data: Dictionary = Campaign.GetBattle(event_id)
+	var data: Dictionary = CampaignApi.get_battle(event_id)
 	return TypedEventData.new(data, event_id)
 
 # =============================================================================
@@ -184,9 +190,11 @@ func _int(key: String, default: int = 0) -> int:
 func _float(key: String, default: float = 0.0) -> float:
 	var value: Variant = _data.get(key, default)
 	if value is float:
-		return value
+		var float_value: float = value
+		return float_value
 	if value is int:
-		return float(value)
+		var int_value: int = value
+		return float(int_value)
 	return default
 
 

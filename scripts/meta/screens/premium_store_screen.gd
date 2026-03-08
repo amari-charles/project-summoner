@@ -49,11 +49,11 @@ func _ready() -> void:
 	overlay.gui_input.connect(_on_overlay_input)
 
 	# Connect shop signals
-	Shop.PurchaseCompleted.connect(_on_purchase_completed)
-	Shop.PurchaseFailed.connect(_on_purchase_failed)
+	Shop.connect("PurchaseCompleted", _on_purchase_completed)
+	Shop.connect("PurchaseFailed", _on_purchase_failed)
 
 	# Connect profile signals for gold updates
-	ProfileRepo.DataChangedGodot.connect(_on_data_changed)
+	ProfileRepo.connect("DataChangedGodot", _on_data_changed)
 
 	# Initialize display
 	_update_currency_display()
@@ -61,12 +61,12 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	# Disconnect signals
-	if Shop.PurchaseCompleted.is_connected(_on_purchase_completed):
-		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
-	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
-		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
-	if ProfileRepo.DataChangedGodot.is_connected(_on_data_changed):
-		ProfileRepo.DataChangedGodot.disconnect(_on_data_changed)
+	if Shop.is_connected("PurchaseCompleted", _on_purchase_completed):
+		Shop.disconnect("PurchaseCompleted", _on_purchase_completed)
+	if Shop.is_connected("PurchaseFailed", _on_purchase_failed):
+		Shop.disconnect("PurchaseFailed", _on_purchase_failed)
+	if ProfileRepo.is_connected("DataChangedGodot", _on_data_changed):
+		ProfileRepo.disconnect("DataChangedGodot", _on_data_changed)
 
 ## =============================================================================
 ## SECTION POPULATION
@@ -80,7 +80,7 @@ func _populate_sections() -> void:
 	_clear_children(emote_items)
 
 	# Get all offerings from premium store
-	var all_offerings: Array = Shop.GetShopOfferings("premium_store")
+	var all_offerings: Array = ShopApi.get_shop_offerings("premium_store")
 
 	# Track first unowned summoner for featured section
 	var featured_offering: Dictionary = {}
@@ -91,7 +91,7 @@ func _populate_sections() -> void:
 		match offering_type_name:
 			"summoner":
 				# Check if this should be featured (first unowned summoner)
-				if featured_offering.is_empty() and not Shop.IsOfferingOwned(offering.get("offering_id", ""), "premium_store"):
+				if featured_offering.is_empty() and not ShopApi.is_offering_owned(offering.get("offering_id", ""), "premium_store"):
 					featured_offering = offering
 				_add_offering_item(summoner_items, offering, PremiumStoreOfferingItem.CardSize.LARGE)
 			"cosmetic":
@@ -131,7 +131,7 @@ func _show_popup(offering: Dictionary) -> void:
 	popup_description_label.text = offering.get("description", "")
 
 	# Check if already owned
-	var is_owned: bool = Shop.IsOfferingOwned(offering.get("offering_id", ""), "premium_store")
+	var is_owned: bool = ShopApi.is_offering_owned(offering.get("offering_id", ""), "premium_store")
 
 	if is_owned:
 		popup_price_label.visible = false
@@ -147,7 +147,7 @@ func _show_popup(offering: Dictionary) -> void:
 		popup_owned_label.visible = false
 
 		# Enable/disable purchase button based on affordability (gems = mana stones)
-		var resources: Dictionary = ProfileRepo.GetResourcesDict()
+		var resources: Dictionary = ProfileRepoApi.get_resources_dict()
 		var gems: int = resources.get("gems", 0)
 		popup_purchase_button.disabled = (gems < price)
 
@@ -177,7 +177,7 @@ func _populate_popup_info(offering: Dictionary) -> void:
 
 func _add_summoner_info(offering: Dictionary) -> void:
 	# Look up summoner config
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(offering.get("summoner_id", "")))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(offering.get("summoner_id", "")))
 	if not config:
 		return
 
@@ -203,7 +203,7 @@ func _add_summoner_info(offering: Dictionary) -> void:
 
 		for trait_id: String in config.innate_trait_ids:
 			var trait_label: Label = Label.new()
-			trait_label.text = "  - " + TraitCatalog.GetTraitName(trait_id)
+			trait_label.text = "  - " + TraitCatalogApi.get_trait_name(trait_id)
 			trait_label.add_theme_font_size_override("font_size", 12)
 			popup_info_container.add_child(trait_label)
 
@@ -224,7 +224,7 @@ func _add_emote_info(offering: Dictionary) -> void:
 ## =============================================================================
 
 func _update_currency_display() -> void:
-	var resources: Dictionary = ProfileRepo.GetResourcesDict()
+	var resources: Dictionary = ProfileRepoApi.get_resources_dict()
 	var gems: int = resources.get("gems", 0)
 	currency_label.text = Loc.t("ui.shop.mana_stones_label", {"amount": gems})
 
@@ -256,7 +256,7 @@ func _on_purchase_pressed() -> void:
 	if selected_offering.is_empty():
 		return
 
-	var _success: bool = Shop.PurchaseOffering(selected_offering.get("offering_id", ""), "premium_store")
+	var _success: bool = ShopApi.purchase_offering(selected_offering.get("offering_id", ""), "premium_store")
 	# Result handled by PurchaseCompleted/PurchaseFailed signals
 
 func _on_purchase_completed(offering_id: String, shop_id: String) -> void:

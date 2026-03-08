@@ -5,7 +5,7 @@ class_name SummonerSelectionScreen
 ##
 ## Part of onboarding flow. Player picks one of five summoners representing the
 ## four core elements (Earth, Fire, Wind, Water) plus a random option.
-## Summoner choice is saved to profile via SummonerSelection.SetStartingSummoner()
+## Summoner choice is saved to profile via SummonerSelectionApi.set_starting_summoner()
 
 const _DeckConstants: GDScript = preload("res://scripts/infrastructure/data/deck_constants.gd")
 
@@ -75,7 +75,7 @@ func _on_summoner_selected(summoner_id: String) -> void:
 		print("SummonerSelection: Random selection chose: %s" % final_summoner_id)
 
 	# Save summoner choice to profile
-	var success: bool = SummonerSelection.SetStartingSummoner(final_summoner_id, chosen_random)
+	var success: bool = SummonerSelectionApi.set_starting_summoner(final_summoner_id, chosen_random)
 	if success:
 		print("SummonerSelection: Successfully set starting summoner: %s (random: %s)" % [final_summoner_id, chosen_random])
 	else:
@@ -93,7 +93,7 @@ func _on_summoner_selected(summoner_id: String) -> void:
 ## Create starter deck with summoner's starter card
 func _create_starter_deck(summoner_id: String) -> void:
 	# Get summoner config to find starter card
-	var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(summoner_id))
+	var summoner_config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(summoner_id))
 	if not summoner_config:
 		push_error("SummonerSelection: Failed to get config for summoner '%s'" % summoner_id)
 		return
@@ -107,20 +107,20 @@ func _create_starter_deck(summoner_id: String) -> void:
 
 	# Grant the starter card to player's collection
 	# Pass rarity as String since CardService expects string, not StringName
-	var card_instance_id: String = CardService.GrantCard(starter_card_id, String(RarityIDs.COMMON))
+	var card_instance_id: String = CardServiceApi.grant_card(starter_card_id, String(RarityIDs.COMMON))
 	if card_instance_id.is_empty():
 		push_error("SummonerSelection: Failed to grant starter card '%s'" % starter_card_id)
 		return
 
 	# Create Starter Deck with the card
 	var card_ids: Array[String] = [card_instance_id]
-	var deck_id: String = Decks.CreateDeckFromDict(_DeckConstants.STARTER_DECK_NAME, card_ids, summoner_id)
+	var deck_id: String = DecksApi.create_deck_from_dict(_DeckConstants.STARTER_DECK_NAME, card_ids, summoner_id)
 	if deck_id.is_empty():
 		push_error("SummonerSelection: Failed to create Starter Deck")
 		return
 
 	# Set as active deck in profile meta
-	ProfileRepo.UpdateProfileMetaDict({"selected_deck": deck_id})
+	ProfileRepoApi.update_profile_meta_dict({"selected_deck": deck_id})
 
 ## Populate button labels dynamically from SummonerCatalog
 func _populate_summoner_buttons() -> void:
@@ -134,7 +134,7 @@ func _populate_summoner_buttons() -> void:
 	]
 
 	for mapping: Dictionary in button_mappings:
-		var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(mapping.summoner_id))
+		var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(mapping.summoner_id))
 		if config:
 			_set_button_content(mapping.button, config)
 
@@ -183,7 +183,7 @@ func _create_summoner_instance(summoner_id: String, chosen_random: bool) -> void
 	}
 
 	# Save to profile via C# service
-	var save_success: bool = SummonerSelection.SaveSummonerInstanceDict(summoner_data)
+	var save_success: bool = SummonerSelectionApi.save_summoner_instance_dict(summoner_data)
 	if save_success:
 		print("SummonerSelection: Saved SummonerInstance for '%s' (level 1)" % summoner_id)
 	else:

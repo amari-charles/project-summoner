@@ -40,11 +40,11 @@ func _ready() -> void:
 	purchase_button.pressed.connect(_on_purchase_pressed)
 
 	# Connect shop signals
-	Shop.PurchaseCompleted.connect(_on_purchase_completed)
-	Shop.PurchaseFailed.connect(_on_purchase_failed)
+	Shop.connect("PurchaseCompleted", _on_purchase_completed)
+	Shop.connect("PurchaseFailed", _on_purchase_failed)
 
 	# Connect profile signals for gold updates
-	ProfileRepo.DataChangedGodot.connect(_on_data_changed)
+	ProfileRepo.connect("DataChangedGodot", _on_data_changed)
 
 	# Check if this is a caravan event (EventContext is configured)
 	var event_id: String = EventContext.get_current_event_id()
@@ -87,12 +87,12 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	# Disconnect signals to prevent errors
-	if Shop.PurchaseCompleted.is_connected(_on_purchase_completed):
-		Shop.PurchaseCompleted.disconnect(_on_purchase_completed)
-	if Shop.PurchaseFailed.is_connected(_on_purchase_failed):
-		Shop.PurchaseFailed.disconnect(_on_purchase_failed)
-	if ProfileRepo.DataChangedGodot.is_connected(_on_data_changed):
-		ProfileRepo.DataChangedGodot.disconnect(_on_data_changed)
+	if Shop.is_connected("PurchaseCompleted", _on_purchase_completed):
+		Shop.disconnect("PurchaseCompleted", _on_purchase_completed)
+	if Shop.is_connected("PurchaseFailed", _on_purchase_failed):
+		Shop.disconnect("PurchaseFailed", _on_purchase_failed)
+	if ProfileRepo.is_connected("DataChangedGodot", _on_data_changed):
+		ProfileRepo.disconnect("DataChangedGodot", _on_data_changed)
 
 	# Disconnect caravan-specific signals
 	if is_caravan_event and EventSequencer.sequence_finished.is_connected(_on_caravan_sequence_complete):
@@ -140,7 +140,7 @@ func _load_offerings() -> void:
 		child.queue_free()
 
 	# Load offerings from ShopService
-	current_offerings = Shop.GetShopOfferings(shop_id)
+	current_offerings = ShopApi.get_shop_offerings(shop_id)
 
 	# Create offering cards
 	for offering: Dictionary in current_offerings:
@@ -150,7 +150,7 @@ func _load_offerings() -> void:
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
 
 func _update_gold_display() -> void:
-	var resources: Dictionary = ProfileRepo.GetResourcesDict()
+	var resources: Dictionary = ProfileRepoApi.get_resources_dict()
 	var gold: int = resources.get("gold", 0)
 	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
 
@@ -175,7 +175,7 @@ func _update_detail_panel(offering: Dictionary) -> void:
 	description_label.text = offering.get("description", "")
 
 	# Enable/disable purchase button based on affordability
-	var can_result: Dictionary = Shop.CanPurchaseOffering(offering.get("offering_id", ""), shop_id)
+	var can_result: Dictionary = ShopApi.can_purchase_offering(offering.get("offering_id", ""), shop_id)
 	purchase_button.disabled = not can_result.get("can_purchase", false)
 
 ## =============================================================================
@@ -188,7 +188,7 @@ func _on_purchase_pressed() -> void:
 		return
 
 	# Attempt purchase
-	Shop.PurchaseOffering(selected_offering.get("offering_id", ""), shop_id)
+	ShopApi.purchase_offering(selected_offering.get("offering_id", ""), shop_id)
 
 	# ShopService will emit PurchaseCompleted or PurchaseFailed signals
 	# which are handled by _on_purchase_completed and _on_purchase_failed

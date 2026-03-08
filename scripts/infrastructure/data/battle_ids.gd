@@ -6,7 +6,7 @@ class_name BattleIDs
 ## This provides compile-time validation and autocomplete support.
 ##
 ## Usage:
-##   Campaign.StartBattle(BattleIDs.FIRST_TRIAL)
+##   CampaignApi.start_battle(BattleIDs.FIRST_TRIAL)
 ##   if current_node == BattleIDs.PATH_FORK:
 ##       # Show path choice
 ##

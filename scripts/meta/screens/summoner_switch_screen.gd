@@ -65,7 +65,7 @@ func _ready() -> void:
 	confirm_button.disabled = true
 
 	# Get active summoner
-	_active_summoner_id = SummonerSelection.GetActiveSummonerId()
+	_active_summoner_id = SummonerSelectionApi.get_active_summoner_id()
 
 	# Load unlocked summoners
 	_load_summoner_cards()
@@ -89,7 +89,7 @@ func _load_summoner_cards() -> void:
 	_summoner_ids.clear()
 
 	# Get unlocked summoners (use Godot array variant for GDScript interop)
-	var unlocked_ids: Array = SummonerSelection.GetUnlockedSummonerIdsArray()
+	var unlocked_ids: Array = SummonerSelectionApi.get_unlocked_summoner_ids_array()
 
 	# Store IDs and find active summoner index
 	for summoner_id: Variant in unlocked_ids:
@@ -295,7 +295,7 @@ func _on_confirm_pressed() -> void:
 		return
 
 	# Switch summoner
-	SummonerSelection.SetActiveSummoner(_selected_summoner_id, null)
+	SummonerSelectionApi.set_active_summoner(_selected_summoner_id, null)
 
 	_close()
 
@@ -319,7 +319,7 @@ func _update_background() -> void:
 	if _active_summoner_id.is_empty():
 		return
 
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(_active_summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(_active_summoner_id))
 	if not config:
 		return
 

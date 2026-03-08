@@ -147,8 +147,14 @@ func _wait_for_scene_coordinator(scene_path: String) -> void:
 
 		# Wait for the coordinator to signal completion (with timeout protection)
 		if coordinator.has_signal("initialization_complete"):
+			var init_signal_variant: Variant = coordinator.get("initialization_complete")
+			if not init_signal_variant is Signal:
+				push_error("SceneCoordinator: initialization_complete is not a Signal")
+				scene_ready.emit(scene_path)
+				return
+			var init_signal: Signal = init_signal_variant
 			var completed: bool = await _await_signal_with_timeout(
-				coordinator.get("initialization_complete"),
+				init_signal,
 				INIT_TIMEOUT_SECONDS
 			)
 			if completed:

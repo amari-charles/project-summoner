@@ -158,7 +158,8 @@ func _on_dialogue_ended() -> void:
 
 	# Unfreeze game BEFORE triggering after_dialogue events
 	# This ensures any spawned units initialize in normal game state
-	game_controller.UnfreezeGame()
+	if game_controller and game_controller.has_method("UnfreezeGame"):
+		game_controller.call("UnfreezeGame")
 
 	# Check for after_dialogue triggers (may freeze again if showing new dialogue)
 	_trigger_after_dialogue(last_dialogue_id)
@@ -222,7 +223,8 @@ func _show_dialogue(config: Dictionary) -> void:
 	current_dialogue_id = dialogue_id
 
 	# Freeze game (stop gameplay without activating pause menu)
-	game_controller.FreezeGame()
+	if game_controller and game_controller.has_method("FreezeGame"):
+		game_controller.call("FreezeGame")
 	dialogue_active = true
 
 	# Start dialogue
@@ -264,7 +266,7 @@ func _spawn_tutorial_enemy() -> void:
 
 	if debug_mode:
 		print("BattleDialogueController: Queueing tutorial enemy spawn via SimulationNode")
-	sim_node.call("QueueSpawnUnit", card_id, int(UnitConstants.Team.ENEMY), spawn_pos_3d, true, null)
+	sim_node.call("QueueSpawnUnit", card_id, UnitConstants.Team.ENEMY, spawn_pos_3d, true, null)
 
 
 ## Check if a trigger should only happen once

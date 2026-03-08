@@ -53,12 +53,12 @@ func refresh() -> void:
 		return
 
 	# Get summoner config
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(_summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(_summoner_id))
 	if not config:
 		return
 
 	# Get progression info
-	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(_summoner_id)
+	var info: Dictionary = SummonerProgressionApi.get_summoner_progression_info(_summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)
@@ -107,7 +107,7 @@ func refresh() -> void:
 	_update_active_display()
 
 func _get_computed_stats() -> Dictionary:
-	return SummonerProgression.GetComputedStatsForSummoner(_summoner_id)
+	return SummonerProgressionApi.get_computed_stats_for_summoner(_summoner_id)
 
 func _update_active_display() -> void:
 	if _is_active:

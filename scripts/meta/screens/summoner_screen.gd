@@ -80,9 +80,9 @@ func _ready() -> void:
 
 	# Connect to service signals
 	if SummonerSelection.has_signal("SummonerChanged"):
-		SummonerSelection.SummonerChanged.connect(_on_summoner_changed)
+		SummonerSelection.connect("SummonerChanged", _on_summoner_changed)
 
-	Economy.CampaignGoldChanged.connect(_on_campaign_gold_changed)
+	Economy.connect("CampaignGoldChanged", _on_campaign_gold_changed)
 
 	# Setup equipment modal
 	_equipment_modal = EquipmentSlotModal.new()
@@ -97,7 +97,7 @@ func _ready() -> void:
 	_refresh_gold_display()
 
 	# Load active summoner
-	var active_id: String = SummonerSelection.GetActiveSummonerId()
+	var active_id: String = SummonerSelectionApi.get_active_summoner_id()
 	if not active_id.is_empty():
 		_current_summoner_id = active_id
 		_refresh_all()
@@ -108,7 +108,7 @@ func _ready() -> void:
 ## =============================================================================
 
 func _refresh_gold_display() -> void:
-	var gold: int = Economy.GetCampaignGold()
+	var gold: int = EconomyApi.get_campaign_gold()
 	gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
 
 
@@ -121,13 +121,13 @@ func _refresh_all() -> void:
 		_show_no_summoner()
 		return
 
-	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalog.GetSummoner(_current_summoner_id))
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(_current_summoner_id))
 	if not config:
 		_show_no_summoner()
 		return
 
 	# Get progression info
-	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo(_current_summoner_id)
+	var info: Dictionary = SummonerProgressionApi.get_summoner_progression_info(_current_summoner_id)
 
 	var level: int = info.get("level", 1)
 	var current_xp: int = info.get("xp", 0)
@@ -370,7 +370,7 @@ func _add_stat_row(label_text: String, value_text: String, value_color: Color) -
 
 
 func _get_computed_stats(summoner_id: String) -> Dictionary:
-	return SummonerProgression.GetComputedStatsForSummoner(summoner_id)
+	return SummonerProgressionApi.get_computed_stats_for_summoner(summoner_id)
 
 
 ## =============================================================================
@@ -383,7 +383,7 @@ func _refresh_traits(config: SummonerConfig) -> void:
 		child.queue_free()
 
 	# Get all trait IDs (innate + acquired) from C# service
-	var service_trait_ids: Array = SummonerProgression.GetAllTraitIdsForSummoner(_current_summoner_id)
+	var service_trait_ids: Array = SummonerProgressionApi.get_all_trait_ids_for_summoner(_current_summoner_id)
 	var all_trait_ids: Array[String] = []
 
 	if service_trait_ids.size() > 0:
@@ -422,7 +422,7 @@ func _refresh_equipment() -> void:
 		child.queue_free()
 
 	# Get equipped items from Items service
-	var equipped: Dictionary = Items.GetEquippedItemsDict(_current_summoner_id)
+	var equipped: Dictionary = ItemsApi.get_equipped_items_dict(_current_summoner_id)
 
 	# Create horizontal box for 4 slots
 	var hbox: HBoxContainer = HBoxContainer.new()
@@ -494,7 +494,7 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 		item_label.text = Loc.t("ui.summoner_screen.equipment_empty")
 		item_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.4))
 	else:
-		var items_for_slot: Array[Dictionary] = Items.ListItemsForSlotDict(slot, _current_summoner_id)
+		var items_for_slot: Array[Dictionary] = ItemsApi.list_items_for_slot_dict(slot, _current_summoner_id)
 		var item_name: String = ""
 		for item: Dictionary in items_for_slot:
 			if item.get("instance_id", "") == item_instance_id:
@@ -519,8 +519,8 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 
 
 func _create_trait_card(trait_id: String, is_innate: bool) -> PanelContainer:
-	var trait_name: String = TraitCatalog.GetTraitName(trait_id)
-	var trait_desc: String = TraitCatalog.GetTraitDescription(trait_id)
+	var trait_name: String = TraitCatalogApi.get_trait_name(trait_id)
+	var trait_desc: String = TraitCatalogApi.get_trait_description(trait_id)
 
 	if trait_name.is_empty():
 		trait_name = trait_id
@@ -618,7 +618,7 @@ func _on_level_up_pressed() -> void:
 	if _current_summoner_id.is_empty():
 		return
 
-	var success: bool = SummonerProgression.LevelUpSummoner(_current_summoner_id)
+	var success: bool = SummonerProgressionApi.level_up_summoner(_current_summoner_id)
 	if success:
 		_refresh_all()
 		_refresh_gold_display()

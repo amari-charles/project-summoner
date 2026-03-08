@@ -82,7 +82,7 @@ func set_deck_context(deck_id: String, card_in_deck: bool) -> void:
 ## =============================================================================
 
 func _load_card_data() -> void:
-	var catalog_data: Dictionary = CardCatalog.GetCardAsDict(card_catalog_id)
+	var catalog_data: Dictionary = CardCatalogApi.get_card_as_dict(card_catalog_id)
 	if catalog_data.is_empty():
 		push_error("CardDetailModal: Failed to get catalog data for %s" % card_catalog_id)
 		return
@@ -176,7 +176,7 @@ func _update_stats_display() -> void:
 
 
 func _get_effective_stats() -> Dictionary:
-	var base_stats: Dictionary = CardCatalog.GetCardAsDict(card_catalog_id).duplicate(true)
+	var base_stats: Dictionary = CardCatalogApi.get_card_as_dict(card_catalog_id).duplicate(true)
 
 	if base_stats.is_empty():
 		return {}
@@ -185,12 +185,9 @@ func _get_effective_stats() -> Dictionary:
 	if card_instance_id.is_empty():
 		return base_stats
 
-	# Try PlayerCardService for effective stats with upgrades applied (C# autoload)
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if card_service and card_service.has_method("GetEffectiveStatsDict"):
-		var effective: Dictionary = card_service.GetEffectiveStatsDict(card_instance_id)
-		if not effective.is_empty():
-			return effective
+	var effective: Dictionary = CardServiceApi.get_effective_stats_dict(card_instance_id)
+	if not effective.is_empty():
+		return effective
 
 	return base_stats
 
@@ -249,12 +246,7 @@ func _update_progression_display() -> void:
 		_hide_progression()
 		return
 
-	# PlayerCardService is a C# autoload
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		_hide_progression()
-		return
-	var info: Dictionary = card_service.GetCardProgressionInfoDict(card_instance_id)
+	var info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_instance_id)
 	if info.is_empty():
 		_hide_progression()
 		return
@@ -309,12 +301,7 @@ func _update_traits_display() -> void:
 		traits_section.visible = false
 		return
 
-	# PlayerCardService is a C# autoload
-	var card_service: Node = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
-	if not card_service:
-		traits_section.visible = false
-		return
-	var trait_ids: Array = card_service.GetAppliedTraits(card_instance_id)
+	var trait_ids: Array = CardServiceApi.get_applied_traits(card_instance_id)
 	if trait_ids.is_empty():
 		traits_section.visible = false
 		return
@@ -327,7 +314,7 @@ func _update_traits_display() -> void:
 		if not trait_id is String:
 			continue
 
-		var trait_data: Dictionary = card_service.GetCardTraitDict(card_catalog_id, trait_id)
+		var trait_data: Dictionary = CardServiceApi.get_card_trait_dict(card_catalog_id, trait_id)
 		if trait_data.is_empty():
 			continue
 
