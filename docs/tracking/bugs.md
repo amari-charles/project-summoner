@@ -7,6 +7,7 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 **Note:** When resolving a bug, move it to `bugs-resolved.md` with the resolution date and details.
 **Tracker Sync (2026-03-05):** Reviewed against `bugs-resolved.md`; moved Puff target-switch and Wisp multi-target bugs to resolved based on post-refactor validation.
 **Audit Sync (2026-03-05, evening):** Re-opened Puff pivot/flip bug after repro confirmation; migrated to metadata-driven pivot alignment and moved to resolved after validation. Blocked-idle and headless leak issues remain active pending explicit repro closure.
+**Tracker Sync (2026-03-08):** Blocked-idle issue moved to verification after movement pipeline + blocked-nav reset fixes and deterministic repro coverage landed; headless leak remains open/cosmetic.
 
 ---
 
@@ -45,7 +46,7 @@ Godot's headless renderer doesn't fully clean up resources when autoloads create
 ---
 
 #### Puff Units Get Stuck in Idle When Blocked by Other Units
-**Status:** Open
+**Status:** In Verification
 **Reported:** 2026-01-05
 **Component:** Units / Pathfinding / Movement
 
@@ -72,6 +73,11 @@ Reduces effective army size as blocked units don't contribute to combat.
 - No "push through" or flanking behavior when stuck
 - Collision detection preventing movement entirely
 - Target acquisition succeeding but movement failing
+
+**Verification Update (2026-03-08):**
+- Merged movement pipeline + blocked-nav reset edge-case fix (`27462750`)
+- Added deterministic regression test coverage (`tests/csharp/Simulation/BlockedUnitReproTest.cs`)
+- Remaining closure criteria: explicit manual repro confirmation in live battle scenarios (mixed formations/top-bottom lanes)
 
 **Related Files:**
 - scripts/csharp/Battle/View/UnitVisual.cs (visual shell / movement sync)
@@ -117,4 +123,4 @@ Additional context
 ```
 
 ---
-*Last Updated: 2026-03-05 (evening) - Moved Puff pivot bug to resolved after metadata pivot + alignment fixes validated in battle*
+*Last Updated: 2026-03-08 - Synced tracker with post-2026-03-05 movement/type-safety/loading commits; blocked-idle bug now in verification*
