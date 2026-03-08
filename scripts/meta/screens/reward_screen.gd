@@ -281,6 +281,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 	# Show XP amount header
 	card_xp_header_label.text = Loc.t("ui.reward.card_xp_header")
 	card_xp_amount_label.text = Loc.t("ui.reward.card_xp_each", {"amount": card_xp})
+	var rendered_card_count: int = 0
 
 	# Create card items for each deck card
 	for instance_id: String in deck_cards:
@@ -300,6 +301,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 
 		var item: Control = CardXPItemScene.instantiate()
 		card_xp_grid.add_child(item)
+		rendered_card_count += 1
 
 		if item.has_method("setup"):
 			item.call("setup", instance_id, catalog_id, card_name, level, can_level_up, xp_progress)
@@ -307,7 +309,7 @@ func _display_card_xp_rewards(card_xp: int) -> void:
 		if item.has_signal("clicked"):
 			item.clicked.connect(_on_card_xp_item_clicked)
 
-	card_xp_section.visible = true
+	card_xp_section.visible = rendered_card_count > 0
 
 ## Handle click on a card XP item - open card detail modal to view stats
 func _on_card_xp_item_clicked(instance_id: String) -> void:

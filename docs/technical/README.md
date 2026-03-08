@@ -1,7 +1,7 @@
 # Technical Docs Index
 
 **Status:** CURRENT  
-**Last Updated:** 2026-03-05
+**Last Updated:** 2026-03-08
 
 This folder is for implementation references.
 
@@ -47,6 +47,7 @@ This folder is for implementation references.
 - [framerate-independence.md](framerate-independence.md)
 - [strict-typing-validation.md](strict-typing-validation.md)
 - [shop-cache-architecture.md](shop-cache-architecture.md)
+- [gdscript-service-api-wrappers.md](gdscript-service-api-wrappers.md)
 
 ### VFX
 
