@@ -20,15 +20,14 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-08):** Moved completed typed-internal service handler refactor and loading-screen preloading work to `todos-completed.md`; updated blocked-idle investigation and `_PhysicsProcess` throttling entries to reflect merged movement/perf commits and remaining verification scope.
 **Tracker Sync (2026-03-08, late):** Added missing completion records for GDScript typed-API safety migration (`#288`) and StringName-safe coercion sweep (`#290`) to `todos-completed.md`; active queue unchanged aside from status notes.
 **Tracker Sync (2026-03-08, final):** Closed blocked-unit idle freeze item after manual signoff; moved remaining notes to `todos-completed.md` and refreshed AI priority queue to only open items.
+**Tracker Sync (2026-03-08, desync pass):** Closed sim/visual state desync audit task after phase sync hardening, summoner destroy signal dedupe, activation-state visual alignment fix, and regression coverage updates.
 
 ---
 
-## AI-First Priority Queue (2026-03-08, final)
+## AI-First Priority Queue (2026-03-08, desync pass)
 
-1. Audit sim/visual desync points in battle flow
-   Why first: High-priority correctness work that reduces hard-to-debug runtime drift.
-2. Continue hot-path throttling in `_PhysicsProcess`
-   Why second: Recent movement/perf fixes landed, but full scale-target optimization plan is not complete yet.
+1. Continue hot-path throttling in `_PhysicsProcess`
+   Why first: Recent movement/perf fixes landed, but full scale-target optimization plan is not complete yet.
 
 ---
 
@@ -862,36 +861,6 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 ## Architecture & Code Quality
 
 ### 🔴 HIGH PRIORITY
-
-#### Audit Sim/Visual State Desync Points
-**Status:** ⬜ Not Started
-**Category:** Architecture / Simulation
-**Effort:** Medium
-
-**Description:**
-Audit the codebase for places where the simulation (MatchState/UnitData) and the visual layer (UnitVisual, GDScript controllers) track the same concept independently, creating desync risks.
-
-**Known Pattern:**
-The sim and visual layers sometimes manage parallel state (phase, activation, position) without a single source of truth. When one side changes state, the other may not be notified, leading to desyncs. Example: spawn reveal sets visual UnitVisual to Inactive while the sim UnitData is Active — the sim moves the unit while the visual stays frozen.
-
-**Audit Checklist:**
-- [ ] Phase state: GDScript `current_phase` vs sim `GamePhase` — are all transitions synced?
-- [ ] Unit activation: visual `ActivationState` vs sim `UnitData.ActivationState` — any gaps?
-- [ ] Position: are there other cases where the visual stops reading from sim while the sim keeps updating?
-- [ ] HP/death: can the sim kill a unit while the visual thinks it's alive (or vice versa)?
-- [ ] Targeting: does the visual layer ever hold stale target references after the sim re-targets?
-
-**Guiding Principle:**
-If data belongs to an entity, put it on the entity. Avoid solving per-entity problems with global sweeps or cross-system coordination.
-
-**Related Files:**
-- `scripts/csharp/Battle/Simulation/SimulationNode.cs` — sim-visual bridge
-- `scripts/csharp/Battle/View/UnitVisual.cs` — visual reads from sim
-- `scripts/csharp/Battle/View/BattleScene.cs` — phase tracking (formerly game_controller_3d.gd)
-
-- `scripts/csharp/Meta/Services/Summoner/SummonerSelectionService.cs` — typed methods available
-
----
 
 #### Replace Runtime Entity `int` IDs with Typed Value Objects
 **Status:** ⬜ Not Started
