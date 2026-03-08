@@ -17,17 +17,18 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 **Tracker Sync (2026-03-05):** Removed completed `Replace /root/VFXManager Lookup in ProjectileVisual`, moved Puff target-stickiness work to completed (PR `#270`), and removed Wisp single-target verification from active queue after post-refactor validation.
 **Audit Sync (2026-03-05, evening):** Moved completed camera boundary/pan task to `todos-completed.md` based on merged camera bounds fixes (`#267`) and unit tests; updated directional/cone attack TODO to reflect partial completion (cone gating in targeting is shipped, hitbox-shape work remains).
+**Tracker Sync (2026-03-08):** Moved completed typed-internal service handler refactor and loading-screen preloading work to `todos-completed.md`; updated blocked-idle investigation and `_PhysicsProcess` throttling entries to reflect merged movement/perf commits and remaining verification scope.
 
 ---
 
-## AI-First Priority Queue (2026-03-06)
+## AI-First Priority Queue (2026-03-08)
 
-1. Investigate blocked-unit idle freeze and add deterministic regression coverage
-   Why first: Prevents recurring "units stop contributing" failures in live matches.
-2. Continue typed-internal service handler refactors (string boundary only at GDScript edge)
-   Why second: Important cleanup, but lower immediate player impact than gameplay bugs.
-3. Audit sim/visual desync points in battle flow
-   Why third: High-priority correctness work that reduces hard-to-debug runtime drift.
+1. Finalize blocked-unit idle freeze closure (broad battle repro pass + tracker close)
+   Why first: Core movement fixes and deterministic tests landed, but explicit gameplay repro closure is still pending.
+2. Audit sim/visual desync points in battle flow
+   Why second: High-priority correctness work that reduces hard-to-debug runtime drift.
+3. Continue hot-path throttling in `_PhysicsProcess`
+   Why third: Recent movement/perf fixes landed, but full scale-target optimization plan is not complete yet.
 
 ---
 
@@ -97,72 +98,6 @@ The client currently operates as a pure renderer — it applies host snapshots b
 
 ---
 
-## Campaign Economy & Systems
-
-### 🟡 MEDIUM PRIORITY
-
-#### Refactor Service Handlers to Typed-Only Internal Methods
-**Status:** ⬜ Not Started
-**Category:** Architecture / Type Safety
-**Effort:** Medium
-
-**Description:**
-Service handlers currently accept `string` parameters and convert to typed IDs at the start of each method. As more internal C# code calls these handlers, this creates unnecessary conversions and loses type safety benefits.
-
-**Current Pattern:**
-```csharp
-// Public method accepts string (GDScript calls this)
-public void SaveProgress()
-{
-    var summonerId = _getActiveSummonerFunc();  // Returns string
-    var typedSummonerId = new SummonerId(summonerId);  // Convert immediately
-    var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
-    // ...
-}
-```
-
-**North Star Pattern:**
-```csharp
-// Public method for GDScript - accepts string, delegates to internal
-public void SaveProgress(string summonerId)
-{
-    SaveProgressInternal(new SummonerId(summonerId));
-}
-
-// Internal method uses typed IDs throughout
-internal void SaveProgressInternal(SummonerId summonerId)
-{
-    var progress = _profileRepo.GetCampaignProgress(summonerId);
-    // All internal calls use typed IDs
-}
-
-// C# callers use typed API directly
-_progressHandler.SaveProgressInternal(activeSummoner);
-```
-
-**Benefits:**
-- C# code maintains type safety end-to-end
-- String conversion happens once at GDScript boundary
-- Clearer distinction between public API and internal implementation
-- Enables future migration where GDScript also uses typed objects
-
-**Files to Refactor:**
-- `CampaignProgressHandler.cs` - SaveProgress, LoadProgress, ResetProgress
-- `CampaignRewardHandler.cs` - SetPendingReward, GetPendingReward, ClearPendingReward
-- `ChoiceTracker.cs` - Already has dual API pattern (RecordChoice vs RecordChoiceFromString)
-- `CardOwnershipHandler.cs` - GrantCards, GetCard, RemoveCard
-- `CardProgressionHandler.cs` - GrantXp, LevelUpCard
-- `DeckCrudHandler.cs` - CreateDeck, DeleteDeck, ValidateDeck
-- `EconomyService.cs` - AddCampaignGold, SpendCampaignGold
-- `SummonerProgressionService.cs` - GrantXp, LevelUp, GetProgressInfo
-
-**Notes:**
-- Lower priority - current pattern works correctly
-- Consider during natural refactoring of these files
-- `ChoiceTracker` already demonstrates the target pattern
-
----
-
 ## Units & Combat
 
 ### 🟡 MEDIUM PRIORITY
@@ -193,13 +128,18 @@ Defense reduction is now active in `SimDamage` via `PhysicalDefense`/`MagicDefen
 ---
 
 #### Investigate Units Getting Stuck in Idle When Blocked
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress (Core movement/block-reset fixes landed; final repro closure pending)
 **Category:** Units & Combat / Pathfinding
 **Effort:** Medium
 **Priority:** 🔴 High
 
 **Description:**
 Puff units (and possibly other units) get stuck in idle when blocked by other characters. They don't move forward or find alternate positions. Affects both top and bottom units in formations - they may be stuck in pathfinding mode rather than truly idle.
+
+**Progress Update (2026-03-08):**
+- ✅ Shipped movement pipeline revamp and blocked-nav reset edge-case fix
+- ✅ Added deterministic coverage (`tests/csharp/Simulation/BlockedUnitReproTest.cs`)
+- 🔄 Pending manual in-battle regression sweep to explicitly close bug tracker entry
 
 **Investigation Areas:**
 - Why do blocked units stop trying to move?
@@ -767,32 +707,6 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 
 ---
 
-#### Add Loading Screen with Asset Preloading
-**Status:** 🟡 Partial (Async Preloading Implemented)
-**Category:** UI/UX / Performance
-**Effort:** Medium
-
-**Description:**
-Create a loading screen that displays during battle transitions and preloads all unit assets asynchronously. This eliminates first-spawn initialization delays and provides a polished user experience.
-
-**Requirements:**
-- [ ] Loading screen scene with progress bar
-- [x] Use `ResourceLoader.load_threaded_request()` for async loading
-- [x] Preload all unit scenes from CardCatalog
-- [ ] Optionally show tips, lore, or artwork during loading
-
-**Technical Notes:**
-- Async unit preloading is now implemented (uses `ResourceLoader.load_threaded_request()`)
-- Remaining work: Add visual loading screen with progress bar
-- Consider caching loaded resources for session duration
-
-**Notes:**
-- Part of polish phase
-- Professional games use this approach for zero gameplay hitches
-
----
-
-
 #### Revamp Settings Screen UI
 **Status:** 🟡 Partial (Functional)
 **Category:** UI/UX
@@ -1281,6 +1195,10 @@ Every unit runs targeting + behavior + 3+ spatial grid queries per physics frame
 - Cache steering results between updates
 - Consolidate multiple `GetUnitsInRadius` calls into single query where possible
 - Skip render priority calculation when position unchanged
+
+**Progress Update (2026-03-08):**
+- ✅ Landed simulation-side movement/perf wins (ORCA neighbor capping + context buffer reuse)
+- 🔄 Remaining: complete visual/update-frequency throttling and render-priority skip path
 
 **Related Files:**
 - `scripts/csharp/Battle/View/UnitVisual.cs` (visual shell, formerly Unit3D.cs)

@@ -6,6 +6,45 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+### Refactor Service Handlers to Typed-Only Internal Methods
+**Completed:** 2026-03-08
+**Category:** Architecture / Type Safety
+**Effort:** Medium
+
+Completed typed-internal handler migration so `string` IDs are now bounded to GDScript-facing entry points while internal C# flows operate on typed value objects.
+
+**Commit Context:**
+- `6aacae87` (`refactor: typed-only internal APIs for service handlers`)
+
+**Representative Files Changed:**
+- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignProgressHandler.cs`
+- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignRewardHandler.cs`
+- `scripts/csharp/Meta/Services/Cards/Handlers/CardOwnershipHandler.cs`
+- `scripts/csharp/Meta/Services/Cards/Handlers/CardProgressionHandler.cs`
+- `scripts/csharp/Meta/Services/Deck/Handlers/DeckCrudHandler.cs`
+- `scripts/csharp/Meta/Services/Economy/EconomyService.cs`
+- `scripts/csharp/Meta/Services/Summoner/SummonerProgressionService.cs`
+
+---
+
+### Add Loading Screen with Asset Preloading
+**Completed:** 2026-03-08
+**Category:** UI/UX / Performance
+**Effort:** Medium
+
+Completed loading transition flow with real threaded preloading and progress display to remove first-spawn hitching.
+
+**Commit Context:**
+- `edc058c7` (`feat(loading): replace fake loading bar with real ResourcePreloader`)
+- `a089a971` (`polish(preloader): ... fix progress smoothness`)
+
+**Representative Files Changed:**
+- `scripts/csharp/Infrastructure/ResourcePreloader.cs`
+- `scripts/meta/screens/title_screen.gd`
+- `scripts/meta/screens/campaign_map.gd`
+
+---
+
 ### Fix Orthographic Camera Mode Toggle
 **Completed:** 2026-03-06
 **Category:** Battle / Camera
