@@ -1,4 +1,5 @@
 using Godot;
+using Fateforged.View;
 namespace Fateforged.Visual;
 
 /// <summary>
@@ -158,12 +159,11 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _characterSprite = GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
 
-        // Only hide during initialization if under a CharacterBody3D
-        // This prevents jitter when the parent sets facing after us
-        // Ghost previews (under Node3D) need immediate visibility
-        bool underUnit3D = GetParent() is CharacterBody3D;
+        // Only hide/create runtime-only visuals when under UnitVisual.
+        // Ghost previews reparent Visual under UnitGhost and should not spawn shadows.
+        bool underUnitVisual = GetParent() is UnitVisual;
 
-        if (underUnit3D && _sprite3D != null)
+        if (underUnitVisual && _sprite3D != null)
         {
             _sprite3D.Visible = false;
         }
@@ -217,14 +217,14 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         RandomizeAnimationPhase();
 
         // Create silhouette shadow (only for real units, not ghost previews)
-        if (underUnit3D)
+        if (underUnitVisual)
         {
             CreateShadowSprite();
         }
 
         // Show sprite after all initialization (only needed if we hid it above)
         // Ghost previews under Node3D don't need this since we didn't hide the sprite
-        if (underUnit3D)
+        if (underUnitVisual)
         {
             CallDeferred(MethodName.ShowSpriteDeferred);
         }
