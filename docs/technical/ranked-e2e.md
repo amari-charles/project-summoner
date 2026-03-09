@@ -62,7 +62,6 @@ Logs are written to:
 - `--e2e-log-battle-start`: emit battle-start checkpoint marker
 - `--e2e-auto-forfeit-seconds=<n>`: auto-submit forfeit after delay (used by player2 automation)
 - `--e2e-force-complete-seconds=<n>`: force local battle completion after delay (automation fallback)
-- `--e2e-force-report-seconds=<n>`: force ranked report checkpoint log after delay (automation fallback)
 
 ## Troubleshooting
 

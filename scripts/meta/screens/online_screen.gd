@@ -110,6 +110,8 @@ func _connect_services() -> void:
 			_matchmaking_service.MatchmakingCancelled.connect(_on_matchmaking_cancelled)
 		if _matchmaking_service.has_signal("QueueStatusChanged"):
 			_matchmaking_service.QueueStatusChanged.connect(_on_queue_status_changed)
+		if _matchmaking_service.has_signal("MatchmakingError"):
+			_matchmaking_service.MatchmakingError.connect(_on_matchmaking_error)
 
 	if _leaderboard_service:
 		if _leaderboard_service.has_signal("LeaderboardRefreshed"):
@@ -620,6 +622,14 @@ func _on_matchmaking_cancelled(reason: String) -> void:
 		status_label.text = reason
 
 
+func _on_matchmaking_error(error: String) -> void:
+	print("[RANKED][QUEUE] Matchmaking error: %s" % error)
+	if ui_animation_player:
+		ui_animation_player.play("error_reset")
+	_set_state(ScreenState.READY)
+	status_label.text = Loc.t("ui.ranked.not_connected") if error.is_empty() else error
+
+
 func _on_queue_status_changed(is_in_queue: bool, _queue_time: float) -> void:
 	if is_in_queue and _state != ScreenState.IN_QUEUE:
 		_set_state(ScreenState.IN_QUEUE)
@@ -700,42 +710,46 @@ func _ensure_ui_animations() -> void:
 		library = AnimationLibrary.new()
 		ui_animation_player.add_animation_library("", library)
 
-	var ready_anim: Animation = Animation.new()
-	ready_anim.length = 0.01
-	ready_anim.loop_mode = Animation.LOOP_NONE
-	var ready_track: int = ready_anim.add_track(Animation.TYPE_VALUE)
-	ready_anim.track_set_path(ready_track, NodePath("MarginContainer:modulate"))
-	ready_anim.track_insert_key(ready_track, 0.0, Color(1, 1, 1, 1))
-	library.add_animation("ready_idle", ready_anim)
+	if not library.has_animation("ready_idle"):
+		var ready_anim: Animation = Animation.new()
+		ready_anim.length = 0.01
+		ready_anim.loop_mode = Animation.LOOP_NONE
+		var ready_track: int = ready_anim.add_track(Animation.TYPE_VALUE)
+		ready_anim.track_set_path(ready_track, NodePath("MarginContainer:modulate"))
+		ready_anim.track_insert_key(ready_track, 0.0, Color(1, 1, 1, 1))
+		library.add_animation("ready_idle", ready_anim)
 
-	var queue_anim: Animation = Animation.new()
-	queue_anim.length = 1.2
-	queue_anim.loop_mode = Animation.LOOP_LINEAR
-	var queue_track: int = queue_anim.add_track(Animation.TYPE_VALUE)
-	queue_anim.track_set_path(queue_track, NodePath("MarginContainer:modulate"))
-	queue_anim.track_insert_key(queue_track, 0.0, Color(1, 1, 1, 1))
-	queue_anim.track_insert_key(queue_track, 0.6, Color(0.9, 0.95, 1.0, 1))
-	queue_anim.track_insert_key(queue_track, 1.2, Color(1, 1, 1, 1))
-	library.add_animation("queue_active", queue_anim)
+	if not library.has_animation("queue_active"):
+		var queue_anim: Animation = Animation.new()
+		queue_anim.length = 1.2
+		queue_anim.loop_mode = Animation.LOOP_LINEAR
+		var queue_track: int = queue_anim.add_track(Animation.TYPE_VALUE)
+		queue_anim.track_set_path(queue_track, NodePath("MarginContainer:modulate"))
+		queue_anim.track_insert_key(queue_track, 0.0, Color(1, 1, 1, 1))
+		queue_anim.track_insert_key(queue_track, 0.6, Color(0.9, 0.95, 1.0, 1))
+		queue_anim.track_insert_key(queue_track, 1.2, Color(1, 1, 1, 1))
+		library.add_animation("queue_active", queue_anim)
 
-	var match_anim: Animation = Animation.new()
-	match_anim.length = 0.6
-	match_anim.loop_mode = Animation.LOOP_NONE
-	var match_track: int = match_anim.add_track(Animation.TYPE_VALUE)
-	match_anim.track_set_path(match_track, NodePath("MarginContainer:scale"))
-	match_anim.track_insert_key(match_track, 0.0, Vector2(1.0, 1.0))
-	match_anim.track_insert_key(match_track, 0.2, Vector2(1.03, 1.03))
-	match_anim.track_insert_key(match_track, 0.6, Vector2(1.0, 1.0))
-	library.add_animation("match_found_reveal", match_anim)
+	if not library.has_animation("match_found_reveal"):
+		var match_anim: Animation = Animation.new()
+		match_anim.length = 0.6
+		match_anim.loop_mode = Animation.LOOP_NONE
+		var match_track: int = match_anim.add_track(Animation.TYPE_VALUE)
+		match_anim.track_set_path(match_track, NodePath("MarginContainer:scale"))
+		match_anim.track_insert_key(match_track, 0.0, Vector2(1.0, 1.0))
+		match_anim.track_insert_key(match_track, 0.2, Vector2(1.03, 1.03))
+		match_anim.track_insert_key(match_track, 0.6, Vector2(1.0, 1.0))
+		library.add_animation("match_found_reveal", match_anim)
 
-	var error_anim: Animation = Animation.new()
-	error_anim.length = 0.25
-	error_anim.loop_mode = Animation.LOOP_NONE
-	var error_track: int = error_anim.add_track(Animation.TYPE_VALUE)
-	error_anim.track_set_path(error_track, NodePath("MarginContainer:modulate"))
-	error_anim.track_insert_key(error_track, 0.0, Color(1.0, 0.85, 0.85, 1))
-	error_anim.track_insert_key(error_track, 0.25, Color(1, 1, 1, 1))
-	library.add_animation("error_reset", error_anim)
+	if not library.has_animation("error_reset"):
+		var error_anim: Animation = Animation.new()
+		error_anim.length = 0.25
+		error_anim.loop_mode = Animation.LOOP_NONE
+		var error_track: int = error_anim.add_track(Animation.TYPE_VALUE)
+		error_anim.track_set_path(error_track, NodePath("MarginContainer:modulate"))
+		error_anim.track_insert_key(error_track, 0.0, Color(1.0, 0.85, 0.85, 1))
+		error_anim.track_insert_key(error_track, 0.25, Color(1, 1, 1, 1))
+		library.add_animation("error_reset", error_anim)
 
 
 func _update_ui_animation(state: ScreenState) -> void:

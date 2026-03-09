@@ -75,7 +75,7 @@ echo "==> Launching ranked clients"
   --nakama-host="${E2E_NAKAMA_HOST}" \
   --nakama-port="${E2E_NAKAMA_PORT}" \
   --nakama-server-key="${E2E_NAKAMA_SERVER_KEY}" \
-  --goto-online --auto-queue --e2e-log-battle-start --e2e-force-complete-seconds=55 --e2e-force-report-seconds=65 \
+  --goto-online --auto-queue --e2e-log-battle-start --e2e-force-complete-seconds=55 \
   >"$PLAYER1_LOG" 2>&1 &
 PLAYER1_PID=$!
 "$GODOT_PATH" --path . --headless -- \
@@ -182,6 +182,11 @@ wait_for_log "$PLAYER1_LOG" "[RANKED][RECONNECT] Socket connected" "Reconnect re
 echo "==> Gate E: no uncaught exceptions"
 if grep -Eq "Unhandled exception|CRASH|ERROR:.*Unhandled" "$PLAYER1_LOG" "$PLAYER2_LOG"; then
   echo "FAIL: Found uncaught exception markers in logs" >&2
+  exit 1
+fi
+
+if grep -Fq "[RANKED][E2E] Forcing ranked report checkpoint" "$PLAYER1_LOG" "$PLAYER2_LOG"; then
+  echo "FAIL: Forced report fallback was used during E2E run" >&2
   exit 1
 fi
 
