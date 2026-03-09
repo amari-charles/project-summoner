@@ -53,3 +53,40 @@ func test_reward_screen_hides_card_xp_section_when_no_items_render() -> void:
 	card_xp_grid.free()
 	card_xp_header_label.free()
 	card_xp_amount_label.free()
+
+
+func test_reward_screen_extract_current_battle_id_supports_flat_campaign_progress_layout() -> void:
+	var reward_screen_script: GDScript = load("res://scripts/meta/screens/reward_screen.gd")
+	var reward_screen: RewardScreen = reward_screen_script.new()
+
+	var profile: Dictionary = {
+		"campaign_progress": {
+			"current_battle": "flat_battle_id"
+		}
+	}
+
+	var battle_id: String = reward_screen._extract_current_battle_id(profile)
+	assert_eq(battle_id, "flat_battle_id", "RewardScreen should read flat campaign_progress.current_battle")
+
+	reward_screen.free()
+
+
+func test_reward_screen_extract_current_battle_id_supports_per_summoner_campaign_progress_layout() -> void:
+	var reward_screen_script: GDScript = load("res://scripts/meta/screens/reward_screen.gd")
+	var reward_screen: RewardScreen = reward_screen_script.new()
+
+	var active_summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	assert_false(active_summoner_id.is_empty(), "Expected an active summoner for per-summoner progress lookup")
+
+	var profile: Dictionary = {
+		"campaign_progress": {
+			active_summoner_id: {
+				"current_battle": "per_summoner_battle_id"
+			}
+		}
+	}
+
+	var battle_id: String = reward_screen._extract_current_battle_id(profile)
+	assert_eq(battle_id, "per_summoner_battle_id", "RewardScreen should read campaign_progress[active_summoner].current_battle")
+
+	reward_screen.free()

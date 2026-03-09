@@ -20,6 +20,9 @@ public class PendingRewardData
     [JsonPropertyName("choice_index")]
     public int ChoiceIndex { get; set; } = -1;
 
+    [JsonPropertyName("chosen_catalog_id")]
+    public string ChosenCatalogId { get; set; } = "";
+
     [JsonPropertyName("caravan_purchases")]
     public List<string> CaravanPurchases { get; set; } = [];
 }

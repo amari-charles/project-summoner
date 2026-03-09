@@ -387,6 +387,7 @@ public class DtoConvertersTest
             BattleId = new BattleId("first_trial"),
             RewardType = RewardType.Fixed,
             ChoiceIndex = -1,
+            ChosenCatalogId = "fire_wisp",
             CaravanPurchases = ["item_a"]
         };
 
@@ -395,6 +396,7 @@ public class DtoConvertersTest
         AssertThat(dict["battle_id"].AsString()).IsEqual("first_trial");
         AssertThat(dict["reward_type"].AsString()).IsEqual("fixed");
         AssertThat(dict["choice_index"].AsInt32()).IsEqual(-1);
+        AssertThat(dict["chosen_catalog_id"].AsString()).IsEqual("fire_wisp");
         AssertThat(dict.ContainsKey("caravan_purchases")).IsTrue();
         AssertThat(dict["caravan_purchases"].AsGodotArray().Count).IsEqual(1);
     }

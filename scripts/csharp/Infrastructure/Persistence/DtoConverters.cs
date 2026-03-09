@@ -342,7 +342,8 @@ public static class DtoConverters
         {
             ["battle_id"] = (string)pending.BattleId,
             ["reward_type"] = pending.RewardType.ToStringId(),
-            ["choice_index"] = pending.ChoiceIndex
+            ["choice_index"] = pending.ChoiceIndex,
+            ["chosen_catalog_id"] = pending.ChosenCatalogId
         };
 
         if (pending.CaravanPurchases.Count > 0)
@@ -400,7 +401,8 @@ public static class DtoConverters
             {
                 BattleId = new BattleId(GetString(rewardDict, "battle_id", "")),
                 RewardType = RewardTypeExtensions.FromStringId(GetString(rewardDict, "reward_type", "fixed")),
-                ChoiceIndex = GetInt(rewardDict, "choice_index", -1)
+                ChoiceIndex = GetInt(rewardDict, "choice_index", -1),
+                ChosenCatalogId = GetString(rewardDict, "chosen_catalog_id", "")
             };
             if (rewardDict.TryGetValue("caravan_purchases", out var purchasesVar) &&
                 purchasesVar.VariantType == Variant.Type.Array)
