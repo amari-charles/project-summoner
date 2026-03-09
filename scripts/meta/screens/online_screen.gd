@@ -42,6 +42,7 @@ const FATEFORGED_THRESHOLD: int = 20
 @onready var queue_button: Button = %QueueButton
 @onready var leaderboard_header: Label = $MarginContainer/VBoxContainer/ContentHBox/RightPanel/LeaderboardHeader
 @onready var leaderboard_list: VBoxContainer = %LeaderboardList
+@onready var ui_animation_player: AnimationPlayer = $AnimationPlayer
 
 ## State
 var _state: ScreenState = ScreenState.LOADING
@@ -50,6 +51,8 @@ var _nakama_client: Node = null
 var _matchmaking_service: Node = null
 var _ranking_service: Node = null
 var _leaderboard_service: Node = null
+var _is_authenticated: bool = false
+var _auto_queue_once: bool = false
 
 ## Deck exchange state
 var _opponent_deck_received: bool = false
@@ -59,6 +62,7 @@ var _pending_match_info: Dictionary = {}
 
 
 func _ready() -> void:
+	_ensure_ui_animations()
 	_setup_localization()
 	_setup_signals()
 	_connect_services()
@@ -94,6 +98,10 @@ func _connect_services() -> void:
 			_nakama_client.Authenticated.connect(_on_authenticated)
 		if _nakama_client.has_signal("AuthenticationFailed"):
 			_nakama_client.AuthenticationFailed.connect(_on_authentication_failed)
+		if _nakama_client.has_signal("SocketConnected"):
+			_nakama_client.SocketConnected.connect(_on_socket_connected)
+		if _nakama_client.has_signal("SocketDisconnected"):
+			_nakama_client.SocketDisconnected.connect(_on_socket_disconnected)
 
 	if _matchmaking_service:
 		if _matchmaking_service.has_signal("MatchFound"):
@@ -116,12 +124,16 @@ func _connect_services() -> void:
 		if not _nakama_client.get("IsAuthenticated"):
 			_set_state(ScreenState.LOADING)
 			status_label.text = Loc.t("ui.ranked.authenticating")
+			print("[RANKED][AUTH] Authenticating with Nakama")
 			_nakama_client.Authenticate()
 		else:
+			_is_authenticated = true
 			_set_state(ScreenState.READY)
 			_refresh_data()
+			_try_auto_queue_once()
 	else:
 		# Services not available - show local data
+		_is_authenticated = false
 		_set_state(ScreenState.READY)
 		_refresh_local_data()
 
@@ -129,6 +141,7 @@ func _connect_services() -> void:
 func _set_state(new_state: ScreenState) -> void:
 	_state = new_state
 	_update_ui()
+	_update_ui_animation(new_state)
 
 
 func _update_ui() -> void:
@@ -137,7 +150,7 @@ func _update_ui() -> void:
 			queue_button.disabled = true
 			queue_button.text = Loc.t("ui.ranked.find_match")
 		ScreenState.READY:
-			queue_button.disabled = false
+			queue_button.disabled = not _is_authenticated
 			queue_button.text = Loc.t("ui.ranked.find_match")
 			status_label.text = ""
 		ScreenState.IN_QUEUE:
@@ -304,7 +317,10 @@ func _update_stats_display(wins: int, losses: int) -> void:
 
 func _refresh_leaderboard() -> void:
 	if _leaderboard_service:
-		_leaderboard_service.RefreshLeaderboard(10)
+		if _leaderboard_service.has_method("RefreshLeaderboardAndRankAsync"):
+			_leaderboard_service.RefreshLeaderboardAndRankAsync(10)
+		else:
+			_leaderboard_service.RefreshLeaderboard(10)
 	else:
 		_populate_mock_leaderboard()
 
@@ -400,14 +416,17 @@ func _join_queue() -> void:
 		_queue_start_time = Time.get_ticks_msec() / 1000.0
 		_set_state(ScreenState.IN_QUEUE)
 		status_label.text = Loc.t("ui.ranked.in_queue")
+		print("[RANKED][QUEUE] Joining queue")
 		_matchmaking_service.JoinQueue()
 	else:
 		# No matchmaking service - show message
 		status_label.text = Loc.t("ui.ranked.not_connected")
+		print("[RANKED][QUEUE] MatchmakingService unavailable")
 
 
 func _leave_queue() -> void:
 	if _matchmaking_service:
+		print("[RANKED][QUEUE] Leaving queue")
 		_matchmaking_service.LeaveQueue()
 	_set_state(ScreenState.READY)
 
@@ -417,17 +436,25 @@ func _leave_queue() -> void:
 ## =============================================================================
 
 func _on_authenticated(_user_id: String, _username: String) -> void:
+	print("[RANKED][AUTH] Authentication succeeded for user %s" % _user_id)
+	_is_authenticated = true
 	_set_state(ScreenState.READY)
 	_refresh_data()
+	_try_auto_queue_once()
 
 
 func _on_authentication_failed(_error: String) -> void:
+	print("[RANKED][AUTH] Authentication failed: %s" % _error)
+	_is_authenticated = false
+	if ui_animation_player:
+		ui_animation_player.play("error_reset")
 	_set_state(ScreenState.READY)
 	status_label.text = Loc.t("ui.ranked.authentication_failed")
 	_refresh_local_data()
 
 
 func _on_match_found(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String) -> void:
+	print("[RANKED][MATCH_JOIN] Match found: match_id=%s opponent=%s(%s) rating=%d summoner=%s" % [match_id, opponent_username, opponent_user_id, opponent_rating, opponent_summoner_id])
 	_set_state(ScreenState.MATCH_FOUND)
 	status_label.text = Loc.t("ui.ranked.match_found")
 
@@ -467,6 +494,7 @@ func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_us
 		}
 
 	var deck_json: String = JSON.stringify({"deck": player_deck, "summoner_instance": summoner_data})
+	print("[RANKED][DECK_EXCHANGE] Sending local deck payload")
 	_nakama_client.SendMatchData(DECK_EXCHANGE_OP_CODE, deck_json)
 
 	# Wait for opponent deck (with timeout)
@@ -476,7 +504,10 @@ func _exchange_deck_data(match_id: String, opponent_user_id: String, opponent_us
 		elapsed += 0.1
 
 	if not _opponent_deck_received:
+		print("[RANKED][DECK_EXCHANGE] Timed out waiting for opponent deck")
 		status_label.text = Loc.t("ui.ranked.exchange_timeout")
+		if ui_animation_player:
+			ui_animation_player.play("error_reset")
 		# Clean up the Nakama match so it doesn't linger
 		if _nakama_client and _nakama_client.has_method("LeaveMatch"):
 			_nakama_client.LeaveMatch()
@@ -517,6 +548,7 @@ func _on_match_data_received(match_id: String, op_code: int, data: String, sende
 		_pending_opponent_deck = deck
 		_pending_opponent_summoner_data = dict.get("summoner_instance", {})
 		_opponent_deck_received = true
+		print("[RANKED][DECK_EXCHANGE] Received opponent deck payload from %s" % sender_id)
 
 
 func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_username: String, opponent_rating: int, opponent_summoner_id: String, opponent_deck: Array) -> void:
@@ -564,6 +596,7 @@ func _start_ranked_battle(match_id: String, opponent_user_id: String, opponent_u
 	await get_tree().create_timer(BATTLE_TRANSITION_DELAY).timeout
 
 	# Transition to battle
+	print("[RANKED][MATCH_JOIN] Transitioning to battle scene")
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 
@@ -579,6 +612,9 @@ func _get_player_deck() -> Array:
 
 
 func _on_matchmaking_cancelled(reason: String) -> void:
+	print("[RANKED][QUEUE] Matchmaking cancelled: %s" % reason)
+	if ui_animation_player:
+		ui_animation_player.play("error_reset")
 	_set_state(ScreenState.READY)
 	if not reason.is_empty():
 		status_label.text = reason
@@ -598,14 +634,117 @@ func _on_leaderboard_refreshed() -> void:
 			_populate_leaderboard(top_players)
 
 	# Update player rank if available
+	var rank_num: int = 0
 	if _leaderboard_service:
 		var player_rank: Variant = _leaderboard_service.get("PlayerRank")
-		if player_rank:
-			var rank_num: int = player_rank.get("Rank", 0)
-			if rank_num > 0:
-				rank_label.text = Loc.t("ui.ranked.your_rank") + ": #%d" % rank_num
-			else:
-				rank_label.text = Loc.t("ui.ranked.your_rank") + ": " + Loc.t("ui.ranked.unranked")
+		if player_rank is Dictionary:
+			rank_num = int(player_rank.get("Rank", 0))
+		elif player_rank is Object:
+			var rank_val: Variant = player_rank.get("Rank")
+			if rank_val != null:
+				rank_num = int(rank_val)
+
+	if rank_num > 0:
+		rank_label.text = Loc.t("ui.ranked.your_rank") + ": #%d" % rank_num
+		print("[RANKED][REPORT] Player rank refreshed: #%d" % rank_num)
+	else:
+		rank_label.text = Loc.t("ui.ranked.your_rank") + ": " + Loc.t("ui.ranked.unranked")
+		print("[RANKED][REPORT] Player rank refreshed: unranked")
 
 	# Re-check Fateforged status after leaderboard refresh
 	_refresh_rating_display()
+
+
+func _on_socket_disconnected() -> void:
+	print("[RANKED][RECONNECT] Socket disconnected")
+	_is_authenticated = false
+	if _state == ScreenState.IN_QUEUE:
+		_set_state(ScreenState.READY)
+	status_label.text = Loc.t("ui.ranked.not_connected")
+	queue_button.disabled = true
+
+
+func _on_socket_connected() -> void:
+	print("[RANKED][RECONNECT] Socket connected")
+	_is_authenticated = true
+	if _state == ScreenState.READY:
+		queue_button.disabled = false
+
+
+func _should_auto_queue() -> bool:
+	return "--auto-queue" in OS.get_cmdline_user_args()
+
+
+func _try_auto_queue_once() -> void:
+	if _auto_queue_once:
+		return
+	if not _should_auto_queue():
+		return
+	if _state != ScreenState.READY:
+		return
+	_auto_queue_once = true
+	print("[RANKED][QUEUE] Auto-queue enabled, joining queue")
+	_join_queue()
+
+
+func _ensure_ui_animations() -> void:
+	if not ui_animation_player:
+		return
+	if ui_animation_player.has_animation("ready_idle") and ui_animation_player.has_animation("queue_active") and ui_animation_player.has_animation("match_found_reveal") and ui_animation_player.has_animation("error_reset"):
+		return
+
+	var library: AnimationLibrary
+	if ui_animation_player.has_animation_library(""):
+		library = ui_animation_player.get_animation_library("")
+	else:
+		library = AnimationLibrary.new()
+		ui_animation_player.add_animation_library("", library)
+
+	var ready_anim: Animation = Animation.new()
+	ready_anim.length = 0.01
+	ready_anim.loop_mode = Animation.LOOP_NONE
+	var ready_track: int = ready_anim.add_track(Animation.TYPE_VALUE)
+	ready_anim.track_set_path(ready_track, NodePath("MarginContainer:modulate"))
+	ready_anim.track_insert_key(ready_track, 0.0, Color(1, 1, 1, 1))
+	library.add_animation("ready_idle", ready_anim)
+
+	var queue_anim: Animation = Animation.new()
+	queue_anim.length = 1.2
+	queue_anim.loop_mode = Animation.LOOP_LINEAR
+	var queue_track: int = queue_anim.add_track(Animation.TYPE_VALUE)
+	queue_anim.track_set_path(queue_track, NodePath("MarginContainer:modulate"))
+	queue_anim.track_insert_key(queue_track, 0.0, Color(1, 1, 1, 1))
+	queue_anim.track_insert_key(queue_track, 0.6, Color(0.9, 0.95, 1.0, 1))
+	queue_anim.track_insert_key(queue_track, 1.2, Color(1, 1, 1, 1))
+	library.add_animation("queue_active", queue_anim)
+
+	var match_anim: Animation = Animation.new()
+	match_anim.length = 0.6
+	match_anim.loop_mode = Animation.LOOP_NONE
+	var match_track: int = match_anim.add_track(Animation.TYPE_VALUE)
+	match_anim.track_set_path(match_track, NodePath("MarginContainer:scale"))
+	match_anim.track_insert_key(match_track, 0.0, Vector2(1.0, 1.0))
+	match_anim.track_insert_key(match_track, 0.2, Vector2(1.03, 1.03))
+	match_anim.track_insert_key(match_track, 0.6, Vector2(1.0, 1.0))
+	library.add_animation("match_found_reveal", match_anim)
+
+	var error_anim: Animation = Animation.new()
+	error_anim.length = 0.25
+	error_anim.loop_mode = Animation.LOOP_NONE
+	var error_track: int = error_anim.add_track(Animation.TYPE_VALUE)
+	error_anim.track_set_path(error_track, NodePath("MarginContainer:modulate"))
+	error_anim.track_insert_key(error_track, 0.0, Color(1.0, 0.85, 0.85, 1))
+	error_anim.track_insert_key(error_track, 0.25, Color(1, 1, 1, 1))
+	library.add_animation("error_reset", error_anim)
+
+
+func _update_ui_animation(state: ScreenState) -> void:
+	if not ui_animation_player:
+		return
+	match state:
+		ScreenState.LOADING, ScreenState.READY:
+			ui_animation_player.play("ready_idle")
+		ScreenState.IN_QUEUE:
+			ui_animation_player.play("queue_active")
+		ScreenState.MATCH_FOUND:
+			ui_animation_player.play("match_found_reveal")

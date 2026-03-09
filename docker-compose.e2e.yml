@@ -1,0 +1,6 @@
+services:
+  nakama:
+    ports: !override
+      - "8349:7349"
+      - "8350:7350"
+      - "8351:7351"

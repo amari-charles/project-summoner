@@ -6,6 +6,30 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+### Implement Ranked Gameplay Mode
+**Completed:** 2026-03-09
+**Category:** Core Game Systems / Multiplayer
+**Effort:** Large
+
+Completed ranked mode phase 4 closeout with production flow polish and deterministic local Nakama E2E coverage.
+
+**Resolution Summary:**
+- ✅ Queue UI/match-found polish completed (state-driven animation wiring on `online_screen`)
+- ✅ Matchmaking opponent metadata extraction fixed (user, username, summoner, rating)
+- ✅ Combined leaderboard refresh path completed (top players + player rank in one cycle)
+- ✅ Dedicated E2E Nakama namespace (`ranked_e2e`) with fixed ports and client endpoint CLI overrides
+- ✅ Automated E2E harness gates A/B/C/D/E passing in one run, including reconnect smoke
+
+**Representative Files Changed:**
+- `scripts/csharp/Infrastructure/Backend/NakamaGameClient.cs`
+- `scripts/csharp/Meta/Matchmaking/MatchmakingService.cs`
+- `scripts/csharp/Meta/Ranking/LeaderboardService.cs`
+- `scripts/meta/screens/online_screen.gd`
+- `tools/run_ranked_e2e.sh`
+- `docs/technical/ranked-e2e.md`
+
+---
+
 ### Audit Sim/Visual State Desync Points
 **Completed:** 2026-03-08
 **Category:** Architecture / Simulation

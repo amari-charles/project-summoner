@@ -72,7 +72,7 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
         int remotePeerId = isHost ? 2 : 1;
         OnPeerConnected?.Invoke(remotePeerId);
 
-        GD.Print($"[NakamaMatchTransport] Initialized (match: {matchId}, host: {isHost}, peerId: {localPeerId})");
+        GD.Print($"[RANKED][RECONNECT] Transport initialized (match: {matchId}, host: {isHost}, peerId: {localPeerId})");
     }
 
     #region IMatchTransport Methods
@@ -123,7 +123,7 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
         if (wasConnected)
         {
             OnDisconnected?.Invoke("Disconnected");
-            GD.Print("[NakamaMatchTransport] Disconnected");
+            GD.Print("[RANKED][RECONNECT] Transport disconnected");
         }
     }
 
@@ -173,7 +173,7 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
         int remotePeerId = _isHost ? 2 : 1;
         _remotePeerConnected = false;
-        GD.Print($"[NakamaMatchTransport] Peer left: {userId}");
+        GD.Print($"[RANKED][RECONNECT] Peer left: {userId}");
         OnPeerDisconnected?.Invoke(remotePeerId);
     }
 
@@ -189,7 +189,7 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
         _remotePeerConnected = true;
         int remotePeerId = _isHost ? 2 : 1;
-        GD.Print($"[NakamaMatchTransport] Peer rejoined: {username} ({userId})");
+        GD.Print($"[RANKED][RECONNECT] Peer rejoined: {username} ({userId})");
         OnPeerConnected?.Invoke(remotePeerId);
     }
 
@@ -218,7 +218,7 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
             for (int attempt = 1; attempt <= ReconnectMaxAttempts && !_disposed; attempt++)
             {
-                GD.Print($"[NakamaMatchTransport] Reconnect attempt {attempt}/{ReconnectMaxAttempts}...");
+                GD.Print($"[RANKED][RECONNECT] Reconnect attempt {attempt}/{ReconnectMaxAttempts}...");
                 bool rejoined = await nakama.ReconnectToMatchAsync(_matchId);
                 if (rejoined)
                 {
@@ -231,7 +231,7 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
                         OnPeerConnected?.Invoke(remotePeerId);
                     }
 
-                    GD.Print("[NakamaMatchTransport] Reconnected to match");
+                    GD.Print("[RANKED][RECONNECT] Reconnected to match");
                     return;
                 }
 
@@ -239,7 +239,7 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
             }
 
             OnDisconnected?.Invoke("Reconnect timeout");
-            GD.PrintErr("[NakamaMatchTransport] Reconnect timeout");
+            GD.PrintErr("[RANKED][RECONNECT] Reconnect timeout");
         }
         finally
         {

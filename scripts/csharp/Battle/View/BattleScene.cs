@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Events;
 using Fateforged.Session;
@@ -85,6 +86,10 @@ public partial class BattleScene : Node3D
 	private bool _isShowingReconnectState;
 	private int _lastReconnectSeconds = -1;
 	private int _lastEmittedPhase = -1;
+	private bool _scheduledAutoForfeit;
+	private bool _scheduledForcedCompletion;
+	private bool _scheduledForcedReport;
+	private bool _scheduledAutoContinueAfterGameOver;
 
 	// =========================================================================
 	// LIFECYCLE
@@ -140,6 +145,13 @@ public partial class BattleScene : Node3D
 			if (sn != null && sn.HasSignal("FirstSnapshotApplied"))
 				await ToSignal(sn, "FirstSnapshotApplied");
 		}
+		if (Array.Exists(OS.GetCmdlineUserArgs(), arg => arg == "--e2e-log-battle-start"))
+			GD.Print("[RANKED][E2E] Battle scene initialized");
+
+		MaybeScheduleAutoForfeit();
+		MaybeScheduleForcedCompletion();
+		MaybeScheduleForcedReport();
+		MaybeScheduleAutoContinueAfterGameOver();
 		StartGame();
 	}
 
@@ -179,6 +191,7 @@ public partial class BattleScene : Node3D
 
 		if (_config.IsMultiplayer)
 			PollReconnectState();
+
 	}
 
 	// =========================================================================
@@ -901,7 +914,7 @@ public partial class BattleScene : Node3D
 			EloCalculator.StartingElo);
 		float duration = (GetSimNode() as SimulationNode)?.GetMatchTime() ?? 0f;
 
-		GD.Print($"[BattleScene] Reporting ranked match — won: {playerWon}, reason: {_matchEndReason}");
+		GD.Print($"[RANKED][REPORT] Reporting ranked match — won: {playerWon}, reason: {_matchEndReason}, match={matchId}, opponent={opponentId}, opponent_rating={opponentRating}");
 		rankingService.ReportMatch(playerWon, opponentRating, matchId, opponentId, duration, _matchEndReason);
 	}
 
@@ -920,6 +933,159 @@ public partial class BattleScene : Node3D
 			sceneManager.Call("transition_to", scenePath);
 		else
 			GetTree().ChangeSceneToFile(scenePath);
+	}
+
+	private void MaybeScheduleAutoForfeit()
+	{
+		if (_scheduledAutoForfeit)
+			return;
+
+		float delaySeconds = 0f;
+		foreach (string arg in OS.GetCmdlineUserArgs())
+		{
+			const string Prefix = "--e2e-auto-forfeit-seconds=";
+			if (!arg.StartsWith(Prefix))
+				continue;
+
+			var value = arg.Substring(Prefix.Length);
+			if (float.TryParse(value, out var parsedDelay))
+				delaySeconds = parsedDelay;
+			break;
+		}
+
+		if (delaySeconds <= 0f)
+			return;
+
+		_scheduledAutoForfeit = true;
+		_ = AutoForfeitAfterDelayAsync(delaySeconds);
+	}
+
+	private async System.Threading.Tasks.Task AutoForfeitAfterDelayAsync(float delaySeconds)
+	{
+		await ToSignal(GetTree().CreateTimer(delaySeconds), SceneTreeTimer.SignalName.Timeout);
+
+		var simNode = GetSimNode() as SimulationNode;
+		if (simNode == null)
+			return;
+
+		int localTeam = _config.HasAuthority ? 0 : 1;
+		GD.Print($"[RANKED][E2E] Auto-forfeit issuing for local team {localTeam}");
+		simNode.SubmitCommand(new ForfeitCommand(localTeam));
+	}
+
+	private void MaybeScheduleForcedCompletion()
+	{
+		if (_scheduledForcedCompletion)
+			return;
+
+		float delaySeconds = 0f;
+		foreach (string arg in OS.GetCmdlineUserArgs())
+		{
+			const string Prefix = "--e2e-force-complete-seconds=";
+			if (!arg.StartsWith(Prefix))
+				continue;
+
+			var value = arg.Substring(Prefix.Length);
+			if (float.TryParse(value, out var parsedDelay))
+				delaySeconds = parsedDelay;
+			break;
+		}
+
+		if (delaySeconds <= 0f)
+			return;
+
+		_scheduledForcedCompletion = true;
+		GD.Print($"[RANKED][E2E] Scheduled forced completion in {delaySeconds:0.0}s");
+		_ = ForceCompletionAfterDelayAsync(delaySeconds);
+	}
+
+	private void ExecuteForcedCompletion()
+	{
+		if (CurrentState == GameState.GameOver)
+			return;
+
+		int winnerTeam = _config.HasAuthority ? 0 : 1;
+		GD.Print($"[RANKED][E2E] Forcing local completion, winner team {winnerTeam}");
+		EndGame(winnerTeam);
+		ContinueAfterGameOver();
+	}
+
+	private async System.Threading.Tasks.Task ForceCompletionAfterDelayAsync(float delaySeconds)
+	{
+		await ToSignal(GetTree().CreateTimer(delaySeconds), SceneTreeTimer.SignalName.Timeout);
+		CallDeferred(MethodName.ExecuteForcedCompletion);
+	}
+
+	private void MaybeScheduleForcedReport()
+	{
+		if (_scheduledForcedReport)
+			return;
+
+		float delaySeconds = 0f;
+		foreach (string arg in OS.GetCmdlineUserArgs())
+		{
+			const string Prefix = "--e2e-force-report-seconds=";
+			if (!arg.StartsWith(Prefix))
+				continue;
+
+			var value = arg.Substring(Prefix.Length);
+			if (float.TryParse(value, out var parsedDelay))
+				delaySeconds = parsedDelay;
+			break;
+		}
+
+		if (delaySeconds <= 0f)
+			return;
+
+		_scheduledForcedReport = true;
+		GD.Print($"[RANKED][E2E] Scheduled forced report in {delaySeconds:0.0}s");
+		_ = ForceReportAfterDelayAsync(delaySeconds);
+	}
+
+	private void ExecuteForcedReport()
+	{
+		if (!_config.IsRankedMatch)
+			return;
+
+		GD.Print("[RANKED][E2E] Forcing ranked report checkpoint");
+		ReportRankedMatch(playerWon: true);
+	}
+
+	private async System.Threading.Tasks.Task ForceReportAfterDelayAsync(float delaySeconds)
+	{
+		await ToSignal(GetTree().CreateTimer(delaySeconds), SceneTreeTimer.SignalName.Timeout);
+		CallDeferred(MethodName.ExecuteForcedReport);
+	}
+
+	private void MaybeScheduleAutoContinueAfterGameOver()
+	{
+		if (_scheduledAutoContinueAfterGameOver)
+			return;
+
+		bool hasE2EFlag = Array.Exists(OS.GetCmdlineUserArgs(), arg =>
+			arg == "--e2e-log-battle-start" ||
+			arg.StartsWith("--e2e-auto-forfeit-seconds=") ||
+			arg.StartsWith("--e2e-force-complete-seconds=") ||
+			arg.StartsWith("--e2e-force-report-seconds="));
+		if (!hasE2EFlag)
+			return;
+
+		_scheduledAutoContinueAfterGameOver = true;
+		_ = AutoContinueAfterGameOverAsync();
+	}
+
+	private async System.Threading.Tasks.Task AutoContinueAfterGameOverAsync()
+	{
+		while (IsInsideTree() && CurrentState != GameState.GameOver)
+		{
+			await ToSignal(GetTree().CreateTimer(0.5f), SceneTreeTimer.SignalName.Timeout);
+		}
+
+		if (!IsInsideTree() || CurrentState != GameState.GameOver)
+			return;
+
+		GD.Print("[RANKED][E2E] Auto-continuing after game over");
+		CallDeferred(MethodName.ContinueAfterGameOver);
 	}
 
 	// =========================================================================

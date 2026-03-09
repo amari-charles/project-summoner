@@ -122,7 +122,30 @@ public partial class LeaderboardService : Node
     /// </summary>
     public void RefreshLeaderboard(int count = DefaultTopCount)
     {
-        _ = GetTopPlayersAsync(count, true);
+        _ = RefreshLeaderboardAndRankAsync(count);
+    }
+
+    /// <summary>
+    /// GDScript-callable wrapper: refresh top players and current-player rank in a single cycle.
+    /// Emits LeaderboardRefreshed only after both caches are updated.
+    /// </summary>
+    public async Task RefreshLeaderboardAndRankAsync(int count = DefaultTopCount)
+    {
+        float now = (float)(Time.GetTicksMsec() / 1000.0);
+        var entries = await FetchTopPlayersFromNakamaAsync(count);
+        if (entries.Count > 0)
+        {
+            _cachedTopPlayers = entries;
+        }
+
+        var playerRank = await GetPlayerRankAsync(forceRefresh: true);
+        if (playerRank != null)
+        {
+            _cachedPlayerRank = playerRank;
+        }
+
+        _cacheTimestamp = now;
+        EmitSignal(SignalName.LeaderboardRefreshed);
     }
 
     public async Task<List<LeaderboardEntry>> GetTopPlayersAsync(int count = DefaultTopCount, bool forceRefresh = false)
@@ -141,7 +164,6 @@ public partial class LeaderboardService : Node
         {
             _cachedTopPlayers = entries;
             _cacheTimestamp = now;
-            EmitSignal(SignalName.LeaderboardRefreshed);
         }
 
         return entries;
@@ -252,10 +274,20 @@ public partial class LeaderboardService : Node
     public async Task SubmitScoreAsync(int rating)
     {
         var nakama = NakamaGameClient.Instance;
-        if (nakama == null || !nakama.IsAuthenticated || nakama.Client == null || nakama.Session == null)
+        if (nakama == null || nakama.Client == null)
         {
             GD.Print("[LeaderboardService] Cannot submit score: not connected");
             return;
+        }
+
+        if (!nakama.IsAuthenticated || nakama.Session == null)
+        {
+            bool ensured = await nakama.EnsureAuthenticatedAsync();
+            if (!ensured || nakama.Session == null)
+            {
+                GD.Print("[LeaderboardService] Cannot submit score: not connected");
+                return;
+            }
         }
 
         try
@@ -283,10 +315,20 @@ public partial class LeaderboardService : Node
     private async Task<List<LeaderboardEntry>> FetchTopPlayersFromNakamaAsync(int count)
     {
         var nakama = NakamaGameClient.Instance;
-        if (nakama == null || !nakama.IsAuthenticated || nakama.Client == null || nakama.Session == null)
+        if (nakama == null || nakama.Client == null)
         {
             GD.Print("[LeaderboardService] Not connected to Nakama, using local data");
             return CreateMockLeaderboard();
+        }
+
+        if (!nakama.IsAuthenticated || nakama.Session == null)
+        {
+            bool ensured = await nakama.EnsureAuthenticatedAsync();
+            if (!ensured || nakama.Session == null)
+            {
+                GD.Print("[LeaderboardService] Not connected to Nakama, using local data");
+                return CreateMockLeaderboard();
+            }
         }
 
         try
@@ -335,9 +377,16 @@ public partial class LeaderboardService : Node
     private async Task<LeaderboardEntry?> FetchPlayerRankFromNakamaAsync(string userId)
     {
         var nakama = NakamaGameClient.Instance;
-        if (nakama == null || nakama.Client == null || nakama.Session == null)
+        if (nakama == null || nakama.Client == null)
         {
             return null;
+        }
+
+        if (!nakama.IsAuthenticated || nakama.Session == null)
+        {
+            bool ensured = await nakama.EnsureAuthenticatedAsync();
+            if (!ensured || nakama.Session == null)
+                return null;
         }
 
         try

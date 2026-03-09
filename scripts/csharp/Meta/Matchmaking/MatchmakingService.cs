@@ -14,6 +14,22 @@ namespace Fateforged.Multiplayer.Matchmaking;
 /// </summary>
 public partial class MatchmakingService : Node
 {
+    public readonly struct OpponentMatchInfo
+    {
+        public string UserId { get; init; }
+        public string Username { get; init; }
+        public string SummonerId { get; init; }
+        public int Rating { get; init; }
+    }
+
+    public readonly struct MatchParticipantMetadata
+    {
+        public string UserId { get; init; }
+        public string Username { get; init; }
+        public string SummonerId { get; init; }
+        public int Rating { get; init; }
+    }
+
     #region Configuration
 
     /// <summary>
@@ -165,21 +181,21 @@ public partial class MatchmakingService : Node
         var nakama = NakamaGameClient.Instance;
         if (nakama == null || !nakama.IsAuthenticated)
         {
-            GD.PrintErr("[MatchmakingService] Cannot join queue: not authenticated");
+            GD.PrintErr("[RANKED][QUEUE] Cannot join queue: not authenticated");
             EmitSignal(SignalName.MatchmakingError, "Not authenticated");
             return false;
         }
 
         if (!nakama.IsSocketConnected)
         {
-            GD.PrintErr("[MatchmakingService] Cannot join queue: socket not connected");
+            GD.PrintErr("[RANKED][QUEUE] Cannot join queue: socket not connected");
             EmitSignal(SignalName.MatchmakingError, "Socket not connected");
             return false;
         }
 
         if (IsInQueue)
         {
-            GD.Print("[MatchmakingService] Already in queue");
+            GD.Print("[RANKED][QUEUE] Already in queue");
             return true;
         }
 
@@ -201,8 +217,8 @@ public partial class MatchmakingService : Node
                 ["rating"] = options.Rating
             };
 
-            GD.Print($"[MatchmakingService] Joining queue: rating={options.Rating}, range=±{options.RatingRange}");
-            GD.Print($"[MatchmakingService] Query: {query}");
+            GD.Print($"[RANKED][QUEUE] Joining queue: rating={options.Rating}, range=±{options.RatingRange}");
+            GD.Print($"[RANKED][QUEUE] Query: {query}");
 
             _currentTicket = await nakama.Socket!.AddMatchmakerAsync(
                 query: query,
@@ -214,14 +230,14 @@ public partial class MatchmakingService : Node
 
             _queueStartTime = (float)(Time.GetTicksMsec() / 1000.0);
 
-            GD.Print($"[MatchmakingService] Joined queue with ticket: {_currentTicket.Ticket}");
+            GD.Print($"[RANKED][QUEUE] Joined queue with ticket: {_currentTicket.Ticket}");
             EmitSignal(SignalName.QueueStatusChanged, true, 0f);
 
             return true;
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[MatchmakingService] Failed to join queue: {ex.Message}");
+            GD.PrintErr($"[RANKED][QUEUE] Failed to join queue: {ex.Message}");
             EmitSignal(SignalName.MatchmakingError, ex.Message);
             return false;
         }
@@ -248,11 +264,11 @@ public partial class MatchmakingService : Node
         try
         {
             await nakama.Socket.RemoveMatchmakerAsync(_currentTicket);
-            GD.Print("[MatchmakingService] Left queue");
+            GD.Print("[RANKED][QUEUE] Left queue");
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[MatchmakingService] Error leaving queue: {ex.Message}");
+            GD.PrintErr($"[RANKED][QUEUE] Error leaving queue: {ex.Message}");
         }
 
         _currentTicket = null;
@@ -283,12 +299,13 @@ public partial class MatchmakingService : Node
     private MatchmakingOptions CreateDefaultOptions()
     {
         // Get player's rating from RankingService (autoload)
-        int rating = EloCalculator.StartingElo;
-        var rankingService = GetNodeOrNull<RankingService>("RankingService");
+        int? serviceRating = null;
+        var rankingService = GetTree().Root.GetNodeOrNull<RankingService>("RankingService");
         if (rankingService != null)
         {
-            rating = rankingService.GetRating();
+            serviceRating = rankingService.GetRating();
         }
+        int rating = ResolveQueueRating(serviceRating);
 
         return new MatchmakingOptions
         {
@@ -296,6 +313,13 @@ public partial class MatchmakingService : Node
             Rating = rating,
             RatingRange = DefaultRatingRange
         };
+    }
+
+    public static int ResolveQueueRating(int? serviceRating)
+    {
+        if (!serviceRating.HasValue || serviceRating.Value <= 0)
+            return EloCalculator.StartingElo;
+        return serviceRating.Value;
     }
 
     private string BuildMatchmakerQuery(MatchmakingOptions options)
@@ -308,9 +332,48 @@ public partial class MatchmakingService : Node
         return $"+properties.mode:{options.Mode} +properties.rating:>={minRating} +properties.rating:<={maxRating}";
     }
 
-    private void OnMatchJoined(string matchId, string[] userIds, string[] summonerIds)
+    public static OpponentMatchInfo ResolveOpponentInfo(
+        string? localUserId,
+        string[] userIds,
+        IReadOnlyList<MatchParticipantMetadata> participants)
     {
-        GD.Print($"[MatchmakingService] Match joined: {matchId}");
+        string opponentUserId = "";
+        string opponentUsername = "Opponent";
+        string opponentSummonerId = "ignis";
+        int opponentRating = EloCalculator.StartingElo;
+
+        foreach (var userId in userIds)
+        {
+            if (userId != localUserId)
+            {
+                opponentUserId = userId;
+                break;
+            }
+        }
+
+        foreach (var participant in participants)
+        {
+            if (participant.UserId != localUserId && participant.UserId == opponentUserId)
+            {
+                opponentUsername = string.IsNullOrEmpty(participant.Username) ? "Opponent" : participant.Username;
+                opponentSummonerId = string.IsNullOrEmpty(participant.SummonerId) ? "ignis" : participant.SummonerId;
+                opponentRating = participant.Rating > 0 ? participant.Rating : EloCalculator.StartingElo;
+                break;
+            }
+        }
+
+        return new OpponentMatchInfo
+        {
+            UserId = opponentUserId,
+            Username = opponentUsername,
+            SummonerId = opponentSummonerId,
+            Rating = opponentRating
+        };
+    }
+
+    private void OnMatchJoined(string matchId, string[] userIds, Godot.Collections.Array<NakamaGameClient.MatchParticipantInfo> participants)
+    {
+        GD.Print($"[RANKED][MATCH_JOIN] Match joined: {matchId}");
 
         // Clear queue state
         _currentTicket = null;
@@ -318,26 +381,25 @@ public partial class MatchmakingService : Node
 
         // Find opponent info
         var nakama = NakamaGameClient.Instance;
-        string opponentUserId = "";
-        string opponentUsername = "Opponent";
-        string opponentSummonerId = "ignis";
-        int opponentRating = EloCalculator.StartingElo;
-
-        if (nakama != null)
+        var participantMetadata = new List<MatchParticipantMetadata>(participants.Count);
+        foreach (var participant in participants)
         {
-            for (int i = 0; i < userIds.Length; i++)
+            participantMetadata.Add(new MatchParticipantMetadata
             {
-                if (userIds[i] != nakama.UserId)
-                {
-                    opponentUserId = userIds[i];
-                    opponentSummonerId = i < summonerIds.Length ? summonerIds[i] : "ignis";
-                    break;
-                }
-            }
+                UserId = participant.UserId,
+                Username = participant.Username,
+                SummonerId = participant.SummonerId,
+                Rating = participant.Rating
+            });
         }
 
+        var opponent = ResolveOpponentInfo(nakama?.UserId, userIds, participantMetadata);
+        if (opponent.Username == "Opponent" || opponent.SummonerId == "ignis" || opponent.Rating == EloCalculator.StartingElo)
+            GD.Print("[RANKED][MATCH_JOIN] Opponent participant metadata partially missing, using defaults where needed");
+        GD.Print($"[RANKED][MATCH_JOIN] Opponent resolved: id={opponent.UserId}, username={opponent.Username}, rating={opponent.Rating}, summoner={opponent.SummonerId}");
+
         EmitSignal(SignalName.QueueStatusChanged, false, QueueTime);
-        EmitSignal(SignalName.MatchFound, matchId, opponentUserId, opponentUsername, opponentRating, opponentSummonerId);
+        EmitSignal(SignalName.MatchFound, matchId, opponent.UserId, opponent.Username, opponent.Rating, opponent.SummonerId);
     }
 
     #endregion
