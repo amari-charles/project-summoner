@@ -33,3 +33,8 @@ nakama/data/.cookie
 builds/
 data_*/
 export_presets.cfg
+
+# Non-runtime art/source drops
+assets/characters/imported/
+assets/source_psd/
+drive-download-*.zip
