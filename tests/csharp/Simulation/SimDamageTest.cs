@@ -470,15 +470,13 @@ public class SimDamageTest
         target.PhysicalDefense = 100f; // 0.5x
         target.MagicDefense = 0f;      // 1.0x
 
-        var (damage, _, _) = SimDamage.Calculate(
+        var (damage, _, _) = SimDamage.CalculateAttack(
             100f,
-            DamageType.Physical,
             attacker,
             target,
             null,
             null,
-            _state.Rng,
-            allowAttackProfileSplit: true);
+            _state.Rng);
 
         // 60 * 0.5 + 40 * 1.0 = 70
         AssertThat(damage).IsEqual(70f);
@@ -594,15 +592,13 @@ public class SimDamageTest
         // split: 55 physical -> 27.5 after armor
         //        55 elemental -> 13.75 after magic resist
         // subtotal=41.25 -> reduction=36.25 -> round=36.2 (midpoint-to-even)
-        var (damage, isCrit, _) = SimDamage.Calculate(
+        var (damage, isCrit, _) = SimDamage.CalculateAttack(
             100f,
-            DamageType.Physical,
             attacker,
             target,
             _state.Summoners[0],
             _state.Summoners[1],
-            _state.Rng,
-            allowAttackProfileSplit: true);
+            _state.Rng);
 
         AssertThat(isCrit).IsFalse();
         AssertThat(damage).IsEqual(36.2f);

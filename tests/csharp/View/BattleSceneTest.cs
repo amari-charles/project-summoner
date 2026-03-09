@@ -2,6 +2,7 @@ namespace Fateforged.Tests.View;
 
 using System.Collections.Generic;
 using System.Reflection;
+using Fateforged.Cards;
 using Fateforged.Session;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation;
@@ -116,6 +117,55 @@ public class BattleSceneTest
         AssertThat(phases[0]).IsEqual((int)BattleScene.BattlePhase.Battle);
     }
 
+    [TestCase]
+    public void InitSummonerHost_AppliesComputedCombatModifiersToSimulationState()
+    {
+        var scene = CreateBattleScene();
+        var simNode = CreateSimulationNode();
+        var summoner = new SummonerVisual
+        {
+            Name = $"SummonerVisualTest_{_createdNodes.Count}",
+            Team = 1,
+            MaxHpExport = 300f,
+            MaxHandSize = 4,
+            DeckLoadStrategy = DeckLoadStrategy.Static,
+        };
+        ((SceneTree)Engine.GetMainLoop()).Root.AddChild(summoner);
+        _createdNodes.Add(summoner);
+
+        var starterCard = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
+        AssertThat(starterCard).IsNotNull();
+        summoner.StartingDeck.Add((Resource)starterCard!);
+
+        var opponentSummoner = new Godot.Collections.Dictionary
+        {
+            ["summoner_id"] = "summoner_teo",
+            ["level"] = 1,
+            ["xp"] = 0,
+            ["acquired_trait_ids"] = new Godot.Collections.Array(),
+            ["unspent_trait_points"] = 0
+        };
+
+        var rawConfig = new Godot.Collections.Dictionary
+        {
+            ["opponent_summoner_data"] = opponentSummoner
+        };
+        SetPrivateField(scene, "_config", new BattleSessionConfig
+        {
+            Mode = BattleMode.Multiplayer,
+            IsMultiplayer = true,
+            HasAuthority = true,
+            RawConfig = rawConfig
+        });
+
+        InvokePrivateMethod(scene, "InitSummonerHost", summoner, 1, simNode);
+
+        var summonerState = simNode.State.Summoners[1];
+        AssertThat(summonerState.DamageBonus).IsEqual(0f);
+        AssertThat(summonerState.DamageReduction).IsEqual(5f);
+        AssertThat(summonerState.GetElementalDamageBonus(Element.Earth)).IsEqual(10f);
+    }
+
     private BattleScene CreateBattleScene()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -150,6 +200,12 @@ public class BattleSceneTest
     {
         var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(target, value);
+    }
+
+    private static void InvokePrivateMethod(object target, string methodName, params object?[] args)
+    {
+        var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+        method!.Invoke(target, args);
     }
 
 }

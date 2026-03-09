@@ -26,5 +26,5 @@ Status legend: `Design-Covered`, `Implemented`, `Deferred`
 
 ## PASS 3 Completion Criteria
 - All listed tests implemented and green.
-- Status column for all case IDs updated to `Pass`.
+- Status column for all case IDs updated to `Implemented`.
 - Any removed/replaced test mappings called out explicitly with replacement IDs.

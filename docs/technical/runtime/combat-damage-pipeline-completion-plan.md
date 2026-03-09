@@ -38,17 +38,26 @@ Out of scope:
 ## Delivery Passes
 
 ### PASS 1: Use Cases + Validation
+Status: `Complete`
 - Produce plan and validation-case matrix with explicit test mapping IDs.
 
 ### PASS 2: Stubs + Wiring
+Status: `Complete`
 - Add/extend runtime data fields for damage split profile and summoner combat modifiers.
 - Add deterministic compile-safe wiring from battle initialization into simulation state.
 - Add/extend test skeletons tied to validation IDs.
 
 ### PASS 3: Implementation + Tests
+Status: `Complete`
 - Implement full split-lane damage calculation in `SimDamage`.
 - Finalize test assertions and run targeted + full C# test pass.
 - Update validation matrix statuses.
+
+### PR REVIEW: READY
+Status: `Complete`
+- Required artifacts present (`plan`, `validation-cases`, `stub-checklist`).
+- Validation matrix scenarios mapped to concrete tests and marked `Implemented`.
+- Implementation and validation passes completed; follow-up review fixes incorporated.
 
 ## Likely Files
 - `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs`
@@ -73,4 +82,4 @@ Out of scope:
 - Mixed `DamageProfile` values affect output damage as designed and are covered by deterministic tests.
 - Existing pure damage tests continue to pass without behavior regression.
 - Summoner `damage_bonus` / `damage_reduction` / elemental bonuses demonstrably affect simulation damage outcomes.
-- Validation matrix scenarios are all marked `Pass` by end of PASS 3.
+- Validation matrix scenarios are all marked `Implemented` by end of PASS 3.

@@ -22,15 +22,15 @@ Status legend: `Pending`, `Done`
 
 ## Validation Case Skeleton Mapping
 
-- CDP-004: `SimDamageTest.Calculate_MixedProfile_SplitsAcrossDefenseLanes_Pass2Stub`
-- CDP-005: `SimDamageTest.Calculate_PureElementalProfile_UsesMagicLane_Pass2Stub`
-- CDP-008: `SimDamageTest.Calculate_SummonerElementalBonus_AppliesForMatchingElement_Pass2Stub`
-- CDP-009: `SimDamageTest.Calculate_SummonerElementalBonus_DoesNotApplyForNonMatchingElement_Pass2Stub`
-- CDP-010: `UnitDefinitionsTargetingProfileTest.BuildSimTemplate_MixedDamageProfile_MapsFields_Pass2Stub`
-- CDP-011: `SimulationIntegrationTest.SpawnedUnit_RetainsDamageProfileFields_Pass2Stub`
-- CDP-012: `SimDamageTest.Calculate_FullPipeline_MixedProfile_CorrectOrder_Pass2Stub`
+- CDP-004: `SimDamageTest.Calculate_MixedProfile_SplitsAcrossDefenseLanes`
+- CDP-005: `SimDamageTest.Calculate_PureElementalProfile_UsesMagicLane`
+- CDP-008: `SimDamageTest.Calculate_SummonerElementalBonus_AppliesForMatchingElement`
+- CDP-009: `SimDamageTest.Calculate_SummonerElementalBonus_DoesNotApplyForNonMatchingElement`
+- CDP-010: `UnitDefinitionsTargetingProfileTest.BuildSimTemplate_DamageProfileFields_MapFromDefinition`
+- CDP-011: `SimulationIntegrationTest.SpawnedUnit_RetainsDamageProfileFields`
+- CDP-012: `SimDamageTest.Calculate_FullPipeline_MixedProfile_CorrectOrder`
 
 ## Notes
 
-- PASS 2 does not finalize mixed damage math in `SimDamage`.
-- PASS 3 will replace stub assertions with real scenario assertions and update validation statuses.
+- PASS 2 wiring objectives are complete.
+- PASS 3 replaced stub assertions with final scenario assertions and updated validation statuses to `Implemented`.

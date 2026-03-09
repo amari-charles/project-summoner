@@ -27,8 +27,55 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
-        bool allowAttackProfileSplit = false,
         List<SimEvent>? events = null)
+    {
+        return CalculateInternal(
+            baseDamage,
+            damageType,
+            attacker,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            rng,
+            allowAttackProfileSplit: false,
+            events);
+    }
+
+    /// <summary>
+    /// Calculate damage for unit attack actions.
+    /// Uses attacker AttackType and applies mixed attack-profile split lanes when configured.
+    /// </summary>
+    public static (float damage, bool isCrit, bool wasEvaded) CalculateAttack(
+        float baseDamage,
+        UnitData attacker,
+        UnitData target,
+        SummonerData? attackerSummoner,
+        SummonerData? targetSummoner,
+        DeterministicRng? rng,
+        List<SimEvent>? events = null)
+    {
+        return CalculateInternal(
+            baseDamage,
+            attacker.AttackType,
+            attacker,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            rng,
+            allowAttackProfileSplit: true,
+            events);
+    }
+
+    private static (float damage, bool isCrit, bool wasEvaded) CalculateInternal(
+        float baseDamage,
+        DamageType damageType,
+        UnitData? attacker,
+        UnitData target,
+        SummonerData? attackerSummoner,
+        SummonerData? targetSummoner,
+        DeterministicRng? rng,
+        bool allowAttackProfileSplit,
+        List<SimEvent>? events)
     {
         // 0. Evasion check (deterministic via RNG)
         if (target.Evasion > 0 && rng != null)
@@ -117,15 +164,22 @@ public static class SimDamage
         SummonerData? targetSummoner,
         DeterministicRng? rng)
     {
-        var (damage, isCrit, _) = Calculate(
-            baseDamage,
-            attacker?.AttackType ?? DamageType.Physical,
-            attacker,
-            target,
-            attackerSummoner,
-            targetSummoner,
-            rng,
-            allowAttackProfileSplit: true);
+        var (damage, isCrit, _) = attacker != null
+            ? CalculateAttack(
+                baseDamage,
+                attacker,
+                target,
+                attackerSummoner,
+                targetSummoner,
+                rng)
+            : Calculate(
+                baseDamage,
+                DamageType.Physical,
+                attacker,
+                target,
+                attackerSummoner,
+                targetSummoner,
+                rng);
         return (damage, isCrit);
     }
 
