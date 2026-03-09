@@ -185,19 +185,6 @@ func _apply_spawn_positions() -> void:
 	if enemy_spawn_marker:
 		enemy_spawn_marker.position = enemy_spawn_position
 
-func _update_ground_position() -> void:
-	## Positions the ground plane below the camera's lowest visible Y coordinate
-	## This ensures the ground is always below the viewport, preventing blue void
-	if not camera or not background:
-		return
-
-	# Calculate the lowest Y the camera can see
-	var camera_up: Vector3 = camera.transform.basis.y
-	var lowest_view_y: float = camera.position.y - (camera_up.y * camera.size)
-
-	# Position ground below visible area with small margin
-	background.position.y = lowest_view_y - 1.0
-
 func get_gameplay_layer() -> Node3D:
 	return gameplay_layer
 

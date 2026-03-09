@@ -210,6 +210,10 @@ Two camera boundary bugs were active:
 **Validation:**
 - Local suite run via `tools/run_tests.sh --gut-only`: 180/180 passing.
 
+**Superseded:** 2026-03-09
+
+Orthographic battle camera paths referenced in this fix (including `_solve_max_ortho_size`) were removed in PR #297 (`refactor(camera): remove orthographic battle camera support`). Battle camera runtime is now perspective-only.
+
 **Related Files:**
 - `scripts/battle/battlefield/camera_controller_3d.gd`
 - `tests/unit/test_camera_controller_3d.gd`
