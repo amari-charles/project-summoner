@@ -47,7 +47,8 @@ public static class DtoConverters
             ["level"] = instance.Level,
             ["xp"] = instance.Xp,
             ["equipped_items"] = equippedDict,
-            ["acquired_trait_ids"] = ToGodotArray(instance.AcquiredTraitIds.Select(t => (string)t))
+            ["acquired_trait_ids"] = ToGodotArray(instance.AcquiredTraitIds.Select(t => (string)t)),
+            ["unspent_trait_points"] = instance.UnspentTraitPoints
         };
     }
 
@@ -104,7 +105,8 @@ public static class DtoConverters
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
             EquippedItems = equippedItems,
-            AcquiredTraitIds = acquiredTraits
+            AcquiredTraitIds = acquiredTraits,
+            UnspentTraitPoints = GetInt(dict, "unspent_trait_points", 0)
         };
     }
 
@@ -124,6 +126,7 @@ public static class DtoConverters
             ["level"] = card.Level,
             ["xp"] = card.Xp,
             ["upgrades"] = TraitsToGodotArray(card.Traits),
+            ["unspent_trait_points"] = card.UnspentTraitPoints,
             ["created_at"] = card.CreatedAt,
             ["binding"] = (int)card.Binding
         };
@@ -184,6 +187,7 @@ public static class DtoConverters
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
             Traits = traits,
+            UnspentTraitPoints = GetInt(dict, "unspent_trait_points", 0),
             RollJson = GetNullableString(dict, "roll_json"),
             CreatedAt = GetLong(dict, "created_at", 0),
             Binding = binding,
@@ -731,6 +735,9 @@ public static class DtoConverters
 
         if (update.Traits != null)
             dict["upgrades"] = TraitsToGodotArray(update.Traits);
+
+        if (update.UnspentTraitPoints.HasValue)
+            dict["unspent_trait_points"] = update.UnspentTraitPoints.Value;
 
         return dict;
     }

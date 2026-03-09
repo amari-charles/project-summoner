@@ -13,7 +13,7 @@ public class UnitData
 {
     public int UnitId { get; set; }
     public int NetworkId { get; set; } = -1;
-    public string CatalogId { get; set; } = "";
+    public SimUnitCatalogId CatalogId { get; set; } = SimUnitCatalogId.Empty;
     public Team Team { get; set; }
 
     // HP

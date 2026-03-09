@@ -74,8 +74,8 @@ public class SimulationIntegrationTest
     {
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string> { "test_unit", "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_unit", "test_unit" };
         _state.Summoners[0].Mana = 10f;
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
@@ -94,7 +94,7 @@ public class SimulationIntegrationTest
     {
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 15);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
         _state.Summoners[0].Mana = 10f;
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
@@ -113,8 +113,8 @@ public class SimulationIntegrationTest
     {
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3, unitCount: 2);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string> { "test_unit", "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_unit", "test_unit" };
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
         {
@@ -136,8 +136,8 @@ public class SimulationIntegrationTest
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3);
         _state.CardDataMap["test_unit"] = card;
         _state.CardDataMap["other_card"] = SimTestHelper.CreateSummonCard("other_card", manaCost: 2);
-        _state.Summoners[0].Hand = new List<string> { "test_unit", "other_card" };
-        _state.Summoners[0].Deck = new List<string> { "deck_card_1" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit", "other_card" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "deck_card_1" };
         _state.CardDataMap["deck_card_1"] = SimTestHelper.CreateSummonCard("deck_card_1");
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
@@ -177,7 +177,7 @@ public class SimulationIntegrationTest
     {
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
         {
@@ -201,8 +201,8 @@ public class SimulationIntegrationTest
     {
         var spell = SimTestHelper.CreateSpellCard("test_spell", manaCost: 4, damage: 30f, radius: 10f);
         _state.CardDataMap["test_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "test_spell" };
-        _state.Summoners[0].Deck = new List<string> { "test_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_spell" };
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         var farEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 30f);
@@ -229,7 +229,7 @@ public class SimulationIntegrationTest
 
         var spell = SimTestHelper.CreateSpellCard("test_spell", manaCost: 4);
         _state.CardDataMap["test_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "test_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_spell" };
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(0f, 0f, 0f))
         {
@@ -254,8 +254,8 @@ public class SimulationIntegrationTest
             targetingMode: SpellTargetingMode.Position,
             spellProjectileId: "fireball");
         _state.CardDataMap["projectile_aoe_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "projectile_aoe_spell" };
-        _state.Summoners[0].Deck = new List<string> { "projectile_aoe_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "projectile_aoe_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "projectile_aoe_spell" };
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
 
@@ -287,8 +287,8 @@ public class SimulationIntegrationTest
             targetingMode: SpellTargetingMode.NearestEnemy,
             spellProjectileId: "mana_bolt");
         _state.CardDataMap["projectile_single_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
-        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "projectile_single_spell" };
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
 
@@ -326,8 +326,8 @@ public class SimulationIntegrationTest
             targetingMode: SpellTargetingMode.NearestEnemy,
             spellProjectileId: "mana_bolt");
         _state.CardDataMap["projectile_single_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
-        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "projectile_single_spell" };
 
         SimTestHelper.CreateMeleeUnit(_state, 1, x: 18f, z: 0f);
 
@@ -369,8 +369,8 @@ public class SimulationIntegrationTest
             targetingMode: SpellTargetingMode.NearestEnemy,
             spellProjectileId: "mana_bolt");
         _state.CardDataMap["projectile_single_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
-        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "projectile_single_spell" };
 
         var nearToCaster = SimTestHelper.CreateMeleeUnit(_state, 1, x: -7f, z: 0f);
         var nearToCursor = SimTestHelper.CreateMeleeUnit(_state, 1, x: 26f, z: 0f);
@@ -402,8 +402,8 @@ public class SimulationIntegrationTest
             targetingMode: SpellTargetingMode.NearestEnemy,
             spellProjectileId: "mana_bolt");
         _state.CardDataMap["projectile_single_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "projectile_single_spell" };
-        _state.Summoners[0].Deck = new List<string> { "projectile_single_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "projectile_single_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "projectile_single_spell" };
 
         var nearToCaster = SimTestHelper.CreateMeleeUnit(_state, 1, x: -7f, z: 6f);
         var explicitTarget = SimTestHelper.CreateMeleeUnit(_state, 1, x: 26f, z: 0f);
@@ -436,8 +436,8 @@ public class SimulationIntegrationTest
             targetingMode: SpellTargetingMode.NearestEnemy,
             spellProjectileId: "weaving_bolt");
         _state.CardDataMap["projectile_weaving_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "projectile_weaving_spell" };
-        _state.Summoners[0].Deck = new List<string> { "projectile_weaving_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "projectile_weaving_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "projectile_weaving_spell" };
 
         // Keep target far enough so projectile remains alive while easing ramps.
         SimTestHelper.CreateMeleeUnit(_state, 1, x: 45f, z: 0f);
@@ -480,8 +480,8 @@ public class SimulationIntegrationTest
             targetingMode: SpellTargetingMode.Position,
             spellProjectileId: "missing_projectile");
         _state.CardDataMap["invalid_projectile_spell"] = spell;
-        _state.Summoners[0].Hand = new List<string> { "invalid_projectile_spell" };
-        _state.Summoners[0].Deck = new List<string> { "invalid_projectile_spell" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "invalid_projectile_spell" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "invalid_projectile_spell" };
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
 
@@ -536,8 +536,8 @@ public class SimulationIntegrationTest
         _state.Phase = GamePhase.Preparation;
         _state.PrepTimeRemaining = Delta * 0.5f;
 
-        _state.Summoners[0].Hand = new List<string> { "old_card" };
-        _state.Summoners[0].Deck = new List<string> { "card1", "card2", "card3", "card4" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "old_card" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "card1", "card2", "card3", "card4" };
         _state.Summoners[0].MaxHandSize = 4;
 
         var events = _sim.Tick(Delta);
@@ -628,9 +628,9 @@ public class SimulationIntegrationTest
         _state.CardDataMap["test_unit"] = card;
 
         // Hand has 1 card, deck is empty, discard has cards
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string>();
-        _state.Summoners[0].DiscardPile = new List<string> { "test_unit", "test_unit", "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId>();
+        _state.Summoners[0].DiscardPile = new List<SimCardCatalogId> { "test_unit", "test_unit", "test_unit" };
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
         {
@@ -654,9 +654,9 @@ public class SimulationIntegrationTest
         _state.CardDataMap["card_c"] = SimTestHelper.CreateSummonCard("card_c");
 
         // Setup state for first run
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string>();
-        _state.Summoners[0].DiscardPile = new List<string> { "card_a", "card_b", "card_c" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId>();
+        _state.Summoners[0].DiscardPile = new List<SimCardCatalogId> { "card_a", "card_b", "card_c" };
 
         var cmd1 = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f)) { ExecuteFrame = 1 };
         _state.PendingCommandBuffer.Add(cmd1);
@@ -670,9 +670,9 @@ public class SimulationIntegrationTest
         state2.CardDataMap["card_a"] = SimTestHelper.CreateSummonCard("card_a");
         state2.CardDataMap["card_b"] = SimTestHelper.CreateSummonCard("card_b");
         state2.CardDataMap["card_c"] = SimTestHelper.CreateSummonCard("card_c");
-        state2.Summoners[0].Hand = new List<string> { "test_unit" };
-        state2.Summoners[0].Deck = new List<string>();
-        state2.Summoners[0].DiscardPile = new List<string> { "card_a", "card_b", "card_c" };
+        state2.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        state2.Summoners[0].Deck = new List<SimCardCatalogId>();
+        state2.Summoners[0].DiscardPile = new List<SimCardCatalogId> { "card_a", "card_b", "card_c" };
 
         var sim2 = new Fateforged.Simulation.Simulation(state2);
         var cmd2 = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f)) { ExecuteFrame = 1 };
@@ -762,8 +762,8 @@ public class SimulationIntegrationTest
 
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string> { "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_unit" };
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
         {
@@ -783,8 +783,8 @@ public class SimulationIntegrationTest
     {
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3, summonTime: 0.5f);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string> { "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_unit" };
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
         {
@@ -816,8 +816,8 @@ public class SimulationIntegrationTest
     {
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3, summonTime: 2.0f);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string> { "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_unit" };
         _state.Summoners[0].CastSpeed = 2.0f; // 2x cast speed
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
@@ -850,8 +850,8 @@ public class SimulationIntegrationTest
         // Now spawn a unit via command (short summon time so spawn timer expires quickly)
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3, summonTime: 0.1f);
         _state.CardDataMap["test_unit"] = card;
-        _state.Summoners[0].Hand = new List<string> { "test_unit" };
-        _state.Summoners[0].Deck = new List<string> { "test_unit" };
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_unit" };
 
         var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
         {

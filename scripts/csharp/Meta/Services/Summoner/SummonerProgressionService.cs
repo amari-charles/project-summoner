@@ -278,9 +278,10 @@ public partial class SummonerProgressionService : Node
 			return false;
 		}
 
-		// Apply level up and save (XP-only, no gold cost)
-		summoner.Level = newLevel;
-		var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
+			// Apply level up and save (XP-only, no gold cost)
+			summoner.Level = newLevel;
+			summoner.UnspentTraitPoints += 1;
+			var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
 
 		if (!saveSuccess)
 		{
@@ -317,13 +318,14 @@ public partial class SummonerProgressionService : Node
 			["max_level"] = MaxLevel,
 			["xp"] = summoner.Xp,
 			["xp_for_current_level"] = GetXpForLevel(summoner.Level),
-			["xp_for_next_level"] = summoner.Level < MaxLevel ? GetXpForLevel(summoner.Level + 1) : 0,
-			["xp_to_next_level"] = GetXpToNextLevel(summonerId),
-			["xp_progress"] = GetLevelProgress(summonerId),
-			["can_level_up"] = CanLevelUp(summonerId),
-			["is_max_level"] = summoner.Level >= MaxLevel
-		};
-	}
+				["xp_for_next_level"] = summoner.Level < MaxLevel ? GetXpForLevel(summoner.Level + 1) : 0,
+				["xp_to_next_level"] = GetXpToNextLevel(summonerId),
+				["xp_progress"] = GetLevelProgress(summonerId),
+				["can_level_up"] = CanLevelUp(summonerId),
+				["is_max_level"] = summoner.Level >= MaxLevel,
+				["unspent_trait_points"] = summoner.UnspentTraitPoints
+			};
+		}
 
 	/// <summary>Get active summoner's progression info.</summary>
 	public Godot.Collections.Dictionary GetActiveSummonerProgressionInfo()
@@ -352,41 +354,89 @@ public partial class SummonerProgressionService : Node
 	}
 
 	// =========================================================================
-	// TRAIT SELECTION (for level-up)
+	// UNIFIED TRAIT POINT LEDGER (Pass 2 stubs)
 	// =========================================================================
 
-	/// <summary>Get traits available for a summoner to select at level-up (string overload for GDScript).</summary>
+	public int GetUnspentTraitPoints(string summonerId) =>
+		GetUnspentTraitPoints(SummonerId.FromString(summonerId));
+
+	public int GetUnspentTraitPoints(SummonerId summonerId)
+	{
+		if (_profileRepo == null) return 0;
+		return _profileRepo.GetSummonerInstance(summonerId)?.UnspentTraitPoints ?? 0;
+	}
+
+	public int GrantTraitPoints(string summonerId, int amount, string source = "") =>
+		GrantTraitPoints(SummonerId.FromString(summonerId), amount, source);
+
+	public int GrantTraitPoints(SummonerId summonerId, int amount, string source = "")
+	{
+		if (_profileRepo == null || amount <= 0) return 0;
+
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		if (summoner == null) return 0;
+
+		summoner.UnspentTraitPoints += amount;
+		if (!_profileRepo.SaveSummonerInstance(summoner))
+			return 0;
+
+		if (!string.IsNullOrEmpty(source))
+			GD.Print($"SummonerProgressionService: Granted {amount} trait points to '{summonerId}' from source='{source}'");
+
+		return summoner.UnspentTraitPoints;
+	}
+
+	public Godot.Collections.Array<Godot.Collections.Dictionary> RollTraitOffers(string summonerId, int count = 3)
+	{
+		_ = count;
+		GD.PushWarning("SummonerProgressionService: RollTraitOffers is a Pass 2 stub and returns no offers.");
+		return [];
+	}
+
+	public bool SpendTraitPoint(string summonerId, string traitId) =>
+		SpendTraitPoint(SummonerId.FromString(summonerId), traitId);
+
+	public bool SpendTraitPoint(SummonerId summonerId, string traitId)
+	{
+		if (_profileRepo == null) return false;
+		if (string.IsNullOrWhiteSpace(traitId)) return false;
+
+		var summoner = _profileRepo.GetSummonerInstance(summonerId);
+		if (summoner == null) return false;
+		if (summoner.UnspentTraitPoints <= 0) return false;
+
+		var typedTraitId = TraitId.FromString(traitId);
+		if (summoner.AcquiredTraitIds.Contains(typedTraitId))
+			return false;
+
+		summoner.UnspentTraitPoints -= 1;
+		summoner.AcquiredTraitIds.Add(typedTraitId);
+		if (_profileRepo.SaveSummonerInstance(summoner))
+			return true;
+
+		// Rollback on save failure.
+		summoner.AcquiredTraitIds.Remove(typedTraitId);
+		summoner.UnspentTraitPoints += 1;
+		return false;
+	}
+
+	// =========================================================================
+	// LEGACY TRAIT METHODS (disabled in Pass 2)
+	// =========================================================================
+
+	/// <summary>Deprecated by unified trait flow. Returns empty in Pass 2.</summary>
 	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
 		string summonerId, int count = 3) =>
 		GetAvailableTraitsForSummoner(SummonerId.FromString(summonerId), count);
 
-	/// <summary>Get traits available for a summoner to select at level-up (typed).</summary>
+	/// <summary>Deprecated by unified trait flow. Returns empty in Pass 2.</summary>
 	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
 		SummonerId summonerId, int count = 3)
 	{
-		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-
-		if (_profileRepo == null) return result;
-
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null) return result;
-
-		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
-		if (summonerDef == null) return result;
-
-		var traits = TraitCatalog.GetAvailableTraitsForLevelUp(
-			summonerDef,
-			summoner.Level,
-			summoner.AcquiredTraitIds,
-			count
-		);
-
-		foreach (var trait in traits)
-		{
-			result.Add(TraitCatalog.ToDictionary(trait));
-		}
-
-		return result;
+		_ = summonerId;
+		_ = count;
+		GD.PushWarning("SummonerProgressionService: Legacy GetAvailableTraitsForSummoner is disabled in Pass 2.");
+		return [];
 	}
 
 	/// <summary>Acquire a trait for a summoner (string overload for GDScript boundary).</summary>
@@ -396,42 +446,8 @@ public partial class SummonerProgressionService : Node
 	/// <summary>Acquire a trait for a summoner (typed).</summary>
 	public bool AcquireTrait(SummonerId summonerId, TraitId traitId)
 	{
-		if (_profileRepo == null) return false;
-
-		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null)
-		{
-			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
-			return false;
-		}
-
-		// Check if already acquired
-		if (summoner.AcquiredTraitIds.Contains(traitId))
-		{
-			GD.PushWarning($"SummonerProgressionService: Trait already acquired: {traitId}");
-			return false;
-		}
-
-		// Verify trait exists
-		var trait = TraitCatalog.GetTrait(traitId.Value);
-		if (trait == null)
-		{
-			GD.PushWarning($"SummonerProgressionService: Trait not found: {traitId}");
-			return false;
-		}
-
-		// Add trait and save
-		summoner.AcquiredTraitIds.Add(traitId);
-		var success = _profileRepo.SaveSummonerInstance(summoner);
-
-		if (!success)
-		{
-			GD.PushError("SummonerProgressionService: Failed to save summoner instance");
-			summoner.AcquiredTraitIds.Remove(traitId); // Rollback
-			return false;
-		}
-
-		return true;
+		GD.PushWarning("SummonerProgressionService: AcquireTrait is deprecated. Use SpendTraitPoint.");
+		return SpendTraitPoint(summonerId, traitId.Value);
 	}
 
 	/// <summary>Get all traits a summoner has acquired (string overload for GDScript).</summary>

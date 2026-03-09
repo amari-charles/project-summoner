@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Fateforged.Cards;
-using Fateforged.Data;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Cards.Handlers;
@@ -287,18 +286,61 @@ public partial class CardService : Node
         return _progression?.CanLevelUp(CardInstanceId.FromString(cardInstanceId)) ?? false;
     }
 
-    /// <summary>Level up a card with chosen trait (XP-only, no gold cost).</summary>
-    public bool LevelUpCard(string cardInstanceId, string traitId)
+    /// <summary>Level up a card (XP-only, no gold cost). Trait spend is deferred.</summary>
+    public bool LevelUpCard(string cardInstanceId)
     {
-        var success = _progression?.LevelUpCard(
-            CardInstanceId.FromString(cardInstanceId),
-            CardTraitId.FromString(traitId)) ?? false;
+        var success = _progression?.LevelUpCard(CardInstanceId.FromString(cardInstanceId)) ?? false;
         if (success)
         {
             var card = GetCard(cardInstanceId);
             EmitSignal(SignalName.CardLeveledUp, cardInstanceId, card?.Level ?? 1);
-            EmitSignal(SignalName.TraitApplied, cardInstanceId, traitId);
         }
+        return success;
+    }
+
+    /// <summary>Legacy level-up API retained as wrapper. selected_trait_id is ignored in Pass 2.</summary>
+    public bool LevelUpCard(string cardInstanceId, string traitId)
+    {
+        _ = traitId;
+        return LevelUpCard(cardInstanceId);
+    }
+
+    // =========================================================================
+    // PROGRESSION - UNIFIED TRAIT LEDGER (Pass 2 stubs)
+    // =========================================================================
+
+    public int GetCardUnspentTraitPoints(string cardInstanceId)
+    {
+        return _progression?.GetCardUnspentTraitPoints(CardInstanceId.FromString(cardInstanceId)) ?? 0;
+    }
+
+    public int GrantCardTraitPoints(string cardInstanceId, int amount, string source = "")
+    {
+        return _progression?.GrantCardTraitPoints(CardInstanceId.FromString(cardInstanceId), amount, source) ?? 0;
+    }
+
+    public Godot.Collections.Array<Godot.Collections.Dictionary> RollCardTraitOffers(string cardInstanceId, int count = 3)
+    {
+        var offers = _progression?.RollCardTraitOffers(CardInstanceId.FromString(cardInstanceId), count) ?? [];
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var offer in offers)
+        {
+            result.Add(new Godot.Collections.Dictionary
+            {
+                ["trait_id"] = offer.TraitId.Value,
+                ["display_name"] = offer.DisplayName.ResolveDisplayText(),
+                ["description"] = offer.Description.ResolveDisplayText(),
+                ["weight"] = offer.Weight.Value
+            });
+        }
+        return result;
+    }
+
+    public bool SpendCardTraitPoint(string cardInstanceId, string traitId)
+    {
+        var success = _progression?.SpendCardTraitPoint(CardInstanceId.FromString(cardInstanceId), traitId) ?? false;
+        if (success)
+            EmitSignal(SignalName.TraitApplied, cardInstanceId, traitId);
         return success;
     }
 
@@ -336,21 +378,10 @@ public partial class CardService : Node
     /// <summary>Get a card trait as dictionary for GDScript (name, description, stat_mods).</summary>
     public Godot.Collections.Dictionary GetCardTraitDict(string catalogId, string traitId)
     {
-        var trait = CardTraitCatalog.GetTrait(catalogId, traitId);
-        if (trait == null)
-            return [];
-
-        var statMods = new Godot.Collections.Dictionary();
-        foreach (var (stat, mult) in trait.StatMods)
-            statMods[stat] = mult;
-
-        return new Godot.Collections.Dictionary
-        {
-            ["id"] = (string)trait.Id,
-            ["name"] = trait.Name,
-            ["description"] = trait.Description,
-            ["stat_mods"] = statMods
-        };
+        _ = catalogId;
+        _ = traitId;
+        // Pass 2 unified migration disables legacy CardTraitCatalog lookup.
+        return [];
     }
 
     /// <summary>Get stat modifiers from card's traits (for C# callers).</summary>
@@ -397,7 +428,8 @@ public partial class CardService : Node
             ["xp_progress"] = info.XpProgress,
             ["can_level_up"] = info.CanLevelUp,
             ["traits"] = traitsArray,
-            ["is_max_level"] = info.IsMaxLevel
+            ["is_max_level"] = info.IsMaxLevel,
+            ["unspent_trait_points"] = info.UnspentTraitPoints
         };
     }
 

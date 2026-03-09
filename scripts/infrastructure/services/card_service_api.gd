@@ -73,8 +73,28 @@ static func get_available_traits(instance_id: String) -> Array:
 		return []
 	return SafeTypeUtils.array(service.call("GetAvailableTraits", instance_id))
 
-static func level_up_card(instance_id: String, selected_trait_id: String) -> bool:
+static func level_up_card(instance_id: String, selected_trait_id: String = "") -> bool:
 	var service: Node = _require_service("level_up_card")
 	if service == null:
 		return false
+	if selected_trait_id.is_empty():
+		return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id), false)
 	return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id, selected_trait_id), false)
+
+static func get_unspent_trait_points(instance_id: String) -> int:
+	var service: Node = _require_service("get_unspent_trait_points")
+	if service == null:
+		return 0
+	return SafeTypeUtils.int_val(service.call("GetCardUnspentTraitPoints", instance_id), 0)
+
+static func roll_trait_offers(instance_id: String, count: int = 3) -> Array:
+	var service: Node = _require_service("roll_trait_offers")
+	if service == null:
+		return []
+	return SafeTypeUtils.array(service.call("RollCardTraitOffers", instance_id, count))
+
+static func spend_trait_point(instance_id: String, trait_id: String) -> bool:
+	var service: Node = _require_service("spend_trait_point")
+	if service == null:
+		return false
+	return SafeTypeUtils.bool_val(service.call("SpendCardTraitPoint", instance_id, trait_id), false)

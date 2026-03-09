@@ -11,6 +11,7 @@ using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
+using Fateforged.Meta.Traits.Unified;
 
 namespace Fateforged.Simulation;
 
@@ -221,6 +222,7 @@ public partial class SimulationNode : Node, IGameSession
             Phase = GamePhase.Preparation,
             Rng = new DeterministicRng(seed)
         };
+        State.TraitRuntimeState = UnifiedTraitRuntimeCompiler.CompileStub();
 
         Simulation.Log = msg => GD.Print(msg);
         _simulation = new Simulation(State);
@@ -339,7 +341,17 @@ public partial class SimulationNode : Node, IGameSession
         summoner.Position = new SimVector3(position.X, position.Y, position.Z);
 
         summoner.Deck.Clear();
-        summoner.Deck.AddRange(deckCatalogIds);
+        foreach (var id in deckCatalogIds)
+            summoner.Deck.Add(new SimCardCatalogId(id));
+        summoner.DeckRefs.Clear();
+        foreach (var id in deckCatalogIds)
+        {
+            summoner.DeckRefs.Add(new SimCardRuntimeRef
+            {
+                CatalogId = new SimCardCatalogId(id),
+                InstanceId = SimCardInstanceId.Empty
+            });
+        }
 
         GD.Print($"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}");
     }
@@ -348,7 +360,33 @@ public partial class SimulationNode : Node, IGameSession
     {
         var summoner = State.Summoners[ToNetworkTeam(team)];
         summoner.Hand.Clear();
-        summoner.Hand.AddRange(handCatalogIds);
+        foreach (var id in handCatalogIds)
+            summoner.Hand.Add(new SimCardCatalogId(id));
+        summoner.HandRefs.Clear();
+        foreach (var id in handCatalogIds)
+        {
+            summoner.HandRefs.Add(new SimCardRuntimeRef
+            {
+                CatalogId = new SimCardCatalogId(id),
+                InstanceId = SimCardInstanceId.Empty
+            });
+        }
+    }
+
+    /// <summary>
+    /// Pass 2 entry point: register deck/hand card runtime refs with instance identity.
+    /// </summary>
+    public void SetSummonerCardRefs(int team, SimCardRuntimeRef[] deckRefs, SimCardRuntimeRef[] handRefs)
+    {
+        var summoner = State.Summoners[ToNetworkTeam(team)];
+        summoner.DeckRefs.Clear();
+        summoner.HandRefs.Clear();
+        summoner.DiscardRefs.Clear();
+
+        if (deckRefs != null && deckRefs.Length > 0)
+            summoner.DeckRefs.AddRange(deckRefs);
+        if (handRefs != null && handRefs.Length > 0)
+            summoner.HandRefs.AddRange(handRefs);
     }
 
     // =========================================================================
@@ -373,12 +411,12 @@ public partial class SimulationNode : Node, IGameSession
         GD.Print($"[SimulationNode] Populated CardDataMap with {State.CardDataMap.Count} cards");
     }
 
-    private void PopulateSingleCard(string catalogId, HashSet<string> processed)
+    private void PopulateSingleCard(SimCardCatalogId catalogId, HashSet<string> processed)
     {
-        if (string.IsNullOrEmpty(catalogId) || !processed.Add(catalogId))
+        if (!catalogId.HasValue || !processed.Add(catalogId.Value))
             return;
 
-        var card = CardCatalog.GetCard(catalogId);
+        var card = CardCatalog.GetCard(catalogId.Value);
         if (card == null)
         {
             GD.PrintErr($"[SimulationNode] Card not found in catalog: {catalogId}");
@@ -501,9 +539,10 @@ public partial class SimulationNode : Node, IGameSession
     public void QueueSpawnUnit(string catalogId, int team, Vector3 position,
         bool activateImmediately = true, Godot.Collections.Dictionary? statOverrides = null)
     {
-        EnsureCardDataPopulated(catalogId);
+        var simCatalogId = new SimCardCatalogId(catalogId);
+        EnsureCardDataPopulated(simCatalogId);
 
-        var cmd = new SpawnUnitCommand(catalogId, ToNetworkTeam(team), ToSimCanonical(position))
+        var cmd = new SpawnUnitCommand(simCatalogId, ToNetworkTeam(team), ToSimCanonical(position))
         {
             ActivateImmediately = activateImmediately,
             StatOverrides = ConvertStatOverrides(statOverrides)
@@ -515,12 +554,16 @@ public partial class SimulationNode : Node, IGameSession
     /// Ensure a single card's data is in CardDataMap.
     /// Called by QueueSpawnUnit for cards that may not be in any summoner's deck.
     /// </summary>
-    public void EnsureCardDataPopulated(string catalogId)
+    public void EnsureCardDataPopulated(string catalogId) => EnsureCardDataPopulated(new SimCardCatalogId(catalogId));
+
+    private void EnsureCardDataPopulated(SimCardCatalogId catalogId)
     {
         if (State.CardDataMap.ContainsKey(catalogId))
             return;
 
-        var processed = new HashSet<string>(State.CardDataMap.Keys);
+        var processed = new HashSet<string>();
+        foreach (var key in State.CardDataMap.Keys)
+            processed.Add(key.Value);
         PopulateSingleCard(catalogId, processed);
     }
 

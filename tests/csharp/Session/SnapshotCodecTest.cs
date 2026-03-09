@@ -61,9 +61,9 @@ public class SnapshotCodecTest
         AssertThat(decoded.Summoners[0].Mana).IsEqualApprox(7.5f, 0.2f);
         AssertThat(decoded.Summoners[0].IsCasting).IsTrue();
         AssertThat(decoded.Summoners[0].CastingCardIndex).IsEqual(2);
-        AssertThat(decoded.Summoners[0].CastingCatalogId).IsEqual("fire_wisp");
+        AssertThat(decoded.Summoners[0].CastingCatalogId.Value).IsEqual("fire_wisp");
         AssertThat(decoded.Summoners[0].Hand).HasSize(2);
-        AssertThat(decoded.Summoners[0].Hand[0]).IsEqual("card_a");
+        AssertThat(decoded.Summoners[0].Hand[0].Value).IsEqual("card_a");
         AssertThat(decoded.Summoners[0].Deck).HasSize(1);
         AssertThat(decoded.Summoners[0].DiscardPile).HasSize(1);
     }

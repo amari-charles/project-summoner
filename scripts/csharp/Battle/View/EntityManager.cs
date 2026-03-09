@@ -164,10 +164,10 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     private UnitVisual? SpawnUnitShell(UnitData unitData)
     {
-        var def = UnitDefinitions.Get(unitData.CatalogId);
+        var def = UnitDefinitions.Get(unitData.CatalogId.Value);
         if (def == null)
         {
-            GD.PrintErr($"[EntityManager] No definition for CatalogId={unitData.CatalogId}");
+            GD.PrintErr($"[EntityManager] No definition for CatalogId={unitData.CatalogId.Value}");
             return null;
         }
 
@@ -281,7 +281,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     public void Visit(SpellCastEvent e)
     {
-        var card = CardCatalog.GetCard(e.CatalogId);
+        var card = CardCatalog.GetCard(e.CatalogId.Value);
         if (card == null || string.IsNullOrEmpty(card.SpellVfx))
             return;
 
@@ -319,7 +319,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     public void Visit(CastingStartedEvent e)
     {
         if (_summonerRegistry.TryGetValue(e.Team, out var shell))
-            shell.OnCastingStarted(e.CardIndex, e.Duration, e.CatalogId);
+            shell.OnCastingStarted(e.CardIndex, e.Duration, e.CatalogId.Value);
     }
 
     public void Visit(CastingCompletedEvent e)
@@ -331,7 +331,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     public void Visit(CardDrawnEvent e)
     {
         if (_summonerRegistry.TryGetValue(e.Team, out var shell))
-            shell.OnCardDrawn(e.HandIndex, e.CatalogId);
+            shell.OnCardDrawn(e.HandIndex, e.CatalogId.Value);
     }
 
     public void Visit(HandChangedEvent e)

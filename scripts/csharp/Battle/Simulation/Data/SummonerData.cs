@@ -63,14 +63,18 @@ public class SummonerData
     public float CastingTimeRemaining { get; set; }
     public float CastingTimeTotal { get; set; }
     public int CastingCardIndex { get; set; } = -1;
-    public string CastingCatalogId { get; set; } = "";
+    public SimCardCatalogId CastingCatalogId { get; set; } = SimCardCatalogId.Empty;
+    public SimCardInstanceId CastingCardInstanceId { get; set; } = SimCardInstanceId.Empty;
     public SimVector3 CastingSpawnPosition { get; set; }
     public int CastingNetworkId { get; set; } = -1;
 
     // Deck management (catalog IDs)
-    public List<string> Deck { get; set; } = new();
-    public List<string> Hand { get; set; } = new();
-    public List<string> DiscardPile { get; set; } = new();
+    public List<SimCardCatalogId> Deck { get; set; } = new();
+    public List<SimCardCatalogId> Hand { get; set; } = new();
+    public List<SimCardCatalogId> DiscardPile { get; set; } = new();
+    public List<SimCardRuntimeRef> DeckRefs { get; set; } = new();
+    public List<SimCardRuntimeRef> HandRefs { get; set; } = new();
+    public List<SimCardRuntimeRef> DiscardRefs { get; set; } = new();
     public int MaxHandSize { get; set; } = 4;
 
     /// <summary>
@@ -84,14 +88,41 @@ public class SummonerData
         unchecked
         {
             int hash = 17;
-            foreach (var id in Deck)
-                hash = hash * 31 + DeterministicStringHash(id);
+            if (DeckRefs.Count > 0)
+            {
+                foreach (var card in DeckRefs)
+                    hash = hash * 31 + DeterministicStringHash(card.CatalogId);
+            }
+            else
+            {
+                foreach (var id in Deck)
+                    hash = hash * 31 + DeterministicStringHash(id.Value);
+            }
+
             hash = hash * 37; // Separator between collections
-            foreach (var id in Hand)
-                hash = hash * 31 + DeterministicStringHash(id);
+            if (HandRefs.Count > 0)
+            {
+                foreach (var card in HandRefs)
+                    hash = hash * 31 + DeterministicStringHash(card.CatalogId);
+            }
+            else
+            {
+                foreach (var id in Hand)
+                    hash = hash * 31 + DeterministicStringHash(id.Value);
+            }
+
             hash = hash * 37;
-            foreach (var id in DiscardPile)
-                hash = hash * 31 + DeterministicStringHash(id);
+            if (DiscardRefs.Count > 0)
+            {
+                foreach (var card in DiscardRefs)
+                    hash = hash * 31 + DeterministicStringHash(card.CatalogId);
+            }
+            else
+            {
+                foreach (var id in DiscardPile)
+                    hash = hash * 31 + DeterministicStringHash(id.Value);
+            }
+
             return hash;
         }
     }

@@ -49,7 +49,7 @@ public static class SimProjectile
         float arcHeight = 0f, int pierceCount = 0, float aoeRadius = 0f,
         float hitRadius = 2.5f, ProjectileHitSpace hitSpace = ProjectileHitSpace.GroundCylinder, float steerStrength = 180f,
         float veerDelay = 0.15f, float veerAngle = 25f, float veerDuration = 0.25f,
-        string projectileCatalogId = "",
+        SimProjectileCatalogId projectileCatalogId = default,
         float acceleration = 0f, float minSpeed = 1f,
         float? speedStart = null, float? speedEnd = null,
         float speedTransitionDuration = 1f, SpeedEasingType speedEasing = SpeedEasingType.Linear,

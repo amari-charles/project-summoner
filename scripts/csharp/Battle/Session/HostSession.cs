@@ -435,9 +435,9 @@ public class HostSession : NetworkSession
                 new Vector3(s.CastingSpawnPosition.X, s.CastingSpawnPosition.Y, s.CastingSpawnPosition.Z),
                 s.CastingNetworkId,
                 s.ComputeCardHash(),
-                s.Hand.ToArray(),
-                s.Deck.ToArray(),
-                s.DiscardPile.ToArray(),
+                ToCatalogIds(s.Hand),
+                ToCatalogIds(s.Deck),
+                ToCatalogIds(s.DiscardPile),
                 s.CastingCatalogId
             );
         }
@@ -457,7 +457,7 @@ public class HostSession : NetworkSession
                 (int)unit.ActivationState,
                 (int)unit.BehaviorState,
                 unit.IsFacingRight,
-                unit.CatalogId ?? "",
+                unit.CatalogId,
                 unit.SpawnTimer,
                 unit.AttackAnimationTimer
             ));
@@ -474,5 +474,13 @@ public class HostSession : NetworkSession
             0,
             _state.IsOvertime
         );
+    }
+
+    private static SimCardCatalogId[] ToCatalogIds(List<SimCardCatalogId> ids)
+    {
+        var result = new SimCardCatalogId[ids.Count];
+        for (int i = 0; i < ids.Count; i++)
+            result[i] = ids[i];
+        return result;
     }
 }

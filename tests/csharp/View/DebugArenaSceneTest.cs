@@ -79,7 +79,7 @@ public partial class DebugArenaSceneTest
             AssertThat(summoner.IsCasting).IsTrue();
             AssertThat(summoner.CastingTimeRemaining).IsEqual(1.0f);
             AssertThat(summoner.CastingCardIndex).IsEqual(2);
-            AssertThat(summoner.CastingCatalogId).IsEqual("fire_wisp");
+            AssertThat(summoner.CastingCatalogId.Value).IsEqual("fire_wisp");
             AssertThat(summoner.CastingNetworkId).IsEqual(123);
         }
 

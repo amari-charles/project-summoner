@@ -404,7 +404,7 @@ public static class SimBehavior
             veerDelay: projectileData.VeerDelay,
             veerAngle: projectileData.VeerAngle,
             veerDuration: projectileData.VeerDuration,
-            projectileCatalogId: (string)projectileData.ProjectileId,
+            projectileCatalogId: new SimProjectileCatalogId(projectileData.ProjectileId),
             acceleration: projectileData.Acceleration,
             minSpeed: projectileData.MinSpeed,
             speedStart: projectileData.SpeedStart,
@@ -420,10 +420,10 @@ public static class SimBehavior
     {
         projectileData = null!;
 
-        if (string.IsNullOrEmpty(attacker.CatalogId))
+        if (!attacker.CatalogId.HasValue)
             return false;
 
-        var unitDef = UnitDefinitions.Get(attacker.CatalogId);
+        var unitDef = UnitDefinitions.Get(attacker.CatalogId.Value);
         if (unitDef?.Ranged == null)
             return false;
 

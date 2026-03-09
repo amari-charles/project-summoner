@@ -283,6 +283,7 @@ public partial class ProfileRepository : Node, IProfileRepository
                 Level = 1,
                 Xp = 0,
                 Traits = [],
+                UnspentTraitPoints = 0,
                 CreatedAt = (long)Time.GetUnixTimeFromSystem(),
                 Binding = binding,
                 BoundToSummonerId = binding == ContentBinding.SummonerBound ? boundTo : null
@@ -331,6 +332,7 @@ public partial class ProfileRepository : Node, IProfileRepository
         if (updates.Xp.HasValue) card.Xp = updates.Xp.Value;
         if (updates.Level.HasValue) card.Level = updates.Level.Value;
         if (updates.Traits != null) card.Traits = updates.Traits;
+        if (updates.UnspentTraitPoints.HasValue) card.UnspentTraitPoints = updates.UnspentTraitPoints.Value;
 
         AppendToWal("update_card", new { card_instance_id = (string)cardInstanceId });
         MarkDirty();
@@ -984,6 +986,8 @@ public partial class ProfileRepository : Node, IProfileRepository
                 traits.Add(new CardTraitId(t.AsString()));
             cardUpdate.Traits = traits;
         }
+        if (updates.ContainsKey("unspent_trait_points"))
+            cardUpdate.UnspentTraitPoints = updates["unspent_trait_points"].AsInt32();
         return UpdateCard(new CardInstanceId(cardInstanceId), cardUpdate);
     }
 

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 using Fateforged.Cards;
 using Fateforged.Data;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Traits.Unified;
 
 namespace Fateforged.Meta.Cards.Handlers;
 
@@ -139,11 +139,11 @@ public class CardProgressionHandler
     }
 
     /// <summary>
-    /// Level up a card with chosen trait.
+    /// Level up a card. Pass 2 unified flow grants a trait point and defers selection.
     /// Requires only XP - no gold cost.
     /// Returns true if successful.
     /// </summary>
-    public bool LevelUpCard(CardInstanceId cardInstanceId, CardTraitId traitId)
+    public bool LevelUpCard(CardInstanceId cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
         if (card == null)
@@ -158,43 +158,85 @@ public class CardProgressionHandler
             return false;
         }
 
-        // Validate trait choice
-        var availableTraits = GetAvailableTraits(cardInstanceId);
-        if (!availableTraits.Exists(t => t.Id == traitId))
-        {
-            GD.PushWarning($"CardProgressionHandler: Invalid trait choice: {traitId}");
-            return false;
-        }
-
         // Apply level up (XP-only, no gold cost)
         var newLevel = card.Level + 1;
-        var newTraits = new List<CardTraitId>(card.Traits) { traitId };
 
         _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
         {
             Level = newLevel,
-            Traits = newTraits
+            UnspentTraitPoints = card.UnspentTraitPoints + 1
         });
 
-        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel} with trait '{traitId}'");
+        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel} and granted 1 trait point");
         return true;
     }
 
-    // =========================================================================
-    // TRAIT OPERATIONS
-    // =========================================================================
-
-    /// <summary>Get available traits for card's next level.</summary>
-    public List<CardTrait> GetAvailableTraits(CardInstanceId cardInstanceId)
+    /// <summary>
+    /// Legacy API retained as a wrapper in Pass 2.
+    /// Trait choice is ignored; points are deferred for SpendCardTraitPoint.
+    /// </summary>
+    public bool LevelUpCard(CardInstanceId cardInstanceId, CardTraitId traitId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null || card.Level >= MaxLevel)
-            return [];
-
-        return CardTraitCatalog.GetTraitsForLevel(card.CatalogId, card.Level + 1);
+        _ = traitId;
+        return LevelUpCard(cardInstanceId);
     }
 
-    /// <summary>Get all traits applied to a card.</summary>
+    public int GetCardUnspentTraitPoints(CardInstanceId cardInstanceId)
+    {
+        return _profileRepo.GetCard(cardInstanceId)?.UnspentTraitPoints ?? 0;
+    }
+
+    public int GrantCardTraitPoints(CardInstanceId cardInstanceId, int amount, string source = "")
+    {
+        if (amount <= 0)
+            return 0;
+
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null)
+            return 0;
+
+        var newValue = card.UnspentTraitPoints + amount;
+        if (!_profileRepo.UpdateCard(cardInstanceId, new CardUpdate { UnspentTraitPoints = newValue }))
+            return 0;
+
+        if (!string.IsNullOrEmpty(source))
+            GD.Print($"CardProgressionHandler: Granted {amount} trait points to '{cardInstanceId}' from source='{source}'");
+
+        return newValue;
+    }
+
+    public List<UnifiedTraitOffer> RollCardTraitOffers(CardInstanceId cardInstanceId, int count)
+    {
+        _ = cardInstanceId;
+        _ = count;
+        // Pass 2 scaffold: offer rolling is implemented in Pass 3.
+        return [];
+    }
+
+    public bool SpendCardTraitPoint(CardInstanceId cardInstanceId, CardTraitId traitId)
+    {
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null) return false;
+        if (card.UnspentTraitPoints <= 0) return false;
+        if (traitId == CardTraitId.None) return false;
+        if (card.Traits.Contains(traitId)) return false;
+
+        var newTraits = new List<CardTraitId>(card.Traits) { traitId };
+        var newPoints = card.UnspentTraitPoints - 1;
+        var success = _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
+        {
+            Traits = newTraits,
+            UnspentTraitPoints = newPoints
+        });
+
+        return success;
+    }
+
+    public bool SpendCardTraitPoint(CardInstanceId cardInstanceId, string traitId)
+    {
+        return SpendCardTraitPoint(cardInstanceId, CardTraitId.FromString(traitId));
+    }
+
     public List<CardTraitId> GetAppliedTraits(CardInstanceId cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
@@ -204,31 +246,22 @@ public class CardProgressionHandler
         return new List<CardTraitId>(card.Traits);
     }
 
-    /// <summary>Get stat modifiers from card's traits.</summary>
     public Dictionary<string, float> GetTraitStatModifiers(CardInstanceId cardInstanceId)
     {
-        var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null)
-            return [];
+        _ = cardInstanceId;
+        // Pass 2 removes legacy CardTraitCatalog stat modifiers from runtime.
+        return [];
+    }
 
-        var modifiers = new Dictionary<string, float>();
+    // =========================================================================
+    // TRAIT OPERATIONS (legacy compatibility stubs)
+    // =========================================================================
 
-        foreach (var traitId in card.Traits)
-        {
-            var trait = CardTraitCatalog.GetTrait(card.CatalogId, traitId);
-            if (trait == null)
-                continue;
-
-            foreach (var (stat, mult) in trait.StatMods)
-            {
-                if (modifiers.TryGetValue(stat, out var existing))
-                    modifiers[stat] = existing * mult;
-                else
-                    modifiers[stat] = mult;
-            }
-        }
-
-        return modifiers;
+    /// <summary>Deprecated by unified trait flow. Returns no offers in Pass 2.</summary>
+    public List<CardTrait> GetAvailableTraits(CardInstanceId cardInstanceId)
+    {
+        _ = cardInstanceId;
+        return [];
     }
 
     // =========================================================================
@@ -255,7 +288,8 @@ public class CardProgressionHandler
             XpProgress = GetLevelProgress(cardInstanceId),
             CanLevelUp = CanLevelUp(cardInstanceId),
             Traits = card.Traits.ConvertAll(t => t.Value),
-            IsMaxLevel = card.Level >= MaxLevel
+            IsMaxLevel = card.Level >= MaxLevel,
+            UnspentTraitPoints = card.UnspentTraitPoints
         };
     }
 
@@ -277,6 +311,10 @@ public class CardProgressionHandler
 
         return [.. ready];
     }
+
+    // =========================================================================
+    // LEGACY BLOCK REMOVED BELOW
+    // =========================================================================
 }
 
 /// <summary>
@@ -297,4 +335,5 @@ public class CardProgressionInfo
     public bool CanLevelUp { get; set; } = false;
     public List<string> Traits { get; set; } = [];
     public bool IsMaxLevel { get; set; } = false;
+    public int UnspentTraitPoints { get; set; } = 0;
 }

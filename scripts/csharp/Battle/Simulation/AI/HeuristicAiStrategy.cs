@@ -144,7 +144,7 @@ public static class HeuristicAiStrategy
     /// <summary>
     /// Select spawn position based on strategy and battlefield state.
     /// </summary>
-    public static SimVector3 SelectSpawnPosition(MatchState state, SummonerData summoner, string catalogId)
+    public static SimVector3 SelectSpawnPosition(MatchState state, SummonerData summoner, SimCardCatalogId catalogId)
     {
         if (summoner.Ai == null || state.Rng == null)
             return summoner.Position;
