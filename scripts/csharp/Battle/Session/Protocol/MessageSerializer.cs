@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Data;
 using Godot;
 using Godot.Collections;
 
@@ -133,14 +134,14 @@ public class MessageSerializer
             case SpellCastVisual m:
                 dict["type"] = (int)MessageType.SpellCastVisual;
                 dict["team"] = m.Team;
-                dict["catalogId"] = m.CatalogId;
+                dict["catalogId"] = m.CatalogId.Value;
                 dict["pos"] = SerializeVector3(m.Position);
                 break;
 
             case ProjectileSpawned m:
                 dict["type"] = (int)MessageType.ProjectileSpawned;
                 dict["id"] = m.ProjectileId;
-                dict["catalogId"] = m.ProjectileCatalogId;
+                dict["catalogId"] = m.ProjectileCatalogId.Value;
                 dict["src"] = m.SourceUnitId;
                 dict["target"] = m.TargetUnitId;
                 dict["team"] = m.Team;
@@ -321,7 +322,7 @@ public class MessageSerializer
 
             MessageType.SpellCastVisual => new SpellCastVisual(
                 Team: dict.ContainsKey("team") ? (int)dict["team"] : 0,
-                CatalogId: dict.ContainsKey("catalogId") ? (string)dict["catalogId"] : "",
+                CatalogId: dict.ContainsKey("catalogId") ? new SimCardCatalogId((string)dict["catalogId"]) : SimCardCatalogId.Empty,
                 Position: DeserializeVector3(dict["pos"])
             ),
 
@@ -335,7 +336,9 @@ public class MessageSerializer
                 Direction: dict.ContainsKey("dir") ? DeserializeVector3(dict["dir"]) : Vector3.Zero,
                 TargetPosition: dict.ContainsKey("targetPos") ? DeserializeVector3(dict["targetPos"]) : Vector3.Zero,
                 Speed: dict.ContainsKey("speed") ? (float)dict["speed"] : 0f,
-                ProjectileCatalogId: dict.ContainsKey("catalogId") ? (string)dict["catalogId"] : "",
+                ProjectileCatalogId: dict.ContainsKey("catalogId")
+                    ? new SimProjectileCatalogId((string)dict["catalogId"])
+                    : SimProjectileCatalogId.Empty,
                 Acceleration: dict.ContainsKey("accel") ? (float)dict["accel"] : 0f,
                 MinSpeed: dict.ContainsKey("minSpeed") ? (float)dict["minSpeed"] : 1f,
                 UseSpeedEasing: dict.ContainsKey("useSpeedEase") && (bool)dict["useSpeedEase"],
@@ -430,11 +433,11 @@ public class MessageSerializer
                 ["castCard"] = s.CastingCardIndex,
                 ["castPos"] = SerializeVector3(s.CastingSpawnPosition),
                 ["castNetId"] = s.CastingNetworkId,
-                ["castCatalog"] = s.CastingCatalogId ?? "",
+                ["castCatalog"] = s.CastingCatalogId.Value,
                 ["cardHash"] = s.CardStateHash,
-                ["hand"] = ToGodotArray(s.Hand ?? System.Array.Empty<string>()),
-                ["deck"] = ToGodotArray(s.Deck ?? System.Array.Empty<string>()),
-                ["discard"] = ToGodotArray(s.DiscardPile ?? System.Array.Empty<string>())
+                ["hand"] = ToGodotArray(s.Hand ?? System.Array.Empty<SimCardCatalogId>()),
+                ["deck"] = ToGodotArray(s.Deck ?? System.Array.Empty<SimCardCatalogId>()),
+                ["discard"] = ToGodotArray(s.DiscardPile ?? System.Array.Empty<SimCardCatalogId>())
             };
             arr.Add(d);
         }
@@ -463,10 +466,10 @@ public class MessageSerializer
                 DeserializeVector3(d["castPos"]),
                 (int)d["castNetId"],
                 (int)d["cardHash"],
-                d.ContainsKey("hand") ? ToStringArray((Godot.Collections.Array)d["hand"]) : System.Array.Empty<string>(),
-                d.ContainsKey("deck") ? ToStringArray((Godot.Collections.Array)d["deck"]) : System.Array.Empty<string>(),
-                d.ContainsKey("discard") ? ToStringArray((Godot.Collections.Array)d["discard"]) : System.Array.Empty<string>(),
-                (string)d["castCatalog"]
+                d.ContainsKey("hand") ? ToCatalogIdArray((Godot.Collections.Array)d["hand"]) : System.Array.Empty<SimCardCatalogId>(),
+                d.ContainsKey("deck") ? ToCatalogIdArray((Godot.Collections.Array)d["deck"]) : System.Array.Empty<SimCardCatalogId>(),
+                d.ContainsKey("discard") ? ToCatalogIdArray((Godot.Collections.Array)d["discard"]) : System.Array.Empty<SimCardCatalogId>(),
+                d.ContainsKey("castCatalog") ? new SimCardCatalogId((string)d["castCatalog"]) : SimCardCatalogId.Empty
             );
         }
         return summoners;
@@ -489,7 +492,7 @@ public class MessageSerializer
                 ["activation"] = u.ActivationState,
                 ["behavior"] = u.BehaviorState,
                 ["facing"] = u.IsFacingRight,
-                ["catalogId"] = u.CatalogId ?? "",
+                ["catalogId"] = u.CatalogId.Value,
                 ["spawnTimer"] = u.SpawnTimer,
                 ["attackAnim"] = u.AttackAnimationTimer
             };
@@ -515,7 +518,7 @@ public class MessageSerializer
                 (int)d["activation"],
                 d.ContainsKey("behavior") ? (int)d["behavior"] : 0,
                 d.ContainsKey("facing") ? (bool)d["facing"] : true,
-                d.ContainsKey("catalogId") ? (string)d["catalogId"] : "",
+                d.ContainsKey("catalogId") ? new SimUnitCatalogId((string)d["catalogId"]) : SimUnitCatalogId.Empty,
                 d.ContainsKey("spawnTimer") ? (float)d["spawnTimer"] : 0f,
                 d.ContainsKey("attackAnim") ? (float)d["attackAnim"] : 0f
             );
@@ -531,7 +534,7 @@ public class MessageSerializer
             var d = new Dictionary
             {
                 ["id"] = p.ProjectileId,
-                ["catalogId"] = p.ProjectileCatalogId,
+                ["catalogId"] = p.ProjectileCatalogId.Value,
                 ["src"] = p.SourceUnitId,
                 ["target"] = p.TargetUnitId,
                 ["team"] = p.Team,
@@ -576,7 +579,9 @@ public class MessageSerializer
                 Direction: d.ContainsKey("dir") ? DeserializeVector3(d["dir"]) : Vector3.Zero,
                 TargetPosition: d.ContainsKey("targetPos") ? DeserializeVector3(d["targetPos"]) : Vector3.Zero,
                 Speed: d.ContainsKey("speed") ? (float)d["speed"] : 0f,
-                ProjectileCatalogId: d.ContainsKey("catalogId") ? (string)d["catalogId"] : "",
+                ProjectileCatalogId: d.ContainsKey("catalogId")
+                    ? new SimProjectileCatalogId((string)d["catalogId"])
+                    : SimProjectileCatalogId.Empty,
                 Acceleration: d.ContainsKey("accel") ? (float)d["accel"] : 0f,
                 MinSpeed: d.ContainsKey("minSpeed") ? (float)d["minSpeed"] : 1f,
                 UseSpeedEasing: d.ContainsKey("useSpeedEase") && (bool)d["useSpeedEase"],
@@ -615,12 +620,32 @@ public class MessageSerializer
         return result;
     }
 
+    private SimCardCatalogId[] ToCatalogIdArray(Godot.Collections.Array arr)
+    {
+        var result = new SimCardCatalogId[arr.Count];
+        for (int i = 0; i < arr.Count; i++)
+        {
+            result[i] = (string)arr[i];
+        }
+        return result;
+    }
+
     private Godot.Collections.Array ToGodotArray(string[] arr)
     {
         var result = new Godot.Collections.Array();
         foreach (var item in arr)
         {
             result.Add(item);
+        }
+        return result;
+    }
+
+    private Godot.Collections.Array ToGodotArray(SimCardCatalogId[] arr)
+    {
+        var result = new Godot.Collections.Array();
+        foreach (var item in arr)
+        {
+            result.Add(item.Value);
         }
         return result;
     }

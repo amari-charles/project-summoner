@@ -248,11 +248,14 @@ public class ClientSession : NetworkSession
             dst.CastingSpawnPosition = new SimVector3(src.CastingSpawnPosition.X, src.CastingSpawnPosition.Y, src.CastingSpawnPosition.Z);
             dst.CastingNetworkId = src.CastingNetworkId;
             dst.Hand.Clear();
-            dst.Hand.AddRange(src.Hand ?? Array.Empty<string>());
+            foreach (var id in src.Hand ?? Array.Empty<SimCardCatalogId>())
+                dst.Hand.Add(id);
             dst.Deck.Clear();
-            dst.Deck.AddRange(src.Deck ?? Array.Empty<string>());
+            foreach (var id in src.Deck ?? Array.Empty<SimCardCatalogId>())
+                dst.Deck.Add(id);
             dst.DiscardPile.Clear();
-            dst.DiscardPile.AddRange(src.DiscardPile ?? Array.Empty<string>());
+            foreach (var id in src.DiscardPile ?? Array.Empty<SimCardCatalogId>())
+                dst.DiscardPile.Add(id);
         }
 
         // Copy units (in-place to avoid per-snapshot object churn/GC spikes)
@@ -310,7 +313,7 @@ public class ClientSession : NetworkSession
         dst.BehaviorState = (BehaviorState)src.BehaviorState;
         dst.IsFacingRight = src.IsFacingRight;
         dst.TargetNetworkId = src.TargetNetworkId;
-        dst.CatalogId = src.CatalogId ?? "";
+        dst.CatalogId = src.CatalogId;
         dst.SpawnTimer = src.SpawnTimer;
         dst.AttackAnimationTimer = src.AttackAnimationTimer;
     }
@@ -330,7 +333,7 @@ public class ClientSession : NetworkSession
         var projectile = new SimProjectileData
         {
             ProjectileId = spawned.ProjectileId,
-            ProjectileCatalogId = spawned.ProjectileCatalogId ?? "",
+            ProjectileCatalogId = spawned.ProjectileCatalogId,
             SourceUnitId = spawned.SourceUnitId,
             TargetUnitId = spawned.TargetUnitId,
             Team = (Team)spawned.Team,
@@ -577,19 +580,19 @@ public class ClientSession : NetworkSession
 
     private ProjectileData? ResolveProjectileData(SimProjectileData projectile)
     {
-        if (!string.IsNullOrEmpty(projectile.ProjectileCatalogId))
+        if (projectile.ProjectileCatalogId.HasValue)
         {
-            var byProjectileId = ProjectileDefinitions.Get(projectile.ProjectileCatalogId);
+            var byProjectileId = ProjectileDefinitions.Get(projectile.ProjectileCatalogId.Value);
             if (byProjectileId != null)
                 return byProjectileId;
         }
 
         if (!_localState.Units.TryGetValue(projectile.SourceUnitId, out var sourceUnit))
             return null;
-        if (string.IsNullOrEmpty(sourceUnit.CatalogId))
+        if (!sourceUnit.CatalogId.HasValue)
             return null;
 
-        var unitDef = UnitDefinitions.Get(sourceUnit.CatalogId);
+        var unitDef = UnitDefinitions.Get(sourceUnit.CatalogId.Value);
         if (unitDef?.Ranged == null)
             return null;
 

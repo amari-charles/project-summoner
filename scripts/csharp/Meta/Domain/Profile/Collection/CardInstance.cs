@@ -44,6 +44,12 @@ public class CardInstance
     [JsonPropertyName("upgrades")]
     public List<CardTraitId> Traits { get; set; } = [];
 
+    /// <summary>
+    /// Unified trait progression points available to spend for this card (Pass 2 ledger stub).
+    /// </summary>
+    [JsonPropertyName("unspent_trait_points")]
+    public int UnspentTraitPoints { get; set; }
+
     /// <summary>Roll JSON for card variants (nullable).</summary>
     [JsonPropertyName("roll_json")]
     public string? RollJson { get; set; }

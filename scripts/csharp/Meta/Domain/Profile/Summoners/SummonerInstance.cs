@@ -49,6 +49,12 @@ public class SummonerInstance
     [JsonPropertyName("acquired_trait_ids")]
     public List<TraitId> AcquiredTraitIds { get; set; } = [];
 
+    /// <summary>
+    /// Unified trait progression points available to spend (Pass 2 ledger stub).
+    /// </summary>
+    [JsonPropertyName("unspent_trait_points")]
+    public int UnspentTraitPoints { get; set; }
+
     // =========================================================================
     // STAT COMPUTATION
     // =========================================================================
@@ -107,11 +113,48 @@ public class SummonerInstance
         stats["health"] *= levelMultiplier;
         stats["max_mana"] *= levelMultiplier;
 
-        // Apply all trait modifiers
-        ApplyTraitModifiers(stats);
+        // Apply summoner-level trait modifiers (innate + acquired).
+        foreach (var traitId in GetAllTraitIds())
+        {
+            var trait = TraitCatalog.GetTrait(traitId);
+            if (trait == null)
+                continue;
+
+            foreach (var mod in trait.Modifiers)
+            {
+                // Ignore unit-targeted trait effects in summoner stat computation.
+                if (!mod.HasSummonerStat || mod.IsUnitModifier || !mod.Stat.HasValue)
+                    continue;
+
+                string statKey = ToComputedStatKey(mod.Stat.Value);
+                if (!stats.ContainsKey(statKey))
+                    stats[statKey] = 0f;
+
+                if (mod.Type == ModifierType.Flat)
+                {
+                    stats[statKey] += mod.Value;
+                    continue;
+                }
+
+                // Percent semantics:
+                // - Non-zero baselines are multiplicative (e.g., cast_speed, health)
+                // - Zero baselines represent bonus buckets and accumulate in percentage points
+                if (stats[statKey] == 0f)
+                    stats[statKey] += mod.Value;
+                else
+                    stats[statKey] *= 1.0f + (mod.Value / 100.0f);
+            }
+        }
 
         return stats;
     }
+
+    private static string ToComputedStatKey(StatKey stat) => stat switch
+    {
+        StatKey.MaxHp => "health",
+        StatKey.MaxHealth => "health",
+        _ => stat.ToSnakeCase()
+    };
 
     /// <summary>Get a single computed stat by snake_case name.</summary>
     public float GetStat(string statName)
@@ -120,65 +163,4 @@ public class SummonerInstance
         return stats.GetValueOrDefault(statName, 0f);
     }
 
-    // =========================================================================
-    // PRIVATE HELPERS
-    // =========================================================================
-
-    private void ApplyTraitModifiers(Dictionary<string, float> stats)
-    {
-        foreach (var traitIdStr in GetAllTraitIds())
-        {
-            var trait = TraitCatalog.GetTrait(traitIdStr);
-            if (trait == null) continue;
-
-            foreach (var mod in trait.Modifiers)
-            {
-                // Skip unit modifiers — those affect spawned units, not the summoner
-                if (mod.IsUnitModifier) continue;
-                if (!mod.HasSummonerStat) continue;
-
-                ApplySingleModifier(stats, mod);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Apply a single trait modifier to the stats dictionary.
-    ///
-    /// Modifier types:
-    /// - Flat: Adds value directly to the stat
-    /// - Percent: For base stats (non-zero initial value): multiplicative bonus.
-    ///            For bonus stats (zero initial value): adds value as the percentage amount.
-    /// </summary>
-    private static void ApplySingleModifier(Dictionary<string, float> stats, TraitModifier mod)
-    {
-        var statName = MapStatName(mod.Stat!.Value);
-
-        if (!stats.ContainsKey(statName))
-            stats[statName] = 0f;
-
-        var currentValue = stats[statName];
-
-        switch (mod.Type)
-        {
-            case ModifierType.Flat:
-                stats[statName] = currentValue + mod.Value;
-                break;
-            case ModifierType.Percent:
-                if (currentValue > 0f)
-                    // Base stat: multiply (e.g., 1000 health * 1.10 = 1100 health)
-                    stats[statName] = currentValue * (1.0f + mod.Value / 100f);
-                else
-                    // Bonus stat: add directly (e.g., fire_damage_bonus = 0 + 10 = 10%)
-                    stats[statName] = currentValue + mod.Value;
-                break;
-        }
-    }
-
-    /// <summary>Map trait stat keys to internal stat names (max_health → health).</summary>
-    private static string MapStatName(StatKey key) => key switch
-    {
-        StatKey.MaxHealth => "health",
-        _ => key.ToSnakeCase()
-    };
 }

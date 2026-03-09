@@ -100,7 +100,7 @@ theme_override_font_sizes/font_size = 22
 text = "Choose an Upgrade:"
 horizontal_alignment = 1
 
-[node name="UpgradeContainer" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="UpgradeContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3

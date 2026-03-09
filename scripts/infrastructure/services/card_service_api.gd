@@ -53,6 +53,8 @@ static func get_effective_stats_dict(instance_id: String) -> Dictionary:
 	var service: Node = _require_service("get_effective_stats_dict")
 	if service == null:
 		return {}
+	if not service.has_method("GetEffectiveStatsDict"):
+		return {}
 	return SafeTypeUtils.dict(service.call("GetEffectiveStatsDict", instance_id))
 
 static func get_applied_traits(instance_id: String) -> Array:
@@ -67,14 +69,26 @@ static func get_card_trait_dict(catalog_id: String, trait_id: String) -> Diction
 		return {}
 	return SafeTypeUtils.dict(service.call("GetCardTraitDict", catalog_id, trait_id))
 
-static func get_available_traits(instance_id: String) -> Array:
-	var service: Node = _require_service("get_available_traits")
-	if service == null:
-		return []
-	return SafeTypeUtils.array(service.call("GetAvailableTraits", instance_id))
-
-static func level_up_card(instance_id: String, selected_trait_id: String) -> bool:
+static func level_up_card(instance_id: String) -> bool:
 	var service: Node = _require_service("level_up_card")
 	if service == null:
 		return false
-	return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id, selected_trait_id), false)
+	return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id), false)
+
+static func get_unspent_trait_points(instance_id: String) -> int:
+	var service: Node = _require_service("get_unspent_trait_points")
+	if service == null:
+		return 0
+	return SafeTypeUtils.int_val(service.call("GetCardUnspentTraitPoints", instance_id), 0)
+
+static func roll_trait_offers(instance_id: String, count: int = 3) -> Array:
+	var service: Node = _require_service("roll_trait_offers")
+	if service == null:
+		return []
+	return SafeTypeUtils.array(service.call("RollCardTraitOffers", instance_id, count))
+
+static func spend_trait_point(instance_id: String, trait_id: String) -> bool:
+	var service: Node = _require_service("spend_trait_point")
+	if service == null:
+		return false
+	return SafeTypeUtils.bool_val(service.call("SpendCardTraitPoint", instance_id, trait_id), false)

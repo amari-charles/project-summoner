@@ -205,7 +205,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         // so without this the hand would be invisible until the first card draw.
         if (summoner.Hand.Count > 0)
         {
-            _lastHandIds = summoner.Hand.ToArray();
+            _lastHandIds = ToCatalogIdStrings(summoner.Hand);
             RebuildHandCache(_lastHandIds);
             EmitSignal(SignalName.HandChanged, _handCache);
         }
@@ -421,7 +421,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         // Poll hand — only rebuild Card objects when hand contents change
         if (HasHandChanged(summoner.Hand))
         {
-            _lastHandIds = summoner.Hand.ToArray();
+            _lastHandIds = ToCatalogIdStrings(summoner.Hand);
             RebuildHandCache(_lastHandIds);
             EmitSignal(SignalName.HandChanged, _handCache);
         }
@@ -445,14 +445,22 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         }
     }
 
-    private bool HasHandChanged(System.Collections.Generic.List<string> currentHand)
+    private bool HasHandChanged(System.Collections.Generic.List<SimCardCatalogId> currentHand)
     {
         if (currentHand.Count != _lastHandIds.Length) return true;
         for (int i = 0; i < currentHand.Count; i++)
         {
-            if (currentHand[i] != _lastHandIds[i]) return true;
+            if (currentHand[i].Value != _lastHandIds[i]) return true;
         }
         return false;
+    }
+
+    private static string[] ToCatalogIdStrings(System.Collections.Generic.List<SimCardCatalogId> ids)
+    {
+        var result = new string[ids.Count];
+        for (int i = 0; i < ids.Count; i++)
+            result[i] = ids[i].Value;
+        return result;
     }
 
     // =========================================================================

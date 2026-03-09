@@ -22,6 +22,16 @@ extends Node
 ##   /snapshot_delete <name> - Delete a snapshot
 ##   /unlock_summoner <id> - Unlock a summoner (e.g., summoner_cole, summoner_selene)
 ##   /unlock_all_summoners - Unlock all starting summoners
+##   /traits_catalog - List trait catalog IDs
+##   /traits_list_summoner_options [summoner_id] - List spendable summoner traits
+##   /traits_grant_summoner_points <amount> [summoner_id] - Grant summoner trait points
+##   /traits_spend_summoner <trait_id> [summoner_id] - Spend a summoner trait point
+##   /traits_show_summoner_stats [summoner_id] - Print computed summoner stats
+##   /traits_list_cards - List card instance IDs + trait state
+##   /traits_list_card_options <card_instance_id> - List spendable card traits
+##   /traits_grant_card_points <card_instance_id> <amount> - Grant card trait points
+##   /traits_spend_card <card_instance_id> <trait_id> - Spend a card trait point
+##   /traits_runtime_status - Print simulation trait runtime status
 ##   /items_grant <item_id> - Grant an item to inventory
 ##   /items_grant_all - Grant all starter items
 ##   /items_list - List player's items and equipment
@@ -52,6 +62,18 @@ const COMMANDS: Array[Dictionary] = [
 	# Summoners
 	{"cmd": "/unlock_summoner", "args": "<id>", "desc": "Unlock a summoner"},
 	{"cmd": "/unlock_all_summoners", "desc": "Unlock all starting summoners"},
+	# Traits
+	{"cmd": "/traits_catalog", "desc": "List trait catalog IDs"},
+	{"cmd": "/traits_list_summoner_options", "args": "[summoner_id]", "desc": "List spendable summoner traits"},
+	{"cmd": "/traits_grant_summoner_points", "args": "<amount> [summoner_id]", "desc": "Grant summoner trait points"},
+	{"cmd": "/traits_spend_summoner", "args": "<trait_id> [summoner_id]", "desc": "Spend summoner trait point"},
+	{"cmd": "/traits_show_summoner_stats", "args": "[summoner_id]", "desc": "Print computed summoner stats"},
+	{"cmd": "/traits_list_cards", "desc": "List cards with trait state"},
+	{"cmd": "/traits_list_card_options", "args": "<card_instance_id>", "desc": "List spendable card traits"},
+	{"cmd": "/traits_grant_card_points", "args": "<card_instance_id> <amount>", "desc": "Grant card trait points"},
+	{"cmd": "/traits_spend_card", "args": "<card_instance_id> <trait_id>", "desc": "Spend card trait point"},
+	{"cmd": "/traits_runtime_status", "desc": "Print simulation trait runtime status"},
+	{"cmd": "/traits_units_snapshot", "args": "[team]", "desc": "Print live spawned unit stats from simulation"},
 	# Items
 	{"cmd": "/items_grant", "args": "<item_id>", "desc": "Grant an item"},
 	{"cmd": "/items_grant_all", "desc": "Grant all starter items"},
@@ -151,6 +173,28 @@ func execute_command(command: String) -> bool:
 			return _cmd_unlock_summoner(args)
 		"/unlock_all_summoners":
 			return _cmd_unlock_all_summoners()
+		"/traits_catalog":
+			return _cmd_traits_catalog()
+		"/traits_list_summoner_options":
+			return _cmd_traits_list_summoner_options(args)
+		"/traits_grant_summoner_points":
+			return _cmd_traits_grant_summoner_points(args)
+		"/traits_spend_summoner":
+			return _cmd_traits_spend_summoner(args)
+		"/traits_show_summoner_stats":
+			return _cmd_traits_show_summoner_stats(args)
+		"/traits_list_cards":
+			return _cmd_traits_list_cards()
+		"/traits_list_card_options":
+			return _cmd_traits_list_card_options(args)
+		"/traits_grant_card_points":
+			return _cmd_traits_grant_card_points(args)
+		"/traits_spend_card":
+			return _cmd_traits_spend_card(args)
+		"/traits_runtime_status":
+			return _cmd_traits_runtime_status()
+		"/traits_units_snapshot":
+			return _cmd_traits_units_snapshot(args)
 		"/items_grant":
 			return _cmd_items_grant(args)
 		"/items_grant_all":
@@ -500,6 +544,379 @@ func _cmd_unlock_all_summoners() -> bool:
 		print("DevConsole: Unlocked %s" % summoner_id)
 
 	print("DevConsole: Unlocked %d summoners!" % unlocked_count)
+	return true
+
+
+## =============================================================================
+## TRAIT COMMANDS
+## =============================================================================
+
+func _cmd_traits_catalog() -> bool:
+	var trait_ids: Array = SafeTypeUtils.array(TraitCatalog.call("GetAllTraitIds"))
+	print("=== TRAIT CATALOG (%d) ===" % trait_ids.size())
+	for trait_id_var: Variant in trait_ids:
+		var trait_id: String = SafeTypeUtils.string(trait_id_var, "")
+		if trait_id.is_empty():
+			continue
+		var name: String = TraitCatalogApi.get_trait_name(trait_id)
+		print("  - %s :: %s" % [trait_id, name])
+	print("==========================")
+	return true
+
+
+func _cmd_traits_list_summoner_options(args: PackedStringArray) -> bool:
+	var summoner_id: String = _resolve_summoner_id_arg(args, 0)
+	if summoner_id.is_empty():
+		return false
+
+	var unspent: int = SummonerProgressionApi.get_unspent_trait_points(summoner_id)
+	var options: Array[Dictionary] = _get_spendable_summoner_traits(summoner_id)
+
+	print("=== SUMMONER TRAIT OPTIONS ===")
+	print("Summoner: %s" % summoner_id)
+	print("Unspent points: %d" % unspent)
+	if options.is_empty():
+		print("No spendable summoner traits found at current level/prereqs.")
+		print("==============================")
+		return true
+
+	for trait_dict: Dictionary in options:
+		var trait_id: String = SafeTypeUtils.string(trait_dict.get("id", ""), "")
+		var min_level: int = SafeTypeUtils.int_val(trait_dict.get("min_level", 1), 1)
+		var name: String = TraitCatalogApi.get_trait_name(trait_id)
+		print("  - %s (min=%d) :: %s" % [trait_id, min_level, name])
+	print("==============================")
+	return true
+
+
+func _cmd_traits_grant_summoner_points(args: PackedStringArray) -> bool:
+	if args.size() < 1:
+		print("DevConsole: Usage: /traits_grant_summoner_points <amount> [summoner_id]")
+		return false
+
+	var amount: int = args[0].to_int()
+	if amount <= 0:
+		print("DevConsole: amount must be > 0")
+		return false
+
+	var summoner_id: String = _resolve_summoner_id_arg(args, 1)
+	if summoner_id.is_empty():
+		return false
+
+	var new_total: int = SafeTypeUtils.int_val(
+		SummonerProgression.call("GrantTraitPoints", summoner_id, amount, "dev_console"), 0)
+	print("DevConsole: Granted %d summoner trait point(s) to %s (unspent now: %d)" % [
+		amount, summoner_id, new_total
+	])
+	return true
+
+
+func _cmd_traits_spend_summoner(args: PackedStringArray) -> bool:
+	if args.size() < 1:
+		print("DevConsole: Usage: /traits_spend_summoner <trait_id> [summoner_id]")
+		return false
+
+	var trait_id: String = args[0]
+	var summoner_id: String = _resolve_summoner_id_arg(args, 1)
+	if summoner_id.is_empty():
+		return false
+
+	var before_points: int = SummonerProgressionApi.get_unspent_trait_points(summoner_id)
+	var success: bool = SummonerProgressionApi.spend_trait_point(summoner_id, trait_id)
+	var after_points: int = SummonerProgressionApi.get_unspent_trait_points(summoner_id)
+
+	if success:
+		print("DevConsole: Spent summoner trait point: %s -> %s (%d -> %d points)" % [
+			summoner_id, trait_id, before_points, after_points
+		])
+	else:
+		print("DevConsole: FAILED spending summoner trait point: %s -> %s (%d points)" % [
+			summoner_id, trait_id, before_points
+		])
+	return success
+
+
+func _cmd_traits_show_summoner_stats(args: PackedStringArray) -> bool:
+	var summoner_id: String = _resolve_summoner_id_arg(args, 0)
+	if summoner_id.is_empty():
+		return false
+
+	var stats: Dictionary = SummonerProgressionApi.get_computed_stats_for_summoner(summoner_id)
+	if stats.is_empty():
+		print("DevConsole: No computed stats found for summoner '%s'" % summoner_id)
+		return false
+
+	print("=== SUMMONER STATS (%s) ===" % summoner_id)
+	var keys: Array = stats.keys()
+	keys.sort()
+	for key_var: Variant in keys:
+		var key: String = SafeTypeUtils.string(key_var, "")
+		print("  - %s: %s" % [key, str(stats.get(key, 0.0))])
+	print("===========================")
+	return true
+
+
+func _cmd_traits_list_cards() -> bool:
+	var cards: Array = CardServiceApi.list_cards_dict()
+	print("=== CARD TRAIT STATE (%d cards) ===" % cards.size())
+	for card_var: Variant in cards:
+		if not card_var is Dictionary:
+			continue
+		var card: Dictionary = card_var
+		var instance_id: String = SafeTypeUtils.string(card.get("id", ""), "")
+		var catalog_id: String = SafeTypeUtils.string(card.get("catalog_id", ""), "")
+		var level: int = SafeTypeUtils.int_val(card.get("level", 1), 1)
+		var points: int = CardServiceApi.get_unspent_trait_points(instance_id)
+		var traits: Array = CardServiceApi.get_applied_traits(instance_id)
+		print("  - %s :: %s (lvl=%d points=%d traits=%s)" % [
+			instance_id, catalog_id, level, points, str(traits)
+		])
+	print("===================================")
+	return true
+
+
+func _cmd_traits_list_card_options(args: PackedStringArray) -> bool:
+	if args.size() < 1:
+		print("DevConsole: Usage: /traits_list_card_options <card_instance_id>")
+		return false
+
+	var instance_id: String = args[0]
+	var info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
+	if info.is_empty():
+		print("DevConsole: Card not found: %s" % instance_id)
+		return false
+
+	var options: Array[Dictionary] = _get_spendable_card_traits(instance_id)
+	var points: int = CardServiceApi.get_unspent_trait_points(instance_id)
+	print("=== CARD TRAIT OPTIONS ===")
+	print("Card: %s (%s)" % [instance_id, info.get("catalog_id", "")])
+	print("Unspent points: %d" % points)
+	if options.is_empty():
+		print("No spendable card traits found at current level/prereqs.")
+		print("==========================")
+		return true
+
+	for trait_dict: Dictionary in options:
+		var trait_id: String = SafeTypeUtils.string(trait_dict.get("id", ""), "")
+		var min_level: int = SafeTypeUtils.int_val(trait_dict.get("min_level", 1), 1)
+		var name: String = TraitCatalogApi.get_trait_name(trait_id)
+		print("  - %s (min=%d) :: %s" % [trait_id, min_level, name])
+	print("==========================")
+	return true
+
+
+func _cmd_traits_grant_card_points(args: PackedStringArray) -> bool:
+	if args.size() < 2:
+		print("DevConsole: Usage: /traits_grant_card_points <card_instance_id> <amount>")
+		return false
+
+	var instance_id: String = args[0]
+	var amount: int = args[1].to_int()
+	if amount <= 0:
+		print("DevConsole: amount must be > 0")
+		return false
+
+	var card_service: Node = get_tree().root.get_node_or_null(CSharpAutoloads.CARD_SERVICE)
+	if card_service == null:
+		print("DevConsole: CardService autoload not available")
+		return false
+
+	var new_total: int = SafeTypeUtils.int_val(
+		card_service.call("GrantCardTraitPoints", instance_id, amount, "dev_console"), 0)
+	print("DevConsole: Granted %d card trait point(s) to %s (unspent now: %d)" % [
+		amount, instance_id, new_total
+	])
+	return true
+
+
+func _cmd_traits_spend_card(args: PackedStringArray) -> bool:
+	if args.size() < 2:
+		print("DevConsole: Usage: /traits_spend_card <card_instance_id> <trait_id>")
+		return false
+
+	var instance_id: String = args[0]
+	var trait_id: String = args[1]
+	var before_points: int = CardServiceApi.get_unspent_trait_points(instance_id)
+	var success: bool = CardServiceApi.spend_trait_point(instance_id, trait_id)
+	var after_points: int = CardServiceApi.get_unspent_trait_points(instance_id)
+
+	if success:
+		print("DevConsole: Spent card trait point: %s -> %s (%d -> %d points)" % [
+			instance_id, trait_id, before_points, after_points
+		])
+	else:
+		print("DevConsole: FAILED spending card trait point: %s -> %s (%d points)" % [
+			instance_id, trait_id, before_points
+		])
+	return success
+
+
+func _cmd_traits_runtime_status() -> bool:
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node == null:
+		print("DevConsole: No active SimulationNode (enter a battle first).")
+		return false
+
+	if not sim_node.has_method("GetTraitRuntimeStatus"):
+		print("DevConsole: SimulationNode lacks GetTraitRuntimeStatus().")
+		return false
+
+	var status: Dictionary = SafeTypeUtils.dict(sim_node.call("GetTraitRuntimeStatus"))
+	print("=== TRAIT RUNTIME STATUS ===")
+	print("ruleset_version: %s" % SafeTypeUtils.string(status.get("ruleset_version", ""), ""))
+	print("is_stub: %s" % str(SafeTypeUtils.bool_val(status.get("is_stub", true), true)))
+	print("diagnostic_count: %d" % SafeTypeUtils.int_val(status.get("diagnostic_count", 0), 0))
+
+	var diagnostics: Array = SafeTypeUtils.array(status.get("diagnostics", []))
+	for diag_var: Variant in diagnostics:
+		if not diag_var is Dictionary:
+			continue
+		var diag: Dictionary = diag_var
+		print("  - [%s] %s :: %s" % [
+			SafeTypeUtils.string(diag.get("severity", ""), ""),
+			SafeTypeUtils.string(diag.get("code", ""), ""),
+			SafeTypeUtils.string(diag.get("message", ""), "")
+		])
+	print("============================")
+	return true
+
+
+func _cmd_traits_units_snapshot(args: PackedStringArray) -> bool:
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node == null:
+		print("DevConsole: No active SimulationNode (enter a battle first).")
+		return false
+
+	if not sim_node.has_method("GetUnitStatsSnapshot"):
+		print("DevConsole: SimulationNode lacks GetUnitStatsSnapshot().")
+		return false
+
+	var team_filter: int = -1
+	if args.size() > 0:
+		team_filter = args[0].to_int()
+
+	var units: Array = SafeTypeUtils.array(sim_node.call("GetUnitStatsSnapshot", team_filter))
+	print("=== UNIT STATS SNAPSHOT (%d units, team_filter=%d) ===" % [units.size(), team_filter])
+	for unit_var: Variant in units:
+		if not unit_var is Dictionary:
+			continue
+		var unit: Dictionary = unit_var
+		print("  - unit=%s net=%s team=%s catalog=%s hp=%s/%s ad=%s as=%s ms=%s range=%s alive=%s" % [
+			str(unit.get("unit_id", "?")),
+			str(unit.get("network_id", "?")),
+			str(unit.get("team", "?")),
+			str(unit.get("catalog_id", "?")),
+			str(unit.get("current_hp", "?")),
+			str(unit.get("max_hp", "?")),
+			str(unit.get("attack_damage", "?")),
+			str(unit.get("attack_speed", "?")),
+			str(unit.get("move_speed", "?")),
+			str(unit.get("attack_range", "?")),
+			str(unit.get("is_alive", "?"))
+		])
+	print("======================================================")
+	return true
+
+
+func _resolve_summoner_id_arg(args: PackedStringArray, index: int) -> String:
+	if args.size() > index:
+		return args[index]
+	var active: String = SummonerSelectionApi.get_active_summoner_id()
+	if active.is_empty():
+		print("DevConsole: No active summoner. Pass summoner_id explicitly.")
+	return active
+
+
+func _get_spendable_summoner_traits(summoner_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var progression_info: Dictionary = SummonerProgressionApi.get_summoner_progression_info(summoner_id)
+	if progression_info.is_empty():
+		return result
+
+	var level: int = SafeTypeUtils.int_val(progression_info.get("level", 1), 1)
+	var owned_traits: Array = SummonerProgressionApi.get_all_trait_ids_for_summoner(summoner_id)
+	var all_trait_ids: Array = SafeTypeUtils.array(TraitCatalog.call("GetAllTraitIds"))
+
+	for trait_id_var: Variant in all_trait_ids:
+		var trait_id: String = SafeTypeUtils.string(trait_id_var, "")
+		if trait_id.is_empty():
+			continue
+		if owned_traits.has(trait_id):
+			continue
+
+		var trait_dict: Dictionary = SafeTypeUtils.dict(TraitCatalog.call("GetTrait", trait_id))
+		if trait_dict.is_empty():
+			continue
+		if SafeTypeUtils.bool_val(trait_dict.get("is_innate", true), true):
+			continue
+		if not _trait_has_tag(trait_dict, "summoner"):
+			continue
+		if not _trait_matches_level(trait_dict, level):
+			continue
+		if not SafeTypeUtils.bool_val(TraitCatalog.call("MeetsPrerequisites", trait_id, owned_traits), false):
+			continue
+
+		result.append(trait_dict)
+
+	return result
+
+
+func _get_spendable_card_traits(card_instance_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var card_info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_instance_id)
+	if card_info.is_empty():
+		return result
+
+	var catalog_id: String = SafeTypeUtils.string(card_info.get("catalog_id", ""), "")
+	var card_def: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
+	var card_type: int = SafeTypeUtils.int_val(card_def.get("card_type", 0), 0)
+	var owner_tag: String = "spell" if card_type == 1 else "summon"
+	var level: int = SafeTypeUtils.int_val(card_info.get("level", 1), 1)
+	var owned_traits: Array = CardServiceApi.get_applied_traits(card_instance_id)
+	var all_trait_ids: Array = SafeTypeUtils.array(TraitCatalog.call("GetAllTraitIds"))
+
+	for trait_id_var: Variant in all_trait_ids:
+		var trait_id: String = SafeTypeUtils.string(trait_id_var, "")
+		if trait_id.is_empty():
+			continue
+		if owned_traits.has(trait_id):
+			continue
+
+		var trait_dict: Dictionary = SafeTypeUtils.dict(TraitCatalog.call("GetTrait", trait_id))
+		if trait_dict.is_empty():
+			continue
+		if SafeTypeUtils.bool_val(trait_dict.get("is_innate", true), true):
+			continue
+		if not _trait_has_tag(trait_dict, owner_tag):
+			continue
+		if not _trait_matches_level(trait_dict, level):
+			continue
+		if not SafeTypeUtils.bool_val(TraitCatalog.call("MeetsPrerequisites", trait_id, owned_traits), false):
+			continue
+
+		result.append(trait_dict)
+
+	return result
+
+
+func _trait_has_tag(trait_dict: Dictionary, tag: String) -> bool:
+	var tags_var: Variant = trait_dict.get("tags", [])
+	if not tags_var is Array:
+		return false
+	var tags: Array = tags_var
+	for entry: Variant in tags:
+		if SafeTypeUtils.string(entry, "") == tag:
+			return true
+	return false
+
+
+func _trait_matches_level(trait_dict: Dictionary, level: int) -> bool:
+	var min_level: int = SafeTypeUtils.int_val(trait_dict.get("min_level", 1), 1)
+	var max_level: int = SafeTypeUtils.int_val(trait_dict.get("max_level", 0), 0)
+	if level < min_level:
+		return false
+	if max_level > 0 and level > max_level:
+		return false
 	return true
 
 

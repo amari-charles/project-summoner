@@ -11,6 +11,9 @@ using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
+using Fateforged.Meta.Cards;
+using Fateforged.Meta.Traits.Unified;
+using Fateforged.Stats;
 
 namespace Fateforged.Simulation;
 
@@ -221,6 +224,7 @@ public partial class SimulationNode : Node, IGameSession
             Phase = GamePhase.Preparation,
             Rng = new DeterministicRng(seed)
         };
+        State.TraitRuntimeState = UnifiedTraitRuntimeCompiler.CompileStub();
 
         Simulation.Log = msg => GD.Print(msg);
         _simulation = new Simulation(State);
@@ -339,7 +343,17 @@ public partial class SimulationNode : Node, IGameSession
         summoner.Position = new SimVector3(position.X, position.Y, position.Z);
 
         summoner.Deck.Clear();
-        summoner.Deck.AddRange(deckCatalogIds);
+        foreach (var id in deckCatalogIds)
+            summoner.Deck.Add(new SimCardCatalogId(id));
+        summoner.DeckRefs.Clear();
+        foreach (var id in deckCatalogIds)
+        {
+            summoner.DeckRefs.Add(new SimCardRuntimeRef
+            {
+                CatalogId = new SimCardCatalogId(id),
+                InstanceId = SimCardInstanceId.Empty
+            });
+        }
 
         GD.Print($"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}");
     }
@@ -348,7 +362,35 @@ public partial class SimulationNode : Node, IGameSession
     {
         var summoner = State.Summoners[ToNetworkTeam(team)];
         summoner.Hand.Clear();
-        summoner.Hand.AddRange(handCatalogIds);
+        foreach (var id in handCatalogIds)
+            summoner.Hand.Add(new SimCardCatalogId(id));
+        summoner.HandRefs.Clear();
+        foreach (var id in handCatalogIds)
+        {
+            summoner.HandRefs.Add(new SimCardRuntimeRef
+            {
+                CatalogId = new SimCardCatalogId(id),
+                InstanceId = SimCardInstanceId.Empty
+            });
+        }
+    }
+
+    /// <summary>
+    /// Pass 2 entry point: register deck/hand card runtime refs with instance identity.
+    /// </summary>
+    public void SetSummonerCardRefs(int team, SimCardRuntimeRef[] deckRefs, SimCardRuntimeRef[] handRefs)
+    {
+        var summoner = State.Summoners[ToNetworkTeam(team)];
+        summoner.DeckRefs.Clear();
+        summoner.HandRefs.Clear();
+        summoner.DiscardRefs.Clear();
+
+        if (deckRefs != null && deckRefs.Length > 0)
+            summoner.DeckRefs.AddRange(deckRefs);
+        if (handRefs != null && handRefs.Length > 0)
+            summoner.HandRefs.AddRange(handRefs);
+
+        RebuildCardTraitRuntimeState();
     }
 
     // =========================================================================
@@ -373,12 +415,12 @@ public partial class SimulationNode : Node, IGameSession
         GD.Print($"[SimulationNode] Populated CardDataMap with {State.CardDataMap.Count} cards");
     }
 
-    private void PopulateSingleCard(string catalogId, HashSet<string> processed)
+    private void PopulateSingleCard(SimCardCatalogId catalogId, HashSet<string> processed)
     {
-        if (string.IsNullOrEmpty(catalogId) || !processed.Add(catalogId))
+        if (!catalogId.HasValue || !processed.Add(catalogId.Value))
             return;
 
-        var card = CardCatalog.GetCard(catalogId);
+        var card = CardCatalog.GetCard(catalogId.Value);
         if (card == null)
         {
             GD.PrintErr($"[SimulationNode] Card not found in catalog: {catalogId}");
@@ -476,6 +518,65 @@ public partial class SimulationNode : Node, IGameSession
     public float GetPrepTimeRemaining() => GetState().PrepTimeRemaining;
     public float GetMatchTime() => GetState().MatchTime;
     public int GetWinnerTeam() => GetState().WinnerTeam ?? -1;
+    public Godot.Collections.Dictionary GetTraitRuntimeStatus()
+    {
+        var runtime = GetState().TraitRuntimeState;
+        var diagnostics = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var diagnostic in runtime.Diagnostics)
+        {
+            diagnostics.Add(new Godot.Collections.Dictionary
+            {
+                ["severity"] = diagnostic.Severity.ToString(),
+                ["code"] = diagnostic.Code,
+                ["message"] = diagnostic.Message
+            });
+        }
+
+        return new Godot.Collections.Dictionary
+        {
+            ["ruleset_version"] = runtime.RulesetVersion.Value,
+            ["is_stub"] = runtime.RulesetVersion.Value == MatchTraitRuntimeState.StubRulesetVersion,
+            ["diagnostic_count"] = runtime.Diagnostics.Count,
+            ["diagnostics"] = diagnostics
+        };
+    }
+
+    /// <summary>
+    /// Debug helper: returns current spawned unit stats from simulation state.
+    /// </summary>
+    /// <param name="team">
+    /// Team filter: 0/1 for a specific team, or -1 for all teams.
+    /// </param>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetUnitStatsSnapshot(int team = -1)
+    {
+        var units = new List<UnitData>(GetState().Units.Values);
+        units.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var unit in units)
+        {
+            if (team >= 0 && (int)unit.Team != team)
+                continue;
+
+            result.Add(new Godot.Collections.Dictionary
+            {
+                ["unit_id"] = unit.UnitId,
+                ["network_id"] = unit.NetworkId,
+                ["team"] = (int)unit.Team,
+                ["catalog_id"] = unit.CatalogId.Value,
+                ["is_alive"] = unit.IsAlive,
+                ["activation_state"] = (int)unit.ActivationState,
+                ["current_hp"] = unit.CurrentHp,
+                ["max_hp"] = unit.MaxHp,
+                ["attack_damage"] = unit.AttackDamage,
+                ["attack_speed"] = unit.AttackSpeed,
+                ["move_speed"] = unit.MoveSpeed,
+                ["attack_range"] = unit.AttackRange
+            });
+        }
+
+        return result;
+    }
 
     public void SkipPreparation()
     {
@@ -501,9 +602,10 @@ public partial class SimulationNode : Node, IGameSession
     public void QueueSpawnUnit(string catalogId, int team, Vector3 position,
         bool activateImmediately = true, Godot.Collections.Dictionary? statOverrides = null)
     {
-        EnsureCardDataPopulated(catalogId);
+        var simCatalogId = new SimCardCatalogId(catalogId);
+        EnsureCardDataPopulated(simCatalogId);
 
-        var cmd = new SpawnUnitCommand(catalogId, ToNetworkTeam(team), ToSimCanonical(position))
+        var cmd = new SpawnUnitCommand(simCatalogId, ToNetworkTeam(team), ToSimCanonical(position))
         {
             ActivateImmediately = activateImmediately,
             StatOverrides = ConvertStatOverrides(statOverrides)
@@ -515,26 +617,30 @@ public partial class SimulationNode : Node, IGameSession
     /// Ensure a single card's data is in CardDataMap.
     /// Called by QueueSpawnUnit for cards that may not be in any summoner's deck.
     /// </summary>
-    public void EnsureCardDataPopulated(string catalogId)
+    public void EnsureCardDataPopulated(string catalogId) => EnsureCardDataPopulated(new SimCardCatalogId(catalogId));
+
+    private void EnsureCardDataPopulated(SimCardCatalogId catalogId)
     {
         if (State.CardDataMap.ContainsKey(catalogId))
             return;
 
-        var processed = new HashSet<string>(State.CardDataMap.Keys);
+        var processed = new HashSet<string>();
+        foreach (var key in State.CardDataMap.Keys)
+            processed.Add(key.Value);
         PopulateSingleCard(catalogId, processed);
     }
 
-    private static System.Collections.Generic.Dictionary<Stats.StatKey, float>? ConvertStatOverrides(
+    private static Dictionary<StatKey, float>? ConvertStatOverrides(
         Godot.Collections.Dictionary? gdDict)
     {
         if (gdDict == null || gdDict.Count == 0)
             return null;
 
-        var result = new System.Collections.Generic.Dictionary<Stats.StatKey, float>();
+        var result = new Dictionary<StatKey, float>();
         foreach (var key in gdDict.Keys)
         {
             var keyStr = key.AsString();
-            var parsed = Stats.StatKeyExtensions.FromString(keyStr);
+            var parsed = StatKeyExtensions.FromString(keyStr);
             if (parsed == null)
             {
                 GD.PushWarning($"[SimulationNode] Unknown stat override key: '{keyStr}'");
@@ -545,5 +651,61 @@ public partial class SimulationNode : Node, IGameSession
                 result[parsed.Value] = val.AsSingle();
         }
         return result.Count > 0 ? result : null;
+    }
+
+    private void RebuildCardTraitRuntimeState()
+    {
+        var runtime = State.TraitRuntimeState;
+        runtime.ResetCardInstanceStatMultipliers();
+
+        var cardService = CardService.Instance;
+        if (cardService == null)
+            return;
+
+        var processedInstanceIds = new HashSet<string>();
+        foreach (var summoner in State.Summoners)
+        {
+            RegisterTraitRuntimeModifiersForRefs(summoner.DeckRefs, cardService, runtime, processedInstanceIds);
+            RegisterTraitRuntimeModifiersForRefs(summoner.HandRefs, cardService, runtime, processedInstanceIds);
+            RegisterTraitRuntimeModifiersForRefs(summoner.DiscardRefs, cardService, runtime, processedInstanceIds);
+        }
+    }
+
+    private static void RegisterTraitRuntimeModifiersForRefs(
+        IEnumerable<SimCardRuntimeRef> refs,
+        CardService cardService,
+        MatchTraitRuntimeState runtime,
+        ISet<string> processedInstanceIds)
+    {
+        foreach (var cardRef in refs)
+        {
+            if (!cardRef.InstanceId.HasValue)
+                continue;
+            if (!processedInstanceIds.Add(cardRef.InstanceId.Value))
+                continue;
+
+            var rawModifiers = cardService.GetTraitStatModifiersTyped(cardRef.InstanceId.Value);
+            if (rawModifiers.Count == 0)
+                continue;
+
+            var typedModifiers = new Dictionary<StatKey, float>();
+            foreach (var (statKey, multiplier) in rawModifiers)
+            {
+                if (multiplier <= 0f)
+                    continue;
+
+                var parsedStatKey = StatKeyExtensions.FromString(statKey);
+                if (!parsedStatKey.HasValue)
+                    continue;
+                typedModifiers[parsedStatKey.Value] = multiplier;
+            }
+
+            if (typedModifiers.Count == 0)
+                continue;
+
+            runtime.SetCardInstanceStatMultipliers(
+                new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+                typedModifiers);
+        }
     }
 }

@@ -17,4 +17,7 @@ public class CardUpdate
 
     /// <summary>Replace the card's traits list.</summary>
     public List<CardTraitId>? Traits { get; set; }
+
+    /// <summary>Update the card's unspent unified trait points.</summary>
+    public int? UnspentTraitPoints { get; set; }
 }

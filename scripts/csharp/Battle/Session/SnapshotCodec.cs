@@ -99,24 +99,24 @@ public class SnapshotCodec
         w.Write(s.CastingTimeRemaining);
         w.Write(s.CastingTimeTotal);
         w.Write(s.CastingCardIndex);
-        w.Write(s.CastingCatalogId ?? "");
+        w.Write(s.CastingCatalogId.Value);
         WriteSimVector3(w, s.CastingSpawnPosition);
         w.Write(s.CastingNetworkId);
 
         // Hand
         w.Write(s.Hand.Count);
         foreach (var card in s.Hand)
-            w.Write(card);
+            w.Write(card.Value);
 
         // Deck
         w.Write(s.Deck.Count);
         foreach (var card in s.Deck)
-            w.Write(card);
+            w.Write(card.Value);
 
         // Discard
         w.Write(s.DiscardPile.Count);
         foreach (var card in s.DiscardPile)
-            w.Write(card);
+            w.Write(card.Value);
     }
 
     private static void DecodeSummoner(BinaryReader r, SummonerData s)
@@ -131,30 +131,34 @@ public class SnapshotCodec
         s.CastingTimeRemaining = r.ReadSingle();
         s.CastingTimeTotal = r.ReadSingle();
         s.CastingCardIndex = r.ReadInt32();
-        s.CastingCatalogId = r.ReadString();
+        s.CastingCatalogId = new SimCardCatalogId(r.ReadString());
+        s.CastingCardInstanceId = SimCardInstanceId.Empty;
         s.CastingSpawnPosition = ReadSimVector3(r);
         s.CastingNetworkId = r.ReadInt32();
 
         int handCount = r.ReadInt32();
         s.Hand.Clear();
+        s.HandRefs.Clear();
         for (int i = 0; i < handCount; i++)
-            s.Hand.Add(r.ReadString());
+            s.Hand.Add(new SimCardCatalogId(r.ReadString()));
 
         int deckCount = r.ReadInt32();
         s.Deck.Clear();
+        s.DeckRefs.Clear();
         for (int i = 0; i < deckCount; i++)
-            s.Deck.Add(r.ReadString());
+            s.Deck.Add(new SimCardCatalogId(r.ReadString()));
 
         int discardCount = r.ReadInt32();
         s.DiscardPile.Clear();
+        s.DiscardRefs.Clear();
         for (int i = 0; i < discardCount; i++)
-            s.DiscardPile.Add(r.ReadString());
+            s.DiscardPile.Add(new SimCardCatalogId(r.ReadString()));
     }
 
     private static void EncodeUnit(BinaryWriter w, UnitData u)
     {
         w.Write(u.NetworkId);
-        w.Write(u.CatalogId ?? "");
+        w.Write(u.CatalogId.Value);
         w.Write((int)u.Team);
         WriteQuantizedPosition(w, u.Position);
         w.Write(QuantizeHp(u.CurrentHp));
@@ -170,7 +174,7 @@ public class SnapshotCodec
     {
         var u = new UnitData();
         u.NetworkId = r.ReadInt32();
-        u.CatalogId = r.ReadString();
+        u.CatalogId = new SimUnitCatalogId(r.ReadString());
         u.Team = (Team)r.ReadInt32();
         u.Position = ReadQuantizedPosition(r);
         u.CurrentHp = DequantizeHp(r.ReadInt32());

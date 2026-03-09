@@ -1,5 +1,6 @@
 using Godot;
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Data;
 
 namespace Fateforged.Multiplayer.Protocol;
 
@@ -168,7 +169,7 @@ public readonly record struct MatchEnded(
 /// </summary>
 public readonly record struct SpellCastVisual(
     int Team,
-    string CatalogId,
+    SimCardCatalogId CatalogId,
     Vector3 Position
 ) : IRealtimeProtocolMessage;
 
@@ -185,7 +186,7 @@ public readonly record struct ProjectileSpawned(
     Vector3 Direction,
     Vector3 TargetPosition,
     float Speed,
-    string ProjectileCatalogId = "",
+    SimProjectileCatalogId ProjectileCatalogId = default,
     float Acceleration = 0f,
     float MinSpeed = 1f,
     bool UseSpeedEasing = false,
@@ -230,7 +231,7 @@ public readonly record struct ActiveProjectileSeed(
     Vector3 Direction,
     Vector3 TargetPosition,
     float Speed,
-    string ProjectileCatalogId = "",
+    SimProjectileCatalogId ProjectileCatalogId = default,
     float Acceleration = 0f,
     float MinSpeed = 1f,
     bool UseSpeedEasing = false,
@@ -307,11 +308,11 @@ public readonly record struct SummonerState(
     Vector3 CastingSpawnPosition,
     int CastingNetworkId,
     int CardStateHash,
-    string[] Hand,
-    string[] Deck,
-    string[] DiscardPile,
+    SimCardCatalogId[] Hand,
+    SimCardCatalogId[] Deck,
+    SimCardCatalogId[] DiscardPile,
     // Required for MP client UI reconstruction in PollMatchState and reconnect flow.
-    string CastingCatalogId = ""
+    SimCardCatalogId CastingCatalogId = default
 );
 
 /// <summary>
@@ -329,7 +330,7 @@ public readonly record struct UnitState(
     int ActivationState,
     int BehaviorState,
     bool IsFacingRight,
-    string CatalogId = "",
+    SimUnitCatalogId CatalogId = default,
     float SpawnTimer = 0f,
     float AttackAnimationTimer = 0f
 );
@@ -350,7 +351,7 @@ public readonly record struct ProjectileState(
     float Progress,
     float Speed,
     bool IsDead,
-    string ProjectileCatalogId = "",
+    SimProjectileCatalogId ProjectileCatalogId = default,
     float Acceleration = 0f,
     float MinSpeed = 1f,
     bool UseSpeedEasing = false,

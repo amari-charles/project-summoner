@@ -85,13 +85,16 @@ public class MatchState
     public List<DelayedEffect> DelayedEffects { get; } = new();
 
     // Card data map — sim-local card data populated at match start
-    public Dictionary<string, SimCardData> CardDataMap { get; } = new();
+    public Dictionary<SimCardCatalogId, SimCardData> CardDataMap { get; } = new();
 
     // Pending commands — commands with ExecuteFrame <= FrameNumber are drained each tick
     public List<ICommand> PendingCommandBuffer { get; } = new();
 
     // Deterministic RNG — same seed on both host and client
     public DeterministicRng? Rng { get; set; }
+
+    // Unified trait runtime state (Pass 2 stub; Pass 3 full implementation)
+    public MatchTraitRuntimeState TraitRuntimeState { get; set; } = MatchTraitRuntimeState.Empty();
 
     // =========================================================================
     // UNIT QUERY HELPERS (used by simulation for targeting/combat)

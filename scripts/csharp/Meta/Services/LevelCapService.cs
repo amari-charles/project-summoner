@@ -1,7 +1,5 @@
 using Godot;
 using System.Collections.Generic;
-using Fateforged.Cards;
-using Fateforged.Data;
 using Fateforged.Meta.Cards;
 
 namespace Fateforged.Meta;
@@ -133,29 +131,14 @@ public partial class LevelCapService : Node
     /// </summary>
     public Dictionary<string, float> GetCappedTraitModifiers(string cardInstanceId, int levelCap)
     {
+        _ = levelCap;
         var cardService = CardService.Instance;
         if (cardService == null)
             return new Dictionary<string, float>();
 
-        // Get full modifiers if uncapped
-        if (levelCap <= NoCap)
-            return cardService.GetTraitStatModifiersTyped(cardInstanceId);
-
-        // Get card data to check level and traits
-        var card = cardService.GetCard(cardInstanceId);
-        if (card == null)
-            return new Dictionary<string, float>();
-
-        // If card is at or below cap, use all traits
-        if (card.Level <= levelCap)
-            return cardService.GetTraitStatModifiersTyped(cardInstanceId);
-
-        // Calculate capped traits - convert CardTraitId to string for this API
-        var traitStrings = card.Traits.ConvertAll(t => t.Value);
-        var effectiveTraits = GetEffectiveTraits(traitStrings, levelCap);
-
-        // Compute modifiers manually from capped traits
-        return ComputeTraitModifiers(card.CatalogId, effectiveTraits);
+        // Pass 2 unified trait migration: legacy card trait stat modifiers are disabled.
+        // Keep this facade stable while delegating to CardService unified-ready path.
+        return cardService.GetTraitStatModifiersTyped(cardInstanceId);
     }
 
     /// <summary>
@@ -214,33 +197,4 @@ public partial class LevelCapService : Node
         return 0;
     }
 
-    // =============================================================================
-    // INTERNAL HELPERS
-    // =============================================================================
-
-    /// <summary>
-    /// Compute trait modifiers from a specific set of trait IDs.
-    /// This replicates CardService.GetTraitStatModifiers logic for capped traits.
-    /// </summary>
-    private Dictionary<string, float> ComputeTraitModifiers(string catalogId, List<string> traitIds)
-    {
-        var modifiers = new Dictionary<string, float>();
-
-        foreach (var traitId in traitIds)
-        {
-            var trait = CardTraitCatalog.GetTrait(catalogId, traitId);
-            if (trait == null)
-                continue;
-
-            foreach (var (stat, mult) in trait.StatMods)
-            {
-                if (modifiers.ContainsKey(stat))
-                    modifiers[stat] *= mult;
-                else
-                    modifiers[stat] = mult;
-            }
-        }
-
-        return modifiers;
-    }
 }

@@ -12,11 +12,11 @@ namespace Fateforged.Simulation.Data;
 /// without any Godot dependencies. Populated at match start by SimulationNode
 /// from CardCatalog/UnitDefinitions.
 ///
-/// Stored in MatchState.CardDataMap keyed by catalog ID (string).
+/// Stored in MatchState.CardDataMap keyed by card catalog ID.
 /// </summary>
 public class SimCardData
 {
-    public string CatalogId { get; set; } = "";
+    public SimCardCatalogId CatalogId { get; set; } = SimCardCatalogId.Empty;
     public int ManaCost { get; set; }
     public float SummonTime { get; set; }
     public bool IsSpell { get; set; }
@@ -45,7 +45,7 @@ public class SimCardData
     /// <summary>
     /// Projectile ID used by spell visuals/ballistics (empty = instant/non-projectile spell).
     /// </summary>
-    public string SpellProjectileId { get; set; } = "";
+    public SimProjectileCatalogId SpellProjectileId { get; set; } = SimProjectileCatalogId.Empty;
 
     // =========================================================================
     // FACTORY

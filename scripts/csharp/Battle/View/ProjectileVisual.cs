@@ -328,9 +328,9 @@ public partial class ProjectileVisual : Node3D, IPoolable
 
     private static ProjectileData? ResolveProjectileData(Fateforged.Simulation.Data.MatchState state, Fateforged.Simulation.Data.SimProjectileData projData)
     {
-        if (!string.IsNullOrEmpty(projData.ProjectileCatalogId))
+        if (projData.ProjectileCatalogId.HasValue)
         {
-            var byProjectileId = ProjectileDefinitions.Get(projData.ProjectileCatalogId);
+            var byProjectileId = ProjectileDefinitions.Get(projData.ProjectileCatalogId.Value);
             if (byProjectileId != null)
                 return byProjectileId;
         }
@@ -338,10 +338,10 @@ public partial class ProjectileVisual : Node3D, IPoolable
         int sourceUnitId = projData.SourceUnitId;
         if (!state.Units.TryGetValue(sourceUnitId, out var sourceUnit))
             return null;
-        if (string.IsNullOrEmpty(sourceUnit.CatalogId))
+        if (!sourceUnit.CatalogId.HasValue)
             return null;
 
-        var unitDef = UnitDefinitions.Get(sourceUnit.CatalogId);
+        var unitDef = UnitDefinitions.Get(sourceUnit.CatalogId.Value);
         if (unitDef?.Ranged == null)
             return null;
 

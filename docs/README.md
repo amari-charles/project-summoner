@@ -1,6 +1,6 @@
 # Fateforged Documentation
 
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-03-09
 
 This is the central index for all Fateforged documentation. Start here to find what you need.
 
@@ -14,6 +14,7 @@ This is the central index for all Fateforged documentation. Start here to find w
 | Understand the game vision | [Vision](project/vision.md) |
 | See what's implemented | [Current State](project/current-state.md) |
 | Learn the core game systems | [Features Index](features/README.md) |
+| Run major work with approval gates | [Approval-Gated Delivery Workflow](workflows/approval-gated-delivery.md) |
 | Check design decisions | [Design Decisions](#design-decisions) |
 | Find technical details | [Technical Docs](#technical-documentation) |
 
@@ -89,6 +90,7 @@ Implementation details for developers.
 - **[Simulation Architecture](technical/runtime/simulation-architecture.md)** - Deterministic sim runtime + multiplayer coordination overview
 
 ### Workflows
+- **[Approval-Gated Delivery Workflow](workflows/approval-gated-delivery.md)** - Required major-work pass structure and approval gates
 - **[PR Review Guidelines](workflows/pr-review-guidelines.md)** - Code review process
 - **[Running Tests](workflows/running-tests.md)** - Test execution
 - **[Creating Dialogue](workflows/creating-dialogue.md)** - Dialogue system usage

@@ -133,6 +133,25 @@ Partial-fix rule:
 - The review must call out partial completion and include what remains before closure.
 - Missing tracker updates for relevant work should be flagged as a review issue.
 
+Pass-gate compliance (required for medium/large changes)
+
+For multi-file feature/refactor work using approval-gated delivery, reviewers must verify:
+- Required artifacts exist:
+  - `docs/technical/<domain>/<initiative>-plan.md`
+  - `docs/technical/<domain>/<initiative>-validation-cases.md`
+  - `docs/technical/<domain>/<initiative>-stub-checklist.md`
+- Pass states are present and ordered:
+  - `PASS 1: USE CASES + VALIDATION`
+  - `PASS 2: STUBS + WIRING`
+  - `PASS 3: IMPLEMENTATION + TESTS`
+  - `PR REVIEW: READY`
+- Validation scenarios include test mapping and status (`Design-Covered`, `Implemented`, `Deferred`).
+- Implementation work did not begin before explicit Pass 2 approval evidence.
+
+Required reviewer behavior:
+- If any required artifact/state/evidence is missing, mark PR as not ready.
+- Explicitly list missing items and what is needed to pass.
+
 Non-idiomatic / outdated usage
 
 Use of patterns or APIs that are inconsistent with the language, framework, or rest of the repo.
@@ -189,6 +208,35 @@ Check that:
 - No `get_node("/root/X")` or `get_node_or_null("/root/X")` in Node subclasses
 - Helper functions for non-Node types take just the autoload name, not full paths
 - Dependencies are injected where possible for better testability
+
+Primitive obsession vs domain value objects (strong types)
+
+Neither primitives nor strong domain types are universally better. Review for correct placement.
+
+Default mental model:
+- Primitives at infrastructure edges
+- Strong types in domain/core logic
+
+Use a dedicated domain type (`CatalogId`, `PlayerId`, etc.) when:
+- The value has domain meaning
+- It is easy to confuse with other same-shaped values
+- Mistakes would be subtle or costly
+- The value appears in important service/domain/entity APIs
+- The type should carry invariants/parsing/normalization/equality rules
+
+Keep primitive types (`int`, `string`, etc.) when:
+- The value is a count/index/offset/size/loop variable
+- The scope is very local and obvious
+- Wrapping would add more ceremony than safety
+- The code is at serialization/DB/engine/network boundaries
+
+Reviewer anti-pattern checks:
+- Not going far enough: adds strong ID types but continues passing raw primitives through core APIs (constant wrap/unwrap churn with little safety gain)
+- Going too far: wraps trivial/local values and increases noise without domain benefit
+
+Implementation caveat:
+- Strong ID types should be lightweight and ergonomic (prefer value-type wrappers such as `record struct` where appropriate).
+- Flag designs that create conversion tax at every call site with no clarity/safety gain.
 
 Unnecessary abstraction or bloat
 

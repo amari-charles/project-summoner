@@ -5,6 +5,7 @@ using GdUnit4;
 using Godot;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Data;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -14,6 +15,14 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public class MessageSerializerTest
 {
+    private static SimCardCatalogId[] CatalogIds(params string[] values)
+    {
+        var ids = new SimCardCatalogId[values.Length];
+        for (int i = 0; i < values.Length; i++)
+            ids[i] = new SimCardCatalogId(values[i]);
+        return ids;
+    }
+
     private MessageSerializer _serializer = null!;
 
     [BeforeTest]
@@ -231,7 +240,7 @@ public class MessageSerializerTest
         AssertThat(result).IsInstanceOf<ProjectileSpawned>();
         var typed = (ProjectileSpawned)result;
         AssertThat(typed.ProjectileId).IsEqual(99);
-        AssertThat(typed.ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(typed.ProjectileCatalogId.Value).IsEqual("weaving_bolt");
         AssertThat(typed.CurrentPosition.X).IsEqual(-4f);
         AssertThat(typed.Speed).IsEqual(9f);
         AssertThat(typed.UseSpeedEasing).IsTrue();
@@ -297,7 +306,7 @@ public class MessageSerializerTest
         AssertThat(typed.Frame).IsEqual(123L);
         AssertThat(typed.Projectiles.Length).IsEqual(1);
         AssertThat(typed.Projectiles[0].ProjectileId).IsEqual(99);
-        AssertThat(typed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(typed.Projectiles[0].ProjectileCatalogId.Value).IsEqual("weaving_bolt");
         AssertThat(typed.Projectiles[0].HitRadius).IsEqual(0.75f);
         AssertThat(typed.Projectiles[0].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
     }
@@ -397,7 +406,7 @@ public class MessageSerializerTest
         AssertThat(result).IsInstanceOf<SpellCastVisual>();
         var typed = (SpellCastVisual)result;
         AssertThat(typed.Team).IsEqual(0);
-        AssertThat(typed.CatalogId).IsEqual("fireball");
+        AssertThat(typed.CatalogId.Value).IsEqual("fireball");
         AssertThat(typed.Position.X).IsEqual(4f);
         AssertThat(typed.Position.Z).IsEqual(-2f);
     }
@@ -484,12 +493,12 @@ public class MessageSerializerTest
             new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10,
                 IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
                 CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1, CardStateHash: 0,
-                Hand: new[] { "fire_wisp", "pebbloom" }, Deck: new[] { "aqua_sprite" }, DiscardPile: System.Array.Empty<string>(),
+                Hand: CatalogIds("fire_wisp", "pebbloom"), Deck: CatalogIds("aqua_sprite"), DiscardPile: System.Array.Empty<SimCardCatalogId>(),
                 CastingCatalogId: ""),
             new SummonerState(Team: 1, Hp: 80, MaxHp: 100, Mana: 7, MaxMana: 10,
                 IsCasting: true, CastingTimeRemaining: 1.5f, CastingTimeTotal: 2f,
                 CastingCardIndex: 2, CastingSpawnPosition: new Vector3(3, 0, 3), CastingNetworkId: 5, CardStateHash: 42,
-                Hand: new[] { "stone_golem" }, Deck: new[] { "fire_wisp", "pebbloom" }, DiscardPile: new[] { "aqua_sprite" },
+                Hand: CatalogIds("stone_golem"), Deck: CatalogIds("fire_wisp", "pebbloom"), DiscardPile: CatalogIds("aqua_sprite"),
                 CastingCatalogId: "fire_wisp")
         };
         var units = new[]
@@ -546,14 +555,14 @@ public class MessageSerializerTest
         AssertThat(typed.StateHash).IsEqual(12345);
         AssertThat(typed.Summoners.Length).IsEqual(2);
         AssertThat(typed.Summoners[0].Hp).IsEqual(100);
-        AssertThat(typed.Summoners[0].Hand).ContainsExactly(new[] { "fire_wisp", "pebbloom" });
-        AssertThat(typed.Summoners[0].Deck).ContainsExactly(new[] { "aqua_sprite" });
+        AssertThat(typed.Summoners[0].Hand).ContainsExactly(CatalogIds("fire_wisp", "pebbloom"));
+        AssertThat(typed.Summoners[0].Deck).ContainsExactly(CatalogIds("aqua_sprite"));
         AssertThat(typed.Summoners[0].DiscardPile).IsEmpty();
         AssertThat(typed.Summoners[1].Hp).IsEqual(80);
-        AssertThat(typed.Summoners[1].Hand).ContainsExactly(new[] { "stone_golem" });
-        AssertThat(typed.Summoners[1].Deck).ContainsExactly(new[] { "fire_wisp", "pebbloom" });
-        AssertThat(typed.Summoners[1].DiscardPile).ContainsExactly(new[] { "aqua_sprite" });
-        AssertThat(typed.Summoners[1].CastingCatalogId).IsEqual("fire_wisp");
+        AssertThat(typed.Summoners[1].Hand).ContainsExactly(CatalogIds("stone_golem"));
+        AssertThat(typed.Summoners[1].Deck).ContainsExactly(CatalogIds("fire_wisp", "pebbloom"));
+        AssertThat(typed.Summoners[1].DiscardPile).ContainsExactly(CatalogIds("aqua_sprite"));
+        AssertThat(typed.Summoners[1].CastingCatalogId.Value).IsEqual("fire_wisp");
         AssertThat(typed.Summoners[1].CastingSpawnPosition.X).IsEqual(3f);
         AssertThat(typed.Summoners[1].CastingSpawnPosition.Z).IsEqual(3f);
         AssertThat(typed.Units.Length).IsEqual(2);
@@ -633,7 +642,7 @@ public class MessageSerializerTest
             new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10,
                 IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
                 CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1, CardStateHash: 0,
-                Hand: System.Array.Empty<string>(), Deck: System.Array.Empty<string>(), DiscardPile: System.Array.Empty<string>(),
+                Hand: System.Array.Empty<SimCardCatalogId>(), Deck: System.Array.Empty<SimCardCatalogId>(), DiscardPile: System.Array.Empty<SimCardCatalogId>(),
                 CastingCatalogId: "water_wisp")
         };
         var units = new[]
@@ -680,7 +689,7 @@ public class MessageSerializerTest
         AssertThat(result.Units[0].Position.X).IsEqual(4.5f);
         AssertThat(result.Units[0].Position.Y).IsEqual(0f);
         AssertThat(result.Units[0].Position.Z).IsEqual(8.25f);
-        AssertThat(result.Summoners[0].CastingCatalogId).IsEqual("water_wisp");
+        AssertThat(result.Summoners[0].CastingCatalogId.Value).IsEqual("water_wisp");
         AssertThat(result.Projectiles.Length).IsEqual(0);
     }
 }

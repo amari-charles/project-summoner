@@ -79,7 +79,7 @@ public static class SimAi
     }
 
     public delegate int SelectCardFunc(MatchState state, SummonerData summoner);
-    public delegate SimVector3 SelectPositionFunc(MatchState state, SummonerData summoner, string catalogId);
+    public delegate SimVector3 SelectPositionFunc(MatchState state, SummonerData summoner, SimCardCatalogId catalogId);
 
     /// <summary>
     /// Initialize AI timer for a summoner (called once at config time).

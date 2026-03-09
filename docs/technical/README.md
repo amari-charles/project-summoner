@@ -31,6 +31,8 @@ This folder is for implementation references.
 - [runtime/targeting-system.md](runtime/targeting-system.md)
 - [runtime/ability-system.md](runtime/ability-system.md)
 - [runtime/trait-system-architecture.md](runtime/trait-system-architecture.md)
+- [runtime/unified-trait-system-plan.md](runtime/unified-trait-system-plan.md)
+- [runtime/unified-trait-system-validation-cases.md](runtime/unified-trait-system-validation-cases.md)
 - [runtime/unit-collision-separation.md](runtime/unit-collision-separation.md)
 - [runtime/unit-stat-pipeline.md](runtime/unit-stat-pipeline.md)
 - [runtime/battle-enemy-spawning.md](runtime/battle-enemy-spawning.md)

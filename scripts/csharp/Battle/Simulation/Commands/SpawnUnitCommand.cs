@@ -23,7 +23,7 @@ namespace Fateforged.Simulation.Commands;
 public class SpawnUnitCommand : ICommand
 {
     /// <summary>Card catalog ID to look up unit templates from.</summary>
-    public string CatalogId { get; }
+    public SimCardCatalogId CatalogId { get; }
 
     /// <summary>Team index (0 = player, 1 = enemy).</summary>
     public int Team { get; }
@@ -44,7 +44,7 @@ public class SpawnUnitCommand : ICommand
 
     public long ExecuteFrame { get; set; }
 
-    public SpawnUnitCommand(string catalogId, int team, SimVector3 spawnPosition)
+    public SpawnUnitCommand(SimCardCatalogId catalogId, int team, SimVector3 spawnPosition)
     {
         CatalogId = catalogId;
         Team = team;

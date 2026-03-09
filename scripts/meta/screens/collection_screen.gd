@@ -920,13 +920,11 @@ func _on_level_up_from_modal(instance_id: String) -> void:
 	if panel.has_signal("level_up_completed"):
 		panel.level_up_completed.connect(_on_level_up_completed)
 
-	if panel.has_signal("cancelled"):
-		panel.cancelled.connect(_on_modal_closed.bind(panel))
-
 
 func _on_level_up_completed(_card_instance_id: String) -> void:
 	_refresh_collection()
 	_refresh_deck_list()
+	_refresh_deck_panel()
 
 
 func _on_deck_action_from_modal(instance_id: String, action: String) -> void:

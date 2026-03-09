@@ -55,8 +55,8 @@ public class NetworkSessionWiringTest
             PrepTimeRemaining: 0f,
             Summoners:
             [
-                new SummonerState(0, 95f, 100f, 8f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<string>(), System.Array.Empty<string>(), System.Array.Empty<string>()),
-                new SummonerState(1, 90f, 100f, 7f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<string>(), System.Array.Empty<string>(), System.Array.Empty<string>(), "fire_wisp")
+                new SummonerState(0, 95f, 100f, 8f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>()),
+                new SummonerState(1, 90f, 100f, 7f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>(), "fire_wisp")
             ],
             Units:
             [
@@ -74,7 +74,7 @@ public class NetworkSessionWiringTest
         AssertThat(state.FrameNumber).IsEqual(42);
         AssertThat(state.Units.ContainsKey(10)).IsTrue();
         AssertThat(state.Units[10].Position.X).IsEqual(-5f);
-        AssertThat(state.Summoners[1].CastingCatalogId).IsEqual("fire_wisp");
+        AssertThat(state.Summoners[1].CastingCatalogId.Value).IsEqual("fire_wisp");
         AssertThat(state.Projectiles.Count).IsEqual(0);
     }
 
@@ -115,7 +115,7 @@ public class NetworkSessionWiringTest
         session.Tick(0.016f);
 
         AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
-        AssertThat(state.Projectiles[99].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(state.Projectiles[99].ProjectileCatalogId.Value).IsEqual("weaving_bolt");
         AssertThat(state.Projectiles[99].Acceleration).IsEqual(5f);
         AssertThat(state.Projectiles[99].HitRadius).IsEqual(0.9f);
         AssertThat(state.Projectiles[99].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
@@ -160,7 +160,7 @@ public class NetworkSessionWiringTest
 
         AssertThat(state.Projectiles.ContainsKey(1)).IsFalse();
         AssertThat(state.Projectiles.ContainsKey(99)).IsTrue();
-        AssertThat(state.Projectiles[99].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(state.Projectiles[99].ProjectileCatalogId.Value).IsEqual("weaving_bolt");
         AssertThat(state.Projectiles[99].HitRadius).IsEqual(1.1f);
         AssertThat(state.Projectiles[99].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
     }
@@ -226,7 +226,7 @@ public class NetworkSessionWiringTest
         session.Tick(0.016f);
 
         AssertThat(seenEvent != null).IsTrue();
-        AssertThat(seenEvent?.CatalogId ?? "").IsEqual("fireball");
+        AssertThat(seenEvent?.CatalogId.Value ?? "").IsEqual("fireball");
         AssertThat(seenEvent?.Position.X ?? 0f).IsEqual(3f);
         AssertThat(seenEvent?.Position.Z ?? 0f).IsEqual(-1f);
     }
@@ -361,7 +361,7 @@ public class NetworkSessionWiringTest
         var seed = (ProjectileSeedSnapshot)serializer.Deserialize(msg);
         AssertThat(seed.Projectiles.Length).IsEqual(1);
         AssertThat(seed.Projectiles[0].ProjectileId).IsEqual(99);
-        AssertThat(seed.Projectiles[0].ProjectileCatalogId).IsEqual("weaving_bolt");
+        AssertThat(seed.Projectiles[0].ProjectileCatalogId.Value).IsEqual("weaving_bolt");
         AssertThat(seed.Projectiles[0].HitRadius).IsEqual(1.3f);
         AssertThat(seed.Projectiles[0].HitSpace).IsEqual(ProjectileHitSpace.Sphere3D);
     }

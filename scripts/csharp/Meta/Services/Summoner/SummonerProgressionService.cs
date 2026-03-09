@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
@@ -191,8 +192,8 @@ public partial class SummonerProgressionService : Node
 		if (summoner.Level >= MaxLevel)
 			return 0;
 
-		var nextLevelXp = GetXpForLevel(summoner.Level + 1);
-		return Math.Max(0, nextLevelXp - summoner.Xp);
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		return Math.Max(0, xpCost - summoner.Xp);
 	}
 
 	/// <summary>Get progress towards next level (string overload for GDScript boundary).</summary>
@@ -210,15 +211,11 @@ public partial class SummonerProgressionService : Node
 		if (summoner.Level >= MaxLevel)
 			return 1f;
 
-		var currentLevelXp = GetXpForLevel(summoner.Level);
-		var nextLevelXp = GetXpForLevel(summoner.Level + 1);
-		var levelRange = nextLevelXp - currentLevelXp;
-
-		if (levelRange <= 0)
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		if (xpCost <= 0)
 			return 1f;
 
-		var progressInLevel = summoner.Xp - currentLevelXp;
-		return Math.Clamp((float)progressInLevel / levelRange, 0f, 1f);
+		return Math.Clamp((float)summoner.Xp / xpCost, 0f, 1f);
 	}
 
 	// =========================================================================
@@ -240,8 +237,8 @@ public partial class SummonerProgressionService : Node
 		if (summoner.Level >= MaxLevel)
 			return false;
 
-		var nextLevelXp = GetXpForLevel(summoner.Level + 1);
-		return summoner.Xp >= nextLevelXp;
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		return xpCost > 0 && summoner.Xp >= xpCost;
 	}
 
 	/// <summary>Level up a summoner (string overload for GDScript boundary).</summary>
@@ -278,8 +275,17 @@ public partial class SummonerProgressionService : Node
 			return false;
 		}
 
-		// Apply level up and save (XP-only, no gold cost)
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		if (xpCost <= 0 || summoner.Xp < xpCost)
+		{
+			GD.PushWarning("SummonerProgressionService: Invalid XP cost for level up");
+			return false;
+		}
+
+		// Apply level up and consume required XP.
+		summoner.Xp -= xpCost;
 		summoner.Level = newLevel;
+		summoner.UnspentTraitPoints += 1;
 		var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
 
 		if (!saveSuccess)
@@ -316,12 +322,13 @@ public partial class SummonerProgressionService : Node
 			["level"] = summoner.Level,
 			["max_level"] = MaxLevel,
 			["xp"] = summoner.Xp,
-			["xp_for_current_level"] = GetXpForLevel(summoner.Level),
-			["xp_for_next_level"] = summoner.Level < MaxLevel ? GetXpForLevel(summoner.Level + 1) : 0,
+			["xp_for_current_level"] = 0,
+			["xp_for_next_level"] = summoner.Level < MaxLevel ? GetXpCostForNextLevel(summoner.Level) : 0,
 			["xp_to_next_level"] = GetXpToNextLevel(summonerId),
 			["xp_progress"] = GetLevelProgress(summonerId),
 			["can_level_up"] = CanLevelUp(summonerId),
-			["is_max_level"] = summoner.Level >= MaxLevel
+			["is_max_level"] = summoner.Level >= MaxLevel,
+			["unspent_trait_points"] = summoner.UnspentTraitPoints
 		};
 	}
 
@@ -352,86 +359,157 @@ public partial class SummonerProgressionService : Node
 	}
 
 	// =========================================================================
-	// TRAIT SELECTION (for level-up)
+	// UNIFIED TRAIT POINT LEDGER (Pass 2 stubs)
 	// =========================================================================
 
-	/// <summary>Get traits available for a summoner to select at level-up (string overload for GDScript).</summary>
-	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
-		string summonerId, int count = 3) =>
-		GetAvailableTraitsForSummoner(SummonerId.FromString(summonerId), count);
+	public int GetUnspentTraitPoints(string summonerId) =>
+		GetUnspentTraitPoints(SummonerId.FromString(summonerId));
 
-	/// <summary>Get traits available for a summoner to select at level-up (typed).</summary>
-	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
-		SummonerId summonerId, int count = 3)
+	public int GetUnspentTraitPoints(SummonerId summonerId)
 	{
-		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+		if (_profileRepo == null) return 0;
+		return _profileRepo.GetSummonerInstance(summonerId)?.UnspentTraitPoints ?? 0;
+	}
 
-		if (_profileRepo == null) return result;
+	public int GrantTraitPoints(string summonerId, int amount, string source = "") =>
+		GrantTraitPoints(SummonerId.FromString(summonerId), amount, source);
+
+	public int GrantTraitPoints(SummonerId summonerId, int amount, string source = "")
+	{
+		if (_profileRepo == null || amount <= 0) return 0;
 
 		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null) return result;
+		if (summoner == null) return 0;
 
-		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
-		if (summonerDef == null) return result;
+		summoner.UnspentTraitPoints += amount;
+		if (!_profileRepo.SaveSummonerInstance(summoner))
+			return 0;
 
-		var traits = TraitCatalog.GetAvailableTraitsForLevelUp(
-			summonerDef,
-			summoner.Level,
-			summoner.AcquiredTraitIds,
-			count
-		);
+		if (!string.IsNullOrEmpty(source))
+			GD.Print($"SummonerProgressionService: Granted {amount} trait points to '{summonerId}' from source='{source}'");
 
-		foreach (var trait in traits)
+		return summoner.UnspentTraitPoints;
+	}
+
+	public Godot.Collections.Array<Godot.Collections.Dictionary> RollTraitOffers(string summonerId, int count = 3)
+	{
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+		if (_profileRepo == null || count <= 0)
+			return result;
+
+		var typedSummonerId = SummonerId.FromString(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(typedSummonerId);
+		if (summoner == null)
+			return result;
+
+		var summonerDef = SummonerCatalog.GetSummoner(typedSummonerId);
+		if (summonerDef == null)
+			return result;
+
+		var evaluationLevel = summoner.Level;
+		if (summoner.UnspentTraitPoints <= 0 && CanLevelUp(typedSummonerId))
+			evaluationLevel = Math.Min(MaxLevel, summoner.Level + 1);
+
+		var ownedTraitSet = new HashSet<string>(summoner.GetAllTraitIds());
+		var summonerTagSet = new HashSet<string>(summonerDef.TraitEligibilityTags);
+		var eligible = new List<TraitDefinition>();
+		foreach (var trait in TraitCatalog.GetAllTraits())
 		{
-			result.Add(TraitCatalog.ToDictionary(trait));
+			if (trait.IsInnate)
+				continue;
+			if (ownedTraitSet.Contains(trait.Id))
+				continue;
+			if (!trait.Tags.Contains(TraitTags.Summoner))
+				continue;
+
+			var hasAnyEligibilityTag = trait.Tags.Length == 0 || trait.Tags.Any(tag => summonerTagSet.Contains(tag));
+			var hasAllRequiredTags = trait.RequiredTags.All(tag => summonerTagSet.Contains(tag));
+			if (!hasAnyEligibilityTag || !hasAllRequiredTags)
+				continue;
+
+			if (evaluationLevel < trait.MinLevel)
+				continue;
+			if (trait.MaxLevel > 0 && evaluationLevel > trait.MaxLevel)
+				continue;
+			if (trait.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
+				continue;
+
+			eligible.Add(trait);
+		}
+
+		var ordered = eligible
+			.OrderBy(trait => ComputeStableOfferOrder($"{typedSummonerId.Value}|{evaluationLevel}", trait.Id.Value))
+			.ThenBy(trait => trait.Id.Value, StringComparer.Ordinal)
+			.Take(count);
+
+		foreach (var trait in ordered)
+		{
+			result.Add(new Godot.Collections.Dictionary
+			{
+				["trait_id"] = (string)trait.Id,
+				["display_name"] = ResolveLoc(trait.NameKey),
+				["description"] = ResolveLoc(trait.DescriptionKey),
+				["weight"] = 1
+			});
 		}
 
 		return result;
 	}
 
-	/// <summary>Acquire a trait for a summoner (string overload for GDScript boundary).</summary>
-	public bool AcquireTrait(string summonerId, string traitIdString) =>
-		AcquireTrait(SummonerId.FromString(summonerId), TraitId.FromString(traitIdString));
+	public bool SpendTraitPoint(string summonerId, string traitId) =>
+		SpendTraitPoint(SummonerId.FromString(summonerId), traitId);
 
-	/// <summary>Acquire a trait for a summoner (typed).</summary>
-	public bool AcquireTrait(SummonerId summonerId, TraitId traitId)
+	public bool SpendTraitPoint(SummonerId summonerId, string traitId)
 	{
 		if (_profileRepo == null) return false;
+		if (string.IsNullOrWhiteSpace(traitId)) return false;
+		var trimmedTraitId = traitId.Trim();
 
 		var summoner = _profileRepo.GetSummonerInstance(summonerId);
-		if (summoner == null)
-		{
-			GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
+		if (summoner == null) return false;
+		if (summoner.UnspentTraitPoints <= 0) return false;
+
+		var typedTraitId = TraitId.FromString(trimmedTraitId);
+		if (typedTraitId == TraitId.None)
 			return false;
-		}
 
-		// Check if already acquired
-		if (summoner.AcquiredTraitIds.Contains(traitId))
-		{
-			GD.PushWarning($"SummonerProgressionService: Trait already acquired: {traitId}");
+		if (summoner.AcquiredTraitIds.Contains(typedTraitId))
 			return false;
-		}
 
-		// Verify trait exists
-		var trait = TraitCatalog.GetTrait(traitId.Value);
-		if (trait == null)
-		{
-			GD.PushWarning($"SummonerProgressionService: Trait not found: {traitId}");
+		var traitDef = TraitCatalog.GetTrait(typedTraitId);
+		if (traitDef == null || traitDef.IsInnate)
 			return false;
-		}
-
-		// Add trait and save
-		summoner.AcquiredTraitIds.Add(traitId);
-		var success = _profileRepo.SaveSummonerInstance(summoner);
-
-		if (!success)
-		{
-			GD.PushError("SummonerProgressionService: Failed to save summoner instance");
-			summoner.AcquiredTraitIds.Remove(traitId); // Rollback
+		if (!traitDef.Tags.Contains(TraitTags.Summoner))
 			return false;
-		}
 
-		return true;
+		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
+		if (summonerDef == null)
+			return false;
+
+		var summonerTagSet = new HashSet<string>(summonerDef.TraitEligibilityTags);
+		var hasAnyEligibilityTag = traitDef.Tags.Length == 0 || traitDef.Tags.Any(tag => summonerTagSet.Contains(tag));
+		var hasAllRequiredTags = traitDef.RequiredTags.All(tag => summonerTagSet.Contains(tag));
+		if (!hasAnyEligibilityTag || !hasAllRequiredTags)
+			return false;
+
+		if (summoner.Level < traitDef.MinLevel)
+			return false;
+		if (traitDef.MaxLevel > 0 && summoner.Level > traitDef.MaxLevel)
+			return false;
+
+		var ownedTraitSet = new HashSet<string>(summoner.GetAllTraitIds());
+		if (traitDef.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
+			return false;
+
+		summoner.UnspentTraitPoints -= 1;
+		summoner.AcquiredTraitIds.Add(typedTraitId);
+		if (_profileRepo.SaveSummonerInstance(summoner))
+			return true;
+
+		// Rollback on save failure.
+		summoner.AcquiredTraitIds.Remove(typedTraitId);
+		summoner.UnspentTraitPoints += 1;
+		return false;
 	}
 
 	/// <summary>Get all traits a summoner has acquired (string overload for GDScript).</summary>
@@ -496,5 +574,46 @@ public partial class SummonerProgressionService : Node
 	private string GetActiveSummonerId()
 	{
 		return _getActiveSummonerFunc?.Invoke() ?? "";
+	}
+
+	private string ResolveLoc(string key)
+	{
+		if (string.IsNullOrWhiteSpace(key))
+			return "";
+
+		var loc = GetNodeOrNull<Node>("/root/Loc");
+		if (loc != null && loc.HasMethod("t"))
+			return loc.Call("t", key).AsString();
+
+		return key;
+	}
+
+	private static int ComputeStableOfferOrder(string context, string traitId)
+	{
+		return DeterministicStringHash($"{context}|{traitId}");
+	}
+
+	private static int GetXpCostForNextLevel(int currentLevel)
+	{
+		if (currentLevel >= MaxLevel)
+			return 0;
+
+		var currentLevelThreshold = GetXpForLevel(currentLevel);
+		var nextLevelThreshold = GetXpForLevel(currentLevel + 1);
+		return Math.Max(0, nextLevelThreshold - currentLevelThreshold);
+	}
+
+	private static int DeterministicStringHash(string value)
+	{
+		unchecked
+		{
+			var hash = (int)2166136261;
+			foreach (var c in value)
+			{
+				hash ^= c;
+				hash *= 16777619;
+			}
+			return hash;
+		}
 	}
 }

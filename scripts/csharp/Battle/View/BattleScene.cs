@@ -628,10 +628,13 @@ public partial class BattleScene : Node3D
 		// Register with simulation
 		var deckIds = ExtractCatalogIds(result.Deck);
 		var handIds = ExtractCatalogIds(result.Hand);
+		var deckRefs = ExtractCardRefs(result.Deck);
+		var handRefs = ExtractCardRefs(result.Hand);
 		simNode.RegisterSummoner(localTeam, result.Hp, result.MaxHp,
 			result.Mana, result.MaxMana, result.CastSpeed,
 			deckIds, sv.MaxHandSize, sv.GlobalPosition);
 		simNode.SetSummonerHand(localTeam, handIds);
+		simNode.SetSummonerCardRefs(localTeam, deckRefs, handRefs);
 	}
 
 	private void ApplyEnemyStats(SummonerVisual? sv)
@@ -660,6 +663,27 @@ public partial class BattleScene : Node3D
 				ids[i] = "";
 		}
 		return ids;
+	}
+
+	private static SimCardRuntimeRef[] ExtractCardRefs(Godot.Collections.Array<Resource> cards)
+	{
+		var refs = new SimCardRuntimeRef[cards.Count];
+		for (int i = 0; i < cards.Count; i++)
+		{
+			var card = cards[i] as GodotObject;
+			if (card == null)
+			{
+				refs[i] = new SimCardRuntimeRef();
+				continue;
+			}
+
+			refs[i] = new SimCardRuntimeRef
+			{
+				CatalogId = card.Get("CatalogId").AsString(),
+				InstanceId = card.Get("InstanceId").AsString()
+			};
+		}
+		return refs;
 	}
 
 	private Godot.Collections.Array<Resource> CreateEmergencyDeck()

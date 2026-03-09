@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Data.Projectiles;
+using Fateforged.Projectiles;
 using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Combat;
-using Fateforged.Simulation.Movement;
-using Fateforged.Units;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using Fateforged.Stats;
 using Fateforged.Simulation.Events;
+using Fateforged.Simulation.Movement;
 using Fateforged.Simulation.Subsystems;
-using Fateforged.Data.Projectiles;
-using Fateforged.Projectiles;
+using Fateforged.Stats;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation;
 
@@ -132,7 +132,8 @@ public class Simulation
     /// </summary>
     private void DrainCommands(List<SimEvent> events)
     {
-        if (_state.PendingCommandBuffer.Count == 0) return;
+        if (_state.PendingCommandBuffer.Count == 0)
+            return;
 
         // Partition: due commands vs future commands
         var dueCommands = new List<ICommand>();
@@ -149,25 +150,36 @@ public class Simulation
         _state.PendingCommandBuffer.Clear();
         _state.PendingCommandBuffer.AddRange(futureCommands);
 
-        if (dueCommands.Count == 0) return;
+        if (dueCommands.Count == 0)
+            return;
 
         // Sort due commands by (ExecuteFrame, Team, Sequence)
-        dueCommands.Sort((a, b) =>
-        {
-            int cmp = a.ExecuteFrame.CompareTo(b.ExecuteFrame);
-            if (cmp != 0) return cmp;
+        dueCommands.Sort(
+            (a, b) =>
+            {
+                int cmp = a.ExecuteFrame.CompareTo(b.ExecuteFrame);
+                if (cmp != 0)
+                    return cmp;
 
-            // Extract team for ordering
-            int teamA = a is PlayCardCommand pcA ? pcA.Team : a is SpawnUnitCommand suA ? suA.Team : (a is ForfeitCommand fcA ? fcA.Team : 0);
-            int teamB = b is PlayCardCommand pcB ? pcB.Team : b is SpawnUnitCommand suB ? suB.Team : (b is ForfeitCommand fcB ? fcB.Team : 0);
-            cmp = teamA.CompareTo(teamB);
-            if (cmp != 0) return cmp;
+                // Extract team for ordering
+                int teamA =
+                    a is PlayCardCommand pcA ? pcA.Team
+                    : a is SpawnUnitCommand suA ? suA.Team
+                    : (a is ForfeitCommand fcA ? fcA.Team : 0);
+                int teamB =
+                    b is PlayCardCommand pcB ? pcB.Team
+                    : b is SpawnUnitCommand suB ? suB.Team
+                    : (b is ForfeitCommand fcB ? fcB.Team : 0);
+                cmp = teamA.CompareTo(teamB);
+                if (cmp != 0)
+                    return cmp;
 
-            // Extract sequence for ordering
-            int seqA = a is PlayCardCommand pcA2 ? pcA2.Sequence : 0;
-            int seqB = b is PlayCardCommand pcB2 ? pcB2.Sequence : 0;
-            return seqA.CompareTo(seqB);
-        });
+                // Extract sequence for ordering
+                int seqA = a is PlayCardCommand pcA2 ? pcA2.Sequence : 0;
+                int seqB = b is PlayCardCommand pcB2 ? pcB2.Sequence : 0;
+                return seqA.CompareTo(seqB);
+            }
+        );
 
         // Execute each due command
         foreach (var cmd in dueCommands)
@@ -217,14 +229,18 @@ public class Simulation
         // Validate: summoner alive and not already casting
         if (!summoner.IsAlive || summoner.IsCasting)
         {
-            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} alive={summoner.IsAlive} casting={summoner.IsCasting}");
+            Log?.Invoke(
+                $"[Simulation] PlayCard rejected: team={cmd.Team} alive={summoner.IsAlive} casting={summoner.IsCasting}"
+            );
             return;
         }
 
         // Validate: card index in bounds
         if (cmd.CardIndex < 0 || cmd.CardIndex >= summoner.Hand.Count)
         {
-            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} cardIndex={cmd.CardIndex} out of bounds (hand size={summoner.Hand.Count})");
+            Log?.Invoke(
+                $"[Simulation] PlayCard rejected: team={cmd.Team} cardIndex={cmd.CardIndex} out of bounds (hand size={summoner.Hand.Count})"
+            );
             return;
         }
 
@@ -232,21 +248,27 @@ public class Simulation
         var catalogId = summoner.Hand[cmd.CardIndex];
         if (!_state.CardDataMap.TryGetValue(catalogId, out var cardData))
         {
-            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} catalogId={catalogId} not found in CardDataMap");
+            Log?.Invoke(
+                $"[Simulation] PlayCard rejected: team={cmd.Team} catalogId={catalogId} not found in CardDataMap"
+            );
             return;
         }
 
         // Validate: spells only during Battle phase
         if (cardData.IsSpell && _state.Phase != GamePhase.Battle)
         {
-            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} spell={catalogId} not allowed during {_state.Phase}");
+            Log?.Invoke(
+                $"[Simulation] PlayCard rejected: team={cmd.Team} spell={catalogId} not allowed during {_state.Phase}"
+            );
             return;
         }
 
         // Validate: enough mana
         if (summoner.Mana < cardData.ManaCost)
         {
-            Log?.Invoke($"[Simulation] PlayCard rejected: team={cmd.Team} mana={summoner.Mana} < cost={cardData.ManaCost} for {catalogId}");
+            Log?.Invoke(
+                $"[Simulation] PlayCard rejected: team={cmd.Team} mana={summoner.Mana} < cost={cardData.ManaCost} for {catalogId}"
+            );
             return;
         }
 
@@ -255,9 +277,10 @@ public class Simulation
         events.Add(new SummonerManaChangedEvent(cmd.Team, summoner.Mana, summoner.MaxMana));
 
         // Calculate effective summon time (apply cast speed)
-        float effectiveSummonTime = summoner.CastSpeed > 0
-            ? cardData.SummonTime / summoner.CastSpeed
-            : cardData.SummonTime;
+        float effectiveSummonTime =
+            summoner.CastSpeed > 0 ? cardData.SummonTime / summoner.CastSpeed : cardData.SummonTime;
+
+        var playedRuntimeRef = GetHandCardRef(summoner, cmd.CardIndex, catalogId);
 
         // Start casting (locks player from playing another card)
         summoner.IsCasting = true;
@@ -265,11 +288,19 @@ public class Simulation
         summoner.CastingTimeTotal = effectiveSummonTime;
         summoner.CastingCardIndex = cmd.CardIndex;
         summoner.CastingCatalogId = catalogId;
+        summoner.CastingCardInstanceId = playedRuntimeRef.InstanceId;
         summoner.CastingSpawnPosition = cmd.SpawnPosition;
         summoner.CastingNetworkId = cmd.NetworkId;
 
-        events.Add(new CastingStartedEvent(
-            cmd.Team, cmd.CardIndex, effectiveSummonTime, cmd.SpawnPosition, catalogId));
+        events.Add(
+            new CastingStartedEvent(
+                cmd.Team,
+                cmd.CardIndex,
+                effectiveSummonTime,
+                cmd.SpawnPosition,
+                catalogId
+            )
+        );
 
         // Execute card effect
         if (cardData.IsSpell)
@@ -278,13 +309,24 @@ public class Simulation
         }
         else
         {
-            SpawnUnitsFromCard(cardData, cmd.Team, cmd.SpawnPosition, effectiveSummonTime, events);
+            SpawnUnitsFromCard(
+                cardData,
+                cmd.Team,
+                cmd.SpawnPosition,
+                effectiveSummonTime,
+                events,
+                statOverrides: null,
+                castingCardInstanceId: summoner.CastingCardInstanceId
+            );
         }
 
         // Hand management: remove played card, discard, draw replacement
         var playedCatalogId = summoner.Hand[cmd.CardIndex];
         summoner.Hand.RemoveAt(cmd.CardIndex);
+        if (cmd.CardIndex >= 0 && cmd.CardIndex < summoner.HandRefs.Count)
+            summoner.HandRefs.RemoveAt(cmd.CardIndex);
         summoner.DiscardPile.Add(playedCatalogId);
+        summoner.DiscardRefs.Add(playedRuntimeRef);
         DrawReplacementCard(summoner, cmd.CardIndex, events);
 
         // If hand and deck are both empty, recycle discard pile
@@ -295,13 +337,11 @@ public class Simulation
 
             for (int j = 0; j < summoner.MaxHandSize && summoner.Deck.Count > 0; j++)
             {
-                var card = summoner.Deck[0];
-                summoner.Deck.RemoveAt(0);
-                summoner.Hand.Add(card);
+                DrawTopDeckCardIntoHand(summoner, summoner.Hand.Count, events: null);
             }
         }
 
-        events.Add(new HandChangedEvent((int)summoner.Team, summoner.Hand.ToArray()));
+        events.Add(new HandChangedEvent((int)summoner.Team, ToCatalogIdStrings(summoner.Hand)));
     }
 
     /// <summary>
@@ -312,7 +352,9 @@ public class Simulation
     {
         if (!_state.CardDataMap.TryGetValue(cmd.CatalogId, out var cardData))
         {
-            Log?.Invoke($"[Simulation] SpawnUnit rejected: catalogId={cmd.CatalogId} not found in CardDataMap");
+            Log?.Invoke(
+                $"[Simulation] SpawnUnit rejected: catalogId={cmd.CatalogId} not found in CardDataMap"
+            );
             return;
         }
 
@@ -323,7 +365,14 @@ public class Simulation
         }
 
         float spawnTimer = cmd.ActivateImmediately ? 0f : cardData.SummonTime;
-        SpawnUnitsFromCard(cardData, cmd.Team, cmd.SpawnPosition, spawnTimer, events, cmd.StatOverrides);
+        SpawnUnitsFromCard(
+            cardData,
+            cmd.Team,
+            cmd.SpawnPosition,
+            spawnTimer,
+            events,
+            cmd.StatOverrides
+        );
     }
 
     /// <summary>
@@ -375,8 +424,18 @@ public class Simulation
             var summoner = _state.Summoners[i];
 
             // Discard current hand
-            summoner.DiscardPile.AddRange(summoner.Hand);
+            for (int cardIndex = 0; cardIndex < summoner.Hand.Count; cardIndex++)
+            {
+                var catalogId = summoner.Hand[cardIndex];
+                var cardRef =
+                    cardIndex < summoner.HandRefs.Count
+                        ? summoner.HandRefs[cardIndex]
+                        : BuildRuntimeRef(catalogId);
+                summoner.DiscardPile.Add(catalogId);
+                summoner.DiscardRefs.Add(cardRef);
+            }
             summoner.Hand.Clear();
+            summoner.HandRefs.Clear();
 
             // Draw new hand
             for (int j = 0; j < summoner.MaxHandSize; j++)
@@ -389,14 +448,10 @@ public class Simulation
                 }
 
                 if (summoner.Deck.Count > 0)
-                {
-                    var card = summoner.Deck[0];
-                    summoner.Deck.RemoveAt(0);
-                    summoner.Hand.Add(card);
-                }
+                    DrawTopDeckCardIntoHand(summoner, summoner.Hand.Count, events: null);
             }
 
-            events.Add(new HandChangedEvent((int)summoner.Team, summoner.Hand.ToArray()));
+            events.Add(new HandChangedEvent((int)summoner.Team, ToCatalogIdStrings(summoner.Hand)));
         }
     }
 
@@ -406,7 +461,20 @@ public class Simulation
     private void RecycleDeck(SummonerData summoner)
     {
         summoner.Deck.AddRange(summoner.DiscardPile);
+        foreach (var cardRef in summoner.DiscardRefs)
+            summoner.DeckRefs.Add(cardRef);
+
+        // If refs were not tracked for discarded cards yet, synthesize refs from catalog IDs.
+        if (summoner.DeckRefs.Count > summoner.Deck.Count)
+            summoner.DeckRefs.RemoveRange(
+                summoner.Deck.Count,
+                summoner.DeckRefs.Count - summoner.Deck.Count
+            );
+        for (int i = summoner.DeckRefs.Count; i < summoner.Deck.Count; i++)
+            summoner.DeckRefs.Add(BuildRuntimeRef(summoner.Deck[i]));
+
         summoner.DiscardPile.Clear();
+        summoner.DiscardRefs.Clear();
 
         // Fisher-Yates shuffle with deterministic RNG
         if (_state.Rng != null)
@@ -415,6 +483,10 @@ public class Simulation
             {
                 int j = _state.Rng.Range(0, i);
                 (summoner.Deck[i], summoner.Deck[j]) = (summoner.Deck[j], summoner.Deck[i]);
+                (summoner.DeckRefs[i], summoner.DeckRefs[j]) = (
+                    summoner.DeckRefs[j],
+                    summoner.DeckRefs[i]
+                );
             }
         }
     }
@@ -455,7 +527,8 @@ public class Simulation
         for (int i = 0; i < _state.Summoners.Length; i++)
         {
             var summoner = _state.Summoners[i];
-            if (!summoner.IsCasting) continue;
+            if (!summoner.IsCasting)
+                continue;
 
             summoner.CastingTimeRemaining -= fixedDelta;
 
@@ -477,14 +550,16 @@ public class Simulation
         var cardIndex = summoner.CastingCardIndex;
         var networkId = summoner.CastingNetworkId;
 
-        events.Add(new CastingCompletedEvent(
-            (int)summoner.Team, cardIndex, spawnPosition, networkId));
+        events.Add(
+            new CastingCompletedEvent((int)summoner.Team, cardIndex, spawnPosition, networkId)
+        );
 
         // Clear casting state
         summoner.IsCasting = false;
         summoner.CastingTimeRemaining = 0f;
         summoner.CastingCardIndex = -1;
-        summoner.CastingCatalogId = "";
+        summoner.CastingCatalogId = SimCardCatalogId.Empty;
+        summoner.CastingCardInstanceId = SimCardInstanceId.Empty;
         summoner.CastingSpawnPosition = SimVector3.Zero;
         summoner.CastingNetworkId = -1;
     }
@@ -497,8 +572,10 @@ public class Simulation
     {
         foreach (var unit in _state.Units.Values)
         {
-            if (!unit.IsAlive) continue;
-            if (unit.ActivationState == ActivationState.Active) continue;
+            if (!unit.IsAlive)
+                continue;
+            if (unit.ActivationState == ActivationState.Active)
+                continue;
 
             // Defensive: units with no remaining spawn timer should become active immediately.
             if (unit.SpawnTimer <= 0f)
@@ -522,8 +599,17 @@ public class Simulation
     /// Units are spread around the spawn position.
     /// Optional statOverrides are applied after template defaults (used by SpawnUnitCommand).
     /// </summary>
-    private void SpawnUnitsFromCard(SimCardData cardData, int team, SimVector3 spawnPosition, float spawnTimer, List<SimEvent> events, Dictionary<StatKey, float>? statOverrides = null)
+    private void SpawnUnitsFromCard(
+        SimCardData cardData,
+        int team,
+        SimVector3 spawnPosition,
+        float spawnTimer,
+        List<SimEvent> events,
+        Dictionary<StatKey, float>? statOverrides = null,
+        SimCardInstanceId castingCardInstanceId = default
+    )
     {
+        var spawningCardRef = BuildRuntimeRef(cardData.CatalogId, castingCardInstanceId);
         int unitIndex = 0;
         int totalUnits = 0;
         int firstNetworkId = -1;
@@ -536,8 +622,14 @@ public class Simulation
             {
                 var unitId = _state.NextUnitId();
                 var networkId = _state.NextNetworkId();
-                if (firstNetworkId < 0) firstNetworkId = networkId;
-                var position = CalculateSpawnOffset(spawnPosition, unitIndex, totalUnits, template.SeparationRadius);
+                if (firstNetworkId < 0)
+                    firstNetworkId = networkId;
+                var position = CalculateSpawnOffset(
+                    spawnPosition,
+                    unitIndex,
+                    totalUnits,
+                    template.SeparationRadius
+                );
 
                 var unitData = new UnitData
                 {
@@ -577,18 +669,27 @@ public class Simulation
                     Evasion = template.Evasion,
                     IsFacingRight = UnitData.DefaultFacingForTeam((Team)team),
                     // Spawn inactive when there is a reveal/cast delay; otherwise active immediately.
-                    ActivationState = spawnTimer > 0f ? ActivationState.Inactive : ActivationState.Active,
-                    SpawnTimer = spawnTimer
+                    ActivationState =
+                        spawnTimer > 0f ? ActivationState.Inactive : ActivationState.Active,
+                    SpawnTimer = spawnTimer,
                 };
 
                 // Apply stat overrides (SpawnUnitCommand path)
                 if (statOverrides != null)
                     ApplyStatOverrides(unitData, statOverrides);
 
+                ApplyUnifiedTraitSpawnEffects(unitData, team, spawningCardRef);
                 _state.Units[unitId] = unitData;
 
-                events.Add(new UnitRegisteredEvent(
-                    unitId, unitData.NetworkId, cardData.CatalogId, team, position));
+                events.Add(
+                    new UnitRegisteredEvent(
+                        unitId,
+                        unitData.NetworkId,
+                        cardData.CatalogId,
+                        team,
+                        position
+                    )
+                );
 
                 unitIndex++;
             }
@@ -603,9 +704,15 @@ public class Simulation
     /// Calculate spawn offset for a unit in a group.
     /// Simple line formation spread along Z axis, centered on spawn position.
     /// </summary>
-    private static SimVector3 CalculateSpawnOffset(SimVector3 center, int index, int total, float spacing)
+    private static SimVector3 CalculateSpawnOffset(
+        SimVector3 center,
+        int index,
+        int total,
+        float spacing
+    )
     {
-        if (total <= 1) return center;
+        if (total <= 1)
+            return center;
 
         float totalWidth = (total - 1) * spacing * 2f;
         float startZ = center.Z - totalWidth / 2f;
@@ -646,7 +753,12 @@ public class Simulation
     /// Execute spell effects: resolve targets, apply each effect via SimEffects.
     /// </summary>
     private void ExecuteSpellEffects(
-        SimCardData cardData, int team, SimVector3 position, int? targetUnitId, List<SimEvent> events)
+        SimCardData cardData,
+        int team,
+        SimVector3 position,
+        int? targetUnitId,
+        List<SimEvent> events
+    )
     {
         int summonerSourceId = MatchState.GetSummonerTargetId(team);
         events.Add(new SpellCastEvent(team, cardData.CatalogId, position));
@@ -660,8 +772,16 @@ public class Simulation
             foreach (var target in targets)
             {
                 SimEffects.ApplyEffect(
-                    _state, effect.EffectType, effect.Value, effect.Duration,
-                    effect.DamageType, target, summonerSourceId, (Team)team, events);
+                    _state,
+                    effect.EffectType,
+                    effect.Value,
+                    effect.Duration,
+                    effect.DamageType,
+                    target,
+                    summonerSourceId,
+                    (Team)team,
+                    events
+                );
             }
         }
     }
@@ -675,7 +795,8 @@ public class Simulation
         SimSpellEffect effect,
         int team,
         SimVector3 castPosition,
-        int? targetUnitId)
+        int? targetUnitId
+    )
     {
         if (effect.EffectType != EffectType.Damage)
             return false;
@@ -686,7 +807,8 @@ public class Simulation
         if (projectileData == null)
         {
             Log?.Invoke(
-                $"[Simulation] ERROR: Spell '{cardData.CatalogId}' references unknown projectile '{cardData.SpellProjectileId}'.");
+                $"[Simulation] ERROR: Spell '{cardData.CatalogId}' references unknown projectile '{cardData.SpellProjectileId}'."
+            );
             return true;
         }
 
@@ -704,7 +826,13 @@ public class Simulation
 
             case SpellTargetingMode.NearestEnemy:
             {
-                var targets = ResolveSpellTargets(cardData, effect, team, castPosition, targetUnitId);
+                var targets = ResolveSpellTargets(
+                    cardData,
+                    effect,
+                    team,
+                    castPosition,
+                    targetUnitId
+                );
                 if (targets.Count == 0)
                     return true;
 
@@ -717,7 +845,8 @@ public class Simulation
             default:
                 // Only Position and NearestEnemy projectile spells are supported right now.
                 Log?.Invoke(
-                    $"[Simulation] ERROR: Projectile spell '{cardData.CatalogId}' uses unsupported targeting mode '{cardData.SpellTargetingMode}'.");
+                    $"[Simulation] ERROR: Projectile spell '{cardData.CatalogId}' uses unsupported targeting mode '{cardData.SpellTargetingMode}'."
+                );
                 return true;
         }
 
@@ -764,7 +893,12 @@ public class Simulation
     /// Resolve targets for a spell effect based on targeting mode and affinity.
     /// </summary>
     private List<UnitData> ResolveSpellTargets(
-        SimCardData cardData, SimSpellEffect effect, int team, SimVector3 position, int? targetUnitId)
+        SimCardData cardData,
+        SimSpellEffect effect,
+        int team,
+        SimVector3 position,
+        int? targetUnitId
+    )
     {
         var targets = new List<UnitData>();
 
@@ -773,7 +907,7 @@ public class Simulation
         {
             SpellAffinity.Enemies => MatchState.GetEnemyTeam(team),
             SpellAffinity.Allies => team,
-            _ => null // Both — no filter
+            _ => null, // Both — no filter
         };
 
         switch (cardData.SpellTargetingMode)
@@ -785,7 +919,8 @@ public class Simulation
                 float radiusSq = radius * radius;
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
-                    if (teamFilter.HasValue && (int)unit.Team != teamFilter.Value) continue;
+                    if (teamFilter.HasValue && (int)unit.Team != teamFilter.Value)
+                        continue;
                     if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
                         targets.Add(unit);
                 }
@@ -817,7 +952,8 @@ public class Simulation
 
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
-                    if ((int)unit.Team != enemyTeam) continue;
+                    if ((int)unit.Team != enemyTeam)
+                        continue;
                     float distSq = unit.Position.DistanceSquaredTo(searchOrigin);
                     if (distSq < bestDistSq)
                     {
@@ -825,7 +961,8 @@ public class Simulation
                         best = unit;
                     }
                 }
-                if (best != null) targets.Add(best);
+                if (best != null)
+                    targets.Add(best);
                 break;
             }
 
@@ -835,7 +972,8 @@ public class Simulation
                 float radiusSq = cardData.SpellRadius * cardData.SpellRadius;
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
-                    if ((int)unit.Team != team) continue;
+                    if ((int)unit.Team != team)
+                        continue;
                     if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
                         targets.Add(unit);
                 }
@@ -858,18 +996,107 @@ public class Simulation
             events.Add(new DeckRecycledEvent((int)summoner.Team));
         }
 
-        if (summoner.Deck.Count > 0)
+        DrawTopDeckCardIntoHand(summoner, targetIndex, events, eventHandIndex: targetIndex);
+    }
+
+    private static SimCardRuntimeRef BuildRuntimeRef(
+        SimCardCatalogId catalogId,
+        SimCardInstanceId instanceId = default
+    )
+    {
+        return new SimCardRuntimeRef { CatalogId = catalogId, InstanceId = instanceId };
+    }
+
+    private static SimCardRuntimeRef GetHandCardRef(
+        SummonerData summoner,
+        int handIndex,
+        SimCardCatalogId fallbackCatalogId
+    )
+    {
+        if (handIndex >= 0 && handIndex < summoner.HandRefs.Count)
+            return summoner.HandRefs[handIndex];
+
+        return BuildRuntimeRef(fallbackCatalogId);
+    }
+
+    private static bool DrawTopDeckCardIntoHand(
+        SummonerData summoner,
+        int insertIndex,
+        List<SimEvent>? events,
+        int? eventHandIndex = null
+    )
+    {
+        if (summoner.Deck.Count == 0)
+            return false;
+
+        var card = summoner.Deck[0];
+        summoner.Deck.RemoveAt(0);
+
+        SimCardRuntimeRef cardRef;
+        if (summoner.DeckRefs.Count > 0)
         {
-            var card = summoner.Deck[0];
-            summoner.Deck.RemoveAt(0);
-
-            if (targetIndex >= 0 && targetIndex <= summoner.Hand.Count)
-                summoner.Hand.Insert(targetIndex, card);
-            else
-                summoner.Hand.Add(card);
-
-            events.Add(new CardDrawnEvent((int)summoner.Team, targetIndex, card));
+            cardRef = summoner.DeckRefs[0];
+            summoner.DeckRefs.RemoveAt(0);
+            if (!cardRef.CatalogId.HasValue)
+                cardRef.CatalogId = card;
         }
+        else
+        {
+            cardRef = BuildRuntimeRef(card);
+        }
+
+        // Repair ref list shape if prior data was serialized without refs.
+        if (summoner.HandRefs.Count > summoner.Hand.Count)
+            summoner.HandRefs.RemoveRange(
+                summoner.Hand.Count,
+                summoner.HandRefs.Count - summoner.Hand.Count
+            );
+        for (int i = summoner.HandRefs.Count; i < summoner.Hand.Count; i++)
+            summoner.HandRefs.Add(BuildRuntimeRef(summoner.Hand[i]));
+
+        int resolvedInsertIndex;
+        if (insertIndex >= 0 && insertIndex <= summoner.Hand.Count)
+        {
+            summoner.Hand.Insert(insertIndex, card);
+            summoner.HandRefs.Insert(insertIndex, cardRef);
+            resolvedInsertIndex = insertIndex;
+        }
+        else
+        {
+            summoner.Hand.Add(card);
+            summoner.HandRefs.Add(cardRef);
+            resolvedInsertIndex = summoner.Hand.Count - 1;
+        }
+
+        if (events != null)
+            events.Add(
+                new CardDrawnEvent((int)summoner.Team, eventHandIndex ?? resolvedInsertIndex, card)
+            );
+
+        return true;
+    }
+
+    private void ApplyUnifiedTraitSpawnEffects(
+        UnitData unitData,
+        int team,
+        SimCardRuntimeRef cardRef
+    )
+    {
+        var spawnContext = new TraitRuntimeSpawnContext
+        {
+            TeamId = team,
+            CardCatalogId = new TraitRuntimeCardCatalogId(cardRef.CatalogId.Value),
+            CardInstanceId = new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+        };
+        _state.TraitRuntimeState.ApplySpawnModifiers(unitData, spawnContext);
+    }
+
+    private static string[] ToCatalogIdStrings(List<SimCardCatalogId> ids)
+    {
+        var result = new string[ids.Count];
+        for (int i = 0; i < ids.Count; i++)
+            result[i] = ids[i].Value;
+        return result;
     }
 
     /// <summary>
@@ -938,7 +1165,9 @@ public abstract class SimEvent
 public class PhaseChangedEvent : SimEvent
 {
     public GamePhase NewPhase { get; }
+
     public PhaseChangedEvent(GamePhase newPhase) => NewPhase = newPhase;
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -946,7 +1175,9 @@ public class PhaseChangedEvent : SimEvent
 public class PrepTimerUpdatedEvent : SimEvent
 {
     public float Remaining { get; }
+
     public PrepTimerUpdatedEvent(float remaining) => Remaining = remaining;
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -954,7 +1185,9 @@ public class PrepTimerUpdatedEvent : SimEvent
 public class MatchTimeUpdatedEvent : SimEvent
 {
     public float MatchTime { get; }
+
     public MatchTimeUpdatedEvent(float matchTime) => MatchTime = matchTime;
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -964,7 +1197,14 @@ public class SummonerHpChangedEvent : SimEvent
     public int Team { get; }
     public float Hp { get; }
     public float MaxHp { get; }
-    public SummonerHpChangedEvent(int team, float hp, float maxHp) { Team = team; Hp = hp; MaxHp = maxHp; }
+
+    public SummonerHpChangedEvent(int team, float hp, float maxHp)
+    {
+        Team = team;
+        Hp = hp;
+        MaxHp = maxHp;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -974,7 +1214,14 @@ public class SummonerManaChangedEvent : SimEvent
     public int Team { get; }
     public float Mana { get; }
     public float MaxMana { get; }
-    public SummonerManaChangedEvent(int team, float mana, float maxMana) { Team = team; Mana = mana; MaxMana = maxMana; }
+
+    public SummonerManaChangedEvent(int team, float mana, float maxMana)
+    {
+        Team = team;
+        Mana = mana;
+        MaxMana = maxMana;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -985,9 +1232,23 @@ public class CastingStartedEvent : SimEvent
     public int CardIndex { get; }
     public float Duration { get; }
     public SimVector3 SpawnPosition { get; }
-    public string CatalogId { get; }
-    public CastingStartedEvent(int team, int cardIndex, float duration, SimVector3 spawnPosition, string catalogId = "")
-    { Team = team; CardIndex = cardIndex; Duration = duration; SpawnPosition = spawnPosition; CatalogId = catalogId; }
+    public SimCardCatalogId CatalogId { get; }
+
+    public CastingStartedEvent(
+        int team,
+        int cardIndex,
+        float duration,
+        SimVector3 spawnPosition,
+        SimCardCatalogId catalogId = default
+    )
+    {
+        Team = team;
+        CardIndex = cardIndex;
+        Duration = duration;
+        SpawnPosition = spawnPosition;
+        CatalogId = catalogId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -998,8 +1259,15 @@ public class CastingCompletedEvent : SimEvent
     public int CardIndex { get; }
     public SimVector3 SpawnPosition { get; }
     public int NetworkId { get; }
+
     public CastingCompletedEvent(int team, int cardIndex, SimVector3 spawnPosition, int networkId)
-    { Team = team; CardIndex = cardIndex; SpawnPosition = spawnPosition; NetworkId = networkId; }
+    {
+        Team = team;
+        CardIndex = cardIndex;
+        SpawnPosition = spawnPosition;
+        NetworkId = networkId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1008,8 +1276,15 @@ public class CardDrawnEvent : SimEvent
 {
     public int Team { get; }
     public int HandIndex { get; }
-    public string CatalogId { get; }
-    public CardDrawnEvent(int team, int handIndex, string catalogId) { Team = team; HandIndex = handIndex; CatalogId = catalogId; }
+    public SimCardCatalogId CatalogId { get; }
+
+    public CardDrawnEvent(int team, int handIndex, SimCardCatalogId catalogId)
+    {
+        Team = team;
+        HandIndex = handIndex;
+        CatalogId = catalogId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1018,7 +1293,13 @@ public class HandChangedEvent : SimEvent
 {
     public int Team { get; }
     public string[] Hand { get; }
-    public HandChangedEvent(int team, string[] hand) { Team = team; Hand = hand; }
+
+    public HandChangedEvent(int team, string[] hand)
+    {
+        Team = team;
+        Hand = hand;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1026,7 +1307,9 @@ public class HandChangedEvent : SimEvent
 public class DeckRecycledEvent : SimEvent
 {
     public int Team { get; }
+
     public DeckRecycledEvent(int team) => Team = team;
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1035,11 +1318,25 @@ public class UnitRegisteredEvent : SimEvent
 {
     public int UnitId { get; }
     public int NetworkId { get; }
-    public string CatalogId { get; }
+    public SimCardCatalogId CatalogId { get; }
     public int Team { get; }
     public SimVector3 Position { get; }
-    public UnitRegisteredEvent(int unitId, int networkId, string catalogId, int team, SimVector3 position)
-    { UnitId = unitId; NetworkId = networkId; CatalogId = catalogId; Team = team; Position = position; }
+
+    public UnitRegisteredEvent(
+        int unitId,
+        int networkId,
+        SimCardCatalogId catalogId,
+        int team,
+        SimVector3 position
+    )
+    {
+        UnitId = unitId;
+        NetworkId = networkId;
+        CatalogId = catalogId;
+        Team = team;
+        Position = position;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1047,7 +1344,9 @@ public class UnitRegisteredEvent : SimEvent
 public class UnitRemovedEvent : SimEvent
 {
     public int UnitId { get; }
+
     public UnitRemovedEvent(int unitId) => UnitId = unitId;
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1056,7 +1355,13 @@ public class GameOverEvent : SimEvent
 {
     public int WinnerTeam { get; }
     public string Reason { get; }
-    public GameOverEvent(int winnerTeam, string reason) { WinnerTeam = winnerTeam; Reason = reason; }
+
+    public GameOverEvent(int winnerTeam, string reason)
+    {
+        WinnerTeam = winnerTeam;
+        Reason = reason;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1069,8 +1374,14 @@ public class SummonerDamagedEvent : SimEvent
     public int Team { get; }
     public float Damage { get; }
     public int AttackerUnitId { get; }
+
     public SummonerDamagedEvent(int team, float damage, int attackerUnitId)
-    { Team = team; Damage = damage; AttackerUnitId = attackerUnitId; }
+    {
+        Team = team;
+        Damage = damage;
+        AttackerUnitId = attackerUnitId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1082,8 +1393,13 @@ public class SummonerDestroyedEvent : SimEvent
 {
     public int Team { get; }
     public int KillerUnitId { get; }
+
     public SummonerDestroyedEvent(int team, int killerUnitId)
-    { Team = team; KillerUnitId = killerUnitId; }
+    {
+        Team = team;
+        KillerUnitId = killerUnitId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1094,10 +1410,16 @@ public class SummonerDestroyedEvent : SimEvent
 public class SpellCastEvent : SimEvent
 {
     public int Team { get; }
-    public string CatalogId { get; }
+    public SimCardCatalogId CatalogId { get; }
     public SimVector3 Position { get; }
-    public SpellCastEvent(int team, string catalogId, SimVector3 position)
-    { Team = team; CatalogId = catalogId; Position = position; }
+
+    public SpellCastEvent(int team, SimCardCatalogId catalogId, SimVector3 position)
+    {
+        Team = team;
+        CatalogId = catalogId;
+        Position = position;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1109,8 +1431,13 @@ public class UnitAttackedEvent : SimEvent
 {
     public int AttackerUnitId { get; }
     public int TargetUnitId { get; }
+
     public UnitAttackedEvent(int attackerUnitId, int targetUnitId)
-    { AttackerUnitId = attackerUnitId; TargetUnitId = targetUnitId; }
+    {
+        AttackerUnitId = attackerUnitId;
+        TargetUnitId = targetUnitId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1124,8 +1451,15 @@ public class UnitDamagedEvent : SimEvent
     public int AttackerUnitId { get; }
     public float Damage { get; }
     public bool IsCrit { get; }
+
     public UnitDamagedEvent(int targetUnitId, int attackerUnitId, float damage, bool isCrit)
-    { TargetUnitId = targetUnitId; AttackerUnitId = attackerUnitId; Damage = damage; IsCrit = isCrit; }
+    {
+        TargetUnitId = targetUnitId;
+        AttackerUnitId = attackerUnitId;
+        Damage = damage;
+        IsCrit = isCrit;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1137,8 +1471,13 @@ public class UnitDiedEvent : SimEvent
 {
     public int UnitId { get; }
     public int KillerUnitId { get; }
+
     public UnitDiedEvent(int unitId, int killerUnitId)
-    { UnitId = unitId; KillerUnitId = killerUnitId; }
+    {
+        UnitId = unitId;
+        KillerUnitId = killerUnitId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1150,8 +1489,13 @@ public class ProjectileHitEvent : SimEvent
 {
     public int ProjectileId { get; }
     public int TargetUnitId { get; }
+
     public ProjectileHitEvent(int projectileId, int targetUnitId)
-    { ProjectileId = projectileId; TargetUnitId = targetUnitId; }
+    {
+        ProjectileId = projectileId;
+        TargetUnitId = targetUnitId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1163,8 +1507,13 @@ public class UnitActivationChangedEvent : SimEvent
 {
     public int UnitId { get; }
     public int NewState { get; }
+
     public UnitActivationChangedEvent(int unitId, int newState)
-    { UnitId = unitId; NewState = newState; }
+    {
+        UnitId = unitId;
+        NewState = newState;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1176,8 +1525,13 @@ public class AttackEvadedEvent : SimEvent
 {
     public int TargetUnitId { get; }
     public int AttackerUnitId { get; }
+
     public AttackEvadedEvent(int targetUnitId, int attackerUnitId)
-    { TargetUnitId = targetUnitId; AttackerUnitId = attackerUnitId; }
+    {
+        TargetUnitId = targetUnitId;
+        AttackerUnitId = attackerUnitId;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1191,8 +1545,15 @@ public class BuffAppliedEvent : SimEvent
     public EffectType EffectType { get; }
     public float Value { get; }
     public float Duration { get; }
+
     public BuffAppliedEvent(int targetUnitId, EffectType effectType, float value, float duration)
-    { TargetUnitId = targetUnitId; EffectType = effectType; Value = value; Duration = duration; }
+    {
+        TargetUnitId = targetUnitId;
+        EffectType = effectType;
+        Value = value;
+        Duration = duration;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1205,8 +1566,14 @@ public class BuffExpiredEvent : SimEvent
     public int TargetUnitId { get; }
     public int BuffId { get; }
     public EffectType EffectType { get; }
+
     public BuffExpiredEvent(int targetUnitId, int buffId, EffectType effectType)
-    { TargetUnitId = targetUnitId; BuffId = buffId; EffectType = effectType; }
+    {
+        TargetUnitId = targetUnitId;
+        BuffId = buffId;
+        EffectType = effectType;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }
 
@@ -1219,7 +1586,13 @@ public class DelayedEffectFiredEvent : SimEvent
     public SimVector3 Position { get; }
     public EffectType EffectType { get; }
     public float AoeRadius { get; }
+
     public DelayedEffectFiredEvent(SimVector3 position, EffectType effectType, float aoeRadius)
-    { Position = position; EffectType = effectType; AoeRadius = aoeRadius; }
+    {
+        Position = position;
+        EffectType = effectType;
+        AoeRadius = aoeRadius;
+    }
+
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
 }

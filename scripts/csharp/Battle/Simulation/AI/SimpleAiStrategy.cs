@@ -46,7 +46,7 @@ public static class SimpleAiStrategy
     /// <summary>
     /// Select a random position in the team's territory.
     /// </summary>
-    public static SimVector3 SelectSpawnPosition(MatchState state, SummonerData summoner, string catalogId)
+    public static SimVector3 SelectSpawnPosition(MatchState state, SummonerData summoner, SimCardCatalogId catalogId)
     {
         if (state.Rng == null)
             return summoner.Position;
