@@ -41,14 +41,12 @@ func test_configure_camera_bounds_merges_startup_footprint_only_on_enabled_axes(
 	var camera: _FakeCamera = _FakeCamera.new()
 
 	var perspective_profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
-	perspective_profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
 	perspective_profile.camera_transform = Transform3D.IDENTITY.translated(Vector3(0.0, 30.0, -42.85))
 	perspective_profile.keep_aspect = Camera3D.KEEP_HEIGHT
 	perspective_profile.default_zoom = 72.0
 	perspective_profile.min_zoom = 24.0
 	perspective_profile.max_zoom = 82.0
 	camera.perspective_camera_profile = perspective_profile
-	camera.projection_mode = BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
 	_host.add_child(camera)
 
 	battlefield.camera = camera
@@ -75,7 +73,6 @@ func test_startup_footprint_probe_restores_camera_state_after_sampling() -> void
 	var battlefield: BaseBattlefield3D = BaseBattlefield3D.new()
 	var camera: _FakeCamera = _FakeCamera.new()
 	var profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
-	profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
 	profile.camera_transform = Transform3D.IDENTITY.translated(Vector3(1.0, 35.0, -50.0))
 	profile.keep_aspect = Camera3D.KEEP_WIDTH
 	profile.near_clip = 0.7
@@ -84,7 +81,6 @@ func test_startup_footprint_probe_restores_camera_state_after_sampling() -> void
 	profile.min_zoom = 20.0
 	profile.max_zoom = 80.0
 	camera.perspective_camera_profile = profile
-	camera.projection_mode = BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
 	camera.transform = Transform3D.IDENTITY.translated(Vector3(-9.0, 20.0, -15.0))
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
@@ -100,7 +96,6 @@ func test_startup_footprint_probe_restores_camera_state_after_sampling() -> void
 	var saved_projection: int = camera.projection
 	var saved_keep_aspect: int = camera.keep_aspect
 	var saved_fov: float = camera.fov
-	var saved_size: float = camera.size
 	var saved_near: float = camera.near
 	var saved_far: float = camera.far
 
@@ -111,7 +106,6 @@ func test_startup_footprint_probe_restores_camera_state_after_sampling() -> void
 	assert_eq(camera.projection, saved_projection, "Startup probe should restore camera projection")
 	assert_eq(camera.keep_aspect, saved_keep_aspect, "Startup probe should restore keep_aspect")
 	assert_almost_eq(camera.fov, saved_fov, 0.001, "Startup probe should restore FOV")
-	assert_almost_eq(camera.size, saved_size, 0.001, "Startup probe should restore ortho size")
 	assert_almost_eq(camera.near, saved_near, 0.001, "Startup probe should restore near clip")
 	assert_almost_eq(camera.far, saved_far, 0.001, "Startup probe should restore far clip")
 	battlefield.free()

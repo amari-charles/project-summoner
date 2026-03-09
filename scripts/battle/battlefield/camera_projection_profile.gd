@@ -1,22 +1,14 @@
 extends Resource
 class_name BattleCameraProjectionProfile
 
-## Shared profile interface for battle camera modes.
-## One resource per projection mode (perspective or orthographic).
+## Shared profile interface for the battle camera (perspective-only).
 
-enum ProjectionMode {
-	PERSPECTIVE,
-	ORTHOGRAPHIC
-}
-
-@export var projection_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
 @export var camera_transform: Transform3D = Transform3D.IDENTITY
 @export var keep_aspect: int = Camera3D.KEEP_HEIGHT
 @export var near_clip: float = 0.5
 @export var far_clip: float = 260.0
 
-## Perspective: interpreted as FOV values.
-## Orthographic: interpreted as size values.
+## Perspective FOV values.
 @export var default_zoom: float = 40.0
 @export var min_zoom: float = 20.0
 @export var max_zoom: float = 50.0

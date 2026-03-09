@@ -1,9 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://cm2j43v0j4iiv"]
+[gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battle/battlefield/base_battlefield_3d.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/battle/battlefield/camera_controller_3d.gd" id="3_camera_controller"]
 [ext_resource type="Resource" path="res://resources/camera_profiles/battle_perspective.tres" id="4_perspective_profile"]
-[ext_resource type="Resource" path="res://resources/camera_profiles/battle_orthographic.tres" id="5_orthographic_profile"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
 size = Vector2(100, 50)
@@ -40,7 +39,6 @@ use_zoom_limit_rect_override = true
 vertical_oversize_clamp_mode = 0
 script = ExtResource("3_camera_controller")
 perspective_camera_profile = ExtResource("4_perspective_profile")
-orthographic_camera_profile = ExtResource("5_orthographic_profile")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)

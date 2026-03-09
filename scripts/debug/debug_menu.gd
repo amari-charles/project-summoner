@@ -28,7 +28,6 @@ var _separation_radius_button: Button
 var _projectile_hit_geometry_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
-var _camera_projection_button: Button
 var _camera_auto_log_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
 var _unit_debug: Node
@@ -72,7 +71,6 @@ func _process(_delta: float) -> void:
 
 	if _panel and _panel.visible:
 		_refresh_camera_overlay_button_state()
-		_refresh_camera_projection_button_state()
 		_refresh_camera_auto_log_button_state()
 
 	if _camera_auto_log_enabled:
@@ -243,13 +241,6 @@ func _create_ui() -> void:
 	_camera_overlay_button.pressed.connect(_on_camera_overlay_toggle_pressed)
 	vbox.add_child(_camera_overlay_button)
 
-	# Camera projection mode toggle button
-	_camera_projection_button = Button.new()
-	_camera_projection_button.text = "Camera Mode: N/A"
-	_camera_projection_button.custom_minimum_size = Vector2(200, 32)
-	_camera_projection_button.pressed.connect(_on_camera_projection_toggle_pressed)
-	vbox.add_child(_camera_projection_button)
-
 	_camera_auto_log_button = Button.new()
 	_camera_auto_log_button.text = "Camera Auto-Log: Off"
 	_camera_auto_log_button.custom_minimum_size = Vector2(200, 32)
@@ -384,7 +375,6 @@ func _update_button_states() -> void:
 		_spawn_boundary_button.text = "Spawn Boundary: %s" % state
 
 	_refresh_camera_overlay_button_state()
-	_refresh_camera_projection_button_state()
 	_refresh_camera_auto_log_button_state()
 
 
@@ -513,20 +503,6 @@ func _on_camera_overlay_toggle_pressed() -> void:
 	camera.set("debug_show_pan_bounds_overlay", not enabled)
 	_log_camera_clamp_diagnostics(camera)
 	_refresh_camera_overlay_button_state()
-
-
-func _on_camera_projection_toggle_pressed() -> void:
-	var camera: Node = _find_battle_camera_controller()
-	if not camera or not camera.has_method("toggle_projection_mode"):
-		print("[Debug] Battle camera projection toggle unavailable")
-		_refresh_camera_projection_button_state()
-		return
-
-	camera.call("toggle_projection_mode")
-	if camera.has_method("get_projection_mode_name"):
-		print("[Debug] Camera mode -> %s" % camera.call("get_projection_mode_name"))
-	_log_camera_clamp_diagnostics(camera)
-	_refresh_camera_projection_button_state()
 
 
 func _on_camera_auto_log_toggle_pressed() -> void:
@@ -789,7 +765,7 @@ func _get_unit_debug_service() -> Node:
 func _find_battle_camera_controller() -> Node:
 	# Prefer active viewport camera first.
 	var active_camera: Camera3D = get_viewport().get_camera_3d()
-	if active_camera and active_camera.has_method("set_projection_mode"):
+	if active_camera and active_camera.has_method("get_clamp_diagnostics"):
 		return active_camera
 
 	# Fallback: search under battlefield root group.
@@ -798,7 +774,7 @@ func _find_battle_camera_controller() -> Node:
 		var stack: Array[Node] = [battlefield]
 		while not stack.is_empty():
 			var node: Node = stack.pop_back()
-			if node.has_method("set_projection_mode"):
+			if node.has_method("get_clamp_diagnostics"):
 				return node
 			for child_var: Variant in node.get_children():
 				if child_var is Node:
@@ -822,22 +798,6 @@ func _refresh_camera_overlay_button_state() -> void:
 	var enabled_var: Variant = camera.get("debug_show_pan_bounds_overlay")
 	var enabled: bool = enabled_var if enabled_var is bool else false
 	_camera_overlay_button.text = "Camera Overlay: %s" % ("On" if enabled else "Off")
-
-
-func _refresh_camera_projection_button_state() -> void:
-	if not _camera_projection_button:
-		return
-
-	var camera: Node = _find_battle_camera_controller()
-	if not camera or not camera.has_method("get_projection_mode_name"):
-		_camera_projection_button.text = "Camera Mode: N/A"
-		_camera_projection_button.disabled = true
-		return
-
-	_camera_projection_button.disabled = false
-	var mode_name_var: Variant = camera.call("get_projection_mode_name")
-	var mode_name: String = SafeTypeUtils.string(mode_name_var, "Unknown")
-	_camera_projection_button.text = "Camera Mode: %s" % mode_name
 
 
 func _refresh_camera_auto_log_button_state() -> void:
