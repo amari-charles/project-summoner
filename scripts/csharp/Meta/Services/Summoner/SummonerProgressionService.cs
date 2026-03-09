@@ -6,6 +6,7 @@ using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Progression.Core;
 
 namespace Fateforged.Meta.Summoner;
 
@@ -51,6 +52,7 @@ public partial class SummonerProgressionService : Node
 	public delegate void SummonerReadyToLevelUpEventHandler(string summonerId);
 
 	private IProfileRepository? _profileRepo;
+	private static readonly SummonerProgressionCurve SharedProgressionCurve = new();
 
 	// Func delegate for active summoner
 	private Func<string>? _getActiveSummonerFunc;
@@ -189,11 +191,9 @@ public partial class SummonerProgressionService : Node
 		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return 0;
 
-		if (summoner.Level >= MaxLevel)
-			return 0;
-
-		var xpCost = GetXpCostForNextLevel(summoner.Level);
-		return Math.Max(0, xpCost - summoner.Xp);
+		var state = BuildProgressionState(summoner);
+		var xpCost = ProgressionEngine.GetXpCostForNextLevel(state, SharedProgressionCurve);
+		return Math.Max(0, xpCost - state.XpTowardNext);
 	}
 
 	/// <summary>Get progress towards next level (string overload for GDScript boundary).</summary>
@@ -208,14 +208,8 @@ public partial class SummonerProgressionService : Node
 		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return 0f;
 
-		if (summoner.Level >= MaxLevel)
-			return 1f;
-
-		var xpCost = GetXpCostForNextLevel(summoner.Level);
-		if (xpCost <= 0)
-			return 1f;
-
-		return Math.Clamp((float)summoner.Xp / xpCost, 0f, 1f);
+		var state = BuildProgressionState(summoner);
+		return ProgressionEngine.GetProgress01(state, SharedProgressionCurve);
 	}
 
 	// =========================================================================
@@ -234,11 +228,8 @@ public partial class SummonerProgressionService : Node
 		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return false;
 
-		if (summoner.Level >= MaxLevel)
-			return false;
-
-		var xpCost = GetXpCostForNextLevel(summoner.Level);
-		return xpCost > 0 && summoner.Xp >= xpCost;
+		var state = BuildProgressionState(summoner);
+		return ProgressionEngine.CanLevelUp(state, SharedProgressionCurve);
 	}
 
 	/// <summary>Level up a summoner (string overload for GDScript boundary).</summary>
@@ -260,31 +251,24 @@ public partial class SummonerProgressionService : Node
 			return false;
 		}
 
-		// Check XP requirement
-		if (!CanLevelUp(summonerId))
+		var state = BuildProgressionState(summoner);
+		var applyResult = ProgressionEngine.ApplyLevelUp(state, SharedProgressionCurve);
+		if (!applyResult.Success)
 		{
-			GD.PushWarning("SummonerProgressionService: Summoner does not have enough XP to level up");
+			if (applyResult.Status == ProgressionApplyStatus.InsufficientXp)
+			{
+				// Preserve long-standing warning contract used by existing GUT assertions.
+				GD.PushWarning("SummonerProgressionService: Summoner does not have enough XP to level up");
+			}
+			else
+			{
+				GD.PushWarning($"SummonerProgressionService: Level up rejected ({applyResult.Status})");
+			}
 			return false;
 		}
 
-		// Validate new level
-		var newLevel = summoner.Level + 1;
-		if (newLevel > MaxLevel)
-		{
-			GD.PushError("SummonerProgressionService: Cannot level beyond MaxLevel");
-			return false;
-		}
-
-		var xpCost = GetXpCostForNextLevel(summoner.Level);
-		if (xpCost <= 0 || summoner.Xp < xpCost)
-		{
-			GD.PushWarning("SummonerProgressionService: Invalid XP cost for level up");
-			return false;
-		}
-
-		// Apply level up and consume required XP.
-		summoner.Xp -= xpCost;
-		summoner.Level = newLevel;
+		summoner.Xp = applyResult.NextState.XpTowardNext;
+		summoner.Level = applyResult.NextState.Level;
 		summoner.UnspentTraitPoints += 1;
 		var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
 
@@ -294,7 +278,7 @@ public partial class SummonerProgressionService : Node
 			return false;
 		}
 
-		EmitSignal(SignalName.SummonerLeveledUp, summonerId.Value, newLevel);
+		EmitSignal(SignalName.SummonerLeveledUp, summonerId.Value, applyResult.NextState.Level);
 		return true;
 	}
 
@@ -323,7 +307,7 @@ public partial class SummonerProgressionService : Node
 			["max_level"] = MaxLevel,
 			["xp"] = summoner.Xp,
 			["xp_for_current_level"] = 0,
-			["xp_for_next_level"] = summoner.Level < MaxLevel ? GetXpCostForNextLevel(summoner.Level) : 0,
+			["xp_for_next_level"] = ProgressionEngine.GetXpCostForNextLevel(BuildProgressionState(summoner), SharedProgressionCurve),
 			["xp_to_next_level"] = GetXpToNextLevel(summonerId),
 			["xp_progress"] = GetLevelProgress(summonerId),
 			["can_level_up"] = CanLevelUp(summonerId),
@@ -593,14 +577,22 @@ public partial class SummonerProgressionService : Node
 		return DeterministicStringHash($"{context}|{traitId}");
 	}
 
-	private static int GetXpCostForNextLevel(int currentLevel)
+	private static ProgressionState BuildProgressionState(SummonerInstance summoner)
 	{
-		if (currentLevel >= MaxLevel)
-			return 0;
+		return new ProgressionState(summoner.Level, summoner.Xp, MaxLevel);
+	}
 
-		var currentLevelThreshold = GetXpForLevel(currentLevel);
-		var nextLevelThreshold = GetXpForLevel(currentLevel + 1);
-		return Math.Max(0, nextLevelThreshold - currentLevelThreshold);
+	private sealed class SummonerProgressionCurve : IProgressionCurve
+	{
+		public int GetXpCostForNextLevel(int currentLevel, int maxLevel)
+		{
+			if (currentLevel >= maxLevel)
+				return 0;
+
+			var currentLevelThreshold = GetXpForLevel(currentLevel);
+			var nextLevelThreshold = GetXpForLevel(currentLevel + 1);
+			return Math.Max(0, nextLevelThreshold - currentLevelThreshold);
+		}
 	}
 
 	private static int DeterministicStringHash(string value)
