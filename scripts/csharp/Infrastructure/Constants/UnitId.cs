@@ -45,6 +45,7 @@ public static class UnitIds
     public static readonly UnitId FireTitan = new("fire_titan");
     public static readonly UnitId FireAnt = new("fire_ant");
     public static readonly UnitId FireBoar = new("fire_boar");
+    public static readonly UnitId FireWolf = new("fire_wolf");
     public static readonly UnitId FireSpider = new("fire_spider");
 
     // =========================================================================
@@ -52,6 +53,7 @@ public static class UnitIds
     // =========================================================================
 
     public static readonly UnitId EarthSprite = new("earth_sprite");
+    public static readonly UnitId EarthKomodoDragon = new("earth_komodo_dragon");
     public static readonly UnitId Rock = new("rock");
     public static readonly UnitId StoneApe = new("stone_ape");
     public static readonly UnitId EarthRockThrower = new("earth_rock_thrower");

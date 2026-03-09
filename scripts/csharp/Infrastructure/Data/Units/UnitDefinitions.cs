@@ -245,6 +245,26 @@ public static class UnitDefinitions
         ScenePath = "res://scenes/battle/units/fire_boar_3d.tscn"
     };
 
+    public static readonly UnitDefinition FireWolf = new()
+    {
+        Id = UnitIds.FireWolf,
+        DisplayName = "Fire Wolf",
+        Stats = new UnitStats
+        {
+            MaxHp = 95f,
+            AttackDamage = 16f,
+            AttackRange = 3.5f,
+            AttackSpeed = 1.1f,
+            MoveSpeed = 3.4f,
+            AggroRadius = 20f
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+
+        Visual = new VisualConfig { SeparationRadius = 0.55f },
+        ScenePath = "res://scenes/battle/units/fire_wolf_3d.tscn"
+    };
+
     public static readonly UnitDefinition FireSpider = new()
     {
         Id = UnitIds.FireSpider,
@@ -287,6 +307,26 @@ public static class UnitDefinitions
 
         Visual = new VisualConfig { SeparationRadius = 0.6f},
         ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn"
+    };
+
+    public static readonly UnitDefinition EarthKomodoDragon = new()
+    {
+        Id = UnitIds.EarthKomodoDragon,
+        DisplayName = "Earth Komodo Dragon",
+        Stats = new UnitStats
+        {
+            MaxHp = 180f,
+            AttackDamage = 22f,
+            AttackRange = 4.0f,
+            AttackSpeed = 0.7f,
+            MoveSpeed = 2.2f,
+            AggroRadius = 20f
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+
+        Visual = new VisualConfig { SeparationRadius = 0.7f },
+        ScenePath = "res://scenes/battle/units/earth_komodo_dragon_3d.tscn"
     };
 
     public static readonly UnitDefinition Rock = new()
@@ -473,9 +513,11 @@ public static class UnitDefinitions
         [UnitIds.FireTitan] = FireTitan,
         [UnitIds.FireAnt] = FireAnt,
         [UnitIds.FireBoar] = FireBoar,
+        [UnitIds.FireWolf] = FireWolf,
         [UnitIds.FireSpider] = FireSpider,
         // Earth
         [UnitIds.EarthSprite] = EarthSprite,
+        [UnitIds.EarthKomodoDragon] = EarthKomodoDragon,
         [UnitIds.Rock] = Rock,
         [UnitIds.StoneApe] = StoneApe,
         [UnitIds.EarthRockThrower] = EarthRockThrower,

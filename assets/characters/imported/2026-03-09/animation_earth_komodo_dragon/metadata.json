@@ -1,0 +1,409 @@
+{
+  "source_file": "assets/source_psd/2026-03-09/Animation Earth Komodo Dragon.psd",
+  "source_canvas": {
+    "width": 875,
+    "height": 304
+  },
+  "normalized_union_bbox": {
+    "x1": 13,
+    "y1": 5,
+    "x2": 862,
+    "y2": 299
+  },
+  "frame_size": {
+    "width": 849,
+    "height": 294
+  },
+  "frame_count": 24,
+  "fps": 12,
+  "spritesheets": {
+    "horizontal": "spritesheet_horizontal.png",
+    "vertical": "spritesheet_vertical.png"
+  },
+  "frames": [
+    {
+      "index": 0,
+      "source_layer_index": 0,
+      "source_layer_name": "EarthDragon-0000",
+      "file": "frames/frame_0000_EarthDragon-0000.png",
+      "source_bbox": [
+        24,
+        45,
+        599,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        40
+      ]
+    },
+    {
+      "index": 1,
+      "source_layer_index": 1,
+      "source_layer_name": "EarthDragon-0001",
+      "file": "frames/frame_0001_EarthDragon-0001.png",
+      "source_bbox": [
+        24,
+        45,
+        599,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        40
+      ]
+    },
+    {
+      "index": 2,
+      "source_layer_index": 2,
+      "source_layer_name": "EarthDragon-0002",
+      "file": "frames/frame_0002_EarthDragon-0002.png",
+      "source_bbox": [
+        24,
+        45,
+        599,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        40
+      ]
+    },
+    {
+      "index": 3,
+      "source_layer_index": 3,
+      "source_layer_name": "EarthDragon-0003",
+      "file": "frames/frame_0003_EarthDragon-0003.png",
+      "source_bbox": [
+        24,
+        45,
+        599,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        40
+      ]
+    },
+    {
+      "index": 4,
+      "source_layer_index": 4,
+      "source_layer_name": "EarthDragon-0004",
+      "file": "frames/frame_0004_EarthDragon-0004.png",
+      "source_bbox": [
+        24,
+        45,
+        599,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        40
+      ]
+    },
+    {
+      "index": 5,
+      "source_layer_index": 5,
+      "source_layer_name": "EarthDragon-0005",
+      "file": "frames/frame_0005_EarthDragon-0005.png",
+      "source_bbox": [
+        13,
+        5,
+        535,
+        299
+      ],
+      "offset_within_frame": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 6,
+      "source_layer_index": 6,
+      "source_layer_name": "EarthDragon-0006",
+      "file": "frames/frame_0006_EarthDragon-0006.png",
+      "source_bbox": [
+        13,
+        5,
+        535,
+        299
+      ],
+      "offset_within_frame": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 7,
+      "source_layer_index": 7,
+      "source_layer_name": "EarthDragon-0007",
+      "file": "frames/frame_0007_EarthDragon-0007.png",
+      "source_bbox": [
+        13,
+        5,
+        535,
+        299
+      ],
+      "offset_within_frame": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 8,
+      "source_layer_index": 8,
+      "source_layer_name": "EarthDragon-0008",
+      "file": "frames/frame_0008_EarthDragon-0008.png",
+      "source_bbox": [
+        13,
+        5,
+        535,
+        299
+      ],
+      "offset_within_frame": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 9,
+      "source_layer_index": 9,
+      "source_layer_name": "EarthDragon-0009",
+      "file": "frames/frame_0009_EarthDragon-0009.png",
+      "source_bbox": [
+        13,
+        5,
+        535,
+        299
+      ],
+      "offset_within_frame": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 10,
+      "source_layer_index": 10,
+      "source_layer_name": "EarthDragon-0010",
+      "file": "frames/frame_0010_EarthDragon-0010.png",
+      "source_bbox": [
+        13,
+        5,
+        535,
+        299
+      ],
+      "offset_within_frame": [
+        0,
+        0
+      ]
+    },
+    {
+      "index": 11,
+      "source_layer_index": 11,
+      "source_layer_name": "EarthDragon-0011",
+      "file": "frames/frame_0011_EarthDragon-0011.png",
+      "source_bbox": [
+        98,
+        140,
+        795,
+        299
+      ],
+      "offset_within_frame": [
+        85,
+        135
+      ]
+    },
+    {
+      "index": 12,
+      "source_layer_index": 12,
+      "source_layer_name": "EarthDragon-0012",
+      "file": "frames/frame_0012_EarthDragon-0012.png",
+      "source_bbox": [
+        139,
+        10,
+        834,
+        299
+      ],
+      "offset_within_frame": [
+        126,
+        5
+      ]
+    },
+    {
+      "index": 13,
+      "source_layer_index": 13,
+      "source_layer_name": "EarthDragon-0013",
+      "file": "frames/frame_0013_EarthDragon-0013.png",
+      "source_bbox": [
+        198,
+        72,
+        862,
+        299
+      ],
+      "offset_within_frame": [
+        185,
+        67
+      ]
+    },
+    {
+      "index": 14,
+      "source_layer_index": 14,
+      "source_layer_name": "EarthDragon-0014",
+      "file": "frames/frame_0014_EarthDragon-0014.png",
+      "source_bbox": [
+        198,
+        72,
+        862,
+        299
+      ],
+      "offset_within_frame": [
+        185,
+        67
+      ]
+    },
+    {
+      "index": 15,
+      "source_layer_index": 15,
+      "source_layer_name": "EarthDragon-0015",
+      "file": "frames/frame_0015_EarthDragon-0015.png",
+      "source_bbox": [
+        115,
+        170,
+        853,
+        299
+      ],
+      "offset_within_frame": [
+        102,
+        165
+      ]
+    },
+    {
+      "index": 16,
+      "source_layer_index": 16,
+      "source_layer_name": "EarthDragon-0016",
+      "file": "frames/frame_0016_EarthDragon-0016.png",
+      "source_bbox": [
+        103,
+        166,
+        841,
+        299
+      ],
+      "offset_within_frame": [
+        90,
+        161
+      ]
+    },
+    {
+      "index": 17,
+      "source_layer_index": 17,
+      "source_layer_name": "EarthDragon-0017",
+      "file": "frames/frame_0017_EarthDragon-0017.png",
+      "source_bbox": [
+        103,
+        166,
+        841,
+        299
+      ],
+      "offset_within_frame": [
+        90,
+        161
+      ]
+    },
+    {
+      "index": 18,
+      "source_layer_index": 18,
+      "source_layer_name": "EarthDragon-0018",
+      "file": "frames/frame_0018_EarthDragon-0018.png",
+      "source_bbox": [
+        102,
+        106,
+        782,
+        299
+      ],
+      "offset_within_frame": [
+        89,
+        101
+      ]
+    },
+    {
+      "index": 19,
+      "source_layer_index": 19,
+      "source_layer_name": "EarthDragon-0019",
+      "file": "frames/frame_0019_EarthDragon-0019.png",
+      "source_bbox": [
+        24,
+        56,
+        633,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        51
+      ]
+    },
+    {
+      "index": 20,
+      "source_layer_index": 20,
+      "source_layer_name": "EarthDragon-0020",
+      "file": "frames/frame_0020_EarthDragon-0020.png",
+      "source_bbox": [
+        24,
+        45,
+        599,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        40
+      ]
+    },
+    {
+      "index": 21,
+      "source_layer_index": 21,
+      "source_layer_name": "EarthDragon-0021",
+      "file": "frames/frame_0021_EarthDragon-0021.png",
+      "source_bbox": [
+        37,
+        42,
+        596,
+        299
+      ],
+      "offset_within_frame": [
+        24,
+        37
+      ]
+    },
+    {
+      "index": 22,
+      "source_layer_index": 22,
+      "source_layer_name": "EarthDragon-0022",
+      "file": "frames/frame_0022_EarthDragon-0022.png",
+      "source_bbox": [
+        37,
+        42,
+        596,
+        299
+      ],
+      "offset_within_frame": [
+        24,
+        37
+      ]
+    },
+    {
+      "index": 23,
+      "source_layer_index": 23,
+      "source_layer_name": "EarthDragon-0023",
+      "file": "frames/frame_0023_EarthDragon-0023.png",
+      "source_bbox": [
+        24,
+        45,
+        599,
+        299
+      ],
+      "offset_within_frame": [
+        11,
+        40
+      ]
+    }
+  ]
+}

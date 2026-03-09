@@ -65,6 +65,7 @@ public static class CardIds
     public static readonly CardId FireAnt = new("fire_ant");
     public static readonly CardId FireAntSwarm = new("fire_ant_swarm");
     public static readonly CardId FireBoar = new("fire_boar");
+    public static readonly CardId FireWolf = new("fire_wolf");
     public static readonly CardId FireSpider = new("fire_spider");
 
     // =========================================================================
@@ -72,6 +73,7 @@ public static class CardIds
     // =========================================================================
 
     public static readonly CardId Pebbloom = new("pebbloom");
+    public static readonly CardId EarthKomodoDragon = new("earth_komodo_dragon");
     public static readonly CardId Rock = new("rock");
     public static readonly CardId StoneApe = new("stone_ape");
     public static readonly CardId EarthRockThrower = new("earth_rock_thrower");

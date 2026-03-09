@@ -47,6 +47,7 @@ const FIRE_TITAN: StringName = &"fire_titan"
 const FIRE_ANT: StringName = &"fire_ant"
 const FIRE_ANT_SWARM: StringName = &"fire_ant_swarm"
 const FIRE_BOAR: StringName = &"fire_boar"
+const FIRE_WOLF: StringName = &"fire_wolf"
 const FIRE_SPIDER: StringName = &"fire_spider"
 
 # ============================================================================
@@ -54,6 +55,7 @@ const FIRE_SPIDER: StringName = &"fire_spider"
 # ============================================================================
 
 const PEBBLOOM: StringName = &"pebbloom"
+const EARTH_KOMODO_DRAGON: StringName = &"earth_komodo_dragon"
 const ROCK: StringName = &"rock"  # Stationary test dummy
 const STONE_APE: StringName = &"stone_ape"
 const EARTH_ROCK_THROWER: StringName = &"earth_rock_thrower"
