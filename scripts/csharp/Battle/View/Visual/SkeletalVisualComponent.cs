@@ -377,6 +377,11 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         {
             _sprite3D.RenderPriority = priority;
         }
+
+        if (_shadowSprite3D != null)
+        {
+            _shadowSprite3D.RenderPriority = ResolveShadowRenderPriority(priority);
+        }
     }
 
     public bool IsFullyInitialized()
@@ -543,6 +548,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             return;
 
         AddChild(_shadowSprite3D);
+        _shadowSprite3D.RenderPriority = ResolveShadowRenderPriority(_sprite3D.RenderPriority);
     }
 
     private ShadowProfile ResolveShadowProfile()
@@ -564,6 +570,13 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         }
 
         return false;
+    }
+
+    private int ResolveShadowRenderPriority(int bodyRenderPriority)
+    {
+        int behindBody = bodyRenderPriority - 1;
+        int baseline = _shadowProfile.RenderPriority;
+        return Mathf.Clamp(Mathf.Min(behindBody, baseline), -128, 127);
     }
 
     private void SetupSpriteAlignment()
