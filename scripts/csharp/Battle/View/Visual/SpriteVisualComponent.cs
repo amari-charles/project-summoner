@@ -104,6 +104,21 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     public float BreathingAmplitude { get; set; } = 0.08f;
 
     [Export]
+    public bool EnableProceduralWalk { get; set; } = true;
+
+    [Export]
+    public float WalkCycleSpeed { get; set; } = 10.0f;
+
+    [Export]
+    public float WalkBobAmplitude { get; set; } = 2.0f;
+
+    [Export]
+    public float WalkTiltAmplitude { get; set; } = 3.0f;
+
+    [Export]
+    public float WalkScaleAmplitude { get; set; } = 0.025f;
+
+    [Export]
     public AttackStyle AttackStyleSetting { get; set; } = AttackStyle.None;
 
     /// <summary>
@@ -139,10 +154,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
     private float _bobTime;
     private float _breathingTime;
+    private float _walkTime;
     private float _baseSpriteY;
     private Vector2 _baseSpriteScale = Vector2.One;
     private Tween? _attackTween;
     private bool _isAttacking;
+    private bool _isWalkCycleActive;
     private bool _isFlipped;
     private ShadowProfile _shadowProfile = ShadowProfiles.FromPreset(ShadowProfilePreset.Default).Sanitize();
     private Color _originalModulate = Colors.White;
@@ -224,6 +241,11 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             _breathingTime = GD.Randf() * Mathf.Tau;
         }
 
+        if (EnableProceduralWalk)
+        {
+            _walkTime = GD.Randf() * Mathf.Tau;
+        }
+
         // Randomize animation frame
         RandomizeAnimationPhase();
 
@@ -274,6 +296,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         RefreshAlignmentIfFrameOrAnimationChanged();
 
         float deltaF = (float)delta;
+        float targetY = _baseSpriteY;
+        float targetRotation = 0.0f;
+        Vector2 targetScale = _baseSpriteScale;
 
         // Bobbing animation
         if (EnableBobbing)
@@ -283,10 +308,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             float bobOffset = -Mathf.Abs(Mathf.Sin(_bobTime)) * BobAmplitude;
             float rotationOffset = Mathf.Sin(_bobTime) * BobRotationAmplitude;
 
-            var pos = _characterSprite.Position;
-            pos.Y = _baseSpriteY + bobOffset;
-            _characterSprite.Position = pos;
-            _characterSprite.RotationDegrees = rotationOffset;
+            targetY += bobOffset;
+            targetRotation += rotationOffset;
         }
 
         // Breathing animation
@@ -295,8 +318,27 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             _breathingTime = (_breathingTime + deltaF * BreathingSpeed) % Mathf.Tau;
 
             float scaleFactor = 1.0f + Mathf.Sin(_breathingTime) * BreathingAmplitude;
-            _characterSprite.Scale = _baseSpriteScale * scaleFactor;
+            targetScale *= scaleFactor;
         }
+
+        // Procedural walk cycle for units using "walk" state (including fallback to idle frames).
+        if (EnableProceduralWalk && _isWalkCycleActive)
+        {
+            _walkTime = (_walkTime + deltaF * WalkCycleSpeed) % (Mathf.Tau * 2.0f);
+
+            float walkWave = Mathf.Sin(_walkTime);
+            float walkScale = 1.0f + Mathf.Sin(_walkTime * 2.0f) * WalkScaleAmplitude;
+
+            targetY += -Mathf.Abs(walkWave) * WalkBobAmplitude;
+            targetRotation += walkWave * WalkTiltAmplitude;
+            targetScale *= walkScale;
+        }
+
+        var pos = _characterSprite.Position;
+        pos.Y = targetY;
+        _characterSprite.Position = pos;
+        _characterSprite.RotationDegrees = targetRotation;
+        _characterSprite.Scale = targetScale;
     }
 
     // =========================================================================
@@ -315,6 +357,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     {
         if (_characterSprite?.SpriteFrames == null)
             return;
+
+        bool wantsWalkCycle = animName == "walk";
+        _isWalkCycleActive = EnableProceduralWalk && wantsWalkCycle;
 
         if (_characterSprite.SpriteFrames.HasAnimation(animName))
         {
@@ -608,6 +653,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         spritePos.Y += spriteOffset.Y * _characterSprite.Scale.Y;
 
         _characterSprite.Position = spritePos;
+        _baseSpriteY = spritePos.Y;
         _lastAlignedAnimation = _characterSprite.Animation;
         _lastAlignedFrame = _characterSprite.Frame;
         _lastAlignedScale = _characterSprite.Scale;
@@ -696,6 +742,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     {
         _attackTween?.Kill();
         _isAttacking = true;
+        ResetProceduralTransforms();
 
         switch (AttackStyleSetting)
         {
@@ -734,6 +781,18 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (!IsInstanceValid(this))
             return;
         _isAttacking = false;
+    }
+
+    private void ResetProceduralTransforms()
+    {
+        if (_characterSprite == null)
+            return;
+
+        var pos = _characterSprite.Position;
+        pos.Y = _baseSpriteY;
+        _characterSprite.Position = pos;
+        _characterSprite.RotationDegrees = 0.0f;
+        _characterSprite.Scale = _baseSpriteScale;
     }
 
     private void OnCharacterAnimationFinished()

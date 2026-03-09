@@ -35,6 +35,27 @@ The bobbing parameters can be tuned in `sprite_character_2d5_component.gd`:
 - Each unit starts with randomized phase to prevent synchronized bobbing
 - Bobbing pauses automatically during attack animations
 
+## Default Procedural Walk (SpriteVisualComponent)
+
+Sprite-based units now have a built-in procedural walk overlay that is enabled by default.
+When the visual is asked to play `"walk"`, it adds:
+
+- slight vertical bob (`abs(sin)`)
+- subtle side-to-side tilt (`sin`)
+- small size pulse (`sin(2x)`)
+
+This works even if a unit has no dedicated walk frames (the system can still play idle frames and apply the motion overlay).
+
+### Walk Tuning Exports
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `EnableProceduralWalk` | `true` | Enables procedural walk overlay |
+| `WalkCycleSpeed` | `10.0` | Walk cycle speed |
+| `WalkBobAmplitude` | `2.0` | Vertical bob in pixels |
+| `WalkTiltAmplitude` | `3.0` | Tilt in degrees |
+| `WalkScaleAmplitude` | `0.025` | Uniform scale pulse amount |
+
 ## Attack Animation Styles
 
 For single-frame sprites that don't have dedicated attack animations, four procedural attack effects are available:
