@@ -341,6 +341,93 @@ func test_vertical_far_margin_allows_more_upward_pan_room() -> void:
 	)
 
 
+func test_vertical_oversize_mode_pin_min_edge_pins_near_edge() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-50, -10), Vector2(100, 20))
+	_camera.vertical_oversize_clamp_mode = CameraController3D.OversizeClampMode.PIN_MIN_EDGE
+	_camera.vertical_pin_min_edge_margin = 2.0
+	_camera.horizontal_oversize_clamp_mode = CameraController3D.OversizeClampMode.CENTER
+	_camera.position.z += 1000.0
+	_camera.clamp_to_map()
+
+	var view_bounds: Rect2 = _get_effective_view_bounds_xz()
+	var map_min_z: float = _camera.map_rect_xz.position.y
+	assert_almost_eq(
+		view_bounds.position.y,
+		map_min_z + 2.0,
+		0.1,
+		"PIN_MIN_EDGE should place the view minimum Z at map minimum plus configured margin"
+	)
+
+
+func test_vertical_oversize_mode_pin_max_edge_pins_far_edge() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-50, -10), Vector2(100, 20))
+	_camera.vertical_oversize_clamp_mode = CameraController3D.OversizeClampMode.PIN_MAX_EDGE
+	_camera.vertical_pin_max_edge_margin = 1.5
+	_camera.horizontal_oversize_clamp_mode = CameraController3D.OversizeClampMode.CENTER
+	_camera.position.z -= 1000.0
+	_camera.clamp_to_map()
+
+	var view_bounds: Rect2 = _get_effective_view_bounds_xz()
+	var map_max_z: float = _camera.map_rect_xz.position.y + _camera.map_rect_xz.size.y
+	assert_almost_eq(
+		view_bounds.position.y + view_bounds.size.y,
+		map_max_z - 1.5,
+		0.1,
+		"PIN_MAX_EDGE should place the view maximum Z at map maximum minus configured margin"
+	)
+
+
+func test_vertical_oversize_mode_center_keeps_screen_reference_centered() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-50, -10), Vector2(100, 20))
+	_camera.vertical_oversize_clamp_mode = CameraController3D.OversizeClampMode.CENTER
+	_camera.horizontal_oversize_clamp_mode = CameraController3D.OversizeClampMode.CENTER
+	_camera.position.z += 600.0
+	_camera.clamp_to_map()
+
+	var anchor_point: Vector3 = _camera.get_ground_point_for_screen_uv(
+		Vector2(0.5, _camera.vertical_center_reference_screen_y)
+	)
+	var map_center_z: float = _camera.map_rect_xz.position.y + (_camera.map_rect_xz.size.y * 0.5)
+	assert_almost_eq(
+		anchor_point.z,
+		map_center_z,
+		0.1,
+		"CENTER oversize mode should align the configured screen reference row with map depth center"
+	)
+
+
+func test_vertical_oversize_center_can_follow_screen_reference_anchor() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-50, -10), Vector2(100, 20))
+	_camera.vertical_oversize_clamp_mode = CameraController3D.OversizeClampMode.CENTER
+	_camera.vertical_center_reference_screen_y = 0.65
+	_camera.position.z += 600.0
+	_camera.clamp_to_map()
+
+	var anchor_point: Vector3 = _camera.get_ground_point_for_screen_uv(
+		Vector2(0.5, _camera.vertical_center_reference_screen_y)
+	)
+	var map_center_z: float = _camera.map_rect_xz.position.y + (_camera.map_rect_xz.size.y * 0.5)
+	assert_almost_eq(
+		anchor_point.z,
+		map_center_z,
+		0.1,
+		"Vertical CENTER oversize mode should align the chosen screen reference row with map center"
+	)
+
+
+func test_camera_clamp_diagnostics_reports_mode_and_target_offsets() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-50, -10), Vector2(100, 20))
+	_camera.vertical_oversize_clamp_mode = CameraController3D.OversizeClampMode.PIN_MIN_EDGE
+	_camera.vertical_pin_min_edge_margin = 1.0
+	_camera.clamp_to_map()
+
+	var diagnostics: Dictionary = _camera.get_clamp_diagnostics()
+	assert_eq(diagnostics.get("vertical_mode"), "pin_min", "Diagnostics should expose active vertical oversize mode")
+	assert_true(diagnostics.has("target_dz"), "Diagnostics should expose target_dz correction")
+	assert_true(diagnostics.has("view_bounds_xz"), "Diagnostics should expose effective view bounds")
+	assert_true(diagnostics.has("map_bounds_xz"), "Diagnostics should expose effective map bounds")
+
+
 func test_edge_pan_is_ignored_while_drag_panning() -> void:
 	# Oversized margin guarantees edge-pan input regardless cursor location.
 	_camera.edge_pan_margin = 100000.0
@@ -440,4 +527,23 @@ func _assert_footprint_inside_map(message_prefix: String) -> void:
 			footprint.position.y + footprint.size.y,
 			map_rect.position.y + map_rect.size.y
 		]
+	)
+
+
+func _get_effective_view_bounds_xz() -> Rect2:
+	var footprint: Rect2 = _camera.get_ground_footprint_xz()
+	if footprint.size == Vector2.ZERO:
+		return Rect2()
+
+	var view_min_x: float = footprint.position.x
+	var view_max_x: float = view_min_x + footprint.size.x
+	if _camera._is_horizontal_sample_bounds_enabled():
+		var sample_x_bounds: Vector2 = _camera._get_horizontal_sample_bounds_x()
+		if sample_x_bounds != Vector2.ZERO:
+			view_min_x = sample_x_bounds.x
+			view_max_x = sample_x_bounds.y
+
+	return Rect2(
+		Vector2(view_min_x, footprint.position.y),
+		Vector2(view_max_x - view_min_x, footprint.size.y)
 	)

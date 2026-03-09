@@ -12,18 +12,32 @@ class_name BaseBattlefield3D
 # Battlefield layout
 @export_group("Layout")
 ## Spawn positions for player and enemy bases/units
-##
-## The Z offset (-7.5) compensates for the camera's 35° tilt angle.
-## Castle sprites are 6 units tall. From the tilted camera view, this height
-## appears as "depth" in screen space. The negative Z offset shifts castles
-## forward (toward camera) to center them vertically in the viewport.
-##
-## Formula: Z_offset ≈ -(sprite_height / 2) * (camera_up.z / camera_up.y)
-## For 6-unit tall sprite with 35° camera: -7.5 units
-##
-## TODO: Calculate this dynamically based on sprite height and camera angle
-@export var player_spawn_position: Vector3 = Vector3(-40, 0, -7.5)
-@export var enemy_spawn_position: Vector3 = Vector3(40, 0, -7.5)
+## Depth (Z) is centered at 0 so summoners sit on the arena midpoint
+## along the camera-facing axis.
+@export var player_spawn_position: Vector3 = Vector3(-40, 0, 0)
+@export var enemy_spawn_position: Vector3 = Vector3(40, 0, 0)
+
+@export_group("Camera Bounds")
+## Extra camera-clamp space beyond arena mesh on the X axis (left/right), in world units.
+## Positive values let the camera show outside the arena horizontally.
+@export var camera_bounds_padding_x: float = 0.0
+## Extra camera-clamp space beyond arena mesh on the Z axis (near/far), in world units.
+## Positive values let the camera show outside the arena in depth.
+@export var camera_bounds_padding_z: float = 0.0
+## Additional clamp room on the left edge beyond `camera_bounds_padding_x`.
+@export var camera_bounds_padding_left: float = 0.0
+## Additional clamp room on the right edge beyond `camera_bounds_padding_x`.
+@export var camera_bounds_padding_right: float = 0.0
+## Additional clamp room on the edge closest to the camera beyond `camera_bounds_padding_z`.
+@export var camera_bounds_padding_toward_camera: float = 0.0
+## Additional clamp room on the edge farther from the camera beyond `camera_bounds_padding_z`.
+@export var camera_bounds_padding_away_from_camera: float = 0.0
+## Expand live camera bounds horizontally to include the startup camera framing.
+## Leave this off if you want horizontal clamp width to follow the arena bounds tightly.
+@export var include_startup_camera_footprint_in_bounds_x: bool = false
+## Expand live camera bounds in depth to include the startup camera framing.
+## This preserves authored startup depth without relaxing horizontal bounds.
+@export var include_startup_camera_footprint_in_bounds_z: bool = true
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var camera: CameraController3D = get_node_or_null("Camera3D") as CameraController3D
@@ -48,9 +62,38 @@ func _configure_camera_bounds() -> void:
 		push_warning("BaseBattlefield3D: Ground bounds unavailable; camera will keep existing bounds")
 		return
 
+	if include_startup_camera_footprint_in_bounds_x or include_startup_camera_footprint_in_bounds_z:
+		bounds_xz = _merge_rects_xz_by_axis(
+			bounds_xz,
+			_get_startup_camera_footprint_bounds(),
+			include_startup_camera_footprint_in_bounds_x,
+			include_startup_camera_footprint_in_bounds_z
+		)
+
+	camera.set_arena_floor_bounds(_get_arena_mesh_bounds_xz())
 	camera.set_map_bounds(bounds_xz)
 
 func get_ground_bounds_xz() -> Rect2:
+	var arena_bounds: Rect2 = _get_arena_mesh_bounds_xz()
+	if arena_bounds.size == Vector2.ZERO:
+		return Rect2()
+
+	var safe_padding_x: float = max(camera_bounds_padding_x, 0.0)
+	var safe_padding_z: float = max(camera_bounds_padding_z, 0.0)
+	var padding_left: float = safe_padding_x + max(camera_bounds_padding_left, 0.0)
+	var padding_right: float = safe_padding_x + max(camera_bounds_padding_right, 0.0)
+	var padding_toward_camera: float = safe_padding_z + max(camera_bounds_padding_toward_camera, 0.0)
+	var padding_away_from_camera: float = safe_padding_z + max(camera_bounds_padding_away_from_camera, 0.0)
+
+	return Rect2(
+		Vector2(arena_bounds.position.x - padding_left, arena_bounds.position.y - padding_toward_camera),
+		Vector2(
+			arena_bounds.size.x + padding_left + padding_right,
+			arena_bounds.size.y + padding_toward_camera + padding_away_from_camera
+		)
+	)
+
+func _get_arena_mesh_bounds_xz() -> Rect2:
 	if not background:
 		return Rect2()
 	if not background.mesh or not background.mesh is PlaneMesh:
@@ -61,10 +104,66 @@ func get_ground_bounds_xz() -> Rect2:
 	var depth: float = plane_mesh.size.y * background.global_basis.z.length()
 	var center: Vector3 = background.global_position
 
-	return Rect2(
-		Vector2(center.x - width * 0.5, center.z - depth * 0.5),
-		Vector2(width, depth)
+	var min_x: float = center.x - width * 0.5
+	var min_z: float = center.z - depth * 0.5
+	return Rect2(Vector2(min_x, min_z), Vector2(width, depth))
+
+func _get_startup_camera_footprint_bounds() -> Rect2:
+	if not camera:
+		return Rect2()
+
+	var profile: BattleCameraProjectionProfile = (
+		camera.perspective_camera_profile
+		if camera.projection_mode == BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
+		else camera.orthographic_camera_profile
 	)
+	if not profile:
+		return Rect2()
+
+	var saved_transform: Transform3D = camera.transform
+	var saved_projection: int = camera.projection
+	var saved_keep_aspect: int = camera.keep_aspect
+	var saved_fov: float = camera.fov
+	var saved_size: float = camera.size
+	var saved_near: float = camera.near
+	var saved_far: float = camera.far
+
+	camera.transform = profile.camera_transform
+	camera.keep_aspect = profile.keep_aspect as Camera3D.KeepAspect
+	camera.near = profile.near_clip
+	camera.far = profile.far_clip
+	if int(profile.projection_mode) == int(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE):
+		camera.projection = Camera3D.PROJECTION_PERSPECTIVE
+		camera.fov = clamp(profile.default_zoom, profile.min_zoom, profile.max_zoom)
+	else:
+		camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+		camera.size = clamp(profile.default_zoom, profile.min_zoom, profile.max_zoom)
+
+	camera.force_update_transform()
+	var footprint: Rect2 = camera.get_ground_footprint_xz()
+
+	camera.transform = saved_transform
+	camera.projection = saved_projection as Camera3D.ProjectionType
+	camera.keep_aspect = saved_keep_aspect as Camera3D.KeepAspect
+	camera.fov = saved_fov
+	camera.size = saved_size
+	camera.near = saved_near
+	camera.far = saved_far
+	camera.force_update_transform()
+
+	return footprint
+
+func _merge_rects_xz_by_axis(a: Rect2, b: Rect2, merge_x: bool, merge_z: bool) -> Rect2:
+	if a.size == Vector2.ZERO:
+		return b
+	if b.size == Vector2.ZERO:
+		return a
+
+	var min_x: float = min(a.position.x, b.position.x) if merge_x else a.position.x
+	var min_z: float = min(a.position.y, b.position.y) if merge_z else a.position.y
+	var max_x: float = max(a.position.x + a.size.x, b.position.x + b.size.x) if merge_x else (a.position.x + a.size.x)
+	var max_z: float = max(a.position.y + a.size.y, b.position.y + b.size.y) if merge_z else (a.position.y + a.size.y)
+	return Rect2(Vector2(min_x, min_z), Vector2(max_x - min_x, max_z - min_z))
 
 ## Load and apply biome from BattleContext
 func _apply_biome_from_context() -> void:

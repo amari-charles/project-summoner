@@ -51,6 +51,7 @@ This folder is for implementation references.
 - [rendering/framerate-independence.md](rendering/framerate-independence.md)
 - [rendering/unit-animations.md](rendering/unit-animations.md)
 - [rendering/shadow-system.md](rendering/shadow-system.md)
+- [rendering/battle-camera-tuning.md](rendering/battle-camera-tuning.md)
 
 ### Tooling
 
