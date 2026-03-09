@@ -17,7 +17,7 @@ using static GdUnit4.Assertions;
 
 [TestSuite]
 [RequireGodotRuntime]
-public class ProgressionXpSpendTest
+public partial class ProgressionXpSpendTest
 {
     private readonly List<Node> _createdNodes = [];
 
@@ -218,6 +218,46 @@ public class ProgressionXpSpendTest
         AssertThat(afterMax!.Level).IsEqual(SummonerProgressionService.MaxLevel);
         AssertThat(afterMax.Xp).IsEqual(999);
         AssertThat(afterMax.UnspentTraitPoints).IsEqual(4);
+    }
+
+    [TestCase]
+    public void CardLevelUp_PersistenceFailure_ReturnsFalseAndDoesNotMutateState()
+    {
+        var repo = CreateNode<FailingCardUpdateProfileRepository>();
+        repo.LoadProfile(new ProfileId("progression_xp_spend_card_persist_failure"));
+        repo.ResetProfile();
+
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+
+        var instanceId = CardInstanceId.FromString(cardService.GrantCard(CardIds.FireWisp, "common"));
+        AssertThat(instanceId).IsNotEqual(CardInstanceId.None);
+        AssertThat(repo.UpdateCard(instanceId, new CardUpdate
+        {
+            Level = 1,
+            Xp = 30,
+            UnspentTraitPoints = 0
+        })).IsTrue();
+
+        var progression = new CardProgressionHandler(repo);
+        AssertThat(progression.CanLevelUp(instanceId)).IsTrue();
+        AssertThat(progression.LevelUpCard(instanceId)).IsFalse();
+
+        var card = repo.GetCard(instanceId);
+        AssertThat(card).IsNotNull();
+        AssertThat(card!.Level).IsEqual(1);
+        AssertThat(card.Xp).IsEqual(30);
+        AssertThat(card.UnspentTraitPoints).IsEqual(0);
+    }
+
+    private sealed partial class FailingCardUpdateProfileRepository : ProfileRepository, IProfileRepository
+    {
+        bool IProfileRepository.UpdateCard(CardInstanceId cardInstanceId, CardUpdate updates)
+        {
+            _ = cardInstanceId;
+            _ = updates;
+            return false;
+        }
     }
 
     private ProfileRepository CreateRepo(string profileId)

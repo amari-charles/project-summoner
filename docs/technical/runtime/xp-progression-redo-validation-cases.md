@@ -54,7 +54,7 @@ Allowed status values:
 ### Pass 2
 
 1. Every required case has a test target file and skeleton mapping.
-2. Stub checklist references all `XP-C*` and `XP-D*` IDs.
+2. Stub checklist references the required baseline cases used for Pass 2 stubs/wiring and determinism checks.
 
 ### Pass 3
 

@@ -151,24 +151,26 @@ public class CardProgressionHandler
             return false;
         }
 
-        if (!CanLevelUp(cardInstanceId))
-        {
-            GD.PushWarning($"CardProgressionHandler: Card cannot level up: {cardInstanceId}");
-            return false;
-        }
-
         var state = BuildProgressionState(card);
         var curve = BuildProgressionCurve(card);
         var applyResult = ProgressionEngine.ApplyLevelUp(state, curve);
         if (!applyResult.Success)
+        {
+            GD.PushWarning($"CardProgressionHandler: Level up rejected ({applyResult.Status}) for card: {cardInstanceId}");
             return false;
+        }
 
-        _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
+        var saveSuccess = _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
         {
             Level = applyResult.NextState.Level,
             Xp = applyResult.NextState.XpTowardNext,
             UnspentTraitPoints = card.UnspentTraitPoints + 1
         });
+        if (!saveSuccess)
+        {
+            GD.PushError($"CardProgressionHandler: Failed to persist level-up for card: {cardInstanceId}");
+            return false;
+        }
 
         GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {applyResult.NextState.Level}, consumed {applyResult.XpCostSpent} XP (remaining: {applyResult.NextState.XpTowardNext}), and granted 1 trait point");
         return true;
