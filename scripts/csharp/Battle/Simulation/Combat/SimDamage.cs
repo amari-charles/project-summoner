@@ -154,7 +154,8 @@ public static class SimDamage
     }
 
     /// <summary>
-    /// Overload for backwards compatibility — defaults to Physical damage type.
+    /// Convenience overload for attacker-driven unit damage.
+    /// Defaults to physical lane when attacker is null.
     /// </summary>
     public static (float damage, bool isCrit) Calculate(
         float baseDamage,

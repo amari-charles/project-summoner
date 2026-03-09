@@ -4,6 +4,11 @@ PASS 2 objective: compile-safe stubs and data wiring only.
 
 Status legend: `Pending`, `Done`
 
+## Approval Evidence
+
+- PASS 1 -> PASS 2 approval captured on 2026-03-09 in delivery thread: "ok sounds good lets go to next step".
+- PASS 2 -> PASS 3 approval captured on 2026-03-09 in delivery thread: "proceed".
+
 ## Artifact Checklist
 
 - [x] `combat-damage-pipeline-completion-plan.md` present

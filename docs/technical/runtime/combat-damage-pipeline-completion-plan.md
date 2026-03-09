@@ -37,6 +37,11 @@ Out of scope:
 
 ## Delivery Passes
 
+## Approval Evidence
+- PASS 1 -> PASS 2 approval captured on 2026-03-09 in delivery thread: "ok sounds good lets go to next step".
+- PASS 2 -> PASS 3 approval captured on 2026-03-09 in delivery thread: "proceed".
+- Post-review follow-up approval captured on 2026-03-09: "Yes do so!!!!!!!!".
+
 ### PASS 1: Use Cases + Validation
 Status: `Complete`
 - Produce plan and validation-case matrix with explicit test mapping IDs.

@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.View;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Fateforged.Cards;
 using Fateforged.Session;
@@ -150,20 +151,40 @@ public class BattleSceneTest
         {
             ["opponent_summoner_data"] = opponentSummoner
         };
-        SetPrivateField(scene, "_config", new BattleSessionConfig
+        var config = new BattleSessionConfig
         {
             Mode = BattleMode.Multiplayer,
             IsMultiplayer = true,
             HasAuthority = true,
             RawConfig = rawConfig
-        });
+        };
+        SetPrivateField(scene, "_config", config);
+
+        // Build expected values from the same loader path to avoid brittle hard-coded trait numbers.
+        var expected = BattleSessionFactory.LoadSummonerData(
+            scene,
+            config,
+            1,
+            summoner.DeckLoadStrategy,
+            summoner.MaxHpExport,
+            summoner.MaxHandSize,
+            summoner.StartingDeck);
 
         InvokePrivateMethod(scene, "InitSummonerHost", summoner, 1, simNode);
 
         var summonerState = simNode.State.Summoners[1];
-        AssertThat(summonerState.DamageBonus).IsEqual(0f);
-        AssertThat(summonerState.DamageReduction).IsEqual(5f);
-        AssertThat(summonerState.GetElementalDamageBonus(Element.Earth)).IsEqual(10f);
+        AssertThat(summonerState.DamageBonus).IsEqual(expected.DamageBonus);
+        AssertThat(summonerState.DamageReduction).IsEqual(expected.DamageReduction);
+
+        var actualElementalBonuses = summonerState.EnumerateElementalDamageBonuses().ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value);
+        AssertThat(actualElementalBonuses.Count).IsEqual(expected.ElementalDamageBonuses.Count);
+        foreach (var (element, bonus) in expected.ElementalDamageBonuses)
+        {
+            AssertThat(actualElementalBonuses.ContainsKey(element)).IsTrue();
+            AssertThat(actualElementalBonuses[element]).IsEqual(bonus);
+        }
     }
 
     private BattleScene CreateBattleScene()
