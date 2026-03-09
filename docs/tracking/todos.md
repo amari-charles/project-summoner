@@ -876,7 +876,7 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 ---
 
 #### Refactor Reward System to Typed RewardSpec Classes
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Reward Claim + Screen Hardening Landed)
 **Category:** Architecture / Flag Proliferation
 **Effort:** Medium
 
@@ -887,6 +887,14 @@ Replace the dictionary-based reward spec with polymorphic C# classes. The `get_r
 - `reward_service.gd:85-95` builds spec dictionary with multiple flags
 - `reward_screen.gd:124-173` checks `is_replay` and `requires_choice` flags
 - Flag combinations create complex conditional logic
+
+**Progress Update (2026-03-09):**
+- ✅ Mission completion reward flow now uses `BattleRewardSpec`-derived grants in `CampaignRewardHandler` (flexible rewards + campaign gold included)
+- ✅ Pending flexible choice now persists stable `chosen_catalog_id` to prevent index drift across resume/claim
+- ✅ RewardScreen current-battle resolution hardened for per-summoner campaign progress and pending-reward fallback
+- ✅ Regression coverage added for claim flow, mission completion flow, and choice-drift scenario
+- ⬜ Remaining: Replace dictionary flag checks in `RewardScreen` with typed `RewardSpec` subclasses and eliminate `is_replay`/`requires_choice` branching
+- ⬜ Remaining: Introduce explicit `RewardSpec` class hierarchy + factory (`RewardSpecFactory`) and migrate remaining consumers
 
 **Ideal State:**
 ```csharp

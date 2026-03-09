@@ -199,7 +199,7 @@ public class TypedFacadeRoutingTest
 
         // Simulate pending reward lifecycle used by reward screen.
         campaignService.SetPendingReward(battleId, Fateforged.Data.Events.RewardType.Flexible.ToStringId(), -1);
-        campaignService.UpdatePendingChoice(chosenIndex);
+        campaignService.UpdatePendingChoice(chosenIndex, chosenCatalogId);
 
         var granted = campaignService.ClaimPendingReward();
         var progress = repo.GetCampaignProgress(summonerId);
@@ -209,6 +209,44 @@ public class TypedFacadeRoutingTest
         AssertThat(progress.Gold).IsEqual(goldReward);
         AssertThat(granted.GetValueOrDefault("catalog_id", "").AsString()).IsEqual(chosenCatalogId);
         AssertThat(granted.GetValueOrDefault("campaign_gold", 0).AsInt32()).IsEqual(goldReward);
+    }
+
+    [TestCase]
+    public void MissionCompletionFlow_ChoiceCatalogIdPreventsIndexDriftAfterCollectionChanges()
+    {
+        var repo = CreateRepo("typed_facade_mission_drift");
+        var campaignService = CreateNode<CampaignService>();
+        campaignService.InitForTesting(repo);
+
+        var rewardService = CreateNode<RewardService>();
+        rewardService.InitForTesting(repo);
+
+        var summonerId = EnsureUnlockedSummoner(repo, SummonerIds.Cole);
+        campaignService.SetActiveSummonerGetter(Callable.From(() => (string)summonerId));
+        campaignService.SetCollectionCallbacks(Callable.From<string, string, string>((catalogId, rarity) =>
+        {
+            var ids = repo.GrantCards(new[] { (new CardId(catalogId), rarity) });
+            return ids.Length > 0 ? ids[0].Value : "";
+        }));
+        campaignService.InitializeCatalogs();
+
+        string battleId = (string)EventIds.FirstTrial;
+        var spec = rewardService.GetBattleRewardSpecAsDict(battleId, isCompleted: false, chosenIndex: -1);
+        var options = spec.GetValueOrDefault("card_options", new Godot.Collections.Array()).AsGodotArray();
+        AssertThat(options.Count).IsGreater(1);
+
+        var chosenIndex = 1;
+        var chosenCatalogId = options[chosenIndex].AsGodotDictionary().GetValueOrDefault("catalog_id", "").AsString();
+        AssertThat(string.IsNullOrEmpty(chosenCatalogId)).IsFalse();
+
+        campaignService.SetPendingReward(battleId, Fateforged.Data.Events.RewardType.Flexible.ToStringId(), -1);
+        campaignService.UpdatePendingChoice(chosenIndex, chosenCatalogId);
+
+        // Change collection before claim; this can reshuffle filtered flexible options.
+        repo.GrantCards(new[] { (new CardId((string)CardIds.FireWisp), "common") });
+
+        var granted = campaignService.ClaimPendingReward();
+        AssertThat(granted.GetValueOrDefault("catalog_id", "").AsString()).IsEqual(chosenCatalogId);
     }
 
     private ProfileRepository CreateRepo(string profileId)

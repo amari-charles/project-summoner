@@ -483,7 +483,10 @@ func _on_flexible_choice_selected(index: int) -> void:
 	chosen_reward_index = index
 
 	# Save choice to pending reward state (persists if player exits)
-	CampaignApi.update_pending_choice(index)
+	var chosen_catalog_id: String = ""
+	if index >= 0 and index < flexible_options.size():
+		chosen_catalog_id = flexible_options[index].get("catalog_id", "")
+	CampaignApi.update_pending_choice(index, chosen_catalog_id)
 
 	if index >= 0 and index < flexible_options.size():
 		# Hide choice UI and show selected card preview

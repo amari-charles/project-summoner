@@ -84,8 +84,8 @@ public class CampaignRewardHandler
         return pending != null ? DtoConverters.ToDict(pending) : new Godot.Collections.Dictionary();
     }
 
-    /// <summary>Update choice index for a pending choice reward.</summary>
-    public void UpdatePendingChoice(int choiceIndex)
+    /// <summary>Update choice selection for a pending choice reward.</summary>
+    public void UpdatePendingChoice(int choiceIndex, string chosenCatalogId = "")
     {
         var summonerId = _getActiveSummonerFunc();
         if (!summonerId.HasValue) return;
@@ -97,9 +97,10 @@ public class CampaignRewardHandler
             return;
         }
         progress.PendingReward.ChoiceIndex = choiceIndex;
+        progress.PendingReward.ChosenCatalogId = chosenCatalogId ?? "";
         _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
-        GD.Print($"CampaignRewardHandler: Updated pending choice to index {choiceIndex}");
+        GD.Print($"CampaignRewardHandler: Updated pending choice to index {choiceIndex}, catalog_id '{progress.PendingReward.ChosenCatalogId}'");
     }
 
     /// <summary>Clear the pending reward.</summary>
@@ -123,7 +124,7 @@ public class CampaignRewardHandler
     /// Grant battle reward and return granted reward payload.
     /// Uses BattleRewardSpec so grant behavior matches the reward screen (filtering + choice index semantics).
     /// </summary>
-    public Godot.Collections.Dictionary GrantBattleReward(BattleId battleId, int chosenIndex = 0)
+    public Godot.Collections.Dictionary GrantBattleReward(BattleId battleId, int chosenIndex = 0, string chosenCatalogId = "")
     {
         var granted = new Godot.Collections.Dictionary();
         var grantedCards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
@@ -133,7 +134,7 @@ public class CampaignRewardHandler
         GrantCampaignGold(spec.GoldReward);
         granted["campaign_gold"] = spec.GoldReward;
 
-        foreach (var option in ResolveCardOptionsToGrant(spec, chosenIndex))
+        foreach (var option in ResolveCardOptionsToGrant(spec, chosenIndex, chosenCatalogId))
         {
             var ids = GrantRewardCard(option.CatalogId, option.Rarity, option.Count);
             foreach (var id in ids)
@@ -170,7 +171,7 @@ public class CampaignRewardHandler
         return BattleRewardSpec.FromBattleId((string)battleId, isCompleted: false, chosenIndex, ownedCatalogIds);
     }
 
-    private IEnumerable<CardRewardOption> ResolveCardOptionsToGrant(BattleRewardSpec spec, int chosenIndex)
+    private IEnumerable<CardRewardOption> ResolveCardOptionsToGrant(BattleRewardSpec spec, int chosenIndex, string chosenCatalogId)
     {
         if (spec.CardOptions.Count == 0)
             yield break;
@@ -183,6 +184,18 @@ public class CampaignRewardHandler
                 yield break;
 
             case Data.Events.RewardType.Flexible:
+                if (!string.IsNullOrEmpty(chosenCatalogId))
+                {
+                    var selected = spec.CardOptions.FirstOrDefault(o => o.CatalogId == chosenCatalogId);
+                    if (selected != null)
+                    {
+                        yield return selected;
+                        yield break;
+                    }
+
+                    GD.PushWarning($"CampaignRewardHandler: Chosen catalog_id '{chosenCatalogId}' not present in current options, falling back to index");
+                }
+
                 var index = chosenIndex >= 0 ? chosenIndex : 0;
                 if (index >= spec.CardOptions.Count)
                 {
@@ -253,7 +266,7 @@ public class CampaignRewardHandler
             return (new Godot.Collections.Dictionary(), BattleId.None);
         }
 
-        var grantedCard = GrantBattleReward(pending.BattleId, pending.ChoiceIndex);
+        var grantedCard = GrantBattleReward(pending.BattleId, pending.ChoiceIndex, pending.ChosenCatalogId);
 
         GD.Print($"CampaignRewardHandler: Claimed reward for battle '{pending.BattleId}'");
         return (grantedCard, pending.BattleId);

@@ -350,10 +350,10 @@ public partial class CampaignService : Node
 		return _rewards?.GetPendingReward() ?? [];
 	}
 
-	/// <summary>Update choice index for a pending choice reward.</summary>
-	public void UpdatePendingChoice(int choiceIndex)
+	/// <summary>Update choice selection for a pending choice reward.</summary>
+	public void UpdatePendingChoice(int choiceIndex, string chosenCatalogId = "")
 	{
-		_rewards?.UpdatePendingChoice(choiceIndex);
+		_rewards?.UpdatePendingChoice(choiceIndex, chosenCatalogId);
 	}
 
 	/// <summary>Clear the pending reward.</summary>

@@ -28,8 +28,8 @@ static func complete_battle(event_id: String) -> void:
 static func clear_pending_reward() -> void:
 	Campaign.call("ClearPendingReward")
 
-static func update_pending_choice(index: int) -> void:
-	Campaign.call("UpdatePendingChoice", index)
+static func update_pending_choice(index: int, chosen_catalog_id: String = "") -> void:
+	Campaign.call("UpdatePendingChoice", index, chosen_catalog_id)
 
 static func start_battle(event_id: String) -> void:
 	Campaign.call("StartBattle", event_id)
