@@ -72,13 +72,15 @@ In `scripts/battle/battlefield/base_battlefield_3d.gd`:
 - `camera_bounds_padding_right`: extra room only on right edge
 - `camera_bounds_padding_toward_camera`: extra room only on the near edge
 - `camera_bounds_padding_away_from_camera`: extra room only on the far edge
-- `include_startup_camera_footprint_in_bounds`: automatically grows clamp bounds so the authored starting camera pose is legal
+- `include_startup_camera_footprint_in_bounds_x`: preserves startup framing horizontally
+- `include_startup_camera_footprint_in_bounds_z`: preserves startup framing in depth
 
 Plain-English:
 - Increase `camera_bounds_padding_z` if the camera feels stuck to arena depth edges and you want to see outside the field.
 - Increase `camera_bounds_padding_away_from_camera` if startup keeps snapping backward because the far edge of the view is hitting the field limit.
 - Increase `camera_bounds_padding_toward_camera` if the camera cannot move close enough to the player side.
-- Turn on `include_startup_camera_footprint_in_bounds` if the match starts in the right spot in the editor/profile but snaps somewhere else at runtime.
+- Turn on `include_startup_camera_footprint_in_bounds_z` if the match starts in the right depth but snaps on load.
+- Leave `include_startup_camera_footprint_in_bounds_x` off if you want horizontal clamp bounds to stay tight to the arena.
 
 ## Debug Overlay
 

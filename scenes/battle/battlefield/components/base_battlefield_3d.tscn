@@ -23,9 +23,10 @@ glow_blend_mode = 1
 
 [node name="BaseBattlefield3D" type="Node3D" groups=["battlefield"]]
 script = ExtResource("1_script")
-camera_bounds_padding_x = 24.0
-camera_bounds_padding_z = 35.0
-camera_bounds_padding_away_from_camera = 28.0
+camera_bounds_padding_x = 12.0
+camera_bounds_padding_z = 20.0
+camera_bounds_padding_away_from_camera = 20.0
+include_startup_camera_footprint_in_bounds_z = true
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, 0.573576, -0.819152, 0, 34.71, -55.6859)

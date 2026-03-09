@@ -32,9 +32,12 @@ class_name BaseBattlefield3D
 @export var camera_bounds_padding_toward_camera: float = 0.0
 ## Additional clamp room on the edge farther from the camera beyond `camera_bounds_padding_z`.
 @export var camera_bounds_padding_away_from_camera: float = 0.0
-## Expand live camera bounds to include the startup camera framing from the active profile.
-## This preserves the authored match-start pose without relaxing zoom restrictions.
-@export var include_startup_camera_footprint_in_bounds: bool = true
+## Expand live camera bounds horizontally to include the startup camera framing.
+## Leave this off if you want horizontal clamp width to follow the arena bounds tightly.
+@export var include_startup_camera_footprint_in_bounds_x: bool = false
+## Expand live camera bounds in depth to include the startup camera framing.
+## This preserves authored startup depth without relaxing horizontal bounds.
+@export var include_startup_camera_footprint_in_bounds_z: bool = true
 
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
 @onready var camera: CameraController3D = get_node_or_null("Camera3D") as CameraController3D
@@ -59,8 +62,13 @@ func _configure_camera_bounds() -> void:
 		push_warning("BaseBattlefield3D: Ground bounds unavailable; camera will keep existing bounds")
 		return
 
-	if include_startup_camera_footprint_in_bounds:
-		bounds_xz = _merge_rects_xz(bounds_xz, _get_startup_camera_footprint_bounds())
+	if include_startup_camera_footprint_in_bounds_x or include_startup_camera_footprint_in_bounds_z:
+		bounds_xz = _merge_rects_xz_by_axis(
+			bounds_xz,
+			_get_startup_camera_footprint_bounds(),
+			include_startup_camera_footprint_in_bounds_x,
+			include_startup_camera_footprint_in_bounds_z
+		)
 
 	camera.set_arena_floor_bounds(_get_arena_mesh_bounds_xz())
 	camera.set_map_bounds(bounds_xz)
@@ -145,16 +153,16 @@ func _get_startup_camera_footprint_bounds() -> Rect2:
 
 	return footprint
 
-func _merge_rects_xz(a: Rect2, b: Rect2) -> Rect2:
+func _merge_rects_xz_by_axis(a: Rect2, b: Rect2, merge_x: bool, merge_z: bool) -> Rect2:
 	if a.size == Vector2.ZERO:
 		return b
 	if b.size == Vector2.ZERO:
 		return a
 
-	var min_x: float = min(a.position.x, b.position.x)
-	var min_z: float = min(a.position.y, b.position.y)
-	var max_x: float = max(a.position.x + a.size.x, b.position.x + b.size.x)
-	var max_z: float = max(a.position.y + a.size.y, b.position.y + b.size.y)
+	var min_x: float = min(a.position.x, b.position.x) if merge_x else a.position.x
+	var min_z: float = min(a.position.y, b.position.y) if merge_z else a.position.y
+	var max_x: float = max(a.position.x + a.size.x, b.position.x + b.size.x) if merge_x else (a.position.x + a.size.x)
+	var max_z: float = max(a.position.y + a.size.y, b.position.y + b.size.y) if merge_z else (a.position.y + a.size.y)
 	return Rect2(Vector2(min_x, min_z), Vector2(max_x - min_x, max_z - min_z))
 
 ## Load and apply biome from BattleContext
