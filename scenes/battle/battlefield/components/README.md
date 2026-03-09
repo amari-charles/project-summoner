@@ -19,7 +19,7 @@ Reusable 3D building blocks that are instanced by main battle scenes.
 
 ### base_battlefield_3d.tscn
 The foundation 3D environment for all battles. Contains:
-- **Camera3D**: Orthographic camera with 35° tilt
+- **Camera3D**: Perspective battle camera with 35° tilt
 - **DirectionalLight3D**: Main scene lighting
 - **WorldEnvironment**: Background color, ambient light, fog
 - **Background**: Ground plane (MeshInstance3D with PlaneMesh)

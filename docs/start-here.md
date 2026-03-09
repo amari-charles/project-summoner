@@ -27,7 +27,7 @@ Welcome to Fateforged! This document will help you get oriented with the project
 **Genre:** Real-time tactical card battler
 **Inspiration:** Mini Warriors, Clash Royale, Cult of the Lamb
 **Engine:** Godot 4.5
-**Perspective:** 2.5D (3D world with orthographic camera at 35° tilt)
+**Perspective:** 2.5D (3D world with perspective battle camera at 35° tilt)
 
 ### Core Gameplay Loop
 

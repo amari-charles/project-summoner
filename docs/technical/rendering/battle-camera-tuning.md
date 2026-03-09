@@ -6,7 +6,6 @@ Purpose: quick, non-technical guidance for changing battle camera framing withou
 
 Primary camera profile values:
 - `resources/camera_profiles/battle_perspective.tres` -> `camera_transform`
-- `resources/camera_profiles/battle_orthographic.tres` -> `camera_transform`
 
 Scene default (keep aligned with perspective profile):
 - `scenes/battle/battlefield/components/base_battlefield_3d.tscn` -> `Camera3D.transform`
@@ -44,12 +43,10 @@ Reverse direction by negating `d`.
 ## Zoom Behavior (Not Position)
 
 Zoom limits come from camera profile zoom values:
-- Perspective: `default_zoom`, `min_zoom`, `max_zoom` in `battle_perspective.tres`
-- Orthographic: `default_zoom`, `min_zoom`, `max_zoom` in `battle_orthographic.tres`
+- `default_zoom`, `min_zoom`, `max_zoom` in `battle_perspective.tres`
 
 In controller:
-- `default_fov`/`max_fov` (perspective): higher value shows more map (zoom out)
-- `default_ortho_size`/`max_ortho_size` (orthographic): higher value shows more map
+- `default_fov`/`max_fov`: higher value shows more map (zoom out)
 
 ## Field Bounds Vs Zoom Bounds
 
@@ -94,5 +91,5 @@ This makes it obvious when the camera is allowed to show space outside the playa
 
 1. Keep profile and scene camera transforms in sync.
 2. Keep basis unchanged unless intentionally changing tilt.
-3. Test both projection modes (Perspective + Orthographic).
+3. Verify startup framing remains stable (no load-time snap) after map/layout changes.
 4. Toggle debug overlay in Debug Menu to verify clamp footprint.

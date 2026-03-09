@@ -112,11 +112,7 @@ func _get_startup_camera_footprint_bounds() -> Rect2:
 	if not camera:
 		return Rect2()
 
-	var profile: BattleCameraProjectionProfile = (
-		camera.perspective_camera_profile
-		if camera.projection_mode == BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
-		else camera.orthographic_camera_profile
-	)
+	var profile: BattleCameraProjectionProfile = camera.perspective_camera_profile
 	if not profile:
 		return Rect2()
 
@@ -124,7 +120,6 @@ func _get_startup_camera_footprint_bounds() -> Rect2:
 	var saved_projection: int = camera.projection
 	var saved_keep_aspect: int = camera.keep_aspect
 	var saved_fov: float = camera.fov
-	var saved_size: float = camera.size
 	var saved_near: float = camera.near
 	var saved_far: float = camera.far
 
@@ -132,12 +127,8 @@ func _get_startup_camera_footprint_bounds() -> Rect2:
 	camera.keep_aspect = profile.keep_aspect as Camera3D.KeepAspect
 	camera.near = profile.near_clip
 	camera.far = profile.far_clip
-	if int(profile.projection_mode) == int(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE):
-		camera.projection = Camera3D.PROJECTION_PERSPECTIVE
-		camera.fov = clamp(profile.default_zoom, profile.min_zoom, profile.max_zoom)
-	else:
-		camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-		camera.size = clamp(profile.default_zoom, profile.min_zoom, profile.max_zoom)
+	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
+	camera.fov = clamp(profile.default_zoom, profile.min_zoom, profile.max_zoom)
 
 	camera.force_update_transform()
 	var footprint: Rect2 = camera.get_ground_footprint_xz()
@@ -146,7 +137,6 @@ func _get_startup_camera_footprint_bounds() -> Rect2:
 	camera.projection = saved_projection as Camera3D.ProjectionType
 	camera.keep_aspect = saved_keep_aspect as Camera3D.KeepAspect
 	camera.fov = saved_fov
-	camera.size = saved_size
 	camera.near = saved_near
 	camera.far = saved_far
 	camera.force_update_transform()

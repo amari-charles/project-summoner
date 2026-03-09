@@ -49,36 +49,10 @@ func test_camera_uses_perspective_projection() -> void:
 	)
 
 
-func test_projection_mode_toggle_switches_projection_and_zoom_domain() -> void:
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
-	assert_eq(
-		_camera.projection,
-		Camera3D.PROJECTION_ORTHOGONAL,
-		"Projection toggle should switch to orthographic mode"
-	)
-
-	var start_size: float = _camera.size
-	_camera._apply_zoom(-4.0)
-	assert_lt(_camera.size, start_size, "Orthographic zoom in should decrease camera size")
-
-	_camera._apply_zoom(-9999.0)
-	assert_almost_eq(_camera.size, _camera.min_ortho_size, 0.001, "Ortho zoom in should clamp to min_ortho_size")
-
-	_camera._apply_zoom(9999.0)
-	assert_almost_eq(_camera.size, _camera.max_ortho_size, 0.001, "Ortho zoom out should clamp to max_ortho_size")
-
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
-	assert_eq(
-		_camera.projection,
-		Camera3D.PROJECTION_PERSPECTIVE,
-		"Projection toggle should switch back to perspective mode"
-	)
-
-func test_projection_profiles_apply_mode_specific_transform_and_zoom() -> void:
+func test_perspective_profile_applies_transform_zoom_and_clamp_settings() -> void:
 	_camera.map_rect_xz = Rect2(Vector2(-10000, -10000), Vector2(20000, 20000))
 
 	var perspective_profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
-	perspective_profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE
 	perspective_profile.camera_transform = Transform3D(
 		Vector3(1, 0, 0),
 		Vector3(0, 0.819152, 0.573576),
@@ -94,66 +68,15 @@ func test_projection_profiles_apply_mode_specific_transform_and_zoom() -> void:
 	perspective_profile.horizontal_bounds_screen_y = 0.55
 	perspective_profile.vertical_far_clamp_margin = 1.25
 
-	var ortho_profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
-	ortho_profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC
-	ortho_profile.camera_transform = Transform3D(
-		Vector3(1, 0, 0),
-		Vector3(0, 0.819152, 0.573576),
-		Vector3(0, 0.573576, -0.819152),
-		Vector3(0, 30, -42.85)
-	)
-	ortho_profile.keep_aspect = Camera3D.KEEP_HEIGHT
-	ortho_profile.default_zoom = 40.0
-	ortho_profile.min_zoom = 20.0
-	ortho_profile.max_zoom = 50.0
-	ortho_profile.vertical_pan_only_when_zoomed = true
-	ortho_profile.horizontal_bounds_use_screen_sample = false
-	ortho_profile.horizontal_bounds_screen_y = 0.5
-	ortho_profile.vertical_far_clamp_margin = 0.0
-
 	_camera.perspective_camera_profile = perspective_profile
-	_camera.orthographic_camera_profile = ortho_profile
-	_camera.apply_profile_transform_on_mode_switch = true
+	_camera.apply_profile_transform_from_profile = true
+	_camera.apply_perspective_profile(true)
 
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
-	assert_eq(_camera.projection, Camera3D.PROJECTION_ORTHOGONAL, "Ortho profile should set orthographic projection")
-	assert_almost_eq(_camera.position.z, -42.85, 0.001, "Ortho profile should restore old camera distance")
-	assert_almost_eq(_camera.default_ortho_size, 40.0, 0.001, "Ortho profile should apply orthographic zoom defaults")
-	assert_true(_camera.vertical_pan_only_when_zoomed, "Ortho profile should keep vertical pan gated by zoom")
-	assert_false(_camera.ortho_horizontal_bounds_use_screen_sample, "Ortho profile should keep strict horizontal bounds")
-
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
 	assert_eq(_camera.projection, Camera3D.PROJECTION_PERSPECTIVE, "Perspective profile should set perspective projection")
 	assert_almost_eq(_camera.position.z, -54.61, 0.001, "Perspective profile should apply perspective framing")
 	assert_almost_eq(_camera.default_fov, 72.0, 0.001, "Perspective profile should apply FOV defaults")
 	assert_false(_camera.vertical_pan_only_when_zoomed, "Perspective profile should allow vertical pan at default zoom")
 	assert_true(_camera.horizontal_bounds_use_screen_sample, "Perspective profile should enable sampled horizontal bounds")
-
-func test_projection_modes_use_independent_clamp_profiles() -> void:
-	_camera.horizontal_bounds_use_screen_sample = true
-	_camera.ortho_horizontal_bounds_use_screen_sample = false
-	_camera.vertical_far_clamp_margin = 1.25
-	_camera.ortho_vertical_far_clamp_margin = 0.0
-
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
-	assert_true(
-		_camera._is_horizontal_sample_bounds_enabled(),
-		"Perspective mode should use perspective horizontal sample profile"
-	)
-	var perspective_bounds: Rect2 = _camera._get_effective_map_bounds()
-
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
-	assert_false(
-		_camera._is_horizontal_sample_bounds_enabled(),
-		"Orthographic mode should use orthographic horizontal sample profile"
-	)
-	var ortho_bounds: Rect2 = _camera._get_effective_map_bounds()
-
-	assert_gt(
-		perspective_bounds.size.y,
-		ortho_bounds.size.y,
-		"Perspective far clamp margin should be independent from orthographic margin"
-	)
 
 
 func test_set_map_bounds_reorients_camera_when_facing_away_from_map() -> void:
@@ -443,50 +366,39 @@ func test_edge_pan_is_ignored_while_drag_panning() -> void:
 	assert_eq(_camera.position, moved_position, "Edge-pan must not apply during drag panning")
 
 
-func test_ortho_toggle_with_realistic_map_bounds_preserves_correct_size() -> void:
-	# Use realistic map bounds (100x80) that exercise the zoom solver's clamping.
-	# This is the map size that triggered the original bug where ortho size collapsed
-	# to min_ortho_size (20) instead of the correct default (40).
+func test_apply_perspective_profile_with_realistic_bounds_keeps_valid_startup_fov() -> void:
 	_camera.map_rect_xz = Rect2(Vector2(-50, -40), Vector2(100, 80))
 
-	var ortho_profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
-	ortho_profile.projection_mode = BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC
-	ortho_profile.camera_transform = Transform3D(
+	var perspective_profile: BattleCameraProjectionProfile = BattleCameraProjectionProfile.new()
+	perspective_profile.camera_transform = Transform3D(
 		Vector3(1, 0, 0),
 		Vector3(0, 0.819152, 0.573576),
 		Vector3(0, 0.573576, -0.819152),
-		Vector3(0, 30, -42.85)
+		Vector3(0, 34.71, -55.6859)
 	)
-	ortho_profile.keep_aspect = Camera3D.KEEP_HEIGHT
-	ortho_profile.default_zoom = 40.0
-	ortho_profile.min_zoom = 20.0
-	ortho_profile.max_zoom = 50.0
-	ortho_profile.vertical_pan_only_when_zoomed = true
-	ortho_profile.horizontal_bounds_use_screen_sample = false
-	ortho_profile.horizontal_bounds_screen_y = 0.5
-	ortho_profile.vertical_far_clamp_margin = 0.0
+	perspective_profile.keep_aspect = Camera3D.KEEP_WIDTH
+	perspective_profile.default_zoom = 72.0
+	perspective_profile.min_zoom = 24.0
+	perspective_profile.max_zoom = 82.0
+	perspective_profile.vertical_pan_only_when_zoomed = false
+	perspective_profile.horizontal_bounds_use_screen_sample = true
+	perspective_profile.horizontal_bounds_screen_y = 0.55
+	perspective_profile.vertical_far_clamp_margin = 0.0
 
-	_camera.orthographic_camera_profile = ortho_profile
-	_camera.apply_profile_transform_on_mode_switch = true
+	_camera.perspective_camera_profile = perspective_profile
+	_camera.apply_profile_transform_from_profile = true
+	_camera.apply_perspective_profile(true)
+	var first_fov: float = _camera.fov
+	var first_z: float = _camera.position.z
 
-	# Start in perspective (default), then toggle to ortho — this is the critical path.
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
-	assert_eq(_camera.projection, Camera3D.PROJECTION_PERSPECTIVE, "Should start in perspective")
+	assert_eq(_camera.projection, Camera3D.PROJECTION_PERSPECTIVE, "Camera should remain perspective-only")
+	assert_true(first_fov <= perspective_profile.default_zoom, "Startup FOV should respect profile default upper bound")
+	assert_true(first_fov >= _camera.min_fov, "Startup FOV should not collapse below min_fov")
+	assert_true(first_z <= perspective_profile.camera_transform.origin.z, "Clamp may pull camera back but should not move farther into map")
 
-	# Toggle to ortho — this was broken: size collapsed to min (20) instead of 40
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
-	assert_eq(_camera.projection, Camera3D.PROJECTION_ORTHOGONAL, "Should switch to orthographic")
-	assert_almost_eq(_camera.size, 40.0, 0.5, "Ortho size should be ~40, not clamped to min (20)")
-	assert_true(_camera.size > _camera.min_ortho_size, "Ortho size must not collapse to min_ortho_size")
-	assert_almost_eq(_camera.position.z, -42.85, 0.01, "Ortho profile transform should be applied")
-
-	# Toggle back to perspective and verify mode switches cleanly
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.PERSPECTIVE)
-	assert_eq(_camera.projection, Camera3D.PROJECTION_PERSPECTIVE, "Should switch back to perspective")
-
-	# Toggle to ortho again to confirm stability (no drift between toggles)
-	_camera.set_projection_mode(BattleCameraProjectionProfile.ProjectionMode.ORTHOGRAPHIC)
-	assert_almost_eq(_camera.size, 40.0, 0.5, "Repeated ortho toggle should produce same size")
+	_camera.apply_perspective_profile(true)
+	assert_almost_eq(_camera.fov, first_fov, 0.001, "Repeated startup application should keep stable solved FOV")
+	assert_almost_eq(_camera.position.z, first_z, 0.001, "Repeated startup application should keep stable clamped position")
 
 
 func _assert_footprint_inside_map(message_prefix: String) -> void:
@@ -503,15 +415,6 @@ func _assert_footprint_inside_map(message_prefix: String) -> void:
 			map_rect.position.x
 		]
 	)
-	if not _camera.is_perspective_mode():
-		assert_true(
-			footprint.position.y >= map_rect.position.y - epsilon,
-			"%s: footprint min Z escaped map (%.3f < %.3f)" % [
-				message_prefix,
-				footprint.position.y,
-				map_rect.position.y
-			]
-		)
 	assert_true(
 		(footprint.position.x + footprint.size.x) <= (map_rect.position.x + map_rect.size.x + epsilon),
 		"%s: footprint max X escaped map (%.3f > %.3f)" % [
