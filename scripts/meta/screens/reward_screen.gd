@@ -77,28 +77,35 @@ func _load_battle_results() -> void:
 	if BattleContext.battle_state != BattleContext.BattleState.VICTORY:
 		# Check for pending reward - player may have won, exited, and returned
 		var pending: Variant = CampaignApi.get_pending_reward()
-		if pending == null or not pending is Dictionary:
+		var has_pending: bool = pending is Dictionary and not (pending as Dictionary).is_empty()
+		if pending == null or not has_pending:
 			push_error("RewardScreen: Invalid battle state (%s) - not a victory!" % BattleContext.BattleState.keys()[BattleContext.battle_state])
 			SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 			return
 
+	# Read pending reward first - this is the most reliable source when resuming
+	var pending_reward: Variant = CampaignApi.get_pending_reward()
+	var pending_battle_id: String = ""
+	if pending_reward is Dictionary:
+		pending_battle_id = (pending_reward as Dictionary).get("battle_id", "")
+
 	# Get the current battle from profile (the battle we just won)
 	var profile: Dictionary = ProfileRepoApi.get_active_profile_dict()
-	if not profile.is_empty():
-		var campaign_progress: Variant = profile.get("campaign_progress", {})
-		if campaign_progress is Dictionary:
-			current_battle_id = campaign_progress.get("current_battle", "")
+	current_battle_id = _extract_current_battle_id(profile)
+
+	# Fallback to pending reward battle ID when profile current_battle is unavailable
+	if current_battle_id.is_empty() and not pending_battle_id.is_empty():
+		current_battle_id = pending_battle_id
 
 	# Handle pending reward state
-	var pending_reward: Variant = CampaignApi.get_pending_reward()
 	if pending_reward != null and pending_reward is Dictionary:
 		var pending_dict: Dictionary = pending_reward
-		var pending_battle_id: String = pending_dict.get("battle_id", "")
+		pending_battle_id = pending_dict.get("battle_id", "")
 
 		if pending_battle_id == current_battle_id:
 			# Resume pending reward
 			is_pending_reward = true
-		elif not pending_battle_id.is_empty():
+		elif not pending_battle_id.is_empty() and not current_battle_id.is_empty():
 			# Stale pending reward - clear it
 			CampaignApi.clear_pending_reward()
 
@@ -128,6 +135,34 @@ func _load_battle_results() -> void:
 
 	# Display rewards using spec
 	_display_reward_spec(spec)
+
+## Extract current_battle from active profile data.
+## Supports both current flat and per-summoner campaign_progress layouts.
+func _extract_current_battle_id(profile: Dictionary) -> String:
+	if profile.is_empty():
+		return ""
+
+	var campaign_progress: Variant = profile.get("campaign_progress", {})
+	if not campaign_progress is Dictionary:
+		return ""
+
+	var progress_dict: Dictionary = campaign_progress
+
+	# Legacy/flat layout: campaign_progress.current_battle
+	var flat_current: String = progress_dict.get("current_battle", "")
+	if not flat_current.is_empty():
+		return flat_current
+
+	# Per-summoner map layout: campaign_progress[active_summoner_id].current_battle
+	var active_summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	if active_summoner_id.is_empty():
+		return ""
+
+	var active_progress: Variant = progress_dict.get(active_summoner_id, {})
+	if active_progress is Dictionary:
+		return (active_progress as Dictionary).get("current_battle", "")
+
+	return ""
 
 ## =============================================================================
 ## REWARD DISPLAY

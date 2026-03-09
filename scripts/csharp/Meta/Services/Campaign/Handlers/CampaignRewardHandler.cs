@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Infrastructure.Persistence;
-using Fateforged.Meta.Economy;
+using Fateforged.Meta.Rewards;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
@@ -48,7 +49,7 @@ public class CampaignRewardHandler
     // =========================================================================
 
     /// <summary>Set a pending reward for a battle.</summary>
-    public void SetPendingReward(BattleId battleId, RewardType rewardType, int choiceIndex = -1)
+    public void SetPendingReward(BattleId battleId, Data.Events.RewardType rewardType, int choiceIndex = -1)
     {
         var summonerId = _getActiveSummonerFunc();
         if (!summonerId.HasValue) return;
@@ -118,69 +119,89 @@ public class CampaignRewardHandler
     // REWARD GRANTING
     // =========================================================================
 
-    /// <summary>Grant battle reward and return granted card info.</summary>
-    /// <remarks>
-    /// Note: Gold and flexible rewards are now granted via RewardService.grant_battle_rewards() in GDScript.
-    /// This method handles FIXED reward card granting only.
-    /// Uses typed EventDefinition from the store instead of string-keyed dict access.
-    /// </remarks>
+    /// <summary>
+    /// Grant battle reward and return granted reward payload.
+    /// Uses BattleRewardSpec so grant behavior matches the reward screen (filtering + choice index semantics).
+    /// </summary>
     public Godot.Collections.Dictionary GrantBattleReward(BattleId battleId, int chosenIndex = 0)
     {
-        var eventId = new EventId(battleId.Value);
-        if (!_store.Events.TryGetValue(eventId, out var evt))
-        {
-            GD.PushError($"CampaignRewardHandler: Battle not found: {battleId}");
-            return new Godot.Collections.Dictionary();
-        }
-
-        // Only battle-type events have rewards
-        if (evt is not BattleEventDefinition battleEvt)
-        {
-            return new Godot.Collections.Dictionary();
-        }
-
-        // Only handle FIXED rewards - FLEXIBLE rewards are granted via RewardService
-        if (battleEvt.Rewards.Type != RewardType.Fixed)
-        {
-            return new Godot.Collections.Dictionary();
-        }
-
-        var fixedCards = battleEvt.Rewards.FixedCards;
-        if (fixedCards.Count == 0)
-        {
-            GD.PushWarning($"CampaignRewardHandler: No card rewards defined for battle '{battleId}'");
-            return new Godot.Collections.Dictionary();
-        }
-
-        var grantedCard = new Godot.Collections.Dictionary();
+        var granted = new Godot.Collections.Dictionary();
+        var grantedCards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         var grantedInstanceIds = new Godot.Collections.Array<string>();
 
-        // Grant all reward cards
-        foreach (var rewardCard in fixedCards)
+        var spec = BuildRewardSpecForClaim(battleId, chosenIndex);
+        GrantCampaignGold(spec.GoldReward);
+        granted["campaign_gold"] = spec.GoldReward;
+
+        foreach (var option in ResolveCardOptionsToGrant(spec, chosenIndex))
         {
-            var ids = GrantRewardCard(rewardCard);
+            var ids = GrantRewardCard(option.CatalogId, option.Rarity, option.Count);
             foreach (var id in ids)
-            {
                 grantedInstanceIds.Add(id);
-            }
+
+            grantedCards.Add(new Godot.Collections.Dictionary
+            {
+                ["catalog_id"] = option.CatalogId,
+                ["rarity"] = option.Rarity,
+                ["count"] = option.Count
+            });
         }
 
-        if (fixedCards.Count > 0)
+        if (grantedCards.Count > 0)
         {
-            var first = fixedCards[0];
-            grantedCard["catalog_id"] = (string)first.CardId;
-            grantedCard["rarity"] = first.Rarity;
-            grantedCard["count"] = first.Count;
+            var first = grantedCards[0];
+            granted["catalog_id"] = first["catalog_id"];
+            granted["rarity"] = first["rarity"];
+            granted["count"] = first["count"];
         }
 
-        grantedCard["instance_ids"] = grantedInstanceIds;
-
-        return grantedCard;
+        granted["cards"] = grantedCards;
+        granted["instance_ids"] = grantedInstanceIds;
+        return granted;
     }
 
-    private List<string> GrantRewardCard(FixedRewardEntry reward)
+    private BattleRewardSpec BuildRewardSpecForClaim(BattleId battleId, int chosenIndex)
+    {
+        var ownedCatalogIds = _profileRepo
+            .ListCards()
+            .Select(card => (string)card.CatalogId)
+            .ToHashSet();
+
+        return BattleRewardSpec.FromBattleId((string)battleId, isCompleted: false, chosenIndex, ownedCatalogIds);
+    }
+
+    private IEnumerable<CardRewardOption> ResolveCardOptionsToGrant(BattleRewardSpec spec, int chosenIndex)
+    {
+        if (spec.CardOptions.Count == 0)
+            yield break;
+
+        switch (spec.Type)
+        {
+            case Data.Events.RewardType.Fixed:
+                foreach (var option in spec.CardOptions)
+                    yield return option;
+                yield break;
+
+            case Data.Events.RewardType.Flexible:
+                var index = chosenIndex >= 0 ? chosenIndex : 0;
+                if (index >= spec.CardOptions.Count)
+                {
+                    GD.PushWarning($"CampaignRewardHandler: Choice index {chosenIndex} out of range for flexible reward, defaulting to first option");
+                    index = 0;
+                }
+                yield return spec.CardOptions[index];
+                yield break;
+
+            default:
+                yield break;
+        }
+    }
+
+    private List<string> GrantRewardCard(string catalogId, string rarity, int count)
     {
         var instanceIds = new List<string>();
+        if (count <= 0)
+            return instanceIds;
 
         if (_grantCardFunc == null)
         {
@@ -188,14 +209,32 @@ public class CampaignRewardHandler
             return instanceIds;
         }
 
-        for (var i = 0; i < reward.Count; i++)
+        for (var i = 0; i < count; i++)
         {
-            var instanceId = _grantCardFunc(reward.CardId, reward.Rarity);
+            var instanceId = _grantCardFunc(catalogId, rarity);
             instanceIds.Add(instanceId);
         }
 
-        GD.Print($"CampaignRewardHandler: Granted {reward.Count}x {reward.CardId} ({reward.Rarity})");
+        GD.Print($"CampaignRewardHandler: Granted {count}x {catalogId} ({rarity})");
         return instanceIds;
+    }
+
+    private void GrantCampaignGold(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        var summonerId = _getActiveSummonerFunc();
+        if (!summonerId.HasValue)
+        {
+            GD.PushWarning("CampaignRewardHandler: Cannot grant campaign gold - no active summoner");
+            return;
+        }
+
+        var progress = _profileRepo.GetCampaignProgress(summonerId);
+        progress.Gold += amount;
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+        GD.Print($"CampaignRewardHandler: Granted {amount} campaign gold");
     }
 
     /// <summary>Claim the pending reward (grants cards and marks battle complete).</summary>
