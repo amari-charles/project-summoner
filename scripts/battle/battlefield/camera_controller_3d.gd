@@ -127,35 +127,18 @@ var _debug_overlay_mesh: MeshInstance3D
 var _debug_overlay_lines: ImmediateMesh
 var _debug_overlay_material: StandardMaterial3D
 
-func _debug_log_camera_state(reason: String) -> void:
-	if not OS.is_debug_build():
-		return
-	print(
-		"[CameraTrace] %s pos=(%.4f, %.4f, %.4f) fov=%.4f size=%.4f mode=%s" % [
-			reason,
-			global_position.x,
-			global_position.y,
-			global_position.z,
-			fov,
-			size,
-			get_projection_mode_name()
-		]
-	)
-
 func _ready() -> void:
 	# Set process mode to ALWAYS so camera panning works during dialogues
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	# Wait one frame for transform initialization
 	await get_tree().process_frame
-	_debug_log_camera_state("_ready before set_projection_mode")
 	if _max_fov_ceiling < 0.0:
 		_max_fov_ceiling = max_fov
 	if _max_ortho_size_ceiling < 0.0:
 		_max_ortho_size_ceiling = max_ortho_size
 	set_projection_mode(projection_mode, true)
 	_is_projection_initialized = true
-	_debug_log_camera_state("_ready after set_projection_mode")
 
 	var vp: Viewport = get_viewport()
 	if vp and not vp.size_changed.is_connected(_on_viewport_size_changed):
@@ -185,20 +168,17 @@ func set_map_bounds(bounds_xz: Rect2) -> void:
 	if bounds_xz.size.x <= 0.0 or bounds_xz.size.y <= 0.0:
 		return
 
-	_debug_log_camera_state("set_map_bounds before")
 	map_rect_xz = bounds_xz
 	if _max_fov_ceiling < 0.0:
 		_max_fov_ceiling = max_fov
 	if _max_ortho_size_ceiling < 0.0:
 		_max_ortho_size_ceiling = max_ortho_size
 	if not _is_projection_initialized:
-		_debug_log_camera_state("set_map_bounds after")
 		return
 	_ensure_camera_faces_map_center()
 	_refresh_zoom_limits()
 	_apply_zoom_limits(false)
 	clamp_to_map()
-	_debug_log_camera_state("set_map_bounds after")
 
 	if _is_debug_overlay_enabled():
 		_ensure_debug_overlay()
@@ -215,7 +195,6 @@ func set_arena_floor_bounds(bounds_xz: Rect2) -> void:
 		_update_debug_overlay()
 
 func set_projection_mode(mode: BattleCameraProjectionProfile.ProjectionMode, reset_zoom: bool = true) -> void:
-	_debug_log_camera_state("set_projection_mode start")
 	projection_mode = mode
 	_apply_mode_profile(mode)
 	if projection_mode == ProjectionMode.PERSPECTIVE:
@@ -229,7 +208,6 @@ func set_projection_mode(mode: BattleCameraProjectionProfile.ProjectionMode, res
 	_apply_zoom_limits(reset_zoom)
 	_ensure_camera_faces_map_center()
 	clamp_to_map()
-	_debug_log_camera_state("set_projection_mode end")
 
 func toggle_projection_mode() -> void:
 	var next_mode: ProjectionMode = ProjectionMode.ORTHOGRAPHIC if is_perspective_mode() else ProjectionMode.PERSPECTIVE
@@ -258,14 +236,6 @@ func _apply_mode_profile(mode: ProjectionMode) -> void:
 		)
 
 	if apply_profile_transform_on_mode_switch:
-		if OS.is_debug_build():
-			print(
-				"[CameraTrace] apply_mode_profile transform -> (%.4f, %.4f, %.4f)" % [
-					profile.camera_transform.origin.x,
-					profile.camera_transform.origin.y,
-					profile.camera_transform.origin.z
-				]
-			)
 		transform = profile.camera_transform
 		force_update_transform()
 
@@ -730,8 +700,6 @@ func clamp_to_map() -> void:
 		if abs(dx) < CLAMP_EPSILON and abs(dz) < CLAMP_EPSILON:
 			return
 
-		if OS.is_debug_build():
-			print("[CameraTrace] clamp_to_map apply d=(%.4f, %.4f)" % [dx, dz])
 		position.x += dx
 		position.z += dz
 		force_update_transform()
