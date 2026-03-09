@@ -24,8 +24,8 @@ public struct OrcaLine
 public static class OrcaAvoidance
 {
     private const float TimeHorizon = 1.5f;
-    private const int MaxNeighbors = 10;
-    private const float NeighborSearchRadiusMultiplier = 5.0f;
+    private const int MaxNeighbors = 16;
+    private const float NeighborSearchRadiusMultiplier = 6.0f;
     private const float Epsilon = 0.00001f;
     private const float OverlapInvDelta = 60f; // Assumes 60fps fixed timestep
     private const float GoldenAngle = 2.39996f; // 2π/φ² — spreads overlapping units evenly

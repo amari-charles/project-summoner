@@ -19,7 +19,7 @@ public sealed class ContextIntentGenerator : IMovementIntentGenerator
     {
         // If the target is no longer resolvable, fall back to direct behavior defaults.
         if (RequiresTarget(behavior.Movement) &&
-            !SimUtils.ResolveTargetPosition(behavior.MoveTargetId, state).HasValue)
+            !MovementTargetResolver.Resolve(unit, behavior.MoveTargetId, state).HasValue)
         {
             return _fallbackGenerator.Generate(unit, behavior, state, delta);
         }

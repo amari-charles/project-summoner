@@ -13,16 +13,16 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class BlockedNavigationController
 {
-    private const float BlockedThresholdSeconds = 0.30f;
+    private const float BlockedThresholdSeconds = 0.22f;
     private const float YieldDurationSeconds = 0.22f;
-    private const float EscapeDurationSeconds = 0.42f;
+    private const float EscapeDurationSeconds = 0.55f;
     private const float MinProgressAbsolute = 0.005f;
     private const float MinProgressSpeedRatio = 0.10f;
     private const float BlockedRecoveryRate = 2.0f;
     private const float EscapeNeighborRadius = 2.2f;
     private const float EscapeLateralWeight = 0.90f;
-    private const float EscapeForwardWeight = 0.25f;
-    private const float EscapeSpeedScale = 0.90f;
+    private const float EscapeForwardWeight = 0.35f;
+    private const float EscapeSpeedScale = 1.00f;
     private const float DirectionThreshold = 0.0001f;
 
     public static MovementIntent Apply(
@@ -38,7 +38,7 @@ public static class BlockedNavigationController
             return baseIntent;
         }
 
-        var targetPos = SimUtils.ResolveTargetPosition(behavior.MoveTargetId, state);
+        var targetPos = MovementTargetResolver.Resolve(unit, behavior.MoveTargetId, state);
         if (!targetPos.HasValue)
         {
             Reset(unit);

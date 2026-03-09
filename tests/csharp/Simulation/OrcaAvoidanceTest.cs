@@ -25,15 +25,21 @@ public class OrcaAvoidanceTest
     [TestCase]
     public void ComputeSafeVelocity_UsesNearestNeighbors_WhenNeighborCountExceedsCap()
     {
+        var maxNeighborsField = typeof(OrcaAvoidance).GetField(
+            "MaxNeighbors", BindingFlags.NonPublic | BindingFlags.Static);
+        int maxNeighbors = maxNeighborsField != null
+            ? (int)maxNeighborsField.GetRawConstantValue()!
+            : 10;
+
         var mover = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, moveSpeed: 3f);
         mover.SeparationRadius = 0.5f;
         mover.Velocity = SimVector3.Zero;
         mover.BehaviorState = BehaviorState.Chasing;
 
         // Fill the cap first with distant low-impact neighbors.
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < maxNeighbors; i++)
         {
-            float angle = i * (SimMath.Tau / 10f);
+            float angle = i * (SimMath.Tau / maxNeighbors);
             float x = MathF.Cos(angle) * 2.4f;
             float z = MathF.Sin(angle) * 2.4f;
             var far = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: x, z: z, moveSpeed: 0f, attackSpeed: 0f);
@@ -56,7 +62,7 @@ public class OrcaAvoidanceTest
         var selectedNeighbors = neighborsField?.GetValue(null) as List<UnitData>;
 
         AssertThat(selectedNeighbors).IsNotNull();
-        AssertThat(selectedNeighbors!.Count).IsEqual(10);
+        AssertThat(selectedNeighbors!.Count).IsEqual(maxNeighbors);
         AssertThat(selectedNeighbors.Any(n => n.UnitId == close.UnitId)).IsTrue();
 
         // Black-box guard: the close blocker should materially reduce forward speed.
