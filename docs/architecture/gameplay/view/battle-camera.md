@@ -14,7 +14,7 @@ A standalone camera controller that handles panning, zooming, and camera shake. 
 Supports keyboard, mouse drag, touch drag, and edge-of-screen panning. Converts screen-space input into world-space camera movement. Respects configurable map boundaries so the camera can't pan beyond the battlefield edges.
 
 ### Zoom
-Orthographic zoom (adjusting `size` property) with configurable min/max limits. Optionally restricts vertical panning when not zoomed in.
+Perspective zoom (adjusting `fov`) with configurable min/max limits. Optionally restricts vertical panning when not zoomed in.
 
 ### Shake
 Camera shake for impact feedback (damage, explosions). Driven by events — not self-polling.
@@ -38,8 +38,8 @@ Axis-aligned world bounds on the ground plane (XZ). If the view is larger than t
 | `mouse_pan_enabled` | Enable mouse drag panning | true |
 | `touch_pan_enabled` | Enable touch drag panning | true |
 | `map_rect_xz` | World boundaries | (-50,-40) 100x80 |
-| `default_ortho_size` | Starting zoom level | 40.0 |
-| `min_ortho_size` / `max_ortho_size` | Zoom limits | 20.0 / 50.0 |
+| `default_fov` | Starting zoom level | 38.0 |
+| `min_fov` / `max_fov` | Zoom limits | 24.0 / 62.0 |
 | `edge_pan_enabled` | Enable edge-of-screen panning | true |
 
 ## Dependencies

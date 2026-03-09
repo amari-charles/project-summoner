@@ -138,6 +138,10 @@ Completed loading transition flow with real threaded preloading and progress dis
 
 Replaced Godot's `project_ray_origin()`/`project_ray_normal()` with analytical ray math in ortho branches of `get_ground_footprint_xz()` and `_get_horizontal_sample_bounds_x()`. Godot's projection matrix was stale immediately after mode switch, causing the zoom solver to collapse `max_ortho_size` to `min_ortho_size`. Added regression test with realistic map bounds. PR #283.
 
+**Superseded:** 2026-03-09
+
+Battle camera orthographic mode was removed in PR #297 (`refactor(camera): remove orthographic battle camera support`). Runtime camera behavior is now perspective-only.
+
 ---
 
 ### Complete PendingReward Typed Domain Object Migration

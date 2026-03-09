@@ -22,7 +22,7 @@ public static class BattlefieldBounds
     public const float HalfWidth = 50.0f;
 
     /// <summary>Half the Z-axis extent. Battlefield spans -HalfDepth to +HalfDepth.</summary>
-    public const float HalfDepth = 40.0f;
+    public const float HalfDepth = 25.0f;
 
     /// <summary>Minimum X coordinate (left edge)</summary>
     public const float MinX = -HalfWidth;

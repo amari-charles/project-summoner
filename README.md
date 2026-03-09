@@ -8,7 +8,7 @@ Fateforged is a 1v1 real-time tactical battler where players summon elemental cr
 
 This asymmetry — and the player's responsibility for shaping it — is the core of the game's identity and the reason it's called Fateforged: your fate is literally forged by the choices you make at each branching point.
 
-The game features a 2.5D perspective with an angled orthographic camera, creating a modern take on tactical card battlers.
+The game features a 2.5D perspective with an angled perspective battle camera, creating a modern take on tactical card battlers.
 
 ## Quick Start
 

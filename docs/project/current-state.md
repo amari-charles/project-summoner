@@ -5,7 +5,7 @@
 
 ## Project Overview
 
-Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Built in Godot 4.5 (C# + GDScript), players use cards to spawn units, cast spells, and deploy structures on a 3D battlefield with a 2.5D orthographic perspective.
+Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Built in Godot 4.5 (C# + GDScript), players use cards to spawn units, cast spells, and deploy structures on a 3D battlefield with a 2.5D perspective camera.
 
 ---
 

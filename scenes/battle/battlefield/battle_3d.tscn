@@ -22,7 +22,7 @@ debug_skip_tutorial_intro = false
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
 [node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 0)
 script = ExtResource("3_summoner")
 Team = 0
 
@@ -39,7 +39,7 @@ texture = ExtResource("17_knight_sprite")
 shape = SubResource("CylinderShape3D_summoner")
 
 [node name="EnemySummoner" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, 0)
 script = ExtResource("3_summoner")
 Team = 1
 

@@ -17,7 +17,11 @@ const CLAMP_EPSILON: float = 0.001
 const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
 const MAX_CLAMP_ITERATIONS: int = 4
 
-const ProjectionMode = BattleCameraProjectionProfile.ProjectionMode
+enum OversizeClampMode {
+	CENTER,
+	PIN_MIN_EDGE,
+	PIN_MAX_EDGE
+}
 
 # === Exports ===
 
@@ -29,11 +33,26 @@ const ProjectionMode = BattleCameraProjectionProfile.ProjectionMode
 
 @export_group("Map Boundaries")
 ## Axis-aligned world bounds on the ground plane (XZ)
-@export var map_rect_xz: Rect2 = Rect2(Vector2(-50, -40), Vector2(100, 80))
+@export var map_rect_xz: Rect2 = Rect2(Vector2(-50, -25), Vector2(100, 50))
+## Optional separate bounds used only for solving zoom-out limits.
+## Keep this at legacy 100x80 to preserve previous zoom restrictions
+## while still clamping pan/footprint to the live map_rect_xz.
+@export var zoom_limit_rect_xz: Rect2 = Rect2(Vector2(-50, -40), Vector2(100, 80))
+@export var use_zoom_limit_rect_override: bool = false
 ## Ground plane Y value (most 2.5D maps use y=0)
 @export var ground_y: float = 0.0
-## If view is larger than map, center camera (true) or just clamp edges (false)
-@export var center_if_too_big: bool = true
+## Oversize clamp policy for horizontal axis when camera view is wider than map width.
+@export var horizontal_oversize_clamp_mode: OversizeClampMode = OversizeClampMode.CENTER
+## Oversize clamp policy for vertical axis when camera view is deeper than map depth.
+@export var vertical_oversize_clamp_mode: OversizeClampMode = OversizeClampMode.CENTER
+## Margin from the minimum horizontal edge when using PIN_MIN_EDGE mode.
+@export var horizontal_pin_min_edge_margin: float = 0.0
+## Margin from the maximum horizontal edge when using PIN_MAX_EDGE mode.
+@export var horizontal_pin_max_edge_margin: float = 0.0
+## Margin from the minimum vertical edge when using PIN_MIN_EDGE mode.
+@export var vertical_pin_min_edge_margin: float = 0.0
+## Margin from the maximum vertical edge when using PIN_MAX_EDGE mode.
+@export var vertical_pin_max_edge_margin: float = 0.0
 ## If true, horizontal clamping uses a single screen-height sample instead of the
 ## full frustum footprint. This better matches gameplay focus depth for perspective.
 @export var horizontal_bounds_use_screen_sample: bool = false
@@ -42,31 +61,21 @@ const ProjectionMode = BattleCameraProjectionProfile.ProjectionMode
 @export_range(0.0, 1.0, 0.01) var horizontal_bounds_screen_y: float = 0.5
 ## Additional upward (positive Z / far side) clamp room, in world units.
 @export var vertical_far_clamp_margin: float = 0.0
-## Orthographic-only horizontal sample clamp toggle.
-@export var ortho_horizontal_bounds_use_screen_sample: bool = false
-## Orthographic-only normalized screen Y in [0,1] for sampled horizontal bounds.
-@export_range(0.0, 1.0, 0.01) var ortho_horizontal_bounds_screen_y: float = 0.5
-## Additional upward clamp room in orthographic mode, in world units.
-@export var ortho_vertical_far_clamp_margin: float = 0.0
-
-@export_group("Mode Profiles")
+## Screen Y row used as the "visual center" anchor when oversized vertical clamp mode is CENTER.
+## 0.0 = top, 0.5 = screen center, 1.0 = bottom.
+@export_range(0.0, 1.0, 0.01) var vertical_center_reference_screen_y: float = 0.5
+@export_group("Profile")
 ## Optional perspective profile resource (transform + lens + clamp defaults).
 @export var perspective_camera_profile: BattleCameraProjectionProfile
-## Optional orthographic profile resource (transform + lens + clamp defaults).
-@export var orthographic_camera_profile: BattleCameraProjectionProfile
-## If true, switching projection mode applies the profile's transform exactly.
-@export var apply_profile_transform_on_mode_switch: bool = true
+## If true, applying the profile updates camera transform exactly.
+@export var apply_profile_transform_from_profile: bool = true
 
 @export_group("Projection")
-@export var projection_mode: ProjectionMode = ProjectionMode.PERSPECTIVE
 @export var default_fov: float = 38.0
 @export var min_fov: float = 24.0  # Max zoom in
 @export var max_fov: float = 62.0  # Max zoom out (limited to prevent showing outside map)
 @export var perspective_near_clip: float = 0.5
 @export var perspective_far_clip: float = 260.0
-@export var default_ortho_size: float = 40.0
-@export var min_ortho_size: float = 20.0  # Max zoom in
-@export var max_ortho_size: float = 50.0  # Max zoom out
 
 @export_group("Zoom Controls")
 @export var zoom_speed: float = 2.0
@@ -90,8 +99,6 @@ const ProjectionMode = BattleCameraProjectionProfile.ProjectionMode
 @export var debug_overlay_y_offset: float = 0.35
 ## World-space border thickness for debug rectangles.
 @export var debug_overlay_line_thickness: float = 0.5
-## Optional camera footprint rectangle (red). Off by default to avoid confusion.
-@export var debug_show_camera_footprint_overlay: bool = false
 
 # === State Variables ===
 
@@ -99,7 +106,8 @@ const ProjectionMode = BattleCameraProjectionProfile.ProjectionMode
 var is_panning: bool = false
 var last_mouse_position: Vector2
 var _max_fov_ceiling: float = -1.0
-var _max_ortho_size_ceiling: float = -1.0
+var _is_camera_initialized: bool = false
+var arena_floor_rect_xz: Rect2 = Rect2()
 var _debug_overlay_mesh: MeshInstance3D
 var _debug_overlay_lines: ImmediateMesh
 var _debug_overlay_material: StandardMaterial3D
@@ -112,9 +120,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	if _max_fov_ceiling < 0.0:
 		_max_fov_ceiling = max_fov
-	if _max_ortho_size_ceiling < 0.0:
-		_max_ortho_size_ceiling = max_ortho_size
-	set_projection_mode(projection_mode, true)
+	apply_perspective_profile(true)
+	_is_camera_initialized = true
 
 	var vp: Viewport = get_viewport()
 	if vp and not vp.size_changed.is_connected(_on_viewport_size_changed):
@@ -130,15 +137,9 @@ func _on_viewport_size_changed() -> void:
 	clamp_to_map()
 
 func _refresh_zoom_limits() -> void:
-	if is_perspective_mode():
-		var configured_max_fov: float = _max_fov_ceiling if _max_fov_ceiling > 0.0 else max_fov
-		var solved_max_fov: float = _solve_max_fov(configured_max_fov)
-		max_fov = max(min_fov, min(configured_max_fov, solved_max_fov))
-		return
-
-	var configured_max_size: float = _max_ortho_size_ceiling if _max_ortho_size_ceiling > 0.0 else max_ortho_size
-	var solved_max_size: float = _solve_max_ortho_size(configured_max_size)
-	max_ortho_size = max(min_ortho_size, min(configured_max_size, solved_max_size))
+	var configured_max_fov: float = _max_fov_ceiling if _max_fov_ceiling > 0.0 else max_fov
+	var solved_max_fov: float = _solve_max_fov(configured_max_fov)
+	max_fov = max(min_fov, min(configured_max_fov, solved_max_fov))
 
 func set_map_bounds(bounds_xz: Rect2) -> void:
 	if bounds_xz.size.x <= 0.0 or bounds_xz.size.y <= 0.0:
@@ -147,8 +148,8 @@ func set_map_bounds(bounds_xz: Rect2) -> void:
 	map_rect_xz = bounds_xz
 	if _max_fov_ceiling < 0.0:
 		_max_fov_ceiling = max_fov
-	if _max_ortho_size_ceiling < 0.0:
-		_max_ortho_size_ceiling = max_ortho_size
+	if not _is_camera_initialized:
+		return
 	_ensure_camera_faces_map_center()
 	_refresh_zoom_limits()
 	_apply_zoom_limits(false)
@@ -158,13 +159,19 @@ func set_map_bounds(bounds_xz: Rect2) -> void:
 		_ensure_debug_overlay()
 		_update_debug_overlay()
 
-func set_projection_mode(mode: BattleCameraProjectionProfile.ProjectionMode, reset_zoom: bool = true) -> void:
-	projection_mode = mode
-	_apply_mode_profile(mode)
-	if projection_mode == ProjectionMode.PERSPECTIVE:
-		projection = PROJECTION_PERSPECTIVE
+func set_arena_floor_bounds(bounds_xz: Rect2) -> void:
+	if bounds_xz.size.x <= 0.0 or bounds_xz.size.y <= 0.0:
+		arena_floor_rect_xz = Rect2()
 	else:
-		projection = PROJECTION_ORTHOGONAL
+		arena_floor_rect_xz = bounds_xz
+
+	if _is_debug_overlay_enabled():
+		_ensure_debug_overlay()
+		_update_debug_overlay()
+
+func apply_perspective_profile(reset_zoom: bool = true) -> void:
+	projection = PROJECTION_PERSPECTIVE
+	_apply_perspective_profile()
 	near = perspective_near_clip
 	far = perspective_far_clip
 
@@ -173,33 +180,12 @@ func set_projection_mode(mode: BattleCameraProjectionProfile.ProjectionMode, res
 	_ensure_camera_faces_map_center()
 	clamp_to_map()
 
-func toggle_projection_mode() -> void:
-	var next_mode: ProjectionMode = ProjectionMode.ORTHOGRAPHIC if is_perspective_mode() else ProjectionMode.PERSPECTIVE
-	set_projection_mode(next_mode, true)
-
-func get_projection_mode_name() -> String:
-	return "Perspective" if is_perspective_mode() else "Orthographic"
-
-func is_perspective_mode() -> bool:
-	return projection_mode == ProjectionMode.PERSPECTIVE
-
-func _get_mode_profile(mode: ProjectionMode) -> BattleCameraProjectionProfile:
-	return perspective_camera_profile if mode == ProjectionMode.PERSPECTIVE else orthographic_camera_profile
-
-func _apply_mode_profile(mode: ProjectionMode) -> void:
-	var profile: BattleCameraProjectionProfile = _get_mode_profile(mode)
+func _apply_perspective_profile() -> void:
+	var profile: BattleCameraProjectionProfile = perspective_camera_profile
 	if not profile:
 		return
 
-	if int(profile.projection_mode) != int(mode):
-		push_warning(
-			"CameraController3D: Profile mode mismatch (expected %s, got %s)" % [
-				"Perspective" if mode == ProjectionMode.PERSPECTIVE else "Orthographic",
-				"Perspective" if int(profile.projection_mode) == int(ProjectionMode.PERSPECTIVE) else "Orthographic"
-			]
-		)
-
-	if apply_profile_transform_on_mode_switch:
+	if apply_profile_transform_from_profile:
 		transform = profile.camera_transform
 		force_update_transform()
 
@@ -214,43 +200,23 @@ func _apply_mode_profile(mode: ProjectionMode) -> void:
 	var sample_y: float = clamp(profile.horizontal_bounds_screen_y, 0.0, 1.0)
 	var far_margin: float = max(profile.vertical_far_clamp_margin, 0.0)
 
-	if mode == ProjectionMode.PERSPECTIVE:
-		default_fov = default_zoom
-		min_fov = min_zoom
-		max_fov = max_zoom
-		_max_fov_ceiling = max_fov
+	default_fov = default_zoom
+	min_fov = min_zoom
+	max_fov = max_zoom
+	_max_fov_ceiling = max_fov
 
-		horizontal_bounds_use_screen_sample = profile.horizontal_bounds_use_screen_sample
-		horizontal_bounds_screen_y = sample_y
-		vertical_far_clamp_margin = far_margin
-		return
-
-	default_ortho_size = default_zoom
-	min_ortho_size = min_zoom
-	max_ortho_size = max_zoom
-	_max_ortho_size_ceiling = max_ortho_size
-
-	ortho_horizontal_bounds_use_screen_sample = profile.horizontal_bounds_use_screen_sample
-	ortho_horizontal_bounds_screen_y = sample_y
-	ortho_vertical_far_clamp_margin = far_margin
+	horizontal_bounds_use_screen_sample = profile.horizontal_bounds_use_screen_sample
+	horizontal_bounds_screen_y = sample_y
+	vertical_far_clamp_margin = far_margin
 
 func _apply_zoom_limits(reset_zoom: bool) -> void:
-	if is_perspective_mode():
-		if reset_zoom:
-			fov = clamp(default_fov, min_fov, max_fov)
-		else:
-			fov = clamp(fov, min_fov, max_fov)
-		return
-
 	if reset_zoom:
-		size = clamp(default_ortho_size, min_ortho_size, max_ortho_size)
+		fov = clamp(default_fov, min_fov, max_fov)
 	else:
-		size = clamp(size, min_ortho_size, max_ortho_size)
+		fov = clamp(fov, min_fov, max_fov)
 
 func _is_zoomed_in_for_vertical_pan() -> bool:
-	if is_perspective_mode():
-		return fov < default_fov
-	return size < default_ortho_size
+	return fov < default_fov
 
 func _ensure_camera_faces_map_center() -> void:
 	var forward_xz: Vector2 = Vector2(-global_basis.z.x, -global_basis.z.z)
@@ -284,31 +250,22 @@ func _solve_max_fov(configured_max: float) -> float:
 	fov = original_fov
 	return low
 
-func _solve_max_ortho_size(configured_max: float) -> float:
-	var original_size: float = size
-	var low: float = min_ortho_size
-	var high: float = max(configured_max, min_ortho_size)
-
-	for i: int in range(MAX_ZOOM_SOLVER_ITERATIONS):
-		var mid: float = (low + high) * 0.5
-		size = mid
-		var footprint: Rect2 = get_ground_footprint_xz()
-		if _footprint_fits_map(footprint):
-			low = mid
-		else:
-			high = mid
-
-	size = original_size
-	return low
-
 func _footprint_fits_map(footprint: Rect2) -> bool:
 	if footprint.size == Vector2.ZERO:
 		return false
 
-	var effective_map: Rect2 = _get_effective_map_bounds()
+	var effective_map: Rect2 = _get_effective_zoom_bounds()
 	var effective_view_width_x: float = _get_effective_view_width_x(footprint)
 	return effective_view_width_x <= effective_map.size.x + CLAMP_EPSILON \
 		and footprint.size.y <= effective_map.size.y + CLAMP_EPSILON
+
+func _get_effective_zoom_bounds() -> Rect2:
+	var base_rect: Rect2 = zoom_limit_rect_xz if use_zoom_limit_rect_override else map_rect_xz
+	var far_margin: float = max(_get_active_vertical_far_clamp_margin(), 0.0)
+	return Rect2(
+		base_rect.position,
+		Vector2(base_rect.size.x, base_rect.size.y + far_margin)
+	)
 
 func _get_effective_map_bounds() -> Rect2:
 	var far_margin: float = max(_get_active_vertical_far_clamp_margin(), 0.0)
@@ -316,6 +273,63 @@ func _get_effective_map_bounds() -> Rect2:
 		map_rect_xz.position,
 		Vector2(map_rect_xz.size.x, map_rect_xz.size.y + far_margin)
 	)
+
+func _get_oversize_mode_name(mode: OversizeClampMode) -> String:
+	match mode:
+		OversizeClampMode.PIN_MIN_EDGE:
+			return "pin_min"
+		OversizeClampMode.PIN_MAX_EDGE:
+			return "pin_max"
+		_:
+			return "center"
+
+func _get_clamp_view_bounds_xz(footprint: Rect2) -> Rect2:
+	var view_min_x: float = footprint.position.x
+	var view_max_x: float = view_min_x + footprint.size.x
+	if _is_horizontal_sample_bounds_enabled():
+		var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
+		if sample_x_bounds != Vector2.ZERO:
+			view_min_x = sample_x_bounds.x
+			view_max_x = sample_x_bounds.y
+
+	return Rect2(
+		Vector2(view_min_x, footprint.position.y),
+		Vector2(view_max_x - view_min_x, footprint.size.y)
+	)
+
+func _resolve_oversize_axis_offset(
+	view_min: float,
+	view_max: float,
+	map_min: float,
+	map_max: float,
+	mode: OversizeClampMode,
+	pin_min_margin: float,
+	pin_max_margin: float,
+	center_anchor: float = NAN
+) -> float:
+	var view_size: float = view_max - view_min
+	var map_size: float = map_max - map_min
+
+	if view_size < map_size:
+		if view_min < map_min:
+			return map_min - view_min
+		if view_max > map_max:
+			return map_max - view_max
+		return 0.0
+
+	var safe_min_margin: float = max(pin_min_margin, 0.0)
+	var safe_max_margin: float = max(pin_max_margin, 0.0)
+	match mode:
+		OversizeClampMode.PIN_MIN_EDGE:
+			var target_min: float = clamp(map_min + safe_min_margin, map_min, map_max)
+			return target_min - view_min
+		OversizeClampMode.PIN_MAX_EDGE:
+			var target_max: float = clamp(map_max - safe_max_margin, map_min, map_max)
+			return target_max - view_max
+		_:
+			var view_center: float = center_anchor if not is_nan(center_anchor) else (view_min + view_max) * 0.5
+			var map_center: float = (map_min + map_max) * 0.5
+			return map_center - view_center
 
 func _get_effective_view_width_x(footprint: Rect2) -> float:
 	var effective_width: float = footprint.size.x
@@ -326,13 +340,19 @@ func _get_effective_view_width_x(footprint: Rect2) -> float:
 	return effective_width
 
 func _is_horizontal_sample_bounds_enabled() -> bool:
-	return horizontal_bounds_use_screen_sample if is_perspective_mode() else ortho_horizontal_bounds_use_screen_sample
+	return horizontal_bounds_use_screen_sample
 
 func _get_active_horizontal_bounds_screen_y() -> float:
-	return horizontal_bounds_screen_y if is_perspective_mode() else ortho_horizontal_bounds_screen_y
+	return horizontal_bounds_screen_y
 
 func _get_active_vertical_far_clamp_margin() -> float:
-	return vertical_far_clamp_margin if is_perspective_mode() else ortho_vertical_far_clamp_margin
+	return vertical_far_clamp_margin
+
+func _get_vertical_center_anchor_z(view_min_z: float, view_max_z: float) -> float:
+	var anchor_point: Vector3 = get_ground_point_for_screen_uv(Vector2(0.5, vertical_center_reference_screen_y))
+	if anchor_point.is_finite():
+		return anchor_point.z
+	return (view_min_z + view_max_z) * 0.5
 
 func get_ground_footprint_xz() -> Rect2:
 	## Calculate the current ground-plane footprint of the camera view in XZ-space.
@@ -359,34 +379,23 @@ func get_ground_footprint_xz() -> Rect2:
 
 	# Project each corner to ground plane (y = ground_y)
 	var world_points: Array[Vector3] = []
-	if is_perspective_mode():
-		for corner: Vector2 in screen_corners:
-			var origin: Vector3 = global_position
-			var dir: Vector3 = _get_perspective_ray_direction(corner, screen_size)
+	for corner: Vector2 in screen_corners:
+		var origin: Vector3 = global_position
+		var dir: Vector3 = _get_perspective_ray_direction(corner, screen_size)
 
-			# Skip if ray is parallel to ground (would create unstable intersection).
-			if abs(dir.y) < 0.0001:
-				continue
+		# Skip if ray is parallel to ground (would create unstable intersection).
+		if abs(dir.y) < 0.0001:
+			continue
 
-			var t: float = (ground_y - origin.y) / dir.y
-			if t < 0.0:
-				continue
+		var t: float = (ground_y - origin.y) / dir.y
+		if t < 0.0:
+			continue
 
-			var point: Vector3 = origin + dir * t
-			var depth: float = _get_forward_depth(point)
-			if depth < near - CLAMP_EPSILON or depth > far + CLAMP_EPSILON:
-				continue
-			world_points.append(point)
-	else:
-		var dir: Vector3 = _get_ortho_ray_direction()
-		# Skip if ray is parallel to ground (shouldn't happen with tilted camera).
-		if abs(dir.y) >= 0.0001:
-			for corner: Vector2 in screen_corners:
-				var origin: Vector3 = _get_ortho_ray_origin(corner, screen_size)
-				var t: float = (ground_y - origin.y) / dir.y
-				if t >= 0.0:
-					var point: Vector3 = origin + dir * t
-					world_points.append(point)
+		var point: Vector3 = origin + dir * t
+		var depth: float = _get_forward_depth(point)
+		if depth < near - CLAMP_EPSILON or depth > far + CLAMP_EPSILON:
+			continue
+		world_points.append(point)
 
 	# We need all 4 corners to intersect ground; otherwise part of the frustum
 	# points above the horizon and map clamping math becomes invalid.
@@ -433,29 +442,6 @@ func _get_forward_depth(world_pos: Vector3) -> float:
 	var forward: Vector3 = -global_basis.z
 	return forward.dot(world_pos - global_position)
 
-func _get_ortho_ray_origin(screen_pos: Vector2, screen_size: Vector2) -> Vector3:
-	## Compute ortho ray origin analytically (no Godot projection matrix).
-	var w: float = screen_size.x
-	var h: float = screen_size.y
-
-	var half_h: float
-	var half_w: float
-	if keep_aspect == KEEP_HEIGHT:
-		half_h = size * 0.5
-		half_w = half_h * (w / h)
-	else:
-		half_w = size * 0.5
-		half_h = half_w * (h / w)
-
-	var ndc_x: float = (screen_pos.x / w) * 2.0 - 1.0
-	var ndc_y: float = 1.0 - (screen_pos.y / h) * 2.0
-
-	return global_position + global_basis.x * (ndc_x * half_w) + global_basis.y * (ndc_y * half_h)
-
-func _get_ortho_ray_direction() -> Vector3:
-	## Ortho rays are all parallel — always the camera's forward vector.
-	return -global_basis.z
-
 func _get_horizontal_sample_bounds_x() -> Vector2:
 	var vp: Viewport = get_viewport()
 	var view_size: Vector2i = vp.get_visible_rect().size
@@ -468,22 +454,11 @@ func _get_horizontal_sample_bounds_x() -> Vector2:
 	var left_screen: Vector2 = Vector2(0.0, sample_y)
 	var right_screen: Vector2 = Vector2(w, sample_y)
 
-	var left_origin: Vector3
-	var left_dir: Vector3
-	var right_origin: Vector3
-	var right_dir: Vector3
-
 	var screen_size: Vector2 = Vector2(w, h)
-	if is_perspective_mode():
-		left_origin = global_position
-		right_origin = global_position
-		left_dir = _get_perspective_ray_direction(left_screen, screen_size)
-		right_dir = _get_perspective_ray_direction(right_screen, screen_size)
-	else:
-		left_origin = _get_ortho_ray_origin(left_screen, screen_size)
-		right_origin = _get_ortho_ray_origin(right_screen, screen_size)
-		left_dir = _get_ortho_ray_direction()
-		right_dir = left_dir
+	var left_origin: Vector3 = global_position
+	var right_origin: Vector3 = global_position
+	var left_dir: Vector3 = _get_perspective_ray_direction(left_screen, screen_size)
+	var right_dir: Vector3 = _get_perspective_ray_direction(right_screen, screen_size)
 
 	if abs(left_dir.y) < 0.0001 or abs(right_dir.y) < 0.0001:
 		return Vector2.ZERO
@@ -496,15 +471,46 @@ func _get_horizontal_sample_bounds_x() -> Vector2:
 	var left_point: Vector3 = left_origin + left_dir * left_t
 	var right_point: Vector3 = right_origin + right_dir * right_t
 
-	if is_perspective_mode():
-		var left_depth: float = _get_forward_depth(left_point)
-		var right_depth: float = _get_forward_depth(right_point)
-		if left_depth < near - CLAMP_EPSILON or left_depth > far + CLAMP_EPSILON:
-			return Vector2.ZERO
-		if right_depth < near - CLAMP_EPSILON or right_depth > far + CLAMP_EPSILON:
-			return Vector2.ZERO
+	var left_depth: float = _get_forward_depth(left_point)
+	var right_depth: float = _get_forward_depth(right_point)
+	if left_depth < near - CLAMP_EPSILON or left_depth > far + CLAMP_EPSILON:
+		return Vector2.ZERO
+	if right_depth < near - CLAMP_EPSILON or right_depth > far + CLAMP_EPSILON:
+		return Vector2.ZERO
 
 	return Vector2(minf(left_point.x, right_point.x), maxf(left_point.x, right_point.x))
+
+func get_ground_point_for_screen_uv(screen_uv: Vector2) -> Vector3:
+	var vp: Viewport = get_viewport()
+	var view_size: Vector2i = vp.get_visible_rect().size
+	var w: float = float(view_size.x)
+	var h: float = float(view_size.y)
+	if w <= 0.0 or h <= 0.0:
+		return Vector3.INF
+
+	var clamped_uv: Vector2 = Vector2(
+		clamp(screen_uv.x, 0.0, 1.0),
+		clamp(screen_uv.y, 0.0, 1.0)
+	)
+	var screen_pos: Vector2 = Vector2(clamped_uv.x * w, clamped_uv.y * h)
+	var screen_size: Vector2 = Vector2(w, h)
+
+	var origin: Vector3 = global_position
+	var dir: Vector3 = _get_perspective_ray_direction(screen_pos, screen_size)
+
+	if abs(dir.y) < 0.0001:
+		return Vector3.INF
+
+	var t: float = (ground_y - origin.y) / dir.y
+	if t < 0.0:
+		return Vector3.INF
+
+	var point: Vector3 = origin + dir * t
+	var depth: float = _get_forward_depth(point)
+	if depth < near - CLAMP_EPSILON or depth > far + CLAMP_EPSILON:
+		return Vector3.INF
+
+	return point
 
 func clamp_to_map() -> void:
 	## Clamps camera to keep ground footprint (projection) within map bounds
@@ -516,18 +522,11 @@ func clamp_to_map() -> void:
 		if footprint.size == Vector2.ZERO:
 			return
 
-		var view_min_x: float = footprint.position.x
-		var view_max_x: float = view_min_x + footprint.size.x
-		var view_min_z: float = footprint.position.y
-		var view_max_z: float = view_min_z + footprint.size.y
-		if _is_horizontal_sample_bounds_enabled():
-			var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
-			if sample_x_bounds != Vector2.ZERO:
-				view_min_x = sample_x_bounds.x
-				view_max_x = sample_x_bounds.y
-
-		var view_center_x: float = (view_min_x + view_max_x) * 0.5
-		var view_center_z: float = view_min_z + footprint.size.y * 0.5
+		var view_bounds: Rect2 = _get_clamp_view_bounds_xz(footprint)
+		var view_min_x: float = view_bounds.position.x
+		var view_max_x: float = view_min_x + view_bounds.size.x
+		var view_min_z: float = view_bounds.position.y
+		var view_max_z: float = view_min_z + view_bounds.size.y
 
 		# Map bounds
 		var effective_map: Rect2 = _get_effective_map_bounds()
@@ -536,44 +535,26 @@ func clamp_to_map() -> void:
 		var map_max_x: float = map_min_x + effective_map.size.x
 		var map_max_z: float = map_min_z + effective_map.size.y
 
-		# Calculate view and map dimensions
-		var view_width: float = view_max_x - view_min_x
-		var view_height: float = view_max_z - view_min_z
-		var map_width: float = map_max_x - map_min_x
-		var map_height: float = map_max_z - map_min_z
-
 		# Calculate translation needed to bring footprint inside bounds
-		var dx: float = 0.0
-		var dz: float = 0.0
-		var map_center_x: float = (map_min_x + map_max_x) * 0.5
-		var map_center_z: float = (map_min_z + map_max_z) * 0.5
-
-		# If the view footprint is larger than the map on an axis, pin center on that axis.
-		if view_width >= map_width:
-			if center_if_too_big:
-				dx = map_center_x - view_center_x
-			else:
-				# Fallback mode: keep one side pinned when oversized.
-				dx = map_min_x - view_min_x
-		else:
-			# X-axis clamping
-			if view_min_x < map_min_x:
-				dx = map_min_x - view_min_x  # Need to move right
-			elif view_max_x > map_max_x:
-				dx = map_max_x - view_max_x  # Need to move left (negative)
-
-		if view_height >= map_height:
-			if center_if_too_big:
-				dz = map_center_z - view_center_z
-			else:
-				# Fallback mode: keep one side pinned when oversized.
-				dz = map_min_z - view_min_z
-		else:
-			# Z-axis clamping
-			if view_min_z < map_min_z:
-				dz = map_min_z - view_min_z  # Need to move forward
-			elif view_max_z > map_max_z:
-				dz = map_max_z - view_max_z  # Need to move back (negative)
+		var dx: float = _resolve_oversize_axis_offset(
+			view_min_x,
+			view_max_x,
+			map_min_x,
+			map_max_x,
+			horizontal_oversize_clamp_mode,
+			horizontal_pin_min_edge_margin,
+			horizontal_pin_max_edge_margin
+		)
+		var dz: float = _resolve_oversize_axis_offset(
+			view_min_z,
+			view_max_z,
+			map_min_z,
+			map_max_z,
+			vertical_oversize_clamp_mode,
+			vertical_pin_min_edge_margin,
+			vertical_pin_max_edge_margin,
+			_get_vertical_center_anchor_z(view_min_z, view_max_z)
+		)
 
 		# STABILITY: Only apply correction if offset is significant (prevents micro-jitter)
 		if abs(dx) < CLAMP_EPSILON and abs(dz) < CLAMP_EPSILON:
@@ -624,10 +605,7 @@ func _handle_zoom(event: InputEvent) -> void:
 
 func _apply_zoom(delta: float) -> void:
 	## Apply zoom change and re-clamp camera
-	if is_perspective_mode():
-		fov = clamp(fov + delta, min_fov, max_fov)
-	else:
-		size = clamp(size + delta, min_ortho_size, max_ortho_size)
+	fov = clamp(fov + delta, min_fov, max_fov)
 	# Clamp after zoom to adjust for new view size
 	clamp_to_map()
 
@@ -703,15 +681,11 @@ func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vecto
 		# If projection is invalid, avoid blind movement that can cause snap-back.
 		return Vector2.ZERO
 
-	var view_min_x: float = footprint.position.x
-	var view_max_x: float = view_min_x + footprint.size.x
-	var view_min_z: float = footprint.position.y
-	var view_max_z: float = view_min_z + footprint.size.y
-	if _is_horizontal_sample_bounds_enabled():
-		var sample_x_bounds: Vector2 = _get_horizontal_sample_bounds_x()
-		if sample_x_bounds != Vector2.ZERO:
-			view_min_x = sample_x_bounds.x
-			view_max_x = sample_x_bounds.y
+	var view_bounds: Rect2 = _get_clamp_view_bounds_xz(footprint)
+	var view_min_x: float = view_bounds.position.x
+	var view_max_x: float = view_min_x + view_bounds.size.x
+	var view_min_z: float = view_bounds.position.y
+	var view_max_z: float = view_min_z + view_bounds.size.y
 	var effective_map: Rect2 = _get_effective_map_bounds()
 	var map_min_x: float = effective_map.position.x
 	var map_max_x: float = map_min_x + effective_map.size.x
@@ -723,23 +697,40 @@ func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vecto
 	var min_dz: float
 	var max_dz: float
 
-	var view_width: float = view_max_x - view_min_x
-	var view_height: float = footprint.size.y
+	var view_width: float = view_bounds.size.x
+	var view_height: float = view_bounds.size.y
 	var map_width: float = effective_map.size.x
 	var map_height: float = effective_map.size.y
 
 	if view_width >= map_width:
-		# When view is wider than map, stay centered on X.
-		min_dx = 0.0
-		max_dx = 0.0
+		var oversize_dx: float = _resolve_oversize_axis_offset(
+			view_min_x,
+			view_max_x,
+			map_min_x,
+			map_max_x,
+			horizontal_oversize_clamp_mode,
+			horizontal_pin_min_edge_margin,
+			horizontal_pin_max_edge_margin
+		)
+		min_dx = oversize_dx
+		max_dx = oversize_dx
 	else:
 		min_dx = map_min_x - view_min_x
 		max_dx = map_max_x - view_max_x
 
 	if view_height >= map_height:
-		# When view is deeper than map, stay centered on Z.
-		min_dz = 0.0
-		max_dz = 0.0
+		var oversize_dz: float = _resolve_oversize_axis_offset(
+			view_min_z,
+			view_max_z,
+			map_min_z,
+			map_max_z,
+			vertical_oversize_clamp_mode,
+			vertical_pin_min_edge_margin,
+			vertical_pin_max_edge_margin,
+			_get_vertical_center_anchor_z(view_min_z, view_max_z)
+		)
+		min_dz = oversize_dz
+		max_dz = oversize_dz
 	else:
 		min_dz = map_min_z - view_min_z
 		max_dz = map_max_z - view_max_z
@@ -754,6 +745,63 @@ func _constrain_pan_motion_to_map(desired_dx: float, desired_dz: float) -> Vecto
 		clamped_dz = 0.0
 
 	return Vector2(clamped_dx, clamped_dz)
+
+func get_clamp_diagnostics() -> Dictionary:
+	var footprint: Rect2 = get_ground_footprint_xz()
+	var view_bounds: Rect2 = Rect2()
+	if footprint.size != Vector2.ZERO:
+		view_bounds = _get_clamp_view_bounds_xz(footprint)
+	var map_bounds: Rect2 = _get_effective_map_bounds()
+
+	var view_min_x: float = view_bounds.position.x
+	var view_max_x: float = view_min_x + view_bounds.size.x
+	var view_min_z: float = view_bounds.position.y
+	var view_max_z: float = view_min_z + view_bounds.size.y
+	var map_min_x: float = map_bounds.position.x
+	var map_max_x: float = map_min_x + map_bounds.size.x
+	var map_min_z: float = map_bounds.position.y
+	var map_max_z: float = map_min_z + map_bounds.size.y
+
+	var needs_x_oversize: bool = view_bounds.size.x >= map_bounds.size.x
+	var needs_z_oversize: bool = view_bounds.size.y >= map_bounds.size.y
+	var target_dx: float = 0.0
+	var target_dz: float = 0.0
+	if footprint.size != Vector2.ZERO:
+		target_dx = _resolve_oversize_axis_offset(
+			view_min_x,
+			view_max_x,
+			map_min_x,
+			map_max_x,
+			horizontal_oversize_clamp_mode,
+			horizontal_pin_min_edge_margin,
+			horizontal_pin_max_edge_margin
+		)
+		target_dz = _resolve_oversize_axis_offset(
+			view_min_z,
+			view_max_z,
+			map_min_z,
+			map_max_z,
+			vertical_oversize_clamp_mode,
+			vertical_pin_min_edge_margin,
+			vertical_pin_max_edge_margin,
+			_get_vertical_center_anchor_z(view_min_z, view_max_z)
+		)
+
+	return {
+		"projection_mode": "Perspective",
+		"camera_position": global_position,
+		"map_bounds_xz": map_bounds,
+		"footprint_xz": footprint,
+		"view_bounds_xz": view_bounds,
+		"horizontal_mode": _get_oversize_mode_name(horizontal_oversize_clamp_mode),
+		"vertical_mode": _get_oversize_mode_name(vertical_oversize_clamp_mode),
+		"vertical_center_reference_screen_y": vertical_center_reference_screen_y,
+		"oversize_x": needs_x_oversize,
+		"oversize_z": needs_z_oversize,
+		"target_dx": target_dx,
+		"target_dz": target_dz,
+		"vertical_center_anchor_z": _get_vertical_center_anchor_z(view_min_z, view_max_z)
+	}
 
 func _process(delta: float) -> void:
 	## Called every frame. Handle keyboard and edge panning here.
@@ -880,26 +928,24 @@ func _update_debug_overlay() -> void:
 	_debug_overlay_lines.clear_surfaces()
 	_debug_overlay_lines.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 
-	# Green = allowed map area.
+	# Blue = live camera clamp bounds.
 	_draw_debug_rect_border(
 		_debug_overlay_lines,
 		map_rect_xz,
-		Color(0.1, 1.0, 0.2, 0.9),
+		Color(0.2, 0.65, 1.0, 0.9),
 		ground_y + debug_overlay_y_offset,
 		debug_overlay_line_thickness
 	)
 
-	# Red = current camera footprint on the ground (optional).
-	if debug_show_camera_footprint_overlay:
-		var footprint: Rect2 = get_ground_footprint_xz()
-		if footprint.size != Vector2.ZERO:
-			_draw_debug_rect_border(
-				_debug_overlay_lines,
-				footprint,
-				Color(1.0, 0.2, 0.2, 0.9),
-				ground_y + debug_overlay_y_offset + 0.02,
-				debug_overlay_line_thickness
-			)
+	# Gold = actual arena floor mesh bounds.
+	if arena_floor_rect_xz.size != Vector2.ZERO:
+		_draw_debug_rect_border(
+			_debug_overlay_lines,
+			arena_floor_rect_xz,
+			Color(1.0, 0.78, 0.2, 0.9),
+			ground_y + debug_overlay_y_offset + 0.02,
+			debug_overlay_line_thickness
+		)
 
 	_debug_overlay_lines.surface_end()
 

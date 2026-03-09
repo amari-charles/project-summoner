@@ -1,12 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cm2j43v0j4iiv"]
+[gd_scene load_steps=5 format=3 uid="uid://cm2j43v0j4iiv"]
 
 [ext_resource type="Script" path="res://scripts/battle/battlefield/base_battlefield_3d.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/battle/battlefield/camera_controller_3d.gd" id="3_camera_controller"]
 [ext_resource type="Resource" path="res://resources/camera_profiles/battle_perspective.tres" id="4_perspective_profile"]
-[ext_resource type="Resource" path="res://resources/camera_profiles/battle_orthographic.tres" id="5_orthographic_profile"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_background"]
-size = Vector2(100, 80)
+size = Vector2(100, 50)
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -23,18 +22,23 @@ glow_blend_mode = 1
 
 [node name="BaseBattlefield3D" type="Node3D" groups=["battlefield"]]
 script = ExtResource("1_script")
+camera_bounds_padding_x = 12.0
+camera_bounds_padding_z = 20.0
+camera_bounds_padding_away_from_camera = 20.0
+include_startup_camera_footprint_in_bounds_z = true
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, 0.573576, -0.819152, 0, 46.18, -54.61)
+transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, 0.573576, -0.819152, 0, 34.71, -55.6859)
 current = true
 projection = 0
 keep_aspect = 0
 fov = 72.0
 near = 0.5
 far = 260.0
+use_zoom_limit_rect_override = true
+vertical_oversize_clamp_mode = 0
 script = ExtResource("3_camera_controller")
 perspective_camera_profile = ExtResource("4_perspective_profile")
-orthographic_camera_profile = ExtResource("5_orthographic_profile")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
@@ -54,7 +58,7 @@ mesh = SubResource("PlaneMesh_background")
 [node name="EffectsLayer" type="Node3D" parent="."]
 
 [node name="PlayerSpawnMarker" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -7.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 0)
 
 [node name="EnemySpawnMarker" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -7.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, 0)
