@@ -1,8 +1,10 @@
 [
 	{ "catalog_id": "fire_wisp", "count": 2 },
 	{ "catalog_id": "fire_boar", "count": 2 },
+	{ "catalog_id": "fire_wolf", "count": 2 },
 	{ "catalog_id": "fire_spider", "count": 2 },
 	{ "catalog_id": "pebbloom", "count": 2 },
+	{ "catalog_id": "earth_komodo_dragon", "count": 2 },
 	{ "catalog_id": "stone_ape", "count": 2 },
 	{ "catalog_id": "earth_rock_thrower", "count": 2 },
 	{ "catalog_id": "puff", "count": 2 },

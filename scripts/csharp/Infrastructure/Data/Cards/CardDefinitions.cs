@@ -431,6 +431,27 @@ public static class CardDefinitions
         ElementalAffinity = Element.Fire
     };
 
+    public static readonly CardDefinition FireWolf = new()
+    {
+        Id = CardIds.FireWolf,
+        Name = "Fire Wolf",
+        Description = "A blazing pack hunter. Sprints into melee and tears through enemies with rapid, fiery strikes.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.0f,
+        SummonTime = 1.1f,
+        UnitId = UnitIds.FireWolf,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Beast,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire
+    };
+
     public static readonly CardDefinition FireSpider = new()
     {
         Id = CardIds.FireSpider,
@@ -471,6 +492,27 @@ public static class CardDefinitions
         UnitType = UnitType.Melee,
         IsRanged = false,
         CreatureTypes = CreatureType.Elemental | CreatureType.Nature,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth
+    };
+
+    public static readonly CardDefinition EarthKomodoDragon = new()
+    {
+        Id = CardIds.EarthKomodoDragon,
+        Name = "Earth Komodo Dragon",
+        Description = "An ancient stone-backed predator. Heavy, relentless, and devastating up close.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 6,
+        Cooldown = 3.0f,
+        SummonTime = 1.6f,
+        UnitId = UnitIds.EarthKomodoDragon,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Beast | CreatureType.Elemental,
+        Roles = SummonRole.Tank | SummonRole.Giant,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Earth
     };
@@ -683,10 +725,12 @@ public static class CardDefinitions
         [CardIds.FireAnt] = FireAnt,
         [CardIds.FireAntSwarm] = FireAntSwarm,
         [CardIds.FireBoar] = FireBoar,
+        [CardIds.FireWolf] = FireWolf,
         [CardIds.FireSpider] = FireSpider,
 
         // Earth units
         [CardIds.Pebbloom] = Pebbloom,
+        [CardIds.EarthKomodoDragon] = EarthKomodoDragon,
         [CardIds.Rock] = Rock,
         [CardIds.StoneApe] = StoneApe,
         [CardIds.EarthRockThrower] = EarthRockThrower,

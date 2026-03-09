@@ -188,6 +188,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
         if (_characterSprite != null)
         {
+            _characterSprite.AnimationFinished += OnCharacterAnimationFinished;
+
             // Apply SpriteFrames if set via export
             if (SpriteFramesResource != null)
             {
@@ -236,6 +238,14 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (underUnitVisual)
         {
             CallDeferred(MethodName.ShowSpriteDeferred);
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        if (_characterSprite != null)
+        {
+            _characterSprite.AnimationFinished -= OnCharacterAnimationFinished;
         }
     }
 
@@ -724,5 +734,17 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (!IsInstanceValid(this))
             return;
         _isAttacking = false;
+    }
+
+    private void OnCharacterAnimationFinished()
+    {
+        if (_characterSprite?.SpriteFrames == null)
+            return;
+
+        if (_characterSprite.Animation == "walk" && _characterSprite.SpriteFrames.HasAnimation("walk_loop"))
+        {
+            _characterSprite.Animation = "walk_loop";
+            _characterSprite.Play();
+        }
     }
 }
