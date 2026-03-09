@@ -329,13 +329,11 @@ func _on_card_xp_item_clicked(instance_id: String) -> void:
 	add_child(modal)
 	modal.open_for_card(instance_id, catalog_id)
 
-	# Connect to level-up signal - modal will request level-up, we open the panel
+	# Card detail requests level-up modal when player chooses to level.
 	modal.level_up_requested.connect(_on_card_detail_level_up_requested)
 	modal.closed.connect(_on_card_detail_closed.bind(instance_id))
 
-## Handle level-up request from card detail modal
 func _on_card_detail_level_up_requested(instance_id: String) -> void:
-	# Open level-up panel for upgrade selection
 	var panel: Node = LevelUpPanelScene.instantiate()
 	if not panel:
 		return
@@ -346,23 +344,14 @@ func _on_card_detail_level_up_requested(instance_id: String) -> void:
 		panel.call("open_for_card", instance_id)
 
 	if panel.has_signal("level_up_completed"):
-		panel.level_up_completed.connect(_on_level_up_completed.bind(instance_id))
-
-	if panel.has_signal("cancelled"):
-		panel.cancelled.connect(_on_level_up_cancelled.bind(panel))
+		panel.level_up_completed.connect(_on_level_up_completed)
 
 ## Handle card detail modal closed - refresh card display
 func _on_card_detail_closed(instance_id: String) -> void:
 	_refresh_card_xp_item(instance_id)
 
-## Handle level-up completion - refresh the card item display
 func _on_level_up_completed(instance_id: String) -> void:
 	_refresh_card_xp_item(instance_id)
-
-## Handle level-up cancellation - clean up panel
-func _on_level_up_cancelled(panel: Node) -> void:
-	if is_instance_valid(panel):
-		panel.queue_free()
 
 ## Refresh a specific card item after level-up
 func _refresh_card_xp_item(instance_id: String) -> void:

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fateforged.Stats;
 
 namespace Fateforged.Simulation.Data;
 
@@ -69,6 +70,7 @@ public sealed class TraitRuntimeSpawnContext
 public sealed class MatchTraitRuntimeState
 {
     public const string StubRulesetVersion = "pass2_stub_v1";
+    public const string RulesetVersionV1 = "unified_trait_v1";
 
     /// <summary>
     /// Ruleset version used to compile this runtime snapshot.
@@ -86,14 +88,74 @@ public sealed class MatchTraitRuntimeState
     /// </summary>
     public Dictionary<TraitRuntimeTeamId, TraitRuntimePointCount> TeamTraitPointSnapshot { get; } = new();
 
+    /// <summary>
+    /// Runtime card-instance trait multipliers used at unit spawn time.
+    /// </summary>
+    public Dictionary<TraitRuntimeCardInstanceId, Dictionary<StatKey, float>> CardInstanceStatMultipliers { get; } = new();
+
     public static MatchTraitRuntimeState Empty() => new();
 
-    /// <summary>
-    /// Spawn modifier hook for Pass 2 wiring. No-op until Pass 3.
-    /// </summary>
+    public void ResetCardInstanceStatMultipliers()
+    {
+        CardInstanceStatMultipliers.Clear();
+    }
+
+    public void SetCardInstanceStatMultipliers(TraitRuntimeCardInstanceId cardInstanceId, Dictionary<StatKey, float> statMultipliers)
+    {
+        if (!cardInstanceId.HasValue || statMultipliers == null || statMultipliers.Count == 0)
+            return;
+
+        CardInstanceStatMultipliers[cardInstanceId] = new Dictionary<StatKey, float>(statMultipliers);
+        RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
+    }
+
     public void ApplySpawnModifiers(UnitData unit, TraitRuntimeSpawnContext context)
     {
-        _ = unit;
-        _ = context;
+        if (!context.CardInstanceId.HasValue)
+            return;
+        if (!CardInstanceStatMultipliers.TryGetValue(context.CardInstanceId, out var statMultipliers))
+            return;
+
+        foreach (var (statKey, multiplier) in statMultipliers)
+        {
+            if (multiplier <= 0f)
+                continue;
+
+            switch (statKey)
+            {
+                case StatKey.MaxHp:
+                case StatKey.MaxHealth:
+                    unit.MaxHp *= multiplier;
+                    unit.CurrentHp *= multiplier;
+                    break;
+                case StatKey.AttackDamage:
+                    unit.AttackDamage *= multiplier;
+                    break;
+                case StatKey.AttackSpeed:
+                    unit.AttackSpeed *= multiplier;
+                    break;
+                case StatKey.MoveSpeed:
+                    unit.MoveSpeed *= multiplier;
+                    break;
+                case StatKey.AttackRange:
+                    unit.AttackRange *= multiplier;
+                    break;
+                case StatKey.AggroRadius:
+                    unit.AggroRadius *= multiplier;
+                    break;
+                case StatKey.CritChance:
+                    unit.CritChance *= multiplier;
+                    break;
+                case StatKey.CritDamage:
+                    unit.CritDamage *= multiplier;
+                    break;
+                case StatKey.Armor:
+                    unit.PhysicalDefense *= multiplier;
+                    break;
+                case StatKey.MagicResist:
+                    unit.MagicDefense *= multiplier;
+                    break;
+            }
+        }
     }
 }

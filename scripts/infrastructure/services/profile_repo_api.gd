@@ -1,44 +1,61 @@
 class_name ProfileRepoApi
 extends RefCounted
 
+static func _repo() -> Node:
+	return ProfileRepo
+
+static func _call_first(method_names: Array[String], args: Array = []) -> Variant:
+	var repo: Node = _repo()
+	for method_name: String in method_names:
+		if repo.has_method(method_name):
+			return repo.callv(method_name, args)
+	push_error("ProfileRepoApi: None of these methods exist on ProfileRepo: %s" % str(method_names))
+	return null
+
 static func reset_profile() -> void:
-	ProfileRepo.call("reset_profile")
+	_call_first(["ResetProfile", "reset_profile"])
 
 static func get_current_profile_id() -> String:
-	return SafeTypeUtils.string(ProfileRepo.call("get_current_profile_id"), "")
+	return SafeTypeUtils.string(_call_first(["GetCurrentProfileId", "get_current_profile_id"]), "")
 
 static func load_profile(profile_id: String) -> bool:
-	return SafeTypeUtils.bool_val(ProfileRepo.call("load_profile", profile_id), false)
+	return SafeTypeUtils.bool_val(_call_first(["LoadProfile", "load_profile"], [profile_id]), false)
 
 static func snapshot() -> Dictionary:
-	return SafeTypeUtils.dict(ProfileRepo.call("snapshot"))
+	return get_profile_data()
 
 static func get_profile_data() -> Dictionary:
-	return SafeTypeUtils.dict(ProfileRepo.call("get_profile_data"))
+	return SafeTypeUtils.dict(_call_first([
+		"GetProfileDataSnapshot",
+		"get_profile_data_snapshot",
+		"GetActiveProfileDict",
+		"get_active_profile_dict"
+	]))
 
 static func load_profile_data(profile_data: Dictionary) -> bool:
-	if not ProfileRepo.has_method("load_profile_data"):
+	var repo: Node = _repo()
+	if not repo.has_method("LoadProfileData") and not repo.has_method("load_profile_data"):
 		return false
-	ProfileRepo.call("load_profile_data", profile_data)
+	_call_first(["LoadProfileData", "load_profile_data"], [profile_data])
 	return true
 
 static func get_resources_dict() -> Dictionary:
-	return SafeTypeUtils.dict(ProfileRepo.call("GetResourcesDict"))
+	return SafeTypeUtils.dict(_call_first(["GetResourcesDict", "get_resources_dict"]))
 
 static func update_profile_meta_dict(meta_updates: Dictionary) -> void:
-	ProfileRepo.call("UpdateProfileMetaDict", meta_updates)
+	_call_first(["UpdateProfileMetaDict", "update_profile_meta_dict"], [meta_updates])
 
 static func get_active_profile_dict() -> Dictionary:
-	return SafeTypeUtils.dict(ProfileRepo.call("GetActiveProfileDict"))
+	return SafeTypeUtils.dict(_call_first(["GetActiveProfileDict", "get_active_profile_dict"]))
 
 static func get_active_deck_array() -> Array:
-	return SafeTypeUtils.array(ProfileRepo.call("GetActiveDeckArray"))
+	return SafeTypeUtils.array(_call_first(["GetActiveDeckArray", "get_active_deck_array"]))
 
 static func update_settings_dict(settings_updates: Dictionary) -> void:
-	ProfileRepo.call("UpdateSettingsDict", settings_updates)
+	_call_first(["UpdateSettingsDict", "update_settings_dict"], [settings_updates])
 
 static func update_campaign_progress_dict(progress_updates: Dictionary, summoner_id: String) -> void:
-	ProfileRepo.call("UpdateCampaignProgressDict", progress_updates, summoner_id)
+	_call_first(["UpdateCampaignProgressDict", "update_campaign_progress_dict"], [progress_updates, summoner_id])
 
 static func get_settings_dict() -> Dictionary:
-	return SafeTypeUtils.dict(ProfileRepo.call("GetSettingsDict"))
+	return SafeTypeUtils.dict(_call_first(["GetSettingsDict", "get_settings_dict"]))

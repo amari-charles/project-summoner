@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
@@ -388,9 +389,67 @@ public partial class SummonerProgressionService : Node
 
 	public Godot.Collections.Array<Godot.Collections.Dictionary> RollTraitOffers(string summonerId, int count = 3)
 	{
-		_ = count;
-		GD.PushWarning("SummonerProgressionService: RollTraitOffers is a Pass 2 stub and returns no offers.");
-		return [];
+		var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+		if (_profileRepo == null || count <= 0)
+			return result;
+
+		var typedSummonerId = SummonerId.FromString(summonerId);
+		var summoner = _profileRepo.GetSummonerInstance(typedSummonerId);
+		if (summoner == null)
+			return result;
+
+		var summonerDef = SummonerCatalog.GetSummoner(typedSummonerId);
+		if (summonerDef == null)
+			return result;
+
+		var evaluationLevel = summoner.Level;
+		if (summoner.UnspentTraitPoints <= 0 && CanLevelUp(typedSummonerId))
+			evaluationLevel = Math.Min(MaxLevel, summoner.Level + 1);
+
+		var ownedTraitSet = new HashSet<string>(summoner.GetAllTraitIds());
+		var summonerTagSet = new HashSet<string>(summonerDef.TraitEligibilityTags);
+		var eligible = new List<TraitDefinition>();
+		foreach (var trait in TraitCatalog.GetAllTraits())
+		{
+			if (trait.IsInnate)
+				continue;
+			if (ownedTraitSet.Contains(trait.Id))
+				continue;
+			if (!trait.Tags.Contains(TraitTags.Summoner))
+				continue;
+
+			var hasAnyEligibilityTag = trait.Tags.Length == 0 || trait.Tags.Any(tag => summonerTagSet.Contains(tag));
+			var hasAllRequiredTags = trait.RequiredTags.All(tag => summonerTagSet.Contains(tag));
+			if (!hasAnyEligibilityTag || !hasAllRequiredTags)
+				continue;
+
+			if (evaluationLevel < trait.MinLevel)
+				continue;
+			if (trait.MaxLevel > 0 && evaluationLevel > trait.MaxLevel)
+				continue;
+			if (trait.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
+				continue;
+
+			eligible.Add(trait);
+		}
+
+		var ordered = eligible
+			.OrderBy(trait => ComputeStableOfferOrder($"{typedSummonerId.Value}|{evaluationLevel}", trait.Id.Value))
+			.ThenBy(trait => trait.Id.Value, StringComparer.Ordinal)
+			.Take(count);
+
+		foreach (var trait in ordered)
+		{
+			result.Add(new Godot.Collections.Dictionary
+			{
+				["trait_id"] = (string)trait.Id,
+				["display_name"] = ResolveLoc(trait.NameKey),
+				["description"] = ResolveLoc(trait.DescriptionKey),
+				["weight"] = 1
+			});
+		}
+
+		return result;
 	}
 
 	public bool SpendTraitPoint(string summonerId, string traitId) =>
@@ -400,13 +459,42 @@ public partial class SummonerProgressionService : Node
 	{
 		if (_profileRepo == null) return false;
 		if (string.IsNullOrWhiteSpace(traitId)) return false;
+		var trimmedTraitId = traitId.Trim();
 
 		var summoner = _profileRepo.GetSummonerInstance(summonerId);
 		if (summoner == null) return false;
 		if (summoner.UnspentTraitPoints <= 0) return false;
 
-		var typedTraitId = TraitId.FromString(traitId);
+		var typedTraitId = TraitId.FromString(trimmedTraitId);
+		if (typedTraitId == TraitId.None)
+			return false;
+
 		if (summoner.AcquiredTraitIds.Contains(typedTraitId))
+			return false;
+
+		var traitDef = TraitCatalog.GetTrait(typedTraitId);
+		if (traitDef == null || traitDef.IsInnate)
+			return false;
+		if (!traitDef.Tags.Contains(TraitTags.Summoner))
+			return false;
+
+		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
+		if (summonerDef == null)
+			return false;
+
+		var summonerTagSet = new HashSet<string>(summonerDef.TraitEligibilityTags);
+		var hasAnyEligibilityTag = traitDef.Tags.Length == 0 || traitDef.Tags.Any(tag => summonerTagSet.Contains(tag));
+		var hasAllRequiredTags = traitDef.RequiredTags.All(tag => summonerTagSet.Contains(tag));
+		if (!hasAnyEligibilityTag || !hasAllRequiredTags)
+			return false;
+
+		if (summoner.Level < traitDef.MinLevel)
+			return false;
+		if (traitDef.MaxLevel > 0 && summoner.Level > traitDef.MaxLevel)
+			return false;
+
+		var ownedTraitSet = new HashSet<string>(summoner.GetAllTraitIds());
+		if (traitDef.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
 			return false;
 
 		summoner.UnspentTraitPoints -= 1;
@@ -418,36 +506,6 @@ public partial class SummonerProgressionService : Node
 		summoner.AcquiredTraitIds.Remove(typedTraitId);
 		summoner.UnspentTraitPoints += 1;
 		return false;
-	}
-
-	// =========================================================================
-	// LEGACY TRAIT METHODS (disabled in Pass 2)
-	// =========================================================================
-
-	/// <summary>Deprecated by unified trait flow. Returns empty in Pass 2.</summary>
-	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
-		string summonerId, int count = 3) =>
-		GetAvailableTraitsForSummoner(SummonerId.FromString(summonerId), count);
-
-	/// <summary>Deprecated by unified trait flow. Returns empty in Pass 2.</summary>
-	public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraitsForSummoner(
-		SummonerId summonerId, int count = 3)
-	{
-		_ = summonerId;
-		_ = count;
-		GD.PushWarning("SummonerProgressionService: Legacy GetAvailableTraitsForSummoner is disabled in Pass 2.");
-		return [];
-	}
-
-	/// <summary>Acquire a trait for a summoner (string overload for GDScript boundary).</summary>
-	public bool AcquireTrait(string summonerId, string traitIdString) =>
-		AcquireTrait(SummonerId.FromString(summonerId), TraitId.FromString(traitIdString));
-
-	/// <summary>Acquire a trait for a summoner (typed).</summary>
-	public bool AcquireTrait(SummonerId summonerId, TraitId traitId)
-	{
-		GD.PushWarning("SummonerProgressionService: AcquireTrait is deprecated. Use SpendTraitPoint.");
-		return SpendTraitPoint(summonerId, traitId.Value);
 	}
 
 	/// <summary>Get all traits a summoner has acquired (string overload for GDScript).</summary>
@@ -512,5 +570,36 @@ public partial class SummonerProgressionService : Node
 	private string GetActiveSummonerId()
 	{
 		return _getActiveSummonerFunc?.Invoke() ?? "";
+	}
+
+	private string ResolveLoc(string key)
+	{
+		if (string.IsNullOrWhiteSpace(key))
+			return "";
+
+		var loc = GetNodeOrNull<Node>("/root/Loc");
+		if (loc != null && loc.HasMethod("t"))
+			return loc.Call("t", key).AsString();
+
+		return key;
+	}
+
+	private static int ComputeStableOfferOrder(string context, string traitId)
+	{
+		return DeterministicStringHash($"{context}|{traitId}");
+	}
+
+	private static int DeterministicStringHash(string value)
+	{
+		unchecked
+		{
+			var hash = (int)2166136261;
+			foreach (var c in value)
+			{
+				hash ^= c;
+				hash *= 16777619;
+			}
+			return hash;
+		}
 	}
 }

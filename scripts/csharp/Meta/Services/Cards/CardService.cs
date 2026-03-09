@@ -6,6 +6,8 @@ using Fateforged.Cards;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Cards.Handlers;
+using Fateforged.Data.Traits;
+using Fateforged.Stats;
 
 namespace Fateforged.Meta.Cards;
 
@@ -298,13 +300,6 @@ public partial class CardService : Node
         return success;
     }
 
-    /// <summary>Legacy level-up API retained as wrapper. selected_trait_id is ignored in Pass 2.</summary>
-    public bool LevelUpCard(string cardInstanceId, string traitId)
-    {
-        _ = traitId;
-        return LevelUpCard(cardInstanceId);
-    }
-
     // =========================================================================
     // PROGRESSION - UNIFIED TRAIT LEDGER (Pass 2 stubs)
     // =========================================================================
@@ -325,11 +320,21 @@ public partial class CardService : Node
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var offer in offers)
         {
+            var traitDef = TraitCatalog.GetTrait(offer.TraitId.Value);
+            var displayName = string.IsNullOrWhiteSpace(offer.DisplayName.LocalizationKey)
+                ? offer.DisplayName.ResolveDisplayText()
+                : ResolveLoc(offer.DisplayName.LocalizationKey);
+            var description = string.IsNullOrWhiteSpace(offer.Description.LocalizationKey)
+                ? offer.Description.ResolveDisplayText()
+                : ResolveLoc(offer.Description.LocalizationKey);
+            var summaryShort = TraitSummaryFormatter.BuildSummaryShort(traitDef);
+
             result.Add(new Godot.Collections.Dictionary
             {
                 ["trait_id"] = offer.TraitId.Value,
-                ["display_name"] = offer.DisplayName.ResolveDisplayText(),
-                ["description"] = offer.Description.ResolveDisplayText(),
+                ["display_name"] = displayName,
+                ["description"] = description,
+                ["summary_short"] = summaryShort,
                 ["weight"] = offer.Weight.Value
             });
         }
@@ -348,23 +353,6 @@ public partial class CardService : Node
     // PROGRESSION - TRAITS
     // =========================================================================
 
-    /// <summary>Get available traits for card's next level.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableTraits(string cardInstanceId)
-    {
-        var traits = _progression?.GetAvailableTraits(CardInstanceId.FromString(cardInstanceId)) ?? [];
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var trait in traits)
-        {
-            result.Add(new Godot.Collections.Dictionary
-            {
-                ["id"] = (string)trait.Id,
-                ["name"] = trait.Name,
-                ["description"] = trait.Description
-            });
-        }
-        return result;
-    }
-
     /// <summary>Get all traits applied to a card.</summary>
     public Godot.Collections.Array<string> GetAppliedTraits(string cardInstanceId)
     {
@@ -379,9 +367,38 @@ public partial class CardService : Node
     public Godot.Collections.Dictionary GetCardTraitDict(string catalogId, string traitId)
     {
         _ = catalogId;
-        _ = traitId;
-        // Pass 2 unified migration disables legacy CardTraitCatalog lookup.
-        return [];
+        if (string.IsNullOrWhiteSpace(traitId))
+            return [];
+
+        var normalizedTraitId = traitId.Trim();
+        var unifiedTrait = TraitCatalog.GetTrait(normalizedTraitId);
+        if (unifiedTrait == null)
+            return [];
+
+        var statMods = new Godot.Collections.Dictionary();
+        foreach (var mod in unifiedTrait.Modifiers)
+        {
+            if (mod.HasSummonerStat && mod.Stat.HasValue)
+            {
+                var statKey = mod.Stat.Value.ToSnakeCase();
+                statMods[statKey] = mod.Value;
+            }
+
+            if (mod.StatMults == null || mod.StatMults.Count == 0)
+                continue;
+
+            foreach (var (stat, mult) in mod.StatMults)
+                statMods[stat.ToSnakeCase()] = mult;
+        }
+
+        return new Godot.Collections.Dictionary
+        {
+            ["id"] = (string)unifiedTrait.Id,
+            ["name"] = ResolveLoc(unifiedTrait.NameKey),
+            ["description"] = ResolveLoc(unifiedTrait.DescriptionKey),
+            ["summary_short"] = TraitSummaryFormatter.BuildSummaryShort(unifiedTrait),
+            ["stat_mods"] = statMods
+        };
     }
 
     /// <summary>Get stat modifiers from card's traits (for C# callers).</summary>
@@ -433,6 +450,18 @@ public partial class CardService : Node
         };
     }
 
+    private string ResolveLoc(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            return "";
+
+        var loc = GetNodeOrNull<Node>("/root/Loc");
+        if (loc != null && loc.HasMethod("t"))
+            return loc.Call("t", key).AsString();
+
+        return key;
+    }
+
     /// <summary>Get all cards that can level up.</summary>
     public CardInstance[] GetCardsReadyToLevelUp()
     {
@@ -459,6 +488,40 @@ public partial class CardService : Node
     {
         var card = GetCard(cardInstanceId);
         return card != null ? DtoConverters.ToDict(card) : [];
+    }
+
+    /// <summary>
+    /// Get effective card stats (base catalog stats with trait multipliers applied).
+    /// </summary>
+    public Godot.Collections.Dictionary GetEffectiveStatsDict(string cardInstanceId)
+    {
+        var card = GetCard(cardInstanceId);
+        if (card == null)
+            return [];
+
+        var cardDef = CardCatalog.GetCard(card.CatalogId);
+        if (cardDef == null)
+            return [];
+
+        var effective = CardCatalog.ToDictionary(cardDef);
+        var traitMods = GetTraitStatModifiersTyped(cardInstanceId);
+        if (traitMods.Count == 0)
+            return effective;
+
+        foreach (var (statKey, multiplier) in traitMods)
+        {
+            if (multiplier <= 0f || !effective.ContainsKey(statKey))
+                continue;
+
+            var current = effective[statKey];
+            if (current.VariantType != Variant.Type.Float && current.VariantType != Variant.Type.Int)
+                continue;
+
+            var baseValue = (float)current.AsDouble();
+            effective[statKey] = baseValue * multiplier;
+        }
+
+        return effective;
     }
 
     /// <summary>Get owned cards for summoner as array for GDScript.</summary>

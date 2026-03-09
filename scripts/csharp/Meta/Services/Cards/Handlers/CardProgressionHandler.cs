@@ -1,10 +1,13 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using Godot;
 using Fateforged.Cards;
-using Fateforged.Data;
+using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Traits.Unified;
+using Fateforged.Stats;
 
 namespace Fateforged.Meta.Cards.Handlers;
 
@@ -171,16 +174,6 @@ public class CardProgressionHandler
         return true;
     }
 
-    /// <summary>
-    /// Legacy API retained as a wrapper in Pass 2.
-    /// Trait choice is ignored; points are deferred for SpendCardTraitPoint.
-    /// </summary>
-    public bool LevelUpCard(CardInstanceId cardInstanceId, CardTraitId traitId)
-    {
-        _ = traitId;
-        return LevelUpCard(cardInstanceId);
-    }
-
     public int GetCardUnspentTraitPoints(CardInstanceId cardInstanceId)
     {
         return _profileRepo.GetCard(cardInstanceId)?.UnspentTraitPoints ?? 0;
@@ -207,10 +200,72 @@ public class CardProgressionHandler
 
     public List<UnifiedTraitOffer> RollCardTraitOffers(CardInstanceId cardInstanceId, int count)
     {
-        _ = cardInstanceId;
-        _ = count;
-        // Pass 2 scaffold: offer rolling is implemented in Pass 3.
-        return [];
+        if (count <= 0)
+            return [];
+
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null)
+            return [];
+
+        var cardDef = CardCatalog.GetCard(card.CatalogId);
+        if (cardDef == null)
+            return [];
+
+        var ownerTypeTag = ResolveOwnerTypeTag(cardDef);
+        if (string.IsNullOrEmpty(ownerTypeTag))
+            return [];
+
+        var evaluationLevel = ResolveOfferEvaluationLevel(cardInstanceId, card);
+        var cardTagSet = BuildEffectiveCardTagSet(cardDef, ownerTypeTag);
+        var ownedTraitSet = new HashSet<string>(card.Traits.Select(t => t.Value));
+        var eligibleTraits = new List<TraitDefinition>();
+
+        foreach (var trait in TraitCatalog.GetAllTraits())
+        {
+            if (trait.IsInnate)
+                continue;
+            if (ownedTraitSet.Contains(trait.Id))
+                continue;
+            if (!trait.Tags.Contains(ownerTypeTag))
+                continue;
+
+            var hasAnyEligibilityTag = trait.Tags.Length == 0 || trait.Tags.Any(tag => cardTagSet.Contains(tag));
+            var hasAllRequiredTags = trait.RequiredTags.All(tag => cardTagSet.Contains(tag));
+            if (!hasAnyEligibilityTag || !hasAllRequiredTags)
+                continue;
+
+            if (evaluationLevel < trait.MinLevel)
+                continue;
+            if (trait.MaxLevel > 0 && evaluationLevel > trait.MaxLevel)
+                continue;
+
+            if (trait.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
+                continue;
+
+            eligibleTraits.Add(trait);
+        }
+
+        if (eligibleTraits.Count == 0)
+            return [];
+
+        var orderedTraits = eligibleTraits
+            .OrderBy(trait => ComputeStableOfferOrder($"{cardInstanceId.Value}|{evaluationLevel}", trait.Id))
+            .ThenBy(trait => trait.Id.Value, StringComparer.Ordinal)
+            .Take(count);
+
+        var offers = new List<UnifiedTraitOffer>();
+        foreach (var trait in orderedTraits)
+        {
+            offers.Add(new UnifiedTraitOffer
+            {
+                TraitId = trait.Id.Value,
+                DisplayName = new UnifiedDisplayText { LocalizationKey = trait.NameKey },
+                Description = new UnifiedDisplayText { LocalizationKey = trait.DescriptionKey },
+                Weight = UnifiedWeight.One
+            });
+        }
+
+        return offers;
     }
 
     public bool SpendCardTraitPoint(CardInstanceId cardInstanceId, CardTraitId traitId)
@@ -219,9 +274,40 @@ public class CardProgressionHandler
         if (card == null) return false;
         if (card.UnspentTraitPoints <= 0) return false;
         if (traitId == CardTraitId.None) return false;
-        if (card.Traits.Contains(traitId)) return false;
+        var normalizedTraitId = CardTraitId.FromString(traitId.Value.Trim());
+        if (normalizedTraitId == CardTraitId.None) return false;
+        if (card.Traits.Contains(normalizedTraitId)) return false;
 
-        var newTraits = new List<CardTraitId>(card.Traits) { traitId };
+        var traitDef = TraitCatalog.GetTrait(normalizedTraitId.Value);
+        if (traitDef == null || traitDef.IsInnate)
+            return false;
+
+        var cardDef = CardCatalog.GetCard(card.CatalogId);
+        if (cardDef == null)
+            return false;
+
+        var ownerTypeTag = ResolveOwnerTypeTag(cardDef);
+        if (string.IsNullOrEmpty(ownerTypeTag))
+            return false;
+        if (!traitDef.Tags.Contains(ownerTypeTag))
+            return false;
+
+        var cardTagSet = BuildEffectiveCardTagSet(cardDef, ownerTypeTag);
+        var hasAnyEligibilityTag = traitDef.Tags.Length == 0 || traitDef.Tags.Any(tag => cardTagSet.Contains(tag));
+        var hasAllRequiredTags = traitDef.RequiredTags.All(tag => cardTagSet.Contains(tag));
+        if (!hasAnyEligibilityTag || !hasAllRequiredTags)
+            return false;
+
+        if (card.Level < traitDef.MinLevel)
+            return false;
+        if (traitDef.MaxLevel > 0 && card.Level > traitDef.MaxLevel)
+            return false;
+
+        var ownedTraitSet = new HashSet<string>(card.Traits.Select(t => t.Value));
+        if (traitDef.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
+            return false;
+
+        var newTraits = new List<CardTraitId>(card.Traits) { normalizedTraitId };
         var newPoints = card.UnspentTraitPoints - 1;
         var success = _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
         {
@@ -234,7 +320,8 @@ public class CardProgressionHandler
 
     public bool SpendCardTraitPoint(CardInstanceId cardInstanceId, string traitId)
     {
-        return SpendCardTraitPoint(cardInstanceId, CardTraitId.FromString(traitId));
+        if (string.IsNullOrWhiteSpace(traitId)) return false;
+        return SpendCardTraitPoint(cardInstanceId, CardTraitId.FromString(traitId.Trim()));
     }
 
     public List<CardTraitId> GetAppliedTraits(CardInstanceId cardInstanceId)
@@ -248,20 +335,96 @@ public class CardProgressionHandler
 
     public Dictionary<string, float> GetTraitStatModifiers(CardInstanceId cardInstanceId)
     {
-        _ = cardInstanceId;
-        // Pass 2 removes legacy CardTraitCatalog stat modifiers from runtime.
-        return [];
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null)
+            return [];
+
+        var result = new Dictionary<string, float>(StringComparer.Ordinal);
+        foreach (var traitId in card.Traits)
+        {
+            var traitDef = TraitCatalog.GetTrait(traitId.Value);
+            if (traitDef == null)
+                continue;
+
+            foreach (var modifier in traitDef.Modifiers)
+            {
+                if (modifier.StatMults == null || modifier.StatMults.Count == 0)
+                    continue;
+
+                foreach (var (stat, multiplier) in modifier.StatMults)
+                {
+                    if (multiplier <= 0f)
+                        continue;
+
+                    var statKey = stat.ToSnakeCase();
+                    if (result.TryGetValue(statKey, out var existing))
+                    {
+                        result[statKey] = existing * multiplier;
+                    }
+                    else
+                    {
+                        result[statKey] = multiplier;
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
-    // =========================================================================
-    // TRAIT OPERATIONS (legacy compatibility stubs)
-    // =========================================================================
-
-    /// <summary>Deprecated by unified trait flow. Returns no offers in Pass 2.</summary>
-    public List<CardTrait> GetAvailableTraits(CardInstanceId cardInstanceId)
+    private int ResolveOfferEvaluationLevel(CardInstanceId cardInstanceId, CardInstance card)
     {
-        _ = cardInstanceId;
-        return [];
+        if (card.UnspentTraitPoints > 0)
+            return card.Level;
+
+        if (CanLevelUp(cardInstanceId))
+            return Math.Min(MaxLevel, card.Level + 1);
+
+        return card.Level;
+    }
+
+    private static int ComputeStableOfferOrder(string context, TraitId traitId)
+    {
+        return DeterministicStringHash($"{context}|{traitId.Value}");
+    }
+
+    private static string ResolveOwnerTypeTag(CardDefinition cardDef)
+    {
+        return cardDef.Type switch
+        {
+            CardType.Summon => TraitTags.Summon,
+            CardType.Spell => TraitTags.Spell,
+            _ => ""
+        };
+    }
+
+    private static HashSet<string> BuildEffectiveCardTagSet(CardDefinition cardDef, string ownerTypeTag)
+    {
+        var tags = new HashSet<string>(cardDef.TraitEligibilityTags, StringComparer.Ordinal);
+
+        // Normalize stale catalog defaults so owner type always matches CardDefinition.Type.
+        tags.Remove(TraitTags.Summon);
+        tags.Remove(TraitTags.Spell);
+
+        if (!string.IsNullOrEmpty(ownerTypeTag))
+            tags.Add(ownerTypeTag);
+
+        return tags;
+    }
+
+    private static int DeterministicStringHash(string value)
+    {
+        unchecked
+        {
+            var hash = (int)2166136261;
+            foreach (var c in value)
+            {
+                hash ^= c;
+                hash *= 16777619;
+            }
+
+            return hash;
+        }
     }
 
     // =========================================================================

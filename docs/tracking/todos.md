@@ -28,6 +28,8 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 1. Continue hot-path throttling in `_PhysicsProcess`
    Why first: Recent movement/perf fixes landed, but full scale-target optimization plan is not complete yet.
+2. Investigate snapshot system overhaul for deterministic test-state setup
+   Why now: Trait/system validation depends on quickly creating exact profile states; current snapshot flow is functional but too indirect and lacks schema/version guarantees.
 
 ---
 
@@ -768,7 +770,7 @@ The summoner icon widget uses a circular clip shader with UV offset/scale params
 ---
 
 #### Implement Summoner Special Abilities
-**Status:** ⬜ Not Started (Phase 3/4)
+**Status:** 🟨 In Progress (Phase 2/4)
 **Category:** Summoners
 **Effort:** Large
 
@@ -776,6 +778,9 @@ The summoner icon widget uses a circular clip shader with UV offset/scale params
 Implement the system for summoner active and passive abilities.
 
 **Notes:**
+- Unified trait runtime/data scaffolding (Pass 2) is in place and wired into simulation/session.
+- Trait points are now deferred spend for summoners/cards; level-up no longer forces immediate picks.
+- Pending: Pass 3 runtime evaluator/triggers, offer rolling, and full validation matrix completion.
 - Phase 3: Level Traits (trait selection at level-up)
 - Phase 4: Ultimate Traits (level 10 capstone abilities)
 - Foundation is ready via TraitCatalog modifier system

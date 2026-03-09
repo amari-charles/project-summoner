@@ -1,11 +1,9 @@
 extends Control
 class_name CardDetailModal
 
-## Card Detail Modal - Popup for viewing card details and progression
+## Card Detail Modal - Popup for viewing card details and progression.
 ##
-## Opens as an overlay when clicking a card in the collection screen.
-## Shows enlarged card visual on left, info panel on right.
-## Includes progression info and level-up button.
+## Level-up is delegated to CardLevelUpPanel so trait selection remains coupled.
 
 ## Signals
 signal closed()
@@ -24,6 +22,11 @@ signal deck_action_requested(instance_id: String, action: String)  ## "add" or "
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
 @onready var level_up_button: Button = %LevelUpButton
+@onready var trait_points_label: Label = %TraitPointsLabel
+@onready var trait_offer_header: Label = %TraitOfferHeader
+@onready var trait_offers_container: VBoxContainer = %TraitOffersContainer
+@onready var apply_trait_button: Button = %ApplyTraitButton
+@onready var progression_status_label: Label = %ProgressionStatusLabel
 @onready var close_button: Button = %CloseButton
 @onready var traits_section: VBoxContainer = %UpgradesSection
 @onready var traits_header: Label = %UpgradesHeader
@@ -68,6 +71,7 @@ func open_for_card(instance_id: String, catalog_id: String) -> void:
 	_update_progression_display()
 	_update_traits_display()
 	_update_deck_action_button()
+	_hide_inline_trait_offer_controls()
 
 	show()
 
@@ -147,15 +151,15 @@ func _update_stats_display() -> void:
 		_add_stat_label("stat_attack_speed", effective_stats.get("attack_speed", 0))
 
 		# Show crit stats
-		var crit_chance: float = effective_stats.get("crit_chance", 0.0)
+		var crit_chance: float = float(effective_stats.get("crit_chance", 0.0))
 		_add_stat_label_percent("stat_crit_chance", crit_chance)
-		var crit_damage: float = effective_stats.get("crit_damage", 1.5)
+		var crit_damage: float = float(effective_stats.get("crit_damage", 1.5))
 		_add_stat_label_multiplier("stat_crit_damage", crit_damage)
 
 		# Show defensive stats
-		var armor: float = effective_stats.get("armor", 0.0)
+		var armor: float = float(effective_stats.get("armor", 0.0))
 		_add_stat_label("stat_armor", armor)
-		var magic_resist: float = effective_stats.get("magic_resist", 0.0)
+		var magic_resist: float = float(effective_stats.get("magic_resist", 0.0))
 		_add_stat_label("stat_magic_resist", magic_resist)
 	else:
 		# Show spell stats: Spell Damage, Spell Radius (if applicable)
@@ -251,13 +255,14 @@ func _update_progression_display() -> void:
 		_hide_progression()
 		return
 
-	var level: int = info.get("level", 1)
-	var max_level: int = info.get("max_level", 10)
-	var current_xp: int = info.get("xp", 0)
-	var xp_for_next: int = info.get("xp_for_next_level", 0)
-	var xp_progress: float = info.get("xp_progress", 0.0)
-	var can_level_up_val: bool = info.get("can_level_up", false)
-	var is_max_level: bool = info.get("is_max_level", false)
+	var level: int = SafeTypeUtils.int_val(info.get("level", 1), 1)
+	var max_level: int = SafeTypeUtils.int_val(info.get("max_level", 10), 10)
+	var current_xp: int = SafeTypeUtils.int_val(info.get("xp", 0), 0)
+	var xp_for_next: int = SafeTypeUtils.int_val(info.get("xp_for_next_level", 0), 0)
+	var xp_progress: float = float(info.get("xp_progress", 0.0))
+	var can_level_up_val: bool = SafeTypeUtils.bool_val(info.get("can_level_up", false), false)
+	var is_max_level: bool = SafeTypeUtils.bool_val(info.get("is_max_level", false), false)
+	var unspent_trait_points: int = SafeTypeUtils.int_val(info.get("unspent_trait_points", 0), 0)
 
 	# Update level label
 	level_label.text = Loc.t("ui.collection.level_label", {"level": level, "max": max_level})
@@ -270,7 +275,7 @@ func _update_progression_display() -> void:
 		xp_label.text = Loc.t("ui.collection.xp_label", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
 
-	# Update level-up button (XP-only, no gold cost)
+	# Update level-up button
 	if is_max_level:
 		level_up_button.visible = false
 	elif can_level_up_val:
@@ -282,11 +287,25 @@ func _update_progression_display() -> void:
 		level_up_button.text = Loc.t("ui.collection.level_up_button_locked")
 		level_up_button.disabled = true
 
+	trait_points_label.visible = true
+	trait_points_label.text = Loc.t("ui.collection.unspent_trait_points_label", {"count": unspent_trait_points})
+
+	_hide_inline_trait_offer_controls()
+
 func _hide_progression() -> void:
 	level_label.text = ""
 	xp_label.text = ""
 	xp_progress_bar.value = 0
 	level_up_button.visible = false
+	trait_points_label.visible = false
+	_hide_inline_trait_offer_controls()
+
+func _hide_inline_trait_offer_controls() -> void:
+	trait_offer_header.visible = false
+	apply_trait_button.visible = false
+	progression_status_label.visible = false
+	for child: Node in trait_offers_container.get_children():
+		child.queue_free()
 
 ## =============================================================================
 ## TRAITS DISPLAY
@@ -310,6 +329,7 @@ func _update_traits_display() -> void:
 	traits_header.text = Loc.t("ui.collection.traits_header")
 
 	# Create a box for each applied trait
+	var rendered_count: int = 0
 	for trait_id: Variant in trait_ids:
 		var trait_id_str: String = SafeTypeUtils.string(trait_id, "")
 		if trait_id_str.is_empty():
@@ -321,8 +341,9 @@ func _update_traits_display() -> void:
 
 		var box: PanelContainer = _create_trait_box(trait_data)
 		traits_container.add_child(box)
+		rendered_count += 1
 
-	traits_section.visible = true
+	traits_section.visible = rendered_count > 0
 
 
 func _create_trait_box(trait_data: Dictionary) -> PanelContainer:
@@ -352,17 +373,27 @@ func _create_trait_box(trait_data: Dictionary) -> PanelContainer:
 
 	# Name label
 	var name_label: Label = Label.new()
-	name_label.text = trait_data.get("name", Loc.t("ui.common.unknown"))
+	name_label.text = SafeTypeUtils.string(trait_data.get("name", Loc.t("ui.common.unknown")), Loc.t("ui.common.unknown"))
 	name_label.add_theme_font_size_override("font_size", 16)
 	name_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	vbox.add_child(name_label)
 
-	# Description label
-	var desc_label: Label = Label.new()
-	desc_label.text = trait_data.get("description", "")
-	desc_label.add_theme_font_size_override("font_size", 14)
-	desc_label.add_theme_color_override("font_color", GameColorPalette.SUCCESS)
-	vbox.add_child(desc_label)
+	# Compact summary is the primary copy.
+	var compact_summary: String = SafeTypeUtils.string(trait_data.get("summary_short", ""), "")
+	if compact_summary.is_empty():
+		compact_summary = SafeTypeUtils.string(trait_data.get("description", ""), "")
+
+	if not compact_summary.is_empty():
+		var summary_label: Label = Label.new()
+		summary_label.text = compact_summary
+		summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		summary_label.add_theme_font_size_override("font_size", 14)
+		summary_label.add_theme_color_override("font_color", GameColorPalette.SUCCESS)
+		vbox.add_child(summary_label)
+
+	var description: String = SafeTypeUtils.string(trait_data.get("description", ""), "")
+	if not description.is_empty():
+		box.tooltip_text = description
 
 	return box
 

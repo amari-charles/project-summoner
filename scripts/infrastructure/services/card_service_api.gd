@@ -53,6 +53,8 @@ static func get_effective_stats_dict(instance_id: String) -> Dictionary:
 	var service: Node = _require_service("get_effective_stats_dict")
 	if service == null:
 		return {}
+	if not service.has_method("GetEffectiveStatsDict"):
+		return {}
 	return SafeTypeUtils.dict(service.call("GetEffectiveStatsDict", instance_id))
 
 static func get_applied_traits(instance_id: String) -> Array:
@@ -67,19 +69,11 @@ static func get_card_trait_dict(catalog_id: String, trait_id: String) -> Diction
 		return {}
 	return SafeTypeUtils.dict(service.call("GetCardTraitDict", catalog_id, trait_id))
 
-static func get_available_traits(instance_id: String) -> Array:
-	var service: Node = _require_service("get_available_traits")
-	if service == null:
-		return []
-	return SafeTypeUtils.array(service.call("GetAvailableTraits", instance_id))
-
-static func level_up_card(instance_id: String, selected_trait_id: String = "") -> bool:
+static func level_up_card(instance_id: String) -> bool:
 	var service: Node = _require_service("level_up_card")
 	if service == null:
 		return false
-	if selected_trait_id.is_empty():
-		return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id), false)
-	return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id, selected_trait_id), false)
+	return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id), false)
 
 static func get_unspent_trait_points(instance_id: String) -> int:
 	var service: Node = _require_service("get_unspent_trait_points")
