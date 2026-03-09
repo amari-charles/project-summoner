@@ -35,47 +35,6 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Implement Ranked Gameplay Mode
-**Status:** 🔄 In Progress (Phase 4 of 4)
-**Category:** Core Game Systems / Multiplayer
-**Effort:** Large
-
-**Description:**
-Add a ranked competitive mode where players battle against others (or AI) with matchmaking, rankings, and seasonal progression.
-
-**Completed (Phase 2-4):**
-- ✅ C# Protocol layer (Messages, MessageSerializer)
-- ✅ Session-layer architecture with `HostSession` / `ClientSession`
-- ✅ P2PTransport (ENet-based)
-- ✅ NetworkIdRegistry for entity sync
-- ✅ StateSnapshotBuilder and DesyncDetector
-- ✅ Nakama SDK integration (NakamaGameClient)
-- ✅ ELO rating system (EloCalculator, RankingService)
-- ✅ Matchmaking service
-- ✅ Match reporting service
-- ✅ Leaderboard service
-- ✅ Reconnection handling
-- ✅ Ranked UI screen (online_screen)
-- ✅ Opponent deck/summoner exchange (commit `2d8bfca4`)
-
-**Remaining (Phase 4):**
-- [ ] Polish: queue UI, match found animation
-- [ ] End-to-end testing with Nakama server
-
-**Technical Considerations:**
-- Host-authority model (client is render-only, no local simulation)
-- 10 Hz state snapshots for sync
-- Client prediction not yet implemented — currently pure snapshot interpolation
-- See `docs/multiplayer/architecture.md` for architecture boundaries
-- See `docs/technical/runtime/simulation-architecture.md` for simulation layer details
-
-**Related Systems:**
-- Deck building/validation
-- Battle system
-- Profile progression
-
----
-
 #### Add Client-Side Prediction
 **Status:** ⬜ Not Started
 **Category:** Multiplayer / Simulation

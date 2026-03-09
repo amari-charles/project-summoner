@@ -152,7 +152,7 @@ public partial class RankingService : Node
         EmitSignal(SignalName.RatingChanged, currentRating, newRating, ratingChange);
         EmitSignal(SignalName.MatchReported, matchId, ratingChange);
 
-        GD.Print($"[RankingService] Match recorded: {(won ? "WIN" : "LOSS")} vs {opponentId}, " +
+        GD.Print($"[RANKED][REPORT] Match recorded: {(won ? "WIN" : "LOSS")} vs {opponentId}, " +
                  $"rating {currentRating} → {newRating} ({(ratingChange >= 0 ? "+" : "")}{ratingChange})");
 
         _ = SubmitOrCacheAsync(record);
@@ -173,12 +173,12 @@ public partial class RankingService : Node
         bool submitted = await SubmitReportToNakamaAsync(record);
         if (submitted)
         {
-            GD.Print($"[RankingService] Match submitted to Nakama: {record.MatchId}");
+            GD.Print($"[RANKED][REPORT] Match submitted to Nakama: {record.MatchId}");
         }
         else
         {
             CacheOfflineReport(record);
-            GD.Print($"[RankingService] Match cached for later submission: {record.MatchId}");
+            GD.Print($"[RANKED][REPORT] Match cached for later submission: {record.MatchId}");
         }
     }
 
@@ -209,27 +209,37 @@ public partial class RankingService : Node
     private async Task<bool> SubmitReportToNakamaAsync(MatchRecord record)
     {
         var nakama = NakamaGameClient.Instance;
-        if (nakama == null || !nakama.IsAuthenticated || nakama.Client == null || nakama.Session == null)
+        if (nakama == null || nakama.Client == null)
         {
-            GD.Print("[RankingService] Cannot submit: not connected to Nakama");
+            GD.Print("[RANKED][REPORT] Cannot submit: not connected to Nakama");
             return false;
+        }
+
+        if (!nakama.IsAuthenticated || nakama.Session == null)
+        {
+            bool ensured = await nakama.EnsureAuthenticatedAsync();
+            if (!ensured || nakama.Session == null)
+            {
+                GD.Print("[RANKED][REPORT] Cannot submit: not connected to Nakama");
+                return false;
+            }
         }
 
         try
         {
             var payload = System.Text.Json.JsonSerializer.Serialize(record);
             var response = await nakama.Client.RpcAsync(nakama.Session, MatchReportRpc, payload);
-            GD.Print($"[RankingService] Server response: {response.Payload}");
+            GD.Print($"[RANKED][REPORT] Server response: {response.Payload}");
             return true;
         }
         catch (ApiResponseException ex)
         {
-            GD.Print($"[RankingService] Server RPC not available: {ex.Message}");
+            GD.Print($"[RANKED][REPORT] Server RPC not available: {ex.Message}");
             return false;
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[RankingService] Failed to submit report: {ex.Message}");
+            GD.PrintErr($"[RANKED][REPORT] Failed to submit report: {ex.Message}");
             EmitSignal(SignalName.MatchReportFailed, record.MatchId, ex.Message);
             return false;
         }
@@ -296,7 +306,7 @@ public partial class RankingService : Node
 
         try
         {
-            var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
+            var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
             if (profile == null || !profile.ContainsKey("ranked"))
                 return EloCalculator.StartingElo;
 
@@ -318,7 +328,7 @@ public partial class RankingService : Node
 
         try
         {
-            var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
+            var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
             if (profile == null) return;
 
             Godot.Collections.Dictionary ranked;
@@ -340,7 +350,7 @@ public partial class RankingService : Node
                 ranked["peak_rating"] = rating;
             }
 
-            _profileRepo.Call("save_profile", true);
+            _profileRepo.Call("SaveProfile", true);
         }
         catch (Exception ex)
         {
@@ -354,7 +364,7 @@ public partial class RankingService : Node
 
         try
         {
-            var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
+            var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
             if (profile == null) return;
 
             Godot.Collections.Dictionary ranked;
@@ -417,7 +427,7 @@ public partial class RankingService : Node
                 ranked["win_streak"] = 0;
             }
 
-            _profileRepo.Call("save_profile", true);
+            _profileRepo.Call("SaveProfile", true);
         }
         catch (Exception ex)
         {
@@ -432,7 +442,7 @@ public partial class RankingService : Node
 
         try
         {
-            var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
+            var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
             if (profile == null || !profile.ContainsKey("ranked")) return result;
 
             var ranked = profile["ranked"].AsGodotDictionary();
@@ -473,7 +483,7 @@ public partial class RankingService : Node
 
         try
         {
-            var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
+            var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
             if (profile == null || !profile.ContainsKey("ranked")) return defaultValue;
 
             var ranked = profile["ranked"].AsGodotDictionary();
@@ -538,11 +548,11 @@ public partial class RankingService : Node
 
         try
         {
-            var profile = _profileRepo.Call("get_active_profile").AsGodotDictionary();
+            var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
             if (profile != null && profile.ContainsKey("ranked"))
             {
                 profile.Remove("ranked");
-                _profileRepo.Call("save_profile", true);
+                _profileRepo.Call("SaveProfile", true);
             }
         }
         catch (Exception ex)

@@ -15,6 +15,21 @@ namespace Fateforged.Multiplayer.Backend;
 /// </summary>
 public partial class NakamaGameClient : Node
 {
+    public readonly struct EndpointConfig
+    {
+        public string Host { get; init; }
+        public int Port { get; init; }
+        public string ServerKey { get; init; }
+    }
+
+    public partial class MatchParticipantInfo : GodotObject
+    {
+        public string UserId { get; set; } = "";
+        public string Username { get; set; } = "Unknown";
+        public string SummonerId { get; set; } = "ignis";
+        public int Rating { get; set; } = 800;
+    }
+
     #region Configuration
 
     /// <summary>
@@ -143,10 +158,10 @@ public partial class NakamaGameClient : Node
 
     /// <summary>
     /// Emitted after joining a match found through matchmaking.
-    /// Includes user IDs and summoner IDs extracted from matchmaker properties.
+    /// Includes user IDs and full participant metadata extracted from matchmaker properties.
     /// </summary>
     [Signal]
-    public delegate void MatchJoinedEventHandler(string matchId, string[] userIds, string[] summonerIds);
+    public delegate void MatchJoinedEventHandler(string matchId, string[] userIds, Godot.Collections.Array<MatchParticipantInfo> participants);
 
     /// <summary>
     /// Emitted when matchmaking is cancelled or times out.
@@ -203,6 +218,11 @@ public partial class NakamaGameClient : Node
 
     public override void _Ready()
     {
+        var endpoint = ResolveEndpointFromArgs(OS.GetCmdlineUserArgs(), Host, Port, ServerKey);
+        Host = endpoint.Host;
+        Port = endpoint.Port;
+        ServerKey = endpoint.ServerKey;
+
         // Create the Nakama client
         _client = new NakamaClient(
             scheme: UseSSL ? "https" : "http",
@@ -211,10 +231,54 @@ public partial class NakamaGameClient : Node
             serverKey: ServerKey
         );
 
-        GD.Print($"[NakamaGameClient] Initialized (Host: {Host}:{Port}, SSL: {UseSSL})");
+        GD.Print($"[NakamaGameClient] Initialized (Host: {Host}:{Port}, ServerKey: [redacted], SSL: {UseSSL})");
 
         // Try to restore session from storage
         TryRestoreSession();
+    }
+
+    public static EndpointConfig ResolveEndpointFromArgs(
+        string[] args,
+        string defaultHost,
+        int defaultPort,
+        string defaultServerKey)
+    {
+        string host = defaultHost;
+        int port = defaultPort;
+        string serverKey = defaultServerKey;
+
+        foreach (string arg in args)
+        {
+            if (arg.StartsWith("--nakama-host="))
+            {
+                var val = arg.Substring("--nakama-host=".Length).Trim();
+                if (!string.IsNullOrEmpty(val))
+                    host = val;
+                continue;
+            }
+
+            if (arg.StartsWith("--nakama-port="))
+            {
+                var val = arg.Substring("--nakama-port=".Length).Trim();
+                if (int.TryParse(val, out int parsedPort) && parsedPort > 0 && parsedPort <= 65535)
+                    port = parsedPort;
+                continue;
+            }
+
+            if (arg.StartsWith("--nakama-server-key="))
+            {
+                var val = arg.Substring("--nakama-server-key=".Length).Trim();
+                if (!string.IsNullOrEmpty(val))
+                    serverKey = val;
+            }
+        }
+
+        return new EndpointConfig
+        {
+            Host = host,
+            Port = port,
+            ServerKey = serverKey
+        };
     }
 
     #endregion
@@ -255,7 +319,7 @@ public partial class NakamaGameClient : Node
             // Save session for later restoration
             SaveSession();
 
-            GD.Print($"[NakamaGameClient] Authenticated as {_session.Username} ({_session.UserId})");
+            GD.Print($"[RANKED][AUTH] Authenticated as {_session.Username} ({_session.UserId})");
 
             // Connect WebSocket for real-time features (matchmaking, match data)
             await ConnectSocketAsync();
@@ -266,7 +330,7 @@ public partial class NakamaGameClient : Node
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[NakamaGameClient] Authentication failed: {ex.Message}");
+            GD.PrintErr($"[RANKED][AUTH] Authentication failed: {ex.Message}");
             EmitSignal(SignalName.AuthenticationFailed, ex.Message);
             return false;
         }
@@ -333,6 +397,29 @@ public partial class NakamaGameClient : Node
             GD.PrintErr($"[NakamaGameClient] Session refresh failed: {ex.Message}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Ensure a valid authenticated session exists before backend calls.
+    /// Re-authenticates via device ID when no session is present or refresh fails.
+    /// </summary>
+    public async Task<bool> EnsureAuthenticatedAsync()
+    {
+        if (_client == null)
+            return false;
+
+        if (_session == null)
+            return await AuthenticateDeviceAsync();
+
+        if (!_session.IsExpired && !_session.HasExpired(DateTime.UtcNow.AddMinutes(5)))
+            return true;
+
+        var refreshed = await RefreshSessionAsync();
+        if (refreshed && _session != null && !_session.IsExpired)
+            return true;
+
+        GD.Print("[NakamaGameClient] Session unavailable after refresh attempt, re-authenticating device");
+        return await AuthenticateDeviceAsync();
     }
 
     /// <summary>
@@ -420,7 +507,7 @@ public partial class NakamaGameClient : Node
 
     private void OnSocketClosed(string reason)
     {
-        GD.Print($"[NakamaGameClient] Socket disconnected: {reason}");
+        GD.Print($"[RANKED][RECONNECT] Socket disconnected: {reason}");
         CallDeferred(MethodName.EmitSocketDisconnected);
     }
 
@@ -431,7 +518,7 @@ public partial class NakamaGameClient : Node
 
     private async void OnMatchmakerMatched(IMatchmakerMatched matched)
     {
-        GD.Print($"[NakamaGameClient] Matchmaker matched, joining match...");
+        GD.Print($"[RANKED][MATCH_JOIN] Matchmaker matched, joining match...");
 
         try
         {
@@ -439,29 +526,40 @@ public partial class NakamaGameClient : Node
             _activeMatch = await _socket!.JoinMatchAsync(matched);
             _activeMatchId = _activeMatch.Id;
 
-            GD.Print($"[NakamaGameClient] Match joined: {_activeMatchId}");
+            GD.Print($"[RANKED][MATCH_JOIN] Match joined: {_activeMatchId}");
 
-            // Extract user IDs and summoner IDs from matchmaker properties
+            // Extract user IDs and participant metadata from matchmaker properties
             var users = matched.Users.ToList();
             var userIds = new string[users.Count];
-            var summonerIds = new string[users.Count];
+            var participants = new Godot.Collections.Array<MatchParticipantInfo>();
             for (int i = 0; i < users.Count; i++)
             {
                 userIds[i] = users[i].Presence.UserId;
-                summonerIds[i] = users[i].StringProperties.TryGetValue("summoner_id", out var sid) ? sid : "ignis";
+
+                int rating = 800;
+                if (users[i].NumericProperties.TryGetValue("rating", out var ratingVal))
+                    rating = (int)Math.Round(ratingVal);
+
+                participants.Add(new MatchParticipantInfo
+                {
+                    UserId = users[i].Presence.UserId,
+                    Username = users[i].Presence.Username ?? "Unknown",
+                    SummonerId = users[i].StringProperties.TryGetValue("summoner_id", out var sid) ? sid : "ignis",
+                    Rating = rating
+                });
             }
 
-            CallDeferred(MethodName.EmitMatchJoined, _activeMatchId, userIds, summonerIds);
+            CallDeferred(MethodName.EmitMatchJoined, _activeMatchId, userIds, participants);
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[NakamaGameClient] Failed to join match: {ex.Message}");
+            GD.PrintErr($"[RANKED][MATCH_JOIN] Failed to join match: {ex.Message}");
         }
     }
 
-    private void EmitMatchJoined(string matchId, string[] userIds, string[] summonerIds)
+    private void EmitMatchJoined(string matchId, string[] userIds, Godot.Collections.Array<MatchParticipantInfo> participants)
     {
-        EmitSignal(SignalName.MatchJoined, matchId, userIds, summonerIds);
+        EmitSignal(SignalName.MatchJoined, matchId, userIds, participants);
     }
 
     private void OnMatchState(IMatchState state)
