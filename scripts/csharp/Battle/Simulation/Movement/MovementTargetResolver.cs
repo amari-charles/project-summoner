@@ -11,8 +11,7 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class MovementTargetResolver
 {
-    private const float MinOrbitRadius = 1.2f;
-    private const float OrbitPadding = 0.35f;
+    private const float OrbitAttackRangeBuffer = 0.15f;
     private const int MinOrbitSlots = 10;
     private const int MaxOrbitSlots = 24;
     private const float BlockedOrbitThresholdSeconds = 0.18f;
@@ -32,10 +31,9 @@ public static class MovementTargetResolver
 
     private static SimVector3 ResolveSummonerOrbitPoint(UnitData unit, SimVector3 summonerPosition)
     {
-        float orbitRadius = MathF.Max(
-            MinOrbitRadius,
-            unit.AttackRange + unit.SeparationRadius + OrbitPadding
-        );
+        // Keep orbit points inside attack range so units can continue damaging summoners
+        // after wrapping around crowded fronts.
+        float orbitRadius = MathF.Max(0.1f, unit.AttackRange - OrbitAttackRangeBuffer);
         int slotCount = ComputeSlotCount(orbitRadius, unit.SeparationRadius);
         int frontSlot = AngleToSlot(unit.Team == Team.Player ? MathF.PI : 0f, slotCount);
         bool shouldWrap =

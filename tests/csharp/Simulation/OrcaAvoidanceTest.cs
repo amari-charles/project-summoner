@@ -27,9 +27,8 @@ public class OrcaAvoidanceTest
     {
         var maxNeighborsField = typeof(OrcaAvoidance).GetField(
             "MaxNeighbors", BindingFlags.NonPublic | BindingFlags.Static);
-        int maxNeighbors = maxNeighborsField != null
-            ? (int)maxNeighborsField.GetRawConstantValue()!
-            : 10;
+        AssertThat(maxNeighborsField).IsNotNull();
+        int maxNeighbors = (int)maxNeighborsField!.GetRawConstantValue()!;
 
         var mover = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, moveSpeed: 3f);
         mover.SeparationRadius = 0.5f;

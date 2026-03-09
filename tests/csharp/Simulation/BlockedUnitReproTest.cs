@@ -185,4 +185,49 @@ public class BlockedUnitReproTest
         AssertThat(t0BackAttacked).IsTrue();
         AssertThat(t1BackAttacked).IsTrue();
     }
+
+    /// <summary>
+    /// Units should still be able to reach and damage a summoner from distance.
+    /// Regression guard for summoner wrap/orbit movement targets staying outside attack range.
+    /// </summary>
+    [TestCase]
+    public void SummonerFocus_SingleMeleeFromDistance_EventuallyDamagesSummoner()
+    {
+        _state.Summoners[1].CurrentHp = 500f;
+        _state.Summoners[1].MaxHp = 500f;
+
+        SimTestHelper.CreateMeleeUnit(_state, 0, x: -8f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 3f);
+
+        float hpBefore = _state.Summoners[1].CurrentHp;
+        for (int i = 0; i < TenSeconds; i++)
+            _sim.Tick(Delta);
+
+        AssertThat(_state.Summoners[1].CurrentHp).IsLess(hpBefore);
+    }
+
+    /// <summary>
+    /// Backline melee behind a friendly frontliner should still wrap and damage
+    /// an enemy summoner instead of idling behind the front.
+    /// </summary>
+    [TestCase]
+    public void SummonerFocus_BlockedBacklineUnit_EventuallyDamagesSummoner()
+    {
+        _state.Summoners[1].CurrentHp = 600f;
+        _state.Summoners[1].MaxHp = 600f;
+
+        // Frontline unit starts in range and tends to hold the front slot.
+        SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 2.5f);
+        var backline = SimTestHelper.CreateMeleeUnit(_state, 0, x: 14f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 3f);
+
+        var allEvents = new List<SimEvent>();
+        for (int i = 0; i < TenSeconds; i++)
+            allEvents.AddRange(_sim.Tick(Delta));
+
+        var summonerDamages = SimTestHelper.FindEvents<SummonerDamagedEvent>(allEvents)
+            .Where(e => e.Team == 1)
+            .ToList();
+
+        bool backlineDamagedSummoner = summonerDamages.Any(e => e.AttackerUnitId == backline.UnitId);
+        AssertThat(backlineDamagedSummoner).IsTrue();
+    }
 }

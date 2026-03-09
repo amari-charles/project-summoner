@@ -119,7 +119,7 @@ Units attach only the components they need.
 ### 🟡 MEDIUM PRIORITY
 
 #### Investigate Pathfinding & Targeting System Robustness
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Units & Combat / Performance
 **Effort:** Medium
 
@@ -139,6 +139,11 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 - Are there race conditions in target switching?
 - Is the blocked detection / flanking logic reliable?
 - Should we use spatial partitioning for target queries?
+
+**Progress Update (2026-03-09):**
+- ✅ Added summoner-wrap movement targeting (`MovementTargetResolver`) so blocked units can route around occupied fronts.
+- ✅ Added local crowd danger masking in context steering + tuned blocked-nav and ORCA neighbor search for dense clumps.
+- 🔄 Remaining: large-battle scaling profiling (50+ units), target switching race-case audit, and forced-target/redirect robustness validation.
 
 **Notes:**
 - Related to lane-based movement todo (may affect targeting behavior)
