@@ -29,12 +29,17 @@ var _projectile_hit_geometry_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
 var _camera_projection_button: Button
+var _camera_auto_log_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
 var _unit_debug: Node
 var _command_input: LineEdit  # Console command input
 var _command_output: Label  # Console command output
 var _autocomplete_list: ItemList  # Autocomplete suggestions
 var _autocomplete_visible: bool = false
+var _camera_auto_log_enabled: bool = false
+var _camera_auto_log_elapsed: float = 0.0
+
+const CAMERA_AUTO_LOG_INTERVAL_SECONDS: float = 5.0
 
 ## =============================================================================
 ## LIFECYCLE
@@ -68,6 +73,13 @@ func _process(_delta: float) -> void:
 	if _panel and _panel.visible:
 		_refresh_camera_overlay_button_state()
 		_refresh_camera_projection_button_state()
+		_refresh_camera_auto_log_button_state()
+
+	if _camera_auto_log_enabled:
+		_camera_auto_log_elapsed += _delta
+		if _camera_auto_log_elapsed >= CAMERA_AUTO_LOG_INTERVAL_SECONDS:
+			_camera_auto_log_elapsed = 0.0
+			_log_active_camera_snapshot()
 
 
 func _input(event: InputEvent) -> void:
@@ -238,6 +250,12 @@ func _create_ui() -> void:
 	_camera_projection_button.pressed.connect(_on_camera_projection_toggle_pressed)
 	vbox.add_child(_camera_projection_button)
 
+	_camera_auto_log_button = Button.new()
+	_camera_auto_log_button.text = "Camera Auto-Log: Off"
+	_camera_auto_log_button.custom_minimum_size = Vector2(200, 32)
+	_camera_auto_log_button.pressed.connect(_on_camera_auto_log_toggle_pressed)
+	vbox.add_child(_camera_auto_log_button)
+
 	# Console command separator
 	var console_separator: HSeparator = HSeparator.new()
 	vbox.add_child(console_separator)
@@ -367,6 +385,7 @@ func _update_button_states() -> void:
 
 	_refresh_camera_overlay_button_state()
 	_refresh_camera_projection_button_state()
+	_refresh_camera_auto_log_button_state()
 
 
 func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) -> void:
@@ -492,6 +511,7 @@ func _on_camera_overlay_toggle_pressed() -> void:
 	var enabled_var: Variant = camera.get("debug_show_pan_bounds_overlay")
 	var enabled: bool = enabled_var if enabled_var is bool else false
 	camera.set("debug_show_pan_bounds_overlay", not enabled)
+	_log_camera_clamp_diagnostics(camera)
 	_refresh_camera_overlay_button_state()
 
 
@@ -505,7 +525,75 @@ func _on_camera_projection_toggle_pressed() -> void:
 	camera.call("toggle_projection_mode")
 	if camera.has_method("get_projection_mode_name"):
 		print("[Debug] Camera mode -> %s" % camera.call("get_projection_mode_name"))
+	_log_camera_clamp_diagnostics(camera)
 	_refresh_camera_projection_button_state()
+
+
+func _on_camera_auto_log_toggle_pressed() -> void:
+	_camera_auto_log_enabled = not _camera_auto_log_enabled
+	_camera_auto_log_elapsed = 0.0
+	_refresh_camera_auto_log_button_state()
+	_save_settings()
+
+	if _camera_auto_log_enabled:
+		print("[Debug] Camera auto-log enabled (every %.1fs)" % CAMERA_AUTO_LOG_INTERVAL_SECONDS)
+		_log_active_camera_snapshot()
+	else:
+		print("[Debug] Camera auto-log disabled")
+
+
+func _log_active_camera_snapshot() -> void:
+	var camera: Node = _find_battle_camera_controller()
+	if not camera:
+		print("[Debug] Camera auto-log: no battle camera found")
+		return
+
+	var pos_var: Variant = camera.get("global_position")
+	var camera_pos: Vector3 = pos_var if pos_var is Vector3 else Vector3.ZERO
+	print(
+		"[Debug] Camera pos -> x=%.4f y=%.4f z=%.4f" % [
+			camera_pos.x,
+			camera_pos.y,
+			camera_pos.z
+		]
+	)
+	_log_camera_clamp_diagnostics(camera)
+
+
+func _log_camera_clamp_diagnostics(camera: Node) -> void:
+	if not camera or not camera.has_method("get_clamp_diagnostics"):
+		return
+
+	var diagnostics_var: Variant = camera.call("get_clamp_diagnostics")
+	if not diagnostics_var is Dictionary:
+		return
+	var diagnostics: Dictionary = diagnostics_var
+
+	var view_bounds: Rect2 = diagnostics.get("view_bounds_xz", Rect2())
+	var map_bounds: Rect2 = diagnostics.get("map_bounds_xz", Rect2())
+	var horizontal_mode: String = str(diagnostics.get("horizontal_mode", "unknown"))
+	var vertical_mode: String = str(diagnostics.get("vertical_mode", "unknown"))
+	var oversize_x: bool = bool(diagnostics.get("oversize_x", false))
+	var oversize_z: bool = bool(diagnostics.get("oversize_z", false))
+	var target_dx: float = float(diagnostics.get("target_dx", 0.0))
+	var target_dz: float = float(diagnostics.get("target_dz", 0.0))
+	var vertical_center_anchor_z: float = float(diagnostics.get("vertical_center_anchor_z", 0.0))
+	var vertical_center_reference_screen_y: float = float(diagnostics.get("vertical_center_reference_screen_y", 0.5))
+
+	print(
+		"[Debug] Camera clamp diag -> mode_x=%s mode_z=%s oversize_x=%s oversize_z=%s " %
+		[horizontal_mode, vertical_mode, str(oversize_x), str(oversize_z)] +
+		"view_z=[%.4f..%.4f] map_z=[%.4f..%.4f] target_d=(%.4f, %.4f) anchor_z=%.4f ref_y=%.4f" % [
+			view_bounds.position.y,
+			view_bounds.position.y + view_bounds.size.y,
+			map_bounds.position.y,
+			map_bounds.position.y + map_bounds.size.y,
+			target_dx,
+			target_dz,
+			vertical_center_anchor_z,
+			vertical_center_reference_screen_y
+		]
+	)
 
 
 func _on_command_submitted(command: String) -> void:
@@ -752,6 +840,20 @@ func _refresh_camera_projection_button_state() -> void:
 	_camera_projection_button.text = "Camera Mode: %s" % mode_name
 
 
+func _refresh_camera_auto_log_button_state() -> void:
+	if not _camera_auto_log_button:
+		return
+
+	var camera: Node = _find_battle_camera_controller()
+	if not camera:
+		_camera_auto_log_button.text = "Camera Auto-Log: N/A"
+		_camera_auto_log_button.disabled = true
+		return
+
+	_camera_auto_log_button.disabled = false
+	_camera_auto_log_button.text = "Camera Auto-Log: %s" % ("On" if _camera_auto_log_enabled else "Off")
+
+
 ## =============================================================================
 ## SETTINGS PERSISTENCE
 ## =============================================================================
@@ -778,6 +880,8 @@ func _load_settings() -> void:
 		if _unit_debug.has_method("SetDebugProjectileHitGeometryEnabled"):
 			_unit_debug.call("SetDebugProjectileHitGeometryEnabled", config.get_value("debug_menu", "projectile_hit_geometry", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
+	_camera_auto_log_enabled = config.get_value("debug_menu", "camera_auto_log", false)
+	_camera_auto_log_elapsed = 0.0
 
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
 
@@ -800,5 +904,6 @@ func _save_settings() -> void:
 		if _unit_debug.has_method("IsDebugProjectileHitGeometryEnabled"):
 			config.set_value("debug_menu", "projectile_hit_geometry", _unit_debug.call("IsDebugProjectileHitGeometryEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
+	config.set_value("debug_menu", "camera_auto_log", _camera_auto_log_enabled)
 
 	config.save(SETTINGS_PATH)

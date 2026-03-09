@@ -289,11 +289,11 @@ public class BattlefieldBoundsTest
     public void Constants_HaveCorrectValues()
     {
         AssertThat(BattlefieldBounds.HalfWidth).IsEqual(50.0f);
-        AssertThat(BattlefieldBounds.HalfDepth).IsEqual(40.0f);
+        AssertThat(BattlefieldBounds.HalfDepth).IsEqual(25.0f);
         AssertThat(BattlefieldBounds.MinX).IsEqual(-50.0f);
         AssertThat(BattlefieldBounds.MaxX).IsEqual(50.0f);
-        AssertThat(BattlefieldBounds.MinZ).IsEqual(-40.0f);
-        AssertThat(BattlefieldBounds.MaxZ).IsEqual(40.0f);
+        AssertThat(BattlefieldBounds.MinZ).IsEqual(-25.0f);
+        AssertThat(BattlefieldBounds.MaxZ).IsEqual(25.0f);
         AssertThat(BattlefieldBounds.SpawnBoundaryX).IsEqual(0.0f);
         AssertThat(BattlefieldBounds.SpawnBoundaryEpsilon).IsEqual(0.001f);
     }

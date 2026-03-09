@@ -45,7 +45,7 @@ static func world_to_screen_2d(world_pos: Vector3) -> Vector2:
 ## Battlefield dimensions (world units)
 ## Used for spawn zone overlays and boundary calculations
 const BATTLEFIELD_HALF_WIDTH: float = 50.0  ## Half the X-axis extent (-50 to +50)
-const BATTLEFIELD_HALF_DEPTH: float = 40.0  ## Half the Z-axis extent (-40 to +40)
+const BATTLEFIELD_HALF_DEPTH: float = 25.0  ## Half the Z-axis extent (-25 to +25)
 
 ## Spawn zone boundary (halfway mark of battlefield)
 ## Player (team 0) spawns at X ≤ 0, Enemy (team 1) spawns at X > 0
