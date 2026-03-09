@@ -133,6 +133,25 @@ Partial-fix rule:
 - The review must call out partial completion and include what remains before closure.
 - Missing tracker updates for relevant work should be flagged as a review issue.
 
+Pass-gate compliance (required for medium/large changes)
+
+For multi-file feature/refactor work using approval-gated delivery, reviewers must verify:
+- Required artifacts exist:
+  - `docs/technical/<domain>/<initiative>-plan.md`
+  - `docs/technical/<domain>/<initiative>-validation-cases.md`
+  - `docs/technical/<domain>/<initiative>-stub-checklist.md`
+- Pass states are present and ordered:
+  - `PASS 1: USE CASES + VALIDATION`
+  - `PASS 2: STUBS + WIRING`
+  - `PASS 3: IMPLEMENTATION + TESTS`
+  - `PR REVIEW: READY`
+- Validation scenarios include test mapping and status (`Design-Covered`, `Implemented`, `Deferred`).
+- Implementation work did not begin before explicit Pass 2 approval evidence.
+
+Required reviewer behavior:
+- If any required artifact/state/evidence is missing, mark PR as not ready.
+- Explicitly list missing items and what is needed to pass.
+
 Non-idiomatic / outdated usage
 
 Use of patterns or APIs that are inconsistent with the language, framework, or rest of the repo.

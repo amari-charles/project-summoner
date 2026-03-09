@@ -102,8 +102,8 @@ public class CardProgressionHandler
         if (card == null || card.Level >= MaxLevel)
             return 0;
 
-        int nextLevelXp = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
-        return Mathf.Max(0, nextLevelXp - card.Xp);
+        var xpCost = GetXpCostForNextLevel(card);
+        return Mathf.Max(0, xpCost - card.Xp);
     }
 
     /// <summary>Get progress toward next level (0.0 - 1.0).</summary>
@@ -116,14 +116,11 @@ public class CardProgressionHandler
         if (card.Level >= MaxLevel)
             return 1f;
 
-        int currentLevelXp = GetXpForLevelWithRarity(card.Level, card.Rarity);
-        int nextLevelXp = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
-        int levelRange = nextLevelXp - currentLevelXp;
-
-        if (levelRange <= 0)
+        var xpCost = GetXpCostForNextLevel(card);
+        if (xpCost <= 0)
             return 1f;
 
-        return Mathf.Clamp((float)(card.Xp - currentLevelXp) / levelRange, 0f, 1f);
+        return Mathf.Clamp((float)card.Xp / xpCost, 0f, 1f);
     }
 
     // =========================================================================
@@ -137,8 +134,8 @@ public class CardProgressionHandler
         if (card == null || card.Level >= MaxLevel)
             return false;
 
-        int nextLevelXp = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
-        return card.Xp >= nextLevelXp;
+        var xpCost = GetXpCostForNextLevel(card);
+        return xpCost > 0 && card.Xp >= xpCost;
     }
 
     /// <summary>
@@ -161,16 +158,22 @@ public class CardProgressionHandler
             return false;
         }
 
-        // Apply level up (XP-only, no gold cost)
+        var xpCost = GetXpCostForNextLevel(card);
+        if (xpCost <= 0 || card.Xp < xpCost)
+            return false;
+
+        // Apply level up and consume the required XP.
         var newLevel = card.Level + 1;
+        var newXp = card.Xp - xpCost;
 
         _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
         {
             Level = newLevel,
+            Xp = newXp,
             UnspentTraitPoints = card.UnspentTraitPoints + 1
         });
 
-        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel} and granted 1 trait point");
+        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel}, consumed {xpCost} XP (remaining: {newXp}), and granted 1 trait point");
         return true;
     }
 
@@ -447,7 +450,7 @@ public class CardProgressionHandler
             Level = card.Level,
             MaxLevel = MaxLevel,
             Xp = card.Xp,
-            XpForNextLevel = card.Level < MaxLevel ? GetXpForLevelWithRarity(card.Level + 1, card.Rarity) : 0,
+            XpForNextLevel = card.Level < MaxLevel ? GetXpCostForNextLevel(card) : 0,
             XpProgress = GetLevelProgress(cardInstanceId),
             CanLevelUp = CanLevelUp(cardInstanceId),
             Traits = card.Traits.ConvertAll(t => t.Value),
@@ -464,15 +467,25 @@ public class CardProgressionHandler
 
         foreach (var card in cards)
         {
-            if (card.Level < MaxLevel)
-            {
-                int nextLevelXp = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
-                if (card.Xp >= nextLevelXp)
-                    ready.Add(card);
-            }
+            if (card.Level >= MaxLevel)
+                continue;
+
+            var xpCost = GetXpCostForNextLevel(card);
+            if (xpCost > 0 && card.Xp >= xpCost)
+                ready.Add(card);
         }
 
         return [.. ready];
+    }
+
+    private int GetXpCostForNextLevel(CardInstance card)
+    {
+        if (card.Level >= MaxLevel)
+            return 0;
+
+        var currentLevelThreshold = GetXpForLevelWithRarity(card.Level, card.Rarity);
+        var nextLevelThreshold = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
+        return Mathf.Max(0, nextLevelThreshold - currentLevelThreshold);
     }
 
     // =========================================================================

@@ -1,7 +1,7 @@
 # Getting Started with Fateforged
 
 **Status:** CURRENT
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-03-09
 **Purpose:** New developer onboarding and documentation guide
 
 Welcome to Fateforged! This document will help you get oriented with the project structure, key systems, and where to find information.
@@ -21,6 +21,7 @@ Welcome to Fateforged! This document will help you get oriented with the project
 | Find art asset specs | [UI Assets](art/ui-assets.md) |
 | Check known bugs | [Bug Tracker](tracking/bugs.md) |
 | See latest design decisions | [Ideation Session](design/ideation-session-2026-01-19.md) |
+| Plan major work in gated passes | [Approval-Gated Delivery](workflows/approval-gated-delivery.md) |
 
 ## Project Overview
 
@@ -83,6 +84,7 @@ docs/
 │   ├── README.md              Migration status + archive links
 │   └── documentation-guide.md Architecture doc principles
 ├── workflows/                 Development workflows
+│   ├── approval-gated-delivery.md
 │   └── pr-review-guidelines.md
 ├── art/                       Art specifications
 ├── lore/                      Worldbuilding

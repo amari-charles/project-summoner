@@ -192,8 +192,8 @@ public partial class SummonerProgressionService : Node
 		if (summoner.Level >= MaxLevel)
 			return 0;
 
-		var nextLevelXp = GetXpForLevel(summoner.Level + 1);
-		return Math.Max(0, nextLevelXp - summoner.Xp);
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		return Math.Max(0, xpCost - summoner.Xp);
 	}
 
 	/// <summary>Get progress towards next level (string overload for GDScript boundary).</summary>
@@ -211,15 +211,11 @@ public partial class SummonerProgressionService : Node
 		if (summoner.Level >= MaxLevel)
 			return 1f;
 
-		var currentLevelXp = GetXpForLevel(summoner.Level);
-		var nextLevelXp = GetXpForLevel(summoner.Level + 1);
-		var levelRange = nextLevelXp - currentLevelXp;
-
-		if (levelRange <= 0)
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		if (xpCost <= 0)
 			return 1f;
 
-		var progressInLevel = summoner.Xp - currentLevelXp;
-		return Math.Clamp((float)progressInLevel / levelRange, 0f, 1f);
+		return Math.Clamp((float)summoner.Xp / xpCost, 0f, 1f);
 	}
 
 	// =========================================================================
@@ -241,8 +237,8 @@ public partial class SummonerProgressionService : Node
 		if (summoner.Level >= MaxLevel)
 			return false;
 
-		var nextLevelXp = GetXpForLevel(summoner.Level + 1);
-		return summoner.Xp >= nextLevelXp;
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		return xpCost > 0 && summoner.Xp >= xpCost;
 	}
 
 	/// <summary>Level up a summoner (string overload for GDScript boundary).</summary>
@@ -279,10 +275,18 @@ public partial class SummonerProgressionService : Node
 			return false;
 		}
 
-			// Apply level up and save (XP-only, no gold cost)
-			summoner.Level = newLevel;
-			summoner.UnspentTraitPoints += 1;
-			var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
+		var xpCost = GetXpCostForNextLevel(summoner.Level);
+		if (xpCost <= 0 || summoner.Xp < xpCost)
+		{
+			GD.PushWarning("SummonerProgressionService: Invalid XP cost for level up");
+			return false;
+		}
+
+		// Apply level up and consume required XP.
+		summoner.Xp -= xpCost;
+		summoner.Level = newLevel;
+		summoner.UnspentTraitPoints += 1;
+		var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
 
 		if (!saveSuccess)
 		{
@@ -318,15 +322,15 @@ public partial class SummonerProgressionService : Node
 			["level"] = summoner.Level,
 			["max_level"] = MaxLevel,
 			["xp"] = summoner.Xp,
-			["xp_for_current_level"] = GetXpForLevel(summoner.Level),
-				["xp_for_next_level"] = summoner.Level < MaxLevel ? GetXpForLevel(summoner.Level + 1) : 0,
-				["xp_to_next_level"] = GetXpToNextLevel(summonerId),
-				["xp_progress"] = GetLevelProgress(summonerId),
-				["can_level_up"] = CanLevelUp(summonerId),
-				["is_max_level"] = summoner.Level >= MaxLevel,
-				["unspent_trait_points"] = summoner.UnspentTraitPoints
-			};
-		}
+			["xp_for_current_level"] = 0,
+			["xp_for_next_level"] = summoner.Level < MaxLevel ? GetXpCostForNextLevel(summoner.Level) : 0,
+			["xp_to_next_level"] = GetXpToNextLevel(summonerId),
+			["xp_progress"] = GetLevelProgress(summonerId),
+			["can_level_up"] = CanLevelUp(summonerId),
+			["is_max_level"] = summoner.Level >= MaxLevel,
+			["unspent_trait_points"] = summoner.UnspentTraitPoints
+		};
+	}
 
 	/// <summary>Get active summoner's progression info.</summary>
 	public Godot.Collections.Dictionary GetActiveSummonerProgressionInfo()
@@ -587,6 +591,16 @@ public partial class SummonerProgressionService : Node
 	private static int ComputeStableOfferOrder(string context, string traitId)
 	{
 		return DeterministicStringHash($"{context}|{traitId}");
+	}
+
+	private static int GetXpCostForNextLevel(int currentLevel)
+	{
+		if (currentLevel >= MaxLevel)
+			return 0;
+
+		var currentLevelThreshold = GetXpForLevel(currentLevel);
+		var nextLevelThreshold = GetXpForLevel(currentLevel + 1);
+		return Math.Max(0, nextLevelThreshold - currentLevelThreshold);
 	}
 
 	private static int DeterministicStringHash(string value)
