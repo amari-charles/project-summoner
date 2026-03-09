@@ -128,10 +128,10 @@ To run ALL tests including those that depend on C# classes (SpatialGrid, Targeti
 
 ```bash
 # Using Godot .NET (Mono) version
-"/path/to/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+"/path/to/Godot_mono.app/Contents/MacOS/Godot" --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 
 # Example on macOS:
-"/Applications/Godot_mono.app/Contents/MacOS/Godot" -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+"/Applications/Godot_mono.app/Contents/MacOS/Godot" --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
 **Results:** ~326 passing, ~1 pending (full coverage)
@@ -156,7 +156,7 @@ alias godot-mono="/Applications/Godot_mono.app/Contents/MacOS/Godot"
 
 Then run tests with:
 ```bash
-godot-mono -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+godot-mono --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
 ### Running from Godot Editor
@@ -194,7 +194,7 @@ For CI pipelines:
 - name: Run GDScript Tests (Full)
   run: |
     # Download and extract Godot .NET
-    # Run: godot-mono -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+    # Run: godot-mono --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
 Note: The `test.runsettings` file contains the GODOT_BIN path. For CI, you may need to update this path or set the `GODOT_BIN` environment variable to match your CI environment's Godot installation.

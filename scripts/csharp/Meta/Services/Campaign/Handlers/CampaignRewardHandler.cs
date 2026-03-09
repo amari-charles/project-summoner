@@ -225,7 +225,14 @@ public class CampaignRewardHandler
         for (var i = 0; i < count; i++)
         {
             var instanceId = _grantCardFunc(catalogId, rarity);
-            instanceIds.Add(instanceId);
+            if (!string.IsNullOrEmpty(instanceId))
+            {
+                instanceIds.Add(instanceId);
+            }
+            else
+            {
+                GD.PushWarning($"CampaignRewardHandler: Grant callback returned empty instance_id for {catalogId} ({rarity})");
+            }
         }
 
         GD.Print($"CampaignRewardHandler: Granted {count}x {catalogId} ({rarity})");

@@ -511,15 +511,6 @@ func _on_continue_pressed() -> void:
 		_check_summoner_level_up()
 		return
 
-	# Determine the card reward to grant from flexible_options (already normalized by spec)
-	var card_reward: Dictionary = {}
-	if chosen_reward_index >= 0 and chosen_reward_index < flexible_options.size():
-		# Use the chosen option (FLEXIBLE with choice made)
-		card_reward = flexible_options[chosen_reward_index]
-	elif flexible_options.size() > 0:
-		# Use first option (FIXED or auto-selected FLEXIBLE)
-		card_reward = flexible_options[0]
-
 	# Single unified call to claim all rewards (gold + cards)
 	var granted: Dictionary = CampaignApi.claim_pending_reward()
 
