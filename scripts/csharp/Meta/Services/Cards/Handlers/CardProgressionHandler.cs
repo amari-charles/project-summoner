@@ -6,6 +6,7 @@ using Fateforged.Cards;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Progression.Core;
 using Fateforged.Meta.Traits.Unified;
 using Fateforged.Stats;
 
@@ -99,11 +100,13 @@ public class CardProgressionHandler
     public int GetXpToNextLevel(CardInstanceId cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null || card.Level >= MaxLevel)
+        if (card == null)
             return 0;
 
-        var xpCost = GetXpCostForNextLevel(card);
-        return Mathf.Max(0, xpCost - card.Xp);
+        var state = BuildProgressionState(card);
+        var curve = BuildProgressionCurve(card);
+        var xpCost = ProgressionEngine.GetXpCostForNextLevel(state, curve);
+        return Math.Max(0, xpCost - state.XpTowardNext);
     }
 
     /// <summary>Get progress toward next level (0.0 - 1.0).</summary>
@@ -113,14 +116,9 @@ public class CardProgressionHandler
         if (card == null)
             return 0f;
 
-        if (card.Level >= MaxLevel)
-            return 1f;
-
-        var xpCost = GetXpCostForNextLevel(card);
-        if (xpCost <= 0)
-            return 1f;
-
-        return Mathf.Clamp((float)card.Xp / xpCost, 0f, 1f);
+        var state = BuildProgressionState(card);
+        var curve = BuildProgressionCurve(card);
+        return ProgressionEngine.GetProgress01(state, curve);
     }
 
     // =========================================================================
@@ -131,11 +129,12 @@ public class CardProgressionHandler
     public bool CanLevelUp(CardInstanceId cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null || card.Level >= MaxLevel)
+        if (card == null)
             return false;
 
-        var xpCost = GetXpCostForNextLevel(card);
-        return xpCost > 0 && card.Xp >= xpCost;
+        var state = BuildProgressionState(card);
+        var curve = BuildProgressionCurve(card);
+        return ProgressionEngine.CanLevelUp(state, curve);
     }
 
     /// <summary>
@@ -158,22 +157,20 @@ public class CardProgressionHandler
             return false;
         }
 
-        var xpCost = GetXpCostForNextLevel(card);
-        if (xpCost <= 0 || card.Xp < xpCost)
+        var state = BuildProgressionState(card);
+        var curve = BuildProgressionCurve(card);
+        var applyResult = ProgressionEngine.ApplyLevelUp(state, curve);
+        if (!applyResult.Success)
             return false;
-
-        // Apply level up and consume the required XP.
-        var newLevel = card.Level + 1;
-        var newXp = card.Xp - xpCost;
 
         _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
         {
-            Level = newLevel,
-            Xp = newXp,
+            Level = applyResult.NextState.Level,
+            Xp = applyResult.NextState.XpTowardNext,
             UnspentTraitPoints = card.UnspentTraitPoints + 1
         });
 
-        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {newLevel}, consumed {xpCost} XP (remaining: {newXp}), and granted 1 trait point");
+        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {applyResult.NextState.Level}, consumed {applyResult.XpCostSpent} XP (remaining: {applyResult.NextState.XpTowardNext}), and granted 1 trait point");
         return true;
     }
 
@@ -450,7 +447,7 @@ public class CardProgressionHandler
             Level = card.Level,
             MaxLevel = MaxLevel,
             Xp = card.Xp,
-            XpForNextLevel = card.Level < MaxLevel ? GetXpCostForNextLevel(card) : 0,
+            XpForNextLevel = ProgressionEngine.GetXpCostForNextLevel(BuildProgressionState(card), BuildProgressionCurve(card)),
             XpProgress = GetLevelProgress(cardInstanceId),
             CanLevelUp = CanLevelUp(cardInstanceId),
             Traits = card.Traits.ConvertAll(t => t.Value),
@@ -467,25 +464,45 @@ public class CardProgressionHandler
 
         foreach (var card in cards)
         {
-            if (card.Level >= MaxLevel)
-                continue;
-
-            var xpCost = GetXpCostForNextLevel(card);
-            if (xpCost > 0 && card.Xp >= xpCost)
+            var state = BuildProgressionState(card);
+            var curve = BuildProgressionCurve(card);
+            if (ProgressionEngine.CanLevelUp(state, curve))
                 ready.Add(card);
         }
 
         return [.. ready];
     }
 
-    private int GetXpCostForNextLevel(CardInstance card)
+    private static ProgressionState BuildProgressionState(CardInstance card)
     {
-        if (card.Level >= MaxLevel)
-            return 0;
+        return new ProgressionState(card.Level, card.Xp, MaxLevel);
+    }
 
-        var currentLevelThreshold = GetXpForLevelWithRarity(card.Level, card.Rarity);
-        var nextLevelThreshold = GetXpForLevelWithRarity(card.Level + 1, card.Rarity);
-        return Mathf.Max(0, nextLevelThreshold - currentLevelThreshold);
+    private static CardProgressionCurve BuildProgressionCurve(CardInstance card)
+    {
+        return new CardProgressionCurve(card.Rarity);
+    }
+
+    private readonly struct CardProgressionCurve(string rarity) : IProgressionCurve
+    {
+        public int GetXpCostForNextLevel(int currentLevel, int maxLevel)
+        {
+            if (currentLevel >= maxLevel)
+                return 0;
+
+            var multiplier = RarityMultipliers.GetValueOrDefault(rarity.ToLowerInvariant(), 1.0f);
+            var currentThreshold = (int)(GetXpThreshold(currentLevel) * multiplier);
+            var nextThreshold = (int)(GetXpThreshold(currentLevel + 1) * multiplier);
+            return Math.Max(0, nextThreshold - currentThreshold);
+        }
+
+        private static int GetXpThreshold(int level)
+        {
+            if (level < 1 || level > MaxLevel)
+                return 0;
+
+            return XpThresholds[level - 1];
+        }
     }
 
     // =========================================================================
