@@ -54,4 +54,22 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
+
+    [TestCase]
+    public void BuildSimTemplate_DamageProfileFields_MapFromDefinition()
+    {
+        var def = UnitDefinitions.Get(UnitIds.FireWisp);
+        AssertThat(def).IsNotNull();
+
+        SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(UnitIds.FireWisp, count: 1);
+
+        AssertThat(template.PhysicalDamageRatio).IsEqual(def!.DamageProfile.PhysicalRatio);
+        AssertThat(template.ElementalDamageRatio).IsEqual(def.DamageProfile.ElementalRatio);
+
+        var expectedAttackType =
+            def.DamageProfile.ElementalRatio > 0f && def.DamageProfile.PhysicalRatio <= 0f
+                ? DamageType.Magic
+                : DamageType.Physical;
+        AssertThat(template.AttackType).IsEqual(expectedAttackType);
+    }
 }

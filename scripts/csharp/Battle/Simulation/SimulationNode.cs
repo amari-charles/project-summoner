@@ -341,6 +341,9 @@ public partial class SimulationNode : Node, IGameSession
         summoner.IsAlive = true;
         summoner.MaxHandSize = maxHandSize;
         summoner.Position = new SimVector3(position.X, position.Y, position.Z);
+        summoner.DamageBonus = 0f;
+        summoner.DamageReduction = 0f;
+        summoner.ClearElementalDamageBonuses();
 
         summoner.Deck.Clear();
         foreach (var id in deckCatalogIds)
@@ -356,6 +359,35 @@ public partial class SimulationNode : Node, IGameSession
         }
 
         GD.Print($"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}");
+    }
+
+    /// <summary>
+    /// Set summoner combat modifiers loaded from profile-computed stats.
+    /// Pass 2 wiring for damage pipeline completion.
+    /// </summary>
+    public void SetSummonerCombatModifiers(
+        int team,
+        float damageBonus,
+        float damageReduction,
+        Dictionary<Element, float>? elementalDamageBonuses = null)
+    {
+        int networkTeam = ToNetworkTeam(team);
+        if (networkTeam < 0 || networkTeam > 1)
+        {
+            GD.PrintErr($"[SimulationNode] Invalid team {networkTeam} for SetSummonerCombatModifiers");
+            return;
+        }
+
+        var summoner = State.Summoners[networkTeam];
+        summoner.DamageBonus = damageBonus;
+        summoner.DamageReduction = damageReduction;
+        summoner.ClearElementalDamageBonuses();
+
+        if (elementalDamageBonuses != null)
+        {
+            foreach (var kvp in elementalDamageBonuses)
+                summoner.SetElementalDamageBonus(kvp.Key, kvp.Value);
+        }
     }
 
     public void SetSummonerHand(int team, string[] handCatalogIds)

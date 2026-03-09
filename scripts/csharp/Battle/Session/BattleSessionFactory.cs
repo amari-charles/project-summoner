@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Infrastructure.Persistence;
@@ -31,6 +32,11 @@ public class SummonerLoadResult
 
     /// <summary>Summoner computed stats for BattleContext caching (player team only).</summary>
     public Godot.Collections.Dictionary? SummonerStats { get; set; }
+
+    // Pass 2 wiring fields for simulation combat modifiers.
+    public float DamageBonus { get; set; }
+    public float DamageReduction { get; set; }
+    public Dictionary<Element, float> ElementalDamageBonuses { get; } = new();
 }
 
 /// <summary>
@@ -334,6 +340,10 @@ public static class BattleSessionFactory
         float health = stats.GetValueOrDefault("health", 300.0f);
         result.MaxHp = health;
         result.Hp = health;
+        result.DamageBonus = stats.GetValueOrDefault("damage_bonus", 0f);
+        result.DamageReduction = stats.GetValueOrDefault("damage_reduction", 0f);
+        result.ElementalDamageBonuses.Clear();
+        PopulateElementalDamageBonuses(result.ElementalDamageBonuses, stats);
 
         if (localTeam == 0)
         {
@@ -344,6 +354,33 @@ public static class BattleSessionFactory
         }
 
         GD.Print($"[BattleSessionFactory] Applied summoner bonuses — Max HP: {result.MaxHp:F0}, Max Mana: {result.MaxMana:F0}, Cast Speed: {result.CastSpeed:F2}");
+    }
+
+    private static void PopulateElementalDamageBonuses(
+        Dictionary<Element, float> destination,
+        Dictionary<string, float> stats)
+    {
+        TrySetElementalBonus(destination, stats, "fire_damage_bonus", Element.Fire);
+        TrySetElementalBonus(destination, stats, "water_damage_bonus", Element.Water);
+        TrySetElementalBonus(destination, stats, "wind_damage_bonus", Element.Wind);
+        TrySetElementalBonus(destination, stats, "earth_damage_bonus", Element.Earth);
+        TrySetElementalBonus(destination, stats, "lightning_damage_bonus", Element.Lightning);
+        TrySetElementalBonus(destination, stats, "life_damage_bonus", Element.Life);
+        TrySetElementalBonus(destination, stats, "death_damage_bonus", Element.Death);
+        TrySetElementalBonus(destination, stats, "shadow_damage_bonus", Element.Shadow);
+    }
+
+    private static void TrySetElementalBonus(
+        Dictionary<Element, float> destination,
+        Dictionary<string, float> stats,
+        string key,
+        Element element)
+    {
+        if (!stats.TryGetValue(key, out float bonus))
+            return;
+        if (Math.Abs(bonus) <= 0.0001f)
+            return;
+        destination[element] = bonus;
     }
 
     // =========================================================================

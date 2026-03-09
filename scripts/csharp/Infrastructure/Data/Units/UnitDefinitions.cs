@@ -547,6 +547,12 @@ public static class UnitDefinitions
         template.UnitType = def.UnitType;
         template.MovementLayer = def.MovementLayer;
         template.ElementId = (int)(def.DamageProfile.Element ?? Fateforged.Cards.Element.Neutral);
+        template.PhysicalDamageRatio = def.DamageProfile.PhysicalRatio;
+        template.ElementalDamageRatio = def.DamageProfile.ElementalRatio;
+        template.AttackType =
+            def.DamageProfile.ElementalRatio > 0f && def.DamageProfile.PhysicalRatio <= 0f
+                ? Fateforged.Simulation.Enums.DamageType.Magic
+                : Fateforged.Simulation.Enums.DamageType.Physical;
         template.SeparationRadius = def.Visual.SeparationRadius;
         template.PhysicalDefense = stats.Armor;
         template.MagicDefense = stats.MagicResist;

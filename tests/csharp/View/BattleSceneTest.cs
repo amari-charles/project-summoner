@@ -1,7 +1,9 @@
 namespace Fateforged.Tests.View;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Fateforged.Cards;
 using Fateforged.Session;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation;
@@ -116,6 +118,75 @@ public class BattleSceneTest
         AssertThat(phases[0]).IsEqual((int)BattleScene.BattlePhase.Battle);
     }
 
+    [TestCase]
+    public void InitSummonerHost_AppliesComputedCombatModifiersToSimulationState()
+    {
+        var scene = CreateBattleScene();
+        var simNode = CreateSimulationNode();
+        var summoner = new SummonerVisual
+        {
+            Name = $"SummonerVisualTest_{_createdNodes.Count}",
+            Team = 1,
+            MaxHpExport = 300f,
+            MaxHandSize = 4,
+            DeckLoadStrategy = DeckLoadStrategy.Static,
+        };
+        ((SceneTree)Engine.GetMainLoop()).Root.AddChild(summoner);
+        _createdNodes.Add(summoner);
+
+        var starterCard = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
+        AssertThat(starterCard).IsNotNull();
+        summoner.StartingDeck.Add((Resource)starterCard!);
+
+        var opponentSummoner = new Godot.Collections.Dictionary
+        {
+            ["summoner_id"] = "summoner_teo",
+            ["level"] = 1,
+            ["xp"] = 0,
+            ["acquired_trait_ids"] = new Godot.Collections.Array(),
+            ["unspent_trait_points"] = 0
+        };
+
+        var rawConfig = new Godot.Collections.Dictionary
+        {
+            ["opponent_summoner_data"] = opponentSummoner
+        };
+        var config = new BattleSessionConfig
+        {
+            Mode = BattleMode.Multiplayer,
+            IsMultiplayer = true,
+            HasAuthority = true,
+            RawConfig = rawConfig
+        };
+        SetPrivateField(scene, "_config", config);
+
+        // Build expected values from the same loader path to avoid brittle hard-coded trait numbers.
+        var expected = BattleSessionFactory.LoadSummonerData(
+            scene,
+            config,
+            1,
+            summoner.DeckLoadStrategy,
+            summoner.MaxHpExport,
+            summoner.MaxHandSize,
+            summoner.StartingDeck);
+
+        InvokePrivateMethod(scene, "InitSummonerHost", summoner, 1, simNode);
+
+        var summonerState = simNode.State.Summoners[1];
+        AssertThat(summonerState.DamageBonus).IsEqual(expected.DamageBonus);
+        AssertThat(summonerState.DamageReduction).IsEqual(expected.DamageReduction);
+
+        var actualElementalBonuses = summonerState.EnumerateElementalDamageBonuses().ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value);
+        AssertThat(actualElementalBonuses.Count).IsEqual(expected.ElementalDamageBonuses.Count);
+        foreach (var (element, bonus) in expected.ElementalDamageBonuses)
+        {
+            AssertThat(actualElementalBonuses.ContainsKey(element)).IsTrue();
+            AssertThat(actualElementalBonuses[element]).IsEqual(bonus);
+        }
+    }
+
     private BattleScene CreateBattleScene()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -150,6 +221,12 @@ public class BattleSceneTest
     {
         var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(target, value);
+    }
+
+    private static void InvokePrivateMethod(object target, string methodName, params object?[] args)
+    {
+        var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+        method!.Invoke(target, args);
     }
 
 }

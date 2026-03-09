@@ -664,6 +664,8 @@ public class Simulation
                     FlightAltitude = template.FlightAltitude,
                     ProjectileDelay = template.ProjectileDelay,
                     AttackType = template.AttackType,
+                    PhysicalDamageRatio = template.PhysicalDamageRatio,
+                    ElementalDamageRatio = template.ElementalDamageRatio,
                     PhysicalDefense = template.PhysicalDefense,
                     MagicDefense = template.MagicDefense,
                     Evasion = template.Evasion,

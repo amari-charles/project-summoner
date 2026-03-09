@@ -633,6 +633,11 @@ public partial class BattleScene : Node3D
 		simNode.RegisterSummoner(localTeam, result.Hp, result.MaxHp,
 			result.Mana, result.MaxMana, result.CastSpeed,
 			deckIds, sv.MaxHandSize, sv.GlobalPosition);
+		simNode.SetSummonerCombatModifiers(
+			localTeam,
+			result.DamageBonus,
+			result.DamageReduction,
+			result.ElementalDamageBonuses);
 		simNode.SetSummonerHand(localTeam, handIds);
 		simNode.SetSummonerCardRefs(localTeam, deckRefs, handRefs);
 	}

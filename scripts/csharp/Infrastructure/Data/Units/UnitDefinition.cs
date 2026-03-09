@@ -87,7 +87,6 @@ public record UnitDefinition
     /// <summary>
     /// Defines how this unit's damage is split between physical and elemental.
     /// Defaults to pure physical (100% physical, 0% elemental).
-    /// NOTE: This is a stub - not yet integrated into combat calculations.
     /// </summary>
     public DamageProfile DamageProfile { get; init; } = DamageProfile.Physical;
 

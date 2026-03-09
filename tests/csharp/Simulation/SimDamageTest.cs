@@ -408,7 +408,7 @@ public class SimDamageTest
         // base=100, crit=100*1.5=150, elem=150*1.25=187.5, bonus=187.5*1.1=206.25
         // defense=206.25*0.5=103.125, reduction=103.125-5=98.125, round=98.1
         var (damage, isCrit, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, _state.Summoners[0], _state.Summoners[1], _state.Rng);
+            100f, attacker.AttackType, attacker, target, _state.Summoners[0], _state.Summoners[1], _state.Rng);
 
         AssertThat(isCrit).IsTrue();
         AssertThat(damage).IsEqual(98.1f);
@@ -449,5 +449,158 @@ public class SimDamageTest
         AssertThat(isCrit).IsFalse();
         AssertThat(wasEvaded).IsFalse();
         AssertThat(damage).IsEqual(100f);
+    }
+
+    // =========================================================================
+    // DamageProfile + Summoner Modifier Coverage
+    // =========================================================================
+
+    [TestCase]
+    public void Calculate_MixedProfile_SplitsAcrossDefenseLanes()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = (int)Element.Neutral;
+        attacker.AttackType = DamageType.Physical;
+        attacker.PhysicalDamageRatio = 0.6f;
+        attacker.ElementalDamageRatio = 0.4f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
+        target.Evasion = 0f;
+        target.PhysicalDefense = 100f; // 0.5x
+        target.MagicDefense = 0f;      // 1.0x
+
+        var (damage, _, _) = SimDamage.CalculateAttack(
+            100f,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng);
+
+        // 60 * 0.5 + 40 * 1.0 = 70
+        AssertThat(damage).IsEqual(70f);
+    }
+
+    [TestCase]
+    public void Calculate_ExplicitDamageType_DoesNotUseProfileSplitByDefault()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = (int)Element.Neutral;
+        attacker.AttackType = DamageType.Physical;
+        attacker.PhysicalDamageRatio = 0.5f;
+        attacker.ElementalDamageRatio = 0.5f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
+        target.Evasion = 0f;
+        target.PhysicalDefense = 0f;
+        target.MagicDefense = 100f;
+
+        // Explicit damageType call (used by effect paths) should honor the supplied lane.
+        var (damage, _, _) = SimDamage.Calculate(
+            100f,
+            DamageType.Magic,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng);
+
+        AssertThat(damage).IsEqual(50f);
+    }
+
+    [TestCase]
+    public void Calculate_PureElementalProfile_UsesMagicLane()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = (int)Element.Neutral;
+        attacker.AttackType = DamageType.Magic;
+        attacker.PhysicalDamageRatio = 0f;
+        attacker.ElementalDamageRatio = 1f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
+        target.Evasion = 0f;
+        target.PhysicalDefense = 100f; // ignored
+        target.MagicDefense = 50f;     // 100 / 150 = 0.666...
+
+        var (damage, _, _) = SimDamage.Calculate(
+            100f, DamageType.Magic, attacker, target, null, null, _state.Rng);
+
+        AssertThat(damage).IsEqual(66.7f);
+    }
+
+    [TestCase]
+    public void Calculate_SummonerElementalBonus_AppliesForMatchingElement()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = (int)Element.Fire;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
+        target.Evasion = 0f;
+        target.ElementId = (int)Element.Neutral;
+
+        _state.Summoners[0].SetElementalDamageBonus(Element.Fire, 20f);
+
+        var (damage, _, _) = SimDamage.Calculate(
+            100f, DamageType.Physical, attacker, target, _state.Summoners[0], null, _state.Rng);
+
+        AssertThat(damage).IsEqual(120f);
+    }
+
+    [TestCase]
+    public void Calculate_SummonerElementalBonus_DoesNotApplyForNonMatchingElement()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = (int)Element.Water;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
+        target.Evasion = 0f;
+        target.ElementId = (int)Element.Neutral;
+
+        _state.Summoners[0].SetElementalDamageBonus(Element.Fire, 20f);
+
+        var (damage, _, _) = SimDamage.Calculate(
+            100f, DamageType.Physical, attacker, target, _state.Summoners[0], null, _state.Rng);
+
+        AssertThat(damage).IsEqual(100f);
+    }
+
+    [TestCase]
+    public void Calculate_FullPipeline_MixedProfile_CorrectOrder()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = (int)Element.Neutral;
+        attacker.AttackType = DamageType.Physical;
+        attacker.PhysicalDamageRatio = 0.5f;
+        attacker.ElementalDamageRatio = 0.5f;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
+        target.Evasion = 0f;
+        target.ElementId = (int)Element.Neutral;
+        target.PhysicalDefense = 100f; // 0.5x
+        target.MagicDefense = 300f;    // 0.25x
+
+        _state.Summoners[0].DamageBonus = 10f;
+        _state.Summoners[1].DamageReduction = 5f;
+
+        // base=100 -> bonus=110
+        // split: 55 physical -> 27.5 after armor
+        //        55 elemental -> 13.75 after magic resist
+        // subtotal=41.25 -> reduction=36.25 -> round=36.2 (midpoint-to-even)
+        var (damage, isCrit, _) = SimDamage.CalculateAttack(
+            100f,
+            attacker,
+            target,
+            _state.Summoners[0],
+            _state.Summoners[1],
+            _state.Rng);
+
+        AssertThat(isCrit).IsFalse();
+        AssertThat(damage).IsEqual(36.2f);
     }
 }

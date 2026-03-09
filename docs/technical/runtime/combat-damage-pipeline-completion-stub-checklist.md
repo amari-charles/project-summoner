@@ -1,0 +1,41 @@
+# Combat Damage Pipeline Completion Stub Checklist
+
+PASS 2 objective: compile-safe stubs and data wiring only.
+
+Status legend: `Pending`, `Done`
+
+## Approval Evidence
+
+- PASS 1 -> PASS 2 approval captured on 2026-03-09 in delivery thread: "ok sounds good lets go to next step".
+- PASS 2 -> PASS 3 approval captured on 2026-03-09 in delivery thread: "proceed".
+
+## Artifact Checklist
+
+- [x] `combat-damage-pipeline-completion-plan.md` present
+- [x] `combat-damage-pipeline-completion-validation-cases.md` present
+- [x] `combat-damage-pipeline-completion-stub-checklist.md` present
+
+## Wiring Checklist
+
+1. Sim template supports damage split placeholders (`PhysicalDamageRatio`, `ElementalDamageRatio`) : `Done`
+2. Runtime unit state carries split placeholders : `Done`
+3. Unit-definition build path writes split placeholders : `Done`
+4. Spawn path copies template split placeholders into `UnitData` : `Done`
+5. Summoner load result captures combat modifiers (`damage_bonus`, `damage_reduction`, elemental buckets) : `Done`
+6. Battle init pushes summoner combat modifiers into simulation state : `Done`
+7. Simulation API includes explicit setter for summoner combat modifiers : `Done`
+
+## Validation Case Skeleton Mapping
+
+- CDP-004: `SimDamageTest.Calculate_MixedProfile_SplitsAcrossDefenseLanes`
+- CDP-005: `SimDamageTest.Calculate_PureElementalProfile_UsesMagicLane`
+- CDP-008: `SimDamageTest.Calculate_SummonerElementalBonus_AppliesForMatchingElement`
+- CDP-009: `SimDamageTest.Calculate_SummonerElementalBonus_DoesNotApplyForNonMatchingElement`
+- CDP-010: `UnitDefinitionsTargetingProfileTest.BuildSimTemplate_DamageProfileFields_MapFromDefinition`
+- CDP-011: `SimulationIntegrationTest.SpawnedUnit_RetainsDamageProfileFields`
+- CDP-012: `SimDamageTest.Calculate_FullPipeline_MixedProfile_CorrectOrder`
+
+## Notes
+
+- PASS 2 wiring objectives are complete.
+- PASS 3 replaced stub assertions with final scenario assertions and updated validation statuses to `Implemented`.

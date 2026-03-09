@@ -29,6 +29,54 @@ public static class SimDamage
         DeterministicRng? rng,
         List<SimEvent>? events = null)
     {
+        return CalculateInternal(
+            baseDamage,
+            damageType,
+            attacker,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            rng,
+            allowAttackProfileSplit: false,
+            events);
+    }
+
+    /// <summary>
+    /// Calculate damage for unit attack actions.
+    /// Uses attacker AttackType and applies mixed attack-profile split lanes when configured.
+    /// </summary>
+    public static (float damage, bool isCrit, bool wasEvaded) CalculateAttack(
+        float baseDamage,
+        UnitData attacker,
+        UnitData target,
+        SummonerData? attackerSummoner,
+        SummonerData? targetSummoner,
+        DeterministicRng? rng,
+        List<SimEvent>? events = null)
+    {
+        return CalculateInternal(
+            baseDamage,
+            attacker.AttackType,
+            attacker,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            rng,
+            allowAttackProfileSplit: true,
+            events);
+    }
+
+    private static (float damage, bool isCrit, bool wasEvaded) CalculateInternal(
+        float baseDamage,
+        DamageType damageType,
+        UnitData? attacker,
+        UnitData target,
+        SummonerData? attackerSummoner,
+        SummonerData? targetSummoner,
+        DeterministicRng? rng,
+        bool allowAttackProfileSplit,
+        List<SimEvent>? events)
+    {
         // 0. Evasion check (deterministic via RNG)
         if (target.Evasion > 0 && rng != null)
         {
@@ -79,14 +127,12 @@ public static class SimDamage
         // 4. Defense reduction (based on damage type)
         if (damageType != DamageType.True)
         {
-            float defense = damageType == DamageType.Physical
-                ? target.PhysicalDefense
-                : target.MagicDefense;
-
-            if (defense > 0f)
-            {
-                damage *= CalculateDefenseMultiplier(defense);
-            }
+            damage = ApplyDefenseReduction(
+                damage,
+                damageType,
+                attacker,
+                target,
+                allowAttackProfileSplit);
         }
 
         // 5. Summoner damage reduction (target's summoner — flat reduction after defense)
@@ -108,7 +154,8 @@ public static class SimDamage
     }
 
     /// <summary>
-    /// Overload for backwards compatibility — defaults to Physical damage type.
+    /// Convenience overload for attacker-driven unit damage.
+    /// Defaults to physical lane when attacker is null.
     /// </summary>
     public static (float damage, bool isCrit) Calculate(
         float baseDamage,
@@ -118,14 +165,22 @@ public static class SimDamage
         SummonerData? targetSummoner,
         DeterministicRng? rng)
     {
-        var (damage, isCrit, _) = Calculate(
-            baseDamage,
-            attacker?.AttackType ?? DamageType.Physical,
-            attacker,
-            target,
-            attackerSummoner,
-            targetSummoner,
-            rng);
+        var (damage, isCrit, _) = attacker != null
+            ? CalculateAttack(
+                baseDamage,
+                attacker,
+                target,
+                attackerSummoner,
+                targetSummoner,
+                rng)
+            : Calculate(
+                baseDamage,
+                DamageType.Physical,
+                attacker,
+                target,
+                attackerSummoner,
+                targetSummoner,
+                rng);
         return (damage, isCrit);
     }
 
@@ -138,5 +193,43 @@ public static class SimDamage
     {
         if (defense <= 0f) return 1f;
         return 100f / (100f + defense);
+    }
+
+    private static float ApplyDefenseReduction(
+        float damage,
+        DamageType damageType,
+        UnitData? attacker,
+        UnitData target,
+        bool allowAttackProfileSplit)
+    {
+        if (allowAttackProfileSplit && attacker != null && damageType == attacker.AttackType)
+        {
+            float physicalRatio = Clamp01(attacker.PhysicalDamageRatio);
+            float elementalRatio = Clamp01(attacker.ElementalDamageRatio);
+            float ratioTotal = physicalRatio + elementalRatio;
+
+            // Mixed profile: split outgoing damage into physical + elemental lanes.
+            if (physicalRatio > 0f && elementalRatio > 0f && ratioTotal > 0f)
+            {
+                physicalRatio /= ratioTotal;
+                elementalRatio /= ratioTotal;
+
+                float physicalPart = damage * physicalRatio * CalculateDefenseMultiplier(target.PhysicalDefense);
+                float elementalPart = damage * elementalRatio * CalculateDefenseMultiplier(target.MagicDefense);
+                return physicalPart + elementalPart;
+            }
+        }
+
+        float defense = damageType == DamageType.Physical
+            ? target.PhysicalDefense
+            : target.MagicDefense;
+        return damage * CalculateDefenseMultiplier(defense);
+    }
+
+    private static float Clamp01(float value)
+    {
+        if (value <= 0f) return 0f;
+        if (value >= 1f) return 1f;
+        return value;
     }
 }

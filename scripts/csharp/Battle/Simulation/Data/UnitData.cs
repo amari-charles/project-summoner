@@ -36,6 +36,8 @@ public class UnitData
 
     // Damage type and defenses
     public DamageType AttackType { get; set; } = DamageType.Physical;
+    public float PhysicalDamageRatio { get; set; } = 1f;
+    public float ElementalDamageRatio { get; set; }
     public float PhysicalDefense { get; set; }
     public float MagicDefense { get; set; }
     public float Evasion { get; set; }

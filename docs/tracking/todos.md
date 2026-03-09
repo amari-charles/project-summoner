@@ -21,6 +21,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-08, late):** Added missing completion records for GDScript typed-API safety migration (`#288`) and StringName-safe coercion sweep (`#290`) to `todos-completed.md`; active queue unchanged aside from status notes.
 **Tracker Sync (2026-03-08, final):** Closed blocked-unit idle freeze item after manual signoff; moved remaining notes to `todos-completed.md` and refreshed AI priority queue to only open items.
 **Tracker Sync (2026-03-08, desync pass):** Closed sim/visual state desync audit task after phase sync hardening, summoner destroy signal dedupe, activation-state visual alignment fix, and regression coverage updates.
+**Tracker Sync (2026-03-09, combat correctness):** Moved completed DamageProfile armor/magic-resist integration + summoner combat-modifier wiring to `todos-completed.md`; removed UI damage-type card indicator from this task per product direction.
 
 ---
 
@@ -61,31 +62,6 @@ The client currently operates as a pure renderer — it applies host snapshots b
 ## Units & Combat
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Complete DamageProfile-Based Armor/MagicResist Integration
-**Status:** ⬜ Not Started
-**Category:** Units & Combat / Stats
-**Effort:** Medium
-
-**Description:**
-Defense reduction is now active in `SimDamage` via `PhysicalDefense`/`MagicDefense`, but `DamageProfile` split damage is still not integrated.
-
-**Current State:**
-- Defense reduction is applied in `SimDamage` (diminishing returns: `100 / (100 + defense)`)
-- `DamageType` pipeline works for physical vs magic damage
-- `DamageProfile` exists but is still marked as a stub and not used for mixed physical/elemental split attacks
-
-**Requirements:**
-- Integrate unit `DamageProfile` into damage pipeline for mixed attack splits
-- Apply split portions through appropriate defense lanes (physical vs magic)
-- Add UI indicators for damage types on cards
-
-**Related Files:**
-- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - Damage calculation
-- `scripts/csharp/Infrastructure/Data/Units/DamageProfile.cs` - Physical/elemental ratio
-- `scripts/csharp/Infrastructure/Data/Units/UnitDefinition.cs` - DamageProfile property
-
----
 
 #### Shift Puff Attack Angle Downward
 **Status:** ⬜ Not Started
