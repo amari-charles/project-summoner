@@ -6,6 +6,35 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+### Complete DamageProfile-Based Armor/MagicResist Integration
+**Completed:** 2026-03-09
+**Category:** Units & Combat / Stats
+**Effort:** Medium
+
+Completed combat correctness integration for mixed damage lanes and summoner combat-modifier wiring in simulation.
+
+**Resolution Summary:**
+- ✅ Integrated mixed `DamageProfile` routing into `SimDamage` using physical and elemental split lanes
+- ✅ Added runtime data propagation: `UnitDefinitions -> SimUnitTemplate -> UnitData`
+- ✅ Wired summoner combat modifiers (`damage_bonus`, `damage_reduction`, elemental buckets) from computed profile stats into simulation state
+- ✅ Added/updated deterministic coverage for split-lane math, elemental bonus matching, template mapping, and spawn propagation
+- ✅ Ran C# and GUT validation passes successfully
+- ✅ Product decision: explicit damage-type indicators on hand cards are not required for this task
+
+**Representative Files Changed:**
+- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs`
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
+- `scripts/csharp/Battle/Simulation/Data/SimCardData.cs`
+- `scripts/csharp/Battle/Simulation/Data/UnitData.cs`
+- `scripts/csharp/Battle/Session/BattleSessionFactory.cs`
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
+- `scripts/csharp/Battle/View/BattleScene.cs`
+- `tests/csharp/Simulation/SimDamageTest.cs`
+- `tests/csharp/Simulation/UnitDefinitionsTargetingProfileTest.cs`
+- `tests/csharp/Simulation/SimulationIntegrationTest.cs`
+
+---
+
 ### Implement Ranked Gameplay Mode
 **Completed:** 2026-03-09
 **Category:** Core Game Systems / Multiplayer

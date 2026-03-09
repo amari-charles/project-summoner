@@ -322,7 +322,14 @@ public static class SimEffects
         var targetSummoner = (int)target.Team >= 0 && (int)target.Team <= 1 ? state.Summoners[(int)target.Team] : null;
 
         var (damage, isCrit, _) = SimDamage.Calculate(
-            baseDamage, damageType, attacker, target, attackerSummoner, targetSummoner, state.Rng, events);
+            baseDamage,
+            damageType,
+            attacker,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            state.Rng,
+            events: events);
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, sourceUnitId, damage, isCrit));

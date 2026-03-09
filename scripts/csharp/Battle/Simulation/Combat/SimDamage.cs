@@ -27,6 +27,7 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
+        bool allowAttackProfileSplit = false,
         List<SimEvent>? events = null)
     {
         // 0. Evasion check (deterministic via RNG)
@@ -79,14 +80,12 @@ public static class SimDamage
         // 4. Defense reduction (based on damage type)
         if (damageType != DamageType.True)
         {
-            float defense = damageType == DamageType.Physical
-                ? target.PhysicalDefense
-                : target.MagicDefense;
-
-            if (defense > 0f)
-            {
-                damage *= CalculateDefenseMultiplier(defense);
-            }
+            damage = ApplyDefenseReduction(
+                damage,
+                damageType,
+                attacker,
+                target,
+                allowAttackProfileSplit);
         }
 
         // 5. Summoner damage reduction (target's summoner — flat reduction after defense)
@@ -125,7 +124,8 @@ public static class SimDamage
             target,
             attackerSummoner,
             targetSummoner,
-            rng);
+            rng,
+            allowAttackProfileSplit: true);
         return (damage, isCrit);
     }
 
@@ -138,5 +138,43 @@ public static class SimDamage
     {
         if (defense <= 0f) return 1f;
         return 100f / (100f + defense);
+    }
+
+    private static float ApplyDefenseReduction(
+        float damage,
+        DamageType damageType,
+        UnitData? attacker,
+        UnitData target,
+        bool allowAttackProfileSplit)
+    {
+        if (allowAttackProfileSplit && attacker != null && damageType == attacker.AttackType)
+        {
+            float physicalRatio = Clamp01(attacker.PhysicalDamageRatio);
+            float elementalRatio = Clamp01(attacker.ElementalDamageRatio);
+            float ratioTotal = physicalRatio + elementalRatio;
+
+            // Mixed profile: split outgoing damage into physical + elemental lanes.
+            if (physicalRatio > 0f && elementalRatio > 0f && ratioTotal > 0f)
+            {
+                physicalRatio /= ratioTotal;
+                elementalRatio /= ratioTotal;
+
+                float physicalPart = damage * physicalRatio * CalculateDefenseMultiplier(target.PhysicalDefense);
+                float elementalPart = damage * elementalRatio * CalculateDefenseMultiplier(target.MagicDefense);
+                return physicalPart + elementalPart;
+            }
+        }
+
+        float defense = damageType == DamageType.Physical
+            ? target.PhysicalDefense
+            : target.MagicDefense;
+        return damage * CalculateDefenseMultiplier(defense);
+    }
+
+    private static float Clamp01(float value)
+    {
+        if (value <= 0f) return 0f;
+        if (value >= 1f) return 1f;
+        return value;
     }
 }

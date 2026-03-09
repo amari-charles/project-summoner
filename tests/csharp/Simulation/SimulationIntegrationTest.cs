@@ -913,6 +913,33 @@ public class SimulationIntegrationTest
         AssertThat(_state.Summoners[1].CurrentHp).IsLess(initialHp);
     }
 
+    [TestCase]
+    public void SpawnedUnit_RetainsDamageProfileFields()
+    {
+        var card = SimTestHelper.CreateSummonCard("profile_spawn_card", manaCost: 2, unitCount: 1);
+        card.UnitTemplates[0].AttackType = DamageType.Physical;
+        card.UnitTemplates[0].PhysicalDamageRatio = 0.35f;
+        card.UnitTemplates[0].ElementalDamageRatio = 0.65f;
+
+        _state.CardDataMap["profile_spawn_card"] = card;
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "profile_spawn_card" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "profile_spawn_card" };
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+
+        AssertThat(_state.Units.Count).IsEqual(1);
+        var spawned = _state.Units.Values.First();
+        AssertThat(spawned.PhysicalDamageRatio).IsEqual(0.35f);
+        AssertThat(spawned.ElementalDamageRatio).IsEqual(0.65f);
+        AssertThat(spawned.AttackType).IsEqual(DamageType.Physical);
+    }
+
     // =========================================================================
     // Helper
     // =========================================================================

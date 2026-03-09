@@ -12,8 +12,8 @@ namespace Fateforged.Units;
 /// - Knight: PhysicalRatio = 1.0, ElementalRatio = 0 (100% physical)
 /// - Fire Knight: PhysicalRatio = 0.5, Element = Fire, ElementalRatio = 0.5 (50/50 split)
 ///
-/// NOTE: This is a stub - not yet integrated into combat. Armor/MagicResist formulas
-/// will use this profile to determine damage reduction (physical vs elemental).
+/// Combat uses this profile to route outgoing damage through physical and magic
+/// defense lanes (including mixed split attacks).
 /// </remarks>
 public record DamageProfile
 {

@@ -1,4 +1,5 @@
 using System.IO;
+using Fateforged.Cards;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -102,6 +103,19 @@ public class SnapshotCodec
         w.Write(s.CastingCatalogId.Value);
         WriteSimVector3(w, s.CastingSpawnPosition);
         w.Write(s.CastingNetworkId);
+        w.Write(s.DamageBonus);
+        w.Write(s.DamageReduction);
+
+        var elementalBonuses = s.EnumerateElementalDamageBonuses();
+        int bonusCount = 0;
+        foreach (var _ in elementalBonuses)
+            bonusCount++;
+        w.Write(bonusCount);
+        foreach (var (element, bonus) in s.EnumerateElementalDamageBonuses())
+        {
+            w.Write((int)element);
+            w.Write(bonus);
+        }
 
         // Hand
         w.Write(s.Hand.Count);
@@ -135,6 +149,16 @@ public class SnapshotCodec
         s.CastingCardInstanceId = SimCardInstanceId.Empty;
         s.CastingSpawnPosition = ReadSimVector3(r);
         s.CastingNetworkId = r.ReadInt32();
+        s.DamageBonus = r.ReadSingle();
+        s.DamageReduction = r.ReadSingle();
+        s.ClearElementalDamageBonuses();
+        int bonusCount = r.ReadInt32();
+        for (int i = 0; i < bonusCount; i++)
+        {
+            var element = (Element)r.ReadInt32();
+            float bonus = r.ReadSingle();
+            s.SetElementalDamageBonus(element, bonus);
+        }
 
         int handCount = r.ReadInt32();
         s.Hand.Clear();

@@ -52,6 +52,22 @@ public class SummonerData
         return _elementalDamageBonuses.TryGetValue(element, out float bonus) ? bonus : 0f;
     }
 
+    /// <summary>
+    /// Enumerate all configured per-element damage bonuses.
+    /// </summary>
+    public IEnumerable<KeyValuePair<Element, float>> EnumerateElementalDamageBonuses()
+    {
+        return _elementalDamageBonuses;
+    }
+
+    /// <summary>
+    /// Clear all per-element damage bonus values.
+    /// </summary>
+    public void ClearElementalDamageBonuses()
+    {
+        _elementalDamageBonuses.Clear();
+    }
+
     // AI state (null Ai = human-controlled)
     public AiConfig? Ai { get; set; }
     public float AiPlayTimer { get; set; }
