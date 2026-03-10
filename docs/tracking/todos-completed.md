@@ -6,6 +6,24 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+### Finish Trait Rule Centralization
+**Completed:** 2026-03-10
+**Category:** Meta / Trait Tree
+**Effort:** Small
+
+Closed trait-rule duplication cleanup by routing spendability evaluation through the centralized C# trait-tree service in non-screen surfaces.
+
+**Resolution Summary:**
+- ✅ Replaced dev console trait spendability checks with centralized trait-tree service payload/reason output
+- ✅ Audited remaining trait UI surfaces and removed local eligibility recomputation where centralized payload already exists
+
+**Representative Files Changed:**
+- `scripts/debug/dev_console.gd`
+- `scripts/meta/screens/trait_tree_screen.gd`
+- `scripts/meta/screens/card_trait_tree_screen.gd`
+
+---
+
 ### Complete DamageProfile-Based Armor/MagicResist Integration
 **Completed:** 2026-03-09
 **Category:** Units & Combat / Stats

@@ -45,7 +45,7 @@ public class TraitSpendValidationTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var dict = cardService.GetCardTraitDict(CardIds.Fireball, TraitIds.IronWill);
+        var dict = cardService.GetCardTraitDict(TraitIds.IronWill);
 
         AssertThat(dict.Count).IsGreater(0);
         AssertThat(dict["id"].AsString()).IsEqual((string)TraitIds.IronWill);
@@ -144,7 +144,7 @@ public class TraitSpendValidationTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var dict = cardService.GetCardTraitDict(CardIds.FireWisp, TraitIds.Power);
+        var dict = cardService.GetCardTraitDict(TraitIds.Power);
         AssertThat(dict.Count).IsGreater(0);
         AssertThat(dict["summary_short"].AsString()).IsEqual("+6% Attack Damage");
     }

@@ -1,6 +1,6 @@
 # Trait Tree Skill Tree Validation Cases
 
-**Status:** PASS 2 WIRED (Skeleton Coverage Added)  
+**Status:** PASS 3 IN PROGRESS (C# Coverage Live; GUT Cases Pending)  
 **Initiative:** `trait-tree-skill-tree`  
 **Domain:** `meta`  
 **Last Updated:** `2026-03-10`  
@@ -27,11 +27,11 @@ Allowed status values:
 | C04 | Player opens summoner traits. | Summoner traits render in tree visualization (not list-only fallback). | integration | `tests/unit/meta/test_summoner_trait_tree_screen.gd` | Design-Covered |
 | C05 | Player clicks a locked trait node. | Node details show name + description; unlock CTA disabled with clear reason. | integration | `tests/unit/meta/test_trait_tree_node_popup.gd` | Design-Covered |
 | C06 | Player clicks an available, affordable node. | Confirmation modal appears with trait details and confirm/cancel actions. | integration | `tests/unit/meta/test_trait_tree_unlock_confirmation.gd` | Design-Covered |
-| C07 | Player confirms unlock with sufficient points and valid prerequisites. | C# service accepts spend, trait is owned, points decrement exactly once, UI refreshes. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Design-Covered |
-| C08 | Player confirms unlock with insufficient points. | C# service rejects spend with deterministic rejection reason; ownership unchanged. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Design-Covered |
+| C07 | Player confirms unlock with sufficient points and valid prerequisites. | C# service accepts spend, trait is owned, points decrement exactly once, UI refreshes. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Implemented |
+| C08 | Player confirms unlock with insufficient points. | C# service rejects spend with deterministic rejection reason; ownership unchanged. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Implemented |
 | C09 | Player confirms unlock with missing prerequisite(s). | C# service rejects spend; node remains locked and reason remains visible in popup. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Design-Covered |
-| C10 | Two cards share same catalog but different instance ids. | Unlocking trait on one instance does not unlock it for the other instance. | unit | `tests/csharp/Services/CardTraitIsolationTest.cs` | Design-Covered |
-| C11 | Trait catalog includes mixed acquisition modes. | Progression tree includes only `level_up_offer`; one-off tab includes only `granted_only`. | unit | `tests/csharp/Traits/TraitCatalogTest.cs` | Design-Covered |
+| C10 | Two cards share same catalog but different instance ids. | Unlocking trait on one instance does not unlock it for the other instance. | unit | `tests/csharp/Services/CardTraitIsolationTest.cs` | Implemented |
+| C11 | Trait catalog includes mixed acquisition modes. | Progression tree includes only `level_up_offer`; one-off tab includes only `granted_only`. | unit | `tests/csharp/Traits/TraitCatalogTest.cs` | Implemented |
 | C12 | Tree layout contains tier II/III/IV branches. | Bottom-up layout renders non-overlapping connectors and circular icon nodes for each tier. | integration | `tests/unit/meta/test_trait_tree_canvas_layout.gd` | Design-Covered |
 
 ## Determinism Cases (If Applicable)

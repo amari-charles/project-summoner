@@ -34,28 +34,6 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
-## Meta Progression
-
-### 🔴 HIGH PRIORITY
-
-#### Finish Trait Rule Centralization
-**Status:** ✅ Completed
-**Category:** Meta / Trait Tree
-**Effort:** Small
-
-**Description:**
-Current trait tree work moved unlock/state evaluation to a centralized C# service, but a few non-screen surfaces still duplicate spendability checks.
-
-**Tasks:**
-- [x] Replace dev console trait spendability checks with centralized trait-tree service payload/reason output.
-- [x] Audit remaining trait UI surfaces and remove any local eligibility recomputation not backed by the C# service.
-
-**Related Files:**
-- `scripts/debug/dev_console.gd`
-- `scripts/meta/` trait-related screens and modals
-
----
-
 ## Ranked Gameplay
 
 ### 🟡 MEDIUM PRIORITY

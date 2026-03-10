@@ -400,13 +400,6 @@ public partial class CardService : Node
         };
     }
 
-    /// <summary>Back-compat overload: catalogId is ignored because traits are unified by trait id.</summary>
-    public Godot.Collections.Dictionary GetCardTraitDict(string catalogId, string traitId)
-    {
-        _ = catalogId;
-        return GetCardTraitDict(traitId);
-    }
-
     /// <summary>Get stat modifiers from card's traits (for C# callers).</summary>
     public Dictionary<string, float> GetTraitStatModifiersTyped(string cardInstanceId)
     {
@@ -461,7 +454,7 @@ public partial class CardService : Node
         if (string.IsNullOrWhiteSpace(key))
             return "";
 
-        var loc = GetNodeOrNull<Node>("/root/Loc");
+        var loc = GetTree()?.Root?.GetNodeOrNull<Node>("Loc");
         if (loc != null && loc.HasMethod("t"))
             return loc.Call("t", key).AsString();
 

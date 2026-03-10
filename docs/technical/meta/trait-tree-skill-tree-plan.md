@@ -1,6 +1,6 @@
 # Trait Tree Skill Tree Plan
 
-**Status:** PASS 2 COMPLETE (Stubs + Wiring)  
+**Status:** PASS 3 IN PROGRESS (Implementation + Tests)  
 **Initiative:** `trait-tree-skill-tree`  
 **Domain:** `meta`  
 **Last Updated:** `2026-03-10`  
@@ -8,7 +8,7 @@
 
 ## Summary
 
-This initiative defines the approved architecture and validation scope for the new trait-tree-based progression flow. The target UX is: `Level Up` grants trait points only, and all spending happens in a dedicated trait tree surface. Card upgrades are card-instance scoped and must not be treated as collection-global progression. Summoner, card, and spell trees should use one shared tree UI/service pattern with C# progression validation as the authority. This pass locks decisions and validation coverage before additional wiring or behavior work.
+This initiative defines the approved architecture and validation scope for the new trait-tree-based progression flow. The target UX is: `Level Up` grants trait points only, and all spending happens in a dedicated trait tree surface. Card upgrades are card-instance scoped and must not be treated as collection-global progression. Summoner, card, and spell trees should use one shared tree UI/service pattern with C# progression validation as the authority.
 
 ## Goals
 
@@ -89,9 +89,10 @@ This initiative defines the approved architecture and validation scope for the n
 Current state:
 1. `PASS 1: USE CASES + VALIDATION` (complete)
 2. `PASS 2: STUBS + WIRING` (complete)
-3. `PASS 3: IMPLEMENTATION + TESTS` (not started)
-4. `PR REVIEW: READY` (not started)
+3. `PASS 3: IMPLEMENTATION + TESTS` (in progress)
+4. `PR REVIEW: READY` (in progress)
 
 Gate note:
 1. Use explicit approval text to advance to Pass 2.
-2. If waiting, state: `blocked waiting approval`.
+2. Use explicit approval text to advance to Pass 3.
+3. If waiting, state: `blocked waiting approval`.

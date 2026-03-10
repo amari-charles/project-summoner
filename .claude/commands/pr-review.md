@@ -5,7 +5,7 @@ Review the current changes following project guidelines and best practices.
 ## Instructions
 
 1. First, read and internalize the project guidelines:
-   - Read `.claude/CLAUDE.md` for project conventions
+   - Read `.claude/claude.md` for project conventions
    - Read `docs/workflows/pr-review-guidelines.md` for review process
    - Read `docs/workflows/code-structure-checklist.md` for anti-patterns
 

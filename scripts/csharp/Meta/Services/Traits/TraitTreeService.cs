@@ -416,7 +416,7 @@ public partial class TraitTreeService : Node
         if (string.IsNullOrWhiteSpace(key))
             return "";
 
-        var loc = GetNodeOrNull<Node>("/root/Loc");
+        var loc = GetTree()?.Root?.GetNodeOrNull<Node>("Loc");
         if (loc != null && loc.HasMethod("t"))
             return loc.Call("t", key).AsString();
 
