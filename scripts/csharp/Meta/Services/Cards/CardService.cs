@@ -363,10 +363,9 @@ public partial class CardService : Node
         return result;
     }
 
-    /// <summary>Get a card trait as dictionary for GDScript (name, description, stat_mods).</summary>
-    public Godot.Collections.Dictionary GetCardTraitDict(string catalogId, string traitId)
+    /// <summary>Get a trait as dictionary for GDScript (name, description, stat_mods).</summary>
+    public Godot.Collections.Dictionary GetCardTraitDict(string traitId)
     {
-        _ = catalogId;
         if (string.IsNullOrWhiteSpace(traitId))
             return [];
 
@@ -399,6 +398,13 @@ public partial class CardService : Node
             ["summary_short"] = TraitSummaryFormatter.BuildSummaryShort(unifiedTrait),
             ["stat_mods"] = statMods
         };
+    }
+
+    /// <summary>Back-compat overload: catalogId is ignored because traits are unified by trait id.</summary>
+    public Godot.Collections.Dictionary GetCardTraitDict(string catalogId, string traitId)
+    {
+        _ = catalogId;
+        return GetCardTraitDict(traitId);
     }
 
     /// <summary>Get stat modifiers from card's traits (for C# callers).</summary>

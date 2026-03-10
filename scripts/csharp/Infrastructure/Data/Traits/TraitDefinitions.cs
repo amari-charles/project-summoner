@@ -448,6 +448,69 @@ public static class TraitDefinitions
         ]
     };
 
+    public static readonly TraitDefinition FortitudeII = new()
+    {
+        Id = TraitIds.FortitudeII,
+        NameKey = "trait.fortitude_ii.name",
+        DescriptionKey = "trait.fortitude_ii.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Fortitude],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FortitudeII,
+                StatMults = new() { [StatKey.MaxHp] = 1.10f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition FortitudeIII = new()
+    {
+        Id = TraitIds.FortitudeIII,
+        NameKey = "trait.fortitude_iii.name",
+        DescriptionKey = "trait.fortitude_iii.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.FortitudeII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FortitudeIII,
+                StatMults = new() { [StatKey.MaxHp] = 1.12f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition FortitudeIV = new()
+    {
+        Id = TraitIds.FortitudeIV,
+        NameKey = "trait.fortitude_iv.name",
+        DescriptionKey = "trait.fortitude_iv.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.FortitudeIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FortitudeIV,
+                StatMults = new() { [StatKey.MaxHp] = 1.14f }
+            }
+        ]
+    };
+
     public static readonly TraitDefinition Power = new()
     {
         Id = TraitIds.Power,
@@ -468,6 +531,69 @@ public static class TraitDefinitions
         ]
     };
 
+    public static readonly TraitDefinition PowerII = new()
+    {
+        Id = TraitIds.PowerII,
+        NameKey = "trait.power_ii.name",
+        DescriptionKey = "trait.power_ii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Power],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.PowerII,
+                StatMults = new() { [StatKey.AttackDamage] = 1.08f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition PowerIII = new()
+    {
+        Id = TraitIds.PowerIII,
+        NameKey = "trait.power_iii.name",
+        DescriptionKey = "trait.power_iii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.PowerII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.PowerIII,
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition PowerIV = new()
+    {
+        Id = TraitIds.PowerIV,
+        NameKey = "trait.power_iv.name",
+        DescriptionKey = "trait.power_iv.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.PowerIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.PowerIV,
+                StatMults = new() { [StatKey.AttackDamage] = 1.12f }
+            }
+        ]
+    };
+
     public static readonly TraitDefinition Swiftness = new()
     {
         Id = TraitIds.Swiftness,
@@ -484,6 +610,69 @@ public static class TraitDefinitions
                 Target = "unit",
                 Source = TraitIds.Swiftness,
                 StatMults = new() { [StatKey.AttackSpeed] = 1.05f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition SwiftnessII = new()
+    {
+        Id = TraitIds.SwiftnessII,
+        NameKey = "trait.swiftness_ii.name",
+        DescriptionKey = "trait.swiftness_ii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Swiftness],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.SwiftnessII,
+                StatMults = new() { [StatKey.AttackSpeed] = 1.07f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition SwiftnessIII = new()
+    {
+        Id = TraitIds.SwiftnessIII,
+        NameKey = "trait.swiftness_iii.name",
+        DescriptionKey = "trait.swiftness_iii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.SwiftnessII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.SwiftnessIII,
+                StatMults = new() { [StatKey.AttackSpeed] = 1.09f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition SwiftnessIV = new()
+    {
+        Id = TraitIds.SwiftnessIV,
+        NameKey = "trait.swiftness_iv.name",
+        DescriptionKey = "trait.swiftness_iv.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.SwiftnessIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.SwiftnessIV,
+                StatMults = new() { [StatKey.AttackSpeed] = 1.11f }
             }
         ]
     };
@@ -521,9 +710,10 @@ public static class TraitDefinitions
         Id = TraitIds.FortuneFavorsTheBold,
         NameKey = "trait.fortune_favors_the_bold.name",
         DescriptionKey = "trait.fortune_favors_the_bold.description",
-        Category = TraitCategory.Combat,
+        Category = TraitCategory.Special,
         IsInnate = false,
-        Tags = [], // Empty = never offered at level-up
+        AcquisitionMode = TraitAcquisitionMode.GrantedOnly,
+        Tags = [TraitTags.Summoner],
         MinLevel = 1,
         MaxLevel = 99,
         Modifiers =
@@ -585,8 +775,17 @@ public static class TraitDefinitions
 
         // Summon Traits
         [TraitIds.Fortitude] = Fortitude,
+        [TraitIds.FortitudeII] = FortitudeII,
+        [TraitIds.FortitudeIII] = FortitudeIII,
+        [TraitIds.FortitudeIV] = FortitudeIV,
         [TraitIds.Power] = Power,
+        [TraitIds.PowerII] = PowerII,
+        [TraitIds.PowerIII] = PowerIII,
+        [TraitIds.PowerIV] = PowerIV,
         [TraitIds.Swiftness] = Swiftness,
+        [TraitIds.SwiftnessII] = SwiftnessII,
+        [TraitIds.SwiftnessIII] = SwiftnessIII,
+        [TraitIds.SwiftnessIV] = SwiftnessIV,
         [TraitIds.Agility] = Agility,
 
         // Special Traits

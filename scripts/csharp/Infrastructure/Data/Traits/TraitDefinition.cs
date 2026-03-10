@@ -24,6 +24,9 @@ public class TraitDefinition
     /// <summary>True if this is an innate trait (comes with summoner).</summary>
     public bool IsInnate { get; init; }
 
+    /// <summary>How this trait is acquired (level-up pool vs externally granted).</summary>
+    public TraitAcquisitionMode AcquisitionMode { get; init; } = TraitAcquisitionMode.LevelUpOffer;
+
     /// <summary>List of modifiers this trait provides.</summary>
     public List<TraitModifier> Modifiers { get; init; } = [];
 

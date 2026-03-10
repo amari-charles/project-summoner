@@ -63,11 +63,11 @@ static func get_applied_traits(instance_id: String) -> Array:
 		return []
 	return SafeTypeUtils.array(service.call("GetAppliedTraits", instance_id))
 
-static func get_card_trait_dict(catalog_id: String, trait_id: String) -> Dictionary:
+static func get_card_trait_dict(trait_id: String) -> Dictionary:
 	var service: Node = _require_service("get_card_trait_dict")
 	if service == null:
 		return {}
-	return SafeTypeUtils.dict(service.call("GetCardTraitDict", catalog_id, trait_id))
+	return SafeTypeUtils.dict(service.call("GetCardTraitDict", trait_id))
 
 static func level_up_card(instance_id: String) -> bool:
 	var service: Node = _require_service("level_up_card")

@@ -8,6 +8,7 @@ class_name CardDetailModal
 ## Signals
 signal closed()
 signal level_up_requested(instance_id: String)
+signal traits_requested(instance_id: String)
 signal deck_action_requested(instance_id: String, action: String)  ## "add" or "remove"
 
 ## UI Node References
@@ -25,6 +26,7 @@ signal deck_action_requested(instance_id: String, action: String)  ## "add" or "
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
 @onready var level_up_button: Button = %LevelUpButton
+@onready var traits_button: Button = %TraitsButton
 @onready var trait_points_label: Label = %TraitPointsLabel
 @onready var trait_offer_header: Label = %TraitOfferHeader
 @onready var trait_offers_container: VBoxContainer = %TraitOffersContainer
@@ -59,6 +61,7 @@ func _ready() -> void:
 	# Connect buttons
 	close_button.pressed.connect(_close)
 	level_up_button.pressed.connect(_on_level_up_pressed)
+	traits_button.pressed.connect(_on_traits_pressed)
 	deck_action_button.pressed.connect(_on_deck_action_pressed)
 	stats_container.columns = 2
 	stats_section.gui_input.connect(_on_stats_section_input)
@@ -368,6 +371,18 @@ func _update_progression_display() -> void:
 		level_up_button.text = Loc.t("ui.collection.level_up_button_locked")
 		level_up_button.disabled = true
 
+	traits_button.visible = true
+	traits_button.disabled = false
+	if unspent_trait_points <= 0:
+		traits_button.text = "TRAITS"
+		traits_button.tooltip_text = "Open trait tree for this card"
+		traits_button.remove_theme_color_override("font_color")
+	else:
+		var badge_text: String = "!" if unspent_trait_points == 1 else ("9+" if unspent_trait_points > 9 else str(unspent_trait_points))
+		traits_button.text = "TRAITS %s" % badge_text
+		traits_button.tooltip_text = "You have %d unspent trait point(s)" % unspent_trait_points
+		traits_button.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
+
 	trait_points_label.visible = true
 	trait_points_label.text = Loc.t("ui.collection.unspent_trait_points_label", {"count": unspent_trait_points})
 
@@ -378,6 +393,7 @@ func _hide_progression() -> void:
 	xp_label.text = ""
 	xp_progress_bar.value = 0
 	level_up_button.visible = false
+	traits_button.visible = false
 	trait_points_label.visible = false
 	_hide_inline_trait_offer_controls()
 
@@ -397,7 +413,7 @@ func _update_traits_display() -> void:
 	for child: Node in traits_container.get_children():
 		child.queue_free()
 
-	if card_instance_id.is_empty() or card_catalog_id.is_empty():
+	if card_instance_id.is_empty():
 		traits_section.visible = false
 		return
 
@@ -422,7 +438,7 @@ func _update_traits_display() -> void:
 		if trait_id_str.is_empty():
 			continue
 
-		var trait_data: Dictionary = CardServiceApi.get_card_trait_dict(card_catalog_id, trait_id_str)
+		var trait_data: Dictionary = CardServiceApi.get_card_trait_dict(trait_id_str)
 		if trait_data.is_empty():
 			continue
 
@@ -541,6 +557,15 @@ func _open_full_stats_modal() -> void:
 	add_child(modal)
 	if modal.has_method("open_for_card"):
 		modal.call("open_for_card", card_instance_id, card_catalog_id)
+
+
+func _on_traits_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	if card_instance_id.is_empty():
+		return
+
+	traits_requested.emit(card_instance_id)
+	_close()
 
 func _on_background_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:

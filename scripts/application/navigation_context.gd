@@ -21,6 +21,7 @@ extends Node
 
 ## Navigation stack
 var _return_stack: Array[String] = []
+var _context_values: Dictionary = {}
 
 ## =============================================================================
 ## LIFECYCLE
@@ -63,8 +64,43 @@ func has_return() -> bool:
 func clear() -> void:
 	var old_size: int = _return_stack.size()
 	_return_stack.clear()
+	_context_values.clear()
 	print("NavigationContext: Cleared navigation stack (was size %d)" % old_size)
 
 ## Get stack size (for debugging)
 func get_stack_size() -> int:
 	return _return_stack.size()
+
+
+## =============================================================================
+## CONTEXT VALUES
+## =============================================================================
+
+## Store a lightweight context value for the next screen.
+func set_value(key: String, value: Variant) -> void:
+	if key.is_empty():
+		return
+	_context_values[key] = value
+
+
+## Get a context value without removing it.
+func get_value(key: String, default_value: Variant = null) -> Variant:
+	if key.is_empty():
+		return default_value
+	if not _context_values.has(key):
+		return default_value
+	return _context_values[key]
+
+
+## Get a context value and remove it from the store.
+func consume_value(key: String, default_value: Variant = null) -> Variant:
+	var value: Variant = get_value(key, default_value)
+	clear_value(key)
+	return value
+
+
+## Remove a specific context value.
+func clear_value(key: String) -> void:
+	if key.is_empty():
+		return
+	_context_values.erase(key)

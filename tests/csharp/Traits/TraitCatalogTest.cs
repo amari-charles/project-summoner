@@ -22,6 +22,7 @@ public class TraitCatalogTest
         AssertThat((string)trait!.Id).IsEqual((string)TraitIds.FireAffinity);
         AssertThat(trait.Category).IsEqual(TraitCategory.Elemental);
         AssertThat(trait.IsInnate).IsTrue();
+        AssertThat(trait.AcquisitionMode).IsEqual(TraitAcquisitionMode.LevelUpOffer);
     }
 
     [TestCase]
@@ -90,6 +91,18 @@ public class TraitCatalogTest
         foreach (var trait in innateTraits)
         {
             AssertThat(trait.IsInnate).IsTrue();
+        }
+    }
+
+    [TestCase]
+    public void GetTraitsByAcquisitionMode_ReturnsOnlyGrantedOnlyTraits()
+    {
+        var grantedTraits = TraitCatalog.GetTraitsByAcquisitionMode(TraitAcquisitionMode.GrantedOnly);
+
+        AssertThat(grantedTraits.Length).IsGreater(0);
+        foreach (var trait in grantedTraits)
+        {
+            AssertThat(trait.AcquisitionMode).IsEqual(TraitAcquisitionMode.GrantedOnly);
         }
     }
 
@@ -222,5 +235,15 @@ public class TraitCatalogTest
         AssertThat(TraitCatalog.HasTrait(TraitIds.Berserker)).IsTrue();
         AssertThat(TraitCatalog.HasTrait(TraitIds.Vengeful)).IsTrue();
         AssertThat(TraitCatalog.HasTrait(TraitIds.SoulHarvest)).IsTrue();
+    }
+
+    [TestCase]
+    public void FortuneFavorsTheBold_IsGrantedOnlySpecialTrait()
+    {
+        var trait = TraitCatalog.GetTrait(TraitIds.FortuneFavorsTheBold);
+
+        AssertThat(trait).IsNotNull();
+        AssertThat(trait!.AcquisitionMode).IsEqual(TraitAcquisitionMode.GrantedOnly);
+        AssertThat(trait.Category).IsEqual(TraitCategory.Special);
     }
 }

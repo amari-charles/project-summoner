@@ -1,0 +1,125 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/screens/trait_tree_screen.gd" id="1_trait_tree"]
+[ext_resource type="Script" path="res://scripts/meta/components/trait_tree_canvas.gd" id="2_trait_tree_canvas"]
+
+[node name="TraitTreeScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_trait_tree")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.07, 0.06, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/HeaderRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(84, 40)
+layout_mode = 2
+text = "Back"
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 30
+text = "Trait Tree"
+vertical_alignment = 1
+
+[node name="PointsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/HeaderRow"]
+layout_mode = 2
+
+[node name="PointsMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/HeaderRow/PointsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="PointsLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow/PointsPanel/PointsMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Points: 0"
+
+[node name="TraitTabs" type="TabContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ProgressionTreeTab" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TraitTabs"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ProgressionContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TraitTabs/ProgressionTreeTab"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TreeScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TraitTabs/ProgressionTreeTab/ProgressionContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 1
+
+[node name="TreeCanvas" type="Control" parent="MarginContainer/VBoxContainer/TraitTabs/ProgressionTreeTab/ProgressionContent/TreeScroll"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(720, 480)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_trait_tree_canvas")
+
+[node name="OneOffTraitsTab" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TraitTabs"]
+layout_mode = 2
+
+[node name="OneOffScroll" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TraitTabs/OneOffTraitsTab"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="OneOffContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TraitTabs/OneOffTraitsTab/OneOffScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="UnlockConfirmDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Unlock Trait"
+ok_button_text = "Unlock"
+
+[node name="TraitInfoDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = "Trait"
+ok_button_text = "OK"

@@ -180,6 +180,11 @@ public static class CardCatalog
             ["separation_radius"] = def?.Visual.SeparationRadius ?? 0.5f
         };
 
+        var traitEligibilityTags = new Godot.Collections.Array<string>();
+        foreach (var tag in card.TraitEligibilityTags)
+            traitEligibilityTags.Add(tag);
+        dict["trait_eligibility_tags"] = traitEligibilityTags;
+
         // Typed card properties (replaces old Tags system)
         dict["creature_types"] = (int)card.CreatureTypes;
         dict["roles"] = (int)card.Roles;

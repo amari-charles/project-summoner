@@ -716,13 +716,49 @@
       "name": "Fortitude",
       "description": "Enhanced durability through experience. +8% max HP."
     },
+    "fortitude_ii": {
+      "name": "Fortitude II",
+      "description": "Layered endurance training. +10% max HP."
+    },
+    "fortitude_iii": {
+      "name": "Fortitude III",
+      "description": "Heavy fortification drills. +12% max HP."
+    },
+    "fortitude_iv": {
+      "name": "Fortitude IV",
+      "description": "Bulwark mastery. +14% max HP."
+    },
     "power": {
       "name": "Power",
       "description": "Honed combat prowess. +6% attack damage."
     },
+    "power_ii": {
+      "name": "Power II",
+      "description": "Focused striking practice. +8% attack damage."
+    },
+    "power_iii": {
+      "name": "Power III",
+      "description": "Disciplined power projection. +10% attack damage."
+    },
+    "power_iv": {
+      "name": "Power IV",
+      "description": "Overwhelming force mastery. +12% attack damage."
+    },
     "swiftness": {
       "name": "Swiftness",
       "description": "Quickened reflexes. +5% attack speed."
+    },
+    "swiftness_ii": {
+      "name": "Swiftness II",
+      "description": "Tempo training. +7% attack speed."
+    },
+    "swiftness_iii": {
+      "name": "Swiftness III",
+      "description": "Rapid execution discipline. +9% attack speed."
+    },
+    "swiftness_iv": {
+      "name": "Swiftness IV",
+      "description": "Blinding tempo mastery. +11% attack speed."
     },
     "agility": {
       "name": "Agility",

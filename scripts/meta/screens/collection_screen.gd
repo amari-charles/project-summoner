@@ -13,6 +13,8 @@ class_name CollectionScreen
 
 ## Left panel - Header
 @onready var close_button: Button = %CloseButton
+@onready var traits_button: Button = %TraitsButton
+@onready var traits_badge: Label = %TraitsBadge
 @onready var gold_label: Label = %GoldLabel
 
 ## Left panel - Filters
@@ -120,6 +122,8 @@ func _ready() -> void:
 
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
+	traits_button.get_parent().visible = false
+	traits_badge.visible = false
 
 	# Connect deck management
 	new_deck_button.pressed.connect(_on_new_deck_pressed)
@@ -163,6 +167,45 @@ func _ready() -> void:
 	_refresh_deck_panel()
 	_refresh_collection()
 	_refresh_gold_display()
+
+
+func _make_traits_button_style(bg_color: Color, border_color: Color) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = bg_color
+	style.border_color = border_color
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_right = 8
+	style.corner_radius_bottom_left = 8
+	return style
+
+
+func _apply_traits_button_style(has_unspent_points: bool) -> void:
+	var normal_bg: Color = Color(0.14, 0.18, 0.25)
+	var hover_bg: Color = Color(0.20, 0.25, 0.34)
+	var pressed_bg: Color = Color(0.11, 0.14, 0.20)
+	var border: Color = Color(0.42, 0.52, 0.70)
+	var font: Color = Color(0.90, 0.94, 1.0)
+
+	if has_unspent_points:
+		normal_bg = Color(0.30, 0.24, 0.08)
+		hover_bg = Color(0.36, 0.28, 0.10)
+		pressed_bg = Color(0.24, 0.19, 0.07)
+		border = Color(0.95, 0.78, 0.34)
+		font = Color(1.0, 0.90, 0.58)
+
+	traits_button.add_theme_stylebox_override("normal", _make_traits_button_style(normal_bg, border))
+	traits_button.add_theme_stylebox_override("hover", _make_traits_button_style(hover_bg, border.lightened(0.08)))
+	traits_button.add_theme_stylebox_override("pressed", _make_traits_button_style(pressed_bg, border.darkened(0.08)))
+	traits_button.add_theme_stylebox_override("disabled", _make_traits_button_style(Color(0.10, 0.10, 0.12), Color(0.24, 0.24, 0.28)))
+	traits_button.add_theme_color_override("font_color", font)
+	traits_button.add_theme_color_override("font_hover_color", font.lightened(0.08))
+	traits_button.add_theme_color_override("font_pressed_color", font)
+	traits_button.add_theme_color_override("font_disabled_color", Color(0.42, 0.44, 0.50))
 
 
 func _connect_services() -> void:
@@ -529,7 +572,6 @@ func _refresh_collection() -> void:
 
 		# Ensure correct order by moving to end (builds order as we iterate)
 		card_grid.move_child(widget, -1)
-
 
 func _get_selected_deck_card_ids() -> Array[String]:
 	var result: Array[String] = []
@@ -900,6 +942,9 @@ func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
 	if modal.has_signal("level_up_requested"):
 		modal.level_up_requested.connect(_on_level_up_from_modal)
 
+	if modal.has_signal("traits_requested"):
+		modal.traits_requested.connect(_on_traits_from_modal)
+
 	if modal.has_signal("deck_action_requested"):
 		modal.deck_action_requested.connect(_on_deck_action_from_modal)
 
@@ -925,6 +970,12 @@ func _on_level_up_completed(_card_instance_id: String) -> void:
 	_refresh_collection()
 	_refresh_deck_list()
 	_refresh_deck_panel()
+
+
+func _on_traits_from_modal(instance_id: String) -> void:
+	NavigationContext.set_value("trait_tree_card_instance_id", instance_id)
+	NavigationContext.push_return(SceneManager.SCENE_COLLECTION_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_CARD_TRAIT_TREE_SCREEN)
 
 
 func _on_deck_action_from_modal(instance_id: String, action: String) -> void:
@@ -971,6 +1022,12 @@ func _on_close_pressed() -> void:
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
 	SceneManager.transition_to(return_scene)
+
+
+func _on_traits_pressed() -> void:
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	NavigationContext.push_return(SceneManager.SCENE_COLLECTION_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_TRAIT_TREE_SCREEN)
 
 
 ## =============================================================================

@@ -229,6 +229,7 @@ public class TraitSpendValidationTest
             var trait = TraitCatalog.GetTrait(traitId);
             AssertThat(trait).IsNotNull();
             AssertThat(trait!.Tags.Contains(TraitTags.Summoner)).IsTrue();
+            AssertThat(trait.AcquisitionMode).IsEqual(TraitAcquisitionMode.LevelUpOffer);
         }
     }
 

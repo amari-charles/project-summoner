@@ -122,12 +122,21 @@ public static class TraitIds
 
     /// <summary>Fortitude: +8% HP per level.</summary>
     public static readonly TraitId Fortitude = new("trait_fortitude");
+    public static readonly TraitId FortitudeII = new("trait_fortitude_ii");
+    public static readonly TraitId FortitudeIII = new("trait_fortitude_iii");
+    public static readonly TraitId FortitudeIV = new("trait_fortitude_iv");
 
     /// <summary>Power: +6% attack damage per level.</summary>
     public static readonly TraitId Power = new("trait_power");
+    public static readonly TraitId PowerII = new("trait_power_ii");
+    public static readonly TraitId PowerIII = new("trait_power_iii");
+    public static readonly TraitId PowerIV = new("trait_power_iv");
 
     /// <summary>Swiftness: +5% attack speed per level.</summary>
     public static readonly TraitId Swiftness = new("trait_swiftness");
+    public static readonly TraitId SwiftnessII = new("trait_swiftness_ii");
+    public static readonly TraitId SwiftnessIII = new("trait_swiftness_iii");
+    public static readonly TraitId SwiftnessIV = new("trait_swiftness_iv");
 
     /// <summary>Agility: +5% move speed per level.</summary>
     public static readonly TraitId Agility = new("trait_agility");

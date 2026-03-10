@@ -213,11 +213,23 @@ max_value = 100.0
 value = 50.0
 show_percentage = false
 
-[node name="LevelUpButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
+[node name="ActionRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LevelUpButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer/ActionRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
 text = "LEVEL UP"
+
+[node name="TraitsButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer/ActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "TRAITS"
 
 [node name="TraitPointsLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
 unique_name_in_owner = true

@@ -8,6 +8,8 @@
 
 Use this workflow for medium and large initiatives so design intent, scaffolding, implementation, and review are separated into explicit approval gates.
 
+This document is the canonical process contract for both the Codex skill (`$approval-gated-delivery`) and the Claude command (`/approval-gated-delivery`). Keep those entrypoints aligned with this workflow.
+
 ## When To Use
 
 Apply this workflow when a task is any of the following:

@@ -63,6 +63,19 @@ public static class TraitCatalog
         return TraitDefinitions.All.Where(t => t.IsInnate).ToArray();
     }
 
+    /// <summary>Get traits by acquisition mode.</summary>
+    public static TraitDefinition[] GetTraitsByAcquisitionMode(TraitAcquisitionMode mode)
+    {
+        return TraitDefinitions.All.Where(t => t.AcquisitionMode == mode).ToArray();
+    }
+
+    /// <summary>Get traits by acquisition mode (accepts string for GDScript interop).</summary>
+    public static TraitDefinition[] GetTraitsByAcquisitionMode(string mode)
+    {
+        var parsedMode = TraitAcquisitionModeExtensions.Parse(mode);
+        return GetTraitsByAcquisitionMode(parsedMode);
+    }
+
     // =========================================================================
     // TRAIT OFFERING SYSTEM (unified tag-based eligibility)
     // =========================================================================
@@ -91,6 +104,8 @@ public static class TraitCatalog
         {
             // Skip innate traits (they come with entities, not offered)
             if (trait.IsInnate)
+                continue;
+            if (trait.AcquisitionMode != TraitAcquisitionMode.LevelUpOffer)
                 continue;
 
             // Skip already acquired
@@ -165,6 +180,7 @@ public static class TraitCatalog
     {
         return TraitDefinitions.All.Where(t =>
             !t.IsInnate &&
+            t.AcquisitionMode == TraitAcquisitionMode.LevelUpOffer &&
             t.Tags.Contains(TraitTags.Global) &&
             t.Tags.Contains(entityType)
         ).ToArray();
@@ -318,6 +334,7 @@ public static class TraitCatalog
             ["description_key"] = trait.DescriptionKey,
             ["category"] = trait.Category.ToStringValue(),
             ["is_innate"] = trait.IsInnate,
+            ["acquisition_mode"] = trait.AcquisitionMode.ToStringValue(),
             ["tags"] = tagsArray,
             ["required_tags"] = requiredTagsArray,
             ["min_level"] = trait.MinLevel,

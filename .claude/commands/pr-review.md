@@ -5,9 +5,9 @@ Review the current changes following project guidelines and best practices.
 ## Instructions
 
 1. First, read and internalize the project guidelines:
-   - Read `/Users/amaricharles/Code/project-summoner/.claude/CLAUDE.md` for project conventions
-   - Read `/Users/amaricharles/Code/project-summoner/docs/workflows/pr-review-guidelines.md` for review process
-   - Read `/Users/amaricharles/Code/project-summoner/docs/workflows/code-structure-checklist.md` for anti-patterns
+   - Read `.claude/CLAUDE.md` for project conventions
+   - Read `docs/workflows/pr-review-guidelines.md` for review process
+   - Read `docs/workflows/code-structure-checklist.md` for anti-patterns
 
 2. Then perform a comprehensive PR review:
    - **IMPORTANT**: Always diff against main branch, not HEAD:
