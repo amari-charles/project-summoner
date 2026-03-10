@@ -1,5 +1,6 @@
 namespace Fateforged.Tests.Simulation;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
@@ -20,7 +21,6 @@ public class BlockedUnitReproTest
     private const float Delta = 1f / 60f;
     private const int FiveSeconds = 300; // 5s at 60fps
     private const int TenSeconds = 600;
-    private const int TwelveSeconds = 720;
     private const int TwentySeconds = 1200;
 
     private MatchState _state = null!;
@@ -241,7 +241,8 @@ public class BlockedUnitReproTest
     public void SummonerFocus_DenseSwarm_HasBroadAttackerContribution()
     {
         const int unitsPerTeam = 30;
-        const int minDistinctAttackersPerTeam = 12;
+        const float minAttackerContributionRatioPerTeam = 0.40f;
+        int minDistinctAttackersPerTeam = (int)MathF.Ceiling(unitsPerTeam * minAttackerContributionRatioPerTeam);
 
         _state.Summoners[0].CurrentHp = 20000f;
         _state.Summoners[0].MaxHp = 20000f;
