@@ -2,6 +2,7 @@ using System;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -99,6 +100,11 @@ public struct ContextMap
 /// </summary>
 public static class ContextSteering
 {
+    private const float LaneEpsilon = 0.15f;
+    private const float FrontlinerLaneBiasWeight = 0.18f;
+    private const float FlankerLaneBiasWeight = 0.42f;
+    private const float BacklinerLaneBiasWeight = 0.30f;
+
     [ThreadStatic] private static float[]? _interestBuffer;
     [ThreadStatic] private static float[]? _dangerBuffer;
 
@@ -152,6 +158,7 @@ public static class ContextSteering
                 return SimVector3.Zero;
         }
 
+        ApplyVirtualLaneBias(unit, behavior.Movement, ref map);
         return map.ResolveDirection();
     }
 
@@ -257,5 +264,39 @@ public static class ContextSteering
     private static SimVector3? ResolveTargetPosition(int? targetId, MatchState state)
     {
         return SimUtils.ResolveTargetPosition(targetId, state);
+    }
+
+    private static void ApplyVirtualLaneBias(UnitData unit, MovementResult movement, ref ContextMap map)
+    {
+        if (movement == MovementResult.Strafe)
+            return;
+
+        // Anti-stuck recovery takes priority over lane shaping.
+        // When blocked navigation is active, lane bias can fight escape vectors
+        // and prolong yield/escape cycles in congested melee stacks.
+        if (unit.NavigationBlockedTime > 0f || unit.NavigationYieldTimer > 0f || unit.NavigationEscapeTimer > 0f)
+            return;
+
+        int lane = unit.AssignedLane >= 0 ? unit.AssignedLane : VirtualLanes.GetLaneIndex(unit.Position.Z);
+        float laneCenterZ = VirtualLanes.GetLaneCenterZ(lane);
+        float dz = laneCenterZ - unit.Position.Z;
+        if (MathF.Abs(dz) < LaneEpsilon)
+            return;
+
+        float roleWeight = unit.TacticalRole switch
+        {
+            TacticalRole.Flanker => FlankerLaneBiasWeight,
+            TacticalRole.Backliner => BacklinerLaneBiasWeight,
+            _ => FrontlinerLaneBiasWeight
+        };
+
+        var laneDir = new SimVector3(0f, 0f, MathF.Sign(dz));
+        for (int i = 0; i < ContextMap.NumSlots; i++)
+        {
+            var slotDir = ContextMap.SlotDirection(i);
+            float dot = laneDir.Dot(slotDir);
+            if (dot <= 0f) continue;
+            map.Interest[i] += dot * roleWeight;
+        }
     }
 }

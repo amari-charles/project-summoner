@@ -32,6 +32,12 @@ public record UnitDefinition
     /// <summary>Whether this unit is Melee or Ranged.</summary>
     public required UnitType UnitType { get; init; }
 
+    /// <summary>
+    /// Tactical role used by virtual-lane behavior shaping.
+    /// Auto uses simulation heuristics.
+    /// </summary>
+    public TacticalRole TacticalRole { get; init; } = TacticalRole.Auto;
+
     /// <summary>Whether this unit is Ground or Air.</summary>
     public MovementLayer MovementLayer { get; init; } = MovementLayer.Ground;
 

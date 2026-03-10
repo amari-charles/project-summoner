@@ -213,6 +213,45 @@ public class SimTargetingTest
     }
 
     // =========================================================================
+    // Virtual Lanes + Roles
+    // =========================================================================
+
+    [TestCase]
+    public void AcquireTarget_FlankerInSideLane_IgnoresFarCenterTarget()
+    {
+        var flanker = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f, z: -18f, aggroRadius: 30f);
+        flanker.TacticalRole = TacticalRole.Flanker;
+        flanker.AssignedLane = 0; // bottom side lane
+
+        var sideEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3f, z: -18f);
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f); // center lane enemy
+
+        var targetId = SimTargeting.AcquireTarget(flanker, _state);
+
+        AssertThat(targetId.HasValue).IsTrue();
+        AssertThat(targetId!.Value == sideEnemy.UnitId).IsTrue();
+    }
+
+    [TestCase]
+    public void AcquireTarget_Backliner_PrefersSameLaneTarget()
+    {
+        var backliner = SimTestHelper.CreateRangedUnit(_state, 0, x: -8f, z: 0f, aggroRadius: 30f);
+        backliner.TacticalRole = TacticalRole.Backliner;
+        backliner.AssignedLane = 1; // center lane
+        backliner.DistanceScorerWeight = 1f;
+        backliner.HealthScorerWeight = 0f;
+
+        var crossLaneCloser = SimTestHelper.CreateMeleeUnit(_state, 1, x: -6f, z: 9f);
+        var sameLaneSlightlyFarther = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, z: 0f);
+
+        var targetId = SimTargeting.AcquireTarget(backliner, _state);
+
+        AssertThat(targetId.HasValue).IsTrue();
+        AssertThat(targetId!.Value == sameLaneSlightlyFarther.UnitId).IsTrue();
+        AssertThat(targetId!.Value == crossLaneCloser.UnitId).IsFalse();
+    }
+
+    // =========================================================================
     // Group Targeting
     // =========================================================================
 

@@ -587,6 +587,7 @@ public static class UnitDefinitions
         template.CritChance = stats.CritChance;
         template.CritDamage = stats.CritDamage;
         template.UnitType = def.UnitType;
+        template.TacticalRole = ResolveTacticalRole(def, stats);
         template.MovementLayer = def.MovementLayer;
         template.ElementId = (int)(def.DamageProfile.Element ?? Fateforged.Cards.Element.Neutral);
         template.PhysicalDamageRatio = def.DamageProfile.PhysicalRatio;
@@ -665,5 +666,19 @@ public static class UnitDefinitions
                 throw new ArgumentOutOfRangeException(
                     nameof(def.TargetingProfile), def.TargetingProfile, "Unknown UnitTargetingProfile");
         }
+    }
+
+    private static TacticalRole ResolveTacticalRole(UnitDefinition def, UnitStats stats)
+    {
+        if (def.TacticalRole != TacticalRole.Auto)
+            return def.TacticalRole;
+
+        if (def.UnitType == UnitType.Ranged)
+            return TacticalRole.Backliner;
+
+        if (stats.MoveSpeed >= 3.8f)
+            return TacticalRole.Flanker;
+
+        return TacticalRole.Frontliner;
     }
 }

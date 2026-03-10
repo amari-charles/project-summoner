@@ -146,6 +146,41 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 
 ---
 
+#### Evaluate Non-Hard-Lane Phase 2 Experiments (Post Virtual-Lanes/Roles)
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Spatial Design
+**Effort:** Medium
+
+**Description:**
+Now that virtual lanes + tactical roles are in, run a structured evaluation of the remaining non-hard-lane options from the research doc before committing to another implementation track.
+
+**Candidates To Evaluate:**
+- Command cohesion layer (formation/order memory after first contact)
+- Engagement cells (soft locality partition for targeting/aggro)
+- Frontline tension bands (readability + light behavior weighting)
+- Reinforcement routing rules (spawn pressure-sector assignment)
+- Objective anchors / side-value injection (off-center tactical value without hard rails)
+- Role-specific pursuit budgets (deeper role discipline beyond current prototype)
+
+**Evaluation Method:**
+- Define one simulation-first prototype slice per candidate
+- Run 40/80/100-unit scenarios with identical seed setups
+- Compare against current prototype baseline (virtual lanes + tactical roles)
+- Keep changes behavior-only first; defer UI unless candidate passes baseline gates
+
+**Pass Criteria (must beat baseline):**
+- Flanks remain viable without collapsing into center aggro
+- Midline vortex reduced (more meaningful use of side space)
+- Frontline location/readability improves in large fights
+- Spawn decisions remain meaningful without hard rails
+- CPU/tick cost remains bounded and measurable
+
+**Primary References:**
+- `docs/design/lane-system-research-no-lane-identity.md` (Section 5-7 option inventory)
+- `scripts/csharp/Battle/Simulation/` (targeting/behavior/movement hot paths)
+
+---
+
 
 #### Implement Directional/Cone Attack System
 **Status:** 🟡 Partial (Cone Targeting Shipped)
@@ -853,6 +888,30 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 - [ ] Any signal handlers that modify entities they don't own
 - [ ] Any activation/deactivation logic driven by external events rather than self-contained state
 - [ ] Phase transitions that sweep-modify entities vs entities reacting to phase themselves
+
+---
+
+#### Create Simulation Spatial Domain (Folder + Namespace Alignment)
+**Status:** ⬜ Not Started
+**Category:** Architecture / Layering
+**Effort:** Small
+
+**Description:**
+Formalize simulation world-rule ownership by introducing a dedicated `Simulation/Spatial` slice for geometry/partition/zone logic. This prevents cross-cutting world logic from being dropped into arbitrary folders and keeps deterministic runtime ownership clear.
+
+**Initial Scope:**
+- Move `VirtualLanes` from simulation root into `scripts/csharp/Battle/Simulation/Spatial/VirtualLanes.cs`
+- Use `namespace Fateforged.Simulation.Spatial`
+- Update simulation consumers (`Simulation`, `Movement`, `Combat`) to depend on `Spatial` types
+- Keep this refactor behavior-preserving (placement + namespace only)
+
+**Placement Rule (for future files):**
+- `Simulation/Spatial` = world geometry, partitions, lane/zone math, ownership maps
+- `Simulation/Movement` = unit locomotion and steering decisions
+- `Simulation/Combat` = targeting, damage, attack execution
+
+**Likely Follow-up:**
+- Evaluate moving `BattlefieldBounds` to simulation-owned spatial namespace once safe migration plan is defined
 
 ---
 
