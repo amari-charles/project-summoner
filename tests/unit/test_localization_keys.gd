@@ -17,7 +17,24 @@ const DYNAMIC_ELEMENTS: Array[String] = [
 	"neutral", "fire", "water", "wind", "earth", "lightning", "shadow",
 	"poison", "life", "death", "occultist", "holy", "ice", "metal", "spirit"
 ]
-const DYNAMIC_STAT_KEYS: Array[String] = ["stat_hp", "stat_damage", "stat_attack_speed", "stat_move_speed", "stat_spell_damage", "stat_spell_radius"]
+const DYNAMIC_STAT_KEYS: Array[String] = [
+	"stat_hp",
+	"stat_damage",
+	"stat_attack_speed",
+	"stat_attack_range",
+	"stat_move_speed",
+	"stat_armor",
+	"stat_magic_resist",
+	"stat_spell_damage",
+	"stat_spell_radius",
+	"stat_spell_duration"
+]
+const DYNAMIC_SUMMONER_STAT_TOOLTIP_KEYS: Array[String] = [
+	"stats_tooltip_hp",
+	"stats_tooltip_mana",
+	"stats_tooltip_cast_speed",
+	"stats_tooltip_soul_guard"
+]
 const DYNAMIC_EQUIPMENT_SLOTS: Array[String] = ["wand", "ring1", "ring2", "robes"]
 
 var _localization_keys: Dictionary = {}
@@ -108,6 +125,21 @@ func test_all_equipment_slot_keys_exist() -> void:
 		fail_test("Missing equipment slot keys:\n  - " + "\n  - ".join(missing))
 
 	assert_true(missing.is_empty(), "All equipment slot localization keys should exist")
+
+
+func test_all_summoner_stat_tooltip_keys_exist() -> void:
+	# Pattern: Loc.t(tooltip_key) where keys are selected from SUMMONER_STAT_TOOLTIP_KEYS in summoner_screen.gd
+	var missing: Array[String] = []
+
+	for tooltip_key: String in DYNAMIC_SUMMONER_STAT_TOOLTIP_KEYS:
+		var key: String = "ui.summoner_screen." + tooltip_key
+		if not _localization_keys.has(key):
+			missing.append(key)
+
+	if not missing.is_empty():
+		fail_test("Missing summoner stat tooltip keys:\n  - " + "\n  - ".join(missing))
+
+	assert_true(missing.is_empty(), "All summoner stat tooltip localization keys should exist")
 
 
 ## =============================================================================

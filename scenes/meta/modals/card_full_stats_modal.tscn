@@ -1,0 +1,145 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/modals/card_full_stats_modal.gd" id="1_full_stats_modal"]
+
+[node name="CardFullStatsModal" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_full_stats_modal")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(700, 540)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 22
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CardNameLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 28
+text = "Card Name"
+
+[node name="CloseButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(38, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "X"
+
+[node name="MetaRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TypeBadge" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MetaRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(28, 28)
+
+[node name="TypeIcon" type="TextureRect" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MetaRow/TypeBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RarityBadge" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MetaRow"]
+layout_mode = 2
+
+[node name="RarityBadgeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MetaRow/RarityBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "COMMON"
+vertical_alignment = 1
+
+[node name="MetaDetailsLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MetaRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Summon • 3 Mana"
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatsSection" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StatsHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/StatsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Advanced Stats"
+
+[node name="StatsContainer" type="GridContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/StatsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Card description."
+autowrap_mode = 3
+
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="TraitsSection" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TraitsHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TraitsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Traits"
+
+[node name="TraitsContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TraitsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
