@@ -206,6 +206,27 @@ const PANEL_BORDER_BASE: Color = Color(0.25, 0.20, 0.15, 1.0)  # Warm brown bord
 const HEADER_COLOR_WARM: Color = Color(0.95, 0.90, 0.80, 1.0)  # Cream/parchment
 const TEXT_COLOR_WARM: Color = Color(0.85, 0.80, 0.70, 1.0)  # Warm off-white
 
+const SUMMONER_STAT_PLACEHOLDER_ICONS: Dictionary = {
+	"health": "HP",
+	"max_mana": "MN",
+	"cast_speed": "CS",
+	"soul_guard": "SG"
+}
+
+const SUMMONER_STAT_ICON_COLORS: Dictionary = {
+	"health": Color(0.90, 0.30, 0.30),
+	"max_mana": Color(0.30, 0.55, 0.90),
+	"cast_speed": Color(0.85, 0.70, 0.35),
+	"soul_guard": Color(0.35, 0.85, 0.90)
+}
+
+const SUMMONER_STAT_TOOLTIPS: Dictionary = {
+	"health": "Total health before defeat.",
+	"max_mana": "Maximum mana available for casting cards.",
+	"cast_speed": "Multiplier for how quickly cards resolve.",
+	"soul_guard": "Reduces incoming soul-targeted damage."
+}
+
 
 func _style_panels(element_color: Color) -> void:
 	# Style each panel with warm colors and element accent
@@ -342,31 +363,80 @@ func _refresh_stats(config: SummonerConfig) -> void:
 	var hp: float = computed_stats.get("health", config.base_health)
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
 	var cast_speed: float = computed_stats.get("cast_speed", config.base_cast_speed)
+	var soul_guard: float = computed_stats.get("soul_guard", 0.0)
 
-	# Core stats only - secondary stats (damage_bonus, damage_reduction) are internal modifiers
-	_add_stat_row(Loc.t("ui.summoner_screen.stats_hp"), str(int(hp)), Color(0.9, 0.3, 0.3))
-	_add_stat_row(Loc.t("ui.summoner_screen.stats_mana"), str(int(mana)), Color(0.3, 0.5, 0.9))
-	_add_stat_row(Loc.t("ui.summoner_screen.stats_cast_speed"), "%.2fx" % cast_speed, Color(0.7, 0.5, 0.9))
+	var stats_grid: GridContainer = GridContainer.new()
+	stats_grid.columns = 2
+	stats_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stats_grid.add_theme_constant_override("h_separation", 10)
+	stats_grid.add_theme_constant_override("v_separation", 8)
+	stats_container.add_child(stats_grid)
+
+	# Main-tab stat set with placeholder icons.
+	stats_grid.add_child(_create_stat_cell("health", Loc.t("ui.summoner_screen.stats_hp"), str(int(hp)), Color(0.9, 0.3, 0.3)))
+	stats_grid.add_child(_create_stat_cell("max_mana", Loc.t("ui.summoner_screen.stats_mana"), str(int(mana)), Color(0.3, 0.5, 0.9)))
+	stats_grid.add_child(_create_stat_cell("cast_speed", Loc.t("ui.summoner_screen.stats_cast_speed"), "%.2fx" % cast_speed, Color(0.7, 0.5, 0.9)))
+	stats_grid.add_child(_create_stat_cell("soul_guard", Loc.t("ui.summoner_screen.stats_soul_guard"), _format_stat_number(soul_guard), Color(0.35, 0.85, 0.90)))
 
 
-func _add_stat_row(label_text: String, value_text: String, value_color: Color) -> void:
+func _create_stat_cell(stat_id: String, label_text: String, value_text: String, value_color: Color) -> PanelContainer:
+	var cell: PanelContainer = PanelContainer.new()
+	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cell_style: StyleBoxFlat = StyleBoxFlat.new()
+	cell_style.bg_color = Color(0.08, 0.06, 0.05, 0.85)
+	cell_style.border_color = SUMMONER_STAT_ICON_COLORS.get(stat_id, Color(0.4, 0.4, 0.4))
+	cell_style.set_border_width_all(1)
+	cell_style.set_corner_radius_all(6)
+	cell.add_theme_stylebox_override("panel", cell_style)
+
 	var hbox: HBoxContainer = HBoxContainer.new()
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_theme_constant_override("separation", 10)
+	cell.add_child(hbox)
 
-	var label: Label = Label.new()
-	label.text = label_text + ":"
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.15))
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(label)
+	var icon_panel: PanelContainer = PanelContainer.new()
+	icon_panel.custom_minimum_size = Vector2(22, 22)
+	var icon_style: StyleBoxFlat = StyleBoxFlat.new()
+	var icon_color: Color = SUMMONER_STAT_ICON_COLORS.get(stat_id, Color(0.6, 0.6, 0.6))
+	icon_style.bg_color = icon_color.darkened(0.45)
+	icon_style.border_color = icon_color
+	icon_style.set_border_width_all(1)
+	icon_style.set_corner_radius_all(4)
+	icon_panel.add_theme_stylebox_override("panel", icon_style)
+
+	var icon_label: Label = Label.new()
+	icon_label.text = SUMMONER_STAT_PLACEHOLDER_ICONS.get(stat_id, "??")
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_label.add_theme_font_size_override("font_size", 10)
+	icon_label.add_theme_color_override("font_color", icon_color.lightened(0.4))
+	icon_panel.add_child(icon_label)
 
 	var value: Label = Label.new()
 	value.text = value_text
+	value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value.add_theme_font_size_override("font_size", 17)
 	value.add_theme_color_override("font_color", value_color)
-	hbox.add_child(value)
 
-	stats_container.add_child(hbox)
+	hbox.add_child(icon_panel)
+	hbox.add_child(value)
+	cell.tooltip_text = _build_stat_tooltip(label_text, value_text, SUMMONER_STAT_TOOLTIPS.get(stat_id, ""))
+
+	return cell
+
+
+func _build_stat_tooltip(label_text: String, value_text: String, description: String) -> String:
+	var tooltip: String = "%s: %s" % [label_text, value_text]
+	if not description.is_empty():
+		tooltip += "\n" + description
+	return tooltip
+
+
+func _format_stat_number(value: float) -> String:
+	if abs(value - round(value)) < 0.01:
+		return str(int(round(value)))
+	return "%.1f" % value
 
 
 func _get_computed_stats(summoner_id: String) -> Dictionary:
@@ -394,12 +464,18 @@ func _refresh_traits(config: SummonerConfig) -> void:
 		for trait_id: String in config.innate_trait_ids:
 			all_trait_ids.append(trait_id)
 
+	var flow: HFlowContainer = HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", 8)
+	flow.add_theme_constant_override("v_separation", 8)
+	traits_container.add_child(flow)
+
 	# Show all traits
 	for trait_id: String in all_trait_ids:
 		var is_innate: bool = trait_id in config.innate_trait_ids
-		var trait_card: PanelContainer = _create_trait_card(trait_id, is_innate)
-		if trait_card:
-			traits_container.add_child(trait_card)
+		var trait_icon: PanelContainer = _create_trait_icon(trait_id, is_innate)
+		if trait_icon:
+			flow.add_child(trait_icon)
 
 	# Show message if no traits
 	if all_trait_ids.is_empty():
@@ -518,65 +594,56 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 	return panel
 
 
-func _create_trait_card(trait_id: String, is_innate: bool) -> PanelContainer:
+func _create_trait_icon(trait_id: String, is_innate: bool) -> PanelContainer:
 	var trait_name: String = TraitCatalogApi.get_trait_name(trait_id)
 	var trait_desc: String = TraitCatalogApi.get_trait_description(trait_id)
 
 	if trait_name.is_empty():
 		trait_name = trait_id
 
-	# Create panel
+	# Create icon chip
 	var panel: PanelContainer = PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.custom_minimum_size = Vector2(42, 42)
 
 	# Style with warm colors
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.10, 0.08, 0.06, 0.9)  # Warmer, darker bg
+	style.bg_color = Color(0.10, 0.08, 0.06, 0.9)
 	var accent_color: Color = Color(0.85, 0.75, 0.4) if is_innate else Color(0.4, 0.6, 0.9)
-	style.border_color = accent_color.darkened(0.2)
-	style.border_width_left = 4
-	style.border_width_right = 1
-	style.border_width_top = 1
-	style.border_width_bottom = 1
-	style.set_corner_radius_all(6)
-	# Add subtle shadow
+	style.border_color = accent_color
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(5)
 	style.shadow_color = Color(0.0, 0.0, 0.0, 0.3)
-	style.shadow_size = 3
+	style.shadow_size = 2
 	style.shadow_offset = Vector2(1, 1)
 	panel.add_theme_stylebox_override("panel", style)
 
-	# Margin
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	panel.add_child(margin)
+	var abbr: Label = Label.new()
+	abbr.text = _abbreviate_trait_name(trait_name)
+	abbr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	abbr.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	abbr.add_theme_font_size_override("font_size", 12)
+	abbr.add_theme_color_override("font_color", accent_color.lightened(0.2))
+	panel.add_child(abbr)
 
-	# VBox
-	var vbox: VBoxContainer = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
-	margin.add_child(vbox)
-
-	# Name with accent color
-	var name_label: Label = Label.new()
-	name_label.text = trait_name
-	name_label.add_theme_font_size_override("font_size", 15)
-	name_label.add_theme_color_override("font_color", accent_color.lightened(0.1))
-	vbox.add_child(name_label)
-
-	# Description with warm muted color
-	var desc_label: Label = Label.new()
-	desc_label.text = trait_desc
-	desc_label.add_theme_font_size_override("font_size", 13)
-	desc_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.2))
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox.add_child(desc_label)
-
-	# Tooltip for full description
-	panel.tooltip_text = trait_desc
+	var type_label: String = Loc.t("ui.summoner_screen.trait_innate") if is_innate else Loc.t("ui.summoner_screen.trait_acquired")
+	panel.tooltip_text = "%s (%s)\n%s" % [trait_name, type_label, trait_desc]
 
 	return panel
+
+
+func _abbreviate_trait_name(name: String) -> String:
+	var normalized: String = name.strip_edges()
+	if normalized.is_empty():
+		return "??"
+
+	var words: PackedStringArray = normalized.split(" ", false)
+	if words.size() >= 2:
+		var first: String = words[0]
+		var second: String = words[1]
+		if not first.is_empty() and not second.is_empty():
+			return (first.left(1) + second.left(1)).to_upper()
+
+	return normalized.left(2).to_upper()
 
 
 ## =============================================================================

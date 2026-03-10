@@ -94,20 +94,52 @@ text = "Card Name"
 [node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 layout_mode = 2
 
+[node name="MetaBanner" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TypeBadge" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
+layout_mode = 2
+custom_minimum_size = Vector2(28, 28)
+
+[node name="TypeIcon" type="TextureRect" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner/TypeBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RarityBadge" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
+layout_mode = 2
+
+[node name="RarityBadgeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner/RarityBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "COMMON"
+vertical_alignment = 1
+
+[node name="MetaSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="RarityLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Rarity: Common"
 
 [node name="TypeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Type: Summon"
 
 [node name="CostLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Cost: 3 Mana"
@@ -124,7 +156,7 @@ theme_override_constants/separation = 6
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Stats"
+text = "Core Stats"
 
 [node name="StatsContainer" type="GridContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/StatsSection"]
 unique_name_in_owner = true
@@ -133,17 +165,28 @@ theme_override_constants/h_separation = 20
 theme_override_constants/v_separation = 4
 columns = 2
 
+[node name="StatsHintLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/StatsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Click stats to view full details"
+horizontal_alignment = 2
+
 [node name="HSeparator2" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
+visible = false
 layout_mode = 2
 
 [node name="DescriptionLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Card description goes here."
 autowrap_mode = 3
 
 [node name="HSeparator3" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
+visible = false
 layout_mode = 2
 
 [node name="ProgressionContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
@@ -208,10 +251,12 @@ theme_override_font_sizes/font_size = 15
 autowrap_mode = 3
 
 [node name="HSeparator4" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
+visible = false
 layout_mode = 2
 
 [node name="UpgradesSection" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
 
