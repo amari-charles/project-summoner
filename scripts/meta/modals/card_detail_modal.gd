@@ -41,57 +41,7 @@ signal deck_action_requested(instance_id: String, action: String)  ## "add" or "
 @onready var deck_action_button: Button = %DeckActionButton
 
 const CardFullStatsModalScene: PackedScene = preload("res://scenes/meta/modals/card_full_stats_modal.tscn")
-
-const STAT_PLACEHOLDER_ICONS: Dictionary = {
-	"mana_cost": "MC",
-	"cast_time": "CT",
-	"stat_hp": "HP",
-	"physical_damage": "PD",
-	"magic_damage": "MD",
-	"stat_attack_speed": "AS",
-	"stat_attack_range": "RG",
-	"stat_move_speed": "MS",
-	"stat_armor": "AR",
-	"stat_magic_resist": "MR",
-	"soul_strength": "SS",
-	"stat_spell_damage": "SD",
-	"stat_spell_radius": "AO",
-	"stat_spell_duration": "DU"
-}
-
-const STAT_ICON_COLORS: Dictionary = {
-	"mana_cost": Color(0.30, 0.55, 0.90),
-	"cast_time": Color(0.90, 0.75, 0.30),
-	"stat_hp": Color(0.90, 0.30, 0.30),
-	"physical_damage": Color(0.92, 0.55, 0.26),
-	"magic_damage": Color(0.60, 0.45, 0.92),
-	"stat_attack_speed": Color(0.95, 0.85, 0.50),
-	"stat_attack_range": Color(0.35, 0.90, 0.90),
-	"stat_move_speed": Color(0.45, 0.95, 0.55),
-	"stat_armor": Color(0.70, 0.70, 0.80),
-	"stat_magic_resist": Color(0.50, 0.75, 0.95),
-	"soul_strength": Color(0.40, 0.90, 0.95),
-	"stat_spell_damage": Color(0.70, 0.45, 0.95),
-	"stat_spell_radius": Color(0.40, 0.85, 0.80),
-	"stat_spell_duration": Color(0.85, 0.70, 0.35)
-}
-
-const STAT_TOOLTIP_KEYS: Dictionary = {
-	"mana_cost": "ui.collection.stat_tooltip_mana_cost",
-	"cast_time": "ui.collection.stat_tooltip_cast_time",
-	"stat_hp": "ui.collection.stat_tooltip_hp",
-	"physical_damage": "ui.collection.stat_tooltip_physical_damage",
-	"magic_damage": "ui.collection.stat_tooltip_magic_damage",
-	"stat_attack_speed": "ui.collection.stat_tooltip_attack_speed",
-	"stat_attack_range": "ui.collection.stat_tooltip_attack_range",
-	"stat_move_speed": "ui.collection.stat_tooltip_move_speed",
-	"stat_armor": "ui.collection.stat_tooltip_armor",
-	"stat_magic_resist": "ui.collection.stat_tooltip_magic_resist",
-	"soul_strength": "ui.collection.stat_tooltip_soul_strength",
-	"stat_spell_damage": "ui.collection.stat_tooltip_spell_damage",
-	"stat_spell_radius": "ui.collection.stat_tooltip_spell_radius",
-	"stat_spell_duration": "ui.collection.stat_tooltip_spell_duration"
-}
+const CardStatsUiHelperScript: Script = preload("res://scripts/meta/modals/card_stats_ui_helper.gd")
 
 ## State
 var card_instance_id: String = ""
@@ -213,17 +163,17 @@ func _update_stats_display() -> void:
 
 	if card_type == UnitConstants.CardType.SUMMON:
 		_add_custom_stat_localized("mana_cost", str(mana_cost))
-		_add_custom_stat_localized("cast_time", _format_seconds(cast_time))
+		_add_custom_stat_localized("cast_time", CardStatsUiHelperScript.format_seconds(cast_time))
 		_add_stat_label("stat_hp", effective_stats.get("max_hp", 0))
 
-		var damage_split: Dictionary = _get_split_damage(effective_stats)
-		_add_custom_stat_localized("physical_damage", _format_number(damage_split.get("physical", 0.0)))
-		_add_custom_stat_localized("magic_damage", _format_number(damage_split.get("magic", 0.0)))
+		var damage_split: Dictionary = CardStatsUiHelperScript.get_split_damage(effective_stats)
+		_add_custom_stat_localized("physical_damage", CardStatsUiHelperScript.format_number(damage_split.get("physical", 0.0)))
+		_add_custom_stat_localized("magic_damage", CardStatsUiHelperScript.format_number(damage_split.get("magic", 0.0)))
 
 		_add_stat_label("stat_attack_speed", effective_stats.get("attack_speed", 0))
 	else:
 		_add_custom_stat_localized("mana_cost", str(mana_cost))
-		_add_custom_stat_localized("cast_time", _format_seconds(cast_time))
+		_add_custom_stat_localized("cast_time", CardStatsUiHelperScript.format_seconds(cast_time))
 
 		# Show spell stats: Spell Damage, Spell Radius, Spell Duration (if applicable)
 		var spell_damage: Variant = effective_stats.get("spell_damage", null)
@@ -267,13 +217,14 @@ func _create_stat_row(stat_id: String, stat_name: String, value_str: String) -> 
 	var row: HBoxContainer = HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 10)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Allow stat-row tooltips while still bubbling clicks to the section handler.
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
 
 	var icon_panel: PanelContainer = PanelContainer.new()
 	icon_panel.custom_minimum_size = Vector2(22, 22)
 	icon_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var icon_style: StyleBoxFlat = StyleBoxFlat.new()
-	var icon_color: Color = STAT_ICON_COLORS.get(stat_id, Color(0.6, 0.6, 0.6))
+	var icon_color: Color = CardStatsUiHelperScript.get_icon_color(stat_id)
 	icon_style.bg_color = icon_color.darkened(0.45)
 	icon_style.border_color = icon_color
 	icon_style.set_border_width_all(1)
@@ -281,7 +232,7 @@ func _create_stat_row(stat_id: String, stat_name: String, value_str: String) -> 
 	icon_panel.add_theme_stylebox_override("panel", icon_style)
 
 	var icon_label: Label = Label.new()
-	icon_label.text = STAT_PLACEHOLDER_ICONS.get(stat_id, "??")
+	icon_label.text = CardStatsUiHelperScript.get_placeholder_text(stat_id)
 	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -299,7 +250,7 @@ func _create_stat_row(stat_id: String, stat_name: String, value_str: String) -> 
 
 	row.add_child(icon_panel)
 	row.add_child(value_label)
-	var tooltip_desc: String = _get_localized_tooltip_desc(stat_id)
+	var tooltip_desc: String = CardStatsUiHelperScript.get_tooltip_description(stat_id)
 	row.tooltip_text = _build_stat_tooltip(stat_name, value_str, tooltip_desc)
 	stats_container.add_child(row)
 
@@ -308,27 +259,10 @@ func _add_stat_label(loc_key: String, value: Variant) -> void:
 	var stat_name: String = Loc.t("ui.collection." + loc_key)
 	var value_str: String
 	if value is float:
-		value_str = _format_number(value)
+		value_str = CardStatsUiHelperScript.format_number(value)
 	else:
 		value_str = str(value)
 	_create_stat_row(loc_key, stat_name, value_str)
-
-
-func _add_stat_label_percent(loc_key: String, value: float) -> void:
-	var stat_name: String = Loc.t("ui.collection." + loc_key)
-	var value_str: String = "%d%%" % int(value * 100)
-	_create_stat_row(loc_key, stat_name, value_str)
-
-
-func _add_stat_label_multiplier(loc_key: String, value: float) -> void:
-	var stat_name: String = Loc.t("ui.collection." + loc_key)
-	var value_str: String = "%.1fx" % value
-	_create_stat_row(loc_key, stat_name, value_str)
-
-
-func _add_stat_label_text(loc_key: String, value_text: String) -> void:
-	var stat_name: String = Loc.t("ui.collection." + loc_key)
-	_create_stat_row(loc_key, stat_name, value_text)
 
 
 func _add_custom_stat(stat_id: String, label: String, value_text: String) -> void:
@@ -336,30 +270,7 @@ func _add_custom_stat(stat_id: String, label: String, value_text: String) -> voi
 
 
 func _add_custom_stat_localized(stat_id: String, value_text: String) -> void:
-	_add_custom_stat(stat_id, _get_custom_stat_label(stat_id), value_text)
-
-
-func _get_custom_stat_label(stat_id: String) -> String:
-	match stat_id:
-		"mana_cost":
-			return Loc.t("ui.collection.stat_mana_cost")
-		"cast_time":
-			return Loc.t("ui.collection.stat_cast_time")
-		"physical_damage":
-			return Loc.t("ui.collection.stat_physical_damage")
-		"magic_damage":
-			return Loc.t("ui.collection.stat_magic_damage")
-		"soul_strength":
-			return Loc.t("ui.collection.stat_soul_strength")
-		_:
-			return stat_id
-
-
-func _get_localized_tooltip_desc(stat_id: String) -> String:
-	var key: String = SafeTypeUtils.string(STAT_TOOLTIP_KEYS.get(stat_id, ""), "")
-	if key.is_empty():
-		return ""
-	return Loc.t(key)
+	_add_custom_stat(stat_id, CardStatsUiHelperScript.get_custom_stat_label(stat_id), value_text)
 
 
 func _build_stat_tooltip(stat_name: String, value_text: String, description: String) -> String:
@@ -367,16 +278,6 @@ func _build_stat_tooltip(stat_name: String, value_text: String, description: Str
 	if not description.is_empty():
 		tooltip += "\n" + description
 	return tooltip
-
-
-func _format_number(value: float) -> String:
-	if abs(value - round(value)) < 0.01:
-		return str(int(round(value)))
-	return "%.1f" % value
-
-
-func _format_seconds(seconds: float) -> String:
-	return "%ss" % _format_number(seconds)
 
 
 func _normalize_stats_grid_columns() -> void:
@@ -420,45 +321,6 @@ func _update_rarity_badge(rarity: String) -> void:
 	rarity_badge.add_theme_constant_override("outline_size", 1)
 	rarity_badge.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
 
-
-func _get_elemental_affinity(effective_stats: Dictionary) -> String:
-	var direct_affinity: String = SafeTypeUtils.string(effective_stats.get("elemental_affinity", ""), "")
-	if not direct_affinity.is_empty():
-		return direct_affinity
-
-	var categories_var: Variant = effective_stats.get("categories", {})
-	if categories_var is Dictionary:
-		var categories: Dictionary = categories_var
-		return SafeTypeUtils.string(categories.get("elemental_affinity", "neutral"), "neutral")
-
-	return "neutral"
-
-
-func _get_split_damage(effective_stats: Dictionary) -> Dictionary:
-	var physical_damage: float = float(effective_stats.get("physical_damage", 0.0))
-	var magic_damage: float = float(effective_stats.get("magic_damage", 0.0))
-
-	# Backward-compatible fallback while explicit split damage fields are not yet authored.
-	if abs(physical_damage) < 0.001 and abs(magic_damage) < 0.001:
-		var base_damage: float = float(effective_stats.get("attack_damage", 0.0))
-		var elemental_affinity: String = _get_elemental_affinity(effective_stats)
-		if elemental_affinity == "neutral":
-			physical_damage = base_damage
-		else:
-			magic_damage = base_damage
-
-	return {
-		"physical": physical_damage,
-		"magic": magic_damage
-	}
-
-
-func _get_damage_type_display(element_str: String) -> String:
-	# Neutral element means physical damage
-	if element_str.is_empty() or element_str == "neutral":
-		return Loc.t("ui.collection.damage_type_physical")
-	# Use localized element name
-	return Loc.t("elements." + element_str)
 
 ## =============================================================================
 ## PROGRESSION DISPLAY

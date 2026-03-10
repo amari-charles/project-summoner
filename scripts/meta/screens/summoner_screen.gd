@@ -220,11 +220,11 @@ const SUMMONER_STAT_ICON_COLORS: Dictionary = {
 	"soul_guard": Color(0.35, 0.85, 0.90)
 }
 
-const SUMMONER_STAT_TOOLTIPS: Dictionary = {
-	"health": "Total health before defeat.",
-	"max_mana": "Maximum mana available for casting cards.",
-	"cast_speed": "Multiplier for how quickly cards resolve.",
-	"soul_guard": "Reduces incoming soul-targeted damage."
+const SUMMONER_STAT_TOOLTIP_KEYS: Dictionary = {
+	"health": "ui.summoner_screen.stats_tooltip_hp",
+	"max_mana": "ui.summoner_screen.stats_tooltip_mana",
+	"cast_speed": "ui.summoner_screen.stats_tooltip_cast_speed",
+	"soul_guard": "ui.summoner_screen.stats_tooltip_soul_guard"
 }
 
 
@@ -421,7 +421,9 @@ func _create_stat_cell(stat_id: String, label_text: String, value_text: String, 
 
 	hbox.add_child(icon_panel)
 	hbox.add_child(value)
-	cell.tooltip_text = _build_stat_tooltip(label_text, value_text, SUMMONER_STAT_TOOLTIPS.get(stat_id, ""))
+	var tooltip_key: String = str(SUMMONER_STAT_TOOLTIP_KEYS.get(stat_id, ""))
+	var tooltip_description: String = Loc.t(tooltip_key) if not tooltip_key.is_empty() else ""
+	cell.tooltip_text = _build_stat_tooltip(label_text, value_text, tooltip_description)
 
 	return cell
 
