@@ -586,6 +586,7 @@ public static class UnitDefinitions
         template.AggroRadius = stats.AggroRadius;
         template.CritChance = stats.CritChance;
         template.CritDamage = stats.CritDamage;
+        template.SoulStrength = stats.SoulStrength;
         template.UnitType = def.UnitType;
         template.TacticalRole = ResolveTacticalRole(def, stats);
         template.MovementLayer = def.MovementLayer;

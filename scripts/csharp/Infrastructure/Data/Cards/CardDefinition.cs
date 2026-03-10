@@ -110,6 +110,9 @@ public class CardDefinition
     /// <summary>Range at which unit detects and acquires targets.</summary>
     public float AggroRadius { get; init; } = 20.0f;
 
+    /// <summary>Bonus damage dealt by this unit specifically to summoners.</summary>
+    public float SoulStrength { get; init; }
+
     /// <summary>Whether this unit attacks from range.</summary>
     public bool IsRanged { get; init; } = false;
 

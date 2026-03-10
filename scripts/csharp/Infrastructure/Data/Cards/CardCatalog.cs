@@ -180,6 +180,9 @@ public static class CardCatalog
             ["separation_radius"] = def?.Visual.SeparationRadius ?? 0.5f
         };
 
+        if (Math.Abs(stats.SoulStrength) > 0.0001f)
+            dict["soul_strength"] = stats.SoulStrength;
+
         // Typed card properties (replaces old Tags system)
         dict["creature_types"] = (int)card.CreatureTypes;
         dict["roles"] = (int)card.Roles;

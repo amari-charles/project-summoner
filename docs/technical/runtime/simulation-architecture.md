@@ -55,7 +55,11 @@ Each step produces events appended to that tick's event list. Order matters — 
 
 ### Summoner Damage Bypasses SimDamage.Calculate()
 
-Summoner damage intentionally does **not** go through `SimDamage.Calculate()`. Summoners are not units — they don't have evasion, crit interaction, elemental matchups, defense, or shields. Only summoner-level modifiers (`DamageBonus`, `DamageReduction`) apply. See `SimBehavior.ApplyDamageToSummoner()`.
+Summoner damage intentionally does **not** go through `SimDamage.Calculate()`. Summoners are not units — they don't have evasion, crit interaction, elemental matchups, defense, or shields. Summoner-target damage uses summoner/soul-lane modifiers in `SimBehavior`:
+- Attacker summoner `% DamageBonus`
+- Attacker unit flat `SoulStrength`
+- Defender summoner flat `DamageReduction`
+- Defender summoner flat `SoulGuard`
 
 ### Instance-Scoped IDs
 

@@ -26,6 +26,7 @@ public class UnitStatsTest
         AssertThat(stats.CritDamage).IsEqual(1.5f);
         AssertThat(stats.Armor).IsEqual(0f);
         AssertThat(stats.MagicResist).IsEqual(0f);
+        AssertThat(stats.SoulStrength).IsEqual(0f);
     }
 
     [TestCase]
@@ -87,7 +88,8 @@ public class UnitStatsTest
             ["crit_chance"] = 0.25f,
             ["crit_damage"] = 2.0f,
             ["armor"] = 10f,
-            ["magic_resist"] = 5f
+            ["magic_resist"] = 5f,
+            ["soul_strength"] = 12f
         };
 
         var stats = UnitStats.FromDictionary(dict);
@@ -102,6 +104,7 @@ public class UnitStatsTest
         AssertThat(stats.CritDamage).IsEqual(2.0f);
         AssertThat(stats.Armor).IsEqual(10f);
         AssertThat(stats.MagicResist).IsEqual(5f);
+        AssertThat(stats.SoulStrength).IsEqual(12f);
     }
 
     [TestCase]

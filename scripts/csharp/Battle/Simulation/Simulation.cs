@@ -646,6 +646,7 @@ public class Simulation
                     MoveSpeed = template.MoveSpeed,
                     AttackRange = template.AttackRange,
                     AggroRadius = template.AggroRadius,
+                    SoulStrength = template.SoulStrength,
                     SeparationRadius = template.SeparationRadius,
                     CritChance = template.CritChance,
                     CritDamage = template.CritDamage,
@@ -748,6 +749,9 @@ public class Simulation
                     break;
                 case StatKey.AttackRange:
                     unit.AttackRange = value;
+                    break;
+                case StatKey.SoulStrength:
+                    unit.SoulStrength = value;
                     break;
             }
         }

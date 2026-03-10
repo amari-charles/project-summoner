@@ -34,6 +34,7 @@ public class SummonerData
     // Damage bonuses (from summoner traits)
     public float DamageBonus { get; set; } // General % damage bonus
     public float DamageReduction { get; set; } // Flat damage reduction
+    public float SoulGuard { get; set; } // Flat reduction for soul-targeted damage
     private readonly Dictionary<Element, float> _elementalDamageBonuses = new();
 
     /// <summary>

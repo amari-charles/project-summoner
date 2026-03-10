@@ -149,6 +149,9 @@ public sealed class MatchTraitRuntimeState
                 case StatKey.CritDamage:
                     unit.CritDamage *= multiplier;
                     break;
+                case StatKey.SoulStrength:
+                    unit.SoulStrength *= multiplier;
+                    break;
                 case StatKey.Armor:
                     unit.PhysicalDefense *= multiplier;
                     break;

@@ -133,6 +133,7 @@ public class SimUnitTemplate
     public float SeparationRadius { get; set; } = 0.5f;
     public float CritChance { get; set; }
     public float CritDamage { get; set; } = 1.5f;
+    public float SoulStrength { get; set; }
 
     // Classification
     public UnitType UnitType { get; set; }

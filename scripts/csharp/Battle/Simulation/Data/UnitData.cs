@@ -30,6 +30,7 @@ public class UnitData
     public float MoveSpeed { get; set; }
     public float AttackRange { get; set; }
     public float AggroRadius { get; set; } = 20f;
+    public float SoulStrength { get; set; }
     public float SeparationRadius { get; set; } = 0.5f;
     public float CritChance { get; set; }
     public float CritDamage { get; set; } = 1.5f;

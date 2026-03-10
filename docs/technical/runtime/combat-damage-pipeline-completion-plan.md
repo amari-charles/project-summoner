@@ -3,7 +3,7 @@
 ## Initiative
 Complete simulation combat correctness for two open items:
 1. Integrate `DamageProfile` split damage (physical + elemental) into runtime damage resolution.
-2. Ensure summoner secondary stats (`damage_bonus`, `damage_reduction`, elemental bonuses) are wired from profile-computed stats into simulation combat.
+2. Ensure summoner secondary stats (`damage_bonus`, `damage_reduction`, `soul_guard`, elemental bonuses) are wired from profile-computed stats into simulation combat.
 
 ## Scope
 In scope:
@@ -20,7 +20,7 @@ Out of scope:
 ## Current Gaps
 - `DamageProfile` exists as a data model but is marked as not integrated.
 - `BuildSimTemplate` maps element and defenses, but mixed-ratio damage lanes are not represented in runtime unit data.
-- `SummonerData` supports `DamageBonus`, `DamageReduction`, and per-element bonuses, but battle initialization does not currently wire computed stats into those fields.
+- `SummonerData` supports `DamageBonus`, `DamageReduction`, `SoulGuard`, and per-element bonuses, but battle initialization does not currently wire computed stats into those fields.
 
 ## Target Behavior
 1. Unit damage resolution supports mixed attacks:
@@ -86,5 +86,5 @@ Status: `Complete`
 ## Acceptance Criteria
 - Mixed `DamageProfile` values affect output damage as designed and are covered by deterministic tests.
 - Existing pure damage tests continue to pass without behavior regression.
-- Summoner `damage_bonus` / `damage_reduction` / elemental bonuses demonstrably affect simulation damage outcomes.
+- Summoner `damage_bonus` / `damage_reduction` / `soul_guard` / elemental bonuses demonstrably affect simulation damage outcomes.
 - Validation matrix scenarios are all marked `Implemented` by end of PASS 3.

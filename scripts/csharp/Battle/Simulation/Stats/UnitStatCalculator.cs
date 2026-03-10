@@ -162,7 +162,8 @@ public static class UnitStatCalculator
             AttackSpeed = card.AttackSpeed > 0 ? card.AttackSpeed : StatKey.AttackSpeed.GetDefault(),
             MoveSpeed = card.MoveSpeed > 0 ? card.MoveSpeed : StatKey.MoveSpeed.GetDefault(),
             AttackRange = card.AttackRange > 0 ? card.AttackRange : StatKey.AttackRange.GetDefault(),
-            AggroRadius = card.AggroRadius > 0 ? card.AggroRadius : StatKey.AggroRadius.GetDefault()
+            AggroRadius = card.AggroRadius > 0 ? card.AggroRadius : StatKey.AggroRadius.GetDefault(),
+            SoulStrength = card.SoulStrength
         };
     }
 

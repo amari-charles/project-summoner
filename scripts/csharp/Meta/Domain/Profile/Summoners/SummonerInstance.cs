@@ -105,7 +105,8 @@ public class SummonerInstance
             ["shadow_damage_bonus"] = 0f,
             // General combat modifiers
             ["damage_bonus"] = 0f,
-            ["damage_reduction"] = 0f
+            ["damage_reduction"] = 0f,
+            ["soul_guard"] = 0f
         };
 
         // Apply level bonuses (health and mana only)

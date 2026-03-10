@@ -373,6 +373,50 @@ public class SimBehaviorTest
     }
 
     [TestCase]
+    public void TickBehavior_AttacksSummoner_AppliesSoulStrengthBonus()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, attackRange: 5f, damage: 10f);
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        unit.SoulStrength = 7f;
+        int summonerTargetId = MatchState.GetSummonerTargetId(1);
+        unit.TargetUnitId = summonerTargetId;
+        unit.AttackCooldown = 0f;
+        _state.Summoners[0].DamageBonus = 0f;
+        _state.Summoners[1].DamageReduction = 0f;
+        _state.Summoners[1].SoulGuard = 0f;
+
+        float hpBefore = _state.Summoners[1].CurrentHp;
+        var events = new List<SimEvent>();
+
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(hpBefore - _state.Summoners[1].CurrentHp).IsEqual(17f);
+    }
+
+    [TestCase]
+    public void TickBehavior_AttacksSummoner_AppliesSoulGuardReduction()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, attackRange: 5f, damage: 10f);
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        unit.SoulStrength = 8f;
+        int summonerTargetId = MatchState.GetSummonerTargetId(1);
+        unit.TargetUnitId = summonerTargetId;
+        unit.AttackCooldown = 0f;
+        _state.Summoners[0].DamageBonus = 0f;
+        _state.Summoners[1].DamageReduction = 0f;
+        _state.Summoners[1].SoulGuard = 5f;
+
+        float hpBefore = _state.Summoners[1].CurrentHp;
+        var events = new List<SimEvent>();
+
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(hpBefore - _state.Summoners[1].CurrentHp).IsEqual(13f);
+    }
+
+    [TestCase]
     public void TickBehavior_KillsSummoner_SetsNotAlive()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, attackRange: 5f, damage: 500f);
