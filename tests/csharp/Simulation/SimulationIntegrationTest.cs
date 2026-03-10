@@ -940,6 +940,58 @@ public class SimulationIntegrationTest
         AssertThat(spawned.AttackType).IsEqual(DamageType.Physical);
     }
 
+    [TestCase]
+    public void SpawnedUnit_RetainsAttackVectorFields()
+    {
+        var card = SimTestHelper.CreateSummonCard("vector_spawn_card", manaCost: 2, unitCount: 1);
+        var template = card.UnitTemplates[0];
+        template.Attack.Preset = AttackPreset.Custom;
+        template.Attack.Selection.Mode = AttackSelectionMode.LineCollect;
+        template.Attack.Area.Shape = AttackAreaShape.Line;
+        template.Attack.Area.Size = new SimVector3(2f, 1f, 6f);
+        template.Attack.Selection.TargetLimit = 3;
+        template.Attack.Propagation.Mode = AttackPropagationMode.Pierce;
+        template.Attack.Area.LineLength = 6f;
+        template.Attack.Area.LineHalfWidth = 1.25f;
+        template.Attack.Propagation.ChainMaxJumps = 2;
+        template.Attack.Propagation.ChainJumpRadius = 4.5f;
+        template.Attack.Timing.WindupSeconds = 0.1f;
+        template.Attack.Timing.ActiveSeconds = 0.05f;
+        template.Attack.Timing.RecoverySeconds = 0.2f;
+        template.Attack.Timing.TickIntervalSeconds = 0.05f;
+        template.Attack.Rules.IncludeSummonerTargets = false;
+        template.Attack.Rules.AllowRepeatHits = false;
+        template.Attack.Rules.TriggerMode = AttackTriggerMode.PrimaryOnly;
+
+        _state.CardDataMap["vector_spawn_card"] = card;
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "vector_spawn_card" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "vector_spawn_card" };
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+
+        AssertThat(_state.Units.Count).IsEqual(1);
+        var spawned = _state.Units.Values.First();
+        AssertThat(spawned.Attack.Preset).IsEqual(AttackPreset.Custom);
+        AssertThat(spawned.Attack.Selection.Mode).IsEqual(AttackSelectionMode.LineCollect);
+        AssertThat(spawned.Attack.Area.Shape).IsEqual(AttackAreaShape.Line);
+        AssertThat(spawned.Attack.Area.Size.X).IsEqual(2f);
+        AssertThat(spawned.Attack.Selection.TargetLimit).IsEqual(3);
+        AssertThat(spawned.Attack.Propagation.Mode).IsEqual(AttackPropagationMode.Pierce);
+        AssertThat(spawned.Attack.Area.LineLength).IsEqual(6f);
+        AssertThat(spawned.Attack.Area.LineHalfWidth).IsEqual(1.25f);
+        AssertThat(spawned.Attack.Propagation.ChainMaxJumps).IsEqual(2);
+        AssertThat(spawned.Attack.Propagation.ChainJumpRadius).IsEqual(4.5f);
+        AssertThat(spawned.Attack.Timing.WindupSeconds).IsEqual(0.1f);
+        AssertThat(spawned.Attack.Timing.TickIntervalSeconds).IsEqual(0.05f);
+        AssertThat(spawned.Attack.Rules.TriggerMode).IsEqual(AttackTriggerMode.PrimaryOnly);
+    }
+
     // =========================================================================
     // Helper
     // =========================================================================

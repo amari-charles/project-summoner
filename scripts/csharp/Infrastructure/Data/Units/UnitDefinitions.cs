@@ -600,6 +600,7 @@ public static class UnitDefinitions
         template.SeparationRadius = def.Visual.SeparationRadius;
         template.PhysicalDefense = stats.Armor;
         template.MagicDefense = stats.MagicResist;
+        template.Attack = AttackVectorStateBuilder.Build(def.Attack);
 
         // Ranged config
         if (def.Ranged != null)

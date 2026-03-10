@@ -43,6 +43,9 @@ public class UnitData
     public float MagicDefense { get; set; }
     public float Evasion { get; set; }
 
+    // Attack vector fields (PASS 2 grouped state)
+    public AttackVectorState Attack { get; set; } = AttackVectorState.Default();
+
     // Classification
     public UnitType UnitType { get; set; }
     public TacticalRole TacticalRole { get; set; } = TacticalRole.Auto;
