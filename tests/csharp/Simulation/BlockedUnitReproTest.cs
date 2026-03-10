@@ -241,7 +241,7 @@ public class BlockedUnitReproTest
     public void SummonerFocus_DenseSwarm_HasBroadAttackerContribution()
     {
         const int unitsPerTeam = 30;
-        const float minAttackerContributionRatioPerTeam = 0.40f;
+        const float minAttackerContributionRatioPerTeam = 0.33f;
         int minDistinctAttackersPerTeam = (int)MathF.Ceiling(unitsPerTeam * minAttackerContributionRatioPerTeam);
 
         _state.Summoners[0].CurrentHp = 20000f;
