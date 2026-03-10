@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -13,6 +14,8 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class BlockedNavigationController
 {
+    [ThreadStatic] private static List<UnitData>? _escapeNeighbors;
+    [ThreadStatic] private static List<float>? _escapeNeighborDistancesSq;
     private const float BlockedThresholdSeconds = 0.22f;
     private const float YieldDurationSeconds = 0.22f;
     private const float EscapeDurationSeconds = 0.55f;
@@ -23,6 +26,7 @@ public static class BlockedNavigationController
     private const float EscapeLateralWeight = 0.90f;
     private const float EscapeForwardWeight = 0.35f;
     private const float EscapeSpeedScale = 1.00f;
+    private const int EscapeNeighborCap = 20;
     private const float DirectionThreshold = 0.0001f;
 
     public static MovementIntent Apply(
@@ -177,22 +181,25 @@ public static class BlockedNavigationController
         if (targetDirection.LengthSquared() < DirectionThreshold)
             return (unit.UnitId % 2 == 0) ? 1 : -1;
 
+        _escapeNeighbors ??= new List<UnitData>(EscapeNeighborCap);
+        _escapeNeighborDistancesSq ??= new List<float>(EscapeNeighborCap);
+        MovementNeighborQuery.FillNearestNeighbors(
+            unit,
+            state,
+            EscapeNeighborRadius,
+            EscapeNeighborCap,
+            _escapeNeighbors,
+            _escapeNeighborDistancesSq
+        );
+
         var left = new SimVector3(-targetDirection.Z, 0f, targetDirection.X);
-        float radiusSq = EscapeNeighborRadius * EscapeNeighborRadius;
         int leftCount = 0;
         int rightCount = 0;
 
-        foreach (var other in state.Units.Values)
+        foreach (var other in _escapeNeighbors)
         {
-            if (other.UnitId == unit.UnitId) continue;
-            if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationState.Active) continue;
-            if (other.MovementLayer != unit.MovementLayer) continue;
-
             var diff = other.Position - unit.Position;
             diff.Y = 0f;
-            if (diff.LengthSquared() > radiusSq) continue;
-
             float side = diff.Dot(left);
             if (side > 0f) leftCount++;
             else if (side < 0f) rightCount++;

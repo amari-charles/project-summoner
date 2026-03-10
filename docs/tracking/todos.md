@@ -143,7 +143,8 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 **Progress Update (2026-03-09):**
 - ✅ Added summoner-wrap movement targeting (`MovementTargetResolver`) so blocked units can route around occupied fronts.
 - ✅ Added local crowd danger masking in context steering + tuned blocked-nav and ORCA neighbor search for dense clumps.
-- 🔄 Remaining: large-battle scaling profiling (50+ units), target switching race-case audit, and forced-target/redirect robustness validation.
+- ✅ Added 60-unit summoner-focus regression coverage to verify broad attacker contribution in dense swarms.
+- 🔄 Remaining: runtime large-battle profiling (frame-time/perf budget), target switching race-case audit, and forced-target/redirect robustness validation.
 
 **Notes:**
 - Related to lane-based movement todo (may affect targeting behavior)

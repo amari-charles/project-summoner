@@ -49,45 +49,17 @@ public static class OrcaAvoidance
         _neighbors.Clear();
         _neighborDistancesSq.Clear();
 
-        // Gather neighbors
         float searchRadius = unit.SeparationRadius * NeighborSearchRadiusMultiplier;
-        float searchRadiusSq = searchRadius * searchRadius;
-
-        foreach (var kvp in state.Units)
-        {
-            var other = kvp.Value;
-            if (other.UnitId == unit.UnitId) continue;
-            if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationState.Active) continue;
-            if (other.MovementLayer != unit.MovementLayer) continue;
-
-            float dx = unit.Position.X - other.Position.X;
-            float dz = unit.Position.Z - other.Position.Z;
-            float distSq = dx * dx + dz * dz;
-
-            if (distSq >= searchRadiusSq) continue;
-
-            if (_neighbors.Count < MaxNeighbors)
-            {
-                _neighbors.Add(other);
-                _neighborDistancesSq.Add(distSq);
-                continue;
-            }
-
-            int farthestIndex = 0;
-            float farthestDistSq = _neighborDistancesSq[0];
-            for (int i = 1; i < _neighborDistancesSq.Count; i++)
-            {
-                if (_neighborDistancesSq[i] <= farthestDistSq) continue;
-                farthestDistSq = _neighborDistancesSq[i];
-                farthestIndex = i;
-            }
-
-            if (distSq >= farthestDistSq) continue;
-
-            _neighbors[farthestIndex] = other;
-            _neighborDistancesSq[farthestIndex] = distSq;
-        }
+        MovementNeighborQuery.FillNearestNeighbors(
+            unit,
+            state,
+            searchRadius,
+            MaxNeighbors,
+            _neighbors,
+            _neighborDistancesSq,
+            sortByDistance: false,
+            includeBoundary: false
+        );
 
         float invTimeHorizon = 1.0f / TimeHorizon;
 

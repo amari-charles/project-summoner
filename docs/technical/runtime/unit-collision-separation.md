@@ -1,7 +1,7 @@
 # Unit Movement, Collision, and Facing
 
 **Status:** Implemented (Simulation layer)  
-**Last Updated:** 2026-03-08
+**Last Updated:** 2026-03-09
 
 ## Overview
 
@@ -27,6 +27,8 @@ This keeps responsibilities separated:
 - `scripts/csharp/Battle/Simulation/Movement/MovementIntentResolver.cs`
 - `scripts/csharp/Battle/Simulation/Movement/DirectIntentGenerator.cs`
 - `scripts/csharp/Battle/Simulation/Movement/ContextIntentGenerator.cs` (optional strategy)
+- `scripts/csharp/Battle/Simulation/Movement/MovementTargetResolver.cs`
+- `scripts/csharp/Battle/Simulation/Movement/MovementNeighborQuery.cs`
 - `scripts/csharp/Battle/Simulation/Movement/OrcaAvoidance.cs`
 - `scripts/csharp/Battle/Simulation/Movement/OverlapCorrection.cs`
 - `scripts/csharp/Battle/Simulation/Movement/FacingController.cs`
@@ -54,6 +56,27 @@ receive safe velocities that stall progress. `BlockedNavigationController` addre
 - clearing transient blocked state when behavior is `MovementResult.None` (attack/idle/stun)
 
 This avoids indefinite pushback ping-pong while keeping ORCA as the single collision-safety layer.
+
+## Summoner Wrap Routing
+
+Summoner targets are resolved through `MovementTargetResolver` instead of raw summoner position:
+
+- normal chase keeps a stable orbit slot from current position
+- blocked/yield/escape states enable wrap behavior around the summoner
+- wrap slot selection is occupancy-aware (scores nearby crowd pressure + directional escape preference)
+- orbit radius is clamped inside attack range so wrapped units remain attack-capable
+
+This prevents dense swarms from repeatedly contesting a single front slot.
+
+## Shared Neighbor Query
+
+Movement hot paths now use `MovementNeighborQuery` as a shared nearest-neighbor collector:
+
+- `ContextSteering` crowd danger uses nearest capped neighbors (20)
+- `BlockedNavigationController` side selection uses nearest capped neighbors (20)
+- `OrcaAvoidance` uses nearest capped neighbors (`MaxNeighbors`, currently 16)
+
+The helper supports deterministic distance/unit-id ordering for steering/blocked logic, while ORCA preserves previous solver ordering semantics for compatibility.
 
 ## Notes
 

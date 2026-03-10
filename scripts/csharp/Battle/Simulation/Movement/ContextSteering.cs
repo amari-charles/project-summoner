@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -101,11 +102,14 @@ public static class ContextSteering
 {
     [ThreadStatic] private static float[]? _interestBuffer;
     [ThreadStatic] private static float[]? _dangerBuffer;
+    [ThreadStatic] private static List<UnitData>? _crowdNeighbors;
+    [ThreadStatic] private static List<float>? _crowdNeighborDistancesSq;
     private const float CrowdDangerRadiusMultiplier = 3.25f;
     private const float CrowdDangerMinRadius = 1.2f;
     private const float CrowdDangerFrontFloor = 0.35f;
     private const float CrowdDangerFrontWeight = 0.65f;
     private const float CrowdDangerSideBleed = 0.55f;
+    private const int MaxCrowdNeighbors = 20;
 
     /// <summary>
     /// Main entry: compute preferred direction for a unit based on its behavior result.
@@ -277,22 +281,26 @@ public static class ContextSteering
         UnitData unit, MatchState state, ref ContextMap map, SimVector3 preferredDirection)
     {
         float dangerRadius = MathF.Max(CrowdDangerMinRadius, unit.SeparationRadius * CrowdDangerRadiusMultiplier);
-        float dangerRadiusSq = dangerRadius * dangerRadius;
+        _crowdNeighbors ??= new List<UnitData>(MaxCrowdNeighbors);
+        _crowdNeighborDistancesSq ??= new List<float>(MaxCrowdNeighbors);
+        MovementNeighborQuery.FillNearestNeighbors(
+            unit,
+            state,
+            dangerRadius,
+            MaxCrowdNeighbors,
+            _crowdNeighbors,
+            _crowdNeighborDistancesSq
+        );
+
         bool hasPreferredDirection = preferredDirection.LengthSquared() >= 0.0001f;
         var preferredDir = hasPreferredDirection ? preferredDirection.Normalized() : SimVector3.Zero;
 
-        foreach (var kvp in state.Units)
+        foreach (var other in _crowdNeighbors)
         {
-            var other = kvp.Value;
-            if (other.UnitId == unit.UnitId) continue;
-            if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationState.Active) continue;
-            if (other.MovementLayer != unit.MovementLayer) continue;
-
             var toNeighbor = other.Position - unit.Position;
             toNeighbor.Y = 0f;
             float distSq = toNeighbor.LengthSquared();
-            if (distSq <= 0.000001f || distSq > dangerRadiusSq) continue;
+            if (distSq <= 0.000001f) continue;
 
             float distance = MathF.Sqrt(distSq);
             var neighborDir = toNeighbor / distance;
