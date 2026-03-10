@@ -8,6 +8,7 @@ using GdUnit4;
 using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 [TestSuite]
 public class SimBehaviorTest
@@ -50,6 +51,40 @@ public class SimBehaviorTest
 
         AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Chasing);
+    }
+
+    [TestCase]
+    public void TickBehavior_BacklinerCrossLaneFar_HoldsLaneAndMovesForward()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: -10f, z: 0f, attackRange: 6f);
+        unit.TacticalRole = TacticalRole.Backliner;
+        unit.AssignedLane = 1;
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 8f, z: 16f);
+
+        unit.TargetUnitId = enemy.UnitId;
+        var events = new List<SimEvent>();
+
+        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(result.Movement).IsEqual(MovementResult.Forward);
+        AssertThat(unit.BehaviorState).IsEqual(BehaviorState.NoTarget);
+    }
+
+    [TestCase]
+    public void TickBehavior_FlankerSideLaneVersusCenter_HoldsFlankRoute()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: -10f, z: -18f, attackRange: 3f);
+        unit.TacticalRole = TacticalRole.Flanker;
+        unit.AssignedLane = 0;
+        var centerEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
+
+        unit.TargetUnitId = centerEnemy.UnitId;
+        var events = new List<SimEvent>();
+
+        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(result.Movement).IsEqual(MovementResult.Forward);
+        AssertThat(unit.BehaviorState).IsEqual(BehaviorState.NoTarget);
     }
 
     [TestCase]

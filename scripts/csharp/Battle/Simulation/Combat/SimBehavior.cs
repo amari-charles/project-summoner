@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Data.Projectiles;
 using Fateforged.Projectiles;
+using Fateforged.Simulation;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -25,6 +26,7 @@ public static class SimBehavior
 {
     private const float AttackAnimationDuration = 0.5f;
     private const float TargetLockDuration = 0.5f;
+    private const float BacklinerMaxCrossLaneChaseDistanceMultiplier = 1.35f;
 
     /// <summary>
     /// Result of a behavior tick. Tells the caller what movement to perform
@@ -207,6 +209,13 @@ public static class SimBehavior
             return new BehaviorResult { Movement = MovementResult.None };
         }
 
+        // Out of range — role/lane guards may keep unit on lane objective instead of hard-chasing.
+        if (ShouldHoldLaneInsteadOfChasing(unit, tPos, dist))
+        {
+            unit.BehaviorState = BehaviorState.NoTarget;
+            return new BehaviorResult { Movement = MovementResult.Forward };
+        }
+
         // Out of range — chase
         unit.BehaviorState = BehaviorState.Chasing;
         return new BehaviorResult
@@ -214,6 +223,29 @@ public static class SimBehavior
             Movement = MovementResult.TowardTarget,
             MoveTargetId = targetId
         };
+    }
+
+    private static bool ShouldHoldLaneInsteadOfChasing(UnitData unit, SimVector3 targetPos, float distance)
+    {
+        int unitLane = unit.AssignedLane >= 0 ? unit.AssignedLane : VirtualLanes.GetLaneIndex(unit.Position.Z);
+        int targetLane = VirtualLanes.GetLaneIndex(targetPos.Z);
+        int laneDistance = VirtualLanes.LaneDistance(unitLane, targetLane);
+
+        if (unit.TacticalRole == TacticalRole.Flanker &&
+            VirtualLanes.IsSideLane(unitLane) &&
+            targetLane == VirtualLanes.CenterLane)
+        {
+            return true;
+        }
+
+        if (unit.TacticalRole == TacticalRole.Backliner &&
+            laneDistance > 0 &&
+            distance > unit.AttackRange * BacklinerMaxCrossLaneChaseDistanceMultiplier)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

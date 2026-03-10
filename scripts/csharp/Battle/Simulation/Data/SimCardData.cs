@@ -136,6 +136,7 @@ public class SimUnitTemplate
 
     // Classification
     public UnitType UnitType { get; set; }
+    public TacticalRole TacticalRole { get; set; } = TacticalRole.Auto;
     public MovementLayer MovementLayer { get; set; }
     public int ElementId { get; set; }
 

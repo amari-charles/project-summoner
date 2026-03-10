@@ -1,4 +1,5 @@
 using System;
+using Fateforged.Simulation;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
 
@@ -11,6 +12,12 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimTargeting
 {
+    private const float CrossLaneAggroDistanceScale = 0.55f;
+    private const float SameLaneScoreBonus = 2.5f;
+    private const float CrossLaneScorePenaltyPerLane = 3.0f;
+    private const float FlankerOffLanePenalty = 4.0f;
+    private const float BacklinerCrossLanePenalty = 5.0f;
+    private const float FlankerCenterIgnoreDistance = 8.0f;
 
     /// <summary>
     /// Acquire a target using the unit's configured targeting policy.
@@ -51,6 +58,7 @@ public static class SimTargeting
         }
 
         int enemyTeam = MatchState.GetEnemyTeam((int)unit.Team);
+        int attackerLane = ResolvePreferredLane(unit);
         float bestScore = float.MinValue;
         float bestAttackableScore = float.MinValue;
         int? bestId = null;
@@ -68,16 +76,24 @@ public static class SimTargeting
             // Distance filter (aggro radius)
             float distSq = unit.Position.DistanceSquaredTo(candidate.Position);
             if (distSq > unit.AggroRadius * unit.AggroRadius) continue;
+            float dist = MathF.Sqrt(distSq);
+
+            int candidateLane = VirtualLanes.GetLaneIndex(candidate.Position.Z);
+            int laneDistance = VirtualLanes.LaneDistance(attackerLane, candidateLane);
+
+            // Virtual lane guard: far cross-lane candidates are ignored to reduce center pull.
+            if (laneDistance > 0 && dist > unit.AggroRadius * CrossLaneAggroDistanceScale) continue;
 
             // Layer filter
             if (!PassesLayerFilter(unit, candidate)) continue;
 
             // Reachability (cone constraint)
             if (unit.HasConeConstraint && !CanEverReach(unit, candidate)) continue;
+            if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist)) continue;
 
             // Score the candidate
-            float dist = MathF.Sqrt(distSq);
             float score = ScoreTarget(unit, candidate, dist);
+            score += ScoreLaneAffinity(unit, attackerLane, candidateLane, laneDistance);
 
             if (prioritizeAttackableNow &&
                 dist <= unit.AttackRange &&
@@ -179,6 +195,57 @@ public static class SimTargeting
         {
             float hpPercent = candidate.CurrentHp / candidate.MaxHp;
             score += (1f - hpPercent) * unit.HealthScorerWeight;
+        }
+
+        return score;
+    }
+
+    private static int ResolvePreferredLane(UnitData unit)
+    {
+        if (unit.AssignedLane >= 0)
+            return unit.AssignedLane;
+        return VirtualLanes.GetLaneIndex(unit.Position.Z);
+    }
+
+    private static bool ShouldIgnoreForRole(
+        UnitData unit, int attackerLane, int candidateLane, int laneDistance, float distance)
+    {
+        if (unit.TacticalRole == TacticalRole.Flanker &&
+            VirtualLanes.IsSideLane(attackerLane) &&
+            candidateLane == VirtualLanes.CenterLane &&
+            distance > FlankerCenterIgnoreDistance)
+        {
+            return true;
+        }
+
+        if (unit.TacticalRole == TacticalRole.Backliner &&
+            laneDistance > 1 &&
+            distance > unit.AttackRange * 1.2f)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static float ScoreLaneAffinity(
+        UnitData unit, int attackerLane, int candidateLane, int laneDistance)
+    {
+        float score = laneDistance == 0
+            ? SameLaneScoreBonus
+            : -CrossLaneScorePenaltyPerLane * laneDistance;
+
+        switch (unit.TacticalRole)
+        {
+            case TacticalRole.Flanker:
+                if (VirtualLanes.IsSideLane(attackerLane) && candidateLane != attackerLane)
+                    score -= FlankerOffLanePenalty;
+                break;
+
+            case TacticalRole.Backliner:
+                if (laneDistance > 0)
+                    score -= BacklinerCrossLanePenalty * laneDistance;
+                break;
         }
 
         return score;

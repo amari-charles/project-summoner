@@ -526,6 +526,42 @@ Document this in protocol comments and enforce it in session handlers/tests.
 
 ---
 
+## 17. File Placement Without Layer Ownership Check
+
+**Bad:** Adding new files in whichever folder is nearby without checking domain ownership.
+
+```text
+// DON'T DO THIS
+Battle/Simulation/VirtualLanes.cs
+// "It was convenient near Simulation.cs"
+```
+
+**Why it's bad:**
+- Cross-cutting logic gets scattered and hard to discover
+- Namespace/folder drift makes architecture harder to reason about
+- Future contributors duplicate concepts in different layers
+
+**Fix:** Run a quick placement rubric before creating/moving files:
+
+1. **Who owns this rule?**  
+If deterministic runtime owns it, keep it in simulation (not View/scene folders).
+
+2. **What changes when this code changes?**  
+- World geometry/partitions/zones -> `Simulation/Spatial`  
+- Unit locomotion/steering -> `Simulation/Movement`  
+- Target selection/damage/attacks -> `Simulation/Combat`
+
+3. **Who consumes it?**  
+If multiple simulation slices consume it, prefer a shared simulation domain (for example `Spatial`) over placing it under one consumer.
+
+4. **Can we explain placement in one sentence?**  
+If not, folder choice is probably wrong; revisit before landing.
+
+**Example:**
+- `VirtualLanes` is world partition math used by spawn/targeting/movement, so it belongs in `Simulation/Spatial`, not `Movement` and not View `Battlefield`.
+
+---
+
 ## Quick Reference Checklist
 
 Use during PR reviews:
@@ -546,3 +582,4 @@ Use during PR reviews:
 - [ ] Gameplay rules have one shared authority (no duplicated boundary logic)
 - [ ] Visual-only/transient state is not bloating regular snapshots
 - [ ] Every protocol message has explicit reconnect/replay behavior
+- [ ] New/relocated files pass the layer-ownership placement rubric (owner, consumers, change axis)

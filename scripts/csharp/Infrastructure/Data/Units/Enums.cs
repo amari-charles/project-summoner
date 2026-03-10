@@ -19,6 +19,32 @@ public enum UnitType
 }
 
 /// <summary>
+/// High-level tactical role used by simulation behavior shaping.
+/// </summary>
+public enum TacticalRole
+{
+    /// <summary>
+    /// Resolve role from unit definition heuristics.
+    /// </summary>
+    Auto = 0,
+
+    /// <summary>
+    /// Default line-holder role.
+    /// </summary>
+    Frontliner = 1,
+
+    /// <summary>
+    /// Side-pressure role with stronger lane adherence.
+    /// </summary>
+    Flanker = 2,
+
+    /// <summary>
+    /// Safer-range role with reduced cross-lane chase.
+    /// </summary>
+    Backliner = 3
+}
+
+/// <summary>
 /// Movement layer for targeting and collision.
 /// </summary>
 public enum MovementLayer

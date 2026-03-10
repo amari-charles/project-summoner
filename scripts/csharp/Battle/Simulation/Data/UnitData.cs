@@ -44,7 +44,9 @@ public class UnitData
 
     // Classification
     public UnitType UnitType { get; set; }
+    public TacticalRole TacticalRole { get; set; } = TacticalRole.Auto;
     public MovementLayer MovementLayer { get; set; }
+    public int AssignedLane { get; set; } = -1;
 
     // Element (int cast of Fateforged.Cards.Element enum)
     public int ElementId { get; set; } // 0=Neutral

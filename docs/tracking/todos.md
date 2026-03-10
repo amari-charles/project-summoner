@@ -856,6 +856,30 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 
 ---
 
+#### Create Simulation Spatial Domain (Folder + Namespace Alignment)
+**Status:** ⬜ Not Started
+**Category:** Architecture / Layering
+**Effort:** Small
+
+**Description:**
+Formalize simulation world-rule ownership by introducing a dedicated `Simulation/Spatial` slice for geometry/partition/zone logic. This prevents cross-cutting world logic from being dropped into arbitrary folders and keeps deterministic runtime ownership clear.
+
+**Initial Scope:**
+- Move `VirtualLanes` from simulation root into `scripts/csharp/Battle/Simulation/Spatial/VirtualLanes.cs`
+- Use `namespace Fateforged.Simulation.Spatial`
+- Update simulation consumers (`Simulation`, `Movement`, `Combat`) to depend on `Spatial` types
+- Keep this refactor behavior-preserving (placement + namespace only)
+
+**Placement Rule (for future files):**
+- `Simulation/Spatial` = world geometry, partitions, lane/zone math, ownership maps
+- `Simulation/Movement` = unit locomotion and steering decisions
+- `Simulation/Combat` = targeting, damage, attack execution
+
+**Likely Follow-up:**
+- Evaluate moving `BattlefieldBounds` to simulation-owned spatial namespace once safe migration plan is defined
+
+---
+
 #### Refactor Reward System to Typed RewardSpec Classes
 **Status:** 🟡 Partial (Reward Claim + Screen Hardening Landed)
 **Category:** Architecture / Flag Proliferation
