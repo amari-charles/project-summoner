@@ -210,7 +210,8 @@ public static class SimBehavior
         }
 
         // Out of range — role/lane guards may keep unit on lane objective instead of hard-chasing.
-        if (ShouldHoldLaneInsteadOfChasing(unit, tPos, dist))
+        // Summoner targets are exempt so endgame pressure cannot deadlock on side-lane rules.
+        if (!isSummonerTarget && ShouldHoldLaneInsteadOfChasing(unit, tPos, dist))
         {
             unit.BehaviorState = BehaviorState.NoTarget;
             return new BehaviorResult { Movement = MovementResult.Forward };

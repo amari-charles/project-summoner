@@ -88,6 +88,38 @@ public class SimBehaviorTest
     }
 
     [TestCase]
+    public void TickBehavior_Flanker_WithSummonerTarget_DoesNotHoldLane()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: -10f, z: -18f, attackRange: 3f);
+        unit.TacticalRole = TacticalRole.Flanker;
+        unit.AssignedLane = 0;
+
+        unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
+        var events = new List<SimEvent>();
+
+        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
+        AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Chasing);
+    }
+
+    [TestCase]
+    public void TickBehavior_Backliner_WithSummonerTarget_DoesNotHoldLane()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: -10f, z: 18f, attackRange: 6f);
+        unit.TacticalRole = TacticalRole.Backliner;
+        unit.AssignedLane = 2;
+
+        unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
+        var events = new List<SimEvent>();
+
+        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
+        AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Chasing);
+    }
+
+    [TestCase]
     public void TickBehavior_InRange_CooldownNotReady_MoveNone()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f);
