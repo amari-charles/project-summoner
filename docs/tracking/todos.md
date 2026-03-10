@@ -146,6 +146,41 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 
 ---
 
+#### Evaluate Non-Hard-Lane Phase 2 Experiments (Post Virtual-Lanes/Roles)
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Spatial Design
+**Effort:** Medium
+
+**Description:**
+Now that virtual lanes + tactical roles are in, run a structured evaluation of the remaining non-hard-lane options from the research doc before committing to another implementation track.
+
+**Candidates To Evaluate:**
+- Command cohesion layer (formation/order memory after first contact)
+- Engagement cells (soft locality partition for targeting/aggro)
+- Frontline tension bands (readability + light behavior weighting)
+- Reinforcement routing rules (spawn pressure-sector assignment)
+- Objective anchors / side-value injection (off-center tactical value without hard rails)
+- Role-specific pursuit budgets (deeper role discipline beyond current prototype)
+
+**Evaluation Method:**
+- Define one simulation-first prototype slice per candidate
+- Run 40/80/100-unit scenarios with identical seed setups
+- Compare against current prototype baseline (virtual lanes + tactical roles)
+- Keep changes behavior-only first; defer UI unless candidate passes baseline gates
+
+**Pass Criteria (must beat baseline):**
+- Flanks remain viable without collapsing into center aggro
+- Midline vortex reduced (more meaningful use of side space)
+- Frontline location/readability improves in large fights
+- Spawn decisions remain meaningful without hard rails
+- CPU/tick cost remains bounded and measurable
+
+**Primary References:**
+- `docs/design/lane-system-research-no-lane-identity.md` (Section 5-7 option inventory)
+- `scripts/csharp/Battle/Simulation/` (targeting/behavior/movement hot paths)
+
+---
+
 
 #### Implement Directional/Cone Attack System
 **Status:** 🟡 Partial (Cone Targeting Shipped)
