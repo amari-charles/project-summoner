@@ -19,6 +19,71 @@ public enum UnitType
 }
 
 /// <summary>
+/// Authoring-friendly preset for vector-based melee attack behavior.
+/// Presets map to concrete vector defaults in UnitDefinitions.BuildSimTemplate.
+/// </summary>
+public enum AttackPreset
+{
+    SingleTarget = 0,
+    LegacySingleTarget = SingleTarget,
+    AreaCleave = 1,
+    LinePierce = 2,
+    Chain = 3,
+    Custom = 99
+}
+
+/// <summary>
+/// How attack recipients are selected after choosing the primary target.
+/// </summary>
+public enum AttackSelectionMode
+{
+    Single = 0,
+    AreaCollect = 1,
+    LineCollect = 2,
+    ChainHops = 3
+}
+
+/// <summary>
+/// Attack area shape used by area/line recipient selection.
+/// </summary>
+public enum AttackAreaShape
+{
+    Sphere = 0,
+    Box = 1,
+    Capsule = 2,
+    Line = 3
+}
+
+/// <summary>
+/// How attack effects propagate beyond the primary target.
+/// </summary>
+public enum AttackPropagationMode
+{
+    None = 0,
+    Pierce = 1,
+    Chain = 2
+}
+
+/// <summary>
+/// Delivery mode for attack resolution.
+/// </summary>
+public enum AttackDeliveryMode
+{
+    Instant = 0,
+    Projectile = 1,
+    PersistentZone = 2
+}
+
+/// <summary>
+/// Trigger policy when multiple recipients are hit.
+/// </summary>
+public enum AttackTriggerMode
+{
+    PrimaryOnly = 0,
+    EveryRecipient = 1
+}
+
+/// <summary>
 /// High-level tactical role used by simulation behavior shaping.
 /// </summary>
 public enum TacticalRole

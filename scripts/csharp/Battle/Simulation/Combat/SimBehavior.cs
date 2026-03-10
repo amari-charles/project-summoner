@@ -258,10 +258,45 @@ public static class SimBehavior
         UnitData attacker, UnitData target, MatchState state, List<SimEvent> events)
     {
         float baseDamage = SimEffects.GetEffectiveAttackDamage(attacker);
-        ApplyUnitDamage(attacker, target, baseDamage, state, events);
+        var recipients = AttackRecipientResolver.ResolveRecipients(attacker, target, state);
+        if (recipients.Count == 0)
+        {
+            attacker.DistanceTraveled = 0f;
+            return;
+        }
+
+        // Primary recipient preserves legacy trigger semantics.
+        ApplyUnitDamage(attacker, recipients[0], baseDamage, state, events);
+
+        bool triggerPerRecipient = attacker.Attack.Rules.TriggerMode == AttackTriggerMode.EveryRecipient;
+        for (int i = 1; i < recipients.Count; i++)
+        {
+            if (triggerPerRecipient)
+                ApplyUnitDamage(attacker, recipients[i], baseDamage, state, events);
+            else
+                ApplySecondaryUnitDamage(attacker, recipients[i], baseDamage, state, events);
+        }
 
         // Reset charge distance after attacking
         attacker.DistanceTraveled = 0f;
+    }
+
+    private static void ApplySecondaryUnitDamage(
+        UnitData attacker, UnitData target, float baseDamage, MatchState state, List<SimEvent> events)
+    {
+        var attackerSummoner = state.Summoners[(int)attacker.Team];
+        var targetSummoner = state.Summoners[(int)target.Team];
+        var (damage, isCrit) = SimDamage.Calculate(
+            baseDamage, attacker, target, attackerSummoner, targetSummoner, state.Rng);
+
+        target.CurrentHp -= damage;
+        events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
+
+        if (target.CurrentHp <= 0)
+        {
+            SimUtils.KillUnit(state, target, attacker.UnitId, events);
+            SimEffects.FireDeathTriggers(state, target, attacker, events);
+        }
     }
 
     /// <summary>

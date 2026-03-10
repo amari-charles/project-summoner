@@ -22,6 +22,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-08, final):** Closed blocked-unit idle freeze item after manual signoff; moved remaining notes to `todos-completed.md` and refreshed AI priority queue to only open items.
 **Tracker Sync (2026-03-08, desync pass):** Closed sim/visual state desync audit task after phase sync hardening, summoner destroy signal dedupe, activation-state visual alignment fix, and regression coverage updates.
 **Tracker Sync (2026-03-09, combat correctness):** Moved completed DamageProfile armor/magic-resist integration + summoner combat-modifier wiring to `todos-completed.md`; removed UI damage-type card indicator from this task per product direction.
+**Tracker Sync (2026-03-10, attack vectors):** Updated `Implement Single Target vs Multi Target Attack System` to partial after runtime V1 delivery (vector recipient resolution + tests); visual telegraphs and balance pass remain.
 
 ---
 
@@ -221,7 +222,7 @@ Add support for melee attacks that only hit in a forward cone/arc instead of a f
 ---
 
 #### Implement Single Target vs Multi Target Attack System
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Runtime V1 Shipped)
 **Category:** Units & Combat
 **Effort:** Medium
 
@@ -229,15 +230,22 @@ Add support for melee attacks that only hit in a forward cone/arc instead of a f
 Add system to differentiate between single target attacks and multi target/AoE attacks for units.
 
 **Current State:**
-- Spells have AoE via `spell_radius` (Fireball works)
-- Units only attack single targets - no unit-level AoE/splash damage
+- ✅ Spells have AoE via `spell_radius` (Fireball works)
+- ✅ Units now support vector-driven multi-target recipient resolution in simulation (`single`, `area`, `line`, `chain`) with deterministic ordering.
+- 🔄 Remaining unit-facing work is balance + visual telegraphing for multi-target attacks.
+
+**Progress Update (2026-03-10):**
+- ✅ Added grouped attack-vector contract across `UnitDefinition -> SimUnitTemplate -> UnitData`.
+- ✅ Implemented deterministic recipient resolution for area (sphere/box/capsule), line corridor, and chain hops.
+- ✅ Added simulation test coverage for target limits, deterministic tie-breaks, secondary death handling, and trigger-mode behavior.
+- ⬜ Remaining: visual indicators/telegraphs for AoE vectors and gameplay balance pass for multi-target damage tuning.
 
 **Requirements:**
-- Define attack target type in unit data (single, multi, aoe)
-- Implement multi-target selection logic for units
-- Add AoE/splash damage radius for area attacks on units
-- Visual indicators for AoE attacks
-- Balance damage for multi-target vs single-target
+- ✅ Define attack target type in unit data (single, multi, aoe)
+- ✅ Implement multi-target selection logic for units
+- ✅ Add AoE/splash damage radius for area attacks on units
+- ⬜ Visual indicators for AoE attacks
+- ⬜ Balance damage for multi-target vs single-target
 
 **Notes:**
 - Foundation for unit variety (e.g., dragons with breath attacks)

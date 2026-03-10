@@ -672,6 +672,7 @@ public class Simulation
                     PhysicalDefense = template.PhysicalDefense,
                     MagicDefense = template.MagicDefense,
                     Evasion = template.Evasion,
+                    Attack = template.Attack.DeepClone(),
                     IsFacingRight = UnitData.DefaultFacingForTeam((Team)team),
                     // Spawn inactive when there is a reveal/cast delay; otherwise active immediately.
                     ActivationState =

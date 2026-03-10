@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Fateforged.Simulation;
 using Fateforged.Units;
 using UnitType = Fateforged.Units.UnitType;
 using Fateforged.Simulation.Enums;
@@ -156,11 +157,14 @@ public class SimUnitTemplate
     public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
     public MovementIntentStrategy MovementIntentStrategy { get; set; } = MovementIntentStrategy.Context;
 
-    // Phase 1 fields
+    // Damage profile fields
     public DamageType AttackType { get; set; } = DamageType.Physical;
     public float PhysicalDamageRatio { get; set; } = 1f;
     public float ElementalDamageRatio { get; set; }
     public float PhysicalDefense { get; set; }
     public float MagicDefense { get; set; }
     public float Evasion { get; set; }
+
+    // Attack vector fields (PASS 2 grouped state)
+    public AttackVectorState Attack { get; set; } = AttackVectorState.Default();
 }

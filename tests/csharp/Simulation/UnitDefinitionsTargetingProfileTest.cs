@@ -72,4 +72,35 @@ public class UnitDefinitionsTargetingProfileTest
                 : DamageType.Physical;
         AssertThat(template.AttackType).IsEqual(expectedAttackType);
     }
+
+    [TestCase]
+    public void BuildSimTemplate_AttackVectorDefaults_MapFromDefinition()
+    {
+        var def = UnitDefinitions.Get(UnitIds.FireWisp);
+        AssertThat(def).IsNotNull();
+
+        SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(UnitIds.FireWisp, count: 1);
+
+        AssertThat(template.Attack.Preset).IsEqual(def!.Attack.Preset);
+        AssertThat(template.Attack.Selection.Mode).IsEqual(AttackSelectionMode.Single);
+        AssertThat(template.Attack.Area.Shape).IsEqual(AttackAreaShape.Sphere);
+        AssertThat(template.Attack.DeliveryMode).IsEqual(AttackDeliveryMode.Instant);
+        AssertThat(template.Attack.Propagation.Mode).IsEqual(AttackPropagationMode.None);
+        AssertThat(template.Attack.Selection.TargetLimit).IsEqual(1);
+    }
+
+    [TestCase]
+    public void BuildSimTemplate_AttackVectorTimingAndRules_MapFromDefinition()
+    {
+        var def = UnitDefinitions.Get(UnitIds.Puff);
+        AssertThat(def).IsNotNull();
+
+        SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(UnitIds.Puff, count: 1);
+
+        AssertThat(template.Attack.Timing.WindupSeconds).IsEqual(def!.Attack.Timing.WindupSeconds);
+        AssertThat(template.Attack.Timing.ActiveSeconds).IsEqual(def.Attack.Timing.ActiveSeconds);
+        AssertThat(template.Attack.Timing.RecoverySeconds).IsEqual(def.Attack.Timing.RecoverySeconds);
+        AssertThat(template.Attack.Timing.TickIntervalSeconds).IsEqual(def.Attack.Timing.TickIntervalSeconds);
+        AssertThat(template.Attack.Rules.TriggerMode).IsEqual(def.Attack.Rules.TriggerMode);
+    }
 }

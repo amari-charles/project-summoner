@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Godot;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
@@ -58,6 +57,13 @@ public record UnitDefinition
 
     /// <summary>Close-range threshold used for cone edge behavior.</summary>
     public float TargetingCloseRangeThreshold { get; init; } = 0.5f;
+
+    // =========================================================================
+    // ATTACK VECTOR CONFIGURATION
+    // =========================================================================
+
+    /// <summary>Grouped vector-based attack behavior config.</summary>
+    public AttackVectorConfig Attack { get; init; } = AttackVectorConfig.Default;
 
     // =========================================================================
     // RANGED CONFIGURATION (null = not a ranged unit)
