@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -107,6 +108,14 @@ public static class ContextSteering
 
     [ThreadStatic] private static float[]? _interestBuffer;
     [ThreadStatic] private static float[]? _dangerBuffer;
+    [ThreadStatic] private static List<UnitData>? _crowdNeighbors;
+    [ThreadStatic] private static List<float>? _crowdNeighborDistancesSq;
+    private const float CrowdDangerRadiusMultiplier = 3.25f;
+    private const float CrowdDangerMinRadius = 1.2f;
+    private const float CrowdDangerFrontFloor = 0.35f;
+    private const float CrowdDangerFrontWeight = 0.65f;
+    private const float CrowdDangerSideBleed = 0.55f;
+    private const int MaxCrowdNeighbors = 20;
 
     /// <summary>
     /// Main entry: compute preferred direction for a unit based on its behavior result.
@@ -128,7 +137,7 @@ public static class ContextSteering
 
             case MovementResult.TowardTarget:
             {
-                var targetPos = ResolveTargetPosition(behavior.MoveTargetId, state);
+                var targetPos = ResolveTargetPosition(unit, behavior.MoveTargetId, state);
                 if (!targetPos.HasValue)
                 {
                     FillForwardProfile(unit, state, ref map);
@@ -146,7 +155,7 @@ public static class ContextSteering
 
             case MovementResult.Strafe:
             {
-                var targetPos = ResolveTargetPosition(behavior.MoveTargetId, state);
+                var targetPos = ResolveTargetPosition(unit, behavior.MoveTargetId, state);
                 if (!targetPos.HasValue)
                     FillForwardProfile(unit, state, ref map);
                 else
@@ -171,7 +180,11 @@ public static class ContextSteering
     {
         var toTarget = targetPos - unit.Position;
         toTarget.Y = 0;
-        if (toTarget.LengthSquared() < 0.0625f) return; // Stop steering when within 0.25 units
+        if (toTarget.LengthSquared() < 0.0625f)
+        {
+            AddCrowdDanger(unit, state, ref map, SimVector3.Zero);
+            return; // Stop steering when within 0.25 units
+        }
 
         var targetDir = toTarget.Normalized();
 
@@ -187,6 +200,8 @@ public static class ContextSteering
                 map.Interest[i] = dot;
             }
         }
+
+        AddCrowdDanger(unit, state, ref map, targetDir);
     }
 
     /// <summary>
@@ -218,6 +233,8 @@ public static class ContextSteering
             if (dot > 0f)
                 map.Interest[i] = dot;
         }
+
+        AddCrowdDanger(unit, state, ref map, forwardDir);
     }
 
     /// <summary>
@@ -229,7 +246,11 @@ public static class ContextSteering
     {
         var toTarget = targetPos - unit.Position;
         var horizontalToTarget = new SimVector3(toTarget.X, 0f, toTarget.Z);
-        if (horizontalToTarget.LengthSquared() < 0.0001f) return;
+        if (horizontalToTarget.LengthSquared() < 0.0001f)
+        {
+            AddCrowdDanger(unit, state, ref map, SimVector3.Zero);
+            return;
+        }
 
         horizontalToTarget = horizontalToTarget.Normalized();
 
@@ -259,11 +280,66 @@ public static class ContextSteering
             if (dot > 0f)
                 map.Interest[i] = dot;
         }
+
+        AddCrowdDanger(unit, state, ref map, strafeDir);
     }
 
-    private static SimVector3? ResolveTargetPosition(int? targetId, MatchState state)
+    private static void AddCrowdDanger(
+        UnitData unit, MatchState state, ref ContextMap map, SimVector3 preferredDirection)
     {
-        return SimUtils.ResolveTargetPosition(targetId, state);
+        float dangerRadius = MathF.Max(CrowdDangerMinRadius, unit.SeparationRadius * CrowdDangerRadiusMultiplier);
+        _crowdNeighbors ??= new List<UnitData>(MaxCrowdNeighbors);
+        _crowdNeighborDistancesSq ??= new List<float>(MaxCrowdNeighbors);
+        MovementNeighborQuery.FillNearestNeighbors(
+            unit,
+            state,
+            dangerRadius,
+            MaxCrowdNeighbors,
+            _crowdNeighbors,
+            _crowdNeighborDistancesSq
+        );
+
+        bool hasPreferredDirection = preferredDirection.LengthSquared() >= 0.0001f;
+        var preferredDir = hasPreferredDirection ? preferredDirection.Normalized() : SimVector3.Zero;
+
+        foreach (var other in _crowdNeighbors)
+        {
+            var toNeighbor = other.Position - unit.Position;
+            toNeighbor.Y = 0f;
+            float distSq = toNeighbor.LengthSquared();
+            if (distSq <= 0.000001f) continue;
+
+            float distance = MathF.Sqrt(distSq);
+            var neighborDir = toNeighbor / distance;
+            float proximity = 1f - (distance / dangerRadius);
+            if (proximity <= 0f) continue;
+
+            float frontBias = 1f;
+            if (hasPreferredDirection)
+            {
+                float alignment = MathF.Max(0f, preferredDir.Dot(neighborDir));
+                frontBias = MathF.Max(CrowdDangerFrontFloor, CrowdDangerFrontFloor + alignment * CrowdDangerFrontWeight);
+            }
+
+            float danger = proximity * frontBias;
+            int slot = ContextMap.DirectionToSlot(neighborDir);
+            if (danger > map.Danger[slot])
+                map.Danger[slot] = danger;
+
+            float sideDanger = danger * CrowdDangerSideBleed;
+            int leftSlot = (slot + ContextMap.NumSlots - 1) % ContextMap.NumSlots;
+            int rightSlot = (slot + 1) % ContextMap.NumSlots;
+
+            if (sideDanger > map.Danger[leftSlot])
+                map.Danger[leftSlot] = sideDanger;
+            if (sideDanger > map.Danger[rightSlot])
+                map.Danger[rightSlot] = sideDanger;
+        }
+    }
+
+    private static SimVector3? ResolveTargetPosition(UnitData unit, int? targetId, MatchState state)
+    {
+        return MovementTargetResolver.Resolve(unit, targetId, state);
     }
 
     private static void ApplyVirtualLaneBias(UnitData unit, MovementResult movement, ref ContextMap map)

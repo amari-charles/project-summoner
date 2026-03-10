@@ -119,7 +119,7 @@ Units attach only the components they need.
 ### 🟡 MEDIUM PRIORITY
 
 #### Investigate Pathfinding & Targeting System Robustness
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Units & Combat / Performance
 **Effort:** Medium
 
@@ -140,9 +140,18 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 - Is the blocked detection / flanking logic reliable?
 - Should we use spatial partitioning for target queries?
 
+**Progress Update (2026-03-10):**
+- ✅ Added summoner-wrap movement targeting (`MovementTargetResolver`) so blocked units can route around occupied fronts.
+- ✅ Added local crowd danger masking in context steering + tuned blocked-nav and ORCA neighbor search for dense clumps.
+- ✅ Added 60-unit summoner-focus regression coverage to verify broad attacker contribution in dense swarms.
+- ✅ Ran large-battle profiling pass (2026-03-10) via `dotnet test --settings test.runsettings --filter "FullyQualifiedName~BlockedUnitReproTest.SummonerFocus_DenseSwarm_HasBroadAttackerContribution" --logger "console;verbosity=detailed"`:
+  - dense-swarm test case duration: ~1s (`60 units`, `1200` simulation ticks)
+  - filtered run total: `2.1013s` (test host + discovery + execution)
+- 🔄 Remaining: target switching race-case audit, and forced-target/redirect robustness validation.
+
 **Notes:**
 - Related to lane-based movement todo (may affect targeting behavior)
-- Consider profiling with large battles before optimizing
+- Re-run this profile after target-switch and redirect robustness work lands.
 
 ---
 

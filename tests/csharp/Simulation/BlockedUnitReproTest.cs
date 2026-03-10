@@ -1,5 +1,6 @@
 namespace Fateforged.Tests.Simulation;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
@@ -20,6 +21,7 @@ public class BlockedUnitReproTest
     private const float Delta = 1f / 60f;
     private const int FiveSeconds = 300; // 5s at 60fps
     private const int TenSeconds = 600;
+    private const int TwentySeconds = 1200;
 
     private MatchState _state = null!;
     private Fateforged.Simulation.Simulation _sim = null!;
@@ -184,5 +186,118 @@ public class BlockedUnitReproTest
 
         AssertThat(t0BackAttacked).IsTrue();
         AssertThat(t1BackAttacked).IsTrue();
+    }
+
+    /// <summary>
+    /// Units should still be able to reach and damage a summoner from distance.
+    /// Regression guard for summoner wrap/orbit movement targets staying outside attack range.
+    /// </summary>
+    [TestCase]
+    public void SummonerFocus_SingleMeleeFromDistance_EventuallyDamagesSummoner()
+    {
+        _state.Summoners[1].CurrentHp = 500f;
+        _state.Summoners[1].MaxHp = 500f;
+
+        SimTestHelper.CreateMeleeUnit(_state, 0, x: -8f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 3f);
+
+        float hpBefore = _state.Summoners[1].CurrentHp;
+        for (int i = 0; i < TenSeconds; i++)
+            _sim.Tick(Delta);
+
+        AssertThat(_state.Summoners[1].CurrentHp).IsLess(hpBefore);
+    }
+
+    /// <summary>
+    /// Backline melee behind a friendly frontliner should still wrap and damage
+    /// an enemy summoner instead of idling behind the front.
+    /// </summary>
+    [TestCase]
+    public void SummonerFocus_BlockedBacklineUnit_EventuallyDamagesSummoner()
+    {
+        _state.Summoners[1].CurrentHp = 600f;
+        _state.Summoners[1].MaxHp = 600f;
+
+        // Frontline unit starts in range and tends to hold the front slot.
+        SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 2.5f);
+        var backline = SimTestHelper.CreateMeleeUnit(_state, 0, x: 14f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 3f);
+
+        var allEvents = new List<SimEvent>();
+        for (int i = 0; i < TenSeconds; i++)
+            allEvents.AddRange(_sim.Tick(Delta));
+
+        var summonerDamages = SimTestHelper.FindEvents<SummonerDamagedEvent>(allEvents)
+            .Where(e => e.Team == 1)
+            .ToList();
+
+        bool backlineDamagedSummoner = summonerDamages.Any(e => e.AttackerUnitId == backline.UnitId);
+        AssertThat(backlineDamagedSummoner).IsTrue();
+    }
+
+    /// <summary>
+    /// High-density summoner pressure repro (60 total units).
+    /// Ensures backline attackers in dense clumps can still rotate into attack slots.
+    /// </summary>
+    [TestCase]
+    public void SummonerFocus_DenseSwarm_HasBroadAttackerContribution()
+    {
+        const int unitsPerTeam = 30;
+        const float minAttackerContributionRatioPerTeam = 0.40f;
+        int minDistinctAttackersPerTeam = (int)MathF.Ceiling(unitsPerTeam * minAttackerContributionRatioPerTeam);
+
+        _state.Summoners[0].CurrentHp = 20000f;
+        _state.Summoners[0].MaxHp = 20000f;
+        _state.Summoners[1].CurrentHp = 20000f;
+        _state.Summoners[1].MaxHp = 20000f;
+
+        var team0Ids = new HashSet<int>();
+        var team1Ids = new HashSet<int>();
+
+        for (int i = 0; i < unitsPerTeam; i++)
+        {
+            int row = i / 6;
+            int col = i % 6;
+            float laneZ = (col - 2.5f) * 0.70f;
+
+            var t0 = SimTestHelper.CreateMeleeUnit(
+                _state, 0,
+                x: 18.5f - (row * 1.0f),
+                z: laneZ,
+                hp: 140f,
+                damage: 4f,
+                attackRange: 2f,
+                moveSpeed: 3.2f
+            );
+            team0Ids.Add(t0.UnitId);
+
+            var t1 = SimTestHelper.CreateMeleeUnit(
+                _state, 1,
+                x: -18.5f + (row * 1.0f),
+                z: laneZ,
+                hp: 140f,
+                damage: 4f,
+                attackRange: 2f,
+                moveSpeed: 3.2f
+            );
+            team1Ids.Add(t1.UnitId);
+        }
+
+        var allEvents = new List<SimEvent>();
+        for (int i = 0; i < TwentySeconds; i++)
+            allEvents.AddRange(_sim.Tick(Delta));
+
+        var summonerDamages = SimTestHelper.FindEvents<SummonerDamagedEvent>(allEvents);
+        int team0Attackers = summonerDamages
+            .Where(e => e.Team == 1)
+            .Select(e => e.AttackerUnitId)
+            .Distinct()
+            .Count(attackerId => team0Ids.Contains(attackerId));
+        int team1Attackers = summonerDamages
+            .Where(e => e.Team == 0)
+            .Select(e => e.AttackerUnitId)
+            .Distinct()
+            .Count(attackerId => team1Ids.Contains(attackerId));
+
+        AssertThat(team0Attackers).IsGreaterEqual(minDistinctAttackersPerTeam);
+        AssertThat(team1Attackers).IsGreaterEqual(minDistinctAttackersPerTeam);
     }
 }

@@ -24,8 +24,8 @@ public struct OrcaLine
 public static class OrcaAvoidance
 {
     private const float TimeHorizon = 1.5f;
-    private const int MaxNeighbors = 10;
-    private const float NeighborSearchRadiusMultiplier = 5.0f;
+    private const int MaxNeighbors = 16;
+    private const float NeighborSearchRadiusMultiplier = 6.0f;
     private const float Epsilon = 0.00001f;
     private const float OverlapInvDelta = 60f; // Assumes 60fps fixed timestep
     private const float GoldenAngle = 2.39996f; // 2π/φ² — spreads overlapping units evenly
@@ -49,45 +49,17 @@ public static class OrcaAvoidance
         _neighbors.Clear();
         _neighborDistancesSq.Clear();
 
-        // Gather neighbors
         float searchRadius = unit.SeparationRadius * NeighborSearchRadiusMultiplier;
-        float searchRadiusSq = searchRadius * searchRadius;
-
-        foreach (var kvp in state.Units)
-        {
-            var other = kvp.Value;
-            if (other.UnitId == unit.UnitId) continue;
-            if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationState.Active) continue;
-            if (other.MovementLayer != unit.MovementLayer) continue;
-
-            float dx = unit.Position.X - other.Position.X;
-            float dz = unit.Position.Z - other.Position.Z;
-            float distSq = dx * dx + dz * dz;
-
-            if (distSq >= searchRadiusSq) continue;
-
-            if (_neighbors.Count < MaxNeighbors)
-            {
-                _neighbors.Add(other);
-                _neighborDistancesSq.Add(distSq);
-                continue;
-            }
-
-            int farthestIndex = 0;
-            float farthestDistSq = _neighborDistancesSq[0];
-            for (int i = 1; i < _neighborDistancesSq.Count; i++)
-            {
-                if (_neighborDistancesSq[i] <= farthestDistSq) continue;
-                farthestDistSq = _neighborDistancesSq[i];
-                farthestIndex = i;
-            }
-
-            if (distSq >= farthestDistSq) continue;
-
-            _neighbors[farthestIndex] = other;
-            _neighborDistancesSq[farthestIndex] = distSq;
-        }
+        MovementNeighborQuery.FillNearestNeighbors(
+            unit,
+            state,
+            searchRadius,
+            MaxNeighbors,
+            _neighbors,
+            _neighborDistancesSq,
+            sortByDistance: false,
+            includeBoundary: false
+        );
 
         float invTimeHorizon = 1.0f / TimeHorizon;
 

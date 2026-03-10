@@ -47,7 +47,7 @@ public sealed class DirectIntentGenerator : IMovementIntentGenerator
     private static MovementIntent BuildTowardTargetIntent(
         UnitData unit, int? targetId, MatchState state, float speed)
     {
-        var targetPos = SimUtils.ResolveTargetPosition(targetId, state);
+        var targetPos = MovementTargetResolver.Resolve(unit, targetId, state);
         if (!targetPos.HasValue)
         {
             var fallback = BuildForwardIntent(unit, speed);
@@ -78,7 +78,7 @@ public sealed class DirectIntentGenerator : IMovementIntentGenerator
     private static MovementIntent BuildStrafeIntent(
         UnitData unit, int? targetId, MatchState state, float speed)
     {
-        var targetPos = SimUtils.ResolveTargetPosition(targetId, state);
+        var targetPos = MovementTargetResolver.Resolve(unit, targetId, state);
         if (!targetPos.HasValue)
         {
             var fallback = BuildForwardIntent(unit, speed);
