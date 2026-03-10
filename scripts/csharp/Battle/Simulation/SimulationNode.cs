@@ -343,6 +343,7 @@ public partial class SimulationNode : Node, IGameSession
         summoner.Position = new SimVector3(position.X, position.Y, position.Z);
         summoner.DamageBonus = 0f;
         summoner.DamageReduction = 0f;
+        summoner.SoulGuard = 0f;
         summoner.ClearElementalDamageBonuses();
 
         summoner.Deck.Clear();
@@ -369,6 +370,7 @@ public partial class SimulationNode : Node, IGameSession
         int team,
         float damageBonus,
         float damageReduction,
+        float soulGuard = 0f,
         Dictionary<Element, float>? elementalDamageBonuses = null)
     {
         int networkTeam = ToNetworkTeam(team);
@@ -381,6 +383,7 @@ public partial class SimulationNode : Node, IGameSession
         var summoner = State.Summoners[networkTeam];
         summoner.DamageBonus = damageBonus;
         summoner.DamageReduction = damageReduction;
+        summoner.SoulGuard = soulGuard;
         summoner.ClearElementalDamageBonuses();
 
         if (elementalDamageBonuses != null)

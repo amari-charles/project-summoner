@@ -302,7 +302,7 @@ public static class SimBehavior
     /// Apply damage to a summoner target.
     /// Summoner damage intentionally bypasses SimDamage.Calculate() — summoners are
     /// not units and don't have evasion, crit interaction, elemental matchups, defense,
-    /// or shields. Only summoner-level modifiers (DamageBonus, DamageReduction) apply.
+    /// or shields. Only summoner/ soul lane modifiers apply.
     /// For ranged with projectile delay, the caller sets PendingDamageTargetId instead.
     /// </summary>
     private static void ApplyDamageToSummoner(
@@ -385,7 +385,11 @@ public static class SimBehavior
     {
         float damage = baseDamage;
         var attackerSummoner = state.Summoners[(int)attackerTeam];
-        damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner);
+        float soulStrength = 0f;
+        if (state.Units.TryGetValue(attackerUnitId, out var attackerUnit))
+            soulStrength = attackerUnit.SoulStrength;
+
+        damage = ApplySummonerDamageModifiers(damage, attackerSummoner, summoner, soulStrength);
 
         summoner.CurrentHp -= damage;
         bool wasDestroyed = false;
@@ -482,15 +486,21 @@ public static class SimBehavior
     }
 
     /// <summary>
-    /// Apply summoner-level damage modifiers (damage bonus from attacker, damage reduction from target).
+    /// Apply summoner-level damage modifiers:
+    /// damage bonus from attacker summoner, soul strength from attacker unit, and
+    /// reductions from target summoner (damage reduction + soul guard).
     /// Rounds to one decimal place for deterministic results.
     /// </summary>
-    private static float ApplySummonerDamageModifiers(float damage, SummonerData attacker, SummonerData target)
+    private static float ApplySummonerDamageModifiers(float damage, SummonerData attacker, SummonerData target, float soulStrength = 0f)
     {
         if (attacker.DamageBonus > 0f)
             damage *= 1f + attacker.DamageBonus / 100f;
+        if (soulStrength > 0f)
+            damage += soulStrength;
         if (target.DamageReduction > 0f)
             damage = System.MathF.Max(damage - target.DamageReduction, 0f);
+        if (target.SoulGuard > 0f)
+            damage = System.MathF.Max(damage - target.SoulGuard, 0f);
         return SimUtils.RoundToOneDecimal(damage);
     }
 }

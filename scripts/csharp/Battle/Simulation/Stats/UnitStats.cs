@@ -20,6 +20,7 @@ public record UnitStats
     public float CritDamage { get; init; } = 1.5f;
     public float Armor { get; init; } = 0f;
     public float MagicResist { get; init; } = 0f;
+    public float SoulStrength { get; init; } = 0f;
 
     /// <summary>
     /// Creates UnitStats with default values.
@@ -43,6 +44,7 @@ public record UnitStats
         StatKey.CritDamage => CritDamage,
         StatKey.Armor => Armor,
         StatKey.MagicResist => MagicResist,
+        StatKey.SoulStrength => SoulStrength,
         _ => 0f
     };
 
@@ -61,6 +63,7 @@ public record UnitStats
         StatKey.CritDamage => this with { CritDamage = value },
         StatKey.Armor => this with { Armor = value },
         StatKey.MagicResist => this with { MagicResist = value },
+        StatKey.SoulStrength => this with { SoulStrength = value },
         _ => this
     };
 
@@ -96,7 +99,8 @@ public record UnitStats
             CritChance = GetFloat(dict, "crit_chance", "CritChance", 0f),
             CritDamage = GetFloat(dict, "crit_damage", "CritDamage", 1.5f),
             Armor = GetFloat(dict, "armor", "Armor", 0f),
-            MagicResist = GetFloat(dict, "magic_resist", "MagicResist", 0f)
+            MagicResist = GetFloat(dict, "magic_resist", "MagicResist", 0f),
+            SoulStrength = GetFloat(dict, "soul_strength", "SoulStrength", 0f)
         };
     }
 
@@ -139,7 +143,8 @@ public record UnitStats
             ["crit_chance"] = CritChance,
             ["crit_damage"] = CritDamage,
             ["armor"] = Armor,
-            ["magic_resist"] = MagicResist
+            ["magic_resist"] = MagicResist,
+            ["soul_strength"] = SoulStrength
         };
     }
 
@@ -159,7 +164,8 @@ public record UnitStats
             [StatKey.CritChance] = CritChance,
             [StatKey.CritDamage] = CritDamage,
             [StatKey.Armor] = Armor,
-            [StatKey.MagicResist] = MagicResist
+            [StatKey.MagicResist] = MagicResist,
+            [StatKey.SoulStrength] = SoulStrength
         };
     }
 
@@ -284,7 +290,7 @@ public record UnitStats
     }
 
     public override string ToString() =>
-        $"UnitStats(HP={MaxHp}, ATK={AttackDamage}, SPD={AttackSpeed}, MOV={MoveSpeed}, RNG={AttackRange}, AGG={AggroRadius}, CRIT={CritChance:P0}/{CritDamage:F1}x, ARM={Armor}, MR={MagicResist})";
+        $"UnitStats(HP={MaxHp}, ATK={AttackDamage}, SPD={AttackSpeed}, MOV={MoveSpeed}, RNG={AttackRange}, AGG={AggroRadius}, CRIT={CritChance:P0}/{CritDamage:F1}x, ARM={Armor}, MR={MagicResist}, SS={SoulStrength})";
 
     private static float GetFloat(Dictionary<string, float> dict, string snakeKey, string pascalKey, float defaultValue)
     {

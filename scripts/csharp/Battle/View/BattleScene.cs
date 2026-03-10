@@ -637,6 +637,7 @@ public partial class BattleScene : Node3D
 			localTeam,
 			result.DamageBonus,
 			result.DamageReduction,
+			result.SoulGuard,
 			result.ElementalDamageBonuses);
 		simNode.SetSummonerHand(localTeam, handIds);
 		simNode.SetSummonerCardRefs(localTeam, deckRefs, handRefs);

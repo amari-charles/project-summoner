@@ -19,6 +19,8 @@ public class StatKeyTest
         AssertThat(StatKey.MoveSpeed.ToSnakeCase()).IsEqual("move_speed");
         AssertThat(StatKey.AttackRange.ToSnakeCase()).IsEqual("attack_range");
         AssertThat(StatKey.AggroRadius.ToSnakeCase()).IsEqual("aggro_radius");
+        AssertThat(StatKey.SoulStrength.ToSnakeCase()).IsEqual("soul_strength");
+        AssertThat(StatKey.SoulGuard.ToSnakeCase()).IsEqual("soul_guard");
     }
 
     [TestCase]
@@ -35,6 +37,8 @@ public class StatKeyTest
         AssertThat(StatKeyExtensions.FromString("max_hp")).IsEqual(StatKey.MaxHp);
         AssertThat(StatKeyExtensions.FromString("attack_damage")).IsEqual(StatKey.AttackDamage);
         AssertThat(StatKeyExtensions.FromString("move_speed")).IsEqual(StatKey.MoveSpeed);
+        AssertThat(StatKeyExtensions.FromString("soul_strength")).IsEqual(StatKey.SoulStrength);
+        AssertThat(StatKeyExtensions.FromString("soul_guard")).IsEqual(StatKey.SoulGuard);
     }
 
     [TestCase]
@@ -84,7 +88,7 @@ public class StatKeyTest
     {
         var all = StatKeyExtensions.All;
 
-        AssertThat(all.Length).IsEqual(28);
+        AssertThat(all.Length).IsEqual(30);
         // Core unit stats
         AssertThat(all).Contains(StatKey.MaxHp);
         AssertThat(all).Contains(StatKey.AttackDamage);
@@ -99,6 +103,8 @@ public class StatKeyTest
         // Summoner/utility stats
         AssertThat(all).Contains(StatKey.CastSpeed);
         AssertThat(all).Contains(StatKey.ManaRegen);
+        AssertThat(all).Contains(StatKey.SoulGuard);
+        AssertThat(all).Contains(StatKey.SoulStrength);
         // Economy stats
         AssertThat(all).Contains(StatKey.GoldBonus);
         AssertThat(all).Contains(StatKey.XpBonus);

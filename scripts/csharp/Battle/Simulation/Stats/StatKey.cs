@@ -40,6 +40,9 @@ public enum StatKey
     /// <summary>Elemental/magical damage reduction.</summary>
     MagicResist,
 
+    /// <summary>Bonus damage dealt specifically to enemy summoners.</summary>
+    SoulStrength,
+
     // =========================================================================
     // ELEMENTAL DAMAGE BONUSES (summoner stats that affect units)
     // =========================================================================
@@ -90,6 +93,9 @@ public enum StatKey
     /// <summary>Maximum health (alias for MaxHp, used in some contexts).</summary>
     MaxHealth,
 
+    /// <summary>Reduces incoming soul-targeted damage.</summary>
+    SoulGuard,
+
     // =========================================================================
     // COMBAT EFFECTS
     // =========================================================================
@@ -133,6 +139,7 @@ public static class StatKeyExtensions
         StatKey.CritDamage => "crit_damage",
         StatKey.Armor => "armor",
         StatKey.MagicResist => "magic_resist",
+        StatKey.SoulStrength => "soul_strength",
 
         // Elemental damage bonuses
         StatKey.FireDamageBonus => "fire_damage_bonus",
@@ -151,6 +158,7 @@ public static class StatKeyExtensions
         StatKey.ManaRegen => "mana_regen",
         StatKey.CastSpeed => "cast_speed",
         StatKey.MaxHealth => "max_health",
+        StatKey.SoulGuard => "soul_guard",
 
         // Combat effects
         StatKey.HealOnKill => "heal_on_kill",
@@ -194,6 +202,7 @@ public static class StatKeyExtensions
             "critdamage" => StatKey.CritDamage,
             "armor" => StatKey.Armor,
             "magicresist" => StatKey.MagicResist,
+            "soulstrength" => StatKey.SoulStrength,
 
             // Elemental damage bonuses
             "firedamagebonus" => StatKey.FireDamageBonus,
@@ -212,6 +221,7 @@ public static class StatKeyExtensions
             "manaregen" => StatKey.ManaRegen,
             "castspeed" => StatKey.CastSpeed,
             "maxhealth" => StatKey.MaxHealth,
+            "soulguard" => StatKey.SoulGuard,
 
             // Combat effects
             "healonkill" => StatKey.HealOnKill,
@@ -264,7 +274,8 @@ public static class StatKeyExtensions
         StatKey.CritChance,
         StatKey.CritDamage,
         StatKey.Armor,
-        StatKey.MagicResist
+        StatKey.MagicResist,
+        StatKey.SoulStrength
     };
 
     /// <summary>

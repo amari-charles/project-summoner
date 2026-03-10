@@ -36,6 +36,7 @@ public class SummonerLoadResult
     // Pass 2 wiring fields for simulation combat modifiers.
     public float DamageBonus { get; set; }
     public float DamageReduction { get; set; }
+    public float SoulGuard { get; set; }
     public Dictionary<Element, float> ElementalDamageBonuses { get; } = new();
 }
 
@@ -342,6 +343,7 @@ public static class BattleSessionFactory
         result.Hp = health;
         result.DamageBonus = stats.GetValueOrDefault("damage_bonus", 0f);
         result.DamageReduction = stats.GetValueOrDefault("damage_reduction", 0f);
+        result.SoulGuard = stats.GetValueOrDefault("soul_guard", 0f);
         result.ElementalDamageBonuses.Clear();
         PopulateElementalDamageBonuses(result.ElementalDamageBonuses, stats);
 
