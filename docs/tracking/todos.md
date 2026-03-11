@@ -23,6 +23,8 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-08, desync pass):** Closed sim/visual state desync audit task after phase sync hardening, summoner destroy signal dedupe, activation-state visual alignment fix, and regression coverage updates.
 **Tracker Sync (2026-03-09, combat correctness):** Moved completed DamageProfile armor/magic-resist integration + summoner combat-modifier wiring to `todos-completed.md`; removed UI damage-type card indicator from this task per product direction.
 **Tracker Sync (2026-03-10, attack vectors):** Updated `Implement Single Target vs Multi Target Attack System` to partial after runtime V1 delivery (vector recipient resolution + tests); visual telegraphs and balance pass remain.
+**Tracker Sync (2026-03-10, summoner design):** Added Summoner Oaths planning item (trait-backed permanent choices) and split trait work to prioritize curated, intentional trait design over placeholder AI-generated traits.
+**Tracker Sync (2026-03-11, summon traits runtime):** Updated trait-curation item to reflect shipped summon stat-tree runtime (shared trait IDs, per-card/per-rarity overrides, additive + spawn-count hooks, rarity-gated Legion tiers, coverage); remaining scope narrowed to per-summoner identity lines and campaign-level ultimate/oath design validation.
 
 ---
 
@@ -721,7 +723,87 @@ Summoner secondary stats (`damage_bonus`, `damage_reduction`) are computed inter
 **Related Files:**
 - `scripts/infrastructure/data/summoner_instance.gd` - `get_computed_stats()`
 - `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - damage calculations
-- `scripts/infrastructure/data/trait_catalog.gd` - trait definitions
+- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinitions.cs` - trait definitions
+
+---
+
+#### Define Summoner Oaths (Trait-Backed Campaign Choices)
+**Status:** ⬜ Not Started
+**Category:** Summoners / Identity
+**Effort:** Medium
+
+**Description:**
+Add summoner Oaths as explicit, high-impact choices shown to the player in progression flow. Each chosen Oath is persisted as a permanent trait entry on that summoner and drives future gameplay modifiers/conditions.
+
+**Requirements:**
+- Define initial Oath sets per summoner (2-4 options each)
+- Specify where Oath choice appears in summoner progression flow/UI
+- Persist selected Oath as trait data on the summoner profile
+- Ensure Oath traits resolve through existing trait runtime hooks (modifiers/triggers)
+- Document Oath interactions with Level Traits, Story Traits, and Ultimate Traits
+
+**Related Files:**
+- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinitions.cs`
+- `docs/features/summoners/progression-system.md`
+- `docs/design/trait-tree-screen-flow-spec.md`
+- `scripts/csharp/Meta/Progression/Core/ProgressionState.cs`
+
+**Notes:**
+- Oaths should be irreversible per summoner to reinforce Fateforged's permanent-choice identity.
+- Deferred until campaign-fleshing pass; trait curation remains the active priority now.
+
+---
+
+#### Curate Summoner Trait Catalog (Replace Placeholder AI Traits)
+**Status:** 🔄 In Progress (Summon Runtime Pass Complete)
+**Category:** Summoners / Traits
+**Effort:** Large
+
+**Description:**
+Replace placeholder AI-generated trait content in the current workstream with curated, intentional trait lines that reinforce summoner identity, army doctrine, and meaningful tradeoffs.
+
+**Tasks:**
+- [x] Audit summon-trait entries and replace placeholder/generated stat lines with curated v1 values
+- [x] Define summon-focused v1 trait sheet with tier bounds and stat priorities (`docs/design/summon-traits-v1.md`)
+- [x] Author summon trait-line tier chains with prerequisites in runtime catalog
+- [x] Implement card-rarity gating for `Legion` tiers (Common: IV, Rare: III, Epic: II, Legendary: none)
+- [x] Implement per-card/per-rarity trait value override plumbing while keeping shared trait names
+- [x] Wire additive stat and spawn-count trait effects through card effective stats + simulation runtime
+- [x] Add deterministic coverage for evaluator gating, override resolution, and spawn-count/runtime behavior
+- [x] Produce summon-focused curated trait draft: `docs/design/summon-traits-v1.md`
+- [ ] Define non-summon per-summoner identity trait lines (doctrine/tradeoff focus)
+- [ ] Author campaign-facing Ultimate/Oath trait candidates and validate permanence/exclusivity interactions
+
+**Related Files:**
+- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinitions.cs`
+- `docs/features/summoners/progression-system.md`
+- `docs/project/vision.md`
+- `docs/design/summon-traits-v1.md`
+
+**Notes:**
+- This replaces generic placeholder trait generation as the active trait work item.
+- Favor mechanics that create visible doctrine changes over flat stat inflation.
+- Summon stat-tree foundation is now implemented; remaining design scope is identity/campaign-layer trait work.
+
+---
+
+#### Implement Summoner Special Abilities
+**Status:** 🟨 In Progress (Phase 2/5)
+**Category:** Summoners
+**Effort:** Large
+
+**Description:**
+Implement the runtime system for summoner active/passive abilities after the curated trait catalog is locked.
+
+**Notes:**
+- Unified trait runtime/data scaffolding (Pass 2) is in place and wired into simulation/session.
+- Trait points are now deferred spend for summoners/cards; level-up no longer forces immediate picks.
+- Current priority: curated non-placeholder trait + oath design pass.
+- Pending runtime: evaluator/triggers, offer rolling, and full validation matrix completion.
+- Phase 3: Curated Level Traits (trait selection at level-up)
+- Phase 4: Ultimate Traits (level 10 capstone abilities)
+- Phase 5: End-to-end validation matrix + progression tuning
+- Foundation is ready via TraitCatalog modifier system
 
 ---
 
@@ -753,24 +835,6 @@ The summoner icon widget uses a circular clip shader with UV offset/scale params
 **Notes:**
 - Low priority until more summoner portraits are added
 - Pre-cropped assets may be simpler than per-summoner shader config
-
----
-
-#### Implement Summoner Special Abilities
-**Status:** 🟨 In Progress (Phase 2/4)
-**Category:** Summoners
-**Effort:** Large
-
-**Description:**
-Implement the system for summoner active and passive abilities.
-
-**Notes:**
-- Unified trait runtime/data scaffolding (Pass 2) is in place and wired into simulation/session.
-- Trait points are now deferred spend for summoners/cards; level-up no longer forces immediate picks.
-- Pending: Pass 3 runtime evaluator/triggers, offer rolling, and full validation matrix completion.
-- Phase 3: Level Traits (trait selection at level-up)
-- Phase 4: Ultimate Traits (level 10 capstone abilities)
-- Foundation is ready via TraitCatalog modifier system
 
 ---
 
