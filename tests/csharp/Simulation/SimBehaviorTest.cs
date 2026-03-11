@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
+using Fateforged.Constants;
 using GdUnit4;
 using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
@@ -544,13 +545,13 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickTargeting_KeepCurrentDisabled_CanSwitchWhenLockExpires()
+    public void TickTargeting_PreferAttackable_KeepsAttackableCurrentWhenLockExpires()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, aggroRadius: 20f);
         unit.HasConeConstraint = false;
         unit.DistanceScorerWeight = 0f;
         unit.HealthScorerWeight = 100f;
-        unit.TargetPolicyId = TargetPolicyId.Legacy;
+        unit.TargetPolicyId = TargetPolicyId.PreferAttackable;
 
         var currentInRange = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, hp: 100f);
         var outOfRangeLowHp = SimTestHelper.CreateMeleeUnit(_state, 1, x: 6f, hp: 100f);
@@ -562,7 +563,7 @@ public class SimBehaviorTest
         SimBehavior.TickTargeting(unit, _state);
 
         AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value == outOfRangeLowHp.UnitId).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value == currentInRange.UnitId).IsTrue();
     }
 
     // =========================================================================
@@ -721,6 +722,100 @@ public class SimBehaviorTest
         AssertThat(result.Movement).IsEqual(MovementResult.None);
     }
 
+    [TestCase]
+    public void TickBehavior_ForwardRectNotSatisfied_DoesNotSwingOrSpendCooldown()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f, damage: 10f);
+        attacker.CritChance = 0f;
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 2.7f;
+        attacker.EngageRectHalfWidth = 0.5f;
+        attacker.EngageRectForwardOffset = 0f;
+        attacker.EngageCloseRadius = 0.4f;
+        attacker.FallbackMovement = FallbackMovement.MoveToward;
+        attacker.IsFacingRight = true;
+
+        var behindTarget = SimTestHelper.CreateMeleeUnit(_state, 1, x: -1.4f, z: 0.1f, hp: 100f);
+        behindTarget.Evasion = 0f;
+
+        attacker.TargetUnitId = behindTarget.UnitId;
+        attacker.AttackCooldown = 0f;
+        var events = new List<SimEvent>();
+
+        var result = SimBehavior.TickBehavior(attacker, _state, 0.016f, events);
+
+        AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
+        AssertThat(attacker.BehaviorState).IsEqual(BehaviorState.InRange);
+        AssertThat(attacker.AttackCooldown).IsEqual(0f);
+        AssertThat(behindTarget.CurrentHp).IsEqual(100f);
+        AssertThat(SimTestHelper.FindEvent<UnitAttackedEvent>(events)).IsNull();
+    }
+
+    [TestCase]
+    public void TickBehavior_LineCollect_EngageGateUsesLineCorridorBeforeAttackStarts()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f, damage: 10f);
+        attacker.CritChance = 0f;
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 6f;
+        attacker.EngageRectHalfWidth = 0.5f;
+        attacker.EngageRectForwardOffset = 0f;
+        attacker.EngageCloseRadius = 0.4f;
+        attacker.IsFacingRight = true;
+        attacker.Attack.Selection.Mode = AttackSelectionMode.LineCollect;
+        attacker.Attack.Area.LineLength = 6f;
+        attacker.Attack.Area.LineHalfWidth = 0.5f;
+
+        var offCorridorPrimary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 1.1f, hp: 100f);
+        offCorridorPrimary.Evasion = 0f;
+
+        attacker.TargetUnitId = offCorridorPrimary.UnitId;
+        attacker.AttackCooldown = 0f;
+        var events = new List<SimEvent>();
+
+        var result = SimBehavior.TickBehavior(attacker, _state, 0.016f, events);
+
+        AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
+        AssertThat(attacker.BehaviorState).IsEqual(BehaviorState.InRange);
+        AssertThat(attacker.AttackCooldown).IsEqual(0f);
+        AssertThat(offCorridorPrimary.CurrentHp).IsEqual(100f);
+        AssertThat(SimTestHelper.FindEvent<UnitAttackedEvent>(events)).IsNull();
+    }
+
+    [TestCase]
+    public void TickBehavior_PebbloomVeryLargeForwardBox_HitsFrontAreaAndExcludesBehind()
+    {
+        SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(UnitIds.EarthSprite, count: 1);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: pebbloomTemplate.AttackRange,
+            damage: pebbloomTemplate.AttackDamage);
+        attacker.CritChance = 0f;
+        attacker.IsFacingRight = true;
+        attacker.Attack = pebbloomTemplate.Attack.DeepClone();
+        attacker.EngageShape = pebbloomTemplate.EngageShape;
+        attacker.EngageRectLength = pebbloomTemplate.EngageRectLength;
+        attacker.EngageRectHalfWidth = pebbloomTemplate.EngageRectHalfWidth;
+        attacker.EngageRectForwardOffset = pebbloomTemplate.EngageRectForwardOffset;
+        attacker.EngageCloseRadius = pebbloomTemplate.EngageCloseRadius;
+
+        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3.8f, z: 0f, hp: 100f);
+        primary.Evasion = 0f;
+        var frontWideRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4.9f, z: 2.4f, hp: 100f);
+        frontWideRecipient.Evasion = 0f;
+        var behindRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: -0.8f, z: 0f, hp: 100f);
+        behindRecipient.Evasion = 0f;
+
+        var events = new List<SimEvent>();
+        ExecuteMeleeAttack(attacker, primary, _state, events);
+
+        AssertThat(primary.CurrentHp).IsLess(100f);
+        AssertThat(frontWideRecipient.CurrentHp).IsLess(100f);
+        AssertThat(behindRecipient.CurrentHp).IsEqual(100f);
+    }
+
     // =========================================================================
     // Attack Vector Behavior (PASS 3)
     // =========================================================================
@@ -797,6 +892,33 @@ public class SimBehaviorTest
         AssertThat(frontRecipient.CurrentHp).IsLess(100f);
         AssertThat(behindRecipient.CurrentHp).IsEqual(100f);
         AssertThat(outsideWidth.CurrentHp).IsEqual(100f);
+    }
+
+    [TestCase]
+    public void TickBehavior_AttackVector_AreaCollectBox_ForwardOffsetSkipsCloseTargets()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        attacker.CritChance = 0f;
+        attacker.IsFacingRight = true;
+        attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
+        attacker.Attack.Area.Shape = AttackAreaShape.Box;
+        attacker.Attack.Area.Size = new SimVector3(3f, 1f, 1f);
+        attacker.Attack.Area.ForwardOffset = 1.5f;
+        attacker.Attack.Selection.TargetLimit = 4;
+
+        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2.2f, z: 0f, hp: 100f);
+        primary.Evasion = 0f;
+        var tooClose = SimTestHelper.CreateMeleeUnit(_state, 1, x: 0.7f, z: 0.2f, hp: 100f);
+        tooClose.Evasion = 0f;
+        var inOffsetBox = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3.6f, z: 0.5f, hp: 100f);
+        inOffsetBox.Evasion = 0f;
+
+        var events = new List<SimEvent>();
+        ExecuteMeleeAttack(attacker, primary, _state, events);
+
+        AssertThat(primary.CurrentHp).IsLess(100f);
+        AssertThat(tooClose.CurrentHp).IsEqual(100f);
+        AssertThat(inOffsetBox.CurrentHp).IsLess(100f);
     }
 
     [TestCase]

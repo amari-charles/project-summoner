@@ -4,6 +4,7 @@ using Fateforged.Projectiles;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Geometry;
 using Fateforged.Simulation.Subsystems;
 
 namespace Fateforged.Simulation.Combat;
@@ -414,7 +415,7 @@ public static class SimProjectile
             if (unit.UnitId == proj.SourceUnitId) continue; // Don't hit source
             if (proj.HitUnitIds.Contains(unit.UnitId)) continue; // Never hit same unit twice
 
-            float hitThreshold = MathF.Max(0f, proj.HitRadius + unit.SeparationRadius);
+            float hitThreshold = MathF.Max(0f, proj.HitRadius + CombatGeometry.GetHurtboxRadius(unit));
             if (TryGetSegmentDistanceAndT(proj, unit, proj.LastPosition, proj.CurrentPosition,
                     out float distSq, out float segmentT) &&
                 distSq <= hitThreshold * hitThreshold)
@@ -508,7 +509,7 @@ public static class SimProjectile
             if (unit.Team == proj.Team) continue;
             if (proj.HitUnitIds.Contains(unit.UnitId)) continue;
 
-            float radius = MathF.Max(0f, proj.AoeRadius + unit.SeparationRadius);
+            float radius = MathF.Max(0f, proj.AoeRadius + CombatGeometry.GetHurtboxRadius(unit));
             if (!CanHitUnitInRadius(proj, unit, center, radius))
                 continue;
 
@@ -597,85 +598,60 @@ public static class SimProjectile
 
     private static bool CanHitUnitAtPoint(SimProjectileData proj, UnitData unit, SimVector3 point)
     {
-        float radius = MathF.Max(0f, proj.HitRadius + unit.SeparationRadius);
+        float radius = MathF.Max(0f, proj.HitRadius + CombatGeometry.GetHurtboxRadius(unit));
         return CanHitUnitInRadius(proj, unit, point, radius);
     }
 
     private static bool CanHitUnitInRadius(SimProjectileData proj, UnitData unit, SimVector3 center, float radius)
     {
-        float radiusSq = radius * radius;
-        return UseGroundCylinder(proj, unit)
-            ? DistanceSquaredXZ(center, unit.Position) <= radiusSq
-            : center.DistanceSquaredTo(unit.Position) <= radiusSq;
+        return CombatGeometry.CanHitUnitInRadius(proj.HitSpace, unit, center, radius);
     }
 
     private static bool TryGetSegmentDistanceAndT(
         SimProjectileData proj, UnitData unit, SimVector3 segA, SimVector3 segB,
         out float distanceSq, out float segmentT)
     {
-        if (UseGroundCylinder(proj, unit))
-            return TryGetPointToSegmentDistanceSqXZ(unit.Position, segA, segB, out distanceSq, out segmentT);
-
-        return TryGetPointToSegmentDistanceSq(unit.Position, segA, segB, out distanceSq, out segmentT);
+        return CombatGeometry.TryGetSegmentDistanceAndT(
+            proj.HitSpace,
+            unit,
+            segA,
+            segB,
+            out distanceSq,
+            out segmentT
+        );
     }
 
     private static bool UseGroundCylinder(SimProjectileData proj, UnitData unit)
     {
-        if (proj.HitSpace == ProjectileHitSpace.Sphere3D)
-            return false;
-
-        return unit.MovementLayer == MovementLayer.Ground;
+        return CombatGeometry.UseGroundCylinder(proj.HitSpace, unit);
     }
 
     private static bool TryGetPointToSegmentDistanceSq(
         SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
     {
-        var ab = segB - segA;
-        float abLenSq = ab.LengthSquared();
-        if (abLenSq < GeometryEpsilon)
-        {
-            segmentT = 0f;
-            distanceSq = point.DistanceSquaredTo(segA);
-            return true;
-        }
-
-        segmentT = SimMath.Clamp(ab.Dot(point - segA) / abLenSq, 0f, 1f);
-        var closest = segA + ab * segmentT;
-        distanceSq = closest.DistanceSquaredTo(point);
-        return true;
+        return CombatGeometry.TryGetPointToSegmentDistanceSq(
+            point,
+            segA,
+            segB,
+            out distanceSq,
+            out segmentT
+        );
     }
 
     private static bool TryGetPointToSegmentDistanceSqXZ(
         SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
     {
-        float abX = segB.X - segA.X;
-        float abZ = segB.Z - segA.Z;
-        float abLenSq = (abX * abX) + (abZ * abZ);
-        if (abLenSq < GeometryEpsilon)
-        {
-            segmentT = 0f;
-            float dx0 = point.X - segA.X;
-            float dz0 = point.Z - segA.Z;
-            distanceSq = (dx0 * dx0) + (dz0 * dz0);
-            return true;
-        }
-
-        float apX = point.X - segA.X;
-        float apZ = point.Z - segA.Z;
-        segmentT = SimMath.Clamp(((abX * apX) + (abZ * apZ)) / abLenSq, 0f, 1f);
-
-        float closestX = segA.X + abX * segmentT;
-        float closestZ = segA.Z + abZ * segmentT;
-        float dx = point.X - closestX;
-        float dz = point.Z - closestZ;
-        distanceSq = (dx * dx) + (dz * dz);
-        return true;
+        return CombatGeometry.TryGetPointToSegmentDistanceSqXZ(
+            point,
+            segA,
+            segB,
+            out distanceSq,
+            out segmentT
+        );
     }
 
     private static float DistanceSquaredXZ(SimVector3 a, SimVector3 b)
     {
-        float dx = a.X - b.X;
-        float dz = a.Z - b.Z;
-        return (dx * dx) + (dz * dz);
+        return CombatGeometry.DistanceSquaredXZ(a, b);
     }
 }

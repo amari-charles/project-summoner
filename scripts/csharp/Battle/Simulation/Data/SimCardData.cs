@@ -132,6 +132,11 @@ public class SimUnitTemplate
     public float AttackRange { get; set; } = 2f;
     public float AggroRadius { get; set; } = 20f;
     public float SeparationRadius { get; set; } = 0.5f;
+    public float NavigationRadius { get; set; } = 0.5f;
+    public float HurtboxRadius { get; set; } = 0.5f;
+    public float HurtboxHeight { get; set; }
+    public bool HurtboxHorizontal { get; set; }
+    public SimVector3 HurtboxOffset { get; set; } = SimVector3.Zero;
     public float CritChance { get; set; }
     public float CritDamage { get; set; } = 1.5f;
     public float SoulStrength { get; set; }
@@ -148,6 +153,11 @@ public class SimUnitTemplate
 
     // Targeting config (extracted from UnitDefinition at match start)
     public FallbackMovement FallbackMovement { get; set; }
+    public EngageShape EngageShape { get; set; } = EngageShape.Circle;
+    public float EngageRectLength { get; set; }
+    public float EngageRectHalfWidth { get; set; }
+    public float EngageRectForwardOffset { get; set; }
+    public float EngageCloseRadius { get; set; } = 0.4f;
     public bool HasConeConstraint { get; set; }
     public float ConeHalfAngle { get; set; } = 30f;
     public float CloseRangeThreshold { get; set; } = 0.5f;

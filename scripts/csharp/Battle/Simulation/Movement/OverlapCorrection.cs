@@ -1,6 +1,7 @@
 using System;
 using Fateforged.Constants;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Geometry;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -12,6 +13,9 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class OverlapCorrection
 {
+    private const float DefaultCorrectionStrength = 0.30f;
+    private const float SameTargetMeleeCorrectionStrength = 0.05f;
+
     /// <summary>
     /// Correct remaining overlaps for a single unit against all others.
     /// This is a safety net — ORCA should prevent most overlaps, but
@@ -31,7 +35,9 @@ public static class OverlapCorrection
             if (unit.TargetUnitId.HasValue && other.UnitId == unit.TargetUnitId.Value) continue;
             if (other.TargetUnitId.HasValue && other.TargetUnitId.Value == unit.UnitId) continue;
 
-            float minDist = unit.SeparationRadius + other.SeparationRadius;
+            float unitRadius = CombatGeometry.GetNavigationRadius(unit);
+            float otherRadius = CombatGeometry.GetNavigationRadius(other);
+            float minDist = unitRadius + otherRadius;
             var diff = unit.Position - other.Position;
             diff.Y = 0;
             float distSq = diff.LengthSquared();
@@ -42,15 +48,22 @@ public static class OverlapCorrection
             float overlap = minDist - dist;
             var pushDir = diff / dist;
 
-            // Push proportional to relative mass (SeparationRadius^3)
-            float unitMass = unit.SeparationRadius * unit.SeparationRadius * unit.SeparationRadius;
-            float otherMass = other.SeparationRadius * other.SeparationRadius * other.SeparationRadius;
+            // Push proportional to relative mass (navigationRadius^3)
+            float unitMass = unitRadius * unitRadius * unitRadius;
+            float otherMass = otherRadius * otherRadius * otherRadius;
             float pushRatio = otherMass / (unitMass + otherMass);
 
-            const float CorrectionStrength = 0.3f;
-            var newPos = unit.Position + pushDir * overlap * pushRatio * CorrectionStrength;
+            float correctionStrength = UseSameTargetMeleeRelaxation(unit, other, state)
+                ? SameTargetMeleeCorrectionStrength
+                : DefaultCorrectionStrength;
+            var newPos = unit.Position + pushDir * overlap * pushRatio * correctionStrength;
             newPos = BattlefieldBounds.ClampToBounds(newPos);
             unit.Position = new SimVector3(newPos.X, unit.Position.Y, newPos.Z);
         }
+    }
+
+    private static bool UseSameTargetMeleeRelaxation(UnitData unit, UnitData other, MatchState state)
+    {
+        return MeleeClumpContext.IsSameTargetCloseMeleePair(unit, other, state);
     }
 }

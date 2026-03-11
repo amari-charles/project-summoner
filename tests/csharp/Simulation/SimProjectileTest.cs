@@ -21,7 +21,7 @@ public class SimProjectileTest
     }
 
     [TestCase]
-    public void TickAll_UsesTargetSeparationRadiusForContact()
+    public void TickAll_UsesTargetHurtboxRadiusForContact()
     {
         var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
         source.ElementId = 0;
@@ -29,7 +29,7 @@ public class SimProjectileTest
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1.5f, z: 0.4f, hp: 100f);
         target.Evasion = 0f;
-        target.SeparationRadius = 0.5f;
+        target.HurtboxRadius = 0.5f;
 
         SimProjectile.Spawn(
             _state,
@@ -63,7 +63,7 @@ public class SimProjectileTest
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1.5f, z: 0f, hp: 100f);
         target.Evasion = 0f;
-        target.SeparationRadius = 0.5f;
+        target.HurtboxRadius = 0.5f;
 
         SimProjectile.Spawn(
             _state,
@@ -96,7 +96,7 @@ public class SimProjectileTest
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1.5f, z: 0f, hp: 100f);
         target.Evasion = 0f;
-        target.SeparationRadius = 0.5f;
+        target.HurtboxRadius = 0.5f;
 
         SimProjectile.Spawn(
             _state,
@@ -130,7 +130,7 @@ public class SimProjectileTest
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1f, z: 0f, hp: 200f);
         target.Evasion = 0f;
-        target.SeparationRadius = 0.5f;
+        target.HurtboxRadius = 0.5f;
 
         SimProjectile.Spawn(
             _state,
@@ -173,11 +173,11 @@ public class SimProjectileTest
         // Insert farther enemy first to validate deterministic nearest-contact ordering.
         var farther = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 0.1f, hp: 100f);
         farther.Evasion = 0f;
-        farther.SeparationRadius = 0.2f;
+        farther.HurtboxRadius = 0.2f;
 
         var nearer = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1f, z: 0.1f, hp: 100f);
         nearer.Evasion = 0f;
-        nearer.SeparationRadius = 0.2f;
+        nearer.HurtboxRadius = 0.2f;
 
         SimProjectile.Spawn(
             _state,
@@ -216,11 +216,11 @@ public class SimProjectileTest
 
         var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1f, z: 0f, hp: 100f);
         primary.Evasion = 0f;
-        primary.SeparationRadius = 0.2f;
+        primary.HurtboxRadius = 0.2f;
 
         var farEnd = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, z: 0f, hp: 100f);
         farEnd.Evasion = 0f;
-        farEnd.SeparationRadius = 0.2f;
+        farEnd.HurtboxRadius = 0.2f;
 
         SimProjectile.Spawn(
             _state,
@@ -256,7 +256,7 @@ public class SimProjectileTest
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 0f, hp: 100f);
         target.Evasion = 0f;
-        target.SeparationRadius = 0.5f;
+        target.HurtboxRadius = 0.5f;
 
         int projId = SimProjectile.Spawn(
             _state,
@@ -297,7 +297,7 @@ public class SimProjectileTest
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 0f, hp: 100f);
         target.Evasion = 0f;
-        target.SeparationRadius = 0.5f;
+        target.HurtboxRadius = 0.5f;
 
         int projId = SimProjectile.Spawn(
             _state,
@@ -336,7 +336,7 @@ public class SimProjectileTest
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 0f, hp: 100f);
         target.Evasion = 0f;
-        target.SeparationRadius = 0.5f;
+        target.HurtboxRadius = 0.5f;
 
         int projId = SimProjectile.Spawn(
             _state,

@@ -497,6 +497,9 @@ public class Simulation
     /// </summary>
     private void TickUnits(float fixedDelta, List<SimEvent> events)
     {
+        // Commit-slot ordering: clear dead/invalid slot bindings before target reacquire.
+        _state.ReleaseInvalidSlotReferences();
+
         var units = _state.GetAliveActiveUnits();
 
         foreach (var unit in units)
@@ -504,11 +507,8 @@ public class Simulation
             // Cooldowns
             SimBehavior.TickCooldowns(unit, fixedDelta);
 
-            // Targeting
-            SimBehavior.TickTargeting(unit, _state);
-
-            // Behavior (returns movement instruction)
-            var result = SimBehavior.TickBehavior(unit, _state, fixedDelta, events);
+            // Combat orchestration (commit-slot flow is authoritative).
+            var result = SimCombatStateMachine.Tick(unit, _state, fixedDelta, events);
 
             // Movement
             SimMovement.Tick(unit, result, _state, fixedDelta);
@@ -631,11 +631,14 @@ public class Simulation
                 var networkId = _state.NextNetworkId();
                 if (firstNetworkId < 0)
                     firstNetworkId = networkId;
+                float spawnRadius = template.NavigationRadius > 0f
+                    ? template.NavigationRadius
+                    : 0.5f;
                 var position = CalculateSpawnOffset(
                     spawnPosition,
                     unitIndex,
                     totalUnits,
-                    template.SeparationRadius
+                    spawnRadius
                 );
 
                 var unitData = new UnitData
@@ -655,6 +658,11 @@ public class Simulation
                     AggroRadius = template.AggroRadius,
                     SoulStrength = template.SoulStrength,
                     SeparationRadius = template.SeparationRadius,
+                    NavigationRadius = template.NavigationRadius,
+                    HurtboxRadius = template.HurtboxRadius,
+                    HurtboxHeight = template.HurtboxHeight,
+                    HurtboxHorizontal = template.HurtboxHorizontal,
+                    HurtboxOffset = template.HurtboxOffset,
                     CritChance = template.CritChance,
                     CritDamage = template.CritDamage,
                     UnitType = template.UnitType,
@@ -663,6 +671,11 @@ public class Simulation
                     AssignedLane = VirtualLanes.GetLaneIndex(position.Z),
                     ElementId = template.ElementId,
                     FallbackMovement = template.FallbackMovement,
+                    EngageShape = template.EngageShape,
+                    EngageRectLength = template.EngageRectLength,
+                    EngageRectHalfWidth = template.EngageRectHalfWidth,
+                    EngageRectForwardOffset = template.EngageRectForwardOffset,
+                    EngageCloseRadius = template.EngageCloseRadius,
                     HasConeConstraint = template.HasConeConstraint,
                     ConeHalfAngle = template.ConeHalfAngle,
                     CloseRangeThreshold = template.CloseRangeThreshold,

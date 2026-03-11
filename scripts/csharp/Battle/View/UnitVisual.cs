@@ -41,12 +41,13 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     // Debug visualization markers (toggleable via BattlefieldDebugService autoload).
     private MeshInstance3D? _debugHurtboxMarker;
     private MeshInstance3D? _debugTargetPointMarker;
-    private MeshInstance3D? _debugAttackRangeMarker;
-    private MeshInstance3D? _debugSeparationRadiusMarker;
-    private bool _debugAttackRangeIsCone;
-    private float _debugAttackRangeRadius = -1f;
-    private float _debugAttackConeHalfAngle = -1f;
-    private float _debugSeparationRadius = -1f;
+    private MeshInstance3D? _debugEngageRangeMarker;
+    private MeshInstance3D? _debugEngageRangeSecondaryMarker;
+    private MeshInstance3D? _debugDamageShapeMarker;
+    private MeshInstance3D? _debugNavigationFootprintMarker;
+    private int _debugEngageSignature;
+    private float _debugNavigationFootprintRadius = -1f;
+    private int _debugDamageShapeSignature;
 
     // --- IDamageableVisual ---
 
@@ -224,7 +225,9 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         bool anyDebugEnabled = BattlefieldDebugService.Instance?.AnyUnitDebugEnabled ?? false;
         bool anyMarkerExists = _debugHurtboxMarker != null || _debugTargetPointMarker != null ||
-                               _debugAttackRangeMarker != null || _debugSeparationRadiusMarker != null;
+                               _debugEngageRangeMarker != null || _debugEngageRangeSecondaryMarker != null ||
+                               _debugDamageShapeMarker != null ||
+                               _debugNavigationFootprintMarker != null;
 
         if (!anyDebugEnabled && !anyMarkerExists)
             return;
@@ -246,15 +249,20 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         else
             FreeMarker(ref _debugTargetPointMarker);
 
-        if (BattlefieldDebugService.Instance?.AttackRangeEnabled == true)
-            UpdateDebugAttackRangeMarker(unitData);
+        if (BattlefieldDebugService.Instance?.EngageRangeEnabled == true)
+            UpdateDebugEngageRangeMarker(unitData);
         else
-            FreeMarker(ref _debugAttackRangeMarker);
+            ClearEngageMarkers();
 
-        if (BattlefieldDebugService.Instance?.SeparationRadiusEnabled == true)
-            UpdateDebugSeparationRadiusMarker(unitData);
+        if (BattlefieldDebugService.Instance?.DamageShapeEnabled == true)
+            UpdateDebugDamageShapeMarker(unitData);
         else
-            FreeMarker(ref _debugSeparationRadiusMarker);
+            FreeMarker(ref _debugDamageShapeMarker);
+
+        if (BattlefieldDebugService.Instance?.NavigationFootprintEnabled == true)
+            UpdateDebugNavigationFootprintMarker(unitData);
+        else
+            FreeMarker(ref _debugNavigationFootprintMarker);
     }
 
     // --- Event Reactions (called by EntityManager) ---
@@ -314,8 +322,10 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
     private void UpdateDebugHurtboxMarker(UnitData unitData)
     {
-        float radius = Mathf.Max(0.5f, unitData.SeparationRadius);
-        float height = Mathf.Max(1.0f, _visual?.GetSpriteHeight() ?? 2.0f);
+        float radius = ResolveHurtboxRadius(unitData);
+        float height = ResolveHurtboxHeight(unitData);
+        bool horizontal = unitData.HurtboxHorizontal;
+        var offset = new Vector3(unitData.HurtboxOffset.X, unitData.HurtboxOffset.Y, unitData.HurtboxOffset.Z);
 
         if (_debugHurtboxMarker == null)
         {
@@ -334,7 +344,11 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             capsule.Height = height;
         }
 
-        _debugHurtboxMarker.Position = new Vector3(0f, height * 0.5f, 0f);
+        float yAnchor = horizontal ? radius : (height * 0.5f);
+        _debugHurtboxMarker.Position = new Vector3(offset.X, offset.Y + yAnchor, offset.Z);
+        _debugHurtboxMarker.Rotation = horizontal
+            ? new Vector3(0f, 0f, Mathf.Pi * 0.5f)
+            : Vector3.Zero;
     }
 
     private void UpdateDebugTargetPointMarker(UnitData _unitData)
@@ -357,61 +371,348 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         );
     }
 
-    private void UpdateDebugAttackRangeMarker(UnitData unitData)
+    private void UpdateDebugEngageRangeMarker(UnitData unitData)
     {
-        float range = Mathf.Max(0.2f, unitData.AttackRange);
-        bool isCone = unitData.HasConeConstraint;
-        float coneHalfAngle = Mathf.Clamp(unitData.ConeHalfAngle, 1f, 89f);
-
-        bool needsRebuild = _debugAttackRangeMarker == null ||
-                            !Mathf.IsEqualApprox(range, _debugAttackRangeRadius) ||
-                            _debugAttackRangeIsCone != isCone ||
-                            (isCone && !Mathf.IsEqualApprox(coneHalfAngle, _debugAttackConeHalfAngle));
-
-        if (needsRebuild)
+        EngageShape engageShape = ResolveEngageShape(unitData);
+        switch (engageShape)
         {
-            FreeMarker(ref _debugAttackRangeMarker);
-            _debugAttackRangeMarker = isCone
-                ? CreateDebugCone(range, coneHalfAngle, new Color(1.0f, 0.8f, 0.2f, 0.3f), 99)
-                : CreateDebugDisc(range, new Color(1.0f, 0.8f, 0.2f, 0.3f), 99);
-            AddChild(_debugAttackRangeMarker);
-            _debugAttackRangeRadius = range;
-            _debugAttackRangeIsCone = isCone;
-            _debugAttackConeHalfAngle = coneHalfAngle;
-        }
+            case EngageShape.Cone:
+            {
+                float range = Mathf.Max(0.2f, unitData.AttackRange);
+                float coneHalfAngle = Mathf.Clamp(unitData.ConeHalfAngle, 1f, 89f);
+                int signature = BuildEngageSignature(
+                    engageShape, range, coneHalfAngle, 0f, 0f, 0f);
 
-        if (_debugAttackRangeMarker == null)
-            return;
+                if (_debugEngageRangeMarker == null || signature != _debugEngageSignature)
+                {
+                    ClearEngageMarkers();
+                    _debugEngageRangeMarker = CreateDebugCone(range, coneHalfAngle, new Color(1.0f, 0.8f, 0.2f, 0.3f), 99);
+                    AddChild(_debugEngageRangeMarker);
+                    _debugEngageSignature = signature;
+                }
 
-        _debugAttackRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
-        if (isCone)
-        {
-            float yRotation = _isFacingRight ? 0f : Mathf.Pi;
-            _debugAttackRangeMarker.Rotation = new Vector3(0f, yRotation, 0f);
-        }
-        else
-        {
-            _debugAttackRangeMarker.Rotation = Vector3.Zero;
+                if (_debugEngageRangeMarker == null)
+                    return;
+
+                _debugEngageRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
+                float yRotation = _isFacingRight ? 0f : Mathf.Pi;
+                _debugEngageRangeMarker.Rotation = new Vector3(0f, yRotation, 0f);
+                return;
+            }
+
+            case EngageShape.ForwardRect:
+            {
+                float length = unitData.EngageRectLength > 0f
+                    ? unitData.EngageRectLength
+                    : Mathf.Max(unitData.AttackRange * 0.9f, 0.1f);
+                float halfWidth = unitData.EngageRectHalfWidth > 0f
+                    ? unitData.EngageRectHalfWidth
+                    : 0.45f;
+                float forwardOffset = Mathf.Max(unitData.EngageRectForwardOffset, 0f);
+                float closeRadius = Mathf.Max(unitData.EngageCloseRadius, 0.05f);
+                int signature = BuildEngageSignature(
+                    engageShape, length, halfWidth, forwardOffset, closeRadius, 0f);
+
+                if (_debugEngageRangeMarker == null ||
+                    _debugEngageRangeSecondaryMarker == null ||
+                    signature != _debugEngageSignature)
+                {
+                    ClearEngageMarkers();
+                    _debugEngageRangeMarker = CreateDebugCorridor(
+                        length,
+                        halfWidth,
+                        new Color(1.0f, 0.8f, 0.2f, 0.26f),
+                        99);
+                    _debugEngageRangeSecondaryMarker = CreateDebugDisc(
+                        closeRadius,
+                        new Color(1.0f, 0.8f, 0.2f, 0.22f),
+                        99);
+                    AddChild(_debugEngageRangeMarker);
+                    AddChild(_debugEngageRangeSecondaryMarker);
+                    _debugEngageSignature = signature;
+                }
+
+                if (_debugEngageRangeMarker == null || _debugEngageRangeSecondaryMarker == null)
+                    return;
+
+                float directionSign = _isFacingRight ? 1f : -1f;
+                float centerDistance = forwardOffset + (length * 0.5f);
+                _debugEngageRangeMarker.GlobalPosition = new Vector3(
+                    GlobalPosition.X + (centerDistance * directionSign),
+                    0.05f,
+                    GlobalPosition.Z
+                );
+                _debugEngageRangeMarker.Rotation = new Vector3(0f, _isFacingRight ? 0f : Mathf.Pi, 0f);
+
+                _debugEngageRangeSecondaryMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
+                _debugEngageRangeSecondaryMarker.Rotation = Vector3.Zero;
+                return;
+            }
+
+            default:
+            {
+                float range = Mathf.Max(0.2f, unitData.AttackRange);
+                int signature = BuildEngageSignature(
+                    engageShape, range, 0f, 0f, 0f, 0f);
+
+                if (_debugEngageRangeMarker == null || signature != _debugEngageSignature)
+                {
+                    ClearEngageMarkers();
+                    _debugEngageRangeMarker = CreateDebugDisc(range, new Color(1.0f, 0.8f, 0.2f, 0.3f), 99);
+                    AddChild(_debugEngageRangeMarker);
+                    _debugEngageSignature = signature;
+                }
+
+                if (_debugEngageRangeMarker == null)
+                    return;
+
+                _debugEngageRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
+                _debugEngageRangeMarker.Rotation = Vector3.Zero;
+                return;
+            }
         }
     }
 
-    private void UpdateDebugSeparationRadiusMarker(UnitData unitData)
+    private void UpdateDebugDamageShapeMarker(UnitData unitData)
     {
-        float radius = Mathf.Max(0.1f, unitData.SeparationRadius);
-        bool needsRebuild = _debugSeparationRadiusMarker == null || !Mathf.IsEqualApprox(radius, _debugSeparationRadius);
-        if (needsRebuild)
+        var shapeSpec = BuildDamageShapeSpec(unitData);
+        if (shapeSpec.Kind == DamageShapeMarkerKind.None)
         {
-            FreeMarker(ref _debugSeparationRadiusMarker);
-            _debugSeparationRadiusMarker = CreateDebugDisc(radius, new Color(0.8f, 0.4f, 1.0f, 0.4f), 98);
-            AddChild(_debugSeparationRadiusMarker);
-            _debugSeparationRadius = radius;
+            FreeMarker(ref _debugDamageShapeMarker);
+            _debugDamageShapeSignature = 0;
+            return;
         }
 
-        if (_debugSeparationRadiusMarker == null)
+        int signature = BuildDamageShapeSignature(shapeSpec);
+        if (_debugDamageShapeMarker == null || signature != _debugDamageShapeSignature)
+        {
+            FreeMarker(ref _debugDamageShapeMarker);
+            _debugDamageShapeMarker = shapeSpec.Kind == DamageShapeMarkerKind.Disc
+                ? CreateDebugDisc(shapeSpec.Radius, new Color(0.2f, 0.8f, 1.0f, 0.24f), 97)
+                : CreateDebugCorridor(shapeSpec.Length, shapeSpec.HalfWidth, new Color(0.2f, 0.8f, 1.0f, 0.24f), 97);
+            AddChild(_debugDamageShapeMarker);
+            _debugDamageShapeSignature = signature;
+        }
+
+        if (_debugDamageShapeMarker == null)
             return;
 
-        _debugSeparationRadiusMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.03f, GlobalPosition.Z);
-        _debugSeparationRadiusMarker.Rotation = Vector3.Zero;
+        var targetPosition = ResolveDamageShapeTargetPosition(unitData);
+
+        if (shapeSpec.Kind == DamageShapeMarkerKind.Disc)
+        {
+            if (ShouldAnchorDamageDiscToTarget(unitData, targetPosition) && targetPosition.HasValue)
+            {
+                var anchoredPosition = targetPosition.Value;
+                _debugDamageShapeMarker.GlobalPosition = new Vector3(anchoredPosition.X, 0.04f, anchoredPosition.Z);
+            }
+            else
+            {
+                _debugDamageShapeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.04f, GlobalPosition.Z);
+            }
+            _debugDamageShapeMarker.Rotation = Vector3.Zero;
+            return;
+        }
+
+        Vector3 direction = ResolveDamageShapeDirection(unitData, targetPosition);
+        float centerDistance = shapeSpec.ForwardOffset + (shapeSpec.Length * 0.5f);
+        _debugDamageShapeMarker.GlobalPosition = new Vector3(
+            GlobalPosition.X + (centerDistance * direction.X),
+            0.04f,
+            GlobalPosition.Z + (centerDistance * direction.Z)
+        );
+        _debugDamageShapeMarker.Rotation = new Vector3(0f, Mathf.Atan2(direction.Z, direction.X), 0f);
+    }
+
+    private void UpdateDebugNavigationFootprintMarker(UnitData unitData)
+    {
+        float radius = ResolveNavigationFootprintRadius(unitData);
+        bool needsRebuild = _debugNavigationFootprintMarker == null || !Mathf.IsEqualApprox(radius, _debugNavigationFootprintRadius);
+        if (needsRebuild)
+        {
+            FreeMarker(ref _debugNavigationFootprintMarker);
+            _debugNavigationFootprintMarker = CreateDebugDisc(radius, new Color(0.8f, 0.4f, 1.0f, 0.4f), 98);
+            AddChild(_debugNavigationFootprintMarker);
+            _debugNavigationFootprintRadius = radius;
+        }
+
+        if (_debugNavigationFootprintMarker == null)
+            return;
+
+        _debugNavigationFootprintMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.03f, GlobalPosition.Z);
+        _debugNavigationFootprintMarker.Rotation = Vector3.Zero;
+    }
+
+    private float ResolveNavigationFootprintRadius(UnitData unitData)
+    {
+        if (unitData.NavigationRadius > 0f)
+            return Mathf.Max(0.1f, unitData.NavigationRadius);
+        return 0.5f;
+    }
+
+    private float ResolveHurtboxRadius(UnitData unitData)
+    {
+        if (unitData.HurtboxRadius > 0f)
+            return Mathf.Max(0.05f, unitData.HurtboxRadius);
+        return 0.5f;
+    }
+
+    private float ResolveHurtboxHeight(UnitData unitData)
+    {
+        if (unitData.HurtboxHeight > 0f)
+            return Mathf.Max(unitData.HurtboxHeight, ResolveHurtboxRadius(unitData) * 2f);
+        return Mathf.Max(1.0f, _visual?.GetSpriteHeight() ?? 2.0f);
+    }
+
+    private DamageShapeSpec BuildDamageShapeSpec(UnitData unitData)
+    {
+        switch (unitData.Attack.Selection.Mode)
+        {
+            case AttackSelectionMode.Single:
+                return DamageShapeSpec.Disc(0.24f);
+
+            case AttackSelectionMode.ChainHops:
+            {
+                float chainRadius = unitData.Attack.Propagation.ChainJumpRadius > 0f
+                    ? unitData.Attack.Propagation.ChainJumpRadius
+                    : 0.5f;
+                return DamageShapeSpec.Disc(chainRadius);
+            }
+
+            case AttackSelectionMode.LineCollect:
+            {
+                float length = unitData.Attack.Area.LineLength > 0f
+                    ? unitData.Attack.Area.LineLength
+                    : Mathf.Max(unitData.AttackRange, 0.5f);
+                float halfWidth = unitData.Attack.Area.LineHalfWidth > 0f
+                    ? unitData.Attack.Area.LineHalfWidth
+                    : 0.5f;
+                return DamageShapeSpec.Corridor(length, halfWidth, unitData.Attack.Area.ForwardOffset);
+            }
+
+            case AttackSelectionMode.AreaCollect:
+                return unitData.Attack.Area.Shape switch
+                {
+                    AttackAreaShape.Sphere => DamageShapeSpec.Disc(
+                        unitData.Attack.Area.Size.X > 0f ? unitData.Attack.Area.Size.X : 0.5f),
+                    AttackAreaShape.Box => DamageShapeSpec.Corridor(
+                        unitData.Attack.Area.Size.X > 0f ? unitData.Attack.Area.Size.X : Mathf.Max(unitData.AttackRange, 0.5f),
+                        unitData.Attack.Area.Size.Z > 0f ? unitData.Attack.Area.Size.Z : 0.5f,
+                        unitData.Attack.Area.ForwardOffset),
+                    AttackAreaShape.Capsule => DamageShapeSpec.Corridor(
+                        unitData.Attack.Area.Size.X > 0f ? unitData.Attack.Area.Size.X : Mathf.Max(unitData.AttackRange, 0.5f),
+                        unitData.Attack.Area.Size.Z > 0f ? unitData.Attack.Area.Size.Z : 0.5f,
+                        unitData.Attack.Area.ForwardOffset),
+                    AttackAreaShape.Line => DamageShapeSpec.Corridor(
+                        unitData.Attack.Area.LineLength > 0f ? unitData.Attack.Area.LineLength : Mathf.Max(unitData.AttackRange, 0.5f),
+                        unitData.Attack.Area.LineHalfWidth > 0f ? unitData.Attack.Area.LineHalfWidth : 0.5f,
+                        unitData.Attack.Area.ForwardOffset),
+                    _ => DamageShapeSpec.None
+                };
+
+            default:
+                return DamageShapeSpec.None;
+        }
+    }
+
+    private static int BuildDamageShapeSignature(DamageShapeSpec spec)
+    {
+        unchecked
+        {
+            int hash = (int)spec.Kind;
+            hash = (hash * 397) ^ Mathf.RoundToInt(spec.Radius * 1000f);
+            hash = (hash * 397) ^ Mathf.RoundToInt(spec.Length * 1000f);
+            hash = (hash * 397) ^ Mathf.RoundToInt(spec.HalfWidth * 1000f);
+            hash = (hash * 397) ^ Mathf.RoundToInt(spec.ForwardOffset * 1000f);
+            return hash;
+        }
+    }
+
+    private static int BuildEngageSignature(
+        EngageShape shape,
+        float a,
+        float b,
+        float c,
+        float d,
+        float e)
+    {
+        unchecked
+        {
+            int hash = (int)shape;
+            hash = (hash * 397) ^ Mathf.RoundToInt(a * 1000f);
+            hash = (hash * 397) ^ Mathf.RoundToInt(b * 1000f);
+            hash = (hash * 397) ^ Mathf.RoundToInt(c * 1000f);
+            hash = (hash * 397) ^ Mathf.RoundToInt(d * 1000f);
+            hash = (hash * 397) ^ Mathf.RoundToInt(e * 1000f);
+            return hash;
+        }
+    }
+
+    private static EngageShape ResolveEngageShape(UnitData unitData)
+    {
+        if (unitData.EngageShape != EngageShape.Circle)
+            return unitData.EngageShape;
+        return unitData.HasConeConstraint ? EngageShape.Cone : EngageShape.Circle;
+    }
+
+    private Vector3? ResolveDamageShapeTargetPosition(UnitData unitData)
+    {
+        if (_session == null)
+            return null;
+
+        int? targetId = unitData.TargetUnitId ?? unitData.TargetNetworkId;
+        if (!targetId.HasValue)
+            return null;
+
+        var simTarget = SimUtils.ResolveTargetPosition(targetId.Value, _session.GetState());
+        if (!simTarget.HasValue)
+            return null;
+
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
+            return new Vector3(simTarget.Value.X, simTarget.Value.Y, simTarget.Value.Z);
+
+        return simNode.SimToLocal(simTarget.Value);
+    }
+
+    private static bool ShouldAnchorDamageDiscToTarget(UnitData unitData, Vector3? targetPosition)
+    {
+        if (!targetPosition.HasValue)
+            return false;
+
+        if (unitData.Attack.Selection.Mode == AttackSelectionMode.Single)
+            return true;
+
+        return unitData.Attack.Selection.Mode switch
+        {
+            AttackSelectionMode.ChainHops => true,
+            AttackSelectionMode.AreaCollect => unitData.Attack.Area.Shape == AttackAreaShape.Sphere,
+            _ => false
+        };
+    }
+
+    private Vector3 ResolveDamageShapeDirection(UnitData unitData, Vector3? targetPosition)
+    {
+        bool useTargetDirection = unitData.Attack.Selection.Mode switch
+        {
+            AttackSelectionMode.LineCollect => true,
+            AttackSelectionMode.AreaCollect => unitData.Attack.Area.Shape == AttackAreaShape.Capsule ||
+                                               unitData.Attack.Area.Shape == AttackAreaShape.Line,
+            _ => false
+        };
+
+        if (useTargetDirection && targetPosition.HasValue)
+        {
+            var toTarget = new Vector3(
+                targetPosition.Value.X - GlobalPosition.X,
+                0f,
+                targetPosition.Value.Z - GlobalPosition.Z
+            );
+            if (toTarget.LengthSquared() > 0.0001f)
+                return toTarget.Normalized();
+        }
+
+        return new Vector3(_isFacingRight ? 1f : -1f, 0f, 0f);
     }
 
     private static MeshInstance3D CreateDebugCapsule(float radius, float height, Color color, int renderPriority)
@@ -451,6 +752,19 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                 TopRadius = radius,
                 BottomRadius = radius,
                 Height = 0.05f
+            },
+            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+        };
+        return mesh;
+    }
+
+    private static MeshInstance3D CreateDebugCorridor(float length, float halfWidth, Color color, int renderPriority)
+    {
+        var mesh = new MeshInstance3D
+        {
+            Mesh = new BoxMesh
+            {
+                Size = new Vector3(Mathf.Max(0.1f, length), 0.05f, Mathf.Max(0.1f, halfWidth * 2f))
             },
             MaterialOverride = CreateDebugMaterial(color, renderPriority)
         };
@@ -526,11 +840,18 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         FreeMarker(ref _debugHurtboxMarker);
         FreeMarker(ref _debugTargetPointMarker);
-        FreeMarker(ref _debugAttackRangeMarker);
-        FreeMarker(ref _debugSeparationRadiusMarker);
-        _debugAttackRangeRadius = -1f;
-        _debugAttackConeHalfAngle = -1f;
-        _debugSeparationRadius = -1f;
+        ClearEngageMarkers();
+        FreeMarker(ref _debugDamageShapeMarker);
+        FreeMarker(ref _debugNavigationFootprintMarker);
+        _debugNavigationFootprintRadius = -1f;
+        _debugDamageShapeSignature = 0;
+    }
+
+    private void ClearEngageMarkers()
+    {
+        FreeMarker(ref _debugEngageRangeMarker);
+        FreeMarker(ref _debugEngageRangeSecondaryMarker);
+        _debugEngageSignature = 0;
     }
 
     private static void FreeMarker(ref MeshInstance3D? marker)
@@ -539,5 +860,49 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             return;
         marker.QueueFree();
         marker = null;
+    }
+
+    private enum DamageShapeMarkerKind
+    {
+        None = 0,
+        Disc = 1,
+        Corridor = 2
+    }
+
+    private readonly struct DamageShapeSpec
+    {
+        private DamageShapeSpec(
+            DamageShapeMarkerKind kind,
+            float radius,
+            float length,
+            float halfWidth,
+            float forwardOffset)
+        {
+            Kind = kind;
+            Radius = radius;
+            Length = length;
+            HalfWidth = halfWidth;
+            ForwardOffset = forwardOffset;
+        }
+
+        public DamageShapeMarkerKind Kind { get; }
+        public float Radius { get; }
+        public float Length { get; }
+        public float HalfWidth { get; }
+        public float ForwardOffset { get; }
+
+        public static DamageShapeSpec None => new(DamageShapeMarkerKind.None, 0f, 0f, 0f, 0f);
+
+        public static DamageShapeSpec Disc(float radius)
+            => new(DamageShapeMarkerKind.Disc, Mathf.Max(0.1f, radius), 0f, 0f, 0f);
+
+        public static DamageShapeSpec Corridor(float length, float halfWidth, float forwardOffset)
+            => new(
+                DamageShapeMarkerKind.Corridor,
+                0f,
+                Mathf.Max(0.1f, length),
+                Mathf.Max(0.05f, halfWidth),
+                Mathf.Max(0f, forwardOffset)
+            );
     }
 }

@@ -58,6 +58,17 @@ public static class BlockedNavigationController
             ? toTarget / targetDistance
             : baseIntent.DesiredFacingDirection;
 
+        if (MeleeClumpContext.IsTowardTargetCloseMeleeClump(
+                unit,
+                behavior.Movement,
+                behavior.MoveTargetId,
+                state,
+                targetPos.Value))
+        {
+            ResetRecoveryForCloseClump(unit, behavior.MoveTargetId, targetDistance);
+            return baseIntent;
+        }
+
         TickTimers(unit, delta);
 
         if (unit.NavigationYieldTimer > 0f)
@@ -214,6 +225,16 @@ public static class BlockedNavigationController
     {
         unit.NavigationTargetId = null;
         unit.NavigationLastTargetDistance = -1f;
+        unit.NavigationBlockedTime = 0f;
+        unit.NavigationYieldTimer = 0f;
+        unit.NavigationEscapeTimer = 0f;
+        unit.NavigationEscapeQueued = false;
+    }
+
+    private static void ResetRecoveryForCloseClump(UnitData unit, int? targetId, float targetDistance)
+    {
+        unit.NavigationTargetId = targetId;
+        unit.NavigationLastTargetDistance = targetDistance;
         unit.NavigationBlockedTime = 0f;
         unit.NavigationYieldTimer = 0f;
         unit.NavigationEscapeTimer = 0f;

@@ -157,6 +157,10 @@ public partial class ProjectileVisual : Node3D, IPoolable
             return;
         }
 
+        // Keep debug markers visible even before first physics-sync reveal.
+        if (!Visible)
+            Visible = true;
+
         UpdateDebugHitRadiusMarker(projData);
 
         if (projData.AoeRadius > 0f)

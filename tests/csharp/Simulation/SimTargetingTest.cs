@@ -350,6 +350,63 @@ public class SimTargetingTest
         AssertThat(SimTargeting.CanAttack(attacker, target)).IsTrue();
     }
 
+    [TestCase]
+    public void CanAttack_ForwardRect_RejectsTargetBehindAttacker()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f);
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 2.7f;
+        attacker.EngageRectHalfWidth = 0.5f;
+        attacker.EngageRectForwardOffset = 0f;
+        attacker.EngageCloseRadius = 0.4f;
+        attacker.IsFacingRight = true;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: -1.0f, z: 0.1f);
+
+        AssertThat(SimTargeting.IsWithinEngageDistance(attacker, target.Position)).IsTrue();
+        AssertThat(SimTargeting.CanAttack(attacker, target)).IsFalse();
+    }
+
+    [TestCase]
+    public void CanAttack_ForwardRect_CloseBubbleAllowsVeryNearTarget()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f);
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 2.7f;
+        attacker.EngageRectHalfWidth = 0.5f;
+        attacker.EngageRectForwardOffset = 0f;
+        attacker.EngageCloseRadius = 0.4f;
+        attacker.IsFacingRight = true;
+
+        var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: -0.2f, z: 0f);
+
+        AssertThat(SimTargeting.CanAttack(attacker, target)).IsTrue();
+    }
+
+    [TestCase]
+    public void AcquireTarget_ForwardRect_PrefersAttackableFrontTargetOverBehindLowHp()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f, aggroRadius: 15f);
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 5.4f;
+        attacker.EngageRectHalfWidth = 1.0f;
+        attacker.EngageRectForwardOffset = 0f;
+        attacker.EngageCloseRadius = 0.4f;
+        attacker.IsFacingRight = true;
+        attacker.DistanceScorerWeight = 0f;
+        attacker.HealthScorerWeight = 100f;
+        attacker.TargetPolicyId = TargetPolicyId.PreferAttackable;
+
+        var frontAttackable = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, z: 0.1f, hp: 100f);
+        var behindLowHp = SimTestHelper.CreateMeleeUnit(_state, 1, x: -1f, z: 0f, hp: 100f);
+        behindLowHp.CurrentHp = 10f;
+
+        var targetId = SimTargeting.AcquireTarget(attacker, _state);
+
+        AssertThat(targetId.HasValue).IsTrue();
+        AssertThat(targetId!.Value).IsEqual(frontAttackable.UnitId);
+    }
+
     // =========================================================================
     // Summoner Fallback
     // =========================================================================
