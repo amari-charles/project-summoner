@@ -132,6 +132,11 @@ public class SimUnitTemplate
     public float AttackRange { get; set; } = 2f;
     public float AggroRadius { get; set; } = 20f;
     public float SeparationRadius { get; set; } = 0.5f;
+    public float NavigationRadius { get; set; } = 0.5f;
+    public float HurtboxRadius { get; set; } = 0.5f;
+    public float HurtboxHeight { get; set; }
+    public bool HurtboxHorizontal { get; set; }
+    public SimVector3 HurtboxOffset { get; set; } = SimVector3.Zero;
     public float CritChance { get; set; }
     public float CritDamage { get; set; } = 1.5f;
     public float SoulStrength { get; set; }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Geometry;
 using Fateforged.Simulation;
 using Fateforged.Units;
 
@@ -287,7 +288,10 @@ public static class ContextSteering
     private static void AddCrowdDanger(
         UnitData unit, MatchState state, ref ContextMap map, SimVector3 preferredDirection)
     {
-        float dangerRadius = MathF.Max(CrowdDangerMinRadius, unit.SeparationRadius * CrowdDangerRadiusMultiplier);
+        float dangerRadius = MathF.Max(
+            CrowdDangerMinRadius,
+            CombatGeometry.GetNavigationRadius(unit) * CrowdDangerRadiusMultiplier
+        );
         _crowdNeighbors ??= new List<UnitData>(MaxCrowdNeighbors);
         _crowdNeighborDistancesSq ??= new List<float>(MaxCrowdNeighbors);
         MovementNeighborQuery.FillNearestNeighbors(

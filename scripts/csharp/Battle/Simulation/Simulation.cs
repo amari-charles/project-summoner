@@ -624,11 +624,14 @@ public class Simulation
                 var networkId = _state.NextNetworkId();
                 if (firstNetworkId < 0)
                     firstNetworkId = networkId;
+                float spawnRadius = template.NavigationRadius > 0f
+                    ? template.NavigationRadius
+                    : template.SeparationRadius;
                 var position = CalculateSpawnOffset(
                     spawnPosition,
                     unitIndex,
                     totalUnits,
-                    template.SeparationRadius
+                    spawnRadius
                 );
 
                 var unitData = new UnitData
@@ -648,6 +651,11 @@ public class Simulation
                     AggroRadius = template.AggroRadius,
                     SoulStrength = template.SoulStrength,
                     SeparationRadius = template.SeparationRadius,
+                    NavigationRadius = template.NavigationRadius,
+                    HurtboxRadius = template.HurtboxRadius,
+                    HurtboxHeight = template.HurtboxHeight,
+                    HurtboxHorizontal = template.HurtboxHorizontal,
+                    HurtboxOffset = template.HurtboxOffset,
                     CritChance = template.CritChance,
                     CritDamage = template.CritDamage,
                     UnitType = template.UnitType,

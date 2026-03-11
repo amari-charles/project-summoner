@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Geometry;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -49,7 +50,7 @@ public static class OrcaAvoidance
         _neighbors.Clear();
         _neighborDistancesSq.Clear();
 
-        float searchRadius = unit.SeparationRadius * NeighborSearchRadiusMultiplier;
+        float searchRadius = CombatGeometry.GetNavigationRadius(unit) * NeighborSearchRadiusMultiplier;
         MovementNeighborQuery.FillNearestNeighbors(
             unit,
             state,
@@ -103,7 +104,7 @@ public static class OrcaAvoidance
         float relVelZ = unit.Velocity.Z - neighbor.Velocity.Z;
 
         float distSq = relPosX * relPosX + relPosZ * relPosZ;
-        float combinedRadius = unit.SeparationRadius + neighbor.SeparationRadius;
+        float combinedRadius = CombatGeometry.GetNavigationRadius(unit) + CombatGeometry.GetNavigationRadius(neighbor);
         float combinedRadiusSq = combinedRadius * combinedRadius;
 
         float avoidanceWeight = GetAvoidanceWeight(unit, neighbor);

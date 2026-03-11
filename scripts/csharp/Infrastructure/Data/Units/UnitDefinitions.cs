@@ -598,6 +598,17 @@ public static class UnitDefinitions
                 ? Fateforged.Simulation.Enums.DamageType.Magic
                 : Fateforged.Simulation.Enums.DamageType.Physical;
         template.SeparationRadius = def.Visual.SeparationRadius;
+        template.NavigationRadius = def.Visual.SeparationRadius;
+        template.HurtboxRadius = def.Visual.Hurtbox?.Radius > 0f
+            ? def.Visual.Hurtbox.Radius
+            : template.NavigationRadius;
+        template.HurtboxHeight = def.Visual.Hurtbox?.Height > 0f
+            ? def.Visual.Hurtbox.Height
+            : 0f;
+        template.HurtboxHorizontal = def.Visual.Hurtbox?.Horizontal ?? false;
+        template.HurtboxOffset = def.Visual.Hurtbox != null
+            ? new SimVector3(def.Visual.Hurtbox.Offset.X, def.Visual.Hurtbox.Offset.Y, def.Visual.Hurtbox.Offset.Z)
+            : SimVector3.Zero;
         template.PhysicalDefense = stats.Armor;
         template.MagicDefense = stats.MagicResist;
         template.Attack = AttackVectorStateBuilder.Build(def.Attack);

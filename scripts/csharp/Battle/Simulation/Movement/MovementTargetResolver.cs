@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Geometry;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -49,6 +50,7 @@ public static class MovementTargetResolver
         // Keep orbit points inside attack range so units can continue damaging summoners
         // after wrapping around crowded fronts.
         float orbitRadius = MathF.Max(0.1f, unit.AttackRange - OrbitAttackRangeBuffer);
+        float unitRadius = CombatGeometry.GetNavigationRadius(unit);
         bool shouldWrap =
             unit.NavigationBlockedTime >= BlockedOrbitThresholdSeconds ||
             unit.NavigationYieldTimer > 0f ||
@@ -61,7 +63,7 @@ public static class MovementTargetResolver
         {
             float orbitNeighborScanRadius = MathF.Max(
                 OrbitNeighborScanRadiusMin,
-                orbitRadius + (unit.SeparationRadius * OrbitNeighborScanRadiusMultiplier)
+                orbitRadius + (unitRadius * OrbitNeighborScanRadiusMultiplier)
             );
             MovementNeighborQuery.FillNearestNeighbors(
                 unit,
@@ -79,7 +81,7 @@ public static class MovementTargetResolver
             _orbitNeighborDistancesSq.Clear();
         }
 
-        int slotCount = ComputeSlotCount(orbitRadius, unit.SeparationRadius, localNeighborCount);
+        int slotCount = ComputeSlotCount(orbitRadius, unitRadius, localNeighborCount);
         int frontSlot = AngleToSlot(unit.Team == Team.Player ? MathF.PI : 0f, slotCount);
 
         int selectedSlot;
@@ -121,9 +123,9 @@ public static class MovementTargetResolver
         );
     }
 
-    private static int ComputeSlotCount(float orbitRadius, float separationRadius, int localNeighborCount)
+    private static int ComputeSlotCount(float orbitRadius, float navigationRadius, int localNeighborCount)
     {
-        float spacing = MathF.Max(0.4f, separationRadius * 2.0f);
+        float spacing = MathF.Max(0.4f, navigationRadius * 2.0f);
         float circumference = SimMath.Tau * orbitRadius;
         int baseSlots = (int)MathF.Ceiling(circumference / spacing);
         int densitySlots = (int)MathF.Ceiling(localNeighborCount * OrbitDensitySlotScale);
@@ -156,7 +158,7 @@ public static class MovementTargetResolver
                 summonerPosition.Z + orbitDirection.Z * orbitRadius
             );
 
-            float occupancyPenalty = ComputeSlotOccupancyPenalty(candidatePosition, neighbors, unit.SeparationRadius);
+            float occupancyPenalty = ComputeSlotOccupancyPenalty(candidatePosition, neighbors, CombatGeometry.GetNavigationRadius(unit));
             int directionalDistance = preferredDirectionSign >= 0
                 ? PositiveModulo(slot - preferredSlot, slotCount)
                 : PositiveModulo(preferredSlot - slot, slotCount);
@@ -183,10 +185,10 @@ public static class MovementTargetResolver
     }
 
     private static float ComputeSlotOccupancyPenalty(
-        SimVector3 candidatePosition, List<UnitData> neighbors, float separationRadius)
+        SimVector3 candidatePosition, List<UnitData> neighbors, float navigationRadius)
     {
-        float hardRadius = MathF.Max(0.5f, separationRadius * OrbitOccupancyHardRadiusMultiplier);
-        float softRadius = MathF.Max(hardRadius + 0.25f, separationRadius * OrbitOccupancySoftRadiusMultiplier);
+        float hardRadius = MathF.Max(0.5f, navigationRadius * OrbitOccupancyHardRadiusMultiplier);
+        float softRadius = MathF.Max(hardRadius + 0.25f, navigationRadius * OrbitOccupancySoftRadiusMultiplier);
         float hardRadiusSq = hardRadius * hardRadius;
         float softRadiusSq = softRadius * softRadius;
 

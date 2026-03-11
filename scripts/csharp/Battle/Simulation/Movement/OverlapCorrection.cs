@@ -1,6 +1,7 @@
 using System;
 using Fateforged.Constants;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Geometry;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -31,7 +32,9 @@ public static class OverlapCorrection
             if (unit.TargetUnitId.HasValue && other.UnitId == unit.TargetUnitId.Value) continue;
             if (other.TargetUnitId.HasValue && other.TargetUnitId.Value == unit.UnitId) continue;
 
-            float minDist = unit.SeparationRadius + other.SeparationRadius;
+            float unitRadius = CombatGeometry.GetNavigationRadius(unit);
+            float otherRadius = CombatGeometry.GetNavigationRadius(other);
+            float minDist = unitRadius + otherRadius;
             var diff = unit.Position - other.Position;
             diff.Y = 0;
             float distSq = diff.LengthSquared();
@@ -42,9 +45,9 @@ public static class OverlapCorrection
             float overlap = minDist - dist;
             var pushDir = diff / dist;
 
-            // Push proportional to relative mass (SeparationRadius^3)
-            float unitMass = unit.SeparationRadius * unit.SeparationRadius * unit.SeparationRadius;
-            float otherMass = other.SeparationRadius * other.SeparationRadius * other.SeparationRadius;
+            // Push proportional to relative mass (navigationRadius^3)
+            float unitMass = unitRadius * unitRadius * unitRadius;
+            float otherMass = otherRadius * otherRadius * otherRadius;
             float pushRatio = otherMass / (unitMass + otherMass);
 
             const float CorrectionStrength = 0.3f;
