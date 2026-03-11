@@ -162,7 +162,7 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Earth],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.DamageReduction, Type = ModifierType.Flat, Value = 5.0f }
+            new TraitModifier { Stat = StatKey.SoulStrength, Type = ModifierType.Flat, Value = 5.0f }
         ]
     };
 
@@ -250,7 +250,7 @@ public static class TraitDefinitions
         MinLevel = 2,
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.DamageReduction, Type = ModifierType.Flat, Value = 5.0f }
+            new TraitModifier { Stat = StatKey.SoulStrength, Type = ModifierType.Flat, Value = 5.0f }
         ]
     };
 
@@ -265,7 +265,7 @@ public static class TraitDefinitions
         MinLevel = 2,
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.ManaRegen, Type = ModifierType.Percent, Value = 10.0f }
+            new TraitModifier { Stat = StatKey.MaxMana, Type = ModifierType.Percent, Value = 10.0f }
         ]
     };
 
@@ -289,138 +289,13 @@ public static class TraitDefinitions
         Id = TraitIds.SwiftStrike,
         NameKey = "trait.swift_strike.name",
         DescriptionKey = "trait.swift_strike.description",
-        Category = TraitCategory.Combat,
+        Category = TraitCategory.Utility,
         IsInnate = false,
         Tags = [TraitTags.Summoner, TraitTags.Global],
         MinLevel = 3,
         Modifiers =
         [
-            new TraitModifier
-            {
-                Target = "unit",
-                Source = TraitIds.SwiftStrike,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.10f }
-            }
-        ]
-    };
-
-    // =========================================================================
-    // ACQUIRABLE TRAITS - Triggered (conditional effects for summoners)
-    // =========================================================================
-
-    public static readonly TraitDefinition Berserker = new()
-    {
-        Id = TraitIds.Berserker,
-        NameKey = "trait.berserker.name",
-        DescriptionKey = "trait.berserker.description",
-        Category = TraitCategory.Combat,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Global],
-        MinLevel = 3,
-        Modifiers =
-        [
-            new TraitModifier
-            {
-                Target = "unit",
-                Source = TraitIds.Berserker,
-                StatMults = new() { [StatKey.AttackDamage] = 1.20f },
-                Trigger = "BelowHpPercent",
-                TriggerThreshold = 0.5f
-            }
-        ]
-    };
-
-    public static readonly TraitDefinition Vengeful = new()
-    {
-        Id = TraitIds.Vengeful,
-        NameKey = "trait.vengeful.name",
-        DescriptionKey = "trait.vengeful.description",
-        Category = TraitCategory.Combat,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Global],
-        MinLevel = 4,
-        Modifiers =
-        [
-            new TraitModifier
-            {
-                Target = "unit",
-                Source = TraitIds.Vengeful,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.10f },
-                Trigger = "OnTakeHit",
-                TriggerDuration = 5.0f,
-                TriggerCooldown = 1.0f
-            }
-        ]
-    };
-
-    public static readonly TraitDefinition SoulHarvest = new()
-    {
-        Id = TraitIds.SoulHarvest,
-        NameKey = "trait.soul_harvest.name",
-        DescriptionKey = "trait.soul_harvest.description",
-        Category = TraitCategory.Combat,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Global],
-        MinLevel = 4,
-        Modifiers =
-        [
-            new TraitModifier
-            {
-                Target = "unit",
-                Source = TraitIds.SoulHarvest,
-                StatAdds = new() { [StatKey.HealOnKill] = 5.0f },
-                Trigger = "OnKill"
-            }
-        ]
-    };
-
-    // =========================================================================
-    // ACQUIRABLE TRAITS - Element-Exclusive Summoner Traits
-    // =========================================================================
-
-    public static readonly TraitDefinition InfernoMastery = new()
-    {
-        Id = TraitIds.InfernoMastery,
-        NameKey = "trait.inferno_mastery.name",
-        DescriptionKey = "trait.inferno_mastery.description",
-        Category = TraitCategory.Elemental,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Fire],
-        MinLevel = 5,
-        Prerequisites = [TraitIds.FireAffinity],
-        Modifiers =
-        [
-            new TraitModifier { Stat = StatKey.FireDamageBonus, Type = ModifierType.Percent, Value = 15.0f },
-            new TraitModifier
-            {
-                Target = "unit",
-                Source = TraitIds.InfernoMastery,
-                Conditions = new() { ["elemental_affinity"] = "fire" },
-                StatMults = new() { [StatKey.AttackDamage] = 1.15f }
-            }
-        ]
-    };
-
-    public static readonly TraitDefinition TidalMastery = new()
-    {
-        Id = TraitIds.TidalMastery,
-        NameKey = "trait.tidal_mastery.name",
-        DescriptionKey = "trait.tidal_mastery.description",
-        Category = TraitCategory.Elemental,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Water],
-        MinLevel = 5,
-        Prerequisites = [TraitIds.WaterAffinity],
-        Modifiers =
-        [
-            new TraitModifier { Stat = StatKey.WaterDamageBonus, Type = ModifierType.Percent, Value = 15.0f },
-            new TraitModifier
-            {
-                Target = "unit",
-                Source = TraitIds.TidalMastery,
-                Conditions = new() { ["elemental_affinity"] = "water" },
-                StatMults = new() { [StatKey.MaxHp] = 1.15f }
-            }
+            new TraitModifier { Stat = StatKey.CastSpeed, Type = ModifierType.Percent, Value = 10.0f }
         ]
     };
 
@@ -1328,15 +1203,6 @@ public static class TraitDefinitions
         [TraitIds.QuickRecovery] = QuickRecovery,
         [TraitIds.VitalityBoost] = VitalityBoost,
         [TraitIds.SwiftStrike] = SwiftStrike,
-
-        // Acquirable - Triggered
-        [TraitIds.Berserker] = Berserker,
-        [TraitIds.Vengeful] = Vengeful,
-        [TraitIds.SoulHarvest] = SoulHarvest,
-
-        // Acquirable - Element Mastery
-        [TraitIds.InfernoMastery] = InfernoMastery,
-        [TraitIds.TidalMastery] = TidalMastery,
 
         // Summon Traits
         [TraitIds.Fortitude] = Fortitude,

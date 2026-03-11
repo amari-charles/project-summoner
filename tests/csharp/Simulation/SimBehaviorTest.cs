@@ -384,7 +384,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         _state.Summoners[0].DamageBonus = 0f;
         _state.Summoners[1].DamageReduction = 0f;
-        _state.Summoners[1].SoulGuard = 0f;
+        _state.Summoners[1].SoulStrength = 0f;
 
         float hpBefore = _state.Summoners[1].CurrentHp;
         var events = new List<SimEvent>();
@@ -395,7 +395,7 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickBehavior_AttacksSummoner_AppliesSoulGuardReduction()
+    public void TickBehavior_AttacksSummoner_AppliesTargetSoulStrengthReduction()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, attackRange: 5f, damage: 10f);
         unit.CritChance = 0f;
@@ -406,7 +406,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         _state.Summoners[0].DamageBonus = 0f;
         _state.Summoners[1].DamageReduction = 0f;
-        _state.Summoners[1].SoulGuard = 5f;
+        _state.Summoners[1].SoulStrength = 5f;
 
         float hpBefore = _state.Summoners[1].CurrentHp;
         var events = new List<SimEvent>();

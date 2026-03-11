@@ -20,7 +20,6 @@ public class StatKeyTest
         AssertThat(StatKey.AttackRange.ToSnakeCase()).IsEqual("attack_range");
         AssertThat(StatKey.AggroRadius.ToSnakeCase()).IsEqual("aggro_radius");
         AssertThat(StatKey.SoulStrength.ToSnakeCase()).IsEqual("soul_strength");
-        AssertThat(StatKey.SoulGuard.ToSnakeCase()).IsEqual("soul_guard");
     }
 
     [TestCase]
@@ -38,7 +37,7 @@ public class StatKeyTest
         AssertThat(StatKeyExtensions.FromString("attack_damage")).IsEqual(StatKey.AttackDamage);
         AssertThat(StatKeyExtensions.FromString("move_speed")).IsEqual(StatKey.MoveSpeed);
         AssertThat(StatKeyExtensions.FromString("soul_strength")).IsEqual(StatKey.SoulStrength);
-        AssertThat(StatKeyExtensions.FromString("soul_guard")).IsEqual(StatKey.SoulGuard);
+        AssertThat(StatKeyExtensions.FromString("soul_guard")).IsEqual(StatKey.SoulStrength);
     }
 
     [TestCase]
@@ -102,8 +101,8 @@ public class StatKeyTest
         AssertThat(all).Contains(StatKey.ShadowDamageBonus);
         // Summoner/utility stats
         AssertThat(all).Contains(StatKey.CastSpeed);
+        AssertThat(all).Contains(StatKey.MaxMana);
         AssertThat(all).Contains(StatKey.ManaRegen);
-        AssertThat(all).Contains(StatKey.SoulGuard);
         AssertThat(all).Contains(StatKey.SoulStrength);
         // Economy stats
         AssertThat(all).Contains(StatKey.GoldBonus);

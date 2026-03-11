@@ -523,7 +523,7 @@ public static class SimBehavior
     /// <summary>
     /// Apply summoner-level damage modifiers:
     /// damage bonus from attacker summoner, soul strength from attacker unit, and
-    /// reductions from target summoner (damage reduction + soul guard).
+    /// reduction from target summoner soul strength.
     /// Rounds to one decimal place for deterministic results.
     /// </summary>
     private static float ApplySummonerDamageModifiers(float damage, SummonerData attacker, SummonerData target, float soulStrength = 0f)
@@ -532,10 +532,8 @@ public static class SimBehavior
             damage *= 1f + attacker.DamageBonus / 100f;
         if (soulStrength > 0f)
             damage += soulStrength;
-        if (target.DamageReduction > 0f)
-            damage = System.MathF.Max(damage - target.DamageReduction, 0f);
-        if (target.SoulGuard > 0f)
-            damage = System.MathF.Max(damage - target.SoulGuard, 0f);
+        if (target.SoulStrength > 0f)
+            damage = System.MathF.Max(damage - target.SoulStrength, 0f);
         return SimUtils.RoundToOneDecimal(damage);
     }
 }

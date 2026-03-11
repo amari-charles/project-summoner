@@ -64,11 +64,9 @@ public class TraitTreeServiceTest
         AssertThat(ReadString(ironWillNode, "state")).IsEqual("available");
         AssertThat(ReadBool(ironWillNode, "can_unlock")).IsTrue();
 
-        var berserker = FindNode(vm, "progression_nodes", TraitIds.Berserker);
-        AssertThat(berserker).IsNotNull();
-        var berserkerNode = berserker!;
-        AssertThat(ReadString(berserkerNode, "state")).IsEqual("locked");
-        AssertThat(ReadString(berserkerNode, "locked_reason")).Contains("Requires level");
+        // Legacy complex summoner traits are no longer in the level-up offer pool.
+        var berserker = FindNode(vm, "progression_nodes", "trait_berserker");
+        AssertThat(berserker).IsNull();
 
         var detail = traitTree.GetTraitNodeDetail("summoner", summonerId, TraitIds.IronWill);
         AssertThat(detail.Count).IsGreater(0);

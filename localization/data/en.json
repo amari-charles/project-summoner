@@ -492,11 +492,11 @@
       "stats_hp": "HP",
       "stats_mana": "Mana",
       "stats_cast_speed": "Cast Speed",
-      "stats_soul_guard": "Soul Guard",
+      "stats_soul_strength": "Soul Strength",
       "stats_tooltip_hp": "Total health before defeat.",
       "stats_tooltip_mana": "Maximum mana available for casting cards.",
       "stats_tooltip_cast_speed": "Multiplier for how quickly cards resolve.",
-      "stats_tooltip_soul_guard": "Reduces incoming soul-targeted damage.",
+      "stats_tooltip_soul_strength": "Reduces incoming damage dealt by enemy units to this summoner.",
       "stats_damage": "Damage",
       "stats_defense": "Defense",
       "equipment_slot_wand": "Wand",
@@ -665,7 +665,7 @@
     },
     "stone_fortitude": {
       "name": "Stone Fortitude",
-      "description": "The resilience of stone reduces incoming damage."
+      "description": "The resilience of stone hardens your soul. +5 soul strength."
     },
     "lightning_affinity": {
       "name": "Lightning Affinity",
@@ -704,48 +704,28 @@
       "description": "+10% damage to all attacks when you embrace the unknown."
     },
     "iron_will": {
-      "name": "Iron Will",
-      "description": "Unyielding determination reduces incoming damage. +5% damage reduction."
+      "name": "Soul Strength",
+      "description": "+5 soul strength. Reduces incoming damage to your summoner."
     },
     "quick_recovery": {
-      "name": "Quick Recovery",
-      "description": "Efficient energy management accelerates mana flow. +10% mana regeneration."
+      "name": "Max Mana",
+      "description": "+10% max mana."
     },
     "vitality_boost": {
-      "name": "Vitality Boost",
-      "description": "Enhanced life force strengthens your constitution. +100 max HP."
+      "name": "Health",
+      "description": "+100 max health."
     },
     "elemental_mastery": {
       "name": "Elemental Mastery",
       "description": "Attunement to all elements increases damage across the board. +5% all elemental damage."
     },
     "swift_strike": {
-      "name": "Swift Strike",
-      "description": "Your units strike with increased ferocity. +10% attack speed for all units."
+      "name": "Cast Speed",
+      "description": "+10% cast speed."
     },
     "tactical_mind": {
       "name": "Tactical Mind",
       "description": "Superior planning grants strategic advantage. Draw 1 extra card at battle start."
-    },
-    "berserker": {
-      "name": "Berserker",
-      "description": "Desperation fuels fury. Units gain +20% damage when below 50% HP."
-    },
-    "vengeful": {
-      "name": "Vengeful",
-      "description": "Pain begets speed. Units gain +10% attack speed for 5 seconds after taking damage."
-    },
-    "soul_harvest": {
-      "name": "Soul Harvest",
-      "description": "Each kill restores vitality. Units heal 5 HP on killing an enemy."
-    },
-    "inferno_mastery": {
-      "name": "Inferno Mastery",
-      "description": "Master of flame. +15% fire damage. Fire units deal 15% more damage."
-    },
-    "tidal_mastery": {
-      "name": "Tidal Mastery",
-      "description": "Master of the tides. +15% water damage. Water units have 15% more HP."
     },
     "fortitude": {
       "name": "Fortitude",

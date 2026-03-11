@@ -105,7 +105,7 @@ public class SnapshotCodec
         w.Write(s.CastingNetworkId);
         w.Write(s.DamageBonus);
         w.Write(s.DamageReduction);
-        w.Write(s.SoulGuard);
+        w.Write(s.SoulStrength);
 
         var elementalBonuses = s.EnumerateElementalDamageBonuses();
         int bonusCount = 0;
@@ -152,7 +152,7 @@ public class SnapshotCodec
         s.CastingNetworkId = r.ReadInt32();
         s.DamageBonus = r.ReadSingle();
         s.DamageReduction = r.ReadSingle();
-        s.SoulGuard = r.ReadSingle();
+        s.SoulStrength = r.ReadSingle();
         s.ClearElementalDamageBonuses();
         int bonusCount = r.ReadInt32();
         for (int i = 0; i < bonusCount; i++)

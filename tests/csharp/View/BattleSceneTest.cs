@@ -175,7 +175,7 @@ public class BattleSceneTest
         var summonerState = simNode.State.Summoners[1];
         AssertThat(summonerState.DamageBonus).IsEqual(expected.DamageBonus);
         AssertThat(summonerState.DamageReduction).IsEqual(expected.DamageReduction);
-        AssertThat(summonerState.SoulGuard).IsEqual(expected.SoulGuard);
+        AssertThat(summonerState.SoulStrength).IsEqual(expected.SoulStrength);
 
         var actualElementalBonuses = summonerState.EnumerateElementalDamageBonuses().ToDictionary(
             kvp => kvp.Key,

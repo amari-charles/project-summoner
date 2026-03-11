@@ -150,7 +150,7 @@ public class TraitCatalogTest
         AssertThat(trait.Modifiers).IsNotEmpty();
 
         var modifier = trait.Modifiers[0];
-        AssertThat(modifier.Stat).IsEqual(StatKey.DamageReduction);
+        AssertThat(modifier.Stat).IsEqual(StatKey.SoulStrength);
         AssertThat(modifier.Type).IsEqual(ModifierType.Flat);
         AssertThat(modifier.Value).IsEqual(5.0f);
     }
@@ -184,57 +184,14 @@ public class TraitCatalogTest
         }
     }
 
-    // =========================================================================
-    // TRIGGERED TRAIT TESTS
-    // =========================================================================
-
     [TestCase]
-    public void BerserkerTrait_HasBelowHpTrigger()
+    public void DeletedLegacySummonerTraits_DoNotExistInCatalog()
     {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.Berserker);
-
-        AssertThat(modifiers.Count).IsGreater(0);
-
-        var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(TriggerCondition.BelowHpPercent);
-        AssertThat(mod.TriggerThreshold).IsEqual(0.5f);
-        AssertThat(mod.StatMults.ContainsKey(StatKey.AttackDamage)).IsTrue();
-        AssertThat(mod.StatMults[StatKey.AttackDamage]).IsEqual(1.2f);
-    }
-
-    [TestCase]
-    public void VengefulTrait_HasOnTakeHitTrigger()
-    {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.Vengeful);
-
-        AssertThat(modifiers.Count).IsGreater(0);
-
-        var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(TriggerCondition.OnTakeHit);
-        AssertThat(mod.TriggerDuration).IsEqual(5.0f);
-        AssertThat(mod.TriggerCooldown).IsEqual(1.0f);
-        AssertThat(mod.StatMults.ContainsKey(StatKey.AttackSpeed)).IsTrue();
-    }
-
-    [TestCase]
-    public void SoulHarvestTrait_HasOnKillTrigger()
-    {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.SoulHarvest);
-
-        AssertThat(modifiers.Count).IsGreater(0);
-
-        var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(TriggerCondition.OnKill);
-        AssertThat(mod.StatAdds.ContainsKey(StatKey.HealOnKill)).IsTrue();
-        AssertThat(mod.StatAdds[StatKey.HealOnKill]).IsEqual(5.0f);
-    }
-
-    [TestCase]
-    public void TriggeredTraits_ExistInCatalog()
-    {
-        AssertThat(TraitCatalog.HasTrait(TraitIds.Berserker)).IsTrue();
-        AssertThat(TraitCatalog.HasTrait(TraitIds.Vengeful)).IsTrue();
-        AssertThat(TraitCatalog.HasTrait(TraitIds.SoulHarvest)).IsTrue();
+        AssertThat(TraitCatalog.HasTrait("trait_berserker")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_vengeful")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_soul_harvest")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_inferno_mastery")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_tidal_mastery")).IsFalse();
     }
 
     [TestCase]

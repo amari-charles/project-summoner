@@ -231,7 +231,7 @@ public class TraitSpendValidationTest
         AssertThat(service.SpendTraitPoint(summonerId, "not_a_real_trait")).IsFalse();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(2);
 
-        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.TidalMastery)).IsFalse();
+        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.SwiftStrike)).IsFalse();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(2);
 
         AssertThat(service.SpendTraitPoint(summonerId, TraitIds.IronWill)).IsTrue();
@@ -278,12 +278,20 @@ public class TraitSpendValidationTest
         var offers = service.RollTraitOffers(summonerId, 3);
         AssertThat(offers.Count).IsGreater(0);
 
+        var allowedTraitIds = new HashSet<string>
+        {
+            TraitIds.IronWill,
+            TraitIds.QuickRecovery,
+            TraitIds.VitalityBoost
+        };
+
         foreach (var offer in offers)
         {
             var traitId = offer["trait_id"].AsString();
             AssertThat(string.IsNullOrWhiteSpace(traitId)).IsFalse();
             var trait = TraitCatalog.GetTrait(traitId);
             AssertThat(trait).IsNotNull();
+            AssertThat(allowedTraitIds.Contains(traitId)).IsTrue();
             AssertThat(trait!.Tags.Contains(TraitTags.Summoner)).IsTrue();
             AssertThat(trait.AcquisitionMode).IsEqual(TraitAcquisitionMode.LevelUpOffer);
         }

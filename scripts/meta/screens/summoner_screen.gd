@@ -216,21 +216,21 @@ const SUMMONER_STAT_PLACEHOLDER_ICONS: Dictionary = {
 	"health": "HP",
 	"max_mana": "MN",
 	"cast_speed": "CS",
-	"soul_guard": "SG"
+	"soul_strength": "SS"
 }
 
 const SUMMONER_STAT_ICON_COLORS: Dictionary = {
 	"health": Color(0.90, 0.30, 0.30),
 	"max_mana": Color(0.30, 0.55, 0.90),
 	"cast_speed": Color(0.85, 0.70, 0.35),
-	"soul_guard": Color(0.35, 0.85, 0.90)
+	"soul_strength": Color(0.35, 0.85, 0.90)
 }
 
 const SUMMONER_STAT_TOOLTIP_KEYS: Dictionary = {
 	"health": "ui.summoner_screen.stats_tooltip_hp",
 	"max_mana": "ui.summoner_screen.stats_tooltip_mana",
 	"cast_speed": "ui.summoner_screen.stats_tooltip_cast_speed",
-	"soul_guard": "ui.summoner_screen.stats_tooltip_soul_guard"
+	"soul_strength": "ui.summoner_screen.stats_tooltip_soul_strength"
 }
 
 
@@ -388,7 +388,7 @@ func _refresh_stats(config: SummonerConfig) -> void:
 	var hp: float = computed_stats.get("health", config.base_health)
 	var mana: float = computed_stats.get("max_mana", config.max_mana)
 	var cast_speed: float = computed_stats.get("cast_speed", config.base_cast_speed)
-	var soul_guard: float = computed_stats.get("soul_guard", 0.0)
+	var soul_strength: float = computed_stats.get("soul_strength", 0.0)
 
 	var stats_grid: GridContainer = GridContainer.new()
 	stats_grid.columns = 2
@@ -401,7 +401,7 @@ func _refresh_stats(config: SummonerConfig) -> void:
 	stats_grid.add_child(_create_stat_cell("health", Loc.t("ui.summoner_screen.stats_hp"), str(int(hp)), Color(0.9, 0.3, 0.3)))
 	stats_grid.add_child(_create_stat_cell("max_mana", Loc.t("ui.summoner_screen.stats_mana"), str(int(mana)), Color(0.3, 0.5, 0.9)))
 	stats_grid.add_child(_create_stat_cell("cast_speed", Loc.t("ui.summoner_screen.stats_cast_speed"), "%.2fx" % cast_speed, Color(0.7, 0.5, 0.9)))
-	stats_grid.add_child(_create_stat_cell("soul_guard", Loc.t("ui.summoner_screen.stats_soul_guard"), _format_stat_number(soul_guard), Color(0.35, 0.85, 0.90)))
+	stats_grid.add_child(_create_stat_cell("soul_strength", Loc.t("ui.summoner_screen.stats_soul_strength"), _format_stat_number(soul_strength), Color(0.35, 0.85, 0.90)))
 
 
 func _create_stat_cell(stat_id: String, label_text: String, value_text: String, value_color: Color) -> PanelContainer:

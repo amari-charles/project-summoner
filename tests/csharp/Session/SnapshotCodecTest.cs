@@ -58,7 +58,7 @@ public class SnapshotCodecTest
         state.Summoners[0].DiscardPile.Add("card_d");
         state.Summoners[0].DamageBonus = 12.5f;
         state.Summoners[0].DamageReduction = 3f;
-        state.Summoners[0].SoulGuard = 1.5f;
+        state.Summoners[0].SoulStrength = 1.5f;
         state.Summoners[0].SetElementalDamageBonus(Element.Fire, 20f);
         state.Summoners[0].SetElementalDamageBonus(Element.Water, 5f);
 
@@ -74,7 +74,7 @@ public class SnapshotCodecTest
         AssertThat(decoded.Summoners[0].DiscardPile).HasSize(1);
         AssertThat(decoded.Summoners[0].DamageBonus).IsEqualApprox(12.5f, 0.001f);
         AssertThat(decoded.Summoners[0].DamageReduction).IsEqualApprox(3f, 0.001f);
-        AssertThat(decoded.Summoners[0].SoulGuard).IsEqualApprox(1.5f, 0.001f);
+        AssertThat(decoded.Summoners[0].SoulStrength).IsEqualApprox(1.5f, 0.001f);
         AssertThat(decoded.Summoners[0].GetElementalDamageBonus(Element.Fire)).IsEqualApprox(20f, 0.001f);
         AssertThat(decoded.Summoners[0].GetElementalDamageBonus(Element.Water)).IsEqualApprox(5f, 0.001f);
     }

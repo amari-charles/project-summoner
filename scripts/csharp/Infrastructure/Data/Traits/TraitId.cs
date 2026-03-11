@@ -78,43 +78,20 @@ public static class TraitIds
     public static readonly TraitId DeathAffinity = new("trait_death_affinity");
 
     // =========================================================================
-    // TRIGGERED TRAITS (conditional effects)
-    // =========================================================================
-
-    /// <summary>Berserker: +20% damage when below 50% HP.</summary>
-    public static readonly TraitId Berserker = new("trait_berserker");
-
-    /// <summary>Vengeful: +10% attack speed for 5s after taking damage.</summary>
-    public static readonly TraitId Vengeful = new("trait_vengeful");
-
-    /// <summary>Soul Harvest: Heal 5 HP on kill.</summary>
-    public static readonly TraitId SoulHarvest = new("trait_soul_harvest");
-
-    // =========================================================================
     // ACQUIRABLE TRAITS - Global Summoner Pool
     // =========================================================================
 
-    /// <summary>Iron Will: +5 damage reduction.</summary>
+    /// <summary>Iron Will: +5 soul strength (incoming summoner damage reduction).</summary>
     public static readonly TraitId IronWill = new("trait_iron_will");
 
-    /// <summary>Quick Recovery: +10% mana regen.</summary>
+    /// <summary>Quick Recovery: +10% max mana.</summary>
     public static readonly TraitId QuickRecovery = new("trait_quick_recovery");
 
     /// <summary>Vitality Boost: +100 max health.</summary>
     public static readonly TraitId VitalityBoost = new("trait_vitality_boost");
 
-    /// <summary>Swift Strike: +10% attack speed for units.</summary>
+    /// <summary>Swift Strike: +10% cast speed.</summary>
     public static readonly TraitId SwiftStrike = new("trait_swift_strike");
-
-    // =========================================================================
-    // ACQUIRABLE TRAITS - Element Mastery (element-exclusive)
-    // =========================================================================
-
-    /// <summary>Inferno Mastery: Fire damage and fire unit buffs.</summary>
-    public static readonly TraitId InfernoMastery = new("trait_inferno_mastery");
-
-    /// <summary>Tidal Mastery: Water damage and water unit buffs.</summary>
-    public static readonly TraitId TidalMastery = new("trait_tidal_mastery");
 
     // =========================================================================
     // UNIT TRAITS - Global Pool (available to all units/cards)

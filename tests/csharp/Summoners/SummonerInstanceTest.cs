@@ -23,13 +23,13 @@ public class SummonerInstanceTest
         AssertThat(stats).IsNotNull();
         AssertThat(stats.ContainsKey("health")).IsTrue();
         AssertThat(stats.ContainsKey("max_mana")).IsTrue();
-        AssertThat(stats.ContainsKey("soul_guard")).IsTrue();
+        AssertThat(stats.ContainsKey("soul_strength")).IsTrue();
 
         var def = SummonerCatalog.GetSummoner(SummonerIds.Cole)!;
         // Level 1: no level bonus, but Cole has innate traits that may modify stats
         // Base health before trait modifiers
         AssertThat(stats["health"]).IsGreaterEqual(def.BaseHealth);
-        AssertThat(stats["soul_guard"]).IsEqual(0f);
+        AssertThat(stats["soul_strength"]).IsEqual(0f);
     }
 
     [TestCase]

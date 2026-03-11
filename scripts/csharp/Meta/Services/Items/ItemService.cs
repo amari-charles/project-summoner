@@ -299,7 +299,6 @@ public partial class ItemService : Node
 			StatKey.GoldBonus => null,
 			StatKey.XpBonus => null,
 			StatKey.ManaRegen => null,
-			StatKey.SoulGuard => null,
 			// Elemental bonuses don't apply directly to unit stats
 			StatKey.FireDamageBonus => null,
 			StatKey.WaterDamageBonus => null,

@@ -90,14 +90,14 @@ public enum StatKey
     /// <summary>Mana regeneration rate.</summary>
     ManaRegen,
 
+    /// <summary>Maximum mana pool.</summary>
+    MaxMana,
+
     /// <summary>Casting speed multiplier.</summary>
     CastSpeed,
 
     /// <summary>Maximum health (alias for MaxHp, used in some contexts).</summary>
     MaxHealth,
-
-    /// <summary>Reduces incoming soul-targeted damage.</summary>
-    SoulGuard,
 
     // =========================================================================
     // COMBAT EFFECTS
@@ -160,9 +160,9 @@ public static class StatKeyExtensions
         StatKey.Lifesteal => "lifesteal",
         StatKey.DamageReduction => "damage_reduction",
         StatKey.ManaRegen => "mana_regen",
+        StatKey.MaxMana => "max_mana",
         StatKey.CastSpeed => "cast_speed",
         StatKey.MaxHealth => "max_health",
-        StatKey.SoulGuard => "soul_guard",
 
         // Combat effects
         StatKey.HealOnKill => "heal_on_kill",
@@ -224,9 +224,10 @@ public static class StatKeyExtensions
             "lifesteal" => StatKey.Lifesteal,
             "damagereduction" => StatKey.DamageReduction,
             "manaregen" => StatKey.ManaRegen,
+            "maxmana" => StatKey.MaxMana,
             "castspeed" => StatKey.CastSpeed,
             "maxhealth" => StatKey.MaxHealth,
-            "soulguard" => StatKey.SoulGuard,
+            "soulguard" => StatKey.SoulStrength,
 
             // Combat effects
             "healonkill" => StatKey.HealOnKill,

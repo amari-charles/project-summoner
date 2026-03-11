@@ -277,7 +277,7 @@ public class TraitValueOverride
 /// 2. UNIT MODIFIER (Target = "unit"):
 ///    - Affects all units spawned by the summoner
 ///    - Uses StatMults/StatAdds/Conditions properties
-///    - Can have trigger conditions (Berserker below 50% HP, etc.)
+///    - Can have trigger conditions
 ///    - Converted to StatModifier and provided via SummonerModifierProvider
 ///
 /// Check IsUnitModifier property to determine which mode is active.
