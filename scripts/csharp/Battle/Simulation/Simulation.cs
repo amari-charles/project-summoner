@@ -743,11 +743,24 @@ public class Simulation
         }
 
         var removals = -spawnCountAdd;
-        for (int i = 0; i < removals; i++)
+        var remaining = removals;
+        while (remaining > 0)
         {
-            var targetIndex = rankedTemplateIndices[i % rankedTemplateIndices.Length];
-            if (counts[targetIndex] > 0)
+            var removedThisPass = false;
+            foreach (var targetIndex in rankedTemplateIndices)
+            {
+                if (counts[targetIndex] <= 0)
+                    continue;
+
                 counts[targetIndex] -= 1;
+                remaining -= 1;
+                removedThisPass = true;
+                if (remaining == 0)
+                    break;
+            }
+
+            if (!removedThisPass)
+                break;
         }
 
         return counts;

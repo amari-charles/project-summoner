@@ -131,6 +131,72 @@ public class SimulationIntegrationTest
     }
 
     [TestCase]
+    public void Tick_PlayCardCommand_SpawnCountReduction_RemovesAllUnits_WhenReductionExceedsTotal()
+    {
+        var multiTemplateCard = new SimCardData
+        {
+            CatalogId = "multi_template_card",
+            ManaCost = 3,
+            SummonTime = 1.0f,
+            IsSpell = false,
+            UnitTemplates = new List<SimUnitTemplate>
+            {
+                new()
+                {
+                    Count = 5,
+                    MaxHp = 100f,
+                    AttackDamage = 10f,
+                    AttackSpeed = 1f,
+                    MoveSpeed = 3f,
+                    AttackRange = 2f,
+                    AggroRadius = 20f,
+                    UnitType = UnitType.Melee,
+                    MovementLayer = MovementLayer.Ground
+                },
+                new()
+                {
+                    Count = 1,
+                    MaxHp = 120f,
+                    AttackDamage = 12f,
+                    AttackSpeed = 0.9f,
+                    MoveSpeed = 2.8f,
+                    AttackRange = 2f,
+                    AggroRadius = 20f,
+                    UnitType = UnitType.Melee,
+                    MovementLayer = MovementLayer.Ground
+                }
+            }
+        };
+
+        _state.CardDataMap["multi_template_card"] = multiTemplateCard;
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "multi_template_card" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "multi_template_card" };
+        _state.Summoners[0].HandRefs = new List<SimCardRuntimeRef>
+        {
+            new()
+            {
+                CatalogId = "multi_template_card",
+                InstanceId = "card_instance_trimmed"
+            }
+        };
+        _state.TraitRuntimeState.SetCardInstanceSpawnCountAdd(
+            new TraitRuntimeCardInstanceId("card_instance_trimmed"),
+            -6);
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        var events = _sim.Tick(Delta);
+
+        var registrations = SimTestHelper.CountEvents<UnitRegisteredEvent>(events);
+        AssertThat(registrations).IsEqual(0);
+        AssertThat(_state.Units.Count).IsEqual(0);
+    }
+
+    [TestCase]
     public void Tick_PlayCardCommand_HandManagement()
     {
         var card = SimTestHelper.CreateSummonCard("test_unit", manaCost: 3);
