@@ -8,6 +8,7 @@ signal closed()
 @onready var card_name_label: Label = %CardNameLabel
 @onready var type_icon: TextureRect = %TypeIcon
 @onready var rarity_badge_label: Label = %RarityBadgeLabel
+@onready var role_badge_label: Label = %RoleBadgeLabel
 @onready var meta_details_label: Label = %MetaDetailsLabel
 @onready var description_label: Label = %DescriptionLabel
 @onready var stats_header: Label = %StatsHeader
@@ -44,6 +45,8 @@ func _load_card_data() -> void:
 
 	var rarity: String = SafeTypeUtils.string(catalog_data.get("rarity", String(RarityIDs.COMMON)), String(RarityIDs.COMMON))
 	_update_rarity_badge(rarity)
+	var tactical_role: String = SafeTypeUtils.string(catalog_data.get("tactical_role", ""), "")
+	_update_role_badge(tactical_role)
 
 	var card_type: int = SafeTypeUtils.int_val(catalog_data.get("card_type", UnitConstants.CardType.SUMMON), UnitConstants.CardType.SUMMON)
 	var type_text: String = Loc.t("ui.collection.type_summon") if card_type == UnitConstants.CardType.SUMMON else Loc.t("ui.collection.type_spell")
@@ -215,6 +218,56 @@ func _update_rarity_badge(rarity: String) -> void:
 	rarity_badge_label.add_theme_color_override("font_color", rarity_color.lightened(0.35))
 	rarity_badge_label.add_theme_constant_override("outline_size", 1)
 	rarity_badge_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+
+
+func _update_role_badge(tactical_role: String) -> void:
+	var role_panel: PanelContainer = role_badge_label.get_parent()
+	var role_id: String = tactical_role.strip_edges().to_lower()
+	if role_id.is_empty():
+		role_panel.visible = false
+		return
+
+	role_panel.visible = true
+	role_badge_label.text = _get_role_display_name(role_id).to_upper()
+
+	var role_color: Color = _get_role_color(role_id)
+	var badge_style: StyleBoxFlat = StyleBoxFlat.new()
+	badge_style.bg_color = role_color.darkened(0.7)
+	badge_style.border_color = role_color
+	badge_style.set_border_width_all(1)
+	badge_style.set_corner_radius_all(6)
+	role_panel.add_theme_stylebox_override("panel", badge_style)
+	role_badge_label.add_theme_color_override("font_color", role_color.lightened(0.35))
+	role_badge_label.add_theme_constant_override("outline_size", 1)
+	role_badge_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+
+
+func _get_role_display_name(role_id: String) -> String:
+	match role_id:
+		"frontliner":
+			return Loc.t("ui.collection.role_frontliner")
+		"flanker":
+			return Loc.t("ui.collection.role_flanker")
+		"backliner":
+			return Loc.t("ui.collection.role_backliner")
+		"mixed":
+			return Loc.t("ui.collection.role_mixed")
+		_:
+			return Loc.t("ui.collection.role_unknown")
+
+
+func _get_role_color(role_id: String) -> Color:
+	match role_id:
+		"frontliner":
+			return GameColorPalette.WARNING
+		"flanker":
+			return GameColorPalette.INFO
+		"backliner":
+			return GameColorPalette.SUCCESS
+		"mixed":
+			return GameColorPalette.TEXT_SECONDARY
+		_:
+			return GameColorPalette.TEXT_SECONDARY
 
 
 func _on_background_input(event: InputEvent) -> void:
