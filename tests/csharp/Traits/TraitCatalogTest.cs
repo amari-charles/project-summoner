@@ -330,4 +330,54 @@ public class TraitCatalogTest
         AssertThat(trait.ResolveSpawnCountAddForCard("fire_wisp", "common")).IsEqual(1);
         AssertThat(trait.ResolveSpawnCountAddForCard("water_wisp", "rare")).IsEqual(1);
     }
+
+    [TestCase]
+    public void TraitDefinition_ResolveStatAddsForCard_UsesMostSpecificOverride()
+    {
+        var trait = new TraitDefinition
+        {
+            Id = TraitId.FromString("test_trait_add_override"),
+            NameKey = "trait.test.add.name",
+            DescriptionKey = "trait.test.add.description",
+            Category = TraitCategory.Defense,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    StatAdds = new() { [StatKey.Armor] = 4f }
+                }
+            ],
+            ValueOverrides =
+            [
+                new TraitValueOverride
+                {
+                    Rarities = ["common"],
+                    StatAdds = new() { [StatKey.Armor] = 6f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    StatAdds = new() { [StatKey.Armor] = 8f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    Rarities = ["common"],
+                    StatAdds = new() { [StatKey.Armor] = 10f }
+                }
+            ]
+        };
+
+        var exact = trait.ResolveStatAddsForCard("fire_wisp", "common");
+        var cardOnly = trait.ResolveStatAddsForCard("fire_wisp", "epic");
+        var rarityOnly = trait.ResolveStatAddsForCard("water_wisp", "common");
+        var baseOnly = trait.ResolveStatAddsForCard("water_wisp", "rare");
+
+        AssertThat(exact[StatKey.Armor]).IsEqual(10f);
+        AssertThat(cardOnly[StatKey.Armor]).IsEqual(8f);
+        AssertThat(rarityOnly[StatKey.Armor]).IsEqual(6f);
+        AssertThat(baseOnly[StatKey.Armor]).IsEqual(4f);
+    }
 }

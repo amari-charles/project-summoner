@@ -336,6 +336,40 @@ public class CardProgressionHandler
         return result;
     }
 
+    public Dictionary<string, float> GetTraitStatAddModifiers(CardInstanceId cardInstanceId)
+    {
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null)
+            return [];
+        var cardDef = CardCatalog.GetCard(card.CatalogId);
+        if (cardDef == null)
+            return [];
+
+        var result = new Dictionary<string, float>(StringComparer.Ordinal);
+        foreach (var traitId in card.Traits)
+        {
+            var traitDef = TraitCatalog.GetTrait(traitId.Value);
+            if (traitDef == null)
+                continue;
+
+            var resolvedAdds = traitDef.ResolveStatAddsForCard(card.CatalogId.Value, card.Rarity);
+            foreach (var (stat, addValue) in resolvedAdds)
+            {
+                var statKey = stat.ToSnakeCase();
+                if (result.TryGetValue(statKey, out var existing))
+                {
+                    result[statKey] = existing + addValue;
+                }
+                else
+                {
+                    result[statKey] = addValue;
+                }
+            }
+        }
+
+        return result;
+    }
+
     public int GetTraitSpawnCountBonus(CardInstanceId cardInstanceId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);

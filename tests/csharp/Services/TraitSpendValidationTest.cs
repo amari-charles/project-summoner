@@ -102,7 +102,13 @@ public class TraitSpendValidationTest
             TraitIds.Fortitude,
             TraitIds.Power,
             TraitIds.Swiftness,
-            TraitIds.Agility
+            TraitIds.Agility,
+            TraitIds.Reach,
+            TraitIds.Plating,
+            TraitIds.Warding,
+            TraitIds.Soulforce,
+            TraitIds.Arcana,
+            TraitIds.Legion
         };
 
         foreach (var offer in offers)

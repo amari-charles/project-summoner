@@ -68,4 +68,41 @@ public class TraitTreeEvaluatorEligibilityTest
         AssertThat(evaluation.CanUnlockNow).IsFalse();
         AssertThat(evaluation.LockedReason).Contains("card");
     }
+
+    [TestCase]
+    public void EvaluateProgressionTrait_LegionIV_RejectsRareRarity()
+    {
+        var context = new TraitTreeOwnerContext
+        {
+            OwnerTypeTag = TraitTags.Summon,
+            EligibilityTags = new HashSet<string> { TraitTags.Summon, TraitTags.Global },
+            OwnedTraitIds = new HashSet<string> { TraitIds.Legion, TraitIds.LegionII, TraitIds.LegionIII },
+            CurrentLevel = 8,
+            UnspentTraitPoints = 1,
+            CardCatalogId = "fire_wisp",
+            CardRarity = "rare"
+        };
+
+        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.LegionIV, context);
+        AssertThat(evaluation.CanUnlockNow).IsFalse();
+        AssertThat(evaluation.LockedReason).Contains("rarity");
+    }
+
+    [TestCase]
+    public void EvaluateProgressionTrait_LegionII_AllowsEpicRarity()
+    {
+        var context = new TraitTreeOwnerContext
+        {
+            OwnerTypeTag = TraitTags.Summon,
+            EligibilityTags = new HashSet<string> { TraitTags.Summon, TraitTags.Global },
+            OwnedTraitIds = new HashSet<string> { TraitIds.Legion },
+            CurrentLevel = 4,
+            UnspentTraitPoints = 1,
+            CardCatalogId = "fire_wisp",
+            CardRarity = "epic"
+        };
+
+        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.LegionII, context);
+        AssertThat(evaluation.CanUnlockNow).IsTrue();
+    }
 }

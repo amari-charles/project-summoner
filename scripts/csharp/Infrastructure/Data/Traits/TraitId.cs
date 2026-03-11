@@ -140,6 +140,45 @@ public static class TraitIds
 
     /// <summary>Agility: +5% move speed per level.</summary>
     public static readonly TraitId Agility = new("trait_agility");
+    public static readonly TraitId AgilityII = new("trait_agility_ii");
+    public static readonly TraitId AgilityIII = new("trait_agility_iii");
+    public static readonly TraitId AgilityIV = new("trait_agility_iv");
+
+    /// <summary>Reach: +attack range tiers.</summary>
+    public static readonly TraitId Reach = new("trait_reach");
+    public static readonly TraitId ReachII = new("trait_reach_ii");
+    public static readonly TraitId ReachIII = new("trait_reach_iii");
+    public static readonly TraitId ReachIV = new("trait_reach_iv");
+
+    /// <summary>Plating: +armor tiers.</summary>
+    public static readonly TraitId Plating = new("trait_plating");
+    public static readonly TraitId PlatingII = new("trait_plating_ii");
+    public static readonly TraitId PlatingIII = new("trait_plating_iii");
+    public static readonly TraitId PlatingIV = new("trait_plating_iv");
+
+    /// <summary>Warding: +magic resist tiers.</summary>
+    public static readonly TraitId Warding = new("trait_warding");
+    public static readonly TraitId WardingII = new("trait_warding_ii");
+    public static readonly TraitId WardingIII = new("trait_warding_iii");
+    public static readonly TraitId WardingIV = new("trait_warding_iv");
+
+    /// <summary>Soulforce: +soul strength tiers.</summary>
+    public static readonly TraitId Soulforce = new("trait_soulforce");
+    public static readonly TraitId SoulforceII = new("trait_soulforce_ii");
+    public static readonly TraitId SoulforceIII = new("trait_soulforce_iii");
+    public static readonly TraitId SoulforceIV = new("trait_soulforce_iv");
+
+    /// <summary>Arcana: +magic damage tiers.</summary>
+    public static readonly TraitId Arcana = new("trait_arcana");
+    public static readonly TraitId ArcanaII = new("trait_arcana_ii");
+    public static readonly TraitId ArcanaIII = new("trait_arcana_iii");
+    public static readonly TraitId ArcanaIV = new("trait_arcana_iv");
+
+    /// <summary>Legion: +unit count tiers.</summary>
+    public static readonly TraitId Legion = new("trait_legion");
+    public static readonly TraitId LegionII = new("trait_legion_ii");
+    public static readonly TraitId LegionIII = new("trait_legion_iii");
+    public static readonly TraitId LegionIV = new("trait_legion_iv");
 
     // =========================================================================
     // SPECIAL TRAITS - Granted by specific game events

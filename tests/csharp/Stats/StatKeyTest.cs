@@ -88,7 +88,7 @@ public class StatKeyTest
     {
         var all = StatKeyExtensions.All;
 
-        AssertThat(all.Length).IsEqual(30);
+        AssertThat(all.Length).IsEqual(31);
         // Core unit stats
         AssertThat(all).Contains(StatKey.MaxHp);
         AssertThat(all).Contains(StatKey.AttackDamage);

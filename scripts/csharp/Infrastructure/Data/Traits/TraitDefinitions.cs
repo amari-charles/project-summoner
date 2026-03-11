@@ -464,7 +464,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FortitudeII,
-                StatMults = new() { [StatKey.MaxHp] = 1.10f }
+                StatMults = new() { [StatKey.MaxHp] = 1.12f }
             }
         ]
     };
@@ -485,7 +485,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FortitudeIII,
-                StatMults = new() { [StatKey.MaxHp] = 1.12f }
+                StatMults = new() { [StatKey.MaxHp] = 1.16f }
             }
         ]
     };
@@ -506,7 +506,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FortitudeIV,
-                StatMults = new() { [StatKey.MaxHp] = 1.14f }
+                StatMults = new() { [StatKey.MaxHp] = 1.20f }
             }
         ]
     };
@@ -547,7 +547,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PowerII,
-                StatMults = new() { [StatKey.AttackDamage] = 1.08f }
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
             }
         ]
     };
@@ -568,7 +568,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PowerIII,
-                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
+                StatMults = new() { [StatKey.AttackDamage] = 1.14f }
             }
         ]
     };
@@ -589,7 +589,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PowerIV,
-                StatMults = new() { [StatKey.AttackDamage] = 1.12f }
+                StatMults = new() { [StatKey.AttackDamage] = 1.18f }
             }
         ]
     };
@@ -630,7 +630,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SwiftnessII,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.07f }
+                StatMults = new() { [StatKey.AttackSpeed] = 1.08f }
             }
         ]
     };
@@ -651,7 +651,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SwiftnessIII,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.09f }
+                StatMults = new() { [StatKey.AttackSpeed] = 1.11f }
             }
         ]
     };
@@ -672,7 +672,7 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SwiftnessIV,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.11f }
+                StatMults = new() { [StatKey.AttackSpeed] = 1.14f }
             }
         ]
     };
@@ -693,6 +693,571 @@ public static class TraitDefinitions
                 Target = "unit",
                 Source = TraitIds.Agility,
                 StatMults = new() { [StatKey.MoveSpeed] = 1.05f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition AgilityII = new()
+    {
+        Id = TraitIds.AgilityII,
+        NameKey = "trait.agility_ii.name",
+        DescriptionKey = "trait.agility_ii.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Agility],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.AgilityII,
+                StatMults = new() { [StatKey.MoveSpeed] = 1.08f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition AgilityIII = new()
+    {
+        Id = TraitIds.AgilityIII,
+        NameKey = "trait.agility_iii.name",
+        DescriptionKey = "trait.agility_iii.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.AgilityII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.AgilityIII,
+                StatMults = new() { [StatKey.MoveSpeed] = 1.11f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition AgilityIV = new()
+    {
+        Id = TraitIds.AgilityIV,
+        NameKey = "trait.agility_iv.name",
+        DescriptionKey = "trait.agility_iv.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.AgilityIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.AgilityIV,
+                StatMults = new() { [StatKey.MoveSpeed] = 1.14f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition Reach = new()
+    {
+        Id = TraitIds.Reach,
+        NameKey = "trait.reach.name",
+        DescriptionKey = "trait.reach.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 2,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.Reach,
+                StatMults = new() { [StatKey.AttackRange] = 1.05f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition ReachII = new()
+    {
+        Id = TraitIds.ReachII,
+        NameKey = "trait.reach_ii.name",
+        DescriptionKey = "trait.reach_ii.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Reach],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.ReachII,
+                StatMults = new() { [StatKey.AttackRange] = 1.10f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition ReachIII = new()
+    {
+        Id = TraitIds.ReachIII,
+        NameKey = "trait.reach_iii.name",
+        DescriptionKey = "trait.reach_iii.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.ReachII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.ReachIII,
+                StatMults = new() { [StatKey.AttackRange] = 1.15f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition ReachIV = new()
+    {
+        Id = TraitIds.ReachIV,
+        NameKey = "trait.reach_iv.name",
+        DescriptionKey = "trait.reach_iv.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.ReachIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.ReachIV,
+                StatMults = new() { [StatKey.AttackRange] = 1.20f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition Plating = new()
+    {
+        Id = TraitIds.Plating,
+        NameKey = "trait.plating.name",
+        DescriptionKey = "trait.plating.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 2,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.Plating,
+                StatAdds = new() { [StatKey.Armor] = 4f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition PlatingII = new()
+    {
+        Id = TraitIds.PlatingII,
+        NameKey = "trait.plating_ii.name",
+        DescriptionKey = "trait.plating_ii.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Plating],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.PlatingII,
+                StatAdds = new() { [StatKey.Armor] = 8f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition PlatingIII = new()
+    {
+        Id = TraitIds.PlatingIII,
+        NameKey = "trait.plating_iii.name",
+        DescriptionKey = "trait.plating_iii.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.PlatingII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.PlatingIII,
+                StatAdds = new() { [StatKey.Armor] = 12f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition PlatingIV = new()
+    {
+        Id = TraitIds.PlatingIV,
+        NameKey = "trait.plating_iv.name",
+        DescriptionKey = "trait.plating_iv.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.PlatingIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.PlatingIV,
+                StatAdds = new() { [StatKey.Armor] = 16f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition Warding = new()
+    {
+        Id = TraitIds.Warding,
+        NameKey = "trait.warding.name",
+        DescriptionKey = "trait.warding.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 2,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.Warding,
+                StatAdds = new() { [StatKey.MagicResist] = 4f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition WardingII = new()
+    {
+        Id = TraitIds.WardingII,
+        NameKey = "trait.warding_ii.name",
+        DescriptionKey = "trait.warding_ii.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Warding],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.WardingII,
+                StatAdds = new() { [StatKey.MagicResist] = 8f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition WardingIII = new()
+    {
+        Id = TraitIds.WardingIII,
+        NameKey = "trait.warding_iii.name",
+        DescriptionKey = "trait.warding_iii.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.WardingII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.WardingIII,
+                StatAdds = new() { [StatKey.MagicResist] = 12f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition WardingIV = new()
+    {
+        Id = TraitIds.WardingIV,
+        NameKey = "trait.warding_iv.name",
+        DescriptionKey = "trait.warding_iv.description",
+        Category = TraitCategory.Defense,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.WardingIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.WardingIV,
+                StatAdds = new() { [StatKey.MagicResist] = 16f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition Soulforce = new()
+    {
+        Id = TraitIds.Soulforce,
+        NameKey = "trait.soulforce.name",
+        DescriptionKey = "trait.soulforce.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 2,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.Soulforce,
+                StatAdds = new() { [StatKey.SoulStrength] = 1f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition SoulforceII = new()
+    {
+        Id = TraitIds.SoulforceII,
+        NameKey = "trait.soulforce_ii.name",
+        DescriptionKey = "trait.soulforce_ii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Soulforce],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.SoulforceII,
+                StatAdds = new() { [StatKey.SoulStrength] = 2f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition SoulforceIII = new()
+    {
+        Id = TraitIds.SoulforceIII,
+        NameKey = "trait.soulforce_iii.name",
+        DescriptionKey = "trait.soulforce_iii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.SoulforceII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.SoulforceIII,
+                StatAdds = new() { [StatKey.SoulStrength] = 3f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition SoulforceIV = new()
+    {
+        Id = TraitIds.SoulforceIV,
+        NameKey = "trait.soulforce_iv.name",
+        DescriptionKey = "trait.soulforce_iv.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.SoulforceIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.SoulforceIV,
+                StatAdds = new() { [StatKey.SoulStrength] = 4f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition Arcana = new()
+    {
+        Id = TraitIds.Arcana,
+        NameKey = "trait.arcana.name",
+        DescriptionKey = "trait.arcana.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 2,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.Arcana,
+                StatMults = new() { [StatKey.DamageBonus] = 1.05f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition ArcanaII = new()
+    {
+        Id = TraitIds.ArcanaII,
+        NameKey = "trait.arcana_ii.name",
+        DescriptionKey = "trait.arcana_ii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Arcana],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.ArcanaII,
+                StatMults = new() { [StatKey.DamageBonus] = 1.10f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition ArcanaIII = new()
+    {
+        Id = TraitIds.ArcanaIII,
+        NameKey = "trait.arcana_iii.name",
+        DescriptionKey = "trait.arcana_iii.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.ArcanaII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.ArcanaIII,
+                StatMults = new() { [StatKey.DamageBonus] = 1.15f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition ArcanaIV = new()
+    {
+        Id = TraitIds.ArcanaIV,
+        NameKey = "trait.arcana_iv.name",
+        DescriptionKey = "trait.arcana_iv.description",
+        Category = TraitCategory.Combat,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.ArcanaIII],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.ArcanaIV,
+                StatMults = new() { [StatKey.DamageBonus] = 1.20f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition Legion = new()
+    {
+        Id = TraitIds.Legion,
+        NameKey = "trait.legion.name",
+        DescriptionKey = "trait.legion.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 2,
+        AllowedRarities = ["common", "rare", "epic"],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.Legion,
+                StatAdds = new() { [StatKey.UnitCount] = 1f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition LegionII = new()
+    {
+        Id = TraitIds.LegionII,
+        NameKey = "trait.legion_ii.name",
+        DescriptionKey = "trait.legion_ii.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 3,
+        Prerequisites = [TraitIds.Legion],
+        AllowedRarities = ["common", "rare", "epic"],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.LegionII,
+                StatAdds = new() { [StatKey.UnitCount] = 1f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition LegionIII = new()
+    {
+        Id = TraitIds.LegionIII,
+        NameKey = "trait.legion_iii.name",
+        DescriptionKey = "trait.legion_iii.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 5,
+        Prerequisites = [TraitIds.LegionII],
+        AllowedRarities = ["common", "rare"],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.LegionIII,
+                StatAdds = new() { [StatKey.UnitCount] = 1f }
+            }
+        ]
+    };
+
+    public static readonly TraitDefinition LegionIV = new()
+    {
+        Id = TraitIds.LegionIV,
+        NameKey = "trait.legion_iv.name",
+        DescriptionKey = "trait.legion_iv.description",
+        Category = TraitCategory.Utility,
+        IsInnate = false,
+        Tags = [TraitTags.Summon, TraitTags.Global],
+        MinLevel = 7,
+        Prerequisites = [TraitIds.LegionIII],
+        AllowedRarities = ["common"],
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.LegionIV,
+                StatAdds = new() { [StatKey.UnitCount] = 1f }
             }
         ]
     };
@@ -787,6 +1352,33 @@ public static class TraitDefinitions
         [TraitIds.SwiftnessIII] = SwiftnessIII,
         [TraitIds.SwiftnessIV] = SwiftnessIV,
         [TraitIds.Agility] = Agility,
+        [TraitIds.AgilityII] = AgilityII,
+        [TraitIds.AgilityIII] = AgilityIII,
+        [TraitIds.AgilityIV] = AgilityIV,
+        [TraitIds.Reach] = Reach,
+        [TraitIds.ReachII] = ReachII,
+        [TraitIds.ReachIII] = ReachIII,
+        [TraitIds.ReachIV] = ReachIV,
+        [TraitIds.Plating] = Plating,
+        [TraitIds.PlatingII] = PlatingII,
+        [TraitIds.PlatingIII] = PlatingIII,
+        [TraitIds.PlatingIV] = PlatingIV,
+        [TraitIds.Warding] = Warding,
+        [TraitIds.WardingII] = WardingII,
+        [TraitIds.WardingIII] = WardingIII,
+        [TraitIds.WardingIV] = WardingIV,
+        [TraitIds.Soulforce] = Soulforce,
+        [TraitIds.SoulforceII] = SoulforceII,
+        [TraitIds.SoulforceIII] = SoulforceIII,
+        [TraitIds.SoulforceIV] = SoulforceIV,
+        [TraitIds.Arcana] = Arcana,
+        [TraitIds.ArcanaII] = ArcanaII,
+        [TraitIds.ArcanaIII] = ArcanaIII,
+        [TraitIds.ArcanaIV] = ArcanaIV,
+        [TraitIds.Legion] = Legion,
+        [TraitIds.LegionII] = LegionII,
+        [TraitIds.LegionIII] = LegionIII,
+        [TraitIds.LegionIV] = LegionIV,
 
         // Special Traits
         [TraitIds.FortuneFavorsTheBold] = FortuneFavorsTheBold

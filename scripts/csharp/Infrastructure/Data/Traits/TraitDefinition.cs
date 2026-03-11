@@ -134,6 +134,47 @@ public class TraitDefinition
     }
 
     /// <summary>
+    /// Resolve static additive stat bonuses for this trait for a specific card context.
+    /// Base values come from trait modifiers, then matching card overrides replace those stat keys.
+    /// UnitCount is handled via ResolveSpawnCountAddForCard and excluded here.
+    /// </summary>
+    public Dictionary<StatKey, float> ResolveStatAddsForCard(string cardCatalogId, string cardRarity)
+    {
+        var result = new Dictionary<StatKey, float>();
+        foreach (var modifier in Modifiers)
+        {
+            if (modifier.StatAdds == null || modifier.StatAdds.Count == 0)
+                continue;
+            if (!string.IsNullOrEmpty(modifier.Target) && !modifier.IsUnitModifier)
+                continue;
+
+            foreach (var (statKey, addValue) in modifier.StatAdds)
+            {
+                if (statKey == StatKey.UnitCount)
+                    continue;
+
+                if (result.TryGetValue(statKey, out var existing))
+                    result[statKey] = existing + addValue;
+                else
+                    result[statKey] = addValue;
+            }
+        }
+
+        var valueOverride = ResolveValueOverride(cardCatalogId, cardRarity);
+        if (valueOverride?.StatAdds != null)
+        {
+            foreach (var (statKey, addValue) in valueOverride.StatAdds)
+            {
+                if (statKey == StatKey.UnitCount)
+                    continue;
+                result[statKey] = addValue;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Resolve spawn-count additive bonus for a specific card context.
     /// Uses base trait modifier StatAdds(UnitCount) and allows override replacement.
     /// </summary>
@@ -193,6 +234,9 @@ public class TraitValueOverride
 
     /// <summary>Replacement multipliers for this context.</summary>
     public Dictionary<StatKey, float>? StatMults { get; init; }
+
+    /// <summary>Replacement additive values for this context.</summary>
+    public Dictionary<StatKey, float>? StatAdds { get; init; }
 
     /// <summary>Replacement spawn-count additive for this context.</summary>
     public int? UnitCountAdd { get; init; }

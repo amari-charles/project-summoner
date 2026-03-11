@@ -753,15 +753,15 @@
     },
     "fortitude_ii": {
       "name": "Fortitude II",
-      "description": "Layered endurance training. +10% max HP."
+      "description": "Layered endurance training. +12% max HP."
     },
     "fortitude_iii": {
       "name": "Fortitude III",
-      "description": "Heavy fortification drills. +12% max HP."
+      "description": "Heavy fortification drills. +16% max HP."
     },
     "fortitude_iv": {
       "name": "Fortitude IV",
-      "description": "Bulwark mastery. +14% max HP."
+      "description": "Bulwark mastery. +20% max HP."
     },
     "power": {
       "name": "Power",
@@ -769,15 +769,15 @@
     },
     "power_ii": {
       "name": "Power II",
-      "description": "Focused striking practice. +8% attack damage."
+      "description": "Focused striking practice. +10% attack damage."
     },
     "power_iii": {
       "name": "Power III",
-      "description": "Disciplined power projection. +10% attack damage."
+      "description": "Disciplined power projection. +14% attack damage."
     },
     "power_iv": {
       "name": "Power IV",
-      "description": "Overwhelming force mastery. +12% attack damage."
+      "description": "Overwhelming force mastery. +18% attack damage."
     },
     "swiftness": {
       "name": "Swiftness",
@@ -785,19 +785,127 @@
     },
     "swiftness_ii": {
       "name": "Swiftness II",
-      "description": "Tempo training. +7% attack speed."
+      "description": "Tempo training. +8% attack speed."
     },
     "swiftness_iii": {
       "name": "Swiftness III",
-      "description": "Rapid execution discipline. +9% attack speed."
+      "description": "Rapid execution discipline. +11% attack speed."
     },
     "swiftness_iv": {
       "name": "Swiftness IV",
-      "description": "Blinding tempo mastery. +11% attack speed."
+      "description": "Blinding tempo mastery. +14% attack speed."
     },
     "agility": {
       "name": "Agility",
       "description": "Swift movement across the battlefield. +5% move speed."
+    },
+    "agility_ii": {
+      "name": "Agility II",
+      "description": "Advanced movement drills. +8% move speed."
+    },
+    "agility_iii": {
+      "name": "Agility III",
+      "description": "Relentless pace conditioning. +11% move speed."
+    },
+    "agility_iv": {
+      "name": "Agility IV",
+      "description": "Peak mobility mastery. +14% move speed."
+    },
+    "reach": {
+      "name": "Reach",
+      "description": "Extended strike spacing. +5% attack range."
+    },
+    "reach_ii": {
+      "name": "Reach II",
+      "description": "Improved spacing discipline. +10% attack range."
+    },
+    "reach_iii": {
+      "name": "Reach III",
+      "description": "Expanded threat envelope. +15% attack range."
+    },
+    "reach_iv": {
+      "name": "Reach IV",
+      "description": "Maximum control radius. +20% attack range."
+    },
+    "plating": {
+      "name": "Plating",
+      "description": "Reinforced armor layers. +4 armor."
+    },
+    "plating_ii": {
+      "name": "Plating II",
+      "description": "Additional protective shelling. +8 armor."
+    },
+    "plating_iii": {
+      "name": "Plating III",
+      "description": "Hardened frontline casing. +12 armor."
+    },
+    "plating_iv": {
+      "name": "Plating IV",
+      "description": "Siege-grade reinforcement. +16 armor."
+    },
+    "warding": {
+      "name": "Warding",
+      "description": "Arcane resistance training. +4 magic resist."
+    },
+    "warding_ii": {
+      "name": "Warding II",
+      "description": "Strengthened anti-magic shell. +8 magic resist."
+    },
+    "warding_iii": {
+      "name": "Warding III",
+      "description": "Advanced spellbreak conditioning. +12 magic resist."
+    },
+    "warding_iv": {
+      "name": "Warding IV",
+      "description": "Mythic anti-magic bulwark. +16 magic resist."
+    },
+    "soulforce": {
+      "name": "Soulforce",
+      "description": "Focused summoner pressure. +1 soul strength."
+    },
+    "soulforce_ii": {
+      "name": "Soulforce II",
+      "description": "Escalating summoner threat. +2 soul strength."
+    },
+    "soulforce_iii": {
+      "name": "Soulforce III",
+      "description": "Relentless core pressure. +3 soul strength."
+    },
+    "soulforce_iv": {
+      "name": "Soulforce IV",
+      "description": "Endgame summoner execution. +4 soul strength."
+    },
+    "arcana": {
+      "name": "Arcana",
+      "description": "Arcane output shaping. +5% magic damage."
+    },
+    "arcana_ii": {
+      "name": "Arcana II",
+      "description": "Refined arcane techniques. +10% magic damage."
+    },
+    "arcana_iii": {
+      "name": "Arcana III",
+      "description": "High-order spell pressure. +15% magic damage."
+    },
+    "arcana_iv": {
+      "name": "Arcana IV",
+      "description": "Apex arcane force. +20% magic damage."
+    },
+    "legion": {
+      "name": "Legion",
+      "description": "Expanded summon cohort. +1 unit count."
+    },
+    "legion_ii": {
+      "name": "Legion II",
+      "description": "Additional reinforcement wave. +1 unit count."
+    },
+    "legion_iii": {
+      "name": "Legion III",
+      "description": "Massed formation doctrine. +1 unit count."
+    },
+    "legion_iv": {
+      "name": "Legion IV",
+      "description": "Swarm-command pinnacle. +1 unit count (common only)."
     }
   },
   "elements": {

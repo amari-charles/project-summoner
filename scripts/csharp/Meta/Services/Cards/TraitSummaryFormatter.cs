@@ -32,7 +32,7 @@ internal static class TraitSummaryFormatter
         [StatKey.Lifesteal] = "Lifesteal",
         [StatKey.HealingBonus] = "Healing",
         [StatKey.HealOnKill] = "Heal on Kill",
-        [StatKey.DamageBonus] = "Damage",
+        [StatKey.DamageBonus] = "Magic Damage",
         [StatKey.FireDamageBonus] = "Fire Damage",
         [StatKey.WaterDamageBonus] = "Water Damage",
         [StatKey.WindDamageBonus] = "Wind Damage",

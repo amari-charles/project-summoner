@@ -720,8 +720,9 @@ public partial class SimulationNode : Node, IGameSession
                 continue;
 
             var rawModifiers = cardService.GetTraitStatModifiersTyped(cardRef.InstanceId.Value);
+            var rawAdds = cardService.GetTraitStatAddModifiersTyped(cardRef.InstanceId.Value);
             var spawnCountAdd = cardService.GetTraitSpawnCountBonus(cardRef.InstanceId.Value);
-            if (rawModifiers.Count == 0)
+            if (rawModifiers.Count == 0 && rawAdds.Count == 0)
             {
                 if (spawnCountAdd != 0)
                 {
@@ -752,17 +753,39 @@ public partial class SimulationNode : Node, IGameSession
                         new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
                         spawnCountAdd);
                 }
-                continue;
             }
 
-            runtime.SetCardInstanceStatMultipliers(
-                new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
-                typedModifiers);
+            var typedAdds = new Dictionary<StatKey, float>();
+            foreach (var (statKey, addValue) in rawAdds)
+            {
+                if (addValue == 0f)
+                    continue;
+
+                var parsedStatKey = StatKeyExtensions.FromString(statKey);
+                if (!parsedStatKey.HasValue)
+                    continue;
+                typedAdds[parsedStatKey.Value] = addValue;
+            }
+
+            var traitCardInstanceId = new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value);
+            if (typedModifiers.Count > 0)
+            {
+                runtime.SetCardInstanceStatMultipliers(
+                    traitCardInstanceId,
+                    typedModifiers);
+            }
+
+            if (typedAdds.Count > 0)
+            {
+                runtime.SetCardInstanceStatAdds(
+                    traitCardInstanceId,
+                    typedAdds);
+            }
 
             if (spawnCountAdd != 0)
             {
                 runtime.SetCardInstanceSpawnCountAdd(
-                    new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+                    traitCardInstanceId,
                     spawnCountAdd);
             }
         }
