@@ -54,7 +54,7 @@ From a game perspective, this should make combat feel fair and readable in 2.5D 
 4. Debug/inspection surface updates:
    - Distinct debug overlays for navigation footprint vs hurtbox vs engage gate vs damage shape.
    - Attack range debug marker semantics become explicit: "Attack Range" represents engage gate only.
-   - Rename debug toggle/pathing terminology from "Separation Radius" to "Navigation Footprint" with compatibility aliasing during migration.
+   - Rename debug toggle/pathing terminology from "Separation Radius" to "Navigation Footprint" and remove legacy alias paths.
 
 ## Legacy Removal Scope
 
@@ -96,8 +96,8 @@ From a game perspective, this should make combat feel fair and readable in 2.5D 
 2. Implemented debug overlay split and naming migration:
    - `Engage Range` overlay channel (startup gate semantics).
    - `Damage Shape` overlay channel (hit geometry semantics).
-   - `Navigation Footprint` naming and legacy alias compatibility.
-3. Added debug-marker tests for engage-vs-shape separation and rename alias behavior.
+   - `Navigation Footprint` naming and canonical debug API usage.
+3. Added debug-marker tests for engage-vs-shape separation and canonical debug toggle behavior.
 4. Carried forward deferred items for engage-depth, locked-aim cone behavior, and expanded determinism coverage.
 
 ## Open Risks
@@ -106,7 +106,7 @@ From a game perspective, this should make combat feel fair and readable in 2.5D 
 2. Engage-depth tuning can over-constrain attacks if defaults are too strict for current camera perspective.
 3. Migration period may need dual-read compatibility to avoid save/snapshot regressions.
 4. Debug overlays may initially disagree with authored content until all unit definitions are normalized.
-5. Debug menu/toggle rename migration (`SeparationRadius` -> `NavigationFootprint`) can break persisted debug preferences if aliasing is incomplete.
+5. Debug-menu key rename migration (`attack_ranges` -> `engage_ranges`) can reset persisted toggle preferences on first run.
 
 ## Assumptions and Defaults
 
@@ -151,3 +151,8 @@ Current state:
 Gate note:
 1. Use explicit approval text to advance.
 2. If waiting, state: `blocked waiting approval`.
+
+## Approval Evidence
+
+1. `PASS 2: STUBS + WIRING` approval was explicitly recorded in the implementation thread on `2026-03-11` (`Approve Pass 2`).
+2. `PASS 3: IMPLEMENTATION + TESTS` work was executed after that approval.

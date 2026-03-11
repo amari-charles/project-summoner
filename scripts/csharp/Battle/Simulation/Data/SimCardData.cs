@@ -153,6 +153,11 @@ public class SimUnitTemplate
 
     // Targeting config (extracted from UnitDefinition at match start)
     public FallbackMovement FallbackMovement { get; set; }
+    public EngageShape EngageShape { get; set; } = EngageShape.Circle;
+    public float EngageRectLength { get; set; }
+    public float EngageRectHalfWidth { get; set; }
+    public float EngageRectForwardOffset { get; set; }
+    public float EngageCloseRadius { get; set; } = 0.4f;
     public bool HasConeConstraint { get; set; }
     public float ConeHalfAngle { get; set; } = 30f;
     public float CloseRangeThreshold { get; set; } = 0.5f;

@@ -116,6 +116,11 @@ public static class ContextSteering
     private const float CrowdDangerFrontFloor = 0.35f;
     private const float CrowdDangerFrontWeight = 0.65f;
     private const float CrowdDangerSideBleed = 0.55f;
+    private const float TightCrowdDangerRadiusMultiplier = 1.80f;
+    private const float TightCrowdDangerMinRadius = 0.70f;
+    private const float TightCrowdDangerFrontFloor = 0.10f;
+    private const float TightCrowdDangerFrontWeight = 0.30f;
+    private const float TightCrowdDangerSideBleed = 0.25f;
     private const int MaxCrowdNeighbors = 20;
 
     /// <summary>
@@ -149,7 +154,19 @@ public static class ContextSteering
                 }
                 else
                 {
-                    FillMeleeProfile(unit, targetPos.Value, state, ref map);
+                    FillMeleeProfile(
+                        unit,
+                        targetPos.Value,
+                        state,
+                        ref map,
+                        MeleeClumpContext.IsTowardTargetCloseMeleeClump(
+                            unit,
+                            behavior.Movement,
+                            behavior.MoveTargetId,
+                            state,
+                            targetPos.Value
+                        )
+                    );
                 }
                 break;
             }
@@ -177,13 +194,17 @@ public static class ContextSteering
     /// Interest falls off with angular distance from target direction.
     /// </summary>
     private static void FillMeleeProfile(
-        UnitData unit, SimVector3 targetPos, MatchState state, ref ContextMap map)
+        UnitData unit,
+        SimVector3 targetPos,
+        MatchState state,
+        ref ContextMap map,
+        bool tightClumpMode = false)
     {
         var toTarget = targetPos - unit.Position;
         toTarget.Y = 0;
         if (toTarget.LengthSquared() < 0.0625f)
         {
-            AddCrowdDanger(unit, state, ref map, SimVector3.Zero);
+            AddCrowdDanger(unit, state, ref map, SimVector3.Zero, tightClumpMode);
             return; // Stop steering when within 0.25 units
         }
 
@@ -202,7 +223,7 @@ public static class ContextSteering
             }
         }
 
-        AddCrowdDanger(unit, state, ref map, targetDir);
+        AddCrowdDanger(unit, state, ref map, targetDir, tightClumpMode);
     }
 
     /// <summary>
@@ -286,11 +307,20 @@ public static class ContextSteering
     }
 
     private static void AddCrowdDanger(
-        UnitData unit, MatchState state, ref ContextMap map, SimVector3 preferredDirection)
+        UnitData unit,
+        MatchState state,
+        ref ContextMap map,
+        SimVector3 preferredDirection,
+        bool tightClumpMode = false)
     {
+        float radiusMultiplier = tightClumpMode ? TightCrowdDangerRadiusMultiplier : CrowdDangerRadiusMultiplier;
+        float minRadius = tightClumpMode ? TightCrowdDangerMinRadius : CrowdDangerMinRadius;
+        float frontFloor = tightClumpMode ? TightCrowdDangerFrontFloor : CrowdDangerFrontFloor;
+        float frontWeight = tightClumpMode ? TightCrowdDangerFrontWeight : CrowdDangerFrontWeight;
+        float sideBleed = tightClumpMode ? TightCrowdDangerSideBleed : CrowdDangerSideBleed;
         float dangerRadius = MathF.Max(
-            CrowdDangerMinRadius,
-            CombatGeometry.GetNavigationRadius(unit) * CrowdDangerRadiusMultiplier
+            minRadius,
+            CombatGeometry.GetNavigationRadius(unit) * radiusMultiplier
         );
         _crowdNeighbors ??= new List<UnitData>(MaxCrowdNeighbors);
         _crowdNeighborDistancesSq ??= new List<float>(MaxCrowdNeighbors);
@@ -308,6 +338,9 @@ public static class ContextSteering
 
         foreach (var other in _crowdNeighbors)
         {
+            if (tightClumpMode && MeleeClumpContext.IsSameTargetCloseMeleePair(unit, other, state))
+                continue;
+
             var toNeighbor = other.Position - unit.Position;
             toNeighbor.Y = 0f;
             float distSq = toNeighbor.LengthSquared();
@@ -322,7 +355,7 @@ public static class ContextSteering
             if (hasPreferredDirection)
             {
                 float alignment = MathF.Max(0f, preferredDir.Dot(neighborDir));
-                frontBias = MathF.Max(CrowdDangerFrontFloor, CrowdDangerFrontFloor + alignment * CrowdDangerFrontWeight);
+                frontBias = MathF.Max(frontFloor, frontFloor + alignment * frontWeight);
             }
 
             float danger = proximity * frontBias;
@@ -330,7 +363,7 @@ public static class ContextSteering
             if (danger > map.Danger[slot])
                 map.Danger[slot] = danger;
 
-            float sideDanger = danger * CrowdDangerSideBleed;
+            float sideDanger = danger * sideBleed;
             int leftSlot = (slot + ContextMap.NumSlots - 1) % ContextMap.NumSlots;
             int rightSlot = (slot + 1) % ContextMap.NumSlots;
 

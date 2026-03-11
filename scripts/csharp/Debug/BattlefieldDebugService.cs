@@ -20,19 +20,6 @@ public partial class BattlefieldDebugService : Node
     public bool NavigationFootprintEnabled { get; set; }
     public bool ProjectileHitGeometryEnabled { get; set; }
 
-    // Compatibility aliases for old naming.
-    public bool AttackRangeEnabled
-    {
-        get => EngageRangeEnabled;
-        set => EngageRangeEnabled = value;
-    }
-
-    public bool SeparationRadiusEnabled
-    {
-        get => NavigationFootprintEnabled;
-        set => NavigationFootprintEnabled = value;
-    }
-
     public bool AnyUnitDebugEnabled =>
         HurtboxEnabled || TargetPointEnabled || EngageRangeEnabled || DamageShapeEnabled || NavigationFootprintEnabled;
     public bool AnyProjectileDebugEnabled => ProjectileHitGeometryEnabled;
@@ -85,12 +72,4 @@ public partial class BattlefieldDebugService : Node
     public void ToggleDebugDamageShape() => DamageShapeEnabled = !DamageShapeEnabled;
     public void ToggleDebugNavigationFootprint() => NavigationFootprintEnabled = !NavigationFootprintEnabled;
     public void ToggleDebugProjectileHitGeometry() => ProjectileHitGeometryEnabled = !ProjectileHitGeometryEnabled;
-
-    // Compatibility methods for old naming paths.
-    public bool IsDebugAttackRangeEnabled() => IsDebugEngageRangeEnabled();
-    public bool IsDebugSeparationRadiusEnabled() => IsDebugNavigationFootprintEnabled();
-    public void SetDebugAttackRangeEnabled(bool enabled) => SetDebugEngageRangeEnabled(enabled);
-    public void SetDebugSeparationRadiusEnabled(bool enabled) => SetDebugNavigationFootprintEnabled(enabled);
-    public void ToggleDebugAttackRange() => ToggleDebugEngageRange();
-    public void ToggleDebugSeparationRadius() => ToggleDebugNavigationFootprint();
 }

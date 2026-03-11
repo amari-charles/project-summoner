@@ -51,6 +51,7 @@ public record AttackAreaConfig
     public Vector3 Size { get; init; } = new(1f, 1f, 1f);
     public float LineLength { get; init; }
     public float LineHalfWidth { get; init; }
+    public float ForwardOffset { get; init; }
 
     public static AttackAreaConfig Default => new();
 }

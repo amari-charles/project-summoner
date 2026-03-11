@@ -304,6 +304,21 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Attack = new AttackVectorConfig
+        {
+            Preset = AttackPreset.AreaCleave,
+            Selection = new AttackSelectionConfig
+            {
+                TargetLimit = 3
+            },
+            Area = new AttackAreaConfig
+            {
+                Shape = AttackAreaShape.Box,
+                // Forward smash footprint: shifted ahead and substantially larger.
+                Size = new Vector3(5.4f, 1.0f, 2.6f),
+                ForwardOffset = 2.1f
+            }
+        },
 
         Visual = new VisualConfig { SeparationRadius = 0.6f},
         ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn"
@@ -634,6 +649,16 @@ public static class UnitDefinitions
     /// </summary>
     private static void SetTargetingProfile(UnitDefinition def, SimUnitTemplate template)
     {
+        // Explicitly reset engage/tuning fields before profile-specific assignment.
+        template.EngageShape = EngageShape.Circle;
+        template.EngageRectLength = 0f;
+        template.EngageRectHalfWidth = 0f;
+        template.EngageRectForwardOffset = 0f;
+        template.EngageCloseRadius = 0.4f;
+        template.HasConeConstraint = false;
+        template.ConeHalfAngle = 30f;
+        template.CloseRangeThreshold = 0.5f;
+
         switch (def.TargetingProfile)
         {
             case UnitTargetingProfile.Passive:
@@ -645,6 +670,12 @@ public static class UnitDefinitions
 
             case UnitTargetingProfile.MeleeGround:
                 template.FallbackMovement = FallbackMovement.MoveToward;
+                template.EngageShape = EngageShape.ForwardRect;
+                template.EngageRectLength = MathF.Max(template.AttackRange * 0.9f, 0.1f);
+                template.EngageRectHalfWidth = MathF.Max(template.NavigationRadius, 0.45f);
+                template.EngageRectForwardOffset = 0f;
+                template.EngageCloseRadius = MathF.Max(template.NavigationRadius * 0.9f, 0.4f);
+                ApplyMeleeEngageRectOverridesFromAttack(template);
                 template.HealthScorerWeight = def.TargetingHealthScorerWeight;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
@@ -668,6 +699,7 @@ public static class UnitDefinitions
             case UnitTargetingProfile.FlyingConeStrafe:
                 template.FallbackMovement = FallbackMovement.Strafe;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
+                template.EngageShape = EngageShape.Cone;
                 template.HasConeConstraint = true;
                 template.ConeHalfAngle = def.TargetingConeHalfAngle;
                 template.CloseRangeThreshold = def.TargetingCloseRangeThreshold;
@@ -679,6 +711,47 @@ public static class UnitDefinitions
                 throw new ArgumentOutOfRangeException(
                     nameof(def.TargetingProfile), def.TargetingProfile, "Unknown UnitTargetingProfile");
         }
+    }
+
+    private static void ApplyMeleeEngageRectOverridesFromAttack(SimUnitTemplate template)
+    {
+        bool shouldOverride = false;
+        float length = 0f;
+        float halfWidth = 0f;
+        float forwardOffset = 0f;
+
+        switch (template.Attack.Selection.Mode)
+        {
+            case AttackSelectionMode.LineCollect:
+                shouldOverride = true;
+                length = template.Attack.Area.LineLength;
+                halfWidth = template.Attack.Area.LineHalfWidth;
+                forwardOffset = template.Attack.Area.ForwardOffset;
+                break;
+
+            case AttackSelectionMode.AreaCollect when template.Attack.Area.Shape == AttackAreaShape.Box:
+                shouldOverride = true;
+                length = template.Attack.Area.Size.X;
+                halfWidth = template.Attack.Area.Size.Z;
+                forwardOffset = template.Attack.Area.ForwardOffset;
+                break;
+
+            case AttackSelectionMode.AreaCollect when template.Attack.Area.Shape == AttackAreaShape.Line:
+                shouldOverride = true;
+                length = template.Attack.Area.LineLength;
+                halfWidth = template.Attack.Area.LineHalfWidth;
+                forwardOffset = template.Attack.Area.ForwardOffset;
+                break;
+        }
+
+        if (!shouldOverride)
+            return;
+
+        if (length > 0f)
+            template.EngageRectLength = length;
+        if (halfWidth > 0f)
+            template.EngageRectHalfWidth = halfWidth;
+        template.EngageRectForwardOffset = MathF.Max(forwardOffset, 0f);
     }
 
     private static TacticalRole ResolveTacticalRole(UnitDefinition def, UnitStats stats)

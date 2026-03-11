@@ -133,19 +133,20 @@ public static class SimBehavior
             return new BehaviorResult { Movement = MovementResult.Forward };
         }
 
-        // Use XZ distance for range check (consistent with movement which ignores Y)
+        // Use XZ distance for lane-role chase shaping.
         float dx = unit.Position.X - tPos.X;
         float dz = unit.Position.Z - tPos.Z;
         float dist = MathF.Sqrt(dx * dx + dz * dz);
 
-        if (dist <= unit.AttackRange)
+        bool inEngageDistance = SimTargeting.IsWithinEngageDistance(unit, tPos);
+        if (inEngageDistance)
         {
-            // In range — check cone constraint
+            // In engage distance — check engage shape constraint.
             bool canAttack = isSummonerTarget
                 ? SimTargeting.CanAttackPosition(unit, tPos)
                 : (target != null && SimTargeting.CanAttack(unit, target));
 
-            if (unit.HasConeConstraint && !canAttack)
+            if (!canAttack)
             {
                 // Constraint not satisfied — use fallback movement
                 unit.BehaviorState = BehaviorState.InRange;

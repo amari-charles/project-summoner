@@ -33,6 +33,8 @@ public static class AttackRecipientResolver
 
     private static List<UnitData> ResolveAreaRecipients(UnitData attacker, UnitData primaryTarget, MatchState state)
     {
+        bool includePrimary = PassesLayerFilter(attacker, primaryTarget) &&
+                              IsAreaMatch(attacker, primaryTarget, primaryTarget);
         var secondaries = new List<UnitData>();
         foreach (var candidate in EnumerateEnemyCandidates(attacker, state))
         {
@@ -55,13 +57,15 @@ public static class AttackRecipientResolver
             return a.UnitId.CompareTo(b.UnitId);
         });
 
-        return FinalizeRecipients(attacker, primaryTarget, secondaries);
+        return FinalizeRecipients(attacker, primaryTarget, secondaries, includePrimary);
     }
 
     private static List<UnitData> ResolveLineRecipients(UnitData attacker, UnitData primaryTarget, MatchState state)
     {
         var secondaries = new List<UnitData>();
         var line = BuildLineQuery(attacker, primaryTarget);
+        bool includePrimary = PassesLayerFilter(attacker, primaryTarget) &&
+                              IsInsideLineCorridor(primaryTarget.Position, line.Origin, line.Direction, line.Length, line.HalfWidth);
 
         foreach (var candidate in EnumerateEnemyCandidates(attacker, state))
         {
@@ -93,7 +97,7 @@ public static class AttackRecipientResolver
             return a.UnitId.CompareTo(b.UnitId);
         });
 
-        return FinalizeRecipients(attacker, primaryTarget, secondaries);
+        return FinalizeRecipients(attacker, primaryTarget, secondaries, includePrimary);
     }
 
     private static List<UnitData> ResolveChainRecipients(UnitData attacker, UnitData primaryTarget, MatchState state)
@@ -168,9 +172,10 @@ public static class AttackRecipientResolver
     private static List<UnitData> FinalizeRecipients(
         UnitData attacker,
         UnitData primaryTarget,
-        List<UnitData> orderedSecondaries)
+        List<UnitData> orderedSecondaries,
+        bool includePrimary)
     {
-        if (!primaryTarget.IsAlive)
+        if (!primaryTarget.IsAlive || !includePrimary)
             return new List<UnitData>();
 
         var ordered = new List<UnitData> { primaryTarget };
@@ -240,12 +245,13 @@ public static class AttackRecipientResolver
         var delta = point - attacker.Position;
 
         float forwardLength = size.X > 0f ? size.X : MathF.Max(attacker.AttackRange, 0.5f);
+        float forwardOffset = MathF.Max(attacker.Attack.Area.ForwardOffset, 0f);
         float halfWidth = size.Z > 0f ? size.Z : 0.5f;
         float projectedForward = DotXZ(delta, forward);
         float projectedRight = MathF.Abs(DotXZ(delta, right));
 
-        return projectedForward >= -GeometryEpsilon &&
-               projectedForward <= forwardLength + GeometryEpsilon &&
+        return projectedForward >= forwardOffset - GeometryEpsilon &&
+               projectedForward <= (forwardOffset + forwardLength) + GeometryEpsilon &&
                projectedRight <= halfWidth + GeometryEpsilon;
     }
 
@@ -270,9 +276,10 @@ public static class AttackRecipientResolver
         UnitData attacker,
         UnitData primaryTarget)
     {
-        var origin = attacker.Position;
         var direction = GetDirectionFromAttacker(attacker, primaryTarget.Position);
-        float targetDistance = DistanceXZ(attacker.Position, primaryTarget.Position);
+        float forwardOffset = MathF.Max(attacker.Attack.Area.ForwardOffset, 0f);
+        var origin = attacker.Position + (direction * forwardOffset);
+        float targetDistance = MathF.Max(DistanceXZ(attacker.Position, primaryTarget.Position) - forwardOffset, 0f);
         float length = attacker.Attack.Area.LineLength > 0f
             ? attacker.Attack.Area.LineLength
             : targetDistance;

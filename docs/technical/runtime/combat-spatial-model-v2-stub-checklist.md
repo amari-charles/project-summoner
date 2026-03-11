@@ -54,7 +54,7 @@
 | CSM-013 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `CSM_013_HitSpaceMode_GroundCylinderVsSphere3D` | Hit-space routing hook |
 | CSM-014 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `CSM_014_MultiRecipientTieOrdering_Stub` | Deterministic ordering placeholder |
 | CSM-015 | `tests/csharp/View/UnitVisualDebugMarkersTest.cs` | `Process_EngageRangeAndDamageShape_UseIndependentDebugMarkers` | Engage gate and damage shape overlays are independent |
-| CSM-016 | `tests/csharp/View/UnitVisualDebugMarkersTest.cs` | `DebugService_NavigationFootprintRename_PreservesLegacyAliases` | Rename migration + legacy alias behavior |
+| CSM-016 | `tests/csharp/View/UnitVisualDebugMarkersTest.cs` | `DebugService_NavigationFootprintToggle_UsesCanonicalApi` | Canonical navigation-footprint debug API behavior |
 | DCSM-001 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `DCSM_001_DeterminismScenario_Stub` | Determinism placeholder |
 | DCSM-002 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `DCSM_002_DeterminismDenseSwarm_Stub` | Determinism placeholder |
 

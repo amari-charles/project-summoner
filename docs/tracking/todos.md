@@ -23,6 +23,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-08, desync pass):** Closed sim/visual state desync audit task after phase sync hardening, summoner destroy signal dedupe, activation-state visual alignment fix, and regression coverage updates.
 **Tracker Sync (2026-03-09, combat correctness):** Moved completed DamageProfile armor/magic-resist integration + summoner combat-modifier wiring to `todos-completed.md`; removed UI damage-type card indicator from this task per product direction.
 **Tracker Sync (2026-03-10, attack vectors):** Updated `Implement Single Target vs Multi Target Attack System` to partial after runtime V1 delivery (vector recipient resolution + tests); visual telegraphs and balance pass remain.
+**Tracker Sync (2026-03-11, combat spatial v2):** Updated directional attack, multi-target, and hitbox tracker entries to reflect runtime geometry-channel split + debug overlay progress; engage-shape startup alignment remains open.
 
 ---
 
@@ -203,7 +204,9 @@ Add support for melee attacks that only hit in a forward cone/arc instead of a f
 **Current State:**
 - ✅ Cone-aware reachability/attack checks exist in simulation targeting (`SimTargeting` / `SimBehavior`)
 - ✅ Unit data includes cone tunables used by targeting profiles
-- ⬜ Melee hitbox shape configuration is still sphere-first; per-unit hitbox shape/size is not implemented
+- ✅ Runtime now separates movement footprint (`NavigationRadius`) from damage contact (`HurtboxRadius`) for projectile/AoE fairness.
+- ✅ Debug overlays now split engage gate vs damage shape vs navigation footprint for tuning visibility.
+- ⬜ Front-only melee engage geometry and strict engage-vs-damage-shape startup sync are still in progress.
 
 **Requirements:**
 - Add `AttackHitboxShape` enum (Sphere, Box, Capsule) for melee behavior
@@ -240,6 +243,11 @@ Add system to differentiate between single target attacks and multi target/AoE a
 - ✅ Added simulation test coverage for target limits, deterministic tie-breaks, secondary death handling, and trigger-mode behavior.
 - ⬜ Remaining: visual indicators/telegraphs for AoE vectors and gameplay balance pass for multi-target damage tuning.
 
+**Progress Update (2026-03-11):**
+- ✅ Added combat spatial split wiring for navigation footprint vs hurtbox contact across simulation movement/projectile paths.
+- ✅ Added independent debug overlays for engage range and damage-shape visualization.
+- 🔄 Remaining: engage startup must align strictly with authored forward damage shapes for front-only melee readability.
+
 **Requirements:**
 - ✅ Define attack target type in unit data (single, multi, aoe)
 - ✅ Implement multi-target selection logic for units
@@ -255,12 +263,17 @@ Add system to differentiate between single target attacks and multi target/AoE a
 ---
 
 #### Improve Unit Hitboxes
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Runtime Channels Shipped)
 **Category:** Units & Combat
 **Effort:** Medium
 
 **Description:**
 Flesh out and refine unit hitboxes for better collision detection and combat interactions.
+
+**Current State:**
+- ✅ Runtime data now carries separate `NavigationRadius` and hurtbox fields (`HurtboxRadius`, `HurtboxHeight`, `HurtboxHorizontal`, `HurtboxOffset`).
+- ✅ Projectile contact and AoE radius checks read hurtbox channels instead of movement spacing.
+- 🔄 Remaining: finish per-unit authored shape tuning and align melee engage gating with forward attack shapes.
 
 **Requirements:**
 - Review current hitbox sizes and shapes

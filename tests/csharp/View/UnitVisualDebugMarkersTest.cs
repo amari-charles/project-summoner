@@ -8,6 +8,7 @@ using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 using Fateforged.View;
 using Fateforged.Units;
 using GdUnit4;
@@ -136,20 +137,118 @@ public partial class UnitVisualDebugMarkersTest
     }
 
     [TestCase]
-    public void DebugService_NavigationFootprintRename_PreservesLegacyAliases()
+    public void Process_ForwardRectEngageRange_RendersRectAndCloseBubbleMarkers()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var debugService = new BattlefieldDebugService { Name = "BattlefieldDebug" };
+        root.AddChild(debugService);
+        _createdNodes.Add(debugService);
+
+        var visual = new UnitVisual { Name = "UnitVisualForwardRectEngageDebugTest" };
+        root.AddChild(visual);
+        _createdNodes.Add(visual);
+
+        const int unitId = 88;
+        var state = new MatchState();
+        state.Units[unitId] = new UnitData
+        {
+            UnitId = unitId,
+            IsAlive = true,
+            Position = new SimVector3(0f, 0f, 0f),
+            AttackRange = 3f,
+            EngageShape = EngageShape.ForwardRect,
+            EngageRectLength = 2.7f,
+            EngageRectHalfWidth = 0.6f,
+            EngageRectForwardOffset = 0.2f,
+            EngageCloseRadius = 0.45f,
+            IsFacingRight = true
+        };
+
+        SetPrivateField(visual, "_session", new StubSession(state));
+        SetPrivateField(visual, "_unitId", unitId);
+        SetPrivateField(visual, "_isFacingRight", true);
+
+        var primaryField = typeof(UnitVisual).GetField("_debugEngageRangeMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        var secondaryField = typeof(UnitVisual).GetField("_debugEngageRangeSecondaryMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        AssertThat(primaryField).IsNotNull();
+        AssertThat(secondaryField).IsNotNull();
+
+        debugService.EngageRangeEnabled = true;
+        visual._Process(1.0 / 60.0);
+
+        var primary = primaryField!.GetValue(visual) as MeshInstance3D;
+        var secondary = secondaryField!.GetValue(visual) as MeshInstance3D;
+        AssertThat(primary).IsNotNull();
+        AssertThat(primary!.Mesh is BoxMesh).IsTrue();
+        AssertThat(secondary).IsNotNull();
+        AssertThat(secondary!.Mesh is CylinderMesh).IsTrue();
+    }
+
+    [TestCase]
+    public void DebugService_NavigationFootprintToggle_UsesCanonicalApi()
     {
         var debugService = new BattlefieldDebugService();
 
         debugService.SetDebugNavigationFootprintEnabled(true);
         AssertThat(debugService.NavigationFootprintEnabled).IsTrue();
-        AssertThat(debugService.IsDebugSeparationRadiusEnabled()).IsTrue();
+        AssertThat(debugService.IsDebugNavigationFootprintEnabled()).IsTrue();
 
-        debugService.SetDebugSeparationRadiusEnabled(false);
+        debugService.ToggleDebugNavigationFootprint();
         AssertThat(debugService.NavigationFootprintEnabled).IsFalse();
         AssertThat(debugService.IsDebugNavigationFootprintEnabled()).IsFalse();
 
-        debugService.ToggleDebugSeparationRadius();
+        debugService.SetDebugNavigationFootprintEnabled(true);
         AssertThat(debugService.NavigationFootprintEnabled).IsTrue();
+    }
+
+    [TestCase]
+    public void Process_DamageShapeSingleTarget_AnchorsDiscToPrimaryTarget()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var debugService = new BattlefieldDebugService { Name = "BattlefieldDebug" };
+        root.AddChild(debugService);
+        _createdNodes.Add(debugService);
+
+        var visual = new UnitVisual { Name = "UnitVisualSingleTargetShapeDebugTest" };
+        root.AddChild(visual);
+        _createdNodes.Add(visual);
+
+        const int attackerId = 101;
+        const int targetId = 202;
+        var state = new MatchState();
+        state.Units[attackerId] = new UnitData
+        {
+            UnitId = attackerId,
+            IsAlive = true,
+            Position = new SimVector3(0f, 0f, 0f),
+            TargetUnitId = targetId,
+            AttackRange = 3f
+        };
+        state.Units[targetId] = new UnitData
+        {
+            UnitId = targetId,
+            IsAlive = true,
+            Position = new SimVector3(2.5f, 0f, 0.6f)
+        };
+
+        SetPrivateField(visual, "_session", new StubSession(state));
+        SetPrivateField(visual, "_unitId", attackerId);
+
+        var damageShapeField = typeof(UnitVisual).GetField("_debugDamageShapeMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        AssertThat(damageShapeField).IsNotNull();
+
+        debugService.DamageShapeEnabled = true;
+        visual._Process(1.0 / 60.0);
+
+        var marker = damageShapeField!.GetValue(visual) as MeshInstance3D;
+        AssertThat(marker).IsNotNull();
+        AssertThat(marker!.Mesh is CylinderMesh).IsTrue();
+        AssertThat(Mathf.Abs(marker.GlobalPosition.X - 2.5f) < 0.001f).IsTrue();
+        AssertThat(Mathf.Abs(marker.GlobalPosition.Z - 0.6f) < 0.001f).IsTrue();
     }
 
     private static void SetPrivateField(object instance, string fieldName, object? value)

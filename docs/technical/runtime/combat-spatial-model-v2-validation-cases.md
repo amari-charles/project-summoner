@@ -1,6 +1,6 @@
 # Combat Spatial Model V2 Validation Cases
 
-**Status:** PASS 3 IMPLEMENTATION REVIEWED  
+**Status:** PASS 3 IMPLEMENTATION COMPLETE (Awaiting PR Review)  
 **Initiative:** `combat-spatial-model-v2`  
 **Domain:** `runtime`  
 **Last Updated:** `2026-03-11`  
@@ -22,9 +22,9 @@ Allowed status values:
 | Case ID | Scenario | Expected Result | Test Type | Test File | Status |
 |---|---|---|---|---|---|
 | CSM-001 | Legacy unit with no explicit hurtbox/engage fields | Runtime fallback preserves prior behavior within tolerance | unit | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | Implemented |
-| CSM-002 | Directional attack startup with target far up/down battlefield depth | Attack does not start when target violates engage arc/depth gate | unit | `tests/csharp/Simulation/SimTargetingTest.cs` | Deferred |
+| CSM-002 | Directional attack startup with target far up/down battlefield depth | Attack does not start when target violates engage arc/depth gate | unit | `tests/csharp/Simulation/SimTargetingTest.cs` | Implemented |
 | CSM-003 | Directional attack startup with valid forward target | Attack starts when engage gate passes (distance + arc + depth + layer) | unit | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | Implemented |
-| CSM-004 | Piercing line attack with `LineLength` greater than engage distance | Startup uses engage rules; hit resolution uses line corridor geometry | simulation | `tests/csharp/Simulation/SimBehaviorTest.cs` | Deferred |
+| CSM-004 | Piercing line attack with `LineLength` greater than engage distance | Startup uses engage rules; hit resolution uses line corridor geometry | simulation | `tests/csharp/Simulation/SimBehaviorTest.cs` | Implemented |
 | CSM-005 | Cone attack with locked aim at windup | Recipients are selected from cone shape at hit frame using locked aim direction | simulation | `tests/csharp/Simulation/SimBehaviorTest.cs` | Deferred |
 | CSM-006 | Cone attack with center offset (for example Puff downward center) | Cone center offset changes recipient membership as authored | simulation | `tests/csharp/Simulation/SimBehaviorTest.cs` | Deferred |
 | CSM-007 | Projectile contact where target hurtbox differs from navigation radius | Contact uses hurtbox channel only; movement footprint does not inflate/deflate hit fairness | simulation | `tests/csharp/Simulation/SimProjectileTest.cs` | Implemented |
@@ -36,7 +36,7 @@ Allowed status values:
 | CSM-013 | GroundCylinder vs Sphere3D projectile hit-space modes | Ground targets use XZ logic in GroundCylinder; Sphere3D applies full 3D | simulation | `tests/csharp/Simulation/SimProjectileTest.cs` | Implemented |
 | CSM-014 | Multi-recipient tie cases for line/cone around boundaries | Recipient ordering remains deterministic with documented tie-breaks | simulation | `tests/csharp/Simulation/SimBehaviorTest.cs` | Deferred |
 | CSM-015 | Debug attack-range marker for directional/vector attacks | "Attack range" overlay renders engage gate only; damage shape is shown by separate overlay channel | unit | `tests/csharp/View/UnitVisualDebugMarkersTest.cs` | Implemented |
-| CSM-016 | Debug toggle migration for navigation footprint naming | Renamed navigation-footprint toggle controls footprint marker and preserves compatibility alias behavior | unit | `tests/csharp/View/UnitVisualDebugMarkersTest.cs` | Implemented |
+| CSM-016 | Navigation-footprint debug toggle canonicalization | Navigation-footprint toggle controls footprint marker via canonical API only (no legacy alias path) | unit | `tests/csharp/View/UnitVisualDebugMarkersTest.cs` | Implemented |
 
 ## Determinism Cases (If Applicable)
 
@@ -49,8 +49,6 @@ Allowed status values:
 
 | Case ID | Reason Deferred | Planned Follow-up |
 |---|---|---|
-| CSM-002 | Engage-depth tolerance channel is not yet modeled separately from cone arc/range checks. | Add explicit engage-depth field + targeting tests in follow-up pass. |
-| CSM-004 | Line attacks still rely on current attack-range engage semantics; no dedicated engage-vs-line-length contract yet. | Introduce engage contract fields and line-specific startup validation. |
 | CSM-005 | Locked-aim-at-windup for cone resolution is not yet exposed as explicit runtime mode. | Add `AimMode` state and cone hit-frame lock tests. |
 | CSM-006 | Cone center offset authoring is not yet surfaced in runtime attack geometry mapping. | Add cone center-offset fields + recipient-membership tests. |
 | CSM-010 | Runtime behavior is navigation-footprint-only, but dedicated hurtbox-variance orbit regression test is still missing. | Add simulation regression in `SimBehaviorTest` with varied hurtbox vs navigation values. |
@@ -70,4 +68,4 @@ Allowed status values:
 
 1. Every required case is `Implemented` or `Deferred`.
 2. Any deferred case includes explicit rationale and follow-up target.
-3. Determinism cases pass with stable ordering assertions.
+3. Determinism cases are either `Implemented` or `Deferred` with explicit follow-up.

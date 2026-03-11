@@ -4,6 +4,7 @@ using System;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Geometry;
 using Fateforged.Simulation.Movement;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -56,5 +57,66 @@ public class OrcaAvoidanceTest
         // Black-box guard: adding a close blocker after many far neighbors should
         // still materially reduce forward speed.
         AssertThat(safeVelocity.X).IsLess(baselineSafeVelocity.X - 0.5f);
+    }
+
+    [TestCase]
+    public void ComputeSafeVelocity_SameTargetMeleeNonOverlap_DoesNotAddPreOverlapRepulsion()
+    {
+        var target = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 2f,
+            z: 0f,
+            moveSpeed: 0f,
+            attackSpeed: 0f,
+            attackRange: 1f
+        );
+        var mover = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            moveSpeed: 3f,
+            attackRange: 2f
+        );
+        mover.SeparationRadius = 0.4f;
+        mover.NavigationRadius = 0.4f;
+        mover.BehaviorState = BehaviorState.Chasing;
+        mover.TargetUnitId = target.UnitId;
+        mover.EngageShape = EngageShape.ForwardRect;
+        mover.EngageRectLength = 1.8f;
+        mover.EngageRectHalfWidth = 0.7f;
+
+        var preferredVelocity = new SimVector3(2.8f, 0f, 0f);
+        var baselineSafeVelocity = OrcaAvoidance.ComputeSafeVelocity(mover, preferredVelocity, _state);
+
+        var ally = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0.85f,
+            moveSpeed: 0f,
+            attackSpeed: 0f,
+            attackRange: 2f
+        );
+        ally.SeparationRadius = 0.4f;
+        ally.NavigationRadius = 0.4f;
+        ally.BehaviorState = BehaviorState.Chasing;
+        ally.TargetUnitId = target.UnitId;
+        ally.EngageShape = EngageShape.ForwardRect;
+        ally.EngageRectLength = 1.8f;
+        ally.EngageRectHalfWidth = 0.7f;
+
+        float combinedRadius = CombatGeometry.GetNavigationRadius(mover) + CombatGeometry.GetNavigationRadius(ally);
+        float pairDistance = new SimVector3(
+            ally.Position.X - mover.Position.X,
+            0f,
+            ally.Position.Z - mover.Position.Z
+        ).Length();
+        AssertThat(pairDistance).IsGreater(combinedRadius);
+
+        var safeVelocity = OrcaAvoidance.ComputeSafeVelocity(mover, preferredVelocity, _state);
+        AssertThat(MathF.Abs(safeVelocity.X - baselineSafeVelocity.X)).IsLess(0.06f);
+        AssertThat(MathF.Abs(safeVelocity.Z - baselineSafeVelocity.Z)).IsLess(0.06f);
     }
 }

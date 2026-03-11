@@ -360,8 +360,6 @@ func _update_button_states() -> void:
 		var enabled: bool = false
 		if _unit_debug.has_method("IsDebugEngageRangeEnabled"):
 			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugEngageRangeEnabled"), false)
-		elif _unit_debug.has_method("IsDebugAttackRangeEnabled"):
-			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugAttackRangeEnabled"), false)
 		var state: String = "On" if enabled else "Off"
 		_attack_range_button.text = "Engage Range: %s" % state
 
@@ -374,8 +372,6 @@ func _update_button_states() -> void:
 		var enabled: bool = false
 		if _unit_debug.has_method("IsDebugNavigationFootprintEnabled"):
 			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugNavigationFootprintEnabled"), false)
-		elif _unit_debug.has_method("IsDebugSeparationRadiusEnabled"):
-			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugSeparationRadiusEnabled"), false)
 		var state: String = "On" if enabled else "Off"
 		_navigation_footprint_button.text = "Navigation Footprint: %s" % state
 
@@ -470,13 +466,10 @@ func _on_target_point_toggle_pressed() -> void:
 func _on_attack_range_toggle_pressed() -> void:
 	if not _unit_debug:
 		_unit_debug = _get_unit_debug_service()
-	if not _unit_debug:
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugEngageRange"):
 		return
 
-	if _unit_debug.has_method("ToggleDebugEngageRange"):
-		_unit_debug.call("ToggleDebugEngageRange")
-	elif _unit_debug.has_method("ToggleDebugAttackRange"):
-		_unit_debug.call("ToggleDebugAttackRange")
+	_unit_debug.call("ToggleDebugEngageRange")
 
 	_update_button_states()
 	_save_settings()
@@ -495,13 +488,10 @@ func _on_damage_shape_toggle_pressed() -> void:
 func _on_navigation_footprint_toggle_pressed() -> void:
 	if not _unit_debug:
 		_unit_debug = _get_unit_debug_service()
-	if not _unit_debug:
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugNavigationFootprint"):
 		return
 
-	if _unit_debug.has_method("ToggleDebugNavigationFootprint"):
-		_unit_debug.call("ToggleDebugNavigationFootprint")
-	elif _unit_debug.has_method("ToggleDebugSeparationRadius"):
-		_unit_debug.call("ToggleDebugSeparationRadius")
+	_unit_debug.call("ToggleDebugNavigationFootprint")
 
 	_update_button_states()
 	_save_settings()
@@ -874,24 +864,16 @@ func _load_settings() -> void:
 			_unit_debug.call("SetDebugHurtboxEnabled", config.get_value("debug_menu", "hurtboxes", false))
 		if _unit_debug.has_method("SetDebugTargetPointEnabled"):
 			_unit_debug.call("SetDebugTargetPointEnabled", config.get_value("debug_menu", "target_points", false))
-		var attack_range_enabled: bool = config.get_value("debug_menu", "attack_ranges", false)
+		var attack_range_enabled: bool = config.get_value("debug_menu", "engage_ranges", false)
 		if _unit_debug.has_method("SetDebugEngageRangeEnabled"):
 			_unit_debug.call("SetDebugEngageRangeEnabled", attack_range_enabled)
-		elif _unit_debug.has_method("SetDebugAttackRangeEnabled"):
-			_unit_debug.call("SetDebugAttackRangeEnabled", attack_range_enabled)
 
 		if _unit_debug.has_method("SetDebugDamageShapeEnabled"):
 			_unit_debug.call("SetDebugDamageShapeEnabled", config.get_value("debug_menu", "damage_shapes", false))
 
-		var navigation_footprint_enabled: bool = config.get_value(
-			"debug_menu",
-			"navigation_footprint",
-			config.get_value("debug_menu", "separation_radius", false)
-		)
+		var navigation_footprint_enabled: bool = config.get_value("debug_menu", "navigation_footprint", false)
 		if _unit_debug.has_method("SetDebugNavigationFootprintEnabled"):
 			_unit_debug.call("SetDebugNavigationFootprintEnabled", navigation_footprint_enabled)
-		elif _unit_debug.has_method("SetDebugSeparationRadiusEnabled"):
-			_unit_debug.call("SetDebugSeparationRadiusEnabled", navigation_footprint_enabled)
 		if _unit_debug.has_method("SetDebugProjectileHitGeometryEnabled"):
 			_unit_debug.call("SetDebugProjectileHitGeometryEnabled", config.get_value("debug_menu", "projectile_hit_geometry", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
@@ -913,9 +895,7 @@ func _save_settings() -> void:
 		if _unit_debug.has_method("IsDebugTargetPointEnabled"):
 			config.set_value("debug_menu", "target_points", _unit_debug.call("IsDebugTargetPointEnabled"))
 		if _unit_debug.has_method("IsDebugEngageRangeEnabled"):
-			config.set_value("debug_menu", "attack_ranges", _unit_debug.call("IsDebugEngageRangeEnabled"))
-		elif _unit_debug.has_method("IsDebugAttackRangeEnabled"):
-			config.set_value("debug_menu", "attack_ranges", _unit_debug.call("IsDebugAttackRangeEnabled"))
+			config.set_value("debug_menu", "engage_ranges", _unit_debug.call("IsDebugEngageRangeEnabled"))
 
 		if _unit_debug.has_method("IsDebugDamageShapeEnabled"):
 			config.set_value("debug_menu", "damage_shapes", _unit_debug.call("IsDebugDamageShapeEnabled"))
@@ -923,11 +903,7 @@ func _save_settings() -> void:
 		var navigation_footprint_enabled: bool = false
 		if _unit_debug.has_method("IsDebugNavigationFootprintEnabled"):
 			navigation_footprint_enabled = _unit_debug.call("IsDebugNavigationFootprintEnabled")
-		elif _unit_debug.has_method("IsDebugSeparationRadiusEnabled"):
-			navigation_footprint_enabled = _unit_debug.call("IsDebugSeparationRadiusEnabled")
 		config.set_value("debug_menu", "navigation_footprint", navigation_footprint_enabled)
-		# Keep legacy key for compatibility with older builds/settings readers.
-		config.set_value("debug_menu", "separation_radius", navigation_footprint_enabled)
 		if _unit_debug.has_method("IsDebugProjectileHitGeometryEnabled"):
 			config.set_value("debug_menu", "projectile_hit_geometry", _unit_debug.call("IsDebugProjectileHitGeometryEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)

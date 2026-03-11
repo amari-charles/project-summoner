@@ -2,6 +2,7 @@ using System;
 using Fateforged.Simulation;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -18,6 +19,7 @@ public static class SimTargeting
     private const float FlankerOffLanePenalty = 4.0f;
     private const float BacklinerCrossLanePenalty = 5.0f;
     private const float FlankerCenterIgnoreDistance = 8.0f;
+    private const float GeometryEpsilon = 0.00001f;
 
     /// <summary>
     /// Acquire a target using the unit's configured targeting policy.
@@ -59,6 +61,7 @@ public static class SimTargeting
 
         int enemyTeam = MatchState.GetEnemyTeam((int)unit.Team);
         int attackerLane = ResolvePreferredLane(unit);
+        EngageShape engageShape = ResolveEngageShape(unit);
         float bestScore = float.MinValue;
         float bestAttackableScore = float.MinValue;
         int? bestId = null;
@@ -88,7 +91,7 @@ public static class SimTargeting
             if (!PassesLayerFilter(unit, candidate)) continue;
 
             // Reachability (cone constraint)
-            if (unit.HasConeConstraint && !CanEverReach(unit, candidate)) continue;
+            if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate)) continue;
             if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist)) continue;
 
             // Score the candidate
@@ -96,7 +99,7 @@ public static class SimTargeting
             score += ScoreLaneAffinity(unit, attackerLane, candidateLane, laneDistance);
 
             if (prioritizeAttackableNow &&
-                dist <= unit.AttackRange &&
+                IsWithinEngageDistance(unit, candidate.Position) &&
                 CanAttack(unit, candidate) &&
                 score > bestAttackableScore)
             {
@@ -134,7 +137,7 @@ public static class SimTargeting
     public static bool IsTargetAttackableNow(UnitData unit, int targetId, MatchState state)
     {
         var targetPosition = SimUtils.ResolveTargetPosition(targetId, state);
-        if (!targetPosition.HasValue || !IsWithinAttackRange(unit, targetPosition.Value))
+        if (!targetPosition.HasValue || !IsWithinEngageDistance(unit, targetPosition.Value))
             return false;
 
         if (MatchState.IsSummonerTarget(targetId))
@@ -163,6 +166,9 @@ public static class SimTargeting
     /// </summary>
     private static bool CanEverReach(UnitData unit, UnitData candidate)
     {
+        if (ResolveEngageShape(unit) != EngageShape.Cone)
+            return true;
+
         var toTarget = candidate.Position - unit.Position;
 
         // Very close — always reachable
@@ -252,33 +258,35 @@ public static class SimTargeting
     }
 
     /// <summary>
-    /// Check if a unit can attack a target at the given position (cone constraint satisfied).
+    /// Returns true when the target position is within this unit's engage distance envelope.
+    /// Shape orientation checks are applied by CanAttackPosition.
+    /// </summary>
+    public static bool IsWithinEngageDistance(UnitData unit, SimVector3 targetPosition)
+    {
+        float horizontalDistance = DistanceXZ(unit.Position, targetPosition);
+        EngageShape engageShape = ResolveEngageShape(unit);
+
+        if (engageShape != EngageShape.ForwardRect)
+            return horizontalDistance <= unit.AttackRange;
+
+        float reachFromRect = unit.EngageRectForwardOffset + unit.EngageRectLength;
+        float maxReach = MathF.Max(unit.AttackRange, MathF.Max(reachFromRect, unit.EngageCloseRadius));
+        return horizontalDistance <= maxReach + GeometryEpsilon;
+    }
+
+    /// <summary>
+    /// Check if a unit can attack a target at the given position (engage shape satisfied).
     /// Overload for summoner targets that don't have UnitData.
     /// </summary>
     public static bool CanAttackPosition(UnitData unit, SimVector3 targetPosition)
     {
-        if (!unit.HasConeConstraint)
-            return true;
-
-        var toTarget = targetPosition - unit.Position;
-
-        if (toTarget.Length() < unit.CloseRangeThreshold)
-            return true;
-
-        float hDx = toTarget.X;
-        float hDz = toTarget.Z;
-        float horizontalLen = MathF.Sqrt(hDx * hDx + hDz * hDz);
-        if (horizontalLen < unit.CloseRangeThreshold)
-            return true;
-
-        float angleToTarget = SimMath.RadToDeg(MathF.Atan2(hDz, hDx));
-        float facingAngle = unit.IsFacingRight ? 0f : 180f;
-
-        float angleDiff = angleToTarget - facingAngle;
-        while (angleDiff > 180f) angleDiff -= 360f;
-        while (angleDiff < -180f) angleDiff += 360f;
-
-        return MathF.Abs(angleDiff) <= unit.ConeHalfAngle;
+        return ResolveEngageShape(unit) switch
+        {
+            EngageShape.Circle => true,
+            EngageShape.Cone => IsInsideFacingCone(unit, targetPosition),
+            EngageShape.ForwardRect => IsInsideForwardRect(unit, targetPosition),
+            _ => true
+        };
     }
 
     /// <summary>
@@ -289,11 +297,61 @@ public static class SimTargeting
     public static bool CanAttack(UnitData unit, UnitData target)
         => CanAttackPosition(unit, target.Position);
 
-    private static bool IsWithinAttackRange(UnitData unit, SimVector3 targetPosition)
+    private static EngageShape ResolveEngageShape(UnitData unit)
     {
-        float dx = unit.Position.X - targetPosition.X;
-        float dz = unit.Position.Z - targetPosition.Z;
-        float horizontalDistance = MathF.Sqrt(dx * dx + dz * dz);
-        return horizontalDistance <= unit.AttackRange;
+        if (unit.EngageShape != EngageShape.Circle)
+            return unit.EngageShape;
+        return unit.HasConeConstraint ? EngageShape.Cone : EngageShape.Circle;
+    }
+
+    private static bool IsInsideFacingCone(UnitData unit, SimVector3 targetPosition)
+    {
+        var toTarget = targetPosition - unit.Position;
+        if (toTarget.Length() < unit.CloseRangeThreshold)
+            return true;
+
+        float horizontalLen = DistanceXZ(unit.Position, targetPosition);
+        if (horizontalLen < unit.CloseRangeThreshold)
+            return true;
+
+        float angleToTarget = SimMath.RadToDeg(MathF.Atan2(toTarget.Z, toTarget.X));
+        float facingAngle = unit.IsFacingRight ? 0f : 180f;
+        float angleDiff = angleToTarget - facingAngle;
+        while (angleDiff > 180f) angleDiff -= 360f;
+        while (angleDiff < -180f) angleDiff += 360f;
+
+        return MathF.Abs(angleDiff) <= unit.ConeHalfAngle;
+    }
+
+    private static bool IsInsideForwardRect(UnitData unit, SimVector3 targetPosition)
+    {
+        float closeRadius = MathF.Max(unit.EngageCloseRadius, 0.01f);
+        if (DistanceXZ(unit.Position, targetPosition) <= closeRadius + GeometryEpsilon)
+            return true;
+
+        float length = unit.EngageRectLength > 0f
+            ? unit.EngageRectLength
+            : MathF.Max(unit.AttackRange * 0.9f, 0.1f);
+        float halfWidth = unit.EngageRectHalfWidth > 0f
+            ? unit.EngageRectHalfWidth
+            : 0.45f;
+        float forwardOffset = MathF.Max(unit.EngageRectForwardOffset, 0f);
+
+        float forwardSign = unit.IsFacingRight ? 1f : -1f;
+        float relX = targetPosition.X - unit.Position.X;
+        float relZ = targetPosition.Z - unit.Position.Z;
+        float projectedForward = relX * forwardSign;
+        float projectedRight = MathF.Abs(relZ);
+
+        return projectedForward >= forwardOffset - GeometryEpsilon &&
+               projectedForward <= (forwardOffset + length) + GeometryEpsilon &&
+               projectedRight <= halfWidth + GeometryEpsilon;
+    }
+
+    private static float DistanceXZ(SimVector3 a, SimVector3 b)
+    {
+        float dx = a.X - b.X;
+        float dz = a.Z - b.Z;
+        return MathF.Sqrt((dx * dx) + (dz * dz));
     }
 }

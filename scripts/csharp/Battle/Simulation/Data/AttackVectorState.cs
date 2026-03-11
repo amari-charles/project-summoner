@@ -76,6 +76,7 @@ public sealed class AttackAreaState
     public SimVector3 Size { get; set; } = new(1f, 1f, 1f);
     public float LineLength { get; set; }
     public float LineHalfWidth { get; set; }
+    public float ForwardOffset { get; set; }
 
     public static AttackAreaState Default() => new();
 
@@ -86,7 +87,8 @@ public sealed class AttackAreaState
             Shape = Shape,
             Size = Size,
             LineLength = LineLength,
-            LineHalfWidth = LineHalfWidth
+            LineHalfWidth = LineHalfWidth,
+            ForwardOffset = ForwardOffset
         };
     }
 }

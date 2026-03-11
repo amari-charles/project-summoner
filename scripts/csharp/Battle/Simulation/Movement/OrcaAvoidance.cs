@@ -30,6 +30,7 @@ public static class OrcaAvoidance
     private const float Epsilon = 0.00001f;
     private const float OverlapInvDelta = 60f; // Assumes 60fps fixed timestep
     private const float GoldenAngle = 2.39996f; // 2π/φ² — spreads overlapping units evenly
+    private const float PreOverlapSkipEpsilon = 0.0001f;
 
     // Reusable list to avoid allocations per frame
     [ThreadStatic] private static List<OrcaLine>? _orcaLines;
@@ -67,6 +68,9 @@ public static class OrcaAvoidance
         // Build ORCA half-plane constraints
         foreach (var neighbor in _neighbors)
         {
+            if (ShouldSkipPreOverlapConstraint(unit, neighbor, state))
+                continue;
+
             var line = ComputeOrcaLine(unit, neighbor, invTimeHorizon);
             _orcaLines.Add(line);
         }
@@ -431,5 +435,20 @@ public static class OrcaAvoidance
         if (unitStationary && !neighborStationary)
             return 0.1f; // Neighbor should dodge us
         return 0.5f; // Equal share
+    }
+
+    private static bool ShouldSkipPreOverlapConstraint(UnitData unit, UnitData neighbor, MatchState state)
+    {
+        if (!MeleeClumpContext.IsSameTargetCloseMeleePair(unit, neighbor, state))
+            return false;
+
+        float combinedRadius = CombatGeometry.GetNavigationRadius(unit) + CombatGeometry.GetNavigationRadius(neighbor);
+        float combinedRadiusSq = combinedRadius * combinedRadius;
+        float skipThresholdSq = combinedRadiusSq + (PreOverlapSkipEpsilon * PreOverlapSkipEpsilon);
+
+        var diff = neighbor.Position - unit.Position;
+        diff.Y = 0f;
+        float distSq = diff.LengthSquared();
+        return distSq > skipThresholdSq;
     }
 }

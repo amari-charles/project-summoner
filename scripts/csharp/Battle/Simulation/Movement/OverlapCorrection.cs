@@ -13,6 +13,9 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class OverlapCorrection
 {
+    private const float DefaultCorrectionStrength = 0.30f;
+    private const float SameTargetMeleeCorrectionStrength = 0.05f;
+
     /// <summary>
     /// Correct remaining overlaps for a single unit against all others.
     /// This is a safety net — ORCA should prevent most overlaps, but
@@ -50,10 +53,17 @@ public static class OverlapCorrection
             float otherMass = otherRadius * otherRadius * otherRadius;
             float pushRatio = otherMass / (unitMass + otherMass);
 
-            const float CorrectionStrength = 0.3f;
-            var newPos = unit.Position + pushDir * overlap * pushRatio * CorrectionStrength;
+            float correctionStrength = UseSameTargetMeleeRelaxation(unit, other, state)
+                ? SameTargetMeleeCorrectionStrength
+                : DefaultCorrectionStrength;
+            var newPos = unit.Position + pushDir * overlap * pushRatio * correctionStrength;
             newPos = BattlefieldBounds.ClampToBounds(newPos);
             unit.Position = new SimVector3(newPos.X, unit.Position.Y, newPos.Z);
         }
+    }
+
+    private static bool UseSameTargetMeleeRelaxation(UnitData unit, UnitData other, MatchState state)
+    {
+        return MeleeClumpContext.IsSameTargetCloseMeleePair(unit, other, state);
     }
 }
