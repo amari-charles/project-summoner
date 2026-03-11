@@ -206,6 +206,29 @@ public class TraitSpendValidationTest
     }
 
     [TestCase]
+    public void CardService_SpendCardTraitPoint_RejectsMissingPrerequisites()
+    {
+        var repo = CreateRepo("trait_spend_validation_missing_prereq");
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+
+        var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
+        AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
+        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
+        {
+            Level = 3,
+            UnspentTraitPoints = 1
+        })).IsTrue();
+
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.PowerII)).IsFalse();
+        AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(1);
+
+        var card = repo.GetCard(CardInstanceId.FromString(instanceId));
+        AssertThat(card).IsNotNull();
+        AssertThat(card!.Traits.Contains(CardTraitId.FromString(TraitIds.PowerII))).IsFalse();
+    }
+
+    [TestCase]
     public void SummonerProgressionService_RollTraitOffers_ReturnsEligibleTraits()
     {
         var repo = CreateRepo("trait_spend_validation_summoner_roll");

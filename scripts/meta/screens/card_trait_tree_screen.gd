@@ -72,9 +72,10 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 	unlock_confirm_dialog.confirmed.connect(_on_unlock_confirmed)
 
-	title_label.text = "Card Trait Tree"
-	trait_tabs.set_tab_title(0, "Progression Tree")
-	trait_tabs.set_tab_title(1, "One-Off Traits")
+	back_button.text = Loc.t("ui.common.back")
+	title_label.text = Loc.t("ui.trait_tree.title_card")
+	trait_tabs.set_tab_title(0, Loc.t("ui.trait_tree.tab_progression"))
+	trait_tabs.set_tab_title(1, Loc.t("ui.trait_tree.tab_one_off"))
 	_configure_tree_scroll()
 
 	_refresh()
@@ -83,12 +84,12 @@ func _ready() -> void:
 func _refresh() -> void:
 	_card_instance_id = str(NavigationContext.get_value(NAV_KEY_CARD_INSTANCE_ID, ""))
 	if _card_instance_id.is_empty():
-		_render_missing_card_state("Open this screen from a card's Traits button.")
+		_render_missing_card_state(Loc.t("ui.trait_tree.empty_card_open_from_traits"))
 		return
 
 	var progression_info: Dictionary = CardServiceApi.get_card_progression_info_dict(_card_instance_id)
 	if progression_info.is_empty():
-		_render_missing_card_state("Card progression data is unavailable.")
+		_render_missing_card_state(Loc.t("ui.trait_tree.empty_card_progression_unavailable"))
 		return
 
 	_card_catalog_id = str(progression_info.get("catalog_id", ""))
@@ -96,15 +97,15 @@ func _refresh() -> void:
 
 	var card_data: Dictionary = CardCatalogApi.get_card_as_dict(_card_catalog_id)
 	var card_name: String = str(card_data.get("card_name", _card_catalog_id))
-	card_subtitle_label.text = "%s  •  Lvl %d" % [card_name, _card_level]
+	card_subtitle_label.text = Loc.t("ui.trait_tree.card_subtitle", {"name": card_name, "level": _card_level})
 
 	var view_model: Dictionary = TraitTreeApi.get_card_tree_view_model(_card_instance_id)
 	if view_model.is_empty():
-		_render_missing_card_state("Card trait tree is unavailable.")
+		_render_missing_card_state(Loc.t("ui.trait_tree.empty_card_tree_unavailable"))
 		return
 
 	_unspent_trait_points = int(view_model.get("unspent_trait_points", 0))
-	points_label.text = "Points: %d" % _unspent_trait_points
+	points_label.text = _format_points_label(_unspent_trait_points)
 
 	_progression_nodes = _extract_trait_dicts(SafeTypeUtils.array(view_model.get("progression_nodes", [])))
 	_one_off_nodes = _extract_trait_dicts(SafeTypeUtils.array(view_model.get("one_off_nodes", [])))
@@ -154,8 +155,8 @@ func _rebuild_owned_trait_set() -> void:
 
 
 func _render_missing_card_state(message: String) -> void:
-	points_label.text = "Points: 0"
-	card_subtitle_label.text = "No card selected"
+	points_label.text = _format_points_label(0)
+	card_subtitle_label.text = Loc.t("ui.trait_tree.no_card_selected")
 	_clear_tree_canvas()
 
 	var info_label: Label = Label.new()
@@ -184,7 +185,7 @@ func _render_progression_tree() -> void:
 
 	if _progression_nodes.is_empty():
 		var none_label: Label = Label.new()
-		none_label.text = "No progression traits for this card."
+		none_label.text = Loc.t("ui.trait_tree.empty_no_progression_card")
 		none_label.position = Vector2(30, 24)
 		tree_canvas.add_child(none_label)
 		return
@@ -576,7 +577,7 @@ func _render_one_off_traits() -> void:
 
 	if _one_off_nodes.is_empty():
 		var none_label: Label = Label.new()
-		none_label.text = "No one-off traits for this card."
+		none_label.text = Loc.t("ui.trait_tree.empty_no_one_off_card")
 		one_off_container.add_child(none_label)
 		return
 
@@ -641,7 +642,7 @@ func _create_one_off_card(node_data: Dictionary) -> PanelContainer:
 	text_vbox.add_child(desc_label)
 
 	var status_label: Label = Label.new()
-	status_label.text = "Unlocked" if is_owned else "Not Acquired"
+	status_label.text = Loc.t("ui.trait_tree.one_off_status_unlocked") if is_owned else Loc.t("ui.trait_tree.one_off_status_not_acquired")
 	status_label.add_theme_font_size_override("font_size", 12)
 	status_label.add_theme_color_override("font_color", Color(0.50, 0.88, 0.56) if is_owned else Color(0.76, 0.76, 0.76))
 	row.add_child(status_label)
@@ -743,19 +744,19 @@ func _show_trait_detail_dialog(trait_id: String, detail: Dictionary) -> void:
 
 	var status_lines: Array[String] = []
 	if state == STATUS_OWNED:
-		status_lines.append("Status: Unlocked")
+		status_lines.append(Loc.t("ui.trait_tree.status_unlocked"))
 	elif SafeTypeUtils.bool_val(detail.get("is_unlockable", false), false):
 		if SafeTypeUtils.bool_val(detail.get("can_unlock", false), false):
-			status_lines.append("Status: Ready to unlock")
+			status_lines.append(Loc.t("ui.trait_tree.status_ready_to_unlock"))
 		else:
-			status_lines.append("Status: Need 1 trait point")
+			status_lines.append(Loc.t("ui.trait_tree.status_need_trait_point"))
 	else:
-		status_lines.append("Status: Locked")
-		var reason_text: String = str(detail.get("unlock_blocked_reason", detail.get("locked_reason", "Not currently available.")))
+		status_lines.append(Loc.t("ui.trait_tree.status_locked"))
+		var reason_text: String = str(detail.get("unlock_blocked_reason", detail.get("locked_reason", Loc.t("ui.trait_tree.reason_not_currently_available"))))
 		if not reason_text.is_empty():
 			status_lines.append(reason_text)
 
-	var description_text: String = trait_desc if not trait_desc.is_empty() else "No description."
+	var description_text: String = trait_desc if not trait_desc.is_empty() else Loc.t("ui.trait_tree.no_description")
 	if not status_lines.is_empty():
 		description_text += "\n\n%s" % "\n".join(status_lines)
 
@@ -764,7 +765,7 @@ func _show_trait_detail_dialog(trait_id: String, detail: Dictionary) -> void:
 	var unlock_enabled: bool = SafeTypeUtils.bool_val(detail.get("unlock_button_enabled", false), false)
 
 	ok_button.visible = unlock_visible
-	ok_button.text = str(detail.get("unlock_button_text", "Unlock (1)"))
+	ok_button.text = str(detail.get("unlock_button_text", Loc.t("ui.trait_tree.unlock_button")))
 	ok_button.disabled = not unlock_enabled
 
 	if unlock_visible:
@@ -773,7 +774,7 @@ func _show_trait_detail_dialog(trait_id: String, detail: Dictionary) -> void:
 		_pending_unlock_trait_id = ""
 
 	var cancel_button: Button = unlock_confirm_dialog.get_cancel_button()
-	cancel_button.text = "Close"
+	cancel_button.text = Loc.t("ui.trait_tree.close_button")
 
 	unlock_confirm_dialog.title = trait_name
 	unlock_confirm_dialog.dialog_text = description_text
@@ -792,14 +793,18 @@ func _on_unlock_confirmed() -> void:
 		_refresh()
 		return
 
-	var reason: String = str(result.get("reason", "Requirements were not met."))
-	_show_info_dialog("Unlock Failed", reason)
+	var reason: String = str(result.get("reason", Loc.t("ui.trait_tree.unlock_failed_reason")))
+	_show_info_dialog(Loc.t("ui.trait_tree.unlock_failed_title"), reason)
 
 
 func _show_info_dialog(title: String, message: String) -> void:
 	info_dialog.title = title
 	info_dialog.dialog_text = message
 	info_dialog.popup_centered(Vector2i(460, 180))
+
+
+func _format_points_label(points: int) -> String:
+	return Loc.t("ui.trait_tree.points_label", {"count": points})
 
 
 func _on_back_pressed() -> void:

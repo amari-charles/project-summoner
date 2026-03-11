@@ -1,6 +1,6 @@
 # Trait Tree Skill Tree Validation Cases
 
-**Status:** PASS 3 IN PROGRESS (C# Coverage Live; GUT Cases Pending)  
+**Status:** PASS 3 COMPLETE (C# + GUT Coverage Live)  
 **Initiative:** `trait-tree-skill-tree`  
 **Domain:** `meta`  
 **Last Updated:** `2026-03-10`  
@@ -21,18 +21,18 @@ Allowed status values:
 
 | Case ID | Scenario | Expected Result | Test Type | Test File | Status |
 |---|---|---|---|---|---|
-| C01 | Player levels up a card with no trait spend action taken yet. | Trait points increase; no immediate trait-choice modal is forced. | integration | `tests/unit/meta/test_card_level_up_flow.gd` | Design-Covered |
-| C02 | Card has unspent points after level up. | Traits entry button shows spend-available indicator (`!`, `n`, `9+` rules). | integration | `tests/unit/meta/test_card_detail_modal_trait_button.gd` | Design-Covered |
-| C03 | Player opens traits from collection card detail. | Card trait tree opens with selected `card_instance_id`; no collection-global spending path is used. | integration | `tests/unit/meta/test_collection_trait_navigation.gd` | Design-Covered |
-| C04 | Player opens summoner traits. | Summoner traits render in tree visualization (not list-only fallback). | integration | `tests/unit/meta/test_summoner_trait_tree_screen.gd` | Design-Covered |
-| C05 | Player clicks a locked trait node. | Node details show name + description; unlock CTA disabled with clear reason. | integration | `tests/unit/meta/test_trait_tree_node_popup.gd` | Design-Covered |
-| C06 | Player clicks an available, affordable node. | Confirmation modal appears with trait details and confirm/cancel actions. | integration | `tests/unit/meta/test_trait_tree_unlock_confirmation.gd` | Design-Covered |
+| C01 | Player levels up a card with no trait spend action taken yet. | Trait points increase; no immediate trait-choice modal is forced. | integration | `tests/unit/meta/test_card_level_up_flow.gd` | Implemented |
+| C02 | Card has unspent points after level up. | Traits entry button shows spend-available indicator (`!`, `n`, `9+` rules). | integration | `tests/unit/meta/test_card_detail_modal_trait_button.gd` | Implemented |
+| C03 | Player opens traits from collection card detail. | Card trait tree opens with selected `card_instance_id`; no collection-global spending path is used. | integration | `tests/unit/meta/test_collection_trait_navigation.gd` | Implemented |
+| C04 | Player opens summoner traits. | Summoner traits render in tree visualization (not list-only fallback). | integration | `tests/unit/meta/test_summoner_trait_tree_screen.gd` | Implemented |
+| C05 | Player clicks a locked trait node. | Node details show name + description; unlock CTA disabled with clear reason. | integration | `tests/unit/meta/test_trait_tree_node_popup.gd` | Implemented |
+| C06 | Player clicks an available, affordable node. | Confirmation modal appears with trait details and confirm/cancel actions. | integration | `tests/unit/meta/test_trait_tree_unlock_confirmation.gd` | Implemented |
 | C07 | Player confirms unlock with sufficient points and valid prerequisites. | C# service accepts spend, trait is owned, points decrement exactly once, UI refreshes. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Implemented |
 | C08 | Player confirms unlock with insufficient points. | C# service rejects spend with deterministic rejection reason; ownership unchanged. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Implemented |
-| C09 | Player confirms unlock with missing prerequisite(s). | C# service rejects spend; node remains locked and reason remains visible in popup. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Design-Covered |
+| C09 | Player confirms unlock with missing prerequisite(s). | C# service rejects spend; node remains locked and reason remains visible in popup. | unit | `tests/csharp/Services/TraitSpendValidationTest.cs` | Implemented |
 | C10 | Two cards share same catalog but different instance ids. | Unlocking trait on one instance does not unlock it for the other instance. | unit | `tests/csharp/Services/CardTraitIsolationTest.cs` | Implemented |
 | C11 | Trait catalog includes mixed acquisition modes. | Progression tree includes only `level_up_offer`; one-off tab includes only `granted_only`. | unit | `tests/csharp/Traits/TraitCatalogTest.cs` | Implemented |
-| C12 | Tree layout contains tier II/III/IV branches. | Bottom-up layout renders non-overlapping connectors and circular icon nodes for each tier. | integration | `tests/unit/meta/test_trait_tree_canvas_layout.gd` | Design-Covered |
+| C12 | Tree layout contains tier II/III/IV branches. | Bottom-up layout renders non-overlapping connectors and circular icon nodes for each tier. | integration | `tests/unit/meta/test_trait_tree_canvas_layout.gd` | Implemented |
 
 ## Determinism Cases (If Applicable)
 
