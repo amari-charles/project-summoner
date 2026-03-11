@@ -2,17 +2,47 @@ namespace Fateforged.Tests.Billing;
 
 using Fateforged.Infrastructure.Billing;
 using GdUnit4;
+using Godot;
 using static GdUnit4.Assertions;
 
 [TestSuite]
 [RequireGodotRuntime]
 public class BillingCatalogServiceTest
 {
+    private readonly System.Collections.Generic.List<Node> _createdNodes = [];
+
+    [AfterTest]
+    public void Cleanup()
+    {
+        for (int i = _createdNodes.Count - 1; i >= 0; i--)
+        {
+            var node = _createdNodes[i];
+            if (!GodotObject.IsInstanceValid(node))
+                continue;
+
+            node.GetParent()?.RemoveChild(node);
+            node.Free();
+        }
+
+        _createdNodes.Clear();
+    }
+
+    private BillingCatalogService CreateCatalog()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var catalog = new BillingCatalogService();
+        root.AddChild(catalog);
+        _createdNodes.Add(catalog);
+        catalog._Ready();
+        return catalog;
+    }
+
     [TestCase]
     public void Ready_BuildsAllProducts()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         var all = catalog.get_all_products();
         AssertThat(all.Count).IsEqual(8);
@@ -21,8 +51,7 @@ public class BillingCatalogServiceTest
     [TestCase]
     public void GetProduct_GemPack_HasExpectedFields()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         var product = catalog.get_product("gems_100");
         AssertObject(product).IsNotNull();
@@ -36,8 +65,7 @@ public class BillingCatalogServiceTest
     [TestCase]
     public void GetProduct_Bundle_HasExpectedRewards()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         var product = catalog.get_product("starter_pack");
         AssertObject(product).IsNotNull();
@@ -50,8 +78,7 @@ public class BillingCatalogServiceTest
     [TestCase]
     public void PlatformMapping_Ios_UsesStoreId()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         var storeId = catalog.get_platform_product_id("gems_500", "ios");
         AssertThat(storeId).IsEqual("com.projectsummoner.gems_500");
@@ -60,8 +87,7 @@ public class BillingCatalogServiceTest
     [TestCase]
     public void PlatformMapping_UnknownPlatform_ReturnsInternalId()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         var storeId = catalog.get_platform_product_id("gems_500", "switch");
         AssertThat(storeId).IsEqual("gems_500");
@@ -70,8 +96,7 @@ public class BillingCatalogServiceTest
     [TestCase]
     public void PlatformMapping_MissingProduct_ReturnsEmptyString()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         var storeId = catalog.get_platform_product_id("does_not_exist", "ios");
         AssertThat(storeId).IsEqual("");
@@ -80,8 +105,7 @@ public class BillingCatalogServiceTest
     [TestCase]
     public void InternalMapping_IosStoreId_ResolvesToInternalProductId()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         var internalId = catalog.get_internal_product_id("com.projectsummoner.gems_500", "ios");
         AssertThat(internalId).IsEqual("gems_500");
@@ -90,8 +114,7 @@ public class BillingCatalogServiceTest
     [TestCase]
     public void ProductTypeChecks_WorkForGemPacksAndBundles()
     {
-        var catalog = new BillingCatalogService();
-        catalog._Ready();
+        var catalog = CreateCatalog();
 
         AssertThat(catalog.is_gem_pack("gems_1200")).IsTrue();
         AssertThat(catalog.is_bundle("starter_pack")).IsTrue();

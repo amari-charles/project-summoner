@@ -45,10 +45,10 @@ public class TraitSpendValidationTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var dict = cardService.GetCardTraitDict(TraitIds.IronWill);
+        var dict = cardService.GetCardTraitDict(TraitIds.Power);
 
         AssertThat(dict.Count).IsGreater(0);
-        AssertThat(dict["id"].AsString()).IsEqual((string)TraitIds.IronWill);
+        AssertThat(dict["id"].AsString()).IsEqual((string)TraitIds.Power);
         AssertThat(dict["name"].AsString()).IsNotEmpty();
         AssertThat(dict["description"].AsString()).IsNotEmpty();
         AssertThat(dict["summary_short"].AsString()).IsNotEmpty();
@@ -71,7 +71,7 @@ public class TraitSpendValidationTest
         AssertThat(cardService.SpendCardTraitPoint(instanceId, "not_a_real_trait")).IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
 
-        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.IronWill)).IsFalse();
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.ColeSoulStrengthI)).IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
 
         AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Power)).IsTrue();
@@ -231,10 +231,10 @@ public class TraitSpendValidationTest
         AssertThat(service.SpendTraitPoint(summonerId, "not_a_real_trait")).IsFalse();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(2);
 
-        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.SwiftStrike)).IsFalse();
+        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.SeleneHealthI)).IsFalse();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(2);
 
-        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.IronWill)).IsTrue();
+        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.ColeSoulStrengthI)).IsTrue();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(1);
     }
 
@@ -280,9 +280,8 @@ public class TraitSpendValidationTest
 
         var allowedTraitIds = new HashSet<string>
         {
-            TraitIds.IronWill,
-            TraitIds.QuickRecovery,
-            TraitIds.VitalityBoost
+            TraitIds.ColeSoulStrengthI,
+            TraitIds.ColeCastSpeedI
         };
 
         foreach (var offer in offers)

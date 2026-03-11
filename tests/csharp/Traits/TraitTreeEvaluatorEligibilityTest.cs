@@ -105,4 +105,50 @@ public class TraitTreeEvaluatorEligibilityTest
         var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.LegionII, context);
         AssertThat(evaluation.CanUnlockNow).IsTrue();
     }
+
+    [TestCase]
+    public void EvaluateProgressionTrait_SummonerExclusiveTrait_RejectsWrongSummonerTag()
+    {
+        var context = new TraitTreeOwnerContext
+        {
+            OwnerTypeTag = TraitTags.Summoner,
+            EligibilityTags = new HashSet<string> { TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole },
+            OwnedTraitIds = new HashSet<string>(),
+            CurrentLevel = 3,
+            UnspentTraitPoints = 1
+        };
+
+        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.SeleneHealthI, context);
+        AssertThat(evaluation.CanUnlockNow).IsFalse();
+        AssertThat(evaluation.LockedReason).Contains("owner");
+    }
+
+    [TestCase]
+    public void EvaluateProgressionTrait_SummonerTierII_RequiresTierI()
+    {
+        var blockedContext = new TraitTreeOwnerContext
+        {
+            OwnerTypeTag = TraitTags.Summoner,
+            EligibilityTags = new HashSet<string> { TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole },
+            OwnedTraitIds = new HashSet<string>(),
+            CurrentLevel = 3,
+            UnspentTraitPoints = 1
+        };
+
+        var blocked = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.ColeSoulStrengthII, blockedContext);
+        AssertThat(blocked.CanUnlockNow).IsFalse();
+        AssertThat(blocked.MissingPrerequisiteIds).Contains(TraitIds.ColeSoulStrengthI);
+
+        var unlockedContext = new TraitTreeOwnerContext
+        {
+            OwnerTypeTag = TraitTags.Summoner,
+            EligibilityTags = new HashSet<string> { TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole },
+            OwnedTraitIds = new HashSet<string> { TraitIds.ColeSoulStrengthI },
+            CurrentLevel = 3,
+            UnspentTraitPoints = 1
+        };
+
+        var unlocked = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.ColeSoulStrengthII, unlockedContext);
+        AssertThat(unlocked.CanUnlockNow).IsTrue();
+    }
 }

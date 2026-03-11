@@ -88,7 +88,23 @@ if [[ $RUN_GUT -eq 1 ]]; then
         exit 1
     fi
 
-    "$GODOT_PATH" --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+    # Use explicit test script list to avoid intermittent headless shutdown errors
+    # seen with directory scan mode in Godot 4.5 dummy renderer.
+    GUT_TEST_FILES=()
+    while IFS= read -r test_file; do
+        GUT_TEST_FILES+=("$test_file")
+    done < <(rg --files tests/unit | rg '/test_.*\.gd$' | sort)
+    if [[ ${#GUT_TEST_FILES[@]} -eq 0 ]]; then
+        echo "Error: No GUT test scripts found under tests/unit"
+        exit 1
+    fi
+
+    for i in "${!GUT_TEST_FILES[@]}"; do
+        GUT_TEST_FILES[$i]="res://${GUT_TEST_FILES[$i]}"
+    done
+    GUT_TEST_LIST="$(IFS=,; echo "${GUT_TEST_FILES[*]}")"
+
+    "$GODOT_PATH" --headless --path . -s addons/gut/gut_cmdln.gd -gdir= -gtest="$GUT_TEST_LIST" -gexit
 fi
 
 echo ""

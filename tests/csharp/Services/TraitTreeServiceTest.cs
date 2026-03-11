@@ -58,30 +58,30 @@ public class TraitTreeServiceTest
         var vm = traitTree.GetSummonerTreeViewModel(summonerId);
         AssertThat(vm.Count).IsGreater(0);
 
-        var ironWill = FindNode(vm, "progression_nodes", TraitIds.IronWill);
-        AssertThat(ironWill).IsNotNull();
-        var ironWillNode = ironWill!;
-        AssertThat(ReadString(ironWillNode, "state")).IsEqual("available");
-        AssertThat(ReadBool(ironWillNode, "can_unlock")).IsTrue();
+        var coleSoulStrength = FindNode(vm, "progression_nodes", TraitIds.ColeSoulStrengthI);
+        AssertThat(coleSoulStrength).IsNotNull();
+        var coleSoulStrengthNode = coleSoulStrength!;
+        AssertThat(ReadString(coleSoulStrengthNode, "state")).IsEqual("available");
+        AssertThat(ReadBool(coleSoulStrengthNode, "can_unlock")).IsTrue();
 
         // Legacy complex summoner traits are no longer in the level-up offer pool.
         var berserker = FindNode(vm, "progression_nodes", "trait_berserker");
         AssertThat(berserker).IsNull();
 
-        var detail = traitTree.GetTraitNodeDetail("summoner", summonerId, TraitIds.IronWill);
+        var detail = traitTree.GetTraitNodeDetail("summoner", summonerId, TraitIds.ColeSoulStrengthI);
         AssertThat(detail.Count).IsGreater(0);
         AssertThat(ReadString(detail, "name")).IsNotEmpty();
         AssertThat(ReadString(detail, "description")).IsNotEmpty();
         AssertThat(ReadBool(detail, "unlock_button_visible")).IsTrue();
         AssertThat(ReadBool(detail, "unlock_button_enabled")).IsTrue();
 
-        var unlockResult = traitTree.TryUnlockTrait("summoner", summonerId, TraitIds.IronWill);
+        var unlockResult = traitTree.TryUnlockTrait("summoner", summonerId, TraitIds.ColeSoulStrengthI);
         AssertThat(ReadBool(unlockResult, "success")).IsTrue();
 
         var updated = repo.GetSummonerInstance(summonerId);
         AssertThat(updated).IsNotNull();
         AssertThat(updated!.UnspentTraitPoints).IsEqual(0);
-        AssertThat(updated.AcquiredTraitIds.Contains(TraitIds.IronWill)).IsTrue();
+        AssertThat(updated.AcquiredTraitIds.Contains(TraitIds.ColeSoulStrengthI)).IsTrue();
     }
 
     [TestCase]

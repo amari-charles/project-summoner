@@ -236,68 +236,396 @@ public static class TraitDefinitions
     };
 
     // =========================================================================
-    // ACQUIRABLE TRAITS - Global Summoner Pool
+    // ACQUIRABLE TRAITS - Summoner Identity Lines
     // =========================================================================
 
-    public static readonly TraitDefinition IronWill = new()
-    {
-        Id = TraitIds.IronWill,
-        NameKey = "trait.iron_will.name",
-        DescriptionKey = "trait.iron_will.description",
-        Category = TraitCategory.Defense,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Global],
-        MinLevel = 2,
-        Modifiers =
-        [
-            new TraitModifier { Stat = StatKey.SoulStrength, Type = ModifierType.Flat, Value = 5.0f }
-        ]
-    };
+    // Cole: Soul Strength + Cast Speed
+    public static readonly TraitDefinition ColeSoulStrengthI = BuildSummonerIdentityTrait(
+        TraitIds.ColeSoulStrengthI,
+        "trait.cole_soul_strength_i.name",
+        "trait.cole_soul_strength_i.description",
+        TraitCategory.Defense,
+        TraitTags.Cole,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 1.0f);
 
-    public static readonly TraitDefinition QuickRecovery = new()
-    {
-        Id = TraitIds.QuickRecovery,
-        NameKey = "trait.quick_recovery.name",
-        DescriptionKey = "trait.quick_recovery.description",
-        Category = TraitCategory.Utility,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Global],
-        MinLevel = 2,
-        Modifiers =
-        [
-            new TraitModifier { Stat = StatKey.MaxMana, Type = ModifierType.Percent, Value = 10.0f }
-        ]
-    };
+    public static readonly TraitDefinition ColeSoulStrengthII = BuildSummonerIdentityTrait(
+        TraitIds.ColeSoulStrengthII,
+        "trait.cole_soul_strength_ii.name",
+        "trait.cole_soul_strength_ii.description",
+        TraitCategory.Defense,
+        TraitTags.Cole,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.ColeSoulStrengthI,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 2.0f);
 
-    public static readonly TraitDefinition VitalityBoost = new()
-    {
-        Id = TraitIds.VitalityBoost,
-        NameKey = "trait.vitality_boost.name",
-        DescriptionKey = "trait.vitality_boost.description",
-        Category = TraitCategory.Defense,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Global],
-        MinLevel = 2,
-        Modifiers =
-        [
-            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 100.0f }
-        ]
-    };
+    public static readonly TraitDefinition ColeSoulStrengthIII = BuildSummonerIdentityTrait(
+        TraitIds.ColeSoulStrengthIII,
+        "trait.cole_soul_strength_iii.name",
+        "trait.cole_soul_strength_iii.description",
+        TraitCategory.Defense,
+        TraitTags.Cole,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.ColeSoulStrengthII,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 3.0f);
 
-    public static readonly TraitDefinition SwiftStrike = new()
-    {
-        Id = TraitIds.SwiftStrike,
-        NameKey = "trait.swift_strike.name",
-        DescriptionKey = "trait.swift_strike.description",
-        Category = TraitCategory.Utility,
-        IsInnate = false,
-        Tags = [TraitTags.Summoner, TraitTags.Global],
-        MinLevel = 3,
-        Modifiers =
-        [
-            new TraitModifier { Stat = StatKey.CastSpeed, Type = ModifierType.Percent, Value = 10.0f }
-        ]
-    };
+    public static readonly TraitDefinition ColeSoulStrengthIV = BuildSummonerIdentityTrait(
+        TraitIds.ColeSoulStrengthIV,
+        "trait.cole_soul_strength_iv.name",
+        "trait.cole_soul_strength_iv.description",
+        TraitCategory.Defense,
+        TraitTags.Cole,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.ColeSoulStrengthIII,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 4.0f);
+
+    public static readonly TraitDefinition ColeCastSpeedI = BuildSummonerIdentityTrait(
+        TraitIds.ColeCastSpeedI,
+        "trait.cole_cast_speed_i.name",
+        "trait.cole_cast_speed_i.description",
+        TraitCategory.Utility,
+        TraitTags.Cole,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 5.0f);
+
+    public static readonly TraitDefinition ColeCastSpeedII = BuildSummonerIdentityTrait(
+        TraitIds.ColeCastSpeedII,
+        "trait.cole_cast_speed_ii.name",
+        "trait.cole_cast_speed_ii.description",
+        TraitCategory.Utility,
+        TraitTags.Cole,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.ColeCastSpeedI,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 10.0f);
+
+    public static readonly TraitDefinition ColeCastSpeedIII = BuildSummonerIdentityTrait(
+        TraitIds.ColeCastSpeedIII,
+        "trait.cole_cast_speed_iii.name",
+        "trait.cole_cast_speed_iii.description",
+        TraitCategory.Utility,
+        TraitTags.Cole,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.ColeCastSpeedII,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 15.0f);
+
+    public static readonly TraitDefinition ColeCastSpeedIV = BuildSummonerIdentityTrait(
+        TraitIds.ColeCastSpeedIV,
+        "trait.cole_cast_speed_iv.name",
+        "trait.cole_cast_speed_iv.description",
+        TraitCategory.Utility,
+        TraitTags.Cole,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.ColeCastSpeedIII,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 20.0f);
+
+    // Selene: Health + Max Mana
+    public static readonly TraitDefinition SeleneHealthI = BuildSummonerIdentityTrait(
+        TraitIds.SeleneHealthI,
+        "trait.selene_health_i.name",
+        "trait.selene_health_i.description",
+        TraitCategory.Defense,
+        TraitTags.Selene,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 100.0f);
+
+    public static readonly TraitDefinition SeleneHealthII = BuildSummonerIdentityTrait(
+        TraitIds.SeleneHealthII,
+        "trait.selene_health_ii.name",
+        "trait.selene_health_ii.description",
+        TraitCategory.Defense,
+        TraitTags.Selene,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.SeleneHealthI,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 200.0f);
+
+    public static readonly TraitDefinition SeleneHealthIII = BuildSummonerIdentityTrait(
+        TraitIds.SeleneHealthIII,
+        "trait.selene_health_iii.name",
+        "trait.selene_health_iii.description",
+        TraitCategory.Defense,
+        TraitTags.Selene,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.SeleneHealthII,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 300.0f);
+
+    public static readonly TraitDefinition SeleneHealthIV = BuildSummonerIdentityTrait(
+        TraitIds.SeleneHealthIV,
+        "trait.selene_health_iv.name",
+        "trait.selene_health_iv.description",
+        TraitCategory.Defense,
+        TraitTags.Selene,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.SeleneHealthIII,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 400.0f);
+
+    public static readonly TraitDefinition SeleneMaxManaI = BuildSummonerIdentityTrait(
+        TraitIds.SeleneMaxManaI,
+        "trait.selene_max_mana_i.name",
+        "trait.selene_max_mana_i.description",
+        TraitCategory.Utility,
+        TraitTags.Selene,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 10.0f);
+
+    public static readonly TraitDefinition SeleneMaxManaII = BuildSummonerIdentityTrait(
+        TraitIds.SeleneMaxManaII,
+        "trait.selene_max_mana_ii.name",
+        "trait.selene_max_mana_ii.description",
+        TraitCategory.Utility,
+        TraitTags.Selene,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.SeleneMaxManaI,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 20.0f);
+
+    public static readonly TraitDefinition SeleneMaxManaIII = BuildSummonerIdentityTrait(
+        TraitIds.SeleneMaxManaIII,
+        "trait.selene_max_mana_iii.name",
+        "trait.selene_max_mana_iii.description",
+        TraitCategory.Utility,
+        TraitTags.Selene,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.SeleneMaxManaII,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 30.0f);
+
+    public static readonly TraitDefinition SeleneMaxManaIV = BuildSummonerIdentityTrait(
+        TraitIds.SeleneMaxManaIV,
+        "trait.selene_max_mana_iv.name",
+        "trait.selene_max_mana_iv.description",
+        TraitCategory.Utility,
+        TraitTags.Selene,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.SeleneMaxManaIII,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 40.0f);
+
+    // Mei: Cast Speed + Max Mana
+    public static readonly TraitDefinition MeiCastSpeedI = BuildSummonerIdentityTrait(
+        TraitIds.MeiCastSpeedI,
+        "trait.mei_cast_speed_i.name",
+        "trait.mei_cast_speed_i.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 5.0f);
+
+    public static readonly TraitDefinition MeiCastSpeedII = BuildSummonerIdentityTrait(
+        TraitIds.MeiCastSpeedII,
+        "trait.mei_cast_speed_ii.name",
+        "trait.mei_cast_speed_ii.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.MeiCastSpeedI,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 10.0f);
+
+    public static readonly TraitDefinition MeiCastSpeedIII = BuildSummonerIdentityTrait(
+        TraitIds.MeiCastSpeedIII,
+        "trait.mei_cast_speed_iii.name",
+        "trait.mei_cast_speed_iii.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.MeiCastSpeedII,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 15.0f);
+
+    public static readonly TraitDefinition MeiCastSpeedIV = BuildSummonerIdentityTrait(
+        TraitIds.MeiCastSpeedIV,
+        "trait.mei_cast_speed_iv.name",
+        "trait.mei_cast_speed_iv.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.MeiCastSpeedIII,
+        stat: StatKey.CastSpeed,
+        modifierType: ModifierType.Percent,
+        value: 20.0f);
+
+    public static readonly TraitDefinition MeiMaxManaI = BuildSummonerIdentityTrait(
+        TraitIds.MeiMaxManaI,
+        "trait.mei_max_mana_i.name",
+        "trait.mei_max_mana_i.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 10.0f);
+
+    public static readonly TraitDefinition MeiMaxManaII = BuildSummonerIdentityTrait(
+        TraitIds.MeiMaxManaII,
+        "trait.mei_max_mana_ii.name",
+        "trait.mei_max_mana_ii.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.MeiMaxManaI,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 20.0f);
+
+    public static readonly TraitDefinition MeiMaxManaIII = BuildSummonerIdentityTrait(
+        TraitIds.MeiMaxManaIII,
+        "trait.mei_max_mana_iii.name",
+        "trait.mei_max_mana_iii.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.MeiMaxManaII,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 30.0f);
+
+    public static readonly TraitDefinition MeiMaxManaIV = BuildSummonerIdentityTrait(
+        TraitIds.MeiMaxManaIV,
+        "trait.mei_max_mana_iv.name",
+        "trait.mei_max_mana_iv.description",
+        TraitCategory.Utility,
+        TraitTags.Mei,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.MeiMaxManaIII,
+        stat: StatKey.MaxMana,
+        modifierType: ModifierType.Flat,
+        value: 40.0f);
+
+    // Teo: Health + Soul Strength
+    public static readonly TraitDefinition TeoHealthI = BuildSummonerIdentityTrait(
+        TraitIds.TeoHealthI,
+        "trait.teo_health_i.name",
+        "trait.teo_health_i.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 100.0f);
+
+    public static readonly TraitDefinition TeoHealthII = BuildSummonerIdentityTrait(
+        TraitIds.TeoHealthII,
+        "trait.teo_health_ii.name",
+        "trait.teo_health_ii.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.TeoHealthI,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 200.0f);
+
+    public static readonly TraitDefinition TeoHealthIII = BuildSummonerIdentityTrait(
+        TraitIds.TeoHealthIII,
+        "trait.teo_health_iii.name",
+        "trait.teo_health_iii.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.TeoHealthII,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 300.0f);
+
+    public static readonly TraitDefinition TeoHealthIV = BuildSummonerIdentityTrait(
+        TraitIds.TeoHealthIV,
+        "trait.teo_health_iv.name",
+        "trait.teo_health_iv.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.TeoHealthIII,
+        stat: StatKey.MaxHealth,
+        modifierType: ModifierType.Flat,
+        value: 400.0f);
+
+    public static readonly TraitDefinition TeoSoulStrengthI = BuildSummonerIdentityTrait(
+        TraitIds.TeoSoulStrengthI,
+        "trait.teo_soul_strength_i.name",
+        "trait.teo_soul_strength_i.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 2,
+        prerequisiteTraitId: null,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 1.0f);
+
+    public static readonly TraitDefinition TeoSoulStrengthII = BuildSummonerIdentityTrait(
+        TraitIds.TeoSoulStrengthII,
+        "trait.teo_soul_strength_ii.name",
+        "trait.teo_soul_strength_ii.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 3,
+        prerequisiteTraitId: TraitIds.TeoSoulStrengthI,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 2.0f);
+
+    public static readonly TraitDefinition TeoSoulStrengthIII = BuildSummonerIdentityTrait(
+        TraitIds.TeoSoulStrengthIII,
+        "trait.teo_soul_strength_iii.name",
+        "trait.teo_soul_strength_iii.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 5,
+        prerequisiteTraitId: TraitIds.TeoSoulStrengthII,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 3.0f);
+
+    public static readonly TraitDefinition TeoSoulStrengthIV = BuildSummonerIdentityTrait(
+        TraitIds.TeoSoulStrengthIV,
+        "trait.teo_soul_strength_iv.name",
+        "trait.teo_soul_strength_iv.description",
+        TraitCategory.Defense,
+        TraitTags.Teo,
+        minLevel: 7,
+        prerequisiteTraitId: TraitIds.TeoSoulStrengthIII,
+        stat: StatKey.SoulStrength,
+        modifierType: ModifierType.Flat,
+        value: 4.0f);
 
     // =========================================================================
     // SUMMON TRAITS - Global Pool (available to all summons)
@@ -1167,6 +1495,40 @@ public static class TraitDefinitions
         ]
     };
 
+    private static TraitDefinition BuildSummonerIdentityTrait(
+        TraitId id,
+        string nameKey,
+        string descriptionKey,
+        TraitCategory category,
+        string summonerTag,
+        int minLevel,
+        TraitId? prerequisiteTraitId,
+        StatKey stat,
+        ModifierType modifierType,
+        float value)
+    {
+        var prerequisites = prerequisiteTraitId.HasValue
+            ? new[] { prerequisiteTraitId.Value.Value }
+            : [];
+
+        return new TraitDefinition
+        {
+            Id = id,
+            NameKey = nameKey,
+            DescriptionKey = descriptionKey,
+            Category = category,
+            IsInnate = false,
+            Tags = [TraitTags.Summoner],
+            RequiredTags = [summonerTag],
+            MinLevel = minLevel,
+            Prerequisites = prerequisites,
+            Modifiers =
+            [
+                new TraitModifier { Stat = stat, Type = modifierType, Value = value }
+            ]
+        };
+    }
+
     // =========================================================================
     // LOOKUP
     // =========================================================================
@@ -1198,11 +1560,39 @@ public static class TraitDefinitions
         // Innate - Death
         [TraitIds.DeathAffinity] = DeathAffinity,
 
-        // Acquirable - Global
-        [TraitIds.IronWill] = IronWill,
-        [TraitIds.QuickRecovery] = QuickRecovery,
-        [TraitIds.VitalityBoost] = VitalityBoost,
-        [TraitIds.SwiftStrike] = SwiftStrike,
+        // Acquirable - Summoner Identity Lines
+        [TraitIds.ColeSoulStrengthI] = ColeSoulStrengthI,
+        [TraitIds.ColeSoulStrengthII] = ColeSoulStrengthII,
+        [TraitIds.ColeSoulStrengthIII] = ColeSoulStrengthIII,
+        [TraitIds.ColeSoulStrengthIV] = ColeSoulStrengthIV,
+        [TraitIds.ColeCastSpeedI] = ColeCastSpeedI,
+        [TraitIds.ColeCastSpeedII] = ColeCastSpeedII,
+        [TraitIds.ColeCastSpeedIII] = ColeCastSpeedIII,
+        [TraitIds.ColeCastSpeedIV] = ColeCastSpeedIV,
+        [TraitIds.SeleneHealthI] = SeleneHealthI,
+        [TraitIds.SeleneHealthII] = SeleneHealthII,
+        [TraitIds.SeleneHealthIII] = SeleneHealthIII,
+        [TraitIds.SeleneHealthIV] = SeleneHealthIV,
+        [TraitIds.SeleneMaxManaI] = SeleneMaxManaI,
+        [TraitIds.SeleneMaxManaII] = SeleneMaxManaII,
+        [TraitIds.SeleneMaxManaIII] = SeleneMaxManaIII,
+        [TraitIds.SeleneMaxManaIV] = SeleneMaxManaIV,
+        [TraitIds.MeiCastSpeedI] = MeiCastSpeedI,
+        [TraitIds.MeiCastSpeedII] = MeiCastSpeedII,
+        [TraitIds.MeiCastSpeedIII] = MeiCastSpeedIII,
+        [TraitIds.MeiCastSpeedIV] = MeiCastSpeedIV,
+        [TraitIds.MeiMaxManaI] = MeiMaxManaI,
+        [TraitIds.MeiMaxManaII] = MeiMaxManaII,
+        [TraitIds.MeiMaxManaIII] = MeiMaxManaIII,
+        [TraitIds.MeiMaxManaIV] = MeiMaxManaIV,
+        [TraitIds.TeoHealthI] = TeoHealthI,
+        [TraitIds.TeoHealthII] = TeoHealthII,
+        [TraitIds.TeoHealthIII] = TeoHealthIII,
+        [TraitIds.TeoHealthIV] = TeoHealthIV,
+        [TraitIds.TeoSoulStrengthI] = TeoSoulStrengthI,
+        [TraitIds.TeoSoulStrengthII] = TeoSoulStrengthII,
+        [TraitIds.TeoSoulStrengthIII] = TeoSoulStrengthIII,
+        [TraitIds.TeoSoulStrengthIV] = TeoSoulStrengthIV,
 
         // Summon Traits
         [TraitIds.Fortitude] = Fortitude,

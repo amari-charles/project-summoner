@@ -78,20 +78,48 @@ public static class TraitIds
     public static readonly TraitId DeathAffinity = new("trait_death_affinity");
 
     // =========================================================================
-    // ACQUIRABLE TRAITS - Global Summoner Pool
+    // ACQUIRABLE TRAITS - Summoner Identity Lines
     // =========================================================================
 
-    /// <summary>Iron Will: +5 soul strength (incoming summoner damage reduction).</summary>
-    public static readonly TraitId IronWill = new("trait_iron_will");
+    // Cole
+    public static readonly TraitId ColeSoulStrengthI = new("trait_cole_soul_strength_i");
+    public static readonly TraitId ColeSoulStrengthII = new("trait_cole_soul_strength_ii");
+    public static readonly TraitId ColeSoulStrengthIII = new("trait_cole_soul_strength_iii");
+    public static readonly TraitId ColeSoulStrengthIV = new("trait_cole_soul_strength_iv");
+    public static readonly TraitId ColeCastSpeedI = new("trait_cole_cast_speed_i");
+    public static readonly TraitId ColeCastSpeedII = new("trait_cole_cast_speed_ii");
+    public static readonly TraitId ColeCastSpeedIII = new("trait_cole_cast_speed_iii");
+    public static readonly TraitId ColeCastSpeedIV = new("trait_cole_cast_speed_iv");
 
-    /// <summary>Quick Recovery: +10% max mana.</summary>
-    public static readonly TraitId QuickRecovery = new("trait_quick_recovery");
+    // Selene
+    public static readonly TraitId SeleneHealthI = new("trait_selene_health_i");
+    public static readonly TraitId SeleneHealthII = new("trait_selene_health_ii");
+    public static readonly TraitId SeleneHealthIII = new("trait_selene_health_iii");
+    public static readonly TraitId SeleneHealthIV = new("trait_selene_health_iv");
+    public static readonly TraitId SeleneMaxManaI = new("trait_selene_max_mana_i");
+    public static readonly TraitId SeleneMaxManaII = new("trait_selene_max_mana_ii");
+    public static readonly TraitId SeleneMaxManaIII = new("trait_selene_max_mana_iii");
+    public static readonly TraitId SeleneMaxManaIV = new("trait_selene_max_mana_iv");
 
-    /// <summary>Vitality Boost: +100 max health.</summary>
-    public static readonly TraitId VitalityBoost = new("trait_vitality_boost");
+    // Mei
+    public static readonly TraitId MeiCastSpeedI = new("trait_mei_cast_speed_i");
+    public static readonly TraitId MeiCastSpeedII = new("trait_mei_cast_speed_ii");
+    public static readonly TraitId MeiCastSpeedIII = new("trait_mei_cast_speed_iii");
+    public static readonly TraitId MeiCastSpeedIV = new("trait_mei_cast_speed_iv");
+    public static readonly TraitId MeiMaxManaI = new("trait_mei_max_mana_i");
+    public static readonly TraitId MeiMaxManaII = new("trait_mei_max_mana_ii");
+    public static readonly TraitId MeiMaxManaIII = new("trait_mei_max_mana_iii");
+    public static readonly TraitId MeiMaxManaIV = new("trait_mei_max_mana_iv");
 
-    /// <summary>Swift Strike: +10% cast speed.</summary>
-    public static readonly TraitId SwiftStrike = new("trait_swift_strike");
+    // Teo
+    public static readonly TraitId TeoHealthI = new("trait_teo_health_i");
+    public static readonly TraitId TeoHealthII = new("trait_teo_health_ii");
+    public static readonly TraitId TeoHealthIII = new("trait_teo_health_iii");
+    public static readonly TraitId TeoHealthIV = new("trait_teo_health_iv");
+    public static readonly TraitId TeoSoulStrengthI = new("trait_teo_soul_strength_i");
+    public static readonly TraitId TeoSoulStrengthII = new("trait_teo_soul_strength_ii");
+    public static readonly TraitId TeoSoulStrengthIII = new("trait_teo_soul_strength_iii");
+    public static readonly TraitId TeoSoulStrengthIV = new("trait_teo_soul_strength_iv");
 
     // =========================================================================
     // UNIT TRAITS - Global Pool (available to all units/cards)

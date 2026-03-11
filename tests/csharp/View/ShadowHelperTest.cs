@@ -1,5 +1,6 @@
 namespace Fateforged.Tests.View;
 
+using System.Collections.Generic;
 using Fateforged.Visual;
 using GdUnit4;
 using Godot;
@@ -9,16 +10,45 @@ using static GdUnit4.Assertions;
 [RequireGodotRuntime]
 public partial class ShadowHelperTest
 {
+    private readonly List<Node> _createdNodes = [];
+
+    private static Node GetRootNode()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        return tree.Root;
+    }
+
+    [AfterTest]
+    public void Cleanup()
+    {
+        for (int i = _createdNodes.Count - 1; i >= 0; i--)
+        {
+            var node = _createdNodes[i];
+            if (!GodotObject.IsInstanceValid(node))
+                continue;
+
+            node.GetParent()?.RemoveChild(node);
+            node.Free();
+        }
+
+        _createdNodes.Clear();
+    }
+
     [TestCase]
     public void CreateShadow_AppliesProvidedProfileValues()
     {
+        var root = GetRootNode();
         var parentSprite = new Sprite3D
         {
             PixelSize = 0.02f,
             Position = new Vector3(0, 1.4f, 0),
         };
+        root.AddChild(parentSprite);
+        _createdNodes.Add(parentSprite);
 
         var viewport = new SubViewport { Size = new Vector2I(64, 64) };
+        root.AddChild(viewport);
+        _createdNodes.Add(viewport);
 
         var profile = new ShadowProfile(
             Opacity: 0.33f,
@@ -32,6 +62,11 @@ public partial class ShadowHelperTest
         );
 
         var shadow = ShadowHelper.CreateShadow(parentSprite, viewport, profile);
+        if (shadow != null)
+        {
+            parentSprite.AddChild(shadow);
+            _createdNodes.Add(shadow);
+        }
 
         AssertThat(shadow).IsNotNull();
         AssertThat(shadow!.PixelSize).IsEqual(parentSprite.PixelSize);
@@ -45,7 +80,10 @@ public partial class ShadowHelperTest
     [TestCase]
     public void PinToGround_UsesProfileGroundClearance()
     {
+        var root = GetRootNode();
         var shadow = new Sprite3D();
+        root.AddChild(shadow);
+        _createdNodes.Add(shadow);
         var profile = new ShadowProfile(
             Opacity: 0.5f,
             SkewX: 0.8f,

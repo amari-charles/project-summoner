@@ -260,11 +260,11 @@ No unit modifiers. No triggers. No conditional logic.
 
 ## 12. Implementation Notes (Simple V1)
 
-- Use summoner-only tags:
-  - `Tags = [TraitTags.Summoner, TraitTags.Cole]`
-  - `Tags = [TraitTags.Summoner, TraitTags.Selene]`
-  - `Tags = [TraitTags.Summoner, TraitTags.Mei]`
-  - `Tags = [TraitTags.Summoner, TraitTags.Teo]`
+- Use summoner owner tag plus identity required tag:
+  - `Tags = [TraitTags.Summoner]`, `RequiredTags = [TraitTags.Cole]`
+  - `Tags = [TraitTags.Summoner]`, `RequiredTags = [TraitTags.Selene]`
+  - `Tags = [TraitTags.Summoner]`, `RequiredTags = [TraitTags.Mei]`
+  - `Tags = [TraitTags.Summoner]`, `RequiredTags = [TraitTags.Teo]`
 - Prerequisites stay linear (`I -> II -> III -> IV`).
 - Keep this pass stat-only; add complex behavior in V2 only after playtest.
 

@@ -703,25 +703,137 @@
       "name": "Fortune Favors the Bold",
       "description": "+10% damage to all attacks when you embrace the unknown."
     },
-    "iron_will": {
-      "name": "Soul Strength",
-      "description": "+5 soul strength. Reduces incoming damage to your summoner."
-    },
-    "quick_recovery": {
-      "name": "Max Mana",
-      "description": "+10% max mana."
-    },
-    "vitality_boost": {
-      "name": "Health",
-      "description": "+100 max health."
-    },
     "elemental_mastery": {
       "name": "Elemental Mastery",
       "description": "Attunement to all elements increases damage across the board. +5% all elemental damage."
     },
-    "swift_strike": {
-      "name": "Cast Speed",
+    "cole_soul_strength_i": {
+      "name": "Soul Strength I",
+      "description": "+1 soul strength."
+    },
+    "cole_soul_strength_ii": {
+      "name": "Soul Strength II",
+      "description": "+2 soul strength."
+    },
+    "cole_soul_strength_iii": {
+      "name": "Soul Strength III",
+      "description": "+3 soul strength."
+    },
+    "cole_soul_strength_iv": {
+      "name": "Soul Strength IV",
+      "description": "+4 soul strength."
+    },
+    "cole_cast_speed_i": {
+      "name": "Cast Speed I",
+      "description": "+5% cast speed."
+    },
+    "cole_cast_speed_ii": {
+      "name": "Cast Speed II",
       "description": "+10% cast speed."
+    },
+    "cole_cast_speed_iii": {
+      "name": "Cast Speed III",
+      "description": "+15% cast speed."
+    },
+    "cole_cast_speed_iv": {
+      "name": "Cast Speed IV",
+      "description": "+20% cast speed."
+    },
+    "selene_health_i": {
+      "name": "Health I",
+      "description": "+100 max health."
+    },
+    "selene_health_ii": {
+      "name": "Health II",
+      "description": "+200 max health."
+    },
+    "selene_health_iii": {
+      "name": "Health III",
+      "description": "+300 max health."
+    },
+    "selene_health_iv": {
+      "name": "Health IV",
+      "description": "+400 max health."
+    },
+    "selene_max_mana_i": {
+      "name": "Max Mana I",
+      "description": "+10 max mana."
+    },
+    "selene_max_mana_ii": {
+      "name": "Max Mana II",
+      "description": "+20 max mana."
+    },
+    "selene_max_mana_iii": {
+      "name": "Max Mana III",
+      "description": "+30 max mana."
+    },
+    "selene_max_mana_iv": {
+      "name": "Max Mana IV",
+      "description": "+40 max mana."
+    },
+    "mei_cast_speed_i": {
+      "name": "Cast Speed I",
+      "description": "+5% cast speed."
+    },
+    "mei_cast_speed_ii": {
+      "name": "Cast Speed II",
+      "description": "+10% cast speed."
+    },
+    "mei_cast_speed_iii": {
+      "name": "Cast Speed III",
+      "description": "+15% cast speed."
+    },
+    "mei_cast_speed_iv": {
+      "name": "Cast Speed IV",
+      "description": "+20% cast speed."
+    },
+    "mei_max_mana_i": {
+      "name": "Max Mana I",
+      "description": "+10 max mana."
+    },
+    "mei_max_mana_ii": {
+      "name": "Max Mana II",
+      "description": "+20 max mana."
+    },
+    "mei_max_mana_iii": {
+      "name": "Max Mana III",
+      "description": "+30 max mana."
+    },
+    "mei_max_mana_iv": {
+      "name": "Max Mana IV",
+      "description": "+40 max mana."
+    },
+    "teo_health_i": {
+      "name": "Health I",
+      "description": "+100 max health."
+    },
+    "teo_health_ii": {
+      "name": "Health II",
+      "description": "+200 max health."
+    },
+    "teo_health_iii": {
+      "name": "Health III",
+      "description": "+300 max health."
+    },
+    "teo_health_iv": {
+      "name": "Health IV",
+      "description": "+400 max health."
+    },
+    "teo_soul_strength_i": {
+      "name": "Soul Strength I",
+      "description": "+1 soul strength."
+    },
+    "teo_soul_strength_ii": {
+      "name": "Soul Strength II",
+      "description": "+2 soul strength."
+    },
+    "teo_soul_strength_iii": {
+      "name": "Soul Strength III",
+      "description": "+3 soul strength."
+    },
+    "teo_soul_strength_iv": {
+      "name": "Soul Strength IV",
+      "description": "+4 soul strength."
     },
     "tactical_mind": {
       "name": "Tactical Mind",
