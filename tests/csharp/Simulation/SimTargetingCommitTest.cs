@@ -45,6 +45,25 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
+    public void CommitLock_DropsTarget_WhenTargetLeavesAggroRadius()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2.5f, aggroRadius: 6f);
+        var lockedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 5f, z: 0f);
+
+        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.LockedTargetUnitId = lockedEnemy.UnitId;
+        unit.TargetUnitId = lockedEnemy.UnitId;
+
+        lockedEnemy.Position = new SimVector3(20f, lockedEnemy.Position.Y, lockedEnemy.Position.Z);
+        SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
+
+        AssertThat(unit.TargetUnitId.HasValue && unit.TargetUnitId!.Value == lockedEnemy.UnitId).IsFalse();
+        AssertThat(unit.LockedTargetUnitId.HasValue && unit.LockedTargetUnitId!.Value == lockedEnemy.UnitId).IsFalse();
+        AssertThat(unit.DroppedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.DroppedTargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
+    }
+
+    [TestCase]
     public void SummonerCommit_Persists_UntilInvalidForcedOrUnreachable()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 3f, aggroRadius: 30f);

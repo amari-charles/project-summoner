@@ -21,6 +21,7 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.EngageShape).IsEqual(EngageShape.Cone);
         AssertThat(template.HasConeConstraint).IsTrue();
         AssertThat(template.ConeHalfAngle).IsEqual(30f);
+        AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
@@ -33,6 +34,19 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.Strafe);
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
         AssertThat(template.HasConeConstraint).IsFalse();
+        AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
+        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
+        AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
+    }
+
+    [TestCase]
+    public void BuildSimTemplate_RockThrower_UsesRangedGroundProfile_TargetingBothLayers()
+    {
+        SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(UnitIds.EarthRockThrower, count: 1);
+
+        AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.MoveToward);
+        AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
+        AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }

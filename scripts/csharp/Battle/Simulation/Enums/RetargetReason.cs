@@ -9,4 +9,5 @@ public enum RetargetReason
     Invalid = 1,
     ForcedOverride = 2,
     UnreachableTimeout = 3,
+    OutOfAggroRange = 4,
 }

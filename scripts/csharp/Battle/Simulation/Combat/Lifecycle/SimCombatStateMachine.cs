@@ -89,7 +89,11 @@ public static class SimCombatStateMachine
         if (locked.HasValue && IsTargetValid(locked.Value, state))
         {
             unit.TargetUnitId = locked;
-            if (IsUnreachable(unit, locked.Value, state, delta))
+            if (IsOutsideAggroChaseRadius(unit, locked.Value, state))
+            {
+                DropCurrentTarget(unit, state, RetargetReason.OutOfAggroRange);
+            }
+            else if (IsUnreachable(unit, locked.Value, state, delta))
             {
                 DropCurrentTarget(unit, state, RetargetReason.UnreachableTimeout);
                 state.CombatBlockedTimeoutRetargetCount++;
@@ -237,6 +241,22 @@ public static class SimCombatStateMachine
 
         return unit.NoProgressTimer >= unit.UnreachableTimeoutSeconds ||
                unit.UnreachableTimer >= unit.UnreachableTimeoutSeconds;
+    }
+
+    private static bool IsOutsideAggroChaseRadius(UnitData unit, int targetId, MatchState state)
+    {
+        if (MatchState.IsSummonerTarget(targetId))
+            return false;
+
+        var target = state.GetAliveUnit(targetId);
+        if (target == null)
+            return true;
+
+        float maxChaseDistance = MathF.Max(unit.AggroRadius, unit.AttackRange);
+        if (maxChaseDistance <= 0f)
+            return true;
+
+        return DistanceXZ(unit.Position, target.Position) > maxChaseDistance;
     }
 
     private static bool IsTargetValid(int targetId, MatchState state)
