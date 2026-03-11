@@ -37,7 +37,11 @@ public record AttackTimingConfig
 public record AttackSelectionConfig
 {
     public AttackSelectionMode Mode { get; init; } = AttackSelectionMode.Single;
-    public int TargetLimit { get; init; } = 1;
+    /// <summary>
+    /// Max recipients for this attack vector.
+    /// null = preset/default behavior, 1 = primary only, 0 = unlimited.
+    /// </summary>
+    public int? TargetLimit { get; init; }
 
     public static AttackSelectionConfig Default => new();
 }

@@ -103,4 +103,52 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.Attack.Timing.TickIntervalSeconds).IsEqual(def.Attack.Timing.TickIntervalSeconds);
         AssertThat(template.Attack.Rules.TriggerMode).IsEqual(def.Attack.Rules.TriggerMode);
     }
+
+    [TestCase(AttackPreset.AreaCleave, 3)]
+    [TestCase(AttackPreset.LinePierce, 3)]
+    [TestCase(AttackPreset.Chain, 3)]
+    public void BuildAttackVectorState_UnsetTargetLimit_UsesPresetDefault(AttackPreset preset, int expectedLimit)
+    {
+        var config = new AttackVectorConfig
+        {
+            Preset = preset,
+            Selection = new AttackSelectionConfig()
+        };
+
+        var state = AttackVectorStateBuilder.Build(config);
+
+        AssertThat(state.Selection.TargetLimit).IsEqual(expectedLimit);
+    }
+
+    [TestCase(AttackPreset.AreaCleave)]
+    [TestCase(AttackPreset.LinePierce)]
+    [TestCase(AttackPreset.Chain)]
+    public void BuildAttackVectorState_ExplicitTargetLimitOne_IsPreserved(AttackPreset preset)
+    {
+        var config = new AttackVectorConfig
+        {
+            Preset = preset,
+            Selection = new AttackSelectionConfig { TargetLimit = 1 }
+        };
+
+        var state = AttackVectorStateBuilder.Build(config);
+
+        AssertThat(state.Selection.TargetLimit).IsEqual(1);
+    }
+
+    [TestCase(AttackPreset.AreaCleave)]
+    [TestCase(AttackPreset.LinePierce)]
+    [TestCase(AttackPreset.Chain)]
+    public void BuildAttackVectorState_ExplicitTargetLimitZero_IsPreserved(AttackPreset preset)
+    {
+        var config = new AttackVectorConfig
+        {
+            Preset = preset,
+            Selection = new AttackSelectionConfig { TargetLimit = 0 }
+        };
+
+        var state = AttackVectorStateBuilder.Build(config);
+
+        AssertThat(state.Selection.TargetLimit).IsEqual(0);
+    }
 }

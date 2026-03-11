@@ -23,6 +23,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-08, desync pass):** Closed sim/visual state desync audit task after phase sync hardening, summoner destroy signal dedupe, activation-state visual alignment fix, and regression coverage updates.
 **Tracker Sync (2026-03-09, combat correctness):** Moved completed DamageProfile armor/magic-resist integration + summoner combat-modifier wiring to `todos-completed.md`; removed UI damage-type card indicator from this task per product direction.
 **Tracker Sync (2026-03-10, attack vectors):** Updated `Implement Single Target vs Multi Target Attack System` to partial after runtime V1 delivery (vector recipient resolution + tests); visual telegraphs and balance pass remain.
+**Tracker Sync (2026-03-11, attack vector target-limit semantics):** Recorded follow-up fix preserving explicit `TargetLimit` values across presets (`1` single-target, `0` unlimited) while keeping preset defaults when unset; remaining scope for this initiative is still visual telegraphs + balance tuning.
 **Tracker Sync (2026-03-10, summoner design):** Added Summoner Oaths planning item (trait-backed permanent choices) and split trait work to prioritize curated, intentional trait design over placeholder AI-generated traits.
 **Tracker Sync (2026-03-11, summon traits runtime):** Updated trait-curation item to reflect shipped summon stat-tree runtime (shared trait IDs, per-card/per-rarity overrides, additive + spawn-count hooks, rarity-gated Legion tiers, coverage); remaining scope narrowed to per-summoner identity lines and campaign-level ultimate/oath design validation.
 **Tracker Sync (2026-03-11, per-summoner lines):** Simplified per-summoner identity lines to summoner-stat-only V1 (no unit modifiers/triggers) for Cole/Selene/Mei/Teo in `docs/design/summon-traits-v1.md`; remaining trait-curation scope is campaign-facing Ultimate/Oath candidate pass and permanence validation.
@@ -241,6 +242,7 @@ Add system to differentiate between single target attacks and multi target/AoE a
 - ✅ Added grouped attack-vector contract across `UnitDefinition -> SimUnitTemplate -> UnitData`.
 - ✅ Implemented deterministic recipient resolution for area (sphere/box/capsule), line corridor, and chain hops.
 - ✅ Added simulation test coverage for target limits, deterministic tie-breaks, secondary death handling, and trigger-mode behavior.
+- ✅ Follow-up fix (2026-03-11): explicit preset `TargetLimit` values are now preserved (`1` primary-only, `0` unlimited); preset default limits apply only when unset.
 - ⬜ Remaining: visual indicators/telegraphs for AoE vectors and gameplay balance pass for multi-target damage tuning.
 
 **Requirements:**
