@@ -51,7 +51,7 @@ vertical_scroll_mode = 3
 
 [node name="MapContainer" type="Control" parent="MarginContainer/VBoxContainer/ContentArea/MapScrollContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(3600, 1600)
+custom_minimum_size = Vector2(5600, 1800)
 layout_mode = 2
 
 [node name="MapBackground" type="ColorRect" parent="MarginContainer/VBoxContainer/ContentArea/MapScrollContainer/MapContainer"]
@@ -60,8 +60,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 3600.0
-offset_bottom = 1600.0
+offset_right = 5600.0
+offset_bottom = 1800.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.1, 0.1, 0.15, 1)

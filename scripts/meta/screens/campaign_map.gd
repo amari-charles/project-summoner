@@ -377,10 +377,6 @@ func _get_node_type_color(node_type: String) -> Color:
 			return Color(0.6, 0.8, 1.0)  # Light blue
 		"caravan":
 			return Color(0.8, 1.0, 0.6)  # Light green
-		"rest":
-			return Color(0.7, 0.9, 1.0)  # Cyan
-		"story":
-			return Color(1.0, 0.7, 1.0)  # Pink
 		_:
 			return Color(1.0, 1.0, 1.0)  # Default white
 

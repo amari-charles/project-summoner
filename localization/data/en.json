@@ -17,22 +17,66 @@
       "caravan_01": {
         "name": "Traveling Merchant",
         "description": "A cheerful merchant has set up camp along the path. Browse wares and spend your hard-earned gold on new cards and supplies."
+      },
+      "caravan_02": {
+        "name": "Waystation Caravan",
+        "description": "A second caravan appears at the crossroads. Restock and prepare for the steeper trials ahead."
+      },
+      "caravan_03": {
+        "name": "Last Chance Caravan",
+        "description": "A final merchant outpost before the end of the act. Spend wisely before the final gauntlet."
       }
     },
     "choice": {
+      "opening_doctrine": {
+        "name": "Set Your Doctrine",
+        "description": "Commit to an opening approach: push fast for tempo, secure resources for stability, or scout for flexible lines."
+      },
+      "route_choice": {
+        "name": "Choose the Route",
+        "description": "Three roads open ahead: a narrow ridge, a broad riverline, or a winding grove flank."
+      },
       "path_fork": {
         "name": "Choose Your Path",
-        "description": "The road ahead splits into two distinct paths. Choose the challenge that suits your style."
+        "description": "The road ahead splits into elite, standard, and gambit routes. Choose the risk profile that suits your style."
       }
     },
     "path": {
+      "aggressive": {
+        "label": "Aggressive Opening",
+        "description": "Take the fast lane and fight early pressure for stronger momentum."
+      },
+      "prepared": {
+        "label": "Prepared Opening",
+        "description": "Secure resources first and build into a safer midgame."
+      },
+      "insight": {
+        "label": "Scouting Opening",
+        "description": "Take a reconnaissance skirmish before committing to your mid-act plan."
+      },
+      "ridge": {
+        "label": "Ridge Route",
+        "description": "A tighter route with cleaner engagements and higher immediate pressure."
+      },
+      "river": {
+        "label": "River Route",
+        "description": "A wider route with more space and a steadier pacing."
+      },
+      "grove": {
+        "label": "Grove Route",
+        "description": "A winding flank through mixed terrain with flexible positioning."
+      },
       "elite": {
         "label": "Elite Path",
-        "description": "Harder battles with level caps. Better rewards but greater risk. Cards above the cap are normalized."
+        "description": "Harder battles with strict level caps and stronger rewards. Cards above the cap are normalized."
       },
       "standard": {
         "label": "Standard Path",
-        "description": "Normal difficulty battles. Consistent rewards with no level restrictions."
+        "description": "Steady battles with no level caps and a late caravan safety stop."
+      },
+      "gambit": {
+        "label": "Gambit Path",
+        "description": "No caravan support and volatile encounter spikes. Higher risk with swingy payouts."
       }
     },
     "battle": {
@@ -48,13 +92,101 @@
         "name": "Third Trial",
         "description": "Your deck grows. Face a worthy opponent and prove your developing skills. Choose wisely from the rewards offered."
       },
+      "aggressive_push": {
+        "name": "Aggressive Push",
+        "description": "Press the advantage immediately. A quick victory here can set the pace for the rest of the act."
+      },
+      "scout_skirmish": {
+        "name": "Scout Skirmish",
+        "description": "Probe enemy lines and adapt. A flexible opener that reveals mid-act opportunities."
+      },
+      "stability_line": {
+        "name": "Stability Line",
+        "description": "Consolidate your position and fight for consistency before entering the midline."
+      },
+      "midline_trial": {
+        "name": "Midline Trial",
+        "description": "Hold the center and prove your build can handle sustained pressure."
+      },
+      "ridge_assault": {
+        "name": "Ridge Assault",
+        "description": "A high-ground clash with less room for error and more direct confrontation."
+      },
+      "river_hold": {
+        "name": "River Hold",
+        "description": "Defend the wider river route and outlast enemy waves through disciplined play."
+      },
+      "grove_patrol": {
+        "name": "Grove Patrol",
+        "description": "Advance through winding flanks where spacing and timing matter more than raw force."
+      },
+      "chokepoint": {
+        "name": "The Chokepoint",
+        "description": "Fight through a compressed frontline where positioning and timing decide everything."
+      },
+      "gatekeeper": {
+        "name": "The Gatekeeper",
+        "description": "A hardened sentinel bars the elite, standard, and gambit routes. Break through to continue."
+      },
       "elite_01": {
-        "name": "Elite Trial",
-        "description": "A difficult battle with level caps. Your cards will be normalized to level 3. Success brings rare rewards."
+        "name": "Elite Trial I",
+        "description": "The first elite test. Cards are level-capped, and mistakes are punished quickly."
+      },
+      "elite_02": {
+        "name": "Elite Trial II",
+        "description": "Pressure intensifies. Maintain precision under tighter caps and stronger enemy tempo."
+      },
+      "elite_03": {
+        "name": "Elite Trial III",
+        "description": "The elite gauntlet peaks here. Survive this and you earn a major edge entering the finale."
+      },
+      "elite_04": {
+        "name": "Elite Trial IV",
+        "description": "The final elite crucible. Win under the harshest constraints before rejoining the main line."
       },
       "standard_01": {
-        "name": "Path of Growth",
-        "description": "A standard battle along the reliable path. Build your strength steadily with common rewards."
+        "name": "Path of Growth I",
+        "description": "A reliable standard-path battle focused on steady progression and safer scaling."
+      },
+      "standard_02": {
+        "name": "Path of Growth II",
+        "description": "A longer engagement that rewards consistency and measured deck development."
+      },
+      "standard_03": {
+        "name": "Path of Growth III",
+        "description": "The penultimate standard-path push before all routes merge again."
+      },
+      "standard_04": {
+        "name": "Path of Growth IV",
+        "description": "One more measured step to complete the long standard ascent."
+      },
+      "gambit_01": {
+        "name": "Gambit Clash I",
+        "description": "Enter the gambit lane: volatile pressure and fewer recovery moments."
+      },
+      "gambit_02": {
+        "name": "Gambit Clash II",
+        "description": "Momentum swings quickly here. Commit decisively or get overrun."
+      },
+      "gambit_03": {
+        "name": "Gambit Clash III",
+        "description": "The path narrows and mistakes amplify. Hold tempo through chaos."
+      },
+      "gambit_04": {
+        "name": "Gambit Clash IV",
+        "description": "Final gambit proving ground before all routes converge."
+      },
+      "rejoin_trial": {
+        "name": "Rejoin Trial",
+        "description": "All routes converge. Prove your route prepared you for endgame pressure."
+      },
+      "final_ante": {
+        "name": "Final Ante",
+        "description": "One last proving battle before the act boss. Commit every advantage you built."
+      },
+      "storm_breaker": {
+        "name": "Storm Breaker",
+        "description": "Shatter the final defensive line and create your opening against the Guardian."
       },
       "act1_boss": {
         "name": "The Guardian",
@@ -253,6 +385,7 @@
       "recommended_level": "Recommended: Lv.{level}",
       "path_type_standard": "Standard Path",
       "path_type_elite": "Elite Path",
+      "path_type_gambit": "Gambit Path",
       "level_capped_tooltip": "Cards above level {level} will be normalized to level {level}"
     },
     "collection": {

@@ -55,8 +55,6 @@ public class CampaignCatalogHandler
         EventType.Battle or EventType.Elite or EventType.Boss => "battle",
         EventType.Caravan => "caravan",
         EventType.Choice => "choice",
-        EventType.Rest => "rest",
-        EventType.Story => "story",
         _ => "battle"
     };
 

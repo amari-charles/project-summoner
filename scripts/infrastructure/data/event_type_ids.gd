@@ -44,18 +44,12 @@ const CHOICE: StringName = &"choice"
 ## Generic onboarding event type
 const ONBOARDING: StringName = &"onboarding"
 
-## Rest/heal opportunity
-const REST: StringName = &"rest"
-
-## Story/narrative event (non-combat)
-const STORY: StringName = &"story"
-
 # ============================================================================
 # UTILITY
 # ============================================================================
 
 ## All event types
-const ALL_TYPES: Array[StringName] = [BATTLE, ELITE, BOSS, AFFINITY, FIRST_SUMMON, CARAVAN, CHOICE, ONBOARDING, REST, STORY]
+const ALL_TYPES: Array[StringName] = [BATTLE, ELITE, BOSS, AFFINITY, FIRST_SUMMON, CARAVAN, CHOICE, ONBOARDING]
 
 ## Default event type used as fallback
 const DEFAULT: StringName = BATTLE
