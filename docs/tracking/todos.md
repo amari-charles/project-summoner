@@ -152,7 +152,14 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 - ✅ Added 60-unit summoner-focus regression coverage to verify broad attacker contribution in dense swarms.
 - ✅ Ran large-battle profiling pass (2026-03-10) via `dotnet test --settings test.runsettings --filter "FullyQualifiedName~BlockedUnitReproTest.SummonerFocus_DenseSwarm_HasBroadAttackerContribution" --logger "console;verbosity=detailed"`:
   - dense-swarm test case duration: ~1s (`60 units`, `1200` simulation ticks)
-  - filtered run total: `2.1013s` (test host + discovery + execution)
+- filtered run total: `2.1013s` (test host + discovery + execution)
+- 🔄 Remaining: target switching race-case audit, and forced-target/redirect robustness validation.
+
+**Progress Update (2026-03-11, aggro + air targeting):**
+- ✅ Added commit-lock aggro chase cap so units drop non-summoner targets that move beyond max chase distance (`max(aggro radius, attack range)`), preventing infinite far-chase behavior.
+- ✅ Added `RetargetReason.OutOfAggroRange` for explicit retarget diagnostics when chase-cap drops occur.
+- ✅ Updated ranged targeting profile wiring so ranged units default to `TargetLayer.Both` (air + ground) when definitions rely on the shared default filter.
+- ✅ Added regression coverage for commit-lock drop-on-range-exit and ranged profile target-layer mapping.
 - 🔄 Remaining: target switching race-case audit, and forced-target/redirect robustness validation.
 
 **Notes:**
