@@ -610,15 +610,22 @@ public class Simulation
     )
     {
         var spawningCardRef = BuildRuntimeRef(cardData.CatalogId, castingCardInstanceId);
+        var spawnCountAdd = _state.TraitRuntimeState.GetCardInstanceSpawnCountAdd(
+            new TraitRuntimeCardInstanceId(castingCardInstanceId.Value));
+        var effectiveTemplateCounts = BuildEffectiveTemplateCounts(cardData.UnitTemplates, spawnCountAdd);
         int unitIndex = 0;
         int totalUnits = 0;
         int firstNetworkId = -1;
-        foreach (var template in cardData.UnitTemplates)
-            totalUnits += template.Count;
+        foreach (var count in effectiveTemplateCounts)
+            totalUnits += count;
+        if (totalUnits <= 0)
+            return;
 
-        foreach (var template in cardData.UnitTemplates)
+        for (int templateIndex = 0; templateIndex < cardData.UnitTemplates.Count; templateIndex++)
         {
-            for (int i = 0; i < template.Count; i++)
+            var template = cardData.UnitTemplates[templateIndex];
+            var effectiveCount = effectiveTemplateCounts[templateIndex];
+            for (int i = 0; i < effectiveCount; i++)
             {
                 var unitId = _state.NextUnitId();
                 var networkId = _state.NextNetworkId();
@@ -704,6 +711,59 @@ public class Simulation
         // Update CastingNetworkId to match the first spawned unit's actual NetworkId
         if (firstNetworkId >= 0)
             _state.Summoners[team].CastingNetworkId = firstNetworkId;
+    }
+
+    private static int[] BuildEffectiveTemplateCounts(List<SimUnitTemplate> templates, int spawnCountAdd)
+    {
+        var counts = new int[templates.Count];
+        for (int i = 0; i < templates.Count; i++)
+            counts[i] = templates[i].Count < 0 ? 0 : templates[i].Count;
+
+        if (spawnCountAdd == 0 || templates.Count == 0)
+            return counts;
+
+        // Bias additional/reduced units toward templates with larger existing counts
+        // to preserve the original composition profile.
+        var rankedTemplateIndices = templates
+            .Select((template, index) => new { template.Count, index })
+            .OrderByDescending(x => x.Count)
+            .ThenBy(x => x.index)
+            .Select(x => x.index)
+            .ToArray();
+
+        if (spawnCountAdd > 0)
+        {
+            for (int i = 0; i < spawnCountAdd; i++)
+            {
+                var targetIndex = rankedTemplateIndices[i % rankedTemplateIndices.Length];
+                counts[targetIndex] += 1;
+            }
+
+            return counts;
+        }
+
+        var removals = -spawnCountAdd;
+        var remaining = removals;
+        while (remaining > 0)
+        {
+            var removedThisPass = false;
+            foreach (var targetIndex in rankedTemplateIndices)
+            {
+                if (counts[targetIndex] <= 0)
+                    continue;
+
+                counts[targetIndex] -= 1;
+                remaining -= 1;
+                removedThisPass = true;
+                if (remaining == 0)
+                    break;
+            }
+
+            if (!removedThisPass)
+                break;
+        }
+
+        return counts;
     }
 
     /// <summary>

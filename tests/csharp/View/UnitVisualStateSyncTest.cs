@@ -95,6 +95,8 @@ public partial class UnitVisualStateSyncTest
         _createdNodes.Add(visual);
 
         fakeVisual = new FakeVisualComponent();
+        visual.AddChild(fakeVisual);
+        _createdNodes.Add(fakeVisual);
         SetPrivateField(visual, "_visual", fakeVisual);
         SetPrivateField(visual, "_session", new StubSession(state));
         SetPrivateField(visual, "_unitId", unitId);

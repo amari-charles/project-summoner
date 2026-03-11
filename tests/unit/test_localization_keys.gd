@@ -33,7 +33,7 @@ const DYNAMIC_SUMMONER_STAT_TOOLTIP_KEYS: Array[String] = [
 	"stats_tooltip_hp",
 	"stats_tooltip_mana",
 	"stats_tooltip_cast_speed",
-	"stats_tooltip_soul_guard"
+	"stats_tooltip_soul_strength"
 ]
 const DYNAMIC_EQUIPMENT_SLOTS: Array[String] = ["wand", "ring1", "ring2", "robes"]
 

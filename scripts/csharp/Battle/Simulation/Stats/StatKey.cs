@@ -43,6 +43,9 @@ public enum StatKey
     /// <summary>Bonus damage dealt specifically to enemy summoners.</summary>
     SoulStrength,
 
+    /// <summary>Additional units spawned when playing a summon card.</summary>
+    UnitCount,
+
     // =========================================================================
     // ELEMENTAL DAMAGE BONUSES (summoner stats that affect units)
     // =========================================================================
@@ -87,14 +90,14 @@ public enum StatKey
     /// <summary>Mana regeneration rate.</summary>
     ManaRegen,
 
+    /// <summary>Maximum mana pool.</summary>
+    MaxMana,
+
     /// <summary>Casting speed multiplier.</summary>
     CastSpeed,
 
     /// <summary>Maximum health (alias for MaxHp, used in some contexts).</summary>
     MaxHealth,
-
-    /// <summary>Reduces incoming soul-targeted damage.</summary>
-    SoulGuard,
 
     // =========================================================================
     // COMBAT EFFECTS
@@ -140,6 +143,7 @@ public static class StatKeyExtensions
         StatKey.Armor => "armor",
         StatKey.MagicResist => "magic_resist",
         StatKey.SoulStrength => "soul_strength",
+        StatKey.UnitCount => "unit_count",
 
         // Elemental damage bonuses
         StatKey.FireDamageBonus => "fire_damage_bonus",
@@ -156,9 +160,9 @@ public static class StatKeyExtensions
         StatKey.Lifesteal => "lifesteal",
         StatKey.DamageReduction => "damage_reduction",
         StatKey.ManaRegen => "mana_regen",
+        StatKey.MaxMana => "max_mana",
         StatKey.CastSpeed => "cast_speed",
         StatKey.MaxHealth => "max_health",
-        StatKey.SoulGuard => "soul_guard",
 
         // Combat effects
         StatKey.HealOnKill => "heal_on_kill",
@@ -203,6 +207,7 @@ public static class StatKeyExtensions
             "armor" => StatKey.Armor,
             "magicresist" => StatKey.MagicResist,
             "soulstrength" => StatKey.SoulStrength,
+            "unitcount" => StatKey.UnitCount,
 
             // Elemental damage bonuses
             "firedamagebonus" => StatKey.FireDamageBonus,
@@ -219,9 +224,10 @@ public static class StatKeyExtensions
             "lifesteal" => StatKey.Lifesteal,
             "damagereduction" => StatKey.DamageReduction,
             "manaregen" => StatKey.ManaRegen,
+            "maxmana" => StatKey.MaxMana,
             "castspeed" => StatKey.CastSpeed,
             "maxhealth" => StatKey.MaxHealth,
-            "soulguard" => StatKey.SoulGuard,
+            "soulguard" => StatKey.SoulStrength,
 
             // Combat effects
             "healonkill" => StatKey.HealOnKill,
@@ -275,7 +281,8 @@ public static class StatKeyExtensions
         StatKey.CritDamage,
         StatKey.Armor,
         StatKey.MagicResist,
-        StatKey.SoulStrength
+        StatKey.SoulStrength,
+        StatKey.UnitCount
     };
 
     /// <summary>

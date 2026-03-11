@@ -45,10 +45,10 @@ public class TraitSpendValidationTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var dict = cardService.GetCardTraitDict(TraitIds.IronWill);
+        var dict = cardService.GetCardTraitDict(TraitIds.Power);
 
         AssertThat(dict.Count).IsGreater(0);
-        AssertThat(dict["id"].AsString()).IsEqual((string)TraitIds.IronWill);
+        AssertThat(dict["id"].AsString()).IsEqual((string)TraitIds.Power);
         AssertThat(dict["name"].AsString()).IsNotEmpty();
         AssertThat(dict["description"].AsString()).IsNotEmpty();
         AssertThat(dict["summary_short"].AsString()).IsNotEmpty();
@@ -71,7 +71,7 @@ public class TraitSpendValidationTest
         AssertThat(cardService.SpendCardTraitPoint(instanceId, "not_a_real_trait")).IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
 
-        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.IronWill)).IsFalse();
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.ColeSoulStrengthI)).IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
 
         AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Power)).IsTrue();
@@ -102,7 +102,13 @@ public class TraitSpendValidationTest
             TraitIds.Fortitude,
             TraitIds.Power,
             TraitIds.Swiftness,
-            TraitIds.Agility
+            TraitIds.Agility,
+            TraitIds.Reach,
+            TraitIds.Plating,
+            TraitIds.Warding,
+            TraitIds.Soulforce,
+            TraitIds.Arcana,
+            TraitIds.Legion
         };
 
         foreach (var offer in offers)
@@ -180,6 +186,33 @@ public class TraitSpendValidationTest
     }
 
     [TestCase]
+    public void CardService_GetEffectiveStatsDict_AppliesTraitAdds_WhenNoMultipliers()
+    {
+        var repo = CreateRepo("trait_spend_validation_effective_stats_adds");
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+
+        var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
+        AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
+        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
+        {
+            Level = 2,
+            UnspentTraitPoints = 1
+        })).IsTrue();
+
+        var baselineStats = cardService.GetEffectiveStatsDict(instanceId);
+        AssertThat(baselineStats.ContainsKey("armor")).IsFalse();
+
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Plating)).IsTrue();
+
+        var effectiveStats = cardService.GetEffectiveStatsDict(instanceId);
+        AssertThat(effectiveStats.ContainsKey("armor")).IsTrue();
+
+        var effectiveArmor = (float)effectiveStats["armor"].AsDouble();
+        AssertThat(Math.Abs(effectiveArmor - 4f)).IsLess(0.01f);
+    }
+
+    [TestCase]
     public void SummonerProgressionService_SpendTraitPoint_ValidatesCatalogAndEligibility()
     {
         var repo = CreateRepo("trait_spend_validation_summoner_spend");
@@ -198,10 +231,10 @@ public class TraitSpendValidationTest
         AssertThat(service.SpendTraitPoint(summonerId, "not_a_real_trait")).IsFalse();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(2);
 
-        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.TidalMastery)).IsFalse();
+        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.SeleneHealthI)).IsFalse();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(2);
 
-        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.IronWill)).IsTrue();
+        AssertThat(service.SpendTraitPoint(summonerId, TraitIds.ColeSoulStrengthI)).IsTrue();
         AssertThat(service.GetUnspentTraitPoints(summonerId)).IsEqual(1);
     }
 
@@ -245,12 +278,19 @@ public class TraitSpendValidationTest
         var offers = service.RollTraitOffers(summonerId, 3);
         AssertThat(offers.Count).IsGreater(0);
 
+        var allowedTraitIds = new HashSet<string>
+        {
+            TraitIds.ColeSoulStrengthI,
+            TraitIds.ColeCastSpeedI
+        };
+
         foreach (var offer in offers)
         {
             var traitId = offer["trait_id"].AsString();
             AssertThat(string.IsNullOrWhiteSpace(traitId)).IsFalse();
             var trait = TraitCatalog.GetTrait(traitId);
             AssertThat(trait).IsNotNull();
+            AssertThat(allowedTraitIds.Contains(traitId)).IsTrue();
             AssertThat(trait!.Tags.Contains(TraitTags.Summoner)).IsTrue();
             AssertThat(trait.AcquisitionMode).IsEqual(TraitAcquisitionMode.LevelUpOffer);
         }

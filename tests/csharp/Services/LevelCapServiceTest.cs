@@ -3,6 +3,7 @@ namespace Fateforged.Tests.Services;
 using System.Collections.Generic;
 using GdUnit4;
 using Fateforged.Meta;
+using Godot;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -19,6 +20,13 @@ public class LevelCapServiceTest
     public void Setup()
     {
         _service = new LevelCapService();
+    }
+
+    [AfterTest]
+    public void Cleanup()
+    {
+        if (GodotObject.IsInstanceValid(_service))
+            _service.Free();
     }
 
     // =============================================================================

@@ -93,11 +93,23 @@ public sealed class MatchTraitRuntimeState
     /// </summary>
     public Dictionary<TraitRuntimeCardInstanceId, Dictionary<StatKey, float>> CardInstanceStatMultipliers { get; } = new();
 
+    /// <summary>
+    /// Runtime card-instance trait additive values used at unit spawn time.
+    /// </summary>
+    public Dictionary<TraitRuntimeCardInstanceId, Dictionary<StatKey, float>> CardInstanceStatAdds { get; } = new();
+
+    /// <summary>
+    /// Runtime card-instance additive spawn-count bonuses used when summon cards resolve.
+    /// </summary>
+    public Dictionary<TraitRuntimeCardInstanceId, int> CardInstanceSpawnCountAdds { get; } = new();
+
     public static MatchTraitRuntimeState Empty() => new();
 
     public void ResetCardInstanceStatMultipliers()
     {
         CardInstanceStatMultipliers.Clear();
+        CardInstanceStatAdds.Clear();
+        CardInstanceSpawnCountAdds.Clear();
     }
 
     public void SetCardInstanceStatMultipliers(TraitRuntimeCardInstanceId cardInstanceId, Dictionary<StatKey, float> statMultipliers)
@@ -109,10 +121,86 @@ public sealed class MatchTraitRuntimeState
         RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
     }
 
+    public void SetCardInstanceStatAdds(TraitRuntimeCardInstanceId cardInstanceId, Dictionary<StatKey, float> statAdds)
+    {
+        if (!cardInstanceId.HasValue || statAdds == null || statAdds.Count == 0)
+            return;
+
+        CardInstanceStatAdds[cardInstanceId] = new Dictionary<StatKey, float>(statAdds);
+        RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
+    }
+
+    public void SetCardInstanceSpawnCountAdd(TraitRuntimeCardInstanceId cardInstanceId, int spawnCountAdd)
+    {
+        if (!cardInstanceId.HasValue || spawnCountAdd == 0)
+            return;
+
+        CardInstanceSpawnCountAdds[cardInstanceId] = spawnCountAdd;
+        RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
+    }
+
+    public int GetCardInstanceSpawnCountAdd(TraitRuntimeCardInstanceId cardInstanceId)
+    {
+        if (!cardInstanceId.HasValue)
+            return 0;
+
+        return CardInstanceSpawnCountAdds.TryGetValue(cardInstanceId, out var value) ? value : 0;
+    }
+
     public void ApplySpawnModifiers(UnitData unit, TraitRuntimeSpawnContext context)
     {
         if (!context.CardInstanceId.HasValue)
             return;
+
+        if (CardInstanceStatAdds.TryGetValue(context.CardInstanceId, out var statAdds))
+        {
+            foreach (var (statKey, addValue) in statAdds)
+            {
+                if (addValue == 0f)
+                    continue;
+
+                switch (statKey)
+                {
+                    case StatKey.MaxHp:
+                    case StatKey.MaxHealth:
+                        unit.MaxHp += addValue;
+                        unit.CurrentHp += addValue;
+                        break;
+                    case StatKey.AttackDamage:
+                    case StatKey.DamageBonus:
+                        unit.AttackDamage += addValue;
+                        break;
+                    case StatKey.AttackSpeed:
+                        unit.AttackSpeed += addValue;
+                        break;
+                    case StatKey.MoveSpeed:
+                        unit.MoveSpeed += addValue;
+                        break;
+                    case StatKey.AttackRange:
+                        unit.AttackRange += addValue;
+                        break;
+                    case StatKey.AggroRadius:
+                        unit.AggroRadius += addValue;
+                        break;
+                    case StatKey.CritChance:
+                        unit.CritChance += addValue;
+                        break;
+                    case StatKey.CritDamage:
+                        unit.CritDamage += addValue;
+                        break;
+                    case StatKey.SoulStrength:
+                        unit.SoulStrength += addValue;
+                        break;
+                    case StatKey.Armor:
+                        unit.PhysicalDefense += addValue;
+                        break;
+                    case StatKey.MagicResist:
+                        unit.MagicDefense += addValue;
+                        break;
+                }
+            }
+        }
+
         if (!CardInstanceStatMultipliers.TryGetValue(context.CardInstanceId, out var statMultipliers))
             return;
 
@@ -129,6 +217,7 @@ public sealed class MatchTraitRuntimeState
                     unit.CurrentHp *= multiplier;
                     break;
                 case StatKey.AttackDamage:
+                case StatKey.DamageBonus:
                     unit.AttackDamage *= multiplier;
                     break;
                 case StatKey.AttackSpeed:

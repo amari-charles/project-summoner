@@ -150,7 +150,7 @@ public class TraitCatalogTest
         AssertThat(trait.Modifiers).IsNotEmpty();
 
         var modifier = trait.Modifiers[0];
-        AssertThat(modifier.Stat).IsEqual(StatKey.DamageReduction);
+        AssertThat(modifier.Stat).IsEqual(StatKey.SoulStrength);
         AssertThat(modifier.Type).IsEqual(ModifierType.Flat);
         AssertThat(modifier.Value).IsEqual(5.0f);
     }
@@ -184,57 +184,14 @@ public class TraitCatalogTest
         }
     }
 
-    // =========================================================================
-    // TRIGGERED TRAIT TESTS
-    // =========================================================================
-
     [TestCase]
-    public void BerserkerTrait_HasBelowHpTrigger()
+    public void DeletedLegacySummonerTraits_DoNotExistInCatalog()
     {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.Berserker);
-
-        AssertThat(modifiers.Count).IsGreater(0);
-
-        var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(TriggerCondition.BelowHpPercent);
-        AssertThat(mod.TriggerThreshold).IsEqual(0.5f);
-        AssertThat(mod.StatMults.ContainsKey(StatKey.AttackDamage)).IsTrue();
-        AssertThat(mod.StatMults[StatKey.AttackDamage]).IsEqual(1.2f);
-    }
-
-    [TestCase]
-    public void VengefulTrait_HasOnTakeHitTrigger()
-    {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.Vengeful);
-
-        AssertThat(modifiers.Count).IsGreater(0);
-
-        var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(TriggerCondition.OnTakeHit);
-        AssertThat(mod.TriggerDuration).IsEqual(5.0f);
-        AssertThat(mod.TriggerCooldown).IsEqual(1.0f);
-        AssertThat(mod.StatMults.ContainsKey(StatKey.AttackSpeed)).IsTrue();
-    }
-
-    [TestCase]
-    public void SoulHarvestTrait_HasOnKillTrigger()
-    {
-        var modifiers = TraitCatalog.GetUnitModifiersForTrait(TraitIds.SoulHarvest);
-
-        AssertThat(modifiers.Count).IsGreater(0);
-
-        var mod = modifiers[0];
-        AssertThat(mod.Trigger).IsEqual(TriggerCondition.OnKill);
-        AssertThat(mod.StatAdds.ContainsKey(StatKey.HealOnKill)).IsTrue();
-        AssertThat(mod.StatAdds[StatKey.HealOnKill]).IsEqual(5.0f);
-    }
-
-    [TestCase]
-    public void TriggeredTraits_ExistInCatalog()
-    {
-        AssertThat(TraitCatalog.HasTrait(TraitIds.Berserker)).IsTrue();
-        AssertThat(TraitCatalog.HasTrait(TraitIds.Vengeful)).IsTrue();
-        AssertThat(TraitCatalog.HasTrait(TraitIds.SoulHarvest)).IsTrue();
+        AssertThat(TraitCatalog.HasTrait("trait_berserker")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_vengeful")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_soul_harvest")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_inferno_mastery")).IsFalse();
+        AssertThat(TraitCatalog.HasTrait("trait_tidal_mastery")).IsFalse();
     }
 
     [TestCase]
@@ -245,5 +202,139 @@ public class TraitCatalogTest
         AssertThat(trait).IsNotNull();
         AssertThat(trait!.AcquisitionMode).IsEqual(TraitAcquisitionMode.GrantedOnly);
         AssertThat(trait.Category).IsEqual(TraitCategory.Special);
+    }
+
+    [TestCase]
+    public void TraitDefinition_ResolveStatMultipliersForCard_UsesMostSpecificOverride()
+    {
+        var trait = new TraitDefinition
+        {
+            Id = TraitId.FromString("test_trait_override"),
+            NameKey = "trait.test.name",
+            DescriptionKey = "trait.test.description",
+            Category = TraitCategory.Combat,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    StatMults = new() { [StatKey.AttackDamage] = 1.06f }
+                }
+            ],
+            ValueOverrides =
+            [
+                new TraitValueOverride
+                {
+                    Rarities = ["common"],
+                    StatMults = new() { [StatKey.AttackDamage] = 1.05f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    StatMults = new() { [StatKey.AttackDamage] = 1.07f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    Rarities = ["common"],
+                    StatMults = new() { [StatKey.AttackDamage] = 1.09f }
+                }
+            ]
+        };
+
+        var exact = trait.ResolveStatMultipliersForCard("fire_wisp", "common");
+        var cardOnly = trait.ResolveStatMultipliersForCard("fire_wisp", "epic");
+        var rarityOnly = trait.ResolveStatMultipliersForCard("water_wisp", "common");
+        var baseOnly = trait.ResolveStatMultipliersForCard("water_wisp", "rare");
+
+        AssertThat(exact[StatKey.AttackDamage]).IsEqual(1.09f);
+        AssertThat(cardOnly[StatKey.AttackDamage]).IsEqual(1.07f);
+        AssertThat(rarityOnly[StatKey.AttackDamage]).IsEqual(1.05f);
+        AssertThat(baseOnly[StatKey.AttackDamage]).IsEqual(1.06f);
+    }
+
+    [TestCase]
+    public void TraitDefinition_ResolveSpawnCountAddForCard_AppliesOverride()
+    {
+        var trait = new TraitDefinition
+        {
+            Id = TraitId.FromString("test_trait_unit_count"),
+            NameKey = "trait.test.unit_count.name",
+            DescriptionKey = "trait.test.unit_count.description",
+            Category = TraitCategory.Utility,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    StatAdds = new() { [StatKey.UnitCount] = 1f }
+                }
+            ],
+            ValueOverrides =
+            [
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    Rarities = ["rare"],
+                    UnitCountAdd = 2
+                }
+            ]
+        };
+
+        AssertThat(trait.ResolveSpawnCountAddForCard("fire_wisp", "rare")).IsEqual(2);
+        AssertThat(trait.ResolveSpawnCountAddForCard("fire_wisp", "common")).IsEqual(1);
+        AssertThat(trait.ResolveSpawnCountAddForCard("water_wisp", "rare")).IsEqual(1);
+    }
+
+    [TestCase]
+    public void TraitDefinition_ResolveStatAddsForCard_UsesMostSpecificOverride()
+    {
+        var trait = new TraitDefinition
+        {
+            Id = TraitId.FromString("test_trait_add_override"),
+            NameKey = "trait.test.add.name",
+            DescriptionKey = "trait.test.add.description",
+            Category = TraitCategory.Defense,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    StatAdds = new() { [StatKey.Armor] = 4f }
+                }
+            ],
+            ValueOverrides =
+            [
+                new TraitValueOverride
+                {
+                    Rarities = ["common"],
+                    StatAdds = new() { [StatKey.Armor] = 6f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    StatAdds = new() { [StatKey.Armor] = 8f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    Rarities = ["common"],
+                    StatAdds = new() { [StatKey.Armor] = 10f }
+                }
+            ]
+        };
+
+        var exact = trait.ResolveStatAddsForCard("fire_wisp", "common");
+        var cardOnly = trait.ResolveStatAddsForCard("fire_wisp", "epic");
+        var rarityOnly = trait.ResolveStatAddsForCard("water_wisp", "common");
+        var baseOnly = trait.ResolveStatAddsForCard("water_wisp", "rare");
+
+        AssertThat(exact[StatKey.Armor]).IsEqual(10f);
+        AssertThat(cardOnly[StatKey.Armor]).IsEqual(8f);
+        AssertThat(rarityOnly[StatKey.Armor]).IsEqual(6f);
+        AssertThat(baseOnly[StatKey.Armor]).IsEqual(4f);
     }
 }

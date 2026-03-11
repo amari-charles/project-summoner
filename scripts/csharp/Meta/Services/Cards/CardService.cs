@@ -383,11 +383,17 @@ public partial class CardService : Node
                 statMods[statKey] = mod.Value;
             }
 
-            if (mod.StatMults == null || mod.StatMults.Count == 0)
-                continue;
+            if (mod.StatMults != null && mod.StatMults.Count > 0)
+            {
+                foreach (var (stat, mult) in mod.StatMults)
+                    statMods[stat.ToSnakeCase()] = mult;
+            }
 
-            foreach (var (stat, mult) in mod.StatMults)
-                statMods[stat.ToSnakeCase()] = mult;
+            if (mod.StatAdds != null && mod.StatAdds.Count > 0)
+            {
+                foreach (var (stat, add) in mod.StatAdds)
+                    statMods[stat.ToSnakeCase()] = add;
+            }
         }
 
         return new Godot.Collections.Dictionary
@@ -406,6 +412,18 @@ public partial class CardService : Node
         return _progression?.GetTraitStatModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
     }
 
+    /// <summary>Get additive stat modifiers from card's traits (for C# callers).</summary>
+    public Dictionary<string, float> GetTraitStatAddModifiersTyped(string cardInstanceId)
+    {
+        return _progression?.GetTraitStatAddModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
+    }
+
+    /// <summary>Get additive spawn-count bonus from card traits.</summary>
+    public int GetTraitSpawnCountBonus(string cardInstanceId)
+    {
+        return _progression?.GetTraitSpawnCountBonus(CardInstanceId.FromString(cardInstanceId)) ?? 0;
+    }
+
     /// <summary>Get stat modifiers from card's traits (for GDScript callers).</summary>
     public Godot.Collections.Dictionary GetTraitStatModifiers(string cardInstanceId)
     {
@@ -413,6 +431,16 @@ public partial class CardService : Node
         var result = new Godot.Collections.Dictionary();
         foreach (var (stat, mult) in mods)
             result[stat] = mult;
+        return result;
+    }
+
+    /// <summary>Get additive stat modifiers from card's traits (for GDScript callers).</summary>
+    public Godot.Collections.Dictionary GetTraitStatAddModifiers(string cardInstanceId)
+    {
+        var adds = _progression?.GetTraitStatAddModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
+        var result = new Godot.Collections.Dictionary();
+        foreach (var (stat, add) in adds)
+            result[stat] = add;
         return result;
     }
 
@@ -504,7 +532,8 @@ public partial class CardService : Node
 
         var effective = CardCatalog.ToDictionary(cardDef);
         var traitMods = GetTraitStatModifiersTyped(cardInstanceId);
-        if (traitMods.Count == 0)
+        var traitAdds = GetTraitStatAddModifiersTyped(cardInstanceId);
+        if (traitMods.Count == 0 && traitAdds.Count == 0)
             return effective;
 
         foreach (var (statKey, multiplier) in traitMods)
@@ -518,6 +547,37 @@ public partial class CardService : Node
 
             var baseValue = (float)current.AsDouble();
             effective[statKey] = baseValue * multiplier;
+        }
+
+        foreach (var (statKey, addValue) in traitAdds)
+        {
+            var effectiveStatKey = statKey;
+            if (string.Equals(statKey, StatKey.UnitCount.ToSnakeCase(), StringComparison.Ordinal))
+                effectiveStatKey = "spawn_count";
+
+            if (!effective.ContainsKey(effectiveStatKey))
+            {
+                effective[effectiveStatKey] = addValue;
+                continue;
+            }
+
+            var current = effective[effectiveStatKey];
+            if (current.VariantType != Variant.Type.Float && current.VariantType != Variant.Type.Int)
+                continue;
+
+            var baseValue = (float)current.AsDouble();
+            effective[effectiveStatKey] = baseValue + addValue;
+        }
+
+        var spawnCountAdd = GetTraitSpawnCountBonus(cardInstanceId);
+        if (spawnCountAdd != 0 && effective.ContainsKey("spawn_count"))
+        {
+            var current = effective["spawn_count"];
+            if (current.VariantType == Variant.Type.Float || current.VariantType == Variant.Type.Int)
+            {
+                var baseValue = (float)current.AsDouble();
+                effective["spawn_count"] = baseValue + spawnCountAdd;
+            }
         }
 
         return effective;

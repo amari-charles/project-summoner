@@ -304,6 +304,9 @@ public class CardProgressionHandler
         var card = _profileRepo.GetCard(cardInstanceId);
         if (card == null)
             return [];
+        var cardDef = CardCatalog.GetCard(card.CatalogId);
+        if (cardDef == null)
+            return [];
 
         var result = new Dictionary<string, float>(StringComparer.Ordinal);
         foreach (var traitId in card.Traits)
@@ -312,30 +315,81 @@ public class CardProgressionHandler
             if (traitDef == null)
                 continue;
 
-            foreach (var modifier in traitDef.Modifiers)
+            var resolvedMultipliers = traitDef.ResolveStatMultipliersForCard(card.CatalogId.Value, card.Rarity);
+            foreach (var (stat, multiplier) in resolvedMultipliers)
             {
-                if (modifier.StatMults == null || modifier.StatMults.Count == 0)
+                if (multiplier <= 0f)
                     continue;
 
-                foreach (var (stat, multiplier) in modifier.StatMults)
+                var statKey = stat.ToSnakeCase();
+                if (result.TryGetValue(statKey, out var existing))
                 {
-                    if (multiplier <= 0f)
-                        continue;
-
-                    var statKey = stat.ToSnakeCase();
-                    if (result.TryGetValue(statKey, out var existing))
-                    {
-                        result[statKey] = existing * multiplier;
-                    }
-                    else
-                    {
-                        result[statKey] = multiplier;
-                    }
+                    result[statKey] = existing * multiplier;
+                }
+                else
+                {
+                    result[statKey] = multiplier;
                 }
             }
         }
 
         return result;
+    }
+
+    public Dictionary<string, float> GetTraitStatAddModifiers(CardInstanceId cardInstanceId)
+    {
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null)
+            return [];
+        var cardDef = CardCatalog.GetCard(card.CatalogId);
+        if (cardDef == null)
+            return [];
+
+        var result = new Dictionary<string, float>(StringComparer.Ordinal);
+        foreach (var traitId in card.Traits)
+        {
+            var traitDef = TraitCatalog.GetTrait(traitId.Value);
+            if (traitDef == null)
+                continue;
+
+            var resolvedAdds = traitDef.ResolveStatAddsForCard(card.CatalogId.Value, card.Rarity);
+            foreach (var (stat, addValue) in resolvedAdds)
+            {
+                var statKey = stat.ToSnakeCase();
+                if (result.TryGetValue(statKey, out var existing))
+                {
+                    result[statKey] = existing + addValue;
+                }
+                else
+                {
+                    result[statKey] = addValue;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public int GetTraitSpawnCountBonus(CardInstanceId cardInstanceId)
+    {
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null)
+            return 0;
+        var cardDef = CardCatalog.GetCard(card.CatalogId);
+        if (cardDef == null || cardDef.Type != CardType.Summon)
+            return 0;
+
+        var total = 0;
+        foreach (var traitId in card.Traits)
+        {
+            var traitDef = TraitCatalog.GetTrait(traitId.Value);
+            if (traitDef == null)
+                continue;
+
+            total += traitDef.ResolveSpawnCountAddForCard(card.CatalogId.Value, card.Rarity);
+        }
+
+        return total;
     }
 
     private int ResolveOfferEvaluationLevel(CardInstanceId cardInstanceId, CardInstance card)
@@ -366,7 +420,9 @@ public class CardProgressionHandler
             EligibilityTags = TraitTreeEvaluator.BuildEffectiveCardTagSet(cardDef, ownerTypeTag),
             OwnedTraitIds = card.Traits.Select(traitId => traitId.Value).ToHashSet(StringComparer.Ordinal),
             CurrentLevel = card.Level,
-            UnspentTraitPoints = card.UnspentTraitPoints
+            UnspentTraitPoints = card.UnspentTraitPoints,
+            CardCatalogId = card.CatalogId.Value,
+            CardRarity = card.Rarity
         };
     }
 

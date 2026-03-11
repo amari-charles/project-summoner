@@ -343,7 +343,7 @@ public partial class SimulationNode : Node, IGameSession
         summoner.Position = new SimVector3(position.X, position.Y, position.Z);
         summoner.DamageBonus = 0f;
         summoner.DamageReduction = 0f;
-        summoner.SoulGuard = 0f;
+        summoner.SoulStrength = 0f;
         summoner.ClearElementalDamageBonuses();
 
         summoner.Deck.Clear();
@@ -370,7 +370,7 @@ public partial class SimulationNode : Node, IGameSession
         int team,
         float damageBonus,
         float damageReduction,
-        float soulGuard = 0f,
+        float soulStrength = 0f,
         Dictionary<Element, float>? elementalDamageBonuses = null)
     {
         int networkTeam = ToNetworkTeam(team);
@@ -383,7 +383,7 @@ public partial class SimulationNode : Node, IGameSession
         var summoner = State.Summoners[networkTeam];
         summoner.DamageBonus = damageBonus;
         summoner.DamageReduction = damageReduction;
-        summoner.SoulGuard = soulGuard;
+        summoner.SoulStrength = soulStrength;
         summoner.ClearElementalDamageBonuses();
 
         if (elementalDamageBonuses != null)
@@ -720,8 +720,18 @@ public partial class SimulationNode : Node, IGameSession
                 continue;
 
             var rawModifiers = cardService.GetTraitStatModifiersTyped(cardRef.InstanceId.Value);
-            if (rawModifiers.Count == 0)
+            var rawAdds = cardService.GetTraitStatAddModifiersTyped(cardRef.InstanceId.Value);
+            var spawnCountAdd = cardService.GetTraitSpawnCountBonus(cardRef.InstanceId.Value);
+            if (rawModifiers.Count == 0 && rawAdds.Count == 0)
+            {
+                if (spawnCountAdd != 0)
+                {
+                    runtime.SetCardInstanceSpawnCountAdd(
+                        new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+                        spawnCountAdd);
+                }
                 continue;
+            }
 
             var typedModifiers = new Dictionary<StatKey, float>();
             foreach (var (statKey, multiplier) in rawModifiers)
@@ -736,11 +746,48 @@ public partial class SimulationNode : Node, IGameSession
             }
 
             if (typedModifiers.Count == 0)
-                continue;
+            {
+                if (spawnCountAdd != 0)
+                {
+                    runtime.SetCardInstanceSpawnCountAdd(
+                        new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+                        spawnCountAdd);
+                }
+            }
 
-            runtime.SetCardInstanceStatMultipliers(
-                new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
-                typedModifiers);
+            var typedAdds = new Dictionary<StatKey, float>();
+            foreach (var (statKey, addValue) in rawAdds)
+            {
+                if (addValue == 0f)
+                    continue;
+
+                var parsedStatKey = StatKeyExtensions.FromString(statKey);
+                if (!parsedStatKey.HasValue)
+                    continue;
+                typedAdds[parsedStatKey.Value] = addValue;
+            }
+
+            var traitCardInstanceId = new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value);
+            if (typedModifiers.Count > 0)
+            {
+                runtime.SetCardInstanceStatMultipliers(
+                    traitCardInstanceId,
+                    typedModifiers);
+            }
+
+            if (typedAdds.Count > 0)
+            {
+                runtime.SetCardInstanceStatAdds(
+                    traitCardInstanceId,
+                    typedAdds);
+            }
+
+            if (spawnCountAdd != 0)
+            {
+                runtime.SetCardInstanceSpawnCountAdd(
+                    traitCardInstanceId,
+                    spawnCountAdd);
+            }
         }
     }
 }

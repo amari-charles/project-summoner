@@ -84,6 +84,23 @@ public static class TraitTreeEvaluator
             return Locked("Not available for this owner", canUnlockNow: false, isAcquirable: true, matchesTags: false);
         }
 
+        if (context.OwnerTypeTag == TraitTags.Summon || context.OwnerTypeTag == TraitTags.Spell)
+        {
+            if (trait.AllowedCardCatalogIds.Length > 0)
+            {
+                var cardId = context.CardCatalogId?.Trim() ?? "";
+                if (!trait.AllowedCardCatalogIds.Contains(cardId, StringComparer.Ordinal))
+                    return Locked("Not available for this card", canUnlockNow: false, isAcquirable: true);
+            }
+
+            if (trait.AllowedRarities.Length > 0)
+            {
+                var rarity = context.CardRarity?.Trim().ToLowerInvariant() ?? "";
+                if (!trait.AllowedRarities.Contains(rarity, StringComparer.OrdinalIgnoreCase))
+                    return Locked("Not available for this card rarity", canUnlockNow: false, isAcquirable: true);
+            }
+        }
+
         var evaluationLevel = levelOverride ?? context.CurrentLevel;
         var meetsMinLevel = evaluationLevel >= trait.MinLevel;
         var meetsMaxLevel = trait.MaxLevel <= 0 || evaluationLevel <= trait.MaxLevel;

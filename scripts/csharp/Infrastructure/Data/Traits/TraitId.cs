@@ -78,43 +78,48 @@ public static class TraitIds
     public static readonly TraitId DeathAffinity = new("trait_death_affinity");
 
     // =========================================================================
-    // TRIGGERED TRAITS (conditional effects)
+    // ACQUIRABLE TRAITS - Summoner Identity Lines
     // =========================================================================
 
-    /// <summary>Berserker: +20% damage when below 50% HP.</summary>
-    public static readonly TraitId Berserker = new("trait_berserker");
+    // Cole
+    public static readonly TraitId ColeSoulStrengthI = new("trait_cole_soul_strength_i");
+    public static readonly TraitId ColeSoulStrengthII = new("trait_cole_soul_strength_ii");
+    public static readonly TraitId ColeSoulStrengthIII = new("trait_cole_soul_strength_iii");
+    public static readonly TraitId ColeSoulStrengthIV = new("trait_cole_soul_strength_iv");
+    public static readonly TraitId ColeCastSpeedI = new("trait_cole_cast_speed_i");
+    public static readonly TraitId ColeCastSpeedII = new("trait_cole_cast_speed_ii");
+    public static readonly TraitId ColeCastSpeedIII = new("trait_cole_cast_speed_iii");
+    public static readonly TraitId ColeCastSpeedIV = new("trait_cole_cast_speed_iv");
 
-    /// <summary>Vengeful: +10% attack speed for 5s after taking damage.</summary>
-    public static readonly TraitId Vengeful = new("trait_vengeful");
+    // Selene
+    public static readonly TraitId SeleneHealthI = new("trait_selene_health_i");
+    public static readonly TraitId SeleneHealthII = new("trait_selene_health_ii");
+    public static readonly TraitId SeleneHealthIII = new("trait_selene_health_iii");
+    public static readonly TraitId SeleneHealthIV = new("trait_selene_health_iv");
+    public static readonly TraitId SeleneMaxManaI = new("trait_selene_max_mana_i");
+    public static readonly TraitId SeleneMaxManaII = new("trait_selene_max_mana_ii");
+    public static readonly TraitId SeleneMaxManaIII = new("trait_selene_max_mana_iii");
+    public static readonly TraitId SeleneMaxManaIV = new("trait_selene_max_mana_iv");
 
-    /// <summary>Soul Harvest: Heal 5 HP on kill.</summary>
-    public static readonly TraitId SoulHarvest = new("trait_soul_harvest");
+    // Mei
+    public static readonly TraitId MeiCastSpeedI = new("trait_mei_cast_speed_i");
+    public static readonly TraitId MeiCastSpeedII = new("trait_mei_cast_speed_ii");
+    public static readonly TraitId MeiCastSpeedIII = new("trait_mei_cast_speed_iii");
+    public static readonly TraitId MeiCastSpeedIV = new("trait_mei_cast_speed_iv");
+    public static readonly TraitId MeiMaxManaI = new("trait_mei_max_mana_i");
+    public static readonly TraitId MeiMaxManaII = new("trait_mei_max_mana_ii");
+    public static readonly TraitId MeiMaxManaIII = new("trait_mei_max_mana_iii");
+    public static readonly TraitId MeiMaxManaIV = new("trait_mei_max_mana_iv");
 
-    // =========================================================================
-    // ACQUIRABLE TRAITS - Global Summoner Pool
-    // =========================================================================
-
-    /// <summary>Iron Will: +5 damage reduction.</summary>
-    public static readonly TraitId IronWill = new("trait_iron_will");
-
-    /// <summary>Quick Recovery: +10% mana regen.</summary>
-    public static readonly TraitId QuickRecovery = new("trait_quick_recovery");
-
-    /// <summary>Vitality Boost: +100 max health.</summary>
-    public static readonly TraitId VitalityBoost = new("trait_vitality_boost");
-
-    /// <summary>Swift Strike: +10% attack speed for units.</summary>
-    public static readonly TraitId SwiftStrike = new("trait_swift_strike");
-
-    // =========================================================================
-    // ACQUIRABLE TRAITS - Element Mastery (element-exclusive)
-    // =========================================================================
-
-    /// <summary>Inferno Mastery: Fire damage and fire unit buffs.</summary>
-    public static readonly TraitId InfernoMastery = new("trait_inferno_mastery");
-
-    /// <summary>Tidal Mastery: Water damage and water unit buffs.</summary>
-    public static readonly TraitId TidalMastery = new("trait_tidal_mastery");
+    // Teo
+    public static readonly TraitId TeoHealthI = new("trait_teo_health_i");
+    public static readonly TraitId TeoHealthII = new("trait_teo_health_ii");
+    public static readonly TraitId TeoHealthIII = new("trait_teo_health_iii");
+    public static readonly TraitId TeoHealthIV = new("trait_teo_health_iv");
+    public static readonly TraitId TeoSoulStrengthI = new("trait_teo_soul_strength_i");
+    public static readonly TraitId TeoSoulStrengthII = new("trait_teo_soul_strength_ii");
+    public static readonly TraitId TeoSoulStrengthIII = new("trait_teo_soul_strength_iii");
+    public static readonly TraitId TeoSoulStrengthIV = new("trait_teo_soul_strength_iv");
 
     // =========================================================================
     // UNIT TRAITS - Global Pool (available to all units/cards)
@@ -140,6 +145,45 @@ public static class TraitIds
 
     /// <summary>Agility: +5% move speed per level.</summary>
     public static readonly TraitId Agility = new("trait_agility");
+    public static readonly TraitId AgilityII = new("trait_agility_ii");
+    public static readonly TraitId AgilityIII = new("trait_agility_iii");
+    public static readonly TraitId AgilityIV = new("trait_agility_iv");
+
+    /// <summary>Reach: +attack range tiers.</summary>
+    public static readonly TraitId Reach = new("trait_reach");
+    public static readonly TraitId ReachII = new("trait_reach_ii");
+    public static readonly TraitId ReachIII = new("trait_reach_iii");
+    public static readonly TraitId ReachIV = new("trait_reach_iv");
+
+    /// <summary>Plating: +armor tiers.</summary>
+    public static readonly TraitId Plating = new("trait_plating");
+    public static readonly TraitId PlatingII = new("trait_plating_ii");
+    public static readonly TraitId PlatingIII = new("trait_plating_iii");
+    public static readonly TraitId PlatingIV = new("trait_plating_iv");
+
+    /// <summary>Warding: +magic resist tiers.</summary>
+    public static readonly TraitId Warding = new("trait_warding");
+    public static readonly TraitId WardingII = new("trait_warding_ii");
+    public static readonly TraitId WardingIII = new("trait_warding_iii");
+    public static readonly TraitId WardingIV = new("trait_warding_iv");
+
+    /// <summary>Soulforce: +soul strength tiers.</summary>
+    public static readonly TraitId Soulforce = new("trait_soulforce");
+    public static readonly TraitId SoulforceII = new("trait_soulforce_ii");
+    public static readonly TraitId SoulforceIII = new("trait_soulforce_iii");
+    public static readonly TraitId SoulforceIV = new("trait_soulforce_iv");
+
+    /// <summary>Arcana: +magic damage tiers.</summary>
+    public static readonly TraitId Arcana = new("trait_arcana");
+    public static readonly TraitId ArcanaII = new("trait_arcana_ii");
+    public static readonly TraitId ArcanaIII = new("trait_arcana_iii");
+    public static readonly TraitId ArcanaIV = new("trait_arcana_iv");
+
+    /// <summary>Legion: +unit count tiers.</summary>
+    public static readonly TraitId Legion = new("trait_legion");
+    public static readonly TraitId LegionII = new("trait_legion_ii");
+    public static readonly TraitId LegionIII = new("trait_legion_iii");
+    public static readonly TraitId LegionIV = new("trait_legion_iv");
 
     // =========================================================================
     // SPECIAL TRAITS - Granted by specific game events

@@ -26,6 +26,8 @@ public sealed class TraitTreeOwnerContext
     public required HashSet<string> OwnedTraitIds { get; init; }
     public required int CurrentLevel { get; init; }
     public required int UnspentTraitPoints { get; init; }
+    public string CardCatalogId { get; init; } = "";
+    public string CardRarity { get; init; } = "";
 }
 
 public sealed class TraitUnlockEvaluation
