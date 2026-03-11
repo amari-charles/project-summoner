@@ -19,6 +19,7 @@ public static class SimMeleeSlotManager
     private const float AxisRefreshAngleDeg = 30f;
     private const float AxisRefreshDisplacementRadiusScale = 0.5f;
     private const float SummonerTargetRadius = 1.8f;
+    private const int SummonerMinSlots = 12;
 
     public static TargetSlotState GetOrCreateTargetState(
         MatchState state,
@@ -167,6 +168,8 @@ public static class SimMeleeSlotManager
         float slotSpacing = MathF.Max(SlotSpacingMin, attackerRadius * 2f);
         int computedSlots = (int)MathF.Floor((SimMath.Tau * targetRadius) / slotSpacing);
         int slotCount = Math.Max(Math.Max(minSlots, 1), computedSlots);
+        if (MatchState.IsSummonerTarget(targetId))
+            slotCount = Math.Max(slotCount, SummonerMinSlots);
 
         if (slotState.Slots.Count == slotCount)
             return;

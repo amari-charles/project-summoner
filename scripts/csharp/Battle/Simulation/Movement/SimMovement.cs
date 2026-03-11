@@ -126,10 +126,16 @@ public static class SimMovement
 
         var dir = toTarget / dist;
         float speed = SimEffects.GetEffectiveMoveSpeed(unit);
-        var velocity = dir * speed;
+        float maxStep = speed * delta;
+        float appliedSpeed = speed;
+        if (dist < maxStep && delta > 0f)
+            appliedSpeed = dist / delta;
+        var velocity = dir * appliedSpeed;
 
         var preMovementPos = unit.Position;
         var newPos = unit.Position + velocity * delta;
+        if (dist <= maxStep)
+            newPos = destination.Value;
         if (unit.MovementLayer == MovementLayer.Air)
             newPos.Y = unit.FlightAltitude;
         else

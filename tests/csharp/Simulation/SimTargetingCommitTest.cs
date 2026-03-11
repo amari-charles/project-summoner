@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
+using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using GdUnit4;
@@ -116,5 +117,32 @@ public class SimTargetingCommitTest
         float dz = slotPos.Value.Z - _state.Summoners[1].Position.Z;
         float dist = MathF.Sqrt((dx * dx) + (dz * dz));
         AssertThat(dist).IsLessEqual(unit.AttackRange + 0.05f);
+    }
+
+    [TestCase]
+    public void AcquireTargetCommit_FallsBackToSummoner_WhenOnlyInAggroUnitIsSlotSaturated()
+    {
+        var saturatedTarget = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 17f, z: 0f, hp: 600f);
+        saturatedTarget.NavigationRadius = 0.2f;
+
+        var blockerOne = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: -0.5f);
+        var blockerTwo = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: 0f);
+        var blockerThree = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: 0.5f);
+        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerOne, _state, saturatedTarget.UnitId, out _)).IsTrue();
+        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerTwo, _state, saturatedTarget.UnitId, out _)).IsTrue();
+        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerThree, _state, saturatedTarget.UnitId, out _)).IsTrue();
+
+        var overflow = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15f, z: 1.2f, attackRange: 2f, aggroRadius: 8f);
+
+        int? target = SimTargeting.AcquireTargetCommit(
+            overflow,
+            _state,
+            currentTargetId: null,
+            droppedTargetId: null,
+            droppedTargetCooldownTimer: 0f);
+
+        AssertThat(target.HasValue).IsTrue();
+        AssertThat(MatchState.IsSummonerTarget(target)).IsTrue();
+        AssertThat(target!.Value).IsEqual(MatchState.GetSummonerTargetId(team: 1));
     }
 }

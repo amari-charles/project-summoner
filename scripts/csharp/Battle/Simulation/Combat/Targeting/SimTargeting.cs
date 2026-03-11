@@ -4,6 +4,7 @@ using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
+using Fateforged.Simulation.Combat.Slots;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -24,6 +25,8 @@ public static class SimTargeting
     private const float CommitStickinessBonus = 6.0f;
     private const float CommitCongestionWeight = 12.0f;
     private const float CommitFrontageArcDegrees = 135.0f;
+    private const float CommitSummonerAcquireDistanceScale = 1.5f;
+    private const float CommitSummonerAcquireDistanceMin = 20.0f;
 
     /// <summary>
     /// Acquire a target using the unit's configured targeting policy.
@@ -52,6 +55,8 @@ public static class SimTargeting
         float bestScore = float.MinValue;
         int? bestId = null;
         bool anyEnemyUnitAlive = false;
+        bool hadInAggroCandidate = false;
+        bool sawSaturatedInAggroCandidate = false;
 
         foreach (var kvp in state.Units)
         {
@@ -77,6 +82,13 @@ public static class SimTargeting
             if (!PassesLayerFilter(unit, candidate)) continue;
             if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate)) continue;
             if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist)) continue;
+            hadInAggroCandidate = true;
+
+            if (IsTargetSlotSaturatedForAttacker(unit, candidate, state))
+            {
+                sawSaturatedInAggroCandidate = true;
+                continue;
+            }
 
             float score = ScoreTarget(unit, candidate, dist);
             score += ScoreLaneAffinity(unit, attackerLane, candidateLane, laneDistance);
@@ -106,15 +118,47 @@ public static class SimTargeting
             return null;
         }
 
-        // Prevent premature hard-lock on summoner while enemy units are still alive
-        // but outside aggro. In that situation, keep advancing objective and reacquire
-        // when combat enters aggro range.
         float summonerDistance = DistanceXZ(unit.Position, enemySummoner.Position);
-        bool summonerWithinAcquireDistance = summonerDistance <= unit.AggroRadius;
-        if (anyEnemyUnitAlive && !summonerWithinAcquireDistance)
+        float summonerAcquireDistance = MathF.Max(
+            CommitSummonerAcquireDistanceMin,
+            unit.AggroRadius * CommitSummonerAcquireDistanceScale);
+
+        // If there were in-aggro unit candidates but they were all saturated,
+        // allow fallback to summoner immediately to avoid deadlock.
+        if (hadInAggroCandidate && sawSaturatedInAggroCandidate)
+            return summonerTargetId;
+
+        // Otherwise, avoid locking summoner from too far away.
+        if (summonerDistance > summonerAcquireDistance && anyEnemyUnitAlive)
             return null;
 
         return summonerTargetId;
+    }
+
+    private static bool IsTargetSlotSaturatedForAttacker(UnitData attacker, UnitData target, MatchState state)
+    {
+        if (attacker.UnitType != UnitType.Melee)
+            return false;
+
+        if (attacker.SlotTargetId.HasValue &&
+            attacker.SlotTargetId.Value == target.UnitId &&
+            attacker.ReservedSlotId.HasValue)
+        {
+            return false;
+        }
+
+        if (!state.TargetSlotStates.TryGetValue(target.UnitId, out var slotState))
+            return false;
+
+        foreach (var slot in slotState.Slots)
+        {
+            if (slot.ReservedUnitId == attacker.UnitId || slot.OccupiedUnitId == attacker.UnitId)
+                return false;
+            if (slot.OccupancyState == SlotOccupancyState.Free)
+                return false;
+        }
+
+        return slotState.Slots.Count > 0;
     }
 
     /// <summary>
