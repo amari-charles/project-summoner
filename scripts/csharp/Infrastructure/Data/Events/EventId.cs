@@ -47,7 +47,7 @@ public static class EventIds
     /// <summary>Battle: Third Trial - Medium difficulty</summary>
     public static readonly EventId ThirdTrial = new("third_trial");
 
-    /// <summary>Choice: Opening doctrine (aggressive vs prepared)</summary>
+    /// <summary>Choice: Opening doctrine (aggressive vs prepared vs insight)</summary>
     public static readonly EventId OpeningDoctrine = new("opening_doctrine");
 
     /// <summary>Battle: Aggressive branch opener</summary>
@@ -83,7 +83,7 @@ public static class EventIds
     /// <summary>Boss: Mini-boss gate encounter</summary>
     public static readonly EventId Gatekeeper = new("gatekeeper");
 
-    /// <summary>Choice: Elite vs Standard Path Fork</summary>
+    /// <summary>Choice: Elite vs Standard vs Gambit Path Fork</summary>
     public static readonly EventId PathFork = new("path_fork");
 
     /// <summary>Battle: Elite Path Battle 1 - Higher difficulty with level cap</summary>

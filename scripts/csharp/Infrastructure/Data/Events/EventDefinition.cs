@@ -39,7 +39,7 @@ public class BattleEventDefinition : EventDefinition
     /// <summary>Biome ID for battlefield environment</summary>
     public BiomeId Biome { get; set; } = BiomeIds.Default;
 
-    /// <summary>Difficulty rating (1-10)</summary>
+    /// <summary>Relative difficulty rating (higher is harder).</summary>
     public int Difficulty { get; set; } = 1;
 
     /// <summary>Whether this is a tutorial battle with special handling</summary>

@@ -23,6 +23,11 @@ public class CampaignGraphConsistencyTest
         AssertThat(nodeSet.Contains(EventIds.Act1Boss)).IsTrue();
         AssertThat(nodeSet.Count).IsEqual(graph.EventIds.Count);
 
+        foreach (var eventId in graph.EventIds)
+        {
+            AssertThat(EventCatalog.GetEvent(eventId)).IsNotNull();
+        }
+
         foreach (var edge in graph.Edges)
         {
             AssertThat(nodeSet.Contains(edge.FromEventId)).IsTrue();
