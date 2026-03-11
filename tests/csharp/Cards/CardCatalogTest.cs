@@ -2,13 +2,15 @@ namespace Fateforged.Tests.Cards;
 
 using GdUnit4;
 using Fateforged.Cards;
+using Fateforged.Constants;
 using static GdUnit4.Assertions;
 
 /// <summary>
 /// Tests for the CardCatalog static class.
-/// These tests run without Godot runtime for speed.
+/// Marked as RequireGodotRuntime because dictionary conversion paths use Godot Variant APIs.
 /// </summary>
 [TestSuite]
+[RequireGodotRuntime]
 public class CardCatalogTest
 {
     [TestCase]
@@ -141,5 +143,50 @@ public class CardCatalogTest
         var allCards = CardCatalog.GetAllCards();
 
         AssertThat(CardCatalog.Count).IsEqual(allCards.Length);
+    }
+
+    [TestCase]
+    public void ToDictionary_SpellCard_HasEmptyTacticalRole()
+    {
+        var card = CardCatalog.GetCard(CardIds.Fireball);
+
+        AssertThat(card).IsNotNull();
+
+        var dict = CardCatalog.ToDictionary(card!);
+        var tacticalRole = dict.TryGetValue("tactical_role", out var roleVar)
+            ? roleVar.AsString()
+            : null;
+
+        AssertThat(tacticalRole).IsEqual("");
+    }
+
+    [TestCase]
+    public void ToDictionary_SummonCard_HasResolvedTacticalRole()
+    {
+        var card = CardCatalog.GetCard(CardIds.Puff);
+
+        AssertThat(card).IsNotNull();
+
+        var dict = CardCatalog.ToDictionary(card!);
+        var tacticalRole = dict.TryGetValue("tactical_role", out var roleVar)
+            ? roleVar.AsString()
+            : null;
+
+        AssertThat(tacticalRole).IsEqual("backliner");
+    }
+
+    [TestCase]
+    public void ToDictionary_MultiRoleSummonSpec_ReturnsMixedTacticalRole()
+    {
+        var card = CardCatalog.GetCard(CardIds.MamaDuck);
+
+        AssertThat(card).IsNotNull();
+
+        var dict = CardCatalog.ToDictionary(card!);
+        var tacticalRole = dict.TryGetValue("tactical_role", out var roleVar)
+            ? roleVar.AsString()
+            : null;
+
+        AssertThat(tacticalRole).IsEqual("mixed");
     }
 }
