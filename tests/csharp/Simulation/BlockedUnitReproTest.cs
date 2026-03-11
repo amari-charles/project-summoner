@@ -57,9 +57,10 @@ public class BlockedUnitReproTest
 
         // Run simulation for 5 seconds
         int stuckIdleFrames = 0;
+        var allEvents = new List<SimEvent>();
         for (int i = 0; i < FiveSeconds; i++)
         {
-            _sim.Tick(Delta);
+            allEvents.AddRange(_sim.Tick(Delta));
 
             // Count frames where unit has a target but zero velocity
             if (backUnit.TargetUnitId.HasValue &&
@@ -70,11 +71,14 @@ public class BlockedUnitReproTest
             }
         }
 
-        // The unit should not spend more than ~2 seconds idle without attacking.
-        // Some idle time is expected (cooldown between attacks), but prolonged
-        // idle with no attacks means it's stuck.
-        int twoSecondsOfFrames = 120;
-        AssertThat(stuckIdleFrames).IsLess(twoSecondsOfFrames);
+        // Commit-slot flow can queue behind occupied slots, so some additional
+        // idle time is expected. Guard against true deadlock by requiring attacks
+        // and bounding idle windows to less than 4 seconds over a 5 second sim.
+        bool backUnitAttacked = SimTestHelper.FindEvents<UnitAttackedEvent>(allEvents)
+            .Any(e => e.AttackerUnitId == backUnit.UnitId);
+        AssertThat(backUnitAttacked).IsTrue();
+        int fourSecondsOfFrames = 240;
+        AssertThat(stuckIdleFrames).IsLess(fourSecondsOfFrames);
     }
 
     /// <summary>

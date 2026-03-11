@@ -95,4 +95,19 @@ public class SimMeleeSlotManagerTest
         AssertThat(slot.ReservationUnitId).IsEqual(unit.UnitId);
         AssertThat(slot.ReservationDistanceSq < float.MaxValue).IsTrue();
     }
+
+    [TestCase]
+    public void ReservedSlot_StaysOnAttackerFacingSide()
+    {
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 4f, z: 0f);
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
+
+        bool reserved = SimMeleeSlotManager.TryReserveSlot(attacker, _state, target.UnitId, out _);
+        AssertThat(reserved).IsTrue();
+
+        var slotPos = SimMeleeSlotManager.GetReservedSlotWorldPosition(attacker, _state);
+        AssertThat(slotPos.HasValue).IsTrue();
+        // Attacker is left of target, so attacker-facing frontage should also be left of target.
+        AssertThat(slotPos!.Value.X).IsLess(target.Position.X);
+    }
 }

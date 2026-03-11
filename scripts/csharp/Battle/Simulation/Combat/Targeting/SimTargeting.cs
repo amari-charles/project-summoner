@@ -24,7 +24,6 @@ public static class SimTargeting
     private const float CommitStickinessBonus = 6.0f;
     private const float CommitCongestionWeight = 12.0f;
     private const float CommitFrontageArcDegrees = 135.0f;
-    private const float CommitSummonerScoreBias = -1.5f;
 
     /// <summary>
     /// Acquire a target using the unit's configured targeting policy.
@@ -52,6 +51,7 @@ public static class SimTargeting
 
         float bestScore = float.MinValue;
         int? bestId = null;
+        bool anyEnemyUnitAlive = false;
 
         foreach (var kvp in state.Units)
         {
@@ -59,6 +59,7 @@ public static class SimTargeting
             if (!candidate.IsAlive) continue;
             if (candidate.ActivationState != ActivationState.Active) continue;
             if ((int)candidate.Team != enemyTeam) continue;
+            anyEnemyUnitAlive = true;
             if (droppedTargetCooldownTimer > 0f &&
                 droppedTargetId.HasValue &&
                 candidate.UnitId == droppedTargetId.Value)
@@ -90,28 +91,30 @@ public static class SimTargeting
             }
         }
 
+        if (bestId.HasValue)
+            return bestId;
+
         var enemySummoner = state.GetAliveEnemySummoner((int)unit.Team);
-        if (enemySummoner != null)
+        if (enemySummoner == null)
+            return null;
+
+        int summonerTargetId = MatchState.GetSummonerTargetId((int)enemySummoner.Team);
+        if (droppedTargetCooldownTimer > 0f &&
+            droppedTargetId.HasValue &&
+            droppedTargetId.Value == summonerTargetId)
         {
-            int summonerTargetId = MatchState.GetSummonerTargetId((int)enemySummoner.Team);
-            if (!(droppedTargetCooldownTimer > 0f && droppedTargetId.HasValue && droppedTargetId.Value == summonerTargetId))
-            {
-                float dist = DistanceXZ(unit.Position, enemySummoner.Position);
-                int summonerLane = VirtualLanes.GetLaneIndex(enemySummoner.Position.Z);
-                int laneDistance = VirtualLanes.LaneDistance(attackerLane, summonerLane);
-
-                float summonerScore = (unit.AggroRadius - dist) * unit.DistanceScorerWeight;
-                summonerScore += ScoreLaneAffinity(unit, attackerLane, summonerLane, laneDistance);
-                if (currentTargetId.HasValue && currentTargetId.Value == summonerTargetId)
-                    summonerScore += CommitStickinessBonus;
-                summonerScore += CommitSummonerScoreBias;
-
-                if (summonerScore > bestScore || !bestId.HasValue)
-                    return summonerTargetId;
-            }
+            return null;
         }
 
-        return bestId;
+        // Prevent premature hard-lock on summoner while enemy units are still alive
+        // but outside aggro. In that situation, keep advancing objective and reacquire
+        // when combat enters aggro range.
+        float summonerDistance = DistanceXZ(unit.Position, enemySummoner.Position);
+        bool summonerWithinAcquireDistance = summonerDistance <= unit.AggroRadius;
+        if (anyEnemyUnitAlive && !summonerWithinAcquireDistance)
+            return null;
+
+        return summonerTargetId;
     }
 
     /// <summary>

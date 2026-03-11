@@ -173,7 +173,11 @@ public static class SimMeleeSlotManager
 
         // Rebuild topology deterministically.
         slotState.Slots.Clear();
-        float orbitRadius = MathF.Max(targetRadius + (attackerRadius * 0.9f), 0.2f);
+        float desiredOrbitRadius = MathF.Max(targetRadius + (attackerRadius * 0.9f), 0.2f);
+        // Slots must sit within practical attack reach so reserved attackers can
+        // actually enter attack loop (important for large targets like summoners).
+        float maxReachableOrbitRadius = MathF.Max(0.2f, attacker.AttackRange * 0.92f);
+        float orbitRadius = MathF.Min(desiredOrbitRadius, maxReachableOrbitRadius);
         var offsets = BuildSlotOffsets(slotCount, orbitRadius);
         for (int i = 0; i < offsets.Count; i++)
         {
@@ -188,6 +192,14 @@ public static class SimMeleeSlotManager
     private static List<SimVector3> BuildSlotOffsets(int slotCount, float radius)
     {
         var angles = new List<float>(slotCount);
+
+        // Small slot sets should stay fully attacker-facing to avoid
+        // "run past target" paths in 2-4 unit melee engagements.
+        if (slotCount <= 4)
+        {
+            AppendArcAngles(angles, -70f, 70f, slotCount);
+            return BuildOffsetsFromAngles(angles, radius);
+        }
 
         int frontCount = Math.Max(1, (int)MathF.Round(slotCount * FrontShare));
         int sideCount = Math.Max(0, (int)MathF.Round(slotCount * SideShare));
@@ -207,7 +219,12 @@ public static class SimMeleeSlotManager
         if (angles.Count > slotCount)
             angles.RemoveRange(slotCount, angles.Count - slotCount);
 
-        var result = new List<SimVector3>(slotCount);
+        return BuildOffsetsFromAngles(angles, radius);
+    }
+
+    private static List<SimVector3> BuildOffsetsFromAngles(List<float> angles, float radius)
+    {
+        var result = new List<SimVector3>(angles.Count);
         foreach (float angleDeg in angles)
         {
             float angleRad = SimMath.DegToRad(angleDeg);
@@ -251,7 +268,10 @@ public static class SimMeleeSlotManager
         if (!hasCentroid)
             centroid = fallbackAttackerPosition;
 
-        var desired = targetPos - centroid;
+        // Front slots are authored around +X in local space.
+        // Layout axis must point from target toward attackers so front slots stay
+        // on the attacker-facing side instead of flipping behind the target.
+        var desired = centroid - targetPos;
         desired.Y = 0f;
         if (desired.LengthSquared() < 0.000001f)
             return;

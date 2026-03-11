@@ -1,5 +1,6 @@
 namespace Fateforged.Tests.Simulation;
 
+using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
@@ -59,5 +60,61 @@ public class SimTargetingCommitTest
         AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
         AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
         AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
+    }
+
+    [TestCase]
+    public void AcquireTargetCommit_DoesNotPrelockSummoner_WhenEnemyUnitsAliveOutsideAggro()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: -18f, z: 0f, attackRange: 2.5f, aggroRadius: 8f);
+        SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0f, z: 0f); // alive enemy exists but outside aggro
+
+        int? target = SimTargeting.AcquireTargetCommit(
+            unit,
+            _state,
+            currentTargetId: null,
+            droppedTargetId: null,
+            droppedTargetCooldownTimer: 0f);
+
+        AssertThat(target.HasValue).IsFalse();
+    }
+
+    [TestCase]
+    public void AcquireTargetCommit_PrefersEnemyUnit_WhenEnemyInAggro()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2.5f, aggroRadius: 12f);
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 3f, z: 0f);
+
+        int? target = SimTargeting.AcquireTargetCommit(
+            unit,
+            _state,
+            currentTargetId: null,
+            droppedTargetId: null,
+            droppedTargetCooldownTimer: 0f);
+
+        AssertThat(target.HasValue).IsTrue();
+        AssertThat(target!.Value).IsEqual(enemy.UnitId);
+    }
+
+    [TestCase]
+    public void CommitTick_UsesSlots_ForSummonerTargets()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 14f, z: 0f, attackRange: 2.5f, aggroRadius: 20f);
+        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+
+        SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
+
+        int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
+        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.SlotTargetId.HasValue).IsTrue();
+        AssertThat(unit.SlotTargetId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.ReservedSlotId.HasValue).IsTrue();
+
+        var slotPos = Fateforged.Simulation.Combat.Slots.SimMeleeSlotManager.GetReservedSlotWorldPosition(unit, _state);
+        AssertThat(slotPos.HasValue).IsTrue();
+        float dx = slotPos!.Value.X - _state.Summoners[1].Position.X;
+        float dz = slotPos.Value.Z - _state.Summoners[1].Position.Z;
+        float dist = MathF.Sqrt((dx * dx) + (dz * dz));
+        AssertThat(dist).IsLessEqual(unit.AttackRange + 0.05f);
     }
 }

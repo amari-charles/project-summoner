@@ -33,15 +33,17 @@ public static class SimCombatStateMachine
         }
 
         int targetId = unit.TargetUnitId!.Value;
-        bool isSummonerTarget = MatchState.IsSummonerTarget(targetId);
-
-        if (unit.UnitType == UnitType.Melee && !isSummonerTarget)
+        if (unit.UnitType == UnitType.Melee)
         {
             if (!EnsureMeleeSlot(unit, state, targetId, delta))
             {
                 unit.BehaviorState = BehaviorState.Chasing;
                 SimAttackLoop.Cancel(unit, state);
-                return new SimBehavior.BehaviorResult { Movement = MovementResult.None };
+                return new SimBehavior.BehaviorResult
+                {
+                    Movement = MovementResult.TowardTarget,
+                    MoveTargetId = unit.TargetUnitId
+                };
             }
 
             if (!TryAdvanceToReservedSlot(unit, state, out var toSlotBehavior))
@@ -210,7 +212,7 @@ public static class SimCombatStateMachine
         }
 
         SimVector3? destination = null;
-        if (unit.UnitType == UnitType.Melee && !MatchState.IsSummonerTarget(targetId))
+        if (unit.UnitType == UnitType.Melee)
             destination = SimMeleeSlotManager.GetReservedSlotWorldPosition(unit, state);
         destination ??= SimUtils.ResolveTargetPosition(targetId, state);
 

@@ -39,8 +39,7 @@ public static class MovementTargetResolver
     public static SimVector3? Resolve(UnitData unit, int? targetId, MatchState state)
     {
         if (unit.UnitType == UnitType.Melee &&
-            targetId.HasValue &&
-            !MatchState.IsSummonerTarget(targetId))
+            targetId.HasValue)
         {
             var slotPos = SimMeleeSlotManager.GetReservedSlotWorldPosition(unit, state);
             if (slotPos.HasValue)
