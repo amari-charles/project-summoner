@@ -14,6 +14,7 @@ public static class AttackVectorStateBuilder
         var source = config ?? AttackVectorConfig.Default;
         var timing = source.Timing ?? AttackTimingConfig.Default;
         var selection = source.Selection ?? AttackSelectionConfig.Default;
+        bool hasExplicitTargetLimit = selection.TargetLimit.HasValue;
         var area = source.Area ?? AttackAreaConfig.Default;
         var propagation = source.Propagation ?? AttackPropagationConfig.Default;
         var rules = source.Rules ?? AttackRulesConfig.Default;
@@ -31,7 +32,7 @@ public static class AttackVectorStateBuilder
             Selection = new AttackSelectionState
             {
                 Mode = selection.Mode,
-                TargetLimit = selection.TargetLimit
+                TargetLimit = selection.TargetLimit ?? 1
             },
             Area = new AttackAreaState
             {
@@ -54,11 +55,14 @@ public static class AttackVectorStateBuilder
             }
         };
 
-        ApplyPresetDefaults(mapped, mapped.Preset);
+        ApplyPresetDefaults(mapped, mapped.Preset, hasExplicitTargetLimit);
         return mapped;
     }
 
-    private static void ApplyPresetDefaults(AttackVectorState attack, AttackPreset preset)
+    private static void ApplyPresetDefaults(
+        AttackVectorState attack,
+        AttackPreset preset,
+        bool hasExplicitTargetLimit)
     {
         switch (preset)
         {
@@ -79,7 +83,7 @@ public static class AttackVectorStateBuilder
                 attack.Selection.Mode = AttackSelectionMode.AreaCollect;
                 attack.Area.Shape = AttackAreaShape.Box;
                 attack.Propagation.Mode = AttackPropagationMode.None;
-                if (attack.Selection.TargetLimit <= 1)
+                if (!hasExplicitTargetLimit)
                     attack.Selection.TargetLimit = 3;
                 return;
 
@@ -92,7 +96,7 @@ public static class AttackVectorStateBuilder
                     attack.Area.LineLength = 4f;
                 if (attack.Area.LineHalfWidth <= 0f)
                     attack.Area.LineHalfWidth = 0.75f;
-                if (attack.Selection.TargetLimit <= 1)
+                if (!hasExplicitTargetLimit)
                     attack.Selection.TargetLimit = 3;
                 return;
 
@@ -105,7 +109,7 @@ public static class AttackVectorStateBuilder
                     attack.Propagation.ChainMaxJumps = 2;
                 if (attack.Propagation.ChainJumpRadius <= 0f)
                     attack.Propagation.ChainJumpRadius = 4f;
-                if (attack.Selection.TargetLimit <= 1)
+                if (!hasExplicitTargetLimit)
                     attack.Selection.TargetLimit = attack.Propagation.ChainMaxJumps + 1;
                 return;
 
