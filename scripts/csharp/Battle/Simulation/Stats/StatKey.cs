@@ -43,6 +43,9 @@ public enum StatKey
     /// <summary>Bonus damage dealt specifically to enemy summoners.</summary>
     SoulStrength,
 
+    /// <summary>Additional units spawned when playing a summon card.</summary>
+    UnitCount,
+
     // =========================================================================
     // ELEMENTAL DAMAGE BONUSES (summoner stats that affect units)
     // =========================================================================
@@ -140,6 +143,7 @@ public static class StatKeyExtensions
         StatKey.Armor => "armor",
         StatKey.MagicResist => "magic_resist",
         StatKey.SoulStrength => "soul_strength",
+        StatKey.UnitCount => "unit_count",
 
         // Elemental damage bonuses
         StatKey.FireDamageBonus => "fire_damage_bonus",
@@ -203,6 +207,7 @@ public static class StatKeyExtensions
             "armor" => StatKey.Armor,
             "magicresist" => StatKey.MagicResist,
             "soulstrength" => StatKey.SoulStrength,
+            "unitcount" => StatKey.UnitCount,
 
             // Elemental damage bonuses
             "firedamagebonus" => StatKey.FireDamageBonus,
@@ -275,7 +280,8 @@ public static class StatKeyExtensions
         StatKey.CritDamage,
         StatKey.Armor,
         StatKey.MagicResist,
-        StatKey.SoulStrength
+        StatKey.SoulStrength,
+        StatKey.UnitCount
     };
 
     /// <summary>

@@ -93,11 +93,17 @@ public sealed class MatchTraitRuntimeState
     /// </summary>
     public Dictionary<TraitRuntimeCardInstanceId, Dictionary<StatKey, float>> CardInstanceStatMultipliers { get; } = new();
 
+    /// <summary>
+    /// Runtime card-instance additive spawn-count bonuses used when summon cards resolve.
+    /// </summary>
+    public Dictionary<TraitRuntimeCardInstanceId, int> CardInstanceSpawnCountAdds { get; } = new();
+
     public static MatchTraitRuntimeState Empty() => new();
 
     public void ResetCardInstanceStatMultipliers()
     {
         CardInstanceStatMultipliers.Clear();
+        CardInstanceSpawnCountAdds.Clear();
     }
 
     public void SetCardInstanceStatMultipliers(TraitRuntimeCardInstanceId cardInstanceId, Dictionary<StatKey, float> statMultipliers)
@@ -107,6 +113,23 @@ public sealed class MatchTraitRuntimeState
 
         CardInstanceStatMultipliers[cardInstanceId] = new Dictionary<StatKey, float>(statMultipliers);
         RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
+    }
+
+    public void SetCardInstanceSpawnCountAdd(TraitRuntimeCardInstanceId cardInstanceId, int spawnCountAdd)
+    {
+        if (!cardInstanceId.HasValue || spawnCountAdd == 0)
+            return;
+
+        CardInstanceSpawnCountAdds[cardInstanceId] = spawnCountAdd;
+        RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
+    }
+
+    public int GetCardInstanceSpawnCountAdd(TraitRuntimeCardInstanceId cardInstanceId)
+    {
+        if (!cardInstanceId.HasValue)
+            return 0;
+
+        return CardInstanceSpawnCountAdds.TryGetValue(cardInstanceId, out var value) ? value : 0;
     }
 
     public void ApplySpawnModifiers(UnitData unit, TraitRuntimeSpawnContext context)

@@ -362,7 +362,9 @@ public partial class TraitTreeService : Node
             EligibilityTags = TraitTreeEvaluator.BuildEffectiveCardTagSet(cardDef, ownerTypeTag),
             OwnedTraitIds = card.Traits.Select(traitId => traitId.Value).ToHashSet(StringComparer.Ordinal),
             CurrentLevel = card.Level,
-            UnspentTraitPoints = card.UnspentTraitPoints
+            UnspentTraitPoints = card.UnspentTraitPoints,
+            CardCatalogId = card.CatalogId.Value,
+            CardRarity = card.Rarity
         };
 
         snapshot = new CardSnapshot(card, cardDef, context);

@@ -246,4 +246,88 @@ public class TraitCatalogTest
         AssertThat(trait!.AcquisitionMode).IsEqual(TraitAcquisitionMode.GrantedOnly);
         AssertThat(trait.Category).IsEqual(TraitCategory.Special);
     }
+
+    [TestCase]
+    public void TraitDefinition_ResolveStatMultipliersForCard_UsesMostSpecificOverride()
+    {
+        var trait = new TraitDefinition
+        {
+            Id = TraitId.FromString("test_trait_override"),
+            NameKey = "trait.test.name",
+            DescriptionKey = "trait.test.description",
+            Category = TraitCategory.Combat,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    StatMults = new() { [StatKey.AttackDamage] = 1.06f }
+                }
+            ],
+            ValueOverrides =
+            [
+                new TraitValueOverride
+                {
+                    Rarities = ["common"],
+                    StatMults = new() { [StatKey.AttackDamage] = 1.05f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    StatMults = new() { [StatKey.AttackDamage] = 1.07f }
+                },
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    Rarities = ["common"],
+                    StatMults = new() { [StatKey.AttackDamage] = 1.09f }
+                }
+            ]
+        };
+
+        var exact = trait.ResolveStatMultipliersForCard("fire_wisp", "common");
+        var cardOnly = trait.ResolveStatMultipliersForCard("fire_wisp", "epic");
+        var rarityOnly = trait.ResolveStatMultipliersForCard("water_wisp", "common");
+        var baseOnly = trait.ResolveStatMultipliersForCard("water_wisp", "rare");
+
+        AssertThat(exact[StatKey.AttackDamage]).IsEqual(1.09f);
+        AssertThat(cardOnly[StatKey.AttackDamage]).IsEqual(1.07f);
+        AssertThat(rarityOnly[StatKey.AttackDamage]).IsEqual(1.05f);
+        AssertThat(baseOnly[StatKey.AttackDamage]).IsEqual(1.06f);
+    }
+
+    [TestCase]
+    public void TraitDefinition_ResolveSpawnCountAddForCard_AppliesOverride()
+    {
+        var trait = new TraitDefinition
+        {
+            Id = TraitId.FromString("test_trait_unit_count"),
+            NameKey = "trait.test.unit_count.name",
+            DescriptionKey = "trait.test.unit_count.description",
+            Category = TraitCategory.Utility,
+            Tags = [TraitTags.Summon, TraitTags.Global],
+            Modifiers =
+            [
+                new TraitModifier
+                {
+                    Target = "unit",
+                    StatAdds = new() { [StatKey.UnitCount] = 1f }
+                }
+            ],
+            ValueOverrides =
+            [
+                new TraitValueOverride
+                {
+                    CardCatalogIds = ["fire_wisp"],
+                    Rarities = ["rare"],
+                    UnitCountAdd = 2
+                }
+            ]
+        };
+
+        AssertThat(trait.ResolveSpawnCountAddForCard("fire_wisp", "rare")).IsEqual(2);
+        AssertThat(trait.ResolveSpawnCountAddForCard("fire_wisp", "common")).IsEqual(1);
+        AssertThat(trait.ResolveSpawnCountAddForCard("water_wisp", "rare")).IsEqual(1);
+    }
 }

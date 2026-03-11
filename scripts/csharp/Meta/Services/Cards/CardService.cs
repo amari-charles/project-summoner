@@ -406,6 +406,12 @@ public partial class CardService : Node
         return _progression?.GetTraitStatModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
     }
 
+    /// <summary>Get additive spawn-count bonus from card traits.</summary>
+    public int GetTraitSpawnCountBonus(string cardInstanceId)
+    {
+        return _progression?.GetTraitSpawnCountBonus(CardInstanceId.FromString(cardInstanceId)) ?? 0;
+    }
+
     /// <summary>Get stat modifiers from card's traits (for GDScript callers).</summary>
     public Godot.Collections.Dictionary GetTraitStatModifiers(string cardInstanceId)
     {

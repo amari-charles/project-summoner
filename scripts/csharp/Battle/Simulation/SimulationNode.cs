@@ -720,8 +720,17 @@ public partial class SimulationNode : Node, IGameSession
                 continue;
 
             var rawModifiers = cardService.GetTraitStatModifiersTyped(cardRef.InstanceId.Value);
+            var spawnCountAdd = cardService.GetTraitSpawnCountBonus(cardRef.InstanceId.Value);
             if (rawModifiers.Count == 0)
+            {
+                if (spawnCountAdd != 0)
+                {
+                    runtime.SetCardInstanceSpawnCountAdd(
+                        new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+                        spawnCountAdd);
+                }
                 continue;
+            }
 
             var typedModifiers = new Dictionary<StatKey, float>();
             foreach (var (statKey, multiplier) in rawModifiers)
@@ -736,11 +745,26 @@ public partial class SimulationNode : Node, IGameSession
             }
 
             if (typedModifiers.Count == 0)
+            {
+                if (spawnCountAdd != 0)
+                {
+                    runtime.SetCardInstanceSpawnCountAdd(
+                        new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+                        spawnCountAdd);
+                }
                 continue;
+            }
 
             runtime.SetCardInstanceStatMultipliers(
                 new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
                 typedModifiers);
+
+            if (spawnCountAdd != 0)
+            {
+                runtime.SetCardInstanceSpawnCountAdd(
+                    new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
+                    spawnCountAdd);
+            }
         }
     }
 }
