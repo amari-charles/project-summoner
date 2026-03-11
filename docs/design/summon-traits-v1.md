@@ -188,135 +188,87 @@ Implementation note:
 - Add creature-type-specific summon traits (`beast`, `construct`, `aerial`) once card tags are fully authored.
 - Add element-linked summon trait forks once summon card trait tags include element consistently.
 
-## 10. Per-Summoner Trait Lines (V1 Level-Trait Draft)
+## 10. Per-Summoner Trait Lines (Simple V1)
 
-This section defines the first per-summoner identity lines for level traits.  
-Scope here is design and naming; implementation can use existing runtime primitives (`Tags`, `RequiredTags`, `StatMults`, `StatAdds`, existing triggers).
+This section is intentionally simple and uses only existing summoner stats.  
+No unit modifiers. No triggers. No conditional logic.
 
-### 10.1 Offer Budget (Keep Choice Count Tight)
+### 10.1 Rules
 
-To avoid upgrade bloat while preserving build planning:
+- Each core summoner gets exactly 2 exclusive lines.
+- Each line has 4 tiers (`I -> IV`) with strict prerequisites.
+- Level-up offer target remains 3 options (to avoid bloat).
+- Keep number curves simple and consistent:
+  - Percent lines: `+5%`, `+10%`, `+15%`, `+20%`
+  - Flat health line: `+100`, `+200`, `+300`, `+400`
+  - Flat reduction line: `+1`, `+2`, `+3`, `+4`
 
-- Give each core summoner exactly two identity lines.
-- Each line has 4 tiers (`I -> IV`) with strict prerequisite chains.
-- Level-up offer target: 3 options total.
-- Suggested mix per offer:
-  - 1 option from summoner-exclusive lines (`TraitTags.<SummonerId>`)
-  - 1 option from element/global summoner pool
-  - 1 flexible fallback from global pool
+## 11. Summoner Identity Lines (Simple Draft)
 
-This keeps the planning depth without flooding players with low-signal picks.
+### 11.1 Cole (Fire)
 
-## 11. Summoner Identity Lines
-
-### 11.1 Cole (Fire) - Aggressive Tempo and Finish Pressure
-
-Personality anchor: arrogant, competitive, first into challenge.  
-Gameplay identity: force early trades, then convert lane break into summoner pressure.
-
-#### Line A: Ember Command (consistent fire pressure)
-
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
+| Tier | Trait Name | Effect |
 |---|---|---|
-| I | Ember Command I | `fire_damage_bonus +6%`, fire-unit `attack_damage x1.05` |
-| II | Ember Command II | `fire_damage_bonus +10%`, fire-unit `attack_damage x1.08` |
-| III | Ember Command III | `fire_damage_bonus +14%`, fire-unit `attack_speed x1.06` |
-| IV | Ember Command IV | `fire_damage_bonus +18%`, fire-unit `soul_strength +1` |
+| I | Flame Command I | `fire_damage_bonus +5%` |
+| II | Flame Command II | `fire_damage_bonus +10%` |
+| III | Flame Command III | `fire_damage_bonus +15%` |
+| IV | Flame Command IV | `fire_damage_bonus +20%` |
+| I | Aggressor I | `damage_bonus +5%` |
+| II | Aggressor II | `damage_bonus +10%` |
+| III | Aggressor III | `damage_bonus +15%` |
+| IV | Aggressor IV | `damage_bonus +20%` |
 
-#### Line B: Duelist's Edge (risk-forward execution)
+### 11.2 Selene (Water)
 
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
+| Tier | Trait Name | Effect |
 |---|---|---|
-| I | Duelist's Edge I | all units `soul_strength +1` |
-| II | Duelist's Edge II | all units `attack_damage x1.06`, `soul_strength +1` |
-| III | Duelist's Edge III | trigger `OnKill` -> all units `attack_speed x1.08` (short window) |
-| IV | Duelist's Edge IV | `damage_bonus +10%` (summoner outgoing), all units `soul_strength +2` |
+| I | Deep Reserve I | `max_health +100` |
+| II | Deep Reserve II | `max_health +200` |
+| III | Deep Reserve III | `max_health +300` |
+| IV | Deep Reserve IV | `max_health +400` |
+| I | Renewal I | `mana_regen +5%` |
+| II | Renewal II | `mana_regen +10%` |
+| III | Renewal III | `mana_regen +15%` |
+| IV | Renewal IV | `mana_regen +20%` |
 
-### 11.2 Selene (Water) - Sustain, Stability, and Recovery
+### 11.3 Mei (Wind)
 
-Personality anchor: gentle, caring, calm under pressure.  
-Gameplay identity: absorb pressure, maintain formation health, win extended fights.
-
-#### Line A: Tideguard (defensive backbone)
-
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
+| Tier | Trait Name | Effect |
 |---|---|---|
-| I | Tideguard I | `max_health +120`, `damage_reduction +2` |
-| II | Tideguard II | `max_health +220`, `damage_reduction +3` |
-| III | Tideguard III | water-unit `max_hp x1.10`, `magic_resist +4` |
-| IV | Tideguard IV | `max_health +350`, water-unit `max_hp x1.15`, `soul_guard +8` |
+| I | Quick Channel I | `cast_speed +5%` |
+| II | Quick Channel II | `cast_speed +10%` |
+| III | Quick Channel III | `cast_speed +15%` |
+| IV | Quick Channel IV | `cast_speed +20%` |
+| I | Gale Mark I | `wind_damage_bonus +5%` |
+| II | Gale Mark II | `wind_damage_bonus +10%` |
+| III | Gale Mark III | `wind_damage_bonus +15%` |
+| IV | Gale Mark IV | `wind_damage_bonus +20%` |
 
-#### Line B: Flow Renewal (economy and sustain throughput)
+### 11.4 Teo (Earth)
 
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
+| Tier | Trait Name | Effect |
 |---|---|---|
-| I | Flow Renewal I | `mana_regen +8%`, `healing_bonus +6%` |
-| II | Flow Renewal II | `mana_regen +12%`, `healing_bonus +10%` |
-| III | Flow Renewal III | all units `heal_on_kill +3`, water-unit `attack_speed x1.04` |
-| IV | Flow Renewal IV | `mana_regen +18%`, all units `heal_on_kill +5`, water-unit `max_hp x1.08` |
+| I | Stoneguard I | `damage_reduction +1` |
+| II | Stoneguard II | `damage_reduction +2` |
+| III | Stoneguard III | `damage_reduction +3` |
+| IV | Stoneguard IV | `damage_reduction +4` |
+| I | Earth Command I | `earth_damage_bonus +5%` |
+| II | Earth Command II | `earth_damage_bonus +10%` |
+| III | Earth Command III | `earth_damage_bonus +15%` |
+| IV | Earth Command IV | `earth_damage_bonus +20%` |
 
-### 11.3 Mei (Wind) - Initiative, Reposition, and Opportunism
+## 12. Implementation Notes (Simple V1)
 
-Personality anchor: elusive, selective, opportunistic.  
-Gameplay identity: dictate pace, reposition quickly, exploit moments rather than attrition.
+- Use summoner-only tags:
+  - `Tags = [TraitTags.Summoner, TraitTags.Cole]`
+  - `Tags = [TraitTags.Summoner, TraitTags.Selene]`
+  - `Tags = [TraitTags.Summoner, TraitTags.Mei]`
+  - `Tags = [TraitTags.Summoner, TraitTags.Teo]`
+- Prerequisites stay linear (`I -> II -> III -> IV`).
+- Keep this pass stat-only; add complex behavior in V2 only after playtest.
 
-#### Line A: Slipstream Control (initiative and cadence)
+## 13. V2 Expansion (Deferred)
 
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
-|---|---|---|
-| I | Slipstream I | `cast_speed +8%`, wind-unit `move_speed x1.05` |
-| II | Slipstream II | `cast_speed +12%`, wind-unit `move_speed x1.08` |
-| III | Slipstream III | wind-unit `attack_speed x1.08`, `aggro_radius x1.06` |
-| IV | Slipstream IV | `cast_speed +18%`, wind-unit `attack_speed x1.12`, `move_speed x1.10` |
-
-#### Line B: Opportunist Circuit (burst windows)
-
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
-|---|---|---|
-| I | Opportunist I | all units `crit_chance +0.03` |
-| II | Opportunist II | all units `crit_chance +0.05`, `crit_damage +0.10` |
-| III | Opportunist III | trigger `OnTakeHit` -> all units `attack_speed x1.07` |
-| IV | Opportunist IV | `wind_damage_bonus +12%`, all units `crit_damage +0.20` |
-
-### 11.4 Teo (Earth) - Frontline Authority and Siege Closure
-
-Personality anchor: direct, reliable, finishes what he starts.  
-Gameplay identity: hold center, grind favorable trades, then close with heavy pushes.
-
-#### Line A: Bedrock Oath (formation anchor)
-
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
-|---|---|---|
-| I | Bedrock Oath I | `max_health +150`, earth-unit `armor +3` |
-| II | Bedrock Oath II | `max_health +260`, earth-unit `armor +5` |
-| III | Bedrock Oath III | earth-unit `max_hp x1.12`, `magic_resist +5` |
-| IV | Bedrock Oath IV | `damage_reduction +4`, earth-unit `max_hp x1.18`, `armor +8` |
-
-#### Line B: Siege March (deliberate finishing power)
-
-| Tier | Candidate Trait Name | Candidate Runtime Effects |
-|---|---|---|
-| I | Siege March I | earth-unit `attack_damage x1.06` |
-| II | Siege March II | earth-unit `attack_damage x1.10`, `attack_range x1.04` |
-| III | Siege March III | all units `soul_strength +1`, earth-unit `attack_speed x1.05` |
-| IV | Siege March IV | `earth_damage_bonus +14%`, all units `soul_strength +2` |
-
-## 12. Implementation Mapping Notes
-
-- Tagging:
-  - Summoner-exclusive lines should use `Tags = [TraitTags.Summoner, TraitTags.<SummonerId>]`.
-  - Keep global/element lines unchanged to preserve hybrid builds.
-- Prerequisite shape:
-  - `Line I` has no prerequisite.
-  - `Line II` requires `Line I`.
-  - `Line III` requires `Line II`.
-  - `Line IV` requires `Line III`.
-- Trigger discipline:
-  - Keep trigger durations short and deterministic.
-  - Prefer one trigger per line until playtest confirms readability.
-
-## 13. Open Balancing Questions
-
-1. Do we want each summoner to have one "safe" line and one "greedy" line by rule?
-2. Should Line IV be reachable by level 7 or reserved for level 8+ on summoners?
-3. Should per-summoner lines be weighted higher than global lines in trait offer rolls?
+1. Add mixed traits (summoner + unit effects).
+2. Add triggers/conditions (on-kill, below HP, etc.).
+3. Add oath-linked capstone interactions.
