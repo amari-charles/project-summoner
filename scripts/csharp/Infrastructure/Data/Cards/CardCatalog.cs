@@ -176,6 +176,7 @@ public static class CardCatalog
             ["formation_duration"] = card.FormationDuration,
             ["unlock_condition"] = UnlockConditionToString(card.UnlockCondition),
             ["card_icon_path"] = card.CardIconPath,
+            ["tactical_role"] = ResolveCardTacticalRole(card, stats),
             // Separation radius from UnitDefinitions
             ["separation_radius"] = def?.Visual.SeparationRadius ?? 0.5f
         };
@@ -213,6 +214,52 @@ public static class CardCatalog
         UnlockCondition.DevOnly => "dev_only",
         _ => condition.ToString().ToLowerInvariant()
     };
+
+    private static string ResolveCardTacticalRole(CardDefinition card, UnitStats stats)
+    {
+        if (card.Type != CardType.Summon)
+            return "";
+
+        var roles = new HashSet<TacticalRole>();
+
+        if (card.Summon != null && card.Summon.Units.Count > 0)
+        {
+            foreach (var entry in card.Summon.Units)
+            {
+                var template = UnitDefinitions.BuildSimTemplate(entry.UnitId, entry.Count, entry.Modifier);
+                roles.Add(template.TacticalRole == TacticalRole.Auto
+                    ? ResolveFallbackTacticalRole(card.UnitType, stats.MoveSpeed)
+                    : template.TacticalRole);
+            }
+        }
+        else if (card.UnitId.HasValue)
+        {
+            var template = UnitDefinitions.BuildSimTemplate(card.UnitId, card.SpawnCount, card.UnitModifier);
+            roles.Add(template.TacticalRole == TacticalRole.Auto
+                ? ResolveFallbackTacticalRole(card.UnitType, stats.MoveSpeed)
+                : template.TacticalRole);
+        }
+        else
+        {
+            roles.Add(ResolveFallbackTacticalRole(card.UnitType, stats.MoveSpeed));
+        }
+
+        if (roles.Count == 0)
+            return "";
+        if (roles.Count > 1)
+            return "mixed";
+
+        return roles.First().ToString().ToLowerInvariant();
+    }
+
+    private static TacticalRole ResolveFallbackTacticalRole(UnitType unitType, float moveSpeed)
+    {
+        if (unitType == UnitType.Ranged)
+            return TacticalRole.Backliner;
+        if (moveSpeed >= 3.8f)
+            return TacticalRole.Flanker;
+        return TacticalRole.Frontliner;
+    }
 
     /// <summary>Get card as dictionary for GDScript. Returns empty dict if not found.</summary>
     public static Godot.Collections.Dictionary GetCardAsDict(string id)

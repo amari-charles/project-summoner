@@ -119,6 +119,16 @@ theme_override_font_sizes/font_size = 13
 text = "COMMON"
 vertical_alignment = 1
 
+[node name="RoleBadge" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
+layout_mode = 2
+
+[node name="RoleBadgeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner/RoleBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "FRONTLINER"
+vertical_alignment = 1
+
 [node name="MetaSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
 layout_mode = 2
 size_flags_horizontal = 3
