@@ -5,8 +5,8 @@ Perform a comprehensive post-refactor architecture audit of the specified system
 ## Instructions
 
 1. First, read and internalize the project guidelines:
-   - Read `/Users/amaricharles/Code/project-summoner/.claude/CLAUDE.md` for project conventions
-   - Read `/Users/amaricharles/Code/project-summoner/docs/workflows/refactor-audit-guidelines.md` for audit process
+   - Read `.claude/CLAUDE.md` for project conventions
+   - Read `docs/workflows/refactor-audit-guidelines.md` for audit process
 
 2. Identify the scope of the refactor:
    - If the user specified a system/feature, focus on that

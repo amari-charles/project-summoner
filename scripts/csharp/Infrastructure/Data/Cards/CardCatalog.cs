@@ -183,6 +183,11 @@ public static class CardCatalog
         if (Math.Abs(stats.SoulStrength) > 0.0001f)
             dict["soul_strength"] = stats.SoulStrength;
 
+        var traitEligibilityTags = new Godot.Collections.Array<string>();
+        foreach (var tag in card.TraitEligibilityTags)
+            traitEligibilityTags.Add(tag);
+        dict["trait_eligibility_tags"] = traitEligibilityTags;
+
         // Typed card properties (replaces old Tags system)
         dict["creature_types"] = (int)card.CreatureTypes;
         dict["roles"] = (int)card.Roles;

@@ -45,7 +45,7 @@ public class TraitSpendValidationTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var dict = cardService.GetCardTraitDict(CardIds.Fireball, TraitIds.IronWill);
+        var dict = cardService.GetCardTraitDict(TraitIds.IronWill);
 
         AssertThat(dict.Count).IsGreater(0);
         AssertThat(dict["id"].AsString()).IsEqual((string)TraitIds.IronWill);
@@ -144,7 +144,7 @@ public class TraitSpendValidationTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var dict = cardService.GetCardTraitDict(CardIds.FireWisp, TraitIds.Power);
+        var dict = cardService.GetCardTraitDict(TraitIds.Power);
         AssertThat(dict.Count).IsGreater(0);
         AssertThat(dict["summary_short"].AsString()).IsEqual("+6% Attack Damage");
     }
@@ -206,6 +206,29 @@ public class TraitSpendValidationTest
     }
 
     [TestCase]
+    public void CardService_SpendCardTraitPoint_RejectsMissingPrerequisites()
+    {
+        var repo = CreateRepo("trait_spend_validation_missing_prereq");
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+
+        var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
+        AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
+        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
+        {
+            Level = 3,
+            UnspentTraitPoints = 1
+        })).IsTrue();
+
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.PowerII)).IsFalse();
+        AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(1);
+
+        var card = repo.GetCard(CardInstanceId.FromString(instanceId));
+        AssertThat(card).IsNotNull();
+        AssertThat(card!.Traits.Contains(CardTraitId.FromString(TraitIds.PowerII))).IsFalse();
+    }
+
+    [TestCase]
     public void SummonerProgressionService_RollTraitOffers_ReturnsEligibleTraits()
     {
         var repo = CreateRepo("trait_spend_validation_summoner_roll");
@@ -229,6 +252,7 @@ public class TraitSpendValidationTest
             var trait = TraitCatalog.GetTrait(traitId);
             AssertThat(trait).IsNotNull();
             AssertThat(trait!.Tags.Contains(TraitTags.Summoner)).IsTrue();
+            AssertThat(trait.AcquisitionMode).IsEqual(TraitAcquisitionMode.LevelUpOffer);
         }
     }
 

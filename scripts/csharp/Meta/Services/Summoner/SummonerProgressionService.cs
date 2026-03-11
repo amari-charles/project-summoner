@@ -7,6 +7,7 @@ using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Progression.Core;
+using Fateforged.Meta.Services.Traits;
 
 namespace Fateforged.Meta.Summoner;
 
@@ -394,32 +395,11 @@ public partial class SummonerProgressionService : Node
 		if (summoner.UnspentTraitPoints <= 0 && CanLevelUp(typedSummonerId))
 			evaluationLevel = Math.Min(MaxLevel, summoner.Level + 1);
 
-		var ownedTraitSet = new HashSet<string>(summoner.GetAllTraitIds());
-		var summonerTagSet = new HashSet<string>(summonerDef.TraitEligibilityTags);
-		var eligible = new List<TraitDefinition>();
-		foreach (var trait in TraitCatalog.GetAllTraits())
-		{
-			if (trait.IsInnate)
-				continue;
-			if (ownedTraitSet.Contains(trait.Id))
-				continue;
-			if (!trait.Tags.Contains(TraitTags.Summoner))
-				continue;
-
-			var hasAnyEligibilityTag = trait.Tags.Length == 0 || trait.Tags.Any(tag => summonerTagSet.Contains(tag));
-			var hasAllRequiredTags = trait.RequiredTags.All(tag => summonerTagSet.Contains(tag));
-			if (!hasAnyEligibilityTag || !hasAllRequiredTags)
-				continue;
-
-			if (evaluationLevel < trait.MinLevel)
-				continue;
-			if (trait.MaxLevel > 0 && evaluationLevel > trait.MaxLevel)
-				continue;
-			if (trait.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
-				continue;
-
-			eligible.Add(trait);
-		}
+		var context = BuildTraitOwnerContext(summoner, summonerDef);
+		var eligible = TraitTreeEvaluator.GetEligibleProgressionTraits(
+			TraitCatalog.GetAllTraits(),
+			context,
+			evaluationLevel);
 
 		var ordered = eligible
 			.OrderBy(trait => ComputeStableOfferOrder($"{typedSummonerId.Value}|{evaluationLevel}", trait.Id.Value))
@@ -457,32 +437,17 @@ public partial class SummonerProgressionService : Node
 		if (typedTraitId == TraitId.None)
 			return false;
 
-		if (summoner.AcquiredTraitIds.Contains(typedTraitId))
-			return false;
-
 		var traitDef = TraitCatalog.GetTrait(typedTraitId);
-		if (traitDef == null || traitDef.IsInnate)
-			return false;
-		if (!traitDef.Tags.Contains(TraitTags.Summoner))
+		if (traitDef == null)
 			return false;
 
 		var summonerDef = SummonerCatalog.GetSummoner(summonerId);
 		if (summonerDef == null)
 			return false;
 
-		var summonerTagSet = new HashSet<string>(summonerDef.TraitEligibilityTags);
-		var hasAnyEligibilityTag = traitDef.Tags.Length == 0 || traitDef.Tags.Any(tag => summonerTagSet.Contains(tag));
-		var hasAllRequiredTags = traitDef.RequiredTags.All(tag => summonerTagSet.Contains(tag));
-		if (!hasAnyEligibilityTag || !hasAllRequiredTags)
-			return false;
-
-		if (summoner.Level < traitDef.MinLevel)
-			return false;
-		if (traitDef.MaxLevel > 0 && summoner.Level > traitDef.MaxLevel)
-			return false;
-
-		var ownedTraitSet = new HashSet<string>(summoner.GetAllTraitIds());
-		if (traitDef.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
+		var context = BuildTraitOwnerContext(summoner, summonerDef);
+		var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(traitDef, context);
+		if (!evaluation.CanUnlockNow)
 			return false;
 
 		summoner.UnspentTraitPoints -= 1;
@@ -565,7 +530,7 @@ public partial class SummonerProgressionService : Node
 		if (string.IsNullOrWhiteSpace(key))
 			return "";
 
-		var loc = GetNodeOrNull<Node>("/root/Loc");
+		var loc = GetTree()?.Root?.GetNodeOrNull<Node>("Loc");
 		if (loc != null && loc.HasMethod("t"))
 			return loc.Call("t", key).AsString();
 
@@ -575,6 +540,23 @@ public partial class SummonerProgressionService : Node
 	private static int ComputeStableOfferOrder(string context, string traitId)
 	{
 		return DeterministicStringHash($"{context}|{traitId}");
+	}
+
+	private static TraitTreeOwnerContext BuildTraitOwnerContext(SummonerInstance summoner, SummonerDefinition summonerDef)
+	{
+		var tags = new HashSet<string>(summonerDef.TraitEligibilityTags, StringComparer.Ordinal)
+		{
+			TraitTags.Summoner
+		};
+
+		return new TraitTreeOwnerContext
+		{
+			OwnerTypeTag = TraitTags.Summoner,
+			EligibilityTags = tags,
+			OwnedTraitIds = summoner.GetAllTraitIds().ToHashSet(StringComparer.Ordinal),
+			CurrentLevel = summoner.Level,
+			UnspentTraitPoints = summoner.UnspentTraitPoints
+		};
 	}
 
 	private static ProgressionState BuildProgressionState(SummonerInstance summoner)

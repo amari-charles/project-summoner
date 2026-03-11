@@ -356,6 +356,36 @@
       "new_deck_default": "New Deck",
       "deck_card_remove_tooltip": "Drag out or double-click to remove"
     },
+    "trait_tree": {
+      "title_summoner": "Trait Tree",
+      "title_card": "Card Trait Tree",
+      "tab_progression": "Progression Tree",
+      "tab_one_off": "One-Off Traits",
+      "points_label": "Points: {count}",
+      "card_subtitle": "{name}  •  Lvl {level}",
+      "no_card_selected": "No card selected",
+      "empty_no_active_summoner": "No active summoner.",
+      "empty_summoner_unavailable": "Summoner trait tree is unavailable.",
+      "empty_no_progression_summoner": "No progression traits available.",
+      "empty_no_one_off_summoner": "No one-off traits.",
+      "empty_card_open_from_traits": "Open this screen from a card's Traits button.",
+      "empty_card_progression_unavailable": "Card progression data is unavailable.",
+      "empty_card_tree_unavailable": "Card trait tree is unavailable.",
+      "empty_no_progression_card": "No progression traits for this card.",
+      "empty_no_one_off_card": "No one-off traits for this card.",
+      "one_off_status_unlocked": "Unlocked",
+      "one_off_status_not_acquired": "Not Acquired",
+      "status_unlocked": "Status: Unlocked",
+      "status_ready_to_unlock": "Status: Ready to unlock",
+      "status_need_trait_point": "Status: Need 1 trait point",
+      "status_locked": "Status: Locked",
+      "reason_not_currently_available": "Not currently available.",
+      "no_description": "No description.",
+      "unlock_button": "Unlock (1)",
+      "close_button": "Close",
+      "unlock_failed_title": "Unlock Failed",
+      "unlock_failed_reason": "Requirements were not met."
+    },
     "level_up": {
       "title": "LEVEL UP CARD",
       "current_level": "Level {level} → {next}",
@@ -716,13 +746,49 @@
       "name": "Fortitude",
       "description": "Enhanced durability through experience. +8% max HP."
     },
+    "fortitude_ii": {
+      "name": "Fortitude II",
+      "description": "Layered endurance training. +10% max HP."
+    },
+    "fortitude_iii": {
+      "name": "Fortitude III",
+      "description": "Heavy fortification drills. +12% max HP."
+    },
+    "fortitude_iv": {
+      "name": "Fortitude IV",
+      "description": "Bulwark mastery. +14% max HP."
+    },
     "power": {
       "name": "Power",
       "description": "Honed combat prowess. +6% attack damage."
     },
+    "power_ii": {
+      "name": "Power II",
+      "description": "Focused striking practice. +8% attack damage."
+    },
+    "power_iii": {
+      "name": "Power III",
+      "description": "Disciplined power projection. +10% attack damage."
+    },
+    "power_iv": {
+      "name": "Power IV",
+      "description": "Overwhelming force mastery. +12% attack damage."
+    },
     "swiftness": {
       "name": "Swiftness",
       "description": "Quickened reflexes. +5% attack speed."
+    },
+    "swiftness_ii": {
+      "name": "Swiftness II",
+      "description": "Tempo training. +7% attack speed."
+    },
+    "swiftness_iii": {
+      "name": "Swiftness III",
+      "description": "Rapid execution discipline. +9% attack speed."
+    },
+    "swiftness_iv": {
+      "name": "Swiftness IV",
+      "description": "Blinding tempo mastery. +11% attack speed."
     },
     "agility": {
       "name": "Agility",

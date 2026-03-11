@@ -87,6 +87,17 @@ public partial class TraitCatalogBridge : Node
         return result;
     }
 
+    /// <summary>Get traits by acquisition mode as dictionaries.</summary>
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetTraitsByAcquisitionMode(string acquisitionMode)
+    {
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var trait in TraitCatalog.GetTraitsByAcquisitionMode(acquisitionMode))
+        {
+            result.Add(TraitCatalog.ToDictionary(trait));
+        }
+        return result;
+    }
+
     // =========================================================================
     // UNIT MODIFIER METHODS (for SummonerModifierProvider)
     // =========================================================================

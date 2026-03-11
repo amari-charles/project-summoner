@@ -65,6 +65,41 @@ theme_override_font_sizes/font_size = 24
 text = "X"
 flat = true
 
+[node name="TraitsButtonWrap" type="Control" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 44)
+
+[node name="TraitsButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/TraitsButtonWrap"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 22
+text = "T"
+tooltip_text = "Open trait tree"
+
+[node name="TraitsBadge" type="Label" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/TraitsButtonWrap"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -18.0
+offset_top = -8.0
+offset_right = 6.0
+offset_bottom = 12.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "!"
+horizontal_alignment = 1
+visible = false
+
 [node name="Spacer" type="Control" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3

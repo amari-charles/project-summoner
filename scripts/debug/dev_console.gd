@@ -578,7 +578,8 @@ func _cmd_traits_list_summoner_options(args: PackedStringArray) -> bool:
 		return false
 
 	var unspent: int = SummonerProgressionApi.get_unspent_trait_points(summoner_id)
-	var options: Array[Dictionary] = _get_spendable_summoner_traits(summoner_id)
+	var view_model: Dictionary = TraitTreeApi.get_summoner_tree_view_model(summoner_id)
+	var options: Array[Dictionary] = _get_unlockable_nodes_from_tree(view_model)
 
 	print("=== SUMMONER TRAIT OPTIONS ===")
 	print("Summoner: %s" % summoner_id)
@@ -588,11 +589,11 @@ func _cmd_traits_list_summoner_options(args: PackedStringArray) -> bool:
 		print("==============================")
 		return true
 
-	for trait_dict: Dictionary in options:
-		var trait_id: String = SafeTypeUtils.string(trait_dict.get("id", ""), "")
-		var min_level: int = SafeTypeUtils.int_val(trait_dict.get("min_level", 1), 1)
-		var name: String = TraitCatalogApi.get_trait_name(trait_id)
-		print("  - %s (min=%d) :: %s" % [trait_id, min_level, name])
+	for node: Dictionary in options:
+		var trait_id: String = SafeTypeUtils.string(node.get("id", ""), "")
+		var name: String = SafeTypeUtils.string(node.get("name", trait_id), trait_id)
+		var depth: int = SafeTypeUtils.int_val(node.get("depth", 0), 0)
+		print("  - %s (tier=%d) :: %s" % [trait_id, depth + 1, name])
 	print("==============================")
 	return true
 
@@ -694,7 +695,8 @@ func _cmd_traits_list_card_options(args: PackedStringArray) -> bool:
 		print("DevConsole: Card not found: %s" % instance_id)
 		return false
 
-	var options: Array[Dictionary] = _get_spendable_card_traits(instance_id)
+	var view_model: Dictionary = TraitTreeApi.get_card_tree_view_model(instance_id)
+	var options: Array[Dictionary] = _get_unlockable_nodes_from_tree(view_model)
 	var points: int = CardServiceApi.get_unspent_trait_points(instance_id)
 	print("=== CARD TRAIT OPTIONS ===")
 	print("Card: %s (%s)" % [instance_id, info.get("catalog_id", "")])
@@ -704,11 +706,11 @@ func _cmd_traits_list_card_options(args: PackedStringArray) -> bool:
 		print("==========================")
 		return true
 
-	for trait_dict: Dictionary in options:
-		var trait_id: String = SafeTypeUtils.string(trait_dict.get("id", ""), "")
-		var min_level: int = SafeTypeUtils.int_val(trait_dict.get("min_level", 1), 1)
-		var name: String = TraitCatalogApi.get_trait_name(trait_id)
-		print("  - %s (min=%d) :: %s" % [trait_id, min_level, name])
+	for node: Dictionary in options:
+		var trait_id: String = SafeTypeUtils.string(node.get("id", ""), "")
+		var name: String = SafeTypeUtils.string(node.get("name", trait_id), trait_id)
+		var depth: int = SafeTypeUtils.int_val(node.get("depth", 0), 0)
+		print("  - %s (tier=%d) :: %s" % [trait_id, depth + 1, name])
 	print("==========================")
 	return true
 
@@ -835,97 +837,19 @@ func _resolve_summoner_id_arg(args: PackedStringArray, index: int) -> String:
 	return active
 
 
-func _get_spendable_summoner_traits(summoner_id: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	var progression_info: Dictionary = SummonerProgressionApi.get_summoner_progression_info(summoner_id)
-	if progression_info.is_empty():
-		return result
-
-	var level: int = SafeTypeUtils.int_val(progression_info.get("level", 1), 1)
-	var owned_traits: Array = SummonerProgressionApi.get_all_trait_ids_for_summoner(summoner_id)
-	var all_trait_ids: Array = SafeTypeUtils.array(TraitCatalog.call("GetAllTraitIds"))
-
-	for trait_id_var: Variant in all_trait_ids:
-		var trait_id: String = SafeTypeUtils.string(trait_id_var, "")
-		if trait_id.is_empty():
+func _get_unlockable_nodes_from_tree(view_model: Dictionary) -> Array[Dictionary]:
+	var unlockable_nodes: Array[Dictionary] = []
+	var progression_nodes: Array = SafeTypeUtils.array(view_model.get("progression_nodes", []))
+	for node_var: Variant in progression_nodes:
+		if not node_var is Dictionary:
 			continue
-		if owned_traits.has(trait_id):
+		var node: Dictionary = node_var
+		if SafeTypeUtils.bool_val(node.get("is_owned", false), false):
 			continue
-
-		var trait_dict: Dictionary = SafeTypeUtils.dict(TraitCatalog.call("GetTrait", trait_id))
-		if trait_dict.is_empty():
+		if not SafeTypeUtils.bool_val(node.get("is_unlockable", false), false):
 			continue
-		if SafeTypeUtils.bool_val(trait_dict.get("is_innate", true), true):
-			continue
-		if not _trait_has_tag(trait_dict, "summoner"):
-			continue
-		if not _trait_matches_level(trait_dict, level):
-			continue
-		if not SafeTypeUtils.bool_val(TraitCatalog.call("MeetsPrerequisites", trait_id, owned_traits), false):
-			continue
-
-		result.append(trait_dict)
-
-	return result
-
-
-func _get_spendable_card_traits(card_instance_id: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	var card_info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_instance_id)
-	if card_info.is_empty():
-		return result
-
-	var catalog_id: String = SafeTypeUtils.string(card_info.get("catalog_id", ""), "")
-	var card_def: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
-	var card_type: int = SafeTypeUtils.int_val(card_def.get("card_type", 0), 0)
-	var owner_tag: String = "spell" if card_type == 1 else "summon"
-	var level: int = SafeTypeUtils.int_val(card_info.get("level", 1), 1)
-	var owned_traits: Array = CardServiceApi.get_applied_traits(card_instance_id)
-	var all_trait_ids: Array = SafeTypeUtils.array(TraitCatalog.call("GetAllTraitIds"))
-
-	for trait_id_var: Variant in all_trait_ids:
-		var trait_id: String = SafeTypeUtils.string(trait_id_var, "")
-		if trait_id.is_empty():
-			continue
-		if owned_traits.has(trait_id):
-			continue
-
-		var trait_dict: Dictionary = SafeTypeUtils.dict(TraitCatalog.call("GetTrait", trait_id))
-		if trait_dict.is_empty():
-			continue
-		if SafeTypeUtils.bool_val(trait_dict.get("is_innate", true), true):
-			continue
-		if not _trait_has_tag(trait_dict, owner_tag):
-			continue
-		if not _trait_matches_level(trait_dict, level):
-			continue
-		if not SafeTypeUtils.bool_val(TraitCatalog.call("MeetsPrerequisites", trait_id, owned_traits), false):
-			continue
-
-		result.append(trait_dict)
-
-	return result
-
-
-func _trait_has_tag(trait_dict: Dictionary, tag: String) -> bool:
-	var tags_var: Variant = trait_dict.get("tags", [])
-	if not tags_var is Array:
-		return false
-	var tags: Array = tags_var
-	for entry: Variant in tags:
-		if SafeTypeUtils.string(entry, "") == tag:
-			return true
-	return false
-
-
-func _trait_matches_level(trait_dict: Dictionary, level: int) -> bool:
-	var min_level: int = SafeTypeUtils.int_val(trait_dict.get("min_level", 1), 1)
-	var max_level: int = SafeTypeUtils.int_val(trait_dict.get("max_level", 0), 0)
-	if level < min_level:
-		return false
-	if max_level > 0 and level > max_level:
-		return false
-	return true
+		unlockable_nodes.append(node)
+	return unlockable_nodes
 
 
 ## =============================================================================

@@ -363,10 +363,9 @@ public partial class CardService : Node
         return result;
     }
 
-    /// <summary>Get a card trait as dictionary for GDScript (name, description, stat_mods).</summary>
-    public Godot.Collections.Dictionary GetCardTraitDict(string catalogId, string traitId)
+    /// <summary>Get a trait as dictionary for GDScript (name, description, stat_mods).</summary>
+    public Godot.Collections.Dictionary GetCardTraitDict(string traitId)
     {
-        _ = catalogId;
         if (string.IsNullOrWhiteSpace(traitId))
             return [];
 
@@ -455,7 +454,7 @@ public partial class CardService : Node
         if (string.IsNullOrWhiteSpace(key))
             return "";
 
-        var loc = GetNodeOrNull<Node>("/root/Loc");
+        var loc = GetTree()?.Root?.GetNodeOrNull<Node>("Loc");
         if (loc != null && loc.HasMethod("t"))
             return loc.Call("t", key).AsString();
 

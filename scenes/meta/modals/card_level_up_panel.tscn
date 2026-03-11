@@ -97,7 +97,7 @@ layout_mode = 2
 [node name="ChooseUpgradeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Choose an Upgrade:"
+text = "Trait Points"
 horizontal_alignment = 1
 
 [node name="UpgradeContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]

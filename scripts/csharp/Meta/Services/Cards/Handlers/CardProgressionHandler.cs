@@ -7,6 +7,7 @@ using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Progression.Core;
+using Fateforged.Meta.Services.Traits;
 using Fateforged.Meta.Traits.Unified;
 using Fateforged.Stats;
 
@@ -213,39 +214,15 @@ public class CardProgressionHandler
         if (cardDef == null)
             return [];
 
-        var ownerTypeTag = ResolveOwnerTypeTag(cardDef);
-        if (string.IsNullOrEmpty(ownerTypeTag))
+        var context = BuildTraitOwnerContext(card, cardDef);
+        if (context == null)
             return [];
 
         var evaluationLevel = ResolveOfferEvaluationLevel(cardInstanceId, card);
-        var cardTagSet = BuildEffectiveCardTagSet(cardDef, ownerTypeTag);
-        var ownedTraitSet = new HashSet<string>(card.Traits.Select(t => t.Value));
-        var eligibleTraits = new List<TraitDefinition>();
-
-        foreach (var trait in TraitCatalog.GetAllTraits())
-        {
-            if (trait.IsInnate)
-                continue;
-            if (ownedTraitSet.Contains(trait.Id))
-                continue;
-            if (!trait.Tags.Contains(ownerTypeTag))
-                continue;
-
-            var hasAnyEligibilityTag = trait.Tags.Length == 0 || trait.Tags.Any(tag => cardTagSet.Contains(tag));
-            var hasAllRequiredTags = trait.RequiredTags.All(tag => cardTagSet.Contains(tag));
-            if (!hasAnyEligibilityTag || !hasAllRequiredTags)
-                continue;
-
-            if (evaluationLevel < trait.MinLevel)
-                continue;
-            if (trait.MaxLevel > 0 && evaluationLevel > trait.MaxLevel)
-                continue;
-
-            if (trait.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
-                continue;
-
-            eligibleTraits.Add(trait);
-        }
+        var eligibleTraits = TraitTreeEvaluator.GetEligibleProgressionTraits(
+            TraitCatalog.GetAllTraits(),
+            context,
+            evaluationLevel);
 
         if (eligibleTraits.Count == 0)
             return [];
@@ -281,32 +258,19 @@ public class CardProgressionHandler
         if (card.Traits.Contains(normalizedTraitId)) return false;
 
         var traitDef = TraitCatalog.GetTrait(normalizedTraitId.Value);
-        if (traitDef == null || traitDef.IsInnate)
+        if (traitDef == null)
             return false;
 
         var cardDef = CardCatalog.GetCard(card.CatalogId);
         if (cardDef == null)
             return false;
 
-        var ownerTypeTag = ResolveOwnerTypeTag(cardDef);
-        if (string.IsNullOrEmpty(ownerTypeTag))
-            return false;
-        if (!traitDef.Tags.Contains(ownerTypeTag))
+        var context = BuildTraitOwnerContext(card, cardDef);
+        if (context == null)
             return false;
 
-        var cardTagSet = BuildEffectiveCardTagSet(cardDef, ownerTypeTag);
-        var hasAnyEligibilityTag = traitDef.Tags.Length == 0 || traitDef.Tags.Any(tag => cardTagSet.Contains(tag));
-        var hasAllRequiredTags = traitDef.RequiredTags.All(tag => cardTagSet.Contains(tag));
-        if (!hasAnyEligibilityTag || !hasAllRequiredTags)
-            return false;
-
-        if (card.Level < traitDef.MinLevel)
-            return false;
-        if (traitDef.MaxLevel > 0 && card.Level > traitDef.MaxLevel)
-            return false;
-
-        var ownedTraitSet = new HashSet<string>(card.Traits.Select(t => t.Value));
-        if (traitDef.Prerequisites.Any(prereq => !ownedTraitSet.Contains(prereq)))
+        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(traitDef, context);
+        if (!evaluation.CanUnlockNow)
             return false;
 
         var newTraits = new List<CardTraitId>(card.Traits) { normalizedTraitId };
@@ -390,28 +354,20 @@ public class CardProgressionHandler
         return DeterministicStringHash($"{context}|{traitId.Value}");
     }
 
-    private static string ResolveOwnerTypeTag(CardDefinition cardDef)
+    private static TraitTreeOwnerContext? BuildTraitOwnerContext(CardInstance card, CardDefinition cardDef)
     {
-        return cardDef.Type switch
+        var ownerTypeTag = TraitTreeEvaluator.ResolveOwnerTypeTag(cardDef);
+        if (string.IsNullOrEmpty(ownerTypeTag))
+            return null;
+
+        return new TraitTreeOwnerContext
         {
-            CardType.Summon => TraitTags.Summon,
-            CardType.Spell => TraitTags.Spell,
-            _ => ""
+            OwnerTypeTag = ownerTypeTag,
+            EligibilityTags = TraitTreeEvaluator.BuildEffectiveCardTagSet(cardDef, ownerTypeTag),
+            OwnedTraitIds = card.Traits.Select(traitId => traitId.Value).ToHashSet(StringComparer.Ordinal),
+            CurrentLevel = card.Level,
+            UnspentTraitPoints = card.UnspentTraitPoints
         };
-    }
-
-    private static HashSet<string> BuildEffectiveCardTagSet(CardDefinition cardDef, string ownerTypeTag)
-    {
-        var tags = new HashSet<string>(cardDef.TraitEligibilityTags, StringComparer.Ordinal);
-
-        // Normalize stale catalog defaults so owner type always matches CardDefinition.Type.
-        tags.Remove(TraitTags.Summon);
-        tags.Remove(TraitTags.Spell);
-
-        if (!string.IsNullOrEmpty(ownerTypeTag))
-            tags.Add(ownerTypeTag);
-
-        return tags;
     }
 
     private static int DeterministicStringHash(string value)

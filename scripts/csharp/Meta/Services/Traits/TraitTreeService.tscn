@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://trait_tree_service_001"]
+
+[ext_resource type="Script" path="res://scripts/csharp/Meta/Services/Traits/TraitTreeService.cs" id="1_trait_tree_service"]
+
+[node name="TraitTreeService" type="Node"]
+script = ExtResource("1_trait_tree_service")

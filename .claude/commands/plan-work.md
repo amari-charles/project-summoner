@@ -5,8 +5,8 @@ Analyze the todo list and bugs list to identify related items that can be tackle
 ## Instructions
 
 1. Read the tracking documents:
-   - Read `/Users/amaricharles/Code/project-summoner/docs/tracking/bugs.md` for active bugs
-   - Read `/Users/amaricharles/Code/project-summoner/docs/tracking/todos.md` for planned tasks
+   - Read `docs/tracking/bugs.md` for active bugs
+   - Read `docs/tracking/todos.md` for planned tasks
 
 2. Group related items that can be done in one swoop:
    - Look for items touching the same systems/files

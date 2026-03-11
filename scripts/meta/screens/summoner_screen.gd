@@ -37,6 +37,8 @@ signal closed()
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
 @onready var level_up_button: Button = %LevelUpButton
+@onready var traits_button: Button = %TraitsButton
+@onready var traits_badge: Label = %TraitsBadge
 @onready var level_up_preview: Label = %LevelUpPreview
 
 ## =============================================================================
@@ -76,6 +78,7 @@ func _ready() -> void:
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
 	level_up_button.pressed.connect(_on_level_up_pressed)
+	traits_button.pressed.connect(_on_traits_pressed)
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
 
 	# Connect to service signals
@@ -92,6 +95,7 @@ func _ready() -> void:
 
 	# Set static localized text
 	switch_summoner_button.text = Loc.t("ui.summoner_screen.switch_summoner")
+	traits_button.text = "Traits"
 
 	# Initial data load
 	_refresh_gold_display()
@@ -135,6 +139,7 @@ func _refresh_all() -> void:
 	var xp_progress: float = info.get("xp_progress", 0.0)
 	var can_level_up: bool = info.get("can_level_up", false)
 	var is_max_level: bool = info.get("is_max_level", false)
+	var unspent_trait_points: int = info.get("unspent_trait_points", 0)
 
 	# Get element
 	var element: ElementTypes.Element = config.get_element()
@@ -168,6 +173,7 @@ func _refresh_all() -> void:
 
 	# Update level up button
 	_update_level_up_display(is_max_level, can_level_up, config)
+	_refresh_traits_button_state(unspent_trait_points)
 
 	# Update stats
 	_refresh_stats(config)
@@ -347,6 +353,25 @@ func _get_level_up_preview(config: SummonerConfig) -> String:
 		"hp": hp_bonus,
 		"mana": "%.1f" % mana_bonus
 	})
+
+
+func _refresh_traits_button_state(unspent_trait_points: int) -> void:
+	traits_button.disabled = _current_summoner_id.is_empty()
+
+	if unspent_trait_points <= 0:
+		traits_badge.visible = false
+		traits_button.tooltip_text = "Open trait tree"
+		traits_button.remove_theme_color_override("font_color")
+		return
+
+	traits_badge.visible = true
+	if unspent_trait_points == 1:
+		traits_badge.text = "!"
+	else:
+		traits_badge.text = "9+" if unspent_trait_points > 9 else str(unspent_trait_points)
+
+	traits_button.tooltip_text = "You have %d unspent trait point(s)" % unspent_trait_points
+	traits_button.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
 
 
 ## =============================================================================
@@ -664,6 +689,9 @@ func _show_no_summoner() -> void:
 	xp_progress_bar.value = 0
 	level_up_button.disabled = true
 	level_up_button.text = "-"
+	traits_button.disabled = true
+	traits_button.tooltip_text = ""
+	traits_badge.visible = false
 	level_up_preview.text = ""
 
 	# Clear containers
@@ -691,6 +719,14 @@ func _on_level_up_pressed() -> void:
 	if success:
 		_refresh_all()
 		_refresh_gold_display()
+
+
+func _on_traits_pressed() -> void:
+	if _current_summoner_id.is_empty():
+		return
+
+	NavigationContext.push_return(SceneManager.SCENE_SUMMONER_SCREEN)
+	SceneManager.transition_to(SceneManager.SCENE_TRAIT_TREE_SCREEN)
 
 
 func _on_switch_summoner_pressed() -> void:

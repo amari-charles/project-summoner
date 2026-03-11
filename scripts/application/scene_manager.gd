@@ -20,6 +20,8 @@ const SCENE_EVENT_SCREEN: String = "res://scenes/meta/screens/event_screen.tscn"
 const SCENE_SUMMONER_SELECTION: String = "res://scenes/meta/screens/summoner_selection.tscn"
 const SCENE_SUMMONER_REVEAL: String = "res://scenes/meta/modals/summoner_reveal.tscn"
 const SCENE_SUMMONER_SCREEN: String = "res://scenes/meta/screens/summoner_screen.tscn"
+const SCENE_TRAIT_TREE_SCREEN: String = "res://scenes/meta/screens/trait_tree_screen.tscn"
+const SCENE_CARD_TRAIT_TREE_SCREEN: String = "res://scenes/meta/screens/card_trait_tree_screen.tscn"
 const SCENE_SUMMONER_SWITCH: String = "res://scenes/meta/screens/summoner_switch_screen.tscn"
 const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/meta/screens/first_card_selection.tscn"
 
