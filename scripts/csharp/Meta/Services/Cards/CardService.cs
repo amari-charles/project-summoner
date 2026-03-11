@@ -532,7 +532,8 @@ public partial class CardService : Node
 
         var effective = CardCatalog.ToDictionary(cardDef);
         var traitMods = GetTraitStatModifiersTyped(cardInstanceId);
-        if (traitMods.Count == 0)
+        var traitAdds = GetTraitStatAddModifiersTyped(cardInstanceId);
+        if (traitMods.Count == 0 && traitAdds.Count == 0)
             return effective;
 
         foreach (var (statKey, multiplier) in traitMods)
@@ -548,18 +549,35 @@ public partial class CardService : Node
             effective[statKey] = baseValue * multiplier;
         }
 
-        var traitAdds = GetTraitStatAddModifiersTyped(cardInstanceId);
         foreach (var (statKey, addValue) in traitAdds)
         {
-            if (!effective.ContainsKey(statKey))
-                continue;
+            var effectiveStatKey = statKey;
+            if (string.Equals(statKey, StatKey.UnitCount.ToSnakeCase(), StringComparison.Ordinal))
+                effectiveStatKey = "spawn_count";
 
-            var current = effective[statKey];
+            if (!effective.ContainsKey(effectiveStatKey))
+            {
+                effective[effectiveStatKey] = addValue;
+                continue;
+            }
+
+            var current = effective[effectiveStatKey];
             if (current.VariantType != Variant.Type.Float && current.VariantType != Variant.Type.Int)
                 continue;
 
             var baseValue = (float)current.AsDouble();
-            effective[statKey] = baseValue + addValue;
+            effective[effectiveStatKey] = baseValue + addValue;
+        }
+
+        var spawnCountAdd = GetTraitSpawnCountBonus(cardInstanceId);
+        if (spawnCountAdd != 0 && effective.ContainsKey("spawn_count"))
+        {
+            var current = effective["spawn_count"];
+            if (current.VariantType == Variant.Type.Float || current.VariantType == Variant.Type.Int)
+            {
+                var baseValue = (float)current.AsDouble();
+                effective["spawn_count"] = baseValue + spawnCountAdd;
+            }
         }
 
         return effective;

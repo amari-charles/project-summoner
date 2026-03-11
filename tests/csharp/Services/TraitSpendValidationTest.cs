@@ -186,6 +186,33 @@ public class TraitSpendValidationTest
     }
 
     [TestCase]
+    public void CardService_GetEffectiveStatsDict_AppliesTraitAdds_WhenNoMultipliers()
+    {
+        var repo = CreateRepo("trait_spend_validation_effective_stats_adds");
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+
+        var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
+        AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
+        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
+        {
+            Level = 2,
+            UnspentTraitPoints = 1
+        })).IsTrue();
+
+        var baselineStats = cardService.GetEffectiveStatsDict(instanceId);
+        AssertThat(baselineStats.ContainsKey("armor")).IsFalse();
+
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Plating)).IsTrue();
+
+        var effectiveStats = cardService.GetEffectiveStatsDict(instanceId);
+        AssertThat(effectiveStats.ContainsKey("armor")).IsTrue();
+
+        var effectiveArmor = (float)effectiveStats["armor"].AsDouble();
+        AssertThat(Math.Abs(effectiveArmor - 4f)).IsLess(0.01f);
+    }
+
+    [TestCase]
     public void SummonerProgressionService_SpendTraitPoint_ValidatesCatalogAndEligibility()
     {
         var repo = CreateRepo("trait_spend_validation_summoner_spend");
