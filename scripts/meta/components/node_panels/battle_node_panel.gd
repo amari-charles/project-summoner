@@ -10,6 +10,7 @@ extends NodeDetailPanelBase
 const STAR_FILLED_TEXTURE: String = "res://assets/ui/kenny/PNG/Yellow/Default/star.png"
 const STAR_EMPTY_TEXTURE: String = "res://assets/ui/kenny/PNG/Grey/Default/star_outline.png"
 const STAR_SIZE: int = 24
+const MAX_DIFFICULTY_STARS: int = 5
 
 ## Visual styling
 const CLAIMED_DIM_COLOR: Color = Color(0.6, 0.6, 0.6, 1)
@@ -99,16 +100,17 @@ func _update_difficulty_stars(difficulty: int) -> void:
 		return
 
 	difficulty_container.visible = true
-	difficulty_label.text = Loc.t("campaign.map.difficulty_label")
+	difficulty_label.text = "%s %d" % [Loc.t("campaign.map.difficulty_label"), difficulty]
 
 	# Load star textures
 	var filled_tex: Texture2D = load(STAR_FILLED_TEXTURE)
 	var empty_tex: Texture2D = load(STAR_EMPTY_TEXTURE)
 
-	# Create 5 stars (filled for difficulty level, empty for rest)
-	for i: int in range(5):
+	# Create fixed star band while preserving exact difficulty in label text.
+	var filled_count: int = mini(difficulty, MAX_DIFFICULTY_STARS)
+	for i: int in range(MAX_DIFFICULTY_STARS):
 		var star: TextureRect = TextureRect.new()
-		star.texture = filled_tex if i < difficulty else empty_tex
+		star.texture = filled_tex if i < filled_count else empty_tex
 		star.custom_minimum_size = Vector2(STAR_SIZE, STAR_SIZE)
 		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

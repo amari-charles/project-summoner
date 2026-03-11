@@ -18,13 +18,7 @@ public enum EventType
     Choice,
 
     /// <summary>Traveling merchant shop</summary>
-    Caravan,
-
-    /// <summary>Rest/heal opportunity</summary>
-    Rest,
-
-    /// <summary>Story/narrative event (non-combat)</summary>
-    Story
+    Caravan
 }
 
 /// <summary>
@@ -44,8 +38,6 @@ public static class EventTypeExtensions
         EventType.Boss => "boss",
         EventType.Choice => "choice",
         EventType.Caravan => "caravan",
-        EventType.Rest => "rest",
-        EventType.Story => "story",
         _ => "battle"
     };
 
@@ -57,8 +49,6 @@ public static class EventTypeExtensions
         "boss" => EventType.Boss,
         "choice" => EventType.Choice,
         "caravan" => EventType.Caravan,
-        "rest" => EventType.Rest,
-        "story" => EventType.Story,
         _ => EventType.Battle
     };
 }

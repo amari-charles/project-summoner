@@ -28,7 +28,7 @@ public static class EventCatalog
             Id = EventIds.FirstTrial,
             NameKey = "campaign.battle.first_trial.name",
             DescriptionKey = "campaign.battle.first_trial.description",
-            Position = new Vector2(100, 300),
+            Position = new Vector2(100, 320),
             Biome = BiomeIds.SummerPlains,
             Difficulty = 1,
             IsTutorial = true,
@@ -37,7 +37,7 @@ public static class EventCatalog
             {
                 new(CardIds.FireWisp, 1)
             },
-            EnemyHp = 30f,
+            EnemyHp = 35f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
@@ -55,7 +55,7 @@ public static class EventCatalog
             Id = EventIds.SecondChallenge,
             NameKey = "campaign.battle.second_challenge.name",
             DescriptionKey = "campaign.battle.second_challenge.description",
-            Position = new Vector2(250, 300),
+            Position = new Vector2(230, 250),
             Biome = BiomeIds.SummerPlains,
             Difficulty = 2,
             IsTutorial = true,
@@ -78,13 +78,108 @@ public static class EventCatalog
             }
         },
 
+        [EventIds.OpeningDoctrine] = new ChoiceEventDefinition
+        {
+            Id = EventIds.OpeningDoctrine,
+            NameKey = "campaign.choice.opening_doctrine.name",
+            DescriptionKey = "campaign.choice.opening_doctrine.description",
+            Position = new Vector2(360, 300),
+            Options = new List<ChoiceOption>
+            {
+                new(ChoiceIds.Aggressive, "campaign.path.aggressive.label", "campaign.path.aggressive.description"),
+                new(ChoiceIds.Prepared, "campaign.path.prepared.label", "campaign.path.prepared.description"),
+                new(ChoiceIds.Insight, "campaign.path.insight.label", "campaign.path.insight.description")
+            }
+        },
+
+        [EventIds.AggressivePush] = new BattleEventDefinition
+        {
+            Id = EventIds.AggressivePush,
+            NameKey = "campaign.battle.aggressive_push.name",
+            DescriptionKey = "campaign.battle.aggressive_push.description",
+            Position = new Vector2(500, 180),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 3,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 2),
+                new(CardIds.Puff, 1)
+            },
+            EnemyHp = 55f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Puff },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 45,
+                CardXpReward = 20,
+                SummonerXpReward = 28
+            }
+        },
+
+        [EventIds.ScoutSkirmish] = new BattleEventDefinition
+        {
+            Id = EventIds.ScoutSkirmish,
+            NameKey = "campaign.battle.scout_skirmish.name",
+            DescriptionKey = "campaign.battle.scout_skirmish.description",
+            Position = new Vector2(530, 300),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 3,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.Puff, 2),
+                new(CardIds.FireWisp, 1)
+            },
+            EnemyHp = 58f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Puff, CardIds.Pebbloom, CardIds.ManaBolt },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 45,
+                CardXpReward = 20,
+                SummonerXpReward = 28
+            }
+        },
+
         [EventIds.Caravan01] = new CaravanEventDefinition
         {
             Id = EventIds.Caravan01,
             NameKey = "campaign.event.caravan_01.name",
             DescriptionKey = "campaign.event.caravan_01.description",
-            Position = new Vector2(400, 300),
+            Position = new Vector2(560, 460),
             ShopId = ShopIds.CaravanTutorial
+        },
+
+        [EventIds.StabilityLine] = new BattleEventDefinition
+        {
+            Id = EventIds.StabilityLine,
+            NameKey = "campaign.battle.stability_line.name",
+            DescriptionKey = "campaign.battle.stability_line.description",
+            Position = new Vector2(720, 380),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 4,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.Pebbloom, 2),
+                new(CardIds.Puff, 2)
+            },
+            EnemyHp = 65f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 50,
+                CardXpReward = 22,
+                SummonerXpReward = 32
+            }
         },
 
         [EventIds.ThirdTrial] = new BattleEventDefinition
@@ -92,25 +187,215 @@ public static class EventCatalog
             Id = EventIds.ThirdTrial,
             NameKey = "campaign.battle.third_trial.name",
             DescriptionKey = "campaign.battle.third_trial.description",
-            Position = new Vector2(550, 300),
+            Position = new Vector2(860, 255),
             Biome = BiomeIds.SummerPlains,
-            Difficulty = 3,
+            Difficulty = 5,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
+                new(CardIds.Pebbloom, 2),
                 new(CardIds.Puff, 2),
-                new(CardIds.Pebbloom, 2)
+                new(CardIds.FireWisp, 1)
             },
-            EnemyHp = 60f,
+            EnemyHp = 78f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.Pebbloom, CardIds.ManaBolt },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 55,
+                CardXpReward = 24,
+                SummonerXpReward = 36
+            }
+        },
+
+        [EventIds.MidlineTrial] = new BattleEventDefinition
+        {
+            Id = EventIds.MidlineTrial,
+            NameKey = "campaign.battle.midline_trial.name",
+            DescriptionKey = "campaign.battle.midline_trial.description",
+            Position = new Vector2(1000, 330),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 5,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 2),
+                new(CardIds.Pebbloom, 2),
+                new(CardIds.Puff, 1)
+            },
+            EnemyHp = 75f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Pebbloom },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 55,
+                CardXpReward = 24,
+                SummonerXpReward = 36
+            }
+        },
+
+        [EventIds.RouteChoice] = new ChoiceEventDefinition
+        {
+            Id = EventIds.RouteChoice,
+            NameKey = "campaign.choice.route_choice.name",
+            DescriptionKey = "campaign.choice.route_choice.description",
+            Position = new Vector2(1150, 260),
+            Options = new List<ChoiceOption>
+            {
+                new(ChoiceIds.Ridge, "campaign.path.ridge.label", "campaign.path.ridge.description"),
+                new(ChoiceIds.River, "campaign.path.river.label", "campaign.path.river.description"),
+                new(ChoiceIds.Grove, "campaign.path.grove.label", "campaign.path.grove.description")
+            }
+        },
+
+        [EventIds.RidgeAssault] = new BattleEventDefinition
+        {
+            Id = EventIds.RidgeAssault,
+            NameKey = "campaign.battle.ridge_assault.name",
+            DescriptionKey = "campaign.battle.ridge_assault.description",
+            Position = new Vector2(1300, 120),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 7,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Puff, 2)
+            },
+            EnemyHp = 105f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
                 CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Puff },
                 PlayerSelects = true,
                 ExcludeOwned = true,
-                GoldReward = 50,
-                CardXpReward = 20,
-                SummonerXpReward = 30
+                GoldReward = 70,
+                CardXpReward = 28,
+                SummonerXpReward = 46
+            }
+        },
+
+        [EventIds.RiverHold] = new BattleEventDefinition
+        {
+            Id = EventIds.RiverHold,
+            NameKey = "campaign.battle.river_hold.name",
+            DescriptionKey = "campaign.battle.river_hold.description",
+            Position = new Vector2(1320, 420),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 5,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 2)
+            },
+            EnemyHp = 90f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 60,
+                CardXpReward = 24,
+                SummonerXpReward = 38
+            }
+        },
+
+        [EventIds.GrovePatrol] = new BattleEventDefinition
+        {
+            Id = EventIds.GrovePatrol,
+            NameKey = "campaign.battle.grove_patrol.name",
+            DescriptionKey = "campaign.battle.grove_patrol.description",
+            Position = new Vector2(1360, 280),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 6,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.FireWisp, 2)
+            },
+            EnemyHp = 98f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.FireWisp, CardIds.Puff },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 65,
+                CardXpReward = 26,
+                SummonerXpReward = 42
+            }
+        },
+
+        [EventIds.Caravan02] = new CaravanEventDefinition
+        {
+            Id = EventIds.Caravan02,
+            NameKey = "campaign.event.caravan_02.name",
+            DescriptionKey = "campaign.event.caravan_02.description",
+            Position = new Vector2(1500, 350),
+            ShopId = ShopIds.CaravanTutorial
+        },
+
+        [EventIds.Chokepoint] = new BattleEventDefinition
+        {
+            Id = EventIds.Chokepoint,
+            NameKey = "campaign.battle.chokepoint.name",
+            DescriptionKey = "campaign.battle.chokepoint.description",
+            Position = new Vector2(1660, 220),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 7,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Pebbloom, 2),
+                new(CardIds.Puff, 2)
+            },
+            EnemyHp = 110f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Pebbloom },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 70,
+                CardXpReward = 30,
+                SummonerXpReward = 48
+            }
+        },
+
+        [EventIds.Gatekeeper] = new BossEventDefinition
+        {
+            Id = EventIds.Gatekeeper,
+            NameKey = "campaign.battle.gatekeeper.name",
+            DescriptionKey = "campaign.battle.gatekeeper.description",
+            Position = new Vector2(1810, 340),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 8,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 2)
+            },
+            EnemyHp = 125f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Fixed,
+                FixedCards = new List<FixedRewardEntry>
+                {
+                    new(CardIds.Charge, "common", 1)
+                },
+                GoldReward = 80,
+                CardXpReward = 35,
+                SummonerXpReward = 55
             }
         },
 
@@ -119,11 +404,12 @@ public static class EventCatalog
             Id = EventIds.PathFork,
             NameKey = "campaign.choice.path_fork.name",
             DescriptionKey = "campaign.choice.path_fork.description",
-            Position = new Vector2(700, 300),
+            Position = new Vector2(1960, 260),
             Options = new List<ChoiceOption>
             {
                 new(ChoiceIds.Elite, "campaign.path.elite.label", "campaign.path.elite.description"),
-                new(ChoiceIds.Standard, "campaign.path.standard.label", "campaign.path.standard.description")
+                new(ChoiceIds.Standard, "campaign.path.standard.label", "campaign.path.standard.description"),
+                new(ChoiceIds.Gambit, "campaign.path.gambit.label", "campaign.path.gambit.description")
             }
         },
 
@@ -132,26 +418,113 @@ public static class EventCatalog
             Id = EventIds.EliteBattle01,
             NameKey = "campaign.battle.elite_01.name",
             DescriptionKey = "campaign.battle.elite_01.description",
-            Position = new Vector2(850, 200),
+            Position = new Vector2(1890, 155),
             Biome = BiomeIds.SummerPlains,
-            Difficulty = 5,
+            Difficulty = 9,
             RequiresDeck = true,
-            LevelCap = 3,
+            LevelCap = 4,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardIds.FireWisp, 2),
-                new(CardIds.Puff, 2)
+                new(CardIds.FireWisp, 4),
+                new(CardIds.Puff, 3)
             },
-            EnemyHp = 80f,
+            EnemyHp = 140f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Pebbloom },
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Pebbloom },
                 PlayerSelects = true,
                 ExcludeOwned = true,
-                GoldReward = 80,
-                CardXpReward = 30,
-                SummonerXpReward = 45
+                GoldReward = 95,
+                CardXpReward = 38,
+                SummonerXpReward = 60
+            }
+        },
+
+        [EventIds.EliteBattle02] = new EliteEventDefinition
+        {
+            Id = EventIds.EliteBattle02,
+            NameKey = "campaign.battle.elite_02.name",
+            DescriptionKey = "campaign.battle.elite_02.description",
+            Position = new Vector2(2030, 235),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 10,
+            RequiresDeck = true,
+            LevelCap = 5,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 4),
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 3)
+            },
+            EnemyHp = 155f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.Pebbloom, CardIds.Puff },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 105,
+                CardXpReward = 42,
+                SummonerXpReward = 66
+            }
+        },
+
+        [EventIds.EliteBattle03] = new EliteEventDefinition
+        {
+            Id = EventIds.EliteBattle03,
+            NameKey = "campaign.battle.elite_03.name",
+            DescriptionKey = "campaign.battle.elite_03.description",
+            Position = new Vector2(2430, 120),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 11,
+            RequiresDeck = true,
+            LevelCap = 6,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 5),
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 3)
+            },
+            EnemyHp = 170f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Puff },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 115,
+                CardXpReward = 46,
+                SummonerXpReward = 72
+            }
+        },
+
+        [EventIds.EliteBattle04] = new EliteEventDefinition
+        {
+            Id = EventIds.EliteBattle04,
+            NameKey = "campaign.battle.elite_04.name",
+            DescriptionKey = "campaign.battle.elite_04.description",
+            Position = new Vector2(2590, 210),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 12,
+            RequiresDeck = true,
+            LevelCap = 7,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 6),
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 4)
+            },
+            EnemyHp = 185f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Pebbloom },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 125,
+                CardXpReward = 50,
+                SummonerXpReward = 80
             }
         },
 
@@ -160,24 +533,314 @@ public static class EventCatalog
             Id = EventIds.StandardBattle01,
             NameKey = "campaign.battle.standard_01.name",
             DescriptionKey = "campaign.battle.standard_01.description",
-            Position = new Vector2(850, 400),
+            Position = new Vector2(2130, 440),
             Biome = BiomeIds.SummerPlains,
-            Difficulty = 3,
+            Difficulty = 8,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardIds.Pebbloom, 3)
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 2)
             },
-            EnemyHp = 55f,
+            EnemyHp = 120f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
                 CardOptions = new List<CardId> { CardIds.Puff, CardIds.Pebbloom, CardIds.FireWisp },
                 PlayerSelects = true,
                 ExcludeOwned = true,
-                GoldReward = 50,
-                CardXpReward = 22,
-                SummonerXpReward = 35
+                GoldReward = 75,
+                CardXpReward = 32,
+                SummonerXpReward = 52
+            }
+        },
+
+        [EventIds.Caravan03] = new CaravanEventDefinition
+        {
+            Id = EventIds.Caravan03,
+            NameKey = "campaign.event.caravan_03.name",
+            DescriptionKey = "campaign.event.caravan_03.description",
+            Position = new Vector2(2280, 530),
+            ShopId = ShopIds.CaravanTutorial
+        },
+
+        [EventIds.StandardBattle02] = new BattleEventDefinition
+        {
+            Id = EventIds.StandardBattle02,
+            NameKey = "campaign.battle.standard_02.name",
+            DescriptionKey = "campaign.battle.standard_02.description",
+            Position = new Vector2(2440, 470),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 9,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 3),
+                new(CardIds.FireWisp, 2)
+            },
+            EnemyHp = 135f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.ManaBolt },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 85,
+                CardXpReward = 36,
+                SummonerXpReward = 58
+            }
+        },
+
+        [EventIds.StandardBattle03] = new BattleEventDefinition
+        {
+            Id = EventIds.StandardBattle03,
+            NameKey = "campaign.battle.standard_03.name",
+            DescriptionKey = "campaign.battle.standard_03.description",
+            Position = new Vector2(2600, 410),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 10,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 4),
+                new(CardIds.FireWisp, 2)
+            },
+            EnemyHp = 150f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.FireWisp, CardIds.ManaBolt },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 95,
+                CardXpReward = 40,
+                SummonerXpReward = 64
+            }
+        },
+
+        [EventIds.StandardBattle04] = new BattleEventDefinition
+        {
+            Id = EventIds.StandardBattle04,
+            NameKey = "campaign.battle.standard_04.name",
+            DescriptionKey = "campaign.battle.standard_04.description",
+            Position = new Vector2(2760, 470),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 11,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.Pebbloom, 5),
+                new(CardIds.Puff, 4),
+                new(CardIds.FireWisp, 3)
+            },
+            EnemyHp = 168f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.FireWisp, CardIds.ManaBolt },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 105,
+                CardXpReward = 44,
+                SummonerXpReward = 72
+            }
+        },
+
+        [EventIds.GambitBattle01] = new BattleEventDefinition
+        {
+            Id = EventIds.GambitBattle01,
+            NameKey = "campaign.battle.gambit_01.name",
+            DescriptionKey = "campaign.battle.gambit_01.description",
+            Position = new Vector2(2140, 280),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 8,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 2)
+            },
+            EnemyHp = 135f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Puff },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 80,
+                CardXpReward = 34,
+                SummonerXpReward = 54
+            }
+        },
+
+        [EventIds.GambitBattle02] = new BattleEventDefinition
+        {
+            Id = EventIds.GambitBattle02,
+            NameKey = "campaign.battle.gambit_02.name",
+            DescriptionKey = "campaign.battle.gambit_02.description",
+            Position = new Vector2(2310, 330),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 12,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 4),
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 3)
+            },
+            EnemyHp = 175f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.FireWisp, CardIds.ManaBolt },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 120,
+                CardXpReward = 46,
+                SummonerXpReward = 72
+            }
+        },
+
+        [EventIds.GambitBattle03] = new BattleEventDefinition
+        {
+            Id = EventIds.GambitBattle03,
+            NameKey = "campaign.battle.gambit_03.name",
+            DescriptionKey = "campaign.battle.gambit_03.description",
+            Position = new Vector2(2480, 280),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 10,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 4),
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 3)
+            },
+            EnemyHp = 160f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.Puff, CardIds.FireWisp },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 88,
+                CardXpReward = 38,
+                SummonerXpReward = 62
+            }
+        },
+
+        [EventIds.GambitBattle04] = new BattleEventDefinition
+        {
+            Id = EventIds.GambitBattle04,
+            NameKey = "campaign.battle.gambit_04.name",
+            DescriptionKey = "campaign.battle.gambit_04.description",
+            Position = new Vector2(2650, 330),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 13,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 5),
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 4)
+            },
+            EnemyHp = 200f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Pebbloom },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 130,
+                CardXpReward = 52,
+                SummonerXpReward = 84
+            }
+        },
+
+        [EventIds.RejoinTrial] = new BattleEventDefinition
+        {
+            Id = EventIds.RejoinTrial,
+            NameKey = "campaign.battle.rejoin_trial.name",
+            DescriptionKey = "campaign.battle.rejoin_trial.description",
+            Position = new Vector2(2920, 300),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 12,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 4),
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 4)
+            },
+            EnemyHp = 165f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.Pebbloom, CardIds.ManaBolt },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 120,
+                CardXpReward = 52,
+                SummonerXpReward = 82
+            }
+        },
+
+        [EventIds.FinalAnte] = new BattleEventDefinition
+        {
+            Id = EventIds.FinalAnte,
+            NameKey = "campaign.battle.final_ante.name",
+            DescriptionKey = "campaign.battle.final_ante.description",
+            Position = new Vector2(3080, 210),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 13,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 5),
+                new(CardIds.Pebbloom, 4),
+                new(CardIds.Puff, 4)
+            },
+            EnemyHp = 180f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Puff },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 130,
+                CardXpReward = 56,
+                SummonerXpReward = 88
+            }
+        },
+
+        [EventIds.StormBreaker] = new BattleEventDefinition
+        {
+            Id = EventIds.StormBreaker,
+            NameKey = "campaign.battle.storm_breaker.name",
+            DescriptionKey = "campaign.battle.storm_breaker.description",
+            Position = new Vector2(3240, 320),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 14,
+            RequiresDeck = true,
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 6),
+                new(CardIds.Pebbloom, 5),
+                new(CardIds.Puff, 5)
+            },
+            EnemyHp = 205f,
+            Rewards = new BattleRewardConfig
+            {
+                Type = RewardType.Flexible,
+                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.Pebbloom, CardIds.FireWisp },
+                PlayerSelects = true,
+                ExcludeOwned = true,
+                GoldReward = 140,
+                CardXpReward = 60,
+                SummonerXpReward = 95
             }
         },
 
@@ -186,17 +849,17 @@ public static class EventCatalog
             Id = EventIds.Act1Boss,
             NameKey = "campaign.battle.act1_boss.name",
             DescriptionKey = "campaign.battle.act1_boss.description",
-            Position = new Vector2(1000, 300),
+            Position = new Vector2(3420, 260),
             Biome = BiomeIds.SummerPlains,
-            Difficulty = 6,
+            Difficulty = 15,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry>
             {
-                new(CardIds.FireWisp, 2),
-                new(CardIds.Pebbloom, 2),
-                new(CardIds.Puff, 2)
+                new(CardIds.FireWisp, 7),
+                new(CardIds.Pebbloom, 6),
+                new(CardIds.Puff, 6)
             },
-            EnemyHp = 100f,
+            EnemyHp = 240f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Fixed,
@@ -204,9 +867,9 @@ public static class EventCatalog
                 {
                     new(CardIds.ManaBolt, "rare", 1)
                 },
-                GoldReward = 100,
-                CardXpReward = 40,
-                SummonerXpReward = 60
+                GoldReward = 180,
+                CardXpReward = 70,
+                SummonerXpReward = 120
             }
         },
 

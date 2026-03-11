@@ -39,7 +39,7 @@ public class BattleEventDefinition : EventDefinition
     /// <summary>Biome ID for battlefield environment</summary>
     public BiomeId Biome { get; set; } = BiomeIds.Default;
 
-    /// <summary>Difficulty rating (1-10)</summary>
+    /// <summary>Relative difficulty rating (higher is harder).</summary>
     public int Difficulty { get; set; } = 1;
 
     /// <summary>Whether this is a tutorial battle with special handling</summary>
@@ -106,26 +106,4 @@ public class CaravanEventDefinition : EventDefinition
 
     /// <summary>Shop configuration ID</summary>
     public ShopId ShopId { get; set; } = Fateforged.Meta.Shop.ShopId.None;
-}
-
-/// <summary>
-/// Rest event definition - heal/recovery opportunity.
-/// </summary>
-public class RestEventDefinition : EventDefinition
-{
-    public override EventType Type => EventType.Rest;
-
-    /// <summary>HP recovery percentage (0.0 - 1.0)</summary>
-    public float HealPercent { get; set; } = 0.3f;
-}
-
-/// <summary>
-/// Story event definition - narrative events without combat.
-/// </summary>
-public class StoryEventDefinition : EventDefinition
-{
-    public override EventType Type => EventType.Story;
-
-    /// <summary>Story sequence ID to play</summary>
-    public SequenceId SequenceId { get; set; } = SequenceId.None;
 }
