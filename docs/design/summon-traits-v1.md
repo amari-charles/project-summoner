@@ -209,53 +209,53 @@ No unit modifiers. No triggers. No conditional logic.
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Flame Command I | `fire_damage_bonus +5%` |
-| II | Flame Command II | `fire_damage_bonus +10%` |
-| III | Flame Command III | `fire_damage_bonus +15%` |
-| IV | Flame Command IV | `fire_damage_bonus +20%` |
-| I | Aggressor I | `damage_bonus +5%` |
-| II | Aggressor II | `damage_bonus +10%` |
-| III | Aggressor III | `damage_bonus +15%` |
-| IV | Aggressor IV | `damage_bonus +20%` |
+| I | Element Affinity I | `fire_damage_bonus +5%` |
+| II | Element Affinity II | `fire_damage_bonus +10%` |
+| III | Element Affinity III | `fire_damage_bonus +15%` |
+| IV | Element Affinity IV | `fire_damage_bonus +20%` |
+| I | Damage Bonus I | `damage_bonus +5%` |
+| II | Damage Bonus II | `damage_bonus +10%` |
+| III | Damage Bonus III | `damage_bonus +15%` |
+| IV | Damage Bonus IV | `damage_bonus +20%` |
 
 ### 11.2 Selene (Water)
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Deep Reserve I | `max_health +100` |
-| II | Deep Reserve II | `max_health +200` |
-| III | Deep Reserve III | `max_health +300` |
-| IV | Deep Reserve IV | `max_health +400` |
-| I | Renewal I | `mana_regen +5%` |
-| II | Renewal II | `mana_regen +10%` |
-| III | Renewal III | `mana_regen +15%` |
-| IV | Renewal IV | `mana_regen +20%` |
+| I | Max Health I | `max_health +100` |
+| II | Max Health II | `max_health +200` |
+| III | Max Health III | `max_health +300` |
+| IV | Max Health IV | `max_health +400` |
+| I | Mana Regen I | `mana_regen +5%` |
+| II | Mana Regen II | `mana_regen +10%` |
+| III | Mana Regen III | `mana_regen +15%` |
+| IV | Mana Regen IV | `mana_regen +20%` |
 
 ### 11.3 Mei (Wind)
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Quick Channel I | `cast_speed +5%` |
-| II | Quick Channel II | `cast_speed +10%` |
-| III | Quick Channel III | `cast_speed +15%` |
-| IV | Quick Channel IV | `cast_speed +20%` |
-| I | Gale Mark I | `wind_damage_bonus +5%` |
-| II | Gale Mark II | `wind_damage_bonus +10%` |
-| III | Gale Mark III | `wind_damage_bonus +15%` |
-| IV | Gale Mark IV | `wind_damage_bonus +20%` |
+| I | Cast Speed I | `cast_speed +5%` |
+| II | Cast Speed II | `cast_speed +10%` |
+| III | Cast Speed III | `cast_speed +15%` |
+| IV | Cast Speed IV | `cast_speed +20%` |
+| I | Element Affinity I | `wind_damage_bonus +5%` |
+| II | Element Affinity II | `wind_damage_bonus +10%` |
+| III | Element Affinity III | `wind_damage_bonus +15%` |
+| IV | Element Affinity IV | `wind_damage_bonus +20%` |
 
 ### 11.4 Teo (Earth)
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Stoneguard I | `damage_reduction +1` |
-| II | Stoneguard II | `damage_reduction +2` |
-| III | Stoneguard III | `damage_reduction +3` |
-| IV | Stoneguard IV | `damage_reduction +4` |
-| I | Earth Command I | `earth_damage_bonus +5%` |
-| II | Earth Command II | `earth_damage_bonus +10%` |
-| III | Earth Command III | `earth_damage_bonus +15%` |
-| IV | Earth Command IV | `earth_damage_bonus +20%` |
+| I | Damage Reduction I | `damage_reduction +1` |
+| II | Damage Reduction II | `damage_reduction +2` |
+| III | Damage Reduction III | `damage_reduction +3` |
+| IV | Damage Reduction IV | `damage_reduction +4` |
+| I | Element Affinity I | `earth_damage_bonus +5%` |
+| II | Element Affinity II | `earth_damage_bonus +10%` |
+| III | Element Affinity III | `earth_damage_bonus +15%` |
+| IV | Element Affinity IV | `earth_damage_bonus +20%` |
 
 ## 12. Implementation Notes (Simple V1)
 
