@@ -423,6 +423,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Ranged,
         MovementLayer = MovementLayer.Air,
         TargetingProfile = UnitTargetingProfile.FlyingConeStrafe,
+        TargetingLayerFilter = TargetLayer.Both,
         Ranged = new RangedConfig(ProjectileIds.WindPuff)
         {
             ProjectileDelay = 0.585f,
@@ -684,21 +685,21 @@ public static class UnitDefinitions
 
             case UnitTargetingProfile.RangedGround:
                 template.FallbackMovement = FallbackMovement.MoveToward;
-                template.TargetLayerFilter = def.TargetingLayerFilter;
+                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(def, UnitTargetingProfile.RangedGround);
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             case UnitTargetingProfile.RangedStrafe:
                 template.FallbackMovement = FallbackMovement.Strafe;
-                template.TargetLayerFilter = def.TargetingLayerFilter;
+                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(def, UnitTargetingProfile.RangedStrafe);
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             case UnitTargetingProfile.FlyingConeStrafe:
                 template.FallbackMovement = FallbackMovement.Strafe;
-                template.TargetLayerFilter = def.TargetingLayerFilter;
+                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(def, UnitTargetingProfile.FlyingConeStrafe);
                 template.EngageShape = EngageShape.Cone;
                 template.HasConeConstraint = true;
                 template.ConeHalfAngle = def.TargetingConeHalfAngle;
@@ -752,6 +753,20 @@ public static class UnitDefinitions
         if (halfWidth > 0f)
             template.EngageRectHalfWidth = halfWidth;
         template.EngageRectForwardOffset = MathF.Max(forwardOffset, 0f);
+    }
+
+    private static TargetLayer ResolveTargetLayerFilterForProfile(UnitDefinition def, UnitTargetingProfile profile)
+    {
+        bool isRangedProfile = profile == UnitTargetingProfile.RangedGround ||
+                               profile == UnitTargetingProfile.RangedStrafe ||
+                               profile == UnitTargetingProfile.FlyingConeStrafe;
+        if (!isRangedProfile)
+            return def.TargetingLayerFilter;
+
+        // UnitDefinition defaults to GroundOnly; ranged units are expected to hit air by default.
+        return def.TargetingLayerFilter == TargetLayer.GroundOnly
+            ? TargetLayer.Both
+            : def.TargetingLayerFilter;
     }
 
     private static TacticalRole ResolveTacticalRole(UnitDefinition def, UnitStats stats)
