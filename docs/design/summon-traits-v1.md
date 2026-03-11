@@ -209,10 +209,10 @@ No unit modifiers. No triggers. No conditional logic.
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Element Affinity I | `fire_damage_bonus +5%` |
-| II | Element Affinity II | `fire_damage_bonus +10%` |
-| III | Element Affinity III | `fire_damage_bonus +15%` |
-| IV | Element Affinity IV | `fire_damage_bonus +20%` |
+| I | Fire Affinity I | `fire_damage_bonus +5%` |
+| II | Fire Affinity II | `fire_damage_bonus +10%` |
+| III | Fire Affinity III | `fire_damage_bonus +15%` |
+| IV | Fire Affinity IV | `fire_damage_bonus +20%` |
 | I | Damage Bonus I | `damage_bonus +5%` |
 | II | Damage Bonus II | `damage_bonus +10%` |
 | III | Damage Bonus III | `damage_bonus +15%` |
@@ -222,10 +222,10 @@ No unit modifiers. No triggers. No conditional logic.
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Max Health I | `max_health +100` |
-| II | Max Health II | `max_health +200` |
-| III | Max Health III | `max_health +300` |
-| IV | Max Health IV | `max_health +400` |
+| I | Water Affinity I | `water_damage_bonus +5%` |
+| II | Water Affinity II | `water_damage_bonus +10%` |
+| III | Water Affinity III | `water_damage_bonus +15%` |
+| IV | Water Affinity IV | `water_damage_bonus +20%` |
 | I | Mana Regen I | `mana_regen +5%` |
 | II | Mana Regen II | `mana_regen +10%` |
 | III | Mana Regen III | `mana_regen +15%` |
@@ -239,10 +239,10 @@ No unit modifiers. No triggers. No conditional logic.
 | II | Cast Speed II | `cast_speed +10%` |
 | III | Cast Speed III | `cast_speed +15%` |
 | IV | Cast Speed IV | `cast_speed +20%` |
-| I | Element Affinity I | `wind_damage_bonus +5%` |
-| II | Element Affinity II | `wind_damage_bonus +10%` |
-| III | Element Affinity III | `wind_damage_bonus +15%` |
-| IV | Element Affinity IV | `wind_damage_bonus +20%` |
+| I | Wind Affinity I | `wind_damage_bonus +5%` |
+| II | Wind Affinity II | `wind_damage_bonus +10%` |
+| III | Wind Affinity III | `wind_damage_bonus +15%` |
+| IV | Wind Affinity IV | `wind_damage_bonus +20%` |
 
 ### 11.4 Teo (Earth)
 
@@ -252,10 +252,10 @@ No unit modifiers. No triggers. No conditional logic.
 | II | Damage Reduction II | `damage_reduction +2` |
 | III | Damage Reduction III | `damage_reduction +3` |
 | IV | Damage Reduction IV | `damage_reduction +4` |
-| I | Element Affinity I | `earth_damage_bonus +5%` |
-| II | Element Affinity II | `earth_damage_bonus +10%` |
-| III | Element Affinity III | `earth_damage_bonus +15%` |
-| IV | Element Affinity IV | `earth_damage_bonus +20%` |
+| I | Earth Affinity I | `earth_damage_bonus +5%` |
+| II | Earth Affinity II | `earth_damage_bonus +10%` |
+| III | Earth Affinity III | `earth_damage_bonus +15%` |
+| IV | Earth Affinity IV | `earth_damage_bonus +20%` |
 
 ## 12. Implementation Notes (Simple V1)
 
