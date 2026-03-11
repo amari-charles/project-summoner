@@ -262,7 +262,6 @@
       "type_label": "Type: {type}",
       "type_summon": "Summon",
       "type_spell": "Spell",
-      "role_label": "Role: {role}",
       "role_frontliner": "Frontliner",
       "role_flanker": "Flanker",
       "role_backliner": "Backliner",
