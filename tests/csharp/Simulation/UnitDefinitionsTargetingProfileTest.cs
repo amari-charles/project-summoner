@@ -44,7 +44,7 @@ public class UnitDefinitionsTargetingProfileTest
 
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.Idle);
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.Legacy);
+        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackable);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Direct);
     }
 

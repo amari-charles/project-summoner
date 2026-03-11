@@ -26,7 +26,7 @@ public class OrcaAvoidanceTest
         const int farNeighborCount = 96;
 
         var mover = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, moveSpeed: 3f);
-        mover.SeparationRadius = 0.5f;
+        mover.NavigationRadius = 0.5f;
         mover.Velocity = SimVector3.Zero;
         mover.BehaviorState = BehaviorState.Chasing;
 
@@ -38,7 +38,7 @@ public class OrcaAvoidanceTest
             float x = MathF.Cos(angle) * 2.4f;
             float z = MathF.Sin(angle) * 2.4f;
             var far = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: x, z: z, moveSpeed: 0f, attackSpeed: 0f);
-            far.SeparationRadius = 0.01f;
+            far.NavigationRadius = 0.01f;
             far.Velocity = SimVector3.Zero;
             far.BehaviorState = BehaviorState.Chasing;
         }
@@ -48,7 +48,7 @@ public class OrcaAvoidanceTest
 
         // Insert the closest blocker last; nearest-neighbor selection must still include it.
         var close = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0.35f, z: 0f, moveSpeed: 0f, attackSpeed: 0f);
-        close.SeparationRadius = 0.5f;
+        close.NavigationRadius = 0.5f;
         close.Velocity = SimVector3.Zero;
         close.BehaviorState = BehaviorState.InRange;
 
@@ -79,7 +79,7 @@ public class OrcaAvoidanceTest
             moveSpeed: 3f,
             attackRange: 2f
         );
-        mover.SeparationRadius = 0.4f;
+        mover.NavigationRadius = 0.4f;
         mover.NavigationRadius = 0.4f;
         mover.BehaviorState = BehaviorState.Chasing;
         mover.TargetUnitId = target.UnitId;
@@ -99,7 +99,7 @@ public class OrcaAvoidanceTest
             attackSpeed: 0f,
             attackRange: 2f
         );
-        ally.SeparationRadius = 0.4f;
+        ally.NavigationRadius = 0.4f;
         ally.NavigationRadius = 0.4f;
         ally.BehaviorState = BehaviorState.Chasing;
         ally.TargetUnitId = target.UnitId;

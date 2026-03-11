@@ -9,13 +9,11 @@ namespace Fateforged.Simulation.Combat.Targeting;
 /// </summary>
 public static class TargetPolicyRegistry
 {
-    private static readonly ITargetPolicy Legacy = new LegacyTargetPolicy();
     private static readonly ITargetPolicy PreferAttackable = new PreferAttackableTargetPolicy();
     private static readonly ITargetPolicy PreferAttackableAndStick = new PreferAttackableAndStickTargetPolicy();
 
     public static ITargetPolicy Resolve(TargetPolicyId id) => id switch
     {
-        TargetPolicyId.Legacy => Legacy,
         TargetPolicyId.PreferAttackable => PreferAttackable,
         TargetPolicyId.PreferAttackableAndStick => PreferAttackableAndStick,
         _ => throw new ArgumentOutOfRangeException(nameof(id), id, "Unknown TargetPolicyId")

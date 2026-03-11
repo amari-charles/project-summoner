@@ -19,7 +19,7 @@
 2. `UnitData` now carries the same runtime geometry channels.
 3. `UnitDefinitions.BuildSimTemplate(...)` now maps visual separation + optional hurtbox config into the new channels.
 4. `Simulation.SpawnUnitsFromCard(...)` now propagates new geometry fields from template to spawned units.
-5. `Simulation.SpawnUnitsFromCard(...)` spawn offset now reads navigation footprint first (fallback to legacy separation radius).
+5. `Simulation.SpawnUnitsFromCard(...)` spawn offset now reads navigation footprint only.
 6. `SimProjectile` contact/AoE checks now resolve target size via `CombatGeometry.GetHurtboxRadius(...)`.
 7. `OrcaAvoidance`, `OverlapCorrection`, `MovementTargetResolver`, and `ContextSteering` now resolve footprint sizing via `CombatGeometry.GetNavigationRadius(...)`.
 
@@ -30,16 +30,16 @@
 
 ## Compile-Safe Stub Behavior Checks
 
-1. `CombatGeometry.GetNavigationRadius(...)` preserves compatibility fallback to legacy `SeparationRadius`.
-2. `CombatGeometry.GetHurtboxRadius(...)` preserves compatibility fallback to navigation radius.
+1. `CombatGeometry.GetNavigationRadius(...)` reads only explicit navigation channel values (with constant default).
+2. `CombatGeometry.GetHurtboxRadius(...)` reads only explicit hurtbox channel values (with constant default).
 3. Projectile hit-space routing (`GroundCylinder` vs `Sphere3D`) is centralized and deterministic.
-4. Existing content remains behavior-compatible because default mappings initialize `NavigationRadius` from existing visual separation radius.
+4. Unit template mapping initializes navigation/hurtbox channels explicitly from authored definition data.
 
 ## Test Skeleton Coverage Map
 
 | Case ID | Skeleton Test File | Test Name | Notes |
 |---|---|---|---|
-| CSM-001 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `CSM_001_LegacyFallback_UsesSeparationRadiusWhenNewFieldsUnset` | Compatibility fallback hook |
+| CSM-001 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `CSM_001_GeometryChannels_DoNotFallbackToSeparationRadius` | No-fallback geometry contract |
 | CSM-002 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `CSM_002_EngageArcDepthGate_Stub_OutOfArcRejected` | Engage arc/depth hook |
 | CSM-003 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `CSM_003_EngageArcDepthGate_Stub_ForwardTargetAccepted` | Engage positive-path hook |
 | CSM-004 | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | `CSM_004_PiercingLineRangeContract_Stub` | Pass 3 implementation placeholder |

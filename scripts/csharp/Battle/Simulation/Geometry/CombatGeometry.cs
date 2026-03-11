@@ -7,8 +7,8 @@ namespace Fateforged.Simulation.Geometry;
 
 /// <summary>
 /// Shared combat-geometry helpers.
-/// Pass 2 wiring keeps legacy behavior by default while exposing split
-/// channels for movement footprint (navigation) and combat contact (hurtbox).
+/// Exposes split channels for movement footprint (navigation) and
+/// combat contact (hurtbox).
 /// </summary>
 public static class CombatGeometry
 {
@@ -19,8 +19,6 @@ public static class CombatGeometry
     {
         if (unit.NavigationRadius > 0f)
             return unit.NavigationRadius;
-        if (unit.SeparationRadius > 0f)
-            return unit.SeparationRadius;
         return DefaultRadius;
     }
 
@@ -28,7 +26,7 @@ public static class CombatGeometry
     {
         if (unit.HurtboxRadius > 0f)
             return unit.HurtboxRadius;
-        return GetNavigationRadius(unit);
+        return DefaultRadius;
     }
 
     public static bool UseGroundCylinder(ProjectileHitSpace hitSpace, UnitData unit)

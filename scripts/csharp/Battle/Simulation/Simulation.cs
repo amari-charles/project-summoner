@@ -497,6 +497,9 @@ public class Simulation
     /// </summary>
     private void TickUnits(float fixedDelta, List<SimEvent> events)
     {
+        // Commit-slot ordering: clear dead/invalid slot bindings before target reacquire.
+        _state.ReleaseInvalidSlotReferences();
+
         var units = _state.GetAliveActiveUnits();
 
         foreach (var unit in units)
@@ -504,11 +507,8 @@ public class Simulation
             // Cooldowns
             SimBehavior.TickCooldowns(unit, fixedDelta);
 
-            // Targeting
-            SimBehavior.TickTargeting(unit, _state);
-
-            // Behavior (returns movement instruction)
-            var result = SimBehavior.TickBehavior(unit, _state, fixedDelta, events);
+            // Combat orchestration (commit-slot flow is authoritative).
+            var result = SimCombatStateMachine.Tick(unit, _state, fixedDelta, events);
 
             // Movement
             SimMovement.Tick(unit, result, _state, fixedDelta);
@@ -626,7 +626,7 @@ public class Simulation
                     firstNetworkId = networkId;
                 float spawnRadius = template.NavigationRadius > 0f
                     ? template.NavigationRadius
-                    : template.SeparationRadius;
+                    : 0.5f;
                 var position = CalculateSpawnOffset(
                     spawnPosition,
                     unitIndex,

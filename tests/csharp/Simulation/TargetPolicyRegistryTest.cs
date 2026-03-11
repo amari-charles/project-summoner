@@ -12,7 +12,6 @@ public class TargetPolicyRegistryTest
     [TestCase]
     public void Resolve_KnownIds_ReturnsPolicyInstances()
     {
-        AssertThat(TargetPolicyRegistry.Resolve(TargetPolicyId.Legacy)).IsInstanceOf<LegacyTargetPolicy>();
         AssertThat(TargetPolicyRegistry.Resolve(TargetPolicyId.PreferAttackable)).IsInstanceOf<PreferAttackableTargetPolicy>();
         AssertThat(TargetPolicyRegistry.Resolve(TargetPolicyId.PreferAttackableAndStick)).IsInstanceOf<PreferAttackableAndStickTargetPolicy>();
     }

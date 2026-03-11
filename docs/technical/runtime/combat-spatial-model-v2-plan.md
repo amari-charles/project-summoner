@@ -74,12 +74,12 @@ From a game perspective, this should make combat feel fair and readable in 2.5D 
 
 1. Compile-safe types/fields are wired end-to-end for new geometry channels.
 2. Central geometry helper API is introduced and referenced by combat callsites.
-3. Legacy dependencies remain behavior-compatible via explicit fallback mapping.
+3. Legacy `SeparationRadius` fallback paths are removed from runtime combat geometry.
 4. Test skeletons are added for every validation case ID.
 
 ### PASS 3: IMPLEMENTATION + TESTS
 
-1. Engage gate and damage shape behavior are fully implemented.
+1. Engage gate and damage-shape behavior is implemented for shipped scope, with deferred cases explicitly documented in validation artifacts.
 2. Projectile/AoE contact uses hurtbox channel; movement systems use navigation footprint only.
 3. Validation cases are marked `Implemented` or `Deferred` with rationale.
 4. Dense-fight and determinism regressions are validated with test outputs.

@@ -4,8 +4,8 @@ using Fateforged.Projectiles;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
-using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
+using Fateforged.Units;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
@@ -13,21 +13,21 @@ using static GdUnit4.Assertions;
 public class CombatSpatialModelV2StubCoverageTest
 {
     [TestCase]
-    public void CSM_001_LegacyFallback_UsesSeparationRadiusWhenNewFieldsUnset()
+    public void CSM_001_GeometryChannels_DoNotFallbackToSeparationRadius()
     {
         var unit = new UnitData
         {
-            SeparationRadius = 0.6f,
+            SeparationRadius = 0.9f,
             NavigationRadius = 0f,
             HurtboxRadius = 0f
         };
 
-        AssertThat(CombatGeometry.GetNavigationRadius(unit)).IsEqual(0.6f);
-        AssertThat(CombatGeometry.GetHurtboxRadius(unit)).IsEqual(0.6f);
+        AssertThat(CombatGeometry.GetNavigationRadius(unit)).IsEqual(0.5f);
+        AssertThat(CombatGeometry.GetHurtboxRadius(unit)).IsEqual(0.5f);
     }
 
     [TestCase]
-    public void CSM_002_EngageArcDepthGate_Stub_OutOfArcRejected()
+    public void CSM_002_EngageArcDepthGate_OutOfArcRejected()
     {
         var attacker = new UnitData
         {
@@ -43,7 +43,7 @@ public class CombatSpatialModelV2StubCoverageTest
     }
 
     [TestCase]
-    public void CSM_003_EngageArcDepthGate_Stub_ForwardTargetAccepted()
+    public void CSM_003_EngageArcDepthGate_ForwardTargetAccepted()
     {
         var attacker = new UnitData
         {
@@ -59,33 +59,34 @@ public class CombatSpatialModelV2StubCoverageTest
     }
 
     [TestCase]
-    public void CSM_004_PiercingLineRangeContract_Stub()
+    public void CSM_004_LineDamageShape_ResolvesBeyondEngageDistance()
     {
-        // PASS 3 TODO: validate engage gate vs line-shape hit resolution.
-        AssertThat(true).IsTrue();
+        var state = SimTestHelper.CreateBattleState();
+        var attacker = SimTestHelper.CreateMeleeUnit(state, team: 0, x: 0f, z: 0f, attackRange: 2.2f);
+        attacker.IsFacingRight = true;
+        attacker.Attack.Selection.Mode = AttackSelectionMode.LineCollect;
+        attacker.Attack.Selection.TargetLimit = 3;
+        attacker.Attack.Area.LineLength = 6f;
+        attacker.Attack.Area.LineHalfWidth = 0.6f;
+
+        var primary = SimTestHelper.CreateMeleeUnit(state, team: 1, x: 1.7f, z: 0f);
+        var secondaryInLine = SimTestHelper.CreateMeleeUnit(state, team: 1, x: 5.0f, z: 0.2f);
+        var outsideLine = SimTestHelper.CreateMeleeUnit(state, team: 1, x: 3.5f, z: 2.0f);
+
+        var recipients = AttackRecipientResolver.ResolveRecipients(attacker, primary, state);
+
+        AssertThat(recipients.Count).IsEqual(2);
+        AssertThat(recipients[0].UnitId).IsEqual(primary.UnitId);
+        AssertThat(recipients[1].UnitId).IsEqual(secondaryInLine.UnitId);
+        AssertThat(recipients.Exists(u => u.UnitId == outsideLine.UnitId)).IsFalse();
     }
 
     [TestCase]
-    public void CSM_005_ConeLockedAim_Stub()
-    {
-        // PASS 3 TODO: validate cone recipients at hit frame with locked aim.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void CSM_006_ConeCenterOffset_Stub()
-    {
-        // PASS 3 TODO: validate authored cone-center offsets affect membership.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void CSM_007_ProjectileContact_UsesHurtboxChannel_Stub()
+    public void CSM_007_ProjectileContact_UsesHurtboxChannel()
     {
         var unit = new UnitData
         {
-            SeparationRadius = 1.0f,
-            NavigationRadius = 0.8f,
+            NavigationRadius = 1.0f,
             HurtboxRadius = 0.25f
         };
 
@@ -93,13 +94,13 @@ public class CombatSpatialModelV2StubCoverageTest
     }
 
     [TestCase]
-    public void CSM_008_AoeInclusion_UsesHurtboxChannel_Stub()
+    public void CSM_008_AoeInclusion_UsesGroundCylinderForGroundUnit()
     {
         var center = SimVector3.Zero;
         var unit = new UnitData
         {
             Position = new SimVector3(0.9f, 0f, 0f),
-            MovementLayer = Fateforged.Units.MovementLayer.Ground,
+            MovementLayer = MovementLayer.Ground,
             HurtboxRadius = 0.25f
         };
 
@@ -109,11 +110,12 @@ public class CombatSpatialModelV2StubCoverageTest
             center,
             1.2f
         );
+
         AssertThat(inRange).IsTrue();
     }
 
     [TestCase]
-    public void CSM_009_MovementSystems_UseNavigationFootprint_Stub()
+    public void CSM_009_MovementSystems_UseNavigationFootprint()
     {
         var unit = new UnitData
         {
@@ -125,71 +127,13 @@ public class CombatSpatialModelV2StubCoverageTest
     }
 
     [TestCase]
-    public void CSM_010_SummonerOrbit_UsesNavigationFootprint_Stub()
-    {
-        // PASS 3 TODO: validate orbit slot selection sensitivity to navigation radius.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void CSM_011_SpawnSafety_UsesNavigationFootprint_Stub()
-    {
-        // PASS 3 TODO: add integration assertion on spawn spacing path.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void CSM_012_DebugOverlays_SplitNavigationAndHurtbox_Stub()
-    {
-        // PASS 3 TODO: assert separate debug marker visuals.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
     public void CSM_013_HitSpaceMode_GroundCylinderVsSphere3D()
     {
-        var groundUnit = new UnitData { MovementLayer = Fateforged.Units.MovementLayer.Ground };
-        var airUnit = new UnitData { MovementLayer = Fateforged.Units.MovementLayer.Air };
+        var groundUnit = new UnitData { MovementLayer = MovementLayer.Ground };
+        var airUnit = new UnitData { MovementLayer = MovementLayer.Air };
 
         AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.GroundCylinder, groundUnit)).IsTrue();
         AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.Sphere3D, groundUnit)).IsFalse();
         AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.GroundCylinder, airUnit)).IsFalse();
-    }
-
-    [TestCase]
-    public void CSM_014_MultiRecipientTieOrdering_Stub()
-    {
-        // PASS 3 TODO: deterministic recipient ordering for line/cone boundary ties.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void CSM_015_DebugAttackRange_RepresentsEngageGate_Stub()
-    {
-        // PASS 3 TODO: attack-range debug marker should represent engage gate,
-        // while damage-shape visualization is handled by a separate overlay.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void CSM_016_DebugToggle_NavigationFootprintRename_Stub()
-    {
-        // PASS 3 TODO: validate debug toggle rename/alias behavior for
-        // SeparationRadius -> NavigationFootprint migration.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void DCSM_001_DeterminismScenario_Stub()
-    {
-        // PASS 3 TODO: repeated-run recipient set/order stability assertions.
-        AssertThat(true).IsTrue();
-    }
-
-    [TestCase]
-    public void DCSM_002_DeterminismDenseSwarm_Stub()
-    {
-        // PASS 3 TODO: host/client-equivalent membership and ordering in dense fights.
-        AssertThat(true).IsTrue();
     }
 }

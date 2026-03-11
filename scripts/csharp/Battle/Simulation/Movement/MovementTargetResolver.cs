@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
@@ -37,6 +38,15 @@ public static class MovementTargetResolver
 
     public static SimVector3? Resolve(UnitData unit, int? targetId, MatchState state)
     {
+        if (unit.UnitType == UnitType.Melee &&
+            targetId.HasValue &&
+            !MatchState.IsSummonerTarget(targetId))
+        {
+            var slotPos = SimMeleeSlotManager.GetReservedSlotWorldPosition(unit, state);
+            if (slotPos.HasValue)
+                return slotPos.Value;
+        }
+
         var baseTargetPosition = SimUtils.ResolveTargetPosition(targetId, state);
         if (!baseTargetPosition.HasValue)
             return null;

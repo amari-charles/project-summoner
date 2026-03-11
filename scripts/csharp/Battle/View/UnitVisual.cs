@@ -547,8 +547,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         if (unitData.NavigationRadius > 0f)
             return Mathf.Max(0.1f, unitData.NavigationRadius);
-        if (unitData.SeparationRadius > 0f)
-            return Mathf.Max(0.1f, unitData.SeparationRadius);
         return 0.5f;
     }
 
@@ -556,7 +554,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         if (unitData.HurtboxRadius > 0f)
             return Mathf.Max(0.05f, unitData.HurtboxRadius);
-        return ResolveNavigationFootprintRadius(unitData);
+        return 0.5f;
     }
 
     private float ResolveHurtboxHeight(UnitData unitData)

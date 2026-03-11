@@ -58,7 +58,8 @@ public partial class UnitVisualDebugMarkersTest
             UnitId = unitId,
             IsAlive = true,
             Position = new SimVector3(0f, 0f, 0f),
-            SeparationRadius = 0.9f,
+            NavigationRadius = 0.9f,
+            HurtboxRadius = 0.9f,
             AttackRange = 3f,
         };
 

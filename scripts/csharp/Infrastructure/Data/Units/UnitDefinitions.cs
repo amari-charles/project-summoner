@@ -664,7 +664,7 @@ public static class UnitDefinitions
             case UnitTargetingProfile.Passive:
                 template.FallbackMovement = FallbackMovement.Idle;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
-                template.TargetPolicyId = TargetPolicyId.Legacy;
+                template.TargetPolicyId = TargetPolicyId.PreferAttackable;
                 template.MovementIntentStrategy = MovementIntentStrategy.Direct;
                 return;
 

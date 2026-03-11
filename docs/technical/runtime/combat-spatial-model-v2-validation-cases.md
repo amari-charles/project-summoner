@@ -21,7 +21,7 @@ Allowed status values:
 
 | Case ID | Scenario | Expected Result | Test Type | Test File | Status |
 |---|---|---|---|---|---|
-| CSM-001 | Legacy unit with no explicit hurtbox/engage fields | Runtime fallback preserves prior behavior within tolerance | unit | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | Implemented |
+| CSM-001 | Unit with unset split-geometry fields | Runtime uses explicit default geometry constants and does not fallback to `SeparationRadius` | unit | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | Implemented |
 | CSM-002 | Directional attack startup with target far up/down battlefield depth | Attack does not start when target violates engage arc/depth gate | unit | `tests/csharp/Simulation/SimTargetingTest.cs` | Implemented |
 | CSM-003 | Directional attack startup with valid forward target | Attack starts when engage gate passes (distance + arc + depth + layer) | unit | `tests/csharp/Simulation/CombatSpatialModelV2StubCoverageTest.cs` | Implemented |
 | CSM-004 | Piercing line attack with `LineLength` greater than engage distance | Startup uses engage rules; hit resolution uses line corridor geometry | simulation | `tests/csharp/Simulation/SimBehaviorTest.cs` | Implemented |

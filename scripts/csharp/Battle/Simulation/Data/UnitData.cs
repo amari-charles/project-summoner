@@ -111,6 +111,27 @@ public class UnitData
     public int? TargetUnitId { get; set; }
     public float TargetLockTimer { get; set; }
 
+    // Commit-slot lifecycle runtime state.
+    public CombatLifecycleState CombatLifecycleState { get; set; } = CombatLifecycleState.AcquireTarget;
+    public int? LockedTargetUnitId { get; set; }
+    public RetargetReason LastRetargetReason { get; set; } = RetargetReason.None;
+    public float UnreachableTimer { get; set; }
+    public float UnreachableTimeoutSeconds { get; set; } = 1.2f;
+
+    // Slot runtime state.
+    public int? SlotTargetId { get; set; }
+    public int? ReservedSlotId { get; set; }
+    public int? OccupiedSlotId { get; set; }
+    public float SlotWaitTimer { get; set; }
+    public float SlotWaitTimeoutSeconds { get; set; } = 0.7f;
+    public float LastSlotDistance { get; set; } = -1f;
+    public float LastTargetDistance { get; set; } = -1f;
+    public float NoProgressTimer { get; set; }
+    public float LastReservationDistanceSq { get; set; } = float.MaxValue;
+    public int? DroppedTargetUnitId { get; set; }
+    public float DroppedTargetCooldownTimer { get; set; }
+    public float DroppedTargetCooldownSeconds { get; set; } = 0.75f;
+
     // Forced targeting (e.g., redirect spell)
     public int? ForcedTargetUnitId { get; set; }
     public float ForcedTargetTimer { get; set; }
@@ -121,6 +142,11 @@ public class UnitData
     // Behavior state (used by SimBehavior)
     public BehaviorState BehaviorState { get; set; }
     public float AttackAnimationTimer { get; set; }
+
+    // Attack loop state.
+    public AttackPhase AttackPhase { get; set; } = AttackPhase.None;
+    public float AttackPhaseTimer { get; set; }
+    public int? AttackPhaseLockTargetId { get; set; }
 
     // Delayed ranged resolution buffers:
     // - Unit targets: windup before spawning SimProjectileData

@@ -545,13 +545,13 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickTargeting_KeepCurrentDisabled_CanSwitchWhenLockExpires()
+    public void TickTargeting_PreferAttackable_KeepsAttackableCurrentWhenLockExpires()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, aggroRadius: 20f);
         unit.HasConeConstraint = false;
         unit.DistanceScorerWeight = 0f;
         unit.HealthScorerWeight = 100f;
-        unit.TargetPolicyId = TargetPolicyId.Legacy;
+        unit.TargetPolicyId = TargetPolicyId.PreferAttackable;
 
         var currentInRange = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, hp: 100f);
         var outOfRangeLowHp = SimTestHelper.CreateMeleeUnit(_state, 1, x: 6f, hp: 100f);
@@ -563,7 +563,7 @@ public class SimBehaviorTest
         SimBehavior.TickTargeting(unit, _state);
 
         AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value == outOfRangeLowHp.UnitId).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value == currentInRange.UnitId).IsTrue();
     }
 
     // =========================================================================

@@ -3,6 +3,7 @@ using Fateforged.Simulation;
 using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Geometry;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -20,6 +21,10 @@ public static class SimTargeting
     private const float BacklinerCrossLanePenalty = 5.0f;
     private const float FlankerCenterIgnoreDistance = 8.0f;
     private const float GeometryEpsilon = 0.00001f;
+    private const float CommitStickinessBonus = 6.0f;
+    private const float CommitCongestionWeight = 12.0f;
+    private const float CommitFrontageArcDegrees = 135.0f;
+    private const float CommitSummonerScoreBias = -1.5f;
 
     /// <summary>
     /// Acquire a target using the unit's configured targeting policy.
@@ -31,10 +36,83 @@ public static class SimTargeting
     }
 
     /// <summary>
-    /// Baseline target acquisition: score-only selection without attackable-now preference.
+    /// Commit-target acquisition used by commit-slot lifecycle.
+    /// Summoner is always a valid candidate and congestion penalty is applied for melee vs unit targets.
     /// </summary>
-    public static int? AcquireTargetLegacy(UnitData unit, MatchState state)
-        => AcquireTargetCore(unit, state, prioritizeAttackableNow: false);
+    public static int? AcquireTargetCommit(
+        UnitData unit,
+        MatchState state,
+        int? currentTargetId,
+        int? droppedTargetId,
+        float droppedTargetCooldownTimer)
+    {
+        int enemyTeam = MatchState.GetEnemyTeam((int)unit.Team);
+        int attackerLane = ResolvePreferredLane(unit);
+        EngageShape engageShape = ResolveEngageShape(unit);
+
+        float bestScore = float.MinValue;
+        int? bestId = null;
+
+        foreach (var kvp in state.Units)
+        {
+            var candidate = kvp.Value;
+            if (!candidate.IsAlive) continue;
+            if (candidate.ActivationState != ActivationState.Active) continue;
+            if ((int)candidate.Team != enemyTeam) continue;
+            if (droppedTargetCooldownTimer > 0f &&
+                droppedTargetId.HasValue &&
+                candidate.UnitId == droppedTargetId.Value)
+            {
+                continue;
+            }
+
+            float distSq = unit.Position.DistanceSquaredTo(candidate.Position);
+            if (distSq > unit.AggroRadius * unit.AggroRadius) continue;
+            float dist = MathF.Sqrt(distSq);
+
+            int candidateLane = VirtualLanes.GetLaneIndex(candidate.Position.Z);
+            int laneDistance = VirtualLanes.LaneDistance(attackerLane, candidateLane);
+            if (laneDistance > 0 && dist > unit.AggroRadius * CrossLaneAggroDistanceScale) continue;
+            if (!PassesLayerFilter(unit, candidate)) continue;
+            if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate)) continue;
+            if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist)) continue;
+
+            float score = ScoreTarget(unit, candidate, dist);
+            score += ScoreLaneAffinity(unit, attackerLane, candidateLane, laneDistance);
+            if (currentTargetId.HasValue && currentTargetId.Value == candidate.UnitId)
+                score += CommitStickinessBonus;
+            score -= ComputeCongestionPenalty(unit, candidate, state);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestId = candidate.UnitId;
+            }
+        }
+
+        var enemySummoner = state.GetAliveEnemySummoner((int)unit.Team);
+        if (enemySummoner != null)
+        {
+            int summonerTargetId = MatchState.GetSummonerTargetId((int)enemySummoner.Team);
+            if (!(droppedTargetCooldownTimer > 0f && droppedTargetId.HasValue && droppedTargetId.Value == summonerTargetId))
+            {
+                float dist = DistanceXZ(unit.Position, enemySummoner.Position);
+                int summonerLane = VirtualLanes.GetLaneIndex(enemySummoner.Position.Z);
+                int laneDistance = VirtualLanes.LaneDistance(attackerLane, summonerLane);
+
+                float summonerScore = (unit.AggroRadius - dist) * unit.DistanceScorerWeight;
+                summonerScore += ScoreLaneAffinity(unit, attackerLane, summonerLane, laneDistance);
+                if (currentTargetId.HasValue && currentTargetId.Value == summonerTargetId)
+                    summonerScore += CommitStickinessBonus;
+                summonerScore += CommitSummonerScoreBias;
+
+                if (summonerScore > bestScore || !bestId.HasValue)
+                    return summonerTargetId;
+            }
+        }
+
+        return bestId;
+    }
 
     /// <summary>
     /// Target acquisition that prefers currently attackable candidates, then falls back
@@ -255,6 +333,36 @@ public static class SimTargeting
         }
 
         return score;
+    }
+
+    private static float ComputeCongestionPenalty(UnitData attacker, UnitData target, MatchState state)
+    {
+        if (attacker.UnitType != UnitType.Melee)
+            return 0f;
+
+        float attackerRadius = MathF.Max(0.1f, CombatGeometry.GetNavigationRadius(attacker));
+        float targetRadius = MathF.Max(0.1f, CombatGeometry.GetNavigationRadius(target));
+        float frontageRadius = targetRadius + attackerRadius;
+        float spacing = MathF.Max(0.25f, attackerRadius * 1.8f);
+        float arcLength = frontageRadius * SimMath.DegToRad(CommitFrontageArcDegrees);
+        int capacity = Math.Clamp((int)MathF.Floor(arcLength / spacing), 1, 6);
+
+        int assigned = 0;
+        foreach (var ally in state.GetAliveActiveUnitsForTeam((int)attacker.Team))
+        {
+            if (ally.UnitType != UnitType.Melee)
+                continue;
+            int? allyTarget = ally.LockedTargetUnitId ?? ally.TargetUnitId;
+            if (allyTarget.HasValue && allyTarget.Value == target.UnitId)
+                assigned++;
+        }
+
+        float saturation = (assigned + 1f) / capacity;
+        if (saturation <= 1f)
+            return 0f;
+
+        float over = saturation - 1f;
+        return CommitCongestionWeight * over * over;
     }
 
     /// <summary>
