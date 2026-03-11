@@ -199,9 +199,10 @@ No unit modifiers. No triggers. No conditional logic.
 - Each line has 4 tiers (`I -> IV`) with strict prerequisites.
 - Level-up offer target remains 3 options (to avoid bloat).
 - Keep number curves simple and consistent:
-  - Percent lines: `+5%`, `+10%`, `+15%`, `+20%`
+  - Percent lines: `+5%`, `+10%`, `+15%`, `+20%` (`cast_speed`)
   - Flat health line: `+100`, `+200`, `+300`, `+400`
-  - Flat reduction line: `+1`, `+2`, `+3`, `+4`
+  - Flat mana line: `+10`, `+20`, `+30`, `+40`
+  - Flat soul-strength line: `+1`, `+2`, `+3`, `+4`
 
 ## 11. Summoner Identity Lines (Simple Draft)
 
@@ -209,27 +210,27 @@ No unit modifiers. No triggers. No conditional logic.
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Fire Affinity I | `fire_damage_bonus +5%` |
-| II | Fire Affinity II | `fire_damage_bonus +10%` |
-| III | Fire Affinity III | `fire_damage_bonus +15%` |
-| IV | Fire Affinity IV | `fire_damage_bonus +20%` |
-| I | Damage Bonus I | `damage_bonus +5%` |
-| II | Damage Bonus II | `damage_bonus +10%` |
-| III | Damage Bonus III | `damage_bonus +15%` |
-| IV | Damage Bonus IV | `damage_bonus +20%` |
+| I | Soul Strength I | `soul_strength +1` |
+| II | Soul Strength II | `soul_strength +2` |
+| III | Soul Strength III | `soul_strength +3` |
+| IV | Soul Strength IV | `soul_strength +4` |
+| I | Cast Speed I | `cast_speed +5%` |
+| II | Cast Speed II | `cast_speed +10%` |
+| III | Cast Speed III | `cast_speed +15%` |
+| IV | Cast Speed IV | `cast_speed +20%` |
 
 ### 11.2 Selene (Water)
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Water Affinity I | `water_damage_bonus +5%` |
-| II | Water Affinity II | `water_damage_bonus +10%` |
-| III | Water Affinity III | `water_damage_bonus +15%` |
-| IV | Water Affinity IV | `water_damage_bonus +20%` |
-| I | Mana Regen I | `mana_regen +5%` |
-| II | Mana Regen II | `mana_regen +10%` |
-| III | Mana Regen III | `mana_regen +15%` |
-| IV | Mana Regen IV | `mana_regen +20%` |
+| I | Health I | `health +100` |
+| II | Health II | `health +200` |
+| III | Health III | `health +300` |
+| IV | Health IV | `health +400` |
+| I | Max Mana I | `max_mana +10` |
+| II | Max Mana II | `max_mana +20` |
+| III | Max Mana III | `max_mana +30` |
+| IV | Max Mana IV | `max_mana +40` |
 
 ### 11.3 Mei (Wind)
 
@@ -239,23 +240,23 @@ No unit modifiers. No triggers. No conditional logic.
 | II | Cast Speed II | `cast_speed +10%` |
 | III | Cast Speed III | `cast_speed +15%` |
 | IV | Cast Speed IV | `cast_speed +20%` |
-| I | Wind Affinity I | `wind_damage_bonus +5%` |
-| II | Wind Affinity II | `wind_damage_bonus +10%` |
-| III | Wind Affinity III | `wind_damage_bonus +15%` |
-| IV | Wind Affinity IV | `wind_damage_bonus +20%` |
+| I | Max Mana I | `max_mana +10` |
+| II | Max Mana II | `max_mana +20` |
+| III | Max Mana III | `max_mana +30` |
+| IV | Max Mana IV | `max_mana +40` |
 
 ### 11.4 Teo (Earth)
 
 | Tier | Trait Name | Effect |
 |---|---|---|
-| I | Damage Reduction I | `damage_reduction +1` |
-| II | Damage Reduction II | `damage_reduction +2` |
-| III | Damage Reduction III | `damage_reduction +3` |
-| IV | Damage Reduction IV | `damage_reduction +4` |
-| I | Earth Affinity I | `earth_damage_bonus +5%` |
-| II | Earth Affinity II | `earth_damage_bonus +10%` |
-| III | Earth Affinity III | `earth_damage_bonus +15%` |
-| IV | Earth Affinity IV | `earth_damage_bonus +20%` |
+| I | Health I | `health +100` |
+| II | Health II | `health +200` |
+| III | Health III | `health +300` |
+| IV | Health IV | `health +400` |
+| I | Soul Strength I | `soul_strength +1` |
+| II | Soul Strength II | `soul_strength +2` |
+| III | Soul Strength III | `soul_strength +3` |
+| IV | Soul Strength IV | `soul_strength +4` |
 
 ## 12. Implementation Notes (Simple V1)
 
