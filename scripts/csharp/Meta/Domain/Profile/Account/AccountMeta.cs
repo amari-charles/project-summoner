@@ -16,6 +16,10 @@ public class AccountMeta
     [JsonPropertyName("selected_summoner")]
     public string SelectedSummoner { get; set; } = "";
 
+    /// <summary>Last selected campaign ID.</summary>
+    [JsonPropertyName("selected_campaign")]
+    public string SelectedCampaign { get; set; } = "";
+
     /// <summary>Tutorial completion flags.</summary>
     [JsonPropertyName("tutorial_flags")]
     public Dictionary<string, bool> TutorialFlags { get; set; } = [];

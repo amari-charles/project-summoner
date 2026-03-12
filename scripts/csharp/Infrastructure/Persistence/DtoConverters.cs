@@ -691,6 +691,7 @@ public static class DtoConverters
         {
             ["selected_deck"] = meta.SelectedDeck,
             ["selected_summoner"] = meta.SelectedSummoner,
+            ["selected_campaign"] = meta.SelectedCampaign,
             ["analytics_opt_in"] = meta.AnalyticsOptIn,
             ["tutorial_flags"] = tutorialDict,
             ["achievements"] = achievementsDict,
@@ -710,6 +711,7 @@ public static class DtoConverters
         {
             SelectedDeck = GetString(dict, "selected_deck", ""),
             SelectedSummoner = GetString(dict, "selected_summoner", ""),
+            SelectedCampaign = GetString(dict, "selected_campaign", ""),
             AnalyticsOptIn = GetBool(dict, "analytics_opt_in", false),
         };
 
@@ -769,6 +771,9 @@ public static class DtoConverters
 
         if (update.SelectedSummoner != null)
             dict["selected_summoner"] = update.SelectedSummoner;
+
+        if (update.SelectedCampaign != null)
+            dict["selected_campaign"] = update.SelectedCampaign;
 
         if (update.AnalyticsOptIn.HasValue)
             dict["analytics_opt_in"] = update.AnalyticsOptIn.Value;

@@ -706,6 +706,8 @@ public partial class ProfileRepository : Node, IProfileRepository
             _data.Meta.SelectedDeck = updates.SelectedDeck;
         if (updates.SelectedSummoner != null)
             _data.Meta.SelectedSummoner = updates.SelectedSummoner;
+        if (updates.SelectedCampaign != null)
+            _data.Meta.SelectedCampaign = updates.SelectedCampaign;
         if (updates.AnalyticsOptIn.HasValue)
             _data.Meta.AnalyticsOptIn = updates.AnalyticsOptIn.Value;
 
@@ -816,6 +818,8 @@ public partial class ProfileRepository : Node, IProfileRepository
             update.SelectedDeck = metaDict["selected_deck"].AsString();
         if (metaDict.ContainsKey("selected_summoner"))
             update.SelectedSummoner = metaDict["selected_summoner"].AsString();
+        if (metaDict.ContainsKey("selected_campaign"))
+            update.SelectedCampaign = metaDict["selected_campaign"].AsString();
         if (metaDict.ContainsKey("analytics_opt_in"))
             update.AnalyticsOptIn = metaDict["analytics_opt_in"].AsBool();
         UpdateProfileMeta(update);

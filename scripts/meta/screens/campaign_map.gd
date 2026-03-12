@@ -132,8 +132,8 @@ func _ready() -> void:
 	# Load and display map
 	_refresh_map()
 
-	# Auto-scroll to latest mission (deferred to next frame so nodes are fully laid out)
-	call_deferred("_on_center_latest_pressed")
+	# Center initial map view once nodes are laid out.
+	call_deferred("_center_initial_view")
 
 
 ## Get the color for an edge based on completion state
@@ -581,6 +581,13 @@ func _on_center_latest_pressed() -> void:
 
 	_scroll_to_event(latest_unlocked_id)
 
+func _center_initial_view() -> void:
+	var current_campaign_id: String = CampaignApi.get_current_campaign_id()
+	if StringName(current_campaign_id) == CampaignIDs.TEST_ARENA:
+		_center_on_all_nodes()
+		return
+	_on_center_latest_pressed()
+
 func _find_latest_unlocked_mission() -> String:
 	# Find the first unlocked but not completed node
 	# For graph structures, prioritize nodes further to the right (higher X position)
@@ -622,17 +629,47 @@ func _scroll_to_event(event_id: String) -> void:
 	var node_center_x: float = node.position.x + node.size.x / 2
 	var node_center_y: float = node.position.y + node.size.y / 2
 
-	# Calculate scroll position to center the node in viewport (both X and Y)
+	_set_scroll_centered_on_point(Vector2(node_center_x, node_center_y))
+
+func _center_on_all_nodes() -> void:
+	if event_nodes.is_empty():
+		return
+
+	var min_x: float = INF
+	var min_y: float = INF
+	var max_x: float = -INF
+	var max_y: float = -INF
+
+	for node_variant: Variant in event_nodes.values():
+		if not node_variant is Control:
+			continue
+		var node: Control = node_variant
+		var left: float = node.position.x
+		var top: float = node.position.y
+		var right: float = node.position.x + node.size.x
+		var bottom: float = node.position.y + node.size.y
+
+		min_x = min(min_x, left)
+		min_y = min(min_y, top)
+		max_x = max(max_x, right)
+		max_y = max(max_y, bottom)
+
+	if min_x == INF or min_y == INF:
+		return
+
+	_set_scroll_centered_on_point(Vector2((min_x + max_x) / 2.0, (min_y + max_y) / 2.0))
+
+func _set_scroll_centered_on_point(point: Vector2) -> void:
 	var viewport_width: float = map_scroll.size.x
 	var viewport_height: float = map_scroll.size.y
+	var content_width: float = max(map_container.size.x, map_container.custom_minimum_size.x)
+	var content_height: float = max(map_container.size.y, map_container.custom_minimum_size.y)
+	var max_scroll_x: float = max(content_width - viewport_width, 0.0)
+	var max_scroll_y: float = max(content_height - viewport_height, 0.0)
 
-	var scroll_target_x: float = node_center_x - (viewport_width / 2)
-	scroll_target_x = max(0, scroll_target_x)  # Clamp to valid range
+	var scroll_target_x: float = clampf(point.x - (viewport_width / 2.0), 0.0, max_scroll_x)
+	var scroll_target_y: float = clampf(point.y - (viewport_height / 2.0), 0.0, max_scroll_y)
 
-	var scroll_target_y: float = node_center_y - (viewport_height / 2)
-	scroll_target_y = max(0, scroll_target_y)  # Clamp to valid range
-
-	# Set scroll position (both horizontal and vertical)
 	map_scroll.scroll_horizontal = int(scroll_target_x)
 	map_scroll.scroll_vertical = int(scroll_target_y)
 
@@ -767,6 +804,7 @@ func _on_campaign_selected(campaign_id: String) -> void:
 	if success:
 		_update_campaign_banner_text()
 		_refresh_map()
+		call_deferred("_center_initial_view")
 
 	if campaign_selector_modal:
 		campaign_selector_modal.hide()

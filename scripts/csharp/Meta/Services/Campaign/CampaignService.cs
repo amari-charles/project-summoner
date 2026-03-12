@@ -1,6 +1,7 @@
 using System;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile.Account;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign.Handlers;
 using Fateforged.Meta.Cards;
@@ -207,11 +208,20 @@ public partial class CampaignService : Node
         // Also load graphs for node-based unlock logic
         _graphStore?.InitializeFromCatalog();
 
-        // Set default campaign if none is active
-        if (!GetCurrentCampaignIdTyped().HasValue)
+        // Restore the last selected campaign from profile metadata when available.
+        var persistedCampaignId = _profileRepo?.GetProfileMetadata()?.Meta.SelectedCampaign ?? "";
+        if (
+            !string.IsNullOrEmpty(persistedCampaignId)
+            && Data.Events.CampaignCatalog.HasCampaign(CampaignId.FromString(persistedCampaignId))
+        )
         {
-            SetCurrentCampaign(Data.Events.CampaignIds.Default.Value);
+            SetCurrentCampaign(persistedCampaignId);
+            return;
         }
+
+        // Fallback for first launch / old saves / invalid saved campaign.
+        if (!GetCurrentCampaignIdTyped().HasValue)
+            SetCurrentCampaign(Data.Events.CampaignIds.Default.Value);
     }
 
     /// <summary>Check if a campaign exists.</summary>
@@ -239,6 +249,7 @@ public partial class CampaignService : Node
 
         if (oldId != typedId)
         {
+            _profileRepo?.UpdateProfileMeta(new MetaUpdate { SelectedCampaign = campaignId });
             EmitSignal(SignalName.CampaignChanged, oldId.Value, campaignId);
         }
 
