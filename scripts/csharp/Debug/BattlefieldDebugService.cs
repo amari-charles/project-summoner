@@ -1,5 +1,6 @@
 using Fateforged.Constants;
 using Godot;
+using Fateforged.Simulation.Combat;
 
 namespace Fateforged.Infrastructure.Debug;
 
@@ -35,6 +36,7 @@ public partial class BattlefieldDebugService : Node
     public bool DamageShapeEnabled { get; set; }
     public bool NavigationFootprintEnabled { get; set; }
     public bool ProjectileHitGeometryEnabled { get; set; }
+    public bool SummonerBubbleEnabled { get; set; }
 
     public bool AnyUnitDebugEnabled =>
         HurtboxEnabled
@@ -83,6 +85,7 @@ public partial class BattlefieldDebugService : Node
     public bool IsDebugNavigationFootprintEnabled() => NavigationFootprintEnabled;
 
     public bool IsDebugProjectileHitGeometryEnabled() => ProjectileHitGeometryEnabled;
+    public bool IsDebugSummonerBubbleEnabled() => SummonerBubbleEnabled;
 
     public void SetDebugHurtboxEnabled(bool enabled) => HurtboxEnabled = enabled;
 
@@ -91,12 +94,16 @@ public partial class BattlefieldDebugService : Node
     public void SetDebugEngageRangeEnabled(bool enabled) => EngageRangeEnabled = enabled;
 
     public void SetDebugDamageShapeEnabled(bool enabled) => DamageShapeEnabled = enabled;
+    public void SetDebugNavigationFootprintEnabled(bool enabled) => NavigationFootprintEnabled = enabled;
+    public void SetDebugProjectileHitGeometryEnabled(bool enabled) => ProjectileHitGeometryEnabled = enabled;
+    public void SetDebugSummonerBubbleEnabled(bool enabled) => SummonerBubbleEnabled = enabled;
 
-    public void SetDebugNavigationFootprintEnabled(bool enabled) =>
-        NavigationFootprintEnabled = enabled;
-
-    public void SetDebugProjectileHitGeometryEnabled(bool enabled) =>
-        ProjectileHitGeometryEnabled = enabled;
+    public float GetSummonerMeleeBubbleDefaultRadius() => SummonerMeleeBubble.DefaultRadiusValue;
+    public bool HasSummonerMeleeBubbleOverrideRadius() => SummonerMeleeBubble.HasOverride;
+    public float GetSummonerMeleeBubbleOverrideRadius() => SummonerMeleeBubble.OverrideRadiusValue ?? 0f;
+    public float GetSummonerMeleeBubbleEffectiveRadius() => SummonerMeleeBubble.EffectiveRadius;
+    public void SetSummonerMeleeBubbleOverrideRadius(float radius) => SummonerMeleeBubble.SetOverrideRadius(radius);
+    public void ClearSummonerMeleeBubbleOverrideRadius() => SummonerMeleeBubble.ClearOverrideRadius();
 
     public void ToggleDebugHurtbox() => HurtboxEnabled = !HurtboxEnabled;
 
@@ -105,10 +112,7 @@ public partial class BattlefieldDebugService : Node
     public void ToggleDebugEngageRange() => EngageRangeEnabled = !EngageRangeEnabled;
 
     public void ToggleDebugDamageShape() => DamageShapeEnabled = !DamageShapeEnabled;
-
-    public void ToggleDebugNavigationFootprint() =>
-        NavigationFootprintEnabled = !NavigationFootprintEnabled;
-
-    public void ToggleDebugProjectileHitGeometry() =>
-        ProjectileHitGeometryEnabled = !ProjectileHitGeometryEnabled;
+    public void ToggleDebugNavigationFootprint() => NavigationFootprintEnabled = !NavigationFootprintEnabled;
+    public void ToggleDebugProjectileHitGeometry() => ProjectileHitGeometryEnabled = !ProjectileHitGeometryEnabled;
+    public void ToggleDebugSummonerBubble() => SummonerBubbleEnabled = !SummonerBubbleEnabled;
 }

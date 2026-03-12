@@ -271,12 +271,12 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
-    public void CommitTick_UsesSlots_ForSummonerTargets()
+    public void CommitTick_UsesSlots_ForSummonerTargets_WhenNotYetAttackable()
     {
         var unit = SimTestHelper.CreateMeleeUnit(
             _state,
             team: 0,
-            x: 14f,
+            x: 10f,
             z: 0f,
             attackRange: 2.5f,
             aggroRadius: 20f
@@ -301,7 +301,7 @@ public class SimTargetingCommitTest
         float dx = slotPos!.Value.X - _state.Summoners[1].Position.X;
         float dz = slotPos.Value.Z - _state.Summoners[1].Position.Z;
         float dist = MathF.Sqrt((dx * dx) + (dz * dz));
-        AssertThat(dist).IsLessEqual(unit.AttackRange + 0.05f);
+        AssertThat(dist).IsGreater(SummonerMeleeBubble.EffectiveRadius - 0.05f);
     }
 
     [TestCase]

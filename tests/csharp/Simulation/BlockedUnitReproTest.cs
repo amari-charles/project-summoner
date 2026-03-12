@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
+using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using GdUnit4;
@@ -29,6 +30,7 @@ public class BlockedUnitReproTest
     [BeforeTest]
     public void Setup()
     {
+        SummonerMeleeBubble.ClearOverrideRadius();
         _state = SimTestHelper.CreateBattleState();
         _sim = new Fateforged.Simulation.Simulation(_state);
     }
@@ -424,6 +426,127 @@ public class BlockedUnitReproTest
             e.AttackerUnitId == backline.UnitId
         );
         AssertThat(backlineDamagedSummoner || _state.Summoners[1].CurrentHp < 600f).IsTrue();
+    }
+
+    [TestCase]
+    public void SummonerFocus_AttackableWithoutFreeSlot_StillDamages()
+    {
+        _state.Summoners[1].CurrentHp = 4000f;
+        _state.Summoners[1].MaxHp = 4000f;
+        int summonerTargetId = MatchState.GetSummonerTargetId(team: 1);
+
+        // Fill all currently computed summoner slots with friendly blockers.
+        var blockers = new List<UnitData>();
+        var firstBlocker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 14f,
+            z: -4f,
+            attackRange: 3f,
+            moveSpeed: 0f,
+            damage: 0f
+        );
+        blockers.Add(firstBlocker);
+        bool firstReserved = SimMeleeSlotManager.TryReserveSlot(
+            firstBlocker,
+            _state,
+            summonerTargetId,
+            out _
+        );
+        AssertThat(firstReserved).IsTrue();
+
+        int slotCount = _state.TargetSlotStates[summonerTargetId].Slots.Count;
+        for (int i = 1; i < slotCount; i++)
+        {
+            float z = -4f + (i * 0.24f);
+            blockers.Add(
+                SimTestHelper.CreateMeleeUnit(
+                    _state,
+                    team: 0,
+                    x: 14f,
+                    z: z,
+                    attackRange: 3f,
+                    moveSpeed: 0f,
+                    damage: 0f
+                )
+            );
+        }
+
+        for (int i = 1; i < blockers.Count; i++)
+        {
+            bool reserved = SimMeleeSlotManager.TryReserveSlot(
+                blockers[i],
+                _state,
+                summonerTargetId,
+                out _
+            );
+            AssertThat(reserved).IsTrue();
+        }
+
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 15f,
+            z: 0f,
+            attackRange: 3f,
+            damage: 12f,
+            attackSpeed: 1.0f,
+            moveSpeed: 0f
+        );
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 5.4f;
+        attacker.EngageRectHalfWidth = 2.6f;
+        attacker.EngageRectForwardOffset = 2.1f;
+        attacker.EngageCloseRadius = 2.15f;
+        attacker.LockedTargetUnitId = summonerTargetId;
+        attacker.TargetUnitId = summonerTargetId;
+        attacker.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+
+        var allEvents = new List<SimEvent>();
+        for (int i = 0; i < FiveSeconds; i++)
+            allEvents.AddRange(_sim.Tick(Delta));
+
+        bool attackerDamagedSummoner = SimTestHelper
+            .FindEvents<SummonerDamagedEvent>(allEvents)
+            .Any(e => e.Team == 1 && e.AttackerUnitId == attacker.UnitId);
+        AssertThat(attackerDamagedSummoner).IsTrue();
+    }
+
+    [TestCase]
+    public void SummonerFocus_PebbloomCluster_MultipleAttackersContributeDamage()
+    {
+        _state.Summoners[1].CurrentHp = 1200f;
+        _state.Summoners[1].MaxHp = 1200f;
+
+        var attackers = new List<UnitData>
+        {
+            SimTestHelper.CreateMeleeUnit(_state, 0, x: 16.4f, z: -1.1f, attackRange: 3f, damage: 18f, attackSpeed: 0.9f, moveSpeed: 1.8f),
+            SimTestHelper.CreateMeleeUnit(_state, 0, x: 16.2f, z: 0.0f, attackRange: 3f, damage: 18f, attackSpeed: 0.9f, moveSpeed: 1.8f),
+            SimTestHelper.CreateMeleeUnit(_state, 0, x: 16.4f, z: 1.1f, attackRange: 3f, damage: 18f, attackSpeed: 0.9f, moveSpeed: 1.8f)
+        };
+
+        foreach (var attacker in attackers)
+        {
+            attacker.EngageShape = EngageShape.ForwardRect;
+            attacker.EngageRectLength = 5.4f;
+            attacker.EngageRectHalfWidth = 2.6f;
+            attacker.EngageRectForwardOffset = 2.1f;
+            attacker.EngageCloseRadius = 2.15f;
+        }
+
+        var attackerIds = attackers.Select(u => u.UnitId).ToHashSet();
+        var allEvents = new List<SimEvent>();
+        for (int i = 0; i < TenSeconds; i++)
+            allEvents.AddRange(_sim.Tick(Delta));
+
+        var summonerDamages = SimTestHelper.FindEvents<SummonerDamagedEvent>(allEvents)
+            .Where(e => e.Team == 1 && attackerIds.Contains(e.AttackerUnitId))
+            .ToList();
+        int distinctAttackers = summonerDamages.Select(e => e.AttackerUnitId).Distinct().Count();
+
+        AssertThat(summonerDamages.Count).IsGreater(0);
+        AssertThat(distinctAttackers).IsGreaterEqual(2);
+        AssertThat(_state.Summoners[1].CurrentHp).IsLess(1200f);
     }
 
     /// <summary>

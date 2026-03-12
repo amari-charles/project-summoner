@@ -303,11 +303,18 @@ public static class SimTargeting
     public static bool IsTargetAttackableNow(UnitData unit, int targetId, MatchState state)
     {
         var targetPosition = SimUtils.ResolveTargetPosition(targetId, state);
-        if (!targetPosition.HasValue || !IsWithinEngageDistance(unit, targetPosition.Value))
+        if (!targetPosition.HasValue)
             return false;
 
         if (MatchState.IsSummonerTarget(targetId))
-            return CanAttackPosition(unit, targetPosition.Value);
+        {
+            var engagePosition = ResolveSummonerEngagePosition(unit, targetPosition.Value);
+            return IsWithinEngageDistance(unit, engagePosition) &&
+                   CanAttackPosition(unit, engagePosition);
+        }
+
+        if (!IsWithinEngageDistance(unit, targetPosition.Value))
+            return false;
 
         var target = state.GetAliveUnit(targetId);
         return target != null && CanAttack(unit, target);
@@ -530,6 +537,18 @@ public static class SimTargeting
     /// </summary>
     public static bool CanAttack(UnitData unit, UnitData target) =>
         CanAttackPosition(unit, target.Position);
+
+    /// <summary>
+    /// Summoner melee attackability is evaluated against the closest point on the
+    /// shared summoner bubble, not the summoner center point.
+    /// Non-melee units keep center-point behavior.
+    /// </summary>
+    public static SimVector3 ResolveSummonerEngagePosition(UnitData unit, SimVector3 summonerPosition)
+    {
+        if (unit.UnitType != UnitType.Melee)
+            return summonerPosition;
+        return SummonerMeleeBubble.ResolveClosestPoint(summonerPosition, unit.Position);
+    }
 
     private static EngageShape ResolveEngageShape(UnitData unit)
     {

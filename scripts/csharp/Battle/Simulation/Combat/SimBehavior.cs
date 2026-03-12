@@ -131,6 +131,8 @@ public static class SimBehavior
         bool isSummonerTarget = MatchState.IsSummonerTarget(unit.TargetUnitId);
         UnitData? target = isSummonerTarget ? null : state.GetAliveUnit(unit.TargetUnitId!.Value);
         SimVector3 tPos = targetPos.Value;
+        if (isSummonerTarget)
+            tPos = SimTargeting.ResolveSummonerEngagePosition(unit, tPos);
         int targetId = unit.TargetUnitId!.Value;
 
         // If the target unit died between position resolution and this lookup, re-target next tick

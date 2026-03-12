@@ -1,6 +1,7 @@
 using System;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Fateforged.Infrastructure.Debug;
 using Fateforged.Meta;
 using Fateforged.Session;
 using Fateforged.Simulation;
@@ -145,6 +146,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private float _lastHp;
     private float _lastMaxHp;
     private string[] _lastHandIds = Array.Empty<string>();
+    private MeshInstance3D? _debugSummonerBubbleMarker;
+    private float _debugSummonerBubbleRadius = -1f;
 
     // =========================================================================
     // IDamageableVisual
@@ -204,6 +207,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     {
         if (_activeFeedbackTween != null && _activeFeedbackTween.IsValid())
             _activeFeedbackTween.Kill();
+        FreeDebugSummonerBubbleMarker();
     }
 
     // =========================================================================
@@ -264,6 +268,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
         // Update HP bar
         _hpBar?.UpdateHp(summoner.CurrentHp, summoner.MaxHp);
+        UpdateDebugSummonerBubble();
 
         // Decay recent hits counter (for hit feedback animation speed)
         if (_recentHits > 0)
@@ -632,5 +637,115 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
             cylinder.Radius = HurtboxRadius;
             cylinder.Height = HurtboxHeight;
         }
+    }
+
+    private void UpdateDebugSummonerBubble()
+    {
+        var debugService = BattlefieldDebugService.Instance;
+        if (debugService?.SummonerBubbleEnabled != true)
+        {
+            FreeDebugSummonerBubbleMarker();
+            return;
+        }
+
+        float radius = Mathf.Max(0.1f, debugService.GetSummonerMeleeBubbleEffectiveRadius());
+        bool needsRebuild = _debugSummonerBubbleMarker == null || !Mathf.IsEqualApprox(radius, _debugSummonerBubbleRadius);
+        if (needsRebuild)
+        {
+            FreeDebugSummonerBubbleMarker();
+            _debugSummonerBubbleMarker = CreateDebugHemisphere(
+                radius,
+                new Color(0.3f, 0.9f, 1.0f, 0.35f),
+                97);
+            AddChild(_debugSummonerBubbleMarker);
+            _debugSummonerBubbleRadius = radius;
+        }
+
+        if (_debugSummonerBubbleMarker == null)
+            return;
+
+        _debugSummonerBubbleMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.03f, GlobalPosition.Z);
+        _debugSummonerBubbleMarker.Rotation = Vector3.Zero;
+    }
+
+    private static MeshInstance3D CreateDebugHemisphere(float radius, Color color, int renderPriority)
+    {
+        return new MeshInstance3D
+        {
+            Mesh = CreateHemisphereMesh(radius),
+            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+        };
+    }
+
+    private static ArrayMesh CreateHemisphereMesh(float radius)
+    {
+        const int latSegments = 10;
+        const int lonSegments = 20;
+
+        var surfaceTool = new SurfaceTool();
+        surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
+
+        for (int lat = 0; lat < latSegments; lat++)
+        {
+            float phi0 = (lat / (float)latSegments) * (Mathf.Pi * 0.5f);
+            float phi1 = ((lat + 1) / (float)latSegments) * (Mathf.Pi * 0.5f);
+
+            for (int lon = 0; lon < lonSegments; lon++)
+            {
+                float theta0 = (lon / (float)lonSegments) * Mathf.Tau;
+                float theta1 = ((lon + 1) / (float)lonSegments) * Mathf.Tau;
+
+                Vector3 v00 = HemispherePoint(radius, phi0, theta0);
+                Vector3 v10 = HemispherePoint(radius, phi1, theta0);
+                Vector3 v11 = HemispherePoint(radius, phi1, theta1);
+                Vector3 v01 = HemispherePoint(radius, phi0, theta1);
+
+                surfaceTool.AddVertex(v00);
+                surfaceTool.AddVertex(v10);
+                surfaceTool.AddVertex(v11);
+
+                surfaceTool.AddVertex(v00);
+                surfaceTool.AddVertex(v11);
+                surfaceTool.AddVertex(v01);
+            }
+        }
+
+        surfaceTool.GenerateNormals();
+        return surfaceTool.Commit();
+    }
+
+    private static Vector3 HemispherePoint(float radius, float phi, float theta)
+    {
+        float sinPhi = Mathf.Sin(phi);
+        float cosPhi = Mathf.Cos(phi);
+        float sinTheta = Mathf.Sin(theta);
+        float cosTheta = Mathf.Cos(theta);
+        return new Vector3(
+            radius * sinPhi * cosTheta,
+            radius * cosPhi,
+            radius * sinPhi * sinTheta
+        );
+    }
+
+    private static StandardMaterial3D CreateDebugMaterial(Color color, int renderPriority)
+    {
+        return new StandardMaterial3D
+        {
+            AlbedoColor = color,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = renderPriority
+        };
+    }
+
+    private void FreeDebugSummonerBubbleMarker()
+    {
+        if (_debugSummonerBubbleMarker != null)
+            _debugSummonerBubbleMarker.QueueFree();
+        _debugSummonerBubbleMarker = null;
+        _debugSummonerBubbleRadius = -1f;
     }
 }

@@ -30,6 +30,7 @@ var _attack_range_button: Button
 var _damage_shape_button: Button
 var _navigation_footprint_button: Button
 var _projectile_hit_geometry_button: Button
+var _summoner_bubble_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
 var _camera_auto_log_button: Button
@@ -259,6 +260,13 @@ func _create_ui() -> void:
 	_projectile_hit_geometry_button.pressed.connect(_on_projectile_hit_geometry_toggle_pressed)
 	vbox.add_child(_projectile_hit_geometry_button)
 
+	# Summoner Bubble toggle button
+	_summoner_bubble_button = Button.new()
+	_summoner_bubble_button.text = "Summoner Bubble: Off"
+	_summoner_bubble_button.custom_minimum_size = Vector2(200, 32)
+	_summoner_bubble_button.pressed.connect(_on_summoner_bubble_toggle_pressed)
+	vbox.add_child(_summoner_bubble_button)
+
 	# Spawn Boundary Bypass toggle button
 	_spawn_boundary_button = Button.new()
 	_spawn_boundary_button.text = "Spawn Boundary: On"
@@ -433,6 +441,13 @@ func _update_button_states() -> void:
 		var state: String = "On" if enabled else "Off"
 		_projectile_hit_geometry_button.text = "Projectile Hit Radius: %s" % state
 
+	if _summoner_bubble_button and _unit_debug:
+		var enabled: bool = false
+		if _unit_debug.has_method("IsDebugSummonerBubbleEnabled"):
+			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugSummonerBubbleEnabled"), false)
+		var state: String = "On" if enabled else "Off"
+		_summoner_bubble_button.text = "Summoner Bubble: %s" % state
+
 	if _spawn_boundary_button:
 		var debug_service: Node = _get_battlefield_debug_service()
 		if debug_service and debug_service.has_method("IsSpawnBoundaryBypassEnabled"):
@@ -564,6 +579,16 @@ func _on_projectile_hit_geometry_toggle_pressed() -> void:
 	if not _unit_debug or not _unit_debug.has_method("ToggleDebugProjectileHitGeometry"):
 		return
 	_unit_debug.call("ToggleDebugProjectileHitGeometry")
+	_update_button_states()
+	_save_settings()
+
+
+func _on_summoner_bubble_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugSummonerBubble"):
+		return
+	_unit_debug.call("ToggleDebugSummonerBubble")
 	_update_button_states()
 	_save_settings()
 
@@ -971,6 +996,8 @@ func _load_settings() -> void:
 			_unit_debug.call("SetDebugNavigationFootprintEnabled", navigation_footprint_enabled)
 		if _unit_debug.has_method("SetDebugProjectileHitGeometryEnabled"):
 			_unit_debug.call("SetDebugProjectileHitGeometryEnabled", config.get_value("debug_menu", "projectile_hit_geometry", false))
+		if _unit_debug.has_method("SetDebugSummonerBubbleEnabled"):
+			_unit_debug.call("SetDebugSummonerBubbleEnabled", config.get_value("debug_menu", "summoner_bubble", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
 	_camera_auto_log_enabled = config.get_value("debug_menu", "camera_auto_log", false)
 	_camera_auto_log_elapsed = 0.0
@@ -1001,6 +1028,8 @@ func _save_settings() -> void:
 		config.set_value("debug_menu", "navigation_footprint", navigation_footprint_enabled)
 		if _unit_debug.has_method("IsDebugProjectileHitGeometryEnabled"):
 			config.set_value("debug_menu", "projectile_hit_geometry", _unit_debug.call("IsDebugProjectileHitGeometryEnabled"))
+		if _unit_debug.has_method("IsDebugSummonerBubbleEnabled"):
+			config.set_value("debug_menu", "summoner_bubble", _unit_debug.call("IsDebugSummonerBubbleEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 	config.set_value("debug_menu", "camera_auto_log", _camera_auto_log_enabled)
 

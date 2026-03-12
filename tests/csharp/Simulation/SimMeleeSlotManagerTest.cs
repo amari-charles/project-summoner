@@ -1,5 +1,6 @@
 namespace Fateforged.Tests.Simulation;
 
+using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
@@ -19,6 +20,7 @@ public class SimMeleeSlotManagerTest
     public void Setup()
     {
         _state = SimTestHelper.CreateBattleState();
+        SummonerMeleeBubble.ClearOverrideRadius();
     }
 
     [TestCase]
@@ -143,5 +145,92 @@ public class SimMeleeSlotManagerTest
         AssertThat(slotPos.HasValue).IsTrue();
         // Attacker is left of target, so attacker-facing frontage should also be left of target.
         AssertThat(slotPos!.Value.X).IsLess(target.Position.X);
+    }
+
+    [TestCase]
+    public void SummonerSlotTopology_UsesSharedBubbleRadiusOverride()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 14f, z: 0f, attackRange: 6f);
+        int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
+
+        var baselineState = SimMeleeSlotManager.GetOrCreateTargetState(_state, summonerTarget, attacker, minSlots: 1);
+        int baselineSlotCount = baselineState.Slots.Count;
+
+        SummonerMeleeBubble.SetOverrideRadius(7.2f);
+        var overriddenState = SimMeleeSlotManager.GetOrCreateTargetState(_state, summonerTarget, attacker, minSlots: 1);
+
+        AssertThat(overriddenState.Slots.Count).IsGreater(baselineSlotCount);
+    }
+
+    [TestCase]
+    public void TryReserveSlot_ExcludedSlotId_PicksDifferentFreeSlot()
+    {
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 4f, z: 0f);
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
+
+        bool reserved = SimMeleeSlotManager.TryReserveSlot(unit, _state, target.UnitId, out int initialSlot, minSlots: 3);
+        AssertThat(reserved).IsTrue();
+
+        SimMeleeSlotManager.ReleaseUnitSlots(unit, _state);
+
+        bool reservedDifferent = SimMeleeSlotManager.TryReserveSlot(
+            unit,
+            _state,
+            target.UnitId,
+            out int reboundSlot,
+            minSlots: 3,
+            excludedSlotId: initialSlot
+        );
+        AssertThat(reservedDifferent).IsTrue();
+        AssertThat(reboundSlot).IsNotEqual(initialSlot);
+    }
+
+    [TestCase]
+    public void SummonerSlots_UseDeterministicWorldAxis()
+    {
+        int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
+        var attackerA = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 14f, z: -3f, attackRange: 3f);
+        var attackerB = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 17f, z: 4f, attackRange: 3f);
+
+        AssertThat(SimMeleeSlotManager.TryReserveSlot(attackerA, _state, summonerTarget, out _)).IsTrue();
+        AssertThat(SimMeleeSlotManager.TryReserveSlot(attackerB, _state, summonerTarget, out _)).IsTrue();
+
+        var slotState = SimMeleeSlotManager.GetOrCreateTargetState(_state, summonerTarget, attackerA);
+        AssertThat(MathF.Abs(slotState.LayoutAxis.X - (-1f))).IsLess(0.0001f);
+        AssertThat(MathF.Abs(slotState.LayoutAxis.Z)).IsLess(0.0001f);
+
+        // Move attackers to a different centroid shape; axis should remain stable.
+        attackerA.Position = new SimVector3(19f, 0f, 5f);
+        attackerB.Position = new SimVector3(19f, 0f, -5f);
+        slotState = SimMeleeSlotManager.GetOrCreateTargetState(_state, summonerTarget, attackerA);
+        AssertThat(MathF.Abs(slotState.LayoutAxis.X - (-1f))).IsLess(0.0001f);
+        AssertThat(MathF.Abs(slotState.LayoutAxis.Z)).IsLess(0.0001f);
+    }
+
+    [TestCase]
+    public void SummonerSlots_UseBubbleFrontage_NotAttackRangeClamp()
+    {
+        int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 14f,
+            z: 0f,
+            attackRange: 3f
+        );
+
+        bool reserved = SimMeleeSlotManager.TryReserveSlot(attacker, _state, summonerTarget, out _);
+        AssertThat(reserved).IsTrue();
+
+        var slotPos = SimMeleeSlotManager.GetReservedSlotWorldPosition(attacker, _state);
+        AssertThat(slotPos.HasValue).IsTrue();
+
+        var summonerPos = _state.Summoners[1].Position;
+        float dx = slotPos!.Value.X - summonerPos.X;
+        float dz = slotPos.Value.Z - summonerPos.Z;
+        float slotRadius = MathF.Sqrt((dx * dx) + (dz * dz));
+
+        AssertThat(slotRadius).IsGreater(SummonerMeleeBubble.EffectiveRadius - 0.05f);
+        AssertThat(slotRadius).IsGreater(attacker.AttackRange);
     }
 }

@@ -15,6 +15,8 @@ public static class SimCombatStateMachine
 {
     private const float ProgressEpsilon = 0.01f;
     private const float ProgressRecoveryRate = 2.0f;
+    private const float SummonerSlotRebindNoProgressThresholdSeconds = 0.35f;
+    private const float SummonerSlotRebindBlockedThresholdSeconds = 0.22f;
 
     public static SimBehavior.BehaviorResult Tick(
         UnitData unit,
@@ -43,7 +45,11 @@ public static class SimCombatStateMachine
         int targetId = unit.TargetUnitId!.Value;
         if (unit.UnitType == UnitType.Melee)
         {
-            if (!EnsureMeleeSlot(unit, state, targetId, delta))
+            bool summonerAttackableNow =
+                MatchState.IsSummonerTarget(targetId)
+                && SimTargeting.IsTargetAttackableNow(unit, targetId, state);
+
+            if (!summonerAttackableNow && !EnsureMeleeSlot(unit, state, targetId, delta))
             {
                 unit.BehaviorState = BehaviorState.Chasing;
                 SimAttackLoop.Cancel(unit, state);
@@ -54,13 +60,15 @@ public static class SimCombatStateMachine
                 };
             }
 
-            if (!TryAdvanceToReservedSlot(unit, state, out var toSlotBehavior))
+            if (!summonerAttackableNow && !TryAdvanceToReservedSlot(unit, state, out var toSlotBehavior))
             {
                 SimAttackLoop.Cancel(unit, state);
                 return toSlotBehavior;
             }
 
-            SimMeleeSlotManager.SetOccupied(unit, state);
+            if (!summonerAttackableNow)
+                SimMeleeSlotManager.SetOccupied(unit, state);
+
             ResetProgressTracking(unit);
         }
         else
@@ -227,6 +235,36 @@ public static class SimCombatStateMachine
             && unit.ReservedSlotId.HasValue;
         if (hasReservation)
         {
+            if (ShouldRebindSummonerSlot(unit, state, targetId))
+            {
+                int previousSlotId = unit.ReservedSlotId!.Value;
+                SimMeleeSlotManager.ReleaseUnitSlots(unit, state);
+
+                bool reboundToNewSlot = SimMeleeSlotManager.TryReserveSlot(
+                    unit,
+                    state,
+                    targetId,
+                    out _,
+                    excludedSlotId: previousSlotId
+                );
+                if (!reboundToNewSlot)
+                {
+                    reboundToNewSlot = SimMeleeSlotManager.TryReserveSlot(
+                        unit,
+                        state,
+                        targetId,
+                        out _
+                    );
+                }
+
+                if (reboundToNewSlot)
+                {
+                    unit.SlotWaitTimer = 0f;
+                    ResetProgressTracking(unit);
+                    return true;
+                }
+            }
+
             unit.SlotWaitTimer = MathF.Max(0f, unit.SlotWaitTimer - (delta * ProgressRecoveryRate));
             return true;
         }
@@ -316,6 +354,22 @@ public static class SimCombatStateMachine
 
         return unit.NoProgressTimer >= unit.UnreachableTimeoutSeconds
             || unit.UnreachableTimer >= unit.UnreachableTimeoutSeconds;
+    }
+
+    private static bool ShouldRebindSummonerSlot(UnitData unit, MatchState state, int targetId)
+    {
+        if (!MatchState.IsSummonerTarget(targetId))
+            return false;
+        if (!unit.ReservedSlotId.HasValue || unit.OccupiedSlotId.HasValue)
+            return false;
+        if (SimTargeting.IsTargetAttackableNow(unit, targetId, state))
+            return false;
+
+        bool blockedByCrowd = unit.NavigationBlockedTime >= SummonerSlotRebindBlockedThresholdSeconds
+            || unit.NavigationYieldTimer > 0f
+            || unit.NavigationEscapeTimer > 0f;
+        bool noProgress = unit.NoProgressTimer >= SummonerSlotRebindNoProgressThresholdSeconds;
+        return blockedByCrowd || noProgress;
     }
 
     private static bool IsOutsideAggroChaseRadius(UnitData unit, int targetId, MatchState state)

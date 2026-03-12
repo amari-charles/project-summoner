@@ -18,6 +18,7 @@ public class SimTargetingTest
     public void Setup()
     {
         _state = SimTestHelper.CreateBattleState();
+        SummonerMeleeBubble.ClearOverrideRadius();
     }
 
     // =========================================================================
@@ -439,6 +440,40 @@ public class SimTargetingTest
 
         AssertThat(targetId.HasValue).IsTrue();
         AssertThat(targetId!.Value).IsEqual(frontAttackable.UnitId);
+    }
+
+    [TestCase]
+    public void IsTargetAttackableNow_ForwardRectSummoner_UsesBubbleEdgeForNearSide()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18.1f, z: 1.9f, attackRange: 3f, aggroRadius: 20f);
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 2.7f;
+        attacker.EngageRectHalfWidth = 0.8f;
+        attacker.EngageRectForwardOffset = 0f;
+        attacker.EngageCloseRadius = 0.4f;
+        attacker.IsFacingRight = true;
+
+        int summonerTarget = MatchState.GetSummonerTargetId(1);
+        bool canAttack = SimTargeting.IsTargetAttackableNow(attacker, summonerTarget, _state);
+
+        AssertThat(canAttack).IsTrue();
+    }
+
+    [TestCase]
+    public void IsTargetAttackableNow_ForwardRectSummoner_OutsideBubbleStillRejected()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18.1f, z: 7.0f, attackRange: 3f, aggroRadius: 20f);
+        attacker.EngageShape = EngageShape.ForwardRect;
+        attacker.EngageRectLength = 2.7f;
+        attacker.EngageRectHalfWidth = 0.8f;
+        attacker.EngageRectForwardOffset = 0f;
+        attacker.EngageCloseRadius = 0.4f;
+        attacker.IsFacingRight = true;
+
+        int summonerTarget = MatchState.GetSummonerTargetId(1);
+        bool canAttack = SimTargeting.IsTargetAttackableNow(attacker, summonerTarget, _state);
+
+        AssertThat(canAttack).IsFalse();
     }
 
     // =========================================================================
