@@ -44,6 +44,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private MeshInstance3D? _debugEngageRangeMarker;
     private MeshInstance3D? _debugEngageRangeSecondaryMarker;
     private MeshInstance3D? _debugDamageShapeMarker;
+    private MeshInstance3D? _debugDamageShapeSecondaryMarker;
     private MeshInstance3D? _debugNavigationFootprintMarker;
     private int _debugEngageSignature;
     private float _debugNavigationFootprintRadius = -1f;
@@ -231,6 +232,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             || _debugEngageRangeMarker != null
             || _debugEngageRangeSecondaryMarker != null
             || _debugDamageShapeMarker != null
+            || _debugDamageShapeSecondaryMarker != null
             || _debugNavigationFootprintMarker != null;
 
         if (!anyDebugEnabled && !anyMarkerExists)
@@ -261,7 +263,10 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (BattlefieldDebugService.Instance?.DamageShapeEnabled == true)
             UpdateDebugDamageShapeMarker(unitData);
         else
+        {
             FreeMarker(ref _debugDamageShapeMarker);
+            FreeMarker(ref _debugDamageShapeSecondaryMarker);
+        }
 
         if (BattlefieldDebugService.Instance?.NavigationFootprintEnabled == true)
             UpdateDebugNavigationFootprintMarker(unitData);
@@ -531,6 +536,17 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (shapeSpec.Kind == DamageShapeMarkerKind.None)
         {
             FreeMarker(ref _debugDamageShapeMarker);
+            FreeMarker(ref _debugDamageShapeSecondaryMarker);
+            _debugDamageShapeSignature = 0;
+            return;
+        }
+
+        bool isForwardOffsetCorridor =
+            shapeSpec.Kind == DamageShapeMarkerKind.Corridor && shapeSpec.ForwardOffset > 0.01f;
+        if (isForwardOffsetCorridor && !IsDamageShapeInAttackWindow(unitData))
+        {
+            FreeMarker(ref _debugDamageShapeMarker);
+            FreeMarker(ref _debugDamageShapeSecondaryMarker);
             _debugDamageShapeSignature = 0;
             return;
         }
@@ -545,10 +561,24 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                     : CreateDebugCorridor(
                         shapeSpec.Length,
                         shapeSpec.HalfWidth,
-                        new Color(0.2f, 0.8f, 1.0f, 0.24f),
+                        isForwardOffsetCorridor
+                            ? new Color(0.2f, 0.8f, 1.0f, 0.09f)
+                            : new Color(0.2f, 0.8f, 1.0f, 0.24f),
                         97
                     );
             AddChild(_debugDamageShapeMarker);
+
+            FreeMarker(ref _debugDamageShapeSecondaryMarker);
+            if (isForwardOffsetCorridor)
+            {
+                _debugDamageShapeSecondaryMarker = CreateDebugCorridorOutline(
+                    shapeSpec.Length,
+                    shapeSpec.HalfWidth,
+                    new Color(0.2f, 0.8f, 1.0f, 0.55f),
+                    98
+                );
+                AddChild(_debugDamageShapeSecondaryMarker);
+            }
             _debugDamageShapeSignature = signature;
         }
 
@@ -577,6 +607,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                 );
             }
             _debugDamageShapeMarker.Rotation = Vector3.Zero;
+            FreeMarker(ref _debugDamageShapeSecondaryMarker);
             return;
         }
 
@@ -592,6 +623,18 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             Mathf.Atan2(direction.Z, direction.X),
             0f
         );
+        if (_debugDamageShapeSecondaryMarker != null)
+        {
+            _debugDamageShapeSecondaryMarker.GlobalPosition = _debugDamageShapeMarker.GlobalPosition;
+            _debugDamageShapeSecondaryMarker.Rotation = _debugDamageShapeMarker.Rotation;
+        }
+    }
+
+    private static bool IsDamageShapeInAttackWindow(UnitData unitData)
+    {
+        return unitData.AttackPhase != AttackPhase.None
+            || unitData.BehaviorState == BehaviorState.Attacking
+            || unitData.AttackAnimationTimer > 0f;
     }
 
     private void UpdateDebugNavigationFootprintMarker(UnitData unitData)
@@ -873,6 +916,41 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         return mesh;
     }
 
+    private static MeshInstance3D CreateDebugCorridorOutline(
+        float length,
+        float halfWidth,
+        Color color,
+        int renderPriority
+    )
+    {
+        float halfLen = Mathf.Max(0.05f, length * 0.5f);
+        float halfW = Mathf.Max(0.05f, halfWidth);
+        const float y = 0.031f;
+        var mesh = new ImmediateMesh();
+        var mat = CreateDebugMaterial(color, renderPriority);
+
+        mesh.SurfaceBegin(Mesh.PrimitiveType.Lines, mat);
+        var p0 = new Vector3(-halfLen, y, -halfW);
+        var p1 = new Vector3(-halfLen, y, halfW);
+        var p2 = new Vector3(halfLen, y, halfW);
+        var p3 = new Vector3(halfLen, y, -halfW);
+        mesh.SurfaceAddVertex(p0);
+        mesh.SurfaceAddVertex(p1);
+        mesh.SurfaceAddVertex(p1);
+        mesh.SurfaceAddVertex(p2);
+        mesh.SurfaceAddVertex(p2);
+        mesh.SurfaceAddVertex(p3);
+        mesh.SurfaceAddVertex(p3);
+        mesh.SurfaceAddVertex(p0);
+        mesh.SurfaceEnd();
+
+        return new MeshInstance3D
+        {
+            Mesh = mesh,
+            MaterialOverride = mat,
+        };
+    }
+
     private static MeshInstance3D CreateDebugCone(
         float radius,
         float halfAngleDegrees,
@@ -957,6 +1035,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         FreeMarker(ref _debugTargetPointMarker);
         ClearEngageMarkers();
         FreeMarker(ref _debugDamageShapeMarker);
+        FreeMarker(ref _debugDamageShapeSecondaryMarker);
         FreeMarker(ref _debugNavigationFootprintMarker);
         _debugNavigationFootprintRadius = -1f;
         _debugDamageShapeSignature = 0;

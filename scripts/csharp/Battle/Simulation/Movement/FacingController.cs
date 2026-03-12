@@ -49,13 +49,20 @@ public static class FacingController
                 return;
         }
 
-        if (desiredFacing == unit.IsFacingRight)
-            return;
-        if (unit.FacingLockTimer > 0f)
+        ApplyFacing(unit, desiredFacing);
+    }
+
+    public static void UpdateTowardTarget(UnitData unit, int? targetId, MatchState state)
+    {
+        var targetPos = SimUtils.ResolveTargetPosition(targetId, state);
+        if (!targetPos.HasValue)
             return;
 
-        unit.IsFacingRight = desiredFacing;
-        unit.FacingLockTimer = FacingSwitchHoldSeconds;
+        var toTarget = targetPos.Value - unit.Position;
+        if (MathF.Abs(toTarget.X) < StrafeTargetXDeadZone)
+            return;
+
+        ApplyFacing(unit, toTarget.X > 0f);
     }
 
     private static bool ResolveDirectionalFacing(UnitData unit, SimVector3 facingDirection)
@@ -80,5 +87,16 @@ public static class FacingController
             return unit.IsFacingRight;
 
         return toTarget.X > 0f;
+    }
+
+    private static void ApplyFacing(UnitData unit, bool desiredFacing)
+    {
+        if (desiredFacing == unit.IsFacingRight)
+            return;
+        if (unit.FacingLockTimer > 0f)
+            return;
+
+        unit.IsFacingRight = desiredFacing;
+        unit.FacingLockTimer = FacingSwitchHoldSeconds;
     }
 }

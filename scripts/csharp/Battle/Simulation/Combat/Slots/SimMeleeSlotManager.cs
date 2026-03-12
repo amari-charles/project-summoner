@@ -189,12 +189,6 @@ public static class SimMeleeSlotManager
         int slotCount = Math.Max(Math.Max(minSlots, 1), computedSlots);
         if (MatchState.IsSummonerTarget(targetId))
             slotCount = Math.Max(slotCount, SummonerMinSlots);
-
-        if (slotState.Slots.Count == slotCount)
-            return;
-
-        // Rebuild topology deterministically.
-        slotState.Slots.Clear();
         float desiredOrbitRadius = MathF.Max(targetRadius + (attackerRadius * 0.9f), 0.2f);
         if (
             attacker.EngageShape == EngageShape.ForwardRect
@@ -217,11 +211,20 @@ public static class SimMeleeSlotManager
             float maxReachableOrbitRadius = MathF.Max(0.2f, attacker.AttackRange * 0.92f);
             orbitRadius = MathF.Min(orbitRadius, maxReachableOrbitRadius);
         }
+
+        bool slotCountChanged = slotState.Slots.Count != slotCount;
+        bool orbitRadiusChanged = MathF.Abs(slotState.OrbitRadius - orbitRadius) > 0.001f;
+        if (!slotCountChanged && !orbitRadiusChanged)
+            return;
+
+        // Rebuild topology deterministically.
+        slotState.Slots.Clear();
         var offsets = BuildSlotOffsets(slotCount, orbitRadius);
         for (int i = 0; i < offsets.Count; i++)
         {
             slotState.Slots.Add(new MeleeSlotEntry { SlotId = i, SlotOffset = offsets[i] });
         }
+        slotState.OrbitRadius = orbitRadius;
     }
 
     private static List<SimVector3> BuildSlotOffsets(int slotCount, float radius)

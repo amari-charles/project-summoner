@@ -108,6 +108,10 @@ public static class SimMovement
     {
         if (behavior.Movement == MovementResult.None || unit.AttackPhase != AttackPhase.None)
         {
+            int? facingTargetId = unit.AttackPhaseLockTargetId ?? unit.TargetUnitId;
+            if (facingTargetId.HasValue && MatchState.IsSummonerTarget(facingTargetId))
+                FacingController.UpdateTowardTarget(unit, facingTargetId, state);
+
             BlockedNavigationController.ResetState(unit);
             unit.Velocity = SimVector3.Zero;
             SimOverlapResolver.Correct(unit, state);

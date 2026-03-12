@@ -163,6 +163,26 @@ public class SimMeleeSlotManagerTest
     }
 
     [TestCase]
+    public void SummonerSlotTopology_RebuildsWhenBubbleRadiusChangesWithoutSlotCountDelta()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 14f, z: 0f, attackRange: 6f);
+        attacker.NavigationRadius = 1.2f;
+        int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
+
+        SummonerMeleeBubble.SetOverrideRadius(5.40f);
+        var baselineState = SimMeleeSlotManager.GetOrCreateTargetState(_state, summonerTarget, attacker, minSlots: 1);
+        int baselineSlotCount = baselineState.Slots.Count;
+        float baselineRadius = baselineState.Slots[0].SlotOffset.Length();
+
+        SummonerMeleeBubble.SetOverrideRadius(5.45f);
+        var updatedState = SimMeleeSlotManager.GetOrCreateTargetState(_state, summonerTarget, attacker, minSlots: 1);
+        float updatedRadius = updatedState.Slots[0].SlotOffset.Length();
+
+        AssertThat(updatedState.Slots.Count).IsEqual(baselineSlotCount);
+        AssertThat(updatedRadius).IsGreater(baselineRadius + 0.03f);
+    }
+
+    [TestCase]
     public void TryReserveSlot_ExcludedSlotId_PicksDifferentFreeSlot()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 4f, z: 0f);
