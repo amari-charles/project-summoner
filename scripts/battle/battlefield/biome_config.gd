@@ -4,7 +4,9 @@ class_name BiomeConfig
 ## Visual theme configuration for battlefield environments
 ## Defines textures, colors, lighting for a specific biome (summer, winter, desert, etc.)
 const CHECKER_PILLARS_NODE_NAME: StringName = &"CheckerPillars"
-const CHECKER_PILLAR_SHADER: Shader = preload("res://shaders/battle/checker_pillar.gdshader")
+const CHECKER_PILLARS_SIDES_NODE_NAME: StringName = &"Sides"
+const CHECKER_PILLARS_TOPS_NODE_NAME: StringName = &"Tops"
+const TOP_SURFACE_Y_OFFSET: float = 0.005
 
 @export_group("Identification")
 @export var biome_id: String = "unknown"
@@ -88,15 +90,24 @@ func _build_checker_tile_pillars(battlefield: Node3D) -> bool:
 	var tile_size_x: float = max(ground_size.x / float(tile_count_x), 0.01)
 	var tile_size_z: float = max(ground_size.y / float(tile_count_z), 0.01)
 	var pillar_height: float = max(min(tile_size_x, tile_size_z) * max(checker_tile_pillar_height_ratio, 0.01), 0.01)
+	var tile_count_total: int = tile_count_x * tile_count_z
 
-	var box_mesh: BoxMesh = BoxMesh.new()
-	box_mesh.size = Vector3(tile_size_x, pillar_height, tile_size_z)
+	var side_mesh: BoxMesh = BoxMesh.new()
+	side_mesh.size = Vector3(tile_size_x, pillar_height, tile_size_z)
+	var top_mesh: PlaneMesh = PlaneMesh.new()
+	top_mesh.size = Vector2(tile_size_x, tile_size_z)
 
-	var multimesh: MultiMesh = MultiMesh.new()
-	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.use_custom_data = true
-	multimesh.mesh = box_mesh
-	multimesh.instance_count = tile_count_x * tile_count_z
+	var sides_multimesh: MultiMesh = MultiMesh.new()
+	sides_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	sides_multimesh.use_colors = true
+	sides_multimesh.mesh = side_mesh
+	sides_multimesh.instance_count = tile_count_total
+
+	var tops_multimesh: MultiMesh = MultiMesh.new()
+	tops_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	tops_multimesh.use_colors = true
+	tops_multimesh.mesh = top_mesh
+	tops_multimesh.instance_count = tile_count_total
 
 	var pillar_colors: Array[Color] = _resolve_checker_palette(texture_image)
 	var color_a: Color = pillar_colors[0]
@@ -108,30 +119,55 @@ func _build_checker_tile_pillars(battlefield: Node3D) -> bool:
 	var instance_idx: int = 0
 	for z_idx: int in range(tile_count_z):
 		for x_idx: int in range(tile_count_x):
-			var transform: Transform3D = Transform3D.IDENTITY
-			transform.origin = Vector3(
+			var center: Vector3 = Vector3(
 				min_x + float(x_idx) * tile_size_x,
-				y,
+				0.0,
 				min_z + float(z_idx) * tile_size_z
 			)
-			multimesh.set_instance_transform(instance_idx, transform)
-			var parity: float = 0.0 if ((x_idx + z_idx) % 2 == 0) else 1.0
-			multimesh.set_instance_custom_data(instance_idx, Color(parity, 0.0, 0.0, 1.0))
+			var top_color: Color = color_a if ((x_idx + z_idx) % 2 == 0) else color_b
+			var side_color: Color = color_b if ((x_idx + z_idx) % 2 == 0) else color_a
+
+			var side_transform: Transform3D = Transform3D.IDENTITY
+			side_transform.origin = Vector3(center.x, y, center.z)
+			sides_multimesh.set_instance_transform(instance_idx, side_transform)
+			sides_multimesh.set_instance_color(instance_idx, side_color)
+
+			var top_transform: Transform3D = Transform3D.IDENTITY
+			top_transform.origin = Vector3(center.x, TOP_SURFACE_Y_OFFSET, center.z)
+			tops_multimesh.set_instance_transform(instance_idx, top_transform)
+			tops_multimesh.set_instance_color(instance_idx, top_color)
 			instance_idx += 1
 
-	var material: ShaderMaterial = ShaderMaterial.new()
-	material.shader = CHECKER_PILLAR_SHADER
-	material.set_shader_parameter("color_a", color_a)
-	material.set_shader_parameter("color_b", color_b)
+	var side_material: StandardMaterial3D = StandardMaterial3D.new()
+	side_material.vertex_color_use_as_albedo = true
+	side_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	side_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	side_material.cull_mode = BaseMaterial3D.CULL_BACK
 
-	var pillars: MultiMeshInstance3D = MultiMeshInstance3D.new()
-	pillars.name = String(CHECKER_PILLARS_NODE_NAME)
-	pillars.multimesh = multimesh
-	pillars.material_override = material
+	var top_material: StandardMaterial3D = StandardMaterial3D.new()
+	top_material.vertex_color_use_as_albedo = true
+	top_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	top_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	top_material.cull_mode = BaseMaterial3D.CULL_BACK
+
+	var sides: MultiMeshInstance3D = MultiMeshInstance3D.new()
+	sides.name = String(CHECKER_PILLARS_SIDES_NODE_NAME)
+	sides.multimesh = sides_multimesh
+	sides.material_override = side_material
+
+	var tops: MultiMeshInstance3D = MultiMeshInstance3D.new()
+	tops.name = String(CHECKER_PILLARS_TOPS_NODE_NAME)
+	tops.multimesh = tops_multimesh
+	tops.material_override = top_material
+
+	var pillars_root: Node3D = Node3D.new()
+	pillars_root.name = String(CHECKER_PILLARS_NODE_NAME)
+	pillars_root.add_child(sides)
+	pillars_root.add_child(tops)
 
 	var ground_layer_node: Node = battlefield.get_node_or_null("GroundLayer")
 	var parent: Node = ground_layer_node if ground_layer_node else battlefield
-	parent.add_child(pillars)
+	parent.add_child(pillars_root)
 	return true
 
 func _clear_checker_tile_pillars(battlefield: Node3D) -> void:
