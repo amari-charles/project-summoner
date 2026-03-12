@@ -91,6 +91,26 @@ If current range is -30° to +30° (60° spread centered at 0°), shift to somet
 
 ---
 
+#### Fix Puff Lateral Movement Near Summoner/Enemy Unit
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Movement
+**Effort:** Small
+
+**Description:**
+When Puff is lateral to the enemy summoner or lateral to an enemy unit, movement can become unstable (side-sliding, over-correction, or brief stall). Stabilize lateral movement behavior so Puff maintains clear approach/orbit intent and does not jitter.
+
+**Requirements:**
+- Reproduce and isolate lateral-position cases against both summoner and unit targets.
+- Adjust movement steering/target resolver logic so lateral approach remains smooth and deterministic.
+- Add regression coverage for Puff lateral-to-summoner and lateral-to-unit scenarios.
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Movement/MovementTargetResolver.cs`
+- `scripts/csharp/Battle/Simulation/Movement/ContextSteering.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+
+---
+
 ### 🟢 LOW PRIORITY
 
 #### Refactor Character-Specific Animation Logic to Composition

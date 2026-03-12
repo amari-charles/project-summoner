@@ -30,7 +30,7 @@ public static class SimUtils
         {
             int team = MatchState.GetSummonerTeamFromTargetId(targetId.Value);
             if (team >= 0 && team <= 1 && state.Summoners[team].IsAlive)
-                return state.Summoners[team].Position;
+                return state.Summoners[team].TargetPointPosition;
             return null;
         }
 
