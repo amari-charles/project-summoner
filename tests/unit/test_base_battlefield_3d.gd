@@ -25,6 +25,14 @@ func _make_background_plane(width: float, depth: float) -> MeshInstance3D:
 	background.mesh = plane
 	return background
 
+func _make_background_prism(width: float, prism_depth: float, depth: float) -> MeshInstance3D:
+	var background: MeshInstance3D = MeshInstance3D.new()
+	var box: BoxMesh = BoxMesh.new()
+	box.size = Vector3(width, prism_depth, depth)
+	background.mesh = box
+	background.position = Vector3(0.0, -prism_depth * 0.5, 0.0)
+	return background
+
 func before_each() -> void:
 	_host = Node3D.new()
 	add_child(_host)
@@ -108,4 +116,16 @@ func test_startup_footprint_probe_restores_camera_state_after_sampling() -> void
 	assert_almost_eq(camera.fov, saved_fov, 0.001, "Startup probe should restore FOV")
 	assert_almost_eq(camera.near, saved_near, 0.001, "Startup probe should restore near clip")
 	assert_almost_eq(camera.far, saved_far, 0.001, "Startup probe should restore far clip")
+	battlefield.free()
+
+func test_arena_bounds_uses_xz_extents_for_prism_background() -> void:
+	var battlefield: BaseBattlefield3D = BaseBattlefield3D.new()
+	battlefield.background = _make_background_prism(120.0, 40.0, 60.0)
+	_host.add_child(battlefield.background)
+
+	var bounds: Rect2 = battlefield._get_arena_mesh_bounds_xz()
+	assert_almost_eq(bounds.position.x, -60.0, 0.001, "Prism arena min X should match half-width")
+	assert_almost_eq(bounds.position.y, -30.0, 0.001, "Prism arena min Z should match half-depth")
+	assert_almost_eq(bounds.size.x, 120.0, 0.001, "Prism arena width should match mesh width")
+	assert_almost_eq(bounds.size.y, 60.0, 0.001, "Prism arena depth should match mesh depth")
 	battlefield.free()

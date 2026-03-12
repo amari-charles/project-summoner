@@ -22,7 +22,7 @@ The foundation 3D environment for all battles. Contains:
 - **Camera3D**: Perspective battle camera with 35° tilt
 - **DirectionalLight3D**: Main scene lighting
 - **WorldEnvironment**: Background color, ambient light, fog
-- **Background**: Ground plane (MeshInstance3D with PlaneMesh)
+- **Background**: Logical ground plane (camera bounds + optional checker tile pillar visuals)
 - **Layers**: GroundLayer, GameplayLayer, EffectsLayer (for z-ordering)
 - **Spawn Markers**: Player and enemy spawn positions
 
