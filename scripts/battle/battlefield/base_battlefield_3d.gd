@@ -96,17 +96,39 @@ func get_ground_bounds_xz() -> Rect2:
 func _get_arena_mesh_bounds_xz() -> Rect2:
 	if not background:
 		return Rect2()
-	if not background.mesh or not background.mesh is PlaneMesh:
+	if not background.mesh:
 		return Rect2()
 
-	var plane_mesh: PlaneMesh = background.mesh as PlaneMesh
-	var width: float = plane_mesh.size.x * background.global_basis.x.length()
-	var depth: float = plane_mesh.size.y * background.global_basis.z.length()
-	var center: Vector3 = background.global_position
+	var local_aabb: AABB = background.mesh.get_aabb()
+	if local_aabb.size == Vector3.ZERO:
+		return Rect2()
 
-	var min_x: float = center.x - width * 0.5
-	var min_z: float = center.z - depth * 0.5
-	return Rect2(Vector2(min_x, min_z), Vector2(width, depth))
+	var corners: Array[Vector3] = [
+		local_aabb.position,
+		local_aabb.position + Vector3(local_aabb.size.x, 0.0, 0.0),
+		local_aabb.position + Vector3(0.0, local_aabb.size.y, 0.0),
+		local_aabb.position + Vector3(0.0, 0.0, local_aabb.size.z),
+		local_aabb.position + Vector3(local_aabb.size.x, local_aabb.size.y, 0.0),
+		local_aabb.position + Vector3(local_aabb.size.x, 0.0, local_aabb.size.z),
+		local_aabb.position + Vector3(0.0, local_aabb.size.y, local_aabb.size.z),
+		local_aabb.position + local_aabb.size
+	]
+
+	var min_x: float = INF
+	var max_x: float = -INF
+	var min_z: float = INF
+	var max_z: float = -INF
+	for local_corner: Vector3 in corners:
+		var world_corner: Vector3 = background.global_transform * local_corner
+		min_x = min(min_x, world_corner.x)
+		max_x = max(max_x, world_corner.x)
+		min_z = min(min_z, world_corner.z)
+		max_z = max(max_z, world_corner.z)
+
+	return Rect2(
+		Vector2(min_x, min_z),
+		Vector2(max_x - min_x, max_z - min_z)
+	)
 
 func _get_startup_camera_footprint_bounds() -> Rect2:
 	if not camera:
