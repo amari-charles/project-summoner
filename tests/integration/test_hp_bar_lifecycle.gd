@@ -1,146 +1,97 @@
 extends GutTest
 
-## Integration Tests for HP Bar Lifecycle
+## Integration tests for current HP bar lifecycle architecture.
 ##
-## Tests the HP bar system's ability to properly create, track, and cleanup
-## HP bars when units are spawned and destroyed, particularly for scenarios
-## involving multiple units (e.g., Fire Ant Swarm with 20 units).
-##
-## These tests verify the TreeExiting signal pattern works correctly for
-## guaranteed cleanup even when units are freed unexpectedly.
-##
-## NOTE: C# nullable default parameters aren't exposed to GDScript, so we must
-## pass null explicitly for optional parameters like 'settings'.
+## HP bars are now shell-owned (`FloatingHPBar`) and track units directly
+## via `TrackNode`, instead of being created through a global HPBarService.
+
+const FLOATING_HP_BAR_SCRIPT: Script = preload("res://scripts/csharp/Battle/View/UI/FloatingHPBar.cs")
 
 
-## =============================================================================
-## TEST FIXTURES
-## =============================================================================
+class MockDamageableNode:
+	extends Node3D
+
+	signal hp_changed(new_hp: float, max_hp: float)
+
+	var current_hp: float = 100.0
+	var max_hp: float = 100.0
+
+	func get_current_hp() -> float:
+		return current_hp
+
+	func get_max_hp() -> float:
+		return max_hp
+
+	func apply_damage(amount: float) -> void:
+		current_hp = maxf(current_hp - amount, 0.0)
+		emit_signal("hp_changed", current_hp, max_hp)
+
 
 var _test_units: Array[Node3D] = []
-var _hp_service: Node = null
+var _test_bars: Array[Node3D] = []
 
 
 func before_each() -> void:
 	_test_units.clear()
-	_hp_service = get_node_or_null(CSharpAutoloads.HP_BAR_SERVICE)
+	_test_bars.clear()
 
 
 func after_each() -> void:
-	# Clean up any remaining test units
 	for unit: Node3D in _test_units:
 		if is_instance_valid(unit) and unit.is_inside_tree():
 			unit.queue_free()
+
+	for bar: Node3D in _test_bars:
+		if is_instance_valid(bar) and bar.is_inside_tree():
+			bar.queue_free()
+
 	_test_units.clear()
+	_test_bars.clear()
 
-	# Wait for cleanup to process
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-
-## =============================================================================
-## C# AVAILABILITY CHECK
-## =============================================================================
 
 func _is_csharp_available() -> bool:
-	# C# runtime availability check (SpatialGrid autoload removed)
-	return true
+	return FLOATING_HP_BAR_SCRIPT != null
 
 
-## =============================================================================
-## SINGLE UNIT LIFECYCLE TESTS
-## =============================================================================
-
-func test_hp_bar_created_for_unit() -> void:
+func test_hp_bar_created_and_attached_to_tree() -> void:
 	if not _is_csharp_available():
 		pending("Skipped: C# not available")
 		return
 
-	_hp_service.ForceInitialize()
-	var initial_active: int = _hp_service.GetActiveBarCount()
-
-	# Create a mock unit
 	var unit: Node3D = _create_mock_unit()
+	add_child(unit)
 	_test_units.append(unit)
-	add_child(unit)
 
-	# Create HP bar (must pass null for optional settings parameter)
-	_hp_service.create_bar_for_unit(unit, null)
+	var bar: Node3D = _create_bar_for_unit(unit)
 
-	# Verify bar was created
-	assert_eq(
-		_hp_service.GetActiveBarCount(),
-		initial_active + 1,
-		"Active bar count should increase by 1"
-	)
+	assert_true(is_instance_valid(bar), "HP bar should be instantiated")
+	assert_true(bar.is_inside_tree(), "HP bar should be in scene tree")
 
 
-func test_hp_bar_removed_on_unit_queue_free() -> void:
+func test_hp_bar_removed_when_tracked_unit_freed() -> void:
 	if not _is_csharp_available():
 		pending("Skipped: C# not available")
 		return
 
-	_hp_service.ForceInitialize()
-	var initial_active: int = _hp_service.GetActiveBarCount()
-	var initial_pooled: int = _hp_service.GetPooledBarCount()
-
-	# Create a mock unit with HP bar
 	var unit: Node3D = _create_mock_unit()
 	add_child(unit)
-	_hp_service.create_bar_for_unit(unit, null)
+	_test_units.append(unit)
 
-	# Verify bar exists
-	assert_eq(
-		_hp_service.GetActiveBarCount(),
-		initial_active + 1,
-		"Bar should be active"
-	)
+	var bar: Node3D = _create_bar_for_unit(unit)
+	assert_true(is_instance_valid(bar), "HP bar should exist before cleanup")
 
-	# Free the unit (triggers TreeExiting -> cleanup)
 	unit.queue_free()
+	_test_units.clear()
 
-	# Wait for cleanup
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	# Verify bar was returned to pool
-	assert_eq(
-		_hp_service.GetActiveBarCount(),
-		initial_active,
-		"Active bar count should return to initial"
-	)
-	assert_eq(
-		_hp_service.GetPooledBarCount(),
-		initial_pooled,
-		"Pooled bar count should return to initial (bar taken from pool, then returned)"
-	)
-
-
-## =============================================================================
-## MULTI-UNIT LIFECYCLE TESTS (Fire Ant Swarm scenario)
-## =============================================================================
-
-func test_multi_unit_hp_bars_created() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available")
-		return
-
-	_hp_service.ForceInitialize()
-	var initial_active: int = _hp_service.GetActiveBarCount()
-	var unit_count: int = 10  # Simulate a swarm
-
-	# Create multiple units
-	for i: int in unit_count:
-		var unit: Node3D = _create_mock_unit()
-		_test_units.append(unit)
-		add_child(unit)
-		_hp_service.create_bar_for_unit(unit, null)
-
-	# Verify all bars created
-	assert_eq(
-		_hp_service.GetActiveBarCount(),
-		initial_active + unit_count,
-		"All %d bars should be active" % unit_count
+	assert_false(
+		is_instance_valid(bar),
+		"HP bar should be auto-freed via tracked node TreeExiting cleanup"
 	)
 
 
@@ -149,155 +100,72 @@ func test_multi_unit_hp_bars_cleanup_on_mass_death() -> void:
 		pending("Skipped: C# not available")
 		return
 
-	_hp_service.ForceInitialize()
-	var initial_active: int = _hp_service.GetActiveBarCount()
 	var unit_count: int = 10
-
-	# Create multiple units
 	var units: Array[Node3D] = []
+	var bars: Array[Node3D] = []
+
 	for i: int in unit_count:
 		var unit: Node3D = _create_mock_unit()
-		units.append(unit)
 		add_child(unit)
-		_hp_service.create_bar_for_unit(unit, null)
+		units.append(unit)
+		_test_units.append(unit)
 
-	# Verify all bars created
-	assert_eq(
-		_hp_service.GetActiveBarCount(),
-		initial_active + unit_count,
-		"All %d bars should be active before cleanup" % unit_count
-	)
+		var bar: Node3D = _create_bar_for_unit(unit)
+		bars.append(bar)
 
-	# Simulate AoE death - free all units at once
+	for bar: Node3D in bars:
+		assert_true(is_instance_valid(bar), "Every spawned unit should have a bar")
+
 	for unit: Node3D in units:
 		unit.queue_free()
-
-	# Wait for cleanup
-	await get_tree().process_frame
-	await get_tree().process_frame
-
-	# Verify all bars cleaned up
-	assert_eq(
-		_hp_service.GetActiveBarCount(),
-		initial_active,
-		"All bars should be cleaned up after mass death"
-	)
-
-
-func test_hp_bars_cleanup_on_clear_all() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available")
-		return
-
-	_hp_service.ForceInitialize()
-	var unit_count: int = 5
-
-	# Create multiple units
-	for i: int in unit_count:
-		var unit: Node3D = _create_mock_unit()
-		_test_units.append(unit)
-		add_child(unit)
-		_hp_service.create_bar_for_unit(unit, null)
-
-	# Verify bars exist
-	assert_gt(
-		_hp_service.GetActiveBarCount(),
-		0,
-		"Should have active bars"
-	)
-
-	# Clear all bars (simulates scene transition)
-	_hp_service.clear_all_bars()
-
-	# Verify all cleared
-	assert_eq(
-		_hp_service.GetActiveBarCount(),
-		0,
-		"All bars should be cleared"
-	)
-
-
-## =============================================================================
-## POOL REUSE TESTS
-## =============================================================================
-
-func test_hp_bars_reused_from_pool() -> void:
-	if not _is_csharp_available():
-		pending("Skipped: C# not available")
-		return
-
-	_hp_service.ForceInitialize()
-	var initial_pooled: int = _hp_service.GetPooledBarCount()
-
-	# Skip if pool is empty (unlikely but possible)
-	if initial_pooled == 0:
-		pending("Skipped: Pool is empty, cannot test reuse")
-		return
-
-	# Create a unit - should take bar from pool
-	var unit: Node3D = _create_mock_unit()
-	_test_units.append(unit)
-	add_child(unit)
-	_hp_service.create_bar_for_unit(unit, null)
-
-	# Verify pool count decreased
-	assert_eq(
-		_hp_service.GetPooledBarCount(),
-		initial_pooled - 1,
-		"Pool should have one less bar"
-	)
-
-	# Free unit - bar returns to pool
-	unit.queue_free()
 	_test_units.clear()
 
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	# Verify bar returned to pool
-	assert_eq(
-		_hp_service.GetPooledBarCount(),
-		initial_pooled,
-		"Bar should be returned to pool"
-	)
+	for bar: Node3D in bars:
+		assert_false(
+			is_instance_valid(bar),
+			"All bars should be cleaned when tracked units are mass-freed"
+		)
 
 
-## =============================================================================
-## HP UPDATE TESTS
-## =============================================================================
-
-func test_hp_update_propagates_to_bar() -> void:
+func test_hp_signal_update_toggles_bar_visibility_after_damage() -> void:
 	if not _is_csharp_available():
 		pending("Skipped: C# not available")
 		return
 
-	_hp_service.ForceInitialize()
-
-	# Create a mock unit with HP bar
-	var unit: Node3D = _create_mock_unit()
-	_test_units.append(unit)
+	var unit: MockDamageableNode = MockDamageableNode.new()
+	unit.name = "MockDamageable_%d" % randi()
 	add_child(unit)
-	_hp_service.create_bar_for_unit(unit, null)
+	_test_units.append(unit)
 
-	# Update HP via service
-	_hp_service.update_unit_hp(unit, 50.0, 100.0)
+	var bar: Node3D = _create_bar_for_unit(unit)
 
-	# If we got here without errors, the update worked
-	# (Would need to expose bar state for deeper verification)
-	assert_true(true, "HP update should not error")
+	# Full HP with default settings (show-on-damage) should hide bar.
+	await get_tree().process_frame
+	assert_false(bar.visible, "Bar should be hidden at full HP in show-on-damage mode")
+
+	# Damage emits hp_changed and should show the bar.
+	unit.apply_damage(25.0)
+	await get_tree().process_frame
+	assert_true(bar.visible, "Bar should become visible after HP drops")
 
 
-## =============================================================================
-## HELPER FUNCTIONS
-## =============================================================================
-
-## Create a minimal mock unit for testing
 func _create_mock_unit() -> Node3D:
-	var unit: Node3D = Node3D.new()
+	var unit: MockDamageableNode = MockDamageableNode.new()
 	unit.name = "MockUnit_%d" % randi()
-
-	# Add properties that HP bar expects
-	unit.set_meta("current_hp", 100.0)
-	unit.set_meta("max_hp", 100.0)
-
 	return unit
+
+
+func _create_bar_for_unit(unit: Node3D) -> Node3D:
+	var bar_object: Object = FLOATING_HP_BAR_SCRIPT.new()
+	assert_true(bar_object is Node3D, "FloatingHPBar script should instantiate as Node3D")
+	var bar: Node3D = bar_object as Node3D
+	add_child(bar)
+	_test_bars.append(bar)
+
+	# C# methods called via `call()` require exact PascalCase names.
+	bar.call("TrackNode", unit)
+
+	return bar
