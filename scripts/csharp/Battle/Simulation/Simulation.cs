@@ -640,6 +640,8 @@ public class Simulation
                     totalUnits,
                     spawnRadius
                 );
+                if (template.MovementLayer == MovementLayer.Air)
+                    position = new SimVector3(position.X, template.FlightAltitude, position.Z);
 
                 var unitData = new UnitData
                 {
@@ -685,6 +687,7 @@ public class Simulation
                     TargetPolicyId = template.TargetPolicyId,
                     MovementIntentStrategy = template.MovementIntentStrategy,
                     FlightAltitude = template.FlightAltitude,
+                    ProjectileCatalogId = template.ProjectileCatalogId,
                     ProjectileDelay = template.ProjectileDelay,
                     AttackType = template.AttackType,
                     PhysicalDamageRatio = template.PhysicalDamageRatio,
@@ -898,7 +901,9 @@ public class Simulation
         var summoner = _state.Summoners[team];
         var startPos = summoner.Position;
         var targetPos = castPosition;
-        int resolvedTargetUnitId = -1;
+        // No explicit target unit (position-targeted projectile spell).
+        // Use a non-negative invalid sentinel so it is never interpreted as a summoner target ID.
+        int resolvedTargetUnitId = int.MaxValue;
 
         switch (cardData.SpellTargetingMode)
         {

@@ -315,6 +315,27 @@ public class SimBehaviorTest
     }
 
     [TestCase]
+    public void TickBehavior_RangedAttack_NoDelay_UsesVisualTargetPointAsProjectileSpawnOffset()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, z: 0f, attackRange: 10f, projectileDelay: 0f, catalogId: "puff");
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        unit.IsFacingRight = true;
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
+
+        unit.TargetUnitId = enemy.UnitId;
+        unit.AttackCooldown = 0f;
+
+        var events = new List<SimEvent>();
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+        var projectile = _state.Projectiles.Values.First();
+        AssertThat(projectile.StartPosition.X).IsGreater(unit.Position.X);
+        AssertThat(projectile.StartPosition.X).IsEqual(1.4f);
+    }
+
+    [TestCase]
     public void TickPendingDamage_TimerExpired_SpawnsProjectile()
     {
         var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, damage: 20f);
@@ -371,6 +392,55 @@ public class SimBehaviorTest
         SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
         AssertThat(_state.Summoners[1].CurrentHp).IsLess(hpBefore);
+    }
+
+    [TestCase]
+    public void TickBehavior_RangedAttacksSummoner_NoDelay_SpawnsProjectile()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(
+            _state,
+            team: 0,
+            x: 18f,
+            attackRange: 6f,
+            damage: 10f,
+            projectileDelay: 0f,
+            catalogId: "puff");
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        int summonerTargetId = MatchState.GetSummonerTargetId(1);
+        unit.TargetUnitId = summonerTargetId;
+        unit.AttackCooldown = 0f;
+
+        var events = new List<SimEvent>();
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+        AssertThat(_state.Summoners[1].CurrentHp).IsEqual(_state.Summoners[1].MaxHp);
+    }
+
+    [TestCase]
+    public void TickPendingDamage_RangedSummonerTarget_SpawnsProjectile()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(
+            _state,
+            team: 0,
+            x: 18f,
+            attackRange: 6f,
+            damage: 10f,
+            projectileDelay: 0.5f,
+            catalogId: "puff");
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        int summonerTargetId = MatchState.GetSummonerTargetId(1);
+
+        unit.PendingDamageTimer = 0.1f;
+        unit.PendingDamageTargetId = summonerTargetId;
+        unit.PendingDamageAmount = 10f;
+
+        var events = new List<SimEvent>();
+        SimBehavior.TickPendingDamage(unit, _state, 0.2f, events);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
     }
 
     [TestCase]

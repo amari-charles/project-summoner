@@ -148,6 +148,7 @@ public class SimUnitTemplate
     public int ElementId { get; set; }
 
     // Ranged config
+    public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public float ProjectileDelay { get; set; }
     public float FlightAltitude { get; set; }
 

@@ -10,7 +10,23 @@ namespace Fateforged.Infrastructure.Debug;
 [GlobalClass]
 public partial class BattlefieldDebugService : Node
 {
-    public static BattlefieldDebugService? Instance { get; private set; }
+    private static BattlefieldDebugService? _instance;
+    public static BattlefieldDebugService? Instance
+    {
+        get
+        {
+            if (_instance != null)
+                return _instance;
+
+            if (Engine.GetMainLoop() is SceneTree tree)
+            {
+                _instance = tree.Root.GetNodeOrNull<BattlefieldDebugService>("/root/BattlefieldDebug");
+            }
+
+            return _instance;
+        }
+        private set => _instance = value;
+    }
 
     // Unit visualization flags (read by UnitVisual, toggled by DebugMenu).
     public bool HurtboxEnabled { get; set; }

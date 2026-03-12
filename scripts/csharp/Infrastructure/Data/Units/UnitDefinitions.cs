@@ -631,7 +631,10 @@ public static class UnitDefinitions
 
         // Ranged config
         if (def.Ranged != null)
+        {
+            template.ProjectileCatalogId = def.Ranged.ProjectileId.Value;
             template.ProjectileDelay = def.Ranged.ProjectileDelay;
+        }
 
         // Flying config
         if (def.Flying != null)
