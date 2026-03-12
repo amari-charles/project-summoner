@@ -71,7 +71,14 @@ public static class SimProjectile
         float speedTransitionDuration = 1f,
         SpeedEasingType speedEasing = SpeedEasingType.Linear,
         float speedEaseExponent = 2f,
-        bool tracking = false
+        bool tracking = false,
+        AbilityTargetAffinity targetAffinity = AbilityTargetAffinity.Enemies,
+        ProjectileImpactKind impactKind = ProjectileImpactKind.Damage,
+        StatusEffectKind statusKind = StatusEffectKind.None,
+        float statusDuration = 0f,
+        float statusTickInterval = 0f,
+        float statusPotencyPerStack = 0f,
+        int statusMaxStacks = 1
     )
     {
         int id = state.NextProjectileId();
@@ -88,6 +95,13 @@ public static class SimProjectile
             Team = team,
             Damage = damage,
             SourceElementId = sourceElementId,
+            TargetAffinity = targetAffinity,
+            ImpactKind = impactKind,
+            StatusKind = statusKind,
+            StatusDuration = statusDuration,
+            StatusTickInterval = statusTickInterval,
+            StatusPotencyPerStack = statusPotencyPerStack,
+            StatusMaxStacks = Math.Max(1, statusMaxStacks),
             MovementType = movementType,
             StartPosition = startPos,
             TargetPosition = targetPos,
@@ -248,7 +262,10 @@ public static class SimProjectile
                     var target = state.GetAliveUnit(proj.TargetUnitId);
                     if (target != null && !proj.HitUnitIds.Contains(target.UnitId))
                     {
-                        if (CanHitUnitAtPoint(proj, target, proj.CurrentPosition))
+                        if (
+                            CanImpactUnit(proj, target)
+                            && CanHitUnitAtPoint(proj, target, proj.CurrentPosition)
+                        )
                         {
                             ApplyHit(proj, target, state, events);
                         }
@@ -486,10 +503,10 @@ public static class SimProjectile
             var unit = kvp.Value;
             if (!unit.IsAlive)
                 continue;
-            if (unit.Team == proj.Team)
-                continue; // Don't hit friendly units
             if (unit.UnitId == proj.SourceUnitId)
                 continue; // Don't hit source
+            if (!CanImpactUnit(proj, unit))
+                continue;
             if (proj.HitUnitIds.Contains(unit.UnitId))
                 continue; // Never hit same unit twice
 
@@ -538,9 +555,9 @@ public static class SimProjectile
                 continue;
             if (proj.HitUnitIds.Contains(unit.UnitId))
                 continue;
-            if (unit.Team == proj.Team)
-                continue;
             if (unit.UnitId == proj.SourceUnitId)
+                continue;
+            if (!CanImpactUnit(proj, unit))
                 continue;
 
             var impactPoint = proj.LastPosition.Lerp(proj.CurrentPosition, hit.SegmentT);
@@ -573,6 +590,26 @@ public static class SimProjectile
         List<SimEvent> events
     )
     {
+        if (proj.ImpactKind == ProjectileImpactKind.Heal)
+        {
+            SimEffects.ApplyEffect(
+                state,
+                EffectType.Heal,
+                proj.Damage,
+                0f,
+                DamageType.Magic,
+                target,
+                proj.SourceUnitId,
+                proj.Team,
+                events
+            );
+
+            proj.HitUnitIds.Add(target.UnitId);
+            proj.PierceRemaining--;
+            events.Add(new ProjectileHitEvent(proj.ProjectileId, target.UnitId));
+            return;
+        }
+
         var (sourceUnit, attackerSummoner, targetSummoner) = ResolveSourceAndSummoners(
             proj,
             target,
@@ -597,6 +634,7 @@ public static class SimProjectile
             SimEffects.FireDeathTriggers(state, target, sourceUnit, events);
         }
 
+        ApplyStatusPayload(proj, target, state, events);
         proj.HitUnitIds.Add(target.UnitId);
         proj.PierceRemaining--;
         events.Add(new ProjectileHitEvent(proj.ProjectileId, target.UnitId));
@@ -610,11 +648,13 @@ public static class SimProjectile
     {
         if (!MatchState.IsSummonerTarget(proj.TargetUnitId))
             return;
+        if (proj.ImpactKind != ProjectileImpactKind.Damage)
+            return;
 
         int summonerTeam = MatchState.GetSummonerTeamFromTargetId(proj.TargetUnitId);
         if (summonerTeam < 0 || summonerTeam >= state.Summoners.Length)
             return;
-        if (summonerTeam == (int)proj.Team)
+        if (!MatchesAffinity(proj, (Team)summonerTeam))
             return;
 
         var summoner = state.Summoners[summonerTeam];
@@ -653,11 +693,13 @@ public static class SimProjectile
     {
         if (!MatchState.IsSummonerTarget(proj.TargetUnitId))
             return;
+        if (proj.ImpactKind != ProjectileImpactKind.Damage)
+            return;
 
         int summonerTeam = MatchState.GetSummonerTeamFromTargetId(proj.TargetUnitId);
         if (summonerTeam < 0 || summonerTeam >= state.Summoners.Length)
             return;
-        if (summonerTeam == (int)proj.Team)
+        if (!MatchesAffinity(proj, (Team)summonerTeam))
             return;
 
         var summoner = state.Summoners[summonerTeam];
@@ -712,7 +754,7 @@ public static class SimProjectile
             var unit = kvp.Value;
             if (!unit.IsAlive)
                 continue;
-            if (unit.Team == proj.Team)
+            if (!CanImpactUnit(proj, unit))
                 continue;
             if (proj.HitUnitIds.Contains(unit.UnitId))
                 continue;
@@ -720,6 +762,22 @@ public static class SimProjectile
             float radius = MathF.Max(0f, proj.AoeRadius + CombatGeometry.GetHurtboxRadius(unit));
             if (!CanHitUnitInRadius(proj, unit, center, radius))
                 continue;
+
+            if (proj.ImpactKind == ProjectileImpactKind.Heal)
+            {
+                SimEffects.ApplyEffect(
+                    state,
+                    EffectType.Heal,
+                    proj.Damage,
+                    0f,
+                    DamageType.Magic,
+                    unit,
+                    proj.SourceUnitId,
+                    proj.Team,
+                    events
+                );
+                continue;
+            }
 
             var targetSummoner = state.Summoners[(int)unit.Team];
             var (damage, isCrit) = SimDamage.Calculate(
@@ -739,7 +797,51 @@ public static class SimProjectile
                 SimUtils.KillUnit(state, unit, proj.SourceUnitId, events);
                 SimEffects.FireDeathTriggers(state, unit, sourceUnit, events);
             }
+
+            ApplyStatusPayload(proj, unit, state, events);
         }
+    }
+
+    private static void ApplyStatusPayload(
+        SimProjectileData proj,
+        UnitData target,
+        MatchState state,
+        List<SimEvent> events
+    )
+    {
+        if (proj.StatusKind == StatusEffectKind.None || !target.IsAlive)
+            return;
+        if (proj.StatusDuration <= 0f || proj.StatusTickInterval <= 0f || proj.StatusPotencyPerStack <= 0f)
+            return;
+
+        SimEffects.ApplyStackingStatus(
+            state,
+            target,
+            proj.SourceUnitId,
+            proj.Team,
+            proj.StatusKind,
+            proj.StatusDuration,
+            proj.StatusTickInterval,
+            proj.StatusPotencyPerStack,
+            proj.StatusMaxStacks,
+            DamageType.Magic,
+            events
+        );
+    }
+
+    private static bool CanImpactUnit(SimProjectileData proj, UnitData unit)
+    {
+        return MatchesAffinity(proj, unit.Team);
+    }
+
+    private static bool MatchesAffinity(SimProjectileData proj, Team candidateTeam)
+    {
+        return proj.TargetAffinity switch
+        {
+            AbilityTargetAffinity.Allies => candidateTeam == proj.Team,
+            AbilityTargetAffinity.Both => true,
+            _ => candidateTeam != proj.Team,
+        };
     }
 
     /// <summary>

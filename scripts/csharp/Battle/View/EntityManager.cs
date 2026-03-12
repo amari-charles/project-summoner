@@ -309,6 +309,17 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             shell.ShowBuffIcon(e.EffectType);
     }
 
+    public void Visit(AbilityActivatedEvent e)
+    {
+        // No-op in V1: reserved for dedicated ability VFX wiring.
+    }
+
+    public void Visit(StatusAppliedEvent e)
+    {
+        if (_unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
+            shell.ShowBuffIcon(EffectType.StatModifier);
+    }
+
     // --- Projectile/Summoner/Spell visitors ---
 
     public void Visit(ProjectileHitEvent e)

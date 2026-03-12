@@ -84,6 +84,45 @@ public enum AttackTriggerMode
 }
 
 /// <summary>
+/// Team affinity used by ability targeting and projectile impact filters.
+/// </summary>
+public enum AbilityTargetAffinity
+{
+    Enemies = 0,
+    Allies = 1,
+    Both = 2,
+}
+
+/// <summary>
+/// High-level projectile impact behavior for unit-driven attacks/abilities.
+/// </summary>
+public enum ProjectileImpactKind
+{
+    Damage = 0,
+    Heal = 1,
+}
+
+/// <summary>
+/// Status kinds that can be applied by ability/projectile payloads.
+/// </summary>
+public enum StatusEffectKind
+{
+    None = 0,
+    Poison = 1,
+    Burn = 2,
+    Taunt = 3,
+}
+
+/// <summary>
+/// Ability runtime behavior kind.
+/// </summary>
+public enum UnitAbilityKind
+{
+    HealerProjectile = 0,
+    TauntPulse = 1,
+}
+
+/// <summary>
 /// High-level tactical role used by simulation behavior shaping.
 /// </summary>
 public enum TacticalRole

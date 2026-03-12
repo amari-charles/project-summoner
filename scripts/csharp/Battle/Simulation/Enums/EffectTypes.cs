@@ -170,6 +170,12 @@ public class ActiveBuff
 
     /// <summary>Damage type for damage/shield effects.</summary>
     public DamageType DamageType { get; set; }
+
+    /// <summary>Optional status identity used by stacking payload effects.</summary>
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+
+    /// <summary>Optional stack count for status payload effects.</summary>
+    public int StackCount { get; set; } = 1;
 }
 
 /// <summary>

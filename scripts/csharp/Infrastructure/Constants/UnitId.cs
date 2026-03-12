@@ -57,6 +57,7 @@ public static class UnitIds
     public static readonly UnitId Rock = new("rock");
     public static readonly UnitId StoneApe = new("stone_ape");
     public static readonly UnitId EarthRockThrower = new("earth_rock_thrower");
+    public static readonly UnitId TauntPulseGuardian = new("taunt_pulse_guardian");
 
     // =========================================================================
     // WIND ELEMENT UNITS
@@ -71,4 +72,7 @@ public static class UnitIds
     public static readonly UnitId WaterFrog = new("water_frog");
     public static readonly UnitId MamaDuck = new("mama_duck");
     public static readonly UnitId Duckling = new("duckling");
+    public static readonly UnitId LifeMedic = new("life_medic");
+    public static readonly UnitId PoisonNeedler = new("poison_needler");
+    public static readonly UnitId PiercingLaser = new("piercing_laser");
 }

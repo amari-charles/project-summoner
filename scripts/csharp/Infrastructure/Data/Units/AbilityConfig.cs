@@ -1,0 +1,77 @@
+using Fateforged.Projectiles;
+
+namespace Fateforged.Units;
+
+/// <summary>
+/// Authoring config for simulation-owned unit abilities.
+/// </summary>
+public record UnitAbilityConfig
+{
+    /// <summary>Stable authoring ID for debug/events.</summary>
+    public string AbilityId { get; init; } = "";
+
+    /// <summary>Runtime behavior kind.</summary>
+    public UnitAbilityKind Kind { get; init; }
+
+    /// <summary>Cooldown between ability activations.</summary>
+    public float CooldownSeconds { get; init; } = 1f;
+
+    /// <summary>Primary ability range for target queries.</summary>
+    public float Range { get; init; }
+
+    /// <summary>Radius used by pulse/area ability logic.</summary>
+    public float Radius { get; init; }
+
+    /// <summary>Primary scalar value (heal amount, etc.).</summary>
+    public float Value { get; init; }
+
+    /// <summary>Primary duration value (taunt duration, etc.).</summary>
+    public float DurationSeconds { get; init; }
+
+    /// <summary>Optional windup before resolve.</summary>
+    public float WindupSeconds { get; init; }
+
+    /// <summary>Optional projectile used by projectile-delivery abilities.</summary>
+    public ProjectileId ProjectileId { get; init; } = ProjectileId.None;
+
+    /// <summary>Target affinity filter used by this ability.</summary>
+    public AbilityTargetAffinity TargetAffinity { get; init; } = AbilityTargetAffinity.Enemies;
+}
+
+/// <summary>
+/// Optional projectile impact status payload configuration.
+/// </summary>
+public record ProjectileStatusConfig
+{
+    /// <summary>Status kind to apply on projectile impact.</summary>
+    public StatusEffectKind Kind { get; init; } = StatusEffectKind.None;
+
+    /// <summary>Status duration (seconds).</summary>
+    public float DurationSeconds { get; init; }
+
+    /// <summary>Periodic tick cadence (seconds).</summary>
+    public float TickIntervalSeconds { get; init; } = 1f;
+
+    /// <summary>Potency added per stack (damage per tick for DoT).</summary>
+    public float PotencyPerStack { get; init; }
+
+    /// <summary>Maximum potency stacks for this status.</summary>
+    public int MaxStacks { get; init; } = 1;
+}
+
+/// <summary>
+/// Optional projectile impact behavior override for ranged units/abilities.
+/// </summary>
+public record ProjectileImpactConfig
+{
+    /// <summary>Who this projectile can impact.</summary>
+    public AbilityTargetAffinity TargetAffinity { get; init; } = AbilityTargetAffinity.Enemies;
+
+    /// <summary>What happens on impact.</summary>
+    public ProjectileImpactKind ImpactKind { get; init; } = ProjectileImpactKind.Damage;
+
+    /// <summary>Optional status payload applied on unit hit.</summary>
+    public ProjectileStatusConfig? Status { get; init; }
+
+    public static ProjectileImpactConfig DamageDefault => new();
+}

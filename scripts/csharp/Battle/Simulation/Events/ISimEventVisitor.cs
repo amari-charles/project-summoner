@@ -29,6 +29,8 @@ public interface ISimEventVisitor
     void Visit(AttackEvadedEvent e);
     void Visit(BuffAppliedEvent e);
     void Visit(BuffExpiredEvent e);
+    void Visit(AbilityActivatedEvent e);
+    void Visit(StatusAppliedEvent e);
     void Visit(DelayedEffectFiredEvent e);
     void Visit(SummonerDamagedEvent e);
     void Visit(SummonerDestroyedEvent e);

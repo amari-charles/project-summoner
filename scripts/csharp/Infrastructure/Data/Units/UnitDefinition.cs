@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
 using Fateforged.Stats;
@@ -71,6 +72,9 @@ public record UnitDefinition
     /// <summary>Grouped vector-based attack behavior config.</summary>
     public AttackVectorConfig Attack { get; init; } = AttackVectorConfig.Default;
 
+    /// <summary>Optional simulation-owned ability loadout for this unit.</summary>
+    public List<UnitAbilityConfig> Abilities { get; init; } = [];
+
     // =========================================================================
     // RANGED CONFIGURATION (null = not a ranged unit)
     // =========================================================================
@@ -132,6 +136,9 @@ public record RangedConfig
 
     /// <summary>Estimated projectile speed for intercept calculations.</summary>
     public float ProjectileSpeedEstimate { get; init; } = 15f;
+
+    /// <summary>Optional impact behavior override (heal/status payloads, ally hits, etc.).</summary>
+    public ProjectileImpactConfig Impact { get; init; } = ProjectileImpactConfig.DamageDefault;
 
     public RangedConfig(ProjectileId projectileId)
     {

@@ -96,6 +96,19 @@ public class SimCardData
                     }
                 );
             }
+            else if (card.SpellCategory == SpellCategory.Heal && card.SpellDamage > 0)
+            {
+                simCard.SpellEffects.Add(
+                    new SimSpellEffect
+                    {
+                        EffectType = EffectType.Heal,
+                        Value = card.SpellDamage,
+                        DamageType = DamageType.Magic,
+                        AoeRadius = card.SpellRadius,
+                        Affinity = SpellAffinity.Allies,
+                    }
+                );
+            }
         }
 
         return simCard;
@@ -153,6 +166,14 @@ public class SimUnitTemplate
     // Ranged config
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public float ProjectileDelay { get; set; }
+    public AbilityTargetAffinity ProjectileTargetAffinity { get; set; } =
+        AbilityTargetAffinity.Enemies;
+    public ProjectileImpactKind ProjectileImpactKind { get; set; } = ProjectileImpactKind.Damage;
+    public StatusEffectKind ProjectileStatusKind { get; set; } = StatusEffectKind.None;
+    public float ProjectileStatusDuration { get; set; }
+    public float ProjectileStatusTickInterval { get; set; }
+    public float ProjectileStatusPotencyPerStack { get; set; }
+    public int ProjectileStatusMaxStacks { get; set; } = 1;
     public float FlightAltitude { get; set; }
 
     // Targeting config (extracted from UnitDefinition at match start)
@@ -183,4 +204,47 @@ public class SimUnitTemplate
 
     // Attack vector fields (PASS 2 grouped state)
     public AttackVectorState Attack { get; set; } = AttackVectorState.Default();
+
+    // Ability runtime fields (PASS 3 ability-system-v1)
+    public List<UnitAbilityState> Abilities { get; set; } = new();
+}
+
+/// <summary>
+/// Runtime simulation state for unit ability execution.
+/// </summary>
+public sealed class UnitAbilityState
+{
+    public string AbilityId { get; set; } = "";
+    public UnitAbilityKind Kind { get; set; }
+    public float CooldownSeconds { get; set; } = 1f;
+    public float CooldownTimer { get; set; }
+    public float Range { get; set; }
+    public float Radius { get; set; }
+    public float Value { get; set; }
+    public float DurationSeconds { get; set; }
+    public float WindupSeconds { get; set; }
+    public float WindupTimer { get; set; }
+    public int? LockedTargetUnitId { get; set; }
+    public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
+    public AbilityTargetAffinity TargetAffinity { get; set; } = AbilityTargetAffinity.Enemies;
+
+    public UnitAbilityState DeepClone()
+    {
+        return new UnitAbilityState
+        {
+            AbilityId = AbilityId,
+            Kind = Kind,
+            CooldownSeconds = CooldownSeconds,
+            CooldownTimer = CooldownTimer,
+            Range = Range,
+            Radius = Radius,
+            Value = Value,
+            DurationSeconds = DurationSeconds,
+            WindupSeconds = WindupSeconds,
+            WindupTimer = WindupTimer,
+            LockedTargetUnitId = LockedTargetUnitId,
+            ProjectileCatalogId = ProjectileCatalogId,
+            TargetAffinity = TargetAffinity,
+        };
+    }
 }

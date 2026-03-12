@@ -96,6 +96,12 @@ public class Simulation
             TickUnits(fixedDelta, events);
         }
 
+        // Step 6.5: Tick simulation-owned unit abilities (only during Battle)
+        if (_state.Phase == GamePhase.Battle)
+        {
+            SimAbilityOrchestrator.Tick(_state, fixedDelta, events);
+        }
+
         // Step 7: Tick projectiles (only during Battle)
         if (_state.Phase == GamePhase.Battle)
         {
@@ -694,6 +700,13 @@ public class Simulation
                     FlightAltitude = template.FlightAltitude,
                     ProjectileCatalogId = template.ProjectileCatalogId,
                     ProjectileDelay = template.ProjectileDelay,
+                    ProjectileTargetAffinity = template.ProjectileTargetAffinity,
+                    ProjectileImpactKind = template.ProjectileImpactKind,
+                    ProjectileStatusKind = template.ProjectileStatusKind,
+                    ProjectileStatusDuration = template.ProjectileStatusDuration,
+                    ProjectileStatusTickInterval = template.ProjectileStatusTickInterval,
+                    ProjectileStatusPotencyPerStack = template.ProjectileStatusPotencyPerStack,
+                    ProjectileStatusMaxStacks = template.ProjectileStatusMaxStacks,
                     AttackType = template.AttackType,
                     PhysicalDamageRatio = template.PhysicalDamageRatio,
                     ElementalDamageRatio = template.ElementalDamageRatio,
@@ -701,6 +714,7 @@ public class Simulation
                     MagicDefense = template.MagicDefense,
                     Evasion = template.Evasion,
                     Attack = template.Attack.DeepClone(),
+                    Abilities = BuildAbilityRuntimeState(template.Abilities),
                     IsFacingRight = UnitData.DefaultFacingForTeam((Team)team),
                     // Spawn inactive when there is a reveal/cast delay; otherwise active immediately.
                     ActivationState =
@@ -788,6 +802,17 @@ public class Simulation
         }
 
         return counts;
+    }
+
+    private static List<UnitAbilityState> BuildAbilityRuntimeState(List<UnitAbilityState> source)
+    {
+        if (source.Count == 0)
+            return new List<UnitAbilityState>();
+
+        var result = new List<UnitAbilityState>(source.Count);
+        foreach (var ability in source)
+            result.Add(ability.DeepClone());
+        return result;
     }
 
     /// <summary>
@@ -1762,6 +1787,63 @@ public class BuffExpiredEvent : SimEvent
         TargetUnitId = targetUnitId;
         BuffId = buffId;
         EffectType = effectType;
+    }
+
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// A simulation-owned unit ability activated (for visual/audio/debug feedback).
+/// </summary>
+[EventCategory(EventCategory.HostOnly)]
+public class AbilityActivatedEvent : SimEvent
+{
+    public int SourceUnitId { get; }
+    public string AbilityId { get; }
+    public int? TargetUnitId { get; }
+    public SimVector3 Position { get; }
+
+    public AbilityActivatedEvent(
+        int sourceUnitId,
+        string abilityId,
+        int? targetUnitId,
+        SimVector3 position
+    )
+    {
+        SourceUnitId = sourceUnitId;
+        AbilityId = abilityId;
+        TargetUnitId = targetUnitId;
+        Position = position;
+    }
+
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// A status payload was applied/stacked on a unit.
+/// </summary>
+[EventCategory(EventCategory.HostOnly)]
+public class StatusAppliedEvent : SimEvent
+{
+    public int SourceUnitId { get; }
+    public int TargetUnitId { get; }
+    public StatusEffectKind StatusKind { get; }
+    public int StackCount { get; }
+    public float DurationSeconds { get; }
+
+    public StatusAppliedEvent(
+        int sourceUnitId,
+        int targetUnitId,
+        StatusEffectKind statusKind,
+        int stackCount,
+        float durationSeconds
+    )
+    {
+        SourceUnitId = sourceUnitId;
+        TargetUnitId = targetUnitId;
+        StatusKind = statusKind;
+        StackCount = stackCount;
+        DurationSeconds = durationSeconds;
     }
 
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);

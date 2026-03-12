@@ -52,4 +52,13 @@ public static class ProjectileIds
 
     /// <summary>Weaving homing bolt with serpentine motion.</summary>
     public static readonly ProjectileId WeavingBolt = new("weaving_bolt");
+
+    /// <summary>Healing bolt used by support units.</summary>
+    public static readonly ProjectileId HealingBolt = new("healing_bolt");
+
+    /// <summary>Poison needle projectile with DoT payload.</summary>
+    public static readonly ProjectileId PoisonNeedle = new("poison_needle");
+
+    /// <summary>Piercing laser projectile.</summary>
+    public static readonly ProjectileId LaserBeam = new("laser_beam");
 }

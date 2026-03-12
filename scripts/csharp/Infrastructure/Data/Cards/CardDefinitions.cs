@@ -140,6 +140,25 @@ public static class CardDefinitions
         Flags = CardFlags.DevOnly,
     };
 
+    public static readonly CardDefinition HealingField = new()
+    {
+        Id = CardIds.HealingField,
+        Name = "Healing Field",
+        Description = "Restore health to allied units in a targeted area.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellDamage = 65.0f,
+        SpellRadius = 8.0f,
+        SpellDuration = 0.0f,
+        SpellCategory = SpellCategory.Heal,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Life,
+    };
+
     // =========================================================================
     // WISPS (Basic starter units for each element)
     // =========================================================================
@@ -714,6 +733,90 @@ public static class CardDefinitions
     };
 
     // =========================================================================
+    // ABILITY SYSTEM V1 CARDS
+    // =========================================================================
+
+    public static readonly CardDefinition TauntPulseGuardian = new()
+    {
+        Id = CardIds.TauntPulseGuardian,
+        Name = "Taunt Pulse Guardian",
+        Description = "A durable frontline guardian that periodically taunts nearby enemies.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 5,
+        Cooldown = 3.0f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.TauntPulseGuardian,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition LifeMedic = new()
+    {
+        Id = CardIds.LifeMedic,
+        Name = "Life Medic",
+        Description = "Support caster that fires healing projectiles at wounded allies.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.5f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.LifeMedic,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Life,
+    };
+
+    public static readonly CardDefinition PoisonNeedler = new()
+    {
+        Id = CardIds.PoisonNeedler,
+        Name = "Poison Needler",
+        Description = "Ranged attacker whose needles apply stacking poison.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.2f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.PoisonNeedler,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Beast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Poison,
+    };
+
+    public static readonly CardDefinition PiercingLaser = new()
+    {
+        Id = CardIds.PiercingLaser,
+        Name = "Piercing Laser",
+        Description = "Long-range shooter that fires a line beam through multiple enemies.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 5,
+        Cooldown = 2.5f,
+        SummonTime = 1.1f,
+        UnitId = UnitIds.PiercingLaser,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Lightning,
+    };
+
+    // =========================================================================
     // LOOKUP
     // =========================================================================
 
@@ -730,6 +833,7 @@ public static class CardDefinitions
         [CardIds.Charge] = Charge,
         [CardIds.ManaBolt] = ManaBolt,
         [CardIds.WeavingBolt] = WeavingBolt,
+        [CardIds.HealingField] = HealingField,
 
         // Wisps
         [CardIds.FireWisp] = FireWisp,
@@ -756,6 +860,7 @@ public static class CardDefinitions
         [CardIds.Rock] = Rock,
         [CardIds.StoneApe] = StoneApe,
         [CardIds.EarthRockThrower] = EarthRockThrower,
+        [CardIds.TauntPulseGuardian] = TauntPulseGuardian,
 
         // Wind units
         [CardIds.Puff] = Puff,
@@ -764,6 +869,9 @@ public static class CardDefinitions
         // Water units
         [CardIds.WaterFrog] = WaterFrog,
         [CardIds.MamaDuck] = MamaDuck,
+        [CardIds.LifeMedic] = LifeMedic,
+        [CardIds.PoisonNeedler] = PoisonNeedler,
+        [CardIds.PiercingLaser] = PiercingLaser,
     };
 
     /// <summary>Get a card definition by ID. Returns null if not found.</summary>

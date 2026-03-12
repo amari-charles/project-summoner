@@ -400,6 +400,37 @@ public static class UnitDefinitions
         ScenePath = "res://scenes/battle/units/earth_rock_thrower_3d.tscn",
     };
 
+    public static readonly UnitDefinition TauntPulseGuardian = new()
+    {
+        Id = UnitIds.TauntPulseGuardian,
+        DisplayName = "Taunt Pulse Guardian",
+        Stats = new UnitStats
+        {
+            MaxHp = 260f,
+            AttackDamage = 14f,
+            AttackRange = 3.0f,
+            AttackSpeed = 0.7f,
+            MoveSpeed = 2.0f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "taunt_pulse",
+                Kind = UnitAbilityKind.TauntPulse,
+                CooldownSeconds = 3.0f,
+                Radius = 8.0f,
+                DurationSeconds = 2.5f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.7f },
+        ScenePath = "res://scenes/battle/units/stone_ape_3d.tscn",
+    };
+
     // =========================================================================
     // WIND ELEMENT UNITS
     // =========================================================================
@@ -508,6 +539,93 @@ public static class UnitDefinitions
         ScenePath = "res://scenes/battle/units/duckling_3d.tscn",
     };
 
+    public static readonly UnitDefinition LifeMedic = new()
+    {
+        Id = UnitIds.LifeMedic,
+        DisplayName = "Life Medic",
+        Stats = new UnitStats
+        {
+            MaxHp = 75f,
+            AttackDamage = 0f,
+            AttackRange = 16f,
+            AttackSpeed = 0f,
+            MoveSpeed = 2.1f,
+            AggroRadius = 16f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.Passive,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "healer_bullet",
+                Kind = UnitAbilityKind.HealerProjectile,
+                CooldownSeconds = 1.2f,
+                Range = 18f,
+                Value = 14f,
+                ProjectileId = ProjectileIds.HealingBolt,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        ScenePath = "res://scenes/battle/units/life_wisp_3d.tscn",
+    };
+
+    public static readonly UnitDefinition PoisonNeedler = new()
+    {
+        Id = UnitIds.PoisonNeedler,
+        DisplayName = "Poison Needler",
+        Stats = new UnitStats
+        {
+            MaxHp = 65f,
+            AttackDamage = 10f,
+            AttackRange = 20f,
+            AttackSpeed = 0.85f,
+            MoveSpeed = 2.5f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Ranged = new RangedConfig(ProjectileIds.PoisonNeedle)
+        {
+            Impact = new ProjectileImpactConfig
+            {
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                ImpactKind = ProjectileImpactKind.Damage,
+                Status = new ProjectileStatusConfig
+                {
+                    Kind = StatusEffectKind.Poison,
+                    DurationSeconds = 4.0f,
+                    TickIntervalSeconds = 1.0f,
+                    PotencyPerStack = 2.0f,
+                    MaxStacks = 5,
+                },
+            },
+        },
+        Visual = new VisualConfig { SeparationRadius = 0.35f },
+        ScenePath = "res://scenes/battle/units/fire_spider_3d.tscn",
+    };
+
+    public static readonly UnitDefinition PiercingLaser = new()
+    {
+        Id = UnitIds.PiercingLaser,
+        DisplayName = "Piercing Laser",
+        Stats = new UnitStats
+        {
+            MaxHp = 70f,
+            AttackDamage = 16f,
+            AttackRange = 22f,
+            AttackSpeed = 0.55f,
+            MoveSpeed = 2.4f,
+            AggroRadius = 22f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Ranged = new RangedConfig(ProjectileIds.LaserBeam),
+        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        ScenePath = "res://scenes/battle/units/lightning_wisp_3d.tscn",
+    };
+
     // =========================================================================
     // LOOKUP
     // =========================================================================
@@ -535,12 +653,16 @@ public static class UnitDefinitions
         [UnitIds.Rock] = Rock,
         [UnitIds.StoneApe] = StoneApe,
         [UnitIds.EarthRockThrower] = EarthRockThrower,
+        [UnitIds.TauntPulseGuardian] = TauntPulseGuardian,
         // Wind
         [UnitIds.Puff] = Puff,
         // Water
         [UnitIds.WaterFrog] = WaterFrog,
         [UnitIds.MamaDuck] = MamaDuck,
         [UnitIds.Duckling] = Duckling,
+        [UnitIds.LifeMedic] = LifeMedic,
+        [UnitIds.PoisonNeedler] = PoisonNeedler,
+        [UnitIds.PiercingLaser] = PiercingLaser,
     };
 
     /// <summary>Get a unit definition by ID. Throws if not found.</summary>
@@ -632,12 +754,23 @@ public static class UnitDefinitions
         template.PhysicalDefense = stats.Armor;
         template.MagicDefense = stats.MagicResist;
         template.Attack = AttackVectorStateBuilder.Build(def.Attack);
+        template.Abilities = BuildAbilityStates(def.Abilities);
 
         // Ranged config
         if (def.Ranged != null)
         {
             template.ProjectileCatalogId = def.Ranged.ProjectileId.Value;
             template.ProjectileDelay = def.Ranged.ProjectileDelay;
+            template.ProjectileTargetAffinity = def.Ranged.Impact.TargetAffinity;
+            template.ProjectileImpactKind = def.Ranged.Impact.ImpactKind;
+            if (def.Ranged.Impact.Status != null)
+            {
+                template.ProjectileStatusKind = def.Ranged.Impact.Status.Kind;
+                template.ProjectileStatusDuration = def.Ranged.Impact.Status.DurationSeconds;
+                template.ProjectileStatusTickInterval = def.Ranged.Impact.Status.TickIntervalSeconds;
+                template.ProjectileStatusPotencyPerStack = def.Ranged.Impact.Status.PotencyPerStack;
+                template.ProjectileStatusMaxStacks = Math.Max(1, def.Ranged.Impact.Status.MaxStacks);
+            }
         }
 
         // Flying config
@@ -816,5 +949,35 @@ public static class UnitDefinitions
             return TacticalRole.Flanker;
 
         return TacticalRole.Frontliner;
+    }
+
+    private static List<UnitAbilityState> BuildAbilityStates(List<UnitAbilityConfig> abilities)
+    {
+        if (abilities.Count == 0)
+            return new List<UnitAbilityState>();
+
+        var result = new List<UnitAbilityState>(abilities.Count);
+        foreach (var ability in abilities)
+        {
+            result.Add(
+                new UnitAbilityState
+                {
+                    AbilityId = ability.AbilityId,
+                    Kind = ability.Kind,
+                    CooldownSeconds = ability.CooldownSeconds,
+                    CooldownTimer = 0f,
+                    Range = ability.Range,
+                    Radius = ability.Radius,
+                    Value = ability.Value,
+                    DurationSeconds = ability.DurationSeconds,
+                    WindupSeconds = ability.WindupSeconds,
+                    WindupTimer = 0f,
+                    LockedTargetUnitId = null,
+                    ProjectileCatalogId = ability.ProjectileId.Value,
+                    TargetAffinity = ability.TargetAffinity,
+                }
+            );
+        }
+        return result;
     }
 }

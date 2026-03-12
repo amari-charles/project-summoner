@@ -595,7 +595,14 @@ public static class SimBehavior
             speedTransitionDuration: projectileData.SpeedTransitionDuration,
             speedEasing: projectileData.SpeedEasing,
             speedEaseExponent: projectileData.SpeedEaseExponent,
-            tracking: projectileData.Tracking
+            tracking: projectileData.Tracking,
+            targetAffinity: attacker.ProjectileTargetAffinity,
+            impactKind: attacker.ProjectileImpactKind,
+            statusKind: attacker.ProjectileStatusKind,
+            statusDuration: attacker.ProjectileStatusDuration,
+            statusTickInterval: attacker.ProjectileStatusTickInterval,
+            statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+            statusMaxStacks: attacker.ProjectileStatusMaxStacks
         );
     }
 
@@ -660,7 +667,14 @@ public static class SimBehavior
             speedTransitionDuration: projectileData.SpeedTransitionDuration,
             speedEasing: projectileData.SpeedEasing,
             speedEaseExponent: projectileData.SpeedEaseExponent,
-            tracking: projectileData.Tracking
+            tracking: projectileData.Tracking,
+            targetAffinity: attacker.ProjectileTargetAffinity,
+            impactKind: attacker.ProjectileImpactKind,
+            statusKind: attacker.ProjectileStatusKind,
+            statusDuration: attacker.ProjectileStatusDuration,
+            statusTickInterval: attacker.ProjectileStatusTickInterval,
+            statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+            statusMaxStacks: attacker.ProjectileStatusMaxStacks
         );
     }
 
