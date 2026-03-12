@@ -225,6 +225,8 @@ func _apply_perspective_profile() -> void:
 	_sync_zoom_pitch_base_from_current_transform()
 
 func _apply_zoom_limits(reset_zoom: bool) -> void:
+	if not reset_zoom:
+		_sync_zoom_pitch_base_from_current_transform()
 	if reset_zoom:
 		fov = clamp(default_fov, min_fov, max_fov)
 	else:

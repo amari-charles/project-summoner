@@ -192,6 +192,31 @@ func test_zoom_pitch_keeps_reference_anchor_stable_during_zoom() -> void:
 	)
 
 
+func test_apply_zoom_limits_does_not_snap_position_after_pan_with_zoom_pitch() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-10000, -10000), Vector2(20000, 20000))
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 16.0
+	_camera._apply_zoom_limits(true)
+
+	_camera.position.x += 18.0
+	_camera.position.z += 14.0
+	var before_position: Vector3 = _camera.position
+
+	_camera._apply_zoom_limits(false)
+	assert_almost_eq(
+		_camera.position.x,
+		before_position.x,
+		0.001,
+		"Reapplying zoom limits should not snap camera X after panning"
+	)
+	assert_almost_eq(
+		_camera.position.z,
+		before_position.z,
+		0.001,
+		"Reapplying zoom limits should not snap camera Z after panning"
+	)
+
+
 func test_zoom_out_dynamic_cap_prevents_snap_translation() -> void:
 	_camera.zoom_pitch_enabled = true
 	_camera.zoom_pitch_max_degrees = 16.0
