@@ -161,9 +161,14 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             return;
         }
 
-        CurrentHp = unitData.CurrentHp;
-        MaxHp = unitData.MaxHp;
-        _hpBar?.UpdateHp(CurrentHp, MaxHp);
+        float nextHp = unitData.CurrentHp;
+        float nextMaxHp = unitData.MaxHp;
+        bool hpChanged =
+            !Mathf.IsEqualApprox(CurrentHp, nextHp) || !Mathf.IsEqualApprox(MaxHp, nextMaxHp);
+        CurrentHp = nextHp;
+        MaxHp = nextMaxHp;
+        if (hpChanged)
+            _hpBar?.UpdateHp(CurrentHp, MaxHp);
 
         // Death fallback from snapshot
         if (!unitData.IsAlive && _isAlive)
