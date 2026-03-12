@@ -4,6 +4,7 @@ class_name BiomeConfig
 ## Visual theme configuration for battlefield environments
 ## Defines textures, colors, lighting for a specific biome (summer, winter, desert, etc.)
 const CHECKER_PILLARS_NODE_NAME: StringName = &"CheckerPillars"
+const CHECKER_PILLAR_SHADER: Shader = preload("res://shaders/battle/checker_pillar.gdshader")
 
 @export_group("Identification")
 @export var biome_id: String = "unknown"
@@ -93,7 +94,7 @@ func _build_checker_tile_pillars(battlefield: Node3D) -> bool:
 
 	var multimesh: MultiMesh = MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.use_colors = true
+	multimesh.use_custom_data = true
 	multimesh.mesh = box_mesh
 	multimesh.instance_count = tile_count_x * tile_count_z
 
@@ -114,15 +115,14 @@ func _build_checker_tile_pillars(battlefield: Node3D) -> bool:
 				min_z + float(z_idx) * tile_size_z
 			)
 			multimesh.set_instance_transform(instance_idx, transform)
-			var color: Color = color_a if ((x_idx + z_idx) % 2 == 0) else color_b
-			multimesh.set_instance_color(instance_idx, color)
+			var parity: float = 0.0 if ((x_idx + z_idx) % 2 == 0) else 1.0
+			multimesh.set_instance_custom_data(instance_idx, Color(parity, 0.0, 0.0, 1.0))
 			instance_idx += 1
 
-	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.cull_mode = BaseMaterial3D.CULL_BACK
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = CHECKER_PILLAR_SHADER
+	material.set_shader_parameter("color_a", color_a)
+	material.set_shader_parameter("color_b", color_b)
 
 	var pillars: MultiMeshInstance3D = MultiMeshInstance3D.new()
 	pillars.name = String(CHECKER_PILLARS_NODE_NAME)
