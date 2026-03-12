@@ -49,7 +49,7 @@ public partial class BattleScene : Node3D
     public float OvertimeDuration { get; set; } = 60.0f;
 
     [Export]
-    public float PreparationDuration { get; set; } = 30.0f;
+    public float PreparationDuration { get; set; } = 15.0f;
 
     [Export]
     public Node3D? Battlefield { get; set; }
@@ -140,6 +140,7 @@ public partial class BattleScene : Node3D
 
         // Build typed config from BattleContext (one-time read)
         _config = BuildSessionConfig();
+        ApplyPreparationDurationOverride();
 
         // Wait one frame for all scene nodes to be in tree
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -209,6 +210,16 @@ public partial class BattleScene : Node3D
         }
 
         return BattleSessionConfig.FromBattleContext(battleContext);
+    }
+
+    private void ApplyPreparationDurationOverride()
+    {
+        if (_config.RawConfig == null || !_config.RawConfig.ContainsKey("prep_duration"))
+            return;
+        if (_config.PreparationDuration < 0f)
+            return;
+
+        PreparationDuration = _config.PreparationDuration;
     }
 
     public override void _ExitTree()

@@ -633,6 +633,46 @@ public class SimulationIntegrationTest
         AssertThat(_state.Summoners[0].Hand.Count).IsEqual(4);
     }
 
+    [TestCase]
+    public void Tick_PhaseTransition_RefreshHandDrawsFromFullDeckIncludingSpells()
+    {
+        _state.Phase = GamePhase.Preparation;
+        _state.PrepTimeRemaining = Delta * 0.5f;
+
+        _state.CardDataMap["prep_unit"] = SimTestHelper.CreateSummonCard("prep_unit");
+        _state.CardDataMap["battle_spell"] = SimTestHelper.CreateSpellCard("battle_spell");
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "prep_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "battle_spell" };
+        _state.Summoners[0].MaxHandSize = 2;
+
+        _sim.Tick(Delta);
+
+        AssertThat(_state.Summoners[0].Hand).Contains("battle_spell");
+    }
+
+    [TestCase]
+    public void Tick_PreparationDrawReplacement_SkipsSpellCards()
+    {
+        _state.Phase = GamePhase.Preparation;
+        _state.PrepTimeRemaining = 10f;
+
+        _state.CardDataMap["prep_unit_a"] = SimTestHelper.CreateSummonCard("prep_unit_a", manaCost: 1);
+        _state.CardDataMap["prep_unit_b"] = SimTestHelper.CreateSummonCard("prep_unit_b", manaCost: 1);
+        _state.CardDataMap["spell_card"] = SimTestHelper.CreateSpellCard("spell_card", manaCost: 1);
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "prep_unit_a" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "spell_card", "prep_unit_b" };
+        _state.Summoners[0].Mana = 10f;
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f)) { ExecuteFrame = 1 };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta);
+
+        AssertThat(_state.Summoners[0].Hand.Count).IsEqual(1);
+        AssertThat(_state.Summoners[0].Hand[0].Value).IsEqual("prep_unit_b");
+        AssertThat(_state.Summoners[0].Deck).Contains("spell_card");
+    }
+
     // =========================================================================
     // Casting
     // =========================================================================

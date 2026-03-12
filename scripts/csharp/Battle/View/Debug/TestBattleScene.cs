@@ -29,7 +29,7 @@ public partial class TestBattleScene : BattleScene
             GD.Print("[TestBattleScene] Reloaded projectile data from disk");
         }
 
-        // Skip 30-second prep phase so AI starts immediately in test scenes
+        // Skip prep phase so AI starts immediately in test scenes
         PreparationDuration = 0f;
 
         // Call parent _Ready (runs full init sequence)

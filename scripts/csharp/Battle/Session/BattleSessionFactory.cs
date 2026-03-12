@@ -115,13 +115,8 @@ public static class BattleSessionFactory
                 break;
         }
 
-        // Split hand from deck
-        int drawCount = Math.Min(maxHandSize, result.Deck.Count);
-        for (int i = 0; i < drawCount; i++)
-        {
-            result.Hand.Add(result.Deck[0]);
-            result.Deck.RemoveAt(0);
-        }
+        // During prep, opening hands are summon-only.
+        DrawOpeningHandSummonsOnly(result, maxHandSize);
 
         int totalCards = result.Deck.Count + result.Hand.Count;
         if (totalCards > 0)
@@ -130,6 +125,52 @@ public static class BattleSessionFactory
         LoadSummonerStats(caller, config, localTeam, result);
 
         return result;
+    }
+
+    private static void DrawOpeningHandSummonsOnly(SummonerLoadResult result, int maxHandSize)
+    {
+        if (maxHandSize <= 0 || result.Deck.Count == 0)
+            return;
+
+        int deckIndex = 0;
+        while (deckIndex < result.Deck.Count && result.Hand.Count < maxHandSize)
+        {
+            var cardResource = result.Deck[deckIndex];
+            if (!IsSummonCard(cardResource))
+            {
+                deckIndex++;
+                continue;
+            }
+
+            result.Hand.Add(cardResource);
+            result.Deck.RemoveAt(deckIndex);
+        }
+    }
+
+    private static bool IsSummonCard(Resource cardResource)
+    {
+        if (cardResource is Card typedCard)
+            return typedCard.Type == (int)CardType.Summon;
+
+        if (cardResource is not GodotObject cardObject)
+            return false;
+
+        var typeVar = cardObject.Get("Type");
+        if (typeVar.VariantType != Variant.Type.Int && typeVar.VariantType != Variant.Type.Float)
+        {
+            typeVar = cardObject.Get("card_type");
+        }
+        if (typeVar.VariantType == Variant.Type.Int || typeVar.VariantType == Variant.Type.Float)
+            return typeVar.AsInt32() == (int)CardType.Summon;
+
+        var catalogId = cardObject.Get("CatalogId").AsString();
+        if (string.IsNullOrEmpty(catalogId))
+            catalogId = cardObject.Get("catalog_id").AsString();
+        if (string.IsNullOrEmpty(catalogId))
+            return false;
+
+        var def = CardCatalog.GetCard(catalogId);
+        return def != null && def.Type == CardType.Summon;
     }
 
     /// <summary>Create a Card resource from a catalog ID. Returns null if not found.</summary>
