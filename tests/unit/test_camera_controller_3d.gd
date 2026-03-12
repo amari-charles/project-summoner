@@ -64,6 +64,8 @@ func test_perspective_profile_applies_transform_zoom_and_clamp_settings() -> voi
 	perspective_profile.min_zoom = 24.0
 	perspective_profile.max_zoom = 82.0
 	perspective_profile.vertical_pan_only_when_zoomed = false
+	perspective_profile.zoom_pitch_enabled = true
+	perspective_profile.zoom_pitch_max_degrees = 16.0
 	perspective_profile.horizontal_bounds_use_screen_sample = true
 	perspective_profile.horizontal_bounds_screen_y = 0.55
 	perspective_profile.vertical_far_clamp_margin = 1.25
@@ -76,6 +78,8 @@ func test_perspective_profile_applies_transform_zoom_and_clamp_settings() -> voi
 	assert_almost_eq(_camera.position.z, -54.61, 0.001, "Perspective profile should apply perspective framing")
 	assert_almost_eq(_camera.default_fov, 72.0, 0.001, "Perspective profile should apply FOV defaults")
 	assert_false(_camera.vertical_pan_only_when_zoomed, "Perspective profile should allow vertical pan at default zoom")
+	assert_true(_camera.zoom_pitch_enabled, "Perspective profile should apply zoom pitch toggle")
+	assert_almost_eq(_camera.zoom_pitch_max_degrees, 16.0, 0.001, "Perspective profile should apply max zoom pitch")
 	assert_true(_camera.horizontal_bounds_use_screen_sample, "Perspective profile should enable sampled horizontal bounds")
 
 
@@ -108,6 +112,210 @@ func test_zoom_adjusts_fov_and_clamps_limits() -> void:
 
 	_camera._apply_zoom(9999.0)
 	assert_almost_eq(_camera.fov, _camera.max_fov, 0.001, "Zoom out should clamp to max_fov")
+
+
+func test_zoom_in_applies_backward_pitch_when_enabled() -> void:
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 8.0
+	_camera._apply_zoom_limits(true)
+
+	var start_forward: Vector3 = -_camera.global_basis.z
+	_camera._apply_zoom(-9999.0)
+	var zoomed_forward: Vector3 = -_camera.global_basis.z
+
+	assert_gt(
+		zoomed_forward.y,
+		start_forward.y,
+		"Zoom-in with zoom pitch enabled should tilt camera backward (less downward forward vector)"
+	)
+
+
+func test_zooming_back_to_default_fov_removes_zoom_pitch_offset() -> void:
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 8.0
+	_camera._apply_zoom_limits(true)
+	var baseline_basis: Basis = _camera.global_basis
+
+	_camera._apply_zoom(-9999.0)
+	_camera._apply_zoom_limits(true)
+	_assert_basis_almost_eq(
+		_camera.global_basis,
+		baseline_basis,
+		0.0001,
+		"Returning to default zoom should restore baseline camera angle"
+	)
+
+
+func test_zoom_pitch_disabled_keeps_camera_rotation_constant_during_zoom() -> void:
+	_camera.zoom_pitch_enabled = false
+	_camera.zoom_pitch_max_degrees = 8.0
+	_camera._apply_zoom_limits(true)
+	var baseline_basis: Basis = _camera.global_basis
+
+	_camera._apply_zoom(-9999.0)
+	_assert_basis_almost_eq(
+		_camera.global_basis,
+		baseline_basis,
+		0.0001,
+		"Zoom pitch disabled should keep camera rotation unchanged while zooming"
+	)
+
+
+func test_zoom_pitch_keeps_reference_anchor_stable_during_zoom() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-10000, -10000), Vector2(20000, 20000))
+	_camera.vertical_center_reference_screen_y = 0.55
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 16.0
+	_camera._apply_zoom_limits(true)
+
+	var anchor_before: Vector3 = _camera.get_ground_point_for_screen_uv(
+		Vector2(0.5, _camera.vertical_center_reference_screen_y)
+	)
+	assert_true(anchor_before.is_finite(), "Reference anchor should be valid before zoom")
+
+	_camera._apply_zoom(-12.0)
+	var anchor_after: Vector3 = _camera.get_ground_point_for_screen_uv(
+		Vector2(0.5, _camera.vertical_center_reference_screen_y)
+	)
+	assert_true(anchor_after.is_finite(), "Reference anchor should be valid after zoom")
+	assert_almost_eq(
+		anchor_after.x,
+		anchor_before.x,
+		0.05,
+		"Zoom stabilization should keep horizontal reference anchor stable"
+	)
+	assert_almost_eq(
+		anchor_after.z,
+		anchor_before.z,
+		0.05,
+		"Zoom stabilization should keep depth reference anchor stable"
+	)
+
+
+func test_apply_zoom_limits_does_not_snap_position_after_pan_with_zoom_pitch() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-10000, -10000), Vector2(20000, 20000))
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 16.0
+	_camera._apply_zoom_limits(true)
+
+	_camera.position.x += 18.0
+	_camera.position.z += 14.0
+	var before_position: Vector3 = _camera.position
+
+	_camera._apply_zoom_limits(false)
+	assert_almost_eq(
+		_camera.position.x,
+		before_position.x,
+		0.001,
+		"Reapplying zoom limits should not snap camera X after panning"
+	)
+	assert_almost_eq(
+		_camera.position.z,
+		before_position.z,
+		0.001,
+		"Reapplying zoom limits should not snap camera Z after panning"
+	)
+
+
+func test_zoom_out_dynamic_cap_prevents_snap_translation() -> void:
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 16.0
+	_camera._apply_zoom_limits(true)
+
+	var max_step_motion: float = 0.0
+	for i: int in range(90):
+		var previous_position: Vector3 = _camera.position
+		_camera._apply_zoom(1.0)
+		var step_motion: float = _camera.position.distance_to(previous_position)
+		max_step_motion = max(max_step_motion, step_motion)
+
+	assert_lt(
+		max_step_motion,
+		2.5,
+		"Dynamic zoom-out cap should avoid abrupt one-step camera translation spikes"
+	)
+
+
+func test_zoom_out_cap_is_monotonic_and_sticky() -> void:
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 16.0
+	_camera._apply_zoom_limits(true)
+
+	for i: int in range(120):
+		_camera._apply_zoom(1.0)
+
+	var capped_fov: float = _camera.fov
+	var capped_position: Vector3 = _camera.position
+	for i: int in range(8):
+		_camera._apply_zoom(1.0)
+		assert_almost_eq(
+			_camera.fov,
+			capped_fov,
+			0.001,
+			"After reaching dynamic cap, additional zoom-out input should not increase FOV"
+		)
+		assert_almost_eq(
+			_camera.position.x,
+			capped_position.x,
+			0.01,
+			"After reaching dynamic cap, additional zoom-out input should not shift X"
+		)
+		assert_almost_eq(
+			_camera.position.z,
+			capped_position.z,
+			0.01,
+			"After reaching dynamic cap, additional zoom-out input should not shift Z"
+		)
+
+
+func test_zoom_out_dynamic_cap_works_when_panned() -> void:
+	_camera.zoom_pitch_enabled = true
+	_camera.zoom_pitch_max_degrees = 16.0
+	_camera._apply_zoom_limits(true)
+
+	_camera.position.x += 24.0
+	_camera.position.z += 16.0
+	_camera.clamp_to_map()
+
+	var max_step_motion: float = 0.0
+	for i: int in range(120):
+		var previous_position: Vector3 = _camera.position
+		_camera._apply_zoom(1.0)
+		var step_motion: float = _camera.position.distance_to(previous_position)
+		max_step_motion = max(max_step_motion, step_motion)
+
+	assert_lt(
+		max_step_motion,
+		2.5,
+		"Dynamic zoom-out cap should still prevent large snap translation when camera is panned"
+	)
+
+	var capped_fov: float = _camera.fov
+	var capped_position: Vector3 = _camera.position
+	_camera._apply_zoom(4.0)
+	assert_almost_eq(
+		_camera.fov,
+		capped_fov,
+		0.001,
+		"Panned camera should stop at its dynamic zoom-out cap"
+	)
+	assert_almost_eq(
+		_camera.position.x,
+		capped_position.x,
+		0.01,
+		"Panned camera should not shift X after hitting dynamic zoom-out cap"
+	)
+	assert_almost_eq(
+		_camera.position.z,
+		capped_position.z,
+		0.01,
+		"Panned camera should not shift Z after hitting dynamic zoom-out cap"
+	)
+	var residual_offset: Vector2 = _camera._get_required_clamp_offset_for_current_state()
+	assert_true(
+		_camera._is_clamp_offset_stable(residual_offset),
+		"Panned dynamic zoom-out cap should settle at a stable no-translation clamp state"
+	)
 
 
 func test_large_drag_delta_clamps_ground_footprint_inside_map() -> void:
@@ -431,6 +639,18 @@ func _assert_footprint_inside_map(message_prefix: String) -> void:
 			map_rect.position.y + map_rect.size.y
 		]
 	)
+
+
+func _assert_basis_almost_eq(actual: Basis, expected: Basis, epsilon: float, message: String) -> void:
+	_assert_vector3_almost_eq(actual.x, expected.x, epsilon, "%s (basis.x)" % message)
+	_assert_vector3_almost_eq(actual.y, expected.y, epsilon, "%s (basis.y)" % message)
+	_assert_vector3_almost_eq(actual.z, expected.z, epsilon, "%s (basis.z)" % message)
+
+
+func _assert_vector3_almost_eq(actual: Vector3, expected: Vector3, epsilon: float, message: String) -> void:
+	assert_almost_eq(actual.x, expected.x, epsilon, "%s x mismatch" % message)
+	assert_almost_eq(actual.y, expected.y, epsilon, "%s y mismatch" % message)
+	assert_almost_eq(actual.z, expected.z, epsilon, "%s z mismatch" % message)
 
 
 func _get_effective_view_bounds_xz() -> Rect2:

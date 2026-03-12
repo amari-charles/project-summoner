@@ -14,6 +14,8 @@ class_name BattleCameraProjectionProfile
 @export var max_zoom: float = 50.0
 
 @export var vertical_pan_only_when_zoomed: bool = true
+@export var zoom_pitch_enabled: bool = false
+@export var zoom_pitch_max_degrees: float = 0.0
 @export var horizontal_bounds_use_screen_sample: bool = false
 @export_range(0.0, 1.0, 0.01) var horizontal_bounds_screen_y: float = 0.5
 @export var vertical_far_clamp_margin: float = 0.0

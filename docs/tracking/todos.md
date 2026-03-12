@@ -497,6 +497,26 @@ Enhance the visual design of card display including layout, typography, and effe
 
 ---
 
+#### Add Battle-Start Cinematic Camera Nudge
+**Status:** ⬜ Not Started
+**Category:** Visual Polish / Camera
+**Effort:** Small
+
+**Description:**
+Add a subtle automatic camera intro at battle start (slight zoom-in motion) to improve scene presentation before normal player camera control takes over.
+
+**Requirements:**
+- Trigger once at battle start (non-looping)
+- Keep motion subtle and brief
+- Preserve current gameplay camera framing after intro
+- Avoid interfering with manual zoom/pan behavior
+
+**Notes:**
+- Keep this strictly cosmetic (no gameplay timing impact)
+- Coordinate with existing battle initialization flow in `BattleScene`
+
+---
+
 ### 🟢 LOW PRIORITY
 
 #### Clean Up Non-Production VFX
