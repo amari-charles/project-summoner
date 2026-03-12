@@ -6,6 +6,27 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### RID/Resource Leaks at Exit in Headless Mode
+**Resolved:** 2026-03-12
+**Component:** Unit Testing / Godot Headless
+
+**Description:**
+Headless GUT runs were intermittently ending with `Leaked unsafe reference`, `ObjectDB instances leaked`, and mono binding fatal shutdown signatures.
+
+**Root Cause:**
+`JsonProfileStore` created `DirAccess` and `Json` Godot objects without deterministic disposal in multiple load/save paths, leaving unsafe references at process teardown.
+
+**Solution Implemented:**
+1. Added deterministic disposal (`using var`) for `DirAccess` and `Json` instances in `JsonProfileStore`.
+2. Re-ran required review validation suites and checked shutdown signatures with the specified headless GUT command.
+3. Confirmed no matching leak/fatal signatures in the validation output.
+
+**Related Files:**
+- `scripts/csharp/Infrastructure/Persistence/JsonProfileStore.cs`
+- `docs/tracking/bugs.md`
+
+---
+
 ### Puff Units Get Stuck in Idle When Blocked by Other Units
 **Resolved:** 2026-03-08
 **Component:** Units / Pathfinding / Movement

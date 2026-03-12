@@ -287,7 +287,16 @@ public partial class CardService : Node
     /// <summary>Check if card can level up (has enough XP).</summary>
     public bool CanLevelUp(string cardInstanceId)
     {
-        return _progression?.CanLevelUp(CardInstanceId.FromString(cardInstanceId)) ?? false;
+        var typedId = CardInstanceId.FromString(cardInstanceId);
+        if (!(_progression?.CanLevelUp(typedId) ?? false))
+            return false;
+
+        var levelUpCost = _progression?.GetLevelUpResourceCost(typedId) ?? [];
+        if (levelUpCost.Count == 0)
+            return true;
+
+        var economy = EconomyService.Instance;
+        return economy != null && economy.CanAfford(levelUpCost);
     }
 
     /// <summary>Level up a card (XP + optional configured resource cost). Trait spend is deferred.</summary>
@@ -498,6 +507,8 @@ public partial class CardService : Node
         foreach (var (resourceType, amount) in info.LevelUpResourceCost)
             levelUpResourceCost[resourceType] = amount;
 
+        bool canLevelUp = CanLevelUp(cardInstanceId);
+
         return new Godot.Collections.Dictionary
         {
             ["card_instance_id"] = info.CardInstanceId,
@@ -509,7 +520,7 @@ public partial class CardService : Node
             ["xp"] = info.Xp,
             ["xp_for_next_level"] = info.XpForNextLevel,
             ["xp_progress"] = info.XpProgress,
-            ["can_level_up"] = info.CanLevelUp,
+            ["can_level_up"] = canLevelUp,
             ["traits"] = traitsArray,
             ["is_max_level"] = info.IsMaxLevel,
             ["unspent_trait_points"] = info.UnspentTraitPoints,

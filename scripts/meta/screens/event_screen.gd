@@ -113,12 +113,17 @@ func _start_event() -> void:
 	)
 	if not sequence_completed:
 		push_warning("EventScreen: Sequence timed out after %.0fs; forcing return to campaign" % EVENT_SEQUENCE_TIMEOUT_SECONDS)
+		if EventSequencer.sequence_finished.is_connected(_on_event_sequence_complete):
+			EventSequencer.sequence_finished.disconnect(_on_event_sequence_complete)
 		if EventSequencer.has_method("stop_sequence"):
 			EventSequencer.stop_sequence()
 		_return_to_campaign()
 
 ## Event sequence completed
 func _on_event_sequence_complete(sequence: Resource) -> void:
+	if _is_returning_to_campaign:
+		return
+
 	var sequence_id: String = SafeTypeUtils.string(sequence.get("sequence_id"), "unknown")
 	print("EventScreen: Event sequence completed: %s" % sequence_id)
 
