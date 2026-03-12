@@ -24,9 +24,8 @@ public class MeleeClumpingStabilityTest
     public void CommitSlotFlow_ReducesChurn_InDenseClump()
     {
         var result = RunScenario(seed: 20260312u, useCommitSlotMode: true);
-        float recoveryRatio = result.EngagedFrames > 0
-            ? result.RecoveryFrames / (float)result.EngagedFrames
-            : 1f;
+        float recoveryRatio =
+            result.EngagedFrames > 0 ? result.RecoveryFrames / (float)result.EngagedFrames : 1f;
         int totalHits = result.AttackerOneAttackCount + result.AttackerTwoAttackCount;
 
         AssertThat(totalHits).IsGreater(0);
@@ -40,11 +39,13 @@ public class MeleeClumpingStabilityTest
     public void PebloomRepro_TwoMeleeAttackers_StableClumpAndContributesDamage()
     {
         var result = RunScenario(seed: 20260311u);
-        float configuredBudget = MathF.Max(0.20f, MathF.Min(0.75f * ScenarioEngageRectHalfWidth, 1.10f));
+        float configuredBudget = MathF.Max(
+            0.20f,
+            MathF.Min(0.75f * ScenarioEngageRectHalfWidth, 1.10f)
+        );
         float spreadUpperBound = configuredBudget + (ScenarioNavigationRadius * 1.5f);
-        float recoveryRatio = result.EngagedFrames > 0
-            ? result.RecoveryFrames / (float)result.EngagedFrames
-            : 1f;
+        float recoveryRatio =
+            result.EngagedFrames > 0 ? result.RecoveryFrames / (float)result.EngagedFrames : 1f;
 
         int totalHits = result.AttackerOneAttackCount + result.AttackerTwoAttackCount;
         AssertThat(totalHits).IsGreater(0);
@@ -145,40 +146,46 @@ public class MeleeClumpingStabilityTest
                     attackerTwoAttackCount++;
             }
 
-            bool bothWithinEngage = SimTargeting.IsWithinEngageDistance(attackerOne, target.Position) &&
-                                    SimTargeting.IsWithinEngageDistance(attackerTwo, target.Position);
+            bool bothWithinEngage =
+                SimTargeting.IsWithinEngageDistance(attackerOne, target.Position)
+                && SimTargeting.IsWithinEngageDistance(attackerTwo, target.Position);
             if (bothWithinEngage)
             {
                 engagedFrames++;
                 spreadAccumulator += MathF.Abs(attackerOne.Position.Z - attackerTwo.Position.Z);
 
-                bool highVelocity = attackerOne.Velocity.Length() > HighVelocityThreshold ||
-                                    attackerTwo.Velocity.Length() > HighVelocityThreshold;
+                bool highVelocity =
+                    attackerOne.Velocity.Length() > HighVelocityThreshold
+                    || attackerTwo.Velocity.Length() > HighVelocityThreshold;
                 if (highVelocity)
                     highVelocityFrames++;
 
-                bool inRecovery = attackerOne.NavigationYieldTimer > 0f ||
-                                  attackerOne.NavigationEscapeTimer > 0f ||
-                                  attackerTwo.NavigationYieldTimer > 0f ||
-                                  attackerTwo.NavigationEscapeTimer > 0f;
+                bool inRecovery =
+                    attackerOne.NavigationYieldTimer > 0f
+                    || attackerOne.NavigationEscapeTimer > 0f
+                    || attackerTwo.NavigationYieldTimer > 0f
+                    || attackerTwo.NavigationEscapeTimer > 0f;
                 if (inRecovery)
                     recoveryFrames++;
             }
 
             if (frame % CheckpointIntervalFrames == 0)
             {
-                checkpoints.Add(FormatCheckpoint(
-                    frame,
-                    attackerOne,
-                    attackerTwo,
-                    target,
-                    attackerOneAttackCount,
-                    attackerTwoAttackCount
-                ));
+                checkpoints.Add(
+                    FormatCheckpoint(
+                        frame,
+                        attackerOne,
+                        attackerTwo,
+                        target,
+                        attackerOneAttackCount,
+                        attackerTwoAttackCount
+                    )
+                );
             }
         }
 
-        float averageSpread = engagedFrames > 0 ? spreadAccumulator / engagedFrames : float.MaxValue;
+        float averageSpread =
+            engagedFrames > 0 ? spreadAccumulator / engagedFrames : float.MaxValue;
         return new ScenarioResult(
             attackerOneAttackCount,
             attackerTwoAttackCount,
@@ -207,7 +214,8 @@ public class MeleeClumpingStabilityTest
         UnitData attackerTwo,
         UnitData target,
         int attackerOneAttackCount,
-        int attackerTwoAttackCount)
+        int attackerTwoAttackCount
+    )
     {
         string t1 = attackerOne.TargetUnitId.HasValue
             ? attackerOne.TargetUnitId.Value.ToString(CultureInfo.InvariantCulture)
@@ -242,5 +250,6 @@ public class MeleeClumpingStabilityTest
         int RecoveryFrames,
         int TargetSwitchCount,
         int BlockedTimeoutRetargetCount,
-        List<string> Checkpoints);
+        List<string> Checkpoints
+    );
 }

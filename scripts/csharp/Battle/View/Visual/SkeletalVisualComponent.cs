@@ -1,6 +1,6 @@
-using Godot;
 using System.Collections.Generic;
 using Fateforged.View;
+using Godot;
 
 namespace Fateforged.Visual;
 
@@ -125,7 +125,9 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     private bool _isFlipped;
     private bool _initializationComplete;
     private bool _underUnitVisual;
-    private ShadowProfile _shadowProfile = ShadowProfiles.FromPreset(ShadowProfilePreset.Default).Sanitize();
+    private ShadowProfile _shadowProfile = ShadowProfiles
+        .FromPreset(ShadowProfilePreset.Default)
+        .Sanitize();
     private Color _originalModulate = Colors.White;
     private Tween? _flashTween;
     private List<CanvasItem>? _cachedSprites;
@@ -214,7 +216,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         {
             "hurt" => "idle",
             "death" => "idle",
-            _ => animName
+            _ => animName,
         };
 
         if (_animationPlayer.HasAnimation(mappedName))
@@ -260,7 +262,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             "walk" => "idle",
             "hurt" => "idle",
             "death" => "idle",
-            _ => animName
+            _ => animName,
         };
 
         if (_animationPlayer.HasAnimation(mappedName))
@@ -343,7 +345,12 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             {
                 if (IsInstanceValid(sprite))
                 {
-                    _flashTween.TweenProperty(sprite, "modulate", _originalModulate, FlashFadeDuration);
+                    _flashTween.TweenProperty(
+                        sprite,
+                        "modulate",
+                        _originalModulate,
+                        FlashFadeDuration
+                    );
                 }
             }
         };
@@ -521,7 +528,12 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
         // Guard: component or skeletal instance may be freed after await
-        if (!IsInstanceValid(this) || !IsInsideTree() || _skeletalInstance == null || !IsInstanceValid(_skeletalInstance))
+        if (
+            !IsInstanceValid(this)
+            || !IsInsideTree()
+            || _skeletalInstance == null
+            || !IsInstanceValid(_skeletalInstance)
+        )
             return;
 
         // Apply scale factor to the rig
@@ -531,7 +543,10 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         // This automatically handles centering without needing a separate ContentOffset parameter
         float contentCenterX = FeetLocalPosition.X * ScaleFactor.X;
         var viewportCenter = new Vector2(_viewport.Size.X / 2.0f, _viewport.Size.Y / 2.0f);
-        _skeletalInstance.Position = new Vector2(viewportCenter.X - contentCenterX, viewportCenter.Y);
+        _skeletalInstance.Position = new Vector2(
+            viewportCenter.X - contentCenterX,
+            viewportCenter.Y
+        );
 
         // Mark initialization complete and show sprite
         _initializationComplete = true;
@@ -549,7 +564,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
 
             // Also adjust position to keep content centered when flipped
             var pos = _skeletalInstance.Position;
-            pos.X = viewportCenter.X + contentCenterX;  // Flip reverses the offset
+            pos.X = viewportCenter.X + contentCenterX; // Flip reverses the offset
             _skeletalInstance.Position = pos;
         }
 

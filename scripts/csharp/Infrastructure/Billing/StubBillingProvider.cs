@@ -164,8 +164,12 @@ public partial class StubBillingProvider : BillingProvider
                 "Starter Pack",
                 "200 Gems + Lightning Adept Summoner",
                 4.99f,
-                new Godot.Collections.Dictionary { ["summoners"] = new Godot.Collections.Array<string> { "lightning_adept" } },
-                200),
+                new Godot.Collections.Dictionary
+                {
+                    ["summoners"] = new Godot.Collections.Array<string> { "lightning_adept" },
+                },
+                200
+            ),
         ];
 
         EmitSignal("products_loaded", _products);

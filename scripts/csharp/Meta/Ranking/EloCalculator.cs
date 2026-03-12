@@ -40,7 +40,11 @@ public static class EloCalculator
     /// <summary>
     /// Calculate new ratings with custom K-factor.
     /// </summary>
-    public static (int WinnerNew, int LoserNew) CalculateNewRatings(int winnerElo, int loserElo, int kFactor)
+    public static (int WinnerNew, int LoserNew) CalculateNewRatings(
+        int winnerElo,
+        int loserElo,
+        int kFactor
+    )
     {
         var expectedWinner = GetExpectedScore(winnerElo, loserElo);
         var expectedLoser = 1.0 - expectedWinner;
@@ -75,7 +79,7 @@ public static class EloCalculator
             < 1200 => RankTier.Adept,
             < 1400 => RankTier.Mage,
             < 1600 => RankTier.Archmage,
-            _ => RankTier.Sage
+            _ => RankTier.Sage,
         };
     }
 
@@ -101,7 +105,8 @@ public static class EloCalculator
 
         // Divide tier into 4 divisions
         var divisionSize = tierRange / 4;
-        if (divisionSize == 0) return 1;
+        if (divisionSize == 0)
+            return 1;
 
         var division = 4 - (positionInTier / divisionSize);
         return Math.Clamp(division, 1, 4);
@@ -121,7 +126,7 @@ public static class EloCalculator
             RankTier.Archmage => 1400,
             RankTier.Sage => 1600,
             RankTier.Fateforged => 1600, // Same as Sage (leaderboard-based, not ELO-based)
-            _ => 0
+            _ => 0,
         };
     }
 
@@ -139,7 +144,7 @@ public static class EloCalculator
             RankTier.Archmage => 1599,
             RankTier.Sage => EloCeiling,
             RankTier.Fateforged => EloCeiling,
-            _ => EloCeiling
+            _ => EloCeiling,
         };
     }
 
@@ -165,7 +170,7 @@ public static class EloCalculator
             2 => "II",
             3 => "III",
             4 => "IV",
-            _ => ""
+            _ => "",
         };
 
         // Fateforged tier doesn't have divisions
@@ -188,5 +193,5 @@ public enum RankTier
     Mage = 3,
     Archmage = 4,
     Sage = 5,
-    Fateforged = 6
+    Fateforged = 6,
 }

@@ -25,7 +25,8 @@ public static class SimMeleeSlotManager
         MatchState state,
         int targetId,
         UnitData attacker,
-        int minSlots = MinSlotsDefault)
+        int minSlots = MinSlotsDefault
+    )
     {
         if (!state.TargetSlotStates.TryGetValue(targetId, out var slotState))
         {
@@ -43,7 +44,8 @@ public static class SimMeleeSlotManager
         MatchState state,
         int targetId,
         out int reservedSlotId,
-        int minSlots = MinSlotsDefault)
+        int minSlots = MinSlotsDefault
+    )
     {
         reservedSlotId = -1;
         var slotState = GetOrCreateTargetState(state, targetId, unit, minSlots);
@@ -55,7 +57,12 @@ public static class SimMeleeSlotManager
             if (slot.OccupancyState != SlotOccupancyState.Free)
                 continue;
 
-            var worldPos = ResolveSlotWorldPosition(targetId, slotState.LayoutAxis, slot.SlotOffset, state);
+            var worldPos = ResolveSlotWorldPosition(
+                targetId,
+                slotState.LayoutAxis,
+                slot.SlotOffset,
+                state
+            );
             if (!worldPos.HasValue)
                 continue;
 
@@ -104,7 +111,10 @@ public static class SimMeleeSlotManager
 
     public static void ReleaseUnitSlots(UnitData unit, MatchState state)
     {
-        if (!unit.SlotTargetId.HasValue || !state.TargetSlotStates.TryGetValue(unit.SlotTargetId.Value, out var slotState))
+        if (
+            !unit.SlotTargetId.HasValue
+            || !state.TargetSlotStates.TryGetValue(unit.SlotTargetId.Value, out var slotState)
+        )
         {
             ClearUnitSlotRefs(unit);
             return;
@@ -147,7 +157,12 @@ public static class SimMeleeSlotManager
 
         RefreshLayoutAxis(slotState, unit.SlotTargetId.Value, state, unit.Position);
         var slot = slotState.Slots[unit.ReservedSlotId.Value];
-        return ResolveSlotWorldPosition(unit.SlotTargetId.Value, slotState.LayoutAxis, slot.SlotOffset, state);
+        return ResolveSlotWorldPosition(
+            unit.SlotTargetId.Value,
+            slotState.LayoutAxis,
+            slot.SlotOffset,
+            state
+        );
     }
 
     public static float ResolveSlotArrivalDistance(UnitData unit)
@@ -161,7 +176,8 @@ public static class SimMeleeSlotManager
         int targetId,
         MatchState state,
         UnitData attacker,
-        int minSlots)
+        int minSlots
+    )
     {
         float targetRadius = ResolveTargetRadius(targetId, state);
         float attackerRadius = MathF.Max(0.1f, CombatGeometry.GetNavigationRadius(attacker));
@@ -177,11 +193,17 @@ public static class SimMeleeSlotManager
         // Rebuild topology deterministically.
         slotState.Slots.Clear();
         float desiredOrbitRadius = MathF.Max(targetRadius + (attackerRadius * 0.9f), 0.2f);
-        if (attacker.EngageShape == EngageShape.ForwardRect && attacker.EngageRectForwardOffset > 0f)
+        if (
+            attacker.EngageShape == EngageShape.ForwardRect
+            && attacker.EngageRectForwardOffset > 0f
+        )
         {
             // Forward-rect units with positive forward offset must reserve slots far enough
             // ahead that their engage shape can actually include the target.
-            desiredOrbitRadius = MathF.Max(desiredOrbitRadius, attacker.EngageRectForwardOffset + 0.05f);
+            desiredOrbitRadius = MathF.Max(
+                desiredOrbitRadius,
+                attacker.EngageRectForwardOffset + 0.05f
+            );
         }
         // Slots must sit within practical attack reach so reserved attackers can
         // actually enter attack loop (important for large targets like summoners).
@@ -190,11 +212,7 @@ public static class SimMeleeSlotManager
         var offsets = BuildSlotOffsets(slotCount, orbitRadius);
         for (int i = 0; i < offsets.Count; i++)
         {
-            slotState.Slots.Add(new MeleeSlotEntry
-            {
-                SlotId = i,
-                SlotOffset = offsets[i]
-            });
+            slotState.Slots.Add(new MeleeSlotEntry { SlotId = i, SlotOffset = offsets[i] });
         }
     }
 
@@ -237,7 +255,9 @@ public static class SimMeleeSlotManager
         foreach (float angleDeg in angles)
         {
             float angleRad = SimMath.DegToRad(angleDeg);
-            result.Add(new SimVector3(MathF.Cos(angleRad) * radius, 0f, MathF.Sin(angleRad) * radius));
+            result.Add(
+                new SimVector3(MathF.Cos(angleRad) * radius, 0f, MathF.Sin(angleRad) * radius)
+            );
         }
 
         return result;
@@ -264,7 +284,8 @@ public static class SimMeleeSlotManager
         TargetSlotState slotState,
         int targetId,
         MatchState state,
-        SimVector3 fallbackAttackerPosition)
+        SimVector3 fallbackAttackerPosition
+    )
     {
         var targetPosOpt = SimUtils.ResolveTargetPosition(targetId, state);
         if (!targetPosOpt.HasValue)
@@ -296,7 +317,10 @@ public static class SimMeleeSlotManager
         float dot = Math.Clamp(current.Dot(desired), -1f, 1f);
         float angleDeg = SimMath.RadToDeg(MathF.Acos(dot));
         float displacement = DistanceXZ(targetPos, slotState.LastAnchorPosition);
-        float displacementThreshold = MathF.Max(0.1f, targetRadius * AxisRefreshDisplacementRadiusScale);
+        float displacementThreshold = MathF.Max(
+            0.1f,
+            targetRadius * AxisRefreshDisplacementRadiusScale
+        );
 
         bool firstInit = slotState.LastAnchorPosition.LengthSquared() < 0.000001f;
         if (firstInit || angleDeg > AxisRefreshAngleDeg || displacement > displacementThreshold)
@@ -307,7 +331,11 @@ public static class SimMeleeSlotManager
         }
     }
 
-    private static bool TryGetAttackerCentroid(TargetSlotState slotState, MatchState state, out SimVector3 centroid)
+    private static bool TryGetAttackerCentroid(
+        TargetSlotState slotState,
+        MatchState state,
+        out SimVector3 centroid
+    )
     {
         centroid = SimVector3.Zero;
         int count = 0;
@@ -342,7 +370,12 @@ public static class SimMeleeSlotManager
         return true;
     }
 
-    private static SimVector3? ResolveSlotWorldPosition(int targetId, SimVector3 layoutAxis, SimVector3 slotOffset, MatchState state)
+    private static SimVector3? ResolveSlotWorldPosition(
+        int targetId,
+        SimVector3 layoutAxis,
+        SimVector3 slotOffset,
+        MatchState state
+    )
     {
         var targetPos = SimUtils.ResolveTargetPosition(targetId, state);
         if (!targetPos.HasValue)

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
+using Godot;
 using ItemInstance = Fateforged.Domain.Profile.Inventory.ItemInstance;
 
 namespace Fateforged.Meta.Items.Handlers;
@@ -43,7 +43,9 @@ public class ItemOwnershipHandler
         var existingItem = existingItems.FirstOrDefault(i => i.CatalogId == typedCatalogId);
         if (existingItem != null)
         {
-            GD.Print($"ItemOwnershipHandler: Player already owns '{catalogId}' (instance: {existingItem.Id}), skipping grant");
+            GD.Print(
+                $"ItemOwnershipHandler: Player already owns '{catalogId}' (instance: {existingItem.Id}), skipping grant"
+            );
             return (string)existingItem.Id;
         }
 
@@ -53,10 +55,12 @@ public class ItemOwnershipHandler
         {
             Id = new ItemId(instanceId),
             CatalogId = typedCatalogId,
-            BoundToSummonerId = definition.Binding == ItemBinding.SummonerBound && boundToSummonerId != null
-                ? new SummonerId(boundToSummonerId) : null,
+            BoundToSummonerId =
+                definition.Binding == ItemBinding.SummonerBound && boundToSummonerId != null
+                    ? new SummonerId(boundToSummonerId)
+                    : null,
             EquippedBySummonerId = null,
-            EquippedSlot = null
+            EquippedSlot = null,
         };
 
         // Add to profile
@@ -74,7 +78,8 @@ public class ItemOwnershipHandler
     /// <summary>Get all AccountWide items (accessible by any summoner).</summary>
     public List<ItemInstance> GetAccountWideItems()
     {
-        return _profileRepo.ListItems()
+        return _profileRepo
+            .ListItems()
             .Where(item => ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.AccountWide)
             .ToList();
     }
@@ -83,18 +88,19 @@ public class ItemOwnershipHandler
     public List<ItemInstance> GetSummonerBoundItems(string summonerId)
     {
         var typedSummonerId = new SummonerId(summonerId);
-        return _profileRepo.ListItems()
-            .Where(item => ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.SummonerBound
-                && item.BoundToSummonerId == typedSummonerId)
+        return _profileRepo
+            .ListItems()
+            .Where(item =>
+                ItemCatalog.GetItem(item.CatalogId)?.Binding == ItemBinding.SummonerBound
+                && item.BoundToSummonerId == typedSummonerId
+            )
             .ToList();
     }
 
     /// <summary>Get all items owned by a summoner based on binding rules.</summary>
     public List<ItemInstance> GetOwnedItems(string summonerId)
     {
-        return GetAccountWideItems()
-            .Concat(GetSummonerBoundItems(summonerId))
-            .ToList();
+        return GetAccountWideItems().Concat(GetSummonerBoundItems(summonerId)).ToList();
     }
 
     /// <summary>Get all items in the player's inventory.</summary>

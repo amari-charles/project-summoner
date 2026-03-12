@@ -1,8 +1,8 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 using Fateforged.Units;
 using Fateforged.Visual;
+using Godot;
 
 namespace Fateforged.View;
 
@@ -60,10 +60,7 @@ public class SpawnRevealComponent
     /// <param name="owner">The owning Node3D (used for CreateTween, CallDeferred)</param>
     /// <param name="getVisual">Function to get the visual component</param>
     /// <param name="getTeam">Function to get the unit's team</param>
-    public SpawnRevealComponent(
-        Node3D owner,
-        Func<IVisualComponent?> getVisual,
-        Func<Team> getTeam)
+    public SpawnRevealComponent(Node3D owner, Func<IVisualComponent?> getVisual, Func<Team> getTeam)
     {
         _owner = owner;
         _getVisual = getVisual;

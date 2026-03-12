@@ -9,5 +9,5 @@ public enum WeavingPhase
     Straight = 0,
     VeeringOut = 1,
     VeeringBack = 2,
-    Homing = 3
+    Homing = 3,
 }

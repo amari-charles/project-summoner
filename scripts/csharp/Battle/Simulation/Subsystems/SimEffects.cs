@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Combat;
-using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Subsystems;
 
@@ -14,7 +14,6 @@ namespace Fateforged.Simulation.Subsystems;
 /// </summary>
 public static class SimEffects
 {
-
     // =========================================================================
     // TICK METHODS (called from Simulation.Tick steps 7-8)
     // =========================================================================
@@ -100,14 +99,24 @@ public static class SimEffects
         UnitData target,
         int sourceUnitId,
         Team sourceTeam,
-        List<SimEvent> events)
+        List<SimEvent> events
+    )
     {
-        if (!target.IsAlive) return;
+        if (!target.IsAlive)
+            return;
 
         switch (effectType)
         {
             case EffectType.Damage:
-                ApplyDirectDamage(state, target, value, damageType, sourceUnitId, sourceTeam, events);
+                ApplyDirectDamage(
+                    state,
+                    target,
+                    value,
+                    damageType,
+                    sourceUnitId,
+                    sourceTeam,
+                    events
+                );
                 break;
 
             case EffectType.Heal:
@@ -122,7 +131,15 @@ public static class SimEffects
             case EffectType.AreaDamage:
                 // AreaDamage is handled by the caller (FireTriggers) which resolves targets
                 // If called directly, treat as single-target damage
-                ApplyDirectDamage(state, target, value, damageType, sourceUnitId, sourceTeam, events);
+                ApplyDirectDamage(
+                    state,
+                    target,
+                    value,
+                    damageType,
+                    sourceUnitId,
+                    sourceTeam,
+                    events
+                );
                 break;
 
             case EffectType.Slow:
@@ -130,7 +147,17 @@ public static class SimEffects
             case EffectType.Haste:
             case EffectType.DamageBoost:
             case EffectType.StatModifier:
-                ApplyBuff(state, target, effectType, value, duration, damageType, sourceUnitId, sourceTeam, events);
+                ApplyBuff(
+                    state,
+                    target,
+                    effectType,
+                    value,
+                    duration,
+                    damageType,
+                    sourceUnitId,
+                    sourceTeam,
+                    events
+                );
                 break;
         }
     }
@@ -148,14 +175,19 @@ public static class SimEffects
         UnitData unit,
         TriggerType triggerType,
         UnitData? target,
-        List<SimEvent> events)
+        List<SimEvent> events
+    )
     {
         foreach (var trigger in unit.Triggers)
         {
-            if (trigger.TriggerType != triggerType) continue;
+            if (trigger.TriggerType != triggerType)
+                continue;
 
             // One-shot check (HpThreshold, OnDeath fire once)
-            if (trigger.HasFired && (triggerType == TriggerType.HpThreshold || triggerType == TriggerType.OnDeath))
+            if (
+                trigger.HasFired
+                && (triggerType == TriggerType.HpThreshold || triggerType == TriggerType.OnDeath)
+            )
                 continue;
 
             if (trigger.Delay > 0 && triggerType == TriggerType.OnDeath)
@@ -175,8 +207,17 @@ public static class SimEffects
             else if (target != null)
             {
                 // Single target effect
-                ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                    trigger.DamageType, target, unit.UnitId, unit.Team, events);
+                ApplyEffect(
+                    state,
+                    trigger.EffectType,
+                    trigger.Value,
+                    trigger.Duration,
+                    trigger.DamageType,
+                    target,
+                    unit.UnitId,
+                    unit.Team,
+                    events
+                );
             }
 
             trigger.HasFired = true;
@@ -190,7 +231,8 @@ public static class SimEffects
         MatchState state,
         UnitData dyingUnit,
         UnitData? killer,
-        List<SimEvent> events)
+        List<SimEvent> events
+    )
     {
         // Fire OnDeath triggers on the dying unit
         FireTriggers(state, dyingUnit, TriggerType.OnDeath, killer, events);
@@ -201,9 +243,12 @@ public static class SimEffects
             foreach (var kvp in state.Units)
             {
                 var member = kvp.Value;
-                if (!member.IsAlive) continue;
-                if (member.UnitId == dyingUnit.UnitId) continue;
-                if (member.LeaderId != dyingUnit.UnitId) continue;
+                if (!member.IsAlive)
+                    continue;
+                if (member.UnitId == dyingUnit.UnitId)
+                    continue;
+                if (member.LeaderId != dyingUnit.UnitId)
+                    continue;
 
                 FireTriggers(state, member, TriggerType.LeaderDeath, null, events);
             }
@@ -264,30 +309,43 @@ public static class SimEffects
     /// <summary>
     /// Apply a shield to a unit. Shields are consumed oldest-first during damage calculation.
     /// </summary>
-    public static void ApplyShield(MatchState state, UnitData target, float shieldHp, int sourceUnitId, Team sourceTeam)
+    public static void ApplyShield(
+        MatchState state,
+        UnitData target,
+        float shieldHp,
+        int sourceUnitId,
+        Team sourceTeam
+    )
     {
-        target.ActiveBuffs.Add(new ActiveBuff
-        {
-            BuffId = state.NextBuffId(),
-            EffectType = EffectType.Shield,
-            ShieldHp = shieldHp,
-            Duration = -1, // Permanent until consumed
-            SourceUnitId = sourceUnitId,
-            SourceTeam = sourceTeam
-        });
+        target.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                BuffId = state.NextBuffId(),
+                EffectType = EffectType.Shield,
+                ShieldHp = shieldHp,
+                Duration = -1, // Permanent until consumed
+                SourceUnitId = sourceUnitId,
+                SourceTeam = sourceTeam,
+            }
+        );
     }
 
     /// <summary>
     /// Consume shields on a unit, oldest first. Returns remaining damage after absorption.
     /// </summary>
-    public static float AbsorbWithShields(UnitData target, float incomingDamage, List<SimEvent>? events)
+    public static float AbsorbWithShields(
+        UnitData target,
+        float incomingDamage,
+        List<SimEvent>? events
+    )
     {
         float remaining = incomingDamage;
 
         for (int i = 0; i < target.ActiveBuffs.Count && remaining > 0; i++)
         {
             var buff = target.ActiveBuffs[i];
-            if (buff.EffectType != EffectType.Shield) continue;
+            if (buff.EffectType != EffectType.Shield)
+                continue;
 
             if (buff.ShieldHp <= remaining)
             {
@@ -313,13 +371,22 @@ public static class SimEffects
     // =========================================================================
 
     private static void ApplyDirectDamage(
-        MatchState state, UnitData target, float baseDamage, DamageType damageType,
-        int sourceUnitId, Team sourceTeam, List<SimEvent> events)
+        MatchState state,
+        UnitData target,
+        float baseDamage,
+        DamageType damageType,
+        int sourceUnitId,
+        Team sourceTeam,
+        List<SimEvent> events
+    )
     {
         // Get source unit for attacker stats (may be dead for delayed effects)
         UnitData? attacker = state.Units.TryGetValue(sourceUnitId, out var a) ? a : null;
         var attackerSummoner = state.Summoners[(int)sourceTeam];
-        var targetSummoner = (int)target.Team >= 0 && (int)target.Team <= 1 ? state.Summoners[(int)target.Team] : null;
+        var targetSummoner =
+            (int)target.Team >= 0 && (int)target.Team <= 1
+                ? state.Summoners[(int)target.Team]
+                : null;
 
         var (damage, isCrit, _) = SimDamage.Calculate(
             baseDamage,
@@ -329,7 +396,8 @@ public static class SimEffects
             attackerSummoner,
             targetSummoner,
             state.Rng,
-            events: events);
+            events: events
+        );
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, sourceUnitId, damage, isCrit));
@@ -349,8 +417,16 @@ public static class SimEffects
     }
 
     private static void ApplyBuff(
-        MatchState state, UnitData target, EffectType effectType, float value, float duration,
-        DamageType damageType, int sourceUnitId, Team sourceTeam, List<SimEvent> events)
+        MatchState state,
+        UnitData target,
+        EffectType effectType,
+        float value,
+        float duration,
+        DamageType damageType,
+        int sourceUnitId,
+        Team sourceTeam,
+        List<SimEvent> events
+    )
     {
         var buff = new ActiveBuff
         {
@@ -360,14 +436,18 @@ public static class SimEffects
             Duration = duration,
             DamageType = damageType,
             SourceUnitId = sourceUnitId,
-            SourceTeam = sourceTeam
+            SourceTeam = sourceTeam,
         };
         target.ActiveBuffs.Add(buff);
         events.Add(new BuffAppliedEvent(target.UnitId, effectType, value, duration));
     }
 
     private static void ApplyPeriodicTick(
-        MatchState state, UnitData unit, ActiveBuff buff, List<SimEvent> events)
+        MatchState state,
+        UnitData unit,
+        ActiveBuff buff,
+        List<SimEvent> events
+    )
     {
         switch (buff.EffectType)
         {
@@ -391,11 +471,16 @@ public static class SimEffects
     }
 
     private static void TickPeriodicTriggers(
-        MatchState state, UnitData unit, float fixedDelta, List<SimEvent> events)
+        MatchState state,
+        UnitData unit,
+        float fixedDelta,
+        List<SimEvent> events
+    )
     {
         foreach (var trigger in unit.Triggers)
         {
-            if (trigger.TriggerType != TriggerType.Periodic) continue;
+            if (trigger.TriggerType != TriggerType.Periodic)
+                continue;
 
             trigger.PeriodicTimer -= fixedDelta;
             if (trigger.PeriodicTimer <= 0)
@@ -411,29 +496,48 @@ public static class SimEffects
     }
 
     private static void CheckHpThresholdTriggers(
-        MatchState state, UnitData unit, List<SimEvent> events)
+        MatchState state,
+        UnitData unit,
+        List<SimEvent> events
+    )
     {
-        if (unit.MaxHp <= 0) return;
+        if (unit.MaxHp <= 0)
+            return;
 
         float hpPercent = unit.CurrentHp / unit.MaxHp;
 
         foreach (var trigger in unit.Triggers)
         {
-            if (trigger.TriggerType != TriggerType.HpThreshold) continue;
-            if (trigger.HasFired) continue;
+            if (trigger.TriggerType != TriggerType.HpThreshold)
+                continue;
+            if (trigger.HasFired)
+                continue;
 
             if (hpPercent <= trigger.Threshold)
             {
                 // Fire the trigger effect on self
-                ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                    trigger.DamageType, unit, unit.UnitId, unit.Team, events);
+                ApplyEffect(
+                    state,
+                    trigger.EffectType,
+                    trigger.Value,
+                    trigger.Duration,
+                    trigger.DamageType,
+                    unit,
+                    unit.UnitId,
+                    unit.Team,
+                    events
+                );
                 trigger.HasFired = true;
             }
         }
     }
 
     private static void ApplyAreaEffect(
-        MatchState state, UnitData source, TriggerConfig trigger, List<SimEvent> events)
+        MatchState state,
+        UnitData source,
+        TriggerConfig trigger,
+        List<SimEvent> events
+    )
     {
         int enemyTeam = MatchState.GetEnemyTeam((int)source.Team);
         float radiusSq = trigger.AoeRadius * trigger.AoeRadius;
@@ -441,42 +545,68 @@ public static class SimEffects
         foreach (var kvp in state.Units)
         {
             var candidate = kvp.Value;
-            if (!candidate.IsAlive) continue;
-            if ((int)candidate.Team != enemyTeam) continue;
+            if (!candidate.IsAlive)
+                continue;
+            if ((int)candidate.Team != enemyTeam)
+                continue;
 
             float distSq = source.Position.DistanceSquaredTo(candidate.Position);
-            if (distSq > radiusSq) continue;
+            if (distSq > radiusSq)
+                continue;
 
-            ApplyEffect(state, trigger.EffectType, trigger.Value, trigger.Duration,
-                trigger.DamageType, candidate, source.UnitId, source.Team, events);
+            ApplyEffect(
+                state,
+                trigger.EffectType,
+                trigger.Value,
+                trigger.Duration,
+                trigger.DamageType,
+                candidate,
+                source.UnitId,
+                source.Team,
+                events
+            );
         }
     }
 
-    private static void QueueDelayedEffect(
-        MatchState state, TriggerConfig trigger, UnitData source)
+    private static void QueueDelayedEffect(MatchState state, TriggerConfig trigger, UnitData source)
     {
-        state.DelayedEffects.Add(new DelayedEffect
-        {
-            Timer = trigger.Delay,
-            EffectType = trigger.EffectType,
-            Value = trigger.Value,
-            DamageType = trigger.DamageType,
-            AoeRadius = trigger.AoeRadius,
-            Position = source.Position,
-            SourceUnitId = source.UnitId,
-            SourceTeam = source.Team
-        });
+        state.DelayedEffects.Add(
+            new DelayedEffect
+            {
+                Timer = trigger.Delay,
+                EffectType = trigger.EffectType,
+                Value = trigger.Value,
+                DamageType = trigger.DamageType,
+                AoeRadius = trigger.AoeRadius,
+                Position = source.Position,
+                SourceUnitId = source.UnitId,
+                SourceTeam = source.Team,
+            }
+        );
     }
 
     private static void ExecuteDelayedEffect(
-        MatchState state, DelayedEffect effect, List<SimEvent> events)
+        MatchState state,
+        DelayedEffect effect,
+        List<SimEvent> events
+    )
     {
-        events.Add(new DelayedEffectFiredEvent(effect.Position, effect.EffectType, effect.AoeRadius));
+        events.Add(
+            new DelayedEffectFiredEvent(effect.Position, effect.EffectType, effect.AoeRadius)
+        );
 
         if (effect.AoeRadius > 0)
         {
-            DamageUnitsInRadius(state, effect.Position, effect.AoeRadius,
-                effect.Value, effect.DamageType, effect.SourceTeam, effect.SourceUnitId, events);
+            DamageUnitsInRadius(
+                state,
+                effect.Position,
+                effect.AoeRadius,
+                effect.Value,
+                effect.DamageType,
+                effect.SourceTeam,
+                effect.SourceUnitId,
+                events
+            );
         }
     }
 
@@ -485,9 +615,15 @@ public static class SimEffects
     /// Shared by ApplyAreaEffect (trigger-based) and ExecuteDelayedEffect (delayed explosions).
     /// </summary>
     private static void DamageUnitsInRadius(
-        MatchState state, SimVector3 center, float radius,
-        float damage, DamageType damageType, Team sourceTeam, int sourceUnitId,
-        List<SimEvent> events)
+        MatchState state,
+        SimVector3 center,
+        float radius,
+        float damage,
+        DamageType damageType,
+        Team sourceTeam,
+        int sourceUnitId,
+        List<SimEvent> events
+    )
     {
         int enemyTeam = MatchState.GetEnemyTeam((int)sourceTeam);
         float radiusSq = radius * radius;
@@ -495,14 +631,24 @@ public static class SimEffects
         foreach (var kvp in state.Units)
         {
             var candidate = kvp.Value;
-            if (!candidate.IsAlive) continue;
-            if ((int)candidate.Team != enemyTeam) continue;
+            if (!candidate.IsAlive)
+                continue;
+            if ((int)candidate.Team != enemyTeam)
+                continue;
 
             float distSq = center.DistanceSquaredTo(candidate.Position);
-            if (distSq > radiusSq) continue;
+            if (distSq > radiusSq)
+                continue;
 
-            ApplyDirectDamage(state, candidate, damage, damageType,
-                sourceUnitId, sourceTeam, events);
+            ApplyDirectDamage(
+                state,
+                candidate,
+                damage,
+                damageType,
+                sourceUnitId,
+                sourceTeam,
+                events
+            );
         }
     }
 }

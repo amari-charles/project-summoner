@@ -27,9 +27,7 @@ public static class VirtualLanes
         return BattlefieldBounds.MinZ + (lane + 0.5f) * LaneWidth;
     }
 
-    public static bool IsSideLane(int lane)
-        => lane >= 0 && lane < LaneCount && lane != CenterLane;
+    public static bool IsSideLane(int lane) => lane >= 0 && lane < LaneCount && lane != CenterLane;
 
-    public static int LaneDistance(int a, int b)
-        => Math.Abs(a - b);
+    public static int LaneDistance(int a, int b) => Math.Abs(a - b);
 }

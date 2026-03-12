@@ -7,5 +7,5 @@ public enum EngageShape
 {
     Circle = 0,
     Cone = 1,
-    ForwardRect = 2
+    ForwardRect = 2,
 }

@@ -1,14 +1,14 @@
+using Fateforged.Constants;
+using Fateforged.Infrastructure.Debug;
+using Fateforged.Meta;
 using Fateforged.Session;
 using Fateforged.Simulation;
-using Godot;
-using Fateforged.Meta;
-using Fateforged.UI;
-using Fateforged.Visual;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using Fateforged.Infrastructure.Debug;
-using Fateforged.Constants;
+using Fateforged.UI;
 using Fateforged.Units;
+using Fateforged.Visual;
+using Godot;
 
 namespace Fateforged.View;
 
@@ -94,11 +94,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             // Start spawn reveal if unit has a spawn timer
             if (unitData.SpawnTimer > 0)
             {
-                _spawnReveal = new SpawnRevealComponent(
-                    this,
-                    () => _visual,
-                    () => unitData.Team
-                );
+                _spawnReveal = new SpawnRevealComponent(this, () => _visual, () => unitData.Team);
                 Visible = true; // Must be visible for reveal shader to render
                 _spawnReveal.StartReveal(unitData.SpawnTimer);
             }
@@ -142,9 +138,11 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
     public override void _PhysicsProcess(double delta)
     {
-        if (_session == null || !_isAlive) return;
+        if (_session == null || !_isAlive)
+            return;
         var simNode = SimulationNode.Current;
-        if (simNode == null) return;
+        if (simNode == null)
+            return;
 
         var state = _session.GetState();
         if (!state.Units.TryGetValue(_unitId, out var unitData))
@@ -165,11 +163,14 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         }
 
         // Reveal on first active frame
-        if (!Visible) Visible = true;
+        if (!Visible)
+            Visible = true;
 
         // Sync position
         var authoritativePosition = simNode.SimToLocal(unitData.Position);
-        GlobalPosition = _entityManager?.ResolveUnitRenderPosition(_unitId, authoritativePosition) ?? authoritativePosition;
+        GlobalPosition =
+            _entityManager?.ResolveUnitRenderPosition(_unitId, authoritativePosition)
+            ?? authoritativePosition;
 
         // Sync facing (flip for client since X axis is mirrored)
         bool localFacing = unitData.IsFacingRight;
@@ -202,11 +203,11 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             string desiredMoveAnim = !isActive
                 ? "idle"
                 : unitData.BehaviorState switch
-            {
-                BehaviorState.Attacking => "idle",
-                BehaviorState.InRange => "idle",
-                _ => "walk"
-            };
+                {
+                    BehaviorState.Attacking => "idle",
+                    BehaviorState.InRange => "idle",
+                    _ => "walk",
+                };
 
             if (_currentMoveAnim != desiredMoveAnim || !_visual.IsPlaying())
             {
@@ -224,10 +225,13 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     public override void _Process(double delta)
     {
         bool anyDebugEnabled = BattlefieldDebugService.Instance?.AnyUnitDebugEnabled ?? false;
-        bool anyMarkerExists = _debugHurtboxMarker != null || _debugTargetPointMarker != null ||
-                               _debugEngageRangeMarker != null || _debugEngageRangeSecondaryMarker != null ||
-                               _debugDamageShapeMarker != null ||
-                               _debugNavigationFootprintMarker != null;
+        bool anyMarkerExists =
+            _debugHurtboxMarker != null
+            || _debugTargetPointMarker != null
+            || _debugEngageRangeMarker != null
+            || _debugEngageRangeSecondaryMarker != null
+            || _debugDamageShapeMarker != null
+            || _debugNavigationFootprintMarker != null;
 
         if (!anyDebugEnabled && !anyMarkerExists)
             return;
@@ -269,7 +273,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
     public void PlayAttackAnimation()
     {
-        if (_visual == null) return;
+        if (_visual == null)
+            return;
         _visual.PlayAnimation("attack");
         _attackAnimTimer = _visual.GetAnimationDuration("attack");
         _currentMoveAnim = "attack";
@@ -282,7 +287,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
     public void BeginDeath()
     {
-        if (!_isAlive) return;
+        if (!_isAlive)
+            return;
         _isAlive = false;
 
         _spawnReveal?.Cancel();
@@ -325,7 +331,11 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         float radius = ResolveHurtboxRadius(unitData);
         float height = ResolveHurtboxHeight(unitData);
         bool horizontal = unitData.HurtboxHorizontal;
-        var offset = new Vector3(unitData.HurtboxOffset.X, unitData.HurtboxOffset.Y, unitData.HurtboxOffset.Z);
+        var offset = new Vector3(
+            unitData.HurtboxOffset.X,
+            unitData.HurtboxOffset.Y,
+            unitData.HurtboxOffset.Z
+        );
 
         if (_debugHurtboxMarker == null)
         {
@@ -382,12 +392,23 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                 float coneHalfAngle = Mathf.Clamp(unitData.ConeHalfAngle, 1f, 89f);
                 float coneCenterOffset = unitData.ConeCenterOffsetDegrees;
                 int signature = BuildEngageSignature(
-                    engageShape, range, coneHalfAngle, 0f, 0f, coneCenterOffset);
+                    engageShape,
+                    range,
+                    coneHalfAngle,
+                    0f,
+                    0f,
+                    coneCenterOffset
+                );
 
                 if (_debugEngageRangeMarker == null || signature != _debugEngageSignature)
                 {
                     ClearEngageMarkers();
-                    _debugEngageRangeMarker = CreateDebugCone(range, coneHalfAngle, new Color(1.0f, 0.8f, 0.2f, 0.3f), 99);
+                    _debugEngageRangeMarker = CreateDebugCone(
+                        range,
+                        coneHalfAngle,
+                        new Color(1.0f, 0.8f, 0.2f, 0.3f),
+                        99
+                    );
                     AddChild(_debugEngageRangeMarker);
                     _debugEngageSignature = signature;
                 }
@@ -395,39 +416,54 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                 if (_debugEngageRangeMarker == null)
                     return;
 
-                _debugEngageRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
-                float yRotation = (_isFacingRight ? 0f : Mathf.Pi) + Mathf.DegToRad(coneCenterOffset);
+                _debugEngageRangeMarker.GlobalPosition = new Vector3(
+                    GlobalPosition.X,
+                    0.05f,
+                    GlobalPosition.Z
+                );
+                float yRotation =
+                    (_isFacingRight ? 0f : Mathf.Pi) + Mathf.DegToRad(coneCenterOffset);
                 _debugEngageRangeMarker.Rotation = new Vector3(0f, yRotation, 0f);
                 return;
             }
 
             case EngageShape.ForwardRect:
             {
-                float length = unitData.EngageRectLength > 0f
-                    ? unitData.EngageRectLength
-                    : Mathf.Max(unitData.AttackRange * 0.9f, 0.1f);
-                float halfWidth = unitData.EngageRectHalfWidth > 0f
-                    ? unitData.EngageRectHalfWidth
-                    : 0.45f;
+                float length =
+                    unitData.EngageRectLength > 0f
+                        ? unitData.EngageRectLength
+                        : Mathf.Max(unitData.AttackRange * 0.9f, 0.1f);
+                float halfWidth =
+                    unitData.EngageRectHalfWidth > 0f ? unitData.EngageRectHalfWidth : 0.45f;
                 float forwardOffset = Mathf.Max(unitData.EngageRectForwardOffset, 0f);
                 float closeRadius = Mathf.Max(unitData.EngageCloseRadius, 0.05f);
                 int signature = BuildEngageSignature(
-                    engageShape, length, halfWidth, forwardOffset, closeRadius, 0f);
+                    engageShape,
+                    length,
+                    halfWidth,
+                    forwardOffset,
+                    closeRadius,
+                    0f
+                );
 
-                if (_debugEngageRangeMarker == null ||
-                    _debugEngageRangeSecondaryMarker == null ||
-                    signature != _debugEngageSignature)
+                if (
+                    _debugEngageRangeMarker == null
+                    || _debugEngageRangeSecondaryMarker == null
+                    || signature != _debugEngageSignature
+                )
                 {
                     ClearEngageMarkers();
                     _debugEngageRangeMarker = CreateDebugCorridor(
                         length,
                         halfWidth,
                         new Color(1.0f, 0.8f, 0.2f, 0.26f),
-                        99);
+                        99
+                    );
                     _debugEngageRangeSecondaryMarker = CreateDebugDisc(
                         closeRadius,
                         new Color(1.0f, 0.8f, 0.2f, 0.22f),
-                        99);
+                        99
+                    );
                     AddChild(_debugEngageRangeMarker);
                     AddChild(_debugEngageRangeSecondaryMarker);
                     _debugEngageSignature = signature;
@@ -443,9 +479,17 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                     0.05f,
                     GlobalPosition.Z
                 );
-                _debugEngageRangeMarker.Rotation = new Vector3(0f, _isFacingRight ? 0f : Mathf.Pi, 0f);
+                _debugEngageRangeMarker.Rotation = new Vector3(
+                    0f,
+                    _isFacingRight ? 0f : Mathf.Pi,
+                    0f
+                );
 
-                _debugEngageRangeSecondaryMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
+                _debugEngageRangeSecondaryMarker.GlobalPosition = new Vector3(
+                    GlobalPosition.X,
+                    0.05f,
+                    GlobalPosition.Z
+                );
                 _debugEngageRangeSecondaryMarker.Rotation = Vector3.Zero;
                 return;
             }
@@ -453,13 +497,16 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             default:
             {
                 float range = Mathf.Max(0.2f, unitData.AttackRange);
-                int signature = BuildEngageSignature(
-                    engageShape, range, 0f, 0f, 0f, 0f);
+                int signature = BuildEngageSignature(engageShape, range, 0f, 0f, 0f, 0f);
 
                 if (_debugEngageRangeMarker == null || signature != _debugEngageSignature)
                 {
                     ClearEngageMarkers();
-                    _debugEngageRangeMarker = CreateDebugDisc(range, new Color(1.0f, 0.8f, 0.2f, 0.3f), 99);
+                    _debugEngageRangeMarker = CreateDebugDisc(
+                        range,
+                        new Color(1.0f, 0.8f, 0.2f, 0.3f),
+                        99
+                    );
                     AddChild(_debugEngageRangeMarker);
                     _debugEngageSignature = signature;
                 }
@@ -467,7 +514,11 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                 if (_debugEngageRangeMarker == null)
                     return;
 
-                _debugEngageRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
+                _debugEngageRangeMarker.GlobalPosition = new Vector3(
+                    GlobalPosition.X,
+                    0.05f,
+                    GlobalPosition.Z
+                );
                 _debugEngageRangeMarker.Rotation = Vector3.Zero;
                 return;
             }
@@ -488,9 +539,15 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (_debugDamageShapeMarker == null || signature != _debugDamageShapeSignature)
         {
             FreeMarker(ref _debugDamageShapeMarker);
-            _debugDamageShapeMarker = shapeSpec.Kind == DamageShapeMarkerKind.Disc
-                ? CreateDebugDisc(shapeSpec.Radius, new Color(0.2f, 0.8f, 1.0f, 0.24f), 97)
-                : CreateDebugCorridor(shapeSpec.Length, shapeSpec.HalfWidth, new Color(0.2f, 0.8f, 1.0f, 0.24f), 97);
+            _debugDamageShapeMarker =
+                shapeSpec.Kind == DamageShapeMarkerKind.Disc
+                    ? CreateDebugDisc(shapeSpec.Radius, new Color(0.2f, 0.8f, 1.0f, 0.24f), 97)
+                    : CreateDebugCorridor(
+                        shapeSpec.Length,
+                        shapeSpec.HalfWidth,
+                        new Color(0.2f, 0.8f, 1.0f, 0.24f),
+                        97
+                    );
             AddChild(_debugDamageShapeMarker);
             _debugDamageShapeSignature = signature;
         }
@@ -505,11 +562,19 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             if (ShouldAnchorDamageDiscToTarget(unitData, targetPosition) && targetPosition.HasValue)
             {
                 var anchoredPosition = targetPosition.Value;
-                _debugDamageShapeMarker.GlobalPosition = new Vector3(anchoredPosition.X, 0.04f, anchoredPosition.Z);
+                _debugDamageShapeMarker.GlobalPosition = new Vector3(
+                    anchoredPosition.X,
+                    0.04f,
+                    anchoredPosition.Z
+                );
             }
             else
             {
-                _debugDamageShapeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.04f, GlobalPosition.Z);
+                _debugDamageShapeMarker.GlobalPosition = new Vector3(
+                    GlobalPosition.X,
+                    0.04f,
+                    GlobalPosition.Z
+                );
             }
             _debugDamageShapeMarker.Rotation = Vector3.Zero;
             return;
@@ -522,17 +587,27 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             0.04f,
             GlobalPosition.Z + (centerDistance * direction.Z)
         );
-        _debugDamageShapeMarker.Rotation = new Vector3(0f, Mathf.Atan2(direction.Z, direction.X), 0f);
+        _debugDamageShapeMarker.Rotation = new Vector3(
+            0f,
+            Mathf.Atan2(direction.Z, direction.X),
+            0f
+        );
     }
 
     private void UpdateDebugNavigationFootprintMarker(UnitData unitData)
     {
         float radius = ResolveNavigationFootprintRadius(unitData);
-        bool needsRebuild = _debugNavigationFootprintMarker == null || !Mathf.IsEqualApprox(radius, _debugNavigationFootprintRadius);
+        bool needsRebuild =
+            _debugNavigationFootprintMarker == null
+            || !Mathf.IsEqualApprox(radius, _debugNavigationFootprintRadius);
         if (needsRebuild)
         {
             FreeMarker(ref _debugNavigationFootprintMarker);
-            _debugNavigationFootprintMarker = CreateDebugDisc(radius, new Color(0.8f, 0.4f, 1.0f, 0.4f), 98);
+            _debugNavigationFootprintMarker = CreateDebugDisc(
+                radius,
+                new Color(0.8f, 0.4f, 1.0f, 0.4f),
+                98
+            );
             AddChild(_debugNavigationFootprintMarker);
             _debugNavigationFootprintRadius = radius;
         }
@@ -540,7 +615,11 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (_debugNavigationFootprintMarker == null)
             return;
 
-        _debugNavigationFootprintMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.03f, GlobalPosition.Z);
+        _debugNavigationFootprintMarker.GlobalPosition = new Vector3(
+            GlobalPosition.X,
+            0.03f,
+            GlobalPosition.Z
+        );
         _debugNavigationFootprintMarker.Rotation = Vector3.Zero;
     }
 
@@ -574,41 +653,60 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
             case AttackSelectionMode.ChainHops:
             {
-                float chainRadius = unitData.Attack.Propagation.ChainJumpRadius > 0f
-                    ? unitData.Attack.Propagation.ChainJumpRadius
-                    : 0.5f;
+                float chainRadius =
+                    unitData.Attack.Propagation.ChainJumpRadius > 0f
+                        ? unitData.Attack.Propagation.ChainJumpRadius
+                        : 0.5f;
                 return DamageShapeSpec.Disc(chainRadius);
             }
 
             case AttackSelectionMode.LineCollect:
             {
-                float length = unitData.Attack.Area.LineLength > 0f
-                    ? unitData.Attack.Area.LineLength
-                    : Mathf.Max(unitData.AttackRange, 0.5f);
-                float halfWidth = unitData.Attack.Area.LineHalfWidth > 0f
-                    ? unitData.Attack.Area.LineHalfWidth
-                    : 0.5f;
-                return DamageShapeSpec.Corridor(length, halfWidth, unitData.Attack.Area.ForwardOffset);
+                float length =
+                    unitData.Attack.Area.LineLength > 0f
+                        ? unitData.Attack.Area.LineLength
+                        : Mathf.Max(unitData.AttackRange, 0.5f);
+                float halfWidth =
+                    unitData.Attack.Area.LineHalfWidth > 0f
+                        ? unitData.Attack.Area.LineHalfWidth
+                        : 0.5f;
+                return DamageShapeSpec.Corridor(
+                    length,
+                    halfWidth,
+                    unitData.Attack.Area.ForwardOffset
+                );
             }
 
             case AttackSelectionMode.AreaCollect:
                 return unitData.Attack.Area.Shape switch
                 {
                     AttackAreaShape.Sphere => DamageShapeSpec.Disc(
-                        unitData.Attack.Area.Size.X > 0f ? unitData.Attack.Area.Size.X : 0.5f),
+                        unitData.Attack.Area.Size.X > 0f ? unitData.Attack.Area.Size.X : 0.5f
+                    ),
                     AttackAreaShape.Box => DamageShapeSpec.Corridor(
-                        unitData.Attack.Area.Size.X > 0f ? unitData.Attack.Area.Size.X : Mathf.Max(unitData.AttackRange, 0.5f),
+                        unitData.Attack.Area.Size.X > 0f
+                            ? unitData.Attack.Area.Size.X
+                            : Mathf.Max(unitData.AttackRange, 0.5f),
                         unitData.Attack.Area.Size.Z > 0f ? unitData.Attack.Area.Size.Z : 0.5f,
-                        unitData.Attack.Area.ForwardOffset),
+                        unitData.Attack.Area.ForwardOffset
+                    ),
                     AttackAreaShape.Capsule => DamageShapeSpec.Corridor(
-                        unitData.Attack.Area.Size.X > 0f ? unitData.Attack.Area.Size.X : Mathf.Max(unitData.AttackRange, 0.5f),
+                        unitData.Attack.Area.Size.X > 0f
+                            ? unitData.Attack.Area.Size.X
+                            : Mathf.Max(unitData.AttackRange, 0.5f),
                         unitData.Attack.Area.Size.Z > 0f ? unitData.Attack.Area.Size.Z : 0.5f,
-                        unitData.Attack.Area.ForwardOffset),
+                        unitData.Attack.Area.ForwardOffset
+                    ),
                     AttackAreaShape.Line => DamageShapeSpec.Corridor(
-                        unitData.Attack.Area.LineLength > 0f ? unitData.Attack.Area.LineLength : Mathf.Max(unitData.AttackRange, 0.5f),
-                        unitData.Attack.Area.LineHalfWidth > 0f ? unitData.Attack.Area.LineHalfWidth : 0.5f,
-                        unitData.Attack.Area.ForwardOffset),
-                    _ => DamageShapeSpec.None
+                        unitData.Attack.Area.LineLength > 0f
+                            ? unitData.Attack.Area.LineLength
+                            : Mathf.Max(unitData.AttackRange, 0.5f),
+                        unitData.Attack.Area.LineHalfWidth > 0f
+                            ? unitData.Attack.Area.LineHalfWidth
+                            : 0.5f,
+                        unitData.Attack.Area.ForwardOffset
+                    ),
+                    _ => DamageShapeSpec.None,
                 };
 
             default:
@@ -635,7 +733,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         float b,
         float c,
         float d,
-        float e)
+        float e
+    )
     {
         unchecked
         {
@@ -688,7 +787,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         {
             AttackSelectionMode.ChainHops => true,
             AttackSelectionMode.AreaCollect => unitData.Attack.Area.Shape == AttackAreaShape.Sphere,
-            _ => false
+            _ => false,
         };
     }
 
@@ -697,9 +796,9 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         bool useTargetDirection = unitData.Attack.Selection.Mode switch
         {
             AttackSelectionMode.LineCollect => true,
-            AttackSelectionMode.AreaCollect => unitData.Attack.Area.Shape == AttackAreaShape.Capsule ||
-                                               unitData.Attack.Area.Shape == AttackAreaShape.Line,
-            _ => false
+            AttackSelectionMode.AreaCollect => unitData.Attack.Area.Shape == AttackAreaShape.Capsule
+                || unitData.Attack.Area.Shape == AttackAreaShape.Line,
+            _ => false,
         };
 
         if (useTargetDirection && targetPosition.HasValue)
@@ -716,16 +815,17 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         return new Vector3(_isFacingRight ? 1f : -1f, 0f, 0f);
     }
 
-    private static MeshInstance3D CreateDebugCapsule(float radius, float height, Color color, int renderPriority)
+    private static MeshInstance3D CreateDebugCapsule(
+        float radius,
+        float height,
+        Color color,
+        int renderPriority
+    )
     {
         var mesh = new MeshInstance3D
         {
-            Mesh = new CapsuleMesh
-            {
-                Radius = radius,
-                Height = height
-            },
-            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+            Mesh = new CapsuleMesh { Radius = radius, Height = height },
+            MaterialOverride = CreateDebugMaterial(color, renderPriority),
         };
         return mesh;
     }
@@ -734,12 +834,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         var mesh = new MeshInstance3D
         {
-            Mesh = new SphereMesh
-            {
-                Radius = radius,
-                Height = radius * 2f
-            },
-            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+            Mesh = new SphereMesh { Radius = radius, Height = radius * 2f },
+            MaterialOverride = CreateDebugMaterial(color, renderPriority),
         };
         return mesh;
     }
@@ -752,32 +848,42 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             {
                 TopRadius = radius,
                 BottomRadius = radius,
-                Height = 0.05f
+                Height = 0.05f,
             },
-            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+            MaterialOverride = CreateDebugMaterial(color, renderPriority),
         };
         return mesh;
     }
 
-    private static MeshInstance3D CreateDebugCorridor(float length, float halfWidth, Color color, int renderPriority)
+    private static MeshInstance3D CreateDebugCorridor(
+        float length,
+        float halfWidth,
+        Color color,
+        int renderPriority
+    )
     {
         var mesh = new MeshInstance3D
         {
             Mesh = new BoxMesh
             {
-                Size = new Vector3(Mathf.Max(0.1f, length), 0.05f, Mathf.Max(0.1f, halfWidth * 2f))
+                Size = new Vector3(Mathf.Max(0.1f, length), 0.05f, Mathf.Max(0.1f, halfWidth * 2f)),
             },
-            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+            MaterialOverride = CreateDebugMaterial(color, renderPriority),
         };
         return mesh;
     }
 
-    private static MeshInstance3D CreateDebugCone(float radius, float halfAngleDegrees, Color color, int renderPriority)
+    private static MeshInstance3D CreateDebugCone(
+        float radius,
+        float halfAngleDegrees,
+        Color color,
+        int renderPriority
+    )
     {
         var mesh = new MeshInstance3D
         {
             Mesh = CreateConeMesh(radius, halfAngleDegrees),
-            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+            MaterialOverride = CreateDebugMaterial(color, renderPriority),
         };
         return mesh;
     }
@@ -803,8 +909,16 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             float angleA = startAngle + i * angleStep;
             float angleB = startAngle + (i + 1) * angleStep;
 
-            var pA = new Vector3(Mathf.Cos(angleA) * radius, height * 0.5f, Mathf.Sin(angleA) * radius);
-            var pB = new Vector3(Mathf.Cos(angleB) * radius, height * 0.5f, Mathf.Sin(angleB) * radius);
+            var pA = new Vector3(
+                Mathf.Cos(angleA) * radius,
+                height * 0.5f,
+                Mathf.Sin(angleA) * radius
+            );
+            var pB = new Vector3(
+                Mathf.Cos(angleB) * radius,
+                height * 0.5f,
+                Mathf.Sin(angleB) * radius
+            );
             var pABottom = new Vector3(pA.X, -height * 0.5f, pA.Z);
             var pBBottom = new Vector3(pB.X, -height * 0.5f, pB.Z);
 
@@ -833,7 +947,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             CullMode = BaseMaterial3D.CullModeEnum.Disabled,
             DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
             NoDepthTest = true,
-            RenderPriority = renderPriority
+            RenderPriority = renderPriority,
         };
     }
 
@@ -867,7 +981,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         None = 0,
         Disc = 1,
-        Corridor = 2
+        Corridor = 2,
     }
 
     private readonly struct DamageShapeSpec
@@ -877,7 +991,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             float radius,
             float length,
             float halfWidth,
-            float forwardOffset)
+            float forwardOffset
+        )
         {
             Kind = kind;
             Radius = radius;
@@ -894,11 +1009,15 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         public static DamageShapeSpec None => new(DamageShapeMarkerKind.None, 0f, 0f, 0f, 0f);
 
-        public static DamageShapeSpec Disc(float radius)
-            => new(DamageShapeMarkerKind.Disc, Mathf.Max(0.1f, radius), 0f, 0f, 0f);
+        public static DamageShapeSpec Disc(float radius) =>
+            new(DamageShapeMarkerKind.Disc, Mathf.Max(0.1f, radius), 0f, 0f, 0f);
 
-        public static DamageShapeSpec Corridor(float length, float halfWidth, float forwardOffset)
-            => new(
+        public static DamageShapeSpec Corridor(
+            float length,
+            float halfWidth,
+            float forwardOffset
+        ) =>
+            new(
                 DamageShapeMarkerKind.Corridor,
                 0f,
                 Mathf.Max(0.1f, length),

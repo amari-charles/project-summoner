@@ -1,7 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using Godot;
+using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Collection;
@@ -11,6 +10,7 @@ using Fateforged.Meta.Progression.Core;
 using Fateforged.Meta.Services.Traits;
 using Fateforged.Meta.Traits.Unified;
 using Fateforged.Stats;
+using Godot;
 
 namespace Fateforged.Meta.Cards.Handlers;
 
@@ -35,12 +35,15 @@ public class CardProgressionHandler
         ["common"] = 1.0f,
         ["rare"] = 1.5f,
         ["epic"] = 2.0f,
-        ["legendary"] = 3.0f
+        ["legendary"] = 3.0f,
     };
 
     // Future-facing hook: optional per-card/per-level resource costs in addition to XP.
     // Empty by default to preserve current XP-only leveling behavior.
-    private static readonly Dictionary<string, Dictionary<int, Dictionary<ResourceType, int>>> LevelUpResourceCosts = new(StringComparer.Ordinal);
+    private static readonly Dictionary<
+        string,
+        Dictionary<int, Dictionary<ResourceType, int>>
+    > LevelUpResourceCosts = new(StringComparer.Ordinal);
 
     public CardProgressionHandler(IProfileRepository profileRepo)
     {
@@ -67,12 +70,17 @@ public class CardProgressionHandler
         var newXp = card.Xp + amount;
         _profileRepo.UpdateCard(cardInstanceId, new CardUpdate { Xp = newXp });
 
-        GD.Print($"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' (now: {newXp})");
+        GD.Print(
+            $"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' (now: {newXp})"
+        );
         return newXp;
     }
 
     /// <summary>Grant XP to multiple cards.</summary>
-    public Dictionary<CardInstanceId, int> GrantXpToCards(IEnumerable<CardInstanceId> cardInstanceIds, int amount)
+    public Dictionary<CardInstanceId, int> GrantXpToCards(
+        IEnumerable<CardInstanceId> cardInstanceIds,
+        int amount
+    )
     {
         var results = new Dictionary<CardInstanceId, int>();
         foreach (var cardId in cardInstanceIds)
@@ -184,23 +192,32 @@ public class CardProgressionHandler
         var applyResult = ProgressionEngine.ApplyLevelUp(state, curve);
         if (!applyResult.Success)
         {
-            GD.PushWarning($"CardProgressionHandler: Level up rejected ({applyResult.Status}) for card: {cardInstanceId}");
+            GD.PushWarning(
+                $"CardProgressionHandler: Level up rejected ({applyResult.Status}) for card: {cardInstanceId}"
+            );
             return false;
         }
 
-        var saveSuccess = _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
-        {
-            Level = applyResult.NextState.Level,
-            Xp = applyResult.NextState.XpTowardNext,
-            UnspentTraitPoints = card.UnspentTraitPoints + 1
-        });
+        var saveSuccess = _profileRepo.UpdateCard(
+            cardInstanceId,
+            new CardUpdate
+            {
+                Level = applyResult.NextState.Level,
+                Xp = applyResult.NextState.XpTowardNext,
+                UnspentTraitPoints = card.UnspentTraitPoints + 1,
+            }
+        );
         if (!saveSuccess)
         {
-            GD.PushError($"CardProgressionHandler: Failed to persist level-up for card: {cardInstanceId}");
+            GD.PushError(
+                $"CardProgressionHandler: Failed to persist level-up for card: {cardInstanceId}"
+            );
             return false;
         }
 
-        GD.Print($"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {applyResult.NextState.Level}, consumed {applyResult.XpCostSpent} XP (remaining: {applyResult.NextState.XpTowardNext}), and granted 1 trait point");
+        GD.Print(
+            $"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {applyResult.NextState.Level}, consumed {applyResult.XpCostSpent} XP (remaining: {applyResult.NextState.XpTowardNext}), and granted 1 trait point"
+        );
         return true;
     }
 
@@ -219,11 +236,18 @@ public class CardProgressionHandler
             return 0;
 
         var newValue = card.UnspentTraitPoints + amount;
-        if (!_profileRepo.UpdateCard(cardInstanceId, new CardUpdate { UnspentTraitPoints = newValue }))
+        if (
+            !_profileRepo.UpdateCard(
+                cardInstanceId,
+                new CardUpdate { UnspentTraitPoints = newValue }
+            )
+        )
             return 0;
 
         if (!string.IsNullOrEmpty(source))
-            GD.Print($"CardProgressionHandler: Granted {amount} trait points to '{cardInstanceId}' from source='{source}'");
+            GD.Print(
+                $"CardProgressionHandler: Granted {amount} trait points to '{cardInstanceId}' from source='{source}'"
+            );
 
         return newValue;
     }
@@ -249,26 +273,31 @@ public class CardProgressionHandler
         var eligibleTraits = TraitTreeEvaluator.GetEligibleProgressionTraits(
             TraitCatalog.GetAllTraits(),
             context,
-            evaluationLevel);
+            evaluationLevel
+        );
 
         if (eligibleTraits.Count == 0)
             return [];
 
         var orderedTraits = eligibleTraits
-            .OrderBy(trait => ComputeStableOfferOrder($"{cardInstanceId.Value}|{evaluationLevel}", trait.Id))
+            .OrderBy(trait =>
+                ComputeStableOfferOrder($"{cardInstanceId.Value}|{evaluationLevel}", trait.Id)
+            )
             .ThenBy(trait => trait.Id.Value, StringComparer.Ordinal)
             .Take(count);
 
         var offers = new List<UnifiedTraitOffer>();
         foreach (var trait in orderedTraits)
         {
-            offers.Add(new UnifiedTraitOffer
-            {
-                TraitId = trait.Id.Value,
-                DisplayName = new UnifiedDisplayText { LocalizationKey = trait.NameKey },
-                Description = new UnifiedDisplayText { LocalizationKey = trait.DescriptionKey },
-                Weight = UnifiedWeight.One
-            });
+            offers.Add(
+                new UnifiedTraitOffer
+                {
+                    TraitId = trait.Id.Value,
+                    DisplayName = new UnifiedDisplayText { LocalizationKey = trait.NameKey },
+                    Description = new UnifiedDisplayText { LocalizationKey = trait.DescriptionKey },
+                    Weight = UnifiedWeight.One,
+                }
+            );
         }
 
         return offers;
@@ -277,12 +306,17 @@ public class CardProgressionHandler
     public bool SpendCardTraitPoint(CardInstanceId cardInstanceId, CardTraitId traitId)
     {
         var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null) return false;
-        if (card.UnspentTraitPoints <= 0) return false;
-        if (traitId == CardTraitId.None) return false;
+        if (card == null)
+            return false;
+        if (card.UnspentTraitPoints <= 0)
+            return false;
+        if (traitId == CardTraitId.None)
+            return false;
         var normalizedTraitId = CardTraitId.FromString(traitId.Value.Trim());
-        if (normalizedTraitId == CardTraitId.None) return false;
-        if (card.Traits.Contains(normalizedTraitId)) return false;
+        if (normalizedTraitId == CardTraitId.None)
+            return false;
+        if (card.Traits.Contains(normalizedTraitId))
+            return false;
 
         var traitDef = TraitCatalog.GetTrait(normalizedTraitId.Value);
         if (traitDef == null)
@@ -302,18 +336,18 @@ public class CardProgressionHandler
 
         var newTraits = new List<CardTraitId>(card.Traits) { normalizedTraitId };
         var newPoints = card.UnspentTraitPoints - 1;
-        var success = _profileRepo.UpdateCard(cardInstanceId, new CardUpdate
-        {
-            Traits = newTraits,
-            UnspentTraitPoints = newPoints
-        });
+        var success = _profileRepo.UpdateCard(
+            cardInstanceId,
+            new CardUpdate { Traits = newTraits, UnspentTraitPoints = newPoints }
+        );
 
         return success;
     }
 
     public bool SpendCardTraitPoint(CardInstanceId cardInstanceId, string traitId)
     {
-        if (string.IsNullOrWhiteSpace(traitId)) return false;
+        if (string.IsNullOrWhiteSpace(traitId))
+            return false;
         return SpendCardTraitPoint(cardInstanceId, CardTraitId.FromString(traitId.Trim()));
     }
 
@@ -342,7 +376,10 @@ public class CardProgressionHandler
             if (traitDef == null)
                 continue;
 
-            var resolvedMultipliers = traitDef.ResolveStatMultipliersForCard(card.CatalogId.Value, card.Rarity);
+            var resolvedMultipliers = traitDef.ResolveStatMultipliersForCard(
+                card.CatalogId.Value,
+                card.Rarity
+            );
             foreach (var (stat, multiplier) in resolvedMultipliers)
             {
                 if (multiplier <= 0f)
@@ -435,7 +472,10 @@ public class CardProgressionHandler
         return DeterministicStringHash($"{context}|{traitId.Value}");
     }
 
-    private static TraitTreeOwnerContext? BuildTraitOwnerContext(CardInstance card, CardDefinition cardDef)
+    private static TraitTreeOwnerContext? BuildTraitOwnerContext(
+        CardInstance card,
+        CardDefinition cardDef
+    )
     {
         var ownerTypeTag = TraitTreeEvaluator.ResolveOwnerTypeTag(cardDef);
         if (string.IsNullOrEmpty(ownerTypeTag))
@@ -445,11 +485,13 @@ public class CardProgressionHandler
         {
             OwnerTypeTag = ownerTypeTag,
             EligibilityTags = TraitTreeEvaluator.BuildEffectiveCardTagSet(cardDef, ownerTypeTag),
-            OwnedTraitIds = card.Traits.Select(traitId => traitId.Value).ToHashSet(StringComparer.Ordinal),
+            OwnedTraitIds = card
+                .Traits.Select(traitId => traitId.Value)
+                .ToHashSet(StringComparer.Ordinal),
             CurrentLevel = card.Level,
             UnspentTraitPoints = card.UnspentTraitPoints,
             CardCatalogId = card.CatalogId.Value,
-            CardRarity = card.Rarity
+            CardRarity = card.Rarity,
         };
     }
 
@@ -493,14 +535,17 @@ public class CardProgressionHandler
             Level = card.Level,
             MaxLevel = MaxLevel,
             Xp = card.Xp,
-            XpForNextLevel = ProgressionEngine.GetXpCostForNextLevel(BuildProgressionState(card), BuildProgressionCurve(card)),
+            XpForNextLevel = ProgressionEngine.GetXpCostForNextLevel(
+                BuildProgressionState(card),
+                BuildProgressionCurve(card)
+            ),
             XpProgress = GetLevelProgress(cardInstanceId),
             CanLevelUp = CanLevelUp(cardInstanceId),
             Traits = card.Traits.ConvertAll(t => t.Value),
             IsMaxLevel = card.Level >= MaxLevel,
             UnspentTraitPoints = card.UnspentTraitPoints,
             LevelUpResourceCost = levelUpResourceCostDict,
-            HasLevelUpResourceCost = levelUpResourceCostDict.Count > 0
+            HasLevelUpResourceCost = levelUpResourceCostDict.Count > 0,
         };
     }
 

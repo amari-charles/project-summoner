@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Enums;
 using Fateforged.Units;
 using UnitType = Fateforged.Units.UnitType;
-using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Simulation.Data;
 
@@ -65,7 +65,7 @@ public class SimCardData
             ManaCost = card.ManaCost,
             SummonTime = card.Summon?.SummonTime ?? card.SummonTime,
             IsSpell = card.Type == CardType.Spell,
-            ElementId = (int)card.ElementalAffinity
+            ElementId = (int)card.ElementalAffinity,
         };
 
         if (card.Type == CardType.Spell)
@@ -75,23 +75,26 @@ public class SimCardData
                 SpellTargeting.SingleTarget => SpellTargetingMode.NearestEnemy,
                 SpellTargeting.AreaOfEffect => SpellTargetingMode.Position,
                 SpellTargeting.SelectionRadius => SpellTargetingMode.AlliesInRadius,
-                _ => SpellTargetingMode.Position
+                _ => SpellTargetingMode.Position,
             };
-            simCard.SpellRadius = card.SpellTargeting == SpellTargeting.SelectionRadius
-                ? card.SelectionRadius
-                : card.SpellRadius;
+            simCard.SpellRadius =
+                card.SpellTargeting == SpellTargeting.SelectionRadius
+                    ? card.SelectionRadius
+                    : card.SpellRadius;
             simCard.SpellProjectileId = (string)card.ProjectileId;
 
             if (card.SpellCategory == SpellCategory.Damage && card.SpellDamage > 0)
             {
-                simCard.SpellEffects.Add(new SimSpellEffect
-                {
-                    EffectType = EffectType.Damage,
-                    Value = card.SpellDamage,
-                    DamageType = MapElementToDamageType(card.ElementalAffinity),
-                    AoeRadius = card.SpellRadius,
-                    Affinity = SpellAffinity.Enemies
-                });
+                simCard.SpellEffects.Add(
+                    new SimSpellEffect
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = card.SpellDamage,
+                        DamageType = MapElementToDamageType(card.ElementalAffinity),
+                        AoeRadius = card.SpellRadius,
+                        Affinity = SpellAffinity.Enemies,
+                    }
+                );
             }
         }
 
@@ -167,7 +170,8 @@ public class SimUnitTemplate
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
     public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
-    public MovementIntentStrategy MovementIntentStrategy { get; set; } = MovementIntentStrategy.Context;
+    public MovementIntentStrategy MovementIntentStrategy { get; set; } =
+        MovementIntentStrategy.Context;
 
     // Damage profile fields
     public DamageType AttackType { get; set; } = DamageType.Physical;

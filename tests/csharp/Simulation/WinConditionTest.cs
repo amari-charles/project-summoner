@@ -1,9 +1,9 @@
 namespace Fateforged.Tests.Simulation;
 
 using Fateforged.Simulation;
+using Fateforged.Simulation.Data;
 using GdUnit4;
 using static GdUnit4.Assertions;
-using Fateforged.Simulation.Data;
 
 [TestSuite]
 public class WinConditionTest
@@ -190,7 +190,8 @@ public class WinConditionTest
     [TestCase]
     public void Parse_DestroyBase_ReturnsDestroySummoner()
     {
-        AssertThat(WinConditionFactory.Parse("destroy_base")).IsEqual(WinConditionType.DestroySummoner);
+        AssertThat(WinConditionFactory.Parse("destroy_base"))
+            .IsEqual(WinConditionType.DestroySummoner);
     }
 
     [TestCase]
@@ -202,6 +203,7 @@ public class WinConditionTest
     [TestCase]
     public void Parse_Unknown_DefaultsToDestroySummoner()
     {
-        AssertThat(WinConditionFactory.Parse("some_unknown_mode")).IsEqual(WinConditionType.DestroySummoner);
+        AssertThat(WinConditionFactory.Parse("some_unknown_mode"))
+            .IsEqual(WinConditionType.DestroySummoner);
     }
 }

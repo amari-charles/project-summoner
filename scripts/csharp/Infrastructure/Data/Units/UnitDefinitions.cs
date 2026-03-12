@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Fateforged.Simulation;
-using Godot;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
-using Fateforged.Stats;
+using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Stats;
+using Godot;
 
 namespace Fateforged.Units;
 
@@ -32,13 +32,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.2f,
             MoveSpeed = 3.5f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/fire_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/fire_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition WaterWisp = new()
@@ -52,13 +52,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.1f,
             MoveSpeed = 3.2f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/water_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/water_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition WindWisp = new()
@@ -72,13 +72,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.4f,
             MoveSpeed = 4.0f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/wind_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/wind_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition EarthWisp = new()
@@ -92,13 +92,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 0.9f,
             MoveSpeed = 2.8f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/earth_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/earth_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition LightningWisp = new()
@@ -112,13 +112,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.5f,
             MoveSpeed = 4.2f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/lightning_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/lightning_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition LifeWisp = new()
@@ -132,13 +132,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.0f,
             MoveSpeed = 3.0f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/life_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/life_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition DeathWisp = new()
@@ -152,13 +152,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.1f,
             MoveSpeed = 3.0f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/death_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/death_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition ShadowWisp = new()
@@ -172,13 +172,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.3f,
             MoveSpeed = 3.8f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/shadow_wisp_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/shadow_wisp_3d.tscn",
     };
 
     // =========================================================================
@@ -196,13 +196,13 @@ public static class UnitDefinitions
             AttackRange = 5.0f,
             AttackSpeed = 0.8f,
             MoveSpeed = 2.0f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
         Visual = new VisualConfig { SeparationRadius = 0.8f },
-        ScenePath = "res://scenes/battle/units/fire_titan_3d.tscn"
+        ScenePath = "res://scenes/battle/units/fire_titan_3d.tscn",
     };
 
     public static readonly UnitDefinition FireAnt = new()
@@ -216,13 +216,13 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 1.5f,
             MoveSpeed = 4.5f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
         Visual = new VisualConfig { SeparationRadius = 0.3f },
-        ScenePath = "res://scenes/battle/units/fire_ant_3d.tscn"
+        ScenePath = "res://scenes/battle/units/fire_ant_3d.tscn",
     };
 
     public static readonly UnitDefinition FireBoar = new()
@@ -236,13 +236,13 @@ public static class UnitDefinitions
             AttackRange = 3.5f,
             AttackSpeed = 0.8f,
             MoveSpeed = 2.5f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.6f},
-        ScenePath = "res://scenes/battle/units/fire_boar_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.6f },
+        ScenePath = "res://scenes/battle/units/fire_boar_3d.tscn",
     };
 
     public static readonly UnitDefinition FireWolf = new()
@@ -256,13 +256,13 @@ public static class UnitDefinitions
             AttackRange = 3.5f,
             AttackSpeed = 1.1f,
             MoveSpeed = 3.4f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
         Visual = new VisualConfig { SeparationRadius = 0.55f },
-        ScenePath = "res://scenes/battle/units/fire_wolf_3d.tscn"
+        ScenePath = "res://scenes/battle/units/fire_wolf_3d.tscn",
     };
 
     public static readonly UnitDefinition FireSpider = new()
@@ -276,13 +276,13 @@ public static class UnitDefinitions
             AttackRange = 18f,
             AttackSpeed = 0.6f,
             MoveSpeed = 3.5f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
         Ranged = new RangedConfig(ProjectileIds.FireWeb),
         Visual = new VisualConfig { SeparationRadius = 0.4f },
-        ScenePath = "res://scenes/battle/units/fire_spider_3d.tscn"
+        ScenePath = "res://scenes/battle/units/fire_spider_3d.tscn",
     };
 
     // =========================================================================
@@ -300,28 +300,25 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 0.9f,
             MoveSpeed = 1.8f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
         Attack = new AttackVectorConfig
         {
             Preset = AttackPreset.AreaCleave,
-            Selection = new AttackSelectionConfig
-            {
-                TargetLimit = 3
-            },
+            Selection = new AttackSelectionConfig { TargetLimit = 3 },
             Area = new AttackAreaConfig
             {
                 Shape = AttackAreaShape.Box,
                 // Forward smash footprint: shifted ahead and substantially larger.
                 Size = new Vector3(5.4f, 1.0f, 2.6f),
-                ForwardOffset = 2.1f
-            }
+                ForwardOffset = 2.1f,
+            },
         },
 
-        Visual = new VisualConfig { SeparationRadius = 0.6f},
-        ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.6f },
+        ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn",
     };
 
     public static readonly UnitDefinition EarthKomodoDragon = new()
@@ -335,13 +332,13 @@ public static class UnitDefinitions
             AttackRange = 4.0f,
             AttackSpeed = 0.7f,
             MoveSpeed = 2.2f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
         Visual = new VisualConfig { SeparationRadius = 0.7f },
-        ScenePath = "res://scenes/battle/units/earth_komodo_dragon_3d.tscn"
+        ScenePath = "res://scenes/battle/units/earth_komodo_dragon_3d.tscn",
     };
 
     public static readonly UnitDefinition Rock = new()
@@ -355,12 +352,12 @@ public static class UnitDefinitions
             AttackRange = 3.0f,
             AttackSpeed = 0f,
             MoveSpeed = 0f,
-            AggroRadius = 0f
+            AggroRadius = 0f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.Passive,
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/rock_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/rock_3d.tscn",
     };
 
     public static readonly UnitDefinition StoneApe = new()
@@ -374,13 +371,13 @@ public static class UnitDefinitions
             AttackRange = 4.0f,
             AttackSpeed = 0.6f,
             MoveSpeed = 1.8f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
         Visual = new VisualConfig { SeparationRadius = 0.7f },
-        ScenePath = "res://scenes/battle/units/stone_ape_3d.tscn"
+        ScenePath = "res://scenes/battle/units/stone_ape_3d.tscn",
     };
 
     public static readonly UnitDefinition EarthRockThrower = new()
@@ -394,13 +391,13 @@ public static class UnitDefinitions
             AttackRange = 22f,
             AttackSpeed = 0.4f,
             MoveSpeed = 2.0f,
-            AggroRadius = 22f
+            AggroRadius = 22f,
         },
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
         Ranged = new RangedConfig(ProjectileIds.Rock),
         Visual = new VisualConfig { SeparationRadius = 0.3f },
-        ScenePath = "res://scenes/battle/units/earth_rock_thrower_3d.tscn"
+        ScenePath = "res://scenes/battle/units/earth_rock_thrower_3d.tscn",
     };
 
     // =========================================================================
@@ -418,7 +415,7 @@ public static class UnitDefinitions
             AttackRange = 24f,
             AttackSpeed = 0.4f,
             MoveSpeed = 2.5f,
-            AggroRadius = 24f
+            AggroRadius = 24f,
         },
         UnitType = UnitType.Ranged,
         MovementLayer = MovementLayer.Air,
@@ -428,7 +425,7 @@ public static class UnitDefinitions
         Ranged = new RangedConfig(ProjectileIds.WindPuff)
         {
             ProjectileDelay = 0.585f,
-            IsDelayedProjectile = true
+            IsDelayedProjectile = true,
         },
         Flying = new FlyingConfig { Altitude = 2.5f },
         Visual = new VisualConfig
@@ -441,10 +438,10 @@ public static class UnitDefinitions
                 Horizontal = true,
                 Height = 3.0f,
                 Radius = 0.75f,
-                Offset = new Vector3(1.4f, 0f, 0f)
-            }
+                Offset = new Vector3(1.4f, 0f, 0f),
+            },
         },
-        ScenePath = "res://scenes/battle/units/puff_3d.tscn"
+        ScenePath = "res://scenes/battle/units/puff_3d.tscn",
     };
 
     // =========================================================================
@@ -459,16 +456,16 @@ public static class UnitDefinitions
         {
             MaxHp = 70f,
             AttackDamage = 15f,
-            AttackRange = 5.0f,  // Extended range for tongue attack
+            AttackRange = 5.0f, // Extended range for tongue attack
             AttackSpeed = 1.0f,
             MoveSpeed = 2.5f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/water_frog_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/water_frog_3d.tscn",
     };
 
     public static readonly UnitDefinition MamaDuck = new()
@@ -482,13 +479,13 @@ public static class UnitDefinitions
             AttackRange = 3.5f,
             AttackSpeed = 0.9f,
             MoveSpeed = 2.8f,
-            AggroRadius = 20f
+            AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f},
-        ScenePath = "res://scenes/battle/units/mama_duck_3d.tscn"
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/mama_duck_3d.tscn",
     };
 
     public static readonly UnitDefinition Duckling = new()
@@ -502,13 +499,13 @@ public static class UnitDefinitions
             AttackRange = 12f,
             AttackSpeed = 0.8f,
             MoveSpeed = 3.2f,
-            AggroRadius = 16f
+            AggroRadius = 16f,
         },
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedStrafe,
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
         Visual = new VisualConfig { SeparationRadius = 0.25f },
-        ScenePath = "res://scenes/battle/units/duckling_3d.tscn"
+        ScenePath = "res://scenes/battle/units/duckling_3d.tscn",
     };
 
     // =========================================================================
@@ -543,7 +540,7 @@ public static class UnitDefinitions
         // Water
         [UnitIds.WaterFrog] = WaterFrog,
         [UnitIds.MamaDuck] = MamaDuck,
-        [UnitIds.Duckling] = Duckling
+        [UnitIds.Duckling] = Duckling,
     };
 
     /// <summary>Get a unit definition by ID. Throws if not found.</summary>
@@ -586,7 +583,11 @@ public static class UnitDefinitions
     /// Build a SimUnitTemplate from a unit definition.
     /// This is the bridge between the unit catalog and the simulation's flat template format.
     /// </summary>
-    public static SimUnitTemplate BuildSimTemplate(UnitId unitId, int count, StatModifier? modifier = null)
+    public static SimUnitTemplate BuildSimTemplate(
+        UnitId unitId,
+        int count,
+        StatModifier? modifier = null
+    )
     {
         var template = new SimUnitTemplate { Count = count, UnitTypeId = unitId.Value };
 
@@ -616,16 +617,18 @@ public static class UnitDefinitions
                 : Fateforged.Simulation.Enums.DamageType.Physical;
         template.SeparationRadius = def.Visual.SeparationRadius;
         template.NavigationRadius = def.Visual.SeparationRadius;
-        template.HurtboxRadius = def.Visual.Hurtbox?.Radius > 0f
-            ? def.Visual.Hurtbox.Radius
-            : template.NavigationRadius;
-        template.HurtboxHeight = def.Visual.Hurtbox?.Height > 0f
-            ? def.Visual.Hurtbox.Height
-            : 0f;
+        template.HurtboxRadius =
+            def.Visual.Hurtbox?.Radius > 0f ? def.Visual.Hurtbox.Radius : template.NavigationRadius;
+        template.HurtboxHeight = def.Visual.Hurtbox?.Height > 0f ? def.Visual.Hurtbox.Height : 0f;
         template.HurtboxHorizontal = def.Visual.Hurtbox?.Horizontal ?? false;
-        template.HurtboxOffset = def.Visual.Hurtbox != null
-            ? new SimVector3(def.Visual.Hurtbox.Offset.X, def.Visual.Hurtbox.Offset.Y, def.Visual.Hurtbox.Offset.Z)
-            : SimVector3.Zero;
+        template.HurtboxOffset =
+            def.Visual.Hurtbox != null
+                ? new SimVector3(
+                    def.Visual.Hurtbox.Offset.X,
+                    def.Visual.Hurtbox.Offset.Y,
+                    def.Visual.Hurtbox.Offset.Z
+                )
+                : SimVector3.Zero;
         template.PhysicalDefense = stats.Armor;
         template.MagicDefense = stats.MagicResist;
         template.Attack = AttackVectorStateBuilder.Build(def.Attack);
@@ -690,21 +693,30 @@ public static class UnitDefinitions
 
             case UnitTargetingProfile.RangedGround:
                 template.FallbackMovement = FallbackMovement.MoveToward;
-                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(def, UnitTargetingProfile.RangedGround);
+                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(
+                    def,
+                    UnitTargetingProfile.RangedGround
+                );
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             case UnitTargetingProfile.RangedStrafe:
                 template.FallbackMovement = FallbackMovement.Strafe;
-                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(def, UnitTargetingProfile.RangedStrafe);
+                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(
+                    def,
+                    UnitTargetingProfile.RangedStrafe
+                );
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
             case UnitTargetingProfile.FlyingConeStrafe:
                 template.FallbackMovement = FallbackMovement.Strafe;
-                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(def, UnitTargetingProfile.FlyingConeStrafe);
+                template.TargetLayerFilter = ResolveTargetLayerFilterForProfile(
+                    def,
+                    UnitTargetingProfile.FlyingConeStrafe
+                );
                 template.EngageShape = EngageShape.Cone;
                 template.HasConeConstraint = true;
                 template.ConeHalfAngle = def.TargetingConeHalfAngle;
@@ -716,7 +728,10 @@ public static class UnitDefinitions
 
             default:
                 throw new ArgumentOutOfRangeException(
-                    nameof(def.TargetingProfile), def.TargetingProfile, "Unknown UnitTargetingProfile");
+                    nameof(def.TargetingProfile),
+                    def.TargetingProfile,
+                    "Unknown UnitTargetingProfile"
+                );
         }
     }
 
@@ -736,14 +751,16 @@ public static class UnitDefinitions
                 forwardOffset = template.Attack.Area.ForwardOffset;
                 break;
 
-            case AttackSelectionMode.AreaCollect when template.Attack.Area.Shape == AttackAreaShape.Box:
+            case AttackSelectionMode.AreaCollect
+                when template.Attack.Area.Shape == AttackAreaShape.Box:
                 shouldOverride = true;
                 length = template.Attack.Area.Size.X;
                 halfWidth = template.Attack.Area.Size.Z;
                 forwardOffset = template.Attack.Area.ForwardOffset;
                 break;
 
-            case AttackSelectionMode.AreaCollect when template.Attack.Area.Shape == AttackAreaShape.Line:
+            case AttackSelectionMode.AreaCollect
+                when template.Attack.Area.Shape == AttackAreaShape.Line:
                 shouldOverride = true;
                 length = template.Attack.Area.LineLength;
                 halfWidth = template.Attack.Area.LineHalfWidth;
@@ -761,11 +778,15 @@ public static class UnitDefinitions
         template.EngageRectForwardOffset = MathF.Max(forwardOffset, 0f);
     }
 
-    private static TargetLayer ResolveTargetLayerFilterForProfile(UnitDefinition def, UnitTargetingProfile profile)
+    private static TargetLayer ResolveTargetLayerFilterForProfile(
+        UnitDefinition def,
+        UnitTargetingProfile profile
+    )
     {
-        bool isRangedProfile = profile == UnitTargetingProfile.RangedGround ||
-                               profile == UnitTargetingProfile.RangedStrafe ||
-                               profile == UnitTargetingProfile.FlyingConeStrafe;
+        bool isRangedProfile =
+            profile == UnitTargetingProfile.RangedGround
+            || profile == UnitTargetingProfile.RangedStrafe
+            || profile == UnitTargetingProfile.FlyingConeStrafe;
         if (!isRangedProfile)
             return def.TargetingLayerFilter;
 

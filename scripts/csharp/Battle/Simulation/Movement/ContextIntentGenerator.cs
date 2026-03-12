@@ -15,11 +15,17 @@ public sealed class ContextIntentGenerator : IMovementIntentGenerator
     private static readonly DirectIntentGenerator _fallbackGenerator = new();
 
     public MovementIntent Generate(
-        UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state, float delta)
+        UnitData unit,
+        SimBehavior.BehaviorResult behavior,
+        MatchState state,
+        float delta
+    )
     {
         // If the target is no longer resolvable, fall back to direct behavior defaults.
-        if (RequiresTarget(behavior.Movement) &&
-            !MovementTargetResolver.Resolve(unit, behavior.MoveTargetId, state).HasValue)
+        if (
+            RequiresTarget(behavior.Movement)
+            && !MovementTargetResolver.Resolve(unit, behavior.MoveTargetId, state).HasValue
+        )
         {
             return _fallbackGenerator.Generate(unit, behavior, state, delta);
         }
@@ -34,7 +40,12 @@ public sealed class ContextIntentGenerator : IMovementIntentGenerator
                 Mode = behavior.Movement,
                 TargetId = behavior.MoveTargetId,
                 DesiredVelocity = SimVector3.Zero,
-                DesiredFacingDirection = ResolveFacingDirection(unit, behavior, state, preferredDir)
+                DesiredFacingDirection = ResolveFacingDirection(
+                    unit,
+                    behavior,
+                    state,
+                    preferredDir
+                ),
             };
         }
 
@@ -44,15 +55,19 @@ public sealed class ContextIntentGenerator : IMovementIntentGenerator
             Mode = behavior.Movement,
             TargetId = behavior.MoveTargetId,
             DesiredVelocity = preferredDir * speed,
-            DesiredFacingDirection = facingDir
+            DesiredFacingDirection = facingDir,
         };
     }
 
-    private static bool RequiresTarget(MovementResult mode)
-        => mode == MovementResult.TowardTarget || mode == MovementResult.Strafe;
+    private static bool RequiresTarget(MovementResult mode) =>
+        mode == MovementResult.TowardTarget || mode == MovementResult.Strafe;
 
     private static SimVector3 ResolveFacingDirection(
-        UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state, SimVector3 preferredDir)
+        UnitData unit,
+        SimBehavior.BehaviorResult behavior,
+        MatchState state,
+        SimVector3 preferredDir
+    )
     {
         if (behavior.Movement == MovementResult.Forward)
             return MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, state);

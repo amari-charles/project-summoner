@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Fateforged.Projectiles;
-using Fateforged.Units;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Data;
 

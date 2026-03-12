@@ -57,7 +57,8 @@ public class GridFormation : IFormationStrategy
         if (totalUnits <= 1)
             return Vector3.Zero;
 
-        int rows, cols;
+        int rows,
+            cols;
 
         // Use custom columns if specified, otherwise auto-calculate
         if (Columns > 0)
@@ -68,9 +69,10 @@ public class GridFormation : IFormationStrategy
         else
         {
             // Calculate grid dimensions - prefer 2 rows for army-like formations
-            rows = totalUnits <= TwoRowMax
-                ? 2
-                : Mathf.CeilToInt(Mathf.Sqrt(totalUnits / LargeRowDensity));
+            rows =
+                totalUnits <= TwoRowMax
+                    ? 2
+                    : Mathf.CeilToInt(Mathf.Sqrt(totalUnits / LargeRowDensity));
             cols = Mathf.CeilToInt((float)totalUnits / rows);
         }
 

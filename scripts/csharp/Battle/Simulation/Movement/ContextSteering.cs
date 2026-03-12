@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
 using Fateforged.Simulation.Spatial;
-using Fateforged.Simulation;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -33,7 +33,10 @@ public struct ContextMap
     public static ContextMap Create(float[] interest, float[] danger)
     {
         if (interest.Length < NumSlots)
-            throw new ArgumentException("Interest buffer is smaller than NumSlots.", nameof(interest));
+            throw new ArgumentException(
+                "Interest buffer is smaller than NumSlots.",
+                nameof(interest)
+            );
         if (danger.Length < NumSlots)
             throw new ArgumentException("Danger buffer is smaller than NumSlots.", nameof(danger));
         return new ContextMap(interest, danger);
@@ -58,11 +61,13 @@ public struct ContextMap
         for (int i = 0; i < NumSlots; i++)
         {
             float interest = Interest[i];
-            if (interest <= 0f) continue;
+            if (interest <= 0f)
+                continue;
 
             // Mask: subtract danger from interest
             float effective = interest - Danger[i];
-            if (effective <= 0f) continue;
+            if (effective <= 0f)
+                continue;
 
             var dir = SlotDirection(i);
             result += dir * effective;
@@ -81,7 +86,8 @@ public struct ContextMap
     public static int DirectionToSlot(SimVector3 dir)
     {
         float angle = MathF.Atan2(dir.Z, dir.X); // radians
-        if (angle < 0) angle += SimMath.Tau;
+        if (angle < 0)
+            angle += SimMath.Tau;
         int slot = (int)MathF.Round(angle / SimMath.DegToRad(SlotAngle)) % NumSlots;
         return slot;
     }
@@ -108,10 +114,17 @@ public static class ContextSteering
     private const float FlankerLaneBiasWeight = 0.42f;
     private const float BacklinerLaneBiasWeight = 0.30f;
 
-    [ThreadStatic] private static float[]? _interestBuffer;
-    [ThreadStatic] private static float[]? _dangerBuffer;
-    [ThreadStatic] private static List<UnitData>? _crowdNeighbors;
-    [ThreadStatic] private static List<float>? _crowdNeighborDistancesSq;
+    [ThreadStatic]
+    private static float[]? _interestBuffer;
+
+    [ThreadStatic]
+    private static float[]? _dangerBuffer;
+
+    [ThreadStatic]
+    private static List<UnitData>? _crowdNeighbors;
+
+    [ThreadStatic]
+    private static List<float>? _crowdNeighborDistancesSq;
     private const float CrowdDangerRadiusMultiplier = 3.25f;
     private const float CrowdDangerMinRadius = 1.2f;
     private const float CrowdDangerFrontFloor = 0.35f;
@@ -128,7 +141,10 @@ public static class ContextSteering
     /// Main entry: compute preferred direction for a unit based on its behavior result.
     /// </summary>
     public static SimVector3 Resolve(
-        UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state)
+        UnitData unit,
+        SimBehavior.BehaviorResult behavior,
+        MatchState state
+    )
     {
         _interestBuffer ??= new float[ContextMap.NumSlots];
         _dangerBuffer ??= new float[ContextMap.NumSlots];
@@ -199,7 +215,8 @@ public static class ContextSteering
         SimVector3 targetPos,
         MatchState state,
         ref ContextMap map,
-        bool tightClumpMode = false)
+        bool tightClumpMode = false
+    )
     {
         var toTarget = targetPos - unit.Position;
         toTarget.Y = 0;
@@ -232,7 +249,11 @@ public static class ContextSteering
     /// If already within attack range, less interest in closing further.
     /// </summary>
     private static void FillRangedProfile(
-        UnitData unit, SimVector3 targetPos, MatchState state, ref ContextMap map)
+        UnitData unit,
+        SimVector3 targetPos,
+        MatchState state,
+        ref ContextMap map
+    )
     {
         // Ranged units chasing a target behave like melee — they need to get in range
         FillMeleeProfile(unit, targetPos, state, ref map);
@@ -242,8 +263,7 @@ public static class ContextSteering
     /// Forward profile: march toward enemy base.
     /// Team 0 moves in +X, Team 1 moves in -X.
     /// </summary>
-    private static void FillForwardProfile(
-        UnitData unit, MatchState state, ref ContextMap map)
+    private static void FillForwardProfile(UnitData unit, MatchState state, ref ContextMap map)
     {
         var forwardDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, state);
 
@@ -264,7 +284,11 @@ public static class ContextSteering
     /// Used when unit has cone constraint and needs to reposition.
     /// </summary>
     private static void FillStrafeProfile(
-        UnitData unit, SimVector3 targetPos, MatchState state, ref ContextMap map)
+        UnitData unit,
+        SimVector3 targetPos,
+        MatchState state,
+        ref ContextMap map
+    )
     {
         var toTarget = targetPos - unit.Position;
         var horizontalToTarget = new SimVector3(toTarget.X, 0f, toTarget.Z);
@@ -277,14 +301,18 @@ public static class ContextSteering
         horizontalToTarget = horizontalToTarget.Normalized();
 
         // Calculate angle to target for facing decision
-        float angleToTarget = SimMath.RadToDeg(MathF.Atan2(horizontalToTarget.Z, horizontalToTarget.X));
+        float angleToTarget = SimMath.RadToDeg(
+            MathF.Atan2(horizontalToTarget.Z, horizontalToTarget.X)
+        );
         bool shouldFaceRight = MathF.Abs(angleToTarget) <= 90f;
 
         // Calculate angle difference from facing
         float facingAngle = shouldFaceRight ? 0f : 180f;
         float angleDiff = angleToTarget - facingAngle;
-        while (angleDiff > 180f) angleDiff -= 360f;
-        while (angleDiff < -180f) angleDiff += 360f;
+        while (angleDiff > 180f)
+            angleDiff -= 360f;
+        while (angleDiff < -180f)
+            angleDiff += 360f;
 
         // Perpendicular to target direction
         var strafeDir = new SimVector3(-horizontalToTarget.Z, 0f, horizontalToTarget.X);
@@ -311,9 +339,12 @@ public static class ContextSteering
         MatchState state,
         ref ContextMap map,
         SimVector3 preferredDirection,
-        bool tightClumpMode = false)
+        bool tightClumpMode = false
+    )
     {
-        float radiusMultiplier = tightClumpMode ? TightCrowdDangerRadiusMultiplier : CrowdDangerRadiusMultiplier;
+        float radiusMultiplier = tightClumpMode
+            ? TightCrowdDangerRadiusMultiplier
+            : CrowdDangerRadiusMultiplier;
         float minRadius = tightClumpMode ? TightCrowdDangerMinRadius : CrowdDangerMinRadius;
         float frontFloor = tightClumpMode ? TightCrowdDangerFrontFloor : CrowdDangerFrontFloor;
         float frontWeight = tightClumpMode ? TightCrowdDangerFrontWeight : CrowdDangerFrontWeight;
@@ -334,7 +365,9 @@ public static class ContextSteering
         );
 
         bool hasPreferredDirection = preferredDirection.LengthSquared() >= 0.0001f;
-        var preferredDir = hasPreferredDirection ? preferredDirection.Normalized() : SimVector3.Zero;
+        var preferredDir = hasPreferredDirection
+            ? preferredDirection.Normalized()
+            : SimVector3.Zero;
 
         foreach (var other in _crowdNeighbors)
         {
@@ -344,12 +377,14 @@ public static class ContextSteering
             var toNeighbor = other.Position - unit.Position;
             toNeighbor.Y = 0f;
             float distSq = toNeighbor.LengthSquared();
-            if (distSq <= 0.000001f) continue;
+            if (distSq <= 0.000001f)
+                continue;
 
             float distance = MathF.Sqrt(distSq);
             var neighborDir = toNeighbor / distance;
             float proximity = 1f - (distance / dangerRadius);
-            if (proximity <= 0f) continue;
+            if (proximity <= 0f)
+                continue;
 
             float frontBias = 1f;
             if (hasPreferredDirection)
@@ -379,7 +414,11 @@ public static class ContextSteering
         return MovementTargetResolver.Resolve(unit, targetId, state);
     }
 
-    private static void ApplyVirtualLaneBias(UnitData unit, MovementResult movement, ref ContextMap map)
+    private static void ApplyVirtualLaneBias(
+        UnitData unit,
+        MovementResult movement,
+        ref ContextMap map
+    )
     {
         if (movement == MovementResult.Strafe)
             return;
@@ -387,10 +426,15 @@ public static class ContextSteering
         // Anti-stuck recovery takes priority over lane shaping.
         // When blocked navigation is active, lane bias can fight escape vectors
         // and prolong yield/escape cycles in congested melee stacks.
-        if (unit.NavigationBlockedTime > 0f || unit.NavigationYieldTimer > 0f || unit.NavigationEscapeTimer > 0f)
+        if (
+            unit.NavigationBlockedTime > 0f
+            || unit.NavigationYieldTimer > 0f
+            || unit.NavigationEscapeTimer > 0f
+        )
             return;
 
-        int lane = unit.AssignedLane >= 0 ? unit.AssignedLane : VirtualLanes.GetLaneIndex(unit.Position.Z);
+        int lane =
+            unit.AssignedLane >= 0 ? unit.AssignedLane : VirtualLanes.GetLaneIndex(unit.Position.Z);
         float laneCenterZ = VirtualLanes.GetLaneCenterZ(lane);
         float dz = laneCenterZ - unit.Position.Z;
         if (MathF.Abs(dz) < LaneEpsilon)
@@ -400,7 +444,7 @@ public static class ContextSteering
         {
             TacticalRole.Flanker => FlankerLaneBiasWeight,
             TacticalRole.Backliner => BacklinerLaneBiasWeight,
-            _ => FrontlinerLaneBiasWeight
+            _ => FrontlinerLaneBiasWeight,
         };
 
         var laneDir = new SimVector3(0f, 0f, MathF.Sign(dz));
@@ -408,7 +452,8 @@ public static class ContextSteering
         {
             var slotDir = ContextMap.SlotDirection(i);
             float dot = laneDir.Dot(slotDir);
-            if (dot <= 0f) continue;
+            if (dot <= 0f)
+                continue;
             map.Interest[i] += dot * roleWeight;
         }
     }

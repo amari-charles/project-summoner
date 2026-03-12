@@ -77,9 +77,12 @@ internal static class TraitSummaryFormatter
         {
             var summonerFragment = modifier.Type switch
             {
-                ModifierType.Percent => FormatPercent(modifier.Value, GetStatLabel(modifier.Stat.Value)),
+                ModifierType.Percent => FormatPercent(
+                    modifier.Value,
+                    GetStatLabel(modifier.Stat.Value)
+                ),
                 ModifierType.Flat => FormatFlat(modifier.Value, GetStatLabel(modifier.Stat.Value)),
-                _ => string.Empty
+                _ => string.Empty,
             };
 
             if (!string.IsNullOrWhiteSpace(summonerFragment))
@@ -88,7 +91,12 @@ internal static class TraitSummaryFormatter
 
         if (modifier.StatMults != null && modifier.StatMults.Count > 0)
         {
-            foreach (var (statKey, multiplier) in modifier.StatMults.OrderBy(kvp => kvp.Key.ToString(), StringComparer.Ordinal))
+            foreach (
+                var (statKey, multiplier) in modifier.StatMults.OrderBy(
+                    kvp => kvp.Key.ToString(),
+                    StringComparer.Ordinal
+                )
+            )
             {
                 var deltaPercent = (multiplier - 1f) * 100f;
                 var fragment = FormatPercent(deltaPercent, GetStatLabel(statKey));
@@ -99,7 +107,12 @@ internal static class TraitSummaryFormatter
 
         if (modifier.StatAdds != null && modifier.StatAdds.Count > 0)
         {
-            foreach (var (statKey, value) in modifier.StatAdds.OrderBy(kvp => kvp.Key.ToString(), StringComparer.Ordinal))
+            foreach (
+                var (statKey, value) in modifier.StatAdds.OrderBy(
+                    kvp => kvp.Key.ToString(),
+                    StringComparer.Ordinal
+                )
+            )
             {
                 var fragment = FormatFlat(value, GetStatLabel(statKey));
                 if (!string.IsNullOrWhiteSpace(fragment))
@@ -139,8 +152,10 @@ internal static class TraitSummaryFormatter
             "onhit" => "on hit",
             "onkill" => "on kill",
             "ondeath" => "on death",
-            "periodic" => modifier.TriggerCooldown > 0f ? $"every {FormatNumeric(modifier.TriggerCooldown)}s" : "periodically",
-            _ => string.Empty
+            "periodic" => modifier.TriggerCooldown > 0f
+                ? $"every {FormatNumeric(modifier.TriggerCooldown)}s"
+                : "periodically",
+            _ => string.Empty,
         };
     }
 
@@ -149,7 +164,11 @@ internal static class TraitSummaryFormatter
         if (modifier.Conditions == null || modifier.Conditions.Count == 0)
             return string.Empty;
 
-        if (modifier.Conditions.TryGetValue("elemental_affinity", out var affinityValue) && affinityValue is string affinity && !string.IsNullOrWhiteSpace(affinity))
+        if (
+            modifier.Conditions.TryGetValue("elemental_affinity", out var affinityValue)
+            && affinityValue is string affinity
+            && !string.IsNullOrWhiteSpace(affinity)
+        )
         {
             return $"for {ToTitleCase(affinity)} units";
         }
@@ -211,12 +230,15 @@ internal static class TraitSummaryFormatter
         if (string.IsNullOrWhiteSpace(value))
             return string.Empty;
 
-        return string.Join(" ",
-            value.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        return string.Join(
+            " ",
+            value
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 .Select(word =>
                 {
                     var lower = word.ToLowerInvariant();
                     return char.ToUpperInvariant(lower[0]) + lower[1..];
-                }));
+                })
+        );
     }
 }

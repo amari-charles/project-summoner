@@ -31,11 +31,36 @@ public partial class BillingCatalogService : Node
 
     private static readonly Dictionary<string, GemPackData> GEM_PACKS = new()
     {
-        ["gems_100"] = new() { Gems = 100, PriceUsd = 0.99f, BonusPercent = 0 },
-        ["gems_500"] = new() { Gems = 550, PriceUsd = 4.99f, BonusPercent = 10 },
-        ["gems_1200"] = new() { Gems = 1320, PriceUsd = 9.99f, BonusPercent = 10 },
-        ["gems_2500"] = new() { Gems = 2750, PriceUsd = 19.99f, BonusPercent = 10 },
-        ["gems_6500"] = new() { Gems = 7150, PriceUsd = 49.99f, BonusPercent = 10 },
+        ["gems_100"] = new()
+        {
+            Gems = 100,
+            PriceUsd = 0.99f,
+            BonusPercent = 0,
+        },
+        ["gems_500"] = new()
+        {
+            Gems = 550,
+            PriceUsd = 4.99f,
+            BonusPercent = 10,
+        },
+        ["gems_1200"] = new()
+        {
+            Gems = 1320,
+            PriceUsd = 9.99f,
+            BonusPercent = 10,
+        },
+        ["gems_2500"] = new()
+        {
+            Gems = 2750,
+            PriceUsd = 19.99f,
+            BonusPercent = 10,
+        },
+        ["gems_6500"] = new()
+        {
+            Gems = 7150,
+            PriceUsd = 49.99f,
+            BonusPercent = 10,
+        },
     };
 
     private static readonly Dictionary<string, BundleData> BUNDLES = new()
@@ -45,7 +70,10 @@ public partial class BillingCatalogService : Node
             DisplayName = "Starter Pack",
             Description = "200 Gems + Lightning Adept Summoner - Great value for new players!",
             Gems = 200,
-            Rewards = new Godot.Collections.Dictionary { ["summoners"] = new Godot.Collections.Array<string> { "lightning_adept" } },
+            Rewards = new Godot.Collections.Dictionary
+            {
+                ["summoners"] = new Godot.Collections.Array<string> { "lightning_adept" },
+            },
             PriceUsd = 4.99f,
         },
         ["summoner_pack_verdant"] = new()
@@ -53,7 +81,10 @@ public partial class BillingCatalogService : Node
             DisplayName = "Verdant Sage Pack",
             Description = "100 Gems + Verdant Sage Summoner",
             Gems = 100,
-            Rewards = new Godot.Collections.Dictionary { ["summoners"] = new Godot.Collections.Array<string> { "verdant_sage" } },
+            Rewards = new Godot.Collections.Dictionary
+            {
+                ["summoners"] = new Godot.Collections.Array<string> { "verdant_sage" },
+            },
             PriceUsd = 3.99f,
         },
         ["cosmetic_bundle_fire"] = new()
@@ -61,47 +92,55 @@ public partial class BillingCatalogService : Node
             DisplayName = "Fire Cosmetics Bundle",
             Description = "Fire-themed card back and UI theme",
             Gems = 0,
-            Rewards = new Godot.Collections.Dictionary { ["cosmetics"] = new Godot.Collections.Array<string> { "card_back_fire", "ui_theme_fire" } },
+            Rewards = new Godot.Collections.Dictionary
+            {
+                ["cosmetics"] = new Godot.Collections.Array<string>
+                {
+                    "card_back_fire",
+                    "ui_theme_fire",
+                },
+            },
             PriceUsd = 2.99f,
         },
     };
 
-    private static readonly Dictionary<string, Dictionary<string, string>> PLATFORM_PRODUCT_IDS = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["steam"] = new()
+    private static readonly Dictionary<string, Dictionary<string, string>> PLATFORM_PRODUCT_IDS =
+        new(StringComparer.OrdinalIgnoreCase)
         {
-            ["gems_100"] = "gems_100",
-            ["gems_500"] = "gems_500",
-            ["gems_1200"] = "gems_1200",
-            ["gems_2500"] = "gems_2500",
-            ["gems_6500"] = "gems_6500",
-            ["starter_pack"] = "starter_pack",
-            ["summoner_pack_verdant"] = "summoner_pack_verdant",
-            ["cosmetic_bundle_fire"] = "cosmetic_bundle_fire",
-        },
-        ["ios"] = new()
-        {
-            ["gems_100"] = "com.projectsummoner.gems_100",
-            ["gems_500"] = "com.projectsummoner.gems_500",
-            ["gems_1200"] = "com.projectsummoner.gems_1200",
-            ["gems_2500"] = "com.projectsummoner.gems_2500",
-            ["gems_6500"] = "com.projectsummoner.gems_6500",
-            ["starter_pack"] = "com.projectsummoner.starter_pack",
-            ["summoner_pack_verdant"] = "com.projectsummoner.summoner_pack_verdant",
-            ["cosmetic_bundle_fire"] = "com.projectsummoner.cosmetic_bundle_fire",
-        },
-        ["android"] = new()
-        {
-            ["gems_100"] = "gems_100",
-            ["gems_500"] = "gems_500",
-            ["gems_1200"] = "gems_1200",
-            ["gems_2500"] = "gems_2500",
-            ["gems_6500"] = "gems_6500",
-            ["starter_pack"] = "starter_pack",
-            ["summoner_pack_verdant"] = "summoner_pack_verdant",
-            ["cosmetic_bundle_fire"] = "cosmetic_bundle_fire",
-        },
-    };
+            ["steam"] = new()
+            {
+                ["gems_100"] = "gems_100",
+                ["gems_500"] = "gems_500",
+                ["gems_1200"] = "gems_1200",
+                ["gems_2500"] = "gems_2500",
+                ["gems_6500"] = "gems_6500",
+                ["starter_pack"] = "starter_pack",
+                ["summoner_pack_verdant"] = "summoner_pack_verdant",
+                ["cosmetic_bundle_fire"] = "cosmetic_bundle_fire",
+            },
+            ["ios"] = new()
+            {
+                ["gems_100"] = "com.projectsummoner.gems_100",
+                ["gems_500"] = "com.projectsummoner.gems_500",
+                ["gems_1200"] = "com.projectsummoner.gems_1200",
+                ["gems_2500"] = "com.projectsummoner.gems_2500",
+                ["gems_6500"] = "com.projectsummoner.gems_6500",
+                ["starter_pack"] = "com.projectsummoner.starter_pack",
+                ["summoner_pack_verdant"] = "com.projectsummoner.summoner_pack_verdant",
+                ["cosmetic_bundle_fire"] = "com.projectsummoner.cosmetic_bundle_fire",
+            },
+            ["android"] = new()
+            {
+                ["gems_100"] = "gems_100",
+                ["gems_500"] = "gems_500",
+                ["gems_1200"] = "gems_1200",
+                ["gems_2500"] = "gems_2500",
+                ["gems_6500"] = "gems_6500",
+                ["starter_pack"] = "starter_pack",
+                ["summoner_pack_verdant"] = "summoner_pack_verdant",
+                ["cosmetic_bundle_fire"] = "cosmetic_bundle_fire",
+            },
+        };
 
     private readonly Dictionary<string, BillingProduct> _products_cache = new();
 
@@ -204,7 +243,8 @@ public partial class BillingCatalogService : Node
                 pair.Key,
                 pair.Value.Gems,
                 pair.Value.PriceUsd,
-                pair.Value.BonusPercent);
+                pair.Value.BonusPercent
+            );
             _products_cache[pair.Key] = product;
         }
 
@@ -217,10 +257,13 @@ public partial class BillingCatalogService : Node
                 data.Description,
                 data.PriceUsd,
                 data.Rewards,
-                data.Gems);
+                data.Gems
+            );
             _products_cache[pair.Key] = product;
         }
 
-        GD.Print($"[BillingCatalog] Loaded {_products_cache.Count} products ({GEM_PACKS.Count} gem packs, {BUNDLES.Count} bundles)");
+        GD.Print(
+            $"[BillingCatalog] Loaded {_products_cache.Count} products ({GEM_PACKS.Count} gem packs, {BUNDLES.Count} bundles)"
+        );
     }
 }

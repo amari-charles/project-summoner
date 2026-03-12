@@ -14,11 +14,14 @@ public static class TraitTreeEvaluator
         {
             CardType.Summon => TraitTags.Summon,
             CardType.Spell => TraitTags.Spell,
-            _ => ""
+            _ => "",
         };
     }
 
-    public static HashSet<string> BuildEffectiveCardTagSet(CardDefinition cardDef, string ownerTypeTag)
+    public static HashSet<string> BuildEffectiveCardTagSet(
+        CardDefinition cardDef,
+        string ownerTypeTag
+    )
     {
         var tags = new HashSet<string>(cardDef.TraitEligibilityTags, StringComparer.Ordinal);
 
@@ -37,7 +40,8 @@ public static class TraitTreeEvaluator
         if (!trait.Tags.Contains(context.OwnerTypeTag, StringComparer.Ordinal))
             return false;
 
-        var hasAnyEligibilityTag = trait.Tags.Length == 0 || trait.Tags.Any(tag => context.EligibilityTags.Contains(tag));
+        var hasAnyEligibilityTag =
+            trait.Tags.Length == 0 || trait.Tags.Any(tag => context.EligibilityTags.Contains(tag));
         if (!hasAnyEligibilityTag)
             return false;
 
@@ -47,7 +51,8 @@ public static class TraitTreeEvaluator
     public static TraitUnlockEvaluation EvaluateProgressionTrait(
         TraitDefinition trait,
         TraitTreeOwnerContext context,
-        int? levelOverride = null)
+        int? levelOverride = null
+    )
     {
         var isOwned = context.OwnedTraitIds.Contains(trait.Id.Value);
         if (isOwned)
@@ -64,7 +69,7 @@ public static class TraitTreeEvaluator
                 CanUnlockNow = false,
                 LockedReason = "",
                 UnlockBlockedReason = "",
-                MissingPrerequisiteIds = []
+                MissingPrerequisiteIds = [],
             };
         }
 
@@ -81,7 +86,12 @@ public static class TraitTreeEvaluator
         var matchesTags = MatchesOwnerTags(trait, context);
         if (!matchesTags)
         {
-            return Locked("Not available for this owner", canUnlockNow: false, isAcquirable: true, matchesTags: false);
+            return Locked(
+                "Not available for this owner",
+                canUnlockNow: false,
+                isAcquirable: true,
+                matchesTags: false
+            );
         }
 
         if (context.OwnerTypeTag == TraitTags.Summon || context.OwnerTypeTag == TraitTags.Spell)
@@ -90,14 +100,22 @@ public static class TraitTreeEvaluator
             {
                 var cardId = context.CardCatalogId?.Trim() ?? "";
                 if (!trait.AllowedCardCatalogIds.Contains(cardId, StringComparer.Ordinal))
-                    return Locked("Not available for this card", canUnlockNow: false, isAcquirable: true);
+                    return Locked(
+                        "Not available for this card",
+                        canUnlockNow: false,
+                        isAcquirable: true
+                    );
             }
 
             if (trait.AllowedRarities.Length > 0)
             {
                 var rarity = context.CardRarity?.Trim().ToLowerInvariant() ?? "";
                 if (!trait.AllowedRarities.Contains(rarity, StringComparer.OrdinalIgnoreCase))
-                    return Locked("Not available for this card rarity", canUnlockNow: false, isAcquirable: true);
+                    return Locked(
+                        "Not available for this card rarity",
+                        canUnlockNow: false,
+                        isAcquirable: true
+                    );
             }
         }
 
@@ -106,16 +124,26 @@ public static class TraitTreeEvaluator
         var meetsMaxLevel = trait.MaxLevel <= 0 || evaluationLevel <= trait.MaxLevel;
         if (!meetsMinLevel)
         {
-            return Locked($"Requires level {trait.MinLevel}", canUnlockNow: false, isAcquirable: true);
+            return Locked(
+                $"Requires level {trait.MinLevel}",
+                canUnlockNow: false,
+                isAcquirable: true
+            );
         }
 
         if (!meetsMaxLevel)
         {
-            return Locked($"Only available through level {trait.MaxLevel}", canUnlockNow: false, isAcquirable: true);
+            return Locked(
+                $"Only available through level {trait.MaxLevel}",
+                canUnlockNow: false,
+                isAcquirable: true
+            );
         }
 
-        var missingPrerequisites = trait.Prerequisites
-            .Where(prereq => !string.IsNullOrWhiteSpace(prereq) && !context.OwnedTraitIds.Contains(prereq))
+        var missingPrerequisites = trait
+            .Prerequisites.Where(prereq =>
+                !string.IsNullOrWhiteSpace(prereq) && !context.OwnedTraitIds.Contains(prereq)
+            )
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
@@ -133,7 +161,7 @@ public static class TraitTreeEvaluator
                 CanUnlockNow = false,
                 LockedReason = "Requires prerequisite traits",
                 UnlockBlockedReason = "Requires prerequisite traits",
-                MissingPrerequisiteIds = missingPrerequisites
+                MissingPrerequisiteIds = missingPrerequisites,
             };
         }
 
@@ -150,14 +178,15 @@ public static class TraitTreeEvaluator
             CanUnlockNow = hasTraitPoint,
             LockedReason = "",
             UnlockBlockedReason = hasTraitPoint ? "" : "Need 1 trait point",
-            MissingPrerequisiteIds = []
+            MissingPrerequisiteIds = [],
         };
     }
 
     public static List<TraitDefinition> GetEligibleProgressionTraits(
         IEnumerable<TraitDefinition> traits,
         TraitTreeOwnerContext context,
-        int evaluationLevel)
+        int evaluationLevel
+    )
     {
         var result = new List<TraitDefinition>();
 
@@ -173,7 +202,9 @@ public static class TraitTreeEvaluator
         return result;
     }
 
-    public static Dictionary<string, int> ComputeDepthByTraitId(IEnumerable<TraitDefinition> progressionTraits)
+    public static Dictionary<string, int> ComputeDepthByTraitId(
+        IEnumerable<TraitDefinition> progressionTraits
+    )
     {
         var byId = progressionTraits
             .Where(t => !string.IsNullOrWhiteSpace(t.Id.Value))
@@ -192,7 +223,8 @@ public static class TraitTreeEvaluator
         string traitId,
         IReadOnlyDictionary<string, TraitDefinition> byId,
         IDictionary<string, int> depthCache,
-        ISet<string> visiting)
+        ISet<string> visiting
+    )
     {
         if (depthCache.TryGetValue(traitId, out var cached))
             return cached;
@@ -225,7 +257,8 @@ public static class TraitTreeEvaluator
         string reason,
         bool canUnlockNow,
         bool isAcquirable = false,
-        bool matchesTags = true)
+        bool matchesTags = true
+    )
     {
         return new TraitUnlockEvaluation
         {
@@ -239,7 +272,7 @@ public static class TraitTreeEvaluator
             CanUnlockNow = canUnlockNow,
             LockedReason = reason,
             UnlockBlockedReason = reason,
-            MissingPrerequisiteIds = []
+            MissingPrerequisiteIds = [],
         };
     }
 }

@@ -27,7 +27,8 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
-        List<SimEvent>? events = null)
+        List<SimEvent>? events = null
+    )
     {
         return CalculateInternal(
             baseDamage,
@@ -38,7 +39,8 @@ public static class SimDamage
             targetSummoner,
             rng,
             allowAttackProfileSplit: false,
-            events);
+            events
+        );
     }
 
     /// <summary>
@@ -52,7 +54,8 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
-        List<SimEvent>? events = null)
+        List<SimEvent>? events = null
+    )
     {
         return CalculateInternal(
             baseDamage,
@@ -63,7 +66,8 @@ public static class SimDamage
             targetSummoner,
             rng,
             allowAttackProfileSplit: true,
-            events);
+            events
+        );
     }
 
     private static (float damage, bool isCrit, bool wasEvaded) CalculateInternal(
@@ -75,17 +79,15 @@ public static class SimDamage
         SummonerData? targetSummoner,
         DeterministicRng? rng,
         bool allowAttackProfileSplit,
-        List<SimEvent>? events)
+        List<SimEvent>? events
+    )
     {
         // 0. Evasion check (deterministic via RNG)
         if (target.Evasion > 0 && rng != null)
         {
             if (rng.NextFloat() < target.Evasion)
             {
-                events?.Add(new AttackEvadedEvent(
-                    target.UnitId,
-                    attacker?.UnitId ?? -1
-                ));
+                events?.Add(new AttackEvadedEvent(target.UnitId, attacker?.UnitId ?? -1));
                 return (0f, false, true);
             }
         }
@@ -132,7 +134,8 @@ public static class SimDamage
                 damageType,
                 attacker,
                 target,
-                allowAttackProfileSplit);
+                allowAttackProfileSplit
+            );
         }
 
         // 5. Summoner damage reduction (target's summoner — flat reduction after defense).
@@ -164,24 +167,28 @@ public static class SimDamage
         UnitData target,
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
-        DeterministicRng? rng)
+        DeterministicRng? rng
+    )
     {
-        var (damage, isCrit, _) = attacker != null
-            ? CalculateAttack(
-                baseDamage,
-                attacker,
-                target,
-                attackerSummoner,
-                targetSummoner,
-                rng)
-            : Calculate(
-                baseDamage,
-                DamageType.Physical,
-                attacker,
-                target,
-                attackerSummoner,
-                targetSummoner,
-                rng);
+        var (damage, isCrit, _) =
+            attacker != null
+                ? CalculateAttack(
+                    baseDamage,
+                    attacker,
+                    target,
+                    attackerSummoner,
+                    targetSummoner,
+                    rng
+                )
+                : Calculate(
+                    baseDamage,
+                    DamageType.Physical,
+                    attacker,
+                    target,
+                    attackerSummoner,
+                    targetSummoner,
+                    rng
+                );
         return (damage, isCrit);
     }
 
@@ -192,7 +199,8 @@ public static class SimDamage
     /// </summary>
     public static float CalculateDefenseMultiplier(float defense)
     {
-        if (defense <= 0f) return 1f;
+        if (defense <= 0f)
+            return 1f;
         return 100f / (100f + defense);
     }
 
@@ -201,7 +209,8 @@ public static class SimDamage
         DamageType damageType,
         UnitData? attacker,
         UnitData target,
-        bool allowAttackProfileSplit)
+        bool allowAttackProfileSplit
+    )
     {
         if (allowAttackProfileSplit && attacker != null && damageType == attacker.AttackType)
         {
@@ -215,22 +224,25 @@ public static class SimDamage
                 physicalRatio /= ratioTotal;
                 elementalRatio /= ratioTotal;
 
-                float physicalPart = damage * physicalRatio * CalculateDefenseMultiplier(target.PhysicalDefense);
-                float elementalPart = damage * elementalRatio * CalculateDefenseMultiplier(target.MagicDefense);
+                float physicalPart =
+                    damage * physicalRatio * CalculateDefenseMultiplier(target.PhysicalDefense);
+                float elementalPart =
+                    damage * elementalRatio * CalculateDefenseMultiplier(target.MagicDefense);
                 return physicalPart + elementalPart;
             }
         }
 
-        float defense = damageType == DamageType.Physical
-            ? target.PhysicalDefense
-            : target.MagicDefense;
+        float defense =
+            damageType == DamageType.Physical ? target.PhysicalDefense : target.MagicDefense;
         return damage * CalculateDefenseMultiplier(defense);
     }
 
     private static float Clamp01(float value)
     {
-        if (value <= 0f) return 0f;
-        if (value >= 1f) return 1f;
+        if (value <= 0f)
+            return 0f;
+        if (value >= 1f)
+            return 1f;
         return value;
     }
 }

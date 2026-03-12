@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using Fateforged.Multiplayer.Backend;
 using Godot;
 using Godot.Collections;
-using Fateforged.Multiplayer.Backend;
 
 namespace Fateforged.Multiplayer.Transport;
 
@@ -72,7 +72,9 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
         int remotePeerId = isHost ? 2 : 1;
         OnPeerConnected?.Invoke(remotePeerId);
 
-        GD.Print($"[RANKED][RECONNECT] Transport initialized (match: {matchId}, host: {isHost}, peerId: {localPeerId})");
+        GD.Print(
+            $"[RANKED][RECONNECT] Transport initialized (match: {matchId}, host: {isHost}, peerId: {localPeerId})"
+        );
     }
 
     #region IMatchTransport Methods
@@ -133,10 +135,12 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
     private void SendJsonMessage(Dictionary message)
     {
-        if (!_isConnected) return;
+        if (!_isConnected)
+            return;
 
         var nakama = NakamaGameClient.Instance;
-        if (nakama == null) return;
+        if (nakama == null)
+            return;
 
         var jsonStr = Json.Stringify(message);
         nakama.SendMatchData(GameMessageOpCode, jsonStr);
@@ -144,12 +148,15 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
     private void OnNakamaMatchData(string matchId, long opCode, string data, string senderId)
     {
-        if (opCode != GameMessageOpCode) return;
-        if (matchId != _matchId) return;
+        if (opCode != GameMessageOpCode)
+            return;
+        if (matchId != _matchId)
+            return;
 
         // Don't process our own messages
         var nakama = NakamaGameClient.Instance;
-        if (nakama != null && senderId == nakama.UserId) return;
+        if (nakama != null && senderId == nakama.UserId)
+            return;
 
         // Deserialize JSON string back to Dictionary
         var parsed = Json.ParseString(data);
@@ -162,14 +169,18 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
         }
         else
         {
-            GD.PrintErr($"[NakamaMatchTransport] Failed to parse game message: {data[..Math.Min(100, data.Length)]}");
+            GD.PrintErr(
+                $"[NakamaMatchTransport] Failed to parse game message: {data[..Math.Min(100, data.Length)]}"
+            );
         }
     }
 
     private void OnNakamaPresenceLeft(string matchId, string userId)
     {
-        if (matchId != _matchId) return;
-        if (!_remotePeerConnected) return;
+        if (matchId != _matchId)
+            return;
+        if (!_remotePeerConnected)
+            return;
 
         int remotePeerId = _isHost ? 2 : 1;
         _remotePeerConnected = false;
@@ -179,7 +190,8 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
     private void OnNakamaPresenceJoined(string matchId, string userId, string username)
     {
-        if (matchId != _matchId) return;
+        if (matchId != _matchId)
+            return;
 
         var nakama = NakamaGameClient.Instance;
         if (nakama != null && userId == nakama.UserId)
@@ -218,7 +230,9 @@ public partial class NakamaMatchTransport : Node, IMatchTransport
 
             for (int attempt = 1; attempt <= ReconnectMaxAttempts && !_disposed; attempt++)
             {
-                GD.Print($"[RANKED][RECONNECT] Reconnect attempt {attempt}/{ReconnectMaxAttempts}...");
+                GD.Print(
+                    $"[RANKED][RECONNECT] Reconnect attempt {attempt}/{ReconnectMaxAttempts}..."
+                );
                 bool rejoined = await nakama.ReconnectToMatchAsync(_matchId);
                 if (rejoined)
                 {

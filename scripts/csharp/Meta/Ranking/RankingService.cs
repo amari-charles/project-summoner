@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fateforged.Multiplayer.Backend;
 using Godot;
 using Nakama;
-using Fateforged.Multiplayer.Backend;
 
 namespace Fateforged.Multiplayer.Ranking;
 
@@ -113,9 +113,14 @@ public partial class RankingService : Node
     /// Report a match result: update ELO, record history, fire signals,
     /// and fire-and-forget Nakama submission.
     /// </summary>
-    public int ReportMatch(bool won, int opponentRating, string matchId,
-                           string opponentId, float durationSeconds,
-                           MatchEndReason endReason)
+    public int ReportMatch(
+        bool won,
+        int opponentRating,
+        string matchId,
+        string opponentId,
+        float durationSeconds,
+        MatchEndReason endReason
+    )
     {
         var currentRating = GetRating();
 
@@ -145,15 +150,17 @@ public partial class RankingService : Node
             OpponentRatingBefore = opponentRating,
             DurationSeconds = durationSeconds,
             EndReason = endReason,
-            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
         };
         AddToMatchHistory(record);
 
         EmitSignal(SignalName.RatingChanged, currentRating, newRating, ratingChange);
         EmitSignal(SignalName.MatchReported, matchId, ratingChange);
 
-        GD.Print($"[RANKED][REPORT] Match recorded: {(won ? "WIN" : "LOSS")} vs {opponentId}, " +
-                 $"rating {currentRating} → {newRating} ({(ratingChange >= 0 ? "+" : "")}{ratingChange})");
+        GD.Print(
+            $"[RANKED][REPORT] Match recorded: {(won ? "WIN" : "LOSS")} vs {opponentId}, "
+                + $"rating {currentRating} → {newRating} ({(ratingChange >= 0 ? "+" : "")}{ratingChange})"
+        );
 
         _ = SubmitOrCacheAsync(record);
         return ratingChange;
@@ -187,7 +194,8 @@ public partial class RankingService : Node
     /// </summary>
     public async Task FlushOfflineCacheAsync()
     {
-        if (_offlineReportCache.Count == 0) return;
+        if (_offlineReportCache.Count == 0)
+            return;
 
         GD.Print($"[RankingService] Flushing {_offlineReportCache.Count} cached reports");
 
@@ -282,7 +290,8 @@ public partial class RankingService : Node
     public float GetWinRate()
     {
         var total = GetTotalMatches();
-        if (total == 0) return 0;
+        if (total == 0)
+            return 0;
         return (float)GetWins() / total;
     }
 
@@ -302,7 +311,8 @@ public partial class RankingService : Node
 
     private int LoadRatingFromProfile()
     {
-        if (_profileRepo == null) return EloCalculator.StartingElo;
+        if (_profileRepo == null)
+            return EloCalculator.StartingElo;
 
         try
         {
@@ -324,12 +334,14 @@ public partial class RankingService : Node
 
     private void SaveRatingToProfile(int rating)
     {
-        if (_profileRepo == null) return;
+        if (_profileRepo == null)
+            return;
 
         try
         {
             var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
-            if (profile == null) return;
+            if (profile == null)
+                return;
 
             Godot.Collections.Dictionary ranked;
             if (profile.ContainsKey("ranked"))
@@ -344,7 +356,9 @@ public partial class RankingService : Node
 
             ranked["rating"] = rating;
 
-            var peakRating = ranked.ContainsKey("peak_rating") ? ranked["peak_rating"].AsInt32() : 0;
+            var peakRating = ranked.ContainsKey("peak_rating")
+                ? ranked["peak_rating"].AsInt32()
+                : 0;
             if (rating > peakRating)
             {
                 ranked["peak_rating"] = rating;
@@ -360,12 +374,14 @@ public partial class RankingService : Node
 
     private void AddToMatchHistory(MatchRecord entry)
     {
-        if (_profileRepo == null) return;
+        if (_profileRepo == null)
+            return;
 
         try
         {
             var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
-            if (profile == null) return;
+            if (profile == null)
+                return;
 
             Godot.Collections.Dictionary ranked;
             if (profile.ContainsKey("ranked"))
@@ -400,7 +416,7 @@ public partial class RankingService : Node
                 ["opponent_rating_before"] = entry.OpponentRatingBefore,
                 ["duration_seconds"] = entry.DurationSeconds,
                 ["end_reason"] = entry.EndReason.ToString(),
-                ["timestamp"] = entry.Timestamp
+                ["timestamp"] = entry.Timestamp,
             };
             history.Insert(0, entryDict);
 
@@ -410,7 +426,9 @@ public partial class RankingService : Node
             }
 
             // Update statistics
-            var totalMatches = ranked.ContainsKey("total_matches") ? ranked["total_matches"].AsInt32() : 0;
+            var totalMatches = ranked.ContainsKey("total_matches")
+                ? ranked["total_matches"].AsInt32()
+                : 0;
             var wins = ranked.ContainsKey("wins") ? ranked["wins"].AsInt32() : 0;
             var losses = ranked.ContainsKey("losses") ? ranked["losses"].AsInt32() : 0;
             var winStreak = ranked.ContainsKey("win_streak") ? ranked["win_streak"].AsInt32() : 0;
@@ -438,35 +456,61 @@ public partial class RankingService : Node
     private List<MatchRecord> LoadMatchHistoryFromProfile(int count)
     {
         var result = new List<MatchRecord>();
-        if (_profileRepo == null) return result;
+        if (_profileRepo == null)
+            return result;
 
         try
         {
             var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
-            if (profile == null || !profile.ContainsKey("ranked")) return result;
+            if (profile == null || !profile.ContainsKey("ranked"))
+                return result;
 
             var ranked = profile["ranked"].AsGodotDictionary();
-            if (ranked == null || !ranked.ContainsKey("match_history")) return result;
+            if (ranked == null || !ranked.ContainsKey("match_history"))
+                return result;
 
             var history = ranked["match_history"].AsGodotArray();
             for (int i = 0; i < Math.Min(count, history.Count); i++)
             {
                 var entryDict = history[i].AsGodotDictionary();
-                result.Add(new MatchRecord
-                {
-                    MatchId = entryDict.ContainsKey("match_id") ? entryDict["match_id"].AsString() : "",
-                    OpponentId = entryDict.ContainsKey("opponent_id") ? entryDict["opponent_id"].AsString() : "",
-                    Won = entryDict.ContainsKey("won") && entryDict["won"].AsBool(),
-                    RatingBefore = entryDict.ContainsKey("rating_before") ? entryDict["rating_before"].AsInt32() : 0,
-                    RatingAfter = entryDict.ContainsKey("rating_after") ? entryDict["rating_after"].AsInt32() : 0,
-                    RatingChange = entryDict.ContainsKey("rating_change") ? entryDict["rating_change"].AsInt32() : 0,
-                    OpponentRatingBefore = entryDict.ContainsKey("opponent_rating_before") ? entryDict["opponent_rating_before"].AsInt32() : 0,
-                    DurationSeconds = entryDict.ContainsKey("duration_seconds") ? entryDict["duration_seconds"].AsSingle() : 0f,
-                    EndReason = entryDict.ContainsKey("end_reason")
-                        && Enum.TryParse<MatchEndReason>(entryDict["end_reason"].AsString(), out var parsedReason)
-                        ? parsedReason : MatchEndReason.SummonerDestroyed,
-                    Timestamp = entryDict.ContainsKey("timestamp") ? entryDict["timestamp"].AsInt64() : 0L
-                });
+                result.Add(
+                    new MatchRecord
+                    {
+                        MatchId = entryDict.ContainsKey("match_id")
+                            ? entryDict["match_id"].AsString()
+                            : "",
+                        OpponentId = entryDict.ContainsKey("opponent_id")
+                            ? entryDict["opponent_id"].AsString()
+                            : "",
+                        Won = entryDict.ContainsKey("won") && entryDict["won"].AsBool(),
+                        RatingBefore = entryDict.ContainsKey("rating_before")
+                            ? entryDict["rating_before"].AsInt32()
+                            : 0,
+                        RatingAfter = entryDict.ContainsKey("rating_after")
+                            ? entryDict["rating_after"].AsInt32()
+                            : 0,
+                        RatingChange = entryDict.ContainsKey("rating_change")
+                            ? entryDict["rating_change"].AsInt32()
+                            : 0,
+                        OpponentRatingBefore = entryDict.ContainsKey("opponent_rating_before")
+                            ? entryDict["opponent_rating_before"].AsInt32()
+                            : 0,
+                        DurationSeconds = entryDict.ContainsKey("duration_seconds")
+                            ? entryDict["duration_seconds"].AsSingle()
+                            : 0f,
+                        EndReason =
+                            entryDict.ContainsKey("end_reason")
+                            && Enum.TryParse<MatchEndReason>(
+                                entryDict["end_reason"].AsString(),
+                                out var parsedReason
+                            )
+                                ? parsedReason
+                                : MatchEndReason.SummonerDestroyed,
+                        Timestamp = entryDict.ContainsKey("timestamp")
+                            ? entryDict["timestamp"].AsInt64()
+                            : 0L,
+                    }
+                );
             }
         }
         catch (Exception ex)
@@ -479,15 +523,18 @@ public partial class RankingService : Node
 
     private int GetStatistic(string key, int defaultValue)
     {
-        if (_profileRepo == null) return defaultValue;
+        if (_profileRepo == null)
+            return defaultValue;
 
         try
         {
             var profile = _profileRepo.Call("GetActiveProfileDict").AsGodotDictionary();
-            if (profile == null || !profile.ContainsKey("ranked")) return defaultValue;
+            if (profile == null || !profile.ContainsKey("ranked"))
+                return defaultValue;
 
             var ranked = profile["ranked"].AsGodotDictionary();
-            if (ranked == null || !ranked.ContainsKey(key)) return defaultValue;
+            if (ranked == null || !ranked.ContainsKey(key))
+                return defaultValue;
 
             return ranked[key].AsInt32();
         }
@@ -514,12 +561,14 @@ public partial class RankingService : Node
 
     private void LoadOfflineCache()
     {
-        if (!FileAccess.FileExists(OfflineCachePath)) return;
+        if (!FileAccess.FileExists(OfflineCachePath))
+            return;
 
         try
         {
             using var file = FileAccess.Open(OfflineCachePath, FileAccess.ModeFlags.Read);
-            if (file == null) return;
+            if (file == null)
+                return;
 
             var json = file.GetAsText();
             var reports = System.Text.Json.JsonSerializer.Deserialize<List<MatchRecord>>(json);
@@ -544,7 +593,8 @@ public partial class RankingService : Node
     {
         _cachedRating = null;
 
-        if (_profileRepo == null) return;
+        if (_profileRepo == null)
+            return;
 
         try
         {

@@ -5,7 +5,7 @@ public enum AiType
     None,
     Simple,
     Heuristic,
-    Scripted
+    Scripted,
 }
 
 public enum AiPersonality
@@ -13,7 +13,7 @@ public enum AiPersonality
     Balanced,
     Aggressive,
     Defensive,
-    SpellFocused
+    SpellFocused,
 }
 
 /// <summary>

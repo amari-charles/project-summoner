@@ -15,11 +15,12 @@ public readonly struct MovementIntent
     public SimVector3 DesiredVelocity { get; init; }
     public SimVector3 DesiredFacingDirection { get; init; }
 
-    public static MovementIntent None(MovementResult mode, int? targetId) => new()
-    {
-        Mode = mode,
-        TargetId = targetId,
-        DesiredVelocity = SimVector3.Zero,
-        DesiredFacingDirection = SimVector3.Zero
-    };
+    public static MovementIntent None(MovementResult mode, int? targetId) =>
+        new()
+        {
+            Mode = mode,
+            TargetId = targetId,
+            DesiredVelocity = SimVector3.Zero,
+            DesiredFacingDirection = SimVector3.Zero,
+        };
 }

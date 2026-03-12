@@ -65,9 +65,7 @@ public class IdentityMapTest
     [TestCase]
     public void GetMissing_ThrowsKeyNotFound()
     {
-        AssertThrown(() => _map.GetNetworkId(999))
-            .IsInstanceOf<KeyNotFoundException>();
-        AssertThrown(() => _map.GetUnitId(999))
-            .IsInstanceOf<KeyNotFoundException>();
+        AssertThrown(() => _map.GetNetworkId(999)).IsInstanceOf<KeyNotFoundException>();
+        AssertThrown(() => _map.GetUnitId(999)).IsInstanceOf<KeyNotFoundException>();
     }
 }

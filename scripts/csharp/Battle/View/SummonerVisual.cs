@@ -1,12 +1,12 @@
 using System;
-using Fateforged.Session;
-using Fateforged.Simulation;
-using Fateforged.Simulation.Data;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Meta;
+using Fateforged.Session;
+using Fateforged.Simulation;
+using Fateforged.Simulation.Data;
 using Fateforged.UI;
+using Godot;
 
 namespace Fateforged.View;
 
@@ -17,12 +17,15 @@ public enum DeckLoadStrategy
 {
     /// <summary>Use the StartingDeck export array as-is.</summary>
     Static = 0,
+
     /// <summary>Load from BattleContext (enemy decks configured per-battle).</summary>
     BattleContext = 1,
+
     /// <summary>Load from player profile (selected deck + card instances).</summary>
     Profile = 2,
+
     /// <summary>Deck will be set manually later (e.g., event sequences).</summary>
-    Deferred = 3
+    Deferred = 3,
 }
 
 /// <summary>
@@ -41,28 +44,60 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     // EXPORTS
     // =========================================================================
 
-    [Export] public int Team { get; set; } = 0;
-    [Export] public float MaxHpExport { get; set; } = 300.0f;
-    [Export] public int MaxHandSize { get; set; } = 4;
-    [Export] public DeckLoadStrategy DeckLoadStrategy { get; set; } = DeckLoadStrategy.BattleContext;
-    [Export] public Godot.Collections.Array<Resource> StartingDeck { get; set; } = new();
+    [Export]
+    public int Team { get; set; } = 0;
+
+    [Export]
+    public float MaxHpExport { get; set; } = 300.0f;
+
+    [Export]
+    public int MaxHandSize { get; set; } = 4;
+
+    [Export]
+    public DeckLoadStrategy DeckLoadStrategy { get; set; } = DeckLoadStrategy.BattleContext;
+
+    [Export]
+    public Godot.Collections.Array<Resource> StartingDeck { get; set; } = new();
 
     // =========================================================================
     // SIGNALS (PascalCase for GDScript consumers)
     // =========================================================================
 
-    [Signal] public delegate void CardPlayedEventHandler(Card card);
-    [Signal] public delegate void CardDrawnEventHandler(Card card);
-    [Signal] public delegate void HandChangedEventHandler(Godot.Collections.Array hand);
-    [Signal] public delegate void ManaChangedEventHandler(float current, float max);
-    [Signal] public delegate void HpChangedEventHandler(float newHp, float maxHp);
-    [Signal] public delegate void CastingStartedEventHandler(Card card, float duration);
-    [Signal] public delegate void CastingProgressEventHandler(float remaining, float total);
-    [Signal] public delegate void CastingCompletedEventHandler(Card card);
-    [Signal] public delegate void SummonerReadyEventHandler(Node3D summoner);
-    [Signal] public delegate void SummonerDestroyedEventHandler(Node3D summoner);
-    [Signal] public delegate void SummonerDamagedEventHandler(Node3D summoner, float damage);
-    [Signal] public delegate void DeckRecycledEventHandler(int cardCount);
+    [Signal]
+    public delegate void CardPlayedEventHandler(Card card);
+
+    [Signal]
+    public delegate void CardDrawnEventHandler(Card card);
+
+    [Signal]
+    public delegate void HandChangedEventHandler(Godot.Collections.Array hand);
+
+    [Signal]
+    public delegate void ManaChangedEventHandler(float current, float max);
+
+    [Signal]
+    public delegate void HpChangedEventHandler(float newHp, float maxHp);
+
+    [Signal]
+    public delegate void CastingStartedEventHandler(Card card, float duration);
+
+    [Signal]
+    public delegate void CastingProgressEventHandler(float remaining, float total);
+
+    [Signal]
+    public delegate void CastingCompletedEventHandler(Card card);
+
+    [Signal]
+    public delegate void SummonerReadyEventHandler(Node3D summoner);
+
+    [Signal]
+    public delegate void SummonerDestroyedEventHandler(Node3D summoner);
+
+    [Signal]
+    public delegate void SummonerDamagedEventHandler(Node3D summoner, float damage);
+
+    [Signal]
+    public delegate void DeckRecycledEventHandler(int cardCount);
 
     // =========================================================================
     // STATE
@@ -126,8 +161,10 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     public float CurrentHp => _session?.GetState()?.Summoners[_teamIndex].CurrentHp ?? 0f;
     public float MaxHp => _session?.GetState()?.Summoners[_teamIndex].MaxHp ?? 0f;
     public bool IsCasting => _session?.GetState()?.Summoners[_teamIndex].IsCasting ?? false;
-    public float CastingTimeRemaining => _session?.GetState()?.Summoners[_teamIndex].CastingTimeRemaining ?? 0f;
-    public float CastingTimeTotal => _session?.GetState()?.Summoners[_teamIndex].CastingTimeTotal ?? 0f;
+    public float CastingTimeRemaining =>
+        _session?.GetState()?.Summoners[_teamIndex].CastingTimeRemaining ?? 0f;
+    public float CastingTimeTotal =>
+        _session?.GetState()?.Summoners[_teamIndex].CastingTimeTotal ?? 0f;
     public bool IsEnabled { get; set; } = true;
     public Godot.Collections.Array<Resource> Hand => _handCache;
 
@@ -219,7 +256,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public override void _PhysicsProcess(double delta)
     {
-        if (_session == null || !_isAlive) return;
+        if (_session == null || !_isAlive)
+            return;
 
         var state = _session.GetState();
         var summoner = state.Summoners[_teamIndex];
@@ -231,7 +269,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         if (_recentHits > 0)
         {
             _recentHits -= RecentHitsDecayRate * (float)delta;
-            if (_recentHits < 0) _recentHits = 0;
+            if (_recentHits < 0)
+                _recentHits = 0;
         }
 
         // Death detection from state
@@ -243,7 +282,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public override void _Process(double delta)
     {
-        if (_session == null || !_isAlive) return;
+        if (_session == null || !_isAlive)
+            return;
 
         // MP client: poll MatchState for casting/hand/mana/HP changes
         var simNode = SimulationNode.Current;
@@ -274,9 +314,12 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public void OnCastingCompleted(int cardIndex)
     {
-        var completed = _castingCard ?? CreateCardResourceRequired(
-            _lastCastingCatalogId,
-            "OnCastingCompleted missing cached casting card");
+        var completed =
+            _castingCard
+            ?? CreateCardResourceRequired(
+                _lastCastingCatalogId,
+                "OnCastingCompleted missing cached casting card"
+            );
         _castingCard = null;
         _castingStartSignaled = false;
         _lastCastingCatalogId = "";
@@ -325,7 +368,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public void FlashDamage()
     {
-        if (_sprite == null) return;
+        if (_sprite == null)
+            return;
 
         var tween = CreateTween();
         tween.TweenProperty(_sprite, "modulate", Colors.White, DamageFlashToWhiteDuration);
@@ -334,7 +378,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public void BeginDeath()
     {
-        if (!_isAlive) return;
+        if (!_isAlive)
+            return;
         _isAlive = false;
 
         // Kill any active feedback animations
@@ -360,7 +405,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     private void PlayHitFeedback()
     {
-        if (_sprite == null || !_isAlive) return;
+        if (_sprite == null || !_isAlive)
+            return;
 
         // Kill previous tween if still running
         if (_activeFeedbackTween != null && _activeFeedbackTween.IsValid())
@@ -380,14 +426,27 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
         // Flash effect
         _activeFeedbackTween.TweenProperty(_sprite, "modulate", Colors.White, flashToWhite);
-        _activeFeedbackTween.Chain().TweenProperty(_sprite, "modulate", _originalColor, flashReturn);
+        _activeFeedbackTween
+            .Chain()
+            .TweenProperty(_sprite, "modulate", _originalColor, flashReturn);
 
         // Shake effect
         var rng = new RandomNumberGenerator();
         rng.Randomize();
-        var shakeOffset = new Vector3(rng.RandfRange(-0.15f, 0.15f), rng.RandfRange(-0.15f, 0.15f), 0);
-        _activeFeedbackTween.TweenProperty(_sprite, "position", _originalVisualPosition + shakeOffset, shakeOut);
-        _activeFeedbackTween.Chain().TweenProperty(_sprite, "position", _originalVisualPosition, shakeReturn);
+        var shakeOffset = new Vector3(
+            rng.RandfRange(-0.15f, 0.15f),
+            rng.RandfRange(-0.15f, 0.15f),
+            0
+        );
+        _activeFeedbackTween.TweenProperty(
+            _sprite,
+            "position",
+            _originalVisualPosition + shakeOffset,
+            shakeOut
+        );
+        _activeFeedbackTween
+            .Chain()
+            .TweenProperty(_sprite, "position", _originalVisualPosition, shakeReturn);
     }
 
     // =========================================================================
@@ -396,7 +455,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     private void PollMatchState()
     {
-        if (_session == null) return;
+        if (_session == null)
+            return;
 
         var summoner = _session.GetState().Summoners[_teamIndex];
 
@@ -416,7 +476,11 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         }
 
         if (summoner.IsCasting)
-            EmitSignal(SignalName.CastingProgress, summoner.CastingTimeRemaining, summoner.CastingTimeTotal);
+            EmitSignal(
+                SignalName.CastingProgress,
+                summoner.CastingTimeRemaining,
+                summoner.CastingTimeTotal
+            );
 
         // Poll hand — only rebuild Card objects when hand contents change
         if (HasHandChanged(summoner.Hand))
@@ -427,7 +491,10 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         }
 
         // Poll mana
-        if (Math.Abs(summoner.Mana - _lastMana) > 0.01f || Math.Abs(summoner.MaxMana - _lastMaxMana) > 0.01f)
+        if (
+            Math.Abs(summoner.Mana - _lastMana) > 0.01f
+            || Math.Abs(summoner.MaxMana - _lastMaxMana) > 0.01f
+        )
         {
             _lastMana = summoner.Mana;
             _lastMaxMana = summoner.MaxMana;
@@ -435,7 +502,10 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         }
 
         // Poll HP
-        if (Math.Abs(summoner.CurrentHp - _lastHp) > 0.01f || Math.Abs(summoner.MaxHp - _lastMaxHp) > 0.01f)
+        if (
+            Math.Abs(summoner.CurrentHp - _lastHp) > 0.01f
+            || Math.Abs(summoner.MaxHp - _lastMaxHp) > 0.01f
+        )
         {
             float damage = _lastHp - summoner.CurrentHp;
             bool tookDamage = ApplyHpUpdate(summoner.CurrentHp, summoner.MaxHp);
@@ -447,15 +517,19 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     private bool HasHandChanged(System.Collections.Generic.List<SimCardCatalogId> currentHand)
     {
-        if (currentHand.Count != _lastHandIds.Length) return true;
+        if (currentHand.Count != _lastHandIds.Length)
+            return true;
         for (int i = 0; i < currentHand.Count; i++)
         {
-            if (currentHand[i].Value != _lastHandIds[i]) return true;
+            if (currentHand[i].Value != _lastHandIds[i])
+                return true;
         }
         return false;
     }
 
-    private static string[] ToCatalogIdStrings(System.Collections.Generic.List<SimCardCatalogId> ids)
+    private static string[] ToCatalogIdStrings(
+        System.Collections.Generic.List<SimCardCatalogId> ids
+    )
     {
         var result = new string[ids.Count];
         for (int i = 0; i < ids.Count; i++)
@@ -502,7 +576,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private static Card? CreateCardResource(string catalogId)
     {
         var def = CardCatalog.GetCard(catalogId);
-        if (def == null) return null;
+        if (def == null)
+            return null;
         return Card.FromDefinition(def);
     }
 
@@ -526,7 +601,10 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     private void EmitCastingStartedFromSnapshot(SummonerData summoner)
     {
-        var card = CreateCardResourceRequired(summoner.CastingCatalogId, "MP snapshot casting start");
+        var card = CreateCardResourceRequired(
+            summoner.CastingCatalogId,
+            "MP snapshot casting start"
+        );
         _castingCard = card;
         _lastCastingCatalogId = card.CatalogId;
         EmitSignal(SignalName.CardPlayed, card);
@@ -535,9 +613,12 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     private void EmitCastingCompletedFromCache()
     {
-        var completed = _castingCard ?? CreateCardResourceRequired(
-            _lastCastingCatalogId,
-            "MP snapshot casting complete missing cached casting card");
+        var completed =
+            _castingCard
+            ?? CreateCardResourceRequired(
+                _lastCastingCatalogId,
+                "MP snapshot casting complete missing cached casting card"
+            );
         _castingCard = null;
         _lastCastingCatalogId = "";
         EmitSignal(SignalName.CastingCompleted, completed);

@@ -127,7 +127,8 @@ public class SummonerProgressionServiceTest
         return repo;
     }
 
-    private T CreateNode<T>() where T : Node, new()
+    private T CreateNode<T>()
+        where T : Node, new()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -145,10 +146,7 @@ public class SummonerProgressionServiceTest
 
         if (repo.GetSummonerInstance(candidate) == null)
         {
-            repo.SaveSummonerInstance(new SummonerInstance
-            {
-                SummonerId = candidate
-            });
+            repo.SaveSummonerInstance(new SummonerInstance { SummonerId = candidate });
         }
 
         return candidate;

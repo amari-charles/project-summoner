@@ -1,7 +1,7 @@
-using Godot;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
 using Fateforged.Stats;
+using Godot;
 
 namespace Fateforged.Units;
 

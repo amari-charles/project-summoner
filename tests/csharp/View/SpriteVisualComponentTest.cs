@@ -39,7 +39,9 @@ public partial class SpriteVisualComponentTest
 
         var sprite3D = visual.GetNode<Sprite3D>("Sprite3D");
         var viewport = visual.GetNode<SubViewport>("Sprite3D/SubViewport");
-        var sprite = visual.GetNode<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
+        var sprite = visual.GetNode<AnimatedSprite2D>(
+            "Sprite3D/SubViewport/Model2D/CharacterSprite"
+        );
         sprite.Animation = "idle";
 
         visual.SetFlipH(false);
@@ -63,7 +65,9 @@ public partial class SpriteVisualComponentTest
         var visual = CreateVisual();
         visual.SetSpriteFrames(CreateFrames([(128, 100), (128, 220)]));
 
-        var sprite = visual.GetNode<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
+        var sprite = visual.GetNode<AnimatedSprite2D>(
+            "Sprite3D/SubViewport/Model2D/CharacterSprite"
+        );
         sprite.Animation = "idle";
 
         sprite.Frame = 0;
@@ -85,7 +89,9 @@ public partial class SpriteVisualComponentTest
         visual.SetSpriteFrames(CreateFrames([(128, 128)]));
 
         var viewport = visual.GetNode<SubViewport>("Sprite3D/SubViewport");
-        var sprite = visual.GetNode<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
+        var sprite = visual.GetNode<AnimatedSprite2D>(
+            "Sprite3D/SubViewport/Model2D/CharacterSprite"
+        );
         sprite.Animation = "idle";
         sprite.Scale = Vector2.One;
 
@@ -103,8 +109,12 @@ public partial class SpriteVisualComponentTest
     [TestCase]
     public void SceneConfiguration_UsesAlphaCutDiscard_ForStableDepthOcclusion()
     {
-        int spriteAlphaCut = GetSpriteAlphaCut("res://scenes/battle/units/sprite_character_2d5_component.tscn");
-        int skeletalAlphaCut = GetSpriteAlphaCut("res://scenes/battle/units/skeletal_character_2d5_component.tscn");
+        int spriteAlphaCut = GetSpriteAlphaCut(
+            "res://scenes/battle/units/sprite_character_2d5_component.tscn"
+        );
+        int skeletalAlphaCut = GetSpriteAlphaCut(
+            "res://scenes/battle/units/skeletal_character_2d5_component.tscn"
+        );
 
         AssertThat(spriteAlphaCut).IsEqual(2);
         AssertThat(skeletalAlphaCut).IsEqual(2);
@@ -141,7 +151,9 @@ public partial class SpriteVisualComponentTest
 
     private static SpriteVisualComponent InstantiateVisualScene()
     {
-        var scene = GD.Load<PackedScene>("res://scenes/battle/units/sprite_character_2d5_component.tscn");
+        var scene = GD.Load<PackedScene>(
+            "res://scenes/battle/units/sprite_character_2d5_component.tscn"
+        );
         return scene.Instantiate<SpriteVisualComponent>();
     }
 

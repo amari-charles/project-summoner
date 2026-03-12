@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
@@ -26,7 +26,8 @@ public class CampaignProgressHandler
         CampaignDataStore store,
         Func<SummonerId> getActiveSummonerFunc,
         ChoiceTracker? choiceTracker = null,
-        CampaignGraphStore? graphStore = null)
+        CampaignGraphStore? graphStore = null
+    )
     {
         _profileRepo = profileRepo;
         _store = store;
@@ -43,7 +44,8 @@ public class CampaignProgressHandler
     public void LoadProgress()
     {
         var summonerId = _getActiveSummonerFunc();
-        if (!summonerId.HasValue) return;
+        if (!summonerId.HasValue)
+            return;
 
         var campaignProgress = _profileRepo.GetCampaignProgress(summonerId);
 
@@ -56,14 +58,17 @@ public class CampaignProgressHandler
             _choiceTracker.LoadChoices(campaignProgress.Choices);
         }
 
-        GD.Print($"CampaignProgressHandler: Loaded progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {campaignProgress.Choices.Count} choices");
+        GD.Print(
+            $"CampaignProgressHandler: Loaded progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {campaignProgress.Choices.Count} choices"
+        );
     }
 
     /// <summary>Save progress to profile repository.</summary>
     public void SaveProgress()
     {
         var summonerId = _getActiveSummonerFunc();
-        if (!summonerId.HasValue) return;
+        if (!summonerId.HasValue)
+            return;
 
         var progress = _profileRepo.GetCampaignProgress(summonerId);
         progress.CompletedBattles = new List<BattleId>(_store.CompletedBattles);
@@ -76,7 +81,9 @@ public class CampaignProgressHandler
 
         _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
-        GD.Print($"CampaignProgressHandler: Saved progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {progress.Choices.Count} choices");
+        GD.Print(
+            $"CampaignProgressHandler: Saved progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {progress.Choices.Count} choices"
+        );
     }
 
     /// <summary>Set the current campaign ID.</summary>
@@ -150,7 +157,8 @@ public class CampaignProgressHandler
     public void ResetProgress()
     {
         var summonerId = _getActiveSummonerFunc();
-        if (!summonerId.HasValue) return;
+        if (!summonerId.HasValue)
+            return;
 
         _store.CompletedBattles.Clear();
         _choiceTracker?.ClearAll();

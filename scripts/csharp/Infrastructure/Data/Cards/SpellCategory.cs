@@ -13,5 +13,5 @@ public enum SpellCategory
     Damage,
 
     /// <summary>Tactical command spell (Rally, Guard, Charge).</summary>
-    Command
+    Command,
 }

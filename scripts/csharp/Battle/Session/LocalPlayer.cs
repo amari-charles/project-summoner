@@ -52,7 +52,7 @@ public static class LocalPlayer
     [Obsolete("Use NetworkToLocal(NetworkTeam) for type safety")]
     public static int NetworkTeamToLocal(int networkTeam)
     {
-        return networkTeam == NetworkIndex ? 0 : 1;  // 0 = PLAYER, 1 = ENEMY
+        return networkTeam == NetworkIndex ? 0 : 1; // 0 = PLAYER, 1 = ENEMY
     }
 
     /// <summary>

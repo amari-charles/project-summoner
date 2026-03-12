@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 namespace Fateforged.Tests.Simulation;
 
@@ -24,7 +24,7 @@ public static class SimTestHelper
             Phase = GamePhase.Battle,
             FrameNumber = 0,
             MatchTime = 0f,
-            Rng = new DeterministicRng(seed)
+            Rng = new DeterministicRng(seed),
         };
 
         state.Summoners[0].CurrentHp = 100f;
@@ -59,11 +59,17 @@ public static class SimTestHelper
     /// Create a melee UnitData and register it in state.
     /// </summary>
     public static UnitData CreateMeleeUnit(
-        MatchState state, int team,
-        float x = 0f, float z = 0f,
-        float hp = 100f, float damage = 10f,
-        float attackSpeed = 1f, float attackRange = 2f,
-        float moveSpeed = 3f, float aggroRadius = 20f)
+        MatchState state,
+        int team,
+        float x = 0f,
+        float z = 0f,
+        float hp = 100f,
+        float damage = 10f,
+        float attackSpeed = 1f,
+        float attackRange = 2f,
+        float moveSpeed = 3f,
+        float aggroRadius = 20f
+    )
     {
         int unitId = state.NextUnitId();
         var unit = new UnitData
@@ -83,7 +89,7 @@ public static class SimTestHelper
             MovementLayer = MovementLayer.Ground,
             ActivationState = ActivationState.Active,
             IsFacingRight = team == 0,
-            TargetLayerFilter = TargetLayer.Both
+            TargetLayerFilter = TargetLayer.Both,
         };
         state.Units[unitId] = unit;
         return unit;
@@ -93,13 +99,19 @@ public static class SimTestHelper
     /// Create a ranged UnitData with projectile delay and register it in state.
     /// </summary>
     public static UnitData CreateRangedUnit(
-        MatchState state, int team,
-        float x = 0f, float z = 0f,
-        float hp = 80f, float damage = 15f,
-        float attackSpeed = 1f, float attackRange = 8f,
-        float moveSpeed = 2.5f, float aggroRadius = 20f,
+        MatchState state,
+        int team,
+        float x = 0f,
+        float z = 0f,
+        float hp = 80f,
+        float damage = 15f,
+        float attackSpeed = 1f,
+        float attackRange = 8f,
+        float moveSpeed = 2.5f,
+        float aggroRadius = 20f,
         float projectileDelay = 0.5f,
-        string catalogId = "puff")
+        string catalogId = "puff"
+    )
     {
         int unitId = state.NextUnitId();
         var unit = new UnitData
@@ -121,7 +133,7 @@ public static class SimTestHelper
             ProjectileDelay = projectileDelay,
             ActivationState = ActivationState.Active,
             IsFacingRight = team == 0,
-            TargetLayerFilter = TargetLayer.Both
+            TargetLayerFilter = TargetLayer.Both,
         };
         state.Units[unitId] = unit;
         return unit;
@@ -131,10 +143,15 @@ public static class SimTestHelper
     /// Create a flying (air) UnitData and register it in state.
     /// </summary>
     public static UnitData CreateFlyingUnit(
-        MatchState state, int team,
-        float x = 0f, float z = 0f,
-        float hp = 60f, float damage = 12f,
-        float altitude = 3f, float attackRange = 6f)
+        MatchState state,
+        int team,
+        float x = 0f,
+        float z = 0f,
+        float hp = 60f,
+        float damage = 12f,
+        float altitude = 3f,
+        float attackRange = 6f
+    )
     {
         int unitId = state.NextUnitId();
         var unit = new UnitData
@@ -155,7 +172,7 @@ public static class SimTestHelper
             FlightAltitude = altitude,
             ActivationState = ActivationState.Active,
             IsFacingRight = team == 0,
-            TargetLayerFilter = TargetLayer.Both
+            TargetLayerFilter = TargetLayer.Both,
         };
         state.Units[unitId] = unit;
         return unit;
@@ -170,7 +187,8 @@ public static class SimTestHelper
         float summonTime = 1.0f,
         float unitHp = 100f,
         float unitDamage = 10f,
-        int unitCount = 1)
+        int unitCount = 1
+    )
     {
         return new SimCardData
         {
@@ -190,9 +208,9 @@ public static class SimTestHelper
                     AttackRange = 2f,
                     AggroRadius = 20f,
                     UnitType = UnitType.Melee,
-                    MovementLayer = MovementLayer.Ground
-                }
-            }
+                    MovementLayer = MovementLayer.Ground,
+                },
+            },
         };
     }
 
@@ -205,7 +223,8 @@ public static class SimTestHelper
         float damage = 50f,
         float radius = 5f,
         SpellTargetingMode targetingMode = SpellTargetingMode.Position,
-        string spellProjectileId = "")
+        string spellProjectileId = ""
+    )
     {
         return new SimCardData
         {
@@ -223,16 +242,17 @@ public static class SimTestHelper
                     EffectType = EffectType.Damage,
                     Value = damage,
                     DamageType = DamageType.Magic,
-                    Affinity = SpellAffinity.Enemies
-                }
-            }
+                    Affinity = SpellAffinity.Enemies,
+                },
+            },
         };
     }
 
     /// <summary>
     /// Count events of a specific type in an event list.
     /// </summary>
-    public static int CountEvents<T>(List<SimEvent> events) where T : SimEvent
+    public static int CountEvents<T>(List<SimEvent> events)
+        where T : SimEvent
     {
         return events.Count(e => e is T);
     }
@@ -240,7 +260,8 @@ public static class SimTestHelper
     /// <summary>
     /// Find the first event of a specific type in an event list.
     /// </summary>
-    public static T? FindEvent<T>(List<SimEvent> events) where T : SimEvent
+    public static T? FindEvent<T>(List<SimEvent> events)
+        where T : SimEvent
     {
         return events.OfType<T>().FirstOrDefault();
     }
@@ -248,7 +269,8 @@ public static class SimTestHelper
     /// <summary>
     /// Find all events of a specific type in an event list.
     /// </summary>
-    public static List<T> FindEvents<T>(List<SimEvent> events) where T : SimEvent
+    public static List<T> FindEvents<T>(List<SimEvent> events)
+        where T : SimEvent
     {
         return events.OfType<T>().ToList();
     }

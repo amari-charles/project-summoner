@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Data.Events;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Models;
 
@@ -63,7 +63,7 @@ public class CampaignGraph
             NameKey = dict.GetValueOrDefault("name_key", "").AsString(),
             DescriptionKey = dict.GetValueOrDefault("description_key", "").AsString(),
             StartNodeId = new EventId(dict.GetValueOrDefault("start_node", "").AsString()),
-            SortOrder = dict.GetValueOrDefault("sort_order", 0).AsInt32()
+            SortOrder = dict.GetValueOrDefault("sort_order", 0).AsInt32(),
         };
 
         // Parse nodes
@@ -118,14 +118,15 @@ public class CampaignGraph
             NameKey = definition.NameKey,
             DescriptionKey = definition.DescriptionKey,
             StartNodeId = definition.StartEventId,
-            SortOrder = definition.SortOrder
+            SortOrder = definition.SortOrder,
         };
 
         // Add nodes from EventCatalog
         foreach (var eventId in definition.EventIds)
         {
             var evt = EventCatalog.GetEvent(eventId);
-            if (evt == null) continue;
+            if (evt == null)
+                continue;
 
             var node = CampaignNode.FromEventDefinition(evt, definition.Id);
             if (node.Id.HasValue)
@@ -140,7 +141,7 @@ public class CampaignGraph
             var campaignEdge = new CampaignEdge
             {
                 FromId = edge.FromEventId,
-                ToId = edge.ToEventId
+                ToId = edge.ToEventId,
             };
 
             // Convert edge condition if present
@@ -149,7 +150,7 @@ public class CampaignGraph
                 campaignEdge.Condition = new EdgeCondition
                 {
                     Type = "choice",
-                    Value = edge.Condition.ChoiceId.Value.Value
+                    Value = edge.Condition.ChoiceId.Value.Value,
                 };
             }
 
@@ -218,7 +219,7 @@ public class CampaignGraph
             ["start_node"] = (string)StartNodeId,
             ["sort_order"] = SortOrder,
             ["nodes"] = nodesArray,
-            ["edges"] = edgesArray
+            ["edges"] = edgesArray,
         };
     }
 

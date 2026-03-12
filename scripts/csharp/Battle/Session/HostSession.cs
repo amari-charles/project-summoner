@@ -21,11 +21,12 @@ public class HostSession : NetworkSession
     private const float ReconnectGraceSeconds = 30f;
     private const int HostTeam = 0;
     private const int ClientTeam = 1;
+
     private enum DisconnectTimeoutOutcome
     {
         None,
         LocalDisconnected,
-        PeerDisconnected
+        PeerDisconnected,
     }
 
     private readonly Simulation.Simulation _simulation;
@@ -48,7 +49,9 @@ public class HostSession : NetworkSession
         Simulation.Simulation simulation,
         CommandRouter commandRouter,
         MatchState state,
-        IMatchTransport transport) : base(transport)
+        IMatchTransport transport
+    )
+        : base(transport)
     {
         _simulation = simulation;
         _commandRouter = commandRouter;
@@ -101,7 +104,8 @@ public class HostSession : NetworkSession
                     var flash = new SummonerDamageFlash(
                         summonerDamaged.Team,
                         summonerDamaged.Damage,
-                        summonerDamaged.AttackerUnitId);
+                        summonerDamaged.AttackerUnitId
+                    );
                     _transport.Broadcast(_messageSerializer.Serialize(flash));
                 }
 
@@ -110,7 +114,12 @@ public class HostSession : NetworkSession
                     var visual = new SpellCastVisual(
                         Team: spellCast.Team,
                         CatalogId: spellCast.CatalogId,
-                        Position: new Vector3(spellCast.Position.X, spellCast.Position.Y, spellCast.Position.Z));
+                        Position: new Vector3(
+                            spellCast.Position.X,
+                            spellCast.Position.Y,
+                            spellCast.Position.Z
+                        )
+                    );
                     _transport.Broadcast(_messageSerializer.Serialize(visual));
                 }
             }
@@ -132,7 +141,10 @@ public class HostSession : NetworkSession
     protected override void HandleDisconnect(string reason)
     {
         _transportConnected = false;
-        BeginReconnect($"Transport disconnected: {reason}", DisconnectTimeoutOutcome.LocalDisconnected);
+        BeginReconnect(
+            $"Transport disconnected: {reason}",
+            DisconnectTimeoutOutcome.LocalDisconnected
+        );
     }
 
     protected override void HandleConnected()
@@ -170,15 +182,17 @@ public class HostSession : NetworkSession
                 if (request.PlayerIndex != senderTeam)
                 {
                     Simulation.Simulation.Log?.Invoke(
-                        $"[HostSession] Remote peer {senderId} claimed team {request.PlayerIndex}, using authoritative team {senderTeam}");
+                        $"[HostSession] Remote peer {senderId} claimed team {request.PlayerIndex}, using authoritative team {senderTeam}"
+                    );
                 }
 
                 var cmd = new PlayCardCommand(
                     senderTeam,
                     request.CardIndex,
-                    new SimVector3(request.Position.X, request.Position.Y, request.Position.Z))
+                    new SimVector3(request.Position.X, request.Position.Y, request.Position.Z)
+                )
                 {
-                    Sequence = request.Sequence
+                    Sequence = request.Sequence,
                 };
                 SubmitRemoteCommand(senderId, cmd);
                 break;
@@ -190,7 +204,8 @@ public class HostSession : NetworkSession
                 if (request.PlayerIndex != senderTeam)
                 {
                     Simulation.Simulation.Log?.Invoke(
-                        $"[HostSession] Remote peer {senderId} claimed forfeit team {request.PlayerIndex}, using authoritative team {senderTeam}");
+                        $"[HostSession] Remote peer {senderId} claimed forfeit team {request.PlayerIndex}, using authoritative team {senderTeam}"
+                    );
                 }
                 SubmitRemoteCommand(senderId, new ForfeitCommand(senderTeam));
                 break;
@@ -204,7 +219,9 @@ public class HostSession : NetworkSession
             return;
 
         _matchEndedBroadcasted = true;
-        _transport.Broadcast(_messageSerializer.Serialize(new MatchEnded(winnerTeam, reason, duration)));
+        _transport.Broadcast(
+            _messageSerializer.Serialize(new MatchEnded(winnerTeam, reason, duration))
+        );
     }
 
     private void SubmitRemoteCommand(int senderId, ICommand command)
@@ -213,7 +230,8 @@ public class HostSession : NetworkSession
         if (!result.IsValid)
         {
             Simulation.Simulation.Log?.Invoke(
-                $"[HostSession] Remote command from {senderId} rejected: {result.Reason}");
+                $"[HostSession] Remote command from {senderId} rejected: {result.Reason}"
+            );
             return;
         }
 
@@ -232,7 +250,8 @@ public class HostSession : NetworkSession
         if (senderId == _transport.LocalPeerId)
         {
             Simulation.Simulation.Log?.Invoke(
-                $"[HostSession] Ignoring remote command from local peer id {senderId}");
+                $"[HostSession] Ignoring remote command from local peer id {senderId}"
+            );
             return false;
         }
 
@@ -240,7 +259,8 @@ public class HostSession : NetworkSession
         if (_remotePeerId > 0 && senderId != _remotePeerId)
         {
             Simulation.Simulation.Log?.Invoke(
-                $"[HostSession] Ignoring remote command from unexpected peer id {senderId} (expected {_remotePeerId})");
+                $"[HostSession] Ignoring remote command from unexpected peer id {senderId} (expected {_remotePeerId})"
+            );
             return false;
         }
 
@@ -269,9 +289,21 @@ public class HostSession : NetworkSession
                 TargetUnitId: projectile.TargetUnitId,
                 Team: (int)projectile.Team,
                 MovementType: (int)projectile.MovementType,
-                CurrentPosition: new Vector3(projectile.CurrentPosition.X, projectile.CurrentPosition.Y, projectile.CurrentPosition.Z),
-                Direction: new Vector3(projectile.Direction.X, projectile.Direction.Y, projectile.Direction.Z),
-                TargetPosition: new Vector3(projectile.TargetPosition.X, projectile.TargetPosition.Y, projectile.TargetPosition.Z),
+                CurrentPosition: new Vector3(
+                    projectile.CurrentPosition.X,
+                    projectile.CurrentPosition.Y,
+                    projectile.CurrentPosition.Z
+                ),
+                Direction: new Vector3(
+                    projectile.Direction.X,
+                    projectile.Direction.Y,
+                    projectile.Direction.Z
+                ),
+                TargetPosition: new Vector3(
+                    projectile.TargetPosition.X,
+                    projectile.TargetPosition.Y,
+                    projectile.TargetPosition.Z
+                ),
                 Speed: projectile.Speed,
                 ProjectileCatalogId: projectile.ProjectileCatalogId,
                 Acceleration: projectile.Acceleration,
@@ -286,8 +318,16 @@ public class HostSession : NetworkSession
                 Lifetime: projectile.Lifetime,
                 HitRadius: projectile.HitRadius,
                 HitSpace: projectile.HitSpace,
-                VeerDirection: new Vector3(projectile.VeerDirection.X, projectile.VeerDirection.Y, projectile.VeerDirection.Z),
-                CounterVeerDirection: new Vector3(projectile.CounterVeerDirection.X, projectile.CounterVeerDirection.Y, projectile.CounterVeerDirection.Z)
+                VeerDirection: new Vector3(
+                    projectile.VeerDirection.X,
+                    projectile.VeerDirection.Y,
+                    projectile.VeerDirection.Z
+                ),
+                CounterVeerDirection: new Vector3(
+                    projectile.CounterVeerDirection.X,
+                    projectile.CounterVeerDirection.Y,
+                    projectile.CounterVeerDirection.Z
+                )
             );
             _transport.Broadcast(_messageSerializer.Serialize(spawned));
         }
@@ -297,8 +337,11 @@ public class HostSession : NetworkSession
             if (evt is not ProjectileHitEvent hitEvent)
                 continue;
 
-            _transport.Broadcast(_messageSerializer.Serialize(
-                new ProjectileImpact(hitEvent.ProjectileId, hitEvent.TargetUnitId)));
+            _transport.Broadcast(
+                _messageSerializer.Serialize(
+                    new ProjectileImpact(hitEvent.ProjectileId, hitEvent.TargetUnitId)
+                )
+            );
         }
 
         _staleProjectileIds.Clear();
@@ -311,7 +354,9 @@ public class HostSession : NetworkSession
         foreach (var staleProjectileId in _staleProjectileIds)
         {
             _knownProjectileIds.Remove(staleProjectileId);
-            _transport.Broadcast(_messageSerializer.Serialize(new ProjectileDespawned(staleProjectileId)));
+            _transport.Broadcast(
+                _messageSerializer.Serialize(new ProjectileDespawned(staleProjectileId))
+            );
         }
     }
 
@@ -333,9 +378,21 @@ public class HostSession : NetworkSession
                 TargetUnitId: projectile.TargetUnitId,
                 Team: (int)projectile.Team,
                 MovementType: (int)projectile.MovementType,
-                CurrentPosition: new Vector3(projectile.CurrentPosition.X, projectile.CurrentPosition.Y, projectile.CurrentPosition.Z),
-                Direction: new Vector3(projectile.Direction.X, projectile.Direction.Y, projectile.Direction.Z),
-                TargetPosition: new Vector3(projectile.TargetPosition.X, projectile.TargetPosition.Y, projectile.TargetPosition.Z),
+                CurrentPosition: new Vector3(
+                    projectile.CurrentPosition.X,
+                    projectile.CurrentPosition.Y,
+                    projectile.CurrentPosition.Z
+                ),
+                Direction: new Vector3(
+                    projectile.Direction.X,
+                    projectile.Direction.Y,
+                    projectile.Direction.Z
+                ),
+                TargetPosition: new Vector3(
+                    projectile.TargetPosition.X,
+                    projectile.TargetPosition.Y,
+                    projectile.TargetPosition.Z
+                ),
                 Speed: projectile.Speed,
                 ProjectileCatalogId: projectile.ProjectileCatalogId,
                 Acceleration: projectile.Acceleration,
@@ -350,8 +407,16 @@ public class HostSession : NetworkSession
                 Lifetime: projectile.Lifetime,
                 HitRadius: projectile.HitRadius,
                 HitSpace: projectile.HitSpace,
-                VeerDirection: new Vector3(projectile.VeerDirection.X, projectile.VeerDirection.Y, projectile.VeerDirection.Z),
-                CounterVeerDirection: new Vector3(projectile.CounterVeerDirection.X, projectile.CounterVeerDirection.Y, projectile.CounterVeerDirection.Z)
+                VeerDirection: new Vector3(
+                    projectile.VeerDirection.X,
+                    projectile.VeerDirection.Y,
+                    projectile.VeerDirection.Z
+                ),
+                CounterVeerDirection: new Vector3(
+                    projectile.CounterVeerDirection.X,
+                    projectile.CounterVeerDirection.Y,
+                    projectile.CounterVeerDirection.Z
+                )
             );
         }
 
@@ -391,21 +456,20 @@ public class HostSession : NetworkSession
         if (_state.Phase == GamePhase.GameOver)
             return;
 
-        int winnerTeam = _disconnectTimeoutOutcome == DisconnectTimeoutOutcome.PeerDisconnected
-            ? HostTeam
-            : ClientTeam;
+        int winnerTeam =
+            _disconnectTimeoutOutcome == DisconnectTimeoutOutcome.PeerDisconnected
+                ? HostTeam
+                : ClientTeam;
         int loserTeam = winnerTeam == HostTeam ? ClientTeam : HostTeam;
-        string reason = _disconnectTimeoutOutcome == DisconnectTimeoutOutcome.PeerDisconnected
-            ? "Peer reconnect timeout"
-            : "Local reconnect timeout";
+        string reason =
+            _disconnectTimeoutOutcome == DisconnectTimeoutOutcome.PeerDisconnected
+                ? "Peer reconnect timeout"
+                : "Local reconnect timeout";
 
         _state.WinnerTeam = winnerTeam;
         _state.Phase = GamePhase.GameOver;
 
-        var events = new List<SimEvent>
-        {
-            new GameOverEvent(winnerTeam, reason)
-        };
+        var events = new List<SimEvent> { new GameOverEvent(winnerTeam, reason) };
         SimEventsEmitted?.Invoke(events);
 
         if (_transport.IsConnected)
@@ -432,7 +496,11 @@ public class HostSession : NetworkSession
                 s.CastingTimeRemaining,
                 s.CastingTimeTotal,
                 s.CastingCardIndex,
-                new Vector3(s.CastingSpawnPosition.X, s.CastingSpawnPosition.Y, s.CastingSpawnPosition.Z),
+                new Vector3(
+                    s.CastingSpawnPosition.X,
+                    s.CastingSpawnPosition.Y,
+                    s.CastingSpawnPosition.Z
+                ),
                 s.CastingNetworkId,
                 s.ComputeCardHash(),
                 ToCatalogIds(s.Hand),
@@ -446,21 +514,23 @@ public class HostSession : NetworkSession
         foreach (var unit in _state.Units.Values)
         {
             int stableNetworkId = unit.NetworkId >= 0 ? unit.NetworkId : unit.UnitId;
-            units.Add(new UnitState(
-                stableNetworkId,
-                (int)unit.Team,
-                new Vector3(unit.Position.X, unit.Position.Y, unit.Position.Z),
-                unit.CurrentHp,
-                unit.MaxHp,
-                unit.TargetNetworkId,
-                unit.IsAlive,
-                (int)unit.ActivationState,
-                (int)unit.BehaviorState,
-                unit.IsFacingRight,
-                unit.CatalogId,
-                unit.SpawnTimer,
-                unit.AttackAnimationTimer
-            ));
+            units.Add(
+                new UnitState(
+                    stableNetworkId,
+                    (int)unit.Team,
+                    new Vector3(unit.Position.X, unit.Position.Y, unit.Position.Z),
+                    unit.CurrentHp,
+                    unit.MaxHp,
+                    unit.TargetNetworkId,
+                    unit.IsAlive,
+                    (int)unit.ActivationState,
+                    (int)unit.BehaviorState,
+                    unit.IsFacingRight,
+                    unit.CatalogId,
+                    unit.SpawnTimer,
+                    unit.AttackAnimationTimer
+                )
+            );
         }
 
         return new StateSnapshot(

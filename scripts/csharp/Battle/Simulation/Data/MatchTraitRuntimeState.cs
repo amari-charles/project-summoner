@@ -7,27 +7,32 @@ public enum TraitRuntimeDiagnosticSeverity
 {
     Info,
     Warning,
-    Error
+    Error,
 }
 
 public readonly record struct TraitRuntimeRulesetVersion(string Value)
 {
     public static TraitRuntimeRulesetVersion Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(TraitRuntimeRulesetVersion value) => value.Value;
+
     public static implicit operator TraitRuntimeRulesetVersion(string value) => new(value ?? "");
 }
 
 public readonly record struct TraitRuntimeTeamId(int Value)
 {
     public static implicit operator int(TraitRuntimeTeamId value) => value.Value;
+
     public static implicit operator TraitRuntimeTeamId(int value) => new(value);
 }
 
 public readonly record struct TraitRuntimePointCount(int Value)
 {
     public static implicit operator int(TraitRuntimePointCount value) => value.Value;
+
     public static implicit operator TraitRuntimePointCount(int value) => new(value);
 }
 
@@ -35,8 +40,11 @@ public readonly record struct TraitRuntimeCardCatalogId(string Value)
 {
     public static TraitRuntimeCardCatalogId Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(TraitRuntimeCardCatalogId value) => value.Value;
+
     public static implicit operator TraitRuntimeCardCatalogId(string value) => new(value ?? "");
 }
 
@@ -44,14 +52,18 @@ public readonly record struct TraitRuntimeCardInstanceId(string Value)
 {
     public static TraitRuntimeCardInstanceId Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(TraitRuntimeCardInstanceId value) => value.Value;
+
     public static implicit operator TraitRuntimeCardInstanceId(string value) => new(value ?? "");
 }
 
 public sealed class TraitRuntimeDiagnostic
 {
-    public TraitRuntimeDiagnosticSeverity Severity { get; set; } = TraitRuntimeDiagnosticSeverity.Info;
+    public TraitRuntimeDiagnosticSeverity Severity { get; set; } =
+        TraitRuntimeDiagnosticSeverity.Info;
     public string Code { get; set; } = "";
     public string Message { get; set; } = "";
 }
@@ -60,7 +72,8 @@ public sealed class TraitRuntimeSpawnContext
 {
     public TraitRuntimeTeamId TeamId { get; set; } = new(0);
     public TraitRuntimeCardCatalogId CardCatalogId { get; set; } = TraitRuntimeCardCatalogId.Empty;
-    public TraitRuntimeCardInstanceId CardInstanceId { get; set; } = TraitRuntimeCardInstanceId.Empty;
+    public TraitRuntimeCardInstanceId CardInstanceId { get; set; } =
+        TraitRuntimeCardInstanceId.Empty;
 }
 
 /// <summary>
@@ -86,17 +99,24 @@ public sealed class MatchTraitRuntimeState
     /// <summary>
     /// Team-indexed trait point snapshots for debug visibility.
     /// </summary>
-    public Dictionary<TraitRuntimeTeamId, TraitRuntimePointCount> TeamTraitPointSnapshot { get; } = new();
+    public Dictionary<TraitRuntimeTeamId, TraitRuntimePointCount> TeamTraitPointSnapshot { get; } =
+        new();
 
     /// <summary>
     /// Runtime card-instance trait multipliers used at unit spawn time.
     /// </summary>
-    public Dictionary<TraitRuntimeCardInstanceId, Dictionary<StatKey, float>> CardInstanceStatMultipliers { get; } = new();
+    public Dictionary<
+        TraitRuntimeCardInstanceId,
+        Dictionary<StatKey, float>
+    > CardInstanceStatMultipliers { get; } = new();
 
     /// <summary>
     /// Runtime card-instance trait additive values used at unit spawn time.
     /// </summary>
-    public Dictionary<TraitRuntimeCardInstanceId, Dictionary<StatKey, float>> CardInstanceStatAdds { get; } = new();
+    public Dictionary<
+        TraitRuntimeCardInstanceId,
+        Dictionary<StatKey, float>
+    > CardInstanceStatAdds { get; } = new();
 
     /// <summary>
     /// Runtime card-instance additive spawn-count bonuses used when summon cards resolve.
@@ -112,16 +132,24 @@ public sealed class MatchTraitRuntimeState
         CardInstanceSpawnCountAdds.Clear();
     }
 
-    public void SetCardInstanceStatMultipliers(TraitRuntimeCardInstanceId cardInstanceId, Dictionary<StatKey, float> statMultipliers)
+    public void SetCardInstanceStatMultipliers(
+        TraitRuntimeCardInstanceId cardInstanceId,
+        Dictionary<StatKey, float> statMultipliers
+    )
     {
         if (!cardInstanceId.HasValue || statMultipliers == null || statMultipliers.Count == 0)
             return;
 
-        CardInstanceStatMultipliers[cardInstanceId] = new Dictionary<StatKey, float>(statMultipliers);
+        CardInstanceStatMultipliers[cardInstanceId] = new Dictionary<StatKey, float>(
+            statMultipliers
+        );
         RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
     }
 
-    public void SetCardInstanceStatAdds(TraitRuntimeCardInstanceId cardInstanceId, Dictionary<StatKey, float> statAdds)
+    public void SetCardInstanceStatAdds(
+        TraitRuntimeCardInstanceId cardInstanceId,
+        Dictionary<StatKey, float> statAdds
+    )
     {
         if (!cardInstanceId.HasValue || statAdds == null || statAdds.Count == 0)
             return;
@@ -130,7 +158,10 @@ public sealed class MatchTraitRuntimeState
         RulesetVersion = new TraitRuntimeRulesetVersion(RulesetVersionV1);
     }
 
-    public void SetCardInstanceSpawnCountAdd(TraitRuntimeCardInstanceId cardInstanceId, int spawnCountAdd)
+    public void SetCardInstanceSpawnCountAdd(
+        TraitRuntimeCardInstanceId cardInstanceId,
+        int spawnCountAdd
+    )
     {
         if (!cardInstanceId.HasValue || spawnCountAdd == 0)
             return;
@@ -201,7 +232,12 @@ public sealed class MatchTraitRuntimeState
             }
         }
 
-        if (!CardInstanceStatMultipliers.TryGetValue(context.CardInstanceId, out var statMultipliers))
+        if (
+            !CardInstanceStatMultipliers.TryGetValue(
+                context.CardInstanceId,
+                out var statMultipliers
+            )
+        )
             return;
 
         foreach (var (statKey, multiplier) in statMultipliers)

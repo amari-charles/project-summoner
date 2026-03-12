@@ -27,7 +27,7 @@ public sealed class AttackVectorState
             Selection = Selection.DeepClone(),
             Area = Area.DeepClone(),
             Propagation = Propagation.DeepClone(),
-            Rules = Rules.DeepClone()
+            Rules = Rules.DeepClone(),
         };
     }
 }
@@ -48,7 +48,7 @@ public sealed class AttackTimingState
             WindupSeconds = WindupSeconds,
             ActiveSeconds = ActiveSeconds,
             RecoverySeconds = RecoverySeconds,
-            TickIntervalSeconds = TickIntervalSeconds
+            TickIntervalSeconds = TickIntervalSeconds,
         };
     }
 }
@@ -62,11 +62,7 @@ public sealed class AttackSelectionState
 
     public AttackSelectionState DeepClone()
     {
-        return new AttackSelectionState
-        {
-            Mode = Mode,
-            TargetLimit = TargetLimit
-        };
+        return new AttackSelectionState { Mode = Mode, TargetLimit = TargetLimit };
     }
 }
 
@@ -88,7 +84,7 @@ public sealed class AttackAreaState
             Size = Size,
             LineLength = LineLength,
             LineHalfWidth = LineHalfWidth,
-            ForwardOffset = ForwardOffset
+            ForwardOffset = ForwardOffset,
         };
     }
 }
@@ -107,7 +103,7 @@ public sealed class AttackPropagationState
         {
             Mode = Mode,
             ChainMaxJumps = ChainMaxJumps,
-            ChainJumpRadius = ChainJumpRadius
+            ChainJumpRadius = ChainJumpRadius,
         };
     }
 }
@@ -126,7 +122,7 @@ public sealed class AttackRulesState
         {
             IncludeSummonerTargets = IncludeSummonerTargets,
             AllowRepeatHits = AllowRepeatHits,
-            TriggerMode = TriggerMode
+            TriggerMode = TriggerMode,
         };
     }
 }

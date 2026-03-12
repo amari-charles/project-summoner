@@ -7,10 +7,10 @@ namespace Fateforged.Simulation.Combat.Targeting;
 /// </summary>
 public sealed class PreferAttackableAndStickTargetPolicy : ITargetPolicy
 {
-    public bool ShouldKeepCurrentTarget(UnitData unit, MatchState state, int? currentTargetId)
-        => currentTargetId.HasValue &&
-           SimTargeting.IsTargetAttackableNow(unit, currentTargetId.Value, state);
+    public bool ShouldKeepCurrentTarget(UnitData unit, MatchState state, int? currentTargetId) =>
+        currentTargetId.HasValue
+        && SimTargeting.IsTargetAttackableNow(unit, currentTargetId.Value, state);
 
-    public int? SelectTarget(UnitData unit, MatchState state)
-        => SimTargeting.AcquireTargetPreferAttackable(unit, state);
+    public int? SelectTarget(UnitData unit, MatchState state) =>
+        SimTargeting.AcquireTargetPreferAttackable(unit, state);
 }

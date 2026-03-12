@@ -20,7 +20,7 @@ public class TraitTreeEvaluatorEligibilityTest
             Category = TraitCategory.Utility,
             Tags = [TraitTags.Summon, TraitTags.Global],
             AllowedRarities = ["common"],
-            MinLevel = 1
+            MinLevel = 1,
         };
 
         var context = new TraitTreeOwnerContext
@@ -31,7 +31,7 @@ public class TraitTreeEvaluatorEligibilityTest
             CurrentLevel = 3,
             UnspentTraitPoints = 1,
             CardCatalogId = "fire_wisp",
-            CardRarity = "rare"
+            CardRarity = "rare",
         };
 
         var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(trait, context);
@@ -50,7 +50,7 @@ public class TraitTreeEvaluatorEligibilityTest
             Category = TraitCategory.Utility,
             Tags = [TraitTags.Summon, TraitTags.Global],
             AllowedCardCatalogIds = ["fire_wisp"],
-            MinLevel = 1
+            MinLevel = 1,
         };
 
         var context = new TraitTreeOwnerContext
@@ -61,7 +61,7 @@ public class TraitTreeEvaluatorEligibilityTest
             CurrentLevel = 3,
             UnspentTraitPoints = 1,
             CardCatalogId = "water_wisp",
-            CardRarity = "common"
+            CardRarity = "common",
         };
 
         var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(trait, context);
@@ -76,14 +76,22 @@ public class TraitTreeEvaluatorEligibilityTest
         {
             OwnerTypeTag = TraitTags.Summon,
             EligibilityTags = new HashSet<string> { TraitTags.Summon, TraitTags.Global },
-            OwnedTraitIds = new HashSet<string> { TraitIds.Legion, TraitIds.LegionII, TraitIds.LegionIII },
+            OwnedTraitIds = new HashSet<string>
+            {
+                TraitIds.Legion,
+                TraitIds.LegionII,
+                TraitIds.LegionIII,
+            },
             CurrentLevel = 8,
             UnspentTraitPoints = 1,
             CardCatalogId = "fire_wisp",
-            CardRarity = "rare"
+            CardRarity = "rare",
         };
 
-        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.LegionIV, context);
+        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(
+            TraitDefinitions.LegionIV,
+            context
+        );
         AssertThat(evaluation.CanUnlockNow).IsFalse();
         AssertThat(evaluation.LockedReason).Contains("rarity");
     }
@@ -99,10 +107,13 @@ public class TraitTreeEvaluatorEligibilityTest
             CurrentLevel = 4,
             UnspentTraitPoints = 1,
             CardCatalogId = "fire_wisp",
-            CardRarity = "epic"
+            CardRarity = "epic",
         };
 
-        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.LegionII, context);
+        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(
+            TraitDefinitions.LegionII,
+            context
+        );
         AssertThat(evaluation.CanUnlockNow).IsTrue();
     }
 
@@ -112,13 +123,22 @@ public class TraitTreeEvaluatorEligibilityTest
         var context = new TraitTreeOwnerContext
         {
             OwnerTypeTag = TraitTags.Summoner,
-            EligibilityTags = new HashSet<string> { TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole },
+            EligibilityTags = new HashSet<string>
+            {
+                TraitTags.Summoner,
+                TraitTags.Global,
+                TraitTags.Fire,
+                TraitTags.Cole,
+            },
             OwnedTraitIds = new HashSet<string>(),
             CurrentLevel = 3,
-            UnspentTraitPoints = 1
+            UnspentTraitPoints = 1,
         };
 
-        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.SeleneHealthI, context);
+        var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(
+            TraitDefinitions.SeleneHealthI,
+            context
+        );
         AssertThat(evaluation.CanUnlockNow).IsFalse();
         AssertThat(evaluation.LockedReason).Contains("owner");
     }
@@ -129,26 +149,44 @@ public class TraitTreeEvaluatorEligibilityTest
         var blockedContext = new TraitTreeOwnerContext
         {
             OwnerTypeTag = TraitTags.Summoner,
-            EligibilityTags = new HashSet<string> { TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole },
+            EligibilityTags = new HashSet<string>
+            {
+                TraitTags.Summoner,
+                TraitTags.Global,
+                TraitTags.Fire,
+                TraitTags.Cole,
+            },
             OwnedTraitIds = new HashSet<string>(),
             CurrentLevel = 3,
-            UnspentTraitPoints = 1
+            UnspentTraitPoints = 1,
         };
 
-        var blocked = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.ColeSoulStrengthII, blockedContext);
+        var blocked = TraitTreeEvaluator.EvaluateProgressionTrait(
+            TraitDefinitions.ColeSoulStrengthII,
+            blockedContext
+        );
         AssertThat(blocked.CanUnlockNow).IsFalse();
         AssertThat(blocked.MissingPrerequisiteIds).Contains(TraitIds.ColeSoulStrengthI);
 
         var unlockedContext = new TraitTreeOwnerContext
         {
             OwnerTypeTag = TraitTags.Summoner,
-            EligibilityTags = new HashSet<string> { TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole },
+            EligibilityTags = new HashSet<string>
+            {
+                TraitTags.Summoner,
+                TraitTags.Global,
+                TraitTags.Fire,
+                TraitTags.Cole,
+            },
             OwnedTraitIds = new HashSet<string> { TraitIds.ColeSoulStrengthI },
             CurrentLevel = 3,
-            UnspentTraitPoints = 1
+            UnspentTraitPoints = 1,
         };
 
-        var unlocked = TraitTreeEvaluator.EvaluateProgressionTrait(TraitDefinitions.ColeSoulStrengthII, unlockedContext);
+        var unlocked = TraitTreeEvaluator.EvaluateProgressionTrait(
+            TraitDefinitions.ColeSoulStrengthII,
+            unlockedContext
+        );
         AssertThat(unlocked.CanUnlockNow).IsTrue();
     }
 }

@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Stats;
 
 using System;
-using GdUnit4;
 using Fateforged.Stats;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -20,8 +20,10 @@ public class TriggerConditionTest
         AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.OnTakeHit)).IsTrue();
         AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.OnKill)).IsTrue();
         AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.OnDeath)).IsTrue();
-        AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.BelowHpPercent)).IsTrue();
-        AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.AboveHpPercent)).IsTrue();
+        AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.BelowHpPercent))
+            .IsTrue();
+        AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.AboveHpPercent))
+            .IsTrue();
         AssertThat(Enum.IsDefined(typeof(TriggerCondition), TriggerCondition.Periodic)).IsTrue();
     }
 

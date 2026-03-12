@@ -2,10 +2,10 @@ namespace Fateforged.Tests.Services;
 
 using System.Collections.Generic;
 using System.Linq;
-using GdUnit4;
 using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Meta.Rewards;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -94,7 +94,12 @@ public class RewardServiceTest
         // Tutorial rewards should include specific cards
         var cardIdStrings = cards.Select(c => (string)c.Id).ToHashSet();
         // These are defined in the catalog
-        AssertThat(cardIdStrings.Contains("charge") || cardIdStrings.Contains("guard") || cardIdStrings.Contains("fire_wisp")).IsTrue();
+        AssertThat(
+                cardIdStrings.Contains("charge")
+                    || cardIdStrings.Contains("guard")
+                    || cardIdStrings.Contains("fire_wisp")
+            )
+            .IsTrue();
     }
 
     [TestCase]
@@ -116,10 +121,7 @@ public class RewardServiceTest
     [TestCase]
     public void FilterCards_ByElement_FiltersCorrectly()
     {
-        var filters = new CardFilterConfig
-        {
-            Elements = [Element.Water]
-        };
+        var filters = new CardFilterConfig { Elements = [Element.Water] };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
 
@@ -132,10 +134,7 @@ public class RewardServiceTest
     [TestCase]
     public void FilterCards_ByRarity_FiltersCorrectly()
     {
-        var filters = new CardFilterConfig
-        {
-            Rarities = [Rarity.Rare, Rarity.Epic]
-        };
+        var filters = new CardFilterConfig { Rarities = [Rarity.Rare, Rarity.Epic] };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
 
@@ -148,10 +147,7 @@ public class RewardServiceTest
     [TestCase]
     public void FilterCards_ByCardType_FiltersCorrectly()
     {
-        var filters = new CardFilterConfig
-        {
-            CardTypes = [CardType.Spell]
-        };
+        var filters = new CardFilterConfig { CardTypes = [CardType.Spell] };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
 
@@ -164,10 +160,7 @@ public class RewardServiceTest
     [TestCase]
     public void FilterCards_ExcludeDevOnly_ExcludesDevCards()
     {
-        var filters = new CardFilterConfig
-        {
-            ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-        };
+        var filters = new CardFilterConfig { ExcludeUnlockConditions = [UnlockCondition.DevOnly] };
 
         var cards = RewardPoolCatalog.FilterCards(filters);
 
@@ -194,10 +187,14 @@ public class RewardServiceTest
     [TestCase]
     public void GetPoolIdForElement_ReturnsCorrectPool()
     {
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire)).IsEqual(RewardPoolIds.FireCommonUnits);
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water)).IsEqual(RewardPoolIds.WaterCommonUnits);
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind)).IsEqual(RewardPoolIds.WindCommonUnits);
-        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth)).IsEqual(RewardPoolIds.EarthCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Fire))
+            .IsEqual(RewardPoolIds.FireCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Water))
+            .IsEqual(RewardPoolIds.WaterCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Wind))
+            .IsEqual(RewardPoolIds.WindCommonUnits);
+        AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Earth))
+            .IsEqual(RewardPoolIds.EarthCommonUnits);
         // Elements without specific pools return null
         AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Neutral)).IsNull();
         AssertThat(RewardPoolCatalog.GetPoolIdForElement(Element.Lightning)).IsNull();
@@ -210,11 +207,7 @@ public class RewardServiceTest
     [TestCase]
     public void RewardOption_CardType_HasCorrectDefaults()
     {
-        var option = new RewardOption
-        {
-            Type = RewardType.Card,
-            Id = "fire_wisp"
-        };
+        var option = new RewardOption { Type = RewardType.Card, Id = "fire_wisp" };
 
         AssertThat(option.Type).IsEqual(RewardType.Card);
         AssertThat(option.Id).IsEqual("fire_wisp");
@@ -226,11 +219,7 @@ public class RewardServiceTest
     [TestCase]
     public void RewardOption_GoldType_HasCorrectProperties()
     {
-        var option = new RewardOption
-        {
-            Type = RewardType.CampaignGold,
-            Amount = 100
-        };
+        var option = new RewardOption { Type = RewardType.CampaignGold, Amount = 100 };
 
         AssertThat(option.Type).IsEqual(RewardType.CampaignGold);
         AssertThat(option.Amount).IsEqual(100);

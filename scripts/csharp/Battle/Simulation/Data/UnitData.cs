@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Fateforged.Units;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Data;
 
@@ -89,7 +89,8 @@ public class UnitData
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
     public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
-    public MovementIntentStrategy MovementIntentStrategy { get; set; } = MovementIntentStrategy.Context;
+    public MovementIntentStrategy MovementIntentStrategy { get; set; } =
+        MovementIntentStrategy.Context;
     public float FlightAltitude { get; set; }
 
     // Velocity — computed by simulation each tick
@@ -113,7 +114,8 @@ public class UnitData
     public float TargetLockTimer { get; set; }
 
     // Commit-slot lifecycle runtime state.
-    public CombatLifecycleState CombatLifecycleState { get; set; } = CombatLifecycleState.AcquireTarget;
+    public CombatLifecycleState CombatLifecycleState { get; set; } =
+        CombatLifecycleState.AcquireTarget;
     public int? LockedTargetUnitId { get; set; }
     public RetargetReason LastRetargetReason { get; set; } = RetargetReason.None;
     public float UnreachableTimer { get; set; }

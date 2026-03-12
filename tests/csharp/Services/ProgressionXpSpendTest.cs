@@ -44,14 +44,22 @@ public partial class ProgressionXpSpendTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var instanceId = CardInstanceId.FromString(cardService.GrantCard(CardIds.FireWisp, "common"));
+        var instanceId = CardInstanceId.FromString(
+            cardService.GrantCard(CardIds.FireWisp, "common")
+        );
         AssertThat(instanceId).IsNotEqual(CardInstanceId.None);
-        AssertThat(repo.UpdateCard(instanceId, new CardUpdate
-        {
-            Level = 1,
-            Xp = 30,
-            UnspentTraitPoints = 0
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    instanceId,
+                    new CardUpdate
+                    {
+                        Level = 1,
+                        Xp = 30,
+                        UnspentTraitPoints = 0,
+                    }
+                )
+            )
+            .IsTrue();
 
         var progression = new CardProgressionHandler(repo);
         AssertThat(progression.CanLevelUp(instanceId)).IsTrue();
@@ -72,14 +80,22 @@ public partial class ProgressionXpSpendTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var instanceId = CardInstanceId.FromString(cardService.GrantCard(CardIds.FireWisp, "common"));
+        var instanceId = CardInstanceId.FromString(
+            cardService.GrantCard(CardIds.FireWisp, "common")
+        );
         AssertThat(instanceId).IsNotEqual(CardInstanceId.None);
-        AssertThat(repo.UpdateCard(instanceId, new CardUpdate
-        {
-            Level = 1,
-            Xp = 80,
-            UnspentTraitPoints = 0
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    instanceId,
+                    new CardUpdate
+                    {
+                        Level = 1,
+                        Xp = 80,
+                        UnspentTraitPoints = 0,
+                    }
+                )
+            )
+            .IsTrue();
 
         var progression = new CardProgressionHandler(repo);
         AssertThat(progression.LevelUpCard(instanceId)).IsTrue(); // -30 XP => 50
@@ -151,14 +167,22 @@ public partial class ProgressionXpSpendTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var instanceId = CardInstanceId.FromString(cardService.GrantCard(CardIds.FireWisp, "common"));
+        var instanceId = CardInstanceId.FromString(
+            cardService.GrantCard(CardIds.FireWisp, "common")
+        );
         AssertThat(instanceId).IsNotEqual(CardInstanceId.None);
-        AssertThat(repo.UpdateCard(instanceId, new CardUpdate
-        {
-            Level = 1,
-            Xp = 29,
-            UnspentTraitPoints = 0
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    instanceId,
+                    new CardUpdate
+                    {
+                        Level = 1,
+                        Xp = 29,
+                        UnspentTraitPoints = 0,
+                    }
+                )
+            )
+            .IsTrue();
 
         var progression = new CardProgressionHandler(repo);
         AssertThat(progression.LevelUpCard(instanceId)).IsFalse();
@@ -169,12 +193,18 @@ public partial class ProgressionXpSpendTest
         AssertThat(beforeMax.Xp).IsEqual(29);
         AssertThat(beforeMax.UnspentTraitPoints).IsEqual(0);
 
-        AssertThat(repo.UpdateCard(instanceId, new CardUpdate
-        {
-            Level = CardProgressionHandler.MaxLevel,
-            Xp = 999,
-            UnspentTraitPoints = 3
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    instanceId,
+                    new CardUpdate
+                    {
+                        Level = CardProgressionHandler.MaxLevel,
+                        Xp = 999,
+                        UnspentTraitPoints = 3,
+                    }
+                )
+            )
+            .IsTrue();
         AssertThat(progression.LevelUpCard(instanceId)).IsFalse();
 
         var afterMax = repo.GetCard(instanceId);
@@ -230,14 +260,22 @@ public partial class ProgressionXpSpendTest
         var cardService = CreateNode<CardService>();
         cardService.InitForTesting(repo);
 
-        var instanceId = CardInstanceId.FromString(cardService.GrantCard(CardIds.FireWisp, "common"));
+        var instanceId = CardInstanceId.FromString(
+            cardService.GrantCard(CardIds.FireWisp, "common")
+        );
         AssertThat(instanceId).IsNotEqual(CardInstanceId.None);
-        AssertThat(repo.UpdateCard(instanceId, new CardUpdate
-        {
-            Level = 1,
-            Xp = 30,
-            UnspentTraitPoints = 0
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    instanceId,
+                    new CardUpdate
+                    {
+                        Level = 1,
+                        Xp = 30,
+                        UnspentTraitPoints = 0,
+                    }
+                )
+            )
+            .IsTrue();
 
         var progression = new CardProgressionHandler(repo);
         AssertThat(progression.CanLevelUp(instanceId)).IsTrue();
@@ -250,7 +288,9 @@ public partial class ProgressionXpSpendTest
         AssertThat(card.UnspentTraitPoints).IsEqual(0);
     }
 
-    private sealed partial class FailingCardUpdateProfileRepository : ProfileRepository, IProfileRepository
+    private sealed partial class FailingCardUpdateProfileRepository
+        : ProfileRepository,
+            IProfileRepository
     {
         bool IProfileRepository.UpdateCard(CardInstanceId cardInstanceId, CardUpdate updates)
         {
@@ -268,7 +308,8 @@ public partial class ProgressionXpSpendTest
         return repo;
     }
 
-    private T CreateNode<T>() where T : Node, new()
+    private T CreateNode<T>()
+        where T : Node, new()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -286,10 +327,7 @@ public partial class ProgressionXpSpendTest
 
         if (repo.GetSummonerInstance(candidate) == null)
         {
-            repo.SaveSummonerInstance(new SummonerInstance
-            {
-                SummonerId = candidate
-            });
+            repo.SaveSummonerInstance(new SummonerInstance { SummonerId = candidate });
         }
 
         return candidate;

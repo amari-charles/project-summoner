@@ -1,8 +1,8 @@
 namespace Fateforged.Constants;
 
 using System;
-using Godot;
 using Fateforged.Simulation;
+using Godot;
 
 /// <summary>
 /// Battlefield boundary constants and utility methods.
@@ -53,8 +53,12 @@ public static class BattlefieldBounds
     private static bool _debugBypassSpawnBoundary;
 
     public static bool IsDebugBypassSpawnBoundaryEnabled() => _debugBypassSpawnBoundary;
-    public static void SetDebugBypassSpawnBoundary(bool enabled) => _debugBypassSpawnBoundary = enabled;
-    public static void ToggleDebugBypassSpawnBoundary() => _debugBypassSpawnBoundary = !_debugBypassSpawnBoundary;
+
+    public static void SetDebugBypassSpawnBoundary(bool enabled) =>
+        _debugBypassSpawnBoundary = enabled;
+
+    public static void ToggleDebugBypassSpawnBoundary() =>
+        _debugBypassSpawnBoundary = !_debugBypassSpawnBoundary;
 
     // =========================================================================
     // BOUNDARY UTILITY METHODS
@@ -91,8 +95,7 @@ public static class BattlefieldBounds
     /// </summary>
     public static bool IsInBounds(Vector3 position)
     {
-        return position.X >= MinX && position.X <= MaxX
-            && position.Z >= MinZ && position.Z <= MaxZ;
+        return position.X >= MinX && position.X <= MaxX && position.Z >= MinZ && position.Z <= MaxZ;
     }
 
     /// <summary>
@@ -100,8 +103,7 @@ public static class BattlefieldBounds
     /// </summary>
     public static bool IsInBounds(SimVector3 position)
     {
-        return position.X >= MinX && position.X <= MaxX
-            && position.Z >= MinZ && position.Z <= MaxZ;
+        return position.X >= MinX && position.X <= MaxX && position.Z >= MinZ && position.Z <= MaxZ;
     }
 
     // =========================================================================

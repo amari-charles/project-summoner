@@ -29,7 +29,11 @@ public class NetworkSessionWiringTest
         var serializer = new MessageSerializer();
         var session = new ClientSession(state, transport, localPlayerIndex: 1);
 
-        var cmd = new PlayCardCommand(team: 1, cardIndex: 2, spawnPosition: new SimVector3(3f, 0f, -4f));
+        var cmd = new PlayCardCommand(
+            team: 1,
+            cardIndex: 2,
+            spawnPosition: new SimVector3(3f, 0f, -4f)
+        );
         session.SubmitCommand(cmd);
 
         AssertThat(transport.SentMessages.Count).IsEqual(1);
@@ -55,12 +59,56 @@ public class NetworkSessionWiringTest
             PrepTimeRemaining: 0f,
             Summoners:
             [
-                new SummonerState(0, 95f, 100f, 8f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>()),
-                new SummonerState(1, 90f, 100f, 7f, 10f, false, 0f, 0f, -1, Vector3.Zero, -1, 0, System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>(), System.Array.Empty<SimCardCatalogId>(), "fire_wisp")
+                new SummonerState(
+                    0,
+                    95f,
+                    100f,
+                    8f,
+                    10f,
+                    false,
+                    0f,
+                    0f,
+                    -1,
+                    Vector3.Zero,
+                    -1,
+                    0,
+                    System.Array.Empty<SimCardCatalogId>(),
+                    System.Array.Empty<SimCardCatalogId>(),
+                    System.Array.Empty<SimCardCatalogId>()
+                ),
+                new SummonerState(
+                    1,
+                    90f,
+                    100f,
+                    7f,
+                    10f,
+                    false,
+                    0f,
+                    0f,
+                    -1,
+                    Vector3.Zero,
+                    -1,
+                    0,
+                    System.Array.Empty<SimCardCatalogId>(),
+                    System.Array.Empty<SimCardCatalogId>(),
+                    System.Array.Empty<SimCardCatalogId>(),
+                    "fire_wisp"
+                ),
             ],
             Units:
             [
-                new UnitState(10, 0, new Vector3(-5f, 0f, 0f), 100f, 100f, null, true, (int)ActivationState.Active, (int)BehaviorState.NoTarget, true)
+                new UnitState(
+                    10,
+                    0,
+                    new Vector3(-5f, 0f, 0f),
+                    100f,
+                    100f,
+                    null,
+                    true,
+                    (int)ActivationState.Active,
+                    (int)BehaviorState.NoTarget,
+                    true
+                ),
             ],
             Projectiles: System.Array.Empty<ProjectileState>(),
             StateHash: 0,
@@ -152,8 +200,10 @@ public class NetworkSessionWiringTest
                     Speed: 9f,
                     ProjectileCatalogId: "weaving_bolt",
                     HitRadius: 1.1f,
-                    HitSpace: ProjectileHitSpace.Sphere3D)
-            ]);
+                    HitSpace: ProjectileHitSpace.Sphere3D
+                ),
+            ]
+        );
 
         transport.EmitMessage(1, serializer.Serialize(seed));
         session.Tick(0.016f);
@@ -189,8 +239,10 @@ public class NetworkSessionWiringTest
                     Speed: 9f,
                     ProjectileCatalogId: "weaving_bolt",
                     TimeAlive: 2.0f,
-                    Lifetime: 4.0f)
-            ]);
+                    Lifetime: 4.0f
+                ),
+            ]
+        );
 
         transport.EmitMessage(1, serializer.Serialize(seed));
         session.Tick(0f);
@@ -219,10 +271,16 @@ public class NetworkSessionWiringTest
             }
         };
 
-        transport.EmitMessage(1, serializer.Serialize(new SpellCastVisual(
-            Team: 0,
-            CatalogId: "fireball",
-            Position: new Vector3(3f, 0f, -1f))));
+        transport.EmitMessage(
+            1,
+            serializer.Serialize(
+                new SpellCastVisual(
+                    Team: 0,
+                    CatalogId: "fireball",
+                    Position: new Vector3(3f, 0f, -1f)
+                )
+            )
+        );
         session.Tick(0.016f);
 
         AssertThat(seenEvent != null).IsTrue();
@@ -316,8 +374,10 @@ public class NetworkSessionWiringTest
         foreach (var message in transport.BroadcastMessages)
         {
             var type = serializer.GetMessageType(message);
-            if (type == MessageType.MatchEnded) sawMatchEnded = true;
-            if (type == MessageType.StateSnapshot) sawSnapshot = true;
+            if (type == MessageType.MatchEnded)
+                sawMatchEnded = true;
+            if (type == MessageType.StateSnapshot)
+                sawSnapshot = true;
         }
 
         AssertThat(sawMatchEnded).IsTrue();
@@ -342,7 +402,7 @@ public class NetworkSessionWiringTest
             Speed = 9f,
             Lifetime = 4f,
             HitRadius = 1.3f,
-            HitSpace = ProjectileHitSpace.Sphere3D
+            HitSpace = ProjectileHitSpace.Sphere3D,
         };
 
         var simulation = new Fateforged.Simulation.Simulation(state);
@@ -381,7 +441,8 @@ public class NetworkSessionWiringTest
             TargetPosition: new Vector3(10f, 0f, 0f),
             Speed: 28f,
             VeerDirection: new Vector3(0.7f, 0.1f, 0.5f),
-            CounterVeerDirection: new Vector3(-0.3f, -0.05f, 0.8f));
+            CounterVeerDirection: new Vector3(-0.3f, -0.05f, 0.8f)
+        );
 
         var dict = serializer.Serialize(original);
         var deserialized = (ProjectileSpawned)serializer.Deserialize(dict);
@@ -413,7 +474,7 @@ public class NetworkSessionWiringTest
             Speed = 28f,
             Lifetime = 4f,
             VeerDirection = new SimVector3(0.6f, 0.2f, -0.4f),
-            CounterVeerDirection = new SimVector3(-0.5f, 0.1f, 0.7f)
+            CounterVeerDirection = new SimVector3(-0.5f, 0.1f, 0.7f),
         };
 
         var simulation = new Fateforged.Simulation.Simulation(state);
@@ -527,10 +588,15 @@ public class NetworkSessionWiringTest
         public event Action<string>? OnDisconnected;
 
         public void Send(Dictionary message) => SentMessages.Add(message);
+
         public void Broadcast(Dictionary message) => BroadcastMessages.Add(message);
+
         public void SendTo(int peerId, Dictionary message) => DirectMessages.Add((peerId, message));
+
         public void Host(int port) => IsConnected = true;
+
         public void Connect(string address, int port) => IsConnected = true;
+
         public void Disconnect()
         {
             IsConnected = false;

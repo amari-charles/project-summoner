@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Rewards;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
@@ -26,7 +26,8 @@ public class CampaignRewardHandler
         IProfileRepository profileRepo,
         CampaignDataStore store,
         Func<SummonerId> getActiveSummonerFunc,
-        Func<string, string, string>? grantCardFunc = null)
+        Func<string, string, string>? grantCardFunc = null
+    )
     {
         _profileRepo = profileRepo;
         _store = store;
@@ -41,7 +42,8 @@ public class CampaignRewardHandler
             _profileRepo,
             _store,
             _getActiveSummonerFunc,
-            grantCardFunc ?? _grantCardFunc);
+            grantCardFunc ?? _grantCardFunc
+        );
     }
 
     // =========================================================================
@@ -49,30 +51,38 @@ public class CampaignRewardHandler
     // =========================================================================
 
     /// <summary>Set a pending reward for a battle.</summary>
-    public void SetPendingReward(BattleId battleId, Data.Events.RewardType rewardType, int choiceIndex = -1)
+    public void SetPendingReward(
+        BattleId battleId,
+        Data.Events.RewardType rewardType,
+        int choiceIndex = -1
+    )
     {
         var summonerId = _getActiveSummonerFunc();
-        if (!summonerId.HasValue) return;
+        if (!summonerId.HasValue)
+            return;
 
         var pending = new PendingRewardData
         {
             BattleId = battleId,
             RewardType = rewardType,
-            ChoiceIndex = choiceIndex
+            ChoiceIndex = choiceIndex,
         };
 
         var progress = _profileRepo.GetCampaignProgress(summonerId);
         progress.PendingReward = pending;
         _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
-        GD.Print($"CampaignRewardHandler: Set pending reward for battle '{battleId}' (type: {rewardType})");
+        GD.Print(
+            $"CampaignRewardHandler: Set pending reward for battle '{battleId}' (type: {rewardType})"
+        );
     }
 
     /// <summary>Get the current pending reward as typed data.</summary>
     public PendingRewardData? GetPendingRewardData()
     {
         var summonerId = _getActiveSummonerFunc();
-        if (!summonerId.HasValue) return null;
+        if (!summonerId.HasValue)
+            return null;
 
         return _profileRepo.GetCampaignProgress(summonerId).PendingReward;
     }
@@ -88,7 +98,8 @@ public class CampaignRewardHandler
     public void UpdatePendingChoice(int choiceIndex, string chosenCatalogId = "")
     {
         var summonerId = _getActiveSummonerFunc();
-        if (!summonerId.HasValue) return;
+        if (!summonerId.HasValue)
+            return;
 
         var progress = _profileRepo.GetCampaignProgress(summonerId);
         if (progress.PendingReward == null)
@@ -100,14 +111,17 @@ public class CampaignRewardHandler
         progress.PendingReward.ChosenCatalogId = chosenCatalogId ?? "";
         _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
-        GD.Print($"CampaignRewardHandler: Updated pending choice to index {choiceIndex}, catalog_id '{progress.PendingReward.ChosenCatalogId}'");
+        GD.Print(
+            $"CampaignRewardHandler: Updated pending choice to index {choiceIndex}, catalog_id '{progress.PendingReward.ChosenCatalogId}'"
+        );
     }
 
     /// <summary>Clear the pending reward.</summary>
     public void ClearPendingReward()
     {
         var summonerId = _getActiveSummonerFunc();
-        if (!summonerId.HasValue) return;
+        if (!summonerId.HasValue)
+            return;
 
         var progress = _profileRepo.GetCampaignProgress(summonerId);
         progress.PendingReward = null;
@@ -124,7 +138,11 @@ public class CampaignRewardHandler
     /// Grant battle reward and return granted reward payload.
     /// Uses BattleRewardSpec so grant behavior matches the reward screen (filtering + choice index semantics).
     /// </summary>
-    public Godot.Collections.Dictionary GrantBattleReward(BattleId battleId, int chosenIndex = 0, string chosenCatalogId = "")
+    public Godot.Collections.Dictionary GrantBattleReward(
+        BattleId battleId,
+        int chosenIndex = 0,
+        string chosenCatalogId = ""
+    )
     {
         var granted = new Godot.Collections.Dictionary();
         var grantedCards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
@@ -140,12 +158,14 @@ public class CampaignRewardHandler
             foreach (var id in ids)
                 grantedInstanceIds.Add(id);
 
-            grantedCards.Add(new Godot.Collections.Dictionary
-            {
-                ["catalog_id"] = option.CatalogId,
-                ["rarity"] = option.Rarity,
-                ["count"] = option.Count
-            });
+            grantedCards.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["catalog_id"] = option.CatalogId,
+                    ["rarity"] = option.Rarity,
+                    ["count"] = option.Count,
+                }
+            );
         }
 
         if (grantedCards.Count > 0)
@@ -168,10 +188,19 @@ public class CampaignRewardHandler
             .Select(card => (string)card.CatalogId)
             .ToHashSet();
 
-        return BattleRewardSpec.FromBattleId((string)battleId, isCompleted: false, chosenIndex, ownedCatalogIds);
+        return BattleRewardSpec.FromBattleId(
+            (string)battleId,
+            isCompleted: false,
+            chosenIndex,
+            ownedCatalogIds
+        );
     }
 
-    private IEnumerable<CardRewardOption> ResolveCardOptionsToGrant(BattleRewardSpec spec, int chosenIndex, string chosenCatalogId)
+    private IEnumerable<CardRewardOption> ResolveCardOptionsToGrant(
+        BattleRewardSpec spec,
+        int chosenIndex,
+        string chosenCatalogId
+    )
     {
         if (spec.CardOptions.Count == 0)
             yield break;
@@ -186,20 +215,26 @@ public class CampaignRewardHandler
             case Data.Events.RewardType.Flexible:
                 if (!string.IsNullOrEmpty(chosenCatalogId))
                 {
-                    var selected = spec.CardOptions.FirstOrDefault(o => o.CatalogId == chosenCatalogId);
+                    var selected = spec.CardOptions.FirstOrDefault(o =>
+                        o.CatalogId == chosenCatalogId
+                    );
                     if (selected != null)
                     {
                         yield return selected;
                         yield break;
                     }
 
-                    GD.PushWarning($"CampaignRewardHandler: Chosen catalog_id '{chosenCatalogId}' not present in current options, falling back to index");
+                    GD.PushWarning(
+                        $"CampaignRewardHandler: Chosen catalog_id '{chosenCatalogId}' not present in current options, falling back to index"
+                    );
                 }
 
                 var index = chosenIndex >= 0 ? chosenIndex : 0;
                 if (index >= spec.CardOptions.Count)
                 {
-                    GD.PushWarning($"CampaignRewardHandler: Choice index {chosenIndex} out of range for flexible reward, defaulting to first option");
+                    GD.PushWarning(
+                        $"CampaignRewardHandler: Choice index {chosenIndex} out of range for flexible reward, defaulting to first option"
+                    );
                     index = 0;
                 }
                 yield return spec.CardOptions[index];
@@ -231,7 +266,9 @@ public class CampaignRewardHandler
             }
             else
             {
-                GD.PushWarning($"CampaignRewardHandler: Grant callback returned empty instance_id for {catalogId} ({rarity})");
+                GD.PushWarning(
+                    $"CampaignRewardHandler: Grant callback returned empty instance_id for {catalogId} ({rarity})"
+                );
             }
         }
 
@@ -247,7 +284,9 @@ public class CampaignRewardHandler
         var summonerId = _getActiveSummonerFunc();
         if (!summonerId.HasValue)
         {
-            GD.PushWarning("CampaignRewardHandler: Cannot grant campaign gold - no active summoner");
+            GD.PushWarning(
+                "CampaignRewardHandler: Cannot grant campaign gold - no active summoner"
+            );
             return;
         }
 
@@ -273,7 +312,11 @@ public class CampaignRewardHandler
             return (new Godot.Collections.Dictionary(), BattleId.None);
         }
 
-        var grantedCard = GrantBattleReward(pending.BattleId, pending.ChoiceIndex, pending.ChosenCatalogId);
+        var grantedCard = GrantBattleReward(
+            pending.BattleId,
+            pending.ChoiceIndex,
+            pending.ChosenCatalogId
+        );
 
         GD.Print($"CampaignRewardHandler: Claimed reward for battle '{pending.BattleId}'");
         return (grantedCard, pending.BattleId);

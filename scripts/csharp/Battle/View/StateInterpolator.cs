@@ -38,7 +38,7 @@ public class StateInterpolator
             _targets[networkId] = new InterpolationTarget
             {
                 TargetPosition = targetPosition,
-                CurrentPosition = targetPosition
+                CurrentPosition = targetPosition,
             };
         }
     }

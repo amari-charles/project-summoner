@@ -1,7 +1,7 @@
 using System.Linq;
-using Godot;
 using Fateforged.Data.Traits;
 using Fateforged.Stats;
+using Godot;
 
 namespace Fateforged.Data.Items;
 
@@ -29,7 +29,8 @@ public static class ItemCatalog
     public static bool HasItem(string id) => ItemDefinitions.Has(id);
 
     /// <summary>Get all item IDs.</summary>
-    public static string[] GetAllItemIds() => ItemDefinitions.All.Select(i => (string)i.Id).ToArray();
+    public static string[] GetAllItemIds() =>
+        ItemDefinitions.All.Select(i => (string)i.Id).ToArray();
 
     /// <summary>Get all item definitions.</summary>
     public static ItemDefinition[] GetAllItems() => [.. ItemDefinitions.All];
@@ -81,7 +82,7 @@ public static class ItemCatalog
             ["slot"] = item.Slot.ToString().ToLowerInvariant(),
             ["binding"] = item.Binding.ToString(),
             ["rarity"] = item.Rarity,
-            ["modifiers"] = modifiersArray
+            ["modifiers"] = modifiersArray,
         };
 
         if (!string.IsNullOrEmpty(item.IconPath))
@@ -109,7 +110,9 @@ public static class ItemCatalog
     }
 
     /// <summary>Get items by slot as dictionaries for GDScript.</summary>
-    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetItemsBySlotAsDict(string slotName)
+    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetItemsBySlotAsDict(
+        string slotName
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         if (System.Enum.TryParse<ItemSlot>(slotName, ignoreCase: true, out var slot))

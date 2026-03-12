@@ -1,7 +1,7 @@
 namespace Fateforged.Tests.Stats;
 
-using GdUnit4;
 using Fateforged.Stats;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>

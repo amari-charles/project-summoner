@@ -41,10 +41,7 @@ public class ScriptedAiStrategyTest
         summoner.Ai = new AiConfig
         {
             Type = AiType.Scripted,
-            Script = new[]
-            {
-                new ScriptedAiStep(5.0f, "test_card", SimVector3.Zero)
-            }
+            Script = new[] { new ScriptedAiStep(5.0f, "test_card", SimVector3.Zero) },
         };
 
         _state.MatchTime = 2.0f; // Before trigger time
@@ -64,10 +61,7 @@ public class ScriptedAiStrategyTest
         summoner.Ai = new AiConfig
         {
             Type = AiType.Scripted,
-            Script = new[]
-            {
-                new ScriptedAiStep(5.0f, "test_card", new SimVector3(10f, 0f, 0f))
-            }
+            Script = new[] { new ScriptedAiStep(5.0f, "test_card", new SimVector3(10f, 0f, 0f)) },
         };
 
         _state.MatchTime = 5.5f; // Past trigger time
@@ -97,8 +91,8 @@ public class ScriptedAiStrategyTest
             Script = new[]
             {
                 new ScriptedAiStep(1.0f, "card_a", SimVector3.Zero),
-                new ScriptedAiStep(10.0f, "card_b", SimVector3.Zero)
-            }
+                new ScriptedAiStep(10.0f, "card_b", SimVector3.Zero),
+            },
         };
 
         _state.MatchTime = 3.0f; // Past first, before second
@@ -115,15 +109,15 @@ public class ScriptedAiStrategyTest
         var summoner = _state.Summoners[1];
         summoner.Mana = 100;
         summoner.Hand.Add("other_card");
-        _state.CardDataMap["other_card"] = SimTestHelper.CreateSummonCard("other_card", manaCost: 2);
+        _state.CardDataMap["other_card"] = SimTestHelper.CreateSummonCard(
+            "other_card",
+            manaCost: 2
+        );
 
         summoner.Ai = new AiConfig
         {
             Type = AiType.Scripted,
-            Script = new[]
-            {
-                new ScriptedAiStep(1.0f, "missing_card", SimVector3.Zero)
-            }
+            Script = new[] { new ScriptedAiStep(1.0f, "missing_card", SimVector3.Zero) },
         };
 
         _state.MatchTime = 5.0f;
@@ -145,10 +139,7 @@ public class ScriptedAiStrategyTest
         summoner.Ai = new AiConfig
         {
             Type = AiType.Scripted,
-            Script = new[]
-            {
-                new ScriptedAiStep(1.0f, "test_card", SimVector3.Zero)
-            }
+            Script = new[] { new ScriptedAiStep(1.0f, "test_card", SimVector3.Zero) },
         };
 
         _state.MatchTime = 5.0f;

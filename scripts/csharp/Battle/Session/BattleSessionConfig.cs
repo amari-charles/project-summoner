@@ -15,7 +15,7 @@ public enum BattleMode
     Endless = 2,
     Tutorial = 3,
     Practice = 4,
-    Multiplayer = 5
+    Multiplayer = 5,
 }
 
 /// <summary>
@@ -96,8 +96,9 @@ public class BattleSessionConfig
     /// </summary>
     public static BattleSessionConfig FromBattleContext(Node battleContext)
     {
-        var config = (Godot.Collections.Dictionary?)battleContext.Get("battle_config")
-                     ?? new Godot.Collections.Dictionary();
+        var config =
+            (Godot.Collections.Dictionary?)battleContext.Get("battle_config")
+            ?? new Godot.Collections.Dictionary();
 
         var cfg = new BattleSessionConfig
         {
@@ -107,7 +108,8 @@ public class BattleSessionConfig
 
             // Win condition
             WinCondition = WinConditionFactory.Parse(
-                config.GetValueOrDefault("win_condition", "").ToString() ?? ""),
+                config.GetValueOrDefault("win_condition", "").ToString() ?? ""
+            ),
             TimeLimit = (float)config.GetValueOrDefault("time_limit", 0.0f),
             KillTarget = (int)config.GetValueOrDefault("kill_target", 0),
 
@@ -130,7 +132,8 @@ public class BattleSessionConfig
         // AI config
         cfg.AiType = ParseAiType(config.GetValueOrDefault("ai_type", "heuristic").ToString()!);
         cfg.AiPersonality = ParseAiPersonality(
-            config.GetValueOrDefault("ai_personality", "balanced").ToString()!);
+            config.GetValueOrDefault("ai_personality", "balanced").ToString()!
+        );
         cfg.AiDifficulty = (int)config.GetValueOrDefault("ai_difficulty", 3);
 
         var aiConfigVar = config.GetValueOrDefault("ai_config", default);
@@ -177,7 +180,7 @@ public class BattleSessionConfig
             "heuristic" => AiType.Heuristic,
             "scripted" => AiType.Scripted,
             "passive" or "none" => AiType.None,
-            _ => AiType.Heuristic
+            _ => AiType.Heuristic,
         };
     }
 
@@ -192,7 +195,7 @@ public class BattleSessionConfig
             "aggressive" => AiPersonality.Aggressive,
             "defensive" => AiPersonality.Defensive,
             "spell_focused" => AiPersonality.SpellFocused,
-            _ => AiPersonality.Balanced
+            _ => AiPersonality.Balanced,
         };
     }
 }

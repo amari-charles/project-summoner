@@ -1,6 +1,6 @@
+using Fateforged.Vfx;
 using Godot;
 using Godot.Collections;
-using Fateforged.Vfx;
 
 namespace Fateforged.Projectiles;
 
@@ -195,7 +195,7 @@ public class ProjectileData
             HitRadius = GetFloat(dict, "hit_radius", 2.5f),
             HitSpace = ParseHitSpace(GetString(dict, "hit_space", "ground_cylinder")),
             LaunchSound = GetString(dict, "launch_sound"),
-            ImpactSound = GetString(dict, "impact_sound")
+            ImpactSound = GetString(dict, "impact_sound"),
         };
 
         // Parse movement type
@@ -206,7 +206,7 @@ public class ProjectileData
             "arc" => ProjectileMovementType.Arc,
             "ballistic" => ProjectileMovementType.Ballistic,
             "weaving_homing" => ProjectileMovementType.WeavingHoming,
-            _ => ProjectileMovementType.Straight
+            _ => ProjectileMovementType.Straight,
         };
 
         // Load visual scene if path provided
@@ -217,12 +217,16 @@ public class ProjectileData
                 data.VisualScene = ResourceLoader.Load<PackedScene>(data.ModelScenePath);
                 if (data.VisualScene == null)
                 {
-                    GD.PushError($"ProjectileData: Failed to load visual scene at '{data.ModelScenePath}'");
+                    GD.PushError(
+                        $"ProjectileData: Failed to load visual scene at '{data.ModelScenePath}'"
+                    );
                 }
             }
             else
             {
-                GD.PushError($"ProjectileData: Visual scene path does not exist: '{data.ModelScenePath}'");
+                GD.PushError(
+                    $"ProjectileData: Visual scene path does not exist: '{data.ModelScenePath}'"
+                );
             }
         }
 
@@ -310,7 +314,7 @@ public class ProjectileData
             "ease_in" or "easein" => SpeedEasingType.EaseIn,
             "ease_out" or "easeout" => SpeedEasingType.EaseOut,
             "ease_in_out" or "easeinout" => SpeedEasingType.EaseInOut,
-            _ => SpeedEasingType.Linear
+            _ => SpeedEasingType.Linear,
         };
     }
 
@@ -319,8 +323,7 @@ public class ProjectileData
         return value.ToLower() switch
         {
             "sphere_3d" or "sphere3d" or "sphere" => ProjectileHitSpace.Sphere3D,
-            _ => ProjectileHitSpace.GroundCylinder
+            _ => ProjectileHitSpace.GroundCylinder,
         };
     }
-
 }

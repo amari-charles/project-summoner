@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Godot;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Enums;
@@ -8,9 +7,9 @@ using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Economy;
 using Fateforged.Meta.Rewards;
 using Fateforged.Meta.Summoner;
-
-using GdDict = Godot.Collections.Dictionary;
+using Godot;
 using GdArray = Godot.Collections.Array;
+using GdDict = Godot.Collections.Dictionary;
 
 namespace Fateforged.Meta.Shop;
 
@@ -169,12 +168,22 @@ public partial class ShopService : Node
     {
         var offering = FindOfferingDef(offeringId, shopId);
         if (offering == null)
-            return new GdDict { ["can_purchase"] = false, ["reason"] = "Offering not found", ["price"] = 0 };
+            return new GdDict
+            {
+                ["can_purchase"] = false,
+                ["reason"] = "Offering not found",
+                ["price"] = 0,
+            };
 
         // Check already owned
         var ownedReason = CheckAlreadyOwned(offering);
         if (!string.IsNullOrEmpty(ownedReason))
-            return new GdDict { ["can_purchase"] = false, ["reason"] = ownedReason, ["price"] = offering.BasePrice };
+            return new GdDict
+            {
+                ["can_purchase"] = false,
+                ["reason"] = ownedReason,
+                ["price"] = offering.BasePrice,
+            };
 
         // Check purchase limit
         var refreshEpoch = GetRefreshEpoch(shopId);
@@ -184,7 +193,12 @@ public partial class ShopService : Node
         if (offering.PurchaseLimitType != PurchaseLimitType.None && offering.PurchaseLimit > 0)
         {
             if (purchaseCount >= offering.PurchaseLimit)
-                return new GdDict { ["can_purchase"] = false, ["reason"] = "Purchase limit reached", ["price"] = offering.BasePrice };
+                return new GdDict
+                {
+                    ["can_purchase"] = false,
+                    ["reason"] = "Purchase limit reached",
+                    ["price"] = offering.BasePrice,
+                };
         }
 
         // Check currency
@@ -194,20 +208,37 @@ public partial class ShopService : Node
         switch (offering.CurrencyType)
         {
             case CurrencyType.Gold:
-                var gold = isCaravan ? (_economy?.GetCampaignGold() ?? 0) : (_economy?.GetGold() ?? 0);
+                var gold = isCaravan
+                    ? (_economy?.GetCampaignGold() ?? 0)
+                    : (_economy?.GetGold() ?? 0);
                 if (gold < price)
-                    return new GdDict { ["can_purchase"] = false, ["reason"] = $"Not enough gold (need {price}, have {gold})", ["price"] = price };
+                    return new GdDict
+                    {
+                        ["can_purchase"] = false,
+                        ["reason"] = $"Not enough gold (need {price}, have {gold})",
+                        ["price"] = price,
+                    };
                 break;
             case CurrencyType.Gems:
                 var gems = _economy?.GetGems() ?? 0;
                 if (gems < price)
-                    return new GdDict { ["can_purchase"] = false, ["reason"] = $"Not enough gems (need {price}, have {gems})", ["price"] = price };
+                    return new GdDict
+                    {
+                        ["can_purchase"] = false,
+                        ["reason"] = $"Not enough gems (need {price}, have {gems})",
+                        ["price"] = price,
+                    };
                 break;
             case CurrencyType.RealMoney:
                 break; // Always valid to initiate
         }
 
-        return new GdDict { ["can_purchase"] = true, ["reason"] = "", ["price"] = price };
+        return new GdDict
+        {
+            ["can_purchase"] = true,
+            ["reason"] = "",
+            ["price"] = price,
+        };
     }
 
     // =========================================================================
@@ -242,7 +273,9 @@ public partial class ShopService : Node
 
         // Determine currency amounts
         var isCaravan = shopId.StartsWith("caravan");
-        var playerGold = isCaravan ? (_economy?.GetCampaignGold() ?? 0) : (_economy?.GetGold() ?? 0);
+        var playerGold = isCaravan
+            ? (_economy?.GetCampaignGold() ?? 0)
+            : (_economy?.GetGold() ?? 0);
         var playerGems = _economy?.GetGems() ?? 0;
 
         // Validate purchase limits and currency
@@ -259,12 +292,32 @@ public partial class ShopService : Node
         {
             case CurrencyType.Gold:
                 if (isCaravan)
-                    return CompleteCaravanPurchase(offering, offeringId, shopId, purchaseKey, price);
+                    return CompleteCaravanPurchase(
+                        offering,
+                        offeringId,
+                        shopId,
+                        purchaseKey,
+                        price
+                    );
                 else
-                    return CompleteCurrencyPurchase(offering, offeringId, shopId, purchaseKey, price, CurrencyType.Gold);
+                    return CompleteCurrencyPurchase(
+                        offering,
+                        offeringId,
+                        shopId,
+                        purchaseKey,
+                        price,
+                        CurrencyType.Gold
+                    );
 
             case CurrencyType.Gems:
-                return CompleteCurrencyPurchase(offering, offeringId, shopId, purchaseKey, price, CurrencyType.Gems);
+                return CompleteCurrencyPurchase(
+                    offering,
+                    offeringId,
+                    shopId,
+                    purchaseKey,
+                    price,
+                    CurrencyType.Gems
+                );
 
             case CurrencyType.RealMoney:
                 ResolveBillingDependencies();
@@ -290,7 +343,13 @@ public partial class ShopService : Node
     // PURCHASE IMPLEMENTATIONS
     // =========================================================================
 
-    private bool CompleteCaravanPurchase(OfferingDefinition offering, string offeringId, string shopId, string purchaseKey, int price)
+    private bool CompleteCaravanPurchase(
+        OfferingDefinition offering,
+        string offeringId,
+        string shopId,
+        string purchaseKey,
+        int price
+    )
     {
         // Spend campaign gold
         if (_economy?.SpendCampaignGold(price) != true)
@@ -311,33 +370,48 @@ public partial class ShopService : Node
 
         // Record purchase
         _profileRepo?.IncrementPurchaseCount(purchaseKey);
-        _profileRepo?.AddCaravanPurchase(offeringId,
-            new SummonerId(_summonerSelection?.GetActiveSummonerId() ?? ""));
+        _profileRepo?.AddCaravanPurchase(
+            offeringId,
+            new SummonerId(_summonerSelection?.GetActiveSummonerId() ?? "")
+        );
 
         EmitSignal(SignalName.PurchaseCompleted, offeringId, shopId);
-        GD.Print($"ShopService: Completed caravan purchase '{offeringId}' for {price} campaign gold");
+        GD.Print(
+            $"ShopService: Completed caravan purchase '{offeringId}' for {price} campaign gold"
+        );
         return true;
     }
 
-    private bool CompleteCurrencyPurchase(OfferingDefinition offering, string offeringId, string shopId, string purchaseKey, int price, CurrencyType currency)
+    private bool CompleteCurrencyPurchase(
+        OfferingDefinition offering,
+        string offeringId,
+        string shopId,
+        string purchaseKey,
+        int price,
+        CurrencyType currency
+    )
     {
         // Map shop CurrencyType to profile ResourceType
         var resourceType = currency switch
         {
             CurrencyType.Gold => ResourceType.Gold,
             CurrencyType.Gems => ResourceType.Gems,
-            _ => ResourceType.Gold
+            _ => ResourceType.Gold,
         };
 
         // Deduct currency
-        _profileRepo?.UpdateResources(new Dictionary<ResourceType, int> { [resourceType] = -price });
+        _profileRepo?.UpdateResources(
+            new Dictionary<ResourceType, int> { [resourceType] = -price }
+        );
 
         // Grant rewards
         var rewards = BuildRewardDict(offering, shopId);
         if (_rewardService?.GrantRewards(rewards) != true)
         {
             // Rollback
-            _profileRepo?.UpdateResources(new Dictionary<ResourceType, int> { [resourceType] = price });
+            _profileRepo?.UpdateResources(
+                new Dictionary<ResourceType, int> { [resourceType] = price }
+            );
             EmitPurchaseFailed(offeringId, "Failed to grant rewards");
             return false;
         }
@@ -357,7 +431,8 @@ public partial class ShopService : Node
     private GdDict BuildRewardDict(OfferingDefinition offering, string shopId)
     {
         var rewards = new GdDict();
-        var isCaravan = _catalog.TryGetValue(shopId, out var shop) && shop.ShopType == ShopType.Caravan;
+        var isCaravan =
+            _catalog.TryGetValue(shopId, out var shop) && shop.ShopType == ShopType.Caravan;
         var activeSummonerId = isCaravan ? (_summonerSelection?.GetActiveSummonerId() ?? "") : null;
 
         switch (offering.OfferingType)
@@ -367,7 +442,7 @@ public partial class ShopService : Node
                 {
                     ["catalog_id"] = offering.CardCatalogId ?? "",
                     ["count"] = offering.CardCount,
-                    ["rarity"] = "common"
+                    ["rarity"] = "common",
                 };
                 AddBindingToCardDict(cardDict, isCaravan, activeSummonerId);
                 rewards["cards"] = new GdArray { cardDict };
@@ -383,7 +458,7 @@ public partial class ShopService : Node
                         {
                             ["catalog_id"] = entry.CatalogId,
                             ["count"] = entry.Count,
-                            ["rarity"] = "common"
+                            ["rarity"] = "common",
                         };
                         AddBindingToCardDict(packCardDict, isCaravan, activeSummonerId);
                         cardsArray.Add(packCardDict);
@@ -408,7 +483,11 @@ public partial class ShopService : Node
         return rewards;
     }
 
-    private static void AddBindingToCardDict(GdDict cardDict, bool isCaravanShop, string? summonerId)
+    private static void AddBindingToCardDict(
+        GdDict cardDict,
+        bool isCaravanShop,
+        string? summonerId
+    )
     {
         if (isCaravanShop && !string.IsNullOrEmpty(summonerId))
         {
@@ -430,20 +509,26 @@ public partial class ShopService : Node
         switch (offering.OfferingType)
         {
             case OfferingType.Summoner:
-                if (!string.IsNullOrEmpty(offering.SummonerId) &&
-                    _summonerSelection?.IsSummonerUnlocked(offering.SummonerId) == true)
+                if (
+                    !string.IsNullOrEmpty(offering.SummonerId)
+                    && _summonerSelection?.IsSummonerUnlocked(offering.SummonerId) == true
+                )
                     return "Already owned";
                 break;
 
             case OfferingType.Cosmetic:
-                if (!string.IsNullOrEmpty(offering.CosmeticId) &&
-                    _profileRepo?.IsCosmeticOwned(new CosmeticId(offering.CosmeticId)) == true)
+                if (
+                    !string.IsNullOrEmpty(offering.CosmeticId)
+                    && _profileRepo?.IsCosmeticOwned(new CosmeticId(offering.CosmeticId)) == true
+                )
                     return "Already owned";
                 break;
 
             case OfferingType.Emote:
-                if (!string.IsNullOrEmpty(offering.EmoteId) &&
-                    _profileRepo?.IsEmoteOwned(new EmoteId(offering.EmoteId)) == true)
+                if (
+                    !string.IsNullOrEmpty(offering.EmoteId)
+                    && _profileRepo?.IsEmoteOwned(new EmoteId(offering.EmoteId)) == true
+                )
                     return "Already owned";
                 break;
         }
@@ -451,7 +536,12 @@ public partial class ShopService : Node
         return "";
     }
 
-    private static string ValidatePurchase(OfferingDefinition offering, int playerGold, int playerGems, int purchaseCount)
+    private static string ValidatePurchase(
+        OfferingDefinition offering,
+        int playerGold,
+        int playerGems,
+        int purchaseCount
+    )
     {
         // Check purchase limit
         if (offering.PurchaseLimitType != PurchaseLimitType.None && offering.PurchaseLimit > 0)
@@ -510,7 +600,9 @@ public partial class ShopService : Node
     private void OnBillingPurchaseCompleted(string productId, string transactionId)
     {
         ResolveBillingDependencies();
-        GD.Print($"ShopService: Billing purchase completed - product: {productId}, txn: {transactionId}");
+        GD.Print(
+            $"ShopService: Billing purchase completed - product: {productId}, txn: {transactionId}"
+        );
 
         if (_pendingBillingPurchases.Remove(productId, out var pending))
         {
@@ -524,8 +616,14 @@ public partial class ShopService : Node
             }
             else
             {
-                GD.PushError($"ShopService: CRITICAL - Payment completed but failed to grant rewards for '{pending.OfferingId}'");
-                EmitSignal(SignalName.PurchaseFailed, pending.OfferingId, "Failed to grant rewards after payment");
+                GD.PushError(
+                    $"ShopService: CRITICAL - Payment completed but failed to grant rewards for '{pending.OfferingId}'"
+                );
+                EmitSignal(
+                    SignalName.PurchaseFailed,
+                    pending.OfferingId,
+                    "Failed to grant rewards after payment"
+                );
             }
         }
         else
@@ -603,7 +701,7 @@ public partial class ShopService : Node
                 OfferingType.Summoner => "summoner",
                 OfferingType.Cosmetic => "cosmetic",
                 OfferingType.Emote => "emote",
-                _ => "card"
+                _ => "card",
             },
             ["display_name"] = ResolveLoc(def.NameKey),
             ["description"] = ResolveLoc(def.DescriptionKey),
@@ -623,7 +721,9 @@ public partial class ShopService : Node
         {
             var packArray = new GdArray();
             foreach (var entry in def.PackCards)
-                packArray.Add(new GdDict { ["catalog_id"] = entry.CatalogId, ["count"] = entry.Count });
+                packArray.Add(
+                    new GdDict { ["catalog_id"] = entry.CatalogId, ["count"] = entry.Count }
+                );
             dict["pack_cards"] = packArray;
         }
 

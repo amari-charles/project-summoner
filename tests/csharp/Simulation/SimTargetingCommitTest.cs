@@ -26,7 +26,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void CommitLock_DoesNotRetarget_OnNearbySpawn()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 3f, aggroRadius: 20f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 20f
+        );
         var lockedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2.4f, z: 0f);
 
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
@@ -48,7 +55,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void CommitLock_DropsTarget_WhenTargetLeavesAggroRadius()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2.5f, aggroRadius: 6f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 6f
+        );
         var lockedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 5f, z: 0f);
 
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
@@ -58,8 +72,13 @@ public class SimTargetingCommitTest
         lockedEnemy.Position = new SimVector3(20f, lockedEnemy.Position.Y, lockedEnemy.Position.Z);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue && unit.TargetUnitId!.Value == lockedEnemy.UnitId).IsFalse();
-        AssertThat(unit.LockedTargetUnitId.HasValue && unit.LockedTargetUnitId!.Value == lockedEnemy.UnitId).IsFalse();
+        AssertThat(unit.TargetUnitId.HasValue && unit.TargetUnitId!.Value == lockedEnemy.UnitId)
+            .IsFalse();
+        AssertThat(
+                unit.LockedTargetUnitId.HasValue
+                    && unit.LockedTargetUnitId!.Value == lockedEnemy.UnitId
+            )
+            .IsFalse();
         AssertThat(unit.DroppedTargetUnitId.HasValue).IsTrue();
         AssertThat(unit.DroppedTargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
     }
@@ -67,7 +86,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void SummonerCommit_PreemptsToInAggroUnit_WithinOneTick()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 3f, aggroRadius: 30f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 30f
+        );
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
@@ -87,7 +113,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void SummonerCommit_DoesNotPreempt_WhenEnemyOutsideAggro()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 3f, aggroRadius: 4f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 4f
+        );
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
@@ -106,7 +139,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void SummonerCommit_DoesNotPreempt_WhenLayerFilterRejectsCandidate()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 3f, aggroRadius: 20f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 20f
+        );
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
         unit.TargetLayerFilter = TargetLayer.AirOnly;
 
@@ -126,7 +166,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void SummonerCommit_DoesNotPreempt_WhenForcedTargetActive()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 3f, aggroRadius: 20f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 20f
+        );
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
@@ -148,7 +195,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void SummonerCommit_DoesNotPreempt_DuringActiveAttackPhase()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 16f, z: 0f, attackRange: 3f, aggroRadius: 20f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 16f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 20f
+        );
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
         unit.AttackPhase = AttackPhase.Windup;
         unit.AttackPhaseTimer = 0.4f;
@@ -170,7 +224,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void AcquireTargetCommit_DoesNotPrelockSummoner_WhenEnemyUnitsAliveOutsideAggro()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: -18f, z: 0f, attackRange: 2.5f, aggroRadius: 8f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: -18f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 8f
+        );
         SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0f, z: 0f); // alive enemy exists but outside aggro
 
         int? target = SimTargeting.AcquireTargetCommit(
@@ -178,7 +239,8 @@ public class SimTargetingCommitTest
             _state,
             currentTargetId: null,
             droppedTargetId: null,
-            droppedTargetCooldownTimer: 0f);
+            droppedTargetCooldownTimer: 0f
+        );
 
         AssertThat(target.HasValue).IsFalse();
     }
@@ -186,7 +248,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void AcquireTargetCommit_PrefersEnemyUnit_WhenEnemyInAggro()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2.5f, aggroRadius: 12f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 12f
+        );
         var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 3f, z: 0f);
 
         int? target = SimTargeting.AcquireTargetCommit(
@@ -194,7 +263,8 @@ public class SimTargetingCommitTest
             _state,
             currentTargetId: null,
             droppedTargetId: null,
-            droppedTargetCooldownTimer: 0f);
+            droppedTargetCooldownTimer: 0f
+        );
 
         AssertThat(target.HasValue).IsTrue();
         AssertThat(target!.Value).IsEqual(enemy.UnitId);
@@ -203,7 +273,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void CommitTick_UsesSlots_ForSummonerTargets()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 14f, z: 0f, attackRange: 2.5f, aggroRadius: 20f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 14f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 20f
+        );
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
 
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
@@ -215,7 +292,11 @@ public class SimTargetingCommitTest
         AssertThat(unit.SlotTargetId!.Value).IsEqual(summonerTarget);
         AssertThat(unit.ReservedSlotId.HasValue).IsTrue();
 
-        var slotPos = Fateforged.Simulation.Combat.Slots.SimMeleeSlotManager.GetReservedSlotWorldPosition(unit, _state);
+        var slotPos =
+            Fateforged.Simulation.Combat.Slots.SimMeleeSlotManager.GetReservedSlotWorldPosition(
+                unit,
+                _state
+            );
         AssertThat(slotPos.HasValue).IsTrue();
         float dx = slotPos!.Value.X - _state.Summoners[1].Position.X;
         float dz = slotPos.Value.Z - _state.Summoners[1].Position.Z;
@@ -226,7 +307,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void CommitLock_ForcedTargetExpiry_DropsForcedCommit_AndReacquires()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2.5f, aggroRadius: 12f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 12f
+        );
         var naturalEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
         var forcedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 8f, z: 0f);
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
@@ -251,7 +339,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void CommitLock_InvalidForcedTarget_ClearsAndReacquiresValidTarget()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2.5f, aggroRadius: 12f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 12f
+        );
         var forcedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
         var fallbackEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 3f, z: 0f);
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
@@ -271,24 +366,62 @@ public class SimTargetingCommitTest
     [TestCase]
     public void AcquireTargetCommit_FallsBackToSummoner_WhenOnlyInAggroUnitIsSlotSaturated()
     {
-        var saturatedTarget = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 17f, z: 0f, hp: 600f);
+        var saturatedTarget = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 17f,
+            z: 0f,
+            hp: 600f
+        );
         saturatedTarget.NavigationRadius = 0.2f;
 
         var blockerOne = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: -0.5f);
         var blockerTwo = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: 0f);
         var blockerThree = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: 0.5f);
-        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerOne, _state, saturatedTarget.UnitId, out _)).IsTrue();
-        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerTwo, _state, saturatedTarget.UnitId, out _)).IsTrue();
-        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerThree, _state, saturatedTarget.UnitId, out _)).IsTrue();
+        AssertThat(
+                SimMeleeSlotManager.TryReserveSlot(
+                    blockerOne,
+                    _state,
+                    saturatedTarget.UnitId,
+                    out _
+                )
+            )
+            .IsTrue();
+        AssertThat(
+                SimMeleeSlotManager.TryReserveSlot(
+                    blockerTwo,
+                    _state,
+                    saturatedTarget.UnitId,
+                    out _
+                )
+            )
+            .IsTrue();
+        AssertThat(
+                SimMeleeSlotManager.TryReserveSlot(
+                    blockerThree,
+                    _state,
+                    saturatedTarget.UnitId,
+                    out _
+                )
+            )
+            .IsTrue();
 
-        var overflow = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15f, z: 1.2f, attackRange: 2f, aggroRadius: 8f);
+        var overflow = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 15f,
+            z: 1.2f,
+            attackRange: 2f,
+            aggroRadius: 8f
+        );
 
         int? target = SimTargeting.AcquireTargetCommit(
             overflow,
             _state,
             currentTargetId: null,
             droppedTargetId: null,
-            droppedTargetCooldownTimer: 0f);
+            droppedTargetCooldownTimer: 0f
+        );
 
         AssertThat(target.HasValue).IsTrue();
         AssertThat(MatchState.IsSummonerTarget(target)).IsTrue();
@@ -298,7 +431,14 @@ public class SimTargetingCommitTest
     [TestCase]
     public void AcquireTargetCommit_TieBreaksByLowerUnitId_ForStableSelection()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2.5f, aggroRadius: 12f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 12f
+        );
         var first = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 4f, z: 1f);
         var second = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 4f, z: -1f);
 
@@ -307,7 +447,8 @@ public class SimTargetingCommitTest
             _state,
             currentTargetId: null,
             droppedTargetId: null,
-            droppedTargetCooldownTimer: 0f);
+            droppedTargetCooldownTimer: 0f
+        );
 
         AssertThat(target.HasValue).IsTrue();
         AssertThat(target!.Value).IsEqual(first.UnitId);
@@ -326,7 +467,14 @@ public class SimTargetingCommitTest
     private static string RunSummonerPreemptTrace(uint seed)
     {
         var state = SimTestHelper.CreateBattleState(seed);
-        var unit = SimTestHelper.CreateMeleeUnit(state, team: 0, x: 0f, z: 0f, attackRange: 3f, aggroRadius: 30f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 30f
+        );
         unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
         unit.LockedTargetUnitId = summonerTarget;

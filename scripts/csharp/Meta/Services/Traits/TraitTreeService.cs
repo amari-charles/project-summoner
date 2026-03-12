@@ -51,14 +51,18 @@ public partial class TraitTreeService : Node
 
     public GDict GetTraitNodeDetail(string ownerType, string ownerId, string traitId)
     {
-        if (string.IsNullOrWhiteSpace(ownerType) || string.IsNullOrWhiteSpace(ownerId) || string.IsNullOrWhiteSpace(traitId))
+        if (
+            string.IsNullOrWhiteSpace(ownerType)
+            || string.IsNullOrWhiteSpace(ownerId)
+            || string.IsNullOrWhiteSpace(traitId)
+        )
             return new GDict();
 
         var vm = ownerType.Trim().ToLowerInvariant() switch
         {
             "summoner" => GetSummonerTreeViewModel(ownerId),
             "card" => GetCardTreeViewModel(ownerId),
-            _ => new GDict()
+            _ => new GDict(),
         };
 
         if (vm.Count == 0)
@@ -86,13 +90,13 @@ public partial class TraitTreeService : Node
 
     public GDict TryUnlockTrait(string ownerType, string ownerId, string traitId)
     {
-        if (string.IsNullOrWhiteSpace(ownerType) || string.IsNullOrWhiteSpace(ownerId) || string.IsNullOrWhiteSpace(traitId))
+        if (
+            string.IsNullOrWhiteSpace(ownerType)
+            || string.IsNullOrWhiteSpace(ownerId)
+            || string.IsNullOrWhiteSpace(traitId)
+        )
         {
-            return new GDict
-            {
-                ["success"] = false,
-                ["reason"] = "Invalid unlock request"
-            };
+            return new GDict { ["success"] = false, ["reason"] = "Invalid unlock request" };
         }
 
         var normalizedOwnerType = ownerType.Trim().ToLowerInvariant();
@@ -105,26 +109,18 @@ public partial class TraitTreeService : Node
             return new GDict
             {
                 ["success"] = false,
-                ["reason"] = "Trait is not available for this owner"
+                ["reason"] = "Trait is not available for this owner",
             };
         }
 
         if (ReadBool(detail, "is_owned"))
         {
-            return new GDict
-            {
-                ["success"] = false,
-                ["reason"] = "Trait already unlocked"
-            };
+            return new GDict { ["success"] = false, ["reason"] = "Trait already unlocked" };
         }
 
         if (!ReadBool(detail, "unlock_button_visible"))
         {
-            return new GDict
-            {
-                ["success"] = false,
-                ["reason"] = "Trait cannot be unlocked here"
-            };
+            return new GDict { ["success"] = false, ["reason"] = "Trait cannot be unlocked here" };
         }
 
         if (!ReadBool(detail, "unlock_button_enabled"))
@@ -132,15 +128,25 @@ public partial class TraitTreeService : Node
             return new GDict
             {
                 ["success"] = false,
-                ["reason"] = ReadString(detail, "unlock_blocked_reason", "Requirements were not met")
+                ["reason"] = ReadString(
+                    detail,
+                    "unlock_blocked_reason",
+                    "Requirements were not met"
+                ),
             };
         }
 
         var success = normalizedOwnerType switch
         {
-            "summoner" => SummonerProgressionService.Instance?.SpendTraitPoint(normalizedOwnerId, normalizedTraitId) ?? false,
-            "card" => CardService.Instance?.SpendCardTraitPoint(normalizedOwnerId, normalizedTraitId) ?? false,
-            _ => false
+            "summoner" => SummonerProgressionService.Instance?.SpendTraitPoint(
+                normalizedOwnerId,
+                normalizedTraitId
+            ) ?? false,
+            "card" => CardService.Instance?.SpendCardTraitPoint(
+                normalizedOwnerId,
+                normalizedTraitId
+            ) ?? false,
+            _ => false,
         };
 
         var reason = success ? "" : "Requirements were not met";
@@ -148,7 +154,7 @@ public partial class TraitTreeService : Node
         {
             "summoner" => GetSummonerTreeViewModel(normalizedOwnerId),
             "card" => GetCardTreeViewModel(normalizedOwnerId),
-            _ => new GDict()
+            _ => new GDict(),
         };
 
         return new GDict
@@ -158,83 +164,114 @@ public partial class TraitTreeService : Node
             ["owner_type"] = normalizedOwnerType,
             ["owner_id"] = normalizedOwnerId,
             ["trait_id"] = normalizedTraitId,
-            ["tree"] = updatedTree
+            ["tree"] = updatedTree,
         };
     }
 
-    private GDict BuildTreeViewModel(string ownerType, string ownerId, TraitTreeOwnerContext context)
+    private GDict BuildTreeViewModel(
+        string ownerType,
+        string ownerId,
+        TraitTreeOwnerContext context
+    )
     {
         var progressionTraits = TraitCatalog
             .GetTraitsByAcquisitionMode(TraitAcquisitionMode.LevelUpOffer)
             .Where(trait => !trait.IsInnate)
-            .Where(trait => context.OwnedTraitIds.Contains(trait.Id.Value) || TraitTreeEvaluator.MatchesOwnerTags(trait, context))
+            .Where(trait =>
+                context.OwnedTraitIds.Contains(trait.Id.Value)
+                || TraitTreeEvaluator.MatchesOwnerTags(trait, context)
+            )
             .ToList();
 
-        var progressionById = progressionTraits.ToDictionary(t => t.Id.Value, t => t, StringComparer.Ordinal);
+        var progressionById = progressionTraits.ToDictionary(
+            t => t.Id.Value,
+            t => t,
+            StringComparer.Ordinal
+        );
         var depthById = TraitTreeEvaluator.ComputeDepthByTraitId(progressionTraits);
 
         var progressionNodes = new Godot.Collections.Array<GDict>();
         var maxDepth = 0;
 
-        foreach (var trait in progressionTraits.OrderBy(t => ResolveNameWithFallback(t.NameKey, t.Id.Value), StringComparer.Ordinal)
-                                               .ThenBy(t => t.Id.Value, StringComparer.Ordinal))
+        foreach (
+            var trait in progressionTraits
+                .OrderBy(
+                    t => ResolveNameWithFallback(t.NameKey, t.Id.Value),
+                    StringComparer.Ordinal
+                )
+                .ThenBy(t => t.Id.Value, StringComparer.Ordinal)
+        )
         {
             var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(trait, context);
             var depth = depthById.GetValueOrDefault(trait.Id.Value, 0);
             maxDepth = Math.Max(maxDepth, depth);
 
             var lockedReason = BuildLockedReason(evaluation, progressionById);
-            var unlockBlockedReason = evaluation.CanUnlockNow ? "" : BuildUnlockBlockedReason(evaluation, progressionById);
+            var unlockBlockedReason = evaluation.CanUnlockNow
+                ? ""
+                : BuildUnlockBlockedReason(evaluation, progressionById);
 
-            progressionNodes.Add(new GDict
-            {
-                ["id"] = trait.Id.Value,
-                ["name"] = ResolveNameWithFallback(trait.NameKey, trait.Id.Value),
-                ["description"] = ResolveDescription(trait.DescriptionKey),
-                ["name_key"] = trait.NameKey,
-                ["description_key"] = trait.DescriptionKey,
-                ["category"] = trait.Category.ToStringValue(),
-                ["acquisition_mode"] = trait.AcquisitionMode.ToStringValue(),
-                ["depth"] = depth,
-                ["prerequisites"] = ToStringArray(trait.Prerequisites),
-                ["state"] = evaluation.NodeState.ToStringValue(),
-                ["is_owned"] = evaluation.IsOwned,
-                ["is_unlockable"] = evaluation.IsEligibleWithoutPoints,
-                ["can_unlock"] = evaluation.CanUnlockNow,
-                ["locked_reason"] = lockedReason,
-                ["unlock_blocked_reason"] = unlockBlockedReason
-            });
+            progressionNodes.Add(
+                new GDict
+                {
+                    ["id"] = trait.Id.Value,
+                    ["name"] = ResolveNameWithFallback(trait.NameKey, trait.Id.Value),
+                    ["description"] = ResolveDescription(trait.DescriptionKey),
+                    ["name_key"] = trait.NameKey,
+                    ["description_key"] = trait.DescriptionKey,
+                    ["category"] = trait.Category.ToStringValue(),
+                    ["acquisition_mode"] = trait.AcquisitionMode.ToStringValue(),
+                    ["depth"] = depth,
+                    ["prerequisites"] = ToStringArray(trait.Prerequisites),
+                    ["state"] = evaluation.NodeState.ToStringValue(),
+                    ["is_owned"] = evaluation.IsOwned,
+                    ["is_unlockable"] = evaluation.IsEligibleWithoutPoints,
+                    ["can_unlock"] = evaluation.CanUnlockNow,
+                    ["locked_reason"] = lockedReason,
+                    ["unlock_blocked_reason"] = unlockBlockedReason,
+                }
+            );
         }
 
         var oneOffNodes = new Godot.Collections.Array<GDict>();
         var oneOffTraits = TraitCatalog
             .GetTraitsByAcquisitionMode(TraitAcquisitionMode.GrantedOnly)
-            .Where(trait => context.OwnedTraitIds.Contains(trait.Id.Value) || TraitTreeEvaluator.MatchesOwnerTags(trait, context))
-            .OrderBy(trait => ResolveNameWithFallback(trait.NameKey, trait.Id.Value), StringComparer.Ordinal)
+            .Where(trait =>
+                context.OwnedTraitIds.Contains(trait.Id.Value)
+                || TraitTreeEvaluator.MatchesOwnerTags(trait, context)
+            )
+            .OrderBy(
+                trait => ResolveNameWithFallback(trait.NameKey, trait.Id.Value),
+                StringComparer.Ordinal
+            )
             .ThenBy(trait => trait.Id.Value, StringComparer.Ordinal)
             .ToList();
 
         foreach (var trait in oneOffTraits)
         {
             var isOwned = context.OwnedTraitIds.Contains(trait.Id.Value);
-            oneOffNodes.Add(new GDict
-            {
-                ["id"] = trait.Id.Value,
-                ["name"] = ResolveNameWithFallback(trait.NameKey, trait.Id.Value),
-                ["description"] = ResolveDescription(trait.DescriptionKey),
-                ["name_key"] = trait.NameKey,
-                ["description_key"] = trait.DescriptionKey,
-                ["category"] = trait.Category.ToStringValue(),
-                ["acquisition_mode"] = trait.AcquisitionMode.ToStringValue(),
-                ["depth"] = 0,
-                ["prerequisites"] = ToStringArray(trait.Prerequisites),
-                ["state"] = isOwned ? TraitTreeNodeState.Owned.ToStringValue() : TraitTreeNodeState.Locked.ToStringValue(),
-                ["is_owned"] = isOwned,
-                ["is_unlockable"] = false,
-                ["can_unlock"] = false,
-                ["locked_reason"] = isOwned ? "" : "Granted from events or rewards",
-                ["unlock_blocked_reason"] = isOwned ? "" : "Granted from events or rewards"
-            });
+            oneOffNodes.Add(
+                new GDict
+                {
+                    ["id"] = trait.Id.Value,
+                    ["name"] = ResolveNameWithFallback(trait.NameKey, trait.Id.Value),
+                    ["description"] = ResolveDescription(trait.DescriptionKey),
+                    ["name_key"] = trait.NameKey,
+                    ["description_key"] = trait.DescriptionKey,
+                    ["category"] = trait.Category.ToStringValue(),
+                    ["acquisition_mode"] = trait.AcquisitionMode.ToStringValue(),
+                    ["depth"] = 0,
+                    ["prerequisites"] = ToStringArray(trait.Prerequisites),
+                    ["state"] = isOwned
+                        ? TraitTreeNodeState.Owned.ToStringValue()
+                        : TraitTreeNodeState.Locked.ToStringValue(),
+                    ["is_owned"] = isOwned,
+                    ["is_unlockable"] = false,
+                    ["can_unlock"] = false,
+                    ["locked_reason"] = isOwned ? "" : "Granted from events or rewards",
+                    ["unlock_blocked_reason"] = isOwned ? "" : "Granted from events or rewards",
+                }
+            );
         }
 
         var edges = new Godot.Collections.Array<GDict>();
@@ -246,15 +283,13 @@ public partial class TraitTreeService : Node
                 if (string.IsNullOrWhiteSpace(prereqId) || !progressionIdSet.Contains(prereqId))
                     continue;
 
-                edges.Add(new GDict
-                {
-                    ["from"] = prereqId,
-                    ["to"] = trait.Id.Value
-                });
+                edges.Add(new GDict { ["from"] = prereqId, ["to"] = trait.Id.Value });
             }
         }
 
-        var hasAvailableUnlocks = progressionNodes.Any(node => ReadBool(node, "is_unlockable") && !ReadBool(node, "is_owned"));
+        var hasAvailableUnlocks = progressionNodes.Any(node =>
+            ReadBool(node, "is_unlockable") && !ReadBool(node, "is_owned")
+        );
         var hasUnlockableNow = progressionNodes.Any(node => ReadBool(node, "can_unlock"));
 
         return new GDict
@@ -268,7 +303,7 @@ public partial class TraitTreeService : Node
             ["has_unlockable_now"] = hasUnlockableNow,
             ["progression_nodes"] = progressionNodes,
             ["one_off_nodes"] = oneOffNodes,
-            ["edges"] = edges
+            ["edges"] = edges,
         };
     }
 
@@ -280,7 +315,8 @@ public partial class TraitTreeService : Node
         var isUnlockable = ReadBool(node, "is_unlockable");
         var acquisitionMode = ReadString(node, "acquisition_mode");
 
-        var unlockButtonVisible = !isOwned && acquisitionMode == TraitAcquisitionMode.LevelUpOffer.ToStringValue();
+        var unlockButtonVisible =
+            !isOwned && acquisitionMode == TraitAcquisitionMode.LevelUpOffer.ToStringValue();
         var unlockButtonEnabled = unlockButtonVisible && canUnlock;
 
         return new GDict
@@ -294,11 +330,13 @@ public partial class TraitTreeService : Node
             ["is_unlockable"] = isUnlockable,
             ["can_unlock"] = canUnlock,
             ["locked_reason"] = ReadString(node, "locked_reason"),
-            ["unlock_blocked_reason"] = unlockButtonEnabled ? "" : ReadString(node, "unlock_blocked_reason", ReadString(node, "locked_reason")),
+            ["unlock_blocked_reason"] = unlockButtonEnabled
+                ? ""
+                : ReadString(node, "unlock_blocked_reason", ReadString(node, "locked_reason")),
             ["unlock_button_visible"] = unlockButtonVisible,
             ["unlock_button_enabled"] = unlockButtonEnabled,
             ["unlock_button_text"] = "Unlock (1)",
-            ["unspent_trait_points"] = unspentTraitPoints
+            ["unspent_trait_points"] = unspentTraitPoints,
         };
     }
 
@@ -320,7 +358,7 @@ public partial class TraitTreeService : Node
 
         var tags = new HashSet<string>(summonerDef.TraitEligibilityTags, StringComparer.Ordinal)
         {
-            TraitTags.Summoner
+            TraitTags.Summoner,
         };
 
         var context = new TraitTreeOwnerContext
@@ -329,7 +367,7 @@ public partial class TraitTreeService : Node
             EligibilityTags = tags,
             OwnedTraitIds = summoner.GetAllTraitIds().ToHashSet(StringComparer.Ordinal),
             CurrentLevel = summoner.Level,
-            UnspentTraitPoints = summoner.UnspentTraitPoints
+            UnspentTraitPoints = summoner.UnspentTraitPoints,
         };
 
         snapshot = new SummonerSnapshot(summoner, summonerDef, context);
@@ -360,18 +398,23 @@ public partial class TraitTreeService : Node
         {
             OwnerTypeTag = ownerTypeTag,
             EligibilityTags = TraitTreeEvaluator.BuildEffectiveCardTagSet(cardDef, ownerTypeTag),
-            OwnedTraitIds = card.Traits.Select(traitId => traitId.Value).ToHashSet(StringComparer.Ordinal),
+            OwnedTraitIds = card
+                .Traits.Select(traitId => traitId.Value)
+                .ToHashSet(StringComparer.Ordinal),
             CurrentLevel = card.Level,
             UnspentTraitPoints = card.UnspentTraitPoints,
             CardCatalogId = card.CatalogId.Value,
-            CardRarity = card.Rarity
+            CardRarity = card.Rarity,
         };
 
         snapshot = new CardSnapshot(card, cardDef, context);
         return true;
     }
 
-    private string BuildLockedReason(TraitUnlockEvaluation evaluation, IReadOnlyDictionary<string, TraitDefinition> progressionById)
+    private string BuildLockedReason(
+        TraitUnlockEvaluation evaluation,
+        IReadOnlyDictionary<string, TraitDefinition> progressionById
+    )
     {
         if (evaluation.IsOwned || evaluation.NodeState == TraitTreeNodeState.Available)
             return "";
@@ -379,14 +422,21 @@ public partial class TraitTreeService : Node
         if (evaluation.MissingPrerequisiteIds.Count == 0)
             return evaluation.LockedReason;
 
-        var prerequisiteNames = evaluation.MissingPrerequisiteIds
-            .Select(id => progressionById.TryGetValue(id, out var prereq) ? ResolveNameWithFallback(prereq.NameKey, id) : id)
+        var prerequisiteNames = evaluation
+            .MissingPrerequisiteIds.Select(id =>
+                progressionById.TryGetValue(id, out var prereq)
+                    ? ResolveNameWithFallback(prereq.NameKey, id)
+                    : id
+            )
             .ToArray();
 
         return $"Requires: {string.Join(", ", prerequisiteNames)}";
     }
 
-    private string BuildUnlockBlockedReason(TraitUnlockEvaluation evaluation, IReadOnlyDictionary<string, TraitDefinition> progressionById)
+    private string BuildUnlockBlockedReason(
+        TraitUnlockEvaluation evaluation,
+        IReadOnlyDictionary<string, TraitDefinition> progressionById
+    )
     {
         if (evaluation.CanUnlockNow)
             return "";
@@ -450,7 +500,7 @@ public partial class TraitTreeService : Node
         {
             Variant.Type.Int => value.AsInt32(),
             Variant.Type.Float => (int)value.AsDouble(),
-            _ => fallback
+            _ => fallback,
         };
     }
 
@@ -479,10 +529,12 @@ public partial class TraitTreeService : Node
     private readonly record struct SummonerSnapshot(
         SummonerInstance Instance,
         SummonerDefinition Definition,
-        TraitTreeOwnerContext Context);
+        TraitTreeOwnerContext Context
+    );
 
     private readonly record struct CardSnapshot(
         CardInstance Instance,
         CardDefinition Definition,
-        TraitTreeOwnerContext Context);
+        TraitTreeOwnerContext Context
+    );
 }

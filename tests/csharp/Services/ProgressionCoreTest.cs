@@ -53,7 +53,8 @@ public class ProgressionCoreTest
 
         AssertThat(ProgressionEngine.GetXpCostForNextLevel(state, curve)).IsEqual(0);
         AssertThat(ProgressionEngine.GetProgress01(state, curve)).IsEqual(1f);
-        AssertThat(ProgressionEngine.ApplyLevelUp(state, curve).Status).IsEqual(ProgressionApplyStatus.MaxLevel);
+        AssertThat(ProgressionEngine.ApplyLevelUp(state, curve).Status)
+            .IsEqual(ProgressionApplyStatus.MaxLevel);
     }
 
     [TestCase]

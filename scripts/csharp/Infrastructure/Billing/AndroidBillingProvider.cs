@@ -28,11 +28,15 @@ public partial class AndroidBillingProvider : BillingProvider
         }
         else
         {
-            GD.PushWarning("[AndroidBilling] Google Play Billing singleton not found. Ensure Android billing plugin is enabled.");
+            GD.PushWarning(
+                "[AndroidBilling] Google Play Billing singleton not found. Ensure Android billing plugin is enabled."
+            );
         }
 
         _load_products_from_catalog();
-        GD.Print($"[AndroidBilling] Initialized (available={_available}, products={_products.Count})");
+        GD.Print(
+            $"[AndroidBilling] Initialized (available={_available}, products={_products.Count})"
+        );
     }
 
     public override bool is_available()
@@ -51,7 +55,11 @@ public partial class AndroidBillingProvider : BillingProvider
         var storeProductId = _map_product_id(product_id);
         if (string.IsNullOrEmpty(storeProductId))
         {
-            EmitSignal("purchase_failed", product_id, $"Missing Google Play product mapping for '{product_id}'");
+            EmitSignal(
+                "purchase_failed",
+                product_id,
+                $"Missing Google Play product mapping for '{product_id}'"
+            );
             return;
         }
 
@@ -60,7 +68,11 @@ public partial class AndroidBillingProvider : BillingProvider
         else if (_store_api.HasMethod("purchase_sku"))
             _store_api.Call("purchase_sku", storeProductId);
         else
-            EmitSignal("purchase_failed", product_id, "Android billing API is not wired (missing purchase/purchase_sku)");
+            EmitSignal(
+                "purchase_failed",
+                product_id,
+                "Android billing API is not wired (missing purchase/purchase_sku)"
+            );
     }
 
     public override void restore_purchases()
@@ -120,10 +132,16 @@ public partial class AndroidBillingProvider : BillingProvider
 
     private void _connect_platform_signals()
     {
-        _connect_if_present("purchase_success", Callable.From<string, string>(_on_purchase_success));
+        _connect_if_present(
+            "purchase_success",
+            Callable.From<string, string>(_on_purchase_success)
+        );
         _connect_if_present("purchase_failed", Callable.From<string, string>(_on_purchase_failed));
         _connect_if_present("purchase_cancelled", Callable.From<string>(_on_purchase_cancelled));
-        _connect_if_present("restore_completed", Callable.From<Godot.Collections.Array>(_on_restore_completed));
+        _connect_if_present(
+            "restore_completed",
+            Callable.From<Godot.Collections.Array>(_on_restore_completed)
+        );
         _connect_if_present("restore_failed", Callable.From<string>(_on_restore_failed));
     }
 

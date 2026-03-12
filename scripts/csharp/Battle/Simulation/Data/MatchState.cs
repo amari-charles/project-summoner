@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Fateforged.Units;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Data;
 
@@ -40,11 +40,12 @@ public class MatchState
     public int CombatWindupsCancelled { get; set; }
 
     // Summoners (index 0 = player, index 1 = enemy)
-    public SummonerData[] Summoners { get; } = new SummonerData[2]
-    {
-        new() { Team = Team.Player },
-        new() { Team = Team.Enemy }
-    };
+    public SummonerData[] Summoners { get; } =
+        new SummonerData[2]
+        {
+            new() { Team = Team.Player },
+            new() { Team = Team.Enemy },
+        };
 
     // Units (keyed by MatchState-local unit ID)
     public Dictionary<int, UnitData> Units { get; } = new();
@@ -139,7 +140,11 @@ public class MatchState
         var targetTeam = (Team)team;
         foreach (var unit in Units.Values)
         {
-            if (unit.IsAlive && unit.ActivationState == ActivationState.Active && unit.Team == targetTeam)
+            if (
+                unit.IsAlive
+                && unit.ActivationState == ActivationState.Active
+                && unit.Team == targetTeam
+            )
                 _aliveActiveTeamCache.Add(unit);
         }
         _aliveActiveTeamCache.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
@@ -232,8 +237,10 @@ public class MatchState
 
             foreach (var slot in slotState.Slots)
             {
-                bool reservedAlive = slot.ReservedUnitId.HasValue && GetAliveUnit(slot.ReservedUnitId.Value) != null;
-                bool occupiedAlive = slot.OccupiedUnitId.HasValue && GetAliveUnit(slot.OccupiedUnitId.Value) != null;
+                bool reservedAlive =
+                    slot.ReservedUnitId.HasValue && GetAliveUnit(slot.ReservedUnitId.Value) != null;
+                bool occupiedAlive =
+                    slot.OccupiedUnitId.HasValue && GetAliveUnit(slot.OccupiedUnitId.Value) != null;
 
                 if (!reservedAlive)
                     slot.ReservedUnitId = null;

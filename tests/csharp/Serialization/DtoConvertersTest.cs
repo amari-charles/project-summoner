@@ -1,14 +1,11 @@
 namespace Fateforged.Tests.Serialization;
 
 using System.Collections.Generic;
-using GdUnit4;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Events;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
-using Fateforged.Infrastructure.Persistence;
 using Fateforged.Domain.Profile.Account;
 using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Domain.Profile.Collection;
@@ -16,8 +13,11 @@ using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Domain.Profile.Inventory;
 using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
+using GdUnit4;
+using Godot;
 using static GdUnit4.Assertions;
 using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
@@ -45,8 +45,8 @@ public class DtoConvertersTest
                 [ItemSlot.Wand] = new ItemId("item_001"),
                 [ItemSlot.Ring1] = null,
                 [ItemSlot.Ring2] = new ItemId("item_002"),
-                [ItemSlot.Robes] = null
-            }
+                [ItemSlot.Robes] = null,
+            },
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -79,11 +79,7 @@ public class DtoConvertersTest
     [TestCase]
     public void SummonerInstance_FromDict_ReturnsNullForMissingSummonerId()
     {
-        var dict = new Godot.Collections.Dictionary
-        {
-            ["level"] = 1,
-            ["xp"] = 0
-        };
+        var dict = new Godot.Collections.Dictionary { ["level"] = 1, ["xp"] = 0 };
         var result = DtoConverters.FromSummonerDict(dict);
         AssertThat(result).IsNull();
     }
@@ -107,7 +103,7 @@ public class DtoConvertersTest
             RollJson = "{\"variant\":1}",
             CreatedAt = 1700000000,
             Binding = ContentBinding.SummonerBound,
-            BoundToSummonerId = new SummonerId("summoner_cole")
+            BoundToSummonerId = new SummonerId("summoner_cole"),
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -131,17 +127,11 @@ public class DtoConvertersTest
     public void CardInstance_FromDict_ReturnsNullForMissingRequiredFields()
     {
         // Missing catalog_id
-        var dict = new Godot.Collections.Dictionary
-        {
-            ["id"] = "card_001"
-        };
+        var dict = new Godot.Collections.Dictionary { ["id"] = "card_001" };
         AssertThat(DtoConverters.FromCardDict(dict)).IsNull();
 
         // Missing id
-        dict = new Godot.Collections.Dictionary
-        {
-            ["catalog_id"] = "fire_wisp"
-        };
+        dict = new Godot.Collections.Dictionary { ["catalog_id"] = "fire_wisp" };
         AssertThat(DtoConverters.FromCardDict(dict)).IsNull();
     }
 
@@ -152,7 +142,7 @@ public class DtoConvertersTest
         {
             Id = new CardInstanceId("card_001"),
             CatalogId = new CardId("test"),
-            Binding = ContentBinding.SummonerBound
+            Binding = ContentBinding.SummonerBound,
         };
 
         var dict = DtoConverters.ToDict(card);
@@ -172,7 +162,7 @@ public class DtoConvertersTest
             CatalogId = new ItemId("sword_of_fire"),
             EquippedBySummonerId = new SummonerId("summoner_cole"),
             BoundToSummonerId = new SummonerId("summoner_cole"),
-            EquippedSlot = ItemSlot.Wand
+            EquippedSlot = ItemSlot.Wand,
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -193,7 +183,7 @@ public class DtoConvertersTest
         {
             Id = new ItemId("item_001"),
             CatalogId = new ItemId("ring_of_power"),
-            EquippedSlot = null
+            EquippedSlot = null,
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -210,7 +200,7 @@ public class DtoConvertersTest
         {
             Id = new ItemId("item_001"),
             CatalogId = new ItemId("test"),
-            EquippedSlot = ItemSlot.Robes
+            EquippedSlot = ItemSlot.Robes,
         };
 
         var dict = DtoConverters.ToDict(item);
@@ -232,8 +222,13 @@ public class DtoConvertersTest
             Name = "My Fire Deck",
             Slot = 2,
             IsActive = true,
-            CardInstanceIds = [new CardInstanceId("card_1"), new CardInstanceId("card_2"), new CardInstanceId("card_3")],
-            UpdatedAt = 1700000000
+            CardInstanceIds =
+            [
+                new CardInstanceId("card_1"),
+                new CardInstanceId("card_2"),
+                new CardInstanceId("card_3"),
+            ],
+            UpdatedAt = 1700000000,
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -256,17 +251,11 @@ public class DtoConvertersTest
     public void Deck_FromDict_ReturnsNullForMissingRequiredFields()
     {
         // Missing id
-        var dict = new Godot.Collections.Dictionary
-        {
-            ["summoner_id"] = "summoner_cole"
-        };
+        var dict = new Godot.Collections.Dictionary { ["summoner_id"] = "summoner_cole" };
         AssertThat(DtoConverters.FromDeckDict(dict)).IsNull();
 
         // Missing summoner_id
-        dict = new Godot.Collections.Dictionary
-        {
-            ["id"] = "deck_001"
-        };
+        dict = new Godot.Collections.Dictionary { ["id"] = "deck_001" };
         AssertThat(DtoConverters.FromDeckDict(dict)).IsNull();
     }
 
@@ -281,7 +270,7 @@ public class DtoConvertersTest
         {
             CompletedBattles = [new BattleId("battle_1"), new BattleId("battle_2")],
             CurrentBattle = new BattleId("battle_3"),
-            Gold = 500
+            Gold = 500,
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -321,8 +310,8 @@ public class DtoConvertersTest
             Choices = new Dictionary<NodeId, ChoiceId>
             {
                 [new NodeId("node_choice_1")] = new ChoiceId("option_a"),
-                [new NodeId("node_choice_2")] = new ChoiceId("option_b")
-            }
+                [new NodeId("node_choice_2")] = new ChoiceId("option_b"),
+            },
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -346,8 +335,8 @@ public class DtoConvertersTest
                 BattleId = new BattleId("boss_fight"),
                 RewardType = RewardType.Flexible,
                 ChoiceIndex = 2,
-                CaravanPurchases = ["offering_sword", "offering_shield"]
-            }
+                CaravanPurchases = ["offering_sword", "offering_shield"],
+            },
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -369,7 +358,7 @@ public class DtoConvertersTest
         var original = new CampaignProgress
         {
             CompletedBattles = [new BattleId("battle_1")],
-            Gold = 100
+            Gold = 100,
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -388,7 +377,7 @@ public class DtoConvertersTest
             RewardType = RewardType.Fixed,
             ChoiceIndex = -1,
             ChosenCatalogId = "fire_wisp",
-            CaravanPurchases = ["item_a"]
+            CaravanPurchases = ["item_a"],
         };
 
         var dict = DtoConverters.ToDict(pending);
@@ -408,7 +397,7 @@ public class DtoConvertersTest
         {
             BattleId = new BattleId("test_battle"),
             RewardType = RewardType.None,
-            ChoiceIndex = 0
+            ChoiceIndex = 0,
         };
 
         var dict = DtoConverters.ToDict(pending);
@@ -423,7 +412,7 @@ public class DtoConvertersTest
         {
             CompletedBattles = [new BattleId("battle_1")],
             Gold = 50,
-            Choices = []
+            Choices = [],
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -471,15 +460,15 @@ public class DtoConvertersTest
             TutorialFlags = new Dictionary<string, bool>
             {
                 ["intro_completed"] = true,
-                ["combat_tutorial"] = false
+                ["combat_tutorial"] = false,
             },
             Achievements = new Dictionary<string, object>
             {
                 ["kills"] = 42L,
                 ["win_rate"] = 0.75,
                 ["has_trophy"] = true,
-                ["title"] = "Champion"
-            }
+                ["title"] = "Champion",
+            },
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -528,14 +517,14 @@ public class DtoConvertersTest
             ["int_value"] = 100,
             ["float_value"] = 3.14,
             ["bool_value"] = true,
-            ["string_value"] = "test"
+            ["string_value"] = "test",
         };
         var dict = new Godot.Collections.Dictionary
         {
             ["selected_deck"] = "",
             ["selected_summoner"] = "",
             ["analytics_opt_in"] = false,
-            ["achievements"] = achievementsDict
+            ["achievements"] = achievementsDict,
         };
 
         var result = DtoConverters.FromMetaDict(dict);
@@ -556,7 +545,7 @@ public class DtoConvertersTest
     {
         var update = new MetaUpdate
         {
-            SelectedSummoner = "summoner_selene"
+            SelectedSummoner = "summoner_selene",
             // Other fields are null/not set
         };
 
@@ -579,7 +568,7 @@ public class DtoConvertersTest
             SelectedSummoner = "summoner_cole",
             AnalyticsOptIn = true,
             TutorialFlags = new Dictionary<string, bool> { ["flag1"] = true },
-            Achievements = new Dictionary<string, object> { ["score"] = 100 }
+            Achievements = new Dictionary<string, object> { ["score"] = 100 },
         };
 
         var dict = DtoConverters.ToDict(update);
@@ -610,7 +599,7 @@ public class DtoConvertersTest
     {
         var update = new CardUpdate
         {
-            Xp = 500
+            Xp = 500,
             // Level and Upgrades are null
         };
 
@@ -629,7 +618,7 @@ public class DtoConvertersTest
         {
             Xp = 1000,
             Level = 5,
-            Traits = [new CardTraitId("upgrade_1"), new CardTraitId("upgrade_2")]
+            Traits = [new CardTraitId("upgrade_1"), new CardTraitId("upgrade_2")],
         };
 
         var dict = DtoConverters.ToDict(update);

@@ -55,7 +55,10 @@ public partial class PlatformBillingServiceTest
         var (platformBilling, provider) = CreateHarness(PlatformBillingService.Platform.IOS);
 
         var seenProductId = "";
-        platformBilling.Connect("purchase_completed", Callable.From<string, string>((productId, _txn) => seenProductId = productId));
+        platformBilling.Connect(
+            "purchase_completed",
+            Callable.From<string, string>((productId, _txn) => seenProductId = productId)
+        );
 
         provider.EmitSignal("purchase_completed", "com.projectsummoner.starter_pack", "txn_1");
         AssertThat(seenProductId).IsEqual("starter_pack");
@@ -67,13 +70,19 @@ public partial class PlatformBillingServiceTest
         var (platformBilling, provider) = CreateHarness(PlatformBillingService.Platform.IOS);
 
         Godot.Collections.Array<string> restored = [];
-        platformBilling.Connect("restore_completed", Callable.From<Godot.Collections.Array<string>>(ids => restored = ids));
+        platformBilling.Connect(
+            "restore_completed",
+            Callable.From<Godot.Collections.Array<string>>(ids => restored = ids)
+        );
 
-        provider.EmitSignal("restore_completed", new Godot.Collections.Array<string>
-        {
-            "com.projectsummoner.starter_pack",
-            "com.projectsummoner.gems_500",
-        });
+        provider.EmitSignal(
+            "restore_completed",
+            new Godot.Collections.Array<string>
+            {
+                "com.projectsummoner.starter_pack",
+                "com.projectsummoner.gems_500",
+            }
+        );
 
         AssertThat(restored.Contains("starter_pack")).IsTrue();
         AssertThat(restored.Contains("gems_500")).IsTrue();
@@ -102,7 +111,9 @@ public partial class PlatformBillingServiceTest
         AssertThat(platformBilling.is_product_owned("starter_pack")).IsTrue();
     }
 
-    private (PlatformBillingService Billing, TestBillingProvider Provider) CreateHarness(PlatformBillingService.Platform platform)
+    private (PlatformBillingService Billing, TestBillingProvider Provider) CreateHarness(
+        PlatformBillingService.Platform platform
+    )
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -135,13 +146,19 @@ public partial class PlatformBillingServiceTest
 
     private static void SetPrivateField(object instance, string fieldName, object? value)
     {
-        var field = typeof(PlatformBillingService).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = typeof(PlatformBillingService).GetField(
+            fieldName,
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
         field?.SetValue(instance, value);
     }
 
     private static void InvokePrivateMethod(object instance, string methodName)
     {
-        var method = typeof(PlatformBillingService).GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+        var method = typeof(PlatformBillingService).GetMethod(
+            methodName,
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
         method?.Invoke(instance, null);
     }
 }

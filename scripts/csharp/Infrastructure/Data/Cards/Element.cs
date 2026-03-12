@@ -64,5 +64,5 @@ public enum Element
     Metal,
 
     /// <summary>Elevated Life - ethereal essence.</summary>
-    Spirit
+    Spirit,
 }

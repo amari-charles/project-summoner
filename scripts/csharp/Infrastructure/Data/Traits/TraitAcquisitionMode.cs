@@ -13,7 +13,7 @@ public enum TraitAcquisitionMode
     /// <summary>
     /// Trait is granted externally (events, story rewards, scripted rewards) and is not offerable.
     /// </summary>
-    GrantedOnly
+    GrantedOnly,
 }
 
 /// <summary>
@@ -22,18 +22,20 @@ public enum TraitAcquisitionMode
 public static class TraitAcquisitionModeExtensions
 {
     /// <summary>Convert enum to lowercase string value for serialization/interop.</summary>
-    public static string ToStringValue(this TraitAcquisitionMode mode) => mode switch
-    {
-        TraitAcquisitionMode.LevelUpOffer => "level_up_offer",
-        TraitAcquisitionMode.GrantedOnly => "granted_only",
-        _ => "level_up_offer"
-    };
+    public static string ToStringValue(this TraitAcquisitionMode mode) =>
+        mode switch
+        {
+            TraitAcquisitionMode.LevelUpOffer => "level_up_offer",
+            TraitAcquisitionMode.GrantedOnly => "granted_only",
+            _ => "level_up_offer",
+        };
 
     /// <summary>Parse string to TraitAcquisitionMode.</summary>
-    public static TraitAcquisitionMode Parse(string value) => value.ToLowerInvariant() switch
-    {
-        "level_up_offer" => TraitAcquisitionMode.LevelUpOffer,
-        "granted_only" => TraitAcquisitionMode.GrantedOnly,
-        _ => TraitAcquisitionMode.LevelUpOffer
-    };
+    public static TraitAcquisitionMode Parse(string value) =>
+        value.ToLowerInvariant() switch
+        {
+            "level_up_offer" => TraitAcquisitionMode.LevelUpOffer,
+            "granted_only" => TraitAcquisitionMode.GrantedOnly,
+            _ => TraitAcquisitionMode.LevelUpOffer,
+        };
 }

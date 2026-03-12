@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fateforged.Multiplayer.Backend;
 using Godot;
 using Nakama;
-using Fateforged.Multiplayer.Backend;
 
 namespace Fateforged.Multiplayer.Ranking;
 
@@ -148,7 +148,10 @@ public partial class LeaderboardService : Node
         EmitSignal(SignalName.LeaderboardRefreshed);
     }
 
-    public async Task<List<LeaderboardEntry>> GetTopPlayersAsync(int count = DefaultTopCount, bool forceRefresh = false)
+    public async Task<List<LeaderboardEntry>> GetTopPlayersAsync(
+        int count = DefaultTopCount,
+        bool forceRefresh = false
+    )
     {
         // Check cache
         float now = (float)(Time.GetTicksMsec() / 1000.0);
@@ -208,10 +211,18 @@ public partial class LeaderboardService : Node
     /// </summary>
     /// <param name="userId">User to center on</param>
     /// <param name="range">Number of players above and below</param>
-    public async Task<List<LeaderboardEntry>> GetNearbyPlayersAsync(string userId, int range = NearbyRange)
+    public async Task<List<LeaderboardEntry>> GetNearbyPlayersAsync(
+        string userId,
+        int range = NearbyRange
+    )
     {
         var nakama = NakamaGameClient.Instance;
-        if (nakama == null || !nakama.IsAuthenticated || nakama.Client == null || nakama.Session == null)
+        if (
+            nakama == null
+            || !nakama.IsAuthenticated
+            || nakama.Client == null
+            || nakama.Session == null
+        )
         {
             return new List<LeaderboardEntry> { CreateLocalPlayerEntry() };
         }
@@ -233,16 +244,18 @@ public partial class LeaderboardService : Node
             {
                 int rank = int.Parse(record.Rank);
                 int score = int.Parse(record.Score);
-                entries.Add(new LeaderboardEntry
-                {
-                    Rank = rank,
-                    UserId = record.OwnerId,
-                    DisplayName = record.Username ?? "Unknown",
-                    Rating = score,
-                    Tier = EloCalculator.GetTier(score),
-                    Division = EloCalculator.GetDivision(score),
-                    IsCurrentPlayer = record.OwnerId == nakama.UserId
-                });
+                entries.Add(
+                    new LeaderboardEntry
+                    {
+                        Rank = rank,
+                        UserId = record.OwnerId,
+                        DisplayName = record.Username ?? "Unknown",
+                        Rating = score,
+                        Tier = EloCalculator.GetTier(score),
+                        Division = EloCalculator.GetDivision(score),
+                        IsCurrentPlayer = record.OwnerId == nakama.UserId,
+                    }
+                );
             }
 
             return entries;
@@ -347,16 +360,18 @@ public partial class LeaderboardService : Node
             {
                 int rank = int.Parse(record.Rank);
                 int score = int.Parse(record.Score);
-                entries.Add(new LeaderboardEntry
-                {
-                    Rank = rank,
-                    UserId = record.OwnerId,
-                    DisplayName = record.Username ?? "Unknown",
-                    Rating = score,
-                    Tier = EloCalculator.GetTier(score),
-                    Division = EloCalculator.GetDivision(score),
-                    IsCurrentPlayer = record.OwnerId == nakama.UserId
-                });
+                entries.Add(
+                    new LeaderboardEntry
+                    {
+                        Rank = rank,
+                        UserId = record.OwnerId,
+                        DisplayName = record.Username ?? "Unknown",
+                        Rating = score,
+                        Tier = EloCalculator.GetTier(score),
+                        Division = EloCalculator.GetDivision(score),
+                        IsCurrentPlayer = record.OwnerId == nakama.UserId,
+                    }
+                );
             }
 
             GD.Print($"[LeaderboardService] Fetched {entries.Count} leaderboard entries");
@@ -412,7 +427,7 @@ public partial class LeaderboardService : Node
                         Rating = score,
                         Tier = EloCalculator.GetTier(score),
                         Division = EloCalculator.GetDivision(score),
-                        IsCurrentPlayer = true
+                        IsCurrentPlayer = true,
                     };
                 }
             }
@@ -466,7 +481,7 @@ public partial class LeaderboardService : Node
             Rating = rating,
             Tier = EloCalculator.GetTier(rating),
             Division = EloCalculator.GetDivision(rating),
-            IsCurrentPlayer = true
+            IsCurrentPlayer = true,
         };
     }
 
@@ -478,24 +493,35 @@ public partial class LeaderboardService : Node
         var entries = new List<LeaderboardEntry>();
         var random = new Random(42); // Fixed seed for consistent mock data
 
-        string[] mockNames = { "PLACEHOLDER_PLAYER_1", "PLACEHOLDER_PLAYER_2", "PLACEHOLDER_PLAYER_3",
-                               "PLACEHOLDER_PLAYER_4", "PLACEHOLDER_PLAYER_5", "PLACEHOLDER_PLAYER_6",
-                               "PLACEHOLDER_PLAYER_7", "PLACEHOLDER_PLAYER_8", "PLACEHOLDER_PLAYER_9",
-                               "PLACEHOLDER_PLAYER_10" };
+        string[] mockNames =
+        {
+            "PLACEHOLDER_PLAYER_1",
+            "PLACEHOLDER_PLAYER_2",
+            "PLACEHOLDER_PLAYER_3",
+            "PLACEHOLDER_PLAYER_4",
+            "PLACEHOLDER_PLAYER_5",
+            "PLACEHOLDER_PLAYER_6",
+            "PLACEHOLDER_PLAYER_7",
+            "PLACEHOLDER_PLAYER_8",
+            "PLACEHOLDER_PLAYER_9",
+            "PLACEHOLDER_PLAYER_10",
+        };
 
         for (int i = 0; i < 10; i++)
         {
             int rating = 1800 - (i * 80) + random.Next(-20, 20);
-            entries.Add(new LeaderboardEntry
-            {
-                Rank = i + 1,
-                UserId = $"mock_user_{i}",
-                DisplayName = mockNames[i],
-                Rating = rating,
-                Tier = EloCalculator.GetTier(rating),
-                Division = EloCalculator.GetDivision(rating),
-                IsCurrentPlayer = false
-            });
+            entries.Add(
+                new LeaderboardEntry
+                {
+                    Rank = i + 1,
+                    UserId = $"mock_user_{i}",
+                    DisplayName = mockNames[i],
+                    Rating = rating,
+                    Tier = EloCalculator.GetTier(rating),
+                    Division = EloCalculator.GetDivision(rating),
+                    IsCurrentPlayer = false,
+                }
+            );
         }
 
         // Add local player at position 5 if not in top 10
@@ -569,7 +595,7 @@ public class LeaderboardEntry
             2 => "II",
             3 => "III",
             4 => "IV",
-            _ => ""
+            _ => "",
         };
         return $"{Tier} {divisionStr}".Trim();
     }

@@ -51,8 +51,8 @@ public class CampaignGraphConsistencyTest
         AssertThat(campaign).IsNotNull();
         var graph = campaign!;
 
-        var choiceNodes = graph.EventIds
-            .Select(EventCatalog.GetEvent)
+        var choiceNodes = graph
+            .EventIds.Select(EventCatalog.GetEvent)
             .OfType<ChoiceEventDefinition>()
             .ToArray();
 
@@ -80,15 +80,23 @@ public class CampaignGraphConsistencyTest
         var graph = campaign!;
         var adjacency = BuildAdjacency(graph.Edges);
 
-        var forkEdges = graph.Edges
-            .Where(edge => edge.FromEventId == EventIds.PathFork && edge.Condition?.ChoiceId is ChoiceId)
+        var forkEdges = graph
+            .Edges.Where(edge =>
+                edge.FromEventId == EventIds.PathFork && edge.Condition?.ChoiceId is ChoiceId
+            )
             .ToArray();
 
         AssertThat(forkEdges.Length).IsEqual(3);
 
-        var eliteStart = forkEdges.Single(edge => edge.Condition!.ChoiceId == ChoiceIds.Elite).ToEventId;
-        var standardStart = forkEdges.Single(edge => edge.Condition!.ChoiceId == ChoiceIds.Standard).ToEventId;
-        var gambitStart = forkEdges.Single(edge => edge.Condition!.ChoiceId == ChoiceIds.Gambit).ToEventId;
+        var eliteStart = forkEdges
+            .Single(edge => edge.Condition!.ChoiceId == ChoiceIds.Elite)
+            .ToEventId;
+        var standardStart = forkEdges
+            .Single(edge => edge.Condition!.ChoiceId == ChoiceIds.Standard)
+            .ToEventId;
+        var gambitStart = forkEdges
+            .Single(edge => edge.Condition!.ChoiceId == ChoiceIds.Gambit)
+            .ToEventId;
 
         var eliteChain = GetLinearChain(adjacency, eliteStart, EventIds.RejoinTrial);
         var standardChain = GetLinearChain(adjacency, standardStart, EventIds.RejoinTrial);
@@ -106,13 +114,22 @@ public class CampaignGraphConsistencyTest
         }
 
         AssertThat(standardChain.Contains(EventIds.Caravan03)).IsTrue();
-        AssertThat(standardChain.Take(standardChain.Count - 1)
-            .Any(eventId => EventCatalog.GetEvent(eventId) is CaravanEventDefinition)).IsTrue();
+        AssertThat(
+                standardChain
+                    .Take(standardChain.Count - 1)
+                    .Any(eventId => EventCatalog.GetEvent(eventId) is CaravanEventDefinition)
+            )
+            .IsTrue();
 
-        AssertThat(gambitChain.Take(gambitChain.Count - 1)
-            .Any(eventId => EventCatalog.GetEvent(eventId) is CaravanEventDefinition)).IsFalse();
+        AssertThat(
+                gambitChain
+                    .Take(gambitChain.Count - 1)
+                    .Any(eventId => EventCatalog.GetEvent(eventId) is CaravanEventDefinition)
+            )
+            .IsFalse();
 
-        var gambitDifficulties = gambitChain.Take(gambitChain.Count - 1)
+        var gambitDifficulties = gambitChain
+            .Take(gambitChain.Count - 1)
             .Select(eventId => EventCatalog.GetEvent(eventId))
             .OfType<BattleEventDefinition>()
             .Select(evt => evt.Difficulty)
@@ -134,7 +151,9 @@ public class CampaignGraphConsistencyTest
         AssertThat(hasDip).IsTrue();
     }
 
-    private static Dictionary<EventId, List<CampaignEdge>> BuildAdjacency(IEnumerable<CampaignEdge> edges)
+    private static Dictionary<EventId, List<CampaignEdge>> BuildAdjacency(
+        IEnumerable<CampaignEdge> edges
+    )
     {
         var adjacency = new Dictionary<EventId, List<CampaignEdge>>();
         foreach (var edge in edges)
@@ -150,7 +169,10 @@ public class CampaignGraphConsistencyTest
         return adjacency;
     }
 
-    private static HashSet<EventId> Traverse(Dictionary<EventId, List<CampaignEdge>> adjacency, EventId start)
+    private static HashSet<EventId> Traverse(
+        Dictionary<EventId, List<CampaignEdge>> adjacency,
+        EventId start
+    )
     {
         var seen = new HashSet<EventId> { start };
         var queue = new Queue<EventId>();
@@ -172,7 +194,11 @@ public class CampaignGraphConsistencyTest
         return seen;
     }
 
-    private static bool CanReach(Dictionary<EventId, List<CampaignEdge>> adjacency, EventId start, EventId target)
+    private static bool CanReach(
+        Dictionary<EventId, List<CampaignEdge>> adjacency,
+        EventId start,
+        EventId target
+    )
     {
         var seen = new HashSet<EventId> { start };
         var stack = new Stack<EventId>();
@@ -200,7 +226,8 @@ public class CampaignGraphConsistencyTest
     private static List<EventId> GetLinearChain(
         Dictionary<EventId, List<CampaignEdge>> adjacency,
         EventId start,
-        EventId terminal)
+        EventId terminal
+    )
     {
         var chain = new List<EventId> { start };
         var current = start;

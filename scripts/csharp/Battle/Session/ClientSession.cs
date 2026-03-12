@@ -25,11 +25,12 @@ public class ClientSession : NetworkSession
     private const float ReconnectGraceSeconds = 30f;
     private const float ClientSteerFallback = 180f;
     private const float ClientVectorEpsilon = 0.0001f;
+
     private enum DisconnectTimeoutOutcome
     {
         None,
         LocalDisconnected,
-        PeerDisconnected
+        PeerDisconnected,
     }
 
     private readonly record struct UnitVisualSnapshot(
@@ -53,7 +54,8 @@ public class ClientSession : NetworkSession
     public override event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
     public event Action? FirstSnapshotApplied;
 
-    public ClientSession(MatchState localState, IMatchTransport transport, int localPlayerIndex) : base(transport)
+    public ClientSession(MatchState localState, IMatchTransport transport, int localPlayerIndex)
+        : base(transport)
     {
         _localState = localState;
         _localPlayerIndex = localPlayerIndex;
@@ -88,7 +90,9 @@ public class ClientSession : NetworkSession
                 _transport.Send(_messageSerializer.Serialize(new ForfeitRequest(forfeit.Team)));
                 break;
             default:
-                GD.PushWarning($"[ClientSession] Unsupported command type for client submission: {command.GetType().Name}");
+                GD.PushWarning(
+                    $"[ClientSession] Unsupported command type for client submission: {command.GetType().Name}"
+                );
                 break;
         }
     }
@@ -127,13 +131,22 @@ public class ClientSession : NetworkSession
                 _pendingEvents.Add(new GameOverEvent(ended.WinnerIndex, ended.Reason));
                 break;
             case SummonerDamageFlash flash:
-                _pendingEvents.Add(new SummonerDamagedEvent(flash.Team, flash.Damage, flash.AttackerUnitId));
+                _pendingEvents.Add(
+                    new SummonerDamagedEvent(flash.Team, flash.Damage, flash.AttackerUnitId)
+                );
                 break;
             case SpellCastVisual spellCast:
-                _pendingEvents.Add(new SpellCastEvent(
-                    spellCast.Team,
-                    spellCast.CatalogId,
-                    new SimVector3(spellCast.Position.X, spellCast.Position.Y, spellCast.Position.Z)));
+                _pendingEvents.Add(
+                    new SpellCastEvent(
+                        spellCast.Team,
+                        spellCast.CatalogId,
+                        new SimVector3(
+                            spellCast.Position.X,
+                            spellCast.Position.Y,
+                            spellCast.Position.Z
+                        )
+                    )
+                );
                 break;
             case ProjectileSpawned spawned:
                 HandleProjectileSpawned(spawned);
@@ -186,7 +199,9 @@ public class ClientSession : NetworkSession
         ReconnectRemainingSeconds = ReconnectGraceSeconds;
         _reconnectTimedOut = false;
         _disconnectTimeoutOutcome = timeoutOutcome;
-        GD.Print($"[ClientSession] Reconnect window started ({ReconnectGraceSeconds:0}s): {reason}");
+        GD.Print(
+            $"[ClientSession] Reconnect window started ({ReconnectGraceSeconds:0}s): {reason}"
+        );
     }
 
     private void ResolveReconnect()
@@ -207,9 +222,10 @@ public class ClientSession : NetworkSession
         if (_localState.Phase == GamePhase.GameOver)
             return;
 
-        int winner = _disconnectTimeoutOutcome == DisconnectTimeoutOutcome.PeerDisconnected
-            ? _localPlayerIndex
-            : MatchState.GetEnemyTeam(_localPlayerIndex);
+        int winner =
+            _disconnectTimeoutOutcome == DisconnectTimeoutOutcome.PeerDisconnected
+                ? _localPlayerIndex
+                : MatchState.GetEnemyTeam(_localPlayerIndex);
         _localState.WinnerTeam = winner;
         _localState.Phase = GamePhase.GameOver;
         _pendingEvents.Add(new GameOverEvent(winner, $"Disconnected: {reason}"));
@@ -245,7 +261,11 @@ public class ClientSession : NetworkSession
             dst.CastingTimeTotal = src.CastingTimeTotal;
             dst.CastingCardIndex = src.CastingCardIndex;
             dst.CastingCatalogId = src.CastingCatalogId;
-            dst.CastingSpawnPosition = new SimVector3(src.CastingSpawnPosition.X, src.CastingSpawnPosition.Y, src.CastingSpawnPosition.Z);
+            dst.CastingSpawnPosition = new SimVector3(
+                src.CastingSpawnPosition.X,
+                src.CastingSpawnPosition.Y,
+                src.CastingSpawnPosition.Z
+            );
             dst.CastingNetworkId = src.CastingNetworkId;
             dst.Hand.Clear();
             foreach (var id in src.Hand ?? Array.Empty<SimCardCatalogId>())
@@ -267,11 +287,7 @@ public class ClientSession : NetworkSession
 
             if (!_localState.Units.TryGetValue(unitId, out var unit))
             {
-                unit = new UnitData
-                {
-                    UnitId = unitId,
-                    NetworkId = src.NetworkId
-                };
+                unit = new UnitData { UnitId = unitId, NetworkId = src.NetworkId };
                 _localState.Units[unitId] = unit;
             }
 
@@ -320,9 +336,21 @@ public class ClientSession : NetworkSession
 
     private void HandleProjectileSpawned(ProjectileSpawned spawned)
     {
-        var currentPosition = new SimVector3(spawned.CurrentPosition.X, spawned.CurrentPosition.Y, spawned.CurrentPosition.Z);
-        var targetPosition = new SimVector3(spawned.TargetPosition.X, spawned.TargetPosition.Y, spawned.TargetPosition.Z);
-        var direction = new SimVector3(spawned.Direction.X, spawned.Direction.Y, spawned.Direction.Z);
+        var currentPosition = new SimVector3(
+            spawned.CurrentPosition.X,
+            spawned.CurrentPosition.Y,
+            spawned.CurrentPosition.Z
+        );
+        var targetPosition = new SimVector3(
+            spawned.TargetPosition.X,
+            spawned.TargetPosition.Y,
+            spawned.TargetPosition.Z
+        );
+        var direction = new SimVector3(
+            spawned.Direction.X,
+            spawned.Direction.Y,
+            spawned.Direction.Z
+        );
         if (direction.LengthSquared() <= ClientVectorEpsilon)
         {
             var toTarget = targetPosition - currentPosition;
@@ -357,9 +385,17 @@ public class ClientSession : NetworkSession
             HitRadius = spawned.HitRadius,
             HitSpace = spawned.HitSpace,
             SteerStrength = ClientSteerFallback,
-            VeerDirection = new SimVector3(spawned.VeerDirection.X, spawned.VeerDirection.Y, spawned.VeerDirection.Z),
-            CounterVeerDirection = new SimVector3(spawned.CounterVeerDirection.X, spawned.CounterVeerDirection.Y, spawned.CounterVeerDirection.Z),
-            IsDead = false
+            VeerDirection = new SimVector3(
+                spawned.VeerDirection.X,
+                spawned.VeerDirection.Y,
+                spawned.VeerDirection.Z
+            ),
+            CounterVeerDirection = new SimVector3(
+                spawned.CounterVeerDirection.X,
+                spawned.CounterVeerDirection.Y,
+                spawned.CounterVeerDirection.Z
+            ),
+            IsDead = false,
         };
 
         ApplyClientProjectileDefaults(projectile);
@@ -387,32 +423,34 @@ public class ClientSession : NetworkSession
 
         foreach (var seed in seedSnapshot.Projectiles)
         {
-            HandleProjectileSpawned(new ProjectileSpawned(
-                ProjectileId: seed.ProjectileId,
-                SourceUnitId: seed.SourceUnitId,
-                TargetUnitId: seed.TargetUnitId,
-                Team: seed.Team,
-                MovementType: seed.MovementType,
-                CurrentPosition: seed.CurrentPosition,
-                Direction: seed.Direction,
-                TargetPosition: seed.TargetPosition,
-                Speed: seed.Speed,
-                ProjectileCatalogId: seed.ProjectileCatalogId,
-                Acceleration: seed.Acceleration,
-                MinSpeed: seed.MinSpeed,
-                UseSpeedEasing: seed.UseSpeedEasing,
-                SpeedStart: seed.SpeedStart,
-                SpeedEnd: seed.SpeedEnd,
-                SpeedTransitionDuration: seed.SpeedTransitionDuration,
-                SpeedEasing: seed.SpeedEasing,
-                SpeedEaseExponent: seed.SpeedEaseExponent,
-                TimeAlive: seed.TimeAlive,
-                Lifetime: seed.Lifetime,
-                HitRadius: seed.HitRadius,
-                HitSpace: seed.HitSpace,
-                VeerDirection: seed.VeerDirection,
-                CounterVeerDirection: seed.CounterVeerDirection
-            ));
+            HandleProjectileSpawned(
+                new ProjectileSpawned(
+                    ProjectileId: seed.ProjectileId,
+                    SourceUnitId: seed.SourceUnitId,
+                    TargetUnitId: seed.TargetUnitId,
+                    Team: seed.Team,
+                    MovementType: seed.MovementType,
+                    CurrentPosition: seed.CurrentPosition,
+                    Direction: seed.Direction,
+                    TargetPosition: seed.TargetPosition,
+                    Speed: seed.Speed,
+                    ProjectileCatalogId: seed.ProjectileCatalogId,
+                    Acceleration: seed.Acceleration,
+                    MinSpeed: seed.MinSpeed,
+                    UseSpeedEasing: seed.UseSpeedEasing,
+                    SpeedStart: seed.SpeedStart,
+                    SpeedEnd: seed.SpeedEnd,
+                    SpeedTransitionDuration: seed.SpeedTransitionDuration,
+                    SpeedEasing: seed.SpeedEasing,
+                    SpeedEaseExponent: seed.SpeedEaseExponent,
+                    TimeAlive: seed.TimeAlive,
+                    Lifetime: seed.Lifetime,
+                    HitRadius: seed.HitRadius,
+                    HitSpace: seed.HitSpace,
+                    VeerDirection: seed.VeerDirection,
+                    CounterVeerDirection: seed.CounterVeerDirection
+                )
+            );
             _staleProjectileIds.Remove(seed.ProjectileId);
         }
 
@@ -472,7 +510,10 @@ public class ClientSession : NetworkSession
 
     private void TickClientHomingProjectile(SimProjectileData projectile, float delta)
     {
-        if (projectile.TargetUnitId >= 0 && _localState.Units.TryGetValue(projectile.TargetUnitId, out var targetUnit))
+        if (
+            projectile.TargetUnitId >= 0
+            && _localState.Units.TryGetValue(projectile.TargetUnitId, out var targetUnit)
+        )
             projectile.TargetPosition = targetUnit.Position;
 
         var toTarget = projectile.TargetPosition - projectile.CurrentPosition;
@@ -489,7 +530,10 @@ public class ClientSession : NetworkSession
     {
         projectile.PhaseTimer += delta;
 
-        if (projectile.TargetUnitId >= 0 && _localState.Units.TryGetValue(projectile.TargetUnitId, out var targetUnit))
+        if (
+            projectile.TargetUnitId >= 0
+            && _localState.Units.TryGetValue(projectile.TargetUnitId, out var targetUnit)
+        )
             projectile.TargetPosition = targetUnit.Position;
 
         switch (projectile.WeavingPhase)
@@ -516,7 +560,11 @@ public class ClientSession : NetworkSession
                 }
                 else
                 {
-                    var desired = ProjectileMovement.BlendWithTarget(projectile, projectile.VeerDirection, WeavingHomingTuning.BlendOutTargetWeight);
+                    var desired = ProjectileMovement.BlendWithTarget(
+                        projectile,
+                        projectile.VeerDirection,
+                        WeavingHomingTuning.BlendOutTargetWeight
+                    );
                     ProjectileMovement.SteerToward(projectile, desired, delta);
                 }
                 break;
@@ -529,7 +577,11 @@ public class ClientSession : NetworkSession
                 }
                 else
                 {
-                    var desired = ProjectileMovement.BlendWithTarget(projectile, projectile.CounterVeerDirection, WeavingHomingTuning.BlendBackTargetWeight);
+                    var desired = ProjectileMovement.BlendWithTarget(
+                        projectile,
+                        projectile.CounterVeerDirection,
+                        WeavingHomingTuning.BlendBackTargetWeight
+                    );
                     ProjectileMovement.SteerToward(projectile, desired, delta);
                 }
                 break;
@@ -540,14 +592,23 @@ public class ClientSession : NetworkSession
                 if (toTarget.LengthSquared() > ClientVectorEpsilon)
                 {
                     float distanceToTarget = toTarget.Length();
-                    bool finalLock = distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
-                                     || projectile.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
-                    var desired = finalLock ? toTarget.Normalized() : ProjectileMovement.ApplyHomingWeave(projectile, toTarget);
-                    float settle = SimMath.Clamp(distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
+                    bool finalLock =
+                        distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
+                        || projectile.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
+                    var desired = finalLock
+                        ? toTarget.Normalized()
+                        : ProjectileMovement.ApplyHomingWeave(projectile, toTarget);
+                    float settle = SimMath.Clamp(
+                        distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance,
+                        0f,
+                        1f
+                    );
                     float steerScale = finalLock
                         ? 1f
-                        : (WeavingHomingTuning.HomingFarSteerScale
-                           + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle)));
+                        : (
+                            WeavingHomingTuning.HomingFarSteerScale
+                            + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle))
+                        );
                     ProjectileMovement.SteerToward(projectile, desired, delta, steerScale);
                 }
                 break;
@@ -555,7 +616,9 @@ public class ClientSession : NetworkSession
         }
 
         if (projectile.Direction.LengthSquared() <= ClientVectorEpsilon)
-            projectile.Direction = (projectile.TargetPosition - projectile.CurrentPosition).Normalized();
+            projectile.Direction = (
+                projectile.TargetPosition - projectile.CurrentPosition
+            ).Normalized();
 
         projectile.CurrentPosition += projectile.Direction * projectile.Speed * delta;
 
@@ -599,14 +662,21 @@ public class ClientSession : NetworkSession
         return ProjectileDefinitions.Get(unitDef.Ranged.ProjectileId);
     }
 
-    private static void InitializeClientWeavingState(SimProjectileData projectile, ProjectileData projectileData)
+    private static void InitializeClientWeavingState(
+        SimProjectileData projectile,
+        ProjectileData projectileData
+    )
     {
         projectile.WeavingPhase = WeavingPhase.Straight;
         projectile.PhaseTimer = 0f;
         projectile.Velocity = projectile.Direction * projectile.Speed;
 
         float distance = projectile.CurrentPosition.DistanceTo(projectile.TargetPosition);
-        float distanceScale = SimMath.Clamp(distance / WeavingHomingTuning.VeerReferenceDistance, 0f, 1f);
+        float distanceScale = SimMath.Clamp(
+            distance / WeavingHomingTuning.VeerReferenceDistance,
+            0f,
+            1f
+        );
         if (distance < WeavingHomingTuning.VeerMinDistance)
         {
             projectile.ScaledVeerDelay = 0f;
@@ -619,13 +689,17 @@ public class ClientSession : NetworkSession
             projectile.ScaledVeerDelay = projectileData.VeerDelay * distanceScale;
             float weaveDuration = projectileData.VeerDuration * distanceScale;
             projectile.ScaledVeerDuration = weaveDuration;
-            projectile.ScaledCounterVeerDuration = weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
+            projectile.ScaledCounterVeerDuration =
+                weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
         }
 
         RestoreClientWeavingPhaseFromElapsedTime(projectile, MathF.Max(0f, projectile.TimeAlive));
     }
 
-    private static void RestoreClientWeavingPhaseFromElapsedTime(SimProjectileData projectile, float elapsedTime)
+    private static void RestoreClientWeavingPhaseFromElapsedTime(
+        SimProjectileData projectile,
+        float elapsedTime
+    )
     {
         float remaining = MathF.Max(0f, elapsedTime);
 
@@ -657,7 +731,9 @@ public class ClientSession : NetworkSession
         projectile.PhaseTimer = remaining;
     }
 
-    private static Dictionary<int, UnitVisualSnapshot> CaptureUnitVisualState(Dictionary<int, UnitData> units)
+    private static Dictionary<int, UnitVisualSnapshot> CaptureUnitVisualState(
+        Dictionary<int, UnitData> units
+    )
     {
         var snapshot = new Dictionary<int, UnitVisualSnapshot>(units.Count);
         foreach (var (unitId, unit) in units)
@@ -666,7 +742,8 @@ public class ClientSession : NetworkSession
                 unit.CurrentHp,
                 unit.IsAlive,
                 unit.BehaviorState,
-                unit.TargetNetworkId);
+                unit.TargetNetworkId
+            );
         }
         return snapshot;
     }
@@ -674,7 +751,8 @@ public class ClientSession : NetworkSession
     private void QueueDerivedUnitEvents(
         Dictionary<int, UnitVisualSnapshot> previousUnits,
         UnitState[] currentUnits,
-        HashSet<int> currentIds)
+        HashSet<int> currentIds
+    )
     {
         foreach (var src in currentUnits)
         {
@@ -701,7 +779,10 @@ public class ClientSession : NetworkSession
             }
 
             var newBehavior = (BehaviorState)src.BehaviorState;
-            if (previous.BehaviorState != BehaviorState.Attacking && newBehavior == BehaviorState.Attacking)
+            if (
+                previous.BehaviorState != BehaviorState.Attacking
+                && newBehavior == BehaviorState.Attacking
+            )
             {
                 int targetId = src.TargetNetworkId ?? previous.TargetNetworkId ?? -1;
                 if (targetId >= 0)

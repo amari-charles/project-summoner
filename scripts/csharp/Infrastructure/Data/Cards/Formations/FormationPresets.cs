@@ -17,7 +17,7 @@ public static class FormationPresets
     public static readonly GridFormation StandardGrid = new()
     {
         Spacing = GridFormation.DefaultSpacing,
-        RowOffset = GridFormation.DefaultRowOffset
+        RowOffset = GridFormation.DefaultRowOffset,
     };
 
     /// <summary>
@@ -27,7 +27,7 @@ public static class FormationPresets
     public static readonly GridFormation TightSwarmGrid = new()
     {
         Spacing = 1.5f,
-        RowOffset = 0.5f
+        RowOffset = 0.5f,
     };
 
     /// <summary>
@@ -38,7 +38,7 @@ public static class FormationPresets
     {
         Columns = 5,
         Spacing = 1.0f,
-        RowOffset = 1.2f
+        RowOffset = 1.2f,
     };
 
     // =========================================================================
@@ -53,7 +53,7 @@ public static class FormationPresets
     {
         UnitSpacing = 1.5f,
         GroupSpacing = 8.0f,
-        UnitsPerGroup = 2
+        UnitsPerGroup = 2,
     };
 
     // =========================================================================
@@ -64,10 +64,7 @@ public static class FormationPresets
     /// Standard horizontal line formation.
     /// Units spread out in a single row.
     /// </summary>
-    public static readonly LineFormation StandardLine = new()
-    {
-        Spacing = 1.5f
-    };
+    public static readonly LineFormation StandardLine = new() { Spacing = 1.5f };
 
     // =========================================================================
     // RING FORMATIONS
@@ -77,8 +74,5 @@ public static class FormationPresets
     /// Standard ring formation.
     /// Units arranged in a circle around spawn point.
     /// </summary>
-    public static readonly RingFormation StandardRing = new()
-    {
-        Radius = 5.0f
-    };
+    public static readonly RingFormation StandardRing = new() { Radius = 5.0f };
 }

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using GdUnit4;
-using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using GdUnit4;
+using static GdUnit4.Assertions;
 
 /// <summary>
 /// Repro tests for: "Puff Units Get Stuck in Idle When Blocked by Other Units"
@@ -44,16 +44,20 @@ public class BlockedUnitReproTest
     public void BlockedMelee_BehindFriendly_ShouldNotStayIdleForever()
     {
         // Back unit (this is the one we're testing — it's behind the front unit)
-        var backUnit = SimTestHelper.CreateMeleeUnit(_state, 0, x: -4f, z: 0f,
-            attackRange: 2f, moveSpeed: 3f);
+        var backUnit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -4f,
+            z: 0f,
+            attackRange: 2f,
+            moveSpeed: 3f
+        );
 
         // Front unit (blocker — same team, between back unit and enemy)
-        SimTestHelper.CreateMeleeUnit(_state, 0, x: -1f, z: 0f,
-            attackRange: 2f, moveSpeed: 3f);
+        SimTestHelper.CreateMeleeUnit(_state, 0, x: -1f, z: 0f, attackRange: 2f, moveSpeed: 3f);
 
         // Enemy
-        SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 0f,
-            hp: 500f, attackRange: 2f);
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 0f, hp: 500f, attackRange: 2f);
 
         // Run simulation for 5 seconds
         int stuckIdleFrames = 0;
@@ -63,9 +67,11 @@ public class BlockedUnitReproTest
             allEvents.AddRange(_sim.Tick(Delta));
 
             // Count frames where unit has a target but zero velocity
-            if (backUnit.TargetUnitId.HasValue &&
-                backUnit.Velocity.LengthSquared() < 0.001f &&
-                backUnit.BehaviorState != BehaviorState.Attacking)
+            if (
+                backUnit.TargetUnitId.HasValue
+                && backUnit.Velocity.LengthSquared() < 0.001f
+                && backUnit.BehaviorState != BehaviorState.Attacking
+            )
             {
                 stuckIdleFrames++;
             }
@@ -74,7 +80,8 @@ public class BlockedUnitReproTest
         // Commit-slot flow can queue behind occupied slots, so some additional
         // idle time is expected. Guard against true deadlock by requiring attacks
         // and bounding idle windows to less than 4 seconds over a 5 second sim.
-        bool backUnitAttacked = SimTestHelper.FindEvents<UnitAttackedEvent>(allEvents)
+        bool backUnitAttacked = SimTestHelper
+            .FindEvents<UnitAttackedEvent>(allEvents)
             .Any(e => e.AttackerUnitId == backUnit.UnitId);
         AssertThat(backUnitAttacked).IsTrue();
         int fourSecondsOfFrames = 240;
@@ -89,12 +96,26 @@ public class BlockedUnitReproTest
     [TestCase]
     public void NoTarget_ObjectiveAdvance_DoesNotIdleWithNullTarget()
     {
-        var mover = SimTestHelper.CreateMeleeUnit(_state, 0, x: -18f, z: 0f,
-            attackRange: 2f, aggroRadius: 4f, moveSpeed: 3f);
+        var mover = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -18f,
+            z: 0f,
+            attackRange: 2f,
+            aggroRadius: 4f,
+            moveSpeed: 3f
+        );
 
         // Keep at least one enemy unit alive, but well outside aggro so commit targeting returns null.
-        SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f,
-            attackRange: 2f, aggroRadius: 0f, moveSpeed: 0f);
+        SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: 20f,
+            z: 0f,
+            attackRange: 2f,
+            aggroRadius: 0f,
+            moveSpeed: 0f
+        );
 
         int movingFramesWithoutTarget = 0;
         for (int i = 0; i < FiveSeconds; i++)
@@ -125,7 +146,8 @@ public class BlockedUnitReproTest
             attackSpeed: 0.9f,
             attackRange: 3f,
             moveSpeed: 1.8f,
-            aggroRadius: 20f);
+            aggroRadius: 20f
+        );
         pebbloomLike.EngageShape = EngageShape.ForwardRect;
         pebbloomLike.EngageRectLength = 5.4f;
         pebbloomLike.EngageRectHalfWidth = 2.6f;
@@ -142,16 +164,21 @@ public class BlockedUnitReproTest
             attackSpeed: 1.2f,
             attackRange: 3f,
             moveSpeed: 3.5f,
-            aggroRadius: 20f);
+            aggroRadius: 20f
+        );
 
         var allEvents = new List<SimEvent>();
         for (int i = 0; i < TenSeconds; i++)
             allEvents.AddRange(_sim.Tick(Delta));
 
-        bool pebbloomAttacked = SimTestHelper.FindEvents<UnitAttackedEvent>(allEvents)
+        bool pebbloomAttacked = SimTestHelper
+            .FindEvents<UnitAttackedEvent>(allEvents)
             .Any(e => e.AttackerUnitId == pebbloomLike.UnitId);
-        bool fireWispDamaged = SimTestHelper.FindEvents<UnitDamagedEvent>(allEvents)
-            .Any(e => e.TargetUnitId == fireWispLike.UnitId && e.AttackerUnitId == pebbloomLike.UnitId);
+        bool fireWispDamaged = SimTestHelper
+            .FindEvents<UnitDamagedEvent>(allEvents)
+            .Any(e =>
+                e.TargetUnitId == fireWispLike.UnitId && e.AttackerUnitId == pebbloomLike.UnitId
+            );
 
         AssertThat(pebbloomAttacked).IsTrue();
         AssertThat(fireWispDamaged).IsTrue();
@@ -165,16 +192,41 @@ public class BlockedUnitReproTest
     public void BlockedMelee_ThreeUnitColumn_AllUnitsEventuallyAttack()
     {
         // Three friendly units in a line
-        var unit1 = SimTestHelper.CreateMeleeUnit(_state, 0, x: -6f, z: 0f,
-            attackRange: 2f, damage: 5f);
-        var unit2 = SimTestHelper.CreateMeleeUnit(_state, 0, x: -3f, z: 0f,
-            attackRange: 2f, damage: 5f);
-        var unit3 = SimTestHelper.CreateMeleeUnit(_state, 0, x: -1f, z: 0f,
-            attackRange: 2f, damage: 5f);
+        var unit1 = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -6f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 5f
+        );
+        var unit2 = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -3f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 5f
+        );
+        var unit3 = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -1f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 5f
+        );
 
         // Tanky enemy
-        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 0f,
-            hp: 2000f, attackRange: 2f, damage: 1f);
+        var enemy = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: 2f,
+            z: 0f,
+            hp: 2000f,
+            attackRange: 2f,
+            damage: 1f
+        );
 
         var allEvents = new List<SimEvent>();
 
@@ -205,16 +257,20 @@ public class BlockedUnitReproTest
     public void BlockedRanged_BehindMelee_ShouldStillFireProjectiles()
     {
         // Front melee unit
-        SimTestHelper.CreateMeleeUnit(_state, 0, x: -1f, z: 0f,
-            attackRange: 2f);
+        SimTestHelper.CreateMeleeUnit(_state, 0, x: -1f, z: 0f, attackRange: 2f);
 
         // Ranged unit behind — longer attack range should let it fire over/through
-        var ranged = SimTestHelper.CreateRangedUnit(_state, 0, x: -4f, z: 0f,
-            attackRange: 8f, projectileDelay: 0.3f);
+        var ranged = SimTestHelper.CreateRangedUnit(
+            _state,
+            0,
+            x: -4f,
+            z: 0f,
+            attackRange: 8f,
+            projectileDelay: 0.3f
+        );
 
         // Enemy
-        SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 0f,
-            hp: 500f);
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 0f, hp: 500f);
 
         var allEvents = new List<SimEvent>();
 
@@ -225,7 +281,8 @@ public class BlockedUnitReproTest
         }
 
         // Ranged unit should have spawned at least one projectile
-        var attacks = SimTestHelper.FindEvents<UnitAttackedEvent>(allEvents)
+        var attacks = SimTestHelper
+            .FindEvents<UnitAttackedEvent>(allEvents)
             .Where(e => e.AttackerUnitId == ranged.UnitId)
             .ToList();
 
@@ -240,16 +297,44 @@ public class BlockedUnitReproTest
     public void BlockedMelee_TwoArmies_BackRowUnitsContribute()
     {
         // Team 0: front and back
-        var t0Front = SimTestHelper.CreateMeleeUnit(_state, 0, x: -1f, z: 0f,
-            attackRange: 2f, damage: 3f, hp: 200f);
-        var t0Back = SimTestHelper.CreateMeleeUnit(_state, 0, x: -4f, z: 0f,
-            attackRange: 2f, damage: 3f, hp: 200f);
+        var t0Front = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -1f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 3f,
+            hp: 200f
+        );
+        var t0Back = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -4f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 3f,
+            hp: 200f
+        );
 
         // Team 1: front and back
-        var t1Front = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1f, z: 0f,
-            attackRange: 2f, damage: 3f, hp: 200f);
-        var t1Back = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, z: 0f,
-            attackRange: 2f, damage: 3f, hp: 200f);
+        var t1Front = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: 1f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 3f,
+            hp: 200f
+        );
+        var t1Back = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: 4f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 3f,
+            hp: 200f
+        );
 
         var allEvents = new List<SimEvent>();
 
@@ -278,7 +363,15 @@ public class BlockedUnitReproTest
         _state.Summoners[1].CurrentHp = 500f;
         _state.Summoners[1].MaxHp = 500f;
 
-        SimTestHelper.CreateMeleeUnit(_state, 0, x: -8f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 3f);
+        SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: -8f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 5f,
+            moveSpeed: 3f
+        );
 
         float hpBefore = _state.Summoners[1].CurrentHp;
         for (int i = 0; i < TenSeconds; i++)
@@ -298,19 +391,38 @@ public class BlockedUnitReproTest
         _state.Summoners[1].MaxHp = 600f;
 
         // Frontline unit starts in range and tends to hold the front slot.
-        SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 2.5f);
-        var backline = SimTestHelper.CreateMeleeUnit(_state, 0, x: 14f, z: 0f, attackRange: 2f, damage: 5f, moveSpeed: 3f);
+        SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 18f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 5f,
+            moveSpeed: 2.5f
+        );
+        var backline = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 14f,
+            z: 0f,
+            attackRange: 2f,
+            damage: 5f,
+            moveSpeed: 3f
+        );
 
         var allEvents = new List<SimEvent>();
         for (int i = 0; i < TwentySeconds; i++)
             allEvents.AddRange(_sim.Tick(Delta));
 
-        var summonerDamages = SimTestHelper.FindEvents<SummonerDamagedEvent>(allEvents)
+        var summonerDamages = SimTestHelper
+            .FindEvents<SummonerDamagedEvent>(allEvents)
             .Where(e => e.Team == 1)
             .ToList();
 
         AssertThat(summonerDamages.Count).IsGreater(0);
-        bool backlineDamagedSummoner = summonerDamages.Any(e => e.AttackerUnitId == backline.UnitId);
+        bool backlineDamagedSummoner = summonerDamages.Any(e =>
+            e.AttackerUnitId == backline.UnitId
+        );
         AssertThat(backlineDamagedSummoner || _state.Summoners[1].CurrentHp < 600f).IsTrue();
     }
 
@@ -323,7 +435,8 @@ public class BlockedUnitReproTest
     {
         const int unitsPerTeam = 30;
         const float minAttackerContributionRatioPerTeam = 0.33f;
-        int minDistinctAttackersPerTeam = (int)MathF.Ceiling(unitsPerTeam * minAttackerContributionRatioPerTeam);
+        int minDistinctAttackersPerTeam = (int)
+            MathF.Ceiling(unitsPerTeam * minAttackerContributionRatioPerTeam);
 
         _state.Summoners[0].CurrentHp = 20000f;
         _state.Summoners[0].MaxHp = 20000f;
@@ -340,7 +453,8 @@ public class BlockedUnitReproTest
             float laneZ = (col - 2.5f) * 0.70f;
 
             var t0 = SimTestHelper.CreateMeleeUnit(
-                _state, 0,
+                _state,
+                0,
                 x: 18.5f - (row * 1.0f),
                 z: laneZ,
                 hp: 140f,
@@ -351,7 +465,8 @@ public class BlockedUnitReproTest
             team0Ids.Add(t0.UnitId);
 
             var t1 = SimTestHelper.CreateMeleeUnit(
-                _state, 1,
+                _state,
+                1,
                 x: -18.5f + (row * 1.0f),
                 z: laneZ,
                 hp: 140f,

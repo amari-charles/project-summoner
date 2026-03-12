@@ -44,5 +44,5 @@ public enum TriggerCondition
     /// <summary>
     /// Activates periodically (use TriggerCooldown for interval).
     /// </summary>
-    Periodic
+    Periodic,
 }

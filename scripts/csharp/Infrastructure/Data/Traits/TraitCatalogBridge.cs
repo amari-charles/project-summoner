@@ -1,5 +1,5 @@
-using Godot;
 using Fateforged.Stats;
+using Godot;
 
 namespace Fateforged.Data.Traits;
 
@@ -66,7 +66,9 @@ public partial class TraitCatalogBridge : Node
     }
 
     /// <summary>Get traits by category as dictionaries.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetTraitsByCategory(string category)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetTraitsByCategory(
+        string category
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var trait in TraitCatalog.GetTraitsByCategory(category))
@@ -88,7 +90,9 @@ public partial class TraitCatalogBridge : Node
     }
 
     /// <summary>Get traits by acquisition mode as dictionaries.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetTraitsByAcquisitionMode(string acquisitionMode)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetTraitsByAcquisitionMode(
+        string acquisitionMode
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var trait in TraitCatalog.GetTraitsByAcquisitionMode(acquisitionMode))
@@ -103,7 +107,9 @@ public partial class TraitCatalogBridge : Node
     // =========================================================================
 
     /// <summary>Get unit modifiers for a trait as dictionaries.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetUnitModifiersForTrait(string traitId)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetUnitModifiersForTrait(
+        string traitId
+    )
     {
         return TraitCatalog.GetUnitModifiersForTraitAsDict(traitId);
     }
@@ -125,7 +131,8 @@ public partial class TraitCatalogBridge : Node
         Godot.Collections.Array<string> entityTags,
         int currentLevel,
         Godot.Collections.Array<string> acquiredTraitIds,
-        int count = 3)
+        int count = 3
+    )
     {
         var tags = new string[entityTags.Count];
         for (int i = 0; i < entityTags.Count; i++)
@@ -149,7 +156,9 @@ public partial class TraitCatalogBridge : Node
     /// Get traits in the global pool for a specific entity type.
     /// </summary>
     /// <param name="entityType">Entity type tag (e.g., "summoner", "summon", or "spell")</param>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetGlobalPoolTraits(string entityType = TraitTags.Summoner)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetGlobalPoolTraits(
+        string entityType = TraitTags.Summoner
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var trait in TraitCatalog.GetGlobalPoolTraits(entityType))
@@ -179,7 +188,8 @@ public partial class TraitCatalogBridge : Node
     public string GetTraitName(string traitId)
     {
         var trait = TraitCatalog.GetTrait(traitId);
-        if (trait == null) return traitId;
+        if (trait == null)
+            return traitId;
 
         if (_loc != null && _loc.HasMethod("t"))
         {
@@ -192,7 +202,8 @@ public partial class TraitCatalogBridge : Node
     public string GetTraitDescription(string traitId)
     {
         var trait = TraitCatalog.GetTrait(traitId);
-        if (trait == null) return "";
+        if (trait == null)
+            return "";
 
         if (_loc != null && _loc.HasMethod("t"))
         {
@@ -205,13 +216,15 @@ public partial class TraitCatalogBridge : Node
     public string GetTraitModifierText(string traitId)
     {
         var trait = TraitCatalog.GetTrait(traitId);
-        if (trait == null) return "";
+        if (trait == null)
+            return "";
 
         var texts = new System.Collections.Generic.List<string>();
 
         foreach (var mod in trait.Modifiers)
         {
-            if (!mod.HasSummonerStat) continue;
+            if (!mod.HasSummonerStat)
+                continue;
 
             var sign = mod.Value >= 0 ? "+" : "";
             var suffix = mod.Type == ModifierType.Percent ? "%" : "";
@@ -228,7 +241,8 @@ public partial class TraitCatalogBridge : Node
     /// <summary>Simple title case conversion.</summary>
     private static string ToTitleCase(string input)
     {
-        if (string.IsNullOrEmpty(input)) return input;
+        if (string.IsNullOrEmpty(input))
+            return input;
 
         var words = input.Split(' ');
         for (int i = 0; i < words.Length; i++)

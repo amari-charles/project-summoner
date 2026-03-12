@@ -6,17 +6,18 @@ public enum TraitTreeNodeState
 {
     Owned,
     Available,
-    Locked
+    Locked,
 }
 
 public static class TraitTreeNodeStateExtensions
 {
-    public static string ToStringValue(this TraitTreeNodeState state) => state switch
-    {
-        TraitTreeNodeState.Owned => "owned",
-        TraitTreeNodeState.Available => "available",
-        _ => "locked"
-    };
+    public static string ToStringValue(this TraitTreeNodeState state) =>
+        state switch
+        {
+            TraitTreeNodeState.Owned => "owned",
+            TraitTreeNodeState.Available => "available",
+            _ => "locked",
+        };
 }
 
 public sealed class TraitTreeOwnerContext
@@ -45,9 +46,7 @@ public sealed class TraitUnlockEvaluation
     public required List<string> MissingPrerequisiteIds { get; init; }
 
     public TraitTreeNodeState NodeState =>
-        IsOwned
-            ? TraitTreeNodeState.Owned
-            : IsEligibleWithoutPoints
-                ? TraitTreeNodeState.Available
-                : TraitTreeNodeState.Locked;
+        IsOwned ? TraitTreeNodeState.Owned
+        : IsEligibleWithoutPoints ? TraitTreeNodeState.Available
+        : TraitTreeNodeState.Locked;
 }

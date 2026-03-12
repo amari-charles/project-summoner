@@ -1,5 +1,6 @@
-using Godot;
 using Fateforged.View;
+using Godot;
+
 namespace Fateforged.Visual;
 
 /// <summary>
@@ -32,7 +33,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         Lunge,
         SquashSpring,
         Spin,
-        Pulse
+        Pulse,
     }
 
     // =========================================================================
@@ -55,7 +56,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     /// Value: pixel offset relative to texture center.
     /// </summary>
     [Export]
-    public Godot.Collections.Dictionary<StringName, Vector2> AnimationPivotOffsets { get; set; } = new();
+    public Godot.Collections.Dictionary<StringName, Vector2> AnimationPivotOffsets { get; set; } =
+        new();
 
     /// <summary>
     /// Viewport size in pixels. Controls the rendering area.
@@ -171,7 +173,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private bool _isAttacking;
     private bool _isWalkCycleActive;
     private bool _isFlipped;
-    private ShadowProfile _shadowProfile = ShadowProfiles.FromPreset(ShadowProfilePreset.Default).Sanitize();
+    private ShadowProfile _shadowProfile = ShadowProfiles
+        .FromPreset(ShadowProfilePreset.Default)
+        .Sanitize();
     private Color _originalModulate = Colors.White;
     private Tween? _flashTween;
     private ulong _lastFlashTimestampMs;
@@ -193,7 +197,9 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         // Get node references
         _sprite3D = GetNodeOrNull<Sprite3D>("Sprite3D");
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
-        _characterSprite = GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
+        _characterSprite = GetNodeOrNull<AnimatedSprite2D>(
+            "Sprite3D/SubViewport/Model2D/CharacterSprite"
+        );
         _shadowProfile = ResolveShadowProfile();
 
         // Only hide/create runtime-only visuals when under UnitVisual.
@@ -496,7 +502,12 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
             // Create fade-back tween
             _flashTween = CreateTween();
-            _flashTween.TweenProperty(_characterSprite, "modulate", _originalModulate, FlashFadeDuration);
+            _flashTween.TweenProperty(
+                _characterSprite,
+                "modulate",
+                _originalModulate,
+                FlashFadeDuration
+            );
         };
     }
 
@@ -679,7 +690,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
             // Feet are FeetOffsetPixels above sprite bottom
             // Shift Sprite3D down so feet align with world Y=0
-            float feetWorldOffset = FeetOffsetPixels * _characterSprite.Scale.Y * _sprite3D.PixelSize;
+            float feetWorldOffset =
+                FeetOffsetPixels * _characterSprite.Scale.Y * _sprite3D.PixelSize;
             pos.Y = worldHeight / 2.0f - feetWorldOffset;
         }
         else
@@ -716,9 +728,11 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
 
         string anim = _characterSprite.Animation;
         int frame = _characterSprite.Frame;
-        if (anim == _lastAlignedAnimation
+        if (
+            anim == _lastAlignedAnimation
             && frame == _lastAlignedFrame
-            && _characterSprite.Scale == _lastAlignedScale)
+            && _characterSprite.Scale == _lastAlignedScale
+        )
             return;
 
         SetupSpriteAlignment();
@@ -755,7 +769,11 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         int frame = Mathf.Clamp(_characterSprite.Frame, 0, frameCount - 1);
 
         // Return cached size if animation/frame hasn't changed
-        if (anim == _cachedFrameSizeAnimation && frame == _cachedFrameSizeFrame && _cachedFrameSize != Vector2.Zero)
+        if (
+            anim == _cachedFrameSizeAnimation
+            && frame == _cachedFrameSizeFrame
+            && _cachedFrameSize != Vector2.Zero
+        )
             return _cachedFrameSize;
 
         var frameTexture = _characterSprite.SpriteFrames.GetFrameTexture(anim, frame);
@@ -817,11 +835,16 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         float direction = _characterSprite.FlipH ? -1.0f : 1.0f;
 
         _attackTween = CreateTween();
-        _attackTween.TweenProperty(_characterSprite, "position:x",
-            baseX + (LungeDistancePx * direction), LungeForwardDuration)
+        _attackTween
+            .TweenProperty(
+                _characterSprite,
+                "position:x",
+                baseX + (LungeDistancePx * direction),
+                LungeForwardDuration
+            )
             .SetEase(Tween.EaseType.Out);
-        _attackTween.TweenProperty(_characterSprite, "position:x",
-            baseX, LungeReturnDuration)
+        _attackTween
+            .TweenProperty(_characterSprite, "position:x", baseX, LungeReturnDuration)
             .SetEase(Tween.EaseType.In);
         _attackTween.TweenCallback(Callable.From(OnAttackFinished));
     }
@@ -850,7 +873,10 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         if (_characterSprite?.SpriteFrames == null)
             return;
 
-        if (_characterSprite.Animation == "walk" && _characterSprite.SpriteFrames.HasAnimation("walk_loop"))
+        if (
+            _characterSprite.Animation == "walk"
+            && _characterSprite.SpriteFrames.HasAnimation("walk_loop")
+        )
         {
             _characterSprite.Animation = "walk_loop";
             _characterSprite.Play();

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Constants;
 using Fateforged.Stats;
 using Fateforged.Units;
+using Godot;
 
 namespace Fateforged.Cards;
 
@@ -62,47 +62,47 @@ public static class CardCatalog
     /// <summary>Get summon cards by creature type (any match).</summary>
     public static CardDefinition[] GetCardsByCreatureType(CreatureType creatureType)
     {
-        return CardDefinitions.All
-            .Where(c => c.Type == CardType.Summon && (c.CreatureTypes & creatureType) != 0)
+        return CardDefinitions
+            .All.Where(c => c.Type == CardType.Summon && (c.CreatureTypes & creatureType) != 0)
             .ToArray();
     }
 
     /// <summary>Get summon cards by role (any match).</summary>
     public static CardDefinition[] GetCardsByRole(SummonRole role)
     {
-        return CardDefinitions.All
-            .Where(c => c.Type == CardType.Summon && (c.Roles & role) != 0)
+        return CardDefinitions
+            .All.Where(c => c.Type == CardType.Summon && (c.Roles & role) != 0)
             .ToArray();
     }
 
     /// <summary>Get spell cards by category.</summary>
     public static CardDefinition[] GetSpellsByCategory(SpellCategory category)
     {
-        return CardDefinitions.All
-            .Where(c => c.Type == CardType.Spell && c.SpellCategory == category)
+        return CardDefinitions
+            .All.Where(c => c.Type == CardType.Spell && c.SpellCategory == category)
             .ToArray();
     }
 
     /// <summary>Get spell cards by targeting mode.</summary>
     public static CardDefinition[] GetSpellsByTargeting(SpellTargeting targeting)
     {
-        return CardDefinitions.All
-            .Where(c => c.Type == CardType.Spell && c.SpellTargeting == targeting)
+        return CardDefinitions
+            .All.Where(c => c.Type == CardType.Spell && c.SpellTargeting == targeting)
             .ToArray();
     }
 
     /// <summary>Get cards with specific flags.</summary>
     public static CardDefinition[] GetCardsWithFlags(CardFlags flags)
     {
-        return CardDefinitions.All
-            .Where(c => (c.Flags & flags) == flags)
-            .ToArray();
+        return CardDefinitions.All.Where(c => (c.Flags & flags) == flags).ToArray();
     }
 
     /// <summary>Get starter/default cards.</summary>
     public static CardDefinition[] GetStarterCards()
     {
-        return CardDefinitions.All.Where(c => c.UnlockCondition == UnlockCondition.Default).ToArray();
+        return CardDefinitions
+            .All.Where(c => c.UnlockCondition == UnlockCondition.Default)
+            .ToArray();
     }
 
     /// <summary>Get cards by elemental affinity.</summary>
@@ -123,9 +123,12 @@ public static class CardCatalog
     public static Godot.Collections.Dictionary ToDictionary(CardDefinition card)
     {
         // Resolve scene path and stats from UnitDefinitions when UnitId is set
-        string scenePath = card.UnitId.HasValue && UnitDefinitions.TryGet(card.UnitId, out var unitDef) && unitDef != null
-            ? unitDef.ScenePath
-            : card.UnitScenePath;
+        string scenePath =
+            card.UnitId.HasValue
+            && UnitDefinitions.TryGet(card.UnitId, out var unitDef)
+            && unitDef != null
+                ? unitDef.ScenePath
+                : card.UnitScenePath;
 
         // Get base stats from UnitDefinitions (with card modifier applied) or from card directly
         UnitStats stats;
@@ -154,7 +157,7 @@ public static class CardCatalog
             ["mana_cost"] = card.ManaCost,
             ["cooldown"] = card.Cooldown,
             ["summon_time"] = card.SummonTime,
-            ["unit_id"] = (string)card.UnitId,  // Convert to string for GDScript
+            ["unit_id"] = (string)card.UnitId, // Convert to string for GDScript
             ["unit_scene_path"] = scenePath,
             ["spawn_count"] = card.SpawnCount,
             ["unit_type"] = card.UnitType.ToString().ToLowerInvariant(),
@@ -178,7 +181,7 @@ public static class CardCatalog
             ["card_icon_path"] = card.CardIconPath,
             ["tactical_role"] = ResolveCardTacticalRole(card, stats),
             // Separation radius from UnitDefinitions
-            ["separation_radius"] = def?.Visual.SeparationRadius ?? 0.5f
+            ["separation_radius"] = def?.Visual.SeparationRadius ?? 0.5f,
         };
 
         if (Math.Abs(stats.SoulStrength) > 0.0001f)
@@ -200,7 +203,7 @@ public static class CardCatalog
         // Categories dict for elemental affinity (matches GDScript structure)
         var categories = new Godot.Collections.Dictionary
         {
-            ["elemental_affinity"] = card.ElementalAffinity.ToString().ToLowerInvariant()
+            ["elemental_affinity"] = card.ElementalAffinity.ToString().ToLowerInvariant(),
         };
         dict["categories"] = categories;
 
@@ -208,12 +211,13 @@ public static class CardCatalog
     }
 
     /// <summary>Convert UnlockCondition enum to GDScript-compatible string.</summary>
-    private static string UnlockConditionToString(UnlockCondition condition) => condition switch
-    {
-        UnlockCondition.Default => "default",
-        UnlockCondition.DevOnly => "dev_only",
-        _ => condition.ToString().ToLowerInvariant()
-    };
+    private static string UnlockConditionToString(UnlockCondition condition) =>
+        condition switch
+        {
+            UnlockCondition.Default => "default",
+            UnlockCondition.DevOnly => "dev_only",
+            _ => condition.ToString().ToLowerInvariant(),
+        };
 
     private static string ResolveCardTacticalRole(CardDefinition card, UnitStats stats)
     {
@@ -226,18 +230,30 @@ public static class CardCatalog
         {
             foreach (var entry in card.Summon.Units)
             {
-                var template = UnitDefinitions.BuildSimTemplate(entry.UnitId, entry.Count, entry.Modifier);
-                roles.Add(template.TacticalRole == TacticalRole.Auto
-                    ? ResolveFallbackTacticalRole(card.UnitType, stats.MoveSpeed)
-                    : template.TacticalRole);
+                var template = UnitDefinitions.BuildSimTemplate(
+                    entry.UnitId,
+                    entry.Count,
+                    entry.Modifier
+                );
+                roles.Add(
+                    template.TacticalRole == TacticalRole.Auto
+                        ? ResolveFallbackTacticalRole(card.UnitType, stats.MoveSpeed)
+                        : template.TacticalRole
+                );
             }
         }
         else if (card.UnitId.HasValue)
         {
-            var template = UnitDefinitions.BuildSimTemplate(card.UnitId, card.SpawnCount, card.UnitModifier);
-            roles.Add(template.TacticalRole == TacticalRole.Auto
-                ? ResolveFallbackTacticalRole(card.UnitType, stats.MoveSpeed)
-                : template.TacticalRole);
+            var template = UnitDefinitions.BuildSimTemplate(
+                card.UnitId,
+                card.SpawnCount,
+                card.UnitModifier
+            );
+            roles.Add(
+                template.TacticalRole == TacticalRole.Auto
+                    ? ResolveFallbackTacticalRole(card.UnitType, stats.MoveSpeed)
+                    : template.TacticalRole
+            );
         }
         else
         {
@@ -280,7 +296,9 @@ public static class CardCatalog
     }
 
     /// <summary>Get cards by rarity as dictionaries for GDScript.</summary>
-    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByRarityAsDict(string rarity)
+    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByRarityAsDict(
+        string rarity
+    )
     {
         if (!Enum.TryParse<Rarity>(rarity, ignoreCase: true, out var rarityEnum))
             return [];
@@ -294,7 +312,9 @@ public static class CardCatalog
     }
 
     /// <summary>Get cards by type as dictionaries for GDScript.</summary>
-    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByTypeAsDict(int type)
+    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByTypeAsDict(
+        int type
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var card in GetCardsByType((CardType)type))
@@ -316,7 +336,9 @@ public static class CardCatalog
     }
 
     /// <summary>Get cards by element as dictionaries for GDScript.</summary>
-    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByElementAsDict(string element)
+    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByElementAsDict(
+        string element
+    )
     {
         if (!Enum.TryParse<Element>(element, ignoreCase: true, out var elementEnum))
             return [];

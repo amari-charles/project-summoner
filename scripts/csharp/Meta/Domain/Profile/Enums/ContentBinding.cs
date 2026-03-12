@@ -16,5 +16,5 @@ public enum ContentBinding
     /// Content is bound to a specific summoner and only they can access it.
     /// Examples: progression rewards, earned equipment, summoner-specific unlocks.
     /// </summary>
-    SummonerBound
+    SummonerBound,
 }

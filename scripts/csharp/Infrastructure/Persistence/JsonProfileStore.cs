@@ -83,7 +83,8 @@ public class JsonProfileStore
     public void EnsureProfileDir(string profileId)
     {
         using var dir = DirAccess.Open("user://");
-        if (dir == null) return;
+        if (dir == null)
+            return;
 
         if (!dir.DirExists("profiles"))
             dir.MakeDir("profiles");
@@ -124,7 +125,12 @@ public class JsonProfileStore
         return null;
     }
 
-    private static bool AtomicWrite(Godot.Collections.Dictionary data, string profileDir, string tempPath, string mainPath)
+    private static bool AtomicWrite(
+        Godot.Collections.Dictionary data,
+        string profileDir,
+        string tempPath,
+        string mainPath
+    )
     {
         // Write to temp file first
         using (var file = FileAccess.Open(tempPath, FileAccess.ModeFlags.Write))
@@ -176,12 +182,19 @@ public class JsonProfileStore
         return true;
     }
 
-    private static void RotateBackups(string profileDir, string mainPath, string bak1Path, string bak2Path)
+    private static void RotateBackups(
+        string profileDir,
+        string mainPath,
+        string bak1Path,
+        string bak2Path
+    )
     {
         using var dir = DirAccess.Open(profileDir);
         if (dir == null)
         {
-            GD.PushWarning("JsonProfileStore: Failed to open profile directory for backup rotation");
+            GD.PushWarning(
+                "JsonProfileStore: Failed to open profile directory for backup rotation"
+            );
             return;
         }
 

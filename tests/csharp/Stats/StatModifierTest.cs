@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Stats;
 
 using System.Collections.Generic;
-using GdUnit4;
 using Fateforged.Stats;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -24,10 +24,7 @@ public class StatModifierTest
     [TestCase]
     public void StatModifier_IsTriggered_ReturnsTrueForNonAlwaysCondition()
     {
-        var mod = new StatModifier
-        {
-            Trigger = TriggerCondition.OnHit
-        };
+        var mod = new StatModifier { Trigger = TriggerCondition.OnHit };
 
         AssertThat(mod.IsTriggered).IsTrue();
     }
@@ -41,7 +38,7 @@ public class StatModifierTest
             Trigger = TriggerCondition.BelowHpPercent,
             TriggerThreshold = 0.5f,
             TriggerDuration = 10.0f,
-            TriggerCooldown = 2.0f
+            TriggerCooldown = 2.0f,
         };
 
         var dict = mod.ToDictionary();
@@ -59,7 +56,7 @@ public class StatModifierTest
         var mod = new StatModifier
         {
             Source = "test_source",
-            StatAdds = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 5.0f }
+            StatAdds = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 5.0f },
         };
 
         var dict = mod.ToDictionary();
@@ -79,7 +76,7 @@ public class StatModifierTest
             ["trigger"] = "OnKill",
             ["trigger_threshold"] = 0.25f,
             ["trigger_duration"] = 5.0f,
-            ["trigger_cooldown"] = 1.0f
+            ["trigger_cooldown"] = 1.0f,
         };
 
         var mod = StatModifier.FromDictionary(dict);
@@ -96,7 +93,7 @@ public class StatModifierTest
         var dict = new Godot.Collections.Dictionary
         {
             ["source"] = "test_source",
-            ["trigger"] = "InvalidTrigger"
+            ["trigger"] = "InvalidTrigger",
         };
 
         var mod = StatModifier.FromDictionary(dict);
@@ -119,7 +116,7 @@ public class StatModifierTest
             Flags = new Dictionary<string, bool> { ["immune_slow"] = true },
             Trigger = TriggerCondition.OnTakeHit,
             TriggerDuration = 5.0f,
-            TriggerCooldown = 1.5f
+            TriggerCooldown = 1.5f,
         };
 
         var dict = original.ToDictionary();

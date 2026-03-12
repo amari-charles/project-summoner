@@ -10,12 +10,15 @@ public enum WinConditionType
 {
     /// <summary>Destroy the enemy summoner. Default mode.</summary>
     DestroySummoner,
+
     /// <summary>Survive for a specified duration.</summary>
     SurviveTime,
+
     /// <summary>Destroy enemy summoner within a time limit.</summary>
     TimedDestroy,
+
     /// <summary>Kill a target number of enemy units.</summary>
-    KillCount
+    KillCount,
 }
 
 /// <summary>
@@ -65,8 +68,8 @@ public interface IWinCondition
 /// </summary>
 public class DestroySummonerWinCondition : IWinCondition
 {
-    public WinConditionResult? Evaluate(MatchState state)
-        => WinConditionHelper.CheckSummonerDeath(state);
+    public WinConditionResult? Evaluate(MatchState state) =>
+        WinConditionHelper.CheckSummonerDeath(state);
 }
 
 /// <summary>
@@ -85,7 +88,8 @@ public class SurviveTimeWinCondition : IWinCondition
     public WinConditionResult? Evaluate(MatchState state)
     {
         var death = WinConditionHelper.CheckSummonerDeath(state);
-        if (death != null) return death;
+        if (death != null)
+            return death;
 
         // Survived long enough — player wins
         if (state.MatchTime >= TimeLimit)
@@ -110,7 +114,8 @@ public class TimedDestroyWinCondition : IWinCondition
     public WinConditionResult? Evaluate(MatchState state)
     {
         var death = WinConditionHelper.CheckSummonerDeath(state);
-        if (death != null) return death;
+        if (death != null)
+            return death;
 
         // Time ran out — player loses
         if (state.MatchTime >= TimeLimit)
@@ -136,7 +141,8 @@ public class KillCountWinCondition : IWinCondition
     public WinConditionResult? Evaluate(MatchState state)
     {
         var death = WinConditionHelper.CheckSummonerDeath(state);
-        if (death != null) return death;
+        if (death != null)
+            return death;
 
         // Kill target reached
         if (state.KillCount >= KillTarget)
@@ -181,10 +187,14 @@ public static class WinConditionFactory
     {
         return state.WinCondition switch
         {
-            WinConditionType.SurviveTime => new SurviveTimeWinCondition(state.WinConditionTimeLimit),
-            WinConditionType.TimedDestroy => new TimedDestroyWinCondition(state.WinConditionTimeLimit),
+            WinConditionType.SurviveTime => new SurviveTimeWinCondition(
+                state.WinConditionTimeLimit
+            ),
+            WinConditionType.TimedDestroy => new TimedDestroyWinCondition(
+                state.WinConditionTimeLimit
+            ),
             WinConditionType.KillCount => new KillCountWinCondition(state.WinConditionKillTarget),
-            _ => new DestroySummonerWinCondition()
+            _ => new DestroySummonerWinCondition(),
         };
     }
 
@@ -200,7 +210,7 @@ public static class WinConditionFactory
             "survive_time" => WinConditionType.SurviveTime,
             "timed_destroy" => WinConditionType.TimedDestroy,
             "kill_count" => WinConditionType.KillCount,
-            _ => WinConditionType.DestroySummoner
+            _ => WinConditionType.DestroySummoner,
         };
     }
 }

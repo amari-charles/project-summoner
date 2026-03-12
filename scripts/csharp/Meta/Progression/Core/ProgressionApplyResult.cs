@@ -6,7 +6,7 @@ public enum ProgressionApplyStatus
     InvalidState,
     MaxLevel,
     InvalidCost,
-    InsufficientXp
+    InsufficientXp,
 }
 
 /// <summary>
@@ -16,10 +16,13 @@ public readonly record struct ProgressionApplyResult(
     ProgressionApplyStatus Status,
     ProgressionState PreviousState,
     ProgressionState NextState,
-    int XpCostSpent)
+    int XpCostSpent
+)
 {
     public bool Success => Status == ProgressionApplyStatus.Success;
 
-    public static ProgressionApplyResult NoChange(ProgressionApplyStatus status, ProgressionState state) =>
-        new(status, state, state, 0);
+    public static ProgressionApplyResult NoChange(
+        ProgressionApplyStatus status,
+        ProgressionState state
+    ) => new(status, state, state, 0);
 }

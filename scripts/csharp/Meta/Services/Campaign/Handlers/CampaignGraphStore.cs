@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Godot;
 using Fateforged.Data.Events;
 using Fateforged.Meta.Campaign.Models;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
@@ -20,7 +20,8 @@ public class CampaignGraphStore
 
     /// <summary>Current campaign graph (convenience accessor).</summary>
     public CampaignGraph? CurrentGraph =>
-        !string.IsNullOrEmpty(CurrentCampaignId) && Graphs.TryGetValue(CurrentCampaignId, out var graph)
+        !string.IsNullOrEmpty(CurrentCampaignId)
+        && Graphs.TryGetValue(CurrentCampaignId, out var graph)
             ? graph
             : null;
 
@@ -45,18 +46,26 @@ public class CampaignGraphStore
             if (!string.IsNullOrEmpty(graph.CampaignId))
             {
                 Graphs[graph.CampaignId] = graph;
-                GD.Print($"CampaignGraphStore: Loaded graph '{graph.CampaignId}' with {graph.Nodes.Count} nodes and {graph.Edges.Count} edges");
+                GD.Print(
+                    $"CampaignGraphStore: Loaded graph '{graph.CampaignId}' with {graph.Nodes.Count} nodes and {graph.Edges.Count} edges"
+                );
             }
         }
 
-        GD.Print($"CampaignGraphStore: Initialized {Graphs.Count} campaign graphs from C# catalogs");
+        GD.Print(
+            $"CampaignGraphStore: Initialized {Graphs.Count} campaign graphs from C# catalogs"
+        );
     }
 
     /// <summary>
     /// Load campaign graphs from GDScript data (legacy, now uses C# catalogs).
     /// </summary>
-    [System.Obsolete("Use InitializeFromCatalog() instead. GDScript campaign data is no longer used.")]
-    public void LoadGraphsFromGDScript(Godot.Collections.Array<Godot.Collections.Dictionary> campaigns)
+    [System.Obsolete(
+        "Use InitializeFromCatalog() instead. GDScript campaign data is no longer used."
+    )]
+    public void LoadGraphsFromGDScript(
+        Godot.Collections.Array<Godot.Collections.Dictionary> campaigns
+    )
     {
         // Ignore GDScript data - use C# catalogs
         InitializeFromCatalog();
@@ -153,7 +162,8 @@ public class CampaignGraphStore
     {
         var result = new List<CampaignNode>();
         var graph = CurrentGraph;
-        if (graph == null) return result;
+        if (graph == null)
+            return result;
 
         foreach (var nodeId in CompletedNodes)
         {

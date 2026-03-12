@@ -33,6 +33,7 @@ public class SummonerData
 
     // Damage bonuses (from summoner traits)
     public float DamageBonus { get; set; } // General % damage bonus
+
     // Flat post-defense reduction applied to incoming unit damage in SimDamage.
     // Summoner-vs-summoner incoming damage uses SoulStrength lane modifiers instead.
     public float DamageReduction { get; set; }
@@ -152,7 +153,8 @@ public class SummonerData
     /// </summary>
     private static int DeterministicStringHash(string? s)
     {
-        if (s == null) return 0;
+        if (s == null)
+            return 0;
         unchecked
         {
             int hash = (int)2166136261;

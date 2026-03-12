@@ -12,5 +12,5 @@ public enum CommandType
     Guard,
 
     /// <summary>Units focus fire on nearest enemy to the target position.</summary>
-    Charge
+    Charge,
 }

@@ -68,14 +68,22 @@ public class TraitTreeServiceTest
         var berserker = FindNode(vm, "progression_nodes", "trait_berserker");
         AssertThat(berserker).IsNull();
 
-        var detail = traitTree.GetTraitNodeDetail("summoner", summonerId, TraitIds.ColeSoulStrengthI);
+        var detail = traitTree.GetTraitNodeDetail(
+            "summoner",
+            summonerId,
+            TraitIds.ColeSoulStrengthI
+        );
         AssertThat(detail.Count).IsGreater(0);
         AssertThat(ReadString(detail, "name")).IsNotEmpty();
         AssertThat(ReadString(detail, "description")).IsNotEmpty();
         AssertThat(ReadBool(detail, "unlock_button_visible")).IsTrue();
         AssertThat(ReadBool(detail, "unlock_button_enabled")).IsTrue();
 
-        var unlockResult = traitTree.TryUnlockTrait("summoner", summonerId, TraitIds.ColeSoulStrengthI);
+        var unlockResult = traitTree.TryUnlockTrait(
+            "summoner",
+            summonerId,
+            TraitIds.ColeSoulStrengthI
+        );
         AssertThat(ReadBool(unlockResult, "success")).IsTrue();
 
         var updated = repo.GetSummonerInstance(summonerId);
@@ -97,17 +105,21 @@ public class TraitTreeServiceTest
         AssertThat(string.IsNullOrWhiteSpace(summonCardId)).IsFalse();
         AssertThat(string.IsNullOrWhiteSpace(spellCardId)).IsFalse();
 
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(summonCardId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(summonCardId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(spellCardId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(spellCardId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
         var summonVm = traitTree.GetCardTreeViewModel(summonCardId);
         var spellVm = traitTree.GetCardTreeViewModel(spellCardId);
@@ -127,11 +139,13 @@ public class TraitTreeServiceTest
         var cardId = cardService.GrantCard(CardIds.FireWisp, "common");
         AssertThat(string.IsNullOrWhiteSpace(cardId)).IsFalse();
 
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(cardId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 0
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(cardId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 0 }
+                )
+            )
+            .IsTrue();
 
         var detail = traitTree.GetTraitNodeDetail("card", cardId, TraitIds.Power);
         AssertThat(detail.Count).IsGreater(0);
@@ -153,11 +167,13 @@ public class TraitTreeServiceTest
         var cardId = cardService.GrantCard(CardIds.FireWisp, "common");
         AssertThat(string.IsNullOrWhiteSpace(cardId)).IsFalse();
 
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(cardId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(cardId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
         var result = traitTree.TryUnlockTrait("card", cardId, TraitIds.Power);
         AssertThat(ReadBool(result, "success")).IsTrue();
@@ -179,7 +195,8 @@ public class TraitTreeServiceTest
         return repo;
     }
 
-    private T CreateNode<T>() where T : Node, new()
+    private T CreateNode<T>()
+        where T : Node, new()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -197,18 +214,22 @@ public class TraitTreeServiceTest
 
         if (repo.GetSummonerInstance(candidate) == null)
         {
-            repo.SaveSummonerInstance(new SummonerInstance
-            {
-                SummonerId = candidate
-            });
+            repo.SaveSummonerInstance(new SummonerInstance { SummonerId = candidate });
         }
 
         return candidate;
     }
 
-    private static Godot.Collections.Dictionary? FindNode(Godot.Collections.Dictionary viewModel, string key, string traitId)
+    private static Godot.Collections.Dictionary? FindNode(
+        Godot.Collections.Dictionary viewModel,
+        string key,
+        string traitId
+    )
     {
-        if (!viewModel.TryGetValue(key, out var nodesVar) || nodesVar.VariantType != Variant.Type.Array)
+        if (
+            !viewModel.TryGetValue(key, out var nodesVar)
+            || nodesVar.VariantType != Variant.Type.Array
+        )
             return null;
 
         foreach (var entry in nodesVar.AsGodotArray())
@@ -224,12 +245,20 @@ public class TraitTreeServiceTest
         return null;
     }
 
-    private static string ReadString(Godot.Collections.Dictionary dict, string key, string fallback = "")
+    private static string ReadString(
+        Godot.Collections.Dictionary dict,
+        string key,
+        string fallback = ""
+    )
     {
         return dict.TryGetValue(key, out var value) ? value.AsString() : fallback;
     }
 
-    private static bool ReadBool(Godot.Collections.Dictionary dict, string key, bool fallback = false)
+    private static bool ReadBool(
+        Godot.Collections.Dictionary dict,
+        string key,
+        bool fallback = false
+    )
     {
         return dict.TryGetValue(key, out var value) && value.VariantType == Variant.Type.Bool
             ? value.AsBool()

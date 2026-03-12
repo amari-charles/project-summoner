@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Projectiles;
+using Godot;
 
 namespace Fateforged.Data.Projectiles;
 
@@ -80,12 +80,16 @@ public partial class ProjectileCatalog : Node
                 }
                 else
                 {
-                    errors.Add($"Failed to load scene for '{projData.ProjectileId}': {projData.ModelScenePath}");
+                    errors.Add(
+                        $"Failed to load scene for '{projData.ProjectileId}': {projData.ModelScenePath}"
+                    );
                 }
             }
             else
             {
-                errors.Add($"Scene path does not exist for '{projData.ProjectileId}': {projData.ModelScenePath}");
+                errors.Add(
+                    $"Scene path does not exist for '{projData.ProjectileId}': {projData.ModelScenePath}"
+                );
             }
         }
 
@@ -122,20 +126,17 @@ public partial class ProjectileCatalog : Node
     /// <summary>
     /// Check if a projectile exists.
     /// </summary>
-    public bool HasProjectile(ProjectileId projectileId) =>
-        ProjectileDefinitions.Has(projectileId);
+    public bool HasProjectile(ProjectileId projectileId) => ProjectileDefinitions.Has(projectileId);
 
     /// <summary>
     /// Check if a projectile exists by string ID.
     /// </summary>
-    public bool HasProjectile(string projectileId) =>
-        ProjectileDefinitions.Has(projectileId);
+    public bool HasProjectile(string projectileId) => ProjectileDefinitions.Has(projectileId);
 
     /// <summary>
     /// Get all projectile IDs.
     /// </summary>
-    public string[] GetAllProjectileIds() =>
-        ProjectileDefinitions.AllIds.ToArray();
+    public string[] GetAllProjectileIds() => ProjectileDefinitions.AllIds.ToArray();
 
     /// <summary>
     /// Get projectile count.

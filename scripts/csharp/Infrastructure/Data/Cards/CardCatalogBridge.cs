@@ -56,7 +56,9 @@ public partial class CardCatalogBridge : Node
     }
 
     /// <summary>Get cards by rarity as dictionaries.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByRarityAsDict(string rarity)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByRarityAsDict(
+        string rarity
+    )
     {
         return CardCatalog.GetCardsByRarityAsDict(rarity);
     }
@@ -74,7 +76,9 @@ public partial class CardCatalogBridge : Node
     }
 
     /// <summary>Get cards by element as dictionaries.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByElementAsDict(string element)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetCardsByElementAsDict(
+        string element
+    )
     {
         return CardCatalog.GetCardsByElementAsDict(element);
     }

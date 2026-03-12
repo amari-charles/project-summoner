@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Godot;
 using Fateforged.Constants;
+using Godot;
 
 namespace Fateforged.View.Spawning;
 
@@ -47,7 +47,8 @@ public static class SpawnPositionCalculator
         int spawnCount,
         SceneTree? tree,
         float collisionRadius,
-        int team = 0)
+        int team = 0
+    )
     {
         var positions = new List<Vector3>();
 
@@ -58,7 +59,14 @@ public static class SpawnPositionCalculator
         {
             var offset = formation.GetOffset(i, spawnCount);
             var desiredPos = centerPosition + offset;
-            var safePos = FindSafeSpawnPosition(desiredPos, tree, collisionRadius, null, positions, team);
+            var safePos = FindSafeSpawnPosition(
+                desiredPos,
+                tree,
+                collisionRadius,
+                null,
+                positions,
+                team
+            );
             positions.Add(safePos);
         }
 
@@ -84,13 +92,23 @@ public static class SpawnPositionCalculator
         float collisionRadius,
         Node3D? excludeUnit = null,
         List<Vector3>? batchPositions = null,
-        int team = 0)
+        int team = 0
+    )
     {
         // Get all existing units
         var units = tree?.GetNodesInGroup(GroupIDs.Units);
 
         // Check if desired position is safe first
-        if (IsSpawnPositionSafe(desiredPos, units, collisionRadius, excludeUnit, batchPositions, team))
+        if (
+            IsSpawnPositionSafe(
+                desiredPos,
+                units,
+                collisionRadius,
+                excludeUnit,
+                batchPositions,
+                team
+            )
+        )
             return desiredPos;
 
         // Search in expanding rings around desired position
@@ -104,7 +122,16 @@ public static class SpawnPositionCalculator
                 var offset = new Vector3(Mathf.Cos(angle) * radius, 0, Mathf.Sin(angle) * radius);
                 var testPos = desiredPos + offset;
 
-                if (IsSpawnPositionSafe(testPos, units, collisionRadius, excludeUnit, batchPositions, team))
+                if (
+                    IsSpawnPositionSafe(
+                        testPos,
+                        units,
+                        collisionRadius,
+                        excludeUnit,
+                        batchPositions,
+                        team
+                    )
+                )
                     return testPos;
             }
         }
@@ -131,7 +158,8 @@ public static class SpawnPositionCalculator
         float collisionRadius,
         Node3D? excludeUnit = null,
         List<Vector3>? batchPositions = null,
-        int team = 0)
+        int team = 0
+    )
     {
         // Check team spawn boundary first
         if (!BattlefieldBounds.IsValidSpawnPositionForTeam(checkPos, team))
@@ -159,7 +187,10 @@ public static class SpawnPositionCalculator
 
                 // Get separation radius
                 var otherRadiusVar = otherUnit.Get("separation_radius");
-                float otherRadius = otherRadiusVar.VariantType != Variant.Type.Nil ? otherRadiusVar.AsSingle() : DefaultCollisionRadius;
+                float otherRadius =
+                    otherRadiusVar.VariantType != Variant.Type.Nil
+                        ? otherRadiusVar.AsSingle()
+                        : DefaultCollisionRadius;
 
                 // Calculate 2D distance (ignore Y)
                 float dx = checkPos.X - otherUnit.GlobalPosition.X;

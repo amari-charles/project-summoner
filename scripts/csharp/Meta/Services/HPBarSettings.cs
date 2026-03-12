@@ -53,88 +53,94 @@ public readonly struct HPBarSettings
     public Color? ColorLow { get; init; }
     public Color? ColorBackground { get; init; }
 
-    public static HPBarSettings Default => new()
-    {
-        BarWidth = DefaultBarWidth,
-        BarHeight = DefaultBarHeight,
-        OffsetY = DefaultOffsetY,
-        OffsetZ = DefaultOffsetZ,
-        ShowOnDamageOnly = true,
-        FadeDelay = DefaultFadeDelay,
-        FadeDuration = DefaultFadeDuration,
-        ThresholdMid = DefaultThresholdMid,
-        ThresholdLow = DefaultThresholdLow,
-        AnimationSpeed = DefaultAnimationSpeed,
-        ColorFull = null,
-        ColorMid = null,
-        ColorLow = null,
-        ColorBackground = null
-    };
+    public static HPBarSettings Default =>
+        new()
+        {
+            BarWidth = DefaultBarWidth,
+            BarHeight = DefaultBarHeight,
+            OffsetY = DefaultOffsetY,
+            OffsetZ = DefaultOffsetZ,
+            ShowOnDamageOnly = true,
+            FadeDelay = DefaultFadeDelay,
+            FadeDuration = DefaultFadeDuration,
+            ThresholdMid = DefaultThresholdMid,
+            ThresholdLow = DefaultThresholdLow,
+            AnimationSpeed = DefaultAnimationSpeed,
+            ColorFull = null,
+            ColorMid = null,
+            ColorLow = null,
+            ColorBackground = null,
+        };
 
-    public static HPBarSettings AlwaysVisible => new()
-    {
-        BarWidth = DefaultBarWidth,
-        BarHeight = DefaultBarHeight,
-        OffsetY = DefaultOffsetY,
-        OffsetZ = DefaultOffsetZ,
-        ShowOnDamageOnly = false,
-        FadeDelay = DefaultFadeDelay,
-        FadeDuration = DefaultFadeDuration,
-        ThresholdMid = DefaultThresholdMid,
-        ThresholdLow = DefaultThresholdLow,
-        AnimationSpeed = DefaultAnimationSpeed,
-        ColorFull = null,
-        ColorMid = null,
-        ColorLow = null,
-        ColorBackground = null
-    };
+    public static HPBarSettings AlwaysVisible =>
+        new()
+        {
+            BarWidth = DefaultBarWidth,
+            BarHeight = DefaultBarHeight,
+            OffsetY = DefaultOffsetY,
+            OffsetZ = DefaultOffsetZ,
+            ShowOnDamageOnly = false,
+            FadeDelay = DefaultFadeDelay,
+            FadeDuration = DefaultFadeDuration,
+            ThresholdMid = DefaultThresholdMid,
+            ThresholdLow = DefaultThresholdLow,
+            AnimationSpeed = DefaultAnimationSpeed,
+            ColorFull = null,
+            ColorMid = null,
+            ColorLow = null,
+            ColorBackground = null,
+        };
 
     /// <summary>
     /// Create boss-style settings with lower thresholds (yellow at 25%, red at 10%).
     /// </summary>
-    public static HPBarSettings Boss => new()
-    {
-        BarWidth = 1.2f,
-        BarHeight = 0.12f,
-        OffsetY = DefaultOffsetY,
-        OffsetZ = DefaultOffsetZ,
-        ShowOnDamageOnly = false,
-        FadeDelay = DefaultFadeDelay,
-        FadeDuration = DefaultFadeDuration,
-        ThresholdMid = 0.25f,
-        ThresholdLow = 0.1f,
-        AnimationSpeed = DefaultAnimationSpeed,
-        ColorFull = null,
-        ColorMid = null,
-        ColorLow = null,
-        ColorBackground = null
-    };
+    public static HPBarSettings Boss =>
+        new()
+        {
+            BarWidth = 1.2f,
+            BarHeight = 0.12f,
+            OffsetY = DefaultOffsetY,
+            OffsetZ = DefaultOffsetZ,
+            ShowOnDamageOnly = false,
+            FadeDelay = DefaultFadeDelay,
+            FadeDuration = DefaultFadeDuration,
+            ThresholdMid = 0.25f,
+            ThresholdLow = 0.1f,
+            AnimationSpeed = DefaultAnimationSpeed,
+            ColorFull = null,
+            ColorMid = null,
+            ColorLow = null,
+            ColorBackground = null,
+        };
 
     /// <summary>
     /// Create settings with custom color thresholds.
     /// </summary>
-    public HPBarSettings WithThresholds(float mid, float low) => this with
-    {
-        ThresholdMid = mid,
-        ThresholdLow = low
-    };
+    public HPBarSettings WithThresholds(float mid, float low) =>
+        this with
+        {
+            ThresholdMid = mid,
+            ThresholdLow = low,
+        };
 
     /// <summary>
     /// Create settings with custom colors.
     /// </summary>
-    public HPBarSettings WithColors(Color full, Color mid, Color low) => this with
-    {
-        ColorFull = full,
-        ColorMid = mid,
-        ColorLow = low
-    };
+    public HPBarSettings WithColors(Color full, Color mid, Color low) =>
+        this with
+        {
+            ColorFull = full,
+            ColorMid = mid,
+            ColorLow = low,
+        };
 
     /// <summary>
     /// Create settings with custom size.
     /// </summary>
-    public HPBarSettings WithSize(float width, float height) => this with
-    {
-        BarWidth = width,
-        BarHeight = height
-    };
+    public HPBarSettings WithSize(float width, float height) =>
+        this with
+        {
+            BarWidth = width,
+            BarHeight = height,
+        };
 }

@@ -13,5 +13,5 @@ public enum TargetPolicyId
     /// <summary>
     /// Prefer attackable targets and keep current target while still attackable.
     /// </summary>
-    PreferAttackableAndStick = 1
+    PreferAttackableAndStick = 1,
 }

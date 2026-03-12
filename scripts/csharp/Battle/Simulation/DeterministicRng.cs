@@ -13,7 +13,8 @@ public class DeterministicRng
     {
         // Ensure non-zero state (xorshift requires it)
         _state = (uint)(seed & 0xFFFFFFFF);
-        if (_state == 0) _state = 1;
+        if (_state == 0)
+            _state = 1;
     }
 
     /// <summary>
@@ -40,7 +41,8 @@ public class DeterministicRng
     /// </summary>
     public int Range(int min, int max)
     {
-        if (min >= max) return min;
+        if (min >= max)
+            return min;
         uint range = (uint)(max - min + 1);
         return min + (int)(Next() % range);
     }
@@ -50,7 +52,8 @@ public class DeterministicRng
     /// </summary>
     public float RangeFloat(float min, float max)
     {
-        if (min >= max) return min;
+        if (min >= max)
+            return min;
         return min + NextFloat() * (max - min);
     }
 }

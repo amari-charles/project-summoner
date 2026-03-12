@@ -31,11 +31,27 @@ public class SimMeleeSlotManagerTest
         var blockerOne = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: -0.5f);
         var blockerTwo = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
         var blockerThree = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0.5f);
-        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerOne, _state, lockedTarget.UnitId, out _)).IsTrue();
-        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerTwo, _state, lockedTarget.UnitId, out _)).IsTrue();
-        AssertThat(SimMeleeSlotManager.TryReserveSlot(blockerThree, _state, lockedTarget.UnitId, out _)).IsTrue();
+        AssertThat(
+                SimMeleeSlotManager.TryReserveSlot(blockerOne, _state, lockedTarget.UnitId, out _)
+            )
+            .IsTrue();
+        AssertThat(
+                SimMeleeSlotManager.TryReserveSlot(blockerTwo, _state, lockedTarget.UnitId, out _)
+            )
+            .IsTrue();
+        AssertThat(
+                SimMeleeSlotManager.TryReserveSlot(blockerThree, _state, lockedTarget.UnitId, out _)
+            )
+            .IsTrue();
 
-        var seeker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: -1.5f, z: 0f, attackRange: 2.5f, aggroRadius: 25f);
+        var seeker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: -1.5f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 25f
+        );
         seeker.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
         seeker.LockedTargetUnitId = lockedTarget.UnitId;
         seeker.TargetUnitId = lockedTarget.UnitId;
@@ -69,8 +85,20 @@ public class SimMeleeSlotManagerTest
         var first = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
         var second = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0.1f, z: 0f);
 
-        bool reservedFirst = SimMeleeSlotManager.TryReserveSlot(first, _state, target.UnitId, out int firstSlot, minSlots: 1);
-        bool reservedSecond = SimMeleeSlotManager.TryReserveSlot(second, _state, target.UnitId, out int _, minSlots: 1);
+        bool reservedFirst = SimMeleeSlotManager.TryReserveSlot(
+            first,
+            _state,
+            target.UnitId,
+            out int firstSlot,
+            minSlots: 1
+        );
+        bool reservedSecond = SimMeleeSlotManager.TryReserveSlot(
+            second,
+            _state,
+            target.UnitId,
+            out int _,
+            minSlots: 1
+        );
 
         AssertThat(reservedFirst).IsTrue();
         AssertThat(reservedSecond).IsFalse();
@@ -88,7 +116,13 @@ public class SimMeleeSlotManagerTest
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
         var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
 
-        bool reserved = SimMeleeSlotManager.TryReserveSlot(unit, _state, target.UnitId, out int slotId, minSlots: 1);
+        bool reserved = SimMeleeSlotManager.TryReserveSlot(
+            unit,
+            _state,
+            target.UnitId,
+            out int slotId,
+            minSlots: 1
+        );
 
         AssertThat(reserved).IsTrue();
         var slot = _state.TargetSlotStates[target.UnitId].Slots[slotId];

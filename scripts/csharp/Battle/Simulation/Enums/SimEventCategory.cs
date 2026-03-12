@@ -10,10 +10,12 @@ public enum EventCategory
 {
     /// <summary>Event must be broadcast as a network message for client-side handling.</summary>
     Broadcast,
+
     /// <summary>Event state is covered by periodic StateSnapshot. No message needed.</summary>
     Snapshot,
+
     /// <summary>Event is host-only (no client equivalent needed yet).</summary>
-    HostOnly
+    HostOnly,
 }
 
 /// <summary>
@@ -25,5 +27,6 @@ public enum EventCategory
 public class EventCategoryAttribute : Attribute
 {
     public EventCategory Category { get; }
+
     public EventCategoryAttribute(EventCategory category) => Category = category;
 }

@@ -20,15 +20,19 @@ public static class SimCombatStateMachine
         UnitData unit,
         MatchState state,
         float delta,
-        List<SimEvent> events)
+        List<SimEvent> events
+    )
     {
         TickDroppedTargetCooldown(unit, delta);
 
-        if (!EnsureCommittedTarget(
+        if (
+            !EnsureCommittedTarget(
                 unit,
                 state,
                 delta,
-                allowSummonerAggroPreempt: unit.AttackPhase == AttackPhase.None))
+                allowSummonerAggroPreempt: unit.AttackPhase == AttackPhase.None
+            )
+        )
         {
             SimMeleeSlotManager.ReleaseUnitSlots(unit, state);
             SimAttackLoop.Cancel(unit, state);
@@ -46,7 +50,7 @@ public static class SimCombatStateMachine
                 return new SimBehavior.BehaviorResult
                 {
                     Movement = MovementResult.TowardTarget,
-                    MoveTargetId = unit.TargetUnitId
+                    MoveTargetId = unit.TargetUnitId,
                 };
             }
 
@@ -88,7 +92,8 @@ public static class SimCombatStateMachine
         UnitData unit,
         MatchState state,
         float delta,
-        bool allowSummonerAggroPreempt)
+        bool allowSummonerAggroPreempt
+    )
     {
         if (TryApplyForcedTarget(unit, state))
             return true;
@@ -99,8 +104,10 @@ public static class SimCombatStateMachine
         int? locked = unit.LockedTargetUnitId;
         if (locked.HasValue && IsTargetValid(locked.Value, state))
         {
-            if (allowSummonerAggroPreempt &&
-                TryGetAggroPreemptTarget(unit, state, locked.Value, out int preemptTargetId))
+            if (
+                allowSummonerAggroPreempt
+                && TryGetAggroPreemptTarget(unit, state, locked.Value, out int preemptTargetId)
+            )
             {
                 SetLockedTarget(unit, state, preemptTargetId);
                 unit.LastRetargetReason = RetargetReason.AggroPreempt;
@@ -133,7 +140,8 @@ public static class SimCombatStateMachine
             state,
             currentTargetId: prev,
             droppedTargetId: unit.DroppedTargetUnitId,
-            droppedTargetCooldownTimer: unit.DroppedTargetCooldownTimer);
+            droppedTargetCooldownTimer: unit.DroppedTargetCooldownTimer
+        );
 
         SetLockedTarget(unit, state, acquired);
         return acquired.HasValue;
@@ -143,7 +151,8 @@ public static class SimCombatStateMachine
         UnitData unit,
         MatchState state,
         int currentLockedTargetId,
-        out int preemptTargetId)
+        out int preemptTargetId
+    )
     {
         preemptTargetId = default;
         if (!MatchState.IsSummonerTarget(currentLockedTargetId))
@@ -154,7 +163,8 @@ public static class SimCombatStateMachine
             state,
             currentTargetId: currentLockedTargetId,
             droppedTargetId: unit.DroppedTargetUnitId,
-            droppedTargetCooldownTimer: unit.DroppedTargetCooldownTimer);
+            droppedTargetCooldownTimer: unit.DroppedTargetCooldownTimer
+        );
         if (!candidate.HasValue || MatchState.IsSummonerTarget(candidate.Value))
             return false;
 
@@ -200,10 +210,10 @@ public static class SimCombatStateMachine
 
     private static bool ShouldReleaseExpiredForcedCommit(UnitData unit)
     {
-        return !unit.ForcedTargetUnitId.HasValue &&
-               unit.ForcedTargetTimer <= 0f &&
-               unit.LockedTargetUnitId.HasValue &&
-               unit.LastRetargetReason == RetargetReason.ForcedOverride;
+        return !unit.ForcedTargetUnitId.HasValue
+            && unit.ForcedTargetTimer <= 0f
+            && unit.LockedTargetUnitId.HasValue
+            && unit.LastRetargetReason == RetargetReason.ForcedOverride;
     }
 
     private static bool EnsureMeleeSlot(UnitData unit, MatchState state, int targetId, float delta)
@@ -211,9 +221,10 @@ public static class SimCombatStateMachine
         if (unit.SlotTargetId.HasValue && unit.SlotTargetId.Value != targetId)
             SimMeleeSlotManager.ReleaseUnitSlots(unit, state);
 
-        bool hasReservation = unit.SlotTargetId.HasValue &&
-                              unit.SlotTargetId.Value == targetId &&
-                              unit.ReservedSlotId.HasValue;
+        bool hasReservation =
+            unit.SlotTargetId.HasValue
+            && unit.SlotTargetId.Value == targetId
+            && unit.ReservedSlotId.HasValue;
         if (hasReservation)
         {
             unit.SlotWaitTimer = MathF.Max(0f, unit.SlotWaitTimer - (delta * ProgressRecoveryRate));
@@ -239,7 +250,8 @@ public static class SimCombatStateMachine
     private static bool TryAdvanceToReservedSlot(
         UnitData unit,
         MatchState state,
-        out SimBehavior.BehaviorResult behavior)
+        out SimBehavior.BehaviorResult behavior
+    )
     {
         behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
 
@@ -259,7 +271,7 @@ public static class SimCombatStateMachine
         behavior = new SimBehavior.BehaviorResult
         {
             Movement = MovementResult.TowardTarget,
-            MoveTargetId = unit.TargetUnitId
+            MoveTargetId = unit.TargetUnitId,
         };
         return false;
     }
@@ -287,8 +299,14 @@ public static class SimCombatStateMachine
         bool madeProgress = previous < 0f || (previous - distance) > ProgressEpsilon;
         if (madeProgress)
         {
-            unit.NoProgressTimer = MathF.Max(0f, unit.NoProgressTimer - (delta * ProgressRecoveryRate));
-            unit.UnreachableTimer = MathF.Max(0f, unit.UnreachableTimer - (delta * ProgressRecoveryRate));
+            unit.NoProgressTimer = MathF.Max(
+                0f,
+                unit.NoProgressTimer - (delta * ProgressRecoveryRate)
+            );
+            unit.UnreachableTimer = MathF.Max(
+                0f,
+                unit.UnreachableTimer - (delta * ProgressRecoveryRate)
+            );
         }
         else
         {
@@ -296,8 +314,8 @@ public static class SimCombatStateMachine
             unit.UnreachableTimer += delta;
         }
 
-        return unit.NoProgressTimer >= unit.UnreachableTimeoutSeconds ||
-               unit.UnreachableTimer >= unit.UnreachableTimeoutSeconds;
+        return unit.NoProgressTimer >= unit.UnreachableTimeoutSeconds
+            || unit.UnreachableTimer >= unit.UnreachableTimeoutSeconds;
     }
 
     private static bool IsOutsideAggroChaseRadius(UnitData unit, int targetId, MatchState state)
@@ -381,9 +399,9 @@ public static class SimCombatStateMachine
 
     private static bool DidAttackThisTick(UnitData unit, float preAttackCooldown)
     {
-        return unit.BehaviorState == BehaviorState.Attacking &&
-               preAttackCooldown <= 0f &&
-               unit.AttackCooldown > 0f;
+        return unit.BehaviorState == BehaviorState.Attacking
+            && preAttackCooldown <= 0f
+            && unit.AttackCooldown > 0f;
     }
 
     private static void ResetProgressTracking(UnitData unit)

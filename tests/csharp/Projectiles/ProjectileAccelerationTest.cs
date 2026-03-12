@@ -10,7 +10,12 @@ using static GdUnit4.Assertions;
 [TestSuite]
 public class ProjectileAccelerationTest
 {
-    private static float ApplyAcceleration(float currentSpeed, float acceleration, float minSpeed, float delta)
+    private static float ApplyAcceleration(
+        float currentSpeed,
+        float acceleration,
+        float minSpeed,
+        float delta
+    )
     {
         currentSpeed += acceleration * delta;
         if (acceleration < 0f)
@@ -22,7 +27,11 @@ public class ProjectileAccelerationTest
     public void NegativeAcceleration_DecreasesSpeed()
     {
         float speed = ApplyAcceleration(
-            currentSpeed: 20f, acceleration: -10f, minSpeed: 5f, delta: 1f);
+            currentSpeed: 20f,
+            acceleration: -10f,
+            minSpeed: 5f,
+            delta: 1f
+        );
 
         AssertThat(speed).IsEqual(10f);
     }
@@ -32,7 +41,11 @@ public class ProjectileAccelerationTest
     {
         // 3 seconds at -10/s would go to -10 without clamping
         float speed = ApplyAcceleration(
-            currentSpeed: 20f, acceleration: -10f, minSpeed: 5f, delta: 3f);
+            currentSpeed: 20f,
+            acceleration: -10f,
+            minSpeed: 5f,
+            delta: 3f
+        );
 
         AssertThat(speed).IsEqual(5f);
     }
@@ -42,7 +55,11 @@ public class ProjectileAccelerationTest
     {
         // Very aggressive deceleration
         float speed = ApplyAcceleration(
-            currentSpeed: 10f, acceleration: -100f, minSpeed: 3f, delta: 1f);
+            currentSpeed: 10f,
+            acceleration: -100f,
+            minSpeed: 3f,
+            delta: 1f
+        );
 
         AssertThat(speed).IsEqual(3f);
     }

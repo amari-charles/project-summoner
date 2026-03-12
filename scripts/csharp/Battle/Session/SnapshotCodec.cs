@@ -215,6 +215,7 @@ public class SnapshotCodec
     }
 
     private static int QuantizeHp(float value) => (int)(value * HpScale);
+
     private static float DequantizeHp(int value) => value / HpScale;
 
     private static void WriteQuantizedPosition(BinaryWriter w, SimVector3 v)

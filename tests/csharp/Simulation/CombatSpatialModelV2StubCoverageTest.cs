@@ -19,7 +19,7 @@ public class CombatSpatialModelV2StubCoverageTest
         {
             SeparationRadius = 0.9f,
             NavigationRadius = 0f,
-            HurtboxRadius = 0f
+            HurtboxRadius = 0f,
         };
 
         AssertThat(CombatGeometry.GetNavigationRadius(unit)).IsEqual(0.5f);
@@ -35,7 +35,7 @@ public class CombatSpatialModelV2StubCoverageTest
             IsFacingRight = true,
             HasConeConstraint = true,
             ConeHalfAngle = 20f,
-            CloseRangeThreshold = 0.5f
+            CloseRangeThreshold = 0.5f,
         };
         var target = new UnitData { Position = new SimVector3(-5f, 0f, 3f) };
 
@@ -51,7 +51,7 @@ public class CombatSpatialModelV2StubCoverageTest
             IsFacingRight = true,
             HasConeConstraint = true,
             ConeHalfAngle = 20f,
-            CloseRangeThreshold = 0.5f
+            CloseRangeThreshold = 0.5f,
         };
         var target = new UnitData { Position = new SimVector3(5f, 0f, 0f) };
 
@@ -62,7 +62,13 @@ public class CombatSpatialModelV2StubCoverageTest
     public void CSM_004_LineDamageShape_ResolvesBeyondEngageDistance()
     {
         var state = SimTestHelper.CreateBattleState();
-        var attacker = SimTestHelper.CreateMeleeUnit(state, team: 0, x: 0f, z: 0f, attackRange: 2.2f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 2.2f
+        );
         attacker.IsFacingRight = true;
         attacker.Attack.Selection.Mode = AttackSelectionMode.LineCollect;
         attacker.Attack.Selection.TargetLimit = 3;
@@ -84,11 +90,7 @@ public class CombatSpatialModelV2StubCoverageTest
     [TestCase]
     public void CSM_007_ProjectileContact_UsesHurtboxChannel()
     {
-        var unit = new UnitData
-        {
-            NavigationRadius = 1.0f,
-            HurtboxRadius = 0.25f
-        };
+        var unit = new UnitData { NavigationRadius = 1.0f, HurtboxRadius = 0.25f };
 
         AssertThat(CombatGeometry.GetHurtboxRadius(unit)).IsEqual(0.25f);
     }
@@ -101,7 +103,7 @@ public class CombatSpatialModelV2StubCoverageTest
         {
             Position = new SimVector3(0.9f, 0f, 0f),
             MovementLayer = MovementLayer.Ground,
-            HurtboxRadius = 0.25f
+            HurtboxRadius = 0.25f,
         };
 
         bool inRange = CombatGeometry.CanHitUnitInRadius(
@@ -117,11 +119,7 @@ public class CombatSpatialModelV2StubCoverageTest
     [TestCase]
     public void CSM_009_MovementSystems_UseNavigationFootprint()
     {
-        var unit = new UnitData
-        {
-            SeparationRadius = 1.2f,
-            NavigationRadius = 0.4f
-        };
+        var unit = new UnitData { SeparationRadius = 1.2f, NavigationRadius = 0.4f };
 
         AssertThat(CombatGeometry.GetNavigationRadius(unit)).IsEqual(0.4f);
     }
@@ -132,8 +130,11 @@ public class CombatSpatialModelV2StubCoverageTest
         var groundUnit = new UnitData { MovementLayer = MovementLayer.Ground };
         var airUnit = new UnitData { MovementLayer = MovementLayer.Air };
 
-        AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.GroundCylinder, groundUnit)).IsTrue();
-        AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.Sphere3D, groundUnit)).IsFalse();
-        AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.GroundCylinder, airUnit)).IsFalse();
+        AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.GroundCylinder, groundUnit))
+            .IsTrue();
+        AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.Sphere3D, groundUnit))
+            .IsFalse();
+        AssertThat(CombatGeometry.UseGroundCylinder(ProjectileHitSpace.GroundCylinder, airUnit))
+            .IsFalse();
     }
 }

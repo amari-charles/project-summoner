@@ -10,10 +10,15 @@ namespace Fateforged.Simulation.Movement;
 public static class MovementIntentResolver
 {
     private static readonly IMovementIntentGenerator _directGenerator = new DirectIntentGenerator();
-    private static readonly IMovementIntentGenerator _contextGenerator = new ContextIntentGenerator();
+    private static readonly IMovementIntentGenerator _contextGenerator =
+        new ContextIntentGenerator();
 
     public static MovementIntent Resolve(
-        UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state, float delta)
+        UnitData unit,
+        SimBehavior.BehaviorResult behavior,
+        MatchState state,
+        float delta
+    )
     {
         var generator = SelectGenerator(unit);
         var intent = generator.Generate(unit, behavior, state, delta);
@@ -25,7 +30,7 @@ public static class MovementIntentResolver
         return unit.MovementIntentStrategy switch
         {
             MovementIntentStrategy.Context => _contextGenerator,
-            _ => _directGenerator
+            _ => _directGenerator,
         };
     }
 }

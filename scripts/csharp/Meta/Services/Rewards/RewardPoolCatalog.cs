@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Godot;
 
 namespace Fateforged.Meta.Rewards;
 
@@ -27,19 +27,19 @@ public static class RewardPoolCatalog
         [RewardPoolIds.TutorialRewards] = new RewardPoolDefinition
         {
             PoolId = RewardPoolIds.TutorialRewards,
-            ExplicitCardIds = ["fire_wisp", "pebbloom", "puff"]
+            ExplicitCardIds = ["fire_wisp", "pebbloom", "puff"],
         },
 
         [RewardPoolIds.StarterRewards] = new RewardPoolDefinition
         {
             PoolId = RewardPoolIds.StarterRewards,
-            ExplicitCardIds = ["mana_bolt", "water_frog"]
+            ExplicitCardIds = ["mana_bolt", "water_frog"],
         },
 
         [RewardPoolIds.BossLoot] = new RewardPoolDefinition
         {
             PoolId = RewardPoolIds.BossLoot,
-            ExplicitCardIds = []  // To be populated when pools are redone
+            ExplicitCardIds = [], // To be populated when pools are redone
         },
 
         // =====================================================================
@@ -54,8 +54,8 @@ public static class RewardPoolCatalog
                 Elements = [Element.Fire],
                 Rarities = [Rarity.Common],
                 CardTypes = [CardType.Summon],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly],
+            },
         },
 
         [RewardPoolIds.WaterCommonUnits] = new RewardPoolDefinition
@@ -66,8 +66,8 @@ public static class RewardPoolCatalog
                 Elements = [Element.Water],
                 Rarities = [Rarity.Common],
                 CardTypes = [CardType.Summon],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly],
+            },
         },
 
         [RewardPoolIds.WindCommonUnits] = new RewardPoolDefinition
@@ -78,8 +78,8 @@ public static class RewardPoolCatalog
                 Elements = [Element.Wind],
                 Rarities = [Rarity.Common],
                 CardTypes = [CardType.Summon],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly],
+            },
         },
 
         [RewardPoolIds.EarthCommonUnits] = new RewardPoolDefinition
@@ -90,8 +90,8 @@ public static class RewardPoolCatalog
                 Elements = [Element.Earth],
                 Rarities = [Rarity.Common],
                 CardTypes = [CardType.Summon],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly],
+            },
         },
 
         [RewardPoolIds.AllSpells] = new RewardPoolDefinition
@@ -100,8 +100,8 @@ public static class RewardPoolCatalog
             CardFilters = new CardFilterConfig
             {
                 CardTypes = [CardType.Spell],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly],
+            },
         },
 
         [RewardPoolIds.AllCommon] = new RewardPoolDefinition
@@ -110,8 +110,8 @@ public static class RewardPoolCatalog
             CardFilters = new CardFilterConfig
             {
                 Rarities = [Rarity.Common],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly],
+            },
         },
 
         [RewardPoolIds.AllRare] = new RewardPoolDefinition
@@ -120,8 +120,8 @@ public static class RewardPoolCatalog
             CardFilters = new CardFilterConfig
             {
                 Rarities = [Rarity.Rare],
-                ExcludeUnlockConditions = [UnlockCondition.DevOnly]
-            }
+                ExcludeUnlockConditions = [UnlockCondition.DevOnly],
+            },
         },
 
         // =====================================================================
@@ -131,15 +131,15 @@ public static class RewardPoolCatalog
         [RewardPoolIds.ElementalStarters] = new RewardPoolDefinition
         {
             PoolId = RewardPoolIds.ElementalStarters,
-            CombinePools = [
+            CombinePools =
+            [
                 RewardPoolIds.FireCommonUnits,
                 RewardPoolIds.WaterCommonUnits,
                 RewardPoolIds.WindCommonUnits,
-                RewardPoolIds.EarthCommonUnits
-            ]
+                RewardPoolIds.EarthCommonUnits,
+            ],
         },
     };
-
 
     // =========================================================================
     // LOOKUP METHODS
@@ -150,20 +150,16 @@ public static class RewardPoolCatalog
         _pools.GetValueOrDefault(poolId);
 
     /// <summary>Get a pool definition by string ID. Returns null if not found.</summary>
-    public static RewardPoolDefinition? GetPool(string poolId) =>
-        _pools.GetValueOrDefault(poolId);
+    public static RewardPoolDefinition? GetPool(string poolId) => _pools.GetValueOrDefault(poolId);
 
     /// <summary>Check if a pool exists.</summary>
-    public static bool HasPool(RewardPoolId poolId) =>
-        _pools.ContainsKey(poolId);
+    public static bool HasPool(RewardPoolId poolId) => _pools.ContainsKey(poolId);
 
     /// <summary>Check if a pool exists by string ID.</summary>
-    public static bool HasPool(string poolId) =>
-        _pools.ContainsKey(poolId);
+    public static bool HasPool(string poolId) => _pools.ContainsKey(poolId);
 
     /// <summary>Get all pool IDs.</summary>
-    public static RewardPoolId[] GetAllPoolIds() =>
-        _pools.Values.Select(p => p.PoolId).ToArray();
+    public static RewardPoolId[] GetAllPoolIds() => _pools.Values.Select(p => p.PoolId).ToArray();
 
     // =========================================================================
     // CARD RESOLUTION
@@ -173,7 +169,10 @@ public static class RewardPoolCatalog
     /// Get cards matching a pool's filters.
     /// Handles explicit card lists, filters, and pool composition.
     /// </summary>
-    public static CardDefinition[] GetCardsForPool(RewardPoolId poolId, HashSet<string>? excludeCatalogIds = null)
+    public static CardDefinition[] GetCardsForPool(
+        RewardPoolId poolId,
+        HashSet<string>? excludeCatalogIds = null
+    )
     {
         var pool = GetPool(poolId);
         if (pool == null)
@@ -188,7 +187,10 @@ public static class RewardPoolCatalog
     /// <summary>
     /// Get cards matching a pool's filters by string ID.
     /// </summary>
-    public static CardDefinition[] GetCardsForPool(string poolId, HashSet<string>? excludeCatalogIds = null)
+    public static CardDefinition[] GetCardsForPool(
+        string poolId,
+        HashSet<string>? excludeCatalogIds = null
+    )
     {
         var pool = GetPool(poolId);
         if (pool == null)
@@ -204,7 +206,10 @@ public static class RewardPoolCatalog
     /// Resolve a pool definition to card definitions.
     /// Handles explicit cards, filters, and pool composition.
     /// </summary>
-    private static CardDefinition[] ResolvePoolDefinition(RewardPoolDefinition pool, HashSet<string>? excludeCatalogIds = null)
+    private static CardDefinition[] ResolvePoolDefinition(
+        RewardPoolDefinition pool,
+        HashSet<string>? excludeCatalogIds = null
+    )
     {
         HashSet<CardDefinition> candidates = [];
 
@@ -239,7 +244,9 @@ public static class RewardPoolCatalog
         // Step 4: Apply filters (if any)
         if (pool.CardFilters != null)
         {
-            candidates = candidates.Where(card => MatchesFilters(card, pool.CardFilters)).ToHashSet();
+            candidates = candidates
+                .Where(card => MatchesFilters(card, pool.CardFilters))
+                .ToHashSet();
         }
 
         // Step 5: Apply exclusions
@@ -254,18 +261,23 @@ public static class RewardPoolCatalog
     /// <summary>
     /// Get cards matching specific filter criteria (inline config).
     /// </summary>
-    public static CardDefinition[] FilterCards(CardFilterConfig filters, HashSet<string>? excludeCatalogIds = null)
+    public static CardDefinition[] FilterCards(
+        CardFilterConfig filters,
+        HashSet<string>? excludeCatalogIds = null
+    )
     {
         var allCards = CardCatalog.GetAllCards();
 
-        return allCards.Where(card =>
-        {
-            // Exclude by catalog ID (owned cards)
-            if (excludeCatalogIds != null && excludeCatalogIds.Contains(card.Id))
-                return false;
+        return allCards
+            .Where(card =>
+            {
+                // Exclude by catalog ID (owned cards)
+                if (excludeCatalogIds != null && excludeCatalogIds.Contains(card.Id))
+                    return false;
 
-            return MatchesFilters(card, filters);
-        }).ToArray();
+                return MatchesFilters(card, filters);
+            })
+            .ToArray();
     }
 
     /// <summary>
@@ -289,18 +301,23 @@ public static class RewardPoolCatalog
         if (filters.CreatureTypes.Count > 0)
         {
             bool hasMatch = filters.CreatureTypes.Any(ct => (card.CreatureTypes & ct) != 0);
-            if (!hasMatch) return false;
+            if (!hasMatch)
+                return false;
         }
 
         // Filter by roles (any match)
         if (filters.Roles.Count > 0)
         {
             bool hasMatch = filters.Roles.Any(r => (card.Roles & r) != 0);
-            if (!hasMatch) return false;
+            if (!hasMatch)
+                return false;
         }
 
         // Filter by spell categories
-        if (filters.SpellCategories.Count > 0 && !filters.SpellCategories.Contains(card.SpellCategory))
+        if (
+            filters.SpellCategories.Count > 0
+            && !filters.SpellCategories.Contains(card.SpellCategory)
+        )
             return false;
 
         // Exclude cards with DevOnly or Archived flags
@@ -325,7 +342,7 @@ public static class RewardPoolCatalog
             Element.Water => RewardPoolIds.WaterCommonUnits,
             Element.Wind => RewardPoolIds.WindCommonUnits,
             Element.Earth => RewardPoolIds.EarthCommonUnits,
-            _ => null
+            _ => null,
         };
     }
 
@@ -379,11 +396,13 @@ public static class RewardPoolCatalog
     /// </summary>
     public static CardDefinition[] DrawWithFilters(
         Godot.Collections.Dictionary filterDict,
-        HashSet<string>? excludeCatalogIds = null)
+        HashSet<string>? excludeCatalogIds = null
+    )
     {
         var filters = FilterConfigFromDict(filterDict);
         if (filters == null)
-            return CardCatalog.GetAllCards()
+            return CardCatalog
+                .GetAllCards()
                 .Where(c => c.UnlockCondition != UnlockCondition.DevOnly)
                 .Where(c => excludeCatalogIds == null || !excludeCatalogIds.Contains(c.Id))
                 .ToArray();

@@ -30,5 +30,5 @@ public enum CreatureType
     Aerial = 1 << 5,
 
     /// <summary>Beast creatures (mammals, boars, apes).</summary>
-    Beast = 1 << 6
+    Beast = 1 << 6,
 }

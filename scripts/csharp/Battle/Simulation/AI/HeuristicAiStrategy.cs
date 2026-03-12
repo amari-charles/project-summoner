@@ -15,9 +15,20 @@ public static class HeuristicAiStrategy
     // ENUMS
     // =========================================================================
 
-    public enum BattlefieldState { LosingBadly, Losing, Even, Winning }
+    public enum BattlefieldState
+    {
+        LosingBadly,
+        Losing,
+        Even,
+        Winning,
+    }
 
-    public enum SpawnZone { Defensive, Neutral, Aggressive }
+    public enum SpawnZone
+    {
+        Defensive,
+        Neutral,
+        Aggressive,
+    }
 
     // =========================================================================
     // CARD SCORING CONSTANTS
@@ -128,8 +139,14 @@ public static class HeuristicAiStrategy
             if (cardData.ManaCost > mana)
                 continue;
 
-            float score = ScoreCard(cardData, battleState, summoner.Ai.Personality,
-                summoner.Ai.Difficulty, enemyCount, state.Rng);
+            float score = ScoreCard(
+                cardData,
+                battleState,
+                summoner.Ai.Personality,
+                summoner.Ai.Difficulty,
+                enemyCount,
+                state.Rng
+            );
 
             if (score > bestScore)
             {
@@ -144,7 +161,11 @@ public static class HeuristicAiStrategy
     /// <summary>
     /// Select spawn position based on strategy and battlefield state.
     /// </summary>
-    public static SimVector3 SelectSpawnPosition(MatchState state, SummonerData summoner, SimCardCatalogId catalogId)
+    public static SimVector3 SelectSpawnPosition(
+        MatchState state,
+        SummonerData summoner,
+        SimCardCatalogId catalogId
+    )
     {
         if (summoner.Ai == null || state.Rng == null)
             return summoner.Position;
@@ -188,7 +209,8 @@ public static class HeuristicAiStrategy
         }
 
         // Adjust by difficulty (higher difficulty = faster play)
-        float difficultyFactor = 1.0f - (summoner.Ai.Difficulty - DifficultyTimingBaseline) * DifficultyTimingScale;
+        float difficultyFactor =
+            1.0f - (summoner.Ai.Difficulty - DifficultyTimingBaseline) * DifficultyTimingScale;
         baseMin *= difficultyFactor;
         baseMax *= difficultyFactor;
 
@@ -202,20 +224,26 @@ public static class HeuristicAiStrategy
     /// <summary>
     /// Evaluate the current battlefield state for a given team.
     /// </summary>
-    public static BattlefieldState EvaluateBattlefieldState(MatchState state, int team, SummonerData summoner)
+    public static BattlefieldState EvaluateBattlefieldState(
+        MatchState state,
+        int team,
+        SummonerData summoner
+    )
     {
         int ourUnits = state.GetAliveActiveUnitsForTeam(team).Count;
         int enemyTeam = MatchState.GetEnemyTeam(team);
         int enemyUnits = state.GetAliveActiveUnitsForTeam(enemyTeam).Count;
 
         float ourHpRatio = summoner.MaxHp > 0 ? summoner.CurrentHp / summoner.MaxHp : 1f;
-        float enemyHpRatio = state.Summoners[enemyTeam].MaxHp > 0
-            ? state.Summoners[enemyTeam].CurrentHp / state.Summoners[enemyTeam].MaxHp
-            : 1f;
+        float enemyHpRatio =
+            state.Summoners[enemyTeam].MaxHp > 0
+                ? state.Summoners[enemyTeam].CurrentHp / state.Summoners[enemyTeam].MaxHp
+                : 1f;
 
         float unitAdvantage = ourUnits - enemyUnits;
         float hpAdvantage = ourHpRatio - enemyHpRatio;
-        float totalAdvantage = unitAdvantage * StateUnitAdvantageWeight + hpAdvantage * StateHpAdvantageWeight;
+        float totalAdvantage =
+            unitAdvantage * StateUnitAdvantageWeight + hpAdvantage * StateHpAdvantageWeight;
 
         if (totalAdvantage < StateLosingBadlyThreshold || ourHpRatio < StateLosingBadlyHpRatio)
             return BattlefieldState.LosingBadly;
@@ -230,8 +258,14 @@ public static class HeuristicAiStrategy
     /// <summary>
     /// Score a card based on current situation, personality, and difficulty.
     /// </summary>
-    public static float ScoreCard(SimCardData card, BattlefieldState battleState,
-        AiPersonality personality, int difficulty, int enemyCount, DeterministicRng rng)
+    public static float ScoreCard(
+        SimCardData card,
+        BattlefieldState battleState,
+        AiPersonality personality,
+        int difficulty,
+        int enemyCount,
+        DeterministicRng rng
+    )
     {
         float score = ScoreManaEfficiencyBase - card.ManaCost;
 
@@ -326,7 +360,9 @@ public static class HeuristicAiStrategy
             case AiPersonality.Aggressive:
                 return state == BattlefieldState.Winning ? SpawnZone.Aggressive : SpawnZone.Neutral;
             case AiPersonality.Defensive:
-                return state is BattlefieldState.LosingBadly or BattlefieldState.Losing ? SpawnZone.Defensive : SpawnZone.Neutral;
+                return state is BattlefieldState.LosingBadly or BattlefieldState.Losing
+                    ? SpawnZone.Defensive
+                    : SpawnZone.Neutral;
             case AiPersonality.SpellFocused:
                 return SpawnZone.Neutral;
             case AiPersonality.Balanced:
@@ -335,7 +371,7 @@ public static class HeuristicAiStrategy
                     BattlefieldState.Losing => SpawnZone.Defensive,
                     BattlefieldState.LosingBadly => SpawnZone.Defensive,
                     BattlefieldState.Winning => SpawnZone.Aggressive,
-                    _ => SpawnZone.Neutral
+                    _ => SpawnZone.Neutral,
                 };
             default:
                 return SpawnZone.Neutral;
@@ -351,7 +387,8 @@ public static class HeuristicAiStrategy
         float halfDepth = BattlefieldBounds.HalfDepth;
 
         // Determine X range based on zone and team
-        float zoneMin, zoneMax;
+        float zoneMin,
+            zoneMax;
         switch (zone)
         {
             case SpawnZone.Defensive:

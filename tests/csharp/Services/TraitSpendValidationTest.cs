@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Summoners;
-using Fateforged.Data.Summoners;
-using Fateforged.Data.Traits;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Cards;
 using Fateforged.Meta.Summoner;
@@ -63,7 +63,10 @@ public class TraitSpendValidationTest
 
         var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
         AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate { Level = 2 })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate { Level = 2 })
+            )
+            .IsTrue();
 
         cardService.GrantCardTraitPoints(instanceId, 2, "test");
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
@@ -71,7 +74,8 @@ public class TraitSpendValidationTest
         AssertThat(cardService.SpendCardTraitPoint(instanceId, "not_a_real_trait")).IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
 
-        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.ColeSoulStrengthI)).IsFalse();
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.ColeSoulStrengthI))
+            .IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
 
         AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Power)).IsTrue();
@@ -87,12 +91,18 @@ public class TraitSpendValidationTest
 
         var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
         AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
-        {
-            Level = 1,
-            Xp = 999,
-            UnspentTraitPoints = 0
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(instanceId),
+                    new CardUpdate
+                    {
+                        Level = 1,
+                        Xp = 999,
+                        UnspentTraitPoints = 0,
+                    }
+                )
+            )
+            .IsTrue();
 
         var offers = cardService.RollCardTraitOffers(instanceId, 3);
         AssertThat(offers.Count).IsGreater(0);
@@ -108,7 +118,7 @@ public class TraitSpendValidationTest
             TraitIds.Warding,
             TraitIds.Soulforce,
             TraitIds.Arcana,
-            TraitIds.Legion
+            TraitIds.Legion,
         };
 
         foreach (var offer in offers)
@@ -129,12 +139,18 @@ public class TraitSpendValidationTest
 
         var instanceId = cardService.GrantCard(CardIds.ManaBolt, "common");
         AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
-        {
-            Level = 2,
-            Xp = 999,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(instanceId),
+                    new CardUpdate
+                    {
+                        Level = 2,
+                        Xp = 999,
+                        UnspentTraitPoints = 1,
+                    }
+                )
+            )
+            .IsTrue();
 
         var offers = cardService.RollCardTraitOffers(instanceId, 3);
         AssertThat(offers.Count).IsEqual(0);
@@ -164,11 +180,13 @@ public class TraitSpendValidationTest
 
         var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
         AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(instanceId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
         var baselineStats = cardService.GetEffectiveStatsDict(instanceId);
         AssertThat(baselineStats.ContainsKey("attack_damage")).IsTrue();
@@ -194,11 +212,13 @@ public class TraitSpendValidationTest
 
         var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
         AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(instanceId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
         var baselineStats = cardService.GetEffectiveStatsDict(instanceId);
         AssertThat(baselineStats.ContainsKey("armor")).IsFalse();
@@ -247,11 +267,13 @@ public class TraitSpendValidationTest
 
         var instanceId = cardService.GrantCard(CardIds.FireWisp, "common");
         AssertThat(string.IsNullOrWhiteSpace(instanceId)).IsFalse();
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
-        {
-            Level = 3,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(instanceId),
+                    new CardUpdate { Level = 3, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
         AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.PowerII)).IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(1);
@@ -281,7 +303,7 @@ public class TraitSpendValidationTest
         var allowedTraitIds = new HashSet<string>
         {
             TraitIds.ColeSoulStrengthI,
-            TraitIds.ColeCastSpeedI
+            TraitIds.ColeCastSpeedI,
         };
 
         foreach (var offer in offers)
@@ -304,7 +326,8 @@ public class TraitSpendValidationTest
         return repo;
     }
 
-    private T CreateNode<T>() where T : Node, new()
+    private T CreateNode<T>()
+        where T : Node, new()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -322,10 +345,7 @@ public class TraitSpendValidationTest
 
         if (repo.GetSummonerInstance(candidate) == null)
         {
-            repo.SaveSummonerInstance(new SummonerInstance
-            {
-                SummonerId = candidate
-            });
+            repo.SaveSummonerInstance(new SummonerInstance { SummonerId = candidate });
         }
 
         return candidate;

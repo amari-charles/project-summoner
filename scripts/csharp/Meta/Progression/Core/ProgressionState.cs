@@ -8,9 +8,5 @@ public readonly record struct ProgressionState(int Level, int XpTowardNext, int 
 {
     public bool IsAtMaxLevel => Level >= MaxLevel;
 
-    public bool IsValid =>
-        MaxLevel >= 1 &&
-        Level >= 1 &&
-        Level <= MaxLevel &&
-        XpTowardNext >= 0;
+    public bool IsValid => MaxLevel >= 1 && Level >= 1 && Level <= MaxLevel && XpTowardNext >= 0;
 }

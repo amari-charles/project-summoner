@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Godot;
 using Fateforged.Meta.Campaign.Models;
+using Godot;
 using EventId = Fateforged.Data.Events.EventId;
 
 namespace Fateforged.Meta.Campaign.Handlers;
@@ -106,7 +106,7 @@ public class NodeUnlockHandler
             "choice" => EvaluateChoiceCondition(condition, sourceNodeId),
             "completed" => EvaluateCompletedCondition(condition),
             "item" => EvaluateItemCondition(condition),
-            _ => true  // Unknown condition type = pass
+            _ => true, // Unknown condition type = pass
         };
     }
 
@@ -114,9 +114,7 @@ public class NodeUnlockHandler
     {
         // Get the node ID where the choice was made
         // If not specified, use the source node of this edge
-        var choiceNodeId = !condition.NodeId.HasValue
-            ? sourceNodeId
-            : condition.NodeId;
+        var choiceNodeId = !condition.NodeId.HasValue ? sourceNodeId : condition.NodeId;
 
         // Check if the choice made at that node matches the required value
         var choiceMade = _choices.GetChoiceAsString((string)choiceNodeId);
@@ -133,7 +131,9 @@ public class NodeUnlockHandler
     {
         // Item conditions (for future inventory integration)
         // For now, always pass
-        GD.PrintRich($"[color=yellow]NodeUnlockHandler: Item conditions not yet implemented (item: {condition.Value})[/color]");
+        GD.PrintRich(
+            $"[color=yellow]NodeUnlockHandler: Item conditions not yet implemented (item: {condition.Value})[/color]"
+        );
         return true;
     }
 
@@ -148,7 +148,8 @@ public class NodeUnlockHandler
     {
         var result = new List<CampaignNode>();
         var graph = _graphStore.CurrentGraph;
-        if (graph == null) return result;
+        if (graph == null)
+            return result;
 
         foreach (var node in graph.GetAllNodes())
         {
@@ -168,7 +169,8 @@ public class NodeUnlockHandler
     {
         var result = new List<CampaignNode>();
         var graph = _graphStore.CurrentGraph;
-        if (graph == null) return result;
+        if (graph == null)
+            return result;
 
         foreach (var node in graph.GetAllNodes())
         {
@@ -189,7 +191,8 @@ public class NodeUnlockHandler
     {
         var result = new List<string>();
         var graph = _graphStore.CurrentGraph;
-        if (graph == null) return result;
+        if (graph == null)
+            return result;
 
         var typedNodeId = new EventId(completedNodeId);
 

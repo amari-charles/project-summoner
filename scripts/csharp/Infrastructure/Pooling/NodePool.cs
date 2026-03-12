@@ -23,7 +23,8 @@ public interface IPoolable
 /// Generic object pool for Godot Node3D types.
 /// Pooled nodes stay in the scene tree under a hidden container to avoid orphan warnings.
 /// </summary>
-public class NodePool<T> where T : Node3D, IPoolable, new()
+public class NodePool<T>
+    where T : Node3D, IPoolable, new()
 {
     private readonly Node _container;
     private readonly Stack<T> _available = new();

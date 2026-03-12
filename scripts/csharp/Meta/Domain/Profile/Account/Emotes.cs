@@ -14,5 +14,6 @@ public class Emotes
 
     /// <summary>Equipped emotes in the 4 emote slots.</summary>
     [JsonPropertyName("equipped")]
-    public List<EmoteId> Equipped { get; set; } = [EmoteId.None, EmoteId.None, EmoteId.None, EmoteId.None];
+    public List<EmoteId> Equipped { get; set; } =
+    [EmoteId.None, EmoteId.None, EmoteId.None, EmoteId.None];
 }

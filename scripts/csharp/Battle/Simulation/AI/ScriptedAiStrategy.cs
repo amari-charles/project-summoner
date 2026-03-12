@@ -31,7 +31,9 @@ public static class ScriptedAiStrategy
             int cardIndex = FindCardInHand(summoner, step.CardId);
             if (cardIndex < 0)
             {
-                Simulation.Log?.Invoke($"[ScriptedAI] Card '{step.CardId}' not found in hand for team {team}, skipping step {summoner.AiScriptIndex}");
+                Simulation.Log?.Invoke(
+                    $"[ScriptedAI] Card '{step.CardId}' not found in hand for team {team}, skipping step {summoner.AiScriptIndex}"
+                );
                 summoner.AiScriptIndex++;
                 continue;
             }
@@ -41,7 +43,9 @@ public static class ScriptedAiStrategy
             {
                 if (cardData.ManaCost > (int)summoner.Mana)
                 {
-                    Simulation.Log?.Invoke($"[ScriptedAI] Not enough mana for '{step.CardId}' (need {cardData.ManaCost}, have {summoner.Mana})");
+                    Simulation.Log?.Invoke(
+                        $"[ScriptedAI] Not enough mana for '{step.CardId}' (need {cardData.ManaCost}, have {summoner.Mana})"
+                    );
                     summoner.AiScriptIndex++;
                     continue;
                 }
@@ -49,7 +53,7 @@ public static class ScriptedAiStrategy
 
             var cmd = new PlayCardCommand(team, cardIndex, step.SpawnPosition)
             {
-                ExecuteFrame = state.FrameNumber + 1
+                ExecuteFrame = state.FrameNumber + 1,
             };
             state.PendingCommandBuffer.Add(cmd);
 

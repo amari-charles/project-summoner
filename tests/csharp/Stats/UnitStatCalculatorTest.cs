@@ -1,9 +1,9 @@
 namespace Fateforged.Tests.Stats;
 
 using System.Collections.Generic;
-using GdUnit4;
 using Fateforged.Cards;
 using Fateforged.Stats;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -18,7 +18,8 @@ public class UnitStatCalculatorTest
         float attackSpeed = 1f,
         float moveSpeed = 3f,
         float attackRange = 2f,
-        float aggroRadius = 20f)
+        float aggroRadius = 20f
+    )
     {
         return new CardDefinition
         {
@@ -33,7 +34,7 @@ public class UnitStatCalculatorTest
             AttackSpeed = attackSpeed,
             MoveSpeed = moveSpeed,
             AttackRange = attackRange,
-            AggroRadius = aggroRadius
+            AggroRadius = aggroRadius,
         };
     }
 
@@ -54,7 +55,7 @@ public class UnitStatCalculatorTest
         var card = CreateTestCard(maxHp: 100f);
         var upgrades = new Dictionary<string, float>
         {
-            ["max_hp"] = 1.2f // +20%
+            ["max_hp"] = 1.2f, // +20%
         };
 
         var stats = UnitStatCalculator.Calculate(card, upgrades);
@@ -68,18 +69,18 @@ public class UnitStatCalculatorTest
         var card = CreateTestCard(maxHp: 100f);
         var upgrades = new Dictionary<string, float>
         {
-            ["max_hp"] = 1.2f // 100 * 1.2 = 120
+            ["max_hp"] = 1.2f, // 100 * 1.2 = 120
         };
         var modifiers = new List<StatModifier>
         {
             new StatModifier
             {
-                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f },
             },
             new StatModifier
             {
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f },
+            },
         };
 
         var stats = UnitStatCalculator.Calculate(card, upgrades, modifiers);
@@ -96,13 +97,10 @@ public class UnitStatCalculatorTest
         {
             new StatModifier
             {
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 2.0f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 2.0f },
+            },
         };
-        var overrides = new Dictionary<string, float>
-        {
-            ["max_hp"] = 500f
-        };
+        var overrides = new Dictionary<string, float> { ["max_hp"] = 500f };
 
         var stats = UnitStatCalculator.Calculate(card, null, modifiers, overrides);
 
@@ -120,17 +118,14 @@ public class UnitStatCalculatorTest
         // Override: (none)
 
         var card = CreateTestCard(maxHp: 100f);
-        var upgrades = new Dictionary<string, float>
-        {
-            ["max_hp"] = 1.2f
-        };
+        var upgrades = new Dictionary<string, float> { ["max_hp"] = 1.2f };
         var modifiers = new List<StatModifier>
         {
             new StatModifier
             {
                 StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f },
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f },
+            },
         };
 
         var stats = UnitStatCalculator.Calculate(card, upgrades, modifiers);
@@ -173,7 +168,7 @@ public class UnitStatCalculatorTest
             ManaCost = 1,
             // MaxHp defaults to 0 if not set
             MaxHp = 0f,
-            AttackDamage = 0f
+            AttackDamage = 0f,
         };
 
         var stats = UnitStatCalculator.FromCardDefinition(card);
@@ -189,8 +184,8 @@ public class UnitStatCalculatorTest
         // Simulates stats coming from PlayerCardService.get_effective_stats()
         var effectiveStats = new Dictionary<string, float>
         {
-            ["max_hp"] = 120f,  // Already includes upgrades
-            ["attack_damage"] = 15f
+            ["max_hp"] = 120f, // Already includes upgrades
+            ["attack_damage"] = 15f,
         };
 
         var stats = UnitStatCalculator.CalculateFromDictionary(effectiveStats);
@@ -202,16 +197,13 @@ public class UnitStatCalculatorTest
     [TestCase]
     public void CalculateFromDictionary_AppliesModifiers()
     {
-        var effectiveStats = new Dictionary<string, float>
-        {
-            ["max_hp"] = 100f
-        };
+        var effectiveStats = new Dictionary<string, float> { ["max_hp"] = 100f };
         var modifiers = new List<StatModifier>
         {
             new StatModifier
             {
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f },
+            },
         };
 
         var stats = UnitStatCalculator.CalculateFromDictionary(effectiveStats, modifiers);
@@ -224,7 +216,7 @@ public class UnitStatCalculatorTest
     {
         var dict = new Dictionary<string, float>
         {
-            ["max_hp"] = 100f
+            ["max_hp"] = 100f,
             // Missing other stat keys
         };
 
@@ -237,11 +229,7 @@ public class UnitStatCalculatorTest
     [TestCase]
     public void ValidateStatsDictionary_ReturnsWarningsForUnknownKeys()
     {
-        var dict = new Dictionary<string, float>
-        {
-            ["max_hp"] = 100f,
-            ["unknown_stat"] = 50f
-        };
+        var dict = new Dictionary<string, float> { ["max_hp"] = 100f, ["unknown_stat"] = 50f };
 
         var warnings = UnitStatCalculator.ValidateStatsDictionary(dict);
 
@@ -260,7 +248,7 @@ public class UnitStatCalculatorTest
             MaxHp = 100f,
             AttackDamage = 10f,
             AttackSpeed = 1f,
-            MoveSpeed = 3f
+            MoveSpeed = 3f,
         };
 
         var modifiers = new List<StatModifier>
@@ -269,8 +257,8 @@ public class UnitStatCalculatorTest
             {
                 Source = "test",
                 StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 50f },
-                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f },
+            },
         };
 
         var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
@@ -289,7 +277,7 @@ public class UnitStatCalculatorTest
             MaxHp = 100f,
             AttackDamage = 10f,
             AttackSpeed = 1f,
-            MoveSpeed = 3f
+            MoveSpeed = 3f,
         };
 
         var modifiers = new List<StatModifier>
@@ -297,13 +285,13 @@ public class UnitStatCalculatorTest
             new StatModifier
             {
                 Source = "mod1",
-                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.1f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.1f },
             },
             new StatModifier
             {
                 Source = "mod2",
-                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.AttackDamage] = 1.2f },
+            },
         };
 
         var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
@@ -319,7 +307,7 @@ public class UnitStatCalculatorTest
             MaxHp = 100f,
             AttackDamage = 10f,
             AttackSpeed = 1f,
-            MoveSpeed = 3f
+            MoveSpeed = 3f,
         };
 
         var modifiers = new List<StatModifier>
@@ -328,8 +316,8 @@ public class UnitStatCalculatorTest
             {
                 Source = "test",
                 StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 100f },
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f },
+            },
         };
 
         var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
@@ -345,7 +333,7 @@ public class UnitStatCalculatorTest
             MaxHp = 100f,
             AttackDamage = 10f,
             AttackSpeed = 1f,
-            MoveSpeed = 3f
+            MoveSpeed = 3f,
         };
 
         var modifiers = new List<StatModifier>
@@ -356,9 +344,9 @@ public class UnitStatCalculatorTest
                 Flags = new Dictionary<string, bool>
                 {
                     ["immune_slow"] = true,
-                    ["deals_fire_damage"] = true
-                }
-            }
+                    ["deals_fire_damage"] = true,
+                },
+            },
         };
 
         var result = UnitStatCalculator.ApplyModifiers(baseStats, modifiers);
@@ -379,9 +367,9 @@ public class UnitStatCalculatorTest
             ["move_speed"] = 3f,
             ["attack_range"] = 2f,
             ["aggro_radius"] = 20f,
-            ["mana_cost"] = 3f,        // Known non-stat key
-            ["spawn_count"] = 5f,       // Known non-stat key
-            ["scale_multiplier"] = 1.5f // Known override key
+            ["mana_cost"] = 3f, // Known non-stat key
+            ["spawn_count"] = 5f, // Known non-stat key
+            ["scale_multiplier"] = 1.5f, // Known override key
         };
 
         var warnings = UnitStatCalculator.ValidateStatsDictionary(dict);
