@@ -16,6 +16,8 @@ const TOUCH_TO_WORLD_SCALE: float = 0.01
 const CLAMP_EPSILON: float = 0.001
 const MAX_ZOOM_SOLVER_ITERATIONS: int = 12
 const MAX_CLAMP_ITERATIONS: int = 4
+const MAX_DYNAMIC_ZOOM_OUT_SOLVER_ITERATIONS: int = 12
+const ZOOM_OUT_STABILITY_EPSILON: float = 0.01
 
 enum OversizeClampMode {
 	CENTER,
@@ -80,6 +82,10 @@ enum OversizeClampMode {
 @export_group("Zoom Controls")
 @export var zoom_speed: float = 2.0
 @export var zoom_enabled: bool = true
+## If true, zooming in applies an upward (backward) camera pitch.
+@export var zoom_pitch_enabled: bool = false
+## Maximum upward pitch applied at min_fov, in degrees.
+@export_range(0.0, 30.0, 0.1) var zoom_pitch_max_degrees: float = 0.0
 
 @export_group("Zoom-Based Panning")
 ## If true, vertical panning is only enabled when zoomed in from default framing.
@@ -99,6 +105,8 @@ enum OversizeClampMode {
 @export var debug_overlay_y_offset: float = 0.35
 ## World-space border thickness for debug rectangles.
 @export var debug_overlay_line_thickness: float = 0.5
+## If enabled (debug builds), logs zoom solver/cap and clamp offset details each zoom step.
+@export var debug_log_zoom_solver: bool = false
 
 # === State Variables ===
 
@@ -107,6 +115,8 @@ var is_panning: bool = false
 var last_mouse_position: Vector2
 var _max_fov_ceiling: float = -1.0
 var _is_camera_initialized: bool = false
+var _zoom_pitch_base_transform: Transform3D = Transform3D.IDENTITY
+var _zoom_pitch_current_radians: float = 0.0
 var arena_floor_rect_xz: Rect2 = Rect2()
 var _debug_overlay_mesh: MeshInstance3D
 var _debug_overlay_lines: ImmediateMesh
@@ -120,6 +130,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	if _max_fov_ceiling < 0.0:
 		_max_fov_ceiling = max_fov
+	_sync_zoom_pitch_base_from_current_transform()
 	apply_perspective_profile(true)
 	_is_camera_initialized = true
 
@@ -199,48 +210,243 @@ func _apply_perspective_profile() -> void:
 	var default_zoom: float = clamp(profile.default_zoom, min_zoom, max_zoom)
 	var sample_y: float = clamp(profile.horizontal_bounds_screen_y, 0.0, 1.0)
 	var far_margin: float = max(profile.vertical_far_clamp_margin, 0.0)
+	var max_zoom_pitch_degrees: float = max(profile.zoom_pitch_max_degrees, 0.0)
 
 	default_fov = default_zoom
 	min_fov = min_zoom
 	max_fov = max_zoom
 	_max_fov_ceiling = max_fov
 
+	zoom_pitch_enabled = profile.zoom_pitch_enabled
+	zoom_pitch_max_degrees = max_zoom_pitch_degrees
 	horizontal_bounds_use_screen_sample = profile.horizontal_bounds_use_screen_sample
 	horizontal_bounds_screen_y = sample_y
 	vertical_far_clamp_margin = far_margin
+	_sync_zoom_pitch_base_from_current_transform()
 
 func _apply_zoom_limits(reset_zoom: bool) -> void:
 	if reset_zoom:
 		fov = clamp(default_fov, min_fov, max_fov)
 	else:
 		fov = clamp(fov, min_fov, max_fov)
+	_apply_zoom_pitch_from_current_fov()
+
+func _sync_zoom_pitch_base_from_current_transform() -> void:
+	_clear_zoom_pitch_from_transform()
+	_zoom_pitch_base_transform = transform
+
+func _clear_zoom_pitch_from_transform() -> void:
+	if abs(_zoom_pitch_current_radians) <= CLAMP_EPSILON:
+		return
+	transform = transform.rotated_local(Vector3.RIGHT, -_zoom_pitch_current_radians)
+	_zoom_pitch_current_radians = 0.0
+	force_update_transform()
+
+func _get_zoom_pitch_ratio() -> float:
+	if not zoom_pitch_enabled:
+		return 0.0
+	if fov >= default_fov:
+		return 0.0
+	var zoom_span: float = default_fov - min_fov
+	if zoom_span <= CLAMP_EPSILON:
+		return 0.0
+	return clamp((default_fov - fov) / zoom_span, 0.0, 1.0)
+
+func _apply_zoom_pitch_from_current_fov() -> void:
+	_clear_zoom_pitch_from_transform()
+	var zoom_ratio: float = _get_zoom_pitch_ratio()
+	var max_pitch_degrees: float = max(zoom_pitch_max_degrees, 0.0)
+	var target_pitch_radians: float = deg_to_rad(max_pitch_degrees * zoom_ratio)
+	if abs(target_pitch_radians) <= CLAMP_EPSILON:
+		transform = _zoom_pitch_base_transform
+		_zoom_pitch_current_radians = 0.0
+		force_update_transform()
+		return
+	transform = _zoom_pitch_base_transform.rotated_local(Vector3.RIGHT, target_pitch_radians)
+	_zoom_pitch_current_radians = target_pitch_radians
+	force_update_transform()
+
+func _get_zoom_anchor_screen_uv() -> Vector2:
+	return Vector2(0.5, clamp(vertical_center_reference_screen_y, 0.0, 1.0))
+
+func _stabilize_zoom_anchor(anchor_before: Vector3) -> void:
+	if not anchor_before.is_finite():
+		return
+
+	var anchor_after: Vector3 = get_ground_point_for_screen_uv(_get_zoom_anchor_screen_uv())
+	if not anchor_after.is_finite():
+		return
+
+	var delta_x: float = anchor_before.x - anchor_after.x
+	var delta_z: float = anchor_before.z - anchor_after.z
+	if abs(delta_x) < CLAMP_EPSILON and abs(delta_z) < CLAMP_EPSILON:
+		return
+
+	position.x += delta_x
+	position.z += delta_z
+	force_update_transform()
+
+func _capture_zoom_state() -> Dictionary:
+	return {
+		"fov": fov,
+		"transform": transform,
+		"zoom_pitch_base_transform": _zoom_pitch_base_transform,
+		"zoom_pitch_current_radians": _zoom_pitch_current_radians
+	}
+
+func _restore_zoom_state(state: Dictionary) -> void:
+	var saved_fov_variant: Variant = state.get("fov", fov)
+	var saved_fov: float = saved_fov_variant if saved_fov_variant is float or saved_fov_variant is int else fov
+	var saved_transform_variant: Variant = state.get("transform", transform)
+	var saved_transform: Transform3D = saved_transform_variant if saved_transform_variant is Transform3D else transform
+	var saved_pitch_base_variant: Variant = state.get("zoom_pitch_base_transform", _zoom_pitch_base_transform)
+	var saved_pitch_base: Transform3D = saved_pitch_base_variant if saved_pitch_base_variant is Transform3D else _zoom_pitch_base_transform
+	var saved_pitch_radians_variant: Variant = state.get("zoom_pitch_current_radians", _zoom_pitch_current_radians)
+	var saved_pitch_radians: float = saved_pitch_radians_variant if saved_pitch_radians_variant is float or saved_pitch_radians_variant is int else _zoom_pitch_current_radians
+
+	fov = saved_fov
+	transform = saved_transform
+	_zoom_pitch_base_transform = saved_pitch_base
+	_zoom_pitch_current_radians = saved_pitch_radians
+	force_update_transform()
+
+func _get_required_clamp_offset_for_current_state() -> Vector2:
+	var footprint: Rect2 = get_ground_footprint_xz()
+	if footprint.size == Vector2.ZERO:
+		return Vector2(INF, INF)
+
+	var view_bounds: Rect2 = _get_clamp_view_bounds_xz(footprint)
+	var view_min_x: float = view_bounds.position.x
+	var view_max_x: float = view_min_x + view_bounds.size.x
+	var view_min_z: float = view_bounds.position.y
+	var view_max_z: float = view_min_z + view_bounds.size.y
+
+	var effective_map: Rect2 = _get_effective_map_bounds()
+	var map_min_x: float = effective_map.position.x
+	var map_min_z: float = effective_map.position.y
+	var map_max_x: float = map_min_x + effective_map.size.x
+	var map_max_z: float = map_min_z + effective_map.size.y
+
+	var dx: float = _resolve_oversize_axis_offset(
+		view_min_x,
+		view_max_x,
+		map_min_x,
+		map_max_x,
+		horizontal_oversize_clamp_mode,
+		horizontal_pin_min_edge_margin,
+		horizontal_pin_max_edge_margin
+	)
+	var dz: float = _resolve_oversize_axis_offset(
+		view_min_z,
+		view_max_z,
+		map_min_z,
+		map_max_z,
+		vertical_oversize_clamp_mode,
+		vertical_pin_min_edge_margin,
+		vertical_pin_max_edge_margin,
+		_get_vertical_center_anchor_z(view_min_z, view_max_z)
+	)
+	return Vector2(dx, dz)
+
+func _is_clamp_offset_stable(offset: Vector2, epsilon: float = ZOOM_OUT_STABILITY_EPSILON) -> bool:
+	return offset.is_finite() and abs(offset.x) <= epsilon and abs(offset.y) <= epsilon
+
+func _is_zoom_out_candidate_stable(candidate_fov: float, anchor_before: Vector3) -> bool:
+	var saved_state: Dictionary = _capture_zoom_state()
+	fov = clamp(candidate_fov, min_fov, max_fov)
+	_apply_zoom_pitch_from_current_fov()
+	_stabilize_zoom_anchor(anchor_before)
+	var footprint: Rect2 = get_ground_footprint_xz()
+	var footprint_fits: bool = footprint.size != Vector2.ZERO and _footprint_fits_map(footprint)
+	var required_offset: Vector2 = _get_required_clamp_offset_for_current_state()
+	var is_stable: bool = footprint_fits and _is_clamp_offset_stable(required_offset)
+	_restore_zoom_state(saved_state)
+	return is_stable
+
+func _solve_stable_zoom_out_fov(requested_fov: float, anchor_before: Vector3) -> float:
+	var current_fov: float = fov
+	var clamped_requested_fov: float = clamp(requested_fov, current_fov, max_fov)
+	if clamped_requested_fov <= current_fov + CLAMP_EPSILON:
+		return current_fov
+
+	if _is_zoom_out_candidate_stable(clamped_requested_fov, anchor_before):
+		return clamped_requested_fov
+
+	var low: float = current_fov
+	var high: float = clamped_requested_fov
+	for i: int in range(MAX_DYNAMIC_ZOOM_OUT_SOLVER_ITERATIONS):
+		var mid: float = (low + high) * 0.5
+		if _is_zoom_out_candidate_stable(mid, anchor_before):
+			low = mid
+		else:
+			high = mid
+	return low
+
+func _log_zoom_solver_step(
+	delta: float,
+	current_fov: float,
+	requested_fov: float,
+	solved_fov: float,
+	pre_clamp_offset: Vector2,
+	post_clamp_offset: Vector2
+) -> void:
+	if not OS.is_debug_build() or not debug_log_zoom_solver:
+		return
+
+	var capped: bool = solved_fov + CLAMP_EPSILON < requested_fov
+	print(
+		"[CameraZoom] delta=%.3f current_fov=%.3f requested_fov=%.3f solved_fov=%.3f capped=%s pre_clamp_offset=(%.3f, %.3f) post_clamp_offset=(%.3f, %.3f) pos=(%.3f, %.3f, %.3f)"
+		% [
+			delta,
+			current_fov,
+			requested_fov,
+			solved_fov,
+			str(capped),
+			pre_clamp_offset.x,
+			pre_clamp_offset.y,
+			post_clamp_offset.x,
+			post_clamp_offset.y,
+			global_position.x,
+			global_position.y,
+			global_position.z
+		]
+	)
 
 func _is_zoomed_in_for_vertical_pan() -> bool:
 	return fov < default_fov
 
 func _ensure_camera_faces_map_center() -> void:
+	_sync_zoom_pitch_base_from_current_transform()
 	var forward_xz: Vector2 = Vector2(-global_basis.z.x, -global_basis.z.z)
 	if forward_xz.length_squared() <= CLAMP_EPSILON:
+		_apply_zoom_pitch_from_current_fov()
 		return
 
 	var map_center_xz: Vector2 = map_rect_xz.position + map_rect_xz.size * 0.5
 	var camera_xz: Vector2 = Vector2(global_position.x, global_position.z)
 	var to_center: Vector2 = map_center_xz - camera_xz
 	if to_center.length_squared() <= CLAMP_EPSILON:
+		_apply_zoom_pitch_from_current_fov()
 		return
 
 	if forward_xz.normalized().dot(to_center.normalized()) < 0.0:
 		rotate_y(PI)
 		force_update_transform()
+		_zoom_pitch_base_transform = transform
+	_apply_zoom_pitch_from_current_fov()
 
 func _solve_max_fov(configured_max: float) -> float:
 	var original_fov: float = fov
+	var original_transform: Transform3D = transform
+	var original_zoom_pitch_base: Transform3D = _zoom_pitch_base_transform
+	var original_zoom_pitch_radians: float = _zoom_pitch_current_radians
 	var low: float = min_fov
 	var high: float = max(configured_max, min_fov)
 
 	for i: int in range(MAX_ZOOM_SOLVER_ITERATIONS):
 		var mid: float = (low + high) * 0.5
 		fov = mid
+		_apply_zoom_pitch_from_current_fov()
 		var footprint: Rect2 = get_ground_footprint_xz()
 		if _footprint_fits_map(footprint):
 			low = mid
@@ -248,6 +454,10 @@ func _solve_max_fov(configured_max: float) -> float:
 			high = mid
 
 	fov = original_fov
+	transform = original_transform
+	_zoom_pitch_base_transform = original_zoom_pitch_base
+	_zoom_pitch_current_radians = original_zoom_pitch_radians
+	force_update_transform()
 	return low
 
 func _footprint_fits_map(footprint: Rect2) -> bool:
@@ -605,9 +815,26 @@ func _handle_zoom(event: InputEvent) -> void:
 
 func _apply_zoom(delta: float) -> void:
 	## Apply zoom change and re-clamp camera
-	fov = clamp(fov + delta, min_fov, max_fov)
+	var anchor_before: Vector3 = get_ground_point_for_screen_uv(_get_zoom_anchor_screen_uv())
+	var current_fov: float = fov
+	var requested_fov: float = clamp(fov + delta, min_fov, max_fov)
+	if delta > 0.0 and requested_fov > current_fov + CLAMP_EPSILON:
+		requested_fov = _solve_stable_zoom_out_fov(requested_fov, anchor_before)
+	fov = requested_fov
+	_apply_zoom_pitch_from_current_fov()
+	_stabilize_zoom_anchor(anchor_before)
+	var pre_clamp_offset: Vector2 = _get_required_clamp_offset_for_current_state()
 	# Clamp after zoom to adjust for new view size
 	clamp_to_map()
+	var post_clamp_offset: Vector2 = _get_required_clamp_offset_for_current_state()
+	_log_zoom_solver_step(
+		delta,
+		current_fov,
+		clamp(current_fov + delta, min_fov, max_fov),
+		fov,
+		pre_clamp_offset,
+		post_clamp_offset
+	)
 
 func _handle_mouse_pan(event: InputEvent) -> void:
 	## Pan the camera by dragging with middle or right mouse button

@@ -33,6 +33,7 @@ var _projectile_hit_geometry_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
 var _camera_auto_log_button: Button
+var _camera_zoom_solver_log_button: Button
 var _bypass_spawn_boundary: bool = false  # Local state (formerly in SpatialGrid autoload)
 var _unit_debug: Node
 var _command_input: LineEdit  # Console command input
@@ -84,6 +85,7 @@ func _process(_delta: float) -> void:
 	if _panel and _panel.visible:
 		_refresh_camera_overlay_button_state()
 		_refresh_camera_auto_log_button_state()
+		_refresh_camera_zoom_solver_log_button_state()
 
 	if _camera_auto_log_enabled:
 		_camera_auto_log_elapsed += _delta
@@ -185,99 +187,133 @@ func _create_ui() -> void:
 	var separator: HSeparator = HSeparator.new()
 	vbox.add_child(separator)
 
-	# Button grid
-	var grid: GridContainer = GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 6)
-	vbox.add_child(grid)
+	var tabs: TabContainer = TabContainer.new()
+	vbox.add_child(tabs)
 
-	# Create buttons
-	_create_fps_button(grid, 30, "30 FPS", "F5")
-	_create_fps_button(grid, 60, "60 FPS", "F6")
-	_create_fps_button(grid, 120, "120 FPS", "F7")
-	_create_fps_button(grid, 0, "Uncapped", "F8")
+	var quick_vbox: VBoxContainer = VBoxContainer.new()
+	quick_vbox.name = "Quick"
+	quick_vbox.add_theme_constant_override("separation", 8)
+	quick_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tabs.add_child(quick_vbox)
 
-	# Instructions
-	var instructions: Label = Label.new()
-	instructions.text = "` or F12 to hide"
-	instructions.add_theme_font_size_override("font_size", 11)
-	instructions.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(instructions)
+	var more_vbox: VBoxContainer = VBoxContainer.new()
+	more_vbox.name = "More"
+	more_vbox.add_theme_constant_override("separation", 8)
+	more_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tabs.add_child(more_vbox)
 
-	# Debug toggles separator
-	var debug_separator: HSeparator = HSeparator.new()
-	vbox.add_child(debug_separator)
+	_build_quick_tab(quick_vbox)
+	_build_more_tab(more_vbox)
+
+	# Start hidden by default (press ` or F12 to show)
+	_panel.visible = false
+
+	# Update button text to reflect loaded settings
+	_update_button_states()
+	_apply_spawn_boundary_bypass()
+
+
+func _build_quick_tab(vbox: VBoxContainer) -> void:
+	var flow_title: Label = Label.new()
+	flow_title.text = "Battle Flow"
+	flow_title.add_theme_font_size_override("font_size", 14)
+	flow_title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.5))
+	vbox.add_child(flow_title)
 
 	# Skip Prep Phase button
 	_skip_prep_button = Button.new()
 	_skip_prep_button.text = "Skip Prep Phase"
-	_skip_prep_button.custom_minimum_size = Vector2(200, 32)
+	_skip_prep_button.custom_minimum_size = Vector2(220, 32)
 	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
 	vbox.add_child(_skip_prep_button)
+
+	var debug_separator: HSeparator = HSeparator.new()
+	vbox.add_child(debug_separator)
+
+	var toggles_title: Label = Label.new()
+	toggles_title.text = "Debug Toggles"
+	toggles_title.add_theme_font_size_override("font_size", 14)
+	toggles_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
+	vbox.add_child(toggles_title)
 
 	# Hurtbox toggle button
 	_hurtbox_button = Button.new()
 	_hurtbox_button.text = "Hurtboxes: Off"
-	_hurtbox_button.custom_minimum_size = Vector2(200, 32)
+	_hurtbox_button.custom_minimum_size = Vector2(220, 32)
 	_hurtbox_button.pressed.connect(_on_hurtbox_toggle_pressed)
 	vbox.add_child(_hurtbox_button)
 
 	# Target Point toggle button
 	_target_point_button = Button.new()
 	_target_point_button.text = "Target Points: Off"
-	_target_point_button.custom_minimum_size = Vector2(200, 32)
+	_target_point_button.custom_minimum_size = Vector2(220, 32)
 	_target_point_button.pressed.connect(_on_target_point_toggle_pressed)
 	vbox.add_child(_target_point_button)
 
 	# Attack Range toggle button
 	_attack_range_button = Button.new()
 	_attack_range_button.text = "Engage Range: Off"
-	_attack_range_button.custom_minimum_size = Vector2(200, 32)
+	_attack_range_button.custom_minimum_size = Vector2(220, 32)
 	_attack_range_button.pressed.connect(_on_attack_range_toggle_pressed)
 	vbox.add_child(_attack_range_button)
 
 	# Damage Shape toggle button
 	_damage_shape_button = Button.new()
 	_damage_shape_button.text = "Damage Shapes: Off"
-	_damage_shape_button.custom_minimum_size = Vector2(200, 32)
+	_damage_shape_button.custom_minimum_size = Vector2(220, 32)
 	_damage_shape_button.pressed.connect(_on_damage_shape_toggle_pressed)
 	vbox.add_child(_damage_shape_button)
 
 	# Navigation Footprint toggle button
 	_navigation_footprint_button = Button.new()
 	_navigation_footprint_button.text = "Navigation Footprint: Off"
-	_navigation_footprint_button.custom_minimum_size = Vector2(200, 32)
+	_navigation_footprint_button.custom_minimum_size = Vector2(220, 32)
 	_navigation_footprint_button.pressed.connect(_on_navigation_footprint_toggle_pressed)
 	vbox.add_child(_navigation_footprint_button)
 
 	# Projectile Hit Geometry toggle button
 	_projectile_hit_geometry_button = Button.new()
 	_projectile_hit_geometry_button.text = "Projectile Hit Radius: Off"
-	_projectile_hit_geometry_button.custom_minimum_size = Vector2(200, 32)
+	_projectile_hit_geometry_button.custom_minimum_size = Vector2(220, 32)
 	_projectile_hit_geometry_button.pressed.connect(_on_projectile_hit_geometry_toggle_pressed)
 	vbox.add_child(_projectile_hit_geometry_button)
 
 	# Spawn Boundary Bypass toggle button
 	_spawn_boundary_button = Button.new()
 	_spawn_boundary_button.text = "Spawn Boundary: On"
-	_spawn_boundary_button.custom_minimum_size = Vector2(200, 32)
+	_spawn_boundary_button.custom_minimum_size = Vector2(220, 32)
 	_spawn_boundary_button.pressed.connect(_on_spawn_boundary_toggle_pressed)
 	vbox.add_child(_spawn_boundary_button)
+
+	var camera_separator: HSeparator = HSeparator.new()
+	vbox.add_child(camera_separator)
+
+	var camera_title: Label = Label.new()
+	camera_title.text = "Camera Debug"
+	camera_title.add_theme_font_size_override("font_size", 14)
+	camera_title.add_theme_color_override("font_color", Color(0.6, 1.0, 0.8))
+	vbox.add_child(camera_title)
 
 	# Camera bounds overlay toggle button
 	_camera_overlay_button = Button.new()
 	_camera_overlay_button.text = "Camera Overlay: N/A"
-	_camera_overlay_button.custom_minimum_size = Vector2(200, 32)
+	_camera_overlay_button.custom_minimum_size = Vector2(220, 32)
 	_camera_overlay_button.pressed.connect(_on_camera_overlay_toggle_pressed)
 	vbox.add_child(_camera_overlay_button)
 
+	# Camera auto-log toggle button
 	_camera_auto_log_button = Button.new()
 	_camera_auto_log_button.text = "Camera Auto-Log: Off"
-	_camera_auto_log_button.custom_minimum_size = Vector2(200, 32)
+	_camera_auto_log_button.custom_minimum_size = Vector2(220, 32)
 	_camera_auto_log_button.pressed.connect(_on_camera_auto_log_toggle_pressed)
 	vbox.add_child(_camera_auto_log_button)
+
+	# Camera zoom solver log toggle button
+	_camera_zoom_solver_log_button = Button.new()
+	_camera_zoom_solver_log_button.text = "Zoom Solver Logs: N/A"
+	_camera_zoom_solver_log_button.custom_minimum_size = Vector2(220, 32)
+	_camera_zoom_solver_log_button.pressed.connect(_on_camera_zoom_solver_log_toggle_pressed)
+	vbox.add_child(_camera_zoom_solver_log_button)
 
 	# Console command separator
 	var console_separator: HSeparator = HSeparator.new()
@@ -293,7 +329,7 @@ func _create_ui() -> void:
 	# Command input
 	_command_input = LineEdit.new()
 	_command_input.placeholder_text = "Type / for commands"
-	_command_input.custom_minimum_size = Vector2(200, 32)
+	_command_input.custom_minimum_size = Vector2(220, 32)
 	_command_input.text_submitted.connect(_on_command_submitted)
 	_command_input.text_changed.connect(_on_command_text_changed)
 	_command_input.gui_input.connect(_on_command_input_gui_input)
@@ -301,7 +337,7 @@ func _create_ui() -> void:
 
 	# Autocomplete list
 	_autocomplete_list = ItemList.new()
-	_autocomplete_list.custom_minimum_size = Vector2(200, 150)
+	_autocomplete_list.custom_minimum_size = Vector2(220, 150)
 	_autocomplete_list.select_mode = ItemList.SELECT_SINGLE
 	_autocomplete_list.item_selected.connect(_on_autocomplete_item_selected)
 	_autocomplete_list.visible = false
@@ -313,8 +349,53 @@ func _create_ui() -> void:
 	_command_output.add_theme_font_size_override("font_size", 11)
 	_command_output.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
 	_command_output.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_command_output.custom_minimum_size = Vector2(200, 0)
+	_command_output.custom_minimum_size = Vector2(220, 0)
 	vbox.add_child(_command_output)
+
+	# Snapshots separator
+	var snapshot_separator: HSeparator = HSeparator.new()
+	vbox.add_child(snapshot_separator)
+
+	var snapshot_title: Label = Label.new()
+	snapshot_title.text = "Snapshots"
+	snapshot_title.add_theme_font_size_override("font_size", 14)
+	snapshot_title.add_theme_color_override("font_color", Color(0.8, 0.8, 1.0))
+	vbox.add_child(snapshot_title)
+
+	# Manage Snapshots button
+	var snapshots_button: Button = Button.new()
+	snapshots_button.text = "Manage Snapshots"
+	snapshots_button.custom_minimum_size = Vector2(220, 32)
+	snapshots_button.pressed.connect(_on_snapshots_pressed)
+	vbox.add_child(snapshots_button)
+
+
+func _build_more_tab(vbox: VBoxContainer) -> void:
+	# Frame-rate controls
+	var fps_title: Label = Label.new()
+	fps_title.text = "Frame Rate"
+	fps_title.add_theme_font_size_override("font_size", 14)
+	fps_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
+	vbox.add_child(fps_title)
+
+	var grid: GridContainer = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 6)
+	vbox.add_child(grid)
+
+	_buttons.clear()
+	_create_fps_button(grid, 30, "30 FPS", "F5")
+	_create_fps_button(grid, 60, "60 FPS", "F6")
+	_create_fps_button(grid, 120, "120 FPS", "F7")
+	_create_fps_button(grid, 0, "Uncapped", "F8")
+
+	var instructions: Label = Label.new()
+	instructions.text = "` or F12 to hide"
+	instructions.add_theme_font_size_override("font_size", 11)
+	instructions.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(instructions)
 
 	# Battle Control separator
 	var battle_separator: HSeparator = HSeparator.new()
@@ -359,7 +440,7 @@ func _create_ui() -> void:
 
 	var open_arena_map_button: Button = Button.new()
 	open_arena_map_button.text = "Open Test Arena Map"
-	open_arena_map_button.custom_minimum_size = Vector2(200, 32)
+	open_arena_map_button.custom_minimum_size = Vector2(220, 32)
 	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
 	vbox.add_child(open_arena_map_button)
 
@@ -375,24 +456,6 @@ func _create_ui() -> void:
 	_add_debug_arena_button(arena_grid, "Cloud Swarm", BattleIDs.ARENA_CLOUD_SWARM)
 	_add_debug_arena_button(arena_grid, "Mana Bolt", BattleIDs.ARENA_MANA_BOLT)
 	_add_debug_arena_button(arena_grid, "Debug Arena", BattleIDs.DEBUG_ARENA)
-
-	# Snapshots separator
-	var snapshot_separator: HSeparator = HSeparator.new()
-	vbox.add_child(snapshot_separator)
-
-	# Manage Snapshots button
-	var snapshots_button: Button = Button.new()
-	snapshots_button.text = "Manage Snapshots"
-	snapshots_button.custom_minimum_size = Vector2(200, 32)
-	snapshots_button.pressed.connect(_on_snapshots_pressed)
-	vbox.add_child(snapshots_button)
-
-	# Start hidden by default (press ` or F12 to show)
-	_panel.visible = false
-
-	# Update button text to reflect loaded settings
-	_update_button_states()
-	_apply_spawn_boundary_bypass()
 
 
 func _update_button_states() -> void:
@@ -446,6 +509,7 @@ func _update_button_states() -> void:
 
 	_refresh_camera_overlay_button_state()
 	_refresh_camera_auto_log_button_state()
+	_refresh_camera_zoom_solver_log_button_state()
 
 
 func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) -> void:
@@ -608,6 +672,21 @@ func _on_camera_auto_log_toggle_pressed() -> void:
 		_log_active_camera_snapshot()
 	else:
 		print("[Debug] Camera auto-log disabled")
+
+
+func _on_camera_zoom_solver_log_toggle_pressed() -> void:
+	var camera: Node = _find_battle_camera_controller()
+	if not camera:
+		print("[Debug] No battle camera found - start a battle to toggle zoom solver logs")
+		_refresh_camera_zoom_solver_log_button_state()
+		return
+
+	var enabled_var: Variant = camera.get("debug_log_zoom_solver")
+	var enabled: bool = enabled_var if enabled_var is bool else false
+	var new_enabled: bool = not enabled
+	camera.set("debug_log_zoom_solver", new_enabled)
+	print("[Debug] Camera zoom solver logs %s" % ("enabled" if new_enabled else "disabled"))
+	_refresh_camera_zoom_solver_log_button_state()
 
 
 func _log_active_camera_snapshot() -> void:
@@ -938,6 +1017,22 @@ func _refresh_camera_auto_log_button_state() -> void:
 
 	_camera_auto_log_button.disabled = false
 	_camera_auto_log_button.text = "Camera Auto-Log: %s" % ("On" if _camera_auto_log_enabled else "Off")
+
+
+func _refresh_camera_zoom_solver_log_button_state() -> void:
+	if not _camera_zoom_solver_log_button:
+		return
+
+	var camera: Node = _find_battle_camera_controller()
+	if not camera:
+		_camera_zoom_solver_log_button.text = "Zoom Solver Logs: N/A"
+		_camera_zoom_solver_log_button.disabled = true
+		return
+
+	_camera_zoom_solver_log_button.disabled = false
+	var enabled_var: Variant = camera.get("debug_log_zoom_solver")
+	var enabled: bool = enabled_var if enabled_var is bool else false
+	_camera_zoom_solver_log_button.text = "Zoom Solver Logs: %s" % ("On" if enabled else "Off")
 
 
 ## =============================================================================
