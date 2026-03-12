@@ -217,13 +217,25 @@ public static class SimMeleeSlotManager
         if (!slotCountChanged && !orbitRadiusChanged)
             return;
 
-        // Rebuild topology deterministically.
-        slotState.Slots.Clear();
         var offsets = BuildSlotOffsets(slotCount, orbitRadius);
-        for (int i = 0; i < offsets.Count; i++)
+        if (slotCountChanged)
         {
-            slotState.Slots.Add(new MeleeSlotEntry { SlotId = i, SlotOffset = offsets[i] });
+            // Rebuild topology deterministically when cardinality changes.
+            // Occupancy cannot be preserved safely when slot ids are re-indexed.
+            slotState.Slots.Clear();
+            for (int i = 0; i < offsets.Count; i++)
+            {
+                slotState.Slots.Add(new MeleeSlotEntry { SlotId = i, SlotOffset = offsets[i] });
+            }
         }
+        else
+        {
+            // Radius-only updates keep slot ids stable, so preserve occupancy metadata
+            // and move each existing slot entry to the new offset.
+            for (int i = 0; i < slotState.Slots.Count; i++)
+                slotState.Slots[i].SlotOffset = offsets[i];
+        }
+
         slotState.OrbitRadius = orbitRadius;
     }
 

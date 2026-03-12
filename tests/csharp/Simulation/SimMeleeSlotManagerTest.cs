@@ -183,6 +183,33 @@ public class SimMeleeSlotManagerTest
     }
 
     [TestCase]
+    public void SummonerSlotTopology_RadiusOnlyUpdate_PreservesReservations()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 14f, z: 0f, attackRange: 6f);
+        attacker.NavigationRadius = 1.2f;
+        int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
+
+        SummonerMeleeBubble.SetOverrideRadius(5.40f);
+        bool reserved = SimMeleeSlotManager.TryReserveSlot(attacker, _state, summonerTarget, out int reservedSlotId);
+        AssertThat(reserved).IsTrue();
+
+        SummonerMeleeBubble.SetOverrideRadius(5.45f);
+        var stateAfterRadiusUpdate = SimMeleeSlotManager.GetOrCreateTargetState(
+            _state,
+            summonerTarget,
+            attacker,
+            minSlots: 1
+        );
+
+        AssertThat(attacker.ReservedSlotId.HasValue).IsTrue();
+        AssertThat(attacker.ReservedSlotId!.Value).IsEqual(reservedSlotId);
+        var slot = stateAfterRadiusUpdate.Slots[reservedSlotId];
+        AssertThat(slot.ReservedUnitId.HasValue).IsTrue();
+        AssertThat(slot.ReservedUnitId!.Value).IsEqual(attacker.UnitId);
+        AssertThat(slot.OccupancyState).IsEqual(SlotOccupancyState.Reserved);
+    }
+
+    [TestCase]
     public void TryReserveSlot_ExcludedSlotId_PicksDifferentFreeSlot()
     {
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 4f, z: 0f);
