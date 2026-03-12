@@ -760,7 +760,13 @@ public static class UnitDefinitions
             template.EngageRectHalfWidth = halfWidth;
         template.EngageRectForwardOffset = MathF.Max(forwardOffset, 0f);
         if (template.EngageRectForwardOffset > 0f)
-            template.EngageCloseRadius = MathF.Max(template.EngageCloseRadius, template.EngageRectForwardOffset);
+        {
+            // Forward-offset melee sloting reserves orbit radius at offset + 0.05f.
+            // Match close bubble to that band so units don't endlessly circle just
+            // outside the authored offset threshold.
+            float offsetCloseRadius = template.EngageRectForwardOffset + 0.05f;
+            template.EngageCloseRadius = MathF.Max(template.EngageCloseRadius, offsetCloseRadius);
+        }
     }
 
     private static TargetLayer ResolveTargetLayerFilterForProfile(UnitDefinition def, UnitTargetingProfile profile)

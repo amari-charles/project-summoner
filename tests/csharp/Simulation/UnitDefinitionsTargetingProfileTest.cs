@@ -195,6 +195,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.EngageRectLength).IsEqual(5.4f);
         AssertThat(template.EngageRectHalfWidth).IsEqual(2.6f);
         AssertThat(template.EngageRectForwardOffset).IsEqual(2.1f);
-        AssertThat(template.EngageCloseRadius).IsEqual(2.1f);
+        AssertThat(Math.Abs(template.EngageCloseRadius - 2.15f) < 0.001f).IsTrue();
     }
 }

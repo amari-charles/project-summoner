@@ -853,7 +853,7 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickBehavior_PebbloomForwardOffset_ClosePrimaryInsideBubble_DealsDamage()
+    public void TickBehavior_PebbloomForwardOffset_CloseBandOutsideOffsetStillDealsDamage()
     {
         SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(UnitIds.EarthSprite, count: 1);
         var attacker = SimTestHelper.CreateMeleeUnit(
@@ -871,8 +871,8 @@ public class SimBehaviorTest
         attacker.EngageRectForwardOffset = pebbloomTemplate.EngageRectForwardOffset;
         attacker.EngageCloseRadius = pebbloomTemplate.EngageCloseRadius;
 
-        // Inside close bubble but before forward-offset box start.
-        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 1.1f, z: 0f, hp: 100f);
+        // Slightly outside raw forward-offset (2.1) but inside slot-aligned close bubble (2.15).
+        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 0.7f, z: 2.0f, hp: 100f);
         primary.Evasion = 0f;
 
         var events = new List<SimEvent>();
