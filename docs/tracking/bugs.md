@@ -10,40 +10,12 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 **Tracker Sync (2026-03-08):** Blocked-idle issue moved to verification after movement pipeline + blocked-nav reset fixes and deterministic repro coverage landed; headless leak remains open/cosmetic.
 **Tracker Sync (2026-03-08, late):** Added resolved biome/checkerboard regression caused by StringName coercion mismatch to `bugs-resolved.md` (PR `#290`).
 **Tracker Sync (2026-03-08, final):** Closed blocked-idle bug after manual signoff; moved full entry to `bugs-resolved.md`.
+**Tracker Sync (2026-03-12, quick-win wave):** Moved headless leak item to `bugs-resolved.md` after `JsonProfileStore` disposal fixes (`DirAccess`/`Json`) and validation runs with no `Leaked unsafe reference` / `ObjectDB instances leaked` shutdown signatures in the specified headless GUT command.
 
 ---
 
 ## Active Bugs
-
-#### RID/Resource Leaks at Exit in Headless Mode
-**Status:** Open
-**Reported:** 2025-01-28
-**Component:** Unit Testing / Godot Headless
-
-**Description:**
-When running tests via `--headless`, Godot reports resource leaks at exit.
-
-**Current Behavior:**
-After "All tests passed", Godot outputs:
-- RID allocations leaked (GodotArea3D, GodotShape3D, textures, meshes, materials)
-- "Leaked instance dependency" warnings
-- ObjectDB instances leaked
-- Resources still in use
-
-**Impact:**
-Cosmetic only - doesn't affect test results or game runtime.
-
-**Root Cause:**
-Godot's headless renderer doesn't fully clean up resources when autoloads create 3D objects (meshes, materials, etc.) that persist until exit.
-
-**Proposed Solution:**
-- May require explicit cleanup in autoload `_exit_tree()` methods
-- May be unfixable Godot behavior in headless mode
-
-**Related Files:**
-- scripts/battle/vfx/vfx_manager.gd
-- scripts/csharp/Battle/View/EntityManager.cs (HP bar lifecycle)
-- scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs
+- None currently tracked.
 
 ---
 
@@ -84,4 +56,4 @@ Additional context
 ```
 
 ---
-*Last Updated: 2026-03-08 (final) - Closed blocked-idle bug and moved to resolved archive*
+*Last Updated: 2026-03-12 - Headless leak issue moved to resolved archive after validation pass*

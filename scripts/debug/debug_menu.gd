@@ -14,6 +14,8 @@ extends Node
 ##   F8 - Uncapped FPS
 
 const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
+const ENABLE_FLAG: String = "--enable-debug-menu"
+const DISABLE_FLAG: String = "--disable-debug-menu"
 
 ## UI references
 var _panel: PanelContainer
@@ -38,6 +40,7 @@ var _autocomplete_list: ItemList  # Autocomplete suggestions
 var _autocomplete_visible: bool = false
 var _camera_auto_log_enabled: bool = false
 var _camera_auto_log_elapsed: float = 0.0
+var _menu_enabled: bool = false
 
 const CAMERA_AUTO_LOG_INTERVAL_SECONDS: float = 5.0
 
@@ -48,6 +51,13 @@ const CAMERA_AUTO_LOG_INTERVAL_SECONDS: float = 5.0
 func _ready() -> void:
 	if not OS.is_debug_build():
 		queue_free()
+		return
+
+	_menu_enabled = _compute_menu_enabled()
+	if not _menu_enabled:
+		set_process(false)
+		set_process_input(false)
+		print("[Debug] DebugMenu disabled (use %s to enable)." % ENABLE_FLAG)
 		return
 
 	# Always process, even when paused
@@ -82,6 +92,9 @@ func _process(_delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not _menu_enabled:
+		return
+
 	if not event is InputEventKey:
 		return
 
@@ -100,6 +113,13 @@ func _input(event: InputEvent) -> void:
 			_set_fps(120)
 		KEY_F8:
 			_set_fps(0)
+
+
+func _compute_menu_enabled() -> bool:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if DISABLE_FLAG in args:
+		return false
+	return ENABLE_FLAG in args
 
 
 ## =============================================================================

@@ -28,6 +28,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-11, summon traits runtime):** Updated trait-curation item to reflect shipped summon stat-tree runtime (shared trait IDs, per-card/per-rarity overrides, additive + spawn-count hooks, rarity-gated Legion tiers, coverage); remaining scope narrowed to per-summoner identity lines and campaign-level ultimate/oath design validation.
 **Tracker Sync (2026-03-11, per-summoner lines):** Simplified per-summoner identity lines to summoner-stat-only V1 (no unit modifiers/triggers) for Cole/Selene/Mei/Teo in `docs/design/summon-traits-v1.md`; remaining trait-curation scope is campaign-facing Ultimate/Oath candidate pass and permanence validation.
 **Tracker Sync (2026-03-11, combat spatial v2):** Updated directional attack, multi-target, and hitbox tracker entries to reflect runtime geometry-channel split + debug overlay progress; engage-shape startup alignment remains open.
+**Tracker Sync (2026-03-12, quick-win wave):** Closed targeted combat redirect/retarget robustness scope; completed simulation spatial namespace + spawn-rule ownership alignment; completed UI async timeout guards, Puff cone-center offset tuning, and large-unit hit-flash throttling; updated summoner stat audit status and recorded upgrade-cost scaffolding progress.
 
 ---
 
@@ -70,7 +71,7 @@ The client currently operates as a pure renderer — it applies host snapshots b
 ### 🟡 MEDIUM PRIORITY
 
 #### Shift Puff Attack Angle Downward
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Units & Combat / Ranged
 **Effort:** Small
 
@@ -83,6 +84,10 @@ If current range is -30° to +30° (60° spread centered at 0°), shift to somet
 **Related Files:**
 - Puff unit scene or ranged attack logic
 - Projectile spawn angle calculations
+
+**Resolution Update (2026-03-12):**
+- ✅ Added cone-center offset support (`TargetingConeCenterOffsetDegrees`) through `UnitDefinition -> SimUnitTemplate -> UnitData`.
+- ✅ Set Puff targeting cone center offset to `-20°` and validated with deterministic targeting coverage.
 
 ---
 
@@ -125,7 +130,7 @@ Units attach only the components they need.
 ### 🟡 MEDIUM PRIORITY
 
 #### Investigate Pathfinding & Targeting System Robustness
-**Status:** 🔄 In Progress
+**Status:** ✅ Completed
 **Category:** Units & Combat / Performance
 **Effort:** Medium
 
@@ -153,18 +158,18 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 - ✅ Ran large-battle profiling pass (2026-03-10) via `dotnet test --settings test.runsettings --filter "FullyQualifiedName~BlockedUnitReproTest.SummonerFocus_DenseSwarm_HasBroadAttackerContribution" --logger "console;verbosity=detailed"`:
   - dense-swarm test case duration: ~1s (`60 units`, `1200` simulation ticks)
 - filtered run total: `2.1013s` (test host + discovery + execution)
-- 🔄 Remaining: target switching race-case audit, and forced-target/redirect robustness validation.
+- ✅ Closed target-switch race/forced-target follow-up with deterministic tie-break selection and forced-target expiry/invalid-target release validation.
 
 **Progress Update (2026-03-11, aggro + air targeting):**
 - ✅ Added commit-lock aggro chase cap so units drop non-summoner targets that move beyond max chase distance (`max(aggro radius, attack range)`), preventing infinite far-chase behavior.
 - ✅ Added `RetargetReason.OutOfAggroRange` for explicit retarget diagnostics when chase-cap drops occur.
 - ✅ Updated ranged targeting profile wiring so ranged units default to `TargetLayer.Both` (air + ground) when definitions rely on the shared default filter.
 - ✅ Added regression coverage for commit-lock drop-on-range-exit and ranged profile target-layer mapping.
-- 🔄 Remaining: target switching race-case audit, and forced-target/redirect robustness validation.
+- ✅ Added regression coverage for forced-target expiry release, invalid forced-target recovery, and stable tie-break ordering.
 
 **Notes:**
 - Related to lane-based movement todo (may affect targeting behavior)
-- Re-run this profile after target-switch and redirect robustness work lands.
+- Re-run this profile if future targeting policy changes alter commit-lock behavior.
 
 ---
 
@@ -401,7 +406,7 @@ Review the current game setup to ensure compatibility with both mobile and deskt
 ### 🟢 LOW PRIORITY
 
 #### Support Upgrade-Specific Resource Costs (Future)
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Scaffolding Added)
 **Category:** Core Game Systems / Progression
 **Effort:** Small
 **Dependencies:** Card Level System (implemented)
@@ -418,6 +423,11 @@ Add optional support for upgrade-specific resource costs (essence, fragments, et
 - CardUpgradeCatalog already has structure to support this
 - Would allow rare/powerful upgrades to require special resources from events
 
+**Progress Update (2026-03-12):**
+- ✅ Added optional level-up resource-cost contract in card progression info (`level_up_resource_cost`, `has_level_up_resource_cost`).
+- ✅ Added CardService-level spend/refund wiring + API bridge accessor.
+- ⬜ Remaining: author real catalog-defined costs and UI affordability display/UX.
+
 **Related Code:**
 - `scripts/csharp/Meta/Services/Cards/Handlers/CardProgressionHandler.cs` - card progression
 - `scripts/infrastructure/data/card_upgrade_catalog.gd` - upgrade definitions
@@ -433,7 +443,7 @@ Add optional support for upgrade-specific resource costs (essence, fragments, et
 ### 🟡 MEDIUM PRIORITY
 
 #### Improve Hit Flash Feedback for Large Units
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Visual Polish
 **Effort:** Small
 
@@ -451,6 +461,10 @@ Large units (like Fire Titan) appear permanently lit up when taking continuous d
 - Current `flash_white()` in `sprite_character_2d5_component.gd` triggers on every hit
 - Problem is most noticeable on high-HP units being attacked by multiple enemies
 - Solution should still provide clear feedback that damage is occurring
+
+**Resolution Update (2026-03-12):**
+- ✅ Added configurable flash rate-limiting in both `SpriteVisualComponent` and `SkeletalVisualComponent`.
+- ✅ Added separate minimum flash interval for large units via width threshold tuning.
 
 ---
 
@@ -722,7 +736,7 @@ Redesign settings/options screen for better usability and visual consistency.
 ### 🟡 MEDIUM PRIORITY
 
 #### Audit Summoner Secondary Stats (damage_bonus, damage_reduction)
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Summoners / Stats
 **Effort:** Small
 
@@ -742,6 +756,11 @@ Summoner secondary stats (`damage_bonus`, `damage_reduction`) are computed inter
 - Are `damage_bonus` and `damage_reduction` actually applied during damage calculations?
 - Should these remain as internal modifiers or be removed entirely?
 - If kept, should they be surfaced differently (e.g., in trait tooltips)?
+
+**Resolution Update (2026-03-12):**
+- ✅ Verified `damage_bonus`/`damage_reduction` are actively consumed in simulation damage paths.
+- ✅ Added clarifying in-code documentation for summoner-vs-unit and summoner-target lane behavior.
+- ✅ No dead-field removal required in current runtime.
 
 **Related Files:**
 - `scripts/infrastructure/data/summoner_instance.gd` - `get_computed_stats()`
@@ -996,7 +1015,7 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 ---
 
 #### Create Simulation Spatial Domain (Folder + Namespace Alignment)
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Architecture / Layering
 **Effort:** Small
 
@@ -1016,6 +1035,11 @@ Formalize simulation world-rule ownership by introducing a dedicated `Simulation
 
 **Likely Follow-up:**
 - Evaluate moving `BattlefieldBounds` to simulation-owned spatial namespace once safe migration plan is defined
+
+**Resolution Update (2026-03-12):**
+- ✅ Moved `VirtualLanes` to `scripts/csharp/Battle/Simulation/Spatial/VirtualLanes.cs`.
+- ✅ Updated simulation movement/combat consumers to `Fateforged.Simulation.Spatial`.
+- ✅ Refactor remained behavior-preserving (namespace + placement only).
 
 ---
 
@@ -1306,7 +1330,7 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 ---
 
 #### Consolidate Battlefield Spawn Rules to C# Source-of-Truth
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Architecture / Consistency
 **Effort:** Small
 
@@ -1322,6 +1346,11 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 - `scripts/battle/battlefield/battlefield_constants.gd`
 - `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs`
 - `scripts/csharp/Battle/Input/InputCollector.cs`
+
+**Resolution Update (2026-03-12):**
+- ✅ Removed mirrored spawn-rule helpers from `battlefield_constants.gd`.
+- ✅ Kept spawn validation/clamping authority in C# `BattlefieldBounds`.
+- ✅ Updated GDScript tests to cover remaining conversion/constants behavior.
 
 ---
 
@@ -1351,7 +1380,7 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 ---
 
 #### Add Timeouts to UI Async Waits
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Performance / Reliability
 **Effort:** Small
 
@@ -1373,7 +1402,7 @@ UI flow often depends on timers/awaits. If a signal never fires, the UI can hang
 - `scripts/meta/screens/event_screen.gd`
 
 **Notes:**
-- Lower priority - not causing observed issues currently
+- Completed with timeout + fallback guards in title/event screen async flows.
 
 ---
 

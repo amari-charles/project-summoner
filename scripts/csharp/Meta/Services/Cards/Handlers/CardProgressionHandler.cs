@@ -5,6 +5,7 @@ using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Enums;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Progression.Core;
 using Fateforged.Meta.Services.Traits;
@@ -36,6 +37,10 @@ public class CardProgressionHandler
         ["epic"] = 2.0f,
         ["legendary"] = 3.0f
     };
+
+    // Future-facing hook: optional per-card/per-level resource costs in addition to XP.
+    // Empty by default to preserve current XP-only leveling behavior.
+    private static readonly Dictionary<string, Dictionary<int, Dictionary<ResourceType, int>>> LevelUpResourceCosts = new(StringComparer.Ordinal);
 
     public CardProgressionHandler(IProfileRepository profileRepo)
     {
@@ -138,9 +143,31 @@ public class CardProgressionHandler
         return ProgressionEngine.CanLevelUp(state, curve);
     }
 
+    /// <summary>Get optional resource cost for the next level-up (in addition to XP).</summary>
+    public Dictionary<ResourceType, int> GetLevelUpResourceCost(CardInstanceId cardInstanceId)
+    {
+        var card = _profileRepo.GetCard(cardInstanceId);
+        if (card == null || card.Level >= MaxLevel)
+            return [];
+
+        var nextLevel = card.Level + 1;
+        if (!LevelUpResourceCosts.TryGetValue(card.CatalogId.Value, out var perLevelCosts))
+            return [];
+        if (!perLevelCosts.TryGetValue(nextLevel, out var configuredCost))
+            return [];
+
+        var result = new Dictionary<ResourceType, int>();
+        foreach (var (resourceType, amount) in configuredCost)
+        {
+            if (amount > 0)
+                result[resourceType] = amount;
+        }
+        return result;
+    }
+
     /// <summary>
     /// Level up a card. Pass 2 unified flow grants a trait point and defers selection.
-    /// Requires only XP - no gold cost.
+    /// Requires XP; optional resource costs can be layered by CardService if configured.
     /// Returns true if successful.
     /// </summary>
     public bool LevelUpCard(CardInstanceId cardInstanceId)
@@ -452,6 +479,11 @@ public class CardProgressionHandler
         if (card == null)
             return null;
 
+        var levelUpResourceCost = GetLevelUpResourceCost(cardInstanceId);
+        var levelUpResourceCostDict = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var (resourceType, amount) in levelUpResourceCost)
+            levelUpResourceCostDict[resourceType.ToKey()] = amount;
+
         return new CardProgressionInfo
         {
             CardInstanceId = cardInstanceId.Value,
@@ -466,7 +498,9 @@ public class CardProgressionHandler
             CanLevelUp = CanLevelUp(cardInstanceId),
             Traits = card.Traits.ConvertAll(t => t.Value),
             IsMaxLevel = card.Level >= MaxLevel,
-            UnspentTraitPoints = card.UnspentTraitPoints
+            UnspentTraitPoints = card.UnspentTraitPoints,
+            LevelUpResourceCost = levelUpResourceCostDict,
+            HasLevelUpResourceCost = levelUpResourceCostDict.Count > 0
         };
     }
 
@@ -526,7 +560,7 @@ public class CardProgressionHandler
 
 /// <summary>
 /// Card progression info for UI display.
-/// Note: Card leveling requires only XP, not gold.
+/// Default behavior is XP-only; optional resource costs may be present per card/level.
 /// </summary>
 public class CardProgressionInfo
 {
@@ -543,4 +577,6 @@ public class CardProgressionInfo
     public List<string> Traits { get; set; } = [];
     public bool IsMaxLevel { get; set; } = false;
     public int UnspentTraitPoints { get; set; } = 0;
+    public Dictionary<string, int> LevelUpResourceCost { get; set; } = [];
+    public bool HasLevelUpResourceCost { get; set; } = false;
 }

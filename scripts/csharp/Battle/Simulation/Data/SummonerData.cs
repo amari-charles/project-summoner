@@ -33,7 +33,9 @@ public class SummonerData
 
     // Damage bonuses (from summoner traits)
     public float DamageBonus { get; set; } // General % damage bonus
-    public float DamageReduction { get; set; } // Flat damage reduction
+    // Flat post-defense reduction applied to incoming unit damage in SimDamage.
+    // Summoner-vs-summoner incoming damage uses SoulStrength lane modifiers instead.
+    public float DamageReduction { get; set; }
     public float SoulStrength { get; set; } // Flat reduction against incoming summoner-targeted damage
     private readonly Dictionary<Element, float> _elementalDamageBonuses = new();
 

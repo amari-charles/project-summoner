@@ -197,6 +197,8 @@ public static class SummonerCatalog
             ["max_mana"] = summoner.MaxMana,
             ["summoner_icon_path"] = summoner.IconPath,
             ["card_frame_style"] = summoner.CardFrameStyle,
+            ["portrait_uv_offset"] = summoner.PortraitUvOffset,
+            ["portrait_uv_scale"] = summoner.PortraitUvScale,
             ["unlock_condition"] = summoner.UnlockCondition.ToGdString(),
             ["innate_trait_ids"] = traitsArray,
             ["starter_card_id"] = (string)summoner.StarterCardId

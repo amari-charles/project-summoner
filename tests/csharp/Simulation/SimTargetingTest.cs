@@ -337,6 +337,22 @@ public class SimTargetingTest
     }
 
     [TestCase]
+    public void CanAttack_ConeCenterOffset_ShiftsFacingCone()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);
+        attacker.HasConeConstraint = true;
+        attacker.ConeHalfAngle = 30f;
+        attacker.ConeCenterOffsetDegrees = -20f;
+        attacker.IsFacingRight = true;
+
+        var insideShiftedCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: -4.7f); // ~ -25 deg
+        var outsideShiftedCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 3.6f); // ~ +20 deg
+
+        AssertThat(SimTargeting.CanAttack(attacker, insideShiftedCone)).IsTrue();
+        AssertThat(SimTargeting.CanAttack(attacker, outsideShiftedCone)).IsFalse();
+    }
+
+    [TestCase]
     public void CanAttack_CloseRange_AlwaysTrue()
     {
         var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);

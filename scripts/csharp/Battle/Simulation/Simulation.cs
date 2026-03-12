@@ -10,6 +10,7 @@ using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
 using Fateforged.Simulation.Movement;
+using Fateforged.Simulation.Spatial;
 using Fateforged.Simulation.Subsystems;
 using Fateforged.Stats;
 using Fateforged.Units;
@@ -678,6 +679,7 @@ public class Simulation
                     EngageCloseRadius = template.EngageCloseRadius,
                     HasConeConstraint = template.HasConeConstraint,
                     ConeHalfAngle = template.ConeHalfAngle,
+                    ConeCenterOffsetDegrees = template.ConeCenterOffsetDegrees,
                     CloseRangeThreshold = template.CloseRangeThreshold,
                     TargetLayerFilter = template.TargetLayerFilter,
                     DistanceScorerWeight = template.DistanceScorerWeight,

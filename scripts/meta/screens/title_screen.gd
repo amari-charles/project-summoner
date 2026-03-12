@@ -6,6 +6,9 @@ class_name TitleScreen
 ## Minimum time to display splash (prevents flash when resources are cached)
 const MIN_DISPLAY_SECONDS: float = 0.5
 
+## Max time to wait for threaded preload completion before proceeding anyway
+const PRELOAD_TIMEOUT_SECONDS: float = 20.0
+
 ## Max time to wait for fade_out animation before proceeding anyway
 const FADE_OUT_TIMEOUT_SECONDS: float = 2.0
 
@@ -25,7 +28,14 @@ func _ready() -> void:
 	add_child(preloader)
 	preloader.ProgressUpdated.connect(_on_progress_updated)
 	preloader.LoadAll(_get_preload_paths())
-	await preloader.Completed
+	var preload_completed: bool = await AsyncUtils.await_signal_with_timeout(
+		get_tree(),
+		preloader.Completed,
+		PRELOAD_TIMEOUT_SECONDS
+	)
+	if not preload_completed:
+		push_warning("TitleScreen: Preload timed out after %.1fs; proceeding" % PRELOAD_TIMEOUT_SECONDS)
+	preloader.queue_free()
 
 	# Enforce minimum display time
 	var elapsed_ms: int = Time.get_ticks_msec() - _start_time_ms
@@ -84,4 +94,3 @@ func _debug_reset_profile() -> void:
 	if DevConsole:
 		DevConsole.execute_command("/save_wipe")
 		get_tree().reload_current_scene()
-

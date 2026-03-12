@@ -83,6 +83,7 @@ public class UnitData
     public float EngageCloseRadius { get; set; } = 0.4f;
     public bool HasConeConstraint { get; set; }
     public float ConeHalfAngle { get; set; } = 30f;
+    public float ConeCenterOffsetDegrees { get; set; }
     public float CloseRangeThreshold { get; set; } = 0.5f;
     public TargetLayer TargetLayerFilter { get; set; }
     public float DistanceScorerWeight { get; set; } = 1f;

@@ -82,7 +82,7 @@ public class JsonProfileStore
     /// </summary>
     public void EnsureProfileDir(string profileId)
     {
-        var dir = DirAccess.Open("user://");
+        using var dir = DirAccess.Open("user://");
         if (dir == null) return;
 
         if (!dir.DirExists("profiles"))
@@ -109,7 +109,7 @@ public class JsonProfileStore
 
         var jsonString = file.GetAsText();
 
-        var json = new Json();
+        using var json = new Json();
         var error = json.Parse(jsonString);
         if (error != Error.Ok)
         {
@@ -147,7 +147,7 @@ public class JsonProfileStore
         }
 
         // Rename temp to main save (atomic operation)
-        var dir = DirAccess.Open(profileDir);
+        using var dir = DirAccess.Open(profileDir);
         if (dir == null)
         {
             GD.PushError("JsonProfileStore: Failed to open profile directory");
@@ -178,7 +178,7 @@ public class JsonProfileStore
 
     private static void RotateBackups(string profileDir, string mainPath, string bak1Path, string bak2Path)
     {
-        var dir = DirAccess.Open(profileDir);
+        using var dir = DirAccess.Open(profileDir);
         if (dir == null)
         {
             GD.PushWarning("JsonProfileStore: Failed to open profile directory for backup rotation");

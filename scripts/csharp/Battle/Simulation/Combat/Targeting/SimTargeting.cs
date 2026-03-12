@@ -4,6 +4,7 @@ using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
+using Fateforged.Simulation.Spatial;
 using Fateforged.Simulation.Combat.Slots;
 
 namespace Fateforged.Simulation.Combat;
@@ -27,6 +28,7 @@ public static class SimTargeting
     private const float CommitFrontageArcDegrees = 135.0f;
     private const float CommitSummonerAcquireDistanceScale = 1.5f;
     private const float CommitSummonerAcquireDistanceMin = 20.0f;
+    private const float ScoreTieEpsilon = 0.0001f;
 
     /// <summary>
     /// Acquire a target using the unit's configured targeting policy.
@@ -96,7 +98,7 @@ public static class SimTargeting
                 score += CommitStickinessBonus;
             score -= ComputeCongestionPenalty(unit, candidate, state);
 
-            if (score > bestScore)
+            if (IsBetterScoredCandidate(score, candidate.UnitId, bestScore, bestId))
             {
                 bestScore = score;
                 bestId = candidate.UnitId;
@@ -226,13 +228,17 @@ public static class SimTargeting
             if (prioritizeAttackableNow &&
                 IsWithinEngageDistance(unit, candidate.Position) &&
                 CanAttack(unit, candidate) &&
-                score > bestAttackableScore)
+                IsBetterScoredCandidate(
+                    score,
+                    candidate.UnitId,
+                    bestAttackableScore,
+                    bestAttackableId))
             {
                 bestAttackableScore = score;
                 bestAttackableId = candidate.UnitId;
             }
 
-            if (score > bestScore)
+            if (IsBetterScoredCandidate(score, candidate.UnitId, bestScore, bestId))
             {
                 bestScore = score;
                 bestId = candidate.UnitId;
@@ -283,6 +289,24 @@ public static class SimTargeting
             TargetLayer.AirOnly => candidate.MovementLayer == MovementLayer.Air,
             _ => true
         };
+    }
+
+    private static bool IsBetterScoredCandidate(
+        float candidateScore,
+        int candidateId,
+        float bestScore,
+        int? bestId)
+    {
+        if (!bestId.HasValue)
+            return true;
+
+        if (candidateScore > bestScore + ScoreTieEpsilon)
+            return true;
+        if (candidateScore < bestScore - ScoreTieEpsilon)
+            return false;
+
+        // Stable tie-break for equal scores avoids selection churn between equivalent targets.
+        return candidateId < bestId.Value;
     }
 
     /// <summary>
@@ -470,7 +494,7 @@ public static class SimTargeting
             return true;
 
         float angleToTarget = SimMath.RadToDeg(MathF.Atan2(toTarget.Z, toTarget.X));
-        float facingAngle = unit.IsFacingRight ? 0f : 180f;
+        float facingAngle = (unit.IsFacingRight ? 0f : 180f) + unit.ConeCenterOffsetDegrees;
         float angleDiff = angleToTarget - facingAngle;
         while (angleDiff > 180f) angleDiff -= 360f;
         while (angleDiff < -180f) angleDiff += 360f;
