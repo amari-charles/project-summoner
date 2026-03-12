@@ -53,6 +53,7 @@ public partial class FloatingHPBar : Node3D
     private ShaderMaterial? _shaderMaterial;
     private static Shader? _cachedShader;
     private Tween? _fadeTween;
+    private string? _connectedHpSignal;
 
     #endregion
 
@@ -148,30 +149,29 @@ public partial class FloatingHPBar : Node3D
     public void TrackNode(Node3D node)
     {
         _trackedNode = node;
+        _connectedHpSignal = null;
 
         // Connect to TreeExiting for cleanup
         node.TreeExiting += OnTrackedNodeExiting;
 
-        // Check for hp_changed signal (GDScript summoners)
+        // Accept both Godot-style and C# signal naming
         if (node.HasSignal("hp_changed"))
         {
             node.Connect("hp_changed", Callable.From<float, float>(OnHpChanged));
+            _connectedHpSignal = "hp_changed";
+        }
+        else if (node.HasSignal("HpChanged"))
+        {
+            node.Connect("HpChanged", Callable.From<float, float>(OnHpChanged));
+            _connectedHpSignal = "HpChanged";
         }
 
         // Calculate offset after visual is ready
         CallDeferred(MethodName.DeferredCalculateOffset);
 
         // Try to get initial HP values
-        if (node.HasMethod("get_current_hp") && node.HasMethod("get_max_hp"))
+        if (TryGetInitialHp(node, out var currentHp, out var maxHp))
         {
-            var currentHp = (float)node.Call("get_current_hp");
-            var maxHp = (float)node.Call("get_max_hp");
-            UpdateHp(currentHp, maxHp);
-        }
-        else if (node.Get("current_hp").VariantType != Variant.Type.Nil)
-        {
-            var currentHp = (float)node.Get("current_hp");
-            var maxHp = (float)node.Get("max_hp");
             UpdateHp(currentHp, maxHp);
         }
     }
@@ -186,14 +186,22 @@ public partial class FloatingHPBar : Node3D
             _trackedNode.TreeExiting -= OnTrackedNodeExiting;
 
             if (
-                _trackedNode.HasSignal("hp_changed")
-                && _trackedNode.IsConnected("hp_changed", Callable.From<float, float>(OnHpChanged))
+                _connectedHpSignal != null
+                && _trackedNode.HasSignal(_connectedHpSignal)
+                && _trackedNode.IsConnected(
+                    _connectedHpSignal,
+                    Callable.From<float, float>(OnHpChanged)
+                )
             )
             {
-                _trackedNode.Disconnect("hp_changed", Callable.From<float, float>(OnHpChanged));
+                _trackedNode.Disconnect(
+                    _connectedHpSignal,
+                    Callable.From<float, float>(OnHpChanged)
+                );
             }
         }
 
+        _connectedHpSignal = null;
         _trackedNode = null;
     }
 
@@ -314,6 +322,73 @@ public partial class FloatingHPBar : Node3D
     private void OnHpChanged(float newHp, float maxHp)
     {
         UpdateHp(newHp, maxHp);
+    }
+
+    private static bool TryGetInitialHp(Node3D node, out float currentHp, out float maxHp)
+    {
+        currentHp = 0f;
+        maxHp = 0f;
+
+        if (node.HasMethod("get_current_hp") && node.HasMethod("get_max_hp"))
+        {
+            currentHp = (float)node.Call("get_current_hp");
+            maxHp = (float)node.Call("get_max_hp");
+            return true;
+        }
+
+        if (node.HasMethod("GetCurrentHp") && node.HasMethod("GetMaxHp"))
+        {
+            currentHp = (float)node.Call("GetCurrentHp");
+            maxHp = (float)node.Call("GetMaxHp");
+            return true;
+        }
+
+        if (
+            TryGetFloatProperty(node, "current_hp", out currentHp)
+            && TryGetFloatProperty(node, "max_hp", out maxHp)
+        )
+        {
+            return true;
+        }
+
+        if (
+            TryGetFloatProperty(node, "CurrentHp", out currentHp)
+            && TryGetFloatProperty(node, "MaxHp", out maxHp)
+        )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetFloatProperty(Node node, string propertyName, out float value)
+    {
+        value = 0f;
+
+        if (!HasProperty(node, propertyName))
+            return false;
+
+        var propertyValue = node.Get(propertyName);
+        if (propertyValue.VariantType == Variant.Type.Nil)
+            return false;
+
+        value = (float)propertyValue;
+        return true;
+    }
+
+    private static bool HasProperty(Node node, string propertyName)
+    {
+        foreach (Godot.Collections.Dictionary property in node.GetPropertyList())
+        {
+            if (!property.ContainsKey("name"))
+                continue;
+
+            if (property["name"].AsString() == propertyName)
+                return true;
+        }
+
+        return false;
     }
 
     #endregion

@@ -33,6 +33,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
     private IVisualComponent? _visual;
     private SpawnRevealComponent? _spawnReveal;
+    private FloatingHPBar? _hpBar;
     private float _attackAnimTimer;
     private bool _isFacingRight;
     private string _currentMoveAnim = "";
@@ -52,6 +53,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     // --- IDamageableVisual ---
 
     public bool IsAlive => _isAlive;
+    public float CurrentHp { get; private set; }
+    public float MaxHp { get; private set; } = 1f;
 
     // --- Initialization (called by EntityManager at spawn) ---
 
@@ -90,6 +93,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         {
             RegisterGroups(unitData);
             GlobalPosition = simNode.SimToLocal(unitData.Position);
+            CurrentHp = unitData.CurrentHp;
+            MaxHp = unitData.MaxHp;
 
             // Start spawn reveal if unit has a spawn timer
             if (unitData.SpawnTimer > 0)
@@ -115,10 +120,11 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         }
 
         // Create floating HP bar as a child
-        var hpBar = new FloatingHPBar();
-        AddChild(hpBar);
-        hpBar.Configure(HPBarSettings.Default);
-        hpBar.TrackNode(this);
+        _hpBar = new FloatingHPBar();
+        AddChild(_hpBar);
+        _hpBar.Configure(HPBarSettings.Default);
+        _hpBar.TrackNode(this);
+        _hpBar.UpdateHp(CurrentHp, MaxHp);
     }
 
     private void RegisterGroups(UnitData unitData)
@@ -154,6 +160,10 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             }
             return;
         }
+
+        CurrentHp = unitData.CurrentHp;
+        MaxHp = unitData.MaxHp;
+        _hpBar?.UpdateHp(CurrentHp, MaxHp);
 
         // Death fallback from snapshot
         if (!unitData.IsAlive && _isAlive)
