@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Godot;
-using Nakama;
 using Fateforged.Multiplayer.Backend;
 using Fateforged.Multiplayer.Ranking;
+using Godot;
+using Nakama;
 
 namespace Fateforged.Multiplayer.Matchmaking;
 
@@ -65,7 +65,8 @@ public partial class MatchmakingService : Node
     /// <summary>
     /// Time spent in queue (in seconds).
     /// </summary>
-    public float QueueTime => IsInQueue ? (float)(Time.GetTicksMsec() / 1000.0) - _queueStartTime : 0;
+    public float QueueTime =>
+        IsInQueue ? (float)(Time.GetTicksMsec() / 1000.0) - _queueStartTime : 0;
 
     /// <summary>
     /// The current matchmaking ticket.
@@ -80,7 +81,13 @@ public partial class MatchmakingService : Node
     /// Emitted when a match is found and joined.
     /// </summary>
     [Signal]
-    public delegate void MatchFoundEventHandler(string matchId, string opponentUserId, string opponentUsername, int opponentRating, string opponentSummonerId);
+    public delegate void MatchFoundEventHandler(
+        string matchId,
+        string opponentUserId,
+        string opponentUsername,
+        int opponentRating,
+        string opponentSummonerId
+    );
 
     /// <summary>
     /// Emitted when matchmaking fails or is cancelled.
@@ -210,14 +217,13 @@ public partial class MatchmakingService : Node
             var stringProperties = new Dictionary<string, string>
             {
                 ["mode"] = options.Mode,
-                ["summoner_id"] = options.SummonerId ?? ""
+                ["summoner_id"] = options.SummonerId ?? "",
             };
-            var numericProperties = new Dictionary<string, double>
-            {
-                ["rating"] = options.Rating
-            };
+            var numericProperties = new Dictionary<string, double> { ["rating"] = options.Rating };
 
-            GD.Print($"[RANKED][QUEUE] Joining queue: rating={options.Rating}, range=±{options.RatingRange}");
+            GD.Print(
+                $"[RANKED][QUEUE] Joining queue: rating={options.Rating}, range=±{options.RatingRange}"
+            );
             GD.Print($"[RANKED][QUEUE] Query: {query}");
 
             _currentTicket = await nakama.Socket!.AddMatchmakerAsync(
@@ -283,12 +289,16 @@ public partial class MatchmakingService : Node
     /// </summary>
     public string GetEstimatedWaitTime()
     {
-        if (!IsInQueue) return "Not in queue";
+        if (!IsInQueue)
+            return "Not in queue";
 
         var queueTime = QueueTime;
-        if (queueTime < 10) return "Finding match...";
-        if (queueTime < 30) return "Searching...";
-        if (queueTime < 60) return "Expanding search...";
+        if (queueTime < 10)
+            return "Finding match...";
+        if (queueTime < 30)
+            return "Searching...";
+        if (queueTime < 60)
+            return "Expanding search...";
         return "Extended search...";
     }
 
@@ -311,7 +321,7 @@ public partial class MatchmakingService : Node
         {
             Mode = "ranked_1v1",
             Rating = rating,
-            RatingRange = DefaultRatingRange
+            RatingRange = DefaultRatingRange,
         };
     }
 
@@ -335,7 +345,8 @@ public partial class MatchmakingService : Node
     public static OpponentMatchInfo ResolveOpponentInfo(
         string? localUserId,
         string[] userIds,
-        IReadOnlyList<MatchParticipantMetadata> participants)
+        IReadOnlyList<MatchParticipantMetadata> participants
+    )
     {
         string opponentUserId = "";
         string opponentUsername = "Opponent";
@@ -355,9 +366,14 @@ public partial class MatchmakingService : Node
         {
             if (participant.UserId != localUserId && participant.UserId == opponentUserId)
             {
-                opponentUsername = string.IsNullOrEmpty(participant.Username) ? "Opponent" : participant.Username;
-                opponentSummonerId = string.IsNullOrEmpty(participant.SummonerId) ? "ignis" : participant.SummonerId;
-                opponentRating = participant.Rating > 0 ? participant.Rating : EloCalculator.StartingElo;
+                opponentUsername = string.IsNullOrEmpty(participant.Username)
+                    ? "Opponent"
+                    : participant.Username;
+                opponentSummonerId = string.IsNullOrEmpty(participant.SummonerId)
+                    ? "ignis"
+                    : participant.SummonerId;
+                opponentRating =
+                    participant.Rating > 0 ? participant.Rating : EloCalculator.StartingElo;
                 break;
             }
         }
@@ -367,11 +383,15 @@ public partial class MatchmakingService : Node
             UserId = opponentUserId,
             Username = opponentUsername,
             SummonerId = opponentSummonerId,
-            Rating = opponentRating
+            Rating = opponentRating,
         };
     }
 
-    private void OnMatchJoined(string matchId, string[] userIds, Godot.Collections.Array<NakamaGameClient.MatchParticipantInfo> participants)
+    private void OnMatchJoined(
+        string matchId,
+        string[] userIds,
+        Godot.Collections.Array<NakamaGameClient.MatchParticipantInfo> participants
+    )
     {
         GD.Print($"[RANKED][MATCH_JOIN] Match joined: {matchId}");
 
@@ -384,22 +404,39 @@ public partial class MatchmakingService : Node
         var participantMetadata = new List<MatchParticipantMetadata>(participants.Count);
         foreach (var participant in participants)
         {
-            participantMetadata.Add(new MatchParticipantMetadata
-            {
-                UserId = participant.UserId,
-                Username = participant.Username,
-                SummonerId = participant.SummonerId,
-                Rating = participant.Rating
-            });
+            participantMetadata.Add(
+                new MatchParticipantMetadata
+                {
+                    UserId = participant.UserId,
+                    Username = participant.Username,
+                    SummonerId = participant.SummonerId,
+                    Rating = participant.Rating,
+                }
+            );
         }
 
         var opponent = ResolveOpponentInfo(nakama?.UserId, userIds, participantMetadata);
-        if (opponent.Username == "Opponent" || opponent.SummonerId == "ignis" || opponent.Rating == EloCalculator.StartingElo)
-            GD.Print("[RANKED][MATCH_JOIN] Opponent participant metadata partially missing, using defaults where needed");
-        GD.Print($"[RANKED][MATCH_JOIN] Opponent resolved: id={opponent.UserId}, username={opponent.Username}, rating={opponent.Rating}, summoner={opponent.SummonerId}");
+        if (
+            opponent.Username == "Opponent"
+            || opponent.SummonerId == "ignis"
+            || opponent.Rating == EloCalculator.StartingElo
+        )
+            GD.Print(
+                "[RANKED][MATCH_JOIN] Opponent participant metadata partially missing, using defaults where needed"
+            );
+        GD.Print(
+            $"[RANKED][MATCH_JOIN] Opponent resolved: id={opponent.UserId}, username={opponent.Username}, rating={opponent.Rating}, summoner={opponent.SummonerId}"
+        );
 
         EmitSignal(SignalName.QueueStatusChanged, false, QueueTime);
-        EmitSignal(SignalName.MatchFound, matchId, opponent.UserId, opponent.Username, opponent.Rating, opponent.SummonerId);
+        EmitSignal(
+            SignalName.MatchFound,
+            matchId,
+            opponent.UserId,
+            opponent.Username,
+            opponent.Rating,
+            opponent.SummonerId
+        );
     }
 
     #endregion

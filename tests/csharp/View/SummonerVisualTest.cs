@@ -3,13 +3,13 @@ namespace Fateforged.Tests.View;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Fateforged.Cards;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Tests.Simulation;
 using Fateforged.View;
-using Fateforged.Cards;
 using GdUnit4;
 using Godot;
 using static GdUnit4.Assertions;
@@ -46,9 +46,18 @@ public class SummonerVisualTest
         Card? played = null;
         Card? started = null;
         Card? completed = null;
-        visual.Connect(SummonerVisual.SignalName.CardPlayed, Callable.From<Card>(card => played = card));
-        visual.Connect(SummonerVisual.SignalName.CastingStarted, Callable.From<Card, float>((card, _) => started = card));
-        visual.Connect(SummonerVisual.SignalName.CastingCompleted, Callable.From<Card>(card => completed = card));
+        visual.Connect(
+            SummonerVisual.SignalName.CardPlayed,
+            Callable.From<Card>(card => played = card)
+        );
+        visual.Connect(
+            SummonerVisual.SignalName.CastingStarted,
+            Callable.From<Card, float>((card, _) => started = card)
+        );
+        visual.Connect(
+            SummonerVisual.SignalName.CastingCompleted,
+            Callable.From<Card>(card => completed = card)
+        );
 
         var summoner = state.Summoners[0];
         summoner.IsCasting = true;
@@ -105,7 +114,7 @@ public class SummonerVisualTest
         var visual = new SummonerVisual
         {
             Name = $"SummonerVisualTest_{_createdNodes.Count}",
-            Team = 0
+            Team = 0,
         };
         root.AddChild(visual);
         _createdNodes.Add(visual);
@@ -139,12 +148,8 @@ public class SummonerVisualTest
             remove { }
         }
 
-        public void SubmitCommand(ICommand command)
-        {
-        }
+        public void SubmitCommand(ICommand command) { }
 
-        public void Tick(float delta)
-        {
-        }
+        public void Tick(float delta) { }
     }
 }

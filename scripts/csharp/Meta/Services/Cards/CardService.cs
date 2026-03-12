@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
-using Fateforged.Domain.Profile.Enums;
+using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Enums;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Cards.Handlers;
 using Fateforged.Meta.Economy;
-using Fateforged.Data.Traits;
 using Fateforged.Stats;
+using Godot;
 
 namespace Fateforged.Meta.Cards;
 
@@ -147,7 +147,8 @@ public partial class CardService : Node
     /// <summary>Get SummonerBound cards for a specific summoner.</summary>
     public CardInstance[] GetSummonerBoundCards(string summonerId)
     {
-        return _ownership?.GetSummonerBoundCards(Data.Summoners.SummonerId.FromString(summonerId)) ?? [];
+        return _ownership?.GetSummonerBoundCards(Data.Summoners.SummonerId.FromString(summonerId))
+            ?? [];
     }
 
     /// <summary>Get all cards owned by a summoner (AccountWide + SummonerBound).</summary>
@@ -192,7 +193,8 @@ public partial class CardService : Node
     /// <summary>Grant a single card.</summary>
     public string GrantCard(string catalogId, string rarity = "common")
     {
-        var instanceId = _ownership?.GrantCard(CardId.FromString(catalogId), rarity) ?? CardInstanceId.None;
+        var instanceId =
+            _ownership?.GrantCard(CardId.FromString(catalogId), rarity) ?? CardInstanceId.None;
         return instanceId;
     }
 
@@ -239,7 +241,10 @@ public partial class CardService : Node
     }
 
     /// <summary>Grant XP to multiple cards (GDScript-friendly).</summary>
-    public Godot.Collections.Dictionary GrantXpToCardsArray(Godot.Collections.Array<string> cardInstanceIds, int amount)
+    public Godot.Collections.Dictionary GrantXpToCardsArray(
+        Godot.Collections.Array<string> cardInstanceIds,
+        int amount
+    )
     {
         var results = GrantXpToCards(cardInstanceIds, amount);
         var gdResult = new Godot.Collections.Dictionary();
@@ -311,7 +316,9 @@ public partial class CardService : Node
             var economy = EconomyService.Instance;
             if (economy == null)
             {
-                GD.PushWarning($"CardService: Level-up blocked for '{cardInstanceId}' because EconomyService is unavailable");
+                GD.PushWarning(
+                    $"CardService: Level-up blocked for '{cardInstanceId}' because EconomyService is unavailable"
+                );
                 return false;
             }
 
@@ -350,17 +357,28 @@ public partial class CardService : Node
 
     public int GetCardUnspentTraitPoints(string cardInstanceId)
     {
-        return _progression?.GetCardUnspentTraitPoints(CardInstanceId.FromString(cardInstanceId)) ?? 0;
+        return _progression?.GetCardUnspentTraitPoints(CardInstanceId.FromString(cardInstanceId))
+            ?? 0;
     }
 
     public int GrantCardTraitPoints(string cardInstanceId, int amount, string source = "")
     {
-        return _progression?.GrantCardTraitPoints(CardInstanceId.FromString(cardInstanceId), amount, source) ?? 0;
+        return _progression?.GrantCardTraitPoints(
+                CardInstanceId.FromString(cardInstanceId),
+                amount,
+                source
+            )
+            ?? 0;
     }
 
-    public Godot.Collections.Array<Godot.Collections.Dictionary> RollCardTraitOffers(string cardInstanceId, int count = 3)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> RollCardTraitOffers(
+        string cardInstanceId,
+        int count = 3
+    )
     {
-        var offers = _progression?.RollCardTraitOffers(CardInstanceId.FromString(cardInstanceId), count) ?? [];
+        var offers =
+            _progression?.RollCardTraitOffers(CardInstanceId.FromString(cardInstanceId), count)
+            ?? [];
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var offer in offers)
         {
@@ -373,21 +391,25 @@ public partial class CardService : Node
                 : ResolveLoc(offer.Description.LocalizationKey);
             var summaryShort = TraitSummaryFormatter.BuildSummaryShort(traitDef);
 
-            result.Add(new Godot.Collections.Dictionary
-            {
-                ["trait_id"] = offer.TraitId.Value,
-                ["display_name"] = displayName,
-                ["description"] = description,
-                ["summary_short"] = summaryShort,
-                ["weight"] = offer.Weight.Value
-            });
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["trait_id"] = offer.TraitId.Value,
+                    ["display_name"] = displayName,
+                    ["description"] = description,
+                    ["summary_short"] = summaryShort,
+                    ["weight"] = offer.Weight.Value,
+                }
+            );
         }
         return result;
     }
 
     public bool SpendCardTraitPoint(string cardInstanceId, string traitId)
     {
-        var success = _progression?.SpendCardTraitPoint(CardInstanceId.FromString(cardInstanceId), traitId) ?? false;
+        var success =
+            _progression?.SpendCardTraitPoint(CardInstanceId.FromString(cardInstanceId), traitId)
+            ?? false;
         if (success)
             EmitSignal(SignalName.TraitApplied, cardInstanceId, traitId);
         return success;
@@ -400,7 +422,8 @@ public partial class CardService : Node
     /// <summary>Get all traits applied to a card.</summary>
     public Godot.Collections.Array<string> GetAppliedTraits(string cardInstanceId)
     {
-        var traits = _progression?.GetAppliedTraits(CardInstanceId.FromString(cardInstanceId)) ?? [];
+        var traits =
+            _progression?.GetAppliedTraits(CardInstanceId.FromString(cardInstanceId)) ?? [];
         var result = new Godot.Collections.Array<string>();
         foreach (var t in traits)
             result.Add(t);
@@ -446,7 +469,7 @@ public partial class CardService : Node
             ["name"] = ResolveLoc(unifiedTrait.NameKey),
             ["description"] = ResolveLoc(unifiedTrait.DescriptionKey),
             ["summary_short"] = TraitSummaryFormatter.BuildSummaryShort(unifiedTrait),
-            ["stat_mods"] = statMods
+            ["stat_mods"] = statMods,
         };
     }
 
@@ -459,19 +482,22 @@ public partial class CardService : Node
     /// <summary>Get additive stat modifiers from card's traits (for C# callers).</summary>
     public Dictionary<string, float> GetTraitStatAddModifiersTyped(string cardInstanceId)
     {
-        return _progression?.GetTraitStatAddModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
+        return _progression?.GetTraitStatAddModifiers(CardInstanceId.FromString(cardInstanceId))
+            ?? [];
     }
 
     /// <summary>Get additive spawn-count bonus from card traits.</summary>
     public int GetTraitSpawnCountBonus(string cardInstanceId)
     {
-        return _progression?.GetTraitSpawnCountBonus(CardInstanceId.FromString(cardInstanceId)) ?? 0;
+        return _progression?.GetTraitSpawnCountBonus(CardInstanceId.FromString(cardInstanceId))
+            ?? 0;
     }
 
     /// <summary>Get stat modifiers from card's traits (for GDScript callers).</summary>
     public Godot.Collections.Dictionary GetTraitStatModifiers(string cardInstanceId)
     {
-        var mods = _progression?.GetTraitStatModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
+        var mods =
+            _progression?.GetTraitStatModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
         var result = new Godot.Collections.Dictionary();
         foreach (var (stat, mult) in mods)
             result[stat] = mult;
@@ -481,7 +507,8 @@ public partial class CardService : Node
     /// <summary>Get additive stat modifiers from card's traits (for GDScript callers).</summary>
     public Godot.Collections.Dictionary GetTraitStatAddModifiers(string cardInstanceId)
     {
-        var adds = _progression?.GetTraitStatAddModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
+        var adds =
+            _progression?.GetTraitStatAddModifiers(CardInstanceId.FromString(cardInstanceId)) ?? [];
         var result = new Godot.Collections.Dictionary();
         foreach (var (stat, add) in adds)
             result[stat] = add;
@@ -525,7 +552,7 @@ public partial class CardService : Node
             ["is_max_level"] = info.IsMaxLevel,
             ["unspent_trait_points"] = info.UnspentTraitPoints,
             ["level_up_resource_cost"] = levelUpResourceCost,
-            ["has_level_up_resource_cost"] = info.HasLevelUpResourceCost
+            ["has_level_up_resource_cost"] = info.HasLevelUpResourceCost,
         };
     }
 
@@ -594,7 +621,10 @@ public partial class CardService : Node
                 continue;
 
             var current = effective[statKey];
-            if (current.VariantType != Variant.Type.Float && current.VariantType != Variant.Type.Int)
+            if (
+                current.VariantType != Variant.Type.Float
+                && current.VariantType != Variant.Type.Int
+            )
                 continue;
 
             var baseValue = (float)current.AsDouble();
@@ -614,7 +644,10 @@ public partial class CardService : Node
             }
 
             var current = effective[effectiveStatKey];
-            if (current.VariantType != Variant.Type.Float && current.VariantType != Variant.Type.Int)
+            if (
+                current.VariantType != Variant.Type.Float
+                && current.VariantType != Variant.Type.Int
+            )
                 continue;
 
             var baseValue = (float)current.AsDouble();
@@ -625,7 +658,10 @@ public partial class CardService : Node
         if (spawnCountAdd != 0 && effective.ContainsKey("spawn_count"))
         {
             var current = effective["spawn_count"];
-            if (current.VariantType == Variant.Type.Float || current.VariantType == Variant.Type.Int)
+            if (
+                current.VariantType == Variant.Type.Float
+                || current.VariantType == Variant.Type.Int
+            )
             {
                 var baseValue = (float)current.AsDouble();
                 effective["spawn_count"] = baseValue + spawnCountAdd;
@@ -636,7 +672,9 @@ public partial class CardService : Node
     }
 
     /// <summary>Get owned cards for summoner as array for GDScript.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetOwnedCardsDict(string summonerId)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetOwnedCardsDict(
+        string summonerId
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var card in GetOwnedCards(summonerId))
@@ -647,13 +685,17 @@ public partial class CardService : Node
     }
 
     /// <summary>Grant cards from GDScript array.</summary>
-    public Godot.Collections.Array<string> GrantCardsFromArray(Godot.Collections.Array<Godot.Collections.Dictionary> cardsArray)
+    public Godot.Collections.Array<string> GrantCardsFromArray(
+        Godot.Collections.Array<Godot.Collections.Dictionary> cardsArray
+    )
     {
         var cards = new List<(string catalogId, string rarity)>();
         foreach (var dict in cardsArray)
         {
-            if (dict.TryGetValue("catalog_id", out var catalogIdVar) &&
-                dict.TryGetValue("rarity", out var rarityVar))
+            if (
+                dict.TryGetValue("catalog_id", out var catalogIdVar)
+                && dict.TryGetValue("rarity", out var rarityVar)
+            )
             {
                 cards.Add((catalogIdVar.AsString(), rarityVar.AsString()));
             }
@@ -676,13 +718,15 @@ public partial class CardService : Node
             foreach (var inst in entry.Instances)
                 instancesArray.Add(DtoConverters.ToDict(inst));
 
-            result.Add(new Godot.Collections.Dictionary
-            {
-                ["catalog_id"] = entry.CatalogId,
-                ["count"] = entry.Count,
-                ["rarity"] = entry.Rarity,
-                ["instances"] = instancesArray
-            });
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["catalog_id"] = entry.CatalogId,
+                    ["count"] = entry.Count,
+                    ["rarity"] = entry.Rarity,
+                    ["instances"] = instancesArray,
+                }
+            );
         }
         return result;
     }

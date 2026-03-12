@@ -16,7 +16,12 @@ public class DeckValidationHandler
     private readonly int _minDeckSize;
     private readonly int _maxDeckSize;
 
-    public DeckValidationHandler(IProfileRepository profileRepo, DeckCrudHandler crud, int minDeckSize, int maxDeckSize)
+    public DeckValidationHandler(
+        IProfileRepository profileRepo,
+        DeckCrudHandler crud,
+        int minDeckSize,
+        int maxDeckSize
+    )
     {
         _profileRepo = profileRepo;
         _crud = crud;
@@ -32,7 +37,11 @@ public class DeckValidationHandler
     /// Validate a deck.
     /// Returns true if deck is valid and playable.
     /// </summary>
-    public bool ValidateDeck(DeckId deckId, Func<string, string, bool>? cardOwnershipChecker = null, Action<string, string>? onValidationFailed = null)
+    public bool ValidateDeck(
+        DeckId deckId,
+        Func<string, string, bool>? cardOwnershipChecker = null,
+        Action<string, string>? onValidationFailed = null
+    )
     {
         var deck = _crud.GetDeck(deckId);
         if (deck == null)
@@ -57,14 +66,20 @@ public class DeckValidationHandler
         // Check minimum size
         if (deck.CardInstanceIds.Count < _minDeckSize)
         {
-            onValidationFailed?.Invoke(deckId, $"Deck has {deck.CardInstanceIds.Count} cards, minimum is {_minDeckSize}");
+            onValidationFailed?.Invoke(
+                deckId,
+                $"Deck has {deck.CardInstanceIds.Count} cards, minimum is {_minDeckSize}"
+            );
             return false;
         }
 
         // Check maximum size
         if (deck.CardInstanceIds.Count > _maxDeckSize)
         {
-            onValidationFailed?.Invoke(deckId, $"Deck has {deck.CardInstanceIds.Count} cards, maximum is {_maxDeckSize}");
+            onValidationFailed?.Invoke(
+                deckId,
+                $"Deck has {deck.CardInstanceIds.Count} cards, maximum is {_maxDeckSize}"
+            );
             return false;
         }
 
@@ -75,7 +90,10 @@ public class DeckValidationHandler
             {
                 if (!cardOwnershipChecker(cardId, deck.SummonerId))
                 {
-                    onValidationFailed?.Invoke(deckId, $"Card instance not owned by summoner '{deck.SummonerId}': {cardId}");
+                    onValidationFailed?.Invoke(
+                        deckId,
+                        $"Card instance not owned by summoner '{deck.SummonerId}': {cardId}"
+                    );
                     return false;
                 }
             }
@@ -87,7 +105,10 @@ public class DeckValidationHandler
     /// <summary>
     /// Get validation errors for a deck (for UI display).
     /// </summary>
-    public string[] GetValidationErrors(DeckId deckId, Func<string, string, bool>? cardOwnershipChecker = null)
+    public string[] GetValidationErrors(
+        DeckId deckId,
+        Func<string, string, bool>? cardOwnershipChecker = null
+    )
     {
         var errors = new List<string>();
 
@@ -110,18 +131,24 @@ public class DeckValidationHandler
         // Check size constraints
         if (deck.CardInstanceIds.Count < _minDeckSize)
         {
-            errors.Add($"Deck needs {_minDeckSize - deck.CardInstanceIds.Count} more cards (minimum: {_minDeckSize})");
+            errors.Add(
+                $"Deck needs {_minDeckSize - deck.CardInstanceIds.Count} more cards (minimum: {_minDeckSize})"
+            );
         }
 
         if (deck.CardInstanceIds.Count > _maxDeckSize)
         {
-            errors.Add($"Deck has {deck.CardInstanceIds.Count - _maxDeckSize} too many cards (maximum: {_maxDeckSize})");
+            errors.Add(
+                $"Deck has {deck.CardInstanceIds.Count - _maxDeckSize} too many cards (maximum: {_maxDeckSize})"
+            );
         }
 
         // Check cards not owned by summoner (if checker is available)
         if (cardOwnershipChecker != null)
         {
-            var notOwnedCount = deck.CardInstanceIds.Count(id => !cardOwnershipChecker(id, deck.SummonerId));
+            var notOwnedCount = deck.CardInstanceIds.Count(id =>
+                !cardOwnershipChecker(id, deck.SummonerId)
+            );
             if (notOwnedCount > 0)
             {
                 errors.Add($"{notOwnedCount} cards not owned by summoner");

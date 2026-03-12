@@ -1,9 +1,9 @@
 namespace Fateforged.Tests.Traits;
 
 using System.Linq;
-using GdUnit4;
 using Fateforged.Data.Traits;
 using Fateforged.Stats;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -97,7 +97,9 @@ public class TraitCatalogTest
     [TestCase]
     public void GetTraitsByAcquisitionMode_ReturnsOnlyGrantedOnlyTraits()
     {
-        var grantedTraits = TraitCatalog.GetTraitsByAcquisitionMode(TraitAcquisitionMode.GrantedOnly);
+        var grantedTraits = TraitCatalog.GetTraitsByAcquisitionMode(
+            TraitAcquisitionMode.GrantedOnly
+        );
 
         AssertThat(grantedTraits.Length).IsGreater(0);
         foreach (var trait in grantedTraits)
@@ -174,7 +176,7 @@ public class TraitCatalogTest
             TraitIds.WindAffinity,
             TraitIds.EarthAffinity,
             TraitIds.LightningAffinity,
-            TraitIds.LifeAffinity
+            TraitIds.LifeAffinity,
         };
 
         foreach (var traitId in affinityTraitIds)
@@ -219,28 +221,28 @@ public class TraitCatalogTest
                 new TraitModifier
                 {
                     Target = "unit",
-                    StatMults = new() { [StatKey.AttackDamage] = 1.06f }
-                }
+                    StatMults = new() { [StatKey.AttackDamage] = 1.06f },
+                },
             ],
             ValueOverrides =
             [
                 new TraitValueOverride
                 {
                     Rarities = ["common"],
-                    StatMults = new() { [StatKey.AttackDamage] = 1.05f }
+                    StatMults = new() { [StatKey.AttackDamage] = 1.05f },
                 },
                 new TraitValueOverride
                 {
                     CardCatalogIds = ["fire_wisp"],
-                    StatMults = new() { [StatKey.AttackDamage] = 1.07f }
+                    StatMults = new() { [StatKey.AttackDamage] = 1.07f },
                 },
                 new TraitValueOverride
                 {
                     CardCatalogIds = ["fire_wisp"],
                     Rarities = ["common"],
-                    StatMults = new() { [StatKey.AttackDamage] = 1.09f }
-                }
-            ]
+                    StatMults = new() { [StatKey.AttackDamage] = 1.09f },
+                },
+            ],
         };
 
         var exact = trait.ResolveStatMultipliersForCard("fire_wisp", "common");
@@ -269,8 +271,8 @@ public class TraitCatalogTest
                 new TraitModifier
                 {
                     Target = "unit",
-                    StatAdds = new() { [StatKey.UnitCount] = 1f }
-                }
+                    StatAdds = new() { [StatKey.UnitCount] = 1f },
+                },
             ],
             ValueOverrides =
             [
@@ -278,9 +280,9 @@ public class TraitCatalogTest
                 {
                     CardCatalogIds = ["fire_wisp"],
                     Rarities = ["rare"],
-                    UnitCountAdd = 2
-                }
-            ]
+                    UnitCountAdd = 2,
+                },
+            ],
         };
 
         AssertThat(trait.ResolveSpawnCountAddForCard("fire_wisp", "rare")).IsEqual(2);
@@ -303,28 +305,28 @@ public class TraitCatalogTest
                 new TraitModifier
                 {
                     Target = "unit",
-                    StatAdds = new() { [StatKey.Armor] = 4f }
-                }
+                    StatAdds = new() { [StatKey.Armor] = 4f },
+                },
             ],
             ValueOverrides =
             [
                 new TraitValueOverride
                 {
                     Rarities = ["common"],
-                    StatAdds = new() { [StatKey.Armor] = 6f }
+                    StatAdds = new() { [StatKey.Armor] = 6f },
                 },
                 new TraitValueOverride
                 {
                     CardCatalogIds = ["fire_wisp"],
-                    StatAdds = new() { [StatKey.Armor] = 8f }
+                    StatAdds = new() { [StatKey.Armor] = 8f },
                 },
                 new TraitValueOverride
                 {
                     CardCatalogIds = ["fire_wisp"],
                     Rarities = ["common"],
-                    StatAdds = new() { [StatKey.Armor] = 10f }
-                }
-            ]
+                    StatAdds = new() { [StatKey.Armor] = 10f },
+                },
+            ],
         };
 
         var exact = trait.ResolveStatAddsForCard("fire_wisp", "common");

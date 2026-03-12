@@ -14,8 +14,7 @@ public static class SimUtils
     /// <summary>
     /// Round to one decimal place for deterministic damage results.
     /// </summary>
-    public static float RoundToOneDecimal(float value)
-        => MathF.Round(value * 10f) / 10f;
+    public static float RoundToOneDecimal(float value) => MathF.Round(value * 10f) / 10f;
 
     /// <summary>
     /// Resolve target position for either a unit or summoner target ID.
@@ -24,7 +23,8 @@ public static class SimUtils
     /// </summary>
     public static SimVector3? ResolveTargetPosition(int? targetId, MatchState state)
     {
-        if (!targetId.HasValue) return null;
+        if (!targetId.HasValue)
+            return null;
 
         if (MatchState.IsSummonerTarget(targetId))
         {
@@ -45,7 +45,12 @@ public static class SimUtils
     /// Does NOT fire triggers — caller is responsible for firing OnKill/OnDeath triggers
     /// since trigger context (attacker identity, trigger type) varies by call site.
     /// </summary>
-    public static void KillUnit(MatchState state, UnitData target, int killerUnitId, List<SimEvent> events)
+    public static void KillUnit(
+        MatchState state,
+        UnitData target,
+        int killerUnitId,
+        List<SimEvent> events
+    )
     {
         target.CurrentHp = 0;
         target.IsAlive = false;

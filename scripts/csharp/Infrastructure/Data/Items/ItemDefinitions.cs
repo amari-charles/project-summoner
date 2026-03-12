@@ -24,8 +24,13 @@ public static class ItemDefinitions
         Rarity = "rare",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 100.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.MaxHealth,
+                Type = ModifierType.Flat,
+                Value = 100.0f,
+            },
+        ],
     };
 
     public static readonly ItemDefinition BattleHardenedBadge = new()
@@ -38,8 +43,13 @@ public static class ItemDefinitions
         Rarity = "rare",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.DamageBonus, Type = ModifierType.Percent, Value = 5.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.DamageBonus,
+                Type = ModifierType.Percent,
+                Value = 5.0f,
+            },
+        ],
     };
 
     public static readonly ItemDefinition FortunesCharm = new()
@@ -52,8 +62,13 @@ public static class ItemDefinitions
         Rarity = "uncommon",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.GoldBonus, Type = ModifierType.Percent, Value = 10.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.GoldBonus,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
+        ],
     };
 
     public static readonly ItemDefinition BoldFortuneAmulet = new()
@@ -66,8 +81,13 @@ public static class ItemDefinitions
         Rarity = "uncommon",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 50.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.MaxHealth,
+                Type = ModifierType.Flat,
+                Value = 50.0f,
+            },
+        ],
     };
 
     // =========================================================================
@@ -86,8 +106,13 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.DamageBonus, Type = ModifierType.Percent, Value = 2.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.DamageBonus,
+                Type = ModifierType.Percent,
+                Value = 2.0f,
+            },
+        ],
     };
 
     public static readonly ItemDefinition SimpleRing = new()
@@ -100,8 +125,13 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.GoldBonus, Type = ModifierType.Percent, Value = 5.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.GoldBonus,
+                Type = ModifierType.Percent,
+                Value = 5.0f,
+            },
+        ],
     };
 
     public static readonly ItemDefinition LuckyBand = new()
@@ -114,8 +144,13 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.XpBonus, Type = ModifierType.Percent, Value = 5.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.XpBonus,
+                Type = ModifierType.Percent,
+                Value = 5.0f,
+            },
+        ],
     };
 
     public static readonly ItemDefinition TravelersCloak = new()
@@ -128,8 +163,13 @@ public static class ItemDefinitions
         Rarity = "common",
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Flat, Value = 25.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.MaxHealth,
+                Type = ModifierType.Flat,
+                Value = 25.0f,
+            },
+        ],
     };
 
     // =========================================================================

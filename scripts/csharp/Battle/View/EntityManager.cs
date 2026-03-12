@@ -1,15 +1,15 @@
 using System.Collections.Generic;
+using Fateforged.Cards;
+using Fateforged.Infrastructure.Debug;
 using Fateforged.Infrastructure.Pooling;
+using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
-using Godot;
-using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
-using Fateforged.Cards;
-using Fateforged.Infrastructure.Debug;
-using Fateforged.Projectiles;
+using Fateforged.Units;
+using Godot;
 
 namespace Fateforged.View;
 
@@ -29,7 +29,10 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     private readonly Dictionary<int, UnitVisual> _unitRegistry = new();
     private readonly Dictionary<int, ProjectileVisual> _projectileRegistry = new();
     private readonly Dictionary<int, MeshInstance3D> _projectileDebugMarkers = new();
-    private readonly Dictionary<int, (float Radius, ProjectileHitSpace HitSpace)> _projectileDebugMarkerMeta = new();
+    private readonly Dictionary<
+        int,
+        (float Radius, ProjectileHitSpace HitSpace)
+    > _projectileDebugMarkerMeta = new();
     private readonly Dictionary<int, SummonerVisual> _summonerRegistry = new();
     private readonly StateInterpolator _unitInterpolator = new();
     private IBattleVfxService _vfxService = NullBattleVfxService.Instance;
@@ -85,7 +88,8 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     public override void _PhysicsProcess(double delta)
     {
-        if (_session == null || _isPaused) return;
+        if (_session == null || _isPaused)
+            return;
 
         var state = _session.GetState();
         var simNode = SimulationNode.Current;
@@ -99,8 +103,10 @@ public partial class EntityManager : Node3D, ISimEventVisitor
                 _unitInterpolator.SetTarget(unitId, simNode!.SimToLocal(unitData.Position));
             }
 
-            if (_unitRegistry.ContainsKey(unitId)) continue;
-            if (!unitData.IsAlive) continue;
+            if (_unitRegistry.ContainsKey(unitId))
+                continue;
+            if (!unitData.IsAlive)
+                continue;
 
             var shell = SpawnUnitShell(unitData);
             if (shell != null)
@@ -115,8 +121,10 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         // Diff projectiles: spawn shells for new IDs
         foreach (var (projId, projData) in state.Projectiles)
         {
-            if (_projectileRegistry.ContainsKey(projId)) continue;
-            if (projData.IsDead) continue;
+            if (_projectileRegistry.ContainsKey(projId))
+                continue;
+            if (projData.IsDead)
+                continue;
 
             var shell = SpawnProjectileShell(projData);
             _projectileRegistry[projId] = shell;
@@ -186,7 +194,8 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             if (projData.IsDead)
                 continue;
 
-            bool hasShell = _projectileRegistry.TryGetValue(projId, out var shell) && IsInstanceValid(shell);
+            bool hasShell =
+                _projectileRegistry.TryGetValue(projId, out var shell) && IsInstanceValid(shell);
             if (hasShell)
             {
                 RemoveProjectileDebugMarker(projId);
@@ -335,9 +344,10 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             return;
 
         var simNode = SimulationNode.Current;
-        var localPos = simNode != null
-            ? simNode.SimToLocal(e.Position)
-            : new Vector3(e.Position.X, e.Position.Y, e.Position.Z);
+        var localPos =
+            simNode != null
+                ? simNode.SimToLocal(e.Position)
+                : new Vector3(e.Position.X, e.Position.Y, e.Position.Z);
 
         var customData = new Godot.Collections.Dictionary();
         if (card.SpellRadius > 0f)
@@ -348,7 +358,9 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     public void Visit(DelayedEffectFiredEvent e)
     {
-        GD.Print($"[EntityManager] DelayedEffectFiredEvent: type={e.EffectType}, radius={e.AoeRadius}");
+        GD.Print(
+            $"[EntityManager] DelayedEffectFiredEvent: type={e.EffectType}, radius={e.AoeRadius}"
+        );
     }
 
     // --- Summoner event dispatch (forwarded to SummonerVisual for signal emission) ---
@@ -397,26 +409,41 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     // --- No-op visitors (HUD handles these, or no visual action needed) ---
     public void Visit(PhaseChangedEvent e) { }
+
     public void Visit(PrepTimerUpdatedEvent e) { }
+
     public void Visit(MatchTimeUpdatedEvent e) { }
+
     public void Visit(UnitRegisteredEvent e) { }
+
     public void Visit(UnitRemovedEvent e) { }
+
     public void Visit(GameOverEvent e) { }
+
     public void Visit(UnitActivationChangedEvent e) { }
+
     public void Visit(BuffExpiredEvent e) { }
 
     // --- Global Control ---
 
-    public void Pause() { _isPaused = true; }
-    public void Resume() { _isPaused = false; }
+    public void Pause()
+    {
+        _isPaused = true;
+    }
+
+    public void Resume()
+    {
+        _isPaused = false;
+    }
 
     private void UpdateProjectileDebugMarker(int projectileId, SimProjectileData projData)
     {
         float radius = Mathf.Max(0.05f, projData.HitRadius);
-        bool needsRebuild = !_projectileDebugMarkers.TryGetValue(projectileId, out var marker) ||
-                            !_projectileDebugMarkerMeta.TryGetValue(projectileId, out var markerMeta) ||
-                            !Mathf.IsEqualApprox(markerMeta.Radius, radius) ||
-                            markerMeta.HitSpace != projData.HitSpace;
+        bool needsRebuild =
+            !_projectileDebugMarkers.TryGetValue(projectileId, out var marker)
+            || !_projectileDebugMarkerMeta.TryGetValue(projectileId, out var markerMeta)
+            || !Mathf.IsEqualApprox(markerMeta.Radius, radius)
+            || markerMeta.HitSpace != projData.HitSpace;
 
         if (needsRebuild)
         {
@@ -427,7 +454,8 @@ public partial class EntityManager : Node3D, ISimEventVisitor
                 radius,
                 projData.HitSpace,
                 new Color(0.1f, 0.95f, 1.0f, 0.62f),
-                100);
+                100
+            );
             AddChild(marker);
             _projectileDebugMarkers[projectileId] = marker;
             _projectileDebugMarkerMeta[projectileId] = (radius, projData.HitSpace);
@@ -437,9 +465,14 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             return;
 
         var simNode = SimulationNode.Current;
-        var projectilePos = simNode != null
-            ? simNode.SimToLocal(projData.CurrentPosition)
-            : new Vector3(projData.CurrentPosition.X, projData.CurrentPosition.Y, projData.CurrentPosition.Z);
+        var projectilePos =
+            simNode != null
+                ? simNode.SimToLocal(projData.CurrentPosition)
+                : new Vector3(
+                    projData.CurrentPosition.X,
+                    projData.CurrentPosition.Y,
+                    projData.CurrentPosition.Z
+                );
 
         if (projData.HitSpace == ProjectileHitSpace.GroundCylinder)
         {
@@ -453,23 +486,24 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     }
 
     private static MeshInstance3D CreateProjectileDebugMarker(
-        float radius, ProjectileHitSpace hitSpace, Color color, int renderPriority)
+        float radius,
+        ProjectileHitSpace hitSpace,
+        Color color,
+        int renderPriority
+    )
     {
         var marker = new MeshInstance3D
         {
-            Mesh = hitSpace == ProjectileHitSpace.GroundCylinder
-                ? new CylinderMesh
-                {
-                    TopRadius = radius,
-                    BottomRadius = radius,
-                    Height = 0.12f
-                }
-                : new SphereMesh
-                {
-                    Radius = radius,
-                    Height = radius * 2f
-                },
-            MaterialOverride = CreateProjectileDebugMaterial(color, renderPriority)
+            Mesh =
+                hitSpace == ProjectileHitSpace.GroundCylinder
+                    ? new CylinderMesh
+                    {
+                        TopRadius = radius,
+                        BottomRadius = radius,
+                        Height = 0.12f,
+                    }
+                    : new SphereMesh { Radius = radius, Height = radius * 2f },
+            MaterialOverride = CreateProjectileDebugMaterial(color, renderPriority),
         };
         return marker;
     }
@@ -487,7 +521,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             CullMode = BaseMaterial3D.CullModeEnum.Disabled,
             DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
             NoDepthTest = true,
-            RenderPriority = renderPriority
+            RenderPriority = renderPriority,
         };
     }
 
@@ -521,7 +555,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             ["session_ready"] = _session != null,
             ["projectiles_in_state"] = projectileCount,
             ["projectile_shells"] = _projectileRegistry.Count,
-            ["radius_markers"] = _projectileDebugMarkers.Count
+            ["radius_markers"] = _projectileDebugMarkers.Count,
         };
     }
 
@@ -534,7 +568,9 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
         foreach (var (projectileId, projectileData) in state.Projectiles)
         {
-            bool hasShell = _projectileRegistry.TryGetValue(projectileId, out var shell) && IsInstanceValid(shell);
+            bool hasShell =
+                _projectileRegistry.TryGetValue(projectileId, out var shell)
+                && IsInstanceValid(shell);
             bool shellVisible = hasShell && shell!.Visible;
             int shellChildCount = hasShell ? shell!.GetChildCount() : 0;
             string modelName = "";
@@ -553,24 +589,25 @@ public partial class EntityManager : Node3D, ISimEventVisitor
                 }
             }
 
-            rows.Add(new Godot.Collections.Dictionary
-            {
-                ["projectile_id"] = projectileId,
-                ["catalog_id"] = projectileData.ProjectileCatalogId.Value,
-                ["time_alive"] = projectileData.TimeAlive,
-                ["lifetime"] = projectileData.Lifetime,
-                ["hit_radius"] = projectileData.HitRadius,
-                ["hit_space"] = (int)projectileData.HitSpace,
-                ["has_shell"] = hasShell,
-                ["shell_visible"] = shellVisible,
-                ["shell_children"] = shellChildCount,
-                ["model_name"] = modelName,
-                ["model_visible"] = modelVisible,
-                ["has_debug_marker"] = _projectileDebugMarkers.ContainsKey(projectileId)
-            });
+            rows.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["projectile_id"] = projectileId,
+                    ["catalog_id"] = projectileData.ProjectileCatalogId.Value,
+                    ["time_alive"] = projectileData.TimeAlive,
+                    ["lifetime"] = projectileData.Lifetime,
+                    ["hit_radius"] = projectileData.HitRadius,
+                    ["hit_space"] = (int)projectileData.HitSpace,
+                    ["has_shell"] = hasShell,
+                    ["shell_visible"] = shellVisible,
+                    ["shell_children"] = shellChildCount,
+                    ["model_name"] = modelName,
+                    ["model_visible"] = modelVisible,
+                    ["has_debug_marker"] = _projectileDebugMarkers.ContainsKey(projectileId),
+                }
+            );
         }
 
         return rows;
     }
-
 }

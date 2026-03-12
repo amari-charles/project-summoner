@@ -22,7 +22,9 @@ public partial class IOSBillingProvider : BillingProvider
         }
         else
         {
-            GD.PushWarning("[iOSBilling] InAppStore singleton not found. Ensure iOS IAP plugin is enabled.");
+            GD.PushWarning(
+                "[iOSBilling] InAppStore singleton not found. Ensure iOS IAP plugin is enabled."
+            );
         }
 
         _load_products_from_catalog();
@@ -45,14 +47,22 @@ public partial class IOSBillingProvider : BillingProvider
         var storeProductId = _map_product_id(product_id);
         if (string.IsNullOrEmpty(storeProductId))
         {
-            EmitSignal("purchase_failed", product_id, $"Missing App Store product mapping for '{product_id}'");
+            EmitSignal(
+                "purchase_failed",
+                product_id,
+                $"Missing App Store product mapping for '{product_id}'"
+            );
             return;
         }
 
         if (_store_api.HasMethod("purchase"))
             _store_api.Call("purchase", storeProductId);
         else
-            EmitSignal("purchase_failed", product_id, "iOS billing API is not wired (missing purchase)");
+            EmitSignal(
+                "purchase_failed",
+                product_id,
+                "iOS billing API is not wired (missing purchase)"
+            );
     }
 
     public override void restore_purchases()
@@ -101,10 +111,16 @@ public partial class IOSBillingProvider : BillingProvider
 
     private void _connect_platform_signals()
     {
-        _connect_if_present("purchase_success", Callable.From<string, string>(_on_purchase_success));
+        _connect_if_present(
+            "purchase_success",
+            Callable.From<string, string>(_on_purchase_success)
+        );
         _connect_if_present("purchase_failed", Callable.From<string, string>(_on_purchase_failed));
         _connect_if_present("purchase_cancelled", Callable.From<string>(_on_purchase_cancelled));
-        _connect_if_present("restore_completed", Callable.From<Godot.Collections.Array>(_on_restore_completed));
+        _connect_if_present(
+            "restore_completed",
+            Callable.From<Godot.Collections.Array>(_on_restore_completed)
+        );
         _connect_if_present("restore_failed", Callable.From<string>(_on_restore_failed));
     }
 

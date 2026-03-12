@@ -13,7 +13,8 @@ public readonly record struct ShadowProfile(
     float OffsetZ,
     float GroundClearance,
     float ScaleY,
-    int RenderPriority)
+    int RenderPriority
+)
 {
     public ShadowProfile Sanitize()
     {
@@ -37,7 +38,7 @@ public enum ShadowProfilePreset
 {
     Default = 0,
     Soft = 1,
-    Dramatic = 2
+    Dramatic = 2,
 }
 
 /// <summary>
@@ -78,7 +79,7 @@ public static class ShadowProfiles
                 GroundClearance: 0.01f,
                 ScaleY: 1.10f,
                 RenderPriority: -100
-            )
+            ),
         };
     }
 }

@@ -36,7 +36,7 @@ public class SimMovementFacingStabilityTest
                 Mode = MovementResult.TowardTarget,
                 TargetId = null,
                 DesiredVelocity = new SimVector3(0f, 0f, 1f),
-                DesiredFacingDirection = new SimVector3(noisyX, 0f, 1f).Normalized()
+                DesiredFacingDirection = new SimVector3(noisyX, 0f, 1f).Normalized(),
             };
 
             FacingController.Tick(unit, Delta);
@@ -56,7 +56,8 @@ public class SimMovementFacingStabilityTest
             z: 0f,
             attackRange: 8f,
             moveSpeed: 2.5f,
-            projectileDelay: 0.2f);
+            projectileDelay: 0.2f
+        );
         strafingUnit.HasConeConstraint = true;
         strafingUnit.ConeHalfAngle = 8f;
         strafingUnit.CloseRangeThreshold = 0.1f;
@@ -71,7 +72,8 @@ public class SimMovementFacingStabilityTest
             z: 0.08f,
             moveSpeed: 0f,
             attackSpeed: 0f,
-            aggroRadius: 0f);
+            aggroRadius: 0f
+        );
 
         // Place target nearly vertical in X so tiny jitter would normally thrash facing.
         SimTestHelper.CreateMeleeUnit(
@@ -81,7 +83,8 @@ public class SimMovementFacingStabilityTest
             z: 2.20f,
             moveSpeed: 0f,
             attackSpeed: 0f,
-            aggroRadius: 0f);
+            aggroRadius: 0f
+        );
 
         int facingFlips = 0;
         bool lastFacing = strafingUnit.IsFacingRight;

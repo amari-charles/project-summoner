@@ -30,22 +30,22 @@ public static class ElementMatchups
 
         [Element.Fire] = new()
         {
-            [Element.Wind] = AdvantageMultiplier,   // Fire burns through Wind
+            [Element.Wind] = AdvantageMultiplier, // Fire burns through Wind
             [Element.Water] = DisadvantageMultiplier, // Water extinguishes Fire
         },
         [Element.Wind] = new()
         {
-            [Element.Earth] = AdvantageMultiplier,  // Wind erodes Earth
+            [Element.Earth] = AdvantageMultiplier, // Wind erodes Earth
             [Element.Fire] = DisadvantageMultiplier, // Fire consumes Wind
         },
         [Element.Earth] = new()
         {
-            [Element.Water] = AdvantageMultiplier,  // Earth absorbs Water
+            [Element.Water] = AdvantageMultiplier, // Earth absorbs Water
             [Element.Wind] = DisadvantageMultiplier, // Wind erodes Earth
         },
         [Element.Water] = new()
         {
-            [Element.Fire] = AdvantageMultiplier,   // Water extinguishes Fire
+            [Element.Fire] = AdvantageMultiplier, // Water extinguishes Fire
             [Element.Earth] = DisadvantageMultiplier, // Earth absorbs Water
         },
 
@@ -55,12 +55,12 @@ public static class ElementMatchups
 
         [Element.Lightning] = new()
         {
-            [Element.Water] = AdvantageMultiplier,  // Conductivity
+            [Element.Water] = AdvantageMultiplier, // Conductivity
             [Element.Earth] = DisadvantageMultiplier, // Grounding
         },
         [Element.Life] = new()
         {
-            [Element.Death] = AdvantageMultiplier,  // Life force overwhelms entropy
+            [Element.Death] = AdvantageMultiplier, // Life force overwhelms entropy
             [Element.Shadow] = DisadvantageMultiplier, // Shadows drain vitality
         },
         [Element.Death] = new()
@@ -69,7 +69,7 @@ public static class ElementMatchups
         },
         [Element.Shadow] = new()
         {
-            [Element.Life] = AdvantageMultiplier,   // Shadows drain vitality
+            [Element.Life] = AdvantageMultiplier, // Shadows drain vitality
         },
 
         // =====================================================================

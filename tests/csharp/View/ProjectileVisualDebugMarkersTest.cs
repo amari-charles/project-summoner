@@ -60,12 +60,15 @@ public partial class ProjectileVisualDebugMarkersTest
             Direction = new SimVector3(1f, 0f, 0f),
             HitRadius = 0.25f,
             HitSpace = ProjectileHitSpace.GroundCylinder,
-            IsDead = false
+            IsDead = false,
         };
 
         visual.Initialize(new StubSession(state), projectileId);
 
-        var markerField = typeof(ProjectileVisual).GetField("_debugHitRadiusMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        var markerField = typeof(ProjectileVisual).GetField(
+            "_debugHitRadiusMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
         AssertThat(markerField).IsNotNull();
 
         debugService.ProjectileHitGeometryEnabled = true;
@@ -94,12 +97,8 @@ public partial class ProjectileVisualDebugMarkersTest
 
         public MatchState GetState() => _state;
 
-        public void SubmitCommand(ICommand command)
-        {
-        }
+        public void SubmitCommand(ICommand command) { }
 
-        public void Tick(float delta)
-        {
-        }
+        public void Tick(float delta) { }
     }
 }

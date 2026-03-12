@@ -16,5 +16,5 @@ public enum ItemSlot
     Ring2,
 
     /// <summary>Robes slot - typically defense/survivability items.</summary>
-    Robes
+    Robes,
 }

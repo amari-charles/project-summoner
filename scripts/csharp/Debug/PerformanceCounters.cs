@@ -12,7 +12,7 @@ public static class PerformanceCounters
     // CONFIGURATION
     // =========================================================================
 
-    private const int FrameBufferSize = 30;  // Average over ~0.5s at 60fps
+    private const int FrameBufferSize = 30; // Average over ~0.5s at 60fps
 
     // =========================================================================
     // CURRENT FRAME COUNTERS (incremented by hot paths)
@@ -48,7 +48,7 @@ public static class PerformanceCounters
     private static readonly int[] _activeUnitsBuffer = new int[FrameBufferSize];
 
     private static int _bufferIndex = 0;
-    private static int _frameCount = 0;  // Track how many frames we've recorded
+    private static int _frameCount = 0; // Track how many frames we've recorded
 
     // =========================================================================
     // AVERAGED VALUES (for display)
@@ -62,7 +62,8 @@ public static class PerformanceCounters
     /// <summary>
     /// Average microseconds per unit in _PhysicsProcess.
     /// </summary>
-    public static float AvgUsecPerUnit => AvgActiveUnits > 0 ? AvgPhysicsTimeUsec / AvgActiveUnits : 0;
+    public static float AvgUsecPerUnit =>
+        AvgActiveUnits > 0 ? AvgPhysicsTimeUsec / AvgActiveUnits : 0;
 
     // =========================================================================
     // API
@@ -125,9 +126,9 @@ public static class PerformanceCounters
     /// </summary>
     public static string GetSummary()
     {
-        return $"Units: {AvgActiveUnits:F0}\n" +
-               $"Summoner Lookups: {AvgSummonerLookups:F1}\n" +
-               $"Target Acquisitions: {AvgTargetAcquisitions:F1}\n" +
-               $"Physics Time: {AvgPhysicsTimeUsec:F0}us ({AvgUsecPerUnit:F1}us/unit)";
+        return $"Units: {AvgActiveUnits:F0}\n"
+            + $"Summoner Lookups: {AvgSummonerLookups:F1}\n"
+            + $"Target Acquisitions: {AvgTargetAcquisitions:F1}\n"
+            + $"Physics Time: {AvgPhysicsTimeUsec:F0}us ({AvgUsecPerUnit:F1}us/unit)";
     }
 }

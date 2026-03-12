@@ -4,5 +4,5 @@ public enum CosmeticType
 {
     CardBack,
     UiTheme,
-    SummonerSkin
+    SummonerSkin,
 }

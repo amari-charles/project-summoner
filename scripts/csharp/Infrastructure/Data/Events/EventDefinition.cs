@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Godot;
 using Fateforged.Meta.Shop;
+using Godot;
 
 namespace Fateforged.Data.Events;
 

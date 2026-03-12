@@ -4,8 +4,8 @@ using Fateforged.Infrastructure.Pooling;
 using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
-using Godot;
 using Fateforged.Units;
+using Godot;
 
 namespace Fateforged.View;
 
@@ -86,7 +86,11 @@ public partial class ProjectileVisual : Node3D, IPoolable
             if (simNode != null)
                 GlobalPosition = simNode.SimToLocal(projData.CurrentPosition);
             else
-                GlobalPosition = new Vector3(projData.CurrentPosition.X, projData.CurrentPosition.Y, projData.CurrentPosition.Z);
+                GlobalPosition = new Vector3(
+                    projData.CurrentPosition.X,
+                    projData.CurrentPosition.Y,
+                    projData.CurrentPosition.Z
+                );
 
             var projectileData = ResolveProjectileData(state, projData);
             _rotateToDirection = projectileData?.RotateToDirection ?? true;
@@ -105,7 +109,8 @@ public partial class ProjectileVisual : Node3D, IPoolable
 
     public override void _PhysicsProcess(double delta)
     {
-        if (_session == null || _deactivated) return;
+        if (_session == null || _deactivated)
+            return;
 
         var state = _session.GetState();
         if (!state.Projectiles.TryGetValue(_projectileId, out var projData) || projData.IsDead)
@@ -115,7 +120,8 @@ public partial class ProjectileVisual : Node3D, IPoolable
         }
 
         // Reveal on first position sync
-        if (!Visible) Visible = true;
+        if (!Visible)
+            Visible = true;
 
         // Sync position
         var simNode = SimulationNode.Current;
@@ -182,7 +188,8 @@ public partial class ProjectileVisual : Node3D, IPoolable
     /// </summary>
     public void Deactivate()
     {
-        if (_deactivated) return;
+        if (_deactivated)
+            return;
         _deactivated = true;
 
         if (_visualModel != null)
@@ -198,8 +205,11 @@ public partial class ProjectileVisual : Node3D, IPoolable
         {
             visual = projectileData.VisualScene.Instantiate<Node3D>();
         }
-        else if (projectileData != null && !string.IsNullOrEmpty(projectileData.ModelScenePath)
-                 && ResourceLoader.Exists(projectileData.ModelScenePath))
+        else if (
+            projectileData != null
+            && !string.IsNullOrEmpty(projectileData.ModelScenePath)
+            && ResourceLoader.Exists(projectileData.ModelScenePath)
+        )
         {
             var packed = ResourceLoader.Load<PackedScene>(projectileData.ModelScenePath);
             if (packed != null)
@@ -221,9 +231,10 @@ public partial class ProjectileVisual : Node3D, IPoolable
     private void UpdateDebugHitRadiusMarker(Fateforged.Simulation.Data.SimProjectileData projData)
     {
         float radius = Mathf.Max(0.05f, projData.HitRadius);
-        bool needsRebuild = _debugHitRadiusMarker == null ||
-                            !Mathf.IsEqualApprox(radius, _debugHitRadius) ||
-                            _debugHitSpace != projData.HitSpace;
+        bool needsRebuild =
+            _debugHitRadiusMarker == null
+            || !Mathf.IsEqualApprox(radius, _debugHitRadius)
+            || _debugHitSpace != projData.HitSpace;
 
         if (needsRebuild)
         {
@@ -232,7 +243,8 @@ public partial class ProjectileVisual : Node3D, IPoolable
                 radius,
                 projData.HitSpace,
                 new Color(0.1f, 0.95f, 1.0f, 0.62f),
-                100);
+                100
+            );
             AddChild(_debugHitRadiusMarker);
             _debugHitRadius = radius;
             _debugHitSpace = projData.HitSpace;
@@ -244,9 +256,10 @@ public partial class ProjectileVisual : Node3D, IPoolable
     private void UpdateDebugAoeRadiusMarker(Fateforged.Simulation.Data.SimProjectileData projData)
     {
         float radius = Mathf.Max(0.05f, projData.AoeRadius);
-        bool needsRebuild = _debugAoeRadiusMarker == null ||
-                            !Mathf.IsEqualApprox(radius, _debugAoeRadius) ||
-                            _debugAoeHitSpace != projData.HitSpace;
+        bool needsRebuild =
+            _debugAoeRadiusMarker == null
+            || !Mathf.IsEqualApprox(radius, _debugAoeRadius)
+            || _debugAoeHitSpace != projData.HitSpace;
 
         if (needsRebuild)
         {
@@ -255,7 +268,8 @@ public partial class ProjectileVisual : Node3D, IPoolable
                 radius,
                 projData.HitSpace,
                 new Color(1.0f, 0.45f, 0.18f, 0.5f),
-                99);
+                99
+            );
             AddChild(_debugAoeRadiusMarker);
             _debugAoeRadius = radius;
             _debugAoeHitSpace = projData.HitSpace;
@@ -281,23 +295,24 @@ public partial class ProjectileVisual : Node3D, IPoolable
     }
 
     private static MeshInstance3D CreateGeometryMarker(
-        float radius, ProjectileHitSpace hitSpace, Color color, int renderPriority)
+        float radius,
+        ProjectileHitSpace hitSpace,
+        Color color,
+        int renderPriority
+    )
     {
         var marker = new MeshInstance3D
         {
-            Mesh = hitSpace == ProjectileHitSpace.GroundCylinder
-                ? new CylinderMesh
-                {
-                    TopRadius = radius,
-                    BottomRadius = radius,
-                    Height = 0.12f
-                }
-                : new SphereMesh
-                {
-                    Radius = radius,
-                    Height = radius * 2f
-                },
-            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+            Mesh =
+                hitSpace == ProjectileHitSpace.GroundCylinder
+                    ? new CylinderMesh
+                    {
+                        TopRadius = radius,
+                        BottomRadius = radius,
+                        Height = 0.12f,
+                    }
+                    : new SphereMesh { Radius = radius, Height = radius * 2f },
+            MaterialOverride = CreateDebugMaterial(color, renderPriority),
         };
         return marker;
     }
@@ -315,7 +330,7 @@ public partial class ProjectileVisual : Node3D, IPoolable
             CullMode = BaseMaterial3D.CullModeEnum.Disabled,
             DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
             NoDepthTest = true,
-            RenderPriority = renderPriority
+            RenderPriority = renderPriority,
         };
     }
 
@@ -338,7 +353,10 @@ public partial class ProjectileVisual : Node3D, IPoolable
         marker = null;
     }
 
-    private static ProjectileData? ResolveProjectileData(Fateforged.Simulation.Data.MatchState state, Fateforged.Simulation.Data.SimProjectileData projData)
+    private static ProjectileData? ResolveProjectileData(
+        Fateforged.Simulation.Data.MatchState state,
+        Fateforged.Simulation.Data.SimProjectileData projData
+    )
     {
         if (projData.ProjectileCatalogId.HasValue)
         {

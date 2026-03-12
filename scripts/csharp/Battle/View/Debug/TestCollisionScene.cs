@@ -1,7 +1,7 @@
-using Godot;
 using Fateforged.Constants;
-using Fateforged.View;
 using Fateforged.Simulation;
+using Fateforged.View;
+using Godot;
 
 namespace Fateforged.View.Debug;
 
@@ -24,16 +24,38 @@ public partial class TestCollisionScene : TestBattleScene
         {
             var config = new Godot.Collections.Dictionary
             {
-                { "enemy_deck", new Godot.Collections.Array
+                {
+                    "enemy_deck",
+                    new Godot.Collections.Array
                     {
-                        new Godot.Collections.Dictionary { { "catalog_id", "puff" }, { "count", 6 } },
-                        new Godot.Collections.Dictionary { { "catalog_id", "fire_wisp" }, { "count", 6 } },
-                        new Godot.Collections.Dictionary { { "catalog_id", "pebbloom" }, { "count", 3 } },
-                        new Godot.Collections.Dictionary { { "catalog_id", "water_frog" }, { "count", 3 } },
-                        new Godot.Collections.Dictionary { { "catalog_id", "mana_bolt" }, { "count", 4 } }
+                        new Godot.Collections.Dictionary
+                        {
+                            { "catalog_id", "puff" },
+                            { "count", 6 },
+                        },
+                        new Godot.Collections.Dictionary
+                        {
+                            { "catalog_id", "fire_wisp" },
+                            { "count", 6 },
+                        },
+                        new Godot.Collections.Dictionary
+                        {
+                            { "catalog_id", "pebbloom" },
+                            { "count", 3 },
+                        },
+                        new Godot.Collections.Dictionary
+                        {
+                            { "catalog_id", "water_frog" },
+                            { "count", 3 },
+                        },
+                        new Godot.Collections.Dictionary
+                        {
+                            { "catalog_id", "mana_bolt" },
+                            { "count", 4 },
+                        },
                     }
                 },
-                { "enemy_hp", 999999.0 }
+                { "enemy_hp", 999999.0 },
             };
             battleContext.Call("configure_practice_battle", config);
         }
@@ -53,7 +75,8 @@ public partial class TestCollisionScene : TestBattleScene
         GD.Print($"TestCollisionScene: Spawning enemy: {catalogId}");
 
         var card = CreateCard(catalogId);
-        if (card.VariantType == Variant.Type.Nil) return;
+        if (card.VariantType == Variant.Type.Nil)
+            return;
 
         if (EnemySummoner == null)
         {
@@ -64,7 +87,11 @@ public partial class TestCollisionScene : TestBattleScene
         var hand = (Godot.Collections.Array)EnemySummoner.Get("hand");
         hand.Add(card);
         int cardIndex = hand.Count - 1;
-        var spawnPos = new Vector3(5.0f + _spawnPositionOffset, 1.0f, (float)GD.RandRange(-3.0, 3.0));
+        var spawnPos = new Vector3(
+            5.0f + _spawnPositionOffset,
+            1.0f,
+            (float)GD.RandRange(-3.0, 3.0)
+        );
         _spawnPositionOffset = (_spawnPositionOffset + 1.5f) % 10.0f;
 
         EnemySummoner.Call("play_card_3d", cardIndex, spawnPos);
@@ -81,7 +108,8 @@ public partial class TestCollisionScene : TestBattleScene
         for (int i = 0; i < count; i++)
         {
             var card = CreateCard(catalogId);
-            if (card.VariantType == Variant.Type.Nil) continue;
+            if (card.VariantType == Variant.Type.Nil)
+                continue;
 
             var hand = (Godot.Collections.Array)EnemySummoner!.Get("hand");
             hand.Add(card);
@@ -102,7 +130,8 @@ public partial class TestCollisionScene : TestBattleScene
         GD.Print($"TestCollisionScene: Spawning player unit: {catalogId}");
 
         var card = CreateCard(catalogId);
-        if (card.VariantType == Variant.Type.Nil) return;
+        if (card.VariantType == Variant.Type.Nil)
+            return;
 
         if (PlayerSummoner == null)
         {
@@ -113,7 +142,11 @@ public partial class TestCollisionScene : TestBattleScene
         var hand = (Godot.Collections.Array)PlayerSummoner.Get("hand");
         hand.Add(card);
         int cardIndex = hand.Count - 1;
-        var spawnPos = new Vector3(-5.0f - _spawnPositionOffset, 1.0f, (float)GD.RandRange(-3.0, 3.0));
+        var spawnPos = new Vector3(
+            -5.0f - _spawnPositionOffset,
+            1.0f,
+            (float)GD.RandRange(-3.0, 3.0)
+        );
         _spawnPositionOffset = (_spawnPositionOffset + 1.5f) % 10.0f;
 
         PlayerSummoner.Call("play_card_3d", cardIndex, spawnPos);
@@ -130,7 +163,8 @@ public partial class TestCollisionScene : TestBattleScene
         for (int i = 0; i < count; i++)
         {
             var card = CreateCard(catalogId);
-            if (card.VariantType == Variant.Type.Nil) continue;
+            if (card.VariantType == Variant.Type.Nil)
+                continue;
 
             var hand = (Godot.Collections.Array)PlayerSummoner!.Get("hand");
             hand.Add(card);
@@ -174,7 +208,8 @@ public partial class TestCollisionScene : TestBattleScene
     private Variant CreateCard(string catalogId)
     {
         var cardCatalog = GetNodeOrNull("/root/CardCatalog");
-        if (cardCatalog == null) return default;
+        if (cardCatalog == null)
+            return default;
 
         var card = cardCatalog.Call("create_card_resource", catalogId);
         if (card.VariantType == Variant.Type.Nil)

@@ -46,17 +46,21 @@ public class CardTraitIsolationTest
         AssertThat(string.IsNullOrWhiteSpace(firstInstanceId)).IsFalse();
         AssertThat(string.IsNullOrWhiteSpace(secondInstanceId)).IsFalse();
 
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(firstInstanceId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(firstInstanceId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(secondInstanceId), new CardUpdate
-        {
-            Level = 2,
-            UnspentTraitPoints = 1
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(secondInstanceId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
 
         AssertThat(cardService.SpendCardTraitPoint(firstInstanceId, TraitIds.Power)).IsTrue();
 
@@ -80,7 +84,8 @@ public class CardTraitIsolationTest
         return repo;
     }
 
-    private T CreateNode<T>() where T : Node, new()
+    private T CreateNode<T>()
+        where T : Node, new()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;

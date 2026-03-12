@@ -39,6 +39,7 @@ public interface IProfileRepository
     void SaveProfile(bool immediate = false);
     ProfileId GetCurrentProfileId();
     void ResetProfile();
+
     /// <summary>
     /// Get partial profile metadata (Version, ProfileId, UpdatedAt, Resources, UnlockedSummoners, Meta).
     /// NOTE: This is READ-ONLY metadata. To update fields, use specific update methods like UpdateProfileMeta().
@@ -70,7 +71,14 @@ public interface IProfileRepository
     // =========================================================================
 
     CardInstanceId[] GrantCards(IEnumerable<(CardId catalogId, string rarity)> cards);
-    CardInstanceId[] GrantCards(IEnumerable<(CardId catalogId, string rarity, ContentBinding binding, SummonerId? boundTo)> cards);
+    CardInstanceId[] GrantCards(
+        IEnumerable<(
+            CardId catalogId,
+            string rarity,
+            ContentBinding binding,
+            SummonerId? boundTo
+        )> cards
+    );
     bool RemoveCard(CardInstanceId cardInstanceId);
     CardInstance[] ListCards();
     int GetCardCount(CardId catalogId);

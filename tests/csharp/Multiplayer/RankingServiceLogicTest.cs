@@ -2,8 +2,8 @@ namespace Fateforged.Tests.Multiplayer;
 
 using System;
 using System.Collections.Generic;
-using GdUnit4;
 using Fateforged.Multiplayer.Ranking;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -42,7 +42,7 @@ public class RankingServiceLogicTest
             OpponentRatingBefore = 1200,
             DurationSeconds = 120.5f,
             EndReason = MatchEndReason.Forfeit,
-            Timestamp = 1707091200L
+            Timestamp = 1707091200L,
         };
 
         AssertThat(record.MatchId).IsEqual("match-789");
@@ -64,7 +64,7 @@ public class RankingServiceLogicTest
         {
             RatingBefore = 1200,
             RatingAfter = 1224,
-            RatingChange = 24
+            RatingChange = 24,
         };
 
         AssertThat(record.RatingAfter - record.RatingBefore).IsEqual(record.RatingChange);
@@ -78,7 +78,7 @@ public class RankingServiceLogicTest
             Won = false,
             RatingBefore = 1200,
             RatingAfter = 1184,
-            RatingChange = -16
+            RatingChange = -16,
         };
 
         AssertThat(record.Won).IsFalse();
@@ -236,7 +236,8 @@ public class RankingServiceLogicTest
     /// </summary>
     private static float CalculateWinRate(int totalMatches, int wins)
     {
-        if (totalMatches == 0) return 0f;
+        if (totalMatches == 0)
+            return 0f;
         return (float)wins / totalMatches;
     }
 
@@ -246,7 +247,10 @@ public class RankingServiceLogicTest
     }
 
     private static (int newRating, int ratingChange) SimulateRecordMatch(
-        int currentRating, int opponentRating, bool won)
+        int currentRating,
+        int opponentRating,
+        bool won
+    )
     {
         int newRating;
         if (won)

@@ -1,9 +1,9 @@
-using Godot;
+using Fateforged.Cards;
 using Fateforged.Constants;
-using Fateforged.View;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
-using Fateforged.Cards;
+using Fateforged.View;
+using Godot;
 
 namespace Fateforged.View.Debug;
 
@@ -14,7 +14,8 @@ namespace Fateforged.View.Debug;
 [GlobalClass]
 public partial class DebugArenaScene : TestBattleScene
 {
-    [Signal] public delegate void UnitsClearedEventHandler(int count);
+    [Signal]
+    public delegate void UnitsClearedEventHandler(int count);
     private const string DebugDeckPath = "res://data/debug/debug_deck.json";
 
     private Node? _spawnerPanel;
@@ -29,7 +30,7 @@ public partial class DebugArenaScene : TestBattleScene
             { "dev_player_deck", playerDeck },
             { "enemy_deck", enemyDeck },
             { "enemy_hp", 999999.0 },
-            { "ai_type", "none" }
+            { "ai_type", "none" },
         };
     }
 
@@ -37,14 +38,18 @@ public partial class DebugArenaScene : TestBattleScene
     {
         if (!FileAccess.FileExists(DebugDeckPath))
         {
-            GD.PushWarning($"[DebugArenaScene] Debug deck not found at {DebugDeckPath}, using all catalog summons");
+            GD.PushWarning(
+                $"[DebugArenaScene] Debug deck not found at {DebugDeckPath}, using all catalog summons"
+            );
             return BuildFallbackDeckFromCatalogSummons();
         }
 
         using var file = FileAccess.Open(DebugDeckPath, FileAccess.ModeFlags.Read);
         if (file == null)
         {
-            GD.PushWarning("[DebugArenaScene] Failed to open debug deck file, using all catalog summons");
+            GD.PushWarning(
+                "[DebugArenaScene] Failed to open debug deck file, using all catalog summons"
+            );
             return BuildFallbackDeckFromCatalogSummons();
         }
 
@@ -56,7 +61,9 @@ public partial class DebugArenaScene : TestBattleScene
                 return deck;
         }
 
-        GD.PushWarning("[DebugArenaScene] Debug deck JSON invalid/empty, using all catalog summons");
+        GD.PushWarning(
+            "[DebugArenaScene] Debug deck JSON invalid/empty, using all catalog summons"
+        );
         return BuildFallbackDeckFromCatalogSummons();
     }
 
@@ -65,17 +72,18 @@ public partial class DebugArenaScene : TestBattleScene
         var entries = new Godot.Collections.Array();
         foreach (var cardDef in CardCatalog.GetAllCardsAsDict())
         {
-            if (!cardDef.TryGetValue("card_type", out var cardTypeVar) || cardTypeVar.AsInt32() != (int)CardType.Summon)
+            if (
+                !cardDef.TryGetValue("card_type", out var cardTypeVar)
+                || cardTypeVar.AsInt32() != (int)CardType.Summon
+            )
                 continue;
 
             string catalogId = cardDef.TryGetValue("catalog_id", out var catalogIdVar)
                 ? catalogIdVar.AsString()
                 : "";
-            entries.Add(new Godot.Collections.Dictionary
-            {
-                { "catalog_id", catalogId },
-                { "count", 1 }
-            });
+            entries.Add(
+                new Godot.Collections.Dictionary { { "catalog_id", catalogId }, { "count", 1 } }
+            );
         }
 
         return entries;
@@ -97,18 +105,40 @@ public partial class DebugArenaScene : TestBattleScene
     private void ConnectSpawnerPanel()
     {
         _spawnerPanel = FindSpawnerPanel();
-        if (_spawnerPanel == null) return;
+        if (_spawnerPanel == null)
+            return;
 
-        if (!_spawnerPanel.IsConnected("clear_requested", new Callable(this, MethodName.ClearAllUnits)))
+        if (
+            !_spawnerPanel.IsConnected(
+                "clear_requested",
+                new Callable(this, MethodName.ClearAllUnits)
+            )
+        )
             _spawnerPanel.Connect("clear_requested", new Callable(this, MethodName.ClearAllUnits));
 
-        if (!_spawnerPanel.IsConnected("skip_prep_toggled", new Callable(this, MethodName.OnSkipPrepToggled)))
-            _spawnerPanel.Connect("skip_prep_toggled", new Callable(this, MethodName.OnSkipPrepToggled));
+        if (
+            !_spawnerPanel.IsConnected(
+                "skip_prep_toggled",
+                new Callable(this, MethodName.OnSkipPrepToggled)
+            )
+        )
+            _spawnerPanel.Connect(
+                "skip_prep_toggled",
+                new Callable(this, MethodName.OnSkipPrepToggled)
+            );
 
-        if (_spawnerPanel.HasSignal("enemy_ai_toggled") &&
-            !_spawnerPanel.IsConnected("enemy_ai_toggled", new Callable(this, MethodName.OnEnemyAiToggled)))
+        if (
+            _spawnerPanel.HasSignal("enemy_ai_toggled")
+            && !_spawnerPanel.IsConnected(
+                "enemy_ai_toggled",
+                new Callable(this, MethodName.OnEnemyAiToggled)
+            )
+        )
         {
-            _spawnerPanel.Connect("enemy_ai_toggled", new Callable(this, MethodName.OnEnemyAiToggled));
+            _spawnerPanel.Connect(
+                "enemy_ai_toggled",
+                new Callable(this, MethodName.OnEnemyAiToggled)
+            );
         }
 
         if (_spawnerPanel.HasMethod("get_enemy_ai_enabled"))
@@ -124,14 +154,16 @@ public partial class DebugArenaScene : TestBattleScene
             if (node.GetType().Name == "UnitSpawnerPanel" || node.HasMethod("get_skip_prep_phase"))
                 return node;
             var found = FindChildWithMethod(node, "get_skip_prep_phase");
-            if (found != null) return found;
+            if (found != null)
+                return found;
         }
 
         // Search direct children
         foreach (var child in GetChildren())
         {
             var found = FindChildWithMethod(child, "get_skip_prep_phase");
-            if (found != null) return found;
+            if (found != null)
+                return found;
         }
 
         return null;
@@ -139,11 +171,13 @@ public partial class DebugArenaScene : TestBattleScene
 
     private static Node? FindChildWithMethod(Node node, string method)
     {
-        if (node.HasMethod(method)) return node;
+        if (node.HasMethod(method))
+            return node;
         foreach (var child in node.GetChildren())
         {
             var found = FindChildWithMethod(child, method);
-            if (found != null) return found;
+            if (found != null)
+                return found;
         }
         return null;
     }
@@ -166,11 +200,7 @@ public partial class DebugArenaScene : TestBattleScene
             return;
         }
 
-        simNode.ConfigureAi(
-            1,
-            AiType.Heuristic,
-            AiPersonality.Balanced
-        );
+        simNode.ConfigureAi(1, AiType.Heuristic, AiPersonality.Balanced);
     }
 
     public void ClearAllUnits()

@@ -1,4 +1,5 @@
 using Fateforged.Simulation.Data;
+
 namespace Fateforged.Simulation.Commands;
 
 /// <summary>

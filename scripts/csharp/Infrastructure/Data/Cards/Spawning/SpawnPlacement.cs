@@ -22,5 +22,5 @@ public enum SpawnPlacement
     /// Spawn around the leader unit (entry index 0).
     /// Units are spread in a circle around the leader position.
     /// </summary>
-    AroundLeader
+    AroundLeader,
 }

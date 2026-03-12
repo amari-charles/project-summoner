@@ -1,7 +1,7 @@
 namespace Fateforged.Tests.Services;
 
-using GdUnit4;
 using Fateforged.Meta.Cards;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>

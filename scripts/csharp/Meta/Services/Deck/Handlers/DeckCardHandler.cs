@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
+using Godot;
 
 namespace Fateforged.Meta.Deck.Handlers;
 
@@ -28,7 +28,11 @@ public class DeckCardHandler
     /// Add a card to a deck.
     /// Returns true if successful.
     /// </summary>
-    public bool AddCardToDeck(DeckId deckId, CardInstanceId cardInstanceId, Func<string, string, bool>? cardOwnershipChecker = null)
+    public bool AddCardToDeck(
+        DeckId deckId,
+        CardInstanceId cardInstanceId,
+        Func<string, string, bool>? cardOwnershipChecker = null
+    )
     {
         var deck = _crud.GetDeck(deckId);
         if (deck == null)
@@ -52,9 +56,14 @@ public class DeckCardHandler
         }
 
         // Check if card is owned by the deck's summoner (if checker is available)
-        if (cardOwnershipChecker != null && !cardOwnershipChecker(cardInstanceId, (string)deck.SummonerId))
+        if (
+            cardOwnershipChecker != null
+            && !cardOwnershipChecker(cardInstanceId, (string)deck.SummonerId)
+        )
         {
-            GD.PushWarning($"DeckCardHandler: Card instance not owned by summoner '{deck.SummonerId}': {cardInstanceId}");
+            GD.PushWarning(
+                $"DeckCardHandler: Card instance not owned by summoner '{deck.SummonerId}': {cardInstanceId}"
+            );
             return false;
         }
 
@@ -97,7 +106,8 @@ public class DeckCardHandler
     public int CleanDeck(DeckId deckId, Func<string, string, bool>? cardOwnershipChecker = null)
     {
         var deck = _crud.GetDeck(deckId);
-        if (deck == null) return 0;
+        if (deck == null)
+            return 0;
 
         if (cardOwnershipChecker == null)
         {
@@ -105,13 +115,17 @@ public class DeckCardHandler
             return 0;
         }
 
-        var validCards = deck.CardInstanceIds.Where(id => cardOwnershipChecker((string)id, (string)deck.SummonerId)).ToList();
+        var validCards = deck
+            .CardInstanceIds.Where(id => cardOwnershipChecker((string)id, (string)deck.SummonerId))
+            .ToList();
         var removedCount = deck.CardInstanceIds.Count - validCards.Count;
 
         if (removedCount > 0)
         {
             _crud.UpdateDeck(deckId, cardInstanceIds: [.. validCards]);
-            GD.Print($"DeckCardHandler: Cleaned deck '{deckId}', removed {removedCount} cards not owned by summoner");
+            GD.Print(
+                $"DeckCardHandler: Cleaned deck '{deckId}', removed {removedCount} cards not owned by summoner"
+            );
         }
 
         return removedCount;

@@ -1,9 +1,9 @@
 namespace Fateforged.Tests.Summoners;
 
 using System.Linq;
-using GdUnit4;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -101,8 +101,9 @@ public class SummonerCatalogTest
 
         foreach (var summoner in randomPool)
         {
-            var validCondition = summoner.UnlockCondition == SummonerUnlockCondition.StartingChoice
-                              || summoner.UnlockCondition == SummonerUnlockCondition.RandomStarterOnly;
+            var validCondition =
+                summoner.UnlockCondition == SummonerUnlockCondition.StartingChoice
+                || summoner.UnlockCondition == SummonerUnlockCondition.RandomStarterOnly;
             AssertThat(validCondition).IsTrue();
         }
     }

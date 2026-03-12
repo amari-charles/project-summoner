@@ -32,40 +32,42 @@ public record UnitStats
     /// <summary>
     /// Gets a stat value by StatKey.
     /// </summary>
-    public float Get(StatKey key) => key switch
-    {
-        StatKey.MaxHp => MaxHp,
-        StatKey.AttackDamage => AttackDamage,
-        StatKey.AttackSpeed => AttackSpeed,
-        StatKey.MoveSpeed => MoveSpeed,
-        StatKey.AttackRange => AttackRange,
-        StatKey.AggroRadius => AggroRadius,
-        StatKey.CritChance => CritChance,
-        StatKey.CritDamage => CritDamage,
-        StatKey.Armor => Armor,
-        StatKey.MagicResist => MagicResist,
-        StatKey.SoulStrength => SoulStrength,
-        _ => 0f
-    };
+    public float Get(StatKey key) =>
+        key switch
+        {
+            StatKey.MaxHp => MaxHp,
+            StatKey.AttackDamage => AttackDamage,
+            StatKey.AttackSpeed => AttackSpeed,
+            StatKey.MoveSpeed => MoveSpeed,
+            StatKey.AttackRange => AttackRange,
+            StatKey.AggroRadius => AggroRadius,
+            StatKey.CritChance => CritChance,
+            StatKey.CritDamage => CritDamage,
+            StatKey.Armor => Armor,
+            StatKey.MagicResist => MagicResist,
+            StatKey.SoulStrength => SoulStrength,
+            _ => 0f,
+        };
 
     /// <summary>
     /// Creates a new UnitStats with one stat modified.
     /// </summary>
-    public UnitStats With(StatKey key, float value) => key switch
-    {
-        StatKey.MaxHp => this with { MaxHp = value },
-        StatKey.AttackDamage => this with { AttackDamage = value },
-        StatKey.AttackSpeed => this with { AttackSpeed = value },
-        StatKey.MoveSpeed => this with { MoveSpeed = value },
-        StatKey.AttackRange => this with { AttackRange = value },
-        StatKey.AggroRadius => this with { AggroRadius = value },
-        StatKey.CritChance => this with { CritChance = value },
-        StatKey.CritDamage => this with { CritDamage = value },
-        StatKey.Armor => this with { Armor = value },
-        StatKey.MagicResist => this with { MagicResist = value },
-        StatKey.SoulStrength => this with { SoulStrength = value },
-        _ => this
-    };
+    public UnitStats With(StatKey key, float value) =>
+        key switch
+        {
+            StatKey.MaxHp => this with { MaxHp = value },
+            StatKey.AttackDamage => this with { AttackDamage = value },
+            StatKey.AttackSpeed => this with { AttackSpeed = value },
+            StatKey.MoveSpeed => this with { MoveSpeed = value },
+            StatKey.AttackRange => this with { AttackRange = value },
+            StatKey.AggroRadius => this with { AggroRadius = value },
+            StatKey.CritChance => this with { CritChance = value },
+            StatKey.CritDamage => this with { CritDamage = value },
+            StatKey.Armor => this with { Armor = value },
+            StatKey.MagicResist => this with { MagicResist = value },
+            StatKey.SoulStrength => this with { SoulStrength = value },
+            _ => this,
+        };
 
     /// <summary>
     /// Creates a new UnitStats with a stat multiplied by a factor.
@@ -76,8 +78,7 @@ public record UnitStats
     /// <summary>
     /// Creates a new UnitStats with a stat increased by an amount.
     /// </summary>
-    public UnitStats WithAdded(StatKey key, float amount) =>
-        With(key, Get(key) + amount);
+    public UnitStats WithAdded(StatKey key, float amount) => With(key, Get(key) + amount);
 
     /// <summary>
     /// Creates UnitStats from a C# dictionary.
@@ -100,7 +101,7 @@ public record UnitStats
             CritDamage = GetFloat(dict, "crit_damage", "CritDamage", 1.5f),
             Armor = GetFloat(dict, "armor", "Armor", 0f),
             MagicResist = GetFloat(dict, "magic_resist", "MagicResist", 0f),
-            SoulStrength = GetFloat(dict, "soul_strength", "SoulStrength", 0f)
+            SoulStrength = GetFloat(dict, "soul_strength", "SoulStrength", 0f),
         };
     }
 
@@ -144,7 +145,7 @@ public record UnitStats
             ["crit_damage"] = CritDamage,
             ["armor"] = Armor,
             ["magic_resist"] = MagicResist,
-            ["soul_strength"] = SoulStrength
+            ["soul_strength"] = SoulStrength,
         };
     }
 
@@ -165,7 +166,7 @@ public record UnitStats
             [StatKey.CritDamage] = CritDamage,
             [StatKey.Armor] = Armor,
             [StatKey.MagicResist] = MagicResist,
-            [StatKey.SoulStrength] = SoulStrength
+            [StatKey.SoulStrength] = SoulStrength,
         };
     }
 
@@ -292,7 +293,12 @@ public record UnitStats
     public override string ToString() =>
         $"UnitStats(HP={MaxHp}, ATK={AttackDamage}, SPD={AttackSpeed}, MOV={MoveSpeed}, RNG={AttackRange}, AGG={AggroRadius}, CRIT={CritChance:P0}/{CritDamage:F1}x, ARM={Armor}, MR={MagicResist}, SS={SoulStrength})";
 
-    private static float GetFloat(Dictionary<string, float> dict, string snakeKey, string pascalKey, float defaultValue)
+    private static float GetFloat(
+        Dictionary<string, float> dict,
+        string snakeKey,
+        string pascalKey,
+        float defaultValue
+    )
     {
         if (dict.TryGetValue(snakeKey, out var snakeValue))
             return snakeValue;

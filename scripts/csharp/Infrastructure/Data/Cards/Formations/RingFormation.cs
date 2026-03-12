@@ -19,10 +19,6 @@ public class RingFormation : IFormationStrategy
             return Vector3.Zero;
 
         float angle = (2.0f * Mathf.Pi * unitIndex) / totalUnits;
-        return new Vector3(
-            Mathf.Cos(angle) * Radius,
-            0,
-            Mathf.Sin(angle) * Radius
-        );
+        return new Vector3(Mathf.Cos(angle) * Radius, 0, Mathf.Sin(angle) * Radius);
     }
 }

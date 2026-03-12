@@ -1,9 +1,9 @@
 namespace Fateforged.Tests.Multiplayer;
 
-using GdUnit4;
 using System.Collections.Generic;
 using Fateforged.Multiplayer.Matchmaking;
 using Fateforged.Multiplayer.Ranking;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -29,11 +29,27 @@ public class MatchmakingServiceTest
     {
         var participants = new List<MatchmakingService.MatchParticipantMetadata>
         {
-            new MatchmakingService.MatchParticipantMetadata { UserId = "local", Username = "Local", SummonerId = "terra", Rating = 1300 },
-            new MatchmakingService.MatchParticipantMetadata { UserId = "opponent", Username = "Rival", SummonerId = "ignis", Rating = 1488 },
+            new MatchmakingService.MatchParticipantMetadata
+            {
+                UserId = "local",
+                Username = "Local",
+                SummonerId = "terra",
+                Rating = 1300,
+            },
+            new MatchmakingService.MatchParticipantMetadata
+            {
+                UserId = "opponent",
+                Username = "Rival",
+                SummonerId = "ignis",
+                Rating = 1488,
+            },
         };
 
-        var info = MatchmakingService.ResolveOpponentInfo("local", new[] { "local", "opponent" }, participants);
+        var info = MatchmakingService.ResolveOpponentInfo(
+            "local",
+            new[] { "local", "opponent" },
+            participants
+        );
 
         AssertThat(info.UserId).IsEqual("opponent");
         AssertThat(info.Username).IsEqual("Rival");
@@ -46,10 +62,20 @@ public class MatchmakingServiceTest
     {
         var participants = new List<MatchmakingService.MatchParticipantMetadata>
         {
-            new MatchmakingService.MatchParticipantMetadata { UserId = "local", Username = "Local", SummonerId = "terra", Rating = 1300 },
+            new MatchmakingService.MatchParticipantMetadata
+            {
+                UserId = "local",
+                Username = "Local",
+                SummonerId = "terra",
+                Rating = 1300,
+            },
         };
 
-        var info = MatchmakingService.ResolveOpponentInfo("local", new[] { "local", "opponent" }, participants);
+        var info = MatchmakingService.ResolveOpponentInfo(
+            "local",
+            new[] { "local", "opponent" },
+            participants
+        );
 
         AssertThat(info.UserId).IsEqual("opponent");
         AssertThat(info.Username).IsEqual("Opponent");

@@ -13,8 +13,10 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public struct OrcaLine
 {
-    public float PointX, PointZ;
-    public float DirectionX, DirectionZ;
+    public float PointX,
+        PointZ;
+    public float DirectionX,
+        DirectionZ;
 }
 
 /// <summary>
@@ -33,15 +35,23 @@ public static class OrcaAvoidance
     private const float PreOverlapSkipEpsilon = 0.0001f;
 
     // Reusable list to avoid allocations per frame
-    [ThreadStatic] private static List<OrcaLine>? _orcaLines;
-    [ThreadStatic] private static List<UnitData>? _neighbors;
-    [ThreadStatic] private static List<float>? _neighborDistancesSq;
+    [ThreadStatic]
+    private static List<OrcaLine>? _orcaLines;
+
+    [ThreadStatic]
+    private static List<UnitData>? _neighbors;
+
+    [ThreadStatic]
+    private static List<float>? _neighborDistancesSq;
 
     /// <summary>
     /// Compute the closest safe velocity to preferredVelocity that avoids collisions.
     /// </summary>
     public static SimVector3 ComputeSafeVelocity(
-        UnitData unit, SimVector3 preferredVelocity, MatchState state)
+        UnitData unit,
+        SimVector3 preferredVelocity,
+        MatchState state
+    )
     {
         _orcaLines ??= new List<OrcaLine>(MaxNeighbors);
         _neighbors ??= new List<UnitData>(MaxNeighbors);
@@ -51,7 +61,8 @@ public static class OrcaAvoidance
         _neighbors.Clear();
         _neighborDistancesSq.Clear();
 
-        float searchRadius = CombatGeometry.GetNavigationRadius(unit) * NeighborSearchRadiusMultiplier;
+        float searchRadius =
+            CombatGeometry.GetNavigationRadius(unit) * NeighborSearchRadiusMultiplier;
         MovementNeighborQuery.FillNearestNeighbors(
             unit,
             state,
@@ -98,8 +109,7 @@ public static class OrcaAvoidance
     /// Build one ORCA half-plane constraint for a unit-neighbor pair.
     /// The constraint represents the boundary between safe and unsafe velocities.
     /// </summary>
-    private static OrcaLine ComputeOrcaLine(
-        UnitData unit, UnitData neighbor, float invTimeHorizon)
+    private static OrcaLine ComputeOrcaLine(UnitData unit, UnitData neighbor, float invTimeHorizon)
     {
         // Relative position and velocity (in XZ)
         float relPosX = neighbor.Position.X - unit.Position.X;
@@ -108,7 +118,8 @@ public static class OrcaAvoidance
         float relVelZ = unit.Velocity.Z - neighbor.Velocity.Z;
 
         float distSq = relPosX * relPosX + relPosZ * relPosZ;
-        float combinedRadius = CombatGeometry.GetNavigationRadius(unit) + CombatGeometry.GetNavigationRadius(neighbor);
+        float combinedRadius =
+            CombatGeometry.GetNavigationRadius(unit) + CombatGeometry.GetNavigationRadius(neighbor);
         float combinedRadiusSq = combinedRadius * combinedRadius;
 
         float avoidanceWeight = GetAvoidanceWeight(unit, neighbor);
@@ -136,8 +147,9 @@ public static class OrcaAvoidance
                 {
                     line.DirectionX = -relPosZ;
                     line.DirectionZ = relPosX;
-                    float len = MathF.Sqrt(line.DirectionX * line.DirectionX +
-                                          line.DirectionZ * line.DirectionZ);
+                    float len = MathF.Sqrt(
+                        line.DirectionX * line.DirectionX + line.DirectionZ * line.DirectionZ
+                    );
                     if (len > Epsilon)
                     {
                         line.DirectionX /= len;
@@ -154,8 +166,9 @@ public static class OrcaAvoidance
                 line.DirectionX = unitWZ;
                 line.DirectionZ = -unitWX;
 
-                float uDot = (relVelX - relPosX * invTimeHorizon) * unitWX +
-                             (relVelZ - relPosZ * invTimeHorizon) * unitWZ;
+                float uDot =
+                    (relVelX - relPosX * invTimeHorizon) * unitWX
+                    + (relVelZ - relPosZ * invTimeHorizon) * unitWZ;
                 float u = uDot - combinedRadius * invTimeHorizon;
                 line.PointX = unit.Velocity.X + unitWX * u * avoidanceWeight;
                 line.PointZ = unit.Velocity.Z + unitWZ * u * avoidanceWeight;
@@ -180,8 +193,10 @@ public static class OrcaAvoidance
                 }
 
                 float dotLeg = relVelX * line.DirectionX + relVelZ * line.DirectionZ;
-                line.PointX = unit.Velocity.X + (relVelX - dotLeg * line.DirectionX) * avoidanceWeight;
-                line.PointZ = unit.Velocity.Z + (relVelZ - dotLeg * line.DirectionZ) * avoidanceWeight;
+                line.PointX =
+                    unit.Velocity.X + (relVelX - dotLeg * line.DirectionX) * avoidanceWeight;
+                line.PointZ =
+                    unit.Velocity.Z + (relVelZ - dotLeg * line.DirectionZ) * avoidanceWeight;
             }
         }
         else
@@ -220,13 +235,19 @@ public static class OrcaAvoidance
     /// within the speed disc of radius maxSpeed.
     /// </summary>
     private static bool LinearProgram1(
-        List<OrcaLine> lines, int lineIndex, float maxSpeed,
-        ref float vx, ref float vz)
+        List<OrcaLine> lines,
+        int lineIndex,
+        float maxSpeed,
+        ref float vx,
+        ref float vz
+    )
     {
         var line = lines[lineIndex];
         float dotProduct = line.PointX * line.DirectionX + line.PointZ * line.DirectionZ;
-        float discriminant = dotProduct * dotProduct + maxSpeed * maxSpeed -
-                            (line.PointX * line.PointX + line.PointZ * line.PointZ);
+        float discriminant =
+            dotProduct * dotProduct
+            + maxSpeed * maxSpeed
+            - (line.PointX * line.PointX + line.PointZ * line.PointZ);
 
         if (discriminant < 0f)
             return false; // Max speed disc doesn't intersect line
@@ -240,8 +261,9 @@ public static class OrcaAvoidance
         {
             var other = lines[i];
             float denom = line.DirectionX * other.DirectionZ - line.DirectionZ * other.DirectionX;
-            float numer = other.DirectionX * (line.PointZ - other.PointZ) -
-                         other.DirectionZ * (line.PointX - other.PointX);
+            float numer =
+                other.DirectionX * (line.PointZ - other.PointZ)
+                - other.DirectionZ * (line.PointX - other.PointX);
 
             if (MathF.Abs(denom) <= Epsilon)
             {
@@ -263,8 +285,7 @@ public static class OrcaAvoidance
         }
 
         // Project optimal velocity onto valid range
-        float tOpt = line.DirectionX * (vx - line.PointX) +
-                     line.DirectionZ * (vz - line.PointZ);
+        float tOpt = line.DirectionX * (vx - line.PointX) + line.DirectionZ * (vz - line.PointZ);
         tOpt = MathF.Max(tLeft, MathF.Min(tRight, tOpt));
 
         vx = line.PointX + tOpt * line.DirectionX;
@@ -278,14 +299,17 @@ public static class OrcaAvoidance
     /// Returns true if feasible, false if constraints are contradictory.
     /// </summary>
     private static bool LinearProgram2(
-        List<OrcaLine> lines, float maxSpeed, ref float vx, ref float vz)
+        List<OrcaLine> lines,
+        float maxSpeed,
+        ref float vx,
+        ref float vz
+    )
     {
         for (int i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
             // Check if current velocity satisfies this constraint
-            float det = line.DirectionX * (line.PointZ - vz) -
-                       line.DirectionZ * (line.PointX - vx);
+            float det = line.DirectionX * (line.PointZ - vz) - line.DirectionZ * (line.PointX - vx);
 
             if (det > 0f)
             {
@@ -305,22 +329,26 @@ public static class OrcaAvoidance
     /// when no intersection is feasible.
     /// </summary>
     private static void LinearProgram3(
-        List<OrcaLine> lines, float maxSpeed, ref float vx, ref float vz)
+        List<OrcaLine> lines,
+        float maxSpeed,
+        ref float vx,
+        ref float vz
+    )
     {
         int numLines = lines.Count;
 
         for (int i = 0; i < numLines; i++)
         {
             var lineI = lines[i];
-            float det = lineI.DirectionX * (lineI.PointZ - vz) -
-                       lineI.DirectionZ * (lineI.PointX - vx);
+            float det =
+                lineI.DirectionX * (lineI.PointZ - vz) - lineI.DirectionZ * (lineI.PointX - vx);
 
             if (det <= 0f)
                 continue; // Not violated
 
             // Project onto line i
-            float tProj = lineI.DirectionX * (vx - lineI.PointX) +
-                         lineI.DirectionZ * (vz - lineI.PointZ);
+            float tProj =
+                lineI.DirectionX * (vx - lineI.PointX) + lineI.DirectionZ * (vz - lineI.PointZ);
             float projX = lineI.PointX + tProj * lineI.DirectionX;
             float projZ = lineI.PointZ + tProj * lineI.DirectionZ;
 
@@ -329,15 +357,16 @@ public static class OrcaAvoidance
             for (int j = 0; j < i; j++)
             {
                 var lineJ = lines[j];
-                float detJ = lineJ.DirectionX * (lineJ.PointZ - projZ) -
-                            lineJ.DirectionZ * (lineJ.PointX - projX);
+                float detJ =
+                    lineJ.DirectionX * (lineJ.PointZ - projZ)
+                    - lineJ.DirectionZ * (lineJ.PointX - projX);
 
                 if (detJ <= 0f)
                     continue; // Prior line not violated
 
                 // Lines i and j conflict — find intersection direction
-                float denom = lineI.DirectionX * lineJ.DirectionZ -
-                             lineI.DirectionZ * lineJ.DirectionX;
+                float denom =
+                    lineI.DirectionX * lineJ.DirectionZ - lineI.DirectionZ * lineJ.DirectionX;
 
                 if (MathF.Abs(denom) <= Epsilon)
                     continue; // Parallel — skip this pair, try next j
@@ -362,8 +391,9 @@ public static class OrcaAvoidance
                 }
 
                 // Intersection point of lines i and j
-                float numer = lineJ.DirectionX * (lineI.PointZ - lineJ.PointZ) -
-                             lineJ.DirectionZ * (lineI.PointX - lineJ.PointX);
+                float numer =
+                    lineJ.DirectionX * (lineI.PointZ - lineJ.PointZ)
+                    - lineJ.DirectionZ * (lineI.PointX - lineJ.PointX);
                 float tInt = numer / denom;
                 float intX = lineI.PointX + tInt * lineI.DirectionX;
                 float intZ = lineI.PointZ + tInt * lineI.DirectionZ;
@@ -425,10 +455,12 @@ public static class OrcaAvoidance
     /// </summary>
     private static float GetAvoidanceWeight(UnitData unit, UnitData neighbor)
     {
-        bool neighborStationary = neighbor.BehaviorState == BehaviorState.Attacking ||
-                                  neighbor.BehaviorState == BehaviorState.InRange;
-        bool unitStationary = unit.BehaviorState == BehaviorState.Attacking ||
-                              unit.BehaviorState == BehaviorState.InRange;
+        bool neighborStationary =
+            neighbor.BehaviorState == BehaviorState.Attacking
+            || neighbor.BehaviorState == BehaviorState.InRange;
+        bool unitStationary =
+            unit.BehaviorState == BehaviorState.Attacking
+            || unit.BehaviorState == BehaviorState.InRange;
 
         if (neighborStationary && !unitStationary)
             return 0.9f; // We dodge almost entirely
@@ -437,12 +469,17 @@ public static class OrcaAvoidance
         return 0.5f; // Equal share
     }
 
-    private static bool ShouldSkipPreOverlapConstraint(UnitData unit, UnitData neighbor, MatchState state)
+    private static bool ShouldSkipPreOverlapConstraint(
+        UnitData unit,
+        UnitData neighbor,
+        MatchState state
+    )
     {
         if (!MeleeClumpContext.IsSameTargetCloseMeleePair(unit, neighbor, state))
             return false;
 
-        float combinedRadius = CombatGeometry.GetNavigationRadius(unit) + CombatGeometry.GetNavigationRadius(neighbor);
+        float combinedRadius =
+            CombatGeometry.GetNavigationRadius(unit) + CombatGeometry.GetNavigationRadius(neighbor);
         float combinedRadiusSq = combinedRadius * combinedRadius;
         float skipThresholdSq = combinedRadiusSq + (PreOverlapSkipEpsilon * PreOverlapSkipEpsilon);
 

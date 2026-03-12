@@ -16,7 +16,7 @@ public enum ItemSlot
     Ring2,
 
     /// <summary>Robes slot - typically defense/survivability items.</summary>
-    Robes
+    Robes,
 }
 
 /// <summary>
@@ -28,5 +28,5 @@ public enum ItemBinding
     SummonerBound,
 
     /// <summary>Item can be equipped by any summoner on the account.</summary>
-    AccountWide
+    AccountWide,
 }

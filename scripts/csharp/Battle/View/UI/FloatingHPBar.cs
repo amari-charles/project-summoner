@@ -1,5 +1,5 @@
-using Godot;
 using Fateforged.Meta;
+using Godot;
 
 namespace Fateforged.UI;
 
@@ -77,7 +77,11 @@ public partial class FloatingHPBar : Node3D
         // Animate display percent toward target (smooth HP drain)
         if (!Mathf.IsEqualApprox(_displayHpPercent, _targetHpPercent))
         {
-            _displayHpPercent = Mathf.MoveToward(_displayHpPercent, _targetHpPercent, _animationSpeed * deltaF);
+            _displayHpPercent = Mathf.MoveToward(
+                _displayHpPercent,
+                _targetHpPercent,
+                _animationSpeed * deltaF
+            );
             UpdateShaderDisplayPercent();
         }
 
@@ -96,7 +100,8 @@ public partial class FloatingHPBar : Node3D
         if (!IsInsideTree() || !_trackedNode.IsInsideTree())
             return;
 
-        var targetPos = _trackedNode.GlobalPosition + new Vector3(_cachedOffsetX, _offsetY, _offsetZ);
+        var targetPos =
+            _trackedNode.GlobalPosition + new Vector3(_cachedOffsetX, _offsetY, _offsetZ);
         GlobalPosition = targetPos;
 
         // Handle fade timer
@@ -180,7 +185,10 @@ public partial class FloatingHPBar : Node3D
         {
             _trackedNode.TreeExiting -= OnTrackedNodeExiting;
 
-            if (_trackedNode.HasSignal("hp_changed") && _trackedNode.IsConnected("hp_changed", Callable.From<float, float>(OnHpChanged)))
+            if (
+                _trackedNode.HasSignal("hp_changed")
+                && _trackedNode.IsConnected("hp_changed", Callable.From<float, float>(OnHpChanged))
+            )
             {
                 _trackedNode.Disconnect("hp_changed", Callable.From<float, float>(OnHpChanged));
             }
@@ -328,7 +336,7 @@ public partial class FloatingHPBar : Node3D
         _meshInstance = new MeshInstance3D
         {
             Mesh = quadMesh,
-            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
         };
 
         // Try to use shader material, fallback to standard material
@@ -348,7 +356,9 @@ public partial class FloatingHPBar : Node3D
         else
         {
             // Fallback: use obvious error color so missing shader is visible
-            GD.PushWarning("FloatingHPBar: Shader not found at " + ShaderPath + ", using fallback material");
+            GD.PushWarning(
+                "FloatingHPBar: Shader not found at " + ShaderPath + ", using fallback material"
+            );
             var fallbackMaterial = new StandardMaterial3D
             {
                 AlbedoColor = Colors.Magenta,
@@ -356,7 +366,7 @@ public partial class FloatingHPBar : Node3D
                 CullMode = BaseMaterial3D.CullModeEnum.Disabled,
                 DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
                 NoDepthTest = true,
-                BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled
+                BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled,
             };
             _meshInstance.MaterialOverride = fallbackMaterial;
         }
@@ -432,7 +442,8 @@ public partial class FloatingHPBar : Node3D
 
         if (_meshInstance != null)
         {
-            _fadeTween.TweenProperty(_meshInstance, "transparency", 1f, _fadeDuration)
+            _fadeTween
+                .TweenProperty(_meshInstance, "transparency", 1f, _fadeDuration)
                 .From(_meshInstance.Transparency);
         }
 

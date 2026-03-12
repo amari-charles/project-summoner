@@ -80,7 +80,10 @@ public class BattleSessionConfigTest
     [TestCase]
     public void OriginScene_CanBeSet()
     {
-        var config = new BattleSessionConfig { OriginScene = "res://scenes/meta/screens/campaign_map.tscn" };
+        var config = new BattleSessionConfig
+        {
+            OriginScene = "res://scenes/meta/screens/campaign_map.tscn",
+        };
         AssertThat(config.OriginScene).IsEqual("res://scenes/meta/screens/campaign_map.tscn");
     }
 

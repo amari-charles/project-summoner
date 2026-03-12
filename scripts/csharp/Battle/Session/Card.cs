@@ -1,6 +1,6 @@
 using Fateforged.Simulation;
-using Godot;
 using Fateforged.View.Spawning;
+using Godot;
 
 namespace Fateforged.Cards;
 
@@ -21,41 +21,63 @@ public partial class Card : Resource
     // IDENTITY (from CardDefinition)
     // =========================================================================
 
-    [Export] public string CatalogId { get; set; } = "";
-    [Export] public string CardName { get; set; } = "Unknown Card";
+    [Export]
+    public string CatalogId { get; set; } = "";
+
+    [Export]
+    public string CardName { get; set; } = "Unknown Card";
 
     /// <summary>
     /// Card type as int for GDScript interop.
     /// 0 = Summon, 1 = Spell (matches CardType enum).
     /// </summary>
-    [Export] public int Type { get; set; } = (int)CardType.Summon;
+    [Export]
+    public int Type { get; set; } = (int)CardType.Summon;
 
-    [Export] public string Description { get; set; } = "";
+    [Export]
+    public string Description { get; set; } = "";
 
     // =========================================================================
     // GAMEPLAY
     // =========================================================================
 
-    [Export] public int ManaCost { get; set; } = 1;
-    [Export] public float Cooldown { get; set; } = 2.0f;
-    [Export] public float SummonTime { get; set; } = 1.0f;
-    [Export] public int SpawnCount { get; set; } = 1;
+    [Export]
+    public int ManaCost { get; set; } = 1;
+
+    [Export]
+    public float Cooldown { get; set; } = 2.0f;
+
+    [Export]
+    public float SummonTime { get; set; } = 1.0f;
+
+    [Export]
+    public int SpawnCount { get; set; } = 1;
 
     // =========================================================================
     // SPELL
     // =========================================================================
 
-    [Export] public float SpellDamage { get; set; }
-    [Export] public float SpellRadius { get; set; }
-    [Export] public float SpellDuration { get; set; }
-    [Export] public string ProjectileId { get; set; } = "";
-    [Export] public string CommandType { get; set; } = "";
+    [Export]
+    public float SpellDamage { get; set; }
+
+    [Export]
+    public float SpellRadius { get; set; }
+
+    [Export]
+    public float SpellDuration { get; set; }
+
+    [Export]
+    public string ProjectileId { get; set; } = "";
+
+    [Export]
+    public string CommandType { get; set; } = "";
 
     // =========================================================================
     // VISUAL
     // =========================================================================
 
-    [Export] public Texture2D? CardIcon { get; set; }
+    [Export]
+    public Texture2D? CardIcon { get; set; }
 
     // =========================================================================
     // RUNTIME STATE (not from catalog — set per-instance)
@@ -104,7 +126,8 @@ public partial class Card : Resource
         Vector3 centerPosition,
         Node? battlefield,
         float collisionRadius,
-        int team = 0)
+        int team = 0
+    )
     {
         var result = new Godot.Collections.Array<Vector3>();
 
@@ -127,7 +150,8 @@ public partial class Card : Resource
             SpawnCount,
             battlefield.GetTree(),
             collisionRadius > 0 ? collisionRadius : 0.5f,
-            team);
+            team
+        );
 
         foreach (var pos in positions)
             result.Add(pos);

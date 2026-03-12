@@ -1,7 +1,7 @@
 namespace Fateforged.Tests.Multiplayer;
 
-using GdUnit4;
 using Fateforged.Multiplayer.Backend;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -14,7 +14,8 @@ public class NakamaGameClientEndpointTest
             args: [],
             defaultHost: "127.0.0.1",
             defaultPort: 7350,
-            defaultServerKey: "defaultkey");
+            defaultServerKey: "defaultkey"
+        );
 
         AssertThat(endpoint.Host).IsEqual("127.0.0.1");
         AssertThat(endpoint.Port).IsEqual(7350);
@@ -25,15 +26,11 @@ public class NakamaGameClientEndpointTest
     public void ResolveEndpointFromArgs_AppliesOverridesWhenValid()
     {
         var endpoint = NakamaGameClient.ResolveEndpointFromArgs(
-            args:
-            [
-                "--nakama-host=localhost",
-                "--nakama-port=8350",
-                "--nakama-server-key=e2e_key"
-            ],
+            args: ["--nakama-host=localhost", "--nakama-port=8350", "--nakama-server-key=e2e_key"],
             defaultHost: "127.0.0.1",
             defaultPort: 7350,
-            defaultServerKey: "defaultkey");
+            defaultServerKey: "defaultkey"
+        );
 
         AssertThat(endpoint.Host).IsEqual("localhost");
         AssertThat(endpoint.Port).IsEqual(8350);
@@ -47,7 +44,8 @@ public class NakamaGameClientEndpointTest
             args: ["--nakama-port=abc"],
             defaultHost: "127.0.0.1",
             defaultPort: 7350,
-            defaultServerKey: "defaultkey");
+            defaultServerKey: "defaultkey"
+        );
 
         AssertThat(endpoint.Port).IsEqual(7350);
     }

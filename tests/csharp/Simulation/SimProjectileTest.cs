@@ -44,11 +44,12 @@ public class SimProjectileTest
             startPos: new SimVector3(0f, 0f, 0f),
             targetPos: new SimVector3(3f, 0f, 0f),
             hitRadius: 0.1f,
-            hitSpace: ProjectileHitSpace.GroundCylinder);
+            hitSpace: ProjectileHitSpace.GroundCylinder
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay frame
-        SimProjectile.TickAll(_state, 0.2f, events);   // Movement + collision
+        SimProjectile.TickAll(_state, 0.2f, events); // Movement + collision
 
         AssertThat(target.CurrentHp).IsLess(100f);
         AssertThat(SimTestHelper.CountEvents<UnitDamagedEvent>(events)).IsEqual(1);
@@ -78,7 +79,8 @@ public class SimProjectileTest
             startPos: new SimVector3(0f, 5f, 0f),
             targetPos: new SimVector3(3f, 5f, 0f),
             hitRadius: 0.2f,
-            hitSpace: ProjectileHitSpace.GroundCylinder);
+            hitSpace: ProjectileHitSpace.GroundCylinder
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events);
@@ -111,7 +113,8 @@ public class SimProjectileTest
             startPos: new SimVector3(0f, 5f, 0f),
             targetPos: new SimVector3(3f, 5f, 0f),
             hitRadius: 0.2f,
-            hitSpace: ProjectileHitSpace.Sphere3D);
+            hitSpace: ProjectileHitSpace.Sphere3D
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events);
@@ -146,7 +149,8 @@ public class SimProjectileTest
             targetPos: new SimVector3(10f, 0f, 0f),
             pierceCount: 5,
             hitRadius: 1.2f,
-            hitSpace: ProjectileHitSpace.GroundCylinder);
+            hitSpace: ProjectileHitSpace.GroundCylinder
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay frame
@@ -193,11 +197,12 @@ public class SimProjectileTest
             targetPos: new SimVector3(3f, 0f, 0f),
             pierceCount: 0,
             hitRadius: 0.25f,
-            hitSpace: ProjectileHitSpace.GroundCylinder);
+            hitSpace: ProjectileHitSpace.GroundCylinder
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay frame
-        SimProjectile.TickAll(_state, 0.2f, events);   // Covers both units in one segment
+        SimProjectile.TickAll(_state, 0.2f, events); // Covers both units in one segment
 
         AssertThat(nearer.CurrentHp).IsLess(nearer.MaxHp);
         AssertThat(farther.CurrentHp).IsEqual(farther.MaxHp);
@@ -237,11 +242,12 @@ public class SimProjectileTest
             pierceCount: 0,
             aoeRadius: 0.6f,
             hitRadius: 0.25f,
-            hitSpace: ProjectileHitSpace.GroundCylinder);
+            hitSpace: ProjectileHitSpace.GroundCylinder
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay frame
-        SimProjectile.TickAll(_state, 0.2f, events);   // Covers primary contact and path end in one segment
+        SimProjectile.TickAll(_state, 0.2f, events); // Covers primary contact and path end in one segment
 
         AssertThat(primary.CurrentHp).IsLess(primary.MaxHp);
         AssertThat(farEnd.CurrentHp).IsEqual(farEnd.MaxHp);
@@ -271,7 +277,8 @@ public class SimProjectileTest
             startPos: new SimVector3(0f, 0f, 0f),
             targetPos: new SimVector3(10f, 0f, 0f),
             hitRadius: 0.1f,
-            steerStrength: 360f);
+            steerStrength: 360f
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay
@@ -298,7 +305,8 @@ public class SimProjectileTest
             attackRange: 6f,
             damage: 12f,
             projectileDelay: 0f,
-            catalogId: "puff");
+            catalogId: "puff"
+        );
         source.ElementId = 0;
         source.CritChance = 0f;
         source.SoulStrength = 0f;
@@ -320,7 +328,8 @@ public class SimProjectileTest
             targetPos: _state.Summoners[1].Position,
             hitRadius: 0.45f,
             hitSpace: ProjectileHitSpace.GroundCylinder,
-            tracking: true);
+            tracking: true
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay frame
@@ -358,7 +367,8 @@ public class SimProjectileTest
             startPos: new SimVector3(0f, 0f, 0f),
             targetPos: new SimVector3(10f, 0f, 0f),
             hitRadius: 0.5f,
-            tracking: true);
+            tracking: true
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay
@@ -397,7 +407,8 @@ public class SimProjectileTest
             startPos: new SimVector3(0f, 0f, 0f),
             targetPos: new SimVector3(10f, 0f, 0f),
             hitRadius: 0.5f,
-            tracking: false);
+            tracking: false
+        );
 
         var events = new List<SimEvent>();
         SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay

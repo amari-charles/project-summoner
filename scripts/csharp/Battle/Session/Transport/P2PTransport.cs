@@ -139,7 +139,8 @@ public partial class P2PTransport : Node, IMatchTransport
 
     public void Disconnect()
     {
-        if (_peer == null) return;
+        if (_peer == null)
+            return;
 
         _peer.Close();
         Multiplayer.MultiplayerPeer = null;
@@ -152,7 +153,8 @@ public partial class P2PTransport : Node, IMatchTransport
 
     public void Send(Dictionary message)
     {
-        if (!IsConnected || _peer == null) return;
+        if (!IsConnected || _peer == null)
+            return;
 
         // Client sends to host (peer 1)
         RpcId(1, MethodName.ReceiveMessage, message);
@@ -160,7 +162,8 @@ public partial class P2PTransport : Node, IMatchTransport
 
     public void Broadcast(Dictionary message)
     {
-        if (!IsConnected || !IsHost || _peer == null) return;
+        if (!IsConnected || !IsHost || _peer == null)
+            return;
 
         // Host broadcasts to all clients
         Rpc(MethodName.ReceiveMessage, message);
@@ -168,7 +171,8 @@ public partial class P2PTransport : Node, IMatchTransport
 
     public void SendTo(int peerId, Dictionary message)
     {
-        if (!IsConnected || !IsHost || _peer == null) return;
+        if (!IsConnected || !IsHost || _peer == null)
+            return;
 
         RpcId(peerId, MethodName.ReceiveMessage, message);
     }
@@ -177,7 +181,11 @@ public partial class P2PTransport : Node, IMatchTransport
 
     #region RPC
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(
+        MultiplayerApi.RpcMode.AnyPeer,
+        CallLocal = false,
+        TransferMode = MultiplayerPeer.TransferModeEnum.Reliable
+    )]
     private void ReceiveMessage(Dictionary message)
     {
         var senderId = Multiplayer.GetRemoteSenderId();

@@ -73,7 +73,7 @@ public enum RewardType
     Cosmetic,
 
     /// <summary>An emote unlock.</summary>
-    Emote
+    Emote,
 }
 
 /// <summary>
@@ -94,5 +94,5 @@ public enum CollectionFilterMode
     /// Allow owned cards but not exact duplicates.
     /// Use for rewards where duplicates provide XP.
     /// </summary>
-    ExcludeDuplicates
+    ExcludeDuplicates,
 }

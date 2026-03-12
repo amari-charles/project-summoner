@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Summoners;
@@ -9,6 +8,7 @@ using Fateforged.Meta.Cards;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Summoner;
 using Fateforged.View;
+using Godot;
 
 namespace Fateforged.Session;
 
@@ -64,13 +64,10 @@ public static class BattleSessionFactory
         DeckLoadStrategy deckLoadStrategy,
         float defaultMaxHp,
         int maxHandSize,
-        Godot.Collections.Array<Resource> staticDeck)
+        Godot.Collections.Array<Resource> staticDeck
+    )
     {
-        var result = new SummonerLoadResult
-        {
-            Hp = defaultMaxHp,
-            MaxHp = defaultMaxHp,
-        };
+        var result = new SummonerLoadResult { Hp = defaultMaxHp, MaxHp = defaultMaxHp };
 
         var strategy = ResolveStrategy(deckLoadStrategy, localTeam, config);
 
@@ -87,7 +84,9 @@ public static class BattleSessionFactory
                     LoadDeckFromBattleContext(config.RawConfig, result);
                 if (result.Deck.Count == 0)
                 {
-                    GD.PushWarning("[BattleSessionFactory] Failed to load from BattleContext, using STATIC deck");
+                    GD.PushWarning(
+                        "[BattleSessionFactory] Failed to load from BattleContext, using STATIC deck"
+                    );
                     result.Deck = new Godot.Collections.Array<Resource>(staticDeck);
                 }
                 break;
@@ -97,7 +96,9 @@ public static class BattleSessionFactory
                 LoadDeckFromProfile(caller, config, localTeam, result);
                 if (result.Deck.Count == 0)
                 {
-                    GD.PushWarning("[BattleSessionFactory] Failed to load from profile, using STATIC deck");
+                    GD.PushWarning(
+                        "[BattleSessionFactory] Failed to load from profile, using STATIC deck"
+                    );
                     result.Deck = new Godot.Collections.Array<Resource>(staticDeck);
                 }
                 else
@@ -107,7 +108,9 @@ public static class BattleSessionFactory
                 break;
 
             case DeckLoadStrategy.Deferred:
-                GD.Print("[BattleSessionFactory] Using DEFERRED strategy - deck will be set manually later");
+                GD.Print(
+                    "[BattleSessionFactory] Using DEFERRED strategy - deck will be set manually later"
+                );
                 result.IsDeferred = true;
                 break;
         }
@@ -133,7 +136,8 @@ public static class BattleSessionFactory
     public static Resource? CreateCardFromCatalog(string catalogId)
     {
         var cardDef = Fateforged.Cards.CardCatalog.GetCard(catalogId);
-        if (cardDef == null) return null;
+        if (cardDef == null)
+            return null;
         return Fateforged.Cards.Card.FromDefinition(cardDef);
     }
 
@@ -141,7 +145,11 @@ public static class BattleSessionFactory
     // STRATEGY RESOLUTION
     // =========================================================================
 
-    private static DeckLoadStrategy ResolveStrategy(DeckLoadStrategy strategy, int localTeam, BattleSessionConfig config)
+    private static DeckLoadStrategy ResolveStrategy(
+        DeckLoadStrategy strategy,
+        int localTeam,
+        BattleSessionConfig config
+    )
     {
         // Auto-correct strategy based on team
         if (localTeam == 0 && strategy == DeckLoadStrategy.BattleContext)
@@ -160,7 +168,9 @@ public static class BattleSessionFactory
                     var arr = enemyDeckVar.AsGodotArray();
                     if (arr.Count == 0)
                     {
-                        GD.Print("[BattleSessionFactory] Battle uses event_sequence with empty enemy_deck - switching to DEFERRED");
+                        GD.Print(
+                            "[BattleSessionFactory] Battle uses event_sequence with empty enemy_deck - switching to DEFERRED"
+                        );
                         strategy = DeckLoadStrategy.Deferred;
                     }
                 }
@@ -174,12 +184,17 @@ public static class BattleSessionFactory
     // DECK LOADING — BATTLE CONTEXT
     // =========================================================================
 
-    private static void LoadDeckFromBattleContext(Godot.Collections.Dictionary config, SummonerLoadResult result)
+    private static void LoadDeckFromBattleContext(
+        Godot.Collections.Dictionary config,
+        SummonerLoadResult result
+    )
     {
-        if (!config.ContainsKey("enemy_deck")) return;
+        if (!config.ContainsKey("enemy_deck"))
+            return;
 
         var enemyDeckVar = config["enemy_deck"];
-        if (enemyDeckVar.VariantType != Variant.Type.Array) return;
+        if (enemyDeckVar.VariantType != Variant.Type.Array)
+            return;
 
         LoadDeckEntries(enemyDeckVar.AsGodotArray(), result);
     }
@@ -189,7 +204,11 @@ public static class BattleSessionFactory
     // =========================================================================
 
     private static void LoadDeckFromProfile(
-        Node caller, BattleSessionConfig config, int localTeam, SummonerLoadResult result)
+        Node caller,
+        BattleSessionConfig config,
+        int localTeam,
+        SummonerLoadResult result
+    )
     {
         var rawConfig = config.RawConfig;
 
@@ -211,28 +230,32 @@ public static class BattleSessionFactory
         {
             LoadDeckFromProfileServices(caller, result);
         }
-
     }
 
     private static void LoadDeckFromProfileServices(Node caller, SummonerLoadResult result)
     {
         var decksService = caller.GetNodeOrNull<DeckService>("/root/Decks");
         var cardService = caller.GetNodeOrNull<CardService>("/root/CardService");
-        if (decksService == null || cardService == null) return;
+        if (decksService == null || cardService == null)
+            return;
 
         string deckId = GetSelectedDeckId(caller, decksService);
-        if (string.IsNullOrEmpty(deckId)) return;
+        if (string.IsNullOrEmpty(deckId))
+            return;
 
         var deck = decksService.GetDeck(deckId);
-        if (deck == null) return;
+        if (deck == null)
+            return;
 
         foreach (var instanceId in deck.CardInstanceIds)
         {
             var cardInstance = cardService.GetCard((string)instanceId);
-            if (cardInstance == null) continue;
+            if (cardInstance == null)
+                continue;
 
             var card = CreateCardFromCatalog((string)cardInstance.CatalogId);
-            if (card != null) result.Deck.Add(card);
+            if (card != null)
+                result.Deck.Add(card);
         }
     }
 
@@ -259,13 +282,19 @@ public static class BattleSessionFactory
     // =========================================================================
 
     private static void LoadSummonerStats(
-        Node caller, BattleSessionConfig config, int localTeam, SummonerLoadResult result)
+        Node caller,
+        BattleSessionConfig config,
+        int localTeam,
+        SummonerLoadResult result
+    )
     {
         // Multiplayer enemy should use exchanged opponent summoner data when available.
         if (config.IsMultiplayer && localTeam == 1)
         {
             if (config.RawConfig == null || !TryLoadOpponentSummonerStats(config.RawConfig, result))
-                GD.PushWarning("[BattleSessionFactory] Opponent summoner stats unavailable, using scene defaults");
+                GD.PushWarning(
+                    "[BattleSessionFactory] Opponent summoner stats unavailable, using scene defaults"
+                );
             return;
         }
 
@@ -273,22 +302,33 @@ public static class BattleSessionFactory
         LoadSummonerFromProfile(caller, localTeam, result);
     }
 
-    private static void LoadSummonerFromProfile(Node caller, int localTeam, SummonerLoadResult result)
+    private static void LoadSummonerFromProfile(
+        Node caller,
+        int localTeam,
+        SummonerLoadResult result
+    )
     {
-        var summonerSelection = caller.GetNodeOrNull<SummonerSelectionService>("/root/SummonerSelection");
-        if (summonerSelection == null) return;
+        var summonerSelection = caller.GetNodeOrNull<SummonerSelectionService>(
+            "/root/SummonerSelection"
+        );
+        if (summonerSelection == null)
+            return;
 
         string summonerId = summonerSelection.GetActiveSummonerId();
-        if (string.IsNullOrEmpty(summonerId)) return;
+        if (string.IsNullOrEmpty(summonerId))
+            return;
 
         GD.Print($"[BattleSessionFactory] Active summoner ID: '{summonerId}'");
 
         // Get summoner instance from profile, or create default if not found
-        var summonerInstance = ProfileRepository.Instance?.GetSummonerInstance(new SummonerId(summonerId));
+        var summonerInstance = ProfileRepository.Instance?.GetSummonerInstance(
+            new SummonerId(summonerId)
+        );
         if (summonerInstance == null)
         {
             // Create default instance for this summoner if no profile data exists
-            if (!SummonerCatalog.HasSummoner(summonerId)) return;
+            if (!SummonerCatalog.HasSummoner(summonerId))
+                return;
             summonerInstance = new SummonerInstance { SummonerId = new SummonerId(summonerId) };
         }
 
@@ -297,10 +337,14 @@ public static class BattleSessionFactory
     }
 
     private static bool TryLoadOpponentSummonerStats(
-        Godot.Collections.Dictionary rawConfig, SummonerLoadResult result)
+        Godot.Collections.Dictionary rawConfig,
+        SummonerLoadResult result
+    )
     {
-        if (rawConfig.TryGetValue("opponent_summoner_data", out var opponentDataVar) &&
-            opponentDataVar.VariantType == Variant.Type.Dictionary)
+        if (
+            rawConfig.TryGetValue("opponent_summoner_data", out var opponentDataVar)
+            && opponentDataVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var opponentData = opponentDataVar.AsGodotDictionary();
             if (opponentData.Count > 0)
@@ -310,17 +354,27 @@ public static class BattleSessionFactory
                 {
                     var stats = instance.GetComputedStats();
                     ApplyComputedStats(localTeam: 1, result, stats);
-                    GD.Print("[BattleSessionFactory] Applied opponent summoner stats from exchanged multiplayer data");
+                    GD.Print(
+                        "[BattleSessionFactory] Applied opponent summoner stats from exchanged multiplayer data"
+                    );
                     return true;
                 }
             }
         }
 
         // Fallback to base catalog stats for opponent summoner ID when exchange data isn't available.
-        string opponentSummonerId = rawConfig.GetValueOrDefault("opponent_summoner_id", "").ToString();
-        if (!string.IsNullOrEmpty(opponentSummonerId) && SummonerCatalog.HasSummoner(opponentSummonerId))
+        string opponentSummonerId = rawConfig
+            .GetValueOrDefault("opponent_summoner_id", "")
+            .ToString();
+        if (
+            !string.IsNullOrEmpty(opponentSummonerId)
+            && SummonerCatalog.HasSummoner(opponentSummonerId)
+        )
         {
-            var fallbackInstance = new SummonerInstance { SummonerId = new SummonerId(opponentSummonerId) };
+            var fallbackInstance = new SummonerInstance
+            {
+                SummonerId = new SummonerId(opponentSummonerId),
+            };
             var stats = fallbackInstance.GetComputedStats();
             ApplyComputedStats(localTeam: 1, result, stats);
             GD.Print("[BattleSessionFactory] Applied fallback opponent base stats from catalog");
@@ -331,9 +385,13 @@ public static class BattleSessionFactory
     }
 
     private static void ApplyComputedStats(
-        int localTeam, SummonerLoadResult result, Dictionary<string, float> stats)
+        int localTeam,
+        SummonerLoadResult result,
+        Dictionary<string, float> stats
+    )
     {
-        if (stats.Count == 0) return;
+        if (stats.Count == 0)
+            return;
 
         result.MaxMana = stats.GetValueOrDefault("max_mana", 100.0f);
         result.Mana = result.MaxMana;
@@ -355,12 +413,15 @@ public static class BattleSessionFactory
             result.SummonerStats = godotStats;
         }
 
-        GD.Print($"[BattleSessionFactory] Applied summoner bonuses — Max HP: {result.MaxHp:F0}, Max Mana: {result.MaxMana:F0}, Cast Speed: {result.CastSpeed:F2}");
+        GD.Print(
+            $"[BattleSessionFactory] Applied summoner bonuses — Max HP: {result.MaxHp:F0}, Max Mana: {result.MaxMana:F0}, Cast Speed: {result.CastSpeed:F2}"
+        );
     }
 
     private static void PopulateElementalDamageBonuses(
         Dictionary<Element, float> destination,
-        Dictionary<string, float> stats)
+        Dictionary<string, float> stats
+    )
     {
         TrySetElementalBonus(destination, stats, "fire_damage_bonus", Element.Fire);
         TrySetElementalBonus(destination, stats, "water_damage_bonus", Element.Water);
@@ -376,7 +437,8 @@ public static class BattleSessionFactory
         Dictionary<Element, float> destination,
         Dictionary<string, float> stats,
         string key,
-        Element element)
+        Element element
+    )
     {
         if (!stats.TryGetValue(key, out float bonus))
             return;
@@ -393,14 +455,16 @@ public static class BattleSessionFactory
     {
         foreach (var entry in entries)
         {
-            if (entry.VariantType != Variant.Type.Dictionary) continue;
+            if (entry.VariantType != Variant.Type.Dictionary)
+                continue;
             var entryDict = entry.AsGodotDictionary();
             string catalogId = entryDict.GetValueOrDefault("catalog_id", "").ToString();
             int count = (int)entryDict.GetValueOrDefault("count", 1);
             for (int i = 0; i < count; i++)
             {
                 var card = CreateCardFromCatalog(catalogId);
-                if (card != null) result.Deck.Add(card);
+                if (card != null)
+                    result.Deck.Add(card);
             }
         }
     }

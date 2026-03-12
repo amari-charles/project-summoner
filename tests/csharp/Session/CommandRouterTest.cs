@@ -5,10 +5,10 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using GdUnit4;
 using Fateforged.Tests.Simulation;
-using SimulationRuntime = Fateforged.Simulation.Simulation;
+using GdUnit4;
 using static GdUnit4.Assertions;
+using SimulationRuntime = Fateforged.Simulation.Simulation;
 
 [TestSuite]
 public class CommandRouterTest
@@ -168,7 +168,8 @@ public class CommandRouterTest
     [TestCase]
     public void PlayCard_RateLimitWindowElapsed_AcceptsCommand()
     {
-        long requiredFrameGap = (long)System.Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds);
+        long requiredFrameGap = (long)
+            System.Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds);
         _state.FrameNumber = 100;
         var first = _router.Validate(new PlayCardCommand(0, 0, SimVector3.Zero), _state);
         AssertThat(first.IsValid).IsTrue();
@@ -181,7 +182,8 @@ public class CommandRouterTest
     [TestCase]
     public void PlayCard_RateLimit_DoesNotDependOnMatchTimeAdvancing()
     {
-        long requiredFrameGap = (long)System.Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds);
+        long requiredFrameGap = (long)
+            System.Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds);
         _state.Phase = GamePhase.Preparation;
         _state.MatchTime = 0f;
         _state.FrameNumber = 10;

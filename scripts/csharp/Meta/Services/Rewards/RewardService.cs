@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Data.Summoners;
@@ -9,6 +8,7 @@ using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Infrastructure.Persistence;
+using Godot;
 
 namespace Fateforged.Meta.Rewards;
 
@@ -114,7 +114,7 @@ public partial class RewardService : Node
             RewardType.Cosmetic => GrantCosmeticReward(option.Id),
             RewardType.Emote => GrantEmoteReward(option.Id),
             RewardType.Item => false, // TODO: Implement in Phase 4
-            _ => false
+            _ => false,
         };
     }
 
@@ -140,10 +140,9 @@ public partial class RewardService : Node
             if (gold != 0)
             {
                 // For now, gold goes to resources. Campaign gold should use "campaign_gold" key.
-                _profileRepo.UpdateResources(new Dictionary<ResourceType, int>
-                {
-                    { ResourceType.Gold, gold }
-                });
+                _profileRepo.UpdateResources(
+                    new Dictionary<ResourceType, int> { { ResourceType.Gold, gold } }
+                );
             }
         }
 
@@ -174,16 +173,23 @@ public partial class RewardService : Node
         }
 
         // Grant cards
-        if (rewards.TryGetValue("cards", out var cardsVar) && cardsVar.AsGodotArray() is { } cardsArray)
+        if (
+            rewards.TryGetValue("cards", out var cardsVar)
+            && cardsVar.AsGodotArray() is { } cardsArray
+        )
         {
             foreach (var cardGrant in cardsArray)
             {
                 if (cardGrant.AsGodotDictionary() is not { } cardDict)
                     continue;
 
-                var catalogId = cardDict.TryGetValue("catalog_id", out var idVar) ? idVar.AsString() : "";
+                var catalogId = cardDict.TryGetValue("catalog_id", out var idVar)
+                    ? idVar.AsString()
+                    : "";
                 var count = cardDict.TryGetValue("count", out var countVar) ? (int)countVar : 1;
-                var rarity = cardDict.TryGetValue("rarity", out var rarityVar) ? rarityVar.AsString() : "common";
+                var rarity = cardDict.TryGetValue("rarity", out var rarityVar)
+                    ? rarityVar.AsString()
+                    : "common";
 
                 // Parse binding (defaults to AccountWide)
                 var binding = cardDict.TryGetValue("binding", out var bindingVar)
@@ -198,15 +204,20 @@ public partial class RewardService : Node
 
                 // Grant multiple copies with binding
                 var typedCatalogId = new CardId(catalogId);
-                SummonerId? typedBoundTo = !string.IsNullOrEmpty(boundTo) ? new SummonerId(boundTo) : null;
-                var cardsToGrant = Enumerable.Range(0, count)
+                SummonerId? typedBoundTo = !string.IsNullOrEmpty(boundTo)
+                    ? new SummonerId(boundTo)
+                    : null;
+                var cardsToGrant = Enumerable
+                    .Range(0, count)
                     .Select(_ => (typedCatalogId, rarity, binding, typedBoundTo))
                     .ToList();
 
                 var instanceIds = _profileRepo.GrantCards(cardsToGrant);
                 if (instanceIds.Length != count)
                 {
-                    GD.PushError($"RewardService: Failed to grant all {catalogId} cards (granted {instanceIds.Length}/{count})");
+                    GD.PushError(
+                        $"RewardService: Failed to grant all {catalogId} cards (granted {instanceIds.Length}/{count})"
+                    );
                     success = false;
                 }
             }
@@ -223,7 +234,9 @@ public partial class RewardService : Node
                 {
                     if (!_profileRepo.UnlockSummoner(typedSummonerIdToGrant))
                     {
-                        GD.PushError($"RewardService: Failed to unlock summoner {summonerIdToGrant}");
+                        GD.PushError(
+                            $"RewardService: Failed to unlock summoner {summonerIdToGrant}"
+                        );
                         success = false;
                     }
                     else
@@ -233,11 +246,13 @@ public partial class RewardService : Node
                         {
                             SummonerId = new SummonerId(summonerIdToGrant),
                             Level = 1,
-                            Xp = 0
+                            Xp = 0,
                         };
                         if (!_profileRepo.SaveSummonerInstance(instance))
                         {
-                            GD.PushError($"RewardService: Failed to save summoner instance for {summonerIdToGrant}");
+                            GD.PushError(
+                                $"RewardService: Failed to save summoner instance for {summonerIdToGrant}"
+                            );
                             // Don't fail the whole grant - summoner is unlocked, just instance save failed
                         }
                         GD.Print($"RewardService: Unlocked summoner '{summonerIdToGrant}'");
@@ -283,7 +298,10 @@ public partial class RewardService : Node
         }
 
         // Grant cosmetics array (legacy)
-        if (rewards.TryGetValue("cosmetics", out var cosmeticsVar) && cosmeticsVar.AsGodotArray() is { } cosmeticsArray)
+        if (
+            rewards.TryGetValue("cosmetics", out var cosmeticsVar)
+            && cosmeticsVar.AsGodotArray() is { } cosmeticsArray
+        )
         {
             foreach (var cosmeticItem in cosmeticsArray)
             {
@@ -317,10 +335,12 @@ public partial class RewardService : Node
 
     private bool GrantCardReward(string catalogId, string rarity, int count)
     {
-        if (_profileRepo == null) return false;
+        if (_profileRepo == null)
+            return false;
 
         var typedCatalogId = new CardId(catalogId);
-        var cardsToGrant = Enumerable.Range(0, count)
+        var cardsToGrant = Enumerable
+            .Range(0, count)
             .Select(_ => (typedCatalogId, rarity))
             .ToList();
 
@@ -330,14 +350,17 @@ public partial class RewardService : Node
         if (success)
             GD.Print($"RewardService: Granted {count}x {catalogId} ({rarity})");
         else
-            GD.PushError($"RewardService: Failed to grant {catalogId} (granted {instanceIds.Length}/{count})");
+            GD.PushError(
+                $"RewardService: Failed to grant {catalogId} (granted {instanceIds.Length}/{count})"
+            );
 
         return success;
     }
 
     private bool GrantCampaignGoldReward(int amount)
     {
-        if (_profileRepo == null || amount <= 0) return false;
+        if (_profileRepo == null || amount <= 0)
+            return false;
 
         var summonerSelection = GetTree()?.Root?.GetNodeOrNull("/root/SummonerSelection");
         var summonerId = "";
@@ -365,12 +388,12 @@ public partial class RewardService : Node
 
     private bool GrantGoldReward(int amount)
     {
-        if (_profileRepo == null || amount == 0) return false;
+        if (_profileRepo == null || amount == 0)
+            return false;
 
-        _profileRepo.UpdateResources(new Dictionary<ResourceType, int>
-        {
-            { ResourceType.Gold, amount }
-        });
+        _profileRepo.UpdateResources(
+            new Dictionary<ResourceType, int> { { ResourceType.Gold, amount } }
+        );
 
         GD.Print($"RewardService: Granted {amount} gold");
         return true;
@@ -378,12 +401,12 @@ public partial class RewardService : Node
 
     private bool GrantGemsReward(int amount)
     {
-        if (_profileRepo == null || amount <= 0) return false;
+        if (_profileRepo == null || amount <= 0)
+            return false;
 
-        _profileRepo.UpdateResources(new Dictionary<ResourceType, int>
-        {
-            { ResourceType.Gems, amount }
-        });
+        _profileRepo.UpdateResources(
+            new Dictionary<ResourceType, int> { { ResourceType.Gems, amount } }
+        );
 
         GD.Print($"RewardService: Granted {amount} gems");
         return true;
@@ -391,12 +414,12 @@ public partial class RewardService : Node
 
     private bool GrantEssenceReward(int amount)
     {
-        if (_profileRepo == null || amount <= 0) return false;
+        if (_profileRepo == null || amount <= 0)
+            return false;
 
-        _profileRepo.UpdateResources(new Dictionary<ResourceType, int>
-        {
-            { ResourceType.Essence, amount }
-        });
+        _profileRepo.UpdateResources(
+            new Dictionary<ResourceType, int> { { ResourceType.Essence, amount } }
+        );
 
         GD.Print($"RewardService: Granted {amount} essence");
         return true;
@@ -404,12 +427,12 @@ public partial class RewardService : Node
 
     private bool GrantFragmentsReward(int amount)
     {
-        if (_profileRepo == null || amount <= 0) return false;
+        if (_profileRepo == null || amount <= 0)
+            return false;
 
-        _profileRepo.UpdateResources(new Dictionary<ResourceType, int>
-        {
-            { ResourceType.Fragments, amount }
-        });
+        _profileRepo.UpdateResources(
+            new Dictionary<ResourceType, int> { { ResourceType.Fragments, amount } }
+        );
 
         GD.Print($"RewardService: Granted {amount} fragments");
         return true;
@@ -417,7 +440,8 @@ public partial class RewardService : Node
 
     private bool GrantSummonerReward(string summonerId)
     {
-        if (_profileRepo == null || string.IsNullOrEmpty(summonerId)) return false;
+        if (_profileRepo == null || string.IsNullOrEmpty(summonerId))
+            return false;
 
         var typedSummonerId = new SummonerId(summonerId);
         if (_profileRepo.IsSummonerUnlocked(typedSummonerId))
@@ -437,7 +461,7 @@ public partial class RewardService : Node
         {
             SummonerId = new SummonerId(summonerId),
             Level = 1,
-            Xp = 0
+            Xp = 0,
         };
         _profileRepo.SaveSummonerInstance(instance);
 
@@ -447,7 +471,8 @@ public partial class RewardService : Node
 
     private bool GrantCosmeticReward(string cosmeticId)
     {
-        if (_profileRepo == null || string.IsNullOrEmpty(cosmeticId)) return false;
+        if (_profileRepo == null || string.IsNullOrEmpty(cosmeticId))
+            return false;
 
         if (!_profileRepo.GrantCosmetic(new CosmeticId(cosmeticId)))
         {
@@ -461,7 +486,8 @@ public partial class RewardService : Node
 
     private bool GrantEmoteReward(string emoteId)
     {
-        if (_profileRepo == null || string.IsNullOrEmpty(emoteId)) return false;
+        if (_profileRepo == null || string.IsNullOrEmpty(emoteId))
+            return false;
 
         if (!_profileRepo.GrantEmote(new EmoteId(emoteId)))
         {
@@ -485,7 +511,11 @@ public partial class RewardService : Node
     /// <param name="isCompleted">Whether the battle is already completed.</param>
     /// <param name="chosenIndex">Previously chosen option index (-1 if not chosen).</param>
     /// <returns>Typed BattleRewardSpec.</returns>
-    public BattleRewardSpec GetBattleRewardSpec(string battleId, bool isCompleted = false, int chosenIndex = -1)
+    public BattleRewardSpec GetBattleRewardSpec(
+        string battleId,
+        bool isCompleted = false,
+        int chosenIndex = -1
+    )
     {
         var ownedIds = GetOwnedCatalogIds();
         return BattleRewardSpec.FromBattleId(battleId, isCompleted, chosenIndex, ownedIds);
@@ -494,7 +524,11 @@ public partial class RewardService : Node
     /// <summary>
     /// Get reward specification as Dictionary for GDScript interop.
     /// </summary>
-    public Godot.Collections.Dictionary GetBattleRewardSpecAsDict(string battleId, bool isCompleted = false, int chosenIndex = -1)
+    public Godot.Collections.Dictionary GetBattleRewardSpecAsDict(
+        string battleId,
+        bool isCompleted = false,
+        int chosenIndex = -1
+    )
     {
         var spec = GetBattleRewardSpec(battleId, isCompleted, chosenIndex);
         return spec.ToDictionary();
@@ -516,7 +550,8 @@ public partial class RewardService : Node
         RewardPoolId poolId,
         int count,
         bool excludeOwned = false,
-        bool uniqueOnly = true)
+        bool uniqueOnly = true
+    )
     {
         var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
         var cards = RewardPoolCatalog.GetCardsForPool(poolId, excludeIds);
@@ -536,7 +571,8 @@ public partial class RewardService : Node
         CardFilterConfig filterConfig,
         int count,
         bool excludeOwned = false,
-        bool uniqueOnly = true)
+        bool uniqueOnly = true
+    )
     {
         var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
         var cards = RewardPoolCatalog.FilterCards(filterConfig, excludeIds);
@@ -580,7 +616,8 @@ public partial class RewardService : Node
         string poolId,
         int count,
         bool excludeOwned = false,
-        bool uniqueOnly = true)
+        bool uniqueOnly = true
+    )
     {
         if (!RewardPoolCatalog.HasPool(poolId))
         {
@@ -604,7 +641,8 @@ public partial class RewardService : Node
         Godot.Collections.Dictionary filterDict,
         int count,
         bool excludeOwned = false,
-        bool uniqueOnly = true)
+        bool uniqueOnly = true
+    )
     {
         var excludeIds = excludeOwned ? GetOwnedCatalogIds() : null;
         var cards = RewardPoolCatalog.DrawWithFilters(filterDict, excludeIds);
@@ -639,7 +677,7 @@ public partial class RewardService : Node
             ["display_name"] = option.DisplayName,
             ["description"] = option.Description,
             ["icon_path"] = option.IconPath,
-            ["element"] = option.Element
+            ["element"] = option.Element,
         };
     }
 
@@ -655,10 +693,14 @@ public partial class RewardService : Node
             Amount = dict.TryGetValue("amount", out var amtVar) ? (int)amtVar : 1,
             Rarity = dict.TryGetValue("rarity", out var rarVar) ? rarVar.AsString() : "common",
             IsGuaranteed = dict.TryGetValue("is_guaranteed", out var guarVar) && (bool)guarVar,
-            DisplayName = dict.TryGetValue("display_name", out var nameVar) ? nameVar.AsString() : "",
-            Description = dict.TryGetValue("description", out var descVar) ? descVar.AsString() : "",
+            DisplayName = dict.TryGetValue("display_name", out var nameVar)
+                ? nameVar.AsString()
+                : "",
+            Description = dict.TryGetValue("description", out var descVar)
+                ? descVar.AsString()
+                : "",
             IconPath = dict.TryGetValue("icon_path", out var iconVar) ? iconVar.AsString() : "",
-            Element = dict.TryGetValue("element", out var elemVar) ? elemVar.AsString() : ""
+            Element = dict.TryGetValue("element", out var elemVar) ? elemVar.AsString() : "",
         };
     }
 }

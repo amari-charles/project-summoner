@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Traits;
+using Godot;
 
 namespace Fateforged.Data.Summoners;
 
@@ -35,8 +35,14 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitIds.FireAffinity, TraitIds.BurningSpirit],
-            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Fire, TraitTags.Cole],
-            StarterCardId = CardIds.FireWisp
+            TraitEligibilityTags =
+            [
+                TraitTags.Summoner,
+                TraitTags.Global,
+                TraitTags.Fire,
+                TraitTags.Cole,
+            ],
+            StarterCardId = CardIds.FireWisp,
         },
 
         [SummonerIds.Selene] = new SummonerDefinition
@@ -51,8 +57,14 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitIds.WaterAffinity, TraitIds.TidalResilience],
-            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Water, TraitTags.Selene],
-            StarterCardId = CardIds.WaterWisp
+            TraitEligibilityTags =
+            [
+                TraitTags.Summoner,
+                TraitTags.Global,
+                TraitTags.Water,
+                TraitTags.Selene,
+            ],
+            StarterCardId = CardIds.WaterWisp,
         },
 
         [SummonerIds.Mei] = new SummonerDefinition
@@ -67,8 +79,14 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitIds.WindAffinity, TraitIds.SwiftCasting],
-            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Wind, TraitTags.Mei],
-            StarterCardId = CardIds.WindWisp
+            TraitEligibilityTags =
+            [
+                TraitTags.Summoner,
+                TraitTags.Global,
+                TraitTags.Wind,
+                TraitTags.Mei,
+            ],
+            StarterCardId = CardIds.WindWisp,
         },
 
         [SummonerIds.Teo] = new SummonerDefinition
@@ -83,8 +101,14 @@ public static class SummonerCatalog
             CardFrameStyle = "legendary",
             UnlockCondition = SummonerUnlockCondition.StartingChoice,
             InnateTraitIds = [TraitIds.EarthAffinity, TraitIds.StoneFortitude],
-            TraitEligibilityTags = [TraitTags.Summoner, TraitTags.Global, TraitTags.Earth, TraitTags.Teo],
-            StarterCardId = CardIds.EarthWisp
+            TraitEligibilityTags =
+            [
+                TraitTags.Summoner,
+                TraitTags.Global,
+                TraitTags.Earth,
+                TraitTags.Teo,
+            ],
+            StarterCardId = CardIds.EarthWisp,
         },
 
         // =====================================================================
@@ -102,8 +126,8 @@ public static class SummonerCatalog
             IconPath = "",
             CardFrameStyle = "common",
             UnlockCondition = SummonerUnlockCondition.DevOnly,
-            InnateTraitIds = []
-        }
+            InnateTraitIds = [],
+        },
     };
 
     // =========================================================================
@@ -144,34 +168,34 @@ public static class SummonerCatalog
     /// <summary>Get summoners that can be selected as starting summoners (4 core).</summary>
     public static SummonerDefinition[] GetStartingSummoners()
     {
-        return _summoners.Values
-            .Where(s => s.UnlockCondition == SummonerUnlockCondition.StartingChoice)
+        return _summoners
+            .Values.Where(s => s.UnlockCondition == SummonerUnlockCondition.StartingChoice)
             .ToArray();
     }
 
     /// <summary>Get summoners available for "Random" option (core + starter-only).</summary>
     public static SummonerDefinition[] GetRandomPoolSummoners()
     {
-        return _summoners.Values
-            .Where(s => s.UnlockCondition == SummonerUnlockCondition.StartingChoice
-                     || s.UnlockCondition == SummonerUnlockCondition.RandomStarterOnly)
+        return _summoners
+            .Values.Where(s =>
+                s.UnlockCondition == SummonerUnlockCondition.StartingChoice
+                || s.UnlockCondition == SummonerUnlockCondition.RandomStarterOnly
+            )
             .ToArray();
     }
 
     /// <summary>Get summoners available for purchase in the Premium Store.</summary>
     public static SummonerDefinition[] GetPurchasableSummoners()
     {
-        return _summoners.Values
-            .Where(s => s.UnlockCondition == SummonerUnlockCondition.PremiumPurchase)
+        return _summoners
+            .Values.Where(s => s.UnlockCondition == SummonerUnlockCondition.PremiumPurchase)
             .ToArray();
     }
 
     /// <summary>Get summoners by element.</summary>
     public static SummonerDefinition[] GetSummonersByElement(Element element)
     {
-        return _summoners.Values
-            .Where(s => s.ElementalAffinity == element)
-            .ToArray();
+        return _summoners.Values.Where(s => s.ElementalAffinity == element).ToArray();
     }
 
     // =========================================================================
@@ -201,7 +225,7 @@ public static class SummonerCatalog
             ["portrait_uv_scale"] = summoner.PortraitUvScale,
             ["unlock_condition"] = summoner.UnlockCondition.ToGdString(),
             ["innate_trait_ids"] = traitsArray,
-            ["starter_card_id"] = (string)summoner.StarterCardId
+            ["starter_card_id"] = (string)summoner.StarterCardId,
         };
     }
 
@@ -283,7 +307,7 @@ public static class SummonerCatalog
             Element.Ice => 12,
             Element.Metal => 13,
             Element.Spirit => 14,
-            _ => 0
+            _ => 0,
         };
     }
 }

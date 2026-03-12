@@ -202,7 +202,7 @@ public class SimAiTest
             Phase = GamePhase.Preparation,
             PrepTimeRemaining = 0f,
             FrameNumber = 0,
-            Rng = new DeterministicRng(42)
+            Rng = new DeterministicRng(42),
         };
 
         // Register summoners (mimic BattleScene.RegisterSummoner)
@@ -235,7 +235,7 @@ public class SimAiTest
             Personality = AiPersonality.Balanced,
             Difficulty = 3,
             PlayIntervalMin = 3.0f,
-            PlayIntervalMax = 6.0f
+            PlayIntervalMax = 6.0f,
         };
         SimAi.InitializeTimer(state, state.Summoners[1]);
 
@@ -258,7 +258,8 @@ public class SimAiTest
                     break;
                 }
             }
-            if (foundCasting) break;
+            if (foundCasting)
+                break;
         }
 
         AssertThat(foundCasting).IsTrue();
@@ -279,7 +280,7 @@ public class SimAiTest
         {
             Type = AiType.Simple,
             PlayIntervalMin = 0.5f,
-            PlayIntervalMax = 1.5f
+            PlayIntervalMax = 1.5f,
         };
         summoner.Mana = 100;
         summoner.MaxMana = 100;

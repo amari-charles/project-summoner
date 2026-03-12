@@ -12,7 +12,7 @@ public enum CurrencyType
     Gems,
 
     /// <summary>Real-money purchases via platform billing.</summary>
-    RealMoney
+    RealMoney,
 }
 
 /// <summary>
@@ -21,20 +21,22 @@ public enum CurrencyType
 public static class CurrencyTypeExtensions
 {
     /// <summary>Convert enum to string value for GDScript interop.</summary>
-    public static string ToStringValue(this CurrencyType type) => type switch
-    {
-        CurrencyType.Gold => "gold",
-        CurrencyType.Gems => "gems",
-        CurrencyType.RealMoney => "real_money",
-        _ => "gold"
-    };
+    public static string ToStringValue(this CurrencyType type) =>
+        type switch
+        {
+            CurrencyType.Gold => "gold",
+            CurrencyType.Gems => "gems",
+            CurrencyType.RealMoney => "real_money",
+            _ => "gold",
+        };
 
     /// <summary>Parse string to CurrencyType.</summary>
-    public static CurrencyType ParseCurrencyType(string value) => value switch
-    {
-        "gold" => CurrencyType.Gold,
-        "gems" => CurrencyType.Gems,
-        "real_money" => CurrencyType.RealMoney,
-        _ => CurrencyType.Gold
-    };
+    public static CurrencyType ParseCurrencyType(string value) =>
+        value switch
+        {
+            "gold" => CurrencyType.Gold,
+            "gems" => CurrencyType.Gems,
+            "real_money" => CurrencyType.RealMoney,
+            _ => CurrencyType.Gold,
+        };
 }

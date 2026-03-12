@@ -1,6 +1,6 @@
 using System;
-using Godot;
 using Fateforged.Data.Events;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Models;
 
@@ -28,13 +28,16 @@ public class CampaignNode
     /// <summary>
     /// Create a CampaignNode from GDScript Dictionary.
     /// </summary>
-    public static CampaignNode FromDictionary(Godot.Collections.Dictionary dict, CampaignId campaignId)
+    public static CampaignNode FromDictionary(
+        Godot.Collections.Dictionary dict,
+        CampaignId campaignId
+    )
     {
         var node = new CampaignNode
         {
             Id = new EventId(dict.GetValueOrDefault("id", "").AsString()),
             Type = dict.GetValueOrDefault("type", "battle").AsString(),
-            CampaignId = campaignId
+            CampaignId = campaignId,
         };
 
         // Parse position
@@ -66,7 +69,7 @@ public class CampaignNode
             Type = evt.Type.ToStringId(),
             Position = evt.Position,
             CampaignId = campaignId,
-            Data = EventCatalog.ToDictionary(evt)
+            Data = EventCatalog.ToDictionary(evt),
         };
 
         return node;
@@ -83,7 +86,7 @@ public class CampaignNode
             ["type"] = Type,
             ["position"] = Position,
             ["data"] = Data,
-            ["campaign_id"] = (string)CampaignId
+            ["campaign_id"] = (string)CampaignId,
         };
     }
 

@@ -196,5 +196,6 @@ public class CardDefinition
     /// Note: This is different from StatModifier.Tags which are used for
     /// amplification targeting. See docs/features/modifier-system.md for details.
     /// </summary>
-    public string[] TraitEligibilityTags { get; init; } = [Data.Traits.TraitTags.Summon, Data.Traits.TraitTags.Global];
+    public string[] TraitEligibilityTags { get; init; } =
+    [Data.Traits.TraitTags.Summon, Data.Traits.TraitTags.Global];
 }

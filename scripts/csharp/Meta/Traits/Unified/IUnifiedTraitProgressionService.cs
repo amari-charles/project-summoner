@@ -11,12 +11,26 @@ namespace Fateforged.Meta.Traits.Unified;
 public interface IUnifiedTraitProgressionService
 {
     UnifiedPointAmount GetUnspentTraitPoints(SummonerId summonerId);
-    UnifiedPointAmount GrantTraitPoints(SummonerId summonerId, UnifiedPointAmount amount, UnifiedProgressionSource source);
-    List<UnifiedTraitOffer> RollTraitOffers(SummonerId summonerId, UnifiedTraitOfferRequest request);
+    UnifiedPointAmount GrantTraitPoints(
+        SummonerId summonerId,
+        UnifiedPointAmount amount,
+        UnifiedProgressionSource source
+    );
+    List<UnifiedTraitOffer> RollTraitOffers(
+        SummonerId summonerId,
+        UnifiedTraitOfferRequest request
+    );
     bool SpendTraitPoint(SummonerId summonerId, UnifiedTraitId traitId);
 
     UnifiedPointAmount GetCardUnspentTraitPoints(CardInstanceId cardInstanceId);
-    UnifiedPointAmount GrantCardTraitPoints(CardInstanceId cardInstanceId, UnifiedPointAmount amount, UnifiedProgressionSource source);
-    List<UnifiedTraitOffer> RollCardTraitOffers(CardInstanceId cardInstanceId, UnifiedTraitOfferRequest request);
+    UnifiedPointAmount GrantCardTraitPoints(
+        CardInstanceId cardInstanceId,
+        UnifiedPointAmount amount,
+        UnifiedProgressionSource source
+    );
+    List<UnifiedTraitOffer> RollCardTraitOffers(
+        CardInstanceId cardInstanceId,
+        UnifiedTraitOfferRequest request
+    );
     bool SpendCardTraitPoint(CardInstanceId cardInstanceId, UnifiedTraitId traitId);
 }

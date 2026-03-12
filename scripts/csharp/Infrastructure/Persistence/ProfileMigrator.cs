@@ -1,6 +1,6 @@
 using Godot;
-using GdDict = Godot.Collections.Dictionary;
 using GdArray = Godot.Collections.Array;
+using GdDict = Godot.Collections.Dictionary;
 
 namespace Fateforged.Infrastructure.Persistence;
 
@@ -30,15 +30,20 @@ public static class ProfileMigrator
         var versionVar = DictGet(data, "version", 0);
         var version = versionVar.AsInt32();
 
-        if (version >= CurrentVersion) return;
+        if (version >= CurrentVersion)
+            return;
 
         GD.Print($"ProfileMigrator: Migrating save from version {version} to {CurrentVersion}");
 
         // Run sequential migrations
-        if (version < 2) MigrateV1ToV2(data);
-        if (version < 3) MigrateV2ToV3(data);
-        if (version < 4) MigrateV3ToV4(data);
-        if (version < 5) MigrateV4ToV5(data);
+        if (version < 2)
+            MigrateV1ToV2(data);
+        if (version < 3)
+            MigrateV2ToV3(data);
+        if (version < 4)
+            MigrateV3ToV4(data);
+        if (version < 5)
+            MigrateV4ToV5(data);
         // v5 → v6: no data changes (version bump only)
 
         data["version"] = CurrentVersion;
@@ -49,16 +54,21 @@ public static class ProfileMigrator
     {
         GD.Print("ProfileMigrator: Adding card progression fields...");
         var collectionVar = DictGet(data, "collection", new GdArray());
-        if (collectionVar.VariantType != Variant.Type.Array) return;
+        if (collectionVar.VariantType != Variant.Type.Array)
+            return;
         var collection = collectionVar.AsGodotArray();
 
         for (int i = 0; i < collection.Count; i++)
         {
-            if (collection[i].VariantType != Variant.Type.Dictionary) continue;
+            if (collection[i].VariantType != Variant.Type.Dictionary)
+                continue;
             var card = collection[i].AsGodotDictionary();
-            if (!card.ContainsKey("level")) card["level"] = 1;
-            if (!card.ContainsKey("xp")) card["xp"] = 0;
-            if (!card.ContainsKey("upgrades")) card["upgrades"] = new GdArray();
+            if (!card.ContainsKey("level"))
+                card["level"] = 1;
+            if (!card.ContainsKey("xp"))
+                card["xp"] = 0;
+            if (!card.ContainsKey("upgrades"))
+                card["upgrades"] = new GdArray();
         }
     }
 
@@ -73,7 +83,7 @@ public static class ProfileMigrator
             "event_first_summon",
             "first_trial",
             "charge_tutorial",
-            "event_caravan_tutorial"
+            "event_caravan_tutorial",
         ];
 
         // Initialize shared progress if needed
@@ -81,27 +91,31 @@ public static class ProfileMigrator
             data["shared_campaign_progress"] = new GdDict
             {
                 ["completed_battles"] = new GdArray(),
-                ["current_battle"] = new Variant()
+                ["current_battle"] = new Variant(),
             };
 
         var sharedProgress = data["shared_campaign_progress"].AsGodotDictionary();
         var sharedCompletedVar = DictGet(sharedProgress, "completed_battles", new GdArray());
-        var sharedCompleted = sharedCompletedVar.VariantType == Variant.Type.Array
-            ? sharedCompletedVar.AsGodotArray()
-            : new GdArray();
+        var sharedCompleted =
+            sharedCompletedVar.VariantType == Variant.Type.Array
+                ? sharedCompletedVar.AsGodotArray()
+                : new GdArray();
 
         var campaignProgressVar = DictGet(data, "campaign_progress", new GdDict());
-        if (campaignProgressVar.VariantType != Variant.Type.Dictionary) return;
+        if (campaignProgressVar.VariantType != Variant.Type.Dictionary)
+            return;
         var progressDict = campaignProgressVar.AsGodotDictionary();
 
         foreach (var summonerIdVar in progressDict.Keys)
         {
             var summonerProgressVar = progressDict[summonerIdVar];
-            if (summonerProgressVar.VariantType != Variant.Type.Dictionary) continue;
+            if (summonerProgressVar.VariantType != Variant.Type.Dictionary)
+                continue;
             var summonerDict = summonerProgressVar.AsGodotDictionary();
 
             var completedVar = DictGet(summonerDict, "completed_battles", new GdArray());
-            if (completedVar.VariantType != Variant.Type.Array) continue;
+            if (completedVar.VariantType != Variant.Type.Array)
+                continue;
             var completed = completedVar.AsGodotArray();
 
             foreach (var battleId in onboardingBattleIds)
@@ -131,12 +145,8 @@ public static class ProfileMigrator
             data["cosmetics"] = new GdDict
             {
                 ["owned"] = new GdArray(),
-                ["equipped"] = new GdDict
-                {
-                    ["card_back"] = "",
-                    ["ui_theme"] = ""
-                },
-                ["summoner_skins"] = new GdDict()
+                ["equipped"] = new GdDict { ["card_back"] = "", ["ui_theme"] = "" },
+                ["summoner_skins"] = new GdDict(),
             };
         }
 
@@ -145,7 +155,7 @@ public static class ProfileMigrator
             data["emotes"] = new GdDict
             {
                 ["owned"] = new GdArray(),
-                ["equipped"] = new GdArray { "", "", "", "" }
+                ["equipped"] = new GdArray { "", "", "", "" },
             };
         }
     }
@@ -156,7 +166,8 @@ public static class ProfileMigrator
         GD.Print("ProfileMigrator: Migrating to campaign-scoped gold...");
 
         var resourcesVar = DictGet(data, "resources", new GdDict());
-        if (resourcesVar.VariantType != Variant.Type.Dictionary) return;
+        if (resourcesVar.VariantType != Variant.Type.Dictionary)
+            return;
         var resources = resourcesVar.AsGodotDictionary();
         var accountGold = DictGet(resources, "gold", 0).AsInt32();
 
@@ -181,13 +192,15 @@ public static class ProfileMigrator
         foreach (var summonerIdVar in progressDict.Keys)
         {
             var summonerProgressVar = progressDict[summonerIdVar];
-            if (summonerProgressVar.VariantType != Variant.Type.Dictionary) continue;
+            if (summonerProgressVar.VariantType != Variant.Type.Dictionary)
+                continue;
             var summonerDict = summonerProgressVar.AsGodotDictionary();
 
             var completedVar = DictGet(summonerDict, "completed_battles", new GdArray());
-            var completed = completedVar.VariantType == Variant.Type.Array
-                ? completedVar.AsGodotArray()
-                : new GdArray();
+            var completed =
+                completedVar.VariantType == Variant.Type.Array
+                    ? completedVar.AsGodotArray()
+                    : new GdArray();
             var pending = DictGet(summonerDict, "pending_reward", new Variant());
 
             if (completed.Count > 0 || pending.VariantType != Variant.Type.Nil)
@@ -195,13 +208,17 @@ public static class ProfileMigrator
                 summonerDict["gold"] = accountGold;
                 progressDict[summonerIdVar] = summonerDict;
                 migrated = true;
-                GD.Print($"ProfileMigrator: Migrated {accountGold} gold to summoner '{summonerIdVar}' campaign");
+                GD.Print(
+                    $"ProfileMigrator: Migrated {accountGold} gold to summoner '{summonerIdVar}' campaign"
+                );
                 break;
             }
         }
 
         if (!migrated)
-            GD.Print($"ProfileMigrator: No active campaign found - account gold ({accountGold}) will be lost");
+            GD.Print(
+                $"ProfileMigrator: No active campaign found - account gold ({accountGold}) will be lost"
+            );
 
         resources["gold"] = 0;
         data["resources"] = resources;

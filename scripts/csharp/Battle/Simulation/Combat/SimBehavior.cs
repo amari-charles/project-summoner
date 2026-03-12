@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Fateforged.Data.Projectiles;
 using Fateforged.Projectiles;
 using Fateforged.Simulation;
-using Fateforged.Units;
+using Fateforged.Simulation.Combat.Targeting;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using Fateforged.Simulation.Combat.Targeting;
 using Fateforged.Simulation.Spatial;
 using Fateforged.Simulation.Subsystems;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -83,9 +83,11 @@ public static class SimBehavior
 
         // Keep current target if policy allows and it's still attackable now.
         // This avoids unnecessary target churn when lock expires.
-        if (unit.TargetLockTimer <= 0 &&
-            currentTargetIsValid &&
-            policy.ShouldKeepCurrentTarget(unit, state, unit.TargetUnitId))
+        if (
+            unit.TargetLockTimer <= 0
+            && currentTargetIsValid
+            && policy.ShouldKeepCurrentTarget(unit, state, unit.TargetUnitId)
+        )
         {
             unit.TargetLockTimer = TargetLockDuration;
             return;
@@ -105,7 +107,11 @@ public static class SimBehavior
     /// Returns what movement the caller should perform and emits combat events.
     /// </summary>
     public static BehaviorResult TickBehavior(
-        UnitData unit, MatchState state, float delta, List<SimEvent> events)
+        UnitData unit,
+        MatchState state,
+        float delta,
+        List<SimEvent> events
+    )
     {
         // Stunned units can't act
         if (SimEffects.IsStunned(unit))
@@ -156,14 +162,14 @@ public static class SimBehavior
                     FallbackMovement.Strafe => new BehaviorResult
                     {
                         Movement = MovementResult.Strafe,
-                        MoveTargetId = targetId
+                        MoveTargetId = targetId,
                     },
                     FallbackMovement.Idle => new BehaviorResult { Movement = MovementResult.None },
                     _ => new BehaviorResult
                     {
                         Movement = MovementResult.TowardTarget,
-                        MoveTargetId = targetId
-                    }
+                        MoveTargetId = targetId,
+                    },
                 };
             }
 
@@ -224,26 +230,35 @@ public static class SimBehavior
         return new BehaviorResult
         {
             Movement = MovementResult.TowardTarget,
-            MoveTargetId = targetId
+            MoveTargetId = targetId,
         };
     }
 
-    private static bool ShouldHoldLaneInsteadOfChasing(UnitData unit, SimVector3 targetPos, float distance)
+    private static bool ShouldHoldLaneInsteadOfChasing(
+        UnitData unit,
+        SimVector3 targetPos,
+        float distance
+    )
     {
-        int unitLane = unit.AssignedLane >= 0 ? unit.AssignedLane : VirtualLanes.GetLaneIndex(unit.Position.Z);
+        int unitLane =
+            unit.AssignedLane >= 0 ? unit.AssignedLane : VirtualLanes.GetLaneIndex(unit.Position.Z);
         int targetLane = VirtualLanes.GetLaneIndex(targetPos.Z);
         int laneDistance = VirtualLanes.LaneDistance(unitLane, targetLane);
 
-        if (unit.TacticalRole == TacticalRole.Flanker &&
-            VirtualLanes.IsSideLane(unitLane) &&
-            targetLane == VirtualLanes.CenterLane)
+        if (
+            unit.TacticalRole == TacticalRole.Flanker
+            && VirtualLanes.IsSideLane(unitLane)
+            && targetLane == VirtualLanes.CenterLane
+        )
         {
             return true;
         }
 
-        if (unit.TacticalRole == TacticalRole.Backliner &&
-            laneDistance > 0 &&
-            distance > unit.AttackRange * BacklinerMaxCrossLaneChaseDistanceMultiplier)
+        if (
+            unit.TacticalRole == TacticalRole.Backliner
+            && laneDistance > 0
+            && distance > unit.AttackRange * BacklinerMaxCrossLaneChaseDistanceMultiplier
+        )
         {
             return true;
         }
@@ -257,7 +272,11 @@ public static class SimBehavior
     /// Fires OnHit/OnDamaged triggers, and OnKill/OnDeath on kill.
     /// </summary>
     private static void ApplyMeleeDamageToUnit(
-        UnitData attacker, UnitData target, MatchState state, List<SimEvent> events)
+        UnitData attacker,
+        UnitData target,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         float baseDamage = SimEffects.GetEffectiveAttackDamage(attacker);
         var recipients = AttackRecipientResolver.ResolveRecipients(attacker, target, state);
@@ -270,7 +289,8 @@ public static class SimBehavior
         // Primary recipient preserves legacy trigger semantics.
         ApplyUnitDamage(attacker, recipients[0], baseDamage, state, events);
 
-        bool triggerPerRecipient = attacker.Attack.Rules.TriggerMode == AttackTriggerMode.EveryRecipient;
+        bool triggerPerRecipient =
+            attacker.Attack.Rules.TriggerMode == AttackTriggerMode.EveryRecipient;
         for (int i = 1; i < recipients.Count; i++)
         {
             if (triggerPerRecipient)
@@ -284,12 +304,23 @@ public static class SimBehavior
     }
 
     private static void ApplySecondaryUnitDamage(
-        UnitData attacker, UnitData target, float baseDamage, MatchState state, List<SimEvent> events)
+        UnitData attacker,
+        UnitData target,
+        float baseDamage,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         var attackerSummoner = state.Summoners[(int)attacker.Team];
         var targetSummoner = state.Summoners[(int)target.Team];
         var (damage, isCrit) = SimDamage.Calculate(
-            baseDamage, attacker, target, attackerSummoner, targetSummoner, state.Rng);
+            baseDamage,
+            attacker,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            state.Rng
+        );
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
@@ -308,12 +339,23 @@ public static class SimBehavior
     /// Used by both immediate melee and delayed ranged (pending damage) paths.
     /// </summary>
     private static void ApplyUnitDamage(
-        UnitData attacker, UnitData target, float baseDamage, MatchState state, List<SimEvent> events)
+        UnitData attacker,
+        UnitData target,
+        float baseDamage,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         var attackerSummoner = state.Summoners[(int)attacker.Team];
         var targetSummoner = state.Summoners[(int)target.Team];
         var (damage, isCrit) = SimDamage.Calculate(
-            baseDamage, attacker, target, attackerSummoner, targetSummoner, state.Rng);
+            baseDamage,
+            attacker,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            state.Rng
+        );
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
@@ -344,11 +386,16 @@ public static class SimBehavior
     /// and impact timing match unit-target projectile behavior.
     /// </summary>
     private static void ApplyDamageToSummoner(
-        UnitData attacker, int summonerTargetId, MatchState state, List<SimEvent> events)
+        UnitData attacker,
+        int summonerTargetId,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         int summonerTeam = MatchState.GetSummonerTeamFromTargetId(summonerTargetId);
         var summoner = state.Summoners[summonerTeam];
-        if (!summoner.IsAlive) return;
+        if (!summoner.IsAlive)
+            return;
 
         // For ranged with projectile delay, queue pending damage instead
         if (attacker.UnitType == UnitType.Ranged && attacker.ProjectileDelay > 0)
@@ -366,7 +413,8 @@ public static class SimBehavior
                 summonerTargetId,
                 SimEffects.GetEffectiveAttackDamage(attacker),
                 state,
-                events);
+                events
+            );
             return;
         }
 
@@ -378,7 +426,8 @@ public static class SimBehavior
             SimEffects.GetEffectiveAttackDamage(attacker),
             attacker.Team,
             attacker.UnitId,
-            events);
+            events
+        );
     }
 
     /// <summary>
@@ -387,12 +436,19 @@ public static class SimBehavior
     /// Melee-only pending damage against summoners still resolves directly.
     /// Called after all units have moved for the tick.
     /// </summary>
-    public static void TickPendingDamage(UnitData unit, MatchState state, float delta, List<SimEvent> events)
+    public static void TickPendingDamage(
+        UnitData unit,
+        MatchState state,
+        float delta,
+        List<SimEvent> events
+    )
     {
-        if (unit.PendingDamageTimer <= 0) return;
+        if (unit.PendingDamageTimer <= 0)
+            return;
 
         unit.PendingDamageTimer -= delta;
-        if (unit.PendingDamageTimer > 0) return;
+        if (unit.PendingDamageTimer > 0)
+            return;
 
         unit.PendingDamageTimer = 0;
 
@@ -404,7 +460,13 @@ public static class SimBehavior
             {
                 if (unit.UnitType == UnitType.Ranged)
                 {
-                    SpawnProjectileToSummonerOrApplyDirect(unit, pendingTargetId, unit.PendingDamageAmount, state, events);
+                    SpawnProjectileToSummonerOrApplyDirect(
+                        unit,
+                        pendingTargetId,
+                        unit.PendingDamageAmount,
+                        state,
+                        events
+                    );
                 }
                 else
                 {
@@ -413,7 +475,15 @@ public static class SimBehavior
                     var summoner = state.Summoners[summonerTeam];
                     if (summoner.IsAlive)
                     {
-                        DealSummonerDamage(state, summoner, summonerTeam, unit.PendingDamageAmount, unit.Team, unit.UnitId, events);
+                        DealSummonerDamage(
+                            state,
+                            summoner,
+                            summonerTeam,
+                            unit.PendingDamageAmount,
+                            unit.Team,
+                            unit.UnitId,
+                            events
+                        );
                     }
                 }
             }
@@ -423,7 +493,13 @@ public static class SimBehavior
                 var target = state.GetAliveUnit(pendingTargetId);
                 if (target != null)
                 {
-                    SpawnProjectileOrApplyDirect(unit, target, unit.PendingDamageAmount, state, events);
+                    SpawnProjectileOrApplyDirect(
+                        unit,
+                        target,
+                        unit.PendingDamageAmount,
+                        state,
+                        events
+                    );
                 }
             }
 
@@ -437,8 +513,14 @@ public static class SimBehavior
     /// Shared by ApplyDamageToSummoner (immediate) and TickPendingDamage (delayed).
     /// </summary>
     private static void DealSummonerDamage(
-        MatchState state, SummonerData summoner, int summonerTeam,
-        float baseDamage, Team attackerTeam, int attackerUnitId, List<SimEvent> events)
+        MatchState state,
+        SummonerData summoner,
+        int summonerTeam,
+        float baseDamage,
+        Team attackerTeam,
+        int attackerUnitId,
+        List<SimEvent> events
+    )
     {
         float damage = baseDamage;
         var attackerSummoner = state.Summoners[(int)attackerTeam];
@@ -463,7 +545,12 @@ public static class SimBehavior
     }
 
     private static void SpawnProjectileOrApplyDirect(
-        UnitData attacker, UnitData target, float baseDamage, MatchState state, List<SimEvent> events)
+        UnitData attacker,
+        UnitData target,
+        float baseDamage,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         if (!TryResolveProjectileData(attacker, out var projectileData))
         {
@@ -511,7 +598,12 @@ public static class SimBehavior
     }
 
     private static void SpawnProjectileToSummonerOrApplyDirect(
-        UnitData attacker, int summonerTargetId, float baseDamage, MatchState state, List<SimEvent> events)
+        UnitData attacker,
+        int summonerTargetId,
+        float baseDamage,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         int summonerTeam = MatchState.GetSummonerTeamFromTargetId(summonerTargetId);
         var summoner = state.Summoners[summonerTeam];
@@ -520,7 +612,15 @@ public static class SimBehavior
 
         if (!TryResolveProjectileData(attacker, out var projectileData))
         {
-            DealSummonerDamage(state, summoner, summonerTeam, baseDamage, attacker.Team, attacker.UnitId, events);
+            DealSummonerDamage(
+                state,
+                summoner,
+                summonerTeam,
+                baseDamage,
+                attacker.Team,
+                attacker.UnitId,
+                events
+            );
             return;
         }
 
@@ -579,10 +679,14 @@ public static class SimBehavior
         return new SimVector3(
             startPos.X + mirroredOffsetX,
             startPos.Y + offset.Y,
-            startPos.Z + offset.Z);
+            startPos.Z + offset.Z
+        );
     }
 
-    private static bool TryResolveProjectileData(UnitData attacker, out ProjectileData projectileData)
+    private static bool TryResolveProjectileData(
+        UnitData attacker,
+        out ProjectileData projectileData
+    )
     {
         projectileData = null!;
 
@@ -613,7 +717,8 @@ public static class SimBehavior
 
     private static bool IsValidTarget(int? targetId, MatchState state)
     {
-        if (!targetId.HasValue) return false;
+        if (!targetId.HasValue)
+            return false;
 
         if (MatchState.IsSummonerTarget(targetId))
         {
@@ -630,7 +735,12 @@ public static class SimBehavior
     /// reduction from target summoner soul strength.
     /// Rounds to one decimal place for deterministic results.
     /// </summary>
-    private static float ApplySummonerDamageModifiers(float damage, SummonerData attacker, SummonerData target, float soulStrength = 0f)
+    private static float ApplySummonerDamageModifiers(
+        float damage,
+        SummonerData attacker,
+        SummonerData target,
+        float soulStrength = 0f
+    )
     {
         if (attacker.DamageBonus > 0f)
             damage *= 1f + attacker.DamageBonus / 100f;

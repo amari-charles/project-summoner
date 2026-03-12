@@ -13,5 +13,5 @@ public enum ProjectileHitSpace
     /// <summary>
     /// Use full 3D sphere checks for all targets.
     /// </summary>
-    Sphere3D = 1
+    Sphere3D = 1,
 }

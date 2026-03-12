@@ -6,5 +6,5 @@ namespace Fateforged.Simulation.Enums;
 public enum MovementIntentStrategy
 {
     Direct = 0,
-    Context = 1
+    Context = 1,
 }

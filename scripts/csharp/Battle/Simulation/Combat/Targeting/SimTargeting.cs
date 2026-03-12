@@ -1,11 +1,11 @@
 using System;
 using Fateforged.Simulation;
-using Fateforged.Units;
+using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
 using Fateforged.Simulation.Spatial;
-using Fateforged.Simulation.Combat.Slots;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -48,7 +48,8 @@ public static class SimTargeting
         MatchState state,
         int? currentTargetId,
         int? droppedTargetId,
-        float droppedTargetCooldownTimer)
+        float droppedTargetCooldownTimer
+    )
     {
         int enemyTeam = MatchState.GetEnemyTeam((int)unit.Team);
         int attackerLane = ResolvePreferredLane(unit);
@@ -63,27 +64,37 @@ public static class SimTargeting
         foreach (var kvp in state.Units)
         {
             var candidate = kvp.Value;
-            if (!candidate.IsAlive) continue;
-            if (candidate.ActivationState != ActivationState.Active) continue;
-            if ((int)candidate.Team != enemyTeam) continue;
+            if (!candidate.IsAlive)
+                continue;
+            if (candidate.ActivationState != ActivationState.Active)
+                continue;
+            if ((int)candidate.Team != enemyTeam)
+                continue;
             anyEnemyUnitAlive = true;
-            if (droppedTargetCooldownTimer > 0f &&
-                droppedTargetId.HasValue &&
-                candidate.UnitId == droppedTargetId.Value)
+            if (
+                droppedTargetCooldownTimer > 0f
+                && droppedTargetId.HasValue
+                && candidate.UnitId == droppedTargetId.Value
+            )
             {
                 continue;
             }
 
             float distSq = unit.Position.DistanceSquaredTo(candidate.Position);
-            if (distSq > unit.AggroRadius * unit.AggroRadius) continue;
+            if (distSq > unit.AggroRadius * unit.AggroRadius)
+                continue;
             float dist = MathF.Sqrt(distSq);
 
             int candidateLane = VirtualLanes.GetLaneIndex(candidate.Position.Z);
             int laneDistance = VirtualLanes.LaneDistance(attackerLane, candidateLane);
-            if (laneDistance > 0 && dist > unit.AggroRadius * CrossLaneAggroDistanceScale) continue;
-            if (!PassesLayerFilter(unit, candidate)) continue;
-            if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate)) continue;
-            if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist)) continue;
+            if (laneDistance > 0 && dist > unit.AggroRadius * CrossLaneAggroDistanceScale)
+                continue;
+            if (!PassesLayerFilter(unit, candidate))
+                continue;
+            if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate))
+                continue;
+            if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist))
+                continue;
             hadInAggroCandidate = true;
 
             if (IsTargetSlotSaturatedForAttacker(unit, candidate, state))
@@ -113,9 +124,11 @@ public static class SimTargeting
             return null;
 
         int summonerTargetId = MatchState.GetSummonerTargetId((int)enemySummoner.Team);
-        if (droppedTargetCooldownTimer > 0f &&
-            droppedTargetId.HasValue &&
-            droppedTargetId.Value == summonerTargetId)
+        if (
+            droppedTargetCooldownTimer > 0f
+            && droppedTargetId.HasValue
+            && droppedTargetId.Value == summonerTargetId
+        )
         {
             return null;
         }
@@ -123,7 +136,8 @@ public static class SimTargeting
         float summonerDistance = DistanceXZ(unit.Position, enemySummoner.Position);
         float summonerAcquireDistance = MathF.Max(
             CommitSummonerAcquireDistanceMin,
-            unit.AggroRadius * CommitSummonerAcquireDistanceScale);
+            unit.AggroRadius * CommitSummonerAcquireDistanceScale
+        );
 
         // If there were in-aggro unit candidates but they were all saturated,
         // allow fallback to summoner immediately to avoid deadlock.
@@ -137,14 +151,20 @@ public static class SimTargeting
         return summonerTargetId;
     }
 
-    private static bool IsTargetSlotSaturatedForAttacker(UnitData attacker, UnitData target, MatchState state)
+    private static bool IsTargetSlotSaturatedForAttacker(
+        UnitData attacker,
+        UnitData target,
+        MatchState state
+    )
     {
         if (attacker.UnitType != UnitType.Melee)
             return false;
 
-        if (attacker.SlotTargetId.HasValue &&
-            attacker.SlotTargetId.Value == target.UnitId &&
-            attacker.ReservedSlotId.HasValue)
+        if (
+            attacker.SlotTargetId.HasValue
+            && attacker.SlotTargetId.Value == target.UnitId
+            && attacker.ReservedSlotId.HasValue
+        )
         {
             return false;
         }
@@ -167,15 +187,19 @@ public static class SimTargeting
     /// Target acquisition that prefers currently attackable candidates, then falls back
     /// to baseline score-only selection.
     /// </summary>
-    public static int? AcquireTargetPreferAttackable(UnitData unit, MatchState state)
-        => AcquireTargetCore(unit, state, prioritizeAttackableNow: true);
+    public static int? AcquireTargetPreferAttackable(UnitData unit, MatchState state) =>
+        AcquireTargetCore(unit, state, prioritizeAttackableNow: true);
 
     /// <summary>
     /// Find the best target for a unit from all alive active enemy units.
     /// Group-aware: if unit has a LeaderId, copies leader's target.
     /// Returns the UnitId of the best target, or null if none found.
     /// </summary>
-    private static int? AcquireTargetCore(UnitData unit, MatchState state, bool prioritizeAttackableNow)
+    private static int? AcquireTargetCore(
+        UnitData unit,
+        MatchState state,
+        bool prioritizeAttackableNow
+    )
     {
         // Group targeting: follow leader's target if available
         if (unit.LeaderId.HasValue)
@@ -199,40 +223,51 @@ public static class SimTargeting
             var candidate = kvp.Value;
 
             // Basic filters
-            if (!candidate.IsAlive) continue;
-            if (candidate.ActivationState != ActivationState.Active) continue;
-            if ((int)candidate.Team != enemyTeam) continue;
+            if (!candidate.IsAlive)
+                continue;
+            if (candidate.ActivationState != ActivationState.Active)
+                continue;
+            if ((int)candidate.Team != enemyTeam)
+                continue;
 
             // Distance filter (aggro radius)
             float distSq = unit.Position.DistanceSquaredTo(candidate.Position);
-            if (distSq > unit.AggroRadius * unit.AggroRadius) continue;
+            if (distSq > unit.AggroRadius * unit.AggroRadius)
+                continue;
             float dist = MathF.Sqrt(distSq);
 
             int candidateLane = VirtualLanes.GetLaneIndex(candidate.Position.Z);
             int laneDistance = VirtualLanes.LaneDistance(attackerLane, candidateLane);
 
             // Virtual lane guard: far cross-lane candidates are ignored to reduce center pull.
-            if (laneDistance > 0 && dist > unit.AggroRadius * CrossLaneAggroDistanceScale) continue;
+            if (laneDistance > 0 && dist > unit.AggroRadius * CrossLaneAggroDistanceScale)
+                continue;
 
             // Layer filter
-            if (!PassesLayerFilter(unit, candidate)) continue;
+            if (!PassesLayerFilter(unit, candidate))
+                continue;
 
             // Reachability (cone constraint)
-            if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate)) continue;
-            if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist)) continue;
+            if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate))
+                continue;
+            if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist))
+                continue;
 
             // Score the candidate
             float score = ScoreTarget(unit, candidate, dist);
             score += ScoreLaneAffinity(unit, attackerLane, candidateLane, laneDistance);
 
-            if (prioritizeAttackableNow &&
-                IsWithinEngageDistance(unit, candidate.Position) &&
-                CanAttack(unit, candidate) &&
-                IsBetterScoredCandidate(
+            if (
+                prioritizeAttackableNow
+                && IsWithinEngageDistance(unit, candidate.Position)
+                && CanAttack(unit, candidate)
+                && IsBetterScoredCandidate(
                     score,
                     candidate.UnitId,
                     bestAttackableScore,
-                    bestAttackableId))
+                    bestAttackableId
+                )
+            )
             {
                 bestAttackableScore = score;
                 bestAttackableId = candidate.UnitId;
@@ -287,7 +322,7 @@ public static class SimTargeting
         {
             TargetLayer.GroundOnly => candidate.MovementLayer == MovementLayer.Ground,
             TargetLayer.AirOnly => candidate.MovementLayer == MovementLayer.Air,
-            _ => true
+            _ => true,
         };
     }
 
@@ -295,7 +330,8 @@ public static class SimTargeting
         float candidateScore,
         int candidateId,
         float bestScore,
-        int? bestId)
+        int? bestId
+    )
     {
         if (!bestId.HasValue)
             return true;
@@ -363,19 +399,28 @@ public static class SimTargeting
     }
 
     private static bool ShouldIgnoreForRole(
-        UnitData unit, int attackerLane, int candidateLane, int laneDistance, float distance)
+        UnitData unit,
+        int attackerLane,
+        int candidateLane,
+        int laneDistance,
+        float distance
+    )
     {
-        if (unit.TacticalRole == TacticalRole.Flanker &&
-            VirtualLanes.IsSideLane(attackerLane) &&
-            candidateLane == VirtualLanes.CenterLane &&
-            distance > FlankerCenterIgnoreDistance)
+        if (
+            unit.TacticalRole == TacticalRole.Flanker
+            && VirtualLanes.IsSideLane(attackerLane)
+            && candidateLane == VirtualLanes.CenterLane
+            && distance > FlankerCenterIgnoreDistance
+        )
         {
             return true;
         }
 
-        if (unit.TacticalRole == TacticalRole.Backliner &&
-            laneDistance > 1 &&
-            distance > unit.AttackRange * 1.2f)
+        if (
+            unit.TacticalRole == TacticalRole.Backliner
+            && laneDistance > 1
+            && distance > unit.AttackRange * 1.2f
+        )
         {
             return true;
         }
@@ -384,11 +429,14 @@ public static class SimTargeting
     }
 
     private static float ScoreLaneAffinity(
-        UnitData unit, int attackerLane, int candidateLane, int laneDistance)
+        UnitData unit,
+        int attackerLane,
+        int candidateLane,
+        int laneDistance
+    )
     {
-        float score = laneDistance == 0
-            ? SameLaneScoreBonus
-            : -CrossLaneScorePenaltyPerLane * laneDistance;
+        float score =
+            laneDistance == 0 ? SameLaneScoreBonus : -CrossLaneScorePenaltyPerLane * laneDistance;
 
         switch (unit.TacticalRole)
         {
@@ -406,7 +454,11 @@ public static class SimTargeting
         return score;
     }
 
-    private static float ComputeCongestionPenalty(UnitData attacker, UnitData target, MatchState state)
+    private static float ComputeCongestionPenalty(
+        UnitData attacker,
+        UnitData target,
+        MatchState state
+    )
     {
         if (attacker.UnitType != UnitType.Melee)
             return 0f;
@@ -449,7 +501,10 @@ public static class SimTargeting
             return horizontalDistance <= unit.AttackRange;
 
         float reachFromRect = unit.EngageRectForwardOffset + unit.EngageRectLength;
-        float maxReach = MathF.Max(unit.AttackRange, MathF.Max(reachFromRect, unit.EngageCloseRadius));
+        float maxReach = MathF.Max(
+            unit.AttackRange,
+            MathF.Max(reachFromRect, unit.EngageCloseRadius)
+        );
         return horizontalDistance <= maxReach + GeometryEpsilon;
     }
 
@@ -464,7 +519,7 @@ public static class SimTargeting
             EngageShape.Circle => true,
             EngageShape.Cone => IsInsideFacingCone(unit, targetPosition),
             EngageShape.ForwardRect => IsInsideForwardRect(unit, targetPosition),
-            _ => true
+            _ => true,
         };
     }
 
@@ -473,8 +528,8 @@ public static class SimTargeting
     /// Used by SimBehavior to decide between attacking and fallback movement.
     /// Delegates to CanAttackPosition using the target's current position.
     /// </summary>
-    public static bool CanAttack(UnitData unit, UnitData target)
-        => CanAttackPosition(unit, target.Position);
+    public static bool CanAttack(UnitData unit, UnitData target) =>
+        CanAttackPosition(unit, target.Position);
 
     private static EngageShape ResolveEngageShape(UnitData unit)
     {
@@ -496,8 +551,10 @@ public static class SimTargeting
         float angleToTarget = SimMath.RadToDeg(MathF.Atan2(toTarget.Z, toTarget.X));
         float facingAngle = (unit.IsFacingRight ? 0f : 180f) + unit.ConeCenterOffsetDegrees;
         float angleDiff = angleToTarget - facingAngle;
-        while (angleDiff > 180f) angleDiff -= 360f;
-        while (angleDiff < -180f) angleDiff += 360f;
+        while (angleDiff > 180f)
+            angleDiff -= 360f;
+        while (angleDiff < -180f)
+            angleDiff += 360f;
 
         return MathF.Abs(angleDiff) <= unit.ConeHalfAngle;
     }
@@ -508,12 +565,11 @@ public static class SimTargeting
         if (DistanceXZ(unit.Position, targetPosition) <= closeRadius + GeometryEpsilon)
             return true;
 
-        float length = unit.EngageRectLength > 0f
-            ? unit.EngageRectLength
-            : MathF.Max(unit.AttackRange * 0.9f, 0.1f);
-        float halfWidth = unit.EngageRectHalfWidth > 0f
-            ? unit.EngageRectHalfWidth
-            : 0.45f;
+        float length =
+            unit.EngageRectLength > 0f
+                ? unit.EngageRectLength
+                : MathF.Max(unit.AttackRange * 0.9f, 0.1f);
+        float halfWidth = unit.EngageRectHalfWidth > 0f ? unit.EngageRectHalfWidth : 0.45f;
         float forwardOffset = MathF.Max(unit.EngageRectForwardOffset, 0f);
 
         float forwardSign = unit.IsFacingRight ? 1f : -1f;
@@ -522,9 +578,9 @@ public static class SimTargeting
         float projectedForward = relX * forwardSign;
         float projectedRight = MathF.Abs(relZ);
 
-        return projectedForward >= forwardOffset - GeometryEpsilon &&
-               projectedForward <= (forwardOffset + length) + GeometryEpsilon &&
-               projectedRight <= halfWidth + GeometryEpsilon;
+        return projectedForward >= forwardOffset - GeometryEpsilon
+            && projectedForward <= (forwardOffset + length) + GeometryEpsilon
+            && projectedRight <= halfWidth + GeometryEpsilon;
     }
 
     private static float DistanceXZ(SimVector3 a, SimVector3 b)

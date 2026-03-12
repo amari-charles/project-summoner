@@ -1,9 +1,9 @@
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Account;
 using Fateforged.Infrastructure.Persistence;
+using Godot;
 using DeckModel = Fateforged.Domain.Profile.Decks.Deck;
 
 namespace Fateforged.Meta.Deck.Handlers;
@@ -84,7 +84,11 @@ public class DeckCrudHandler
     /// Create a new deck.
     /// Returns the deck ID, or empty string if failed.
     /// </summary>
-    public string CreateDeck(string deckName, CardInstanceId[] cardInstanceIds, SummonerId summonerId = default)
+    public string CreateDeck(
+        string deckName,
+        CardInstanceId[] cardInstanceIds,
+        SummonerId summonerId = default
+    )
     {
         // Determine summoner_id
         SummonerId finalSummonerId;
@@ -103,7 +107,9 @@ public class DeckCrudHandler
         {
             if (!_profileRepo.IsSummonerUnlocked(summonerId))
             {
-                GD.PushError($"DeckCrudHandler: Cannot create deck - summoner not unlocked: {summonerId}");
+                GD.PushError(
+                    $"DeckCrudHandler: Cannot create deck - summoner not unlocked: {summonerId}"
+                );
                 return "";
             }
             finalSummonerId = summonerId;
@@ -114,12 +120,14 @@ public class DeckCrudHandler
             Id = DeckId.None, // Will be assigned by repository
             Name = deckName,
             CardInstanceIds = cardInstanceIds.ToList(),
-            SummonerId = finalSummonerId
+            SummonerId = finalSummonerId,
         };
 
         var deckId = _profileRepo.UpsertDeck(deck);
 
-        GD.Print($"DeckCrudHandler: Created deck '{deckName}' with summoner '{finalSummonerId}' (id: {deckId})");
+        GD.Print(
+            $"DeckCrudHandler: Created deck '{deckName}' with summoner '{finalSummonerId}' (id: {deckId})"
+        );
         return deckId;
     }
 
@@ -128,7 +136,12 @@ public class DeckCrudHandler
     /// Pass null values to keep existing values.
     /// Returns true if successful.
     /// </summary>
-    public bool UpdateDeck(DeckId deckId, string? deckName = null, CardInstanceId[]? cardInstanceIds = null, SummonerId? summonerId = null)
+    public bool UpdateDeck(
+        DeckId deckId,
+        string? deckName = null,
+        CardInstanceId[]? cardInstanceIds = null,
+        SummonerId? summonerId = null
+    )
     {
         var existing = GetDeck(deckId);
         if (existing == null)
@@ -141,10 +154,14 @@ public class DeckCrudHandler
         {
             Id = deckId,
             Name = !string.IsNullOrEmpty(deckName) ? deckName : existing.Name,
-            CardInstanceIds = cardInstanceIds != null && cardInstanceIds.Length > 0
-                ? cardInstanceIds.ToList()
-                : existing.CardInstanceIds,
-            SummonerId = summonerId.HasValue && summonerId.Value.HasValue ? summonerId.Value : existing.SummonerId
+            CardInstanceIds =
+                cardInstanceIds != null && cardInstanceIds.Length > 0
+                    ? cardInstanceIds.ToList()
+                    : existing.CardInstanceIds,
+            SummonerId =
+                summonerId.HasValue && summonerId.Value.HasValue
+                    ? summonerId.Value
+                    : existing.SummonerId,
         };
 
         var resultId = _profileRepo.UpsertDeck(updated);
@@ -187,7 +204,11 @@ public class DeckCrudHandler
     /// Set the summoner for a deck.
     /// Returns true if successful.
     /// </summary>
-    public bool SetDeckSummoner(DeckId deckId, SummonerId summonerId, System.Func<string, bool>? summonerValidator = null)
+    public bool SetDeckSummoner(
+        DeckId deckId,
+        SummonerId summonerId,
+        System.Func<string, bool>? summonerValidator = null
+    )
     {
         var deck = GetDeck(deckId);
         if (deck == null)

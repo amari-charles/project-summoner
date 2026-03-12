@@ -22,11 +22,15 @@ public partial class SteamBillingProvider : BillingProvider
         }
         else
         {
-            GD.PushWarning("[SteamBilling] Steam singleton not found. Ensure GodotSteam is installed for Steam builds.");
+            GD.PushWarning(
+                "[SteamBilling] Steam singleton not found. Ensure GodotSteam is installed for Steam builds."
+            );
         }
 
         _load_products_from_catalog();
-        GD.Print($"[SteamBilling] Initialized (available={_available}, products={_products.Count})");
+        GD.Print(
+            $"[SteamBilling] Initialized (available={_available}, products={_products.Count})"
+        );
     }
 
     public override bool is_available()
@@ -45,7 +49,11 @@ public partial class SteamBillingProvider : BillingProvider
         var steamItemId = _map_product_id(product_id);
         if (string.IsNullOrEmpty(steamItemId))
         {
-            EmitSignal("purchase_failed", product_id, $"Missing Steam item mapping for '{product_id}'");
+            EmitSignal(
+                "purchase_failed",
+                product_id,
+                $"Missing Steam item mapping for '{product_id}'"
+            );
             return;
         }
 
@@ -54,7 +62,11 @@ public partial class SteamBillingProvider : BillingProvider
         else if (_steam_api.HasMethod("initTxn"))
             _steam_api.Call("initTxn", steamItemId);
         else
-            EmitSignal("purchase_failed", product_id, "Steam billing API is not wired (missing purchase_item/initTxn)");
+            EmitSignal(
+                "purchase_failed",
+                product_id,
+                "Steam billing API is not wired (missing purchase_item/initTxn)"
+            );
     }
 
     public override void restore_purchases()
@@ -104,10 +116,16 @@ public partial class SteamBillingProvider : BillingProvider
 
     private void _connect_platform_signals()
     {
-        _connect_if_present("purchase_success", Callable.From<string, string>(_on_purchase_success));
+        _connect_if_present(
+            "purchase_success",
+            Callable.From<string, string>(_on_purchase_success)
+        );
         _connect_if_present("purchase_failed", Callable.From<string, string>(_on_purchase_failed));
         _connect_if_present("purchase_cancelled", Callable.From<string>(_on_purchase_cancelled));
-        _connect_if_present("txn_authorized", Callable.From<long, long, bool>(_on_steam_txn_authorized));
+        _connect_if_present(
+            "txn_authorized",
+            Callable.From<long, long, bool>(_on_steam_txn_authorized)
+        );
     }
 
     private void _connect_if_present(string signal_name, Callable callback)

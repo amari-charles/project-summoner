@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Stats;
+using Godot;
 
 namespace Fateforged.Data.Traits;
 
@@ -93,7 +93,8 @@ public static class TraitCatalog
         string[] entityTags,
         int currentLevel,
         IEnumerable<string> acquiredTraitIds,
-        int count = 3)
+        int count = 3
+    )
     {
         var acquired = new HashSet<string>(acquiredTraitIds);
         var entityTagSet = new HashSet<string>(entityTags);
@@ -127,7 +128,9 @@ public static class TraitCatalog
             // Check prerequisites (all must be acquired)
             if (trait.Prerequisites.Length > 0)
             {
-                bool hasAllPrereqs = trait.Prerequisites.All(prereqId => acquired.Contains(prereqId));
+                bool hasAllPrereqs = trait.Prerequisites.All(prereqId =>
+                    acquired.Contains(prereqId)
+                );
                 if (!hasAllPrereqs)
                     continue;
             }
@@ -138,10 +141,7 @@ public static class TraitCatalog
         // Shuffle and return requested count
         if (count > 0 && eligible.Count > count)
         {
-            return eligible
-                .OrderBy(_ => System.Random.Shared.Next())
-                .Take(count)
-                .ToArray();
+            return eligible.OrderBy(_ => System.Random.Shared.Next()).Take(count).ToArray();
         }
 
         return [.. eligible];
@@ -160,7 +160,8 @@ public static class TraitCatalog
         Summoners.SummonerDefinition summonerDef,
         int currentLevel,
         IEnumerable<TraitId> acquiredTraitIds,
-        int count = 3)
+        int count = 3
+    )
     {
         // Include innate traits in acquired set (can't re-acquire innate traits)
         // Convert TraitId to string for matching
@@ -170,7 +171,12 @@ public static class TraitCatalog
             acquired.Add(innateId);
         }
 
-        return GetAvailableTraitsForLevelUp(summonerDef.TraitEligibilityTags, currentLevel, acquired, count);
+        return GetAvailableTraitsForLevelUp(
+            summonerDef.TraitEligibilityTags,
+            currentLevel,
+            acquired,
+            count
+        );
     }
 
     /// <summary>
@@ -178,12 +184,14 @@ public static class TraitCatalog
     /// </summary>
     public static TraitDefinition[] GetGlobalPoolTraits(string entityType = TraitTags.Summoner)
     {
-        return TraitDefinitions.All.Where(t =>
-            !t.IsInnate &&
-            t.AcquisitionMode == TraitAcquisitionMode.LevelUpOffer &&
-            t.Tags.Contains(TraitTags.Global) &&
-            t.Tags.Contains(entityType)
-        ).ToArray();
+        return TraitDefinitions
+            .All.Where(t =>
+                !t.IsInnate
+                && t.AcquisitionMode == TraitAcquisitionMode.LevelUpOffer
+                && t.Tags.Contains(TraitTags.Global)
+                && t.Tags.Contains(entityType)
+            )
+            .ToArray();
     }
 
     /// <summary>
@@ -192,8 +200,10 @@ public static class TraitCatalog
     public static bool MeetsPrerequisites(string traitId, IEnumerable<string> acquiredTraitIds)
     {
         var trait = GetTrait(traitId);
-        if (trait == null) return false;
-        if (trait.Prerequisites.Length == 0) return true;
+        if (trait == null)
+            return false;
+        if (trait.Prerequisites.Length == 0)
+            return true;
 
         var acquired = new HashSet<string>(acquiredTraitIds);
         return trait.Prerequisites.All(prereqId => acquired.Contains(prereqId));
@@ -210,7 +220,8 @@ public static class TraitCatalog
     public static List<StatModifier> GetUnitModifiersForTrait(string traitId)
     {
         var trait = GetTrait(traitId);
-        if (trait == null) return [];
+        if (trait == null)
+            return [];
 
         var result = new List<StatModifier>();
         foreach (var mod in trait.Modifiers.Where(m => m.IsUnitModifier))
@@ -220,13 +231,19 @@ public static class TraitCatalog
                 Source = mod.Source ?? traitId,
                 Conditions = mod.Conditions ?? [],
                 StatMults = mod.StatMults ?? [],
-                StatAdds = mod.StatAdds ?? []
+                StatAdds = mod.StatAdds ?? [],
             };
 
             // Copy trigger fields if present
             if (mod.HasTrigger)
             {
-                if (System.Enum.TryParse<TriggerCondition>(mod.Trigger, ignoreCase: true, out var trigger))
+                if (
+                    System.Enum.TryParse<TriggerCondition>(
+                        mod.Trigger,
+                        ignoreCase: true,
+                        out var trigger
+                    )
+                )
                 {
                     statMod.Trigger = trigger;
                 }
@@ -281,7 +298,7 @@ public static class TraitCatalog
                         float f => f,
                         double d => (float)d,
                         bool b => b,
-                        _ => kvp.Value?.ToString() ?? ""
+                        _ => kvp.Value?.ToString() ?? "",
                     };
                 }
                 modDict["conditions"] = conditionsDict;
@@ -340,7 +357,7 @@ public static class TraitCatalog
             ["min_level"] = trait.MinLevel,
             ["max_level"] = trait.MaxLevel,
             ["prerequisites"] = prerequisitesArray,
-            ["modifiers"] = modifiersArray
+            ["modifiers"] = modifiersArray,
         };
     }
 
@@ -363,7 +380,9 @@ public static class TraitCatalog
     }
 
     /// <summary>Get unit modifiers for a trait as dictionaries for GDScript.</summary>
-    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetUnitModifiersForTraitAsDict(string traitId)
+    public static Godot.Collections.Array<Godot.Collections.Dictionary> GetUnitModifiersForTraitAsDict(
+        string traitId
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var modifier in GetUnitModifiersForTrait(traitId))

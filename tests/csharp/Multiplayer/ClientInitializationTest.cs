@@ -1,11 +1,11 @@
 namespace Fateforged.Tests.Multiplayer;
 
-using GdUnit4;
 using Fateforged.Simulation;
-using Fateforged.Units;
-using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
+using GdUnit4;
+using static GdUnit4.Assertions;
 
 /// <summary>
 /// Validates that MatchState is in a viable gameplay state after initialization.
@@ -26,7 +26,7 @@ public class ClientInitializationTest
         {
             Phase = GamePhase.Preparation,
             PrepTimeRemaining = 30f,
-            Rng = new DeterministicRng(42)
+            Rng = new DeterministicRng(42),
         };
 
         // Simulate what RegisterSummoner does for both teams
@@ -36,7 +36,9 @@ public class ClientInitializationTest
         var violations = MatchStateInvariants.ValidatePostInit(state);
 
         AssertThat(violations)
-            .OverrideFailureMessage($"Expected no violations but got: {string.Join("; ", violations)}")
+            .OverrideFailureMessage(
+                $"Expected no violations but got: {string.Join("; ", violations)}"
+            )
             .IsEmpty();
     }
 
@@ -52,7 +54,7 @@ public class ClientInitializationTest
         {
             Phase = GamePhase.Preparation,
             PrepTimeRemaining = 30f,
-            Rng = new DeterministicRng(42)
+            Rng = new DeterministicRng(42),
         };
 
         // Do NOT register summoners — simulates the bug where
@@ -77,7 +79,7 @@ public class ClientInitializationTest
         {
             Phase = GamePhase.Preparation,
             PrepTimeRemaining = 30f,
-            Rng = new DeterministicRng(42)
+            Rng = new DeterministicRng(42),
         };
 
         // Only register team 0
@@ -95,7 +97,14 @@ public class ClientInitializationTest
     /// <summary>
     /// Helper that mirrors what SimulationNode.RegisterSummoner does to MatchState.
     /// </summary>
-    private static void RegisterSummonerOnState(MatchState state, int team, float hp, float maxHp, float mana, float maxMana)
+    private static void RegisterSummonerOnState(
+        MatchState state,
+        int team,
+        float hp,
+        float maxHp,
+        float mana,
+        float maxMana
+    )
     {
         var summoner = state.Summoners[team];
         summoner.Team = (Team)team;

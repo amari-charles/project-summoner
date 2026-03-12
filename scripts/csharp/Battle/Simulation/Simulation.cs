@@ -612,8 +612,12 @@ public class Simulation
     {
         var spawningCardRef = BuildRuntimeRef(cardData.CatalogId, castingCardInstanceId);
         var spawnCountAdd = _state.TraitRuntimeState.GetCardInstanceSpawnCountAdd(
-            new TraitRuntimeCardInstanceId(castingCardInstanceId.Value));
-        var effectiveTemplateCounts = BuildEffectiveTemplateCounts(cardData.UnitTemplates, spawnCountAdd);
+            new TraitRuntimeCardInstanceId(castingCardInstanceId.Value)
+        );
+        var effectiveTemplateCounts = BuildEffectiveTemplateCounts(
+            cardData.UnitTemplates,
+            spawnCountAdd
+        );
         int unitIndex = 0;
         int totalUnits = 0;
         int firstNetworkId = -1;
@@ -632,9 +636,8 @@ public class Simulation
                 var networkId = _state.NextNetworkId();
                 if (firstNetworkId < 0)
                     firstNetworkId = networkId;
-                float spawnRadius = template.NavigationRadius > 0f
-                    ? template.NavigationRadius
-                    : 0.5f;
+                float spawnRadius =
+                    template.NavigationRadius > 0f ? template.NavigationRadius : 0.5f;
                 var position = CalculateSpawnOffset(
                     spawnPosition,
                     unitIndex,
@@ -731,7 +734,10 @@ public class Simulation
             _state.Summoners[team].CastingNetworkId = firstNetworkId;
     }
 
-    private static int[] BuildEffectiveTemplateCounts(List<SimUnitTemplate> templates, int spawnCountAdd)
+    private static int[] BuildEffectiveTemplateCounts(
+        List<SimUnitTemplate> templates,
+        int spawnCountAdd
+    )
     {
         var counts = new int[templates.Count];
         for (int i = 0; i < templates.Count; i++)

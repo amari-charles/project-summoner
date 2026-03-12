@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Data.Events;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
@@ -41,22 +41,26 @@ public class CampaignCatalogHandler
             foreach (var eventId in campaign.EventIds)
             {
                 var evt = EventCatalog.GetEvent(eventId);
-                if (evt == null) continue;
+                if (evt == null)
+                    continue;
 
                 _store.Events[eventId] = evt;
             }
         }
 
-        GD.Print($"CampaignCatalogHandler: Initialized {_store.Campaigns.Count} campaigns with {_store.Events.Count} total events from C# catalogs");
+        GD.Print(
+            $"CampaignCatalogHandler: Initialized {_store.Campaigns.Count} campaigns with {_store.Events.Count} total events from C# catalogs"
+        );
     }
 
-    private static string GetEventTypeForUI(EventType type) => type switch
-    {
-        EventType.Battle or EventType.Elite or EventType.Boss => "battle",
-        EventType.Caravan => "caravan",
-        EventType.Choice => "choice",
-        _ => "battle"
-    };
+    private static string GetEventTypeForUI(EventType type) =>
+        type switch
+        {
+            EventType.Battle or EventType.Elite or EventType.Boss => "battle",
+            EventType.Caravan => "caravan",
+            EventType.Choice => "choice",
+            _ => "battle",
+        };
 
     // =========================================================================
     // CAMPAIGN QUERIES
@@ -81,7 +85,8 @@ public class CampaignCatalogHandler
     public Godot.Collections.Dictionary GetCampaign(CampaignId campaignId)
     {
         var campaign = CampaignCatalog.GetCampaign(campaignId);
-        if (campaign == null) return new Godot.Collections.Dictionary();
+        if (campaign == null)
+            return new Godot.Collections.Dictionary();
         return CampaignCatalog.ToDictionary(campaign);
     }
 
@@ -89,9 +94,11 @@ public class CampaignCatalogHandler
     public bool IsCampaignUnlocked(CampaignId campaignId)
     {
         var campaign = CampaignCatalog.GetCampaign(campaignId);
-        if (campaign == null) return false;
+        if (campaign == null)
+            return false;
 
-        if (campaign.UnlockRequirements.Count == 0) return true;
+        if (campaign.UnlockRequirements.Count == 0)
+            return true;
 
         foreach (var req in campaign.UnlockRequirements)
         {
@@ -112,12 +119,14 @@ public class CampaignCatalogHandler
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
 
         var campaign = CampaignCatalog.GetCampaign(_store.CurrentCampaignId);
-        if (campaign == null) return result;
+        if (campaign == null)
+            return result;
 
         foreach (var eventId in campaign.EventIds)
         {
             var evt = EventCatalog.GetEvent(eventId);
-            if (evt == null) continue;
+            if (evt == null)
+                continue;
 
             var dict = EventCatalog.ToDictionary(evt);
             dict["event_type"] = GetEventTypeForUI(evt.Type);
@@ -131,7 +140,8 @@ public class CampaignCatalogHandler
     public Godot.Collections.Dictionary GetBattle(EventId eventId)
     {
         var evt = EventCatalog.GetEvent(eventId);
-        if (evt == null) return new Godot.Collections.Dictionary();
+        if (evt == null)
+            return new Godot.Collections.Dictionary();
 
         var dict = EventCatalog.ToDictionary(evt);
         dict["event_type"] = GetEventTypeForUI(evt.Type);
@@ -146,7 +156,8 @@ public class CampaignCatalogHandler
         foreach (var battleId in _store.CompletedBattles)
         {
             var evt = EventCatalog.GetEvent(new EventId(battleId.Value));
-            if (evt == null) continue;
+            if (evt == null)
+                continue;
 
             var dict = EventCatalog.ToDictionary(evt);
             dict["event_type"] = GetEventTypeForUI(evt.Type);
@@ -167,7 +178,8 @@ public class CampaignCatalogHandler
     }
 
     /// <summary>Get typed event definition by ID with specific type.</summary>
-    public T? GetEventDefinition<T>(EventId eventId) where T : EventDefinition
+    public T? GetEventDefinition<T>(EventId eventId)
+        where T : EventDefinition
     {
         return EventCatalog.GetEvent<T>(eventId);
     }
@@ -182,10 +194,11 @@ public class CampaignCatalogHandler
     public BattleEventDefinition[] GetCurrentCampaignBattles()
     {
         var campaign = CampaignCatalog.GetCampaign(_store.CurrentCampaignId);
-        if (campaign == null) return System.Array.Empty<BattleEventDefinition>();
+        if (campaign == null)
+            return System.Array.Empty<BattleEventDefinition>();
 
-        return campaign.EventIds
-            .Select(id => EventCatalog.GetEvent<BattleEventDefinition>(id))
+        return campaign
+            .EventIds.Select(id => EventCatalog.GetEvent<BattleEventDefinition>(id))
             .Where(e => e != null)
             .Cast<BattleEventDefinition>()
             .ToArray();

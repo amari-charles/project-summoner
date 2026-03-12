@@ -26,14 +26,20 @@ public static class OverlapCorrection
         foreach (var kvp in state.Units)
         {
             var other = kvp.Value;
-            if (other.UnitId == unit.UnitId) continue;
-            if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationState.Active) continue;
-            if (other.MovementLayer != unit.MovementLayer) continue;
+            if (other.UnitId == unit.UnitId)
+                continue;
+            if (!other.IsAlive)
+                continue;
+            if (other.ActivationState != ActivationState.Active)
+                continue;
+            if (other.MovementLayer != unit.MovementLayer)
+                continue;
 
             // Skip current target — prevents infinite chase -> overlap -> push loops
-            if (unit.TargetUnitId.HasValue && other.UnitId == unit.TargetUnitId.Value) continue;
-            if (other.TargetUnitId.HasValue && other.TargetUnitId.Value == unit.UnitId) continue;
+            if (unit.TargetUnitId.HasValue && other.UnitId == unit.TargetUnitId.Value)
+                continue;
+            if (other.TargetUnitId.HasValue && other.TargetUnitId.Value == unit.UnitId)
+                continue;
 
             float unitRadius = CombatGeometry.GetNavigationRadius(unit);
             float otherRadius = CombatGeometry.GetNavigationRadius(other);
@@ -42,7 +48,8 @@ public static class OverlapCorrection
             diff.Y = 0;
             float distSq = diff.LengthSquared();
 
-            if (distSq >= minDist * minDist || distSq < 0.000001f) continue;
+            if (distSq >= minDist * minDist || distSq < 0.000001f)
+                continue;
 
             float dist = MathF.Sqrt(distSq);
             float overlap = minDist - dist;
@@ -62,7 +69,11 @@ public static class OverlapCorrection
         }
     }
 
-    private static bool UseSameTargetMeleeRelaxation(UnitData unit, UnitData other, MatchState state)
+    private static bool UseSameTargetMeleeRelaxation(
+        UnitData unit,
+        UnitData other,
+        MatchState state
+    )
     {
         return MeleeClumpContext.IsSameTargetCloseMeleePair(unit, other, state);
     }

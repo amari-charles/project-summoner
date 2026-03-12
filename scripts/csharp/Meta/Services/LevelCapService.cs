@@ -1,6 +1,6 @@
-using Godot;
 using System.Collections.Generic;
 using Fateforged.Meta.Cards;
+using Godot;
 
 namespace Fateforged.Meta;
 
@@ -96,7 +96,10 @@ public partial class LevelCapService : Node
     /// <summary>
     /// Get the effective traits from a Godot Array (for GDScript interop).
     /// </summary>
-    public Godot.Collections.Array<string> GetEffectiveTraitsArray(Godot.Collections.Array traits, int levelCap)
+    public Godot.Collections.Array<string> GetEffectiveTraitsArray(
+        Godot.Collections.Array traits,
+        int levelCap
+    )
     {
         var result = new Godot.Collections.Array<string>();
 
@@ -196,5 +199,4 @@ public partial class LevelCapService : Node
         }
         return 0;
     }
-
 }

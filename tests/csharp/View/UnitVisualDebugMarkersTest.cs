@@ -9,8 +9,8 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using Fateforged.View;
 using Fateforged.Units;
+using Fateforged.View;
 using GdUnit4;
 using Godot;
 using static GdUnit4.Assertions;
@@ -66,7 +66,10 @@ public partial class UnitVisualDebugMarkersTest
         SetPrivateField(visual, "_session", new StubSession(state));
         SetPrivateField(visual, "_unitId", unitId);
 
-        var markerField = typeof(UnitVisual).GetField("_debugHurtboxMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        var markerField = typeof(UnitVisual).GetField(
+            "_debugHurtboxMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
         AssertThat(markerField).IsNotNull();
 
         debugService.HurtboxEnabled = true;
@@ -107,16 +110,26 @@ public partial class UnitVisualDebugMarkersTest
             AttackRange = 4f,
             Attack = new AttackVectorState
             {
-                Selection = new AttackSelectionState { Mode = AttackSelectionMode.LineCollect, TargetLimit = 3 },
-                Area = new AttackAreaState { LineLength = 6f, LineHalfWidth = 0.6f }
-            }
+                Selection = new AttackSelectionState
+                {
+                    Mode = AttackSelectionMode.LineCollect,
+                    TargetLimit = 3,
+                },
+                Area = new AttackAreaState { LineLength = 6f, LineHalfWidth = 0.6f },
+            },
         };
 
         SetPrivateField(visual, "_session", new StubSession(state));
         SetPrivateField(visual, "_unitId", unitId);
 
-        var engageField = typeof(UnitVisual).GetField("_debugEngageRangeMarker", BindingFlags.Instance | BindingFlags.NonPublic);
-        var damageShapeField = typeof(UnitVisual).GetField("_debugDamageShapeMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        var engageField = typeof(UnitVisual).GetField(
+            "_debugEngageRangeMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+        var damageShapeField = typeof(UnitVisual).GetField(
+            "_debugDamageShapeMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
         AssertThat(engageField).IsNotNull();
         AssertThat(damageShapeField).IsNotNull();
 
@@ -164,15 +177,21 @@ public partial class UnitVisualDebugMarkersTest
             EngageRectHalfWidth = 0.6f,
             EngageRectForwardOffset = 0.2f,
             EngageCloseRadius = 0.45f,
-            IsFacingRight = true
+            IsFacingRight = true,
         };
 
         SetPrivateField(visual, "_session", new StubSession(state));
         SetPrivateField(visual, "_unitId", unitId);
         SetPrivateField(visual, "_isFacingRight", true);
 
-        var primaryField = typeof(UnitVisual).GetField("_debugEngageRangeMarker", BindingFlags.Instance | BindingFlags.NonPublic);
-        var secondaryField = typeof(UnitVisual).GetField("_debugEngageRangeSecondaryMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        var primaryField = typeof(UnitVisual).GetField(
+            "_debugEngageRangeMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+        var secondaryField = typeof(UnitVisual).GetField(
+            "_debugEngageRangeSecondaryMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
         AssertThat(primaryField).IsNotNull();
         AssertThat(secondaryField).IsNotNull();
 
@@ -231,19 +250,22 @@ public partial class UnitVisualDebugMarkersTest
             IsAlive = true,
             Position = new SimVector3(0f, 0f, 0f),
             TargetUnitId = targetId,
-            AttackRange = 3f
+            AttackRange = 3f,
         };
         state.Units[targetId] = new UnitData
         {
             UnitId = targetId,
             IsAlive = true,
-            Position = new SimVector3(2.5f, 0f, 0.6f)
+            Position = new SimVector3(2.5f, 0f, 0.6f),
         };
 
         SetPrivateField(visual, "_session", new StubSession(state));
         SetPrivateField(visual, "_unitId", attackerId);
 
-        var damageShapeField = typeof(UnitVisual).GetField("_debugDamageShapeMarker", BindingFlags.Instance | BindingFlags.NonPublic);
+        var damageShapeField = typeof(UnitVisual).GetField(
+            "_debugDamageShapeMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
         AssertThat(damageShapeField).IsNotNull();
 
         debugService.DamageShapeEnabled = true;
@@ -258,7 +280,9 @@ public partial class UnitVisualDebugMarkersTest
 
     private static void SetPrivateField(object instance, string fieldName, object? value)
     {
-        var field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = instance
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field?.SetValue(instance, value);
     }
 
@@ -279,12 +303,8 @@ public partial class UnitVisualDebugMarkersTest
 
         public MatchState GetState() => _state;
 
-        public void SubmitCommand(ICommand command)
-        {
-        }
+        public void SubmitCommand(ICommand command) { }
 
-        public void Tick(float delta)
-        {
-        }
+        public void Tick(float delta) { }
     }
 }

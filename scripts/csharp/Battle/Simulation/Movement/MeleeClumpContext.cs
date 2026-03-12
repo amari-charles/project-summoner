@@ -28,8 +28,8 @@ internal static class MeleeClumpContext
         if (!sharedTargetPosition.HasValue)
             return false;
 
-        return IsCloseEngageContext(unit, sharedTargetPosition.Value) &&
-               IsCloseEngageContext(other, sharedTargetPosition.Value);
+        return IsCloseEngageContext(unit, sharedTargetPosition.Value)
+            && IsCloseEngageContext(other, sharedTargetPosition.Value);
     }
 
     public static bool IsTowardTargetCloseMeleeClump(
@@ -37,12 +37,15 @@ internal static class MeleeClumpContext
         MovementResult movement,
         int? targetId,
         MatchState state,
-        SimVector3 targetPosition)
+        SimVector3 targetPosition
+    )
     {
-        if (unit.UnitType != UnitType.Melee ||
-            movement != MovementResult.TowardTarget ||
-            !targetId.HasValue ||
-            MatchState.IsSummonerTarget(targetId))
+        if (
+            unit.UnitType != UnitType.Melee
+            || movement != MovementResult.TowardTarget
+            || !targetId.HasValue
+            || MatchState.IsSummonerTarget(targetId)
+        )
         {
             return false;
         }
@@ -62,8 +65,10 @@ internal static class MeleeClumpContext
             float pairDistance = (ally.Position - unit.Position).Length();
             float nearbyThreshold = MathF.Max(
                 NearbyAllyDistanceMin,
-                (CombatGeometry.GetNavigationRadius(unit) + CombatGeometry.GetNavigationRadius(ally)) *
-                NearbyAllyDistanceMultiplier
+                (
+                    CombatGeometry.GetNavigationRadius(unit)
+                    + CombatGeometry.GetNavigationRadius(ally)
+                ) * NearbyAllyDistanceMultiplier
             );
             if (pairDistance <= nearbyThreshold)
                 return true;
@@ -97,8 +102,8 @@ internal static class MeleeClumpContext
 
     private static bool IsTowardTargetOrEngaging(UnitData unit)
     {
-        return unit.BehaviorState == BehaviorState.Chasing ||
-               unit.BehaviorState == BehaviorState.InRange ||
-               unit.BehaviorState == BehaviorState.Attacking;
+        return unit.BehaviorState == BehaviorState.Chasing
+            || unit.BehaviorState == BehaviorState.InRange
+            || unit.BehaviorState == BehaviorState.Attacking;
     }
 }

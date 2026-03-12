@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Services;
 
 using System.Collections.Generic;
-using GdUnit4;
 using Fateforged.Meta;
+using GdUnit4;
 using Godot;
 using static GdUnit4.Assertions;
 
@@ -170,10 +170,7 @@ public class LevelCapServiceTest
     [TestCase]
     public void GetLevelCap_ConfigWithCap_ReturnsCap()
     {
-        var config = new Godot.Collections.Dictionary
-        {
-            ["level_cap"] = 5
-        };
+        var config = new Godot.Collections.Dictionary { ["level_cap"] = 5 };
 
         var result = _service.GetLevelCap(config);
 
@@ -183,10 +180,7 @@ public class LevelCapServiceTest
     [TestCase]
     public void GetLevelCap_ConfigWithZeroCap_ReturnsNoCap()
     {
-        var config = new Godot.Collections.Dictionary
-        {
-            ["level_cap"] = 0
-        };
+        var config = new Godot.Collections.Dictionary { ["level_cap"] = 0 };
 
         var result = _service.GetLevelCap(config);
 
@@ -218,10 +212,7 @@ public class LevelCapServiceTest
     [TestCase]
     public void HasLevelCap_ConfigWithCap_ReturnsTrue()
     {
-        var config = new Godot.Collections.Dictionary
-        {
-            ["level_cap"] = 3
-        };
+        var config = new Godot.Collections.Dictionary { ["level_cap"] = 3 };
 
         var result = _service.HasLevelCap(config);
 
@@ -253,10 +244,7 @@ public class LevelCapServiceTest
     [TestCase]
     public void GetPathType_ConfigWithPathType_ReturnsPathType()
     {
-        var config = new Godot.Collections.Dictionary
-        {
-            ["path_type"] = "elite"
-        };
+        var config = new Godot.Collections.Dictionary { ["path_type"] = "elite" };
 
         var result = _service.GetPathType(config);
 
@@ -288,10 +276,7 @@ public class LevelCapServiceTest
     [TestCase]
     public void GetRecommendedLevel_ConfigWithRecommendedLevel_ReturnsLevel()
     {
-        var config = new Godot.Collections.Dictionary
-        {
-            ["recommended_level"] = 5
-        };
+        var config = new Godot.Collections.Dictionary { ["recommended_level"] = 5 };
 
         var result = _service.GetRecommendedLevel(config);
 

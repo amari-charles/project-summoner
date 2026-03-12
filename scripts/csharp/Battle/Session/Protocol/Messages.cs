@@ -1,6 +1,6 @@
-using Godot;
 using Fateforged.Projectiles;
 using Fateforged.Simulation.Data;
+using Godot;
 
 namespace Fateforged.Multiplayer.Protocol;
 
@@ -10,7 +10,9 @@ namespace Fateforged.Multiplayer.Protocol;
 /// Transport-agnostic: works for P2P, Nakama relay, or dedicated server.
 /// </summary>
 public interface IProtocolMessage;
+
 public interface IRealtimeProtocolMessage : IProtocolMessage;
+
 public interface IReconnectSeedProtocolMessage : IProtocolMessage;
 
 // ============================================================================
@@ -41,17 +43,13 @@ public readonly record struct ForfeitRequest(int PlayerIndex) : IRealtimeProtoco
 /// <summary>
 /// Client reports their computed state hash for desync detection.
 /// </summary>
-public readonly record struct StateHashReport(
-    int PlayerIndex,
-    long Frame,
-    int Hash
-) : IRealtimeProtocolMessage;
+public readonly record struct StateHashReport(int PlayerIndex, long Frame, int Hash)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Client signals they are ready to start the match.
 /// </summary>
 public readonly record struct PlayerReady(int PlayerIndex, bool IsReady) : IRealtimeProtocolMessage;
-
 
 // ============================================================================
 // HOST → CLIENT MESSAGES
@@ -72,11 +70,8 @@ public readonly record struct CardPlayConfirmed(
 /// <summary>
 /// Host rejects a card play (not enough mana, invalid position, etc.)
 /// </summary>
-public readonly record struct CardPlayRejected(
-    int Sequence,
-    int PlayerIndex,
-    string Reason
-) : IRealtimeProtocolMessage;
+public readonly record struct CardPlayRejected(int Sequence, int PlayerIndex, string Reason)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Periodic state snapshot for synchronization and desync correction.
@@ -112,10 +107,8 @@ public readonly record struct UnitSpawned(
 /// <summary>
 /// A unit died.
 /// </summary>
-public readonly record struct UnitDied(
-    int NetworkId,
-    int? KillerNetworkId
-) : IRealtimeProtocolMessage;
+public readonly record struct UnitDied(int NetworkId, int? KillerNetworkId)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Damage was dealt to a unit or summoner.
@@ -131,38 +124,27 @@ public readonly record struct DamageDealt(
 /// <summary>
 /// Summoner took direct damage.
 /// </summary>
-public readonly record struct SummonerDamaged(
-    int Team,
-    float Amount,
-    float NewHp
-) : IRealtimeProtocolMessage;
+public readonly record struct SummonerDamaged(int Team, float Amount, float NewHp)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Summoner took damage — triggers visual flash on client.
 /// Distinct from SummonerDamaged which carries HP state.
 /// </summary>
-public readonly record struct SummonerDamageFlash(
-    int Team,
-    float Damage,
-    int AttackerUnitId
-) : IRealtimeProtocolMessage;
+public readonly record struct SummonerDamageFlash(int Team, float Damage, int AttackerUnitId)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Summoner was destroyed — triggers death animation on client.
 /// </summary>
-public readonly record struct SummonerDestroyed(
-    int Team,
-    int KillerUnitId
-) : IRealtimeProtocolMessage;
+public readonly record struct SummonerDestroyed(int Team, int KillerUnitId)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Match has ended.
 /// </summary>
-public readonly record struct MatchEnded(
-    int WinnerIndex,
-    string Reason,
-    float Duration
-) : IRealtimeProtocolMessage;
+public readonly record struct MatchEnded(int WinnerIndex, string Reason, float Duration)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Authoritative spell cast visual cue. Keeps cast VFX deterministic across peers.
@@ -206,17 +188,13 @@ public readonly record struct ProjectileSpawned(
 /// <summary>
 /// Authoritative projectile hit message for client-side impact visuals.
 /// </summary>
-public readonly record struct ProjectileImpact(
-    int ProjectileId,
-    int TargetUnitId
-) : IRealtimeProtocolMessage;
+public readonly record struct ProjectileImpact(int ProjectileId, int TargetUnitId)
+    : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Authoritative projectile removal message for cleanup on clients.
 /// </summary>
-public readonly record struct ProjectileDespawned(
-    int ProjectileId
-) : IRealtimeProtocolMessage;
+public readonly record struct ProjectileDespawned(int ProjectileId) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Seed state for one active projectile used after reconnect/late join recovery.
@@ -251,11 +229,8 @@ public readonly record struct ActiveProjectileSeed(
 /// <summary>
 /// Full active projectile seed snapshot sent after reconnect to rebuild client visuals.
 /// </summary>
-public readonly record struct ProjectileSeedSnapshot(
-    long Frame,
-    ActiveProjectileSeed[] Projectiles
-) : IReconnectSeedProtocolMessage;
-
+public readonly record struct ProjectileSeedSnapshot(long Frame, ActiveProjectileSeed[] Projectiles)
+    : IReconnectSeedProtocolMessage;
 
 // ============================================================================
 // BIDIRECTIONAL / CONNECTION MESSAGES
@@ -285,8 +260,9 @@ public readonly record struct PlayerInfo(
 /// Ping/pong for latency measurement.
 /// </summary>
 public readonly record struct Ping(long Timestamp) : IRealtimeProtocolMessage;
-public readonly record struct Pong(long OriginalTimestamp, long ServerTimestamp) : IRealtimeProtocolMessage;
 
+public readonly record struct Pong(long OriginalTimestamp, long ServerTimestamp)
+    : IRealtimeProtocolMessage;
 
 // ============================================================================
 // STATE SUB-TYPES
@@ -363,7 +339,6 @@ public readonly record struct ProjectileState(
     float TimeAlive = 0f,
     float Lifetime = 5f
 );
-
 
 // ============================================================================
 // MESSAGE TYPE ENUM (for serialization)

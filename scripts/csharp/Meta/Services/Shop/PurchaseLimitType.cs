@@ -12,7 +12,7 @@ public enum PurchaseLimitType
     PerRefresh,
 
     /// <summary>Account-wide permanent limit.</summary>
-    Account
+    Account,
 }
 
 /// <summary>
@@ -21,20 +21,22 @@ public enum PurchaseLimitType
 public static class PurchaseLimitTypeExtensions
 {
     /// <summary>Convert enum to string value for GDScript interop.</summary>
-    public static string ToStringValue(this PurchaseLimitType type) => type switch
-    {
-        PurchaseLimitType.None => "none",
-        PurchaseLimitType.PerRefresh => "per_refresh",
-        PurchaseLimitType.Account => "account",
-        _ => "none"
-    };
+    public static string ToStringValue(this PurchaseLimitType type) =>
+        type switch
+        {
+            PurchaseLimitType.None => "none",
+            PurchaseLimitType.PerRefresh => "per_refresh",
+            PurchaseLimitType.Account => "account",
+            _ => "none",
+        };
 
     /// <summary>Parse string to PurchaseLimitType.</summary>
-    public static PurchaseLimitType ParsePurchaseLimitType(string value) => value switch
-    {
-        "none" => PurchaseLimitType.None,
-        "per_refresh" => PurchaseLimitType.PerRefresh,
-        "account" => PurchaseLimitType.Account,
-        _ => PurchaseLimitType.None
-    };
+    public static PurchaseLimitType ParsePurchaseLimitType(string value) =>
+        value switch
+        {
+            "none" => PurchaseLimitType.None,
+            "per_refresh" => PurchaseLimitType.PerRefresh,
+            "account" => PurchaseLimitType.Account,
+            _ => PurchaseLimitType.None,
+        };
 }

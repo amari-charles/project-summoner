@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Stats;
 
 using System.Collections.Generic;
-using GdUnit4;
 using Fateforged.Stats;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -32,11 +32,7 @@ public class UnitStatsTest
     [TestCase]
     public void Get_ReturnsCorrectValue()
     {
-        var stats = new UnitStats
-        {
-            MaxHp = 150f,
-            AttackDamage = 25f
-        };
+        var stats = new UnitStats { MaxHp = 150f, AttackDamage = 25f };
 
         AssertThat(stats.Get(StatKey.MaxHp)).IsEqual(150f);
         AssertThat(stats.Get(StatKey.AttackDamage)).IsEqual(25f);
@@ -89,7 +85,7 @@ public class UnitStatsTest
             ["crit_damage"] = 2.0f,
             ["armor"] = 10f,
             ["magic_resist"] = 5f,
-            ["soul_strength"] = 12f
+            ["soul_strength"] = 12f,
         };
 
         var stats = UnitStats.FromDictionary(dict);
@@ -110,16 +106,13 @@ public class UnitStatsTest
     [TestCase]
     public void FromDictionary_UsesDefaultsForMissingKeys()
     {
-        var dict = new Dictionary<string, float>
-        {
-            ["max_hp"] = 200f
-        };
+        var dict = new Dictionary<string, float> { ["max_hp"] = 200f };
 
         var stats = UnitStats.FromDictionary(dict);
 
         AssertThat(stats.MaxHp).IsEqual(200f);
         AssertThat(stats.AttackDamage).IsEqual(10f); // Default
-        AssertThat(stats.AttackSpeed).IsEqual(1f);   // Default
+        AssertThat(stats.AttackSpeed).IsEqual(1f); // Default
     }
 
     [TestCase]
@@ -131,7 +124,6 @@ public class UnitStatsTest
         AssertThat(stats.AttackDamage).IsEqual(10f);
     }
 
-
     [TestCase]
     public void WithModifiers_AppliesAddsBeforeMults()
     {
@@ -141,12 +133,12 @@ public class UnitStatsTest
         {
             new StatModifier
             {
-                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 20f }
+                StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 20f },
             },
             new StatModifier
             {
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.5f },
+            },
         };
 
         var modified = stats.WithModifiers(modifiers);
@@ -165,13 +157,13 @@ public class UnitStatsTest
             new StatModifier
             {
                 StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f },
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f },
             },
             new StatModifier
             {
                 StatAdds = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 10f },
-                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f }
-            }
+                StatMults = new Dictionary<StatKey, float> { [StatKey.MaxHp] = 1.1f },
+            },
         };
 
         var modified = stats.WithModifiers(modifiers);
@@ -201,16 +193,12 @@ public class UnitStatsTest
     [TestCase]
     public void WithUpgradeMultipliers_AppliesCorrectly()
     {
-        var stats = new UnitStats
-        {
-            MaxHp = 100f,
-            AttackDamage = 10f
-        };
+        var stats = new UnitStats { MaxHp = 100f, AttackDamage = 10f };
 
         var multipliers = new Dictionary<string, float>
         {
             ["max_hp"] = 1.2f,
-            ["attack_damage"] = 1.5f
+            ["attack_damage"] = 1.5f,
         };
 
         var upgraded = stats.WithUpgradeMultipliers(multipliers);
@@ -224,10 +212,7 @@ public class UnitStatsTest
     {
         var stats = new UnitStats { MaxHp = 100f };
 
-        var overrides = new Dictionary<string, float>
-        {
-            ["max_hp"] = 500f
-        };
+        var overrides = new Dictionary<string, float> { ["max_hp"] = 500f };
 
         var overridden = stats.WithOverrides(overrides);
 
@@ -237,11 +222,7 @@ public class UnitStatsTest
     [TestCase]
     public void ToString_FormatsNicely()
     {
-        var stats = new UnitStats
-        {
-            MaxHp = 100f,
-            AttackDamage = 10f
-        };
+        var stats = new UnitStats { MaxHp = 100f, AttackDamage = 10f };
 
         var str = stats.ToString();
 
@@ -252,11 +233,7 @@ public class UnitStatsTest
     [TestCase]
     public void CritStats_GetReturnsCorrectValues()
     {
-        var stats = new UnitStats
-        {
-            CritChance = 0.25f,
-            CritDamage = 2.5f
-        };
+        var stats = new UnitStats { CritChance = 0.25f, CritDamage = 2.5f };
 
         AssertThat(stats.Get(StatKey.CritChance)).IsEqual(0.25f);
         AssertThat(stats.Get(StatKey.CritDamage)).IsEqual(2.5f);
@@ -278,11 +255,7 @@ public class UnitStatsTest
     [TestCase]
     public void DefensiveStats_GetReturnsCorrectValues()
     {
-        var stats = new UnitStats
-        {
-            Armor = 15f,
-            MagicResist = 20f
-        };
+        var stats = new UnitStats { Armor = 15f, MagicResist = 20f };
 
         AssertThat(stats.Get(StatKey.Armor)).IsEqual(15f);
         AssertThat(stats.Get(StatKey.MagicResist)).IsEqual(20f);
@@ -304,11 +277,7 @@ public class UnitStatsTest
     [TestCase]
     public void ToString_IncludesCritStats()
     {
-        var stats = new UnitStats
-        {
-            CritChance = 0.25f,
-            CritDamage = 2.0f
-        };
+        var stats = new UnitStats { CritChance = 0.25f, CritDamage = 2.0f };
 
         var str = stats.ToString();
 
@@ -318,11 +287,7 @@ public class UnitStatsTest
     [TestCase]
     public void ToString_IncludesDefensiveStats()
     {
-        var stats = new UnitStats
-        {
-            Armor = 10f,
-            MagicResist = 15f
-        };
+        var stats = new UnitStats { Armor = 10f, MagicResist = 15f };
 
         var str = stats.ToString();
 

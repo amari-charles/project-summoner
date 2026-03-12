@@ -23,14 +23,18 @@ public static class MovementNeighborQuery
         List<UnitData> neighbors,
         List<float> neighborDistancesSq,
         bool sortByDistance = true,
-        bool includeBoundary = true)
+        bool includeBoundary = true
+    )
     {
         if (neighbors is null)
             throw new ArgumentNullException(nameof(neighbors));
         if (neighborDistancesSq is null)
             throw new ArgumentNullException(nameof(neighborDistancesSq));
         if (maxNeighbors <= 0)
-            throw new ArgumentOutOfRangeException(nameof(maxNeighbors), "maxNeighbors must be positive.");
+            throw new ArgumentOutOfRangeException(
+                nameof(maxNeighbors),
+                "maxNeighbors must be positive."
+            );
 
         neighbors.Clear();
         neighborDistancesSq.Clear();
@@ -41,21 +45,27 @@ public static class MovementNeighborQuery
         float radiusSq = radius * radius;
         foreach (var other in state.Units.Values)
         {
-            if (other.UnitId == unit.UnitId) continue;
-            if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationState.Active) continue;
-            if (other.MovementLayer != unit.MovementLayer) continue;
+            if (other.UnitId == unit.UnitId)
+                continue;
+            if (!other.IsAlive)
+                continue;
+            if (other.ActivationState != ActivationState.Active)
+                continue;
+            if (other.MovementLayer != unit.MovementLayer)
+                continue;
 
             var diff = other.Position - unit.Position;
             diff.Y = 0f;
             float distSq = diff.LengthSquared();
             if (includeBoundary)
             {
-                if (distSq > radiusSq) continue;
+                if (distSq > radiusSq)
+                    continue;
             }
             else
             {
-                if (distSq >= radiusSq) continue;
+                if (distSq >= radiusSq)
+                    continue;
             }
 
             if (neighbors.Count < maxNeighbors)
@@ -120,9 +130,11 @@ public static class MovementNeighborQuery
             while (j >= 0)
             {
                 bool previousAfterCurrent =
-                    distancesSq[j] > distance + DistanceTieEpsilon ||
-                    (MathF.Abs(distancesSq[j] - distance) <= DistanceTieEpsilon &&
-                     neighbors[j].UnitId > neighbor.UnitId);
+                    distancesSq[j] > distance + DistanceTieEpsilon
+                    || (
+                        MathF.Abs(distancesSq[j] - distance) <= DistanceTieEpsilon
+                        && neighbors[j].UnitId > neighbor.UnitId
+                    );
                 if (!previousAfterCurrent)
                     break;
 

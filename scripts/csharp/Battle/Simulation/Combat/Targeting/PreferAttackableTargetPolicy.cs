@@ -7,8 +7,9 @@ namespace Fateforged.Simulation.Combat.Targeting;
 /// </summary>
 public sealed class PreferAttackableTargetPolicy : ITargetPolicy
 {
-    public bool ShouldKeepCurrentTarget(UnitData unit, MatchState state, int? currentTargetId) => false;
+    public bool ShouldKeepCurrentTarget(UnitData unit, MatchState state, int? currentTargetId) =>
+        false;
 
-    public int? SelectTarget(UnitData unit, MatchState state)
-        => SimTargeting.AcquireTargetPreferAttackable(unit, state);
+    public int? SelectTarget(UnitData unit, MatchState state) =>
+        SimTargeting.AcquireTargetPreferAttackable(unit, state);
 }

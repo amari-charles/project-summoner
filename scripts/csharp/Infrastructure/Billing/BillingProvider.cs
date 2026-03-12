@@ -20,10 +20,14 @@ public partial class BillingProvider : Node
     public delegate void purchase_cancelledEventHandler(string product_id);
 
     [Signal]
-    public delegate void products_loadedEventHandler(Godot.Collections.Array<BillingProduct> products);
+    public delegate void products_loadedEventHandler(
+        Godot.Collections.Array<BillingProduct> products
+    );
 
     [Signal]
-    public delegate void restore_completedEventHandler(Godot.Collections.Array<string> restored_product_ids);
+    public delegate void restore_completedEventHandler(
+        Godot.Collections.Array<string> restored_product_ids
+    );
 
     [Signal]
     public delegate void restore_failedEventHandler(string error);

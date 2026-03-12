@@ -9,5 +9,5 @@ public enum UnlockCondition
     Default,
 
     /// <summary>Only available in development/debug builds.</summary>
-    DevOnly
+    DevOnly,
 }

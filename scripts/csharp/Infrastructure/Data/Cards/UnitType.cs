@@ -12,5 +12,5 @@ public enum UnitType
     Ranged,
 
     /// <summary>Static defensive units that don't move.</summary>
-    Structure
+    Structure,
 }

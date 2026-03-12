@@ -78,7 +78,9 @@ public partial class EmotesCatalogBridge : Node
     // QUERY METHODS
     // =========================================================================
 
-    public Godot.Collections.Array<Godot.Collections.Dictionary> GetEmotesByCategory(string category)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetEmotesByCategory(
+        string category
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var emote in EmotesCatalog.GetEmotesByCategory(category))
@@ -115,7 +117,8 @@ public partial class EmotesCatalogBridge : Node
     public string GetEmoteName(string emoteId)
     {
         var emote = EmotesCatalog.GetEmote(emoteId);
-        if (emote == null) return "";
+        if (emote == null)
+            return "";
         return Localize(emote.NameKey);
     }
 

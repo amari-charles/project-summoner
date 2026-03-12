@@ -37,6 +37,7 @@ public record AttackTimingConfig
 public record AttackSelectionConfig
 {
     public AttackSelectionMode Mode { get; init; } = AttackSelectionMode.Single;
+
     /// <summary>
     /// Max recipients for this attack vector.
     /// null = preset/default behavior, 1 = primary only, 0 = unlimited.

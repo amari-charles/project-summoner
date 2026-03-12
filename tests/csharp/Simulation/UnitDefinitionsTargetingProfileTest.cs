@@ -42,7 +42,10 @@ public class UnitDefinitionsTargetingProfileTest
     [TestCase]
     public void BuildSimTemplate_RockThrower_UsesRangedGroundProfile_TargetingBothLayers()
     {
-        SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(UnitIds.EarthRockThrower, count: 1);
+        SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(
+            UnitIds.EarthRockThrower,
+            count: 1
+        );
 
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.MoveToward);
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
@@ -123,20 +126,25 @@ public class UnitDefinitionsTargetingProfileTest
 
         AssertThat(template.Attack.Timing.WindupSeconds).IsEqual(def!.Attack.Timing.WindupSeconds);
         AssertThat(template.Attack.Timing.ActiveSeconds).IsEqual(def.Attack.Timing.ActiveSeconds);
-        AssertThat(template.Attack.Timing.RecoverySeconds).IsEqual(def.Attack.Timing.RecoverySeconds);
-        AssertThat(template.Attack.Timing.TickIntervalSeconds).IsEqual(def.Attack.Timing.TickIntervalSeconds);
+        AssertThat(template.Attack.Timing.RecoverySeconds)
+            .IsEqual(def.Attack.Timing.RecoverySeconds);
+        AssertThat(template.Attack.Timing.TickIntervalSeconds)
+            .IsEqual(def.Attack.Timing.TickIntervalSeconds);
         AssertThat(template.Attack.Rules.TriggerMode).IsEqual(def.Attack.Rules.TriggerMode);
     }
 
     [TestCase(AttackPreset.AreaCleave, 3)]
     [TestCase(AttackPreset.LinePierce, 3)]
     [TestCase(AttackPreset.Chain, 3)]
-    public void BuildAttackVectorState_UnsetTargetLimit_UsesPresetDefault(AttackPreset preset, int expectedLimit)
+    public void BuildAttackVectorState_UnsetTargetLimit_UsesPresetDefault(
+        AttackPreset preset,
+        int expectedLimit
+    )
     {
         var config = new AttackVectorConfig
         {
             Preset = preset,
-            Selection = new AttackSelectionConfig()
+            Selection = new AttackSelectionConfig(),
         };
 
         var state = AttackVectorStateBuilder.Build(config);
@@ -152,7 +160,7 @@ public class UnitDefinitionsTargetingProfileTest
         var config = new AttackVectorConfig
         {
             Preset = preset,
-            Selection = new AttackSelectionConfig { TargetLimit = 1 }
+            Selection = new AttackSelectionConfig { TargetLimit = 1 },
         };
 
         var state = AttackVectorStateBuilder.Build(config);
@@ -168,7 +176,7 @@ public class UnitDefinitionsTargetingProfileTest
         var config = new AttackVectorConfig
         {
             Preset = preset,
-            Selection = new AttackSelectionConfig { TargetLimit = 0 }
+            Selection = new AttackSelectionConfig { TargetLimit = 0 },
         };
 
         var state = AttackVectorStateBuilder.Build(config);

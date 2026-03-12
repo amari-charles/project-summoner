@@ -3,11 +3,11 @@ namespace Fateforged.Tests.Simulation;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using GdUnit4;
-using Fateforged.Units;
-using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
+using GdUnit4;
+using static GdUnit4.Assertions;
 
 [TestSuite]
 public class SimTargetingTest
@@ -178,7 +178,13 @@ public class SimTargetingTest
     [TestCase]
     public void AcquireTarget_PolicyEnabled_PrefersAttackableNowEvenIfScoreLower()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, aggroRadius: 20f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            aggroRadius: 20f
+        );
         attacker.HasConeConstraint = false;
         attacker.DistanceScorerWeight = 0f;
         attacker.HealthScorerWeight = 100f;
@@ -197,7 +203,13 @@ public class SimTargetingTest
     [TestCase]
     public void AcquireTarget_ConeUnit_PrefersAttackableNowOverCloserOutOfCone()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 24f, aggroRadius: 24f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 24f,
+            aggroRadius: 24f
+        );
         attacker.HasConeConstraint = true;
         attacker.ConeHalfAngle = 30f;
         attacker.CloseRangeThreshold = 0.5f;
@@ -402,7 +414,13 @@ public class SimTargetingTest
     [TestCase]
     public void AcquireTarget_ForwardRect_PrefersAttackableFrontTargetOverBehindLowHp()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f, aggroRadius: 15f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 3f,
+            aggroRadius: 15f
+        );
         attacker.EngageShape = EngageShape.ForwardRect;
         attacker.EngageRectLength = 5.4f;
         attacker.EngageRectHalfWidth = 1.0f;

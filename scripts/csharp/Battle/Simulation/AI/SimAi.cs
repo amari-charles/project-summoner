@@ -29,10 +29,24 @@ public static class SimAi
             switch (summoner.Ai.Type)
             {
                 case AiType.Heuristic:
-                    TickTimerAi(state, summoner, team, fixedDelta, HeuristicAiStrategy.SelectCardIndex, HeuristicAiStrategy.SelectSpawnPosition);
+                    TickTimerAi(
+                        state,
+                        summoner,
+                        team,
+                        fixedDelta,
+                        HeuristicAiStrategy.SelectCardIndex,
+                        HeuristicAiStrategy.SelectSpawnPosition
+                    );
                     break;
                 case AiType.Simple:
-                    TickTimerAi(state, summoner, team, fixedDelta, SimpleAiStrategy.SelectCardIndex, SimpleAiStrategy.SelectSpawnPosition);
+                    TickTimerAi(
+                        state,
+                        summoner,
+                        team,
+                        fixedDelta,
+                        SimpleAiStrategy.SelectCardIndex,
+                        SimpleAiStrategy.SelectSpawnPosition
+                    );
                     break;
                 case AiType.Scripted:
                     ScriptedAiStrategy.Tick(state, summoner, team);
@@ -46,8 +60,13 @@ public static class SimAi
     /// Accumulates time, fires when threshold reached, picks card + position, queues command.
     /// </summary>
     private static void TickTimerAi(
-        MatchState state, SummonerData summoner, int team, float fixedDelta,
-        SelectCardFunc selectCard, SelectPositionFunc selectPosition)
+        MatchState state,
+        SummonerData summoner,
+        int team,
+        float fixedDelta,
+        SelectCardFunc selectCard,
+        SelectPositionFunc selectPosition
+    )
     {
         summoner.AiPlayTimer += fixedDelta;
 
@@ -69,7 +88,7 @@ public static class SimAi
 
         var cmd = new PlayCardCommand(team, cardIndex, spawnPosition)
         {
-            ExecuteFrame = state.FrameNumber + 1
+            ExecuteFrame = state.FrameNumber + 1,
         };
         state.PendingCommandBuffer.Add(cmd);
 
@@ -79,7 +98,11 @@ public static class SimAi
     }
 
     public delegate int SelectCardFunc(MatchState state, SummonerData summoner);
-    public delegate SimVector3 SelectPositionFunc(MatchState state, SummonerData summoner, SimCardCatalogId catalogId);
+    public delegate SimVector3 SelectPositionFunc(
+        MatchState state,
+        SummonerData summoner,
+        SimCardCatalogId catalogId
+    );
 
     /// <summary>
     /// Initialize AI timer for a summoner (called once at config time).

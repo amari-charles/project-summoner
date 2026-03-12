@@ -16,5 +16,5 @@ public enum SpellTargeting
     AreaOfEffect,
 
     /// <summary>Affects units in a selection radius.</summary>
-    SelectionRadius
+    SelectionRadius,
 }

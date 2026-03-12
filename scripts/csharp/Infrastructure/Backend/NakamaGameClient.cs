@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Godot;
 using Nakama;
 using NakamaClient = Nakama.Client;
-using NakamaSocket = Nakama.Socket;
 using NakamaSession = Nakama.Session;
+using NakamaSocket = Nakama.Socket;
 
 namespace Fateforged.Multiplayer.Backend;
 
@@ -66,17 +66,15 @@ public partial class NakamaGameClient : Node
     /// Path to session token storage.
     /// Player2 test instance uses a dedicated file to avoid restoring player1's session.
     /// </summary>
-    private static string SessionTokenPath => IsPlayer2Instance
-        ? "user://nakama_session_p2.dat"
-        : "user://nakama_session.dat";
+    private static string SessionTokenPath =>
+        IsPlayer2Instance ? "user://nakama_session_p2.dat" : "user://nakama_session.dat";
 
     /// <summary>
     /// Path to persisted device ID.
     /// Player2 test instance uses a dedicated file to keep test identities isolated.
     /// </summary>
-    private static string DeviceIdPath => IsPlayer2Instance
-        ? "user://device_id_p2.dat"
-        : "user://device_id.dat";
+    private static string DeviceIdPath =>
+        IsPlayer2Instance ? "user://device_id_p2.dat" : "user://device_id.dat";
 
     #endregion
 
@@ -161,7 +159,11 @@ public partial class NakamaGameClient : Node
     /// Includes user IDs and full participant metadata extracted from matchmaker properties.
     /// </summary>
     [Signal]
-    public delegate void MatchJoinedEventHandler(string matchId, string[] userIds, Godot.Collections.Array<MatchParticipantInfo> participants);
+    public delegate void MatchJoinedEventHandler(
+        string matchId,
+        string[] userIds,
+        Godot.Collections.Array<MatchParticipantInfo> participants
+    );
 
     /// <summary>
     /// Emitted when matchmaking is cancelled or times out.
@@ -174,13 +176,22 @@ public partial class NakamaGameClient : Node
     /// Data is decoded from UTF-8 bytes to a string for GDScript compatibility.
     /// </summary>
     [Signal]
-    public delegate void MatchDataReceivedEventHandler(string matchId, long opCode, string data, string senderId);
+    public delegate void MatchDataReceivedEventHandler(
+        string matchId,
+        long opCode,
+        string data,
+        string senderId
+    );
 
     /// <summary>
     /// Emitted when a player joins the current match.
     /// </summary>
     [Signal]
-    public delegate void MatchPresenceJoinedEventHandler(string matchId, string userId, string username);
+    public delegate void MatchPresenceJoinedEventHandler(
+        string matchId,
+        string userId,
+        string username
+    );
 
     /// <summary>
     /// Emitted when a player leaves the current match.
@@ -231,7 +242,9 @@ public partial class NakamaGameClient : Node
             serverKey: ServerKey
         );
 
-        GD.Print($"[NakamaGameClient] Initialized (Host: {Host}:{Port}, ServerKey: [redacted], SSL: {UseSSL})");
+        GD.Print(
+            $"[NakamaGameClient] Initialized (Host: {Host}:{Port}, ServerKey: [redacted], SSL: {UseSSL})"
+        );
 
         // Try to restore session from storage
         TryRestoreSession();
@@ -241,7 +254,8 @@ public partial class NakamaGameClient : Node
         string[] args,
         string defaultHost,
         int defaultPort,
-        string defaultServerKey)
+        string defaultServerKey
+    )
     {
         string host = defaultHost;
         int port = defaultPort;
@@ -277,7 +291,7 @@ public partial class NakamaGameClient : Node
         {
             Host = host,
             Port = port,
-            ServerKey = serverKey
+            ServerKey = serverKey,
         };
     }
 
@@ -339,7 +353,11 @@ public partial class NakamaGameClient : Node
     /// <summary>
     /// Authenticate with email and password.
     /// </summary>
-    public async Task<bool> AuthenticateEmailAsync(string email, string password, bool create = false)
+    public async Task<bool> AuthenticateEmailAsync(
+        string email,
+        string password,
+        bool create = false
+    )
     {
         if (_client == null)
         {
@@ -355,7 +373,9 @@ public partial class NakamaGameClient : Node
 
             SaveSession();
 
-            GD.Print($"[NakamaGameClient] Authenticated as {_session.Username} ({_session.UserId})");
+            GD.Print(
+                $"[NakamaGameClient] Authenticated as {_session.Username} ({_session.UserId})"
+            );
             EmitSignal(SignalName.Authenticated, _session.UserId, _session.Username);
 
             return true;
@@ -418,7 +438,9 @@ public partial class NakamaGameClient : Node
         if (refreshed && _session != null && !_session.IsExpired)
             return true;
 
-        GD.Print("[NakamaGameClient] Session unavailable after refresh attempt, re-authenticating device");
+        GD.Print(
+            "[NakamaGameClient] Session unavailable after refresh attempt, re-authenticating device"
+        );
         return await AuthenticateDeviceAsync();
     }
 
@@ -482,7 +504,8 @@ public partial class NakamaGameClient : Node
     /// </summary>
     public void DisconnectSocket()
     {
-        if (_socket == null) return;
+        if (_socket == null)
+            return;
 
         try
         {
@@ -540,13 +563,18 @@ public partial class NakamaGameClient : Node
                 if (users[i].NumericProperties.TryGetValue("rating", out var ratingVal))
                     rating = (int)Math.Round(ratingVal);
 
-                participants.Add(new MatchParticipantInfo
-                {
-                    UserId = users[i].Presence.UserId,
-                    Username = users[i].Presence.Username ?? "Unknown",
-                    SummonerId = users[i].StringProperties.TryGetValue("summoner_id", out var sid) ? sid : "ignis",
-                    Rating = rating
-                });
+                participants.Add(
+                    new MatchParticipantInfo
+                    {
+                        UserId = users[i].Presence.UserId,
+                        Username = users[i].Presence.Username ?? "Unknown",
+                        SummonerId = users[i]
+                            .StringProperties.TryGetValue("summoner_id", out var sid)
+                            ? sid
+                            : "ignis",
+                        Rating = rating,
+                    }
+                );
             }
 
             CallDeferred(MethodName.EmitMatchJoined, _activeMatchId, userIds, participants);
@@ -557,7 +585,11 @@ public partial class NakamaGameClient : Node
         }
     }
 
-    private void EmitMatchJoined(string matchId, string[] userIds, Godot.Collections.Array<MatchParticipantInfo> participants)
+    private void EmitMatchJoined(
+        string matchId,
+        string[] userIds,
+        Godot.Collections.Array<MatchParticipantInfo> participants
+    )
     {
         EmitSignal(SignalName.MatchJoined, matchId, userIds, participants);
     }
@@ -565,7 +597,13 @@ public partial class NakamaGameClient : Node
     private void OnMatchState(IMatchState state)
     {
         var dataStr = System.Text.Encoding.UTF8.GetString(state.State);
-        CallDeferred(MethodName.EmitMatchData, state.MatchId, state.OpCode, dataStr, state.UserPresence.UserId);
+        CallDeferred(
+            MethodName.EmitMatchData,
+            state.MatchId,
+            state.OpCode,
+            dataStr,
+            state.UserPresence.UserId
+        );
     }
 
     private void EmitMatchData(string matchId, long opCode, string data, string senderId)
@@ -577,7 +615,12 @@ public partial class NakamaGameClient : Node
     {
         foreach (var joined in presence.Joins)
         {
-            CallDeferred(MethodName.EmitPresenceJoined, presence.MatchId, joined.UserId, joined.Username);
+            CallDeferred(
+                MethodName.EmitPresenceJoined,
+                presence.MatchId,
+                joined.UserId,
+                joined.Username
+            );
         }
 
         foreach (var left in presence.Leaves)
@@ -621,7 +664,8 @@ public partial class NakamaGameClient : Node
     /// </summary>
     public void LeaveMatch()
     {
-        if (_socket == null || _activeMatchId == null) return;
+        if (_socket == null || _activeMatchId == null)
+            return;
 
         GD.Print($"[NakamaGameClient] Leaving match: {_activeMatchId}");
         _ = _socket.LeaveMatchAsync(_activeMatchId);
@@ -708,7 +752,9 @@ public partial class NakamaGameClient : Node
             using var writeFile = FileAccess.Open(DeviceIdPath, FileAccess.ModeFlags.Write);
             writeFile?.StoreString(deviceId);
 
-            GD.Print($"[NakamaGameClient] Generated new device ID ({(IsPlayer2Instance ? "player2" : "player1")})");
+            GD.Print(
+                $"[NakamaGameClient] Generated new device ID ({(IsPlayer2Instance ? "player2" : "player1")})"
+            );
         }
 
         // Use alternate identity for second test instance
@@ -723,7 +769,8 @@ public partial class NakamaGameClient : Node
 
     private void SaveSession()
     {
-        if (_session == null) return;
+        if (_session == null)
+            return;
 
         try
         {
@@ -743,23 +790,28 @@ public partial class NakamaGameClient : Node
 
     private void TryRestoreSession()
     {
-        if (!FileAccess.FileExists(SessionTokenPath)) return;
+        if (!FileAccess.FileExists(SessionTokenPath))
+            return;
 
         try
         {
             using var file = FileAccess.Open(SessionTokenPath, FileAccess.ModeFlags.Read);
-            if (file == null) return;
+            if (file == null)
+                return;
 
             var authToken = file.GetLine().Trim();
             var refreshToken = file.GetLine().Trim();
 
-            if (string.IsNullOrEmpty(authToken)) return;
+            if (string.IsNullOrEmpty(authToken))
+                return;
 
             _session = NakamaSession.Restore(authToken, refreshToken);
 
             if (_session.IsExpired)
             {
-                GD.Print("[NakamaGameClient] Restored session is expired, will need to re-authenticate");
+                GD.Print(
+                    "[NakamaGameClient] Restored session is expired, will need to re-authenticate"
+                );
                 _session = null;
                 ClearSavedSession();
             }

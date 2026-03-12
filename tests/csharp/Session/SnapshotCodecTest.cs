@@ -1,13 +1,13 @@
 namespace Fateforged.Tests.Session;
 
+using Fateforged.Cards;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using Fateforged.Cards;
-using GdUnit4;
 using Fateforged.Tests.Simulation;
 using Fateforged.Units;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -30,7 +30,7 @@ public class SnapshotCodecTest
             MatchTime = 10.5f,
             Phase = GamePhase.Battle,
             PrepTimeRemaining = 0f,
-            IsOvertime = true
+            IsOvertime = true,
         };
         state.WinnerTeam = null;
 
@@ -75,8 +75,10 @@ public class SnapshotCodecTest
         AssertThat(decoded.Summoners[0].DamageBonus).IsEqualApprox(12.5f, 0.001f);
         AssertThat(decoded.Summoners[0].DamageReduction).IsEqualApprox(3f, 0.001f);
         AssertThat(decoded.Summoners[0].SoulStrength).IsEqualApprox(1.5f, 0.001f);
-        AssertThat(decoded.Summoners[0].GetElementalDamageBonus(Element.Fire)).IsEqualApprox(20f, 0.001f);
-        AssertThat(decoded.Summoners[0].GetElementalDamageBonus(Element.Water)).IsEqualApprox(5f, 0.001f);
+        AssertThat(decoded.Summoners[0].GetElementalDamageBonus(Element.Fire))
+            .IsEqualApprox(20f, 0.001f);
+        AssertThat(decoded.Summoners[0].GetElementalDamageBonus(Element.Water))
+            .IsEqualApprox(5f, 0.001f);
     }
 
     [TestCase]

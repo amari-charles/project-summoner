@@ -42,13 +42,16 @@ public class EntityManagerTest
         var summoner = new SummonerVisual
         {
             Name = $"SummonerVisualTest_{_createdNodes.Count}",
-            Team = 0
+            Team = 0,
         };
         root.AddChild(summoner);
         _createdNodes.Add(summoner);
 
         int destroyedSignalCount = 0;
-        summoner.Connect(SummonerVisual.SignalName.SummonerDestroyed, Callable.From<Node3D>(_ => destroyedSignalCount++));
+        summoner.Connect(
+            SummonerVisual.SignalName.SummonerDestroyed,
+            Callable.From<Node3D>(_ => destroyedSignalCount++)
+        );
 
         manager.RegisterSummonerVisual(summoner, 0);
         manager.Visit(new SummonerDestroyedEvent(team: 0, killerUnitId: 123));

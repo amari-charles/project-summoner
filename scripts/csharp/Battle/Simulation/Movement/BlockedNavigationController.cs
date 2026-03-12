@@ -14,8 +14,11 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class BlockedNavigationController
 {
-    [ThreadStatic] private static List<UnitData>? _escapeNeighbors;
-    [ThreadStatic] private static List<float>? _escapeNeighborDistancesSq;
+    [ThreadStatic]
+    private static List<UnitData>? _escapeNeighbors;
+
+    [ThreadStatic]
+    private static List<float>? _escapeNeighborDistancesSq;
     private const float BlockedThresholdSeconds = 0.22f;
     private const float YieldDurationSeconds = 0.22f;
     private const float EscapeDurationSeconds = 0.55f;
@@ -34,7 +37,8 @@ public static class BlockedNavigationController
         SimBehavior.BehaviorResult behavior,
         MatchState state,
         MovementIntent baseIntent,
-        float delta)
+        float delta
+    )
     {
         if (!IsSupportedMovement(behavior.Movement))
         {
@@ -54,16 +58,20 @@ public static class BlockedNavigationController
         var toTarget = targetPos.Value - unit.Position;
         toTarget.Y = 0f;
         float targetDistance = toTarget.Length();
-        var targetDirection = targetDistance > DirectionThreshold
-            ? toTarget / targetDistance
-            : baseIntent.DesiredFacingDirection;
+        var targetDirection =
+            targetDistance > DirectionThreshold
+                ? toTarget / targetDistance
+                : baseIntent.DesiredFacingDirection;
 
-        if (MeleeClumpContext.IsTowardTargetCloseMeleeClump(
+        if (
+            MeleeClumpContext.IsTowardTargetCloseMeleeClump(
                 unit,
                 behavior.Movement,
                 behavior.MoveTargetId,
                 state,
-                targetPos.Value))
+                targetPos.Value
+            )
+        )
         {
             ResetRecoveryForCloseClump(unit, behavior.MoveTargetId, targetDistance);
             return baseIntent;
@@ -86,7 +94,11 @@ public static class BlockedNavigationController
         unit.NavigationBlockedTime = 0f;
         unit.NavigationYieldTimer = YieldDurationSeconds;
         unit.NavigationEscapeQueued = true;
-        unit.NavigationEscapeDirectionSign = ChooseEscapeDirectionSign(unit, targetDirection, state);
+        unit.NavigationEscapeDirectionSign = ChooseEscapeDirectionSign(
+            unit,
+            targetDirection,
+            state
+        );
         return BuildYieldIntent(baseIntent, targetDirection);
     }
 
@@ -96,8 +108,8 @@ public static class BlockedNavigationController
     /// </summary>
     public static void ResetState(UnitData unit) => Reset(unit);
 
-    private static bool IsSupportedMovement(MovementResult movement)
-        => movement == MovementResult.TowardTarget || movement == MovementResult.Strafe;
+    private static bool IsSupportedMovement(MovementResult movement) =>
+        movement == MovementResult.TowardTarget || movement == MovementResult.Strafe;
 
     private static void EnsureTargetTracking(UnitData unit, int? targetId)
     {
@@ -129,7 +141,11 @@ public static class BlockedNavigationController
     }
 
     private static void UpdateBlockedProgress(
-        UnitData unit, float targetDistance, MovementIntent baseIntent, float delta)
+        UnitData unit,
+        float targetDistance,
+        MovementIntent baseIntent,
+        float delta
+    )
     {
         if (unit.NavigationLastTargetDistance < 0f)
             return;
@@ -139,30 +155,42 @@ public static class BlockedNavigationController
         if (desiredSpeed < 0.05f)
             desiredSpeed = SimEffects.GetEffectiveMoveSpeed(unit);
 
-        float minProgress = MathF.Max(MinProgressAbsolute, desiredSpeed * delta * MinProgressSpeedRatio);
+        float minProgress = MathF.Max(
+            MinProgressAbsolute,
+            desiredSpeed * delta * MinProgressSpeedRatio
+        );
         if (progress < minProgress)
         {
             unit.NavigationBlockedTime += delta;
         }
         else
         {
-            unit.NavigationBlockedTime = MathF.Max(0f, unit.NavigationBlockedTime - (delta * BlockedRecoveryRate));
+            unit.NavigationBlockedTime = MathF.Max(
+                0f,
+                unit.NavigationBlockedTime - (delta * BlockedRecoveryRate)
+            );
         }
     }
 
-    private static MovementIntent BuildYieldIntent(MovementIntent baseIntent, SimVector3 targetDirection)
+    private static MovementIntent BuildYieldIntent(
+        MovementIntent baseIntent,
+        SimVector3 targetDirection
+    )
     {
         return new MovementIntent
         {
             Mode = baseIntent.Mode,
             TargetId = baseIntent.TargetId,
             DesiredVelocity = SimVector3.Zero,
-            DesiredFacingDirection = targetDirection
+            DesiredFacingDirection = targetDirection,
         };
     }
 
     private static MovementIntent BuildEscapeIntent(
-        UnitData unit, MovementIntent baseIntent, SimVector3 targetDirection)
+        UnitData unit,
+        MovementIntent baseIntent,
+        SimVector3 targetDirection
+    )
     {
         if (targetDirection.LengthSquared() < DirectionThreshold)
             return baseIntent;
@@ -183,11 +211,15 @@ public static class BlockedNavigationController
             Mode = baseIntent.Mode,
             TargetId = baseIntent.TargetId,
             DesiredVelocity = blended * (speed * EscapeSpeedScale),
-            DesiredFacingDirection = targetDirection
+            DesiredFacingDirection = targetDirection,
         };
     }
 
-    private static int ChooseEscapeDirectionSign(UnitData unit, SimVector3 targetDirection, MatchState state)
+    private static int ChooseEscapeDirectionSign(
+        UnitData unit,
+        SimVector3 targetDirection,
+        MatchState state
+    )
     {
         if (targetDirection.LengthSquared() < DirectionThreshold)
             return (unit.UnitId % 2 == 0) ? 1 : -1;
@@ -212,12 +244,16 @@ public static class BlockedNavigationController
             var diff = other.Position - unit.Position;
             diff.Y = 0f;
             float side = diff.Dot(left);
-            if (side > 0f) leftCount++;
-            else if (side < 0f) rightCount++;
+            if (side > 0f)
+                leftCount++;
+            else if (side < 0f)
+                rightCount++;
         }
 
-        if (leftCount < rightCount) return 1;
-        if (rightCount < leftCount) return -1;
+        if (leftCount < rightCount)
+            return 1;
+        if (rightCount < leftCount)
+            return -1;
         return (unit.UnitId % 2 == 0) ? 1 : -1;
     }
 
@@ -231,7 +267,11 @@ public static class BlockedNavigationController
         unit.NavigationEscapeQueued = false;
     }
 
-    private static void ResetRecoveryForCloseClump(UnitData unit, int? targetId, float targetDistance)
+    private static void ResetRecoveryForCloseClump(
+        UnitData unit,
+        int? targetId,
+        float targetDistance
+    )
     {
         unit.NavigationTargetId = targetId;
         unit.NavigationLastTargetDistance = targetDistance;

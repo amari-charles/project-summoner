@@ -11,5 +11,5 @@ public enum VisualTrait
     None = 0,
 
     /// <summary>Unit uses shared wisp visual rig and needs element-based tinting.</summary>
-    UsesWispVisuals = 1 << 0
+    UsesWispVisuals = 1 << 0,
 }

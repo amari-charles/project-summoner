@@ -29,6 +29,7 @@ public struct SimVector3 : IEquatable<SimVector3>
     public static readonly SimVector3 Back = new(0, 0, 1);
 
     public float Length() => MathF.Sqrt(X * X + Y * Y + Z * Z);
+
     public float LengthSquared() => X * X + Y * Y + Z * Z;
 
     public float DistanceTo(SimVector3 other)
@@ -50,7 +51,8 @@ public struct SimVector3 : IEquatable<SimVector3>
     public SimVector3 Normalized()
     {
         float len = Length();
-        if (len < 1e-8f) return Zero;
+        if (len < 1e-8f)
+            return Zero;
         return new SimVector3(X / len, Y / len, Z / len);
     }
 
@@ -75,18 +77,31 @@ public struct SimVector3 : IEquatable<SimVector3>
     }
 
     // Operators
-    public static SimVector3 operator +(SimVector3 a, SimVector3 b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
-    public static SimVector3 operator -(SimVector3 a, SimVector3 b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+    public static SimVector3 operator +(SimVector3 a, SimVector3 b) =>
+        new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+
+    public static SimVector3 operator -(SimVector3 a, SimVector3 b) =>
+        new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+
     public static SimVector3 operator *(SimVector3 v, float s) => new(v.X * s, v.Y * s, v.Z * s);
+
     public static SimVector3 operator *(float s, SimVector3 v) => new(v.X * s, v.Y * s, v.Z * s);
+
     public static SimVector3 operator /(SimVector3 v, float s) => new(v.X / s, v.Y / s, v.Z / s);
+
     public static SimVector3 operator -(SimVector3 v) => new(-v.X, -v.Y, -v.Z);
-    public static bool operator ==(SimVector3 a, SimVector3 b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
+
+    public static bool operator ==(SimVector3 a, SimVector3 b) =>
+        a.X == b.X && a.Y == b.Y && a.Z == b.Z;
+
     public static bool operator !=(SimVector3 a, SimVector3 b) => !(a == b);
 
     public bool Equals(SimVector3 other) => this == other;
+
     public override bool Equals(object? obj) => obj is SimVector3 other && Equals(other);
+
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
+
     public override string ToString() => $"({X:F3}, {Y:F3}, {Z:F3})";
 }
 
@@ -99,6 +114,8 @@ public static class SimMath
     public const float Tau = MathF.PI * 2f;
 
     public static float DegToRad(float degrees) => degrees * (MathF.PI / 180f);
+
     public static float RadToDeg(float radians) => radians * (180f / MathF.PI);
+
     public static float Clamp(float value, float min, float max) => Math.Clamp(value, min, max);
 }
