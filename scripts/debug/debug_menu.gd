@@ -122,7 +122,8 @@ func _compute_menu_enabled() -> bool:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if DISABLE_FLAG in args:
 		return false
-	return ENABLE_FLAG in args
+	# Default to enabled in debug builds.
+	return true
 
 
 ## =============================================================================
