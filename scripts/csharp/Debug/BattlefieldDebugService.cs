@@ -20,7 +20,7 @@ public partial class BattlefieldDebugService : Node
 
             if (Engine.GetMainLoop() is SceneTree tree)
             {
-                _instance = tree.Root.GetNodeOrNull<BattlefieldDebugService>("/root/BattlefieldDebug");
+                _instance = tree.Root.GetNodeOrNull<BattlefieldDebugService>("BattlefieldDebug");
             }
 
             return _instance;
