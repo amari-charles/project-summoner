@@ -128,6 +128,51 @@ public class BattleSceneTest
     }
 
     [TestCase]
+    public void NewBattleScene_DefaultPreparationDuration_Is15Seconds()
+    {
+        var scene = CreateBattleScene();
+        AssertThat(scene.PreparationDuration).IsEqual(15.0f);
+    }
+
+    [TestCase]
+    public void LoadSummonerData_OpeningHandContainsOnlySummons()
+    {
+        var scene = CreateBattleScene();
+        var staticDeck = new Godot.Collections.Array<Resource>();
+
+        var spell = BattleSessionFactory.CreateCardFromCatalog("mana_bolt");
+        var summonA = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
+        var summonB = BattleSessionFactory.CreateCardFromCatalog("water_wisp");
+        AssertThat(spell).IsNotNull();
+        AssertThat(summonA).IsNotNull();
+        AssertThat(summonB).IsNotNull();
+
+        staticDeck.Add((Resource)spell!);
+        staticDeck.Add((Resource)summonA!);
+        staticDeck.Add((Resource)summonB!);
+
+        var result = BattleSessionFactory.LoadSummonerData(
+            scene,
+            BattleSessionConfig.ForPractice(),
+            localTeam: 0,
+            deckLoadStrategy: DeckLoadStrategy.Static,
+            defaultMaxHp: 100f,
+            maxHandSize: 2,
+            staticDeck: staticDeck
+        );
+
+        AssertThat(result.Hand.Count).IsEqual(2);
+        var handTypes = result.Hand.OfType<Card>().Select(card => card.Type).ToList();
+        AssertThat(handTypes.Count).IsEqual(2);
+        AssertThat(handTypes.All(type => type == (int)CardType.Summon)).IsTrue();
+
+        AssertThat(result.Deck.Count).IsEqual(1);
+        var remainingCard = result.Deck[0] as Card;
+        AssertThat(remainingCard).IsNotNull();
+        AssertThat(remainingCard!.Type).IsEqual((int)CardType.Spell);
+    }
+
+    [TestCase]
     public void InitSummonerHost_AppliesComputedCombatModifiersToSimulationState()
     {
         var scene = CreateBattleScene();

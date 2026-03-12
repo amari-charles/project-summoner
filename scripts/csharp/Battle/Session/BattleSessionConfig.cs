@@ -38,6 +38,7 @@ public class BattleSessionConfig
     public WinConditionType WinCondition { get; set; } = WinConditionType.DestroySummoner;
     public float TimeLimit { get; set; }
     public int KillTarget { get; set; }
+    public float PreparationDuration { get; set; } = 15f;
 
     // =========================================================================
     // ENEMY CONFIG
@@ -112,6 +113,7 @@ public class BattleSessionConfig
             ),
             TimeLimit = (float)config.GetValueOrDefault("time_limit", 0.0f),
             KillTarget = (int)config.GetValueOrDefault("kill_target", 0),
+            PreparationDuration = (float)config.GetValueOrDefault("prep_duration", 15.0f),
 
             // Enemy
             EnemyHp = (float)config.GetValueOrDefault("enemy_hp", 0.0f),

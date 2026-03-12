@@ -1085,6 +1085,12 @@ public class Simulation
     /// </summary>
     private void DrawReplacementCard(SummonerData summoner, int targetIndex, List<SimEvent> events)
     {
+        if (_state.Phase == GamePhase.Preparation)
+        {
+            DrawReplacementCardDuringPreparation(summoner, targetIndex, events);
+            return;
+        }
+
         if (summoner.Deck.Count == 0 && summoner.DiscardPile.Count > 0)
         {
             RecycleDeck(summoner);
@@ -1092,6 +1098,72 @@ public class Simulation
         }
 
         DrawTopDeckCardIntoHand(summoner, targetIndex, events, eventHandIndex: targetIndex);
+    }
+
+    private void DrawReplacementCardDuringPreparation(
+        SummonerData summoner,
+        int targetIndex,
+        List<SimEvent> events
+    )
+    {
+        if (TryDrawFirstSummonCardFromDeckIntoHand(summoner, targetIndex, events, targetIndex))
+            return;
+
+        bool deckHasSummons = HasMatchingCard(summoner.Deck, IsSummonCard);
+        bool discardHasSummons = HasMatchingCard(summoner.DiscardPile, IsSummonCard);
+        if (!deckHasSummons && discardHasSummons)
+        {
+            RecycleDeck(summoner);
+            events.Add(new DeckRecycledEvent((int)summoner.Team));
+            TryDrawFirstSummonCardFromDeckIntoHand(summoner, targetIndex, events, targetIndex);
+        }
+    }
+
+    private bool TryDrawFirstSummonCardFromDeckIntoHand(
+        SummonerData summoner,
+        int insertIndex,
+        List<SimEvent> events,
+        int eventHandIndex
+    )
+    {
+        for (int i = 0; i < summoner.Deck.Count; i++)
+        {
+            if (!IsSummonCard(summoner.Deck[i]))
+                continue;
+
+            return DrawDeckCardIntoHand(
+                summoner,
+                i,
+                insertIndex,
+                events,
+                eventHandIndex: eventHandIndex
+            );
+        }
+
+        return false;
+    }
+
+    private bool IsSummonCard(SimCardCatalogId catalogId)
+    {
+        if (_state.CardDataMap.TryGetValue(catalogId, out var cardData))
+            return !cardData.IsSpell;
+
+        // Unknown cards default to summon behavior to avoid deadlocking hand draws.
+        return true;
+    }
+
+    private static bool HasMatchingCard(
+        List<SimCardCatalogId> cards,
+        Func<SimCardCatalogId, bool> predicate
+    )
+    {
+        for (int i = 0; i < cards.Count; i++)
+        {
+            if (predicate(cards[i]))
+                return true;
+        }
+
+        return false;
     }
 
     private static SimCardRuntimeRef BuildRuntimeRef(
@@ -1121,17 +1193,37 @@ public class Simulation
         int? eventHandIndex = null
     )
     {
-        if (summoner.Deck.Count == 0)
+        return DrawDeckCardIntoHand(summoner, 0, insertIndex, events, eventHandIndex);
+    }
+
+    private static bool DrawDeckCardIntoHand(
+        SummonerData summoner,
+        int deckIndex,
+        int insertIndex,
+        List<SimEvent>? events,
+        int? eventHandIndex = null
+    )
+    {
+        if (deckIndex < 0 || deckIndex >= summoner.Deck.Count)
             return false;
 
-        var card = summoner.Deck[0];
-        summoner.Deck.RemoveAt(0);
+        int originalDeckCount = summoner.Deck.Count;
+        if (summoner.DeckRefs.Count > originalDeckCount)
+        {
+            summoner.DeckRefs.RemoveRange(
+                originalDeckCount,
+                summoner.DeckRefs.Count - originalDeckCount
+            );
+        }
+
+        var card = summoner.Deck[deckIndex];
+        summoner.Deck.RemoveAt(deckIndex);
 
         SimCardRuntimeRef cardRef;
-        if (summoner.DeckRefs.Count > 0)
+        if (deckIndex >= 0 && deckIndex < summoner.DeckRefs.Count)
         {
-            cardRef = summoner.DeckRefs[0];
-            summoner.DeckRefs.RemoveAt(0);
+            cardRef = summoner.DeckRefs[deckIndex];
+            summoner.DeckRefs.RemoveAt(deckIndex);
             if (!cardRef.CatalogId.HasValue)
                 cardRef.CatalogId = card;
         }
