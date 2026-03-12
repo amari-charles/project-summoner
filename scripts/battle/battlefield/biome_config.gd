@@ -20,6 +20,8 @@ const TOP_SURFACE_Y_OFFSET: float = 0.005
 @export var use_checker_tile_pillars: bool = true
 ## Tile pillar height as a fraction of checker tile width.
 @export var checker_tile_pillar_height_ratio: float = 1.0 / 3.0
+## Global brightness multiplier for checker tile pillar colors (1.0 = unchanged).
+@export var checker_tile_brightness: float = 0.94
 
 @export_group("Lighting")
 @export var ambient_light_color: Color = Color.WHITE
@@ -140,12 +142,16 @@ func _build_checker_tile_pillars(battlefield: Node3D) -> bool:
 
 	var side_material: StandardMaterial3D = StandardMaterial3D.new()
 	side_material.vertex_color_use_as_albedo = true
+	side_material.vertex_color_is_srgb = true
+	side_material.albedo_color = Color(checker_tile_brightness, checker_tile_brightness, checker_tile_brightness, 1.0)
 	side_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	side_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	side_material.cull_mode = BaseMaterial3D.CULL_BACK
 
 	var top_material: StandardMaterial3D = StandardMaterial3D.new()
 	top_material.vertex_color_use_as_albedo = true
+	top_material.vertex_color_is_srgb = true
+	top_material.albedo_color = Color(checker_tile_brightness, checker_tile_brightness, checker_tile_brightness, 1.0)
 	top_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	top_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	top_material.cull_mode = BaseMaterial3D.CULL_BACK
