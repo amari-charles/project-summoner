@@ -58,7 +58,7 @@ func _ready() -> void:
 	if not _menu_enabled:
 		set_process(false)
 		set_process_input(false)
-		print("[Debug] DebugMenu disabled (use %s to enable)." % ENABLE_FLAG)
+		print("[Debug] DebugMenu disabled (remove %s to enable)." % DISABLE_FLAG)
 		return
 
 	# Always process, even when paused
@@ -122,7 +122,8 @@ func _compute_menu_enabled() -> bool:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if DISABLE_FLAG in args:
 		return false
-	return ENABLE_FLAG in args
+	# Default to enabled in debug builds.
+	return true
 
 
 ## =============================================================================

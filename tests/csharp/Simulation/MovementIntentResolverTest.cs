@@ -101,4 +101,44 @@ public class MovementIntentResolverTest
         AssertThat(unit.NavigationEscapeTimer).IsEqual(0f);
         AssertThat(unit.NavigationEscapeQueued).IsFalse();
     }
+
+    [TestCase]
+    public void Resolve_ForwardIntent_UsesObjectiveAdvanceCurve_ForAllUnitTypes()
+    {
+        var melee = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 12f, z: 10f);
+        var ranged = SimTestHelper.CreateRangedUnit(_state, team: 0, x: 12f, z: 10f);
+        var flying = SimTestHelper.CreateFlyingUnit(_state, team: 0, x: 12f, z: 10f);
+        melee.MovementIntentStrategy = MovementIntentStrategy.Direct;
+        ranged.MovementIntentStrategy = MovementIntentStrategy.Direct;
+        flying.MovementIntentStrategy = MovementIntentStrategy.Direct;
+
+        var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.Forward };
+        var meleeIntent = MovementIntentResolver.Resolve(melee, behavior, _state, Delta);
+        var rangedIntent = MovementIntentResolver.Resolve(ranged, behavior, _state, Delta);
+        var flyingIntent = MovementIntentResolver.Resolve(flying, behavior, _state, Delta);
+
+        AssertThat(meleeIntent.DesiredVelocity.X).IsGreater(0f);
+        AssertThat(meleeIntent.DesiredVelocity.Z).IsLess(0f);
+        AssertThat(rangedIntent.DesiredVelocity.X).IsGreater(0f);
+        AssertThat(rangedIntent.DesiredVelocity.Z).IsLess(0f);
+        AssertThat(flyingIntent.DesiredVelocity.X).IsGreater(0f);
+        AssertThat(flyingIntent.DesiredVelocity.Z).IsLess(0f);
+    }
+
+    [TestCase]
+    public void Tick_CommitMeleeForwardWithoutTarget_MovesInsteadOfIdling()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: -12f, z: 0f, moveSpeed: 3f);
+        var behavior = new SimBehavior.BehaviorResult
+        {
+            Movement = MovementResult.Forward,
+            MoveTargetId = null
+        };
+
+        var startPos = unit.Position;
+        SimMovement.Tick(unit, behavior, _state, Delta);
+
+        AssertThat(unit.Velocity.LengthSquared()).IsGreater(0.0001f);
+        AssertThat(unit.Position.X).IsGreater(startPos.X);
+    }
 }

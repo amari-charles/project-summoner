@@ -15,4 +15,20 @@ public static class SimConstants
     /// Allows death animations to play before cleanup.
     /// </summary>
     public const float DeathCleanupSeconds = 2.0f;
+
+    // =========================================================================
+    // OBJECTIVE ADVANCE
+    // =========================================================================
+
+    /// <summary>
+    /// Progress fraction (0..1) along own-summoner -> enemy-summoner axis where
+    /// objective-advance steering begins curving toward the enemy summoner.
+    /// </summary>
+    public const float ObjectiveAdvanceBandStartProgress = 0.70f;
+
+    /// <summary>
+    /// Exponent for objective-advance blend ramp after band start.
+    /// 2.0 = gentle progressive curve.
+    /// </summary>
+    public const float ObjectiveAdvanceCurveExponent = 2.0f;
 }

@@ -177,6 +177,12 @@ public static class SimMeleeSlotManager
         // Rebuild topology deterministically.
         slotState.Slots.Clear();
         float desiredOrbitRadius = MathF.Max(targetRadius + (attackerRadius * 0.9f), 0.2f);
+        if (attacker.EngageShape == EngageShape.ForwardRect && attacker.EngageRectForwardOffset > 0f)
+        {
+            // Forward-rect units with positive forward offset must reserve slots far enough
+            // ahead that their engage shape can actually include the target.
+            desiredOrbitRadius = MathF.Max(desiredOrbitRadius, attacker.EngageRectForwardOffset + 0.05f);
+        }
         // Slots must sit within practical attack reach so reserved attackers can
         // actually enter attack loop (important for large targets like summoners).
         float maxReachableOrbitRadius = MathF.Max(0.2f, attacker.AttackRange * 0.92f);

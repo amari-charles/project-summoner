@@ -104,6 +104,46 @@ public static class SimMovement
             return;
         }
 
+        if (behavior.Movement == MovementResult.Forward)
+        {
+            var objectiveDirection = MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, state);
+            if (objectiveDirection.LengthSquared() < DirectionThreshold)
+            {
+                unit.Velocity = SimVector3.Zero;
+                SimOverlapResolver.Correct(unit, state);
+                return;
+            }
+
+            float objectiveSpeed = SimEffects.GetEffectiveMoveSpeed(unit);
+            var objectiveVelocity = objectiveDirection * objectiveSpeed;
+            var objectivePreMovementPos = unit.Position;
+            var objectiveNewPos = unit.Position + objectiveVelocity * delta;
+            if (unit.MovementLayer == MovementLayer.Air)
+                objectiveNewPos.Y = unit.FlightAltitude;
+            else
+                objectiveNewPos.Y = unit.Position.Y;
+
+            unit.Position = BattlefieldBounds.ClampToBounds(objectiveNewPos);
+
+            var objectiveIntent = new MovementIntent
+            {
+                Mode = behavior.Movement,
+                TargetId = null,
+                DesiredVelocity = objectiveVelocity,
+                DesiredFacingDirection = objectiveDirection,
+            };
+            FacingController.Update(unit, objectiveIntent, state);
+
+            SimOverlapResolver.Correct(unit, state);
+            unit.Velocity = objectiveVelocity;
+
+            var objectiveDisp = unit.Position - objectivePreMovementPos;
+            float objectiveMoveDist = new SimVector3(objectiveDisp.X, 0f, objectiveDisp.Z).Length();
+            if (objectiveMoveDist > DirectionThreshold)
+                unit.DistanceTraveled += objectiveMoveDist;
+            return;
+        }
+
         var destination = MovementTargetResolver.Resolve(unit, behavior.MoveTargetId, state);
         if (!destination.HasValue)
         {

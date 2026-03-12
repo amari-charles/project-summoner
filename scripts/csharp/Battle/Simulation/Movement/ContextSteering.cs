@@ -245,8 +245,7 @@ public static class ContextSteering
     private static void FillForwardProfile(
         UnitData unit, MatchState state, ref ContextMap map)
     {
-        float direction = unit.Team == Team.Player ? 1.0f : -1.0f;
-        var forwardDir = new SimVector3(direction, 0f, 0f);
+        var forwardDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, state);
 
         // Strong interest in the forward direction, mild spread
         for (int i = 0; i < ContextMap.NumSlots; i++)

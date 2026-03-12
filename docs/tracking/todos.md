@@ -167,6 +167,12 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 - ✅ Added regression coverage for commit-lock drop-on-range-exit and ranged profile target-layer mapping.
 - ✅ Added regression coverage for forced-target expiry release, invalid forced-target recovery, and stable tie-break ordering.
 
+**Progress Update (2026-03-12, summoner preempt + objective advance):**
+- ✅ Added summoner soft-lock aggro preempt so committed summoner targets switch to valid in-aggro enemy units within one tick (`RetargetReason.AggroPreempt`), while forced targets and active attack phases remain non-preemptable.
+- ✅ Added no-target objective-advance steering (straight until engage band, then progressive curve toward enemy summoner) and wired it across direct/context movement paths.
+- ✅ Fixed forward-rect slot topology minimum orbit radius for positive forward-offset attackers to prevent standstill/no-swing behavior in Pebloom-like melee profiles.
+- ✅ Added deterministic regression coverage for summoner-preempt contract, objective-advance movement, and forward-rect idle/attack repros.
+
 **Notes:**
 - Related to lane-based movement todo (may affect targeting behavior)
 - Re-run this profile if future targeting policy changes alter commit-lock behavior.

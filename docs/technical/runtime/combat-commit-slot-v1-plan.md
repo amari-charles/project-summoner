@@ -75,9 +75,9 @@ Create a decision-complete refactor package before code mutation for the combat 
 
 ## Invariants (Must Hold)
 
-1. Retarget only on invalid target, forced override, or unreachable timeout.
+1. Retarget only on invalid target, forced override, unreachable timeout, or summoner-lock aggro preempt.
 2. Summoner always remains a valid candidate in acquire/reacquire scoring.
-3. Nearby enemy spawns never trigger opportunistic retarget by themselves.
+3. Nearby enemy spawns trigger preempt only when the current lock is summoner and a valid in-aggro unit candidate exists.
 4. Reserved slot cannot be stolen unless owner releases or becomes invalid.
 5. Slot change on same target allowed only if slot invalid or same-target progress timeout exceeded.
 6. No translation during `Windup`, `Active`, or `Recovery`.
@@ -125,7 +125,7 @@ Create a decision-complete refactor package before code mutation for the combat 
 ### C) Enum/Contract Additions
 - [x] `ENUM-001` Add `CombatLifecycleState` enum.
 - [x] `ENUM-002` Add `AttackPhase` enum (`Windup`, `Active`, `Recovery`).
-- [x] `ENUM-003` Add `RetargetReason` enum (`Invalid`, `ForcedOverride`, `UnreachableTimeout`).
+- [x] `ENUM-003` Add `RetargetReason` enum (`Invalid`, `ForcedOverride`, `UnreachableTimeout`, `OutOfAggroRange`, `AggroPreempt`).
 - [x] `ENUM-004` Add `SlotOccupancyState` enum (`Free`, `Reserved`, `Occupied`).
 - [x] `ENUM-005` Keep legacy enums compile-compatible during PASS 2 transition (then remove legacy mode usage in PASS 3).
 
@@ -139,9 +139,9 @@ Create a decision-complete refactor package before code mutation for the combat 
 - [x] `SYS-007` Keep deterministic update order centralized in `Simulation.cs`.
 
 ### E) Invariants (Must Hold)
-- [x] `INV-001` Retarget only on invalid target, forced override, or unreachable timeout.
+- [x] `INV-001` Retarget only on invalid target, forced override, unreachable timeout, or summoner-lock aggro preempt.
 - [x] `INV-002` Summoner always remains a valid candidate in acquire/reacquire scoring.
-- [x] `INV-003` Nearby enemy spawns never trigger opportunistic retarget by themselves.
+- [x] `INV-003` Nearby enemy spawns trigger preempt only for summoner-lock -> in-aggro unit transitions.
 - [x] `INV-004` Reserved slot cannot be stolen unless owner releases or becomes invalid.
 - [x] `INV-005` Slot change on same target allowed only if slot invalid or same-target progress timeout exceeded.
 - [x] `INV-006` No translation during `Windup`, `Active`, or `Recovery`.
@@ -175,7 +175,7 @@ Create a decision-complete refactor package before code mutation for the combat 
 
 ### I) Test Coverage and Telemetry
 - [x] `TEST-001` Add No-Churn Commit scenario test.
-- [x] `TEST-002` Add Summoner Persistence scenario test.
+- [x] `TEST-002` Add Summoner Soft-Lock Preempt scenario test.
 - [x] `TEST-003` Add 15v1 Overflow slot contention test.
 - [x] `TEST-004` Add Reserved Slot Anti-Steal test.
 - [x] `TEST-005` Add No-Translation During Attack-Phase test.

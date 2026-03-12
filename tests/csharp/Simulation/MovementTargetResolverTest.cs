@@ -66,4 +66,39 @@ public class MovementTargetResolverTest
         AssertThat(secondPoint.Value.Z).IsGreater(firstPoint.Value.Z);
         AssertThat(thirdPoint.Value.Z).IsLess(firstPoint.Value.Z);
     }
+
+    [TestCase]
+    public void ResolveObjectiveAdvanceDirection_PreBand_IsStraightForward()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: -8f, z: 6f);
+
+        var dir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, _state);
+
+        AssertThat(dir.X).IsGreater(0.95f);
+        AssertThat(MathF.Abs(dir.Z)).IsLess(0.05f);
+    }
+
+    [TestCase]
+    public void ResolveObjectiveAdvanceDirection_PostBand_CurvesTowardEnemySummoner()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 12f, z: 10f);
+
+        var dir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, _state);
+
+        // Enemy summoner is at +X, Z=0 so curved direction should pull negative Z.
+        AssertThat(dir.X).IsGreater(0f);
+        AssertThat(dir.Z).IsLess(0f);
+    }
+
+    [TestCase]
+    public void ResolveObjectiveAdvanceDirection_CurveStrength_IncreasesWithProgress()
+    {
+        var earlyPostBand = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 10f, z: 10f);
+        var latePostBand = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 18f, z: 10f);
+
+        var earlyDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(earlyPostBand, _state);
+        var lateDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(latePostBand, _state);
+
+        AssertThat(MathF.Abs(lateDir.Z)).IsGreater(MathF.Abs(earlyDir.Z));
+    }
 }

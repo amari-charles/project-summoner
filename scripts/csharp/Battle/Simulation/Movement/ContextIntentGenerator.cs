@@ -55,10 +55,7 @@ public sealed class ContextIntentGenerator : IMovementIntentGenerator
         UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state, SimVector3 preferredDir)
     {
         if (behavior.Movement == MovementResult.Forward)
-        {
-            float forwardX = unit.Team == Team.Player ? 1f : -1f;
-            return new SimVector3(forwardX, 0f, 0f);
-        }
+            return MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, state);
 
         var targetPos = SimUtils.ResolveTargetPosition(behavior.MoveTargetId, state);
         if (!targetPos.HasValue)
