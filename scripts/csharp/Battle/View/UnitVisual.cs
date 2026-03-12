@@ -316,6 +316,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         CleanupDebugMarkers();
         _isAlive = false;
+        Visible = false;
         CallDeferred(MethodName.QueueFree);
     }
 
