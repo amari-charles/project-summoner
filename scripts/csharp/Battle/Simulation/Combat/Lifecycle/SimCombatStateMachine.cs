@@ -85,6 +85,9 @@ public static class SimCombatStateMachine
         if (TryApplyForcedTarget(unit, state))
             return true;
 
+        if (ShouldReleaseExpiredForcedCommit(unit))
+            DropCurrentTarget(unit, state, RetargetReason.Invalid);
+
         int? locked = unit.LockedTargetUnitId;
         if (locked.HasValue && IsTargetValid(locked.Value, state))
         {
@@ -125,6 +128,13 @@ public static class SimCombatStateMachine
         if (!unit.ForcedTargetUnitId.HasValue)
             return false;
 
+        if (unit.ForcedTargetTimer <= 0f)
+        {
+            unit.ForcedTargetUnitId = null;
+            unit.ForcedTargetTimer = 0f;
+            return false;
+        }
+
         int forced = unit.ForcedTargetUnitId.Value;
         if (!IsTargetValid(forced, state))
         {
@@ -147,6 +157,14 @@ public static class SimCombatStateMachine
         unit.LastTargetDistance = -1f;
         unit.LastSlotDistance = -1f;
         return true;
+    }
+
+    private static bool ShouldReleaseExpiredForcedCommit(UnitData unit)
+    {
+        return !unit.ForcedTargetUnitId.HasValue &&
+               unit.ForcedTargetTimer <= 0f &&
+               unit.LockedTargetUnitId.HasValue &&
+               unit.LastRetargetReason == RetargetReason.ForcedOverride;
     }
 
     private static bool EnsureMeleeSlot(UnitData unit, MatchState state, int targetId, float delta)

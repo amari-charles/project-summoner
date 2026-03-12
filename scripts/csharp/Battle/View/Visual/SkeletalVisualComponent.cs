@@ -92,6 +92,16 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [Export]
     public Color FlashColor { get; set; } = new Color(3.0f, 3.0f, 3.0f, 1.0f);
 
+    [ExportGroup("Damage Feedback")]
+    [Export]
+    public float FlashMinIntervalSeconds { get; set; } = 0.08f;
+
+    [Export]
+    public float FlashMinIntervalLargeUnitSeconds { get; set; } = 0.18f;
+
+    [Export]
+    public float FlashLargeUnitWidthThreshold { get; set; } = 2.4f;
+
     // =========================================================================
     // SHADOW
     // =========================================================================
@@ -119,6 +129,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     private Color _originalModulate = Colors.White;
     private Tween? _flashTween;
     private List<CanvasItem>? _cachedSprites;
+    private ulong _lastFlashTimestampMs;
 
     // =========================================================================
     // LIFECYCLE
@@ -290,6 +301,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     {
         if (_skeletalInstance == null)
             return;
+        if (IsFlashRateLimited())
+            return;
 
         var sprites = GetAllSprites();
         if (sprites.Count == 0)
@@ -334,6 +347,30 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
                 }
             }
         };
+    }
+
+    private bool IsFlashRateLimited()
+    {
+        ulong nowMs = Time.GetTicksMsec();
+        float minInterval = ResolveFlashIntervalSeconds();
+
+        if (_lastFlashTimestampMs != 0)
+        {
+            ulong elapsedMs = nowMs - _lastFlashTimestampMs;
+            if (elapsedMs < (ulong)(Mathf.Max(0f, minInterval) * 1000f))
+                return true;
+        }
+
+        _lastFlashTimestampMs = nowMs;
+        return false;
+    }
+
+    private float ResolveFlashIntervalSeconds()
+    {
+        float spriteWidth = GetSpriteWidth();
+        if (spriteWidth >= FlashLargeUnitWidthThreshold)
+            return FlashMinIntervalLargeUnitSeconds;
+        return FlashMinIntervalSeconds;
     }
 
     public void SetFlipH(bool flip)

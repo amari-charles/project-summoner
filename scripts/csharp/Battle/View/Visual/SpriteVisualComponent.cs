@@ -134,6 +134,16 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     [Export]
     public Color FlashColor { get; set; } = new Color(3.0f, 3.0f, 3.0f, 1.0f);
 
+    [ExportGroup("Damage Feedback")]
+    [Export]
+    public float FlashMinIntervalSeconds { get; set; } = 0.08f;
+
+    [Export]
+    public float FlashMinIntervalLargeUnitSeconds { get; set; } = 0.18f;
+
+    [Export]
+    public float FlashLargeUnitWidthThreshold { get; set; } = 2.4f;
+
     // =========================================================================
     // SHADOW
     // =========================================================================
@@ -164,6 +174,7 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private ShadowProfile _shadowProfile = ShadowProfiles.FromPreset(ShadowProfilePreset.Default).Sanitize();
     private Color _originalModulate = Colors.White;
     private Tween? _flashTween;
+    private ulong _lastFlashTimestampMs;
 
     // Frame size cache (avoid expensive texture lookups on every facing change)
     private Vector2 _cachedFrameSize = Vector2.Zero;
@@ -462,6 +473,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     {
         if (_characterSprite == null)
             return;
+        if (IsFlashRateLimited())
+            return;
 
         // Kill any existing flash tween to prevent overlapping flashes
         if (_flashTween != null && _flashTween.IsValid())
@@ -485,6 +498,30 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
             _flashTween = CreateTween();
             _flashTween.TweenProperty(_characterSprite, "modulate", _originalModulate, FlashFadeDuration);
         };
+    }
+
+    private bool IsFlashRateLimited()
+    {
+        ulong nowMs = Time.GetTicksMsec();
+        float minInterval = ResolveFlashIntervalSeconds();
+
+        if (_lastFlashTimestampMs != 0)
+        {
+            ulong elapsedMs = nowMs - _lastFlashTimestampMs;
+            if (elapsedMs < (ulong)(Mathf.Max(0f, minInterval) * 1000f))
+                return true;
+        }
+
+        _lastFlashTimestampMs = nowMs;
+        return false;
+    }
+
+    private float ResolveFlashIntervalSeconds()
+    {
+        float spriteWidth = GetSpriteWidth();
+        if (spriteWidth >= FlashLargeUnitWidthThreshold)
+            return FlashMinIntervalLargeUnitSeconds;
+        return FlashMinIntervalSeconds;
     }
 
     public void SetFlipH(bool flip)

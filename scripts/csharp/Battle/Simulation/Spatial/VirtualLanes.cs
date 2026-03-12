@@ -1,7 +1,7 @@
 using System;
 using Fateforged.Constants;
 
-namespace Fateforged.Simulation;
+namespace Fateforged.Simulation.Spatial;
 
 /// <summary>
 /// Virtual lane helpers for simulation-only behavior shaping.
@@ -33,4 +33,3 @@ public static class VirtualLanes
     public static int LaneDistance(int a, int b)
         => Math.Abs(a - b);
 }
-

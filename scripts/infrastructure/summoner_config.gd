@@ -11,6 +11,8 @@ class_name SummonerConfig
 const DEFAULT_BASE_HEALTH: float = 1000.0
 const DEFAULT_MAX_MANA: float = 100.0
 const DEFAULT_BASE_CAST_SPEED: float = 1.0
+const DEFAULT_PORTRAIT_UV_OFFSET: Vector2 = Vector2(0.2, 0.05)
+const DEFAULT_PORTRAIT_UV_SCALE: Vector2 = Vector2(0.6, 0.45)
 
 ## Identity
 @export var summoner_id: String = ""
@@ -27,6 +29,8 @@ var element_id: int = ElementRegistry.ElementId.NEUTRAL
 ## Visual
 @export var summoner_icon_path: String = ""
 @export var card_frame_style: String = "legendary"
+@export var portrait_uv_offset: Vector2 = DEFAULT_PORTRAIT_UV_OFFSET
+@export var portrait_uv_scale: Vector2 = DEFAULT_PORTRAIT_UV_SCALE
 
 ## Unlock
 @export var unlock_condition: String = "starting_choice"  ## "starting_choice", "random_starter_only", "unlock_after_battle"
@@ -102,6 +106,8 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 	# Visual
 	config.summoner_icon_path = data.get("summoner_icon_path", "")
 	config.card_frame_style = data.get("card_frame_style", "legendary")
+	config.portrait_uv_offset = SafeTypeUtils.vector2(data.get("portrait_uv_offset", DEFAULT_PORTRAIT_UV_OFFSET), DEFAULT_PORTRAIT_UV_OFFSET)
+	config.portrait_uv_scale = SafeTypeUtils.vector2(data.get("portrait_uv_scale", DEFAULT_PORTRAIT_UV_SCALE), DEFAULT_PORTRAIT_UV_SCALE)
 
 	# Unlock
 	config.unlock_condition = data.get("unlock_condition", "starting_choice")
@@ -132,6 +138,8 @@ func to_dict() -> Dictionary:
 		"base_cast_speed": base_cast_speed,
 		"summoner_icon_path": summoner_icon_path,
 		"card_frame_style": card_frame_style,
+		"portrait_uv_offset": portrait_uv_offset,
+		"portrait_uv_scale": portrait_uv_scale,
 		"unlock_condition": unlock_condition,
 		"innate_trait_ids": innate_trait_ids,
 		"starter_card_id": starter_card_id

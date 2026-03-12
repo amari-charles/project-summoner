@@ -135,7 +135,8 @@ public static class SimDamage
                 allowAttackProfileSplit);
         }
 
-        // 5. Summoner damage reduction (target's summoner — flat reduction after defense)
+        // 5. Summoner damage reduction (target's summoner — flat reduction after defense).
+        // This applies to unit-target combat lanes; summoner-target lanes use SoulStrength in SimBehavior.
         if (targetSummoner != null && targetSummoner.DamageReduction > 0f)
         {
             damage = MathF.Max(damage - targetSummoner.DamageReduction, 0f);

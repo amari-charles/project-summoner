@@ -7,6 +7,7 @@ using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Combat.Targeting;
+using Fateforged.Simulation.Spatial;
 using Fateforged.Simulation.Subsystems;
 
 namespace Fateforged.Simulation.Combat;

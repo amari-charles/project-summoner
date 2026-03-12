@@ -380,8 +380,9 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             {
                 float range = Mathf.Max(0.2f, unitData.AttackRange);
                 float coneHalfAngle = Mathf.Clamp(unitData.ConeHalfAngle, 1f, 89f);
+                float coneCenterOffset = unitData.ConeCenterOffsetDegrees;
                 int signature = BuildEngageSignature(
-                    engageShape, range, coneHalfAngle, 0f, 0f, 0f);
+                    engageShape, range, coneHalfAngle, 0f, 0f, coneCenterOffset);
 
                 if (_debugEngageRangeMarker == null || signature != _debugEngageSignature)
                 {
@@ -395,7 +396,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
                     return;
 
                 _debugEngageRangeMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.05f, GlobalPosition.Z);
-                float yRotation = _isFacingRight ? 0f : Mathf.Pi;
+                float yRotation = (_isFacingRight ? 0f : Mathf.Pi) + Mathf.DegToRad(coneCenterOffset);
                 _debugEngageRangeMarker.Rotation = new Vector3(0f, yRotation, 0f);
                 return;
             }

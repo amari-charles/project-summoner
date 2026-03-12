@@ -55,13 +55,19 @@ public class CardProgressionContractTest
         AssertThat(info.ContainsKey("xp_for_next_level")).IsTrue();
         AssertThat(info.ContainsKey("xp_progress")).IsTrue();
         AssertThat(info.ContainsKey("can_level_up")).IsTrue();
+        AssertThat(info.ContainsKey("level_up_resource_cost")).IsTrue();
+        AssertThat(info.ContainsKey("has_level_up_resource_cost")).IsTrue();
 
         AssertThat(info["xp"].AsInt32()).IsEqual(15);
         AssertThat(info["xp_for_next_level"].AsInt32()).IsEqual(30);
         AssertThat(info["can_level_up"].AsBool()).IsFalse();
+        AssertThat(info["has_level_up_resource_cost"].AsBool()).IsFalse();
 
         var progress = (float)info["xp_progress"].AsDouble();
         AssertThat(Math.Abs(progress - 0.5f)).IsLess(0.001f);
+
+        var levelUpCost = info["level_up_resource_cost"].AsGodotDictionary();
+        AssertThat(levelUpCost.Count).IsEqual(0);
     }
 
     [TestCase]

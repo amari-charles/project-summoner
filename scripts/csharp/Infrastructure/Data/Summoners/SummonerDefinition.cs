@@ -1,5 +1,6 @@
 using Fateforged.Cards;
 using Fateforged.Data.Traits;
+using Godot;
 
 namespace Fateforged.Data.Summoners;
 
@@ -29,6 +30,12 @@ public class SummonerDefinition
 
     /// <summary>Path to summoner portrait icon.</summary>
     public string IconPath { get; init; } = "";
+
+    /// <summary>Portrait UV crop offset for circular portrait shaders.</summary>
+    public Vector2 PortraitUvOffset { get; init; } = new(0.2f, 0.05f);
+
+    /// <summary>Portrait UV crop scale for circular portrait shaders.</summary>
+    public Vector2 PortraitUvScale { get; init; } = new(0.6f, 0.45f);
 
     /// <summary>Card frame style (common, rare, epic, legendary).</summary>
     public string CardFrameStyle { get; init; } = "legendary";

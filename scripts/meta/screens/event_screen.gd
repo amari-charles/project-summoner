@@ -23,6 +23,8 @@ extends Control
 var _event_id: String = ""
 var _event_config: Dictionary = {}
 var _sequence: Resource = null
+const EVENT_SEQUENCE_TIMEOUT_SECONDS: float = 90.0
+var _is_returning_to_campaign: bool = false
 
 ## =============================================================================
 ## LIFECYCLE
@@ -93,12 +95,27 @@ func _start_event() -> void:
 	print("EventScreen: Starting event sequence...")
 
 	# Connect to EventSequencer completion signal
-	if EventSequencer.has_signal("sequence_finished"):
-		if not EventSequencer.sequence_finished.is_connected(_on_event_sequence_complete):
-			EventSequencer.sequence_finished.connect(_on_event_sequence_complete)
+	if not EventSequencer.has_signal("sequence_finished"):
+		push_error("EventScreen: EventSequencer missing sequence_finished signal")
+		_return_to_campaign()
+		return
+
+	if not EventSequencer.sequence_finished.is_connected(_on_event_sequence_complete):
+		EventSequencer.sequence_finished.connect(_on_event_sequence_complete)
 
 	# Play sequence (EventSequencer + DialogueManager handle dialogue display)
 	EventSequencer.play_sequence(_sequence)
+
+	var sequence_completed: bool = await AsyncUtils.await_signal_with_timeout(
+		get_tree(),
+		EventSequencer.sequence_finished,
+		EVENT_SEQUENCE_TIMEOUT_SECONDS
+	)
+	if not sequence_completed:
+		push_warning("EventScreen: Sequence timed out after %.0fs; forcing return to campaign" % EVENT_SEQUENCE_TIMEOUT_SECONDS)
+		if EventSequencer.has_method("stop_sequence"):
+			EventSequencer.stop_sequence()
+		_return_to_campaign()
 
 ## Event sequence completed
 func _on_event_sequence_complete(sequence: Resource) -> void:
@@ -121,6 +138,10 @@ func _on_event_sequence_complete(sequence: Resource) -> void:
 ## =============================================================================
 
 func _return_to_campaign() -> void:
+	if _is_returning_to_campaign:
+		return
+	_is_returning_to_campaign = true
+
 	# Get return scene from EventContext
 	var return_to: String = EventContext.get_return_scene()
 

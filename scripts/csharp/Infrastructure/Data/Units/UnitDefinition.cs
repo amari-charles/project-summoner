@@ -55,6 +55,12 @@ public record UnitDefinition
     /// <summary>Cone half-angle used when the profile has cone constraints.</summary>
     public float TargetingConeHalfAngle { get; init; } = 30f;
 
+    /// <summary>
+    /// Cone center offset in degrees (XZ plane).
+    /// Negative rotates cone center toward -Z, positive toward +Z.
+    /// </summary>
+    public float TargetingConeCenterOffsetDegrees { get; init; }
+
     /// <summary>Close-range threshold used for cone edge behavior.</summary>
     public float TargetingCloseRangeThreshold { get; init; } = 0.5f;
 

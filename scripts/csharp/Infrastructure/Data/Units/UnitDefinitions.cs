@@ -424,6 +424,7 @@ public static class UnitDefinitions
         MovementLayer = MovementLayer.Air,
         TargetingProfile = UnitTargetingProfile.FlyingConeStrafe,
         TargetingLayerFilter = TargetLayer.Both,
+        TargetingConeCenterOffsetDegrees = -20f,
         Ranged = new RangedConfig(ProjectileIds.WindPuff)
         {
             ProjectileDelay = 0.585f,
@@ -658,6 +659,7 @@ public static class UnitDefinitions
         template.EngageCloseRadius = 0.4f;
         template.HasConeConstraint = false;
         template.ConeHalfAngle = 30f;
+        template.ConeCenterOffsetDegrees = 0f;
         template.CloseRangeThreshold = 0.5f;
 
         switch (def.TargetingProfile)
@@ -703,6 +705,7 @@ public static class UnitDefinitions
                 template.EngageShape = EngageShape.Cone;
                 template.HasConeConstraint = true;
                 template.ConeHalfAngle = def.TargetingConeHalfAngle;
+                template.ConeCenterOffsetDegrees = def.TargetingConeCenterOffsetDegrees;
                 template.CloseRangeThreshold = def.TargetingCloseRangeThreshold;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;

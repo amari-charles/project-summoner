@@ -4,6 +4,7 @@ using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
+using Fateforged.Simulation.Spatial;
 using Fateforged.Simulation;
 using Fateforged.Units;
 

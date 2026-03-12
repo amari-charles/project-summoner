@@ -52,21 +52,5 @@ const BATTLEFIELD_HALF_DEPTH: float = 25.0  ## Half the Z-axis extent (-25 to +2
 const SPAWN_BOUNDARY_X: float = 0.0
 const SPAWN_BOUNDARY_EPSILON: float = 0.001  ## Small offset to ensure enemy clamps to valid position
 
-## Check if spawn position is valid for the given team
-## Player (team 0) can spawn at X <= 0, Enemy (team 1) can spawn at X > 0
-static func is_valid_spawn_position_for_team(pos: Vector3, team: int) -> bool:
-	if team == UnitConstants.Team.PLAYER:
-		return pos.x <= SPAWN_BOUNDARY_X
-	else:  # UnitConstants.Team.ENEMY
-		return pos.x > SPAWN_BOUNDARY_X
-
-## Clamp spawn position to valid zone for the given team
-## Snaps X coordinate to boundary if in invalid territory
-static func clamp_spawn_position_for_team(pos: Vector3, team: int) -> Vector3:
-	var clamped: Vector3 = pos
-
-	if team == UnitConstants.Team.PLAYER and pos.x > SPAWN_BOUNDARY_X:
-		clamped.x = SPAWN_BOUNDARY_X
-	elif team == UnitConstants.Team.ENEMY and pos.x <= SPAWN_BOUNDARY_X:
-		clamped.x = SPAWN_BOUNDARY_X + SPAWN_BOUNDARY_EPSILON
-	return clamped
+## Spawn-side validation/clamping ownership lives in C# BattlefieldBounds.
+## Keep this script focused on visual/layout constants and screen/world conversion helpers.

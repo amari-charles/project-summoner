@@ -2,83 +2,54 @@ extends GutTest
 
 ## Unit Tests for BattlefieldConstants
 ##
-## Tests spawn zone validation and battlefield dimension constants.
+## Tests conversion helpers and battlefield display constants.
 
 
 ## =============================================================================
-## SPAWN ZONE VALIDATION TESTS
+## SCREEN / WORLD CONVERSION TESTS
 ## =============================================================================
 
-func test_player_can_spawn_on_negative_x() -> void:
-	var pos: Vector3 = Vector3(-10.0, 0.0, 0.0)
+func test_screen_to_world_center_maps_to_origin() -> void:
+	var screen_center: Vector2 = Vector2(BattlefieldConstants.SCREEN_CENTER_X, BattlefieldConstants.SCREEN_CENTER_Y)
 
-	var result: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos, UnitConstants.Team.PLAYER)
+	var result: Vector3 = BattlefieldConstants.screen_to_world_3d(screen_center)
 
-	assert_true(result)
-
-
-func test_player_cannot_spawn_on_positive_x() -> void:
-	var pos: Vector3 = Vector3(10.0, 0.0, 0.0)
-
-	var result: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos, UnitConstants.Team.PLAYER)
-
-	assert_false(result)
+	assert_eq(result, Vector3(0.0, BattlefieldConstants.SPAWN_PLANE_HEIGHT, 0.0))
 
 
-func test_player_can_spawn_at_boundary() -> void:
-	var pos: Vector3 = Vector3(0.0, 0.0, 0.0)  # Exactly at boundary
+func test_screen_to_world_applies_scale_and_offset() -> void:
+	var screen_pos: Vector2 = Vector2(
+		BattlefieldConstants.SCREEN_CENTER_X + BattlefieldConstants.SCREEN_TO_WORLD_SCALE * 2.0,
+		BattlefieldConstants.SCREEN_CENTER_Y - BattlefieldConstants.SCREEN_TO_WORLD_SCALE * 3.0
+	)
 
-	var result: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos, UnitConstants.Team.PLAYER)
+	var result: Vector3 = BattlefieldConstants.screen_to_world_3d(screen_pos)
 
-	assert_true(result)  # X <= 0 allowed, boundary belongs to player
-
-
-func test_enemy_can_spawn_on_positive_x() -> void:
-	var pos: Vector3 = Vector3(10.0, 0.0, 0.0)
-
-	var result: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos, UnitConstants.Team.ENEMY)
-
-	assert_true(result)
+	assert_almost_eq(result.x, 2.0, 0.0001)
+	assert_almost_eq(result.z, -3.0, 0.0001)
 
 
-func test_enemy_cannot_spawn_on_negative_x() -> void:
-	var pos: Vector3 = Vector3(-10.0, 0.0, 0.0)
+func test_world_to_screen_reconstructs_input_from_world_coordinates() -> void:
+	var world_pos: Vector3 = Vector3(2.5, 12.0, -1.25)
 
-	var result: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos, UnitConstants.Team.ENEMY)
+	var result: Vector2 = BattlefieldConstants.world_to_screen_2d(world_pos)
 
-	assert_false(result)
-
-
-func test_enemy_cannot_spawn_at_boundary() -> void:
-	var pos: Vector3 = Vector3(0.0, 0.0, 0.0)  # Exactly at boundary
-
-	var result: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos, UnitConstants.Team.ENEMY)
-
-	assert_false(result)  # X > 0 required, boundary belongs to player
+	assert_almost_eq(result.x, BattlefieldConstants.SCREEN_CENTER_X + 250.0, 0.0001)
+	assert_almost_eq(result.y, BattlefieldConstants.SCREEN_CENTER_Y - 125.0, 0.0001)
 
 
-func test_spawn_validation_ignores_y_coordinate() -> void:
-	var pos_ground: Vector3 = Vector3(-5.0, 0.0, 0.0)
-	var pos_elevated: Vector3 = Vector3(-5.0, 10.0, 0.0)
+func test_screen_to_world_and_back_round_trip_preserves_xz() -> void:
+	var source_screen: Vector2 = Vector2(1337.0, 420.0)
 
-	var result_ground: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos_ground, UnitConstants.Team.PLAYER)
-	var result_elevated: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos_elevated, UnitConstants.Team.PLAYER)
+	var world_pos: Vector3 = BattlefieldConstants.screen_to_world_3d(source_screen)
+	var reconstructed: Vector2 = BattlefieldConstants.world_to_screen_2d(world_pos)
 
-	assert_eq(result_ground, result_elevated)
-
-
-func test_spawn_validation_ignores_z_coordinate() -> void:
-	var pos_front: Vector3 = Vector3(-5.0, 0.0, -20.0)
-	var pos_back: Vector3 = Vector3(-5.0, 0.0, 20.0)
-
-	var result_front: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos_front, UnitConstants.Team.PLAYER)
-	var result_back: bool = BattlefieldConstants.is_valid_spawn_position_for_team(pos_back, UnitConstants.Team.PLAYER)
-
-	assert_eq(result_front, result_back)
+	assert_almost_eq(reconstructed.x, source_screen.x, 0.0001)
+	assert_almost_eq(reconstructed.y, source_screen.y, 0.0001)
 
 
 ## =============================================================================
-## BATTLEFIELD DIMENSION CONSTANT TESTS
+## BATTLEFIELD CONSTANT TESTS
 ## =============================================================================
 
 func test_battlefield_half_width_is_positive() -> void:
@@ -91,70 +62,3 @@ func test_battlefield_half_depth_is_positive() -> void:
 
 func test_spawn_boundary_is_at_zero() -> void:
 	assert_eq(BattlefieldConstants.SPAWN_BOUNDARY_X, 0.0)
-
-
-## =============================================================================
-## SPAWN POSITION CLAMPING TESTS
-## =============================================================================
-
-func test_clamp_player_position_in_valid_zone_unchanged() -> void:
-	var pos: Vector3 = Vector3(-10.0, 5.0, 15.0)
-
-	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, UnitConstants.Team.PLAYER)
-
-	assert_eq(result, pos)
-
-
-func test_clamp_player_position_in_invalid_zone_snaps_to_boundary() -> void:
-	var pos: Vector3 = Vector3(10.0, 5.0, 15.0)
-
-	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, UnitConstants.Team.PLAYER)
-
-	assert_eq(result.x, 0.0)
-	assert_eq(result.y, 5.0)  # Y preserved
-	assert_eq(result.z, 15.0)  # Z preserved
-
-
-func test_clamp_player_position_at_boundary_unchanged() -> void:
-	var pos: Vector3 = Vector3(0.0, 0.0, 0.0)
-
-	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, UnitConstants.Team.PLAYER)
-
-	assert_eq(result, pos)
-
-
-func test_clamp_enemy_position_in_valid_zone_unchanged() -> void:
-	var pos: Vector3 = Vector3(10.0, 5.0, 15.0)
-
-	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, UnitConstants.Team.ENEMY)
-
-	assert_eq(result, pos)
-
-
-func test_clamp_enemy_position_in_invalid_zone_snaps_to_boundary() -> void:
-	var pos: Vector3 = Vector3(-10.0, 5.0, 15.0)
-
-	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, UnitConstants.Team.ENEMY)
-
-	assert_almost_eq(result.x, BattlefieldConstants.SPAWN_BOUNDARY_EPSILON, 0.0001)  # Snaps to valid territory
-	assert_eq(result.y, 5.0)  # Y preserved
-	assert_eq(result.z, 15.0)  # Z preserved
-
-
-func test_clamp_enemy_position_at_boundary_snaps() -> void:
-	# Enemy requires X > 0, so X = 0 is invalid and snaps to epsilon
-	var pos: Vector3 = Vector3(0.0, 0.0, 0.0)
-
-	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, UnitConstants.Team.ENEMY)
-
-	assert_almost_eq(result.x, BattlefieldConstants.SPAWN_BOUNDARY_EPSILON, 0.0001)  # Snaps to valid territory
-
-
-func test_clamp_preserves_y_and_z_coordinates() -> void:
-	var pos: Vector3 = Vector3(25.0, 7.5, -30.0)
-
-	var result: Vector3 = BattlefieldConstants.clamp_spawn_position_for_team(pos, UnitConstants.Team.PLAYER)
-
-	assert_eq(result.x, 0.0)  # Clamped
-	assert_eq(result.y, 7.5)  # Preserved
-	assert_eq(result.z, -30.0)  # Preserved
