@@ -8,6 +8,7 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.UI;
 using Fateforged.Units;
 using Fateforged.View;
 using Fateforged.Visual;
@@ -81,6 +82,36 @@ public partial class UnitVisualStateSyncTest
         AssertThat(fakeVisual.LastAnimation).IsNotEqual("attack");
     }
 
+    [TestCase]
+    public void BeginDeath_SnapsHpBarToZeroImmediately()
+    {
+        const int unitId = 102;
+        var state = new MatchState();
+        state.Units[unitId] = new UnitData
+        {
+            UnitId = unitId,
+            IsAlive = true,
+            Position = new SimVector3(0f, 0f, 0f),
+            ActivationState = ActivationState.Active,
+            CurrentHp = 50f,
+            MaxHp = 100f,
+        };
+
+        var visual = CreateUnitVisualWithState(state, unitId, out _);
+        var hpBar = new FloatingHPBar();
+        _createdNodes.Add(hpBar);
+        SetPrivateField(visual, "_hpBar", hpBar);
+
+        visual._PhysicsProcess(1.0 / 60.0);
+        visual.BeginDeath();
+
+        float target = GetPrivateField<float>(hpBar, "_targetHpPercent");
+        float display = GetPrivateField<float>(hpBar, "_displayHpPercent");
+        AssertThat(target).IsEqual(0f);
+        AssertThat(display).IsEqual(0f);
+        AssertThat(visual.CurrentHp).IsEqual(0f);
+    }
+
     private UnitVisual CreateUnitVisualWithState(
         MatchState state,
         int unitId,
@@ -114,6 +145,14 @@ public partial class UnitVisualStateSyncTest
             .GetType()
             .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(target, value);
+    }
+
+    private static T GetPrivateField<T>(object target, string fieldName)
+    {
+        var field = target
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        return (T)field!.GetValue(target)!;
     }
 
     private sealed class StubSession : IGameSession

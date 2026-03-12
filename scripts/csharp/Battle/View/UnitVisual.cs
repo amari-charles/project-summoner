@@ -22,7 +22,6 @@ namespace Fateforged.View;
 public partial class UnitVisual : Node3D, IDamageableVisual
 {
     private const float RenderPriorityScale = 3.0f;
-    private const float DeathAnimationDuration = 1.0f;
     private const int RenderPriorityMin = -128;
     private const int RenderPriorityMax = 127;
 
@@ -309,20 +308,15 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         if (!_isAlive)
             return;
-        _isAlive = false;
+
+        CurrentHp = 0f;
+        _hpBar?.UpdateHpImmediate(0f, MaxHp);
 
         _spawnReveal?.Cancel();
 
-        if (_visual != null)
-        {
-            _visual.PlayAnimation("death");
-            _currentMoveAnim = "death";
-        }
-
         CleanupDebugMarkers();
-
-        // Queue free after death animation completes
-        GetTree().CreateTimer(DeathAnimationDuration).Timeout += QueueFree;
+        _isAlive = false;
+        CallDeferred(MethodName.QueueFree);
     }
 
     public void ShowBuffIcon(EffectType effectType)

@@ -725,6 +725,45 @@ public class SimulationIntegrationTest
         AssertThat(removed!.UnitId).IsEqual(unit.UnitId);
     }
 
+    [TestCase]
+    public void Tick_LethalDamage_EmitsUnitDiedAndUnitRemovedInSameTick()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            z: 0f,
+            damage: 500f,
+            attackRange: 3f,
+            moveSpeed: 0f
+        );
+        var target = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: 1f,
+            z: 0f,
+            hp: 30f,
+            moveSpeed: 0f
+        );
+
+        for (int i = 0; i < 20; i++)
+        {
+            var events = _sim.Tick(Delta);
+            var died = SimTestHelper.FindEvent<UnitDiedEvent>(events);
+            if (died == null)
+                continue;
+
+            var removed = SimTestHelper.FindEvent<UnitRemovedEvent>(events);
+            AssertThat(removed).IsNotNull();
+            AssertThat(died.UnitId).IsEqual(target.UnitId);
+            AssertThat(removed!.UnitId).IsEqual(target.UnitId);
+            AssertThat(_state.Units.ContainsKey(target.UnitId)).IsFalse();
+            return;
+        }
+
+        AssertThat(false).IsTrue();
+    }
+
     // =========================================================================
     // Win Conditions in Tick
     // =========================================================================

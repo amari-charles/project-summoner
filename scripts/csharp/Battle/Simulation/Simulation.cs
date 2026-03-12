@@ -1290,6 +1290,7 @@ public class Simulation
 
     /// <summary>
     /// Death cleanup: decrement timers on dead units, remove expired, emit UnitRemovedEvent.
+    /// Dead units with timer <= 0 are removed immediately in the same tick.
     /// </summary>
     private void TickDeathCleanup(float fixedDelta, List<SimEvent> events)
     {
@@ -1297,13 +1298,13 @@ public class Simulation
 
         foreach (var (unitId, unit) in _state.Units)
         {
-            if (!unit.IsAlive && unit.DeathCleanupTimer > 0)
+            if (!unit.IsAlive)
             {
-                unit.DeathCleanupTimer -= fixedDelta;
+                if (unit.DeathCleanupTimer > 0)
+                    unit.DeathCleanupTimer -= fixedDelta;
+
                 if (unit.DeathCleanupTimer <= 0)
-                {
                     toRemove.Add(unitId);
-                }
             }
         }
 
