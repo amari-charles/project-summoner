@@ -53,6 +53,12 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     public float MaxHpExport { get; set; } = 300.0f;
 
     [Export]
+    public NodePath TargetPointNodePath { get; set; } = "TargetPoint";
+
+    [Export]
+    public Vector3 TargetPointOffset { get; set; } = new(0f, HurtboxHeight * 0.5f, 0f);
+
+    [Export]
     public int MaxHandSize { get; set; } = 4;
 
     [Export]
@@ -60,6 +66,9 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     [Export]
     public Godot.Collections.Array<Resource> StartingDeck { get; set; } = new();
+
+    [Export]
+    public bool ShowWorldHpBar { get; set; } = false;
 
     // =========================================================================
     // SIGNALS (PascalCase for GDScript consumers)
@@ -178,6 +187,18 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     public bool IsEnabled { get; set; } = true;
     public Godot.Collections.Array<Resource> Hand => _handCache;
 
+    public Vector3 GetTargetPointGlobalPosition()
+    {
+        if (!string.IsNullOrWhiteSpace(TargetPointNodePath.ToString()))
+        {
+            var targetPoint = GetNodeOrNull<Node3D>(TargetPointNodePath);
+            if (targetPoint != null)
+                return targetPoint.GlobalPosition;
+        }
+
+        return GlobalPosition + TargetPointOffset;
+    }
+
     // =========================================================================
     // LIFECYCLE
     // =========================================================================
@@ -229,14 +250,20 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         // Ensure sprite reference is set (may be called before _Ready in some paths)
         _sprite ??= GetNodeOrNull<Sprite3D>("Visual");
 
-        // Create HP bar as a child (always visible, summoner-sized)
-        if (_hpBar == null)
+        // Optional world-space HP bar for summoner shell.
+        // Default is HUD-only HP, so this remains disabled unless explicitly enabled.
+        if (ShowWorldHpBar && _hpBar == null)
         {
             var settings = HPBarSettings.AlwaysVisible with { BarWidth = 1.5f, OffsetY = 2.5f };
             _hpBar = new FloatingHPBar();
             AddChild(_hpBar);
             _hpBar.Configure(settings);
             _hpBar.TrackNode(this);
+        }
+        else if (!ShowWorldHpBar && _hpBar != null)
+        {
+            _hpBar.QueueFree();
+            _hpBar = null;
         }
 
         // Initialize last-known values for MP client polling

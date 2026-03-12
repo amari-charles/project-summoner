@@ -347,8 +347,36 @@ public partial class SimulationNode : Node, IGameSession
         Vector3 position
     )
     {
+        RegisterSummoner(
+            team,
+            hp,
+            maxHp,
+            mana,
+            maxMana,
+            castSpeed,
+            deckCatalogIds,
+            maxHandSize,
+            position,
+            position
+        );
+    }
+
+    public void RegisterSummoner(
+        int team,
+        float hp,
+        float maxHp,
+        float mana,
+        float maxMana,
+        float castSpeed,
+        string[] deckCatalogIds,
+        int maxHandSize,
+        Vector3 position,
+        Vector3 targetPointPosition
+    )
+    {
         int networkTeam = ToNetworkTeam(team);
         position = ToCanonical(position);
+        targetPointPosition = ToCanonical(targetPointPosition);
 
         if (networkTeam < 0 || networkTeam > 1)
         {
@@ -366,6 +394,11 @@ public partial class SimulationNode : Node, IGameSession
         summoner.IsAlive = true;
         summoner.MaxHandSize = maxHandSize;
         summoner.Position = new SimVector3(position.X, position.Y, position.Z);
+        summoner.TargetPointPosition = new SimVector3(
+            targetPointPosition.X,
+            targetPointPosition.Y,
+            targetPointPosition.Z
+        );
         summoner.DamageBonus = 0f;
         summoner.DamageReduction = 0f;
         summoner.SoulStrength = 0f;
@@ -387,7 +420,7 @@ public partial class SimulationNode : Node, IGameSession
         }
 
         GD.Print(
-            $"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}"
+            $"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}, TargetPoint={targetPointPosition}"
         );
     }
 

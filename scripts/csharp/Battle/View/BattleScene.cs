@@ -646,7 +646,8 @@ public partial class BattleScene : Node3D
             DefaultCastSpeed,
             Array.Empty<string>(),
             sv.MaxHandSize,
-            sv.GlobalPosition
+            sv.GlobalPosition,
+            sv.GetTargetPointGlobalPosition()
         );
     }
 
@@ -731,7 +732,8 @@ public partial class BattleScene : Node3D
             result.CastSpeed,
             deckIds,
             sv.MaxHandSize,
-            sv.GlobalPosition
+            sv.GlobalPosition,
+            sv.GetTargetPointGlobalPosition()
         );
         simNode.SetSummonerCombatModifiers(
             localTeam,

@@ -625,7 +625,7 @@ public static class SimProjectile
         if (
             TryGetSummonerSegmentDistanceAndT(
                 proj,
-                summoner.Position,
+                summoner.TargetPointPosition,
                 proj.LastPosition,
                 proj.CurrentPosition,
                 out float distSq,
