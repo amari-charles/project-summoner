@@ -759,6 +759,8 @@ public static class UnitDefinitions
         if (halfWidth > 0f)
             template.EngageRectHalfWidth = halfWidth;
         template.EngageRectForwardOffset = MathF.Max(forwardOffset, 0f);
+        if (template.EngageRectForwardOffset > 0f)
+            template.EngageCloseRadius = MathF.Max(template.EngageCloseRadius, template.EngageRectForwardOffset);
     }
 
     private static TargetLayer ResolveTargetLayerFilterForProfile(UnitDefinition def, UnitTargetingProfile profile)
