@@ -46,6 +46,7 @@ const CHECKMARK_SIZE: int = 32  # Size of checkmark overlay
 
 ## Graph rendering constants
 const POSITION_SCALE: float = 1.5  # Scale factor for node positions from data
+const MAP_CONTENT_PADDING: Vector2 = Vector2(240.0, 180.0)  # Extra pan room around graph bounds
 const EDGE_ACTIVE_COLOR: Color = Color(0.3, 0.8, 0.3)  # Green for completed paths
 const EDGE_AVAILABLE_COLOR: Color = Color(0.8, 0.8, 0.3)  # Yellow for available paths
 const EDGE_LOCKED_COLOR: Color = Color(0.4, 0.4, 0.5, 0.5)  # Grey for locked paths
@@ -232,6 +233,8 @@ func _create_dashed_line(start: Vector2, end: Vector2, color: Color) -> Node2D:
 func _refresh_map() -> void:
 	# Clear existing state
 	for child: Node in map_container.get_children():
+		if child == map_background:
+			continue
 		child.queue_free()
 	event_nodes.clear()
 	edge_lines.clear()
@@ -249,21 +252,37 @@ func _refresh_map() -> void:
 	var edges_array: Array = SafeTypeUtils.array(edges_variant)
 	graph_edges.assign(edges_array)
 
-
-	# Build a lookup for node positions (needed for edge drawing)
-	var node_positions: Dictionary = {}  # node_id -> Vector2
+	# Build a lookup for un-offset node positions and graph bounds.
+	var raw_node_positions: Dictionary = {}  # node_id -> Vector2 (top-left)
+	var min_pos: Vector2 = Vector2(INF, INF)
+	var max_pos: Vector2 = Vector2(-INF, -INF)
 	for node: Dictionary in graph_nodes:
 		var node_id: String = SafeTypeUtils.string(node.get("id", ""))
 		if node_id.is_empty():
 			continue
-		var raw_position: Variant = node.get("position", Vector2.ZERO)
-		var node_position: Vector2
-		if raw_position is Vector2:
-			node_position = raw_position * POSITION_SCALE + Vector2(100, 200)
-		else:
-			node_position = Vector2(100, 300) * POSITION_SCALE + Vector2(100, 200)
-		# Add half node size to get center
-		node_positions[node_id] = node_position + NODE_SIZE / 2
+		var node_position: Vector2 = _get_scaled_node_position(node)
+		raw_node_positions[node_id] = node_position
+		min_pos.x = min(min_pos.x, node_position.x)
+		min_pos.y = min(min_pos.y, node_position.y)
+		max_pos.x = max(max_pos.x, node_position.x + NODE_SIZE.x)
+		max_pos.y = max(max_pos.y, node_position.y + NODE_SIZE.y)
+
+	# Fallback bounds for empty/invalid graphs.
+	if min_pos.x == INF or min_pos.y == INF:
+		min_pos = Vector2.ZERO
+		max_pos = NODE_SIZE
+
+	var graph_bounds: Rect2 = Rect2(min_pos, max_pos - min_pos)
+	var layout_offset: Vector2 = _compute_graph_layout_offset(graph_bounds)
+	var content_size: Vector2 = _compute_map_content_size(graph_bounds, layout_offset)
+	_apply_map_content_layout(content_size)
+
+	# Build final positions (with centering offset) for edge drawing.
+	var node_positions: Dictionary = {}  # node_id -> Vector2 (center)
+	for node_id_variant: Variant in raw_node_positions.keys():
+		var node_id: String = SafeTypeUtils.string(node_id_variant)
+		var top_left: Vector2 = raw_node_positions[node_id]
+		node_positions[node_id] = top_left + layout_offset + NODE_SIZE / 2.0
 
 	# Create edge lines FIRST (so they appear behind nodes)
 	for edge: Dictionary in graph_edges:
@@ -291,28 +310,23 @@ func _refresh_map() -> void:
 
 		var is_completed: bool = CampaignApi.is_battle_completed(node_id)
 		var is_unlocked: bool = CampaignApi.is_battle_unlocked(node_id)
+		var final_position: Vector2 = _get_scaled_node_position(node) + layout_offset
 
-		var event_node: Control = _create_graph_node(node, is_unlocked, is_completed)
+		var event_node: Control = _create_graph_node(node, final_position, is_unlocked, is_completed)
 		map_container.add_child(event_node)
 		event_nodes[node_id] = event_node
 
 
 
 ## Create a node from graph data (uses position from node data)
-func _create_graph_node(node_data: Dictionary, is_unlocked: bool, is_completed: bool) -> Control:
+func _create_graph_node(
+	node_data: Dictionary,
+	node_position: Vector2,
+	is_unlocked: bool,
+	is_completed: bool
+) -> Control:
 	var node_container: Control = Control.new()
 	node_container.custom_minimum_size = NODE_SIZE
-
-	# Get position from node data and scale it
-	var raw_position: Variant = node_data.get("position", Vector2.ZERO)
-	var node_position: Vector2
-	if raw_position is Vector2:
-		node_position = raw_position * POSITION_SCALE
-	else:
-		node_position = Vector2(100, 300) * POSITION_SCALE  # Default fallback
-
-	# Add offset to center the map content
-	node_position += Vector2(100, 200)  # Margin from top-left
 
 	node_container.position = node_position
 
@@ -362,6 +376,46 @@ func _create_graph_node(node_data: Dictionary, is_unlocked: bool, is_completed: 
 
 	node_container.add_child(button)
 	return node_container
+
+func _get_scaled_node_position(node_data: Dictionary) -> Vector2:
+	var raw_position: Variant = node_data.get("position", Vector2.ZERO)
+	if raw_position is Vector2:
+		return raw_position * POSITION_SCALE
+	return Vector2(100.0, 300.0) * POSITION_SCALE
+
+func _compute_graph_layout_offset(graph_bounds: Rect2) -> Vector2:
+	var viewport_size: Vector2 = _map_viewport_size()
+	var graph_size: Vector2 = graph_bounds.size
+	var left_padding: float = maxf(MAP_CONTENT_PADDING.x, (viewport_size.x - graph_size.x) * 0.5)
+	var top_padding: float = maxf(MAP_CONTENT_PADDING.y, (viewport_size.y - graph_size.y) * 0.5)
+	return Vector2(left_padding - graph_bounds.position.x, top_padding - graph_bounds.position.y)
+
+func _compute_map_content_size(graph_bounds: Rect2, layout_offset: Vector2) -> Vector2:
+	var viewport_size: Vector2 = _map_viewport_size()
+	var required_right: float = graph_bounds.position.x + layout_offset.x + graph_bounds.size.x + MAP_CONTENT_PADDING.x
+	var required_bottom: float = graph_bounds.position.y + layout_offset.y + graph_bounds.size.y + MAP_CONTENT_PADDING.y
+	var width: float = maxf(required_right, viewport_size.x + MAP_CONTENT_PADDING.x * 2.0)
+	var height: float = maxf(required_bottom, viewport_size.y + MAP_CONTENT_PADDING.y * 2.0)
+	return Vector2(width, height)
+
+func _apply_map_content_layout(content_size: Vector2) -> void:
+	map_container.custom_minimum_size = content_size
+	map_container.size = content_size
+
+	# Keep background synced to the dynamic content area.
+	map_background.anchors_preset = Control.PRESET_FULL_RECT
+	map_background.offset_left = 0.0
+	map_background.offset_top = 0.0
+	map_background.offset_right = 0.0
+	map_background.offset_bottom = 0.0
+	# Match legacy look: keep map area visually consistent with the screen gray.
+	map_background.color = screen_background.color
+
+func _map_viewport_size() -> Vector2:
+	var size: Vector2 = map_scroll.size
+	if size.x > 1.0 and size.y > 1.0:
+		return size
+	return get_viewport_rect().size
 
 
 ## Get color tint for node based on type

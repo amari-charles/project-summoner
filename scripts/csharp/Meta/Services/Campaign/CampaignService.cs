@@ -250,6 +250,7 @@ public partial class CampaignService : Node
         if (oldId != typedId)
         {
             _profileRepo?.UpdateProfileMeta(new MetaUpdate { SelectedCampaign = campaignId });
+            _profileRepo?.SaveProfile(immediate: true);
             EmitSignal(SignalName.CampaignChanged, oldId.Value, campaignId);
         }
 
