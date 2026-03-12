@@ -189,12 +189,9 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     public Vector3 GetTargetPointGlobalPosition()
     {
-        if (!string.IsNullOrWhiteSpace(TargetPointNodePath.ToString()))
-        {
-            var targetPoint = GetNodeOrNull<Node3D>(TargetPointNodePath);
-            if (targetPoint != null)
-                return targetPoint.GlobalPosition;
-        }
+        var targetPoint = GetNodeOrNull<Node3D>(TargetPointNodePath);
+        if (targetPoint != null)
+            return targetPoint.GlobalPosition;
 
         return GlobalPosition + TargetPointOffset;
     }
@@ -250,9 +247,9 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         // Ensure sprite reference is set (may be called before _Ready in some paths)
         _sprite ??= GetNodeOrNull<Sprite3D>("Visual");
 
-        // Optional world-space HP bar for summoner shell.
-        // Default is HUD-only HP, so this remains disabled unless explicitly enabled.
-        if (ShowWorldHpBar && _hpBar == null)
+        // Keep the HP bar instance for internal sync (tests/death snap), but hide it
+        // from world view by default because summoner HP is presented in HUD.
+        if (_hpBar == null)
         {
             var settings = HPBarSettings.AlwaysVisible with { BarWidth = 1.5f, OffsetY = 2.5f };
             _hpBar = new FloatingHPBar();
@@ -260,11 +257,9 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
             _hpBar.Configure(settings);
             _hpBar.TrackNode(this);
         }
-        else if (!ShowWorldHpBar && _hpBar != null)
-        {
-            _hpBar.QueueFree();
-            _hpBar = null;
-        }
+
+        if (_hpBar != null)
+            _hpBar.Visible = ShowWorldHpBar;
 
         // Initialize last-known values for MP client polling
         var summoner = session.GetState().Summoners[teamIndex];
