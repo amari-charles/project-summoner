@@ -4,11 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Fateforged.Cards;
+using Fateforged.Infrastructure.Debug;
 using Fateforged.Session;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Tests.Simulation;
+using Fateforged.Units;
 using Fateforged.View;
 using GdUnit4;
 using Godot;
@@ -19,6 +22,12 @@ using static GdUnit4.Assertions;
 public class SummonerVisualTest
 {
     private readonly List<Node> _createdNodes = [];
+
+    [BeforeTest]
+    public void Setup()
+    {
+        SummonerMeleeBubble.ClearOverrideRadius();
+    }
 
     [AfterTest]
     public void Cleanup()
@@ -104,6 +113,78 @@ public class SummonerVisualTest
         }
 
         AssertThat(threwInvalidOperation).IsTrue();
+    }
+
+    [TestCase]
+    public void OnSummonerDamaged_WithAttacker_PlacesImpactPulseInwardFromBubbleContact()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        const int attackerId = 999;
+        state.Units[attackerId] = new UnitData
+        {
+            UnitId = attackerId,
+            Team = Team.Player,
+            IsAlive = true,
+            Position = new SimVector3(10f, 0f, 0f),
+        };
+        var session = new TestSession(state);
+        var visual = CreateVisual(session);
+        visual.GlobalPosition = Vector3.Zero;
+
+        visual.OnSummonerDamaged(10f, attackerId);
+
+        var pulse = visual.GetNodeOrNull<MeshInstance3D>("SummonerImpactPulse");
+        AssertThat(pulse).IsNotNull();
+        float expectedX = SummonerMeleeBubble.EffectiveRadius * (1f - 0.45f);
+        AssertThat(pulse!.GlobalPosition.X).IsEqualApprox(expectedX, 0.05f);
+        AssertThat(MathF.Abs(pulse.GlobalPosition.Z)).IsLess(0.05f);
+    }
+
+    [TestCase]
+    public void OnSummonerDamaged_MissingAttacker_FallsBackToCenterPulse()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var session = new TestSession(state);
+        var visual = CreateVisual(session);
+        visual.GlobalPosition = new Vector3(3.5f, 0f, -2.25f);
+
+        visual.OnSummonerDamaged(7f, attackerUnitId: 123456);
+
+        var pulse = visual.GetNodeOrNull<MeshInstance3D>("SummonerImpactPulse");
+        AssertThat(pulse).IsNotNull();
+        AssertThat(pulse!.GlobalPosition.X).IsEqualApprox(visual.GlobalPosition.X, 0.01f);
+        AssertThat(pulse.GlobalPosition.Z).IsEqualApprox(visual.GlobalPosition.Z, 0.01f);
+    }
+
+    [TestCase]
+    public void PhysicsProcess_SummonerBubbleDebugToggle_ControlsBubbleMarker()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+        var debugService = new BattlefieldDebugService { Name = "BattlefieldDebug" };
+        root.AddChild(debugService);
+        _createdNodes.Add(debugService);
+
+        var state = SimTestHelper.CreateBattleState();
+        var session = new TestSession(state);
+        var visual = CreateVisual(session);
+        var markerField = typeof(SummonerVisual).GetField(
+            "_debugSummonerBubbleMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+        AssertThat(markerField).IsNotNull();
+
+        debugService.SummonerBubbleEnabled = false;
+        visual._PhysicsProcess(1.0 / 60.0);
+        AssertThat(markerField!.GetValue(visual)).IsNull();
+
+        debugService.SummonerBubbleEnabled = true;
+        visual._PhysicsProcess(1.0 / 60.0);
+        AssertThat(markerField.GetValue(visual)).IsNotNull();
+
+        debugService.SummonerBubbleEnabled = false;
+        visual._PhysicsProcess(1.0 / 60.0);
+        AssertThat(markerField.GetValue(visual)).IsNull();
     }
 
     private SummonerVisual CreateVisual(IGameSession session)

@@ -927,7 +927,36 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickBehavior_PebbloomVeryLargeForwardBox_HitsFrontAreaAndExcludesBehind()
+    public void TickBehavior_PebbloomForwardOffset_CloseBandOutsideOffsetStillDealsDamage()
+    {
+        SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(UnitIds.EarthSprite, count: 1);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: pebbloomTemplate.AttackRange,
+            damage: pebbloomTemplate.AttackDamage);
+        attacker.CritChance = 0f;
+        attacker.IsFacingRight = true;
+        attacker.Attack = pebbloomTemplate.Attack.DeepClone();
+        attacker.EngageShape = pebbloomTemplate.EngageShape;
+        attacker.EngageRectLength = pebbloomTemplate.EngageRectLength;
+        attacker.EngageRectHalfWidth = pebbloomTemplate.EngageRectHalfWidth;
+        attacker.EngageRectForwardOffset = pebbloomTemplate.EngageRectForwardOffset;
+        attacker.EngageCloseRadius = pebbloomTemplate.EngageCloseRadius;
+
+        // Slightly outside raw forward-offset (2.1) but inside slot-aligned close bubble (2.15).
+        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 0.7f, z: 2.0f, hp: 100f);
+        primary.Evasion = 0f;
+
+        var events = new List<SimEvent>();
+        ExecuteMeleeAttack(attacker, primary, _state, events);
+
+        AssertThat(primary.CurrentHp).IsLess(100f);
+    }
+
+    [TestCase]
+    public void TickBehavior_PebbloomVeryLargeForwardBox_HitsFrontAreaAndNearBehindBubble_ExcludesFarBehind()
     {
         SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(
             UnitIds.EarthSprite,
@@ -959,15 +988,18 @@ public class SimBehaviorTest
             hp: 100f
         );
         frontWideRecipient.Evasion = 0f;
-        var behindRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: -0.8f, z: 0f, hp: 100f);
-        behindRecipient.Evasion = 0f;
+        var nearBehindRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: -0.8f, z: 0f, hp: 100f);
+        nearBehindRecipient.Evasion = 0f;
+        var farBehindRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: -2.6f, z: 0f, hp: 100f);
+        farBehindRecipient.Evasion = 0f;
 
         var events = new List<SimEvent>();
         ExecuteMeleeAttack(attacker, primary, _state, events);
 
         AssertThat(primary.CurrentHp).IsLess(100f);
         AssertThat(frontWideRecipient.CurrentHp).IsLess(100f);
-        AssertThat(behindRecipient.CurrentHp).IsEqual(100f);
+        AssertThat(nearBehindRecipient.CurrentHp).IsLess(100f);
+        AssertThat(farBehindRecipient.CurrentHp).IsEqual(100f);
     }
 
     // =========================================================================

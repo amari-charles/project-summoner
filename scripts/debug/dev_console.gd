@@ -39,6 +39,8 @@ extends Node
 ##   /items_clear - Clear all items from inventory
 ##   /debug_projectile_hit_radius [on|off|toggle] - Toggle projectile hit-radius visualization
 ##   /debug_projectile_hit_radius_status - Print projectile radius debug runtime status
+##   /debug_summoner_bubble [on|off|toggle] [<radius>|reset] - Toggle summoner melee bubble debug and runtime radius override
+##   /debug_summoner_bubble_status - Print summoner melee bubble debug runtime status
 ##   /projectiles_debug_dump - Print active projectile state + visual shell diagnostics
 ##   /projectiles_reload - Reload projectile visual scenes from disk
 ##
@@ -86,6 +88,8 @@ const COMMANDS: Array[Dictionary] = [
 	{"cmd": "/items_clear", "desc": "Clear all items"},
 	{"cmd": "/debug_projectile_hit_radius", "args": "[on|off|toggle]", "desc": "Toggle projectile hit-radius visualization"},
 	{"cmd": "/debug_projectile_hit_radius_status", "desc": "Show projectile radius debug runtime status"},
+	{"cmd": "/debug_summoner_bubble", "args": "[on|off|toggle] [<radius>|reset]", "desc": "Toggle summoner bubble debug + runtime radius"},
+	{"cmd": "/debug_summoner_bubble_status", "desc": "Show summoner bubble debug runtime status"},
 	{"cmd": "/projectiles_debug_dump", "desc": "Print active projectile + visual diagnostics"},
 	{"cmd": "/projectiles_reload", "desc": "Reload projectile visuals from disk"},
 ]
@@ -225,6 +229,10 @@ func execute_command(command: String) -> bool:
 			return _cmd_debug_projectile_hit_radius(args)
 		"/debug_projectile_hit_radius_status":
 			return _cmd_debug_projectile_hit_radius_status()
+		"/debug_summoner_bubble":
+			return _cmd_debug_summoner_bubble(args)
+		"/debug_summoner_bubble_status":
+			return _cmd_debug_summoner_bubble_status()
 		"/projectiles_debug_dump":
 			return _cmd_projectiles_debug_dump()
 		"/projectiles_reload":
@@ -1052,6 +1060,104 @@ func _cmd_debug_projectile_hit_radius_status() -> bool:
 			SafeTypeUtils.int_val(status.get("projectiles_in_state", 0), 0),
 			SafeTypeUtils.int_val(status.get("projectile_shells", 0), 0),
 			SafeTypeUtils.int_val(status.get("radius_markers", 0), 0),
+		]
+	)
+	return true
+
+
+func _cmd_debug_summoner_bubble(args: PackedStringArray) -> bool:
+	var debug_service: Node = get_tree().root.get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
+	if debug_service == null:
+		print("DevConsole: BattlefieldDebugService not available")
+		return false
+
+	if not debug_service.has_method("IsDebugSummonerBubbleEnabled") \
+	or not debug_service.has_method("SetDebugSummonerBubbleEnabled") \
+	or not debug_service.has_method("SetSummonerMeleeBubbleOverrideRadius") \
+	or not debug_service.has_method("ClearSummonerMeleeBubbleOverrideRadius"):
+		print("DevConsole: BattlefieldDebugService lacks summoner bubble debug methods")
+		return false
+
+	var current_enabled: bool = SafeTypeUtils.bool_val(
+		debug_service.call("IsDebugSummonerBubbleEnabled"), false)
+	var target_enabled: bool = current_enabled
+	var radius_token: String = ""
+
+	if args.size() > 0:
+		var mode_or_radius: String = args[0].to_lower()
+		var consumed_mode: bool = true
+		match mode_or_radius:
+			"on", "true", "1":
+				target_enabled = true
+			"off", "false", "0":
+				target_enabled = false
+			"toggle":
+				target_enabled = not current_enabled
+			_:
+				consumed_mode = false
+				radius_token = args[0]
+				target_enabled = not current_enabled
+
+		if consumed_mode and args.size() > 1:
+			radius_token = args[1]
+		elif not consumed_mode and args.size() > 1:
+			print("DevConsole: Usage: /debug_summoner_bubble [on|off|toggle] [<radius>|reset]")
+			return false
+
+	if not radius_token.is_empty():
+		var lower_token: String = radius_token.to_lower()
+		if lower_token == "reset":
+			debug_service.call("ClearSummonerMeleeBubbleOverrideRadius")
+		else:
+			if not radius_token.is_valid_float():
+				print("DevConsole: Radius must be a positive number or 'reset'")
+				return false
+
+			var radius: float = radius_token.to_float()
+			if radius <= 0.0:
+				print("DevConsole: Radius must be > 0")
+				return false
+			debug_service.call("SetSummonerMeleeBubbleOverrideRadius", radius)
+
+	debug_service.call("SetDebugSummonerBubbleEnabled", target_enabled)
+	print("DevConsole: Summoner bubble debug = %s" % ("ON" if target_enabled else "OFF"))
+	_cmd_debug_summoner_bubble_status()
+	return true
+
+
+func _cmd_debug_summoner_bubble_status() -> bool:
+	var debug_service: Node = get_tree().root.get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
+	if debug_service == null:
+		print("DevConsole: BattlefieldDebugService not available")
+		return false
+
+	var debug_enabled: bool = false
+	if debug_service.has_method("IsDebugSummonerBubbleEnabled"):
+		debug_enabled = SafeTypeUtils.bool_val(debug_service.call("IsDebugSummonerBubbleEnabled"), false)
+
+	var default_radius: float = 0.0
+	if debug_service.has_method("GetSummonerMeleeBubbleDefaultRadius"):
+		default_radius = SafeTypeUtils.float_val(debug_service.call("GetSummonerMeleeBubbleDefaultRadius"), 0.0)
+
+	var effective_radius: float = default_radius
+	if debug_service.has_method("GetSummonerMeleeBubbleEffectiveRadius"):
+		effective_radius = SafeTypeUtils.float_val(debug_service.call("GetSummonerMeleeBubbleEffectiveRadius"), default_radius)
+
+	var has_override: bool = false
+	if debug_service.has_method("HasSummonerMeleeBubbleOverrideRadius"):
+		has_override = SafeTypeUtils.bool_val(debug_service.call("HasSummonerMeleeBubbleOverrideRadius"), false)
+
+	var override_text: String = "none"
+	if has_override and debug_service.has_method("GetSummonerMeleeBubbleOverrideRadius"):
+		var override_radius: float = SafeTypeUtils.float_val(debug_service.call("GetSummonerMeleeBubbleOverrideRadius"), 0.0)
+		override_text = "%.2f" % override_radius
+
+	print(
+		"DevConsole: summoner_bubble_debug=%s default=%.2f override=%s effective=%.2f" % [
+			"ON" if debug_enabled else "OFF",
+			default_radius,
+			override_text,
+			effective_radius
 		]
 	)
 	return true

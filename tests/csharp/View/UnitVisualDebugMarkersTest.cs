@@ -278,6 +278,70 @@ public partial class UnitVisualDebugMarkersTest
         AssertThat(Mathf.Abs(marker.GlobalPosition.Z - 0.6f) < 0.001f).IsTrue();
     }
 
+    [TestCase]
+    public void Process_ForwardOffsetDamageShape_OnlyVisibleDuringAttackWindow()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var debugService = new BattlefieldDebugService { Name = "BattlefieldDebug" };
+        root.AddChild(debugService);
+        _createdNodes.Add(debugService);
+
+        var visual = new UnitVisual { Name = "UnitVisualForwardOffsetDamageShapeDebugTest" };
+        root.AddChild(visual);
+        _createdNodes.Add(visual);
+
+        const int unitId = 404;
+        var unit = new UnitData
+        {
+            UnitId = unitId,
+            IsAlive = true,
+            Position = new SimVector3(0f, 0f, 0f),
+            AttackRange = 3f,
+            AttackPhase = AttackPhase.None,
+            Attack = new AttackVectorState
+            {
+                Selection = new AttackSelectionState
+                {
+                    Mode = AttackSelectionMode.AreaCollect,
+                    TargetLimit = 3,
+                },
+                Area = new AttackAreaState
+                {
+                    Shape = AttackAreaShape.Box,
+                    Size = new SimVector3(5.4f, 1f, 2.6f),
+                    ForwardOffset = 2.1f,
+                },
+            },
+        };
+        var state = new MatchState();
+        state.Units[unitId] = unit;
+        SetPrivateField(visual, "_session", new StubSession(state));
+        SetPrivateField(visual, "_unitId", unitId);
+
+        var primaryField = typeof(UnitVisual).GetField(
+            "_debugDamageShapeMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+        var secondaryField = typeof(UnitVisual).GetField(
+            "_debugDamageShapeSecondaryMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+        AssertThat(primaryField).IsNotNull();
+        AssertThat(secondaryField).IsNotNull();
+
+        debugService.DamageShapeEnabled = true;
+        visual._Process(1.0 / 60.0);
+        AssertThat(primaryField!.GetValue(visual) as MeshInstance3D).IsNull();
+        AssertThat(secondaryField!.GetValue(visual) as MeshInstance3D).IsNull();
+
+        unit.AttackPhase = AttackPhase.Windup;
+        visual._Process(1.0 / 60.0);
+        AssertThat(primaryField.GetValue(visual) as MeshInstance3D).IsNotNull();
+        AssertThat(secondaryField.GetValue(visual) as MeshInstance3D).IsNotNull();
+    }
+
     private static void SetPrivateField(object instance, string fieldName, object? value)
     {
         var field = instance

@@ -1,9 +1,11 @@
 using System;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Fateforged.Infrastructure.Debug;
 using Fateforged.Meta;
 using Fateforged.Session;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.UI;
 using Godot;
@@ -128,6 +130,13 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private const float DamageFlashToWhiteDuration = 0.05f;
     private const float DamageFlashReturnDuration = 0.15f;
     private const float DeathFadeDuration = 0.5f;
+    private const float SummonerImpactInsetRatio = 0.45f;
+    private const float SummonerImpactPulseYOffset = 0.06f;
+    private const float SummonerImpactPulseStartRadius = 0.24f;
+    private const float SummonerImpactPulseEndRadius = 0.68f;
+    private const float SummonerImpactPulseDuration = 0.16f;
+    private const float SummonerBubbleRingThicknessScale = 0.04f;
+    private const float SummonerBubbleCapVerticalScale = 0.24f;
 
     // Collision shape constants
     private const float HurtboxRadius = 2.0f;
@@ -145,6 +154,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private float _lastHp;
     private float _lastMaxHp;
     private string[] _lastHandIds = Array.Empty<string>();
+    private Node3D? _debugSummonerBubbleMarker;
+    private float _debugSummonerBubbleRadius = -1f;
 
     // =========================================================================
     // IDamageableVisual
@@ -204,6 +215,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     {
         if (_activeFeedbackTween != null && _activeFeedbackTween.IsValid())
             _activeFeedbackTween.Kill();
+        FreeDebugSummonerBubbleMarker();
     }
 
     // =========================================================================
@@ -264,6 +276,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
         // Update HP bar
         _hpBar?.UpdateHp(summoner.CurrentHp, summoner.MaxHp);
+        UpdateDebugSummonerBubble();
 
         // Decay recent hits counter (for hit feedback animation speed)
         if (_recentHits > 0)
@@ -349,10 +362,11 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         ApplyHpUpdate(hp, maxHp);
     }
 
-    public void OnSummonerDamaged(float damage)
+    public void OnSummonerDamaged(float damage, int? attackerUnitId = null)
     {
         _recentHits += 1.0f;
         PlayHitFeedback();
+        SpawnSummonerImpactPulse(attackerUnitId);
         EmitSignal(SignalName.SummonerDamaged, this, damage);
     }
 
@@ -632,5 +646,279 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
             cylinder.Radius = HurtboxRadius;
             cylinder.Height = HurtboxHeight;
         }
+    }
+
+    private void SpawnSummonerImpactPulse(int? attackerUnitId)
+    {
+        var pulse = new MeshInstance3D
+        {
+            Name = "SummonerImpactPulse",
+            Mesh = new CylinderMesh
+            {
+                TopRadius = SummonerImpactPulseStartRadius,
+                BottomRadius = SummonerImpactPulseStartRadius,
+                Height = 0.05f,
+            },
+            MaterialOverride = CreateDebugMaterial(new Color(1.0f, 0.62f, 0.26f, 0.45f), 110),
+        };
+        AddChild(pulse);
+        pulse.GlobalPosition = ResolveSummonerImpactWorldPosition(attackerUnitId);
+        pulse.Rotation = Vector3.Zero;
+
+        var tween = CreateTween();
+        if (pulse.Mesh is CylinderMesh mesh)
+        {
+            tween.TweenMethod(
+                Callable.From<float>(
+                    radius =>
+                    {
+                        if (!GodotObject.IsInstanceValid(pulse))
+                            return;
+
+                        mesh.TopRadius = radius;
+                        mesh.BottomRadius = radius;
+                    }
+                ),
+                SummonerImpactPulseStartRadius,
+                SummonerImpactPulseEndRadius,
+                SummonerImpactPulseDuration
+            );
+        }
+
+        if (pulse.MaterialOverride is StandardMaterial3D material)
+        {
+            tween
+                .Parallel()
+                .TweenMethod(
+                    Callable.From<float>(
+                        alpha =>
+                        {
+                            if (!GodotObject.IsInstanceValid(material))
+                                return;
+
+                            var color = material.AlbedoColor;
+                            color.A = alpha;
+                            material.AlbedoColor = color;
+                        }
+                    ),
+                    material.AlbedoColor.A,
+                    0f,
+                    SummonerImpactPulseDuration
+                );
+        }
+
+        tween.TweenCallback(
+            Callable.From(
+                () =>
+                {
+                    if (GodotObject.IsInstanceValid(pulse))
+                        pulse.QueueFree();
+                }
+            )
+        );
+    }
+
+    private Vector3 ResolveSummonerImpactWorldPosition(int? attackerUnitId)
+    {
+        var center = GlobalPosition;
+        center.Y += SummonerImpactPulseYOffset;
+        if (!attackerUnitId.HasValue || _session == null)
+            return center;
+        var state = _session.GetState();
+        if (!state.Units.TryGetValue(attackerUnitId.Value, out var attacker))
+            return center;
+
+        var simNode = SimulationNode.Current;
+        var attackerWorld =
+            simNode != null
+                ? simNode.SimToLocal(attacker.Position)
+                : new Vector3(attacker.Position.X, attacker.Position.Y, attacker.Position.Z);
+        var radial = new Vector3(
+            attackerWorld.X - center.X,
+            0f,
+            attackerWorld.Z - center.Z
+        );
+        if (radial.LengthSquared() < 0.000001f)
+            return center;
+
+        float radius = Mathf.Max(0.1f, SummonerMeleeBubble.EffectiveRadius);
+        var contact = new Vector3(center.X, center.Y, center.Z) + radial.Normalized() * radius;
+        var inward = contact.Lerp(center, SummonerImpactInsetRatio);
+        inward.Y = center.Y;
+        return inward;
+    }
+
+    private void UpdateDebugSummonerBubble()
+    {
+        var debugService = BattlefieldDebugService.Instance;
+        if (debugService?.SummonerBubbleEnabled != true)
+        {
+            FreeDebugSummonerBubbleMarker();
+            return;
+        }
+
+        float radius = Mathf.Max(0.1f, debugService.GetSummonerMeleeBubbleEffectiveRadius());
+        bool needsRebuild = _debugSummonerBubbleMarker == null || !Mathf.IsEqualApprox(radius, _debugSummonerBubbleRadius);
+        if (needsRebuild)
+        {
+            FreeDebugSummonerBubbleMarker();
+            _debugSummonerBubbleMarker = CreateDebugBubbleMarker(radius, 97);
+            AddChild(_debugSummonerBubbleMarker);
+            _debugSummonerBubbleRadius = radius;
+        }
+
+        if (_debugSummonerBubbleMarker == null)
+            return;
+
+        _debugSummonerBubbleMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.03f, GlobalPosition.Z);
+        _debugSummonerBubbleMarker.Rotation = Vector3.Zero;
+    }
+
+    private static Node3D CreateDebugBubbleMarker(float radius, int renderPriority)
+    {
+        var root = new Node3D();
+        var ringThickness = Mathf.Max(0.06f, radius * SummonerBubbleRingThicknessScale);
+        var ring = CreateDebugGroundRing(
+            radius,
+            ringThickness,
+            new Color(0.3f, 0.9f, 1.0f, 0.22f),
+            renderPriority + 1
+        );
+        var cap = CreateDebugHemisphere(
+            radius,
+            new Color(0.3f, 0.9f, 1.0f, 0.08f),
+            renderPriority
+        );
+        cap.Scale = new Vector3(1f, SummonerBubbleCapVerticalScale, 1f);
+        root.AddChild(cap);
+        root.AddChild(ring);
+        return root;
+    }
+
+    private static MeshInstance3D CreateDebugHemisphere(float radius, Color color, int renderPriority)
+    {
+        return new MeshInstance3D
+        {
+            Mesh = CreateHemisphereMesh(radius),
+            MaterialOverride = CreateDebugMaterial(color, renderPriority)
+        };
+    }
+
+    private static MeshInstance3D CreateDebugGroundRing(
+        float radius,
+        float thickness,
+        Color color,
+        int renderPriority
+    )
+    {
+        return new MeshInstance3D
+        {
+            Mesh = CreateRingMesh(radius, thickness),
+            MaterialOverride = CreateDebugMaterial(color, renderPriority),
+        };
+    }
+
+    private static ArrayMesh CreateRingMesh(float radius, float thickness)
+    {
+        const int segments = 48;
+        float outer = Mathf.Max(0.1f, radius);
+        float inner = Mathf.Max(0.05f, outer - Mathf.Max(0.01f, thickness));
+        const float y = 0.025f;
+
+        var st = new SurfaceTool();
+        st.Begin(Mesh.PrimitiveType.Triangles);
+        for (int i = 0; i < segments; i++)
+        {
+            float t0 = (i / (float)segments) * Mathf.Tau;
+            float t1 = ((i + 1) / (float)segments) * Mathf.Tau;
+
+            var o0 = new Vector3(Mathf.Cos(t0) * outer, y, Mathf.Sin(t0) * outer);
+            var o1 = new Vector3(Mathf.Cos(t1) * outer, y, Mathf.Sin(t1) * outer);
+            var i0 = new Vector3(Mathf.Cos(t0) * inner, y, Mathf.Sin(t0) * inner);
+            var i1 = new Vector3(Mathf.Cos(t1) * inner, y, Mathf.Sin(t1) * inner);
+
+            st.AddVertex(o0);
+            st.AddVertex(o1);
+            st.AddVertex(i1);
+
+            st.AddVertex(o0);
+            st.AddVertex(i1);
+            st.AddVertex(i0);
+        }
+
+        st.GenerateNormals();
+        return st.Commit();
+    }
+
+    private static ArrayMesh CreateHemisphereMesh(float radius)
+    {
+        const int latSegments = 10;
+        const int lonSegments = 20;
+
+        var surfaceTool = new SurfaceTool();
+        surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
+
+        for (int lat = 0; lat < latSegments; lat++)
+        {
+            float phi0 = (lat / (float)latSegments) * (Mathf.Pi * 0.5f);
+            float phi1 = ((lat + 1) / (float)latSegments) * (Mathf.Pi * 0.5f);
+
+            for (int lon = 0; lon < lonSegments; lon++)
+            {
+                float theta0 = (lon / (float)lonSegments) * Mathf.Tau;
+                float theta1 = ((lon + 1) / (float)lonSegments) * Mathf.Tau;
+
+                Vector3 v00 = HemispherePoint(radius, phi0, theta0);
+                Vector3 v10 = HemispherePoint(radius, phi1, theta0);
+                Vector3 v11 = HemispherePoint(radius, phi1, theta1);
+                Vector3 v01 = HemispherePoint(radius, phi0, theta1);
+
+                surfaceTool.AddVertex(v00);
+                surfaceTool.AddVertex(v10);
+                surfaceTool.AddVertex(v11);
+
+                surfaceTool.AddVertex(v00);
+                surfaceTool.AddVertex(v11);
+                surfaceTool.AddVertex(v01);
+            }
+        }
+
+        surfaceTool.GenerateNormals();
+        return surfaceTool.Commit();
+    }
+
+    private static Vector3 HemispherePoint(float radius, float phi, float theta)
+    {
+        float sinPhi = Mathf.Sin(phi);
+        float cosPhi = Mathf.Cos(phi);
+        float sinTheta = Mathf.Sin(theta);
+        float cosTheta = Mathf.Cos(theta);
+        return new Vector3(
+            radius * sinPhi * cosTheta,
+            radius * cosPhi,
+            radius * sinPhi * sinTheta
+        );
+    }
+
+    private static StandardMaterial3D CreateDebugMaterial(Color color, int renderPriority)
+    {
+        return new StandardMaterial3D
+        {
+            AlbedoColor = color,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled,
+            NoDepthTest = true,
+            RenderPriority = renderPriority
+        };
+    }
+
+    private void FreeDebugSummonerBubbleMarker()
+    {
+        if (_debugSummonerBubbleMarker != null)
+            _debugSummonerBubbleMarker.QueueFree();
+        _debugSummonerBubbleMarker = null;
+        _debugSummonerBubbleRadius = -1f;
     }
 }

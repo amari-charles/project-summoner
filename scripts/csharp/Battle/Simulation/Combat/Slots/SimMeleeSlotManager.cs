@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
@@ -18,7 +19,6 @@ public static class SimMeleeSlotManager
     private const float SideShare = 0.30f;
     private const float AxisRefreshAngleDeg = 30f;
     private const float AxisRefreshDisplacementRadiusScale = 0.5f;
-    private const float SummonerTargetRadius = 1.8f;
     private const int SummonerMinSlots = 12;
 
     public static TargetSlotState GetOrCreateTargetState(
@@ -44,7 +44,8 @@ public static class SimMeleeSlotManager
         MatchState state,
         int targetId,
         out int reservedSlotId,
-        int minSlots = MinSlotsDefault
+        int minSlots = MinSlotsDefault,
+        int? excludedSlotId = null
     )
     {
         reservedSlotId = -1;
@@ -54,6 +55,8 @@ public static class SimMeleeSlotManager
         float bestDistSq = float.MaxValue;
         foreach (var slot in slotState.Slots)
         {
+            if (excludedSlotId.HasValue && slot.SlotId == excludedSlotId.Value)
+                continue;
             if (slot.OccupancyState != SlotOccupancyState.Free)
                 continue;
 
@@ -186,12 +189,6 @@ public static class SimMeleeSlotManager
         int slotCount = Math.Max(Math.Max(minSlots, 1), computedSlots);
         if (MatchState.IsSummonerTarget(targetId))
             slotCount = Math.Max(slotCount, SummonerMinSlots);
-
-        if (slotState.Slots.Count == slotCount)
-            return;
-
-        // Rebuild topology deterministically.
-        slotState.Slots.Clear();
         float desiredOrbitRadius = MathF.Max(targetRadius + (attackerRadius * 0.9f), 0.2f);
         if (
             attacker.EngageShape == EngageShape.ForwardRect
@@ -205,15 +202,41 @@ public static class SimMeleeSlotManager
                 attacker.EngageRectForwardOffset + 0.05f
             );
         }
-        // Slots must sit within practical attack reach so reserved attackers can
-        // actually enter attack loop (important for large targets like summoners).
-        float maxReachableOrbitRadius = MathF.Max(0.2f, attacker.AttackRange * 0.92f);
-        float orbitRadius = MathF.Min(desiredOrbitRadius, maxReachableOrbitRadius);
-        var offsets = BuildSlotOffsets(slotCount, orbitRadius);
-        for (int i = 0; i < offsets.Count; i++)
+        // Non-summoner targets still clamp orbit by attack reach to avoid unreachable
+        // reservations; summoner bubble targeting evaluates attackability against the
+        // bubble surface, so frontage should stay on authored bubble radius.
+        float orbitRadius = desiredOrbitRadius;
+        if (!MatchState.IsSummonerTarget(targetId))
         {
-            slotState.Slots.Add(new MeleeSlotEntry { SlotId = i, SlotOffset = offsets[i] });
+            float maxReachableOrbitRadius = MathF.Max(0.2f, attacker.AttackRange * 0.92f);
+            orbitRadius = MathF.Min(orbitRadius, maxReachableOrbitRadius);
         }
+
+        bool slotCountChanged = slotState.Slots.Count != slotCount;
+        bool orbitRadiusChanged = MathF.Abs(slotState.OrbitRadius - orbitRadius) > 0.001f;
+        if (!slotCountChanged && !orbitRadiusChanged)
+            return;
+
+        var offsets = BuildSlotOffsets(slotCount, orbitRadius);
+        if (slotCountChanged)
+        {
+            // Rebuild topology deterministically when cardinality changes.
+            // Occupancy cannot be preserved safely when slot ids are re-indexed.
+            slotState.Slots.Clear();
+            for (int i = 0; i < offsets.Count; i++)
+            {
+                slotState.Slots.Add(new MeleeSlotEntry { SlotId = i, SlotOffset = offsets[i] });
+            }
+        }
+        else
+        {
+            // Radius-only updates keep slot ids stable, so preserve occupancy metadata
+            // and move each existing slot entry to the new offset.
+            for (int i = 0; i < slotState.Slots.Count; i++)
+                slotState.Slots[i].SlotOffset = offsets[i];
+        }
+
+        slotState.OrbitRadius = orbitRadius;
     }
 
     private static List<SimVector3> BuildSlotOffsets(int slotCount, float radius)
@@ -294,6 +317,16 @@ public static class SimMeleeSlotManager
         var targetPos = targetPosOpt.Value;
         float targetRadius = ResolveTargetRadius(targetId, state);
 
+        if (MatchState.IsSummonerTarget(targetId))
+        {
+            // Summoner slot rings must stay world-stable to avoid rotating slot
+            // reservations that cause "ring-around" loops in dense melee swarms.
+            slotState.LayoutAxis = ResolveSummonerLayoutAxis(targetId);
+            slotState.LastAnchorPosition = targetPos;
+            slotState.LastAxisRefreshTime = state.MatchTime;
+            return;
+        }
+
         bool hasCentroid = TryGetAttackerCentroid(slotState, state, out var centroid);
         if (!hasCentroid)
             centroid = fallbackAttackerPosition;
@@ -329,6 +362,16 @@ public static class SimMeleeSlotManager
             slotState.LastAnchorPosition = targetPos;
             slotState.LastAxisRefreshTime = state.MatchTime;
         }
+    }
+
+    private static SimVector3 ResolveSummonerLayoutAxis(int targetId)
+    {
+        int summonerTeam = MatchState.GetSummonerTeamFromTargetId(targetId);
+        // Team 0 (player) is on -X and is attacked from +X.
+        // Team 1 (enemy) is on +X and is attacked from -X.
+        return summonerTeam == 0
+            ? new SimVector3(1f, 0f, 0f)
+            : new SimVector3(-1f, 0f, 0f);
     }
 
     private static bool TryGetAttackerCentroid(
@@ -402,11 +445,11 @@ public static class SimMeleeSlotManager
     private static float ResolveTargetRadius(int targetId, MatchState state)
     {
         if (MatchState.IsSummonerTarget(targetId))
-            return SummonerTargetRadius;
+            return SummonerMeleeBubble.EffectiveRadius;
 
         var target = state.GetAliveUnit(targetId);
         if (target == null)
-            return SummonerTargetRadius;
+            return SummonerMeleeBubble.EffectiveRadius;
 
         float navigation = CombatGeometry.GetNavigationRadius(target);
         return MathF.Max(0.2f, navigation);

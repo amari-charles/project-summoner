@@ -319,6 +319,13 @@ public static class AttackRecipientResolver
 
     private static bool IsInsideForwardBox(UnitData attacker, SimVector3 point, SimVector3 size)
     {
+        float closeRadius = MathF.Max(attacker.EngageCloseRadius, 0f);
+        if (closeRadius > 0f &&
+            DistanceSquaredXZ(attacker.Position, point) <= (closeRadius * closeRadius) + GeometryEpsilon)
+        {
+            return true;
+        }
+
         var forward = GetFacingDirection(attacker);
         var right = new SimVector3(-forward.Z, 0f, forward.X);
         var delta = point - attacker.Position;

@@ -11,6 +11,7 @@ public sealed class TargetSlotState
 
     // World-stable layout axis used to orient slot offsets.
     public SimVector3 LayoutAxis { get; set; } = new SimVector3(1f, 0f, 0f);
+    public float OrbitRadius { get; set; } = -1f;
 
     public SimVector3 LastAnchorPosition { get; set; } = SimVector3.Zero;
     public float LastAxisRefreshTime { get; set; }

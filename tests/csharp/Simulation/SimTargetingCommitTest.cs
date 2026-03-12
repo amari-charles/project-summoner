@@ -21,6 +21,7 @@ public class SimTargetingCommitTest
     public void Setup()
     {
         _state = SimTestHelper.CreateBattleState();
+        SummonerMeleeBubble.ClearOverrideRadius();
     }
 
     [TestCase]
@@ -271,12 +272,12 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
-    public void CommitTick_UsesSlots_ForSummonerTargets()
+    public void CommitTick_UsesSlots_ForSummonerTargets_WhenNotYetAttackable()
     {
         var unit = SimTestHelper.CreateMeleeUnit(
             _state,
             team: 0,
-            x: 14f,
+            x: 10f,
             z: 0f,
             attackRange: 2.5f,
             aggroRadius: 20f
@@ -301,7 +302,34 @@ public class SimTargetingCommitTest
         float dx = slotPos!.Value.X - _state.Summoners[1].Position.X;
         float dz = slotPos.Value.Z - _state.Summoners[1].Position.Z;
         float dist = MathF.Sqrt((dx * dx) + (dz * dz));
-        AssertThat(dist).IsLessEqual(unit.AttackRange + 0.05f);
+        AssertThat(dist).IsGreater(SummonerMeleeBubble.EffectiveRadius - 0.05f);
+    }
+
+    [TestCase]
+    public void CommitTick_UsesSlots_ForSummonerTargets_EvenWhenAlreadyBubbleAttackable()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 18f,
+            z: 0f,
+            attackRange: 2.5f,
+            aggroRadius: 20f
+        );
+        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+
+        var events = new List<SimEvent>();
+        SimCombatStateMachine.Tick(unit, _state, Delta, events);
+
+        int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
+        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.SlotTargetId.HasValue).IsTrue();
+        AssertThat(unit.SlotTargetId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.ReservedSlotId.HasValue).IsTrue();
+        AssertThat(unit.OccupiedSlotId.HasValue).IsFalse();
+        AssertThat(unit.AttackCooldown <= 0f).IsTrue();
+        AssertThat(SimTestHelper.FindEvent<SummonerDamagedEvent>(events)).IsNull();
     }
 
     [TestCase]

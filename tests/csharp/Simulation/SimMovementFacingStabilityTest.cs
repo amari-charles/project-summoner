@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.Simulation;
 
 using Fateforged.Simulation;
+using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Movement;
@@ -19,6 +20,7 @@ public class SimMovementFacingStabilityTest
     public void Setup()
     {
         _state = SimTestHelper.CreateBattleState();
+        SummonerMeleeBubble.ClearOverrideRadius();
         _sim = new Fateforged.Simulation.Simulation(_state);
     }
 
@@ -100,5 +102,18 @@ public class SimMovementFacingStabilityTest
         }
 
         AssertThat(facingFlips).IsLess(25);
+    }
+
+    [TestCase]
+    public void TickCommitMeleeMovement_MovementNone_SummonerTarget_FacesTowardSummonerCenter()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 24f, z: 0f, moveSpeed: 2f);
+        unit.IsFacingRight = true;
+        unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
+
+        var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
+        SimMovement.Tick(unit, behavior, _state, Delta);
+
+        AssertThat(unit.IsFacingRight).IsFalse();
     }
 }
