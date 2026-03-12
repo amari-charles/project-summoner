@@ -82,6 +82,82 @@ public class BlockedUnitReproTest
     }
 
     /// <summary>
+    /// No-target objective-advance regression:
+    /// when enemy units are alive but outside aggro, the unit should keep advancing
+    /// instead of idling due null target in commit-melee movement.
+    /// </summary>
+    [TestCase]
+    public void NoTarget_ObjectiveAdvance_DoesNotIdleWithNullTarget()
+    {
+        var mover = SimTestHelper.CreateMeleeUnit(_state, 0, x: -18f, z: 0f,
+            attackRange: 2f, aggroRadius: 4f, moveSpeed: 3f);
+
+        // Keep at least one enemy unit alive, but well outside aggro so commit targeting returns null.
+        SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f,
+            attackRange: 2f, aggroRadius: 0f, moveSpeed: 0f);
+
+        int movingFramesWithoutTarget = 0;
+        for (int i = 0; i < FiveSeconds; i++)
+        {
+            _sim.Tick(Delta);
+            if (!mover.TargetUnitId.HasValue && mover.Velocity.LengthSquared() > 0.001f)
+                movingFramesWithoutTarget++;
+        }
+
+        AssertThat(movingFramesWithoutTarget).IsGreater(240); // >4 seconds of active advance over 5-second run
+    }
+
+    /// <summary>
+    /// Forward-rect melee with positive forward offset (Pebloom-like profile)
+    /// should still secure a slot that allows attacks instead of parking idle
+    /// while a nearby enemy free-hits.
+    /// </summary>
+    [TestCase]
+    public void ForwardRectOffsetUnit_VersusFireWisp_EventuallyAttacks()
+    {
+        var pebbloomLike = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: -2f,
+            z: 0f,
+            hp: 280f,
+            damage: 20f,
+            attackSpeed: 0.9f,
+            attackRange: 3f,
+            moveSpeed: 1.8f,
+            aggroRadius: 20f);
+        pebbloomLike.EngageShape = EngageShape.ForwardRect;
+        pebbloomLike.EngageRectLength = 5.4f;
+        pebbloomLike.EngageRectHalfWidth = 2.6f;
+        pebbloomLike.EngageRectForwardOffset = 2.1f;
+        pebbloomLike.EngageCloseRadius = 0.54f;
+
+        var fireWispLike = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 2f,
+            z: 0f,
+            hp: 120f,
+            damage: 10f,
+            attackSpeed: 1.2f,
+            attackRange: 3f,
+            moveSpeed: 3.5f,
+            aggroRadius: 20f);
+
+        var allEvents = new List<SimEvent>();
+        for (int i = 0; i < TenSeconds; i++)
+            allEvents.AddRange(_sim.Tick(Delta));
+
+        bool pebbloomAttacked = SimTestHelper.FindEvents<UnitAttackedEvent>(allEvents)
+            .Any(e => e.AttackerUnitId == pebbloomLike.UnitId);
+        bool fireWispDamaged = SimTestHelper.FindEvents<UnitDamagedEvent>(allEvents)
+            .Any(e => e.TargetUnitId == fireWispLike.UnitId && e.AttackerUnitId == pebbloomLike.UnitId);
+
+        AssertThat(pebbloomAttacked).IsTrue();
+        AssertThat(fireWispDamaged).IsTrue();
+    }
+
+    /// <summary>
     /// Multiple friendly units in a column — back units should still contribute
     /// to combat (either by flanking or attacking through friendlies).
     /// </summary>

@@ -4,6 +4,7 @@ using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
+using Fateforged.Simulation;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -35,6 +36,7 @@ public static class MovementTargetResolver
     private const float OrbitAbsoluteStepWeight = 0.08f;
     private const float OrbitScoreTieEpsilon = 0.001f;
     private const float ApproachDirectionFallbackThresholdSq = 0.000001f;
+    private const float ObjectiveAdvanceEpsilon = 0.000001f;
 
     public static SimVector3? Resolve(UnitData unit, int? targetId, MatchState state)
     {
@@ -64,6 +66,56 @@ public static class MovementTargetResolver
         }
 
         return ResolveSummonerOrbitPoint(unit, baseTargetPosition.Value, state);
+    }
+
+    /// <summary>
+    /// Deterministic no-target objective-advance steering direction.
+    /// Units move mostly straight along own->enemy summoner axis, then progressively
+    /// curve toward enemy summoner after the configured engage band.
+    /// </summary>
+    public static SimVector3 ResolveObjectiveAdvanceDirection(UnitData unit, MatchState state)
+    {
+        int ownTeam = (int)unit.Team;
+        int enemyTeam = MatchState.GetEnemyTeam(ownTeam);
+        var ownSummoner = state.Summoners[ownTeam];
+        var enemySummoner = state.Summoners[enemyTeam];
+
+        var laneAxis = enemySummoner.Position - ownSummoner.Position;
+        laneAxis = new SimVector3(laneAxis.X, 0f, laneAxis.Z);
+        float laneLengthSq = laneAxis.LengthSquared();
+        if (laneLengthSq < ObjectiveAdvanceEpsilon)
+        {
+            float fallbackX = unit.Team == Team.Player ? 1f : -1f;
+            return new SimVector3(fallbackX, 0f, 0f);
+        }
+
+        float laneLength = MathF.Sqrt(laneLengthSq);
+        var laneDir = laneAxis / laneLength;
+        var fromOwnSummoner = unit.Position - ownSummoner.Position;
+        fromOwnSummoner = new SimVector3(fromOwnSummoner.X, 0f, fromOwnSummoner.Z);
+        float rawProgress = fromOwnSummoner.Dot(laneDir) / laneLength;
+        float progress = MathF.Max(0f, MathF.Min(1f, rawProgress));
+
+        float bandStart = SimConstants.ObjectiveAdvanceBandStartProgress;
+        if (progress <= bandStart)
+            return laneDir;
+
+        var toEnemySummoner = enemySummoner.Position - unit.Position;
+        toEnemySummoner = new SimVector3(toEnemySummoner.X, 0f, toEnemySummoner.Z);
+        if (toEnemySummoner.LengthSquared() < ObjectiveAdvanceEpsilon)
+            return laneDir;
+
+        var summonDir = toEnemySummoner.Normalized();
+        float blendT = (progress - bandStart) / MathF.Max(1f - bandStart, 0.0001f);
+        blendT = MathF.Max(0f, MathF.Min(1f, blendT));
+        float curveWeight = MathF.Pow(blendT, SimConstants.ObjectiveAdvanceCurveExponent);
+
+        var blended = (laneDir * (1f - curveWeight)) + (summonDir * curveWeight);
+        blended = new SimVector3(blended.X, 0f, blended.Z);
+        if (blended.LengthSquared() < ObjectiveAdvanceEpsilon)
+            return laneDir;
+
+        return blended.Normalized();
     }
 
     private static bool ShouldUseMeleeApproachOffsets(UnitData unit)

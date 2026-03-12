@@ -10,4 +10,5 @@ public enum RetargetReason
     ForcedOverride = 2,
     UnreachableTimeout = 3,
     OutOfAggroRange = 4,
+    AggroPreempt = 5,
 }

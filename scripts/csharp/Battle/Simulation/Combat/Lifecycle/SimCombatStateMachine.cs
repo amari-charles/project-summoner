@@ -24,7 +24,11 @@ public static class SimCombatStateMachine
     {
         TickDroppedTargetCooldown(unit, delta);
 
-        if (!EnsureCommittedTarget(unit, state, delta))
+        if (!EnsureCommittedTarget(
+                unit,
+                state,
+                delta,
+                allowSummonerAggroPreempt: unit.AttackPhase == AttackPhase.None))
         {
             SimMeleeSlotManager.ReleaseUnitSlots(unit, state);
             SimAttackLoop.Cancel(unit, state);
@@ -80,7 +84,11 @@ public static class SimCombatStateMachine
         return behavior;
     }
 
-    private static bool EnsureCommittedTarget(UnitData unit, MatchState state, float delta)
+    private static bool EnsureCommittedTarget(
+        UnitData unit,
+        MatchState state,
+        float delta,
+        bool allowSummonerAggroPreempt)
     {
         if (TryApplyForcedTarget(unit, state))
             return true;
@@ -91,6 +99,14 @@ public static class SimCombatStateMachine
         int? locked = unit.LockedTargetUnitId;
         if (locked.HasValue && IsTargetValid(locked.Value, state))
         {
+            if (allowSummonerAggroPreempt &&
+                TryGetAggroPreemptTarget(unit, state, locked.Value, out int preemptTargetId))
+            {
+                SetLockedTarget(unit, state, preemptTargetId);
+                unit.LastRetargetReason = RetargetReason.AggroPreempt;
+                return true;
+            }
+
             unit.TargetUnitId = locked;
             if (IsOutsideAggroChaseRadius(unit, locked.Value, state))
             {
@@ -121,6 +137,29 @@ public static class SimCombatStateMachine
 
         SetLockedTarget(unit, state, acquired);
         return acquired.HasValue;
+    }
+
+    private static bool TryGetAggroPreemptTarget(
+        UnitData unit,
+        MatchState state,
+        int currentLockedTargetId,
+        out int preemptTargetId)
+    {
+        preemptTargetId = default;
+        if (!MatchState.IsSummonerTarget(currentLockedTargetId))
+            return false;
+
+        int? candidate = SimTargeting.AcquireTargetCommit(
+            unit,
+            state,
+            currentTargetId: currentLockedTargetId,
+            droppedTargetId: unit.DroppedTargetUnitId,
+            droppedTargetCooldownTimer: unit.DroppedTargetCooldownTimer);
+        if (!candidate.HasValue || MatchState.IsSummonerTarget(candidate.Value))
+            return false;
+
+        preemptTargetId = candidate.Value;
+        return true;
     }
 
     private static bool TryApplyForcedTarget(UnitData unit, MatchState state)

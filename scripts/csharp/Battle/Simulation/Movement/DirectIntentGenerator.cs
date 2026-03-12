@@ -24,17 +24,16 @@ public sealed class DirectIntentGenerator : IMovementIntentGenerator
 
         return behavior.Movement switch
         {
-            MovementResult.Forward => BuildForwardIntent(unit, speed),
+            MovementResult.Forward => BuildForwardIntent(unit, state, speed),
             MovementResult.TowardTarget => BuildTowardTargetIntent(unit, behavior.MoveTargetId, state, speed),
             MovementResult.Strafe => BuildStrafeIntent(unit, behavior.MoveTargetId, state, speed),
             _ => MovementIntent.None(behavior.Movement, behavior.MoveTargetId)
         };
     }
 
-    private static MovementIntent BuildForwardIntent(UnitData unit, float speed)
+    private static MovementIntent BuildForwardIntent(UnitData unit, MatchState state, float speed)
     {
-        float forwardX = unit.Team == Team.Player ? 1f : -1f;
-        var forwardDir = new SimVector3(forwardX, 0f, 0f);
+        var forwardDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, state);
         return new MovementIntent
         {
             Mode = MovementResult.Forward,
@@ -50,7 +49,7 @@ public sealed class DirectIntentGenerator : IMovementIntentGenerator
         var targetPos = MovementTargetResolver.Resolve(unit, targetId, state);
         if (!targetPos.HasValue)
         {
-            var fallback = BuildForwardIntent(unit, speed);
+            var fallback = BuildForwardIntent(unit, state, speed);
             return new MovementIntent
             {
                 Mode = MovementResult.TowardTarget,
@@ -81,7 +80,7 @@ public sealed class DirectIntentGenerator : IMovementIntentGenerator
         var targetPos = MovementTargetResolver.Resolve(unit, targetId, state);
         if (!targetPos.HasValue)
         {
-            var fallback = BuildForwardIntent(unit, speed);
+            var fallback = BuildForwardIntent(unit, state, speed);
             return new MovementIntent
             {
                 Mode = MovementResult.Strafe,
