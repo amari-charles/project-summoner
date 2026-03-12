@@ -1148,8 +1148,10 @@ public class Simulation
         if (_state.CardDataMap.TryGetValue(catalogId, out var cardData))
             return !cardData.IsSpell;
 
-        // Unknown cards default to summon behavior to avoid deadlocking hand draws.
-        return true;
+        Log?.Invoke(
+            $"[Simulation] Missing card data while evaluating prep draw filtering: catalogId={catalogId}"
+        );
+        return false;
     }
 
     private static bool HasMatchingCard(
