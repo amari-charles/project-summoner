@@ -562,9 +562,37 @@ public static class SimBehavior
         }
 
         var startPos = ResolveProjectileStartPosition(attacker);
-        var targetPos = target.Position;
         if (projectileData.SpawnAtTargetHeight)
-            startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
+            startPos = new SimVector3(startPos.X, target.Position.Y, startPos.Z);
+        var targetPos = ResolveProjectileTargetPosition(startPos, target.Position, projectileData);
+
+        if (projectileData.InstantHitScan)
+        {
+            SimProjectile.ResolveInstantLine(
+                state,
+                sourceUnitId: attacker.UnitId,
+                targetUnitId: target.UnitId,
+                team: attacker.Team,
+                damage: baseDamage,
+                sourceElementId: attacker.ElementId,
+                startPos: startPos,
+                endPos: targetPos,
+                hitRadius: projectileData.HitRadius,
+                pierceCount: projectileData.PierceCount,
+                aoeRadius: projectileData.AoeRadius,
+                hitSpace: projectileData.HitSpace,
+                projectileCatalogId: new SimProjectileCatalogId(projectileData.ProjectileId),
+                targetAffinity: attacker.ProjectileTargetAffinity,
+                impactKind: attacker.ProjectileImpactKind,
+                statusKind: attacker.ProjectileStatusKind,
+                statusDuration: attacker.ProjectileStatusDuration,
+                statusTickInterval: attacker.ProjectileStatusTickInterval,
+                statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+                statusMaxStacks: attacker.ProjectileStatusMaxStacks,
+                events: events
+            );
+            return;
+        }
 
         SimProjectile.Spawn(
             state,
@@ -634,9 +662,37 @@ public static class SimBehavior
         }
 
         var startPos = ResolveProjectileStartPosition(attacker);
-        var targetPos = summoner.Position;
         if (projectileData.SpawnAtTargetHeight)
-            startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
+            startPos = new SimVector3(startPos.X, summoner.Position.Y, startPos.Z);
+        var targetPos = ResolveProjectileTargetPosition(startPos, summoner.Position, projectileData);
+
+        if (projectileData.InstantHitScan)
+        {
+            SimProjectile.ResolveInstantLine(
+                state,
+                sourceUnitId: attacker.UnitId,
+                targetUnitId: summonerTargetId,
+                team: attacker.Team,
+                damage: baseDamage,
+                sourceElementId: attacker.ElementId,
+                startPos: startPos,
+                endPos: targetPos,
+                hitRadius: projectileData.HitRadius,
+                pierceCount: projectileData.PierceCount,
+                aoeRadius: projectileData.AoeRadius,
+                hitSpace: projectileData.HitSpace,
+                projectileCatalogId: new SimProjectileCatalogId(projectileData.ProjectileId),
+                targetAffinity: attacker.ProjectileTargetAffinity,
+                impactKind: attacker.ProjectileImpactKind,
+                statusKind: attacker.ProjectileStatusKind,
+                statusDuration: attacker.ProjectileStatusDuration,
+                statusTickInterval: attacker.ProjectileStatusTickInterval,
+                statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+                statusMaxStacks: attacker.ProjectileStatusMaxStacks,
+                events: events
+            );
+            return;
+        }
 
         SimProjectile.Spawn(
             state,
@@ -697,6 +753,28 @@ public static class SimBehavior
             startPos.Y + offset.Y,
             startPos.Z + offset.Z
         );
+    }
+
+    private static SimVector3 ResolveProjectileTargetPosition(
+        SimVector3 startPos,
+        SimVector3 intendedTargetPos,
+        ProjectileData projectileData
+    )
+    {
+        if (
+            projectileData.MovementType != ProjectileMovementType.Straight
+            || projectileData.Tracking
+            || projectileData.FixedTravelDistance <= 0f
+        )
+        {
+            return intendedTargetPos;
+        }
+
+        var toTarget = intendedTargetPos - startPos;
+        if (toTarget.LengthSquared() <= 0.0001f)
+            return intendedTargetPos;
+
+        return startPos + (toTarget.Normalized() * projectileData.FixedTravelDistance);
     }
 
     private static bool TryResolveProjectileData(

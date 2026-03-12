@@ -34,4 +34,28 @@ public class AbilitySpellHealTest
         AssertThat(ally.CurrentHp).IsGreater(25f);
         AssertThat(enemy.CurrentHp).IsEqual(25f);
     }
+
+    [TestCase]
+    public void HealingField_ResolveViaSpawnUnitCommand_HealsAlliesInRadius()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var sim = new Fateforged.Simulation.Simulation(state);
+
+        var cardDef = CardDefinitions.HealingField;
+        var simCard = SimCardData.FromCardDefinition(cardDef);
+        state.CardDataMap[(string)cardDef.Id] = simCard;
+
+        var ally = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, z: 0f, hp: 100f);
+        ally.CurrentHp = 25f;
+        var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 0f, z: 0f, hp: 100f);
+        enemy.CurrentHp = 25f;
+
+        state.PendingCommandBuffer.Add(
+            new SpawnUnitCommand((string)cardDef.Id, 0, new SimVector3(0f, 0f, 0f))
+        );
+        sim.Tick(Simulation.FixedDeltaSeconds);
+
+        AssertThat(ally.CurrentHp).IsGreater(25f);
+        AssertThat(enemy.CurrentHp).IsEqual(25f);
+    }
 }

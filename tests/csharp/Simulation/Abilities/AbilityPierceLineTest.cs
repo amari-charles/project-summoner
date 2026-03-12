@@ -48,4 +48,35 @@ public class AbilityPierceLineTest
         AssertThat(targetA.CurrentHp).IsLess(100f);
         AssertThat(targetB.CurrentHp).IsLess(100f);
     }
+
+    [TestCase]
+    public void LaserUnitAttack_HitscanBeam_HitsEnemiesBehindPrimaryTargetImmediately()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var events = new List<SimEvent>();
+
+        var attacker = SimTestHelper.CreateRangedUnit(
+            state,
+            0,
+            x: 0f,
+            z: 0f,
+            damage: 20f,
+            attackSpeed: 1f,
+            attackRange: 22f,
+            projectileDelay: 0f,
+            catalogId: "piercing_laser"
+        );
+        var frontTarget = SimTestHelper.CreateMeleeUnit(state, 1, x: 9f, z: 0f, hp: 100f);
+        var behindTarget = SimTestHelper.CreateMeleeUnit(state, 1, x: 17f, z: 0f, hp: 100f);
+        attacker.TargetUnitId = frontTarget.UnitId;
+
+        float frontBefore = frontTarget.CurrentHp;
+        float behindBefore = behindTarget.CurrentHp;
+        SimBehavior.TickBehavior(attacker, state, Simulation.FixedDeltaSeconds, events);
+
+        // Hitscan resolves in the same behavior tick and does not enqueue a traveling projectile.
+        AssertThat(state.Projectiles.Count).IsEqual(0);
+        AssertThat(frontTarget.CurrentHp).IsLess(frontBefore);
+        AssertThat(behindTarget.CurrentHp).IsLess(behindBefore);
+    }
 }

@@ -138,7 +138,7 @@ public static class UnitDefinitions
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
         Visual = new VisualConfig { SeparationRadius = 0.5f },
-        ScenePath = "res://scenes/battle/units/life_wisp_3d.tscn",
+        ScenePath = "res://scenes/battle/units/duckling_3d.tscn",
     };
 
     public static readonly UnitDefinition DeathWisp = new()
@@ -623,7 +623,7 @@ public static class UnitDefinitions
         TargetingProfile = UnitTargetingProfile.RangedGround,
         Ranged = new RangedConfig(ProjectileIds.LaserBeam),
         Visual = new VisualConfig { SeparationRadius = 0.4f },
-        ScenePath = "res://scenes/battle/units/lightning_wisp_3d.tscn",
+        ScenePath = "res://scenes/battle/units/mama_duck_3d.tscn",
     };
 
     // =========================================================================

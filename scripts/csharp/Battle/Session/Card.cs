@@ -167,6 +167,15 @@ public partial class Card : Resource
     /// </summary>
     public void SpawnAt(Vector3 position, int team)
     {
+        if (Type == (int)CardType.Spell)
+        {
+            GD.PushWarning(
+                $"Card.SpawnAt called with spell '{CatalogId}'. Forwarding to CastAt()."
+            );
+            CastAt(position, team);
+            return;
+        }
+
         var sim = SimulationNode.Current;
         if (sim == null)
         {
@@ -176,6 +185,28 @@ public partial class Card : Resource
 
         var overrides = CustomStatOverrides.Count > 0 ? CustomStatOverrides : null;
         sim.QueueSpawnUnit(CatalogId, team, position, true, overrides);
+    }
+
+    /// <summary>
+    /// Cast a spell card at the given position via QueueCastSpell.
+    /// No mana, no hand/casting state changes — debug/event injection path.
+    /// </summary>
+    public void CastAt(Vector3 position, int team)
+    {
+        if (Type != (int)CardType.Spell)
+        {
+            GD.PushWarning($"Card.CastAt called with non-spell '{CatalogId}'.");
+            return;
+        }
+
+        var sim = SimulationNode.Current;
+        if (sim == null)
+        {
+            GD.PushError($"Card: SimulationNode not found. Cannot cast '{CatalogId}'.");
+            return;
+        }
+
+        sim.QueueCastSpell(CatalogId, team, position);
     }
 
     // =========================================================================

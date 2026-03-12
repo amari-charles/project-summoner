@@ -131,6 +131,19 @@ public class ProjectileData
     /// </summary>
     public bool Tracking { get; set; } = false;
 
+    /// <summary>
+    /// Optional fixed travel distance for straight-line projectiles.
+    /// When > 0, straight non-tracking projectiles travel this distance from spawn
+    /// along the initial fire direction (instead of stopping at the target point).
+    /// </summary>
+    public float FixedTravelDistance { get; set; } = 0f;
+
+    /// <summary>
+    /// If true, resolves this projectile instantly as a line segment in simulation.
+    /// No simulated travel frames are produced.
+    /// </summary>
+    public bool InstantHitScan { get; set; } = false;
+
     // =========================================================================
     // IMPACT
     // =========================================================================
@@ -190,6 +203,8 @@ public class ProjectileData
             VeerDuration = GetFloat(dict, "veer_duration", 0.25f),
             SteerStrength = GetFloat(dict, "steer_strength", 180f),
             Tracking = GetBool(dict, "tracking", false),
+            FixedTravelDistance = GetFloat(dict, "fixed_travel_distance", 0f),
+            InstantHitScan = GetBool(dict, "instant_hitscan", false),
             PierceCount = GetInt(dict, "pierce_count", 0),
             AoeRadius = GetFloat(dict, "aoe_radius", 0f),
             HitRadius = GetFloat(dict, "hit_radius", 2.5f),

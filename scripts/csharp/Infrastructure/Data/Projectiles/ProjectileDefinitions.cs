@@ -184,6 +184,8 @@ public static class ProjectileDefinitions
         Speed = 45.0f,
         Lifetime = 1.2f,
         HitRadius = 0.45f,
+        FixedTravelDistance = 24.0f,
+        InstantHitScan = true,
         PierceCount = 3,
         RotateToDirection = true,
     };

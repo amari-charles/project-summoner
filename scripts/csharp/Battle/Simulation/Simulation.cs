@@ -352,7 +352,9 @@ public class Simulation
     }
 
     /// <summary>
-    /// Execute a SpawnUnitCommand: look up card data, spawn units directly.
+    /// Execute a SpawnUnitCommand: look up card data and resolve immediately.
+    /// Summon cards spawn units directly.
+    /// Spell cards execute spell effects at the provided position.
     /// No mana cost, no casting, no hand management.
     /// </summary>
     private void ExecuteSpawnUnit(SpawnUnitCommand cmd, List<SimEvent> events)
@@ -368,6 +370,18 @@ public class Simulation
         if (cmd.Team < 0 || cmd.Team > 1)
         {
             Log?.Invoke($"[Simulation] SpawnUnit rejected: invalid team={cmd.Team}");
+            return;
+        }
+
+        if (cardData.IsSpell)
+        {
+            ExecuteSpellEffects(
+                cardData,
+                cmd.Team,
+                cmd.SpawnPosition,
+                targetUnitId: null,
+                events
+            );
             return;
         }
 

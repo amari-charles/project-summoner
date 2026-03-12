@@ -177,6 +177,81 @@ public static class SimProjectile
     }
 
     /// <summary>
+    /// Resolve a projectile instantly along a fixed line segment (hitscan behavior).
+    /// Uses the same hit ordering/pierce/status rules as simulated projectiles, but does not
+    /// create persistent SimProjectileData in MatchState.
+    /// </summary>
+    public static void ResolveInstantLine(
+        MatchState state,
+        int sourceUnitId,
+        int targetUnitId,
+        Team team,
+        float damage,
+        int sourceElementId,
+        SimVector3 startPos,
+        SimVector3 endPos,
+        float hitRadius,
+        int pierceCount,
+        float aoeRadius,
+        ProjectileHitSpace hitSpace,
+        SimProjectileCatalogId projectileCatalogId,
+        AbilityTargetAffinity targetAffinity,
+        ProjectileImpactKind impactKind,
+        StatusEffectKind statusKind,
+        float statusDuration,
+        float statusTickInterval,
+        float statusPotencyPerStack,
+        int statusMaxStacks,
+        List<SimEvent> events
+    )
+    {
+        int id = state.NextProjectileId();
+        var direction = endPos - startPos;
+        if (direction.LengthSquared() <= 0.0001f)
+            direction = SimVector3.Forward;
+        else
+            direction = direction.Normalized();
+
+        var proj = new SimProjectileData
+        {
+            ProjectileId = id,
+            ProjectileCatalogId = projectileCatalogId,
+            SourceUnitId = sourceUnitId,
+            TargetUnitId = targetUnitId,
+            Team = team,
+            Damage = damage,
+            SourceElementId = sourceElementId,
+            TargetAffinity = targetAffinity,
+            ImpactKind = impactKind,
+            StatusKind = statusKind,
+            StatusDuration = statusDuration,
+            StatusTickInterval = statusTickInterval,
+            StatusPotencyPerStack = statusPotencyPerStack,
+            StatusMaxStacks = Math.Max(1, statusMaxStacks),
+            StartPosition = startPos,
+            LastPosition = startPos,
+            CurrentPosition = endPos,
+            TargetPosition = endPos,
+            Direction = direction,
+            Progress = 1f,
+            PathLength = startPos.DistanceTo(endPos),
+            HitRadius = hitRadius,
+            HitSpace = hitSpace,
+            PierceRemaining = pierceCount,
+            AoeRadius = aoeRadius,
+            TimeAlive = 0f,
+        };
+
+        CheckHits(proj, state, events);
+
+        if (!proj.IsDead)
+            TryApplySummonerHitOnSegment(proj, state, events);
+
+        if (!proj.IsDead && proj.AoeRadius > 0f)
+            ApplyAoE(proj, endPos, state, events);
+    }
+
+    /// <summary>
     /// Tick all projectiles: advance movement, check hits, remove dead.
     /// </summary>
     public static void TickAll(MatchState state, float delta, List<SimEvent> events)

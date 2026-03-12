@@ -721,6 +721,34 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     /// <summary>
+    /// Queue a direct spell cast at position (no mana, no hand/casting state changes).
+    /// Intended for debug/event-driven spell injection.
+    /// </summary>
+    public void QueueCastSpell(string catalogId, int team, Vector3 position)
+    {
+        var simCatalogId = new SimCardCatalogId(catalogId);
+        EnsureCardDataPopulated(simCatalogId);
+
+        if (
+            !State.CardDataMap.TryGetValue(simCatalogId, out var cardData)
+            || !cardData.IsSpell
+        )
+        {
+            GD.PushWarning(
+                $"[SimulationNode] QueueCastSpell rejected: '{catalogId}' is not a spell card"
+            );
+            return;
+        }
+
+        var cmd = new SpawnUnitCommand(simCatalogId, ToNetworkTeam(team), ToSimCanonical(position))
+        {
+            ActivateImmediately = true,
+            StatOverrides = null,
+        };
+        SubmitCommand(cmd);
+    }
+
+    /// <summary>
     /// Ensure a single card's data is in CardDataMap.
     /// Called by QueueSpawnUnit for cards that may not be in any summoner's deck.
     /// </summary>
