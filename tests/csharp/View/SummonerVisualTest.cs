@@ -11,6 +11,7 @@ using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Tests.Simulation;
+using Fateforged.UI;
 using Fateforged.Units;
 using Fateforged.View;
 using GdUnit4;
@@ -187,6 +188,28 @@ public class SummonerVisualTest
         AssertThat(markerField.GetValue(visual)).IsNull();
     }
 
+    [TestCase]
+    public void BeginDeath_SnapsHpBarToZeroImmediately()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        state.Summoners[0].CurrentHp = 40f;
+        state.Summoners[0].MaxHp = 100f;
+        var session = new TestSession(state);
+        var visual = CreateVisual(session);
+
+        visual._PhysicsProcess(1.0 / 60.0);
+        var hpBar = GetPrivateField<FloatingHPBar>(visual, "_hpBar");
+        AssertThat(hpBar).IsNotNull();
+
+        visual.BeginDeath();
+
+        float target = GetPrivateField<float>(hpBar!, "_targetHpPercent");
+        float display = GetPrivateField<float>(hpBar!, "_displayHpPercent");
+        AssertThat(target).IsEqual(0f);
+        AssertThat(display).IsEqual(0f);
+        AssertThat(visual.IsAlive).IsFalse();
+    }
+
     private SummonerVisual CreateVisual(IGameSession session)
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -210,6 +233,14 @@ public class SummonerVisualTest
             BindingFlags.Instance | BindingFlags.NonPublic
         );
         poll?.Invoke(visual, null);
+    }
+
+    private static T GetPrivateField<T>(object target, string fieldName)
+    {
+        var field = target
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        return (T)field!.GetValue(target)!;
     }
 
     private sealed class TestSession : IGameSession

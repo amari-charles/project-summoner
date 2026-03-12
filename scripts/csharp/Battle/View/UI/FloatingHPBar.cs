@@ -223,25 +223,27 @@ public partial class FloatingHPBar : Node3D
             _damageFlashTimer = DamageFlashDuration;
         }
 
-        // Handle visibility based on settings
-        if (_showOnDamageOnly)
-        {
-            // Only show when damaged
-            if (_targetHpPercent < 1f)
-            {
-                ShowBar();
-                _fadeTimer = _fadeDelay;
-            }
-            else
-            {
-                HideImmediate();
-            }
-        }
-        else
-        {
-            // Always visible mode - ensure bar is shown
-            ShowBar();
-        }
+        ApplyVisibilityForTargetPercent();
+    }
+
+    /// <summary>
+    /// Update HP and snap both target/display values immediately.
+    /// Used for lethal hits to avoid delayed zero-value visuals.
+    /// </summary>
+    public void UpdateHpImmediate(float current, float max)
+    {
+        bool wasDamaged = current < (_targetHpPercent * _maxHp);
+        _maxHp = max;
+        _targetHpPercent = max > 0 ? Mathf.Clamp(current / max, 0f, 1f) : 0f;
+        _displayHpPercent = _targetHpPercent;
+
+        _shaderMaterial?.SetShaderParameter("hp_percent", _targetHpPercent);
+        _shaderMaterial?.SetShaderParameter("display_percent", _displayHpPercent);
+
+        if (wasDamaged && _damageFlashTimer <= 0)
+            _damageFlashTimer = DamageFlashDuration;
+
+        ApplyVisibilityForTargetPercent();
     }
 
     /// <summary>
@@ -499,6 +501,25 @@ public partial class FloatingHPBar : Node3D
         {
             _meshInstance.Transparency = 0f;
         }
+    }
+
+    private void ApplyVisibilityForTargetPercent()
+    {
+        if (_showOnDamageOnly)
+        {
+            if (_targetHpPercent < 1f)
+            {
+                ShowBar();
+                _fadeTimer = _fadeDelay;
+            }
+            else
+            {
+                HideImmediate();
+            }
+            return;
+        }
+
+        ShowBar();
     }
 
     private void HideImmediate()

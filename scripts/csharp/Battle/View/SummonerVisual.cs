@@ -129,7 +129,6 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     // Tween duration constants
     private const float DamageFlashToWhiteDuration = 0.05f;
     private const float DamageFlashReturnDuration = 0.15f;
-    private const float DeathFadeDuration = 0.5f;
     private const float SummonerImpactInsetRatio = 0.45f;
     private const float SummonerImpactPulseYOffset = 0.06f;
     private const float SummonerImpactPulseStartRadius = 0.24f;
@@ -394,6 +393,12 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     {
         if (!_isAlive)
             return;
+
+        float snappedMaxHp = MaxHp > 0f ? MaxHp : (_lastMaxHp > 0f ? _lastMaxHp : 1f);
+        _lastHp = 0f;
+        _lastMaxHp = snappedMaxHp;
+        _hpBar?.UpdateHpImmediate(0f, snappedMaxHp);
+
         _isAlive = false;
 
         // Kill any active feedback animations
@@ -408,13 +413,9 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
             _sprite.Position = _originalVisualPosition;
         }
 
-        EmitSignal(SignalName.SummonerDestroyed, this);
+        Visible = false;
 
-        if (_sprite != null)
-        {
-            var tween = CreateTween();
-            tween.TweenProperty(_sprite, "modulate:a", 0f, DeathFadeDuration);
-        }
+        EmitSignal(SignalName.SummonerDestroyed, this);
     }
 
     private void PlayHitFeedback()

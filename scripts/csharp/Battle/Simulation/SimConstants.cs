@@ -12,9 +12,9 @@ public static class SimConstants
 
     /// <summary>
     /// Time in seconds between a unit dying and being removed from MatchState.
-    /// Allows death animations to play before cleanup.
+    /// Default is immediate cleanup; view layer owns death presentation timing.
     /// </summary>
-    public const float DeathCleanupSeconds = 2.0f;
+    public const float DeathCleanupSeconds = 0f;
 
     // =========================================================================
     // OBJECTIVE ADVANCE
