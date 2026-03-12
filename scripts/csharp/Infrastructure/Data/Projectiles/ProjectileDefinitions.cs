@@ -89,6 +89,8 @@ public static class ProjectileDefinitions
         Speed = 18.0f,
         MinSpeed = 18.0f,
         Lifetime = 2.0f,
+        // Keep contact radius tight so puffs don't register implausible long-range hits.
+        HitRadius = 0.45f,
         RotateToDirection = false,
         FadeInDuration = 0.15f,
         FadeOnHit = true,

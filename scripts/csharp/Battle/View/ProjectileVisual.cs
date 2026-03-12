@@ -85,10 +85,15 @@ public partial class ProjectileVisual : Node3D, IPoolable
             var simNode = SimulationNode.Current;
             if (simNode != null)
                 GlobalPosition = simNode.SimToLocal(projData.CurrentPosition);
+            else
+                GlobalPosition = new Vector3(projData.CurrentPosition.X, projData.CurrentPosition.Y, projData.CurrentPosition.Z);
 
             var projectileData = ResolveProjectileData(state, projData);
             _rotateToDirection = projectileData?.RotateToDirection ?? true;
             SpawnVisual(projectileData);
+
+            // Make fast projectiles visible even if they hit before this node's first physics tick.
+            Visible = true;
         }
         else
         {
@@ -226,7 +231,7 @@ public partial class ProjectileVisual : Node3D, IPoolable
             _debugHitRadiusMarker = CreateGeometryMarker(
                 radius,
                 projData.HitSpace,
-                new Color(0.2f, 0.9f, 1.0f, 0.28f),
+                new Color(0.1f, 0.95f, 1.0f, 0.62f),
                 100);
             AddChild(_debugHitRadiusMarker);
             _debugHitRadius = radius;
@@ -249,7 +254,7 @@ public partial class ProjectileVisual : Node3D, IPoolable
             _debugAoeRadiusMarker = CreateGeometryMarker(
                 radius,
                 projData.HitSpace,
-                new Color(1.0f, 0.4f, 0.2f, 0.2f),
+                new Color(1.0f, 0.45f, 0.18f, 0.5f),
                 99);
             AddChild(_debugAoeRadiusMarker);
             _debugAoeRadius = radius;
@@ -266,7 +271,7 @@ public partial class ProjectileVisual : Node3D, IPoolable
 
         if (hitSpace == ProjectileHitSpace.GroundCylinder)
         {
-            marker.GlobalPosition = new Vector3(GlobalPosition.X, 0.04f, GlobalPosition.Z);
+            marker.GlobalPosition = new Vector3(GlobalPosition.X, 0.06f, GlobalPosition.Z);
             marker.Rotation = Vector3.Zero;
             return;
         }
@@ -285,7 +290,7 @@ public partial class ProjectileVisual : Node3D, IPoolable
                 {
                     TopRadius = radius,
                     BottomRadius = radius,
-                    Height = 0.04f
+                    Height = 0.12f
                 }
                 : new SphereMesh
                 {
@@ -302,6 +307,9 @@ public partial class ProjectileVisual : Node3D, IPoolable
         return new StandardMaterial3D
         {
             AlbedoColor = color,
+            EmissionEnabled = true,
+            Emission = color,
+            EmissionEnergyMultiplier = 1.5f,
             Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
             ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
             CullMode = BaseMaterial3D.CullModeEnum.Disabled,

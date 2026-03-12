@@ -289,6 +289,52 @@ public class SimProjectileTest
     }
 
     [TestCase]
+    public void TickAll_TargetSummoner_AppliesSummonerDamageOnImpact()
+    {
+        var source = SimTestHelper.CreateRangedUnit(
+            _state,
+            team: 0,
+            x: 18f,
+            attackRange: 6f,
+            damage: 12f,
+            projectileDelay: 0f,
+            catalogId: "puff");
+        source.ElementId = 0;
+        source.CritChance = 0f;
+        source.SoulStrength = 0f;
+
+        int summonerTargetId = MatchState.GetSummonerTargetId(1);
+        float hpBefore = _state.Summoners[1].CurrentHp;
+
+        SimProjectile.Spawn(
+            _state,
+            sourceUnitId: source.UnitId,
+            targetUnitId: summonerTargetId,
+            team: source.Team,
+            damage: 12f,
+            sourceElementId: source.ElementId,
+            movementType: ProjectileMovementType.Straight,
+            speed: 18f,
+            lifetime: 3f,
+            startPos: source.Position,
+            targetPos: _state.Summoners[1].Position,
+            hitRadius: 0.45f,
+            hitSpace: ProjectileHitSpace.GroundCylinder,
+            tracking: true);
+
+        var events = new List<SimEvent>();
+        SimProjectile.TickAll(_state, 0.016f, events); // Spawn delay frame
+        for (int i = 0; i < 120 && _state.Projectiles.Count > 0; i++)
+            SimProjectile.TickAll(_state, 0.016f, events);
+
+        AssertThat(_state.Summoners[1].CurrentHp).IsLess(hpBefore);
+        AssertThat(SimTestHelper.CountEvents<SummonerDamagedEvent>(events)).IsEqual(1);
+        var hitEvent = SimTestHelper.FindEvent<ProjectileHitEvent>(events);
+        AssertThat(hitEvent).IsNotNull();
+        AssertThat(hitEvent!.TargetUnitId).IsEqual(summonerTargetId);
+    }
+
+    [TestCase]
     public void TickAll_StraightTracking_UpdatesTargetPositionWhenTargetMoves()
     {
         var source = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, z: 0f);

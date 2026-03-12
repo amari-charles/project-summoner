@@ -12,6 +12,7 @@ extends Node
 ##   F6 - Set to 60 FPS (standard)
 ##   F7 - Set to 120 FPS (high refresh rate)
 ##   F8 - Uncapped FPS
+##   F9 - Toggle projectile hit radius visualization
 
 const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
 const ENABLE_FLAG: String = "--enable-debug-menu"
@@ -113,6 +114,8 @@ func _input(event: InputEvent) -> void:
 			_set_fps(120)
 		KEY_F8:
 			_set_fps(0)
+		KEY_F9:
+			_on_projectile_hit_geometry_toggle_pressed()
 
 
 func _compute_menu_enabled() -> bool:
@@ -250,7 +253,7 @@ func _create_ui() -> void:
 
 	# Projectile Hit Geometry toggle button
 	_projectile_hit_geometry_button = Button.new()
-	_projectile_hit_geometry_button.text = "Projectile Hit Geometry: Off"
+	_projectile_hit_geometry_button.text = "Projectile Hit Radius: Off"
 	_projectile_hit_geometry_button.custom_minimum_size = Vector2(200, 32)
 	_projectile_hit_geometry_button.pressed.connect(_on_projectile_hit_geometry_toggle_pressed)
 	vbox.add_child(_projectile_hit_geometry_button)
@@ -343,6 +346,35 @@ func _create_ui() -> void:
 	lose_button.pressed.connect(_on_lose_pressed)
 	battle_grid.add_child(lose_button)
 
+	# Debug arena quick launch
+	var arena_separator: HSeparator = HSeparator.new()
+	vbox.add_child(arena_separator)
+
+	var arena_title: Label = Label.new()
+	arena_title.text = "Debug Arena Battles"
+	arena_title.add_theme_font_size_override("font_size", 14)
+	arena_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
+	vbox.add_child(arena_title)
+
+	var open_arena_map_button: Button = Button.new()
+	open_arena_map_button.text = "Open Test Arena Map"
+	open_arena_map_button.custom_minimum_size = Vector2(200, 32)
+	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
+	vbox.add_child(open_arena_map_button)
+
+	var arena_grid: GridContainer = GridContainer.new()
+	arena_grid.columns = 2
+	arena_grid.add_theme_constant_override("h_separation", 8)
+	arena_grid.add_theme_constant_override("v_separation", 6)
+	vbox.add_child(arena_grid)
+
+	_add_debug_arena_button(arena_grid, "Earth Sprite", BattleIDs.ARENA_EARTH_SPRITE)
+	_add_debug_arena_button(arena_grid, "Puff", BattleIDs.ARENA_PUFF)
+	_add_debug_arena_button(arena_grid, "Fire Wisp", BattleIDs.ARENA_FIRE_WISP)
+	_add_debug_arena_button(arena_grid, "Cloud Swarm", BattleIDs.ARENA_CLOUD_SWARM)
+	_add_debug_arena_button(arena_grid, "Mana Bolt", BattleIDs.ARENA_MANA_BOLT)
+	_add_debug_arena_button(arena_grid, "Debug Arena", BattleIDs.DEBUG_ARENA)
+
 	# Snapshots separator
 	var snapshot_separator: HSeparator = HSeparator.new()
 	vbox.add_child(snapshot_separator)
@@ -398,7 +430,7 @@ func _update_button_states() -> void:
 	if _projectile_hit_geometry_button and _unit_debug and _unit_debug.has_method("IsDebugProjectileHitGeometryEnabled"):
 		var enabled: bool = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugProjectileHitGeometryEnabled"), false)
 		var state: String = "On" if enabled else "Off"
-		_projectile_hit_geometry_button.text = "Projectile Hit Geometry: %s" % state
+		_projectile_hit_geometry_button.text = "Projectile Hit Radius: %s" % state
 
 	if _spawn_boundary_button:
 		var debug_service: Node = _get_battlefield_debug_service()
@@ -422,6 +454,14 @@ func _create_fps_button(parent: Node, fps: int, text: String, hotkey: String) ->
 	button.pressed.connect(_on_fps_button_pressed.bind(fps))
 	parent.add_child(button)
 	_buttons[fps] = button
+
+
+func _add_debug_arena_button(parent: GridContainer, label: String, battle_id: StringName) -> void:
+	var button: Button = Button.new()
+	button.text = label
+	button.custom_minimum_size = Vector2(96, 32)
+	button.pressed.connect(_on_debug_arena_battle_pressed.bind(String(battle_id)))
+	parent.add_child(button)
 
 
 ## =============================================================================
@@ -793,6 +833,40 @@ func _on_lose_pressed() -> void:
 		print("[Debug] Triggered instant LOSE")
 	else:
 		print("[Debug] No game controller found - not in battle?")
+
+
+func _on_open_test_arena_map_pressed() -> void:
+	var campaign_id: String = String(CampaignIDs.TEST_ARENA)
+	var success: bool = CampaignApi.set_current_campaign(campaign_id)
+	if not success:
+		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
+		return
+
+	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+	print("[Debug] Opened Test Arena campaign map")
+
+
+func _on_debug_arena_battle_pressed(battle_id: String) -> void:
+	if battle_id.is_empty():
+		return
+
+	var campaign_id: String = String(CampaignIDs.TEST_ARENA)
+	var campaign_set: bool = CampaignApi.set_current_campaign(campaign_id)
+	if not campaign_set:
+		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
+		return
+
+	ProfileRepoApi.update_campaign_progress_dict({"current_battle": battle_id}, "")
+	BattleContext.configure_campaign_battle(battle_id)
+
+	var event_data: Dictionary = CampaignApi.get_battle(battle_id)
+	var battle_scene: String = SceneManager.SCENE_BATTLE_3D
+	var custom_scene: String = SafeTypeUtils.string(event_data.get("scene_path", ""), "")
+	if not custom_scene.is_empty():
+		battle_scene = custom_scene
+
+	SceneManager.transition_to(battle_scene)
+	print("[Debug] Launched test arena battle '%s'" % battle_id)
 
 
 func _on_snapshots_pressed() -> void:

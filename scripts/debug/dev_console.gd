@@ -37,6 +37,10 @@ extends Node
 ##   /items_list - List player's items and equipment
 ##   /items_equip <slot> <instance_id> - Equip an item to a summoner
 ##   /items_clear - Clear all items from inventory
+##   /debug_projectile_hit_radius [on|off|toggle] - Toggle projectile hit-radius visualization
+##   /debug_projectile_hit_radius_status - Print projectile radius debug runtime status
+##   /projectiles_debug_dump - Print active projectile state + visual shell diagnostics
+##   /projectiles_reload - Reload projectile visual scenes from disk
 ##
 ## Usage in game:
 ##   Press F12 to toggle console (future implementation)
@@ -80,6 +84,10 @@ const COMMANDS: Array[Dictionary] = [
 	{"cmd": "/items_list", "desc": "List player's items"},
 	{"cmd": "/items_equip", "args": "<slot> <id>", "desc": "Equip an item"},
 	{"cmd": "/items_clear", "desc": "Clear all items"},
+	{"cmd": "/debug_projectile_hit_radius", "args": "[on|off|toggle]", "desc": "Toggle projectile hit-radius visualization"},
+	{"cmd": "/debug_projectile_hit_radius_status", "desc": "Show projectile radius debug runtime status"},
+	{"cmd": "/projectiles_debug_dump", "desc": "Print active projectile + visual diagnostics"},
+	{"cmd": "/projectiles_reload", "desc": "Reload projectile visuals from disk"},
 ]
 
 ## Get commands matching a prefix (for autocomplete)
@@ -213,6 +221,14 @@ func execute_command(command: String) -> bool:
 			return _cmd_items_equip(args)
 		"/items_clear":
 			return _cmd_items_clear()
+		"/debug_projectile_hit_radius":
+			return _cmd_debug_projectile_hit_radius(args)
+		"/debug_projectile_hit_radius_status":
+			return _cmd_debug_projectile_hit_radius_status()
+		"/projectiles_debug_dump":
+			return _cmd_projectiles_debug_dump()
+		"/projectiles_reload":
+			return _cmd_projectiles_reload()
 		_:
 			print("DevConsole: Unknown command: %s" % cmd)
 			return false
@@ -969,4 +985,124 @@ func _cmd_items_clear() -> bool:
 	print("DevConsole: Clearing all items...")
 	ItemsApi.clear_all_items()
 	print("DevConsole: All items cleared!")
+	return true
+
+
+func _cmd_debug_projectile_hit_radius(args: PackedStringArray) -> bool:
+	var debug_service: Node = get_tree().root.get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
+	if debug_service == null:
+		print("DevConsole: BattlefieldDebugService not available")
+		return false
+
+	if not debug_service.has_method("IsDebugProjectileHitGeometryEnabled") \
+	or not debug_service.has_method("SetDebugProjectileHitGeometryEnabled"):
+		print("DevConsole: BattlefieldDebugService lacks projectile debug methods")
+		return false
+
+	var current_enabled: bool = SafeTypeUtils.bool_val(
+		debug_service.call("IsDebugProjectileHitGeometryEnabled"), false)
+	var target_enabled: bool = current_enabled
+
+	if args.size() == 0:
+		target_enabled = not current_enabled
+	else:
+		var mode: String = args[0].to_lower()
+		match mode:
+			"on", "true", "1":
+				target_enabled = true
+			"off", "false", "0":
+				target_enabled = false
+			"toggle":
+				target_enabled = not current_enabled
+			_:
+				print("DevConsole: Usage: /debug_projectile_hit_radius [on|off|toggle]")
+				return false
+
+	debug_service.call("SetDebugProjectileHitGeometryEnabled", target_enabled)
+	print("DevConsole: Projectile hit radius debug = %s" % ("ON" if target_enabled else "OFF"))
+	_cmd_debug_projectile_hit_radius_status()
+	return true
+
+
+func _cmd_debug_projectile_hit_radius_status() -> bool:
+	var debug_service: Node = get_tree().root.get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
+	if debug_service == null:
+		print("DevConsole: BattlefieldDebugService not available")
+		return false
+
+	var debug_enabled: bool = false
+	if debug_service.has_method("IsDebugProjectileHitGeometryEnabled"):
+		debug_enabled = SafeTypeUtils.bool_val(debug_service.call("IsDebugProjectileHitGeometryEnabled"), false)
+
+	var current_scene: Node = get_tree().current_scene
+	var entity_manager: Node = current_scene.get_node_or_null("EntityManager") if current_scene else null
+	if entity_manager == null:
+		print("DevConsole: projectile_debug=%s | EntityManager not found (enter battle first)" % ("ON" if debug_enabled else "OFF"))
+		return true
+
+	if not entity_manager.has_method("GetProjectileDebugOverlayStatus"):
+		print("DevConsole: projectile_debug=%s | EntityManager missing GetProjectileDebugOverlayStatus()" % ("ON" if debug_enabled else "OFF"))
+		return true
+
+	var status: Dictionary = SafeTypeUtils.dict(entity_manager.call("GetProjectileDebugOverlayStatus"))
+	print(
+		"DevConsole: projectile_debug=%s session_ready=%s state_projectiles=%d shells=%d markers=%d" % [
+			"ON" if SafeTypeUtils.bool_val(status.get("debug_enabled", debug_enabled), debug_enabled) else "OFF",
+			"yes" if SafeTypeUtils.bool_val(status.get("session_ready", false), false) else "no",
+			SafeTypeUtils.int_val(status.get("projectiles_in_state", 0), 0),
+			SafeTypeUtils.int_val(status.get("projectile_shells", 0), 0),
+			SafeTypeUtils.int_val(status.get("radius_markers", 0), 0),
+		]
+	)
+	return true
+
+
+func _cmd_projectiles_reload() -> bool:
+	var projectile_catalog: Node = get_tree().root.get_node_or_null(CSharpAutoloads.PROJECTILE_CATALOG)
+	if projectile_catalog == null:
+		print("DevConsole: ProjectileCatalog not available")
+		return false
+
+	if projectile_catalog.has_method("reload_projectiles"):
+		projectile_catalog.call("reload_projectiles")
+		print("DevConsole: Projectile visuals reloaded")
+		return true
+
+	print("DevConsole: ProjectileCatalog missing reload_projectiles()")
+	return false
+
+
+func _cmd_projectiles_debug_dump() -> bool:
+	var current_scene: Node = get_tree().current_scene
+	var entity_manager: Node = current_scene.get_node_or_null("EntityManager") if current_scene else null
+	if entity_manager == null:
+		print("DevConsole: EntityManager not found (enter battle first)")
+		return false
+
+	if not entity_manager.has_method("GetProjectileVisualDiagnostics"):
+		print("DevConsole: EntityManager missing GetProjectileVisualDiagnostics()")
+		return false
+
+	var rows: Array = SafeTypeUtils.array(entity_manager.call("GetProjectileVisualDiagnostics"))
+	print("=== PROJECTILE VISUAL DUMP (%d active) ===" % rows.size())
+	for row_var: Variant in rows:
+		if not row_var is Dictionary:
+			continue
+		var row: Dictionary = row_var
+		print(
+			"  id=%s catalog=%s t=%.3f/%.3f hit_r=%.3f shell=%s shell_visible=%s model=%s model_visible=%s children=%d marker=%s" % [
+				SafeTypeUtils.int_val(row.get("projectile_id", -1), -1),
+				SafeTypeUtils.string(row.get("catalog_id", ""), ""),
+				float(row.get("time_alive", 0.0)),
+				float(row.get("lifetime", 0.0)),
+				float(row.get("hit_radius", 0.0)),
+				"yes" if SafeTypeUtils.bool_val(row.get("has_shell", false), false) else "no",
+				"yes" if SafeTypeUtils.bool_val(row.get("shell_visible", false), false) else "no",
+				SafeTypeUtils.string(row.get("model_name", ""), ""),
+				"yes" if SafeTypeUtils.bool_val(row.get("model_visible", false), false) else "no",
+				SafeTypeUtils.int_val(row.get("shell_children", 0), 0),
+				"yes" if SafeTypeUtils.bool_val(row.get("has_debug_marker", false), false) else "no"
+			]
+		)
+	print("==========================================")
 	return true

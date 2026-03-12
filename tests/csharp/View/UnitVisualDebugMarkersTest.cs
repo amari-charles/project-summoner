@@ -202,6 +202,10 @@ public partial class UnitVisualDebugMarkersTest
 
         debugService.SetDebugNavigationFootprintEnabled(true);
         AssertThat(debugService.NavigationFootprintEnabled).IsTrue();
+
+        // This test does not add the service to the scene tree; free it explicitly
+        // before framework orphan checks run.
+        debugService.Free();
     }
 
     [TestCase]

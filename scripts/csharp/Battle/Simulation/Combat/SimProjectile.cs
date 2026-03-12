@@ -17,6 +17,7 @@ namespace Fateforged.Simulation.Combat;
 public static class SimProjectile
 {
     private const float GeometryEpsilon = 0.000001f;
+    private const float SummonerContactRadius = 0.75f;
 
     // Static reusable buffers to avoid per-frame heap allocations.
     // NOT thread-safe — TickAll must only be called from the physics thread.
@@ -195,18 +196,31 @@ public static class SimProjectile
                 CheckHits(proj, state, events);
             }
 
+            // Summoner hit detection (for summoner target IDs).
+            if (!proj.IsDead)
+            {
+                TryApplySummonerHitOnSegment(proj, state, events);
+            }
+
             // Path completion check (for path-based types)
             if (!proj.IsDead && proj.MovementType != ProjectileMovementType.WeavingHoming
                 && proj.MovementType != ProjectileMovementType.Homing
                 && proj.Progress >= 1f)
             {
-                // Check direct hit on target at path end
-                var target = state.GetAliveUnit(proj.TargetUnitId);
-                if (target != null && !proj.HitUnitIds.Contains(target.UnitId))
+                if (MatchState.IsSummonerTarget(proj.TargetUnitId))
                 {
-                    if (CanHitUnitAtPoint(proj, target, proj.CurrentPosition))
+                    ApplySummonerHitAtImpact(proj, state, events);
+                }
+                else
+                {
+                    // Check direct hit on target at path end
+                    var target = state.GetAliveUnit(proj.TargetUnitId);
+                    if (target != null && !proj.HitUnitIds.Contains(target.UnitId))
                     {
-                        ApplyHit(proj, target, state, events);
+                        if (CanHitUnitAtPoint(proj, target, proj.CurrentPosition))
+                        {
+                            ApplyHit(proj, target, state, events);
+                        }
                     }
                 }
 
@@ -234,8 +248,7 @@ public static class SimProjectile
     {
         ProjectileMovement.TickStraight(proj, delta, unitId =>
         {
-            var target = state.GetAliveUnit(unitId);
-            return target?.Position;
+            return SimUtils.ResolveTargetPosition(unitId, state);
         });
     }
 
@@ -243,17 +256,16 @@ public static class SimProjectile
     {
         ProjectileMovement.TickArc(proj, delta, unitId =>
         {
-            var target = state.GetAliveUnit(unitId);
-            return target?.Position;
+            return SimUtils.ResolveTargetPosition(unitId, state);
         });
     }
 
     private static void TickHoming(SimProjectileData proj, MatchState state, float delta)
     {
-        var target = state.GetAliveUnit(proj.TargetUnitId);
-        if (target != null)
+        var targetPos = SimUtils.ResolveTargetPosition(proj.TargetUnitId, state);
+        if (targetPos.HasValue)
         {
-            proj.TargetPosition = target.Position;
+            proj.TargetPosition = targetPos.Value;
             proj.TargetLost = false;
         }
         else if (!proj.TargetLost)
@@ -288,11 +300,12 @@ public static class SimProjectile
     {
         proj.PhaseTimer += delta;
 
-        // Update target position if target is still alive
         var target = state.GetAliveUnit(proj.TargetUnitId);
-        if (target != null)
+        // Update target position while target remains valid (unit or summoner target ID).
+        var targetPos = SimUtils.ResolveTargetPosition(proj.TargetUnitId, state);
+        if (targetPos.HasValue)
         {
-            proj.TargetPosition = target.Position;
+            proj.TargetPosition = targetPos.Value;
             proj.TargetLost = false;
         }
         else if (!proj.TargetLost)
@@ -492,6 +505,81 @@ public static class SimProjectile
         events.Add(new ProjectileHitEvent(proj.ProjectileId, target.UnitId));
     }
 
+    private static void TryApplySummonerHitOnSegment(
+        SimProjectileData proj, MatchState state, List<SimEvent> events)
+    {
+        if (!MatchState.IsSummonerTarget(proj.TargetUnitId))
+            return;
+
+        int summonerTeam = MatchState.GetSummonerTeamFromTargetId(proj.TargetUnitId);
+        if (summonerTeam < 0 || summonerTeam >= state.Summoners.Length)
+            return;
+        if (summonerTeam == (int)proj.Team)
+            return;
+
+        var summoner = state.Summoners[summonerTeam];
+        if (!summoner.IsAlive)
+            return;
+
+        float hitThreshold = MathF.Max(0f, proj.HitRadius + SummonerContactRadius);
+        if (TryGetSummonerSegmentDistanceAndT(
+                proj,
+                summoner.Position,
+                proj.LastPosition,
+                proj.CurrentPosition,
+                out float distSq,
+                out float segmentT) &&
+            distSq <= hitThreshold * hitThreshold)
+        {
+            var impactPoint = proj.LastPosition.Lerp(proj.CurrentPosition, segmentT);
+            proj.CurrentPosition = impactPoint;
+            ApplySummonerHitAtImpact(proj, state, events);
+
+            if (proj.AoeRadius > 0)
+                ApplyAoE(proj, impactPoint, state, events);
+
+            proj.IsDead = true;
+        }
+    }
+
+    private static void ApplySummonerHitAtImpact(
+        SimProjectileData proj, MatchState state, List<SimEvent> events)
+    {
+        if (!MatchState.IsSummonerTarget(proj.TargetUnitId))
+            return;
+
+        int summonerTeam = MatchState.GetSummonerTeamFromTargetId(proj.TargetUnitId);
+        if (summonerTeam < 0 || summonerTeam >= state.Summoners.Length)
+            return;
+        if (summonerTeam == (int)proj.Team)
+            return;
+
+        var summoner = state.Summoners[summonerTeam];
+        if (!summoner.IsAlive)
+            return;
+
+        var attackerSummoner = state.Summoners[(int)proj.Team];
+        float soulStrength = 0f;
+        if (state.Units.TryGetValue(proj.SourceUnitId, out var sourceUnit))
+            soulStrength = sourceUnit.SoulStrength;
+
+        float damage = ApplySummonerDamageModifiers(proj.Damage, attackerSummoner, summoner, soulStrength);
+        summoner.CurrentHp -= damage;
+        bool wasDestroyed = false;
+        if (summoner.CurrentHp <= 0)
+        {
+            summoner.CurrentHp = 0;
+            summoner.IsAlive = false;
+            wasDestroyed = true;
+        }
+
+        events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
+        events.Add(new SummonerDamagedEvent(summonerTeam, damage, proj.SourceUnitId));
+        events.Add(new ProjectileHitEvent(proj.ProjectileId, proj.TargetUnitId));
+        if (wasDestroyed)
+            events.Add(new SummonerDestroyedEvent(summonerTeam, proj.SourceUnitId));
+    }
+
     /// <summary>
     /// Apply AoE damage to all enemy units within radius.
     /// AoE effects intentionally skip per-unit OnHit/OnDamaged triggers to avoid
@@ -621,6 +709,16 @@ public static class SimProjectile
         );
     }
 
+    private static bool TryGetSummonerSegmentDistanceAndT(
+        SimProjectileData proj, SimVector3 summonerPos, SimVector3 segA, SimVector3 segB,
+        out float distanceSq, out float segmentT)
+    {
+        if (proj.HitSpace == ProjectileHitSpace.GroundCylinder)
+            return TryGetPointToSegmentDistanceSqXZ(summonerPos, segA, segB, out distanceSq, out segmentT);
+
+        return TryGetPointToSegmentDistanceSq(summonerPos, segA, segB, out distanceSq, out segmentT);
+    }
+
     private static bool UseGroundCylinder(SimProjectileData proj, UnitData unit)
     {
         return CombatGeometry.UseGroundCylinder(proj.HitSpace, unit);
@@ -653,5 +751,17 @@ public static class SimProjectile
     private static float DistanceSquaredXZ(SimVector3 a, SimVector3 b)
     {
         return CombatGeometry.DistanceSquaredXZ(a, b);
+    }
+
+    private static float ApplySummonerDamageModifiers(
+        float damage, SummonerData attacker, SummonerData target, float soulStrength = 0f)
+    {
+        if (attacker.DamageBonus > 0f)
+            damage *= 1f + attacker.DamageBonus / 100f;
+        if (soulStrength > 0f)
+            damage += soulStrength;
+        if (target.SoulStrength > 0f)
+            damage = MathF.Max(damage - target.SoulStrength, 0f);
+        return SimUtils.RoundToOneDecimal(damage);
     }
 }

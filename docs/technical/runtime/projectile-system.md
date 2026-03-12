@@ -41,6 +41,29 @@ Notes:
 
 - A one-tick startup hold (`TimeAlive = -1`) is applied at spawn so new projectiles are visible for at least one render frame before simulation movement/expiry.
 - Sim-side projectile speed now honors both acceleration (`speed + acceleration * delta`, with `min_speed` floor on deceleration) and speed easing (`speed_start/speed_end/speed_transition_duration/speed_easing/speed_ease_exponent`), matching projectile definition behavior.
+- Position-targeted spell projectiles now use `targetUnitId = int.MaxValue` as an invalid non-summoner sentinel so they cannot be misinterpreted as summoner target IDs.
+
+## Unit Attack Projectile Path
+
+Ranged unit attacks now use one projectile path for both unit and summoner targets.
+
+- Entry point: `SimBehavior.TickBehavior()` / `SimBehavior.TickPendingDamage()`
+- Projectile spawn: `SimProjectile.Spawn(...)`
+- Impact resolution:
+  - Unit targets: existing unit contact checks and `ApplyHit(...)`
+  - Summoner targets: segment/endpoint checks and `ApplySummonerHitAtImpact(...)`
+
+Implementation details:
+
+- `UnitDefinitions.BuildSimTemplate(...)` now copies the ranged `ProjectileId` into `SimUnitTemplate.ProjectileCatalogId`.
+- `Simulation` carries that into `UnitData.ProjectileCatalogId` at spawn time.
+- `SimBehavior.TryResolveProjectileData(...)` resolves from `UnitData.ProjectileCatalogId` first, then falls back to unit definition lookup.
+- Projectile start position uses catalog `Visual.TargetPointOffset` as muzzle offset, mirroring X by facing direction.
+
+Summoner contact behavior:
+
+- Summoner-target projectiles use the same per-projectile hit radius plus a small summoner contact radius (`0.75f`) for segment checks.
+- Summoner damage and lifecycle events are emitted through simulation events (`SummonerHpChangedEvent`, `SummonerDamagedEvent`, optional `SummonerDestroyedEvent`, and `ProjectileHitEvent`).
 
 ## Projectile Data Properties
 

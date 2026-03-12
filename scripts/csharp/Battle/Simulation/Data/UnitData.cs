@@ -151,7 +151,9 @@ public class UnitData
 
     // Delayed ranged resolution buffers:
     // - Unit targets: windup before spawning SimProjectileData
-    // - Summoner targets: windup before applying direct summoner damage
+    // - Summoner targets: windup before spawning a projectile (ranged),
+    //   or direct damage resolution for melee-only paths
+    public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public float ProjectileDelay { get; set; }
     public float PendingDamageTimer { get; set; }
     public int? PendingDamageTargetId { get; set; }

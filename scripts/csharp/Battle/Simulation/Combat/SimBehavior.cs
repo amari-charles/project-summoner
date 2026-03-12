@@ -340,7 +340,8 @@ public static class SimBehavior
     /// Summoner damage intentionally bypasses SimDamage.Calculate() — summoners are
     /// not units and don't have evasion, crit interaction, elemental matchups, defense,
     /// or shields. Only summoner/ soul lane modifiers apply.
-    /// For ranged with projectile delay, the caller sets PendingDamageTargetId instead.
+    /// Ranged attacks now use the projectile pipeline for summoner targets so visuals
+    /// and impact timing match unit-target projectile behavior.
     /// </summary>
     private static void ApplyDamageToSummoner(
         UnitData attacker, int summonerTargetId, MatchState state, List<SimEvent> events)
@@ -358,6 +359,17 @@ public static class SimBehavior
             return;
         }
 
+        if (attacker.UnitType == UnitType.Ranged)
+        {
+            SpawnProjectileToSummonerOrApplyDirect(
+                attacker,
+                summonerTargetId,
+                SimEffects.GetEffectiveAttackDamage(attacker),
+                state,
+                events);
+            return;
+        }
+
         // Immediate damage (melee or zero-delay ranged)
         DealSummonerDamage(
             state,
@@ -371,7 +383,8 @@ public static class SimBehavior
 
     /// <summary>
     /// Process delayed ranged outcomes after attack windup.
-    /// Unit targets spawn projectiles; summoner targets apply delayed direct damage.
+    /// Ranged delayed outcomes spawn projectiles for both unit and summoner targets.
+    /// Melee-only pending damage against summoners still resolves directly.
     /// Called after all units have moved for the tick.
     /// </summary>
     public static void TickPendingDamage(UnitData unit, MatchState state, float delta, List<SimEvent> events)
@@ -389,12 +402,19 @@ public static class SimBehavior
 
             if (MatchState.IsSummonerTarget(pendingTargetId))
             {
-                // Pending damage against a summoner
-                int summonerTeam = MatchState.GetSummonerTeamFromTargetId(pendingTargetId);
-                var summoner = state.Summoners[summonerTeam];
-                if (summoner.IsAlive)
+                if (unit.UnitType == UnitType.Ranged)
                 {
-                    DealSummonerDamage(state, summoner, summonerTeam, unit.PendingDamageAmount, unit.Team, unit.UnitId, events);
+                    SpawnProjectileToSummonerOrApplyDirect(unit, pendingTargetId, unit.PendingDamageAmount, state, events);
+                }
+                else
+                {
+                    // Pending damage against a summoner
+                    int summonerTeam = MatchState.GetSummonerTeamFromTargetId(pendingTargetId);
+                    var summoner = state.Summoners[summonerTeam];
+                    if (summoner.IsAlive)
+                    {
+                        DealSummonerDamage(state, summoner, summonerTeam, unit.PendingDamageAmount, unit.Team, unit.UnitId, events);
+                    }
                 }
             }
             else
@@ -452,7 +472,7 @@ public static class SimBehavior
             return;
         }
 
-        var startPos = attacker.Position;
+        var startPos = ResolveProjectileStartPosition(attacker);
         var targetPos = target.Position;
         if (projectileData.SpawnAtTargetHeight)
             startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
@@ -490,9 +510,91 @@ public static class SimBehavior
         );
     }
 
+    private static void SpawnProjectileToSummonerOrApplyDirect(
+        UnitData attacker, int summonerTargetId, float baseDamage, MatchState state, List<SimEvent> events)
+    {
+        int summonerTeam = MatchState.GetSummonerTeamFromTargetId(summonerTargetId);
+        var summoner = state.Summoners[summonerTeam];
+        if (!summoner.IsAlive)
+            return;
+
+        if (!TryResolveProjectileData(attacker, out var projectileData))
+        {
+            DealSummonerDamage(state, summoner, summonerTeam, baseDamage, attacker.Team, attacker.UnitId, events);
+            return;
+        }
+
+        var startPos = ResolveProjectileStartPosition(attacker);
+        var targetPos = summoner.Position;
+        if (projectileData.SpawnAtTargetHeight)
+            startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
+
+        SimProjectile.Spawn(
+            state,
+            sourceUnitId: attacker.UnitId,
+            targetUnitId: summonerTargetId,
+            team: attacker.Team,
+            damage: baseDamage,
+            sourceElementId: attacker.ElementId,
+            movementType: projectileData.MovementType,
+            speed: projectileData.Speed,
+            lifetime: projectileData.Lifetime,
+            startPos: startPos,
+            targetPos: targetPos,
+            arcHeight: projectileData.ArcHeight,
+            pierceCount: projectileData.PierceCount,
+            aoeRadius: projectileData.AoeRadius,
+            hitRadius: projectileData.HitRadius,
+            hitSpace: projectileData.HitSpace,
+            steerStrength: projectileData.SteerStrength,
+            veerDelay: projectileData.VeerDelay,
+            veerAngle: projectileData.VeerAngle,
+            veerDuration: projectileData.VeerDuration,
+            projectileCatalogId: new SimProjectileCatalogId(projectileData.ProjectileId),
+            acceleration: projectileData.Acceleration,
+            minSpeed: projectileData.MinSpeed,
+            speedStart: projectileData.SpeedStart,
+            speedEnd: projectileData.SpeedEnd,
+            speedTransitionDuration: projectileData.SpeedTransitionDuration,
+            speedEasing: projectileData.SpeedEasing,
+            speedEaseExponent: projectileData.SpeedEaseExponent,
+            tracking: projectileData.Tracking
+        );
+    }
+
+    private static SimVector3 ResolveProjectileStartPosition(UnitData attacker)
+    {
+        var startPos = attacker.Position;
+        if (!attacker.CatalogId.HasValue)
+            return startPos;
+
+        var unitDef = UnitDefinitions.Get(attacker.CatalogId.Value);
+        if (unitDef == null)
+            return startPos;
+
+        // Use per-unit target-point offset as a projectile muzzle offset.
+        // Mirror X for left-facing units so both teams spawn from their "front" side.
+        var offset = unitDef.Visual.TargetPointOffset;
+        float mirroredOffsetX = attacker.IsFacingRight ? offset.X : -offset.X;
+        return new SimVector3(
+            startPos.X + mirroredOffsetX,
+            startPos.Y + offset.Y,
+            startPos.Z + offset.Z);
+    }
+
     private static bool TryResolveProjectileData(UnitData attacker, out ProjectileData projectileData)
     {
         projectileData = null!;
+
+        if (attacker.ProjectileCatalogId.HasValue)
+        {
+            var fromUnit = ProjectileDefinitions.Get(attacker.ProjectileCatalogId.Value);
+            if (fromUnit != null)
+            {
+                projectileData = fromUnit;
+                return true;
+            }
+        }
 
         if (!attacker.CatalogId.HasValue)
             return false;

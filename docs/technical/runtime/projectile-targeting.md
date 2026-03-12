@@ -87,6 +87,16 @@ public Vector3 GetProjectileSpawnPosition()
 
 **Note**: Spawn points CAN use markers (`ProjectileSpawnPoint`) because they're relative to the attacker, not the target. The marker's GlobalPosition correctly includes the parent unit's position.
 
+### Simulation Spawn Source (authoritative path)
+
+Simulation-side ranged attacks now compute projectile spawn from unit catalog data in `SimBehavior.ResolveProjectileStartPosition(...)`:
+
+- Base: attacker `UnitData.Position`
+- Offset source: `UnitDefinition.Visual.TargetPointOffset`
+- Facing: X offset mirrors for left-facing units
+
+This keeps simulation projectile start points aligned with per-unit visual tuning even when no explicit scene marker is used.
+
 ## Path Tracking
 
 ### The `tracking` Property
@@ -169,7 +179,13 @@ With deceleration, actual flight time is longer than predicted, causing consiste
 
 **Solution**: Damage logic now lives in `SimBehavior` + `SimEffects` in the simulation layer. Projectile hits are resolved via `SimProjectile.ApplyHit()` which calls `SimDamage.Calculate()`.
 
-### 5. Collision Shape Missing
+### 5. Summoner Target Routing Mismatch
+
+**Problem**: If ranged summoner-target attacks use direct damage while unit-target attacks use projectiles, visuals/timing diverge and attacks appear to "do damage with no projectile."
+
+**Solution**: Summoner-target ranged attacks now spawn `SimProjectileData` and resolve summoner damage on projectile impact (`SimProjectile.ApplySummonerHitAtImpact()`), matching unit-target projectile flow.
+
+### 6. Collision Shape Missing
 
 **Problem**: Area3D needs a CollisionShape3D to detect overlaps.
 

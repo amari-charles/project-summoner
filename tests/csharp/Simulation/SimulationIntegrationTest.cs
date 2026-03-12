@@ -914,6 +914,30 @@ public class SimulationIntegrationTest
         AssertThat(spawnedUnit.ActivationState).IsEqual(ActivationState.Active); // Active
     }
 
+    [TestCase]
+    public void Tick_SpawnDuringBattle_FlyingUnit_UsesFlightAltitudeBeforeActivation()
+    {
+        var card = SimTestHelper.CreateSummonCard("test_flying_unit", manaCost: 3, summonTime: 0.5f);
+        var template = card.UnitTemplates[0];
+        template.MovementLayer = MovementLayer.Air;
+        template.FlightAltitude = 2.5f;
+        _state.CardDataMap["test_flying_unit"] = card;
+        _state.Summoners[0].Hand = new List<SimCardCatalogId> { "test_flying_unit" };
+        _state.Summoners[0].Deck = new List<SimCardCatalogId> { "test_flying_unit" };
+
+        var cmd = new PlayCardCommand(0, 0, new SimVector3(-5f, 0f, 0f))
+        {
+            ExecuteFrame = 1
+        };
+        _state.PendingCommandBuffer.Add(cmd);
+
+        _sim.Tick(Delta); // Frame 1: spawns unit (inactive due summon time)
+
+        var spawnedUnit = _state.Units.Values.First();
+        AssertThat(spawnedUnit.ActivationState).IsEqual(ActivationState.Inactive);
+        AssertThat(spawnedUnit.Position.Y).IsEqual(2.5f);
+    }
+
     // =========================================================================
     // Cast Speed
     // =========================================================================
