@@ -7,6 +7,7 @@ const CHECKER_PILLARS_NODE_NAME: StringName = &"CheckerPillars"
 const CHECKER_PILLARS_SIDES_NODE_NAME: StringName = &"Sides"
 const CHECKER_PILLARS_TOPS_NODE_NAME: StringName = &"Tops"
 const TOP_SURFACE_Y_OFFSET: float = 0.005
+const MAX_CHECKER_TILES_PER_AXIS: int = 128
 
 @export_group("Identification")
 @export var biome_id: String = "unknown"
@@ -85,8 +86,8 @@ func _build_checker_tile_pillars(battlefield: Node3D) -> bool:
 
 	_clear_checker_tile_pillars(battlefield)
 
-	var tile_count_x: int = maxi(1, int(round(ground_uv_scale.x * texture_image.get_width())))
-	var tile_count_z: int = maxi(1, int(round(ground_uv_scale.y * texture_image.get_height())))
+	var tile_count_x: int = _resolve_checker_tile_count(ground_uv_scale.x, texture_image.get_width())
+	var tile_count_z: int = _resolve_checker_tile_count(ground_uv_scale.y, texture_image.get_height())
 	var tile_size_x: float = max(ground_size.x / float(tile_count_x), 0.01)
 	var tile_size_z: float = max(ground_size.y / float(tile_count_z), 0.01)
 	var pillar_height: float = max(min(tile_size_x, tile_size_z) * max(checker_tile_pillar_height_ratio, 0.01), 0.01)
@@ -193,6 +194,10 @@ func _colors_almost_equal(a: Color, b: Color) -> bool:
 		is_equal_approx(a.b, b.b) and
 		is_equal_approx(a.a, b.a)
 	)
+
+func _resolve_checker_tile_count(uv_scale_component: float, texture_axis_size: int) -> int:
+	var requested: int = int(round(abs(uv_scale_component) * float(texture_axis_size)))
+	return clampi(requested, 1, MAX_CHECKER_TILES_PER_AXIS)
 
 ## Apply lighting settings
 func _apply_lighting(battlefield: Node3D) -> void:
