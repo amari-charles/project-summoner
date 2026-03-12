@@ -17,7 +17,11 @@ public sealed class NullBattleVfxService : IBattleVfxService
 
     private NullBattleVfxService() { }
 
-    public void PlayEffect(string effectId, Vector3 position, Godot.Collections.Dictionary? data = null)
+    public void PlayEffect(
+        string effectId,
+        Vector3 position,
+        Godot.Collections.Dictionary? data = null
+    )
     {
         // Intentionally no-op when VFX service is unavailable.
     }
@@ -32,11 +36,20 @@ public sealed class GodotVfxManagerService : IBattleVfxService
         _vfxManager = vfxManager;
     }
 
-    public void PlayEffect(string effectId, Vector3 position, Godot.Collections.Dictionary? data = null)
+    public void PlayEffect(
+        string effectId,
+        Vector3 position,
+        Godot.Collections.Dictionary? data = null
+    )
     {
         if (string.IsNullOrEmpty(effectId) || !_vfxManager.HasMethod("play_effect"))
             return;
 
-        _vfxManager.Call("play_effect", effectId, position, data ?? new Godot.Collections.Dictionary());
+        _vfxManager.Call(
+            "play_effect",
+            effectId,
+            position,
+            data ?? new Godot.Collections.Dictionary()
+        );
     }
 }

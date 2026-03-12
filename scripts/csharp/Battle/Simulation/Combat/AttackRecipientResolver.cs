@@ -12,15 +12,27 @@ public static class AttackRecipientResolver
 {
     private const float GeometryEpsilon = 0.00001f;
 
-    public static List<UnitData> ResolveRecipients(UnitData attacker, UnitData primaryTarget, MatchState state)
+    public static List<UnitData> ResolveRecipients(
+        UnitData attacker,
+        UnitData primaryTarget,
+        MatchState state
+    )
     {
         return attacker.Attack.Selection.Mode switch
         {
             AttackSelectionMode.Single => BuildPrimaryOnly(primaryTarget),
-            AttackSelectionMode.AreaCollect => ResolveAreaRecipients(attacker, primaryTarget, state),
-            AttackSelectionMode.LineCollect => ResolveLineRecipients(attacker, primaryTarget, state),
+            AttackSelectionMode.AreaCollect => ResolveAreaRecipients(
+                attacker,
+                primaryTarget,
+                state
+            ),
+            AttackSelectionMode.LineCollect => ResolveLineRecipients(
+                attacker,
+                primaryTarget,
+                state
+            ),
             AttackSelectionMode.ChainHops => ResolveChainRecipients(attacker, primaryTarget, state),
-            _ => BuildPrimaryOnly(primaryTarget)
+            _ => BuildPrimaryOnly(primaryTarget),
         };
     }
 
@@ -31,10 +43,15 @@ public static class AttackRecipientResolver
         return new List<UnitData> { primaryTarget };
     }
 
-    private static List<UnitData> ResolveAreaRecipients(UnitData attacker, UnitData primaryTarget, MatchState state)
+    private static List<UnitData> ResolveAreaRecipients(
+        UnitData attacker,
+        UnitData primaryTarget,
+        MatchState state
+    )
     {
-        bool includePrimary = PassesLayerFilter(attacker, primaryTarget) &&
-                              IsAreaMatch(attacker, primaryTarget, primaryTarget);
+        bool includePrimary =
+            PassesLayerFilter(attacker, primaryTarget)
+            && IsAreaMatch(attacker, primaryTarget, primaryTarget);
         var secondaries = new List<UnitData>();
         foreach (var candidate in EnumerateEnemyCandidates(attacker, state))
         {
@@ -47,25 +64,38 @@ public static class AttackRecipientResolver
             secondaries.Add(candidate);
         }
 
-        secondaries.Sort((a, b) =>
-        {
-            float da = DistanceSquaredXZ(primaryTarget.Position, a.Position);
-            float db = DistanceSquaredXZ(primaryTarget.Position, b.Position);
-            int distanceCompare = da.CompareTo(db);
-            if (distanceCompare != 0)
-                return distanceCompare;
-            return a.UnitId.CompareTo(b.UnitId);
-        });
+        secondaries.Sort(
+            (a, b) =>
+            {
+                float da = DistanceSquaredXZ(primaryTarget.Position, a.Position);
+                float db = DistanceSquaredXZ(primaryTarget.Position, b.Position);
+                int distanceCompare = da.CompareTo(db);
+                if (distanceCompare != 0)
+                    return distanceCompare;
+                return a.UnitId.CompareTo(b.UnitId);
+            }
+        );
 
         return FinalizeRecipients(attacker, primaryTarget, secondaries, includePrimary);
     }
 
-    private static List<UnitData> ResolveLineRecipients(UnitData attacker, UnitData primaryTarget, MatchState state)
+    private static List<UnitData> ResolveLineRecipients(
+        UnitData attacker,
+        UnitData primaryTarget,
+        MatchState state
+    )
     {
         var secondaries = new List<UnitData>();
         var line = BuildLineQuery(attacker, primaryTarget);
-        bool includePrimary = PassesLayerFilter(attacker, primaryTarget) &&
-                              IsInsideLineCorridor(primaryTarget.Position, line.Origin, line.Direction, line.Length, line.HalfWidth);
+        bool includePrimary =
+            PassesLayerFilter(attacker, primaryTarget)
+            && IsInsideLineCorridor(
+                primaryTarget.Position,
+                line.Origin,
+                line.Direction,
+                line.Length,
+                line.HalfWidth
+            );
 
         foreach (var candidate in EnumerateEnemyCandidates(attacker, state))
         {
@@ -74,33 +104,47 @@ public static class AttackRecipientResolver
             if (!PassesLayerFilter(attacker, candidate))
                 continue;
 
-            if (!IsInsideLineCorridor(candidate.Position, line.Origin, line.Direction, line.Length, line.HalfWidth))
+            if (
+                !IsInsideLineCorridor(
+                    candidate.Position,
+                    line.Origin,
+                    line.Direction,
+                    line.Length,
+                    line.HalfWidth
+                )
+            )
                 continue;
 
             secondaries.Add(candidate);
         }
 
-        secondaries.Sort((a, b) =>
-        {
-            float ta = ProjectAlongLine(a.Position, line.Origin, line.Direction);
-            float tb = ProjectAlongLine(b.Position, line.Origin, line.Direction);
-            int tCompare = ta.CompareTo(tb);
-            if (tCompare != 0)
-                return tCompare;
+        secondaries.Sort(
+            (a, b) =>
+            {
+                float ta = ProjectAlongLine(a.Position, line.Origin, line.Direction);
+                float tb = ProjectAlongLine(b.Position, line.Origin, line.Direction);
+                int tCompare = ta.CompareTo(tb);
+                if (tCompare != 0)
+                    return tCompare;
 
-            float pa = DistanceSquaredFromLine(a.Position, line.Origin, line.Direction);
-            float pb = DistanceSquaredFromLine(b.Position, line.Origin, line.Direction);
-            int perpendicularCompare = pa.CompareTo(pb);
-            if (perpendicularCompare != 0)
-                return perpendicularCompare;
+                float pa = DistanceSquaredFromLine(a.Position, line.Origin, line.Direction);
+                float pb = DistanceSquaredFromLine(b.Position, line.Origin, line.Direction);
+                int perpendicularCompare = pa.CompareTo(pb);
+                if (perpendicularCompare != 0)
+                    return perpendicularCompare;
 
-            return a.UnitId.CompareTo(b.UnitId);
-        });
+                return a.UnitId.CompareTo(b.UnitId);
+            }
+        );
 
         return FinalizeRecipients(attacker, primaryTarget, secondaries, includePrimary);
     }
 
-    private static List<UnitData> ResolveChainRecipients(UnitData attacker, UnitData primaryTarget, MatchState state)
+    private static List<UnitData> ResolveChainRecipients(
+        UnitData attacker,
+        UnitData primaryTarget,
+        MatchState state
+    )
     {
         if (!primaryTarget.IsAlive)
             return new List<UnitData>();
@@ -120,7 +164,14 @@ public static class AttackRecipientResolver
         var current = primaryTarget;
         for (int hop = 0; hop < maxJumps && recipients.Count < recipientLimit; hop++)
         {
-            var next = FindNextChainRecipient(attacker, current, state, visited, allowRepeats, jumpRadius);
+            var next = FindNextChainRecipient(
+                attacker,
+                current,
+                state,
+                visited,
+                allowRepeats,
+                jumpRadius
+            );
             if (next == null)
                 break;
 
@@ -139,7 +190,8 @@ public static class AttackRecipientResolver
         MatchState state,
         HashSet<int> visited,
         bool allowRepeats,
-        float jumpRadius)
+        float jumpRadius
+    )
     {
         UnitData? best = null;
         float bestDistSq = float.MaxValue;
@@ -157,9 +209,14 @@ public static class AttackRecipientResolver
             if (distSq > radiusSq + GeometryEpsilon)
                 continue;
 
-            if (best == null ||
-                distSq < bestDistSq - GeometryEpsilon ||
-                (MathF.Abs(distSq - bestDistSq) <= GeometryEpsilon && candidate.UnitId < best.UnitId))
+            if (
+                best == null
+                || distSq < bestDistSq - GeometryEpsilon
+                || (
+                    MathF.Abs(distSq - bestDistSq) <= GeometryEpsilon
+                    && candidate.UnitId < best.UnitId
+                )
+            )
             {
                 best = candidate;
                 bestDistSq = distSq;
@@ -173,7 +230,8 @@ public static class AttackRecipientResolver
         UnitData attacker,
         UnitData primaryTarget,
         List<UnitData> orderedSecondaries,
-        bool includePrimary)
+        bool includePrimary
+    )
     {
         if (!primaryTarget.IsAlive || !includePrimary)
             return new List<UnitData>();
@@ -216,7 +274,7 @@ public static class AttackRecipientResolver
         {
             TargetLayer.GroundOnly => candidate.MovementLayer == MovementLayer.Ground,
             TargetLayer.AirOnly => candidate.MovementLayer == MovementLayer.Air,
-            _ => true
+            _ => true,
         };
     }
 
@@ -224,11 +282,32 @@ public static class AttackRecipientResolver
     {
         return attacker.Attack.Area.Shape switch
         {
-            AttackAreaShape.Sphere => IsInsideSphere(primaryTarget.Position, candidate.Position, attacker.Attack.Area.Size),
-            AttackAreaShape.Box => IsInsideForwardBox(attacker, candidate.Position, attacker.Attack.Area.Size),
-            AttackAreaShape.Capsule => IsInsideCapsule(attacker.Position, primaryTarget.Position, candidate.Position, attacker.Attack.Area.Size),
-            AttackAreaShape.Line => IsInsideLineFromArea(attacker, primaryTarget, candidate.Position),
-            _ => IsInsideSphere(primaryTarget.Position, candidate.Position, attacker.Attack.Area.Size)
+            AttackAreaShape.Sphere => IsInsideSphere(
+                primaryTarget.Position,
+                candidate.Position,
+                attacker.Attack.Area.Size
+            ),
+            AttackAreaShape.Box => IsInsideForwardBox(
+                attacker,
+                candidate.Position,
+                attacker.Attack.Area.Size
+            ),
+            AttackAreaShape.Capsule => IsInsideCapsule(
+                attacker.Position,
+                primaryTarget.Position,
+                candidate.Position,
+                attacker.Attack.Area.Size
+            ),
+            AttackAreaShape.Line => IsInsideLineFromArea(
+                attacker,
+                primaryTarget,
+                candidate.Position
+            ),
+            _ => IsInsideSphere(
+                primaryTarget.Position,
+                candidate.Position,
+                attacker.Attack.Area.Size
+            ),
         };
     }
 
@@ -257,13 +336,17 @@ public static class AttackRecipientResolver
         float projectedForward = DotXZ(delta, forward);
         float projectedRight = MathF.Abs(DotXZ(delta, right));
 
-        return projectedForward >= forwardOffset - GeometryEpsilon &&
-               projectedForward <= (forwardOffset + forwardLength) + GeometryEpsilon &&
-               projectedRight <= halfWidth + GeometryEpsilon;
+        return projectedForward >= forwardOffset - GeometryEpsilon
+            && projectedForward <= (forwardOffset + forwardLength) + GeometryEpsilon
+            && projectedRight <= halfWidth + GeometryEpsilon;
     }
 
     private static bool IsInsideCapsule(
-        SimVector3 segmentStart, SimVector3 segmentEnd, SimVector3 point, SimVector3 size)
+        SimVector3 segmentStart,
+        SimVector3 segmentEnd,
+        SimVector3 point,
+        SimVector3 size
+    )
     {
         float radius = size.Z > 0f ? size.Z : MathF.Max(size.X, 0f);
         if (radius <= 0f)
@@ -273,28 +356,42 @@ public static class AttackRecipientResolver
         return distSq <= (radius * radius) + GeometryEpsilon;
     }
 
-    private static bool IsInsideLineFromArea(UnitData attacker, UnitData primaryTarget, SimVector3 point)
+    private static bool IsInsideLineFromArea(
+        UnitData attacker,
+        UnitData primaryTarget,
+        SimVector3 point
+    )
     {
         var line = BuildLineQuery(attacker, primaryTarget);
-        return IsInsideLineCorridor(point, line.Origin, line.Direction, line.Length, line.HalfWidth);
+        return IsInsideLineCorridor(
+            point,
+            line.Origin,
+            line.Direction,
+            line.Length,
+            line.HalfWidth
+        );
     }
 
-    private static (SimVector3 Origin, SimVector3 Direction, float Length, float HalfWidth) BuildLineQuery(
-        UnitData attacker,
-        UnitData primaryTarget)
+    private static (
+        SimVector3 Origin,
+        SimVector3 Direction,
+        float Length,
+        float HalfWidth
+    ) BuildLineQuery(UnitData attacker, UnitData primaryTarget)
     {
         var direction = GetDirectionFromAttacker(attacker, primaryTarget.Position);
         float forwardOffset = MathF.Max(attacker.Attack.Area.ForwardOffset, 0f);
         var origin = attacker.Position + (direction * forwardOffset);
-        float targetDistance = MathF.Max(DistanceXZ(attacker.Position, primaryTarget.Position) - forwardOffset, 0f);
-        float length = attacker.Attack.Area.LineLength > 0f
-            ? attacker.Attack.Area.LineLength
-            : targetDistance;
+        float targetDistance = MathF.Max(
+            DistanceXZ(attacker.Position, primaryTarget.Position) - forwardOffset,
+            0f
+        );
+        float length =
+            attacker.Attack.Area.LineLength > 0f ? attacker.Attack.Area.LineLength : targetDistance;
         if (length <= GeometryEpsilon)
             length = MathF.Max(attacker.AttackRange, 0.5f);
-        float halfWidth = attacker.Attack.Area.LineHalfWidth > 0f
-            ? attacker.Attack.Area.LineHalfWidth
-            : 0.5f;
+        float halfWidth =
+            attacker.Attack.Area.LineHalfWidth > 0f ? attacker.Attack.Area.LineHalfWidth : 0.5f;
 
         return (origin, direction, length, halfWidth);
     }
@@ -304,7 +401,8 @@ public static class AttackRecipientResolver
         SimVector3 origin,
         SimVector3 direction,
         float length,
-        float halfWidth)
+        float halfWidth
+    )
     {
         float t = ProjectAlongLine(point, origin, direction);
         if (t < -GeometryEpsilon || t > length + GeometryEpsilon)
@@ -316,9 +414,7 @@ public static class AttackRecipientResolver
 
     private static SimVector3 GetFacingDirection(UnitData attacker)
     {
-        return attacker.IsFacingRight
-            ? new SimVector3(1f, 0f, 0f)
-            : new SimVector3(-1f, 0f, 0f);
+        return attacker.IsFacingRight ? new SimVector3(1f, 0f, 0f) : new SimVector3(-1f, 0f, 0f);
     }
 
     private static SimVector3 GetDirectionFromAttacker(UnitData attacker, SimVector3 targetPosition)
@@ -333,8 +429,8 @@ public static class AttackRecipientResolver
         return new SimVector3(dx * invLen, 0f, dz * invLen);
     }
 
-    private static float DistanceXZ(SimVector3 a, SimVector3 b)
-        => MathF.Sqrt(DistanceSquaredXZ(a, b));
+    private static float DistanceXZ(SimVector3 a, SimVector3 b) =>
+        MathF.Sqrt(DistanceSquaredXZ(a, b));
 
     private static float DistanceSquaredXZ(SimVector3 a, SimVector3 b)
     {
@@ -343,8 +439,7 @@ public static class AttackRecipientResolver
         return (dx * dx) + (dz * dz);
     }
 
-    private static float DotXZ(SimVector3 a, SimVector3 b)
-        => (a.X * b.X) + (a.Z * b.Z);
+    private static float DotXZ(SimVector3 a, SimVector3 b) => (a.X * b.X) + (a.Z * b.Z);
 
     private static float ProjectAlongLine(SimVector3 point, SimVector3 origin, SimVector3 direction)
     {
@@ -353,7 +448,11 @@ public static class AttackRecipientResolver
         return (dx * direction.X) + (dz * direction.Z);
     }
 
-    private static float DistanceSquaredFromLine(SimVector3 point, SimVector3 origin, SimVector3 direction)
+    private static float DistanceSquaredFromLine(
+        SimVector3 point,
+        SimVector3 origin,
+        SimVector3 direction
+    )
     {
         float t = ProjectAlongLine(point, origin, direction);
         float closestX = origin.X + (direction.X * t);
@@ -363,7 +462,11 @@ public static class AttackRecipientResolver
         return (dx * dx) + (dz * dz);
     }
 
-    private static float PointToSegmentDistanceSqXZ(SimVector3 point, SimVector3 segA, SimVector3 segB)
+    private static float PointToSegmentDistanceSqXZ(
+        SimVector3 point,
+        SimVector3 segA,
+        SimVector3 segB
+    )
     {
         float abX = segB.X - segA.X;
         float abZ = segB.Z - segA.Z;

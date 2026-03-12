@@ -29,12 +29,19 @@ public class PuffProjectileSpawnIntegrationTest
         if (puffCard.Summon != null)
         {
             foreach (var entry in puffCard.Summon.Units)
-                simCard.UnitTemplates.Add(UnitDefinitions.BuildSimTemplate(entry.UnitId, entry.Count, entry.Modifier));
+                simCard.UnitTemplates.Add(
+                    UnitDefinitions.BuildSimTemplate(entry.UnitId, entry.Count, entry.Modifier)
+                );
         }
         else
         {
             simCard.UnitTemplates.Add(
-                UnitDefinitions.BuildSimTemplate(puffCard.UnitId, puffCard.SpawnCount, puffCard.UnitModifier));
+                UnitDefinitions.BuildSimTemplate(
+                    puffCard.UnitId,
+                    puffCard.SpawnCount,
+                    puffCard.UnitModifier
+                )
+            );
         }
 
         state.CardDataMap["puff"] = simCard;
@@ -46,10 +53,9 @@ public class PuffProjectileSpawnIntegrationTest
         enemy.AttackRange = 1.5f;
         enemy.MoveSpeed = 0f;
 
-        state.PendingCommandBuffer.Add(new PlayCardCommand(0, 0, new SimVector3(-2f, 0f, 0f))
-        {
-            ExecuteFrame = 1
-        });
+        state.PendingCommandBuffer.Add(
+            new PlayCardCommand(0, 0, new SimVector3(-2f, 0f, 0f)) { ExecuteFrame = 1 }
+        );
 
         bool observedProjectile = false;
         for (int i = 0; i < 420; i++)

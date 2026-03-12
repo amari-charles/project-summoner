@@ -37,17 +37,35 @@ public class OrcaAvoidanceTest
             float angle = i * (SimMath.Tau / farNeighborCount);
             float x = MathF.Cos(angle) * 2.4f;
             float z = MathF.Sin(angle) * 2.4f;
-            var far = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: x, z: z, moveSpeed: 0f, attackSpeed: 0f);
+            var far = SimTestHelper.CreateMeleeUnit(
+                _state,
+                team: 1,
+                x: x,
+                z: z,
+                moveSpeed: 0f,
+                attackSpeed: 0f
+            );
             far.NavigationRadius = 0.01f;
             far.Velocity = SimVector3.Zero;
             far.BehaviorState = BehaviorState.Chasing;
         }
 
         var preferredVelocity = new SimVector3(3f, 0f, 0f);
-        var baselineSafeVelocity = OrcaAvoidance.ComputeSafeVelocity(mover, preferredVelocity, _state);
+        var baselineSafeVelocity = OrcaAvoidance.ComputeSafeVelocity(
+            mover,
+            preferredVelocity,
+            _state
+        );
 
         // Insert the closest blocker last; nearest-neighbor selection must still include it.
-        var close = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0.35f, z: 0f, moveSpeed: 0f, attackSpeed: 0f);
+        var close = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 0.35f,
+            z: 0f,
+            moveSpeed: 0f,
+            attackSpeed: 0f
+        );
         close.NavigationRadius = 0.5f;
         close.Velocity = SimVector3.Zero;
         close.BehaviorState = BehaviorState.InRange;
@@ -88,7 +106,11 @@ public class OrcaAvoidanceTest
         mover.EngageRectHalfWidth = 0.7f;
 
         var preferredVelocity = new SimVector3(2.8f, 0f, 0f);
-        var baselineSafeVelocity = OrcaAvoidance.ComputeSafeVelocity(mover, preferredVelocity, _state);
+        var baselineSafeVelocity = OrcaAvoidance.ComputeSafeVelocity(
+            mover,
+            preferredVelocity,
+            _state
+        );
 
         var ally = SimTestHelper.CreateMeleeUnit(
             _state,
@@ -107,7 +129,8 @@ public class OrcaAvoidanceTest
         ally.EngageRectLength = 1.8f;
         ally.EngageRectHalfWidth = 0.7f;
 
-        float combinedRadius = CombatGeometry.GetNavigationRadius(mover) + CombatGeometry.GetNavigationRadius(ally);
+        float combinedRadius =
+            CombatGeometry.GetNavigationRadius(mover) + CombatGeometry.GetNavigationRadius(ally);
         float pairDistance = new SimVector3(
             ally.Position.X - mover.Position.X,
             0f,

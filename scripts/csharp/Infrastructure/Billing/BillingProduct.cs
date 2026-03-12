@@ -16,16 +16,35 @@ public partial class BillingProduct : Resource
         SUBSCRIPTION,
     }
 
-    [Export] public string product_id = "";
-    [Export] public string internal_id = "";
-    [Export] public string display_name = "";
-    [Export] public string description = "";
-    [Export] public ProductType product_type = ProductType.CONSUMABLE;
-    [Export] public float price_usd = 0.99f;
-    [Export] public int gems_amount;
-    [Export] public Godot.Collections.Dictionary rewards = [];
-    [Export] public int bonus_percent;
-    [Export] public bool is_limited_time;
+    [Export]
+    public string product_id = "";
+
+    [Export]
+    public string internal_id = "";
+
+    [Export]
+    public string display_name = "";
+
+    [Export]
+    public string description = "";
+
+    [Export]
+    public ProductType product_type = ProductType.CONSUMABLE;
+
+    [Export]
+    public float price_usd = 0.99f;
+
+    [Export]
+    public int gems_amount;
+
+    [Export]
+    public Godot.Collections.Dictionary rewards = [];
+
+    [Export]
+    public int bonus_percent;
+
+    [Export]
+    public bool is_limited_time;
 
     public static BillingProduct create_gem_pack(string id, int gems, float price, int bonus = 0)
     {
@@ -48,7 +67,8 @@ public partial class BillingProduct : Resource
         string desc,
         float price,
         Godot.Collections.Dictionary reward_dict,
-        int gems = 0)
+        int gems = 0
+    )
     {
         return new BillingProduct
         {

@@ -9,7 +9,7 @@ public enum ModifierType
     Flat,
 
     /// <summary>Multiplicative modifier (value is a percentage).</summary>
-    Percent
+    Percent,
 }
 
 /// <summary>
@@ -18,18 +18,20 @@ public enum ModifierType
 public static class ModifierTypeExtensions
 {
     /// <summary>Convert enum to string value for serialization/interop.</summary>
-    public static string ToStringValue(this ModifierType type) => type switch
-    {
-        ModifierType.Flat => "flat",
-        ModifierType.Percent => "percent",
-        _ => "flat"
-    };
+    public static string ToStringValue(this ModifierType type) =>
+        type switch
+        {
+            ModifierType.Flat => "flat",
+            ModifierType.Percent => "percent",
+            _ => "flat",
+        };
 
     /// <summary>Parse string to ModifierType.</summary>
-    public static ModifierType ParseModifierType(string value) => value switch
-    {
-        "flat" => ModifierType.Flat,
-        "percent" => ModifierType.Percent,
-        _ => ModifierType.Flat
-    };
+    public static ModifierType ParseModifierType(string value) =>
+        value switch
+        {
+            "flat" => ModifierType.Flat,
+            "percent" => ModifierType.Percent,
+            _ => ModifierType.Flat,
+        };
 }

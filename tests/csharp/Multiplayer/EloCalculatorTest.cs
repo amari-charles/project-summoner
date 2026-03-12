@@ -1,7 +1,7 @@
 namespace Fateforged.Tests.Multiplayer;
 
-using GdUnit4;
 using Fateforged.Multiplayer.Ranking;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -135,7 +135,7 @@ public class EloCalculatorTest
     [TestCase]
     public void GetDivision_HigherWithinTierIsLowerDivision()
     {
-        var divLow = EloCalculator.GetDivision(1210);  // Low Mage
+        var divLow = EloCalculator.GetDivision(1210); // Low Mage
         var divHigh = EloCalculator.GetDivision(1380); // High Mage
 
         AssertThat(divLow).IsGreaterEqual(divHigh);
@@ -161,7 +161,8 @@ public class EloCalculatorTest
         AssertThat(EloCalculator.GetTierCeiling(RankTier.Mage)).IsEqual(1399);
         AssertThat(EloCalculator.GetTierCeiling(RankTier.Archmage)).IsEqual(1599);
         AssertThat(EloCalculator.GetTierCeiling(RankTier.Sage)).IsEqual(EloCalculator.EloCeiling);
-        AssertThat(EloCalculator.GetTierCeiling(RankTier.Fateforged)).IsEqual(EloCalculator.EloCeiling);
+        AssertThat(EloCalculator.GetTierCeiling(RankTier.Fateforged))
+            .IsEqual(EloCalculator.EloCeiling);
     }
 
     [TestCase]
@@ -207,6 +208,7 @@ public class EloCalculatorTest
         AssertThat(EloCalculator.KFactor).IsGreater(0);
         AssertThat(EloCalculator.EloFloor).IsGreaterEqual(0);
         AssertThat(EloCalculator.EloCeiling).IsGreater(EloCalculator.EloFloor);
-        AssertThat(EloCalculator.StartingElo).IsBetween(EloCalculator.EloFloor, EloCalculator.EloCeiling);
+        AssertThat(EloCalculator.StartingElo)
+            .IsBetween(EloCalculator.EloFloor, EloCalculator.EloCeiling);
     }
 }

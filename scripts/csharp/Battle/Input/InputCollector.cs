@@ -1,8 +1,8 @@
-using Godot;
-using Fateforged.Simulation;
-using Fateforged.View.Debug;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Fateforged.Simulation;
+using Fateforged.View.Debug;
+using Godot;
 
 namespace Fateforged.Input;
 
@@ -91,7 +91,11 @@ public partial class InputCollector : Control
             return CanDropDebugSpawn(atPosition, dict);
 
         // Validate required keys
-        if (!dict.ContainsKey("card_index") || !dict.ContainsKey("card") || !dict.ContainsKey("source"))
+        if (
+            !dict.ContainsKey("card_index")
+            || !dict.ContainsKey("card")
+            || !dict.ContainsKey("source")
+        )
         {
             CleanupSpawnPreview();
             return false;
@@ -224,7 +228,8 @@ public partial class InputCollector : Control
         {
             // Re-acquire camera (may have been set after init)
             _camera3D = GetViewport().GetCamera3D();
-            if (_camera3D == null) return Vector3.Zero;
+            if (_camera3D == null)
+                return Vector3.Zero;
         }
 
         var from = _camera3D.ProjectRayOrigin(screenPos);
@@ -267,14 +272,20 @@ public partial class InputCollector : Control
         }
 
         // Recreate if card or team changed
-        if (_spawnPreview == null || !IsInstanceValid(_spawnPreview) || _previewCard != card || _previewTeam != team)
+        if (
+            _spawnPreview == null
+            || !IsInstanceValid(_spawnPreview)
+            || _previewCard != card
+            || _previewTeam != team
+        )
         {
             CleanupSpawnPreview();
             CreateSpawnPreview(card, team);
             _previewTeam = team;
         }
 
-        if (_spawnPreview == null) return;
+        if (_spawnPreview == null)
+            return;
 
         var positions = CalculateSafeSpawnPositions(worldPos, card, team);
         _spawnPreview.UpdatePositions(positions);
@@ -283,14 +294,17 @@ public partial class InputCollector : Control
 
     private void CreateSpawnPreview(Card card, int team)
     {
-        if (card.SpawnCount <= 0) return;
+        if (card.SpawnCount <= 0)
+            return;
 
         var catalogData = CardCatalog.GetCardAsDict(card.CatalogId);
         var scenePath = DictGetString(catalogData, "unit_scene_path");
-        if (string.IsNullOrEmpty(scenePath)) return;
+        if (string.IsNullOrEmpty(scenePath))
+            return;
 
         var unitScene = GD.Load<PackedScene>(scenePath);
-        if (unitScene == null) return;
+        if (unitScene == null)
+            return;
 
         _spawnPreview = new SummonPreview();
         _previewCard = card;
@@ -303,13 +317,18 @@ public partial class InputCollector : Control
         }
     }
 
-    private Godot.Collections.Array<Vector3> CalculateSafeSpawnPositions(Vector3 centerPos, Card card, int team)
+    private Godot.Collections.Array<Vector3> CalculateSafeSpawnPositions(
+        Vector3 centerPos,
+        Card card,
+        int team
+    )
     {
         var battlefield = GetNodeOrNull("/root/Main/Battlefield");
         battlefield ??= GetTree().CurrentScene;
 
         var result = card.GetSafeSpawnPositions(centerPos, battlefield, 0.5f, team);
-        if (result.Count > 0) return result;
+        if (result.Count > 0)
+            return result;
 
         // Fallback: formation offsets
         var positions = new Godot.Collections.Array<Vector3>();
@@ -345,7 +364,8 @@ public partial class InputCollector : Control
             CreateSpellPreview(card);
         }
 
-        if (_spellPreview == null) return;
+        if (_spellPreview == null)
+            return;
 
         _spellPreview.Call("update_position", worldPos);
         _spellPreview.Call("set_valid", true);
@@ -354,7 +374,8 @@ public partial class InputCollector : Control
     private void CreateSpellPreview(Card card)
     {
         var script = GD.Load<Script>("res://scripts/battle/ui/spell_preview.gd");
-        if (script == null) return;
+        if (script == null)
+            return;
 
         // SpellPreview extends Node3D — create via script attachment
         var preview = new Node3D();
@@ -398,7 +419,8 @@ public partial class InputCollector : Control
             return;
 
         var script = GD.Load<Script>("res://scripts/battle/ui/spawn_zone_overlay.gd");
-        if (script == null) return;
+        if (script == null)
+            return;
 
         var overlay = new Node3D();
         overlay.SetScript(script);
@@ -429,7 +451,8 @@ public partial class InputCollector : Control
     private bool CanDropDebugSpawn(Vector2 atPosition, Godot.Collections.Dictionary data)
     {
         var arena = FindDebugArenaController();
-        if (arena == null) return false;
+        if (arena == null)
+            return false;
 
         if (!data.ContainsKey("card") || data["card"].AsGodotObject() is not Card card)
             return false;
@@ -502,20 +525,25 @@ public partial class InputCollector : Control
     private Node3D? Find3DRoot()
     {
         var root = GetTree().CurrentScene;
-        if (root == null) return null;
+        if (root == null)
+            return null;
 
         // Look for battlefield
         var battlefield = root.FindChild("Battlefield3D", true, false);
-        if (battlefield is Node3D bf3d) return bf3d;
+        if (battlefield is Node3D bf3d)
+            return bf3d;
 
         var battlefieldMatch = root.FindChild("Battlefield*", true, false);
-        if (battlefieldMatch is Node3D bfMatch) return bfMatch;
+        if (battlefieldMatch is Node3D bfMatch)
+            return bfMatch;
 
-        if (root is Node3D root3D) return root3D;
+        if (root is Node3D root3D)
+            return root3D;
 
         foreach (var child in root.GetChildren())
         {
-            if (child is Node3D child3D) return child3D;
+            if (child is Node3D child3D)
+                return child3D;
         }
 
         return null;
@@ -542,18 +570,28 @@ public partial class InputCollector : Control
     /// <summary>
     /// Safely get a string value from a Godot Dictionary.
     /// </summary>
-    private static string DictGetString(Godot.Collections.Dictionary dict, string key, string defaultValue = "")
+    private static string DictGetString(
+        Godot.Collections.Dictionary dict,
+        string key,
+        string defaultValue = ""
+    )
     {
-        if (!dict.ContainsKey(key)) return defaultValue;
+        if (!dict.ContainsKey(key))
+            return defaultValue;
         return dict[key].ToString() ?? defaultValue;
     }
 
     /// <summary>
     /// Safely get an int value from a Godot Dictionary.
     /// </summary>
-    private static int DictGetInt(Godot.Collections.Dictionary dict, string key, int defaultValue = 0)
+    private static int DictGetInt(
+        Godot.Collections.Dictionary dict,
+        string key,
+        int defaultValue = 0
+    )
     {
-        if (!dict.ContainsKey(key)) return defaultValue;
+        if (!dict.ContainsKey(key))
+            return defaultValue;
         var v = dict[key];
         return v.VariantType == Variant.Type.Int ? (int)v : defaultValue;
     }

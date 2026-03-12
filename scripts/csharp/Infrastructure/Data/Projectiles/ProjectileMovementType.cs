@@ -29,5 +29,5 @@ public enum ProjectileMovementType
     /// Homing arc with sinusoidal weaving motion perpendicular to travel.
     /// Creates dynamic, serpentine visual effect (Cult of the Lamb style).
     /// </summary>
-    WeavingHoming
+    WeavingHoming,
 }

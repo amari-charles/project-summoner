@@ -8,5 +8,5 @@ public enum FallbackMovement
 {
     MoveToward = 0,
     Strafe = 1,
-    Idle = 2
+    Idle = 2,
 }

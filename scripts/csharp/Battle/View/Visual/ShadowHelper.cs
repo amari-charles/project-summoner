@@ -21,7 +21,10 @@ public static class ShadowHelper
     /// <param name="viewport">The SubViewport providing the unit's texture.</param>
     /// <returns>The created shadow Sprite3D, or null if the shader failed to load.</returns>
     public static Sprite3D? CreateShadow(
-        Sprite3D parentSprite3D, SubViewport viewport, ShadowProfile profile)
+        Sprite3D parentSprite3D,
+        SubViewport viewport,
+        ShadowProfile profile
+    )
     {
         ShadowProfile effectiveProfile = profile.Sanitize();
         _shaderCache ??= GD.Load<Shader>("res://shaders/vfx/silhouette_shadow.gdshader");

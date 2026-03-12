@@ -11,8 +11,11 @@ public readonly record struct UnifiedTraitId(string Value)
 {
     public static UnifiedTraitId Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedTraitId id) => id.Value;
+
     public static implicit operator UnifiedTraitId(string value) => new(value ?? "");
 }
 
@@ -20,8 +23,11 @@ public readonly record struct UnifiedTraitEffectId(string Value)
 {
     public static UnifiedTraitEffectId Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedTraitEffectId id) => id.Value;
+
     public static implicit operator UnifiedTraitEffectId(string value) => new(value ?? "");
 }
 
@@ -29,8 +35,11 @@ public readonly record struct UnifiedTraitPoolId(string Value)
 {
     public static UnifiedTraitPoolId Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedTraitPoolId id) => id.Value;
+
     public static implicit operator UnifiedTraitPoolId(string value) => new(value ?? "");
 }
 
@@ -38,8 +47,11 @@ public readonly record struct UnifiedTraitTag(string Value)
 {
     public static UnifiedTraitTag Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedTraitTag tag) => tag.Value;
+
     public static implicit operator UnifiedTraitTag(string value) => new(value ?? "");
 }
 
@@ -47,16 +59,22 @@ public readonly record struct UnifiedFieldPath(string Value)
 {
     public static UnifiedFieldPath Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedFieldPath value) => value.Value;
+
     public static implicit operator UnifiedFieldPath(string value) => new(value ?? "");
 }
 
 public readonly record struct UnifiedPredicateLiteral(string Value)
 {
     public static UnifiedPredicateLiteral Empty => new("");
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedPredicateLiteral value) => value.Value;
+
     public static implicit operator UnifiedPredicateLiteral(string value) => new(value ?? "");
 }
 
@@ -64,58 +82,76 @@ public readonly record struct UnifiedFlagKey(string Value)
 {
     public static UnifiedFlagKey Empty => new("");
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedFlagKey value) => value.Value;
+
     public static implicit operator UnifiedFlagKey(string value) => new(value ?? "");
 }
 
 public readonly record struct UnifiedScalar(float Value)
 {
     public static UnifiedScalar Zero => new(0f);
+
     public static implicit operator float(UnifiedScalar value) => value.Value;
+
     public static implicit operator UnifiedScalar(float value) => new(value);
 }
 
 public readonly record struct UnifiedSeconds(float Value)
 {
     public static UnifiedSeconds Zero => new(0f);
+
     public static implicit operator float(UnifiedSeconds value) => value.Value;
+
     public static implicit operator UnifiedSeconds(float value) => new(value);
 }
 
 public readonly record struct UnifiedWeight(int Value)
 {
     public static UnifiedWeight One => new(1);
+
     public static implicit operator int(UnifiedWeight value) => value.Value;
+
     public static implicit operator UnifiedWeight(int value) => new(value);
 }
 
 public readonly record struct UnifiedSlotCount(int Value)
 {
     public static UnifiedSlotCount Zero => new(0);
+
     public static implicit operator int(UnifiedSlotCount value) => value.Value;
+
     public static implicit operator UnifiedSlotCount(int value) => new(value);
 }
 
 public readonly record struct UnifiedLevel(int Value)
 {
     public static UnifiedLevel One => new(1);
+
     public static implicit operator int(UnifiedLevel value) => value.Value;
+
     public static implicit operator UnifiedLevel(int value) => new(value);
 }
 
 public readonly record struct UnifiedPointAmount(int Value)
 {
     public static UnifiedPointAmount Zero => new(0);
+
     public static implicit operator int(UnifiedPointAmount value) => value.Value;
+
     public static implicit operator UnifiedPointAmount(int value) => new(value);
 }
 
 public readonly record struct UnifiedProgressionSource(string Value)
 {
     public static UnifiedProgressionSource Empty => new("");
+
     public override string ToString() => Value;
+
     public static implicit operator string(UnifiedProgressionSource value) => value.Value;
+
     public static implicit operator UnifiedProgressionSource(string value) => new(value ?? "");
 }
 
@@ -172,7 +208,7 @@ public enum UnifiedTraitOwnerType
     Summoner,
     Card,
     Item,
-    Global
+    Global,
 }
 
 public enum UnifiedTraitTargetType
@@ -180,28 +216,28 @@ public enum UnifiedTraitTargetType
     Summoner,
     SpawnedUnit,
     SpellCast,
-    CardRuntime
+    CardRuntime,
 }
 
 public enum UnifiedTraitActivationType
 {
     Always,
     TimeWindow,
-    Triggered
+    Triggered,
 }
 
 public enum UnifiedTraitOperationType
 {
     Add,
     Multiply,
-    SetFlag
+    SetFlag,
 }
 
 public enum UnifiedTraitTriggerScope
 {
     PerUnit,
     PerTeam,
-    PerCardCast
+    PerCardCast,
 }
 
 public enum UnifiedTraitPredicateKind
@@ -217,7 +253,7 @@ public enum UnifiedTraitPredicateKind
     Gte,
     Lte,
     Between,
-    HasTag
+    HasTag,
 }
 
 // =============================================================================
@@ -238,7 +274,8 @@ public sealed class UnifiedTraitEffectDefinition
 {
     public UnifiedTraitEffectId EffectId { get; set; } = UnifiedTraitEffectId.Empty;
     public UnifiedTraitTargetType TargetType { get; set; } = UnifiedTraitTargetType.SpawnedUnit;
-    public UnifiedTraitActivationType ActivationType { get; set; } = UnifiedTraitActivationType.Always;
+    public UnifiedTraitActivationType ActivationType { get; set; } =
+        UnifiedTraitActivationType.Always;
     public List<UnifiedTraitOperation> Operations { get; set; } = new();
 
     public UnifiedActivationWindow ActivationWindow { get; set; } = new();

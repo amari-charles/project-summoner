@@ -98,7 +98,10 @@ public class TypedFacadeRoutingTest
         AssertThat(deck!.SummonerId).IsEqual(summonerId);
 
         AssertThat(deckService.ValidateDeck(deckId)).IsTrue();
-        AssertThat(deckService.ListDecksForSummoner((string)summonerId).Any(d => d.Id.Value == deckId)).IsTrue();
+        AssertThat(
+                deckService.ListDecksForSummoner((string)summonerId).Any(d => d.Id.Value == deckId)
+            )
+            .IsTrue();
         AssertThat(deckService.SetDeckSummoner(deckId, (string)summonerId)).IsTrue();
     }
 
@@ -118,7 +121,11 @@ public class TypedFacadeRoutingTest
 
         var firstBattle = battles[0];
         string battleId = firstBattle["id"].AsString();
-        campaignService.SetPendingReward(battleId, Fateforged.Data.Events.RewardType.Fixed.ToStringId(), 0);
+        campaignService.SetPendingReward(
+            battleId,
+            Fateforged.Data.Events.RewardType.Fixed.ToStringId(),
+            0
+        );
 
         var pendingBefore = campaignService.GetPendingReward();
         AssertThat(pendingBefore.ContainsKey("battle_id")).IsTrue();
@@ -139,15 +146,23 @@ public class TypedFacadeRoutingTest
 
         var summonerId = EnsureUnlockedSummoner(repo, SummonerIds.Cole);
         campaignService.SetActiveSummonerGetter(Callable.From(() => (string)summonerId));
-        campaignService.SetCollectionCallbacks(Callable.From<string, string, string>((catalogId, rarity) =>
-        {
-            var ids = repo.GrantCards(new[] { (new CardId(catalogId), rarity) });
-            return ids.Length > 0 ? ids[0].Value : "";
-        }));
+        campaignService.SetCollectionCallbacks(
+            Callable.From<string, string, string>(
+                (catalogId, rarity) =>
+                {
+                    var ids = repo.GrantCards(new[] { (new CardId(catalogId), rarity) });
+                    return ids.Length > 0 ? ids[0].Value : "";
+                }
+            )
+        );
         campaignService.InitializeCatalogs();
 
         string battleId = (string)EventIds.FirstTrial;
-        campaignService.SetPendingReward(battleId, Fateforged.Data.Events.RewardType.Flexible.ToStringId(), 1);
+        campaignService.SetPendingReward(
+            battleId,
+            Fateforged.Data.Events.RewardType.Flexible.ToStringId(),
+            1
+        );
 
         var granted = campaignService.ClaimPendingReward();
 
@@ -174,19 +189,28 @@ public class TypedFacadeRoutingTest
 
         var summonerId = EnsureUnlockedSummoner(repo, SummonerIds.Cole);
         campaignService.SetActiveSummonerGetter(Callable.From(() => (string)summonerId));
-        campaignService.SetCollectionCallbacks(Callable.From<string, string, string>((catalogId, rarity) =>
-        {
-            var ids = repo.GrantCards(new[] { (new CardId(catalogId), rarity) });
-            return ids.Length > 0 ? ids[0].Value : "";
-        }));
+        campaignService.SetCollectionCallbacks(
+            Callable.From<string, string, string>(
+                (catalogId, rarity) =>
+                {
+                    var ids = repo.GrantCards(new[] { (new CardId(catalogId), rarity) });
+                    return ids.Length > 0 ? ids[0].Value : "";
+                }
+            )
+        );
         campaignService.InitializeCatalogs();
 
         string battleId = (string)EventIds.FirstTrial;
 
         // Simulate reward screen request after victory.
-        var spec = rewardService.GetBattleRewardSpecAsDict(battleId, isCompleted: false, chosenIndex: -1);
+        var spec = rewardService.GetBattleRewardSpecAsDict(
+            battleId,
+            isCompleted: false,
+            chosenIndex: -1
+        );
         var goldReward = spec.GetValueOrDefault("gold_reward", 0).AsInt32();
-        var cardOptions = spec.GetValueOrDefault("card_options", new Godot.Collections.Array()).AsGodotArray();
+        var cardOptions = spec.GetValueOrDefault("card_options", new Godot.Collections.Array())
+            .AsGodotArray();
         bool requiresChoice = spec.GetValueOrDefault("requires_choice", false).AsBool();
 
         AssertThat(requiresChoice).IsTrue();
@@ -198,7 +222,11 @@ public class TypedFacadeRoutingTest
         AssertThat(string.IsNullOrEmpty(chosenCatalogId)).IsFalse();
 
         // Simulate pending reward lifecycle used by reward screen.
-        campaignService.SetPendingReward(battleId, Fateforged.Data.Events.RewardType.Flexible.ToStringId(), -1);
+        campaignService.SetPendingReward(
+            battleId,
+            Fateforged.Data.Events.RewardType.Flexible.ToStringId(),
+            -1
+        );
         campaignService.UpdatePendingChoice(chosenIndex, chosenCatalogId);
 
         var granted = campaignService.ClaimPendingReward();
@@ -223,23 +251,39 @@ public class TypedFacadeRoutingTest
 
         var summonerId = EnsureUnlockedSummoner(repo, SummonerIds.Cole);
         campaignService.SetActiveSummonerGetter(Callable.From(() => (string)summonerId));
-        campaignService.SetCollectionCallbacks(Callable.From<string, string, string>((catalogId, rarity) =>
-        {
-            var ids = repo.GrantCards(new[] { (new CardId(catalogId), rarity) });
-            return ids.Length > 0 ? ids[0].Value : "";
-        }));
+        campaignService.SetCollectionCallbacks(
+            Callable.From<string, string, string>(
+                (catalogId, rarity) =>
+                {
+                    var ids = repo.GrantCards(new[] { (new CardId(catalogId), rarity) });
+                    return ids.Length > 0 ? ids[0].Value : "";
+                }
+            )
+        );
         campaignService.InitializeCatalogs();
 
         string battleId = (string)EventIds.FirstTrial;
-        var spec = rewardService.GetBattleRewardSpecAsDict(battleId, isCompleted: false, chosenIndex: -1);
-        var options = spec.GetValueOrDefault("card_options", new Godot.Collections.Array()).AsGodotArray();
+        var spec = rewardService.GetBattleRewardSpecAsDict(
+            battleId,
+            isCompleted: false,
+            chosenIndex: -1
+        );
+        var options = spec.GetValueOrDefault("card_options", new Godot.Collections.Array())
+            .AsGodotArray();
         AssertThat(options.Count).IsGreater(1);
 
         var chosenIndex = 1;
-        var chosenCatalogId = options[chosenIndex].AsGodotDictionary().GetValueOrDefault("catalog_id", "").AsString();
+        var chosenCatalogId = options[chosenIndex]
+            .AsGodotDictionary()
+            .GetValueOrDefault("catalog_id", "")
+            .AsString();
         AssertThat(string.IsNullOrEmpty(chosenCatalogId)).IsFalse();
 
-        campaignService.SetPendingReward(battleId, Fateforged.Data.Events.RewardType.Flexible.ToStringId(), -1);
+        campaignService.SetPendingReward(
+            battleId,
+            Fateforged.Data.Events.RewardType.Flexible.ToStringId(),
+            -1
+        );
         campaignService.UpdatePendingChoice(chosenIndex, chosenCatalogId);
 
         // Change collection before claim; this can reshuffle filtered flexible options.
@@ -257,7 +301,8 @@ public class TypedFacadeRoutingTest
         return repo;
     }
 
-    private T CreateNode<T>() where T : Node, new()
+    private T CreateNode<T>()
+        where T : Node, new()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;

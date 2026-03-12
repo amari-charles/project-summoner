@@ -1,5 +1,5 @@
-using Godot;
 using System.Collections.Generic;
+using Godot;
 
 namespace Fateforged.Infrastructure.Billing;
 
@@ -20,10 +20,14 @@ public partial class PlatformBillingService : Node
     public delegate void purchase_cancelledEventHandler(string product_id);
 
     [Signal]
-    public delegate void products_loadedEventHandler(Godot.Collections.Array<BillingProduct> products);
+    public delegate void products_loadedEventHandler(
+        Godot.Collections.Array<BillingProduct> products
+    );
 
     [Signal]
-    public delegate void restore_completedEventHandler(Godot.Collections.Array<string> restored_product_ids);
+    public delegate void restore_completedEventHandler(
+        Godot.Collections.Array<string> restored_product_ids
+    );
 
     [Signal]
     public delegate void restore_failedEventHandler(string error);
@@ -95,7 +99,9 @@ public partial class PlatformBillingService : Node
         if (!is_available() && !string.IsNullOrEmpty(_provider_unavailable_message))
             GD.PushError(_provider_unavailable_message);
 
-        GD.Print($"[PlatformBilling] Platform: {current_platform}, Provider: {_provider.get_provider_name()}");
+        GD.Print(
+            $"[PlatformBilling] Platform: {current_platform}, Provider: {_provider.get_provider_name()}"
+        );
     }
 
     public bool is_available()
@@ -230,11 +236,15 @@ public partial class PlatformBillingService : Node
         return provider;
     }
 
-    private BillingProvider _create_platform_provider(BillingProvider provider, string platform_name)
+    private BillingProvider _create_platform_provider(
+        BillingProvider provider,
+        string platform_name
+    )
     {
         provider.Name = $"{platform_name}Provider";
         AddChild(provider);
-        _provider_unavailable_message = $"{platform_name} billing provider unavailable; purchases are disabled for this session.";
+        _provider_unavailable_message =
+            $"{platform_name} billing provider unavailable; purchases are disabled for this session.";
 
         return provider;
     }
@@ -251,11 +261,26 @@ public partial class PlatformBillingService : Node
         if (_provider == null)
             return;
 
-        _provider.Connect("purchase_completed", Callable.From<string, string>(_on_provider_purchase_completed));
-        _provider.Connect("purchase_failed", Callable.From<string, string>(_on_provider_purchase_failed));
-        _provider.Connect("purchase_cancelled", Callable.From<string>(_on_provider_purchase_cancelled));
-        _provider.Connect("products_loaded", Callable.From<Godot.Collections.Array<BillingProduct>>(_on_provider_products_loaded));
-        _provider.Connect("restore_completed", Callable.From<Godot.Collections.Array<string>>(_on_provider_restore_completed));
+        _provider.Connect(
+            "purchase_completed",
+            Callable.From<string, string>(_on_provider_purchase_completed)
+        );
+        _provider.Connect(
+            "purchase_failed",
+            Callable.From<string, string>(_on_provider_purchase_failed)
+        );
+        _provider.Connect(
+            "purchase_cancelled",
+            Callable.From<string>(_on_provider_purchase_cancelled)
+        );
+        _provider.Connect(
+            "products_loaded",
+            Callable.From<Godot.Collections.Array<BillingProduct>>(_on_provider_products_loaded)
+        );
+        _provider.Connect(
+            "restore_completed",
+            Callable.From<Godot.Collections.Array<string>>(_on_provider_restore_completed)
+        );
         _provider.Connect("restore_failed", Callable.From<string>(_on_provider_restore_failed));
     }
 
@@ -282,7 +307,9 @@ public partial class PlatformBillingService : Node
         EmitSignal("products_loaded", products);
     }
 
-    private void _on_provider_restore_completed(Godot.Collections.Array<string> restored_product_ids)
+    private void _on_provider_restore_completed(
+        Godot.Collections.Array<string> restored_product_ids
+    )
     {
         var normalized = new Godot.Collections.Array<string>();
         foreach (var productId in restored_product_ids)

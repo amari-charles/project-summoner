@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Meta.Campaign;
+using Godot;
 
 namespace Fateforged.Data.Events;
 
@@ -63,22 +63,38 @@ public static class CampaignCatalog
                 EventIds.RejoinTrial,
                 EventIds.FinalAnte,
                 EventIds.StormBreaker,
-                EventIds.Act1Boss
+                EventIds.Act1Boss,
             },
             Edges = new List<CampaignEdge>
             {
                 new(EventIds.FirstTrial, EventIds.SecondChallenge),
                 new(EventIds.SecondChallenge, EventIds.OpeningDoctrine),
-                new(EventIds.OpeningDoctrine, EventIds.AggressivePush, new EdgeCondition(ChoiceIds.Aggressive)),
-                new(EventIds.OpeningDoctrine, EventIds.Caravan01, new EdgeCondition(ChoiceIds.Prepared)),
-                new(EventIds.OpeningDoctrine, EventIds.ScoutSkirmish, new EdgeCondition(ChoiceIds.Insight)),
+                new(
+                    EventIds.OpeningDoctrine,
+                    EventIds.AggressivePush,
+                    new EdgeCondition(ChoiceIds.Aggressive)
+                ),
+                new(
+                    EventIds.OpeningDoctrine,
+                    EventIds.Caravan01,
+                    new EdgeCondition(ChoiceIds.Prepared)
+                ),
+                new(
+                    EventIds.OpeningDoctrine,
+                    EventIds.ScoutSkirmish,
+                    new EdgeCondition(ChoiceIds.Insight)
+                ),
                 new(EventIds.AggressivePush, EventIds.Caravan01),
                 new(EventIds.ScoutSkirmish, EventIds.Caravan01),
                 new(EventIds.Caravan01, EventIds.StabilityLine),
                 new(EventIds.StabilityLine, EventIds.ThirdTrial),
                 new(EventIds.ThirdTrial, EventIds.MidlineTrial),
                 new(EventIds.MidlineTrial, EventIds.RouteChoice),
-                new(EventIds.RouteChoice, EventIds.RidgeAssault, new EdgeCondition(ChoiceIds.Ridge)),
+                new(
+                    EventIds.RouteChoice,
+                    EventIds.RidgeAssault,
+                    new EdgeCondition(ChoiceIds.Ridge)
+                ),
                 new(EventIds.RouteChoice, EventIds.RiverHold, new EdgeCondition(ChoiceIds.River)),
                 new(EventIds.RouteChoice, EventIds.GrovePatrol, new EdgeCondition(ChoiceIds.Grove)),
                 new(EventIds.RidgeAssault, EventIds.Caravan02),
@@ -88,8 +104,16 @@ public static class CampaignCatalog
                 new(EventIds.Chokepoint, EventIds.Gatekeeper),
                 new(EventIds.Gatekeeper, EventIds.PathFork),
                 new(EventIds.PathFork, EventIds.EliteBattle01, new EdgeCondition(ChoiceIds.Elite)),
-                new(EventIds.PathFork, EventIds.StandardBattle01, new EdgeCondition(ChoiceIds.Standard)),
-                new(EventIds.PathFork, EventIds.GambitBattle01, new EdgeCondition(ChoiceIds.Gambit)),
+                new(
+                    EventIds.PathFork,
+                    EventIds.StandardBattle01,
+                    new EdgeCondition(ChoiceIds.Standard)
+                ),
+                new(
+                    EventIds.PathFork,
+                    EventIds.GambitBattle01,
+                    new EdgeCondition(ChoiceIds.Gambit)
+                ),
                 new(EventIds.EliteBattle01, EventIds.EliteBattle02),
                 new(EventIds.EliteBattle02, EventIds.EliteBattle03),
                 new(EventIds.EliteBattle03, EventIds.EliteBattle04),
@@ -105,8 +129,8 @@ public static class CampaignCatalog
                 new(EventIds.GambitBattle04, EventIds.RejoinTrial),
                 new(EventIds.RejoinTrial, EventIds.FinalAnte),
                 new(EventIds.FinalAnte, EventIds.StormBreaker),
-                new(EventIds.StormBreaker, EventIds.Act1Boss)
-            }
+                new(EventIds.StormBreaker, EventIds.Act1Boss),
+            },
         },
 
         // =====================================================================
@@ -127,10 +151,10 @@ public static class CampaignCatalog
                 EventIds.ArenaFireWisp,
                 EventIds.ArenaCloudSwarm,
                 EventIds.ArenaManaBolt,
-                EventIds.DebugArena
+                EventIds.DebugArena,
             },
-            Edges = new List<CampaignEdge>() // No edges - all nodes independently accessible
-        }
+            Edges = new List<CampaignEdge>(), // No edges - all nodes independently accessible
+        },
     };
 
     // =========================================================================
@@ -169,10 +193,11 @@ public static class CampaignCatalog
     public static EventDefinition[] GetCampaignEvents(CampaignId campaignId)
     {
         var campaign = GetCampaign(campaignId);
-        if (campaign == null) return System.Array.Empty<EventDefinition>();
+        if (campaign == null)
+            return System.Array.Empty<EventDefinition>();
 
-        return campaign.EventIds
-            .Select(id => EventCatalog.GetEvent(id))
+        return campaign
+            .EventIds.Select(id => EventCatalog.GetEvent(id))
             .Where(e => e != null)
             .Cast<EventDefinition>()
             .ToArray();
@@ -189,7 +214,8 @@ public static class CampaignCatalog
     public static EventDefinition? GetStartEvent(CampaignId campaignId)
     {
         var campaign = GetCampaign(campaignId);
-        if (campaign == null) return null;
+        if (campaign == null)
+            return null;
         return EventCatalog.GetEvent(campaign.StartEventId);
     }
 
@@ -201,7 +227,8 @@ public static class CampaignCatalog
     public static Godot.Collections.Dictionary GetCampaignAsDict(CampaignId id)
     {
         var campaign = GetCampaign(id);
-        if (campaign == null) return new Godot.Collections.Dictionary();
+        if (campaign == null)
+            return new Godot.Collections.Dictionary();
         return ToDictionary(campaign);
     }
 
@@ -226,7 +253,7 @@ public static class CampaignCatalog
             ["description_key"] = campaign.DescriptionKey,
             ["sort_order"] = campaign.SortOrder,
             ["start_node"] = (string)campaign.StartEventId,
-            ["icon"] = ""
+            ["icon"] = "",
         };
 
         // Unlock requirements
@@ -242,14 +269,15 @@ public static class CampaignCatalog
         foreach (var eventId in campaign.EventIds)
         {
             var evt = EventCatalog.GetEvent(eventId);
-            if (evt == null) continue;
+            if (evt == null)
+                continue;
 
             var nodeDict = new Godot.Collections.Dictionary
             {
                 ["id"] = (string)evt.Id,
                 ["type"] = evt.Type.ToStringId(),
                 ["position"] = evt.Position,
-                ["data"] = EventCatalog.ToDictionary(evt)
+                ["data"] = EventCatalog.ToDictionary(evt),
             };
             nodes.Add(nodeDict);
         }
@@ -262,13 +290,13 @@ public static class CampaignCatalog
             var edgeDict = new Godot.Collections.Dictionary
             {
                 ["from"] = (string)edge.FromEventId,
-                ["to"] = (string)edge.ToEventId
+                ["to"] = (string)edge.ToEventId,
             };
             if (edge.Condition?.ChoiceId != null)
             {
                 edgeDict["condition"] = new Godot.Collections.Dictionary
                 {
-                    ["choice"] = (string)edge.Condition.ChoiceId.Value
+                    ["choice"] = (string)edge.Condition.ChoiceId.Value,
                 };
             }
             edges.Add(edgeDict);
@@ -280,7 +308,8 @@ public static class CampaignCatalog
         foreach (var eventId in campaign.EventIds)
         {
             var evt = EventCatalog.GetEvent(eventId);
-            if (evt == null) continue;
+            if (evt == null)
+                continue;
 
             var battleDict = EventCatalog.ToDictionary(evt);
             // Add event_type for UI type checking
@@ -292,11 +321,12 @@ public static class CampaignCatalog
         return dict;
     }
 
-    private static string GetEventTypeForUI(EventType type) => type switch
-    {
-        EventType.Battle or EventType.Elite or EventType.Boss => "battle",
-        EventType.Caravan => "caravan",
-        EventType.Choice => "choice",
-        _ => "battle"
-    };
+    private static string GetEventTypeForUI(EventType type) =>
+        type switch
+        {
+            EventType.Battle or EventType.Elite or EventType.Boss => "battle",
+            EventType.Caravan => "caravan",
+            EventType.Choice => "choice",
+            _ => "battle",
+        };
 }

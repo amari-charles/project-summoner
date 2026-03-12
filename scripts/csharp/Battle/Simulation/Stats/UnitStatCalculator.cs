@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Units;
+using Godot;
 
 namespace Fateforged.Stats;
 
@@ -39,7 +39,8 @@ public static class UnitStatCalculator
         CardDefinition card,
         Dictionary<string, float>? upgradeMultipliers = null,
         List<StatModifier>? modifiers = null,
-        Dictionary<string, float>? overrides = null)
+        Dictionary<string, float>? overrides = null
+    )
     {
         // Step 1: Base stats from UnitCatalog (new) or CardDefinition (legacy)
         var stats = GetBaseStats(card);
@@ -85,7 +86,9 @@ public static class UnitStatCalculator
                 return def.Stats;
             }
             // UnitId set but not found in definitions - log warning and fall back
-            GD.PushWarning($"[UnitStatCalculator] UnitId '{card.UnitId}' not found in UnitDefinitions, falling back to CardDefinition stats");
+            GD.PushWarning(
+                $"[UnitStatCalculator] UnitId '{card.UnitId}' not found in UnitDefinitions, falling back to CardDefinition stats"
+            );
         }
 
         // Legacy pattern: Use CardDefinition stats directly
@@ -102,7 +105,8 @@ public static class UnitStatCalculator
     public static UnitStats CalculateFromDictionary(
         Dictionary<string, float>? effectiveStats,
         List<StatModifier>? modifiers = null,
-        Dictionary<string, float>? overrides = null)
+        Dictionary<string, float>? overrides = null
+    )
     {
         // Step 1-2: Base + upgrades already combined in effectiveStats
         var stats = UnitStats.FromDictionary(effectiveStats);
@@ -129,7 +133,8 @@ public static class UnitStatCalculator
     public static UnitStats CalculateFromGodotDictionary(
         Godot.Collections.Dictionary? effectiveStats,
         List<StatModifier>? modifiers = null,
-        Godot.Collections.Dictionary? overrides = null)
+        Godot.Collections.Dictionary? overrides = null
+    )
     {
         // Step 1-2: Base + upgrades already combined in effectiveStats
         var stats = UnitStats.FromGodotDictionary(effectiveStats);
@@ -158,12 +163,16 @@ public static class UnitStatCalculator
         return new UnitStats
         {
             MaxHp = card.MaxHp > 0 ? card.MaxHp : StatKey.MaxHp.GetDefault(),
-            AttackDamage = card.AttackDamage > 0 ? card.AttackDamage : StatKey.AttackDamage.GetDefault(),
-            AttackSpeed = card.AttackSpeed > 0 ? card.AttackSpeed : StatKey.AttackSpeed.GetDefault(),
+            AttackDamage =
+                card.AttackDamage > 0 ? card.AttackDamage : StatKey.AttackDamage.GetDefault(),
+            AttackSpeed =
+                card.AttackSpeed > 0 ? card.AttackSpeed : StatKey.AttackSpeed.GetDefault(),
             MoveSpeed = card.MoveSpeed > 0 ? card.MoveSpeed : StatKey.MoveSpeed.GetDefault(),
-            AttackRange = card.AttackRange > 0 ? card.AttackRange : StatKey.AttackRange.GetDefault(),
-            AggroRadius = card.AggroRadius > 0 ? card.AggroRadius : StatKey.AggroRadius.GetDefault(),
-            SoulStrength = card.SoulStrength
+            AttackRange =
+                card.AttackRange > 0 ? card.AttackRange : StatKey.AttackRange.GetDefault(),
+            AggroRadius =
+                card.AggroRadius > 0 ? card.AggroRadius : StatKey.AggroRadius.GetDefault(),
+            SoulStrength = card.SoulStrength,
         };
     }
 
@@ -174,7 +183,10 @@ public static class UnitStatCalculator
     /// <param name="stats">Dictionary to validate</param>
     /// <param name="source">Source name for logging (e.g., "Simulation.SpawnUnitsFromCard")</param>
     /// <returns>List of validation warnings (empty if valid)</returns>
-    public static List<string> ValidateStatsDictionary(Dictionary<string, float> stats, string source = "")
+    public static List<string> ValidateStatsDictionary(
+        Dictionary<string, float> stats,
+        string source = ""
+    )
     {
         var warnings = new List<string>();
         var prefix = string.IsNullOrEmpty(source) ? "" : $"[{source}] ";
@@ -208,7 +220,10 @@ public static class UnitStatCalculator
     /// <summary>
     /// Validates a Godot Dictionary. Used for GDScript interop.
     /// </summary>
-    public static List<string> ValidateGodotStatsDictionary(Godot.Collections.Dictionary stats, string source = "")
+    public static List<string> ValidateGodotStatsDictionary(
+        Godot.Collections.Dictionary stats,
+        string source = ""
+    )
     {
         var csharpDict = new Dictionary<string, float>();
         foreach (var key in stats.Keys)
@@ -250,7 +265,7 @@ public static class UnitStatCalculator
             "projectile_id" or "spell_vfx" => true,
             // Override keys
             "scale_multiplier" => true,
-            _ => false
+            _ => false,
         };
     }
 
@@ -261,8 +276,14 @@ public static class UnitStatCalculator
     /// </summary>
     public static ModifiedStats ApplyModifiers(BaseStats baseStats, List<StatModifier> modifiers)
     {
-        float hpAdd = 0f, damageAdd = 0f, speedAdd = 0f, moveSpeedAdd = 0f;
-        float hpMult = 1f, damageMult = 1f, speedMult = 1f, moveSpeedMult = 1f;
+        float hpAdd = 0f,
+            damageAdd = 0f,
+            speedAdd = 0f,
+            moveSpeedAdd = 0f;
+        float hpMult = 1f,
+            damageMult = 1f,
+            speedMult = 1f,
+            moveSpeedMult = 1f;
         var flags = new Dictionary<string, bool>();
 
         foreach (var mod in modifiers)
@@ -321,7 +342,7 @@ public static class UnitStatCalculator
             AttackDamage = (baseStats.AttackDamage + damageAdd) * damageMult,
             AttackSpeed = (baseStats.AttackSpeed + speedAdd) * speedMult,
             MoveSpeed = (baseStats.MoveSpeed + moveSpeedAdd) * moveSpeedMult,
-            Flags = flags
+            Flags = flags,
         };
     }
 }

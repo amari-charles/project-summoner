@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using GdUnit4;
 using Fateforged.Simulation;
-using static GdUnit4.Assertions;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
+using GdUnit4;
+using static GdUnit4.Assertions;
 
 /// <summary>
 /// Enforces that every SimEvent subclass is categorized and that
@@ -20,7 +20,8 @@ public class SimEventCoverageTest
     private static List<Type> GetAllSimEventTypes()
     {
         var assembly = typeof(SimEvent).Assembly;
-        return assembly.GetTypes()
+        return assembly
+            .GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(SimEvent)))
             .OrderBy(t => t.Name)
             .ToList();
@@ -42,8 +43,9 @@ public class SimEventCoverageTest
 
         AssertThat(missing)
             .OverrideFailureMessage(
-                $"SimEvent types missing [EventCategory] attribute: {string.Join(", ", missing)}. " +
-                "Add [EventCategory(EventCategory.Broadcast|Snapshot|HostOnly)] to each.")
+                $"SimEvent types missing [EventCategory] attribute: {string.Join(", ", missing)}. "
+                    + "Add [EventCategory(EventCategory.Broadcast|Snapshot|HostOnly)] to each."
+            )
             .IsEmpty();
     }
 
@@ -53,7 +55,8 @@ public class SimEventCoverageTest
         var eventTypes = GetAllSimEventTypes();
         var visitorType = typeof(ISimEventVisitor);
 
-        var visitMethods = visitorType.GetMethods()
+        var visitMethods = visitorType
+            .GetMethods()
             .Where(m => m.Name == "Visit" && m.GetParameters().Length == 1)
             .Select(m => m.GetParameters()[0].ParameterType)
             .ToHashSet();
@@ -67,8 +70,9 @@ public class SimEventCoverageTest
 
         AssertThat(missing)
             .OverrideFailureMessage(
-                $"SimEvent types missing Visit() overload in ISimEventVisitor: {string.Join(", ", missing)}. " +
-                "Add void Visit(<EventType> e) to ISimEventVisitor.")
+                $"SimEvent types missing Visit() overload in ISimEventVisitor: {string.Join(", ", missing)}. "
+                    + "Add void Visit(<EventType> e) to ISimEventVisitor."
+            )
             .IsEmpty();
     }
 }

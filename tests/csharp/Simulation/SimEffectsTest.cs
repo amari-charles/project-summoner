@@ -3,12 +3,12 @@ namespace Fateforged.Tests.Simulation;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Units;
-using GdUnit4;
-using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
+using Fateforged.Units;
+using GdUnit4;
+using static GdUnit4.Assertions;
 
 [TestSuite]
 public class SimEffectsTest
@@ -32,7 +32,17 @@ public class SimEffectsTest
         target.Evasion = 0f;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Damage, 30f, 0f, DamageType.True, target, -1, Team.Player, events);
+        SimEffects.ApplyEffect(
+            _state,
+            EffectType.Damage,
+            30f,
+            0f,
+            DamageType.True,
+            target,
+            -1,
+            Team.Player,
+            events
+        );
 
         AssertThat(target.CurrentHp).IsLess(100f);
     }
@@ -44,7 +54,17 @@ public class SimEffectsTest
         target.CurrentHp = 50f;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Heal, 20f, 0f, DamageType.Physical, target, -1, Team.Player, events);
+        SimEffects.ApplyEffect(
+            _state,
+            EffectType.Heal,
+            20f,
+            0f,
+            DamageType.Physical,
+            target,
+            -1,
+            Team.Player,
+            events
+        );
 
         AssertThat(target.CurrentHp).IsEqual(70f);
     }
@@ -56,7 +76,17 @@ public class SimEffectsTest
         target.CurrentHp = 90f;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Heal, 50f, 0f, DamageType.Physical, target, -1, Team.Player, events);
+        SimEffects.ApplyEffect(
+            _state,
+            EffectType.Heal,
+            50f,
+            0f,
+            DamageType.Physical,
+            target,
+            -1,
+            Team.Player,
+            events
+        );
 
         AssertThat(target.CurrentHp).IsEqual(100f);
     }
@@ -67,7 +97,17 @@ public class SimEffectsTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Shield, 50f, -1f, DamageType.Physical, target, -1, Team.Player, events);
+        SimEffects.ApplyEffect(
+            _state,
+            EffectType.Shield,
+            50f,
+            -1f,
+            DamageType.Physical,
+            target,
+            -1,
+            Team.Player,
+            events
+        );
 
         AssertThat(target.ActiveBuffs.Count).IsEqual(1);
         AssertThat(target.ActiveBuffs[0].EffectType).IsEqual(EffectType.Shield);
@@ -80,7 +120,17 @@ public class SimEffectsTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Slow, 0.3f, 5f, DamageType.Physical, target, -1, Team.Player, events);
+        SimEffects.ApplyEffect(
+            _state,
+            EffectType.Slow,
+            0.3f,
+            5f,
+            DamageType.Physical,
+            target,
+            -1,
+            Team.Player,
+            events
+        );
 
         AssertThat(target.ActiveBuffs.Count).IsEqual(1);
         AssertThat(target.ActiveBuffs[0].EffectType).IsEqual(EffectType.Slow);
@@ -94,7 +144,17 @@ public class SimEffectsTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Stun, 0f, 2f, DamageType.Physical, target, -1, Team.Player, events);
+        SimEffects.ApplyEffect(
+            _state,
+            EffectType.Stun,
+            0f,
+            2f,
+            DamageType.Physical,
+            target,
+            -1,
+            Team.Player,
+            events
+        );
 
         AssertThat(target.ActiveBuffs.Count).IsEqual(1);
         AssertThat(target.ActiveBuffs[0].EffectType).IsEqual(EffectType.Stun);
@@ -107,7 +167,17 @@ public class SimEffectsTest
         target.IsAlive = false;
         var events = new List<SimEvent>();
 
-        SimEffects.ApplyEffect(_state, EffectType.Damage, 50f, 0f, DamageType.Physical, target, -1, Team.Player, events);
+        SimEffects.ApplyEffect(
+            _state,
+            EffectType.Damage,
+            50f,
+            0f,
+            DamageType.Physical,
+            target,
+            -1,
+            Team.Player,
+            events
+        );
 
         // HP unchanged, no events (other than what might already exist)
         AssertThat(target.CurrentHp).IsEqual(100f);
@@ -121,12 +191,14 @@ public class SimEffectsTest
     public void TickBuffs_DecrementsDuration()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.Slow,
-            Value = 0.3f,
-            Duration = 5f
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 5f,
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickBuffs(_state, 1f, events);
@@ -138,13 +210,15 @@ public class SimEffectsTest
     public void TickBuffs_ExpiredBuff_Removed()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            BuffId = 99,
-            EffectType = EffectType.Slow,
-            Value = 0.3f,
-            Duration = 0.5f // Will expire with 1s tick
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                BuffId = 99,
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 0.5f, // Will expire with 1s tick
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickBuffs(_state, 1f, events);
@@ -160,12 +234,14 @@ public class SimEffectsTest
     public void TickBuffs_PermanentBuff_NeverExpires()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.DamageBoost,
-            Value = 0.5f,
-            Duration = -1f // Permanent
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                EffectType = EffectType.DamageBoost,
+                Value = 0.5f,
+                Duration = -1f, // Permanent
+            }
+        );
         var events = new List<SimEvent>();
 
         // Tick many times
@@ -179,15 +255,17 @@ public class SimEffectsTest
     public void TickBuffs_PeriodicDamage_TicksDot()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, hp: 100f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.Damage,
-            Value = 10f, // 10 damage per tick
-            Duration = 5f,
-            TickInterval = 1f,
-            TickTimer = 1f, // Ticks after 1s
-            SourceUnitId = -1
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                EffectType = EffectType.Damage,
+                Value = 10f, // 10 damage per tick
+                Duration = 5f,
+                TickInterval = 1f,
+                TickTimer = 1f, // Ticks after 1s
+                SourceUnitId = -1,
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickBuffs(_state, 1f, events);
@@ -199,15 +277,17 @@ public class SimEffectsTest
     public void TickBuffs_DotKill_EmitsUnitDiedEvent()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, hp: 5f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.Damage,
-            Value = 10f,
-            Duration = 5f,
-            TickInterval = 1f,
-            TickTimer = 1f,
-            SourceUnitId = -1
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                EffectType = EffectType.Damage,
+                Value = 10f,
+                Duration = 5f,
+                TickInterval = 1f,
+                TickTimer = 1f,
+                SourceUnitId = -1,
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickBuffs(_state, 1f, events);
@@ -226,15 +306,17 @@ public class SimEffectsTest
     [TestCase]
     public void TickDelayedEffects_CountsDown()
     {
-        _state.DelayedEffects.Add(new DelayedEffect
-        {
-            Timer = 2f,
-            EffectType = EffectType.Damage,
-            Value = 50f,
-            AoeRadius = 5f,
-            Position = SimVector3.Zero,
-            SourceTeam = Team.Player
-        });
+        _state.DelayedEffects.Add(
+            new DelayedEffect
+            {
+                Timer = 2f,
+                EffectType = EffectType.Damage,
+                Value = 50f,
+                AoeRadius = 5f,
+                Position = SimVector3.Zero,
+                SourceTeam = Team.Player,
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickDelayedEffects(_state, 1f, events);
@@ -249,17 +331,19 @@ public class SimEffectsTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 0f, hp: 100f);
         enemy.Evasion = 0f;
 
-        _state.DelayedEffects.Add(new DelayedEffect
-        {
-            Timer = 0.5f,
-            EffectType = EffectType.Damage,
-            Value = 30f,
-            DamageType = DamageType.True,
-            AoeRadius = 10f,
-            Position = SimVector3.Zero,
-            SourceUnitId = -1,
-            SourceTeam = Team.Player
-        });
+        _state.DelayedEffects.Add(
+            new DelayedEffect
+            {
+                Timer = 0.5f,
+                EffectType = EffectType.Damage,
+                Value = 30f,
+                DamageType = DamageType.True,
+                AoeRadius = 10f,
+                Position = SimVector3.Zero,
+                SourceUnitId = -1,
+                SourceTeam = Team.Player,
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickDelayedEffects(_state, 1f, events);
@@ -271,15 +355,17 @@ public class SimEffectsTest
     [TestCase]
     public void TickDelayedEffects_Removed_AfterExecution()
     {
-        _state.DelayedEffects.Add(new DelayedEffect
-        {
-            Timer = 0.1f,
-            EffectType = EffectType.Damage,
-            Value = 10f,
-            AoeRadius = 0f,
-            Position = SimVector3.Zero,
-            SourceTeam = Team.Player
-        });
+        _state.DelayedEffects.Add(
+            new DelayedEffect
+            {
+                Timer = 0.1f,
+                EffectType = EffectType.Damage,
+                Value = 10f,
+                AoeRadius = 0f,
+                Position = SimVector3.Zero,
+                SourceTeam = Team.Player,
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickDelayedEffects(_state, 1f, events);
@@ -295,13 +381,15 @@ public class SimEffectsTest
     public void FireTriggers_OnHit_AppliesEffect()
     {
         var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        attacker.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnHit,
-            EffectType = EffectType.Slow,
-            Value = 0.5f,
-            Duration = 3f
-        });
+        attacker.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnHit,
+                EffectType = EffectType.Slow,
+                Value = 0.5f,
+                Duration = 3f,
+            }
+        );
 
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f);
         var events = new List<SimEvent>();
@@ -317,14 +405,16 @@ public class SimEffectsTest
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, hp: 100f);
         unit.CurrentHp = 30f; // 30% HP
-        unit.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.HpThreshold,
-            EffectType = EffectType.DamageBoost,
-            Value = 0.5f,
-            Duration = -1f,
-            Threshold = 0.5f // Fire at 50% HP
-        });
+        unit.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.HpThreshold,
+                EffectType = EffectType.DamageBoost,
+                Value = 0.5f,
+                Duration = -1f,
+                Threshold = 0.5f, // Fire at 50% HP
+            }
+        );
         var events = new List<SimEvent>();
 
         // TickBuffs checks HP threshold triggers
@@ -339,14 +429,16 @@ public class SimEffectsTest
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, hp: 100f);
         unit.CurrentHp = 30f;
-        unit.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.HpThreshold,
-            EffectType = EffectType.DamageBoost,
-            Value = 0.5f,
-            Duration = -1f,
-            Threshold = 0.5f
-        });
+        unit.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.HpThreshold,
+                EffectType = EffectType.DamageBoost,
+                Value = 0.5f,
+                Duration = -1f,
+                Threshold = 0.5f,
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.TickBuffs(_state, 0.016f, events);
@@ -361,14 +453,16 @@ public class SimEffectsTest
     public void FireTriggers_AoeTrigger_HitsEnemiesInRadius()
     {
         var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        attacker.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnHit,
-            EffectType = EffectType.Damage,
-            Value = 20f,
-            DamageType = DamageType.True,
-            AoeRadius = 10f
-        });
+        attacker.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnHit,
+                EffectType = EffectType.Damage,
+                Value = 20f,
+                DamageType = DamageType.True,
+                AoeRadius = 10f,
+            }
+        );
 
         var nearEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3f, hp: 100f);
         nearEnemy.Evasion = 0f;
@@ -393,14 +487,16 @@ public class SimEffectsTest
     {
         var dying = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
         dying.IsAlive = false; // About to die
-        dying.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnDeath,
-            EffectType = EffectType.Damage,
-            Value = 50f,
-            DamageType = DamageType.True,
-            AoeRadius = 5f
-        });
+        dying.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnDeath,
+                EffectType = EffectType.Damage,
+                Value = 50f,
+                DamageType = DamageType.True,
+                AoeRadius = 5f,
+            }
+        );
 
         var nearEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         nearEnemy.Evasion = 0f;
@@ -424,14 +520,16 @@ public class SimEffectsTest
         var follower = SimTestHelper.CreateMeleeUnit(_state, 0, x: 2f);
         follower.LeaderId = leader.UnitId;
         // LeaderDeath with AoE — damages nearby enemies when leader dies
-        follower.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.LeaderDeath,
-            EffectType = EffectType.Damage,
-            Value = 30f,
-            DamageType = DamageType.True,
-            AoeRadius = 10f
-        });
+        follower.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.LeaderDeath,
+                EffectType = EffectType.Damage,
+                Value = 30f,
+                DamageType = DamageType.True,
+                AoeRadius = 10f,
+            }
+        );
 
         var nearEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3f, hp: 100f);
         nearEnemy.Evasion = 0f;
@@ -447,15 +545,17 @@ public class SimEffectsTest
     public void FireDeathTriggers_DelayedExplosion_QueuesDelayedEffect()
     {
         var dying = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        dying.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnDeath,
-            EffectType = EffectType.Damage,
-            Value = 100f,
-            DamageType = DamageType.True,
-            AoeRadius = 5f,
-            Delay = 1.5f // Delayed explosion
-        });
+        dying.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnDeath,
+                EffectType = EffectType.Damage,
+                Value = 100f,
+                DamageType = DamageType.True,
+                AoeRadius = 5f,
+                Delay = 1.5f, // Delayed explosion
+            }
+        );
         var events = new List<SimEvent>();
 
         SimEffects.FireDeathTriggers(_state, dying, null, events);
@@ -528,11 +628,13 @@ public class SimEffectsTest
     public void GetEffectiveMoveSpeed_Slow_Reduces()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, moveSpeed: 10f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.Slow,
-            Value = 0.3f // 30% slow
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                EffectType = EffectType.Slow,
+                Value = 0.3f, // 30% slow
+            }
+        );
 
         float speed = SimEffects.GetEffectiveMoveSpeed(unit);
 
@@ -543,11 +645,13 @@ public class SimEffectsTest
     public void GetEffectiveMoveSpeed_Haste_Increases()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, moveSpeed: 10f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.Haste,
-            Value = 0.5f // 50% haste
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                EffectType = EffectType.Haste,
+                Value = 0.5f, // 50% haste
+            }
+        );
 
         float speed = SimEffects.GetEffectiveMoveSpeed(unit);
 
@@ -558,11 +662,13 @@ public class SimEffectsTest
     public void GetEffectiveAttackDamage_DamageBoost_Increases()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, damage: 20f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.DamageBoost,
-            Value = 0.5f // 50% boost
-        });
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                EffectType = EffectType.DamageBoost,
+                Value = 0.5f, // 50% boost
+            }
+        );
 
         float damage = SimEffects.GetEffectiveAttackDamage(unit);
 
@@ -573,11 +679,7 @@ public class SimEffectsTest
     public void IsStunned_WithStun_ReturnsTrue()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.ActiveBuffs.Add(new ActiveBuff
-        {
-            EffectType = EffectType.Stun,
-            Duration = 2f
-        });
+        unit.ActiveBuffs.Add(new ActiveBuff { EffectType = EffectType.Stun, Duration = 2f });
 
         AssertThat(SimEffects.IsStunned(unit)).IsTrue();
     }

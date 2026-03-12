@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Simulation;
 using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
-using Fateforged.Simulation;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
@@ -16,8 +16,11 @@ namespace Fateforged.Simulation.Movement;
 /// </summary>
 public static class MovementTargetResolver
 {
-    [ThreadStatic] private static List<UnitData>? _orbitNeighbors;
-    [ThreadStatic] private static List<float>? _orbitNeighborDistancesSq;
+    [ThreadStatic]
+    private static List<UnitData>? _orbitNeighbors;
+
+    [ThreadStatic]
+    private static List<float>? _orbitNeighborDistancesSq;
 
     private const float OrbitAttackRangeBuffer = 0.15f;
     private const int MinOrbitSlots = 10;
@@ -40,8 +43,7 @@ public static class MovementTargetResolver
 
     public static SimVector3? Resolve(UnitData unit, int? targetId, MatchState state)
     {
-        if (unit.UnitType == UnitType.Melee &&
-            targetId.HasValue)
+        if (unit.UnitType == UnitType.Melee && targetId.HasValue)
         {
             var slotPos = SimMeleeSlotManager.GetReservedSlotWorldPosition(unit, state);
             if (slotPos.HasValue)
@@ -54,12 +56,20 @@ public static class MovementTargetResolver
 
         if (!MatchState.IsSummonerTarget(targetId))
         {
-            if (unit.UnitType == UnitType.Melee &&
-                ShouldUseMeleeApproachOffsets(unit) &&
-                targetId.HasValue &&
-                state.GetAliveUnit(targetId.Value) is { } targetUnit)
+            if (
+                unit.UnitType == UnitType.Melee
+                && ShouldUseMeleeApproachOffsets(unit)
+                && targetId.HasValue
+                && state.GetAliveUnit(targetId.Value) is { } targetUnit
+            )
             {
-                return ResolveMeleeUnitApproachPoint(unit, targetUnit, targetId.Value, baseTargetPosition.Value, state);
+                return ResolveMeleeUnitApproachPoint(
+                    unit,
+                    targetUnit,
+                    targetId.Value,
+                    baseTargetPosition.Value,
+                    state
+                );
             }
 
             return baseTargetPosition.Value;
@@ -128,7 +138,8 @@ public static class MovementTargetResolver
         UnitData target,
         int targetId,
         SimVector3 targetPosition,
-        MatchState state)
+        MatchState state
+    )
     {
         float attackerNav = CombatGeometry.GetNavigationRadius(unit);
         float targetNav = CombatGeometry.GetNavigationRadius(target);
@@ -136,9 +147,10 @@ public static class MovementTargetResolver
 
         var toTarget = targetPosition - unit.Position;
         toTarget.Y = 0f;
-        SimVector3 approachDirection = toTarget.LengthSquared() > ApproachDirectionFallbackThresholdSq
-            ? toTarget.Normalized()
-            : new SimVector3(unit.IsFacingRight ? 1f : -1f, 0f, 0f);
+        SimVector3 approachDirection =
+            toTarget.LengthSquared() > ApproachDirectionFallbackThresholdSq
+                ? toTarget.Normalized()
+                : new SimVector3(unit.IsFacingRight ? 1f : -1f, 0f, 0f);
 
         int lateralRank = ResolveSameTargetRank(unit, targetId, state);
         float lateralStep = MathF.Max(0.18f, 0.55f * attackerNav);
@@ -190,16 +202,20 @@ public static class MovementTargetResolver
         return index % 2 == 1 ? magnitude : -magnitude;
     }
 
-    private static SimVector3 ResolveSummonerOrbitPoint(UnitData unit, SimVector3 summonerPosition, MatchState state)
+    private static SimVector3 ResolveSummonerOrbitPoint(
+        UnitData unit,
+        SimVector3 summonerPosition,
+        MatchState state
+    )
     {
         // Keep orbit points inside attack range so units can continue damaging summoners
         // after wrapping around crowded fronts.
         float orbitRadius = MathF.Max(0.1f, unit.AttackRange - OrbitAttackRangeBuffer);
         float unitRadius = CombatGeometry.GetNavigationRadius(unit);
         bool shouldWrap =
-            unit.NavigationBlockedTime >= BlockedOrbitThresholdSeconds ||
-            unit.NavigationYieldTimer > 0f ||
-            unit.NavigationEscapeTimer > 0f;
+            unit.NavigationBlockedTime >= BlockedOrbitThresholdSeconds
+            || unit.NavigationYieldTimer > 0f
+            || unit.NavigationEscapeTimer > 0f;
         int localNeighborCount = 1;
 
         _orbitNeighbors ??= new List<UnitData>(MaxOrbitNeighbors);
@@ -268,7 +284,11 @@ public static class MovementTargetResolver
         );
     }
 
-    private static int ComputeSlotCount(float orbitRadius, float navigationRadius, int localNeighborCount)
+    private static int ComputeSlotCount(
+        float orbitRadius,
+        float navigationRadius,
+        int localNeighborCount
+    )
     {
         float spacing = MathF.Max(0.4f, navigationRadius * 2.0f);
         float circumference = SimMath.Tau * orbitRadius;
@@ -285,7 +305,8 @@ public static class MovementTargetResolver
         int slotCount,
         int frontSlot,
         int signedOffset,
-        List<UnitData> neighbors)
+        List<UnitData> neighbors
+    )
     {
         int preferredSlot = PositiveModulo(frontSlot + signedOffset, slotCount);
         int preferredDirectionSign = signedOffset >= 0 ? 1 : -1;
@@ -303,15 +324,20 @@ public static class MovementTargetResolver
                 summonerPosition.Z + orbitDirection.Z * orbitRadius
             );
 
-            float occupancyPenalty = ComputeSlotOccupancyPenalty(candidatePosition, neighbors, CombatGeometry.GetNavigationRadius(unit));
-            int directionalDistance = preferredDirectionSign >= 0
-                ? PositiveModulo(slot - preferredSlot, slotCount)
-                : PositiveModulo(preferredSlot - slot, slotCount);
+            float occupancyPenalty = ComputeSlotOccupancyPenalty(
+                candidatePosition,
+                neighbors,
+                CombatGeometry.GetNavigationRadius(unit)
+            );
+            int directionalDistance =
+                preferredDirectionSign >= 0
+                    ? PositiveModulo(slot - preferredSlot, slotCount)
+                    : PositiveModulo(preferredSlot - slot, slotCount);
             int absoluteDistance = CircularDistance(slot, preferredSlot, slotCount);
             float score =
-                occupancyPenalty +
-                (directionalDistance * OrbitDirectionalStepWeight) +
-                (absoluteDistance * OrbitAbsoluteStepWeight);
+                occupancyPenalty
+                + (directionalDistance * OrbitDirectionalStepWeight)
+                + (absoluteDistance * OrbitAbsoluteStepWeight);
 
             bool isBetter = score < bestScore - OrbitScoreTieEpsilon;
             bool isTie = MathF.Abs(score - bestScore) <= OrbitScoreTieEpsilon;
@@ -330,10 +356,16 @@ public static class MovementTargetResolver
     }
 
     private static float ComputeSlotOccupancyPenalty(
-        SimVector3 candidatePosition, List<UnitData> neighbors, float navigationRadius)
+        SimVector3 candidatePosition,
+        List<UnitData> neighbors,
+        float navigationRadius
+    )
     {
         float hardRadius = MathF.Max(0.5f, navigationRadius * OrbitOccupancyHardRadiusMultiplier);
-        float softRadius = MathF.Max(hardRadius + 0.25f, navigationRadius * OrbitOccupancySoftRadiusMultiplier);
+        float softRadius = MathF.Max(
+            hardRadius + 0.25f,
+            navigationRadius * OrbitOccupancySoftRadiusMultiplier
+        );
         float hardRadiusSq = hardRadius * hardRadius;
         float softRadiusSq = softRadius * softRadius;
 

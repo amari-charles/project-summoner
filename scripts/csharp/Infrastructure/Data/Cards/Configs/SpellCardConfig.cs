@@ -76,7 +76,7 @@ public partial class SpellCardConfig : CardConfig
     /// <summary>
     /// Create a SpellCardConfig from a GDScript dictionary.
     /// </summary>
-    public new static SpellCardConfig FromDictionary(Godot.Collections.Dictionary dict)
+    public static new SpellCardConfig FromDictionary(Godot.Collections.Dictionary dict)
     {
         var config = new SpellCardConfig();
         PopulateFromDictionary(config, dict);
@@ -87,7 +87,10 @@ public partial class SpellCardConfig : CardConfig
     /// <summary>
     /// Populate spell-specific fields from dictionary.
     /// </summary>
-    protected static void PopulateSpellFromDictionary(SpellCardConfig config, Godot.Collections.Dictionary dict)
+    protected static void PopulateSpellFromDictionary(
+        SpellCardConfig config,
+        Godot.Collections.Dictionary dict
+    )
     {
         if (dict.TryGetValue("summon_time", out var castTime))
             config.CastTime = castTime.AsSingle();

@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Constants;
 
+using Fateforged.Constants;
 using GdUnit4;
 using Godot;
-using Fateforged.Constants;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -238,7 +238,8 @@ public class BattlefieldBoundsTest
 
         var clamped = BattlefieldBounds.ClampToValidSpawnZone(position, 1);
 
-        AssertThat(clamped.X).IsEqual(BattlefieldBounds.SpawnBoundaryX + BattlefieldBounds.SpawnBoundaryEpsilon);
+        AssertThat(clamped.X)
+            .IsEqual(BattlefieldBounds.SpawnBoundaryX + BattlefieldBounds.SpawnBoundaryEpsilon);
         AssertThat(clamped.Y).IsEqual(5); // Preserved
         AssertThat(clamped.Z).IsEqual(10); // Preserved
     }
@@ -303,8 +304,10 @@ public class BattlefieldBoundsTest
     {
         BattlefieldBounds.SetDebugBypassSpawnBoundary(true);
 
-        AssertThat(BattlefieldBounds.IsValidSpawnPositionForTeam(new Vector3(10, 0, 0), 0)).IsTrue();
-        AssertThat(BattlefieldBounds.IsValidSpawnPositionForTeam(new Vector3(-10, 0, 0), 1)).IsTrue();
+        AssertThat(BattlefieldBounds.IsValidSpawnPositionForTeam(new Vector3(10, 0, 0), 0))
+            .IsTrue();
+        AssertThat(BattlefieldBounds.IsValidSpawnPositionForTeam(new Vector3(-10, 0, 0), 1))
+            .IsTrue();
     }
 
     [TestCase]

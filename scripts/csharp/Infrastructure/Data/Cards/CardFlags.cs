@@ -17,5 +17,5 @@ public enum CardFlags
     Dummy = 1 << 1,
 
     /// <summary>Archived card - kept for compatibility but excluded from pools and rewards.</summary>
-    Archived = 1 << 2
+    Archived = 1 << 2,
 }

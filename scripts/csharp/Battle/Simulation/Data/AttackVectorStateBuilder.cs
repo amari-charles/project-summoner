@@ -26,13 +26,13 @@ public static class AttackVectorStateBuilder
                 WindupSeconds = timing.WindupSeconds,
                 ActiveSeconds = timing.ActiveSeconds,
                 RecoverySeconds = timing.RecoverySeconds,
-                TickIntervalSeconds = timing.TickIntervalSeconds
+                TickIntervalSeconds = timing.TickIntervalSeconds,
             },
             DeliveryMode = source.DeliveryMode,
             Selection = new AttackSelectionState
             {
                 Mode = selection.Mode,
-                TargetLimit = selection.TargetLimit ?? 1
+                TargetLimit = selection.TargetLimit ?? 1,
             },
             Area = new AttackAreaState
             {
@@ -40,20 +40,20 @@ public static class AttackVectorStateBuilder
                 Size = new SimVector3(area.Size.X, area.Size.Y, area.Size.Z),
                 LineLength = area.LineLength,
                 LineHalfWidth = area.LineHalfWidth,
-                ForwardOffset = area.ForwardOffset
+                ForwardOffset = area.ForwardOffset,
             },
             Propagation = new AttackPropagationState
             {
                 Mode = propagation.Mode,
                 ChainMaxJumps = propagation.ChainMaxJumps,
-                ChainJumpRadius = propagation.ChainJumpRadius
+                ChainJumpRadius = propagation.ChainJumpRadius,
             },
             Rules = new AttackRulesState
             {
                 IncludeSummonerTargets = rules.IncludeSummonerTargets,
                 AllowRepeatHits = rules.AllowRepeatHits,
-                TriggerMode = rules.TriggerMode
-            }
+                TriggerMode = rules.TriggerMode,
+            },
         };
 
         ApplyPresetDefaults(mapped, mapped.Preset, hasExplicitTargetLimit);
@@ -63,7 +63,8 @@ public static class AttackVectorStateBuilder
     private static void ApplyPresetDefaults(
         AttackVectorState attack,
         AttackPreset preset,
-        bool hasExplicitTargetLimit)
+        bool hasExplicitTargetLimit
+    )
     {
         switch (preset)
         {
@@ -118,7 +119,11 @@ public static class AttackVectorStateBuilder
                 return;
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(preset), preset, "Unknown AttackPreset");
+                throw new ArgumentOutOfRangeException(
+                    nameof(preset),
+                    preset,
+                    "Unknown AttackPreset"
+                );
         }
     }
 }

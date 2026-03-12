@@ -1,15 +1,15 @@
 namespace Fateforged.Tests.Simulation;
 
 using System.Collections.Generic;
+using Fateforged.Cards;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Units;
-using GdUnit4;
-using Fateforged.Cards;
-using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
+using Fateforged.Units;
+using GdUnit4;
+using static GdUnit4.Assertions;
 
 [TestSuite]
 public class SimDamageTest
@@ -61,7 +61,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         // 100 / (100 + 100) = 0.5 → 100 * 0.5 = 50
         AssertThat(damage).IsEqual(50f);
@@ -80,7 +87,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Magic, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Magic,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(50f);
     }
@@ -98,7 +112,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.True, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.True,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(100f);
     }
@@ -118,7 +139,14 @@ public class SimDamageTest
         target.Evasion = 1.0f; // Guaranteed evasion
 
         var (damage, _, wasEvaded) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(0f);
         AssertThat(wasEvaded).IsTrue();
@@ -135,7 +163,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, _, wasEvaded) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsGreater(0f);
         AssertThat(wasEvaded).IsFalse();
@@ -157,7 +192,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, isCrit, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(isCrit).IsTrue();
         AssertThat(damage).IsEqual(200f);
@@ -174,7 +216,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, isCrit, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(isCrit).IsFalse();
         AssertThat(damage).IsEqual(100f);
@@ -196,7 +245,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         // Fire vs Wind = 1.25x multiplier → 125
         AssertThat(damage).IsEqual(125f);
@@ -214,7 +270,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         // Fire vs Water = 0.8x multiplier → 80
         AssertThat(damage).IsEqual(80f);
@@ -232,7 +295,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(100f);
     }
@@ -254,7 +324,14 @@ public class SimDamageTest
         _state.Summoners[0].DamageBonus = 20f; // 20% bonus
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, _state.Summoners[0], null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            _state.Summoners[0],
+            null,
+            _state.Rng
+        );
 
         // 100 * 1.20 = 120
         AssertThat(damage).IsEqual(120f);
@@ -273,7 +350,14 @@ public class SimDamageTest
         _state.Summoners[1].DamageReduction = 10f; // Flat 10 reduction
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, _state.Summoners[1], _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            _state.Summoners[1],
+            _state.Rng
+        );
 
         // 100 - 10 = 90
         AssertThat(damage).IsEqual(90f);
@@ -292,7 +376,14 @@ public class SimDamageTest
         _state.Summoners[1].DamageReduction = 200f; // More than damage
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, _state.Summoners[1], _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            _state.Summoners[1],
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(0f);
     }
@@ -315,7 +406,14 @@ public class SimDamageTest
         SimEffects.ApplyShield(_state, target, 200f, attacker.UnitId, Team.Player);
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(0f);
     }
@@ -333,7 +431,14 @@ public class SimDamageTest
         SimEffects.ApplyShield(_state, target, 30f, attacker.UnitId, Team.Player);
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(70f);
     }
@@ -354,7 +459,14 @@ public class SimDamageTest
         SimEffects.ApplyShield(_state, target, 50f, attacker.UnitId, Team.Player);
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         // 100 - 25 (oldest) - 50 (next) = 25 remaining damage
         AssertThat(damage).IsEqual(25f);
@@ -376,7 +488,14 @@ public class SimDamageTest
         target.PhysicalDefense = 30f; // 100 / 130 ≈ 0.769... → 100 * 0.769... = 76.923...
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         // Should be rounded to 1 decimal: 76.9
         float expected = System.MathF.Round(100f * (100f / 130f) * 10f) / 10f;
@@ -408,7 +527,14 @@ public class SimDamageTest
         // base=100, crit=100*1.5=150, elem=150*1.25=187.5, bonus=187.5*1.1=206.25
         // defense=206.25*0.5=103.125, reduction=103.125-5=98.125, round=98.1
         var (damage, isCrit, _) = SimDamage.Calculate(
-            100f, attacker.AttackType, attacker, target, _state.Summoners[0], _state.Summoners[1], _state.Rng);
+            100f,
+            attacker.AttackType,
+            attacker,
+            target,
+            _state.Summoners[0],
+            _state.Summoners[1],
+            _state.Rng
+        );
 
         AssertThat(isCrit).IsTrue();
         AssertThat(damage).IsEqual(98.1f);
@@ -425,7 +551,14 @@ public class SimDamageTest
         target.Evasion = 0f;
 
         var (damage, isCrit, _) = SimDamage.Calculate(
-            50f, DamageType.Physical, null, target, null, null, _state.Rng);
+            50f,
+            DamageType.Physical,
+            null,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         // No crit (null attacker), neutral element, no defense → 50
         AssertThat(isCrit).IsFalse();
@@ -443,7 +576,14 @@ public class SimDamageTest
         target.Evasion = 1.0f; // Would evade with RNG
 
         var (damage, isCrit, wasEvaded) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, null, null, null);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            null,
+            null,
+            null
+        );
 
         // Both evasion and crit require RNG — skipped
         AssertThat(isCrit).IsFalse();
@@ -468,7 +608,7 @@ public class SimDamageTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         target.Evasion = 0f;
         target.PhysicalDefense = 100f; // 0.5x
-        target.MagicDefense = 0f;      // 1.0x
+        target.MagicDefense = 0f; // 1.0x
 
         var (damage, _, _) = SimDamage.CalculateAttack(
             100f,
@@ -476,7 +616,8 @@ public class SimDamageTest
             target,
             null,
             null,
-            _state.Rng);
+            _state.Rng
+        );
 
         // 60 * 0.5 + 40 * 1.0 = 70
         AssertThat(damage).IsEqual(70f);
@@ -505,7 +646,8 @@ public class SimDamageTest
             target,
             null,
             null,
-            _state.Rng);
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(50f);
     }
@@ -523,10 +665,17 @@ public class SimDamageTest
         var target = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
         target.Evasion = 0f;
         target.PhysicalDefense = 100f; // ignored
-        target.MagicDefense = 50f;     // 100 / 150 = 0.666...
+        target.MagicDefense = 50f; // 100 / 150 = 0.666...
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Magic, attacker, target, null, null, _state.Rng);
+            100f,
+            DamageType.Magic,
+            attacker,
+            target,
+            null,
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(66.7f);
     }
@@ -545,7 +694,14 @@ public class SimDamageTest
         _state.Summoners[0].SetElementalDamageBonus(Element.Fire, 20f);
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, _state.Summoners[0], null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            _state.Summoners[0],
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(120f);
     }
@@ -564,7 +720,14 @@ public class SimDamageTest
         _state.Summoners[0].SetElementalDamageBonus(Element.Fire, 20f);
 
         var (damage, _, _) = SimDamage.Calculate(
-            100f, DamageType.Physical, attacker, target, _state.Summoners[0], null, _state.Rng);
+            100f,
+            DamageType.Physical,
+            attacker,
+            target,
+            _state.Summoners[0],
+            null,
+            _state.Rng
+        );
 
         AssertThat(damage).IsEqual(100f);
     }
@@ -583,7 +746,7 @@ public class SimDamageTest
         target.Evasion = 0f;
         target.ElementId = (int)Element.Neutral;
         target.PhysicalDefense = 100f; // 0.5x
-        target.MagicDefense = 300f;    // 0.25x
+        target.MagicDefense = 300f; // 0.25x
 
         _state.Summoners[0].DamageBonus = 10f;
         _state.Summoners[1].DamageReduction = 5f;
@@ -598,7 +761,8 @@ public class SimDamageTest
             target,
             _state.Summoners[0],
             _state.Summoners[1],
-            _state.Rng);
+            _state.Rng
+        );
 
         AssertThat(isCrit).IsFalse();
         AssertThat(damage).IsEqual(36.2f);

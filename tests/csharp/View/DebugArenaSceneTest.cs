@@ -83,8 +83,11 @@ public partial class DebugArenaSceneTest
             AssertThat(summoner.CastingNetworkId).IsEqual(123);
         }
 
-        bool unitFreedOrQueued = !GodotObject.IsInstanceValid(unitVisual) || unitVisual.IsQueuedForDeletion();
-        bool projectileFreedOrQueued = !GodotObject.IsInstanceValid(projectileVisual) || projectileVisual.IsQueuedForDeletion();
+        bool unitFreedOrQueued =
+            !GodotObject.IsInstanceValid(unitVisual) || unitVisual.IsQueuedForDeletion();
+        bool projectileFreedOrQueued =
+            !GodotObject.IsInstanceValid(projectileVisual)
+            || projectileVisual.IsQueuedForDeletion();
         AssertThat(unitFreedOrQueued).IsTrue();
         AssertThat(projectileFreedOrQueued).IsTrue();
     }
@@ -102,8 +105,10 @@ public partial class DebugArenaSceneTest
         AssertThat(playerDeck.Count).IsEqual(expectedDeck.Count);
         AssertThat(enemyDeck.Count).IsEqual(expectedDeck.Count);
 
-        AssertThat(DeckSignatures(playerDeck)).ContainsExactly(DeckSignatures(expectedDeck).ToArray());
-        AssertThat(DeckSignatures(enemyDeck)).ContainsExactly(DeckSignatures(expectedDeck).ToArray());
+        AssertThat(DeckSignatures(playerDeck))
+            .ContainsExactly(DeckSignatures(expectedDeck).ToArray());
+        AssertThat(DeckSignatures(enemyDeck))
+            .ContainsExactly(DeckSignatures(expectedDeck).ToArray());
     }
 
     private TestDebugArenaScene CreateArenaNode()
@@ -136,21 +141,23 @@ public partial class DebugArenaSceneTest
             Team = Team.Player,
             IsAlive = true,
             ActivationState = ActivationState.Active,
-            Position = new SimVector3(0f, 0f, 0f)
+            Position = new SimVector3(0f, 0f, 0f),
         };
 
         state.Projectiles[1] = new SimProjectileData { ProjectileId = 1 };
-        state.DelayedEffects.Add(new DelayedEffect
-        {
-            Timer = 0.5f,
-            EffectType = EffectType.Damage,
-            Value = 1f,
-            DamageType = DamageType.Physical,
-            AoeRadius = 0f,
-            Position = SimVector3.Zero,
-            SourceUnitId = 1,
-            SourceTeam = Team.Player
-        });
+        state.DelayedEffects.Add(
+            new DelayedEffect
+            {
+                Timer = 0.5f,
+                EffectType = EffectType.Damage,
+                Value = 1f,
+                DamageType = DamageType.Physical,
+                AoeRadius = 0f,
+                Position = SimVector3.Zero,
+                SourceUnitId = 1,
+                SourceTeam = Team.Player,
+            }
+        );
         state.PendingCommandBuffer.Add(new SpawnUnitCommand("fire_wisp", 0, SimVector3.Zero));
 
         foreach (var summoner in state.Summoners)
@@ -167,7 +174,10 @@ public partial class DebugArenaSceneTest
 
     private static Godot.Collections.Array LoadDebugDeckEntries()
     {
-        using var file = FileAccess.Open("res://data/debug/debug_deck.json", FileAccess.ModeFlags.Read);
+        using var file = FileAccess.Open(
+            "res://data/debug/debug_deck.json",
+            FileAccess.ModeFlags.Read
+        );
         AssertThat(file).IsNotNull();
 
         var parsed = Json.ParseString(file!.GetAsText());

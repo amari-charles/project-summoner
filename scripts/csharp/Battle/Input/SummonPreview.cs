@@ -1,8 +1,8 @@
-using Godot;
 using System.Collections.Generic;
 using Fateforged.Constants;
 using Fateforged.Units;
 using Fateforged.Visual;
+using Godot;
 
 namespace Fateforged.Input;
 
@@ -17,23 +17,23 @@ public partial class SummonPreview : Node3D
     // CONSTANTS
     // =========================================================================
 
-    private static readonly Color ValidColor = new(0.3f, 0.7f, 1.0f, 0.5f);    // Light blue (valid spawn)
-    private static readonly Color InvalidColor = new(1.0f, 0.3f, 0.3f, 0.5f);  // Red (invalid spawn)
+    private static readonly Color ValidColor = new(0.3f, 0.7f, 1.0f, 0.5f); // Light blue (valid spawn)
+    private static readonly Color InvalidColor = new(1.0f, 0.3f, 0.3f, 0.5f); // Red (invalid spawn)
     private const float CircleHeight = 0.05f;
-    private const float GroundOverlayOffset = 0.02f;  // Same as BattlefieldConstants.GROUND_OVERLAY_OFFSET
+    private const float GroundOverlayOffset = 0.02f; // Same as BattlefieldConstants.GROUND_OVERLAY_OFFSET
 
     // =========================================================================
     // STATE
     // =========================================================================
 
     private List<UnitGhost> _ghostUnits = new();
-    private MeshInstance3D? _circleMarker;  // Fallback if ghost creation fails
+    private MeshInstance3D? _circleMarker; // Fallback if ghost creation fails
     private float _separationRadius = 0.5f;
     private float _flightAltitude;
     private bool _isValid = true;
     private int _spawnCount = 1;
     private PackedScene? _unitScene;
-    private int _team = 0;  // 0=player, 1=enemy
+    private int _team = 0; // 0=player, 1=enemy
 
     // =========================================================================
     // PUBLIC API
@@ -81,7 +81,11 @@ public partial class SummonPreview : Node3D
             {
                 // Preserve Y (includes flight altitude) while updating X/Z from positions
                 var ghost = _ghostUnits[i];
-                ghost.GlobalPosition = new Vector3(positions[i].X, ghost.GlobalPosition.Y, positions[i].Z);
+                ghost.GlobalPosition = new Vector3(
+                    positions[i].X,
+                    ghost.GlobalPosition.Y,
+                    positions[i].Z
+                );
             }
         }
     }
@@ -221,7 +225,8 @@ public partial class SummonPreview : Node3D
         const int twoRowMax = 20;
         const float largeRowDensity = 3.0f;
 
-        int rows = unitCount <= twoRowMax ? 2 : Mathf.CeilToInt(Mathf.Sqrt(unitCount / largeRowDensity));
+        int rows =
+            unitCount <= twoRowMax ? 2 : Mathf.CeilToInt(Mathf.Sqrt(unitCount / largeRowDensity));
         int cols = Mathf.CeilToInt((float)unitCount / rows);
 
         int row = unitIndex / cols;
@@ -254,7 +259,7 @@ public partial class SummonPreview : Node3D
     private void CreateCircleMarker()
     {
         if (_circleMarker != null)
-            return;  // Already exists
+            return; // Already exists
 
         _circleMarker = new MeshInstance3D();
         UpdateCircleSize();
@@ -302,12 +307,12 @@ public partial class SummonPreview : Node3D
 /// </summary>
 public partial class UnitGhost : Node3D
 {
-    private static readonly Color ValidTint = new(0.7f, 0.85f, 1.0f, 0.5f);   // Light blue, 50% alpha
-    private static readonly Color InvalidTint = new(1.0f, 0.5f, 0.5f, 0.5f);  // Red, 50% alpha
+    private static readonly Color ValidTint = new(0.7f, 0.85f, 1.0f, 0.5f); // Light blue, 50% alpha
+    private static readonly Color InvalidTint = new(1.0f, 0.5f, 0.5f, 0.5f); // Red, 50% alpha
 
     private Node? _visualRoot;
     private bool _isValid = true;
-    private bool _facingRight = true;  // Default to player (facing right)
+    private bool _facingRight = true; // Default to player (facing right)
 
     /// <summary>
     /// True if this ghost has a valid visual (false = fallback needed).
@@ -341,19 +346,19 @@ public partial class UnitGhost : Node3D
         var visualNode = tempUnit.GetNodeOrNull("Visual");
         if (visualNode == null)
         {
-            tempUnit.Free();  // Not in tree, use Free() not QueueFree()
+            tempUnit.Free(); // Not in tree, use Free() not QueueFree()
             return;
         }
 
         // Reparent the Visual from the unit to the ghost (truly DRY - no property copying needed)
         // This preserves all property overrides set in the unit scene file
-        visualNode.Owner = null;  // Unset owner to avoid "inconsistent owner" warning
+        visualNode.Owner = null; // Unset owner to avoid "inconsistent owner" warning
         tempUnit.RemoveChild(visualNode);
         AddChild(visualNode);
         _visualRoot = visualNode;
 
         // Clean up the unit shell (Visual has been moved out)
-        tempUnit.Free();  // Not in tree, use Free() not QueueFree()
+        tempUnit.Free(); // Not in tree, use Free() not QueueFree()
 
         // Apply ghost transparency AFTER the component fully initializes
         // Visual components may use await in _Ready(), so we need to wait
@@ -435,7 +440,10 @@ public partial class UnitGhost : Node3D
         if (node is SkeletalVisualComponent skeletalComp)
         {
             var skeletalInstance = node.Get("_skeletalInstance");
-            if (skeletalInstance.VariantType != Variant.Type.Nil && skeletalInstance.AsGodotObject() is Node2D skel2D)
+            if (
+                skeletalInstance.VariantType != Variant.Type.Nil
+                && skeletalInstance.AsGodotObject() is Node2D skel2D
+            )
             {
                 skel2D.Modulate = tint;
             }
@@ -445,7 +453,9 @@ public partial class UnitGhost : Node3D
         // Check for SpriteVisualComponent (C#)
         if (node is SpriteVisualComponent)
         {
-            var charSprite = node.GetNodeOrNull<AnimatedSprite2D>("Sprite3D/SubViewport/Model2D/CharacterSprite");
+            var charSprite = node.GetNodeOrNull<AnimatedSprite2D>(
+                "Sprite3D/SubViewport/Model2D/CharacterSprite"
+            );
             if (charSprite != null)
             {
                 charSprite.Modulate = tint;
@@ -454,11 +464,16 @@ public partial class UnitGhost : Node3D
         }
 
         // GDScript: SkeletalCharacter2D5Component
-        if (node.GetClass() == "SkeletalCharacter2D5Component" ||
-            node.SceneFilePath.Contains("skeletal"))
+        if (
+            node.GetClass() == "SkeletalCharacter2D5Component"
+            || node.SceneFilePath.Contains("skeletal")
+        )
         {
             var skeletalInstance = node.Get("skeletal_instance");
-            if (skeletalInstance.VariantType != Variant.Type.Nil && skeletalInstance.AsGodotObject() is Node2D skel)
+            if (
+                skeletalInstance.VariantType != Variant.Type.Nil
+                && skeletalInstance.AsGodotObject() is Node2D skel
+            )
             {
                 skel.Modulate = tint;
             }
@@ -466,11 +481,16 @@ public partial class UnitGhost : Node3D
         }
 
         // GDScript: SpriteCharacter2D5Component
-        if (node.GetClass() == "SpriteCharacter2D5Component" ||
-            node.SceneFilePath.Contains("sprite"))
+        if (
+            node.GetClass() == "SpriteCharacter2D5Component"
+            || node.SceneFilePath.Contains("sprite")
+        )
         {
             var animSprite = node.Get("animated_sprite");
-            if (animSprite.VariantType != Variant.Type.Nil && animSprite.AsGodotObject() is AnimatedSprite2D sprite)
+            if (
+                animSprite.VariantType != Variant.Type.Nil
+                && animSprite.AsGodotObject() is AnimatedSprite2D sprite
+            )
             {
                 sprite.Modulate = tint;
             }

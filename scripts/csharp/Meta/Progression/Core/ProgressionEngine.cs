@@ -38,7 +38,10 @@ public static class ProgressionEngine
         return Math.Clamp((float)state.XpTowardNext / xpCost, 0f, 1f);
     }
 
-    public static ProgressionApplyResult ApplyLevelUp(ProgressionState state, IProgressionCurve curve)
+    public static ProgressionApplyResult ApplyLevelUp(
+        ProgressionState state,
+        IProgressionCurve curve
+    )
     {
         if (!state.IsValid)
             return ProgressionApplyResult.NoChange(ProgressionApplyStatus.InvalidState, state);
@@ -56,7 +59,7 @@ public static class ProgressionEngine
         var next = state with
         {
             Level = state.Level + 1,
-            XpTowardNext = state.XpTowardNext - xpCost
+            XpTowardNext = state.XpTowardNext - xpCost,
         };
 
         return new ProgressionApplyResult(ProgressionApplyStatus.Success, state, next, xpCost);

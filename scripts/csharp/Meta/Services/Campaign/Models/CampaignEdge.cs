@@ -1,6 +1,6 @@
 using System;
-using Godot;
 using Fateforged.Data.Events;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Models;
 
@@ -27,11 +27,14 @@ public class CampaignEdge
         var edge = new CampaignEdge
         {
             FromId = new EventId(dict.GetValueOrDefault("from", "").AsString()),
-            ToId = new EventId(dict.GetValueOrDefault("to", "").AsString())
+            ToId = new EventId(dict.GetValueOrDefault("to", "").AsString()),
         };
 
         // Parse condition if present
-        var conditionVariant = dict.GetValueOrDefault("condition", new Godot.Collections.Dictionary());
+        var conditionVariant = dict.GetValueOrDefault(
+            "condition",
+            new Godot.Collections.Dictionary()
+        );
         if (conditionVariant.Obj is Godot.Collections.Dictionary condDict && condDict.Count > 0)
         {
             edge.Condition = EdgeCondition.FromDictionary(condDict);
@@ -48,7 +51,7 @@ public class CampaignEdge
         var dict = new Godot.Collections.Dictionary
         {
             ["from"] = (string)FromId,
-            ["to"] = (string)ToId
+            ["to"] = (string)ToId,
         };
 
         if (Condition != null)
@@ -127,7 +130,7 @@ public class EdgeCondition
         {
             ["type"] = Type,
             ["node_id"] = (string)NodeId,
-            ["value"] = Value
+            ["value"] = Value,
         };
     }
 }

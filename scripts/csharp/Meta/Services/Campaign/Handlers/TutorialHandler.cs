@@ -1,5 +1,5 @@
-using Godot;
 using Fateforged.Data.Events;
+using Godot;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
@@ -16,7 +16,8 @@ public class TutorialHandler
     public TutorialHandler(
         CampaignDataStore store,
         CampaignCatalogHandler catalog,
-        CampaignProgressHandler progress)
+        CampaignProgressHandler progress
+    )
     {
         _store = store;
         _catalog = catalog;

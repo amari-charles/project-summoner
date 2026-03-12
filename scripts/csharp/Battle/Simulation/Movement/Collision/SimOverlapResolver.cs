@@ -28,10 +28,14 @@ public static class SimOverlapResolver
 
         foreach (var other in state.Units.Values)
         {
-            if (other.UnitId == unit.UnitId) continue;
-            if (!other.IsAlive) continue;
-            if (other.ActivationState != ActivationState.Active) continue;
-            if (other.MovementLayer != unit.MovementLayer) continue;
+            if (other.UnitId == unit.UnitId)
+                continue;
+            if (!other.IsAlive)
+                continue;
+            if (other.ActivationState != ActivationState.Active)
+                continue;
+            if (other.MovementLayer != unit.MovementLayer)
+                continue;
 
             float otherRadius = CombatGeometry.GetNavigationRadius(other);
             float minDist = unitRadius + otherRadius;

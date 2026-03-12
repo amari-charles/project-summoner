@@ -6,8 +6,8 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using GdUnit4;
 using Fateforged.Tests.Simulation;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]

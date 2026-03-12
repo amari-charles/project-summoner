@@ -52,7 +52,7 @@ public partial class EntityManagerProjectileDebugOverlayTest
             CurrentPosition = new SimVector3(1f, 0f, -2f),
             LastPosition = new SimVector3(0.9f, 0f, -2f),
             HitRadius = 0.75f,
-            IsDead = false
+            IsDead = false,
         };
 
         var entityManager = new EntityManager { Name = "EntityManagerOverlayTest" };
@@ -86,12 +86,8 @@ public partial class EntityManagerProjectileDebugOverlayTest
 
         public MatchState GetState() => _state;
 
-        public void SubmitCommand(ICommand command)
-        {
-        }
+        public void SubmitCommand(ICommand command) { }
 
-        public void Tick(float delta)
-        {
-        }
+        public void Tick(float delta) { }
     }
 }

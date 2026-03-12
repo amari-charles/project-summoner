@@ -2,14 +2,14 @@ namespace Fateforged.Tests.Simulation;
 
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Constants;
-using GdUnit4;
-using static GdUnit4.Assertions;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
+using GdUnit4;
+using static GdUnit4.Assertions;
 
 [TestSuite]
 public class SimBehaviorTest
@@ -278,7 +278,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_RangedAttack_SetsPendingDamageTimer()
     {
-        var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, attackRange: 10f, projectileDelay: 0.5f);
+        var unit = SimTestHelper.CreateRangedUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 10f,
+            projectileDelay: 0.5f
+        );
         unit.CritChance = 0f;
         unit.ElementId = 0;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
@@ -297,7 +303,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_RangedAttack_NoDelay_SpawnsProjectile()
     {
-        var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, attackRange: 10f, projectileDelay: 0f);
+        var unit = SimTestHelper.CreateRangedUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 10f,
+            projectileDelay: 0f
+        );
         unit.CritChance = 0f;
         unit.ElementId = 0;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
@@ -317,7 +329,15 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_RangedAttack_NoDelay_UsesVisualTargetPointAsProjectileSpawnOffset()
     {
-        var unit = SimTestHelper.CreateRangedUnit(_state, 0, x: 0f, z: 0f, attackRange: 10f, projectileDelay: 0f, catalogId: "puff");
+        var unit = SimTestHelper.CreateRangedUnit(
+            _state,
+            0,
+            x: 0f,
+            z: 0f,
+            attackRange: 10f,
+            projectileDelay: 0f,
+            catalogId: "puff"
+        );
         unit.CritChance = 0f;
         unit.ElementId = 0;
         unit.IsFacingRight = true;
@@ -404,7 +424,8 @@ public class SimBehaviorTest
             attackRange: 6f,
             damage: 10f,
             projectileDelay: 0f,
-            catalogId: "puff");
+            catalogId: "puff"
+        );
         unit.CritChance = 0f;
         unit.ElementId = 0;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
@@ -428,7 +449,8 @@ public class SimBehaviorTest
             attackRange: 6f,
             damage: 10f,
             projectileDelay: 0.5f,
-            catalogId: "puff");
+            catalogId: "puff"
+        );
         unit.CritChance = 0f;
         unit.ElementId = 0;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
@@ -574,7 +596,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickTargeting_ConeCurrentAttackable_LockExpired_KeepsCurrentTarget()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 24f, aggroRadius: 24f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 24f,
+            aggroRadius: 24f
+        );
         unit.HasConeConstraint = true;
         unit.ConeHalfAngle = 30f;
         unit.CloseRangeThreshold = 0.5f;
@@ -596,7 +624,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickTargeting_ConeCurrentNotAttackable_LockExpired_SwitchesToAttackableTarget()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 24f, aggroRadius: 24f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 24f,
+            aggroRadius: 24f
+        );
         unit.HasConeConstraint = true;
         unit.ConeHalfAngle = 30f;
         unit.CloseRangeThreshold = 0.5f;
@@ -617,7 +651,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickTargeting_PreferAttackable_KeepsAttackableCurrentWhenLockExpires()
     {
-        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, aggroRadius: 20f);
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            aggroRadius: 20f
+        );
         unit.HasConeConstraint = false;
         unit.DistanceScorerWeight = 0f;
         unit.HealthScorerWeight = 100f;
@@ -646,13 +686,15 @@ public class SimBehaviorTest
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
         unit.CritChance = 0f;
         unit.ElementId = 0;
-        unit.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnHit,
-            EffectType = EffectType.Slow,
-            Value = 0.3f,
-            Duration = 2f
-        });
+        unit.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnHit,
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 2f,
+            }
+        );
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         enemy.Evasion = 0f;
@@ -668,7 +710,8 @@ public class SimBehaviorTest
         bool hasSlow = false;
         foreach (var buff in enemy.ActiveBuffs)
         {
-            if (buff.EffectType == EffectType.Slow) hasSlow = true;
+            if (buff.EffectType == EffectType.Slow)
+                hasSlow = true;
         }
         AssertThat(hasSlow).IsTrue();
     }
@@ -676,20 +719,28 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_MeleeDamaged_FiresOnDamagedTrigger()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.ElementId = 0;
 
         var defender = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         defender.Evasion = 0f;
         // OnDamaged trigger with Slow: applies to the attacker (the combat target parameter)
-        defender.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnDamaged,
-            EffectType = EffectType.Slow,
-            Value = 0.3f,
-            Duration = 2f
-        });
+        defender.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnDamaged,
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 2f,
+            }
+        );
 
         attacker.TargetUnitId = defender.UnitId;
         attacker.AttackCooldown = 0f;
@@ -701,7 +752,8 @@ public class SimBehaviorTest
         bool hasSlow = false;
         foreach (var buff in attacker.ActiveBuffs)
         {
-            if (buff.EffectType == EffectType.Slow) hasSlow = true;
+            if (buff.EffectType == EffectType.Slow)
+                hasSlow = true;
         }
         AssertThat(hasSlow).IsTrue();
     }
@@ -709,26 +761,36 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_MeleeKill_FiresOnKillAndOnDeathTriggers()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 200f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 200f
+        );
         attacker.CritChance = 0f;
         attacker.ElementId = 0;
-        attacker.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnKill,
-            EffectType = EffectType.Heal,
-            Value = 20f
-        });
+        attacker.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnKill,
+                EffectType = EffectType.Heal,
+                Value = 20f,
+            }
+        );
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 10f);
         enemy.Evasion = 0f;
-        enemy.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnDeath,
-            EffectType = EffectType.Damage,
-            Value = 50f,
-            DamageType = DamageType.True,
-            AoeRadius = 5f
-        });
+        enemy.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnDeath,
+                EffectType = EffectType.Damage,
+                Value = 50f,
+                DamageType = DamageType.True,
+                AoeRadius = 5f,
+            }
+        );
 
         attacker.TargetUnitId = enemy.UnitId;
         attacker.AttackCooldown = 0f;
@@ -795,7 +857,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_ForwardRectNotSatisfied_DoesNotSwingOrSpendCooldown()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 3f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.EngageShape = EngageShape.ForwardRect;
         attacker.EngageRectLength = 2.7f;
@@ -824,7 +892,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_LineCollect_EngageGateUsesLineCorridorBeforeAttackStarts()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 3f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 3f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.EngageShape = EngageShape.ForwardRect;
         attacker.EngageRectLength = 6f;
@@ -884,13 +958,17 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_PebbloomVeryLargeForwardBox_HitsFrontAreaAndNearBehindBubble_ExcludesFarBehind()
     {
-        SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(UnitIds.EarthSprite, count: 1);
+        SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(
+            UnitIds.EarthSprite,
+            count: 1
+        );
         var attacker = SimTestHelper.CreateMeleeUnit(
             _state,
             0,
             x: 0f,
             attackRange: pebbloomTemplate.AttackRange,
-            damage: pebbloomTemplate.AttackDamage);
+            damage: pebbloomTemplate.AttackDamage
+        );
         attacker.CritChance = 0f;
         attacker.IsFacingRight = true;
         attacker.Attack = pebbloomTemplate.Attack.DeepClone();
@@ -902,7 +980,13 @@ public class SimBehaviorTest
 
         var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3.8f, z: 0f, hp: 100f);
         primary.Evasion = 0f;
-        var frontWideRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4.9f, z: 2.4f, hp: 100f);
+        var frontWideRecipient = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: 4.9f,
+            z: 2.4f,
+            hp: 100f
+        );
         frontWideRecipient.Evasion = 0f;
         var nearBehindRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: -0.8f, z: 0f, hp: 100f);
         nearBehindRecipient.Evasion = 0f;
@@ -925,7 +1009,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_SingleMode_DamagesPrimaryOnly()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.Single;
         attacker.Attack.Selection.TargetLimit = 4;
@@ -945,7 +1035,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_AreaCollectSphere_DamagesEnemiesInRadius()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Sphere;
@@ -970,7 +1066,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_AreaCollectBox_OnlyHitsForwardFacingRecipients()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.IsFacingRight = true;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
@@ -999,7 +1101,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_AreaCollectBox_ForwardOffsetSkipsCloseTargets()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.IsFacingRight = true;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
@@ -1026,7 +1134,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_AreaCollectCapsule_BoundaryDeterministic()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Capsule;
@@ -1051,7 +1165,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_LineCollectPierce_DamagesCorridorRecipientsInOrder()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.LineCollect;
         attacker.Attack.Propagation.Mode = AttackPropagationMode.Pierce;
@@ -1074,13 +1194,20 @@ public class SimBehaviorTest
         AssertThat(third.CurrentHp).IsLess(100f);
 
         var damagedOrder = GetDamagedTargetOrder(events);
-        AssertThat(damagedOrder).IsEqual(new List<int> { primary.UnitId, second.UnitId, third.UnitId });
+        AssertThat(damagedOrder)
+            .IsEqual(new List<int> { primary.UnitId, second.UnitId, third.UnitId });
     }
 
     [TestCase]
     public void TickBehavior_AttackVector_LineCollectPierce_ExcludesOffCorridorRecipients()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.LineCollect;
         attacker.Attack.Propagation.Mode = AttackPropagationMode.Pierce;
@@ -1106,7 +1233,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_ChainHops_DamagesNearestHops()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.ChainHops;
         attacker.Attack.Propagation.Mode = AttackPropagationMode.Chain;
@@ -1132,13 +1265,20 @@ public class SimBehaviorTest
         AssertThat(tooFar.CurrentHp).IsEqual(100f);
 
         var damagedOrder = GetDamagedTargetOrder(events);
-        AssertThat(damagedOrder).IsEqual(new List<int> { primary.UnitId, hopOne.UnitId, hopTwo.UnitId });
+        AssertThat(damagedOrder)
+            .IsEqual(new List<int> { primary.UnitId, hopOne.UnitId, hopTwo.UnitId });
     }
 
     [TestCase]
     public void TickBehavior_AttackVector_ChainHops_SkipsDeadAlliesAndOutOfRadius()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.ChainHops;
         attacker.Attack.Propagation.Mode = AttackPropagationMode.Chain;
@@ -1169,7 +1309,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_TargetLimit_CapsRecipientCount()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Sphere;
@@ -1198,7 +1344,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_TargetLimitZero_HitsUnlimitedRecipients()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Sphere;
@@ -1224,7 +1376,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_SecondaryDeaths_EmitEvents_PrimaryAttackEventRemainsSingle()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 40f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 40f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Sphere;
@@ -1254,7 +1412,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_PrimaryOnlyTriggerMode_DoesNotFireSecondaryOnDamagedTriggers()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Sphere;
@@ -1266,13 +1430,15 @@ public class SimBehaviorTest
         primary.Evasion = 0f;
         var secondary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2.4f, z: 0.1f, hp: 100f);
         secondary.Evasion = 0f;
-        secondary.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnDamaged,
-            EffectType = EffectType.Slow,
-            Value = 0.3f,
-            Duration = 2f
-        });
+        secondary.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnDamaged,
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 2f,
+            }
+        );
 
         var events = new List<SimEvent>();
         ExecuteMeleeAttack(attacker, primary, _state, events);
@@ -1284,7 +1450,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_EveryRecipientTriggerMode_FiresSecondaryOnDamagedTriggers()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Sphere;
@@ -1296,13 +1468,15 @@ public class SimBehaviorTest
         primary.Evasion = 0f;
         var secondary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2.4f, z: 0.1f, hp: 100f);
         secondary.Evasion = 0f;
-        secondary.Triggers.Add(new TriggerConfig
-        {
-            TriggerType = TriggerType.OnDamaged,
-            EffectType = EffectType.Slow,
-            Value = 0.3f,
-            Duration = 2f
-        });
+        secondary.Triggers.Add(
+            new TriggerConfig
+            {
+                TriggerType = TriggerType.OnDamaged,
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 2f,
+            }
+        );
 
         var events = new List<SimEvent>();
         ExecuteMeleeAttack(attacker, primary, _state, events);
@@ -1314,7 +1488,13 @@ public class SimBehaviorTest
     [TestCase]
     public void TickBehavior_AttackVector_SummonerTarget_IgnoresNonSingleExpansionInV1()
     {
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, 0, x: 18f, attackRange: 5f, damage: 10f);
+        var attacker = SimTestHelper.CreateMeleeUnit(
+            _state,
+            0,
+            x: 18f,
+            attackRange: 5f,
+            damage: 10f
+        );
         attacker.CritChance = 0f;
         attacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         attacker.Attack.Area.Shape = AttackAreaShape.Sphere;
@@ -1377,26 +1557,33 @@ public class SimBehaviorTest
         AssertThat(runA.EnemyHpSnapshot).IsEqual(runB.EnemyHpSnapshot);
     }
 
-    private static void ExecuteMeleeAttack(UnitData attacker, UnitData primary, MatchState state, List<SimEvent> events)
+    private static void ExecuteMeleeAttack(
+        UnitData attacker,
+        UnitData primary,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         attacker.TargetUnitId = primary.UnitId;
         attacker.AttackCooldown = 0f;
         SimBehavior.TickBehavior(attacker, state, 0.016f, events);
     }
 
-    private static List<int> GetDamagedTargetOrder(List<SimEvent> events)
-        => events.OfType<UnitDamagedEvent>().Select(e => e.TargetUnitId).ToList();
+    private static List<int> GetDamagedTargetOrder(List<SimEvent> events) =>
+        events.OfType<UnitDamagedEvent>().Select(e => e.TargetUnitId).ToList();
 
     private static List<float> GetEnemyHpSnapshot(MatchState state)
     {
-        return state.Units.Values
-            .Where(u => u.Team == Team.Enemy)
+        return state
+            .Units.Values.Where(u => u.Team == Team.Enemy)
             .OrderBy(u => u.UnitId)
             .Select(u => u.CurrentHp)
             .ToList();
     }
 
-    private static (List<int> DamagedOrder, List<float> EnemyHpSnapshot) RunDatk001Scenario(uint seed)
+    private static (List<int> DamagedOrder, List<float> EnemyHpSnapshot) RunDatk001Scenario(
+        uint seed
+    )
     {
         var state = SimTestHelper.CreateBattleState(seed);
         var attacker = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, attackRange: 5f, damage: 10f);
@@ -1447,7 +1634,9 @@ public class SimBehaviorTest
             .ToList();
     }
 
-    private static (List<int> DamagedOrder, int ExpectedFirstHopUnitId) RunChainTieBreakScenario(uint seed)
+    private static (List<int> DamagedOrder, int ExpectedFirstHopUnitId) RunChainTieBreakScenario(
+        uint seed
+    )
     {
         var state = SimTestHelper.CreateBattleState(seed);
         var attacker = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, attackRange: 5f, damage: 10f);
@@ -1472,18 +1661,34 @@ public class SimBehaviorTest
         return (GetDamagedTargetOrder(events), tieLowId.UnitId);
     }
 
-    private static (List<int> DamagedOrder, List<float> EnemyHpSnapshot) RunMixedVectorScenario(uint seed)
+    private static (List<int> DamagedOrder, List<float> EnemyHpSnapshot) RunMixedVectorScenario(
+        uint seed
+    )
     {
         var state = SimTestHelper.CreateBattleState(seed);
 
-        var areaAttacker = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, z: 0f, attackRange: 5f, damage: 10f);
+        var areaAttacker = SimTestHelper.CreateMeleeUnit(
+            state,
+            0,
+            x: 0f,
+            z: 0f,
+            attackRange: 5f,
+            damage: 10f
+        );
         areaAttacker.CritChance = 0f;
         areaAttacker.Attack.Selection.Mode = AttackSelectionMode.AreaCollect;
         areaAttacker.Attack.Area.Shape = AttackAreaShape.Sphere;
         areaAttacker.Attack.Area.Size = new SimVector3(2f, 1f, 1f);
         areaAttacker.Attack.Selection.TargetLimit = 0;
 
-        var lineAttacker = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, z: -5f, attackRange: 5f, damage: 8f);
+        var lineAttacker = SimTestHelper.CreateMeleeUnit(
+            state,
+            0,
+            x: 0f,
+            z: -5f,
+            attackRange: 5f,
+            damage: 8f
+        );
         lineAttacker.CritChance = 0f;
         lineAttacker.Attack.Selection.Mode = AttackSelectionMode.LineCollect;
         lineAttacker.Attack.Propagation.Mode = AttackPropagationMode.Pierce;
@@ -1491,7 +1696,14 @@ public class SimBehaviorTest
         lineAttacker.Attack.Area.LineHalfWidth = 0.5f;
         lineAttacker.Attack.Selection.TargetLimit = 3;
 
-        var chainAttacker = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, z: 5f, attackRange: 5f, damage: 9f);
+        var chainAttacker = SimTestHelper.CreateMeleeUnit(
+            state,
+            0,
+            x: 0f,
+            z: 5f,
+            attackRange: 5f,
+            damage: 9f
+        );
         chainAttacker.CritChance = 0f;
         chainAttacker.Attack.Selection.Mode = AttackSelectionMode.ChainHops;
         chainAttacker.Attack.Propagation.Mode = AttackPropagationMode.Chain;

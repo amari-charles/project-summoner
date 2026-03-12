@@ -24,5 +24,5 @@ public enum SummonRole
     Giant = 1 << 3,
 
     /// <summary>Cannot move, holds position.</summary>
-    Stationary = 1 << 4
+    Stationary = 1 << 4,
 }

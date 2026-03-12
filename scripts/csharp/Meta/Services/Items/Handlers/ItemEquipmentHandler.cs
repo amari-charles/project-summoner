@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
 using Fateforged.Infrastructure.Persistence;
-using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
+using Godot;
 using ItemInstance = Fateforged.Domain.Profile.Inventory.ItemInstance;
+using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
 namespace Fateforged.Meta.Items.Handlers;
 
@@ -55,21 +55,30 @@ public class ItemEquipmentHandler
 
         if ((int)definition.Slot != (int)slot)
         {
-            GD.PushError($"ItemEquipmentHandler: Item '{item.CatalogId}' cannot be equipped to slot '{slot}' (requires '{definition.Slot}')");
+            GD.PushError(
+                $"ItemEquipmentHandler: Item '{item.CatalogId}' cannot be equipped to slot '{slot}' (requires '{definition.Slot}')"
+            );
             return false;
         }
 
         // Check binding restrictions
-        if (definition.Binding == ItemBinding.SummonerBound && item.BoundToSummonerId != typedSummonerId)
+        if (
+            definition.Binding == ItemBinding.SummonerBound
+            && item.BoundToSummonerId != typedSummonerId
+        )
         {
-            GD.PushError($"ItemEquipmentHandler: Item '{itemInstanceId}' is bound to summoner '{item.BoundToSummonerId}', cannot equip to '{summonerId}'");
+            GD.PushError(
+                $"ItemEquipmentHandler: Item '{itemInstanceId}' is bound to summoner '{item.BoundToSummonerId}', cannot equip to '{summonerId}'"
+            );
             return false;
         }
 
         // Check if item is already equipped by another summoner
         if (item.EquippedBySummonerId != null && item.EquippedBySummonerId != typedSummonerId)
         {
-            GD.PushError($"ItemEquipmentHandler: Item '{itemInstanceId}' is already equipped by '{item.EquippedBySummonerId}'");
+            GD.PushError(
+                $"ItemEquipmentHandler: Item '{itemInstanceId}' is already equipped by '{item.EquippedBySummonerId}'"
+            );
             return false;
         }
 
@@ -82,7 +91,10 @@ public class ItemEquipmentHandler
         }
 
         // Unequip current item in slot (if any)
-        if (summoner.EquippedItems.TryGetValue(slot, out var currentItemId) && currentItemId != null)
+        if (
+            summoner.EquippedItems.TryGetValue(slot, out var currentItemId)
+            && currentItemId != null
+        )
         {
             var currentItem = items.FirstOrDefault(i => i.Id == currentItemId);
             if (currentItem != null)
@@ -101,7 +113,9 @@ public class ItemEquipmentHandler
         _profileRepo.SaveItems(items);
         _profileRepo.SaveSummonerInstance(summoner);
 
-        GD.Print($"ItemEquipmentHandler: Equipped item '{item.CatalogId}' to {summonerId}'s {slot} slot");
+        GD.Print(
+            $"ItemEquipmentHandler: Equipped item '{item.CatalogId}' to {summonerId}'s {slot} slot"
+        );
         return true;
     }
 
@@ -118,7 +132,10 @@ public class ItemEquipmentHandler
             return false;
         }
 
-        if (!summoner.EquippedItems.TryGetValue(slot, out var itemInstanceId) || itemInstanceId == null)
+        if (
+            !summoner.EquippedItems.TryGetValue(slot, out var itemInstanceId)
+            || itemInstanceId == null
+        )
         {
             // Slot is already empty
             return true;
@@ -157,11 +174,12 @@ public class ItemEquipmentHandler
             [ItemSlot.Wand] = null,
             [ItemSlot.Ring1] = null,
             [ItemSlot.Ring2] = null,
-            [ItemSlot.Robes] = null
+            [ItemSlot.Robes] = null,
         };
 
         var summoner = _profileRepo.GetSummonerInstance(new SummonerId(summonerId));
-        if (summoner == null) return result;
+        if (summoner == null)
+            return result;
 
         foreach (var (slot, instanceId) in summoner.EquippedItems)
         {
@@ -182,13 +200,19 @@ public class ItemEquipmentHandler
         foreach (var item in _ownership.GetOwnedItems(summonerId))
         {
             var definition = ItemCatalog.GetItem(item.CatalogId);
-            if (definition == null) continue;
+            if (definition == null)
+                continue;
 
             // Filter by slot
-            if ((int)definition.Slot != (int)slot) continue;
+            if ((int)definition.Slot != (int)slot)
+                continue;
 
             // Filter out items equipped by another summoner
-            if (!string.IsNullOrEmpty(item.EquippedBySummonerId) && item.EquippedBySummonerId != summonerId) continue;
+            if (
+                !string.IsNullOrEmpty(item.EquippedBySummonerId)
+                && item.EquippedBySummonerId != summonerId
+            )
+                continue;
 
             result.Add(item);
         }
@@ -208,13 +232,16 @@ public class ItemEquipmentHandler
 
         foreach (var (slot, instanceId) in equipped)
         {
-            if (instanceId == null) continue;
+            if (instanceId == null)
+                continue;
 
             var instance = items.FirstOrDefault(i => i.Id == instanceId);
-            if (instance == null) continue;
+            if (instance == null)
+                continue;
 
             var definition = ItemCatalog.GetItem(instance.CatalogId);
-            if (definition == null) continue;
+            if (definition == null)
+                continue;
 
             modifiers.AddRange(definition.Modifiers);
         }

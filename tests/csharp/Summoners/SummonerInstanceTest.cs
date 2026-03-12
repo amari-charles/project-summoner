@@ -1,10 +1,10 @@
 namespace Fateforged.Tests.Summoners;
 
 using System.Linq;
-using GdUnit4;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Summoners;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 [TestSuite]
@@ -13,10 +13,7 @@ public class SummonerInstanceTest
     [TestCase]
     public void GetComputedStats_ReturnsBaseStats_ForLevel1NoTraits()
     {
-        var instance = new SummonerInstance
-        {
-            SummonerId = new SummonerId(SummonerIds.Cole)
-        };
+        var instance = new SummonerInstance { SummonerId = new SummonerId(SummonerIds.Cole) };
 
         var stats = instance.GetComputedStats();
 
@@ -38,7 +35,7 @@ public class SummonerInstanceTest
         var instance = new SummonerInstance
         {
             SummonerId = new SummonerId(SummonerIds.ManaTest),
-            Level = 3
+            Level = 3,
         };
 
         var stats = instance.GetComputedStats();
@@ -57,10 +54,7 @@ public class SummonerInstanceTest
     public void GetComputedStats_AppliesTraitModifiers()
     {
         // Cole has innate traits: FireAffinity, BurningSpirit
-        var instance = new SummonerInstance
-        {
-            SummonerId = new SummonerId(SummonerIds.Cole)
-        };
+        var instance = new SummonerInstance { SummonerId = new SummonerId(SummonerIds.Cole) };
 
         var stats = instance.GetComputedStats();
 
@@ -72,10 +66,7 @@ public class SummonerInstanceTest
     [TestCase]
     public void GetComputedStats_ReturnsEmpty_WhenSummonerNotFound()
     {
-        var instance = new SummonerInstance
-        {
-            SummonerId = new SummonerId("nonexistent_summoner")
-        };
+        var instance = new SummonerInstance { SummonerId = new SummonerId("nonexistent_summoner") };
 
         var stats = instance.GetComputedStats();
 
@@ -88,7 +79,7 @@ public class SummonerInstanceTest
         var instance = new SummonerInstance
         {
             SummonerId = new SummonerId(SummonerIds.Cole),
-            AcquiredTraitIds = [new TraitId("trait_fortune_favors_the_bold")]
+            AcquiredTraitIds = [new TraitId("trait_fortune_favors_the_bold")],
         };
 
         var allTraits = instance.GetAllTraitIds();
@@ -102,10 +93,7 @@ public class SummonerInstanceTest
     [TestCase]
     public void GetAllTraitIds_ReturnsInnateOnly_WhenNoAcquired()
     {
-        var instance = new SummonerInstance
-        {
-            SummonerId = new SummonerId(SummonerIds.Selene)
-        };
+        var instance = new SummonerInstance { SummonerId = new SummonerId(SummonerIds.Selene) };
 
         var allTraits = instance.GetAllTraitIds();
 
@@ -121,10 +109,7 @@ public class SummonerInstanceTest
     [TestCase]
     public void GetStat_ReturnsSingleStatValue()
     {
-        var instance = new SummonerInstance
-        {
-            SummonerId = new SummonerId(SummonerIds.ManaTest)
-        };
+        var instance = new SummonerInstance { SummonerId = new SummonerId(SummonerIds.ManaTest) };
 
         var health = instance.GetStat("health");
         var def = SummonerCatalog.GetSummoner(SummonerIds.ManaTest)!;
@@ -135,10 +120,7 @@ public class SummonerInstanceTest
     [TestCase]
     public void GetStat_ReturnsZero_ForUnknownStat()
     {
-        var instance = new SummonerInstance
-        {
-            SummonerId = new SummonerId(SummonerIds.ManaTest)
-        };
+        var instance = new SummonerInstance { SummonerId = new SummonerId(SummonerIds.ManaTest) };
 
         var unknown = instance.GetStat("nonexistent_stat");
 

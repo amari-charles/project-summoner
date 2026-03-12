@@ -7,5 +7,5 @@ public enum GamePhase
 {
     Preparation = 0,
     Battle = 1,
-    GameOver = 2
+    GameOver = 2,
 }

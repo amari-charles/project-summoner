@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
+using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
-using Fateforged.Constants;
-using System.Collections.Generic;
 using SimulationRuntime = Fateforged.Simulation.Simulation;
 
 namespace Fateforged.Session;
@@ -17,10 +17,13 @@ namespace Fateforged.Session;
 public class CommandRouter
 {
     private const float MinPlayCardIntervalSeconds = 0.05f;
-    private static readonly long MinPlayCardIntervalFrames =
-        Math.Max(1L, (long)Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds));
+    private static readonly long MinPlayCardIntervalFrames = Math.Max(
+        1L,
+        (long)Math.Ceiling(MinPlayCardIntervalSeconds / SimulationRuntime.FixedDeltaSeconds)
+    );
 
     public readonly record struct ValidationResult(bool IsValid, string Reason);
+
     public static readonly ValidationResult Valid = new(true, "");
     private readonly Dictionary<int, long> _lastAcceptedPlayFrameByTeam = new();
 
@@ -31,7 +34,7 @@ public class CommandRouter
             PlayCardCommand play => ValidatePlayCard(play, state),
             SpawnUnitCommand spawn => ValidateSpawnUnit(spawn, state),
             ForfeitCommand forfeit => ValidateForfeit(forfeit, state),
-            _ => new ValidationResult(false, $"Unknown command type: {command.GetType().Name}")
+            _ => new ValidationResult(false, $"Unknown command type: {command.GetType().Name}"),
         };
     }
 
@@ -61,7 +64,10 @@ public class CommandRouter
         if (!BattlefieldBounds.IsInBounds(play.SpawnPosition))
             return new ValidationResult(false, "Spawn position out of battlefield bounds");
 
-        if (!cardData.IsSpell && !BattlefieldBounds.IsValidSpawnPositionForTeam(play.SpawnPosition, play.Team))
+        if (
+            !cardData.IsSpell
+            && !BattlefieldBounds.IsValidSpawnPositionForTeam(play.SpawnPosition, play.Team)
+        )
             return new ValidationResult(false, "Spawn position outside team spawn zone");
 
         if (IsRateLimited(play.Team, state.FrameNumber))

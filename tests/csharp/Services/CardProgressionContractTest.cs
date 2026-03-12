@@ -43,12 +43,18 @@ public class CardProgressionContractTest
 
         var instanceId = service.GrantCard(CardIds.FireWisp, "common");
         AssertThat(instanceId).IsNotEqual("");
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(instanceId), new CardUpdate
-        {
-            Level = 1,
-            Xp = 15,
-            UnspentTraitPoints = 0
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(instanceId),
+                    new CardUpdate
+                    {
+                        Level = 1,
+                        Xp = 15,
+                        UnspentTraitPoints = 0,
+                    }
+                )
+            )
+            .IsTrue();
 
         var info = service.GetCardProgressionInfoDict(instanceId);
         AssertThat(info.ContainsKey("xp")).IsTrue();
@@ -80,8 +86,20 @@ public class CardProgressionContractTest
         var commonId = service.GrantCard(CardIds.FireWisp, "common");
         var rareId = service.GrantCard(CardIds.FireWisp, "rare");
 
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(commonId), new CardUpdate { Level = 1, Xp = 0 })).IsTrue();
-        AssertThat(repo.UpdateCard(CardInstanceId.FromString(rareId), new CardUpdate { Level = 1, Xp = 0 })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(commonId),
+                    new CardUpdate { Level = 1, Xp = 0 }
+                )
+            )
+            .IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(rareId),
+                    new CardUpdate { Level = 1, Xp = 0 }
+                )
+            )
+            .IsTrue();
 
         var commonInfo = service.GetCardProgressionInfoDict(commonId);
         var rareInfo = service.GetCardProgressionInfoDict(rareId);
@@ -99,12 +117,18 @@ public class CardProgressionContractTest
 
         var instanceId = service.GrantCard(CardIds.FireWisp, "common");
         var typedId = CardInstanceId.FromString(instanceId);
-        AssertThat(repo.UpdateCard(typedId, new CardUpdate
-        {
-            Level = CardProgressionHandler.MaxLevel,
-            Xp = 999,
-            UnspentTraitPoints = 2
-        })).IsTrue();
+        AssertThat(
+                repo.UpdateCard(
+                    typedId,
+                    new CardUpdate
+                    {
+                        Level = CardProgressionHandler.MaxLevel,
+                        Xp = 999,
+                        UnspentTraitPoints = 2,
+                    }
+                )
+            )
+            .IsTrue();
 
         AssertThat(service.CanLevelUp(instanceId)).IsFalse();
         AssertThat(service.LevelUpCard(instanceId)).IsFalse();
@@ -129,7 +153,8 @@ public class CardProgressionContractTest
         return repo;
     }
 
-    private T CreateNode<T>() where T : Node, new()
+    private T CreateNode<T>()
+        where T : Node, new()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;

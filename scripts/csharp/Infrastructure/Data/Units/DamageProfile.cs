@@ -43,22 +43,24 @@ public record DamageProfile
     /// <summary>
     /// Creates a pure elemental damage profile.
     /// </summary>
-    public static DamageProfile PureElemental(Element element) => new()
-    {
-        PhysicalRatio = 0f,
-        Element = element,
-        ElementalRatio = 1.0f
-    };
+    public static DamageProfile PureElemental(Element element) =>
+        new()
+        {
+            PhysicalRatio = 0f,
+            Element = element,
+            ElementalRatio = 1.0f,
+        };
 
     /// <summary>
     /// Creates a mixed damage profile.
     /// </summary>
-    public static DamageProfile Mixed(float physicalRatio, Element element) => new()
-    {
-        PhysicalRatio = physicalRatio,
-        Element = element,
-        ElementalRatio = 1.0f - physicalRatio
-    };
+    public static DamageProfile Mixed(float physicalRatio, Element element) =>
+        new()
+        {
+            PhysicalRatio = physicalRatio,
+            Element = element,
+            ElementalRatio = 1.0f - physicalRatio,
+        };
 
     /// <summary>
     /// Validates that ratios sum to 1.0 (within tolerance).

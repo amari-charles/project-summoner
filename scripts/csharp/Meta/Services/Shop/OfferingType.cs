@@ -24,5 +24,5 @@ public enum OfferingType
     Cosmetic = 5,
 
     /// <summary>Battle emotes/reactions.</summary>
-    Emote = 6
+    Emote = 6,
 }

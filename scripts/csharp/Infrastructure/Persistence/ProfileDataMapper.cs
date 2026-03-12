@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
@@ -16,8 +15,9 @@ using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
-using GdDict = Godot.Collections.Dictionary;
+using Godot;
 using GdArray = Godot.Collections.Array;
+using GdDict = Godot.Collections.Dictionary;
 using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
 namespace Fateforged.Infrastructure.Persistence;
@@ -55,9 +55,11 @@ public static class ProfileDataMapper
         {
             foreach (var item in collectionArr)
             {
-                if (item.VariantType != Variant.Type.Dictionary) continue;
+                if (item.VariantType != Variant.Type.Dictionary)
+                    continue;
                 var card = DtoConverters.FromCardDict(item.AsGodotDictionary());
-                if (card != null) data.Collection.Add(card);
+                if (card != null)
+                    data.Collection.Add(card);
             }
         }
 
@@ -73,9 +75,11 @@ public static class ProfileDataMapper
         {
             foreach (var item in instancesArr)
             {
-                if (item.VariantType != Variant.Type.Dictionary) continue;
+                if (item.VariantType != Variant.Type.Dictionary)
+                    continue;
                 var instance = DtoConverters.FromSummonerDict(item.AsGodotDictionary());
-                if (instance != null) data.SummonerInstances.Add(instance);
+                if (instance != null)
+                    data.SummonerInstances.Add(instance);
             }
         }
 
@@ -84,9 +88,11 @@ public static class ProfileDataMapper
         {
             foreach (var item in itemsArr)
             {
-                if (item.VariantType != Variant.Type.Dictionary) continue;
+                if (item.VariantType != Variant.Type.Dictionary)
+                    continue;
                 var itemData = DtoConverters.FromItemDict(item.AsGodotDictionary());
-                if (itemData != null) data.Items.Add(itemData);
+                if (itemData != null)
+                    data.Items.Add(itemData);
             }
         }
 
@@ -99,9 +105,11 @@ public static class ProfileDataMapper
             foreach (var key in campaignDict.Keys)
             {
                 var keyStr = key.AsString();
-                if (keyStr.StartsWith("_")) continue; // Skip legacy keys
+                if (keyStr.StartsWith("_"))
+                    continue; // Skip legacy keys
                 var val = campaignDict[key];
-                if (val.VariantType != Variant.Type.Dictionary) continue;
+                if (val.VariantType != Variant.Type.Dictionary)
+                    continue;
                 var progress = DtoConverters.FromCampaignDict(val.AsGodotDictionary());
                 if (progress != null)
                     data.CampaignProgressMap[keyStr] = progress;
@@ -110,7 +118,8 @@ public static class ProfileDataMapper
 
         // Shared campaign progress
         if (TryGetDict(dict, "shared_campaign_progress", out var sharedDict))
-            data.SharedCampaignProgress = DtoConverters.FromCampaignDict(sharedDict) ?? new CampaignProgress();
+            data.SharedCampaignProgress =
+                DtoConverters.FromCampaignDict(sharedDict) ?? new CampaignProgress();
 
         // Shop purchases
         if (TryGetDict(dict, "shop_purchases", out var purchasesDict))
@@ -124,9 +133,11 @@ public static class ProfileDataMapper
         {
             foreach (var key in refreshDict.Keys)
             {
-                if (refreshDict[key].VariantType != Variant.Type.Dictionary) continue;
-                data.ShopRefreshStateMap[key.AsString()] =
-                    DtoConverters.FromShopRefreshStateDict(refreshDict[key].AsGodotDictionary());
+                if (refreshDict[key].VariantType != Variant.Type.Dictionary)
+                    continue;
+                data.ShopRefreshStateMap[key.AsString()] = DtoConverters.FromShopRefreshStateDict(
+                    refreshDict[key].AsGodotDictionary()
+                );
             }
         }
 
@@ -155,7 +166,8 @@ public static class ProfileDataMapper
         {
             foreach (var entry in walArr)
             {
-                if (entry.VariantType != Variant.Type.Dictionary) continue;
+                if (entry.VariantType != Variant.Type.Dictionary)
+                    continue;
                 var walEntry = new Dictionary<string, object>();
                 var walDict = entry.AsGodotDictionary();
                 foreach (var key in walDict.Keys)
@@ -276,7 +288,8 @@ public static class ProfileDataMapper
     /// </summary>
     private static void MapDecksFromDict(GdDict dict, ProfileData data)
     {
-        if (!TryGetArray(dict, "decks", out var decksArr)) return;
+        if (!TryGetArray(dict, "decks", out var decksArr))
+            return;
 
         // Build deck_cards lookup: deck_id → ordered card_instance_ids
         var deckCardsMap = new Dictionary<string, List<string>>();
@@ -286,7 +299,8 @@ public static class ProfileDataMapper
             var entries = new List<(string deckId, string cardInstanceId, int slotIndex)>();
             foreach (var item in deckCardsArr)
             {
-                if (item.VariantType != Variant.Type.Dictionary) continue;
+                if (item.VariantType != Variant.Type.Dictionary)
+                    continue;
                 var dc = item.AsGodotDictionary();
                 var deckId = GetString(dc, "deck_id", "");
                 var cardId = GetString(dc, "card_instance_id", "");
@@ -308,10 +322,12 @@ public static class ProfileDataMapper
         // Build Deck objects with inline CardInstanceIds
         foreach (var item in decksArr)
         {
-            if (item.VariantType != Variant.Type.Dictionary) continue;
+            if (item.VariantType != Variant.Type.Dictionary)
+                continue;
             var deckDict = item.AsGodotDictionary();
             var deck = DtoConverters.FromDeckDict(deckDict);
-            if (deck == null) continue;
+            if (deck == null)
+                continue;
 
             // If deck has no inline card_instance_ids (old format), use junction table
             if (deck.CardInstanceIds.Count == 0)
@@ -345,19 +361,21 @@ public static class ProfileDataMapper
                 ["name"] = deck.Name,
                 ["slot"] = deck.Slot,
                 ["is_active"] = deck.IsActive,
-                ["updated_at"] = deck.UpdatedAt
+                ["updated_at"] = deck.UpdatedAt,
             };
             decksArr.Add(deckDict);
 
             // Write card_instance_ids to junction table
             for (int i = 0; i < deck.CardInstanceIds.Count; i++)
             {
-                deckCardsArr.Add(new GdDict
-                {
-                    ["deck_id"] = (string)deck.Id,
-                    ["card_instance_id"] = (string)deck.CardInstanceIds[i],
-                    ["slot_index"] = i
-                });
+                deckCardsArr.Add(
+                    new GdDict
+                    {
+                        ["deck_id"] = (string)deck.Id,
+                        ["card_instance_id"] = (string)deck.CardInstanceIds[i],
+                        ["slot_index"] = i,
+                    }
+                );
             }
         }
 
@@ -384,7 +402,7 @@ public static class ProfileDataMapper
             cosmetics.Equipped = new EquippedCosmetics
             {
                 CardBack = new CosmeticId(GetString(equippedDict, "card_back", "")),
-                UiTheme = new CosmeticId(GetString(equippedDict, "ui_theme", ""))
+                UiTheme = new CosmeticId(GetString(equippedDict, "ui_theme", "")),
             };
         }
 
@@ -406,7 +424,7 @@ public static class ProfileDataMapper
         var equippedDict = new GdDict
         {
             ["card_back"] = (string)cosmetics.Equipped.CardBack,
-            ["ui_theme"] = (string)cosmetics.Equipped.UiTheme
+            ["ui_theme"] = (string)cosmetics.Equipped.UiTheme,
         };
 
         var skinsDict = new GdDict();
@@ -417,7 +435,7 @@ public static class ProfileDataMapper
         {
             ["owned"] = ownedArr,
             ["equipped"] = equippedDict,
-            ["summoner_skins"] = skinsDict
+            ["summoner_skins"] = skinsDict,
         };
     }
 
@@ -459,11 +477,7 @@ public static class ProfileDataMapper
         foreach (var id in emotes.Equipped)
             equippedArr.Add((string)id);
 
-        return new GdDict
-        {
-            ["owned"] = ownedArr,
-            ["equipped"] = equippedArr
-        };
+        return new GdDict { ["owned"] = ownedArr, ["equipped"] = equippedArr };
     }
 
     // =========================================================================
@@ -477,7 +491,10 @@ public static class ProfileDataMapper
         if (dict.TryGetValue("seed", out var seedVar) && seedVar.VariantType == Variant.Type.Int)
             match.Seed = seedVar.AsInt64();
 
-        if (dict.TryGetValue("result", out var resultVar) && resultVar.VariantType == Variant.Type.String)
+        if (
+            dict.TryGetValue("result", out var resultVar)
+            && resultVar.VariantType == Variant.Type.String
+        )
             match.Result = resultVar.AsString();
 
         if (dict.TryGetValue("duration_s", out var durationVar))
@@ -530,30 +547,34 @@ public static class ProfileDataMapper
 
     private static string GetString(GdDict dict, string key, string defaultValue)
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
-        if (value.VariantType == Variant.Type.Nil) return defaultValue;
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
+        if (value.VariantType == Variant.Type.Nil)
+            return defaultValue;
         return value.AsString();
     }
 
     private static int GetInt(GdDict dict, string key, int defaultValue)
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
         return value.VariantType switch
         {
             Variant.Type.Int => value.AsInt32(),
             Variant.Type.Float => (int)value.AsDouble(),
-            _ => defaultValue
+            _ => defaultValue,
         };
     }
 
     private static long GetLong(GdDict dict, string key, long defaultValue)
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
         return value.VariantType switch
         {
             Variant.Type.Int => value.AsInt64(),
             Variant.Type.Float => (long)value.AsDouble(),
-            _ => defaultValue
+            _ => defaultValue,
         };
     }
 }

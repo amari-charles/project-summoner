@@ -37,7 +37,11 @@ public static class CombatGeometry
     }
 
     public static bool CanHitUnitInRadius(
-        ProjectileHitSpace hitSpace, UnitData unit, SimVector3 center, float radius)
+        ProjectileHitSpace hitSpace,
+        UnitData unit,
+        SimVector3 center,
+        float radius
+    )
     {
         float radiusSq = radius * radius;
         return UseGroundCylinder(hitSpace, unit)
@@ -51,11 +55,24 @@ public static class CombatGeometry
         SimVector3 segA,
         SimVector3 segB,
         out float distanceSq,
-        out float segmentT)
+        out float segmentT
+    )
     {
         if (UseGroundCylinder(hitSpace, unit))
-            return TryGetPointToSegmentDistanceSqXZ(unit.Position, segA, segB, out distanceSq, out segmentT);
-        return TryGetPointToSegmentDistanceSq(unit.Position, segA, segB, out distanceSq, out segmentT);
+            return TryGetPointToSegmentDistanceSqXZ(
+                unit.Position,
+                segA,
+                segB,
+                out distanceSq,
+                out segmentT
+            );
+        return TryGetPointToSegmentDistanceSq(
+            unit.Position,
+            segA,
+            segB,
+            out distanceSq,
+            out segmentT
+        );
     }
 
     public static float DistanceSquaredXZ(SimVector3 a, SimVector3 b)
@@ -70,7 +87,8 @@ public static class CombatGeometry
         SimVector3 segA,
         SimVector3 segB,
         out float distanceSq,
-        out float segmentT)
+        out float segmentT
+    )
     {
         var ab = segB - segA;
         float abLenSq = ab.LengthSquared();
@@ -92,7 +110,8 @@ public static class CombatGeometry
         SimVector3 segA,
         SimVector3 segB,
         out float distanceSq,
-        out float segmentT)
+        out float segmentT
+    )
     {
         float abX = segB.X - segA.X;
         float abZ = segB.Z - segA.Z;

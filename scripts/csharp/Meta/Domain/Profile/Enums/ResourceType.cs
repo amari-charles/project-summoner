@@ -10,7 +10,7 @@ public enum ResourceType
     Gold,
     Gems,
     Essence,
-    Fragments
+    Fragments,
 }
 
 /// <summary>

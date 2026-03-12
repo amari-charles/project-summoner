@@ -242,10 +242,7 @@ public class MessageSerializer
                 (int)dict["hash"]
             ),
 
-            MessageType.PlayerReady => new PlayerReady(
-                (int)dict["player"],
-                (bool)dict["ready"]
-            ),
+            MessageType.PlayerReady => new PlayerReady((int)dict["player"], (bool)dict["ready"]),
 
             MessageType.CardPlayConfirmed => new CardPlayConfirmed(
                 (int)dict["seq"],
@@ -322,7 +319,9 @@ public class MessageSerializer
 
             MessageType.SpellCastVisual => new SpellCastVisual(
                 Team: dict.ContainsKey("team") ? (int)dict["team"] : 0,
-                CatalogId: dict.ContainsKey("catalogId") ? new SimCardCatalogId((string)dict["catalogId"]) : SimCardCatalogId.Empty,
+                CatalogId: dict.ContainsKey("catalogId")
+                    ? new SimCardCatalogId((string)dict["catalogId"])
+                    : SimCardCatalogId.Empty,
                 Position: DeserializeVector3(dict["pos"])
             ),
 
@@ -334,7 +333,9 @@ public class MessageSerializer
                 MovementType: dict.ContainsKey("move") ? (int)dict["move"] : 0,
                 CurrentPosition: DeserializeVector3(dict["pos"]),
                 Direction: dict.ContainsKey("dir") ? DeserializeVector3(dict["dir"]) : Vector3.Zero,
-                TargetPosition: dict.ContainsKey("targetPos") ? DeserializeVector3(dict["targetPos"]) : Vector3.Zero,
+                TargetPosition: dict.ContainsKey("targetPos")
+                    ? DeserializeVector3(dict["targetPos"])
+                    : Vector3.Zero,
                 Speed: dict.ContainsKey("speed") ? (float)dict["speed"] : 0f,
                 ProjectileCatalogId: dict.ContainsKey("catalogId")
                     ? new SimProjectileCatalogId((string)dict["catalogId"])
@@ -344,15 +345,23 @@ public class MessageSerializer
                 UseSpeedEasing: dict.ContainsKey("useSpeedEase") && (bool)dict["useSpeedEase"],
                 SpeedStart: dict.ContainsKey("speedStart") ? (float)dict["speedStart"] : 0f,
                 SpeedEnd: dict.ContainsKey("speedEnd") ? (float)dict["speedEnd"] : 0f,
-                SpeedTransitionDuration: dict.ContainsKey("speedDur") ? (float)dict["speedDur"] : 1f,
+                SpeedTransitionDuration: dict.ContainsKey("speedDur")
+                    ? (float)dict["speedDur"]
+                    : 1f,
                 SpeedEasing: dict.ContainsKey("speedEase") ? (int)dict["speedEase"] : 0,
                 SpeedEaseExponent: dict.ContainsKey("speedExp") ? (float)dict["speedExp"] : 2f,
                 TimeAlive: dict.ContainsKey("timeAlive") ? (float)dict["timeAlive"] : 0f,
                 Lifetime: dict.ContainsKey("lifetime") ? (float)dict["lifetime"] : 5f,
                 HitRadius: dict.ContainsKey("hitRadius") ? (float)dict["hitRadius"] : 2.5f,
-                HitSpace: ParseProjectileHitSpace(dict.ContainsKey("hitSpace") ? (int)dict["hitSpace"] : 0),
-                VeerDirection: dict.ContainsKey("veerDir") ? DeserializeVector3(dict["veerDir"]) : Vector3.Zero,
-                CounterVeerDirection: dict.ContainsKey("counterVeerDir") ? DeserializeVector3(dict["counterVeerDir"]) : Vector3.Zero
+                HitSpace: ParseProjectileHitSpace(
+                    dict.ContainsKey("hitSpace") ? (int)dict["hitSpace"] : 0
+                ),
+                VeerDirection: dict.ContainsKey("veerDir")
+                    ? DeserializeVector3(dict["veerDir"])
+                    : Vector3.Zero,
+                CounterVeerDirection: dict.ContainsKey("counterVeerDir")
+                    ? DeserializeVector3(dict["counterVeerDir"])
+                    : Vector3.Zero
             ),
 
             MessageType.ProjectileImpact => new ProjectileImpact(
@@ -387,12 +396,9 @@ public class MessageSerializer
 
             MessageType.Ping => new Ping((long)dict["ts"]),
 
-            MessageType.Pong => new Pong(
-                (long)dict["origTs"],
-                (long)dict["serverTs"]
-            ),
+            MessageType.Pong => new Pong((long)dict["origTs"], (long)dict["serverTs"]),
 
-            _ => throw new ArgumentException($"Unknown message type: {type}")
+            _ => throw new ArgumentException($"Unknown message type: {type}"),
         };
     }
 
@@ -406,8 +412,13 @@ public class MessageSerializer
 
     #region Helper Methods
 
-    private static Dictionary SerializeVector3(Vector3 v)
-        => new() { ["x"] = v.X, ["y"] = v.Y, ["z"] = v.Z };
+    private static Dictionary SerializeVector3(Vector3 v) =>
+        new()
+        {
+            ["x"] = v.X,
+            ["y"] = v.Y,
+            ["z"] = v.Z,
+        };
 
     private static Vector3 DeserializeVector3(Variant v)
     {
@@ -437,7 +448,7 @@ public class MessageSerializer
                 ["cardHash"] = s.CardStateHash,
                 ["hand"] = ToGodotArray(s.Hand ?? System.Array.Empty<SimCardCatalogId>()),
                 ["deck"] = ToGodotArray(s.Deck ?? System.Array.Empty<SimCardCatalogId>()),
-                ["discard"] = ToGodotArray(s.DiscardPile ?? System.Array.Empty<SimCardCatalogId>())
+                ["discard"] = ToGodotArray(s.DiscardPile ?? System.Array.Empty<SimCardCatalogId>()),
             };
             arr.Add(d);
         }
@@ -451,7 +462,9 @@ public class MessageSerializer
         {
             var d = (Dictionary)arr[i];
             if (!d.ContainsKey("castCatalog"))
-                throw new ArgumentException("StateSnapshot summoner payload missing required field: castCatalog");
+                throw new ArgumentException(
+                    "StateSnapshot summoner payload missing required field: castCatalog"
+                );
 
             summoners[i] = new SummonerState(
                 (int)d["team"],
@@ -466,10 +479,18 @@ public class MessageSerializer
                 DeserializeVector3(d["castPos"]),
                 (int)d["castNetId"],
                 (int)d["cardHash"],
-                d.ContainsKey("hand") ? ToCatalogIdArray((Godot.Collections.Array)d["hand"]) : System.Array.Empty<SimCardCatalogId>(),
-                d.ContainsKey("deck") ? ToCatalogIdArray((Godot.Collections.Array)d["deck"]) : System.Array.Empty<SimCardCatalogId>(),
-                d.ContainsKey("discard") ? ToCatalogIdArray((Godot.Collections.Array)d["discard"]) : System.Array.Empty<SimCardCatalogId>(),
-                d.ContainsKey("castCatalog") ? new SimCardCatalogId((string)d["castCatalog"]) : SimCardCatalogId.Empty
+                d.ContainsKey("hand")
+                    ? ToCatalogIdArray((Godot.Collections.Array)d["hand"])
+                    : System.Array.Empty<SimCardCatalogId>(),
+                d.ContainsKey("deck")
+                    ? ToCatalogIdArray((Godot.Collections.Array)d["deck"])
+                    : System.Array.Empty<SimCardCatalogId>(),
+                d.ContainsKey("discard")
+                    ? ToCatalogIdArray((Godot.Collections.Array)d["discard"])
+                    : System.Array.Empty<SimCardCatalogId>(),
+                d.ContainsKey("castCatalog")
+                    ? new SimCardCatalogId((string)d["castCatalog"])
+                    : SimCardCatalogId.Empty
             );
         }
         return summoners;
@@ -494,7 +515,7 @@ public class MessageSerializer
                 ["facing"] = u.IsFacingRight,
                 ["catalogId"] = u.CatalogId.Value,
                 ["spawnTimer"] = u.SpawnTimer,
-                ["attackAnim"] = u.AttackAnimationTimer
+                ["attackAnim"] = u.AttackAnimationTimer,
             };
             arr.Add(d);
         }
@@ -518,7 +539,9 @@ public class MessageSerializer
                 (int)d["activation"],
                 d.ContainsKey("behavior") ? (int)d["behavior"] : 0,
                 d.ContainsKey("facing") ? (bool)d["facing"] : true,
-                d.ContainsKey("catalogId") ? new SimUnitCatalogId((string)d["catalogId"]) : SimUnitCatalogId.Empty,
+                d.ContainsKey("catalogId")
+                    ? new SimUnitCatalogId((string)d["catalogId"])
+                    : SimUnitCatalogId.Empty,
                 d.ContainsKey("spawnTimer") ? (float)d["spawnTimer"] : 0f,
                 d.ContainsKey("attackAnim") ? (float)d["attackAnim"] : 0f
             );
@@ -526,7 +549,9 @@ public class MessageSerializer
         return units;
     }
 
-    private Godot.Collections.Array SerializeActiveProjectileSeeds(ActiveProjectileSeed[] projectiles)
+    private Godot.Collections.Array SerializeActiveProjectileSeeds(
+        ActiveProjectileSeed[] projectiles
+    )
     {
         var arr = new Godot.Collections.Array();
         foreach (var p in projectiles)
@@ -556,7 +581,7 @@ public class MessageSerializer
                 ["hitRadius"] = p.HitRadius,
                 ["hitSpace"] = (int)p.HitSpace,
                 ["veerDir"] = SerializeVector3(p.VeerDirection),
-                ["counterVeerDir"] = SerializeVector3(p.CounterVeerDirection)
+                ["counterVeerDir"] = SerializeVector3(p.CounterVeerDirection),
             };
             arr.Add(d);
         }
@@ -577,7 +602,9 @@ public class MessageSerializer
                 MovementType: d.ContainsKey("move") ? (int)d["move"] : 0,
                 CurrentPosition: DeserializeVector3(d["pos"]),
                 Direction: d.ContainsKey("dir") ? DeserializeVector3(d["dir"]) : Vector3.Zero,
-                TargetPosition: d.ContainsKey("targetPos") ? DeserializeVector3(d["targetPos"]) : Vector3.Zero,
+                TargetPosition: d.ContainsKey("targetPos")
+                    ? DeserializeVector3(d["targetPos"])
+                    : Vector3.Zero,
                 Speed: d.ContainsKey("speed") ? (float)d["speed"] : 0f,
                 ProjectileCatalogId: d.ContainsKey("catalogId")
                     ? new SimProjectileCatalogId((string)d["catalogId"])
@@ -593,9 +620,15 @@ public class MessageSerializer
                 TimeAlive: d.ContainsKey("timeAlive") ? (float)d["timeAlive"] : 0f,
                 Lifetime: d.ContainsKey("lifetime") ? (float)d["lifetime"] : 5f,
                 HitRadius: d.ContainsKey("hitRadius") ? (float)d["hitRadius"] : 2.5f,
-                HitSpace: ParseProjectileHitSpace(d.ContainsKey("hitSpace") ? (int)d["hitSpace"] : 0),
-                VeerDirection: d.ContainsKey("veerDir") ? DeserializeVector3(d["veerDir"]) : Vector3.Zero,
-                CounterVeerDirection: d.ContainsKey("counterVeerDir") ? DeserializeVector3(d["counterVeerDir"]) : Vector3.Zero
+                HitSpace: ParseProjectileHitSpace(
+                    d.ContainsKey("hitSpace") ? (int)d["hitSpace"] : 0
+                ),
+                VeerDirection: d.ContainsKey("veerDir")
+                    ? DeserializeVector3(d["veerDir"])
+                    : Vector3.Zero,
+                CounterVeerDirection: d.ContainsKey("counterVeerDir")
+                    ? DeserializeVector3(d["counterVeerDir"])
+                    : Vector3.Zero
             );
         }
         return projectiles;
@@ -606,7 +639,9 @@ public class MessageSerializer
         if (Enum.IsDefined(typeof(ProjectileHitSpace), rawValue))
             return (ProjectileHitSpace)rawValue;
 
-        GD.PushWarning($"[MessageSerializer] Invalid projectile hit-space value '{rawValue}', defaulting to GroundCylinder");
+        GD.PushWarning(
+            $"[MessageSerializer] Invalid projectile hit-space value '{rawValue}', defaulting to GroundCylinder"
+        );
         return ProjectileHitSpace.GroundCylinder;
     }
 

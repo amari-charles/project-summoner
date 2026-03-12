@@ -1,11 +1,11 @@
 namespace Fateforged.Tests.View.Spawning;
 
 using System.Collections.Generic;
-using GdUnit4;
-using Godot;
 using Fateforged.Cards.Formations;
 using Fateforged.Constants;
 using Fateforged.View.Spawning;
+using GdUnit4;
+using Godot;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -22,7 +22,12 @@ public class SpawnPositionCalculatorTest
         var center = new Vector3(-5, 0, 10); // Player side (X <= 0)
 
         var positions = SpawnPositionCalculator.CalculateFormationPositions(
-            formation, center, 1, null, 0.5f);
+            formation,
+            center,
+            1,
+            null,
+            0.5f
+        );
 
         AssertThat(positions.Count).IsEqual(1);
         AssertThat(positions[0]).IsEqual(center);
@@ -35,7 +40,12 @@ public class SpawnPositionCalculatorTest
         var center = new Vector3(0, 0, 0);
 
         var positions = SpawnPositionCalculator.CalculateFormationPositions(
-            formation, center, 5, null, 0.5f);
+            formation,
+            center,
+            5,
+            null,
+            0.5f
+        );
 
         AssertThat(positions.Count).IsEqual(5);
     }
@@ -48,7 +58,12 @@ public class SpawnPositionCalculatorTest
 
         // Should not throw with 0 collision radius
         var positions = SpawnPositionCalculator.CalculateFormationPositions(
-            formation, center, 1, null, 0f);
+            formation,
+            center,
+            1,
+            null,
+            0f
+        );
 
         AssertThat(positions.Count).IsEqual(1);
     }
@@ -60,7 +75,12 @@ public class SpawnPositionCalculatorTest
         var center = new Vector3(0, 0, 0);
 
         var positions = SpawnPositionCalculator.CalculateFormationPositions(
-            formation, center, 1, null, -1f);
+            formation,
+            center,
+            1,
+            null,
+            -1f
+        );
 
         AssertThat(positions.Count).IsEqual(1);
     }
@@ -70,8 +90,7 @@ public class SpawnPositionCalculatorTest
     {
         var desired = new Vector3(-10, 0, 20); // Player side (X <= 0)
 
-        var safe = SpawnPositionCalculator.FindSafeSpawnPosition(
-            desired, null, 0.5f);
+        var safe = SpawnPositionCalculator.FindSafeSpawnPosition(desired, null, 0.5f);
 
         AssertThat(safe).IsEqual(desired);
     }
@@ -82,11 +101,16 @@ public class SpawnPositionCalculatorTest
         var desired = new Vector3(0, 0, 0);
         var batchPositions = new List<Vector3>
         {
-            new Vector3(0, 0, 0) // Same position
+            new Vector3(0, 0, 0), // Same position
         };
 
         var safe = SpawnPositionCalculator.FindSafeSpawnPosition(
-            desired, null, 0.5f, null, batchPositions);
+            desired,
+            null,
+            0.5f,
+            null,
+            batchPositions
+        );
 
         // Should find a different position
         AssertThat(safe).IsNotEqual(desired);
@@ -100,11 +124,16 @@ public class SpawnPositionCalculatorTest
         {
             new Vector3(0, 0, 0),
             new Vector3(1, 0, 0),
-            new Vector3(-1, 0, 0)
+            new Vector3(-1, 0, 0),
         };
 
         var safe = SpawnPositionCalculator.FindSafeSpawnPosition(
-            desired, null, 0.5f, null, batchPositions);
+            desired,
+            null,
+            0.5f,
+            null,
+            batchPositions
+        );
 
         // Should find a position that doesn't conflict
         foreach (var pos in batchPositions)
@@ -119,8 +148,7 @@ public class SpawnPositionCalculatorTest
     {
         var position = new Vector3(-5, 0, 5); // Player side (X <= 0)
 
-        var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f);
+        var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(position, null, 0.5f);
 
         AssertThat(isSafe).IsTrue();
     }
@@ -131,11 +159,16 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(-10, 0, 10); // Player side (X <= 0)
         var batchPositions = new List<Vector3>
         {
-            new Vector3(-30, 0, 0) // Far away, also on player side
+            new Vector3(-30, 0, 0), // Far away, also on player side
         };
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, batchPositions);
+            position,
+            null,
+            0.5f,
+            null,
+            batchPositions
+        );
 
         AssertThat(isSafe).IsTrue();
     }
@@ -146,11 +179,16 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(0, 0, 0);
         var batchPositions = new List<Vector3>
         {
-            new Vector3(0.5f, 0, 0) // Within collision range
+            new Vector3(0.5f, 0, 0), // Within collision range
         };
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, batchPositions);
+            position,
+            null,
+            0.5f,
+            null,
+            batchPositions
+        );
 
         AssertThat(isSafe).IsFalse();
     }
@@ -161,12 +199,17 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(0, 5, 0); // High up
         var batchPositions = new List<Vector3>
         {
-            new Vector3(0, 0, 0) // Ground level, same X/Z
+            new Vector3(0, 0, 0), // Ground level, same X/Z
         };
 
         // Y axis is ignored in collision check (2D distance)
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, batchPositions);
+            position,
+            null,
+            0.5f,
+            null,
+            batchPositions
+        );
 
         AssertThat(isSafe).IsFalse(); // Same X/Z means collision
     }
@@ -181,7 +224,13 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(10, 0, 0); // Enemy side (X > 0)
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, null, team: 0);
+            position,
+            null,
+            0.5f,
+            null,
+            null,
+            team: 0
+        );
 
         AssertThat(isSafe).IsFalse();
     }
@@ -192,7 +241,13 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(-10, 0, 0); // Player side (X <= 0)
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, null, team: 0);
+            position,
+            null,
+            0.5f,
+            null,
+            null,
+            team: 0
+        );
 
         AssertThat(isSafe).IsTrue();
     }
@@ -203,7 +258,13 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(-10, 0, 0); // Player side (X <= 0)
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, null, team: 1);
+            position,
+            null,
+            0.5f,
+            null,
+            null,
+            team: 1
+        );
 
         AssertThat(isSafe).IsFalse();
     }
@@ -214,7 +275,13 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(10, 0, 0); // Enemy side (X > 0)
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, null, team: 1);
+            position,
+            null,
+            0.5f,
+            null,
+            null,
+            team: 1
+        );
 
         AssertThat(isSafe).IsTrue();
     }
@@ -225,7 +292,13 @@ public class SpawnPositionCalculatorTest
         var position = new Vector3(-100, 0, 0); // Way outside bounds
 
         var isSafe = SpawnPositionCalculator.IsSpawnPositionSafe(
-            position, null, 0.5f, null, null, team: 0);
+            position,
+            null,
+            0.5f,
+            null,
+            null,
+            team: 0
+        );
 
         AssertThat(isSafe).IsFalse();
     }
@@ -245,7 +318,13 @@ public class SpawnPositionCalculatorTest
         }
 
         var safe = SpawnPositionCalculator.FindSafeSpawnPosition(
-            desired, null, 0.5f, null, batchPositions, team: 0);
+            desired,
+            null,
+            0.5f,
+            null,
+            batchPositions,
+            team: 0
+        );
 
         // Should be clamped to player side (X <= 0)
         AssertThat(safe.X).IsLessEqual(BattlefieldBounds.SpawnBoundaryX);
@@ -259,7 +338,13 @@ public class SpawnPositionCalculatorTest
         var center = new Vector3(-20, 0, 0);
 
         var positions = SpawnPositionCalculator.CalculateFormationPositions(
-            formation, center, 3, null, 0.5f, team: 0);
+            formation,
+            center,
+            3,
+            null,
+            0.5f,
+            team: 0
+        );
 
         // All positions should be on player side
         foreach (var pos in positions)

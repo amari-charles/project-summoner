@@ -15,7 +15,7 @@ public enum SummonerUnlockCondition
     PremiumPurchase,
 
     /// <summary>Developer/test only, not available to players.</summary>
-    DevOnly
+    DevOnly,
 }
 
 /// <summary>
@@ -24,22 +24,24 @@ public enum SummonerUnlockCondition
 public static class SummonerUnlockConditionExtensions
 {
     /// <summary>Convert unlock condition to GDScript-compatible string.</summary>
-    public static string ToGdString(this SummonerUnlockCondition condition) => condition switch
-    {
-        SummonerUnlockCondition.StartingChoice => "starting_choice",
-        SummonerUnlockCondition.RandomStarterOnly => "random_starter_only",
-        SummonerUnlockCondition.PremiumPurchase => "premium_purchase",
-        SummonerUnlockCondition.DevOnly => "dev_only",
-        _ => condition.ToString().ToLowerInvariant()
-    };
+    public static string ToGdString(this SummonerUnlockCondition condition) =>
+        condition switch
+        {
+            SummonerUnlockCondition.StartingChoice => "starting_choice",
+            SummonerUnlockCondition.RandomStarterOnly => "random_starter_only",
+            SummonerUnlockCondition.PremiumPurchase => "premium_purchase",
+            SummonerUnlockCondition.DevOnly => "dev_only",
+            _ => condition.ToString().ToLowerInvariant(),
+        };
 
     /// <summary>Parse unlock condition from GDScript string.</summary>
-    public static SummonerUnlockCondition FromGdString(string value) => value switch
-    {
-        "starting_choice" => SummonerUnlockCondition.StartingChoice,
-        "random_starter_only" => SummonerUnlockCondition.RandomStarterOnly,
-        "premium_purchase" => SummonerUnlockCondition.PremiumPurchase,
-        "dev_only" => SummonerUnlockCondition.DevOnly,
-        _ => SummonerUnlockCondition.DevOnly
-    };
+    public static SummonerUnlockCondition FromGdString(string value) =>
+        value switch
+        {
+            "starting_choice" => SummonerUnlockCondition.StartingChoice,
+            "random_starter_only" => SummonerUnlockCondition.RandomStarterOnly,
+            "premium_purchase" => SummonerUnlockCondition.PremiumPurchase,
+            "dev_only" => SummonerUnlockCondition.DevOnly,
+            _ => SummonerUnlockCondition.DevOnly,
+        };
 }

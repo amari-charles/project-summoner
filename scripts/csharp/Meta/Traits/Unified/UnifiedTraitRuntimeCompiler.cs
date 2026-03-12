@@ -11,12 +11,14 @@ public static class UnifiedTraitRuntimeCompiler
     public static MatchTraitRuntimeState CompileStub()
     {
         var state = MatchTraitRuntimeState.Empty();
-        state.Diagnostics.Add(new TraitRuntimeDiagnostic
-        {
-            Severity = TraitRuntimeDiagnosticSeverity.Info,
-            Code = "PASS2_STUB",
-            Message = "UnifiedTraitRuntimeCompiler: pass2 stub state"
-        });
+        state.Diagnostics.Add(
+            new TraitRuntimeDiagnostic
+            {
+                Severity = TraitRuntimeDiagnosticSeverity.Info,
+                Code = "PASS2_STUB",
+                Message = "UnifiedTraitRuntimeCompiler: pass2 stub state",
+            }
+        );
         return state;
     }
 }

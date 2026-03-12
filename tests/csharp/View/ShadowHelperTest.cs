@@ -38,11 +38,7 @@ public partial class ShadowHelperTest
     public void CreateShadow_AppliesProvidedProfileValues()
     {
         var root = GetRootNode();
-        var parentSprite = new Sprite3D
-        {
-            PixelSize = 0.02f,
-            Position = new Vector3(0, 1.4f, 0),
-        };
+        var parentSprite = new Sprite3D { PixelSize = 0.02f, Position = new Vector3(0, 1.4f, 0) };
         root.AddChild(parentSprite);
         _createdNodes.Add(parentSprite);
 

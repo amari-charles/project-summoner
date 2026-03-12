@@ -46,6 +46,7 @@ const CHECKMARK_SIZE: int = 32  # Size of checkmark overlay
 
 ## Graph rendering constants
 const POSITION_SCALE: float = 1.5  # Scale factor for node positions from data
+const MAP_CONTENT_PADDING: Vector2 = Vector2(240.0, 180.0)  # Extra pan room around graph bounds
 const EDGE_ACTIVE_COLOR: Color = Color(0.3, 0.8, 0.3)  # Green for completed paths
 const EDGE_AVAILABLE_COLOR: Color = Color(0.8, 0.8, 0.3)  # Yellow for available paths
 const EDGE_LOCKED_COLOR: Color = Color(0.4, 0.4, 0.5, 0.5)  # Grey for locked paths
@@ -132,8 +133,8 @@ func _ready() -> void:
 	# Load and display map
 	_refresh_map()
 
-	# Auto-scroll to latest mission (deferred to next frame so nodes are fully laid out)
-	call_deferred("_on_center_latest_pressed")
+	# Center initial map view once nodes are laid out.
+	call_deferred("_center_initial_view")
 
 
 ## Get the color for an edge based on completion state
@@ -232,6 +233,8 @@ func _create_dashed_line(start: Vector2, end: Vector2, color: Color) -> Node2D:
 func _refresh_map() -> void:
 	# Clear existing state
 	for child: Node in map_container.get_children():
+		if child == map_background:
+			continue
 		child.queue_free()
 	event_nodes.clear()
 	edge_lines.clear()
@@ -249,21 +252,37 @@ func _refresh_map() -> void:
 	var edges_array: Array = SafeTypeUtils.array(edges_variant)
 	graph_edges.assign(edges_array)
 
-
-	# Build a lookup for node positions (needed for edge drawing)
-	var node_positions: Dictionary = {}  # node_id -> Vector2
+	# Build a lookup for un-offset node positions and graph bounds.
+	var raw_node_positions: Dictionary = {}  # node_id -> Vector2 (top-left)
+	var min_pos: Vector2 = Vector2(INF, INF)
+	var max_pos: Vector2 = Vector2(-INF, -INF)
 	for node: Dictionary in graph_nodes:
 		var node_id: String = SafeTypeUtils.string(node.get("id", ""))
 		if node_id.is_empty():
 			continue
-		var raw_position: Variant = node.get("position", Vector2.ZERO)
-		var node_position: Vector2
-		if raw_position is Vector2:
-			node_position = raw_position * POSITION_SCALE + Vector2(100, 200)
-		else:
-			node_position = Vector2(100, 300) * POSITION_SCALE + Vector2(100, 200)
-		# Add half node size to get center
-		node_positions[node_id] = node_position + NODE_SIZE / 2
+		var node_position: Vector2 = _get_scaled_node_position(node)
+		raw_node_positions[node_id] = node_position
+		min_pos.x = min(min_pos.x, node_position.x)
+		min_pos.y = min(min_pos.y, node_position.y)
+		max_pos.x = max(max_pos.x, node_position.x + NODE_SIZE.x)
+		max_pos.y = max(max_pos.y, node_position.y + NODE_SIZE.y)
+
+	# Fallback bounds for empty/invalid graphs.
+	if min_pos.x == INF or min_pos.y == INF:
+		min_pos = Vector2.ZERO
+		max_pos = NODE_SIZE
+
+	var graph_bounds: Rect2 = Rect2(min_pos, max_pos - min_pos)
+	var layout_offset: Vector2 = _compute_graph_layout_offset(graph_bounds)
+	var content_size: Vector2 = _compute_map_content_size(graph_bounds, layout_offset)
+	_apply_map_content_layout(content_size)
+
+	# Build final positions (with centering offset) for edge drawing.
+	var node_positions: Dictionary = {}  # node_id -> Vector2 (center)
+	for node_id_variant: Variant in raw_node_positions.keys():
+		var node_id: String = SafeTypeUtils.string(node_id_variant)
+		var top_left: Vector2 = raw_node_positions[node_id]
+		node_positions[node_id] = top_left + layout_offset + NODE_SIZE / 2.0
 
 	# Create edge lines FIRST (so they appear behind nodes)
 	for edge: Dictionary in graph_edges:
@@ -291,28 +310,23 @@ func _refresh_map() -> void:
 
 		var is_completed: bool = CampaignApi.is_battle_completed(node_id)
 		var is_unlocked: bool = CampaignApi.is_battle_unlocked(node_id)
+		var final_position: Vector2 = _get_scaled_node_position(node) + layout_offset
 
-		var event_node: Control = _create_graph_node(node, is_unlocked, is_completed)
+		var event_node: Control = _create_graph_node(node, final_position, is_unlocked, is_completed)
 		map_container.add_child(event_node)
 		event_nodes[node_id] = event_node
 
 
 
 ## Create a node from graph data (uses position from node data)
-func _create_graph_node(node_data: Dictionary, is_unlocked: bool, is_completed: bool) -> Control:
+func _create_graph_node(
+	node_data: Dictionary,
+	node_position: Vector2,
+	is_unlocked: bool,
+	is_completed: bool
+) -> Control:
 	var node_container: Control = Control.new()
 	node_container.custom_minimum_size = NODE_SIZE
-
-	# Get position from node data and scale it
-	var raw_position: Variant = node_data.get("position", Vector2.ZERO)
-	var node_position: Vector2
-	if raw_position is Vector2:
-		node_position = raw_position * POSITION_SCALE
-	else:
-		node_position = Vector2(100, 300) * POSITION_SCALE  # Default fallback
-
-	# Add offset to center the map content
-	node_position += Vector2(100, 200)  # Margin from top-left
 
 	node_container.position = node_position
 
@@ -362,6 +376,46 @@ func _create_graph_node(node_data: Dictionary, is_unlocked: bool, is_completed: 
 
 	node_container.add_child(button)
 	return node_container
+
+func _get_scaled_node_position(node_data: Dictionary) -> Vector2:
+	var raw_position: Variant = node_data.get("position", Vector2.ZERO)
+	if raw_position is Vector2:
+		return raw_position * POSITION_SCALE
+	return Vector2(100.0, 300.0) * POSITION_SCALE
+
+func _compute_graph_layout_offset(graph_bounds: Rect2) -> Vector2:
+	var viewport_size: Vector2 = _map_viewport_size()
+	var graph_size: Vector2 = graph_bounds.size
+	var left_padding: float = maxf(MAP_CONTENT_PADDING.x, (viewport_size.x - graph_size.x) * 0.5)
+	var top_padding: float = maxf(MAP_CONTENT_PADDING.y, (viewport_size.y - graph_size.y) * 0.5)
+	return Vector2(left_padding - graph_bounds.position.x, top_padding - graph_bounds.position.y)
+
+func _compute_map_content_size(graph_bounds: Rect2, layout_offset: Vector2) -> Vector2:
+	var viewport_size: Vector2 = _map_viewport_size()
+	var required_right: float = graph_bounds.position.x + layout_offset.x + graph_bounds.size.x + MAP_CONTENT_PADDING.x
+	var required_bottom: float = graph_bounds.position.y + layout_offset.y + graph_bounds.size.y + MAP_CONTENT_PADDING.y
+	var width: float = maxf(required_right, viewport_size.x + MAP_CONTENT_PADDING.x * 2.0)
+	var height: float = maxf(required_bottom, viewport_size.y + MAP_CONTENT_PADDING.y * 2.0)
+	return Vector2(width, height)
+
+func _apply_map_content_layout(content_size: Vector2) -> void:
+	map_container.custom_minimum_size = content_size
+	map_container.size = content_size
+
+	# Keep background synced to the dynamic content area.
+	map_background.anchors_preset = Control.PRESET_FULL_RECT
+	map_background.offset_left = 0.0
+	map_background.offset_top = 0.0
+	map_background.offset_right = 0.0
+	map_background.offset_bottom = 0.0
+	# Match legacy look: keep map area visually consistent with the screen gray.
+	map_background.color = screen_background.color
+
+func _map_viewport_size() -> Vector2:
+	var size: Vector2 = map_scroll.size
+	if size.x > 1.0 and size.y > 1.0:
+		return size
+	return get_viewport_rect().size
 
 
 ## Get color tint for node based on type
@@ -581,6 +635,13 @@ func _on_center_latest_pressed() -> void:
 
 	_scroll_to_event(latest_unlocked_id)
 
+func _center_initial_view() -> void:
+	var current_campaign_id: String = CampaignApi.get_current_campaign_id()
+	if StringName(current_campaign_id) == CampaignIDs.TEST_ARENA:
+		_center_on_all_nodes()
+		return
+	_on_center_latest_pressed()
+
 func _find_latest_unlocked_mission() -> String:
 	# Find the first unlocked but not completed node
 	# For graph structures, prioritize nodes further to the right (higher X position)
@@ -622,17 +683,47 @@ func _scroll_to_event(event_id: String) -> void:
 	var node_center_x: float = node.position.x + node.size.x / 2
 	var node_center_y: float = node.position.y + node.size.y / 2
 
-	# Calculate scroll position to center the node in viewport (both X and Y)
+	_set_scroll_centered_on_point(Vector2(node_center_x, node_center_y))
+
+func _center_on_all_nodes() -> void:
+	if event_nodes.is_empty():
+		return
+
+	var min_x: float = INF
+	var min_y: float = INF
+	var max_x: float = -INF
+	var max_y: float = -INF
+
+	for node_variant: Variant in event_nodes.values():
+		if not node_variant is Control:
+			continue
+		var node: Control = node_variant
+		var left: float = node.position.x
+		var top: float = node.position.y
+		var right: float = node.position.x + node.size.x
+		var bottom: float = node.position.y + node.size.y
+
+		min_x = min(min_x, left)
+		min_y = min(min_y, top)
+		max_x = max(max_x, right)
+		max_y = max(max_y, bottom)
+
+	if min_x == INF or min_y == INF:
+		return
+
+	_set_scroll_centered_on_point(Vector2((min_x + max_x) / 2.0, (min_y + max_y) / 2.0))
+
+func _set_scroll_centered_on_point(point: Vector2) -> void:
 	var viewport_width: float = map_scroll.size.x
 	var viewport_height: float = map_scroll.size.y
+	var content_width: float = max(map_container.size.x, map_container.custom_minimum_size.x)
+	var content_height: float = max(map_container.size.y, map_container.custom_minimum_size.y)
+	var max_scroll_x: float = max(content_width - viewport_width, 0.0)
+	var max_scroll_y: float = max(content_height - viewport_height, 0.0)
 
-	var scroll_target_x: float = node_center_x - (viewport_width / 2)
-	scroll_target_x = max(0, scroll_target_x)  # Clamp to valid range
+	var scroll_target_x: float = clampf(point.x - (viewport_width / 2.0), 0.0, max_scroll_x)
+	var scroll_target_y: float = clampf(point.y - (viewport_height / 2.0), 0.0, max_scroll_y)
 
-	var scroll_target_y: float = node_center_y - (viewport_height / 2)
-	scroll_target_y = max(0, scroll_target_y)  # Clamp to valid range
-
-	# Set scroll position (both horizontal and vertical)
 	map_scroll.scroll_horizontal = int(scroll_target_x)
 	map_scroll.scroll_vertical = int(scroll_target_y)
 
@@ -767,6 +858,7 @@ func _on_campaign_selected(campaign_id: String) -> void:
 	if success:
 		_update_campaign_banner_text()
 		_refresh_map()
+		call_deferred("_center_initial_view")
 
 	if campaign_selector_modal:
 		campaign_selector_modal.hide()

@@ -14,7 +14,7 @@ public enum DamageType
 {
     Physical,
     Magic,
-    True // Ignores all defenses
+    True, // Ignores all defenses
 }
 
 /// <summary>
@@ -22,13 +22,13 @@ public enum DamageType
 /// </summary>
 public enum TriggerType
 {
-    OnHit,        // After this unit deals damage
-    OnDamaged,    // After this unit takes damage
-    OnKill,       // After this unit kills another
-    OnDeath,      // When this unit dies
-    HpThreshold,  // When HP drops below a percentage
-    Periodic,     // Every N seconds
-    LeaderDeath   // When this unit's group leader dies
+    OnHit, // After this unit deals damage
+    OnDamaged, // After this unit takes damage
+    OnKill, // After this unit kills another
+    OnDeath, // When this unit dies
+    HpThreshold, // When HP drops below a percentage
+    Periodic, // Every N seconds
+    LeaderDeath, // When this unit's group leader dies
 }
 
 /// <summary>
@@ -36,15 +36,15 @@ public enum TriggerType
 /// </summary>
 public enum EffectType
 {
-    Damage,        // Deal damage to target(s)
-    Heal,          // Restore HP to target(s)
-    StatModifier,  // Modify a stat (buff/debuff)
-    Slow,          // Reduce movement speed
-    Stun,          // Prevent actions
-    Shield,        // Absorb incoming damage
-    Haste,         // Increase movement speed
-    DamageBoost,   // Increase attack damage
-    AreaDamage     // Deal damage in an area
+    Damage, // Deal damage to target(s)
+    Heal, // Restore HP to target(s)
+    StatModifier, // Modify a stat (buff/debuff)
+    Slow, // Reduce movement speed
+    Stun, // Prevent actions
+    Shield, // Absorb incoming damage
+    Haste, // Increase movement speed
+    DamageBoost, // Increase attack damage
+    AreaDamage, // Deal damage in an area
 }
 
 /// <summary>
@@ -52,10 +52,10 @@ public enum EffectType
 /// </summary>
 public enum MovementStyle
 {
-    Direct,    // Move straight toward target
-    Kite,      // Maintain distance, retreat if too close
-    Strafe,    // Circle around target at range
-    Stationary // Never moves (turrets, etc.)
+    Direct, // Move straight toward target
+    Kite, // Maintain distance, retreat if too close
+    Strafe, // Circle around target at range
+    Stationary, // Never moves (turrets, etc.)
 }
 
 /// <summary>
@@ -63,11 +63,11 @@ public enum MovementStyle
 /// </summary>
 public enum TargetingPriority
 {
-    Nearest,    // Closest enemy
-    LowestHp,   // Enemy with least HP
-    HighestHp,  // Enemy with most HP
-    Ranged,     // Prefer ranged enemies
-    Summoner    // Always target summoner if possible
+    Nearest, // Closest enemy
+    LowestHp, // Enemy with least HP
+    HighestHp, // Enemy with most HP
+    Ranged, // Prefer ranged enemies
+    Summoner, // Always target summoner if possible
 }
 
 /// <summary>
@@ -75,10 +75,10 @@ public enum TargetingPriority
 /// </summary>
 public enum RetreatCondition
 {
-    Never,         // Never retreats (direct fighters)
-    TooClose,      // Retreat when enemy is within KiteRange
-    HpThreshold,   // Retreat when HP drops below threshold
-    Always         // Always maintain max distance (extreme kiters)
+    Never, // Never retreats (direct fighters)
+    TooClose, // Retreat when enemy is within KiteRange
+    HpThreshold, // Retreat when HP drops below threshold
+    Always, // Always maintain max distance (extreme kiters)
 }
 
 // =========================================================================
@@ -90,9 +90,9 @@ public enum RetreatCondition
 /// </summary>
 public enum SpellTargetingMode
 {
-    Position,       // AoE at a position (Fireball)
-    NearestEnemy,   // Auto-target nearest enemy to position (ManaBolt)
-    AlliesInRadius  // Select allied units in radius (Command spells)
+    Position, // AoE at a position (Fireball)
+    NearestEnemy, // Auto-target nearest enemy to position (ManaBolt)
+    AlliesInRadius, // Select allied units in radius (Command spells)
 }
 
 /// <summary>
@@ -102,7 +102,7 @@ public enum SpellAffinity
 {
     Enemies,
     Allies,
-    Both
+    Both,
 }
 
 // =========================================================================

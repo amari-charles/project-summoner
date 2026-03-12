@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Constants;
 
-using GdUnit4;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>

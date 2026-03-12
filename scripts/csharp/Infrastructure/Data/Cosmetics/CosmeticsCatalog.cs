@@ -21,7 +21,7 @@ public static class CosmeticsCatalog
             NameKey = "cosmetic.card_back_default.name",
             DescriptionKey = "cosmetic.card_back_default.description",
             Price = 0,
-            Rarity = "common"
+            Rarity = "common",
         },
 
         // UI Themes
@@ -32,8 +32,8 @@ public static class CosmeticsCatalog
             NameKey = "cosmetic.ui_theme_default.name",
             DescriptionKey = "cosmetic.ui_theme_default.description",
             Price = 0,
-            Rarity = "common"
-        }
+            Rarity = "common",
+        },
     };
 
     // =========================================================================
@@ -78,8 +78,8 @@ public static class CosmeticsCatalog
 
     public static CosmeticDefinition[] GetSummonerSkins(string summonerId)
     {
-        return _cosmetics.Values
-            .Where(c => c.Type == CosmeticType.SummonerSkin && c.SummonerId == summonerId)
+        return _cosmetics
+            .Values.Where(c => c.Type == CosmeticType.SummonerSkin && c.SummonerId == summonerId)
             .ToArray();
     }
 
@@ -99,7 +99,7 @@ public static class CosmeticsCatalog
             CosmeticType.CardBack => "card_back",
             CosmeticType.UiTheme => "ui_theme",
             CosmeticType.SummonerSkin => "summoner_skin",
-            _ => "unknown"
+            _ => "unknown",
         };
     }
 
@@ -110,7 +110,7 @@ public static class CosmeticsCatalog
             "card_back" => CosmeticType.CardBack,
             "ui_theme" => CosmeticType.UiTheme,
             "summoner_skin" => CosmeticType.SummonerSkin,
-            _ => CosmeticType.CardBack
+            _ => CosmeticType.CardBack,
         };
     }
 
@@ -119,13 +119,14 @@ public static class CosmeticsCatalog
     // =========================================================================
 
     /// <summary>GDScript CosmeticType enum values — must match the bridge constants.</summary>
-    private static int TypeToGdInt(CosmeticType type) => type switch
-    {
-        CosmeticType.CardBack => 0,
-        CosmeticType.UiTheme => 1,
-        CosmeticType.SummonerSkin => 2,
-        _ => 0
-    };
+    private static int TypeToGdInt(CosmeticType type) =>
+        type switch
+        {
+            CosmeticType.CardBack => 0,
+            CosmeticType.UiTheme => 1,
+            CosmeticType.SummonerSkin => 2,
+            _ => 0,
+        };
 
     public static Godot.Collections.Dictionary ToDictionary(CosmeticDefinition cosmetic)
     {
@@ -139,7 +140,7 @@ public static class CosmeticsCatalog
             ["resource_path"] = cosmetic.ResourcePath,
             ["summoner_id"] = cosmetic.SummonerId,
             ["price"] = cosmetic.Price,
-            ["rarity"] = cosmetic.Rarity
+            ["rarity"] = cosmetic.Rarity,
         };
     }
 

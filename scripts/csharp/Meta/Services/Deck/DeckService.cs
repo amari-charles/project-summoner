@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Cards;
 using Fateforged.Meta.Deck.Handlers;
+using Godot;
 using DeckModel = Fateforged.Domain.Profile.Decks.Deck;
 
 namespace Fateforged.Meta.Deck;
@@ -73,8 +73,7 @@ public partial class DeckService : Node
             if (cardService != null)
             {
                 _cardOwnershipChecker = (cardInstanceId, summonerId) =>
-                    cardService.GetOwnedCards(summonerId)
-                        .Any(c => c.Id.Value == cardInstanceId);
+                    cardService.GetOwnedCards(summonerId).Any(c => c.Id.Value == cardInstanceId);
             }
         }
 
@@ -122,7 +121,11 @@ public partial class DeckService : Node
     }
 
     /// <summary>Initialize for testing with mock dependencies.</summary>
-    public void InitForTesting(IProfileRepository repo, Func<string, string, bool>? cardOwnershipChecker = null, Func<string, bool>? summonerValidator = null)
+    public void InitForTesting(
+        IProfileRepository repo,
+        Func<string, string, bool>? cardOwnershipChecker = null,
+        Func<string, bool>? summonerValidator = null
+    )
     {
         ArgumentNullException.ThrowIfNull(repo);
         _profileRepo = repo;
@@ -211,10 +214,13 @@ public partial class DeckService : Node
     /// </summary>
     public string CreateDeck(string deckName, string[] cardInstanceIds, string summonerId = "")
     {
-        if (!_isInitialized) return "";
+        if (!_isInitialized)
+            return "";
 
         var typedCards = cardInstanceIds.Select(CardInstanceId.FromString).ToArray();
-        var typedSummoner = string.IsNullOrEmpty(summonerId) ? SummonerId.None : SummonerId.FromString(summonerId);
+        var typedSummoner = string.IsNullOrEmpty(summonerId)
+            ? SummonerId.None
+            : SummonerId.FromString(summonerId);
         var deckId = _crud.CreateDeck(deckName, typedCards, typedSummoner);
 
         if (!string.IsNullOrEmpty(deckId))
@@ -231,13 +237,21 @@ public partial class DeckService : Node
     /// Pass empty/null values to keep existing values.
     /// Returns true if successful.
     /// </summary>
-    public bool UpdateDeck(string deckId, string? deckName = null, string[]? cardInstanceIds = null, string? summonerId = null)
+    public bool UpdateDeck(
+        string deckId,
+        string? deckName = null,
+        string[]? cardInstanceIds = null,
+        string? summonerId = null
+    )
     {
-        if (!_isInitialized) return false;
+        if (!_isInitialized)
+            return false;
 
         var typedDeckId = DeckId.FromString(deckId);
         var typedCards = cardInstanceIds?.Select(CardInstanceId.FromString).ToArray();
-        var typedSummoner = !string.IsNullOrEmpty(summonerId) ? SummonerId.FromString(summonerId) : (SummonerId?)null;
+        var typedSummoner = !string.IsNullOrEmpty(summonerId)
+            ? SummonerId.FromString(summonerId)
+            : (SummonerId?)null;
 
         var success = _crud.UpdateDeck(typedDeckId, deckName, typedCards, typedSummoner);
 
@@ -252,7 +266,8 @@ public partial class DeckService : Node
     /// <summary>Delete a deck. Returns true if successful.</summary>
     public bool DeleteDeck(string deckId)
     {
-        if (!_isInitialized) return false;
+        if (!_isInitialized)
+            return false;
 
         var success = _crud.DeleteDeck(DeckId.FromString(deckId));
 
@@ -276,12 +291,14 @@ public partial class DeckService : Node
     /// </summary>
     public bool SetDeckSummoner(string deckId, string summonerId)
     {
-        if (!_isInitialized) return false;
+        if (!_isInitialized)
+            return false;
 
         var success = _crud.SetDeckSummoner(
             DeckId.FromString(deckId),
             SummonerId.FromString(summonerId),
-            _summonerValidator);
+            _summonerValidator
+        );
 
         if (success)
         {
@@ -301,12 +318,14 @@ public partial class DeckService : Node
     /// </summary>
     public bool AddCardToDeck(string deckId, string cardInstanceId)
     {
-        if (!_isInitialized) return false;
+        if (!_isInitialized)
+            return false;
 
         var success = _cards.AddCardToDeck(
             DeckId.FromString(deckId),
             CardInstanceId.FromString(cardInstanceId),
-            _cardOwnershipChecker);
+            _cardOwnershipChecker
+        );
 
         if (success)
         {
@@ -322,11 +341,13 @@ public partial class DeckService : Node
     /// </summary>
     public bool RemoveCardFromDeck(string deckId, string cardInstanceId)
     {
-        if (!_isInitialized) return false;
+        if (!_isInitialized)
+            return false;
 
         var success = _cards.RemoveCardFromDeck(
             DeckId.FromString(deckId),
-            CardInstanceId.FromString(cardInstanceId));
+            CardInstanceId.FromString(cardInstanceId)
+        );
 
         if (success)
         {
@@ -342,7 +363,8 @@ public partial class DeckService : Node
     /// </summary>
     public int CleanDeck(string deckId)
     {
-        if (!_isInitialized) return 0;
+        if (!_isInitialized)
+            return 0;
 
         var removedCount = _cards.CleanDeck(DeckId.FromString(deckId), _cardOwnershipChecker);
 
@@ -364,7 +386,12 @@ public partial class DeckService : Node
     /// </summary>
     public bool ValidateDeck(string deckId)
     {
-        return _isInitialized && _validation.ValidateDeck(DeckId.FromString(deckId), _cardOwnershipChecker, EmitValidationFailed);
+        return _isInitialized
+            && _validation.ValidateDeck(
+                DeckId.FromString(deckId),
+                _cardOwnershipChecker,
+                EmitValidationFailed
+            );
     }
 
     /// <summary>
@@ -372,7 +399,9 @@ public partial class DeckService : Node
     /// </summary>
     public string[] GetValidationErrors(string deckId)
     {
-        return _isInitialized ? _validation.GetValidationErrors(DeckId.FromString(deckId), _cardOwnershipChecker) : ["Service not initialized"];
+        return _isInitialized
+            ? _validation.GetValidationErrors(DeckId.FromString(deckId), _cardOwnershipChecker)
+            : ["Service not initialized"];
     }
 
     // =========================================================================
@@ -398,7 +427,9 @@ public partial class DeckService : Node
     }
 
     /// <summary>List decks for summoner as array for GDScript.</summary>
-    public Godot.Collections.Array<Godot.Collections.Dictionary> ListDecksForSummonerDict(string summonerId)
+    public Godot.Collections.Array<Godot.Collections.Dictionary> ListDecksForSummonerDict(
+        string summonerId
+    )
     {
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var deck in ListDecksForSummoner(summonerId))
@@ -409,13 +440,22 @@ public partial class DeckService : Node
     }
 
     /// <summary>Create deck from GDScript.</summary>
-    public string CreateDeckFromDict(string deckName, Godot.Collections.Array<string> cardInstanceIds, string summonerId = "")
+    public string CreateDeckFromDict(
+        string deckName,
+        Godot.Collections.Array<string> cardInstanceIds,
+        string summonerId = ""
+    )
     {
         return CreateDeck(deckName, [.. cardInstanceIds], summonerId);
     }
 
     /// <summary>Update deck from GDScript.</summary>
-    public bool UpdateDeckFromDict(string deckId, string deckName, Godot.Collections.Array<string> cardInstanceIds, string summonerId)
+    public bool UpdateDeckFromDict(
+        string deckId,
+        string deckName,
+        Godot.Collections.Array<string> cardInstanceIds,
+        string summonerId
+    )
     {
         string[]? cards = cardInstanceIds.Count > 0 ? [.. cardInstanceIds] : null;
         string? name = !string.IsNullOrEmpty(deckName) ? deckName : null;

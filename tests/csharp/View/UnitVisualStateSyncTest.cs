@@ -48,7 +48,7 @@ public partial class UnitVisualStateSyncTest
             IsAlive = true,
             Position = new SimVector3(1f, 0f, 2f),
             ActivationState = ActivationState.Inactive,
-            BehaviorState = BehaviorState.Chasing
+            BehaviorState = BehaviorState.Chasing,
         };
 
         var visual = CreateUnitVisualWithState(state, unitId, out var fakeVisual);
@@ -70,7 +70,7 @@ public partial class UnitVisualStateSyncTest
             Position = new SimVector3(0f, 0f, 0f),
             ActivationState = ActivationState.Inactive,
             AttackAnimationTimer = 0.4f,
-            BehaviorState = BehaviorState.Attacking
+            BehaviorState = BehaviorState.Attacking,
         };
 
         var visual = CreateUnitVisualWithState(state, unitId, out var fakeVisual);
@@ -81,7 +81,11 @@ public partial class UnitVisualStateSyncTest
         AssertThat(fakeVisual.LastAnimation).IsNotEqual("attack");
     }
 
-    private UnitVisual CreateUnitVisualWithState(MatchState state, int unitId, out FakeVisualComponent fakeVisual)
+    private UnitVisual CreateUnitVisualWithState(
+        MatchState state,
+        int unitId,
+        out FakeVisualComponent fakeVisual
+    )
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -106,7 +110,9 @@ public partial class UnitVisualStateSyncTest
 
     private static void SetPrivateField(object target, string fieldName, object value)
     {
-        var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = target
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(target, value);
     }
 
@@ -127,13 +133,9 @@ public partial class UnitVisualStateSyncTest
             remove { }
         }
 
-        public void SubmitCommand(ICommand command)
-        {
-        }
+        public void SubmitCommand(ICommand command) { }
 
-        public void Tick(float delta)
-        {
-        }
+        public void Tick(float delta) { }
     }
 
     private sealed partial class FakeVisualComponent : Node3D, IVisualComponent
@@ -150,17 +152,13 @@ public partial class UnitVisualStateSyncTest
             LastAnimation = animName;
         }
 
-        public void StopAnimation()
-        {
-        }
+        public void StopAnimation() { }
 
         public string GetCurrentAnimation() => LastAnimation;
 
         public bool IsPlaying() => false;
 
-        public void SetAnimationSpeed(float speed)
-        {
-        }
+        public void SetAnimationSpeed(float speed) { }
 
         public float GetAnimationDuration(string animName) => 0.25f;
 
@@ -170,24 +168,16 @@ public partial class UnitVisualStateSyncTest
 
         public float GetHpBarOffsetX() => 0.0f;
 
-        public void FlashWhite()
-        {
-        }
+        public void FlashWhite() { }
 
-        public void SetFlipH(bool flip)
-        {
-        }
+        public void SetFlipH(bool flip) { }
 
-        public void SetRenderPriority(int priority)
-        {
-        }
+        public void SetRenderPriority(int priority) { }
 
         public bool IsFullyInitialized() => true;
 
         public Node3D CreateGhostVisual() => new Node3D();
 
-        public void ApplyGhostTint(Color tint)
-        {
-        }
+        public void ApplyGhostTint(Color tint) { }
     }
 }

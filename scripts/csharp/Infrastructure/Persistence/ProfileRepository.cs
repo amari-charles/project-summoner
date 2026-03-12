@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
@@ -16,8 +15,9 @@ using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Shop;
 using Fateforged.Meta.Summoner;
-using GdDict = Godot.Collections.Dictionary;
+using Godot;
 using GdArray = Godot.Collections.Array;
+using GdDict = Godot.Collections.Dictionary;
 using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
 namespace Fateforged.Infrastructure.Persistence;
@@ -85,25 +85,23 @@ public partial class ProfileRepository : Node, IProfileRepository
                 SaveProfile(immediate: true);
                 break;
             case NotificationApplicationFocusOut:
-                if (_pendingSave) SaveProfile(immediate: true);
+                if (_pendingSave)
+                    SaveProfile(immediate: true);
                 break;
         }
     }
 
     private void SetupSaveTimer()
     {
-        _saveTimer = new Timer
-        {
-            OneShot = true,
-            WaitTime = AutosaveDelay
-        };
+        _saveTimer = new Timer { OneShot = true, WaitTime = AutosaveDelay };
         _saveTimer.Timeout += OnSaveTimerTimeout;
         AddChild(_saveTimer);
     }
 
     private void OnSaveTimerTimeout()
     {
-        if (_pendingSave) WriteSave();
+        if (_pendingSave)
+            WriteSave();
     }
 
     // =========================================================================
@@ -202,15 +200,15 @@ public partial class ProfileRepository : Node, IProfileRepository
     // SUMMONER OPERATIONS
     // =========================================================================
 
-    public SummonerId[] GetUnlockedSummoners()
-        => [.. _data.UnlockedSummoners];
+    public SummonerId[] GetUnlockedSummoners() => [.. _data.UnlockedSummoners];
 
-    public bool IsSummonerUnlocked(SummonerId summonerId)
-        => _data.UnlockedSummoners.Contains(summonerId);
+    public bool IsSummonerUnlocked(SummonerId summonerId) =>
+        _data.UnlockedSummoners.Contains(summonerId);
 
     public bool UnlockSummoner(SummonerId summonerId)
     {
-        if (_data.UnlockedSummoners.Contains(summonerId)) return false;
+        if (_data.UnlockedSummoners.Contains(summonerId))
+            return false;
         _data.UnlockedSummoners.Add(summonerId);
         AppendToWal("unlock_summoner", new { summoner_id = (string)summonerId });
         MarkDirty();
@@ -224,22 +222,25 @@ public partial class ProfileRepository : Node, IProfileRepository
     {
         if (_data.UnlockedSummoners.Count > 0)
         {
-            GD.PushError("ProfileRepository: Cannot set starting summoner - summoners already unlocked");
+            GD.PushError(
+                "ProfileRepository: Cannot set starting summoner - summoners already unlocked"
+            );
             return false;
         }
 
         _data.UnlockedSummoners.Add(summonerId);
-        AppendToWal("set_starting_summoner",
-            new { summoner_id = (string)summonerId, chosen_random = chosenRandom });
+        AppendToWal(
+            "set_starting_summoner",
+            new { summoner_id = (string)summonerId, chosen_random = chosenRandom }
+        );
         MarkDirty();
         return true;
     }
 
-    public SummonerInstance? GetSummonerInstance(SummonerId summonerId)
-        => _data.SummonerInstances.FirstOrDefault(s => s.SummonerId == summonerId);
+    public SummonerInstance? GetSummonerInstance(SummonerId summonerId) =>
+        _data.SummonerInstances.FirstOrDefault(s => s.SummonerId == summonerId);
 
-    public SummonerInstance[] GetAllSummonerInstances()
-        => [.. _data.SummonerInstances];
+    public SummonerInstance[] GetAllSummonerInstances() => [.. _data.SummonerInstances];
 
     public bool SaveSummonerInstance(SummonerInstance instance)
     {
@@ -263,12 +264,21 @@ public partial class ProfileRepository : Node, IProfileRepository
     // CARD COLLECTION OPERATIONS
     // =========================================================================
 
-    public CardInstanceId[] GrantCards(IEnumerable<(CardId catalogId, string rarity)> cards)
-        => GrantCards(cards.Select(c =>
-            (c.catalogId, c.rarity, ContentBinding.AccountWide, (SummonerId?)null)));
+    public CardInstanceId[] GrantCards(IEnumerable<(CardId catalogId, string rarity)> cards) =>
+        GrantCards(
+            cards.Select(c =>
+                (c.catalogId, c.rarity, ContentBinding.AccountWide, (SummonerId?)null)
+            )
+        );
 
     public CardInstanceId[] GrantCards(
-        IEnumerable<(CardId catalogId, string rarity, ContentBinding binding, SummonerId? boundTo)> cards)
+        IEnumerable<(
+            CardId catalogId,
+            string rarity,
+            ContentBinding binding,
+            SummonerId? boundTo
+        )> cards
+    )
     {
         var ids = new List<CardInstanceId>();
         foreach (var (catalogId, rarity, binding, boundTo) in cards)
@@ -286,7 +296,7 @@ public partial class ProfileRepository : Node, IProfileRepository
                 UnspentTraitPoints = 0,
                 CreatedAt = (long)Time.GetUnixTimeFromSystem(),
                 Binding = binding,
-                BoundToSummonerId = binding == ContentBinding.SummonerBound ? boundTo : null
+                BoundToSummonerId = binding == ContentBinding.SummonerBound ? boundTo : null,
             };
             _data.Collection.Add(card);
             ids.Add(instanceId);
@@ -314,25 +324,31 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     public CardInstance[] ListCards() => [.. _data.Collection];
 
-    public int GetCardCount(CardId catalogId)
-        => _data.Collection.Count(c => c.CatalogId == catalogId);
+    public int GetCardCount(CardId catalogId) =>
+        _data.Collection.Count(c => c.CatalogId == catalogId);
 
-    public CardInstance? GetCard(CardInstanceId cardInstanceId)
-        => _data.Collection.FirstOrDefault(c => c.Id == cardInstanceId);
+    public CardInstance? GetCard(CardInstanceId cardInstanceId) =>
+        _data.Collection.FirstOrDefault(c => c.Id == cardInstanceId);
 
     public bool UpdateCard(CardInstanceId cardInstanceId, CardUpdate updates)
     {
         var card = _data.Collection.FirstOrDefault(c => c.Id == cardInstanceId);
         if (card == null)
         {
-            GD.PushWarning($"ProfileRepository: Card instance '{cardInstanceId}' not found for update");
+            GD.PushWarning(
+                $"ProfileRepository: Card instance '{cardInstanceId}' not found for update"
+            );
             return false;
         }
 
-        if (updates.Xp.HasValue) card.Xp = updates.Xp.Value;
-        if (updates.Level.HasValue) card.Level = updates.Level.Value;
-        if (updates.Traits != null) card.Traits = updates.Traits;
-        if (updates.UnspentTraitPoints.HasValue) card.UnspentTraitPoints = updates.UnspentTraitPoints.Value;
+        if (updates.Xp.HasValue)
+            card.Xp = updates.Xp.Value;
+        if (updates.Level.HasValue)
+            card.Level = updates.Level.Value;
+        if (updates.Traits != null)
+            card.Traits = updates.Traits;
+        if (updates.UnspentTraitPoints.HasValue)
+            card.UnspentTraitPoints = updates.UnspentTraitPoints.Value;
 
         AppendToWal("update_card", new { card_instance_id = (string)cardInstanceId });
         MarkDirty();
@@ -392,8 +408,7 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     public Deck[] ListDecks() => [.. _data.Decks];
 
-    public Deck? GetDeck(DeckId deckId)
-        => _data.Decks.FirstOrDefault(d => d.Id == deckId);
+    public Deck? GetDeck(DeckId deckId) => _data.Decks.FirstOrDefault(d => d.Id == deckId);
 
     // =========================================================================
     // CAMPAIGN OPERATIONS
@@ -421,7 +436,9 @@ public partial class ProfileRepository : Node, IProfileRepository
 
         if (string.IsNullOrEmpty(key))
         {
-            GD.PushWarning("ProfileRepository: Cannot update campaign progress - no active summoner");
+            GD.PushWarning(
+                "ProfileRepository: Cannot update campaign progress - no active summoner"
+            );
             return;
         }
 
@@ -431,8 +448,7 @@ public partial class ProfileRepository : Node, IProfileRepository
         EmitDataChanged();
     }
 
-    public CampaignProgress GetSharedCampaignProgress()
-        => _data.SharedCampaignProgress;
+    public CampaignProgress GetSharedCampaignProgress() => _data.SharedCampaignProgress;
 
     public void UpdateSharedCampaignProgress(CampaignProgress progress)
     {
@@ -449,7 +465,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     public string[] GetCaravanPurchases(SummonerId summonerId)
     {
         var progress = GetCampaignProgress(summonerId);
-        if (progress.PendingReward == null) return [];
+        if (progress.PendingReward == null)
+            return [];
         return progress.PendingReward.CaravanPurchases.ToArray();
     }
 
@@ -459,13 +476,16 @@ public partial class ProfileRepository : Node, IProfileRepository
         if (string.IsNullOrEmpty(key))
             key = GetActiveSummonerId();
 
-        if (string.IsNullOrEmpty(key)) return;
+        if (string.IsNullOrEmpty(key))
+            return;
 
         var typedId = new SummonerId(key);
         var progress = GetCampaignProgress(typedId);
         if (progress.PendingReward == null)
         {
-            GD.PushWarning("ProfileRepository: AddCaravanPurchase called with no pending reward — creating empty one");
+            GD.PushWarning(
+                "ProfileRepository: AddCaravanPurchase called with no pending reward — creating empty one"
+            );
             progress.PendingReward = new PendingRewardData();
         }
 
@@ -482,7 +502,8 @@ public partial class ProfileRepository : Node, IProfileRepository
         if (string.IsNullOrEmpty(key))
             key = GetActiveSummonerId();
 
-        if (string.IsNullOrEmpty(key)) return;
+        if (string.IsNullOrEmpty(key))
+            return;
 
         var typedId = new SummonerId(key);
         var progress = GetCampaignProgress(typedId);
@@ -497,15 +518,15 @@ public partial class ProfileRepository : Node, IProfileRepository
     // COSMETIC OPERATIONS
     // =========================================================================
 
-    public CosmeticId[] GetOwnedCosmetics()
-        => [.. _data.Cosmetics.Owned];
+    public CosmeticId[] GetOwnedCosmetics() => [.. _data.Cosmetics.Owned];
 
-    public bool IsCosmeticOwned(CosmeticId cosmeticId)
-        => _data.Cosmetics.Owned.Contains(cosmeticId);
+    public bool IsCosmeticOwned(CosmeticId cosmeticId) =>
+        _data.Cosmetics.Owned.Contains(cosmeticId);
 
     public bool GrantCosmetic(CosmeticId cosmeticId)
     {
-        if (_data.Cosmetics.Owned.Contains(cosmeticId)) return false;
+        if (_data.Cosmetics.Owned.Contains(cosmeticId))
+            return false;
         _data.Cosmetics.Owned.Add(cosmeticId);
         AppendToWal("grant_cosmetic", new { cosmetic_id = (string)cosmeticId });
         MarkDirty();
@@ -520,7 +541,7 @@ public partial class ProfileRepository : Node, IProfileRepository
         return new Dictionary<string, CosmeticId>
         {
             ["card_back"] = _data.Cosmetics.Equipped.CardBack,
-            ["ui_theme"] = _data.Cosmetics.Equipped.UiTheme
+            ["ui_theme"] = _data.Cosmetics.Equipped.UiTheme,
         };
     }
 
@@ -572,8 +593,10 @@ public partial class ProfileRepository : Node, IProfileRepository
         else
             _data.Cosmetics.SummonerSkins[key] = skinId;
 
-        AppendToWal("set_summoner_skin",
-            new { summoner_id = (string)summonerId, skin_id = (string)skinId });
+        AppendToWal(
+            "set_summoner_skin",
+            new { summoner_id = (string)summonerId, skin_id = (string)skinId }
+        );
         MarkDirty();
         return true;
     }
@@ -582,15 +605,14 @@ public partial class ProfileRepository : Node, IProfileRepository
     // EMOTE OPERATIONS
     // =========================================================================
 
-    public EmoteId[] GetOwnedEmotes()
-        => [.. _data.Emotes.Owned];
+    public EmoteId[] GetOwnedEmotes() => [.. _data.Emotes.Owned];
 
-    public bool IsEmoteOwned(EmoteId emoteId)
-        => _data.Emotes.Owned.Contains(emoteId);
+    public bool IsEmoteOwned(EmoteId emoteId) => _data.Emotes.Owned.Contains(emoteId);
 
     public bool GrantEmote(EmoteId emoteId)
     {
-        if (_data.Emotes.Owned.Contains(emoteId)) return false;
+        if (_data.Emotes.Owned.Contains(emoteId))
+            return false;
         _data.Emotes.Owned.Add(emoteId);
         AppendToWal("grant_emote", new { emote_id = (string)emoteId });
         MarkDirty();
@@ -635,13 +657,17 @@ public partial class ProfileRepository : Node, IProfileRepository
     // SHOP OPERATIONS
     // =========================================================================
 
-    public int GetPurchaseCount(string purchaseKey)
-        => _data.ShopPurchases.TryGetValue(purchaseKey, out var count) ? count : 0;
+    public int GetPurchaseCount(string purchaseKey) =>
+        _data.ShopPurchases.TryGetValue(purchaseKey, out var count) ? count : 0;
 
     public bool IncrementPurchaseCount(string purchaseKey)
     {
-        _data.ShopPurchases[purchaseKey] =
-            _data.ShopPurchases.TryGetValue(purchaseKey, out var count) ? count + 1 : 1;
+        _data.ShopPurchases[purchaseKey] = _data.ShopPurchases.TryGetValue(
+            purchaseKey,
+            out var count
+        )
+            ? count + 1
+            : 1;
         AppendToWal("shop_purchase", new { key = purchaseKey });
         MarkDirty();
         return true;
@@ -650,7 +676,9 @@ public partial class ProfileRepository : Node, IProfileRepository
     public ShopRefreshState GetShopRefreshState(ShopId shopId)
     {
         var key = (string)shopId;
-        return _data.ShopRefreshStateMap.TryGetValue(key, out var state) ? state : new ShopRefreshState();
+        return _data.ShopRefreshStateMap.TryGetValue(key, out var state)
+            ? state
+            : new ShopRefreshState();
     }
 
     public bool IncrementShopRefreshEpoch(ShopId shopId)
@@ -674,9 +702,14 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     public void UpdateProfileMeta(MetaUpdate updates)
     {
-        if (updates.SelectedDeck != null) _data.Meta.SelectedDeck = updates.SelectedDeck;
-        if (updates.SelectedSummoner != null) _data.Meta.SelectedSummoner = updates.SelectedSummoner;
-        if (updates.AnalyticsOptIn.HasValue) _data.Meta.AnalyticsOptIn = updates.AnalyticsOptIn.Value;
+        if (updates.SelectedDeck != null)
+            _data.Meta.SelectedDeck = updates.SelectedDeck;
+        if (updates.SelectedSummoner != null)
+            _data.Meta.SelectedSummoner = updates.SelectedSummoner;
+        if (updates.SelectedCampaign != null)
+            _data.Meta.SelectedCampaign = updates.SelectedCampaign;
+        if (updates.AnalyticsOptIn.HasValue)
+            _data.Meta.AnalyticsOptIn = updates.AnalyticsOptIn.Value;
 
         if (updates.TutorialFlags != null)
         {
@@ -732,12 +765,10 @@ public partial class ProfileRepository : Node, IProfileRepository
     // =========================================================================
 
     /// <summary>Get full profile as dictionary (read-only snapshot).</summary>
-    public GdDict GetActiveProfileDict()
-        => ProfileDataMapper.ToDictionary(_data);
+    public GdDict GetActiveProfileDict() => ProfileDataMapper.ToDictionary(_data);
 
     /// <summary>Get resources as dictionary for GDScript.</summary>
-    public GdDict GetResourcesDict()
-        => DtoConverters.ToDict(_data.Resources);
+    public GdDict GetResourcesDict() => DtoConverters.ToDict(_data.Resources);
 
     /// <summary>Update resources from GDScript dictionary delta.</summary>
     public void UpdateResourcesDict(GdDict delta)
@@ -762,16 +793,20 @@ public partial class ProfileRepository : Node, IProfileRepository
     }
 
     /// <summary>Get shop refresh state for a shop as dictionary for GDScript.</summary>
-    public GdDict GetShopRefreshStateDict(string shopId)
-        => DtoConverters.ToDict(GetShopRefreshState(new ShopId(shopId)));
+    public GdDict GetShopRefreshStateDict(string shopId) =>
+        DtoConverters.ToDict(GetShopRefreshState(new ShopId(shopId)));
 
     /// <summary>Get caravan purchases as array for GDScript.</summary>
     public GdArray GetCaravanPurchasesArray(string summonerId)
     {
         var purchases = GetCaravanPurchases(
-            string.IsNullOrEmpty(summonerId) ? new SummonerId(GetActiveSummonerId()) : new SummonerId(summonerId));
+            string.IsNullOrEmpty(summonerId)
+                ? new SummonerId(GetActiveSummonerId())
+                : new SummonerId(summonerId)
+        );
         var arr = new GdArray();
-        foreach (var p in purchases) arr.Add(p);
+        foreach (var p in purchases)
+            arr.Add(p);
         return arr;
     }
 
@@ -783,6 +818,8 @@ public partial class ProfileRepository : Node, IProfileRepository
             update.SelectedDeck = metaDict["selected_deck"].AsString();
         if (metaDict.ContainsKey("selected_summoner"))
             update.SelectedSummoner = metaDict["selected_summoner"].AsString();
+        if (metaDict.ContainsKey("selected_campaign"))
+            update.SelectedCampaign = metaDict["selected_campaign"].AsString();
         if (metaDict.ContainsKey("analytics_opt_in"))
             update.AnalyticsOptIn = metaDict["analytics_opt_in"].AsBool();
         UpdateProfileMeta(update);
@@ -810,8 +847,7 @@ public partial class ProfileRepository : Node, IProfileRepository
     }
 
     /// <summary>Get full profile data snapshot as dictionary.</summary>
-    public GdDict GetProfileDataSnapshot()
-        => ProfileDataMapper.ToDictionary(_data);
+    public GdDict GetProfileDataSnapshot() => ProfileDataMapper.ToDictionary(_data);
 
     /// <summary>Load complete profile data from a dictionary snapshot.</summary>
     public void LoadProfileData(GdDict profileData)
@@ -838,8 +874,9 @@ public partial class ProfileRepository : Node, IProfileRepository
     /// <summary>Check if onboarding is complete.</summary>
     public bool IsOnboardingComplete()
     {
-        return _data.SharedCampaignProgress.CompletedBattles
-            .Any(b => (string)b == "event_caravan_tutorial");
+        return _data.SharedCampaignProgress.CompletedBattles.Any(b =>
+            (string)b == "event_caravan_tutorial"
+        );
     }
 
     /// <summary>Get active deck as array of {catalog_id, count} for multiplayer.</summary>
@@ -858,7 +895,8 @@ public partial class ProfileRepository : Node, IProfileRepository
         foreach (var instanceId in deck.CardInstanceIds)
         {
             var card = _data.Collection.FirstOrDefault(c => c.Id == instanceId);
-            if (card == null) continue;
+            if (card == null)
+                continue;
             var catalogId = (string)card.CatalogId;
             if (!string.IsNullOrEmpty(catalogId))
                 catalogCounts[catalogId] = catalogCounts.GetValueOrDefault(catalogId, 0) + 1;
@@ -867,11 +905,7 @@ public partial class ProfileRepository : Node, IProfileRepository
         var result = new GdArray();
         foreach (var (catalogId, count) in catalogCounts)
         {
-            result.Add(new GdDict
-            {
-                ["catalog_id"] = catalogId,
-                ["count"] = count
-            });
+            result.Add(new GdDict { ["catalog_id"] = catalogId, ["count"] = count });
         }
         return result;
     }
@@ -880,7 +914,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     public GdArray GetUnlockedSummonersArray()
     {
         var arr = new GdArray();
-        foreach (var s in _data.UnlockedSummoners) arr.Add((string)s);
+        foreach (var s in _data.UnlockedSummoners)
+            arr.Add((string)s);
         return arr;
     }
 
@@ -888,7 +923,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     public GdArray GetOwnedCosmeticsArray()
     {
         var arr = new GdArray();
-        foreach (var c in _data.Cosmetics.Owned) arr.Add((string)c);
+        foreach (var c in _data.Cosmetics.Owned)
+            arr.Add((string)c);
         return arr;
     }
 
@@ -898,7 +934,7 @@ public partial class ProfileRepository : Node, IProfileRepository
         return new GdDict
         {
             ["card_back"] = (string)_data.Cosmetics.Equipped.CardBack,
-            ["ui_theme"] = (string)_data.Cosmetics.Equipped.UiTheme
+            ["ui_theme"] = (string)_data.Cosmetics.Equipped.UiTheme,
         };
     }
 
@@ -915,7 +951,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     public GdArray GetOwnedEmotesArray()
     {
         var arr = new GdArray();
-        foreach (var e in _data.Emotes.Owned) arr.Add((string)e);
+        foreach (var e in _data.Emotes.Owned)
+            arr.Add((string)e);
         return arr;
     }
 
@@ -924,7 +961,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     {
         var equipped = GetEquippedEmotes();
         var arr = new GdArray();
-        foreach (var e in equipped) arr.Add((string)e);
+        foreach (var e in equipped)
+            arr.Add((string)e);
         return arr;
     }
 
@@ -947,10 +985,17 @@ public partial class ProfileRepository : Node, IProfileRepository
     /// <summary>Grant cards from GDScript array of dicts. Returns array of instance IDs.</summary>
     public GdArray GrantCardsFromDicts(GdArray cards)
     {
-        var typedCards = new List<(CardId catalogId, string rarity, ContentBinding binding, SummonerId? boundTo)>();
+        var typedCards =
+            new List<(
+                CardId catalogId,
+                string rarity,
+                ContentBinding binding,
+                SummonerId? boundTo
+            )>();
         foreach (var item in cards)
         {
-            if (item.VariantType != Variant.Type.Dictionary) continue;
+            if (item.VariantType != Variant.Type.Dictionary)
+                continue;
             var dict = item.AsGodotDictionary();
             var catalogId = GdGet(dict, "catalog_id", "").AsString();
             var rarity = GdGet(dict, "rarity", "common").AsString();
@@ -959,14 +1004,17 @@ public partial class ProfileRepository : Node, IProfileRepository
                 ? (ContentBinding)bindingInt
                 : ContentBinding.AccountWide;
             var boundToStr = GdGet(dict, "bound_to", "").AsString();
-            SummonerId? boundTo = string.IsNullOrEmpty(boundToStr) ? null : new SummonerId(boundToStr);
+            SummonerId? boundTo = string.IsNullOrEmpty(boundToStr)
+                ? null
+                : new SummonerId(boundToStr);
 
             typedCards.Add((new CardId(catalogId), rarity, binding, boundTo));
         }
 
         var ids = GrantCards(typedCards);
         var result = new GdArray();
-        foreach (var id in ids) result.Add((string)id);
+        foreach (var id in ids)
+            result.Add((string)id);
         return result;
     }
 
@@ -1006,7 +1054,10 @@ public partial class ProfileRepository : Node, IProfileRepository
             };
 
             // Parse card_instance_ids if provided
-            if (deckDict.TryGetValue("card_instance_ids", out var cardsVar) && cardsVar.VariantType == Variant.Type.Array)
+            if (
+                deckDict.TryGetValue("card_instance_ids", out var cardsVar)
+                && cardsVar.VariantType == Variant.Type.Array
+            )
             {
                 foreach (var c in cardsVar.AsGodotArray())
                     deck.CardInstanceIds.Add(new CardInstanceId(c.AsString()));
@@ -1034,15 +1085,17 @@ public partial class ProfileRepository : Node, IProfileRepository
     }
 
     /// <summary>Get profile meta as dictionary for GDScript.</summary>
-    public GdDict GetProfileMetaDict()
-        => DtoConverters.ToDict(_data.Meta);
+    public GdDict GetProfileMetaDict() => DtoConverters.ToDict(_data.Meta);
 
     /// <summary>Get last match as dictionary for GDScript.</summary>
     public GdDict GetLastMatchDict()
     {
         var dict = new GdDict();
-        dict["seed"] = _data.LastMatch.Seed.HasValue ? Variant.From(_data.LastMatch.Seed.Value) : new Variant();
-        dict["result"] = _data.LastMatch.Result != null ? Variant.From(_data.LastMatch.Result) : new Variant();
+        dict["seed"] = _data.LastMatch.Seed.HasValue
+            ? Variant.From(_data.LastMatch.Seed.Value)
+            : new Variant();
+        dict["result"] =
+            _data.LastMatch.Result != null ? Variant.From(_data.LastMatch.Result) : new Variant();
         dict["duration_s"] = _data.LastMatch.DurationSeconds.HasValue
             ? Variant.From(_data.LastMatch.DurationSeconds.Value)
             : new Variant();
@@ -1052,9 +1105,15 @@ public partial class ProfileRepository : Node, IProfileRepository
     /// <summary>Update last match from GDScript dictionary.</summary>
     public void UpdateLastMatchDict(GdDict matchInfo)
     {
-        if (matchInfo.TryGetValue("seed", out var seedVar) && seedVar.VariantType == Variant.Type.Int)
+        if (
+            matchInfo.TryGetValue("seed", out var seedVar)
+            && seedVar.VariantType == Variant.Type.Int
+        )
             _data.LastMatch.Seed = seedVar.AsInt64();
-        if (matchInfo.TryGetValue("result", out var resultVar) && resultVar.VariantType == Variant.Type.String)
+        if (
+            matchInfo.TryGetValue("result", out var resultVar)
+            && resultVar.VariantType == Variant.Type.String
+        )
             _data.LastMatch.Result = resultVar.AsString();
         if (matchInfo.TryGetValue("duration_s", out var durVar))
         {
@@ -1099,13 +1158,16 @@ public partial class ProfileRepository : Node, IProfileRepository
     public GdDict GetCampaignProgressDict(string summonerId = "")
     {
         var progress = GetCampaignProgress(
-            string.IsNullOrEmpty(summonerId) ? new SummonerId(GetActiveSummonerId()) : new SummonerId(summonerId));
+            string.IsNullOrEmpty(summonerId)
+                ? new SummonerId(GetActiveSummonerId())
+                : new SummonerId(summonerId)
+        );
         return DtoConverters.ToDict(progress);
     }
 
     /// <summary>Get shared campaign progress as dictionary for GDScript.</summary>
-    public GdDict GetSharedCampaignProgressDict()
-        => DtoConverters.ToDict(_data.SharedCampaignProgress);
+    public GdDict GetSharedCampaignProgressDict() =>
+        DtoConverters.ToDict(_data.SharedCampaignProgress);
 
     /// <summary>Update shared campaign progress from GDScript dictionary.</summary>
     public void UpdateSharedCampaignProgressDict(GdDict progressDict)
@@ -1135,7 +1197,8 @@ public partial class ProfileRepository : Node, IProfileRepository
 
     private void WriteSave()
     {
-        if (!_pendingSave) return;
+        if (!_pendingSave)
+            return;
         _pendingSave = false;
 
         _data.UpdatedAt = (long)Time.GetUnixTimeFromSystem();
@@ -1171,7 +1234,7 @@ public partial class ProfileRepository : Node, IProfileRepository
                 Essence = 0,
                 Fragments = 0,
                 ProfileId = new ProfileId(_currentProfileId),
-                UpdatedAt = now
+                UpdatedAt = now,
             },
             Meta = new AccountMeta
             {
@@ -1179,13 +1242,13 @@ public partial class ProfileRepository : Node, IProfileRepository
                 SelectedSummoner = "",
                 TutorialFlags = [],
                 Achievements = [],
-                AnalyticsOptIn = false
+                AnalyticsOptIn = false,
             },
             Settings = new Settings
             {
                 SfxVolume = 1.0f,
                 MusicVolume = 1.0f,
-                Lang = "en"
+                Lang = "en",
             },
             Cosmetics = new Cosmetics
             {
@@ -1193,15 +1256,15 @@ public partial class ProfileRepository : Node, IProfileRepository
                 Equipped = new EquippedCosmetics
                 {
                     CardBack = CosmeticId.None,
-                    UiTheme = CosmeticId.None
+                    UiTheme = CosmeticId.None,
                 },
-                SummonerSkins = []
+                SummonerSkins = [],
             },
             Emotes = new Emotes
             {
                 Owned = [],
-                Equipped = [EmoteId.None, EmoteId.None, EmoteId.None, EmoteId.None]
-            }
+                Equipped = [EmoteId.None, EmoteId.None, EmoteId.None, EmoteId.None],
+            },
         };
     }
 
@@ -1212,12 +1275,12 @@ public partial class ProfileRepository : Node, IProfileRepository
         return defaultId;
     }
 
-    private static string GetActiveSummonerId()
-        => SummonerSelectionService.Instance?.GetActiveSummonerId() ?? "";
+    private static string GetActiveSummonerId() =>
+        SummonerSelectionService.Instance?.GetActiveSummonerId() ?? "";
 
     /// <summary>Safe dictionary access — Godot.Collections.Dictionary lacks GetValueOrDefault.</summary>
-    private static Variant GdGet(GdDict dict, string key, Variant defaultValue)
-        => dict.TryGetValue(key, out var val) ? val : defaultValue;
+    private static Variant GdGet(GdDict dict, string key, Variant defaultValue) =>
+        dict.TryGetValue(key, out var val) ? val : defaultValue;
 
     private void AppendToWal(string action, object? parameters)
     {
@@ -1226,7 +1289,7 @@ public partial class ProfileRepository : Node, IProfileRepository
             ["op_id"] = Guid.NewGuid().ToString(),
             ["profile_id"] = _currentProfileId,
             ["action"] = action,
-            ["timestamp"] = Time.GetUnixTimeFromSystem()
+            ["timestamp"] = Time.GetUnixTimeFromSystem(),
         };
         if (parameters != null)
             walEntry["params"] = parameters;

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Multiplayer.Protocol;
+using Fateforged.Multiplayer.Transport;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
-using Fateforged.Multiplayer.Protocol;
-using Fateforged.Multiplayer.Transport;
 using Godot;
 using Godot.Collections;
 
@@ -46,17 +46,11 @@ public abstract class NetworkSession : IGameSession, IDisposable
         // Override in concrete session if disconnect should end match.
     }
 
-    protected virtual void HandleConnected()
-    {
-    }
+    protected virtual void HandleConnected() { }
 
-    protected virtual void HandlePeerConnected(int peerId)
-    {
-    }
+    protected virtual void HandlePeerConnected(int peerId) { }
 
-    protected virtual void HandlePeerDisconnected(int peerId)
-    {
-    }
+    protected virtual void HandlePeerDisconnected(int peerId) { }
 
     private void OnTransportMessageReceived(int senderId, Dictionary message)
     {
@@ -67,7 +61,9 @@ public abstract class NetworkSession : IGameSession, IDisposable
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[{GetType().Name}] Failed to deserialize transport message from {senderId}: {ex.Message}");
+            GD.PrintErr(
+                $"[{GetType().Name}] Failed to deserialize transport message from {senderId}: {ex.Message}"
+            );
             return;
         }
 

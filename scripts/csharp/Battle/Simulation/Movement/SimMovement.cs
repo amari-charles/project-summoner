@@ -1,9 +1,9 @@
-using Fateforged.Simulation.Combat;
-using Fateforged.Simulation.Enums;
 using Fateforged.Constants;
-using Fateforged.Units;
+using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Movement;
 
@@ -22,7 +22,12 @@ public static class SimMovement
     /// Execute a full movement tick for a unit based on its behavior result.
     /// Pipeline: IntentResolve → ORCA → Smooth → Apply → OverlapCorrection.
     /// </summary>
-    public static void Tick(UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state, float delta)
+    public static void Tick(
+        UnitData unit,
+        SimBehavior.BehaviorResult behavior,
+        MatchState state,
+        float delta
+    )
     {
         FacingController.Tick(unit, delta);
 
@@ -60,8 +65,9 @@ public static class SimMovement
         var prevVelocity = unit.Velocity;
         if (prevVelocity.LengthSquared() > DirectionThreshold)
         {
-            safeVelocity = safeVelocity * (1f - VelocitySmoothingFactor) +
-                           prevVelocity * VelocitySmoothingFactor;
+            safeVelocity =
+                safeVelocity * (1f - VelocitySmoothingFactor)
+                + prevVelocity * VelocitySmoothingFactor;
         }
 
         // Layer 5: Apply
@@ -94,7 +100,11 @@ public static class SimMovement
     }
 
     private static void TickCommitMeleeMovement(
-        UnitData unit, SimBehavior.BehaviorResult behavior, MatchState state, float delta)
+        UnitData unit,
+        SimBehavior.BehaviorResult behavior,
+        MatchState state,
+        float delta
+    )
     {
         if (behavior.Movement == MovementResult.None || unit.AttackPhase != AttackPhase.None)
         {
@@ -106,7 +116,10 @@ public static class SimMovement
 
         if (behavior.Movement == MovementResult.Forward)
         {
-            var objectiveDirection = MovementTargetResolver.ResolveObjectiveAdvanceDirection(unit, state);
+            var objectiveDirection = MovementTargetResolver.ResolveObjectiveAdvanceDirection(
+                unit,
+                state
+            );
             if (objectiveDirection.LengthSquared() < DirectionThreshold)
             {
                 unit.Velocity = SimVector3.Zero;

@@ -116,7 +116,8 @@ public partial class CosmeticsCatalogBridge : Node
     public string GetCosmeticName(string cosmeticId)
     {
         var cosmetic = CosmeticsCatalog.GetCosmetic(cosmeticId);
-        if (cosmetic == null) return "";
+        if (cosmetic == null)
+            return "";
         return Localize(cosmetic.NameKey);
     }
 

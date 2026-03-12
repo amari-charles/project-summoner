@@ -29,7 +29,10 @@ public static class SimpleAiStrategy
         for (int i = 0; i < summoner.Hand.Count; i++)
         {
             var catalogId = summoner.Hand[i];
-            if (state.CardDataMap.TryGetValue(catalogId, out var cardData) && cardData.ManaCost <= mana)
+            if (
+                state.CardDataMap.TryGetValue(catalogId, out var cardData)
+                && cardData.ManaCost <= mana
+            )
             {
                 playable[playableCount++] = i;
             }
@@ -46,7 +49,11 @@ public static class SimpleAiStrategy
     /// <summary>
     /// Select a random position in the team's territory.
     /// </summary>
-    public static SimVector3 SelectSpawnPosition(MatchState state, SummonerData summoner, SimCardCatalogId catalogId)
+    public static SimVector3 SelectSpawnPosition(
+        MatchState state,
+        SummonerData summoner,
+        SimCardCatalogId catalogId
+    )
     {
         if (state.Rng == null)
             return summoner.Position;
@@ -60,7 +67,10 @@ public static class SimpleAiStrategy
         else // Player: negative X
             x = state.Rng.RangeFloat(-halfWidth * 0.9f, -halfWidth * 0.1f);
 
-        float z = state.Rng.RangeFloat(-BattlefieldBounds.HalfDepth * 0.5f, BattlefieldBounds.HalfDepth * 0.5f);
+        float z = state.Rng.RangeFloat(
+            -BattlefieldBounds.HalfDepth * 0.5f,
+            BattlefieldBounds.HalfDepth * 0.5f
+        );
 
         return new SimVector3(x, 0f, z);
     }

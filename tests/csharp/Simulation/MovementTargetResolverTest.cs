@@ -23,7 +23,14 @@ public class MovementTargetResolverTest
     [TestCase]
     public void Resolve_MeleeSameTarget_UsesDeterministicDistinctApproachOffsets()
     {
-        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 5f, z: 0f, moveSpeed: 0f, attackSpeed: 0f);
+        var target = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 5f,
+            z: 0f,
+            moveSpeed: 0f,
+            attackSpeed: 0f
+        );
         var first = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2f);
         var second = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2f);
         var third = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, attackRange: 2f);
@@ -48,10 +55,16 @@ public class MovementTargetResolverTest
         AssertThat(thirdPoint.HasValue).IsTrue();
 
         float nav = CombatGeometry.GetNavigationRadius(first);
-        float standoff = MathF.Min(0.9f * (nav + CombatGeometry.GetNavigationRadius(target)), 0.35f * first.AttackRange);
+        float standoff = MathF.Min(
+            0.9f * (nav + CombatGeometry.GetNavigationRadius(target)),
+            0.35f * first.AttackRange
+        );
         float expectedBaseX = target.Position.X - standoff;
         float expectedStep = MathF.Max(0.18f, 0.55f * nav);
-        float expectedBudget = MathF.Max(0.20f, MathF.Min(0.75f * first.EngageRectHalfWidth, 1.10f));
+        float expectedBudget = MathF.Max(
+            0.20f,
+            MathF.Min(0.75f * first.EngageRectHalfWidth, 1.10f)
+        );
 
         AssertThat(firstPoint!.Value.X).IsEqualApprox(expectedBaseX, 0.0001f);
         AssertThat(secondPoint!.Value.X).IsEqualApprox(expectedBaseX, 0.0001f);
@@ -96,7 +109,10 @@ public class MovementTargetResolverTest
         var earlyPostBand = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 10f, z: 10f);
         var latePostBand = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 18f, z: 10f);
 
-        var earlyDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(earlyPostBand, _state);
+        var earlyDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(
+            earlyPostBand,
+            _state
+        );
         var lateDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(latePostBand, _state);
 
         AssertThat(MathF.Abs(lateDir.Z)).IsGreater(MathF.Abs(earlyDir.Z));

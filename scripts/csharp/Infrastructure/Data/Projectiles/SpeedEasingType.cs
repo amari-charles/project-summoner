@@ -23,5 +23,5 @@ public enum SpeedEasingType
     /// <summary>
     /// Smooth S-curve using sine: (1 - cos(t * PI)) / 2
     /// </summary>
-    EaseInOut
+    EaseInOut,
 }

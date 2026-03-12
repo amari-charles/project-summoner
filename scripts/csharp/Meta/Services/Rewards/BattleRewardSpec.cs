@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Events;
+using Godot;
 
 namespace Fateforged.Meta.Rewards;
 
@@ -51,13 +51,14 @@ public class BattleRewardSpec
     /// <param name="isCompleted">Whether the battle has been completed (replay).</param>
     /// <param name="chosenIndex">Previously chosen option index (-1 if not chosen).</param>
     /// <param name="ownedCatalogIds">Set of card catalog IDs the player already owns (for filtering).</param>
-    public static BattleRewardSpec FromBattleId(string battleId, bool isCompleted = false, int chosenIndex = -1, HashSet<string>? ownedCatalogIds = null)
+    public static BattleRewardSpec FromBattleId(
+        string battleId,
+        bool isCompleted = false,
+        int chosenIndex = -1,
+        HashSet<string>? ownedCatalogIds = null
+    )
     {
-        var spec = new BattleRewardSpec
-        {
-            IsReplay = isCompleted,
-            ChosenIndex = chosenIndex
-        };
+        var spec = new BattleRewardSpec { IsReplay = isCompleted, ChosenIndex = chosenIndex };
 
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(new EventId(battleId));
         if (battle == null)
@@ -85,7 +86,9 @@ public class BattleRewardSpec
                 var cardOptionStrings = rewards.CardOptions.Select(id => (string)id).ToList();
                 if (rewards.ExcludeOwned && ownedCatalogIds != null && ownedCatalogIds.Count > 0)
                 {
-                    var filtered = cardOptionStrings.Where(id => !ownedCatalogIds.Contains(id)).ToList();
+                    var filtered = cardOptionStrings
+                        .Where(id => !ownedCatalogIds.Contains(id))
+                        .ToList();
                     // Only use filtered list if it still has options; otherwise show all (player owns everything)
                     if (filtered.Count > 0)
                     {
@@ -115,13 +118,15 @@ public class BattleRewardSpec
         foreach (var entry in fixedCards)
         {
             var cardDef = CardCatalog.GetCard(entry.CardId);
-            options.Add(new CardRewardOption
-            {
-                CatalogId = entry.CardId,
-                Rarity = entry.Rarity,
-                Count = entry.Count,
-                DisplayName = cardDef?.Name ?? entry.CardId
-            });
+            options.Add(
+                new CardRewardOption
+                {
+                    CatalogId = entry.CardId,
+                    Rarity = entry.Rarity,
+                    Count = entry.Count,
+                    DisplayName = cardDef?.Name ?? entry.CardId,
+                }
+            );
         }
 
         return options;
@@ -139,13 +144,15 @@ public class BattleRewardSpec
             var cardDef = CardCatalog.GetCard(cardId);
             var rarity = cardDef?.Rarity.ToString().ToLowerInvariant() ?? "common";
 
-            options.Add(new CardRewardOption
-            {
-                CatalogId = cardId,
-                Rarity = rarity,
-                Count = 1,
-                DisplayName = cardDef?.Name ?? cardId
-            });
+            options.Add(
+                new CardRewardOption
+                {
+                    CatalogId = cardId,
+                    Rarity = rarity,
+                    Count = 1,
+                    DisplayName = cardDef?.Name ?? cardId,
+                }
+            );
         }
 
         return options;
@@ -175,7 +182,7 @@ public class BattleRewardSpec
             ["card_xp"] = CardXp,
             ["card_options"] = cardOptionsArray,
             ["requires_choice"] = RequiresChoice,
-            ["chosen_index"] = ChosenIndex
+            ["chosen_index"] = ChosenIndex,
         };
     }
 }
@@ -212,7 +219,7 @@ public class CardRewardOption
             ["catalog_id"] = CatalogId,
             ["rarity"] = Rarity,
             ["count"] = Count,
-            ["display_name"] = DisplayName
+            ["display_name"] = DisplayName,
         };
     }
 }

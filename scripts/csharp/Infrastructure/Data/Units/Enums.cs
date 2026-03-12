@@ -6,7 +6,7 @@ namespace Fateforged.Units;
 public enum Team
 {
     Player = 0,
-    Enemy = 1
+    Enemy = 1,
 }
 
 /// <summary>
@@ -15,7 +15,7 @@ public enum Team
 public enum UnitType
 {
     Melee,
-    Ranged
+    Ranged,
 }
 
 /// <summary>
@@ -29,7 +29,7 @@ public enum AttackPreset
     AreaCleave = 1,
     LinePierce = 2,
     Chain = 3,
-    Custom = 99
+    Custom = 99,
 }
 
 /// <summary>
@@ -40,7 +40,7 @@ public enum AttackSelectionMode
     Single = 0,
     AreaCollect = 1,
     LineCollect = 2,
-    ChainHops = 3
+    ChainHops = 3,
 }
 
 /// <summary>
@@ -51,7 +51,7 @@ public enum AttackAreaShape
     Sphere = 0,
     Box = 1,
     Capsule = 2,
-    Line = 3
+    Line = 3,
 }
 
 /// <summary>
@@ -61,7 +61,7 @@ public enum AttackPropagationMode
 {
     None = 0,
     Pierce = 1,
-    Chain = 2
+    Chain = 2,
 }
 
 /// <summary>
@@ -71,7 +71,7 @@ public enum AttackDeliveryMode
 {
     Instant = 0,
     Projectile = 1,
-    PersistentZone = 2
+    PersistentZone = 2,
 }
 
 /// <summary>
@@ -80,7 +80,7 @@ public enum AttackDeliveryMode
 public enum AttackTriggerMode
 {
     PrimaryOnly = 0,
-    EveryRecipient = 1
+    EveryRecipient = 1,
 }
 
 /// <summary>
@@ -106,7 +106,7 @@ public enum TacticalRole
     /// <summary>
     /// Safer-range role with reduced cross-lane chase.
     /// </summary>
-    Backliner = 3
+    Backliner = 3,
 }
 
 /// <summary>
@@ -115,7 +115,7 @@ public enum TacticalRole
 public enum MovementLayer
 {
     Ground,
-    Air
+    Air,
 }
 
 /// <summary>
@@ -125,7 +125,7 @@ public enum TargetLayer
 {
     GroundOnly,
     AirOnly,
-    Both
+    Both,
 }
 
 /// <summary>
@@ -156,7 +156,7 @@ public enum UnitTargetingProfile
     /// <summary>
     /// Flying cone profile: strafe fallback with cone attack constraint.
     /// </summary>
-    FlyingConeStrafe = 4
+    FlyingConeStrafe = 4,
 }
 
 /// <summary>
@@ -165,7 +165,7 @@ public enum UnitTargetingProfile
 public enum ActivationState
 {
     Inactive,
-    Active
+    Active,
 }
 
 /// <summary>
@@ -183,7 +183,7 @@ public enum FlyingAttackStyle
     Swoop,
 
     /// <summary>Switch between air/ground based on target type.</summary>
-    Adaptive
+    Adaptive,
 }
 
 /// <summary>
@@ -198,5 +198,5 @@ public enum FlyingDeathStyle
     Fade,
 
     /// <summary>Explosion VFX at altitude.</summary>
-    Explode
+    Explode,
 }

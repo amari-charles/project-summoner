@@ -13,5 +13,5 @@ public enum CardType
     /// <summary>
     /// Card that casts a spell effect (damage, heal, command, etc.).
     /// </summary>
-    Spell = 1
+    Spell = 1,
 }

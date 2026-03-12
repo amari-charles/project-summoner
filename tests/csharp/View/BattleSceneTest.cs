@@ -5,8 +5,8 @@ using System.Linq;
 using System.Reflection;
 using Fateforged.Cards;
 using Fateforged.Session;
-using Fateforged.Simulation.Enums;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Enums;
 using Fateforged.View;
 using GdUnit4;
 using Godot;
@@ -79,7 +79,10 @@ public class BattleSceneTest
         var simNode = CreateSimulationNode();
         simNode.GetState().Phase = GamePhase.Battle;
         var phases = new List<int>();
-        scene.Connect(BattleScene.SignalName.PhaseChanged, Callable.From<int>(phase => phases.Add(phase)));
+        scene.Connect(
+            BattleScene.SignalName.PhaseChanged,
+            Callable.From<int>(phase => phases.Add(phase))
+        );
 
         scene.StartGame();
         scene.StartGame();
@@ -95,7 +98,10 @@ public class BattleSceneTest
         var simNode = CreateSimulationNode();
         simNode.GetState().Phase = GamePhase.Preparation;
         var phases = new List<int>();
-        scene.Connect(BattleScene.SignalName.PhaseChanged, Callable.From<int>(phase => phases.Add(phase)));
+        scene.Connect(
+            BattleScene.SignalName.PhaseChanged,
+            Callable.From<int>(phase => phases.Add(phase))
+        );
 
         scene.StartGame();
 
@@ -110,12 +116,60 @@ public class BattleSceneTest
         var simNode = CreateSimulationNode();
         simNode.GetState().Phase = GamePhase.GameOver;
         var phases = new List<int>();
-        scene.Connect(BattleScene.SignalName.PhaseChanged, Callable.From<int>(phase => phases.Add(phase)));
+        scene.Connect(
+            BattleScene.SignalName.PhaseChanged,
+            Callable.From<int>(phase => phases.Add(phase))
+        );
 
         scene.StartGame();
 
         AssertThat(phases.Count).IsEqual(1);
         AssertThat(phases[0]).IsEqual((int)BattleScene.BattlePhase.Battle);
+    }
+
+    [TestCase]
+    public void NewBattleScene_DefaultPreparationDuration_Is15Seconds()
+    {
+        var scene = CreateBattleScene();
+        AssertThat(scene.PreparationDuration).IsEqual(15.0f);
+    }
+
+    [TestCase]
+    public void LoadSummonerData_OpeningHandContainsOnlySummons()
+    {
+        var scene = CreateBattleScene();
+        var staticDeck = new Godot.Collections.Array<Resource>();
+
+        var spell = BattleSessionFactory.CreateCardFromCatalog("mana_bolt");
+        var summonA = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
+        var summonB = BattleSessionFactory.CreateCardFromCatalog("water_wisp");
+        AssertThat(spell).IsNotNull();
+        AssertThat(summonA).IsNotNull();
+        AssertThat(summonB).IsNotNull();
+
+        staticDeck.Add((Resource)spell!);
+        staticDeck.Add((Resource)summonA!);
+        staticDeck.Add((Resource)summonB!);
+
+        var result = BattleSessionFactory.LoadSummonerData(
+            scene,
+            BattleSessionConfig.ForPractice(),
+            localTeam: 0,
+            deckLoadStrategy: DeckLoadStrategy.Static,
+            defaultMaxHp: 100f,
+            maxHandSize: 2,
+            staticDeck: staticDeck
+        );
+
+        AssertThat(result.Hand.Count).IsEqual(2);
+        var handTypes = result.Hand.OfType<Card>().Select(card => card.Type).ToList();
+        AssertThat(handTypes.Count).IsEqual(2);
+        AssertThat(handTypes.All(type => type == (int)CardType.Summon)).IsTrue();
+
+        AssertThat(result.Deck.Count).IsEqual(1);
+        var remainingCard = result.Deck[0] as Card;
+        AssertThat(remainingCard).IsNotNull();
+        AssertThat(remainingCard!.Type).IsEqual((int)CardType.Spell);
     }
 
     [TestCase]
@@ -144,19 +198,19 @@ public class BattleSceneTest
             ["level"] = 1,
             ["xp"] = 0,
             ["acquired_trait_ids"] = new Godot.Collections.Array(),
-            ["unspent_trait_points"] = 0
+            ["unspent_trait_points"] = 0,
         };
 
         var rawConfig = new Godot.Collections.Dictionary
         {
-            ["opponent_summoner_data"] = opponentSummoner
+            ["opponent_summoner_data"] = opponentSummoner,
         };
         var config = new BattleSessionConfig
         {
             Mode = BattleMode.Multiplayer,
             IsMultiplayer = true,
             HasAuthority = true,
-            RawConfig = rawConfig
+            RawConfig = rawConfig,
         };
         SetPrivateField(scene, "_config", config);
 
@@ -168,7 +222,8 @@ public class BattleSceneTest
             summoner.DeckLoadStrategy,
             summoner.MaxHpExport,
             summoner.MaxHandSize,
-            summoner.StartingDeck);
+            summoner.StartingDeck
+        );
 
         InvokePrivateMethod(scene, "InitSummonerHost", summoner, 1, simNode);
 
@@ -177,9 +232,9 @@ public class BattleSceneTest
         AssertThat(summonerState.DamageReduction).IsEqual(expected.DamageReduction);
         AssertThat(summonerState.SoulStrength).IsEqual(expected.SoulStrength);
 
-        var actualElementalBonuses = summonerState.EnumerateElementalDamageBonuses().ToDictionary(
-            kvp => kvp.Key,
-            kvp => kvp.Value);
+        var actualElementalBonuses = summonerState
+            .EnumerateElementalDamageBonuses()
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         AssertThat(actualElementalBonuses.Count).IsEqual(expected.ElementalDamageBonuses.Count);
         foreach (var (element, bonus) in expected.ElementalDamageBonuses)
         {
@@ -214,20 +269,25 @@ public class BattleSceneTest
 
     private static T GetPrivateField<T>(object target, string fieldName)
     {
-        var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = target
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         return (T)field!.GetValue(target)!;
     }
 
     private static void SetPrivateField(object target, string fieldName, object value)
     {
-        var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = target
+            .GetType()
+            .GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         field!.SetValue(target, value);
     }
 
     private static void InvokePrivateMethod(object target, string methodName, params object?[] args)
     {
-        var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+        var method = target
+            .GetType()
+            .GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
         method!.Invoke(target, args);
     }
-
 }

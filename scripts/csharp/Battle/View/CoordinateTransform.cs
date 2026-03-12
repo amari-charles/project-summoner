@@ -21,7 +21,8 @@ public static class CoordinateTransform
     /// </summary>
     public static Vector3 LocalToCanonical(Vector3 localPos)
     {
-        if (LocalPlayer.IsHost) return localPos;
+        if (LocalPlayer.IsHost)
+            return localPos;
         return MirrorX(localPos);
     }
 
@@ -30,7 +31,8 @@ public static class CoordinateTransform
     /// </summary>
     public static Vector3 CanonicalToLocal(Vector3 canonicalPos)
     {
-        if (LocalPlayer.IsHost) return canonicalPos;
+        if (LocalPlayer.IsHost)
+            return canonicalPos;
         return MirrorX(canonicalPos);
     }
 
@@ -40,7 +42,8 @@ public static class CoordinateTransform
     /// </summary>
     public static Vector3 LocalRotationToCanonical(Vector3 localRotation)
     {
-        if (LocalPlayer.IsHost) return localRotation;
+        if (LocalPlayer.IsHost)
+            return localRotation;
         return new Vector3(localRotation.X, localRotation.Y + Mathf.Pi, localRotation.Z);
     }
 
@@ -49,14 +52,22 @@ public static class CoordinateTransform
     /// </summary>
     public static Vector3 CanonicalRotationToLocal(Vector3 canonicalRotation)
     {
-        if (LocalPlayer.IsHost) return canonicalRotation;
-        return new Vector3(canonicalRotation.X, canonicalRotation.Y + Mathf.Pi, canonicalRotation.Z);
+        if (LocalPlayer.IsHost)
+            return canonicalRotation;
+        return new Vector3(
+            canonicalRotation.X,
+            canonicalRotation.Y + Mathf.Pi,
+            canonicalRotation.Z
+        );
     }
 
     /// <summary>
     /// Transform a full pose (position + rotation) from local to canonical.
     /// </summary>
-    public static (Vector3 position, Vector3 rotation) LocalPoseToCanonical(Vector3 pos, Vector3 rot)
+    public static (Vector3 position, Vector3 rotation) LocalPoseToCanonical(
+        Vector3 pos,
+        Vector3 rot
+    )
     {
         return (LocalToCanonical(pos), LocalRotationToCanonical(rot));
     }
@@ -64,7 +75,10 @@ public static class CoordinateTransform
     /// <summary>
     /// Transform a full pose from canonical to local.
     /// </summary>
-    public static (Vector3 position, Vector3 rotation) CanonicalPoseToLocal(Vector3 pos, Vector3 rot)
+    public static (Vector3 position, Vector3 rotation) CanonicalPoseToLocal(
+        Vector3 pos,
+        Vector3 rot
+    )
     {
         return (CanonicalToLocal(pos), CanonicalRotationToLocal(rot));
     }

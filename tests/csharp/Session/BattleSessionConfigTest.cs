@@ -59,6 +59,13 @@ public class BattleSessionConfigTest
         AssertThat(config.WinCondition).IsEqual(WinConditionType.DestroySummoner);
     }
 
+    [TestCase]
+    public void NewConfig_DefaultPreparationDuration_Is15Seconds()
+    {
+        var config = new BattleSessionConfig();
+        AssertThat(config.PreparationDuration).IsEqual(15f);
+    }
+
     // =========================================================================
     // XP REWARD FIELD POPULATION
     // =========================================================================
@@ -80,7 +87,10 @@ public class BattleSessionConfigTest
     [TestCase]
     public void OriginScene_CanBeSet()
     {
-        var config = new BattleSessionConfig { OriginScene = "res://scenes/meta/screens/campaign_map.tscn" };
+        var config = new BattleSessionConfig
+        {
+            OriginScene = "res://scenes/meta/screens/campaign_map.tscn",
+        };
         AssertThat(config.OriginScene).IsEqual("res://scenes/meta/screens/campaign_map.tscn");
     }
 

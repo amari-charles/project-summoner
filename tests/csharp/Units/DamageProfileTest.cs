@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Units;
 
-using GdUnit4;
 using Fateforged.Cards;
 using Fateforged.Units;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -75,11 +75,7 @@ public class DamageProfileTest
     [TestCase]
     public void IsValid_FalseWhenRatiosDoNotSumToOne()
     {
-        var invalid = new DamageProfile
-        {
-            PhysicalRatio = 0.5f,
-            ElementalRatio = 0.3f
-        };
+        var invalid = new DamageProfile { PhysicalRatio = 0.5f, ElementalRatio = 0.3f };
 
         AssertThat(invalid.IsValid()).IsFalse();
     }

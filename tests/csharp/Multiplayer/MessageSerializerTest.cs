@@ -1,11 +1,11 @@
 namespace Fateforged.Tests.Multiplayer;
 
 using System;
-using GdUnit4;
-using Godot;
 using Fateforged.Multiplayer.Protocol;
 using Fateforged.Projectiles;
 using Fateforged.Simulation.Data;
+using GdUnit4;
+using Godot;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -71,11 +71,7 @@ public class MessageSerializerTest
     [TestCase]
     public void StateHashReport_RoundTrip()
     {
-        var original = new StateHashReport(
-            PlayerIndex: 1,
-            Frame: 1000L,
-            Hash: 987654
-        );
+        var original = new StateHashReport(PlayerIndex: 1, Frame: 1000L, Hash: 987654);
 
         var dict = _serializer.Serialize(original);
         var result = _serializer.Deserialize(dict);
@@ -295,8 +291,10 @@ public class MessageSerializerTest
                     Speed: 9f,
                     ProjectileCatalogId: "weaving_bolt",
                     HitRadius: 0.75f,
-                    HitSpace: ProjectileHitSpace.Sphere3D)
-            ]);
+                    HitSpace: ProjectileHitSpace.Sphere3D
+                ),
+            ]
+        );
 
         var dict = _serializer.Serialize(original);
         var result = _serializer.Deserialize(dict);
@@ -314,17 +312,20 @@ public class MessageSerializerTest
     [TestCase]
     public void ProjectileSpawned_Deserialize_InvalidHitSpace_DefaultsToGroundCylinder()
     {
-        var dict = _serializer.Serialize(new ProjectileSpawned(
-            ProjectileId: 1,
-            SourceUnitId: 1,
-            TargetUnitId: 2,
-            Team: 0,
-            MovementType: 0,
-            CurrentPosition: Vector3.Zero,
-            Direction: Vector3.Forward,
-            TargetPosition: Vector3.Forward,
-            Speed: 1f,
-            HitSpace: ProjectileHitSpace.GroundCylinder));
+        var dict = _serializer.Serialize(
+            new ProjectileSpawned(
+                ProjectileId: 1,
+                SourceUnitId: 1,
+                TargetUnitId: 2,
+                Team: 0,
+                MovementType: 0,
+                CurrentPosition: Vector3.Zero,
+                Direction: Vector3.Forward,
+                TargetPosition: Vector3.Forward,
+                Speed: 1f,
+                HitSpace: ProjectileHitSpace.GroundCylinder
+            )
+        );
 
         dict["hitSpace"] = 999;
 
@@ -471,10 +472,7 @@ public class MessageSerializerTest
     [TestCase]
     public void Pong_RoundTrip()
     {
-        var original = new Pong(
-            OriginalTimestamp: 1000L,
-            ServerTimestamp: 1005L
-        );
+        var original = new Pong(OriginalTimestamp: 1000L, ServerTimestamp: 1005L);
 
         var dict = _serializer.Serialize(original);
         var result = _serializer.Deserialize(dict);
@@ -490,21 +488,69 @@ public class MessageSerializerTest
     {
         var summoners = new[]
         {
-            new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10,
-                IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
-                CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1, CardStateHash: 0,
-                Hand: CatalogIds("fire_wisp", "pebbloom"), Deck: CatalogIds("aqua_sprite"), DiscardPile: System.Array.Empty<SimCardCatalogId>(),
-                CastingCatalogId: ""),
-            new SummonerState(Team: 1, Hp: 80, MaxHp: 100, Mana: 7, MaxMana: 10,
-                IsCasting: true, CastingTimeRemaining: 1.5f, CastingTimeTotal: 2f,
-                CastingCardIndex: 2, CastingSpawnPosition: new Vector3(3, 0, 3), CastingNetworkId: 5, CardStateHash: 42,
-                Hand: CatalogIds("stone_golem"), Deck: CatalogIds("fire_wisp", "pebbloom"), DiscardPile: CatalogIds("aqua_sprite"),
-                CastingCatalogId: "fire_wisp")
+            new SummonerState(
+                Team: 0,
+                Hp: 100,
+                MaxHp: 100,
+                Mana: 5,
+                MaxMana: 10,
+                IsCasting: false,
+                CastingTimeRemaining: 0f,
+                CastingTimeTotal: 0f,
+                CastingCardIndex: -1,
+                CastingSpawnPosition: Vector3.Zero,
+                CastingNetworkId: -1,
+                CardStateHash: 0,
+                Hand: CatalogIds("fire_wisp", "pebbloom"),
+                Deck: CatalogIds("aqua_sprite"),
+                DiscardPile: System.Array.Empty<SimCardCatalogId>(),
+                CastingCatalogId: ""
+            ),
+            new SummonerState(
+                Team: 1,
+                Hp: 80,
+                MaxHp: 100,
+                Mana: 7,
+                MaxMana: 10,
+                IsCasting: true,
+                CastingTimeRemaining: 1.5f,
+                CastingTimeTotal: 2f,
+                CastingCardIndex: 2,
+                CastingSpawnPosition: new Vector3(3, 0, 3),
+                CastingNetworkId: 5,
+                CardStateHash: 42,
+                Hand: CatalogIds("stone_golem"),
+                Deck: CatalogIds("fire_wisp", "pebbloom"),
+                DiscardPile: CatalogIds("aqua_sprite"),
+                CastingCatalogId: "fire_wisp"
+            ),
         };
         var units = new[]
         {
-            new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(1, 0, 1), Hp: 50, MaxHp: 100, TargetNetworkId: 2, IsAlive: true, ActivationState: 1, BehaviorState: 1, IsFacingRight: true),
-            new UnitState(NetworkId: 2, Team: 1, Position: new Vector3(5, 0, 5), Hp: 30, MaxHp: 80, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 3, IsFacingRight: false)
+            new UnitState(
+                NetworkId: 1,
+                Team: 0,
+                Position: new Vector3(1, 0, 1),
+                Hp: 50,
+                MaxHp: 100,
+                TargetNetworkId: 2,
+                IsAlive: true,
+                ActivationState: 1,
+                BehaviorState: 1,
+                IsFacingRight: true
+            ),
+            new UnitState(
+                NetworkId: 2,
+                Team: 1,
+                Position: new Vector3(5, 0, 5),
+                Hp: 30,
+                MaxHp: 80,
+                TargetNetworkId: null,
+                IsAlive: true,
+                ActivationState: 1,
+                BehaviorState: 3,
+                IsFacingRight: false
+            ),
         };
         var projectiles = new[]
         {
@@ -530,7 +576,8 @@ public class MessageSerializerTest
                 SpeedEasing: 1,
                 SpeedEaseExponent: 2.25f,
                 TimeAlive: 0.3f,
-                Lifetime: 3f)
+                Lifetime: 3f
+            ),
         };
 
         var original = new StateSnapshot(
@@ -600,8 +647,7 @@ public class MessageSerializerTest
     {
         var unknownObj = (IProtocolMessage)new UnknownProtocolMessage();
 
-        AssertThrown(() => _serializer.Serialize(unknownObj))
-            .IsInstanceOf<ArgumentException>();
+        AssertThrown(() => _serializer.Serialize(unknownObj)).IsInstanceOf<ArgumentException>();
     }
 
     [TestCase]
@@ -639,15 +685,39 @@ public class MessageSerializerTest
     {
         var summoners = new[]
         {
-            new SummonerState(Team: 0, Hp: 100, MaxHp: 100, Mana: 5, MaxMana: 10,
-                IsCasting: false, CastingTimeRemaining: 0f, CastingTimeTotal: 0f,
-                CastingCardIndex: -1, CastingSpawnPosition: Vector3.Zero, CastingNetworkId: -1, CardStateHash: 0,
-                Hand: System.Array.Empty<SimCardCatalogId>(), Deck: System.Array.Empty<SimCardCatalogId>(), DiscardPile: System.Array.Empty<SimCardCatalogId>(),
-                CastingCatalogId: "water_wisp")
+            new SummonerState(
+                Team: 0,
+                Hp: 100,
+                MaxHp: 100,
+                Mana: 5,
+                MaxMana: 10,
+                IsCasting: false,
+                CastingTimeRemaining: 0f,
+                CastingTimeTotal: 0f,
+                CastingCardIndex: -1,
+                CastingSpawnPosition: Vector3.Zero,
+                CastingNetworkId: -1,
+                CardStateHash: 0,
+                Hand: System.Array.Empty<SimCardCatalogId>(),
+                Deck: System.Array.Empty<SimCardCatalogId>(),
+                DiscardPile: System.Array.Empty<SimCardCatalogId>(),
+                CastingCatalogId: "water_wisp"
+            ),
         };
         var units = new[]
         {
-            new UnitState(NetworkId: 1, Team: 0, Position: new Vector3(4.5f, 0, 8.25f), Hp: 50, MaxHp: 100, TargetNetworkId: null, IsAlive: true, ActivationState: 1, BehaviorState: 0, IsFacingRight: true)
+            new UnitState(
+                NetworkId: 1,
+                Team: 0,
+                Position: new Vector3(4.5f, 0, 8.25f),
+                Hp: 50,
+                MaxHp: 100,
+                TargetNetworkId: null,
+                IsAlive: true,
+                ActivationState: 1,
+                BehaviorState: 0,
+                IsFacingRight: true
+            ),
         };
         var projectiles = new[]
         {
@@ -673,12 +743,20 @@ public class MessageSerializerTest
                 SpeedEasing: 0,
                 SpeedEaseExponent: 2f,
                 TimeAlive: 1.2f,
-                Lifetime: 2.5f)
+                Lifetime: 2.5f
+            ),
         };
 
         var original = new StateSnapshot(
-            Frame: 100L, MatchTime: 10f, Phase: 1, PrepTimeRemaining: 0f,
-            Summoners: summoners, Units: units, Projectiles: projectiles, StateHash: 999, IsOvertime: false
+            Frame: 100L,
+            MatchTime: 10f,
+            Phase: 1,
+            PrepTimeRemaining: 0f,
+            Summoners: summoners,
+            Units: units,
+            Projectiles: projectiles,
+            StateHash: 999,
+            IsOvertime: false
         );
 
         var dict = _serializer.Serialize(original);

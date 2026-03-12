@@ -23,7 +23,8 @@ public static class CardDefinitions
     {
         Id = CardIds.Fireball,
         Name = "Fireball",
-        Description = "Unleash a devastating explosion of flame. Deals area damage to all enemies caught in the blast.",
+        Description =
+            "Unleash a devastating explosion of flame. Deals area damage to all enemies caught in the blast.",
         Rarity = Rarity.Rare,
         Type = CardType.Spell,
         ManaCost = 5,
@@ -38,14 +39,15 @@ public static class CardDefinitions
         SpellTargeting = SpellTargeting.AreaOfEffect,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition Rally = new()
     {
         Id = CardIds.Rally,
         Name = "Rally",
-        Description = "Command nearby units to move to a target location and defend that zone until enemies are cleared.",
+        Description =
+            "Command nearby units to move to a target location and defend that zone until enemies are cleared.",
         Rarity = Rarity.Common,
         Type = CardType.Spell,
         ManaCost = 0,
@@ -57,14 +59,15 @@ public static class CardDefinitions
         SpellTargeting = SpellTargeting.SelectionRadius,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Neutral,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition Guard = new()
     {
         Id = CardIds.Guard,
         Name = "Guard",
-        Description = "Command nearby units to form a defensive formation for 25 seconds. Melee units protect ranged units in the back line.",
+        Description =
+            "Command nearby units to form a defensive formation for 25 seconds. Melee units protect ranged units in the back line.",
         Rarity = Rarity.Common,
         Type = CardType.Spell,
         ManaCost = 0,
@@ -77,14 +80,15 @@ public static class CardDefinitions
         SpellTargeting = SpellTargeting.SelectionRadius,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Neutral,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition Charge = new()
     {
         Id = CardIds.Charge,
         Name = "Charge",
-        Description = "Command nearby units to launch a coordinated attack on the closest enemy (unit, structure, or base) to the target location for 30 seconds.",
+        Description =
+            "Command nearby units to launch a coordinated attack on the closest enemy (unit, structure, or base) to the target location for 30 seconds.",
         Rarity = Rarity.Common,
         Type = CardType.Spell,
         ManaCost = 0,
@@ -96,7 +100,7 @@ public static class CardDefinitions
         SpellTargeting = SpellTargeting.SelectionRadius,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Neutral,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition ManaBolt = new()
@@ -114,7 +118,7 @@ public static class CardDefinitions
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Neutral
+        ElementalAffinity = Element.Neutral,
     };
 
     public static readonly CardDefinition WeavingBolt = new()
@@ -133,7 +137,7 @@ public static class CardDefinitions
         SpellTargeting = SpellTargeting.SingleTarget,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Neutral,
-        Flags = CardFlags.DevOnly
+        Flags = CardFlags.DevOnly,
     };
 
     // =========================================================================
@@ -144,7 +148,8 @@ public static class CardDefinitions
     {
         Id = CardIds.FireWisp,
         Name = "Fire Wisp",
-        Description = "A teardrop of living flame. Drifts across the battlefield, burning all in its path.",
+        Description =
+            "A teardrop of living flame. Drifts across the battlefield, burning all in its path.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -158,7 +163,7 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Fire
+        ElementalAffinity = Element.Fire,
     };
 
     public static readonly CardDefinition WaterWisp = new()
@@ -179,14 +184,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Water
+        ElementalAffinity = Element.Water,
     };
 
     public static readonly CardDefinition WindWisp = new()
     {
         Id = CardIds.WindWisp,
         Name = "Wind Wisp",
-        Description = "A teardrop of swirling wind. Darts across the battlefield with elusive speed.",
+        Description =
+            "A teardrop of swirling wind. Darts across the battlefield with elusive speed.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -200,14 +206,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Wind
+        ElementalAffinity = Element.Wind,
     };
 
     public static readonly CardDefinition EarthWisp = new()
     {
         Id = CardIds.EarthWisp,
         Name = "Earth Wisp",
-        Description = "A teardrop of compacted stone. Moves with sturdy determination across the battlefield.",
+        Description =
+            "A teardrop of compacted stone. Moves with sturdy determination across the battlefield.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -221,14 +228,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Earth
+        ElementalAffinity = Element.Earth,
     };
 
     public static readonly CardDefinition LightningWisp = new()
     {
         Id = CardIds.LightningWisp,
         Name = "Lightning Wisp",
-        Description = "A teardrop of crackling energy. Strikes across the battlefield with shocking speed.",
+        Description =
+            "A teardrop of crackling energy. Strikes across the battlefield with shocking speed.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -242,14 +250,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Lightning
+        ElementalAffinity = Element.Lightning,
     };
 
     public static readonly CardDefinition LifeWisp = new()
     {
         Id = CardIds.LifeWisp,
         Name = "Life Wisp",
-        Description = "A teardrop of living essence. Glows warmly as it drifts across the battlefield.",
+        Description =
+            "A teardrop of living essence. Glows warmly as it drifts across the battlefield.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -263,14 +272,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Life
+        ElementalAffinity = Element.Life,
     };
 
     public static readonly CardDefinition DeathWisp = new()
     {
         Id = CardIds.DeathWisp,
         Name = "Death Wisp",
-        Description = "A teardrop of spectral essence. Flickers between visible and ethereal as it haunts the battlefield.",
+        Description =
+            "A teardrop of spectral essence. Flickers between visible and ethereal as it haunts the battlefield.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -284,14 +294,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Death
+        ElementalAffinity = Element.Death,
     };
 
     public static readonly CardDefinition ShadowWisp = new()
     {
         Id = CardIds.ShadowWisp,
         Name = "Shadow Wisp",
-        Description = "A teardrop of living shadow. Shifts and fades as it stalks across the battlefield.",
+        Description =
+            "A teardrop of living shadow. Shifts and fades as it stalks across the battlefield.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -305,14 +316,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Elemental,
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Shadow
+        ElementalAffinity = Element.Shadow,
     };
 
     public static readonly CardDefinition FireWispSwarm = new()
     {
         Id = CardIds.FireWispSwarm,
         Name = "Fire Wisp Swarm",
-        Description = "Unleash a horde of flame wisps. Twelve smaller fire wisps surge forth to overwhelm the enemy.",
+        Description =
+            "Unleash a horde of flame wisps. Twelve smaller fire wisps surge forth to overwhelm the enemy.",
         Rarity = Rarity.Rare,
         Type = CardType.Summon,
         ManaCost = 7,
@@ -325,8 +337,8 @@ public static class CardDefinitions
             StatMults = new Dictionary<StatKey, float>
             {
                 [StatKey.MaxHp] = 0.75f,
-                [StatKey.AttackDamage] = 0.75f
-            }
+                [StatKey.AttackDamage] = 0.75f,
+            },
         },
         SpawnCount = 12,
         Formation = FormationPresets.TightSwarmGrid,
@@ -337,7 +349,7 @@ public static class CardDefinitions
         VisualTraits = VisualTrait.UsesWispVisuals,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     // =========================================================================
@@ -348,7 +360,8 @@ public static class CardDefinitions
     {
         Id = CardIds.FireTitan,
         Name = "Fire Titan",
-        Description = "A colossal spirit of ancient flame. Towers over the battlefield, absorbing damage while scorching all who approach.",
+        Description =
+            "A colossal spirit of ancient flame. Towers over the battlefield, absorbing damage while scorching all who approach.",
         Rarity = Rarity.Epic,
         Type = CardType.Summon,
         ManaCost = 7,
@@ -363,14 +376,15 @@ public static class CardDefinitions
         Roles = SummonRole.Tank | SummonRole.Giant,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition FireAnt = new()
     {
         Id = CardIds.FireAnt,
         Name = "Fire Ant",
-        Description = "A swift and fierce fire ant. Scurries across the battlefield with blazing speed, overwhelming foes with relentless attacks.",
+        Description =
+            "A swift and fierce fire ant. Scurries across the battlefield with blazing speed, overwhelming foes with relentless attacks.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 2,
@@ -385,14 +399,15 @@ public static class CardDefinitions
         Roles = SummonRole.Fast,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition FireAntSwarm = new()
     {
         Id = CardIds.FireAntSwarm,
         Name = "Fire Ant Swarm",
-        Description = "Release a colony of fire ants! Twenty tiny terrors surge forth in formation, overwhelming enemies with sheer numbers.",
+        Description =
+            "Release a colony of fire ants! Twenty tiny terrors surge forth in formation, overwhelming enemies with sheer numbers.",
         Rarity = Rarity.Epic,
         Type = CardType.Summon,
         ManaCost = 6,
@@ -407,14 +422,15 @@ public static class CardDefinitions
         Roles = SummonRole.Fast | SummonRole.Swarm,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition FireBoar = new()
     {
         Id = CardIds.FireBoar,
         Name = "Fire Boar",
-        Description = "A charging bruiser wreathed in flame. Barrels through enemies with reckless aggression.",
+        Description =
+            "A charging bruiser wreathed in flame. Barrels through enemies with reckless aggression.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -428,14 +444,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Beast,
         Roles = SummonRole.Tank,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Fire
+        ElementalAffinity = Element.Fire,
     };
 
     public static readonly CardDefinition FireWolf = new()
     {
         Id = CardIds.FireWolf,
         Name = "Fire Wolf",
-        Description = "A blazing pack hunter. Sprints into melee and tears through enemies with rapid, fiery strikes.",
+        Description =
+            "A blazing pack hunter. Sprints into melee and tears through enemies with rapid, fiery strikes.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -449,14 +466,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Beast,
         Roles = SummonRole.Fast,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Fire
+        ElementalAffinity = Element.Fire,
     };
 
     public static readonly CardDefinition FireSpider = new()
     {
         Id = CardIds.FireSpider,
         Name = "Fire Spider",
-        Description = "A skittering hunter that spins webs of flame. Its sticky projectiles slow enemies caught in its trap.",
+        Description =
+            "A skittering hunter that spins webs of flame. Its sticky projectiles slow enemies caught in its trap.",
         Rarity = Rarity.Rare,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -469,7 +487,7 @@ public static class CardDefinitions
         IsRanged = true,
         CreatureTypes = CreatureType.Insect,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Fire
+        ElementalAffinity = Element.Fire,
     };
 
     // =========================================================================
@@ -480,7 +498,8 @@ public static class CardDefinitions
     {
         Id = CardIds.Pebbloom,
         Name = "Pebbloom",
-        Description = "A sturdy creature native to the elemental plane of earth. Pebblooms carry saplings that they nurture with elemental energy.",
+        Description =
+            "A sturdy creature native to the elemental plane of earth. Pebblooms carry saplings that they nurture with elemental energy.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -493,14 +512,15 @@ public static class CardDefinitions
         IsRanged = false,
         CreatureTypes = CreatureType.Elemental | CreatureType.Nature,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Earth
+        ElementalAffinity = Element.Earth,
     };
 
     public static readonly CardDefinition EarthKomodoDragon = new()
     {
         Id = CardIds.EarthKomodoDragon,
         Name = "Earth Komodo Dragon",
-        Description = "An ancient stone-backed predator. Heavy, relentless, and devastating up close.",
+        Description =
+            "An ancient stone-backed predator. Heavy, relentless, and devastating up close.",
         Rarity = Rarity.Rare,
         Type = CardType.Summon,
         ManaCost = 6,
@@ -514,7 +534,7 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Beast | CreatureType.Elemental,
         Roles = SummonRole.Tank | SummonRole.Giant,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Earth
+        ElementalAffinity = Element.Earth,
     };
 
     public static readonly CardDefinition Rock = new()
@@ -535,14 +555,15 @@ public static class CardDefinitions
         Roles = SummonRole.Stationary,
         Flags = CardFlags.DevOnly | CardFlags.Dummy | CardFlags.Archived,
         UnlockCondition = UnlockCondition.DevOnly,
-        ElementalAffinity = Element.Earth
+        ElementalAffinity = Element.Earth,
     };
 
     public static readonly CardDefinition StoneApe = new()
     {
         Id = CardIds.StoneApe,
         Name = "Stone Ape",
-        Description = "A massive gorilla made of living rock. Slow and deliberate, but devastating in close combat.",
+        Description =
+            "A massive gorilla made of living rock. Slow and deliberate, but devastating in close combat.",
         Rarity = Rarity.Epic,
         Type = CardType.Summon,
         ManaCost = 6,
@@ -556,14 +577,15 @@ public static class CardDefinitions
         CreatureTypes = CreatureType.Beast,
         Roles = SummonRole.Tank,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Earth
+        ElementalAffinity = Element.Earth,
     };
 
     public static readonly CardDefinition EarthRockThrower = new()
     {
         Id = CardIds.EarthRockThrower,
         Name = "Rock Thrower",
-        Description = "A tiny creature with impossible strength. Hurls boulders larger than itself at distant foes.",
+        Description =
+            "A tiny creature with impossible strength. Hurls boulders larger than itself at distant foes.",
         Rarity = Rarity.Rare,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -576,7 +598,7 @@ public static class CardDefinitions
         IsRanged = true,
         CreatureTypes = CreatureType.Elemental,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Earth
+        ElementalAffinity = Element.Earth,
     };
 
     // =========================================================================
@@ -587,7 +609,8 @@ public static class CardDefinitions
     {
         Id = CardIds.Puff,
         Name = "Puff",
-        Description = "A mischievous cloud spirit that blows gusts of wind at its foes. Light and agile, it drifts across the battlefield.",
+        Description =
+            "A mischievous cloud spirit that blows gusts of wind at its foes. Light and agile, it drifts across the battlefield.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -600,14 +623,15 @@ public static class CardDefinitions
         IsRanged = true,
         CreatureTypes = CreatureType.Aerial,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Wind
+        ElementalAffinity = Element.Wind,
     };
 
     public static readonly CardDefinition CloudSwarm = new()
     {
         Id = CardIds.CloudSwarm,
         Name = "Cloud Swarm",
-        Description = "A swirling formation of cloud wisps. Six clouds drift together in pairs, overwhelming foes with their combined might.",
+        Description =
+            "A swirling formation of cloud wisps. Six clouds drift together in pairs, overwhelming foes with their combined might.",
         Rarity = Rarity.Rare,
         Type = CardType.Summon,
         ManaCost = 5,
@@ -622,7 +646,7 @@ public static class CardDefinitions
         Roles = SummonRole.Swarm,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Wind,
-        Flags = CardFlags.Archived
+        Flags = CardFlags.Archived,
     };
 
     // =========================================================================
@@ -633,7 +657,8 @@ public static class CardDefinitions
     {
         Id = CardIds.WaterFrog,
         Name = "Water Frog",
-        Description = "A pudgy amphibian with a lightning-fast tongue. Strikes from a distance with surprising reach, snatching enemies before they can react.",
+        Description =
+            "A pudgy amphibian with a lightning-fast tongue. Strikes from a distance with surprising reach, snatching enemies before they can react.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -646,14 +671,15 @@ public static class CardDefinitions
         IsRanged = false,
         CreatureTypes = CreatureType.Amphibian,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Water
+        ElementalAffinity = Element.Water,
     };
 
     public static readonly CardDefinition MamaDuck = new()
     {
         Id = CardIds.MamaDuck,
         Name = "Mama Duck",
-        Description = "A protective mother duck and her ducklings. Mama fights in melee while her babies pepper foes with water bullets.",
+        Description =
+            "A protective mother duck and her ducklings. Mama fights in melee while her babies pepper foes with water bullets.",
         Rarity = Rarity.Epic,
         Type = CardType.Summon,
         ManaCost = 5,
@@ -665,30 +691,26 @@ public static class CardDefinitions
         {
             Units =
             [
-                new UnitSpawnEntry
-                {
-                    UnitId = UnitIds.MamaDuck,
-                    Count = 1
-                },
+                new UnitSpawnEntry { UnitId = UnitIds.MamaDuck, Count = 1 },
                 new UnitSpawnEntry
                 {
                     UnitId = UnitIds.Duckling,
                     Count = 3,
                     Placement = SpawnPlacement.BehindLeader,
-                    FollowsIndex = 0,  // Ducklings follow mama's targeting
-                    PlacementOffset = 1.5f
-                }
-            ]
+                    FollowsIndex = 0, // Ducklings follow mama's targeting
+                    PlacementOffset = 1.5f,
+                },
+            ],
         },
         // Legacy fields kept for UI display compatibility
         UnitId = UnitIds.MamaDuck,
-        SpawnCount = 4,  // Total: 1 mama + 3 ducklings
+        SpawnCount = 4, // Total: 1 mama + 3 ducklings
         Formation = FormationPresets.StandardGrid,
         UnitType = UnitType.Melee,
         IsRanged = false,
         CreatureTypes = CreatureType.Beast,
         UnlockCondition = UnlockCondition.Default,
-        ElementalAffinity = Element.Water
+        ElementalAffinity = Element.Water,
     };
 
     // =========================================================================
@@ -741,7 +763,7 @@ public static class CardDefinitions
 
         // Water units
         [CardIds.WaterFrog] = WaterFrog,
-        [CardIds.MamaDuck] = MamaDuck
+        [CardIds.MamaDuck] = MamaDuck,
     };
 
     /// <summary>Get a card definition by ID. Returns null if not found.</summary>

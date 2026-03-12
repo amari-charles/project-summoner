@@ -35,13 +35,14 @@ public class SummonerInstance
     /// Serialized to {"wand": "id", ...} via DtoConverters for GDScript interop.
     /// </summary>
     [JsonIgnore]
-    public Dictionary<ItemSlot, ItemId?> EquippedItems { get; set; } = new()
-    {
-        [ItemSlot.Wand] = null,
-        [ItemSlot.Ring1] = null,
-        [ItemSlot.Ring2] = null,
-        [ItemSlot.Robes] = null
-    };
+    public Dictionary<ItemSlot, ItemId?> EquippedItems { get; set; } =
+        new()
+        {
+            [ItemSlot.Wand] = null,
+            [ItemSlot.Ring1] = null,
+            [ItemSlot.Ring2] = null,
+            [ItemSlot.Robes] = null,
+        };
 
     /// <summary>
     /// Trait IDs this summoner has acquired through level-up selections.
@@ -106,7 +107,7 @@ public class SummonerInstance
             // General combat modifiers
             ["damage_bonus"] = 0f,
             ["damage_reduction"] = 0f,
-            ["soul_strength"] = 0f
+            ["soul_strength"] = 0f,
         };
 
         // Apply level bonuses (health and mana only)
@@ -150,12 +151,13 @@ public class SummonerInstance
         return stats;
     }
 
-    private static string ToComputedStatKey(StatKey stat) => stat switch
-    {
-        StatKey.MaxHp => "health",
-        StatKey.MaxHealth => "health",
-        _ => stat.ToSnakeCase()
-    };
+    private static string ToComputedStatKey(StatKey stat) =>
+        stat switch
+        {
+            StatKey.MaxHp => "health",
+            StatKey.MaxHealth => "health",
+            _ => stat.ToSnakeCase(),
+        };
 
     /// <summary>Get a single computed stat by snake_case name.</summary>
     public float GetStat(string statName)
@@ -163,5 +165,4 @@ public class SummonerInstance
         var stats = GetComputedStats();
         return stats.GetValueOrDefault(statName, 0f);
     }
-
 }

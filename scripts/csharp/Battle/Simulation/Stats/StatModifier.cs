@@ -104,10 +104,13 @@ public class StatModifier
     {
         var modifier = new StatModifier
         {
-            Source = dict.TryGetValue("source", out var source) ? source.AsString() : ""
+            Source = dict.TryGetValue("source", out var source) ? source.AsString() : "",
         };
 
-        if (dict.TryGetValue("card_instance_id", out var instanceId) && instanceId.VariantType != Godot.Variant.Type.Nil)
+        if (
+            dict.TryGetValue("card_instance_id", out var instanceId)
+            && instanceId.VariantType != Godot.Variant.Type.Nil
+        )
         {
             modifier.CardInstanceId = instanceId.AsString();
         }
@@ -120,7 +123,10 @@ public class StatModifier
             }
         }
 
-        if (dict.TryGetValue("conditions", out var conditions) && conditions.VariantType == Godot.Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("conditions", out var conditions)
+            && conditions.VariantType == Godot.Variant.Type.Dictionary
+        )
         {
             var condDict = conditions.AsGodotDictionary();
             foreach (var key in condDict.Keys)
@@ -129,7 +135,10 @@ public class StatModifier
             }
         }
 
-        if (dict.TryGetValue("stat_adds", out var statAdds) && statAdds.VariantType == Godot.Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("stat_adds", out var statAdds)
+            && statAdds.VariantType == Godot.Variant.Type.Dictionary
+        )
         {
             var addsDict = statAdds.AsGodotDictionary();
             foreach (var key in addsDict.Keys)
@@ -142,7 +151,10 @@ public class StatModifier
             }
         }
 
-        if (dict.TryGetValue("stat_mults", out var statMults) && statMults.VariantType == Godot.Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("stat_mults", out var statMults)
+            && statMults.VariantType == Godot.Variant.Type.Dictionary
+        )
         {
             var multsDict = statMults.AsGodotDictionary();
             foreach (var key in multsDict.Keys)
@@ -155,7 +167,10 @@ public class StatModifier
             }
         }
 
-        if (dict.TryGetValue("flags", out var flags) && flags.VariantType == Godot.Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("flags", out var flags)
+            && flags.VariantType == Godot.Variant.Type.Dictionary
+        )
         {
             var flagsDict = flags.AsGodotDictionary();
             foreach (var key in flagsDict.Keys)
@@ -164,7 +179,10 @@ public class StatModifier
             }
         }
 
-        if (dict.TryGetValue("amplify_tag", out var ampTag) && ampTag.VariantType != Godot.Variant.Type.Nil)
+        if (
+            dict.TryGetValue("amplify_tag", out var ampTag)
+            && ampTag.VariantType != Godot.Variant.Type.Nil
+        )
         {
             modifier.AmplifyTag = ampTag.AsString();
         }
@@ -175,10 +193,19 @@ public class StatModifier
         }
 
         // Trigger fields
-        if (dict.TryGetValue("trigger", out var trigger) && trigger.VariantType != Godot.Variant.Type.Nil)
+        if (
+            dict.TryGetValue("trigger", out var trigger)
+            && trigger.VariantType != Godot.Variant.Type.Nil
+        )
         {
             var triggerStr = trigger.AsString();
-            if (System.Enum.TryParse<TriggerCondition>(triggerStr, ignoreCase: true, out var triggerEnum))
+            if (
+                System.Enum.TryParse<TriggerCondition>(
+                    triggerStr,
+                    ignoreCase: true,
+                    out var triggerEnum
+                )
+            )
             {
                 modifier.Trigger = triggerEnum;
             }
@@ -207,10 +234,7 @@ public class StatModifier
     /// </summary>
     public Godot.Collections.Dictionary ToDictionary()
     {
-        var dict = new Godot.Collections.Dictionary
-        {
-            ["source"] = Source
-        };
+        var dict = new Godot.Collections.Dictionary { ["source"] = Source };
 
         if (!string.IsNullOrEmpty(CardInstanceId))
         {
@@ -314,7 +338,7 @@ public class StatModifier
             long l => l,
             Godot.GodotObject obj => obj,
             Godot.Variant v => v,
-            _ => value.ToString() ?? ""
+            _ => value.ToString() ?? "",
         };
     }
 }
@@ -330,14 +354,15 @@ public struct ModifiedStats
     public float MoveSpeed;
     public Dictionary<string, bool> Flags;
 
-    public static ModifiedStats Default => new()
-    {
-        MaxHp = 100f,
-        AttackDamage = 10f,
-        AttackSpeed = 1f,
-        MoveSpeed = 3f,
-        Flags = new Dictionary<string, bool>()
-    };
+    public static ModifiedStats Default =>
+        new()
+        {
+            MaxHp = 100f,
+            AttackDamage = 10f,
+            AttackSpeed = 1f,
+            MoveSpeed = 3f,
+            Flags = new Dictionary<string, bool>(),
+        };
 }
 
 /// <summary>

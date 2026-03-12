@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Projectiles;
-using Fateforged.Units;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
 using Fateforged.Simulation.Subsystems;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -44,19 +44,35 @@ public static class SimProjectile
     /// </summary>
     public static int Spawn(
         MatchState state,
-        int sourceUnitId, int targetUnitId, Team team,
-        float damage, int sourceElementId,
-        ProjectileMovementType movementType, float speed, float lifetime,
-        SimVector3 startPos, SimVector3 targetPos,
-        float arcHeight = 0f, int pierceCount = 0, float aoeRadius = 0f,
-        float hitRadius = 2.5f, ProjectileHitSpace hitSpace = ProjectileHitSpace.GroundCylinder, float steerStrength = 180f,
-        float veerDelay = 0.15f, float veerAngle = 25f, float veerDuration = 0.25f,
+        int sourceUnitId,
+        int targetUnitId,
+        Team team,
+        float damage,
+        int sourceElementId,
+        ProjectileMovementType movementType,
+        float speed,
+        float lifetime,
+        SimVector3 startPos,
+        SimVector3 targetPos,
+        float arcHeight = 0f,
+        int pierceCount = 0,
+        float aoeRadius = 0f,
+        float hitRadius = 2.5f,
+        ProjectileHitSpace hitSpace = ProjectileHitSpace.GroundCylinder,
+        float steerStrength = 180f,
+        float veerDelay = 0.15f,
+        float veerAngle = 25f,
+        float veerDuration = 0.25f,
         SimProjectileCatalogId projectileCatalogId = default,
-        float acceleration = 0f, float minSpeed = 1f,
-        float? speedStart = null, float? speedEnd = null,
-        float speedTransitionDuration = 1f, SpeedEasingType speedEasing = SpeedEasingType.Linear,
+        float acceleration = 0f,
+        float minSpeed = 1f,
+        float? speedStart = null,
+        float? speedEnd = null,
+        float speedTransitionDuration = 1f,
+        SpeedEasingType speedEasing = SpeedEasingType.Linear,
         float speedEaseExponent = 2f,
-        bool tracking = false)
+        bool tracking = false
+    )
     {
         int id = state.NextProjectileId();
         bool useSpeedEasing = speedStart.HasValue || speedEnd.HasValue;
@@ -117,7 +133,11 @@ public static class SimProjectile
                 break;
 
             case ProjectileMovementType.Arc:
-                proj.PathLength = ProjectileMovement.EstimateArcLength(startPos, targetPos, arcHeight);
+                proj.PathLength = ProjectileMovement.EstimateArcLength(
+                    startPos,
+                    targetPos,
+                    arcHeight
+                );
                 break;
 
             case ProjectileMovementType.Ballistic:
@@ -125,8 +145,16 @@ public static class SimProjectile
                 break;
 
             case ProjectileMovementType.WeavingHoming:
-                InitWeavingHoming(proj, startPos, targetPos, speed,
-                    veerDelay, veerAngle, veerDuration, state.Rng);
+                InitWeavingHoming(
+                    proj,
+                    startPos,
+                    targetPos,
+                    speed,
+                    veerDelay,
+                    veerAngle,
+                    veerDuration,
+                    state.Rng
+                );
                 break;
         }
 
@@ -203,9 +231,12 @@ public static class SimProjectile
             }
 
             // Path completion check (for path-based types)
-            if (!proj.IsDead && proj.MovementType != ProjectileMovementType.WeavingHoming
+            if (
+                !proj.IsDead
+                && proj.MovementType != ProjectileMovementType.WeavingHoming
                 && proj.MovementType != ProjectileMovementType.Homing
-                && proj.Progress >= 1f)
+                && proj.Progress >= 1f
+            )
             {
                 if (MatchState.IsSummonerTarget(proj.TargetUnitId))
                 {
@@ -246,18 +277,26 @@ public static class SimProjectile
 
     private static void TickStraight(SimProjectileData proj, MatchState state, float delta)
     {
-        ProjectileMovement.TickStraight(proj, delta, unitId =>
-        {
-            return SimUtils.ResolveTargetPosition(unitId, state);
-        });
+        ProjectileMovement.TickStraight(
+            proj,
+            delta,
+            unitId =>
+            {
+                return SimUtils.ResolveTargetPosition(unitId, state);
+            }
+        );
     }
 
     private static void TickArc(SimProjectileData proj, MatchState state, float delta)
     {
-        ProjectileMovement.TickArc(proj, delta, unitId =>
-        {
-            return SimUtils.ResolveTargetPosition(unitId, state);
-        });
+        ProjectileMovement.TickArc(
+            proj,
+            delta,
+            unitId =>
+            {
+                return SimUtils.ResolveTargetPosition(unitId, state);
+            }
+        );
     }
 
     private static void TickHoming(SimProjectileData proj, MatchState state, float delta)
@@ -296,7 +335,12 @@ public static class SimProjectile
         }
     }
 
-    private static void TickWeavingHoming(SimProjectileData proj, MatchState state, float delta, List<SimEvent> events)
+    private static void TickWeavingHoming(
+        SimProjectileData proj,
+        MatchState state,
+        float delta,
+        List<SimEvent> events
+    )
     {
         proj.PhaseTimer += delta;
 
@@ -338,7 +382,11 @@ public static class SimProjectile
                 }
                 else
                 {
-                    var outTarget = ProjectileMovement.BlendWithTarget(proj, proj.VeerDirection, WeavingHomingTuning.BlendOutTargetWeight);
+                    var outTarget = ProjectileMovement.BlendWithTarget(
+                        proj,
+                        proj.VeerDirection,
+                        WeavingHomingTuning.BlendOutTargetWeight
+                    );
                     ProjectileMovement.SteerToward(proj, outTarget, delta);
                 }
                 break;
@@ -351,7 +399,11 @@ public static class SimProjectile
                 }
                 else
                 {
-                    var backTarget = ProjectileMovement.BlendWithTarget(proj, proj.CounterVeerDirection, WeavingHomingTuning.BlendBackTargetWeight);
+                    var backTarget = ProjectileMovement.BlendWithTarget(
+                        proj,
+                        proj.CounterVeerDirection,
+                        WeavingHomingTuning.BlendBackTargetWeight
+                    );
                     ProjectileMovement.SteerToward(proj, backTarget, delta);
                 }
                 break;
@@ -362,14 +414,23 @@ public static class SimProjectile
                 if (toTarget.LengthSquared() > 0.001f)
                 {
                     float distanceToTarget = toTarget.Length();
-                    bool finalLock = distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
-                                     || proj.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
-                    var homingDirection = finalLock ? toTarget.Normalized() : ProjectileMovement.ApplyHomingWeave(proj, toTarget);
-                    float settle = SimMath.Clamp(distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance, 0f, 1f);
+                    bool finalLock =
+                        distanceToTarget <= WeavingHomingTuning.HomingFinalLockDistance
+                        || proj.PhaseTimer >= WeavingHomingTuning.HomingFinalLockTime;
+                    var homingDirection = finalLock
+                        ? toTarget.Normalized()
+                        : ProjectileMovement.ApplyHomingWeave(proj, toTarget);
+                    float settle = SimMath.Clamp(
+                        distanceToTarget / WeavingHomingTuning.HomingWeaveSettleDistance,
+                        0f,
+                        1f
+                    );
                     float steerScale = finalLock
                         ? 1f
-                        : (WeavingHomingTuning.HomingFarSteerScale
-                           + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle)));
+                        : (
+                            WeavingHomingTuning.HomingFarSteerScale
+                            + ((1f - WeavingHomingTuning.HomingFarSteerScale) * (1f - settle))
+                        );
                     ProjectileMovement.SteerToward(proj, homingDirection, delta, steerScale);
                 }
 
@@ -423,15 +484,30 @@ public static class SimProjectile
         foreach (var kvp in state.Units)
         {
             var unit = kvp.Value;
-            if (!unit.IsAlive) continue;
-            if (unit.Team == proj.Team) continue; // Don't hit friendly units
-            if (unit.UnitId == proj.SourceUnitId) continue; // Don't hit source
-            if (proj.HitUnitIds.Contains(unit.UnitId)) continue; // Never hit same unit twice
+            if (!unit.IsAlive)
+                continue;
+            if (unit.Team == proj.Team)
+                continue; // Don't hit friendly units
+            if (unit.UnitId == proj.SourceUnitId)
+                continue; // Don't hit source
+            if (proj.HitUnitIds.Contains(unit.UnitId))
+                continue; // Never hit same unit twice
 
-            float hitThreshold = MathF.Max(0f, proj.HitRadius + CombatGeometry.GetHurtboxRadius(unit));
-            if (TryGetSegmentDistanceAndT(proj, unit, proj.LastPosition, proj.CurrentPosition,
-                    out float distSq, out float segmentT) &&
-                distSq <= hitThreshold * hitThreshold)
+            float hitThreshold = MathF.Max(
+                0f,
+                proj.HitRadius + CombatGeometry.GetHurtboxRadius(unit)
+            );
+            if (
+                TryGetSegmentDistanceAndT(
+                    proj,
+                    unit,
+                    proj.LastPosition,
+                    proj.CurrentPosition,
+                    out float distSq,
+                    out float segmentT
+                )
+                && distSq <= hitThreshold * hitThreshold
+            )
             {
                 _pendingHitsBuffer.Add(new PendingHit(unit, segmentT, distSq));
             }
@@ -440,26 +516,32 @@ public static class SimProjectile
         if (_pendingHitsBuffer.Count == 0)
             return;
 
-        _pendingHitsBuffer.Sort((a, b) =>
-        {
-            int byT = a.SegmentT.CompareTo(b.SegmentT);
-            if (byT != 0)
-                return byT;
+        _pendingHitsBuffer.Sort(
+            (a, b) =>
+            {
+                int byT = a.SegmentT.CompareTo(b.SegmentT);
+                if (byT != 0)
+                    return byT;
 
-            int byDist = a.DistanceSq.CompareTo(b.DistanceSq);
-            if (byDist != 0)
-                return byDist;
+                int byDist = a.DistanceSq.CompareTo(b.DistanceSq);
+                if (byDist != 0)
+                    return byDist;
 
-            return a.Unit.UnitId.CompareTo(b.Unit.UnitId);
-        });
+                return a.Unit.UnitId.CompareTo(b.Unit.UnitId);
+            }
+        );
 
         foreach (var hit in _pendingHitsBuffer)
         {
             var unit = hit.Unit;
-            if (!unit.IsAlive) continue;
-            if (proj.HitUnitIds.Contains(unit.UnitId)) continue;
-            if (unit.Team == proj.Team) continue;
-            if (unit.UnitId == proj.SourceUnitId) continue;
+            if (!unit.IsAlive)
+                continue;
+            if (proj.HitUnitIds.Contains(unit.UnitId))
+                continue;
+            if (unit.Team == proj.Team)
+                continue;
+            if (unit.UnitId == proj.SourceUnitId)
+                continue;
 
             var impactPoint = proj.LastPosition.Lerp(proj.CurrentPosition, hit.SegmentT);
             ApplyHit(proj, unit, state, events);
@@ -484,12 +566,27 @@ public static class SimProjectile
     /// goes through a separate pipeline (SimDamage.Calculate) and does not interact with
     /// the trigger system. Triggers are reserved for melee combat in SimBehavior.
     /// </summary>
-    private static void ApplyHit(SimProjectileData proj, UnitData target, MatchState state, List<SimEvent> events)
+    private static void ApplyHit(
+        SimProjectileData proj,
+        UnitData target,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
-        var (sourceUnit, attackerSummoner, targetSummoner) = ResolveSourceAndSummoners(proj, target, state);
+        var (sourceUnit, attackerSummoner, targetSummoner) = ResolveSourceAndSummoners(
+            proj,
+            target,
+            state
+        );
 
         var (damage, isCrit) = SimDamage.Calculate(
-            proj.Damage, sourceUnit, target, attackerSummoner, targetSummoner, state.Rng);
+            proj.Damage,
+            sourceUnit,
+            target,
+            attackerSummoner,
+            targetSummoner,
+            state.Rng
+        );
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, proj.SourceUnitId, damage, isCrit));
@@ -506,7 +603,10 @@ public static class SimProjectile
     }
 
     private static void TryApplySummonerHitOnSegment(
-        SimProjectileData proj, MatchState state, List<SimEvent> events)
+        SimProjectileData proj,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         if (!MatchState.IsSummonerTarget(proj.TargetUnitId))
             return;
@@ -522,14 +622,17 @@ public static class SimProjectile
             return;
 
         float hitThreshold = MathF.Max(0f, proj.HitRadius + SummonerContactRadius);
-        if (TryGetSummonerSegmentDistanceAndT(
+        if (
+            TryGetSummonerSegmentDistanceAndT(
                 proj,
                 summoner.Position,
                 proj.LastPosition,
                 proj.CurrentPosition,
                 out float distSq,
-                out float segmentT) &&
-            distSq <= hitThreshold * hitThreshold)
+                out float segmentT
+            )
+            && distSq <= hitThreshold * hitThreshold
+        )
         {
             var impactPoint = proj.LastPosition.Lerp(proj.CurrentPosition, segmentT);
             proj.CurrentPosition = impactPoint;
@@ -543,7 +646,10 @@ public static class SimProjectile
     }
 
     private static void ApplySummonerHitAtImpact(
-        SimProjectileData proj, MatchState state, List<SimEvent> events)
+        SimProjectileData proj,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         if (!MatchState.IsSummonerTarget(proj.TargetUnitId))
             return;
@@ -563,7 +669,12 @@ public static class SimProjectile
         if (state.Units.TryGetValue(proj.SourceUnitId, out var sourceUnit))
             soulStrength = sourceUnit.SoulStrength;
 
-        float damage = ApplySummonerDamageModifiers(proj.Damage, attackerSummoner, summoner, soulStrength);
+        float damage = ApplySummonerDamageModifiers(
+            proj.Damage,
+            attackerSummoner,
+            summoner,
+            soulStrength
+        );
         summoner.CurrentHp -= damage;
         bool wasDestroyed = false;
         if (summoner.CurrentHp <= 0)
@@ -585,17 +696,26 @@ public static class SimProjectile
     /// AoE effects intentionally skip per-unit OnHit/OnDamaged triggers to avoid
     /// trigger avalanches when many units are hit simultaneously.
     /// </summary>
-    private static void ApplyAoE(SimProjectileData proj, SimVector3 center, MatchState state, List<SimEvent> events)
+    private static void ApplyAoE(
+        SimProjectileData proj,
+        SimVector3 center,
+        MatchState state,
+        List<SimEvent> events
+    )
     {
         var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
-        SummonerData? attackerSummoner = sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
+        SummonerData? attackerSummoner =
+            sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
 
         foreach (var kvp in state.Units)
         {
             var unit = kvp.Value;
-            if (!unit.IsAlive) continue;
-            if (unit.Team == proj.Team) continue;
-            if (proj.HitUnitIds.Contains(unit.UnitId)) continue;
+            if (!unit.IsAlive)
+                continue;
+            if (unit.Team == proj.Team)
+                continue;
+            if (proj.HitUnitIds.Contains(unit.UnitId))
+                continue;
 
             float radius = MathF.Max(0f, proj.AoeRadius + CombatGeometry.GetHurtboxRadius(unit));
             if (!CanHitUnitInRadius(proj, unit, center, radius))
@@ -603,7 +723,13 @@ public static class SimProjectile
 
             var targetSummoner = state.Summoners[(int)unit.Team];
             var (damage, isCrit) = SimDamage.Calculate(
-                proj.Damage, sourceUnit, unit, attackerSummoner, targetSummoner, state.Rng);
+                proj.Damage,
+                sourceUnit,
+                unit,
+                attackerSummoner,
+                targetSummoner,
+                state.Rng
+            );
 
             unit.CurrentHp -= damage;
             events.Add(new UnitDamagedEvent(unit.UnitId, proj.SourceUnitId, damage, isCrit));
@@ -619,11 +745,15 @@ public static class SimProjectile
     /// <summary>
     /// Resolve the source unit and both summoners for damage calculation.
     /// </summary>
-    private static (UnitData? sourceUnit, SummonerData? attackerSummoner, SummonerData? targetSummoner)
-        ResolveSourceAndSummoners(SimProjectileData proj, UnitData target, MatchState state)
+    private static (
+        UnitData? sourceUnit,
+        SummonerData? attackerSummoner,
+        SummonerData? targetSummoner
+    ) ResolveSourceAndSummoners(SimProjectileData proj, UnitData target, MatchState state)
     {
         var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
-        SummonerData? attackerSummoner = sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
+        SummonerData? attackerSummoner =
+            sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
         var targetSummoner = state.Summoners[(int)target.Team];
         return (sourceUnit, attackerSummoner, targetSummoner);
     }
@@ -633,16 +763,26 @@ public static class SimProjectile
     // =========================================================================
 
     private static void InitWeavingHoming(
-        SimProjectileData proj, SimVector3 start, SimVector3 target, float speed,
-        float veerDelay, float veerAngle, float veerDuration,
-        DeterministicRng? rng)
+        SimProjectileData proj,
+        SimVector3 start,
+        SimVector3 target,
+        float speed,
+        float veerDelay,
+        float veerAngle,
+        float veerDuration,
+        DeterministicRng? rng
+    )
     {
         proj.WeavingPhase = WeavingPhase.Straight;
         proj.PhaseTimer = 0f;
         proj.Velocity = proj.Direction * speed;
 
         float distance = start.DistanceTo(target);
-        float distanceScale = SimMath.Clamp(distance / WeavingHomingTuning.VeerReferenceDistance, 0f, 1f);
+        float distanceScale = SimMath.Clamp(
+            distance / WeavingHomingTuning.VeerReferenceDistance,
+            0f,
+            1f
+        );
 
         if (distance < WeavingHomingTuning.VeerMinDistance)
         {
@@ -656,21 +796,35 @@ public static class SimProjectile
             proj.ScaledVeerDelay = veerDelay * distanceScale;
             float weaveDuration = veerDuration * distanceScale;
             proj.ScaledVeerDuration = weaveDuration;
-            proj.ScaledCounterVeerDuration = weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
+            proj.ScaledCounterVeerDuration =
+                weaveDuration * WeavingHomingTuning.CounterVeerDurationRatio;
             float scaledVeerAngle = veerAngle * distanceScale;
 
             // Random left/right veer using deterministic RNG
             float veerSign = (rng != null && rng.NextFloat() > 0.5f) ? 1f : -1f;
             float pitchSign = (rng != null && rng.NextFloat() > 0.5f) ? 1f : -1f;
             float veerYawRadians = SimMath.DegToRad(scaledVeerAngle) * veerSign;
-            float veerPitchRadians = SimMath.DegToRad(scaledVeerAngle * WeavingHomingTuning.VeerPitchRatio) * pitchSign;
+            float veerPitchRadians =
+                SimMath.DegToRad(scaledVeerAngle * WeavingHomingTuning.VeerPitchRatio) * pitchSign;
 
             var rightAxis = ProjectileMovement.GetStableRightAxis(proj.Direction);
-            var outDir = ProjectileMovement.RotateAround(proj.Direction, SimVector3.Up, veerYawRadians);
+            var outDir = ProjectileMovement.RotateAround(
+                proj.Direction,
+                SimVector3.Up,
+                veerYawRadians
+            );
             outDir = ProjectileMovement.RotateAround(outDir, rightAxis, veerPitchRadians);
 
-            var backDir = ProjectileMovement.RotateAround(proj.Direction, SimVector3.Up, -veerYawRadians * WeavingHomingTuning.VeerCounterYawRatio);
-            backDir = ProjectileMovement.RotateAround(backDir, rightAxis, -veerPitchRadians * WeavingHomingTuning.VeerCounterPitchRatio);
+            var backDir = ProjectileMovement.RotateAround(
+                proj.Direction,
+                SimVector3.Up,
+                -veerYawRadians * WeavingHomingTuning.VeerCounterYawRatio
+            );
+            backDir = ProjectileMovement.RotateAround(
+                backDir,
+                rightAxis,
+                -veerPitchRadians * WeavingHomingTuning.VeerCounterPitchRatio
+            );
 
             proj.VeerDirection = outDir.Normalized();
             proj.CounterVeerDirection = backDir.Normalized();
@@ -690,14 +844,24 @@ public static class SimProjectile
         return CanHitUnitInRadius(proj, unit, point, radius);
     }
 
-    private static bool CanHitUnitInRadius(SimProjectileData proj, UnitData unit, SimVector3 center, float radius)
+    private static bool CanHitUnitInRadius(
+        SimProjectileData proj,
+        UnitData unit,
+        SimVector3 center,
+        float radius
+    )
     {
         return CombatGeometry.CanHitUnitInRadius(proj.HitSpace, unit, center, radius);
     }
 
     private static bool TryGetSegmentDistanceAndT(
-        SimProjectileData proj, UnitData unit, SimVector3 segA, SimVector3 segB,
-        out float distanceSq, out float segmentT)
+        SimProjectileData proj,
+        UnitData unit,
+        SimVector3 segA,
+        SimVector3 segB,
+        out float distanceSq,
+        out float segmentT
+    )
     {
         return CombatGeometry.TryGetSegmentDistanceAndT(
             proj.HitSpace,
@@ -710,13 +874,30 @@ public static class SimProjectile
     }
 
     private static bool TryGetSummonerSegmentDistanceAndT(
-        SimProjectileData proj, SimVector3 summonerPos, SimVector3 segA, SimVector3 segB,
-        out float distanceSq, out float segmentT)
+        SimProjectileData proj,
+        SimVector3 summonerPos,
+        SimVector3 segA,
+        SimVector3 segB,
+        out float distanceSq,
+        out float segmentT
+    )
     {
         if (proj.HitSpace == ProjectileHitSpace.GroundCylinder)
-            return TryGetPointToSegmentDistanceSqXZ(summonerPos, segA, segB, out distanceSq, out segmentT);
+            return TryGetPointToSegmentDistanceSqXZ(
+                summonerPos,
+                segA,
+                segB,
+                out distanceSq,
+                out segmentT
+            );
 
-        return TryGetPointToSegmentDistanceSq(summonerPos, segA, segB, out distanceSq, out segmentT);
+        return TryGetPointToSegmentDistanceSq(
+            summonerPos,
+            segA,
+            segB,
+            out distanceSq,
+            out segmentT
+        );
     }
 
     private static bool UseGroundCylinder(SimProjectileData proj, UnitData unit)
@@ -725,7 +906,12 @@ public static class SimProjectile
     }
 
     private static bool TryGetPointToSegmentDistanceSq(
-        SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
+        SimVector3 point,
+        SimVector3 segA,
+        SimVector3 segB,
+        out float distanceSq,
+        out float segmentT
+    )
     {
         return CombatGeometry.TryGetPointToSegmentDistanceSq(
             point,
@@ -737,7 +923,12 @@ public static class SimProjectile
     }
 
     private static bool TryGetPointToSegmentDistanceSqXZ(
-        SimVector3 point, SimVector3 segA, SimVector3 segB, out float distanceSq, out float segmentT)
+        SimVector3 point,
+        SimVector3 segA,
+        SimVector3 segB,
+        out float distanceSq,
+        out float segmentT
+    )
     {
         return CombatGeometry.TryGetPointToSegmentDistanceSqXZ(
             point,
@@ -754,7 +945,11 @@ public static class SimProjectile
     }
 
     private static float ApplySummonerDamageModifiers(
-        float damage, SummonerData attacker, SummonerData target, float soulStrength = 0f)
+        float damage,
+        SummonerData attacker,
+        SummonerData target,
+        float soulStrength = 0f
+    )
     {
         if (attacker.DamageBonus > 0f)
             damage *= 1f + attacker.DamageBonus / 100f;

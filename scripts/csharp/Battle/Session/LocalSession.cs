@@ -19,7 +19,11 @@ public class LocalSession : IGameSession
 
     public event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
 
-    public LocalSession(Simulation.Simulation simulation, CommandRouter commandRouter, MatchState state)
+    public LocalSession(
+        Simulation.Simulation simulation,
+        CommandRouter commandRouter,
+        MatchState state
+    )
     {
         _simulation = simulation;
         _commandRouter = commandRouter;

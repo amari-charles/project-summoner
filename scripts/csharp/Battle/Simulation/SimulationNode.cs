@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
-using Godot;
+using Fateforged.Cards;
+using Fateforged.Meta.Cards;
+using Fateforged.Meta.Traits.Unified;
 using Fateforged.Multiplayer.Core;
 using Fateforged.Multiplayer.Transport;
 using Fateforged.Session;
-using Fateforged.Cards;
-using Fateforged.Units;
 using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
-using Fateforged.Meta.Cards;
-using Fateforged.Meta.Traits.Unified;
 using Fateforged.Stats;
+using Fateforged.Units;
+using Godot;
 
 namespace Fateforged.Simulation;
 
@@ -77,7 +77,8 @@ public partial class SimulationNode : Node, IGameSession
 
     public int RemapTeam(int team)
     {
-        if (LocalPlayerIndex == 0) return team;
+        if (LocalPlayerIndex == 0)
+            return team;
         return MatchState.GetEnemyTeam(team);
     }
 
@@ -113,7 +114,9 @@ public partial class SimulationNode : Node, IGameSession
             return;
         }
 
-        GD.PrintErr("[SimulationNode] SubmitCommand called before initialization — command rejected");
+        GD.PrintErr(
+            "[SimulationNode] SubmitCommand called before initialization — command rejected"
+        );
     }
 
     public void Tick(float delta)
@@ -125,7 +128,8 @@ public partial class SimulationNode : Node, IGameSession
     // SIGNALS (minimal — only those still awaited by BattleScene)
     // =========================================================================
 
-    [Signal] public delegate void FirstSnapshotAppliedEventHandler();
+    [Signal]
+    public delegate void FirstSnapshotAppliedEventHandler();
 
     // =========================================================================
     // LIFECYCLE
@@ -206,23 +210,32 @@ public partial class SimulationNode : Node, IGameSession
     // INITIALIZATION
     // =========================================================================
 
-    public void Initialize(float prepDuration, float matchDuration, WinConditionType winCondition,
-        float winConditionTimeLimit = 0f, int winConditionKillTarget = 0, long seed = 0)
+    public void Initialize(
+        float prepDuration,
+        float matchDuration,
+        WinConditionType winCondition,
+        float winConditionTimeLimit = 0f,
+        int winConditionKillTarget = 0,
+        long seed = 0
+    )
     {
         if (seed == 0)
         {
             seed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            GD.PushWarning("[SimulationNode] No explicit seed provided — falling back to wall-clock time. This is non-deterministic and will cause desync in multiplayer.");
+            GD.PushWarning(
+                "[SimulationNode] No explicit seed provided — falling back to wall-clock time. This is non-deterministic and will cause desync in multiplayer."
+            );
         }
 
         State = new MatchState
         {
             PrepTimeRemaining = prepDuration,
             WinCondition = winCondition,
-            WinConditionTimeLimit = winConditionTimeLimit > 0 ? winConditionTimeLimit : matchDuration,
+            WinConditionTimeLimit =
+                winConditionTimeLimit > 0 ? winConditionTimeLimit : matchDuration,
             WinConditionKillTarget = winConditionKillTarget,
             Phase = GamePhase.Preparation,
-            Rng = new DeterministicRng(seed)
+            Rng = new DeterministicRng(seed),
         };
         State.TraitRuntimeState = UnifiedTraitRuntimeCompiler.CompileStub();
 
@@ -233,7 +246,9 @@ public partial class SimulationNode : Node, IGameSession
         SetSession(new LocalSession(_simulation, _commandRouter, State));
         _initialized = true;
 
-        GD.Print($"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, timeLimit={State.WinConditionTimeLimit}s, killTarget={winConditionKillTarget}, seed={seed})");
+        GD.Print(
+            $"[SimulationNode] Initialized (prep={prepDuration}s, winCondition={winCondition}, timeLimit={State.WinConditionTimeLimit}s, killTarget={winConditionKillTarget}, seed={seed})"
+        );
     }
 
     /// <summary>
@@ -320,7 +335,17 @@ public partial class SimulationNode : Node, IGameSession
     // SUMMONER REGISTRATION (BattleScene calls these during init)
     // =========================================================================
 
-    public void RegisterSummoner(int team, float hp, float maxHp, float mana, float maxMana, float castSpeed, string[] deckCatalogIds, int maxHandSize, Vector3 position)
+    public void RegisterSummoner(
+        int team,
+        float hp,
+        float maxHp,
+        float mana,
+        float maxMana,
+        float castSpeed,
+        string[] deckCatalogIds,
+        int maxHandSize,
+        Vector3 position
+    )
     {
         int networkTeam = ToNetworkTeam(team);
         position = ToCanonical(position);
@@ -352,14 +377,18 @@ public partial class SimulationNode : Node, IGameSession
         summoner.DeckRefs.Clear();
         foreach (var id in deckCatalogIds)
         {
-            summoner.DeckRefs.Add(new SimCardRuntimeRef
-            {
-                CatalogId = new SimCardCatalogId(id),
-                InstanceId = SimCardInstanceId.Empty
-            });
+            summoner.DeckRefs.Add(
+                new SimCardRuntimeRef
+                {
+                    CatalogId = new SimCardCatalogId(id),
+                    InstanceId = SimCardInstanceId.Empty,
+                }
+            );
         }
 
-        GD.Print($"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}");
+        GD.Print(
+            $"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}"
+        );
     }
 
     /// <summary>
@@ -371,12 +400,15 @@ public partial class SimulationNode : Node, IGameSession
         float damageBonus,
         float damageReduction,
         float soulStrength = 0f,
-        Dictionary<Element, float>? elementalDamageBonuses = null)
+        Dictionary<Element, float>? elementalDamageBonuses = null
+    )
     {
         int networkTeam = ToNetworkTeam(team);
         if (networkTeam < 0 || networkTeam > 1)
         {
-            GD.PrintErr($"[SimulationNode] Invalid team {networkTeam} for SetSummonerCombatModifiers");
+            GD.PrintErr(
+                $"[SimulationNode] Invalid team {networkTeam} for SetSummonerCombatModifiers"
+            );
             return;
         }
 
@@ -402,18 +434,24 @@ public partial class SimulationNode : Node, IGameSession
         summoner.HandRefs.Clear();
         foreach (var id in handCatalogIds)
         {
-            summoner.HandRefs.Add(new SimCardRuntimeRef
-            {
-                CatalogId = new SimCardCatalogId(id),
-                InstanceId = SimCardInstanceId.Empty
-            });
+            summoner.HandRefs.Add(
+                new SimCardRuntimeRef
+                {
+                    CatalogId = new SimCardCatalogId(id),
+                    InstanceId = SimCardInstanceId.Empty,
+                }
+            );
         }
     }
 
     /// <summary>
     /// Pass 2 entry point: register deck/hand card runtime refs with instance identity.
     /// </summary>
-    public void SetSummonerCardRefs(int team, SimCardRuntimeRef[] deckRefs, SimCardRuntimeRef[] handRefs)
+    public void SetSummonerCardRefs(
+        int team,
+        SimCardRuntimeRef[] deckRefs,
+        SimCardRuntimeRef[] handRefs
+    )
     {
         var summoner = State.Summoners[ToNetworkTeam(team)];
         summoner.DeckRefs.Clear();
@@ -469,11 +507,19 @@ public partial class SimulationNode : Node, IGameSession
             if (card.Summon != null)
             {
                 foreach (var entry in card.Summon.Units)
-                    simCard.UnitTemplates.Add(UnitDefinitions.BuildSimTemplate(entry.UnitId, entry.Count, entry.Modifier));
+                    simCard.UnitTemplates.Add(
+                        UnitDefinitions.BuildSimTemplate(entry.UnitId, entry.Count, entry.Modifier)
+                    );
             }
             else if (card.UnitId.HasValue)
             {
-                simCard.UnitTemplates.Add(UnitDefinitions.BuildSimTemplate(card.UnitId, card.SpawnCount, card.UnitModifier));
+                simCard.UnitTemplates.Add(
+                    UnitDefinitions.BuildSimTemplate(
+                        card.UnitId,
+                        card.SpawnCount,
+                        card.UnitModifier
+                    )
+                );
             }
         }
 
@@ -487,9 +533,15 @@ public partial class SimulationNode : Node, IGameSession
     /// <summary>
     /// Configure AI for a summoner. Called by BattleScene during init.
     /// </summary>
-    public void ConfigureAi(int team, AiType aiType, AiPersonality personality = AiPersonality.Balanced,
-        int difficulty = DefaultAiDifficulty, float intervalMin = DefaultAiIntervalMin, float intervalMax = DefaultAiIntervalMax,
-        Godot.Collections.Array? scriptSteps = null)
+    public void ConfigureAi(
+        int team,
+        AiType aiType,
+        AiPersonality personality = AiPersonality.Balanced,
+        int difficulty = DefaultAiDifficulty,
+        float intervalMin = DefaultAiIntervalMin,
+        float intervalMax = DefaultAiIntervalMax,
+        Godot.Collections.Array? scriptSteps = null
+    )
     {
         int networkTeam = ToNetworkTeam(team);
         var summoner = State.Summoners[networkTeam];
@@ -506,7 +558,7 @@ public partial class SimulationNode : Node, IGameSession
             Personality = personality,
             Difficulty = difficulty,
             PlayIntervalMin = intervalMin,
-            PlayIntervalMax = intervalMax
+            PlayIntervalMax = intervalMax,
         };
 
         // Parse scripted steps
@@ -542,7 +594,9 @@ public partial class SimulationNode : Node, IGameSession
         summoner.Ai = config;
         SimAi.InitializeTimer(State, summoner);
 
-        GD.Print($"[SimulationNode] Configured AI: team={networkTeam} type={aiType} personality={personality} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]");
+        GD.Print(
+            $"[SimulationNode] Configured AI: team={networkTeam} type={aiType} personality={personality} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]"
+        );
     }
 
     // =========================================================================
@@ -550,21 +604,27 @@ public partial class SimulationNode : Node, IGameSession
     // =========================================================================
 
     public int GetPhase() => (int)GetState().Phase;
+
     public float GetPrepTimeRemaining() => GetState().PrepTimeRemaining;
+
     public float GetMatchTime() => GetState().MatchTime;
+
     public int GetWinnerTeam() => GetState().WinnerTeam ?? -1;
+
     public Godot.Collections.Dictionary GetTraitRuntimeStatus()
     {
         var runtime = GetState().TraitRuntimeState;
         var diagnostics = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var diagnostic in runtime.Diagnostics)
         {
-            diagnostics.Add(new Godot.Collections.Dictionary
-            {
-                ["severity"] = diagnostic.Severity.ToString(),
-                ["code"] = diagnostic.Code,
-                ["message"] = diagnostic.Message
-            });
+            diagnostics.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["severity"] = diagnostic.Severity.ToString(),
+                    ["code"] = diagnostic.Code,
+                    ["message"] = diagnostic.Message,
+                }
+            );
         }
 
         return new Godot.Collections.Dictionary
@@ -572,7 +632,7 @@ public partial class SimulationNode : Node, IGameSession
             ["ruleset_version"] = runtime.RulesetVersion.Value,
             ["is_stub"] = runtime.RulesetVersion.Value == MatchTraitRuntimeState.StubRulesetVersion,
             ["diagnostic_count"] = runtime.Diagnostics.Count,
-            ["diagnostics"] = diagnostics
+            ["diagnostics"] = diagnostics,
         };
     }
 
@@ -593,21 +653,23 @@ public partial class SimulationNode : Node, IGameSession
             if (team >= 0 && (int)unit.Team != team)
                 continue;
 
-            result.Add(new Godot.Collections.Dictionary
-            {
-                ["unit_id"] = unit.UnitId,
-                ["network_id"] = unit.NetworkId,
-                ["team"] = (int)unit.Team,
-                ["catalog_id"] = unit.CatalogId.Value,
-                ["is_alive"] = unit.IsAlive,
-                ["activation_state"] = (int)unit.ActivationState,
-                ["current_hp"] = unit.CurrentHp,
-                ["max_hp"] = unit.MaxHp,
-                ["attack_damage"] = unit.AttackDamage,
-                ["attack_speed"] = unit.AttackSpeed,
-                ["move_speed"] = unit.MoveSpeed,
-                ["attack_range"] = unit.AttackRange
-            });
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["unit_id"] = unit.UnitId,
+                    ["network_id"] = unit.NetworkId,
+                    ["team"] = (int)unit.Team,
+                    ["catalog_id"] = unit.CatalogId.Value,
+                    ["is_alive"] = unit.IsAlive,
+                    ["activation_state"] = (int)unit.ActivationState,
+                    ["current_hp"] = unit.CurrentHp,
+                    ["max_hp"] = unit.MaxHp,
+                    ["attack_damage"] = unit.AttackDamage,
+                    ["attack_speed"] = unit.AttackSpeed,
+                    ["move_speed"] = unit.MoveSpeed,
+                    ["attack_range"] = unit.AttackRange,
+                }
+            );
         }
 
         return result;
@@ -626,7 +688,12 @@ public partial class SimulationNode : Node, IGameSession
 
     public void QueuePlayCard(int team, int cardIndex, Vector3 spawnPosition, int networkId = -1)
     {
-        var cmd = new PlayCardCommand(ToNetworkTeam(team), cardIndex, ToSimCanonical(spawnPosition), networkId);
+        var cmd = new PlayCardCommand(
+            ToNetworkTeam(team),
+            cardIndex,
+            ToSimCanonical(spawnPosition),
+            networkId
+        );
         SubmitCommand(cmd);
     }
 
@@ -634,8 +701,13 @@ public partial class SimulationNode : Node, IGameSession
     /// Queue a direct unit spawn (no mana, no casting, no hand management).
     /// Used by debug arena, event sequencer, scripted AI, tutorials.
     /// </summary>
-    public void QueueSpawnUnit(string catalogId, int team, Vector3 position,
-        bool activateImmediately = true, Godot.Collections.Dictionary? statOverrides = null)
+    public void QueueSpawnUnit(
+        string catalogId,
+        int team,
+        Vector3 position,
+        bool activateImmediately = true,
+        Godot.Collections.Dictionary? statOverrides = null
+    )
     {
         var simCatalogId = new SimCardCatalogId(catalogId);
         EnsureCardDataPopulated(simCatalogId);
@@ -643,7 +715,7 @@ public partial class SimulationNode : Node, IGameSession
         var cmd = new SpawnUnitCommand(simCatalogId, ToNetworkTeam(team), ToSimCanonical(position))
         {
             ActivateImmediately = activateImmediately,
-            StatOverrides = ConvertStatOverrides(statOverrides)
+            StatOverrides = ConvertStatOverrides(statOverrides),
         };
         SubmitCommand(cmd);
     }
@@ -652,7 +724,8 @@ public partial class SimulationNode : Node, IGameSession
     /// Ensure a single card's data is in CardDataMap.
     /// Called by QueueSpawnUnit for cards that may not be in any summoner's deck.
     /// </summary>
-    public void EnsureCardDataPopulated(string catalogId) => EnsureCardDataPopulated(new SimCardCatalogId(catalogId));
+    public void EnsureCardDataPopulated(string catalogId) =>
+        EnsureCardDataPopulated(new SimCardCatalogId(catalogId));
 
     private void EnsureCardDataPopulated(SimCardCatalogId catalogId)
     {
@@ -666,7 +739,8 @@ public partial class SimulationNode : Node, IGameSession
     }
 
     private static Dictionary<StatKey, float>? ConvertStatOverrides(
-        Godot.Collections.Dictionary? gdDict)
+        Godot.Collections.Dictionary? gdDict
+    )
     {
         if (gdDict == null || gdDict.Count == 0)
             return null;
@@ -700,9 +774,24 @@ public partial class SimulationNode : Node, IGameSession
         var processedInstanceIds = new HashSet<string>();
         foreach (var summoner in State.Summoners)
         {
-            RegisterTraitRuntimeModifiersForRefs(summoner.DeckRefs, cardService, runtime, processedInstanceIds);
-            RegisterTraitRuntimeModifiersForRefs(summoner.HandRefs, cardService, runtime, processedInstanceIds);
-            RegisterTraitRuntimeModifiersForRefs(summoner.DiscardRefs, cardService, runtime, processedInstanceIds);
+            RegisterTraitRuntimeModifiersForRefs(
+                summoner.DeckRefs,
+                cardService,
+                runtime,
+                processedInstanceIds
+            );
+            RegisterTraitRuntimeModifiersForRefs(
+                summoner.HandRefs,
+                cardService,
+                runtime,
+                processedInstanceIds
+            );
+            RegisterTraitRuntimeModifiersForRefs(
+                summoner.DiscardRefs,
+                cardService,
+                runtime,
+                processedInstanceIds
+            );
         }
     }
 
@@ -710,7 +799,8 @@ public partial class SimulationNode : Node, IGameSession
         IEnumerable<SimCardRuntimeRef> refs,
         CardService cardService,
         MatchTraitRuntimeState runtime,
-        ISet<string> processedInstanceIds)
+        ISet<string> processedInstanceIds
+    )
     {
         foreach (var cardRef in refs)
         {
@@ -728,7 +818,8 @@ public partial class SimulationNode : Node, IGameSession
                 {
                     runtime.SetCardInstanceSpawnCountAdd(
                         new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
-                        spawnCountAdd);
+                        spawnCountAdd
+                    );
                 }
                 continue;
             }
@@ -751,7 +842,8 @@ public partial class SimulationNode : Node, IGameSession
                 {
                     runtime.SetCardInstanceSpawnCountAdd(
                         new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value),
-                        spawnCountAdd);
+                        spawnCountAdd
+                    );
                 }
             }
 
@@ -770,23 +862,17 @@ public partial class SimulationNode : Node, IGameSession
             var traitCardInstanceId = new TraitRuntimeCardInstanceId(cardRef.InstanceId.Value);
             if (typedModifiers.Count > 0)
             {
-                runtime.SetCardInstanceStatMultipliers(
-                    traitCardInstanceId,
-                    typedModifiers);
+                runtime.SetCardInstanceStatMultipliers(traitCardInstanceId, typedModifiers);
             }
 
             if (typedAdds.Count > 0)
             {
-                runtime.SetCardInstanceStatAdds(
-                    traitCardInstanceId,
-                    typedAdds);
+                runtime.SetCardInstanceStatAdds(traitCardInstanceId, typedAdds);
             }
 
             if (spawnCountAdd != 0)
             {
-                runtime.SetCardInstanceSpawnCountAdd(
-                    traitCardInstanceId,
-                    spawnCountAdd);
+                runtime.SetCardInstanceSpawnCountAdd(traitCardInstanceId, spawnCountAdd);
             }
         }
     }

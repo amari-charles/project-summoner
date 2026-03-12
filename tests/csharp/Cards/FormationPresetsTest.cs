@@ -1,8 +1,8 @@
 namespace Fateforged.Tests.Cards;
 
-using Godot;
-using GdUnit4;
 using Fateforged.Cards.Formations;
+using GdUnit4;
+using Godot;
 using static GdUnit4.Assertions;
 
 /// <summary>

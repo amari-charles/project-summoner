@@ -91,7 +91,8 @@ public partial class SummonerCatalogBridge : Node
     public string GetSummonerName(string summonerId)
     {
         var summoner = SummonerCatalog.GetSummoner(summonerId);
-        if (summoner == null) return "";
+        if (summoner == null)
+            return "";
 
         if (_loc != null && _loc.HasMethod("t"))
         {
@@ -104,7 +105,8 @@ public partial class SummonerCatalogBridge : Node
     public int GetSummonerElementId(string summonerId)
     {
         var summoner = SummonerCatalog.GetSummoner(summonerId);
-        if (summoner == null) return 0; // Neutral
+        if (summoner == null)
+            return 0; // Neutral
 
         return SummonerCatalog.ElementToGdElementId(summoner.ElementalAffinity);
     }

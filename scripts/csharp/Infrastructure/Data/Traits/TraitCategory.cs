@@ -21,7 +21,7 @@ public enum TraitCategory
     Milestone,
 
     /// <summary>Special traits (granted by specific events).</summary>
-    Special
+    Special,
 }
 
 /// <summary>
@@ -30,26 +30,28 @@ public enum TraitCategory
 public static class TraitCategoryExtensions
 {
     /// <summary>Convert enum to lowercase string value for serialization/interop.</summary>
-    public static string ToStringValue(this TraitCategory category) => category switch
-    {
-        TraitCategory.Elemental => "elemental",
-        TraitCategory.Combat => "combat",
-        TraitCategory.Defense => "defense",
-        TraitCategory.Utility => "utility",
-        TraitCategory.Milestone => "milestone",
-        TraitCategory.Special => "special",
-        _ => "utility"
-    };
+    public static string ToStringValue(this TraitCategory category) =>
+        category switch
+        {
+            TraitCategory.Elemental => "elemental",
+            TraitCategory.Combat => "combat",
+            TraitCategory.Defense => "defense",
+            TraitCategory.Utility => "utility",
+            TraitCategory.Milestone => "milestone",
+            TraitCategory.Special => "special",
+            _ => "utility",
+        };
 
     /// <summary>Parse string to TraitCategory.</summary>
-    public static TraitCategory ParseCategory(string value) => value.ToLowerInvariant() switch
-    {
-        "elemental" => TraitCategory.Elemental,
-        "combat" => TraitCategory.Combat,
-        "defense" => TraitCategory.Defense,
-        "utility" => TraitCategory.Utility,
-        "milestone" => TraitCategory.Milestone,
-        "special" => TraitCategory.Special,
-        _ => TraitCategory.Utility
-    };
+    public static TraitCategory ParseCategory(string value) =>
+        value.ToLowerInvariant() switch
+        {
+            "elemental" => TraitCategory.Elemental,
+            "combat" => TraitCategory.Combat,
+            "defense" => TraitCategory.Defense,
+            "utility" => TraitCategory.Utility,
+            "milestone" => TraitCategory.Milestone,
+            "special" => TraitCategory.Special,
+            _ => TraitCategory.Utility,
+        };
 }

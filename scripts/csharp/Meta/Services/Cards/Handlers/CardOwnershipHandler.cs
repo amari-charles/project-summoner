@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Infrastructure.Persistence;
+using Godot;
 
 namespace Fateforged.Meta.Cards.Handlers;
 
@@ -29,7 +29,8 @@ public class CardOwnershipHandler
     /// <summary>Get all AccountWide cards (accessible by any summoner).</summary>
     public CardInstance[] GetAccountWideCards()
     {
-        return _profileRepo.ListCards()
+        return _profileRepo
+            .ListCards()
             .Where(c => c.Binding == ContentBinding.AccountWide)
             .ToArray();
     }
@@ -37,8 +38,11 @@ public class CardOwnershipHandler
     /// <summary>Get SummonerBound cards for a specific summoner.</summary>
     public CardInstance[] GetSummonerBoundCards(SummonerId summonerId)
     {
-        return _profileRepo.ListCards()
-            .Where(c => c.Binding == ContentBinding.SummonerBound && c.BoundToSummonerId == summonerId)
+        return _profileRepo
+            .ListCards()
+            .Where(c =>
+                c.Binding == ContentBinding.SummonerBound && c.BoundToSummonerId == summonerId
+            )
             .ToArray();
     }
 
@@ -48,9 +52,7 @@ public class CardOwnershipHandler
     /// </summary>
     public CardInstance[] GetOwnedCards(SummonerId summonerId)
     {
-        return GetAccountWideCards()
-            .Concat(GetSummonerBoundCards(summonerId))
-            .ToArray();
+        return GetAccountWideCards().Concat(GetSummonerBoundCards(summonerId)).ToArray();
     }
 
     // =========================================================================
@@ -93,7 +95,8 @@ public class CardOwnershipHandler
     /// </summary>
     public Dictionary<string, CardInstance[]> GetCollectionGrouped()
     {
-        return _profileRepo.ListCards()
+        return _profileRepo
+            .ListCards()
             .GroupBy(c => c.CatalogId)
             .ToDictionary(g => (string)g.Key, g => g.ToArray());
     }
@@ -110,13 +113,15 @@ public class CardOwnershipHandler
         foreach (var (catalogId, instances) in grouped)
         {
             var rarity = instances.Length > 0 ? instances[0].Rarity : "common";
-            result.Add(new CollectionSummaryEntry
-            {
-                CatalogId = catalogId,
-                Count = instances.Length,
-                Rarity = rarity,
-                Instances = instances
-            });
+            result.Add(
+                new CollectionSummaryEntry
+                {
+                    CatalogId = catalogId,
+                    Count = instances.Length,
+                    Rarity = rarity,
+                    Instances = instances,
+                }
+            );
         }
 
         return [.. result];
@@ -142,7 +147,9 @@ public class CardOwnershipHandler
             }
             else
             {
-                GD.PushWarning($"CardOwnershipHandler: Cannot grant card '{catalogId}' - not found in CardCatalog");
+                GD.PushWarning(
+                    $"CardOwnershipHandler: Cannot grant card '{catalogId}' - not found in CardCatalog"
+                );
             }
         }
 
@@ -154,7 +161,9 @@ public class CardOwnershipHandler
 
         var instanceIds = _profileRepo.GrantCards(validCards);
 
-        GD.Print($"CardOwnershipHandler: Granted {instanceIds.Length} cards (requested: {cards.Count()}, valid: {validCards.Count})");
+        GD.Print(
+            $"CardOwnershipHandler: Granted {instanceIds.Length} cards (requested: {cards.Count()}, valid: {validCards.Count})"
+        );
 
         return instanceIds;
     }
@@ -183,7 +192,9 @@ public class CardOwnershipHandler
         }
         else
         {
-            GD.PushWarning($"CardOwnershipHandler: Failed to remove card instance: {cardInstanceId}");
+            GD.PushWarning(
+                $"CardOwnershipHandler: Failed to remove card instance: {cardInstanceId}"
+            );
         }
 
         return success;
@@ -200,7 +211,7 @@ public class CardOwnershipHandler
             "rare" => 20,
             "epic" => 100,
             "legendary" => 500,
-            _ => 5
+            _ => 5,
         };
     }
 }

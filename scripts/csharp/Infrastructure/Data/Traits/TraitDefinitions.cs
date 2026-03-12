@@ -24,15 +24,20 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Fire],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.FireDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
+            new TraitModifier
+            {
+                Stat = StatKey.FireDamageBonus,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.FireAffinity,
                 Conditions = new() { ["elemental_affinity"] = "fire" },
-                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition BurningSpirit = new()
@@ -45,8 +50,13 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Fire],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.FireDamageBonus, Type = ModifierType.Percent, Value = 5.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.FireDamageBonus,
+                Type = ModifierType.Percent,
+                Value = 5.0f,
+            },
+        ],
     };
 
     // =========================================================================
@@ -63,15 +73,20 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Water],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.WaterDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
+            new TraitModifier
+            {
+                Stat = StatKey.WaterDamageBonus,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.WaterAffinity,
                 Conditions = new() { ["elemental_affinity"] = "water" },
-                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition TidalResilience = new()
@@ -84,8 +99,13 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Water],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.MaxHealth, Type = ModifierType.Percent, Value = 10.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.MaxHealth,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
+        ],
     };
 
     // =========================================================================
@@ -102,15 +122,20 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Wind],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.WindDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
+            new TraitModifier
+            {
+                Stat = StatKey.WindDamageBonus,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.WindAffinity,
                 Conditions = new() { ["elemental_affinity"] = "wind" },
-                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition SwiftCasting = new()
@@ -123,8 +148,13 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Wind],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.CastSpeed, Type = ModifierType.Percent, Value = 10.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.CastSpeed,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
+        ],
     };
 
     // =========================================================================
@@ -141,15 +171,20 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Earth],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.EarthDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
+            new TraitModifier
+            {
+                Stat = StatKey.EarthDamageBonus,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.EarthAffinity,
                 Conditions = new() { ["elemental_affinity"] = "earth" },
-                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition StoneFortitude = new()
@@ -162,8 +197,13 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Earth],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.SoulStrength, Type = ModifierType.Flat, Value = 5.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.SoulStrength,
+                Type = ModifierType.Flat,
+                Value = 5.0f,
+            },
+        ],
     };
 
     // =========================================================================
@@ -180,15 +220,20 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Lightning],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.LightningDamageBonus, Type = ModifierType.Percent, Value = 15.0f },
+            new TraitModifier
+            {
+                Stat = StatKey.LightningDamageBonus,
+                Type = ModifierType.Percent,
+                Value = 15.0f,
+            },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.LightningAffinity,
                 Conditions = new() { ["elemental_affinity"] = "lightning" },
-                StatMults = new() { [StatKey.AttackDamage] = 1.15f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.15f },
+            },
+        ],
     };
 
     // =========================================================================
@@ -205,15 +250,20 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Life],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.HealingBonus, Type = ModifierType.Percent, Value = 15.0f },
+            new TraitModifier
+            {
+                Stat = StatKey.HealingBonus,
+                Type = ModifierType.Percent,
+                Value = 15.0f,
+            },
             new TraitModifier
             {
                 Target = "unit",
                 Source = TraitIds.LifeAffinity,
                 Conditions = new() { ["elemental_affinity"] = "life" },
-                StatMults = new() { [StatKey.MaxHp] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.MaxHp] = 1.10f },
+            },
+        ],
     };
 
     // =========================================================================
@@ -230,9 +280,19 @@ public static class TraitDefinitions
         Tags = [TraitTags.Summoner, TraitTags.Death],
         Modifiers =
         [
-            new TraitModifier { Stat = StatKey.DeathDamageBonus, Type = ModifierType.Percent, Value = 10.0f },
-            new TraitModifier { Stat = StatKey.Lifesteal, Type = ModifierType.Percent, Value = 5.0f }
-        ]
+            new TraitModifier
+            {
+                Stat = StatKey.DeathDamageBonus,
+                Type = ModifierType.Percent,
+                Value = 10.0f,
+            },
+            new TraitModifier
+            {
+                Stat = StatKey.Lifesteal,
+                Type = ModifierType.Percent,
+                Value = 5.0f,
+            },
+        ],
     };
 
     // =========================================================================
@@ -250,7 +310,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 1.0f);
+        value: 1.0f
+    );
 
     public static readonly TraitDefinition ColeSoulStrengthII = BuildSummonerIdentityTrait(
         TraitIds.ColeSoulStrengthII,
@@ -262,7 +323,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.ColeSoulStrengthI,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 2.0f);
+        value: 2.0f
+    );
 
     public static readonly TraitDefinition ColeSoulStrengthIII = BuildSummonerIdentityTrait(
         TraitIds.ColeSoulStrengthIII,
@@ -274,7 +336,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.ColeSoulStrengthII,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 3.0f);
+        value: 3.0f
+    );
 
     public static readonly TraitDefinition ColeSoulStrengthIV = BuildSummonerIdentityTrait(
         TraitIds.ColeSoulStrengthIV,
@@ -286,7 +349,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.ColeSoulStrengthIII,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 4.0f);
+        value: 4.0f
+    );
 
     public static readonly TraitDefinition ColeCastSpeedI = BuildSummonerIdentityTrait(
         TraitIds.ColeCastSpeedI,
@@ -298,7 +362,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 5.0f);
+        value: 5.0f
+    );
 
     public static readonly TraitDefinition ColeCastSpeedII = BuildSummonerIdentityTrait(
         TraitIds.ColeCastSpeedII,
@@ -310,7 +375,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.ColeCastSpeedI,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 10.0f);
+        value: 10.0f
+    );
 
     public static readonly TraitDefinition ColeCastSpeedIII = BuildSummonerIdentityTrait(
         TraitIds.ColeCastSpeedIII,
@@ -322,7 +388,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.ColeCastSpeedII,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 15.0f);
+        value: 15.0f
+    );
 
     public static readonly TraitDefinition ColeCastSpeedIV = BuildSummonerIdentityTrait(
         TraitIds.ColeCastSpeedIV,
@@ -334,7 +401,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.ColeCastSpeedIII,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 20.0f);
+        value: 20.0f
+    );
 
     // Selene: Health + Max Mana
     public static readonly TraitDefinition SeleneHealthI = BuildSummonerIdentityTrait(
@@ -347,7 +415,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 100.0f);
+        value: 100.0f
+    );
 
     public static readonly TraitDefinition SeleneHealthII = BuildSummonerIdentityTrait(
         TraitIds.SeleneHealthII,
@@ -359,7 +428,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.SeleneHealthI,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 200.0f);
+        value: 200.0f
+    );
 
     public static readonly TraitDefinition SeleneHealthIII = BuildSummonerIdentityTrait(
         TraitIds.SeleneHealthIII,
@@ -371,7 +441,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.SeleneHealthII,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 300.0f);
+        value: 300.0f
+    );
 
     public static readonly TraitDefinition SeleneHealthIV = BuildSummonerIdentityTrait(
         TraitIds.SeleneHealthIV,
@@ -383,7 +454,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.SeleneHealthIII,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 400.0f);
+        value: 400.0f
+    );
 
     public static readonly TraitDefinition SeleneMaxManaI = BuildSummonerIdentityTrait(
         TraitIds.SeleneMaxManaI,
@@ -395,7 +467,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 10.0f);
+        value: 10.0f
+    );
 
     public static readonly TraitDefinition SeleneMaxManaII = BuildSummonerIdentityTrait(
         TraitIds.SeleneMaxManaII,
@@ -407,7 +480,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.SeleneMaxManaI,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 20.0f);
+        value: 20.0f
+    );
 
     public static readonly TraitDefinition SeleneMaxManaIII = BuildSummonerIdentityTrait(
         TraitIds.SeleneMaxManaIII,
@@ -419,7 +493,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.SeleneMaxManaII,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 30.0f);
+        value: 30.0f
+    );
 
     public static readonly TraitDefinition SeleneMaxManaIV = BuildSummonerIdentityTrait(
         TraitIds.SeleneMaxManaIV,
@@ -431,7 +506,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.SeleneMaxManaIII,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 40.0f);
+        value: 40.0f
+    );
 
     // Mei: Cast Speed + Max Mana
     public static readonly TraitDefinition MeiCastSpeedI = BuildSummonerIdentityTrait(
@@ -444,7 +520,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 5.0f);
+        value: 5.0f
+    );
 
     public static readonly TraitDefinition MeiCastSpeedII = BuildSummonerIdentityTrait(
         TraitIds.MeiCastSpeedII,
@@ -456,7 +533,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.MeiCastSpeedI,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 10.0f);
+        value: 10.0f
+    );
 
     public static readonly TraitDefinition MeiCastSpeedIII = BuildSummonerIdentityTrait(
         TraitIds.MeiCastSpeedIII,
@@ -468,7 +546,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.MeiCastSpeedII,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 15.0f);
+        value: 15.0f
+    );
 
     public static readonly TraitDefinition MeiCastSpeedIV = BuildSummonerIdentityTrait(
         TraitIds.MeiCastSpeedIV,
@@ -480,7 +559,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.MeiCastSpeedIII,
         stat: StatKey.CastSpeed,
         modifierType: ModifierType.Percent,
-        value: 20.0f);
+        value: 20.0f
+    );
 
     public static readonly TraitDefinition MeiMaxManaI = BuildSummonerIdentityTrait(
         TraitIds.MeiMaxManaI,
@@ -492,7 +572,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 10.0f);
+        value: 10.0f
+    );
 
     public static readonly TraitDefinition MeiMaxManaII = BuildSummonerIdentityTrait(
         TraitIds.MeiMaxManaII,
@@ -504,7 +585,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.MeiMaxManaI,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 20.0f);
+        value: 20.0f
+    );
 
     public static readonly TraitDefinition MeiMaxManaIII = BuildSummonerIdentityTrait(
         TraitIds.MeiMaxManaIII,
@@ -516,7 +598,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.MeiMaxManaII,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 30.0f);
+        value: 30.0f
+    );
 
     public static readonly TraitDefinition MeiMaxManaIV = BuildSummonerIdentityTrait(
         TraitIds.MeiMaxManaIV,
@@ -528,7 +611,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.MeiMaxManaIII,
         stat: StatKey.MaxMana,
         modifierType: ModifierType.Flat,
-        value: 40.0f);
+        value: 40.0f
+    );
 
     // Teo: Health + Soul Strength
     public static readonly TraitDefinition TeoHealthI = BuildSummonerIdentityTrait(
@@ -541,7 +625,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 100.0f);
+        value: 100.0f
+    );
 
     public static readonly TraitDefinition TeoHealthII = BuildSummonerIdentityTrait(
         TraitIds.TeoHealthII,
@@ -553,7 +638,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.TeoHealthI,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 200.0f);
+        value: 200.0f
+    );
 
     public static readonly TraitDefinition TeoHealthIII = BuildSummonerIdentityTrait(
         TraitIds.TeoHealthIII,
@@ -565,7 +651,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.TeoHealthII,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 300.0f);
+        value: 300.0f
+    );
 
     public static readonly TraitDefinition TeoHealthIV = BuildSummonerIdentityTrait(
         TraitIds.TeoHealthIV,
@@ -577,7 +664,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.TeoHealthIII,
         stat: StatKey.MaxHealth,
         modifierType: ModifierType.Flat,
-        value: 400.0f);
+        value: 400.0f
+    );
 
     public static readonly TraitDefinition TeoSoulStrengthI = BuildSummonerIdentityTrait(
         TraitIds.TeoSoulStrengthI,
@@ -589,7 +677,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: null,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 1.0f);
+        value: 1.0f
+    );
 
     public static readonly TraitDefinition TeoSoulStrengthII = BuildSummonerIdentityTrait(
         TraitIds.TeoSoulStrengthII,
@@ -601,7 +690,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.TeoSoulStrengthI,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 2.0f);
+        value: 2.0f
+    );
 
     public static readonly TraitDefinition TeoSoulStrengthIII = BuildSummonerIdentityTrait(
         TraitIds.TeoSoulStrengthIII,
@@ -613,7 +703,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.TeoSoulStrengthII,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 3.0f);
+        value: 3.0f
+    );
 
     public static readonly TraitDefinition TeoSoulStrengthIV = BuildSummonerIdentityTrait(
         TraitIds.TeoSoulStrengthIV,
@@ -625,7 +716,8 @@ public static class TraitDefinitions
         prerequisiteTraitId: TraitIds.TeoSoulStrengthIII,
         stat: StatKey.SoulStrength,
         modifierType: ModifierType.Flat,
-        value: 4.0f);
+        value: 4.0f
+    );
 
     // =========================================================================
     // SUMMON TRAITS - Global Pool (available to all summons)
@@ -646,9 +738,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Fortitude,
-                StatMults = new() { [StatKey.MaxHp] = 1.08f }
-            }
-        ]
+                StatMults = new() { [StatKey.MaxHp] = 1.08f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition FortitudeII = new()
@@ -667,9 +759,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FortitudeII,
-                StatMults = new() { [StatKey.MaxHp] = 1.12f }
-            }
-        ]
+                StatMults = new() { [StatKey.MaxHp] = 1.12f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition FortitudeIII = new()
@@ -688,9 +780,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FortitudeIII,
-                StatMults = new() { [StatKey.MaxHp] = 1.16f }
-            }
-        ]
+                StatMults = new() { [StatKey.MaxHp] = 1.16f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition FortitudeIV = new()
@@ -709,9 +801,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FortitudeIV,
-                StatMults = new() { [StatKey.MaxHp] = 1.20f }
-            }
-        ]
+                StatMults = new() { [StatKey.MaxHp] = 1.20f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Power = new()
@@ -729,9 +821,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Power,
-                StatMults = new() { [StatKey.AttackDamage] = 1.06f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.06f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition PowerII = new()
@@ -750,9 +842,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PowerII,
-                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition PowerIII = new()
@@ -771,9 +863,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PowerIII,
-                StatMults = new() { [StatKey.AttackDamage] = 1.14f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.14f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition PowerIV = new()
@@ -792,9 +884,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PowerIV,
-                StatMults = new() { [StatKey.AttackDamage] = 1.18f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.18f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Swiftness = new()
@@ -812,9 +904,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Swiftness,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.05f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackSpeed] = 1.05f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition SwiftnessII = new()
@@ -833,9 +925,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SwiftnessII,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.08f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackSpeed] = 1.08f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition SwiftnessIII = new()
@@ -854,9 +946,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SwiftnessIII,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.11f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackSpeed] = 1.11f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition SwiftnessIV = new()
@@ -875,9 +967,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SwiftnessIV,
-                StatMults = new() { [StatKey.AttackSpeed] = 1.14f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackSpeed] = 1.14f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Agility = new()
@@ -895,9 +987,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Agility,
-                StatMults = new() { [StatKey.MoveSpeed] = 1.05f }
-            }
-        ]
+                StatMults = new() { [StatKey.MoveSpeed] = 1.05f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition AgilityII = new()
@@ -916,9 +1008,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.AgilityII,
-                StatMults = new() { [StatKey.MoveSpeed] = 1.08f }
-            }
-        ]
+                StatMults = new() { [StatKey.MoveSpeed] = 1.08f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition AgilityIII = new()
@@ -937,9 +1029,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.AgilityIII,
-                StatMults = new() { [StatKey.MoveSpeed] = 1.11f }
-            }
-        ]
+                StatMults = new() { [StatKey.MoveSpeed] = 1.11f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition AgilityIV = new()
@@ -958,9 +1050,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.AgilityIV,
-                StatMults = new() { [StatKey.MoveSpeed] = 1.14f }
-            }
-        ]
+                StatMults = new() { [StatKey.MoveSpeed] = 1.14f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Reach = new()
@@ -978,9 +1070,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Reach,
-                StatMults = new() { [StatKey.AttackRange] = 1.05f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackRange] = 1.05f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition ReachII = new()
@@ -999,9 +1091,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.ReachII,
-                StatMults = new() { [StatKey.AttackRange] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackRange] = 1.10f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition ReachIII = new()
@@ -1020,9 +1112,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.ReachIII,
-                StatMults = new() { [StatKey.AttackRange] = 1.15f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackRange] = 1.15f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition ReachIV = new()
@@ -1041,9 +1133,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.ReachIV,
-                StatMults = new() { [StatKey.AttackRange] = 1.20f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackRange] = 1.20f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Plating = new()
@@ -1061,9 +1153,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Plating,
-                StatAdds = new() { [StatKey.Armor] = 4f }
-            }
-        ]
+                StatAdds = new() { [StatKey.Armor] = 4f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition PlatingII = new()
@@ -1082,9 +1174,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PlatingII,
-                StatAdds = new() { [StatKey.Armor] = 8f }
-            }
-        ]
+                StatAdds = new() { [StatKey.Armor] = 8f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition PlatingIII = new()
@@ -1103,9 +1195,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PlatingIII,
-                StatAdds = new() { [StatKey.Armor] = 12f }
-            }
-        ]
+                StatAdds = new() { [StatKey.Armor] = 12f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition PlatingIV = new()
@@ -1124,9 +1216,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.PlatingIV,
-                StatAdds = new() { [StatKey.Armor] = 16f }
-            }
-        ]
+                StatAdds = new() { [StatKey.Armor] = 16f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Warding = new()
@@ -1144,9 +1236,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Warding,
-                StatAdds = new() { [StatKey.MagicResist] = 4f }
-            }
-        ]
+                StatAdds = new() { [StatKey.MagicResist] = 4f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition WardingII = new()
@@ -1165,9 +1257,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.WardingII,
-                StatAdds = new() { [StatKey.MagicResist] = 8f }
-            }
-        ]
+                StatAdds = new() { [StatKey.MagicResist] = 8f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition WardingIII = new()
@@ -1186,9 +1278,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.WardingIII,
-                StatAdds = new() { [StatKey.MagicResist] = 12f }
-            }
-        ]
+                StatAdds = new() { [StatKey.MagicResist] = 12f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition WardingIV = new()
@@ -1207,9 +1299,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.WardingIV,
-                StatAdds = new() { [StatKey.MagicResist] = 16f }
-            }
-        ]
+                StatAdds = new() { [StatKey.MagicResist] = 16f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Soulforce = new()
@@ -1227,9 +1319,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Soulforce,
-                StatAdds = new() { [StatKey.SoulStrength] = 1f }
-            }
-        ]
+                StatAdds = new() { [StatKey.SoulStrength] = 1f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition SoulforceII = new()
@@ -1248,9 +1340,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SoulforceII,
-                StatAdds = new() { [StatKey.SoulStrength] = 2f }
-            }
-        ]
+                StatAdds = new() { [StatKey.SoulStrength] = 2f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition SoulforceIII = new()
@@ -1269,9 +1361,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SoulforceIII,
-                StatAdds = new() { [StatKey.SoulStrength] = 3f }
-            }
-        ]
+                StatAdds = new() { [StatKey.SoulStrength] = 3f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition SoulforceIV = new()
@@ -1290,9 +1382,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.SoulforceIV,
-                StatAdds = new() { [StatKey.SoulStrength] = 4f }
-            }
-        ]
+                StatAdds = new() { [StatKey.SoulStrength] = 4f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Arcana = new()
@@ -1310,9 +1402,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Arcana,
-                StatMults = new() { [StatKey.DamageBonus] = 1.05f }
-            }
-        ]
+                StatMults = new() { [StatKey.DamageBonus] = 1.05f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition ArcanaII = new()
@@ -1331,9 +1423,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.ArcanaII,
-                StatMults = new() { [StatKey.DamageBonus] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.DamageBonus] = 1.10f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition ArcanaIII = new()
@@ -1352,9 +1444,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.ArcanaIII,
-                StatMults = new() { [StatKey.DamageBonus] = 1.15f }
-            }
-        ]
+                StatMults = new() { [StatKey.DamageBonus] = 1.15f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition ArcanaIV = new()
@@ -1373,9 +1465,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.ArcanaIV,
-                StatMults = new() { [StatKey.DamageBonus] = 1.20f }
-            }
-        ]
+                StatMults = new() { [StatKey.DamageBonus] = 1.20f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition Legion = new()
@@ -1394,9 +1486,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.Legion,
-                StatAdds = new() { [StatKey.UnitCount] = 1f }
-            }
-        ]
+                StatAdds = new() { [StatKey.UnitCount] = 1f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition LegionII = new()
@@ -1416,9 +1508,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.LegionII,
-                StatAdds = new() { [StatKey.UnitCount] = 1f }
-            }
-        ]
+                StatAdds = new() { [StatKey.UnitCount] = 1f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition LegionIII = new()
@@ -1438,9 +1530,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.LegionIII,
-                StatAdds = new() { [StatKey.UnitCount] = 1f }
-            }
-        ]
+                StatAdds = new() { [StatKey.UnitCount] = 1f },
+            },
+        ],
     };
 
     public static readonly TraitDefinition LegionIV = new()
@@ -1460,9 +1552,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.LegionIV,
-                StatAdds = new() { [StatKey.UnitCount] = 1f }
-            }
-        ]
+                StatAdds = new() { [StatKey.UnitCount] = 1f },
+            },
+        ],
     };
 
     // =========================================================================
@@ -1490,9 +1582,9 @@ public static class TraitDefinitions
             {
                 Target = "unit",
                 Source = TraitIds.FortuneFavorsTheBold,
-                StatMults = new() { [StatKey.AttackDamage] = 1.10f }
-            }
-        ]
+                StatMults = new() { [StatKey.AttackDamage] = 1.10f },
+            },
+        ],
     };
 
     private static TraitDefinition BuildSummonerIdentityTrait(
@@ -1505,7 +1597,8 @@ public static class TraitDefinitions
         TraitId? prerequisiteTraitId,
         StatKey stat,
         ModifierType modifierType,
-        float value)
+        float value
+    )
     {
         var prerequisites = prerequisiteTraitId.HasValue
             ? new[] { prerequisiteTraitId.Value.Value }
@@ -1524,8 +1617,13 @@ public static class TraitDefinitions
             Prerequisites = prerequisites,
             Modifiers =
             [
-                new TraitModifier { Stat = stat, Type = modifierType, Value = value }
-            ]
+                new TraitModifier
+                {
+                    Stat = stat,
+                    Type = modifierType,
+                    Value = value,
+                },
+            ],
         };
     }
 
@@ -1637,7 +1735,7 @@ public static class TraitDefinitions
         [TraitIds.LegionIV] = LegionIV,
 
         // Special Traits
-        [TraitIds.FortuneFavorsTheBold] = FortuneFavorsTheBold
+        [TraitIds.FortuneFavorsTheBold] = FortuneFavorsTheBold,
     };
 
     /// <summary>Get a trait definition by ID. Returns null if not found.</summary>

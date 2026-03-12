@@ -1,9 +1,9 @@
 namespace Fateforged.Tests.Economy;
 
 using System.Collections.Generic;
-using GdUnit4;
 using Fateforged.Domain.Profile.Account;
 using Fateforged.Domain.Profile.Enums;
+using GdUnit4;
 using static GdUnit4.Assertions;
 
 /// <summary>
@@ -33,7 +33,7 @@ public class EconomyServiceTest
             Gold = 100,
             Gems = 50,
             Essence = 25,
-            Fragments = 10
+            Fragments = 10,
         };
 
         AssertThat(resources.Gold).IsEqual(100);
@@ -73,7 +73,7 @@ public class EconomyServiceTest
         var cost = new Dictionary<ResourceType, int>
         {
             { ResourceType.Gold, 100 },
-            { ResourceType.Gems, 50 }
+            { ResourceType.Gems, 50 },
         };
 
         AssertThat(cost.ContainsKey(ResourceType.Gold)).IsTrue();
@@ -92,11 +92,13 @@ public class EconomyServiceTest
         AssertThat(mock.GetResources().Gems).IsEqual(50);
 
         // Test update
-        mock.UpdateResources(new Dictionary<ResourceType, int>
-        {
-            { ResourceType.Gold, -30 },
-            { ResourceType.Gems, 20 }
-        });
+        mock.UpdateResources(
+            new Dictionary<ResourceType, int>
+            {
+                { ResourceType.Gold, -30 },
+                { ResourceType.Gems, 20 },
+            }
+        );
 
         AssertThat(mock.GetResources().Gold).IsEqual(70);
         AssertThat(mock.GetResources().Gems).IsEqual(70);
@@ -109,7 +111,7 @@ public class EconomyServiceTest
         var cost = new Dictionary<ResourceType, int>
         {
             { ResourceType.Gold, 50 },
-            { ResourceType.Gems, 25 }
+            { ResourceType.Gems, 25 },
         };
 
         // Implement the can afford check logic locally for testing
@@ -122,7 +124,7 @@ public class EconomyServiceTest
                 ResourceType.Gems => resources.Gems,
                 ResourceType.Essence => resources.Essence,
                 ResourceType.Fragments => resources.Fragments,
-                _ => 0
+                _ => 0,
             };
             if (available < kvp.Value)
             {
@@ -140,8 +142,8 @@ public class EconomyServiceTest
         var resources = new Resources { Gold = 30, Gems = 50 };
         var cost = new Dictionary<ResourceType, int>
         {
-            { ResourceType.Gold, 50 },  // Not enough
-            { ResourceType.Gems, 25 }
+            { ResourceType.Gold, 50 }, // Not enough
+            { ResourceType.Gems, 25 },
         };
 
         var canAfford = true;
@@ -153,7 +155,7 @@ public class EconomyServiceTest
                 ResourceType.Gems => resources.Gems,
                 ResourceType.Essence => resources.Essence,
                 ResourceType.Fragments => resources.Fragments,
-                _ => 0
+                _ => 0,
             };
             if (available < kvp.Value)
             {
@@ -179,7 +181,7 @@ public class EconomyServiceTest
                 Gold = gold,
                 Gems = gems,
                 Essence = essence,
-                Fragments = fragments
+                Fragments = fragments,
             };
         }
 

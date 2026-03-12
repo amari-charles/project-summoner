@@ -25,7 +25,7 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_hello.description",
             Price = 0,
             Rarity = "common",
-            Category = "neutral"
+            Category = "neutral",
         },
         ["emote_good_game"] = new EmoteDefinition
         {
@@ -34,7 +34,7 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_good_game.description",
             Price = 0,
             Rarity = "common",
-            Category = "celebration"
+            Category = "celebration",
         },
 
         // Reaction emotes (purchasable)
@@ -45,7 +45,7 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_laugh.description",
             Price = 150,
             Rarity = "common",
-            Category = "reaction"
+            Category = "reaction",
         },
         ["emote_shocked"] = new EmoteDefinition
         {
@@ -54,7 +54,7 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_shocked.description",
             Price = 150,
             Rarity = "common",
-            Category = "reaction"
+            Category = "reaction",
         },
         ["emote_thinking"] = new EmoteDefinition
         {
@@ -63,7 +63,7 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_thinking.description",
             Price = 200,
             Rarity = "rare",
-            Category = "neutral"
+            Category = "neutral",
         },
 
         // Taunt emotes (purchasable)
@@ -74,7 +74,7 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_taunt.description",
             Price = 250,
             Rarity = "rare",
-            Category = "taunt"
+            Category = "taunt",
         },
         ["emote_confident"] = new EmoteDefinition
         {
@@ -83,7 +83,7 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_confident.description",
             Price = 300,
             Rarity = "epic",
-            Category = "taunt"
+            Category = "taunt",
         },
 
         // Celebration emotes (purchasable)
@@ -94,8 +94,8 @@ public static class EmotesCatalog
             DescriptionKey = "emote.emote_victory.description",
             Price = 350,
             Rarity = "epic",
-            Category = "celebration"
-        }
+            Category = "celebration",
+        },
     };
 
     // =========================================================================
@@ -162,7 +162,7 @@ public static class EmotesCatalog
             ["sound_path"] = emote.SoundPath,
             ["price"] = emote.Price,
             ["rarity"] = emote.Rarity,
-            ["category"] = emote.Category
+            ["category"] = emote.Category,
         };
     }
 

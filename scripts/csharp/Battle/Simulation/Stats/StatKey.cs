@@ -117,7 +117,7 @@ public enum StatKey
     GoldBonus,
 
     /// <summary>Bonus experience from all sources.</summary>
-    XpBonus
+    XpBonus,
 }
 
 /// <summary>
@@ -129,51 +129,52 @@ public static class StatKeyExtensions
     /// Converts a StatKey to its snake_case string representation.
     /// Used for GDScript interop and dictionary keys.
     /// </summary>
-    public static string ToSnakeCase(this StatKey key) => key switch
-    {
-        // Core unit stats
-        StatKey.MaxHp => "max_hp",
-        StatKey.AttackDamage => "attack_damage",
-        StatKey.AttackSpeed => "attack_speed",
-        StatKey.MoveSpeed => "move_speed",
-        StatKey.AttackRange => "attack_range",
-        StatKey.AggroRadius => "aggro_radius",
-        StatKey.CritChance => "crit_chance",
-        StatKey.CritDamage => "crit_damage",
-        StatKey.Armor => "armor",
-        StatKey.MagicResist => "magic_resist",
-        StatKey.SoulStrength => "soul_strength",
-        StatKey.UnitCount => "unit_count",
+    public static string ToSnakeCase(this StatKey key) =>
+        key switch
+        {
+            // Core unit stats
+            StatKey.MaxHp => "max_hp",
+            StatKey.AttackDamage => "attack_damage",
+            StatKey.AttackSpeed => "attack_speed",
+            StatKey.MoveSpeed => "move_speed",
+            StatKey.AttackRange => "attack_range",
+            StatKey.AggroRadius => "aggro_radius",
+            StatKey.CritChance => "crit_chance",
+            StatKey.CritDamage => "crit_damage",
+            StatKey.Armor => "armor",
+            StatKey.MagicResist => "magic_resist",
+            StatKey.SoulStrength => "soul_strength",
+            StatKey.UnitCount => "unit_count",
 
-        // Elemental damage bonuses
-        StatKey.FireDamageBonus => "fire_damage_bonus",
-        StatKey.WaterDamageBonus => "water_damage_bonus",
-        StatKey.WindDamageBonus => "wind_damage_bonus",
-        StatKey.EarthDamageBonus => "earth_damage_bonus",
-        StatKey.LightningDamageBonus => "lightning_damage_bonus",
-        StatKey.LifeDamageBonus => "life_damage_bonus",
-        StatKey.DeathDamageBonus => "death_damage_bonus",
-        StatKey.ShadowDamageBonus => "shadow_damage_bonus",
+            // Elemental damage bonuses
+            StatKey.FireDamageBonus => "fire_damage_bonus",
+            StatKey.WaterDamageBonus => "water_damage_bonus",
+            StatKey.WindDamageBonus => "wind_damage_bonus",
+            StatKey.EarthDamageBonus => "earth_damage_bonus",
+            StatKey.LightningDamageBonus => "lightning_damage_bonus",
+            StatKey.LifeDamageBonus => "life_damage_bonus",
+            StatKey.DeathDamageBonus => "death_damage_bonus",
+            StatKey.ShadowDamageBonus => "shadow_damage_bonus",
 
-        // Summoner survival/utility stats
-        StatKey.HealingBonus => "healing_bonus",
-        StatKey.Lifesteal => "lifesteal",
-        StatKey.DamageReduction => "damage_reduction",
-        StatKey.ManaRegen => "mana_regen",
-        StatKey.MaxMana => "max_mana",
-        StatKey.CastSpeed => "cast_speed",
-        StatKey.MaxHealth => "max_health",
+            // Summoner survival/utility stats
+            StatKey.HealingBonus => "healing_bonus",
+            StatKey.Lifesteal => "lifesteal",
+            StatKey.DamageReduction => "damage_reduction",
+            StatKey.ManaRegen => "mana_regen",
+            StatKey.MaxMana => "max_mana",
+            StatKey.CastSpeed => "cast_speed",
+            StatKey.MaxHealth => "max_health",
 
-        // Combat effects
-        StatKey.HealOnKill => "heal_on_kill",
-        StatKey.DamageBonus => "damage_bonus",
+            // Combat effects
+            StatKey.HealOnKill => "heal_on_kill",
+            StatKey.DamageBonus => "damage_bonus",
 
-        // Progression/economy stats
-        StatKey.GoldBonus => "gold_bonus",
-        StatKey.XpBonus => "xp_bonus",
+            // Progression/economy stats
+            StatKey.GoldBonus => "gold_bonus",
+            StatKey.XpBonus => "xp_bonus",
 
-        _ => key.ToString().ToLowerInvariant()
-    };
+            _ => key.ToString().ToLowerInvariant(),
+        };
 
     /// <summary>
     /// Converts a StatKey to its PascalCase property name.
@@ -237,7 +238,7 @@ public static class StatKeyExtensions
             "goldbonus" => StatKey.GoldBonus,
             "xpbonus" => StatKey.XpBonus,
 
-            _ => null
+            _ => null,
         };
     }
 
@@ -250,40 +251,42 @@ public static class StatKeyExtensions
     /// Gets the default value for a stat key.
     /// Returns 0 for stats that don't have meaningful defaults.
     /// </summary>
-    public static float GetDefault(this StatKey key) => key switch
-    {
-        StatKey.MaxHp => 100f,
-        StatKey.AttackDamage => 10f,
-        StatKey.AttackSpeed => 1f,
-        StatKey.MoveSpeed => 3f,
-        StatKey.AttackRange => 2f,
-        StatKey.AggroRadius => 20f,
-        StatKey.CritChance => 0f,
-        StatKey.CritDamage => 1.5f,
-        StatKey.Armor => 0f,
-        StatKey.MagicResist => 0f,
-        StatKey.MaxHealth => 100f,
-        _ => 0f
-    };
+    public static float GetDefault(this StatKey key) =>
+        key switch
+        {
+            StatKey.MaxHp => 100f,
+            StatKey.AttackDamage => 10f,
+            StatKey.AttackSpeed => 1f,
+            StatKey.MoveSpeed => 3f,
+            StatKey.AttackRange => 2f,
+            StatKey.AggroRadius => 20f,
+            StatKey.CritChance => 0f,
+            StatKey.CritDamage => 1.5f,
+            StatKey.Armor => 0f,
+            StatKey.MagicResist => 0f,
+            StatKey.MaxHealth => 100f,
+            _ => 0f,
+        };
 
     /// <summary>
     /// Gets all core unit stats (the ones directly applied to units).
     /// </summary>
-    public static StatKey[] CoreUnitStats => new[]
-    {
-        StatKey.MaxHp,
-        StatKey.AttackDamage,
-        StatKey.AttackSpeed,
-        StatKey.MoveSpeed,
-        StatKey.AttackRange,
-        StatKey.AggroRadius,
-        StatKey.CritChance,
-        StatKey.CritDamage,
-        StatKey.Armor,
-        StatKey.MagicResist,
-        StatKey.SoulStrength,
-        StatKey.UnitCount
-    };
+    public static StatKey[] CoreUnitStats =>
+        new[]
+        {
+            StatKey.MaxHp,
+            StatKey.AttackDamage,
+            StatKey.AttackSpeed,
+            StatKey.MoveSpeed,
+            StatKey.AttackRange,
+            StatKey.AggroRadius,
+            StatKey.CritChance,
+            StatKey.CritDamage,
+            StatKey.Armor,
+            StatKey.MagicResist,
+            StatKey.SoulStrength,
+            StatKey.UnitCount,
+        };
 
     /// <summary>
     /// Gets all stat keys as an array.
@@ -295,10 +298,11 @@ public static class StatKeyExtensions
     /// For example, "max_health" -> MaxHp for unit context.
     /// Returns null if no mapping exists.
     /// </summary>
-    public static StatKey? MapToUnitStat(this StatKey key) => key switch
-    {
-        StatKey.MaxHealth => StatKey.MaxHp,
-        StatKey.DamageBonus => StatKey.AttackDamage,
-        _ => key
-    };
+    public static StatKey? MapToUnitStat(this StatKey key) =>
+        key switch
+        {
+            StatKey.MaxHealth => StatKey.MaxHp,
+            StatKey.DamageBonus => StatKey.AttackDamage,
+            _ => key,
+        };
 }

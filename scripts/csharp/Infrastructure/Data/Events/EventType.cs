@@ -18,7 +18,7 @@ public enum EventType
     Choice,
 
     /// <summary>Traveling merchant shop</summary>
-    Caravan
+    Caravan,
 }
 
 /// <summary>
@@ -31,24 +31,26 @@ public static class EventTypeExtensions
         type is EventType.Battle or EventType.Elite or EventType.Boss;
 
     /// <summary>Convert to string ID matching GDScript NodeTypeIDs</summary>
-    public static string ToStringId(this EventType type) => type switch
-    {
-        EventType.Battle => "battle",
-        EventType.Elite => "elite",
-        EventType.Boss => "boss",
-        EventType.Choice => "choice",
-        EventType.Caravan => "caravan",
-        _ => "battle"
-    };
+    public static string ToStringId(this EventType type) =>
+        type switch
+        {
+            EventType.Battle => "battle",
+            EventType.Elite => "elite",
+            EventType.Boss => "boss",
+            EventType.Choice => "choice",
+            EventType.Caravan => "caravan",
+            _ => "battle",
+        };
 
     /// <summary>Parse from string ID</summary>
-    public static EventType FromStringId(string id) => id switch
-    {
-        "battle" => EventType.Battle,
-        "elite" => EventType.Elite,
-        "boss" => EventType.Boss,
-        "choice" => EventType.Choice,
-        "caravan" => EventType.Caravan,
-        _ => EventType.Battle
-    };
+    public static EventType FromStringId(string id) =>
+        id switch
+        {
+            "battle" => EventType.Battle,
+            "elite" => EventType.Elite,
+            "boss" => EventType.Boss,
+            "choice" => EventType.Choice,
+            "caravan" => EventType.Caravan,
+            _ => EventType.Battle,
+        };
 }

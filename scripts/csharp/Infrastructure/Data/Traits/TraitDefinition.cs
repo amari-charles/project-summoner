@@ -97,7 +97,10 @@ public class TraitDefinition
     /// Resolve static stat multipliers for this trait for a specific card context.
     /// Base values come from trait modifiers, then matching card overrides replace those stat keys.
     /// </summary>
-    public Dictionary<StatKey, float> ResolveStatMultipliersForCard(string cardCatalogId, string cardRarity)
+    public Dictionary<StatKey, float> ResolveStatMultipliersForCard(
+        string cardCatalogId,
+        string cardRarity
+    )
     {
         var result = new Dictionary<StatKey, float>();
         foreach (var modifier in Modifiers)
@@ -138,7 +141,10 @@ public class TraitDefinition
     /// Base values come from trait modifiers, then matching card overrides replace those stat keys.
     /// UnitCount is handled via ResolveSpawnCountAddForCard and excluded here.
     /// </summary>
-    public Dictionary<StatKey, float> ResolveStatAddsForCard(string cardCatalogId, string cardRarity)
+    public Dictionary<StatKey, float> ResolveStatAddsForCard(
+        string cardCatalogId,
+        string cardRarity
+    )
     {
         var result = new Dictionary<StatKey, float>();
         foreach (var modifier in Modifiers)
@@ -204,19 +210,27 @@ public class TraitDefinition
             return null;
 
         // Priority: exact card+rarity > card-only > rarity-only > global default override.
-        var exact = ValueOverrides.FirstOrDefault(v => v.Matches(cardCatalogId, cardRarity, requireCard: true, requireRarity: true));
+        var exact = ValueOverrides.FirstOrDefault(v =>
+            v.Matches(cardCatalogId, cardRarity, requireCard: true, requireRarity: true)
+        );
         if (exact != null)
             return exact;
 
-        var cardOnly = ValueOverrides.FirstOrDefault(v => v.Matches(cardCatalogId, cardRarity, requireCard: true, requireRarity: false));
+        var cardOnly = ValueOverrides.FirstOrDefault(v =>
+            v.Matches(cardCatalogId, cardRarity, requireCard: true, requireRarity: false)
+        );
         if (cardOnly != null)
             return cardOnly;
 
-        var rarityOnly = ValueOverrides.FirstOrDefault(v => v.Matches(cardCatalogId, cardRarity, requireCard: false, requireRarity: true));
+        var rarityOnly = ValueOverrides.FirstOrDefault(v =>
+            v.Matches(cardCatalogId, cardRarity, requireCard: false, requireRarity: true)
+        );
         if (rarityOnly != null)
             return rarityOnly;
 
-        return ValueOverrides.FirstOrDefault(v => v.Matches(cardCatalogId, cardRarity, requireCard: false, requireRarity: false));
+        return ValueOverrides.FirstOrDefault(v =>
+            v.Matches(cardCatalogId, cardRarity, requireCard: false, requireRarity: false)
+        );
     }
 }
 
@@ -241,10 +255,19 @@ public class TraitValueOverride
     /// <summary>Replacement spawn-count additive for this context.</summary>
     public int? UnitCountAdd { get; init; }
 
-    public bool Matches(string cardCatalogId, string cardRarity, bool requireCard, bool requireRarity)
+    public bool Matches(
+        string cardCatalogId,
+        string cardRarity,
+        bool requireCard,
+        bool requireRarity
+    )
     {
-        var normalizedCatalog = string.IsNullOrWhiteSpace(cardCatalogId) ? "" : cardCatalogId.Trim();
-        var normalizedRarity = string.IsNullOrWhiteSpace(cardRarity) ? "" : cardRarity.Trim().ToLowerInvariant();
+        var normalizedCatalog = string.IsNullOrWhiteSpace(cardCatalogId)
+            ? ""
+            : cardCatalogId.Trim();
+        var normalizedRarity = string.IsNullOrWhiteSpace(cardRarity)
+            ? ""
+            : cardRarity.Trim().ToLowerInvariant();
 
         var hasCardFilter = CardCatalogIds.Length > 0;
         var hasRarityFilter = Rarities.Length > 0;
@@ -256,7 +279,10 @@ public class TraitValueOverride
 
         if (hasCardFilter && !CardCatalogIds.Contains(normalizedCatalog, StringComparer.Ordinal))
             return false;
-        if (hasRarityFilter && !Rarities.Contains(normalizedRarity, StringComparer.OrdinalIgnoreCase))
+        if (
+            hasRarityFilter
+            && !Rarities.Contains(normalizedRarity, StringComparer.OrdinalIgnoreCase)
+        )
             return false;
 
         return true;

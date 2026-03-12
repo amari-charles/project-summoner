@@ -12,7 +12,7 @@ public enum RewardType
     Fixed,
 
     /// <summary>Flexible reward - player picks from options</summary>
-    Flexible
+    Flexible,
 }
 
 /// <summary>
@@ -21,22 +21,24 @@ public enum RewardType
 public static class RewardTypeExtensions
 {
     /// <summary>Convert to string ID matching GDScript RewardTypeIDs</summary>
-    public static string ToStringId(this RewardType type) => type switch
-    {
-        RewardType.None => "none",
-        RewardType.Fixed => "fixed",
-        RewardType.Flexible => "flexible",
-        _ => "fixed"
-    };
+    public static string ToStringId(this RewardType type) =>
+        type switch
+        {
+            RewardType.None => "none",
+            RewardType.Fixed => "fixed",
+            RewardType.Flexible => "flexible",
+            _ => "fixed",
+        };
 
     /// <summary>Parse from string ID</summary>
-    public static RewardType FromStringId(string id) => id switch
-    {
-        "none" => RewardType.None,
-        "fixed" => RewardType.Fixed,
-        "flexible" => RewardType.Flexible,
-        _ => RewardType.Fixed
-    };
+    public static RewardType FromStringId(string id) =>
+        id switch
+        {
+            "none" => RewardType.None,
+            "fixed" => RewardType.Fixed,
+            "flexible" => RewardType.Flexible,
+            _ => RewardType.Fixed,
+        };
 
     /// <summary>Check if the reward type provides a card</summary>
     public static bool HasCardReward(this RewardType type) => type != RewardType.None;

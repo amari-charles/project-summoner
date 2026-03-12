@@ -1,5 +1,5 @@
-using Godot;
 using Fateforged.Cards.Formations;
+using Godot;
 
 namespace Fateforged.Cards.Configs;
 
@@ -112,7 +112,7 @@ public partial class SummonCardConfig : CardConfig
     /// <summary>
     /// Create a SummonCardConfig from a GDScript dictionary.
     /// </summary>
-    public new static SummonCardConfig FromDictionary(Godot.Collections.Dictionary dict)
+    public static new SummonCardConfig FromDictionary(Godot.Collections.Dictionary dict)
     {
         var config = new SummonCardConfig();
         PopulateFromDictionary(config, dict);
@@ -123,7 +123,10 @@ public partial class SummonCardConfig : CardConfig
     /// <summary>
     /// Populate summon-specific fields from dictionary.
     /// </summary>
-    protected static void PopulateSummonFromDictionary(SummonCardConfig config, Godot.Collections.Dictionary dict)
+    protected static void PopulateSummonFromDictionary(
+        SummonCardConfig config,
+        Godot.Collections.Dictionary dict
+    )
     {
         if (dict.TryGetValue("unit_scene_path", out var scenePath))
             config.UnitScenePath = scenePath.AsString();

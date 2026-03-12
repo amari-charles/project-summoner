@@ -1,5 +1,5 @@
-using Godot;
 using Fateforged.Constants;
+using Godot;
 
 namespace Fateforged.Infrastructure.Debug;
 
@@ -37,7 +37,11 @@ public partial class BattlefieldDebugService : Node
     public bool ProjectileHitGeometryEnabled { get; set; }
 
     public bool AnyUnitDebugEnabled =>
-        HurtboxEnabled || TargetPointEnabled || EngageRangeEnabled || DamageShapeEnabled || NavigationFootprintEnabled;
+        HurtboxEnabled
+        || TargetPointEnabled
+        || EngageRangeEnabled
+        || DamageShapeEnabled
+        || NavigationFootprintEnabled;
     public bool AnyProjectileDebugEnabled => ProjectileHitGeometryEnabled;
 
     public override void _Ready()
@@ -69,23 +73,42 @@ public partial class BattlefieldDebugService : Node
 
     // Unit debug visualization API (GDScript-callable).
     public bool IsDebugHurtboxEnabled() => HurtboxEnabled;
+
     public bool IsDebugTargetPointEnabled() => TargetPointEnabled;
+
     public bool IsDebugEngageRangeEnabled() => EngageRangeEnabled;
+
     public bool IsDebugDamageShapeEnabled() => DamageShapeEnabled;
+
     public bool IsDebugNavigationFootprintEnabled() => NavigationFootprintEnabled;
+
     public bool IsDebugProjectileHitGeometryEnabled() => ProjectileHitGeometryEnabled;
 
     public void SetDebugHurtboxEnabled(bool enabled) => HurtboxEnabled = enabled;
+
     public void SetDebugTargetPointEnabled(bool enabled) => TargetPointEnabled = enabled;
+
     public void SetDebugEngageRangeEnabled(bool enabled) => EngageRangeEnabled = enabled;
+
     public void SetDebugDamageShapeEnabled(bool enabled) => DamageShapeEnabled = enabled;
-    public void SetDebugNavigationFootprintEnabled(bool enabled) => NavigationFootprintEnabled = enabled;
-    public void SetDebugProjectileHitGeometryEnabled(bool enabled) => ProjectileHitGeometryEnabled = enabled;
+
+    public void SetDebugNavigationFootprintEnabled(bool enabled) =>
+        NavigationFootprintEnabled = enabled;
+
+    public void SetDebugProjectileHitGeometryEnabled(bool enabled) =>
+        ProjectileHitGeometryEnabled = enabled;
 
     public void ToggleDebugHurtbox() => HurtboxEnabled = !HurtboxEnabled;
+
     public void ToggleDebugTargetPoint() => TargetPointEnabled = !TargetPointEnabled;
+
     public void ToggleDebugEngageRange() => EngageRangeEnabled = !EngageRangeEnabled;
+
     public void ToggleDebugDamageShape() => DamageShapeEnabled = !DamageShapeEnabled;
-    public void ToggleDebugNavigationFootprint() => NavigationFootprintEnabled = !NavigationFootprintEnabled;
-    public void ToggleDebugProjectileHitGeometry() => ProjectileHitGeometryEnabled = !ProjectileHitGeometryEnabled;
+
+    public void ToggleDebugNavigationFootprint() =>
+        NavigationFootprintEnabled = !NavigationFootprintEnabled;
+
+    public void ToggleDebugProjectileHitGeometry() =>
+        ProjectileHitGeometryEnabled = !ProjectileHitGeometryEnabled;
 }

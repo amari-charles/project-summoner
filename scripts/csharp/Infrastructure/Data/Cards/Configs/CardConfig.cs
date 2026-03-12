@@ -115,7 +115,10 @@ public partial class CardConfig : Resource
     /// <summary>
     /// Populate base config fields from dictionary (used by subclasses).
     /// </summary>
-    protected static void PopulateFromDictionary(CardConfig config, Godot.Collections.Dictionary dict)
+    protected static void PopulateFromDictionary(
+        CardConfig config,
+        Godot.Collections.Dictionary dict
+    )
     {
         if (dict.TryGetValue("catalog_id", out var catalogId))
             config.CatalogId = catalogId.AsString();
@@ -155,13 +158,19 @@ public partial class CardConfig : Resource
             config.UnlockCondition = unlockCond.AsString();
 
         // Extract elemental affinity from categories
-        if (dict.TryGetValue("categories", out var categories) && categories.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("categories", out var categories)
+            && categories.VariantType == Variant.Type.Dictionary
+        )
         {
             var catDict = categories.AsGodotDictionary();
             if (catDict.TryGetValue("elemental_affinity", out var affinity))
             {
                 // Handle both Resource objects (ElementTypes) and string IDs
-                if (affinity.VariantType == Variant.Type.Object && affinity.Obj is Resource resource)
+                if (
+                    affinity.VariantType == Variant.Type.Object
+                    && affinity.Obj is Resource resource
+                )
                 {
                     // ElementTypes has an "id" property
                     config.ElementalAffinity = (string)resource.Get("id");
@@ -190,14 +199,14 @@ public partial class CardConfig : Resource
             ["cooldown"] = Cooldown,
             ["card_icon_path"] = CardIconPath,
             ["tags"] = Tags,
-            ["unlock_condition"] = UnlockCondition
+            ["unlock_condition"] = UnlockCondition,
         };
 
         if (!string.IsNullOrEmpty(ElementalAffinity))
         {
             dict["categories"] = new Godot.Collections.Dictionary
             {
-                ["elemental_affinity"] = ElementalAffinity
+                ["elemental_affinity"] = ElementalAffinity,
             };
         }
 

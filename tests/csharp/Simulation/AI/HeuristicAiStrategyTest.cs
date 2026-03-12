@@ -74,10 +74,22 @@ public class HeuristicAiStrategyTest
         var rng = new DeterministicRng(42);
 
         // Use high difficulty to minimize randomness
-        float summonScore = HeuristicAiStrategy.ScoreCard(summonCard,
-            HeuristicAiStrategy.BattlefieldState.Even, AiPersonality.Balanced, 6, 0, rng);
-        float spellScore = HeuristicAiStrategy.ScoreCard(spellCard,
-            HeuristicAiStrategy.BattlefieldState.Even, AiPersonality.Balanced, 6, 0, rng);
+        float summonScore = HeuristicAiStrategy.ScoreCard(
+            summonCard,
+            HeuristicAiStrategy.BattlefieldState.Even,
+            AiPersonality.Balanced,
+            6,
+            0,
+            rng
+        );
+        float spellScore = HeuristicAiStrategy.ScoreCard(
+            spellCard,
+            HeuristicAiStrategy.BattlefieldState.Even,
+            AiPersonality.Balanced,
+            6,
+            0,
+            rng
+        );
 
         // With no enemies, spells get penalty — summon should score higher
         AssertThat(summonScore).IsGreater(spellScore);
@@ -89,10 +101,22 @@ public class HeuristicAiStrategyTest
         var summonCard = SimTestHelper.CreateSummonCard("test_summon", manaCost: 2);
         var rng = new DeterministicRng(42);
 
-        float balancedScore = HeuristicAiStrategy.ScoreCard(summonCard,
-            HeuristicAiStrategy.BattlefieldState.Even, AiPersonality.Balanced, 6, 2, rng);
-        float aggressiveScore = HeuristicAiStrategy.ScoreCard(summonCard,
-            HeuristicAiStrategy.BattlefieldState.Even, AiPersonality.Aggressive, 6, 2, rng);
+        float balancedScore = HeuristicAiStrategy.ScoreCard(
+            summonCard,
+            HeuristicAiStrategy.BattlefieldState.Even,
+            AiPersonality.Balanced,
+            6,
+            2,
+            rng
+        );
+        float aggressiveScore = HeuristicAiStrategy.ScoreCard(
+            summonCard,
+            HeuristicAiStrategy.BattlefieldState.Even,
+            AiPersonality.Aggressive,
+            6,
+            2,
+            rng
+        );
 
         AssertThat(aggressiveScore).IsGreater(balancedScore);
     }
@@ -103,10 +127,22 @@ public class HeuristicAiStrategyTest
         var spellCard = SimTestHelper.CreateSpellCard("test_spell", manaCost: 3);
         var rng = new DeterministicRng(42);
 
-        float balancedScore = HeuristicAiStrategy.ScoreCard(spellCard,
-            HeuristicAiStrategy.BattlefieldState.Even, AiPersonality.Balanced, 6, 3, rng);
-        float spellFocusedScore = HeuristicAiStrategy.ScoreCard(spellCard,
-            HeuristicAiStrategy.BattlefieldState.Even, AiPersonality.SpellFocused, 6, 3, rng);
+        float balancedScore = HeuristicAiStrategy.ScoreCard(
+            spellCard,
+            HeuristicAiStrategy.BattlefieldState.Even,
+            AiPersonality.Balanced,
+            6,
+            3,
+            rng
+        );
+        float spellFocusedScore = HeuristicAiStrategy.ScoreCard(
+            spellCard,
+            HeuristicAiStrategy.BattlefieldState.Even,
+            AiPersonality.SpellFocused,
+            6,
+            3,
+            rng
+        );
 
         AssertThat(spellFocusedScore).IsGreater(balancedScore);
     }
@@ -133,7 +169,10 @@ public class HeuristicAiStrategyTest
         summoner.Ai = new AiConfig { Type = AiType.Heuristic, Difficulty = 6 };
         summoner.Mana = 0;
         summoner.Hand.Add("expensive_card");
-        _state.CardDataMap["expensive_card"] = SimTestHelper.CreateSummonCard("expensive_card", manaCost: 10);
+        _state.CardDataMap["expensive_card"] = SimTestHelper.CreateSummonCard(
+            "expensive_card",
+            manaCost: 10
+        );
 
         int result = HeuristicAiStrategy.SelectCardIndex(_state, summoner);
         AssertThat(result).IsEqual(-1);
@@ -146,7 +185,10 @@ public class HeuristicAiStrategyTest
         summoner.Ai = new AiConfig { Type = AiType.Heuristic, Difficulty = 6 };
         summoner.Mana = 5;
         summoner.Hand.Add("affordable");
-        _state.CardDataMap["affordable"] = SimTestHelper.CreateSummonCard("affordable", manaCost: 3);
+        _state.CardDataMap["affordable"] = SimTestHelper.CreateSummonCard(
+            "affordable",
+            manaCost: 3
+        );
 
         int result = HeuristicAiStrategy.SelectCardIndex(_state, summoner);
         AssertThat(result).IsEqual(0);
@@ -187,24 +229,30 @@ public class HeuristicAiStrategyTest
     [TestCase]
     public void SelectSpawnZone_AggressiveWinning_Aggressive()
     {
-        var zone = HeuristicAiStrategy.SelectSpawnZone(AiPersonality.Aggressive,
-            HeuristicAiStrategy.BattlefieldState.Winning);
+        var zone = HeuristicAiStrategy.SelectSpawnZone(
+            AiPersonality.Aggressive,
+            HeuristicAiStrategy.BattlefieldState.Winning
+        );
         AssertThat(zone).IsEqual(HeuristicAiStrategy.SpawnZone.Aggressive);
     }
 
     [TestCase]
     public void SelectSpawnZone_DefensiveLosing_Defensive()
     {
-        var zone = HeuristicAiStrategy.SelectSpawnZone(AiPersonality.Defensive,
-            HeuristicAiStrategy.BattlefieldState.Losing);
+        var zone = HeuristicAiStrategy.SelectSpawnZone(
+            AiPersonality.Defensive,
+            HeuristicAiStrategy.BattlefieldState.Losing
+        );
         AssertThat(zone).IsEqual(HeuristicAiStrategy.SpawnZone.Defensive);
     }
 
     [TestCase]
     public void SelectSpawnZone_BalancedEven_Neutral()
     {
-        var zone = HeuristicAiStrategy.SelectSpawnZone(AiPersonality.Balanced,
-            HeuristicAiStrategy.BattlefieldState.Even);
+        var zone = HeuristicAiStrategy.SelectSpawnZone(
+            AiPersonality.Balanced,
+            HeuristicAiStrategy.BattlefieldState.Even
+        );
         AssertThat(zone).IsEqual(HeuristicAiStrategy.SpawnZone.Neutral);
     }
 
@@ -221,7 +269,7 @@ public class HeuristicAiStrategyTest
             Type = AiType.Heuristic,
             Difficulty = 3,
             PlayIntervalMin = 3.0f,
-            PlayIntervalMax = 6.0f
+            PlayIntervalMax = 6.0f,
         };
 
         // Run several times to check range

@@ -29,7 +29,7 @@ public partial class TestBattleScene : BattleScene
             GD.Print("[TestBattleScene] Reloaded projectile data from disk");
         }
 
-        // Skip 30-second prep phase so AI starts immediately in test scenes
+        // Skip prep phase so AI starts immediately in test scenes
         PreparationDuration = 0f;
 
         // Call parent _Ready (runs full init sequence)
@@ -60,7 +60,7 @@ public partial class TestBattleScene : BattleScene
             { "dev_player_deck", BuildDeck("fire_wisp", 30) },
             { "enemy_deck", BuildDeck("fire_wisp", 30) },
             { "enemy_hp", 999999.0 },
-            { "ai_type", "heuristic" }
+            { "ai_type", "heuristic" },
         };
     }
 
@@ -68,11 +68,7 @@ public partial class TestBattleScene : BattleScene
     {
         return new Godot.Collections.Array
         {
-            new Godot.Collections.Dictionary
-            {
-                { "catalog_id", catalogId },
-                { "count", count }
-            }
+            new Godot.Collections.Dictionary { { "catalog_id", catalogId }, { "count", count } },
         };
     }
 

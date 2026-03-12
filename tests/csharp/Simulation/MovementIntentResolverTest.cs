@@ -24,7 +24,14 @@ public class MovementIntentResolverTest
     [TestCase]
     public void Resolve_StrategyChangesIntentGeneratorOutput()
     {
-        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0.10f, z: 0f, moveSpeed: 0f, attackSpeed: 0f);
+        var target = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 0.10f,
+            z: 0f,
+            moveSpeed: 0f,
+            attackSpeed: 0f
+        );
         var directUnit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
         var contextUnit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
 
@@ -34,11 +41,21 @@ public class MovementIntentResolverTest
         var behavior = new SimBehavior.BehaviorResult
         {
             Movement = MovementResult.TowardTarget,
-            MoveTargetId = target.UnitId
+            MoveTargetId = target.UnitId,
         };
 
-        var directIntent = MovementIntentResolver.Resolve(directUnit, behavior, _state, delta: 1f / 60f);
-        var contextIntent = MovementIntentResolver.Resolve(contextUnit, behavior, _state, delta: 1f / 60f);
+        var directIntent = MovementIntentResolver.Resolve(
+            directUnit,
+            behavior,
+            _state,
+            delta: 1f / 60f
+        );
+        var contextIntent = MovementIntentResolver.Resolve(
+            contextUnit,
+            behavior,
+            _state,
+            delta: 1f / 60f
+        );
 
         AssertThat(directIntent.DesiredVelocity.LengthSquared()).IsGreater(0f);
         AssertThat(contextIntent.DesiredVelocity.LengthSquared()).IsEqual(0f);
@@ -47,14 +64,21 @@ public class MovementIntentResolverTest
     [TestCase]
     public void Resolve_BlockedContextIntent_TriggersYieldThenEscape()
     {
-        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0.10f, z: 0f, moveSpeed: 0f, attackSpeed: 0f);
+        var target = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 0.10f,
+            z: 0f,
+            moveSpeed: 0f,
+            attackSpeed: 0f
+        );
         var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
         unit.MovementIntentStrategy = MovementIntentStrategy.Context;
 
         var behavior = new SimBehavior.BehaviorResult
         {
             Movement = MovementResult.TowardTarget,
-            MoveTargetId = target.UnitId
+            MoveTargetId = target.UnitId,
         };
 
         bool sawYield = false;
@@ -87,10 +111,7 @@ public class MovementIntentResolverTest
         unit.NavigationEscapeQueued = true;
         unit.NavigationEscapeDirectionSign = -1;
 
-        var behavior = new SimBehavior.BehaviorResult
-        {
-            Movement = MovementResult.None
-        };
+        var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
 
         SimMovement.Tick(unit, behavior, _state, Delta);
 
@@ -132,7 +153,7 @@ public class MovementIntentResolverTest
         var behavior = new SimBehavior.BehaviorResult
         {
             Movement = MovementResult.Forward,
-            MoveTargetId = null
+            MoveTargetId = null,
         };
 
         var startPos = unit.Position;

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Fateforged.Cards;
 using Fateforged.Data.Events;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
+using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
 using Fateforged.Domain.Profile.Campaign;
@@ -17,7 +17,7 @@ using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
-using Fateforged.Data.Traits;
+using Godot;
 using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
 
 namespace Fateforged.Infrastructure.Persistence;
@@ -38,7 +38,9 @@ public static class DtoConverters
         var equippedDict = new Godot.Collections.Dictionary();
         foreach (var (slot, itemId) in instance.EquippedItems)
         {
-            equippedDict[slot.ToString().ToLowerInvariant()] = itemId.HasValue ? (string)itemId.Value : "";
+            equippedDict[slot.ToString().ToLowerInvariant()] = itemId.HasValue
+                ? (string)itemId.Value
+                : "";
         }
 
         return new Godot.Collections.Dictionary
@@ -48,7 +50,7 @@ public static class DtoConverters
             ["xp"] = instance.Xp,
             ["equipped_items"] = equippedDict,
             ["acquired_trait_ids"] = ToGodotArray(instance.AcquiredTraitIds.Select(t => (string)t)),
-            ["unspent_trait_points"] = instance.UnspentTraitPoints
+            ["unspent_trait_points"] = instance.UnspentTraitPoints,
         };
     }
 
@@ -58,10 +60,12 @@ public static class DtoConverters
     /// </summary>
     public static SummonerInstance? FromSummonerDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return null;
+        if (dict == null || dict.Count == 0)
+            return null;
 
         var summonerId = GetRequiredString(dict, "summoner_id");
-        if (summonerId == null) return null;
+        if (summonerId == null)
+            return null;
 
         // Deserialize equipped_items (string keys from GDScript → ItemSlot enum keys)
         var equippedItems = new Dictionary<ItemSlot, ItemId?>
@@ -69,15 +73,21 @@ public static class DtoConverters
             [ItemSlot.Wand] = null,
             [ItemSlot.Ring1] = null,
             [ItemSlot.Ring2] = null,
-            [ItemSlot.Robes] = null
+            [ItemSlot.Robes] = null,
         };
-        if (dict.TryGetValue("equipped_items", out var equippedVar) && equippedVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("equipped_items", out var equippedVar)
+            && equippedVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var equippedDict = equippedVar.AsGodotDictionary();
             foreach (var key in equippedDict.Keys)
             {
                 var slotStr = key.AsString();
-                var itemIdStr = equippedDict[key].VariantType != Variant.Type.Nil ? equippedDict[key].AsString() : null;
+                var itemIdStr =
+                    equippedDict[key].VariantType != Variant.Type.Nil
+                        ? equippedDict[key].AsString()
+                        : null;
                 ItemId? itemId = string.IsNullOrEmpty(itemIdStr) ? null : new ItemId(itemIdStr);
 
                 // Parse slot from string
@@ -89,7 +99,10 @@ public static class DtoConverters
         }
 
         var acquiredTraits = new List<TraitId>();
-        if (dict.TryGetValue("acquired_trait_ids", out var traitsVar) && traitsVar.VariantType == Variant.Type.Array)
+        if (
+            dict.TryGetValue("acquired_trait_ids", out var traitsVar)
+            && traitsVar.VariantType == Variant.Type.Array
+        )
         {
             foreach (var item in traitsVar.AsGodotArray())
             {
@@ -106,7 +119,7 @@ public static class DtoConverters
             Xp = GetInt(dict, "xp", 0),
             EquippedItems = equippedItems,
             AcquiredTraitIds = acquiredTraits,
-            UnspentTraitPoints = GetInt(dict, "unspent_trait_points", 0)
+            UnspentTraitPoints = GetInt(dict, "unspent_trait_points", 0),
         };
     }
 
@@ -128,7 +141,7 @@ public static class DtoConverters
             ["upgrades"] = TraitsToGodotArray(card.Traits),
             ["unspent_trait_points"] = card.UnspentTraitPoints,
             ["created_at"] = card.CreatedAt,
-            ["binding"] = (int)card.Binding
+            ["binding"] = (int)card.Binding,
         };
 
         if (card.RollJson != null)
@@ -146,11 +159,13 @@ public static class DtoConverters
     /// </summary>
     public static CardInstance? FromCardDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return null;
+        if (dict == null || dict.Count == 0)
+            return null;
 
         var idStr = GetRequiredString(dict, "id");
         var catalogIdStr = GetRequiredString(dict, "catalog_id");
-        if (idStr == null || catalogIdStr == null) return null;
+        if (idStr == null || catalogIdStr == null)
+            return null;
 
         var traits = new List<CardTraitId>();
         if (dict.TryGetValue("upgrades", out var upgradesVar))
@@ -182,7 +197,9 @@ public static class DtoConverters
         {
             Id = new CardInstanceId(idStr),
             CatalogId = new CardId(catalogIdStr),
-            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
+            ProfileId = string.IsNullOrEmpty(profileIdStr)
+                ? ProfileId.None
+                : new ProfileId(profileIdStr),
             Rarity = GetString(dict, "rarity", "common"),
             Level = GetInt(dict, "level", 1),
             Xp = GetInt(dict, "xp", 0),
@@ -191,7 +208,9 @@ public static class DtoConverters
             RollJson = GetNullableString(dict, "roll_json"),
             CreatedAt = GetLong(dict, "created_at", 0),
             Binding = binding,
-            BoundToSummonerId = string.IsNullOrEmpty(boundToStr) ? null : new SummonerId(boundToStr)
+            BoundToSummonerId = string.IsNullOrEmpty(boundToStr)
+                ? null
+                : new SummonerId(boundToStr),
         };
     }
 
@@ -206,9 +225,15 @@ public static class DtoConverters
         {
             ["id"] = (string)item.Id,
             ["catalog_id"] = (string)item.CatalogId,
-            ["equipped_by"] = item.EquippedBySummonerId.HasValue ? (string)item.EquippedBySummonerId.Value : "",
-            ["bound_to"] = item.BoundToSummonerId.HasValue ? (string)item.BoundToSummonerId.Value : "",
-            ["slot"] = item.EquippedSlot.HasValue ? item.EquippedSlot.Value.ToString().ToLowerInvariant() : ""
+            ["equipped_by"] = item.EquippedBySummonerId.HasValue
+                ? (string)item.EquippedBySummonerId.Value
+                : "",
+            ["bound_to"] = item.BoundToSummonerId.HasValue
+                ? (string)item.BoundToSummonerId.Value
+                : "",
+            ["slot"] = item.EquippedSlot.HasValue
+                ? item.EquippedSlot.Value.ToString().ToLowerInvariant()
+                : "",
         };
     }
 
@@ -218,11 +243,13 @@ public static class DtoConverters
     /// </summary>
     public static ItemInstance? FromItemDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return null;
+        if (dict == null || dict.Count == 0)
+            return null;
 
         var idStr = GetRequiredString(dict, "id");
         var catalogIdStr = GetRequiredString(dict, "catalog_id");
-        if (idStr == null || catalogIdStr == null) return null;
+        if (idStr == null || catalogIdStr == null)
+            return null;
 
         var equippedByStr = GetNullableString(dict, "equipped_by");
         var boundToStr = GetNullableString(dict, "bound_to");
@@ -231,9 +258,13 @@ public static class DtoConverters
         {
             Id = new ItemId(idStr),
             CatalogId = new ItemId(catalogIdStr),
-            EquippedBySummonerId = string.IsNullOrEmpty(equippedByStr) ? null : new SummonerId(equippedByStr),
-            BoundToSummonerId = string.IsNullOrEmpty(boundToStr) ? null : new SummonerId(boundToStr),
-            EquippedSlot = ParseNullableSlot(GetNullableString(dict, "slot"))
+            EquippedBySummonerId = string.IsNullOrEmpty(equippedByStr)
+                ? null
+                : new SummonerId(equippedByStr),
+            BoundToSummonerId = string.IsNullOrEmpty(boundToStr)
+                ? null
+                : new SummonerId(boundToStr),
+            EquippedSlot = ParseNullableSlot(GetNullableString(dict, "slot")),
         };
     }
 
@@ -253,7 +284,7 @@ public static class DtoConverters
             ["slot"] = deck.Slot,
             ["is_active"] = deck.IsActive,
             ["card_instance_ids"] = CardInstanceIdsToGodotArray(deck.CardInstanceIds),
-            ["updated_at"] = deck.UpdatedAt
+            ["updated_at"] = deck.UpdatedAt,
         };
     }
 
@@ -263,11 +294,13 @@ public static class DtoConverters
     /// </summary>
     public static Deck? FromDeckDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return null;
+        if (dict == null || dict.Count == 0)
+            return null;
 
         var idStr = GetRequiredString(dict, "id");
         var summonerIdStr = GetRequiredString(dict, "summoner_id");
-        if (idStr == null || summonerIdStr == null) return null;
+        if (idStr == null || summonerIdStr == null)
+            return null;
 
         var cardIds = new List<CardInstanceId>();
         if (dict.TryGetValue("card_instance_ids", out var cardsVar))
@@ -284,13 +317,15 @@ public static class DtoConverters
         return new Deck
         {
             Id = new DeckId(idStr),
-            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
+            ProfileId = string.IsNullOrEmpty(profileIdStr)
+                ? ProfileId.None
+                : new ProfileId(profileIdStr),
             SummonerId = new SummonerId(summonerIdStr),
             Name = GetString(dict, "name", "Deck"),
             Slot = GetInt(dict, "slot", 0),
             IsActive = GetBool(dict, "is_active", false),
             CardInstanceIds = cardIds,
-            UpdatedAt = GetLong(dict, "updated_at", 0)
+            UpdatedAt = GetLong(dict, "updated_at", 0),
         };
     }
 
@@ -304,8 +339,10 @@ public static class DtoConverters
         var dict = new Godot.Collections.Dictionary
         {
             ["completed_battles"] = ToGodotArray(progress.CompletedBattles.Select(b => (string)b)),
-            ["current_battle"] = progress.CurrentBattle.HasValue ? (string)progress.CurrentBattle.Value : "",
-            ["gold"] = progress.Gold
+            ["current_battle"] = progress.CurrentBattle.HasValue
+                ? (string)progress.CurrentBattle.Value
+                : "",
+            ["gold"] = progress.Gold,
         };
 
         // Add choices if present
@@ -347,13 +384,14 @@ public static class DtoConverters
             ["battle_id"] = (string)pending.BattleId,
             ["reward_type"] = pending.RewardType.ToStringId(),
             ["choice_index"] = pending.ChoiceIndex,
-            ["chosen_catalog_id"] = pending.ChosenCatalogId
+            ["chosen_catalog_id"] = pending.ChosenCatalogId,
         };
 
         if (pending.CaravanPurchases.Count > 0)
         {
             var arr = new Godot.Collections.Array();
-            foreach (var p in pending.CaravanPurchases) arr.Add(p);
+            foreach (var p in pending.CaravanPurchases)
+                arr.Add(p);
             dict["caravan_purchases"] = arr;
         }
 
@@ -372,8 +410,10 @@ public static class DtoConverters
         return new Godot.Collections.Dictionary
         {
             ["completed_events"] = ToGodotArray(arcProgress.CompletedEvents.Select(e => (string)e)),
-            ["current_event"] = arcProgress.CurrentEvent.HasValue ? (string)arcProgress.CurrentEvent.Value : "",
-            ["flags"] = flagsDict
+            ["current_event"] = arcProgress.CurrentEvent.HasValue
+                ? (string)arcProgress.CurrentEvent.Value
+                : "",
+            ["flags"] = flagsDict,
         };
     }
 
@@ -383,8 +423,10 @@ public static class DtoConverters
     /// </summary>
     public static CampaignProgress? FromCampaignDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null) return null;
-        if (dict.Count == 0) return new CampaignProgress();
+        if (dict == null)
+            return null;
+        if (dict.Count == 0)
+            return new CampaignProgress();
 
         var completed = new List<BattleId>();
         if (dict.TryGetValue("completed_battles", out var completedVar))
@@ -398,18 +440,25 @@ public static class DtoConverters
 
         // Parse pending_reward if present
         PendingRewardData? pendingReward = null;
-        if (dict.TryGetValue("pending_reward", out var rewardVar) && rewardVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("pending_reward", out var rewardVar)
+            && rewardVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var rewardDict = rewardVar.AsGodotDictionary();
             pendingReward = new PendingRewardData
             {
                 BattleId = new BattleId(GetString(rewardDict, "battle_id", "")),
-                RewardType = RewardTypeExtensions.FromStringId(GetString(rewardDict, "reward_type", "fixed")),
+                RewardType = RewardTypeExtensions.FromStringId(
+                    GetString(rewardDict, "reward_type", "fixed")
+                ),
                 ChoiceIndex = GetInt(rewardDict, "choice_index", -1),
-                ChosenCatalogId = GetString(rewardDict, "chosen_catalog_id", "")
+                ChosenCatalogId = GetString(rewardDict, "chosen_catalog_id", ""),
             };
-            if (rewardDict.TryGetValue("caravan_purchases", out var purchasesVar) &&
-                purchasesVar.VariantType == Variant.Type.Array)
+            if (
+                rewardDict.TryGetValue("caravan_purchases", out var purchasesVar)
+                && purchasesVar.VariantType == Variant.Type.Array
+            )
             {
                 foreach (var p in purchasesVar.AsGodotArray())
                     pendingReward.CaravanPurchases.Add(p.AsString());
@@ -418,7 +467,10 @@ public static class DtoConverters
 
         // Parse story_arcs if present
         var storyArcs = new Dictionary<string, StoryArcProgress>();
-        if (dict.TryGetValue("story_arcs", out var arcsVar) && arcsVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("story_arcs", out var arcsVar)
+            && arcsVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var arcsDict = arcsVar.AsGodotDictionary();
             foreach (var key in arcsDict.Keys)
@@ -434,7 +486,10 @@ public static class DtoConverters
 
         // Parse choices if present
         var choices = new Dictionary<NodeId, ChoiceId>();
-        if (dict.TryGetValue("choices", out var choicesVar) && choicesVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("choices", out var choicesVar)
+            && choicesVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var choicesDict = choicesVar.AsGodotDictionary();
             foreach (var key in choicesDict.Keys)
@@ -449,7 +504,9 @@ public static class DtoConverters
 
         // Parse current_battle (nullable)
         var currentBattleStr = GetNullableString(dict, "current_battle");
-        BattleId? currentBattle = string.IsNullOrEmpty(currentBattleStr) ? null : new BattleId(currentBattleStr);
+        BattleId? currentBattle = string.IsNullOrEmpty(currentBattleStr)
+            ? null
+            : new BattleId(currentBattleStr);
 
         return new CampaignProgress
         {
@@ -458,7 +515,7 @@ public static class DtoConverters
             Gold = GetInt(dict, "gold", 0),
             PendingReward = pendingReward,
             StoryArcs = storyArcs,
-            Choices = choices
+            Choices = choices,
         };
     }
 
@@ -467,7 +524,8 @@ public static class DtoConverters
     /// </summary>
     public static StoryArcProgress? FromStoryArcDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return null;
+        if (dict == null || dict.Count == 0)
+            return null;
 
         var completedEvents = new List<EventId>();
         if (dict.TryGetValue("completed_events", out var eventsVar))
@@ -480,7 +538,10 @@ public static class DtoConverters
         }
 
         var flags = new Dictionary<string, object>();
-        if (dict.TryGetValue("flags", out var flagsVar) && flagsVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("flags", out var flagsVar)
+            && flagsVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var flagsDict = flagsVar.AsGodotDictionary();
             foreach (var key in flagsDict.Keys)
@@ -491,13 +552,15 @@ public static class DtoConverters
 
         // Parse current_event (nullable)
         var currentEventStr = GetNullableString(dict, "current_event");
-        EventId? currentEvent = string.IsNullOrEmpty(currentEventStr) ? null : new EventId(currentEventStr);
+        EventId? currentEvent = string.IsNullOrEmpty(currentEventStr)
+            ? null
+            : new EventId(currentEventStr);
 
         return new StoryArcProgress
         {
             CompletedEvents = completedEvents,
             CurrentEvent = currentEvent,
-            Flags = flags
+            Flags = flags,
         };
     }
 
@@ -515,7 +578,7 @@ public static class DtoConverters
             ["essence"] = resources.Essence,
             ["fragments"] = resources.Fragments,
             ["profile_id"] = (string)resources.ProfileId,
-            ["updated_at"] = resources.UpdatedAt
+            ["updated_at"] = resources.UpdatedAt,
         };
     }
 
@@ -525,7 +588,8 @@ public static class DtoConverters
     /// </summary>
     public static Resources FromResourcesDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return new Resources();
+        if (dict == null || dict.Count == 0)
+            return new Resources();
 
         var profileIdStr = GetString(dict, "profile_id", "");
 
@@ -535,8 +599,10 @@ public static class DtoConverters
             Gems = GetInt(dict, "gems", 0),
             Essence = GetInt(dict, "essence", 0),
             Fragments = GetInt(dict, "fragments", 0),
-            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
-            UpdatedAt = GetLong(dict, "updated_at", 0)
+            ProfileId = string.IsNullOrEmpty(profileIdStr)
+                ? ProfileId.None
+                : new ProfileId(profileIdStr),
+            UpdatedAt = GetLong(dict, "updated_at", 0),
         };
     }
 
@@ -551,7 +617,7 @@ public static class DtoConverters
         {
             ["sfx_volume"] = settings.SfxVolume,
             ["music_volume"] = settings.MusicVolume,
-            ["lang"] = settings.Lang
+            ["lang"] = settings.Lang,
         };
     }
 
@@ -561,13 +627,14 @@ public static class DtoConverters
     /// </summary>
     public static Settings FromSettingsDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return new Settings();
+        if (dict == null || dict.Count == 0)
+            return new Settings();
 
         return new Settings
         {
             SfxVolume = GetFloat(dict, "sfx_volume", 1.0f),
             MusicVolume = GetFloat(dict, "music_volume", 1.0f),
-            Lang = GetString(dict, "lang", "en")
+            Lang = GetString(dict, "lang", "en"),
         };
     }
 
@@ -581,7 +648,7 @@ public static class DtoConverters
         return new Godot.Collections.Dictionary
         {
             ["refresh_epoch"] = state.RefreshEpoch,
-            ["last_refresh_at"] = state.LastRefreshAt
+            ["last_refresh_at"] = state.LastRefreshAt,
         };
     }
 
@@ -591,12 +658,13 @@ public static class DtoConverters
     /// </summary>
     public static ShopRefreshState FromShopRefreshStateDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return new ShopRefreshState();
+        if (dict == null || dict.Count == 0)
+            return new ShopRefreshState();
 
         return new ShopRefreshState
         {
             RefreshEpoch = GetInt(dict, "refresh_epoch", 0),
-            LastRefreshAt = GetString(dict, "last_refresh_at", "")
+            LastRefreshAt = GetString(dict, "last_refresh_at", ""),
         };
     }
 
@@ -623,9 +691,10 @@ public static class DtoConverters
         {
             ["selected_deck"] = meta.SelectedDeck,
             ["selected_summoner"] = meta.SelectedSummoner,
+            ["selected_campaign"] = meta.SelectedCampaign,
             ["analytics_opt_in"] = meta.AnalyticsOptIn,
             ["tutorial_flags"] = tutorialDict,
-            ["achievements"] = achievementsDict
+            ["achievements"] = achievementsDict,
         };
     }
 
@@ -635,17 +704,22 @@ public static class DtoConverters
     /// </summary>
     public static AccountMeta FromMetaDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return new AccountMeta();
+        if (dict == null || dict.Count == 0)
+            return new AccountMeta();
 
         var meta = new AccountMeta
         {
             SelectedDeck = GetString(dict, "selected_deck", ""),
             SelectedSummoner = GetString(dict, "selected_summoner", ""),
-            AnalyticsOptIn = GetBool(dict, "analytics_opt_in", false)
+            SelectedCampaign = GetString(dict, "selected_campaign", ""),
+            AnalyticsOptIn = GetBool(dict, "analytics_opt_in", false),
         };
 
         // Convert tutorial_flags if present
-        if (dict.TryGetValue("tutorial_flags", out var tutorialVar) && tutorialVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("tutorial_flags", out var tutorialVar)
+            && tutorialVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var tutorialDict = tutorialVar.AsGodotDictionary();
             foreach (var key in tutorialDict.Keys)
@@ -659,7 +733,10 @@ public static class DtoConverters
         }
 
         // Convert achievements if present
-        if (dict.TryGetValue("achievements", out var achievementsVar) && achievementsVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("achievements", out var achievementsVar)
+            && achievementsVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var achievementsDict = achievementsVar.AsGodotDictionary();
             foreach (var key in achievementsDict.Keys)
@@ -672,7 +749,7 @@ public static class DtoConverters
                     Variant.Type.Float => value.AsDouble(),
                     Variant.Type.Bool => value.AsBool(),
                     Variant.Type.String => value.AsString(),
-                    _ => value.AsString() // Fallback for unexpected types
+                    _ => value.AsString(), // Fallback for unexpected types
                 };
                 meta.Achievements[key.AsString()] = achievementValue;
             }
@@ -694,6 +771,9 @@ public static class DtoConverters
 
         if (update.SelectedSummoner != null)
             dict["selected_summoner"] = update.SelectedSummoner;
+
+        if (update.SelectedCampaign != null)
+            dict["selected_campaign"] = update.SelectedCampaign;
 
         if (update.AnalyticsOptIn.HasValue)
             dict["analytics_opt_in"] = update.AnalyticsOptIn.Value;
@@ -755,27 +835,36 @@ public static class DtoConverters
     /// </summary>
     public static ProfileData? FromProfileDict(Godot.Collections.Dictionary? dict)
     {
-        if (dict == null || dict.Count == 0) return null;
+        if (dict == null || dict.Count == 0)
+            return null;
 
         var profileIdStr = GetString(dict, "profile_id", "");
 
         var profileData = new ProfileData
         {
             Version = GetInt(dict, "version", ProfileData.CurrentVersion),
-            ProfileId = string.IsNullOrEmpty(profileIdStr) ? ProfileId.None : new ProfileId(profileIdStr),
+            ProfileId = string.IsNullOrEmpty(profileIdStr)
+                ? ProfileId.None
+                : new ProfileId(profileIdStr),
             UpdatedAt = GetLong(dict, "updated_at", 0),
-            CatalogVersion = GetString(dict, "catalog_version", "1.0.0")
+            CatalogVersion = GetString(dict, "catalog_version", "1.0.0"),
         };
 
         // Convert resources if present
-        if (dict.TryGetValue("resources", out var resourcesVar) && resourcesVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("resources", out var resourcesVar)
+            && resourcesVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var resourcesDict = resourcesVar.AsGodotDictionary();
             profileData.Resources = FromResourcesDict(resourcesDict);
         }
 
         // Convert unlocked summoners if present
-        if (dict.TryGetValue("unlocked_summoners", out var summonersVar) && summonersVar.VariantType == Variant.Type.Array)
+        if (
+            dict.TryGetValue("unlocked_summoners", out var summonersVar)
+            && summonersVar.VariantType == Variant.Type.Array
+        )
         {
             var summonersArr = summonersVar.AsGodotArray();
             foreach (var s in summonersArr)
@@ -785,7 +874,10 @@ public static class DtoConverters
         }
 
         // Convert meta if present (contains selected_summoner)
-        if (dict.TryGetValue("meta", out var metaVar) && metaVar.VariantType == Variant.Type.Dictionary)
+        if (
+            dict.TryGetValue("meta", out var metaVar)
+            && metaVar.VariantType == Variant.Type.Dictionary
+        )
         {
             var metaDict = metaVar.AsGodotDictionary();
             profileData.Meta = FromMetaDict(metaDict);
@@ -821,7 +913,9 @@ public static class DtoConverters
     }
 
     /// <summary>Convert IEnumerable of CardInstanceId to Godot Array (as strings).</summary>
-    public static Godot.Collections.Array CardInstanceIdsToGodotArray(IEnumerable<CardInstanceId> ids)
+    public static Godot.Collections.Array CardInstanceIdsToGodotArray(
+        IEnumerable<CardInstanceId> ids
+    )
     {
         var arr = new Godot.Collections.Array();
         foreach (var id in ids)
@@ -858,18 +952,26 @@ public static class DtoConverters
     }
 
     /// <summary>Get string from dictionary with default value.</summary>
-    private static string GetString(Godot.Collections.Dictionary dict, string key, string defaultValue)
+    private static string GetString(
+        Godot.Collections.Dictionary dict,
+        string key,
+        string defaultValue
+    )
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
-        if (value.VariantType == Variant.Type.Nil) return defaultValue;
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
+        if (value.VariantType == Variant.Type.Nil)
+            return defaultValue;
         return value.AsString();
     }
 
     /// <summary>Get nullable string from dictionary, treating empty strings as null.</summary>
     private static string? GetNullableString(Godot.Collections.Dictionary dict, string key)
     {
-        if (!dict.TryGetValue(key, out var value)) return null;
-        if (value.VariantType == Variant.Type.Nil) return null;
+        if (!dict.TryGetValue(key, out var value))
+            return null;
+        if (value.VariantType == Variant.Type.Nil)
+            return null;
         var str = value.AsString();
         return string.IsNullOrEmpty(str) ? null : str;
     }
@@ -877,44 +979,49 @@ public static class DtoConverters
     /// <summary>Get int from dictionary with default value.</summary>
     private static int GetInt(Godot.Collections.Dictionary dict, string key, int defaultValue)
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
         return value.VariantType switch
         {
             Variant.Type.Int => value.AsInt32(),
             Variant.Type.Float => (int)value.AsDouble(),
-            _ => defaultValue
+            _ => defaultValue,
         };
     }
 
     /// <summary>Get long from dictionary with default value.</summary>
     private static long GetLong(Godot.Collections.Dictionary dict, string key, long defaultValue)
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
         return value.VariantType switch
         {
             Variant.Type.Int => (long)value.AsInt32(),
             Variant.Type.Float => (long)value.AsDouble(),
-            _ => defaultValue
+            _ => defaultValue,
         };
     }
 
     /// <summary>Get float from dictionary with default value.</summary>
     private static float GetFloat(Godot.Collections.Dictionary dict, string key, float defaultValue)
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
         return value.VariantType switch
         {
             Variant.Type.Float => (float)value.AsDouble(),
             Variant.Type.Int => value.AsInt32(),
-            _ => defaultValue
+            _ => defaultValue,
         };
     }
 
     /// <summary>Get bool from dictionary with default value.</summary>
     private static bool GetBool(Godot.Collections.Dictionary dict, string key, bool defaultValue)
     {
-        if (!dict.TryGetValue(key, out var value)) return defaultValue;
-        if (value.VariantType == Variant.Type.Bool) return value.AsBool();
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
+        if (value.VariantType == Variant.Type.Bool)
+            return value.AsBool();
         return defaultValue;
     }
 
@@ -929,14 +1036,15 @@ public static class DtoConverters
             double d => (float)d,
             bool b => b,
             long l => (int)l,
-            _ => value?.ToString() ?? ""
+            _ => value?.ToString() ?? "",
         };
     }
 
     /// <summary>Parse nullable ItemSlot from string.</summary>
     private static ItemSlot? ParseNullableSlot(string? value)
     {
-        if (string.IsNullOrEmpty(value)) return null;
+        if (string.IsNullOrEmpty(value))
+            return null;
         return Enum.TryParse<ItemSlot>(value, ignoreCase: true, out var slot) ? slot : null;
     }
 }
