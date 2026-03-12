@@ -3,7 +3,7 @@
 **Status:** PASS 3 IMPLEMENTATION COMPLETE  
 **Initiative:** `combat-commit-slot-v1`  
 **Domain:** `runtime`  
-**Last Updated:** `2026-03-11`  
+**Last Updated:** `2026-03-12`  
 **Companion Plan:** `combat-commit-slot-v1-plan.md`
 
 ## How To Use
@@ -22,7 +22,7 @@ Allowed status values:
 | Case ID | Scenario | Expected Result | Test Type | Planned Test File | Status |
 |---|---|---|---|---|---|
 | CCS-001 | Commit lock with nearby spawn | No retarget unless explicit criteria met | simulation | `tests/csharp/Simulation/SimTargetingCommitTest.cs` | Implemented |
-| CCS-002 | Summoner lock under spawn pressure | Unit keeps summoner target while valid/reachable | simulation | `tests/csharp/Simulation/SimTargetingCommitTest.cs` | Implemented |
+| CCS-002 | Summoner lock under spawn pressure | Unit preempts to valid in-aggro enemy within one tick; otherwise keeps summoner target | simulation | `tests/csharp/Simulation/SimTargetingCommitTest.cs` | Implemented |
 | CCS-003 | All slots full on target | Wait, retry, then reacquire by timeout ordering | simulation | `tests/csharp/Simulation/SimMeleeSlotManagerTest.cs` | Implemented |
 | CCS-004 | Slot reservation contention | Reserved slot cannot be stolen | unit | `tests/csharp/Simulation/SimMeleeSlotManagerTest.cs` | Implemented |
 | CCS-005 | Attack phase anchoring | No translation during windup/active/recovery | simulation | `tests/csharp/Simulation/SimAttackLoopTest.cs` | Implemented |

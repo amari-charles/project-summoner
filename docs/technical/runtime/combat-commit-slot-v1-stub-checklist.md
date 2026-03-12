@@ -3,7 +3,7 @@
 **Status:** PASS 3 COMPLETE (Implementation + Tests), PR REVIEW READY  
 **Initiative:** `combat-commit-slot-v1`  
 **Domain:** `runtime`  
-**Last Updated:** `2026-03-11`
+**Last Updated:** `2026-03-12`
 
 ## Purpose
 
@@ -22,7 +22,7 @@ Define PASS 2 stubs and wiring checkpoints ahead of implementation so no contrac
 
 - [x] `CombatLifecycleState` enum.
 - [x] `AttackPhase` enum (`Windup`, `Active`, `Recovery`).
-- [x] `RetargetReason` enum (`Invalid`, `ForcedOverride`, `UnreachableTimeout`).
+- [x] `RetargetReason` enum (`Invalid`, `ForcedOverride`, `UnreachableTimeout`, `OutOfAggroRange`, `AggroPreempt`).
 - [x] `SlotOccupancyState` enum (`Free`, `Reserved`, `Occupied`).
 - [x] UnitData commit-slot state fields and timeout constants wiring.
 
@@ -64,7 +64,7 @@ Define PASS 2 stubs and wiring checkpoints ahead of implementation so no contrac
 | Case ID | Skeleton Test File | Test Name | Notes |
 |---|---|---|---|
 | CCS-001 | `tests/csharp/Simulation/SimTargetingCommitTest.cs` | `CommitLock_DoesNotRetarget_OnNearbySpawn` | new file in PASS 2 |
-| CCS-002 | `tests/csharp/Simulation/SimTargetingCommitTest.cs` | `SummonerCommit_Persists_UntilInvalidForcedOrUnreachable` | new file in PASS 2 |
+| CCS-002 | `tests/csharp/Simulation/SimTargetingCommitTest.cs` | `SummonerCommit_PreemptsToInAggroUnit_WithinOneTick` | updated summoner soft-lock preempt contract |
 | CCS-003 | `tests/csharp/Simulation/SimMeleeSlotManagerTest.cs` | `SlotOverflow_WaitsThenReacquires_ByTimeoutOrder` | new file in PASS 2 |
 | CCS-004 | `tests/csharp/Simulation/SimMeleeSlotManagerTest.cs` | `ReservedSlot_CannotBeStolen_ByAnotherUnit` | anti-steal invariant |
 | CCS-005 | `tests/csharp/Simulation/SimAttackLoopTest.cs` | `AttackPhase_AnchorsPosition_NoTranslation` | new file in PASS 2 |

@@ -58,7 +58,7 @@ func _ready() -> void:
 	if not _menu_enabled:
 		set_process(false)
 		set_process_input(false)
-		print("[Debug] DebugMenu disabled (use %s to enable)." % ENABLE_FLAG)
+		print("[Debug] DebugMenu disabled (remove %s to enable)." % DISABLE_FLAG)
 		return
 
 	# Always process, even when paused
