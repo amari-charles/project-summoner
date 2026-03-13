@@ -157,6 +157,7 @@ public readonly record struct SpellCastVisual(
 
 /// <summary>
 /// Authoritative transient beam visual cue for instant hitscan attacks.
+/// Fire-and-forget visual event; reconnect does not replay prior beams.
 /// </summary>
 public readonly record struct HitscanBeamVisual(
     int ProjectileId,
