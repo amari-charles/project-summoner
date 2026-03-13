@@ -24,6 +24,9 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 {
     private const float ClientInterpolationSpeed = 14.0f;
     private const float ClientSnapThreshold = 3.0f;
+    private const float HitscanBeamThickness = 0.22f;
+    private const float HitscanBeamMinDurationSeconds = 0.03f;
+    private static readonly Color HitscanBeamColor = new(1.0f, 0.35f, 0.25f, 0.95f);
 
     private IGameSession? _session;
     private readonly Dictionary<int, UnitVisual> _unitRegistry = new();
@@ -309,6 +312,17 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             shell.ShowBuffIcon(e.EffectType);
     }
 
+    public void Visit(AbilityActivatedEvent e)
+    {
+        // No-op in V1: reserved for dedicated ability VFX wiring.
+    }
+
+    public void Visit(StatusAppliedEvent e)
+    {
+        if (_unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
+            shell.ShowBuffIcon(EffectType.StatModifier);
+    }
+
     // --- Projectile/Summoner/Spell visitors ---
 
     public void Visit(ProjectileHitEvent e)
@@ -318,6 +332,11 @@ public partial class EntityManager : Node3D, ISimEventVisitor
             ReleaseProjectile(shell);
             _projectileRegistry.Remove(e.ProjectileId);
         }
+    }
+
+    public void Visit(HitscanBeamFiredEvent e)
+    {
+        SpawnTransientHitscanBeam(e);
     }
 
     public void Visit(SummonerDamagedEvent e)
@@ -361,6 +380,61 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         GD.Print(
             $"[EntityManager] DelayedEffectFiredEvent: type={e.EffectType}, radius={e.AoeRadius}"
         );
+    }
+
+    private void SpawnTransientHitscanBeam(HitscanBeamFiredEvent e)
+    {
+        var simNode = SimulationNode.Current;
+        var start =
+            simNode != null
+                ? simNode.SimToLocal(e.StartPosition)
+                : new Vector3(e.StartPosition.X, e.StartPosition.Y, e.StartPosition.Z);
+        var end =
+            simNode != null
+                ? simNode.SimToLocal(e.EndPosition)
+                : new Vector3(e.EndPosition.X, e.EndPosition.Y, e.EndPosition.Z);
+        var segment = end - start;
+        float length = segment.Length();
+        if (length <= 0.01f)
+            return;
+
+        var beamMesh = new BoxMesh { Size = new Vector3(HitscanBeamThickness, HitscanBeamThickness, length) };
+        beamMesh.Material = new StandardMaterial3D
+        {
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+            AlbedoColor = HitscanBeamColor,
+            EmissionEnabled = true,
+            Emission = HitscanBeamColor,
+            EmissionEnergyMultiplier = 1.2f,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+        };
+
+        var beamNode = new MeshInstance3D
+        {
+            Name = $"HitscanBeam_{e.ProjectileId}",
+            Mesh = beamMesh,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        };
+        AddChild(beamNode);
+        beamNode.GlobalPosition = start.Lerp(end, 0.5f);
+
+        Vector3 upHint =
+            Mathf.Abs(segment.Normalized().Dot(Vector3.Up)) > 0.98f ? Vector3.Forward : Vector3.Up;
+        beamNode.LookAt(end, upHint, true);
+
+        var timer = new Timer
+        {
+            OneShot = true,
+            Autostart = true,
+            WaitTime = Mathf.Max(HitscanBeamMinDurationSeconds, e.DurationSeconds),
+        };
+        beamNode.AddChild(timer);
+        timer.Timeout += () =>
+        {
+            if (IsInstanceValid(beamNode))
+                beamNode.QueueFree();
+        };
     }
 
     // --- Summoner event dispatch (forwarded to SummonerVisual for signal emission) ---

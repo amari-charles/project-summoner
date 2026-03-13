@@ -42,6 +42,7 @@ public static class CardIds
     public static readonly CardId Charge = new("charge");
     public static readonly CardId ManaBolt = new("mana_bolt");
     public static readonly CardId WeavingBolt = new("weaving_bolt");
+    public static readonly CardId HealingField = new("healing_field");
 
     // =========================================================================
     // WISPS (Basic starter units for each element)
@@ -77,6 +78,7 @@ public static class CardIds
     public static readonly CardId Rock = new("rock");
     public static readonly CardId StoneApe = new("stone_ape");
     public static readonly CardId EarthRockThrower = new("earth_rock_thrower");
+    public static readonly CardId TauntPulseGuardian = new("taunt_pulse_guardian");
 
     // =========================================================================
     // WIND ELEMENT UNITS
@@ -91,4 +93,7 @@ public static class CardIds
 
     public static readonly CardId WaterFrog = new("water_frog");
     public static readonly CardId MamaDuck = new("mama_duck");
+    public static readonly CardId LifeMedic = new("life_medic");
+    public static readonly CardId PoisonNeedler = new("poison_needler");
+    public static readonly CardId PiercingLaser = new("piercing_laser");
 }

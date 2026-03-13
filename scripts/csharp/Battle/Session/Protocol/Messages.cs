@@ -156,6 +156,18 @@ public readonly record struct SpellCastVisual(
 ) : IRealtimeProtocolMessage;
 
 /// <summary>
+/// Authoritative transient beam visual cue for instant hitscan attacks.
+/// Fire-and-forget visual event; reconnect does not replay prior beams.
+/// </summary>
+public readonly record struct HitscanBeamVisual(
+    int ProjectileId,
+    SimProjectileCatalogId ProjectileCatalogId,
+    Vector3 StartPosition,
+    Vector3 EndPosition,
+    float DurationSeconds
+) : IRealtimeProtocolMessage;
+
+/// <summary>
 /// Authoritative projectile spawn message for client-side visual simulation.
 /// </summary>
 public readonly record struct ProjectileSpawned(
@@ -368,6 +380,7 @@ public enum MessageType : byte
     ProjectileDespawned = 26,
     ProjectileSeedSnapshot = 27,
     SpellCastVisual = 28,
+    HitscanBeamVisual = 29,
 
     // Bidirectional
     MatchStarted = 20,

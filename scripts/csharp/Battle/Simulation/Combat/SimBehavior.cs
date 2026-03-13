@@ -28,6 +28,7 @@ public static class SimBehavior
     private const float AttackAnimationDuration = 0.5f;
     private const float TargetLockDuration = 0.5f;
     private const float BacklinerMaxCrossLaneChaseDistanceMultiplier = 1.35f;
+    private const float DefaultHitscanBeamDurationSeconds = 0.12f;
 
     /// <summary>
     /// Result of a behavior tick. Tells the caller what movement to perform
@@ -556,15 +557,45 @@ public static class SimBehavior
     {
         if (!TryResolveProjectileData(attacker, out var projectileData))
         {
-            // Fallback for missing ranged definitions in tests or incomplete data.
-            ApplyUnitDamage(attacker, target, baseDamage, state, events);
+            Simulation.Log?.Invoke(
+                $"[SimBehavior] Missing projectile data for ranged attacker unitId={attacker.UnitId} catalogId={attacker.CatalogId.Value}; skipping attack resolution."
+            );
             return;
         }
 
         var startPos = ResolveProjectileStartPosition(attacker);
-        var targetPos = target.Position;
         if (projectileData.SpawnAtTargetHeight)
-            startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
+            startPos = new SimVector3(startPos.X, target.Position.Y, startPos.Z);
+        var targetPos = ResolveProjectileTargetPosition(startPos, target.Position, projectileData);
+
+        if (projectileData.InstantHitScan)
+        {
+            SimProjectile.ResolveInstantLine(
+                state,
+                sourceUnitId: attacker.UnitId,
+                targetUnitId: target.UnitId,
+                team: attacker.Team,
+                damage: baseDamage,
+                sourceElementId: attacker.ElementId,
+                startPos: startPos,
+                endPos: targetPos,
+                hitRadius: projectileData.HitRadius,
+                pierceCount: projectileData.PierceCount,
+                aoeRadius: projectileData.AoeRadius,
+                hitSpace: projectileData.HitSpace,
+                projectileCatalogId: new SimProjectileCatalogId(projectileData.ProjectileId),
+                targetAffinity: attacker.ProjectileTargetAffinity,
+                impactKind: attacker.ProjectileImpactKind,
+                statusKind: attacker.ProjectileStatusKind,
+                statusDuration: attacker.ProjectileStatusDuration,
+                statusTickInterval: attacker.ProjectileStatusTickInterval,
+                statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+                statusMaxStacks: attacker.ProjectileStatusMaxStacks,
+                beamDurationSeconds: ResolveHitscanBeamDurationSeconds(projectileData),
+                events: events
+            );
+            return;
+        }
 
         SimProjectile.Spawn(
             state,
@@ -595,7 +626,14 @@ public static class SimBehavior
             speedTransitionDuration: projectileData.SpeedTransitionDuration,
             speedEasing: projectileData.SpeedEasing,
             speedEaseExponent: projectileData.SpeedEaseExponent,
-            tracking: projectileData.Tracking
+            tracking: projectileData.Tracking,
+            targetAffinity: attacker.ProjectileTargetAffinity,
+            impactKind: attacker.ProjectileImpactKind,
+            statusKind: attacker.ProjectileStatusKind,
+            statusDuration: attacker.ProjectileStatusDuration,
+            statusTickInterval: attacker.ProjectileStatusTickInterval,
+            statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+            statusMaxStacks: attacker.ProjectileStatusMaxStacks
         );
     }
 
@@ -614,22 +652,46 @@ public static class SimBehavior
 
         if (!TryResolveProjectileData(attacker, out var projectileData))
         {
-            DealSummonerDamage(
-                state,
-                summoner,
-                summonerTeam,
-                baseDamage,
-                attacker.Team,
-                attacker.UnitId,
-                events
+            Simulation.Log?.Invoke(
+                $"[SimBehavior] Missing projectile data for ranged summoner attack unitId={attacker.UnitId} catalogId={attacker.CatalogId.Value}; skipping attack resolution."
             );
             return;
         }
 
         var startPos = ResolveProjectileStartPosition(attacker);
-        var targetPos = summoner.TargetPointPosition;
+        var summonerTargetPos = summoner.TargetPointPosition;
         if (projectileData.SpawnAtTargetHeight)
-            startPos = new SimVector3(startPos.X, targetPos.Y, startPos.Z);
+            startPos = new SimVector3(startPos.X, summonerTargetPos.Y, startPos.Z);
+        var targetPos = ResolveProjectileTargetPosition(startPos, summonerTargetPos, projectileData);
+
+        if (projectileData.InstantHitScan)
+        {
+            SimProjectile.ResolveInstantLine(
+                state,
+                sourceUnitId: attacker.UnitId,
+                targetUnitId: summonerTargetId,
+                team: attacker.Team,
+                damage: baseDamage,
+                sourceElementId: attacker.ElementId,
+                startPos: startPos,
+                endPos: targetPos,
+                hitRadius: projectileData.HitRadius,
+                pierceCount: projectileData.PierceCount,
+                aoeRadius: projectileData.AoeRadius,
+                hitSpace: projectileData.HitSpace,
+                projectileCatalogId: new SimProjectileCatalogId(projectileData.ProjectileId),
+                targetAffinity: attacker.ProjectileTargetAffinity,
+                impactKind: attacker.ProjectileImpactKind,
+                statusKind: attacker.ProjectileStatusKind,
+                statusDuration: attacker.ProjectileStatusDuration,
+                statusTickInterval: attacker.ProjectileStatusTickInterval,
+                statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+                statusMaxStacks: attacker.ProjectileStatusMaxStacks,
+                beamDurationSeconds: ResolveHitscanBeamDurationSeconds(projectileData),
+                events: events
+            );
+            return;
+        }
 
         SimProjectile.Spawn(
             state,
@@ -660,7 +722,14 @@ public static class SimBehavior
             speedTransitionDuration: projectileData.SpeedTransitionDuration,
             speedEasing: projectileData.SpeedEasing,
             speedEaseExponent: projectileData.SpeedEaseExponent,
-            tracking: projectileData.Tracking
+            tracking: projectileData.Tracking,
+            targetAffinity: attacker.ProjectileTargetAffinity,
+            impactKind: attacker.ProjectileImpactKind,
+            statusKind: attacker.ProjectileStatusKind,
+            statusDuration: attacker.ProjectileStatusDuration,
+            statusTickInterval: attacker.ProjectileStatusTickInterval,
+            statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
+            statusMaxStacks: attacker.ProjectileStatusMaxStacks
         );
     }
 
@@ -683,6 +752,35 @@ public static class SimBehavior
             startPos.Y + offset.Y,
             startPos.Z + offset.Z
         );
+    }
+
+    private static SimVector3 ResolveProjectileTargetPosition(
+        SimVector3 startPos,
+        SimVector3 intendedTargetPos,
+        ProjectileData projectileData
+    )
+    {
+        if (
+            projectileData.MovementType != ProjectileMovementType.Straight
+            || projectileData.Tracking
+            || projectileData.FixedTravelDistance <= 0f
+        )
+        {
+            return intendedTargetPos;
+        }
+
+        var toTarget = intendedTargetPos - startPos;
+        if (toTarget.LengthSquared() <= 0.0001f)
+            return intendedTargetPos;
+
+        return startPos + (toTarget.Normalized() * projectileData.FixedTravelDistance);
+    }
+
+    private static float ResolveHitscanBeamDurationSeconds(ProjectileData projectileData)
+    {
+        if (projectileData.FadeDuration > 0f)
+            return projectileData.FadeDuration;
+        return DefaultHitscanBeamDurationSeconds;
     }
 
     private static bool TryResolveProjectileData(

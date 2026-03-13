@@ -148,6 +148,25 @@ public class ClientSession : NetworkSession
                     )
                 );
                 break;
+            case HitscanBeamVisual beamVisual:
+                _pendingEvents.Add(
+                    new HitscanBeamFiredEvent(
+                        beamVisual.ProjectileId,
+                        beamVisual.ProjectileCatalogId,
+                        new SimVector3(
+                            beamVisual.StartPosition.X,
+                            beamVisual.StartPosition.Y,
+                            beamVisual.StartPosition.Z
+                        ),
+                        new SimVector3(
+                            beamVisual.EndPosition.X,
+                            beamVisual.EndPosition.Y,
+                            beamVisual.EndPosition.Z
+                        ),
+                        beamVisual.DurationSeconds
+                    )
+                );
+                break;
             case ProjectileSpawned spawned:
                 HandleProjectileSpawned(spawned);
                 break;

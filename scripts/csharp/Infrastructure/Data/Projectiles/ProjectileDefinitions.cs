@@ -146,6 +146,51 @@ public static class ProjectileDefinitions
         SpawnAtTargetHeight = true,
     };
 
+    /// <summary>Support projectile for ally healing shots.</summary>
+    public static readonly ProjectileData HealingBolt = new()
+    {
+        ProjectileId = ProjectileIds.HealingBolt,
+        ProjectileName = "Healing Bolt",
+        ModelScenePath = "res://scenes/battle/projectiles/mana_bolt_visual.tscn",
+        MovementType = ProjectileMovementType.Homing,
+        Speed = 18.0f,
+        Lifetime = 3.0f,
+        HitRadius = 0.55f,
+        RotateToDirection = true,
+        Tracking = true,
+    };
+
+    /// <summary>Fast needle used by poison attackers.</summary>
+    public static readonly ProjectileData PoisonNeedle = new()
+    {
+        ProjectileId = ProjectileIds.PoisonNeedle,
+        ProjectileName = "Poison Needle",
+        ModelScenePath = "res://scenes/battle/projectiles/ember_visual.tscn",
+        MovementType = ProjectileMovementType.Straight,
+        Speed = 26.0f,
+        Lifetime = 2.0f,
+        HitRadius = 0.35f,
+        RotateToDirection = true,
+        Tracking = true,
+    };
+
+    /// <summary>Piercing laser line-shot projectile.</summary>
+    public static readonly ProjectileData LaserBeam = new()
+    {
+        ProjectileId = ProjectileIds.LaserBeam,
+        ProjectileName = "Laser Beam",
+        ModelScenePath = "res://scenes/battle/projectiles/wind_puff_visual.tscn",
+        MovementType = ProjectileMovementType.Straight,
+        Speed = 45.0f,
+        Lifetime = 1.2f,
+        HitRadius = 0.45f,
+        FixedTravelDistance = 24.0f,
+        InstantHitScan = true,
+        PierceCount = 3,
+        RotateToDirection = true,
+        FadeDuration = 0.12f,
+    };
+
     // =========================================================================
     // LOOKUP
     // =========================================================================
@@ -160,6 +205,9 @@ public static class ProjectileDefinitions
         [ProjectileIds.FireWeb] = FireWeb,
         [ProjectileIds.Rock] = Rock,
         [ProjectileIds.WeavingBolt] = WeavingBolt,
+        [ProjectileIds.HealingBolt] = HealingBolt,
+        [ProjectileIds.PoisonNeedle] = PoisonNeedle,
+        [ProjectileIds.LaserBeam] = LaserBeam,
     };
 
     /// <summary>Get a projectile definition by ID. Returns null if not found.</summary>

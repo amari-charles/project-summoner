@@ -490,7 +490,10 @@ public partial class InputCollector : Control
 
         int unitTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
         worldPos = ClampSpawnPosition(worldPos, unitTeam);
-        card.SpawnAt(worldPos, unitTeam);
+        if (card.Type == (int)CardType.Spell)
+            card.CastAt(worldPos, unitTeam);
+        else
+            card.SpawnAt(worldPos, unitTeam);
 
         // Activate newly spawned units immediately (debug mode bypasses prep phase)
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);

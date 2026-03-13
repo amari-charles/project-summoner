@@ -10,6 +10,11 @@
 	{ "catalog_id": "puff", "count": 2 },
 	{ "catalog_id": "water_frog", "count": 2 },
 	{ "catalog_id": "mama_duck", "count": 2 },
+	{ "catalog_id": "taunt_pulse_guardian", "count": 2 },
+	{ "catalog_id": "life_medic", "count": 2 },
+	{ "catalog_id": "poison_needler", "count": 2 },
+	{ "catalog_id": "piercing_laser", "count": 2 },
 	{ "catalog_id": "mana_bolt", "count": 2 },
-	{ "catalog_id": "weaving_bolt", "count": 2 }
+	{ "catalog_id": "weaving_bolt", "count": 2 },
+	{ "catalog_id": "healing_field", "count": 2 }
 ]

@@ -413,6 +413,29 @@ public class MessageSerializerTest
     }
 
     [TestCase]
+    public void HitscanBeamVisual_RoundTrip()
+    {
+        var original = new HitscanBeamVisual(
+            ProjectileId: 27,
+            ProjectileCatalogId: "laser_beam",
+            StartPosition: new Vector3(-2f, 0.5f, 1f),
+            EndPosition: new Vector3(8f, 0.5f, 1f),
+            DurationSeconds: 0.12f
+        );
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<HitscanBeamVisual>();
+        var typed = (HitscanBeamVisual)result;
+        AssertThat(typed.ProjectileId).IsEqual(27);
+        AssertThat(typed.ProjectileCatalogId.Value).IsEqual("laser_beam");
+        AssertThat(typed.StartPosition.X).IsEqual(-2f);
+        AssertThat(typed.EndPosition.X).IsEqual(8f);
+        AssertThat(typed.DurationSeconds).IsEqual(0.12f);
+    }
+
+    [TestCase]
     public void MatchStarted_RoundTrip()
     {
         var original = new MatchStarted(

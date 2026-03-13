@@ -73,6 +73,7 @@ public class UnitData
     // Buffs and triggers
     public List<ActiveBuff> ActiveBuffs { get; set; } = new();
     public List<TriggerConfig> Triggers { get; set; } = new();
+    public List<UnitAbilityState> Abilities { get; set; } = new();
 
     // Targeting profile (extracted from TargetingConfig at registration)
     public FallbackMovement FallbackMovement { get; set; }
@@ -157,6 +158,14 @@ public class UnitData
     //   or direct damage resolution for melee-only paths
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public float ProjectileDelay { get; set; }
+    public AbilityTargetAffinity ProjectileTargetAffinity { get; set; } =
+        AbilityTargetAffinity.Enemies;
+    public ProjectileImpactKind ProjectileImpactKind { get; set; } = ProjectileImpactKind.Damage;
+    public StatusEffectKind ProjectileStatusKind { get; set; } = StatusEffectKind.None;
+    public float ProjectileStatusDuration { get; set; }
+    public float ProjectileStatusTickInterval { get; set; }
+    public float ProjectileStatusPotencyPerStack { get; set; }
+    public int ProjectileStatusMaxStacks { get; set; } = 1;
     public float PendingDamageTimer { get; set; }
     public int? PendingDamageTargetId { get; set; }
     public float PendingDamageAmount { get; set; }

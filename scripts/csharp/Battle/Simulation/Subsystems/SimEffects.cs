@@ -302,6 +302,89 @@ public static class SimEffects
         return false;
     }
 
+    /// <summary>
+    /// Apply/stack a periodic status payload (poison/burn) on a target.
+    /// Reapplications increase potency up to max stacks and refresh duration.
+    /// </summary>
+    public static void ApplyStackingStatus(
+        MatchState state,
+        UnitData target,
+        int sourceUnitId,
+        Team sourceTeam,
+        StatusEffectKind statusKind,
+        float durationSeconds,
+        float tickIntervalSeconds,
+        float potencyPerStack,
+        int maxStacks,
+        DamageType damageType,
+        List<SimEvent> events
+    )
+    {
+        if (statusKind == StatusEffectKind.None)
+            return;
+        if (durationSeconds <= 0f || tickIntervalSeconds <= 0f || potencyPerStack <= 0f)
+            return;
+
+        maxStacks = Math.Max(1, maxStacks);
+        ActiveBuff? existing = null;
+        foreach (var buff in target.ActiveBuffs)
+        {
+            if (
+                buff.EffectType == EffectType.Damage
+                && buff.TickInterval > 0f
+                && buff.StatusKind == statusKind
+            )
+            {
+                existing = buff;
+                break;
+            }
+        }
+
+        int stackCount;
+        if (existing == null)
+        {
+            var buff = new ActiveBuff
+            {
+                BuffId = state.NextBuffId(),
+                EffectType = EffectType.Damage,
+                Value = potencyPerStack,
+                Duration = durationSeconds,
+                TickInterval = tickIntervalSeconds,
+                TickTimer = tickIntervalSeconds,
+                SourceUnitId = sourceUnitId,
+                SourceTeam = sourceTeam,
+                DamageType = damageType,
+                StatusKind = statusKind,
+                StackCount = 1,
+            };
+            target.ActiveBuffs.Add(buff);
+            stackCount = 1;
+        }
+        else
+        {
+            existing.StackCount = Math.Min(maxStacks, Math.Max(1, existing.StackCount) + 1);
+            existing.Value = potencyPerStack * existing.StackCount;
+            existing.Duration = MathF.Max(existing.Duration, durationSeconds);
+            existing.TickInterval = tickIntervalSeconds;
+            if (existing.TickTimer <= 0f || existing.TickTimer > tickIntervalSeconds)
+                existing.TickTimer = tickIntervalSeconds;
+            existing.SourceUnitId = sourceUnitId;
+            existing.SourceTeam = sourceTeam;
+            existing.DamageType = damageType;
+            stackCount = existing.StackCount;
+        }
+
+        events.Add(
+            new StatusAppliedEvent(
+                sourceUnitId,
+                target.UnitId,
+                statusKind,
+                stackCount,
+                durationSeconds
+            )
+        );
+    }
+
     // =========================================================================
     // SHIELD (existing)
     // =========================================================================

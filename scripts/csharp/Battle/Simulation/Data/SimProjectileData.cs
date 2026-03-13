@@ -22,6 +22,13 @@ public class SimProjectileData
     // Damage
     public float Damage { get; set; }
     public int SourceElementId { get; set; }
+    public AbilityTargetAffinity TargetAffinity { get; set; } = AbilityTargetAffinity.Enemies;
+    public ProjectileImpactKind ImpactKind { get; set; } = ProjectileImpactKind.Damage;
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+    public float StatusDuration { get; set; }
+    public float StatusTickInterval { get; set; }
+    public float StatusPotencyPerStack { get; set; }
+    public int StatusMaxStacks { get; set; } = 1;
 
     // Movement type
     public ProjectileMovementType MovementType { get; set; }

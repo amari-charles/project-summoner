@@ -12,6 +12,9 @@ public enum SpellCategory
     /// <summary>Direct damage spell.</summary>
     Damage,
 
+    /// <summary>Healing spell effects.</summary>
+    Heal,
+
     /// <summary>Tactical command spell (Rally, Guard, Charge).</summary>
     Command,
 }
