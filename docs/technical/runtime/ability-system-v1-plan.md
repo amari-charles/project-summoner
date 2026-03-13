@@ -1,9 +1,9 @@
 # Ability System V1 Plan
 
-**Status:** PR REVIEW READY  
-**Initiative:** `ability-system-v1`  
-**Domain:** `runtime`  
-**Last Updated:** 2026-03-12  
+**Status:** PR REVIEW READY
+**Initiative:** `ability-system-v1`
+**Domain:** `runtime`
+**Last Updated:** 2026-03-12
 **Owner:** Codex
 
 ## Summary

@@ -1,8 +1,8 @@
 # Ability System V1 Stub Checklist
 
-**Status:** PASS 2+3 COMPLETED  
-**Initiative:** `ability-system-v1`  
-**Domain:** `runtime`  
+**Status:** PASS 2+3 COMPLETED
+**Initiative:** `ability-system-v1`
+**Domain:** `runtime`
 **Last Updated:** 2026-03-12
 
 ## Types Created

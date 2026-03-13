@@ -1,9 +1,9 @@
 # Ability System V1 Validation Cases
 
-**Status:** PASS 3 UPDATED  
-**Initiative:** `ability-system-v1`  
-**Domain:** `runtime`  
-**Last Updated:** 2026-03-12  
+**Status:** PASS 3 UPDATED
+**Initiative:** `ability-system-v1`
+**Domain:** `runtime`
+**Last Updated:** 2026-03-12
 **Companion Plan:** `ability-system-v1-plan.md`
 
 Allowed status values:
