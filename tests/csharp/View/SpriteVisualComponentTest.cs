@@ -139,6 +139,38 @@ public partial class SpriteVisualComponentTest
         AssertThat(sprite3DCount).IsEqual(2);
     }
 
+    [TestCase]
+    public void SetCombatTilt_RotatesBodyOnly_AndKeepsShadowGroundPlane()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var unitVisual = new UnitVisual();
+        var wrapper = new Node3D();
+        var visual = InstantiateVisualScene();
+
+        root.AddChild(unitVisual);
+        _createdNodes.Add(unitVisual);
+        unitVisual.AddChild(wrapper);
+        wrapper.AddChild(visual);
+
+        var body = visual.GetNode<Sprite3D>("Sprite3D");
+        var shadow = FindShadowSprite(visual, body);
+
+        AssertThat(body.Billboard).IsEqual(BaseMaterial3D.BillboardModeEnum.Disabled);
+
+        visual.SetCombatTilt(8f, 6f, 4f);
+        visual._Process(1.0 / 60.0);
+
+        AssertThat(Mathf.Abs(body.RotationDegrees.X)).IsGreater(0.01f);
+        AssertThat(Mathf.Abs(body.RotationDegrees.Y)).IsGreater(0.01f);
+        AssertThat(Mathf.Abs(body.RotationDegrees.Z)).IsGreater(0.01f);
+        AssertThat(shadow).IsNotNull();
+        AssertThat(shadow!.RotationDegrees.X).IsEqualApprox(-90f, 0.01f);
+        AssertThat(Mathf.Abs(shadow.RotationDegrees.Y)).IsLessEqual(0.01f);
+        AssertThat(Mathf.Abs(shadow.RotationDegrees.Z)).IsLessEqual(0.01f);
+    }
+
     private SpriteVisualComponent CreateVisual()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -177,6 +209,17 @@ public partial class SpriteVisualComponentTest
         }
 
         return count;
+    }
+
+    private static Sprite3D? FindShadowSprite(Node node, Sprite3D bodySprite)
+    {
+        foreach (Node child in node.GetChildren())
+        {
+            if (child is Sprite3D sprite && sprite != bodySprite)
+                return sprite;
+        }
+
+        return null;
     }
 
     private static SpriteFrames CreateFrames((int width, int height)[] sizes)

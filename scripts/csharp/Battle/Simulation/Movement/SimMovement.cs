@@ -109,7 +109,7 @@ public static class SimMovement
         if (behavior.Movement == MovementResult.None || unit.AttackPhase != AttackPhase.None)
         {
             int? facingTargetId = unit.AttackPhaseLockTargetId ?? unit.TargetUnitId;
-            if (facingTargetId.HasValue && MatchState.IsSummonerTarget(facingTargetId))
+            if (facingTargetId.HasValue)
                 FacingController.UpdateTowardTarget(unit, facingTargetId, state);
 
             BlockedNavigationController.ResetState(unit);

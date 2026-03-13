@@ -24,6 +24,14 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private const float RenderPriorityScale = 3.0f;
     private const int RenderPriorityMin = -128;
     private const int RenderPriorityMax = 127;
+    private const float CombatTiltMaxYawDegrees = 12.0f;
+    private const float CombatTiltMaxPitchDegrees = 9.0f;
+    private const float CombatTiltMaxRollDegrees = 7.0f;
+    private const float CombatTiltSmoothing = 12.0f;
+    private const float CombatTiltSpeedReference = 4.0f;
+    private const float CombatTiltAttackPitchBoost = 2.5f;
+    private const float CombatTiltAttackYawBoostScale = 1.25f;
+    private const float CombatTiltEpsilon = 0.0001f;
 
     private IGameSession? _session;
     private int _unitId;
@@ -37,6 +45,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private bool _isFacingRight;
     private string _currentMoveAnim = "";
     private EntityManager? _entityManager;
+    private Vector3 _combatTiltDegrees = Vector3.Zero;
 
     // Debug visualization markers (toggleable via BattlefieldDebugService autoload).
     private MeshInstance3D? _debugHurtboxMarker;
@@ -113,6 +122,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             if (!simNode.IsHost)
                 _isFacingRight = !_isFacingRight;
             _visual?.SetFlipH(_isFacingRight);
+            _visual?.SetCombatTilt(0f, 0f, 0f);
         }
         else
         {
@@ -231,6 +241,8 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             }
         }
 
+        UpdateCombatTilt(unitData, state, simNode, (float)delta, isActive);
+
         // Update render priority for correct sprite layering
         float rawPriority = (-GlobalPosition.Z + GlobalPosition.Y) * RenderPriorityScale;
         int priority = (int)Mathf.Clamp(rawPriority, RenderPriorityMin, RenderPriorityMax);
@@ -339,6 +351,127 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         var state = _session.GetState();
         return state.Units.TryGetValue(_unitId, out var unitData) ? unitData : null;
+    }
+
+    private void UpdateCombatTilt(
+        UnitData unitData,
+        MatchState state,
+        SimulationNode simNode,
+        float delta,
+        bool isActive
+    )
+    {
+        if (_visual == null)
+            return;
+
+        Vector3 targetTilt = Vector3.Zero;
+        if (isActive)
+        {
+            Vector3 localVelocity = ResolveLocalVelocity(unitData, simNode);
+            float forwardSign = _isFacingRight ? 1f : -1f;
+            float forwardSpeed = localVelocity.X * forwardSign;
+            float lateralSpeed = localVelocity.Z;
+
+            float normalizedForward = Mathf.Clamp(
+                forwardSpeed / CombatTiltSpeedReference,
+                -1f,
+                1f
+            );
+            float normalizedLateral = Mathf.Clamp(
+                lateralSpeed / CombatTiltSpeedReference,
+                -1f,
+                1f
+            );
+
+            // Pitch leans into forward movement; roll reflects lateral strafing.
+            targetTilt.X = -normalizedForward * CombatTiltMaxPitchDegrees;
+            targetTilt.Z = -normalizedLateral * CombatTiltMaxRollDegrees;
+
+            Vector3? targetDirection = ResolveTargetLocalDirection(unitData, state, simNode);
+            if (targetDirection.HasValue)
+            {
+                Vector3 toTarget = targetDirection.Value;
+                float forwardMagnitude = Mathf.Abs(toTarget.X) + 0.35f;
+                float yawRatio = Mathf.Clamp(toTarget.Z / forwardMagnitude, -1f, 1f);
+                targetTilt.Y = yawRatio * CombatTiltMaxYawDegrees;
+            }
+
+            bool inAttackWindow =
+                unitData.AttackAnimationTimer > 0f
+                || unitData.AttackPhase != AttackPhase.None
+                || unitData.BehaviorState == BehaviorState.Attacking;
+            if (inAttackWindow)
+            {
+                targetTilt.X -= CombatTiltAttackPitchBoost;
+                targetTilt.Y *= CombatTiltAttackYawBoostScale;
+            }
+        }
+
+        targetTilt = new Vector3(
+            Mathf.Clamp(targetTilt.X, -CombatTiltMaxPitchDegrees, CombatTiltMaxPitchDegrees),
+            Mathf.Clamp(targetTilt.Y, -CombatTiltMaxYawDegrees, CombatTiltMaxYawDegrees),
+            Mathf.Clamp(targetTilt.Z, -CombatTiltMaxRollDegrees, CombatTiltMaxRollDegrees)
+        );
+
+        float smoothing = Mathf.Max(CombatTiltSmoothing, 0f);
+        if (smoothing > 0f)
+        {
+            float t = 1f - Mathf.Exp(-smoothing * delta);
+            _combatTiltDegrees = new Vector3(
+                Mathf.LerpAngle(_combatTiltDegrees.X, targetTilt.X, t),
+                Mathf.LerpAngle(_combatTiltDegrees.Y, targetTilt.Y, t),
+                Mathf.LerpAngle(_combatTiltDegrees.Z, targetTilt.Z, t)
+            );
+        }
+        else
+        {
+            _combatTiltDegrees = targetTilt;
+        }
+
+        if (_combatTiltDegrees.LengthSquared() <= CombatTiltEpsilon)
+            _combatTiltDegrees = Vector3.Zero;
+
+        _visual.SetCombatTilt(_combatTiltDegrees.Y, _combatTiltDegrees.X, _combatTiltDegrees.Z);
+    }
+
+    private Vector3 ResolveLocalVelocity(UnitData unitData, SimulationNode simNode)
+    {
+        SimVector3 simNext = unitData.Position + unitData.Velocity;
+        Vector3 localCurrent = simNode.SimToLocal(unitData.Position);
+        Vector3 localNext = simNode.SimToLocal(simNext);
+        return localNext - localCurrent;
+    }
+
+    private Vector3? ResolveTargetLocalDirection(UnitData unitData, MatchState state, SimulationNode simNode)
+    {
+        if (!unitData.TargetUnitId.HasValue)
+            return null;
+
+        int targetId = unitData.TargetUnitId.Value;
+        SimVector3 targetPosition;
+
+        if (MatchState.IsSummonerTarget(targetId))
+        {
+            int summonerTeam = MatchState.GetSummonerTeamFromTargetId(targetId);
+            if (summonerTeam < 0 || summonerTeam >= state.Summoners.Length)
+                return null;
+            if (!state.Summoners[summonerTeam].IsAlive)
+                return null;
+            targetPosition = state.Summoners[summonerTeam].Position;
+        }
+        else
+        {
+            if (!state.Units.TryGetValue(targetId, out var targetUnit) || !targetUnit.IsAlive)
+                return null;
+            targetPosition = targetUnit.Position;
+        }
+
+        Vector3 targetLocal = simNode.SimToLocal(targetPosition);
+        Vector3 toTarget = targetLocal - GlobalPosition;
+        toTarget.Y = 0f;
+        if (toTarget.LengthSquared() <= CombatTiltEpsilon)
+            return null;
+        return toTarget;
     }
 
     private void UpdateDebugHurtboxMarker(UnitData unitData)

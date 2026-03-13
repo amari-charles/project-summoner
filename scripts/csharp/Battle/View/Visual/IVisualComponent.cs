@@ -101,6 +101,16 @@ public interface IVisualComponent
     void SetRenderPriority(int priority);
 
     /// <summary>
+    /// Apply smoothed combat tilt to the rendered body in degrees.
+    /// Yaw rotates toward off-axis targets, pitch leans into movement/attacks,
+    /// and roll captures lateral motion.
+    /// </summary>
+    /// <param name="yawDeg">Yaw offset around Y axis in degrees.</param>
+    /// <param name="pitchDeg">Pitch offset around X axis in degrees.</param>
+    /// <param name="rollDeg">Roll offset around Z axis in degrees.</param>
+    void SetCombatTilt(float yawDeg, float pitchDeg, float rollDeg);
+
+    /// <summary>
     /// Check if the visual component is fully initialized.
     /// Important for spawn reveal timing.
     /// </summary>
