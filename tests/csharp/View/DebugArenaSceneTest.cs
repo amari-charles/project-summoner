@@ -54,6 +54,23 @@ public partial class DebugArenaSceneTest
     }
 
     [TestCase]
+    public void OnPlayerAiToggled_ConfiguresAndDisablesPlayerAi()
+    {
+        var simNode = CreateSimulationNode();
+        var arena = CreateArenaNode();
+
+        arena.OnPlayerAiToggled(true);
+
+        var playerSummoner = simNode.State.Summoners[0];
+        AssertThat(playerSummoner.Ai).IsNotNull();
+        AssertThat(playerSummoner.Ai!.Type).IsEqual(AiType.Heuristic);
+        AssertThat(playerSummoner.Ai.Personality).IsEqual(AiPersonality.Balanced);
+
+        arena.OnPlayerAiToggled(false);
+        AssertThat(playerSummoner.Ai).IsNull();
+    }
+
+    [TestCase]
     public void ClearAllUnits_ClearsSimulationStateAndQueuesVisualsForDeletion()
     {
         var simNode = CreateSimulationNode();

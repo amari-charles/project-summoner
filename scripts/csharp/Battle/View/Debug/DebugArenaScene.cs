@@ -2,8 +2,12 @@ using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
+using Fateforged.Units;
 using Fateforged.View;
 using Godot;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Fateforged.View.Debug;
 
@@ -16,9 +20,17 @@ public partial class DebugArenaScene : TestBattleScene
 {
     [Signal]
     public delegate void UnitsClearedEventHandler(int count);
+    [Signal]
+    public delegate void SpawnLoggedEventHandler(string message);
+
+    private readonly List<SpawnBatch> _spawnHistory = new();
     private const string DebugDeckPath = "res://data/debug/debug_deck.json";
+    private const int TeamPlayer = 0;
+    private const int TeamEnemy = 1;
 
     private Node? _spawnerPanel;
+
+    private sealed record SpawnBatch(int Team, int ExpectedUnitCount, string Label);
 
     protected override Godot.Collections.Dictionary BuildPracticeConfig()
     {
@@ -141,8 +153,46 @@ public partial class DebugArenaScene : TestBattleScene
             );
         }
 
+        if (
+            _spawnerPanel.HasSignal("player_ai_toggled")
+            && !_spawnerPanel.IsConnected(
+                "player_ai_toggled",
+                new Callable(this, MethodName.OnPlayerAiToggled)
+            )
+        )
+        {
+            _spawnerPanel.Connect(
+                "player_ai_toggled",
+                new Callable(this, MethodName.OnPlayerAiToggled)
+            );
+        }
+
+        if (
+            _spawnerPanel.HasSignal("clear_team_requested")
+            && !_spawnerPanel.IsConnected(
+                "clear_team_requested",
+                new Callable(this, MethodName.ClearTeamUnits)
+            )
+        )
+        {
+            _spawnerPanel.Connect(
+                "clear_team_requested",
+                new Callable(this, MethodName.ClearTeamUnits)
+            );
+        }
+
+        if (
+            _spawnerPanel.HasSignal("undo_requested")
+            && !_spawnerPanel.IsConnected("undo_requested", new Callable(this, MethodName.UndoLastSpawnBatch))
+        )
+        {
+            _spawnerPanel.Connect("undo_requested", new Callable(this, MethodName.UndoLastSpawnBatch));
+        }
+
         if (_spawnerPanel.HasMethod("get_enemy_ai_enabled"))
             OnEnemyAiToggled((bool)_spawnerPanel.Call("get_enemy_ai_enabled"));
+        if (_spawnerPanel.HasMethod("get_player_ai_enabled"))
+            OnPlayerAiToggled((bool)_spawnerPanel.Call("get_player_ai_enabled"));
     }
 
     private Node? FindSpawnerPanel()
@@ -190,17 +240,27 @@ public partial class DebugArenaScene : TestBattleScene
 
     public void OnEnemyAiToggled(bool enabled)
     {
+        ConfigureTeamAi(TeamEnemy, enabled);
+    }
+
+    public void OnPlayerAiToggled(bool enabled)
+    {
+        ConfigureTeamAi(TeamPlayer, enabled);
+    }
+
+    private static void ConfigureTeamAi(int team, bool enabled)
+    {
         var simNode = SimulationNode.Current;
         if (simNode == null)
             return;
 
         if (!enabled)
         {
-            simNode.ConfigureAi(1, AiType.None);
+            simNode.ConfigureAi(team, AiType.None);
             return;
         }
 
-        simNode.ConfigureAi(1, AiType.Heuristic, AiPersonality.Balanced);
+        simNode.ConfigureAi(team, AiType.Heuristic, AiPersonality.Balanced);
     }
 
     public void ClearAllUnits()
@@ -235,5 +295,110 @@ public partial class DebugArenaScene : TestBattleScene
         }
 
         EmitSignal(SignalName.UnitsCleared, count);
+        _spawnHistory.Clear();
+        AppendSpawnLog("Cleared all units");
+    }
+
+    public void ClearTeamUnits(int team)
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
+            return;
+
+        int targetTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
+        var targetTeamEnum = (Team)targetTeam;
+        var state = simNode.GetState();
+
+        var unitIdsToRemove = state
+            .Units.Values.Where(unit => unit.Team == targetTeamEnum)
+            .Select(unit => unit.UnitId)
+            .ToList();
+
+        foreach (int unitId in unitIdsToRemove)
+            state.Units.Remove(unitId);
+
+        var projectileIdsToRemove = state
+            .Projectiles.Where(kvp => kvp.Value.Team == targetTeamEnum)
+            .Select(kvp => kvp.Key)
+            .ToList();
+        foreach (int projectileId in projectileIdsToRemove)
+            state.Projectiles.Remove(projectileId);
+
+        foreach (var node in GetTree().GetNodesInGroup(targetTeam == TeamPlayer ? GroupIDs.PlayerUnits : GroupIDs.EnemyUnits))
+        {
+            if (node is UnitVisual visual && unitIdsToRemove.Contains(visual.UnitId))
+                visual.QueueFree();
+        }
+
+        AppendSpawnLog(
+            $"Cleared {(targetTeam == TeamPlayer ? "player" : "enemy")} team units ({unitIdsToRemove.Count})"
+        );
+    }
+
+    public void RegisterDebugSpawnBatch(int team, int expectedUnitCount, string label)
+    {
+        int normalizedTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
+        string safeLabel = string.IsNullOrEmpty(label) ? "Unknown" : label;
+
+        _spawnHistory.Add(new SpawnBatch(normalizedTeam, Math.Max(expectedUnitCount, 0), safeLabel));
+
+        string side = normalizedTeam == TeamPlayer ? "Player" : "Enemy";
+        if (expectedUnitCount > 0)
+        {
+            AppendSpawnLog($"Spawned {safeLabel} ({side}) x{expectedUnitCount}");
+        }
+        else
+        {
+            AppendSpawnLog($"Cast {safeLabel} ({side})");
+        }
+    }
+
+    public void UndoLastSpawnBatch()
+    {
+        if (_spawnHistory.Count == 0)
+        {
+            AppendSpawnLog("Undo ignored: no spawn history");
+            return;
+        }
+
+        var batch = _spawnHistory[^1];
+        _spawnHistory.RemoveAt(_spawnHistory.Count - 1);
+
+        if (batch.ExpectedUnitCount <= 0)
+        {
+            AppendSpawnLog($"Undo skipped for '{batch.Label}' (no unit batch)");
+            return;
+        }
+
+        var simNode = SimulationNode.Current;
+        if (simNode == null)
+            return;
+
+        var state = simNode.GetState();
+        var targetTeamEnum = (Team)batch.Team;
+        var recentUnitIds = state
+            .Units.Values.Where(unit => unit.Team == targetTeamEnum)
+            .OrderByDescending(unit => unit.UnitId)
+            .Take(batch.ExpectedUnitCount)
+            .Select(unit => unit.UnitId)
+            .ToList();
+
+        foreach (int unitId in recentUnitIds)
+            state.Units.Remove(unitId);
+
+        foreach (var node in GetTree().GetNodesInGroup(batch.Team == TeamPlayer ? GroupIDs.PlayerUnits : GroupIDs.EnemyUnits))
+        {
+            if (node is UnitVisual visual && recentUnitIds.Contains(visual.UnitId))
+                visual.QueueFree();
+        }
+
+        AppendSpawnLog($"Undo: removed {recentUnitIds.Count} unit(s) from '{batch.Label}'");
+    }
+
+    private void AppendSpawnLog(string message)
+    {
+        if (_spawnerPanel != null && _spawnerPanel.HasMethod("append_spawn_log"))
+            _spawnerPanel.Call("append_spawn_log", message);
+        EmitSignal(SignalName.SpawnLogged, message);
     }
 }

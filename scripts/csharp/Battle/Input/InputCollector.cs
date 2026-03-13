@@ -3,6 +3,8 @@ using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.View.Debug;
 using Godot;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Fateforged.Input;
 
@@ -23,6 +25,15 @@ public partial class InputCollector : Control
     // Raycast / positioning constants
     private const float RaycastMaxDistance = 1000f;
     private const float DefaultSpellRadius = 5.0f;
+    private const float DefaultDebugFormationSpacing = 2.0f;
+    private const int DefaultDebugBurstCount = 3;
+    private const string DebugSpawnModeSingle = "single";
+    private const string DebugSpawnModeBurst = "burst";
+    private const string DebugSpawnModePaint = "paint";
+    private const string DebugFormationStack = "stack";
+    private const string DebugFormationLine = "line";
+    private const string DebugFormationArc = "arc";
+    private const string DebugFormationRandom = "random";
     private const int NoTargetId = -1;
 
     // =========================================================================
@@ -38,6 +49,7 @@ public partial class InputCollector : Control
     private Node3D? _spawnZoneOverlay; // GDScript SpawnZoneOverlay
     private Card? _previewCard;
     private int _previewTeam;
+    private readonly List<Vector3> _debugPaintPositions = [];
 
     // Public drag state (read by View layer)
     public int DraggedCardIndex { get; private set; } = -1;
@@ -67,6 +79,7 @@ public partial class InputCollector : Control
             CleanupSpawnPreview();
             CleanupSpellPreview();
             CleanupSpawnZoneOverlay();
+            _debugPaintPositions.Clear();
             DraggedCardIndex = -1;
             DragPosition = Vector3.Zero;
         }
@@ -464,6 +477,15 @@ public partial class InputCollector : Control
             bool isValidZone = IsValidSpawnPosition(worldPos, team);
             var clampedPos = ClampSpawnPosition(worldPos, team);
             UpdateSpawnPreview(clampedPos, card, isValidZone, team);
+
+            string spawnMode = DictGetString(data, "spawn_mode", DebugSpawnModeSingle);
+            float formationSpacing = DictGetFloat(
+                data,
+                "formation_spacing",
+                DefaultDebugFormationSpacing
+            );
+            if (spawnMode == DebugSpawnModePaint)
+                RegisterPaintPoint(clampedPos, formationSpacing);
         }
 
         return true;
@@ -490,14 +512,128 @@ public partial class InputCollector : Control
 
         int unitTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
         worldPos = ClampSpawnPosition(worldPos, unitTeam);
-        if (card.Type == (int)CardType.Spell)
-            card.CastAt(worldPos, unitTeam);
-        else
-            card.SpawnAt(worldPos, unitTeam);
+        var arena = FindDebugArenaController();
+        string spawnMode = DictGetString(data, "spawn_mode", DebugSpawnModeSingle);
+        int burstCount = Mathf.Max(1, DictGetInt(data, "burst_count", DefaultDebugBurstCount));
+        string formationMode = DictGetString(data, "formation_mode", DebugFormationStack);
+        float formationSpacing = Mathf.Max(
+            0.1f,
+            DictGetFloat(data, "formation_spacing", DefaultDebugFormationSpacing)
+        );
+
+        var spawnPositions = BuildDebugSpawnPositions(
+            worldPos,
+            unitTeam,
+            spawnMode,
+            burstCount,
+            formationMode,
+            formationSpacing
+        );
+        if (spawnPositions.Count == 0)
+            spawnPositions.Add(worldPos);
+
+        foreach (var spawnPosition in spawnPositions)
+        {
+            if (card.Type == (int)CardType.Spell)
+                card.CastAt(spawnPosition, unitTeam);
+            else
+                card.SpawnAt(spawnPosition, unitTeam);
+        }
+
+        int expectedUnitCount = card.Type == (int)CardType.Spell ? 0 : card.SpawnCount * spawnPositions.Count;
+        arena?.RegisterDebugSpawnBatch(unitTeam, expectedUnitCount, card.CardName);
+        _debugPaintPositions.Clear();
 
         // Activate newly spawned units immediately (debug mode bypasses prep phase)
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         ActivateRecentSpawns();
+    }
+
+    private Godot.Collections.Array<Vector3> BuildDebugSpawnPositions(
+        Vector3 center,
+        int team,
+        string spawnMode,
+        int burstCount,
+        string formationMode,
+        float spacing
+    )
+    {
+        var result = new Godot.Collections.Array<Vector3>();
+
+        if (spawnMode == DebugSpawnModePaint && _debugPaintPositions.Count > 0)
+        {
+            foreach (var pos in _debugPaintPositions)
+                result.Add(ClampSpawnPosition(pos, team));
+            return result;
+        }
+
+        int count = spawnMode == DebugSpawnModeBurst ? Mathf.Max(1, burstCount) : 1;
+        if (count == 1)
+        {
+            result.Add(center);
+            return result;
+        }
+
+        float half = (count - 1) * 0.5f;
+        float forwardSign = team == TeamPlayer ? 1f : -1f;
+        float radius = Mathf.Max(spacing, 0.5f);
+        var rng = new RandomNumberGenerator();
+        rng.Seed = (ulong)Time.GetTicksMsec();
+
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 offset = Vector3.Zero;
+            float t = count > 1 ? (i - half) / half : 0f;
+            switch (formationMode)
+            {
+                case DebugFormationLine:
+                    offset = new Vector3(0f, 0f, (i - half) * spacing);
+                    break;
+                case DebugFormationArc:
+                {
+                    float angle = Mathf.DegToRad(Mathf.Lerp(-70f, 70f, (t + 1f) * 0.5f));
+                    float x = Mathf.Cos(angle) * radius * forwardSign;
+                    float z = Mathf.Sin(angle) * radius;
+                    offset = new Vector3(x, 0f, z);
+                    break;
+                }
+                case DebugFormationRandom:
+                {
+                    float randomRadius = rng.RandfRange(0.2f * radius, radius);
+                    float randomAngle = rng.RandfRange(0f, Mathf.Tau);
+                    offset = new Vector3(
+                        Mathf.Cos(randomAngle) * randomRadius,
+                        0f,
+                        Mathf.Sin(randomAngle) * randomRadius
+                    );
+                    break;
+                }
+                case DebugFormationStack:
+                default:
+                    offset = Vector3.Zero;
+                    break;
+            }
+
+            var pos = center + offset;
+            result.Add(ClampSpawnPosition(pos, team));
+        }
+
+        return result;
+    }
+
+    private void RegisterPaintPoint(Vector3 position, float spacing)
+    {
+        float minSpacing = Mathf.Max(spacing * 0.45f, 0.2f);
+        if (_debugPaintPositions.Count == 0)
+        {
+            _debugPaintPositions.Add(position);
+            return;
+        }
+
+        Vector3 last = _debugPaintPositions[^1];
+        if ((position - last).Length() < minSpacing)
+            return;
+        _debugPaintPositions.Add(position);
     }
 
     private DebugArenaScene? FindDebugArenaController()
@@ -597,5 +733,25 @@ public partial class InputCollector : Control
             return defaultValue;
         var v = dict[key];
         return v.VariantType == Variant.Type.Int ? (int)v : defaultValue;
+    }
+
+    /// <summary>
+    /// Safely get a float value from a Godot Dictionary.
+    /// </summary>
+    private static float DictGetFloat(
+        Godot.Collections.Dictionary dict,
+        string key,
+        float defaultValue = 0f
+    )
+    {
+        if (!dict.ContainsKey(key))
+            return defaultValue;
+        var v = dict[key];
+        return v.VariantType switch
+        {
+            Variant.Type.Float => (float)v,
+            Variant.Type.Int => (int)v,
+            _ => defaultValue,
+        };
     }
 }
