@@ -1,3 +1,4 @@
+using System;
 using Fateforged.Constants;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
@@ -43,6 +44,7 @@ public static class SimMovement
             BlockedNavigationController.ResetState(unit);
             unit.Velocity = SimVector3.Zero;
             SimOverlapResolver.Correct(unit, state);
+            ClampUnitOutsideSummonerBubble(unit, state);
             return;
         }
 
@@ -53,6 +55,7 @@ public static class SimMovement
             FacingController.Update(unit, intent, state);
             unit.Velocity = SimVector3.Zero;
             SimOverlapResolver.Correct(unit, state);
+            ClampUnitOutsideSummonerBubble(unit, state);
             return;
         }
 
@@ -90,6 +93,7 @@ public static class SimMovement
         // Velocity is NOT reconciled with correction displacement to prevent
         // overlap correction noise from feeding back into ORCA next frame.
         SimOverlapResolver.Correct(unit, state);
+        ClampUnitOutsideSummonerBubble(unit, state);
         unit.Velocity = safeVelocity;
 
         // Track charge distance from actual displacement
@@ -115,6 +119,7 @@ public static class SimMovement
             BlockedNavigationController.ResetState(unit);
             unit.Velocity = SimVector3.Zero;
             SimOverlapResolver.Correct(unit, state);
+            ClampUnitOutsideSummonerBubble(unit, state);
             return;
         }
 
@@ -128,6 +133,7 @@ public static class SimMovement
             {
                 unit.Velocity = SimVector3.Zero;
                 SimOverlapResolver.Correct(unit, state);
+                ClampUnitOutsideSummonerBubble(unit, state);
                 return;
             }
 
@@ -152,6 +158,7 @@ public static class SimMovement
             FacingController.Update(unit, objectiveIntent, state);
 
             SimOverlapResolver.Correct(unit, state);
+            ClampUnitOutsideSummonerBubble(unit, state);
             unit.Velocity = objectiveVelocity;
 
             var objectiveDisp = unit.Position - objectivePreMovementPos;
@@ -167,6 +174,7 @@ public static class SimMovement
             BlockedNavigationController.ResetState(unit);
             unit.Velocity = SimVector3.Zero;
             SimOverlapResolver.Correct(unit, state);
+            ClampUnitOutsideSummonerBubble(unit, state);
             return;
         }
 
@@ -178,6 +186,7 @@ public static class SimMovement
             BlockedNavigationController.ResetState(unit);
             unit.Velocity = SimVector3.Zero;
             SimOverlapResolver.Correct(unit, state);
+            ClampUnitOutsideSummonerBubble(unit, state);
             return;
         }
 
@@ -210,11 +219,46 @@ public static class SimMovement
         FacingController.Update(unit, intent, state);
 
         SimOverlapResolver.Correct(unit, state);
+        ClampUnitOutsideSummonerBubble(unit, state);
         unit.Velocity = velocity;
 
         var totalDisp = unit.Position - preMovementPos;
         float moveDist = new SimVector3(totalDisp.X, 0f, totalDisp.Z).Length();
         if (moveDist > DirectionThreshold)
             unit.DistanceTraveled += moveDist;
+    }
+
+    private static void ClampUnitOutsideSummonerBubble(UnitData unit, MatchState state)
+    {
+        float minDistance = MathF.Max(0.1f, SummonerMeleeBubble.EffectiveRadius);
+        float minDistanceSq = minDistance * minDistance;
+
+        for (int summonerTeam = 0; summonerTeam < state.Summoners.Length; summonerTeam++)
+        {
+            if (summonerTeam == (int)unit.Team)
+                continue;
+
+            var summoner = state.Summoners[summonerTeam];
+            if (!summoner.IsAlive)
+                continue;
+
+            var offset = unit.Position - summoner.Position;
+            offset = new SimVector3(offset.X, 0f, offset.Z);
+            float distSq = offset.LengthSquared();
+            if (distSq >= minDistanceSq)
+                continue;
+
+            SimVector3 direction;
+            if (distSq < DirectionThreshold)
+                direction = unit.Team == Team.Player ? SimVector3.Left : SimVector3.Right;
+            else
+                direction = offset / MathF.Sqrt(distSq);
+
+            unit.Position = new SimVector3(
+                summoner.Position.X + (direction.X * minDistance),
+                unit.Position.Y,
+                summoner.Position.Z + (direction.Z * minDistance)
+            );
+        }
     }
 }

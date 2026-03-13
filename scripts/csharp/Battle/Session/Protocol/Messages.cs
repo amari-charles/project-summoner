@@ -131,8 +131,13 @@ public readonly record struct SummonerDamaged(int Team, float Amount, float NewH
 /// Summoner took damage — triggers visual flash on client.
 /// Distinct from SummonerDamaged which carries HP state.
 /// </summary>
-public readonly record struct SummonerDamageFlash(int Team, float Damage, int AttackerUnitId)
-    : IRealtimeProtocolMessage;
+public readonly record struct SummonerDamageFlash(
+    int Team,
+    float Damage,
+    int AttackerUnitId,
+    Vector3 HitPosition = default,
+    bool HasHitPosition = false
+) : IRealtimeProtocolMessage;
 
 /// <summary>
 /// Summoner was destroyed — triggers death animation on client.

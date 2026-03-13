@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -210,7 +211,10 @@ public static class MovementTargetResolver
     {
         // Keep orbit points inside attack range so units can continue damaging summoners
         // after wrapping around crowded fronts.
-        float orbitRadius = MathF.Max(0.1f, unit.AttackRange - OrbitAttackRangeBuffer);
+        float orbitRadius = MathF.Max(
+            MathF.Max(0.1f, unit.AttackRange - OrbitAttackRangeBuffer),
+            SummonerMeleeBubble.EffectiveRadius
+        );
         float unitRadius = CombatGeometry.GetNavigationRadius(unit);
         bool shouldWrap =
             unit.NavigationBlockedTime >= BlockedOrbitThresholdSeconds

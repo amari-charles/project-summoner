@@ -70,4 +70,94 @@ public class SimAttackLoopTest
         AssertThat(unit.Position.X).IsEqual(start.X);
         AssertThat(unit.Position.Z).IsEqual(start.Z);
     }
+
+    [TestCase]
+    public void Tick_WindupCommit_ResolvesPendingAttackExactlyOnce()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, damage: 25f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = 0;
+        attacker.Attack.Timing.WindupSeconds = 0.01f;
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1.5f, z: 0f, hp: 100f);
+        target.Evasion = 0f;
+
+        attacker.TargetUnitId = target.UnitId;
+        attacker.AttackCooldown = 0f;
+
+        var events = new List<SimEvent>();
+        SimBehavior.TickBehavior(attacker, _state, Delta, events);
+        SimAttackLoop.Begin(attacker, _state, target.UnitId);
+
+        float hpBefore = target.CurrentHp;
+        SimAttackLoop.Tick(attacker, _state, delta: 0.02f, events);
+        float hpAfterCommit = target.CurrentHp;
+
+        AssertThat(hpAfterCommit).IsLess(hpBefore);
+
+        // Advance through active/recovery: no second commit should occur.
+        attacker.AttackPhaseTimer = 0f;
+        SimAttackLoop.Tick(attacker, _state, delta: 0f, events);
+        attacker.AttackPhaseTimer = 0f;
+        SimAttackLoop.Tick(attacker, _state, delta: 0f, events);
+
+        AssertThat(target.CurrentHp).IsEqual(hpAfterCommit);
+    }
+
+    [TestCase]
+    public void Cancel_DuringWindup_ClearsPendingAttack()
+    {
+        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, damage: 25f);
+        attacker.CritChance = 0f;
+        attacker.ElementId = 0;
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1.5f, z: 0f, hp: 100f);
+        target.Evasion = 0f;
+
+        attacker.TargetUnitId = target.UnitId;
+        attacker.AttackCooldown = 0f;
+        var events = new List<SimEvent>();
+
+        SimBehavior.TickBehavior(attacker, _state, Delta, events);
+        SimAttackLoop.Begin(attacker, _state, target.UnitId);
+        SimAttackLoop.Cancel(attacker, _state);
+        SimAttackLoop.Tick(attacker, _state, delta: 1f, events);
+
+        AssertThat(attacker.PendingAttackTargetId).IsNull();
+        AssertThat(target.CurrentHp).IsEqual(100f);
+    }
+
+    [TestCase]
+    public void Begin_WindupPrecedence_UsesAuthoredBeforeLegacyDelay()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(_state, team: 0, projectileDelay: 0.55f);
+        unit.Attack.Timing.WindupSeconds = 0.2f;
+
+        SimAttackLoop.Begin(unit, _state, targetId: 99);
+
+        AssertThat(unit.AttackPhaseTimer).IsEqual(0.2f);
+    }
+
+    [TestCase]
+    public void Begin_WindupPrecedence_UsesLegacyDelayWhenAuthoredUnset()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(_state, team: 0, projectileDelay: 0.55f);
+        unit.Attack.Timing.WindupSeconds = 0f;
+
+        SimAttackLoop.Begin(unit, _state, targetId: 99);
+
+        AssertThat(unit.AttackPhaseTimer).IsEqual(0.55f);
+    }
+
+    [TestCase]
+    public void Begin_FallbackWindup_ClampsToCooldownBudget()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, attackSpeed: 3f);
+        unit.Attack.Timing.WindupSeconds = 0f;
+        unit.Attack.Timing.ActiveSeconds = 0f;
+        unit.Attack.Timing.RecoverySeconds = 0f;
+
+        SimAttackLoop.Begin(unit, _state, targetId: 99);
+
+        float expectedMax = (1f / 3f) - 0.05f - 0.15f - 0.01f;
+        AssertThat(unit.AttackPhaseTimer).IsEqual(expectedMax);
+    }
 }

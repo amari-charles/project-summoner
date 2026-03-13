@@ -21,11 +21,10 @@ namespace Fateforged.Simulation.Combat;
 ///   NoTarget → move forward
 ///   Chasing  → move toward target
 ///   InRange  → idle (waiting for cooldown or constraint)
-///   Attacking → apply damage, reset cooldown
+///   Attacking → queue pending attack, reset cooldown
 /// </summary>
 public static class SimBehavior
 {
-    private const float AttackAnimationDuration = 0.5f;
     private const float TargetLockDuration = 0.5f;
     private const float BacklinerMaxCrossLaneChaseDistanceMultiplier = 1.35f;
 
@@ -179,36 +178,15 @@ public static class SimBehavior
             if (unit.AttackCooldown <= 0 && unit.AttackSpeed > 0)
             {
                 unit.BehaviorState = BehaviorState.Attacking;
-
-                if (isSummonerTarget)
-                {
-                    // Attacking a summoner
-                    ApplyDamageToSummoner(unit, targetId, state, events);
-                }
-                else if (unit.UnitType == UnitType.Melee)
-                {
-                    // Melee: immediate damage via SimDamage
-                    ApplyMeleeDamageToUnit(unit, target!, state, events);
-                }
-                else if (unit.UnitType == UnitType.Ranged)
-                {
-                    float baseDamage = SimEffects.GetEffectiveAttackDamage(unit);
-
-                    // Ranged: optional windup, then spawn an authoritative projectile.
-                    if (unit.ProjectileDelay > 0)
-                    {
-                        unit.PendingDamageTimer = unit.ProjectileDelay;
-                        unit.PendingDamageTargetId = targetId;
-                        unit.PendingDamageAmount = baseDamage;
-                    }
-                    else
-                    {
-                        SpawnProjectileOrApplyDirect(unit, target!, baseDamage, state, events);
-                    }
-                }
+                QueuePendingAttack(
+                    unit,
+                    targetId,
+                    MatchState.IsSummonerTarget(targetId),
+                    SimEffects.GetEffectiveAttackDamage(unit)
+                );
 
                 unit.AttackCooldown = 1.0f / unit.AttackSpeed;
-                unit.AttackAnimationTimer = AttackAnimationDuration;
+                unit.AttackAnimationTimer = SimAttackLoop.ResolveAttackAnimationDuration(unit);
                 events.Add(new UnitAttackedEvent(unit.UnitId, targetId));
 
                 return new BehaviorResult { Movement = MovementResult.None };
@@ -234,6 +212,80 @@ public static class SimBehavior
             Movement = MovementResult.TowardTarget,
             MoveTargetId = targetId,
         };
+    }
+
+    public static void ResolvePendingAttackCommit(UnitData unit, MatchState state, List<SimEvent> events)
+    {
+        if (!unit.PendingAttackTargetId.HasValue)
+            return;
+
+        int targetId = unit.PendingAttackTargetId.Value;
+        float baseDamage = unit.PendingAttackBaseDamage;
+        bool targetsSummoner =
+            unit.PendingAttackTargetsSummoner || MatchState.IsSummonerTarget(targetId);
+        ClearPendingAttack(unit);
+
+        if (targetsSummoner)
+        {
+            int summonerTeam = MatchState.GetSummonerTeamFromTargetId(targetId);
+            var summoner = state.Summoners[summonerTeam];
+            if (!summoner.IsAlive)
+                return;
+
+            if (unit.UnitType == UnitType.Ranged)
+            {
+                SpawnProjectileToSummonerOrApplyDirect(unit, targetId, baseDamage, state, events);
+            }
+            else
+            {
+                DealSummonerDamage(
+                    state,
+                    summoner,
+                    summonerTeam,
+                    baseDamage,
+                    unit.Team,
+                    unit.UnitId,
+                    events
+                );
+            }
+
+            return;
+        }
+
+        var target = state.GetAliveUnit(targetId);
+        if (target == null)
+            return;
+
+        if (unit.UnitType == UnitType.Ranged)
+        {
+            SpawnProjectileOrApplyDirect(unit, target, baseDamage, state, events);
+            return;
+        }
+
+        ApplyMeleeDamageToUnit(unit, target, baseDamage, state, events);
+    }
+
+    public static void ClearPendingAttack(UnitData unit)
+    {
+        unit.PendingAttackTargetId = null;
+        unit.PendingAttackBaseDamage = 0f;
+        unit.PendingAttackTargetsSummoner = false;
+    }
+
+    private static void QueuePendingAttack(
+        UnitData unit,
+        int targetId,
+        bool targetsSummoner,
+        float baseDamage
+    )
+    {
+        unit.PendingDamageTimer = 0f;
+        unit.PendingDamageTargetId = null;
+        unit.PendingDamageAmount = 0f;
+
+        unit.PendingAttackTargetId = targetId;
+        unit.PendingAttackTargetsSummoner = targetsSummoner;
+        unit.PendingAttackBaseDamage = baseDamage;
     }
 
     private static bool ShouldHoldLaneInsteadOfChasing(
@@ -276,11 +328,11 @@ public static class SimBehavior
     private static void ApplyMeleeDamageToUnit(
         UnitData attacker,
         UnitData target,
+        float baseDamage,
         MatchState state,
         List<SimEvent> events
     )
     {
-        float baseDamage = SimEffects.GetEffectiveAttackDamage(attacker);
         var recipients = AttackRecipientResolver.ResolveRecipients(attacker, target, state);
         if (recipients.Count == 0)
         {
@@ -380,63 +432,10 @@ public static class SimBehavior
     }
 
     /// <summary>
-    /// Apply damage to a summoner target.
-    /// Summoner damage intentionally bypasses SimDamage.Calculate() — summoners are
-    /// not units and don't have evasion, crit interaction, elemental matchups, defense,
-    /// or shields. Only summoner/ soul lane modifiers apply.
-    /// Ranged attacks now use the projectile pipeline for summoner targets so visuals
-    /// and impact timing match unit-target projectile behavior.
-    /// </summary>
-    private static void ApplyDamageToSummoner(
-        UnitData attacker,
-        int summonerTargetId,
-        MatchState state,
-        List<SimEvent> events
-    )
-    {
-        int summonerTeam = MatchState.GetSummonerTeamFromTargetId(summonerTargetId);
-        var summoner = state.Summoners[summonerTeam];
-        if (!summoner.IsAlive)
-            return;
-
-        // For ranged with projectile delay, queue pending damage instead
-        if (attacker.UnitType == UnitType.Ranged && attacker.ProjectileDelay > 0)
-        {
-            attacker.PendingDamageTimer = attacker.ProjectileDelay;
-            attacker.PendingDamageTargetId = summonerTargetId;
-            attacker.PendingDamageAmount = SimEffects.GetEffectiveAttackDamage(attacker);
-            return;
-        }
-
-        if (attacker.UnitType == UnitType.Ranged)
-        {
-            SpawnProjectileToSummonerOrApplyDirect(
-                attacker,
-                summonerTargetId,
-                SimEffects.GetEffectiveAttackDamage(attacker),
-                state,
-                events
-            );
-            return;
-        }
-
-        // Immediate damage (melee or zero-delay ranged)
-        DealSummonerDamage(
-            state,
-            summoner,
-            summonerTeam,
-            SimEffects.GetEffectiveAttackDamage(attacker),
-            attacker.Team,
-            attacker.UnitId,
-            events
-        );
-    }
-
-    /// <summary>
     /// Process delayed ranged outcomes after attack windup.
     /// Ranged delayed outcomes spawn projectiles for both unit and summoner targets.
     /// Melee-only pending damage against summoners still resolves directly.
-    /// Called after all units have moved for the tick.
+    /// Legacy path kept for compatibility with existing tests and edge cases.
     /// </summary>
     public static void TickPendingDamage(
         UnitData unit,
@@ -512,7 +511,7 @@ public static class SimBehavior
 
     /// <summary>
     /// Apply damage to a summoner with modifiers and emit HP changed + damaged events.
-    /// Shared by ApplyDamageToSummoner (immediate) and TickPendingDamage (delayed).
+    /// Used by windup-commit melee hits and legacy delayed paths.
     /// </summary>
     private static void DealSummonerDamage(
         MatchState state,

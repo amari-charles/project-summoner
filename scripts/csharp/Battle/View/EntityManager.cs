@@ -325,7 +325,7 @@ public partial class EntityManager : Node3D, ISimEventVisitor
         if (_summonerRegistry.TryGetValue(e.Team, out var shell))
         {
             shell.FlashDamage();
-            shell.OnSummonerDamaged(e.Damage, e.AttackerUnitId);
+            shell.OnSummonerDamaged(e.Damage, e.AttackerUnitId, e.HitPosition);
         }
     }
 

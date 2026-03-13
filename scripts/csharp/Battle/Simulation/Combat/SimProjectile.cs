@@ -240,7 +240,7 @@ public static class SimProjectile
             {
                 if (MatchState.IsSummonerTarget(proj.TargetUnitId))
                 {
-                    ApplySummonerHitAtImpact(proj, state, events);
+                    ApplySummonerHitAtImpact(proj, state, events, proj.CurrentPosition);
                 }
                 else
                 {
@@ -636,7 +636,7 @@ public static class SimProjectile
         {
             var impactPoint = proj.LastPosition.Lerp(proj.CurrentPosition, segmentT);
             proj.CurrentPosition = impactPoint;
-            ApplySummonerHitAtImpact(proj, state, events);
+            ApplySummonerHitAtImpact(proj, state, events, impactPoint);
 
             if (proj.AoeRadius > 0)
                 ApplyAoE(proj, impactPoint, state, events);
@@ -648,7 +648,8 @@ public static class SimProjectile
     private static void ApplySummonerHitAtImpact(
         SimProjectileData proj,
         MatchState state,
-        List<SimEvent> events
+        List<SimEvent> events,
+        SimVector3? impactPoint = null
     )
     {
         if (!MatchState.IsSummonerTarget(proj.TargetUnitId))
@@ -685,7 +686,14 @@ public static class SimProjectile
         }
 
         events.Add(new SummonerHpChangedEvent(summonerTeam, summoner.CurrentHp, summoner.MaxHp));
-        events.Add(new SummonerDamagedEvent(summonerTeam, damage, proj.SourceUnitId));
+        events.Add(
+            new SummonerDamagedEvent(
+                summonerTeam,
+                damage,
+                proj.SourceUnitId,
+                impactPoint ?? proj.CurrentPosition
+            )
+        );
         events.Add(new ProjectileHitEvent(proj.ProjectileId, proj.TargetUnitId));
         if (wasDestroyed)
             events.Add(new SummonerDestroyedEvent(summonerTeam, proj.SourceUnitId));

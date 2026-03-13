@@ -136,15 +136,24 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private float _recentHits;
 
     // Tween duration constants
+    private const string SummonerShieldRippleShaderPath =
+        "res://shaders/vfx/summoner_shield_ripple.gdshader";
     private const float DamageFlashToWhiteDuration = 0.05f;
     private const float DamageFlashReturnDuration = 0.15f;
-    private const float SummonerImpactInsetRatio = 0.45f;
-    private const float SummonerImpactPulseYOffset = 0.06f;
-    private const float SummonerImpactPulseStartRadius = 0.24f;
-    private const float SummonerImpactPulseEndRadius = 0.68f;
-    private const float SummonerImpactPulseDuration = 0.16f;
+    private const float SummonerImpactPulseDuration = 0.22f;
+    private const float SummonerImpactPulseBandWidth = 0.045f;
+    private const float SummonerImpactPulseMaxProgress = 0.07f;
+    private const float SummonerImpactPulseMaxAlpha = 0.96f;
+    private const float SummonerBubbleCenterYOffset = 0.55f;
+    private const float SummonerBubbleVisualRadiusScale = 1.1f;
+    private const float SummonerImpactMinYOffset = 0.08f;
+    private const float SummonerImpactMaxYOffsetMargin = 0.08f;
+    private const float SummonerImpactMeleeAimHeightRatio = 0.25f;
+    private const float SummonerImpactMinHorizontalDirLength = 0.000001f;
+    private static readonly Color SummonerImpactPulseColor = new(1f, 1f, 1f, 1f);
+    private static readonly Vector3 SummonerImpactFallbackDirection = new(0.71f, 0.02f, 0.68f);
     private const float SummonerBubbleRingThicknessScale = 0.04f;
-    private const float SummonerBubbleCapVerticalScale = 0.24f;
+    private static Shader? _summonerShieldRippleShader;
 
     // Collision shape constants
     private const float HurtboxRadius = 2.0f;
@@ -383,11 +392,15 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         ApplyHpUpdate(hp, maxHp);
     }
 
-    public void OnSummonerDamaged(float damage, int? attackerUnitId = null)
+    public void OnSummonerDamaged(
+        float damage,
+        int? attackerUnitId = null,
+        SimVector3? hitPosition = null
+    )
     {
         _recentHits += 1.0f;
         PlayHitFeedback();
-        SpawnSummonerImpactPulse(attackerUnitId);
+        SpawnSummonerImpactPulse(attackerUnitId, hitPosition);
         EmitSignal(SignalName.SummonerDamaged, this, damage);
     }
 
@@ -671,60 +684,74 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         }
     }
 
-    private void SpawnSummonerImpactPulse(int? attackerUnitId)
+    private void SpawnSummonerImpactPulse(int? attackerUnitId, SimVector3? hitPosition = null)
     {
+        _summonerShieldRippleShader ??= GD.Load<Shader>(SummonerShieldRippleShaderPath);
+        if (_summonerShieldRippleShader == null)
+        {
+            GD.PushWarning(
+                $"[SummonerVisual] Failed to load shield ripple shader at {SummonerShieldRippleShaderPath}"
+            );
+            return;
+        }
+
+        float baseBubbleRadius = Mathf.Max(0.1f, SummonerMeleeBubble.EffectiveRadius);
+        float bubbleRadius = ResolveSummonerVisualBubbleRadius(baseBubbleRadius);
+        Vector3 center = ResolveSummonerBubbleCenterWorldPosition();
+        bool useFallbackDirection = !HasResolvedImpactSource(attackerUnitId, hitPosition);
+        Vector3 impactPoint = ResolveSummonerImpactPointWorldPosition(
+            attackerUnitId,
+            hitPosition,
+            center,
+            bubbleRadius
+        );
+        Vector3 impactDirection = useFallbackDirection
+            ? SummonerImpactFallbackDirection.Normalized()
+            : ResolveSummonerImpactDirection(impactPoint, center);
+        var material = CreateSummonerImpactRippleMaterial(impactDirection);
+        if (material == null)
+            return;
+
         var pulse = new MeshInstance3D
         {
             Name = "SummonerImpactPulse",
-            Mesh = new CylinderMesh
-            {
-                TopRadius = SummonerImpactPulseStartRadius,
-                BottomRadius = SummonerImpactPulseStartRadius,
-                Height = 0.05f,
-            },
-            MaterialOverride = CreateDebugMaterial(new Color(1.0f, 0.62f, 0.26f, 0.45f), 110),
+            Mesh = CreateHemisphereMesh(bubbleRadius),
+            MaterialOverride = material,
         };
         AddChild(pulse);
-        pulse.GlobalPosition = ResolveSummonerImpactWorldPosition(attackerUnitId);
+        pulse.GlobalPosition = center;
         pulse.Rotation = Vector3.Zero;
 
         var tween = CreateTween();
-        if (pulse.Mesh is CylinderMesh mesh)
+        if (pulse.MaterialOverride is ShaderMaterial rippleMaterial)
         {
             tween.TweenMethod(
                 Callable.From<float>(
-                    radius =>
+                    progress =>
                     {
-                        if (!GodotObject.IsInstanceValid(pulse))
+                        if (!GodotObject.IsInstanceValid(rippleMaterial))
                             return;
 
-                        mesh.TopRadius = radius;
-                        mesh.BottomRadius = radius;
+                        rippleMaterial.SetShaderParameter("progress", progress);
                     }
                 ),
-                SummonerImpactPulseStartRadius,
-                SummonerImpactPulseEndRadius,
+                0f,
+                SummonerImpactPulseMaxProgress,
                 SummonerImpactPulseDuration
             );
-        }
-
-        if (pulse.MaterialOverride is StandardMaterial3D material)
-        {
             tween
                 .Parallel()
                 .TweenMethod(
                     Callable.From<float>(
                         alpha =>
                         {
-                            if (!GodotObject.IsInstanceValid(material))
+                            if (!GodotObject.IsInstanceValid(rippleMaterial))
                                 return;
 
-                            var color = material.AlbedoColor;
-                            color.A = alpha;
-                            material.AlbedoColor = color;
+                            rippleMaterial.SetShaderParameter("alpha", alpha);
                         }
                     ),
-                    material.AlbedoColor.A,
+                    SummonerImpactPulseMaxAlpha,
                     0f,
                     SummonerImpactPulseDuration
                 );
@@ -741,34 +768,142 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         );
     }
 
-    private Vector3 ResolveSummonerImpactWorldPosition(int? attackerUnitId)
+    private ShaderMaterial? CreateSummonerImpactRippleMaterial(Vector3 impactDirection)
     {
-        var center = GlobalPosition;
-        center.Y += SummonerImpactPulseYOffset;
-        if (!attackerUnitId.HasValue || _session == null)
-            return center;
-        var state = _session.GetState();
-        if (!state.Units.TryGetValue(attackerUnitId.Value, out var attacker))
-            return center;
+        if (_summonerShieldRippleShader == null)
+            return null;
 
-        var simNode = SimulationNode.Current;
-        var attackerWorld =
-            simNode != null
-                ? simNode.SimToLocal(attacker.Position)
-                : new Vector3(attacker.Position.X, attacker.Position.Y, attacker.Position.Z);
-        var radial = new Vector3(
-            attackerWorld.X - center.X,
-            0f,
-            attackerWorld.Z - center.Z
+        var material = new ShaderMaterial { Shader = _summonerShieldRippleShader };
+        material.SetShaderParameter("ripple_color", SummonerImpactPulseColor);
+        material.SetShaderParameter("impact_dir", impactDirection.Normalized());
+        material.SetShaderParameter("progress", 0f);
+        material.SetShaderParameter("band_width", SummonerImpactPulseBandWidth);
+        material.SetShaderParameter("alpha", SummonerImpactPulseMaxAlpha);
+        return material;
+    }
+
+    private Vector3 ResolveSummonerBubbleCenterWorldPosition()
+    {
+        return new Vector3(
+            GlobalPosition.X,
+            GlobalPosition.Y + SummonerBubbleCenterYOffset,
+            GlobalPosition.Z
         );
-        if (radial.LengthSquared() < 0.000001f)
-            return center;
+    }
 
-        float radius = Mathf.Max(0.1f, SummonerMeleeBubble.EffectiveRadius);
-        var contact = new Vector3(center.X, center.Y, center.Z) + radial.Normalized() * radius;
-        var inward = contact.Lerp(center, SummonerImpactInsetRatio);
-        inward.Y = center.Y;
-        return inward;
+    private static float ResolveSummonerVisualBubbleRadius(float baseRadius)
+    {
+        return Mathf.Max(0.1f, baseRadius * SummonerBubbleVisualRadiusScale);
+    }
+
+    private Vector3 ResolveSummonerImpactPointWorldPosition(
+        int? attackerUnitId,
+        SimVector3? explicitHitPosition,
+        Vector3 center,
+        float bubbleRadius
+    )
+    {
+        if (explicitHitPosition.HasValue)
+        {
+            Vector3 explicitWorld = ConvertSimToWorld(explicitHitPosition.Value);
+            return ResolveBubbleSliceImpactPoint(
+                center,
+                bubbleRadius,
+                explicitWorld,
+                explicitWorld.Y
+            );
+        }
+
+        if (attackerUnitId.HasValue && _session != null)
+        {
+            var state = _session.GetState();
+            if (state.Units.TryGetValue(attackerUnitId.Value, out var attacker))
+            {
+                Vector3 attackerWorld = ConvertSimToWorld(attacker.Position);
+                Vector3 meleeAim = ResolveSummonerMeleeAimPointWorldPosition(center, bubbleRadius);
+                return ResolveBubbleSliceImpactPoint(center, bubbleRadius, attackerWorld, meleeAim.Y);
+            }
+        }
+
+        float fallbackY = ResolveSummonerMeleeAimPointWorldPosition(center, bubbleRadius).Y;
+        return ResolveBubbleSliceImpactPoint(
+            center,
+            bubbleRadius,
+            center + SummonerImpactFallbackDirection,
+            fallbackY
+        );
+    }
+
+    private Vector3 ResolveSummonerMeleeAimPointWorldPosition(Vector3 center, float bubbleRadius)
+    {
+        float aimY = GetTargetPointGlobalPosition().Y;
+        float minAimY = center.Y + SummonerImpactMinYOffset;
+        float maxAimY = center.Y + (bubbleRadius * SummonerImpactMeleeAimHeightRatio);
+        if (aimY <= minAimY)
+            aimY = maxAimY;
+
+        aimY = Mathf.Clamp(aimY, minAimY, maxAimY);
+
+        return new Vector3(center.X, aimY, center.Z);
+    }
+
+    private bool HasResolvedImpactSource(int? attackerUnitId, SimVector3? explicitHitPosition)
+    {
+        if (explicitHitPosition.HasValue)
+            return true;
+
+        if (!attackerUnitId.HasValue || _session == null)
+            return false;
+
+        return _session.GetState().Units.ContainsKey(attackerUnitId.Value);
+    }
+
+    private static Vector3 ResolveBubbleSliceImpactPoint(
+        Vector3 center,
+        float bubbleRadius,
+        Vector3 horizontalDirectionSource,
+        float desiredY
+    )
+    {
+        float y = Mathf.Clamp(
+            desiredY,
+            center.Y + SummonerImpactMinYOffset,
+            center.Y + Mathf.Max(
+                SummonerImpactMinYOffset,
+                bubbleRadius - SummonerImpactMaxYOffsetMargin
+            )
+        );
+        float yOffset = y - center.Y;
+        float horizontalRadius = Mathf.Sqrt(Mathf.Max(0f, (bubbleRadius * bubbleRadius) - (yOffset * yOffset)));
+
+        var radial = horizontalDirectionSource - center;
+        radial.Y = 0f;
+        if (radial.LengthSquared() < SummonerImpactMinHorizontalDirLength)
+            radial = new Vector3(SummonerImpactFallbackDirection.X, 0f, SummonerImpactFallbackDirection.Z);
+
+        var radialDir = radial.Normalized();
+        return new Vector3(
+            center.X + (radialDir.X * horizontalRadius),
+            y,
+            center.Z + (radialDir.Z * horizontalRadius)
+        );
+    }
+
+    private static Vector3 ResolveSummonerImpactDirection(Vector3 impactPoint, Vector3 center)
+    {
+        var radial = impactPoint - center;
+        if (radial.LengthSquared() < SummonerImpactMinHorizontalDirLength)
+            return SummonerImpactFallbackDirection;
+        return radial.Normalized();
+    }
+
+    private static Vector3 ConvertSimToWorld(SimVector3 position)
+    {
+        var simNode = SimulationNode.Current;
+        if (simNode != null)
+            return simNode.SimToLocal(position);
+
+        return new Vector3(position.X, position.Y, position.Z);
     }
 
     private void UpdateDebugSummonerBubble()
@@ -780,7 +915,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
             return;
         }
 
-        float radius = Mathf.Max(0.1f, debugService.GetSummonerMeleeBubbleEffectiveRadius());
+        float baseRadius = Mathf.Max(0.1f, debugService.GetSummonerMeleeBubbleEffectiveRadius());
+        float radius = ResolveSummonerVisualBubbleRadius(baseRadius);
         bool needsRebuild = _debugSummonerBubbleMarker == null || !Mathf.IsEqualApprox(radius, _debugSummonerBubbleRadius);
         if (needsRebuild)
         {
@@ -793,7 +929,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         if (_debugSummonerBubbleMarker == null)
             return;
 
-        _debugSummonerBubbleMarker.GlobalPosition = new Vector3(GlobalPosition.X, 0.03f, GlobalPosition.Z);
+        _debugSummonerBubbleMarker.GlobalPosition = GlobalPosition;
         _debugSummonerBubbleMarker.Rotation = Vector3.Zero;
     }
 
@@ -804,15 +940,17 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         var ring = CreateDebugGroundRing(
             radius,
             ringThickness,
-            new Color(0.3f, 0.9f, 1.0f, 0.22f),
+            new Color(0.3f, 0.9f, 1.0f, 0.28f),
             renderPriority + 1
         );
+        ring.Name = "Ring";
         var cap = CreateDebugHemisphere(
             radius,
-            new Color(0.3f, 0.9f, 1.0f, 0.08f),
+            new Color(0.3f, 0.9f, 1.0f, 0.24f),
             renderPriority
         );
-        cap.Scale = new Vector3(1f, SummonerBubbleCapVerticalScale, 1f);
+        cap.Name = "Dome";
+        cap.Position = new Vector3(0f, SummonerBubbleCenterYOffset, 0f);
         root.AddChild(cap);
         root.AddChild(ring);
         return root;

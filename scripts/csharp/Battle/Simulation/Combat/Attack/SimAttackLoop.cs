@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 namespace Fateforged.Simulation.Combat;
 
@@ -11,6 +12,12 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimAttackLoop
 {
+    private const float MinWindupSeconds = 0.02f;
+    private const float DefaultFallbackWindupSeconds = 0.4f;
+    private const float DefaultActiveSeconds = 0.05f;
+    private const float DefaultRecoverySeconds = 0.15f;
+    private const float CooldownGuardBufferSeconds = 0.01f;
+
     public static void Tick(UnitData unit, MatchState state, float delta, List<SimEvent> events)
     {
         if (unit.AttackPhase == AttackPhase.None)
@@ -25,6 +32,7 @@ public static class SimAttackLoop
             case AttackPhase.Windup:
                 unit.AttackPhase = AttackPhase.Active;
                 unit.AttackPhaseTimer = ResolveActiveSeconds(unit);
+                SimBehavior.ResolvePendingAttackCommit(unit, state, events);
                 break;
             case AttackPhase.Active:
                 unit.AttackPhase = AttackPhase.Recovery;
@@ -38,7 +46,10 @@ public static class SimAttackLoop
         }
 
         if (unit.AttackPhase == AttackPhase.None)
+        {
             unit.AttackPhaseLockTargetId = null;
+            SimBehavior.ClearPendingAttack(unit);
+        }
     }
 
     public static void Begin(UnitData unit, MatchState state, int? targetId)
@@ -57,7 +68,13 @@ public static class SimAttackLoop
         unit.AttackPhase = AttackPhase.None;
         unit.AttackPhaseTimer = 0f;
         unit.AttackPhaseLockTargetId = null;
+        SimBehavior.ClearPendingAttack(unit);
         state.CombatWindupsCancelled++;
+    }
+
+    public static float ResolveAttackAnimationDuration(UnitData unit)
+    {
+        return ResolveWindupSeconds(unit) + ResolveActiveSeconds(unit) + ResolveRecoverySeconds(unit);
     }
 
     private static float ResolveWindupSeconds(UnitData unit)
@@ -65,7 +82,12 @@ public static class SimAttackLoop
         float authored = unit.Attack.Timing.WindupSeconds;
         if (authored > 0f)
             return authored;
-        return 0.02f;
+
+        // Migration bridge: preserve legacy delayed-ranged feel if no authored timing exists.
+        if (unit.UnitType == UnitType.Ranged && unit.ProjectileDelay > 0f)
+            return unit.ProjectileDelay;
+
+        return ClampFallbackWindupToCooldown(unit, DefaultFallbackWindupSeconds);
     }
 
     private static float ResolveActiveSeconds(UnitData unit)
@@ -73,7 +95,7 @@ public static class SimAttackLoop
         float authored = unit.Attack.Timing.ActiveSeconds;
         if (authored > 0f)
             return authored;
-        return 0.05f;
+        return DefaultActiveSeconds;
     }
 
     private static float ResolveRecoverySeconds(UnitData unit)
@@ -81,6 +103,28 @@ public static class SimAttackLoop
         float authored = unit.Attack.Timing.RecoverySeconds;
         if (authored > 0f)
             return authored;
-        return 0.15f;
+        return DefaultRecoverySeconds;
+    }
+
+    private static float ClampFallbackWindupToCooldown(UnitData unit, float windupSeconds)
+    {
+        float clamped = MathF.Max(windupSeconds, MinWindupSeconds);
+
+        if (unit.AttackSpeed <= 0f)
+            return clamped;
+
+        float cooldownSeconds = 1f / unit.AttackSpeed;
+        if (cooldownSeconds <= 0f)
+            return clamped;
+
+        float maxWindupSeconds =
+            cooldownSeconds
+            - ResolveActiveSeconds(unit)
+            - ResolveRecoverySeconds(unit)
+            - CooldownGuardBufferSeconds;
+        if (maxWindupSeconds <= MinWindupSeconds)
+            return MinWindupSeconds;
+
+        return MathF.Min(clamped, maxWindupSeconds);
     }
 }

@@ -101,10 +101,17 @@ public class HostSession : NetworkSession
 
                 if (evt is SummonerDamagedEvent summonerDamaged && _transport.IsConnected)
                 {
+                    bool hasHitPosition = summonerDamaged.HitPosition.HasValue;
+                    var hit = summonerDamaged.HitPosition.GetValueOrDefault();
+                    Vector3 hitPosition = hasHitPosition
+                        ? new Vector3(hit.X, hit.Y, hit.Z)
+                        : Vector3.Zero;
                     var flash = new SummonerDamageFlash(
                         summonerDamaged.Team,
                         summonerDamaged.Damage,
-                        summonerDamaged.AttackerUnitId
+                        summonerDamaged.AttackerUnitId,
+                        hitPosition,
+                        hasHitPosition
                     );
                     _transport.Broadcast(_messageSerializer.Serialize(flash));
                 }
