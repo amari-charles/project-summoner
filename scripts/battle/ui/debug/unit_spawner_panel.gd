@@ -131,10 +131,10 @@ func _build_ui() -> void:
 	lists_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(lists_row)
 
-	var enemy_list: VBoxContainer = _build_team_unit_column(lists_row, Loc.t("debug.spawner.enemy_tab"))
 	var player_list: VBoxContainer = _build_team_unit_column(lists_row, Loc.t("debug.spawner.player_tab"))
-	_enemy_unit_list_container = enemy_list
+	var enemy_list: VBoxContainer = _build_team_unit_column(lists_row, Loc.t("debug.spawner.enemy_tab"))
 	_player_unit_list_container = player_list
+	_enemy_unit_list_container = enemy_list
 
 	# Populate both team lists from debug deck
 	_populate_unit_lists(enemy_list, player_list)
