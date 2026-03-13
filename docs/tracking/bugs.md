@@ -15,7 +15,37 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 ---
 
 ## Active Bugs
-- None currently tracked.
+
+#### Headless Exit Logs `material is null` During Test Teardown
+**Status:** Open
+**Reported:** 2026-03-13
+**Component:** Unit Testing / VFX / Headless Renderer
+
+**Description:**
+Headless GUT runs complete successfully but still print a shutdown renderer error:
+`ERROR: Parameter "material" is null.`
+
+**Expected Behavior:**
+Headless test teardown should finish without renderer parameter errors.
+
+**Current Behavior:**
+Tests pass (`218/218`) and then the process logs the renderer error at exit.
+
+**Impact:**
+Low gameplay risk, but creates noisy CI/local test output and can hide real shutdown regressions.
+
+**Reproduction Steps:**
+1. Run `"/Applications/Godot_mono.app/Contents/MacOS/Godot" --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`
+2. Observe end-of-run output after pass summary.
+
+**Proposed Solution:**
+Identify and harden the shutdown path causing null material queries in headless renderer teardown.
+
+**Related Files:**
+- `scripts/battle/vfx/vfx_manager.gd`
+
+**Notes:**
+Recent VFX cleanup changes reduced direct teardown coupling, but did not fully eliminate the final renderer log.
 
 ---
 
