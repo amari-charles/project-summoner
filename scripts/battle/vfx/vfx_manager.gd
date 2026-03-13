@@ -16,6 +16,10 @@ var pool_container: Node3D = null  ## Parent for pooled effects (keeps them in s
 
 var _initialized: bool = false
 
+
+func _is_headless_mode() -> bool:
+	return OS.has_feature("headless") or DisplayServer.get_name() == "headless"
+
 func _ready() -> void:
 	# Lazy initialization - don't load anything here
 	# Resources will be loaded on first use via _ensure_initialized()
@@ -49,6 +53,13 @@ func _ensure_initialized() -> bool:
 	pool_container = Node3D.new()
 	pool_container.name = "VFXPool"
 	add_child(pool_container)
+
+	# Headless test/runtime does not need VFX resources and loading them can
+	# trigger renderer shutdown warnings in dummy rendering backends.
+	if _is_headless_mode():
+		_initialized = true
+		print("VFXManager: Headless mode - skipping VFX resource preload")
+		return true
 
 	_load_effect_library()
 	_init_pools()
@@ -100,6 +111,7 @@ func _load_effect_library() -> void:
 ## Pre-instantiate pooled effects
 func _init_pools() -> void:
 	var effect_keys: Array = effect_library.keys()
+	var skip_prewarm_for_headless: bool = _is_headless_mode()
 	for effect_id: Variant in effect_keys:
 		var vfx_def_variant: Variant = effect_library[effect_id]
 		if not vfx_def_variant is VFXDefinition:
@@ -111,6 +123,9 @@ func _init_pools() -> void:
 		if vfx_def.pooled and vfx_def.effect_scene:
 			effect_pools[effect_id] = []
 			active_effects[effect_id] = []
+
+			if skip_prewarm_for_headless:
+				continue
 
 			# Pre-instantiate pool
 			for i: int in range(vfx_def.pool_size):
