@@ -1729,6 +1729,36 @@ public class ProjectileHitEvent : SimEvent
 }
 
 /// <summary>
+/// An instant hitscan beam was fired (for transient beam visuals).
+/// </summary>
+[EventCategory(EventCategory.HostOnly)]
+public class HitscanBeamFiredEvent : SimEvent
+{
+    public int ProjectileId { get; }
+    public SimProjectileCatalogId ProjectileCatalogId { get; }
+    public SimVector3 StartPosition { get; }
+    public SimVector3 EndPosition { get; }
+    public float DurationSeconds { get; }
+
+    public HitscanBeamFiredEvent(
+        int projectileId,
+        SimProjectileCatalogId projectileCatalogId,
+        SimVector3 startPosition,
+        SimVector3 endPosition,
+        float durationSeconds
+    )
+    {
+        ProjectileId = projectileId;
+        ProjectileCatalogId = projectileCatalogId;
+        StartPosition = startPosition;
+        EndPosition = endPosition;
+        DurationSeconds = durationSeconds;
+    }
+
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
 /// A unit's activation state changed (for visual feedback).
 /// </summary>
 [EventCategory(EventCategory.HostOnly)]

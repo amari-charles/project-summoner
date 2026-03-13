@@ -138,6 +138,15 @@ public class MessageSerializer
                 dict["pos"] = SerializeVector3(m.Position);
                 break;
 
+            case HitscanBeamVisual m:
+                dict["type"] = (int)MessageType.HitscanBeamVisual;
+                dict["id"] = m.ProjectileId;
+                dict["catalogId"] = m.ProjectileCatalogId.Value;
+                dict["start"] = SerializeVector3(m.StartPosition);
+                dict["end"] = SerializeVector3(m.EndPosition);
+                dict["duration"] = m.DurationSeconds;
+                break;
+
             case ProjectileSpawned m:
                 dict["type"] = (int)MessageType.ProjectileSpawned;
                 dict["id"] = m.ProjectileId;
@@ -323,6 +332,20 @@ public class MessageSerializer
                     ? new SimCardCatalogId((string)dict["catalogId"])
                     : SimCardCatalogId.Empty,
                 Position: DeserializeVector3(dict["pos"])
+            ),
+
+            MessageType.HitscanBeamVisual => new HitscanBeamVisual(
+                ProjectileId: dict.ContainsKey("id") ? (int)dict["id"] : -1,
+                ProjectileCatalogId: dict.ContainsKey("catalogId")
+                    ? new SimProjectileCatalogId((string)dict["catalogId"])
+                    : SimProjectileCatalogId.Empty,
+                StartPosition: dict.ContainsKey("start")
+                    ? DeserializeVector3(dict["start"])
+                    : Vector3.Zero,
+                EndPosition: dict.ContainsKey("end")
+                    ? DeserializeVector3(dict["end"])
+                    : Vector3.Zero,
+                DurationSeconds: dict.ContainsKey("duration") ? (float)dict["duration"] : 0.12f
             ),
 
             MessageType.ProjectileSpawned => new ProjectileSpawned(

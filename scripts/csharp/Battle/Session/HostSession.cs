@@ -122,6 +122,26 @@ public class HostSession : NetworkSession
                     );
                     _transport.Broadcast(_messageSerializer.Serialize(visual));
                 }
+
+                if (evt is HitscanBeamFiredEvent beamFired && _transport.IsConnected)
+                {
+                    var visual = new HitscanBeamVisual(
+                        ProjectileId: beamFired.ProjectileId,
+                        ProjectileCatalogId: beamFired.ProjectileCatalogId,
+                        StartPosition: new Vector3(
+                            beamFired.StartPosition.X,
+                            beamFired.StartPosition.Y,
+                            beamFired.StartPosition.Z
+                        ),
+                        EndPosition: new Vector3(
+                            beamFired.EndPosition.X,
+                            beamFired.EndPosition.Y,
+                            beamFired.EndPosition.Z
+                        ),
+                        DurationSeconds: beamFired.DurationSeconds
+                    );
+                    _transport.Broadcast(_messageSerializer.Serialize(visual));
+                }
             }
         }
 

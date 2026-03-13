@@ -169,10 +169,7 @@ public partial class Card : Resource
     {
         if (Type == (int)CardType.Spell)
         {
-            GD.PushWarning(
-                $"Card.SpawnAt called with spell '{CatalogId}'. Forwarding to CastAt()."
-            );
-            CastAt(position, team);
+            GD.PushError($"Card.SpawnAt called with spell '{CatalogId}'. Use CastAt() instead.");
             return;
         }
 

@@ -138,7 +138,7 @@ public static class UnitDefinitions
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
         Visual = new VisualConfig { SeparationRadius = 0.5f },
-        ScenePath = "res://scenes/battle/units/duckling_3d.tscn",
+        ScenePath = "res://scenes/battle/units/life_wisp_3d.tscn",
     };
 
     public static readonly UnitDefinition DeathWisp = new()

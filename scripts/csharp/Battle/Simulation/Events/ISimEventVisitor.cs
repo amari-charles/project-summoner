@@ -25,6 +25,7 @@ public interface ISimEventVisitor
     void Visit(UnitDamagedEvent e);
     void Visit(UnitDiedEvent e);
     void Visit(ProjectileHitEvent e);
+    void Visit(HitscanBeamFiredEvent e);
     void Visit(UnitActivationChangedEvent e);
     void Visit(AttackEvadedEvent e);
     void Visit(BuffAppliedEvent e);

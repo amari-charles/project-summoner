@@ -28,6 +28,7 @@ public static class SimBehavior
     private const float AttackAnimationDuration = 0.5f;
     private const float TargetLockDuration = 0.5f;
     private const float BacklinerMaxCrossLaneChaseDistanceMultiplier = 1.35f;
+    private const float DefaultHitscanBeamDurationSeconds = 0.12f;
 
     /// <summary>
     /// Result of a behavior tick. Tells the caller what movement to perform
@@ -556,8 +557,9 @@ public static class SimBehavior
     {
         if (!TryResolveProjectileData(attacker, out var projectileData))
         {
-            // Fallback for missing ranged definitions in tests or incomplete data.
-            ApplyUnitDamage(attacker, target, baseDamage, state, events);
+            Simulation.Log?.Invoke(
+                $"[SimBehavior] Missing projectile data for ranged attacker unitId={attacker.UnitId} catalogId={attacker.CatalogId.Value}; skipping attack resolution."
+            );
             return;
         }
 
@@ -589,6 +591,7 @@ public static class SimBehavior
                 statusTickInterval: attacker.ProjectileStatusTickInterval,
                 statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
                 statusMaxStacks: attacker.ProjectileStatusMaxStacks,
+                beamDurationSeconds: ResolveHitscanBeamDurationSeconds(projectileData),
                 events: events
             );
             return;
@@ -649,14 +652,8 @@ public static class SimBehavior
 
         if (!TryResolveProjectileData(attacker, out var projectileData))
         {
-            DealSummonerDamage(
-                state,
-                summoner,
-                summonerTeam,
-                baseDamage,
-                attacker.Team,
-                attacker.UnitId,
-                events
+            Simulation.Log?.Invoke(
+                $"[SimBehavior] Missing projectile data for ranged summoner attack unitId={attacker.UnitId} catalogId={attacker.CatalogId.Value}; skipping attack resolution."
             );
             return;
         }
@@ -689,6 +686,7 @@ public static class SimBehavior
                 statusTickInterval: attacker.ProjectileStatusTickInterval,
                 statusPotencyPerStack: attacker.ProjectileStatusPotencyPerStack,
                 statusMaxStacks: attacker.ProjectileStatusMaxStacks,
+                beamDurationSeconds: ResolveHitscanBeamDurationSeconds(projectileData),
                 events: events
             );
             return;
@@ -775,6 +773,13 @@ public static class SimBehavior
             return intendedTargetPos;
 
         return startPos + (toTarget.Normalized() * projectileData.FixedTravelDistance);
+    }
+
+    private static float ResolveHitscanBeamDurationSeconds(ProjectileData projectileData)
+    {
+        if (projectileData.FadeDuration > 0f)
+            return projectileData.FadeDuration;
+        return DefaultHitscanBeamDurationSeconds;
     }
 
     private static bool TryResolveProjectileData(

@@ -188,6 +188,7 @@ public static class ProjectileDefinitions
         InstantHitScan = true,
         PierceCount = 3,
         RotateToDirection = true,
+        FadeDuration = 0.12f,
     };
 
     // =========================================================================

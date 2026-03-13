@@ -202,6 +202,7 @@ public static class SimProjectile
         float statusTickInterval,
         float statusPotencyPerStack,
         int statusMaxStacks,
+        float beamDurationSeconds,
         List<SimEvent> events
     )
     {
@@ -241,6 +242,16 @@ public static class SimProjectile
             AoeRadius = aoeRadius,
             TimeAlive = 0f,
         };
+
+        events.Add(
+            new HitscanBeamFiredEvent(
+                id,
+                projectileCatalogId,
+                startPos,
+                endPos,
+                MathF.Max(beamDurationSeconds, 0f)
+            )
+        );
 
         CheckHits(proj, state, events);
 

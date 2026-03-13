@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.Simulation.Abilities;
 
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Projectiles;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
@@ -78,5 +79,6 @@ public class AbilityPierceLineTest
         AssertThat(state.Projectiles.Count).IsEqual(0);
         AssertThat(frontTarget.CurrentHp).IsLess(frontBefore);
         AssertThat(behindTarget.CurrentHp).IsLess(behindBefore);
+        AssertThat(events.OfType<HitscanBeamFiredEvent>().Any()).IsTrue();
     }
 }
