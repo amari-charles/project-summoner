@@ -24,6 +24,9 @@ const RALLY: StringName = &"rally"
 const GUARD: StringName = &"guard"
 const CHARGE: StringName = &"charge"
 const MANA_BOLT: StringName = &"mana_bolt"
+const CLEANSE: StringName = &"cleanse"
+const WATER_JET: StringName = &"water_jet"
+const RAIN_FIELD: StringName = &"rain_field"
 
 # ============================================================================
 # WISPS (Basic starter units for each element)
@@ -73,4 +76,7 @@ const CLOUD_SWARM: StringName = &"cloud_swarm"
 
 const WATER_FROG: StringName = &"water_frog"
 const MAMA_DUCK: StringName = &"mama_duck"
+const WATER_BULWARK: StringName = &"water_bulwark"
+const WATER_MENDER: StringName = &"water_mender"
+const WATER_SKIMMER: StringName = &"water_skimmer"
 # NOTE: duckling is a unit spawned by mama_duck, not a playable card

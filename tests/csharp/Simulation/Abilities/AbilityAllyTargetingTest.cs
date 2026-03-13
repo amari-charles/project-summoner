@@ -57,4 +57,72 @@ public class AbilityAllyTargetingTest
         AssertThat(lowAlly.CurrentHp).IsGreater(beforeLowHp);
         AssertThat(highAlly.CurrentHp).IsEqual(70f);
     }
+
+    [TestCase]
+    public void CleansePulse_CleansesAndHealsNearbyAllies()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var events = new List<SimEvent>();
+
+        var support = SimTestHelper.CreateRangedUnit(state, 0, x: 0f, z: 0f, damage: 0f, attackSpeed: 0f);
+        support.Abilities.Add(
+            new UnitAbilityState
+            {
+                AbilityId = "cleanse_pulse",
+                Kind = UnitAbilityKind.CleansePulse,
+                CooldownSeconds = 2f,
+                Radius = 7f,
+                Value = 12f,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+            }
+        );
+
+        var ally = SimTestHelper.CreateMeleeUnit(state, 0, x: 4f, z: 0f, hp: 100f);
+        ally.CurrentHp = 50f;
+        ally.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                BuffId = 7,
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 3f,
+            }
+        );
+        ally.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                BuffId = 8,
+                EffectType = EffectType.Damage,
+                Value = 3f,
+                Duration = 3f,
+                TickInterval = 1f,
+                TickTimer = 1f,
+                StatusKind = StatusEffectKind.Burn,
+            }
+        );
+        ally.ForcedTargetUnitId = 123;
+        ally.ForcedTargetTimer = 2f;
+
+        var distantAlly = SimTestHelper.CreateMeleeUnit(state, 0, x: 20f, z: 0f, hp: 100f);
+        distantAlly.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                BuffId = 9,
+                EffectType = EffectType.Slow,
+                Value = 0.3f,
+                Duration = 4f,
+            }
+        );
+
+        SimAbilityOrchestrator.Tick(state, Simulation.FixedDeltaSeconds, events);
+
+        AssertThat(ally.CurrentHp).IsGreater(50f);
+        AssertThat(ally.ActiveBuffs.Any(b => b.EffectType == EffectType.Slow)).IsFalse();
+        AssertThat(ally.ActiveBuffs.Any(b => b.StatusKind == StatusEffectKind.Burn)).IsFalse();
+        AssertThat(ally.ForcedTargetUnitId.HasValue).IsFalse();
+        AssertThat(ally.ForcedTargetTimer).IsEqual(0f);
+
+        AssertThat(distantAlly.ActiveBuffs.Any(b => b.EffectType == EffectType.Slow)).IsTrue();
+        AssertThat(events.OfType<AbilityActivatedEvent>().Any()).IsTrue();
+    }
 }

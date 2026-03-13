@@ -125,7 +125,8 @@ public class HostSession : NetworkSession
                             spellCast.Position.X,
                             spellCast.Position.Y,
                             spellCast.Position.Z
-                        )
+                        ),
+                        TargetUnitId: spellCast.TargetUnitId ?? -1
                     );
                     _transport.Broadcast(_messageSerializer.Serialize(visual));
                 }

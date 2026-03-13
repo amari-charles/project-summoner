@@ -440,7 +440,8 @@ public class MessageSerializerTest
         var original = new SpellCastVisual(
             Team: 0,
             CatalogId: "fireball",
-            Position: new Vector3(4f, 0f, -2f)
+            Position: new Vector3(4f, 0f, -2f),
+            TargetUnitId: 42
         );
 
         var dict = _serializer.Serialize(original);
@@ -452,6 +453,7 @@ public class MessageSerializerTest
         AssertThat(typed.CatalogId.Value).IsEqual("fireball");
         AssertThat(typed.Position.X).IsEqual(4f);
         AssertThat(typed.Position.Z).IsEqual(-2f);
+        AssertThat(typed.TargetUnitId).IsEqual(42);
     }
 
     [TestCase]

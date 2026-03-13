@@ -45,6 +45,8 @@ public enum EffectType
     Haste, // Increase movement speed
     DamageBoost, // Increase attack damage
     AreaDamage, // Deal damage in an area
+    Cleanse, // Remove negative effects/statuses
+    Knockback, // Displace a unit away from source
 }
 
 /// <summary>
@@ -132,6 +134,18 @@ public class SimSpellEffect
 
     /// <summary>Which team this effect targets.</summary>
     public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
+
+    /// <summary>Delay before first application (0 = immediate).</summary>
+    public float DelaySeconds { get; set; }
+
+    /// <summary>
+    /// Additional applications after the first one (0 = single apply).
+    /// Example: Delay=0.6, RepeatCount=4, RepeatInterval=0.6 => 5 total pulses.
+    /// </summary>
+    public int RepeatCount { get; set; }
+
+    /// <summary>Interval between repeated applications.</summary>
+    public float RepeatIntervalSeconds { get; set; }
 }
 
 /// <summary>
@@ -247,4 +261,16 @@ public class DelayedEffect
 
     /// <summary>Source team (for friendly fire filtering).</summary>
     public Team SourceTeam { get; set; }
+
+    /// <summary>Spell affinity filter for delayed spell effects.</summary>
+    public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
+
+    /// <summary>Targeting mode for delayed spell effects.</summary>
+    public SpellTargetingMode TargetingMode { get; set; } = SpellTargetingMode.Position;
+
+    /// <summary>Optional pinned unit target for single-target delayed effects.</summary>
+    public int? TargetUnitId { get; set; }
+
+    /// <summary>Duration payload for buff/debuff effects.</summary>
+    public float Duration { get; set; }
 }

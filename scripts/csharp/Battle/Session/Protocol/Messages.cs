@@ -157,7 +157,8 @@ public readonly record struct MatchEnded(int WinnerIndex, string Reason, float D
 public readonly record struct SpellCastVisual(
     int Team,
     SimCardCatalogId CatalogId,
-    Vector3 Position
+    Vector3 Position,
+    int TargetUnitId = -1
 ) : IRealtimeProtocolMessage;
 
 /// <summary>

@@ -23,7 +23,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	_cleanup_all_effect_nodes()
+	_release_runtime_state()
 
 
 ## =============================================================================
@@ -371,61 +371,17 @@ func _validate_vfx_ids_sync() -> void:
 		])
 
 
-## Clean up pooled/active VFX nodes to avoid renderer shutdown noise in headless tests.
-func _cleanup_all_effect_nodes() -> void:
+## Release runtime references during teardown.
+## Avoid explicit node free/remove during tree shutdown — engine teardown will
+## free children and forced cleanup here can trigger renderer warnings in headless mode.
+func _release_runtime_state() -> void:
 	if not _initialized:
 		return
-
-	var nodes_to_free: Array[Node] = []
-	var seen_ids: Dictionary = {}
-
-	for pool_variant: Variant in effect_pools.values():
-		if not pool_variant is Array:
-			continue
-		var pool: Array = pool_variant
-		for instance_variant: Variant in pool:
-			if instance_variant is Node:
-				var node: Node = instance_variant
-				var instance_id: int = node.get_instance_id()
-				if seen_ids.has(instance_id):
-					continue
-				seen_ids[instance_id] = true
-				nodes_to_free.append(node)
-
-	for active_variant: Variant in active_effects.values():
-		if not active_variant is Array:
-			continue
-		var active: Array = active_variant
-		for instance_variant: Variant in active:
-			if instance_variant is Node:
-				var node: Node = instance_variant
-				var instance_id: int = node.get_instance_id()
-				if seen_ids.has(instance_id):
-					continue
-				seen_ids[instance_id] = true
-				nodes_to_free.append(node)
-
-	for node: Node in nodes_to_free:
-		if not is_instance_valid(node):
-			continue
-		if node.get_parent():
-			node.get_parent().remove_child(node)
-		node.free()
 
 	effect_pools.clear()
 	active_effects.clear()
 	effect_library.clear()
-
-	if pool_container and is_instance_valid(pool_container):
-		if pool_container.get_parent():
-			pool_container.get_parent().remove_child(pool_container)
-		pool_container.free()
 	pool_container = null
-
-	if effects_container and is_instance_valid(effects_container):
-		if effects_container.get_parent():
-			effects_container.get_parent().remove_child(effects_container)
-		effects_container.free()
 	effects_container = null
 
 	_initialized = false

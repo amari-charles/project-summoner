@@ -157,7 +157,8 @@ public class ClientSession : NetworkSession
                             spellCast.Position.X,
                             spellCast.Position.Y,
                             spellCast.Position.Z
-                        )
+                        ),
+                        spellCast.TargetUnitId >= 0 ? spellCast.TargetUnitId : null
                     )
                 );
                 break;

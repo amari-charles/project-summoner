@@ -72,6 +72,9 @@ public static class UnitIds
     public static readonly UnitId WaterFrog = new("water_frog");
     public static readonly UnitId MamaDuck = new("mama_duck");
     public static readonly UnitId Duckling = new("duckling");
+    public static readonly UnitId WaterBulwark = new("water_bulwark");
+    public static readonly UnitId WaterMender = new("water_mender");
+    public static readonly UnitId WaterSkimmer = new("water_skimmer");
     public static readonly UnitId LifeMedic = new("life_medic");
     public static readonly UnitId PoisonNeedler = new("poison_needler");
     public static readonly UnitId PiercingLaser = new("piercing_laser");

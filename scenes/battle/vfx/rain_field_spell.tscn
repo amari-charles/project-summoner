@@ -1,0 +1,75 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/vfx/rain_field_spell_vfx.gd" id="1_script"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ring"]
+top_radius = 1.0
+bottom_radius = 1.0
+height = 0.04
+
+[sub_resource type="SphereMesh" id="SphereMesh_cloud"]
+radius = 0.9
+height = 1.8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rain"]
+top_radius = 0.06
+bottom_radius = 0.06
+height = 3.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_ring"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.28, 0.7, 1, 0.35)
+emission_enabled = true
+emission = Color(0.2, 0.55, 1, 1)
+emission_energy_multiplier = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_cloud"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.45, 0.62, 0.78, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_rain"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.55, 0.88, 1, 0.42)
+
+[node name="RainFieldSpell" type="Node3D"]
+script = ExtResource("1_script")
+lifetime = 0.0
+auto_free = true
+
+[node name="GroundRing" type="MeshInstance3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("CylinderMesh_ring")
+cast_shadow = 0
+surface_material_override/0 = SubResource("StandardMaterial_ring")
+
+[node name="RainCloud" type="MeshInstance3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 0.6, 0, 0, 0, 1, 0, 3.2, 0)
+mesh = SubResource("SphereMesh_cloud")
+cast_shadow = 0
+surface_material_override/0 = SubResource("StandardMaterial_cloud")
+
+[node name="RainA" type="MeshInstance3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 1.6, -0.5)
+mesh = SubResource("CylinderMesh_rain")
+cast_shadow = 0
+surface_material_override/0 = SubResource("StandardMaterial_rain")
+
+[node name="RainB" type="MeshInstance3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 1.6, 0.8)
+mesh = SubResource("CylinderMesh_rain")
+cast_shadow = 0
+surface_material_override/0 = SubResource("StandardMaterial_rain")
+
+[node name="RainC" type="MeshInstance3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, 1.6, -0.3)
+mesh = SubResource("CylinderMesh_rain")
+cast_shadow = 0
+surface_material_override/0 = SubResource("StandardMaterial_rain")

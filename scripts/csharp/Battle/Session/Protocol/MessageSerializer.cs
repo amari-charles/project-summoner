@@ -138,6 +138,7 @@ public class MessageSerializer
                 dict["team"] = m.Team;
                 dict["catalogId"] = m.CatalogId.Value;
                 dict["pos"] = SerializeVector3(m.Position);
+                dict["target"] = m.TargetUnitId;
                 break;
 
             case HitscanBeamVisual m:
@@ -335,7 +336,8 @@ public class MessageSerializer
                 CatalogId: dict.ContainsKey("catalogId")
                     ? new SimCardCatalogId((string)dict["catalogId"])
                     : SimCardCatalogId.Empty,
-                Position: DeserializeVector3(dict["pos"])
+                Position: DeserializeVector3(dict["pos"]),
+                TargetUnitId: dict.ContainsKey("target") ? (int)dict["target"] : -1
             ),
 
             MessageType.HitscanBeamVisual => new HitscanBeamVisual(

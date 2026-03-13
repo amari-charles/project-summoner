@@ -543,6 +543,83 @@ public static class UnitDefinitions
         ScenePath = "res://scenes/battle/units/duckling_3d.tscn",
     };
 
+    public static readonly UnitDefinition WaterBulwark = new()
+    {
+        Id = UnitIds.WaterBulwark,
+        DisplayName = "Water Bulwark",
+        Stats = new UnitStats
+        {
+            MaxHp = 240f,
+            AttackDamage = 15f,
+            AttackRange = 3.2f,
+            AttackSpeed = 0.7f,
+            MoveSpeed = 1.9f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Visual = new VisualConfig { SeparationRadius = 0.75f },
+        ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WaterMender = new()
+    {
+        Id = UnitIds.WaterMender,
+        DisplayName = "Water Mender",
+        Stats = new UnitStats
+        {
+            MaxHp = 85f,
+            AttackDamage = 0f,
+            AttackRange = 14f,
+            AttackSpeed = 0f,
+            MoveSpeed = 2.2f,
+            AggroRadius = 14f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.Passive,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "cleanse_pulse",
+                Kind = UnitAbilityKind.CleansePulse,
+                CooldownSeconds = 4.2f,
+                Radius = 7f,
+                Value = 18f,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.45f },
+        ScenePath = "res://scenes/battle/units/life_wisp_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WaterSkimmer = new()
+    {
+        Id = UnitIds.WaterSkimmer,
+        DisplayName = "Water Skimmer",
+        Stats = new UnitStats
+        {
+            MaxHp = 70f,
+            AttackDamage = 11f,
+            AttackRange = 18f,
+            AttackSpeed = 0.8f,
+            MoveSpeed = 3.4f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Ranged,
+        MovementLayer = MovementLayer.Air,
+        TargetingProfile = UnitTargetingProfile.RangedStrafe,
+        TargetingLayerFilter = TargetLayer.Both,
+        Ranged = new RangedConfig(ProjectileIds.WindPuff),
+        Flying = new FlyingConfig { Altitude = 2.2f },
+        Visual = new VisualConfig
+        {
+            SeparationRadius = 0.45f,
+            HpBarOffsetY = 2.0f,
+        },
+        ScenePath = "res://scenes/battle/units/puff_3d.tscn",
+    };
+
     public static readonly UnitDefinition LifeMedic = new()
     {
         Id = UnitIds.LifeMedic,
@@ -664,6 +741,9 @@ public static class UnitDefinitions
         [UnitIds.WaterFrog] = WaterFrog,
         [UnitIds.MamaDuck] = MamaDuck,
         [UnitIds.Duckling] = Duckling,
+        [UnitIds.WaterBulwark] = WaterBulwark,
+        [UnitIds.WaterMender] = WaterMender,
+        [UnitIds.WaterSkimmer] = WaterSkimmer,
         [UnitIds.LifeMedic] = LifeMedic,
         [UnitIds.PoisonNeedler] = PoisonNeedler,
         [UnitIds.PiercingLaser] = PiercingLaser,

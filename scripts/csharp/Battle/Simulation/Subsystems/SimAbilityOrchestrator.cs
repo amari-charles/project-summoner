@@ -50,6 +50,7 @@ public static class SimAbilityOrchestrator
                 events
             ),
             UnitAbilityKind.TauntPulse => TryActivateTauntPulse(state, source, ability, events),
+            UnitAbilityKind.CleansePulse => TryActivateCleansePulse(state, source, ability, events),
             _ => false,
         };
 
@@ -190,6 +191,59 @@ public static class SimAbilityOrchestrator
                     ability.DurationSeconds
                 )
             );
+            applied++;
+        }
+
+        if (applied <= 0)
+            return false;
+
+        events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, null, source.Position));
+        return true;
+    }
+
+    private static bool TryActivateCleansePulse(
+        MatchState state,
+        UnitData source,
+        UnitAbilityState ability,
+        System.Collections.Generic.List<SimEvent> events
+    )
+    {
+        float radius = ability.Radius > 0f ? ability.Radius : source.AttackRange;
+        float radiusSq = radius * radius;
+        int applied = 0;
+
+        foreach (var ally in state.GetAliveActiveUnitsForTeam((int)source.Team))
+        {
+            float distSq = source.Position.DistanceSquaredTo(ally.Position);
+            if (distSq > radiusSq)
+                continue;
+
+            SimEffects.ApplyEffect(
+                state,
+                EffectType.Cleanse,
+                0f,
+                0f,
+                DamageType.Magic,
+                ally,
+                source.UnitId,
+                source.Team,
+                events
+            );
+
+            if (ability.Value > 0f)
+            {
+                SimEffects.ApplyEffect(
+                    state,
+                    EffectType.Heal,
+                    ability.Value,
+                    0f,
+                    DamageType.Magic,
+                    ally,
+                    source.UnitId,
+                    source.Team,
+                    events
+                );
+            }
             applied++;
         }
 

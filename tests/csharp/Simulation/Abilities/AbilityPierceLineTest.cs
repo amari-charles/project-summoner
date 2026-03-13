@@ -74,6 +74,7 @@ public class AbilityPierceLineTest
         float frontBefore = frontTarget.CurrentHp;
         float behindBefore = behindTarget.CurrentHp;
         SimBehavior.TickBehavior(attacker, state, Simulation.FixedDeltaSeconds, events);
+        SimBehavior.ResolvePendingAttackCommit(attacker, state, events);
 
         // Hitscan resolves in the same behavior tick and does not enqueue a traveling projectile.
         AssertThat(state.Projectiles.Count).IsEqual(0);

@@ -40,6 +40,15 @@ public static class VfxIds
     /// <summary>Fireball spell cast effect (AOE indicator + impact).</summary>
     public static readonly VfxId FireballSpell = new("fireball_spell");
 
+    /// <summary>Water cleanse spell visual.</summary>
+    public static readonly VfxId CleanseSpell = new("cleanse_spell");
+
+    /// <summary>Water jet spell visual.</summary>
+    public static readonly VfxId WaterJetSpell = new("water_jet_spell");
+
+    /// <summary>Rain field spell visual.</summary>
+    public static readonly VfxId RainFieldSpell = new("rain_field_spell");
+
     // =========================================================================
     // LIGHTNING EFFECTS
     // =========================================================================

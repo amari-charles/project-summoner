@@ -893,29 +893,111 @@ public class Simulation
     )
     {
         int summonerSourceId = MatchState.GetSummonerTargetId(team);
-        events.Add(new SpellCastEvent(team, cardData.CatalogId, position));
+        int? visualTargetUnitId = ResolveSpellVisualTargetUnitId(cardData, team, position, targetUnitId);
+        events.Add(new SpellCastEvent(team, cardData.CatalogId, position, visualTargetUnitId));
 
         foreach (var effect in cardData.SpellEffects)
         {
-            if (TrySpawnSpellProjectile(cardData, effect, team, position, targetUnitId))
-                continue;
+            float initialDelay = MathF.Max(0f, effect.DelaySeconds);
+            int totalApplications = Math.Max(1, effect.RepeatCount + 1);
+            float repeatInterval = MathF.Max(0f, effect.RepeatIntervalSeconds);
+            bool allowProjectilePath =
+                initialDelay <= 0f && totalApplications == 1 && effect.RepeatCount <= 0;
 
-            var targets = ResolveSpellTargets(cardData, effect, team, position, targetUnitId);
-            foreach (var target in targets)
+            for (int i = 0; i < totalApplications; i++)
             {
-                SimEffects.ApplyEffect(
-                    _state,
-                    effect.EffectType,
-                    effect.Value,
-                    effect.Duration,
-                    effect.DamageType,
-                    target,
-                    summonerSourceId,
-                    (Team)team,
-                    events
-                );
+                float applyDelay = initialDelay + (i * repeatInterval);
+                if (applyDelay > 0f)
+                {
+                    QueueSpellDelayedEffect(
+                        effect,
+                        cardData,
+                        team,
+                        position,
+                        targetUnitId,
+                        summonerSourceId,
+                        applyDelay
+                    );
+                    continue;
+                }
+
+                if (
+                    allowProjectilePath
+                    && TrySpawnSpellProjectile(cardData, effect, team, position, targetUnitId)
+                )
+                    continue;
+
+                var targets = ResolveSpellTargets(cardData, effect, team, position, targetUnitId);
+                foreach (var target in targets)
+                {
+                    SimEffects.ApplyEffect(
+                        _state,
+                        effect.EffectType,
+                        effect.Value,
+                        effect.Duration,
+                        effect.DamageType,
+                        target,
+                        summonerSourceId,
+                        (Team)team,
+                        events
+                    );
+                }
             }
         }
+    }
+
+    private int? ResolveSpellVisualTargetUnitId(
+        SimCardData cardData,
+        int team,
+        SimVector3 position,
+        int? requestedTargetUnitId
+    )
+    {
+        if (
+            requestedTargetUnitId.HasValue
+            && _state.GetAliveUnit(requestedTargetUnitId.Value) != null
+        )
+        {
+            return requestedTargetUnitId.Value;
+        }
+
+        if (cardData.SpellTargetingMode != SpellTargetingMode.NearestEnemy)
+            return null;
+        if (cardData.SpellEffects.Count == 0)
+            return null;
+
+        var previewEffect = cardData.SpellEffects[0];
+        var targets = ResolveSpellTargets(cardData, previewEffect, team, position, null);
+        return targets.Count > 0 ? targets[0].UnitId : null;
+    }
+
+    private void QueueSpellDelayedEffect(
+        SimSpellEffect effect,
+        SimCardData cardData,
+        int team,
+        SimVector3 castPosition,
+        int? targetUnitId,
+        int sourceUnitId,
+        float delaySeconds
+    )
+    {
+        _state.DelayedEffects.Add(
+            new DelayedEffect
+            {
+                Timer = delaySeconds,
+                EffectType = effect.EffectType,
+                Value = effect.Value,
+                Duration = effect.Duration,
+                DamageType = effect.DamageType,
+                AoeRadius = effect.AoeRadius > 0f ? effect.AoeRadius : cardData.SpellRadius,
+                Position = castPosition,
+                SourceUnitId = sourceUnitId,
+                SourceTeam = (Team)team,
+                Affinity = effect.Affinity,
+                TargetingMode = cardData.SpellTargetingMode,
+                TargetUnitId = targetUnitId,
+            }
+        );
     }
 
     /// <summary>
@@ -1648,12 +1730,19 @@ public class SpellCastEvent : SimEvent
     public int Team { get; }
     public SimCardCatalogId CatalogId { get; }
     public SimVector3 Position { get; }
+    public int? TargetUnitId { get; }
 
-    public SpellCastEvent(int team, SimCardCatalogId catalogId, SimVector3 position)
+    public SpellCastEvent(
+        int team,
+        SimCardCatalogId catalogId,
+        SimVector3 position,
+        int? targetUnitId = null
+    )
     {
         Team = team;
         CatalogId = catalogId;
         Position = position;
+        TargetUnitId = targetUnitId;
     }
 
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);

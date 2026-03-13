@@ -114,6 +114,28 @@ public class RewardServiceTest
         }
     }
 
+    [TestCase]
+    public void GetCardsForPool_WaterCommonUnits_IncludesNewWaterSummons()
+    {
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolIds.WaterCommonUnits);
+        var cardIds = cards.Select(c => (string)c.Id).ToHashSet();
+
+        AssertThat(cardIds.Contains((string)CardIds.WaterBulwark)).IsTrue();
+        AssertThat(cardIds.Contains((string)CardIds.WaterMender)).IsTrue();
+        AssertThat(cardIds.Contains((string)CardIds.WaterSkimmer)).IsTrue();
+    }
+
+    [TestCase]
+    public void GetCardsForPool_AllSpells_IncludesNewWaterSpells()
+    {
+        var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolIds.AllSpells);
+        var cardIds = cards.Select(c => (string)c.Id).ToHashSet();
+
+        AssertThat(cardIds.Contains((string)CardIds.Cleanse)).IsTrue();
+        AssertThat(cardIds.Contains((string)CardIds.WaterJet)).IsTrue();
+        AssertThat(cardIds.Contains((string)CardIds.RainField)).IsTrue();
+    }
+
     // =============================================================================
     // RewardPoolCatalog - FilterCards Tests
     // =============================================================================

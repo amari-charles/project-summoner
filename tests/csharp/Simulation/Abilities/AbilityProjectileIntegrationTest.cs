@@ -38,6 +38,7 @@ public class AbilityProjectileIntegrationTest
         attacker.TargetUnitId = target.UnitId;
 
         SimBehavior.TickBehavior(attacker, state, Simulation.FixedDeltaSeconds, events);
+        SimBehavior.ResolvePendingAttackCommit(attacker, state, events);
         AssertThat(state.Projectiles.Count).IsEqual(1);
         var projectile = state.Projectiles.Values.First();
         AssertThat(projectile.MovementType).IsEqual(ProjectileMovementType.Arc);
@@ -63,6 +64,7 @@ public class AbilityProjectileIntegrationTest
 
         float before = target.CurrentHp;
         SimBehavior.TickBehavior(attacker, state, Simulation.FixedDeltaSeconds, events);
+        SimBehavior.ResolvePendingAttackCommit(attacker, state, events);
         AssertThat(target.CurrentHp).IsLess(before);
     }
 }
