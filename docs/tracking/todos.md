@@ -844,6 +844,7 @@ Replace placeholder AI-generated trait content in the current workstream with cu
 - [x] Produce summon-focused curated trait draft: `docs/design/summon-traits-v1.md`
 - [x] Define non-summon per-summoner identity trait lines (doctrine/tradeoff focus)
 - [ ] Author campaign-facing Ultimate/Oath trait candidates and validate permanence/exclusivity interactions
+- [ ] Evaluate simplifying the base trait tree: if traits are non-interconnected, represent each series stage with a single swappable UI element and add a clear progression display model
 
 **Related Files:**
 - `scripts/csharp/Infrastructure/Data/Traits/TraitDefinitions.cs`
