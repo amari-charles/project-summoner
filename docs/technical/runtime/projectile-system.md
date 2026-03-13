@@ -63,6 +63,7 @@ Implementation details:
 Summoner contact behavior:
 
 - Summoner-target projectiles use the same per-projectile hit radius plus a small summoner contact radius (`0.75f`) for segment checks.
+- Summoner aim/hit position now resolves through `SummonerData.TargetPointPosition` (set from scene target point at registration), rather than raw summoner base position.
 - Summoner damage and lifecycle events are emitted through simulation events (`SummonerHpChangedEvent`, `SummonerDamagedEvent`, optional `SummonerDestroyedEvent`, and `ProjectileHitEvent`).
 
 ## Projectile Data Properties

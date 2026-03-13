@@ -19,6 +19,10 @@ For spell cards, targeting mode now also determines projectile routing:
 
 ### How It Works
 
+For summoner targets, simulation now resolves target position via `SummonerData.TargetPointPosition`.
+`SimulationNode.RegisterSummoner(...)` receives this from `SummonerVisual.GetTargetPointGlobalPosition()`
+(scene marker `TargetPoint` when present, otherwise a configured vertical offset).
+
 Target position is calculated via `UnitVisual.get_projectile_target_position()`:
 
 ```csharp

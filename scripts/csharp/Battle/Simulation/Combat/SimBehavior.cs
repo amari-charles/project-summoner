@@ -659,9 +659,10 @@ public static class SimBehavior
         }
 
         var startPos = ResolveProjectileStartPosition(attacker);
+        var summonerTargetPos = summoner.TargetPointPosition;
         if (projectileData.SpawnAtTargetHeight)
-            startPos = new SimVector3(startPos.X, summoner.Position.Y, startPos.Z);
-        var targetPos = ResolveProjectileTargetPosition(startPos, summoner.Position, projectileData);
+            startPos = new SimVector3(startPos.X, summonerTargetPos.Y, startPos.Z);
+        var targetPos = ResolveProjectileTargetPosition(startPos, summonerTargetPos, projectileData);
 
         if (projectileData.InstantHitScan)
         {

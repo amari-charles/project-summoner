@@ -11,7 +11,7 @@ A registered visual shell. Same self-sync model as UnitVisual — reads its own 
 ## Responsibilities
 
 ### Self-Sync (continuous)
-Each frame in `_PhysicsProcess`, reads its own `SummonerData` from `IGameSession.GetState()`. Updates the HP bar and visual state. Unlike UnitVisual, position is fixed (summoners don't move), so only HP and alive status need syncing.
+Each frame in `_PhysicsProcess`, reads its own `SummonerData` from `IGameSession.GetState()`. Updates visual state and internal HP tracking. Unlike UnitVisual, position is fixed (summoners don't move), so only HP and alive status need syncing.
 
 ### Event Reactions (discrete)
 Exposes methods that EntityManager calls when events arrive:
@@ -24,7 +24,7 @@ Exposes methods that EntityManager calls when events arrive:
 ### Sub-Components
 Owns visual sub-components:
 - `Sprite3D` — summoner character sprite
-- `FloatingHPBar` — HP bar display (wider than unit bars, always visible)
+- `FloatingHPBar` — internal HP sync bar object (world visibility optional; HUD is default for summoner HP display)
 - `HurtboxComponent` — combat hit detection capsule (radius 2.0, height 6.25)
 
 ## What It Does NOT Do
@@ -42,7 +42,7 @@ All of the above is game state that lives in the Simulation layer (`SummonerData
 
 | Method | Purpose |
 |--------|---------|
-| `_PhysicsProcess(delta)` | Self-sync: read SummonerData, update HP bar |
+| `_PhysicsProcess(delta)` | Self-sync: read SummonerData, update visual/internal HP state |
 | `FlashDamage()` | Trigger damage flash (called by EntityManager) |
 | `BeginDeath()` | Start death animation sequence (called by EntityManager) |
 | `SetSummonerId(id)` | Bind to a specific summoner in MatchState |
@@ -54,7 +54,7 @@ All of the above is game state that lives in the Simulation layer (`SummonerData
 | Reads | `IGameSession` | Polls `GetState()` for own SummonerData each frame |
 | Registered by | `EntityManager` | Registered at battle init, not dynamically spawned |
 | Owns | `Sprite3D` | Character sprite |
-| Owns | `FloatingHPBar` | HP bar display |
+| Owns | `FloatingHPBar` | Internal HP sync; world visibility controlled by `ShowWorldHpBar` |
 | Owns | `HurtboxComponent` | Combat hit detection |
 
 ## Today
@@ -63,7 +63,7 @@ All of the above is game state that lives in the Simulation layer (`SummonerData
 
 **Becomes SummonerVisual (~100 lines):**
 - Sprite3D setup and display
-- FloatingHPBar management (width 1.5, offset Y 2.5, always visible)
+- FloatingHPBar management (width 1.5, offset Y 2.5, hidden in-world by default; HUD owns summoner HP presentation)
 - HurtboxComponent (capsule radius 2.0, height 6.25)
 - Damage flash animation (flash duration, color tween, shake)
 - Death visual sequence

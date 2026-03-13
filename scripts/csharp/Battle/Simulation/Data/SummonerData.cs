@@ -13,8 +13,33 @@ public class SummonerData
 {
     public Team Team { get; set; }
 
-    // Position (used by simulation for summoner targeting)
-    public SimVector3 Position { get; set; }
+    // Base world position for lane/spacing logic.
+    private SimVector3 _position;
+
+    // Projectile target point. Falls back to Position until explicitly set.
+    private bool _hasTargetPointPosition;
+    private SimVector3 _targetPointPosition;
+
+    public SimVector3 Position
+    {
+        get => _position;
+        set
+        {
+            _position = value;
+            if (!_hasTargetPointPosition)
+                _targetPointPosition = value;
+        }
+    }
+
+    public SimVector3 TargetPointPosition
+    {
+        get => _hasTargetPointPosition ? _targetPointPosition : _position;
+        set
+        {
+            _targetPointPosition = value;
+            _hasTargetPointPosition = true;
+        }
+    }
 
     // HP
     public float CurrentHp { get; set; }

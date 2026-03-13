@@ -53,6 +53,12 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     public float MaxHpExport { get; set; } = 300.0f;
 
     [Export]
+    public NodePath TargetPointNodePath { get; set; } = "TargetPoint";
+
+    [Export]
+    public Vector3 TargetPointOffset { get; set; } = new(0f, HurtboxHeight * 0.5f, 0f);
+
+    [Export]
     public int MaxHandSize { get; set; } = 4;
 
     [Export]
@@ -60,6 +66,9 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
     [Export]
     public Godot.Collections.Array<Resource> StartingDeck { get; set; } = new();
+
+    [Export]
+    public bool ShowWorldHpBar { get; set; } = false;
 
     // =========================================================================
     // SIGNALS (PascalCase for GDScript consumers)
@@ -178,6 +187,15 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     public bool IsEnabled { get; set; } = true;
     public Godot.Collections.Array<Resource> Hand => _handCache;
 
+    public Vector3 GetTargetPointGlobalPosition()
+    {
+        var targetPoint = GetNodeOrNull<Node3D>(TargetPointNodePath);
+        if (targetPoint != null)
+            return targetPoint.GlobalPosition;
+
+        return GlobalPosition + TargetPointOffset;
+    }
+
     // =========================================================================
     // LIFECYCLE
     // =========================================================================
@@ -229,7 +247,8 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         // Ensure sprite reference is set (may be called before _Ready in some paths)
         _sprite ??= GetNodeOrNull<Sprite3D>("Visual");
 
-        // Create HP bar as a child (always visible, summoner-sized)
+        // Keep the HP bar instance for internal sync (tests/death snap), but hide it
+        // from world view by default because summoner HP is presented in HUD.
         if (_hpBar == null)
         {
             var settings = HPBarSettings.AlwaysVisible with { BarWidth = 1.5f, OffsetY = 2.5f };
@@ -238,6 +257,9 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
             _hpBar.Configure(settings);
             _hpBar.TrackNode(this);
         }
+
+        if (_hpBar != null)
+            _hpBar.Visible = ShowWorldHpBar;
 
         // Initialize last-known values for MP client polling
         var summoner = session.GetState().Summoners[teamIndex];
