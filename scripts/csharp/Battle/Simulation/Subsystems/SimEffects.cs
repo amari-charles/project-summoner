@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Constants;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -140,6 +141,14 @@ public static class SimEffects
                     sourceTeam,
                     events
                 );
+                break;
+
+            case EffectType.Cleanse:
+                ApplyCleanse(target, events);
+                break;
+
+            case EffectType.Knockback:
+                ApplyKnockback(state, target, value, sourceUnitId, sourceTeam);
                 break;
 
             case EffectType.Slow:
@@ -678,60 +687,176 @@ public static class SimEffects
             new DelayedEffectFiredEvent(effect.Position, effect.EffectType, effect.AoeRadius)
         );
 
-        if (effect.AoeRadius > 0)
+        var targets = ResolveDelayedTargets(state, effect);
+        foreach (var target in targets)
         {
-            DamageUnitsInRadius(
+            ApplyEffect(
                 state,
-                effect.Position,
-                effect.AoeRadius,
+                effect.EffectType,
                 effect.Value,
+                effect.Duration,
                 effect.DamageType,
-                effect.SourceTeam,
+                target,
                 effect.SourceUnitId,
+                effect.SourceTeam,
                 events
             );
         }
     }
 
-    /// <summary>
-    /// Damage all enemy units within a radius of a position.
-    /// Shared by ApplyAreaEffect (trigger-based) and ExecuteDelayedEffect (delayed explosions).
-    /// </summary>
-    private static void DamageUnitsInRadius(
+    private static List<UnitData> ResolveDelayedTargets(MatchState state, DelayedEffect effect)
+    {
+        var targets = new List<UnitData>();
+        int sourceTeam = (int)effect.SourceTeam;
+        int? teamFilter = effect.Affinity switch
+        {
+            SpellAffinity.Enemies => MatchState.GetEnemyTeam(sourceTeam),
+            SpellAffinity.Allies => sourceTeam,
+            _ => null,
+        };
+
+        switch (effect.TargetingMode)
+        {
+            case SpellTargetingMode.Position:
+            {
+                float radiusSq = effect.AoeRadius * effect.AoeRadius;
+                foreach (var candidate in state.GetAliveActiveUnits())
+                {
+                    if (teamFilter.HasValue && (int)candidate.Team != teamFilter.Value)
+                        continue;
+                    if (candidate.Position.DistanceSquaredTo(effect.Position) > radiusSq)
+                        continue;
+                    targets.Add(candidate);
+                }
+                break;
+            }
+
+            case SpellTargetingMode.NearestEnemy:
+            {
+                if (effect.TargetUnitId.HasValue)
+                {
+                    var pinned = state.GetAliveUnit(effect.TargetUnitId.Value);
+                    if (pinned != null)
+                        targets.Add(pinned);
+                    break;
+                }
+
+                int enemyTeam = MatchState.GetEnemyTeam(sourceTeam);
+                UnitData? best = null;
+                float bestDistSq = float.MaxValue;
+
+                foreach (var candidate in state.GetAliveActiveUnitsForTeam(enemyTeam))
+                {
+                    float distSq = candidate.Position.DistanceSquaredTo(effect.Position);
+                    if (distSq >= bestDistSq)
+                        continue;
+                    best = candidate;
+                    bestDistSq = distSq;
+                }
+
+                if (best != null)
+                    targets.Add(best);
+                break;
+            }
+
+            case SpellTargetingMode.AlliesInRadius:
+            {
+                float radiusSq = effect.AoeRadius * effect.AoeRadius;
+                foreach (var candidate in state.GetAliveActiveUnitsForTeam(sourceTeam))
+                {
+                    if (candidate.Position.DistanceSquaredTo(effect.Position) > radiusSq)
+                        continue;
+                    targets.Add(candidate);
+                }
+                break;
+            }
+        }
+
+        return targets;
+    }
+
+    private static void ApplyCleanse(UnitData target, List<SimEvent> events)
+    {
+        for (int i = target.ActiveBuffs.Count - 1; i >= 0; i--)
+        {
+            var buff = target.ActiveBuffs[i];
+            if (!IsNegativeBuffForCleanse(buff))
+                continue;
+
+            target.ActiveBuffs.RemoveAt(i);
+            events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
+        }
+
+        target.ForcedTargetUnitId = null;
+        target.ForcedTargetTimer = 0f;
+    }
+
+    private static bool IsNegativeBuffForCleanse(ActiveBuff buff)
+    {
+        if (buff.EffectType == EffectType.Slow || buff.EffectType == EffectType.Stun)
+            return true;
+
+        if (buff.EffectType != EffectType.Damage || buff.TickInterval <= 0f)
+            return false;
+
+        return buff.StatusKind == StatusEffectKind.Burn || buff.StatusKind == StatusEffectKind.Poison;
+    }
+
+    private static void ApplyKnockback(
         MatchState state,
-        SimVector3 center,
-        float radius,
-        float damage,
-        DamageType damageType,
-        Team sourceTeam,
+        UnitData target,
+        float distance,
         int sourceUnitId,
-        List<SimEvent> events
+        Team sourceTeam
     )
     {
-        int enemyTeam = MatchState.GetEnemyTeam((int)sourceTeam);
-        float radiusSq = radius * radius;
+        if (distance <= 0f || !target.IsAlive)
+            return;
 
-        foreach (var kvp in state.Units)
+        var sourcePos = ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
+        var direction = new SimVector3(target.Position.X - sourcePos.X, 0f, target.Position.Z - sourcePos.Z);
+        float lengthSq = direction.X * direction.X + direction.Z * direction.Z;
+
+        if (lengthSq <= 0.0001f)
         {
-            var candidate = kvp.Value;
-            if (!candidate.IsAlive)
-                continue;
-            if ((int)candidate.Team != enemyTeam)
-                continue;
-
-            float distSq = center.DistanceSquaredTo(candidate.Position);
-            if (distSq > radiusSq)
-                continue;
-
-            ApplyDirectDamage(
-                state,
-                candidate,
-                damage,
-                damageType,
-                sourceUnitId,
-                sourceTeam,
-                events
-            );
+            // Deterministic fallback when source/target overlap.
+            direction = sourceTeam == Team.Player ? new SimVector3(1f, 0f, 0f) : new SimVector3(-1f, 0f, 0f);
         }
+        else
+        {
+            float invLen = 1f / MathF.Sqrt(lengthSq);
+            direction = new SimVector3(direction.X * invLen, 0f, direction.Z * invLen);
+        }
+
+        var displaced = new SimVector3(
+            target.Position.X + direction.X * distance,
+            target.Position.Y,
+            target.Position.Z + direction.Z * distance
+        );
+        target.Position = BattlefieldBounds.ClampToBounds(displaced);
+    }
+
+    private static SimVector3 ResolveSourcePosition(
+        MatchState state,
+        int sourceUnitId,
+        Team sourceTeam,
+        SimVector3 fallback
+    )
+    {
+        if (sourceUnitId >= 0 && state.Units.TryGetValue(sourceUnitId, out var sourceUnit))
+            return sourceUnit.Position;
+
+        if (MatchState.IsSummonerTarget(sourceUnitId))
+        {
+            int team = MatchState.GetSummonerTeamFromTargetId(sourceUnitId);
+            if (team >= 0 && team < state.Summoners.Length)
+                return state.Summoners[team].Position;
+        }
+
+        int sourceTeamIndex = (int)sourceTeam;
+        if (sourceTeamIndex >= 0 && sourceTeamIndex < state.Summoners.Length)
+            return state.Summoners[sourceTeamIndex].Position;
+
+        return fallback;
     }
 }

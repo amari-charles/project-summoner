@@ -6,6 +6,28 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ## 2026-03 Fixes
 
+### Headless GUT Shutdown Logs `material is null` After Pass Summary
+**Resolved:** 2026-03-13
+**Component:** Unit Testing / VFX / Headless Renderer
+
+**Description:**
+Headless GUT runs completed successfully but still emitted a final renderer shutdown error:
+`ERROR: Parameter "material" is null.`
+
+**Root Cause:**
+VFXManager headless runs were initializing VFX resources/pools that are not needed in test environments, and dummy renderer teardown produced noisy material-query errors.
+
+**Solution Implemented:**
+1. Added robust headless detection in `VFXManager` (`OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"`).
+2. In headless mode, skip VFX resource preload/pool prewarm during `_ensure_initialized()`.
+3. Validated with:
+   - isolated `test_pool_containers.gd` GUT run
+   - full GUT suite run (`218/218`) with no final `material is null` shutdown log
+
+**Related Files:**
+- `scripts/battle/vfx/vfx_manager.gd`
+- `docs/tracking/bugs.md`
+
 ### RID/Resource Leaks at Exit in Headless Mode
 **Resolved:** 2026-03-12
 **Component:** Unit Testing / Godot Headless

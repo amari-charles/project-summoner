@@ -277,7 +277,8 @@ public class NetworkSessionWiringTest
                 new SpellCastVisual(
                     Team: 0,
                     CatalogId: "fireball",
-                    Position: new Vector3(3f, 0f, -1f)
+                    Position: new Vector3(3f, 0f, -1f),
+                    TargetUnitId: 99
                 )
             )
         );
@@ -287,6 +288,7 @@ public class NetworkSessionWiringTest
         AssertThat(seenEvent?.CatalogId.Value ?? "").IsEqual("fireball");
         AssertThat(seenEvent?.Position.X ?? 0f).IsEqual(3f);
         AssertThat(seenEvent?.Position.Z ?? 0f).IsEqual(-1f);
+        AssertThat(seenEvent?.TargetUnitId ?? -1).IsEqual(99);
     }
 
     [TestCase]

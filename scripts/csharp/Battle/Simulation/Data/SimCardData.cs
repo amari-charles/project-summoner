@@ -82,45 +82,29 @@ public class SimCardData
                     ? card.SelectionRadius
                     : card.SpellRadius;
             simCard.SpellProjectileId = (string)card.ProjectileId;
-
-            if (card.SpellCategory == SpellCategory.Damage && card.SpellDamage > 0)
+            if (card.SpellEffects.Length > 0)
             {
-                simCard.SpellEffects.Add(
-                    new SimSpellEffect
-                    {
-                        EffectType = EffectType.Damage,
-                        Value = card.SpellDamage,
-                        DamageType = MapElementToDamageType(card.ElementalAffinity),
-                        AoeRadius = card.SpellRadius,
-                        Affinity = SpellAffinity.Enemies,
-                    }
-                );
-            }
-            else if (card.SpellCategory == SpellCategory.Heal && card.SpellDamage > 0)
-            {
-                simCard.SpellEffects.Add(
-                    new SimSpellEffect
-                    {
-                        EffectType = EffectType.Heal,
-                        Value = card.SpellDamage,
-                        DamageType = DamageType.Magic,
-                        AoeRadius = card.SpellRadius,
-                        Affinity = SpellAffinity.Allies,
-                    }
-                );
+                foreach (var effect in card.SpellEffects)
+                {
+                    simCard.SpellEffects.Add(
+                        new SimSpellEffect
+                        {
+                            EffectType = effect.EffectType,
+                            Value = effect.Value,
+                            Duration = effect.Duration,
+                            DamageType = effect.DamageType,
+                            AoeRadius = effect.RadiusOverride,
+                            Affinity = effect.Affinity,
+                            DelaySeconds = effect.DelaySeconds,
+                            RepeatCount = effect.RepeatCount,
+                            RepeatIntervalSeconds = effect.RepeatIntervalSeconds,
+                        }
+                    );
+                }
             }
         }
 
         return simCard;
-    }
-
-    /// <summary>
-    /// Map an Element enum to the sim DamageType.
-    /// Fire/Ice/Lightning etc. → Magic; Neutral → Physical.
-    /// </summary>
-    private static DamageType MapElementToDamageType(Element element)
-    {
-        return element == Element.Neutral ? DamageType.Physical : DamageType.Magic;
     }
 }
 

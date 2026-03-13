@@ -1,0 +1,47 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/vfx/cleanse_spell_vfx.gd" id="1_script"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ring"]
+top_radius = 1.0
+bottom_radius = 1.0
+height = 0.06
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_column"]
+top_radius = 0.7
+bottom_radius = 0.7
+height = 2.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_ring"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.36, 0.82, 1, 0.45)
+emission_enabled = true
+emission = Color(0.2, 0.65, 1, 1)
+emission_energy_multiplier = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_column"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.52, 0.88, 1, 0.28)
+emission_enabled = true
+emission = Color(0.25, 0.7, 1, 1)
+emission_energy_multiplier = 0.3
+
+[node name="CleanseSpell" type="Node3D"]
+script = ExtResource("1_script")
+lifetime = 0.0
+auto_free = true
+
+[node name="GroundRing" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("CylinderMesh_ring")
+cast_shadow = 0
+surface_material_override/0 = SubResource("StandardMaterial_ring")
+
+[node name="WaterColumn" type="MeshInstance3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+mesh = SubResource("CylinderMesh_column")
+cast_shadow = 0
+surface_material_override/0 = SubResource("StandardMaterial_column")

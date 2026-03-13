@@ -43,6 +43,9 @@ public static class CardIds
     public static readonly CardId ManaBolt = new("mana_bolt");
     public static readonly CardId WeavingBolt = new("weaving_bolt");
     public static readonly CardId HealingField = new("healing_field");
+    public static readonly CardId Cleanse = new("cleanse");
+    public static readonly CardId WaterJet = new("water_jet");
+    public static readonly CardId RainField = new("rain_field");
 
     // =========================================================================
     // WISPS (Basic starter units for each element)
@@ -93,6 +96,9 @@ public static class CardIds
 
     public static readonly CardId WaterFrog = new("water_frog");
     public static readonly CardId MamaDuck = new("mama_duck");
+    public static readonly CardId WaterBulwark = new("water_bulwark");
+    public static readonly CardId WaterMender = new("water_mender");
+    public static readonly CardId WaterSkimmer = new("water_skimmer");
     public static readonly CardId LifeMedic = new("life_medic");
     public static readonly CardId PoisonNeedler = new("poison_needler");
     public static readonly CardId PiercingLaser = new("piercing_laser");

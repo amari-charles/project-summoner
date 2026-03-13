@@ -30,12 +30,23 @@ The four primary campaign elements — the foundation of the world and the playe
 
 | Element | Description | Gameplay Identity |
 |---------|-------------|-------------------|
-| **Fire** | Embodies vitality, passion, and transformation. | Erratic, burst damage, powerful up front |
-| **Water** | Symbolizes adaptability, empathy, and memory. | Nurturing, healing, flowy |
-| **Wind** | Represents motion, freedom, and volatility. | Fast, elusive, flowy |
-| **Earth** | Stands for stability, structure, and endurance. | Strong, slow, enduring |
+| **Fire** | Embodies vitality, passion, and transformation. | Damage pressure, burn stacking, burst finishers |
+| **Water** | Symbolizes adaptability, empathy, and memory. | Control, debuff removal, minor sustain |
+| **Wind (Air)** | Represents motion, freedom, and volatility. | Evasive flanks, tempo control, rapid strike chains |
+| **Earth** | Stands for stability, structure, and endurance. | Defensive anchor, slow heavy hits, short CC |
 
 **Design Purpose:** Core Elements are the player's first exposure to the elemental system. Each offers a distinct aesthetic, mechanical identity, and story tone. These elements define early strategy diversity and form the backbone of deck and faction identity.
+
+### Core Combat Identity (V1, approved 2026-03-12)
+
+Use this section as the practical gameplay north star when designing new core-element cards.
+
+| Element | In Plain Terms | Ability Building Blocks | Synergy Loop |
+|---------|----------------|-------------------------|--------------|
+| Fire | Keep enemies under constant damage, then finish them fast. | Burn stacks, detonate/ignite payoffs, fire zones, kill-momentum buffs | Repeated chip damage builds pressure, then burst converts that pressure into takedowns. |
+| Water | Keep allies clean and stable while controlling enemy movement. | Slow/soak debuffs, push/pull displacement, debuff cleanse, small-area heals | Control buys time, cleanse prevents collapse, minor healing sustains through long fights. |
+| Wind (Air) | Move first, strike quickly, and leave before enemies can react. | Dash/reposition, flank targeting, quick multi-hit chains, interrupt/knockback, team speed buffs | Reposition creates windows, rapid hits cash in those windows, mobility resets the cycle. |
+| Earth | Stand your ground, absorb pressure, then punish with heavy hits. | Damage reduction/shields, heavy wind-up strikes, root/stun windows, frontline presence tools | Survive the engage, lock enemies briefly, then land high-impact follow-up hits. |
 
 **Technical Implementation:**
 ```gdscript

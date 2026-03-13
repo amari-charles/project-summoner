@@ -16,6 +16,10 @@ var pool_container: Node3D = null  ## Parent for pooled effects (keeps them in s
 
 var _initialized: bool = false
 
+
+func _is_headless_mode() -> bool:
+	return OS.has_feature("headless") or DisplayServer.get_name() == "headless"
+
 func _ready() -> void:
 	# Lazy initialization - don't load anything here
 	# Resources will be loaded on first use via _ensure_initialized()
@@ -23,7 +27,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	_cleanup_all_effect_nodes()
+	_release_runtime_state()
 
 
 ## =============================================================================
@@ -49,6 +53,13 @@ func _ensure_initialized() -> bool:
 	pool_container = Node3D.new()
 	pool_container.name = "VFXPool"
 	add_child(pool_container)
+
+	# Headless test/runtime does not need VFX resources and loading them can
+	# trigger renderer shutdown warnings in dummy rendering backends.
+	if _is_headless_mode():
+		_initialized = true
+		print("VFXManager: Headless mode - skipping VFX resource preload")
+		return true
 
 	_load_effect_library()
 	_init_pools()
@@ -100,6 +111,7 @@ func _load_effect_library() -> void:
 ## Pre-instantiate pooled effects
 func _init_pools() -> void:
 	var effect_keys: Array = effect_library.keys()
+	var skip_prewarm_for_headless: bool = _is_headless_mode()
 	for effect_id: Variant in effect_keys:
 		var vfx_def_variant: Variant = effect_library[effect_id]
 		if not vfx_def_variant is VFXDefinition:
@@ -111,6 +123,9 @@ func _init_pools() -> void:
 		if vfx_def.pooled and vfx_def.effect_scene:
 			effect_pools[effect_id] = []
 			active_effects[effect_id] = []
+
+			if skip_prewarm_for_headless:
+				continue
 
 			# Pre-instantiate pool
 			for i: int in range(vfx_def.pool_size):
@@ -371,61 +386,17 @@ func _validate_vfx_ids_sync() -> void:
 		])
 
 
-## Clean up pooled/active VFX nodes to avoid renderer shutdown noise in headless tests.
-func _cleanup_all_effect_nodes() -> void:
+## Release runtime references during teardown.
+## Avoid explicit node free/remove during tree shutdown — engine teardown will
+## free children and forced cleanup here can trigger renderer warnings in headless mode.
+func _release_runtime_state() -> void:
 	if not _initialized:
 		return
-
-	var nodes_to_free: Array[Node] = []
-	var seen_ids: Dictionary = {}
-
-	for pool_variant: Variant in effect_pools.values():
-		if not pool_variant is Array:
-			continue
-		var pool: Array = pool_variant
-		for instance_variant: Variant in pool:
-			if instance_variant is Node:
-				var node: Node = instance_variant
-				var instance_id: int = node.get_instance_id()
-				if seen_ids.has(instance_id):
-					continue
-				seen_ids[instance_id] = true
-				nodes_to_free.append(node)
-
-	for active_variant: Variant in active_effects.values():
-		if not active_variant is Array:
-			continue
-		var active: Array = active_variant
-		for instance_variant: Variant in active:
-			if instance_variant is Node:
-				var node: Node = instance_variant
-				var instance_id: int = node.get_instance_id()
-				if seen_ids.has(instance_id):
-					continue
-				seen_ids[instance_id] = true
-				nodes_to_free.append(node)
-
-	for node: Node in nodes_to_free:
-		if not is_instance_valid(node):
-			continue
-		if node.get_parent():
-			node.get_parent().remove_child(node)
-		node.free()
 
 	effect_pools.clear()
 	active_effects.clear()
 	effect_library.clear()
-
-	if pool_container and is_instance_valid(pool_container):
-		if pool_container.get_parent():
-			pool_container.get_parent().remove_child(pool_container)
-		pool_container.free()
 	pool_container = null
-
-	if effects_container and is_instance_valid(effects_container):
-		if effects_container.get_parent():
-			effects_container.get_parent().remove_child(effects_container)
-		effects_container.free()
 	effects_container = null
 
 	_initialized = false

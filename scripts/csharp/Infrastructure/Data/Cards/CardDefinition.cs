@@ -138,6 +138,12 @@ public class CardDefinition
     /// <summary>VFX ID for spell visual effects.</summary>
     public VfxId SpellVfx { get; init; } = VfxId.None;
 
+    /// <summary>
+    /// Explicit spell effect payloads for simulation.
+    /// Spell cards are expected to author this explicitly.
+    /// </summary>
+    public SpellEffectDefinition[] SpellEffects { get; init; } = [];
+
     // =========================================================================
     // TACTICAL COMMAND PROPERTIES (for command spells)
     // =========================================================================

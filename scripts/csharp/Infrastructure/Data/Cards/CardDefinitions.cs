@@ -3,6 +3,7 @@ using Fateforged.Cards.Formations;
 using Fateforged.Cards.Spawning;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Enums;
 using Fateforged.Stats;
 using Fateforged.Vfx;
 
@@ -37,6 +38,17 @@ public static class CardDefinitions
         SpellVfx = VfxIds.FireballSpell,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 100f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 10f,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
         Flags = CardFlags.Archived,
@@ -117,6 +129,16 @@ public static class CardDefinitions
         ProjectileId = ProjectileIds.ManaBolt,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 60f,
+                DamageType = DamageType.Magic,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Neutral,
     };
@@ -135,6 +157,16 @@ public static class CardDefinitions
         ProjectileId = ProjectileIds.WeavingBolt,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 50f,
+                DamageType = DamageType.Magic,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Neutral,
         Flags = CardFlags.DevOnly,
@@ -155,8 +187,132 @@ public static class CardDefinitions
         SpellDuration = 0.0f,
         SpellCategory = SpellCategory.Heal,
         SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Heal,
+                Value = 65f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Allies,
+            },
+        ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Life,
+    };
+
+    public static readonly CardDefinition Cleanse = new()
+    {
+        Id = CardIds.Cleanse,
+        Name = "Cleanse",
+        Description = "Washes away debuffs from allies and restores a small amount of health.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellDamage = 25.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 0.0f,
+        SpellVfx = VfxIds.CleanseSpell,
+        SpellCategory = SpellCategory.Heal,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Heal,
+                Value = 25f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Cleanse,
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition WaterJet = new()
+    {
+        Id = CardIds.WaterJet,
+        Name = "Water Jet",
+        Description = "Fires a high-pressure water beam at one target and shoves it backward.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 1.5f,
+        SummonTime = 0.0f,
+        SpellDamage = 40.0f,
+        SpellDuration = 0.0f,
+        SpellVfx = VfxIds.WaterJetSpell,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 40f,
+                DamageType = DamageType.Magic,
+                Affinity = SpellAffinity.Enemies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Knockback,
+                Value = 3f,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition RainField = new()
+    {
+        Id = CardIds.RainField,
+        Name = "Rain Field",
+        Description = "Creates a rain zone that slows enemies and hits them with repeated water pulses.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 5,
+        Cooldown = 2.4f,
+        SummonTime = 0.0f,
+        SpellRadius = 8.0f,
+        SpellDuration = 3.0f,
+        SpellVfx = VfxIds.RainFieldSpell,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Slow,
+                Value = 0.25f,
+                Duration = 3.0f,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 5f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                DelaySeconds = 0.6f,
+                RepeatCount = 4,
+                RepeatIntervalSeconds = 0.6f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
     };
 
     // =========================================================================
@@ -732,6 +888,68 @@ public static class CardDefinitions
         ElementalAffinity = Element.Water,
     };
 
+    public static readonly CardDefinition WaterBulwark = new()
+    {
+        Id = CardIds.WaterBulwark,
+        Name = "Water Bulwark",
+        Description = "A heavy frontline water guardian that absorbs pressure for the team.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.6f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.WaterBulwark,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Tank,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition WaterMender = new()
+    {
+        Id = CardIds.WaterMender,
+        Name = "Water Mender",
+        Description = "Support caster that periodically cleanses and lightly heals nearby allies.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WaterMender,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition WaterSkimmer = new()
+    {
+        Id = CardIds.WaterSkimmer,
+        Name = "Water Skimmer",
+        Description = "An aerial skirmisher that peppers enemies with rapid water shots.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WaterSkimmer,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
     // =========================================================================
     // ABILITY SYSTEM V1 CARDS
     // =========================================================================
@@ -834,6 +1052,9 @@ public static class CardDefinitions
         [CardIds.ManaBolt] = ManaBolt,
         [CardIds.WeavingBolt] = WeavingBolt,
         [CardIds.HealingField] = HealingField,
+        [CardIds.Cleanse] = Cleanse,
+        [CardIds.WaterJet] = WaterJet,
+        [CardIds.RainField] = RainField,
 
         // Wisps
         [CardIds.FireWisp] = FireWisp,
@@ -869,6 +1090,9 @@ public static class CardDefinitions
         // Water units
         [CardIds.WaterFrog] = WaterFrog,
         [CardIds.MamaDuck] = MamaDuck,
+        [CardIds.WaterBulwark] = WaterBulwark,
+        [CardIds.WaterMender] = WaterMender,
+        [CardIds.WaterSkimmer] = WaterSkimmer,
         [CardIds.LifeMedic] = LifeMedic,
         [CardIds.PoisonNeedler] = PoisonNeedler,
         [CardIds.PiercingLaser] = PiercingLaser,

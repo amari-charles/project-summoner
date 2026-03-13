@@ -31,6 +31,15 @@ const FIREBALL_TRAIL: StringName = &"fireball_trail"
 ## Fireball spell cast effect (AOE indicator + impact)
 const FIREBALL_SPELL: StringName = &"fireball_spell"
 
+## Water cleanse spell effect
+const CLEANSE_SPELL: StringName = &"cleanse_spell"
+
+## Water jet spell effect
+const WATER_JET_SPELL: StringName = &"water_jet_spell"
+
+## Rain field spell effect
+const RAIN_FIELD_SPELL: StringName = &"rain_field_spell"
+
 # ============================================================================
 # LIGHTNING EFFECTS
 # ============================================================================
@@ -64,6 +73,9 @@ const IMPLEMENTED: Array[StringName] = [
 	FIREBALL_EXPLOSION,
 	FIREBALL_TRAIL,
 	FIREBALL_SPELL,
+	CLEANSE_SPELL,
+	WATER_JET_SPELL,
+	RAIN_FIELD_SPELL,
 	LIGHTNING_STRIKE,
 ]
 

@@ -189,4 +189,38 @@ public class CardCatalogTest
 
         AssertThat(tacticalRole).IsEqual("mixed");
     }
+
+    [TestCase]
+    public void GetCard_NewWaterCards_ArePresentAndShipEligible()
+    {
+        var waterCards = new[]
+        {
+            CardIds.Cleanse,
+            CardIds.WaterJet,
+            CardIds.RainField,
+            CardIds.WaterBulwark,
+            CardIds.WaterMender,
+            CardIds.WaterSkimmer,
+        };
+
+        foreach (var id in waterCards)
+        {
+            var card = CardCatalog.GetCard(id);
+            AssertThat(card).IsNotNull();
+            AssertThat(card!.UnlockCondition).IsEqual(UnlockCondition.Default);
+            AssertThat((card.Flags & (CardFlags.DevOnly | CardFlags.Archived)) == 0).IsTrue();
+        }
+    }
+
+    [TestCase]
+    public void SpellCards_NonCommandRequireExplicitSpellEffects()
+    {
+        var spellCards = CardCatalog.GetCardsByType(CardType.Spell);
+        foreach (var card in spellCards)
+        {
+            if (card.SpellCategory == SpellCategory.Command)
+                continue;
+            AssertThat(card.SpellEffects.Length).IsGreater(0);
+        }
+    }
 }
