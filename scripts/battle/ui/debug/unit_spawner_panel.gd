@@ -124,47 +124,16 @@ func _build_ui() -> void:
 	# Separator
 	vbox.add_child(HSeparator.new())
 
-	# Scroll container for unit list
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(160, 200)
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	vbox.add_child(scroll)
+	# Side-by-side team unit lists
+	var lists_row: HBoxContainer = HBoxContainer.new()
+	lists_row.add_theme_constant_override("separation", 8)
+	lists_row.custom_minimum_size = Vector2(320, 220)
+	lists_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(lists_row)
 
-	var tabs: TabContainer = TabContainer.new()
-	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.add_child(tabs)
-
-	var enemy_tab: VBoxContainer = VBoxContainer.new()
-	enemy_tab.name = Loc.t("debug.spawner.enemy_tab")
-	enemy_tab.add_theme_constant_override("separation", 4)
-	tabs.add_child(enemy_tab)
-
-	var enemy_scroll: ScrollContainer = ScrollContainer.new()
-	enemy_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	enemy_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	enemy_tab.add_child(enemy_scroll)
-
-	var enemy_list: VBoxContainer = VBoxContainer.new()
-	enemy_list.add_theme_constant_override("separation", 4)
-	enemy_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	enemy_scroll.add_child(enemy_list)
+	var enemy_list: VBoxContainer = _build_team_unit_column(lists_row, Loc.t("debug.spawner.enemy_tab"))
+	var player_list: VBoxContainer = _build_team_unit_column(lists_row, Loc.t("debug.spawner.player_tab"))
 	_enemy_unit_list_container = enemy_list
-
-	var player_tab: VBoxContainer = VBoxContainer.new()
-	player_tab.name = Loc.t("debug.spawner.player_tab")
-	player_tab.add_theme_constant_override("separation", 4)
-	tabs.add_child(player_tab)
-
-	var player_scroll: ScrollContainer = ScrollContainer.new()
-	player_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	player_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	player_tab.add_child(player_scroll)
-
-	var player_list: VBoxContainer = VBoxContainer.new()
-	player_list.add_theme_constant_override("separation", 4)
-	player_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	player_scroll.add_child(player_list)
 	_player_unit_list_container = player_list
 
 	# Populate both team lists from debug deck
@@ -206,6 +175,31 @@ func _build_ui() -> void:
 
 	_set_advanced_controls_open(false)
 	_set_panel_collapsed(false)
+
+
+func _build_team_unit_column(parent: HBoxContainer, title_text: String) -> VBoxContainer:
+	var column: VBoxContainer = VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 4)
+	parent.add_child(column)
+
+	var title: Label = Label.new()
+	title.text = title_text
+	title.add_theme_font_size_override("font_size", 12)
+	title.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	column.add_child(title)
+
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
+
+	var list: VBoxContainer = VBoxContainer.new()
+	list.add_theme_constant_override("separation", 4)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	return list
 
 
 func _build_advanced_drawer() -> void:
