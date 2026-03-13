@@ -114,10 +114,14 @@ public static class SimCombatStateMachine
         float preAttackCooldown = unit.AttackCooldown;
         var behavior = SimBehavior.TickBehavior(unit, state, delta, events);
 
-        if (DidAttackThisTick(unit, preAttackCooldown))
+        bool beganAttackThisTick = DidAttackThisTick(unit, preAttackCooldown);
+        if (beganAttackThisTick)
             SimAttackLoop.Begin(unit, state, unit.TargetUnitId);
 
-        SimAttackLoop.Tick(unit, state, delta, events);
+        // Preserve full authored windup duration by not consuming delta on the same
+        // frame attack windup starts.
+        if (!beganAttackThisTick)
+            SimAttackLoop.Tick(unit, state, delta, events);
 
         if (unit.AttackPhase != AttackPhase.None)
             return new SimBehavior.BehaviorResult { Movement = MovementResult.None };
