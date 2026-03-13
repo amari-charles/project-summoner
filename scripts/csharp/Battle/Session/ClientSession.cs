@@ -131,8 +131,21 @@ public class ClientSession : NetworkSession
                 _pendingEvents.Add(new GameOverEvent(ended.WinnerIndex, ended.Reason));
                 break;
             case SummonerDamageFlash flash:
+                SimVector3? hitPosition =
+                    flash.HasHitPosition
+                        ? new SimVector3(
+                            flash.HitPosition.X,
+                            flash.HitPosition.Y,
+                            flash.HitPosition.Z
+                        )
+                        : null;
                 _pendingEvents.Add(
-                    new SummonerDamagedEvent(flash.Team, flash.Damage, flash.AttackerUnitId)
+                    new SummonerDamagedEvent(
+                        flash.Team,
+                        flash.Damage,
+                        flash.AttackerUnitId,
+                        hitPosition
+                    )
                 );
                 break;
             case SpellCastVisual spellCast:

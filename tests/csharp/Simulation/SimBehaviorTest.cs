@@ -22,6 +22,18 @@ public class SimBehaviorTest
         _state = SimTestHelper.CreateBattleState();
     }
 
+    private static SimBehavior.BehaviorResult TickBehaviorAndCommit(
+        UnitData unit,
+        MatchState state,
+        float delta,
+        List<SimEvent> events
+    )
+    {
+        var result = SimBehavior.TickBehavior(unit, state, delta, events);
+        SimBehavior.ResolvePendingAttackCommit(unit, state, events);
+        return result;
+    }
+
     // =========================================================================
     // State Machine
     // =========================================================================
@@ -33,7 +45,7 @@ public class SimBehaviorTest
         // No enemies → no target
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.Forward);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.NoTarget);
@@ -48,7 +60,7 @@ public class SimBehaviorTest
         unit.TargetUnitId = enemy.UnitId;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Chasing);
@@ -65,7 +77,7 @@ public class SimBehaviorTest
         unit.TargetUnitId = enemy.UnitId;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.Forward);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.NoTarget);
@@ -82,7 +94,7 @@ public class SimBehaviorTest
         unit.TargetUnitId = centerEnemy.UnitId;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.Forward);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.NoTarget);
@@ -98,7 +110,7 @@ public class SimBehaviorTest
         unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Chasing);
@@ -114,7 +126,7 @@ public class SimBehaviorTest
         unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Chasing);
@@ -130,7 +142,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 1f; // Cooldown active
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.None);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.InRange);
@@ -149,13 +161,38 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.None);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.Attacking);
 
         var attacked = SimTestHelper.FindEvent<UnitAttackedEvent>(events);
         AssertThat(attacked).IsNotNull();
+    }
+
+    [TestCase]
+    public void TickBehavior_MeleeAttack_WaitsForCommitToApplyDamage()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
+        enemy.Evasion = 0f;
+
+        unit.TargetUnitId = enemy.UnitId;
+        unit.AttackCooldown = 0f;
+        var events = new List<SimEvent>();
+
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+
+        AssertThat(enemy.CurrentHp).IsEqual(100f);
+        AssertThat(unit.PendingAttackTargetId.HasValue).IsTrue();
+        AssertThat(unit.PendingAttackTargetId!.Value).IsEqual(enemy.UnitId);
+
+        SimBehavior.ResolvePendingAttackCommit(unit, _state, events);
+
+        AssertThat(enemy.CurrentHp).IsLess(100f);
+        AssertThat(unit.PendingAttackTargetId).IsNull();
     }
 
     [TestCase]
@@ -167,7 +204,7 @@ public class SimBehaviorTest
         unit.TargetUnitId = enemy.UnitId;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.None);
     }
@@ -189,9 +226,30 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(enemy.CurrentHp).IsLess(100f);
+    }
+
+    [TestCase]
+    public void ResolvePendingAttackCommit_MeleeSkipsInvalidTarget()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
+        enemy.Evasion = 0f;
+
+        unit.TargetUnitId = enemy.UnitId;
+        unit.AttackCooldown = 0f;
+        var events = new List<SimEvent>();
+
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        enemy.IsAlive = false;
+        SimBehavior.ResolvePendingAttackCommit(unit, _state, events);
+
+        AssertThat(enemy.CurrentHp).IsEqual(100f);
+        AssertThat(SimTestHelper.FindEvent<UnitDamagedEvent>(events)).IsNull();
     }
 
     [TestCase]
@@ -207,7 +265,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         var died = SimTestHelper.FindEvent<UnitDiedEvent>(events);
         AssertThat(died).IsNotNull();
@@ -227,7 +285,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(enemy.IsAlive).IsFalse();
         AssertThat(enemy.CurrentHp).IsEqual(0f);
@@ -247,7 +305,7 @@ public class SimBehaviorTest
         int killsBefore = _state.KillCount;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(_state.KillCount).IsEqual(killsBefore + 1);
     }
@@ -266,7 +324,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(unit.DistanceTraveled).IsEqual(0f);
     }
@@ -276,7 +334,7 @@ public class SimBehaviorTest
     // =========================================================================
 
     [TestCase]
-    public void TickBehavior_RangedAttack_SetsPendingDamageTimer()
+    public void TickBehavior_RangedAttack_QueuesPendingAttackPayload()
     {
         var unit = SimTestHelper.CreateRangedUnit(
             _state,
@@ -295,9 +353,11 @@ public class SimBehaviorTest
 
         SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(unit.PendingDamageTimer).IsEqual(0.5f);
-        AssertThat(unit.PendingDamageTargetId.HasValue).IsTrue();
-        AssertThat(unit.PendingDamageTargetId!.Value == enemy.UnitId).IsTrue();
+        AssertThat(unit.PendingAttackTargetId.HasValue).IsTrue();
+        AssertThat(unit.PendingAttackTargetId!.Value).IsEqual(enemy.UnitId);
+        AssertThat(unit.PendingAttackTargetsSummoner).IsFalse();
+        AssertThat(unit.PendingAttackBaseDamage).IsEqual(unit.AttackDamage);
+        AssertThat(unit.PendingDamageTimer).IsEqual(0f);
     }
 
     [TestCase]
@@ -318,7 +378,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(_state.Projectiles.Count).IsEqual(1);
         var projectile = _state.Projectiles.Values.First();
@@ -347,12 +407,41 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(_state.Projectiles.Count).IsEqual(1);
         var projectile = _state.Projectiles.Values.First();
         AssertThat(projectile.StartPosition.X).IsGreater(unit.Position.X);
         AssertThat(projectile.StartPosition.X).IsEqual(1.4f);
+    }
+
+    [TestCase]
+    public void ResolvePendingAttackCommit_RangedUsesLiveTargetPosition()
+    {
+        var unit = SimTestHelper.CreateRangedUnit(
+            _state,
+            0,
+            x: 0f,
+            z: 0f,
+            attackRange: 10f,
+            projectileDelay: 0f
+        );
+        unit.CritChance = 0f;
+        unit.ElementId = 0;
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
+
+        unit.TargetUnitId = enemy.UnitId;
+        unit.AttackCooldown = 0f;
+        var events = new List<SimEvent>();
+
+        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        enemy.Position = new SimVector3(9f, 0f, 1.5f);
+        SimBehavior.ResolvePendingAttackCommit(unit, _state, events);
+
+        AssertThat(_state.Projectiles.Count).IsEqual(1);
+        var projectile = _state.Projectiles.Values.First();
+        AssertThat(projectile.TargetPosition.X).IsEqual(9f);
+        AssertThat(projectile.TargetPosition.Z).IsEqual(1.5f);
     }
 
     [TestCase]
@@ -409,7 +498,7 @@ public class SimBehaviorTest
         float hpBefore = _state.Summoners[1].CurrentHp;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(_state.Summoners[1].CurrentHp).IsLess(hpBefore);
     }
@@ -433,7 +522,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(_state.Projectiles.Count).IsEqual(1);
         AssertThat(_state.Summoners[1].CurrentHp).IsEqual(_state.Summoners[1].MaxHp);
@@ -482,7 +571,7 @@ public class SimBehaviorTest
         float hpBefore = _state.Summoners[1].CurrentHp;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(hpBefore - _state.Summoners[1].CurrentHp).IsEqual(17f);
     }
@@ -504,7 +593,7 @@ public class SimBehaviorTest
         float hpBefore = _state.Summoners[1].CurrentHp;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(hpBefore - _state.Summoners[1].CurrentHp).IsEqual(13f);
     }
@@ -522,7 +611,7 @@ public class SimBehaviorTest
         _state.Summoners[1].CurrentHp = 5f;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(_state.Summoners[1].IsAlive).IsFalse();
         AssertThat(_state.Summoners[1].CurrentHp).IsEqual(0f);
@@ -703,7 +792,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         // OnHit trigger should apply slow to the enemy
         AssertThat(enemy.ActiveBuffs.Count).IsGreaterEqual(1);
@@ -746,7 +835,7 @@ public class SimBehaviorTest
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(attacker, _state, 0.016f, events);
+        TickBehaviorAndCommit(attacker, _state, 0.016f, events);
 
         // OnDamaged trigger fires on defender, applying effect to the attacker
         bool hasSlow = false;
@@ -797,7 +886,7 @@ public class SimBehaviorTest
         attacker.CurrentHp = 80f; // Less than max to see heal
         var events = new List<SimEvent>();
 
-        SimBehavior.TickBehavior(attacker, _state, 0.016f, events);
+        TickBehaviorAndCommit(attacker, _state, 0.016f, events);
 
         // Kill confirmed
         AssertThat(enemy.IsAlive).IsFalse();
@@ -830,7 +919,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.Strafe);
     }
@@ -849,7 +938,7 @@ public class SimBehaviorTest
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(unit, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.None);
     }
@@ -880,7 +969,7 @@ public class SimBehaviorTest
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(attacker, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(attacker, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
         AssertThat(attacker.BehaviorState).IsEqual(BehaviorState.InRange);
@@ -917,7 +1006,7 @@ public class SimBehaviorTest
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
-        var result = SimBehavior.TickBehavior(attacker, _state, 0.016f, events);
+        var result = TickBehaviorAndCommit(attacker, _state, 0.016f, events);
 
         AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
         AssertThat(attacker.BehaviorState).IsEqual(BehaviorState.InRange);
@@ -1509,7 +1598,7 @@ public class SimBehaviorTest
         attacker.AttackCooldown = 0f;
         float hpBefore = _state.Summoners[1].CurrentHp;
         var events = new List<SimEvent>();
-        SimBehavior.TickBehavior(attacker, _state, 0.016f, events);
+        TickBehaviorAndCommit(attacker, _state, 0.016f, events);
 
         AssertThat(_state.Summoners[1].CurrentHp).IsLess(hpBefore);
         AssertThat(nearbyEnemy.CurrentHp).IsEqual(100f);
@@ -1566,7 +1655,7 @@ public class SimBehaviorTest
     {
         attacker.TargetUnitId = primary.UnitId;
         attacker.AttackCooldown = 0f;
-        SimBehavior.TickBehavior(attacker, state, 0.016f, events);
+        TickBehaviorAndCommit(attacker, state, 0.016f, events);
     }
 
     private static List<int> GetDamagedTargetOrder(List<SimEvent> events) =>

@@ -117,7 +117,7 @@ public class SummonerVisualTest
     }
 
     [TestCase]
-    public void OnSummonerDamaged_WithAttacker_PlacesImpactPulseInwardFromBubbleContact()
+    public void OnSummonerDamaged_WithAttacker_SetsDirectionalShieldRippleParameters()
     {
         var state = SimTestHelper.CreateBattleState();
         const int attackerId = 999;
@@ -136,13 +136,20 @@ public class SummonerVisualTest
 
         var pulse = visual.GetNodeOrNull<MeshInstance3D>("SummonerImpactPulse");
         AssertThat(pulse).IsNotNull();
-        float expectedX = SummonerMeleeBubble.EffectiveRadius * (1f - 0.45f);
-        AssertThat(pulse!.GlobalPosition.X).IsEqualApprox(expectedX, 0.05f);
-        AssertThat(MathF.Abs(pulse.GlobalPosition.Z)).IsLess(0.05f);
+        AssertThat(pulse!.Mesh is ArrayMesh).IsTrue();
+        AssertThat(pulse.MaterialOverride is ShaderMaterial).IsTrue();
+        AssertThat(pulse.GlobalPosition.X).IsEqualApprox(visual.GlobalPosition.X, 0.01f);
+        AssertThat(pulse.GlobalPosition.Z).IsEqualApprox(visual.GlobalPosition.Z, 0.01f);
+
+        var rippleMaterial = (ShaderMaterial)pulse.MaterialOverride!;
+        var impactDirection = (Vector3)rippleMaterial.GetShaderParameter("impact_dir");
+        AssertThat(impactDirection.X).IsGreater(0.95f);
+        AssertThat(MathF.Abs(impactDirection.Z)).IsLess(0.05f);
+        AssertThat(impactDirection.Y).IsGreater(0.1f);
     }
 
     [TestCase]
-    public void OnSummonerDamaged_MissingAttacker_FallsBackToCenterPulse()
+    public void OnSummonerDamaged_MissingAttacker_UsesDeterministicFallbackDirection()
     {
         var state = SimTestHelper.CreateBattleState();
         var session = new TestSession(state);
@@ -153,8 +160,17 @@ public class SummonerVisualTest
 
         var pulse = visual.GetNodeOrNull<MeshInstance3D>("SummonerImpactPulse");
         AssertThat(pulse).IsNotNull();
+        AssertThat(pulse!.Mesh is ArrayMesh).IsTrue();
+        AssertThat(pulse.MaterialOverride is ShaderMaterial).IsTrue();
         AssertThat(pulse!.GlobalPosition.X).IsEqualApprox(visual.GlobalPosition.X, 0.01f);
         AssertThat(pulse.GlobalPosition.Z).IsEqualApprox(visual.GlobalPosition.Z, 0.01f);
+
+        var rippleMaterial = (ShaderMaterial)pulse.MaterialOverride!;
+        var impactDirection = (Vector3)rippleMaterial.GetShaderParameter("impact_dir");
+        var expectedFallback = new Vector3(0.71f, 0.02f, 0.68f).Normalized();
+        AssertThat(impactDirection.X).IsEqualApprox(expectedFallback.X, 0.001f);
+        AssertThat(impactDirection.Y).IsEqualApprox(expectedFallback.Y, 0.001f);
+        AssertThat(impactDirection.Z).IsEqualApprox(expectedFallback.Z, 0.001f);
     }
 
     [TestCase]
@@ -181,7 +197,18 @@ public class SummonerVisualTest
 
         debugService.SummonerBubbleEnabled = true;
         visual._PhysicsProcess(1.0 / 60.0);
-        AssertThat(markerField.GetValue(visual)).IsNotNull();
+        var marker = markerField.GetValue(visual) as Node3D;
+        AssertThat(marker).IsNotNull();
+        var dome = marker!.GetNodeOrNull<MeshInstance3D>("Dome");
+        var ring = marker.GetNodeOrNull<MeshInstance3D>("Ring");
+        AssertThat(dome).IsNotNull();
+        AssertThat(ring).IsNotNull();
+        AssertThat(dome!.Scale.Y).IsEqualApprox(1f, 0.0001f);
+        AssertThat(dome.Mesh is ArrayMesh).IsTrue();
+        if (dome.MaterialOverride is StandardMaterial3D domeMaterial)
+            AssertThat(domeMaterial.AlbedoColor.A).IsGreater(0.2f);
+        else
+            AssertThat(false).IsTrue();
 
         debugService.SummonerBubbleEnabled = false;
         visual._PhysicsProcess(1.0 / 60.0);

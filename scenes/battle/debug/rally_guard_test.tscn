@@ -27,7 +27,7 @@ DeckLoadStrategy = 0
 
 [node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
 pixel_size = 0.15
-offset = Vector2(-5, 28)
+offset = Vector2(0, 19)
 texture_filter = 0
 hframes = 8
 texture = ExtResource("14_knight_sprite")
@@ -44,7 +44,7 @@ Team = 1
 
 [node name="Visual" type="Sprite3D" parent="EnemySummoner"]
 pixel_size = 0.15
-offset = Vector2(5, 28)
+offset = Vector2(0, 19)
 texture_filter = 0
 flip_h = true
 hframes = 8

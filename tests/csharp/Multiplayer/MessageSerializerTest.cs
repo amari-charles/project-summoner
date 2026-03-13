@@ -374,6 +374,48 @@ public class MessageSerializerTest
     }
 
     [TestCase]
+    public void SummonerDamageFlash_RoundTrip_WithHitPosition()
+    {
+        var original = new SummonerDamageFlash(
+            Team: 1,
+            Damage: 12f,
+            AttackerUnitId: 77,
+            HitPosition: new Vector3(1.5f, 0.8f, -0.25f),
+            HasHitPosition: true
+        );
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<SummonerDamageFlash>();
+        var typed = (SummonerDamageFlash)result;
+        AssertThat(typed.Team).IsEqual(1);
+        AssertThat(typed.Damage).IsEqual(12f);
+        AssertThat(typed.AttackerUnitId).IsEqual(77);
+        AssertThat(typed.HasHitPosition).IsTrue();
+        AssertThat(typed.HitPosition.X).IsEqual(1.5f);
+        AssertThat(typed.HitPosition.Y).IsEqual(0.8f);
+        AssertThat(typed.HitPosition.Z).IsEqual(-0.25f);
+    }
+
+    [TestCase]
+    public void SummonerDamageFlash_RoundTrip_WithoutHitPosition()
+    {
+        var original = new SummonerDamageFlash(Team: 0, Damage: 8f, AttackerUnitId: 15);
+
+        var dict = _serializer.Serialize(original);
+        var result = _serializer.Deserialize(dict);
+
+        AssertThat(result).IsInstanceOf<SummonerDamageFlash>();
+        var typed = (SummonerDamageFlash)result;
+        AssertThat(typed.Team).IsEqual(0);
+        AssertThat(typed.Damage).IsEqual(8f);
+        AssertThat(typed.AttackerUnitId).IsEqual(15);
+        AssertThat(typed.HasHitPosition).IsFalse();
+        AssertThat(typed.HitPosition).IsEqual(Vector3.Zero);
+    }
+
+    [TestCase]
     public void MatchEnded_RoundTrip()
     {
         var original = new MatchEnded(

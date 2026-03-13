@@ -376,7 +376,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             : Vector3.Zero;
     }
 
-    private void UpdateDebugTargetPointMarker(UnitData _unitData)
+    private void UpdateDebugTargetPointMarker(UnitData unitData)
     {
         if (_debugTargetPointMarker == null)
         {
@@ -389,11 +389,26 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         }
 
         float spriteHeight = _visual?.GetSpriteHeight() ?? 2.0f;
+        Vector3 targetPointOffset = ResolveVisualTargetPointOffset(unitData);
         _debugTargetPointMarker.GlobalPosition = new Vector3(
-            GlobalPosition.X,
-            GlobalPosition.Y + spriteHeight * 0.5f,
-            GlobalPosition.Z
+            GlobalPosition.X + targetPointOffset.X,
+            GlobalPosition.Y + (spriteHeight * 0.5f) + targetPointOffset.Y,
+            GlobalPosition.Z + targetPointOffset.Z
         );
+    }
+
+    private Vector3 ResolveVisualTargetPointOffset(UnitData unitData)
+    {
+        if (!unitData.CatalogId.HasValue)
+            return Vector3.Zero;
+
+        var unitDefinition = UnitDefinitions.Get(unitData.CatalogId.Value);
+        if (unitDefinition == null)
+            return Vector3.Zero;
+
+        var offset = unitDefinition.Visual.TargetPointOffset;
+        float mirroredOffsetX = _isFacingRight ? offset.X : -offset.X;
+        return new Vector3(mirroredOffsetX, offset.Y, offset.Z);
     }
 
     private void UpdateDebugEngageRangeMarker(UnitData unitData)

@@ -223,6 +223,32 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
+    public void Tick_NewlyStartedWindup_DoesNotConsumeDeltaImmediately()
+    {
+        var attacker = SimTestHelper.CreateRangedUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 8f,
+            attackSpeed: 1f,
+            projectileDelay: 0f
+        );
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
+
+        attacker.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        attacker.LockedTargetUnitId = target.UnitId;
+        attacker.TargetUnitId = target.UnitId;
+        attacker.AttackCooldown = 0f;
+        attacker.Attack.Timing.WindupSeconds = 0.3f;
+
+        SimCombatStateMachine.Tick(attacker, _state, Delta, new List<SimEvent>());
+
+        AssertThat(attacker.AttackPhase).IsEqual(AttackPhase.Windup);
+        AssertThat(attacker.AttackPhaseTimer).IsEqual(0.3f);
+    }
+
+    [TestCase]
     public void AcquireTargetCommit_DoesNotPrelockSummoner_WhenEnemyUnitsAliveOutsideAggro()
     {
         var unit = SimTestHelper.CreateMeleeUnit(

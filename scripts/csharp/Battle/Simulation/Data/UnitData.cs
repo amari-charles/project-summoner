@@ -152,6 +152,12 @@ public class UnitData
     public float AttackPhaseTimer { get; set; }
     public int? AttackPhaseLockTargetId { get; set; }
 
+    // Pending basic attack payload queued at attack start and resolved once at
+    // windup->active commit.
+    public int? PendingAttackTargetId { get; set; }
+    public float PendingAttackBaseDamage { get; set; }
+    public bool PendingAttackTargetsSummoner { get; set; }
+
     // Delayed ranged resolution buffers:
     // - Unit targets: windup before spawning SimProjectileData
     // - Summoner targets: windup before spawning a projectile (ranged),

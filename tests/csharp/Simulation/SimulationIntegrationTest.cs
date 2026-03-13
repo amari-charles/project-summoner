@@ -746,7 +746,7 @@ public class SimulationIntegrationTest
             moveSpeed: 0f
         );
 
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 120; i++)
         {
             var events = _sim.Tick(Delta);
             var died = SimTestHelper.FindEvent<UnitDiedEvent>(events);

@@ -1603,12 +1603,19 @@ public class SummonerDamagedEvent : SimEvent
     public int Team { get; }
     public float Damage { get; }
     public int AttackerUnitId { get; }
+    public SimVector3? HitPosition { get; }
 
-    public SummonerDamagedEvent(int team, float damage, int attackerUnitId)
+    public SummonerDamagedEvent(
+        int team,
+        float damage,
+        int attackerUnitId,
+        SimVector3? hitPosition = null
+    )
     {
         Team = team;
         Damage = damage;
         AttackerUnitId = attackerUnitId;
+        HitPosition = hitPosition;
     }
 
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);

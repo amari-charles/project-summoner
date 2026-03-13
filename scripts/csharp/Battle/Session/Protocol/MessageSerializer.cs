@@ -116,6 +116,8 @@ public class MessageSerializer
                 dict["team"] = m.Team;
                 dict["damage"] = m.Damage;
                 dict["attacker"] = m.AttackerUnitId;
+                if (m.HasHitPosition)
+                    dict["hitPos"] = SerializeVector3(m.HitPosition);
                 break;
 
             case SummonerDestroyed m:
@@ -312,7 +314,9 @@ public class MessageSerializer
             MessageType.SummonerDamageFlash => new SummonerDamageFlash(
                 (int)dict["team"],
                 (float)dict["damage"],
-                (int)dict["attacker"]
+                (int)dict["attacker"],
+                dict.ContainsKey("hitPos") ? DeserializeVector3(dict["hitPos"]) : Vector3.Zero,
+                dict.ContainsKey("hitPos")
             ),
 
             MessageType.SummonerDestroyed => new SummonerDestroyed(

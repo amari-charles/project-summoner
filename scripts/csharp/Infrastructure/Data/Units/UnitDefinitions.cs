@@ -495,7 +495,11 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
 
-        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        Visual = new VisualConfig
+        {
+            SeparationRadius = 0.5f,
+            TargetPointOffset = new Vector3(0f, -0.45f, 0f),
+        },
         ScenePath = "res://scenes/battle/units/water_frog_3d.tscn",
     };
 

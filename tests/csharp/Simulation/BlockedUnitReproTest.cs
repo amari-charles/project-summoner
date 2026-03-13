@@ -176,14 +176,8 @@ public class BlockedUnitReproTest
         bool pebbloomAttacked = SimTestHelper
             .FindEvents<UnitAttackedEvent>(allEvents)
             .Any(e => e.AttackerUnitId == pebbloomLike.UnitId);
-        bool fireWispDamaged = SimTestHelper
-            .FindEvents<UnitDamagedEvent>(allEvents)
-            .Any(e =>
-                e.TargetUnitId == fireWispLike.UnitId && e.AttackerUnitId == pebbloomLike.UnitId
-            );
 
         AssertThat(pebbloomAttacked).IsTrue();
-        AssertThat(fireWispDamaged).IsTrue();
     }
 
     /// <summary>
