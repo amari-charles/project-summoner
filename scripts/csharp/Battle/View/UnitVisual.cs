@@ -28,7 +28,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private const float CombatTiltMaxPitchDegrees = 9.0f;
     private const float CombatTiltMaxRollDegrees = 7.0f;
     private const float CombatTiltSmoothing = 12.0f;
-    private const float CombatTiltSpeedReference = 4.0f;
     private const float CombatTiltAttackPitchBoost = 2.5f;
     private const float CombatTiltAttackYawBoostScale = 1.25f;
     private const float CombatTiltEpsilon = 0.0001f;
@@ -365,46 +364,27 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             return;
 
         Vector3 targetTilt = Vector3.Zero;
-        if (isActive)
+        bool inAttackWindow =
+            isActive
+            && (
+                unitData.AttackAnimationTimer > 0f
+                || unitData.AttackPhase != AttackPhase.None
+                || unitData.BehaviorState == BehaviorState.Attacking
+            );
+
+        if (inAttackWindow)
         {
-            Vector3 localVelocity = ResolveLocalVelocity(unitData, simNode);
-            float forwardSign = _isFacingRight ? 1f : -1f;
-            float forwardSpeed = localVelocity.X * forwardSign;
-            float lateralSpeed = localVelocity.Z;
-
-            float normalizedForward = Mathf.Clamp(
-                forwardSpeed / CombatTiltSpeedReference,
-                -1f,
-                1f
-            );
-            float normalizedLateral = Mathf.Clamp(
-                lateralSpeed / CombatTiltSpeedReference,
-                -1f,
-                1f
-            );
-
-            // Pitch leans into forward movement; roll reflects lateral strafing.
-            targetTilt.X = -normalizedForward * CombatTiltMaxPitchDegrees;
-            targetTilt.Z = -normalizedLateral * CombatTiltMaxRollDegrees;
-
             Vector3? targetDirection = ResolveTargetLocalDirection(unitData, state, simNode);
             if (targetDirection.HasValue)
             {
                 Vector3 toTarget = targetDirection.Value;
                 float forwardMagnitude = Mathf.Abs(toTarget.X) + 0.35f;
                 float yawRatio = Mathf.Clamp(toTarget.Z / forwardMagnitude, -1f, 1f);
-                targetTilt.Y = yawRatio * CombatTiltMaxYawDegrees;
+                targetTilt.Y =
+                    yawRatio * CombatTiltMaxYawDegrees * CombatTiltAttackYawBoostScale;
             }
 
-            bool inAttackWindow =
-                unitData.AttackAnimationTimer > 0f
-                || unitData.AttackPhase != AttackPhase.None
-                || unitData.BehaviorState == BehaviorState.Attacking;
-            if (inAttackWindow)
-            {
-                targetTilt.X -= CombatTiltAttackPitchBoost;
-                targetTilt.Y *= CombatTiltAttackYawBoostScale;
-            }
+            targetTilt.X = -CombatTiltAttackPitchBoost;
         }
 
         targetTilt = new Vector3(
@@ -432,14 +412,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             _combatTiltDegrees = Vector3.Zero;
 
         _visual.SetCombatTilt(_combatTiltDegrees.Y, _combatTiltDegrees.X, _combatTiltDegrees.Z);
-    }
-
-    private Vector3 ResolveLocalVelocity(UnitData unitData, SimulationNode simNode)
-    {
-        SimVector3 simNext = unitData.Position + unitData.Velocity;
-        Vector3 localCurrent = simNode.SimToLocal(unitData.Position);
-        Vector3 localNext = simNode.SimToLocal(simNext);
-        return localNext - localCurrent;
     }
 
     private Vector3? ResolveTargetLocalDirection(UnitData unitData, MatchState state, SimulationNode simNode)

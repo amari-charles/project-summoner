@@ -156,6 +156,46 @@ public partial class UnitVisualStateSyncTest
         ).IsGreater(0.001f);
     }
 
+    [TestCase]
+    public void PhysicsProcess_MovingWithoutAttack_DoesNotTilt()
+    {
+        const int unitId = 105;
+        const int targetId = 106;
+        var state = new MatchState();
+        state.Units[unitId] = new UnitData
+        {
+            UnitId = unitId,
+            Team = Team.Player,
+            IsAlive = true,
+            Position = new SimVector3(0f, 0f, 0f),
+            Velocity = new SimVector3(5f, 0f, 2f),
+            ActivationState = ActivationState.Active,
+            IsFacingRight = true,
+            TargetUnitId = targetId,
+            AttackAnimationTimer = 0f,
+            AttackPhase = AttackPhase.None,
+            BehaviorState = BehaviorState.Chasing,
+        };
+        state.Units[targetId] = new UnitData
+        {
+            UnitId = targetId,
+            Team = Team.Enemy,
+            IsAlive = true,
+            Position = new SimVector3(2f, 0f, 3f),
+            ActivationState = ActivationState.Active,
+        };
+
+        var visual = CreateUnitVisualWithState(state, unitId, out var fakeVisual);
+
+        visual._PhysicsProcess(1.0 / 60.0);
+        visual._PhysicsProcess(1.0 / 60.0);
+
+        AssertThat(fakeVisual.SetCombatTiltCallCount).IsGreater(0);
+        AssertThat(Mathf.Abs(fakeVisual.LastYawDeg)).IsLessEqual(0.001f);
+        AssertThat(Mathf.Abs(fakeVisual.LastPitchDeg)).IsLessEqual(0.001f);
+        AssertThat(Mathf.Abs(fakeVisual.LastRollDeg)).IsLessEqual(0.001f);
+    }
+
     private UnitVisual CreateUnitVisualWithState(
         MatchState state,
         int unitId,
