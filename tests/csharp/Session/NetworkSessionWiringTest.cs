@@ -290,6 +290,113 @@ public class NetworkSessionWiringTest
     }
 
     [TestCase]
+    public void ClientSession_HitscanBeamVisualMessage_EmitsHitscanBeamFiredEvent()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var transport = new FakeTransport(isHost: false);
+        var serializer = new MessageSerializer();
+        var session = new ClientSession(state, transport, localPlayerIndex: 1);
+
+        HitscanBeamFiredEvent? seenEvent = null;
+        session.SimEventsEmitted += events =>
+        {
+            foreach (var evt in events)
+            {
+                if (evt is HitscanBeamFiredEvent beam)
+                    seenEvent = beam;
+            }
+        };
+
+        transport.EmitMessage(
+            1,
+            serializer.Serialize(
+                new HitscanBeamVisual(
+                    ProjectileId: 77,
+                    ProjectileCatalogId: "laser_beam",
+                    StartPosition: new Vector3(-3f, 1f, 0f),
+                    EndPosition: new Vector3(9f, 1f, 0f),
+                    DurationSeconds: 0.15f
+                )
+            )
+        );
+        session.Tick(0.016f);
+
+        AssertThat(seenEvent != null).IsTrue();
+        AssertThat(seenEvent?.ProjectileId ?? -1).IsEqual(77);
+        AssertThat(seenEvent?.ProjectileCatalogId.Value ?? "").IsEqual("laser_beam");
+        AssertThat(seenEvent?.StartPosition.X ?? 0f).IsEqual(-3f);
+        AssertThat(seenEvent?.EndPosition.X ?? 0f).IsEqual(9f);
+        AssertThat(seenEvent?.DurationSeconds ?? 0f).IsEqual(0.15f);
+    }
+
+    [TestCase]
+    public void HostSession_HitscanBeamVisual_BroadcastsAndClientEmitsBeamEvent()
+    {
+        var hostState = SimTestHelper.CreateBattleState();
+        var attacker = SimTestHelper.CreateRangedUnit(
+            hostState,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            damage: 20f,
+            attackSpeed: 1f,
+            attackRange: 30f,
+            projectileDelay: 0f,
+            catalogId: "piercing_laser"
+        );
+        var frontTarget = SimTestHelper.CreateMeleeUnit(hostState, 1, x: 9f, z: 0f, hp: 100f);
+        SimTestHelper.CreateMeleeUnit(hostState, 1, x: 16f, z: 0f, hp: 100f);
+        attacker.TargetUnitId = frontTarget.UnitId;
+        attacker.LockedTargetUnitId = frontTarget.UnitId;
+        attacker.TargetLockTimer = 1f;
+
+        var hostSimulation = new Fateforged.Simulation.Simulation(hostState);
+        var router = new CommandRouter();
+        var hostTransport = new FakeTransport(isHost: true);
+        var serializer = new MessageSerializer();
+        var hostSession = new HostSession(hostSimulation, router, hostState, hostTransport);
+
+        var clientState = SimTestHelper.CreateBattleState();
+        var clientTransport = new FakeTransport(isHost: false);
+        var clientSession = new ClientSession(clientState, clientTransport, localPlayerIndex: 1);
+
+        HitscanBeamFiredEvent? seenClientBeamEvent = null;
+        clientSession.SimEventsEmitted += events =>
+        {
+            foreach (var evt in events)
+            {
+                if (evt is HitscanBeamFiredEvent beam)
+                    seenClientBeamEvent = beam;
+            }
+        };
+
+        bool sawBeamMessage = false;
+        int forwardedMessageCount = 0;
+
+        // Smoke-style loop: run host ticks, forward authoritative broadcasts to client.
+        for (int i = 0; i < 120 && !sawBeamMessage; i++)
+        {
+            hostSession.Tick(0.016f);
+
+            while (forwardedMessageCount < hostTransport.BroadcastMessages.Count)
+            {
+                var message = hostTransport.BroadcastMessages[forwardedMessageCount++];
+                var messageType = serializer.GetMessageType(message);
+                if (messageType == MessageType.HitscanBeamVisual)
+                    sawBeamMessage = true;
+
+                clientTransport.EmitMessage(senderId: 1, message);
+            }
+
+            clientSession.Tick(0.016f);
+        }
+
+        AssertThat(sawBeamMessage).IsTrue();
+        AssertThat(seenClientBeamEvent != null).IsTrue();
+        AssertThat((seenClientBeamEvent?.ProjectileCatalogId.Value) ?? "").IsEqual("laser_beam");
+    }
+
+    [TestCase]
     public void HostSession_RemoteCardPlayRequest_QueuesValidatedCommand()
     {
         var state = SimTestHelper.CreateBattleState();
