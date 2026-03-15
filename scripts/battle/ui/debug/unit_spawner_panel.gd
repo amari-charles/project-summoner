@@ -35,9 +35,6 @@ const PANEL_COLLAPSE_BUTTON_HEIGHT: float = 24.0
 const PANEL_COLLAPSE_BUTTON_TOP: float = 4.0
 const PANEL_COLLAPSE_BUTTON_RIGHT_INSET: float = 4.0
 
-## Spawn as enemy by default
-@export var spawn_as_enemy: bool = true
-
 ## Signal emitted when clear button is pressed
 signal clear_requested()
 ## Signal emitted when skip prep phase is toggled
@@ -87,12 +84,18 @@ var _expanded_offsets: Dictionary = {}
 func _ready() -> void:
 	_load_settings()
 	_build_ui()
+	if not item_rect_changed.is_connected(_on_item_rect_changed):
+		item_rect_changed.connect(_on_item_rect_changed)
 	call_deferred("_update_advanced_overlay_layout")
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_update_advanced_overlay_layout()
+
+
+func _on_item_rect_changed() -> void:
+	_update_advanced_overlay_layout()
 
 
 func _build_ui() -> void:
@@ -733,10 +736,6 @@ func _load_debug_deck() -> Array:
 		if card_def.get("card_type") == UnitConstants.CardType.SUMMON:
 			entries.append({"catalog_id": card_def.get("catalog_id", ""), "count": 1})
 	return entries
-
-
-func get_spawn_team() -> int:
-	return 1 if spawn_as_enemy else 0  # 1 = Enemy, 0 = Player
 
 
 func get_skip_prep_phase() -> bool:

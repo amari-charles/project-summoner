@@ -12,9 +12,9 @@ var card: Card = null
 ## The display name of the unit
 var unit_name: String = ""
 
-## Reference to parent panel for team selection
+## Reference to parent panel for shared spawn settings
 var panel: Node = null
-## Fixed team for this button (-1 uses panel default)
+## Fixed team for this button (-1 falls back to enemy team)
 var spawn_team: int = -1
 
 
@@ -32,8 +32,6 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 	# Return drag data that InputCollector can use
 	var team: int = spawn_team if spawn_team >= 0 else 1  # Default to enemy team
-	if spawn_team < 0 and panel and panel.has_method("get_spawn_team"):
-		team = panel.get_spawn_team()
 
 	var drag_data: Dictionary = {
 		"type": "debug_spawn",

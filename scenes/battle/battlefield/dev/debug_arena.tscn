@@ -83,6 +83,5 @@ offset_right = -20.0
 offset_bottom = 640.0
 grow_horizontal = 0
 script = ExtResource("10_spawner_panel")
-spawn_as_enemy = true
 
 [connection signal="clear_requested" from="UI/UnitSpawnerPanel" to="." method="ClearAllUnits"]

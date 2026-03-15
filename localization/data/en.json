@@ -1443,7 +1443,6 @@
   "debug": {
     "spawner": {
       "title": "Spawn Units",
-      "spawn_as_enemy": "Spawn as Enemy",
       "advanced_title": "Advanced",
       "advanced_show": "Show Advanced Controls",
       "advanced_hide": "Hide Advanced Controls",

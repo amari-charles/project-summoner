@@ -30,7 +30,7 @@ public partial class DebugArenaScene : TestBattleScene
 
     private Node? _spawnerPanel;
 
-    private sealed record SpawnBatch(int Team, int ExpectedUnitCount, string Label);
+    private sealed record SpawnBatch(int Team, int ExpectedUnitCount, string Label, int[] SpawnedUnitIds);
 
     protected override Godot.Collections.Dictionary BuildPracticeConfig()
     {
@@ -335,17 +335,34 @@ public partial class DebugArenaScene : TestBattleScene
         );
     }
 
-    public void RegisterDebugSpawnBatch(int team, int expectedUnitCount, string label)
+    public void RegisterDebugSpawnBatch(
+        int team,
+        int expectedUnitCount,
+        string label,
+        int[]? spawnedUnitIds = null
+    )
     {
         int normalizedTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
         string safeLabel = string.IsNullOrEmpty(label) ? "Unknown" : label;
+        int[] safeSpawnedUnitIds = (spawnedUnitIds ?? Array.Empty<int>())
+            .Where(unitId => unitId > 0)
+            .Distinct()
+            .ToArray();
 
-        _spawnHistory.Add(new SpawnBatch(normalizedTeam, Math.Max(expectedUnitCount, 0), safeLabel));
+        _spawnHistory.Add(
+            new SpawnBatch(
+                normalizedTeam,
+                Math.Max(expectedUnitCount, 0),
+                safeLabel,
+                safeSpawnedUnitIds
+            )
+        );
 
         string side = normalizedTeam == TeamPlayer ? "Player" : "Enemy";
-        if (expectedUnitCount > 0)
+        int loggedCount = safeSpawnedUnitIds.Length > 0 ? safeSpawnedUnitIds.Length : expectedUnitCount;
+        if (loggedCount > 0)
         {
-            AppendSpawnLog($"Spawned {safeLabel} ({side}) x{expectedUnitCount}");
+            AppendSpawnLog($"Spawned {safeLabel} ({side}) x{loggedCount}");
         }
         else
         {
@@ -375,13 +392,23 @@ public partial class DebugArenaScene : TestBattleScene
             return;
 
         var state = simNode.GetState();
-        var targetTeamEnum = (Team)batch.Team;
-        var recentUnitIds = state
-            .Units.Values.Where(unit => unit.Team == targetTeamEnum)
-            .OrderByDescending(unit => unit.UnitId)
-            .Take(batch.ExpectedUnitCount)
-            .Select(unit => unit.UnitId)
-            .ToList();
+        List<int> recentUnitIds;
+        if (batch.SpawnedUnitIds.Length > 0)
+        {
+            recentUnitIds = batch
+                .SpawnedUnitIds.Where(unitId => state.Units.ContainsKey(unitId))
+                .ToList();
+        }
+        else
+        {
+            var targetTeamEnum = (Team)batch.Team;
+            recentUnitIds = state
+                .Units.Values.Where(unit => unit.Team == targetTeamEnum)
+                .OrderByDescending(unit => unit.UnitId)
+                .Take(batch.ExpectedUnitCount)
+                .Select(unit => unit.UnitId)
+                .ToList();
+        }
 
         foreach (int unitId in recentUnitIds)
             state.Units.Remove(unitId);

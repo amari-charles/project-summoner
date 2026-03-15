@@ -110,6 +110,59 @@ public partial class DebugArenaSceneTest
     }
 
     [TestCase]
+    public void UndoLastSpawnBatch_RemovesTrackedUnitsInsteadOfLatestTeamUnits()
+    {
+        var simNode = CreateSimulationNode();
+        var arena = CreateArenaNode();
+
+        simNode.State.Units.Clear();
+        simNode.State.Units[10] = CreateUnitData(10, Team.Enemy);
+        simNode.State.Units[11] = CreateUnitData(11, Team.Enemy);
+        simNode.State.Units[12] = CreateUnitData(12, Team.Enemy);
+
+        arena.RegisterDebugSpawnBatch(1, 2, "Enemy Batch", [10, 11]);
+
+        // Simulate enemy AI spawning after the manual batch.
+        simNode.State.Units[99] = CreateUnitData(99, Team.Enemy);
+
+        arena.UndoLastSpawnBatch();
+
+        AssertThat(simNode.State.Units.ContainsKey(10)).IsFalse();
+        AssertThat(simNode.State.Units.ContainsKey(11)).IsFalse();
+        AssertThat(simNode.State.Units.ContainsKey(12)).IsTrue();
+        AssertThat(simNode.State.Units.ContainsKey(99)).IsTrue();
+    }
+
+    [TestCase]
+    public void ClearTeamUnits_RemovesOnlyRequestedTeamUnitsAndProjectiles()
+    {
+        var simNode = CreateSimulationNode();
+        var arena = CreateArenaNode();
+
+        simNode.State.Units.Clear();
+        simNode.State.Projectiles.Clear();
+        simNode.State.Units[1] = CreateUnitData(1, Team.Player);
+        simNode.State.Units[2] = CreateUnitData(2, Team.Enemy);
+        simNode.State.Projectiles[101] = new SimProjectileData
+        {
+            ProjectileId = 101,
+            Team = Team.Player,
+        };
+        simNode.State.Projectiles[202] = new SimProjectileData
+        {
+            ProjectileId = 202,
+            Team = Team.Enemy,
+        };
+
+        arena.ClearTeamUnits(1);
+
+        AssertThat(simNode.State.Units.ContainsKey(1)).IsTrue();
+        AssertThat(simNode.State.Units.ContainsKey(2)).IsFalse();
+        AssertThat(simNode.State.Projectiles.ContainsKey(101)).IsTrue();
+        AssertThat(simNode.State.Projectiles.ContainsKey(202)).IsFalse();
+    }
+
+    [TestCase]
     public void BuildPracticeConfig_UsesDebugDeckForPlayerAndEnemy()
     {
         var arena = CreateArenaNode();
@@ -187,6 +240,18 @@ public partial class DebugArenaSceneTest
             summoner.CastingSpawnPosition = new SimVector3(1f, 0f, 0f);
             summoner.CastingNetworkId = 123;
         }
+    }
+
+    private static UnitData CreateUnitData(int unitId, Team team)
+    {
+        return new UnitData
+        {
+            UnitId = unitId,
+            Team = team,
+            IsAlive = true,
+            ActivationState = ActivationState.Active,
+            Position = new SimVector3(0f, 0f, 0f),
+        };
     }
 
     private static Godot.Collections.Array LoadDebugDeckEntries()

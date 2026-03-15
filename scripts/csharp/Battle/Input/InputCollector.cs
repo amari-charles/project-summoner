@@ -513,6 +513,8 @@ public partial class InputCollector : Control
         int unitTeam = team == TeamPlayer ? TeamPlayer : TeamEnemy;
         worldPos = ClampSpawnPosition(worldPos, unitTeam);
         var arena = FindDebugArenaController();
+        var simNode = SimulationNode.Current;
+        var preSpawnUnitIds = CaptureCurrentUnitIds(simNode);
         string spawnMode = DictGetString(data, "spawn_mode", DebugSpawnModeSingle);
         int burstCount = Mathf.Max(1, DictGetInt(data, "burst_count", DefaultDebugBurstCount));
         string formationMode = DictGetString(data, "formation_mode", DebugFormationStack);
@@ -540,8 +542,17 @@ public partial class InputCollector : Control
                 card.SpawnAt(spawnPosition, unitTeam);
         }
 
-        int expectedUnitCount = card.Type == (int)CardType.Spell ? 0 : card.SpawnCount * spawnPositions.Count;
-        arena?.RegisterDebugSpawnBatch(unitTeam, expectedUnitCount, card.CardName);
+        var spawnedUnitIds = card.Type == (int)CardType.Spell
+            ? []
+            : CaptureSpawnedUnitIds(simNode, preSpawnUnitIds, unitTeam);
+        int expectedUnitCount = card.Type == (int)CardType.Spell
+            ? 0
+            : (
+                spawnedUnitIds.Count > 0
+                    ? spawnedUnitIds.Count
+                    : card.SpawnCount * spawnPositions.Count
+            );
+        arena?.RegisterDebugSpawnBatch(unitTeam, expectedUnitCount, card.CardName, spawnedUnitIds.ToArray());
         _debugPaintPositions.Clear();
 
         // Activate newly spawned units immediately (debug mode bypasses prep phase)
@@ -634,6 +645,29 @@ public partial class InputCollector : Control
         if ((position - last).Length() < minSpacing)
             return;
         _debugPaintPositions.Add(position);
+    }
+
+    private static HashSet<int> CaptureCurrentUnitIds(SimulationNode? simNode)
+    {
+        if (simNode == null)
+            return [];
+        return simNode.GetState().Units.Keys.ToHashSet();
+    }
+
+    private static List<int> CaptureSpawnedUnitIds(
+        SimulationNode? simNode,
+        HashSet<int> preSpawnUnitIds,
+        int unitTeam
+    )
+    {
+        if (simNode == null)
+            return [];
+
+        return simNode
+            .GetState()
+            .Units.Values.Where(unit => (int)unit.Team == unitTeam && !preSpawnUnitIds.Contains(unit.UnitId))
+            .Select(unit => unit.UnitId)
+            .ToList();
     }
 
     private DebugArenaScene? FindDebugArenaController()
