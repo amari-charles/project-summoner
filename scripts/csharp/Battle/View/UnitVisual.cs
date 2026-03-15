@@ -53,6 +53,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     // --- IDamageableVisual ---
 
     public bool IsAlive => _isAlive;
+    public int UnitId => _unitId;
     public float CurrentHp { get; private set; }
     public float MaxHp { get; private set; } = 1f;
 
