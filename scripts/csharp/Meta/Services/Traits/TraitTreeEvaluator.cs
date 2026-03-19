@@ -37,15 +37,31 @@ public static class TraitTreeEvaluator
 
     public static bool MatchesOwnerTags(TraitDefinition trait, TraitTreeOwnerContext context)
     {
-        if (!trait.Tags.Contains(context.OwnerTypeTag, StringComparer.Ordinal))
+        var hasExplicitOwnerTag = trait.Tags.Any(IsOwnerTypeTag);
+        var ownerTagMatches = trait.Tags.Contains(context.OwnerTypeTag, StringComparer.Ordinal);
+        var isGlobalWithoutOwnerScope =
+            !hasExplicitOwnerTag && trait.Tags.Contains(TraitTags.Global, StringComparer.Ordinal);
+
+        if (!ownerTagMatches && !isGlobalWithoutOwnerScope)
             return false;
 
         var hasAnyEligibilityTag =
-            trait.Tags.Length == 0 || trait.Tags.Any(tag => context.EligibilityTags.Contains(tag));
+            trait.Tags.Length == 0
+            || trait.Tags.Any(tag =>
+                string.Equals(tag, TraitTags.Global, StringComparison.Ordinal)
+                || context.EligibilityTags.Contains(tag)
+            );
         if (!hasAnyEligibilityTag)
             return false;
 
         return trait.RequiredTags.All(tag => context.EligibilityTags.Contains(tag));
+    }
+
+    private static bool IsOwnerTypeTag(string tag)
+    {
+        return string.Equals(tag, TraitTags.Summoner, StringComparison.Ordinal)
+            || string.Equals(tag, TraitTags.Summon, StringComparison.Ordinal)
+            || string.Equals(tag, TraitTags.Spell, StringComparison.Ordinal);
     }
 
     public static TraitUnlockEvaluation EvaluateProgressionTrait(

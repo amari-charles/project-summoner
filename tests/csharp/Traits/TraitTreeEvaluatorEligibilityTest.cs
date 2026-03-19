@@ -189,4 +189,48 @@ public class TraitTreeEvaluatorEligibilityTest
         );
         AssertThat(unlocked.CanUnlockNow).IsTrue();
     }
+
+    [TestCase]
+    public void EvaluateProgressionTrait_GlobalOnlyTagTrait_UsesRequiredTagsForOwnerScope()
+    {
+        var trait = new TraitDefinition
+        {
+            Id = TraitId.FromString("test_global_required_owner"),
+            NameKey = "trait.test.global_required_owner.name",
+            DescriptionKey = "trait.test.global_required_owner.description",
+            Category = TraitCategory.Utility,
+            Tags = [TraitTags.Global],
+            RequiredTags = [TraitTags.Summon],
+            MinLevel = 1,
+        };
+
+        var summonContext = new TraitTreeOwnerContext
+        {
+            OwnerTypeTag = TraitTags.Summon,
+            EligibilityTags = new HashSet<string> { TraitTags.Summon, TraitTags.Global },
+            OwnedTraitIds = new HashSet<string>(),
+            CurrentLevel = 3,
+            UnspentTraitPoints = 1,
+            CardCatalogId = "fire_wisp",
+            CardRarity = "common",
+        };
+
+        var summonEvaluation = TraitTreeEvaluator.EvaluateProgressionTrait(trait, summonContext);
+        AssertThat(summonEvaluation.CanUnlockNow).IsTrue();
+
+        var spellContext = new TraitTreeOwnerContext
+        {
+            OwnerTypeTag = TraitTags.Spell,
+            EligibilityTags = new HashSet<string> { TraitTags.Spell, TraitTags.Global },
+            OwnedTraitIds = new HashSet<string>(),
+            CurrentLevel = 3,
+            UnspentTraitPoints = 1,
+            CardCatalogId = "fireball",
+            CardRarity = "common",
+        };
+
+        var spellEvaluation = TraitTreeEvaluator.EvaluateProgressionTrait(trait, spellContext);
+        AssertThat(spellEvaluation.CanUnlockNow).IsFalse();
+        AssertThat(spellEvaluation.LockedReason).Contains("owner");
+    }
 }

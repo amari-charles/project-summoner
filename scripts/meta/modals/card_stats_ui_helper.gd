@@ -5,6 +5,7 @@ const PLACEHOLDER_ICONS: Dictionary = {
 	"mana_cost": "MC",
 	"cast_time": "CT",
 	"stat_hp": "HP",
+	"stat_damage": "DM",
 	"physical_damage": "PD",
 	"magic_damage": "MD",
 	"stat_attack_speed": "AS",
@@ -12,7 +13,15 @@ const PLACEHOLDER_ICONS: Dictionary = {
 	"stat_move_speed": "MS",
 	"stat_armor": "AR",
 	"stat_magic_resist": "MR",
+	"stat_crit_chance": "CC",
+	"stat_crit_damage": "CD",
 	"soul_strength": "SS",
+	"spawn_count": "SP",
+	"aggro_radius": "AG",
+	"cooldown": "CD",
+	"selection_radius": "SR",
+	"formation_duration": "FD",
+	"separation_radius": "SEP",
 	"stat_spell_damage": "SD",
 	"stat_spell_radius": "AO",
 	"stat_spell_duration": "DU"
@@ -22,6 +31,7 @@ const ICON_COLORS: Dictionary = {
 	"mana_cost": Color(0.30, 0.55, 0.90),
 	"cast_time": Color(0.90, 0.75, 0.30),
 	"stat_hp": Color(0.90, 0.30, 0.30),
+	"stat_damage": Color(0.92, 0.55, 0.26),
 	"physical_damage": Color(0.92, 0.55, 0.26),
 	"magic_damage": Color(0.60, 0.45, 0.92),
 	"stat_attack_speed": Color(0.95, 0.85, 0.50),
@@ -29,7 +39,15 @@ const ICON_COLORS: Dictionary = {
 	"stat_move_speed": Color(0.45, 0.95, 0.55),
 	"stat_armor": Color(0.70, 0.70, 0.80),
 	"stat_magic_resist": Color(0.50, 0.75, 0.95),
+	"stat_crit_chance": Color(0.95, 0.82, 0.45),
+	"stat_crit_damage": Color(0.95, 0.52, 0.35),
 	"soul_strength": Color(0.40, 0.90, 0.95),
+	"spawn_count": Color(0.80, 0.86, 0.48),
+	"aggro_radius": Color(0.62, 0.85, 0.92),
+	"cooldown": Color(0.90, 0.72, 0.35),
+	"selection_radius": Color(0.60, 0.85, 0.75),
+	"formation_duration": Color(0.74, 0.78, 0.96),
+	"separation_radius": Color(0.65, 0.76, 0.84),
 	"stat_spell_damage": Color(0.70, 0.45, 0.95),
 	"stat_spell_radius": Color(0.40, 0.85, 0.80),
 	"stat_spell_duration": Color(0.85, 0.70, 0.35)
@@ -94,8 +112,15 @@ static func format_seconds(seconds: float) -> String:
 
 
 static func get_split_damage(effective_stats: Dictionary) -> Dictionary:
+	var has_physical: bool = effective_stats.has("physical_damage")
+	var has_magic: bool = effective_stats.has("magic_damage")
 	var physical_damage: float = float(effective_stats.get("physical_damage", 0.0))
 	var magic_damage: float = float(effective_stats.get("magic_damage", 0.0))
+
+	# Compatibility fallback: many cards expose a single attack_damage stat.
+	if not has_physical and not has_magic and effective_stats.has("attack_damage"):
+		physical_damage = float(effective_stats.get("attack_damage", 0.0))
+
 	return {
 		"physical": physical_damage,
 		"magic": magic_damage

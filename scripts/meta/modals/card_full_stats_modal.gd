@@ -16,6 +16,84 @@ signal closed()
 
 const CardStatsUiHelperScript: Script = preload("res://scripts/meta/modals/card_stats_ui_helper.gd")
 
+const PRIMARY_SUMMON_STAT_KEYS: Array[String] = [
+	"mana_cost",
+	"summon_time",
+	"max_hp",
+	"attack_damage",
+	"attack_speed",
+	"attack_range",
+	"move_speed",
+	"armor",
+	"magic_resist",
+	"soul_strength",
+	"crit_chance",
+	"crit_damage",
+	"spawn_count",
+	"aggro_radius",
+	"cooldown",
+	"separation_radius"
+]
+
+const PRIMARY_SPELL_STAT_KEYS: Array[String] = [
+	"mana_cost",
+	"summon_time",
+	"spell_damage",
+	"spell_radius",
+	"spell_duration",
+	"cooldown",
+	"selection_radius",
+	"formation_duration"
+]
+
+const STAT_SOURCE_KEYS: Dictionary = {
+	"max_hp": ["max_hp", "max_health"],
+	"summon_time": ["summon_time", "cast_time"]
+}
+
+const STAT_LOCALIZATION_KEYS: Dictionary = {
+	"max_hp": "stat_hp",
+	"attack_damage": "stat_damage",
+	"attack_speed": "stat_attack_speed",
+	"attack_range": "stat_attack_range",
+	"move_speed": "stat_move_speed",
+	"armor": "stat_armor",
+	"magic_resist": "stat_magic_resist",
+	"crit_chance": "stat_crit_chance",
+	"crit_damage": "stat_crit_damage",
+	"spell_damage": "stat_spell_damage",
+	"spell_radius": "stat_spell_radius",
+	"spell_duration": "stat_spell_duration",
+	"damage_type": "stat_damage_type"
+}
+
+const META_EXCLUDED_STAT_KEYS: Dictionary = {
+	"catalog_id": true,
+	"card_name": true,
+	"description": true,
+	"rarity": true,
+	"card_type": true,
+	"unit_id": true,
+	"unit_scene_path": true,
+	"unit_type": true,
+	"is_ranged": true,
+	"projectile_scene_path": true,
+	"projectile_id": true,
+	"spell_vfx": true,
+	"command_type": true,
+	"unlock_condition": true,
+	"card_icon_path": true,
+	"tactical_role": true,
+	"trait_eligibility_tags": true,
+	"creature_types": true,
+	"roles": true,
+	"spell_category": true,
+	"spell_targeting": true,
+	"visual_traits": true,
+	"card_flags": true,
+	"categories": true
+}
+
 var card_instance_id: String = ""
 var card_catalog_id: String = ""
 
@@ -85,37 +163,32 @@ func _update_all_stats_display() -> void:
 	stats_header.text = Loc.t("ui.collection.all_stats_header")
 
 	var card_type: int = SafeTypeUtils.int_val(effective_stats.get("card_type", UnitConstants.CardType.SUMMON), UnitConstants.CardType.SUMMON)
+	var rendered_source_keys: Dictionary = {}
+	var primary_keys: Array[String] = (
+		PRIMARY_SUMMON_STAT_KEYS
+		if card_type == UnitConstants.CardType.SUMMON
+		else PRIMARY_SPELL_STAT_KEYS
+	)
+
+	for stat_key: String in primary_keys:
+		_try_add_effective_stat(effective_stats, stat_key, rendered_source_keys)
+
 	if card_type == UnitConstants.CardType.SUMMON:
-		var mana_cost: int = SafeTypeUtils.int_val(effective_stats.get("mana_cost", 0), 0)
-		var cast_time: float = float(effective_stats.get("summon_time", 0.0))
-		_add_custom_stat_localized("mana_cost", str(mana_cost))
-		_add_custom_stat_localized("cast_time", CardStatsUiHelperScript.format_seconds(cast_time))
-		_add_stat_label("stat_hp", effective_stats.get("max_hp", 0))
+		_try_add_effective_stat(effective_stats, "physical_damage", rendered_source_keys)
+		_try_add_effective_stat(effective_stats, "magic_damage", rendered_source_keys)
 
-		var damage_split: Dictionary = CardStatsUiHelperScript.get_split_damage(effective_stats)
-		_add_custom_stat_localized("physical_damage", CardStatsUiHelperScript.format_number(damage_split.get("physical", 0.0)))
-		_add_custom_stat_localized("magic_damage", CardStatsUiHelperScript.format_number(damage_split.get("magic", 0.0)))
-		_add_stat_label("stat_attack_speed", effective_stats.get("attack_speed", 0))
+	for key_var: Variant in effective_stats.keys():
+		var source_key: String = str(key_var)
+		if source_key.is_empty() or rendered_source_keys.has(source_key):
+			continue
+		if META_EXCLUDED_STAT_KEYS.has(source_key):
+			continue
 
-		_add_stat_label("stat_attack_range", effective_stats.get("attack_range", 0))
-		_add_stat_label("stat_move_speed", effective_stats.get("move_speed", 0))
-		_add_stat_label("stat_armor", effective_stats.get("armor", 0.0))
-		_add_stat_label("stat_magic_resist", effective_stats.get("magic_resist", 0.0))
-		if effective_stats.has("soul_strength"):
-			_add_custom_stat_localized("soul_strength", CardStatsUiHelperScript.format_number(float(effective_stats.get("soul_strength", 0.0))))
-	else:
-		var mana_cost_spell: int = SafeTypeUtils.int_val(effective_stats.get("mana_cost", 0), 0)
-		var cast_time_spell: float = float(effective_stats.get("summon_time", 0.0))
-		_add_custom_stat_localized("mana_cost", str(mana_cost_spell))
-		_add_custom_stat_localized("cast_time", CardStatsUiHelperScript.format_seconds(cast_time_spell))
-
-		var spell_damage: Variant = effective_stats.get("spell_damage", 0)
-		_add_stat_label("stat_spell_damage", spell_damage)
-
-		var spell_radius: Variant = effective_stats.get("spell_radius", null)
-		var spell_duration: Variant = effective_stats.get("spell_duration", null)
-		_add_stat_label("stat_spell_radius", spell_radius if spell_radius != null else "-")
-		_add_stat_label("stat_spell_duration", spell_duration if spell_duration != null else "-")
+		var stat_value: Variant = effective_stats.get(source_key, null)
+		if not _is_displayable_stat_value(stat_value):
+			continue
+		_add_effective_stat_row(source_key, stat_value)
+		rendered_source_keys[source_key] = true
 
 	_normalize_stats_grid_columns()
 
@@ -134,8 +207,115 @@ func _get_effective_stats() -> Dictionary:
 	return base_stats
 
 
+func _try_add_effective_stat(effective_stats: Dictionary, stat_key: String, rendered_source_keys: Dictionary) -> bool:
+	if stat_key == "attack_damage" and (effective_stats.has("physical_damage") or effective_stats.has("magic_damage")):
+		return false
+
+	var source_key: String = _resolve_stat_source_key(effective_stats, stat_key)
+	if source_key.is_empty() or rendered_source_keys.has(source_key):
+		return false
+
+	var stat_value: Variant = effective_stats.get(source_key, null)
+	if not _is_displayable_stat_value(stat_value):
+		return false
+
+	_add_effective_stat_row(stat_key, stat_value)
+	rendered_source_keys[source_key] = true
+	return true
+
+
+func _resolve_stat_source_key(effective_stats: Dictionary, stat_key: String) -> String:
+	var source_candidates: Array = SafeTypeUtils.array(STAT_SOURCE_KEYS.get(stat_key, [stat_key]))
+	for candidate_var: Variant in source_candidates:
+		var candidate_key: String = str(candidate_var)
+		if candidate_key.is_empty():
+			continue
+		if effective_stats.has(candidate_key):
+			return candidate_key
+	return ""
+
+
+func _is_displayable_stat_value(value: Variant) -> bool:
+	if value == null:
+		return false
+	if value is Dictionary or value is Array:
+		return false
+	if value is String:
+		return not value.strip_edges().is_empty()
+	return value is int or value is float or value is bool
+
+
+func _add_effective_stat_row(stat_key: String, stat_value: Variant) -> void:
+	var stat_id: String = _stat_id_for_key(stat_key)
+	var stat_name: String = _stat_label_for_key(stat_key)
+	var value_str: String = _format_stat_value(stat_key, stat_value)
+	_create_stat_row(stat_id, stat_name, value_str)
+
+
+func _stat_id_for_key(stat_key: String) -> String:
+	if stat_key == "summon_time" or stat_key == "cast_time":
+		return "cast_time"
+	if stat_key == "mana_cost" or stat_key == "physical_damage" or stat_key == "magic_damage":
+		return stat_key
+	if STAT_LOCALIZATION_KEYS.has(stat_key):
+		return str(STAT_LOCALIZATION_KEYS.get(stat_key, stat_key))
+	return stat_key
+
+
+func _stat_label_for_key(stat_key: String) -> String:
+	if stat_key == "mana_cost":
+		return CardStatsUiHelperScript.get_custom_stat_label("mana_cost")
+	if stat_key == "summon_time" or stat_key == "cast_time":
+		return CardStatsUiHelperScript.get_custom_stat_label("cast_time")
+	if stat_key == "soul_strength":
+		return CardStatsUiHelperScript.get_custom_stat_label("soul_strength")
+	if stat_key == "physical_damage":
+		return CardStatsUiHelperScript.get_custom_stat_label("physical_damage")
+	if stat_key == "magic_damage":
+		return CardStatsUiHelperScript.get_custom_stat_label("magic_damage")
+	if STAT_LOCALIZATION_KEYS.has(stat_key):
+		return Loc.t("ui.collection." + str(STAT_LOCALIZATION_KEYS.get(stat_key)))
+	return _humanize_stat_key(stat_key)
+
+
+func _format_stat_value(stat_key: String, value: Variant) -> String:
+	if value is bool:
+		return "Yes" if value else "No"
+
+	if stat_key == "summon_time" or stat_key == "cast_time" or stat_key == "cooldown" or stat_key == "formation_duration":
+		return CardStatsUiHelperScript.format_seconds(float(value))
+
+	if stat_key == "crit_chance":
+		var crit_chance: float = float(value)
+		if crit_chance <= 1.0:
+			crit_chance *= 100.0
+		return "%s%%" % CardStatsUiHelperScript.format_number(crit_chance)
+
+	if stat_key == "crit_damage":
+		var crit_damage: float = float(value)
+		if crit_damage <= 3.0:
+			crit_damage *= 100.0
+		return "%s%%" % CardStatsUiHelperScript.format_number(crit_damage)
+
+	if value is float:
+		return CardStatsUiHelperScript.format_number(value)
+
+	if value is int:
+		return str(int(value))
+
+	return str(value)
+
+
+func _humanize_stat_key(stat_key: String) -> String:
+	var words: PackedStringArray = stat_key.split("_", false)
+	for index: int in range(words.size()):
+		words[index] = str(words[index]).capitalize()
+	return " ".join(words)
+
+
 func _create_stat_row(stat_id: String, stat_name: String, value_str: String) -> void:
 	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "StatRow_%s" % stat_id.replace(" ", "_")
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 10)
 
