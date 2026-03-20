@@ -109,19 +109,3 @@ static func format_number(value: float) -> String:
 
 static func format_seconds(seconds: float) -> String:
 	return "%ss" % format_number(seconds)
-
-
-static func get_split_damage(effective_stats: Dictionary) -> Dictionary:
-	var has_physical: bool = effective_stats.has("physical_damage")
-	var has_magic: bool = effective_stats.has("magic_damage")
-	var physical_damage: float = float(effective_stats.get("physical_damage", 0.0))
-	var magic_damage: float = float(effective_stats.get("magic_damage", 0.0))
-
-	# Compatibility fallback: many cards expose a single attack_damage stat.
-	if not has_physical and not has_magic and effective_stats.has("attack_damage"):
-		physical_damage = float(effective_stats.get("attack_damage", 0.0))
-
-	return {
-		"physical": physical_damage,
-		"magic": magic_damage
-	}
