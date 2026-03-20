@@ -171,10 +171,7 @@ func _update_stats_display() -> void:
 		_add_custom_stat_localized("mana_cost", str(mana_cost))
 		_add_custom_stat_localized("cast_time", CardStatsUiHelperScript.format_seconds(cast_time))
 		_add_stat_label("stat_hp", effective_stats.get("max_hp", 0))
-
-		var damage_split: Dictionary = CardStatsUiHelperScript.get_split_damage(effective_stats)
-		_add_custom_stat_localized("physical_damage", CardStatsUiHelperScript.format_number(damage_split.get("physical", 0.0)))
-		_add_custom_stat_localized("magic_damage", CardStatsUiHelperScript.format_number(damage_split.get("magic", 0.0)))
+		_add_stat_label("stat_damage", effective_stats.get("attack_damage", 0))
 
 		_add_stat_label("stat_attack_speed", effective_stats.get("attack_speed", 0))
 	else:
