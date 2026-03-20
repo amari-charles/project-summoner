@@ -1294,6 +1294,26 @@ public static class NodePropertyHelper
 
 ---
 
+#### Remove Remaining Legacy Compatibility Paths (EventSequencer/Dialogue/BattleContext)
+**Status:** ⬜ Not Started
+**Category:** Architecture / Cleanup
+**Effort:** Medium
+
+**Description:**
+Remove compatibility-only runtime paths that preserve deprecated behavior and are no longer aligned with current architecture rules.
+
+**Tasks:**
+- [ ] Remove `EventSequencer._resolve_node_reference` support for backwards-compatible `/root/...` node references.
+- [ ] Remove deprecated `DialogueManager.notify_ui_connected` flow and any callers.
+- [ ] Remove `BattleContext` authority/level-cap compatibility bridges and service-fallback paths that exist only for legacy wiring.
+
+**Related Files:**
+- `scripts/application/event_sequencer.gd`
+- `scripts/application/dialogue_manager.gd`
+- `scripts/application/battle_context.gd`
+
+---
+
 ## Performance
 
 ### 🔴 HIGH PRIORITY

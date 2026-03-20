@@ -6,8 +6,6 @@ const PLACEHOLDER_ICONS: Dictionary = {
 	"cast_time": "CT",
 	"stat_hp": "HP",
 	"stat_damage": "DM",
-	"physical_damage": "PD",
-	"magic_damage": "MD",
 	"stat_attack_speed": "AS",
 	"stat_attack_range": "RG",
 	"stat_move_speed": "MS",
@@ -32,8 +30,6 @@ const ICON_COLORS: Dictionary = {
 	"cast_time": Color(0.90, 0.75, 0.30),
 	"stat_hp": Color(0.90, 0.30, 0.30),
 	"stat_damage": Color(0.92, 0.55, 0.26),
-	"physical_damage": Color(0.92, 0.55, 0.26),
-	"magic_damage": Color(0.60, 0.45, 0.92),
 	"stat_attack_speed": Color(0.95, 0.85, 0.50),
 	"stat_attack_range": Color(0.35, 0.90, 0.90),
 	"stat_move_speed": Color(0.45, 0.95, 0.55),
@@ -57,8 +53,6 @@ const TOOLTIP_KEYS: Dictionary = {
 	"mana_cost": "ui.collection.stat_tooltip_mana_cost",
 	"cast_time": "ui.collection.stat_tooltip_cast_time",
 	"stat_hp": "ui.collection.stat_tooltip_hp",
-	"physical_damage": "ui.collection.stat_tooltip_physical_damage",
-	"magic_damage": "ui.collection.stat_tooltip_magic_damage",
 	"stat_attack_speed": "ui.collection.stat_tooltip_attack_speed",
 	"stat_attack_range": "ui.collection.stat_tooltip_attack_range",
 	"stat_move_speed": "ui.collection.stat_tooltip_move_speed",
@@ -73,8 +67,6 @@ const TOOLTIP_KEYS: Dictionary = {
 const CUSTOM_STAT_LABEL_KEYS: Dictionary = {
 	"mana_cost": "ui.collection.stat_mana_cost",
 	"cast_time": "ui.collection.stat_cast_time",
-	"physical_damage": "ui.collection.stat_physical_damage",
-	"magic_damage": "ui.collection.stat_magic_damage",
 	"soul_strength": "ui.collection.stat_soul_strength"
 }
 

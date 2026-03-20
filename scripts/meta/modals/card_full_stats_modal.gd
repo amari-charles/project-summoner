@@ -168,10 +168,6 @@ func _update_all_stats_display() -> void:
 	for stat_key: String in primary_keys:
 		_try_add_effective_stat(effective_stats, stat_key, rendered_source_keys)
 
-	if card_type == UnitConstants.CardType.SUMMON:
-		_try_add_effective_stat(effective_stats, "physical_damage", rendered_source_keys)
-		_try_add_effective_stat(effective_stats, "magic_damage", rendered_source_keys)
-
 	for key_var: Variant in effective_stats.keys():
 		var source_key: String = str(key_var)
 		if source_key.is_empty() or rendered_source_keys.has(source_key):
@@ -203,9 +199,6 @@ func _get_effective_stats() -> Dictionary:
 
 
 func _try_add_effective_stat(effective_stats: Dictionary, stat_key: String, rendered_source_keys: Dictionary) -> bool:
-	if stat_key == "attack_damage" and (effective_stats.has("physical_damage") or effective_stats.has("magic_damage")):
-		return false
-
 	var source_key: String = _resolve_stat_source_key(effective_stats, stat_key)
 	if source_key.is_empty() or rendered_source_keys.has(source_key):
 		return false
@@ -243,7 +236,7 @@ func _add_effective_stat_row(stat_key: String, stat_value: Variant) -> void:
 func _stat_id_for_key(stat_key: String) -> String:
 	if stat_key == "summon_time" or stat_key == "cast_time":
 		return "cast_time"
-	if stat_key == "mana_cost" or stat_key == "physical_damage" or stat_key == "magic_damage":
+	if stat_key == "mana_cost":
 		return stat_key
 	if STAT_LOCALIZATION_KEYS.has(stat_key):
 		return str(STAT_LOCALIZATION_KEYS.get(stat_key, stat_key))
@@ -257,10 +250,6 @@ func _stat_label_for_key(stat_key: String) -> String:
 		return CardStatsUiHelperScript.get_custom_stat_label("cast_time")
 	if stat_key == "soul_strength":
 		return CardStatsUiHelperScript.get_custom_stat_label("soul_strength")
-	if stat_key == "physical_damage":
-		return CardStatsUiHelperScript.get_custom_stat_label("physical_damage")
-	if stat_key == "magic_damage":
-		return CardStatsUiHelperScript.get_custom_stat_label("magic_damage")
 	if STAT_LOCALIZATION_KEYS.has(stat_key):
 		return Loc.t("ui.collection." + str(STAT_LOCALIZATION_KEYS.get(stat_key)))
 	return _humanize_stat_key(stat_key)
