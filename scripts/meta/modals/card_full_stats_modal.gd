@@ -46,11 +46,6 @@ const PRIMARY_SPELL_STAT_KEYS: Array[String] = [
 	"formation_duration"
 ]
 
-const STAT_SOURCE_KEYS: Dictionary = {
-	"max_hp": ["max_hp", "max_health"],
-	"summon_time": ["summon_time", "cast_time"]
-}
-
 const STAT_LOCALIZATION_KEYS: Dictionary = {
 	"max_hp": "stat_hp",
 	"attack_damage": "stat_damage",
@@ -225,14 +220,7 @@ func _try_add_effective_stat(effective_stats: Dictionary, stat_key: String, rend
 
 
 func _resolve_stat_source_key(effective_stats: Dictionary, stat_key: String) -> String:
-	var source_candidates: Array = SafeTypeUtils.array(STAT_SOURCE_KEYS.get(stat_key, [stat_key]))
-	for candidate_var: Variant in source_candidates:
-		var candidate_key: String = str(candidate_var)
-		if candidate_key.is_empty():
-			continue
-		if effective_stats.has(candidate_key):
-			return candidate_key
-	return ""
+	return stat_key if effective_stats.has(stat_key) else ""
 
 
 func _is_displayable_stat_value(value: Variant) -> bool:
@@ -280,7 +268,7 @@ func _stat_label_for_key(stat_key: String) -> String:
 
 func _format_stat_value(stat_key: String, value: Variant) -> String:
 	if value is bool:
-		return "Yes" if value else "No"
+		return str(value)
 
 	if stat_key == "summon_time" or stat_key == "cast_time" or stat_key == "cooldown" or stat_key == "formation_duration":
 		return CardStatsUiHelperScript.format_seconds(float(value))
@@ -349,24 +337,6 @@ func _create_stat_row(stat_id: String, stat_name: String, value_str: String) -> 
 	var tooltip_desc: String = CardStatsUiHelperScript.get_tooltip_description(stat_id)
 	row.tooltip_text = _build_stat_tooltip(stat_name, value_str, tooltip_desc)
 	stats_container.add_child(row)
-
-
-func _add_stat_label(loc_key: String, value: Variant) -> void:
-	var stat_name: String = Loc.t("ui.collection." + loc_key)
-	var value_str: String
-	if value is float:
-		value_str = CardStatsUiHelperScript.format_number(value)
-	else:
-		value_str = str(value)
-	_create_stat_row(loc_key, stat_name, value_str)
-
-
-func _add_custom_stat(stat_id: String, label: String, value_text: String) -> void:
-	_create_stat_row(stat_id, label, value_text)
-
-
-func _add_custom_stat_localized(stat_id: String, value_text: String) -> void:
-	_add_custom_stat(stat_id, CardStatsUiHelperScript.get_custom_stat_label(stat_id), value_text)
 
 
 func _build_stat_tooltip(stat_name: String, value_text: String, description: String) -> String:
