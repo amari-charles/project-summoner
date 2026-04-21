@@ -996,6 +996,7 @@ public partial class SimulationNode : Node, IGameSession
                     ["attack_selection_mode"] = (int)unit.Attack.Selection.Mode,
                     ["attack_area_shape"] = (int)unit.Attack.Area.Shape,
                     ["attack_forward_offset"] = unit.Attack.Area.ForwardOffset,
+                    ["melee_engagement_model"] = (int)unit.Attack.Rules.MeleeEngagementModel,
                 }
             );
         }
