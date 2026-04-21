@@ -1,4 +1,5 @@
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Units;
 
@@ -27,6 +28,15 @@ public record UnitAbilityConfig
 
     /// <summary>Primary duration value (taunt duration, etc.).</summary>
     public float DurationSeconds { get; init; }
+
+    /// <summary>
+    /// Effect payload used by generic self-effect abilities.
+    /// Ignored by ability kinds that have fixed behavior.
+    /// </summary>
+    public EffectType EffectType { get; init; } = EffectType.StatModifier;
+
+    /// <summary>Typed lifetime payload for generic effect application.</summary>
+    public EffectLifetime Lifetime { get; init; } = EffectLifetime.Timed(0f);
 
     /// <summary>Optional windup before resolve.</summary>
     public float WindupSeconds { get; init; }

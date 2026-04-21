@@ -176,6 +176,11 @@ public class UnitData
     public int? PendingDamageTargetId { get; set; }
     public float PendingDamageAmount { get; set; }
 
+    // Forced displacement state (e.g., knockback) applied by movement tick.
+    public SimVector3 KnockbackDirection { get; set; } = SimVector3.Zero;
+    public float KnockbackSpeed { get; set; }
+    public float KnockbackRemainingDistance { get; set; }
+
     // Charge tracking (distance traveled since last attack — for charge ability)
     public float DistanceTraveled { get; set; }
 

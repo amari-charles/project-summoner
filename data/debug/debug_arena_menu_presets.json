@@ -1,0 +1,26 @@
+{
+  "default_preset_id": "all_test_arena",
+  "presets": [
+    {
+      "id": "all_test_arena",
+      "label": "All Test Arena",
+      "entries": [
+        { "label": "Earth Sprite", "battle_id": "arena_earth_sprite" },
+        { "label": "Puff", "battle_id": "arena_puff" },
+        { "label": "Fire Wisp", "battle_id": "arena_fire_wisp" },
+        { "label": "Cloud Swarm", "battle_id": "arena_cloud_swarm" },
+        { "label": "Mana Bolt", "battle_id": "arena_mana_bolt" },
+        { "label": "Wind + Earth New", "battle_id": "arena_wind_earth_new_cards" },
+        { "label": "Debug Arena", "battle_id": "debug_arena" }
+      ]
+    },
+    {
+      "id": "new_cards_only",
+      "label": "Newest Cards",
+      "entries": [
+        { "label": "Wind + Earth New", "battle_id": "arena_wind_earth_new_cards" },
+        { "label": "Fire Wisp", "battle_id": "arena_fire_wisp" }
+      ]
+    }
+  ]
+}

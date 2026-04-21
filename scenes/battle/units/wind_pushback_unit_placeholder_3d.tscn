@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/csharp/Battle/View/UnitVisual.cs" id="1_unit_visual"]
+[ext_resource type="PackedScene" path="res://scenes/battle/units/skeletal_character_2d5_component.tscn" id="2_skeletal_component"]
+[ext_resource type="PackedScene" path="res://scenes/battle/units/placeholders/wind_pushback_unit_placeholder_rig.tscn" id="3_rig"]
+
+[node name="WindPushbackUnitPlaceholder3D" type="Node3D"]
+script = ExtResource("1_unit_visual")
+
+[node name="Visual" parent="." instance=ExtResource("2_skeletal_component")]
+SkeletalScene = ExtResource("3_rig")
+ScaleFactor = Vector2(0.5, 0.5)
+ViewportSize = Vector2i(480, 480)
+ContentSize = Vector2(320, 320)
+FeetLocalPosition = Vector2(240, 340)
+
+[node name="ProjectileSpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.68, 0)

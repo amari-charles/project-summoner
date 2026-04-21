@@ -1,9 +1,10 @@
-using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
 using Fateforged.Units;
 using Fateforged.View;
+using Fateforged.View.Debug.DeckSources;
+using Fateforged.View.Debug.SpawnerPanel;
 using Godot;
 using System;
 using System.Collections.Generic;
@@ -24,81 +25,37 @@ public partial class DebugArenaScene : TestBattleScene
     public delegate void SpawnLoggedEventHandler(string message);
 
     private readonly List<SpawnBatch> _spawnHistory = new();
-    private const string DebugDeckPath = "res://data/debug/debug_deck.json";
     private const int TeamPlayer = 0;
     private const int TeamEnemy = 1;
 
-    private Node? _spawnerPanel;
+    private IDebugArenaSpawnerPanelBridge? _spawnerPanelBridge;
+    private IDebugArenaDeckProvider? _deckProvider;
+    private DebugArenaDeckResolution? _lastDeckResolution;
 
     private sealed record SpawnBatch(int Team, int ExpectedUnitCount, string Label, int[] SpawnedUnitIds);
 
     protected override Godot.Collections.Dictionary BuildPracticeConfig()
     {
-        var playerDeck = LoadDebugDeck();
-        var enemyDeck = (Godot.Collections.Array)playerDeck.Duplicate(true);
+        var deckResolution = ResolveDeckResolution();
+        _lastDeckResolution = deckResolution;
 
         return new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", playerDeck },
-            { "enemy_deck", enemyDeck },
+            { "dev_player_deck", deckResolution.PlayerDeck },
+            { "enemy_deck", deckResolution.EnemyDeck },
             { "enemy_hp", 999999.0 },
             { "ai_type", "none" },
         };
     }
 
-    private static Godot.Collections.Array LoadDebugDeck()
+    protected virtual IDebugArenaDeckProvider CreateDeckProvider()
     {
-        if (!FileAccess.FileExists(DebugDeckPath))
-        {
-            GD.PushWarning(
-                $"[DebugArenaScene] Debug deck not found at {DebugDeckPath}, using all catalog summons"
-            );
-            return BuildFallbackDeckFromCatalogSummons();
-        }
-
-        using var file = FileAccess.Open(DebugDeckPath, FileAccess.ModeFlags.Read);
-        if (file == null)
-        {
-            GD.PushWarning(
-                "[DebugArenaScene] Failed to open debug deck file, using all catalog summons"
-            );
-            return BuildFallbackDeckFromCatalogSummons();
-        }
-
-        var parsed = Json.ParseString(file.GetAsText());
-        if (parsed.VariantType == Variant.Type.Array)
-        {
-            var deck = parsed.AsGodotArray();
-            if (deck.Count > 0)
-                return deck;
-        }
-
-        GD.PushWarning(
-            "[DebugArenaScene] Debug deck JSON invalid/empty, using all catalog summons"
-        );
-        return BuildFallbackDeckFromCatalogSummons();
+        return new DebugArenaDeckProvider();
     }
 
-    private static Godot.Collections.Array BuildFallbackDeckFromCatalogSummons()
+    protected virtual IDebugArenaSpawnerPanelBridge? ResolveSpawnerPanelBridge()
     {
-        var entries = new Godot.Collections.Array();
-        foreach (var cardDef in CardCatalog.GetAllCardsAsDict())
-        {
-            if (
-                !cardDef.TryGetValue("card_type", out var cardTypeVar)
-                || cardTypeVar.AsInt32() != (int)CardType.Summon
-            )
-                continue;
-
-            string catalogId = cardDef.TryGetValue("catalog_id", out var catalogIdVar)
-                ? catalogIdVar.AsString()
-                : "";
-            entries.Add(
-                new Godot.Collections.Dictionary { { "catalog_id", catalogId }, { "count", 1 } }
-            );
-        }
-
-        return entries;
+        return DebugArenaSpawnerPanelBridgeFactory.TryCreate(this);
     }
 
     public override async void _Ready()
@@ -110,126 +67,26 @@ public partial class DebugArenaScene : TestBattleScene
         ConnectSpawnerPanel();
 
         // Check if we should skip prep phase
-        if (_spawnerPanel != null && (bool)_spawnerPanel.Call("get_skip_prep_phase"))
+        if (_spawnerPanelBridge != null && _spawnerPanelBridge.GetSkipPrepPhase())
             SkipPrepPhase();
     }
 
-    private void ConnectSpawnerPanel()
+    protected virtual void ConnectSpawnerPanel()
     {
-        _spawnerPanel = FindSpawnerPanel();
-        if (_spawnerPanel == null)
+        _spawnerPanelBridge = ResolveSpawnerPanelBridge();
+        if (_spawnerPanelBridge == null)
             return;
 
-        if (
-            !_spawnerPanel.IsConnected(
-                "clear_requested",
-                new Callable(this, MethodName.ClearAllUnits)
-            )
-        )
-            _spawnerPanel.Connect("clear_requested", new Callable(this, MethodName.ClearAllUnits));
+        _spawnerPanelBridge.ConnectClearRequested(new Callable(this, MethodName.ClearAllUnits));
+        _spawnerPanelBridge.ConnectSkipPrepToggled(new Callable(this, MethodName.OnSkipPrepToggled));
+        _spawnerPanelBridge.ConnectEnemyAiToggled(new Callable(this, MethodName.OnEnemyAiToggled));
+        _spawnerPanelBridge.ConnectPlayerAiToggled(new Callable(this, MethodName.OnPlayerAiToggled));
+        _spawnerPanelBridge.ConnectClearTeamRequested(new Callable(this, MethodName.ClearTeamUnits));
+        _spawnerPanelBridge.ConnectUndoRequested(new Callable(this, MethodName.UndoLastSpawnBatch));
+        SyncSpawnerPanelDeckEntries();
 
-        if (
-            !_spawnerPanel.IsConnected(
-                "skip_prep_toggled",
-                new Callable(this, MethodName.OnSkipPrepToggled)
-            )
-        )
-            _spawnerPanel.Connect(
-                "skip_prep_toggled",
-                new Callable(this, MethodName.OnSkipPrepToggled)
-            );
-
-        if (
-            _spawnerPanel.HasSignal("enemy_ai_toggled")
-            && !_spawnerPanel.IsConnected(
-                "enemy_ai_toggled",
-                new Callable(this, MethodName.OnEnemyAiToggled)
-            )
-        )
-        {
-            _spawnerPanel.Connect(
-                "enemy_ai_toggled",
-                new Callable(this, MethodName.OnEnemyAiToggled)
-            );
-        }
-
-        if (
-            _spawnerPanel.HasSignal("player_ai_toggled")
-            && !_spawnerPanel.IsConnected(
-                "player_ai_toggled",
-                new Callable(this, MethodName.OnPlayerAiToggled)
-            )
-        )
-        {
-            _spawnerPanel.Connect(
-                "player_ai_toggled",
-                new Callable(this, MethodName.OnPlayerAiToggled)
-            );
-        }
-
-        if (
-            _spawnerPanel.HasSignal("clear_team_requested")
-            && !_spawnerPanel.IsConnected(
-                "clear_team_requested",
-                new Callable(this, MethodName.ClearTeamUnits)
-            )
-        )
-        {
-            _spawnerPanel.Connect(
-                "clear_team_requested",
-                new Callable(this, MethodName.ClearTeamUnits)
-            );
-        }
-
-        if (
-            _spawnerPanel.HasSignal("undo_requested")
-            && !_spawnerPanel.IsConnected("undo_requested", new Callable(this, MethodName.UndoLastSpawnBatch))
-        )
-        {
-            _spawnerPanel.Connect("undo_requested", new Callable(this, MethodName.UndoLastSpawnBatch));
-        }
-
-        if (_spawnerPanel.HasMethod("get_enemy_ai_enabled"))
-            OnEnemyAiToggled((bool)_spawnerPanel.Call("get_enemy_ai_enabled"));
-        if (_spawnerPanel.HasMethod("get_player_ai_enabled"))
-            OnPlayerAiToggled((bool)_spawnerPanel.Call("get_player_ai_enabled"));
-    }
-
-    private Node? FindSpawnerPanel()
-    {
-        // Search in ui_layer group
-        var uiNodes = GetTree().GetNodesInGroup("ui_layer");
-        foreach (var node in uiNodes)
-        {
-            if (node.GetType().Name == "UnitSpawnerPanel" || node.HasMethod("get_skip_prep_phase"))
-                return node;
-            var found = FindChildWithMethod(node, "get_skip_prep_phase");
-            if (found != null)
-                return found;
-        }
-
-        // Search direct children
-        foreach (var child in GetChildren())
-        {
-            var found = FindChildWithMethod(child, "get_skip_prep_phase");
-            if (found != null)
-                return found;
-        }
-
-        return null;
-    }
-
-    private static Node? FindChildWithMethod(Node node, string method)
-    {
-        if (node.HasMethod(method))
-            return node;
-        foreach (var child in node.GetChildren())
-        {
-            var found = FindChildWithMethod(child, method);
-            if (found != null)
-                return found;
-        }
-        return null;
+        OnEnemyAiToggled(_spawnerPanelBridge.GetEnemyAiEnabled());
+        OnPlayerAiToggled(_spawnerPanelBridge.GetPlayerAiEnabled());
     }
 
     public void OnSkipPrepToggled(bool skip)
@@ -424,8 +281,50 @@ public partial class DebugArenaScene : TestBattleScene
 
     private void AppendSpawnLog(string message)
     {
-        if (_spawnerPanel != null && _spawnerPanel.HasMethod("append_spawn_log"))
-            _spawnerPanel.Call("append_spawn_log", message);
+        _spawnerPanelBridge?.AppendSpawnLog(message);
         EmitSignal(SignalName.SpawnLogged, message);
+    }
+
+    private IDebugArenaDeckProvider DeckProvider => _deckProvider ??= CreateDeckProvider();
+
+    private DebugArenaDeckResolution ResolveDeckResolution()
+    {
+        var contextConfig = ReadBattleContextConfig();
+        var sourceMode = DebugArenaDeckSourceModeResolver.ResolveFromConfig(contextConfig);
+        return DeckProvider.Resolve(
+            new DebugArenaDeckResolveRequest
+            {
+                SourceMode = sourceMode,
+                ContextConfig = contextConfig,
+            }
+        );
+    }
+
+    private void SyncSpawnerPanelDeckEntries()
+    {
+        if (_spawnerPanelBridge == null)
+            return;
+
+        var resolution = _lastDeckResolution ?? ResolveDeckResolution();
+        _lastDeckResolution = resolution;
+
+        if (resolution.PlayerDeck.Count == 0)
+            return;
+
+        _spawnerPanelBridge.SetDebugDeckEntries((Godot.Collections.Array)resolution.PlayerDeck.Duplicate(true));
+    }
+
+    protected virtual Godot.Collections.Dictionary ReadBattleContextConfig()
+    {
+        var root = GetTree()?.Root;
+        var battleContext = root?.GetNodeOrNull("BattleContext");
+        if (battleContext == null)
+            return new Godot.Collections.Dictionary();
+
+        var configVar = battleContext.Get("battle_config");
+        if (configVar.VariantType != Variant.Type.Dictionary)
+            return new Godot.Collections.Dictionary();
+
+        return configVar.AsGodotDictionary();
     }
 }

@@ -46,6 +46,8 @@ public static class CardIds
     public static readonly CardId Cleanse = new("cleanse");
     public static readonly CardId WaterJet = new("water_jet");
     public static readonly CardId RainField = new("rain_field");
+    public static readonly CardId TailWind = new("tail_wind");
+    public static readonly CardId Fortify = new("fortify");
 
     // =========================================================================
     // WISPS (Basic starter units for each element)
@@ -82,6 +84,10 @@ public static class CardIds
     public static readonly CardId StoneApe = new("stone_ape");
     public static readonly CardId EarthRockThrower = new("earth_rock_thrower");
     public static readonly CardId TauntPulseGuardian = new("taunt_pulse_guardian");
+    public static readonly CardId EarthFlatDamageReductionTank = new(
+        "earth_flat_damage_reduction_tank"
+    );
+    public static readonly CardId EarthBulletUnit = new("earth_bullet_unit");
 
     // =========================================================================
     // WIND ELEMENT UNITS
@@ -89,6 +95,9 @@ public static class CardIds
 
     public static readonly CardId Puff = new("puff");
     public static readonly CardId CloudSwarm = new("cloud_swarm");
+    public static readonly CardId WindEvasionTank = new("wind_evasion_tank");
+    public static readonly CardId WindPushbackUnit = new("wind_pushback_unit");
+    public static readonly CardId WindCleaveUnit = new("wind_cleave_unit");
 
     // =========================================================================
     // WATER ELEMENT UNITS

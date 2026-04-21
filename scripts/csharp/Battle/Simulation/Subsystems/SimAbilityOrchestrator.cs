@@ -2,6 +2,7 @@ using System;
 using Fateforged.Data.Projectiles;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
 
@@ -49,6 +50,15 @@ public static class SimAbilityOrchestrator
                 ability,
                 events
             ),
+            UnitAbilityKind.ApplySelfEffect => TryActivateApplySelfEffect(
+                state,
+                source,
+                ability,
+                events
+            ),
+            // TargetedKnockback is applied on confirmed hit (projectile/melee),
+            // not polled by periodic range checks.
+            UnitAbilityKind.TargetedKnockback => false,
             UnitAbilityKind.TauntPulse => TryActivateTauntPulse(state, source, ability, events),
             UnitAbilityKind.CleansePulse => TryActivateCleansePulse(state, source, ability, events),
             _ => false,
@@ -115,6 +125,92 @@ public static class SimAbilityOrchestrator
             new AbilityActivatedEvent(source.UnitId, ability.AbilityId, target.UnitId, source.Position)
         );
         return true;
+    }
+
+    private static bool TryActivateApplySelfEffect(
+        MatchState state,
+        UnitData source,
+        UnitAbilityState ability,
+        System.Collections.Generic.List<SimEvent> events
+    )
+    {
+        // Persistent self-effects are single-apply per ability state.
+        if (ability.Lifetime.IsPersistent && ability.HasApplied)
+            return false;
+
+        float duration = ResolveAbilityDuration(ability);
+        SimEffects.ApplyEffect(
+            state,
+            ability.EffectType,
+            ability.Value,
+            duration,
+            DamageType.Magic,
+            source,
+            source.UnitId,
+            source.Team,
+            events
+        );
+
+        if (ability.Lifetime.IsPersistent)
+            ability.HasApplied = true;
+
+        events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, source.UnitId, source.Position));
+        return true;
+    }
+
+    public static void TryActivateOnHitEffects(
+        MatchState state,
+        UnitData source,
+        UnitData target,
+        System.Collections.Generic.List<SimEvent> events
+    )
+    {
+        if (!source.IsAlive || !target.IsAlive || source.UnitId == target.UnitId)
+            return;
+
+        foreach (var ability in source.Abilities)
+        {
+            if (ability.Kind != UnitAbilityKind.TargetedKnockback)
+                continue;
+            if (ability.CooldownTimer > 0f)
+                continue;
+            if (!CanApplyOnHitAbilityToTarget(source, target, ability))
+                continue;
+
+            float knockbackDistance = ability.Value > 0f ? ability.Value : 2.5f;
+            SimEffects.ApplyEffect(
+                state,
+                EffectType.Knockback,
+                knockbackDistance,
+                0f,
+                DamageType.Magic,
+                target,
+                source.UnitId,
+                source.Team,
+                events
+            );
+
+            ability.CooldownTimer = MathF.Max(ability.CooldownSeconds, 0f);
+            events.Add(
+                new AbilityActivatedEvent(source.UnitId, ability.AbilityId, target.UnitId, source.Position)
+            );
+            return;
+        }
+    }
+
+    private static bool CanApplyOnHitAbilityToTarget(
+        UnitData source,
+        UnitData target,
+        UnitAbilityState ability
+    )
+    {
+        return ability.TargetAffinity switch
+        {
+            AbilityTargetAffinity.Enemies => target.Team != source.Team,
+            AbilityTargetAffinity.Allies => target.Team == source.Team,
+            AbilityTargetAffinity.Both => true,
+            _ => false,
+        };
     }
 
     private static UnitData? ResolveHealerTarget(
@@ -261,6 +357,11 @@ public static class SimAbilityOrchestrator
         if (!candidate.ForcedTargetUnitId.HasValue)
             return true;
         return candidate.ForcedTargetUnitId.Value == taunterUnitId;
+    }
+
+    private static float ResolveAbilityDuration(UnitAbilityState ability)
+    {
+        return EffectLifetimeResolver.ResolveDuration(ability.Lifetime, ability.DurationSeconds);
     }
 
     private static bool TryResolveProjectileData(

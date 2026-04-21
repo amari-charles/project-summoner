@@ -7,7 +7,12 @@
 	{ "catalog_id": "earth_komodo_dragon", "count": 2 },
 	{ "catalog_id": "stone_ape", "count": 2 },
 	{ "catalog_id": "earth_rock_thrower", "count": 2 },
+	{ "catalog_id": "earth_flat_damage_reduction_tank", "count": 2 },
+	{ "catalog_id": "earth_bullet_unit", "count": 2 },
 	{ "catalog_id": "puff", "count": 2 },
+	{ "catalog_id": "wind_evasion_tank", "count": 2 },
+	{ "catalog_id": "wind_pushback_unit", "count": 2 },
+	{ "catalog_id": "wind_cleave_unit", "count": 2 },
 	{ "catalog_id": "water_frog", "count": 2 },
 	{ "catalog_id": "mama_duck", "count": 2 },
 	{ "catalog_id": "water_bulwark", "count": 2 },
@@ -22,5 +27,7 @@
 	{ "catalog_id": "healing_field", "count": 2 },
 	{ "catalog_id": "cleanse", "count": 2 },
 	{ "catalog_id": "water_jet", "count": 2 },
-	{ "catalog_id": "rain_field", "count": 2 }
+	{ "catalog_id": "rain_field", "count": 2 },
+	{ "catalog_id": "tail_wind", "count": 2 },
+	{ "catalog_id": "fortify", "count": 2 }
 ]
