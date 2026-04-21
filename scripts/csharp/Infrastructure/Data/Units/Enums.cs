@@ -84,6 +84,22 @@ public enum AttackTriggerMode
 }
 
 /// <summary>
+/// How melee units approach committed targets before attack execution.
+/// </summary>
+public enum MeleeEngagementModel
+{
+    /// <summary>
+    /// Use target-owned slot reservations/orbits for melee approach.
+    /// </summary>
+    SlotRing = 0,
+
+    /// <summary>
+    /// Use direct committed approach with engage-shape gating (no slot reservation).
+    /// </summary>
+    Direct = 1,
+}
+
+/// <summary>
 /// Team affinity used by ability targeting and projectile impact filters.
 /// </summary>
 public enum AbilityTargetAffinity

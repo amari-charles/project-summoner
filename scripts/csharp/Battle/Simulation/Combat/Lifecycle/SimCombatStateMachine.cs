@@ -45,39 +45,58 @@ public static class SimCombatStateMachine
         int targetId = unit.Engagement.TargetUnitId!.Value;
         if (unit.UnitType == UnitType.Melee)
         {
-            bool isSummonerTarget = MatchState.IsSummonerTarget(targetId);
-            bool targetAttackableNow = SimTargeting.IsTargetAttackableNow(unit, targetId, state);
-            bool summonerAttackableNow = isSummonerTarget && targetAttackableNow;
-            bool hasReservation = HasReservedSlotForTarget(unit, targetId);
-            bool allowSlotlessAttack =
-                targetAttackableNow
-                && (unit.AttackPhase != AttackPhase.None || unit.AttackCooldown <= 0f);
+            if (UsesMeleeSlots(unit))
+            {
+                bool isSummonerTarget = MatchState.IsSummonerTarget(targetId);
+                bool targetAttackableNow = SimTargeting.IsTargetAttackableNow(unit, targetId, state);
+                bool summonerAttackableNow = isSummonerTarget && targetAttackableNow;
+                bool hasReservation = HasReservedSlotForTarget(unit, targetId);
+                bool allowSlotlessAttack =
+                    targetAttackableNow
+                    && (unit.AttackPhase != AttackPhase.None || unit.AttackCooldown <= 0f);
 
-            if (isSummonerTarget && summonerAttackableNow && !hasReservation)
-            {
-                // Keep stand-ring as the primary behavior, but don't force an
-                // unreachable wait state when all summoner slots are occupied.
-                if (SimMeleeSlotManager.TryReserveSlot(unit, state, targetId, out _))
-                    hasReservation = true;
-                else
-                    allowSlotlessAttack = true;
-            }
-            else
-            {
-                if (
-                    !EnsureMeleeSlot(
-                        unit,
-                        state,
-                        targetId,
-                        delta,
-                        applySlotWaitRetargetTimeout: isSummonerTarget
-                    )
-                )
+                if (isSummonerTarget && summonerAttackableNow && !hasReservation)
                 {
-                    // Slot reservation is helpful for melee approach, but if the
-                    // target is already attackable and the unit can start/finish an
-                    // attack now, don't hard-block on slot ownership.
-                    if (!allowSlotlessAttack)
+                    // Keep stand-ring as the primary behavior, but don't force an
+                    // unreachable wait state when all summoner slots are occupied.
+                    if (SimMeleeSlotManager.TryReserveSlot(unit, state, targetId, out _))
+                        hasReservation = true;
+                    else
+                        allowSlotlessAttack = true;
+                }
+                else
+                {
+                    if (
+                        !EnsureMeleeSlot(
+                            unit,
+                            state,
+                            targetId,
+                            delta,
+                            applySlotWaitRetargetTimeout: isSummonerTarget
+                        )
+                    )
+                    {
+                        // Slot reservation is helpful for melee approach, but if the
+                        // target is already attackable and the unit can start/finish an
+                        // attack now, don't hard-block on slot ownership.
+                        if (!allowSlotlessAttack)
+                        {
+                            unit.BehaviorState = BehaviorState.Chasing;
+                            SimAttackLoop.Cancel(unit, state);
+                            return new SimBehavior.BehaviorResult
+                            {
+                                Movement = MovementResult.TowardTarget,
+                                MoveTargetId = unit.Engagement.TargetUnitId,
+                            };
+                        }
+                    }
+
+                    hasReservation = HasReservedSlotForTarget(unit, targetId);
+                }
+
+                if (!allowSlotlessAttack)
+                {
+                    if (!hasReservation)
                     {
                         unit.BehaviorState = BehaviorState.Chasing;
                         SimAttackLoop.Cancel(unit, state);
@@ -87,34 +106,24 @@ public static class SimCombatStateMachine
                             MoveTargetId = unit.Engagement.TargetUnitId,
                         };
                     }
-                }
 
-                hasReservation = HasReservedSlotForTarget(unit, targetId);
-            }
-
-            if (!allowSlotlessAttack)
-            {
-                if (!hasReservation)
-                {
-                    unit.BehaviorState = BehaviorState.Chasing;
-                    SimAttackLoop.Cancel(unit, state);
-                    return new SimBehavior.BehaviorResult
+                    if (!TryAdvanceToReservedSlot(unit, state, out var toSlotBehavior))
                     {
-                        Movement = MovementResult.TowardTarget,
-                        MoveTargetId = unit.Engagement.TargetUnitId,
-                    };
+                        SimAttackLoop.Cancel(unit, state);
+                        return toSlotBehavior;
+                    }
+
+                    SimMeleeSlotManager.SetOccupied(unit, state);
                 }
 
-                if (!TryAdvanceToReservedSlot(unit, state, out var toSlotBehavior))
-                {
-                    SimAttackLoop.Cancel(unit, state);
-                    return toSlotBehavior;
-                }
-
-                SimMeleeSlotManager.SetOccupied(unit, state);
+                ResetProgressTracking(unit);
             }
-
-            ResetProgressTracking(unit);
+            else
+            {
+                SimMeleeSlotManager.ReleaseUnitSlots(unit, state);
+                if (SimTargeting.IsTargetAttackableNow(unit, targetId, state))
+                    ResetProgressTracking(unit);
+            }
         }
         else
         {
@@ -518,6 +527,11 @@ public static class SimCombatStateMachine
         return unit.BehaviorState == BehaviorState.Attacking
             && preAttackCooldown <= 0f
             && unit.AttackCooldown > 0f;
+    }
+
+    private static bool UsesMeleeSlots(UnitData unit)
+    {
+        return unit.Attack.Rules.MeleeEngagementModel == MeleeEngagementModel.SlotRing;
     }
 
     private static void ResetProgressTracking(UnitData unit)

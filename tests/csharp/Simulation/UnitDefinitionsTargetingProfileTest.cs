@@ -80,6 +80,7 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.HealthScorerWeight).IsEqual(10f);
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
+        AssertThat(template.Attack.Rules.MeleeEngagementModel).IsEqual(MeleeEngagementModel.Direct);
     }
 
     [TestCase]
@@ -131,6 +132,8 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.Attack.Timing.TickIntervalSeconds)
             .IsEqual(def.Attack.Timing.TickIntervalSeconds);
         AssertThat(template.Attack.Rules.TriggerMode).IsEqual(def.Attack.Rules.TriggerMode);
+        AssertThat(template.Attack.Rules.MeleeEngagementModel)
+            .IsEqual(def.Attack.Rules.MeleeEngagementModel);
     }
 
     [TestCase(AttackPreset.AreaCleave, 3)]
@@ -198,6 +201,22 @@ public class UnitDefinitionsTargetingProfileTest
     }
 
     [TestCase]
+    public void BuildAttackVectorState_MeleeEngagementModel_MapsFromConfig()
+    {
+        var config = new AttackVectorConfig
+        {
+            Rules = new AttackRulesConfig
+            {
+                MeleeEngagementModel = MeleeEngagementModel.Direct,
+            },
+        };
+
+        var state = AttackVectorStateBuilder.Build(config);
+
+        AssertThat(state.Rules.MeleeEngagementModel).IsEqual(MeleeEngagementModel.Direct);
+    }
+
+    [TestCase]
     public void BuildSimTemplate_Pebbloom_UsesForwardAreaCleaveAttackShape()
     {
         var def = UnitDefinitions.Get(UnitIds.EarthSprite);
@@ -217,5 +236,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.EngageRectHalfWidth).IsEqual(1.3f);
         AssertThat(template.EngageRectForwardOffset).IsEqual(1.05f);
         AssertThat(Math.Abs(template.EngageCloseRadius - 1.10f) < 0.001f).IsTrue();
+        AssertThat(template.Attack.Rules.MeleeEngagementModel).IsEqual(MeleeEngagementModel.Direct);
     }
 }

@@ -7,6 +7,7 @@ using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
@@ -115,6 +116,8 @@ public class MeleeClumpingStabilityTest
         ConfigureForwardRectMelee(attackerTwo);
         if (useCommitSlotMode)
         {
+            attackerOne.Attack.Rules.MeleeEngagementModel = MeleeEngagementModel.SlotRing;
+            attackerTwo.Attack.Rules.MeleeEngagementModel = MeleeEngagementModel.SlotRing;
             attackerOne.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
             attackerTwo.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
             attackerOne.Engagement.LockedTargetUnitId = target.UnitId;

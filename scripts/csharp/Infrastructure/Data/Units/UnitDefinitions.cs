@@ -903,6 +903,7 @@ public static class UnitDefinitions
                 template.EngageRectForwardOffset = 0f;
                 template.EngageCloseRadius = MathF.Max(template.NavigationRadius * 0.9f, 0.4f);
                 ApplyMeleeEngageRectOverridesFromAttack(template);
+                template.Attack.Rules.MeleeEngagementModel = MeleeEngagementModel.Direct;
                 template.HealthScorerWeight = def.TargetingHealthScorerWeight;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
