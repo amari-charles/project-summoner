@@ -5,7 +5,6 @@ const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
 const DEBUG_ARENA_PRESETS = preload("res://scripts/debug/debug_arena_menu_presets.gd")
 
 var _menu_script: Script = load("res://scripts/debug/debug_menu.gd")
-var _root_nodes: Array[Node] = []
 
 
 func before_each() -> void:
@@ -14,13 +13,14 @@ func before_each() -> void:
 
 func after_each() -> void:
 	_delete_settings_file()
-	_free_root_nodes()
 
 
 func test_c14_c17_debug_menu_contract_surface_exists() -> void:
 	assert_not_null(_menu_script, "debug_menu.gd must exist")
 
 	var menu: Object = _menu_script.new()
+	if menu is Node:
+		_track_owned_node(menu)
 	assert_true(menu.has_method("_on_skip_prep_pressed"), "C14: battle utility hook")
 	assert_true(menu.has_method("_on_win_pressed"), "C14: win hook")
 	assert_true(menu.has_method("_on_lose_pressed"), "C14: lose hook")
@@ -48,8 +48,10 @@ func test_c21_debug_menu_preset_catalog_contract_exists() -> void:
 
 func test_c21_build_debug_arena_buttons_uses_selected_preset_entries() -> void:
 	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
 	menu._arena_preset_id = "new_cards_only"
 	var grid: GridContainer = GridContainer.new()
+	_track_owned_node(grid)
 
 	menu._build_debug_arena_buttons(grid)
 
@@ -65,8 +67,11 @@ func test_c21_build_debug_arena_buttons_uses_selected_preset_entries() -> void:
 
 func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
 	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
 	menu._arena_preset_dropdown = OptionButton.new()
+	_track_owned_node(menu._arena_preset_dropdown)
 	menu._arena_button_grid = GridContainer.new()
+	_track_owned_node(menu._arena_button_grid)
 	menu._arena_preset_id = "all_test_arena"
 
 	menu._populate_arena_preset_dropdown()
@@ -87,6 +92,7 @@ func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
 	assert_eq(menu._arena_button_grid.get_child_count(), 2, "selected preset should rebuild button list")
 
 	var reloaded: Node = _menu_script.new()
+	_track_owned_node(reloaded)
 	reloaded._load_settings()
 	assert_eq(reloaded._arena_preset_id, "new_cards_only", "selected preset should persist in settings")
 
@@ -108,6 +114,7 @@ func test_c14_skip_win_lose_controls_trigger_game_controller_methods() -> void:
 
 func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
 	var harness: _DebugMenuHarness = _DebugMenuHarness.new()
 	menu._campaign_setter_override = Callable(harness, "set_campaign")
 	menu._campaign_battle_getter_override = Callable(harness, "get_battle")
@@ -127,10 +134,13 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 
 func test_c15_visualization_toggles_and_persistence_round_trip() -> void:
 	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
 	var service: _FakeDebugService = _FakeDebugService.new()
+	_track_owned_node(service)
 	menu._unit_debug = service
 	menu._battlefield_debug_service_override = service
 	menu._spawn_boundary_button = Button.new()
+	_track_owned_node(menu._spawn_boundary_button)
 
 	menu._on_hurtbox_toggle_pressed()
 	menu._on_target_point_toggle_pressed()
@@ -151,7 +161,9 @@ func test_c15_visualization_toggles_and_persistence_round_trip() -> void:
 	assert_true(service.spawn_boundary_bypass_enabled)
 
 	var reloaded_menu: Node = _menu_script.new()
+	_track_owned_node(reloaded_menu)
 	var reloaded_service: _FakeDebugService = _FakeDebugService.new()
+	_track_owned_node(reloaded_service)
 	reloaded_menu._unit_debug = reloaded_service
 	reloaded_menu._battlefield_debug_service_override = reloaded_service
 	reloaded_menu._load_settings()
@@ -168,13 +180,17 @@ func test_c15_visualization_toggles_and_persistence_round_trip() -> void:
 
 func test_c16_console_submit_and_autocomplete_flow_behaves_as_expected() -> void:
 	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
 	var harness: _DebugMenuHarness = _DebugMenuHarness.new()
 	menu._console_execute_override = Callable(harness, "execute_console")
 	menu._console_all_commands_override = Callable(harness, "all_console_commands")
 	menu._console_matching_commands_override = Callable(harness, "matching_console_commands")
 	menu._command_input = LineEdit.new()
+	_track_owned_node(menu._command_input)
 	menu._command_output = Label.new()
+	_track_owned_node(menu._command_output)
 	menu._autocomplete_list = ItemList.new()
+	_track_owned_node(menu._autocomplete_list)
 
 	menu._update_autocomplete("/")
 	assert_true(menu._autocomplete_visible, "autocomplete should be visible for root query")
@@ -197,11 +213,16 @@ func test_c16_console_submit_and_autocomplete_flow_behaves_as_expected() -> void
 
 func test_c17_camera_overlay_auto_log_and_zoom_solver_toggles_work() -> void:
 	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
 	var camera: _FakeCameraController = _FakeCameraController.new()
+	_track_owned_node(camera)
 	menu._camera_controller_override = camera
 	menu._camera_overlay_button = Button.new()
+	_track_owned_node(menu._camera_overlay_button)
 	menu._camera_auto_log_button = Button.new()
+	_track_owned_node(menu._camera_auto_log_button)
 	menu._camera_zoom_solver_log_button = Button.new()
+	_track_owned_node(menu._camera_zoom_solver_log_button)
 
 	menu._refresh_camera_overlay_button_state()
 	assert_eq(menu._camera_overlay_button.text, "Camera Overlay: Off")
@@ -216,6 +237,7 @@ func test_c17_camera_overlay_auto_log_and_zoom_solver_toggles_work() -> void:
 	menu._on_camera_auto_log_toggle_pressed()
 	assert_true(menu._camera_auto_log_enabled)
 	var reloaded: Node = _menu_script.new()
+	_track_owned_node(reloaded)
 	reloaded._load_settings()
 	assert_true(reloaded._camera_auto_log_enabled)
 
@@ -228,16 +250,11 @@ func _delete_settings_file() -> void:
 
 func _add_root_node(node: Node) -> void:
 	get_tree().root.add_child(node)
-	_root_nodes.append(node)
+	autoqfree(node)
 
 
-func _free_root_nodes() -> void:
-	for i: int in range(_root_nodes.size() - 1, -1, -1):
-		var node: Node = _root_nodes[i]
-		if is_instance_valid(node):
-			node.get_parent().remove_child(node)
-			node.queue_free()
-	_root_nodes.clear()
+func _track_owned_node(node: Node) -> void:
+	autoqfree(node)
 
 
 class _FakeGameController extends Node:
