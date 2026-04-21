@@ -1007,6 +1007,40 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
+        [EventIds.ArenaWindEarthNewCards] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaWindEarthNewCards,
+            NameKey = "campaign.battle.arena_wind_earth_new_cards.name",
+            DescriptionKey = "campaign.battle.arena_wind_earth_new_cards.description",
+            Position = new Vector2(550, 250),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 1,
+            RequiresDeck = false,
+            Repeatable = true,
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 4),
+                new(CardIds.WindEvasionTank, 3),
+                new(CardIds.WindPushbackUnit, 3),
+                new(CardIds.WindCleaveUnit, 3),
+                new(CardIds.EarthFlatDamageReductionTank, 3),
+                new(CardIds.EarthBulletUnit, 3),
+                new(CardIds.TailWind, 3),
+                new(CardIds.Fortify, 3),
+            },
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 4),
+                new(CardIds.WindCleaveUnit, 2),
+                new(CardIds.EarthBulletUnit, 2),
+                new(CardIds.TailWind, 2),
+                new(CardIds.Fortify, 2),
+            },
+            EnemyHp = 100f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
         [EventIds.DebugArena] = new BattleEventDefinition
         {
             Id = EventIds.DebugArena,

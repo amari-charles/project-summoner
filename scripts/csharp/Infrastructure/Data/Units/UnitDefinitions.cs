@@ -4,6 +4,7 @@ using Fateforged.Constants;
 using Fateforged.Projectiles;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Stats;
 using Godot;
@@ -400,6 +401,59 @@ public static class UnitDefinitions
         ScenePath = "res://scenes/battle/units/earth_rock_thrower_3d.tscn",
     };
 
+    public static readonly UnitDefinition EarthFlatDamageReductionTank = new()
+    {
+        Id = UnitIds.EarthFlatDamageReductionTank,
+        DisplayName = "Earth Flat Damage Reduction Tank",
+        Stats = new UnitStats
+        {
+            MaxHp = 250f,
+            AttackDamage = 14f,
+            AttackRange = 3.2f,
+            AttackSpeed = 0.7f,
+            MoveSpeed = 1.9f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "flat_damage_reduction_passive",
+                Kind = UnitAbilityKind.ApplySelfEffect,
+                CooldownSeconds = 10f,
+                EffectType = EffectType.FlatDamageReduction,
+                Value = 4f,
+                DurationSeconds = -1f,
+                Lifetime = EffectLifetime.Persistent(),
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.75f },
+        ScenePath =
+            "res://scenes/battle/units/earth_flat_damage_reduction_tank_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition EarthBulletUnit = new()
+    {
+        Id = UnitIds.EarthBulletUnit,
+        DisplayName = "Earth Bullet Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 85f,
+            AttackDamage = 15f,
+            AttackRange = 20f,
+            AttackSpeed = 0.75f,
+            MoveSpeed = 2.3f,
+            AggroRadius = 22f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Ranged = new RangedConfig(ProjectileIds.Rock),
+        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        ScenePath = "res://scenes/battle/units/earth_bullet_unit_placeholder_3d.tscn",
+    };
+
     public static readonly UnitDefinition TauntPulseGuardian = new()
     {
         Id = UnitIds.TauntPulseGuardian,
@@ -473,6 +527,100 @@ public static class UnitDefinitions
             },
         },
         ScenePath = "res://scenes/battle/units/puff_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindEvasionTank = new()
+    {
+        Id = UnitIds.WindEvasionTank,
+        DisplayName = "Wind Evasion Tank",
+        Stats = new UnitStats
+        {
+            MaxHp = 170f,
+            AttackDamage = 13f,
+            AttackRange = 3.2f,
+            AttackSpeed = 0.85f,
+            MoveSpeed = 2.7f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "evasion_passive",
+                Kind = UnitAbilityKind.ApplySelfEffect,
+                CooldownSeconds = 10f,
+                EffectType = EffectType.EvasionModifier,
+                Value = 0.2f,
+                DurationSeconds = -1f,
+                Lifetime = EffectLifetime.Persistent(),
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.65f },
+        ScenePath = "res://scenes/battle/units/wind_evasion_tank_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindPushbackUnit = new()
+    {
+        Id = UnitIds.WindPushbackUnit,
+        DisplayName = "Wind Pushback Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 90f,
+            AttackDamage = 10f,
+            AttackRange = 16f,
+            AttackSpeed = 0.8f,
+            MoveSpeed = 2.9f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedStrafe,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "targeted_knockback",
+                Kind = UnitAbilityKind.TargetedKnockback,
+                CooldownSeconds = 0f,
+                Range = 18f,
+                Value = 2.8f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.WindPuff),
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/wind_pushback_unit_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindCleaveUnit = new()
+    {
+        Id = UnitIds.WindCleaveUnit,
+        DisplayName = "Wind Cleave Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 120f,
+            AttackDamage = 18f,
+            AttackRange = 3.6f,
+            AttackSpeed = 1.0f,
+            MoveSpeed = 3.4f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Attack = new AttackVectorConfig
+        {
+            Preset = AttackPreset.AreaCleave,
+            Selection = new AttackSelectionConfig { TargetLimit = 3 },
+            Area = new AttackAreaConfig
+            {
+                Shape = AttackAreaShape.Box,
+                Size = new Vector3(4.2f, 1.0f, 2.1f),
+                ForwardOffset = 1.5f,
+            },
+        },
+        Visual = new VisualConfig { SeparationRadius = 0.55f },
+        ScenePath = "res://scenes/battle/units/wind_cleave_unit_placeholder_3d.tscn",
     };
 
     // =========================================================================
@@ -734,9 +882,14 @@ public static class UnitDefinitions
         [UnitIds.Rock] = Rock,
         [UnitIds.StoneApe] = StoneApe,
         [UnitIds.EarthRockThrower] = EarthRockThrower,
+        [UnitIds.EarthFlatDamageReductionTank] = EarthFlatDamageReductionTank,
+        [UnitIds.EarthBulletUnit] = EarthBulletUnit,
         [UnitIds.TauntPulseGuardian] = TauntPulseGuardian,
         // Wind
         [UnitIds.Puff] = Puff,
+        [UnitIds.WindEvasionTank] = WindEvasionTank,
+        [UnitIds.WindPushbackUnit] = WindPushbackUnit,
+        [UnitIds.WindCleaveUnit] = WindCleaveUnit,
         // Water
         [UnitIds.WaterFrog] = WaterFrog,
         [UnitIds.MamaDuck] = MamaDuck,
@@ -1054,6 +1207,8 @@ public static class UnitDefinitions
                     Radius = ability.Radius,
                     Value = ability.Value,
                     DurationSeconds = ability.DurationSeconds,
+                    EffectType = ability.EffectType,
+                    Lifetime = EffectLifetimeResolver.Resolve(ability.Lifetime, ability.DurationSeconds),
                     WindupSeconds = ability.WindupSeconds,
                     WindupTimer = 0f,
                     LockedTargetUnitId = null,

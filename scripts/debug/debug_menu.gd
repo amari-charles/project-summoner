@@ -17,6 +17,8 @@ extends Node
 const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
 const ENABLE_FLAG: String = "--enable-debug-menu"
 const DISABLE_FLAG: String = "--disable-debug-menu"
+const DEFAULT_ARENA_PRESET_ID: String = "all_test_arena"
+const DEBUG_ARENA_PRESETS = preload("res://scripts/debug/debug_arena_menu_presets.gd")
 
 ## UI references
 var _panel: PanelContainer
@@ -44,6 +46,19 @@ var _autocomplete_visible: bool = false
 var _camera_auto_log_enabled: bool = false
 var _camera_auto_log_elapsed: float = 0.0
 var _menu_enabled: bool = false
+var _arena_preset_id: String = DEFAULT_ARENA_PRESET_ID
+var _arena_preset_dropdown: OptionButton
+var _arena_button_grid: GridContainer
+var _battlefield_debug_service_override: Node
+var _camera_controller_override: Node
+var _campaign_setter_override: Callable
+var _campaign_battle_getter_override: Callable
+var _scene_transition_override: Callable
+var _profile_current_battle_setter_override: Callable
+var _battle_context_configure_override: Callable
+var _console_execute_override: Callable
+var _console_all_commands_override: Callable
+var _console_matching_commands_override: Callable
 
 const CAMERA_AUTO_LOG_INTERVAL_SECONDS: float = 5.0
 
@@ -452,18 +467,28 @@ func _build_more_tab(vbox: VBoxContainer) -> void:
 	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
 	vbox.add_child(open_arena_map_button)
 
-	var arena_grid: GridContainer = GridContainer.new()
-	arena_grid.columns = 2
-	arena_grid.add_theme_constant_override("h_separation", 8)
-	arena_grid.add_theme_constant_override("v_separation", 6)
-	vbox.add_child(arena_grid)
+	var preset_row: HBoxContainer = HBoxContainer.new()
+	preset_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(preset_row)
 
-	_add_debug_arena_button(arena_grid, "Earth Sprite", BattleIDs.ARENA_EARTH_SPRITE)
-	_add_debug_arena_button(arena_grid, "Puff", BattleIDs.ARENA_PUFF)
-	_add_debug_arena_button(arena_grid, "Fire Wisp", BattleIDs.ARENA_FIRE_WISP)
-	_add_debug_arena_button(arena_grid, "Cloud Swarm", BattleIDs.ARENA_CLOUD_SWARM)
-	_add_debug_arena_button(arena_grid, "Mana Bolt", BattleIDs.ARENA_MANA_BOLT)
-	_add_debug_arena_button(arena_grid, "Debug Arena", BattleIDs.DEBUG_ARENA)
+	var preset_label: Label = Label.new()
+	preset_label.text = "Arena List"
+	preset_label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75))
+	preset_row.add_child(preset_label)
+
+	_arena_preset_dropdown = OptionButton.new()
+	_arena_preset_dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_arena_preset_dropdown.item_selected.connect(_on_arena_preset_selected)
+	preset_row.add_child(_arena_preset_dropdown)
+	_populate_arena_preset_dropdown()
+
+	_arena_button_grid = GridContainer.new()
+	_arena_button_grid.columns = 2
+	_arena_button_grid.add_theme_constant_override("h_separation", 8)
+	_arena_button_grid.add_theme_constant_override("v_separation", 6)
+	vbox.add_child(_arena_button_grid)
+
+	_build_debug_arena_buttons(_arena_button_grid)
 
 
 func _update_button_states() -> void:
@@ -542,6 +567,87 @@ func _add_debug_arena_button(parent: GridContainer, label: String, battle_id: St
 	button.custom_minimum_size = Vector2(96, 32)
 	button.pressed.connect(_on_debug_arena_battle_pressed.bind(String(battle_id)))
 	parent.add_child(button)
+
+
+func _build_debug_arena_buttons(parent: GridContainer) -> void:
+	for child_var: Variant in parent.get_children():
+		if child_var is Node:
+			var child: Node = child_var
+			parent.remove_child(child)
+			child.queue_free()
+
+	var entries: Array[Dictionary] = DEBUG_ARENA_PRESETS.get_preset_entries(_arena_preset_id)
+	if entries.is_empty():
+		# Defensive fallback for malformed/missing preset catalog.
+		entries = [
+			{"label": "Earth Sprite", "battle_id": String(BattleIDs.ARENA_EARTH_SPRITE)},
+			{"label": "Puff", "battle_id": String(BattleIDs.ARENA_PUFF)},
+			{"label": "Fire Wisp", "battle_id": String(BattleIDs.ARENA_FIRE_WISP)},
+			{"label": "Cloud Swarm", "battle_id": String(BattleIDs.ARENA_CLOUD_SWARM)},
+			{"label": "Mana Bolt", "battle_id": String(BattleIDs.ARENA_MANA_BOLT)},
+			{"label": "Debug Arena", "battle_id": String(BattleIDs.DEBUG_ARENA)}
+		]
+
+	for entry: Dictionary in entries:
+		var battle_id: String = SafeTypeUtils.string(entry.get("battle_id", ""), "")
+		if battle_id.is_empty():
+			continue
+		var label: String = SafeTypeUtils.string(entry.get("label", battle_id), battle_id)
+		_add_debug_arena_button(parent, label, StringName(battle_id))
+
+
+func _populate_arena_preset_dropdown() -> void:
+	if not _arena_preset_dropdown:
+		return
+
+	_arena_preset_dropdown.clear()
+	var presets: Array[Dictionary] = DEBUG_ARENA_PRESETS.get_available_presets()
+	var selected_index: int = -1
+
+	for preset: Dictionary in presets:
+		var preset_id: String = SafeTypeUtils.string(preset.get("id", ""), "")
+		if preset_id.is_empty():
+			continue
+
+		var preset_label: String = SafeTypeUtils.string(preset.get("label", preset_id), preset_id)
+		_arena_preset_dropdown.add_item(preset_label)
+		var item_index: int = _arena_preset_dropdown.item_count - 1
+		_arena_preset_dropdown.set_item_metadata(item_index, preset_id)
+
+		if preset_id == _arena_preset_id:
+			selected_index = item_index
+
+	if _arena_preset_dropdown.item_count == 0:
+		_arena_preset_dropdown.add_item(DEFAULT_ARENA_PRESET_ID)
+		_arena_preset_dropdown.set_item_metadata(0, DEFAULT_ARENA_PRESET_ID)
+		_arena_preset_id = DEFAULT_ARENA_PRESET_ID
+		_arena_preset_dropdown.select(0)
+		return
+
+	if selected_index < 0:
+		selected_index = 0
+		_arena_preset_id = SafeTypeUtils.string(
+			_arena_preset_dropdown.get_item_metadata(selected_index),
+			DEFAULT_ARENA_PRESET_ID
+		)
+
+	_arena_preset_dropdown.select(selected_index)
+
+
+func _on_arena_preset_selected(index: int) -> void:
+	if not _arena_preset_dropdown:
+		return
+
+	var selected_id: String = SafeTypeUtils.string(_arena_preset_dropdown.get_item_metadata(index), "")
+	if selected_id.is_empty():
+		return
+	if _arena_preset_id == selected_id:
+		return
+
+	_arena_preset_id = selected_id
+	_save_settings()
+	if _arena_button_grid:
+		_build_debug_arena_buttons(_arena_button_grid)
 
 
 ## =============================================================================
@@ -776,7 +882,7 @@ func _on_command_submitted(command: String) -> void:
 	_hide_autocomplete()
 
 	# Execute via DevConsole
-	var success: bool = DevConsole.execute_command(command)
+	var success: bool = _execute_console_command(command)
 
 	# Show result
 	if _command_output:
@@ -841,9 +947,9 @@ func _update_autocomplete(text: String) -> void:
 	# Get matching commands
 	var matches: Array[Dictionary]
 	if text.is_empty() or text == "/":
-		matches = DevConsole.get_all_commands()
+		matches = _get_all_console_commands()
 	else:
-		matches = DevConsole.get_matching_commands(text)
+		matches = _get_matching_console_commands(text)
 
 	# No matches - hide
 	if matches.is_empty():
@@ -917,9 +1023,71 @@ func _select_autocomplete_item(index: int) -> void:
 	if _command_input:
 		_command_input.text = cmd
 		_command_input.caret_column = cmd.length()
-		_command_input.grab_focus()
+		if _command_input.is_inside_tree():
+			_command_input.grab_focus()
 
 	_hide_autocomplete()
+
+
+func _set_current_campaign(campaign_id: String) -> bool:
+	if _campaign_setter_override.is_valid():
+		return SafeTypeUtils.bool_val(_campaign_setter_override.call(campaign_id), false)
+	return CampaignApi.set_current_campaign(campaign_id)
+
+
+func _get_campaign_battle(battle_id: String) -> Dictionary:
+	if _campaign_battle_getter_override.is_valid():
+		return SafeTypeUtils.dict(_campaign_battle_getter_override.call(battle_id))
+	return CampaignApi.get_battle(battle_id)
+
+
+func _transition_to_scene(scene_path: String) -> void:
+	if _scene_transition_override.is_valid():
+		_scene_transition_override.call(scene_path)
+		return
+	SceneManager.transition_to(scene_path)
+
+
+func _set_profile_current_battle(battle_id: String) -> void:
+	if _profile_current_battle_setter_override.is_valid():
+		_profile_current_battle_setter_override.call(battle_id)
+		return
+	ProfileRepoApi.update_campaign_progress_dict({"current_battle": battle_id}, "")
+
+
+func _configure_campaign_battle_context(battle_id: String) -> void:
+	if _battle_context_configure_override.is_valid():
+		_battle_context_configure_override.call(battle_id)
+		return
+	BattleContext.configure_campaign_battle(battle_id)
+
+
+func _execute_console_command(command: String) -> bool:
+	if _console_execute_override.is_valid():
+		return SafeTypeUtils.bool_val(_console_execute_override.call(command), false)
+	return DevConsole.execute_command(command)
+
+
+func _get_all_console_commands() -> Array[Dictionary]:
+	if _console_all_commands_override.is_valid():
+		return _normalize_console_commands(SafeTypeUtils.array(_console_all_commands_override.call()))
+	return _normalize_console_commands(DevConsole.get_all_commands())
+
+
+func _get_matching_console_commands(text: String) -> Array[Dictionary]:
+	if _console_matching_commands_override.is_valid():
+		return _normalize_console_commands(SafeTypeUtils.array(_console_matching_commands_override.call(text)))
+	return _normalize_console_commands(DevConsole.get_matching_commands(text))
+
+
+func _normalize_console_commands(raw: Array) -> Array[Dictionary]:
+	var normalized: Array[Dictionary] = []
+	for item: Variant in raw:
+		var cmd: Dictionary = SafeTypeUtils.dict(item)
+		if cmd.is_empty():
+			continue
+		normalized.append(cmd)
+	return normalized
 
 
 func _on_win_pressed() -> void:
@@ -942,12 +1110,12 @@ func _on_lose_pressed() -> void:
 
 func _on_open_test_arena_map_pressed() -> void:
 	var campaign_id: String = String(CampaignIDs.TEST_ARENA)
-	var success: bool = CampaignApi.set_current_campaign(campaign_id)
+	var success: bool = _set_current_campaign(campaign_id)
 	if not success:
 		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
 		return
 
-	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+	_transition_to_scene(SceneManager.SCENE_CAMPAIGN_MAP)
 	print("[Debug] Opened Test Arena campaign map")
 
 
@@ -956,21 +1124,21 @@ func _on_debug_arena_battle_pressed(battle_id: String) -> void:
 		return
 
 	var campaign_id: String = String(CampaignIDs.TEST_ARENA)
-	var campaign_set: bool = CampaignApi.set_current_campaign(campaign_id)
+	var campaign_set: bool = _set_current_campaign(campaign_id)
 	if not campaign_set:
 		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
 		return
 
-	ProfileRepoApi.update_campaign_progress_dict({"current_battle": battle_id}, "")
-	BattleContext.configure_campaign_battle(battle_id)
+	_set_profile_current_battle(battle_id)
+	_configure_campaign_battle_context(battle_id)
 
-	var event_data: Dictionary = CampaignApi.get_battle(battle_id)
+	var event_data: Dictionary = _get_campaign_battle(battle_id)
 	var battle_scene: String = SceneManager.SCENE_BATTLE_3D
 	var custom_scene: String = SafeTypeUtils.string(event_data.get("scene_path", ""), "")
 	if not custom_scene.is_empty():
 		battle_scene = custom_scene
 
-	SceneManager.transition_to(battle_scene)
+	_transition_to_scene(battle_scene)
 	print("[Debug] Launched test arena battle '%s'" % battle_id)
 
 
@@ -985,7 +1153,14 @@ func _on_snapshots_pressed() -> void:
 
 
 func _get_battlefield_debug_service() -> Node:
-	return get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
+	if _battlefield_debug_service_override:
+		return _battlefield_debug_service_override
+	if not is_inside_tree():
+		return null
+	var tree: SceneTree = get_tree()
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null(CSharpAutoloads.BATTLEFIELD_DEBUG)
 
 
 func _get_unit_debug_service() -> Node:
@@ -993,8 +1168,16 @@ func _get_unit_debug_service() -> Node:
 
 
 func _find_battle_camera_controller() -> Node:
+	if _camera_controller_override:
+		return _camera_controller_override
+	if not is_inside_tree():
+		return null
+
 	# Prefer active viewport camera first.
-	var active_camera: Camera3D = get_viewport().get_camera_3d()
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return null
+	var active_camera: Camera3D = viewport.get_camera_3d()
 	if active_camera and active_camera.has_method("get_clamp_diagnostics"):
 		return active_camera
 
@@ -1097,6 +1280,13 @@ func _load_settings() -> void:
 	_camera_auto_log_enabled = config.get_value("debug_menu", "camera_auto_log", false)
 	_camera_auto_log_elapsed = 0.0
 
+	var preset_default: String = DEBUG_ARENA_PRESETS.get_default_preset_id()
+	if preset_default.is_empty():
+		preset_default = DEFAULT_ARENA_PRESET_ID
+	_arena_preset_id = config.get_value("debug_menu", "arena_preset_id", preset_default)
+	if not DEBUG_ARENA_PRESETS.has_preset(_arena_preset_id):
+		_arena_preset_id = preset_default
+
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
 
 
@@ -1127,5 +1317,6 @@ func _save_settings() -> void:
 			config.set_value("debug_menu", "summoner_bubble", _unit_debug.call("IsDebugSummonerBubbleEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 	config.set_value("debug_menu", "camera_auto_log", _camera_auto_log_enabled)
+	config.set_value("debug_menu", "arena_preset_id", _arena_preset_id)
 
 	config.save(SETTINGS_PATH)

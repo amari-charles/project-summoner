@@ -213,6 +213,29 @@ public class CardCatalogTest
     }
 
     [TestCase]
+    public void GetCard_NewWindEarthCards_ArePresentAndShipEligible()
+    {
+        var windEarthCards = new[]
+        {
+            CardIds.WindEvasionTank,
+            CardIds.WindPushbackUnit,
+            CardIds.WindCleaveUnit,
+            CardIds.TailWind,
+            CardIds.EarthFlatDamageReductionTank,
+            CardIds.EarthBulletUnit,
+            CardIds.Fortify,
+        };
+
+        foreach (var id in windEarthCards)
+        {
+            var card = CardCatalog.GetCard(id);
+            AssertThat(card).IsNotNull();
+            AssertThat(card!.UnlockCondition).IsEqual(UnlockCondition.Default);
+            AssertThat((card.Flags & (CardFlags.DevOnly | CardFlags.Archived)) == 0).IsTrue();
+        }
+    }
+
+    [TestCase]
     public void SpellCards_NonCommandRequireExplicitSpellEffects()
     {
         var spellCards = CardCatalog.GetCardsByType(CardType.Spell);

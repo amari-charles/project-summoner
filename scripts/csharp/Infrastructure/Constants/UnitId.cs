@@ -58,12 +58,19 @@ public static class UnitIds
     public static readonly UnitId StoneApe = new("stone_ape");
     public static readonly UnitId EarthRockThrower = new("earth_rock_thrower");
     public static readonly UnitId TauntPulseGuardian = new("taunt_pulse_guardian");
+    public static readonly UnitId EarthFlatDamageReductionTank = new(
+        "earth_flat_damage_reduction_tank"
+    );
+    public static readonly UnitId EarthBulletUnit = new("earth_bullet_unit");
 
     // =========================================================================
     // WIND ELEMENT UNITS
     // =========================================================================
 
     public static readonly UnitId Puff = new("puff");
+    public static readonly UnitId WindEvasionTank = new("wind_evasion_tank");
+    public static readonly UnitId WindPushbackUnit = new("wind_pushback_unit");
+    public static readonly UnitId WindCleaveUnit = new("wind_cleave_unit");
 
     // =========================================================================
     // WATER ELEMENT UNITS

@@ -315,6 +315,79 @@ public static class CardDefinitions
         ElementalAffinity = Element.Water,
     };
 
+    public static readonly CardDefinition TailWind = new()
+    {
+        Id = CardIds.TailWind,
+        Name = "Tail Wind",
+        Description =
+            "Create a square wind zone. Allies inside attack faster, enemies inside attack slower.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellRadius = 6.0f,
+        SpellDuration = 4.0f,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.AttackSpeedModifier,
+                Value = 0.25f,
+                Duration = 4.0f,
+                Lifetime = EffectLifetime.Timed(4.0f),
+                RadiusOverride = 6f,
+                AreaShape = SpellAreaShape.Square,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.AttackSpeedModifier,
+                Value = -0.25f,
+                Duration = 4.0f,
+                Lifetime = EffectLifetime.Timed(4.0f),
+                RadiusOverride = 6f,
+                AreaShape = SpellAreaShape.Square,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition Fortify = new()
+    {
+        Id = CardIds.Fortify,
+        Name = "Fortify",
+        Description =
+            "Reinforce allies in an area with flat damage reduction. This spell does not heal.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.2f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 4.0f,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.FlatDamageReduction,
+                Value = 4f,
+                Duration = 4.0f,
+                Lifetime = EffectLifetime.Timed(4.0f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
     // =========================================================================
     // WISPS (Basic starter units for each element)
     // =========================================================================
@@ -776,6 +849,47 @@ public static class CardDefinitions
         ElementalAffinity = Element.Earth,
     };
 
+    public static readonly CardDefinition EarthFlatDamageReductionTank = new()
+    {
+        Id = CardIds.EarthFlatDamageReductionTank,
+        Name = "Earth Flat Damage Reduction Tank",
+        Description = "Frontline tank with a built-in flat damage reduction passive.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.8f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.EarthFlatDamageReductionTank,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Tank,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition EarthBulletUnit = new()
+    {
+        Id = CardIds.EarthBulletUnit,
+        Name = "Earth Bullet Unit",
+        Description = "Ranged unit that fires dense earth projectiles at long range.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.EarthBulletUnit,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
     // =========================================================================
     // WIND ELEMENT UNITS
     // =========================================================================
@@ -822,6 +936,67 @@ public static class CardDefinitions
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Wind,
         Flags = CardFlags.Archived,
+    };
+
+    public static readonly CardDefinition WindEvasionTank = new()
+    {
+        Id = CardIds.WindEvasionTank,
+        Name = "Wind Evasion Tank",
+        Description = "Frontline tank with a persistent evasion bonus.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.8f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.WindEvasionTank,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Tank,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition WindPushbackUnit = new()
+    {
+        Id = CardIds.WindPushbackUnit,
+        Name = "Wind Pushback Unit",
+        Description = "Ranged unit with a targeted knockback ability on cooldown.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.2f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WindPushbackUnit,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition WindCleaveUnit = new()
+    {
+        Id = CardIds.WindCleaveUnit,
+        Name = "Wind Cleave Unit",
+        Description = "Melee unit with a forward cleave attack profile.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 1.1f,
+        UnitId = UnitIds.WindCleaveUnit,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
     };
 
     // =========================================================================
@@ -1055,6 +1230,8 @@ public static class CardDefinitions
         [CardIds.Cleanse] = Cleanse,
         [CardIds.WaterJet] = WaterJet,
         [CardIds.RainField] = RainField,
+        [CardIds.TailWind] = TailWind,
+        [CardIds.Fortify] = Fortify,
 
         // Wisps
         [CardIds.FireWisp] = FireWisp,
@@ -1081,11 +1258,16 @@ public static class CardDefinitions
         [CardIds.Rock] = Rock,
         [CardIds.StoneApe] = StoneApe,
         [CardIds.EarthRockThrower] = EarthRockThrower,
+        [CardIds.EarthFlatDamageReductionTank] = EarthFlatDamageReductionTank,
+        [CardIds.EarthBulletUnit] = EarthBulletUnit,
         [CardIds.TauntPulseGuardian] = TauntPulseGuardian,
 
         // Wind units
         [CardIds.Puff] = Puff,
         [CardIds.CloudSwarm] = CloudSwarm,
+        [CardIds.WindEvasionTank] = WindEvasionTank,
+        [CardIds.WindPushbackUnit] = WindPushbackUnit,
+        [CardIds.WindCleaveUnit] = WindCleaveUnit,
 
         // Water units
         [CardIds.WaterFrog] = WaterFrog,

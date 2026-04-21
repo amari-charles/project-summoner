@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
 
@@ -83,9 +84,10 @@ public static class SimDamage
     )
     {
         // 0. Evasion check (deterministic via RNG)
-        if (target.Evasion > 0 && rng != null)
+        float effectiveEvasion = EffectStatResolver.GetEffectiveEvasion(target);
+        if (effectiveEvasion > 0f && rng != null)
         {
-            if (rng.NextFloat() < target.Evasion)
+            if (rng.NextFloat() < effectiveEvasion)
             {
                 events?.Add(new AttackEvadedEvent(target.UnitId, attacker?.UnitId ?? -1));
                 return (0f, false, true);
@@ -145,13 +147,16 @@ public static class SimDamage
             damage = MathF.Max(damage - targetSummoner.DamageReduction, 0f);
         }
 
-        // 6. Shield absorption (oldest shield first)
+        // 6. Flat reduction from active effects (post-defense, pre-shield).
+        damage = EffectStatResolver.ApplyFlatDamageReduction(target, damage);
+
+        // 7. Shield absorption (oldest shield first)
         if (target.ActiveBuffs.Count > 0)
         {
             damage = SimEffects.AbsorbWithShields(target, damage, events);
         }
 
-        // 7. Round to 1 decimal place (matches DamageSystem)
+        // 8. Round to 1 decimal place (matches DamageSystem)
         damage = SimUtils.RoundToOneDecimal(damage);
 
         return (damage, isCrit, false);

@@ -7,6 +7,7 @@ using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
 using Fateforged.Simulation.Movement;
@@ -934,7 +935,7 @@ public class Simulation
                         _state,
                         effect.EffectType,
                         effect.Value,
-                        effect.Duration,
+                        EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
                         effect.DamageType,
                         target,
                         summonerSourceId,
@@ -981,15 +982,18 @@ public class Simulation
         float delaySeconds
     )
     {
+        var lifetime = EffectLifetimeResolver.Resolve(effect.Lifetime, effect.Duration);
         _state.DelayedEffects.Add(
             new DelayedEffect
             {
                 Timer = delaySeconds,
                 EffectType = effect.EffectType,
                 Value = effect.Value,
-                Duration = effect.Duration,
+                Duration = lifetime.ToLegacyDuration(),
+                Lifetime = lifetime,
                 DamageType = effect.DamageType,
                 AoeRadius = effect.AoeRadius > 0f ? effect.AoeRadius : cardData.SpellRadius,
+                AreaShape = effect.AreaShape,
                 Position = castPosition,
                 SourceUnitId = sourceUnitId,
                 SourceTeam = (Team)team,
@@ -1132,12 +1136,11 @@ public class Simulation
             {
                 // AoE at position — find all matching units in radius
                 float radius = effect.AoeRadius > 0 ? effect.AoeRadius : cardData.SpellRadius;
-                float radiusSq = radius * radius;
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
                     if (teamFilter.HasValue && (int)unit.Team != teamFilter.Value)
                         continue;
-                    if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
+                    if (SpellAreaResolver.IsWithinArea(effect.AreaShape, position, unit.Position, radius))
                         targets.Add(unit);
                 }
                 break;
@@ -1185,12 +1188,12 @@ public class Simulation
             case SpellTargetingMode.AlliesInRadius:
             {
                 // Allied units within selection radius
-                float radiusSq = cardData.SpellRadius * cardData.SpellRadius;
+                float radius = cardData.SpellRadius;
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
                     if ((int)unit.Team != team)
                         continue;
-                    if (unit.Position.DistanceSquaredTo(position) <= radiusSq)
+                    if (SpellAreaResolver.IsWithinArea(effect.AreaShape, position, unit.Position, radius))
                         targets.Add(unit);
                 }
                 break;

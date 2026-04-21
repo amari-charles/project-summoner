@@ -713,6 +713,8 @@ public static class SimProjectile
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, proj.SourceUnitId, damage, isCrit));
+        if (target.CurrentHp > 0f && sourceUnit != null)
+            SimAbilityOrchestrator.TryActivateOnHitEffects(state, sourceUnit, target, events);
 
         if (target.CurrentHp <= 0)
         {

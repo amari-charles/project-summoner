@@ -29,6 +29,9 @@ The deterministic simulation layer (`Fateforged.Simulation` namespace) is a pure
 | `Movement/OverlapCorrection.cs` | Position-only safety pass for residual overlaps |
 | `Movement/FacingController.cs` | Stable facing updates with dead-zones/hold timer (avoids rapid flip jitter) |
 | `SimEffects.cs` | Buff/debuff/trigger system, periodic effects, delayed effects, stat queries |
+| `Effects/EffectLifetimeResolver.cs` | Typed lifetime + legacy duration bridge semantics |
+| `Effects/SpellAreaResolver.cs` | Shared circle/square area inclusion checks |
+| `Effects/EffectStatResolver.cs` | Shared derived stat/effect materialization (`evasion`, attack speed, flat reduction) |
 | `SimProjectile.cs` | Projectile simulation (movement, homing, pierce, AoE) |
 
 ## Tick Order Contract (12 steps)
@@ -76,6 +79,10 @@ Constants are centralized in `SimConstants` (mirrors `ProjectSummoner.Units.Acti
 ### Death Handling
 
 All death logic flows through `SimUtils.KillUnit()` — the single source of truth for HP zeroing, alive flag, cleanup timer, kill count, and death event. Callers are responsible for firing appropriate triggers (OnKill, OnDeath, LeaderDeath) since trigger context varies by call site.
+
+### Cross-Cutting Node Extraction Rule
+
+When a simulation concern appears in more than one subsystem (for example lifetime adaptation, shared area-resolution, or shared effect-stat materialization), extract a dedicated simulation node/module for that concern instead of copying helper logic into each caller. This keeps deterministic behavior centralized and avoids drift between immediate and delayed pipelines.
 
 ## Multiplayer Coordination
 
