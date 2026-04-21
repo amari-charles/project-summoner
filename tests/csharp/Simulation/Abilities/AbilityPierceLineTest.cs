@@ -69,7 +69,7 @@ public class AbilityPierceLineTest
         );
         var frontTarget = SimTestHelper.CreateMeleeUnit(state, 1, x: 9f, z: 0f, hp: 100f);
         var behindTarget = SimTestHelper.CreateMeleeUnit(state, 1, x: 17f, z: 0f, hp: 100f);
-        attacker.TargetUnitId = frontTarget.UnitId;
+        attacker.Engagement.TargetUnitId = frontTarget.UnitId;
 
         float frontBefore = frontTarget.CurrentHp;
         float behindBefore = behindTarget.CurrentHp;

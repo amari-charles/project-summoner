@@ -42,9 +42,9 @@ public class MovementTargetResolverTest
         second.EngageRectHalfWidth = 0.9f;
         third.EngageRectHalfWidth = 0.9f;
 
-        first.TargetUnitId = target.UnitId;
-        second.TargetUnitId = target.UnitId;
-        third.TargetUnitId = target.UnitId;
+        first.Engagement.TargetUnitId = target.UnitId;
+        second.Engagement.TargetUnitId = target.UnitId;
+        third.Engagement.TargetUnitId = target.UnitId;
 
         var thirdPoint = MovementTargetResolver.Resolve(third, target.UnitId, _state);
         var firstPoint = MovementTargetResolver.Resolve(first, target.UnitId, _state);

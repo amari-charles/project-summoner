@@ -1083,8 +1083,8 @@ public class SimulationIntegrationTest
             _sim.Tick(Delta);
 
         // Unit should be targeting the enemy summoner (target ID = -2 for team 1)
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(-2);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(-2);
     }
 
     [TestCase]
@@ -1217,12 +1217,12 @@ public class SimulationIntegrationTest
             z: 0.25f,
             attackRange: 2.5f
         );
-        attackerOne.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        attackerTwo.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        attackerOne.LockedTargetUnitId = target.UnitId;
-        attackerTwo.LockedTargetUnitId = target.UnitId;
-        attackerOne.TargetUnitId = target.UnitId;
-        attackerTwo.TargetUnitId = target.UnitId;
+        attackerOne.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        attackerTwo.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        attackerOne.Engagement.LockedTargetUnitId = target.UnitId;
+        attackerTwo.Engagement.LockedTargetUnitId = target.UnitId;
+        attackerOne.Engagement.TargetUnitId = target.UnitId;
+        attackerTwo.Engagement.TargetUnitId = target.UnitId;
 
         var snapshots = new List<string>();
         for (int i = 0; i < 240; i++)
@@ -1232,7 +1232,7 @@ public class SimulationIntegrationTest
                 continue;
 
             snapshots.Add(
-                $"{i + 1}|{target.CurrentHp:F2}|{attackerOne.TargetUnitId}|{attackerTwo.TargetUnitId}|{attackerOne.Position.X:F3}|{attackerTwo.Position.X:F3}"
+                $"{i + 1}|{target.CurrentHp:F2}|{attackerOne.Engagement.TargetUnitId}|{attackerTwo.Engagement.TargetUnitId}|{attackerOne.Position.X:F3}|{attackerTwo.Position.X:F3}"
             );
         }
 
@@ -1278,9 +1278,9 @@ public class SimulationIntegrationTest
                 aggroRadius: 30f
             );
 
-            attacker.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-            attacker.LockedTargetUnitId = primaryTarget.UnitId;
-            attacker.TargetUnitId = primaryTarget.UnitId;
+            attacker.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+            attacker.Engagement.LockedTargetUnitId = primaryTarget.UnitId;
+            attacker.Engagement.TargetUnitId = primaryTarget.UnitId;
             attackers.Add(attacker);
         }
 
@@ -1299,7 +1299,7 @@ public class SimulationIntegrationTest
 
             foreach (var attacker in attackers)
             {
-                int? targetId = attacker.LockedTargetUnitId ?? attacker.TargetUnitId;
+                int? targetId = attacker.Engagement.LockedTargetUnitId ?? attacker.Engagement.TargetUnitId;
                 if (targetId.HasValue && targetId.Value == primaryTarget.UnitId)
                     onPrimary++;
                 else if (targetId.HasValue && targetId.Value == fallbackTarget.UnitId)
@@ -1308,13 +1308,13 @@ public class SimulationIntegrationTest
                     onSummoner++;
 
                 if (
-                    attacker.DroppedTargetUnitId.HasValue
-                    && attacker.DroppedTargetUnitId.Value == primaryTarget.UnitId
+                    attacker.Engagement.DroppedTargetUnitId.HasValue
+                    && attacker.Engagement.DroppedTargetUnitId.Value == primaryTarget.UnitId
                 )
                     droppedPrimary++;
                 if (
-                    attacker.SlotTargetId.HasValue
-                    && attacker.SlotTargetId.Value == primaryTarget.UnitId
+                    attacker.Engagement.SlotTargetId.HasValue
+                    && attacker.Engagement.SlotTargetId.Value == primaryTarget.UnitId
                 )
                     slottingPrimary++;
             }

@@ -57,7 +57,7 @@ public class SimBehaviorTest
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: -10f, attackRange: 2f);
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f);
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         var events = new List<SimEvent>();
 
         var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
@@ -74,7 +74,7 @@ public class SimBehaviorTest
         unit.AssignedLane = 1;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 8f, z: 16f);
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         var events = new List<SimEvent>();
 
         var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
@@ -91,7 +91,7 @@ public class SimBehaviorTest
         unit.AssignedLane = 0;
         var centerEnemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, z: 0f);
 
-        unit.TargetUnitId = centerEnemy.UnitId;
+        unit.Engagement.TargetUnitId = centerEnemy.UnitId;
         var events = new List<SimEvent>();
 
         var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
@@ -107,7 +107,7 @@ public class SimBehaviorTest
         unit.TacticalRole = TacticalRole.Flanker;
         unit.AssignedLane = 0;
 
-        unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
+        unit.Engagement.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
         var events = new List<SimEvent>();
 
         var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
@@ -123,7 +123,7 @@ public class SimBehaviorTest
         unit.TacticalRole = TacticalRole.Backliner;
         unit.AssignedLane = 2;
 
-        unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
+        unit.Engagement.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
         var events = new List<SimEvent>();
 
         var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
@@ -138,7 +138,7 @@ public class SimBehaviorTest
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f);
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f);
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 1f; // Cooldown active
         var events = new List<SimEvent>();
 
@@ -157,7 +157,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -179,7 +179,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -201,7 +201,7 @@ public class SimBehaviorTest
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
         unit.ActiveBuffs.Add(new ActiveBuff { EffectType = EffectType.Stun, Duration = 2f });
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f);
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         var events = new List<SimEvent>();
 
         var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
@@ -222,7 +222,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -240,7 +240,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -261,7 +261,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 10f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -281,7 +281,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 10f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -300,7 +300,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 10f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         int killsBefore = _state.KillCount;
         var events = new List<SimEvent>();
@@ -320,7 +320,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -347,7 +347,7 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -374,7 +374,7 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
@@ -403,7 +403,7 @@ public class SimBehaviorTest
         unit.IsFacingRight = true;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
@@ -430,7 +430,7 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -492,7 +492,7 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         // Point unit at enemy summoner (team 1 summoner is at x=20)
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
-        unit.TargetUnitId = summonerTargetId;
+        unit.Engagement.TargetUnitId = summonerTargetId;
         unit.AttackCooldown = 0f;
 
         float hpBefore = _state.Summoners[1].CurrentHp;
@@ -518,7 +518,7 @@ public class SimBehaviorTest
         unit.CritChance = 0f;
         unit.ElementId = 0;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
-        unit.TargetUnitId = summonerTargetId;
+        unit.Engagement.TargetUnitId = summonerTargetId;
         unit.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
@@ -562,7 +562,7 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         unit.SoulStrength = 7f;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
-        unit.TargetUnitId = summonerTargetId;
+        unit.Engagement.TargetUnitId = summonerTargetId;
         unit.AttackCooldown = 0f;
         _state.Summoners[0].DamageBonus = 0f;
         _state.Summoners[1].DamageReduction = 0f;
@@ -584,7 +584,7 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         unit.SoulStrength = 8f;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
-        unit.TargetUnitId = summonerTargetId;
+        unit.Engagement.TargetUnitId = summonerTargetId;
         unit.AttackCooldown = 0f;
         _state.Summoners[0].DamageBonus = 0f;
         _state.Summoners[1].DamageReduction = 0f;
@@ -605,7 +605,7 @@ public class SimBehaviorTest
         unit.CritChance = 0f;
         unit.ElementId = 0;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
-        unit.TargetUnitId = summonerTargetId;
+        unit.Engagement.TargetUnitId = summonerTargetId;
         unit.AttackCooldown = 0f;
 
         _state.Summoners[1].CurrentHp = 5f;
@@ -626,24 +626,24 @@ public class SimBehaviorTest
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
         unit.AttackCooldown = 1.0f;
-        unit.TargetLockTimer = 0.5f;
+        unit.Engagement.TargetLockTimer = 0.5f;
 
         SimBehavior.TickCooldowns(unit, 0.1f);
 
         AssertThat(unit.AttackCooldown).IsEqual(0.9f);
-        AssertThat(unit.TargetLockTimer).IsEqual(0.4f);
+        AssertThat(unit.Engagement.TargetLockTimer).IsEqual(0.4f);
     }
 
     [TestCase]
     public void TickCooldowns_ForcedTargetExpiry_ClearsTarget()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.ForcedTargetUnitId = 99;
-        unit.ForcedTargetTimer = 0.1f;
+        unit.Engagement.ForcedTargetUnitId = 99;
+        unit.Engagement.ForcedTargetTimer = 0.1f;
 
         SimBehavior.TickCooldowns(unit, 0.5f);
 
-        AssertThat(unit.ForcedTargetUnitId).IsNull();
+        AssertThat(unit.Engagement.ForcedTargetUnitId).IsNull();
     }
 
     // =========================================================================
@@ -657,14 +657,14 @@ public class SimBehaviorTest
         var enemy2 = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f);
 
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.ForcedTargetUnitId = enemy2.UnitId;
-        unit.ForcedTargetTimer = 5f;
+        unit.Engagement.ForcedTargetUnitId = enemy2.UnitId;
+        unit.Engagement.ForcedTargetTimer = 5f;
 
         SimBehavior.TickTargeting(unit, _state);
 
         // Forced target should win even though enemy1 is closer
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value == enemy2.UnitId).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value == enemy2.UnitId).IsTrue();
     }
 
     [TestCase]
@@ -673,13 +673,13 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
 
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.TargetLockTimer = 0f; // Lock expired
+        unit.Engagement.TargetLockTimer = 0f; // Lock expired
 
         SimBehavior.TickTargeting(unit, _state);
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value == enemy.UnitId).IsTrue();
-        AssertThat(unit.TargetLockTimer).IsGreater(0f);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value == enemy.UnitId).IsTrue();
+        AssertThat(unit.Engagement.TargetLockTimer).IsGreater(0f);
     }
 
     [TestCase]
@@ -700,14 +700,14 @@ public class SimBehaviorTest
         var current = SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f); // In cone and in range
         SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 10f); // Closer but out of cone
 
-        unit.TargetUnitId = current.UnitId;
-        unit.TargetLockTimer = 0f;
+        unit.Engagement.TargetUnitId = current.UnitId;
+        unit.Engagement.TargetLockTimer = 0f;
 
         SimBehavior.TickTargeting(unit, _state);
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value == current.UnitId).IsTrue();
-        AssertThat(unit.TargetLockTimer).IsGreater(0f);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value == current.UnitId).IsTrue();
+        AssertThat(unit.Engagement.TargetLockTimer).IsGreater(0f);
     }
 
     [TestCase]
@@ -728,13 +728,13 @@ public class SimBehaviorTest
         var closerOutOfCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 10f);
         var inCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f);
 
-        unit.TargetUnitId = closerOutOfCone.UnitId;
-        unit.TargetLockTimer = 0f;
+        unit.Engagement.TargetUnitId = closerOutOfCone.UnitId;
+        unit.Engagement.TargetLockTimer = 0f;
 
         SimBehavior.TickTargeting(unit, _state);
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value == inCone.UnitId).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value == inCone.UnitId).IsTrue();
     }
 
     [TestCase]
@@ -756,13 +756,13 @@ public class SimBehaviorTest
         var outOfRangeLowHp = SimTestHelper.CreateMeleeUnit(_state, 1, x: 6f, hp: 100f);
         outOfRangeLowHp.CurrentHp = 10f;
 
-        unit.TargetUnitId = currentInRange.UnitId;
-        unit.TargetLockTimer = 0f;
+        unit.Engagement.TargetUnitId = currentInRange.UnitId;
+        unit.Engagement.TargetLockTimer = 0f;
 
         SimBehavior.TickTargeting(unit, _state);
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value == currentInRange.UnitId).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value == currentInRange.UnitId).IsTrue();
     }
 
     // =========================================================================
@@ -788,7 +788,7 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
         enemy.Evasion = 0f;
 
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -831,7 +831,7 @@ public class SimBehaviorTest
             }
         );
 
-        attacker.TargetUnitId = defender.UnitId;
+        attacker.Engagement.TargetUnitId = defender.UnitId;
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -881,7 +881,7 @@ public class SimBehaviorTest
             }
         );
 
-        attacker.TargetUnitId = enemy.UnitId;
+        attacker.Engagement.TargetUnitId = enemy.UnitId;
         attacker.AttackCooldown = 0f;
         attacker.CurrentHp = 80f; // Less than max to see heal
         var events = new List<SimEvent>();
@@ -915,7 +915,7 @@ public class SimBehaviorTest
 
         // Place enemy behind — out of narrow cone
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: -5f, z: 5f);
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -934,7 +934,7 @@ public class SimBehaviorTest
         unit.IsFacingRight = true;
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: -5f, z: 5f);
-        unit.TargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -965,7 +965,7 @@ public class SimBehaviorTest
         var behindTarget = SimTestHelper.CreateMeleeUnit(_state, 1, x: -1.4f, z: 0.1f, hp: 100f);
         behindTarget.Evasion = 0f;
 
-        attacker.TargetUnitId = behindTarget.UnitId;
+        attacker.Engagement.TargetUnitId = behindTarget.UnitId;
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -1002,7 +1002,7 @@ public class SimBehaviorTest
         var offCorridorPrimary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, z: 1.1f, hp: 100f);
         offCorridorPrimary.Evasion = 0f;
 
-        attacker.TargetUnitId = offCorridorPrimary.UnitId;
+        attacker.Engagement.TargetUnitId = offCorridorPrimary.UnitId;
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -1034,8 +1034,14 @@ public class SimBehaviorTest
         attacker.EngageRectForwardOffset = pebbloomTemplate.EngageRectForwardOffset;
         attacker.EngageCloseRadius = pebbloomTemplate.EngageCloseRadius;
 
-        // Slightly outside raw forward-offset (2.1) but inside slot-aligned close bubble (2.15).
-        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 0.7f, z: 2.0f, hp: 100f);
+        // Slightly outside raw forward-offset, but inside the offset-aligned close bubble.
+        var primary = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: pebbloomTemplate.EngageRectForwardOffset * 0.9f,
+            z: 0f,
+            hp: 100f
+        );
         primary.Evasion = 0f;
 
         var events = new List<SimEvent>();
@@ -1045,7 +1051,7 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickBehavior_PebbloomVeryLargeForwardBox_HitsFrontAreaAndNearBehindBubble_ExcludesFarBehind()
+    public void TickBehavior_PebbloomForwardBox_HitsFrontAreaAndNearBehindBubble_ExcludesFarBehind()
     {
         SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(
             UnitIds.EarthSprite,
@@ -1067,19 +1073,42 @@ public class SimBehaviorTest
         attacker.EngageRectForwardOffset = pebbloomTemplate.EngageRectForwardOffset;
         attacker.EngageCloseRadius = pebbloomTemplate.EngageCloseRadius;
 
-        var primary = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3.8f, z: 0f, hp: 100f);
+        float forwardOffset = pebbloomTemplate.EngageRectForwardOffset;
+        float length = pebbloomTemplate.EngageRectLength;
+        float halfWidth = pebbloomTemplate.EngageRectHalfWidth;
+        float closeRadius = pebbloomTemplate.EngageCloseRadius;
+
+        var primary = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: forwardOffset + (length * 0.60f),
+            z: 0f,
+            hp: 100f
+        );
         primary.Evasion = 0f;
         var frontWideRecipient = SimTestHelper.CreateMeleeUnit(
             _state,
             1,
-            x: 4.9f,
-            z: 2.4f,
+            x: forwardOffset + (length * 0.85f),
+            z: halfWidth * 0.90f,
             hp: 100f
         );
         frontWideRecipient.Evasion = 0f;
-        var nearBehindRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: -0.8f, z: 0f, hp: 100f);
+        var nearBehindRecipient = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: -(closeRadius * 0.40f),
+            z: 0f,
+            hp: 100f
+        );
         nearBehindRecipient.Evasion = 0f;
-        var farBehindRecipient = SimTestHelper.CreateMeleeUnit(_state, 1, x: -2.6f, z: 0f, hp: 100f);
+        var farBehindRecipient = SimTestHelper.CreateMeleeUnit(
+            _state,
+            1,
+            x: -(closeRadius + 0.35f),
+            z: 0f,
+            hp: 100f
+        );
         farBehindRecipient.Evasion = 0f;
 
         var events = new List<SimEvent>();
@@ -1594,7 +1623,7 @@ public class SimBehaviorTest
         nearbyEnemy.Evasion = 0f;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
 
-        attacker.TargetUnitId = summonerTargetId;
+        attacker.Engagement.TargetUnitId = summonerTargetId;
         attacker.AttackCooldown = 0f;
         float hpBefore = _state.Summoners[1].CurrentHp;
         var events = new List<SimEvent>();
@@ -1653,7 +1682,7 @@ public class SimBehaviorTest
         List<SimEvent> events
     )
     {
-        attacker.TargetUnitId = primary.UnitId;
+        attacker.Engagement.TargetUnitId = primary.UnitId;
         attacker.AttackCooldown = 0f;
         TickBehaviorAndCommit(attacker, state, 0.016f, events);
     }

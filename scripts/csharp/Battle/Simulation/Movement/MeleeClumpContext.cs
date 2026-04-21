@@ -24,7 +24,7 @@ internal static class MeleeClumpContext
         if (!IsTowardTargetOrEngaging(unit) || !IsTowardTargetOrEngaging(other))
             return false;
 
-        var sharedTargetPosition = SimUtils.ResolveTargetPosition(unit.TargetUnitId, state);
+        var sharedTargetPosition = SimUtils.ResolveTargetPosition(unit.Engagement.TargetUnitId, state);
         if (!sharedTargetPosition.HasValue)
             return false;
 
@@ -50,7 +50,7 @@ internal static class MeleeClumpContext
             return false;
         }
 
-        if (!unit.TargetUnitId.HasValue || unit.TargetUnitId.Value != targetId.Value)
+        if (!unit.Engagement.TargetUnitId.HasValue || unit.Engagement.TargetUnitId.Value != targetId.Value)
             return false;
         if (!IsCloseEngageContext(unit, targetPosition))
             return false;
@@ -83,11 +83,11 @@ internal static class MeleeClumpContext
             return false;
         if (unit.UnitType != UnitType.Melee || other.UnitType != UnitType.Melee)
             return false;
-        if (!unit.TargetUnitId.HasValue || !other.TargetUnitId.HasValue)
+        if (!unit.Engagement.TargetUnitId.HasValue || !other.Engagement.TargetUnitId.HasValue)
             return false;
-        if (unit.TargetUnitId.Value != other.TargetUnitId.Value)
+        if (unit.Engagement.TargetUnitId.Value != other.Engagement.TargetUnitId.Value)
             return false;
-        return !MatchState.IsSummonerTarget(unit.TargetUnitId);
+        return !MatchState.IsSummonerTarget(unit.Engagement.TargetUnitId);
     }
 
     private static bool IsCloseEngageContext(UnitData unit, SimVector3 targetPosition)

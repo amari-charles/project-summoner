@@ -24,7 +24,7 @@ public class SimMeleeSlotManagerTest
     }
 
     [TestCase]
-    public void SlotOverflow_WaitsThenReacquires_ByTimeoutOrder()
+    public void SlotOverflow_RetargetsByUnreachableTimeout_WhenUnitTargetSlotsAreAdvisory()
     {
         var lockedTarget = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f, hp: 600f);
         lockedTarget.NavigationRadius = 0.2f;
@@ -54,15 +54,15 @@ public class SimMeleeSlotManagerTest
             attackRange: 2.5f,
             aggroRadius: 25f
         );
-        seeker.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        seeker.LockedTargetUnitId = lockedTarget.UnitId;
-        seeker.TargetUnitId = lockedTarget.UnitId;
+        seeker.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        seeker.Engagement.LockedTargetUnitId = lockedTarget.UnitId;
+        seeker.Engagement.TargetUnitId = lockedTarget.UnitId;
 
         float switchedAtSeconds = -1f;
         for (int frame = 1; frame <= 120; frame++)
         {
             SimCombatStateMachine.Tick(seeker, _state, Delta, new List<SimEvent>());
-            if (seeker.TargetUnitId.HasValue && seeker.TargetUnitId.Value != lockedTarget.UnitId)
+            if (seeker.Engagement.TargetUnitId.HasValue && seeker.Engagement.TargetUnitId.Value != lockedTarget.UnitId)
             {
                 switchedAtSeconds = frame * Delta;
                 break;
@@ -70,13 +70,12 @@ public class SimMeleeSlotManagerTest
         }
 
         AssertThat(switchedAtSeconds > 0f).IsTrue();
-        AssertThat(switchedAtSeconds).IsLess(seeker.UnreachableTimeoutSeconds);
-        AssertThat(switchedAtSeconds).IsGreaterEqual(seeker.SlotWaitTimeoutSeconds);
+        AssertThat(switchedAtSeconds).IsGreaterEqual(seeker.Engagement.UnreachableTimeoutSeconds);
         AssertThat(_state.CombatBlockedTimeoutRetargetCount).IsEqual(1);
-        AssertThat(seeker.DroppedTargetUnitId.HasValue).IsTrue();
-        AssertThat(seeker.DroppedTargetUnitId!.Value).IsEqual(lockedTarget.UnitId);
-        AssertThat(seeker.TargetUnitId.HasValue).IsTrue();
-        AssertThat(seeker.TargetUnitId!.Value).IsEqual(fallbackTarget.UnitId);
+        AssertThat(seeker.Engagement.DroppedTargetUnitId.HasValue).IsTrue();
+        AssertThat(seeker.Engagement.DroppedTargetUnitId!.Value).IsEqual(lockedTarget.UnitId);
+        AssertThat(seeker.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(seeker.Engagement.TargetUnitId!.Value).IsEqual(fallbackTarget.UnitId);
     }
 
     [TestCase]
@@ -201,8 +200,8 @@ public class SimMeleeSlotManagerTest
             minSlots: 1
         );
 
-        AssertThat(attacker.ReservedSlotId.HasValue).IsTrue();
-        AssertThat(attacker.ReservedSlotId!.Value).IsEqual(reservedSlotId);
+        AssertThat(attacker.Engagement.ReservedSlotId.HasValue).IsTrue();
+        AssertThat(attacker.Engagement.ReservedSlotId!.Value).IsEqual(reservedSlotId);
         var slot = stateAfterRadiusUpdate.Slots[reservedSlotId];
         AssertThat(slot.ReservedUnitId.HasValue).IsTrue();
         AssertThat(slot.ReservedUnitId!.Value).IsEqual(attacker.UnitId);

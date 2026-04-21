@@ -37,9 +37,9 @@ public class SimTargetingCommitTest
         );
         var lockedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2.4f, z: 0f);
 
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        unit.LockedTargetUnitId = lockedEnemy.UnitId;
-        unit.TargetUnitId = lockedEnemy.UnitId;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LockedTargetUnitId = lockedEnemy.UnitId;
+        unit.Engagement.TargetUnitId = lockedEnemy.UnitId;
 
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
@@ -47,10 +47,10 @@ public class SimTargetingCommitTest
         SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1.3f, z: 0f);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
     }
 
     [TestCase]
@@ -66,22 +66,22 @@ public class SimTargetingCommitTest
         );
         var lockedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 5f, z: 0f);
 
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        unit.LockedTargetUnitId = lockedEnemy.UnitId;
-        unit.TargetUnitId = lockedEnemy.UnitId;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LockedTargetUnitId = lockedEnemy.UnitId;
+        unit.Engagement.TargetUnitId = lockedEnemy.UnitId;
 
         lockedEnemy.Position = new SimVector3(20f, lockedEnemy.Position.Y, lockedEnemy.Position.Z);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue && unit.TargetUnitId!.Value == lockedEnemy.UnitId)
+        AssertThat(unit.Engagement.TargetUnitId.HasValue && unit.Engagement.TargetUnitId!.Value == lockedEnemy.UnitId)
             .IsFalse();
         AssertThat(
-                unit.LockedTargetUnitId.HasValue
-                    && unit.LockedTargetUnitId!.Value == lockedEnemy.UnitId
+                unit.Engagement.LockedTargetUnitId.HasValue
+                    && unit.Engagement.LockedTargetUnitId!.Value == lockedEnemy.UnitId
             )
             .IsFalse();
-        AssertThat(unit.DroppedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.DroppedTargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
+        AssertThat(unit.Engagement.DroppedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.DroppedTargetUnitId!.Value).IsEqual(lockedEnemy.UnitId);
     }
 
     [TestCase]
@@ -95,20 +95,20 @@ public class SimTargetingCommitTest
             attackRange: 3f,
             aggroRadius: 30f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        unit.LockedTargetUnitId = summonerTarget;
-        unit.TargetUnitId = summonerTarget;
+        unit.Engagement.LockedTargetUnitId = summonerTarget;
+        unit.Engagement.TargetUnitId = summonerTarget;
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0.8f, z: 0f);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(enemy.UnitId);
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(enemy.UnitId);
-        AssertThat(unit.LastRetargetReason).IsEqual(RetargetReason.AggroPreempt);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(enemy.UnitId);
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(enemy.UnitId);
+        AssertThat(unit.Engagement.LastRetargetReason).IsEqual(RetargetReason.AggroPreempt);
     }
 
     [TestCase]
@@ -122,19 +122,19 @@ public class SimTargetingCommitTest
             attackRange: 3f,
             aggroRadius: 4f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        unit.LockedTargetUnitId = summonerTarget;
-        unit.TargetUnitId = summonerTarget;
+        unit.Engagement.LockedTargetUnitId = summonerTarget;
+        unit.Engagement.TargetUnitId = summonerTarget;
 
         SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 8f, z: 0f);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
     }
 
     [TestCase]
@@ -148,20 +148,20 @@ public class SimTargetingCommitTest
             attackRange: 3f,
             aggroRadius: 20f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
         unit.TargetLayerFilter = TargetLayer.AirOnly;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        unit.LockedTargetUnitId = summonerTarget;
-        unit.TargetUnitId = summonerTarget;
+        unit.Engagement.LockedTargetUnitId = summonerTarget;
+        unit.Engagement.TargetUnitId = summonerTarget;
 
         SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1f, z: 0f); // Ground-only candidate.
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
     }
 
     [TestCase]
@@ -175,22 +175,22 @@ public class SimTargetingCommitTest
             attackRange: 3f,
             aggroRadius: 20f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        unit.LockedTargetUnitId = summonerTarget;
-        unit.TargetUnitId = summonerTarget;
-        unit.ForcedTargetUnitId = summonerTarget;
-        unit.ForcedTargetTimer = 2f;
+        unit.Engagement.LockedTargetUnitId = summonerTarget;
+        unit.Engagement.TargetUnitId = summonerTarget;
+        unit.Engagement.ForcedTargetUnitId = summonerTarget;
+        unit.Engagement.ForcedTargetTimer = 2f;
 
         SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1f, z: 0f);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.LastRetargetReason).IsEqual(RetargetReason.ForcedOverride);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.LastRetargetReason).IsEqual(RetargetReason.ForcedOverride);
     }
 
     [TestCase]
@@ -204,22 +204,22 @@ public class SimTargetingCommitTest
             attackRange: 3f,
             aggroRadius: 20f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
         unit.AttackPhase = AttackPhase.Windup;
         unit.AttackPhaseTimer = 0.4f;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        unit.LockedTargetUnitId = summonerTarget;
-        unit.TargetUnitId = summonerTarget;
+        unit.Engagement.LockedTargetUnitId = summonerTarget;
+        unit.Engagement.TargetUnitId = summonerTarget;
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 16.5f, z: 0f);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.TargetUnitId!.Value == enemy.UnitId).IsFalse();
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.TargetUnitId!.Value == enemy.UnitId).IsFalse();
     }
 
     [TestCase]
@@ -236,9 +236,9 @@ public class SimTargetingCommitTest
         );
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
 
-        attacker.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        attacker.LockedTargetUnitId = target.UnitId;
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        attacker.Engagement.LockedTargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
         attacker.AttackCooldown = 0f;
         attacker.Attack.Timing.WindupSeconds = 0.3f;
 
@@ -308,16 +308,16 @@ public class SimTargetingCommitTest
             attackRange: 2.5f,
             aggroRadius: 20f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
 
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.SlotTargetId.HasValue).IsTrue();
-        AssertThat(unit.SlotTargetId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.ReservedSlotId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.SlotTargetId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.SlotTargetId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.ReservedSlotId.HasValue).IsTrue();
 
         var slotPos =
             Fateforged.Simulation.Combat.Slots.SimMeleeSlotManager.GetReservedSlotWorldPosition(
@@ -332,7 +332,7 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
-    public void CommitTick_UsesSlots_ForSummonerTargets_EvenWhenAlreadyBubbleAttackable()
+    public void CommitTick_SummonerAlreadyAttackable_StartsAttackWithoutSlotGate()
     {
         var unit = SimTestHelper.CreateMeleeUnit(
             _state,
@@ -342,19 +342,19 @@ public class SimTargetingCommitTest
             attackRange: 2.5f,
             aggroRadius: 20f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
 
         var events = new List<SimEvent>();
         SimCombatStateMachine.Tick(unit, _state, Delta, events);
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.SlotTargetId.HasValue).IsTrue();
-        AssertThat(unit.SlotTargetId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.ReservedSlotId.HasValue).IsTrue();
-        AssertThat(unit.OccupiedSlotId.HasValue).IsFalse();
-        AssertThat(unit.AttackCooldown <= 0f).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
+        AssertThat(unit.Engagement.SlotTargetId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.SlotTargetId!.Value).IsEqual(summonerTarget);
+        // Slots may still be reserved opportunistically for ring shaping, but
+        // attack startup is no longer gated on slot ownership.
+        AssertThat(unit.AttackCooldown > 0f).IsTrue();
         AssertThat(SimTestHelper.FindEvent<SummonerDamagedEvent>(events)).IsNull();
     }
 
@@ -371,23 +371,23 @@ public class SimTargetingCommitTest
         );
         var naturalEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
         var forcedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 8f, z: 0f);
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        unit.ForcedTargetUnitId = forcedEnemy.UnitId;
-        unit.ForcedTargetTimer = 0.05f;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.ForcedTargetUnitId = forcedEnemy.UnitId;
+        unit.Engagement.ForcedTargetTimer = 0.05f;
 
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(forcedEnemy.UnitId);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(forcedEnemy.UnitId);
 
         // Simulation tick order decrements forced timers before lifecycle targeting.
         SimBehavior.TickCooldowns(unit, 0.1f);
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.ForcedTargetUnitId).IsNull();
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(naturalEnemy.UnitId);
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(naturalEnemy.UnitId);
+        AssertThat(unit.Engagement.ForcedTargetUnitId).IsNull();
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(naturalEnemy.UnitId);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(naturalEnemy.UnitId);
     }
 
     [TestCase]
@@ -403,22 +403,22 @@ public class SimTargetingCommitTest
         );
         var forcedEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
         var fallbackEnemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 3f, z: 0f);
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        unit.ForcedTargetUnitId = forcedEnemy.UnitId;
-        unit.ForcedTargetTimer = 5f;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.ForcedTargetUnitId = forcedEnemy.UnitId;
+        unit.Engagement.ForcedTargetTimer = 5f;
         forcedEnemy.IsAlive = false;
 
         SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
-        AssertThat(unit.ForcedTargetUnitId).IsNull();
-        AssertThat(unit.LockedTargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.LockedTargetUnitId!.Value).IsEqual(fallbackEnemy.UnitId);
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(fallbackEnemy.UnitId);
+        AssertThat(unit.Engagement.ForcedTargetUnitId).IsNull();
+        AssertThat(unit.Engagement.LockedTargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.LockedTargetUnitId!.Value).IsEqual(fallbackEnemy.UnitId);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(fallbackEnemy.UnitId);
     }
 
     [TestCase]
-    public void AcquireTargetCommit_FallsBackToSummoner_WhenOnlyInAggroUnitIsSlotSaturated()
+    public void AcquireTargetCommit_PrefersInAggroUnit_EvenWhenSlotsAlreadySaturated()
     {
         var saturatedTarget = SimTestHelper.CreateMeleeUnit(
             _state,
@@ -478,8 +478,8 @@ public class SimTargetingCommitTest
         );
 
         AssertThat(target.HasValue).IsTrue();
-        AssertThat(MatchState.IsSummonerTarget(target)).IsTrue();
-        AssertThat(target!.Value).IsEqual(MatchState.GetSummonerTargetId(team: 1));
+        AssertThat(MatchState.IsSummonerTarget(target)).IsFalse();
+        AssertThat(target!.Value).IsEqual(saturatedTarget.UnitId);
     }
 
     [TestCase]
@@ -529,10 +529,10 @@ public class SimTargetingCommitTest
             attackRange: 3f,
             aggroRadius: 30f
         );
-        unit.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
-        unit.LockedTargetUnitId = summonerTarget;
-        unit.TargetUnitId = summonerTarget;
+        unit.Engagement.LockedTargetUnitId = summonerTarget;
+        unit.Engagement.TargetUnitId = summonerTarget;
 
         var trace = new List<string>();
         for (int frame = 0; frame < 8; frame++)
@@ -541,7 +541,7 @@ public class SimTargetingCommitTest
                 SimTestHelper.CreateMeleeUnit(state, team: 1, x: 1f, z: 0f);
 
             SimCombatStateMachine.Tick(unit, state, Delta, new List<SimEvent>());
-            trace.Add($"{frame}:{unit.TargetUnitId}:{unit.LastRetargetReason}");
+            trace.Add($"{frame}:{unit.Engagement.TargetUnitId}:{unit.Engagement.LastRetargetReason}");
         }
 
         return string.Join("|", trace);

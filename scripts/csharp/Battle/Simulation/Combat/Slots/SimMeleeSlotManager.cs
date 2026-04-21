@@ -89,34 +89,34 @@ public static class SimMeleeSlotManager
         entry.ReservationDistanceSq = bestDistSq;
         entry.ReservationUnitId = unit.UnitId;
 
-        unit.SlotTargetId = targetId;
-        unit.ReservedSlotId = bestSlot;
-        unit.LastReservationDistanceSq = bestDistSq;
+        unit.Engagement.SlotTargetId = targetId;
+        unit.Engagement.ReservedSlotId = bestSlot;
+        unit.Engagement.LastReservationDistanceSq = bestDistSq;
         reservedSlotId = bestSlot;
         return true;
     }
 
     public static void SetOccupied(UnitData unit, MatchState state)
     {
-        if (!unit.SlotTargetId.HasValue || !unit.ReservedSlotId.HasValue)
+        if (!unit.Engagement.SlotTargetId.HasValue || !unit.Engagement.ReservedSlotId.HasValue)
             return;
-        if (!state.TargetSlotStates.TryGetValue(unit.SlotTargetId.Value, out var slotState))
+        if (!state.TargetSlotStates.TryGetValue(unit.Engagement.SlotTargetId.Value, out var slotState))
             return;
-        if (unit.ReservedSlotId.Value < 0 || unit.ReservedSlotId.Value >= slotState.Slots.Count)
+        if (unit.Engagement.ReservedSlotId.Value < 0 || unit.Engagement.ReservedSlotId.Value >= slotState.Slots.Count)
             return;
 
-        var entry = slotState.Slots[unit.ReservedSlotId.Value];
+        var entry = slotState.Slots[unit.Engagement.ReservedSlotId.Value];
         entry.ReservedUnitId = unit.UnitId;
         entry.OccupiedUnitId = unit.UnitId;
         entry.OccupancyState = SlotOccupancyState.Occupied;
-        unit.OccupiedSlotId = unit.ReservedSlotId;
+        unit.Engagement.OccupiedSlotId = unit.Engagement.ReservedSlotId;
     }
 
     public static void ReleaseUnitSlots(UnitData unit, MatchState state)
     {
         if (
-            !unit.SlotTargetId.HasValue
-            || !state.TargetSlotStates.TryGetValue(unit.SlotTargetId.Value, out var slotState)
+            !unit.Engagement.SlotTargetId.HasValue
+            || !state.TargetSlotStates.TryGetValue(unit.Engagement.SlotTargetId.Value, out var slotState)
         )
         {
             ClearUnitSlotRefs(unit);
@@ -151,17 +151,17 @@ public static class SimMeleeSlotManager
 
     public static SimVector3? GetReservedSlotWorldPosition(UnitData unit, MatchState state)
     {
-        if (!unit.SlotTargetId.HasValue || !unit.ReservedSlotId.HasValue)
+        if (!unit.Engagement.SlotTargetId.HasValue || !unit.Engagement.ReservedSlotId.HasValue)
             return null;
-        if (!state.TargetSlotStates.TryGetValue(unit.SlotTargetId.Value, out var slotState))
+        if (!state.TargetSlotStates.TryGetValue(unit.Engagement.SlotTargetId.Value, out var slotState))
             return null;
-        if (unit.ReservedSlotId.Value < 0 || unit.ReservedSlotId.Value >= slotState.Slots.Count)
+        if (unit.Engagement.ReservedSlotId.Value < 0 || unit.Engagement.ReservedSlotId.Value >= slotState.Slots.Count)
             return null;
 
-        RefreshLayoutAxis(slotState, unit.SlotTargetId.Value, state, unit.Position);
-        var slot = slotState.Slots[unit.ReservedSlotId.Value];
+        RefreshLayoutAxis(slotState, unit.Engagement.SlotTargetId.Value, state, unit.Position);
+        var slot = slotState.Slots[unit.Engagement.ReservedSlotId.Value];
         return ResolveSlotWorldPosition(
-            unit.SlotTargetId.Value,
+            unit.Engagement.SlotTargetId.Value,
             slotState.LayoutAxis,
             slot.SlotOffset,
             state
@@ -471,8 +471,8 @@ public static class SimMeleeSlotManager
 
     private static void ClearUnitSlotRefs(UnitData unit)
     {
-        unit.SlotTargetId = null;
-        unit.ReservedSlotId = null;
-        unit.OccupiedSlotId = null;
+        unit.Engagement.SlotTargetId = null;
+        unit.Engagement.ReservedSlotId = null;
+        unit.Engagement.OccupiedSlotId = null;
     }
 }

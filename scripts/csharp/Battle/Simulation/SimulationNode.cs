@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text;
 using Fateforged.Cards;
 using Fateforged.Meta.Cards;
 using Fateforged.Meta.Traits.Unified;
@@ -45,6 +48,16 @@ public partial class SimulationNode : Node, IGameSession
     private IGameSession? _session;
     private bool _initialized;
     private bool _firstSnapshotReceived;
+    private long _matchSeed;
+
+    // Rolling repro-capture buffer (opt-in via dev console).
+    private bool _reproCaptureEnabled;
+    private int _reproCaptureWindowFrames = 600;
+    private string _reproCaptureSessionId = "";
+    private int _reproCaptureDroppedFrames;
+    private float _reproCaptureEndMatchTime;
+    private string _reproCaptureLastSavedPath = "";
+    private readonly List<Godot.Collections.Dictionary> _reproCaptureFrameBuffer = new();
 
     public const float FIXED_DELTA = global::Fateforged.Simulation.Simulation.FixedDeltaSeconds;
     private const int SimulationProcessPriority = -100;
@@ -175,11 +188,13 @@ public partial class SimulationNode : Node, IGameSession
                 _session.Tick(FIXED_DELTA);
                 _accumulator -= FIXED_DELTA;
             }
+            MaybeAutoEndReproCapture();
             return;
         }
 
         // Client sessions don't run deterministic simulation ticks.
         _session.Tick((float)delta);
+        MaybeAutoEndReproCapture();
     }
 
     /// <summary>
@@ -219,6 +234,8 @@ public partial class SimulationNode : Node, IGameSession
         long seed = 0
     )
     {
+        EndReproCapture("initialize");
+
         if (seed == 0)
         {
             seed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -237,6 +254,13 @@ public partial class SimulationNode : Node, IGameSession
             Phase = GamePhase.Preparation,
             Rng = new DeterministicRng(seed),
         };
+        _matchSeed = seed;
+        _reproCaptureEnabled = false;
+        _reproCaptureFrameBuffer.Clear();
+        _reproCaptureDroppedFrames = 0;
+        _reproCaptureSessionId = "";
+        _reproCaptureEndMatchTime = 0f;
+        _reproCaptureLastSavedPath = "";
         State.TraitRuntimeState = UnifiedTraitRuntimeCompiler.CompileStub();
 
         Simulation.Log = msg => GD.Print(msg);
@@ -309,6 +333,8 @@ public partial class SimulationNode : Node, IGameSession
         if (_session == null)
             return;
 
+        EndReproCapture("session_cleared");
+
         _session.SimEventsEmitted -= OnSessionSimEvents;
         if (_session is ClientSession clientSession)
             clientSession.FirstSnapshotApplied -= OnClientFirstSnapshotApplied;
@@ -319,6 +345,7 @@ public partial class SimulationNode : Node, IGameSession
 
     private void OnSessionSimEvents(IReadOnlyList<SimEvent> events)
     {
+        CaptureReproFrame(events);
         SimEventsEmitted?.Invoke(events);
     }
 
@@ -706,6 +733,471 @@ public partial class SimulationNode : Node, IGameSession
         }
 
         return result;
+    }
+
+    // =========================================================================
+    // DEBUG REPRO CAPTURE (dev-console driven)
+    // =========================================================================
+
+    public bool StartReproCapture(int windowSeconds = 12)
+    {
+        EndReproCapture("restart");
+
+        int clampedSeconds = Math.Clamp(windowSeconds, 1, 120);
+        _reproCaptureWindowFrames = Math.Max(1, (int)MathF.Round(clampedSeconds / FIXED_DELTA));
+        _reproCaptureFrameBuffer.Clear();
+        _reproCaptureDroppedFrames = 0;
+        _reproCaptureSessionId =
+            $"{DateTimeOffset.UtcNow:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N")[..8]}";
+        var state = GetState();
+        _reproCaptureEndMatchTime = state.MatchTime + clampedSeconds;
+        _reproCaptureLastSavedPath = "";
+        _reproCaptureEnabled = true;
+        GD.Print(
+            $"[SimulationNode] Repro capture started: window={clampedSeconds}s (~{_reproCaptureWindowFrames} frames), session={_reproCaptureSessionId}, auto_end_match_time={_reproCaptureEndMatchTime:0.00}"
+        );
+        return true;
+    }
+
+    public void StopReproCapture()
+    {
+        EndReproCapture("manual_stop");
+    }
+
+    public Godot.Collections.Dictionary GetReproCaptureStatus()
+    {
+        var state = GetState();
+        float remainingSeconds = _reproCaptureEnabled
+            ? MathF.Max(0f, _reproCaptureEndMatchTime - state.MatchTime)
+            : 0f;
+        return new Godot.Collections.Dictionary
+        {
+            ["enabled"] = _reproCaptureEnabled,
+            ["session_id"] = _reproCaptureSessionId,
+            ["window_frames"] = _reproCaptureWindowFrames,
+            ["window_seconds"] = _reproCaptureWindowFrames * FIXED_DELTA,
+            ["auto_end_match_time"] = _reproCaptureEndMatchTime,
+            ["remaining_seconds"] = remainingSeconds,
+            ["remaining_frames"] = (int)MathF.Ceiling(remainingSeconds / FIXED_DELTA),
+            ["last_saved_path"] = _reproCaptureLastSavedPath,
+            ["buffered_frames"] = _reproCaptureFrameBuffer.Count,
+            ["dropped_frames"] = _reproCaptureDroppedFrames,
+            ["seed"] = _matchSeed,
+            ["local_player_index"] = LocalPlayerIndex,
+            ["is_host"] = IsHost,
+            ["match_time"] = state.MatchTime,
+            ["frame_number"] = state.FrameNumber,
+            ["phase"] = (int)state.Phase,
+        };
+    }
+
+    public string MarkReproCapture(string label = "")
+    {
+        return SaveReproCaptureSnapshot(label);
+    }
+
+    private string SaveReproCaptureSnapshot(string label)
+    {
+        if (_reproCaptureFrameBuffer.Count == 0)
+        {
+            GD.Print("[SimulationNode] Repro capture mark rejected: no buffered frames");
+            return string.Empty;
+        }
+
+        string safeLabel = SanitizeCaptureLabel(label);
+        string stamp = DateTimeOffset.UtcNow.ToString("yyyyMMdd_HHmmss");
+        var state = GetState();
+        string suffix = safeLabel.Length > 0 ? $"_{safeLabel}" : "";
+        string fileName = $"repro_{stamp}_f{state.FrameNumber}{suffix}.json";
+        const string captureDirUser = "user://debug/repro_captures";
+
+        var frames = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var frame in _reproCaptureFrameBuffer)
+            frames.Add(frame);
+
+        var payload = new Godot.Collections.Dictionary
+        {
+            ["schema_version"] = 1,
+            ["created_utc"] = DateTimeOffset.UtcNow.ToString("O"),
+            ["label"] = label ?? string.Empty,
+            ["session_id"] = _reproCaptureSessionId,
+            ["seed"] = _matchSeed,
+            ["local_player_index"] = LocalPlayerIndex,
+            ["is_host"] = IsHost,
+            ["window_frames"] = _reproCaptureWindowFrames,
+            ["window_seconds"] = _reproCaptureWindowFrames * FIXED_DELTA,
+            ["buffered_frames"] = _reproCaptureFrameBuffer.Count,
+            ["dropped_frames"] = _reproCaptureDroppedFrames,
+            ["state_overview"] = new Godot.Collections.Dictionary
+            {
+                ["frame_number"] = state.FrameNumber,
+                ["match_time"] = state.MatchTime,
+                ["phase"] = (int)state.Phase,
+                ["winner_team"] = state.WinnerTeam ?? -1,
+            },
+            ["frames"] = frames,
+        };
+
+        try
+        {
+            string captureDirAbsolute = ProjectSettings.GlobalizePath(captureDirUser);
+            Directory.CreateDirectory(captureDirAbsolute);
+            string absolutePath = Path.Combine(captureDirAbsolute, fileName);
+            File.WriteAllText(absolutePath, Json.Stringify(payload, "\t"));
+            string userPath = $"{captureDirUser}/{fileName}";
+            _reproCaptureLastSavedPath = userPath;
+            GD.Print(
+                $"[SimulationNode] Repro capture saved: {userPath} ({_reproCaptureFrameBuffer.Count} frames)"
+            );
+            return userPath;
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[SimulationNode] Failed to save repro capture: {ex.Message}");
+            return string.Empty;
+        }
+    }
+
+    private void CaptureReproFrame(IReadOnlyList<SimEvent> events)
+    {
+        if (!_reproCaptureEnabled)
+            return;
+
+        _reproCaptureFrameBuffer.Add(BuildReproFrameSnapshot(events));
+        while (_reproCaptureFrameBuffer.Count > _reproCaptureWindowFrames)
+        {
+            _reproCaptureFrameBuffer.RemoveAt(0);
+            _reproCaptureDroppedFrames++;
+        }
+    }
+
+    private void MaybeAutoEndReproCapture()
+    {
+        if (!_reproCaptureEnabled)
+            return;
+
+        var state = GetState();
+        if (state.MatchTime >= _reproCaptureEndMatchTime)
+            EndReproCapture("window_elapsed");
+    }
+
+    private void EndReproCapture(string reason)
+    {
+        if (!_reproCaptureEnabled)
+            return;
+
+        var state = GetState();
+        string autoSavedPath = string.Empty;
+        if (reason == "window_elapsed")
+            autoSavedPath = SaveReproCaptureSnapshot("auto");
+
+        _reproCaptureEnabled = false;
+        _reproCaptureEndMatchTime = state.MatchTime;
+        string savedSuffix = autoSavedPath.Length > 0 ? $", autosaved={autoSavedPath}" : "";
+        GD.Print(
+            $"[SimulationNode] Repro capture ended ({reason}): session={_reproCaptureSessionId}, buffered={_reproCaptureFrameBuffer.Count}/{_reproCaptureWindowFrames}, dropped={_reproCaptureDroppedFrames}, frame={state.FrameNumber}, time={state.MatchTime:0.00}{savedSuffix}"
+        );
+    }
+
+    private Godot.Collections.Dictionary BuildReproFrameSnapshot(IReadOnlyList<SimEvent> events)
+    {
+        var state = GetState();
+        var frame = new Godot.Collections.Dictionary
+        {
+            ["frame_number"] = state.FrameNumber,
+            ["match_time"] = state.MatchTime,
+            ["phase"] = (int)state.Phase,
+            ["winner_team"] = state.WinnerTeam ?? -1,
+            ["pending_commands"] = state.PendingCommandBuffer.Count,
+            ["summoners"] = BuildReproSummonerSnapshot(state),
+            ["units"] = BuildReproUnitSnapshot(state),
+            ["projectiles"] = BuildReproProjectileSnapshot(state),
+            ["target_slots"] = BuildReproTargetSlotSnapshot(state),
+            ["events"] = BuildReproEventSnapshot(events),
+        };
+        return frame;
+    }
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> BuildReproSummonerSnapshot(
+        MatchState state
+    )
+    {
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        for (int i = 0; i < state.Summoners.Length; i++)
+        {
+            var summoner = state.Summoners[i];
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["team"] = i,
+                    ["is_alive"] = summoner.IsAlive,
+                    ["current_hp"] = summoner.CurrentHp,
+                    ["max_hp"] = summoner.MaxHp,
+                    ["mana"] = summoner.Mana,
+                    ["max_mana"] = summoner.MaxMana,
+                    ["cast_speed"] = summoner.CastSpeed,
+                    ["position"] = ToVectorDict(summoner.Position),
+                    ["target_point_position"] = ToVectorDict(summoner.TargetPointPosition),
+                    ["hand_count"] = summoner.Hand.Count,
+                    ["deck_count"] = summoner.Deck.Count,
+                    ["discard_count"] = summoner.DiscardPile.Count,
+                }
+            );
+        }
+        return result;
+    }
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> BuildReproUnitSnapshot(
+        MatchState state
+    )
+    {
+        var units = new List<UnitData>(state.Units.Values);
+        units.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var unit in units)
+        {
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["unit_id"] = unit.UnitId,
+                    ["network_id"] = unit.NetworkId,
+                    ["catalog_id"] = unit.CatalogId.Value,
+                    ["team"] = (int)unit.Team,
+                    ["is_alive"] = unit.IsAlive,
+                    ["activation_state"] = (int)unit.ActivationState,
+                    ["position"] = ToVectorDict(unit.Position),
+                    ["velocity"] = ToVectorDict(unit.Velocity),
+                    ["movement_layer"] = (int)unit.MovementLayer,
+                    ["unit_type"] = (int)unit.UnitType,
+                    ["behavior_state"] = (int)unit.BehaviorState,
+                    ["combat_lifecycle_state"] = (int)unit.Engagement.LifecycleState,
+                    ["attack_phase"] = (int)unit.AttackPhase,
+                    ["attack_cooldown"] = unit.AttackCooldown,
+                    ["attack_range"] = unit.AttackRange,
+                    ["move_speed"] = unit.MoveSpeed,
+                    ["aggro_radius"] = unit.AggroRadius,
+                    ["navigation_radius"] = unit.NavigationRadius,
+                    ["hurtbox_radius"] = unit.HurtboxRadius,
+                    ["engage_shape"] = (int)unit.EngageShape,
+                    ["engage_rect_length"] = unit.EngageRectLength,
+                    ["engage_rect_half_width"] = unit.EngageRectHalfWidth,
+                    ["engage_rect_forward_offset"] = unit.EngageRectForwardOffset,
+                    ["engage_close_radius"] = unit.EngageCloseRadius,
+                    ["target_unit_id"] = NullableIntToVariant(unit.Engagement.TargetUnitId),
+                    ["locked_target_unit_id"] = NullableIntToVariant(unit.Engagement.LockedTargetUnitId),
+                    ["forced_target_unit_id"] = NullableIntToVariant(unit.Engagement.ForcedTargetUnitId),
+                    ["slot_target_id"] = NullableIntToVariant(unit.Engagement.SlotTargetId),
+                    ["reserved_slot_id"] = NullableIntToVariant(unit.Engagement.ReservedSlotId),
+                    ["occupied_slot_id"] = NullableIntToVariant(unit.Engagement.OccupiedSlotId),
+                    ["navigation_blocked_time"] = unit.NavigationBlockedTime,
+                    ["no_progress_timer"] = unit.Engagement.NoProgressTimer,
+                    ["is_facing_right"] = unit.IsFacingRight,
+                    ["attack_selection_mode"] = (int)unit.Attack.Selection.Mode,
+                    ["attack_area_shape"] = (int)unit.Attack.Area.Shape,
+                    ["attack_forward_offset"] = unit.Attack.Area.ForwardOffset,
+                }
+            );
+        }
+        return result;
+    }
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> BuildReproProjectileSnapshot(
+        MatchState state
+    )
+    {
+        var projectiles = new List<SimProjectileData>(state.Projectiles.Values);
+        projectiles.Sort((a, b) => a.ProjectileId.CompareTo(b.ProjectileId));
+
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var projectile in projectiles)
+        {
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["projectile_id"] = projectile.ProjectileId,
+                    ["catalog_id"] = projectile.ProjectileCatalogId.Value,
+                    ["source_unit_id"] = projectile.SourceUnitId,
+                    ["target_unit_id"] = projectile.TargetUnitId,
+                    ["team"] = (int)projectile.Team,
+                    ["current_position"] = ToVectorDict(projectile.CurrentPosition),
+                    ["last_position"] = ToVectorDict(projectile.LastPosition),
+                    ["target_position"] = ToVectorDict(projectile.TargetPosition),
+                    ["direction"] = ToVectorDict(projectile.Direction),
+                    ["speed"] = projectile.Speed,
+                    ["time_alive"] = projectile.TimeAlive,
+                    ["lifetime"] = projectile.Lifetime,
+                    ["hit_radius"] = projectile.HitRadius,
+                    ["aoe_radius"] = projectile.AoeRadius,
+                    ["is_dead"] = projectile.IsDead,
+                }
+            );
+        }
+        return result;
+    }
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> BuildReproTargetSlotSnapshot(
+        MatchState state
+    )
+    {
+        var targetIds = new List<int>(state.TargetSlotStates.Keys);
+        targetIds.Sort();
+
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (int targetId in targetIds)
+        {
+            var slotState = state.TargetSlotStates[targetId];
+            var slots = new List<MeleeSlotEntry>(slotState.Slots);
+            slots.Sort((a, b) => a.SlotId.CompareTo(b.SlotId));
+
+            var slotArray = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+            foreach (var slot in slots)
+            {
+                slotArray.Add(
+                    new Godot.Collections.Dictionary
+                    {
+                        ["slot_id"] = slot.SlotId,
+                        ["offset"] = ToVectorDict(slot.SlotOffset),
+                        ["occupancy_state"] = (int)slot.OccupancyState,
+                        ["reserved_unit_id"] = NullableIntToVariant(slot.ReservedUnitId),
+                        ["occupied_unit_id"] = NullableIntToVariant(slot.OccupiedUnitId),
+                        ["reservation_distance_sq"] = slot.ReservationDistanceSq,
+                    }
+                );
+            }
+
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["target_id"] = targetId,
+                    ["orbit_radius"] = slotState.OrbitRadius,
+                    ["layout_axis"] = ToVectorDict(slotState.LayoutAxis),
+                    ["last_anchor_position"] = ToVectorDict(slotState.LastAnchorPosition),
+                    ["last_axis_refresh_time"] = slotState.LastAxisRefreshTime,
+                    ["slot_count"] = slotState.Slots.Count,
+                    ["slots"] = slotArray,
+                }
+            );
+        }
+
+        return result;
+    }
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> BuildReproEventSnapshot(
+        IReadOnlyList<SimEvent> events
+    )
+    {
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var simEvent in events)
+            result.Add(SerializeSimEvent(simEvent));
+        return result;
+    }
+
+    private static Godot.Collections.Dictionary SerializeSimEvent(SimEvent simEvent)
+    {
+        var payload = new Godot.Collections.Dictionary();
+        var properties = simEvent.GetType().GetProperties(
+            BindingFlags.Instance | BindingFlags.Public
+        );
+        Array.Sort(properties, (a, b) => string.CompareOrdinal(a.Name, b.Name));
+        foreach (var property in properties)
+        {
+            if (!property.CanRead || property.GetIndexParameters().Length > 0)
+                continue;
+
+            payload[property.Name] = SerializeEventValue(property.GetValue(simEvent));
+        }
+
+        return new Godot.Collections.Dictionary
+        {
+            ["type"] = simEvent.GetType().Name,
+            ["payload"] = payload,
+        };
+    }
+
+    private static Variant SerializeEventValue(object? value)
+    {
+        if (value == null)
+            return default;
+
+        return value switch
+        {
+            SimVector3 vec => Variant.From(ToVectorDict(vec)),
+            SimCardCatalogId id => Variant.From(id.Value),
+            SimProjectileCatalogId id => Variant.From(id.Value),
+            SimUnitCatalogId id => Variant.From(id.Value),
+            SimCardInstanceId id => Variant.From(id.Value),
+            string s => Variant.From(s),
+            bool b => Variant.From(b),
+            byte b => Variant.From((int)b),
+            sbyte b => Variant.From((int)b),
+            short i => Variant.From((int)i),
+            ushort i => Variant.From((int)i),
+            int i => Variant.From(i),
+            uint i => Variant.From((long)i),
+            long i => Variant.From(i),
+            ulong i => Variant.From(i.ToString()),
+            float f => Variant.From(f),
+            double d => Variant.From((float)d),
+            Enum e => Variant.From(e.ToString()),
+            _ => SerializeComplexEventValue(value),
+        };
+    }
+
+    private static Variant SerializeComplexEventValue(object value)
+    {
+        if (value is string[])
+        {
+            var stringArray = new Godot.Collections.Array();
+            foreach (string item in (string[])value)
+                stringArray.Add(item);
+            return Variant.From(stringArray);
+        }
+
+        if (value is System.Collections.IEnumerable enumerable && value is not string)
+        {
+            var array = new Godot.Collections.Array();
+            foreach (object? item in enumerable)
+                array.Add(SerializeEventValue(item));
+            return Variant.From(array);
+        }
+
+        return Variant.From(value.ToString() ?? string.Empty);
+    }
+
+    private static Variant NullableIntToVariant(int? value)
+    {
+        return value.HasValue ? Variant.From(value.Value) : default;
+    }
+
+    private static Godot.Collections.Dictionary ToVectorDict(SimVector3 value)
+    {
+        return new Godot.Collections.Dictionary
+        {
+            ["x"] = value.X,
+            ["y"] = value.Y,
+            ["z"] = value.Z,
+        };
+    }
+
+    private static string SanitizeCaptureLabel(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return string.Empty;
+
+        var builder = new StringBuilder();
+        foreach (char c in raw.Trim().ToLowerInvariant())
+        {
+            if (char.IsLetterOrDigit(c) || c == '-' || c == '_')
+                builder.Append(c);
+            else if (char.IsWhiteSpace(c))
+                builder.Append('_');
+        }
+
+        string sanitized = builder.ToString().Trim('_');
+        if (sanitized.Length > 48)
+            sanitized = sanitized[..48];
+        return sanitized;
     }
 
     public void SkipPreparation()

@@ -47,14 +47,14 @@ public static class SimBehavior
         if (unit.AttackCooldown > 0)
             unit.AttackCooldown -= delta;
 
-        if (unit.TargetLockTimer > 0)
-            unit.TargetLockTimer -= delta;
+        if (unit.Engagement.TargetLockTimer > 0)
+            unit.Engagement.TargetLockTimer -= delta;
 
-        if (unit.ForcedTargetTimer > 0)
+        if (unit.Engagement.ForcedTargetTimer > 0)
         {
-            unit.ForcedTargetTimer -= delta;
-            if (unit.ForcedTargetTimer <= 0)
-                unit.ForcedTargetUnitId = null;
+            unit.Engagement.ForcedTargetTimer -= delta;
+            if (unit.Engagement.ForcedTargetTimer <= 0)
+                unit.Engagement.ForcedTargetUnitId = null;
         }
 
         if (unit.AttackAnimationTimer > 0)
@@ -69,36 +69,36 @@ public static class SimBehavior
         var policy = TargetPolicyRegistry.Resolve(unit.TargetPolicyId);
 
         // Use forced target if available
-        if (unit.ForcedTargetUnitId.HasValue)
+        if (unit.Engagement.ForcedTargetUnitId.HasValue)
         {
-            if (IsValidTarget(unit.ForcedTargetUnitId, state))
+            if (IsValidTarget(unit.Engagement.ForcedTargetUnitId, state))
             {
-                unit.TargetUnitId = unit.ForcedTargetUnitId.Value;
+                unit.Engagement.TargetUnitId = unit.Engagement.ForcedTargetUnitId.Value;
                 return;
             }
-            unit.ForcedTargetUnitId = null;
+            unit.Engagement.ForcedTargetUnitId = null;
         }
 
-        bool currentTargetIsValid = IsValidTarget(unit.TargetUnitId, state);
+        bool currentTargetIsValid = IsValidTarget(unit.Engagement.TargetUnitId, state);
 
         // Keep current target if policy allows and it's still attackable now.
         // This avoids unnecessary target churn when lock expires.
         if (
-            unit.TargetLockTimer <= 0
+            unit.Engagement.TargetLockTimer <= 0
             && currentTargetIsValid
-            && policy.ShouldKeepCurrentTarget(unit, state, unit.TargetUnitId)
+            && policy.ShouldKeepCurrentTarget(unit, state, unit.Engagement.TargetUnitId)
         )
         {
-            unit.TargetLockTimer = TargetLockDuration;
+            unit.Engagement.TargetLockTimer = TargetLockDuration;
             return;
         }
 
         // Re-acquire target if lock expired or current target invalid
-        if (unit.TargetLockTimer <= 0 || !currentTargetIsValid)
+        if (unit.Engagement.TargetLockTimer <= 0 || !currentTargetIsValid)
         {
-            unit.TargetUnitId = policy.SelectTarget(unit, state);
-            if (unit.TargetUnitId.HasValue)
-                unit.TargetLockTimer = TargetLockDuration;
+            unit.Engagement.TargetUnitId = policy.SelectTarget(unit, state);
+            if (unit.Engagement.TargetUnitId.HasValue)
+                unit.Engagement.TargetLockTimer = TargetLockDuration;
         }
     }
 
@@ -121,19 +121,19 @@ public static class SimBehavior
         }
 
         // Resolve target position — works for both unit and summoner targets
-        var targetPos = SimUtils.ResolveTargetPosition(unit.TargetUnitId, state);
+        var targetPos = SimUtils.ResolveTargetPosition(unit.Engagement.TargetUnitId, state);
         if (!targetPos.HasValue)
         {
             unit.BehaviorState = BehaviorState.NoTarget;
             return new BehaviorResult { Movement = MovementResult.Forward };
         }
 
-        bool isSummonerTarget = MatchState.IsSummonerTarget(unit.TargetUnitId);
-        UnitData? target = isSummonerTarget ? null : state.GetAliveUnit(unit.TargetUnitId!.Value);
+        bool isSummonerTarget = MatchState.IsSummonerTarget(unit.Engagement.TargetUnitId);
+        UnitData? target = isSummonerTarget ? null : state.GetAliveUnit(unit.Engagement.TargetUnitId!.Value);
         SimVector3 tPos = targetPos.Value;
         if (isSummonerTarget)
             tPos = SimTargeting.ResolveSummonerEngagePosition(unit, tPos);
-        int targetId = unit.TargetUnitId!.Value;
+        int targetId = unit.Engagement.TargetUnitId!.Value;
 
         // If the target unit died between position resolution and this lookup, re-target next tick
         if (!isSummonerTarget && target == null)

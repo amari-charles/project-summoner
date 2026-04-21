@@ -36,9 +36,9 @@ public static class OverlapCorrection
                 continue;
 
             // Skip current target — prevents infinite chase -> overlap -> push loops
-            if (unit.TargetUnitId.HasValue && other.UnitId == unit.TargetUnitId.Value)
+            if (unit.Engagement.TargetUnitId.HasValue && other.UnitId == unit.Engagement.TargetUnitId.Value)
                 continue;
-            if (other.TargetUnitId.HasValue && other.TargetUnitId.Value == unit.UnitId)
+            if (other.Engagement.TargetUnitId.HasValue && other.Engagement.TargetUnitId.Value == unit.UnitId)
                 continue;
 
             float unitRadius = CombatGeometry.GetNavigationRadius(unit);

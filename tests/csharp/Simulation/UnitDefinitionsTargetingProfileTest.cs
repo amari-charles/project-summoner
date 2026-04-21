@@ -185,6 +185,19 @@ public class UnitDefinitionsTargetingProfileTest
     }
 
     [TestCase]
+    public void BuildAttackVectorState_SingleTargetRadius_MapsFromConfig()
+    {
+        var config = new AttackVectorConfig
+        {
+            Area = new AttackAreaConfig { SingleTargetRadius = 1.6f },
+        };
+
+        var state = AttackVectorStateBuilder.Build(config);
+
+        AssertThat(state.Area.SingleTargetRadius).IsEqual(1.6f);
+    }
+
+    [TestCase]
     public void BuildSimTemplate_Pebbloom_UsesForwardAreaCleaveAttackShape()
     {
         var def = UnitDefinitions.Get(UnitIds.EarthSprite);
@@ -196,13 +209,13 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.Attack.Selection.Mode).IsEqual(AttackSelectionMode.AreaCollect);
         AssertThat(template.Attack.Selection.TargetLimit).IsEqual(3);
         AssertThat(template.Attack.Area.Shape).IsEqual(AttackAreaShape.Box);
-        AssertThat(template.Attack.Area.Size.X).IsEqual(5.4f);
-        AssertThat(template.Attack.Area.Size.Z).IsEqual(2.6f);
-        AssertThat(template.Attack.Area.ForwardOffset).IsEqual(2.1f);
+        AssertThat(template.Attack.Area.Size.X).IsEqual(2.7f);
+        AssertThat(template.Attack.Area.Size.Z).IsEqual(1.3f);
+        AssertThat(template.Attack.Area.ForwardOffset).IsEqual(1.05f);
         AssertThat(template.EngageShape).IsEqual(EngageShape.ForwardRect);
-        AssertThat(template.EngageRectLength).IsEqual(5.4f);
-        AssertThat(template.EngageRectHalfWidth).IsEqual(2.6f);
-        AssertThat(template.EngageRectForwardOffset).IsEqual(2.1f);
-        AssertThat(Math.Abs(template.EngageCloseRadius - 2.15f) < 0.001f).IsTrue();
+        AssertThat(template.EngageRectLength).IsEqual(2.7f);
+        AssertThat(template.EngageRectHalfWidth).IsEqual(1.3f);
+        AssertThat(template.EngageRectForwardOffset).IsEqual(1.05f);
+        AssertThat(Math.Abs(template.EngageCloseRadius - 1.10f) < 0.001f).IsTrue();
     }
 }

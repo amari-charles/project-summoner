@@ -81,7 +81,7 @@ public class SimAttackLoopTest
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1.5f, z: 0f, hp: 100f);
         target.Evasion = 0f;
 
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
         attacker.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
@@ -112,7 +112,7 @@ public class SimAttackLoopTest
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1.5f, z: 0f, hp: 100f);
         target.Evasion = 0f;
 
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 

@@ -172,9 +172,9 @@ public static class MovementTargetResolver
         {
             if (ally.UnitType != UnitType.Melee)
                 continue;
-            if (!ally.TargetUnitId.HasValue || ally.TargetUnitId.Value != targetId)
+            if (!ally.Engagement.TargetUnitId.HasValue || ally.Engagement.TargetUnitId.Value != targetId)
                 continue;
-            if (MatchState.IsSummonerTarget(ally.TargetUnitId))
+            if (MatchState.IsSummonerTarget(ally.Engagement.TargetUnitId))
                 continue;
 
             if (ally.UnitId == unit.UnitId)

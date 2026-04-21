@@ -115,12 +115,12 @@ public class MeleeClumpingStabilityTest
         ConfigureForwardRectMelee(attackerTwo);
         if (useCommitSlotMode)
         {
-            attackerOne.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-            attackerTwo.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-            attackerOne.LockedTargetUnitId = target.UnitId;
-            attackerTwo.LockedTargetUnitId = target.UnitId;
-            attackerOne.TargetUnitId = target.UnitId;
-            attackerTwo.TargetUnitId = target.UnitId;
+            attackerOne.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+            attackerTwo.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+            attackerOne.Engagement.LockedTargetUnitId = target.UnitId;
+            attackerTwo.Engagement.LockedTargetUnitId = target.UnitId;
+            attackerOne.Engagement.TargetUnitId = target.UnitId;
+            attackerTwo.Engagement.TargetUnitId = target.UnitId;
         }
 
         int attackerOneAttackCount = 0;
@@ -217,11 +217,11 @@ public class MeleeClumpingStabilityTest
         int attackerTwoAttackCount
     )
     {
-        string t1 = attackerOne.TargetUnitId.HasValue
-            ? attackerOne.TargetUnitId.Value.ToString(CultureInfo.InvariantCulture)
+        string t1 = attackerOne.Engagement.TargetUnitId.HasValue
+            ? attackerOne.Engagement.TargetUnitId.Value.ToString(CultureInfo.InvariantCulture)
             : "null";
-        string t2 = attackerTwo.TargetUnitId.HasValue
-            ? attackerTwo.TargetUnitId.Value.ToString(CultureInfo.InvariantCulture)
+        string t2 = attackerTwo.Engagement.TargetUnitId.HasValue
+            ? attackerTwo.Engagement.TargetUnitId.Value.ToString(CultureInfo.InvariantCulture)
             : "null";
 
         return string.Format(

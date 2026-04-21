@@ -1,6 +1,5 @@
 using System;
 using Fateforged.Simulation;
-using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
@@ -58,8 +57,6 @@ public static class SimTargeting
         float bestScore = float.MinValue;
         int? bestId = null;
         bool anyEnemyUnitAlive = false;
-        bool hadInAggroCandidate = false;
-        bool sawSaturatedInAggroCandidate = false;
 
         foreach (var kvp in state.Units)
         {
@@ -95,13 +92,6 @@ public static class SimTargeting
                 continue;
             if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist))
                 continue;
-            hadInAggroCandidate = true;
-
-            if (IsTargetSlotSaturatedForAttacker(unit, candidate, state))
-            {
-                sawSaturatedInAggroCandidate = true;
-                continue;
-            }
 
             float score = ScoreTarget(unit, candidate, dist);
             score += ScoreLaneAffinity(unit, attackerLane, candidateLane, laneDistance);
@@ -139,48 +129,11 @@ public static class SimTargeting
             unit.AggroRadius * CommitSummonerAcquireDistanceScale
         );
 
-        // If there were in-aggro unit candidates but they were all saturated,
-        // allow fallback to summoner immediately to avoid deadlock.
-        if (hadInAggroCandidate && sawSaturatedInAggroCandidate)
-            return summonerTargetId;
-
         // Otherwise, avoid locking summoner from too far away.
         if (summonerDistance > summonerAcquireDistance && anyEnemyUnitAlive)
             return null;
 
         return summonerTargetId;
-    }
-
-    private static bool IsTargetSlotSaturatedForAttacker(
-        UnitData attacker,
-        UnitData target,
-        MatchState state
-    )
-    {
-        if (attacker.UnitType != UnitType.Melee)
-            return false;
-
-        if (
-            attacker.SlotTargetId.HasValue
-            && attacker.SlotTargetId.Value == target.UnitId
-            && attacker.ReservedSlotId.HasValue
-        )
-        {
-            return false;
-        }
-
-        if (!state.TargetSlotStates.TryGetValue(target.UnitId, out var slotState))
-            return false;
-
-        foreach (var slot in slotState.Slots)
-        {
-            if (slot.ReservedUnitId == attacker.UnitId || slot.OccupiedUnitId == attacker.UnitId)
-                return false;
-            if (slot.OccupancyState == SlotOccupancyState.Free)
-                return false;
-        }
-
-        return slotState.Slots.Count > 0;
     }
 
     /// <summary>
@@ -205,8 +158,8 @@ public static class SimTargeting
         if (unit.LeaderId.HasValue)
         {
             var leader = state.GetAliveUnit(unit.LeaderId.Value);
-            if (leader?.TargetUnitId != null)
-                return leader.TargetUnitId;
+            if (leader?.Engagement.TargetUnitId != null)
+                return leader.Engagement.TargetUnitId;
             // Leader dead or no target — fall through to normal targeting
         }
 
@@ -482,7 +435,7 @@ public static class SimTargeting
         {
             if (ally.UnitType != UnitType.Melee)
                 continue;
-            int? allyTarget = ally.LockedTargetUnitId ?? ally.TargetUnitId;
+            int? allyTarget = ally.Engagement.LockedTargetUnitId ?? ally.Engagement.TargetUnitId;
             if (allyTarget.HasValue && allyTarget.Value == target.UnitId)
                 assigned++;
         }

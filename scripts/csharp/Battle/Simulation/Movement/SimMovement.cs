@@ -112,7 +112,7 @@ public static class SimMovement
     {
         if (behavior.Movement == MovementResult.None || unit.AttackPhase != AttackPhase.None)
         {
-            int? facingTargetId = unit.AttackPhaseLockTargetId ?? unit.TargetUnitId;
+            int? facingTargetId = unit.AttackPhaseLockTargetId ?? unit.Engagement.TargetUnitId;
             if (facingTargetId.HasValue && MatchState.IsSummonerTarget(facingTargetId))
                 FacingController.UpdateTowardTarget(unit, facingTargetId, state);
 

@@ -109,7 +109,7 @@ public class SimMovementFacingStabilityTest
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 24f, z: 0f, moveSpeed: 2f);
         unit.IsFacingRight = true;
-        unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
+        unit.Engagement.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
 
         var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
         SimMovement.Tick(unit, behavior, _state, Delta);

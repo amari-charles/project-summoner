@@ -110,35 +110,8 @@ public class UnitData
     public bool NavigationEscapeQueued { get; set; }
     public int NavigationEscapeDirectionSign { get; set; } = 1;
 
-    // Targeting — simulation-owned
-    public int? TargetUnitId { get; set; }
-    public float TargetLockTimer { get; set; }
-
-    // Commit-slot lifecycle runtime state.
-    public CombatLifecycleState CombatLifecycleState { get; set; } =
-        CombatLifecycleState.AcquireTarget;
-    public int? LockedTargetUnitId { get; set; }
-    public RetargetReason LastRetargetReason { get; set; } = RetargetReason.None;
-    public float UnreachableTimer { get; set; }
-    public float UnreachableTimeoutSeconds { get; set; } = 1.2f;
-
-    // Slot runtime state.
-    public int? SlotTargetId { get; set; }
-    public int? ReservedSlotId { get; set; }
-    public int? OccupiedSlotId { get; set; }
-    public float SlotWaitTimer { get; set; }
-    public float SlotWaitTimeoutSeconds { get; set; } = 0.7f;
-    public float LastSlotDistance { get; set; } = -1f;
-    public float LastTargetDistance { get; set; } = -1f;
-    public float NoProgressTimer { get; set; }
-    public float LastReservationDistanceSq { get; set; } = float.MaxValue;
-    public int? DroppedTargetUnitId { get; set; }
-    public float DroppedTargetCooldownTimer { get; set; }
-    public float DroppedTargetCooldownSeconds { get; set; } = 0.75f;
-
-    // Forced targeting (e.g., redirect spell)
-    public int? ForcedTargetUnitId { get; set; }
-    public float ForcedTargetTimer { get; set; }
+    // Engagement runtime state (target lock + commit lifecycle + slot approach).
+    public CombatEngagementState Engagement { get; set; } = new();
 
     // Combat cooldowns
     public float AttackCooldown { get; set; }

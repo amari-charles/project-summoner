@@ -100,7 +100,7 @@ public class OrcaAvoidanceTest
         mover.NavigationRadius = 0.4f;
         mover.NavigationRadius = 0.4f;
         mover.BehaviorState = BehaviorState.Chasing;
-        mover.TargetUnitId = target.UnitId;
+        mover.Engagement.TargetUnitId = target.UnitId;
         mover.EngageShape = EngageShape.ForwardRect;
         mover.EngageRectLength = 1.8f;
         mover.EngageRectHalfWidth = 0.7f;
@@ -124,7 +124,7 @@ public class OrcaAvoidanceTest
         ally.NavigationRadius = 0.4f;
         ally.NavigationRadius = 0.4f;
         ally.BehaviorState = BehaviorState.Chasing;
-        ally.TargetUnitId = target.UnitId;
+        ally.Engagement.TargetUnitId = target.UnitId;
         ally.EngageShape = EngageShape.ForwardRect;
         ally.EngageRectLength = 1.8f;
         ally.EngageRectHalfWidth = 0.7f;

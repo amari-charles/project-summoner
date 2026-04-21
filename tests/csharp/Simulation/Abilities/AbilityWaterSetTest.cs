@@ -66,8 +66,8 @@ public class AbilityWaterSetTest
                 Duration = -1f,
             }
         );
-        ally.ForcedTargetUnitId = 99;
-        ally.ForcedTargetTimer = 2f;
+        ally.Engagement.ForcedTargetUnitId = 99;
+        ally.Engagement.ForcedTargetTimer = 2f;
 
         var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 0f, z: 0f, hp: 100f);
         enemy.CurrentHp = 50f;
@@ -80,8 +80,8 @@ public class AbilityWaterSetTest
         AssertThat(ally.ActiveBuffs.Any(b => b.EffectType == EffectType.Stun)).IsFalse();
         AssertThat(ally.ActiveBuffs.Any(b => b.StatusKind == StatusEffectKind.Poison)).IsFalse();
         AssertThat(ally.ActiveBuffs.Any(b => b.EffectType == EffectType.Shield)).IsTrue();
-        AssertThat(ally.ForcedTargetUnitId.HasValue).IsFalse();
-        AssertThat(ally.ForcedTargetTimer).IsEqual(0f);
+        AssertThat(ally.Engagement.ForcedTargetUnitId.HasValue).IsFalse();
+        AssertThat(ally.Engagement.ForcedTargetTimer).IsEqual(0f);
 
         AssertThat(enemy.CurrentHp).IsEqual(50f);
     }

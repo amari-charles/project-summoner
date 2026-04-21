@@ -274,7 +274,7 @@ public class SimTargetingTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f);
 
         var leader = SimTestHelper.CreateMeleeUnit(_state, 0, x: -5f);
-        leader.TargetUnitId = enemy.UnitId;
+        leader.Engagement.TargetUnitId = enemy.UnitId;
         leader.GroupId = 1;
 
         var follower = SimTestHelper.CreateMeleeUnit(_state, 0, x: -4f);
