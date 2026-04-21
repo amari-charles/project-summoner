@@ -140,6 +140,33 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
+    public void CommitTick_SlotRingMeleeEngagement_ReservesSlotAgainstUnitTarget()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 0,
+            x: 0f,
+            z: 0f,
+            attackRange: 3f,
+            aggroRadius: 20f,
+            meleeEngagementModel: MeleeEngagementModel.SlotRing
+        );
+
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
+
+        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        unit.Engagement.LockedTargetUnitId = enemy.UnitId;
+        unit.Engagement.TargetUnitId = enemy.UnitId;
+        unit.AttackCooldown = 0f;
+
+        SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
+
+        AssertThat(unit.Engagement.SlotTargetId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.SlotTargetId!.Value).IsEqual(enemy.UnitId);
+        AssertThat(unit.Engagement.ReservedSlotId.HasValue).IsTrue();
+    }
+
+    [TestCase]
     public void SummonerCommit_DoesNotPreempt_WhenEnemyOutsideAggro()
     {
         var unit = SimTestHelper.CreateMeleeUnit(
