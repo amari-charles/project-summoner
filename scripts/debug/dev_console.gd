@@ -1199,10 +1199,10 @@ func _cmd_debug_capture_repro(args: PackedStringArray) -> bool:
 			if not started:
 				print("DevConsole: Failed to start repro capture.")
 				return false
-			print("DevConsole: Repro capture started (window=%ds, auto-end enabled)." % seconds)
+			print("DevConsole: Repro capture started (window=%ds, auto-end + auto-save enabled)." % seconds)
 		"stop":
 			sim_node.call("StopReproCapture")
-			print("DevConsole: Repro capture ended.")
+			print("DevConsole: Repro capture ended (manual stop). Use /debug_capture_repro mark [label] to save current buffer.")
 		"mark":
 			var label: String = ""
 			if args.size() > 1:
