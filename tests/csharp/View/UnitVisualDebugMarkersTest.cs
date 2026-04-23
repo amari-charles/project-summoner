@@ -382,7 +382,7 @@ public partial class UnitVisualDebugMarkersTest
             IsAlive = true,
             Position = new SimVector3(0f, 0f, 0f),
             AttackRange = 3f,
-            AttackPhase = AttackPhase.None,
+            Action = new CombatActionState { AttackPhase = AttackPhase.None },
             Attack = new AttackVectorState
             {
                 Selection = new AttackSelectionState
@@ -419,7 +419,7 @@ public partial class UnitVisualDebugMarkersTest
         AssertThat(primaryField!.GetValue(visual) as MeshInstance3D).IsNotNull();
         AssertThat(secondaryField!.GetValue(visual) as MeshInstance3D).IsNotNull();
 
-        unit.AttackPhase = AttackPhase.Windup;
+        unit.Action.AttackPhase = AttackPhase.Windup;
         visual._Process(1.0 / 60.0);
         AssertThat(primaryField.GetValue(visual) as MeshInstance3D).IsNotNull();
         AssertThat(secondaryField.GetValue(visual) as MeshInstance3D).IsNotNull();

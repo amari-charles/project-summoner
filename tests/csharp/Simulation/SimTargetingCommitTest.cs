@@ -260,8 +260,8 @@ public class SimTargetingCommitTest
             aggroRadius: 20f
         );
         unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
-        unit.AttackPhase = AttackPhase.Windup;
-        unit.AttackPhaseTimer = 0.4f;
+        unit.Action.AttackPhase = AttackPhase.Windup;
+        unit.Action.AttackPhaseTimer = 0.4f;
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
         unit.Engagement.LockedTargetUnitId = summonerTarget;
@@ -299,8 +299,8 @@ public class SimTargetingCommitTest
 
         SimCombatStateMachine.Tick(attacker, _state, Delta, new List<SimEvent>());
 
-        AssertThat(attacker.AttackPhase).IsEqual(AttackPhase.Windup);
-        AssertThat(attacker.AttackPhaseTimer).IsEqual(0.3f);
+        AssertThat(attacker.Action.AttackPhase).IsEqual(AttackPhase.Windup);
+        AssertThat(attacker.Action.AttackPhaseTimer).IsEqual(0.3f);
     }
 
     [TestCase]

@@ -972,7 +972,7 @@ public partial class SimulationNode : Node, IGameSession
                     ["unit_type"] = (int)unit.UnitType,
                     ["behavior_state"] = (int)unit.BehaviorState,
                     ["combat_lifecycle_state"] = (int)unit.Engagement.LifecycleState,
-                    ["attack_phase"] = (int)unit.AttackPhase,
+                    ["attack_phase"] = (int)unit.Action.AttackPhase,
                     ["attack_cooldown"] = unit.AttackCooldown,
                     ["attack_range"] = unit.AttackRange,
                     ["move_speed"] = unit.MoveSpeed,

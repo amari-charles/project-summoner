@@ -186,13 +186,13 @@ public class SimBehaviorTest
         SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
         AssertThat(enemy.CurrentHp).IsEqual(100f);
-        AssertThat(unit.PendingAttackTargetId.HasValue).IsTrue();
-        AssertThat(unit.PendingAttackTargetId!.Value).IsEqual(enemy.UnitId);
+        AssertThat(unit.Action.PendingAttackTargetId.HasValue).IsTrue();
+        AssertThat(unit.Action.PendingAttackTargetId!.Value).IsEqual(enemy.UnitId);
 
         SimBehavior.ResolvePendingAttackCommit(unit, _state, events);
 
         AssertThat(enemy.CurrentHp).IsLess(100f);
-        AssertThat(unit.PendingAttackTargetId).IsNull();
+        AssertThat(unit.Action.PendingAttackTargetId).IsNull();
     }
 
     [TestCase]
@@ -353,11 +353,11 @@ public class SimBehaviorTest
 
         SimBehavior.TickBehavior(unit, _state, 0.016f, events);
 
-        AssertThat(unit.PendingAttackTargetId.HasValue).IsTrue();
-        AssertThat(unit.PendingAttackTargetId!.Value).IsEqual(enemy.UnitId);
-        AssertThat(unit.PendingAttackTargetsSummoner).IsFalse();
-        AssertThat(unit.PendingAttackBaseDamage).IsEqual(unit.AttackDamage);
-        AssertThat(unit.PendingDamageTimer).IsEqual(0f);
+        AssertThat(unit.Action.PendingAttackTargetId.HasValue).IsTrue();
+        AssertThat(unit.Action.PendingAttackTargetId!.Value).IsEqual(enemy.UnitId);
+        AssertThat(unit.Action.PendingAttackTargetsSummoner).IsFalse();
+        AssertThat(unit.Action.PendingAttackBaseDamage).IsEqual(unit.AttackDamage);
+        AssertThat(unit.Action.PendingDamageTimer).IsEqual(0f);
     }
 
     [TestCase]
@@ -452,9 +452,9 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
 
-        unit.PendingDamageTimer = 0.1f;
-        unit.PendingDamageTargetId = enemy.UnitId;
-        unit.PendingDamageAmount = 20f;
+        unit.Action.PendingDamageTimer = 0.1f;
+        unit.Action.PendingDamageTargetId = enemy.UnitId;
+        unit.Action.PendingDamageAmount = 20f;
 
         var events = new List<SimEvent>();
         SimBehavior.TickPendingDamage(unit, _state, 0.5f, events);
@@ -469,9 +469,9 @@ public class SimBehaviorTest
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f, hp: 100f);
         enemy.IsAlive = false; // Dead before delayed spawn resolves
 
-        unit.PendingDamageTimer = 0.1f;
-        unit.PendingDamageTargetId = enemy.UnitId;
-        unit.PendingDamageAmount = 20f;
+        unit.Action.PendingDamageTimer = 0.1f;
+        unit.Action.PendingDamageTargetId = enemy.UnitId;
+        unit.Action.PendingDamageAmount = 20f;
 
         var events = new List<SimEvent>();
         SimBehavior.TickPendingDamage(unit, _state, 0.5f, events);
@@ -544,9 +544,9 @@ public class SimBehaviorTest
         unit.ElementId = 0;
         int summonerTargetId = MatchState.GetSummonerTargetId(1);
 
-        unit.PendingDamageTimer = 0.1f;
-        unit.PendingDamageTargetId = summonerTargetId;
-        unit.PendingDamageAmount = 10f;
+        unit.Action.PendingDamageTimer = 0.1f;
+        unit.Action.PendingDamageTargetId = summonerTargetId;
+        unit.Action.PendingDamageAmount = 10f;
 
         var events = new List<SimEvent>();
         SimBehavior.TickPendingDamage(unit, _state, 0.2f, events);

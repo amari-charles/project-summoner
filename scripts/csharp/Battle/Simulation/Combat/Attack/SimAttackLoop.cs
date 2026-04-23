@@ -20,54 +20,54 @@ public static class SimAttackLoop
 
     public static void Tick(UnitData unit, MatchState state, float delta, List<SimEvent> events)
     {
-        if (unit.AttackPhase == AttackPhase.None)
+        if (unit.Action.AttackPhase == AttackPhase.None)
             return;
 
-        unit.AttackPhaseTimer = MathF.Max(0f, unit.AttackPhaseTimer - delta);
-        if (unit.AttackPhaseTimer > 0f)
+        unit.Action.AttackPhaseTimer = MathF.Max(0f, unit.Action.AttackPhaseTimer - delta);
+        if (unit.Action.AttackPhaseTimer > 0f)
             return;
 
-        switch (unit.AttackPhase)
+        switch (unit.Action.AttackPhase)
         {
             case AttackPhase.Windup:
-                unit.AttackPhase = AttackPhase.Active;
-                unit.AttackPhaseTimer = ResolveActiveSeconds(unit);
+                unit.Action.AttackPhase = AttackPhase.Active;
+                unit.Action.AttackPhaseTimer = ResolveActiveSeconds(unit);
                 SimBehavior.ResolvePendingAttackCommit(unit, state, events);
                 break;
             case AttackPhase.Active:
-                unit.AttackPhase = AttackPhase.Recovery;
-                unit.AttackPhaseTimer = ResolveRecoverySeconds(unit);
+                unit.Action.AttackPhase = AttackPhase.Recovery;
+                unit.Action.AttackPhaseTimer = ResolveRecoverySeconds(unit);
                 break;
             default:
-                unit.AttackPhase = AttackPhase.None;
-                unit.AttackPhaseTimer = 0f;
-                unit.AttackPhaseLockTargetId = null;
+                unit.Action.AttackPhase = AttackPhase.None;
+                unit.Action.AttackPhaseTimer = 0f;
+                unit.Action.AttackPhaseLockTargetId = null;
                 break;
         }
 
-        if (unit.AttackPhase == AttackPhase.None)
+        if (unit.Action.AttackPhase == AttackPhase.None)
         {
-            unit.AttackPhaseLockTargetId = null;
+            unit.Action.AttackPhaseLockTargetId = null;
             SimBehavior.ClearPendingAttack(unit);
         }
     }
 
     public static void Begin(UnitData unit, MatchState state, int? targetId)
     {
-        unit.AttackPhase = AttackPhase.Windup;
-        unit.AttackPhaseTimer = ResolveWindupSeconds(unit);
-        unit.AttackPhaseLockTargetId = targetId;
+        unit.Action.AttackPhase = AttackPhase.Windup;
+        unit.Action.AttackPhaseTimer = ResolveWindupSeconds(unit);
+        unit.Action.AttackPhaseLockTargetId = targetId;
         state.CombatWindupsStarted++;
     }
 
     public static void Cancel(UnitData unit, MatchState state)
     {
-        if (unit.AttackPhase == AttackPhase.None)
+        if (unit.Action.AttackPhase == AttackPhase.None)
             return;
 
-        unit.AttackPhase = AttackPhase.None;
-        unit.AttackPhaseTimer = 0f;
-        unit.AttackPhaseLockTargetId = null;
+        unit.Action.AttackPhase = AttackPhase.None;
+        unit.Action.AttackPhaseTimer = 0f;
+        unit.Action.AttackPhaseLockTargetId = null;
         SimBehavior.ClearPendingAttack(unit);
         state.CombatWindupsCancelled++;
     }

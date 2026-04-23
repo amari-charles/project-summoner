@@ -32,7 +32,7 @@ public static class SimCombatStateMachine
                 unit,
                 state,
                 delta,
-                allowSummonerAggroPreempt: unit.AttackPhase == AttackPhase.None
+                allowSummonerAggroPreempt: unit.Action.AttackPhase == AttackPhase.None
             )
         )
         {
@@ -53,7 +53,7 @@ public static class SimCombatStateMachine
                 bool hasReservation = HasReservedSlotForTarget(unit, targetId);
                 bool allowSlotlessAttack =
                     targetAttackableNow
-                    && (unit.AttackPhase != AttackPhase.None || unit.AttackCooldown <= 0f);
+                    && (unit.Action.AttackPhase != AttackPhase.None || unit.AttackCooldown <= 0f);
 
                 if (isSummonerTarget && summonerAttackableNow && !hasReservation)
                 {
@@ -130,7 +130,7 @@ public static class SimCombatStateMachine
             SimMeleeSlotManager.ReleaseUnitSlots(unit, state);
         }
 
-        if (unit.AttackPhase != AttackPhase.None)
+        if (unit.Action.AttackPhase != AttackPhase.None)
         {
             SimAttackLoop.Tick(unit, state, delta, events);
             return new SimBehavior.BehaviorResult { Movement = MovementResult.None };
@@ -148,7 +148,7 @@ public static class SimCombatStateMachine
         if (!beganAttackThisTick)
             SimAttackLoop.Tick(unit, state, delta, events);
 
-        if (unit.AttackPhase != AttackPhase.None)
+        if (unit.Action.AttackPhase != AttackPhase.None)
             return new SimBehavior.BehaviorResult { Movement = MovementResult.None };
 
         return behavior;

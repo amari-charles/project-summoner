@@ -118,18 +118,7 @@ public class UnitData
 
     // Behavior state (used by SimBehavior)
     public BehaviorState BehaviorState { get; set; }
-    public float AttackAnimationTimer { get; set; }
-
-    // Attack loop state.
-    public AttackPhase AttackPhase { get; set; } = AttackPhase.None;
-    public float AttackPhaseTimer { get; set; }
-    public int? AttackPhaseLockTargetId { get; set; }
-
-    // Pending basic attack payload queued at attack start and resolved once at
-    // windup->active commit.
-    public int? PendingAttackTargetId { get; set; }
-    public float PendingAttackBaseDamage { get; set; }
-    public bool PendingAttackTargetsSummoner { get; set; }
+    public CombatActionState Action { get; set; } = new();
 
     // Delayed ranged resolution buffers:
     // - Unit targets: windup before spawning SimProjectileData
@@ -145,9 +134,6 @@ public class UnitData
     public float ProjectileStatusTickInterval { get; set; }
     public float ProjectileStatusPotencyPerStack { get; set; }
     public int ProjectileStatusMaxStacks { get; set; } = 1;
-    public float PendingDamageTimer { get; set; }
-    public int? PendingDamageTargetId { get; set; }
-    public float PendingDamageAmount { get; set; }
 
     // Charge tracking (distance traveled since last attack — for charge ability)
     public float DistanceTraveled { get; set; }

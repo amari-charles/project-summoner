@@ -208,7 +208,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             _attackAnimTimer = 0f;
 
         // Animation from BehaviorState (attack anim timer has priority while active)
-        if (isActive && unitData.AttackAnimationTimer > 0f && _attackAnimTimer <= 0f)
+        if (isActive && unitData.Action.AttackAnimationTimer > 0f && _attackAnimTimer <= 0f)
             PlayAttackAnimation();
 
         if (_attackAnimTimer > 0)
