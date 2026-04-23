@@ -73,9 +73,9 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.MoveToward);
         AssertThat(template.EngageShape).IsEqual(EngageShape.ForwardRect);
         AssertThat(Math.Abs(template.EngageRectLength - 2.7f) < 0.001f).IsTrue();
-        AssertThat(template.EngageRectHalfWidth).IsEqual(0.5f);
+        AssertThat(template.EngageRectHalfWidth).IsEqual(0.58f);
         AssertThat(template.EngageRectForwardOffset).IsEqual(0f);
-        AssertThat(Math.Abs(template.EngageCloseRadius - 0.45f) < 0.001f).IsTrue();
+        AssertThat(Math.Abs(template.EngageCloseRadius - 0.52f) < 0.001f).IsTrue();
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.GroundOnly);
         AssertThat(template.HealthScorerWeight).IsEqual(10f);
         AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);

@@ -116,4 +116,18 @@ public class SimMovementFacingStabilityTest
 
         AssertThat(unit.IsFacingRight).IsFalse();
     }
+
+    [TestCase]
+    public void TickCommitMeleeMovement_MovementNone_UnitTarget_FacesTowardUnit()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, moveSpeed: 2f);
+        unit.IsFacingRight = true;
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: -2.5f, z: 0f, moveSpeed: 0f);
+        unit.TargetUnitId = target.UnitId;
+
+        var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
+        SimMovement.Tick(unit, behavior, _state, Delta);
+
+        AssertThat(unit.IsFacingRight).IsFalse();
+    }
 }

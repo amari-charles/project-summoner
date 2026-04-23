@@ -81,6 +81,22 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [Export]
     public ShadowProfileResource? ShadowProfileOverride { get; set; }
 
+    [ExportGroup("Combat Tilt")]
+    [Export]
+    public bool CombatTiltEnabled { get; set; } = true;
+
+    [Export]
+    public float CombatTiltMaxYawDegrees { get; set; } = 8.0f;
+
+    [Export]
+    public float CombatTiltMaxPitchDegrees { get; set; } = 6.0f;
+
+    [Export]
+    public float CombatTiltMaxRollDegrees { get; set; } = 5.0f;
+
+    [Export]
+    public float CombatTiltSmoothing { get; set; } = 12.0f;
+
     [ExportGroup("")]
     /// <summary>
     /// Color to flash when taking damage. Default is bright HDR white (3, 3, 3, 1).
@@ -132,6 +148,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     private Tween? _flashTween;
     private List<CanvasItem>? _cachedSprites;
     private ulong _lastFlashTimestampMs;
+    private Vector3 _combatTiltTargetDegrees = Vector3.Zero;
+    private Vector3 _combatTiltCurrentDegrees = Vector3.Zero;
 
     // =========================================================================
     // LIFECYCLE
@@ -144,6 +162,12 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         _modelContainer = GetNodeOrNull<Node2D>("Sprite3D/SubViewport/ModelContainer");
         _underUnitVisual = IsUnderUnitVisual();
         _shadowProfile = ResolveShadowProfile();
+
+        // Disable built-in billboard so we can combine camera-facing yaw with custom combat tilt.
+        if (_sprite3D != null)
+        {
+            _sprite3D.Billboard = BaseMaterial3D.BillboardModeEnum.Disabled;
+        }
 
         if (_viewport != null)
         {
@@ -176,6 +200,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         {
             ShadowHelper.PinToGround(_shadowSprite3D, GlobalPosition.Y, _shadowProfile);
         }
+
+        UpdateBodyOrientation((float)delta);
     }
 
     private async void InstanceSkeletalSceneDeferred()
@@ -428,6 +454,11 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         }
     }
 
+    public void SetCombatTilt(float yawDeg, float pitchDeg, float rollDeg)
+    {
+        _combatTiltTargetDegrees = new Vector3(pitchDeg, yawDeg, rollDeg);
+    }
+
     public bool IsFullyInitialized()
     {
         return _initializationComplete;
@@ -629,6 +660,62 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         int behindBody = bodyRenderPriority - 1;
         int baseline = _shadowProfile.RenderPriority;
         return Mathf.Clamp(Mathf.Min(behindBody, baseline), -128, 127);
+    }
+
+    private void UpdateBodyOrientation(float delta)
+    {
+        if (_sprite3D == null)
+            return;
+
+        float cameraYawDegrees = ResolveCameraFacingYawDegrees();
+        Vector3 targetTilt = CombatTiltEnabled ? ClampCombatTilt(_combatTiltTargetDegrees) : Vector3.Zero;
+
+        float smoothing = Mathf.Max(CombatTiltSmoothing, 0f);
+        if (smoothing > 0f)
+        {
+            float t = 1f - Mathf.Exp(-smoothing * delta);
+            _combatTiltCurrentDegrees = new Vector3(
+                Mathf.LerpAngle(_combatTiltCurrentDegrees.X, targetTilt.X, t),
+                Mathf.LerpAngle(_combatTiltCurrentDegrees.Y, targetTilt.Y, t),
+                Mathf.LerpAngle(_combatTiltCurrentDegrees.Z, targetTilt.Z, t)
+            );
+        }
+        else
+        {
+            _combatTiltCurrentDegrees = targetTilt;
+        }
+
+        _sprite3D.RotationDegrees = new Vector3(
+            _combatTiltCurrentDegrees.X,
+            cameraYawDegrees + _combatTiltCurrentDegrees.Y,
+            _combatTiltCurrentDegrees.Z
+        );
+    }
+
+    private Vector3 ClampCombatTilt(Vector3 tiltDegrees)
+    {
+        return new Vector3(
+            Mathf.Clamp(tiltDegrees.X, -Mathf.Abs(CombatTiltMaxPitchDegrees), Mathf.Abs(CombatTiltMaxPitchDegrees)),
+            Mathf.Clamp(tiltDegrees.Y, -Mathf.Abs(CombatTiltMaxYawDegrees), Mathf.Abs(CombatTiltMaxYawDegrees)),
+            Mathf.Clamp(tiltDegrees.Z, -Mathf.Abs(CombatTiltMaxRollDegrees), Mathf.Abs(CombatTiltMaxRollDegrees))
+        );
+    }
+
+    private float ResolveCameraFacingYawDegrees()
+    {
+        if (_sprite3D == null)
+            return 0f;
+
+        Camera3D? camera = GetViewport()?.GetCamera3D();
+        if (camera == null)
+            return _sprite3D.RotationDegrees.Y;
+
+        Vector3 toCamera = camera.GlobalPosition - _sprite3D.GlobalPosition;
+        toCamera.Y = 0f;
+        if (toCamera.LengthSquared() <= 0.000001f)
+            return _sprite3D.RotationDegrees.Y;
+
+        return Mathf.RadToDeg(Mathf.Atan2(toCamera.X, toCamera.Z));
     }
 
     private void SetupSpriteAlignment()

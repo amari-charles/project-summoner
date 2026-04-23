@@ -1051,9 +1051,10 @@ public static class UnitDefinitions
                 template.FallbackMovement = FallbackMovement.MoveToward;
                 template.EngageShape = EngageShape.ForwardRect;
                 template.EngageRectLength = MathF.Max(template.AttackRange * 0.9f, 0.1f);
-                template.EngageRectHalfWidth = MathF.Max(template.NavigationRadius, 0.45f);
+                // Slightly widen default melee frontage to reduce near-angle front-locks.
+                template.EngageRectHalfWidth = MathF.Max(template.NavigationRadius + 0.08f, 0.58f);
                 template.EngageRectForwardOffset = 0f;
-                template.EngageCloseRadius = MathF.Max(template.NavigationRadius * 0.9f, 0.4f);
+                template.EngageCloseRadius = MathF.Max(template.NavigationRadius + 0.02f, 0.52f);
                 ApplyMeleeEngageRectOverridesFromAttack(template);
                 template.HealthScorerWeight = def.TargetingHealthScorerWeight;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
