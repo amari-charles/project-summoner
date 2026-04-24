@@ -69,7 +69,7 @@ Personality should come through facial expression, pose, hair, and clothing — 
 
 <img src="references/ref_negative_skullgirls_roster.webp" width="233"/> <img src="references/ref_negative_skullgirls_annie.webp" width="250"/>
 
-Everything is rounded, smooth, and cute in a way that defuses any edge or coolness. Even characters that are supposed to feel dangerous or intense get undercut by the softness of the art style — there's no visual tension. The characters end up feeling like they belong in a Saturday morning cartoon regardless of what they're actually doing. Our characters need sharp, deliberate lines that make them feel like someone you'd take seriously. Compare Annie here to Desscaras — the difference in how seriously you take each of them is almost entirely down to that.
+Everything is rounded, smooth, and cute — the softness of the art style undercuts any sense of edge or seriousness. Even characters that are supposed to feel dangerous don't read that way. Compare Annie here to Desscaras — Marvick, curious what you think makes one read as more serious than the other. Would be helpful context for the direction.
 
 ---
 
