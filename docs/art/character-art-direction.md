@@ -8,13 +8,15 @@
 
 ## Portrait Style
 
-This covers character art for everything outside of active gameplay — card art, UI, splash screens, menus, etc.
-
 ### General Principles
 
 **Design Philosophy**
 
 *Characters should feel expressive and defined — their personality immediately readable from how they carry themselves. That personality comes through facial expression, pose, hair, and clothing — not through inherent physical features or exaggerated proportions. Designing the other way risks characters feeling like caricatures: gimmicky, hard to take seriously, and impossible to find cool.*
+
+**General Guidelines**
+
+The following reflects what I'm generally going for with the summoners:
 
 - All characters read as approximately 22 years old
 - All characters should be conventionally attractive / pretty
