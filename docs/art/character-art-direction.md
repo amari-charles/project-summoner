@@ -12,7 +12,7 @@
 
 **Design Philosophy**
 
-*Characters should feel expressive and defined — their personality immediately readable from how they carry themselves. That personality comes through facial expression, pose, hair, and clothing — not through inherent physical features or exaggerated proportions. Designing the other way risks characters feeling like caricatures: gimmicky, hard to take seriously, and impossible to find cool.*
+*Characters should feel expressive and defined — their personality immediately readable from how they carry themselves. That personality comes through facial expression, pose, hair, and clothing — not through inherent physical features or exaggerated proportions. Designing the other way risks characters feeling like caricatures: gimmicky and hard to take seriously.*
 
 **General Guidelines**
 
