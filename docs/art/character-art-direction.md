@@ -35,7 +35,8 @@ Character art inspiration board: [Pinterest](https://www.pinterest.com/amarichar
 
 *Left: Desscaras | Right: Ichi & Desscaras (cover art)*
 
-- **Desscaras (left):** Personality and expression are conveyed through facial expression, pose, hair, clothing — not through inherent physical features. When it's done the other way, characters end up feeling like caricatures: gimmicky, unserious, and hard to find cool. The goal is for personality to read as a natural extension of who the character is, not something written into how they look. Strong example of depicting a POC without caricaturizing them.
+- **Desscaras (left):** Desscaras is stylish and expressive. The slight downturn of her eyes and mouth conveys emotion without being dramatic about it.
+- Strong example of depicting a POC without caricaturizing them.
 - **Cover art (right):** Ichi reads as confident and composed through his facial expression and posture.
 
 ---
@@ -49,6 +50,8 @@ Three images of the same character. Her jewelry and clothing are elaborate and d
 ---
 
 ### Negative References
+
+The following are examples of art directions that have elements that don't align with what we're going for, and why.
 
 **[Clash Royale](https://supercell.com/en/games/clashroyale/) — personality through proportions**
 
@@ -82,6 +85,8 @@ The current best candidate is a style similar to the characters from *Sword x St
 - [Characters focused](https://www.tiktok.com/@sxsmoririn/video/7627502796035640607)
 
 <img src="references/ref_sword_x_staff_ingame_character.png" width="200"/>
+
+*Example of how characters are rendered in-game*
 
 ---
 
@@ -127,7 +132,6 @@ Messy, tousled short hair — effortlessly disheveled. Feels natural and a littl
 
 - Skin: Warm ivory — slightly tan, not pale (#e9c7a8)
 - Hair: Red
-- Age read: ~22
 
 #### Clothing
 
