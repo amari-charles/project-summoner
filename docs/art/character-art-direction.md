@@ -4,9 +4,9 @@
 
 ## Portrait Style
 
-This covers character art for everything outside of active gameplay — card art, UI, splash screens, menus, etc. Expressive faces, detailed clothing, personality reads.
+This covers character art for everything outside of active gameplay — card art, UI, splash screens, menus, etc.
 
-### General
+### General Principles
 
 - All characters read as approximately 22 years old
 - All characters should be conventionally attractive / pretty
@@ -15,50 +15,43 @@ This covers character art for everything outside of active gameplay — card art
 
 > **Note:** I will be taking the time to develop a more detailed and consistent clothing style. Any clothing references or notes in this doc for now are cursory thoughts in the meantime.
 
-### References
-
-| Reference | Notes |
-|-----------|-------|
-| [Ichi the Witch](https://www.viz.com/ichi-the-witch) | Characters feel cool and stylish with expressive, readable faces |
-| Pinterest board | https://www.pinterest.com/amarichar/character-art-inspo/ |
-
-### General Style References
-
-**Desscaras — [Ichi the Witch](https://www.viz.com/ichi-the-witch)**
-
-<img src="references/ref_general_desscaras_ichi_the_witch.jpg" width="250"/>
-
-- Personality and expression are conveyed through facial expression, pose, hair, clothing — not through inherent physical features. When it's done the other way, characters end up feeling like caricatures: gimmicky, unserious, and hard to find cool. The goal is for personality to read as a natural extension of who the character is, not something written into how they look.
-- Strong example of depicting a POC without caricaturizing them.
+Character art inspiration board: [Pinterest](https://www.pinterest.com/amarichar/character-art-inspo/)
 
 ---
 
-**Valkyrie warrior / EV Ganin — warrior girl / EV Ganin — Philippa Cliber Hart**
+### Positive References
 
-<img src="references/ref_general_valkyrie_warrior.jpg" width="200"/> <img src="references/ref_general_ev_ganin_warrior_girl.jpg" width="200"/> <img src="references/ref_general_ev_ganin_philippa.jpg" width="200"/>
+**[Ichi the Witch](https://www.viz.com/ichi-the-witch)**
 
-All three characters convey emotion and conviction clearly and strongly through their facial expressions. You can read exactly who they are and what they're feeling without anything else doing that work for them. They can be taken seriously.
+<img src="references/ref_general_desscaras_ichi_the_witch.jpg" width="250"/> <img src="references/ref_general_ichi_the_witch_cover_art.jpg" width="185"/>
+
+- **Desscaras (left):** Personality and expression are conveyed through facial expression, pose, hair, clothing — not through inherent physical features. When it's done the other way, characters end up feeling like caricatures: gimmicky, unserious, and hard to find cool. The goal is for personality to read as a natural extension of who the character is, not something written into how they look. Strong example of depicting a POC without caricaturizing them.
+- **Cover art (right):** Ichi reads as confident — it comes through in his expression and posture.
+
+---
+
+**John Kafka — [@john_kafka02](https://x.com/john_kafka02)**
+
+<img src="references/ref_general_john_kafka_1.jpg" width="200"/> <img src="references/ref_general_john_kafka_2.jpg" width="187"/> <img src="references/ref_general_john_kafka_3.jpg" width="187"/>
+
+Pretty, stylish, and can be taken seriously. Posing conveys a lot of personality without relying on exaggerated features. Worth noting this specific art style probably wouldn't translate directly to a game context, but the things it does well — expressiveness, confidence, seriousness — are exactly what we're aiming for.
+
+---
 
 ### Negative References
 
-| Reference | Notes |
-|-----------|-------|
-| [Clash Royale](https://supercell.com/en/games/clashroyale/) character roster | Personality conveyed entirely through physicality |
+**[Clash Royale](https://supercell.com/en/games/clashroyale/) — personality through proportions**
 
 <img src="references/ref_negative_clash_royale_characters.webp" width="400"/>
 
-**Why this is the wrong direction:**
 Personality should come through facial expression, pose, hair, and clothing — not body proportions. In Clash Royale there is a direct correlation between how exaggerated a character's proportions are and how unserious they read. The Barbarian is massive with tiny legs and a gap tooth — his build makes him a dumb brute before he's done anything. PEKKA is a hulking mass, its size *is* its personality. The Princess is normally proportioned and reads as composed and intelligent by comparison. Exaggerated proportions carry an inherent silliness that undercuts cool. Our characters should feel serious and grounded — personality conveyed through how they carry themselves, not how big they are.
 
 ---
 
-| Reference | Notes |
-|-----------|-------|
-| [Skullgirls](https://skullgirls.com/) roster | Art style too soft and rounded to read as cool or serious |
+**[Skullgirls](https://skullgirls.com/) — art style too soft to read as serious**
 
 <img src="references/ref_negative_skullgirls_roster.webp" width="233"/> <img src="references/ref_negative_skullgirls_annie.webp" width="250"/>
 
-**Why this is the wrong direction:**
 Everything is rounded, smooth, and cute in a way that defuses any edge or coolness. Even characters that are supposed to feel dangerous or intense get undercut by the softness of the art style — there's no visual tension. The characters end up feeling like they belong in a Saturday morning cartoon regardless of what they're actually doing. Our characters need sharp, deliberate lines that make them feel like someone you'd take seriously. Compare Annie here to Desscaras — the difference in how seriously you take each of them is almost entirely down to that.
 
 ---
@@ -67,19 +60,16 @@ Everything is rounded, smooth, and cute in a way that defuses any edge or coolne
 
 This covers the characters as they appear during active battles — the units that attack and get hit.
 
-### General
-
 The current best candidate is a style similar to the characters from *Sword x Staff* — a chibi-adjacent proportion style that reads clearly at gameplay scale while still feeling characterful.
 
 > **Note:** Open to feedback on this. If there's a better method that preserves portrait expressiveness while working proportionally in-engine, worth exploring.
 
 ### References
 
-| Reference | Notes |
-|-----------|-------|
-| Sword x Staff (short) | https://www.youtube.com/shorts/sRPh87GbfHE |
-| Sword x Staff (gameplay) | https://www.youtube.com/watch?v=C7s_-a-B-8c |
-| Sword x Staff (characters) | https://www.tiktok.com/@sxsmoririn/video/7627502796035640607 — focused on character designs specifically |
+**[Sword x Staff](https://www.youtube.com/watch?v=C7s_-a-B-8c)**
+- [Short](https://www.youtube.com/shorts/sRPh87GbfHE)
+- [Gameplay](https://www.youtube.com/watch?v=C7s_-a-B-8c)
+- [Characters focused](https://www.tiktok.com/@sxsmoririn/video/7627502796035640607)
 
 <img src="references/ref_sword_x_staff_ingame_character.png" width="200"/>
 
@@ -134,7 +124,13 @@ Messy, tousled short hair — effortlessly disheveled. Feels natural and a littl
 
 ### [Character Name]
 
+#### Personality & Vibe
+
+#### Primary Inspiration
+
 #### Face
+
+#### Hair
 
 #### Body
 
