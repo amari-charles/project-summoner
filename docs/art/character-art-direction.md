@@ -2,7 +2,9 @@
 
 *This document is a work in progress. Character-specific direction has been started for Cole, with the remaining characters to follow. If anything is unclear or you feel more context or examples would help, please ask and I'll expand on it.*
 
-*The document is split into two sections: **Portrait Style** covers how characters should look in all art outside of active gameplay — card art, UI, splash screens, menus, etc. This is where expressiveness, personality, and detail live. **In-Game Combat Style** covers how characters are rendered as units during battle. The reason for having two distinct approaches is that portrait-level detail and realistic proportions don't translate well to a gameplay context — characters appear small on screen, and the style needs to fit cohesively alongside the environment and creatures rather than looking out of place. A simpler, more stylized in-game style feels like the right solution, but I'm open to thoughts or alternative approaches on this.*
+*The document is split into two sections: **Portrait Style** covers how characters should look in all art outside of active gameplay — card art, UI, splash screens, menus, etc. This is where expressiveness, personality, and detail live. **In-Game Combat Style** covers how characters are rendered as units during battle.*
+
+*The reason for having two distinct approaches is that portrait-level detail and realistic proportions don't translate well to a gameplay context — characters appear small on screen, and the style needs to fit cohesively alongside the environment and creatures rather than looking out of place. A simpler, more stylized in-game style feels like the right solution, but I'm open to thoughts or alternative approaches on this.*
 
 ---
 
