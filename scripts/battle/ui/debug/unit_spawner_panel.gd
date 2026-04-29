@@ -79,6 +79,7 @@ var _panel_collapsed: bool = false
 var _panel_margin: MarginContainer
 var _panel_collapse_button: Button
 var _expanded_offsets: Dictionary = {}
+var _debug_deck_entries_override: Array = []
 
 
 func _ready() -> void:
@@ -486,6 +487,27 @@ func _populate_unit_lists(enemy_container: VBoxContainer, player_container: VBox
 		_register_unit_entry(enemy_btn, player_btn, card_data, catalog_id)
 
 
+func _rebuild_unit_lists() -> void:
+	if not _enemy_unit_list_container or not _player_unit_list_container:
+		return
+
+	for child_var: Variant in _enemy_unit_list_container.get_children():
+		if child_var is Node:
+			var child: Node = child_var
+			_enemy_unit_list_container.remove_child(child)
+			child.queue_free()
+
+	for child_var: Variant in _player_unit_list_container.get_children():
+		if child_var is Node:
+			var child: Node = child_var
+			_player_unit_list_container.remove_child(child)
+			child.queue_free()
+
+	_populate_unit_lists(_enemy_unit_list_container, _player_unit_list_container)
+	_populate_dynamic_filter_options()
+	_apply_filters_and_sort()
+
+
 func _resolve_display_name(card: Card, card_data: Dictionary, catalog_id: String) -> String:
 	if card != null and not card.CardName.is_empty():
 		return card.CardName
@@ -719,6 +741,9 @@ func _is_entry_before(a: Dictionary, b: Dictionary) -> bool:
 
 
 func _load_debug_deck() -> Array:
+	if not _debug_deck_entries_override.is_empty():
+		return _debug_deck_entries_override.duplicate(true)
+
 	# Try to load from deck file
 	var file: FileAccess = FileAccess.open(DEBUG_DECK_PATH, FileAccess.READ)
 	if file:
@@ -757,6 +782,11 @@ func get_spawn_settings() -> Dictionary:
 		"formation_mode": _formation_mode,
 		"formation_spacing": _formation_spacing
 	}
+
+
+func set_debug_deck_entries(entries: Array) -> void:
+	_debug_deck_entries_override = entries.duplicate(true)
+	_rebuild_unit_lists()
 
 
 func append_spawn_log(message: String) -> void:

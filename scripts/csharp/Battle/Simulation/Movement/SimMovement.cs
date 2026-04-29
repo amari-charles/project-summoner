@@ -32,6 +32,9 @@ public static class SimMovement
     {
         FacingController.Tick(unit, delta);
 
+        if (TickForcedKnockbackMovement(unit, state, delta))
+            return;
+
         if (unit.UnitType == UnitType.Melee)
         {
             TickCommitMeleeMovement(unit, behavior, state, delta);
@@ -101,6 +104,52 @@ public static class SimMovement
         float moveDist = new SimVector3(totalDisp.X, 0, totalDisp.Z).Length();
         if (moveDist > DirectionThreshold)
             unit.DistanceTraveled += moveDist;
+    }
+
+    private static bool TickForcedKnockbackMovement(UnitData unit, MatchState state, float delta)
+    {
+        if (
+            unit.KnockbackRemainingDistance <= 0f
+            || unit.KnockbackSpeed <= 0f
+            || unit.KnockbackDirection.LengthSquared() <= DirectionThreshold
+            || delta <= 0f
+        )
+            return false;
+
+        float maxStep = unit.KnockbackSpeed * delta;
+        float requestedStep = MathF.Min(unit.KnockbackRemainingDistance, maxStep);
+        if (requestedStep <= 0f)
+            return false;
+
+        var preMove = unit.Position;
+        var desired = new SimVector3(
+            preMove.X + unit.KnockbackDirection.X * requestedStep,
+            preMove.Y,
+            preMove.Z + unit.KnockbackDirection.Z * requestedStep
+        );
+        if (unit.MovementLayer == MovementLayer.Air)
+            desired.Y = unit.FlightAltitude;
+
+        unit.Position = BattlefieldBounds.ClampToBounds(desired);
+        SimOverlapResolver.Correct(unit, state);
+        ClampUnitOutsideSummonerBubble(unit, state);
+
+        var actualDisplacement = unit.Position - preMove;
+        float movedDistance = new SimVector3(actualDisplacement.X, 0f, actualDisplacement.Z).Length();
+
+        unit.KnockbackRemainingDistance = MathF.Max(
+            0f,
+            unit.KnockbackRemainingDistance - movedDistance
+        );
+        if (unit.KnockbackRemainingDistance <= 0.0001f)
+        {
+            unit.KnockbackRemainingDistance = 0f;
+            unit.KnockbackSpeed = 0f;
+            unit.KnockbackDirection = SimVector3.Zero;
+        }
+
+        unit.Velocity = delta > 0f ? (actualDisplacement / delta) : SimVector3.Zero;
+        return true;
     }
 
     private static void TickCommitMeleeMovement(

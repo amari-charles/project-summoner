@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
@@ -92,8 +93,10 @@ public class SimCardData
                             EffectType = effect.EffectType,
                             Value = effect.Value,
                             Duration = effect.Duration,
+                            Lifetime = EffectLifetimeResolver.Resolve(effect.Lifetime, effect.Duration),
                             DamageType = effect.DamageType,
                             AoeRadius = effect.RadiusOverride,
+                            AreaShape = effect.AreaShape,
                             Affinity = effect.Affinity,
                             DelaySeconds = effect.DelaySeconds,
                             RepeatCount = effect.RepeatCount,
@@ -206,9 +209,12 @@ public sealed class UnitAbilityState
     public float Radius { get; set; }
     public float Value { get; set; }
     public float DurationSeconds { get; set; }
+    public EffectType EffectType { get; set; } = EffectType.StatModifier;
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
     public float WindupSeconds { get; set; }
     public float WindupTimer { get; set; }
     public int? LockedTargetUnitId { get; set; }
+    public bool HasApplied { get; set; }
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public AbilityTargetAffinity TargetAffinity { get; set; } = AbilityTargetAffinity.Enemies;
 
@@ -224,9 +230,12 @@ public sealed class UnitAbilityState
             Radius = Radius,
             Value = Value,
             DurationSeconds = DurationSeconds,
+            EffectType = EffectType,
+            Lifetime = Lifetime,
             WindupSeconds = WindupSeconds,
             WindupTimer = WindupTimer,
             LockedTargetUnitId = LockedTargetUnitId,
+            HasApplied = HasApplied,
             ProjectileCatalogId = ProjectileCatalogId,
             TargetAffinity = TargetAffinity,
         };

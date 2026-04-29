@@ -211,6 +211,10 @@
       "arena_mana_bolt": {
         "name": "Mana Bolt Test",
         "description": "Test the Mana Bolt spell. A purple energy bolt that strikes the nearest enemy."
+      },
+      "arena_wind_earth_new_cards": {
+        "name": "Wind/Earth New Cards Test",
+        "description": "Focused arena mission with the new Wind and Earth cards, plus Fire Wisp as a stable baseline."
       }
     },
     "starter_deck_name": "Starter Deck",

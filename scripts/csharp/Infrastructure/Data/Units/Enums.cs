@@ -137,6 +137,8 @@ public enum UnitAbilityKind
     HealerProjectile = 0,
     TauntPulse = 1,
     CleansePulse = 2,
+    ApplySelfEffect = 3,
+    TargetedKnockback = 4,
 }
 
 /// <summary>

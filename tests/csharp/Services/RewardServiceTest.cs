@@ -126,7 +126,7 @@ public class RewardServiceTest
     }
 
     [TestCase]
-    public void GetCardsForPool_AllSpells_IncludesNewWaterSpells()
+    public void GetCardsForPool_AllSpells_IncludesWaterWindEarthSpells()
     {
         var cards = RewardPoolCatalog.GetCardsForPool(RewardPoolIds.AllSpells);
         var cardIds = cards.Select(c => (string)c.Id).ToHashSet();
@@ -134,6 +134,8 @@ public class RewardServiceTest
         AssertThat(cardIds.Contains((string)CardIds.Cleanse)).IsTrue();
         AssertThat(cardIds.Contains((string)CardIds.WaterJet)).IsTrue();
         AssertThat(cardIds.Contains((string)CardIds.RainField)).IsTrue();
+        AssertThat(cardIds.Contains((string)CardIds.TailWind)).IsTrue();
+        AssertThat(cardIds.Contains((string)CardIds.Fortify)).IsTrue();
     }
 
     // =============================================================================

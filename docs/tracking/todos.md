@@ -41,6 +41,45 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ---
 
+## Architecture & Launch Routing
+
+### 🔴 HIGH PRIORITY
+
+#### Replace `scene_path`-driven battle launch with typed runtime routing
+**Status:** ⬜ Not Started
+**Category:** Architecture / Application
+**Effort:** Medium
+
+**Description:**
+Battle launch surface selection (standard battle vs debug arena) is currently selected via ad-hoc `scene_path` overrides in event data. Move this decision into typed application-level routing so launch behavior is explicit, consistent, and testable.
+
+**Tasks:**
+- [ ] Add a typed battle runtime surface contract (for example `Standard`, `DebugArena`, `CustomScene`).
+- [ ] Add a single application-layer router/policy used by campaign map + debug menu launch paths.
+- [ ] Remove duplicated caller-side `scene_path` branching logic.
+- [ ] Add regression tests for launch-surface resolution.
+
+**Related Files:**
+- `scripts/meta/screens/campaign_map.gd`
+- `scripts/debug/debug_menu.gd`
+- `scripts/csharp/Infrastructure/Data/Events/EventDefinition.cs`
+- `scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs`
+
+#### Audit for similar stringly-typed runtime routing/policy decisions
+**Status:** ⬜ Not Started
+**Category:** Architecture / Quality
+**Effort:** Small
+
+**Description:**
+Perform a targeted audit for other places where runtime behavior is selected via raw dictionary/string keys in multiple callers instead of centralized typed policy.
+
+**Tasks:**
+- [ ] Scan application and battle-launch flows for duplicated string-key branching.
+- [ ] Convert highest-risk duplicated policies to typed/shared resolvers.
+- [ ] Add TODO links for any deferred findings.
+
+---
+
 ## Ranked Gameplay
 
 ### 🟡 MEDIUM PRIORITY
@@ -69,6 +108,44 @@ The client currently operates as a pure renderer — it applies host snapshots b
 ## Units & Combat
 
 ### 🟡 MEDIUM PRIORITY
+
+#### Formalize Damage Outcome Semantics (Hit vs Evade vs On-Hit Effects)
+**Status:** ⬜ Not Started
+**Category:** Units & Combat / Simulation Correctness
+**Effort:** Medium
+
+**Description:**
+Current runtime behavior allows some on-hit effects to trigger even when the attack was evaded. This should be formalized so effect application is driven by explicit damage outcomes, not indirect checks.
+
+**Concrete Example (Observed):**
+- Wind pushback ability can apply knockback even when the target evades the hit.
+- Current flow:
+  - `SimDamage.Calculate(...)` returns `(damage=0, wasEvaded=true)` and emits `AttackEvadedEvent`.
+  - Downstream on-hit ability trigger paths currently gate on `target.CurrentHp > 0` rather than explicit `wasEvaded == false`.
+  - Result: no HP loss (correct) but knockback may still apply (incorrect).
+
+**Why this matters:**
+- On-hit effects should apply only on actual successful hit outcomes.
+- We need a formalized damage outcome contract (e.g., Hit, Evaded, Immune/Blocked, ZeroDamageHit) to remove ambiguous behavior coupling.
+
+**Scope Notes:**
+- Not blocking current PR merge.
+- Should be addressed before adding more on-hit mechanics to avoid repeated edge-case patches.
+
+**Tasks:**
+- [ ] Define a formal damage outcome/result contract used by melee + projectile pipelines.
+- [ ] Route on-hit ability/effect triggers through outcome semantics (not HP-side checks).
+- [ ] Ensure evaded hits do not apply knockback or other on-hit effects.
+- [ ] Add deterministic regression tests covering evade + on-hit interaction paths.
+
+**Related Files:**
+- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs`
+- `scripts/csharp/Battle/Simulation/Subsystems/SimAbilityOrchestrator.cs`
+- `tests/csharp/Simulation/Abilities/AbilityTargetedKnockbackTest.cs`
+
+---
 
 #### Shift Puff Attack Angle Downward
 **Status:** ✅ Completed

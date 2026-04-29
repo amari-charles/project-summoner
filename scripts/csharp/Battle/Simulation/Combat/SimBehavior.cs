@@ -176,7 +176,8 @@ public static class SimBehavior
             }
 
             // In range, constraint OK — attack if cooldown ready
-            if (unit.AttackCooldown <= 0 && unit.AttackSpeed > 0)
+            float effectiveAttackSpeed = SimEffects.GetEffectiveAttackSpeed(unit);
+            if (unit.AttackCooldown <= 0 && effectiveAttackSpeed > 0)
             {
                 unit.BehaviorState = BehaviorState.Attacking;
                 QueuePendingAttack(
@@ -186,7 +187,7 @@ public static class SimBehavior
                     SimEffects.GetEffectiveAttackDamage(unit)
                 );
 
-                unit.AttackCooldown = 1.0f / unit.AttackSpeed;
+                unit.AttackCooldown = 1.0f / effectiveAttackSpeed;
                 unit.Action.AttackAnimationTimer = SimAttackLoop.ResolveAttackAnimationDuration(unit);
                 events.Add(new UnitAttackedEvent(unit.UnitId, targetId));
 
@@ -431,6 +432,8 @@ public static class SimBehavior
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
+        if (target.CurrentHp > 0f)
+            SimAbilityOrchestrator.TryActivateOnHitEffects(state, attacker, target, events);
 
         // Fire OnHit triggers on attacker
         SimEffects.FireTriggers(state, attacker, TriggerType.OnHit, target, events);

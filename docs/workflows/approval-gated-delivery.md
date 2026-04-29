@@ -1,7 +1,7 @@
 # Approval-Gated Delivery Workflow
 
 **Status:** CURRENT  
-**Last Updated:** 2026-03-09  
+**Last Updated:** 2026-03-19  
 **Owner:** Engineering Workflow
 
 ## Purpose
@@ -67,6 +67,15 @@ Stub checklist doc must define:
 3. Legacy path removals/disables.
 4. Compile-safe deterministic stub behavior.
 5. Test skeleton coverage map against case IDs.
+
+## Architecture Placement Principle
+
+When implementing PASS 3 behavior, optimize for architecture correctness first, not proximity to existing files.
+
+Required placement rule:
+1. If a concern becomes cross-cutting or duplicated (for example lifetime adaptation, area-resolution math, shared stat-materialization rules), introduce a dedicated simulation node/module for that concern.
+2. Do not keep duplicated helper logic in multiple subsystems just because those files already exist.
+3. Document each new node in the initiative plan under architecture/interface changes so future passes reuse it.
 
 ## What "Stubs" Means In This Codebase
 

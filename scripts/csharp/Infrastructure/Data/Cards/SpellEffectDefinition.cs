@@ -17,11 +17,20 @@ public class SpellEffectDefinition
     /// <summary>Duration for buffs/debuffs.</summary>
     public float Duration { get; init; }
 
+    /// <summary>
+    /// Typed lifetime for buff/debuff effects.
+    /// Duration remains as bridge field during migration.
+    /// </summary>
+    public EffectLifetime Lifetime { get; init; } = EffectLifetime.Timed(0f);
+
     /// <summary>Damage type for damage-class effects.</summary>
     public DamageType DamageType { get; init; } = DamageType.Magic;
 
     /// <summary>Radius override (0 = use card SpellRadius).</summary>
     public float RadiusOverride { get; init; }
+
+    /// <summary>Area shape used by this effect when resolving AoE recipients.</summary>
+    public SpellAreaShape AreaShape { get; init; } = SpellAreaShape.Circle;
 
     /// <summary>Which team the effect targets.</summary>
     public SpellAffinity Affinity { get; init; } = SpellAffinity.Enemies;

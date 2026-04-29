@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Subsystems;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Combat;
@@ -110,10 +111,11 @@ public static class SimAttackLoop
     {
         float clamped = MathF.Max(windupSeconds, MinWindupSeconds);
 
-        if (unit.AttackSpeed <= 0f)
+        float effectiveAttackSpeed = SimEffects.GetEffectiveAttackSpeed(unit);
+        if (effectiveAttackSpeed <= 0f)
             return clamped;
 
-        float cooldownSeconds = 1f / unit.AttackSpeed;
+        float cooldownSeconds = 1f / effectiveAttackSpeed;
         if (cooldownSeconds <= 0f)
             return clamped;
 

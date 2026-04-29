@@ -6,6 +6,37 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-03 Completions
 
+## 2026-04 Completions
+
+### Refactor Debug Arena Infrastructure for Extendability
+**Completed:** 2026-04-20
+**Category:** Architecture / Tooling
+**Effort:** Medium
+
+Completed Debug Arena extendability hardening with typed bridge contracts, unified deck-source resolution, and focused regression coverage for debug deck behavior.
+
+**Resolution Summary:**
+- ✅ Introduced typed spawner panel bridge contract and factory path for `DebugArenaScene` integration.
+- ✅ Added `DebugArenaDeckProvider` abstraction with explicit source modes (file/context/override precedence).
+- ✅ Unified deck resolution between debug scene and panel sync flow.
+- ✅ Replaced broad “all summons” fallback with curated fallback deck behavior.
+- ✅ Added regression coverage for provider mode precedence, scene/panel parity, and test arena consistency/localization integrity.
+
+**Representative Files Changed:**
+- `scripts/csharp/Battle/View/Debug/DebugArenaScene.cs`
+- `scripts/csharp/Battle/View/Debug/SpawnerPanel/DebugArenaSpawnerPanelBridge.cs`
+- `scripts/csharp/Battle/View/Debug/DeckSources/DebugArenaDeckProvider.cs`
+- `scripts/battle/ui/debug/unit_spawner_panel.gd`
+- `scripts/debug/debug_menu.gd`
+- `tests/csharp/View/DebugArenaSceneTest.cs`
+- `tests/csharp/View/DebugArenaDeckProviderTest.cs`
+- `tests/csharp/Services/TestArenaCatalogConsistencyTest.cs`
+- `tests/csharp/Services/EventLocalizationKeyIntegrityTest.cs`
+- `tests/unit/test_debug_arena_unit_spawner_panel_stub.gd`
+- `tests/unit/test_debug_menu_stub.gd`
+
+---
+
 ### Finish Trait Rule Centralization
 **Completed:** 2026-03-10
 **Category:** Meta / Trait Tree

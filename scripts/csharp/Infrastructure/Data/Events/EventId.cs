@@ -156,6 +156,9 @@ public static class EventIds
     /// <summary>Test Arena: Mana Bolt Spell Test</summary>
     public static readonly EventId ArenaManaBolt = new("arena_mana_bolt");
 
+    /// <summary>Test Arena: Wind/Earth New Card Set (+ Fire Wisp reference)</summary>
+    public static readonly EventId ArenaWindEarthNewCards = new("arena_wind_earth_new_cards");
+
     /// <summary>Test Arena: Debug Arena - Testing sandbox</summary>
     public static readonly EventId DebugArena = new("debug_arena");
 }

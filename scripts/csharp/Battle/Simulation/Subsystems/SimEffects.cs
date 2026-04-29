@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fateforged.Constants;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
 
@@ -15,6 +16,8 @@ namespace Fateforged.Simulation.Subsystems;
 /// </summary>
 public static class SimEffects
 {
+    private const float KnockbackDurationSeconds = 0.22f;
+
     // =========================================================================
     // TICK METHODS (called from Simulation.Tick steps 7-8)
     // =========================================================================
@@ -44,7 +47,10 @@ public static class SimEffects
                     }
                 }
 
-                // Duration countdown (skip permanent buffs: Duration == -1)
+                // Duration countdown (skip persistent buffs).
+                var lifetime = EffectLifetimeResolver.Resolve(buff.Lifetime, buff.Duration);
+                buff.Lifetime = lifetime;
+                buff.Duration = lifetime.ToLegacyDuration();
                 if (buff.Duration > 0)
                 {
                     buff.Duration -= fixedDelta;
@@ -52,6 +58,10 @@ public static class SimEffects
                     {
                         events.Add(new BuffExpiredEvent(unit.UnitId, buff.BuffId, buff.EffectType));
                         unit.ActiveBuffs.RemoveAt(i);
+                    }
+                    else
+                    {
+                        buff.Lifetime = EffectLifetime.Timed(buff.Duration);
                     }
                 }
             }
@@ -156,6 +166,9 @@ public static class SimEffects
             case EffectType.Haste:
             case EffectType.DamageBoost:
             case EffectType.StatModifier:
+            case EffectType.EvasionModifier:
+            case EffectType.AttackSpeedModifier:
+            case EffectType.FlatDamageReduction:
                 ApplyBuff(
                     state,
                     target,
@@ -220,7 +233,7 @@ public static class SimEffects
                     state,
                     trigger.EffectType,
                     trigger.Value,
-                    trigger.Duration,
+                    EffectLifetimeResolver.ResolveDuration(trigger.Lifetime, trigger.Duration),
                     trigger.DamageType,
                     target,
                     unit.UnitId,
@@ -273,15 +286,7 @@ public static class SimEffects
     /// </summary>
     public static float GetEffectiveMoveSpeed(UnitData unit)
     {
-        float speed = unit.MoveSpeed;
-        foreach (var buff in unit.ActiveBuffs)
-        {
-            if (buff.EffectType == EffectType.Slow)
-                speed *= (1f - buff.Value); // Value is proportion (0.3 = 30% slow)
-            else if (buff.EffectType == EffectType.Haste)
-                speed *= (1f + buff.Value);
-        }
-        return MathF.Max(speed, 0f);
+        return EffectStatResolver.GetEffectiveMoveSpeed(unit);
     }
 
     /// <summary>
@@ -289,13 +294,23 @@ public static class SimEffects
     /// </summary>
     public static float GetEffectiveAttackDamage(UnitData unit)
     {
-        float damage = unit.AttackDamage;
-        foreach (var buff in unit.ActiveBuffs)
-        {
-            if (buff.EffectType == EffectType.DamageBoost)
-                damage *= (1f + buff.Value);
-        }
-        return damage;
+        return EffectStatResolver.GetEffectiveAttackDamage(unit);
+    }
+
+    /// <summary>
+    /// Get effective attack speed accounting for AttackSpeedModifier buffs.
+    /// </summary>
+    public static float GetEffectiveAttackSpeed(UnitData unit)
+    {
+        return EffectStatResolver.GetEffectiveAttackSpeed(unit);
+    }
+
+    /// <summary>
+    /// Get cumulative flat damage reduction from active buffs.
+    /// </summary>
+    public static float GetFlatDamageReduction(UnitData unit)
+    {
+        return EffectStatResolver.GetFlatDamageReduction(unit);
     }
 
     /// <summary>
@@ -358,6 +373,7 @@ public static class SimEffects
                 EffectType = EffectType.Damage,
                 Value = potencyPerStack,
                 Duration = durationSeconds,
+                Lifetime = EffectLifetime.Timed(durationSeconds),
                 TickInterval = tickIntervalSeconds,
                 TickTimer = tickIntervalSeconds,
                 SourceUnitId = sourceUnitId,
@@ -373,7 +389,13 @@ public static class SimEffects
         {
             existing.StackCount = Math.Min(maxStacks, Math.Max(1, existing.StackCount) + 1);
             existing.Value = potencyPerStack * existing.StackCount;
-            existing.Duration = MathF.Max(existing.Duration, durationSeconds);
+            float existingDuration = EffectLifetimeResolver.ResolveDuration(
+                existing.Lifetime,
+                existing.Duration
+            );
+            float refreshedDuration = MathF.Max(existingDuration, durationSeconds);
+            existing.Duration = refreshedDuration;
+            existing.Lifetime = EffectLifetime.Timed(refreshedDuration);
             existing.TickInterval = tickIntervalSeconds;
             if (existing.TickTimer <= 0f || existing.TickTimer > tickIntervalSeconds)
                 existing.TickTimer = tickIntervalSeconds;
@@ -416,6 +438,7 @@ public static class SimEffects
                 EffectType = EffectType.Shield,
                 ShieldHp = shieldHp,
                 Duration = -1, // Permanent until consumed
+                Lifetime = EffectLifetime.Persistent(),
                 SourceUnitId = sourceUnitId,
                 SourceTeam = sourceTeam,
             }
@@ -520,18 +543,21 @@ public static class SimEffects
         List<SimEvent> events
     )
     {
+        var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
+        float resolvedDuration = lifetime.ToLegacyDuration();
         var buff = new ActiveBuff
         {
             BuffId = state.NextBuffId(),
             EffectType = effectType,
             Value = value,
-            Duration = duration,
+            Duration = resolvedDuration,
+            Lifetime = lifetime,
             DamageType = damageType,
             SourceUnitId = sourceUnitId,
             SourceTeam = sourceTeam,
         };
         target.ActiveBuffs.Add(buff);
-        events.Add(new BuffAppliedEvent(target.UnitId, effectType, value, duration));
+        events.Add(new BuffAppliedEvent(target.UnitId, effectType, value, resolvedDuration));
     }
 
     private static void ApplyPeriodicTick(
@@ -547,8 +573,12 @@ public static class SimEffects
                 // DoT intentionally bypasses SimDamage.Calculate — DoT effects apply flat
                 // damage that ignores defense, crit, and shields. This matches the design
                 // intent where DoT represents guaranteed damage over time.
-                unit.CurrentHp -= buff.Value;
-                events.Add(new UnitDamagedEvent(unit.UnitId, buff.SourceUnitId, buff.Value, false));
+                float periodicDamage = EffectStatResolver.ApplyFlatDamageReduction(unit, buff.Value);
+                if (periodicDamage <= 0f)
+                    break;
+
+                unit.CurrentHp -= periodicDamage;
+                events.Add(new UnitDamagedEvent(unit.UnitId, buff.SourceUnitId, periodicDamage, false));
                 if (unit.CurrentHp <= 0)
                 {
                     SimUtils.KillUnit(state, unit, buff.SourceUnitId, events);
@@ -612,7 +642,7 @@ public static class SimEffects
                     state,
                     trigger.EffectType,
                     trigger.Value,
-                    trigger.Duration,
+                    EffectLifetimeResolver.ResolveDuration(trigger.Lifetime, trigger.Duration),
                     trigger.DamageType,
                     unit,
                     unit.UnitId,
@@ -650,7 +680,7 @@ public static class SimEffects
                 state,
                 trigger.EffectType,
                 trigger.Value,
-                trigger.Duration,
+                EffectLifetimeResolver.ResolveDuration(trigger.Lifetime, trigger.Duration),
                 trigger.DamageType,
                 candidate,
                 source.UnitId,
@@ -662,12 +692,15 @@ public static class SimEffects
 
     private static void QueueDelayedEffect(MatchState state, TriggerConfig trigger, UnitData source)
     {
+        var lifetime = EffectLifetimeResolver.Resolve(trigger.Lifetime, trigger.Duration);
         state.DelayedEffects.Add(
             new DelayedEffect
             {
                 Timer = trigger.Delay,
                 EffectType = trigger.EffectType,
                 Value = trigger.Value,
+                Duration = lifetime.ToLegacyDuration(),
+                Lifetime = lifetime,
                 DamageType = trigger.DamageType,
                 AoeRadius = trigger.AoeRadius,
                 Position = source.Position,
@@ -694,7 +727,7 @@ public static class SimEffects
                 state,
                 effect.EffectType,
                 effect.Value,
-                effect.Duration,
+                EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
                 effect.DamageType,
                 target,
                 effect.SourceUnitId,
@@ -719,12 +752,19 @@ public static class SimEffects
         {
             case SpellTargetingMode.Position:
             {
-                float radiusSq = effect.AoeRadius * effect.AoeRadius;
+                float radius = effect.AoeRadius;
                 foreach (var candidate in state.GetAliveActiveUnits())
                 {
                     if (teamFilter.HasValue && (int)candidate.Team != teamFilter.Value)
                         continue;
-                    if (candidate.Position.DistanceSquaredTo(effect.Position) > radiusSq)
+                    if (
+                        !SpellAreaResolver.IsWithinArea(
+                            effect.AreaShape,
+                            effect.Position,
+                            candidate.Position,
+                            radius
+                        )
+                    )
                         continue;
                     targets.Add(candidate);
                 }
@@ -761,10 +801,17 @@ public static class SimEffects
 
             case SpellTargetingMode.AlliesInRadius:
             {
-                float radiusSq = effect.AoeRadius * effect.AoeRadius;
+                float radius = effect.AoeRadius;
                 foreach (var candidate in state.GetAliveActiveUnitsForTeam(sourceTeam))
                 {
-                    if (candidate.Position.DistanceSquaredTo(effect.Position) > radiusSq)
+                    if (
+                        !SpellAreaResolver.IsWithinArea(
+                            effect.AreaShape,
+                            effect.Position,
+                            candidate.Position,
+                            radius
+                        )
+                    )
                         continue;
                     targets.Add(candidate);
                 }
@@ -812,6 +859,8 @@ public static class SimEffects
     {
         if (distance <= 0f || !target.IsAlive)
             return;
+        if (target.UnitId == sourceUnitId)
+            return;
 
         var sourcePos = ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
         var direction = new SimVector3(target.Position.X - sourcePos.X, 0f, target.Position.Z - sourcePos.Z);
@@ -828,12 +877,22 @@ public static class SimEffects
             direction = new SimVector3(direction.X * invLen, 0f, direction.Z * invLen);
         }
 
-        var displaced = new SimVector3(
-            target.Position.X + direction.X * distance,
-            target.Position.Y,
-            target.Position.Z + direction.Z * distance
-        );
-        target.Position = BattlefieldBounds.ClampToBounds(displaced);
+        float knockbackSpeed = distance / KnockbackDurationSeconds;
+        float alignment =
+            target.KnockbackDirection.X * direction.X + target.KnockbackDirection.Z * direction.Z;
+
+        target.KnockbackDirection = direction;
+        target.KnockbackSpeed = MathF.Max(target.KnockbackSpeed, knockbackSpeed);
+        if (target.KnockbackRemainingDistance <= 0f)
+        {
+            target.KnockbackRemainingDistance = distance;
+            return;
+        }
+
+        // Same-direction hits stack travel distance; opposing hits resolve to latest strongest push.
+        target.KnockbackRemainingDistance = alignment >= 0.25f
+            ? target.KnockbackRemainingDistance + distance
+            : MathF.Max(target.KnockbackRemainingDistance, distance);
     }
 
     private static SimVector3 ResolveSourcePosition(

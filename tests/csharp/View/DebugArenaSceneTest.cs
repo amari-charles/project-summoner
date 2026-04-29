@@ -9,7 +9,9 @@ using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
 using Fateforged.View;
+using Fateforged.View.Debug.DeckSources;
 using Fateforged.View.Debug;
+using Fateforged.View.Debug.SpawnerPanel;
 using GdUnit4;
 using Godot;
 using static GdUnit4.Assertions;
@@ -163,9 +165,13 @@ public partial class DebugArenaSceneTest
     }
 
     [TestCase]
-    public void BuildPracticeConfig_UsesDebugDeckForPlayerAndEnemy()
+    public void BuildPracticeConfig_FileMode_UsesDebugDeckForPlayerAndEnemy()
     {
         var arena = CreateArenaNode();
+        arena.ContextConfigOverride = new Godot.Collections.Dictionary
+        {
+            { "debug_arena_deck_source", "file" },
+        };
         var config = arena.BuildPracticeConfigPublic();
 
         var playerDeck = config["dev_player_deck"].AsGodotArray();
@@ -179,6 +185,123 @@ public partial class DebugArenaSceneTest
             .ContainsExactly(DeckSignatures(expectedDeck).ToArray());
         AssertThat(DeckSignatures(enemyDeck))
             .ContainsExactly(DeckSignatures(expectedDeck).ToArray());
+    }
+
+    [TestCase]
+    public void BuildPracticeConfig_UsesDeckProviderResolution()
+    {
+        var provider = new StubDeckProvider(
+            new DebugArenaDeckResolution(
+                BuildDeck("wind_evasion_tank", 5),
+                BuildDeck("earth_bullet_unit", 6),
+                "stub"
+            )
+        );
+        var arena = CreateArenaNode();
+        arena.DeckProviderOverride = provider;
+
+        var config = arena.BuildPracticeConfigPublic();
+        var playerDeck = config["dev_player_deck"].AsGodotArray();
+        var enemyDeck = config["enemy_deck"].AsGodotArray();
+
+        AssertThat(provider.Calls).IsEqual(1);
+        AssertThat(GetDeckSignature(playerDeck)).IsEqual("wind_evasion_tank:5");
+        AssertThat(GetDeckSignature(enemyDeck)).IsEqual("earth_bullet_unit:6");
+    }
+
+    [TestCase]
+    public void BuildPracticeConfig_DefaultMode_UsesContextSourceModeInDeckRequest()
+    {
+        var provider = new StubDeckProvider(
+            new DebugArenaDeckResolution(
+                BuildDeck("fire_wisp", 1),
+                BuildDeck("fire_wisp", 1),
+                "stub"
+            )
+        );
+        var arena = CreateArenaNode();
+        arena.DeckProviderOverride = provider;
+        arena.ContextConfigOverride = new Godot.Collections.Dictionary
+        {
+            { "dev_player_deck", BuildDeck("wind_evasion_tank", 2) },
+        };
+
+        _ = arena.BuildPracticeConfigPublic();
+
+        AssertThat(provider.Calls).IsEqual(1);
+        AssertThat(provider.LastRequest.SourceMode)
+            .IsEqual(DebugArenaDeckSourceMode.ContextThenFileThenFallback);
+    }
+
+    [TestCase]
+    public void BuildPracticeConfig_ContextMode_UsesContextSourceModeInDeckRequest()
+    {
+        var provider = new StubDeckProvider(
+            new DebugArenaDeckResolution(
+                BuildDeck("fire_wisp", 1),
+                BuildDeck("fire_wisp", 1),
+                "stub"
+            )
+        );
+        var arena = CreateArenaNode();
+        arena.DeckProviderOverride = provider;
+        arena.ContextConfigOverride = new Godot.Collections.Dictionary
+        {
+            { "debug_arena_deck_source", "context" },
+            { "dev_player_deck", BuildDeck("wind_evasion_tank", 2) },
+        };
+
+        _ = arena.BuildPracticeConfigPublic();
+
+        AssertThat(provider.Calls).IsEqual(1);
+        AssertThat(provider.LastRequest.SourceMode)
+            .IsEqual(DebugArenaDeckSourceMode.ContextThenFileThenFallback);
+    }
+
+    [TestCase]
+    public void ConnectSpawnerPanel_SyncsResolvedDeckEntriesToPanelBridge()
+    {
+        var provider = new StubDeckProvider(
+            new DebugArenaDeckResolution(
+                BuildDeck("wind_evasion_tank", 3),
+                BuildDeck("earth_bullet_unit", 2),
+                "stub"
+            )
+        );
+        var bridge = new StubSpawnerPanelBridge();
+        var arena = CreateArenaNode();
+        arena.DeckProviderOverride = provider;
+        arena.BridgeOverride = bridge;
+
+        var config = arena.BuildPracticeConfigPublic();
+        arena.ConnectSpawnerPanelPublic();
+
+        var playerDeck = config["dev_player_deck"].AsGodotArray();
+        AssertThat(bridge.SetDeckEntriesCalls).IsEqual(1);
+        AssertThat(DeckSignatures(bridge.LastDeckEntries))
+            .ContainsExactly(DeckSignatures(playerDeck).ToArray());
+    }
+
+    [TestCase]
+    public void ConnectSpawnerPanel_ContextMode_SyncsContextDeckEntriesToPanelBridge()
+    {
+        var bridge = new StubSpawnerPanelBridge();
+        var arena = CreateArenaNode();
+        arena.BridgeOverride = bridge;
+        arena.ContextConfigOverride = new Godot.Collections.Dictionary
+        {
+            { "debug_arena_deck_source", "context" },
+            { "dev_player_deck", BuildDeck("wind_cleave_unit", 4) },
+            { "enemy_deck", BuildDeck("fire_wisp", 1) },
+        };
+
+        var config = arena.BuildPracticeConfigPublic();
+        arena.ConnectSpawnerPanelPublic();
+
+        var playerDeck = config["dev_player_deck"].AsGodotArray();
+        AssertThat(GetDeckSignature(playerDeck)).IsEqual("wind_cleave_unit:4");
+        AssertThat(bridge.SetDeckEntriesCalls).IsEqual(1);
+        AssertThat(GetDeckSignature(bridge.LastDeckEntries)).IsEqual("wind_cleave_unit:4");
     }
 
     private TestDebugArenaScene CreateArenaNode()
@@ -278,13 +401,104 @@ public partial class DebugArenaSceneTest
         }
     }
 
+    private static Godot.Collections.Array BuildDeck(string catalogId, int count)
+    {
+        return new Godot.Collections.Array
+        {
+            new Godot.Collections.Dictionary { { "catalog_id", catalogId }, { "count", count } },
+        };
+    }
+
+    private static string GetDeckSignature(Godot.Collections.Array deck)
+    {
+        var entry = deck[0].AsGodotDictionary();
+        string catalogId = entry.GetValueOrDefault("catalog_id", "").AsString();
+        int count = entry.GetValueOrDefault("count", 0).AsInt32();
+        return $"{catalogId}:{count}";
+    }
+
     private sealed partial class TestDebugArenaScene : DebugArenaScene
     {
+        public IDebugArenaDeckProvider? DeckProviderOverride { get; set; }
+        public Godot.Collections.Dictionary? ContextConfigOverride { get; set; }
+        public IDebugArenaSpawnerPanelBridge? BridgeOverride { get; set; }
+
         public override async void _Ready()
         {
             await System.Threading.Tasks.Task.CompletedTask;
         }
 
+        protected override IDebugArenaDeckProvider CreateDeckProvider()
+        {
+            return DeckProviderOverride ?? base.CreateDeckProvider();
+        }
+
+        protected override Godot.Collections.Dictionary ReadBattleContextConfig()
+        {
+            return ContextConfigOverride ?? base.ReadBattleContextConfig();
+        }
+
+        protected override IDebugArenaSpawnerPanelBridge? ResolveSpawnerPanelBridge()
+        {
+            return BridgeOverride ?? base.ResolveSpawnerPanelBridge();
+        }
+
         public Godot.Collections.Dictionary BuildPracticeConfigPublic() => BuildPracticeConfig();
+
+        public void ConnectSpawnerPanelPublic() => ConnectSpawnerPanel();
+    }
+
+    private sealed class StubDeckProvider : IDebugArenaDeckProvider
+    {
+        private readonly DebugArenaDeckResolution _resolution;
+        public int Calls { get; private set; }
+        public DebugArenaDeckResolveRequest LastRequest { get; private set; } =
+            new DebugArenaDeckResolveRequest();
+
+        public StubDeckProvider(DebugArenaDeckResolution resolution)
+        {
+            _resolution = resolution;
+        }
+
+        public DebugArenaDeckResolution Resolve(DebugArenaDeckResolveRequest request)
+        {
+            Calls++;
+            LastRequest = request;
+            return _resolution;
+        }
+    }
+
+    private sealed class StubSpawnerPanelBridge : IDebugArenaSpawnerPanelBridge
+    {
+        public Node PanelNode { get; } = new Node();
+
+        public int SetDeckEntriesCalls { get; private set; }
+        public Godot.Collections.Array LastDeckEntries { get; private set; } = new();
+
+        public bool ConnectClearRequested(Callable handler) => true;
+
+        public bool ConnectSkipPrepToggled(Callable handler) => true;
+
+        public bool ConnectEnemyAiToggled(Callable handler) => true;
+
+        public bool ConnectPlayerAiToggled(Callable handler) => true;
+
+        public bool ConnectClearTeamRequested(Callable handler) => true;
+
+        public bool ConnectUndoRequested(Callable handler) => true;
+
+        public bool GetSkipPrepPhase() => false;
+
+        public bool GetEnemyAiEnabled() => false;
+
+        public bool GetPlayerAiEnabled() => false;
+
+        public void AppendSpawnLog(string message) { }
+
+        public void SetDebugDeckEntries(Godot.Collections.Array deckEntries)
+        {
+            SetDeckEntriesCalls++;
+            LastDeckEntries = (Godot.Collections.Array)deckEntries.Duplicate(true);
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fateforged.Units;
 
@@ -47,6 +48,9 @@ public enum EffectType
     AreaDamage, // Deal damage in an area
     Cleanse, // Remove negative effects/statuses
     Knockback, // Displace a unit away from source
+    EvasionModifier, // Modify evasion chance (+/-)
+    AttackSpeedModifier, // Modify attack speed (+/-)
+    FlatDamageReduction, // Flat post-mitigation reduction
 }
 
 /// <summary>
@@ -98,6 +102,15 @@ public enum SpellTargetingMode
 }
 
 /// <summary>
+/// Geometric shape for spell area resolution.
+/// </summary>
+public enum SpellAreaShape
+{
+    Circle = 0,
+    Square = 1,
+}
+
+/// <summary>
 /// Which team a spell effect targets.
 /// </summary>
 public enum SpellAffinity
@@ -105,6 +118,36 @@ public enum SpellAffinity
     Enemies,
     Allies,
     Both,
+}
+
+/// <summary>
+/// Typed lifetime kind for combat effects.
+/// </summary>
+public enum EffectLifetimeKind
+{
+    Timed = 0,
+    Persistent = 1,
+}
+
+/// <summary>
+/// Explicit lifetime payload for buffs/effects.
+/// Legacy duration bridges are kept for PASS 2 compatibility.
+/// </summary>
+public readonly record struct EffectLifetime(EffectLifetimeKind Kind, float RemainingSeconds)
+{
+    public bool IsTimed => Kind == EffectLifetimeKind.Timed;
+
+    public bool IsPersistent => Kind == EffectLifetimeKind.Persistent;
+
+    public static EffectLifetime Timed(float seconds) =>
+        new(EffectLifetimeKind.Timed, MathF.Max(0f, seconds));
+
+    public static EffectLifetime Persistent() => new(EffectLifetimeKind.Persistent, 0f);
+
+    public static EffectLifetime FromLegacyDuration(float duration) =>
+        duration < 0f ? Persistent() : Timed(duration);
+
+    public float ToLegacyDuration() => IsPersistent ? -1f : RemainingSeconds;
 }
 
 // =========================================================================
@@ -126,11 +169,20 @@ public class SimSpellEffect
     /// <summary>Duration in seconds (for buffs/debuffs). 0 = instant.</summary>
     public float Duration { get; set; }
 
+    /// <summary>
+    /// Typed lifetime payload for effects that create buffs/debuffs.
+    /// Legacy Duration is retained for compatibility during migration.
+    /// </summary>
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
+
     /// <summary>Damage type for damage effects.</summary>
     public DamageType DamageType { get; set; }
 
     /// <summary>AoE radius override (0 = use card's SpellRadius).</summary>
     public float AoeRadius { get; set; }
+
+    /// <summary>Area shape used to resolve AoE recipients.</summary>
+    public SpellAreaShape AreaShape { get; set; } = SpellAreaShape.Circle;
 
     /// <summary>Which team this effect targets.</summary>
     public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
@@ -166,6 +218,12 @@ public class ActiveBuff
 
     /// <summary>Remaining duration in seconds. -1 = permanent (removed on death).</summary>
     public float Duration { get; set; }
+
+    /// <summary>
+    /// Typed lifetime model replacing sentinel duration semantics.
+    /// Duration remains as a bridge in PASS 2.
+    /// </summary>
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
 
     /// <summary>For periodic buffs: interval between ticks.</summary>
     public float TickInterval { get; set; }
@@ -210,6 +268,12 @@ public class TriggerConfig
     /// <summary>Effect duration (for buffs/debuffs). -1 = permanent.</summary>
     public float Duration { get; set; }
 
+    /// <summary>
+    /// Typed effect lifetime replacing sentinel duration semantics.
+    /// Duration remains as a bridge in PASS 2.
+    /// </summary>
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
+
     /// <summary>For HpThreshold: the HP percentage threshold (0-1).</summary>
     public float Threshold { get; set; }
 
@@ -253,6 +317,9 @@ public class DelayedEffect
     /// <summary>Area of effect radius (0 = single target).</summary>
     public float AoeRadius { get; set; }
 
+    /// <summary>Area shape for delayed effect recipient resolution.</summary>
+    public SpellAreaShape AreaShape { get; set; } = SpellAreaShape.Circle;
+
     /// <summary>Position where the effect originates (for AoE).</summary>
     public SimVector3 Position { get; set; }
 
@@ -273,4 +340,10 @@ public class DelayedEffect
 
     /// <summary>Duration payload for buff/debuff effects.</summary>
     public float Duration { get; set; }
+
+    /// <summary>
+    /// Typed duration payload for delayed buff/debuff effects.
+    /// Duration remains as a bridge in PASS 2.
+    /// </summary>
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
 }
