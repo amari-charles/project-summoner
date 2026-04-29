@@ -1056,7 +1056,6 @@ public static class UnitDefinitions
                 template.EngageRectForwardOffset = 0f;
                 template.EngageCloseRadius = MathF.Max(template.NavigationRadius * 0.9f, 0.4f);
                 ApplyMeleeEngageRectOverridesFromAttack(template);
-                template.Attack.Rules.MeleeEngagementModel = MeleeEngagementModel.Direct;
                 template.HealthScorerWeight = def.TargetingHealthScorerWeight;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
                 template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
@@ -1150,8 +1149,8 @@ public static class UnitDefinitions
         template.EngageRectForwardOffset = MathF.Max(forwardOffset, 0f);
         if (template.EngageRectForwardOffset > 0f)
         {
-            // Forward-offset melee sloting reserves orbit radius at offset + 0.05f.
-            // Match close bubble to that band so units don't endlessly circle just
+            // Forward-offset melee needs a close fallback at the offset band so units
+            // don't endlessly circle just
             // outside the authored offset threshold.
             float offsetCloseRadius = template.EngageRectForwardOffset + 0.05f;
             template.EngageCloseRadius = MathF.Max(template.EngageCloseRadius, offsetCloseRadius);

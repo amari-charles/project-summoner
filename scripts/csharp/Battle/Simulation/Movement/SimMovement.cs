@@ -9,10 +9,10 @@ using Fateforged.Units;
 namespace Fateforged.Simulation.Movement;
 
 /// <summary>
-/// Movement pipeline: Intent Generation → ORCA → Overlap Correction.
-/// Intent generation computes desired velocity/facing from behavior.
-/// ORCA constrains velocity to avoid collisions via half-plane LP solver.
-/// Overlap correction is a lightweight safety net for remaining edge cases.
+/// Movement pipeline.
+/// Ranged/non-commit movement uses Intent Generation → ORCA → Overlap Correction.
+/// Target-commit melee uses deterministic direct integration plus overlap safety,
+/// with attackability/facing handled by combat geometry.
 /// </summary>
 public static class SimMovement
 {
@@ -21,7 +21,8 @@ public static class SimMovement
 
     /// <summary>
     /// Execute a full movement tick for a unit based on its behavior result.
-    /// Pipeline: IntentResolve → ORCA → Smooth → Apply → OverlapCorrection.
+    /// Non-melee pipeline: IntentResolve → ORCA → Smooth → Apply → OverlapCorrection.
+    /// Melee target-commit pipeline: direct objective/target integration → OverlapCorrection.
     /// </summary>
     public static void Tick(
         UnitData unit,
@@ -43,6 +44,7 @@ public static class SimMovement
 
         if (behavior.Movement == MovementResult.None)
         {
+            UpdateStationaryFacing(unit, state);
             // Ensure blocked-navigation timers don't persist while unit is idle/attacking.
             BlockedNavigationController.ResetState(unit);
             unit.Velocity = SimVector3.Zero;
@@ -152,6 +154,13 @@ public static class SimMovement
         return true;
     }
 
+    private static void UpdateStationaryFacing(UnitData unit, MatchState state)
+    {
+        int? facingTargetId = unit.Action.AttackPhaseLockTargetId ?? unit.Engagement.TargetUnitId;
+        if (facingTargetId.HasValue)
+            FacingController.UpdateTowardTarget(unit, facingTargetId, state);
+    }
+
     private static void TickCommitMeleeMovement(
         UnitData unit,
         SimBehavior.BehaviorResult behavior,
@@ -161,9 +170,7 @@ public static class SimMovement
     {
         if (behavior.Movement == MovementResult.None || unit.Action.AttackPhase != AttackPhase.None)
         {
-            int? facingTargetId = unit.Action.AttackPhaseLockTargetId ?? unit.Engagement.TargetUnitId;
-            if (facingTargetId.HasValue && MatchState.IsSummonerTarget(facingTargetId))
-                FacingController.UpdateTowardTarget(unit, facingTargetId, state);
+            UpdateStationaryFacing(unit, state);
 
             BlockedNavigationController.ResetState(unit);
             unit.Velocity = SimVector3.Zero;
@@ -263,7 +270,12 @@ public static class SimMovement
             Mode = behavior.Movement,
             TargetId = behavior.MoveTargetId,
             DesiredVelocity = velocity,
-            DesiredFacingDirection = dir,
+            DesiredFacingDirection = ResolveMeleeCombatFacingDirection(
+                behavior.MoveTargetId,
+                state,
+                unit.Position,
+                dir
+            ),
         };
         FacingController.Update(unit, intent, state);
 
@@ -275,6 +287,25 @@ public static class SimMovement
         float moveDist = new SimVector3(totalDisp.X, 0f, totalDisp.Z).Length();
         if (moveDist > DirectionThreshold)
             unit.DistanceTraveled += moveDist;
+    }
+
+    private static SimVector3 ResolveMeleeCombatFacingDirection(
+        int? targetId,
+        MatchState state,
+        SimVector3 unitPosition,
+        SimVector3 fallbackDirection
+    )
+    {
+        var targetPosition = SimUtils.ResolveTargetPosition(targetId, state);
+        if (!targetPosition.HasValue)
+            return fallbackDirection;
+
+        var toTarget = targetPosition.Value - unitPosition;
+        toTarget.Y = 0f;
+        if (toTarget.LengthSquared() < DirectionThreshold)
+            return fallbackDirection;
+
+        return toTarget.Normalized();
     }
 
     private static void ClampUnitOutsideSummonerBubble(UnitData unit, MatchState state)

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -245,41 +244,19 @@ public class SimulationIntegrationTest
     }
 
     [TestCase]
-    public void DeathCleanup_ReleasesSlots_BeforeReacquire()
+    public void FixedSeed_ReplayParity_ForCombatCommitFlow()
     {
-        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
-
-        bool reserved = SimMeleeSlotManager.TryReserveSlot(attacker, _state, target.UnitId, out _);
-        AssertThat(reserved).IsTrue();
-
-        attacker.IsAlive = false;
-        attacker.DeathCleanupTimer = 1f;
-
-        _sim.Tick(Delta);
-
-        var slotState = _state.TargetSlotStates[target.UnitId];
-        foreach (var slot in slotState.Slots)
-        {
-            AssertThat(slot.ReservedUnitId == attacker.UnitId).IsFalse();
-            AssertThat(slot.OccupiedUnitId == attacker.UnitId).IsFalse();
-        }
-    }
-
-    [TestCase]
-    public void FixedSeed_ReplayParity_ForCommitSlotFlow()
-    {
-        string runOne = RunCommitSlotReplayHash(seed: 424242u);
-        string runTwo = RunCommitSlotReplayHash(seed: 424242u);
+        string runOne = RunCombatCommitReplayHash(seed: 424242u);
+        string runTwo = RunCombatCommitReplayHash(seed: 424242u);
 
         AssertThat(runOne).IsEqual(runTwo);
     }
 
     [TestCase]
-    public void FixedSeed_OverflowReplayParity_ForCommitSlotFlow()
+    public void FixedSeed_OverflowReplayParity_ForCombatCommitFlow()
     {
-        string runOne = RunCommitSlotOverflowReplayHash(seed: 989898u);
-        string runTwo = RunCommitSlotOverflowReplayHash(seed: 989898u);
+        string runOne = RunCombatCommitOverflowReplayHash(seed: 989898u);
+        string runTwo = RunCombatCommitOverflowReplayHash(seed: 989898u);
 
         AssertThat(runOne).IsEqual(runTwo);
     }
@@ -1188,7 +1165,7 @@ public class SimulationIntegrationTest
     // Helper
     // =========================================================================
 
-    private static string RunCommitSlotReplayHash(uint seed)
+    private static string RunCombatCommitReplayHash(uint seed)
     {
         var state = SimTestHelper.CreateBattleState(seed);
         var sim = new Fateforged.Simulation.Simulation(state);
@@ -1239,7 +1216,7 @@ public class SimulationIntegrationTest
         return string.Join(";", snapshots);
     }
 
-    private static string RunCommitSlotOverflowReplayHash(uint seed)
+    private static string RunCombatCommitOverflowReplayHash(uint seed)
     {
         var state = SimTestHelper.CreateBattleState(seed);
         var sim = new Fateforged.Simulation.Simulation(state);
@@ -1295,7 +1272,6 @@ public class SimulationIntegrationTest
             int onFallback = 0;
             int onSummoner = 0;
             int droppedPrimary = 0;
-            int slottingPrimary = 0;
 
             foreach (var attacker in attackers)
             {
@@ -1312,15 +1288,10 @@ public class SimulationIntegrationTest
                     && attacker.Engagement.DroppedTargetUnitId.Value == primaryTarget.UnitId
                 )
                     droppedPrimary++;
-                if (
-                    attacker.Engagement.SlotTargetId.HasValue
-                    && attacker.Engagement.SlotTargetId.Value == primaryTarget.UnitId
-                )
-                    slottingPrimary++;
             }
 
             snapshots.Add(
-                $"{frame}|hp={primaryTarget.CurrentHp:F1}|p={onPrimary}|f={onFallback}|s={onSummoner}|d={droppedPrimary}|sp={slottingPrimary}|sw={state.CombatTargetSwitchCount}|bt={state.CombatBlockedTimeoutRetargetCount}"
+                $"{frame}|hp={primaryTarget.CurrentHp:F1}|p={onPrimary}|f={onFallback}|s={onSummoner}|d={droppedPrimary}|sw={state.CombatTargetSwitchCount}|bt={state.CombatBlockedTimeoutRetargetCount}"
             );
         }
 

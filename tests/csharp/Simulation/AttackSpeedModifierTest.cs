@@ -18,7 +18,7 @@ public class AttackSpeedModifierTest
         var events = new List<SimEvent>();
         var attacker = SimTestHelper.CreateMeleeUnit(state, 0, attackSpeed: 1f, x: 0f, z: 0f);
         var target = SimTestHelper.CreateMeleeUnit(state, 1, x: 1.2f, z: 0f);
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
 
         attacker.ActiveBuffs.Add(
             new ActiveBuff
@@ -50,7 +50,7 @@ public class AttackSpeedModifierTest
         var events = new List<SimEvent>();
         var attacker = SimTestHelper.CreateMeleeUnit(state, 0, attackSpeed: 1f, x: 0f, z: 0f);
         var target = SimTestHelper.CreateMeleeUnit(state, 1, x: 1.2f, z: 0f);
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
 
         attacker.ActiveBuffs.Add(
             new ActiveBuff

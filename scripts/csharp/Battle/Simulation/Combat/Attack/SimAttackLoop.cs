@@ -8,7 +8,7 @@ using Fateforged.Units;
 namespace Fateforged.Simulation.Combat;
 
 /// <summary>
-/// Commit-slot attack phase ticker.
+/// Target-commit attack phase ticker.
 /// Phase timing runs here while damage application remains in SimBehavior/attack vector logic.
 /// </summary>
 public static class SimAttackLoop

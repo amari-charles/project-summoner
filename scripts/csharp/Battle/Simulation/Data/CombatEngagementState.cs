@@ -3,7 +3,7 @@ using Fateforged.Simulation.Enums;
 namespace Fateforged.Simulation.Data;
 
 /// <summary>
-/// Runtime engagement state for target lock, retargeting, and slot approach.
+/// Runtime engagement state for target lock, retargeting, and direct approach.
 /// Grouped under UnitData to avoid scattering commit/target fields at root level.
 /// </summary>
 public sealed class CombatEngagementState
@@ -19,16 +19,9 @@ public sealed class CombatEngagementState
     public float UnreachableTimer { get; set; }
     public float UnreachableTimeoutSeconds { get; set; } = 1.2f;
 
-    // Slot approach state
-    public int? SlotTargetId { get; set; }
-    public int? ReservedSlotId { get; set; }
-    public int? OccupiedSlotId { get; set; }
-    public float SlotWaitTimer { get; set; }
-    public float SlotWaitTimeoutSeconds { get; set; } = 0.7f;
-    public float LastSlotDistance { get; set; } = -1f;
+    // Progress tracking for blocked direct approach.
     public float LastTargetDistance { get; set; } = -1f;
     public float NoProgressTimer { get; set; }
-    public float LastReservationDistanceSq { get; set; } = float.MaxValue;
 
     // Retarget cooldown after forced drops
     public int? DroppedTargetUnitId { get; set; }

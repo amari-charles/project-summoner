@@ -53,9 +53,6 @@ public class MatchState
     // Projectiles (keyed by MatchState-local projectile ID)
     public Dictionary<int, SimProjectileData> Projectiles { get; } = new();
 
-    // Target-owned melee slot containers (keyed by target id, including summoner target ids).
-    public Dictionary<int, TargetSlotState> TargetSlotStates { get; } = new();
-
     // Next unit ID counter
     private int _nextUnitId;
 
@@ -206,65 +203,4 @@ public class MatchState
         return summoner.IsAlive ? summoner : null;
     }
 
-    /// <summary>
-    /// Release slot reservations/occupancy for dead entities and remove slot containers
-    /// for invalid targets. Intended to run before target reacquire in commit-slot flow.
-    /// </summary>
-    public void ReleaseInvalidSlotReferences()
-    {
-        if (TargetSlotStates.Count == 0)
-            return;
-
-        var invalidTargets = new List<int>();
-        foreach (var (targetId, slotState) in TargetSlotStates)
-        {
-            bool targetAlive;
-            if (IsSummonerTarget(targetId))
-            {
-                int team = GetSummonerTeamFromTargetId(targetId);
-                targetAlive = team >= 0 && team < Summoners.Length && Summoners[team].IsAlive;
-            }
-            else
-            {
-                targetAlive = GetAliveUnit(targetId) != null;
-            }
-
-            if (!targetAlive)
-            {
-                invalidTargets.Add(targetId);
-                continue;
-            }
-
-            foreach (var slot in slotState.Slots)
-            {
-                bool reservedAlive =
-                    slot.ReservedUnitId.HasValue && GetAliveUnit(slot.ReservedUnitId.Value) != null;
-                bool occupiedAlive =
-                    slot.OccupiedUnitId.HasValue && GetAliveUnit(slot.OccupiedUnitId.Value) != null;
-
-                if (!reservedAlive)
-                    slot.ReservedUnitId = null;
-                if (!occupiedAlive)
-                    slot.OccupiedUnitId = null;
-
-                if (slot.OccupiedUnitId.HasValue)
-                {
-                    slot.OccupancyState = SlotOccupancyState.Occupied;
-                }
-                else if (slot.ReservedUnitId.HasValue)
-                {
-                    slot.OccupancyState = SlotOccupancyState.Reserved;
-                }
-                else
-                {
-                    slot.OccupancyState = SlotOccupancyState.Free;
-                    slot.ReservationDistanceSq = float.MaxValue;
-                    slot.ReservationUnitId = int.MaxValue;
-                }
-            }
-        }
-
-        foreach (int targetId in invalidTargets)
-            TargetSlotStates.Remove(targetId);
-    }
 }

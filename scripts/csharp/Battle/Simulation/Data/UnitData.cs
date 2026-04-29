@@ -110,7 +110,7 @@ public class UnitData
     public bool NavigationEscapeQueued { get; set; }
     public int NavigationEscapeDirectionSign { get; set; } = 1;
 
-    // Engagement runtime state (target lock + commit lifecycle + slot approach).
+    // Engagement runtime state (target lock + commit lifecycle + direct approach).
     public CombatEngagementState Engagement { get; set; } = new();
 
     // Combat cooldowns

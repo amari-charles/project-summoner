@@ -912,7 +912,6 @@ public partial class SimulationNode : Node, IGameSession
             ["summoners"] = BuildReproSummonerSnapshot(state),
             ["units"] = BuildReproUnitSnapshot(state),
             ["projectiles"] = BuildReproProjectileSnapshot(state),
-            ["target_slots"] = BuildReproTargetSlotSnapshot(state),
             ["events"] = BuildReproEventSnapshot(events),
         };
         return frame;
@@ -987,16 +986,12 @@ public partial class SimulationNode : Node, IGameSession
                     ["target_unit_id"] = NullableIntToVariant(unit.Engagement.TargetUnitId),
                     ["locked_target_unit_id"] = NullableIntToVariant(unit.Engagement.LockedTargetUnitId),
                     ["forced_target_unit_id"] = NullableIntToVariant(unit.Engagement.ForcedTargetUnitId),
-                    ["slot_target_id"] = NullableIntToVariant(unit.Engagement.SlotTargetId),
-                    ["reserved_slot_id"] = NullableIntToVariant(unit.Engagement.ReservedSlotId),
-                    ["occupied_slot_id"] = NullableIntToVariant(unit.Engagement.OccupiedSlotId),
                     ["navigation_blocked_time"] = unit.NavigationBlockedTime,
                     ["no_progress_timer"] = unit.Engagement.NoProgressTimer,
                     ["is_facing_right"] = unit.IsFacingRight,
                     ["attack_selection_mode"] = (int)unit.Attack.Selection.Mode,
                     ["attack_area_shape"] = (int)unit.Attack.Area.Shape,
                     ["attack_forward_offset"] = unit.Attack.Area.ForwardOffset,
-                    ["melee_engagement_model"] = (int)unit.Attack.Rules.MeleeEngagementModel,
                 }
             );
         }
@@ -1034,53 +1029,6 @@ public partial class SimulationNode : Node, IGameSession
                 }
             );
         }
-        return result;
-    }
-
-    private static Godot.Collections.Array<Godot.Collections.Dictionary> BuildReproTargetSlotSnapshot(
-        MatchState state
-    )
-    {
-        var targetIds = new List<int>(state.TargetSlotStates.Keys);
-        targetIds.Sort();
-
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (int targetId in targetIds)
-        {
-            var slotState = state.TargetSlotStates[targetId];
-            var slots = new List<MeleeSlotEntry>(slotState.Slots);
-            slots.Sort((a, b) => a.SlotId.CompareTo(b.SlotId));
-
-            var slotArray = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-            foreach (var slot in slots)
-            {
-                slotArray.Add(
-                    new Godot.Collections.Dictionary
-                    {
-                        ["slot_id"] = slot.SlotId,
-                        ["offset"] = ToVectorDict(slot.SlotOffset),
-                        ["occupancy_state"] = (int)slot.OccupancyState,
-                        ["reserved_unit_id"] = NullableIntToVariant(slot.ReservedUnitId),
-                        ["occupied_unit_id"] = NullableIntToVariant(slot.OccupiedUnitId),
-                        ["reservation_distance_sq"] = slot.ReservationDistanceSq,
-                    }
-                );
-            }
-
-            result.Add(
-                new Godot.Collections.Dictionary
-                {
-                    ["target_id"] = targetId,
-                    ["orbit_radius"] = slotState.OrbitRadius,
-                    ["layout_axis"] = ToVectorDict(slotState.LayoutAxis),
-                    ["last_anchor_position"] = ToVectorDict(slotState.LastAnchorPosition),
-                    ["last_axis_refresh_time"] = slotState.LastAxisRefreshTime,
-                    ["slot_count"] = slotState.Slots.Count,
-                    ["slots"] = slotArray,
-                }
-            );
-        }
-
         return result;
     }
 

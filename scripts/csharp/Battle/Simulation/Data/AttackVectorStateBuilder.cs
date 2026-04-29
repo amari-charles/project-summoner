@@ -54,7 +54,6 @@ public static class AttackVectorStateBuilder
                 IncludeSummonerTargets = rules.IncludeSummonerTargets,
                 AllowRepeatHits = rules.AllowRepeatHits,
                 TriggerMode = rules.TriggerMode,
-                MeleeEngagementModel = rules.MeleeEngagementModel,
             },
         };
 

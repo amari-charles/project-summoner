@@ -133,7 +133,7 @@ public class SimBehaviorTest
     }
 
     [TestCase]
-    public void TickBehavior_InRange_CooldownNotReady_DirectMeleeMaintainsPressure()
+    public void TickBehavior_InRange_CooldownNotReady_MeleeHoldsPosition()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f);
         var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f);
@@ -144,7 +144,7 @@ public class SimBehaviorTest
 
         var result = TickBehaviorAndCommit(unit, _state, 0.016f, events);
 
-        AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
+        AssertThat(result.Movement).IsEqual(MovementResult.None);
         AssertThat(unit.BehaviorState).IsEqual(BehaviorState.InRange);
     }
 

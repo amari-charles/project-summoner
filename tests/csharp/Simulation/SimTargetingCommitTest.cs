@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
@@ -112,7 +111,7 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
-    public void CommitTick_DirectMeleeEngagement_DoesNotReserveSlots()
+    public void CommitTick_MeleeEngagement_AttacksDirectlyWithoutSlotState()
     {
         var unit = SimTestHelper.CreateMeleeUnit(
             _state,
@@ -122,48 +121,20 @@ public class SimTargetingCommitTest
             attackRange: 3f,
             aggroRadius: 20f
         );
-        unit.Attack.Rules.MeleeEngagementModel = MeleeEngagementModel.Direct;
 
         var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
+        enemy.Evasion = 0f;
 
         unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
         unit.Engagement.LockedTargetUnitId = enemy.UnitId;
         unit.Engagement.TargetUnitId = enemy.UnitId;
         unit.AttackCooldown = 0f;
 
-        SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
+        var events = new List<SimEvent>();
+        SimCombatStateMachine.Tick(unit, _state, Delta, events);
 
-        AssertThat(unit.Engagement.SlotTargetId.HasValue).IsFalse();
-        AssertThat(unit.Engagement.ReservedSlotId.HasValue).IsFalse();
-        AssertThat(unit.Engagement.OccupiedSlotId.HasValue).IsFalse();
-        AssertThat(_state.TargetSlotStates.Count).IsEqual(0);
-    }
-
-    [TestCase]
-    public void CommitTick_SlotRingMeleeEngagement_ReservesSlotAgainstUnitTarget()
-    {
-        var unit = SimTestHelper.CreateMeleeUnit(
-            _state,
-            team: 0,
-            x: 0f,
-            z: 0f,
-            attackRange: 3f,
-            aggroRadius: 20f,
-            meleeEngagementModel: MeleeEngagementModel.SlotRing
-        );
-
-        var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
-
-        unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
-        unit.Engagement.LockedTargetUnitId = enemy.UnitId;
-        unit.Engagement.TargetUnitId = enemy.UnitId;
-        unit.AttackCooldown = 0f;
-
-        SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
-
-        AssertThat(unit.Engagement.SlotTargetId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.SlotTargetId!.Value).IsEqual(enemy.UnitId);
-        AssertThat(unit.Engagement.ReservedSlotId.HasValue).IsTrue();
+        AssertThat(unit.AttackCooldown > 0f).IsTrue();
+        AssertThat(SimTestHelper.FindEvent<UnitAttackedEvent>(events)).IsNotNull();
     }
 
     [TestCase]
@@ -353,7 +324,7 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
-    public void CommitTick_UsesSlots_ForSummonerTargets_WhenNotYetAttackable()
+    public void CommitTick_SummonerTarget_WhenNotYetAttackable_MovesDirectly()
     {
         var unit = SimTestHelper.CreateMeleeUnit(
             _state,
@@ -361,34 +332,22 @@ public class SimTargetingCommitTest
             x: 10f,
             z: 0f,
             attackRange: 2.5f,
-            aggroRadius: 20f,
-            meleeEngagementModel: MeleeEngagementModel.SlotRing
+            aggroRadius: 20f
         );
         unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
 
-        SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
+        var result = SimCombatStateMachine.Tick(unit, _state, Delta, new List<SimEvent>());
 
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
         AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
         AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.Engagement.SlotTargetId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.SlotTargetId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.Engagement.ReservedSlotId.HasValue).IsTrue();
-
-        var slotPos =
-            Fateforged.Simulation.Combat.Slots.SimMeleeSlotManager.GetReservedSlotWorldPosition(
-                unit,
-                _state
-            );
-        AssertThat(slotPos.HasValue).IsTrue();
-        float dx = slotPos!.Value.X - _state.Summoners[1].Position.X;
-        float dz = slotPos.Value.Z - _state.Summoners[1].Position.Z;
-        float dist = MathF.Sqrt((dx * dx) + (dz * dz));
-        AssertThat(dist).IsGreater(SummonerMeleeBubble.EffectiveRadius - 0.05f);
+        AssertThat(result.Movement).IsEqual(MovementResult.TowardTarget);
+        AssertThat(result.MoveTargetId.HasValue).IsTrue();
+        AssertThat(result.MoveTargetId!.Value).IsEqual(summonerTarget);
     }
 
     [TestCase]
-    public void CommitTick_SummonerAlreadyAttackable_StartsAttackWithoutSlotGate()
+    public void CommitTick_SummonerAlreadyAttackable_StartsAttack()
     {
         var unit = SimTestHelper.CreateMeleeUnit(
             _state,
@@ -396,8 +355,7 @@ public class SimTargetingCommitTest
             x: 18f,
             z: 0f,
             attackRange: 2.5f,
-            aggroRadius: 20f,
-            meleeEngagementModel: MeleeEngagementModel.SlotRing
+            aggroRadius: 20f
         );
         unit.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
 
@@ -407,10 +365,6 @@ public class SimTargetingCommitTest
         int summonerTarget = MatchState.GetSummonerTargetId(team: 1);
         AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
         AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(summonerTarget);
-        AssertThat(unit.Engagement.SlotTargetId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.SlotTargetId!.Value).IsEqual(summonerTarget);
-        // Slots may still be reserved opportunistically for ring shaping, but
-        // attack startup is no longer gated on slot ownership.
         AssertThat(unit.AttackCooldown > 0f).IsTrue();
         AssertThat(SimTestHelper.FindEvent<SummonerDamagedEvent>(events)).IsNull();
     }
@@ -475,7 +429,7 @@ public class SimTargetingCommitTest
     }
 
     [TestCase]
-    public void AcquireTargetCommit_PrefersInAggroUnit_EvenWhenSlotsAlreadySaturated()
+    public void AcquireTargetCommit_PrefersInAggroUnit_EvenWhenCrowded()
     {
         var saturatedTarget = SimTestHelper.CreateMeleeUnit(
             _state,
@@ -489,33 +443,12 @@ public class SimTargetingCommitTest
         var blockerOne = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: -0.5f);
         var blockerTwo = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: 0f);
         var blockerThree = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 15.5f, z: 0.5f);
-        AssertThat(
-                SimMeleeSlotManager.TryReserveSlot(
-                    blockerOne,
-                    _state,
-                    saturatedTarget.UnitId,
-                    out _
-                )
-            )
-            .IsTrue();
-        AssertThat(
-                SimMeleeSlotManager.TryReserveSlot(
-                    blockerTwo,
-                    _state,
-                    saturatedTarget.UnitId,
-                    out _
-                )
-            )
-            .IsTrue();
-        AssertThat(
-                SimMeleeSlotManager.TryReserveSlot(
-                    blockerThree,
-                    _state,
-                    saturatedTarget.UnitId,
-                    out _
-                )
-            )
-            .IsTrue();
+        blockerOne.Engagement.TargetUnitId = saturatedTarget.UnitId;
+        blockerOne.Engagement.LockedTargetUnitId = saturatedTarget.UnitId;
+        blockerTwo.Engagement.TargetUnitId = saturatedTarget.UnitId;
+        blockerTwo.Engagement.LockedTargetUnitId = saturatedTarget.UnitId;
+        blockerThree.Engagement.TargetUnitId = saturatedTarget.UnitId;
+        blockerThree.Engagement.LockedTargetUnitId = saturatedTarget.UnitId;
 
         var overflow = SimTestHelper.CreateMeleeUnit(
             _state,

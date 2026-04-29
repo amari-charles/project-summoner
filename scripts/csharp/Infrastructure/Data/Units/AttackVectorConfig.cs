@@ -89,11 +89,5 @@ public record AttackRulesConfig
     /// <summary>Which recipients can fire trigger hooks.</summary>
     public AttackTriggerMode TriggerMode { get; init; } = AttackTriggerMode.PrimaryOnly;
 
-    /// <summary>
-    /// Melee approach model used by commit targeting/lifecycle logic.
-    /// </summary>
-    public MeleeEngagementModel MeleeEngagementModel { get; init; } =
-        MeleeEngagementModel.Direct;
-
     public static AttackRulesConfig Default => new();
 }

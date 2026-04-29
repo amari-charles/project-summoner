@@ -6,7 +6,6 @@ using System.Linq;
 using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
@@ -81,9 +80,8 @@ public class BlockedUnitReproTest
             }
         }
 
-        // Commit-slot flow can queue behind occupied slots, so some additional
-        // idle time is expected. Guard against true deadlock by requiring attacks
-        // and bounding idle windows to less than 4 seconds over a 5 second sim.
+        // Some close-contact idle time is expected. Guard against true deadlock by
+        // requiring attacks and bounding idle windows to less than 4 seconds.
         bool backUnitAttacked = SimTestHelper
             .FindEvents<UnitAttackedEvent>(allEvents)
             .Any(e => e.AttackerUnitId == backUnit.UnitId);
@@ -134,8 +132,8 @@ public class BlockedUnitReproTest
 
     /// <summary>
     /// Forward-rect melee with positive forward offset (Pebloom-like profile)
-    /// should still secure a slot that allows attacks instead of parking idle
-    /// while a nearby enemy free-hits.
+    /// should still find direct attackability instead of parking idle while a
+    /// nearby enemy free-hits.
     /// </summary>
     [TestCase]
     public void ForwardRectOffsetUnit_VersusFireWisp_EventuallyAttacks()
@@ -227,11 +225,17 @@ public class BlockedUnitReproTest
                     firstAttackFrame = frame;
             }
 
-            if (
-                pebbloom.Engagement.TargetUnitId.HasValue
+            bool stalledBeforeFirstAttack =
+                firstAttackFrame < 0
+                && pebbloom.Engagement.TargetUnitId.HasValue
+                && !SimTargeting.IsTargetAttackableNow(
+                    pebbloom,
+                    pebbloom.Engagement.TargetUnitId.Value,
+                    _state
+                )
                 && pebbloom.Velocity.LengthSquared() < 0.001f
-                && pebbloom.BehaviorState != BehaviorState.Attacking
-            )
+                && pebbloom.BehaviorState != BehaviorState.Attacking;
+            if (stalledBeforeFirstAttack)
             {
                 stalledIdleFrames++;
             }
@@ -315,6 +319,69 @@ public class BlockedUnitReproTest
     }
 
     /// <summary>
+    /// Visual stability guard for the simple debug-arena repro: once melee allies are
+    /// already attackable and waiting on cooldown, they should hold their frontage
+    /// instead of continuing to drive into the target and each other.
+    /// </summary>
+    [TestCase]
+    public void CommitBehavior_TwoVOne_AttackableCooldown_DoesNotKeepApplyingBodyPressure()
+    {
+        SimUnitTemplate pebbloomTemplate = UnitDefinitions.BuildSimTemplate(UnitIds.EarthSprite, count: 1);
+        var lead = CreateUnitFromTemplate(_state, pebbloomTemplate, team: 0, x: -1.1f, z: -0.25f, hp: 280f);
+        var trail = CreateUnitFromTemplate(_state, pebbloomTemplate, team: 0, x: -1.7f, z: 0.35f, hp: 280f);
+        lead.CritChance = 0f;
+        trail.CritChance = 0f;
+
+        var enemy = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 1.35f,
+            z: 0f,
+            hp: 2000f,
+            damage: 0f,
+            attackSpeed: 0f,
+            attackRange: 3.0f,
+            moveSpeed: 0f,
+            aggroRadius: 20f
+        );
+        enemy.Evasion = 0f;
+
+        int leadHits = 0;
+        int trailHits = 0;
+        int leadCooldownPressureFrames = 0;
+        int trailCooldownPressureFrames = 0;
+        int sharedTargetPressureFrames = 0;
+        const int windowFrames = 360; // 6s @ 60fps
+
+        for (int frame = 0; frame < windowFrames; frame++)
+        {
+            var events = _sim.Tick(Delta);
+            foreach (var attacked in events.OfType<UnitAttackedEvent>())
+            {
+                if (attacked.AttackerUnitId == lead.UnitId)
+                    leadHits++;
+                if (attacked.AttackerUnitId == trail.UnitId)
+                    trailHits++;
+            }
+
+            bool leadPressuring = IsAttackableCooldownPressureFrame(lead, enemy.UnitId, _state);
+            bool trailPressuring = IsAttackableCooldownPressureFrame(trail, enemy.UnitId, _state);
+            if (leadPressuring)
+                leadCooldownPressureFrames++;
+            if (trailPressuring)
+                trailCooldownPressureFrames++;
+            if (leadPressuring && trailPressuring)
+                sharedTargetPressureFrames++;
+        }
+
+        AssertThat(leadHits).IsGreaterEqual(2);
+        AssertThat(trailHits).IsGreaterEqual(2);
+        AssertThat(leadCooldownPressureFrames).IsLess(12);
+        AssertThat(trailCooldownPressureFrames).IsLess(12);
+        AssertThat(sharedTargetPressureFrames).IsEqual(0);
+    }
+
+    /// <summary>
     /// Offset-lane 2v1 guard: when allies approach from different lateral lanes,
     /// both should still begin attacking quickly (no lane-based starvation).
     /// </summary>
@@ -360,11 +427,69 @@ public class BlockedUnitReproTest
     }
 
     /// <summary>
-    /// 3v1 guard for slot starvation: rear allies should not wait multiple seconds
-    /// behind early reserves before committing at least one attack.
+    /// Vertical 2v1 guard: units that enter from above/below the target should
+    /// route to an attackable side anchor instead of pushing into the target's Z axis.
     /// </summary>
     [TestCase]
-    public void CommitBehavior_ThreeVOne_SlotStarvation_AlliesCommitWithinThreeSeconds()
+    public void CommitBehavior_TwoVOne_VerticalApproach_BothCommitWithoutBodyPressure()
+    {
+        SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(UnitIds.EarthSprite, count: 1);
+        var lower = CreateUnitFromTemplate(_state, template, team: 0, x: 2.2f, z: -5.2f, hp: 280f);
+        var upper = CreateUnitFromTemplate(_state, template, team: 0, x: 2.2f, z: 5.2f, hp: 280f);
+        lower.CritChance = 0f;
+        upper.CritChance = 0f;
+
+        var enemy = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 2.2f,
+            z: 0f,
+            hp: 2000f,
+            damage: 0f,
+            attackSpeed: 0f,
+            attackRange: 3.0f,
+            moveSpeed: 0f,
+            aggroRadius: 20f
+        );
+        enemy.Evasion = 0f;
+
+        int lowerFirstAttack = -1;
+        int upperFirstAttack = -1;
+        int lowerCooldownPressureFrames = 0;
+        int upperCooldownPressureFrames = 0;
+        const int windowFrames = 420; // 7s @ 60fps
+
+        for (int frame = 0; frame < windowFrames; frame++)
+        {
+            var events = _sim.Tick(Delta);
+            if (lowerFirstAttack < 0 && events.OfType<UnitAttackedEvent>().Any(e => e.AttackerUnitId == lower.UnitId))
+                lowerFirstAttack = frame;
+            if (upperFirstAttack < 0 && events.OfType<UnitAttackedEvent>().Any(e => e.AttackerUnitId == upper.UnitId))
+                upperFirstAttack = frame;
+
+            if (IsAttackableCooldownPressureFrame(lower, enemy.UnitId, _state))
+                lowerCooldownPressureFrames++;
+            if (IsAttackableCooldownPressureFrame(upper, enemy.UnitId, _state))
+                upperCooldownPressureFrames++;
+        }
+
+        AssertThat(lowerFirstAttack >= 0).IsTrue();
+        AssertThat(upperFirstAttack >= 0).IsTrue();
+        const int commitByFrame = 210; // 3.5s @ 60fps
+        AssertThat(lowerFirstAttack).IsLessEqual(commitByFrame);
+        AssertThat(upperFirstAttack).IsLessEqual(commitByFrame);
+        AssertThat(lower.Position.X).IsLess(enemy.Position.X - 0.75f);
+        AssertThat(upper.Position.X).IsLess(enemy.Position.X - 0.75f);
+        AssertThat(lowerCooldownPressureFrames).IsLess(12);
+        AssertThat(upperCooldownPressureFrames).IsLess(12);
+    }
+
+    /// <summary>
+    /// 3v1 guard: rear allies should not wait multiple seconds behind early
+    /// frontliners before committing at least one attack.
+    /// </summary>
+    [TestCase]
+    public void CommitBehavior_ThreeVOne_CrowdedFront_AlliesCommitWithinThreeSeconds()
     {
         SimUnitTemplate template = UnitDefinitions.BuildSimTemplate(UnitIds.EarthSprite, count: 1);
         var front = CreateUnitFromTemplate(_state, template, team: 0, x: -2.1f, z: 0.0f, hp: 280f);
@@ -817,7 +942,7 @@ public class BlockedUnitReproTest
         _state.Summoners[1].CurrentHp = 600f;
         _state.Summoners[1].MaxHp = 600f;
 
-        // Frontline unit starts in range and tends to hold the front slot.
+        // Frontline unit starts in range and tends to hold the front.
         SimTestHelper.CreateMeleeUnit(
             _state,
             0,
@@ -854,58 +979,26 @@ public class BlockedUnitReproTest
     }
 
     [TestCase]
-    public void SummonerFocus_AttackableWithoutFreeSlot_StillDamages()
+    public void SummonerFocus_AttackableInCrowd_StillDamages()
     {
         _state.Summoners[1].CurrentHp = 4000f;
         _state.Summoners[1].MaxHp = 4000f;
         int summonerTargetId = MatchState.GetSummonerTargetId(team: 1);
 
-        // Fill all currently computed summoner slots with friendly blockers.
-        var blockers = new List<UnitData>();
-        var firstBlocker = SimTestHelper.CreateMeleeUnit(
-            _state,
-            team: 0,
-            x: 14f,
-            z: -4f,
-            attackRange: 3f,
-            moveSpeed: 0f,
-            damage: 0f
-        );
-        blockers.Add(firstBlocker);
-        bool firstReserved = SimMeleeSlotManager.TryReserveSlot(
-            firstBlocker,
-            _state,
-            summonerTargetId,
-            out _
-        );
-        AssertThat(firstReserved).IsTrue();
-
-        int slotCount = _state.TargetSlotStates[summonerTargetId].Slots.Count;
-        for (int i = 1; i < slotCount; i++)
+        // Crowd the summoner front with inert allies. The active attacker should
+        // still use direct attackability instead of depending on reserved frontage.
+        for (int i = 0; i < 12; i++)
         {
             float z = -4f + (i * 0.24f);
-            blockers.Add(
-                SimTestHelper.CreateMeleeUnit(
-                    _state,
-                    team: 0,
-                    x: 14f,
-                    z: z,
-                    attackRange: 3f,
-                    moveSpeed: 0f,
-                    damage: 0f
-                )
-            );
-        }
-
-        for (int i = 1; i < blockers.Count; i++)
-        {
-            bool reserved = SimMeleeSlotManager.TryReserveSlot(
-                blockers[i],
+            SimTestHelper.CreateMeleeUnit(
                 _state,
-                summonerTargetId,
-                out _
+                team: 0,
+                x: 14f,
+                z: z,
+                attackRange: 3f,
+                moveSpeed: 0f,
+                damage: 0f
             );
-            AssertThat(reserved).IsTrue();
         }
 
         var attacker = SimTestHelper.CreateMeleeUnit(
@@ -976,7 +1069,7 @@ public class BlockedUnitReproTest
 
     /// <summary>
     /// High-density summoner pressure repro (60 total units).
-    /// Ensures backline attackers in dense clumps can still rotate into attack slots.
+    /// Ensures backline attackers in dense clumps can still contribute.
     /// </summary>
     [TestCase]
     public void SummonerFocus_DenseSwarm_HasBroadAttackerContribution()
@@ -1252,6 +1345,24 @@ public class BlockedUnitReproTest
 
         AssertThat(pushingOffenders.Count).IsEqual(0);
         AssertThat(attackedIds.Count(id => attackers.Any(u => u.UnitId == id))).IsGreater(1);
+    }
+
+    private static bool IsAttackableCooldownPressureFrame(
+        UnitData unit,
+        int targetId,
+        MatchState state
+    )
+    {
+        if (!unit.Engagement.TargetUnitId.HasValue || unit.Engagement.TargetUnitId.Value != targetId)
+            return false;
+        if (!SimTargeting.IsTargetAttackableNow(unit, targetId, state))
+            return false;
+        if (unit.AttackCooldown <= 0f || unit.Action.AttackPhase != AttackPhase.None)
+            return false;
+        if (unit.BehaviorState != BehaviorState.InRange)
+            return false;
+
+        return unit.Velocity.Length() > 0.15f;
     }
 
     private static float DistanceXZ(SimVector3 a, SimVector3 b)

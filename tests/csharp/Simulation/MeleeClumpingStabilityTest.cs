@@ -22,15 +22,20 @@ public class MeleeClumpingStabilityTest
     private const float ScenarioNavigationRadius = 0.5f;
 
     [TestCase]
-    public void CommitSlotFlow_ReducesChurn_InDenseClump()
+    public void DirectMeleeFlow_ReducesChurn_InDenseClump()
     {
-        var result = RunScenario(seed: 20260312u, useCommitSlotMode: true);
+        var result = RunScenario(seed: 20260312u);
         float recoveryRatio =
             result.EngagedFrames > 0 ? result.RecoveryFrames / (float)result.EngagedFrames : 1f;
+        float highVelocityRatio =
+            result.EngagedFrames > 0 ? result.HighVelocityFrames / (float)result.EngagedFrames : 1f;
         int totalHits = result.AttackerOneAttackCount + result.AttackerTwoAttackCount;
 
         AssertThat(totalHits).IsGreater(0);
+        AssertThat(result.AttackerOneAttackCount).IsGreater(0);
+        AssertThat(result.AttackerTwoAttackCount).IsGreater(0);
         AssertThat(result.EngagedFrames).IsGreater(300);
+        AssertThat(highVelocityRatio).IsLess(0.10f);
         AssertThat(recoveryRatio).IsLess(0.20f);
         AssertThat(result.TargetSwitchCount).IsEqual(0);
         AssertThat(result.BlockedTimeoutRetargetCount).IsLessEqual(1);
@@ -47,11 +52,16 @@ public class MeleeClumpingStabilityTest
         float spreadUpperBound = configuredBudget + (ScenarioNavigationRadius * 1.5f);
         float recoveryRatio =
             result.EngagedFrames > 0 ? result.RecoveryFrames / (float)result.EngagedFrames : 1f;
+        float highVelocityRatio =
+            result.EngagedFrames > 0 ? result.HighVelocityFrames / (float)result.EngagedFrames : 1f;
 
         int totalHits = result.AttackerOneAttackCount + result.AttackerTwoAttackCount;
         AssertThat(totalHits).IsGreater(0);
+        AssertThat(result.AttackerOneAttackCount).IsGreater(0);
+        AssertThat(result.AttackerTwoAttackCount).IsGreater(0);
         AssertThat(result.EngagedFrames).IsGreater(90);
         AssertThat(result.AverageLateralSpread).IsLessEqual(spreadUpperBound);
+        AssertThat(highVelocityRatio).IsLess(0.20f);
         AssertThat(recoveryRatio).IsLess(0.15f);
     }
 
@@ -69,7 +79,7 @@ public class MeleeClumpingStabilityTest
             AssertThat(runOne.Checkpoints[i]).IsEqual(runTwo.Checkpoints[i]);
     }
 
-    private static ScenarioResult RunScenario(uint seed, bool useCommitSlotMode = false)
+    private static ScenarioResult RunScenario(uint seed)
     {
         var state = SimTestHelper.CreateBattleState(seed);
         var sim = new Fateforged.Simulation.Simulation(state);
@@ -114,17 +124,6 @@ public class MeleeClumpingStabilityTest
 
         ConfigureForwardRectMelee(attackerOne);
         ConfigureForwardRectMelee(attackerTwo);
-        if (useCommitSlotMode)
-        {
-            attackerOne.Attack.Rules.MeleeEngagementModel = MeleeEngagementModel.SlotRing;
-            attackerTwo.Attack.Rules.MeleeEngagementModel = MeleeEngagementModel.SlotRing;
-            attackerOne.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
-            attackerTwo.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
-            attackerOne.Engagement.LockedTargetUnitId = target.UnitId;
-            attackerTwo.Engagement.LockedTargetUnitId = target.UnitId;
-            attackerOne.Engagement.TargetUnitId = target.UnitId;
-            attackerTwo.Engagement.TargetUnitId = target.UnitId;
-        }
 
         int attackerOneAttackCount = 0;
         int attackerTwoAttackCount = 0;

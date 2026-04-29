@@ -267,11 +267,9 @@ Audit the current pathfinding and targeting systems for robustness and efficienc
 **Progress Update (2026-03-12, summoner preempt + objective advance):**
 - ✅ Added summoner soft-lock aggro preempt so committed summoner targets switch to valid in-aggro enemy units within one tick (`RetargetReason.AggroPreempt`), while forced targets and active attack phases remain non-preemptable.
 - ✅ Added no-target objective-advance steering (straight until engage band, then progressive curve toward enemy summoner) and wired it across direct/context movement paths.
-- ✅ Fixed forward-rect slot topology minimum orbit radius for positive forward-offset attackers to prevent standstill/no-swing behavior in Pebloom-like melee profiles.
+- ✅ Fixed forward-rect close-range fallback for positive forward-offset attackers to prevent standstill/no-swing behavior in Pebloom-like melee profiles.
 - ✅ Added deterministic regression coverage for summoner-preempt contract, objective-advance movement, and forward-rect idle/attack repros.
-- ✅ Added shared summoner melee bubble targeting + stand-ring alignment (sloting, engage checks, and debug controls) to reduce summoner ring-around deadlocks in dense melee swarms.
-- ✅ Fixed a radius-only slot topology regression where summoner slot reservation/occupancy metadata could be dropped during orbit-radius rebuilds; radius-only updates now preserve slot ownership.
-- ✅ Added regression coverage for summoner bubble radius-only topology updates to ensure existing reservations persist across override/radius retunes.
+- ✅ Added shared summoner melee bubble targeting + direct engage checks/debug controls to reduce ring-around deadlocks in dense melee swarms.
 
 **Notes:**
 - Related to lane-based movement todo (may affect targeting behavior)

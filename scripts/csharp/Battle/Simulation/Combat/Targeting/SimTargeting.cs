@@ -39,7 +39,7 @@ public static class SimTargeting
     }
 
     /// <summary>
-    /// Commit-target acquisition used by commit-slot lifecycle.
+    /// Commit-target acquisition used by the target-commit lifecycle.
     /// Summoner is always a valid candidate and congestion penalty is applied for melee vs unit targets.
     /// </summary>
     public static int? AcquireTargetCommit(

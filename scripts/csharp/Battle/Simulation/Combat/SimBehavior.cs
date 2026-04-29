@@ -196,14 +196,6 @@ public static class SimBehavior
 
             // In range, waiting for cooldown
             unit.BehaviorState = BehaviorState.InRange;
-            if (ShouldMaintainDirectMeleePressure(unit, isSummonerTarget))
-            {
-                return new BehaviorResult
-                {
-                    Movement = MovementResult.TowardTarget,
-                    MoveTargetId = targetId,
-                };
-            }
             return new BehaviorResult { Movement = MovementResult.None };
         }
 
@@ -328,15 +320,6 @@ public static class SimBehavior
         }
 
         return false;
-    }
-
-    private static bool ShouldMaintainDirectMeleePressure(UnitData unit, bool isSummonerTarget)
-    {
-        if (isSummonerTarget)
-            return false;
-
-        return unit.UnitType == UnitType.Melee
-            && unit.Attack.Rules.MeleeEngagementModel == MeleeEngagementModel.Direct;
     }
 
     /// <summary>

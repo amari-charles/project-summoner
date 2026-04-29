@@ -68,8 +68,7 @@ public static class SimTestHelper
         float attackSpeed = 1f,
         float attackRange = 2f,
         float moveSpeed = 3f,
-        float aggroRadius = 20f,
-        MeleeEngagementModel meleeEngagementModel = MeleeEngagementModel.Direct
+        float aggroRadius = 20f
     )
     {
         int unitId = state.NextUnitId();
@@ -92,7 +91,6 @@ public static class SimTestHelper
             IsFacingRight = team == 0,
             TargetLayerFilter = TargetLayer.Both,
         };
-        unit.Attack.Rules.MeleeEngagementModel = meleeEngagementModel;
         state.Units[unitId] = unit;
         return unit;
     }
@@ -152,8 +150,7 @@ public static class SimTestHelper
         float hp = 60f,
         float damage = 12f,
         float altitude = 3f,
-        float attackRange = 6f,
-        MeleeEngagementModel meleeEngagementModel = MeleeEngagementModel.Direct
+        float attackRange = 6f
     )
     {
         int unitId = state.NextUnitId();
@@ -177,7 +174,6 @@ public static class SimTestHelper
             IsFacingRight = team == 0,
             TargetLayerFilter = TargetLayer.Both,
         };
-        unit.Attack.Rules.MeleeEngagementModel = meleeEngagementModel;
         state.Units[unitId] = unit;
         return unit;
     }

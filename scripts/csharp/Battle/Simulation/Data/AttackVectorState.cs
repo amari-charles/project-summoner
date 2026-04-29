@@ -115,7 +115,6 @@ public sealed class AttackRulesState
     public bool IncludeSummonerTargets { get; set; }
     public bool AllowRepeatHits { get; set; }
     public AttackTriggerMode TriggerMode { get; set; } = AttackTriggerMode.PrimaryOnly;
-    public MeleeEngagementModel MeleeEngagementModel { get; set; } = MeleeEngagementModel.Direct;
 
     public static AttackRulesState Default() => new();
 
@@ -126,7 +125,6 @@ public sealed class AttackRulesState
             IncludeSummonerTargets = IncludeSummonerTargets,
             AllowRepeatHits = AllowRepeatHits,
             TriggerMode = TriggerMode,
-            MeleeEngagementModel = MeleeEngagementModel,
         };
     }
 }

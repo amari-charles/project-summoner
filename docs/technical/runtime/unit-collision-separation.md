@@ -10,8 +10,8 @@ Unit movement uses a deterministic simulation pipeline:
 1. **Behavior** produces a movement mode and optional target (`SimBehavior`)
 2. **Intent generation** produces a `MovementIntent` (`desiredVelocity`, `desiredFacingDirection`)
 3. **Blocked navigation assist** may inject temporary yield/escape intent during low-progress pursuit (`BlockedNavigationController`)
-4. **ORCA** resolves collision-safe velocity (`OrcaAvoidance`)
-5. **Position integration** applies safe velocity and battlefield bounds clamp
+4. **ORCA** resolves collision-safe velocity for non-melee movement (`OrcaAvoidance`)
+5. **Position integration** applies safe/direct velocity and battlefield bounds clamp
 6. **Facing controller** updates orientation with hysteresis/hold-time (`FacingController`)
 7. **Overlap correction** performs a position-only safety pass (`OverlapCorrection`)
 
@@ -46,8 +46,9 @@ This prevents rapid left-right flipping when units are close and ORCA/overlap co
 
 ## Blocked Clump Handling
 
-ORCA is local collision avoidance, not route planning. In dense clumps, units can repeatedly
-receive safe velocities that stall progress. `BlockedNavigationController` addresses this by:
+ORCA is local collision avoidance, not route planning. In dense clumps, ORCA-backed units can
+repeatedly receive safe velocities that stall progress. `BlockedNavigationController` addresses
+this by:
 
 - tracking progress toward current target over time
 - entering a short deterministic **yield** when blocked
@@ -68,6 +69,18 @@ Summoner targets are resolved through `MovementTargetResolver` instead of raw su
 
 This prevents dense swarms from repeatedly contesting a single front slot.
 
+## Target-Commit Melee
+
+Melee unit-target movement uses deterministic target-commit integration rather than ORCA-backed
+intent movement. `MovementTargetResolver` gives forward-rect melee an attackable side anchor for
+unit targets, including top/bottom approaches, and `SimMovement` faces melee units toward the
+actual target while walking to that anchor. Once attackable, melee units hold position during
+cooldown so they do not keep applying body pressure.
+
+`SimOverlapResolver` and `OverlapCorrection` still run as a safety pass. Same-target melee allies
+in close combat are skipped by overlap recovery so the safety pass does not shove friendly
+attackers apart while they are already contributing to the same target.
+
 ## Shared Neighbor Query
 
 Movement hot paths now use `MovementNeighborQuery` as a shared nearest-neighbor collector:
@@ -82,5 +95,6 @@ The helper supports deterministic distance/unit-id ordering for steering/blocked
 
 - `ContextSteering` is now an **intent generation strategy**, not a separate collision solver layer.
 - Strategy selection is data-driven via `MovementIntentStrategy` on `SimUnitTemplate`/`UnitData` and assigned from `UnitDefinitions` targeting profiles.
-- ORCA remains the single collision-avoidance authority.
+- ORCA remains the collision-avoidance authority for non-melee intent movement.
+- Target-commit melee relies on direct movement, attackability gates, and the overlap safety pass.
 - Overlap correction is a safety net and does not feed correction displacement back into next-frame desired intent.
