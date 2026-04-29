@@ -22,7 +22,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.HasConeConstraint).IsTrue();
         AssertThat(template.ConeHalfAngle).IsEqual(30f);
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
@@ -35,7 +34,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
         AssertThat(template.HasConeConstraint).IsFalse();
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
@@ -50,7 +48,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.MoveToward);
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
@@ -61,7 +58,6 @@ public class UnitDefinitionsTargetingProfileTest
 
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.Idle);
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackable);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Direct);
     }
 
@@ -78,7 +74,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(Math.Abs(template.EngageCloseRadius - 0.45f) < 0.001f).IsTrue();
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.GroundOnly);
         AssertThat(template.HealthScorerWeight).IsEqual(10f);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 

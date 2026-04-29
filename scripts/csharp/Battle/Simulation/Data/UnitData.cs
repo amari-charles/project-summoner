@@ -64,12 +64,6 @@ public class UnitData
     public int? GroupId { get; set; }
     public int? LeaderId { get; set; }
 
-    // Combat behavior configuration
-    public MovementStyle MovementStyle { get; set; } = MovementStyle.Direct;
-    public TargetingPriority TargetingPriority { get; set; } = TargetingPriority.Nearest;
-    public RetreatCondition RetreatCondition { get; set; } = RetreatCondition.Never;
-    public float KiteRange { get; set; }
-
     // Buffs and triggers
     public List<ActiveBuff> ActiveBuffs { get; set; } = new();
     public List<TriggerConfig> Triggers { get; set; } = new();
@@ -89,7 +83,6 @@ public class UnitData
     public TargetLayer TargetLayerFilter { get; set; }
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
-    public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
     public MovementIntentStrategy MovementIntentStrategy { get; set; } =
         MovementIntentStrategy.Context;
     public float FlightAltitude { get; set; }

@@ -24,7 +24,7 @@ public static class PerformanceCounters
     public static int SummonerLookups;
 
     /// <summary>
-    /// Number of AcquireTarget() calls per frame.
+    /// Number of target acquisition calls per frame.
     /// </summary>
     public static int TargetAcquisitions;
 

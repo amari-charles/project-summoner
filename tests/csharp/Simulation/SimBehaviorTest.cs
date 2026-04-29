@@ -626,12 +626,10 @@ public class SimBehaviorTest
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
         unit.AttackCooldown = 1.0f;
-        unit.Engagement.TargetLockTimer = 0.5f;
 
         SimBehavior.TickCooldowns(unit, 0.1f);
 
         AssertThat(unit.AttackCooldown).IsEqual(0.9f);
-        AssertThat(unit.Engagement.TargetLockTimer).IsEqual(0.4f);
     }
 
     [TestCase]
@@ -644,125 +642,6 @@ public class SimBehaviorTest
         SimBehavior.TickCooldowns(unit, 0.5f);
 
         AssertThat(unit.Engagement.ForcedTargetUnitId).IsNull();
-    }
-
-    // =========================================================================
-    // Targeting Tick
-    // =========================================================================
-
-    [TestCase]
-    public void TickTargeting_ForcedTarget_TakesPriority()
-    {
-        var enemy1 = SimTestHelper.CreateMeleeUnit(_state, 1, x: 3f);
-        var enemy2 = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f);
-
-        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.Engagement.ForcedTargetUnitId = enemy2.UnitId;
-        unit.Engagement.ForcedTargetTimer = 5f;
-
-        SimBehavior.TickTargeting(unit, _state);
-
-        // Forced target should win even though enemy1 is closer
-        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.TargetUnitId!.Value == enemy2.UnitId).IsTrue();
-    }
-
-    [TestCase]
-    public void TickTargeting_LockExpired_Reacquires()
-    {
-        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 5f);
-
-        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f);
-        unit.Engagement.TargetLockTimer = 0f; // Lock expired
-
-        SimBehavior.TickTargeting(unit, _state);
-
-        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.TargetUnitId!.Value == enemy.UnitId).IsTrue();
-        AssertThat(unit.Engagement.TargetLockTimer).IsGreater(0f);
-    }
-
-    [TestCase]
-    public void TickTargeting_ConeCurrentAttackable_LockExpired_KeepsCurrentTarget()
-    {
-        var unit = SimTestHelper.CreateMeleeUnit(
-            _state,
-            0,
-            x: 0f,
-            attackRange: 24f,
-            aggroRadius: 24f
-        );
-        unit.HasConeConstraint = true;
-        unit.ConeHalfAngle = 30f;
-        unit.CloseRangeThreshold = 0.5f;
-        unit.IsFacingRight = true;
-
-        var current = SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f); // In cone and in range
-        SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 10f); // Closer but out of cone
-
-        unit.Engagement.TargetUnitId = current.UnitId;
-        unit.Engagement.TargetLockTimer = 0f;
-
-        SimBehavior.TickTargeting(unit, _state);
-
-        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.TargetUnitId!.Value == current.UnitId).IsTrue();
-        AssertThat(unit.Engagement.TargetLockTimer).IsGreater(0f);
-    }
-
-    [TestCase]
-    public void TickTargeting_ConeCurrentNotAttackable_LockExpired_SwitchesToAttackableTarget()
-    {
-        var unit = SimTestHelper.CreateMeleeUnit(
-            _state,
-            0,
-            x: 0f,
-            attackRange: 24f,
-            aggroRadius: 24f
-        );
-        unit.HasConeConstraint = true;
-        unit.ConeHalfAngle = 30f;
-        unit.CloseRangeThreshold = 0.5f;
-        unit.IsFacingRight = true;
-
-        var closerOutOfCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 10f, z: 10f);
-        var inCone = SimTestHelper.CreateMeleeUnit(_state, 1, x: 20f, z: 0f);
-
-        unit.Engagement.TargetUnitId = closerOutOfCone.UnitId;
-        unit.Engagement.TargetLockTimer = 0f;
-
-        SimBehavior.TickTargeting(unit, _state);
-
-        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.TargetUnitId!.Value == inCone.UnitId).IsTrue();
-    }
-
-    [TestCase]
-    public void TickTargeting_PreferAttackable_KeepsAttackableCurrentWhenLockExpires()
-    {
-        var unit = SimTestHelper.CreateMeleeUnit(
-            _state,
-            0,
-            x: 0f,
-            attackRange: 5f,
-            aggroRadius: 20f
-        );
-        unit.HasConeConstraint = false;
-        unit.DistanceScorerWeight = 0f;
-        unit.HealthScorerWeight = 100f;
-        unit.TargetPolicyId = TargetPolicyId.PreferAttackable;
-
-        var currentInRange = SimTestHelper.CreateMeleeUnit(_state, 1, x: 4f, hp: 100f);
-        var outOfRangeLowHp = SimTestHelper.CreateMeleeUnit(_state, 1, x: 6f, hp: 100f);
-        outOfRangeLowHp.CurrentHp = 10f;
-
-        unit.Engagement.TargetUnitId = currentInRange.UnitId;
-        unit.Engagement.TargetLockTimer = 0f;
-
-        SimBehavior.TickTargeting(unit, _state);
-
-        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.Engagement.TargetUnitId!.Value == currentInRange.UnitId).IsTrue();
     }
 
     // =========================================================================

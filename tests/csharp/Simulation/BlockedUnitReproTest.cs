@@ -1422,7 +1422,6 @@ public class BlockedUnitReproTest
             TargetLayerFilter = template.TargetLayerFilter,
             DistanceScorerWeight = template.DistanceScorerWeight,
             HealthScorerWeight = template.HealthScorerWeight,
-            TargetPolicyId = template.TargetPolicyId,
             MovementIntentStrategy = template.MovementIntentStrategy,
             FlightAltitude = template.FlightAltitude,
             ProjectileCatalogId = template.ProjectileCatalogId,

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Fateforged.Data.Projectiles;
 using Fateforged.Projectiles;
 using Fateforged.Simulation;
-using Fateforged.Simulation.Combat.Targeting;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Spatial;
@@ -25,7 +24,6 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimBehavior
 {
-    private const float TargetLockDuration = 0.5f;
     private const float BacklinerMaxCrossLaneChaseDistanceMultiplier = 1.35f;
     private const float DefaultHitscanBeamDurationSeconds = 0.12f;
 
@@ -47,9 +45,6 @@ public static class SimBehavior
         if (unit.AttackCooldown > 0)
             unit.AttackCooldown -= delta;
 
-        if (unit.Engagement.TargetLockTimer > 0)
-            unit.Engagement.TargetLockTimer -= delta;
-
         if (unit.Engagement.ForcedTargetTimer > 0)
         {
             unit.Engagement.ForcedTargetTimer -= delta;
@@ -59,47 +54,6 @@ public static class SimBehavior
 
         if (unit.Action.AttackAnimationTimer > 0)
             unit.Action.AttackAnimationTimer -= delta;
-    }
-
-    /// <summary>
-    /// Update targeting for a unit: forced target, target lock, re-acquisition.
-    /// </summary>
-    public static void TickTargeting(UnitData unit, MatchState state)
-    {
-        var policy = TargetPolicyRegistry.Resolve(unit.TargetPolicyId);
-
-        // Use forced target if available
-        if (unit.Engagement.ForcedTargetUnitId.HasValue)
-        {
-            if (IsValidTarget(unit.Engagement.ForcedTargetUnitId, state))
-            {
-                unit.Engagement.TargetUnitId = unit.Engagement.ForcedTargetUnitId.Value;
-                return;
-            }
-            unit.Engagement.ForcedTargetUnitId = null;
-        }
-
-        bool currentTargetIsValid = IsValidTarget(unit.Engagement.TargetUnitId, state);
-
-        // Keep current target if policy allows and it's still attackable now.
-        // This avoids unnecessary target churn when lock expires.
-        if (
-            unit.Engagement.TargetLockTimer <= 0
-            && currentTargetIsValid
-            && policy.ShouldKeepCurrentTarget(unit, state, unit.Engagement.TargetUnitId)
-        )
-        {
-            unit.Engagement.TargetLockTimer = TargetLockDuration;
-            return;
-        }
-
-        // Re-acquire target if lock expired or current target invalid
-        if (unit.Engagement.TargetLockTimer <= 0 || !currentTargetIsValid)
-        {
-            unit.Engagement.TargetUnitId = policy.SelectTarget(unit, state);
-            if (unit.Engagement.TargetUnitId.HasValue)
-                unit.Engagement.TargetLockTimer = TargetLockDuration;
-        }
     }
 
     /// <summary>

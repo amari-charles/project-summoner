@@ -177,7 +177,6 @@ public class SimUnitTemplate
     public TargetLayer TargetLayerFilter { get; set; }
     public float DistanceScorerWeight { get; set; } = 1f;
     public float HealthScorerWeight { get; set; }
-    public TargetPolicyId TargetPolicyId { get; set; } = TargetPolicyId.PreferAttackableAndStick;
     public MovementIntentStrategy MovementIntentStrategy { get; set; } =
         MovementIntentStrategy.Context;
 

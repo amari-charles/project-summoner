@@ -64,7 +64,6 @@ public class SimMovementFacingStabilityTest
         strafingUnit.ConeHalfAngle = 8f;
         strafingUnit.CloseRangeThreshold = 0.1f;
         strafingUnit.FallbackMovement = FallbackMovement.Strafe;
-        strafingUnit.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
 
         // Nearby friendly creates close-contact avoidance pressure.
         SimTestHelper.CreateMeleeUnit(

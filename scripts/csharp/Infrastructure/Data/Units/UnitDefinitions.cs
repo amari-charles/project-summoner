@@ -1044,7 +1044,6 @@ public static class UnitDefinitions
             case UnitTargetingProfile.Passive:
                 template.FallbackMovement = FallbackMovement.Idle;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
-                template.TargetPolicyId = TargetPolicyId.PreferAttackable;
                 template.MovementIntentStrategy = MovementIntentStrategy.Direct;
                 return;
 
@@ -1058,7 +1057,6 @@ public static class UnitDefinitions
                 ApplyMeleeEngageRectOverridesFromAttack(template);
                 template.HealthScorerWeight = def.TargetingHealthScorerWeight;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
@@ -1068,7 +1066,6 @@ public static class UnitDefinitions
                     def,
                     UnitTargetingProfile.RangedGround
                 );
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
@@ -1078,7 +1075,6 @@ public static class UnitDefinitions
                     def,
                     UnitTargetingProfile.RangedStrafe
                 );
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
@@ -1093,7 +1089,6 @@ public static class UnitDefinitions
                 template.ConeHalfAngle = def.TargetingConeHalfAngle;
                 template.ConeCenterOffsetDegrees = def.TargetingConeCenterOffsetDegrees;
                 template.CloseRangeThreshold = def.TargetingCloseRangeThreshold;
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 

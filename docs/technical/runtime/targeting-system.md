@@ -9,16 +9,16 @@ At match start:
 - `Simulation.SpawnUnitsFromCard()` copies those fields into `UnitData`
 
 At runtime, targeting and movement decisions are split:
-- `SimTargeting` + target policy choose *who* to fight
+- `SimCombatStateMachine` commits to *who* to fight using `SimTargeting.AcquireTargetCommit()`
 - `SimBehavior` decides *what to do* (attack, chase, strafe, idle)
 - `SimMovement` executes the chosen movement through intent generation + ORCA
 
 ## Runtime Flow
 
-1. `SimBehavior.TickTargeting()`
-- Resolves policy from `TargetPolicyId`
-- Keeps current target if policy allows (`ShouldKeepCurrentTarget`)
-- Otherwise reacquires via `SelectTarget`
+1. `SimCombatStateMachine.Tick()`
+- Applies forced target overrides
+- Keeps the committed target while it remains valid and reachable
+- Reacquires with `SimTargeting.AcquireTargetCommit()` when the current target is invalid, out of aggro, or unreachable
 
 2. `SimBehavior.TickBehavior()`
 - If no valid target: `MovementResult.Forward`
@@ -31,18 +31,6 @@ At runtime, targeting and movement decisions are split:
 - Applies blocked-navigation assist for stalled chases
 - Runs ORCA for collision-safe velocity
 - Applies facing hysteresis and overlap safety correction
-
-## Target Policies
-
-Policy implementations are in:
-- `scripts/csharp/Battle/Simulation/Combat/Targeting/`
-
-Current IDs:
-- `Legacy`
-- `PreferAttackable`
-- `PreferAttackableAndStick`
-
-`PreferAttackableAndStick` is the default combat profile and keeps the current target while it remains attackable.
 
 ## Constraint Checks
 
@@ -72,7 +60,6 @@ Primary knobs live in `UnitDefinition` and are baked into `SimUnitTemplate`:
 - `TargetingCloseRangeThreshold`
 
 Those map into `UnitData` fields such as:
-- `TargetPolicyId`
 - `FallbackMovement`
 - `HasConeConstraint`
 - `ConeHalfAngle`

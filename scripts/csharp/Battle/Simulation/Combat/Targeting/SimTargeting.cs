@@ -30,15 +30,6 @@ public static class SimTargeting
     private const float ScoreTieEpsilon = 0.0001f;
 
     /// <summary>
-    /// Acquire a target using the unit's configured targeting policy.
-    /// </summary>
-    public static int? AcquireTarget(UnitData unit, MatchState state)
-    {
-        var policy = Targeting.TargetPolicyRegistry.Resolve(unit.TargetPolicyId);
-        return policy.SelectTarget(unit, state);
-    }
-
-    /// <summary>
     /// Commit-target acquisition used by the target-commit lifecycle.
     /// Summoner is always a valid candidate and congestion penalty is applied for melee vs unit targets.
     /// </summary>
@@ -134,119 +125,6 @@ public static class SimTargeting
             return null;
 
         return summonerTargetId;
-    }
-
-    /// <summary>
-    /// Target acquisition that prefers currently attackable candidates, then falls back
-    /// to baseline score-only selection.
-    /// </summary>
-    public static int? AcquireTargetPreferAttackable(UnitData unit, MatchState state) =>
-        AcquireTargetCore(unit, state, prioritizeAttackableNow: true);
-
-    /// <summary>
-    /// Find the best target for a unit from all alive active enemy units.
-    /// Group-aware: if unit has a LeaderId, copies leader's target.
-    /// Returns the UnitId of the best target, or null if none found.
-    /// </summary>
-    private static int? AcquireTargetCore(
-        UnitData unit,
-        MatchState state,
-        bool prioritizeAttackableNow
-    )
-    {
-        // Group targeting: follow leader's target if available
-        if (unit.LeaderId.HasValue)
-        {
-            var leader = state.GetAliveUnit(unit.LeaderId.Value);
-            if (leader?.Engagement.TargetUnitId != null)
-                return leader.Engagement.TargetUnitId;
-            // Leader dead or no target — fall through to normal targeting
-        }
-
-        int enemyTeam = MatchState.GetEnemyTeam((int)unit.Team);
-        int attackerLane = ResolvePreferredLane(unit);
-        EngageShape engageShape = ResolveEngageShape(unit);
-        float bestScore = float.MinValue;
-        float bestAttackableScore = float.MinValue;
-        int? bestId = null;
-        int? bestAttackableId = null;
-
-        foreach (var kvp in state.Units)
-        {
-            var candidate = kvp.Value;
-
-            // Basic filters
-            if (!candidate.IsAlive)
-                continue;
-            if (candidate.ActivationState != ActivationState.Active)
-                continue;
-            if ((int)candidate.Team != enemyTeam)
-                continue;
-
-            // Distance filter (aggro radius)
-            float distSq = unit.Position.DistanceSquaredTo(candidate.Position);
-            if (distSq > unit.AggroRadius * unit.AggroRadius)
-                continue;
-            float dist = MathF.Sqrt(distSq);
-
-            int candidateLane = VirtualLanes.GetLaneIndex(candidate.Position.Z);
-            int laneDistance = VirtualLanes.LaneDistance(attackerLane, candidateLane);
-
-            // Virtual lane guard: far cross-lane candidates are ignored to reduce center pull.
-            if (laneDistance > 0 && dist > unit.AggroRadius * CrossLaneAggroDistanceScale)
-                continue;
-
-            // Layer filter
-            if (!PassesLayerFilter(unit, candidate))
-                continue;
-
-            // Reachability (cone constraint)
-            if (engageShape == EngageShape.Cone && !CanEverReach(unit, candidate))
-                continue;
-            if (ShouldIgnoreForRole(unit, attackerLane, candidateLane, laneDistance, dist))
-                continue;
-
-            // Score the candidate
-            float score = ScoreTarget(unit, candidate, dist);
-            score += ScoreLaneAffinity(unit, attackerLane, candidateLane, laneDistance);
-
-            if (
-                prioritizeAttackableNow
-                && IsWithinEngageDistance(unit, candidate.Position)
-                && CanAttack(unit, candidate)
-                && IsBetterScoredCandidate(
-                    score,
-                    candidate.UnitId,
-                    bestAttackableScore,
-                    bestAttackableId
-                )
-            )
-            {
-                bestAttackableScore = score;
-                bestAttackableId = candidate.UnitId;
-            }
-
-            if (IsBetterScoredCandidate(score, candidate.UnitId, bestScore, bestId))
-            {
-                bestScore = score;
-                bestId = candidate.UnitId;
-            }
-        }
-
-        if (bestAttackableId.HasValue)
-            return bestAttackableId;
-
-        if (bestId.HasValue)
-            return bestId;
-
-        // No enemy units found — fall back to enemy summoner
-        var enemySummoner = state.GetAliveEnemySummoner((int)unit.Team);
-        if (enemySummoner != null)
-        {
-            return MatchState.GetSummonerTargetId((int)enemySummoner.Team);
-        }
-
-        return null;
     }
 
     /// <summary>

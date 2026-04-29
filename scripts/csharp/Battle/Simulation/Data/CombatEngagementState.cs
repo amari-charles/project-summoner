@@ -3,14 +3,12 @@ using Fateforged.Simulation.Enums;
 namespace Fateforged.Simulation.Data;
 
 /// <summary>
-/// Runtime engagement state for target lock, retargeting, and direct approach.
+/// Runtime engagement state for committed targets, retargeting, and direct approach.
 /// Grouped under UnitData to avoid scattering commit/target fields at root level.
 /// </summary>
 public sealed class CombatEngagementState
 {
-    // Targeting lock state
     public int? TargetUnitId { get; set; }
-    public float TargetLockTimer { get; set; }
 
     // Commit lifecycle lock/retarget state
     public CombatLifecycleState LifecycleState { get; set; } = CombatLifecycleState.AcquireTarget;
