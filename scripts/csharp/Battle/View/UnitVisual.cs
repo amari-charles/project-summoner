@@ -24,6 +24,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private const float RenderPriorityScale = 3.0f;
     private const int RenderPriorityMin = -128;
     private const int RenderPriorityMax = 127;
+    private const float SingleTargetDamageShapeDepthScale = 0.62f;
 
     private IGameSession? _session;
     private int _unitId;
@@ -207,7 +208,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             _attackAnimTimer = 0f;
 
         // Animation from BehaviorState (attack anim timer has priority while active)
-        if (isActive && unitData.AttackAnimationTimer > 0f && _attackAnimTimer <= 0f)
+        if (isActive && unitData.Action.AttackAnimationTimer > 0f && _attackAnimTimer <= 0f)
             PlayAttackAnimation();
 
         if (_attackAnimTimer > 0)
@@ -569,13 +570,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         bool isForwardOffsetCorridor =
             shapeSpec.Kind == DamageShapeMarkerKind.Corridor && shapeSpec.ForwardOffset > 0.01f;
-        if (isForwardOffsetCorridor && !IsDamageShapeInAttackWindow(unitData))
-        {
-            FreeMarker(ref _debugDamageShapeMarker);
-            FreeMarker(ref _debugDamageShapeSecondaryMarker);
-            _debugDamageShapeSignature = 0;
-            return;
-        }
 
         int signature = BuildDamageShapeSignature(shapeSpec);
         if (_debugDamageShapeMarker == null || signature != _debugDamageShapeSignature)
@@ -615,6 +609,10 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         if (shapeSpec.Kind == DamageShapeMarkerKind.Disc)
         {
+            _debugDamageShapeMarker.Scale =
+                unitData.Attack.Selection.Mode == AttackSelectionMode.Single
+                    ? new Vector3(1f, 1f, SingleTargetDamageShapeDepthScale)
+                    : Vector3.One;
             if (ShouldAnchorDamageDiscToTarget(unitData, targetPosition) && targetPosition.HasValue)
             {
                 var anchoredPosition = targetPosition.Value;
@@ -654,13 +652,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             _debugDamageShapeSecondaryMarker.GlobalPosition = _debugDamageShapeMarker.GlobalPosition;
             _debugDamageShapeSecondaryMarker.Rotation = _debugDamageShapeMarker.Rotation;
         }
-    }
-
-    private static bool IsDamageShapeInAttackWindow(UnitData unitData)
-    {
-        return unitData.AttackPhase != AttackPhase.None
-            || unitData.BehaviorState == BehaviorState.Attacking
-            || unitData.AttackAnimationTimer > 0f;
     }
 
     private void UpdateDebugNavigationFootprintMarker(UnitData unitData)
@@ -713,12 +704,31 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         return Mathf.Max(1.0f, _visual?.GetSpriteHeight() ?? 2.0f);
     }
 
+    private float ResolveSingleTargetDamageShapeRadius(UnitData unitData)
+    {
+        float authoredRadius = unitData.Attack.Area.SingleTargetRadius;
+        if (authoredRadius > 0f)
+            return Mathf.Max(0.1f, authoredRadius);
+
+        float geometryRadius = Mathf.Max(
+            ResolveHurtboxRadius(unitData),
+            ResolveNavigationFootprintRadius(unitData)
+        );
+        float spriteWidthRadius = _visual != null ? Mathf.Max(0f, _visual.GetSpriteWidth() * 0.5f) : 0f;
+        if (spriteWidthRadius > 0f)
+            return Mathf.Max(geometryRadius, spriteWidthRadius);
+
+        return geometryRadius;
+    }
+
     private DamageShapeSpec BuildDamageShapeSpec(UnitData unitData)
     {
         switch (unitData.Attack.Selection.Mode)
         {
             case AttackSelectionMode.Single:
-                return DamageShapeSpec.Disc(0.24f);
+            {
+                return DamageShapeSpec.Disc(ResolveSingleTargetDamageShapeRadius(unitData));
+            }
 
             case AttackSelectionMode.ChainHops:
             {
@@ -829,7 +839,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         if (_session == null)
             return null;
 
-        int? targetId = unitData.TargetUnitId ?? unitData.TargetNetworkId;
+        int? targetId = unitData.Engagement.TargetUnitId ?? unitData.TargetNetworkId;
         if (!targetId.HasValue)
             return null;
 
@@ -848,9 +858,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     {
         if (!targetPosition.HasValue)
             return false;
-
-        if (unitData.Attack.Selection.Mode == AttackSelectionMode.Single)
-            return true;
 
         return unitData.Attack.Selection.Mode switch
         {

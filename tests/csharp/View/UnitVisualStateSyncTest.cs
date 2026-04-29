@@ -70,7 +70,7 @@ public partial class UnitVisualStateSyncTest
             IsAlive = true,
             Position = new SimVector3(0f, 0f, 0f),
             ActivationState = ActivationState.Inactive,
-            AttackAnimationTimer = 0.4f,
+            Action = new CombatActionState { AttackAnimationTimer = 0.4f },
             BehaviorState = BehaviorState.Attacking,
         };
 

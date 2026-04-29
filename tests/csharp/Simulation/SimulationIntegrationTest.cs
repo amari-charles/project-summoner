@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
@@ -245,41 +244,19 @@ public class SimulationIntegrationTest
     }
 
     [TestCase]
-    public void DeathCleanup_ReleasesSlots_BeforeReacquire()
+    public void FixedSeed_ReplayParity_ForCombatCommitFlow()
     {
-        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f);
-        var attacker = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
-
-        bool reserved = SimMeleeSlotManager.TryReserveSlot(attacker, _state, target.UnitId, out _);
-        AssertThat(reserved).IsTrue();
-
-        attacker.IsAlive = false;
-        attacker.DeathCleanupTimer = 1f;
-
-        _sim.Tick(Delta);
-
-        var slotState = _state.TargetSlotStates[target.UnitId];
-        foreach (var slot in slotState.Slots)
-        {
-            AssertThat(slot.ReservedUnitId == attacker.UnitId).IsFalse();
-            AssertThat(slot.OccupiedUnitId == attacker.UnitId).IsFalse();
-        }
-    }
-
-    [TestCase]
-    public void FixedSeed_ReplayParity_ForCommitSlotFlow()
-    {
-        string runOne = RunCommitSlotReplayHash(seed: 424242u);
-        string runTwo = RunCommitSlotReplayHash(seed: 424242u);
+        string runOne = RunCombatCommitReplayHash(seed: 424242u);
+        string runTwo = RunCombatCommitReplayHash(seed: 424242u);
 
         AssertThat(runOne).IsEqual(runTwo);
     }
 
     [TestCase]
-    public void FixedSeed_OverflowReplayParity_ForCommitSlotFlow()
+    public void FixedSeed_OverflowReplayParity_ForCombatCommitFlow()
     {
-        string runOne = RunCommitSlotOverflowReplayHash(seed: 989898u);
-        string runTwo = RunCommitSlotOverflowReplayHash(seed: 989898u);
+        string runOne = RunCombatCommitOverflowReplayHash(seed: 989898u);
+        string runTwo = RunCombatCommitOverflowReplayHash(seed: 989898u);
 
         AssertThat(runOne).IsEqual(runTwo);
     }
@@ -1083,8 +1060,8 @@ public class SimulationIntegrationTest
             _sim.Tick(Delta);
 
         // Unit should be targeting the enemy summoner (target ID = -2 for team 1)
-        AssertThat(unit.TargetUnitId.HasValue).IsTrue();
-        AssertThat(unit.TargetUnitId!.Value).IsEqual(-2);
+        AssertThat(unit.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(unit.Engagement.TargetUnitId!.Value).IsEqual(-2);
     }
 
     [TestCase]
@@ -1188,7 +1165,7 @@ public class SimulationIntegrationTest
     // Helper
     // =========================================================================
 
-    private static string RunCommitSlotReplayHash(uint seed)
+    private static string RunCombatCommitReplayHash(uint seed)
     {
         var state = SimTestHelper.CreateBattleState(seed);
         var sim = new Fateforged.Simulation.Simulation(state);
@@ -1217,12 +1194,12 @@ public class SimulationIntegrationTest
             z: 0.25f,
             attackRange: 2.5f
         );
-        attackerOne.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        attackerTwo.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-        attackerOne.LockedTargetUnitId = target.UnitId;
-        attackerTwo.LockedTargetUnitId = target.UnitId;
-        attackerOne.TargetUnitId = target.UnitId;
-        attackerTwo.TargetUnitId = target.UnitId;
+        attackerOne.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        attackerTwo.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+        attackerOne.Engagement.LockedTargetUnitId = target.UnitId;
+        attackerTwo.Engagement.LockedTargetUnitId = target.UnitId;
+        attackerOne.Engagement.TargetUnitId = target.UnitId;
+        attackerTwo.Engagement.TargetUnitId = target.UnitId;
 
         var snapshots = new List<string>();
         for (int i = 0; i < 240; i++)
@@ -1232,14 +1209,14 @@ public class SimulationIntegrationTest
                 continue;
 
             snapshots.Add(
-                $"{i + 1}|{target.CurrentHp:F2}|{attackerOne.TargetUnitId}|{attackerTwo.TargetUnitId}|{attackerOne.Position.X:F3}|{attackerTwo.Position.X:F3}"
+                $"{i + 1}|{target.CurrentHp:F2}|{attackerOne.Engagement.TargetUnitId}|{attackerTwo.Engagement.TargetUnitId}|{attackerOne.Position.X:F3}|{attackerTwo.Position.X:F3}"
             );
         }
 
         return string.Join(";", snapshots);
     }
 
-    private static string RunCommitSlotOverflowReplayHash(uint seed)
+    private static string RunCombatCommitOverflowReplayHash(uint seed)
     {
         var state = SimTestHelper.CreateBattleState(seed);
         var sim = new Fateforged.Simulation.Simulation(state);
@@ -1278,9 +1255,9 @@ public class SimulationIntegrationTest
                 aggroRadius: 30f
             );
 
-            attacker.CombatLifecycleState = CombatLifecycleState.AcquireTarget;
-            attacker.LockedTargetUnitId = primaryTarget.UnitId;
-            attacker.TargetUnitId = primaryTarget.UnitId;
+            attacker.Engagement.LifecycleState = CombatLifecycleState.AcquireTarget;
+            attacker.Engagement.LockedTargetUnitId = primaryTarget.UnitId;
+            attacker.Engagement.TargetUnitId = primaryTarget.UnitId;
             attackers.Add(attacker);
         }
 
@@ -1295,11 +1272,10 @@ public class SimulationIntegrationTest
             int onFallback = 0;
             int onSummoner = 0;
             int droppedPrimary = 0;
-            int slottingPrimary = 0;
 
             foreach (var attacker in attackers)
             {
-                int? targetId = attacker.LockedTargetUnitId ?? attacker.TargetUnitId;
+                int? targetId = attacker.Engagement.LockedTargetUnitId ?? attacker.Engagement.TargetUnitId;
                 if (targetId.HasValue && targetId.Value == primaryTarget.UnitId)
                     onPrimary++;
                 else if (targetId.HasValue && targetId.Value == fallbackTarget.UnitId)
@@ -1308,19 +1284,14 @@ public class SimulationIntegrationTest
                     onSummoner++;
 
                 if (
-                    attacker.DroppedTargetUnitId.HasValue
-                    && attacker.DroppedTargetUnitId.Value == primaryTarget.UnitId
+                    attacker.Engagement.DroppedTargetUnitId.HasValue
+                    && attacker.Engagement.DroppedTargetUnitId.Value == primaryTarget.UnitId
                 )
                     droppedPrimary++;
-                if (
-                    attacker.SlotTargetId.HasValue
-                    && attacker.SlotTargetId.Value == primaryTarget.UnitId
-                )
-                    slottingPrimary++;
             }
 
             snapshots.Add(
-                $"{frame}|hp={primaryTarget.CurrentHp:F1}|p={onPrimary}|f={onFallback}|s={onSummoner}|d={droppedPrimary}|sp={slottingPrimary}|sw={state.CombatTargetSwitchCount}|bt={state.CombatBlockedTimeoutRetargetCount}"
+                $"{frame}|hp={primaryTarget.CurrentHp:F1}|p={onPrimary}|f={onFallback}|s={onSummoner}|d={droppedPrimary}|sw={state.CombatTargetSwitchCount}|bt={state.CombatBlockedTimeoutRetargetCount}"
             );
         }
 

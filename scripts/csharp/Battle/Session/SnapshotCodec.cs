@@ -193,7 +193,7 @@ public class SnapshotCodec
         w.Write((int)u.ActivationState);
         w.Write((int)u.BehaviorState);
         w.Write(u.IsFacingRight);
-        w.Write(u.TargetUnitId ?? -1);
+        w.Write(u.Engagement.TargetUnitId ?? -1);
     }
 
     private static UnitData DecodeUnit(BinaryReader r)
@@ -210,7 +210,7 @@ public class SnapshotCodec
         u.BehaviorState = (BehaviorState)r.ReadInt32();
         u.IsFacingRight = r.ReadBoolean();
         int targetId = r.ReadInt32();
-        u.TargetUnitId = targetId == -1 ? null : targetId;
+        u.Engagement.TargetUnitId = targetId == -1 ? null : targetId;
         return u;
     }
 

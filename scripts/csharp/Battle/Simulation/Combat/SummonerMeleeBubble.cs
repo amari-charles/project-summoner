@@ -5,7 +5,7 @@ namespace Fateforged.Simulation.Combat;
 
 /// <summary>
 /// Shared runtime configuration for summoner melee bubble targeting.
-/// Used by targeting gates, sloting, and debug controls.
+/// Used by targeting gates and debug controls.
 /// </summary>
 public static class SummonerMeleeBubble
 {

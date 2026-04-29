@@ -32,10 +32,10 @@ public class AbilityProjectileIntegrationTest
             catalogId: "earth_rock_thrower"
         );
         attacker.ProjectileCatalogId = (string)ProjectileIds.Rock;
-        attacker.TargetUnitId = null;
+        attacker.Engagement.TargetUnitId = null;
 
         var target = SimTestHelper.CreateMeleeUnit(state, 1, x: 16f, z: 0f, hp: 140f);
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
 
         SimBehavior.TickBehavior(attacker, state, Simulation.FixedDeltaSeconds, events);
         SimBehavior.ResolvePendingAttackCommit(attacker, state, events);
@@ -60,7 +60,7 @@ public class AbilityProjectileIntegrationTest
         var events = new List<SimEvent>();
         var attacker = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, z: 0f, damage: 12f, attackSpeed: 1f, attackRange: 3f);
         var target = SimTestHelper.CreateMeleeUnit(state, 1, x: 1f, z: 0f, hp: 100f);
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
 
         float before = target.CurrentHp;
         SimBehavior.TickBehavior(attacker, state, Simulation.FixedDeltaSeconds, events);

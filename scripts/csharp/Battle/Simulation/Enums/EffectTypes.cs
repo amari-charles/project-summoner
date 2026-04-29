@@ -53,40 +53,6 @@ public enum EffectType
     FlatDamageReduction, // Flat post-mitigation reduction
 }
 
-/// <summary>
-/// How a unit moves during combat.
-/// </summary>
-public enum MovementStyle
-{
-    Direct, // Move straight toward target
-    Kite, // Maintain distance, retreat if too close
-    Strafe, // Circle around target at range
-    Stationary, // Never moves (turrets, etc.)
-}
-
-/// <summary>
-/// What a unit prioritizes when choosing targets.
-/// </summary>
-public enum TargetingPriority
-{
-    Nearest, // Closest enemy
-    LowestHp, // Enemy with least HP
-    HighestHp, // Enemy with most HP
-    Ranged, // Prefer ranged enemies
-    Summoner, // Always target summoner if possible
-}
-
-/// <summary>
-/// When a kiting unit retreats.
-/// </summary>
-public enum RetreatCondition
-{
-    Never, // Never retreats (direct fighters)
-    TooClose, // Retreat when enemy is within KiteRange
-    HpThreshold, // Retreat when HP drops below threshold
-    Always, // Always maintain max distance (extreme kiters)
-}
-
 // =========================================================================
 // SPELL ENUMS
 // =========================================================================

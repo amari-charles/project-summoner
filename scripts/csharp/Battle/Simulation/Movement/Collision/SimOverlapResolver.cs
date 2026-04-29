@@ -7,7 +7,7 @@ using Fateforged.Units;
 namespace Fateforged.Simulation.Movement;
 
 /// <summary>
-/// Deep-overlap correction ownership for commit-slot combat.
+/// Deep-overlap correction ownership for target-commit combat.
 /// Allows light overlap and only applies correction for significant penetration.
 /// </summary>
 public static class SimOverlapResolver
@@ -35,6 +35,8 @@ public static class SimOverlapResolver
             if (other.ActivationState != ActivationState.Active)
                 continue;
             if (other.MovementLayer != unit.MovementLayer)
+                continue;
+            if (MeleeClumpContext.IsSameTargetCloseMeleePair(unit, other, state))
                 continue;
 
             float otherRadius = CombatGeometry.GetNavigationRadius(other);

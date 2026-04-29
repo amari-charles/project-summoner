@@ -14,7 +14,6 @@ namespace Fateforged.Simulation.Movement;
 public static class OverlapCorrection
 {
     private const float DefaultCorrectionStrength = 0.30f;
-    private const float SameTargetMeleeCorrectionStrength = 0.05f;
 
     /// <summary>
     /// Correct remaining overlaps for a single unit against all others.
@@ -36,9 +35,11 @@ public static class OverlapCorrection
                 continue;
 
             // Skip current target — prevents infinite chase -> overlap -> push loops
-            if (unit.TargetUnitId.HasValue && other.UnitId == unit.TargetUnitId.Value)
+            if (unit.Engagement.TargetUnitId.HasValue && other.UnitId == unit.Engagement.TargetUnitId.Value)
                 continue;
-            if (other.TargetUnitId.HasValue && other.TargetUnitId.Value == unit.UnitId)
+            if (other.Engagement.TargetUnitId.HasValue && other.Engagement.TargetUnitId.Value == unit.UnitId)
+                continue;
+            if (MeleeClumpContext.IsSameTargetCloseMeleePair(unit, other, state))
                 continue;
 
             float unitRadius = CombatGeometry.GetNavigationRadius(unit);
@@ -60,21 +61,9 @@ public static class OverlapCorrection
             float otherMass = otherRadius * otherRadius * otherRadius;
             float pushRatio = otherMass / (unitMass + otherMass);
 
-            float correctionStrength = UseSameTargetMeleeRelaxation(unit, other, state)
-                ? SameTargetMeleeCorrectionStrength
-                : DefaultCorrectionStrength;
-            var newPos = unit.Position + pushDir * overlap * pushRatio * correctionStrength;
+            var newPos = unit.Position + pushDir * overlap * pushRatio * DefaultCorrectionStrength;
             newPos = BattlefieldBounds.ClampToBounds(newPos);
             unit.Position = new SimVector3(newPos.X, unit.Position.Y, newPos.Z);
         }
-    }
-
-    private static bool UseSameTargetMeleeRelaxation(
-        UnitData unit,
-        UnitData other,
-        MatchState state
-    )
-    {
-        return MeleeClumpContext.IsSameTargetCloseMeleePair(unit, other, state);
     }
 }

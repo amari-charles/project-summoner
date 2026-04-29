@@ -312,9 +312,10 @@ public static class UnitDefinitions
             Area = new AttackAreaConfig
             {
                 Shape = AttackAreaShape.Box,
-                // Forward smash footprint: shifted ahead and substantially larger.
-                Size = new Vector3(5.4f, 1.0f, 2.6f),
-                ForwardOffset = 2.1f,
+                // Tuned forward smash footprint: still directional, but no longer
+                // oversized enough to destabilize engage/pathing behavior.
+                Size = new Vector3(2.7f, 1.0f, 1.3f),
+                ForwardOffset = 1.05f,
             },
         },
 
@@ -1043,7 +1044,6 @@ public static class UnitDefinitions
             case UnitTargetingProfile.Passive:
                 template.FallbackMovement = FallbackMovement.Idle;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
-                template.TargetPolicyId = TargetPolicyId.PreferAttackable;
                 template.MovementIntentStrategy = MovementIntentStrategy.Direct;
                 return;
 
@@ -1057,7 +1057,6 @@ public static class UnitDefinitions
                 ApplyMeleeEngageRectOverridesFromAttack(template);
                 template.HealthScorerWeight = def.TargetingHealthScorerWeight;
                 template.TargetLayerFilter = def.TargetingLayerFilter;
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
@@ -1067,7 +1066,6 @@ public static class UnitDefinitions
                     def,
                     UnitTargetingProfile.RangedGround
                 );
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
@@ -1077,7 +1075,6 @@ public static class UnitDefinitions
                     def,
                     UnitTargetingProfile.RangedStrafe
                 );
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
@@ -1092,7 +1089,6 @@ public static class UnitDefinitions
                 template.ConeHalfAngle = def.TargetingConeHalfAngle;
                 template.ConeCenterOffsetDegrees = def.TargetingConeCenterOffsetDegrees;
                 template.CloseRangeThreshold = def.TargetingCloseRangeThreshold;
-                template.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
                 template.MovementIntentStrategy = MovementIntentStrategy.Context;
                 return;
 
@@ -1148,8 +1144,8 @@ public static class UnitDefinitions
         template.EngageRectForwardOffset = MathF.Max(forwardOffset, 0f);
         if (template.EngageRectForwardOffset > 0f)
         {
-            // Forward-offset melee sloting reserves orbit radius at offset + 0.05f.
-            // Match close bubble to that band so units don't endlessly circle just
+            // Forward-offset melee needs a close fallback at the offset band so units
+            // don't endlessly circle just
             // outside the authored offset threshold.
             float offsetCloseRadius = template.EngageRectForwardOffset + 0.05f;
             template.EngageCloseRadius = MathF.Max(template.EngageCloseRadius, offsetCloseRadius);

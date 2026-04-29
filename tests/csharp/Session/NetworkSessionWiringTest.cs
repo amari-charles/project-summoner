@@ -348,9 +348,8 @@ public class NetworkSessionWiringTest
         );
         var frontTarget = SimTestHelper.CreateMeleeUnit(hostState, 1, x: 9f, z: 0f, hp: 100f);
         SimTestHelper.CreateMeleeUnit(hostState, 1, x: 16f, z: 0f, hp: 100f);
-        attacker.TargetUnitId = frontTarget.UnitId;
-        attacker.LockedTargetUnitId = frontTarget.UnitId;
-        attacker.TargetLockTimer = 1f;
+        attacker.Engagement.TargetUnitId = frontTarget.UnitId;
+        attacker.Engagement.LockedTargetUnitId = frontTarget.UnitId;
 
         var hostSimulation = new Fateforged.Simulation.Simulation(hostState);
         var router = new CommandRouter();

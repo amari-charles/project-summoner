@@ -89,7 +89,7 @@ public class SnapshotCodecTest
         unit.NetworkId = 42;
         unit.BehaviorState = BehaviorState.Attacking;
         unit.IsFacingRight = true;
-        unit.TargetUnitId = null;
+        unit.Engagement.TargetUnitId = null;
 
         var decoded = _codec.Decode(_codec.Encode(state));
 
@@ -115,5 +115,20 @@ public class SnapshotCodecTest
         AssertThat(decoded.Phase).IsEqual(GamePhase.GameOver);
         AssertThat(decoded.WinnerTeam.HasValue).IsTrue();
         AssertThat(decoded.WinnerTeam!.Value).IsEqual(1);
+    }
+
+    [TestCase]
+    public void RoundTrip_UnitEngagementTarget_Preserved()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var ally = SimTestHelper.CreateMeleeUnit(state, 0, x: -1f, z: 0f);
+        var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 2f, z: 0f);
+        ally.Engagement.TargetUnitId = enemy.UnitId;
+
+        var decoded = _codec.Decode(_codec.Encode(state));
+        var decodedAlly = decoded.Units[ally.UnitId];
+
+        AssertThat(decodedAlly.Engagement.TargetUnitId.HasValue).IsTrue();
+        AssertThat(decodedAlly.Engagement.TargetUnitId!.Value).IsEqual(enemy.UnitId);
     }
 }

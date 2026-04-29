@@ -38,6 +38,7 @@ public static class AttackVectorStateBuilder
             {
                 Shape = area.Shape,
                 Size = new SimVector3(area.Size.X, area.Size.Y, area.Size.Z),
+                SingleTargetRadius = area.SingleTargetRadius,
                 LineLength = area.LineLength,
                 LineHalfWidth = area.LineHalfWidth,
                 ForwardOffset = area.ForwardOffset,

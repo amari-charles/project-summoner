@@ -364,7 +364,7 @@ public class ClientSession : NetworkSession
         dst.TargetNetworkId = src.TargetNetworkId;
         dst.CatalogId = src.CatalogId;
         dst.SpawnTimer = src.SpawnTimer;
-        dst.AttackAnimationTimer = src.AttackAnimationTimer;
+        dst.Action.AttackAnimationTimer = src.AttackAnimationTimer;
     }
 
     private void HandleProjectileSpawned(ProjectileSpawned spawned)

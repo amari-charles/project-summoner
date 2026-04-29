@@ -22,7 +22,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.HasConeConstraint).IsTrue();
         AssertThat(template.ConeHalfAngle).IsEqual(30f);
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
@@ -35,7 +34,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
         AssertThat(template.HasConeConstraint).IsFalse();
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
@@ -50,7 +48,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.MoveToward);
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.Both);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
@@ -61,7 +58,6 @@ public class UnitDefinitionsTargetingProfileTest
 
         AssertThat(template.FallbackMovement).IsEqual(FallbackMovement.Idle);
         AssertThat(template.EngageShape).IsEqual(EngageShape.Circle);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackable);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Direct);
     }
 
@@ -78,7 +74,6 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(Math.Abs(template.EngageCloseRadius - 0.45f) < 0.001f).IsTrue();
         AssertThat(template.TargetLayerFilter).IsEqual(TargetLayer.GroundOnly);
         AssertThat(template.HealthScorerWeight).IsEqual(10f);
-        AssertThat(template.TargetPolicyId).IsEqual(TargetPolicyId.PreferAttackableAndStick);
         AssertThat(template.MovementIntentStrategy).IsEqual(MovementIntentStrategy.Context);
     }
 
@@ -185,6 +180,19 @@ public class UnitDefinitionsTargetingProfileTest
     }
 
     [TestCase]
+    public void BuildAttackVectorState_SingleTargetRadius_MapsFromConfig()
+    {
+        var config = new AttackVectorConfig
+        {
+            Area = new AttackAreaConfig { SingleTargetRadius = 1.6f },
+        };
+
+        var state = AttackVectorStateBuilder.Build(config);
+
+        AssertThat(state.Area.SingleTargetRadius).IsEqual(1.6f);
+    }
+
+    [TestCase]
     public void BuildSimTemplate_Pebbloom_UsesForwardAreaCleaveAttackShape()
     {
         var def = UnitDefinitions.Get(UnitIds.EarthSprite);
@@ -196,13 +204,13 @@ public class UnitDefinitionsTargetingProfileTest
         AssertThat(template.Attack.Selection.Mode).IsEqual(AttackSelectionMode.AreaCollect);
         AssertThat(template.Attack.Selection.TargetLimit).IsEqual(3);
         AssertThat(template.Attack.Area.Shape).IsEqual(AttackAreaShape.Box);
-        AssertThat(template.Attack.Area.Size.X).IsEqual(5.4f);
-        AssertThat(template.Attack.Area.Size.Z).IsEqual(2.6f);
-        AssertThat(template.Attack.Area.ForwardOffset).IsEqual(2.1f);
+        AssertThat(template.Attack.Area.Size.X).IsEqual(2.7f);
+        AssertThat(template.Attack.Area.Size.Z).IsEqual(1.3f);
+        AssertThat(template.Attack.Area.ForwardOffset).IsEqual(1.05f);
         AssertThat(template.EngageShape).IsEqual(EngageShape.ForwardRect);
-        AssertThat(template.EngageRectLength).IsEqual(5.4f);
-        AssertThat(template.EngageRectHalfWidth).IsEqual(2.6f);
-        AssertThat(template.EngageRectForwardOffset).IsEqual(2.1f);
-        AssertThat(Math.Abs(template.EngageCloseRadius - 2.15f) < 0.001f).IsTrue();
+        AssertThat(template.EngageRectLength).IsEqual(2.7f);
+        AssertThat(template.EngageRectHalfWidth).IsEqual(1.3f);
+        AssertThat(template.EngageRectForwardOffset).IsEqual(1.05f);
+        AssertThat(Math.Abs(template.EngageCloseRadius - 1.10f) < 0.001f).IsTrue();
     }
 }

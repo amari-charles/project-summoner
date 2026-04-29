@@ -1,7 +1,7 @@
 namespace Fateforged.Simulation.Enums;
 
 /// <summary>
-/// Attack loop phases used by commit-slot combat.
+/// Attack loop phases used by target-commit combat.
 /// </summary>
 public enum AttackPhase
 {

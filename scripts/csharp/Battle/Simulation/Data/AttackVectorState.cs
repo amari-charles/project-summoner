@@ -70,6 +70,7 @@ public sealed class AttackAreaState
 {
     public AttackAreaShape Shape { get; set; } = AttackAreaShape.Sphere;
     public SimVector3 Size { get; set; } = new(1f, 1f, 1f);
+    public float SingleTargetRadius { get; set; }
     public float LineLength { get; set; }
     public float LineHalfWidth { get; set; }
     public float ForwardOffset { get; set; }
@@ -82,6 +83,7 @@ public sealed class AttackAreaState
         {
             Shape = Shape,
             Size = Size,
+            SingleTargetRadius = SingleTargetRadius,
             LineLength = LineLength,
             LineHalfWidth = LineHalfWidth,
             ForwardOffset = ForwardOffset,

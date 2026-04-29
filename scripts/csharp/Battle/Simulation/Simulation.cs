@@ -519,9 +519,6 @@ public class Simulation
     /// </summary>
     private void TickUnits(float fixedDelta, List<SimEvent> events)
     {
-        // Commit-slot ordering: clear dead/invalid slot bindings before target reacquire.
-        _state.ReleaseInvalidSlotReferences();
-
         var units = _state.GetAliveActiveUnits();
 
         foreach (var unit in units)
@@ -529,7 +526,7 @@ public class Simulation
             // Cooldowns
             SimBehavior.TickCooldowns(unit, fixedDelta);
 
-            // Combat orchestration (commit-slot flow is authoritative).
+            // Combat orchestration (target-commit flow is authoritative).
             var result = SimCombatStateMachine.Tick(unit, _state, fixedDelta, events);
 
             // Movement
@@ -710,7 +707,6 @@ public class Simulation
                     TargetLayerFilter = template.TargetLayerFilter,
                     DistanceScorerWeight = template.DistanceScorerWeight,
                     HealthScorerWeight = template.HealthScorerWeight,
-                    TargetPolicyId = template.TargetPolicyId,
                     MovementIntentStrategy = template.MovementIntentStrategy,
                     FlightAltitude = template.FlightAltitude,
                     ProjectileCatalogId = template.ProjectileCatalogId,

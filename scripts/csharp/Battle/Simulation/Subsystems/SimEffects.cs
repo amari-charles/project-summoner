@@ -834,8 +834,8 @@ public static class SimEffects
             events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
         }
 
-        target.ForcedTargetUnitId = null;
-        target.ForcedTargetTimer = 0f;
+        target.Engagement.ForcedTargetUnitId = null;
+        target.Engagement.ForcedTargetTimer = 0f;
     }
 
     private static bool IsNegativeBuffForCleanse(ActiveBuff buff)

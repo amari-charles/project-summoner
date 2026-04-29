@@ -100,8 +100,8 @@ public class AbilityAllyTargetingTest
                 StatusKind = StatusEffectKind.Burn,
             }
         );
-        ally.ForcedTargetUnitId = 123;
-        ally.ForcedTargetTimer = 2f;
+        ally.Engagement.ForcedTargetUnitId = 123;
+        ally.Engagement.ForcedTargetTimer = 2f;
 
         var distantAlly = SimTestHelper.CreateMeleeUnit(state, 0, x: 20f, z: 0f, hp: 100f);
         distantAlly.ActiveBuffs.Add(
@@ -119,8 +119,8 @@ public class AbilityAllyTargetingTest
         AssertThat(ally.CurrentHp).IsGreater(50f);
         AssertThat(ally.ActiveBuffs.Any(b => b.EffectType == EffectType.Slow)).IsFalse();
         AssertThat(ally.ActiveBuffs.Any(b => b.StatusKind == StatusEffectKind.Burn)).IsFalse();
-        AssertThat(ally.ForcedTargetUnitId.HasValue).IsFalse();
-        AssertThat(ally.ForcedTargetTimer).IsEqual(0f);
+        AssertThat(ally.Engagement.ForcedTargetUnitId.HasValue).IsFalse();
+        AssertThat(ally.Engagement.ForcedTargetTimer).IsEqual(0f);
 
         AssertThat(distantAlly.ActiveBuffs.Any(b => b.EffectType == EffectType.Slow)).IsTrue();
         AssertThat(events.OfType<AbilityActivatedEvent>().Any()).IsTrue();

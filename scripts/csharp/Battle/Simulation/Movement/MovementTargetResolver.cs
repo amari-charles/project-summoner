@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
-using Fateforged.Simulation.Combat.Slots;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
@@ -39,18 +38,10 @@ public static class MovementTargetResolver
     private const float OrbitDirectionalStepWeight = 0.22f;
     private const float OrbitAbsoluteStepWeight = 0.08f;
     private const float OrbitScoreTieEpsilon = 0.001f;
-    private const float ApproachDirectionFallbackThresholdSq = 0.000001f;
     private const float ObjectiveAdvanceEpsilon = 0.000001f;
 
     public static SimVector3? Resolve(UnitData unit, int? targetId, MatchState state)
     {
-        if (unit.UnitType == UnitType.Melee && targetId.HasValue)
-        {
-            var slotPos = SimMeleeSlotManager.GetReservedSlotWorldPosition(unit, state);
-            if (slotPos.HasValue)
-                return slotPos.Value;
-        }
-
         var baseTargetPosition = SimUtils.ResolveTargetPosition(targetId, state);
         if (!baseTargetPosition.HasValue)
             return null;
@@ -144,14 +135,13 @@ public static class MovementTargetResolver
     {
         float attackerNav = CombatGeometry.GetNavigationRadius(unit);
         float targetNav = CombatGeometry.GetNavigationRadius(target);
-        float standoff = MathF.Min(0.9f * (attackerNav + targetNav), 0.35f * unit.AttackRange);
-
-        var toTarget = targetPosition - unit.Position;
-        toTarget.Y = 0f;
-        SimVector3 approachDirection =
-            toTarget.LengthSquared() > ApproachDirectionFallbackThresholdSq
-                ? toTarget.Normalized()
-                : new SimVector3(unit.IsFacingRight ? 1f : -1f, 0f, 0f);
+        float standoff = ResolveMeleeUnitStandoff(unit, attackerNav, targetNav);
+        SimVector3 attackForwardDirection = ResolveForwardRectAttackDirection(unit, targetPosition);
+        SimVector3 lateralDirection = new(
+            -attackForwardDirection.Z,
+            0f,
+            attackForwardDirection.X
+        );
 
         int lateralRank = ResolveSameTargetRank(unit, targetId, state);
         float lateralStep = MathF.Max(0.18f, 0.55f * attackerNav);
@@ -159,10 +149,40 @@ public static class MovementTargetResolver
         float lateralOffset = Math.Clamp(lateralRank * lateralStep, -lateralBudget, lateralBudget);
 
         return new SimVector3(
-            targetPosition.X - approachDirection.X * standoff,
+            targetPosition.X - attackForwardDirection.X * standoff + lateralDirection.X * lateralOffset,
             unit.Position.Y,
-            targetPosition.Z - approachDirection.Z * standoff + lateralOffset
+            targetPosition.Z - attackForwardDirection.Z * standoff + lateralDirection.Z * lateralOffset
         );
+    }
+
+    private static float ResolveMeleeUnitStandoff(UnitData unit, float attackerNav, float targetNav)
+    {
+        float standoff = MathF.Min(0.9f * (attackerNav + targetNav), 0.35f * unit.AttackRange);
+        if (unit.EngageShape != EngageShape.ForwardRect)
+            return standoff;
+
+        float length =
+            unit.EngageRectLength > 0f
+                ? unit.EngageRectLength
+                : MathF.Max(unit.AttackRange * 0.9f, 0.1f);
+        float forwardOffset = MathF.Max(unit.EngageRectForwardOffset, 0f);
+        if (forwardOffset <= 0f)
+            return standoff;
+
+        float preferred = forwardOffset + MathF.Min(length * 0.25f, 0.75f);
+        float maxAttackable = forwardOffset + MathF.Max(length - 0.05f, 0.05f);
+        return Math.Clamp(MathF.Max(standoff, preferred), forwardOffset + 0.05f, maxAttackable);
+    }
+
+    private static SimVector3 ResolveForwardRectAttackDirection(UnitData unit, SimVector3 targetPosition)
+    {
+        float dx = targetPosition.X - unit.Position.X;
+        if (MathF.Abs(dx) > 0.05f)
+            return dx >= 0f ? new SimVector3(1f, 0f, 0f) : new SimVector3(-1f, 0f, 0f);
+
+        return unit.Team == Team.Player
+            ? new SimVector3(1f, 0f, 0f)
+            : new SimVector3(-1f, 0f, 0f);
     }
 
     private static int ResolveSameTargetRank(UnitData unit, int targetId, MatchState state)
@@ -172,9 +192,9 @@ public static class MovementTargetResolver
         {
             if (ally.UnitType != UnitType.Melee)
                 continue;
-            if (!ally.TargetUnitId.HasValue || ally.TargetUnitId.Value != targetId)
+            if (!ally.Engagement.TargetUnitId.HasValue || ally.Engagement.TargetUnitId.Value != targetId)
                 continue;
-            if (MatchState.IsSummonerTarget(ally.TargetUnitId))
+            if (MatchState.IsSummonerTarget(ally.Engagement.TargetUnitId))
                 continue;
 
             if (ally.UnitId == unit.UnitId)

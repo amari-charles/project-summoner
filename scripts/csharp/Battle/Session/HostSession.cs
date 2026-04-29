@@ -556,7 +556,7 @@ public class HostSession : NetworkSession
                     unit.IsFacingRight,
                     unit.CatalogId,
                     unit.SpawnTimer,
-                    unit.AttackAnimationTimer
+                    unit.Action.AttackAnimationTimer
                 )
             );
         }

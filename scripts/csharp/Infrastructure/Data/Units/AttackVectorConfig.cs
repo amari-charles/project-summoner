@@ -54,6 +54,8 @@ public record AttackAreaConfig
 {
     public AttackAreaShape Shape { get; init; } = AttackAreaShape.Sphere;
     public Vector3 Size { get; init; } = new(1f, 1f, 1f);
+    /// <summary>Single-target damage-shape debug radius. 0 = derive from unit geometry.</summary>
+    public float SingleTargetRadius { get; init; }
     public float LineLength { get; init; }
     public float LineHalfWidth { get; init; }
     public float ForwardOffset { get; init; }

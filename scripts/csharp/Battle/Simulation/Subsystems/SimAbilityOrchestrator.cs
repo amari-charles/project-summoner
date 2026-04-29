@@ -276,8 +276,8 @@ public static class SimAbilityOrchestrator
             if (!ShouldApplySoftTaunt(candidate, source.UnitId))
                 continue;
 
-            candidate.ForcedTargetUnitId = source.UnitId;
-            candidate.ForcedTargetTimer = MathF.Max(candidate.ForcedTargetTimer, ability.DurationSeconds);
+            candidate.Engagement.ForcedTargetUnitId = source.UnitId;
+            candidate.Engagement.ForcedTargetTimer = MathF.Max(candidate.Engagement.ForcedTargetTimer, ability.DurationSeconds);
             events.Add(
                 new StatusAppliedEvent(
                     source.UnitId,
@@ -352,11 +352,11 @@ public static class SimAbilityOrchestrator
 
     private static bool ShouldApplySoftTaunt(UnitData candidate, int taunterUnitId)
     {
-        if (candidate.ForcedTargetTimer <= 0f)
+        if (candidate.Engagement.ForcedTargetTimer <= 0f)
             return true;
-        if (!candidate.ForcedTargetUnitId.HasValue)
+        if (!candidate.Engagement.ForcedTargetUnitId.HasValue)
             return true;
-        return candidate.ForcedTargetUnitId.Value == taunterUnitId;
+        return candidate.Engagement.ForcedTargetUnitId.Value == taunterUnitId;
     }
 
     private static float ResolveAbilityDuration(UnitAbilityState ability)

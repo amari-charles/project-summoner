@@ -29,10 +29,10 @@ public class SimAttackLoopTest
         unit.Attack.Timing.WindupSeconds = 0.3f;
         SimAttackLoop.Begin(unit, _state, targetId: 99);
 
-        AssertThat(unit.AttackPhase).IsEqual(AttackPhase.Windup);
-        AssertThat(unit.AttackPhaseLockTargetId.HasValue).IsTrue();
-        AssertThat(unit.AttackPhaseLockTargetId!.Value).IsEqual(99);
-        AssertThat(unit.AttackPhaseTimer).IsEqual(0.3f);
+        AssertThat(unit.Action.AttackPhase).IsEqual(AttackPhase.Windup);
+        AssertThat(unit.Action.AttackPhaseLockTargetId.HasValue).IsTrue();
+        AssertThat(unit.Action.AttackPhaseLockTargetId!.Value).IsEqual(99);
+        AssertThat(unit.Action.AttackPhaseTimer).IsEqual(0.3f);
     }
 
     [TestCase]
@@ -45,23 +45,23 @@ public class SimAttackLoopTest
         SimAttackLoop.Begin(unit, _state, targetId: 5);
 
         SimAttackLoop.Tick(unit, _state, delta: 0.02f, new List<SimEvent>());
-        AssertThat(unit.AttackPhase).IsEqual(AttackPhase.Active);
+        AssertThat(unit.Action.AttackPhase).IsEqual(AttackPhase.Active);
 
-        unit.AttackPhaseTimer = 0f;
+        unit.Action.AttackPhaseTimer = 0f;
         SimAttackLoop.Tick(unit, _state, delta: 0f, new List<SimEvent>());
-        AssertThat(unit.AttackPhase).IsEqual(AttackPhase.Recovery);
+        AssertThat(unit.Action.AttackPhase).IsEqual(AttackPhase.Recovery);
 
-        unit.AttackPhaseTimer = 0f;
+        unit.Action.AttackPhaseTimer = 0f;
         SimAttackLoop.Tick(unit, _state, delta: 0f, new List<SimEvent>());
-        AssertThat(unit.AttackPhase).IsEqual(AttackPhase.None);
-        AssertThat(unit.AttackPhaseLockTargetId).IsNull();
+        AssertThat(unit.Action.AttackPhase).IsEqual(AttackPhase.None);
+        AssertThat(unit.Action.AttackPhaseLockTargetId).IsNull();
     }
 
     [TestCase]
     public void AttackPhase_AnchorsPosition_NoTranslation()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f);
-        unit.AttackPhase = AttackPhase.Active;
+        unit.Action.AttackPhase = AttackPhase.Active;
 
         var start = unit.Position;
         var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
@@ -81,7 +81,7 @@ public class SimAttackLoopTest
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1.5f, z: 0f, hp: 100f);
         target.Evasion = 0f;
 
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
         attacker.AttackCooldown = 0f;
 
         var events = new List<SimEvent>();
@@ -95,9 +95,9 @@ public class SimAttackLoopTest
         AssertThat(hpAfterCommit).IsLess(hpBefore);
 
         // Advance through active/recovery: no second commit should occur.
-        attacker.AttackPhaseTimer = 0f;
+        attacker.Action.AttackPhaseTimer = 0f;
         SimAttackLoop.Tick(attacker, _state, delta: 0f, events);
-        attacker.AttackPhaseTimer = 0f;
+        attacker.Action.AttackPhaseTimer = 0f;
         SimAttackLoop.Tick(attacker, _state, delta: 0f, events);
 
         AssertThat(target.CurrentHp).IsEqual(hpAfterCommit);
@@ -112,7 +112,7 @@ public class SimAttackLoopTest
         var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 1.5f, z: 0f, hp: 100f);
         target.Evasion = 0f;
 
-        attacker.TargetUnitId = target.UnitId;
+        attacker.Engagement.TargetUnitId = target.UnitId;
         attacker.AttackCooldown = 0f;
         var events = new List<SimEvent>();
 
@@ -121,7 +121,7 @@ public class SimAttackLoopTest
         SimAttackLoop.Cancel(attacker, _state);
         SimAttackLoop.Tick(attacker, _state, delta: 1f, events);
 
-        AssertThat(attacker.PendingAttackTargetId).IsNull();
+        AssertThat(attacker.Action.PendingAttackTargetId).IsNull();
         AssertThat(target.CurrentHp).IsEqual(100f);
     }
 
@@ -133,7 +133,7 @@ public class SimAttackLoopTest
 
         SimAttackLoop.Begin(unit, _state, targetId: 99);
 
-        AssertThat(unit.AttackPhaseTimer).IsEqual(0.2f);
+        AssertThat(unit.Action.AttackPhaseTimer).IsEqual(0.2f);
     }
 
     [TestCase]
@@ -144,7 +144,7 @@ public class SimAttackLoopTest
 
         SimAttackLoop.Begin(unit, _state, targetId: 99);
 
-        AssertThat(unit.AttackPhaseTimer).IsEqual(0.55f);
+        AssertThat(unit.Action.AttackPhaseTimer).IsEqual(0.55f);
     }
 
     [TestCase]
@@ -158,6 +158,6 @@ public class SimAttackLoopTest
         SimAttackLoop.Begin(unit, _state, targetId: 99);
 
         float expectedMax = (1f / 3f) - 0.05f - 0.15f - 0.01f;
-        AssertThat(unit.AttackPhaseTimer).IsEqual(expectedMax);
+        AssertThat(unit.Action.AttackPhaseTimer).IsEqual(expectedMax);
     }
 }

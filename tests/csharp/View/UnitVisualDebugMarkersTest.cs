@@ -10,6 +10,7 @@ using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
+using Fateforged.Visual;
 using Fateforged.View;
 using GdUnit4;
 using Godot;
@@ -228,7 +229,7 @@ public partial class UnitVisualDebugMarkersTest
     }
 
     [TestCase]
-    public void Process_DamageShapeSingleTarget_AnchorsDiscToPrimaryTarget()
+    public void Process_DamageShapeSingleTarget_CentersDiscOnAttacker()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -249,8 +250,19 @@ public partial class UnitVisualDebugMarkersTest
             UnitId = attackerId,
             IsAlive = true,
             Position = new SimVector3(0f, 0f, 0f),
-            TargetUnitId = targetId,
+            Engagement = new CombatEngagementState { TargetUnitId = targetId },
+            NavigationRadius = 0.8f,
+            HurtboxRadius = 0.9f,
             AttackRange = 3f,
+            Attack = new AttackVectorState
+            {
+                Selection = new AttackSelectionState
+                {
+                    Mode = AttackSelectionMode.Single,
+                    TargetLimit = 1,
+                },
+                Area = new AttackAreaState { SingleTargetRadius = 1.4f },
+            },
         };
         state.Units[targetId] = new UnitData
         {
@@ -274,12 +286,83 @@ public partial class UnitVisualDebugMarkersTest
         var marker = damageShapeField!.GetValue(visual) as MeshInstance3D;
         AssertThat(marker).IsNotNull();
         AssertThat(marker!.Mesh is CylinderMesh).IsTrue();
-        AssertThat(Mathf.Abs(marker.GlobalPosition.X - 2.5f) < 0.001f).IsTrue();
-        AssertThat(Mathf.Abs(marker.GlobalPosition.Z - 0.6f) < 0.001f).IsTrue();
+        var disc = marker.Mesh as CylinderMesh;
+        AssertThat(disc).IsNotNull();
+        AssertThat(Mathf.Abs(disc!.TopRadius - 1.4f) < 0.001f).IsTrue();
+        AssertThat(Mathf.Abs(marker.Scale.Z - 0.62f) < 0.001f).IsTrue();
+        AssertThat(Mathf.Abs(marker.GlobalPosition.X - visual.GlobalPosition.X) < 0.001f).IsTrue();
+        AssertThat(Mathf.Abs(marker.GlobalPosition.Z - visual.GlobalPosition.Z) < 0.001f).IsTrue();
     }
 
     [TestCase]
-    public void Process_ForwardOffsetDamageShape_OnlyVisibleDuringAttackWindow()
+    public void Process_DamageShapeSingleTarget_UsesSpriteWidthFallbackForRadius()
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+
+        var debugService = new BattlefieldDebugService { Name = "BattlefieldDebug" };
+        root.AddChild(debugService);
+        _createdNodes.Add(debugService);
+
+        var visual = new UnitVisual { Name = "UnitVisualSingleTargetSpriteWidthFallbackDebugTest" };
+        root.AddChild(visual);
+        _createdNodes.Add(visual);
+
+        var stubVisual = new StubVisualComponent(spriteWidth: 2.4f, spriteHeight: 2.0f);
+        visual.AddChild(stubVisual);
+        _createdNodes.Add(stubVisual);
+        SetPrivateField(visual, "_visual", stubVisual);
+
+        const int attackerId = 301;
+        const int targetId = 302;
+        var state = new MatchState();
+        state.Units[attackerId] = new UnitData
+        {
+            UnitId = attackerId,
+            IsAlive = true,
+            Position = new SimVector3(0f, 0f, 0f),
+            Engagement = new CombatEngagementState { TargetUnitId = targetId },
+            NavigationRadius = 0.4f,
+            HurtboxRadius = 0.5f,
+            Attack = new AttackVectorState
+            {
+                Selection = new AttackSelectionState
+                {
+                    Mode = AttackSelectionMode.Single,
+                    TargetLimit = 1,
+                },
+                Area = new AttackAreaState { SingleTargetRadius = 0f },
+            },
+        };
+        state.Units[targetId] = new UnitData
+        {
+            UnitId = targetId,
+            IsAlive = true,
+            Position = new SimVector3(1.8f, 0f, 0.2f),
+        };
+
+        SetPrivateField(visual, "_session", new StubSession(state));
+        SetPrivateField(visual, "_unitId", attackerId);
+
+        var damageShapeField = typeof(UnitVisual).GetField(
+            "_debugDamageShapeMarker",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+        AssertThat(damageShapeField).IsNotNull();
+
+        debugService.DamageShapeEnabled = true;
+        visual._Process(1.0 / 60.0);
+
+        var marker = damageShapeField!.GetValue(visual) as MeshInstance3D;
+        AssertThat(marker).IsNotNull();
+        var disc = marker!.Mesh as CylinderMesh;
+        AssertThat(disc).IsNotNull();
+        AssertThat(Mathf.Abs(disc!.TopRadius - 1.2f) < 0.001f).IsTrue();
+        AssertThat(Mathf.Abs(marker.Scale.Z - 0.62f) < 0.001f).IsTrue();
+    }
+
+    [TestCase]
+    public void Process_ForwardOffsetDamageShape_RemainsVisibleOutsideAttackWindow()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
         var root = tree.Root;
@@ -299,7 +382,7 @@ public partial class UnitVisualDebugMarkersTest
             IsAlive = true,
             Position = new SimVector3(0f, 0f, 0f),
             AttackRange = 3f,
-            AttackPhase = AttackPhase.None,
+            Action = new CombatActionState { AttackPhase = AttackPhase.None },
             Attack = new AttackVectorState
             {
                 Selection = new AttackSelectionState
@@ -333,10 +416,10 @@ public partial class UnitVisualDebugMarkersTest
 
         debugService.DamageShapeEnabled = true;
         visual._Process(1.0 / 60.0);
-        AssertThat(primaryField!.GetValue(visual) as MeshInstance3D).IsNull();
-        AssertThat(secondaryField!.GetValue(visual) as MeshInstance3D).IsNull();
+        AssertThat(primaryField!.GetValue(visual) as MeshInstance3D).IsNotNull();
+        AssertThat(secondaryField!.GetValue(visual) as MeshInstance3D).IsNotNull();
 
-        unit.AttackPhase = AttackPhase.Windup;
+        unit.Action.AttackPhase = AttackPhase.Windup;
         visual._Process(1.0 / 60.0);
         AssertThat(primaryField.GetValue(visual) as MeshInstance3D).IsNotNull();
         AssertThat(secondaryField.GetValue(visual) as MeshInstance3D).IsNotNull();
@@ -370,5 +453,49 @@ public partial class UnitVisualDebugMarkersTest
         public void SubmitCommand(ICommand command) { }
 
         public void Tick(float delta) { }
+    }
+
+    private sealed partial class StubVisualComponent : Node3D, IVisualComponent
+    {
+        private readonly float _spriteWidth;
+        private readonly float _spriteHeight;
+
+        public StubVisualComponent(float spriteWidth, float spriteHeight)
+        {
+            _spriteWidth = spriteWidth;
+            _spriteHeight = spriteHeight;
+        }
+
+        public void PlayAnimation(string animName) { }
+
+        public void PlayAnimation(string animName, bool autoPlay) { }
+
+        public void StopAnimation() { }
+
+        public string GetCurrentAnimation() => "";
+
+        public bool IsPlaying() => false;
+
+        public void SetAnimationSpeed(float speed) { }
+
+        public float GetAnimationDuration(string animName) => 0f;
+
+        public float GetSpriteHeight() => _spriteHeight;
+
+        public float GetSpriteWidth() => _spriteWidth;
+
+        public float GetHpBarOffsetX() => 0f;
+
+        public void FlashWhite() { }
+
+        public void SetFlipH(bool flip) { }
+
+        public void SetRenderPriority(int priority) { }
+
+        public bool IsFullyInitialized() => true;
+
+        public Node3D CreateGhostVisual() => new Node3D();
+
+        public void ApplyGhostTint(Color tint) { }
     }
 }

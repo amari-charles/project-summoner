@@ -42,9 +42,9 @@ public class MovementTargetResolverTest
         second.EngageRectHalfWidth = 0.9f;
         third.EngageRectHalfWidth = 0.9f;
 
-        first.TargetUnitId = target.UnitId;
-        second.TargetUnitId = target.UnitId;
-        third.TargetUnitId = target.UnitId;
+        first.Engagement.TargetUnitId = target.UnitId;
+        second.Engagement.TargetUnitId = target.UnitId;
+        third.Engagement.TargetUnitId = target.UnitId;
 
         var thirdPoint = MovementTargetResolver.Resolve(third, target.UnitId, _state);
         var firstPoint = MovementTargetResolver.Resolve(first, target.UnitId, _state);
@@ -78,6 +78,43 @@ public class MovementTargetResolverTest
         AssertThat(thirdPoint.Value.Z).IsEqualApprox(expectedThirdOffset, 0.0001f);
         AssertThat(secondPoint.Value.Z).IsGreater(firstPoint.Value.Z);
         AssertThat(thirdPoint.Value.Z).IsLess(firstPoint.Value.Z);
+    }
+
+    [TestCase]
+    public void Resolve_ForwardRectVerticalApproach_UsesAttackableSideAnchor()
+    {
+        var target = SimTestHelper.CreateMeleeUnit(
+            _state,
+            team: 1,
+            x: 2f,
+            z: 0f,
+            moveSpeed: 0f,
+            attackSpeed: 0f
+        );
+        var lower = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 2f, z: -5f, attackRange: 3f);
+        var upper = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 2f, z: 5f, attackRange: 3f);
+        ConfigureForwardOffsetRect(lower);
+        ConfigureForwardOffsetRect(upper);
+        lower.Engagement.TargetUnitId = target.UnitId;
+        upper.Engagement.TargetUnitId = target.UnitId;
+
+        var lowerPoint = MovementTargetResolver.Resolve(lower, target.UnitId, _state);
+        var upperPoint = MovementTargetResolver.Resolve(upper, target.UnitId, _state);
+
+        AssertThat(lowerPoint.HasValue).IsTrue();
+        AssertThat(upperPoint.HasValue).IsTrue();
+        AssertThat(lowerPoint!.Value.X).IsLess(target.Position.X - 1f);
+        AssertThat(upperPoint!.Value.X).IsEqualApprox(lowerPoint.Value.X, 0.0001f);
+        AssertThat(MathF.Abs(lowerPoint.Value.Z - target.Position.Z)).IsLess(0.05f);
+        AssertThat(upperPoint.Value.Z).IsGreater(lowerPoint.Value.Z);
+
+        lower.Position = lowerPoint.Value;
+        upper.Position = upperPoint.Value;
+        lower.IsFacingRight = true;
+        upper.IsFacingRight = true;
+
+        AssertThat(SimTargeting.CanAttack(lower, target)).IsTrue();
+        AssertThat(SimTargeting.CanAttack(upper, target)).IsTrue();
     }
 
     [TestCase]
@@ -116,5 +153,14 @@ public class MovementTargetResolverTest
         var lateDir = MovementTargetResolver.ResolveObjectiveAdvanceDirection(latePostBand, _state);
 
         AssertThat(MathF.Abs(lateDir.Z)).IsGreater(MathF.Abs(earlyDir.Z));
+    }
+
+    private static void ConfigureForwardOffsetRect(UnitData unit)
+    {
+        unit.EngageShape = EngageShape.ForwardRect;
+        unit.EngageRectLength = 2.7f;
+        unit.EngageRectHalfWidth = 1.3f;
+        unit.EngageRectForwardOffset = 1.05f;
+        unit.EngageCloseRadius = 0.2f;
     }
 }

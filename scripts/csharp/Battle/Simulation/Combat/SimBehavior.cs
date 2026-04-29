@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Fateforged.Data.Projectiles;
 using Fateforged.Projectiles;
 using Fateforged.Simulation;
-using Fateforged.Simulation.Combat.Targeting;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Spatial;
@@ -25,7 +24,6 @@ namespace Fateforged.Simulation.Combat;
 /// </summary>
 public static class SimBehavior
 {
-    private const float TargetLockDuration = 0.5f;
     private const float BacklinerMaxCrossLaneChaseDistanceMultiplier = 1.35f;
     private const float DefaultHitscanBeamDurationSeconds = 0.12f;
 
@@ -47,59 +45,15 @@ public static class SimBehavior
         if (unit.AttackCooldown > 0)
             unit.AttackCooldown -= delta;
 
-        if (unit.TargetLockTimer > 0)
-            unit.TargetLockTimer -= delta;
-
-        if (unit.ForcedTargetTimer > 0)
+        if (unit.Engagement.ForcedTargetTimer > 0)
         {
-            unit.ForcedTargetTimer -= delta;
-            if (unit.ForcedTargetTimer <= 0)
-                unit.ForcedTargetUnitId = null;
+            unit.Engagement.ForcedTargetTimer -= delta;
+            if (unit.Engagement.ForcedTargetTimer <= 0)
+                unit.Engagement.ForcedTargetUnitId = null;
         }
 
-        if (unit.AttackAnimationTimer > 0)
-            unit.AttackAnimationTimer -= delta;
-    }
-
-    /// <summary>
-    /// Update targeting for a unit: forced target, target lock, re-acquisition.
-    /// </summary>
-    public static void TickTargeting(UnitData unit, MatchState state)
-    {
-        var policy = TargetPolicyRegistry.Resolve(unit.TargetPolicyId);
-
-        // Use forced target if available
-        if (unit.ForcedTargetUnitId.HasValue)
-        {
-            if (IsValidTarget(unit.ForcedTargetUnitId, state))
-            {
-                unit.TargetUnitId = unit.ForcedTargetUnitId.Value;
-                return;
-            }
-            unit.ForcedTargetUnitId = null;
-        }
-
-        bool currentTargetIsValid = IsValidTarget(unit.TargetUnitId, state);
-
-        // Keep current target if policy allows and it's still attackable now.
-        // This avoids unnecessary target churn when lock expires.
-        if (
-            unit.TargetLockTimer <= 0
-            && currentTargetIsValid
-            && policy.ShouldKeepCurrentTarget(unit, state, unit.TargetUnitId)
-        )
-        {
-            unit.TargetLockTimer = TargetLockDuration;
-            return;
-        }
-
-        // Re-acquire target if lock expired or current target invalid
-        if (unit.TargetLockTimer <= 0 || !currentTargetIsValid)
-        {
-            unit.TargetUnitId = policy.SelectTarget(unit, state);
-            if (unit.TargetUnitId.HasValue)
-                unit.TargetLockTimer = TargetLockDuration;
-        }
+        if (unit.Action.AttackAnimationTimer > 0)
+            unit.Action.AttackAnimationTimer -= delta;
     }
 
     /// <summary>
@@ -121,19 +75,19 @@ public static class SimBehavior
         }
 
         // Resolve target position — works for both unit and summoner targets
-        var targetPos = SimUtils.ResolveTargetPosition(unit.TargetUnitId, state);
+        var targetPos = SimUtils.ResolveTargetPosition(unit.Engagement.TargetUnitId, state);
         if (!targetPos.HasValue)
         {
             unit.BehaviorState = BehaviorState.NoTarget;
             return new BehaviorResult { Movement = MovementResult.Forward };
         }
 
-        bool isSummonerTarget = MatchState.IsSummonerTarget(unit.TargetUnitId);
-        UnitData? target = isSummonerTarget ? null : state.GetAliveUnit(unit.TargetUnitId!.Value);
+        bool isSummonerTarget = MatchState.IsSummonerTarget(unit.Engagement.TargetUnitId);
+        UnitData? target = isSummonerTarget ? null : state.GetAliveUnit(unit.Engagement.TargetUnitId!.Value);
         SimVector3 tPos = targetPos.Value;
         if (isSummonerTarget)
             tPos = SimTargeting.ResolveSummonerEngagePosition(unit, tPos);
-        int targetId = unit.TargetUnitId!.Value;
+        int targetId = unit.Engagement.TargetUnitId!.Value;
 
         // If the target unit died between position resolution and this lookup, re-target next tick
         if (!isSummonerTarget && target == null)
@@ -188,7 +142,7 @@ public static class SimBehavior
                 );
 
                 unit.AttackCooldown = 1.0f / effectiveAttackSpeed;
-                unit.AttackAnimationTimer = SimAttackLoop.ResolveAttackAnimationDuration(unit);
+                unit.Action.AttackAnimationTimer = SimAttackLoop.ResolveAttackAnimationDuration(unit);
                 events.Add(new UnitAttackedEvent(unit.UnitId, targetId));
 
                 return new BehaviorResult { Movement = MovementResult.None };
@@ -218,13 +172,13 @@ public static class SimBehavior
 
     public static void ResolvePendingAttackCommit(UnitData unit, MatchState state, List<SimEvent> events)
     {
-        if (!unit.PendingAttackTargetId.HasValue)
+        if (!unit.Action.PendingAttackTargetId.HasValue)
             return;
 
-        int targetId = unit.PendingAttackTargetId.Value;
-        float baseDamage = unit.PendingAttackBaseDamage;
+        int targetId = unit.Action.PendingAttackTargetId.Value;
+        float baseDamage = unit.Action.PendingAttackBaseDamage;
         bool targetsSummoner =
-            unit.PendingAttackTargetsSummoner || MatchState.IsSummonerTarget(targetId);
+            unit.Action.PendingAttackTargetsSummoner || MatchState.IsSummonerTarget(targetId);
         ClearPendingAttack(unit);
 
         if (targetsSummoner)
@@ -269,9 +223,9 @@ public static class SimBehavior
 
     public static void ClearPendingAttack(UnitData unit)
     {
-        unit.PendingAttackTargetId = null;
-        unit.PendingAttackBaseDamage = 0f;
-        unit.PendingAttackTargetsSummoner = false;
+        unit.Action.PendingAttackTargetId = null;
+        unit.Action.PendingAttackBaseDamage = 0f;
+        unit.Action.PendingAttackTargetsSummoner = false;
     }
 
     private static void QueuePendingAttack(
@@ -281,13 +235,13 @@ public static class SimBehavior
         float baseDamage
     )
     {
-        unit.PendingDamageTimer = 0f;
-        unit.PendingDamageTargetId = null;
-        unit.PendingDamageAmount = 0f;
+        unit.Action.PendingDamageTimer = 0f;
+        unit.Action.PendingDamageTargetId = null;
+        unit.Action.PendingDamageAmount = 0f;
 
-        unit.PendingAttackTargetId = targetId;
-        unit.PendingAttackTargetsSummoner = targetsSummoner;
-        unit.PendingAttackBaseDamage = baseDamage;
+        unit.Action.PendingAttackTargetId = targetId;
+        unit.Action.PendingAttackTargetsSummoner = targetsSummoner;
+        unit.Action.PendingAttackBaseDamage = baseDamage;
     }
 
     private static bool ShouldHoldLaneInsteadOfChasing(
@@ -448,18 +402,18 @@ public static class SimBehavior
         List<SimEvent> events
     )
     {
-        if (unit.PendingDamageTimer <= 0)
+        if (unit.Action.PendingDamageTimer <= 0)
             return;
 
-        unit.PendingDamageTimer -= delta;
-        if (unit.PendingDamageTimer > 0)
+        unit.Action.PendingDamageTimer -= delta;
+        if (unit.Action.PendingDamageTimer > 0)
             return;
 
-        unit.PendingDamageTimer = 0;
+        unit.Action.PendingDamageTimer = 0;
 
-        if (unit.PendingDamageTargetId.HasValue)
+        if (unit.Action.PendingDamageTargetId.HasValue)
         {
-            int pendingTargetId = unit.PendingDamageTargetId.Value;
+            int pendingTargetId = unit.Action.PendingDamageTargetId.Value;
 
             if (MatchState.IsSummonerTarget(pendingTargetId))
             {
@@ -468,7 +422,7 @@ public static class SimBehavior
                     SpawnProjectileToSummonerOrApplyDirect(
                         unit,
                         pendingTargetId,
-                        unit.PendingDamageAmount,
+                        unit.Action.PendingDamageAmount,
                         state,
                         events
                     );
@@ -484,7 +438,7 @@ public static class SimBehavior
                             state,
                             summoner,
                             summonerTeam,
-                            unit.PendingDamageAmount,
+                            unit.Action.PendingDamageAmount,
                             unit.Team,
                             unit.UnitId,
                             events
@@ -501,15 +455,15 @@ public static class SimBehavior
                     SpawnProjectileOrApplyDirect(
                         unit,
                         target,
-                        unit.PendingDamageAmount,
+                        unit.Action.PendingDamageAmount,
                         state,
                         events
                     );
                 }
             }
 
-            unit.PendingDamageTargetId = null;
-            unit.PendingDamageAmount = 0;
+            unit.Action.PendingDamageTargetId = null;
+            unit.Action.PendingDamageAmount = 0;
         }
     }
 

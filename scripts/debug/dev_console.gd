@@ -41,6 +41,7 @@ extends Node
 ##   /debug_projectile_hit_radius_status - Print projectile radius debug runtime status
 ##   /debug_summoner_bubble [on|off|toggle] [<radius>|reset] - Toggle summoner melee bubble debug and runtime radius override
 ##   /debug_summoner_bubble_status - Print summoner melee bubble debug runtime status
+##   /debug_capture_repro [start|mark|stop|status|rerun] [args...] - Capture deterministic sim repro windows to JSON
 ##   /projectiles_debug_dump - Print active projectile state + visual shell diagnostics
 ##   /projectiles_reload - Reload projectile visual scenes from disk
 ##
@@ -90,6 +91,7 @@ const COMMANDS: Array[Dictionary] = [
 	{"cmd": "/debug_projectile_hit_radius_status", "desc": "Show projectile radius debug runtime status"},
 	{"cmd": "/debug_summoner_bubble", "args": "[on|off|toggle] [<radius>|reset]", "desc": "Toggle summoner bubble debug + runtime radius"},
 	{"cmd": "/debug_summoner_bubble_status", "desc": "Show summoner bubble debug runtime status"},
+	{"cmd": "/debug_capture_repro", "args": "[start|mark|stop|status|rerun] [args...]", "desc": "Capture deterministic sim repro window to JSON"},
 	{"cmd": "/projectiles_debug_dump", "desc": "Print active projectile + visual diagnostics"},
 	{"cmd": "/projectiles_reload", "desc": "Reload projectile visuals from disk"},
 ]
@@ -233,6 +235,8 @@ func execute_command(command: String) -> bool:
 			return _cmd_debug_summoner_bubble(args)
 		"/debug_summoner_bubble_status":
 			return _cmd_debug_summoner_bubble_status()
+		"/debug_capture_repro":
+			return _cmd_debug_capture_repro(args)
 		"/projectiles_debug_dump":
 			return _cmd_projectiles_debug_dump()
 		"/projectiles_reload":
@@ -1160,6 +1164,121 @@ func _cmd_debug_summoner_bubble_status() -> bool:
 			effective_radius
 		]
 	)
+	return true
+
+
+func _cmd_debug_capture_repro(args: PackedStringArray) -> bool:
+	var sim_node: Node = get_tree().get_first_node_in_group("simulation_node")
+	if sim_node == null:
+		print("DevConsole: No active SimulationNode (enter battle first).")
+		return false
+
+	if not sim_node.has_method("GetReproCaptureStatus") \
+	or not sim_node.has_method("StartReproCapture") \
+	or not sim_node.has_method("StopReproCapture") \
+	or not sim_node.has_method("MarkReproCapture"):
+		print("DevConsole: SimulationNode lacks repro capture methods.")
+		return false
+
+	var mode: String = "status"
+	if args.size() > 0:
+		mode = args[0].to_lower()
+
+	match mode:
+		"status":
+			pass
+		"start":
+			var seconds: int = 12
+			if args.size() > 1:
+				var seconds_arg: String = args[1]
+				if not seconds_arg.is_valid_int():
+					print("DevConsole: Usage: /debug_capture_repro start [window_seconds]")
+					return false
+				seconds = max(args[1].to_int(), 1)
+			var started: bool = SafeTypeUtils.bool_val(sim_node.call("StartReproCapture", seconds), false)
+			if not started:
+				print("DevConsole: Failed to start repro capture.")
+				return false
+			print("DevConsole: Repro capture started (window=%ds, auto-end + auto-save enabled)." % seconds)
+		"stop":
+			sim_node.call("StopReproCapture")
+			print("DevConsole: Repro capture ended (manual stop). Use /debug_capture_repro mark [label] to save current buffer.")
+		"mark":
+			var label: String = ""
+			if args.size() > 1:
+				label = " ".join(args.slice(1))
+			var path: String = SafeTypeUtils.string(sim_node.call("MarkReproCapture", label), "")
+			if path.is_empty():
+				print("DevConsole: Repro mark failed (is capture running with buffered frames?).")
+				return false
+			print("DevConsole: Repro capture saved (manual): %s" % path)
+		"rerun":
+			var seed: int = 0
+			if args.size() > 1:
+				var seed_arg: String = args[1]
+				if not seed_arg.is_valid_int():
+					print("DevConsole: Usage: /debug_capture_repro rerun [seed]")
+					return false
+				seed = seed_arg.to_int()
+			else:
+				var current_status: Dictionary = SafeTypeUtils.dict(sim_node.call("GetReproCaptureStatus"))
+				seed = SafeTypeUtils.int_val(current_status.get("seed", 0), 0)
+
+			if seed == 0:
+				print("DevConsole: No deterministic seed available. Pass one explicitly: /debug_capture_repro rerun <seed>")
+				return false
+
+			var battle_context: Node = get_tree().root.get_node_or_null("BattleContext")
+			if battle_context == null:
+				print("DevConsole: BattleContext not found; cannot rerun.")
+				return false
+
+			if SafeTypeUtils.bool_val(battle_context.call("is_multiplayer_battle"), false):
+				print("DevConsole: rerun is only supported for non-multiplayer battles.")
+				return false
+
+			var battle_config: Dictionary = SafeTypeUtils.dict(battle_context.get("battle_config")).duplicate(true)
+			if battle_config.is_empty():
+				battle_context.call("configure_practice_battle")
+				battle_config = SafeTypeUtils.dict(battle_context.get("battle_config")).duplicate(true)
+
+			battle_config["battle_seed"] = seed
+			battle_context.set("battle_config", battle_config)
+			battle_context.set("was_configured", true)
+			battle_context.set("battle_state", 1) # BattleContext.BattleState.CONFIGURED
+
+			print("DevConsole: Restarting battle with seed=%d ..." % seed)
+			if SceneManager and SceneManager.has_method("transition_to"):
+				SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+			else:
+				get_tree().change_scene_to_file("res://scenes/battle/battlefield/battle_3d.tscn")
+			return true
+		_:
+			print("DevConsole: Usage: /debug_capture_repro [start|mark|stop|status|rerun] [args...]")
+			print("DevConsole:   start [seconds]  - Begin capture, auto-end, and auto-save")
+			print("DevConsole:   mark [label]     - Save current buffered capture to JSON file")
+			print("DevConsole:   stop             - End capture immediately")
+			print("DevConsole:   status           - Print capture status")
+			print("DevConsole:   rerun [seed]     - Restart battle using deterministic seed")
+			return false
+
+	var status: Dictionary = SafeTypeUtils.dict(sim_node.call("GetReproCaptureStatus"))
+	print(
+		"DevConsole: repro_capture enabled=%s session=%s buffered=%d/%d dropped=%d remaining=%.2fs frame=%d time=%.2f host=%s" % [
+			"yes" if SafeTypeUtils.bool_val(status.get("enabled", false), false) else "no",
+			SafeTypeUtils.string(status.get("session_id", ""), ""),
+			SafeTypeUtils.int_val(status.get("buffered_frames", 0), 0),
+			SafeTypeUtils.int_val(status.get("window_frames", 0), 0),
+			SafeTypeUtils.int_val(status.get("dropped_frames", 0), 0),
+			SafeTypeUtils.float_val(status.get("remaining_seconds", 0.0), 0.0),
+			SafeTypeUtils.int_val(status.get("frame_number", 0), 0),
+			SafeTypeUtils.float_val(status.get("match_time", 0.0), 0.0),
+			"yes" if SafeTypeUtils.bool_val(status.get("is_host", false), false) else "no"
+		]
+	)
+	var last_saved_path: String = SafeTypeUtils.string(status.get("last_saved_path", ""), "")
+	if not last_saved_path.is_empty():
+		print("DevConsole: repro_capture last_saved=%s" % last_saved_path)
 	return true
 
 

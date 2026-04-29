@@ -64,7 +64,6 @@ public class SimMovementFacingStabilityTest
         strafingUnit.ConeHalfAngle = 8f;
         strafingUnit.CloseRangeThreshold = 0.1f;
         strafingUnit.FallbackMovement = FallbackMovement.Strafe;
-        strafingUnit.TargetPolicyId = TargetPolicyId.PreferAttackableAndStick;
 
         // Nearby friendly creates close-contact avoidance pressure.
         SimTestHelper.CreateMeleeUnit(
@@ -109,11 +108,55 @@ public class SimMovementFacingStabilityTest
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 24f, z: 0f, moveSpeed: 2f);
         unit.IsFacingRight = true;
-        unit.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
+        unit.Engagement.TargetUnitId = MatchState.GetSummonerTargetId(team: 1);
 
         var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
         SimMovement.Tick(unit, behavior, _state, Delta);
 
         AssertThat(unit.IsFacingRight).IsFalse();
+    }
+
+    [TestCase]
+    public void TickCommitMeleeMovement_MovementNone_UnitTarget_FacesTowardTarget()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 2f, z: 0f, moveSpeed: 2f);
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 0f, z: 0f, moveSpeed: 0f);
+        unit.IsFacingRight = true;
+        unit.Engagement.TargetUnitId = target.UnitId;
+
+        var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
+        SimMovement.Tick(unit, behavior, _state, Delta);
+
+        AssertThat(unit.IsFacingRight).IsFalse();
+    }
+
+    [TestCase]
+    public void Tick_MovementNone_SameTargetMeleeAllies_DoNotPushEachOtherApart()
+    {
+        var target = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 2f, z: 0f, moveSpeed: 0f);
+        var first = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0f, z: 0f, moveSpeed: 0f);
+        var second = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: 0.65f, z: 0f, moveSpeed: 0f);
+
+        first.Engagement.TargetUnitId = target.UnitId;
+        second.Engagement.TargetUnitId = target.UnitId;
+        first.BehaviorState = BehaviorState.InRange;
+        second.BehaviorState = BehaviorState.InRange;
+
+        var firstStart = first.Position;
+        var secondStart = second.Position;
+        var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.None };
+
+        SimMovement.Tick(first, behavior, _state, Delta);
+        SimMovement.Tick(second, behavior, _state, Delta);
+
+        AssertThat(DistanceXZ(first.Position, firstStart)).IsLess(0.001f);
+        AssertThat(DistanceXZ(second.Position, secondStart)).IsLess(0.001f);
+    }
+
+    private static float DistanceXZ(SimVector3 a, SimVector3 b)
+    {
+        float dx = a.X - b.X;
+        float dz = a.Z - b.Z;
+        return System.MathF.Sqrt((dx * dx) + (dz * dz));
     }
 }
