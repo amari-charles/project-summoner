@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fateforged.Cards;
 using Fateforged.Data.Events;
 
 namespace Fateforged.Data.Academy;
@@ -67,7 +68,7 @@ public class AcademyCourseDefinition
 
     public List<AcademyCourseActivity> Activities { get; set; } = [];
 
-    public List<AcademyRewardPreview> RewardPreviews { get; set; } = [];
+    public List<AcademyCourseReward> Rewards { get; set; } = [];
 }
 
 public class AcademyCourseActivity
@@ -100,7 +101,7 @@ public class AcademyBattleConfig
     public float AiPlayIntervalMax { get; set; } = 10.0f;
 }
 
-public class AcademyRewardPreview
+public class AcademyCourseReward
 {
     public AcademyRewardPreviewType PreviewType { get; set; } = AcademyRewardPreviewType.Fixed;
 
@@ -111,4 +112,8 @@ public class AcademyRewardPreview
     public string Element { get; set; } = "";
 
     public string CardRole { get; set; } = "";
+
+    public CardId CardId { get; set; } = CardId.None;
+
+    public string Rarity { get; set; } = "common";
 }

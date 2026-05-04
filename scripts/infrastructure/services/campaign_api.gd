@@ -70,8 +70,8 @@ static func enroll_academy_course(course_id: String) -> bool:
 static func complete_academy_course(course_id: String, grade: String = "pass", honors: bool = false) -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("CompleteAcademyCourse", course_id, grade, honors), false)
 
-static func complete_next_academy_activity(course_id: String) -> bool:
-	return SafeTypeUtils.bool_val(Campaign.call("CompleteNextAcademyActivity", course_id), false)
+static func complete_academy_activity(course_id: String, activity_id: String, succeeded: bool = true) -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("CompleteAcademyActivity", course_id, activity_id, succeeded), false)
 
 static func advance_academy_semester() -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("AdvanceAcademySemester"), false)

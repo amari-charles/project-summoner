@@ -158,6 +158,14 @@ Semester 2 uses a broader course catalog. Initial available classes:
 
 ## Systems To Implement
 
+### Architecture Guardrails
+
+- C# owns academy domain rules: course availability, activity state, completion, reward payloads, grade/Honors outcomes, gold, and persistence.
+- GDScript academy screens render returned view models and send explicit user intents. They should not recreate progression rules from raw state.
+- Course rewards should live with course definitions. Reward previews and reward grants must not be maintained in separate hardcoded maps.
+- Battle completion should identify the exact academy activity being resolved. Avoid generic "complete next" calls that hide state assumptions.
+- Reusable UI components should be extracted as the academy UI hardens, especially for course cards, activity nodes, modals, and map/path rendering.
+
 ### Catalog / Data
 
 - Add academy course catalog data.

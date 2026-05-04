@@ -31,10 +31,20 @@ public static class AcademyCourseCatalog
             Track = AcademyTrack.Foundation,
             IsRequired = true,
             Activities = StandardActivities("magic_101"),
-            RewardPreviews =
+            Rewards =
             [
-                CardReward("academy.reward.neutral_basic_summon", "neutral", "summon"),
-                CardReward("academy.reward.neutral_basic_spell", "neutral", "spell"),
+                CardReward(
+                    "academy.reward.neutral_basic_summon",
+                    "neutral",
+                    "summon",
+                    CardIds.Puff
+                ),
+                CardReward(
+                    "academy.reward.neutral_basic_spell",
+                    "neutral",
+                    "spell",
+                    CardIds.ManaBolt
+                ),
             ],
         },
         new()
@@ -47,7 +57,15 @@ public static class AcademyCourseCatalog
             Track = AcademyTrack.Binding,
             ChoiceGroupId = FoundationChoiceGroup,
             Activities = StandardActivities("summoning_basics"),
-            RewardPreviews = [CardReward("academy.reward.basic_summon", "neutral", "summon")],
+            Rewards =
+            [
+                CardReward(
+                    "academy.reward.basic_summon",
+                    "neutral",
+                    "summon",
+                    CardIds.FireWisp
+                ),
+            ],
         },
         new()
         {
@@ -59,7 +77,10 @@ public static class AcademyCourseCatalog
             Track = AcademyTrack.Arcana,
             ChoiceGroupId = FoundationChoiceGroup,
             Activities = StandardActivities("practical_spellcraft"),
-            RewardPreviews = [CardReward("academy.reward.basic_spell", "neutral", "spell")],
+            Rewards =
+            [
+                CardReward("academy.reward.basic_spell", "neutral", "spell", CardIds.Charge),
+            ],
         },
         IntroElement(CourseIds.IntroToFire, "fire"),
         IntroElement(CourseIds.IntroToWater, "water"),
@@ -76,7 +97,7 @@ public static class AcademyCourseCatalog
             IsRequired = true,
             Prerequisites = [CourseIds.IntroductionToMagic101],
             Activities = StandardActivities("foundations_magic_ii", AcademyBattleBand.Early),
-            RewardPreviews = [CardReward("academy.reward.foundation_choice", "neutral", "mixed")],
+            Rewards = [CardReward("academy.reward.foundation_choice", "neutral", "mixed")],
         },
         new()
         {
@@ -87,7 +108,7 @@ public static class AcademyCourseCatalog
             Semester = 2,
             Track = AcademyTrack.Foundation,
             Activities = StandardActivities("empowerment", AcademyBattleBand.Early),
-            RewardPreviews =
+            Rewards =
             [
                 new()
                 {
@@ -106,7 +127,7 @@ public static class AcademyCourseCatalog
             Semester = 2,
             Track = AcademyTrack.Binding,
             Activities = StandardActivities("mana_channeling", AcademyBattleBand.Early),
-            RewardPreviews =
+            Rewards =
             [
                 new()
                 {
@@ -140,10 +161,20 @@ public static class AcademyCourseCatalog
             Track = AcademyTrack.Affinity,
             ChoiceGroupId = ElementChoiceGroup,
             Activities = StandardActivities($"intro_{element}"),
-            RewardPreviews =
+            Rewards =
             [
-                CardReward($"academy.reward.{element}_summon", element, "summon"),
-                CardReward($"academy.reward.{element}_spell", element, "spell"),
+                CardReward(
+                    $"academy.reward.{element}_summon",
+                    element,
+                    "summon",
+                    ElementSummonCard(element)
+                ),
+                CardReward(
+                    $"academy.reward.{element}_spell",
+                    element,
+                    "spell",
+                    ElementSpellCard(element)
+                ),
             ],
         };
 
@@ -162,7 +193,7 @@ public static class AcademyCourseCatalog
             Track = AcademyTrack.Affinity,
             Prerequisites = [prerequisite],
             Activities = StandardActivities($"{element}_practicum_i", AcademyBattleBand.Early),
-            RewardPreviews =
+            Rewards =
             [
                 new()
                 {
@@ -251,7 +282,12 @@ public static class AcademyCourseCatalog
             },
         };
 
-    private static AcademyRewardPreview CardReward(string labelKey, string element, string role) =>
+    private static AcademyCourseReward CardReward(
+        string labelKey,
+        string element,
+        string role,
+        CardId cardId = default
+    ) =>
         new()
         {
             Kind = AcademyRewardKind.Card,
@@ -259,5 +295,26 @@ public static class AcademyCourseCatalog
             LabelKey = labelKey,
             Element = element,
             CardRole = role,
+            CardId = cardId,
+        };
+
+    private static CardId ElementSummonCard(string element) =>
+        element switch
+        {
+            "fire" => CardIds.FireWisp,
+            "water" => CardIds.WaterWisp,
+            "earth" => CardIds.EarthWisp,
+            "air" => CardIds.WindWisp,
+            _ => CardId.None,
+        };
+
+    private static CardId ElementSpellCard(string element) =>
+        element switch
+        {
+            "fire" => CardIds.Fireball,
+            "water" => CardIds.WaterJet,
+            "earth" => CardIds.Fortify,
+            "air" => CardIds.TailWind,
+            _ => CardId.None,
         };
 }

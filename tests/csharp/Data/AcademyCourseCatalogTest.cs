@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.Data;
 
 using System.Linq;
+using Fateforged.Cards;
 using Fateforged.Data.Academy;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -20,9 +21,11 @@ public class AcademyCourseCatalogTest
         AssertThat(magic101!.IsRequired).IsTrue();
         AssertThat(magic101.Activities).HasSize(3);
         AssertThat(magic101.Activities.Any(activity => activity.IsOfficialAssessment)).IsTrue();
-        AssertThat(magic101.RewardPreviews).HasSize(2);
-        AssertThat(magic101.RewardPreviews.Any(reward => reward.CardRole == "summon")).IsTrue();
-        AssertThat(magic101.RewardPreviews.Any(reward => reward.CardRole == "spell")).IsTrue();
+        AssertThat(magic101.Rewards).HasSize(2);
+        AssertThat(magic101.Rewards.Any(reward => reward.CardRole == "summon")).IsTrue();
+        AssertThat(magic101.Rewards.Any(reward => reward.CardRole == "spell")).IsTrue();
+        AssertThat(magic101.Rewards.Select(reward => reward.CardId)).Contains(CardIds.Puff);
+        AssertThat(magic101.Rewards.Select(reward => reward.CardId)).Contains(CardIds.ManaBolt);
     }
 
     [TestCase]
@@ -56,8 +59,9 @@ public class AcademyCourseCatalogTest
 
         foreach (var course in elementCourses)
         {
-            AssertThat(course.RewardPreviews.Any(reward => reward.CardRole == "summon")).IsTrue();
-            AssertThat(course.RewardPreviews.Any(reward => reward.CardRole == "spell")).IsTrue();
+            AssertThat(course.Rewards.Any(reward => reward.CardRole == "summon")).IsTrue();
+            AssertThat(course.Rewards.Any(reward => reward.CardRole == "spell")).IsTrue();
+            AssertThat(course.Rewards.All(reward => reward.CardId.HasValue)).IsTrue();
         }
     }
 

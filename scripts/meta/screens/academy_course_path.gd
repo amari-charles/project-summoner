@@ -144,9 +144,10 @@ func _input(event: InputEvent) -> void:
 			_pan_start_position = Vector2.ZERO
 
 func _build_activity_node(activity: Dictionary, index: int, activity_index: int) -> Control:
-	var is_done: bool = index < activity_index
-	var is_current: bool = index == activity_index
-	var is_locked: bool = index > activity_index
+	var is_done: bool = SafeTypeUtils.bool_val(activity.get("is_completed"), index < activity_index)
+	var is_current: bool = SafeTypeUtils.bool_val(activity.get("is_current"), index == activity_index)
+	var is_locked: bool = SafeTypeUtils.bool_val(activity.get("is_locked"), index > activity_index)
+	var can_start: bool = SafeTypeUtils.bool_val(activity.get("can_start"), is_current)
 
 	var panel: PanelContainer = PanelContainer.new()
 	panel.custom_minimum_size = NODE_SIZE
@@ -155,8 +156,8 @@ func _build_activity_node(activity: Dictionary, index: int, activity_index: int)
 		"panel",
 		_panel_style(COLOR_NODE_DONE if is_done else (COLOR_NODE_CURRENT if is_current else COLOR_NODE_LOCKED))
 	)
-	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if is_current else Control.CURSOR_ARROW
-	if is_current:
+	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if can_start else Control.CURSOR_ARROW
+	if can_start:
 		panel.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 				_show_activity_modal(activity)
@@ -215,7 +216,8 @@ func _start_activity(activity: Dictionary) -> void:
 		BattleContext.configure_academy_battle(_course_id, activity_id, battle_config)
 		SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 	else:
-		CampaignApi.complete_next_academy_activity(_course_id)
+		var activity_id: String = SafeTypeUtils.string(activity.get("id"))
+		CampaignApi.complete_academy_activity(_course_id, activity_id, true)
 		_refresh()
 
 func _activity_type_text(activity: Dictionary) -> String:

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fateforged.Cards;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Campaign;
@@ -99,7 +98,7 @@ public class AcademyProgressHandler
         return true;
     }
 
-    public bool CompleteNextActivity(string courseId)
+    public bool CompleteActivity(string courseId, string activityId, bool succeeded = true)
     {
         var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
         if (course == null)
@@ -114,16 +113,41 @@ public class AcademyProgressHandler
         if (!academy.EnrolledCourses.Contains(course.Id))
             return false;
 
+        var activityIndex = course.Activities.FindIndex(activity => activity.Id == activityId);
+        if (activityIndex < 0)
+            return false;
+
+        var activity = course.Activities[activityIndex];
         var key = (string)course.Id;
-        var nextIndex = academy.CourseActivityIndex.GetValueOrDefault(key, 0) + 1;
-        academy.CourseActivityIndex[key] = nextIndex;
+        var currentIndex = academy.CourseActivityIndex.GetValueOrDefault(key, 0);
+
+        if (activityIndex > currentIndex)
+            return false;
+
+        if (activityIndex < currentIndex)
+            return succeeded && activity.Repeatable;
+
+        if (!succeeded)
+            return false;
+
+        if (
+            activity.IsOfficialAssessment
+            && !academy.OfficialAssessmentsCompleted.Contains(activity.Id)
+        )
+        {
+            academy.OfficialAssessmentsCompleted.Add(activity.Id);
+        }
+
+        var nextIndex = currentIndex + 1;
 
         if (nextIndex >= course.Activities.Count)
         {
+            academy.CourseActivityIndex[key] = nextIndex;
             _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
             return CompleteCourse(courseId);
         }
 
+        academy.CourseActivityIndex[key] = nextIndex;
         _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
         return true;
     }
@@ -141,11 +165,13 @@ public class AcademyProgressHandler
         var campaignProgress = GetOrCreateProgress();
         var academy = campaignProgress.Academy;
 
-        if (!academy.EnrolledCourses.Contains(course.Id) && !course.IsRequired)
+        if (academy.CompletedCourses.Contains(course.Id))
+            return true;
+
+        if (!academy.EnrolledCourses.Contains(course.Id))
             return false;
 
-        if (!academy.CompletedCourses.Contains(course.Id))
-            academy.CompletedCourses.Add(course.Id);
+        academy.CompletedCourses.Add(course.Id);
 
         academy.EnrolledCourses.Remove(course.Id);
         academy.CourseActivityIndex.Remove((string)course.Id);
@@ -159,7 +185,7 @@ public class AcademyProgressHandler
             }
         );
 
-        GrantCourseCards(course.Id);
+        GrantCourseRewards(course);
 
         _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
         return true;
@@ -272,7 +298,7 @@ public class AcademyProgressHandler
             );
 
         var rewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var reward in course.RewardPreviews)
+        foreach (var reward in course.Rewards)
         {
             rewards.Add(
                 new Godot.Collections.Dictionary
@@ -282,6 +308,7 @@ public class AcademyProgressHandler
                     ["label_key"] = reward.LabelKey,
                     ["element"] = reward.Element,
                     ["card_role"] = reward.CardRole,
+                    ["card_id"] = (string)reward.CardId,
                 }
             );
         }
@@ -290,15 +317,7 @@ public class AcademyProgressHandler
         foreach (var activity in course.Activities)
         {
             activities.Add(
-                new Godot.Collections.Dictionary
-                {
-                    ["id"] = activity.Id,
-                    ["type"] = activity.Type.ToString(),
-                    ["label_key"] = activity.LabelKey,
-                    ["is_official_assessment"] = activity.IsOfficialAssessment,
-                    ["repeatable"] = activity.Repeatable,
-                    ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
-                }
+                ToActivityDict(activity, course, academy, activityIndex: activities.Count)
             );
         }
 
@@ -307,15 +326,7 @@ public class AcademyProgressHandler
         if (activityIndex >= 0 && activityIndex < course.Activities.Count)
         {
             var activity = course.Activities[activityIndex];
-            nextActivity = new Godot.Collections.Dictionary
-            {
-                ["id"] = activity.Id,
-                ["type"] = activity.Type.ToString(),
-                ["label_key"] = activity.LabelKey,
-                ["is_official_assessment"] = activity.IsOfficialAssessment,
-                ["repeatable"] = activity.Repeatable,
-                ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
-            };
+            nextActivity = ToActivityDict(activity, course, academy, activityIndex);
         }
 
         return new Godot.Collections.Dictionary
@@ -338,6 +349,36 @@ public class AcademyProgressHandler
             ["activities"] = activities,
             ["next_activity"] = nextActivity,
             ["reward_previews"] = rewards,
+        };
+    }
+
+    private static Godot.Collections.Dictionary ToActivityDict(
+        AcademyCourseActivity activity,
+        AcademyCourseDefinition course,
+        AcademyProgress academy,
+        int activityIndex
+    )
+    {
+        var currentIndex = academy.CourseActivityIndex.GetValueOrDefault((string)course.Id, 0);
+        var courseCompleted = academy.CompletedCourses.Contains(course.Id);
+        var courseEnrolled = academy.EnrolledCourses.Contains(course.Id);
+        var isCompleted = courseCompleted || activityIndex < currentIndex;
+        var isCurrent = courseEnrolled && activityIndex == currentIndex;
+        var isLocked = !courseCompleted && (!courseEnrolled || activityIndex > currentIndex);
+        var canStart = courseEnrolled && (isCurrent || (isCompleted && activity.Repeatable));
+
+        return new Godot.Collections.Dictionary
+        {
+            ["id"] = activity.Id,
+            ["type"] = activity.Type.ToString(),
+            ["label_key"] = activity.LabelKey,
+            ["is_official_assessment"] = activity.IsOfficialAssessment,
+            ["repeatable"] = activity.Repeatable,
+            ["is_completed"] = isCompleted,
+            ["is_current"] = isCurrent,
+            ["is_locked"] = isLocked,
+            ["can_start"] = canStart,
+            ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
         };
     }
 
@@ -440,34 +481,17 @@ public class AcademyProgressHandler
         });
     }
 
-    private void GrantCourseCards(CourseId courseId)
+    private void GrantCourseRewards(AcademyCourseDefinition course)
     {
         if (_grantCardFunc == null)
             return;
 
-        foreach (var cardId in GetCourseCardRewards(courseId))
+        foreach (var reward in course.Rewards)
         {
-            _grantCardFunc((string)cardId, "common");
+            if (reward.Kind == AcademyRewardKind.Card && reward.CardId.HasValue)
+            {
+                _grantCardFunc((string)reward.CardId, reward.Rarity);
+            }
         }
-    }
-
-    private static IEnumerable<CardId> GetCourseCardRewards(CourseId courseId)
-    {
-        if (courseId == CourseIds.IntroductionToMagic101)
-            return [CardIds.Puff, CardIds.ManaBolt];
-        if (courseId == CourseIds.SummoningBasics)
-            return [CardIds.FireWisp];
-        if (courseId == CourseIds.PracticalSpellcraft)
-            return [CardIds.Charge];
-        if (courseId == CourseIds.IntroToFire)
-            return [CardIds.FireWisp, CardIds.Fireball];
-        if (courseId == CourseIds.IntroToWater)
-            return [CardIds.WaterWisp, CardIds.WaterJet];
-        if (courseId == CourseIds.IntroToEarth)
-            return [CardIds.EarthWisp, CardIds.Fortify];
-        if (courseId == CourseIds.IntroToAir)
-            return [CardIds.WindWisp, CardIds.TailWind];
-
-        return [];
     }
 }

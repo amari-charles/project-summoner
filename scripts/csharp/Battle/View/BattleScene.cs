@@ -1006,9 +1006,10 @@ public partial class BattleScene : Node3D
         {
             var battleContext = GetNodeOrNull("/root/BattleContext");
             var courseId = battleContext?.Get("academy_course_id").AsString() ?? "";
+            var activityId = battleContext?.Get("academy_activity_id").AsString() ?? "";
             var campaign = GetNodeOrNull("/root/Campaign");
-            if (!string.IsNullOrEmpty(courseId) && campaign != null)
-                campaign.Call("CompleteNextAcademyActivity", courseId);
+            if (!string.IsNullOrEmpty(courseId) && !string.IsNullOrEmpty(activityId) && campaign != null)
+                campaign.Call("CompleteAcademyActivity", courseId, activityId, true);
         }
 
         NavigateToScene("res://scenes/meta/screens/academy_course_path.tscn");
