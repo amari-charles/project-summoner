@@ -389,6 +389,9 @@ public static class DtoConverters
             ["completed_courses"] = ToGodotArray(
                 academy.CompletedCourses.Select(course => (string)course)
             ),
+            ["enrolled_courses"] = ToGodotArray(
+                academy.EnrolledCourses.Select(course => (string)course)
+            ),
             ["official_assessments_completed"] = ToGodotArray(
                 academy.OfficialAssessmentsCompleted
             ),
@@ -613,6 +616,18 @@ public static class DtoConverters
             }
         }
 
+        var enrolledCourses = new List<CourseId>();
+        if (
+            dict.TryGetValue("enrolled_courses", out var enrolledVar)
+            && enrolledVar.VariantType == Variant.Type.Array
+        )
+        {
+            foreach (var course in enrolledVar.AsGodotArray())
+            {
+                enrolledCourses.Add(new CourseId(course.AsString()));
+            }
+        }
+
         var transcript = new List<AcademyTranscriptEntry>();
         if (
             dict.TryGetValue("transcript", out var transcriptVar)
@@ -660,6 +675,7 @@ public static class DtoConverters
             CurrentSemester = GetInt(dict, "current_semester", 1),
             RemainingEnrollments = GetInt(dict, "remaining_enrollments", 0),
             CompletedCourses = completedCourses,
+            EnrolledCourses = enrolledCourses,
             OfficialAssessmentsCompleted = officialAssessments,
             Transcript = transcript,
             HonorsEligibility = honorsEligibility,

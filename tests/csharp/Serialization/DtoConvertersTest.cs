@@ -278,6 +278,7 @@ public class DtoConvertersTest
                 CurrentSemester = 2,
                 RemainingEnrollments = 3,
                 CompletedCourses = [CourseIds.IntroductionToMagic101],
+                EnrolledCourses = [CourseIds.PracticalSpellcraft],
                 OfficialAssessmentsCompleted = ["magic_101_exam"],
                 Transcript =
                 [
@@ -306,6 +307,7 @@ public class DtoConvertersTest
         AssertThat(result.Academy.CurrentSemester).IsEqual(2);
         AssertThat(result.Academy.RemainingEnrollments).IsEqual(3);
         AssertThat(result.Academy.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
+        AssertThat(result.Academy.EnrolledCourses).Contains(CourseIds.PracticalSpellcraft);
         AssertThat(result.Academy.OfficialAssessmentsCompleted).Contains("magic_101_exam");
         AssertThat(result.Academy.Transcript).HasSize(1);
         AssertThat(result.Academy.Transcript[0].CourseId).IsEqual(CourseIds.IntroductionToMagic101);

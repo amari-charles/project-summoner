@@ -253,6 +253,104 @@
       "button_continue_again": "CONTINUE"
     }
   },
+  "academy": {
+    "hub": {
+      "title": "Merlin Academy",
+      "status": "Year {year}, Semester {semester} | Enrollments: {enrollments}",
+      "course_catalog": "Course Catalog",
+      "transcript": "Transcript",
+      "campus_shop": "Campus Shop",
+      "advance_semester": "Advance Semester",
+      "course_meta": "{track} | Cost: {cost}",
+      "rewards": "Rewards: {rewards}",
+      "enroll": "Enroll",
+      "complete": "Complete",
+      "completed": "Completed",
+      "locked": "Locked",
+      "empty_transcript": "No completed courses yet.",
+      "transcript_entry": "{course} | {grade} {honors}",
+      "honors": "Honors"
+    },
+    "course": {
+      "introduction_to_magic_101": {
+        "name": "Introduction to Magic 101",
+        "description": "Core battle flow, basic summoning, and basic spellcasting."
+      },
+      "summoning_basics": {
+        "name": "Summoning Basics",
+        "description": "Early unit and conjuration fundamentals."
+      },
+      "practical_spellcraft": {
+        "name": "Practical Spellcraft",
+        "description": "Early spellcasting fundamentals."
+      },
+      "intro_to_fire": {
+        "name": "Intro to Fire",
+        "description": "First-year fire magic through a summon and a spell."
+      },
+      "intro_to_water": {
+        "name": "Intro to Water",
+        "description": "First-year water magic through a summon and a spell."
+      },
+      "intro_to_earth": {
+        "name": "Intro to Earth",
+        "description": "First-year earth magic through a summon and a spell."
+      },
+      "intro_to_air": {
+        "name": "Intro to Air",
+        "description": "First-year air magic through a summon and a spell."
+      },
+      "foundations_of_magic_ii": {
+        "name": "Foundations of Magic II",
+        "description": "A broader first-year course that asks the deck to function as a whole."
+      },
+      "introduction_to_empowerment": {
+        "name": "Introduction to Empowerment",
+        "description": "The first formal course on chosen permanent upgrades."
+      },
+      "introduction_to_mana_channeling": {
+        "name": "Introduction to Mana Channeling",
+        "description": "Channel more mana through summoned forms to call more at once."
+      },
+      "fire_practicum_i": {
+        "name": "Fire Practicum I",
+        "description": "Applied fire practice for students continuing from Intro to Fire."
+      },
+      "water_practicum_i": {
+        "name": "Water Practicum I",
+        "description": "Applied water practice for students continuing from Intro to Water."
+      },
+      "earth_practicum_i": {
+        "name": "Earth Practicum I",
+        "description": "Applied earth practice for students continuing from Intro to Earth."
+      },
+      "air_practicum_i": {
+        "name": "Air Practicum I",
+        "description": "Applied air practice for students continuing from Intro to Air."
+      }
+    },
+    "reward": {
+      "neutral_basic_summon": "Basic summon",
+      "neutral_basic_spell": "Basic spell",
+      "basic_summon": "Summon",
+      "basic_spell": "Spell",
+      "fire_summon": "Fire summon",
+      "fire_spell": "Fire spell",
+      "water_summon": "Water summon",
+      "water_spell": "Water spell",
+      "earth_summon": "Earth summon",
+      "earth_spell": "Earth spell",
+      "air_summon": "Air summon",
+      "air_spell": "Air spell",
+      "foundation_choice": "Foundation reward",
+      "first_empowerment": "First empowerment",
+      "summon_quantity_channeling": "Mana channeling upgrade",
+      "fire_practice_choice": "Fire practice reward",
+      "water_practice_choice": "Water practice reward",
+      "earth_practice_choice": "Earth practice reward",
+      "air_practice_choice": "Air practice reward"
+    }
+  },
   "card": {
     "fire_wisp": {
       "name": "Fire Wisp",

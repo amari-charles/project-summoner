@@ -42,6 +42,7 @@ public partial class CampaignService : Node
     private CampaignProgressHandler? _progress;
     private CampaignRewardHandler? _rewards;
     private TutorialHandler? _tutorial;
+    private AcademyProgressHandler? _academy;
 
     // Graph handlers (for node-based campaigns)
     private CampaignGraphStore? _graphStore;
@@ -82,6 +83,11 @@ public partial class CampaignService : Node
                     _rewards = new CampaignRewardHandler(
                         _profileRepo,
                         _store,
+                        GetActiveSummonerId,
+                        _grantCardFunc
+                    );
+                    _academy = new AcademyProgressHandler(
+                        _profileRepo,
                         GetActiveSummonerId,
                         _grantCardFunc
                     );
@@ -151,6 +157,7 @@ public partial class CampaignService : Node
             _grantCardFunc
         );
         _tutorial = new TutorialHandler(_store, _catalog, _progress);
+        _academy = new AcademyProgressHandler(_profileRepo, GetActiveSummonerId, _grantCardFunc);
     }
 
     public override void _ExitTree()
@@ -185,6 +192,7 @@ public partial class CampaignService : Node
                 GetActiveSummonerId,
                 _grantCardFunc
             );
+            _academy = new AcademyProgressHandler(_profileRepo, GetActiveSummonerId, _grantCardFunc);
         }
     }
 
@@ -532,6 +540,44 @@ public partial class CampaignService : Node
     public void NotifyProgressChanged()
     {
         EmitSignal(SignalName.CampaignProgressChanged);
+    }
+
+    // =========================================================================
+    // ACADEMY CAMPAIGN
+    // =========================================================================
+
+    public Godot.Collections.Dictionary GetAcademyProgress()
+    {
+        return _academy?.GetProgress() ?? [];
+    }
+
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableAcademyCourses()
+    {
+        return _academy?.GetAvailableCourses() ?? [];
+    }
+
+    public bool EnrollAcademyCourse(string courseId)
+    {
+        var enrolled = _academy?.EnrollCourse(courseId) ?? false;
+        if (enrolled)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return enrolled;
+    }
+
+    public bool CompleteAcademyCourse(string courseId, string grade = "pass", bool honors = false)
+    {
+        var completed = _academy?.CompleteCourse(courseId, grade, honors) ?? false;
+        if (completed)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return completed;
+    }
+
+    public bool AdvanceAcademySemester()
+    {
+        var advanced = _academy?.AdvanceSemester() ?? false;
+        if (advanced)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return advanced;
     }
 
     // =========================================================================

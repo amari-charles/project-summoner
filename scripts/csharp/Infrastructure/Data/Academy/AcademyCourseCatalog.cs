@@ -103,6 +103,10 @@ public static class AcademyCourseCatalog
                 },
             ],
         },
+        ElementPracticum(CourseIds.FirePracticumI, CourseIds.IntroToFire, "fire"),
+        ElementPracticum(CourseIds.WaterPracticumI, CourseIds.IntroToWater, "water"),
+        ElementPracticum(CourseIds.EarthPracticumI, CourseIds.IntroToEarth, "earth"),
+        ElementPracticum(CourseIds.AirPracticumI, CourseIds.IntroToAir, "air"),
     ];
 
     public static IReadOnlyList<AcademyCourseDefinition> ForSemester(int year, int semester) =>
@@ -125,6 +129,32 @@ public static class AcademyCourseCatalog
             [
                 CardReward($"academy.reward.{element}_summon", element, "summon"),
                 CardReward($"academy.reward.{element}_spell", element, "spell"),
+            ],
+        };
+
+    private static AcademyCourseDefinition ElementPracticum(
+        CourseId id,
+        CourseId prerequisite,
+        string element
+    ) =>
+        new()
+        {
+            Id = id,
+            NameKey = $"academy.course.{element}_practicum_i.name",
+            DescriptionKey = $"academy.course.{element}_practicum_i.description",
+            Year = 1,
+            Semester = 2,
+            Track = AcademyTrack.Affinity,
+            Prerequisites = [prerequisite],
+            RewardPreviews =
+            [
+                new()
+                {
+                    Kind = AcademyRewardKind.CardTrait,
+                    PreviewType = AcademyRewardPreviewType.Choice,
+                    LabelKey = $"academy.reward.{element}_practice_choice",
+                    Element = element,
+                },
             ],
         };
 

@@ -18,6 +18,9 @@ public class AcademyProgress
     [JsonPropertyName("completed_courses")]
     public List<CourseId> CompletedCourses { get; set; } = [];
 
+    [JsonPropertyName("enrolled_courses")]
+    public List<CourseId> EnrolledCourses { get; set; } = [];
+
     [JsonPropertyName("official_assessments_completed")]
     public List<string> OfficialAssessmentsCompleted { get; set; } = [];
 

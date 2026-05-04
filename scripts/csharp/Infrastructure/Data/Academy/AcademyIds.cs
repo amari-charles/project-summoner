@@ -38,4 +38,9 @@ public static class CourseIds
     public static readonly CourseId IntroductionToManaChanneling = new(
         "introduction_to_mana_channeling"
     );
+
+    public static readonly CourseId FirePracticumI = new("fire_practicum_i");
+    public static readonly CourseId WaterPracticumI = new("water_practicum_i");
+    public static readonly CourseId EarthPracticumI = new("earth_practicum_i");
+    public static readonly CourseId AirPracticumI = new("air_practicum_i");
 }

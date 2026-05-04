@@ -70,5 +70,9 @@ public class AcademyCourseCatalogTest
         AssertThat(semester2Ids).Contains(CourseIds.FoundationsOfMagicII);
         AssertThat(semester2Ids).Contains(CourseIds.IntroductionToEmpowerment);
         AssertThat(semester2Ids).Contains(CourseIds.IntroductionToManaChanneling);
+        AssertThat(semester2Ids).Contains(CourseIds.FirePracticumI);
+        AssertThat(semester2Ids).Contains(CourseIds.WaterPracticumI);
+        AssertThat(semester2Ids).Contains(CourseIds.EarthPracticumI);
+        AssertThat(semester2Ids).Contains(CourseIds.AirPracticumI);
     }
 }
