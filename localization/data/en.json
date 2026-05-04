@@ -288,7 +288,12 @@
       "my_classes": "My Classes",
       "approvals": "Enrollment Approvals: {count}",
       "no_open_classes": "No open classes for this semester.",
-      "no_my_classes": "No enrolled classes for this semester."
+      "no_my_classes": "No classes on record for this semester."
+    },
+    "course_modal": {
+      "syllabus": "Syllabus",
+      "close": "Close",
+      "review": "Review"
     },
     "course_path": {
       "status": "Next: {activity} ({index}/{total})",
@@ -300,7 +305,9 @@
       "cancel": "Cancel",
       "lesson_body": "Review this lesson, then continue when ready.",
       "practice_body": "Enter the practice battle for this class step.",
-      "assessment_body": "Begin the class assessment when you are ready."
+      "assessment_body": "Begin the class assessment when you are ready.",
+      "completed_body": "This step is already complete.",
+      "locked_body": "This step is not available yet."
     },
     "hub": {
       "title": "Merlin Academy",

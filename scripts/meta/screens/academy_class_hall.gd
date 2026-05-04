@@ -16,6 +16,15 @@ class_name AcademyClassHall
 @onready var period_popup: PopupPanel = %PeriodPopup
 @onready var period_picker_title: Label = %PeriodPickerTitle
 @onready var period_options: GridContainer = %PeriodOptions
+@onready var course_modal: PopupPanel = %CourseModal
+@onready var course_modal_eyebrow_label: Label = %CourseModalEyebrowLabel
+@onready var course_modal_title_label: Label = %CourseModalTitleLabel
+@onready var course_modal_meta_label: Label = %CourseModalMetaLabel
+@onready var course_modal_description_label: Label = %CourseModalDescriptionLabel
+@onready var course_modal_rewards_label: Label = %CourseModalRewardsLabel
+@onready var course_modal_activities_label: Label = %CourseModalActivitiesLabel
+@onready var course_modal_close_button: Button = %CourseModalCloseButton
+@onready var course_modal_action_button: Button = %CourseModalActionButton
 
 const TOTAL_YEARS: int = 4
 const TOTAL_SEMESTERS: int = 2
@@ -32,6 +41,7 @@ var _view_semester: int = 1
 var _courses: Array[Dictionary] = []
 var _selected_course_id: String = ""
 var _show_my_classes: bool = true
+var _previewed_course: Dictionary = {}
 
 func _ready() -> void:
 	if SummonerSelectionApi.get_active_summoner_id().is_empty():
@@ -44,11 +54,14 @@ func _ready() -> void:
 	period_picker_title.text = Loc.t("academy.hub.period_picker_title")
 	open_classes_button.text = Loc.t("academy.class_hall.open_classes")
 	my_classes_button.text = Loc.t("academy.class_hall.my_classes")
+	course_modal_close_button.text = Loc.t("academy.course_modal.close")
 	detail_panel.visible = false
 
 	exit_button.pressed.connect(_on_exit_pressed)
 	advance_semester_button.pressed.connect(_on_advance_semester_pressed)
 	period_button.pressed.connect(_on_period_button_pressed)
+	course_modal_close_button.pressed.connect(_hide_course_modal)
+	course_modal_action_button.pressed.connect(_on_course_modal_action_pressed)
 	open_classes_button.pressed.connect(func() -> void:
 		_show_my_classes = false
 		_selected_course_id = ""
@@ -162,7 +175,7 @@ func _filtered_courses_for_active_tab() -> Array[Dictionary]:
 	for course: Dictionary in _courses:
 		var is_enrolled: bool = SafeTypeUtils.bool_val(course.get("is_enrolled"))
 		var is_completed: bool = SafeTypeUtils.bool_val(course.get("is_completed"))
-		if _show_my_classes and is_enrolled:
+		if _show_my_classes and (is_enrolled or is_completed):
 			filtered.append(course)
 		elif not _show_my_classes and not is_enrolled and not is_completed:
 			filtered.append(course)
@@ -277,17 +290,61 @@ func _build_course_card(course: Dictionary) -> Control:
 	return panel
 
 func _activate_course(course: Dictionary) -> void:
+	_show_course_modal(course)
+
+func _show_course_modal(course: Dictionary) -> void:
+	_previewed_course = course.duplicate(true)
 	var course_id: String = SafeTypeUtils.string(course.get("id"))
 	var is_available: bool = SafeTypeUtils.bool_val(course.get("is_available"), false)
 	var is_enrolled: bool = SafeTypeUtils.bool_val(course.get("is_enrolled"), false)
+	var is_completed: bool = SafeTypeUtils.bool_val(course.get("is_completed"), false)
+
+	_selected_course_id = course_id
+	course_modal_eyebrow_label.text = Loc.t("academy.course_modal.syllabus")
+	course_modal_title_label.text = _course_name(course)
+	course_modal_meta_label.text = Loc.t(
+		"academy.hub.detail_meta",
+		{
+			"track": SafeTypeUtils.string(course.get("track")),
+			"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1),
+			"state": _course_state_label(course),
+		}
+	)
+	course_modal_description_label.text = _course_description(course)
+	course_modal_rewards_label.text = _reward_preview_text(SafeTypeUtils.array(course.get("reward_previews")))
+	course_modal_activities_label.text = _activities_preview_text(SafeTypeUtils.array(course.get("activities")))
+
+	course_modal_action_button.visible = is_available or is_enrolled or is_completed
+	course_modal_action_button.disabled = false
 	if is_enrolled:
+		course_modal_action_button.text = Loc.t("academy.hub.continue_course")
+	elif is_completed:
+		course_modal_action_button.text = Loc.t("academy.course_modal.review")
+	elif is_available:
+		course_modal_action_button.text = Loc.t("academy.hub.enroll")
+
+	course_modal.popup_centered(Vector2i(620, 440))
+	_refresh()
+
+func _hide_course_modal() -> void:
+	_previewed_course = {}
+	course_modal.hide()
+
+func _on_course_modal_action_pressed() -> void:
+	var course: Dictionary = _previewed_course.duplicate(true)
+	if course.is_empty():
+		return
+
+	var course_id: String = SafeTypeUtils.string(course.get("id"))
+	if SafeTypeUtils.bool_val(course.get("is_enrolled")) or SafeTypeUtils.bool_val(course.get("is_completed")):
 		BattleContext.select_academy_course(course_id)
 		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_PATH)
-	elif is_available and CampaignApi.enroll_academy_course(course_id):
+		return
+
+	if SafeTypeUtils.bool_val(course.get("is_available")) and CampaignApi.enroll_academy_course(course_id):
 		_show_my_classes = true
 		BattleContext.select_academy_course(course_id)
 		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_PATH)
-	_refresh()
 
 func _compact_rewards(rewards: Array) -> String:
 	var labels: Array[String] = []
@@ -298,9 +355,28 @@ func _compact_rewards(rewards: Array) -> String:
 			labels.append(Loc.t(label_key))
 	return ", ".join(labels)
 
+func _reward_preview_text(rewards: Array) -> String:
+	var compact: String = _compact_rewards(rewards)
+	if compact.is_empty():
+		return Loc.t("academy.hub.no_rewards")
+	return Loc.t("academy.hub.rewards", {"rewards": compact})
+
+func _activities_preview_text(activities: Array) -> String:
+	var labels: Array[String] = []
+	for item: Variant in activities:
+		var activity: Dictionary = SafeTypeUtils.dict(item)
+		var label_key: String = SafeTypeUtils.string(activity.get("label_key"))
+		if not label_key.is_empty():
+			labels.append(Loc.t(label_key))
+	return Loc.t("academy.hub.activities", {"activities": " -> ".join(labels)})
+
 func _course_name(course: Dictionary) -> String:
 	var name_key: String = SafeTypeUtils.string(course.get("name_key"))
 	return Loc.t(name_key) if not name_key.is_empty() else SafeTypeUtils.string(course.get("id"))
+
+func _course_description(course: Dictionary) -> String:
+	var description_key: String = SafeTypeUtils.string(course.get("description_key"))
+	return Loc.t(description_key) if not description_key.is_empty() else ""
 
 func _course_state_label(course: Dictionary) -> String:
 	if SafeTypeUtils.bool_val(course.get("is_completed")):

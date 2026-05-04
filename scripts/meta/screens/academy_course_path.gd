@@ -147,7 +147,6 @@ func _build_activity_node(activity: Dictionary, index: int, activity_index: int)
 	var is_done: bool = SafeTypeUtils.bool_val(activity.get("is_completed"), index < activity_index)
 	var is_current: bool = SafeTypeUtils.bool_val(activity.get("is_current"), index == activity_index)
 	var is_locked: bool = SafeTypeUtils.bool_val(activity.get("is_locked"), index > activity_index)
-	var can_start: bool = SafeTypeUtils.bool_val(activity.get("can_start"), is_current)
 
 	var panel: PanelContainer = PanelContainer.new()
 	panel.custom_minimum_size = NODE_SIZE
@@ -156,12 +155,11 @@ func _build_activity_node(activity: Dictionary, index: int, activity_index: int)
 		"panel",
 		_panel_style(COLOR_NODE_DONE if is_done else (COLOR_NODE_CURRENT if is_current else COLOR_NODE_LOCKED))
 	)
-	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if can_start else Control.CURSOR_ARROW
-	if can_start:
-		panel.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				_show_activity_modal(activity)
-		)
+	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	panel.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			_show_activity_modal(activity)
+	)
 
 	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
@@ -195,6 +193,7 @@ func _show_activity_modal(activity: Dictionary) -> void:
 	modal_title_label.text = _course_name(_course)
 	modal_type_label.text = _activity_type_text(activity)
 	modal_body_label.text = _activity_modal_body(activity)
+	modal_continue_button.visible = SafeTypeUtils.bool_val(activity.get("can_start"), false)
 	activity_modal.visible = true
 
 func _hide_activity_modal() -> void:
@@ -235,6 +234,12 @@ func _activity_modal_body(activity: Dictionary) -> String:
 		parts.append(course_description)
 
 	var activity_type: String = SafeTypeUtils.string(activity.get("type"))
+	if SafeTypeUtils.bool_val(activity.get("is_locked")):
+		parts.append(Loc.t("academy.course_path.locked_body"))
+		return "\n\n".join(parts)
+	if SafeTypeUtils.bool_val(activity.get("is_completed")) and not SafeTypeUtils.bool_val(activity.get("can_start")):
+		parts.append(Loc.t("academy.course_path.completed_body"))
+		return "\n\n".join(parts)
 	if activity_type == "PracticeBattle":
 		parts.append(Loc.t("academy.course_path.practice_body"))
 		return "\n\n".join(parts)
@@ -254,6 +259,9 @@ func _node_state_text(is_done: bool, is_current: bool, is_locked: bool) -> Strin
 	return ""
 
 func _course_status_text(course: Dictionary) -> String:
+	if SafeTypeUtils.bool_val(course.get("is_completed")):
+		return Loc.t("academy.course_path.complete")
+
 	var index: int = SafeTypeUtils.int_val(course.get("activity_index"), 0)
 	var activities: Array = SafeTypeUtils.array(course.get("activities"))
 	if index >= activities.size():
