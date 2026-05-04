@@ -58,6 +58,9 @@ static func get_academy_progress() -> Dictionary:
 static func get_available_academy_courses() -> Array:
 	return SafeTypeUtils.array(Campaign.call("GetAvailableAcademyCourses"))
 
+static func get_academy_courses_for_semester(year: int, semester: int) -> Array:
+	return SafeTypeUtils.array(Campaign.call("GetAcademyCoursesForSemester", year, semester))
+
 static func enroll_academy_course(course_id: String) -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("EnrollAcademyCourse", course_id), false)
 

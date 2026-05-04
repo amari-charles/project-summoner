@@ -18,7 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.09, 0.1, 0.12, 1)
+color = Color(0.085, 0.09, 0.105, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -27,15 +27,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
 
 [node name="Root" type="VBoxContainer" parent="MarginContainer"]
-unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 14
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/Root"]
 layout_mode = 2
@@ -48,112 +47,169 @@ size_flags_horizontal = 3
 [node name="TitleLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 32
 text = ""
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = ""
 
 [node name="CollectionButton" type="Button" parent="MarginContainer/Root/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(112, 38)
 layout_mode = 2
 text = ""
 
 [node name="ShopButton" type="Button" parent="MarginContainer/Root/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(112, 38)
 layout_mode = 2
 text = ""
 
 [node name="OnlineButton" type="Button" parent="MarginContainer/Root/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(112, 38)
 layout_mode = 2
 text = ""
 
 [node name="SettingsButton" type="Button" parent="MarginContainer/Root/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(112, 38)
 layout_mode = 2
 text = ""
 
-[node name="MainColumns" type="HSplitContainer" parent="MarginContainer/Root"]
+[node name="SemesterBar" type="HBoxContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="YearTabs" type="HBoxContainer" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SemesterTabs" type="HBoxContainer" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ViewStatusLabel" type="Label" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 2
+text = ""
+
+[node name="ContentSplit" type="HSplitContainer" parent="MarginContainer/Root"]
 layout_mode = 2
 size_flags_vertical = 3
-split_offset = 760
+split_offset = 850
 
-[node name="CatalogPanel" type="PanelContainer" parent="MarginContainer/Root/MainColumns"]
+[node name="BoardPanel" type="PanelContainer" parent="MarginContainer/Root/ContentSplit"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CatalogMargin" type="MarginContainer" parent="MarginContainer/Root/MainColumns/CatalogPanel"]
+[node name="BoardMargin" type="MarginContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
 
-[node name="CatalogRoot" type="VBoxContainer" parent="MarginContainer/Root/MainColumns/CatalogPanel/CatalogMargin"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="CatalogHeader" type="HBoxContainer" parent="MarginContainer/Root/MainColumns/CatalogPanel/CatalogMargin/CatalogRoot"]
-layout_mode = 2
-
-[node name="CatalogTitleLabel" type="Label" parent="MarginContainer/Root/MainColumns/CatalogPanel/CatalogMargin/CatalogRoot/CatalogHeader"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 24
-text = ""
-
-[node name="AdvanceSemesterButton" type="Button" parent="MarginContainer/Root/MainColumns/CatalogPanel/CatalogMargin/CatalogRoot/CatalogHeader"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 38)
-layout_mode = 2
-text = ""
-
-[node name="CourseScroll" type="ScrollContainer" parent="MarginContainer/Root/MainColumns/CatalogPanel/CatalogMargin/CatalogRoot"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="CourseList" type="VBoxContainer" parent="MarginContainer/Root/MainColumns/CatalogPanel/CatalogMargin/CatalogRoot/CourseScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 10
-
-[node name="SidePanel" type="PanelContainer" parent="MarginContainer/Root/MainColumns"]
-custom_minimum_size = Vector2(380, 0)
-layout_mode = 2
-
-[node name="SideMargin" type="MarginContainer" parent="MarginContainer/Root/MainColumns/SidePanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 18
-
-[node name="SideRoot" type="VBoxContainer" parent="MarginContainer/Root/MainColumns/SidePanel/SideMargin"]
+[node name="BoardRoot" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin"]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="TranscriptTitleLabel" type="Label" parent="MarginContainer/Root/MainColumns/SidePanel/SideMargin/SideRoot"]
-unique_name_in_owner = true
+[node name="BoardHeader" type="HBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = ""
 
-[node name="TranscriptScroll" type="ScrollContainer" parent="MarginContainer/Root/MainColumns/SidePanel/SideMargin/SideRoot"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="TranscriptList" type="VBoxContainer" parent="MarginContainer/Root/MainColumns/SidePanel/SideMargin/SideRoot/TranscriptScroll"]
+[node name="BoardTitleLabel" type="Label" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/BoardHeader"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 24
+text = ""
+
+[node name="AdvanceSemesterButton" type="Button" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/BoardHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(158, 36)
+layout_mode = 2
+text = ""
+
+[node name="EnrollmentSlots" type="HBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CourseScroll" type="ScrollContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CourseGroups" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/CourseScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/Root/ContentSplit"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+
+[node name="DetailMargin" type="MarginContainer" parent="MarginContainer/Root/ContentSplit/DetailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="DetailRoot" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DetailTitleLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+autowrap_mode = 3
+text = ""
+
+[node name="DetailMetaLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailDescriptionLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailRewardsLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailActivitiesLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailSpacer" type="Control" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DetailActionButton" type="Button" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = ""

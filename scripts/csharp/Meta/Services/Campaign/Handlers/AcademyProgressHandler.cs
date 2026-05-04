@@ -39,11 +39,21 @@ public class AcademyProgressHandler
     {
         var campaignProgress = GetOrCreateProgress();
         var academy = campaignProgress.Academy;
+        return GetCoursesForSemester(academy.CurrentYear, academy.CurrentSemester);
+    }
+
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetCoursesForSemester(
+        int year,
+        int semester
+    )
+    {
+        var campaignProgress = GetOrCreateProgress();
+        var academy = campaignProgress.Academy;
         var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
 
-        foreach (var course in GetCandidateCourses(academy))
+        foreach (var course in GetCandidateCoursesForSemester(academy, year, semester))
         {
-            result.Add(ToCourseDict(course, academy));
+            result.Add(ToCourseDict(course, academy, year, semester));
         }
 
         return result;
@@ -205,13 +215,18 @@ public class AcademyProgressHandler
     private static int GetDefaultEnrollments(int year, int semester) =>
         year == 1 && semester is 1 or 2 ? DefaultSemesterEnrollments : DefaultSemesterEnrollments;
 
-    private IEnumerable<AcademyCourseDefinition> GetCandidateCourses(AcademyProgress academy)
-    {
-        var candidates = AcademyCourseCatalog
-            .ForSemester(academy.CurrentYear, academy.CurrentSemester)
-            .ToList();
+    private IEnumerable<AcademyCourseDefinition> GetCandidateCourses(AcademyProgress academy) =>
+        GetCandidateCoursesForSemester(academy, academy.CurrentYear, academy.CurrentSemester);
 
-        if (academy.CurrentYear == 1 && academy.CurrentSemester == 2)
+    private IEnumerable<AcademyCourseDefinition> GetCandidateCoursesForSemester(
+        AcademyProgress academy,
+        int year,
+        int semester
+    )
+    {
+        var candidates = AcademyCourseCatalog.ForSemester(year, semester).ToList();
+
+        if (year == 1 && semester == 2)
         {
             foreach (
                 var intro in AcademyCourseCatalog
@@ -231,10 +246,19 @@ public class AcademyProgressHandler
 
     private Godot.Collections.Dictionary ToCourseDict(
         AcademyCourseDefinition course,
-        AcademyProgress academy
+        AcademyProgress academy,
+        int viewedYear,
+        int viewedSemester
     )
     {
-        var validation = ValidateCourseAvailable(course, academy);
+        var isCurrentSemester =
+            viewedYear == academy.CurrentYear && viewedSemester == academy.CurrentSemester;
+        var validation = isCurrentSemester
+            ? ValidateCourseAvailable(course, academy)
+            : (
+                available: false,
+                reason: GetSemesterRelation(academy, viewedYear, viewedSemester)
+            );
 
         var rewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var reward in course.RewardPreviews)
@@ -294,6 +318,7 @@ public class AcademyProgressHandler
             ["choice_group_id"] = course.ChoiceGroupId,
             ["is_available"] = validation.available,
             ["unavailable_reason"] = validation.reason,
+            ["is_current_semester"] = isCurrentSemester,
             ["is_enrolled"] = academy.EnrolledCourses.Contains(course.Id),
             ["is_completed"] = academy.CompletedCourses.Contains(course.Id),
             ["activity_index"] = activityIndex,
@@ -301,6 +326,13 @@ public class AcademyProgressHandler
             ["next_activity"] = nextActivity,
             ["reward_previews"] = rewards,
         };
+    }
+
+    private static string GetSemesterRelation(AcademyProgress academy, int year, int semester)
+    {
+        var viewedIndex = ((year - 1) * 2) + semester;
+        var currentIndex = ((academy.CurrentYear - 1) * 2) + academy.CurrentSemester;
+        return viewedIndex < currentIndex ? "past_semester" : "future_semester";
     }
 
     private (bool available, string reason) ValidateCourseAvailable(
