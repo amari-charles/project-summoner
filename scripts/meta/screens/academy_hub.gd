@@ -1,16 +1,22 @@
 extends Control
 class_name AcademyHub
 
+const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
+
 @onready var title_label: Label = %TitleLabel
 @onready var status_label: Label = %StatusLabel
 @onready var campus_locations: GridContainer = %CampusLocations
 @onready var settings_button: Button = %SettingsButton
 
+const SUMMONER_ICON_SIZE: float = 86.0
+const SUMMONER_ICON_MARGIN: float = 18.0
 const COLOR_CAMPUS_BG: Color = Color(0.075, 0.08, 0.095, 1.0)
 const COLOR_LOCATION: Color = Color(0.16, 0.13, 0.1, 1.0)
 const COLOR_LOCATION_DISABLED: Color = Color(0.10, 0.105, 0.115, 1.0)
 const COLOR_BORDER: Color = Color(0.55, 0.42, 0.22, 1.0)
 const COLOR_TEXT_MUTED: Color = Color(0.74, 0.70, 0.62, 1.0)
+
+var summoner_icon: SummonerIconWidget = null
 
 func _ready() -> void:
 	if SummonerSelectionApi.get_active_summoner_id().is_empty():
@@ -20,6 +26,7 @@ func _ready() -> void:
 	title_label.text = Loc.t("academy.hub.title")
 	settings_button.text = Loc.t("ui.nav.settings")
 	settings_button.pressed.connect(_on_settings_pressed)
+	_setup_summoner_icon()
 	_refresh()
 
 func _refresh() -> void:
@@ -131,6 +138,24 @@ func _clear_children(node: Node) -> void:
 func _on_settings_pressed() -> void:
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 	SceneManager.transition_to(SceneManager.SCENE_SETTINGS)
+
+func _setup_summoner_icon() -> void:
+	summoner_icon = SummonerIconWidgetScene.instantiate()
+	add_child(summoner_icon)
+	summoner_icon.anchor_left = 0.0
+	summoner_icon.anchor_right = 0.0
+	summoner_icon.anchor_top = 0.0
+	summoner_icon.anchor_bottom = 0.0
+	summoner_icon.offset_left = SUMMONER_ICON_MARGIN
+	summoner_icon.offset_right = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE
+	summoner_icon.offset_top = SUMMONER_ICON_MARGIN
+	summoner_icon.offset_bottom = SUMMONER_ICON_MARGIN + SUMMONER_ICON_SIZE
+	summoner_icon.z_index = 10
+	summoner_icon.icon_clicked.connect(_on_summoner_icon_clicked)
+
+func _on_summoner_icon_clicked() -> void:
+	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SCREEN)
 
 func _redirect_to_summoner_selection() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)

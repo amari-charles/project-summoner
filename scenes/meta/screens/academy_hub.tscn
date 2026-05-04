@@ -27,7 +27,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 44
+theme_override_constants/margin_left = 190
 theme_override_constants/margin_top = 34
 theme_override_constants/margin_right = 44
 theme_override_constants/margin_bottom = 34
@@ -64,7 +64,14 @@ custom_minimum_size = Vector2(130, 42)
 layout_mode = 2
 text = ""
 
-[node name="CampusLocations" type="GridContainer" parent="MarginContainer/Root"]
+[node name="CampusScroll" type="ScrollContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 3
+vertical_scroll_mode = 3
+
+[node name="CampusLocations" type="GridContainer" parent="MarginContainer/Root/CampusScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

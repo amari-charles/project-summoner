@@ -7,6 +7,13 @@ class_name AcademyCoursePath
 @onready var path_scroll: ScrollContainer = %PathScroll
 @onready var path_canvas: Control = %PathCanvas
 @onready var rewards_label: Label = %RewardsLabel
+@onready var activity_modal: Control = %ActivityModal
+@onready var modal_panel: PanelContainer = %ModalPanel
+@onready var modal_title_label: Label = %ModalTitleLabel
+@onready var modal_type_label: Label = %ModalTypeLabel
+@onready var modal_body_label: Label = %ModalBodyLabel
+@onready var modal_cancel_button: Button = %ModalCancelButton
+@onready var modal_continue_button: Button = %ModalContinueButton
 
 const NODE_SIZE: Vector2 = Vector2(118, 118)
 const NODE_GAP: float = 230.0
@@ -24,10 +31,16 @@ var _course: Dictionary = {}
 var _is_panning: bool = false
 var _pan_start_position: Vector2 = Vector2.ZERO
 var _last_mouse_position: Vector2 = Vector2.ZERO
+var _pending_activity: Dictionary = {}
 
 func _ready() -> void:
 	exit_button.text = Loc.t("academy.location.exit")
 	exit_button.pressed.connect(_on_exit_pressed)
+	modal_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.12, 0.105, 0.085, 1.0)))
+	modal_cancel_button.text = Loc.t("academy.course_path.cancel")
+	modal_continue_button.text = Loc.t("academy.course_path.continue")
+	modal_cancel_button.pressed.connect(_hide_activity_modal)
+	modal_continue_button.pressed.connect(_on_modal_continue_pressed)
 
 	_course_id = BattleContext.academy_course_id
 	if _course_id.is_empty():
@@ -98,6 +111,9 @@ func _path_viewport_size() -> Vector2:
 	return get_viewport_rect().size
 
 func _input(event: InputEvent) -> void:
+	if activity_modal.visible:
+		return
+
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
@@ -143,7 +159,7 @@ func _build_activity_node(activity: Dictionary, index: int, activity_index: int)
 	if is_current:
 		panel.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				_activate_activity(activity)
+				_show_activity_modal(activity)
 		)
 
 	var margin: MarginContainer = MarginContainer.new()
@@ -173,7 +189,25 @@ func _build_activity_node(activity: Dictionary, index: int, activity_index: int)
 
 	return panel
 
-func _activate_activity(activity: Dictionary) -> void:
+func _show_activity_modal(activity: Dictionary) -> void:
+	_pending_activity = activity.duplicate()
+	modal_title_label.text = _course_name(_course)
+	modal_type_label.text = _activity_type_text(activity)
+	modal_body_label.text = _activity_modal_body(activity)
+	activity_modal.visible = true
+
+func _hide_activity_modal() -> void:
+	_pending_activity = {}
+	activity_modal.visible = false
+
+func _on_modal_continue_pressed() -> void:
+	var activity: Dictionary = _pending_activity.duplicate()
+	_hide_activity_modal()
+	if activity.is_empty():
+		return
+	_start_activity(activity)
+
+func _start_activity(activity: Dictionary) -> void:
 	var activity_type: String = SafeTypeUtils.string(activity.get("type"))
 	if activity_type == "PracticeBattle" or activity_type == "AssessmentBattle":
 		var activity_id: String = SafeTypeUtils.string(activity.get("id"), _course_id)
@@ -183,6 +217,30 @@ func _activate_activity(activity: Dictionary) -> void:
 	else:
 		CampaignApi.complete_next_academy_activity(_course_id)
 		_refresh()
+
+func _activity_type_text(activity: Dictionary) -> String:
+	var activity_type: String = SafeTypeUtils.string(activity.get("type"))
+	if activity_type == "PracticeBattle":
+		return Loc.t("academy.activity.practice")
+	if activity_type == "AssessmentBattle":
+		return Loc.t("academy.activity.assessment")
+	return Loc.t("academy.activity.lesson")
+
+func _activity_modal_body(activity: Dictionary) -> String:
+	var parts: Array[String] = []
+	var course_description: String = _course_description(_course)
+	if not course_description.is_empty():
+		parts.append(course_description)
+
+	var activity_type: String = SafeTypeUtils.string(activity.get("type"))
+	if activity_type == "PracticeBattle":
+		parts.append(Loc.t("academy.course_path.practice_body"))
+		return "\n\n".join(parts)
+	if activity_type == "AssessmentBattle":
+		parts.append(Loc.t("academy.course_path.assessment_body"))
+		return "\n\n".join(parts)
+	parts.append(Loc.t("academy.course_path.lesson_body"))
+	return "\n\n".join(parts)
 
 func _node_state_text(is_done: bool, is_current: bool, is_locked: bool) -> String:
 	if is_done:
@@ -215,6 +273,10 @@ func _activity_name(activity: Dictionary) -> String:
 func _course_name(course: Dictionary) -> String:
 	var name_key: String = SafeTypeUtils.string(course.get("name_key"))
 	return Loc.t(name_key) if not name_key.is_empty() else SafeTypeUtils.string(course.get("id"))
+
+func _course_description(course: Dictionary) -> String:
+	var description_key: String = SafeTypeUtils.string(course.get("description_key"))
+	return Loc.t(description_key) if not description_key.is_empty() else ""
 
 func _reward_preview_text(rewards: Array) -> String:
 	var labels: Array[String] = []

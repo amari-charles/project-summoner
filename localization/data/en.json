@@ -295,7 +295,12 @@
       "complete": "Course complete",
       "done": "DONE",
       "current": "NEXT",
-      "locked": "LOCKED"
+      "locked": "LOCKED",
+      "continue": "Continue",
+      "cancel": "Cancel",
+      "lesson_body": "Review this lesson, then continue when ready.",
+      "practice_body": "Enter the practice battle for this class step.",
+      "assessment_body": "Begin the class assessment when you are ready."
     },
     "hub": {
       "title": "Merlin Academy",

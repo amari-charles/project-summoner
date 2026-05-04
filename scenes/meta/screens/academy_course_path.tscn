@@ -99,3 +99,88 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 autowrap_mode = 3
 text = ""
+
+[node name="ActivityModal" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="ModalScrim" type="ColorRect" parent="ActivityModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.62)
+
+[node name="ModalCenter" type="CenterContainer" parent="ActivityModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ModalPanel" type="PanelContainer" parent="ActivityModal/ModalCenter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(560, 260)
+layout_mode = 2
+
+[node name="ModalMargin" type="MarginContainer" parent="ActivityModal/ModalCenter/ModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="ModalRoot" type="VBoxContainer" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ModalTypeLabel" type="Label" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.72, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = ""
+
+[node name="ModalTitleLabel" type="Label" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+autowrap_mode = 3
+text = ""
+
+[node name="ModalBodyLabel" type="Label" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 3
+text = ""
+
+[node name="ModalActions" type="HBoxContainer" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="ModalCancelButton" type="Button" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot/ModalActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = ""
+
+[node name="ModalContinueButton" type="Button" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot/ModalActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+text = ""
