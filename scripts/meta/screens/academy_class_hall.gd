@@ -3,10 +3,7 @@ class_name AcademyClassHall
 
 @onready var title_label: Label = %TitleLabel
 @onready var status_label: Label = %StatusLabel
-@onready var collection_button: Button = %CollectionButton
-@onready var shop_button: Button = %ShopButton
-@onready var online_button: Button = %OnlineButton
-@onready var settings_button: Button = %SettingsButton
+@onready var exit_button: Button = %ExitButton
 @onready var period_button: Button = %PeriodButton
 @onready var view_status_label: Label = %ViewStatusLabel
 @onready var board_title_label: Label = %BoardTitleLabel
@@ -47,19 +44,13 @@ func _ready() -> void:
 		return
 
 	title_label.text = Loc.t("academy.class_hall.title")
-	collection_button.text = Loc.t("academy.class_hall.back_to_campus")
-	shop_button.text = Loc.t("academy.hub.campus_shop")
-	online_button.text = Loc.t("ui.nav.online")
-	settings_button.text = Loc.t("ui.nav.settings")
+	exit_button.text = Loc.t("academy.location.exit")
 	advance_semester_button.text = Loc.t("academy.hub.advance_semester")
 	period_picker_title.text = Loc.t("academy.hub.period_picker_title")
 	open_classes_button.text = Loc.t("academy.class_hall.open_classes")
 	my_classes_button.text = Loc.t("academy.class_hall.my_classes")
 
-	collection_button.pressed.connect(_on_collection_pressed)
-	shop_button.pressed.connect(_on_shop_pressed)
-	online_button.pressed.connect(_on_online_pressed)
-	settings_button.pressed.connect(_on_settings_pressed)
+	exit_button.pressed.connect(_on_exit_pressed)
 	advance_semester_button.pressed.connect(_on_advance_semester_pressed)
 	period_button.pressed.connect(_on_period_button_pressed)
 	open_classes_button.pressed.connect(func() -> void:
@@ -485,20 +476,8 @@ func _on_period_button_pressed() -> void:
 	_render_period_picker()
 	period_popup.popup_centered(Vector2i(520, 360))
 
-func _on_collection_pressed() -> void:
+func _on_exit_pressed() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
-
-func _on_shop_pressed() -> void:
-	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
-	SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
-
-func _on_online_pressed() -> void:
-	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
-	SceneManager.transition_to(SceneManager.SCENE_ONLINE)
-
-func _on_settings_pressed() -> void:
-	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
-	SceneManager.transition_to(SceneManager.SCENE_SETTINGS)
 
 func _on_advance_semester_pressed() -> void:
 	CampaignApi.advance_academy_semester()

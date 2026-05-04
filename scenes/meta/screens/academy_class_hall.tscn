@@ -56,27 +56,9 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = ""
 
-[node name="CollectionButton" type="Button" parent="MarginContainer/Root/Header"]
+[node name="ExitButton" type="Button" parent="MarginContainer/Root/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 38)
-layout_mode = 2
-text = ""
-
-[node name="ShopButton" type="Button" parent="MarginContainer/Root/Header"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 38)
-layout_mode = 2
-text = ""
-
-[node name="OnlineButton" type="Button" parent="MarginContainer/Root/Header"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 38)
-layout_mode = 2
-text = ""
-
-[node name="SettingsButton" type="Button" parent="MarginContainer/Root/Header"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 38)
+custom_minimum_size = Vector2(42, 38)
 layout_mode = 2
 text = ""
 

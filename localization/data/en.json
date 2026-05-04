@@ -254,6 +254,9 @@
     }
   },
   "academy": {
+    "location": {
+      "exit": "X"
+    },
     "campus": {
       "enter": "Enter",
       "coming_soon": "Coming Soon",
