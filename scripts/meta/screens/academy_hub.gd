@@ -56,11 +56,12 @@ func _refresh() -> void:
 			pass
 	)
 	_add_location(
-		"academy.campus.transcript.name",
-		"academy.campus.transcript.description",
-		true,
+		"academy.campus.dorms.name",
+		"academy.campus.dorms.description",
+		false,
 		func() -> void:
-			pass
+			NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+			SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 	)
 	_add_location(
 		"academy.campus.online.name",
@@ -69,14 +70,6 @@ func _refresh() -> void:
 		func() -> void:
 			NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
 			SceneManager.transition_to(SceneManager.SCENE_ONLINE)
-	)
-	_add_location(
-		"ui.nav.collection",
-		"academy.campus.collection.description",
-		false,
-		func() -> void:
-			NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
-			SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 	)
 
 func _add_location(name_key: String, description_key: String, disabled: bool, action: Callable) -> void:

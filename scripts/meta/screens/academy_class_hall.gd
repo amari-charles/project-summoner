@@ -36,7 +36,7 @@ var _view_year: int = 1
 var _view_semester: int = 1
 var _courses: Array[Dictionary] = []
 var _selected_course_id: String = ""
-var _show_my_classes: bool = false
+var _show_my_classes: bool = true
 
 func _ready() -> void:
 	if SummonerSelectionApi.get_active_summoner_id().is_empty():

@@ -180,7 +180,7 @@ Useful inspiration directions:
 - academy/campus maps with labeled facilities
 - destination screens that imply place, not generic navigation
 
-The first-pass campus can be placeholder art, but the target is a readable academy map with destinations such as Class Hall, Campus Shop, Mission Hall, Transcript Office, and Arena Gate.
+The first-pass campus can be placeholder art, but the target is a readable academy map with destinations such as Class Hall, Dorms, Campus Shop, Mission Hall, and Arena Gate. Completed class history can live inside Class Hall rather than as a separate Transcript Office destination.
 
 ## Graduation Capstone Principle
 

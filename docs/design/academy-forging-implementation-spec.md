@@ -226,7 +226,7 @@ Replace or adapt campaign map UI into an Academy Hub that behaves like a campus 
 Academy Hub should expose major campus destinations:
 
 - Class Hall
-- Transcript
+- Dorms
 - Campus Shop
 - Mission Hall / Events placeholder
 - Semester status
@@ -235,6 +235,7 @@ Class Hall should be the focused course-management screen and should show:
 
 - enrolled classes
 - open classes
+- completed class history / transcript summaries when needed
 - unavailable classes with prerequisites/reason
 - Enrollment cost
 - reward preview
