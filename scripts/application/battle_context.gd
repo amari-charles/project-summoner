@@ -152,7 +152,7 @@ func configure_academy_battle(course_id: String, activity_id: String, config: Di
 	current_mode = BattleMode.ACADEMY
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
+	origin_scene = SceneManager.SCENE_ACADEMY_CLASS_HALL
 	_battle_id = activity_id
 	academy_course_id = course_id
 	academy_activity_id = activity_id

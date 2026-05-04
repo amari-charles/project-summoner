@@ -1,0 +1,261 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/screens/academy_class_hall.gd" id="1_script"]
+
+[node name="AcademyClassHall" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.085, 0.09, 0.105, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Root" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleBlock" type="VBoxContainer" parent="MarginContainer/Root/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = ""
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+
+[node name="CollectionButton" type="Button" parent="MarginContainer/Root/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 38)
+layout_mode = 2
+text = ""
+
+[node name="ShopButton" type="Button" parent="MarginContainer/Root/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 38)
+layout_mode = 2
+text = ""
+
+[node name="OnlineButton" type="Button" parent="MarginContainer/Root/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 38)
+layout_mode = 2
+text = ""
+
+[node name="SettingsButton" type="Button" parent="MarginContainer/Root/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 38)
+layout_mode = 2
+text = ""
+
+[node name="SemesterBar" type="HBoxContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PeriodButton" type="Button" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 56)
+layout_mode = 2
+text = ""
+
+[node name="ViewStatusLabel" type="Label" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+vertical_alignment = 1
+text = ""
+
+[node name="ContentSplit" type="HSplitContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 850
+
+[node name="BoardPanel" type="PanelContainer" parent="MarginContainer/Root/ContentSplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BoardMargin" type="MarginContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="BoardRoot" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="BoardHeader" type="HBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
+layout_mode = 2
+
+[node name="BoardTitleLabel" type="Label" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/BoardHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = ""
+
+[node name="AdvanceSemesterButton" type="Button" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/BoardHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(158, 36)
+layout_mode = 2
+text = ""
+
+[node name="ClassTabs" type="HBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="OpenClassesButton" type="Button" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/ClassTabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+toggle_mode = true
+text = ""
+
+[node name="MyClassesButton" type="Button" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/ClassTabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+toggle_mode = true
+text = ""
+
+[node name="EnrollmentSummaryLabel" type="Label" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/ClassTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+vertical_alignment = 1
+text = ""
+
+[node name="CourseScroll" type="ScrollContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CourseGroups" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/CourseScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/Root/ContentSplit"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+
+[node name="DetailMargin" type="MarginContainer" parent="MarginContainer/Root/ContentSplit/DetailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="DetailRoot" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DetailTitleLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+autowrap_mode = 3
+text = ""
+
+[node name="DetailMetaLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailDescriptionLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailRewardsLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailActivitiesLabel" type="Label" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="DetailSpacer" type="Control" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DetailActionButton" type="Button" parent="MarginContainer/Root/ContentSplit/DetailPanel/DetailMargin/DetailRoot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = ""
+
+[node name="PeriodPopup" type="PopupPanel" parent="."]
+unique_name_in_owner = true
+size = Vector2i(520, 360)
+
+[node name="PeriodPopupMargin" type="MarginContainer" parent="PeriodPopup"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="PeriodPopupRoot" type="VBoxContainer" parent="PeriodPopup/PeriodPopupMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="PeriodPickerTitle" type="Label" parent="PeriodPopup/PeriodPopupMargin/PeriodPopupRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = ""
+
+[node name="PeriodOptions" type="GridContainer" parent="PeriodPopup/PeriodPopupMargin/PeriodPopupRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10

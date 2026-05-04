@@ -254,6 +254,42 @@
     }
   },
   "academy": {
+    "campus": {
+      "enter": "Enter",
+      "coming_soon": "Coming Soon",
+      "class_hall": {
+        "name": "Class Hall",
+        "description": "Register for open courses and continue the classes already on your schedule."
+      },
+      "shop": {
+        "name": "Campus Shop",
+        "description": "Buy supplies, cards, equipment, and other academy services."
+      },
+      "mission_hall": {
+        "name": "Mission Hall",
+        "description": "Special battles, school notices, and temporary opportunities will gather here."
+      },
+      "transcript": {
+        "name": "Transcript",
+        "description": "Review completed courses, grades, honors, and permanent rewards."
+      },
+      "online": {
+        "name": "Online Arena",
+        "description": "Take a forged summoner into battles against other players."
+      },
+      "collection": {
+        "description": "Review the cards, summons, spells, and tools you own."
+      }
+    },
+    "class_hall": {
+      "title": "Class Hall",
+      "back_to_campus": "Campus",
+      "open_classes": "Open Classes",
+      "my_classes": "My Classes",
+      "approvals": "Enrollment Approvals: {count}",
+      "no_open_classes": "No open classes for this semester.",
+      "no_my_classes": "No enrolled classes for this semester."
+    },
     "hub": {
       "title": "Merlin Academy",
       "status": "Year {year}, Semester {semester} | Enrollments: {enrollments}",
