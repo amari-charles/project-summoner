@@ -23,6 +23,16 @@ The campaign is a **one-time permanent journey** per summoner. There are no "run
 - Purchasing a new summoner (different element = different offers = different deck)
 - Not from restarting the same summoner's campaign
 
+### Campaign as Online Forging
+
+The campaign is the forging process for a summoner that can later be taken into online battles. Campaign outcomes are not meant to be wiped clean by perfect PvP normalization. A summoner who made stronger choices, earned better rewards, or navigated harder content well can enter online play stronger than one who made weaker choices or avoided power.
+
+This is intentional, but it must be designed with care:
+- Permanent advantage should come from understandable choices and earned outcomes, not unclear traps.
+- Poor campaign decisions can make a summoner weaker in online play, but the player should be able to understand why.
+- PvP does not need to be perfectly fair or symmetrical; it should be legible, intentional, and mindful of the permanent campaign path that produced each summoner.
+- Balance work should focus on avoiding accidental bricking, hidden punishments, or misleading upgrade offers rather than erasing all power differences.
+
 ### Exclusivity is Core
 
 You can NEVER collect all cards on a single summoner. Every choice permanently excludes alternatives. This is non-negotiable — it's the core identity of "Fateforged."

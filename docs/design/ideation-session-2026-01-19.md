@@ -38,6 +38,18 @@ The campaign is a **one-time permanent journey** per summoner. There are no "run
 - Purchasing a new summoner (different element = different offers = different deck)
 - Not from restarting the same summoner's campaign
 
+### ✅ DECIDED: Campaign Forges Online Summoners
+
+After the campaign, players can take that summoner into online battles. The campaign is therefore a character-forging process, not content that resets into a neutral PvP template.
+
+PvP is **not** intended to be perfectly fair, symmetrical, or fully normalized. If a player made poor choices in PvE, skipped stronger rewards, or failed to earn certain upgrades, that summoner can be weaker online. This is acceptable and part of the permanence fantasy.
+
+Design guardrails:
+- Weakness should come from understandable decisions and outcomes, not unclear traps.
+- Stronger campaign results can produce stronger online tools.
+- Online balance should be mindful and intentional, not perfectly equalized.
+- The game should communicate when a choice affects long-term/online power.
+
 ### ✅ DECIDED: Exclusivity is Core
 
 The whole premise is that you CAN'T get all the cards. Every choice excludes alternatives permanently. This is non-negotiable - it's the core identity of "Fateforged."
@@ -194,7 +206,7 @@ Summoners are THEMED around an element but NOT restricted to it. The theme just 
 | **Element Theme** | Fire, Water, Earth, Air, Lightning, etc. | Fixed at purchase |
 | **Traits** | Innate growth (stat bonuses) | Permanent, uncapped |
 | **Items** | Equippable gear (replaces boons) | Swappable between battles |
-| **Deck** | Cards acquired through choices | Permanent per summoner |
+| **Deck** | Cards acquired through choices | Permanent per summoner, carried into online play |
 
 ---
 

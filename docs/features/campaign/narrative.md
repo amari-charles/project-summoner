@@ -25,6 +25,12 @@ At choice nodes where players select cards, **at least one option is guaranteed 
 
 The campaign is a **one-time permanent journey** per summoner. There are no "runs" in the roguelike sense. Replayability comes from purchasing new summoners, each starting their own fresh journey.
 
+### Campaign as the Forge for Online Play
+
+The campaign does not end as disposable single-player content. It produces the summoner the player can bring into online battles. The deck, upgrades, traits, and missed opportunities from the campaign are part of that summoner's identity and power.
+
+PvP is therefore not intended to be perfectly equalized. A summoner who earned better tools or made stronger choices can be stronger online. The design responsibility is to make that permanence clear and intentional: players should feel that their online strength reflects the fate they forged, not that they were tricked by unclear campaign balance.
+
 ### Exclusivity is Core
 
 You can NEVER collect all cards on a single summoner. Every choice permanently excludes alternatives. This is the core identity of "Fateforged."
@@ -90,6 +96,7 @@ The Academy is overseen by Headmaster Merlin, who guides students through their 
 2. **Growth Through Trial**: Progress through structured tests of skill and understanding
 3. **Elemental Connection**: Affinity to elemental forces is personal and defining
 4. **Mastery Through Practice**: Theory must translate to practical application
+5. **Forged Consequence**: The summoner who leaves the campaign carries those choices into online play
 
 ### Tone Guidelines
 - **Formal but accessible**: Elevated language without being pretentious
