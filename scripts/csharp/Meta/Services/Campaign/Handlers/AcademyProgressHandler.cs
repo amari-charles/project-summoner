@@ -286,6 +286,7 @@ public class AcademyProgressHandler
                     ["label_key"] = activity.LabelKey,
                     ["is_official_assessment"] = activity.IsOfficialAssessment,
                     ["repeatable"] = activity.Repeatable,
+                    ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
                 }
             );
         }
@@ -302,6 +303,7 @@ public class AcademyProgressHandler
                 ["label_key"] = activity.LabelKey,
                 ["is_official_assessment"] = activity.IsOfficialAssessment,
                 ["repeatable"] = activity.Repeatable,
+                ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
             };
         }
 
@@ -325,6 +327,41 @@ public class AcademyProgressHandler
             ["activities"] = activities,
             ["next_activity"] = nextActivity,
             ["reward_previews"] = rewards,
+        };
+    }
+
+    private static Godot.Collections.Dictionary ToBattleConfigDict(
+        AcademyBattleConfig? battleConfig
+    )
+    {
+        if (battleConfig == null)
+            return new Godot.Collections.Dictionary();
+
+        var enemyDeck = new Godot.Collections.Array();
+        foreach (var entry in battleConfig.EnemyDeck)
+        {
+            enemyDeck.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["catalog_id"] = (string)entry.CardId,
+                    ["count"] = entry.Count,
+                }
+            );
+        }
+
+        return new Godot.Collections.Dictionary
+        {
+            ["enemy_deck"] = enemyDeck,
+            ["enemy_hp"] = battleConfig.EnemyHp,
+            ["ai_type"] = battleConfig.AiType,
+            ["ai_difficulty"] = battleConfig.AiDifficulty,
+            ["ai_config"] = new Godot.Collections.Dictionary
+            {
+                ["play_interval_min"] = battleConfig.AiPlayIntervalMin,
+                ["play_interval_max"] = battleConfig.AiPlayIntervalMax,
+            },
+            ["card_xp_reward"] = 0,
+            ["summoner_xp_reward"] = 0,
         };
     }
 

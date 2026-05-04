@@ -159,12 +159,12 @@ func configure_academy_battle(course_id: String, activity_id: String, config: Di
 
 	battle_config = config if not config.is_empty() else {
 		"enemy_deck": [{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
-		"enemy_hp": 120.0,
-		"ai_type": "simple",
+		"enemy_hp": 20.0,
+		"ai_type": "passive",
 		"ai_difficulty": 0,
 		"ai_config": {
-			"play_interval_min": 7.0,
-			"play_interval_max": 10.0
+			"play_interval_min": 999.0,
+			"play_interval_max": 999.0
 		},
 		"card_xp_reward": 0,
 		"summoner_xp_reward": 0

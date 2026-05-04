@@ -77,4 +77,45 @@ public class AcademyCourseCatalogTest
         AssertThat(semester2Ids).Contains(CourseIds.EarthPracticumI);
         AssertThat(semester2Ids).Contains(CourseIds.AirPracticumI);
     }
+
+    [TestCase]
+    public void Year1Activities_HaveGentleBattleTuning()
+    {
+        var magic101 = AcademyCourseCatalog
+            .ForSemester(1, 1)
+            .First(course => course.Id == CourseIds.IntroductionToMagic101);
+        var practice = magic101.Activities.First(activity =>
+            activity.Type == AcademyCourseActivityType.PracticeBattle
+        );
+        var assessment = magic101.Activities.First(activity =>
+            activity.Type == AcademyCourseActivityType.AssessmentBattle
+        );
+
+        AssertThat(practice.BattleConfig).IsNotNull();
+        AssertThat(practice.BattleConfig!.AiType).IsEqual("passive");
+        AssertThat(practice.BattleConfig.EnemyHp).IsLessEqual(20f);
+        AssertThat(practice.BattleConfig.EnemyDeck).HasSize(1);
+
+        AssertThat(assessment.BattleConfig).IsNotNull();
+        AssertThat(assessment.BattleConfig!.AiType).IsEqual("simple");
+        AssertThat(assessment.BattleConfig.AiDifficulty).IsEqual(0);
+        AssertThat(assessment.BattleConfig.AiPlayIntervalMin).IsGreaterEqual(8.0f);
+    }
+
+    [TestCase]
+    public void Semester2Activities_StepUpWithoutUsingNormalAi()
+    {
+        var foundations2 = AcademyCourseCatalog
+            .ForSemester(1, 2)
+            .First(course => course.Id == CourseIds.FoundationsOfMagicII);
+        var assessment = foundations2.Activities.First(activity =>
+            activity.Type == AcademyCourseActivityType.AssessmentBattle
+        );
+
+        AssertThat(assessment.BattleConfig).IsNotNull();
+        AssertThat(assessment.BattleConfig!.AiType).IsEqual("simple");
+        AssertThat(assessment.BattleConfig.AiDifficulty).IsLessEqual(1);
+        AssertThat(assessment.BattleConfig.EnemyDeck).HasSize(2);
+        AssertThat(assessment.BattleConfig.AiPlayIntervalMin).IsGreaterEqual(6.0f);
+    }
 }

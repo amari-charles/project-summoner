@@ -427,7 +427,8 @@ func _on_advance_semester_pressed() -> void:
 
 func _launch_academy_battle(course_id: String, activity: Dictionary) -> void:
 	var activity_id: String = SafeTypeUtils.string(activity.get("id"), course_id)
-	BattleContext.configure_academy_battle(course_id, activity_id)
+	var battle_config: Dictionary = SafeTypeUtils.dict(activity.get("battle_config"))
+	BattleContext.configure_academy_battle(course_id, activity_id, battle_config)
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 func _redirect_to_summoner_selection() -> void:

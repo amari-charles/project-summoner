@@ -60,6 +60,15 @@ public class BattleEventDefinition : EventDefinition
     /// <summary>AI type (heuristic, passive, etc.)</summary>
     public string AiType { get; set; } = "heuristic";
 
+    /// <summary>AI difficulty rating used by heuristic decision making.</summary>
+    public int AiDifficulty { get; set; } = 3;
+
+    /// <summary>Minimum seconds between AI card plays.</summary>
+    public float AiPlayIntervalMin { get; set; } = 3.0f;
+
+    /// <summary>Maximum seconds between AI card plays.</summary>
+    public float AiPlayIntervalMax { get; set; } = 6.0f;
+
     /// <summary>Dev-only player deck override (for test battles)</summary>
     public List<DeckEntry>? DevPlayerDeck { get; set; }
 

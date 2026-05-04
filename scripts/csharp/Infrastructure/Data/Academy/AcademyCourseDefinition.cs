@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fateforged.Data.Events;
 
 namespace Fateforged.Data.Academy;
 
@@ -80,6 +81,23 @@ public class AcademyCourseActivity
     public bool IsOfficialAssessment { get; set; }
 
     public bool Repeatable { get; set; }
+
+    public AcademyBattleConfig? BattleConfig { get; set; }
+}
+
+public class AcademyBattleConfig
+{
+    public List<DeckEntry> EnemyDeck { get; set; } = [];
+
+    public float EnemyHp { get; set; } = 35f;
+
+    public string AiType { get; set; } = "simple";
+
+    public int AiDifficulty { get; set; } = 0;
+
+    public float AiPlayIntervalMin { get; set; } = 7.0f;
+
+    public float AiPlayIntervalMax { get; set; } = 10.0f;
 }
 
 public class AcademyRewardPreview

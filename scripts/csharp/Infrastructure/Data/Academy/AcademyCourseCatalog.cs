@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Cards;
+using Fateforged.Data.Events;
 
 namespace Fateforged.Data.Academy;
 
@@ -10,6 +12,12 @@ public static class AcademyCourseCatalog
 {
     private const string FoundationChoiceGroup = "year_1_semester_1_foundation";
     private const string ElementChoiceGroup = "year_1_semester_1_element";
+
+    private enum AcademyBattleBand
+    {
+        Onboarding,
+        Early,
+    }
 
     public static IReadOnlyList<AcademyCourseDefinition> All { get; } =
     [
@@ -67,7 +75,7 @@ public static class AcademyCourseCatalog
             Track = AcademyTrack.Foundation,
             IsRequired = true,
             Prerequisites = [CourseIds.IntroductionToMagic101],
-            Activities = StandardActivities("foundations_magic_ii"),
+            Activities = StandardActivities("foundations_magic_ii", AcademyBattleBand.Early),
             RewardPreviews = [CardReward("academy.reward.foundation_choice", "neutral", "mixed")],
         },
         new()
@@ -78,7 +86,7 @@ public static class AcademyCourseCatalog
             Year = 1,
             Semester = 2,
             Track = AcademyTrack.Foundation,
-            Activities = StandardActivities("empowerment"),
+            Activities = StandardActivities("empowerment", AcademyBattleBand.Early),
             RewardPreviews =
             [
                 new()
@@ -97,7 +105,7 @@ public static class AcademyCourseCatalog
             Year = 1,
             Semester = 2,
             Track = AcademyTrack.Binding,
-            Activities = StandardActivities("mana_channeling"),
+            Activities = StandardActivities("mana_channeling", AcademyBattleBand.Early),
             RewardPreviews =
             [
                 new()
@@ -153,7 +161,7 @@ public static class AcademyCourseCatalog
             Semester = 2,
             Track = AcademyTrack.Affinity,
             Prerequisites = [prerequisite],
-            Activities = StandardActivities($"{element}_practicum_i"),
+            Activities = StandardActivities($"{element}_practicum_i", AcademyBattleBand.Early),
             RewardPreviews =
             [
                 new()
@@ -166,7 +174,10 @@ public static class AcademyCourseCatalog
             ],
         };
 
-    private static List<AcademyCourseActivity> StandardActivities(string prefix) =>
+    private static List<AcademyCourseActivity> StandardActivities(
+        string prefix,
+        AcademyBattleBand battleBand = AcademyBattleBand.Onboarding
+    ) =>
     [
         new()
         {
@@ -181,6 +192,7 @@ public static class AcademyCourseCatalog
             Type = AcademyCourseActivityType.PracticeBattle,
             LabelKey = "academy.activity.practice",
             Repeatable = true,
+            BattleConfig = PracticeBattleConfig(battleBand),
         },
         new()
         {
@@ -189,8 +201,55 @@ public static class AcademyCourseCatalog
             LabelKey = "academy.activity.assessment",
             IsOfficialAssessment = true,
             Repeatable = false,
+            BattleConfig = AssessmentBattleConfig(battleBand),
         },
     ];
+
+    private static AcademyBattleConfig PracticeBattleConfig(AcademyBattleBand battleBand) =>
+        battleBand switch
+        {
+            AcademyBattleBand.Early => new AcademyBattleConfig
+            {
+                EnemyDeck = [new DeckEntry(CardIds.FireWisp, 1), new DeckEntry(CardIds.Puff, 1)],
+                EnemyHp = 45f,
+                AiType = "simple",
+                AiDifficulty = 1,
+                AiPlayIntervalMin = 7.0f,
+                AiPlayIntervalMax = 10.0f,
+            },
+            _ => new AcademyBattleConfig
+            {
+                EnemyDeck = [new DeckEntry(CardIds.FireWisp, 1)],
+                EnemyHp = 20f,
+                AiType = "passive",
+                AiDifficulty = 0,
+                AiPlayIntervalMin = 999f,
+                AiPlayIntervalMax = 999f,
+            },
+        };
+
+    private static AcademyBattleConfig AssessmentBattleConfig(AcademyBattleBand battleBand) =>
+        battleBand switch
+        {
+            AcademyBattleBand.Early => new AcademyBattleConfig
+            {
+                EnemyDeck = [new DeckEntry(CardIds.FireWisp, 1), new DeckEntry(CardIds.Puff, 1)],
+                EnemyHp = 55f,
+                AiType = "simple",
+                AiDifficulty = 1,
+                AiPlayIntervalMin = 6.0f,
+                AiPlayIntervalMax = 9.0f,
+            },
+            _ => new AcademyBattleConfig
+            {
+                EnemyDeck = [new DeckEntry(CardIds.FireWisp, 1)],
+                EnemyHp = 35f,
+                AiType = "simple",
+                AiDifficulty = 0,
+                AiPlayIntervalMin = 8.0f,
+                AiPlayIntervalMax = 11.0f,
+            },
+        };
 
     private static AcademyRewardPreview CardReward(string labelKey, string element, string role) =>
         new()
