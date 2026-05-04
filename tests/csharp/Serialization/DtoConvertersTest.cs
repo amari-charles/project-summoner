@@ -2,6 +2,7 @@ namespace Fateforged.Tests.Serialization;
 
 using System.Collections.Generic;
 using Fateforged.Cards;
+using Fateforged.Data.Academy;
 using Fateforged.Data.Events;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
@@ -271,6 +272,26 @@ public class DtoConvertersTest
             CompletedBattles = [new BattleId("battle_1"), new BattleId("battle_2")],
             CurrentBattle = new BattleId("battle_3"),
             Gold = 500,
+            Academy = new AcademyProgress
+            {
+                CurrentYear = 1,
+                CurrentSemester = 2,
+                RemainingEnrollments = 3,
+                CompletedCourses = [CourseIds.IntroductionToMagic101],
+                OfficialAssessmentsCompleted = ["magic_101_exam"],
+                Transcript =
+                [
+                    new AcademyTranscriptEntry
+                    {
+                        CourseId = CourseIds.IntroductionToMagic101,
+                        Grade = "pass",
+                        Honors = false,
+                        SemesterKey = "year_1_semester_1",
+                    },
+                ],
+                HonorsEligibility = new Dictionary<string, bool> { ["affinity_fire"] = true },
+                ShopPurchases = new Dictionary<string, int> { ["starter_reagent"] = 1 },
+            },
         };
 
         var dict = DtoConverters.ToDict(original);
@@ -281,6 +302,16 @@ public class DtoConvertersTest
         AssertThat(result.CompletedBattles).Contains(new BattleId("battle_2"));
         AssertThat(result.CurrentBattle).IsEqual(new BattleId("battle_3"));
         AssertThat(result.Gold).IsEqual(500);
+        AssertThat(result.Academy.CurrentYear).IsEqual(1);
+        AssertThat(result.Academy.CurrentSemester).IsEqual(2);
+        AssertThat(result.Academy.RemainingEnrollments).IsEqual(3);
+        AssertThat(result.Academy.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
+        AssertThat(result.Academy.OfficialAssessmentsCompleted).Contains("magic_101_exam");
+        AssertThat(result.Academy.Transcript).HasSize(1);
+        AssertThat(result.Academy.Transcript[0].CourseId).IsEqual(CourseIds.IntroductionToMagic101);
+        AssertThat(result.Academy.Transcript[0].Grade).IsEqual("pass");
+        AssertThat(result.Academy.HonorsEligibility["affinity_fire"]).IsTrue();
+        AssertThat(result.Academy.ShopPurchases["starter_reagent"]).IsEqual(1);
     }
 
     [TestCase]
@@ -290,6 +321,8 @@ public class DtoConvertersTest
         AssertThat(result).IsNotNull();
         AssertThat(result!.CompletedBattles).IsEmpty();
         AssertThat(result.Gold).IsEqual(0);
+        AssertThat(result.Academy.CurrentYear).IsEqual(1);
+        AssertThat(result.Academy.CurrentSemester).IsEqual(1);
     }
 
     [TestCase]

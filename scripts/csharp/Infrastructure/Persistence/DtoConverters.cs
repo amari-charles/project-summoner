@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
+using Fateforged.Data.Academy;
 using Fateforged.Data.Events;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
@@ -343,6 +344,7 @@ public static class DtoConverters
                 ? (string)progress.CurrentBattle.Value
                 : "",
             ["gold"] = progress.Gold,
+            ["academy"] = ToDict(progress.Academy),
         };
 
         // Add choices if present
@@ -374,6 +376,58 @@ public static class DtoConverters
         }
 
         return dict;
+    }
+
+    /// <summary>Convert AcademyProgress to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(AcademyProgress academy)
+    {
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["current_year"] = academy.CurrentYear,
+            ["current_semester"] = academy.CurrentSemester,
+            ["remaining_enrollments"] = academy.RemainingEnrollments,
+            ["completed_courses"] = ToGodotArray(
+                academy.CompletedCourses.Select(course => (string)course)
+            ),
+            ["official_assessments_completed"] = ToGodotArray(
+                academy.OfficialAssessmentsCompleted
+            ),
+        };
+
+        var transcript = new Godot.Collections.Array();
+        foreach (var entry in academy.Transcript)
+        {
+            transcript.Add(ToDict(entry));
+        }
+        dict["transcript"] = transcript;
+
+        var honors = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in academy.HonorsEligibility)
+        {
+            honors[key] = value;
+        }
+        dict["honors_eligibility"] = honors;
+
+        var shopPurchases = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in academy.ShopPurchases)
+        {
+            shopPurchases[key] = value;
+        }
+        dict["shop_purchases"] = shopPurchases;
+
+        return dict;
+    }
+
+    /// <summary>Convert AcademyTranscriptEntry to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(AcademyTranscriptEntry entry)
+    {
+        return new Godot.Collections.Dictionary
+        {
+            ["course_id"] = (string)entry.CourseId,
+            ["grade"] = entry.Grade,
+            ["honors"] = entry.Honors,
+            ["semester_key"] = entry.SemesterKey,
+        };
     }
 
     /// <summary>Convert PendingRewardData to Godot Dictionary for GDScript.</summary>
@@ -508,6 +562,15 @@ public static class DtoConverters
             ? null
             : new BattleId(currentBattleStr);
 
+        var academy = new AcademyProgress();
+        if (
+            dict.TryGetValue("academy", out var academyVar)
+            && academyVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            academy = FromAcademyDict(academyVar.AsGodotDictionary());
+        }
+
         return new CampaignProgress
         {
             CompletedBattles = completed,
@@ -516,6 +579,105 @@ public static class DtoConverters
             PendingReward = pendingReward,
             StoryArcs = storyArcs,
             Choices = choices,
+            Academy = academy,
+        };
+    }
+
+    /// <summary>Convert Godot Dictionary to AcademyProgress.</summary>
+    public static AcademyProgress FromAcademyDict(Godot.Collections.Dictionary? dict)
+    {
+        if (dict == null || dict.Count == 0)
+            return new AcademyProgress();
+
+        var completedCourses = new List<CourseId>();
+        if (
+            dict.TryGetValue("completed_courses", out var coursesVar)
+            && coursesVar.VariantType == Variant.Type.Array
+        )
+        {
+            foreach (var course in coursesVar.AsGodotArray())
+            {
+                completedCourses.Add(new CourseId(course.AsString()));
+            }
+        }
+
+        var officialAssessments = new List<string>();
+        if (
+            dict.TryGetValue("official_assessments_completed", out var assessmentsVar)
+            && assessmentsVar.VariantType == Variant.Type.Array
+        )
+        {
+            foreach (var assessment in assessmentsVar.AsGodotArray())
+            {
+                officialAssessments.Add(assessment.AsString());
+            }
+        }
+
+        var transcript = new List<AcademyTranscriptEntry>();
+        if (
+            dict.TryGetValue("transcript", out var transcriptVar)
+            && transcriptVar.VariantType == Variant.Type.Array
+        )
+        {
+            foreach (var entryVar in transcriptVar.AsGodotArray())
+            {
+                if (entryVar.VariantType == Variant.Type.Dictionary)
+                {
+                    transcript.Add(FromAcademyTranscriptDict(entryVar.AsGodotDictionary()));
+                }
+            }
+        }
+
+        var honorsEligibility = new Dictionary<string, bool>();
+        if (
+            dict.TryGetValue("honors_eligibility", out var honorsVar)
+            && honorsVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var honorsDict = honorsVar.AsGodotDictionary();
+            foreach (var key in honorsDict.Keys)
+            {
+                honorsEligibility[key.AsString()] = honorsDict[key].AsBool();
+            }
+        }
+
+        var shopPurchases = new Dictionary<string, int>();
+        if (
+            dict.TryGetValue("shop_purchases", out var shopVar)
+            && shopVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var shopDict = shopVar.AsGodotDictionary();
+            foreach (var key in shopDict.Keys)
+            {
+                shopPurchases[key.AsString()] = shopDict[key].AsInt32();
+            }
+        }
+
+        return new AcademyProgress
+        {
+            CurrentYear = GetInt(dict, "current_year", 1),
+            CurrentSemester = GetInt(dict, "current_semester", 1),
+            RemainingEnrollments = GetInt(dict, "remaining_enrollments", 0),
+            CompletedCourses = completedCourses,
+            OfficialAssessmentsCompleted = officialAssessments,
+            Transcript = transcript,
+            HonorsEligibility = honorsEligibility,
+            ShopPurchases = shopPurchases,
+        };
+    }
+
+    /// <summary>Convert Godot Dictionary to AcademyTranscriptEntry.</summary>
+    public static AcademyTranscriptEntry FromAcademyTranscriptDict(
+        Godot.Collections.Dictionary dict
+    )
+    {
+        return new AcademyTranscriptEntry
+        {
+            CourseId = new CourseId(GetString(dict, "course_id", "")),
+            Grade = GetString(dict, "grade", ""),
+            Honors = GetBool(dict, "honors", false),
+            SemesterKey = GetString(dict, "semester_key", ""),
         };
     }
 
