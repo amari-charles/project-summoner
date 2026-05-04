@@ -219,17 +219,22 @@ Likely existing areas:
 
 ### UI / Flow
 
-Replace or adapt campaign map UI into an Academy Hub:
+Replace or adapt campaign map UI into an Academy Hub that behaves like a campus map, not a generic app menu. Use hub-map references such as:
 
-- Course Catalog
+- Game UI Database hub/map examples: https://www.gameuidatabase.com/index.php?scrn=6&scroll=150
+
+Academy Hub should expose major campus destinations:
+
+- Class Hall
 - Transcript
 - Campus Shop
-- Events/Notices placeholder
+- Mission Hall / Events placeholder
 - Semester status
 
-Course Catalog should show:
+Class Hall should be the focused course-management screen and should show:
 
-- available classes
+- enrolled classes
+- open classes
 - unavailable classes with prerequisites/reason
 - Enrollment cost
 - reward preview

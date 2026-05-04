@@ -166,6 +166,22 @@ Events appear through the Academy Hub as notices or temporary opportunities rath
 
 The Course Catalog remains the main progression engine. Events add texture and opportunity without becoming a second campaign map.
 
+## Academy Hub Visual Reference
+
+The Academy Hub should feel like a game hub map, not an app dashboard. Use a campus/location-map presentation where buildings or areas represent major systems.
+
+Current visual reference set:
+
+- Game UI Database hub/map examples: https://www.gameuidatabase.com/index.php?scrn=6&scroll=150
+
+Useful inspiration directions:
+
+- town/base hubs where buildings are game systems
+- academy/campus maps with labeled facilities
+- destination screens that imply place, not generic navigation
+
+The first-pass campus can be placeholder art, but the target is a readable academy map with destinations such as Class Hall, Campus Shop, Mission Hall, Transcript Office, and Arena Gate.
+
 ## Graduation Capstone Principle
 
 After Year 4, the summoner faces a **Graduation Capstone**. This is the campaign final exam, not a class final.
