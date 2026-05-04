@@ -128,7 +128,12 @@ func _build_course_row(course: Dictionary) -> Control:
 	elif is_enrolled:
 		action_button.text = Loc.t("academy.hub.continue_course")
 		action_button.pressed.connect(func() -> void:
-			CampaignApi.complete_next_academy_activity(course_id)
+			var next_activity: Dictionary = SafeTypeUtils.dict(course.get("next_activity"))
+			var activity_type: String = SafeTypeUtils.string(next_activity.get("type"))
+			if activity_type == "PracticeBattle" or activity_type == "AssessmentBattle":
+				_launch_academy_battle(course_id, next_activity)
+			else:
+				CampaignApi.complete_next_academy_activity(course_id)
 			_refresh()
 		)
 	elif is_available:
@@ -222,6 +227,11 @@ func _on_settings_pressed() -> void:
 func _on_advance_semester_pressed() -> void:
 	CampaignApi.advance_academy_semester()
 	_refresh()
+
+func _launch_academy_battle(course_id: String, activity: Dictionary) -> void:
+	var activity_id: String = SafeTypeUtils.string(activity.get("id"), course_id)
+	BattleContext.configure_academy_battle(course_id, activity_id)
+	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 func _redirect_to_summoner_selection() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)

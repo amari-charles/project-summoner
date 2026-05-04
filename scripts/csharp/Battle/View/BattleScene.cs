@@ -980,6 +980,9 @@ public partial class BattleScene : Node3D
             case BattleMode.Multiplayer:
                 HandleMultiplayerCompletion(winnerTeam);
                 break;
+            case BattleMode.Academy:
+                HandleAcademyCompletion(winnerTeam);
+                break;
         }
     }
 
@@ -995,6 +998,20 @@ public partial class BattleScene : Node3D
         {
             NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
         }
+    }
+
+    private void HandleAcademyCompletion(int winnerTeam)
+    {
+        if (winnerTeam == 0)
+        {
+            var battleContext = GetNodeOrNull("/root/BattleContext");
+            var courseId = battleContext?.Get("academy_course_id").AsString() ?? "";
+            var campaign = GetNodeOrNull("/root/Campaign");
+            if (!string.IsNullOrEmpty(courseId) && campaign != null)
+                campaign.Call("CompleteNextAcademyActivity", courseId);
+        }
+
+        NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
     }
 
     private void HandleMultiplayerCompletion(int winnerTeam)
