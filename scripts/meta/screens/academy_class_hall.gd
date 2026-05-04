@@ -216,6 +216,7 @@ func _build_course_card(course: Dictionary) -> Control:
 	)
 
 	var margin: MarginContainer = MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_theme_constant_override("margin_left", 12)
 	margin.add_theme_constant_override("margin_top", 10)
 	margin.add_theme_constant_override("margin_right", 12)
@@ -223,13 +224,16 @@ func _build_course_card(course: Dictionary) -> Control:
 	panel.add_child(margin)
 
 	var root: VBoxContainer = VBoxContainer.new()
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_theme_constant_override("separation", 7)
 	margin.add_child(root)
 
 	var top: HBoxContainer = HBoxContainer.new()
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(top)
 
 	var track: Label = Label.new()
+	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	track.text = SafeTypeUtils.string(course.get("track"))
 	track.add_theme_font_size_override("font_size", 12)
 	track.add_theme_color_override("font_color", COLOR_ACCENT)
@@ -237,18 +241,21 @@ func _build_course_card(course: Dictionary) -> Control:
 	top.add_child(track)
 
 	var cost: Label = Label.new()
+	cost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cost.text = Loc.t("academy.hub.cost_short", {"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1)})
 	cost.add_theme_font_size_override("font_size", 12)
 	cost.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
 	top.add_child(cost)
 
 	var name: Label = Label.new()
+	name.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name.text = _course_name(course)
 	name.add_theme_font_size_override("font_size", 17)
 	name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(name)
 
 	var rewards: Label = Label.new()
+	rewards.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rewards.text = _compact_rewards(SafeTypeUtils.array(course.get("reward_previews")))
 	rewards.add_theme_font_size_override("font_size", 13)
 	rewards.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
@@ -256,10 +263,12 @@ func _build_course_card(course: Dictionary) -> Control:
 	root.add_child(rewards)
 
 	var spacer: Control = Control.new()
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(spacer)
 
 	var state: Label = Label.new()
+	state.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	state.text = _course_state_label(course)
 	state.add_theme_font_size_override("font_size", 13)
 	state.add_theme_color_override("font_color", COLOR_ACCENT if is_selected else COLOR_TEXT_MUTED)
