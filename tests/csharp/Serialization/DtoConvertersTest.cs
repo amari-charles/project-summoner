@@ -292,6 +292,10 @@ public class DtoConvertersTest
                 ],
                 HonorsEligibility = new Dictionary<string, bool> { ["affinity_fire"] = true },
                 ShopPurchases = new Dictionary<string, int> { ["starter_reagent"] = 1 },
+                CourseActivityIndex = new Dictionary<string, int>
+                {
+                    [(string)CourseIds.PracticalSpellcraft] = 2,
+                },
             },
         };
 
@@ -314,6 +318,8 @@ public class DtoConvertersTest
         AssertThat(result.Academy.Transcript[0].Grade).IsEqual("pass");
         AssertThat(result.Academy.HonorsEligibility["affinity_fire"]).IsTrue();
         AssertThat(result.Academy.ShopPurchases["starter_reagent"]).IsEqual(1);
+        AssertThat(result.Academy.CourseActivityIndex[(string)CourseIds.PracticalSpellcraft])
+            .IsEqual(2);
     }
 
     [TestCase]

@@ -33,6 +33,15 @@ public enum AcademyRewardPreviewType
     Conditional,
 }
 
+public enum AcademyCourseActivityType
+{
+    Lesson,
+    PracticeBattle,
+    AssessmentBattle,
+    RewardChoice,
+    Lab,
+}
+
 public class AcademyCourseDefinition
 {
     public CourseId Id { get; set; } = CourseId.None;
@@ -55,7 +64,22 @@ public class AcademyCourseDefinition
 
     public List<CourseId> Prerequisites { get; set; } = [];
 
+    public List<AcademyCourseActivity> Activities { get; set; } = [];
+
     public List<AcademyRewardPreview> RewardPreviews { get; set; } = [];
+}
+
+public class AcademyCourseActivity
+{
+    public string Id { get; set; } = "";
+
+    public AcademyCourseActivityType Type { get; set; } = AcademyCourseActivityType.Lesson;
+
+    public string LabelKey { get; set; } = "";
+
+    public bool IsOfficialAssessment { get; set; }
+
+    public bool Repeatable { get; set; }
 }
 
 public class AcademyRewardPreview

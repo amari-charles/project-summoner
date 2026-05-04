@@ -22,6 +22,7 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Foundation,
             IsRequired = true,
+            Activities = StandardActivities("magic_101"),
             RewardPreviews =
             [
                 CardReward("academy.reward.neutral_basic_summon", "neutral", "summon"),
@@ -37,6 +38,7 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Binding,
             ChoiceGroupId = FoundationChoiceGroup,
+            Activities = StandardActivities("summoning_basics"),
             RewardPreviews = [CardReward("academy.reward.basic_summon", "neutral", "summon")],
         },
         new()
@@ -48,6 +50,7 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Arcana,
             ChoiceGroupId = FoundationChoiceGroup,
+            Activities = StandardActivities("practical_spellcraft"),
             RewardPreviews = [CardReward("academy.reward.basic_spell", "neutral", "spell")],
         },
         IntroElement(CourseIds.IntroToFire, "fire"),
@@ -64,6 +67,7 @@ public static class AcademyCourseCatalog
             Track = AcademyTrack.Foundation,
             IsRequired = true,
             Prerequisites = [CourseIds.IntroductionToMagic101],
+            Activities = StandardActivities("foundations_magic_ii"),
             RewardPreviews = [CardReward("academy.reward.foundation_choice", "neutral", "mixed")],
         },
         new()
@@ -74,6 +78,7 @@ public static class AcademyCourseCatalog
             Year = 1,
             Semester = 2,
             Track = AcademyTrack.Foundation,
+            Activities = StandardActivities("empowerment"),
             RewardPreviews =
             [
                 new()
@@ -92,6 +97,7 @@ public static class AcademyCourseCatalog
             Year = 1,
             Semester = 2,
             Track = AcademyTrack.Binding,
+            Activities = StandardActivities("mana_channeling"),
             RewardPreviews =
             [
                 new()
@@ -125,6 +131,7 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Affinity,
             ChoiceGroupId = ElementChoiceGroup,
+            Activities = StandardActivities($"intro_{element}"),
             RewardPreviews =
             [
                 CardReward($"academy.reward.{element}_summon", element, "summon"),
@@ -146,6 +153,7 @@ public static class AcademyCourseCatalog
             Semester = 2,
             Track = AcademyTrack.Affinity,
             Prerequisites = [prerequisite],
+            Activities = StandardActivities($"{element}_practicum_i"),
             RewardPreviews =
             [
                 new()
@@ -157,6 +165,32 @@ public static class AcademyCourseCatalog
                 },
             ],
         };
+
+    private static List<AcademyCourseActivity> StandardActivities(string prefix) =>
+    [
+        new()
+        {
+            Id = $"{prefix}_lesson",
+            Type = AcademyCourseActivityType.Lesson,
+            LabelKey = "academy.activity.lesson",
+            Repeatable = false,
+        },
+        new()
+        {
+            Id = $"{prefix}_practice",
+            Type = AcademyCourseActivityType.PracticeBattle,
+            LabelKey = "academy.activity.practice",
+            Repeatable = true,
+        },
+        new()
+        {
+            Id = $"{prefix}_assessment",
+            Type = AcademyCourseActivityType.AssessmentBattle,
+            LabelKey = "academy.activity.assessment",
+            IsOfficialAssessment = true,
+            Repeatable = false,
+        },
+    ];
 
     private static AcademyRewardPreview CardReward(string labelKey, string element, string role) =>
         new()

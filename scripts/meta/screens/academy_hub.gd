@@ -107,6 +107,12 @@ func _build_course_row(course: Dictionary) -> Control:
 	rewards_label.text = _reward_preview_text(SafeTypeUtils.array(course.get("reward_previews")))
 	text_stack.add_child(rewards_label)
 
+	var activity_label: Label = Label.new()
+	activity_label.add_theme_font_size_override("font_size", 13)
+	activity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	activity_label.text = _activity_text(course)
+	text_stack.add_child(activity_label)
+
 	var action_button: Button = Button.new()
 	action_button.custom_minimum_size = Vector2(132, 42)
 	row.add_child(action_button)
@@ -120,9 +126,9 @@ func _build_course_row(course: Dictionary) -> Control:
 		action_button.text = Loc.t("academy.hub.completed")
 		action_button.disabled = true
 	elif is_enrolled:
-		action_button.text = Loc.t("academy.hub.complete")
+		action_button.text = Loc.t("academy.hub.continue_course")
 		action_button.pressed.connect(func() -> void:
-			CampaignApi.complete_academy_course(course_id)
+			CampaignApi.complete_next_academy_activity(course_id)
 			_refresh()
 		)
 	elif is_available:
@@ -155,6 +161,20 @@ func _reward_preview_text(rewards: Array) -> String:
 			labels.append(Loc.t(label_key))
 
 	return Loc.t("academy.hub.rewards", {"rewards": ", ".join(labels)})
+
+func _activity_text(course: Dictionary) -> String:
+	var next_activity: Dictionary = SafeTypeUtils.dict(course.get("next_activity"))
+	if next_activity.is_empty():
+		return ""
+
+	var label_key: String = SafeTypeUtils.string(next_activity.get("label_key"))
+	var activity_name: String = Loc.t(label_key) if not label_key.is_empty() else SafeTypeUtils.string(next_activity.get("type"))
+	var index: int = SafeTypeUtils.int_val(course.get("activity_index"), 0) + 1
+	var activities: Array = SafeTypeUtils.array(course.get("activities"))
+	return Loc.t(
+		"academy.hub.next_activity",
+		{"activity": activity_name, "index": index, "total": activities.size()}
+	)
 
 func _render_transcript(entries: Array) -> void:
 	_clear_children(transcript_list)

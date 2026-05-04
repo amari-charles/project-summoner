@@ -572,6 +572,14 @@ public partial class CampaignService : Node
         return completed;
     }
 
+    public bool CompleteNextAcademyActivity(string courseId)
+    {
+        var completed = _academy?.CompleteNextActivity(courseId) ?? false;
+        if (completed)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return completed;
+    }
+
     public bool AdvanceAcademySemester()
     {
         var advanced = _academy?.AdvanceSemester() ?? false;

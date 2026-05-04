@@ -418,6 +418,13 @@ public static class DtoConverters
         }
         dict["shop_purchases"] = shopPurchases;
 
+        var activityIndex = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in academy.CourseActivityIndex)
+        {
+            activityIndex[key] = value;
+        }
+        dict["course_activity_index"] = activityIndex;
+
         return dict;
     }
 
@@ -669,6 +676,19 @@ public static class DtoConverters
             }
         }
 
+        var courseActivityIndex = new Dictionary<string, int>();
+        if (
+            dict.TryGetValue("course_activity_index", out var activityVar)
+            && activityVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var activityDict = activityVar.AsGodotDictionary();
+            foreach (var key in activityDict.Keys)
+            {
+                courseActivityIndex[key.AsString()] = activityDict[key].AsInt32();
+            }
+        }
+
         return new AcademyProgress
         {
             CurrentYear = GetInt(dict, "current_year", 1),
@@ -680,6 +700,7 @@ public static class DtoConverters
             Transcript = transcript,
             HonorsEligibility = honorsEligibility,
             ShopPurchases = shopPurchases,
+            CourseActivityIndex = courseActivityIndex,
         };
     }
 

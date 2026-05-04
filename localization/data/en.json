@@ -265,11 +265,18 @@
       "rewards": "Rewards: {rewards}",
       "enroll": "Enroll",
       "complete": "Complete",
+      "continue_course": "Continue",
       "completed": "Completed",
       "locked": "Locked",
+      "next_activity": "Next: {activity} ({index}/{total})",
       "empty_transcript": "No completed courses yet.",
       "transcript_entry": "{course} | {grade} {honors}",
       "honors": "Honors"
+    },
+    "activity": {
+      "lesson": "Lesson",
+      "practice": "Practice",
+      "assessment": "Assessment"
     },
     "course": {
       "introduction_to_magic_101": {

@@ -72,6 +72,36 @@ public class AcademyProgressHandler
 
         academy.RemainingEnrollments -= course.EnrollmentCost;
         academy.EnrolledCourses.Add(course.Id);
+        academy.CourseActivityIndex[(string)course.Id] = 0;
+
+        _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
+        return true;
+    }
+
+    public bool CompleteNextActivity(string courseId)
+    {
+        var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
+        if (course == null)
+            return false;
+
+        var summonerId = _getActiveSummonerFunc();
+        if (!summonerId.HasValue)
+            return false;
+
+        var campaignProgress = GetOrCreateProgress();
+        var academy = campaignProgress.Academy;
+        if (!academy.EnrolledCourses.Contains(course.Id))
+            return false;
+
+        var key = (string)course.Id;
+        var nextIndex = academy.CourseActivityIndex.GetValueOrDefault(key, 0) + 1;
+        academy.CourseActivityIndex[key] = nextIndex;
+
+        if (nextIndex >= course.Activities.Count)
+        {
+            _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
+            return CompleteCourse(courseId);
+        }
 
         _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
         return true;
@@ -97,6 +127,7 @@ public class AcademyProgressHandler
             academy.CompletedCourses.Add(course.Id);
 
         academy.EnrolledCourses.Remove(course.Id);
+        academy.CourseActivityIndex.Remove((string)course.Id);
         academy.Transcript.Add(
             new AcademyTranscriptEntry
             {
@@ -220,6 +251,36 @@ public class AcademyProgressHandler
             );
         }
 
+        var activities = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var activity in course.Activities)
+        {
+            activities.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["id"] = activity.Id,
+                    ["type"] = activity.Type.ToString(),
+                    ["label_key"] = activity.LabelKey,
+                    ["is_official_assessment"] = activity.IsOfficialAssessment,
+                    ["repeatable"] = activity.Repeatable,
+                }
+            );
+        }
+
+        var activityIndex = academy.CourseActivityIndex.GetValueOrDefault((string)course.Id, 0);
+        Godot.Collections.Dictionary nextActivity = new();
+        if (activityIndex >= 0 && activityIndex < course.Activities.Count)
+        {
+            var activity = course.Activities[activityIndex];
+            nextActivity = new Godot.Collections.Dictionary
+            {
+                ["id"] = activity.Id,
+                ["type"] = activity.Type.ToString(),
+                ["label_key"] = activity.LabelKey,
+                ["is_official_assessment"] = activity.IsOfficialAssessment,
+                ["repeatable"] = activity.Repeatable,
+            };
+        }
+
         return new Godot.Collections.Dictionary
         {
             ["id"] = (string)course.Id,
@@ -235,6 +296,9 @@ public class AcademyProgressHandler
             ["unavailable_reason"] = validation.reason,
             ["is_enrolled"] = academy.EnrolledCourses.Contains(course.Id),
             ["is_completed"] = academy.CompletedCourses.Contains(course.Id),
+            ["activity_index"] = activityIndex,
+            ["activities"] = activities,
+            ["next_activity"] = nextActivity,
             ["reward_previews"] = rewards,
         };
     }

@@ -993,7 +993,7 @@ public partial class BattleScene : Node3D
         }
         else // Player lost
         {
-            NavigateToScene("res://scenes/meta/screens/campaign_map.tscn");
+            NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
         }
     }
 

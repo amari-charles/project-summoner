@@ -18,6 +18,8 @@ public class AcademyCourseCatalogTest
 
         AssertThat(magic101).IsNotNull();
         AssertThat(magic101!.IsRequired).IsTrue();
+        AssertThat(magic101.Activities).HasSize(3);
+        AssertThat(magic101.Activities.Any(activity => activity.IsOfficialAssessment)).IsTrue();
         AssertThat(magic101.RewardPreviews).HasSize(2);
         AssertThat(magic101.RewardPreviews.Any(reward => reward.CardRole == "summon")).IsTrue();
         AssertThat(magic101.RewardPreviews.Any(reward => reward.CardRole == "spell")).IsTrue();
