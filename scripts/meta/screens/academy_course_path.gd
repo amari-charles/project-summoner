@@ -4,12 +4,14 @@ class_name AcademyCoursePath
 @onready var title_label: Label = %TitleLabel
 @onready var status_label: Label = %StatusLabel
 @onready var exit_button: Button = %ExitButton
+@onready var path_scroll: ScrollContainer = %PathScroll
 @onready var path_canvas: Control = %PathCanvas
 @onready var rewards_label: Label = %RewardsLabel
 
 const NODE_SIZE: Vector2 = Vector2(118, 118)
-const NODE_Y: float = 140.0
 const NODE_GAP: float = 230.0
+const MAP_PADDING: Vector2 = Vector2(260.0, 180.0)
+const PAN_THRESHOLD: float = 5.0
 const COLOR_NODE_DONE: Color = Color(0.34, 0.60, 0.38, 1.0)
 const COLOR_NODE_CURRENT: Color = Color(0.78, 0.59, 0.24, 1.0)
 const COLOR_NODE_LOCKED: Color = Color(0.16, 0.17, 0.19, 1.0)
@@ -19,6 +21,9 @@ const COLOR_TEXT_MUTED: Color = Color(0.72, 0.75, 0.78, 1.0)
 
 var _course_id: String = ""
 var _course: Dictionary = {}
+var _is_panning: bool = false
+var _pan_start_position: Vector2 = Vector2.ZERO
+var _last_mouse_position: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	exit_button.text = Loc.t("academy.location.exit")
@@ -44,6 +49,7 @@ func _refresh() -> void:
 	status_label.text = _course_status_text(_course)
 	rewards_label.text = _reward_preview_text(SafeTypeUtils.array(_course.get("reward_previews")))
 	_render_path()
+	call_deferred("_center_path_view")
 
 func _render_path() -> void:
 	_clear_children(path_canvas)
@@ -54,23 +60,72 @@ func _render_path() -> void:
 		return
 
 	var total_width: float = ((activities.size() - 1) * NODE_GAP) + NODE_SIZE.x
-	var start_x: float = maxf(32.0, (path_canvas.size.x - total_width) * 0.5)
-	if path_canvas.size.x <= 1.0:
-		start_x = 120.0
+	var viewport_size: Vector2 = _path_viewport_size()
+	var content_size: Vector2 = Vector2(
+		maxf(viewport_size.x + MAP_PADDING.x * 2.0, total_width + MAP_PADDING.x * 2.0),
+		maxf(viewport_size.y + MAP_PADDING.y * 2.0, NODE_SIZE.y + MAP_PADDING.y * 2.0)
+	)
+	path_canvas.custom_minimum_size = content_size
+	path_canvas.size = content_size
+
+	var start_x: float = (content_size.x - total_width) * 0.5
+	var node_y: float = (content_size.y - NODE_SIZE.y) * 0.5
 
 	for index: int in range(activities.size() - 1):
 		var line: Line2D = Line2D.new()
 		line.width = 6.0
 		line.default_color = COLOR_LINE_DONE if index < activity_index else COLOR_LINE_LOCKED
-		line.add_point(Vector2(start_x + (index * NODE_GAP) + NODE_SIZE.x, NODE_Y + NODE_SIZE.y * 0.5))
-		line.add_point(Vector2(start_x + ((index + 1) * NODE_GAP), NODE_Y + NODE_SIZE.y * 0.5))
+		line.add_point(Vector2(start_x + (index * NODE_GAP) + NODE_SIZE.x, node_y + NODE_SIZE.y * 0.5))
+		line.add_point(Vector2(start_x + ((index + 1) * NODE_GAP), node_y + NODE_SIZE.y * 0.5))
 		path_canvas.add_child(line)
 
 	for index: int in range(activities.size()):
 		var activity: Dictionary = SafeTypeUtils.dict(activities[index])
 		var node: Control = _build_activity_node(activity, index, activity_index)
-		node.position = Vector2(start_x + (index * NODE_GAP), NODE_Y)
+		node.position = Vector2(start_x + (index * NODE_GAP), node_y)
 		path_canvas.add_child(node)
+
+func _center_path_view() -> void:
+	var max_x: int = max(0, int(path_canvas.size.x - path_scroll.size.x))
+	var max_y: int = max(0, int(path_canvas.size.y - path_scroll.size.y))
+	path_scroll.scroll_horizontal = max_x / 2
+	path_scroll.scroll_vertical = max_y / 2
+
+func _path_viewport_size() -> Vector2:
+	var size: Vector2 = path_scroll.size
+	if size.x > 1.0 and size.y > 1.0:
+		return size
+	return get_viewport_rect().size
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			if mouse_event.pressed:
+				var scroll_rect: Rect2 = path_scroll.get_global_rect()
+				if scroll_rect.has_point(mouse_event.position):
+					_pan_start_position = mouse_event.position
+					_last_mouse_position = mouse_event.position
+			else:
+				_is_panning = false
+	elif event is InputEventMouseMotion:
+		var motion_event: InputEventMouseMotion = event as InputEventMouseMotion
+		if motion_event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			if not _is_panning:
+				var distance: float = motion_event.position.distance_to(_pan_start_position)
+				var scroll_rect: Rect2 = path_scroll.get_global_rect()
+				if distance > PAN_THRESHOLD and scroll_rect.has_point(motion_event.position):
+					_is_panning = true
+					_last_mouse_position = motion_event.position
+
+			if _is_panning:
+				var delta: Vector2 = motion_event.position - _last_mouse_position
+				path_scroll.scroll_horizontal -= int(delta.x)
+				path_scroll.scroll_vertical -= int(delta.y)
+				_last_mouse_position = motion_event.position
+				get_viewport().set_input_as_handled()
+		else:
+			_pan_start_position = Vector2.ZERO
 
 func _build_activity_node(activity: Dictionary, index: int, activity_index: int) -> Control:
 	var is_done: bool = index < activity_index
