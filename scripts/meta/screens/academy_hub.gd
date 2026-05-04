@@ -7,8 +7,7 @@ class_name AcademyHub
 @onready var shop_button: Button = %ShopButton
 @onready var online_button: Button = %OnlineButton
 @onready var settings_button: Button = %SettingsButton
-@onready var year_tabs: HBoxContainer = %YearTabs
-@onready var semester_tabs: HBoxContainer = %SemesterTabs
+@onready var period_button: Button = %PeriodButton
 @onready var view_status_label: Label = %ViewStatusLabel
 @onready var board_title_label: Label = %BoardTitleLabel
 @onready var advance_semester_button: Button = %AdvanceSemesterButton
@@ -20,10 +19,18 @@ class_name AcademyHub
 @onready var detail_rewards_label: Label = %DetailRewardsLabel
 @onready var detail_activities_label: Label = %DetailActivitiesLabel
 @onready var detail_action_button: Button = %DetailActionButton
+@onready var period_popup: PopupPanel = %PeriodPopup
+@onready var period_picker_title: Label = %PeriodPickerTitle
+@onready var period_options: GridContainer = %PeriodOptions
 
 const TOTAL_YEARS: int = 4
 const TOTAL_SEMESTERS: int = 2
 const ENROLLMENT_SLOTS: int = 3
+const COLOR_PANEL: Color = Color(0.13, 0.145, 0.17, 1.0)
+const COLOR_PANEL_SELECTED: Color = Color(0.18, 0.215, 0.25, 1.0)
+const COLOR_PANEL_LOCKED: Color = Color(0.105, 0.112, 0.125, 1.0)
+const COLOR_ACCENT: Color = Color(0.82, 0.68, 0.36, 1.0)
+const COLOR_TEXT_MUTED: Color = Color(0.72, 0.75, 0.78, 1.0)
 
 var _current_year: int = 1
 var _current_semester: int = 1
@@ -44,12 +51,14 @@ func _ready() -> void:
 	settings_button.text = Loc.t("ui.nav.settings")
 	board_title_label.text = Loc.t("academy.hub.semester_board")
 	advance_semester_button.text = Loc.t("academy.hub.advance_semester")
+	period_picker_title.text = Loc.t("academy.hub.period_picker_title")
 
 	collection_button.pressed.connect(_on_collection_pressed)
 	shop_button.pressed.connect(_on_shop_pressed)
 	online_button.pressed.connect(_on_online_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
 	advance_semester_button.pressed.connect(_on_advance_semester_pressed)
+	period_button.pressed.connect(_on_period_button_pressed)
 
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh)
@@ -74,42 +83,37 @@ func _refresh() -> void:
 		"academy.hub.status",
 		{"year": _current_year, "semester": _current_semester, "enrollments": enrollments}
 	)
+	period_button.text = _period_button_text()
 	view_status_label.text = _view_status_text()
 	advance_semester_button.visible = _is_viewing_current_semester()
 
-	_render_tabs()
 	_render_enrollment_slots(progress)
 	_load_view_courses()
 	_render_course_groups()
 	_update_detail_panel()
 
-func _render_tabs() -> void:
-	_clear_children(year_tabs)
-	_clear_children(semester_tabs)
+func _render_period_picker() -> void:
+	_clear_children(period_options)
 
 	for year: int in range(1, TOTAL_YEARS + 1):
-		var button: Button = Button.new()
-		button.text = Loc.t("academy.hub.year_tab", {"year": year})
-		button.toggle_mode = true
-		button.button_pressed = year == _view_year
-		button.pressed.connect(func() -> void:
-			_view_year = year
-			_selected_course_id = ""
-			_refresh()
-		)
-		year_tabs.add_child(button)
-
-	for semester: int in range(1, TOTAL_SEMESTERS + 1):
-		var button: Button = Button.new()
-		button.text = Loc.t("academy.hub.semester_tab", {"semester": semester})
-		button.toggle_mode = true
-		button.button_pressed = semester == _view_semester
-		button.pressed.connect(func() -> void:
-			_view_semester = semester
-			_selected_course_id = ""
-			_refresh()
-		)
-		semester_tabs.add_child(button)
+		for semester: int in range(1, TOTAL_SEMESTERS + 1):
+			var button: Button = Button.new()
+			button.custom_minimum_size = Vector2(220, 64)
+			button.text = "%s\n%s" % [
+				Loc.t("academy.hub.period_button", {"year": year, "semester": semester}),
+				_period_relation_label(year, semester),
+			]
+			button.toggle_mode = true
+			button.button_pressed = year == _view_year and semester == _view_semester
+			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			button.pressed.connect(func() -> void:
+				_view_year = year
+				_view_semester = semester
+				_selected_course_id = ""
+				period_popup.hide()
+				_refresh()
+			)
+			period_options.add_child(button)
 
 func _render_enrollment_slots(progress: Dictionary) -> void:
 	_clear_children(enrollment_slots)
@@ -132,6 +136,7 @@ func _render_enrollment_slots(progress: Dictionary) -> void:
 		var slot: PanelContainer = PanelContainer.new()
 		slot.custom_minimum_size = Vector2(170, 54)
 		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		slot.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL, Color(0.24, 0.26, 0.29, 1.0)))
 
 		var label: Label = Label.new()
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -189,6 +194,7 @@ func _add_course_group(title_key: String, courses: Array[Dictionary]) -> void:
 
 	var title: Label = Label.new()
 	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", COLOR_ACCENT)
 	title.text = Loc.t(title_key)
 	group.add_child(title)
 
@@ -204,37 +210,81 @@ func _add_course_group(title_key: String, courses: Array[Dictionary]) -> void:
 	course_groups.add_child(group)
 
 func _build_course_card(course: Dictionary) -> Control:
-	var button: Button = Button.new()
-	button.custom_minimum_size = Vector2(210, 112)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.text = _course_card_text(course)
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-
 	var course_id: String = SafeTypeUtils.string(course.get("id"))
-	button.toggle_mode = true
-	button.button_pressed = course_id == _selected_course_id
-	button.disabled = false
-	button.pressed.connect(func() -> void:
-		_selected_course_id = course_id
-		_update_detail_panel()
-		_render_course_groups()
-	)
-	return button
+	var is_selected: bool = course_id == _selected_course_id
+	var is_locked: bool = not SafeTypeUtils.bool_val(course.get("is_available")) \
+		and not SafeTypeUtils.bool_val(course.get("is_enrolled")) \
+		and not SafeTypeUtils.bool_val(course.get("is_completed"))
 
-func _course_card_text(course: Dictionary) -> String:
-	var name: String = _course_name(course)
-	var track: String = SafeTypeUtils.string(course.get("track"))
-	var cost: int = SafeTypeUtils.int_val(course.get("enrollment_cost"), 1)
-	var state: String = _course_state_label(course)
-	var rewards: String = _compact_rewards(SafeTypeUtils.array(course.get("reward_previews")))
-	return "%s\n%s | %s\n%s\n%s" % [
-		name,
-		track,
-		Loc.t("academy.hub.cost_short", {"cost": cost}),
-		rewards,
-		state,
-	]
+	var panel: PanelContainer = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(230, 138)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	panel.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			_selected_course_id = course_id
+			_update_detail_panel()
+			_render_course_groups()
+	)
+	panel.add_theme_stylebox_override(
+		"panel",
+		_panel_style(
+			COLOR_PANEL_LOCKED if is_locked else (COLOR_PANEL_SELECTED if is_selected else COLOR_PANEL),
+			COLOR_ACCENT if is_selected else Color(0.24, 0.26, 0.29, 1.0)
+		)
+	)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	panel.add_child(margin)
+
+	var root: VBoxContainer = VBoxContainer.new()
+	root.add_theme_constant_override("separation", 7)
+	margin.add_child(root)
+
+	var top: HBoxContainer = HBoxContainer.new()
+	root.add_child(top)
+
+	var track: Label = Label.new()
+	track.text = SafeTypeUtils.string(course.get("track"))
+	track.add_theme_font_size_override("font_size", 12)
+	track.add_theme_color_override("font_color", COLOR_ACCENT)
+	track.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(track)
+
+	var cost: Label = Label.new()
+	cost.text = Loc.t("academy.hub.cost_short", {"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1)})
+	cost.add_theme_font_size_override("font_size", 12)
+	cost.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	top.add_child(cost)
+
+	var name: Label = Label.new()
+	name.text = _course_name(course)
+	name.add_theme_font_size_override("font_size", 17)
+	name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	root.add_child(name)
+
+	var rewards: Label = Label.new()
+	rewards.text = _compact_rewards(SafeTypeUtils.array(course.get("reward_previews")))
+	rewards.add_theme_font_size_override("font_size", 13)
+	rewards.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	rewards.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	root.add_child(rewards)
+
+	var spacer: Control = Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(spacer)
+
+	var state: Label = Label.new()
+	state.text = _course_state_label(course)
+	state.add_theme_font_size_override("font_size", 13)
+	state.add_theme_color_override("font_color", COLOR_ACCENT if is_selected else COLOR_TEXT_MUTED)
+	root.add_child(state)
+
+	return panel
 
 func _update_detail_panel() -> void:
 	var course: Dictionary = _selected_course()
@@ -398,12 +448,40 @@ func _view_status_text() -> String:
 		return Loc.t("academy.hub.viewing_past")
 	return Loc.t("academy.hub.viewing_future")
 
+func _period_button_text() -> String:
+	return Loc.t("academy.hub.period_button", {"year": _view_year, "semester": _view_semester})
+
+func _period_relation_label(year: int, semester: int) -> String:
+	var viewed_index: int = ((year - 1) * 2) + semester
+	var current_index: int = ((_current_year - 1) * 2) + _current_semester
+	if viewed_index == current_index:
+		return Loc.t("academy.hub.viewing_current")
+	if viewed_index < current_index:
+		return Loc.t("academy.hub.viewing_past")
+	return Loc.t("academy.hub.viewing_future")
+
 func _is_viewing_current_semester() -> bool:
 	return _view_year == _current_year and _view_semester == _current_semester
 
 func _clear_children(node: Node) -> void:
 	for child: Node in node.get_children():
 		child.queue_free()
+
+func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 0
+	style.content_margin_top = 0
+	style.content_margin_right = 0
+	style.content_margin_bottom = 0
+	return style
+
+func _on_period_button_pressed() -> void:
+	_render_period_picker()
+	period_popup.popup_centered(Vector2i(520, 360))
 
 func _on_collection_pressed() -> void:
 	NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)

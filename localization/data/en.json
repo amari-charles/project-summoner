@@ -267,6 +267,8 @@
       "cost_short": "{cost} Enrollment",
       "year_tab": "Year {year}",
       "semester_tab": "Semester {semester}",
+      "period_button": "Year {year}, Semester {semester}",
+      "period_picker_title": "Academic Calendar",
       "viewing_current": "Current semester",
       "viewing_past": "Past semester",
       "viewing_future": "Future semester",
