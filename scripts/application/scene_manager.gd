@@ -17,6 +17,7 @@ const SCENE_TITLE_SCREEN: String = "res://scenes/meta/screens/title_screen.tscn"
 ## Campaign Scenes
 const SCENE_CAMPAIGN_MAP: String = "res://scenes/meta/screens/academy_hub.tscn"
 const SCENE_ACADEMY_CLASS_HALL: String = "res://scenes/meta/screens/academy_class_hall.tscn"
+const SCENE_ACADEMY_COURSE_PATH: String = "res://scenes/meta/screens/academy_course_path.tscn"
 const SCENE_LEGACY_CAMPAIGN_MAP: String = "res://scenes/meta/screens/campaign_map.tscn"
 const SCENE_EVENT_SCREEN: String = "res://scenes/meta/screens/event_screen.tscn"
 const SCENE_SUMMONER_SELECTION: String = "res://scenes/meta/screens/summoner_selection.tscn"

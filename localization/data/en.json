@@ -290,6 +290,13 @@
       "no_open_classes": "No open classes for this semester.",
       "no_my_classes": "No enrolled classes for this semester."
     },
+    "course_path": {
+      "status": "Next: {activity} ({index}/{total})",
+      "complete": "Course complete",
+      "done": "DONE",
+      "current": "NEXT",
+      "locked": "LOCKED"
+    },
     "hub": {
       "title": "Merlin Academy",
       "status": "Year {year}, Semester {semester} | Enrollments: {enrollments}",

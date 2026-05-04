@@ -1011,7 +1011,7 @@ public partial class BattleScene : Node3D
                 campaign.Call("CompleteNextAcademyActivity", courseId);
         }
 
-        NavigateToScene("res://scenes/meta/screens/academy_class_hall.tscn");
+        NavigateToScene("res://scenes/meta/screens/academy_course_path.tscn");
     }
 
     private void HandleMultiplayerCompletion(int winnerTeam)

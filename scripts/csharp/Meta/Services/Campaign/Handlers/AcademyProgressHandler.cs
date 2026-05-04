@@ -59,6 +59,17 @@ public class AcademyProgressHandler
         return result;
     }
 
+    public Godot.Collections.Dictionary GetCourse(string courseId)
+    {
+        var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
+        if (course == null)
+            return [];
+
+        var campaignProgress = GetOrCreateProgress();
+        var academy = campaignProgress.Academy;
+        return ToCourseDict(course, academy, course.Year, course.Semester);
+    }
+
     public bool EnrollCourse(string courseId)
     {
         var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));

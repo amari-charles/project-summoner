@@ -564,6 +564,11 @@ public partial class CampaignService : Node
         return _academy?.GetCoursesForSemester(year, semester) ?? [];
     }
 
+    public Godot.Collections.Dictionary GetAcademyCourse(string courseId)
+    {
+        return _academy?.GetCourse(courseId) ?? [];
+    }
+
     public bool EnrollAcademyCourse(string courseId)
     {
         var enrolled = _academy?.EnrollCourse(courseId) ?? false;

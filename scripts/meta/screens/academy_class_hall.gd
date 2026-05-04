@@ -12,12 +12,7 @@ class_name AcademyClassHall
 @onready var my_classes_button: Button = %MyClassesButton
 @onready var enrollment_summary_label: Label = %EnrollmentSummaryLabel
 @onready var course_groups: VBoxContainer = %CourseGroups
-@onready var detail_title_label: Label = %DetailTitleLabel
-@onready var detail_meta_label: Label = %DetailMetaLabel
-@onready var detail_description_label: Label = %DetailDescriptionLabel
-@onready var detail_rewards_label: Label = %DetailRewardsLabel
-@onready var detail_activities_label: Label = %DetailActivitiesLabel
-@onready var detail_action_button: Button = %DetailActionButton
+@onready var detail_panel: PanelContainer = %DetailPanel
 @onready var period_popup: PopupPanel = %PeriodPopup
 @onready var period_picker_title: Label = %PeriodPickerTitle
 @onready var period_options: GridContainer = %PeriodOptions
@@ -49,6 +44,7 @@ func _ready() -> void:
 	period_picker_title.text = Loc.t("academy.hub.period_picker_title")
 	open_classes_button.text = Loc.t("academy.class_hall.open_classes")
 	my_classes_button.text = Loc.t("academy.class_hall.my_classes")
+	detail_panel.visible = false
 
 	exit_button.pressed.connect(_on_exit_pressed)
 	advance_semester_button.pressed.connect(_on_advance_semester_pressed)
@@ -97,7 +93,6 @@ func _refresh() -> void:
 
 	_load_view_courses()
 	_render_course_groups()
-	_update_detail_panel()
 
 func _render_period_picker() -> void:
 	_clear_children(period_options)
@@ -128,11 +123,6 @@ func _load_view_courses() -> void:
 		var course: Dictionary = SafeTypeUtils.dict(item)
 		if not course.is_empty():
 			_courses.append(course)
-
-	if _selected_course_id.is_empty():
-		var visible_courses: Array[Dictionary] = _filtered_courses_for_active_tab()
-		if not visible_courses.is_empty():
-			_selected_course_id = SafeTypeUtils.string(visible_courses[0].get("id"))
 
 func _render_course_groups() -> void:
 	_clear_children(course_groups)
@@ -215,9 +205,7 @@ func _build_course_card(course: Dictionary) -> Control:
 	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	panel.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			_selected_course_id = course_id
-			_update_detail_panel()
-			_render_course_groups()
+			_activate_course(course)
 	)
 	panel.add_theme_stylebox_override(
 		"panel",
@@ -279,80 +267,18 @@ func _build_course_card(course: Dictionary) -> Control:
 
 	return panel
 
-func _update_detail_panel() -> void:
-	var course: Dictionary = _selected_course()
-	if course.is_empty():
-		detail_title_label.text = Loc.t("academy.hub.no_course_selected")
-		detail_meta_label.text = ""
-		detail_description_label.text = ""
-		detail_rewards_label.text = ""
-		detail_activities_label.text = ""
-		detail_action_button.visible = false
-		return
-
-	detail_action_button.visible = true
-	detail_title_label.text = _course_name(course)
-	detail_meta_label.text = _course_meta_text(course)
-	detail_description_label.text = _course_description(course)
-	detail_rewards_label.text = _reward_preview_text(SafeTypeUtils.array(course.get("reward_previews")))
-	detail_activities_label.text = _activities_text(SafeTypeUtils.array(course.get("activities")))
-	_configure_detail_action(course)
-
-func _configure_detail_action(course: Dictionary) -> void:
-	for connection: Dictionary in detail_action_button.pressed.get_connections():
-		detail_action_button.pressed.disconnect(connection["callable"])
-
+func _activate_course(course: Dictionary) -> void:
 	var course_id: String = SafeTypeUtils.string(course.get("id"))
 	var is_available: bool = SafeTypeUtils.bool_val(course.get("is_available"), false)
 	var is_enrolled: bool = SafeTypeUtils.bool_val(course.get("is_enrolled"), false)
-	var is_completed: bool = SafeTypeUtils.bool_val(course.get("is_completed"), false)
-
-	if is_completed:
-		detail_action_button.text = Loc.t("academy.hub.completed")
-		detail_action_button.disabled = true
-	elif is_enrolled:
-		detail_action_button.text = Loc.t("academy.hub.continue_course")
-		detail_action_button.disabled = false
-		detail_action_button.pressed.connect(func() -> void:
-			_continue_course(course)
-		)
-	elif is_available:
-		detail_action_button.text = Loc.t("academy.hub.enroll")
-		detail_action_button.disabled = false
-		detail_action_button.pressed.connect(func() -> void:
-			CampaignApi.enroll_academy_course(course_id)
-			_selected_course_id = course_id
-			_refresh()
-		)
-	else:
-		detail_action_button.text = _locked_action_text(course)
-		detail_action_button.disabled = true
-
-func _continue_course(course: Dictionary) -> void:
-	var course_id: String = SafeTypeUtils.string(course.get("id"))
-	var next_activity: Dictionary = SafeTypeUtils.dict(course.get("next_activity"))
-	var activity_type: String = SafeTypeUtils.string(next_activity.get("type"))
-	if activity_type == "PracticeBattle" or activity_type == "AssessmentBattle":
-		_launch_academy_battle(course_id, next_activity)
-	else:
-		CampaignApi.complete_next_academy_activity(course_id)
+	if is_enrolled:
+		BattleContext.select_academy_course(course_id)
+		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_PATH)
+	elif is_available and CampaignApi.enroll_academy_course(course_id):
+		_show_my_classes = true
+		BattleContext.select_academy_course(course_id)
+		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_PATH)
 	_refresh()
-
-func _course_meta_text(course: Dictionary) -> String:
-	return Loc.t(
-		"academy.hub.detail_meta",
-		{
-			"track": SafeTypeUtils.string(course.get("track")),
-			"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1),
-			"state": _course_state_label(course),
-		}
-	)
-
-func _reward_preview_text(rewards: Array) -> String:
-	if rewards.is_empty():
-		return Loc.t("academy.hub.no_rewards")
-
-	return Loc.t("academy.hub.rewards", {"rewards": _compact_rewards(rewards)})
 
 func _compact_rewards(rewards: Array) -> String:
 	var labels: Array[String] = []
@@ -363,47 +289,9 @@ func _compact_rewards(rewards: Array) -> String:
 			labels.append(Loc.t(label_key))
 	return ", ".join(labels)
 
-func _activities_text(activities: Array) -> String:
-	if activities.is_empty():
-		return ""
-
-	var labels: Array[String] = []
-	for item: Variant in activities:
-		var activity: Dictionary = SafeTypeUtils.dict(item)
-		var label_key: String = SafeTypeUtils.string(activity.get("label_key"))
-		labels.append(Loc.t(label_key) if not label_key.is_empty() else SafeTypeUtils.string(activity.get("type")))
-	return Loc.t("academy.hub.activities", {"activities": " -> ".join(labels)})
-
-func _selected_course() -> Dictionary:
-	for course: Dictionary in _courses:
-		if SafeTypeUtils.string(course.get("id")) == _selected_course_id:
-			return course
-	return {}
-
-func _course_belongs_to_view(course_id: String) -> bool:
-	for course: Dictionary in _courses:
-		if SafeTypeUtils.string(course.get("id")) == course_id:
-			return true
-	var course_data: Array = CampaignApi.get_academy_courses_for_semester(_view_year, _view_semester)
-	for item: Variant in course_data:
-		var course: Dictionary = SafeTypeUtils.dict(item)
-		if SafeTypeUtils.string(course.get("id")) == course_id:
-			return true
-	return false
-
 func _course_name(course: Dictionary) -> String:
 	var name_key: String = SafeTypeUtils.string(course.get("name_key"))
 	return Loc.t(name_key) if not name_key.is_empty() else SafeTypeUtils.string(course.get("id"))
-
-func _course_description(course: Dictionary) -> String:
-	var desc_key: String = SafeTypeUtils.string(course.get("description_key"))
-	return Loc.t(desc_key) if not desc_key.is_empty() else ""
-
-func _display_course_name(course_id: String) -> String:
-	for course: Dictionary in _courses:
-		if SafeTypeUtils.string(course.get("id")) == course_id:
-			return _course_name(course)
-	return course_id
 
 func _course_state_label(course: Dictionary) -> String:
 	if SafeTypeUtils.bool_val(course.get("is_completed")):
@@ -423,14 +311,6 @@ func _course_state_label(course: Dictionary) -> String:
 	if reason == "not_enough_enrollments":
 		return Loc.t("academy.hub.state_no_enrollments")
 	return Loc.t("academy.hub.state_locked")
-
-func _locked_action_text(course: Dictionary) -> String:
-	var reason: String = SafeTypeUtils.string(course.get("unavailable_reason"))
-	if reason == "past_semester":
-		return Loc.t("academy.hub.view_only")
-	if reason == "future_semester":
-		return Loc.t("academy.hub.future")
-	return Loc.t("academy.hub.locked")
 
 func _view_status_text() -> String:
 	var viewed_index: int = ((_view_year - 1) * 2) + _view_semester
@@ -482,12 +362,6 @@ func _on_exit_pressed() -> void:
 func _on_advance_semester_pressed() -> void:
 	CampaignApi.advance_academy_semester()
 	_refresh_from_current_progress()
-
-func _launch_academy_battle(course_id: String, activity: Dictionary) -> void:
-	var activity_id: String = SafeTypeUtils.string(activity.get("id"), course_id)
-	var battle_config: Dictionary = SafeTypeUtils.dict(activity.get("battle_config"))
-	BattleContext.configure_academy_battle(course_id, activity_id, battle_config)
-	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 func _redirect_to_summoner_selection() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)

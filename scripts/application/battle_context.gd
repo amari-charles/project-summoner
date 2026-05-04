@@ -148,11 +148,15 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 	if debug_mode: print("BattleContext: Configured practice battle")
 
 ## Configure for academy course activity battle
+func select_academy_course(course_id: String) -> void:
+	academy_course_id = course_id
+	academy_activity_id = ""
+
 func configure_academy_battle(course_id: String, activity_id: String, config: Dictionary = {}) -> void:
 	current_mode = BattleMode.ACADEMY
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_ACADEMY_CLASS_HALL
+	origin_scene = SceneManager.SCENE_ACADEMY_COURSE_PATH
 	_battle_id = activity_id
 	academy_course_id = course_id
 	academy_activity_id = activity_id
