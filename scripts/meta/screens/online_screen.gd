@@ -391,8 +391,6 @@ func _create_leaderboard_row(entry: Variant) -> HBoxContainer:
 ## =============================================================================
 
 func _on_close_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-
 	# Leave queue if in queue
 	if _state == ScreenState.IN_QUEUE and _matchmaking_service:
 		_matchmaking_service.LeaveQueue()

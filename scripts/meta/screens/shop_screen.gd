@@ -10,7 +10,7 @@ class_name ShopScreen
 @onready var leave_incomplete_button: Button = %LeaveIncompleteButton
 @onready var leave_complete_button: Button = %LeaveCompleteButton
 @onready var gold_label: Label = %GoldLabel
-@onready var offering_list: VBoxContainer = %OfferingList
+@onready var offering_list: GridContainer = %OfferingList
 @onready var detail_panel: PanelContainer = %DetailPanel
 @onready var offering_name_label: Label = %OfferingNameLabel
 @onready var price_label: Label = %PriceLabel
@@ -21,6 +21,9 @@ class_name ShopScreen
 
 ## Offering card scene
 const OFFERING_CARD_SCENE: PackedScene = preload("res://scenes/meta/components/offering_card.tscn")
+const OFFERING_CARD_WIDTH: int = 192
+const OFFERING_GRID_GAP: int = 16
+const DETAIL_PANEL_WIDTH: int = 360
 
 ## State
 var current_offerings: Array = []
@@ -84,6 +87,7 @@ func _ready() -> void:
 	_update_gold_display()
 	_load_offerings()
 	_clear_detail_panel()
+	_update_offering_grid_columns()
 
 func _exit_tree() -> void:
 	# Disconnect signals to prevent errors
@@ -148,6 +152,7 @@ func _load_offerings() -> void:
 		offering_list.add_child(offering_card)
 		offering_card.set_offering(offering)
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
+	_update_offering_grid_columns()
 
 func _update_gold_display() -> void:
 	var resources: Dictionary = ProfileRepoApi.get_resources_dict()
@@ -199,6 +204,7 @@ func _on_purchase_pressed() -> void:
 
 func _on_offering_card_clicked(offering: Dictionary) -> void:
 	_update_detail_panel(offering)
+	_sync_offering_selection()
 
 func _on_purchase_completed(offering_id: String, _shop_id: String) -> void:
 	# Track that player made a purchase
@@ -238,13 +244,11 @@ func _on_caravan_sequence_complete(_sequence: Resource) -> void:
 
 ## Handle "Leave" button (exit without completing - can return later)
 func _on_leave_incomplete_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if leave_incomplete_popup:
 		leave_incomplete_popup.popup_centered()
 
 ## Handle "Leave without purchasing" button (completes event - allows progression)
 func _on_leave_complete_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if leave_complete_popup:
 		# Update popup text based on whether player made a purchase
 		if has_purchased:
@@ -262,7 +266,6 @@ func _on_leave_complete_confirmed() -> void:
 	_leave_shop(true)  # Complete the event
 
 func _on_close_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	# This should only be called for non-caravan shops
 	if is_caravan_event:
 		push_warning("ShopScreen: Close button pressed for caravan event (should be hidden)")
@@ -288,3 +291,21 @@ func _leave_shop(complete_event: bool = true) -> void:
 	else:
 		# Default: return to campaign map (main hub)
 		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_update_offering_grid_columns()
+
+func _update_offering_grid_columns() -> void:
+	if not is_instance_valid(offering_list):
+		return
+	var available_width: float = maxf(420.0, size.x - DETAIL_PANEL_WIDTH - 180.0)
+	var column_width: float = OFFERING_CARD_WIDTH + OFFERING_GRID_GAP
+	offering_list.columns = maxi(2, int(floor((available_width + OFFERING_GRID_GAP) / column_width)))
+
+func _sync_offering_selection() -> void:
+	var selected_id: String = selected_offering.get("offering_id", "")
+	for child: Node in offering_list.get_children():
+		if child is OfferingCard:
+			var card: OfferingCard = child as OfferingCard
+			card.set_selected(card.offering.get("offering_id", "") == selected_id)

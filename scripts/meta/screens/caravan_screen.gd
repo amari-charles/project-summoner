@@ -155,7 +155,6 @@ func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
 		_update_detail_panel(selected_offering)
 
 func _on_leave_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_leave_caravan()
 
 func _leave_caravan() -> void:

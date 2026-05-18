@@ -288,7 +288,21 @@
       "my_classes": "My Classes",
       "approvals": "Enrollment Approvals: {count}",
       "no_open_classes": "No open classes for this semester.",
-      "no_my_classes": "No classes on record for this semester."
+      "no_my_classes": "No classes on record for this semester.",
+      "show_details": "Show Details",
+      "hide_details": "Hide Details",
+      "current_schedule": "Current Schedule",
+      "completed_courses": "Completed Courses",
+      "foundation_choice": "Foundation Choice",
+      "element_elective": "Element Elective",
+      "choice_group": "Course Choice",
+      "track_foundation": "Foundation Track",
+      "track_affinity": "Affinity Track",
+      "track_binding": "Binding Track",
+      "track_arcana": "Arcana Track",
+      "track_warding": "Warding Track",
+      "track_warfare": "Warfare Track",
+      "track_command": "Command Track"
     },
     "course_modal": {
       "syllabus": "Syllabus",
@@ -354,7 +368,17 @@
       "state_future": "Future",
       "state_prereq": "Prerequisite missing",
       "state_no_enrollments": "No Enrollments left",
+      "state_choice_taken": "Choice already made",
       "state_locked": "Locked"
+    },
+    "track": {
+      "foundation": "Foundation",
+      "affinity": "Affinity",
+      "binding": "Binding",
+      "arcana": "Arcana",
+      "warding": "Warding",
+      "warfare": "Warfare",
+      "command": "Command"
     },
     "activity": {
       "lesson": "Lesson",

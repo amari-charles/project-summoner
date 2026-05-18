@@ -203,6 +203,15 @@ public class AcademyProgressHandler
         if (!CanAdvanceSemester(academy))
             return false;
 
+        var nextPeriod = GetNextSemester(academy.CurrentYear, academy.CurrentSemester);
+        if (!AcademyCourseCatalog.ForSemester(nextPeriod.year, nextPeriod.semester).Any())
+        {
+            GD.PushWarning(
+                $"AcademyProgressHandler: Cannot advance to unauthored academy semester year={nextPeriod.year} semester={nextPeriod.semester}"
+            );
+            return false;
+        }
+
         if (academy.CurrentSemester == 1)
         {
             academy.CurrentSemester = 2;
@@ -218,10 +227,14 @@ public class AcademyProgressHandler
             academy.CurrentSemester
         );
         academy.EnrolledCourses.Clear();
+        AssignRequiredCourses(academy);
 
         _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
         return true;
     }
+
+    private static (int year, int semester) GetNextSemester(int year, int semester) =>
+        semester == 1 ? (year, 2) : (year + 1, 1);
 
     private CampaignProgress GetOrCreateProgress()
     {
@@ -247,10 +260,43 @@ public class AcademyProgressHandler
         {
             academy.RemainingEnrollments = GetDefaultEnrollments(1, 1);
         }
+
+        AssignRequiredCourses(academy);
     }
 
     private static int GetDefaultEnrollments(int year, int semester) =>
         year == 1 && semester is 1 or 2 ? DefaultSemesterEnrollments : DefaultSemesterEnrollments;
+
+    private static void AssignRequiredCourses(AcademyProgress academy)
+    {
+        foreach (
+            var course in AcademyCourseCatalog
+                .ForSemester(academy.CurrentYear, academy.CurrentSemester)
+                .Where(course => course.IsRequired)
+        )
+        {
+            if (academy.CompletedCourses.Contains(course.Id))
+                continue;
+
+            if (
+                course.Prerequisites.Any(prerequisite =>
+                    !academy.CompletedCourses.Contains(prerequisite)
+                )
+            )
+                continue;
+
+            if (!academy.EnrolledCourses.Contains(course.Id))
+            {
+                academy.RemainingEnrollments = Math.Max(
+                    0,
+                    academy.RemainingEnrollments - course.EnrollmentCost
+                );
+                academy.EnrolledCourses.Add(course.Id);
+            }
+
+            academy.CourseActivityIndex.TryAdd((string)course.Id, 0);
+        }
+    }
 
     private IEnumerable<AcademyCourseDefinition> GetCandidateCourses(AcademyProgress academy) =>
         GetCandidateCoursesForSemester(academy, academy.CurrentYear, academy.CurrentSemester);
@@ -337,9 +383,13 @@ public class AcademyProgressHandler
             ["year"] = course.Year,
             ["semester"] = course.Semester,
             ["track"] = course.Track.ToString(),
+            ["track_title_key"] = GetTrackTitleKey(course.Track),
             ["enrollment_cost"] = course.EnrollmentCost,
             ["is_required"] = course.IsRequired,
             ["choice_group_id"] = course.ChoiceGroupId,
+            ["group_id"] = GetCourseGroupId(course),
+            ["group_title_key"] = GetCourseGroupTitleKey(course),
+            ["group_sort_order"] = GetCourseGroupSortOrder(course),
             ["is_available"] = validation.available,
             ["unavailable_reason"] = validation.reason,
             ["is_current_semester"] = isCurrentSemester,
@@ -351,6 +401,74 @@ public class AcademyProgressHandler
             ["reward_previews"] = rewards,
         };
     }
+
+    private static string GetCourseGroupId(AcademyCourseDefinition course)
+    {
+        if (course.IsRequired)
+            return "required";
+
+        if (!string.IsNullOrEmpty(course.ChoiceGroupId))
+            return course.ChoiceGroupId;
+
+        return $"track_{GetTrackKey(course.Track)}";
+    }
+
+    private static string GetCourseGroupTitleKey(AcademyCourseDefinition course)
+    {
+        if (course.IsRequired)
+            return "academy.hub.group_required";
+
+        return course.ChoiceGroupId switch
+        {
+            "year_1_semester_1_foundation" => "academy.class_hall.foundation_choice",
+            "year_1_semester_1_element" => "academy.class_hall.element_elective",
+            "" => $"academy.class_hall.track_{GetTrackKey(course.Track)}",
+            _ => "academy.class_hall.choice_group",
+        };
+    }
+
+    private static int GetCourseGroupSortOrder(AcademyCourseDefinition course)
+    {
+        if (course.IsRequired)
+            return 0;
+
+        return course.ChoiceGroupId switch
+        {
+            "year_1_semester_1_foundation" => 10,
+            "year_1_semester_1_element" => 20,
+            "" => 30 + (GetTrackSortOrder(course.Track) * 10),
+            _ => 900,
+        };
+    }
+
+    private static int GetTrackSortOrder(AcademyTrack track) =>
+        track switch
+        {
+            AcademyTrack.Foundation => 0,
+            AcademyTrack.Binding => 1,
+            AcademyTrack.Arcana => 2,
+            AcademyTrack.Affinity => 3,
+            AcademyTrack.Warding => 4,
+            AcademyTrack.Warfare => 5,
+            AcademyTrack.Command => 6,
+            _ => 99,
+        };
+
+    private static string GetTrackTitleKey(AcademyTrack track) =>
+        $"academy.track.{GetTrackKey(track)}";
+
+    private static string GetTrackKey(AcademyTrack track) =>
+        track switch
+        {
+            AcademyTrack.Foundation => "foundation",
+            AcademyTrack.Binding => "binding",
+            AcademyTrack.Arcana => "arcana",
+            AcademyTrack.Affinity => "affinity",
+            AcademyTrack.Warding => "warding",
+            AcademyTrack.Warfare => "warfare",
+            AcademyTrack.Command => "command",
+            _ => track.ToString().ToLowerInvariant(),
+        };
 
     private static Godot.Collections.Dictionary ToActivityDict(
         AcademyCourseActivity activity,
@@ -434,6 +552,9 @@ public class AcademyProgressHandler
 
         if (academy.EnrolledCourses.Contains(course.Id))
             return (false, "enrolled");
+
+        if (!GetCandidateCourses(academy).Any(candidate => candidate.Id == course.Id))
+            return (false, GetSemesterRelation(academy, course.Year, course.Semester));
 
         if (academy.RemainingEnrollments < course.EnrollmentCost)
             return (false, "not_enough_enrollments");

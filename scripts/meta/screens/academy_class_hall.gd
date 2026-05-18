@@ -12,7 +12,6 @@ class_name AcademyClassHall
 @onready var my_classes_button: Button = %MyClassesButton
 @onready var enrollment_summary_label: Label = %EnrollmentSummaryLabel
 @onready var course_groups: VBoxContainer = %CourseGroups
-@onready var detail_panel: PanelContainer = %DetailPanel
 @onready var period_popup: PopupPanel = %PeriodPopup
 @onready var period_picker_title: Label = %PeriodPickerTitle
 @onready var period_options: GridContainer = %PeriodOptions
@@ -33,6 +32,8 @@ const COLOR_PANEL_SELECTED: Color = Color(0.18, 0.215, 0.25, 1.0)
 const COLOR_PANEL_LOCKED: Color = Color(0.105, 0.112, 0.125, 1.0)
 const COLOR_ACCENT: Color = Color(0.82, 0.68, 0.36, 1.0)
 const COLOR_TEXT_MUTED: Color = Color(0.72, 0.75, 0.78, 1.0)
+const COURSE_MODAL_TARGET_SIZE: Vector2i = Vector2i(720, 520)
+const COURSE_MODAL_MIN_SIZE: Vector2i = Vector2i(480, 320)
 
 var _current_year: int = 1
 var _current_semester: int = 1
@@ -41,7 +42,7 @@ var _view_semester: int = 1
 var _courses: Array[Dictionary] = []
 var _selected_course_id: String = ""
 var _show_my_classes: bool = true
-var _previewed_course: Dictionary = {}
+var _selected_course: Dictionary = {}
 
 func _ready() -> void:
 	if SummonerSelectionApi.get_active_summoner_id().is_empty():
@@ -55,7 +56,6 @@ func _ready() -> void:
 	open_classes_button.text = Loc.t("academy.class_hall.open_classes")
 	my_classes_button.text = Loc.t("academy.class_hall.my_classes")
 	course_modal_close_button.text = Loc.t("academy.course_modal.close")
-	detail_panel.visible = false
 
 	exit_button.pressed.connect(_on_exit_pressed)
 	advance_semester_button.pressed.connect(_on_advance_semester_pressed)
@@ -65,11 +65,13 @@ func _ready() -> void:
 	open_classes_button.pressed.connect(func() -> void:
 		_show_my_classes = false
 		_selected_course_id = ""
+		_selected_course = {}
 		_refresh()
 	)
 	my_classes_button.pressed.connect(func() -> void:
 		_show_my_classes = true
 		_selected_course_id = ""
+		_selected_course = {}
 		_refresh()
 	)
 
@@ -105,6 +107,7 @@ func _refresh() -> void:
 	enrollment_summary_label.text = Loc.t("academy.class_hall.approvals", {"count": enrollments})
 
 	_load_view_courses()
+	_sync_selected_course()
 	_render_course_groups()
 
 func _render_period_picker() -> void:
@@ -125,6 +128,7 @@ func _render_period_picker() -> void:
 				_view_year = year
 				_view_semester = semester
 				_selected_course_id = ""
+				_selected_course = {}
 				period_popup.hide()
 				_refresh()
 			)
@@ -140,28 +144,10 @@ func _load_view_courses() -> void:
 func _render_course_groups() -> void:
 	_clear_children(course_groups)
 
-	var required: Array[Dictionary] = []
-	var chosen: Array[Dictionary] = []
-	var available: Array[Dictionary] = []
-	var locked: Array[Dictionary] = []
-
-	for course: Dictionary in _filtered_courses_for_active_tab():
-		if SafeTypeUtils.bool_val(course.get("is_enrolled")) or SafeTypeUtils.bool_val(course.get("is_completed")):
-			chosen.append(course)
-		elif SafeTypeUtils.bool_val(course.get("is_required")):
-			required.append(course)
-		elif SafeTypeUtils.bool_val(course.get("is_available")):
-			available.append(course)
-		else:
-			locked.append(course)
-
 	if _show_my_classes:
-		_add_course_group("academy.class_hall.my_classes", chosen)
+		_render_schedule_groups()
 	else:
-		_add_course_group("academy.hub.group_required", required)
-		_add_course_group("academy.hub.group_available", available)
-		if not locked.is_empty():
-			_add_course_group("academy.hub.group_locked", locked)
+		_render_open_course_groups()
 
 	if course_groups.get_child_count() == 0:
 		var empty: Label = Label.new()
@@ -169,6 +155,50 @@ func _render_course_groups() -> void:
 		empty.add_theme_font_size_override("font_size", 18)
 		empty.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
 		course_groups.add_child(empty)
+
+func _render_schedule_groups() -> void:
+	var active: Array[Dictionary] = []
+	var completed: Array[Dictionary] = []
+
+	for course: Dictionary in _filtered_courses_for_active_tab():
+		if SafeTypeUtils.bool_val(course.get("is_completed")):
+			completed.append(course)
+		else:
+			active.append(course)
+
+	_add_course_group("academy.class_hall.current_schedule", _sort_courses_for_display(active))
+	_add_course_group("academy.class_hall.completed_courses", _sort_courses_for_display(completed))
+
+func _render_open_course_groups() -> void:
+	var groups: Dictionary = {}
+
+	for course: Dictionary in _filtered_courses_for_active_tab():
+		var group_id: String = SafeTypeUtils.string(course.get("group_id"), "available")
+		if not groups.has(group_id):
+			groups[group_id] = {
+				"title_key": SafeTypeUtils.string(course.get("group_title_key"), "academy.class_hall.choice_group"),
+				"sort_order": SafeTypeUtils.int_val(course.get("group_sort_order"), 999),
+				"courses": [],
+			}
+		groups[group_id]["courses"].append(course)
+
+	var group_defs: Array[Dictionary] = []
+	for group: Dictionary in groups.values():
+		group_defs.append(group)
+
+	group_defs.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var sort_a: int = SafeTypeUtils.int_val(a.get("sort_order"), 999)
+		var sort_b: int = SafeTypeUtils.int_val(b.get("sort_order"), 999)
+		if sort_a != sort_b:
+			return sort_a < sort_b
+		return SafeTypeUtils.string(a.get("title_key")) < SafeTypeUtils.string(b.get("title_key"))
+	)
+
+	for group: Dictionary in group_defs:
+		_add_course_group(
+			SafeTypeUtils.string(group.get("title_key"), "academy.class_hall.choice_group"),
+			_sort_courses_for_display(SafeTypeUtils.array(group.get("courses")))
+		)
 
 func _filtered_courses_for_active_tab() -> Array[Dictionary]:
 	var filtered: Array[Dictionary] = []
@@ -180,6 +210,20 @@ func _filtered_courses_for_active_tab() -> Array[Dictionary]:
 		elif not _show_my_classes and not is_enrolled and not is_completed:
 			filtered.append(course)
 	return filtered
+
+func _sync_selected_course() -> void:
+	_selected_course = {}
+	if _selected_course_id.is_empty():
+		_selected_course_id = ""
+		return
+
+	var filtered: Array[Dictionary] = _filtered_courses_for_active_tab()
+	for course: Dictionary in filtered:
+		if SafeTypeUtils.string(course.get("id")) == _selected_course_id:
+			_selected_course = course
+			return
+
+	_selected_course_id = ""
 
 func _add_course_group(title_key: String, courses: Array[Dictionary]) -> void:
 	if courses.is_empty():
@@ -247,7 +291,7 @@ func _build_course_card(course: Dictionary) -> Control:
 
 	var track: Label = Label.new()
 	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	track.text = SafeTypeUtils.string(course.get("track"))
+	track.text = _track_label(course)
 	track.add_theme_font_size_override("font_size", 12)
 	track.add_theme_color_override("font_color", COLOR_ACCENT)
 	track.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -290,31 +334,24 @@ func _build_course_card(course: Dictionary) -> Control:
 	return panel
 
 func _activate_course(course: Dictionary) -> void:
-	_show_course_modal(course)
+	_selected_course = course.duplicate(true)
+	_selected_course_id = SafeTypeUtils.string(course.get("id"))
+	_render_course_groups()
+	_show_course_modal(_selected_course)
 
 func _show_course_modal(course: Dictionary) -> void:
-	_previewed_course = course.duplicate(true)
-	var course_id: String = SafeTypeUtils.string(course.get("id"))
 	var is_available: bool = SafeTypeUtils.bool_val(course.get("is_available"), false)
 	var is_enrolled: bool = SafeTypeUtils.bool_val(course.get("is_enrolled"), false)
 	var is_completed: bool = SafeTypeUtils.bool_val(course.get("is_completed"), false)
 
-	_selected_course_id = course_id
 	course_modal_eyebrow_label.text = Loc.t("academy.course_modal.syllabus")
 	course_modal_title_label.text = _course_name(course)
-	course_modal_meta_label.text = Loc.t(
-		"academy.hub.detail_meta",
-		{
-			"track": SafeTypeUtils.string(course.get("track")),
-			"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1),
-			"state": _course_state_label(course),
-		}
-	)
+	course_modal_meta_label.text = _compact_course_meta(course)
 	course_modal_description_label.text = _course_description(course)
 	course_modal_rewards_label.text = _reward_preview_text(SafeTypeUtils.array(course.get("reward_previews")))
 	course_modal_activities_label.text = _activities_preview_text(SafeTypeUtils.array(course.get("activities")))
 
-	course_modal_action_button.visible = is_available or is_enrolled or is_completed
+	course_modal_action_button.visible = true
 	course_modal_action_button.disabled = false
 	if is_enrolled:
 		course_modal_action_button.text = Loc.t("academy.hub.continue_course")
@@ -322,26 +359,45 @@ func _show_course_modal(course: Dictionary) -> void:
 		course_modal_action_button.text = Loc.t("academy.course_modal.review")
 	elif is_available:
 		course_modal_action_button.text = Loc.t("academy.hub.enroll")
+	else:
+		course_modal_action_button.text = _course_state_label(course)
+		course_modal_action_button.disabled = true
 
-	course_modal.popup_centered(Vector2i(620, 440))
-	_refresh()
+	var modal_size: Vector2i = _course_modal_size()
+	course_modal.min_size = Vector2i(
+		mini(COURSE_MODAL_MIN_SIZE.x, modal_size.x),
+		mini(COURSE_MODAL_MIN_SIZE.y, modal_size.y)
+	)
+	course_modal.max_size = modal_size
+	course_modal.size = modal_size
+	course_modal.popup_centered_clamped(modal_size, 0.72)
 
 func _hide_course_modal() -> void:
-	_previewed_course = {}
 	course_modal.hide()
 
 func _on_course_modal_action_pressed() -> void:
-	var course: Dictionary = _previewed_course.duplicate(true)
-	if course.is_empty():
+	_activate_selected_course()
+
+func _course_modal_size() -> Vector2i:
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var max_width: int = maxi(360, int(viewport_size.x) - 96)
+	var max_height: int = maxi(280, int(viewport_size.y * 0.72))
+	return Vector2i(
+		mini(COURSE_MODAL_TARGET_SIZE.x, max_width),
+		mini(COURSE_MODAL_TARGET_SIZE.y, max_height)
+	)
+
+func _activate_selected_course() -> void:
+	if _selected_course.is_empty():
 		return
 
-	var course_id: String = SafeTypeUtils.string(course.get("id"))
-	if SafeTypeUtils.bool_val(course.get("is_enrolled")) or SafeTypeUtils.bool_val(course.get("is_completed")):
+	var course_id: String = SafeTypeUtils.string(_selected_course.get("id"))
+	if SafeTypeUtils.bool_val(_selected_course.get("is_enrolled")) or SafeTypeUtils.bool_val(_selected_course.get("is_completed")):
 		BattleContext.select_academy_course(course_id)
 		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_PATH)
 		return
 
-	if SafeTypeUtils.bool_val(course.get("is_available")) and CampaignApi.enroll_academy_course(course_id):
+	if SafeTypeUtils.bool_val(_selected_course.get("is_available")) and CampaignApi.enroll_academy_course(course_id):
 		_show_my_classes = true
 		BattleContext.select_academy_course(course_id)
 		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_PATH)
@@ -370,6 +426,28 @@ func _activities_preview_text(activities: Array) -> String:
 			labels.append(Loc.t(label_key))
 	return Loc.t("academy.hub.activities", {"activities": " -> ".join(labels)})
 
+func _compact_course_meta(course: Dictionary) -> String:
+	var parts: Array[String] = [
+		_track_label(course),
+		Loc.t("academy.hub.cost_short", {"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1)}),
+		_course_state_label(course),
+	]
+	var reason: String = _locked_reason_text(course)
+	if not reason.is_empty():
+		parts.append(reason)
+	return "  |  ".join(parts)
+
+func _locked_reason_text(course: Dictionary) -> String:
+	if SafeTypeUtils.bool_val(course.get("is_available")) \
+		or SafeTypeUtils.bool_val(course.get("is_enrolled")) \
+		or SafeTypeUtils.bool_val(course.get("is_completed")):
+		return ""
+
+	var reason: String = SafeTypeUtils.string(course.get("unavailable_reason"))
+	if reason.is_empty():
+		return ""
+	return _course_state_label(course)
+
 func _course_name(course: Dictionary) -> String:
 	var name_key: String = SafeTypeUtils.string(course.get("name_key"))
 	return Loc.t(name_key) if not name_key.is_empty() else SafeTypeUtils.string(course.get("id"))
@@ -395,7 +473,52 @@ func _course_state_label(course: Dictionary) -> String:
 		return Loc.t("academy.hub.state_prereq")
 	if reason == "not_enough_enrollments":
 		return Loc.t("academy.hub.state_no_enrollments")
+	if reason == "choice_group_taken":
+		return Loc.t("academy.hub.state_choice_taken")
 	return Loc.t("academy.hub.state_locked")
+
+func _sort_courses_for_display(courses: Array) -> Array[Dictionary]:
+	var sorted: Array[Dictionary] = []
+	for item: Variant in courses:
+		var course: Dictionary = SafeTypeUtils.dict(item)
+		if not course.is_empty():
+			sorted.append(course)
+
+	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var state_a: int = _course_state_sort_value(a)
+		var state_b: int = _course_state_sort_value(b)
+		if state_a != state_b:
+			return state_a < state_b
+
+		var group_a: int = SafeTypeUtils.int_val(a.get("group_sort_order"), 999)
+		var group_b: int = SafeTypeUtils.int_val(b.get("group_sort_order"), 999)
+		if group_a != group_b:
+			return group_a < group_b
+
+		return _course_name(a) < _course_name(b)
+	)
+	return sorted
+
+func _course_state_sort_value(course: Dictionary) -> int:
+	if SafeTypeUtils.bool_val(course.get("is_enrolled")):
+		return 0
+	if SafeTypeUtils.bool_val(course.get("is_available")):
+		return 1
+	if SafeTypeUtils.bool_val(course.get("is_completed")):
+		return 2
+	return 3
+
+func _track_label(course: Dictionary) -> String:
+	var title_key: String = SafeTypeUtils.string(course.get("track_title_key"))
+	if not title_key.is_empty():
+		var title: String = Loc.t(title_key)
+		if title != title_key:
+			return title
+
+	var track_id: String = SafeTypeUtils.string(course.get("track"))
+	var key: String = "academy.track.%s" % track_id.to_snake_case()
+	var translated: String = Loc.t(key)
+	return translated if translated != key else track_id
 
 func _view_status_text() -> String:
 	var viewed_index: int = ((_view_year - 1) * 2) + _view_semester

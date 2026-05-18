@@ -2,6 +2,16 @@
 
 ## Project Guidelines
 
+### Design Docs Are Source Of Truth
+
+Product/design docs in `docs/design/`, lore docs, and user-authored implementation specs capture product intent. Do not edit those docs to make them match current code when code has drifted.
+
+- If implementation conflicts with product docs, treat the code as suspect first.
+- Fix implementation when the doc intent is clear and the change is safely scoped.
+- If the doc intent is ambiguous, outdated, or too large to implement safely, report the mismatch and ask for direction.
+- Only change product/design intent docs when the user explicitly asks to revise the design decision itself.
+- Technical validation docs may be corrected for factual metadata, such as test paths or command names, but must not rewrite product intent.
+
 ### Development Philosophy: Foundation First, Content Later
 
 **CRITICAL PRINCIPLE: Do NOT add polished artwork or extensive content at this stage.**

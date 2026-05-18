@@ -35,12 +35,122 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
+    public void FreshAcademyProgress_AutoEnrollsRequiredIntroCourse()
+    {
+        var repo = CreateRepo("academy_fresh_required_intro");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        service.GetAcademyProgress();
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
+        AssertThat(progress.RemainingEnrollments).IsEqual(2);
+        AssertThat(progress.EnrolledCourses).Contains(CourseIds.IntroductionToMagic101);
+        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101]).IsEqual(0);
+
+        var intro = service.GetAcademyCourse((string)CourseIds.IntroductionToMagic101);
+        AssertThat(intro["is_enrolled"].AsBool()).IsTrue();
+        AssertThat(intro["is_available"].AsBool()).IsFalse();
+    }
+
+    [TestCase]
+    public void EnrollAcademyCourse_RejectsFutureSemesterCourse()
+    {
+        var repo = CreateRepo("academy_reject_future_course");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        service.GetAcademyProgress();
+
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroductionToEmpowerment))
+            .IsFalse();
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
+        AssertThat(progress.CurrentYear).IsEqual(1);
+        AssertThat(progress.CurrentSemester).IsEqual(1);
+        AssertThat(progress.EnrolledCourses).NotContains(CourseIds.IntroductionToEmpowerment);
+        AssertThat(progress.RemainingEnrollments).IsEqual(2);
+    }
+
+    [TestCase]
+    public void GetAcademyCourse_ExposesDisplayGroupMetadata()
+    {
+        var repo = CreateRepo("academy_course_display_groups");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        service.GetAcademyProgress();
+
+        var required = service.GetAcademyCourse((string)CourseIds.IntroductionToMagic101);
+        var foundationChoice = service.GetAcademyCourse((string)CourseIds.SummoningBasics);
+        var elementElective = service.GetAcademyCourse((string)CourseIds.IntroToFire);
+        var trackCourse = service.GetAcademyCourse((string)CourseIds.IntroductionToEmpowerment);
+
+        AssertThat(required["group_id"].AsString()).IsEqual("required");
+        AssertThat(required["group_title_key"].AsString()).IsEqual("academy.hub.group_required");
+        AssertThat(required["track_title_key"].AsString()).IsEqual("academy.track.foundation");
+
+        AssertThat(foundationChoice["group_id"].AsString())
+            .IsEqual("year_1_semester_1_foundation");
+        AssertThat(foundationChoice["group_title_key"].AsString())
+            .IsEqual("academy.class_hall.foundation_choice");
+
+        AssertThat(elementElective["group_id"].AsString()).IsEqual("year_1_semester_1_element");
+        AssertThat(elementElective["group_title_key"].AsString())
+            .IsEqual("academy.class_hall.element_elective");
+
+        AssertThat(trackCourse["group_id"].AsString()).IsEqual("track_foundation");
+        AssertThat(trackCourse["group_title_key"].AsString())
+            .IsEqual("academy.class_hall.track_foundation");
+        AssertThat(trackCourse["group_sort_order"].AsInt32()).IsGreater(20);
+    }
+
+    [TestCase]
+    public void EnrollAcademyCourse_AllowsUntakenIntroElementsInSecondSemester()
+    {
+        var repo = CreateRepo("academy_second_semester_intro_element");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        CompleteIntroCourse(service);
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroToFire)).IsTrue();
+        AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+        AssertThat(service.CompleteAcademyCourse((string)CourseIds.IntroToFire)).IsTrue();
+        AssertThat(service.AdvanceAcademySemester()).IsTrue();
+
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroToWater)).IsTrue();
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
+        AssertThat(progress.CurrentSemester).IsEqual(2);
+        AssertThat(progress.EnrolledCourses).Contains(CourseIds.IntroToWater);
+        AssertThat(progress.RemainingEnrollments).IsEqual(1);
+    }
+
+    [TestCase]
+    public void AdvanceAcademySemester_RejectsUnauthoredFutureSemester()
+    {
+        var repo = CreateRepo("academy_reject_unauthored_future_semester");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        service.GetAcademyProgress();
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole);
+        progress.Academy.CurrentYear = 1;
+        progress.Academy.CurrentSemester = 2;
+        progress.Academy.RemainingEnrollments = 0;
+        progress.Academy.EnrolledCourses.Clear();
+        progress.Academy.CompletedCourses.Add(CourseIds.IntroductionToMagic101);
+        progress.Academy.CompletedCourses.Add(CourseIds.FoundationsOfMagicII);
+        repo.UpdateCampaignProgress(SummonerIds.Cole, progress);
+
+        AssertThat(service.AdvanceAcademySemester()).IsFalse();
+
+        var updated = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
+        AssertThat(updated.CurrentYear).IsEqual(1);
+        AssertThat(updated.CurrentSemester).IsEqual(2);
+    }
+
+    [TestCase]
     public void CompleteAcademyActivity_UsesExplicitActivityAndExposesStartState()
     {
         var repo = CreateRepo("academy_activity_state");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-
-        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroductionToMagic101)).IsTrue();
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -117,7 +227,6 @@ public class AcademyProgressServiceTest
             )
         );
 
-        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroductionToMagic101)).IsTrue();
         AssertThat(
                 service.CompleteAcademyActivity(
                     (string)CourseIds.IntroductionToMagic101,
@@ -166,6 +275,31 @@ public class AcademyProgressServiceTest
         if (!repo.IsSummonerUnlocked(SummonerIds.Cole))
             repo.UnlockSummoner(SummonerIds.Cole);
         return repo;
+    }
+
+    private static void CompleteIntroCourse(CampaignService service)
+    {
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_lesson"
+                )
+            )
+            .IsTrue();
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_practice"
+                )
+            )
+            .IsTrue();
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_assessment"
+                )
+            )
+            .IsTrue();
     }
 
     private T CreateNode<T>()
