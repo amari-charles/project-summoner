@@ -12,6 +12,8 @@ namespace Fateforged.Meta.Campaign.Handlers;
 public class AcademyProgressHandler
 {
     private const int DefaultSemesterEnrollments = 3;
+    private const string RewardGrantStateGrantable = "grantable";
+    private const string RewardGrantStatePreviewOnly = "preview_only";
 
     private readonly IProfileRepository _profileRepo;
     private readonly Func<SummonerId> _getActiveSummonerFunc;
@@ -346,11 +348,14 @@ public class AcademyProgressHandler
         var rewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var reward in course.Rewards)
         {
+            var grantState = GetRewardGrantState(reward);
             rewards.Add(
                 new Godot.Collections.Dictionary
                 {
                     ["kind"] = reward.Kind.ToString(),
                     ["preview_type"] = reward.PreviewType.ToString(),
+                    ["grant_state"] = grantState,
+                    ["is_grantable"] = grantState == RewardGrantStateGrantable,
                     ["label_key"] = reward.LabelKey,
                     ["element"] = reward.Element,
                     ["card_role"] = reward.CardRole,
@@ -609,10 +614,15 @@ public class AcademyProgressHandler
 
         foreach (var reward in course.Rewards)
         {
-            if (reward.Kind == AcademyRewardKind.Card && reward.CardId.HasValue)
+            if (GetRewardGrantState(reward) == RewardGrantStateGrantable)
             {
                 _grantCardFunc((string)reward.CardId, reward.Rarity);
             }
         }
     }
+
+    private static string GetRewardGrantState(AcademyCourseReward reward) =>
+        reward.Kind == AcademyRewardKind.Card && reward.CardId.HasValue
+            ? RewardGrantStateGrantable
+            : RewardGrantStatePreviewOnly;
 }

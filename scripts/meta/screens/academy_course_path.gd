@@ -292,6 +292,8 @@ func _reward_preview_text(rewards: Array) -> String:
 	var labels: Array[String] = []
 	for item: Variant in rewards:
 		var reward: Dictionary = SafeTypeUtils.dict(item)
+		if not SafeTypeUtils.bool_val(reward.get("is_grantable")):
+			continue
 		var label_key: String = SafeTypeUtils.string(reward.get("label_key"))
 		if not label_key.is_empty():
 			labels.append(Loc.t(label_key))

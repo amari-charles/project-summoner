@@ -2,6 +2,7 @@ namespace Fateforged.Tests.Services;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Summoners;
@@ -258,6 +259,49 @@ public class AcademyProgressServiceTest
         AssertThat(granted).Contains(CardIds.ManaBolt);
     }
 
+    [TestCase]
+    public void CompleteAcademyActivity_PreviewOnlyRewardsCompleteWithoutGrantingCards()
+    {
+        var repo = CreateRepo("academy_preview_only_rewards");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        CompleteIntroCourse(service);
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroToFire)).IsTrue();
+        AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+        AssertThat(service.CompleteAcademyCourse((string)CourseIds.IntroToFire)).IsTrue();
+        AssertThat(service.AdvanceAcademySemester()).IsTrue();
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroductionToEmpowerment))
+            .IsTrue();
+
+        var granted = new List<CardId>();
+        service.SetCollectionCallbacks(
+            Callable.From(
+                (string catalogId, string _rarity) =>
+                {
+                    granted.Add(CardId.FromString(catalogId));
+                    return $"test_{catalogId}";
+                }
+            )
+        );
+
+        var empowerment = service.GetAcademyCourse((string)CourseIds.IntroductionToEmpowerment);
+        var rewards = empowerment["reward_previews"].AsGodotArray();
+        var reward = rewards[0].AsGodotDictionary();
+        AssertThat(reward["kind"].AsString()).IsEqual(AcademyRewardKind.CardTrait.ToString());
+        AssertThat(reward["grant_state"].AsString()).IsEqual("preview_only");
+        AssertThat(reward["is_grantable"].AsBool()).IsFalse();
+
+        CompleteCourseActivities(service, CourseIds.IntroductionToEmpowerment, "empowerment");
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
+        AssertThat(progress.CompletedCourses).Contains(CourseIds.IntroductionToEmpowerment);
+        AssertThat(progress.EnrolledCourses).NotContains(CourseIds.IntroductionToEmpowerment);
+        AssertThat(progress.Transcript.Select(entry => entry.CourseId))
+            .Contains(CourseIds.IntroductionToEmpowerment);
+        AssertThat(granted).IsEmpty();
+    }
+
     private CampaignService CreateCampaignService(IProfileRepository repo, SummonerId activeSummoner)
     {
         var service = CreateNode<CampaignService>();
@@ -279,24 +323,33 @@ public class AcademyProgressServiceTest
 
     private static void CompleteIntroCourse(CampaignService service)
     {
+        CompleteCourseActivities(service, CourseIds.IntroductionToMagic101, "magic_101");
+    }
+
+    private static void CompleteCourseActivities(
+        CampaignService service,
+        CourseId courseId,
+        string activityPrefix
+    )
+    {
         AssertThat(
                 service.CompleteAcademyActivity(
-                    (string)CourseIds.IntroductionToMagic101,
-                    "magic_101_lesson"
+                    (string)courseId,
+                    $"{activityPrefix}_lesson"
                 )
             )
             .IsTrue();
         AssertThat(
                 service.CompleteAcademyActivity(
-                    (string)CourseIds.IntroductionToMagic101,
-                    "magic_101_practice"
+                    (string)courseId,
+                    $"{activityPrefix}_practice"
                 )
             )
             .IsTrue();
         AssertThat(
                 service.CompleteAcademyActivity(
-                    (string)CourseIds.IntroductionToMagic101,
-                    "magic_101_assessment"
+                    (string)courseId,
+                    $"{activityPrefix}_assessment"
                 )
             )
             .IsTrue();
