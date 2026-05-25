@@ -1,9 +1,9 @@
 # Academy Forging Plan
 
-**Status:** PASS 3 COMPLETE (Implementation + Tests)  
-**Initiative:** `academy-forging-model`  
-**Domain:** `meta`  
-**Last Updated:** `2026-05-18`  
+**Status:** PASS 3 COMPLETE (Implementation + Tests)
+**Initiative:** `academy-forging-model`
+**Domain:** `meta`
+**Last Updated:** `2026-05-18`
 **Owner:** `Meta UX / Progression`
 
 ## Summary

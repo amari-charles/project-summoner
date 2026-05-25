@@ -1,8 +1,8 @@
 # Academy Forging Stub Checklist
 
-**Status:** PASS 2 CHECKLIST  
-**Initiative:** `academy-forging-model`  
-**Domain:** `meta`  
+**Status:** PASS 2 CHECKLIST
+**Initiative:** `academy-forging-model`
+**Domain:** `meta`
 **Last Updated:** `2026-05-18`
 
 ## Types Created Or Extended
