@@ -1,3 +1,15 @@
+## Project Rules
+
+### Design Docs Are Source Of Truth
+
+Product/design docs in `docs/design/`, lore docs, and user-authored implementation specs capture product intent. Do not edit those docs to make them match current code when code has drifted.
+
+- If implementation conflicts with product docs, treat the code as suspect first.
+- Fix implementation when the doc intent is clear and the change is safely scoped.
+- If the doc intent is ambiguous, outdated, or too large to implement safely, report the mismatch and ask for direction.
+- Only change product/design intent docs when the user explicitly asks to revise the design decision itself.
+- Technical validation docs may be corrected for factual metadata, such as test paths or command names, but must not rewrite product intent.
+
 ## Skills
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
 

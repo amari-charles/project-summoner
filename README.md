@@ -4,9 +4,11 @@ A 1v1 real-time tactical battler built in Godot 4.5.
 
 ## Overview
 
-Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Throughout the campaign, players encounter finite, non-replayable events that offer small sets of cards. Choosing one card permanently closes off the others for that run, and because the campaign has only a limited number of these junctions, every player's deck naturally diverges in composition and strategy.
+Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Throughout the campaign, players encounter finite, non-replayable events that offer small sets of cards. Choosing one card permanently closes off the others for that summoner's campaign journey, and because the campaign has only a limited number of these junctions, every player's deck naturally diverges in composition and strategy.
 
 This asymmetry — and the player's responsibility for shaping it — is the core of the game's identity and the reason it's called Fateforged: your fate is literally forged by the choices you make at each branching point.
+
+Each summoner's campaign is a one-time forging journey whose results carry into online battles. PvP is not designed to erase campaign outcomes into perfect symmetry: stronger campaign choices and earned upgrades can produce stronger online summoners, while poor or cautious campaign paths can leave a summoner weaker. The design goal is intentional, legible permanence rather than perfectly equalized competitive templates.
 
 The game features a 2.5D perspective with an angled perspective battle camera, creating a modern take on tactical card battlers.
 

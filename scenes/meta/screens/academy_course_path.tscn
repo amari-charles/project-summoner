@@ -1,0 +1,186 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/screens/academy_course_path.gd" id="1_script"]
+
+[node name="AcademyCoursePath" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.075, 0.08, 0.095, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 34
+theme_override_constants/margin_bottom = 28
+
+[node name="Root" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleBlock" type="VBoxContainer" parent="MarginContainer/Root/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = ""
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+
+[node name="ExitButton" type="Button" parent="MarginContainer/Root/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(42, 38)
+layout_mode = 2
+text = ""
+
+[node name="PathPanel" type="PanelContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PathMargin" type="MarginContainer" parent="MarginContainer/Root/PathPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="PathScroll" type="ScrollContainer" parent="MarginContainer/Root/PathPanel/PathMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 3
+vertical_scroll_mode = 3
+
+[node name="PathCanvas" type="Control" parent="MarginContainer/Root/PathPanel/PathMargin/PathScroll"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1100, 420)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Footer" type="HBoxContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+
+[node name="RewardsLabel" type="Label" parent="MarginContainer/Root/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+text = ""
+
+[node name="ActivityModal" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="ModalScrim" type="ColorRect" parent="ActivityModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.62)
+
+[node name="ModalCenter" type="CenterContainer" parent="ActivityModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ModalPanel" type="PanelContainer" parent="ActivityModal/ModalCenter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(560, 260)
+layout_mode = 2
+
+[node name="ModalMargin" type="MarginContainer" parent="ActivityModal/ModalCenter/ModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="ModalRoot" type="VBoxContainer" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ModalTypeLabel" type="Label" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.72, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+text = ""
+
+[node name="ModalTitleLabel" type="Label" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+autowrap_mode = 3
+text = ""
+
+[node name="ModalBodyLabel" type="Label" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 3
+text = ""
+
+[node name="ModalActions" type="HBoxContainer" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="ModalCancelButton" type="Button" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot/ModalActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = ""
+
+[node name="ModalContinueButton" type="Button" parent="ActivityModal/ModalCenter/ModalPanel/ModalMargin/ModalRoot/ModalActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+text = ""

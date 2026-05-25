@@ -253,6 +253,224 @@
       "button_continue_again": "CONTINUE"
     }
   },
+  "academy": {
+    "location": {
+      "exit": "X"
+    },
+    "campus": {
+      "enter": "Enter",
+      "coming_soon": "Coming Soon",
+      "class_hall": {
+        "name": "Class Hall",
+        "description": "Register for open courses and continue the classes already on your schedule."
+      },
+      "shop": {
+        "name": "Campus Shop",
+        "description": "Buy supplies, cards, equipment, and other academy services."
+      },
+      "mission_hall": {
+        "name": "Mission Hall",
+        "description": "Special battles, school notices, and temporary opportunities will gather here."
+      },
+      "dorms": {
+        "name": "Dorms",
+        "description": "Manage decks, equipment, owned cards, and personal summoner tools."
+      },
+      "online": {
+        "name": "Online Arena",
+        "description": "Take a forged summoner into battles against other players."
+      }
+    },
+    "class_hall": {
+      "title": "Class Hall",
+      "back_to_campus": "Campus",
+      "current_term": "Current Term: Year {year}, Semester {semester}",
+      "open_classes": "Open Classes",
+      "my_classes": "My Classes",
+      "approvals": "Enrollment Approvals: {count}",
+      "approvals_left": "Enrollment Approvals Left: {count}",
+      "advance_blocked_title": "Semester Not Ready",
+      "advance_blocked_required": "Complete your required class before advancing to the next term.",
+      "advance_blocked_picks": "Use your remaining enrollment approvals before advancing. You still have {count}.",
+      "advance_blocked_next_term": "The next term is not available yet.",
+      "no_open_classes": "No open classes for this semester.",
+      "no_my_classes": "No classes on record for this semester.",
+      "show_details": "Show Details",
+      "hide_details": "Hide Details",
+      "current_schedule": "Current Schedule",
+      "completed_courses": "Completed Courses",
+      "foundation_choice": "Foundation Choice",
+      "element_elective": "Element Elective",
+      "choice_group": "Course Choice",
+      "track_foundation": "Foundation Track",
+      "track_affinity": "Affinity Track",
+      "track_binding": "Binding Track",
+      "track_arcana": "Arcana Track",
+      "track_warding": "Warding Track",
+      "track_warfare": "Warfare Track",
+      "track_command": "Command Track"
+    },
+    "course_modal": {
+      "syllabus": "Syllabus",
+      "close": "Close",
+      "review": "Review"
+    },
+    "course_path": {
+      "status": "Next: {activity} ({index}/{total})",
+      "complete": "Course complete",
+      "done": "DONE",
+      "current": "NEXT",
+      "locked": "LOCKED",
+      "continue": "Continue",
+      "cancel": "Cancel",
+      "lesson_body": "Review this lesson, then continue when ready.",
+      "practice_body": "Enter the practice battle for this class step.",
+      "assessment_body": "Begin the class assessment when you are ready.",
+      "completed_body": "This step is already complete.",
+      "locked_body": "This step is not available yet."
+    },
+    "hub": {
+      "title": "Merlin Academy",
+      "status": "Year {year}, Semester {semester} | Enrollments: {enrollments}",
+      "course_catalog": "Course Catalog",
+      "semester_board": "Semester Schedule",
+      "transcript": "Transcript",
+      "campus_shop": "Campus Shop",
+      "advance_semester": "Advance Semester",
+      "course_meta": "{track} | Cost: {cost}",
+      "detail_meta": "{track} | Cost: {cost} | {state}",
+      "cost_short": "{cost} Enrollment",
+      "year_tab": "Year {year}",
+      "semester_tab": "Semester {semester}",
+      "period_button": "Year {year}, Semester {semester}",
+      "period_picker_title": "Academic Calendar",
+      "viewing_current": "Current semester",
+      "viewing_past": "Past semester",
+      "viewing_future": "Future semester",
+      "group_required": "Required",
+      "group_chosen": "Chosen",
+      "group_available": "Available",
+      "group_locked": "Locked / Future",
+      "empty_slot": "Enrollment {slot}: Open",
+      "no_course_selected": "Select a course",
+      "no_rewards": "Rewards: none",
+      "activities": "Activities: {activities}",
+      "rewards": "Rewards: {rewards}",
+      "enroll": "Enroll",
+      "complete": "Complete",
+      "continue_course": "Continue",
+      "completed": "Completed",
+      "locked": "Locked",
+      "future": "Future",
+      "view_only": "View Only",
+      "next_activity": "Next: {activity} ({index}/{total})",
+      "empty_transcript": "No completed courses yet.",
+      "transcript_entry": "{course} | {grade} {honors}",
+      "honors": "Honors",
+      "state_completed": "Completed",
+      "state_enrolled": "In Progress",
+      "state_available": "Available",
+      "state_past": "Past",
+      "state_future": "Future",
+      "state_prereq": "Prerequisite missing",
+      "state_no_enrollments": "No Enrollments left",
+      "state_choice_taken": "Choice already made",
+      "state_locked": "Locked"
+    },
+    "track": {
+      "foundation": "Foundation",
+      "affinity": "Affinity",
+      "binding": "Binding",
+      "arcana": "Arcana",
+      "warding": "Warding",
+      "warfare": "Warfare",
+      "command": "Command"
+    },
+    "activity": {
+      "lesson": "Lesson",
+      "practice": "Practice",
+      "assessment": "Assessment"
+    },
+    "course": {
+      "introduction_to_magic_101": {
+        "name": "Introduction to Magic 101",
+        "description": "Core battle flow, basic summoning, and basic spellcasting."
+      },
+      "summoning_basics": {
+        "name": "Summoning Basics",
+        "description": "Early unit and conjuration fundamentals."
+      },
+      "practical_spellcraft": {
+        "name": "Practical Spellcraft",
+        "description": "Early spellcasting fundamentals."
+      },
+      "intro_to_fire": {
+        "name": "Intro to Fire",
+        "description": "First-year fire magic through a summon and a spell."
+      },
+      "intro_to_water": {
+        "name": "Intro to Water",
+        "description": "First-year water magic through a summon and a spell."
+      },
+      "intro_to_earth": {
+        "name": "Intro to Earth",
+        "description": "First-year earth magic through a summon and a spell."
+      },
+      "intro_to_air": {
+        "name": "Intro to Air",
+        "description": "First-year air magic through a summon and a spell."
+      },
+      "foundations_of_magic_ii": {
+        "name": "Foundations of Magic II",
+        "description": "A broader first-year course that asks the deck to function as a whole."
+      },
+      "introduction_to_empowerment": {
+        "name": "Introduction to Empowerment",
+        "description": "The first formal course on chosen permanent upgrades."
+      },
+      "introduction_to_mana_channeling": {
+        "name": "Introduction to Mana Channeling",
+        "description": "Channel more mana through summoned forms to call more at once."
+      },
+      "fire_practicum_i": {
+        "name": "Fire Practicum I",
+        "description": "Applied fire practice for students continuing from Intro to Fire."
+      },
+      "water_practicum_i": {
+        "name": "Water Practicum I",
+        "description": "Applied water practice for students continuing from Intro to Water."
+      },
+      "earth_practicum_i": {
+        "name": "Earth Practicum I",
+        "description": "Applied earth practice for students continuing from Intro to Earth."
+      },
+      "air_practicum_i": {
+        "name": "Air Practicum I",
+        "description": "Applied air practice for students continuing from Intro to Air."
+      }
+    },
+    "reward": {
+      "neutral_basic_summon": "Basic summon",
+      "neutral_basic_spell": "Basic spell",
+      "basic_summon": "Summon",
+      "basic_spell": "Spell",
+      "fire_summon": "Fire summon",
+      "fire_spell": "Fire spell",
+      "water_summon": "Water summon",
+      "water_spell": "Water spell",
+      "earth_summon": "Earth summon",
+      "earth_spell": "Earth spell",
+      "air_summon": "Air summon",
+      "air_spell": "Air spell",
+      "foundation_choice": "Foundation reward",
+      "first_empowerment": "First empowerment",
+      "summon_quantity_channeling": "Mana channeling upgrade",
+      "fire_practice_choice": "Fire practice reward",
+      "water_practice_choice": "Water practice reward",
+      "earth_practice_choice": "Earth practice reward",
+      "air_practice_choice": "Air practice reward"
+    }
+  },
   "card": {
     "fire_wisp": {
       "name": "Fire Wisp",
@@ -334,6 +552,7 @@
   },
   "ui": {
     "common": {
+      "ok": "OK",
       "close": "Close",
       "back": "Back",
       "cancel": "Cancel",

@@ -30,6 +30,10 @@ public class CampaignProgress
     [JsonPropertyName("gold")]
     public int Gold { get; set; }
 
+    /// <summary>Academy curriculum progress for the new campaign model.</summary>
+    [JsonPropertyName("academy")]
+    public AcademyProgress Academy { get; set; } = new();
+
     /// <summary>Choices made at choice nodes (node_id -> choice_id).</summary>
     [JsonPropertyName("choices")]
     public Dictionary<NodeId, ChoiceId> Choices { get; set; } = [];

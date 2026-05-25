@@ -44,7 +44,8 @@ func _check_battle_mode() -> void:
 	var is_speed_enabled: bool = current_mode in [
 		BattleContext.BattleMode.CAMPAIGN,
 		BattleContext.BattleMode.TUTORIAL,
-		BattleContext.BattleMode.PRACTICE  # Enable for debug arena
+		BattleContext.BattleMode.PRACTICE,  # Enable for debug arena
+		BattleContext.BattleMode.ACADEMY
 	]
 
 	disabled = not is_speed_enabled

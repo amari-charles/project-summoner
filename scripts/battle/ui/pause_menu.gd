@@ -64,7 +64,6 @@ func _on_game_state_changed(new_state: Variant) -> void:
 
 ## Resume button - unpause game
 func _on_resume_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if not game_controller:
 		push_error("PauseMenu: Cannot resume - no game controller")
 		return
@@ -86,7 +85,6 @@ func _setup_panel_border() -> void:
 
 ## Quit button - abandon battle and return to origin screen
 func _on_quit_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	# CRITICAL: Unpause before changing scenes
 	get_tree().paused = false
 

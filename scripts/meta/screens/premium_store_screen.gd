@@ -233,7 +233,6 @@ func _update_currency_display() -> void:
 ## =============================================================================
 
 func _on_close_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 func _on_offering_item_clicked(offering: Dictionary) -> void:
@@ -241,14 +240,12 @@ func _on_offering_item_clicked(offering: Dictionary) -> void:
 	_show_popup(offering)
 
 func _on_popup_close_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_hide_popup()
 
 func _on_overlay_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
-			AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 			_hide_popup()
 
 func _on_purchase_pressed() -> void:

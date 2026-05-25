@@ -51,3 +51,27 @@ static func get_all_campaigns() -> Array:
 
 static func claim_pending_reward() -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("ClaimPendingReward"))
+
+static func get_academy_progress() -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetAcademyProgress"))
+
+static func get_available_academy_courses() -> Array:
+	return SafeTypeUtils.array(Campaign.call("GetAvailableAcademyCourses"))
+
+static func get_academy_courses_for_semester(year: int, semester: int) -> Array:
+	return SafeTypeUtils.array(Campaign.call("GetAcademyCoursesForSemester", year, semester))
+
+static func get_academy_course(course_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetAcademyCourse", course_id))
+
+static func enroll_academy_course(course_id: String) -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("EnrollAcademyCourse", course_id), false)
+
+static func complete_academy_course(course_id: String, grade: String = "pass", honors: bool = false) -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("CompleteAcademyCourse", course_id, grade, honors), false)
+
+static func complete_academy_activity(course_id: String, activity_id: String, succeeded: bool = true) -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("CompleteAcademyActivity", course_id, activity_id, succeeded), false)
+
+static func advance_academy_semester() -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("AdvanceAcademySemester"), false)

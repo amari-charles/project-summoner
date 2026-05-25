@@ -15,7 +15,8 @@ enum BattleMode {
 	ENDLESS,    ## Wave-based survival mode
 	TUTORIAL,   ## Guided learning battles
 	PRACTICE,   ## Free play / testing
-	MULTIPLAYER ## P2P or online multiplayer
+	MULTIPLAYER, ## P2P or online multiplayer
+	ACADEMY ## Academy class activity battle
 }
 
 ## Battle lifecycle state machine
@@ -45,6 +46,10 @@ var battle_config: Dictionary = {}
 
 ## The battle ID for the current configuration
 var _battle_id: String = ""
+
+## Academy course/activity IDs for academy battle completion.
+var academy_course_id: String = ""
+var academy_activity_id: String = ""
 
 ## Typed event accessor for battle_config
 ## Provides type-safe access to event properties
@@ -142,6 +147,37 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 
 	if debug_mode: print("BattleContext: Configured practice battle")
 
+## Configure for academy course activity battle
+func select_academy_course(course_id: String) -> void:
+	academy_course_id = course_id
+	academy_activity_id = ""
+
+func configure_academy_battle(course_id: String, activity_id: String, config: Dictionary = {}) -> void:
+	current_mode = BattleMode.ACADEMY
+	battle_state = BattleState.CONFIGURED
+	was_configured = true
+	origin_scene = SceneManager.SCENE_ACADEMY_COURSE_PATH
+	_battle_id = activity_id
+	academy_course_id = course_id
+	academy_activity_id = activity_id
+
+	battle_config = config if not config.is_empty() else {
+		"enemy_deck": [{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
+		"enemy_hp": 20.0,
+		"ai_type": "passive",
+		"ai_difficulty": 0,
+		"ai_config": {
+			"play_interval_min": 999.0,
+			"play_interval_max": 999.0
+		},
+		"card_xp_reward": 0,
+		"summoner_xp_reward": 0
+	}
+
+	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
+
+	if debug_mode: print("BattleContext: Configured academy battle '%s' for course '%s'" % [activity_id, course_id])
+
 ## Configure for arena battle (future)
 func configure_arena_battle(_difficulty: int) -> void:
 	current_mode = BattleMode.ARENA
@@ -224,6 +260,8 @@ func clear() -> void:
 	_cleanup_authority_provider()
 	battle_config = {}
 	_battle_id = ""
+	academy_course_id = ""
+	academy_activity_id = ""
 	biome_id = BiomeIDs.SUMMER_PLAINS
 	_ranked_match_info = {}
 	was_configured = false

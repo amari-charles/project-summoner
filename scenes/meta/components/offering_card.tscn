@@ -3,27 +3,28 @@
 [ext_resource type="Script" path="res://scripts/meta/components/offering_card.gd" id="1_offering_card"]
 
 [node name="OfferingCard" type="PanelContainer"]
-custom_minimum_size = Vector2(180, 240)
+custom_minimum_size = Vector2(192, 268)
+mouse_default_cursor_shape = 2
 script = ExtResource("1_offering_card")
 
 [node name="ContentContainer" type="MarginContainer" parent="."]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ContentContainer"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 9
 
 [node name="OfferingName" type="Label" parent="ContentContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 17
 text = "Offering Name"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -34,17 +35,17 @@ layout_mode = 2
 mouse_filter = 2
 
 [node name="ArtPlaceholder" type="ColorRect" parent="ContentContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 100)
+custom_minimum_size = Vector2(0, 124)
 layout_mode = 2
 mouse_filter = 2
 size_flags_vertical = 3
-color = Color(0.3, 0.3, 0.4, 1)
+color = Color(0.19, 0.145, 0.235, 1)
 
 [node name="TypeLabel" type="Label" parent="ContentContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "Type: Card"
 horizontal_alignment = 1
 
@@ -56,6 +57,6 @@ mouse_filter = 2
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "Price: 0"
 horizontal_alignment = 1

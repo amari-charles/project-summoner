@@ -624,7 +624,6 @@ func _on_background_input(event: InputEvent) -> void:
 			_close()
 
 func _close() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	closed.emit()
 	hide()
 	queue_free()

@@ -141,7 +141,6 @@ func _on_settings_pressed() -> void:
 	_close()
 
 func _on_quit_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	quit_pressed.emit()
 	_close()
 

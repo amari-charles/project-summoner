@@ -34,7 +34,11 @@ public static class EventCatalog
             IsTutorial = true,
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 1) },
-            EnemyHp = 35f,
+            EnemyHp = 20f,
+            AiType = "passive",
+            AiDifficulty = 0,
+            AiPlayIntervalMin = 999f,
+            AiPlayIntervalMax = 999f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
@@ -57,8 +61,12 @@ public static class EventCatalog
             Difficulty = 2,
             IsTutorial = true,
             RequiresDeck = true,
-            EnemyDeck = new List<DeckEntry> { new(CardIds.Puff, 2), new(CardIds.Pebbloom, 1) },
-            EnemyHp = 45f,
+            EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 1), new(CardIds.Puff, 1) },
+            EnemyHp = 40f,
+            AiType = "simple",
+            AiDifficulty = 1,
+            AiPlayIntervalMin = 7.0f,
+            AiPlayIntervalMax = 10.0f,
             Rewards = new BattleRewardConfig
             {
                 Type = RewardType.Flexible,
@@ -1200,6 +1208,12 @@ public static class EventCatalog
         dict["requires_deck"] = battle.RequiresDeck;
         dict["enemy_hp"] = battle.EnemyHp;
         dict["ai_type"] = battle.AiType;
+        dict["ai_difficulty"] = battle.AiDifficulty;
+        dict["ai_config"] = new Godot.Collections.Dictionary
+        {
+            ["play_interval_min"] = battle.AiPlayIntervalMin,
+            ["play_interval_max"] = battle.AiPlayIntervalMax,
+        };
 
         // Enemy deck
         var enemyDeck = new Godot.Collections.Array();

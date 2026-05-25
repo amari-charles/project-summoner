@@ -73,6 +73,31 @@ public class CampaignGraphConsistencyTest
     }
 
     [TestCase]
+    public void SummonersPath_OnboardingBattlesUseGentleDifficultyRamp()
+    {
+        var firstTrial = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.FirstTrial);
+        var secondChallenge = EventCatalog.GetEvent<BattleEventDefinition>(
+            EventIds.SecondChallenge
+        );
+
+        AssertThat(firstTrial).IsNotNull();
+        AssertThat(secondChallenge).IsNotNull();
+
+        AssertThat(firstTrial!.AiType).IsEqual("passive");
+        AssertThat(firstTrial.EnemyHp).IsLessEqual(20f);
+        AssertThat(firstTrial.EnemyDeck.Count).IsEqual(1);
+
+        AssertThat(secondChallenge!.AiType).IsEqual("simple");
+        AssertThat(secondChallenge.AiDifficulty).IsLessEqual(1);
+        AssertThat(secondChallenge.AiPlayIntervalMin).IsGreaterEqual(7.0f);
+        AssertThat(secondChallenge.EnemyDeck.Count).IsEqual(2);
+
+        var secondDict = EventCatalog.ToDictionary(secondChallenge);
+        AssertThat(secondDict.ContainsKey("ai_difficulty")).IsTrue();
+        AssertThat(secondDict.ContainsKey("ai_config")).IsTrue();
+    }
+
+    [TestCase]
     public void SummonersPath_PathForkBranchesMatchTheirRiskProfiles()
     {
         var campaign = CampaignCatalog.GetCampaign(CampaignIds.SummonersPath);

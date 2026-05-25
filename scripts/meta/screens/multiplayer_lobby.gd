@@ -487,13 +487,11 @@ func _get_player_deck() -> Array:
 ## =============================================================================
 
 func _on_cancel_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_cleanup_transport()
 	_show_menu()
 
 
 func _on_back_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 

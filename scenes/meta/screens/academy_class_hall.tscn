@@ -1,0 +1,240 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/screens/academy_class_hall.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_course_modal"]
+bg_color = Color(0.095, 0.105, 0.125, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.36, 0.31, 0.19, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="AcademyClassHall" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.085, 0.09, 0.105, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Root" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleBlock" type="VBoxContainer" parent="MarginContainer/Root/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = ""
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+
+[node name="ExitButton" type="Button" parent="MarginContainer/Root/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 38)
+layout_mode = 2
+text = ""
+
+[node name="SemesterBar" type="HBoxContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TermLabel" type="Label" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+text = ""
+
+[node name="EnrollmentSummaryLabel" type="Label" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+vertical_alignment = 1
+text = ""
+
+[node name="AdvanceSemesterButton" type="Button" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 44)
+layout_mode = 2
+text = ""
+
+[node name="ContentSplit" type="HSplitContainer" parent="MarginContainer/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 850
+
+[node name="BoardPanel" type="PanelContainer" parent="MarginContainer/Root/ContentSplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BoardMargin" type="MarginContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="BoardRoot" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ClassTabs" type="HBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MyClassesButton" type="Button" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/ClassTabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+toggle_mode = true
+text = ""
+
+[node name="OpenClassesButton" type="Button" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/ClassTabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+toggle_mode = true
+text = ""
+
+[node name="CourseScroll" type="ScrollContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CourseGroups" type="VBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/CourseScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="AdvanceSemesterDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = ""
+dialog_text = ""
+
+[node name="CourseModal" type="PopupPanel" parent="."]
+unique_name_in_owner = true
+size = Vector2i(620, 440)
+min_size = Vector2i(480, 320)
+max_size = Vector2i(720, 520)
+theme_override_styles/panel = SubResource("StyleBoxFlat_course_modal")
+
+[node name="CourseModalMargin" type="MarginContainer" parent="CourseModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="CourseModalRoot" type="VBoxContainer" parent="CourseModal/CourseModalMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="CourseModalEyebrowLabel" type="Label" parent="CourseModal/CourseModalMargin/CourseModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.68, 0.36, 1)
+theme_override_font_sizes/font_size = 15
+text = ""
+
+[node name="CourseModalTitleLabel" type="Label" parent="CourseModal/CourseModalMargin/CourseModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+autowrap_mode = 3
+text = ""
+
+[node name="CourseModalMetaLabel" type="Label" parent="CourseModal/CourseModalMargin/CourseModalRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="CourseModalScroll" type="ScrollContainer" parent="CourseModal/CourseModalMargin/CourseModalRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CourseModalBody" type="VBoxContainer" parent="CourseModal/CourseModalMargin/CourseModalRoot/CourseModalScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CourseModalDescriptionLabel" type="Label" parent="CourseModal/CourseModalMargin/CourseModalRoot/CourseModalScroll/CourseModalBody"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+text = ""
+
+[node name="CourseModalRewardsLabel" type="Label" parent="CourseModal/CourseModalMargin/CourseModalRoot/CourseModalScroll/CourseModalBody"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="CourseModalActivitiesLabel" type="Label" parent="CourseModal/CourseModalMargin/CourseModalRoot/CourseModalScroll/CourseModalBody"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
+text = ""
+
+[node name="CourseModalActions" type="HBoxContainer" parent="CourseModal/CourseModalMargin/CourseModalRoot"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="CourseModalCloseButton" type="Button" parent="CourseModal/CourseModalMargin/CourseModalRoot/CourseModalActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = ""
+
+[node name="CourseModalActionButton" type="Button" parent="CourseModal/CourseModalMargin/CourseModalRoot/CourseModalActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 40)
+layout_mode = 2
+text = ""
