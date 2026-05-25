@@ -284,9 +284,15 @@
     "class_hall": {
       "title": "Class Hall",
       "back_to_campus": "Campus",
+      "current_term": "Current Term: Year {year}, Semester {semester}",
       "open_classes": "Open Classes",
       "my_classes": "My Classes",
       "approvals": "Enrollment Approvals: {count}",
+      "approvals_left": "Enrollment Approvals Left: {count}",
+      "advance_blocked_title": "Semester Not Ready",
+      "advance_blocked_required": "Complete your required class before advancing to the next term.",
+      "advance_blocked_picks": "Use your remaining enrollment approvals before advancing. You still have {count}.",
+      "advance_blocked_next_term": "The next term is not available yet.",
       "no_open_classes": "No open classes for this semester.",
       "no_my_classes": "No classes on record for this semester.",
       "show_details": "Show Details",
@@ -546,6 +552,7 @@
   },
   "ui": {
     "common": {
+      "ok": "OK",
       "close": "Close",
       "back": "Back",
       "cancel": "Cancel",

@@ -70,7 +70,7 @@ text = ""
 
 [node name="ExitButton" type="Button" parent="MarginContainer/Root/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(42, 38)
+custom_minimum_size = Vector2(96, 38)
 layout_mode = 2
 text = ""
 
@@ -78,16 +78,17 @@ text = ""
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="PeriodButton" type="Button" parent="MarginContainer/Root/SemesterBar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 56)
-layout_mode = 2
-text = ""
-
-[node name="ViewStatusLabel" type="Label" parent="MarginContainer/Root/SemesterBar"]
+[node name="TermLabel" type="Label" parent="MarginContainer/Root/SemesterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
+text = ""
+
+[node name="EnrollmentSummaryLabel" type="Label" parent="MarginContainer/Root/SemesterBar"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_font_sizes/font_size = 15
 vertical_alignment = 1
 text = ""
@@ -118,16 +119,6 @@ theme_override_constants/margin_bottom = 14
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="BoardHeader" type="HBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
-layout_mode = 2
-
-[node name="BoardTitleLabel" type="Label" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/BoardHeader"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 24
-text = ""
-
 [node name="ClassTabs" type="HBoxContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -146,15 +137,6 @@ layout_mode = 2
 toggle_mode = true
 text = ""
 
-[node name="EnrollmentSummaryLabel" type="Label" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot/ClassTabs"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-horizontal_alignment = 2
-vertical_alignment = 1
-text = ""
-
 [node name="CourseScroll" type="ScrollContainer" parent="MarginContainer/Root/ContentSplit/BoardPanel/BoardMargin/BoardRoot"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -165,33 +147,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
-[node name="PeriodPopup" type="PopupPanel" parent="."]
+[node name="AdvanceSemesterDialog" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
-size = Vector2i(520, 360)
-
-[node name="PeriodPopupMargin" type="MarginContainer" parent="PeriodPopup"]
-layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
-
-[node name="PeriodPopupRoot" type="VBoxContainer" parent="PeriodPopup/PeriodPopupMargin"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="PeriodPickerTitle" type="Label" parent="PeriodPopup/PeriodPopupMargin/PeriodPopupRoot"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = ""
-
-[node name="PeriodOptions" type="GridContainer" parent="PeriodPopup/PeriodPopupMargin/PeriodPopupRoot"]
-unique_name_in_owner = true
-layout_mode = 2
-columns = 2
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
+title = ""
+dialog_text = ""
 
 [node name="CourseModal" type="PopupPanel" parent="."]
 unique_name_in_owner = true

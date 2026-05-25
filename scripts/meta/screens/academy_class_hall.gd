@@ -4,17 +4,13 @@ class_name AcademyClassHall
 @onready var title_label: Label = %TitleLabel
 @onready var status_label: Label = %StatusLabel
 @onready var exit_button: Button = %ExitButton
-@onready var period_button: Button = %PeriodButton
-@onready var view_status_label: Label = %ViewStatusLabel
-@onready var board_title_label: Label = %BoardTitleLabel
+@onready var term_label: Label = %TermLabel
 @onready var advance_semester_button: Button = %AdvanceSemesterButton
 @onready var open_classes_button: Button = %OpenClassesButton
 @onready var my_classes_button: Button = %MyClassesButton
 @onready var enrollment_summary_label: Label = %EnrollmentSummaryLabel
 @onready var course_groups: VBoxContainer = %CourseGroups
-@onready var period_popup: PopupPanel = %PeriodPopup
-@onready var period_picker_title: Label = %PeriodPickerTitle
-@onready var period_options: GridContainer = %PeriodOptions
+@onready var advance_semester_dialog: AcceptDialog = %AdvanceSemesterDialog
 @onready var course_modal: PopupPanel = %CourseModal
 @onready var course_modal_eyebrow_label: Label = %CourseModalEyebrowLabel
 @onready var course_modal_title_label: Label = %CourseModalTitleLabel
@@ -25,8 +21,6 @@ class_name AcademyClassHall
 @onready var course_modal_close_button: Button = %CourseModalCloseButton
 @onready var course_modal_action_button: Button = %CourseModalActionButton
 
-const TOTAL_YEARS: int = 4
-const TOTAL_SEMESTERS: int = 2
 const COLOR_PANEL: Color = Color(0.13, 0.145, 0.17, 1.0)
 const COLOR_PANEL_SELECTED: Color = Color(0.18, 0.215, 0.25, 1.0)
 const COLOR_PANEL_LOCKED: Color = Color(0.105, 0.112, 0.125, 1.0)
@@ -37,8 +31,6 @@ const COURSE_MODAL_MIN_SIZE: Vector2i = Vector2i(480, 320)
 
 var _current_year: int = 1
 var _current_semester: int = 1
-var _view_year: int = 1
-var _view_semester: int = 1
 var _courses: Array[Dictionary] = []
 var _selected_course_id: String = ""
 var _show_my_classes: bool = true
@@ -50,16 +42,17 @@ func _ready() -> void:
 		return
 
 	title_label.text = Loc.t("academy.class_hall.title")
-	exit_button.text = Loc.t("academy.location.exit")
+	status_label.visible = false
+	exit_button.text = Loc.t("academy.class_hall.back_to_campus")
 	advance_semester_button.text = Loc.t("academy.hub.advance_semester")
-	period_picker_title.text = Loc.t("academy.hub.period_picker_title")
 	open_classes_button.text = Loc.t("academy.class_hall.open_classes")
 	my_classes_button.text = Loc.t("academy.class_hall.my_classes")
+	advance_semester_dialog.title = Loc.t("academy.class_hall.advance_blocked_title")
+	advance_semester_dialog.ok_button_text = Loc.t("ui.common.ok")
 	course_modal_close_button.text = Loc.t("academy.course_modal.close")
 
 	exit_button.pressed.connect(_on_exit_pressed)
 	advance_semester_button.pressed.connect(_on_advance_semester_pressed)
-	period_button.pressed.connect(_on_period_button_pressed)
 	course_modal_close_button.pressed.connect(_hide_course_modal)
 	course_modal_action_button.pressed.connect(_on_course_modal_action_pressed)
 	open_classes_button.pressed.connect(func() -> void:
@@ -84,8 +77,6 @@ func _refresh_from_current_progress() -> void:
 	var progress: Dictionary = CampaignApi.get_academy_progress()
 	_current_year = SafeTypeUtils.int_val(progress.get("current_year"), 1)
 	_current_semester = SafeTypeUtils.int_val(progress.get("current_semester"), 1)
-	_view_year = _current_year
-	_view_semester = _current_semester
 	_refresh()
 
 func _refresh() -> void:
@@ -94,49 +85,22 @@ func _refresh() -> void:
 	_current_semester = SafeTypeUtils.int_val(progress.get("current_semester"), 1)
 	var enrollments: int = SafeTypeUtils.int_val(progress.get("remaining_enrollments"), 0)
 
-	status_label.text = Loc.t(
-		"academy.hub.status",
-		{"year": _current_year, "semester": _current_semester, "enrollments": enrollments}
+	term_label.text = Loc.t(
+		"academy.class_hall.current_term",
+		{"year": _current_year, "semester": _current_semester}
 	)
-	period_button.text = _period_button_text()
-	view_status_label.text = _view_status_text()
-	advance_semester_button.visible = _is_viewing_current_semester()
-	board_title_label.text = Loc.t("academy.class_hall.my_classes") if _show_my_classes else Loc.t("academy.class_hall.open_classes")
+	advance_semester_button.visible = true
 	open_classes_button.button_pressed = not _show_my_classes
 	my_classes_button.button_pressed = _show_my_classes
-	enrollment_summary_label.text = Loc.t("academy.class_hall.approvals", {"count": enrollments})
+	enrollment_summary_label.text = Loc.t("academy.class_hall.approvals_left", {"count": enrollments})
 
 	_load_view_courses()
 	_sync_selected_course()
 	_render_course_groups()
 
-func _render_period_picker() -> void:
-	_clear_children(period_options)
-
-	for year: int in range(1, TOTAL_YEARS + 1):
-		for semester: int in range(1, TOTAL_SEMESTERS + 1):
-			var button: Button = Button.new()
-			button.custom_minimum_size = Vector2(220, 64)
-			button.text = "%s\n%s" % [
-				Loc.t("academy.hub.period_button", {"year": year, "semester": semester}),
-				_period_relation_label(year, semester),
-			]
-			button.toggle_mode = true
-			button.button_pressed = year == _view_year and semester == _view_semester
-			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			button.pressed.connect(func() -> void:
-				_view_year = year
-				_view_semester = semester
-				_selected_course_id = ""
-				_selected_course = {}
-				period_popup.hide()
-				_refresh()
-			)
-			period_options.add_child(button)
-
 func _load_view_courses() -> void:
 	_courses.clear()
-	for item: Variant in CampaignApi.get_academy_courses_for_semester(_view_year, _view_semester):
+	for item: Variant in CampaignApi.get_academy_courses_for_semester(_current_year, _current_semester):
 		var course: Dictionary = SafeTypeUtils.dict(item)
 		if not course.is_empty():
 			_courses.append(course)
@@ -285,51 +249,33 @@ func _build_course_card(course: Dictionary) -> Control:
 	root.add_theme_constant_override("separation", 7)
 	margin.add_child(root)
 
-	var top: HBoxContainer = HBoxContainer.new()
-	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(top)
-
-	var track: Label = Label.new()
-	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	track.text = _track_label(course)
-	track.add_theme_font_size_override("font_size", 12)
-	track.add_theme_color_override("font_color", COLOR_ACCENT)
-	track.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(track)
-
-	var cost: Label = Label.new()
-	cost.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cost.text = Loc.t("academy.hub.cost_short", {"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1)})
-	cost.add_theme_font_size_override("font_size", 12)
-	cost.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
-	top.add_child(cost)
-
 	var name: Label = Label.new()
 	name.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name.text = _course_name(course)
-	name.add_theme_font_size_override("font_size", 17)
+	name.add_theme_font_size_override("font_size", 18)
 	name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(name)
 
-	var rewards: Label = Label.new()
-	rewards.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rewards.text = _compact_rewards(SafeTypeUtils.array(course.get("reward_previews")))
-	rewards.add_theme_font_size_override("font_size", 13)
-	rewards.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
-	rewards.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	root.add_child(rewards)
+	var state: Label = Label.new()
+	state.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	state.text = _card_status_text(course)
+	state.add_theme_font_size_override("font_size", 13)
+	state.add_theme_color_override("font_color", COLOR_ACCENT if is_selected else COLOR_TEXT_MUTED)
+	state.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	root.add_child(state)
+
+	var detail: Label = Label.new()
+	detail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail.text = _card_detail_text(course)
+	detail.add_theme_font_size_override("font_size", 13)
+	detail.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	root.add_child(detail)
 
 	var spacer: Control = Control.new()
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(spacer)
-
-	var state: Label = Label.new()
-	state.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	state.text = _course_state_label(course)
-	state.add_theme_font_size_override("font_size", 13)
-	state.add_theme_color_override("font_color", COLOR_ACCENT if is_selected else COLOR_TEXT_MUTED)
-	root.add_child(state)
 
 	return panel
 
@@ -418,6 +364,38 @@ func _reward_preview_text(rewards: Array) -> String:
 	if compact.is_empty():
 		return Loc.t("academy.hub.no_rewards")
 	return Loc.t("academy.hub.rewards", {"rewards": compact})
+
+func _card_status_text(course: Dictionary) -> String:
+	if _show_my_classes and SafeTypeUtils.bool_val(course.get("is_enrolled")):
+		var next_activity: Dictionary = SafeTypeUtils.dict(course.get("next_activity"))
+		var activity_label_key: String = SafeTypeUtils.string(next_activity.get("label_key"))
+		if not activity_label_key.is_empty():
+			var activities: Array = SafeTypeUtils.array(course.get("activities"))
+			var activity_index: int = SafeTypeUtils.int_val(course.get("activity_index"), 0)
+			return Loc.t(
+				"academy.hub.next_activity",
+				{
+					"activity": Loc.t(activity_label_key),
+					"index": activity_index + 1,
+					"total": maxi(activities.size(), 1),
+				}
+			)
+
+	return _course_state_label(course)
+
+func _card_detail_text(course: Dictionary) -> String:
+	var parts: Array[String] = []
+	if not _show_my_classes:
+		parts.append(Loc.t("academy.hub.cost_short", {"cost": SafeTypeUtils.int_val(course.get("enrollment_cost"), 1)}))
+
+	var rewards: String = _compact_rewards(SafeTypeUtils.array(course.get("reward_previews")))
+	if not rewards.is_empty():
+		parts.append(rewards)
+
+	if parts.is_empty():
+		parts.append(_track_label(course))
+
+	return " | ".join(parts)
 
 func _activities_preview_text(activities: Array) -> String:
 	var labels: Array[String] = []
@@ -522,30 +500,6 @@ func _track_label(course: Dictionary) -> String:
 	var translated: String = Loc.t(key)
 	return translated if translated != key else track_id
 
-func _view_status_text() -> String:
-	var viewed_index: int = ((_view_year - 1) * 2) + _view_semester
-	var current_index: int = ((_current_year - 1) * 2) + _current_semester
-	if viewed_index == current_index:
-		return Loc.t("academy.hub.viewing_current")
-	if viewed_index < current_index:
-		return Loc.t("academy.hub.viewing_past")
-	return Loc.t("academy.hub.viewing_future")
-
-func _period_button_text() -> String:
-	return Loc.t("academy.hub.period_button", {"year": _view_year, "semester": _view_semester})
-
-func _period_relation_label(year: int, semester: int) -> String:
-	var viewed_index: int = ((year - 1) * 2) + semester
-	var current_index: int = ((_current_year - 1) * 2) + _current_semester
-	if viewed_index == current_index:
-		return Loc.t("academy.hub.viewing_current")
-	if viewed_index < current_index:
-		return Loc.t("academy.hub.viewing_past")
-	return Loc.t("academy.hub.viewing_future")
-
-func _is_viewing_current_semester() -> bool:
-	return _view_year == _current_year and _view_semester == _current_semester
-
 func _clear_children(node: Node) -> void:
 	for child: Node in node.get_children():
 		child.queue_free()
@@ -562,16 +516,42 @@ func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
 	style.content_margin_bottom = 0
 	return style
 
-func _on_period_button_pressed() -> void:
-	_render_period_picker()
-	period_popup.popup_centered(Vector2i(520, 360))
-
 func _on_exit_pressed() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
 
 func _on_advance_semester_pressed() -> void:
-	CampaignApi.advance_academy_semester()
+	var block_reason: String = _advance_semester_block_reason()
+	if not block_reason.is_empty():
+		_show_advance_semester_dialog(block_reason)
+		return
+
+	if not CampaignApi.advance_academy_semester():
+		_show_advance_semester_dialog(Loc.t("academy.class_hall.advance_blocked_next_term"))
+		return
+
 	_refresh_from_current_progress()
+
+func _advance_semester_block_reason() -> String:
+	for course: Dictionary in _courses:
+		if SafeTypeUtils.bool_val(course.get("is_required")) and not SafeTypeUtils.bool_val(course.get("is_completed")):
+			return Loc.t("academy.class_hall.advance_blocked_required")
+
+	var progress: Dictionary = CampaignApi.get_academy_progress()
+	var enrollments: int = SafeTypeUtils.int_val(progress.get("remaining_enrollments"), 0)
+	if enrollments <= 0:
+		return ""
+
+	for course: Dictionary in _courses:
+		if SafeTypeUtils.bool_val(course.get("is_available")) \
+			and not SafeTypeUtils.bool_val(course.get("is_enrolled")) \
+			and not SafeTypeUtils.bool_val(course.get("is_completed")):
+			return Loc.t("academy.class_hall.advance_blocked_picks", {"count": enrollments})
+
+	return ""
+
+func _show_advance_semester_dialog(message: String) -> void:
+	advance_semester_dialog.dialog_text = message
+	advance_semester_dialog.popup_centered()
 
 func _redirect_to_summoner_selection() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)
