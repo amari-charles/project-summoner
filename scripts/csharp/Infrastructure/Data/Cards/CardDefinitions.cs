@@ -5,6 +5,7 @@ using Fateforged.Constants;
 using Fateforged.Projectiles;
 using Fateforged.Simulation.Enums;
 using Fateforged.Stats;
+using Fateforged.Units;
 using Fateforged.Vfx;
 
 namespace Fateforged.Cards;
@@ -51,7 +52,6 @@ public static class CardDefinitions
         ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
-        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition Rally = new()
@@ -386,6 +386,302 @@ public static class CardDefinitions
         ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition FireAreaBurn = new()
+    {
+        Id = CardIds.FireAreaBurn,
+        Name = "Fire Area Burn",
+        Description = "Ignites enemies in an area with stacking burn.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 4.0f,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.StatusApply,
+                Duration = 4f,
+                Lifetime = EffectLifetime.Timed(4f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Enemies,
+                StatusKind = StatusEffectKind.Burn,
+                StatusTickInterval = 1f,
+                StatusPotencyPerStack = 4f,
+                StatusMaxStacks = 5,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition BurnCashout = new()
+    {
+        Id = CardIds.BurnCashout,
+        Name = "Burn Cashout",
+        Description = "Consumes burn on enemies in an area and deals the remaining burn value at bonus force.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.StatusConsume,
+                Value = 1.5f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Enemies,
+                StatusKind = StatusEffectKind.Burn,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition Overheat = new()
+    {
+        Id = CardIds.Overheat,
+        Name = "Overheat",
+        Description = "Pushes allied units past their limit with temporary damage and attack speed, then singes them.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.5f,
+        SummonTime = 0.0f,
+        SpellRadius = 6.0f,
+        SpellDuration = 5.0f,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.DamageBoost,
+                Value = 0.28f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 6f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.AttackSpeedModifier,
+                Value = 0.25f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 6f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 12f,
+                DamageType = DamageType.True,
+                RadiusOverride = 6f,
+                Affinity = SpellAffinity.Allies,
+                DelaySeconds = 5f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition IgnitionMark = new()
+    {
+        Id = CardIds.IgnitionMark,
+        Name = "Ignition Mark",
+        Description = "Marks one enemy with a delayed burst and short burn window.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.StatusApply,
+                Duration = 3f,
+                Lifetime = EffectLifetime.Timed(3f),
+                Affinity = SpellAffinity.Enemies,
+                StatusKind = StatusEffectKind.Burn,
+                StatusTickInterval = 1f,
+                StatusPotencyPerStack = 5f,
+                StatusMaxStacks = 4,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 48f,
+                DamageType = DamageType.Magic,
+                Affinity = SpellAffinity.Enemies,
+                DelaySeconds = 1.5f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition FlareShield = new()
+    {
+        Id = CardIds.FlareShield,
+        Name = "Flare Shield",
+        Description = "Shields allies briefly, then releases a flare at the cast point.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 0.0f,
+        SpellRadius = 5.5f,
+        SpellDuration = 3.0f,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Shield,
+                Value = 35f,
+                Duration = 3f,
+                Lifetime = EffectLifetime.Timed(3f),
+                RadiusOverride = 5.5f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 28f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 5.5f,
+                Affinity = SpellAffinity.Enemies,
+                DelaySeconds = 3f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition BubbleShield = new()
+    {
+        Id = CardIds.BubbleShield,
+        Name = "Bubble Shield",
+        Description = "Adds a protective shield to allied units in an area.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 4.0f,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Shield,
+                Value = 45f,
+                Duration = 4f,
+                Lifetime = EffectLifetime.Timed(4f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition Whirlpool = new()
+    {
+        Id = CardIds.Whirlpool,
+        Name = "Whirlpool",
+        Description = "Pulls enemies toward the center of a water field while wearing them down.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 5,
+        Cooldown = 2.6f,
+        SummonTime = 0.0f,
+        SpellRadius = 8.0f,
+        SpellDuration = 3.0f,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Displacement,
+                Value = -2.2f,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                RepeatCount = 4,
+                RepeatIntervalSeconds = 0.6f,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 7f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                RepeatCount = 4,
+                RepeatIntervalSeconds = 0.6f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition Flow = new()
+    {
+        Id = CardIds.Flow,
+        Name = "Flow",
+        Description = "Allies in the area gain dodge chance and deal more damage for a short time.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.2f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 5.0f,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.EvasionModifier,
+                Value = 0.18f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.DamageBoost,
+                Value = 0.18f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
     };
 
     // =========================================================================
@@ -734,6 +1030,129 @@ public static class CardDefinitions
         UnitType = UnitType.Ranged,
         IsRanged = true,
         CreatureTypes = CreatureType.Insect,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition CinderCaster = new()
+    {
+        Id = CardIds.CinderCaster,
+        Name = "Cinder Caster",
+        Description = "Ranged fire unit whose attacks build burn stacks on a single target.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.CinderCaster,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition EmberBombCarrier = new()
+    {
+        Id = CardIds.EmberBombCarrier,
+        Name = "Ember Bomb Carrier",
+        Description = "Fast fragile melee unit that bursts on death and punishes clustered enemies.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 2,
+        Cooldown = 1.8f,
+        SummonTime = 0.8f,
+        UnitId = UnitIds.EmberBombCarrier,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition KindlingSwarm = new()
+    {
+        Id = CardIds.KindlingSwarm,
+        Name = "Kindling Swarm",
+        Description = "A group of small, fast fire melee units for early pressure.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.8f,
+        SummonTime = 1.1f,
+        UnitId = UnitIds.KindlingSwarmUnit,
+        SpawnCount = 5,
+        Formation = FormationPresets.TightSwarmGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Swarm | SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition FireFrontliner = new()
+    {
+        Id = CardIds.FireFrontliner,
+        Name = "Fire Frontliner",
+        Description = "Simple fire tank that gives aggressive decks a durable body.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.6f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.FireFrontliner,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Tank,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition OverheatBrawler = new()
+    {
+        Id = CardIds.OverheatBrawler,
+        Name = "Overheat Brawler",
+        Description = "Generalist fire fighter that grows stronger over time while burning itself down.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 1.1f,
+        UnitId = UnitIds.OverheatBrawler,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition FlameChanneler = new()
+    {
+        Id = CardIds.FlameChanneler,
+        Name = "Flame Channeler",
+        Description = "Shorter-ranged fire attacker that stacks small burns quickly on its current target.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.3f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.FlameChanneler,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
     };
@@ -1125,6 +1544,88 @@ public static class CardDefinitions
         ElementalAffinity = Element.Water,
     };
 
+    public static readonly CardDefinition WaterRedistributor = new()
+    {
+        Id = CardIds.WaterRedistributor,
+        Name = "Water Redistributor",
+        Description = "Support unit that moves health from healthy allies to wounded allies nearby.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.5f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WaterRedistributor,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition SlipperyMelee = new()
+    {
+        Id = CardIds.SlipperyMelee,
+        Name = "Slippery Melee",
+        Description = "Mobile melee unit with a persistent dodge bonus.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.SlipperyMelee,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition WaterRanged = new()
+    {
+        Id = CardIds.WaterRanged,
+        Name = "Water Ranged",
+        Description = "Straightforward ranged water attacker.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WaterRanged,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition BarbedInflator = new()
+    {
+        Id = CardIds.BarbedInflator,
+        Name = "Barbed Inflator",
+        Description = "Defensive water melee unit that periodically shields itself and damages nearby enemies.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.6f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.BarbedInflator,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Tank,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
     // =========================================================================
     // ABILITY SYSTEM V1 CARDS
     // =========================================================================
@@ -1232,6 +1733,14 @@ public static class CardDefinitions
         [CardIds.RainField] = RainField,
         [CardIds.TailWind] = TailWind,
         [CardIds.Fortify] = Fortify,
+        [CardIds.FireAreaBurn] = FireAreaBurn,
+        [CardIds.BurnCashout] = BurnCashout,
+        [CardIds.Overheat] = Overheat,
+        [CardIds.IgnitionMark] = IgnitionMark,
+        [CardIds.FlareShield] = FlareShield,
+        [CardIds.BubbleShield] = BubbleShield,
+        [CardIds.Whirlpool] = Whirlpool,
+        [CardIds.Flow] = Flow,
 
         // Wisps
         [CardIds.FireWisp] = FireWisp,
@@ -1251,6 +1760,12 @@ public static class CardDefinitions
         [CardIds.FireBoar] = FireBoar,
         [CardIds.FireWolf] = FireWolf,
         [CardIds.FireSpider] = FireSpider,
+        [CardIds.CinderCaster] = CinderCaster,
+        [CardIds.EmberBombCarrier] = EmberBombCarrier,
+        [CardIds.KindlingSwarm] = KindlingSwarm,
+        [CardIds.FireFrontliner] = FireFrontliner,
+        [CardIds.OverheatBrawler] = OverheatBrawler,
+        [CardIds.FlameChanneler] = FlameChanneler,
 
         // Earth units
         [CardIds.Pebbloom] = Pebbloom,
@@ -1275,6 +1790,10 @@ public static class CardDefinitions
         [CardIds.WaterBulwark] = WaterBulwark,
         [CardIds.WaterMender] = WaterMender,
         [CardIds.WaterSkimmer] = WaterSkimmer,
+        [CardIds.WaterRedistributor] = WaterRedistributor,
+        [CardIds.SlipperyMelee] = SlipperyMelee,
+        [CardIds.WaterRanged] = WaterRanged,
+        [CardIds.BarbedInflator] = BarbedInflator,
         [CardIds.LifeMedic] = LifeMedic,
         [CardIds.PoisonNeedler] = PoisonNeedler,
         [CardIds.PiercingLaser] = PiercingLaser,
