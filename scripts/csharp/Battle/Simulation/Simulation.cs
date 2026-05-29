@@ -695,6 +695,7 @@ public class Simulation
                     MovementLayer = template.MovementLayer,
                     AssignedLane = VirtualLanes.GetLaneIndex(position.Z),
                     ElementId = cardData.ElementId,
+                    CombatTags = new List<string>(template.CombatTags),
                     FallbackMovement = template.FallbackMovement,
                     EngageShape = template.EngageShape,
                     EngageRectLength = template.EngageRectLength,

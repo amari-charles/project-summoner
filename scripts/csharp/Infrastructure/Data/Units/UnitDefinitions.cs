@@ -1786,6 +1786,7 @@ public static class UnitDefinitions
         template.TacticalRole = ResolveTacticalRole(def, stats);
         template.TargetPriority = def.TargetPriority;
         template.MovementLayer = def.MovementLayer;
+        template.CombatTags = def.CombatTags.ToList();
         template.ElementId = (int)(def.DamageProfile.Element ?? Fateforged.Cards.Element.Neutral);
         template.PhysicalDamageRatio = def.DamageProfile.PhysicalRatio;
         template.ElementalDamageRatio = def.DamageProfile.ElementalRatio;

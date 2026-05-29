@@ -78,6 +78,9 @@ public record UnitDefinition
     /// <summary>Optional simulation-owned ability loadout for this unit.</summary>
     public List<UnitAbilityConfig> Abilities { get; init; } = [];
 
+    /// <summary>Combat tags used by effect requirements and immunity rules.</summary>
+    public string[] CombatTags { get; init; } = [];
+
     // =========================================================================
     // RANGED CONFIGURATION (null = not a ranged unit)
     // =========================================================================

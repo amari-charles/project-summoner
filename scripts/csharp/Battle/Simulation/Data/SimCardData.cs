@@ -164,6 +164,7 @@ public class SimUnitTemplate
     public UnitTargetPriority TargetPriority { get; set; } = UnitTargetPriority.Default;
     public MovementLayer MovementLayer { get; set; }
     public int ElementId { get; set; }
+    public List<string> CombatTags { get; set; } = new();
 
     // Ranged config
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
