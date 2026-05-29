@@ -66,6 +66,9 @@ public sealed class EffectApplicationContext
     public SimVector3? SourcePosition { get; init; }
     public string AbilityId { get; init; } = "";
     public string CardCatalogId { get; init; } = "";
+    public bool TriggerSourceOnHit { get; init; }
+    public bool TriggerTargetOnDamaged { get; init; } = true;
+    public bool UseAttackDamageProfile { get; init; }
 }
 
 /// <summary>

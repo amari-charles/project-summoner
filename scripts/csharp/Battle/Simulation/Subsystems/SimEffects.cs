@@ -181,7 +181,10 @@ public static class SimEffects
                     context.SourceUnitId,
                     context.SourceTeam,
                     events,
-                    spec.RemovalEffect
+                    spec.RemovalEffect,
+                    context.TriggerSourceOnHit,
+                    context.TriggerTargetOnDamaged,
+                    context.UseAttackDamageProfile
                 );
                 EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
@@ -216,7 +219,10 @@ public static class SimEffects
                     context.SourceUnitId,
                     context.SourceTeam,
                     events,
-                    spec.RemovalEffect
+                    spec.RemovalEffect,
+                    context.TriggerSourceOnHit,
+                    context.TriggerTargetOnDamaged,
+                    context.UseAttackDamageProfile
                 );
                 EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
@@ -847,7 +853,10 @@ public static class SimEffects
         int sourceUnitId,
         Team sourceTeam,
         List<SimEvent> events,
-        BuffRemovalEffectConfig? removalEffect = null
+        BuffRemovalEffectConfig? removalEffect = null,
+        bool triggerSourceOnHit = false,
+        bool triggerTargetOnDamaged = true,
+        bool useAttackDamageProfile = false
     )
     {
         // Get source unit for attacker stats (may be dead for delayed effects)
@@ -858,21 +867,35 @@ public static class SimEffects
                 ? state.Summoners[(int)target.Team]
                 : null;
 
-        var (damage, isCrit, _) = SimDamage.Calculate(
-            baseDamage,
-            damageType,
-            attacker,
-            target,
-            attackerSummoner,
-            targetSummoner,
-            state.Rng,
-            events: events,
-            state: state
-        );
+        var (damage, isCrit, _) =
+            useAttackDamageProfile && attacker != null
+                ? SimDamage.CalculateAttack(
+                    baseDamage,
+                    attacker,
+                    target,
+                    attackerSummoner,
+                    targetSummoner,
+                    state.Rng,
+                    events,
+                    state
+                )
+                : SimDamage.Calculate(
+                    baseDamage,
+                    damageType,
+                    attacker,
+                    target,
+                    attackerSummoner,
+                    targetSummoner,
+                    state.Rng,
+                    events: events,
+                    state: state
+                );
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, sourceUnitId, damage, isCrit));
-        if (target.CurrentHp > 0f && target.UnitId != sourceUnitId)
+        if (triggerSourceOnHit && attacker != null && target.UnitId != sourceUnitId)
+            SimAbilityOrchestrator.TryActivateOnHitEffects(state, attacker, target, events);
+        if (triggerTargetOnDamaged && target.CurrentHp > 0f && target.UnitId != sourceUnitId)
             SimAbilityOrchestrator.TryActivateOnDamagedEffects(state, target, attacker, events);
 
         if (target.CurrentHp <= 0)
