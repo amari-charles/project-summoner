@@ -1,7 +1,7 @@
 # Fire Spider
 
 **Element:** Fire
-**Status:** Placeholder - needs real art
+**Status:** Runtime placeholder - needs real art and slow-on-hit behavior
 
 ## Overview
 
@@ -9,7 +9,7 @@ A skittering hunter that spins webs of flame. Fire Spiders trap prey from afar w
 
 ## Visual Description
 
-**Current:** Small dark red box mesh
+**Current:** Small dark red box mesh. The runtime card and projectile exist, but the intended slow-on-hit web behavior is not implemented yet.
 **Target:** An eight-legged spider made of ember and flame. Glowing spinnerets. Skitters low to the ground with quick, erratic movement.
 
 ## Gameplay Role

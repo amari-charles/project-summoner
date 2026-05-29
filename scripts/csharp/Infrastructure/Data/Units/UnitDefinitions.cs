@@ -695,7 +695,7 @@ public static class UnitDefinitions
     public static readonly UnitDefinition WaterBulwark = new()
     {
         Id = UnitIds.WaterBulwark,
-        DisplayName = "Water Bulwark",
+        DisplayName = "Water Frontliner",
         Stats = new UnitStats
         {
             MaxHp = 240f,
@@ -714,7 +714,7 @@ public static class UnitDefinitions
     public static readonly UnitDefinition WaterMender = new()
     {
         Id = UnitIds.WaterMender,
-        DisplayName = "Water Mender",
+        DisplayName = "Water Cleanser",
         Stats = new UnitStats
         {
             MaxHp = 85f,
@@ -745,7 +745,7 @@ public static class UnitDefinitions
     public static readonly UnitDefinition WaterSkimmer = new()
     {
         Id = UnitIds.WaterSkimmer,
-        DisplayName = "Water Skimmer",
+        DisplayName = "Flying Water Skirmisher",
         Stats = new UnitStats
         {
             MaxHp = 70f,

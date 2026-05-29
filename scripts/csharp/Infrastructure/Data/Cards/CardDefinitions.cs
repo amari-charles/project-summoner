@@ -1066,8 +1066,8 @@ public static class CardDefinitions
     public static readonly CardDefinition WaterBulwark = new()
     {
         Id = CardIds.WaterBulwark,
-        Name = "Water Bulwark",
-        Description = "A heavy frontline water guardian that absorbs pressure for the team.",
+        Name = "Water Frontliner",
+        Description = "Placeholder water tank slot: a heavy frontline unit that absorbs pressure for the team.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -1087,8 +1087,8 @@ public static class CardDefinitions
     public static readonly CardDefinition WaterMender = new()
     {
         Id = CardIds.WaterMender,
-        Name = "Water Mender",
-        Description = "Support caster that periodically cleanses and lightly heals nearby allies.",
+        Name = "Water Cleanser",
+        Description = "Placeholder water support slot: periodically cleanses and lightly heals nearby allies.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -1107,8 +1107,8 @@ public static class CardDefinitions
     public static readonly CardDefinition WaterSkimmer = new()
     {
         Id = CardIds.WaterSkimmer,
-        Name = "Water Skimmer",
-        Description = "An aerial skirmisher that peppers enemies with rapid water shots.",
+        Name = "Flying Water Skirmisher",
+        Description = "Placeholder water flying slot: an aerial ranged unit that pressures enemies from above.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
