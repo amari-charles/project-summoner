@@ -115,6 +115,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             if (!simNode.IsHost)
                 _isFacingRight = !_isFacingRight;
             _visual?.SetFlipH(_isFacingRight);
+            ApplyAuthoredVisualConfig(unitData);
         }
         else
         {
@@ -140,6 +141,22 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         if (unitData.MovementLayer == MovementLayer.Air)
             AddToGroup(GroupIDs.FlyingUnits);
+    }
+
+    private void ApplyAuthoredVisualConfig(UnitData unitData)
+    {
+        if (_visual is not SkeletalVisualComponent skeletal || !unitData.CatalogId.HasValue)
+            return;
+
+        var unitDefinition = UnitDefinitions.Get(unitData.CatalogId.Value);
+        if (unitDefinition == null || unitDefinition.Visual.DisplayScale <= 0f)
+            return;
+
+        float displayScale = unitDefinition.Visual.DisplayScale;
+        if (Mathf.IsEqualApprox(displayScale, 1f))
+            return;
+
+        skeletal.SetScaleFactor(skeletal.ScaleFactor * displayScale);
     }
 
     // --- Self-Sync (continuous, every frame) ---

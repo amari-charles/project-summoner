@@ -187,6 +187,9 @@ public record VisualConfig
     /// <summary>HP bar Y offset override. 0 = auto-calculate.</summary>
     public float HpBarOffsetY { get; init; } = 0f;
 
+    /// <summary>Visual-only scale multiplier for shared placeholder scenes.</summary>
+    public float DisplayScale { get; init; } = 1f;
+
     /// <summary>Offset from center mass for projectile targeting.</summary>
     public Vector3 TargetPointOffset { get; init; } = Vector3.Zero;
 

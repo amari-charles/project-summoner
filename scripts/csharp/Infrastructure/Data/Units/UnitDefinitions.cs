@@ -352,7 +352,7 @@ public static class UnitDefinitions
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.Ember),
-        Visual = new VisualConfig { SeparationRadius = 0.38f },
+        Visual = new VisualConfig { SeparationRadius = 0.38f, DisplayScale = 0.92f },
         ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
 
@@ -410,7 +410,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.3f },
+        Visual = new VisualConfig { SeparationRadius = 0.3f, DisplayScale = 0.82f },
         ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
 
@@ -457,7 +457,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.28f },
+        Visual = new VisualConfig { SeparationRadius = 0.28f, DisplayScale = 0.72f },
         ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
 
@@ -476,7 +476,7 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
-        Visual = new VisualConfig { SeparationRadius = 0.72f },
+        Visual = new VisualConfig { SeparationRadius = 0.72f, DisplayScale = 1.28f },
         ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
 
@@ -529,7 +529,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.52f },
+        Visual = new VisualConfig { SeparationRadius = 0.52f, DisplayScale = 1.08f },
         ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
 
@@ -576,7 +576,7 @@ public static class UnitDefinitions
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.Ember),
-        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        Visual = new VisualConfig { SeparationRadius = 0.4f, DisplayScale = 0.96f },
         ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
 
@@ -732,7 +732,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.75f },
+        Visual = new VisualConfig { SeparationRadius = 0.75f, DisplayScale = 1.22f },
         ScenePath =
             "res://scenes/battle/units/earth_flat_damage_reduction_tank_placeholder_3d.tscn",
     };
@@ -774,7 +774,7 @@ public static class UnitDefinitions
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.Rock),
-        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        Visual = new VisualConfig { SeparationRadius = 0.4f, DisplayScale = 0.96f },
         ScenePath = "res://scenes/battle/units/earth_bullet_unit_placeholder_3d.tscn",
     };
 
@@ -857,7 +857,7 @@ public static class UnitDefinitions
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.Rock),
-        Visual = new VisualConfig { SeparationRadius = 0.45f },
+        Visual = new VisualConfig { SeparationRadius = 0.45f, DisplayScale = 0.92f },
         ScenePath = "res://scenes/battle/units/earth_roster_placeholder_3d.tscn",
     };
 
@@ -921,7 +921,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f, DisplayScale = 0.96f },
         ScenePath = "res://scenes/battle/units/earth_roster_placeholder_3d.tscn",
     };
 
@@ -1005,7 +1005,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.65f },
+        Visual = new VisualConfig { SeparationRadius = 0.65f, DisplayScale = 1.16f },
         ScenePath = "res://scenes/battle/units/wind_evasion_tank_placeholder_3d.tscn",
     };
 
@@ -1046,7 +1046,7 @@ public static class UnitDefinitions
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
-        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f, DisplayScale = 0.98f },
         ScenePath = "res://scenes/battle/units/wind_pushback_unit_placeholder_3d.tscn",
     };
 
@@ -1076,7 +1076,7 @@ public static class UnitDefinitions
                 ForwardOffset = 1.5f,
             },
         },
-        Visual = new VisualConfig { SeparationRadius = 0.55f },
+        Visual = new VisualConfig { SeparationRadius = 0.55f, DisplayScale = 1.06f },
         ScenePath = "res://scenes/battle/units/wind_cleave_unit_placeholder_3d.tscn",
     };
 
@@ -1097,7 +1097,7 @@ public static class UnitDefinitions
         TargetingProfile = UnitTargetingProfile.MeleeGround,
         TacticalRole = TacticalRole.Flanker,
         TargetPriority = UnitTargetPriority.PreferRangedOrSupport,
-        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        Visual = new VisualConfig { SeparationRadius = 0.4f, DisplayScale = 0.84f },
         ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
 
@@ -1140,7 +1140,7 @@ public static class UnitDefinitions
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
-        Visual = new VisualConfig { SeparationRadius = 0.42f },
+        Visual = new VisualConfig { SeparationRadius = 0.42f, DisplayScale = 0.9f },
         ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
 
@@ -1183,7 +1183,7 @@ public static class UnitDefinitions
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
-        Visual = new VisualConfig { SeparationRadius = 0.42f },
+        Visual = new VisualConfig { SeparationRadius = 0.42f, DisplayScale = 0.9f },
         ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
 
@@ -1203,7 +1203,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
         TacticalRole = TacticalRole.Flanker,
-        Visual = new VisualConfig { SeparationRadius = 0.28f },
+        Visual = new VisualConfig { SeparationRadius = 0.28f, DisplayScale = 0.72f },
         ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
 
@@ -1251,7 +1251,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.42f },
+        Visual = new VisualConfig { SeparationRadius = 0.42f, DisplayScale = 0.88f },
         ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
 
@@ -1338,7 +1338,7 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
-        Visual = new VisualConfig { SeparationRadius = 0.75f },
+        Visual = new VisualConfig { SeparationRadius = 0.75f, DisplayScale = 1.24f },
         ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn",
     };
 
@@ -1442,7 +1442,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.45f },
+        Visual = new VisualConfig { SeparationRadius = 0.45f, DisplayScale = 0.88f },
         ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
     };
 
@@ -1481,7 +1481,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.45f },
+        Visual = new VisualConfig { SeparationRadius = 0.45f, DisplayScale = 0.92f },
         ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
     };
 
@@ -1501,7 +1501,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
-        Visual = new VisualConfig { SeparationRadius = 0.38f },
+        Visual = new VisualConfig { SeparationRadius = 0.38f, DisplayScale = 0.86f },
         ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
     };
 
@@ -1560,7 +1560,7 @@ public static class UnitDefinitions
                 ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.6f },
+        Visual = new VisualConfig { SeparationRadius = 0.6f, DisplayScale = 1.1f },
         ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
     };
 
