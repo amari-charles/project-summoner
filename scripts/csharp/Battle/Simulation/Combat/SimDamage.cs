@@ -28,7 +28,8 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
-        List<SimEvent>? events = null
+        List<SimEvent>? events = null,
+        MatchState? state = null
     )
     {
         return CalculateInternal(
@@ -40,7 +41,8 @@ public static class SimDamage
             targetSummoner,
             rng,
             allowAttackProfileSplit: false,
-            events
+            events,
+            state
         );
     }
 
@@ -55,7 +57,8 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
-        List<SimEvent>? events = null
+        List<SimEvent>? events = null,
+        MatchState? state = null
     )
     {
         return CalculateInternal(
@@ -67,7 +70,8 @@ public static class SimDamage
             targetSummoner,
             rng,
             allowAttackProfileSplit: true,
-            events
+            events,
+            state
         );
     }
 
@@ -80,7 +84,8 @@ public static class SimDamage
         SummonerData? targetSummoner,
         DeterministicRng? rng,
         bool allowAttackProfileSplit,
-        List<SimEvent>? events
+        List<SimEvent>? events,
+        MatchState? state
     )
     {
         // 0. Attacker miss chance and target evasion checks (deterministic via RNG)
@@ -166,7 +171,7 @@ public static class SimDamage
         // 7. Shield absorption (oldest shield first)
         if (target.ActiveBuffs.Count > 0)
         {
-            damage = SimEffects.AbsorbWithShields(target, damage, events);
+            damage = SimEffects.AbsorbWithShields(state, target, damage, events);
         }
 
         // 8. Round to 1 decimal place (matches DamageSystem)
@@ -185,7 +190,8 @@ public static class SimDamage
         UnitData target,
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
-        DeterministicRng? rng
+        DeterministicRng? rng,
+        MatchState? state = null
     )
     {
         var (damage, isCrit, _) =
@@ -196,7 +202,8 @@ public static class SimDamage
                     target,
                     attackerSummoner,
                     targetSummoner,
-                    rng
+                    rng,
+                    state: state
                 )
                 : Calculate(
                     baseDamage,
@@ -205,7 +212,8 @@ public static class SimDamage
                     target,
                     attackerSummoner,
                     targetSummoner,
-                    rng
+                    rng,
+                    state: state
                 );
         return (damage, isCrit);
     }

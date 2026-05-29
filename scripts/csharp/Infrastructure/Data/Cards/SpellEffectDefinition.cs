@@ -56,4 +56,7 @@ public class SpellEffectDefinition
 
     /// <summary>Status payload max stacks.</summary>
     public int StatusMaxStacks { get; init; } = 1;
+
+    /// <summary>Optional payload fired when a buff created by this effect is removed.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; init; }
 }

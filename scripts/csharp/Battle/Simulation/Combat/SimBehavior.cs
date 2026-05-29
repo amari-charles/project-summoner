@@ -329,7 +329,8 @@ public static class SimBehavior
             target,
             attackerSummoner,
             targetSummoner,
-            state.Rng
+            state.Rng,
+            state
         );
 
         target.CurrentHp -= damage;
@@ -364,7 +365,8 @@ public static class SimBehavior
             target,
             attackerSummoner,
             targetSummoner,
-            state.Rng
+            state.Rng,
+            state
         );
 
         target.CurrentHp -= damage;

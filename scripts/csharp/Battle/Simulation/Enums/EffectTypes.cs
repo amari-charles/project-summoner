@@ -187,6 +187,9 @@ public class SimSpellEffect
 
     /// <summary>Status payload max stacks.</summary>
     public int StatusMaxStacks { get; set; } = 1;
+
+    /// <summary>Optional payload fired when a buff created by this effect is removed.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; set; }
 }
 
 /// <summary>
@@ -237,6 +240,32 @@ public class ActiveBuff
 
     /// <summary>Optional stack count for status payload effects.</summary>
     public int StackCount { get; set; } = 1;
+
+    /// <summary>Optional effect fired when this buff is removed for configured reasons.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; set; }
+
+    /// <summary>Owner HP captured when this buff was applied, for scaling removal effects.</summary>
+    public float OwnerHpAtApply { get; set; }
+}
+
+/// <summary>
+/// Optional payload fired when a buff expires, breaks, or its owner dies.
+/// Used for generic mark/shield-burst style mechanics without content-specific switches.
+/// </summary>
+public class BuffRemovalEffectConfig
+{
+    public bool TriggerOnExpire { get; set; }
+    public bool TriggerOnShieldBreak { get; set; }
+    public bool TriggerOnOwnerDeath { get; set; }
+    public EffectType EffectType { get; set; } = EffectType.Damage;
+    public float Value { get; set; }
+    public bool ScaleValueByOwnerHpAtApply { get; set; }
+    public float OwnerHpAtApplyMultiplier { get; set; }
+    public DamageType DamageType { get; set; } = DamageType.Magic;
+    public float Radius { get; set; }
+    public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
+    public float Duration { get; set; }
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
 }
 
 /// <summary>
@@ -347,4 +376,7 @@ public class DelayedEffect
 
     /// <summary>Status payload max stacks.</summary>
     public int StatusMaxStacks { get; set; } = 1;
+
+    /// <summary>Optional payload fired when a buff created by this delayed effect is removed.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; set; }
 }

@@ -56,6 +56,8 @@ public static class SimUtils
         if (TryConsumeReviveOnDeath(target, events))
             return false;
 
+        SimEffects.TriggerBuffRemovalEffectsForOwnerDeath(state, target, events);
+
         target.CurrentHp = 0;
         target.IsAlive = false;
         target.DeathCleanupTimer = SimConstants.DeathCleanupSeconds;

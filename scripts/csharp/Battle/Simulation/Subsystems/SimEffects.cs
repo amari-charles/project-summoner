@@ -18,6 +18,13 @@ public static class SimEffects
 {
     private const float KnockbackDurationSeconds = 0.22f;
 
+    private enum BuffRemovalReason
+    {
+        Expired,
+        ShieldBreak,
+        OwnerDeath,
+    }
+
     // =========================================================================
     // TICK METHODS (called from Simulation.Tick steps 7-8)
     // =========================================================================
@@ -30,7 +37,8 @@ public static class SimEffects
     /// </summary>
     public static void TickBuffs(MatchState state, float fixedDelta, List<SimEvent> events)
     {
-        foreach (var unit in state.GetAliveActiveUnits())
+        var units = new List<UnitData>(state.GetAliveActiveUnits());
+        foreach (var unit in units)
         {
             for (int i = unit.ActiveBuffs.Count - 1; i >= 0; i--)
             {
@@ -56,8 +64,7 @@ public static class SimEffects
                     buff.Duration -= fixedDelta;
                     if (buff.Duration <= 0)
                     {
-                        events.Add(new BuffExpiredEvent(unit.UnitId, buff.BuffId, buff.EffectType));
-                        unit.ActiveBuffs.RemoveAt(i);
+                        RemoveBuff(state, unit, i, events, BuffRemovalReason.Expired);
                     }
                     else
                     {
@@ -115,7 +122,8 @@ public static class SimEffects
         float statusTickInterval = 1f,
         float statusPotencyPerStack = 0f,
         int statusMaxStacks = 1,
-        SimVector3? sourcePosition = null
+        SimVector3? sourcePosition = null,
+        BuffRemovalEffectConfig? removalEffect = null
     )
     {
         if (!target.IsAlive)
@@ -131,7 +139,8 @@ public static class SimEffects
                     damageType,
                     sourceUnitId,
                     sourceTeam,
-                    events
+                    events,
+                    removalEffect
                 );
                 break;
 
@@ -140,8 +149,16 @@ public static class SimEffects
                 break;
 
             case EffectType.Shield:
-                ApplyShield(state, target, value, sourceUnitId, sourceTeam);
-                events.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, value, -1));
+                ApplyShield(
+                    state,
+                    target,
+                    value,
+                    duration,
+                    sourceUnitId,
+                    sourceTeam,
+                    removalEffect
+                );
+                events.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, value, duration));
                 break;
 
             case EffectType.AreaDamage:
@@ -154,7 +171,8 @@ public static class SimEffects
                     damageType,
                     sourceUnitId,
                     sourceTeam,
-                    events
+                    events,
+                    removalEffect
                 );
                 break;
 
@@ -224,7 +242,8 @@ public static class SimEffects
                     damageType,
                     sourceUnitId,
                     sourceTeam,
-                    events
+                    events,
+                    removalEffect
                 );
                 break;
         }
@@ -475,28 +494,43 @@ public static class SimEffects
         MatchState state,
         UnitData target,
         float shieldHp,
+        float duration,
         int sourceUnitId,
-        Team sourceTeam
+        Team sourceTeam,
+        BuffRemovalEffectConfig? removalEffect = null
     )
     {
+        var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
+        float resolvedDuration = lifetime.ToLegacyDuration();
         target.ActiveBuffs.Add(
             new ActiveBuff
             {
                 BuffId = state.NextBuffId(),
                 EffectType = EffectType.Shield,
                 ShieldHp = shieldHp,
-                Duration = -1, // Permanent until consumed
-                Lifetime = EffectLifetime.Persistent(),
+                Duration = resolvedDuration,
+                Lifetime = lifetime,
                 SourceUnitId = sourceUnitId,
                 SourceTeam = sourceTeam,
+                RemovalEffect = removalEffect,
+                OwnerHpAtApply = target.CurrentHp,
             }
         );
     }
+
+    public static void ApplyShield(
+        MatchState state,
+        UnitData target,
+        float shieldHp,
+        int sourceUnitId,
+        Team sourceTeam
+    ) => ApplyShield(state, target, shieldHp, -1f, sourceUnitId, sourceTeam);
 
     /// <summary>
     /// Consume shields on a unit, oldest first. Returns remaining damage after absorption.
     /// </summary>
     public static float AbsorbWithShields(
+        MatchState? state,
         UnitData target,
         float incomingDamage,
         List<SimEvent>? events
@@ -515,7 +549,7 @@ public static class SimEffects
                 // Shield fully consumed
                 remaining -= buff.ShieldHp;
                 buff.ShieldHp = 0;
-                target.ActiveBuffs.RemoveAt(i);
+                RemoveBuff(state, target, i, events, BuffRemovalReason.ShieldBreak);
                 i--; // Adjust index after removal
             }
             else
@@ -529,9 +563,131 @@ public static class SimEffects
         return remaining;
     }
 
+    public static float AbsorbWithShields(
+        UnitData target,
+        float incomingDamage,
+        List<SimEvent>? events
+    ) => AbsorbWithShields(null, target, incomingDamage, events);
+
+    public static void TriggerBuffRemovalEffectsForOwnerDeath(
+        MatchState state,
+        UnitData owner,
+        List<SimEvent> events
+    )
+    {
+        for (int i = owner.ActiveBuffs.Count - 1; i >= 0; i--)
+        {
+            if (ShouldFireRemovalEffect(owner.ActiveBuffs[i], BuffRemovalReason.OwnerDeath))
+                RemoveBuff(state, owner, i, events, BuffRemovalReason.OwnerDeath);
+        }
+    }
+
     // =========================================================================
     // INTERNAL HELPERS
     // =========================================================================
+
+    private static void RemoveBuff(
+        MatchState? state,
+        UnitData owner,
+        int buffIndex,
+        List<SimEvent>? events,
+        BuffRemovalReason reason
+    )
+    {
+        if (buffIndex < 0 || buffIndex >= owner.ActiveBuffs.Count)
+            return;
+
+        var buff = owner.ActiveBuffs[buffIndex];
+        owner.ActiveBuffs.RemoveAt(buffIndex);
+        events?.Add(new BuffExpiredEvent(owner.UnitId, buff.BuffId, buff.EffectType));
+
+        if (state == null || events == null || !ShouldFireRemovalEffect(buff, reason))
+            return;
+
+        FireRemovalEffect(state, owner, buff, events);
+    }
+
+    private static bool ShouldFireRemovalEffect(ActiveBuff buff, BuffRemovalReason reason)
+    {
+        var removal = buff.RemovalEffect;
+        if (removal == null)
+            return false;
+
+        return reason switch
+        {
+            BuffRemovalReason.Expired => removal.TriggerOnExpire,
+            BuffRemovalReason.ShieldBreak => removal.TriggerOnShieldBreak,
+            BuffRemovalReason.OwnerDeath => removal.TriggerOnOwnerDeath,
+            _ => false,
+        };
+    }
+
+    private static void FireRemovalEffect(
+        MatchState state,
+        UnitData owner,
+        ActiveBuff buff,
+        List<SimEvent> events
+    )
+    {
+        var removal = buff.RemovalEffect;
+        if (removal == null)
+            return;
+
+        float value = removal.Value;
+        if (removal.ScaleValueByOwnerHpAtApply)
+            value += buff.OwnerHpAtApply * removal.OwnerHpAtApplyMultiplier;
+
+        float radius = MathF.Max(0f, removal.Radius);
+        var targets = ResolveRemovalEffectTargets(state, owner, buff.SourceTeam, removal.Affinity, radius);
+        float duration = EffectLifetimeResolver.ResolveDuration(removal.Lifetime, removal.Duration);
+        foreach (var target in targets)
+        {
+            ApplyEffect(
+                state,
+                removal.EffectType,
+                value,
+                duration,
+                removal.DamageType,
+                target,
+                buff.SourceUnitId,
+                buff.SourceTeam,
+                events,
+                sourcePosition: owner.Position
+            );
+        }
+    }
+
+    private static List<UnitData> ResolveRemovalEffectTargets(
+        MatchState state,
+        UnitData owner,
+        Team sourceTeam,
+        SpellAffinity affinity,
+        float radius
+    )
+    {
+        int sourceTeamId = (int)sourceTeam;
+        int? teamFilter = affinity switch
+        {
+            SpellAffinity.Enemies => MatchState.GetEnemyTeam(sourceTeamId),
+            SpellAffinity.Allies => sourceTeamId,
+            _ => null,
+        };
+
+        var targets = new List<UnitData>();
+        foreach (var candidate in state.GetAliveActiveUnits())
+        {
+            if (candidate.UnitId == owner.UnitId)
+                continue;
+            if (teamFilter.HasValue && (int)candidate.Team != teamFilter.Value)
+                continue;
+            if (radius > 0f && owner.Position.DistanceSquaredTo(candidate.Position) > radius * radius)
+                continue;
+            targets.Add(candidate);
+        }
+
+        targets.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+        return targets;
+    }
 
     private static void ApplyDirectDamage(
         MatchState state,
@@ -540,7 +696,8 @@ public static class SimEffects
         DamageType damageType,
         int sourceUnitId,
         Team sourceTeam,
-        List<SimEvent> events
+        List<SimEvent> events,
+        BuffRemovalEffectConfig? removalEffect = null
     )
     {
         // Get source unit for attacker stats (may be dead for delayed effects)
@@ -559,7 +716,8 @@ public static class SimEffects
             attackerSummoner,
             targetSummoner,
             state.Rng,
-            events: events
+            events: events,
+            state: state
         );
 
         target.CurrentHp -= damage;
@@ -589,7 +747,8 @@ public static class SimEffects
         DamageType damageType,
         int sourceUnitId,
         Team sourceTeam,
-        List<SimEvent> events
+        List<SimEvent> events,
+        BuffRemovalEffectConfig? removalEffect = null
     )
     {
         var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
@@ -604,6 +763,8 @@ public static class SimEffects
             DamageType = damageType,
             SourceUnitId = sourceUnitId,
             SourceTeam = sourceTeam,
+            RemovalEffect = removalEffect,
+            OwnerHpAtApply = target.CurrentHp,
         };
         target.ActiveBuffs.Add(buff);
         events.Add(new BuffAppliedEvent(target.UnitId, effectType, value, resolvedDuration));
@@ -836,7 +997,8 @@ public static class SimEffects
                 effect.StatusTickInterval,
                 effect.StatusPotencyPerStack,
                 effect.StatusMaxStacks,
-                effect.Position
+                effect.Position,
+                effect.RemovalEffect
             );
         }
     }

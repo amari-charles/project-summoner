@@ -941,7 +941,8 @@ public class Simulation
                         effect.StatusTickInterval,
                         effect.StatusPotencyPerStack,
                         effect.StatusMaxStacks,
-                        position
+                        position,
+                        effect.RemovalEffect
                     );
                 }
             }
@@ -1005,6 +1006,7 @@ public class Simulation
                 StatusTickInterval = effect.StatusTickInterval,
                 StatusPotencyPerStack = effect.StatusPotencyPerStack,
                 StatusMaxStacks = effect.StatusMaxStacks,
+                RemovalEffect = effect.RemovalEffect,
             }
         );
     }

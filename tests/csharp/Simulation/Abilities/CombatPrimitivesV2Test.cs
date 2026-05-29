@@ -169,6 +169,90 @@ public class CombatPrimitivesV2Test
     }
 
     [TestCase]
+    public void BuffRemovalEffect_TriggersWhenShieldExpires()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var events = new List<SimEvent>();
+        var caster = SimTestHelper.CreateMeleeUnit(state, 0);
+        var shielded = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 2f, hp: 100f);
+
+        SimEffects.ApplyEffect(
+            state,
+            EffectType.Shield,
+            20f,
+            0.1f,
+            DamageType.Magic,
+            shielded,
+            caster.UnitId,
+            caster.Team,
+            events,
+            removalEffect: new BuffRemovalEffectConfig
+            {
+                TriggerOnExpire = true,
+                EffectType = EffectType.Damage,
+                Value = 25f,
+                DamageType = DamageType.True,
+                Radius = 4f,
+                Affinity = SpellAffinity.Enemies,
+            }
+        );
+
+        SimEffects.TickBuffs(state, 0.2f, events);
+
+        AssertThat(enemy.CurrentHp).IsLess(100f);
+    }
+
+    [TestCase]
+    public void BuffRemovalEffect_TriggersOnOwnerDeath_AndCanScaleFromCapturedHp()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var events = new List<SimEvent>();
+        var caster = SimTestHelper.CreateMeleeUnit(state, 0);
+        var marked = SimTestHelper.CreateMeleeUnit(state, 1, x: 2f, hp: 100f);
+        var nearbyEnemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 3f, hp: 100f);
+
+        SimEffects.ApplyEffect(
+            state,
+            EffectType.StatModifier,
+            0f,
+            4f,
+            DamageType.Magic,
+            marked,
+            caster.UnitId,
+            caster.Team,
+            events,
+            removalEffect: new BuffRemovalEffectConfig
+            {
+                TriggerOnOwnerDeath = true,
+                EffectType = EffectType.Damage,
+                Value = 10f,
+                ScaleValueByOwnerHpAtApply = true,
+                OwnerHpAtApplyMultiplier = 0.25f,
+                DamageType = DamageType.True,
+                Radius = 4f,
+                Affinity = SpellAffinity.Enemies,
+            }
+        );
+        AssertThat(marked.ActiveBuffs.Count).IsEqual(1);
+        AssertThat(marked.ActiveBuffs[0].RemovalEffect).IsNotNull();
+        SimEffects.ApplyEffect(
+            state,
+            EffectType.Damage,
+            200f,
+            0f,
+            DamageType.True,
+            marked,
+            caster.UnitId,
+            caster.Team,
+            events
+        );
+
+        AssertThat(marked.IsAlive).IsFalse();
+        AssertThat(nearbyEnemy.CurrentHp).IsEqual(65f);
+    }
+
+    [TestCase]
     public void AccuracyAndRangedDamageModifiers_AffectDamageCalculation()
     {
         var state = SimTestHelper.CreateBattleState(seed: 1);

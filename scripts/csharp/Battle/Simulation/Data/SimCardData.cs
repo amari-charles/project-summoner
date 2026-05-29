@@ -106,6 +106,7 @@ public class SimCardData
                             StatusTickInterval = effect.StatusTickInterval,
                             StatusPotencyPerStack = effect.StatusPotencyPerStack,
                             StatusMaxStacks = effect.StatusMaxStacks,
+                            RemovalEffect = effect.RemovalEffect,
                         }
                     );
                 }

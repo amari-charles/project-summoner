@@ -708,7 +708,8 @@ public static class SimProjectile
             target,
             attackerSummoner,
             targetSummoner,
-            state.Rng
+            state.Rng,
+            state
         );
 
         target.CurrentHp -= damage;
@@ -882,7 +883,8 @@ public static class SimProjectile
                 unit,
                 attackerSummoner,
                 targetSummoner,
-                state.Rng
+                state.Rng,
+                state
             );
 
             unit.CurrentHp -= damage;
