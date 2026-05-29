@@ -178,6 +178,22 @@ public static class SimAbilityOrchestrator
                 targets[0],
                 events
             ),
+            UnitAbilityDelivery.Delayed => TryDeliverScheduled(
+                state,
+                source,
+                ability,
+                targets,
+                includeImmediate: false,
+                events
+            ),
+            UnitAbilityDelivery.RepeatedArea => TryDeliverScheduled(
+                state,
+                source,
+                ability,
+                targets,
+                includeImmediate: true,
+                events
+            ),
             _ => TryDeliverInstant(state, source, ability, targets, events),
         };
     }
@@ -212,6 +228,133 @@ public static class SimAbilityOrchestrator
         int? eventTarget = targets.Count == 1 ? targets[0].UnitId : null;
         events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, eventTarget, source.Position));
         return true;
+    }
+
+    private static bool TryDeliverScheduled(
+        MatchState state,
+        UnitData source,
+        UnitAbilityState ability,
+        List<UnitData> targets,
+        bool includeImmediate,
+        List<SimEvent> events
+    )
+    {
+        var effects = ResolveEffects(ability);
+        if (effects.Count == 0)
+            return false;
+
+        int scheduled = 0;
+        bool emittedImmediateActivation = false;
+        float baseDelay = MathF.Max(0f, ability.DeliveryDelaySeconds);
+        if (baseDelay <= 0f && !includeImmediate)
+            baseDelay = MathF.Max(0f, ability.WindupSeconds);
+        int applications = Math.Max(1, ability.RepeatCount + 1);
+        float interval = MathF.Max(0f, ability.RepeatIntervalSeconds);
+
+        for (int applicationIndex = 0; applicationIndex < applications; applicationIndex++)
+        {
+            float delay = baseDelay + applicationIndex * interval;
+            if (delay <= 0f && includeImmediate && applicationIndex == 0)
+            {
+                if (TryDeliverInstant(state, source, ability, targets, events))
+                {
+                    scheduled++;
+                    emittedImmediateActivation = true;
+                }
+                continue;
+            }
+
+            foreach (var effect in effects)
+            {
+                if (effect.EffectType == EffectType.TransferHealth)
+                    continue;
+
+                QueueDelayedAbilityEffect(state, source, ability, effect, targets, delay);
+                scheduled++;
+            }
+        }
+
+        if (scheduled <= 0)
+            return false;
+
+        if (!emittedImmediateActivation)
+        {
+            int? eventTarget = targets.Count == 1 ? targets[0].UnitId : null;
+            events.Add(
+                new AbilityActivatedEvent(source.UnitId, ability.AbilityId, eventTarget, source.Position)
+            );
+        }
+        return true;
+    }
+
+    private static void QueueDelayedAbilityEffect(
+        MatchState state,
+        UnitData source,
+        UnitAbilityState ability,
+        UnitAbilityEffectState effect,
+        List<UnitData> targets,
+        float delay
+    )
+    {
+        var spec = BuildEffectSpec(source, ability, effect);
+        bool areaTargeting =
+            ability.Targeting == UnitAbilityTargeting.AlliesInRadius
+            || ability.Targeting == UnitAbilityTargeting.EnemiesInRadius;
+
+        if (areaTargeting)
+        {
+            state.DelayedEffects.Add(
+                BuildDelayedEffect(source, ability, effect, spec, delay, null, source.Position)
+            );
+            return;
+        }
+
+        foreach (var target in targets)
+        {
+            state.DelayedEffects.Add(
+                BuildDelayedEffect(source, ability, effect, spec, delay, target.UnitId, target.Position)
+            );
+        }
+    }
+
+    private static DelayedEffect BuildDelayedEffect(
+        UnitData source,
+        UnitAbilityState ability,
+        UnitAbilityEffectState effect,
+        EffectApplicationSpec spec,
+        float delay,
+        int? targetUnitId,
+        SimVector3 position
+    )
+    {
+        float radius = ability.Radius > 0f ? ability.Radius : 0f;
+        return new DelayedEffect
+        {
+            Timer = MathF.Max(0f, delay),
+            EffectType = effect.EffectType,
+            Value = effect.Value,
+            Duration = spec.ResolvedDuration,
+            Lifetime = effect.Lifetime,
+            DamageType = effect.DamageType,
+            AoeRadius = targetUnitId.HasValue ? 0f : radius,
+            Position = position,
+            SourceUnitId = source.UnitId,
+            SourceTeam = source.Team,
+            Affinity = ToSpellAffinity(ability.TargetAffinity),
+            TargetingMode = targetUnitId.HasValue
+                ? SpellTargetingMode.NearestEnemy
+                : SpellTargetingMode.Position,
+            TargetUnitId = targetUnitId,
+            StatusKind = effect.StatusKind,
+            StatusTickInterval = effect.StatusTickInterval,
+            StatusPotencyPerStack = effect.StatusPotencyPerStack,
+            StatusMaxStacks = effect.StatusMaxStacks,
+            TagRequirements = spec.TagRequirements.DeepClone(),
+            GrantedTags = new List<string>(spec.GrantedTags),
+            StackPolicy = spec.StackPolicy,
+            StackKey = spec.StackKey,
+            CueId = spec.CueId,
+        };
     }
 
     private static bool TryDeliverProjectile(
@@ -455,6 +598,16 @@ public static class SimAbilityOrchestrator
             AbilityTargetAffinity.Allies => target.Team == source.Team,
             AbilityTargetAffinity.Both => true,
             _ => false,
+        };
+    }
+
+    private static SpellAffinity ToSpellAffinity(AbilityTargetAffinity affinity)
+    {
+        return affinity switch
+        {
+            AbilityTargetAffinity.Allies => SpellAffinity.Allies,
+            AbilityTargetAffinity.Both => SpellAffinity.Both,
+            _ => SpellAffinity.Enemies,
         };
     }
 

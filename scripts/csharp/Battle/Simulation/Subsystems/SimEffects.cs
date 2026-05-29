@@ -1288,6 +1288,7 @@ public static class SimEffects
                     var pinned = state.GetAliveUnit(effect.TargetUnitId.Value);
                     if (
                         pinned != null
+                        && PassesDelayedAffinity(pinned, sourceTeam, effect.Affinity)
                         && PassesTargetElementRequirement(pinned, effect.RequiredTargetElementId)
                     )
                         targets.Add(pinned);
@@ -1343,6 +1344,20 @@ public static class SimEffects
         }
 
         return targets;
+    }
+
+    private static bool PassesDelayedAffinity(
+        UnitData unit,
+        int sourceTeam,
+        SpellAffinity affinity
+    )
+    {
+        return affinity switch
+        {
+            SpellAffinity.Allies => (int)unit.Team == sourceTeam,
+            SpellAffinity.Both => true,
+            _ => (int)unit.Team == MatchState.GetEnemyTeam(sourceTeam),
+        };
     }
 
     private static bool PassesTargetElementRequirement(UnitData unit, int requiredTargetElementId)

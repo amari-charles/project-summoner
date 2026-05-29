@@ -48,6 +48,15 @@ public record UnitAbilityConfig
     /// <summary>Optional windup before resolve.</summary>
     public float WindupSeconds { get; init; }
 
+    /// <summary>Delay used by delayed/repeated delivery after targets are selected.</summary>
+    public float DeliveryDelaySeconds { get; init; }
+
+    /// <summary>Additional delayed applications after the first for repeated delivery.</summary>
+    public int RepeatCount { get; init; }
+
+    /// <summary>Spacing between delayed repeated applications.</summary>
+    public float RepeatIntervalSeconds { get; init; }
+
     /// <summary>Optional projectile used by projectile-delivery abilities.</summary>
     public ProjectileId ProjectileId { get; init; } = ProjectileId.None;
 

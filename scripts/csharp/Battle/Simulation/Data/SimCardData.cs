@@ -229,6 +229,9 @@ public sealed class UnitAbilityState
     public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
     public float WindupSeconds { get; set; }
     public float WindupTimer { get; set; }
+    public float DeliveryDelaySeconds { get; set; }
+    public int RepeatCount { get; set; }
+    public float RepeatIntervalSeconds { get; set; }
     public int? LockedTargetUnitId { get; set; }
     public bool HasApplied { get; set; }
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
@@ -255,6 +258,9 @@ public sealed class UnitAbilityState
             Lifetime = Lifetime,
             WindupSeconds = WindupSeconds,
             WindupTimer = WindupTimer,
+            DeliveryDelaySeconds = DeliveryDelaySeconds,
+            RepeatCount = RepeatCount,
+            RepeatIntervalSeconds = RepeatIntervalSeconds,
             LockedTargetUnitId = LockedTargetUnitId,
             HasApplied = HasApplied,
             ProjectileCatalogId = ProjectileCatalogId,
