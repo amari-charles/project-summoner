@@ -1147,7 +1147,7 @@ public static class UnitDefinitions
     public static readonly UnitDefinition DashStriker = new()
     {
         Id = UnitIds.DashStriker,
-        DisplayName = "Dash Striker",
+        DisplayName = "Flow Striker",
         Stats = new UnitStats
         {
             MaxHp = 95f,

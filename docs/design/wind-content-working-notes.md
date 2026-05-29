@@ -204,19 +204,19 @@ Notes:
 - A small innate dodge chance is optional.
 - This should benefit naturally from Wind attack-speed buffs.
 
-### Dash Striker
+### Flow Striker
 
 Decision:
 
-- Wind should have a fast melee unit built around periodic dash attacks.
+- Wind should have a fast melee unit that enters a brief flow state after landing hits.
 
 Current shape:
 
 - Type: Unit
 - Role: Mobile melee damage / skirmisher
-- Effect: Periodically dashes to its current target. The dash attack deals bonus damage, then the unit gains brief dodge chance.
+- Effect: On hit, briefly gains dodge chance and attack speed.
 
 Notes:
 
-- This should feel like hit-and-run pressure.
+- This should feel like hit-and-run pressure without implying a literal movement dash.
 - It is distinct from the backline diver because it fights its current target rather than prioritizing the enemy backline.

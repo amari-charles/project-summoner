@@ -1889,7 +1889,7 @@ public static class CardDefinitions
     public static readonly CardDefinition DashStriker = new()
     {
         Id = CardIds.DashStriker,
-        Name = "Dash Striker",
+        Name = "Flow Striker",
         Description = "Fast melee striker that briefly gains dodge and attack speed after landing hits.",
         Rarity = Rarity.Rare,
         Type = CardType.Summon,
