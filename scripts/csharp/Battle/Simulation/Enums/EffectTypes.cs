@@ -51,6 +51,7 @@ public enum EffectType
     EvasionModifier, // Modify evasion chance (+/-)
     AttackSpeedModifier, // Modify attack speed (+/-)
     FlatDamageReduction, // Flat post-mitigation reduction
+    Taunt, // Soft forced-target override toward source unit
 }
 
 // =========================================================================

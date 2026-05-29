@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Simulation.Effects;
@@ -201,7 +202,9 @@ public class SimUnitTemplate
 public sealed class UnitAbilityState
 {
     public string AbilityId { get; set; } = "";
-    public UnitAbilityKind Kind { get; set; }
+    public UnitAbilityTrigger Trigger { get; set; } = UnitAbilityTrigger.Periodic;
+    public UnitAbilityTargeting Targeting { get; set; } = UnitAbilityTargeting.Self;
+    public UnitAbilityDelivery Delivery { get; set; } = UnitAbilityDelivery.Instant;
     public float CooldownSeconds { get; set; } = 1f;
     public float CooldownTimer { get; set; }
     public float Range { get; set; }
@@ -216,13 +219,16 @@ public sealed class UnitAbilityState
     public bool HasApplied { get; set; }
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public AbilityTargetAffinity TargetAffinity { get; set; } = AbilityTargetAffinity.Enemies;
+    public List<UnitAbilityEffectState> Effects { get; set; } = new();
 
     public UnitAbilityState DeepClone()
     {
         return new UnitAbilityState
         {
             AbilityId = AbilityId,
-            Kind = Kind,
+            Trigger = Trigger,
+            Targeting = Targeting,
+            Delivery = Delivery,
             CooldownSeconds = CooldownSeconds,
             CooldownTimer = CooldownTimer,
             Range = Range,
@@ -237,6 +243,41 @@ public sealed class UnitAbilityState
             HasApplied = HasApplied,
             ProjectileCatalogId = ProjectileCatalogId,
             TargetAffinity = TargetAffinity,
+            Effects = Effects.Select(e => e.DeepClone()).ToList(),
+        };
+    }
+}
+
+/// <summary>
+/// Runtime simulation state for one effect payload inside a unit ability.
+/// </summary>
+public sealed class UnitAbilityEffectState
+{
+    public EffectType EffectType { get; set; } = EffectType.StatModifier;
+    public float Value { get; set; }
+    public float DurationSeconds { get; set; }
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
+    public DamageType DamageType { get; set; } = DamageType.Magic;
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+    public float StatusDuration { get; set; }
+    public float StatusTickInterval { get; set; } = 1f;
+    public float StatusPotencyPerStack { get; set; }
+    public int StatusMaxStacks { get; set; } = 1;
+
+    public UnitAbilityEffectState DeepClone()
+    {
+        return new UnitAbilityEffectState
+        {
+            EffectType = EffectType,
+            Value = Value,
+            DurationSeconds = DurationSeconds,
+            Lifetime = Lifetime,
+            DamageType = DamageType,
+            StatusKind = StatusKind,
+            StatusDuration = StatusDuration,
+            StatusTickInterval = StatusTickInterval,
+            StatusPotencyPerStack = StatusPotencyPerStack,
+            StatusMaxStacks = StatusMaxStacks,
         };
     }
 }

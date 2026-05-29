@@ -3,6 +3,7 @@ namespace Fateforged.Tests.Cards;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Fateforged.Simulation.Enums;
 using Fateforged.Units;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -68,7 +69,9 @@ public class CardCatalogWindEarthContentTest
         var pushback = UnitDefinitions.Get(UnitIds.WindPushbackUnit);
         AssertThat(pushback).IsNotNull();
         var knockbackAbility = pushback!.Abilities.FirstOrDefault(a =>
-            a.Kind == UnitAbilityKind.TargetedKnockback
+            a.Trigger == UnitAbilityTrigger.OnHit
+            && a.Targeting == UnitAbilityTargeting.HitTarget
+            && a.Effects.Any(e => e.EffectType == EffectType.Knockback)
         );
         AssertThat(knockbackAbility).IsNotNull();
         AssertThat(knockbackAbility!.Range).IsGreaterEqual(pushback.Stats.AttackRange);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
 using Fateforged.Tests.Simulation;
 using Fateforged.Units;
@@ -33,10 +34,19 @@ public class AbilityTargetedKnockbackTest
             new UnitAbilityState
             {
                 AbilityId = "targeted_knockback",
-                Kind = UnitAbilityKind.TargetedKnockback,
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 3f,
                 Range = 0.5f,
-                Value = 3f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.Knockback,
+                        Value = 3f,
+                    },
+                ],
             }
         );
 
@@ -85,10 +95,19 @@ public class AbilityTargetedKnockbackTest
             new UnitAbilityState
             {
                 AbilityId = "targeted_knockback",
-                Kind = UnitAbilityKind.TargetedKnockback,
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 3f,
                 Range = 12f,
-                Value = 3f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.Knockback,
+                        Value = 3f,
+                    },
+                ],
             }
         );
 

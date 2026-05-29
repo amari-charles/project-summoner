@@ -11,8 +11,14 @@ public record UnitAbilityConfig
     /// <summary>Stable authoring ID for debug/events.</summary>
     public string AbilityId { get; init; } = "";
 
-    /// <summary>Runtime behavior kind.</summary>
-    public UnitAbilityKind Kind { get; init; }
+    /// <summary>When this ability attempts to activate.</summary>
+    public UnitAbilityTrigger Trigger { get; init; } = UnitAbilityTrigger.Periodic;
+
+    /// <summary>How this ability resolves targets.</summary>
+    public UnitAbilityTargeting Targeting { get; init; } = UnitAbilityTargeting.Self;
+
+    /// <summary>How this ability delivers effects after target resolution.</summary>
+    public UnitAbilityDelivery Delivery { get; init; } = UnitAbilityDelivery.Instant;
 
     /// <summary>Cooldown between ability activations.</summary>
     public float CooldownSeconds { get; init; } = 1f;
@@ -46,6 +52,33 @@ public record UnitAbilityConfig
 
     /// <summary>Target affinity filter used by this ability.</summary>
     public AbilityTargetAffinity TargetAffinity { get; init; } = AbilityTargetAffinity.Enemies;
+
+    /// <summary>Effect payloads delivered by the ability.</summary>
+    public UnitAbilityEffectConfig[] Effects { get; init; } = [];
+}
+
+/// <summary>
+/// Effect payload used by simulation-owned unit abilities.
+/// </summary>
+public record UnitAbilityEffectConfig
+{
+    /// <summary>Gameplay mutation to apply.</summary>
+    public EffectType EffectType { get; init; } = EffectType.StatModifier;
+
+    /// <summary>Primary scalar value for the effect.</summary>
+    public float Value { get; init; }
+
+    /// <summary>Primary duration value for buffs/debuffs.</summary>
+    public float DurationSeconds { get; init; }
+
+    /// <summary>Typed lifetime payload for buffs/debuffs.</summary>
+    public EffectLifetime Lifetime { get; init; } = EffectLifetime.Timed(0f);
+
+    /// <summary>Damage lane used by damage-class effects.</summary>
+    public DamageType DamageType { get; init; } = DamageType.Magic;
+
+    /// <summary>Optional projectile/status payload for status application.</summary>
+    public ProjectileStatusConfig? Status { get; init; }
 }
 
 /// <summary>

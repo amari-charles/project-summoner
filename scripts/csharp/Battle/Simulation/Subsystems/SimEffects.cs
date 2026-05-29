@@ -161,6 +161,10 @@ public static class SimEffects
                 ApplyKnockback(state, target, value, sourceUnitId, sourceTeam);
                 break;
 
+            case EffectType.Taunt:
+                ApplyTaunt(target, sourceUnitId, duration, events);
+                break;
+
             case EffectType.Slow:
             case EffectType.Stun:
             case EffectType.Haste:
@@ -836,6 +840,37 @@ public static class SimEffects
 
         target.Engagement.ForcedTargetUnitId = null;
         target.Engagement.ForcedTargetTimer = 0f;
+    }
+
+    private static void ApplyTaunt(
+        UnitData target,
+        int sourceUnitId,
+        float duration,
+        List<SimEvent> events
+    )
+    {
+        if (sourceUnitId < 0 || duration <= 0f)
+            return;
+        if (!ShouldApplySoftTaunt(target, sourceUnitId))
+            return;
+
+        target.Engagement.ForcedTargetUnitId = sourceUnitId;
+        target.Engagement.ForcedTargetTimer = MathF.Max(
+            target.Engagement.ForcedTargetTimer,
+            duration
+        );
+        events.Add(
+            new StatusAppliedEvent(sourceUnitId, target.UnitId, StatusEffectKind.Taunt, 1, duration)
+        );
+    }
+
+    private static bool ShouldApplySoftTaunt(UnitData target, int sourceUnitId)
+    {
+        if (target.Engagement.ForcedTargetTimer <= 0f)
+            return true;
+        if (!target.Engagement.ForcedTargetUnitId.HasValue)
+            return true;
+        return target.Engagement.ForcedTargetUnitId.Value == sourceUnitId;
     }
 
     private static bool IsNegativeBuffForCleanse(ActiveBuff buff)

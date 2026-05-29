@@ -422,12 +422,20 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "flat_damage_reduction_passive",
-                Kind = UnitAbilityKind.ApplySelfEffect,
+                Trigger = UnitAbilityTrigger.OnSpawn,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 10f,
-                EffectType = EffectType.FlatDamageReduction,
-                Value = 4f,
-                DurationSeconds = -1f,
-                Lifetime = EffectLifetime.Persistent(),
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.FlatDamageReduction,
+                        Value = 4f,
+                        DurationSeconds = -1f,
+                        Lifetime = EffectLifetime.Persistent(),
+                    },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.75f },
@@ -475,11 +483,20 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "taunt_pulse",
-                Kind = UnitAbilityKind.TauntPulse,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 3.0f,
                 Radius = 8.0f,
-                DurationSeconds = 2.5f,
                 TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Taunt,
+                        DurationSeconds = 2.5f,
+                    },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.7f },
@@ -550,12 +567,20 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "evasion_passive",
-                Kind = UnitAbilityKind.ApplySelfEffect,
+                Trigger = UnitAbilityTrigger.OnSpawn,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 10f,
-                EffectType = EffectType.EvasionModifier,
-                Value = 0.2f,
-                DurationSeconds = -1f,
-                Lifetime = EffectLifetime.Persistent(),
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.EvasionModifier,
+                        Value = 0.2f,
+                        DurationSeconds = -1f,
+                        Lifetime = EffectLifetime.Persistent(),
+                    },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.65f },
@@ -582,11 +607,20 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "targeted_knockback",
-                Kind = UnitAbilityKind.TargetedKnockback,
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 0f,
                 Range = 18f,
-                Value = 2.8f,
                 TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Knockback,
+                        Value = 2.8f,
+                    },
+                ],
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
@@ -731,11 +765,17 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "cleanse_pulse",
-                Kind = UnitAbilityKind.CleansePulse,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 4.2f,
                 Radius = 7f,
-                Value = 18f,
                 TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig { EffectType = EffectType.Cleanse },
+                    new UnitAbilityEffectConfig { EffectType = EffectType.Heal, Value = 18f },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.45f },
@@ -789,12 +829,17 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "healer_bullet",
-                Kind = UnitAbilityKind.HealerProjectile,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.LowestHpAlly,
+                Delivery = UnitAbilityDelivery.Projectile,
                 CooldownSeconds = 1.2f,
                 Range = 18f,
-                Value = 14f,
                 ProjectileId = ProjectileIds.HealingBolt,
                 TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig { EffectType = EffectType.Heal, Value = 14f },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.4f },
@@ -1196,7 +1241,9 @@ public static class UnitDefinitions
                 new UnitAbilityState
                 {
                     AbilityId = ability.AbilityId,
-                    Kind = ability.Kind,
+                    Trigger = ability.Trigger,
+                    Targeting = ability.Targeting,
+                    Delivery = ability.Delivery,
                     CooldownSeconds = ability.CooldownSeconds,
                     CooldownTimer = 0f,
                     Range = ability.Range,
@@ -1210,6 +1257,47 @@ public static class UnitDefinitions
                     LockedTargetUnitId = null,
                     ProjectileCatalogId = ability.ProjectileId.Value,
                     TargetAffinity = ability.TargetAffinity,
+                    Effects = BuildAbilityEffectStates(ability),
+                }
+            );
+        }
+        return result;
+    }
+
+    private static List<UnitAbilityEffectState> BuildAbilityEffectStates(UnitAbilityConfig ability)
+    {
+        var effects = ability.Effects.Length > 0
+            ? ability.Effects
+            :
+            [
+                new UnitAbilityEffectConfig
+                {
+                    EffectType = ability.EffectType,
+                    Value = ability.Value,
+                    DurationSeconds = ability.DurationSeconds,
+                    Lifetime = ability.Lifetime,
+                },
+            ];
+
+        var result = new List<UnitAbilityEffectState>(effects.Length);
+        foreach (var effect in effects)
+        {
+            result.Add(
+                new UnitAbilityEffectState
+                {
+                    EffectType = effect.EffectType,
+                    Value = effect.Value,
+                    DurationSeconds = effect.DurationSeconds,
+                    Lifetime = EffectLifetimeResolver.Resolve(
+                        effect.Lifetime,
+                        effect.DurationSeconds
+                    ),
+                    DamageType = effect.DamageType,
+                    StatusKind = effect.Status?.Kind ?? StatusEffectKind.None,
+                    StatusDuration = effect.Status?.DurationSeconds ?? 0f,
+                    StatusTickInterval = effect.Status?.TickIntervalSeconds ?? 1f,
+                    StatusPotencyPerStack = effect.Status?.PotencyPerStack ?? 0f,
+                    StatusMaxStacks = effect.Status?.MaxStacks ?? 1,
                 }
             );
         }

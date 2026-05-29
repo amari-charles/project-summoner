@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Fateforged.Data.Projectiles;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
@@ -10,11 +11,11 @@ namespace Fateforged.Simulation.Subsystems;
 
 /// <summary>
 /// Simulation-owned ability runtime orchestrator.
-/// Executes non-basic unit abilities deterministically from UnitData.Abilities.
+/// Executes unit abilities from primitive trigger/target/delivery/effect specs.
 /// </summary>
 public static class SimAbilityOrchestrator
 {
-    public static void Tick(MatchState state, float fixedDelta, System.Collections.Generic.List<SimEvent> events)
+    public static void Tick(MatchState state, float fixedDelta, List<SimEvent> events)
     {
         foreach (var unit in state.GetAliveActiveUnits())
         {
@@ -33,55 +34,133 @@ public static class SimAbilityOrchestrator
         UnitData source,
         UnitAbilityState ability,
         float fixedDelta,
-        System.Collections.Generic.List<SimEvent> events
+        List<SimEvent> events
     )
     {
         if (ability.CooldownTimer > 0f)
             ability.CooldownTimer = MathF.Max(0f, ability.CooldownTimer - fixedDelta);
 
+        if (ability.Trigger == UnitAbilityTrigger.OnSpawn && ability.HasApplied)
+            return;
+        if (ability.Trigger != UnitAbilityTrigger.OnSpawn && ability.Trigger != UnitAbilityTrigger.Periodic)
+            return;
         if (ability.CooldownTimer > 0f)
             return;
 
-        bool activated = ability.Kind switch
-        {
-            UnitAbilityKind.HealerProjectile => TryActivateHealerProjectile(
-                state,
-                source,
-                ability,
-                events
-            ),
-            UnitAbilityKind.ApplySelfEffect => TryActivateApplySelfEffect(
-                state,
-                source,
-                ability,
-                events
-            ),
-            // TargetedKnockback is applied on confirmed hit (projectile/melee),
-            // not polled by periodic range checks.
-            UnitAbilityKind.TargetedKnockback => false,
-            UnitAbilityKind.TauntPulse => TryActivateTauntPulse(state, source, ability, events),
-            UnitAbilityKind.CleansePulse => TryActivateCleansePulse(state, source, ability, events),
-            _ => false,
-        };
+        bool activated = TryActivateAbility(state, source, ability, null, events);
+        if (!activated)
+            return;
 
-        if (activated)
+        if (ability.Trigger == UnitAbilityTrigger.OnSpawn)
+            ability.HasApplied = true;
+        else
             ability.CooldownTimer = MathF.Max(ability.CooldownSeconds, 0f);
     }
 
-    private static bool TryActivateHealerProjectile(
+    public static void TryActivateOnHitEffects(
+        MatchState state,
+        UnitData source,
+        UnitData target,
+        List<SimEvent> events
+    )
+    {
+        if (!source.IsAlive || !target.IsAlive || source.UnitId == target.UnitId)
+            return;
+
+        foreach (var ability in source.Abilities)
+        {
+            if (ability.Trigger != UnitAbilityTrigger.OnHit)
+                continue;
+            if (ability.CooldownTimer > 0f)
+                continue;
+            if (!CanApplyToTarget(source, target, ability.TargetAffinity))
+                continue;
+            if (!TryActivateAbility(state, source, ability, target, events))
+                continue;
+
+            ability.CooldownTimer = MathF.Max(ability.CooldownSeconds, 0f);
+            return;
+        }
+    }
+
+    private static bool TryActivateAbility(
         MatchState state,
         UnitData source,
         UnitAbilityState ability,
-        System.Collections.Generic.List<SimEvent> events
+        UnitData? contextTarget,
+        List<SimEvent> events
     )
     {
-        var target = ResolveHealerTarget(state, source, ability);
-        if (target == null)
+        var targets = ResolveTargets(state, source, ability, contextTarget);
+        if (targets.Count == 0)
             return false;
 
+        return ability.Delivery switch
+        {
+            UnitAbilityDelivery.Projectile => TryDeliverProjectile(
+                state,
+                source,
+                ability,
+                targets[0],
+                events
+            ),
+            _ => TryDeliverInstant(state, source, ability, targets, events),
+        };
+    }
+
+    private static bool TryDeliverInstant(
+        MatchState state,
+        UnitData source,
+        UnitAbilityState ability,
+        List<UnitData> targets,
+        List<SimEvent> events
+    )
+    {
+        var effects = ResolveEffects(ability);
+        int applied = 0;
+
+        foreach (var target in targets)
+        {
+            foreach (var effect in effects)
+            {
+                SimEffects.ApplyEffect(
+                    state,
+                    effect.EffectType,
+                    effect.Value,
+                    EffectLifetimeResolver.ResolveDuration(
+                        effect.Lifetime,
+                        effect.DurationSeconds
+                    ),
+                    effect.DamageType,
+                    target,
+                    source.UnitId,
+                    source.Team,
+                    events
+                );
+                applied++;
+            }
+        }
+
+        if (applied <= 0)
+            return false;
+
+        int? eventTarget = targets.Count == 1 ? targets[0].UnitId : null;
+        events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, eventTarget, source.Position));
+        return true;
+    }
+
+    private static bool TryDeliverProjectile(
+        MatchState state,
+        UnitData source,
+        UnitAbilityState ability,
+        UnitData target,
+        List<SimEvent> events
+    )
+    {
         if (!TryResolveProjectileData(source, ability, out var projectileData))
             return false;
 
+        var effect = ResolvePrimaryEffect(ability);
         var targetPos = target.Position;
         var startPos = source.Position;
         if (projectileData.SpawnAtTargetHeight)
@@ -92,7 +171,7 @@ public static class SimAbilityOrchestrator
             sourceUnitId: source.UnitId,
             targetUnitId: target.UnitId,
             team: source.Team,
-            damage: ability.Value,
+            damage: effect.Value,
             sourceElementId: source.ElementId,
             movementType: projectileData.MovementType,
             speed: projectileData.Speed,
@@ -118,7 +197,12 @@ public static class SimAbilityOrchestrator
             speedEaseExponent: projectileData.SpeedEaseExponent,
             tracking: projectileData.Tracking,
             targetAffinity: ability.TargetAffinity,
-            impactKind: ProjectileImpactKind.Heal
+            impactKind: ResolveProjectileImpact(effect),
+            statusKind: effect.StatusKind,
+            statusDuration: effect.StatusDuration,
+            statusTickInterval: effect.StatusTickInterval,
+            statusPotencyPerStack: effect.StatusPotencyPerStack,
+            statusMaxStacks: effect.StatusMaxStacks
         );
 
         events.Add(
@@ -127,93 +211,47 @@ public static class SimAbilityOrchestrator
         return true;
     }
 
-    private static bool TryActivateApplySelfEffect(
+    private static List<UnitData> ResolveTargets(
         MatchState state,
         UnitData source,
         UnitAbilityState ability,
-        System.Collections.Generic.List<SimEvent> events
+        UnitData? contextTarget
     )
     {
-        // Persistent self-effects are single-apply per ability state.
-        if (ability.Lifetime.IsPersistent && ability.HasApplied)
-            return false;
-
-        float duration = ResolveAbilityDuration(ability);
-        SimEffects.ApplyEffect(
-            state,
-            ability.EffectType,
-            ability.Value,
-            duration,
-            DamageType.Magic,
-            source,
-            source.UnitId,
-            source.Team,
-            events
-        );
-
-        if (ability.Lifetime.IsPersistent)
-            ability.HasApplied = true;
-
-        events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, source.UnitId, source.Position));
-        return true;
-    }
-
-    public static void TryActivateOnHitEffects(
-        MatchState state,
-        UnitData source,
-        UnitData target,
-        System.Collections.Generic.List<SimEvent> events
-    )
-    {
-        if (!source.IsAlive || !target.IsAlive || source.UnitId == target.UnitId)
-            return;
-
-        foreach (var ability in source.Abilities)
+        return ability.Targeting switch
         {
-            if (ability.Kind != UnitAbilityKind.TargetedKnockback)
-                continue;
-            if (ability.CooldownTimer > 0f)
-                continue;
-            if (!CanApplyOnHitAbilityToTarget(source, target, ability))
-                continue;
-
-            float knockbackDistance = ability.Value > 0f ? ability.Value : 2.5f;
-            SimEffects.ApplyEffect(
+            UnitAbilityTargeting.Self => source.IsAlive ? new List<UnitData> { source } : new List<UnitData>(),
+            UnitAbilityTargeting.HitTarget => contextTarget is { IsAlive: true }
+                ? new List<UnitData> { contextTarget }
+                : new List<UnitData>(),
+            UnitAbilityTargeting.CurrentTarget => ResolveCurrentTarget(state, source),
+            UnitAbilityTargeting.LowestHpAlly => ResolveLowestHpAlly(state, source, ability),
+            UnitAbilityTargeting.AlliesInRadius => ResolveUnitsInRadius(
                 state,
-                EffectType.Knockback,
-                knockbackDistance,
-                0f,
-                DamageType.Magic,
-                target,
-                source.UnitId,
-                source.Team,
-                events
-            );
-
-            ability.CooldownTimer = MathF.Max(ability.CooldownSeconds, 0f);
-            events.Add(
-                new AbilityActivatedEvent(source.UnitId, ability.AbilityId, target.UnitId, source.Position)
-            );
-            return;
-        }
-    }
-
-    private static bool CanApplyOnHitAbilityToTarget(
-        UnitData source,
-        UnitData target,
-        UnitAbilityState ability
-    )
-    {
-        return ability.TargetAffinity switch
-        {
-            AbilityTargetAffinity.Enemies => target.Team != source.Team,
-            AbilityTargetAffinity.Allies => target.Team == source.Team,
-            AbilityTargetAffinity.Both => true,
-            _ => false,
+                source,
+                ability,
+                (int)source.Team
+            ),
+            UnitAbilityTargeting.EnemiesInRadius => ResolveUnitsInRadius(
+                state,
+                source,
+                ability,
+                MatchState.GetEnemyTeam((int)source.Team)
+            ),
+            _ => new List<UnitData>(),
         };
     }
 
-    private static UnitData? ResolveHealerTarget(
+    private static List<UnitData> ResolveCurrentTarget(MatchState state, UnitData source)
+    {
+        if (!source.Engagement.TargetUnitId.HasValue)
+            return new List<UnitData>();
+
+        var target = state.GetAliveUnit(source.Engagement.TargetUnitId.Value);
+        return target != null ? new List<UnitData> { target } : new List<UnitData>();
+    }
+
+    private static List<UnitData> ResolveLowestHpAlly(
         MatchState state,
         UnitData source,
         UnitAbilityState ability
@@ -253,115 +291,73 @@ public static class SimAbilityOrchestrator
             }
         }
 
-        return best;
+        return best != null ? new List<UnitData> { best } : new List<UnitData>();
     }
 
-    private static bool TryActivateTauntPulse(
+    private static List<UnitData> ResolveUnitsInRadius(
         MatchState state,
         UnitData source,
         UnitAbilityState ability,
-        System.Collections.Generic.List<SimEvent> events
+        int team
     )
     {
-        int enemyTeam = MatchState.GetEnemyTeam((int)source.Team);
         float radius = ability.Radius > 0f ? ability.Radius : source.AttackRange;
         float radiusSq = radius * radius;
-        int applied = 0;
+        var targets = new List<UnitData>();
 
-        foreach (var candidate in state.GetAliveActiveUnitsForTeam(enemyTeam))
+        foreach (var candidate in state.GetAliveActiveUnitsForTeam(team))
         {
             float distSq = source.Position.DistanceSquaredTo(candidate.Position);
-            if (distSq > radiusSq)
-                continue;
-            if (!ShouldApplySoftTaunt(candidate, source.UnitId))
-                continue;
-
-            candidate.Engagement.ForcedTargetUnitId = source.UnitId;
-            candidate.Engagement.ForcedTargetTimer = MathF.Max(candidate.Engagement.ForcedTargetTimer, ability.DurationSeconds);
-            events.Add(
-                new StatusAppliedEvent(
-                    source.UnitId,
-                    candidate.UnitId,
-                    StatusEffectKind.Taunt,
-                    1,
-                    ability.DurationSeconds
-                )
-            );
-            applied++;
+            if (distSq <= radiusSq)
+                targets.Add(candidate);
         }
 
-        if (applied <= 0)
-            return false;
-
-        events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, null, source.Position));
-        return true;
+        targets.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+        return targets;
     }
 
-    private static bool TryActivateCleansePulse(
-        MatchState state,
+    private static bool CanApplyToTarget(
         UnitData source,
-        UnitAbilityState ability,
-        System.Collections.Generic.List<SimEvent> events
+        UnitData target,
+        AbilityTargetAffinity affinity
     )
     {
-        float radius = ability.Radius > 0f ? ability.Radius : source.AttackRange;
-        float radiusSq = radius * radius;
-        int applied = 0;
-
-        foreach (var ally in state.GetAliveActiveUnitsForTeam((int)source.Team))
+        return affinity switch
         {
-            float distSq = source.Position.DistanceSquaredTo(ally.Position);
-            if (distSq > radiusSq)
-                continue;
-
-            SimEffects.ApplyEffect(
-                state,
-                EffectType.Cleanse,
-                0f,
-                0f,
-                DamageType.Magic,
-                ally,
-                source.UnitId,
-                source.Team,
-                events
-            );
-
-            if (ability.Value > 0f)
-            {
-                SimEffects.ApplyEffect(
-                    state,
-                    EffectType.Heal,
-                    ability.Value,
-                    0f,
-                    DamageType.Magic,
-                    ally,
-                    source.UnitId,
-                    source.Team,
-                    events
-                );
-            }
-            applied++;
-        }
-
-        if (applied <= 0)
-            return false;
-
-        events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, null, source.Position));
-        return true;
+            AbilityTargetAffinity.Enemies => target.Team != source.Team,
+            AbilityTargetAffinity.Allies => target.Team == source.Team,
+            AbilityTargetAffinity.Both => true,
+            _ => false,
+        };
     }
 
-    private static bool ShouldApplySoftTaunt(UnitData candidate, int taunterUnitId)
+    private static ProjectileImpactKind ResolveProjectileImpact(UnitAbilityEffectState effect)
     {
-        if (candidate.Engagement.ForcedTargetTimer <= 0f)
-            return true;
-        if (!candidate.Engagement.ForcedTargetUnitId.HasValue)
-            return true;
-        return candidate.Engagement.ForcedTargetUnitId.Value == taunterUnitId;
+        return effect.EffectType == EffectType.Heal
+            ? ProjectileImpactKind.Heal
+            : ProjectileImpactKind.Damage;
     }
 
-    private static float ResolveAbilityDuration(UnitAbilityState ability)
+    private static List<UnitAbilityEffectState> ResolveEffects(UnitAbilityState ability)
     {
-        return EffectLifetimeResolver.ResolveDuration(ability.Lifetime, ability.DurationSeconds);
+        return ability.Effects.Count > 0
+            ? ability.Effects
+            : new List<UnitAbilityEffectState> { ResolvePrimaryEffect(ability) };
+    }
+
+    private static UnitAbilityEffectState ResolvePrimaryEffect(UnitAbilityState ability)
+    {
+        if (ability.Effects.Count > 0)
+            return ability.Effects[0];
+
+        return new UnitAbilityEffectState
+        {
+            EffectType = ability.EffectType,
+            Value = ability.Value,
+            DurationSeconds = ability.DurationSeconds,
+            Lifetime = ability.Lifetime,
+            DamageType = DamageType.Magic,
+        };
     }
 
     private static bool TryResolveProjectileData(
