@@ -203,7 +203,6 @@ public static class SimEffects
                     spec,
                     events
                 );
-                events.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, spec.Value, duration));
                 break;
 
             case EffectType.AreaDamage:
@@ -648,6 +647,7 @@ public static class SimEffects
                 CueId = spec?.CueId ?? "",
             }
         );
+        events?.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, shieldHp, resolvedDuration));
         if (spec != null)
             EmitCue(spec, target, EffectCuePhase.Active, events);
     }
