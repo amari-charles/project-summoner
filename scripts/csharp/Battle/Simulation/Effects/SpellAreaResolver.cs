@@ -26,7 +26,15 @@ public static class SpellAreaResolver
                     && MathF.Abs(candidate.Z - center.Z) <= radius;
 
             case SpellAreaShape.Line:
-                return IsInsideLine(origin ?? center, center, candidate, radius, 1.25f);
+                var lineOrigin = origin ?? center;
+                float endpointLength = DistanceXZ(lineOrigin, center);
+                return IsInsideLine(
+                    lineOrigin,
+                    center,
+                    candidate,
+                    MathF.Max(radius, endpointLength),
+                    1.25f
+                );
 
             case SpellAreaShape.Cone:
                 return IsInsideCone(origin ?? center, center, candidate, radius, 45f);
@@ -56,6 +64,13 @@ public static class SpellAreaResolver
         float perpX = rel.X - direction.X * projected;
         float perpZ = rel.Z - direction.Z * projected;
         return (perpX * perpX + perpZ * perpZ) <= halfWidth * halfWidth;
+    }
+
+    private static float DistanceXZ(SimVector3 a, SimVector3 b)
+    {
+        float dx = b.X - a.X;
+        float dz = b.Z - a.Z;
+        return MathF.Sqrt(dx * dx + dz * dz);
     }
 
     private static bool IsInsideCone(
