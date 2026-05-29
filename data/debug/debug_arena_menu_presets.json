@@ -12,6 +12,7 @@
         { "label": "Mana Bolt", "battle_id": "arena_mana_bolt" },
         { "label": "Wind + Earth New", "battle_id": "arena_wind_earth_new_cards" },
         { "label": "All Units", "battle_id": "arena_all_units" },
+        { "label": "All Cards", "battle_id": "arena_all_cards" },
         { "label": "Debug Arena", "battle_id": "debug_arena" }
       ]
     },

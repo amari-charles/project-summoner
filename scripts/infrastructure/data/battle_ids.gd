@@ -70,6 +70,9 @@ const ARENA_MANA_BOLT: StringName = &"arena_mana_bolt"
 ## Test Arena: All active Fire/Water/Earth/Wind units
 const ARENA_ALL_UNITS: StringName = &"arena_all_units"
 
+## Test Arena: All active Fire/Water/Earth/Wind cards
+const ARENA_ALL_CARDS: StringName = &"arena_all_cards"
+
 # ============================================================================
 # UTILITY ARRAYS
 # ============================================================================

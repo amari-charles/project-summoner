@@ -1073,6 +1073,24 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
+        [EventIds.ArenaAllCards] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaAllCards,
+            NameKey = "campaign.battle.arena_all_cards.name",
+            DescriptionKey = "campaign.battle.arena_all_cards.description",
+            Position = new Vector2(850, 100),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 0,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "none",
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = BuildActiveCoreElementCardDeck(),
+            EnemyDeck = BuildActiveCoreElementUnitDeck(),
+            EnemyHp = 999999f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
         [EventIds.DebugArena] = new BattleEventDefinition
         {
             Id = EventIds.DebugArena,
@@ -1085,15 +1103,8 @@ public static class EventCatalog
             Repeatable = true,
             AiType = "passive",
             ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
-            DevPlayerDeck = new List<DeckEntry>
-            {
-                new(CardIds.FireWisp, 5),
-                new(CardIds.Puff, 5),
-                new(CardIds.Pebbloom, 5),
-                new(CardIds.ManaBolt, 5),
-                new(CardIds.WaterFrog, 5),
-            },
-            EnemyDeck = new List<DeckEntry>(),
+            DevPlayerDeck = BuildActiveCoreElementCardDeck(),
+            EnemyDeck = BuildActiveCoreElementUnitDeck(),
             EnemyHp = 999999f,
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
@@ -1105,13 +1116,25 @@ public static class EventCatalog
 
     private static List<DeckEntry> BuildActiveCoreElementUnitDeck()
     {
+        return BuildActiveCoreElementDeck(CardType.Summon);
+    }
+
+    private static List<DeckEntry> BuildActiveCoreElementCardDeck()
+    {
+        return BuildActiveCoreElementDeck();
+    }
+
+    private static List<DeckEntry> BuildActiveCoreElementDeck(CardType? cardType = null)
+    {
         Element[] allowedElements = [Element.Fire, Element.Water, Element.Earth, Element.Wind];
 
         return CardCatalog
-            .GetCardsByType(CardType.Summon)
+            .GetAllCards()
             .Where(card => allowedElements.Contains(card.ElementalAffinity))
+            .Where(card => !cardType.HasValue || card.Type == cardType.Value)
             .Where(card => (card.Flags & (CardFlags.DevOnly | CardFlags.Archived)) == 0)
             .OrderBy(card => GetCoreElementSortOrder(card.ElementalAffinity))
+            .ThenBy(card => card.Type == CardType.Summon ? 0 : 1)
             .ThenBy(card => card.Name)
             .Select(card => new DeckEntry(card.Id))
             .ToList();

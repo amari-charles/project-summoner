@@ -153,6 +153,7 @@ public static class CampaignCatalog
                 EventIds.ArenaManaBolt,
                 EventIds.ArenaWindEarthNewCards,
                 EventIds.ArenaAllUnits,
+                EventIds.ArenaAllCards,
                 EventIds.DebugArena,
             },
             Edges = new List<CampaignEdge>(), // No edges - all nodes independently accessible

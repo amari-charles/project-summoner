@@ -219,6 +219,10 @@
       "arena_all_units": {
         "name": "All Units Test",
         "description": "Debug arena mission with every active Fire, Water, Earth, and Wind summon available for combat testing."
+      },
+      "arena_all_cards": {
+        "name": "All Cards Test",
+        "description": "Debug arena mission with every active Fire, Water, Earth, and Wind card available, plus unit targets."
       }
     },
     "starter_deck_name": "Starter Deck",
