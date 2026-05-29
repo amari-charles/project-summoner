@@ -2038,7 +2038,7 @@ public static class CardDefinitions
     {
         Id = CardIds.WaterRedistributor,
         Name = "Water Redistributor",
-        Description = "Support unit that moves health from healthy allies to wounded allies nearby.",
+        Description = "Support unit that periodically shifts health among nearby allies toward the same HP percentage.",
         Rarity = Rarity.Rare,
         Type = CardType.Summon,
         ManaCost = 4,

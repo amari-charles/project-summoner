@@ -488,53 +488,68 @@ public static class SimAbilityOrchestrator
         List<SimEvent> events
     )
     {
-        float amount = effect.Value > 0f ? effect.Value : 12f;
-        float donorThreshold = 0.70f;
-        float donorFloor = 0.60f;
-        float receiverThreshold = 0.45f;
-        float receiverCap = 0.80f;
+        float remainingTransfer = effect.Value > 0f ? effect.Value : 12f;
+        float totalMaxHp = candidates.Where(u => u.MaxHp > 0f).Sum(u => u.MaxHp);
+        if (totalMaxHp <= 0f)
+            return 0;
+
+        float sharedHpPercent = candidates.Where(u => u.MaxHp > 0f).Sum(u => u.CurrentHp)
+            / totalMaxHp;
         int applied = 0;
 
         var receivers = candidates
-            .Where(u => u.MaxHp > 0f && u.CurrentHp / u.MaxHp < receiverThreshold)
+            .Where(u => u.MaxHp > 0f && GetHpPercent(u) < sharedHpPercent)
             .OrderBy(u => u.CurrentHp / u.MaxHp)
             .ThenBy(u => u.UnitId)
             .ToList();
         var donors = candidates
-            .Where(u =>
-                u.UnitId != source.UnitId
-                && u.MaxHp > 0f
-                && u.CurrentHp / u.MaxHp > donorThreshold
-            )
+            .Where(u => u.MaxHp > 0f && GetHpPercent(u) > sharedHpPercent)
             .OrderByDescending(u => u.CurrentHp / u.MaxHp)
             .ThenBy(u => u.UnitId)
             .ToList();
 
         foreach (var receiver in receivers)
         {
-            float receiverRoom = receiver.MaxHp * receiverCap - receiver.CurrentHp;
+            if (remainingTransfer <= 0f)
+                break;
+
+            float receiverRoom = receiver.MaxHp * sharedHpPercent - receiver.CurrentHp;
             if (receiverRoom <= 0f)
                 continue;
 
             foreach (var donor in donors)
             {
-                float donorAvailable = donor.CurrentHp - donor.MaxHp * donorFloor;
+                if (remainingTransfer <= 0f)
+                    break;
+                if (donor.UnitId == receiver.UnitId)
+                    continue;
+
+                float donorAvailable = donor.CurrentHp - donor.MaxHp * sharedHpPercent;
                 if (donorAvailable <= 0f)
                     continue;
 
-                float transfer = MathF.Min(amount, MathF.Min(receiverRoom, donorAvailable));
+                float transfer = MathF.Min(
+                    remainingTransfer,
+                    MathF.Min(receiverRoom, donorAvailable)
+                );
                 if (transfer <= 0f)
                     continue;
 
                 donor.CurrentHp -= transfer;
                 receiver.CurrentHp = MathF.Min(receiver.CurrentHp + transfer, receiver.MaxHp);
                 events.Add(new UnitDamagedEvent(donor.UnitId, source.UnitId, transfer, false));
+                remainingTransfer -= transfer;
+                receiverRoom -= transfer;
                 applied++;
-                return applied;
             }
         }
 
         return applied;
+    }
+
+    private static float GetHpPercent(UnitData unit)
+    {
+        return unit.MaxHp > 0f ? unit.CurrentHp / unit.MaxHp : 1f;
     }
 
     private static List<UnitData> ResolveCurrentTarget(MatchState state, UnitData source)

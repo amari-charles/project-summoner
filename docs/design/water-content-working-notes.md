@@ -103,12 +103,13 @@ Current shape:
 
 - Type: Unit
 - Role: Sustain / stability / group balancing
-- Effect: Periodically moves HP from healthier nearby allies to wounded nearby allies.
+- Effect: Periodically shifts HP among nearby allies toward the same HP percentage, with a per-pulse transfer cap.
 
 Notes:
 
 - This should feel like water equalizing pressure across a group.
 - The effect should not kill donor allies.
+- The effect should not pull a donor below the group's shared HP percentage or heal a receiver above it.
 - This is preferred over a basic shielding support unit because it feels more distinctly flowy.
 
 ### Slippery Melee Unit

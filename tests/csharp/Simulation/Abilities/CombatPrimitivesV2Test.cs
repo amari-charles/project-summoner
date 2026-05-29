@@ -75,7 +75,7 @@ public class CombatPrimitivesV2Test
     }
 
     [TestCase]
-    public void TransferHealth_MovesHpFromHealthyDonor_ToWoundedReceiver()
+    public void TransferHealth_MovesHpTowardSharedHpPercentage()
     {
         var state = SimTestHelper.CreateBattleState();
         var events = new List<SimEvent>();
@@ -102,9 +102,42 @@ public class CombatPrimitivesV2Test
 
         SimAbilityOrchestrator.Tick(state, Simulation.FixedDeltaSeconds, events);
 
-        AssertThat(donor.CurrentHp).IsLess(90f);
-        AssertThat(donor.CurrentHp).IsGreaterEqual(60f);
+        AssertThat(support.CurrentHp).IsLess(100f);
+        AssertThat(donor.CurrentHp).IsEqual(90f);
         AssertThat(receiver.CurrentHp).IsGreater(30f);
+    }
+
+    [TestCase]
+    public void TransferHealth_WithTankAndSquishy_UsesCapWhileApproachingSharedHpPercentage()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var events = new List<SimEvent>();
+        var support = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        support.CurrentHp = 74f;
+        support.Abilities.Add(
+            new UnitAbilityState
+            {
+                AbilityId = "transfer_health",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.HealthRedistributionPool,
+                Delivery = UnitAbilityDelivery.Instant,
+                Radius = 8f,
+                Effects =
+                [
+                    new UnitAbilityEffectState { EffectType = EffectType.TransferHealth, Value = 18f },
+                ],
+            }
+        );
+        var tank = SimTestHelper.CreateMeleeUnit(state, 0, x: 2f, hp: 200f);
+        tank.CurrentHp = 180f;
+        var squishy = SimTestHelper.CreateMeleeUnit(state, 0, x: 3f, hp: 50f);
+        squishy.CurrentHp = 5f;
+
+        SimAbilityOrchestrator.Tick(state, Simulation.FixedDeltaSeconds, events);
+
+        AssertThat(support.CurrentHp).IsEqualApprox(74f, 0.001f);
+        AssertThat(tank.CurrentHp).IsEqualApprox(162f, 0.001f);
+        AssertThat(squishy.CurrentHp).IsEqualApprox(23f, 0.001f);
     }
 
     [TestCase]

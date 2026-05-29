@@ -359,7 +359,8 @@ public class EffectApplicationSpecTest
             Simulation.Log = oldLog;
         }
 
-        AssertThat(donor.CurrentHp).IsEqual(88f);
+        AssertThat(source.CurrentHp).IsEqual(88f);
+        AssertThat(donor.CurrentHp).IsEqual(100f);
         AssertThat(receiver.CurrentHp).IsEqual(32f);
         AssertThat(logs.Any(line => line.Contains("balanced nearby ally health"))).IsTrue();
         AssertThat(logs.Any(line => line.Contains("Moved 12 hp"))).IsTrue();

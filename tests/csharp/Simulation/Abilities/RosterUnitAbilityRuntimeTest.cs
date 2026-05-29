@@ -134,7 +134,7 @@ public class RosterUnitAbilityRuntimeTest
 
         SimAbilityOrchestrator.Tick(state, Simulation.FixedDeltaSeconds, events);
 
-        AssertThat(donor.CurrentHp).IsLess(90f);
+        AssertThat(donor.CurrentHp).IsEqual(90f);
         AssertThat(receiver.CurrentHp).IsGreater(30f);
     }
 

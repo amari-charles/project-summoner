@@ -1437,7 +1437,7 @@ public static class UnitDefinitions
                     new UnitAbilityEffectConfig
                     {
                         EffectType = EffectType.TransferHealth,
-                        Value = 14f,
+                        Value = 18f,
                     },
                 ],
             },

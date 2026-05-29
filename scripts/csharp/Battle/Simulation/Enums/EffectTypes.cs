@@ -54,7 +54,7 @@ public enum EffectType
     Taunt, // Soft forced-target override toward source unit
     StatusApply, // Apply a configured status payload
     StatusConsume, // Consume a configured status and convert remaining value
-    TransferHealth, // Move HP from healthy allies to wounded allies
+    TransferHealth, // Shift HP among allies toward a shared health percentage
     AccuracyModifier, // Modify attacker's hit chance
     RangedDamageModifier, // Modify damage from ranged unit attacks
     Root, // Prevent movement without preventing attacks
