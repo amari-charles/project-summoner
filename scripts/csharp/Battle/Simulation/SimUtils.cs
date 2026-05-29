@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
 
 namespace Fateforged.Simulation;
@@ -45,17 +46,41 @@ public static class SimUtils
     /// Does NOT fire triggers — caller is responsible for firing OnKill/OnDeath triggers
     /// since trigger context (attacker identity, trigger type) varies by call site.
     /// </summary>
-    public static void KillUnit(
+    public static bool KillUnit(
         MatchState state,
         UnitData target,
         int killerUnitId,
         List<SimEvent> events
     )
     {
+        if (TryConsumeReviveOnDeath(target, events))
+            return false;
+
         target.CurrentHp = 0;
         target.IsAlive = false;
         target.DeathCleanupTimer = SimConstants.DeathCleanupSeconds;
         state.KillCount++;
         events.Add(new UnitDiedEvent(target.UnitId, killerUnitId));
+        return true;
+    }
+
+    private static bool TryConsumeReviveOnDeath(UnitData target, List<SimEvent> events)
+    {
+        for (int i = 0; i < target.ActiveBuffs.Count; i++)
+        {
+            var buff = target.ActiveBuffs[i];
+            if (buff.EffectType != EffectType.ReviveOnDeath)
+                continue;
+
+            float revivePercent = buff.Value > 0f ? buff.Value : 0.5f;
+            target.ActiveBuffs.RemoveAt(i);
+            target.CurrentHp = MathF.Max(1f, target.MaxHp * revivePercent);
+            target.IsAlive = true;
+            target.DeathCleanupTimer = 0f;
+            events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
+            return true;
+        }
+
+        return false;
     }
 }

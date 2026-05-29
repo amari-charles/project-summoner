@@ -936,7 +936,12 @@ public class Simulation
                         target,
                         summonerSourceId,
                         (Team)team,
-                        events
+                        events,
+                        effect.StatusKind,
+                        effect.StatusTickInterval,
+                        effect.StatusPotencyPerStack,
+                        effect.StatusMaxStacks,
+                        position
                     );
                 }
             }
@@ -996,6 +1001,10 @@ public class Simulation
                 Affinity = effect.Affinity,
                 TargetingMode = cardData.SpellTargetingMode,
                 TargetUnitId = targetUnitId,
+                StatusKind = effect.StatusKind,
+                StatusTickInterval = effect.StatusTickInterval,
+                StatusPotencyPerStack = effect.StatusPotencyPerStack,
+                StatusMaxStacks = effect.StatusMaxStacks,
             }
         );
     }
@@ -1136,7 +1145,15 @@ public class Simulation
                 {
                     if (teamFilter.HasValue && (int)unit.Team != teamFilter.Value)
                         continue;
-                    if (SpellAreaResolver.IsWithinArea(effect.AreaShape, position, unit.Position, radius))
+                    if (
+                        SpellAreaResolver.IsWithinArea(
+                            effect.AreaShape,
+                            position,
+                            unit.Position,
+                            radius,
+                            _state.Summoners[team].Position
+                        )
+                    )
                         targets.Add(unit);
                 }
                 break;
@@ -1189,7 +1206,15 @@ public class Simulation
                 {
                     if ((int)unit.Team != team)
                         continue;
-                    if (SpellAreaResolver.IsWithinArea(effect.AreaShape, position, unit.Position, radius))
+                    if (
+                        SpellAreaResolver.IsWithinArea(
+                            effect.AreaShape,
+                            position,
+                            unit.Position,
+                            radius,
+                            _state.Summoners[team].Position
+                        )
+                    )
                         targets.Add(unit);
                 }
                 break;

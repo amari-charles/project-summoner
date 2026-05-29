@@ -337,8 +337,8 @@ public static class SimBehavior
 
         if (target.CurrentHp <= 0)
         {
-            SimUtils.KillUnit(state, target, attacker.UnitId, events);
-            SimEffects.FireDeathTriggers(state, target, attacker, events);
+            if (SimUtils.KillUnit(state, target, attacker.UnitId, events))
+                SimEffects.FireDeathTriggers(state, target, attacker, events);
         }
     }
 
@@ -381,11 +381,12 @@ public static class SimBehavior
 
         if (target.CurrentHp <= 0)
         {
-            SimUtils.KillUnit(state, target, attacker.UnitId, events);
-
-            // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
-            SimEffects.FireTriggers(state, attacker, TriggerType.OnKill, target, events);
-            SimEffects.FireDeathTriggers(state, target, attacker, events);
+            if (SimUtils.KillUnit(state, target, attacker.UnitId, events))
+            {
+                // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
+                SimEffects.FireTriggers(state, attacker, TriggerType.OnKill, target, events);
+                SimEffects.FireDeathTriggers(state, target, attacker, events);
+            }
         }
     }
 

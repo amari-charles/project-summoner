@@ -102,6 +102,10 @@ public class SimCardData
                             DelaySeconds = effect.DelaySeconds,
                             RepeatCount = effect.RepeatCount,
                             RepeatIntervalSeconds = effect.RepeatIntervalSeconds,
+                            StatusKind = effect.StatusKind,
+                            StatusTickInterval = effect.StatusTickInterval,
+                            StatusPotencyPerStack = effect.StatusPotencyPerStack,
+                            StatusMaxStacks = effect.StatusMaxStacks,
                         }
                     );
                 }

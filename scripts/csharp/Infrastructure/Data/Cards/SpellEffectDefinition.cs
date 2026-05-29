@@ -1,4 +1,5 @@
 using Fateforged.Simulation.Enums;
+using Fateforged.Units;
 
 namespace Fateforged.Cards;
 
@@ -43,4 +44,16 @@ public class SpellEffectDefinition
 
     /// <summary>Spacing between repeated applications.</summary>
     public float RepeatIntervalSeconds { get; init; }
+
+    /// <summary>Status payload identity for status apply/consume effects.</summary>
+    public StatusEffectKind StatusKind { get; init; } = StatusEffectKind.None;
+
+    /// <summary>Status payload tick interval.</summary>
+    public float StatusTickInterval { get; init; } = 1f;
+
+    /// <summary>Status payload potency per stack.</summary>
+    public float StatusPotencyPerStack { get; init; }
+
+    /// <summary>Status payload max stacks.</summary>
+    public int StatusMaxStacks { get; init; } = 1;
 }

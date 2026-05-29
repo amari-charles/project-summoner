@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Data.Projectiles;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
@@ -119,9 +120,12 @@ public static class SimAbilityOrchestrator
         var effects = ResolveEffects(ability);
         int applied = 0;
 
+        foreach (var effect in effects.Where(e => e.EffectType == EffectType.TransferHealth))
+            applied += ApplyHealthRedistribution(source, targets, effect, events);
+
         foreach (var target in targets)
         {
-            foreach (var effect in effects)
+            foreach (var effect in effects.Where(e => e.EffectType != EffectType.TransferHealth))
             {
                 SimEffects.ApplyEffect(
                     state,
@@ -135,7 +139,11 @@ public static class SimAbilityOrchestrator
                     target,
                     source.UnitId,
                     source.Team,
-                    events
+                    events,
+                    effect.StatusKind,
+                    effect.StatusTickInterval,
+                    effect.StatusPotencyPerStack,
+                    effect.StatusMaxStacks
                 );
                 applied++;
             }
@@ -238,8 +246,70 @@ public static class SimAbilityOrchestrator
                 ability,
                 MatchState.GetEnemyTeam((int)source.Team)
             ),
+            UnitAbilityTargeting.HealthRedistributionPool => ResolveUnitsInRadius(
+                state,
+                source,
+                ability,
+                (int)source.Team
+            ),
             _ => new List<UnitData>(),
         };
+    }
+
+    private static int ApplyHealthRedistribution(
+        UnitData source,
+        List<UnitData> candidates,
+        UnitAbilityEffectState effect,
+        List<SimEvent> events
+    )
+    {
+        float amount = effect.Value > 0f ? effect.Value : 12f;
+        float donorThreshold = 0.70f;
+        float donorFloor = 0.60f;
+        float receiverThreshold = 0.45f;
+        float receiverCap = 0.80f;
+        int applied = 0;
+
+        var receivers = candidates
+            .Where(u => u.MaxHp > 0f && u.CurrentHp / u.MaxHp < receiverThreshold)
+            .OrderBy(u => u.CurrentHp / u.MaxHp)
+            .ThenBy(u => u.UnitId)
+            .ToList();
+        var donors = candidates
+            .Where(u =>
+                u.UnitId != source.UnitId
+                && u.MaxHp > 0f
+                && u.CurrentHp / u.MaxHp > donorThreshold
+            )
+            .OrderByDescending(u => u.CurrentHp / u.MaxHp)
+            .ThenBy(u => u.UnitId)
+            .ToList();
+
+        foreach (var receiver in receivers)
+        {
+            float receiverRoom = receiver.MaxHp * receiverCap - receiver.CurrentHp;
+            if (receiverRoom <= 0f)
+                continue;
+
+            foreach (var donor in donors)
+            {
+                float donorAvailable = donor.CurrentHp - donor.MaxHp * donorFloor;
+                if (donorAvailable <= 0f)
+                    continue;
+
+                float transfer = MathF.Min(amount, MathF.Min(receiverRoom, donorAvailable));
+                if (transfer <= 0f)
+                    continue;
+
+                donor.CurrentHp -= transfer;
+                receiver.CurrentHp = MathF.Min(receiver.CurrentHp + transfer, receiver.MaxHp);
+                events.Add(new UnitDamagedEvent(donor.UnitId, source.UnitId, transfer, false));
+                applied++;
+                return applied;
+            }
+        }
+
+        return applied;
     }
 
     private static List<UnitData> ResolveCurrentTarget(MatchState state, UnitData source)

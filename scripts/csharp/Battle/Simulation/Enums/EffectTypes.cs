@@ -52,6 +52,14 @@ public enum EffectType
     AttackSpeedModifier, // Modify attack speed (+/-)
     FlatDamageReduction, // Flat post-mitigation reduction
     Taunt, // Soft forced-target override toward source unit
+    StatusApply, // Apply a configured status payload
+    StatusConsume, // Consume a configured status and convert remaining value
+    TransferHealth, // Move HP from healthy allies to wounded allies
+    AccuracyModifier, // Modify attacker's hit chance
+    RangedDamageModifier, // Modify damage from ranged unit attacks
+    Root, // Prevent movement without preventing attacks
+    ReviveOnDeath, // Restore a dying unit once while buff is active
+    Displacement, // Push or pull from an explicit origin
 }
 
 // =========================================================================
@@ -75,6 +83,8 @@ public enum SpellAreaShape
 {
     Circle = 0,
     Square = 1,
+    Line = 2,
+    Cone = 3,
 }
 
 /// <summary>
@@ -165,6 +175,18 @@ public class SimSpellEffect
 
     /// <summary>Interval between repeated applications.</summary>
     public float RepeatIntervalSeconds { get; set; }
+
+    /// <summary>Status payload identity for status apply/consume effects.</summary>
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+
+    /// <summary>Status payload tick interval.</summary>
+    public float StatusTickInterval { get; set; } = 1f;
+
+    /// <summary>Status payload potency per stack.</summary>
+    public float StatusPotencyPerStack { get; set; }
+
+    /// <summary>Status payload max stacks.</summary>
+    public int StatusMaxStacks { get; set; } = 1;
 }
 
 /// <summary>
@@ -313,4 +335,16 @@ public class DelayedEffect
     /// Duration remains as a bridge in PASS 2.
     /// </summary>
     public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
+
+    /// <summary>Status payload identity for delayed status apply/consume effects.</summary>
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+
+    /// <summary>Status payload tick interval.</summary>
+    public float StatusTickInterval { get; set; } = 1f;
+
+    /// <summary>Status payload potency per stack.</summary>
+    public float StatusPotencyPerStack { get; set; }
+
+    /// <summary>Status payload max stacks.</summary>
+    public int StatusMaxStacks { get; set; } = 1;
 }

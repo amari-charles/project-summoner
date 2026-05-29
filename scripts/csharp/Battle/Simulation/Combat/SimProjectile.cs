@@ -718,8 +718,8 @@ public static class SimProjectile
 
         if (target.CurrentHp <= 0)
         {
-            SimUtils.KillUnit(state, target, proj.SourceUnitId, events);
-            SimEffects.FireDeathTriggers(state, target, sourceUnit, events);
+            if (SimUtils.KillUnit(state, target, proj.SourceUnitId, events))
+                SimEffects.FireDeathTriggers(state, target, sourceUnit, events);
         }
 
         ApplyStatusPayload(proj, target, state, events);
@@ -890,8 +890,8 @@ public static class SimProjectile
 
             if (unit.CurrentHp <= 0)
             {
-                SimUtils.KillUnit(state, unit, proj.SourceUnitId, events);
-                SimEffects.FireDeathTriggers(state, unit, sourceUnit, events);
+                if (SimUtils.KillUnit(state, unit, proj.SourceUnitId, events))
+                    SimEffects.FireDeathTriggers(state, unit, sourceUnit, events);
             }
 
             ApplyStatusPayload(proj, unit, state, events);

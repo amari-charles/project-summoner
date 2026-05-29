@@ -83,7 +83,17 @@ public static class SimDamage
         List<SimEvent>? events
     )
     {
-        // 0. Evasion check (deterministic via RNG)
+        // 0. Attacker miss chance and target evasion checks (deterministic via RNG)
+        if (attacker != null && rng != null)
+        {
+            float missChance = EffectStatResolver.GetEffectiveMissChance(attacker);
+            if (missChance > 0f && rng.NextFloat() < missChance)
+            {
+                events?.Add(new AttackEvadedEvent(target.UnitId, attacker.UnitId));
+                return (0f, false, true);
+            }
+        }
+
         float effectiveEvasion = EffectStatResolver.GetEffectiveEvasion(target);
         if (effectiveEvasion > 0f && rng != null)
         {
@@ -96,6 +106,9 @@ public static class SimDamage
 
         float damage = baseDamage;
         bool isCrit = false;
+
+        if (attacker?.UnitType == Fateforged.Units.UnitType.Ranged)
+            damage *= EffectStatResolver.GetEffectiveRangedDamageMultiplier(attacker);
 
         // 1. Crit check (deterministic via RNG)
         if (attacker != null && attacker.CritChance > 0 && rng != null)

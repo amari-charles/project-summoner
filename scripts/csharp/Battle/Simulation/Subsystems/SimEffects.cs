@@ -110,7 +110,12 @@ public static class SimEffects
         UnitData target,
         int sourceUnitId,
         Team sourceTeam,
-        List<SimEvent> events
+        List<SimEvent> events,
+        StatusEffectKind statusKind = StatusEffectKind.None,
+        float statusTickInterval = 1f,
+        float statusPotencyPerStack = 0f,
+        int statusMaxStacks = 1,
+        SimVector3? sourcePosition = null
     )
     {
         if (!target.IsAlive)
@@ -158,21 +163,58 @@ public static class SimEffects
                 break;
 
             case EffectType.Knockback:
-                ApplyKnockback(state, target, value, sourceUnitId, sourceTeam);
+                ApplyKnockback(state, target, value, sourceUnitId, sourceTeam, sourcePosition);
+                break;
+
+            case EffectType.Displacement:
+                ApplyDisplacement(state, target, value, sourceUnitId, sourceTeam, sourcePosition);
                 break;
 
             case EffectType.Taunt:
                 ApplyTaunt(target, sourceUnitId, duration, events);
                 break;
 
+            case EffectType.StatusApply:
+                ApplyStackingStatus(
+                    state,
+                    target,
+                    sourceUnitId,
+                    sourceTeam,
+                    statusKind,
+                    duration,
+                    statusTickInterval,
+                    statusPotencyPerStack > 0f ? statusPotencyPerStack : value,
+                    statusMaxStacks,
+                    damageType,
+                    events
+                );
+                break;
+
+            case EffectType.StatusConsume:
+                ConsumeStatus(
+                    state,
+                    target,
+                    sourceUnitId,
+                    sourceTeam,
+                    statusKind == StatusEffectKind.None ? StatusEffectKind.Burn : statusKind,
+                    value > 0f ? value : 1f,
+                    damageType,
+                    events
+                );
+                break;
+
             case EffectType.Slow:
             case EffectType.Stun:
+            case EffectType.Root:
             case EffectType.Haste:
             case EffectType.DamageBoost:
             case EffectType.StatModifier:
             case EffectType.EvasionModifier:
             case EffectType.AttackSpeedModifier:
             case EffectType.FlatDamageReduction:
+            case EffectType.AccuracyModifier:
+            case EffectType.RangedDamageModifier:
+            case EffectType.ReviveOnDeath:
                 ApplyBuff(
                     state,
                     target,
@@ -523,10 +565,11 @@ public static class SimEffects
 
         if (target.CurrentHp <= 0)
         {
-            SimUtils.KillUnit(state, target, sourceUnitId, events);
-
-            // Fire death triggers on the killed unit
-            FireDeathTriggers(state, target, attacker, events);
+            if (SimUtils.KillUnit(state, target, sourceUnitId, events))
+            {
+                // Fire death triggers on the killed unit
+                FireDeathTriggers(state, target, attacker, events);
+            }
         }
     }
 
@@ -594,6 +637,56 @@ public static class SimEffects
                 ApplyHeal(unit, buff.Value, events);
                 break;
         }
+    }
+
+    private static void ConsumeStatus(
+        MatchState state,
+        UnitData target,
+        int sourceUnitId,
+        Team sourceTeam,
+        StatusEffectKind statusKind,
+        float multiplier,
+        DamageType damageType,
+        List<SimEvent> events
+    )
+    {
+        if (statusKind == StatusEffectKind.None)
+            return;
+
+        float consumedDamage = 0f;
+        for (int i = target.ActiveBuffs.Count - 1; i >= 0; i--)
+        {
+            var buff = target.ActiveBuffs[i];
+            if (
+                buff.EffectType != EffectType.Damage
+                || buff.TickInterval <= 0f
+                || buff.StatusKind != statusKind
+            )
+            {
+                continue;
+            }
+
+            float duration = EffectLifetimeResolver.ResolveDuration(buff.Lifetime, buff.Duration);
+            float remainingTicks = buff.TickInterval > 0f
+                ? MathF.Ceiling(MathF.Max(duration, 0f) / buff.TickInterval)
+                : 0f;
+            consumedDamage += buff.Value * remainingTicks;
+            target.ActiveBuffs.RemoveAt(i);
+            events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
+        }
+
+        if (consumedDamage <= 0f)
+            return;
+
+        ApplyDirectDamage(
+            state,
+            target,
+            consumedDamage * multiplier,
+            damageType,
+            sourceUnitId,
+            sourceTeam,
+            events
+        );
     }
 
     private static void TickPeriodicTriggers(
@@ -736,7 +829,12 @@ public static class SimEffects
                 target,
                 effect.SourceUnitId,
                 effect.SourceTeam,
-                events
+                events,
+                effect.StatusKind,
+                effect.StatusTickInterval,
+                effect.StatusPotencyPerStack,
+                effect.StatusMaxStacks,
+                effect.Position
             );
         }
     }
@@ -766,7 +864,13 @@ public static class SimEffects
                             effect.AreaShape,
                             effect.Position,
                             candidate.Position,
-                            radius
+                            radius,
+                            ResolveSourcePosition(
+                                state,
+                                effect.SourceUnitId,
+                                effect.SourceTeam,
+                                effect.Position
+                            )
                         )
                     )
                         continue;
@@ -813,7 +917,13 @@ public static class SimEffects
                             effect.AreaShape,
                             effect.Position,
                             candidate.Position,
-                            radius
+                            radius,
+                            ResolveSourcePosition(
+                                state,
+                                effect.SourceUnitId,
+                                effect.SourceTeam,
+                                effect.Position
+                            )
                         )
                     )
                         continue;
@@ -875,8 +985,16 @@ public static class SimEffects
 
     private static bool IsNegativeBuffForCleanse(ActiveBuff buff)
     {
-        if (buff.EffectType == EffectType.Slow || buff.EffectType == EffectType.Stun)
+        if (
+            buff.EffectType == EffectType.Slow
+            || buff.EffectType == EffectType.Stun
+            || buff.EffectType == EffectType.Root
+            || buff.EffectType == EffectType.AccuracyModifier
+            || buff.EffectType == EffectType.RangedDamageModifier
+        )
+        {
             return true;
+        }
 
         if (buff.EffectType != EffectType.Damage || buff.TickInterval <= 0f)
             return false;
@@ -889,7 +1007,8 @@ public static class SimEffects
         UnitData target,
         float distance,
         int sourceUnitId,
-        Team sourceTeam
+        Team sourceTeam,
+        SimVector3? sourcePosition
     )
     {
         if (distance <= 0f || !target.IsAlive)
@@ -897,8 +1016,37 @@ public static class SimEffects
         if (target.UnitId == sourceUnitId)
             return;
 
-        var sourcePos = ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
-        var direction = new SimVector3(target.Position.X - sourcePos.X, 0f, target.Position.Z - sourcePos.Z);
+        var sourcePos = sourcePosition ?? ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
+        ApplyForcedDisplacement(target, distance, sourcePos, sourceTeam, pushAway: true);
+    }
+
+    private static void ApplyDisplacement(
+        MatchState state,
+        UnitData target,
+        float distance,
+        int sourceUnitId,
+        Team sourceTeam,
+        SimVector3? sourcePosition
+    )
+    {
+        if (MathF.Abs(distance) <= 0f || !target.IsAlive)
+            return;
+
+        var sourcePos = sourcePosition ?? ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
+        ApplyForcedDisplacement(target, MathF.Abs(distance), sourcePos, sourceTeam, pushAway: distance >= 0f);
+    }
+
+    private static void ApplyForcedDisplacement(
+        UnitData target,
+        float distance,
+        SimVector3 sourcePos,
+        Team sourceTeam,
+        bool pushAway
+    )
+    {
+        var direction = pushAway
+            ? new SimVector3(target.Position.X - sourcePos.X, 0f, target.Position.Z - sourcePos.Z)
+            : new SimVector3(sourcePos.X - target.Position.X, 0f, sourcePos.Z - target.Position.Z);
         float lengthSq = direction.X * direction.X + direction.Z * direction.Z;
 
         if (lengthSq <= 0.0001f)
