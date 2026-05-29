@@ -25,7 +25,6 @@ func test_c14_c17_debug_menu_contract_surface_exists() -> void:
 	assert_true(menu.has_method("_on_win_pressed"), "C14: win hook")
 	assert_true(menu.has_method("_on_lose_pressed"), "C14: lose hook")
 	assert_true(menu.has_method("_on_open_test_arena_map_pressed"), "C14: arena map launch hook")
-	assert_true(menu.has_method("_on_roster_debug_arena_pressed"), "C14: roster arena quick launch hook")
 	assert_true(menu.has_method("_on_debug_arena_battle_pressed"), "C14: arena quick launch hook")
 	assert_true(menu.has_method("_on_hurtbox_toggle_pressed"), "C15: visualization toggle hook")
 	assert_true(menu.has_method("_on_projectile_hit_geometry_toggle_pressed"), "C15: projectile toggle hook")
@@ -64,6 +63,24 @@ func test_c21_build_debug_arena_buttons_uses_selected_preset_entries() -> void:
 			labels.append(button.text)
 	labels.sort()
 	assert_eq(labels, ["Fire Wisp", "Wind + Earth New"])
+
+
+func test_c14_quick_tab_exposes_test_arena_map_button() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+	var quick_tab: VBoxContainer = VBoxContainer.new()
+	_track_owned_node(quick_tab)
+
+	menu._build_quick_tab(quick_tab)
+
+	var button_labels: Array[String] = []
+	for child_var: Variant in quick_tab.get_children():
+		if child_var is Button:
+			var button: Button = child_var
+			button_labels.append(button.text)
+
+	assert_true("Open Test Arena Map" in button_labels, "main debug tab should expose the campaign-map chooser")
+	assert_false("Launch Roster Debug Arena" in button_labels, "main debug tab should not force a specific roster battle")
 
 
 func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
@@ -131,11 +148,6 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	assert_eq(harness.last_profile_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_context_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_transition_scene, "res://scenes/battle/battlefield/custom_debug_scene.tscn")
-
-	menu._on_roster_debug_arena_pressed()
-	assert_eq(harness.last_profile_battle_id, "debug_arena")
-	assert_eq(harness.last_context_battle_id, "debug_arena")
-	assert_eq(harness.last_transition_scene, "res://scenes/battle/battlefield/dev/debug_arena.tscn")
 
 
 func test_c15_visualization_toggles_and_persistence_round_trip() -> void:
@@ -285,9 +297,7 @@ class _DebugMenuHarness extends RefCounted:
 		last_campaign_id = campaign_id
 		return true
 
-	func get_battle(battle_id: String) -> Dictionary:
-		if battle_id == "debug_arena":
-			return {"scene_path": "res://scenes/battle/battlefield/dev/debug_arena.tscn"}
+	func get_battle(_battle_id: String) -> Dictionary:
 		return {"scene_path": "res://scenes/battle/battlefield/custom_debug_scene.tscn"}
 
 	func transition_to(scene_path: String) -> void:
