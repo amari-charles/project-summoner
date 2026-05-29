@@ -110,6 +110,11 @@ public class SimCardData
                             StatusPotencyPerStack = effect.StatusPotencyPerStack,
                             StatusMaxStacks = effect.StatusMaxStacks,
                             RemovalEffect = effect.RemovalEffect,
+                            TagRequirements = effect.TagRequirements.DeepClone(),
+                            GrantedTags = effect.GrantedTags.ToList(),
+                            StackPolicy = effect.StackPolicy,
+                            StackKey = effect.StackKey,
+                            CueId = effect.CueId,
                         }
                     );
                 }
@@ -229,6 +234,8 @@ public sealed class UnitAbilityState
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public AbilityTargetAffinity TargetAffinity { get; set; } = AbilityTargetAffinity.Enemies;
     public List<UnitAbilityEffectState> Effects { get; set; } = new();
+    public EffectTagRequirements TagRequirements { get; set; } = new();
+    public string CueId { get; set; } = "";
 
     public UnitAbilityState DeepClone()
     {
@@ -253,6 +260,8 @@ public sealed class UnitAbilityState
             ProjectileCatalogId = ProjectileCatalogId,
             TargetAffinity = TargetAffinity,
             Effects = Effects.Select(e => e.DeepClone()).ToList(),
+            TagRequirements = TagRequirements.DeepClone(),
+            CueId = CueId,
         };
     }
 }
@@ -272,6 +281,11 @@ public sealed class UnitAbilityEffectState
     public float StatusTickInterval { get; set; } = 1f;
     public float StatusPotencyPerStack { get; set; }
     public int StatusMaxStacks { get; set; } = 1;
+    public EffectTagRequirements TagRequirements { get; set; } = new();
+    public List<string> GrantedTags { get; set; } = new();
+    public EffectStackPolicy StackPolicy { get; set; } = EffectStackPolicy.Independent;
+    public string StackKey { get; set; } = "";
+    public string CueId { get; set; } = "";
 
     public UnitAbilityEffectState DeepClone()
     {
@@ -287,6 +301,11 @@ public sealed class UnitAbilityEffectState
             StatusTickInterval = StatusTickInterval,
             StatusPotencyPerStack = StatusPotencyPerStack,
             StatusMaxStacks = StatusMaxStacks,
+            TagRequirements = TagRequirements.DeepClone(),
+            GrantedTags = new List<string>(GrantedTags),
+            StackPolicy = StackPolicy,
+            StackKey = StackKey,
+            CueId = CueId,
         };
     }
 }

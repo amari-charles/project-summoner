@@ -1,4 +1,5 @@
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Units;
@@ -55,6 +56,12 @@ public record UnitAbilityConfig
 
     /// <summary>Effect payloads delivered by the ability.</summary>
     public UnitAbilityEffectConfig[] Effects { get; init; } = [];
+
+    /// <summary>Tags required/blocked before this ability can affect a target.</summary>
+    public EffectTagRequirements TagRequirements { get; init; } = new();
+
+    /// <summary>Optional cue identity emitted when this ability executes.</summary>
+    public string CueId { get; init; } = "";
 }
 
 /// <summary>
@@ -79,6 +86,21 @@ public record UnitAbilityEffectConfig
 
     /// <summary>Optional projectile/status payload for status application.</summary>
     public ProjectileStatusConfig? Status { get; init; }
+
+    /// <summary>Tags required/blocked before this effect can affect a target.</summary>
+    public EffectTagRequirements TagRequirements { get; init; } = new();
+
+    /// <summary>Tags granted while a buff created by this effect is active.</summary>
+    public string[] GrantedTags { get; init; } = [];
+
+    /// <summary>Policy used if a matching active buff already exists.</summary>
+    public EffectStackPolicy StackPolicy { get; init; } = EffectStackPolicy.Independent;
+
+    /// <summary>Optional stack key used by non-independent stack policies.</summary>
+    public string StackKey { get; init; } = "";
+
+    /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
+    public string CueId { get; init; } = "";
 }
 
 /// <summary>

@@ -930,24 +930,51 @@ public class Simulation
                 {
                     SimEffects.ApplyEffect(
                         _state,
-                        effect.EffectType,
-                        effect.Value,
-                        EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
-                        effect.DamageType,
+                        BuildSpellEffectSpec(effect, cardData, team, position, summonerSourceId),
                         target,
-                        summonerSourceId,
-                        (Team)team,
-                        events,
-                        effect.StatusKind,
-                        effect.StatusTickInterval,
-                        effect.StatusPotencyPerStack,
-                        effect.StatusMaxStacks,
-                        position,
-                        effect.RemovalEffect
+                        events
                     );
                 }
             }
         }
+    }
+
+    private static EffectApplicationSpec BuildSpellEffectSpec(
+        SimSpellEffect effect,
+        SimCardData cardData,
+        int team,
+        SimVector3 castPosition,
+        int sourceUnitId
+    )
+    {
+        return new EffectApplicationSpec
+        {
+            EffectType = effect.EffectType,
+            Value = effect.Value,
+            Duration = EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
+            Lifetime = effect.Lifetime,
+            DamageType = effect.DamageType,
+            StatusKind = effect.StatusKind,
+            StatusTickInterval = effect.StatusTickInterval,
+            StatusPotencyPerStack = effect.StatusPotencyPerStack,
+            StatusMaxStacks = effect.StatusMaxStacks,
+            RemovalEffect = effect.RemovalEffect,
+            RequiredTargetElementId = effect.RequiredTargetElementId,
+            TagRequirements = effect.TagRequirements.DeepClone(),
+            GrantedTags = new List<string>(effect.GrantedTags),
+            StackPolicy = effect.StackPolicy,
+            StackKey = effect.StackKey,
+            CueId = !string.IsNullOrWhiteSpace(effect.CueId)
+                ? effect.CueId
+                : $"{cardData.CatalogId}:{effect.EffectType}",
+            Context = new EffectApplicationContext
+            {
+                SourceUnitId = sourceUnitId,
+                SourceTeam = (Team)team,
+                SourcePosition = castPosition,
+                CardCatalogId = cardData.CatalogId,
+            },
+        };
     }
 
     private int? ResolveSpellVisualTargetUnitId(
@@ -1009,6 +1036,11 @@ public class Simulation
                 StatusMaxStacks = effect.StatusMaxStacks,
                 RemovalEffect = effect.RemovalEffect,
                 RequiredTargetElementId = effect.RequiredTargetElementId,
+                TagRequirements = effect.TagRequirements.DeepClone(),
+                GrantedTags = new List<string>(effect.GrantedTags),
+                StackPolicy = effect.StackPolicy,
+                StackKey = effect.StackKey,
+                CueId = effect.CueId,
             }
         );
     }
@@ -1997,6 +2029,39 @@ public class AbilityActivatedEvent : SimEvent
     {
         SourceUnitId = sourceUnitId;
         AbilityId = abilityId;
+        TargetUnitId = targetUnitId;
+        Position = position;
+    }
+
+    public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
+}
+
+/// <summary>
+/// Data-driven cue hook for effect presentation.
+/// </summary>
+[EventCategory(EventCategory.HostOnly)]
+public class EffectCueEvent : SimEvent
+{
+    public string CueId { get; }
+    public EffectCuePhase Phase { get; }
+    public EffectType EffectType { get; }
+    public int SourceUnitId { get; }
+    public int TargetUnitId { get; }
+    public SimVector3 Position { get; }
+
+    public EffectCueEvent(
+        string cueId,
+        EffectCuePhase phase,
+        EffectType effectType,
+        int sourceUnitId,
+        int targetUnitId,
+        SimVector3 position
+    )
+    {
+        CueId = cueId;
+        Phase = phase;
+        EffectType = effectType;
+        SourceUnitId = sourceUnitId;
         TargetUnitId = targetUnitId;
         Position = position;
     }

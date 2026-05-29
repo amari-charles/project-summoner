@@ -194,6 +194,22 @@ public class SimSpellEffect
 
     /// <summary>Optional target element requirement (-1 = no requirement).</summary>
     public int RequiredTargetElementId { get; set; } = -1;
+
+    /// <summary>Tags required/blocked before this effect can affect a target.</summary>
+    public Fateforged.Simulation.Effects.EffectTagRequirements TagRequirements { get; set; } = new();
+
+    /// <summary>Tags granted while a buff created by this effect is active.</summary>
+    public List<string> GrantedTags { get; set; } = new();
+
+    /// <summary>Policy used if a matching active buff already exists.</summary>
+    public Fateforged.Simulation.Effects.EffectStackPolicy StackPolicy { get; set; } =
+        Fateforged.Simulation.Effects.EffectStackPolicy.Independent;
+
+    /// <summary>Optional stack key used by non-independent stack policies.</summary>
+    public string StackKey { get; set; } = "";
+
+    /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
+    public string CueId { get; set; } = "";
 }
 
 /// <summary>
@@ -250,6 +266,15 @@ public class ActiveBuff
 
     /// <summary>Owner HP captured when this buff was applied, for scaling removal effects.</summary>
     public float OwnerHpAtApply { get; set; }
+
+    /// <summary>Tags granted to the owning unit while this buff is active.</summary>
+    public List<string> GrantedTags { get; set; } = new();
+
+    /// <summary>Stacking identity for refresh/stack policies.</summary>
+    public string StackKey { get; set; } = "";
+
+    /// <summary>Visual/audio cue identity for active/removed lifecycle events.</summary>
+    public string CueId { get; set; } = "";
 }
 
 /// <summary>
@@ -386,4 +411,20 @@ public class DelayedEffect
 
     /// <summary>Optional target element requirement (-1 = no requirement).</summary>
     public int RequiredTargetElementId { get; set; } = -1;
+
+    /// <summary>Tags required/blocked before this effect can affect a target.</summary>
+    public Fateforged.Simulation.Effects.EffectTagRequirements TagRequirements { get; set; } = new();
+
+    /// <summary>Tags granted while a buff created by this effect is active.</summary>
+    public List<string> GrantedTags { get; set; } = new();
+
+    /// <summary>Policy used if a matching active buff already exists.</summary>
+    public Fateforged.Simulation.Effects.EffectStackPolicy StackPolicy { get; set; } =
+        Fateforged.Simulation.Effects.EffectStackPolicy.Independent;
+
+    /// <summary>Optional stack key used by non-independent stack policies.</summary>
+    public string StackKey { get; set; } = "";
+
+    /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
+    public string CueId { get; set; } = "";
 }

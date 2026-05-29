@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
 using Fateforged.Simulation;
@@ -2030,6 +2031,8 @@ public static class UnitDefinitions
                     ProjectileCatalogId = ability.ProjectileId.Value,
                     TargetAffinity = ability.TargetAffinity,
                     Effects = BuildAbilityEffectStates(ability),
+                    TagRequirements = ability.TagRequirements.DeepClone(),
+                    CueId = ability.CueId,
                 }
             );
         }
@@ -2070,6 +2073,11 @@ public static class UnitDefinitions
                     StatusTickInterval = effect.Status?.TickIntervalSeconds ?? 1f,
                     StatusPotencyPerStack = effect.Status?.PotencyPerStack ?? 0f,
                     StatusMaxStacks = effect.Status?.MaxStacks ?? 1,
+                    TagRequirements = effect.TagRequirements.DeepClone(),
+                    GrantedTags = effect.GrantedTags.ToList(),
+                    StackPolicy = effect.StackPolicy,
+                    StackKey = effect.StackKey,
+                    CueId = effect.CueId,
                 }
             );
         }

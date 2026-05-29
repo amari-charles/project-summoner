@@ -61,6 +61,9 @@ public class UnitData
     // Element (int cast of Fateforged.Cards.Element enum)
     public int ElementId { get; set; } // 0=Neutral
 
+    // Tags used by the combat effect pipeline for requirements/immunity.
+    public List<string> CombatTags { get; set; } = new();
+
     // Group relationships
     public int? GroupId { get; set; }
     public int? LeaderId { get; set; }

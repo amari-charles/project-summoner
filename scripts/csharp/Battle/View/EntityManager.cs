@@ -6,6 +6,7 @@ using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
 using Fateforged.Units;
@@ -315,6 +316,12 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     public void Visit(AbilityActivatedEvent e)
     {
         // No-op in V1: reserved for dedicated ability VFX wiring.
+    }
+
+    public void Visit(EffectCueEvent e)
+    {
+        if (e.Phase == EffectCuePhase.Active && _unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
+            shell.ShowBuffIcon(e.EffectType);
     }
 
     public void Visit(StatusAppliedEvent e)

@@ -134,6 +134,29 @@ public static class SimAbilityOrchestrator
         }
     }
 
+    public static void TryActivateOnBuffRemovedEffects(
+        MatchState state,
+        UnitData source,
+        ActiveBuff removedBuff,
+        List<SimEvent> events
+    )
+    {
+        if (!source.IsAlive)
+            return;
+
+        foreach (var ability in source.Abilities)
+        {
+            if (ability.Trigger != UnitAbilityTrigger.OnBuffRemoved)
+                continue;
+            if (ability.CooldownTimer > 0f)
+                continue;
+            if (!TryActivateAbility(state, source, ability, null, events))
+                continue;
+
+            ability.CooldownTimer = MathF.Max(ability.CooldownSeconds, 0f);
+        }
+    }
+
     private static bool TryActivateAbility(
         MatchState state,
         UnitData source,
@@ -177,25 +200,9 @@ public static class SimAbilityOrchestrator
         {
             foreach (var effect in effects.Where(e => e.EffectType != EffectType.TransferHealth))
             {
-                SimEffects.ApplyEffect(
-                    state,
-                    effect.EffectType,
-                    effect.Value,
-                    EffectLifetimeResolver.ResolveDuration(
-                        effect.Lifetime,
-                        effect.DurationSeconds
-                    ),
-                    effect.DamageType,
-                    target,
-                    source.UnitId,
-                    source.Team,
-                    events,
-                    effect.StatusKind,
-                    effect.StatusTickInterval,
-                    effect.StatusPotencyPerStack,
-                    effect.StatusMaxStacks
-                );
-                applied++;
+                var spec = BuildEffectSpec(source, ability, effect);
+                if (SimEffects.ApplyEffect(state, spec, target, events))
+                    applied++;
             }
         }
 
@@ -478,6 +485,60 @@ public static class SimAbilityOrchestrator
             Lifetime = ability.Lifetime,
             DamageType = DamageType.Magic,
         };
+    }
+
+    private static EffectApplicationSpec BuildEffectSpec(
+        UnitData source,
+        UnitAbilityState ability,
+        UnitAbilityEffectState effect
+    )
+    {
+        return new EffectApplicationSpec
+        {
+            EffectType = effect.EffectType,
+            Value = effect.Value,
+            Duration = EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.DurationSeconds),
+            Lifetime = effect.Lifetime,
+            DamageType = effect.DamageType,
+            StatusKind = effect.StatusKind,
+            StatusTickInterval = effect.StatusTickInterval,
+            StatusPotencyPerStack = effect.StatusPotencyPerStack,
+            StatusMaxStacks = effect.StatusMaxStacks,
+            TagRequirements = MergeRequirements(ability.TagRequirements, effect.TagRequirements),
+            GrantedTags = new List<string>(effect.GrantedTags),
+            StackPolicy = effect.StackPolicy,
+            StackKey = effect.StackKey,
+            CueId = ResolveCueId(ability, effect),
+            Context = new EffectApplicationContext
+            {
+                SourceUnitId = source.UnitId,
+                SourceTeam = source.Team,
+                SourcePosition = source.Position,
+                AbilityId = ability.AbilityId,
+            },
+        };
+    }
+
+    private static string ResolveCueId(UnitAbilityState ability, UnitAbilityEffectState effect)
+    {
+        if (!string.IsNullOrWhiteSpace(effect.CueId))
+            return effect.CueId;
+        if (!string.IsNullOrWhiteSpace(ability.CueId))
+            return ability.CueId;
+        return ability.AbilityId;
+    }
+
+    private static EffectTagRequirements MergeRequirements(
+        EffectTagRequirements abilityRequirements,
+        EffectTagRequirements effectRequirements
+    )
+    {
+        var merged = abilityRequirements.DeepClone();
+        merged.RequiredSourceTags.AddRange(effectRequirements.RequiredSourceTags);
+        merged.BlockedSourceTags.AddRange(effectRequirements.BlockedSourceTags);
+        merged.RequiredTargetTags.AddRange(effectRequirements.RequiredTargetTags);
+        merged.BlockedTargetTags.AddRange(effectRequirements.BlockedTargetTags);
+        return merged;
     }
 
     private static bool TryResolveProjectileData(

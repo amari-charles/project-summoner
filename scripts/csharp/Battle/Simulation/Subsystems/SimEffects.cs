@@ -126,39 +126,84 @@ public static class SimEffects
         BuffRemovalEffectConfig? removalEffect = null
     )
     {
-        if (!target.IsAlive)
-            return;
+        var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
+        ApplyEffect(
+            state,
+            new EffectApplicationSpec
+            {
+                EffectType = effectType,
+                Value = value,
+                Duration = duration,
+                Lifetime = lifetime,
+                DamageType = damageType,
+                StatusKind = statusKind,
+                StatusTickInterval = statusTickInterval,
+                StatusPotencyPerStack = statusPotencyPerStack,
+                StatusMaxStacks = statusMaxStacks,
+                RemovalEffect = removalEffect,
+                Context = new EffectApplicationContext
+                {
+                    SourceUnitId = sourceUnitId,
+                    SourceTeam = sourceTeam,
+                    SourcePosition = sourcePosition,
+                },
+            },
+            target,
+            events
+        );
+    }
 
-        switch (effectType)
+    /// <summary>
+    /// Apply a fully resolved runtime effect spec to a target unit.
+    /// </summary>
+    public static bool ApplyEffect(
+        MatchState state,
+        EffectApplicationSpec spec,
+        UnitData target,
+        List<SimEvent> events
+    )
+    {
+        if (!target.IsAlive)
+            return false;
+        if (!CanApplyEffect(state, spec, target))
+            return false;
+
+        var context = spec.Context;
+        float duration = spec.ResolvedDuration;
+        switch (spec.EffectType)
         {
             case EffectType.Damage:
                 ApplyDirectDamage(
                     state,
                     target,
-                    value,
-                    damageType,
-                    sourceUnitId,
-                    sourceTeam,
+                    spec.Value,
+                    spec.DamageType,
+                    context.SourceUnitId,
+                    context.SourceTeam,
                     events,
-                    removalEffect
+                    spec.RemovalEffect
                 );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Heal:
-                ApplyHeal(target, value, events);
+                ApplyHeal(target, spec.Value, events);
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Shield:
                 ApplyShield(
                     state,
                     target,
-                    value,
+                    spec.Value,
                     duration,
-                    sourceUnitId,
-                    sourceTeam,
-                    removalEffect
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    spec.RemovalEffect,
+                    spec,
+                    events
                 );
-                events.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, value, duration));
+                events.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, spec.Value, duration));
                 break;
 
             case EffectType.AreaDamage:
@@ -167,48 +212,68 @@ public static class SimEffects
                 ApplyDirectDamage(
                     state,
                     target,
-                    value,
-                    damageType,
-                    sourceUnitId,
-                    sourceTeam,
+                    spec.Value,
+                    spec.DamageType,
+                    context.SourceUnitId,
+                    context.SourceTeam,
                     events,
-                    removalEffect
+                    spec.RemovalEffect
                 );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Cleanse:
-                ApplyCleanse(target, events);
+                ApplyCleanse(state, target, events);
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Knockback:
-                ApplyKnockback(state, target, value, sourceUnitId, sourceTeam, sourcePosition);
+                ApplyKnockback(
+                    state,
+                    target,
+                    spec.Value,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    context.SourcePosition
+                );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Displacement:
-                ApplyDisplacement(state, target, value, sourceUnitId, sourceTeam, sourcePosition);
+                ApplyDisplacement(
+                    state,
+                    target,
+                    spec.Value,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    context.SourcePosition
+                );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.SourceLungeToTarget:
-                ApplySourceLungeToTarget(state, target, value, sourceUnitId);
+                ApplySourceLungeToTarget(state, target, spec.Value, context.SourceUnitId);
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Taunt:
-                ApplyTaunt(target, sourceUnitId, duration, events);
+                ApplyTaunt(target, context.SourceUnitId, duration, events, spec);
                 break;
 
             case EffectType.StatusApply:
                 ApplyStackingStatus(
                     state,
                     target,
-                    sourceUnitId,
-                    sourceTeam,
-                    statusKind,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    spec.StatusKind,
                     duration,
-                    statusTickInterval,
-                    statusPotencyPerStack > 0f ? statusPotencyPerStack : value,
-                    statusMaxStacks,
-                    damageType,
-                    events
+                    spec.StatusTickInterval,
+                    spec.StatusPotencyPerStack > 0f ? spec.StatusPotencyPerStack : spec.Value,
+                    spec.StatusMaxStacks,
+                    spec.DamageType,
+                    events,
+                    spec
                 );
                 break;
 
@@ -216,13 +281,14 @@ public static class SimEffects
                 ConsumeStatus(
                     state,
                     target,
-                    sourceUnitId,
-                    sourceTeam,
-                    statusKind == StatusEffectKind.None ? StatusEffectKind.Burn : statusKind,
-                    value > 0f ? value : 1f,
-                    damageType,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    spec.StatusKind == StatusEffectKind.None ? StatusEffectKind.Burn : spec.StatusKind,
+                    spec.Value > 0f ? spec.Value : 1f,
+                    spec.DamageType,
                     events
                 );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Slow:
@@ -240,17 +306,61 @@ public static class SimEffects
                 ApplyBuff(
                     state,
                     target,
-                    effectType,
-                    value,
+                    spec.EffectType,
+                    spec.Value,
                     duration,
-                    damageType,
-                    sourceUnitId,
-                    sourceTeam,
+                    spec.DamageType,
+                    context.SourceUnitId,
+                    context.SourceTeam,
                     events,
-                    removalEffect
+                    spec.RemovalEffect,
+                    spec
                 );
                 break;
         }
+
+        return true;
+    }
+
+    private static bool CanApplyEffect(MatchState state, EffectApplicationSpec spec, UnitData target)
+    {
+        if (spec.RequiredTargetElementId >= 0 && target.ElementId != spec.RequiredTargetElementId)
+            return false;
+
+        var requirements = spec.TagRequirements;
+        if (requirements.IsEmpty)
+            return true;
+
+        state.Units.TryGetValue(spec.Context.SourceUnitId, out var source);
+        var sourceTags = CombatTagSet.GetOwnedTags(source);
+        var targetTags = CombatTagSet.GetOwnedTags(target);
+
+        return CombatTagSet.HasAll(sourceTags, requirements.RequiredSourceTags)
+            && !CombatTagSet.HasAny(sourceTags, requirements.BlockedSourceTags)
+            && CombatTagSet.HasAll(targetTags, requirements.RequiredTargetTags)
+            && !CombatTagSet.HasAny(targetTags, requirements.BlockedTargetTags);
+    }
+
+    private static void EmitCue(
+        EffectApplicationSpec spec,
+        UnitData target,
+        EffectCuePhase phase,
+        List<SimEvent>? events
+    )
+    {
+        if (events == null || string.IsNullOrWhiteSpace(spec.CueId))
+            return;
+
+        events.Add(
+            new EffectCueEvent(
+                spec.CueId,
+                phase,
+                spec.EffectType,
+                spec.Context.SourceUnitId,
+                target.UnitId,
+                spec.Context.SourcePosition ?? target.Position
+            )
+        );
     }
 
     // =========================================================================
@@ -412,7 +522,8 @@ public static class SimEffects
         float potencyPerStack,
         int maxStacks,
         DamageType damageType,
-        List<SimEvent> events
+        List<SimEvent> events,
+        EffectApplicationSpec? spec = null
     )
     {
         if (statusKind == StatusEffectKind.None)
@@ -455,6 +566,13 @@ public static class SimEffects
             };
             target.ActiveBuffs.Add(buff);
             stackCount = 1;
+            if (spec != null)
+            {
+                buff.GrantedTags = new List<string>(spec.GrantedTags);
+                buff.StackKey = spec.ResolvedStackKey;
+                buff.CueId = spec.CueId;
+                EmitCue(spec, target, EffectCuePhase.Active, events);
+            }
         }
         else
         {
@@ -474,6 +592,8 @@ public static class SimEffects
             existing.SourceTeam = sourceTeam;
             existing.DamageType = damageType;
             stackCount = existing.StackCount;
+            if (spec != null && string.IsNullOrWhiteSpace(existing.CueId))
+                existing.CueId = spec.CueId;
         }
 
         events.Add(
@@ -501,9 +621,14 @@ public static class SimEffects
         float duration,
         int sourceUnitId,
         Team sourceTeam,
-        BuffRemovalEffectConfig? removalEffect = null
+        BuffRemovalEffectConfig? removalEffect = null,
+        EffectApplicationSpec? spec = null,
+        List<SimEvent>? events = null
     )
     {
+        if (TryApplyStackPolicy(target, spec, shieldHp, duration, state, events))
+            return;
+
         var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
         float resolvedDuration = lifetime.ToLegacyDuration();
         target.ActiveBuffs.Add(
@@ -518,8 +643,13 @@ public static class SimEffects
                 SourceTeam = sourceTeam,
                 RemovalEffect = removalEffect,
                 OwnerHpAtApply = target.CurrentHp,
+                GrantedTags = spec != null ? new List<string>(spec.GrantedTags) : new List<string>(),
+                StackKey = spec?.ResolvedStackKey ?? "",
+                CueId = spec?.CueId ?? "",
             }
         );
+        if (spec != null)
+            EmitCue(spec, target, EffectCuePhase.Active, events);
     }
 
     public static void ApplyShield(
@@ -604,6 +734,22 @@ public static class SimEffects
         var buff = owner.ActiveBuffs[buffIndex];
         owner.ActiveBuffs.RemoveAt(buffIndex);
         events?.Add(new BuffExpiredEvent(owner.UnitId, buff.BuffId, buff.EffectType));
+        if (events != null && !string.IsNullOrWhiteSpace(buff.CueId))
+        {
+            events.Add(
+                new EffectCueEvent(
+                    buff.CueId,
+                    EffectCuePhase.Removed,
+                    buff.EffectType,
+                    buff.SourceUnitId,
+                    owner.UnitId,
+                    owner.Position
+                )
+            );
+        }
+
+        if (state != null && events != null && owner.IsAlive)
+            SimAbilityOrchestrator.TryActivateOnBuffRemovedEffects(state, owner, buff, events);
 
         if (state == null || events == null || !ShouldFireRemovalEffect(buff, reason))
             return;
@@ -744,6 +890,68 @@ public static class SimEffects
         target.CurrentHp = MathF.Min(target.CurrentHp + amount, target.MaxHp);
     }
 
+    private static bool TryApplyStackPolicy(
+        UnitData target,
+        EffectApplicationSpec? spec,
+        float value,
+        float duration,
+        MatchState state,
+        List<SimEvent>? events
+    )
+    {
+        if (spec == null || spec.StackPolicy == EffectStackPolicy.Independent)
+            return false;
+
+        string stackKey = spec.ResolvedStackKey;
+        if (string.IsNullOrWhiteSpace(stackKey))
+            return false;
+
+        foreach (var existing in target.ActiveBuffs)
+        {
+            if (existing.EffectType != spec.EffectType)
+                continue;
+            if (existing.StackKey != stackKey)
+                continue;
+
+            var lifetime = EffectLifetimeResolver.Resolve(existing.Lifetime, existing.Duration);
+            float currentDuration = lifetime.ToLegacyDuration();
+            float refreshedDuration =
+                currentDuration < 0f || duration < 0f ? -1f : MathF.Max(currentDuration, duration);
+
+            if (spec.StackPolicy == EffectStackPolicy.StackAndRefreshDuration)
+            {
+                existing.StackCount = Math.Max(1, existing.StackCount) + 1;
+                existing.Value += value;
+                if (existing.EffectType == EffectType.Shield)
+                    existing.ShieldHp += value;
+            }
+            else
+            {
+                existing.Value = value;
+                if (existing.EffectType == EffectType.Shield)
+                    existing.ShieldHp = MathF.Max(existing.ShieldHp, value);
+            }
+
+            existing.Duration = refreshedDuration;
+            existing.Lifetime = EffectLifetimeResolver.Resolve(
+                refreshedDuration < 0f ? EffectLifetime.Persistent() : EffectLifetime.Timed(refreshedDuration),
+                refreshedDuration
+            );
+            existing.SourceUnitId = spec.Context.SourceUnitId;
+            existing.SourceTeam = spec.Context.SourceTeam;
+            if (existing.GrantedTags.Count == 0 && spec.GrantedTags.Count > 0)
+                existing.GrantedTags = new List<string>(spec.GrantedTags);
+            if (string.IsNullOrWhiteSpace(existing.CueId))
+                existing.CueId = spec.CueId;
+
+            events?.Add(new BuffAppliedEvent(target.UnitId, spec.EffectType, existing.Value, refreshedDuration));
+            EmitCue(spec, target, EffectCuePhase.Active, events);
+            return true;
+        }
+
+        return false;
+    }
+
     private static void ApplyBuff(
         MatchState state,
         UnitData target,
@@ -754,9 +962,13 @@ public static class SimEffects
         int sourceUnitId,
         Team sourceTeam,
         List<SimEvent> events,
-        BuffRemovalEffectConfig? removalEffect = null
+        BuffRemovalEffectConfig? removalEffect = null,
+        EffectApplicationSpec? spec = null
     )
     {
+        if (TryApplyStackPolicy(target, spec, value, duration, state, events))
+            return;
+
         var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
         float resolvedDuration = lifetime.ToLegacyDuration();
         var buff = new ActiveBuff
@@ -771,9 +983,14 @@ public static class SimEffects
             SourceTeam = sourceTeam,
             RemovalEffect = removalEffect,
             OwnerHpAtApply = target.CurrentHp,
+            GrantedTags = spec != null ? new List<string>(spec.GrantedTags) : new List<string>(),
+            StackKey = spec?.ResolvedStackKey ?? "",
+            CueId = spec?.CueId ?? "",
         };
         target.ActiveBuffs.Add(buff);
         events.Add(new BuffAppliedEvent(target.UnitId, effectType, value, resolvedDuration));
+        if (spec != null)
+            EmitCue(spec, target, EffectCuePhase.Active, events);
     }
 
     private static void ApplyPeriodicTick(
@@ -991,20 +1208,33 @@ public static class SimEffects
         {
             ApplyEffect(
                 state,
-                effect.EffectType,
-                effect.Value,
-                EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
-                effect.DamageType,
+                new EffectApplicationSpec
+                {
+                    EffectType = effect.EffectType,
+                    Value = effect.Value,
+                    Duration = EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
+                    Lifetime = effect.Lifetime,
+                    DamageType = effect.DamageType,
+                    StatusKind = effect.StatusKind,
+                    StatusTickInterval = effect.StatusTickInterval,
+                    StatusPotencyPerStack = effect.StatusPotencyPerStack,
+                    StatusMaxStacks = effect.StatusMaxStacks,
+                    RemovalEffect = effect.RemovalEffect,
+                    RequiredTargetElementId = effect.RequiredTargetElementId,
+                    TagRequirements = effect.TagRequirements.DeepClone(),
+                    GrantedTags = new List<string>(effect.GrantedTags),
+                    StackPolicy = effect.StackPolicy,
+                    StackKey = effect.StackKey,
+                    CueId = effect.CueId,
+                    Context = new EffectApplicationContext
+                    {
+                        SourceUnitId = effect.SourceUnitId,
+                        SourceTeam = effect.SourceTeam,
+                        SourcePosition = effect.Position,
+                    },
+                },
                 target,
-                effect.SourceUnitId,
-                effect.SourceTeam,
-                events,
-                effect.StatusKind,
-                effect.StatusTickInterval,
-                effect.StatusPotencyPerStack,
-                effect.StatusMaxStacks,
-                effect.Position,
-                effect.RemovalEffect
+                events
             );
         }
     }
@@ -1120,7 +1350,7 @@ public static class SimEffects
         return requiredTargetElementId < 0 || unit.ElementId == requiredTargetElementId;
     }
 
-    private static void ApplyCleanse(UnitData target, List<SimEvent> events)
+    private static void ApplyCleanse(MatchState state, UnitData target, List<SimEvent> events)
     {
         for (int i = target.ActiveBuffs.Count - 1; i >= 0; i--)
         {
@@ -1128,8 +1358,7 @@ public static class SimEffects
             if (!IsNegativeBuffForCleanse(buff))
                 continue;
 
-            target.ActiveBuffs.RemoveAt(i);
-            events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
+            RemoveBuff(state, target, i, events, BuffRemovalReason.Expired);
         }
 
         target.Engagement.ForcedTargetUnitId = null;
@@ -1140,7 +1369,8 @@ public static class SimEffects
         UnitData target,
         int sourceUnitId,
         float duration,
-        List<SimEvent> events
+        List<SimEvent> events,
+        EffectApplicationSpec? spec = null
     )
     {
         if (sourceUnitId < 0 || duration <= 0f)
@@ -1156,6 +1386,8 @@ public static class SimEffects
         events.Add(
             new StatusAppliedEvent(sourceUnitId, target.UnitId, StatusEffectKind.Taunt, 1, duration)
         );
+        if (spec != null)
+            EmitCue(spec, target, EffectCuePhase.Active, events);
     }
 
     private static bool ShouldApplySoftTaunt(UnitData target, int sourceUnitId)
