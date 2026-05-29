@@ -387,7 +387,10 @@ public static class SimEffects
     {
         if (!Simulation.DebugAbilityLogsEnabled)
             return;
-        if (!string.IsNullOrWhiteSpace(spec.Context.AbilityId))
+        if (
+            !string.IsNullOrWhiteSpace(spec.Context.AbilityId)
+            || !string.IsNullOrWhiteSpace(spec.Context.CardCatalogId)
+        )
             return;
 
         Simulation.DebugAbilityLog(CombatDebugFormatter.FormatEffectApplied(state, spec, target, targetBefore));
@@ -401,6 +404,8 @@ public static class SimEffects
     )
     {
         if (!Simulation.DebugAbilityLogsEnabled)
+            return;
+        if (!string.IsNullOrWhiteSpace(spec.Context.CardCatalogId))
             return;
 
         Simulation.DebugAbilityLog(CombatDebugFormatter.FormatEffectSkipped(state, spec, target, reason));
@@ -1252,6 +1257,7 @@ public static class SimEffects
                 DamageType = trigger.DamageType,
                 AoeRadius = trigger.AoeRadius,
                 Position = source.Position,
+                SourcePosition = source.Position,
                 SourceUnitId = source.UnitId,
                 SourceTeam = source.Team,
             }
@@ -1268,166 +1274,9 @@ public static class SimEffects
             new DelayedEffectFiredEvent(effect.Position, effect.EffectType, effect.AoeRadius)
         );
 
-        var targets = ResolveDelayedTargets(state, effect);
-        foreach (var target in targets)
-        {
-            ApplyEffect(
-                state,
-                new EffectApplicationSpec
-                {
-                    EffectType = effect.EffectType,
-                    Value = effect.Value,
-                    Duration = EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
-                    Lifetime = effect.Lifetime,
-                    DamageType = effect.DamageType,
-                    StatusKind = effect.StatusKind,
-                    StatusTickInterval = effect.StatusTickInterval,
-                    StatusPotencyPerStack = effect.StatusPotencyPerStack,
-                    StatusMaxStacks = effect.StatusMaxStacks,
-                    RemovalEffect = effect.RemovalEffect,
-                    RequiredTargetElementId = effect.RequiredTargetElementId,
-                    TagRequirements = effect.TagRequirements.DeepClone(),
-                    GrantedTags = new List<string>(effect.GrantedTags),
-                    StackPolicy = effect.StackPolicy,
-                    StackKey = effect.StackKey,
-                    CueId = effect.CueId,
-                    Context = new EffectApplicationContext
-                    {
-                        SourceUnitId = effect.SourceUnitId,
-                        SourceTeam = effect.SourceTeam,
-                        SourcePosition = effect.Position,
-                    },
-                },
-                target,
-                events
-            );
-        }
-    }
-
-    private static List<UnitData> ResolveDelayedTargets(MatchState state, DelayedEffect effect)
-    {
-        var targets = new List<UnitData>();
-        int sourceTeam = (int)effect.SourceTeam;
-        int? teamFilter = effect.Affinity switch
-        {
-            SpellAffinity.Enemies => MatchState.GetEnemyTeam(sourceTeam),
-            SpellAffinity.Allies => sourceTeam,
-            _ => null,
-        };
-
-        switch (effect.TargetingMode)
-        {
-            case SpellTargetingMode.Position:
-            {
-                float radius = effect.AoeRadius;
-                foreach (var candidate in state.GetAliveActiveUnits())
-                {
-                    if (teamFilter.HasValue && (int)candidate.Team != teamFilter.Value)
-                        continue;
-                    if (!PassesTargetElementRequirement(candidate, effect.RequiredTargetElementId))
-                        continue;
-                    if (
-                        !SpellAreaResolver.IsWithinArea(
-                            effect.AreaShape,
-                            effect.Position,
-                            candidate.Position,
-                            radius,
-                            ResolveSourcePosition(
-                                state,
-                                effect.SourceUnitId,
-                                effect.SourceTeam,
-                                effect.Position
-                            )
-                        )
-                    )
-                        continue;
-                    targets.Add(candidate);
-                }
-                break;
-            }
-
-            case SpellTargetingMode.NearestEnemy:
-            {
-                if (effect.TargetUnitId.HasValue)
-                {
-                    var pinned = state.GetAliveUnit(effect.TargetUnitId.Value);
-                    if (
-                        pinned != null
-                        && PassesDelayedAffinity(pinned, sourceTeam, effect.Affinity)
-                        && PassesTargetElementRequirement(pinned, effect.RequiredTargetElementId)
-                    )
-                        targets.Add(pinned);
-                    break;
-                }
-
-                int enemyTeam = MatchState.GetEnemyTeam(sourceTeam);
-                UnitData? best = null;
-                float bestDistSq = float.MaxValue;
-
-                foreach (var candidate in state.GetAliveActiveUnitsForTeam(enemyTeam))
-                {
-                    if (!PassesTargetElementRequirement(candidate, effect.RequiredTargetElementId))
-                        continue;
-                    float distSq = candidate.Position.DistanceSquaredTo(effect.Position);
-                    if (distSq >= bestDistSq)
-                        continue;
-                    best = candidate;
-                    bestDistSq = distSq;
-                }
-
-                if (best != null)
-                    targets.Add(best);
-                break;
-            }
-
-            case SpellTargetingMode.AlliesInRadius:
-            {
-                float radius = effect.AoeRadius;
-                foreach (var candidate in state.GetAliveActiveUnitsForTeam(sourceTeam))
-                {
-                    if (!PassesTargetElementRequirement(candidate, effect.RequiredTargetElementId))
-                        continue;
-                    if (
-                        !SpellAreaResolver.IsWithinArea(
-                            effect.AreaShape,
-                            effect.Position,
-                            candidate.Position,
-                            radius,
-                            ResolveSourcePosition(
-                                state,
-                                effect.SourceUnitId,
-                                effect.SourceTeam,
-                                effect.Position
-                            )
-                        )
-                    )
-                        continue;
-                    targets.Add(candidate);
-                }
-                break;
-            }
-        }
-
-        return targets;
-    }
-
-    private static bool PassesDelayedAffinity(
-        UnitData unit,
-        int sourceTeam,
-        SpellAffinity affinity
-    )
-    {
-        return affinity switch
-        {
-            SpellAffinity.Allies => (int)unit.Team == sourceTeam,
-            SpellAffinity.Both => true,
-            _ => (int)unit.Team == MatchState.GetEnemyTeam(sourceTeam),
-        };
-    }
-
-    private static bool PassesTargetElementRequirement(UnitData unit, int requiredTargetElementId)
-    {
-        return requiredTargetElementId < 0 || unit.ElementId == requiredTargetElementId;
+        var targets = SpellTargetResolver.Resolve(state, effect);
+        var spec = SpellEffectSpecFactory.FromDelayedEffect(effect);
+        SpellEffectExecutor.Apply(state, effect.CardCatalogId, spec, targets, events, delayed: true);
     }
 
     private static void ApplyCleanse(MatchState state, UnitData target, List<SimEvent> events)

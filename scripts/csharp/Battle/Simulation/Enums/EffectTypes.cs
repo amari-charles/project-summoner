@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Simulation.Data;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Enums;
@@ -370,6 +371,9 @@ public class DelayedEffect
     /// <summary>Position where the effect originates (for AoE).</summary>
     public SimVector3 Position { get; set; }
 
+    /// <summary>Source/origin position for directional target resolution.</summary>
+    public SimVector3 SourcePosition { get; set; }
+
     /// <summary>Source unit ID (for kill credit).</summary>
     public int SourceUnitId { get; set; }
 
@@ -427,4 +431,7 @@ public class DelayedEffect
 
     /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
     public string CueId { get; set; } = "";
+
+    /// <summary>Optional card catalog ID for spell-owned delayed effects.</summary>
+    public SimCardCatalogId CardCatalogId { get; set; } = SimCardCatalogId.Empty;
 }

@@ -79,7 +79,10 @@ public static class SimProjectile
         float statusDuration = 0f,
         float statusTickInterval = 0f,
         float statusPotencyPerStack = 0f,
-        int statusMaxStacks = 1
+        int statusMaxStacks = 1,
+        DamageType damageType = DamageType.Physical,
+        bool useAttackDamageProfile = true,
+        SimCardCatalogId cardCatalogId = default
     )
     {
         int id = state.NextProjectileId();
@@ -94,8 +97,11 @@ public static class SimProjectile
             SourceUnitId = sourceUnitId,
             TargetUnitId = targetUnitId,
             Team = team,
+            CardCatalogId = cardCatalogId,
             Damage = damage,
+            DamageType = damageType,
             SourceElementId = sourceElementId,
+            UseAttackDamageProfile = useAttackDamageProfile,
             TargetAffinity = targetAffinity,
             ImpactKind = impactKind,
             StatusKind = statusKind,
@@ -204,7 +210,10 @@ public static class SimProjectile
         float statusPotencyPerStack,
         int statusMaxStacks,
         float beamDurationSeconds,
-        List<SimEvent> events
+        List<SimEvent> events,
+        DamageType damageType = DamageType.Physical,
+        bool useAttackDamageProfile = true,
+        SimCardCatalogId cardCatalogId = default
     )
     {
         int id = state.NextProjectileId();
@@ -221,8 +230,11 @@ public static class SimProjectile
             SourceUnitId = sourceUnitId,
             TargetUnitId = targetUnitId,
             Team = team,
+            CardCatalogId = cardCatalogId,
             Damage = damage,
+            DamageType = damageType,
             SourceElementId = sourceElementId,
+            UseAttackDamageProfile = useAttackDamageProfile,
             TargetAffinity = targetAffinity,
             ImpactKind = impactKind,
             StatusKind = statusKind,
@@ -675,17 +687,27 @@ public static class SimProjectile
         List<SimEvent> events
     )
     {
-        SimEffects.ApplyEffect(
-            state,
-            BuildProjectilePrimaryImpactSpec(
-                proj,
-                target.Position,
-                triggerSourceOnHit: proj.ImpactKind == ProjectileImpactKind.Damage,
-                triggerTargetOnDamaged: true
-            ),
-            target,
-            events
+        var spec = BuildProjectilePrimaryImpactSpec(
+            proj,
+            target.Position,
+            triggerSourceOnHit: proj.ImpactKind == ProjectileImpactKind.Damage,
+            triggerTargetOnDamaged: true
         );
+        var before = CombatDebugFormatter.CaptureUnits([target]);
+        bool applied = SimEffects.ApplyEffect(state, spec, target, events);
+        if (proj.CardCatalogId.HasValue && Simulation.DebugAbilityLogsEnabled)
+        {
+            Simulation.DebugAbilityLog(
+                SpellDebugFormatter.FormatApplication(
+                    state,
+                    proj.CardCatalogId,
+                    spec,
+                    [target],
+                    before,
+                    applied ? 1 : 0
+                )
+            );
+        }
 
         ApplyStatusPayload(proj, target, target.Position, state, events);
         proj.HitUnitIds.Add(target.UnitId);
@@ -806,6 +828,7 @@ public static class SimProjectile
         List<SimEvent> events
     )
     {
+        var targets = new List<UnitData>();
         foreach (var kvp in state.Units)
         {
             var unit = kvp.Value;
@@ -820,19 +843,36 @@ public static class SimProjectile
             if (!CanHitUnitInRadius(proj, unit, center, radius))
                 continue;
 
-            SimEffects.ApplyEffect(
-                state,
-                BuildProjectilePrimaryImpactSpec(
-                    proj,
-                    center,
-                    triggerSourceOnHit: false,
-                    triggerTargetOnDamaged: false
-                ),
-                unit,
-                events
-            );
+            targets.Add(unit);
+        }
 
+        var spec = BuildProjectilePrimaryImpactSpec(
+            proj,
+            center,
+            triggerSourceOnHit: false,
+            triggerTargetOnDamaged: false
+        );
+        var before = CombatDebugFormatter.CaptureUnits(targets);
+        int appliedCount = 0;
+        foreach (var unit in targets)
+        {
+            if (SimEffects.ApplyEffect(state, spec, unit, events))
+                appliedCount++;
             ApplyStatusPayload(proj, unit, center, state, events);
+        }
+
+        if (proj.CardCatalogId.HasValue && Simulation.DebugAbilityLogsEnabled && targets.Count > 0)
+        {
+            Simulation.DebugAbilityLog(
+                SpellDebugFormatter.FormatApplication(
+                    state,
+                    proj.CardCatalogId,
+                    spec,
+                    targets,
+                    before,
+                    appliedCount
+                )
+            );
         }
     }
 
@@ -890,16 +930,17 @@ public static class SimProjectile
         {
             EffectType = effectType,
             Value = proj.Damage,
-            DamageType = effectType == EffectType.Heal ? DamageType.Magic : DamageType.Physical,
+            DamageType = effectType == EffectType.Heal ? DamageType.Magic : proj.DamageType,
             CueId = ResolveProjectileCueId(proj, effectType),
             Context = new EffectApplicationContext
             {
                 SourceUnitId = proj.SourceUnitId,
                 SourceTeam = proj.Team,
                 SourcePosition = impactPosition,
+                CardCatalogId = proj.CardCatalogId,
                 TriggerSourceOnHit = triggerSourceOnHit,
                 TriggerTargetOnDamaged = triggerTargetOnDamaged,
-                UseAttackDamageProfile = effectType == EffectType.Damage,
+                UseAttackDamageProfile = effectType == EffectType.Damage && proj.UseAttackDamageProfile,
             },
         };
     }

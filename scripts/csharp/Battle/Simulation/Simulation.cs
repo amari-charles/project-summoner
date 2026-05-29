@@ -906,6 +906,15 @@ public class Simulation
     )
     {
         int summonerSourceId = MatchState.GetSummonerTargetId(team);
+        var context = new SpellExecutionContext
+        {
+            CardData = cardData,
+            Team = team,
+            CastPosition = position,
+            TargetUnitId = targetUnitId,
+            SourceUnitId = summonerSourceId,
+            SourcePosition = _state.Summoners[team].Position,
+        };
         int? visualTargetUnitId = ResolveSpellVisualTargetUnitId(cardData, team, position, targetUnitId);
         events.Add(new SpellCastEvent(team, cardData.CatalogId, position, visualTargetUnitId));
 
@@ -924,11 +933,7 @@ public class Simulation
                 {
                     QueueSpellDelayedEffect(
                         effect,
-                        cardData,
-                        team,
-                        position,
-                        targetUnitId,
-                        summonerSourceId,
+                        context,
                         applyDelay
                     );
                     continue;
@@ -940,56 +945,11 @@ public class Simulation
                 )
                     continue;
 
-                var targets = ResolveSpellTargets(cardData, effect, team, position, targetUnitId);
-                foreach (var target in targets)
-                {
-                    SimEffects.ApplyEffect(
-                        _state,
-                        BuildSpellEffectSpec(effect, cardData, team, position, summonerSourceId),
-                        target,
-                        events
-                    );
-                }
+                var targets = SpellTargetResolver.Resolve(_state, context, effect);
+                var spec = SpellEffectSpecFactory.FromSpellEffect(effect, context);
+                SpellEffectExecutor.Apply(_state, cardData.CatalogId, spec, targets, events);
             }
         }
-    }
-
-    private static EffectApplicationSpec BuildSpellEffectSpec(
-        SimSpellEffect effect,
-        SimCardData cardData,
-        int team,
-        SimVector3 castPosition,
-        int sourceUnitId
-    )
-    {
-        return new EffectApplicationSpec
-        {
-            EffectType = effect.EffectType,
-            Value = effect.Value,
-            Duration = EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
-            Lifetime = effect.Lifetime,
-            DamageType = effect.DamageType,
-            StatusKind = effect.StatusKind,
-            StatusTickInterval = effect.StatusTickInterval,
-            StatusPotencyPerStack = effect.StatusPotencyPerStack,
-            StatusMaxStacks = effect.StatusMaxStacks,
-            RemovalEffect = effect.RemovalEffect,
-            RequiredTargetElementId = effect.RequiredTargetElementId,
-            TagRequirements = effect.TagRequirements.DeepClone(),
-            GrantedTags = new List<string>(effect.GrantedTags),
-            StackPolicy = effect.StackPolicy,
-            StackKey = effect.StackKey,
-            CueId = !string.IsNullOrWhiteSpace(effect.CueId)
-                ? effect.CueId
-                : $"{cardData.CatalogId}:{effect.EffectType}",
-            Context = new EffectApplicationContext
-            {
-                SourceUnitId = sourceUnitId,
-                SourceTeam = (Team)team,
-                SourcePosition = castPosition,
-                CardCatalogId = cardData.CatalogId,
-            },
-        };
     }
 
     private int? ResolveSpellVisualTargetUnitId(
@@ -1013,17 +973,24 @@ public class Simulation
             return null;
 
         var previewEffect = cardData.SpellEffects[0];
-        var targets = ResolveSpellTargets(cardData, previewEffect, team, position, null);
+        var targets = SpellTargetResolver.Resolve(
+            _state,
+            new SpellExecutionContext
+            {
+                CardData = cardData,
+                Team = team,
+                CastPosition = position,
+                SourceUnitId = MatchState.GetSummonerTargetId(team),
+                SourcePosition = _state.Summoners[team].Position,
+            },
+            previewEffect
+        );
         return targets.Count > 0 ? targets[0].UnitId : null;
     }
 
     private void QueueSpellDelayedEffect(
         SimSpellEffect effect,
-        SimCardData cardData,
-        int team,
-        SimVector3 castPosition,
-        int? targetUnitId,
-        int sourceUnitId,
+        SpellExecutionContext context,
         float delaySeconds
     )
     {
@@ -1037,14 +1004,15 @@ public class Simulation
                 Duration = lifetime.ToLegacyDuration(),
                 Lifetime = lifetime,
                 DamageType = effect.DamageType,
-                AoeRadius = effect.AoeRadius > 0f ? effect.AoeRadius : cardData.SpellRadius,
+                AoeRadius = effect.AoeRadius > 0f ? effect.AoeRadius : context.CardData.SpellRadius,
                 AreaShape = effect.AreaShape,
-                Position = castPosition,
-                SourceUnitId = sourceUnitId,
-                SourceTeam = (Team)team,
+                Position = context.CastPosition,
+                SourcePosition = context.SourcePosition,
+                SourceUnitId = context.SourceUnitId,
+                SourceTeam = (Team)context.Team,
                 Affinity = effect.Affinity,
-                TargetingMode = cardData.SpellTargetingMode,
-                TargetUnitId = targetUnitId,
+                TargetingMode = context.CardData.SpellTargetingMode,
+                TargetUnitId = context.TargetUnitId,
                 StatusKind = effect.StatusKind,
                 StatusTickInterval = effect.StatusTickInterval,
                 StatusPotencyPerStack = effect.StatusPotencyPerStack,
@@ -1056,8 +1024,21 @@ public class Simulation
                 StackPolicy = effect.StackPolicy,
                 StackKey = effect.StackKey,
                 CueId = effect.CueId,
+                CardCatalogId = context.CardData.CatalogId,
             }
         );
+
+        if (DebugAbilityLogsEnabled)
+        {
+            DebugAbilityLog(
+                SpellDebugFormatter.FormatQueuedDelayed(
+                    _state,
+                    context.CardData.CatalogId,
+                    SpellEffectSpecFactory.FromSpellEffect(effect, context),
+                    delaySeconds
+                )
+            );
+        }
     }
 
     /// <summary>
@@ -1102,15 +1083,46 @@ public class Simulation
 
             case SpellTargetingMode.NearestEnemy:
             {
-                var targets = ResolveSpellTargets(
-                    cardData,
-                    effect,
-                    team,
-                    castPosition,
-                    targetUnitId
+                var targets = SpellTargetResolver.Resolve(
+                    _state,
+                    new SpellExecutionContext
+                    {
+                        CardData = cardData,
+                        Team = team,
+                        CastPosition = castPosition,
+                        TargetUnitId = targetUnitId,
+                        SourceUnitId = MatchState.GetSummonerTargetId(team),
+                        SourcePosition = _state.Summoners[team].Position,
+                    },
+                    effect
                 );
                 if (targets.Count == 0)
+                {
+                    if (DebugAbilityLogsEnabled)
+                    {
+                        var context = new SpellExecutionContext
+                        {
+                            CardData = cardData,
+                            Team = team,
+                            CastPosition = castPosition,
+                            TargetUnitId = targetUnitId,
+                            SourceUnitId = MatchState.GetSummonerTargetId(team),
+                            SourcePosition = _state.Summoners[team].Position,
+                        };
+                        var spec = SpellEffectSpecFactory.FromSpellEffect(effect, context);
+                        DebugAbilityLog(
+                            SpellDebugFormatter.FormatApplication(
+                                _state,
+                                cardData.CatalogId,
+                                spec,
+                                [],
+                                new Dictionary<int, UnitDebugSnapshot>(),
+                                0
+                            )
+                        );
+                    }
                     return true;
+                }
 
                 var target = targets[0];
                 resolvedTargetUnitId = target.UnitId;
@@ -1159,137 +1171,13 @@ public class Simulation
             speedTransitionDuration: projectileData.SpeedTransitionDuration,
             speedEasing: projectileData.SpeedEasing,
             speedEaseExponent: projectileData.SpeedEaseExponent,
-            tracking: projectileData.Tracking
+            tracking: projectileData.Tracking,
+            damageType: effect.DamageType,
+            useAttackDamageProfile: false,
+            cardCatalogId: cardData.CatalogId
         );
 
         return true;
-    }
-
-    /// <summary>
-    /// Resolve targets for a spell effect based on targeting mode and affinity.
-    /// </summary>
-    private List<UnitData> ResolveSpellTargets(
-        SimCardData cardData,
-        SimSpellEffect effect,
-        int team,
-        SimVector3 position,
-        int? targetUnitId
-    )
-    {
-        var targets = new List<UnitData>();
-
-        // Determine target team filter based on affinity
-        int? teamFilter = effect.Affinity switch
-        {
-            SpellAffinity.Enemies => MatchState.GetEnemyTeam(team),
-            SpellAffinity.Allies => team,
-            _ => null, // Both — no filter
-        };
-
-        switch (cardData.SpellTargetingMode)
-        {
-            case SpellTargetingMode.Position:
-            {
-                // AoE at position — find all matching units in radius
-                float radius = effect.AoeRadius > 0 ? effect.AoeRadius : cardData.SpellRadius;
-                foreach (var unit in _state.GetAliveActiveUnits())
-                {
-                    if (teamFilter.HasValue && (int)unit.Team != teamFilter.Value)
-                        continue;
-                    if (!PassesTargetElementRequirement(unit, effect.RequiredTargetElementId))
-                        continue;
-                    if (
-                        SpellAreaResolver.IsWithinArea(
-                            effect.AreaShape,
-                            position,
-                            unit.Position,
-                            radius,
-                            _state.Summoners[team].Position
-                        )
-                    )
-                        targets.Add(unit);
-                }
-                break;
-            }
-
-            case SpellTargetingMode.NearestEnemy:
-            {
-                // Single nearest enemy to caster
-                int enemyTeam = MatchState.GetEnemyTeam(team);
-                float bestDistSq = float.MaxValue;
-                UnitData? best = null;
-
-                // Single-target spells (Mana Bolt, Weaving Bolt) are auto-targeted.
-                // Use the caster summoner position as origin so cursor position does
-                // not change which enemy is selected.
-                var searchOrigin = _state.Summoners[team].Position;
-
-                // If a specific target was provided, use it directly
-                if (targetUnitId.HasValue)
-                {
-                    var specified = _state.GetAliveUnit(targetUnitId.Value);
-                    if (
-                        specified != null
-                        && PassesTargetElementRequirement(
-                            specified,
-                            effect.RequiredTargetElementId
-                        )
-                    )
-                    {
-                        targets.Add(specified);
-                        break;
-                    }
-                }
-
-                foreach (var unit in _state.GetAliveActiveUnits())
-                {
-                    if ((int)unit.Team != enemyTeam)
-                        continue;
-                    if (!PassesTargetElementRequirement(unit, effect.RequiredTargetElementId))
-                        continue;
-                    float distSq = unit.Position.DistanceSquaredTo(searchOrigin);
-                    if (distSq < bestDistSq)
-                    {
-                        bestDistSq = distSq;
-                        best = unit;
-                    }
-                }
-                if (best != null)
-                    targets.Add(best);
-                break;
-            }
-
-            case SpellTargetingMode.AlliesInRadius:
-            {
-                // Allied units within selection radius
-                float radius = cardData.SpellRadius;
-                foreach (var unit in _state.GetAliveActiveUnits())
-                {
-                    if ((int)unit.Team != team)
-                        continue;
-                    if (!PassesTargetElementRequirement(unit, effect.RequiredTargetElementId))
-                        continue;
-                    if (
-                        SpellAreaResolver.IsWithinArea(
-                            effect.AreaShape,
-                            position,
-                            unit.Position,
-                            radius,
-                            _state.Summoners[team].Position
-                        )
-                    )
-                        targets.Add(unit);
-                }
-                break;
-            }
-        }
-
-        return targets;
-    }
-
-    private static bool PassesTargetElementRequirement(UnitData unit, int requiredTargetElementId)
-    {
-        return requiredTargetElementId < 0 || unit.ElementId == requiredTargetElementId;
     }
 
     /// <summary>
