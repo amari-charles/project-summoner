@@ -302,6 +302,8 @@ public static class SimEffects
         List<SimEvent> events
     )
     {
+        SimAbilityOrchestrator.TryActivateOnDeathEffects(state, dyingUnit, killer, events);
+
         // Fire OnDeath triggers on the dying unit
         FireTriggers(state, dyingUnit, TriggerType.OnDeath, killer, events);
 

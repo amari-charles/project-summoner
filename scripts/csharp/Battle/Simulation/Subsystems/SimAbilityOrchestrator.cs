@@ -84,6 +84,26 @@ public static class SimAbilityOrchestrator
         }
     }
 
+    public static void TryActivateOnDeathEffects(
+        MatchState state,
+        UnitData source,
+        UnitData? killer,
+        List<SimEvent> events
+    )
+    {
+        foreach (var ability in source.Abilities)
+        {
+            if (ability.Trigger != UnitAbilityTrigger.OnDeath)
+                continue;
+            if (ability.HasApplied)
+                continue;
+            if (!TryActivateAbility(state, source, ability, killer, events))
+                continue;
+
+            ability.HasApplied = true;
+        }
+    }
+
     private static bool TryActivateAbility(
         MatchState state,
         UnitData source,
