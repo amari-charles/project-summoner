@@ -215,6 +215,10 @@
       "arena_wind_earth_new_cards": {
         "name": "Wind/Earth New Cards Test",
         "description": "Focused arena mission with the new Wind and Earth cards, plus Fire Wisp as a stable baseline."
+      },
+      "arena_all_units": {
+        "name": "All Units Test",
+        "description": "Debug arena mission with every active Fire, Water, Earth, and Wind summon available for combat testing."
       }
     },
     "starter_deck_name": "Starter Deck",

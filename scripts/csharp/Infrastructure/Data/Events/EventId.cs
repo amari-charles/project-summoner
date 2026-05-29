@@ -159,6 +159,9 @@ public static class EventIds
     /// <summary>Test Arena: Wind/Earth New Card Set (+ Fire Wisp reference)</summary>
     public static readonly EventId ArenaWindEarthNewCards = new("arena_wind_earth_new_cards");
 
+    /// <summary>Test Arena: All active Fire/Water/Earth/Wind units</summary>
+    public static readonly EventId ArenaAllUnits = new("arena_all_units");
+
     /// <summary>Test Arena: Debug Arena - Testing sandbox</summary>
     public static readonly EventId DebugArena = new("debug_arena");
 }

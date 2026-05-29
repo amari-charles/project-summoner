@@ -67,6 +67,9 @@ const DEBUG_ARENA: StringName = &"debug_arena"
 ## Test Arena: Mana Bolt Spell Test
 const ARENA_MANA_BOLT: StringName = &"arena_mana_bolt"
 
+## Test Arena: All active Fire/Water/Earth/Wind units
+const ARENA_ALL_UNITS: StringName = &"arena_all_units"
+
 # ============================================================================
 # UTILITY ARRAYS
 # ============================================================================
@@ -97,6 +100,7 @@ const ALL_TEST_ARENA_NODES: Array[StringName] = [
 	ARENA_CLOUD_SWARM,
 	DEBUG_ARENA,
 	ARENA_MANA_BOLT,
+	ARENA_ALL_UNITS,
 ]
 
 ## All battle IDs (campaign + test arena)

@@ -43,4 +43,40 @@ public class TestArenaWindEarthMissionTest
         AssertThat(campaign).IsNotNull();
         AssertThat(campaign!.EventIds.Contains(EventIds.ArenaWindEarthNewCards)).IsTrue();
     }
+
+    [TestCase]
+    public void ArenaAllUnits_UsesEveryActiveCoreElementUnit()
+    {
+        var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaAllUnits);
+        AssertThat(battle).IsNotNull();
+        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+
+        var allowedElements = new HashSet<Element>
+        {
+            Element.Fire,
+            Element.Water,
+            Element.Earth,
+            Element.Wind,
+        };
+
+        var expected = CardCatalog
+            .GetCardsByType(CardType.Summon)
+            .Where(card => allowedElements.Contains(card.ElementalAffinity))
+            .Where(card => (card.Flags & (CardFlags.DevOnly | CardFlags.Archived)) == 0)
+            .Select(card => card.Id)
+            .ToHashSet();
+
+        AssertThat(battle.DevPlayerDeck).IsNotNull();
+        var actual = battle.DevPlayerDeck!.Select(entry => entry.CardId).ToHashSet();
+        AssertThat(actual.SetEquals(expected)).IsTrue();
+        AssertThat(actual.Count).IsGreaterEqual(40);
+    }
+
+    [TestCase]
+    public void TestArenaCampaign_IncludesArenaAllUnitsEvent()
+    {
+        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
+        AssertThat(campaign).IsNotNull();
+        AssertThat(campaign!.EventIds.Contains(EventIds.ArenaAllUnits)).IsTrue();
+    }
 }

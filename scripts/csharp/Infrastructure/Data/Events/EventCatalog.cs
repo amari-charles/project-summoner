@@ -1049,6 +1049,30 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
+        [EventIds.ArenaAllUnits] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaAllUnits,
+            NameKey = "campaign.battle.arena_all_units.name",
+            DescriptionKey = "campaign.battle.arena_all_units.description",
+            Position = new Vector2(700, 100),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 0,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "none",
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = BuildActiveCoreElementUnitDeck(),
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 3),
+                new(CardIds.WaterFrog, 3),
+            },
+            EnemyHp = 999999f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
         [EventIds.DebugArena] = new BattleEventDefinition
         {
             Id = EventIds.DebugArena,
@@ -1078,6 +1102,32 @@ public static class EventCatalog
     // =========================================================================
     // LOOKUP METHODS
     // =========================================================================
+
+    private static List<DeckEntry> BuildActiveCoreElementUnitDeck()
+    {
+        Element[] allowedElements = [Element.Fire, Element.Water, Element.Earth, Element.Wind];
+
+        return CardCatalog
+            .GetCardsByType(CardType.Summon)
+            .Where(card => allowedElements.Contains(card.ElementalAffinity))
+            .Where(card => (card.Flags & (CardFlags.DevOnly | CardFlags.Archived)) == 0)
+            .OrderBy(card => GetCoreElementSortOrder(card.ElementalAffinity))
+            .ThenBy(card => card.Name)
+            .Select(card => new DeckEntry(card.Id))
+            .ToList();
+    }
+
+    private static int GetCoreElementSortOrder(Element element)
+    {
+        return element switch
+        {
+            Element.Fire => 0,
+            Element.Water => 1,
+            Element.Earth => 2,
+            Element.Wind => 3,
+            _ => 99,
+        };
+    }
 
     /// <summary>Get an event by ID.</summary>
     public static EventDefinition? GetEvent(EventId id)
