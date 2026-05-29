@@ -281,6 +281,28 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "fire_web_slow",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 0f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Slow,
+                        Value = 0.25f,
+                        DurationSeconds = 2.5f,
+                        Lifetime = EffectLifetime.Timed(2.5f),
+                    },
+                ],
+            },
+        ],
         Ranged = new RangedConfig(ProjectileIds.FireWeb),
         Visual = new VisualConfig { SeparationRadius = 0.4f },
         ScenePath = "res://scenes/battle/units/fire_spider_3d.tscn",
