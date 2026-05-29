@@ -164,12 +164,19 @@ public static class SimEffects
     )
     {
         if (!target.IsAlive)
+        {
+            LogEffectSkipped(state, spec, target, "target_dead");
             return false;
+        }
         if (!CanApplyEffect(state, spec, target))
+        {
+            LogEffectSkipped(state, spec, target, "requirements_failed");
             return false;
+        }
 
         var context = spec.Context;
         float duration = spec.ResolvedDuration;
+        float targetHpBefore = target.CurrentHp;
         switch (spec.EffectType)
         {
             case EffectType.Damage:
@@ -324,6 +331,7 @@ public static class SimEffects
                 break;
         }
 
+        LogEffectApplied(state, spec, target, targetHpBefore);
         return true;
     }
 
@@ -366,6 +374,67 @@ public static class SimEffects
                 spec.Context.SourcePosition ?? target.Position
             )
         );
+    }
+
+    private static void LogEffectApplied(
+        MatchState state,
+        EffectApplicationSpec spec,
+        UnitData target,
+        float targetHpBefore
+    )
+    {
+        if (!Simulation.DebugAbilityLogsEnabled)
+            return;
+
+        string source = SourceLabel(state, spec.Context.SourceUnitId);
+        string origin = ResolveEffectOrigin(spec);
+        Simulation.DebugAbilityLog(
+            $"frame={state.FrameNumber} effect={spec.EffectType} value={spec.Value:0.##} "
+                + $"duration={spec.ResolvedDuration:0.##} origin={origin} source={source} "
+                + $"target={UnitLabel(target)} hp={targetHpBefore:0.#}->{target.CurrentHp:0.#} "
+                + $"status={spec.StatusKind}"
+        );
+    }
+
+    private static void LogEffectSkipped(
+        MatchState state,
+        EffectApplicationSpec spec,
+        UnitData target,
+        string reason
+    )
+    {
+        if (!Simulation.DebugAbilityLogsEnabled)
+            return;
+
+        Simulation.DebugAbilityLog(
+            $"frame={state.FrameNumber} effect_skipped={spec.EffectType} reason={reason} "
+                + $"origin={ResolveEffectOrigin(spec)} source={SourceLabel(state, spec.Context.SourceUnitId)} "
+                + $"target={UnitLabel(target)}"
+        );
+    }
+
+    private static string ResolveEffectOrigin(EffectApplicationSpec spec)
+    {
+        if (!string.IsNullOrWhiteSpace(spec.Context.AbilityId))
+            return $"ability:{spec.Context.AbilityId}";
+        if (!string.IsNullOrWhiteSpace(spec.Context.CardCatalogId))
+            return $"card:{spec.Context.CardCatalogId}";
+        if (!string.IsNullOrWhiteSpace(spec.CueId))
+            return $"cue:{spec.CueId}";
+        return "direct";
+    }
+
+    private static string SourceLabel(MatchState state, int sourceUnitId)
+    {
+        if (state.Units.TryGetValue(sourceUnitId, out var source))
+            return UnitLabel(source);
+        return sourceUnitId < 0 ? $"summonerTarget#{sourceUnitId}" : $"unit#{sourceUnitId}";
+    }
+
+    private static string UnitLabel(UnitData unit)
+    {
+        string catalog = unit.CatalogId.HasValue ? unit.CatalogId.Value : "unknown";
+        return $"{catalog}#{unit.UnitId}/team{(int)unit.Team}";
     }
 
     // =========================================================================

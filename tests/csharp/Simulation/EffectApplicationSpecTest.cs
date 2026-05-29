@@ -221,4 +221,50 @@ public class EffectApplicationSpecTest
             )
             .IsTrue();
     }
+
+    [TestCase]
+    public void DebugAbilityLogs_EmitForAbilityActivationAndEffects()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var source = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        source.Abilities.Add(
+            new UnitAbilityState
+            {
+                AbilityId = "debug_log_test",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 5f,
+                        DamageType = DamageType.True,
+                    },
+                ],
+            }
+        );
+        var target = SimTestHelper.CreateMeleeUnit(state, 1, x: 2f, hp: 100f);
+        var events = new List<SimEvent>();
+        var logs = new List<string>();
+        var oldEnabled = Simulation.DebugAbilityLogsEnabled;
+        var oldLog = Simulation.Log;
+
+        try
+        {
+            Simulation.DebugAbilityLogsEnabled = true;
+            Simulation.Log = logs.Add;
+
+            SimAbilityOrchestrator.TryActivateOnHitEffects(state, source, target, events);
+        }
+        finally
+        {
+            Simulation.DebugAbilityLogsEnabled = oldEnabled;
+            Simulation.Log = oldLog;
+        }
+
+        AssertThat(logs.Any(line => line.Contains("ability=debug_log_test"))).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("effect=Damage"))).IsTrue();
+    }
 }

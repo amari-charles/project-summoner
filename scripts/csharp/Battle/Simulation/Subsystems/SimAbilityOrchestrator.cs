@@ -226,6 +226,7 @@ public static class SimAbilityOrchestrator
             return false;
 
         int? eventTarget = targets.Count == 1 ? targets[0].UnitId : null;
+        LogAbilityActivation(state, source, ability, targets, effects, applied);
         events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, eventTarget, source.Position));
         return true;
     }
@@ -280,6 +281,7 @@ public static class SimAbilityOrchestrator
         if (!emittedImmediateActivation)
         {
             int? eventTarget = targets.Count == 1 ? targets[0].UnitId : null;
+            LogAbilityActivation(state, source, ability, targets, effects, scheduled);
             events.Add(
                 new AbilityActivatedEvent(source.UnitId, ability.AbilityId, eventTarget, source.Position)
             );
@@ -415,6 +417,14 @@ public static class SimAbilityOrchestrator
 
         events.Add(
             new AbilityActivatedEvent(source.UnitId, ability.AbilityId, target.UnitId, source.Position)
+        );
+        LogAbilityActivation(
+            state,
+            source,
+            ability,
+            new List<UnitData> { target },
+            new List<UnitAbilityEffectState> { effect },
+            1
         );
         return true;
     }
@@ -679,6 +689,37 @@ public static class SimAbilityOrchestrator
         if (!string.IsNullOrWhiteSpace(ability.CueId))
             return ability.CueId;
         return ability.AbilityId;
+    }
+
+    private static void LogAbilityActivation(
+        MatchState state,
+        UnitData source,
+        UnitAbilityState ability,
+        List<UnitData> targets,
+        List<UnitAbilityEffectState> effects,
+        int appliedCount
+    )
+    {
+        if (!Simulation.DebugAbilityLogsEnabled)
+            return;
+
+        string targetText = targets.Count == 0
+            ? "none"
+            : string.Join(", ", targets.Select(t => UnitLabel(t)));
+        string effectText = effects.Count == 0
+            ? "none"
+            : string.Join(", ", effects.Select(e => $"{e.EffectType}:{e.Value:0.##}"));
+        Simulation.DebugAbilityLog(
+            $"frame={state.FrameNumber} ability={ability.AbilityId} trigger={ability.Trigger} "
+                + $"delivery={ability.Delivery} source={UnitLabel(source)} targets=[{targetText}] "
+                + $"effects=[{effectText}] applied={appliedCount}"
+        );
+    }
+
+    private static string UnitLabel(UnitData unit)
+    {
+        string catalog = unit.CatalogId.HasValue ? unit.CatalogId.Value : "unknown";
+        return $"{catalog}#{unit.UnitId}/team{(int)unit.Team}";
     }
 
     private static EffectTagRequirements MergeRequirements(

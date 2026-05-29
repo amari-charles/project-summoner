@@ -49,6 +49,20 @@ public class Simulation
     /// </summary>
     public static Action<string>? Log { get; set; }
 
+    /// <summary>
+    /// Development-only combat logging for validating placeholder ability content.
+    /// Set by debug UI; disabled by default to avoid log spam in normal battles.
+    /// </summary>
+    public static bool DebugAbilityLogsEnabled { get; set; }
+
+    public static void DebugAbilityLog(string message)
+    {
+        if (!DebugAbilityLogsEnabled)
+            return;
+
+        Log?.Invoke($"[AbilityDebug] {message}");
+    }
+
     public Simulation(MatchState state)
     {
         _state = state;

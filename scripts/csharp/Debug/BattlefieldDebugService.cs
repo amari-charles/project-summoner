@@ -37,6 +37,11 @@ public partial class BattlefieldDebugService : Node
     public bool NavigationFootprintEnabled { get; set; }
     public bool ProjectileHitGeometryEnabled { get; set; }
     public bool SummonerBubbleEnabled { get; set; }
+    public bool AbilityLogsEnabled
+    {
+        get => global::Fateforged.Simulation.Simulation.DebugAbilityLogsEnabled;
+        set => global::Fateforged.Simulation.Simulation.DebugAbilityLogsEnabled = value;
+    }
 
     public bool AnyUnitDebugEnabled =>
         HurtboxEnabled
@@ -86,6 +91,7 @@ public partial class BattlefieldDebugService : Node
 
     public bool IsDebugProjectileHitGeometryEnabled() => ProjectileHitGeometryEnabled;
     public bool IsDebugSummonerBubbleEnabled() => SummonerBubbleEnabled;
+    public bool IsDebugAbilityLogsEnabled() => AbilityLogsEnabled;
 
     public void SetDebugHurtboxEnabled(bool enabled) => HurtboxEnabled = enabled;
 
@@ -97,6 +103,7 @@ public partial class BattlefieldDebugService : Node
     public void SetDebugNavigationFootprintEnabled(bool enabled) => NavigationFootprintEnabled = enabled;
     public void SetDebugProjectileHitGeometryEnabled(bool enabled) => ProjectileHitGeometryEnabled = enabled;
     public void SetDebugSummonerBubbleEnabled(bool enabled) => SummonerBubbleEnabled = enabled;
+    public void SetDebugAbilityLogsEnabled(bool enabled) => AbilityLogsEnabled = enabled;
 
     public float GetSummonerMeleeBubbleDefaultRadius() => SummonerMeleeBubble.DefaultRadiusValue;
     public bool HasSummonerMeleeBubbleOverrideRadius() => SummonerMeleeBubble.HasOverride;
@@ -115,4 +122,5 @@ public partial class BattlefieldDebugService : Node
     public void ToggleDebugNavigationFootprint() => NavigationFootprintEnabled = !NavigationFootprintEnabled;
     public void ToggleDebugProjectileHitGeometry() => ProjectileHitGeometryEnabled = !ProjectileHitGeometryEnabled;
     public void ToggleDebugSummonerBubble() => SummonerBubbleEnabled = !SummonerBubbleEnabled;
+    public void ToggleDebugAbilityLogs() => AbilityLogsEnabled = !AbilityLogsEnabled;
 }

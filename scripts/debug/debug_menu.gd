@@ -33,6 +33,7 @@ var _damage_shape_button: Button
 var _navigation_footprint_button: Button
 var _projectile_hit_geometry_button: Button
 var _summoner_bubble_button: Button
+var _ability_logs_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
 var _camera_auto_log_button: Button
@@ -316,6 +317,13 @@ func _build_quick_tab(vbox: VBoxContainer) -> void:
 	_summoner_bubble_button.pressed.connect(_on_summoner_bubble_toggle_pressed)
 	vbox.add_child(_summoner_bubble_button)
 
+	# Ability Logs toggle button
+	_ability_logs_button = Button.new()
+	_ability_logs_button.text = "Ability Logs: Off"
+	_ability_logs_button.custom_minimum_size = Vector2(220, 32)
+	_ability_logs_button.pressed.connect(_on_ability_logs_toggle_pressed)
+	vbox.add_child(_ability_logs_button)
+
 	# Spawn Boundary Bypass toggle button
 	_spawn_boundary_button = Button.new()
 	_spawn_boundary_button.text = "Spawn Boundary: On"
@@ -545,6 +553,13 @@ func _update_button_states() -> void:
 		var state: String = "On" if enabled else "Off"
 		_summoner_bubble_button.text = "Summoner Bubble: %s" % state
 
+	if _ability_logs_button and _unit_debug:
+		var enabled: bool = false
+		if _unit_debug.has_method("IsDebugAbilityLogsEnabled"):
+			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugAbilityLogsEnabled"), false)
+		var state: String = "On" if enabled else "Off"
+		_ability_logs_button.text = "Ability Logs: %s" % state
+
 	if _spawn_boundary_button:
 		var debug_service: Node = _get_battlefield_debug_service()
 		if debug_service and debug_service.has_method("IsSpawnBoundaryBypassEnabled"):
@@ -770,6 +785,20 @@ func _on_summoner_bubble_toggle_pressed() -> void:
 	_unit_debug.call("ToggleDebugSummonerBubble")
 	_update_button_states()
 	_save_settings()
+
+
+func _on_ability_logs_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugAbilityLogs"):
+		return
+	_unit_debug.call("ToggleDebugAbilityLogs")
+	_update_button_states()
+	_save_settings()
+	var enabled: bool = false
+	if _unit_debug.has_method("IsDebugAbilityLogsEnabled"):
+		enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugAbilityLogsEnabled"), false)
+	print("[Debug] Ability logs %s" % ("enabled" if enabled else "disabled"))
 
 
 func _on_spawn_boundary_toggle_pressed() -> void:
@@ -1285,6 +1314,8 @@ func _load_settings() -> void:
 			_unit_debug.call("SetDebugProjectileHitGeometryEnabled", config.get_value("debug_menu", "projectile_hit_geometry", false))
 		if _unit_debug.has_method("SetDebugSummonerBubbleEnabled"):
 			_unit_debug.call("SetDebugSummonerBubbleEnabled", config.get_value("debug_menu", "summoner_bubble", false))
+		if _unit_debug.has_method("SetDebugAbilityLogsEnabled"):
+			_unit_debug.call("SetDebugAbilityLogsEnabled", config.get_value("debug_menu", "ability_logs", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
 	_camera_auto_log_enabled = config.get_value("debug_menu", "camera_auto_log", false)
 	_camera_auto_log_elapsed = 0.0
@@ -1324,6 +1355,8 @@ func _save_settings() -> void:
 			config.set_value("debug_menu", "projectile_hit_geometry", _unit_debug.call("IsDebugProjectileHitGeometryEnabled"))
 		if _unit_debug.has_method("IsDebugSummonerBubbleEnabled"):
 			config.set_value("debug_menu", "summoner_bubble", _unit_debug.call("IsDebugSummonerBubbleEnabled"))
+		if _unit_debug.has_method("IsDebugAbilityLogsEnabled"):
+			config.set_value("debug_menu", "ability_logs", _unit_debug.call("IsDebugAbilityLogsEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 	config.set_value("debug_menu", "camera_auto_log", _camera_auto_log_enabled)
 	config.set_value("debug_menu", "arena_preset_id", _arena_preset_id)
