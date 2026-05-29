@@ -684,6 +684,27 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "impact_slow",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Slow,
+                        Value = 0.20f,
+                        DurationSeconds = 2f,
+                        Lifetime = EffectLifetime.Timed(2f),
+                    },
+                ],
+            },
+        ],
         Ranged = new RangedConfig(ProjectileIds.Rock),
         Visual = new VisualConfig { SeparationRadius = 0.4f },
         ScenePath = "res://scenes/battle/units/earth_bullet_unit_placeholder_3d.tscn",
@@ -727,6 +748,97 @@ public static class UnitDefinitions
         ],
         Visual = new VisualConfig { SeparationRadius = 0.7f },
         ScenePath = "res://scenes/battle/units/stone_ape_3d.tscn",
+    };
+
+    public static readonly UnitDefinition EarthShieldSupport = new()
+    {
+        Id = UnitIds.EarthShieldSupport,
+        DisplayName = "Earth Shield Support",
+        Stats = new UnitStats
+        {
+            MaxHp = 110f,
+            AttackDamage = 7f,
+            AttackRange = 14f,
+            AttackSpeed = 0.6f,
+            MoveSpeed = 2.0f,
+            AggroRadius = 16f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "stone_shield_pulse",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 4f,
+                Radius = 7f,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Shield,
+                        Value = 28f,
+                        DurationSeconds = 4f,
+                        Lifetime = EffectLifetime.Timed(4f),
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.Rock),
+        Visual = new VisualConfig { SeparationRadius = 0.45f },
+        ScenePath = "res://scenes/battle/units/earth_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition BurrowAmbusher = new()
+    {
+        Id = UnitIds.BurrowAmbusher,
+        DisplayName = "Burrow Ambusher",
+        Stats = new UnitStats
+        {
+            MaxHp = 115f,
+            AttackDamage = 16f,
+            AttackRange = 3.0f,
+            AttackSpeed = 1.05f,
+            MoveSpeed = 3.3f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "ambush_opening",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 4f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 18f,
+                        DamageType = DamageType.Physical,
+                    },
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Stun,
+                        Value = 1f,
+                        DurationSeconds = 0.75f,
+                        Lifetime = EffectLifetime.Timed(0.75f),
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        ScenePath = "res://scenes/battle/units/earth_roster_placeholder_3d.tscn",
     };
 
     // =========================================================================
@@ -882,6 +994,180 @@ public static class UnitDefinitions
         },
         Visual = new VisualConfig { SeparationRadius = 0.55f },
         ScenePath = "res://scenes/battle/units/wind_cleave_unit_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindDiver = new()
+    {
+        Id = UnitIds.WindDiver,
+        DisplayName = "Wind Diver",
+        Stats = new UnitStats
+        {
+            MaxHp = 75f,
+            AttackDamage = 17f,
+            AttackRange = 3.0f,
+            AttackSpeed = 1.15f,
+            MoveSpeed = 4.4f,
+            AggroRadius = 22f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindSpeedSupport = new()
+    {
+        Id = UnitIds.WindSpeedSupport,
+        DisplayName = "Wind Speed Support",
+        Stats = new UnitStats
+        {
+            MaxHp = 80f,
+            AttackDamage = 6f,
+            AttackRange = 16f,
+            AttackSpeed = 0.65f,
+            MoveSpeed = 3.0f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "attack_speed_aura",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3f,
+                Radius = 7f,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.AttackSpeedModifier,
+                        Value = 0.18f,
+                        DurationSeconds = 3.5f,
+                        Lifetime = EffectLifetime.Timed(3.5f),
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.WindPuff),
+        Visual = new VisualConfig { SeparationRadius = 0.42f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindMissSupport = new()
+    {
+        Id = UnitIds.WindMissSupport,
+        DisplayName = "Wind Miss Support",
+        Stats = new UnitStats
+        {
+            MaxHp = 78f,
+            AttackDamage = 5f,
+            AttackRange = 16f,
+            AttackSpeed = 0.65f,
+            MoveSpeed = 3.1f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "accuracy_disrupt_pulse",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3.2f,
+                Radius = 7f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.AccuracyModifier,
+                        Value = -0.18f,
+                        DurationSeconds = 3.5f,
+                        Lifetime = EffectLifetime.Timed(3.5f),
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.WindPuff),
+        Visual = new VisualConfig { SeparationRadius = 0.42f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindSwarmUnit = new()
+    {
+        Id = UnitIds.WindSwarmUnit,
+        DisplayName = "Wind Swarm Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 34f,
+            AttackDamage = 6f,
+            AttackRange = 2.8f,
+            AttackSpeed = 1.6f,
+            MoveSpeed = 4.6f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Visual = new VisualConfig { SeparationRadius = 0.28f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition DashStriker = new()
+    {
+        Id = UnitIds.DashStriker,
+        DisplayName = "Dash Striker",
+        Stats = new UnitStats
+        {
+            MaxHp = 95f,
+            AttackDamage = 14f,
+            AttackRange = 3.1f,
+            AttackSpeed = 1.25f,
+            MoveSpeed = 4.0f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "strike_flow",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.EvasionModifier,
+                        Value = 0.20f,
+                        DurationSeconds = 1.5f,
+                        Lifetime = EffectLifetime.Timed(1.5f),
+                    },
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.AttackSpeedModifier,
+                        Value = 0.22f,
+                        DurationSeconds = 1.5f,
+                        Lifetime = EffectLifetime.Timed(1.5f),
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.42f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
 
     // =========================================================================
@@ -1321,11 +1607,18 @@ public static class UnitDefinitions
         [UnitIds.EarthFlatDamageReductionTank] = EarthFlatDamageReductionTank,
         [UnitIds.EarthBulletUnit] = EarthBulletUnit,
         [UnitIds.TauntPulseGuardian] = TauntPulseGuardian,
+        [UnitIds.EarthShieldSupport] = EarthShieldSupport,
+        [UnitIds.BurrowAmbusher] = BurrowAmbusher,
         // Wind
         [UnitIds.Puff] = Puff,
         [UnitIds.WindEvasionTank] = WindEvasionTank,
         [UnitIds.WindPushbackUnit] = WindPushbackUnit,
         [UnitIds.WindCleaveUnit] = WindCleaveUnit,
+        [UnitIds.WindDiver] = WindDiver,
+        [UnitIds.WindSpeedSupport] = WindSpeedSupport,
+        [UnitIds.WindMissSupport] = WindMissSupport,
+        [UnitIds.WindSwarmUnit] = WindSwarmUnit,
+        [UnitIds.DashStriker] = DashStriker,
         // Water
         [UnitIds.WaterFrog] = WaterFrog,
         [UnitIds.MamaDuck] = MamaDuck,
