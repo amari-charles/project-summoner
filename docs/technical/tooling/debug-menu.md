@@ -20,6 +20,10 @@ Development utility panel for testing and debugging. Only active in debug builds
 
 ### Debug Toggles
 
+#### Roster Debug Arena
+
+`Launch Roster Debug Arena` opens the battle sandbox directly from the debug menu. The sandbox uses `data/debug/debug_deck.json` for the spawner panel, so newly added roster cards can be spawned from the UI for either side.
+
 #### Grid Lines
 Visualizes the SpatialGrid cells used for unit proximity queries.
 

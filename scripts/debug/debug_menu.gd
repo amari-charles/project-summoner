@@ -467,6 +467,12 @@ func _build_more_tab(vbox: VBoxContainer) -> void:
 	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
 	vbox.add_child(open_arena_map_button)
 
+	var roster_arena_button: Button = Button.new()
+	roster_arena_button.text = "Launch Roster Debug Arena"
+	roster_arena_button.custom_minimum_size = Vector2(220, 32)
+	roster_arena_button.pressed.connect(_on_roster_debug_arena_pressed)
+	vbox.add_child(roster_arena_button)
+
 	var preset_row: HBoxContainer = HBoxContainer.new()
 	preset_row.add_theme_constant_override("separation", 8)
 	vbox.add_child(preset_row)
@@ -585,7 +591,7 @@ func _build_debug_arena_buttons(parent: GridContainer) -> void:
 			{"label": "Fire Wisp", "battle_id": String(BattleIDs.ARENA_FIRE_WISP)},
 			{"label": "Cloud Swarm", "battle_id": String(BattleIDs.ARENA_CLOUD_SWARM)},
 			{"label": "Mana Bolt", "battle_id": String(BattleIDs.ARENA_MANA_BOLT)},
-			{"label": "Debug Arena", "battle_id": String(BattleIDs.DEBUG_ARENA)}
+			{"label": "Roster Debug Arena", "battle_id": String(BattleIDs.DEBUG_ARENA)}
 		]
 
 	for entry: Dictionary in entries:
@@ -1117,6 +1123,10 @@ func _on_open_test_arena_map_pressed() -> void:
 
 	_transition_to_scene(SceneManager.SCENE_CAMPAIGN_MAP)
 	print("[Debug] Opened Test Arena campaign map")
+
+
+func _on_roster_debug_arena_pressed() -> void:
+	_on_debug_arena_battle_pressed(String(BattleIDs.DEBUG_ARENA))
 
 
 func _on_debug_arena_battle_pressed(battle_id: String) -> void:

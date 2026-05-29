@@ -25,6 +25,7 @@ func test_c14_c17_debug_menu_contract_surface_exists() -> void:
 	assert_true(menu.has_method("_on_win_pressed"), "C14: win hook")
 	assert_true(menu.has_method("_on_lose_pressed"), "C14: lose hook")
 	assert_true(menu.has_method("_on_open_test_arena_map_pressed"), "C14: arena map launch hook")
+	assert_true(menu.has_method("_on_roster_debug_arena_pressed"), "C14: roster arena quick launch hook")
 	assert_true(menu.has_method("_on_debug_arena_battle_pressed"), "C14: arena quick launch hook")
 	assert_true(menu.has_method("_on_hurtbox_toggle_pressed"), "C15: visualization toggle hook")
 	assert_true(menu.has_method("_on_projectile_hit_geometry_toggle_pressed"), "C15: projectile toggle hook")
@@ -130,6 +131,11 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	assert_eq(harness.last_profile_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_context_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_transition_scene, "res://scenes/battle/battlefield/custom_debug_scene.tscn")
+
+	menu._on_roster_debug_arena_pressed()
+	assert_eq(harness.last_profile_battle_id, "debug_arena")
+	assert_eq(harness.last_context_battle_id, "debug_arena")
+	assert_eq(harness.last_transition_scene, "res://scenes/battle/battlefield/dev/debug_arena.tscn")
 
 
 func test_c15_visualization_toggles_and_persistence_round_trip() -> void:
@@ -279,7 +285,9 @@ class _DebugMenuHarness extends RefCounted:
 		last_campaign_id = campaign_id
 		return true
 
-	func get_battle(_battle_id: String) -> Dictionary:
+	func get_battle(battle_id: String) -> Dictionary:
+		if battle_id == "debug_arena":
+			return {"scene_path": "res://scenes/battle/battlefield/dev/debug_arena.tscn"}
 		return {"scene_path": "res://scenes/battle/battlefield/custom_debug_scene.tscn"}
 
 	func transition_to(scene_path: String) -> void:
