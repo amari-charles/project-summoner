@@ -142,7 +142,7 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 
 	menu._on_open_test_arena_map_pressed()
 	assert_eq(harness.last_campaign_id, String(CampaignIDs.TEST_ARENA))
-	assert_eq(harness.last_transition_scene, SceneManager.SCENE_CAMPAIGN_MAP)
+	assert_eq(harness.last_transition_scene, SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
 
 	menu._on_debug_arena_battle_pressed("arena_fire_wisp")
 	assert_eq(harness.last_profile_battle_id, "arena_fire_wisp")

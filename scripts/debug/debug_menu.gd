@@ -1124,7 +1124,7 @@ func _on_open_test_arena_map_pressed() -> void:
 		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
 		return
 
-	_transition_to_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+	_transition_to_scene(SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
 	print("[Debug] Opened Test Arena campaign map")
 
 
