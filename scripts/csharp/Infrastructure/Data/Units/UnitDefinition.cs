@@ -50,6 +50,9 @@ public record UnitDefinition
     /// <summary>Health scoring weight for target selection.</summary>
     public float TargetingHealthScorerWeight { get; init; } = 10f;
 
+    /// <summary>Optional preference used after normal target filters pass.</summary>
+    public UnitTargetPriority TargetPriority { get; init; } = UnitTargetPriority.Default;
+
     /// <summary>Layer filter for target acquisition.</summary>
     public TargetLayer TargetingLayerFilter { get; init; } = TargetLayer.GroundOnly;
 

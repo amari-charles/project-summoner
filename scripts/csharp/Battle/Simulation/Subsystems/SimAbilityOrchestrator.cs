@@ -80,7 +80,37 @@ public static class SimAbilityOrchestrator
                 continue;
 
             ability.CooldownTimer = MathF.Max(ability.CooldownSeconds, 0f);
+        }
+    }
+
+    public static void TryActivateOnDamagedEffects(
+        MatchState state,
+        UnitData source,
+        UnitData? attacker,
+        List<SimEvent> events
+    )
+    {
+        if (!source.IsAlive)
             return;
+
+        foreach (var ability in source.Abilities)
+        {
+            if (ability.Trigger != UnitAbilityTrigger.OnDamaged)
+                continue;
+            if (ability.CooldownTimer > 0f)
+                continue;
+            if (
+                attacker != null
+                && !CanApplyToTarget(source, attacker, ability.TargetAffinity)
+                && ability.Targeting == UnitAbilityTargeting.HitTarget
+            )
+            {
+                continue;
+            }
+            if (!TryActivateAbility(state, source, ability, attacker, events))
+                continue;
+
+            ability.CooldownTimer = MathF.Max(ability.CooldownSeconds, 0f);
         }
     }
 

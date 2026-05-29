@@ -99,6 +99,9 @@ public class SimCardData
                             AoeRadius = effect.RadiusOverride,
                             AreaShape = effect.AreaShape,
                             Affinity = effect.Affinity,
+                            RequiredTargetElementId = effect.RequiredTargetElement.HasValue
+                                ? (int)effect.RequiredTargetElement.Value
+                                : -1,
                             DelaySeconds = effect.DelaySeconds,
                             RepeatCount = effect.RepeatCount,
                             RepeatIntervalSeconds = effect.RepeatIntervalSeconds,
@@ -153,6 +156,7 @@ public class SimUnitTemplate
     // Classification
     public UnitType UnitType { get; set; }
     public TacticalRole TacticalRole { get; set; } = TacticalRole.Auto;
+    public UnitTargetPriority TargetPriority { get; set; } = UnitTargetPriority.Default;
     public MovementLayer MovementLayer { get; set; }
     public int ElementId { get; set; }
 

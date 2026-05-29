@@ -822,6 +822,7 @@ public static class CardDefinitions
                 Lifetime = EffectLifetime.Timed(6f),
                 RadiusOverride = 5f,
                 Affinity = SpellAffinity.Allies,
+                RequiredTargetElement = Element.Earth,
             },
         ],
         UnlockCondition = UnlockCondition.Default,

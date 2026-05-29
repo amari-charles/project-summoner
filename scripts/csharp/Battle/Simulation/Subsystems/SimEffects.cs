@@ -188,6 +188,10 @@ public static class SimEffects
                 ApplyDisplacement(state, target, value, sourceUnitId, sourceTeam, sourcePosition);
                 break;
 
+            case EffectType.SourceLungeToTarget:
+                ApplySourceLungeToTarget(state, target, value, sourceUnitId);
+                break;
+
             case EffectType.Taunt:
                 ApplyTaunt(target, sourceUnitId, duration, events);
                 break;
@@ -722,6 +726,8 @@ public static class SimEffects
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, sourceUnitId, damage, isCrit));
+        if (target.CurrentHp > 0f && target.UnitId != sourceUnitId)
+            SimAbilityOrchestrator.TryActivateOnDamagedEffects(state, target, attacker, events);
 
         if (target.CurrentHp <= 0)
         {
@@ -1023,6 +1029,8 @@ public static class SimEffects
                 {
                     if (teamFilter.HasValue && (int)candidate.Team != teamFilter.Value)
                         continue;
+                    if (!PassesTargetElementRequirement(candidate, effect.RequiredTargetElementId))
+                        continue;
                     if (
                         !SpellAreaResolver.IsWithinArea(
                             effect.AreaShape,
@@ -1048,7 +1056,10 @@ public static class SimEffects
                 if (effect.TargetUnitId.HasValue)
                 {
                     var pinned = state.GetAliveUnit(effect.TargetUnitId.Value);
-                    if (pinned != null)
+                    if (
+                        pinned != null
+                        && PassesTargetElementRequirement(pinned, effect.RequiredTargetElementId)
+                    )
                         targets.Add(pinned);
                     break;
                 }
@@ -1059,6 +1070,8 @@ public static class SimEffects
 
                 foreach (var candidate in state.GetAliveActiveUnitsForTeam(enemyTeam))
                 {
+                    if (!PassesTargetElementRequirement(candidate, effect.RequiredTargetElementId))
+                        continue;
                     float distSq = candidate.Position.DistanceSquaredTo(effect.Position);
                     if (distSq >= bestDistSq)
                         continue;
@@ -1076,6 +1089,8 @@ public static class SimEffects
                 float radius = effect.AoeRadius;
                 foreach (var candidate in state.GetAliveActiveUnitsForTeam(sourceTeam))
                 {
+                    if (!PassesTargetElementRequirement(candidate, effect.RequiredTargetElementId))
+                        continue;
                     if (
                         !SpellAreaResolver.IsWithinArea(
                             effect.AreaShape,
@@ -1098,6 +1113,11 @@ public static class SimEffects
         }
 
         return targets;
+    }
+
+    private static bool PassesTargetElementRequirement(UnitData unit, int requiredTargetElementId)
+    {
+        return requiredTargetElementId < 0 || unit.ElementId == requiredTargetElementId;
     }
 
     private static void ApplyCleanse(UnitData target, List<SimEvent> events)
@@ -1198,6 +1218,45 @@ public static class SimEffects
 
         var sourcePos = sourcePosition ?? ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
         ApplyForcedDisplacement(target, MathF.Abs(distance), sourcePos, sourceTeam, pushAway: distance >= 0f);
+    }
+
+    private static void ApplySourceLungeToTarget(
+        MatchState state,
+        UnitData target,
+        float standoffDistance,
+        int sourceUnitId
+    )
+    {
+        if (!target.IsAlive)
+            return;
+        if (!state.Units.TryGetValue(sourceUnitId, out var source) || !source.IsAlive)
+            return;
+        if (source.UnitId == target.UnitId)
+            return;
+
+        float desiredStandoff =
+            standoffDistance > 0f ? standoffDistance : MathF.Max(0.6f, source.AttackRange * 0.7f);
+        float dx = target.Position.X - source.Position.X;
+        float dz = target.Position.Z - source.Position.Z;
+        float distanceSq = dx * dx + dz * dz;
+        float closeEnough = MathF.Max(source.AttackRange * 0.85f, desiredStandoff);
+        if (distanceSq <= closeEnough * closeEnough)
+            return;
+
+        if (distanceSq <= 0.0001f)
+        {
+            dx = source.Team == Team.Player ? 1f : -1f;
+            dz = 0f;
+            distanceSq = 1f;
+        }
+
+        float invDistance = 1f / MathF.Sqrt(distanceSq);
+        var direction = new SimVector3(dx * invDistance, 0f, dz * invDistance);
+        source.Position = new SimVector3(
+            target.Position.X - direction.X * desiredStandoff,
+            source.Position.Y,
+            target.Position.Z - direction.Z * desiredStandoff
+        );
     }
 
     private static void ApplyForcedDisplacement(

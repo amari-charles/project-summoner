@@ -54,6 +54,7 @@ public class UnitData
     // Classification
     public UnitType UnitType { get; set; }
     public TacticalRole TacticalRole { get; set; } = TacticalRole.Auto;
+    public UnitTargetPriority TargetPriority { get; set; } = UnitTargetPriority.Default;
     public MovementLayer MovementLayer { get; set; }
     public int AssignedLane { get; set; } = -1;
 

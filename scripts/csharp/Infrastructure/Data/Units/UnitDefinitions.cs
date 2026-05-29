@@ -375,6 +375,23 @@ public static class UnitDefinitions
         [
             new UnitAbilityConfig
             {
+                AbilityId = "contact_self_destruct",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 0f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 999f,
+                        DamageType = DamageType.True,
+                    },
+                ],
+            },
+            new UnitAbilityConfig
+            {
                 AbilityId = "death_burst",
                 Trigger = UnitAbilityTrigger.OnDeath,
                 Targeting = UnitAbilityTargeting.EnemiesInRadius,
@@ -411,6 +428,34 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "kindling_death_spark",
+                Trigger = UnitAbilityTrigger.OnDeath,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                Radius = 2.5f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.StatusApply,
+                        DurationSeconds = 2f,
+                        Status = new ProjectileStatusConfig
+                        {
+                            Kind = StatusEffectKind.Burn,
+                            DurationSeconds = 2f,
+                            TickIntervalSeconds = 1f,
+                            PotencyPerStack = 1.5f,
+                            MaxStacks = 2,
+                        },
+                    },
+                ],
+            },
+        ],
         Visual = new VisualConfig { SeparationRadius = 0.28f },
         ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
@@ -825,7 +870,7 @@ public static class UnitDefinitions
             AttackDamage = 16f,
             AttackRange = 3.0f,
             AttackSpeed = 1.05f,
-            MoveSpeed = 3.3f,
+            MoveSpeed = 2.2f,
             AggroRadius = 20f,
         },
         UnitType = UnitType.Melee,
@@ -833,6 +878,22 @@ public static class UnitDefinitions
         TacticalRole = TacticalRole.Flanker,
         Abilities =
         [
+            new UnitAbilityConfig
+            {
+                AbilityId = "burrow_engage",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.CurrentTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 6.5f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.SourceLungeToTarget,
+                        Value = 2.1f,
+                    },
+                ],
+            },
             new UnitAbilityConfig
             {
                 AbilityId = "ambush_opening",
@@ -1034,6 +1095,7 @@ public static class UnitDefinitions
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
         TacticalRole = TacticalRole.Flanker,
+        TargetPriority = UnitTargetPriority.PreferRangedOrSupport,
         Visual = new VisualConfig { SeparationRadius = 0.4f },
         ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
@@ -1462,7 +1524,7 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "barbed_pulse",
-                Trigger = UnitAbilityTrigger.Periodic,
+                Trigger = UnitAbilityTrigger.OnDamaged,
                 Targeting = UnitAbilityTargeting.EnemiesInRadius,
                 Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 3.2f,
@@ -1481,7 +1543,7 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "inflated_guard",
-                Trigger = UnitAbilityTrigger.Periodic,
+                Trigger = UnitAbilityTrigger.OnDamaged,
                 Targeting = UnitAbilityTargeting.Self,
                 Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 5.5f,
@@ -1721,6 +1783,7 @@ public static class UnitDefinitions
         template.SoulStrength = stats.SoulStrength;
         template.UnitType = def.UnitType;
         template.TacticalRole = ResolveTacticalRole(def, stats);
+        template.TargetPriority = def.TargetPriority;
         template.MovementLayer = def.MovementLayer;
         template.ElementId = (int)(def.DamageProfile.Element ?? Fateforged.Cards.Element.Neutral);
         template.PhysicalDamageRatio = def.DamageProfile.PhysicalRatio;

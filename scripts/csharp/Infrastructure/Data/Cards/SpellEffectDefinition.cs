@@ -36,6 +36,9 @@ public class SpellEffectDefinition
     /// <summary>Which team the effect targets.</summary>
     public SpellAffinity Affinity { get; init; } = SpellAffinity.Enemies;
 
+    /// <summary>Optional element requirement for valid targets.</summary>
+    public Element? RequiredTargetElement { get; init; }
+
     /// <summary>Delay before first apply.</summary>
     public float DelaySeconds { get; init; }
 

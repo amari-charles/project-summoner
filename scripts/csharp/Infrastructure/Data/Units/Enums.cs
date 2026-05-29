@@ -181,6 +181,15 @@ public enum TacticalRole
 }
 
 /// <summary>
+/// Optional target preference layered on top of normal distance/lane scoring.
+/// </summary>
+public enum UnitTargetPriority
+{
+    Default = 0,
+    PreferRangedOrSupport = 1,
+}
+
+/// <summary>
 /// Movement layer for targeting and collision.
 /// </summary>
 public enum MovementLayer

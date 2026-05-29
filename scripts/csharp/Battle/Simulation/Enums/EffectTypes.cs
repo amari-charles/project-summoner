@@ -60,6 +60,7 @@ public enum EffectType
     Root, // Prevent movement without preventing attacks
     ReviveOnDeath, // Restore a dying unit once while buff is active
     Displacement, // Push or pull from an explicit origin
+    SourceLungeToTarget, // Move the source unit next to the target
 }
 
 // =========================================================================
@@ -190,6 +191,9 @@ public class SimSpellEffect
 
     /// <summary>Optional payload fired when a buff created by this effect is removed.</summary>
     public BuffRemovalEffectConfig? RemovalEffect { get; set; }
+
+    /// <summary>Optional target element requirement (-1 = no requirement).</summary>
+    public int RequiredTargetElementId { get; set; } = -1;
 }
 
 /// <summary>
@@ -379,4 +383,7 @@ public class DelayedEffect
 
     /// <summary>Optional payload fired when a buff created by this delayed effect is removed.</summary>
     public BuffRemovalEffectConfig? RemovalEffect { get; set; }
+
+    /// <summary>Optional target element requirement (-1 = no requirement).</summary>
+    public int RequiredTargetElementId { get; set; } = -1;
 }

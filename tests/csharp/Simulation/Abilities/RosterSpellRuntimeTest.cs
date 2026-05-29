@@ -75,6 +75,9 @@ public class RosterSpellRuntimeTest
         var state = SimTestHelper.CreateBattleState();
         var sim = new Fateforged.Simulation.Simulation(state);
         var ally = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        ally.ElementId = (int)Element.Earth;
+        var nonEarthAlly = SimTestHelper.CreateMeleeUnit(state, 0, x: 1f, hp: 100f);
+        nonEarthAlly.ElementId = (int)Element.Water;
         var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 0f, hp: 150f);
 
         CastSpell(state, sim, CardDefinitions.Quake, SimVector3.Zero);
@@ -96,6 +99,8 @@ public class RosterSpellRuntimeTest
             .IsTrue();
 
         CastSpell(state, sim, CardDefinitions.ReformEarth, SimVector3.Zero);
+        AssertThat(nonEarthAlly.ActiveBuffs.Any(b => b.EffectType == EffectType.ReviveOnDeath))
+            .IsFalse();
         SimEffects.ApplyEffect(
             state,
             EffectType.Damage,

@@ -691,9 +691,10 @@ public class Simulation
                     CritDamage = template.CritDamage,
                     UnitType = template.UnitType,
                     TacticalRole = template.TacticalRole,
+                    TargetPriority = template.TargetPriority,
                     MovementLayer = template.MovementLayer,
                     AssignedLane = VirtualLanes.GetLaneIndex(position.Z),
-                    ElementId = template.ElementId,
+                    ElementId = cardData.ElementId,
                     FallbackMovement = template.FallbackMovement,
                     EngageShape = template.EngageShape,
                     EngageRectLength = template.EngageRectLength,
@@ -1007,6 +1008,7 @@ public class Simulation
                 StatusPotencyPerStack = effect.StatusPotencyPerStack,
                 StatusMaxStacks = effect.StatusMaxStacks,
                 RemovalEffect = effect.RemovalEffect,
+                RequiredTargetElementId = effect.RequiredTargetElementId,
             }
         );
     }
@@ -1147,6 +1149,8 @@ public class Simulation
                 {
                     if (teamFilter.HasValue && (int)unit.Team != teamFilter.Value)
                         continue;
+                    if (!PassesTargetElementRequirement(unit, effect.RequiredTargetElementId))
+                        continue;
                     if (
                         SpellAreaResolver.IsWithinArea(
                             effect.AreaShape,
@@ -1177,7 +1181,13 @@ public class Simulation
                 if (targetUnitId.HasValue)
                 {
                     var specified = _state.GetAliveUnit(targetUnitId.Value);
-                    if (specified != null)
+                    if (
+                        specified != null
+                        && PassesTargetElementRequirement(
+                            specified,
+                            effect.RequiredTargetElementId
+                        )
+                    )
                     {
                         targets.Add(specified);
                         break;
@@ -1187,6 +1197,8 @@ public class Simulation
                 foreach (var unit in _state.GetAliveActiveUnits())
                 {
                     if ((int)unit.Team != enemyTeam)
+                        continue;
+                    if (!PassesTargetElementRequirement(unit, effect.RequiredTargetElementId))
                         continue;
                     float distSq = unit.Position.DistanceSquaredTo(searchOrigin);
                     if (distSq < bestDistSq)
@@ -1208,6 +1220,8 @@ public class Simulation
                 {
                     if ((int)unit.Team != team)
                         continue;
+                    if (!PassesTargetElementRequirement(unit, effect.RequiredTargetElementId))
+                        continue;
                     if (
                         SpellAreaResolver.IsWithinArea(
                             effect.AreaShape,
@@ -1224,6 +1238,11 @@ public class Simulation
         }
 
         return targets;
+    }
+
+    private static bool PassesTargetElementRequirement(UnitData unit, int requiredTargetElementId)
+    {
+        return requiredTargetElementId < 0 || unit.ElementId == requiredTargetElementId;
     }
 
     /// <summary>
