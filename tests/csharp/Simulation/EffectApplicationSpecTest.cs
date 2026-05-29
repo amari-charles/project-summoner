@@ -264,7 +264,103 @@ public class EffectApplicationSpecTest
             Simulation.Log = oldLog;
         }
 
-        AssertThat(logs.Any(line => line.Contains("ability=debug_log_test"))).IsTrue();
-        AssertThat(logs.Any(line => line.Contains("effect=Damage"))).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("used Debug Log Test after hitting"))).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("100 -> 95 hp"))).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("ability=debug_log_test"))).IsFalse();
+        AssertThat(logs.Any(line => line.Contains("effect=Damage"))).IsFalse();
+    }
+
+    [TestCase]
+    public void DebugAbilityLogs_StatusConsumeReportsMissingStacks()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var source = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        var target = SimTestHelper.CreateMeleeUnit(state, 1, x: 2f, hp: 100f);
+        var events = new List<SimEvent>();
+        var logs = new List<string>();
+        var oldEnabled = Simulation.DebugAbilityLogsEnabled;
+        var oldLog = Simulation.Log;
+
+        try
+        {
+            Simulation.DebugAbilityLogsEnabled = true;
+            Simulation.Log = logs.Add;
+
+            SimEffects.ApplyEffect(
+                state,
+                new EffectApplicationSpec
+                {
+                    EffectType = EffectType.StatusConsume,
+                    Value = 1.5f,
+                    StatusKind = StatusEffectKind.Burn,
+                    Context = new EffectApplicationContext
+                    {
+                        SourceUnitId = source.UnitId,
+                        SourceTeam = source.Team,
+                    },
+                },
+                target,
+                events
+            );
+        }
+        finally
+        {
+            Simulation.DebugAbilityLogsEnabled = oldEnabled;
+            Simulation.Log = oldLog;
+        }
+
+        AssertThat(logs.Any(line => line.Contains("tried to cash out Burn"))).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("had no Burn stacks to consume"))).IsTrue();
+    }
+
+    [TestCase]
+    public void DebugAbilityLogs_HealthRedistributionSummarizesMovedHp()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var source = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        source.Abilities.Add(
+            new UnitAbilityState
+            {
+                AbilityId = "health_redistribution",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.HealthRedistributionPool,
+                Delivery = UnitAbilityDelivery.Instant,
+                Radius = 10f,
+                CooldownSeconds = 2f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.TransferHealth,
+                        Value = 12f,
+                    },
+                ],
+            }
+        );
+        var donor = SimTestHelper.CreateMeleeUnit(state, 0, x: 1f, hp: 100f);
+        var receiver = SimTestHelper.CreateMeleeUnit(state, 0, x: 2f, hp: 20f);
+        receiver.MaxHp = 100f;
+        var events = new List<SimEvent>();
+        var logs = new List<string>();
+        var oldEnabled = Simulation.DebugAbilityLogsEnabled;
+        var oldLog = Simulation.Log;
+
+        try
+        {
+            Simulation.DebugAbilityLogsEnabled = true;
+            Simulation.Log = logs.Add;
+
+            SimAbilityOrchestrator.Tick(state, Simulation.FixedDeltaSeconds, events);
+        }
+        finally
+        {
+            Simulation.DebugAbilityLogsEnabled = oldEnabled;
+            Simulation.Log = oldLog;
+        }
+
+        AssertThat(donor.CurrentHp).IsEqual(88f);
+        AssertThat(receiver.CurrentHp).IsEqual(32f);
+        AssertThat(logs.Any(line => line.Contains("balanced nearby ally health"))).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("Moved 12 hp"))).IsTrue();
     }
 }

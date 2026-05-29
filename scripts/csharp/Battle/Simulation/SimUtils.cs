@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
 
@@ -53,7 +54,7 @@ public static class SimUtils
         List<SimEvent> events
     )
     {
-        if (TryConsumeReviveOnDeath(target, events))
+        if (TryConsumeReviveOnDeath(state, target, events))
             return false;
 
         SimEffects.TriggerBuffRemovalEffectsForOwnerDeath(state, target, events);
@@ -66,7 +67,7 @@ public static class SimUtils
         return true;
     }
 
-    private static bool TryConsumeReviveOnDeath(UnitData target, List<SimEvent> events)
+    private static bool TryConsumeReviveOnDeath(MatchState state, UnitData target, List<SimEvent> events)
     {
         for (int i = 0; i < target.ActiveBuffs.Count; i++)
         {
@@ -75,11 +76,18 @@ public static class SimUtils
                 continue;
 
             float revivePercent = buff.Value > 0f ? buff.Value : 0.5f;
+            float hpBefore = target.CurrentHp;
             target.ActiveBuffs.RemoveAt(i);
             target.CurrentHp = MathF.Max(1f, target.MaxHp * revivePercent);
             target.IsAlive = true;
             target.DeathCleanupTimer = 0f;
             events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
+            if (Simulation.DebugAbilityLogsEnabled)
+            {
+                Simulation.DebugAbilityLog(
+                    $"{state.MatchTime:0.0}s {CombatDebugFormatter.FormatReviveConsumed(target, buff, hpBefore)}"
+                );
+            }
             return true;
         }
 

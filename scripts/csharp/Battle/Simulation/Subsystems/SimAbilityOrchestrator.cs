@@ -175,6 +175,7 @@ public static class SimAbilityOrchestrator
                 state,
                 source,
                 ability,
+                contextTarget,
                 targets[0],
                 events
             ),
@@ -182,6 +183,7 @@ public static class SimAbilityOrchestrator
                 state,
                 source,
                 ability,
+                contextTarget,
                 targets,
                 includeImmediate: false,
                 events
@@ -190,11 +192,12 @@ public static class SimAbilityOrchestrator
                 state,
                 source,
                 ability,
+                contextTarget,
                 targets,
                 includeImmediate: true,
                 events
             ),
-            _ => TryDeliverInstant(state, source, ability, targets, events),
+            _ => TryDeliverInstant(state, source, ability, contextTarget, targets, events),
         };
     }
 
@@ -202,11 +205,13 @@ public static class SimAbilityOrchestrator
         MatchState state,
         UnitData source,
         UnitAbilityState ability,
+        UnitData? contextTarget,
         List<UnitData> targets,
         List<SimEvent> events
     )
     {
         var effects = ResolveEffects(ability);
+        var before = CombatDebugFormatter.CaptureUnits(BuildDebugSnapshotUnits(source, contextTarget, targets));
         int applied = 0;
 
         foreach (var effect in effects.Where(e => e.EffectType == EffectType.TransferHealth))
@@ -226,7 +231,7 @@ public static class SimAbilityOrchestrator
             return false;
 
         int? eventTarget = targets.Count == 1 ? targets[0].UnitId : null;
-        LogAbilityActivation(state, source, ability, targets, effects, applied);
+        LogAbilityActivation(state, source, ability, contextTarget, targets, effects, applied, before);
         events.Add(new AbilityActivatedEvent(source.UnitId, ability.AbilityId, eventTarget, source.Position));
         return true;
     }
@@ -235,6 +240,7 @@ public static class SimAbilityOrchestrator
         MatchState state,
         UnitData source,
         UnitAbilityState ability,
+        UnitData? contextTarget,
         List<UnitData> targets,
         bool includeImmediate,
         List<SimEvent> events
@@ -257,7 +263,7 @@ public static class SimAbilityOrchestrator
             float delay = baseDelay + applicationIndex * interval;
             if (delay <= 0f && includeImmediate && applicationIndex == 0)
             {
-                if (TryDeliverInstant(state, source, ability, targets, events))
+                if (TryDeliverInstant(state, source, ability, contextTarget, targets, events))
                 {
                     scheduled++;
                     emittedImmediateActivation = true;
@@ -281,7 +287,10 @@ public static class SimAbilityOrchestrator
         if (!emittedImmediateActivation)
         {
             int? eventTarget = targets.Count == 1 ? targets[0].UnitId : null;
-            LogAbilityActivation(state, source, ability, targets, effects, scheduled);
+            var before = CombatDebugFormatter.CaptureUnits(
+                BuildDebugSnapshotUnits(source, contextTarget, targets)
+            );
+            LogAbilityActivation(state, source, ability, contextTarget, targets, effects, scheduled, before);
             events.Add(
                 new AbilityActivatedEvent(source.UnitId, ability.AbilityId, eventTarget, source.Position)
             );
@@ -363,6 +372,7 @@ public static class SimAbilityOrchestrator
         MatchState state,
         UnitData source,
         UnitAbilityState ability,
+        UnitData? contextTarget,
         UnitData target,
         List<SimEvent> events
     )
@@ -418,13 +428,18 @@ public static class SimAbilityOrchestrator
         events.Add(
             new AbilityActivatedEvent(source.UnitId, ability.AbilityId, target.UnitId, source.Position)
         );
+        var before = CombatDebugFormatter.CaptureUnits(
+            BuildDebugSnapshotUnits(source, contextTarget, new List<UnitData> { target })
+        );
         LogAbilityActivation(
             state,
             source,
             ability,
+            contextTarget,
             new List<UnitData> { target },
             new List<UnitAbilityEffectState> { effect },
-            1
+            1,
+            before
         );
         return true;
     }
@@ -695,31 +710,46 @@ public static class SimAbilityOrchestrator
         MatchState state,
         UnitData source,
         UnitAbilityState ability,
+        UnitData? contextTarget,
         List<UnitData> targets,
         List<UnitAbilityEffectState> effects,
-        int appliedCount
+        int appliedCount,
+        IReadOnlyDictionary<int, UnitDebugSnapshot> before
     )
     {
         if (!Simulation.DebugAbilityLogsEnabled)
             return;
 
-        string targetText = targets.Count == 0
-            ? "none"
-            : string.Join(", ", targets.Select(t => UnitLabel(t)));
-        string effectText = effects.Count == 0
-            ? "none"
-            : string.Join(", ", effects.Select(e => $"{e.EffectType}:{e.Value:0.##}"));
         Simulation.DebugAbilityLog(
-            $"frame={state.FrameNumber} ability={ability.AbilityId} trigger={ability.Trigger} "
-                + $"delivery={ability.Delivery} source={UnitLabel(source)} targets=[{targetText}] "
-                + $"effects=[{effectText}] applied={appliedCount}"
+            CombatDebugFormatter.FormatAbilityActivation(
+                state,
+                source,
+                ability,
+                contextTarget,
+                targets,
+                effects,
+                appliedCount,
+                before
+            )
         );
     }
 
-    private static string UnitLabel(UnitData unit)
+    private static IEnumerable<UnitData> BuildDebugSnapshotUnits(
+        UnitData source,
+        UnitData? contextTarget,
+        List<UnitData> targets
+    )
     {
-        string catalog = unit.CatalogId.HasValue ? unit.CatalogId.Value : "unknown";
-        return $"{catalog}#{unit.UnitId}/team{(int)unit.Team}";
+        var seen = new HashSet<int>();
+        if (seen.Add(source.UnitId))
+            yield return source;
+        if (contextTarget != null && seen.Add(contextTarget.UnitId))
+            yield return contextTarget;
+        foreach (var target in targets)
+        {
+            if (seen.Add(target.UnitId))
+                yield return target;
+        }
     }
 
     private static EffectTagRequirements MergeRequirements(
