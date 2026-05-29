@@ -145,9 +145,30 @@ public static class CombatDebugFormatter
     public static string FormatReviveConsumed(UnitData target, ActiveBuff buff, float hpBefore)
     {
         float revivePercent = buff.Value > 0f ? buff.Value : 0.5f;
-        return $"{UnitName(target)} revived instead of dying.\n"
-            + $"  {UnitName(target)}: {Amount(hpBefore)} -> {Amount(target.CurrentHp)} hp "
+        return $"{UnitNameWithId(target)} revived instead of dying.\n"
+            + $"  {UnitNameWithId(target)}: {Amount(hpBefore)} -> {Amount(target.CurrentHp)} hp "
             + $"({Percent(revivePercent)} revive).";
+    }
+
+    public static string FormatAttackAvoided(
+        MatchState state,
+        UnitData? attacker,
+        UnitData target,
+        float chance,
+        bool attackerMissed
+    )
+    {
+        string targetName = UnitNameWithId(target);
+        if (attackerMissed)
+        {
+            string attackerName = attacker != null ? UnitNameWithId(attacker) : "Unknown attacker";
+            return $"{TimeLabel(state)} {attackerName} missed {targetName}.\n"
+                + $"  Miss chance: {Percent(chance)}. No damage was applied.";
+        }
+
+        string source = attacker != null ? $" from {UnitNameWithId(attacker)}" : "";
+        return $"{TimeLabel(state)} {targetName} dodged an attack{source}.\n"
+            + $"  Dodge chance: {Percent(chance)}. No damage was applied.";
     }
 
     private static void AppendAbilityOutcomeLines(
@@ -167,6 +188,9 @@ public static class CombatDebugFormatter
                 wrote |= AppendHealthRedistributionLines(builder, state, before, participants);
                 continue;
             }
+
+            if (effect.EffectType == EffectType.Shield)
+                wrote |= AppendShieldTargetCountLine(builder, targets, before);
 
             foreach (var target in targets)
             {
@@ -191,6 +215,29 @@ public static class CombatDebugFormatter
                     wrote |= AppendUnitStateDelta(builder, state, target, snapshot, participants);
             }
         }
+    }
+
+    private static bool AppendShieldTargetCountLine(
+        StringBuilder builder,
+        IReadOnlyList<UnitData> targets,
+        IReadOnlyDictionary<int, UnitDebugSnapshot> before
+    )
+    {
+        int shielded = 0;
+        foreach (var target in targets)
+        {
+            if (!before.TryGetValue(target.UnitId, out var snapshot))
+                continue;
+            if (CurrentShield(target) > snapshot.ShieldHp)
+                shielded++;
+        }
+
+        if (shielded <= 0)
+            return false;
+
+        builder.Append('\n');
+        builder.Append($"  Shielded {shielded} {AllyWord(shielded)}.");
+        return true;
     }
 
     private static bool AppendEffectOutcomeLines(
@@ -597,10 +644,10 @@ public static class CombatDebugFormatter
 
     private static string UnitName(UnitData unit, IReadOnlyList<UnitData> participants)
     {
-        string name = UnitName(unit);
-        int sameNameCount = participants.Count(u => UnitName(u) == name);
-        return sameNameCount > 1 ? $"{name} #{unit.UnitId}" : name;
+        return UnitNameWithId(unit);
     }
+
+    private static string UnitNameWithId(UnitData unit) => $"{UnitName(unit)} #{unit.UnitId}";
 
     private static string StatusName(StatusEffectKind statusKind) =>
         statusKind == StatusEffectKind.None ? "status" : Titleize(statusKind.ToString());
@@ -621,6 +668,8 @@ public static class CombatDebugFormatter
     private static string Percent(float value) => $"{MathF.Round(value * 100f):0}%";
 
     private static string Plural(int count) => count == 1 ? "" : "s";
+
+    private static string AllyWord(int count) => count == 1 ? "ally" : "allies";
 
     private static string Titleize(string value)
     {

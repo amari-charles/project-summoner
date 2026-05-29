@@ -6,7 +6,6 @@ using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
-using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
 using Fateforged.Units;
@@ -320,8 +319,8 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     public void Visit(EffectCueEvent e)
     {
-        if (e.Phase == EffectCuePhase.Active && _unitRegistry.TryGetValue(e.TargetUnitId, out var shell))
-            shell.ShowBuffIcon(e.EffectType);
+        // Buff/status icons are driven by BuffAppliedEvent and StatusAppliedEvent.
+        // Effect cues remain reserved for dedicated VFX so a single effect does not show twice.
     }
 
     public void Visit(StatusAppliedEvent e)

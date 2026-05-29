@@ -3,6 +3,7 @@ namespace Fateforged.Tests.Simulation;
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
+using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
@@ -362,5 +363,148 @@ public class EffectApplicationSpecTest
         AssertThat(receiver.CurrentHp).IsEqual(32f);
         AssertThat(logs.Any(line => line.Contains("balanced nearby ally health"))).IsTrue();
         AssertThat(logs.Any(line => line.Contains("Moved 12 hp"))).IsTrue();
+    }
+
+    [TestCase]
+    public void DebugAbilityLogs_IncludeUnitIdsAndShieldTargetCount()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var source = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        source.CatalogId = "earth_shield_support";
+        source.Abilities.Add(
+            new UnitAbilityState
+            {
+                AbilityId = "stone_shield_pulse",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                Radius = 10f,
+                CooldownSeconds = 4f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.Shield,
+                        Value = 28f,
+                        DurationSeconds = 4f,
+                    },
+                ],
+            }
+        );
+        var ally = SimTestHelper.CreateMeleeUnit(state, 0, x: 2f, hp: 100f);
+        ally.CatalogId = "fire_wisp";
+        var events = new List<SimEvent>();
+        var logs = new List<string>();
+        var oldEnabled = Simulation.DebugAbilityLogsEnabled;
+        var oldLog = Simulation.Log;
+
+        try
+        {
+            Simulation.DebugAbilityLogsEnabled = true;
+            Simulation.Log = logs.Add;
+
+            SimAbilityOrchestrator.Tick(state, Simulation.FixedDeltaSeconds, events);
+        }
+        finally
+        {
+            Simulation.DebugAbilityLogsEnabled = oldEnabled;
+            Simulation.Log = oldLog;
+        }
+
+        AssertThat(logs.Any(line => line.Contains("Earth Shield Support #0 used Stone Shield Pulse")))
+            .IsTrue();
+        AssertThat(logs.Any(line => line.Contains("Shielded 2 allies"))).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("Earth Shield Support #0 gained 28 shield")))
+            .IsTrue();
+        AssertThat(logs.Any(line => line.Contains("Fire Wisp #1 gained 28 shield"))).IsTrue();
+    }
+
+    [TestCase]
+    public void DebugAbilityLogs_PercentageModifiersKeepPercentSign()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var source = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        var target = SimTestHelper.CreateMeleeUnit(state, 0, x: 1f, hp: 100f);
+        target.CatalogId = "wind_evasion_tank";
+        var events = new List<SimEvent>();
+        var logs = new List<string>();
+        var oldEnabled = Simulation.DebugAbilityLogsEnabled;
+        var oldLog = Simulation.Log;
+
+        try
+        {
+            Simulation.DebugAbilityLogsEnabled = true;
+            Simulation.Log = logs.Add;
+
+            SimEffects.ApplyEffect(
+                state,
+                new EffectApplicationSpec
+                {
+                    EffectType = EffectType.EvasionModifier,
+                    Value = 0.2f,
+                    Duration = -1f,
+                    Lifetime = EffectLifetime.Persistent(),
+                    Context = new EffectApplicationContext
+                    {
+                        SourceUnitId = source.UnitId,
+                        SourceTeam = source.Team,
+                    },
+                },
+                target,
+                events
+            );
+        }
+        finally
+        {
+            Simulation.DebugAbilityLogsEnabled = oldEnabled;
+            Simulation.Log = oldLog;
+        }
+
+        AssertThat(logs.Any(line => line.Contains("dodge chance increased by 20%"))).IsTrue();
+    }
+
+    [TestCase]
+    public void DebugAbilityLogs_DodgeEmitsOnlyWhenAttackIsAvoided()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var attacker = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
+        attacker.CatalogId = "fire_wisp";
+        var target = SimTestHelper.CreateMeleeUnit(state, 1, x: 1f, hp: 100f);
+        target.CatalogId = "wind_evasion_tank";
+        target.Evasion = 1f;
+        var events = new List<SimEvent>();
+        var logs = new List<string>();
+        var oldEnabled = Simulation.DebugAbilityLogsEnabled;
+        var oldLog = Simulation.Log;
+
+        try
+        {
+            Simulation.DebugAbilityLogsEnabled = true;
+            Simulation.Log = logs.Add;
+
+            var result = SimDamage.Calculate(
+                20f,
+                DamageType.Physical,
+                attacker,
+                target,
+                state.Summoners[0],
+                state.Summoners[1],
+                state.Rng,
+                events,
+                state
+            );
+
+            AssertThat(result.damage).IsEqual(0f);
+        }
+        finally
+        {
+            Simulation.DebugAbilityLogsEnabled = oldEnabled;
+            Simulation.Log = oldLog;
+        }
+
+        AssertThat(events.OfType<AttackEvadedEvent>().Any()).IsTrue();
+        AssertThat(logs.Any(line => line.Contains("Wind Evasion Tank #1 dodged an attack from Fire Wisp #0")))
+            .IsTrue();
+        AssertThat(logs.Any(line => line.Contains("Dodge chance: 100%"))).IsTrue();
     }
 }

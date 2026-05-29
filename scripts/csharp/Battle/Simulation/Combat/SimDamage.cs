@@ -95,6 +95,7 @@ public static class SimDamage
             if (missChance > 0f && rng.NextFloat() < missChance)
             {
                 events?.Add(new AttackEvadedEvent(target.UnitId, attacker.UnitId));
+                LogAttackAvoided(state, attacker, target, missChance, attackerMissed: true);
                 return (0f, false, true);
             }
         }
@@ -105,6 +106,7 @@ public static class SimDamage
             if (rng.NextFloat() < effectiveEvasion)
             {
                 events?.Add(new AttackEvadedEvent(target.UnitId, attacker?.UnitId ?? -1));
+                LogAttackAvoided(state, attacker, target, effectiveEvasion, attackerMissed: false);
                 return (0f, false, true);
             }
         }
@@ -178,6 +180,22 @@ public static class SimDamage
         damage = SimUtils.RoundToOneDecimal(damage);
 
         return (damage, isCrit, false);
+    }
+
+    private static void LogAttackAvoided(
+        MatchState? state,
+        UnitData? attacker,
+        UnitData target,
+        float chance,
+        bool attackerMissed
+    )
+    {
+        if (state == null || !Simulation.DebugAbilityLogsEnabled)
+            return;
+
+        Simulation.DebugAbilityLog(
+            CombatDebugFormatter.FormatAttackAvoided(state, attacker, target, chance, attackerMissed)
+        );
     }
 
     /// <summary>
