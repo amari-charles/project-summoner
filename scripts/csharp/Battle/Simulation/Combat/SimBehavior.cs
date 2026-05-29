@@ -323,15 +323,18 @@ public static class SimBehavior
     {
         var attackerSummoner = state.Summoners[(int)attacker.Team];
         var targetSummoner = state.Summoners[(int)target.Team];
-        var (damage, isCrit) = SimDamage.Calculate(
+        var (damage, isCrit, wasEvaded) = SimDamage.CalculateAttack(
             baseDamage,
             attacker,
             target,
             attackerSummoner,
             targetSummoner,
             state.Rng,
+            events,
             state
         );
+        if (wasEvaded)
+            return;
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
@@ -361,15 +364,18 @@ public static class SimBehavior
     {
         var attackerSummoner = state.Summoners[(int)attacker.Team];
         var targetSummoner = state.Summoners[(int)target.Team];
-        var (damage, isCrit) = SimDamage.Calculate(
+        var (damage, isCrit, wasEvaded) = SimDamage.CalculateAttack(
             baseDamage,
             attacker,
             target,
             attackerSummoner,
             targetSummoner,
             state.Rng,
+            events,
             state
         );
+        if (wasEvaded)
+            return;
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));

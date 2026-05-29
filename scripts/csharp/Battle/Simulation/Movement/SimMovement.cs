@@ -19,6 +19,8 @@ public static class SimMovement
     private const float DirectionThreshold = 0.001f;
     private const float VelocitySmoothingFactor = 0.15f;
 
+    public static bool DebugHoldPlayerAdvanceEnabled { get; set; }
+
     /// <summary>
     /// Execute a full movement tick for a unit based on its behavior result.
     /// Non-melee pipeline: IntentResolve → ORCA → Smooth → Apply → OverlapCorrection.
@@ -35,6 +37,8 @@ public static class SimMovement
 
         if (TickForcedKnockbackMovement(unit, state, delta))
             return;
+
+        behavior = ApplyDebugMovementOverrides(unit, behavior);
 
         if (unit.UnitType == UnitType.Melee)
         {
@@ -106,6 +110,24 @@ public static class SimMovement
         float moveDist = new SimVector3(totalDisp.X, 0, totalDisp.Z).Length();
         if (moveDist > DirectionThreshold)
             unit.DistanceTraveled += moveDist;
+    }
+
+    private static SimBehavior.BehaviorResult ApplyDebugMovementOverrides(
+        UnitData unit,
+        SimBehavior.BehaviorResult behavior
+    )
+    {
+        if (
+            DebugHoldPlayerAdvanceEnabled
+            && unit.Team == Team.Player
+            && behavior.Movement == MovementResult.Forward
+        )
+        {
+            behavior.Movement = MovementResult.None;
+            behavior.MoveTargetId = null;
+        }
+
+        return behavior;
     }
 
     private static bool TickForcedKnockbackMovement(UnitData unit, MatchState state, float delta)

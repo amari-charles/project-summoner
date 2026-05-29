@@ -14,6 +14,8 @@ public interface IDebugArenaSpawnerPanelBridge
 
     bool ConnectPlayerAiToggled(Callable handler);
 
+    bool ConnectPlayerHoldAdvanceToggled(Callable handler);
+
     bool ConnectClearTeamRequested(Callable handler);
 
     bool ConnectUndoRequested(Callable handler);
@@ -23,6 +25,8 @@ public interface IDebugArenaSpawnerPanelBridge
     bool GetEnemyAiEnabled();
 
     bool GetPlayerAiEnabled();
+
+    bool GetPlayerHoldAdvanceEnabled();
 
     void AppendSpawnLog(string message);
 

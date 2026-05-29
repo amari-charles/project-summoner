@@ -6,6 +6,7 @@ using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Combat;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
 using Fateforged.Tests.Simulation;
@@ -55,6 +56,40 @@ public class RosterUnitAbilityRuntimeTest
 
         AssertThat(carrier.IsAlive).IsFalse();
         AssertThat(enemy.CurrentHp).IsLess(100f);
+    }
+
+    [TestCase]
+    public void FireRoster_EmberBombCarrier_DodgedContactDoesNotSelfDestruct()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var events = new List<SimEvent>();
+        var carrier = CreateUnitFromDefinition(state, UnitIds.EmberBombCarrier, 0, x: 0f);
+        var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 2f, hp: 100f);
+        enemy.Evasion = 1f;
+
+        var spec = new EffectApplicationSpec
+        {
+            EffectType = EffectType.Damage,
+            Value = carrier.AttackDamage,
+            DamageType = carrier.AttackType,
+            Context = new EffectApplicationContext
+            {
+                SourceUnitId = carrier.UnitId,
+                SourceTeam = carrier.Team,
+                TriggerSourceOnHit = true,
+                UseAttackDamageProfile = true,
+            },
+        };
+
+        bool applied = SimEffects.ApplyEffect(state, spec, enemy, events);
+
+        AssertThat(applied).IsFalse();
+        AssertThat(carrier.IsAlive).IsTrue();
+        AssertThat(enemy.CurrentHp).IsEqual(100f);
+        AssertThat(events.OfType<AttackEvadedEvent>().Any()).IsTrue();
+        AssertThat(events.OfType<UnitDamagedEvent>().Any()).IsFalse();
+        AssertThat(events.OfType<AbilityActivatedEvent>().Any(e => e.SourceUnitId == carrier.UnitId))
+            .IsFalse();
     }
 
     [TestCase]

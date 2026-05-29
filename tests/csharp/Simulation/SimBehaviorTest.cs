@@ -253,6 +253,26 @@ public class SimBehaviorTest
     }
 
     [TestCase]
+    public void ResolvePendingAttackCommit_MeleeDodgeDoesNotEmitDamageOrHitEffects()
+    {
+        var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 10f);
+        unit.CritChance = 0f;
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, 1, x: 2f, hp: 100f);
+        enemy.Evasion = 1f;
+
+        unit.Engagement.TargetUnitId = enemy.UnitId;
+        unit.AttackCooldown = 0f;
+        var events = new List<SimEvent>();
+
+        TickBehaviorAndCommit(unit, _state, 0.016f, events);
+
+        AssertThat(enemy.CurrentHp).IsEqual(100f);
+        AssertThat(events.OfType<AttackEvadedEvent>().Any()).IsTrue();
+        AssertThat(events.OfType<UnitDamagedEvent>().Any()).IsFalse();
+        AssertThat(events.OfType<AbilityActivatedEvent>().Any()).IsFalse();
+    }
+
+    [TestCase]
     public void TickBehavior_MeleeKill_EmitsUnitDiedEvent()
     {
         var unit = SimTestHelper.CreateMeleeUnit(_state, 0, x: 0f, attackRange: 5f, damage: 200f);

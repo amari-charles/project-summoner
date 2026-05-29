@@ -180,7 +180,7 @@ public static class SimEffects
         switch (spec.EffectType)
         {
             case EffectType.Damage:
-                ApplyDirectDamage(
+                if (!ApplyDirectDamage(
                     state,
                     target,
                     spec.Value,
@@ -192,7 +192,8 @@ public static class SimEffects
                     context.TriggerSourceOnHit,
                     context.TriggerTargetOnDamaged,
                     context.UseAttackDamageProfile
-                );
+                ))
+                    return false;
                 EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
@@ -218,7 +219,7 @@ public static class SimEffects
             case EffectType.AreaDamage:
                 // AreaDamage is handled by the caller (FireTriggers) which resolves targets
                 // If called directly, treat as single-target damage
-                ApplyDirectDamage(
+                if (!ApplyDirectDamage(
                     state,
                     target,
                     spec.Value,
@@ -230,7 +231,8 @@ public static class SimEffects
                     context.TriggerSourceOnHit,
                     context.TriggerTargetOnDamaged,
                     context.UseAttackDamageProfile
-                );
+                ))
+                    return false;
                 EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
@@ -881,7 +883,7 @@ public static class SimEffects
         return targets;
     }
 
-    private static void ApplyDirectDamage(
+    private static bool ApplyDirectDamage(
         MatchState state,
         UnitData target,
         float baseDamage,
@@ -903,7 +905,7 @@ public static class SimEffects
                 ? state.Summoners[(int)target.Team]
                 : null;
 
-        var (damage, isCrit, _) =
+        var (damage, isCrit, wasEvaded) =
             useAttackDamageProfile && attacker != null
                 ? SimDamage.CalculateAttack(
                     baseDamage,
@@ -926,6 +928,8 @@ public static class SimEffects
                     events: events,
                     state: state
                 );
+        if (wasEvaded)
+            return false;
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, sourceUnitId, damage, isCrit));
@@ -942,6 +946,8 @@ public static class SimEffects
                 FireDeathTriggers(state, target, attacker, events);
             }
         }
+
+        return true;
     }
 
     private static void ApplyHeal(UnitData target, float amount, List<SimEvent> events)
