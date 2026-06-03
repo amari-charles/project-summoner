@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
 using Fateforged.Simulation;
@@ -281,9 +282,302 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "fire_web_slow",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 0f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Slow,
+                        Value = 0.25f,
+                        DurationSeconds = 2.5f,
+                        Lifetime = EffectLifetime.Timed(2.5f),
+                    },
+                ],
+            },
+        ],
         Ranged = new RangedConfig(ProjectileIds.FireWeb),
         Visual = new VisualConfig { SeparationRadius = 0.4f },
         ScenePath = "res://scenes/battle/units/fire_spider_3d.tscn",
+    };
+
+    public static readonly UnitDefinition CinderCaster = new()
+    {
+        Id = UnitIds.CinderCaster,
+        DisplayName = "Cinder Caster",
+        Stats = new UnitStats
+        {
+            MaxHp = 65f,
+            AttackDamage = 8f,
+            AttackRange = 19f,
+            AttackSpeed = 0.95f,
+            MoveSpeed = 2.7f,
+            AggroRadius = 21f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "burn_on_hit",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.StatusApply,
+                        DurationSeconds = 4f,
+                        Status = new ProjectileStatusConfig
+                        {
+                            Kind = StatusEffectKind.Burn,
+                            DurationSeconds = 4f,
+                            TickIntervalSeconds = 1f,
+                            PotencyPerStack = 3f,
+                            MaxStacks = 5,
+                        },
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.Ember),
+        Visual = new VisualConfig { SeparationRadius = 0.38f, DisplayScale = 0.92f },
+        ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition EmberBombCarrier = new()
+    {
+        Id = UnitIds.EmberBombCarrier,
+        DisplayName = "Ember Bomb Carrier",
+        Stats = new UnitStats
+        {
+            MaxHp = 38f,
+            AttackDamage = 6f,
+            AttackRange = 2.4f,
+            AttackSpeed = 1.2f,
+            MoveSpeed = 4.4f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "contact_self_destruct",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 0f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 999f,
+                        DamageType = DamageType.True,
+                    },
+                ],
+            },
+            new UnitAbilityConfig
+            {
+                AbilityId = "death_burst",
+                Trigger = UnitAbilityTrigger.OnDeath,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                Radius = 4.5f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 38f,
+                        DamageType = DamageType.Magic,
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.3f, DisplayScale = 0.82f },
+        ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition KindlingSwarmUnit = new()
+    {
+        Id = UnitIds.KindlingSwarmUnit,
+        DisplayName = "Kindling Swarm Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 32f,
+            AttackDamage = 7f,
+            AttackRange = 2.8f,
+            AttackSpeed = 1.45f,
+            MoveSpeed = 4.1f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "kindling_death_spark",
+                Trigger = UnitAbilityTrigger.OnDeath,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                Radius = 2.5f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.StatusApply,
+                        DurationSeconds = 2f,
+                        Status = new ProjectileStatusConfig
+                        {
+                            Kind = StatusEffectKind.Burn,
+                            DurationSeconds = 2f,
+                            TickIntervalSeconds = 1f,
+                            PotencyPerStack = 1.5f,
+                            MaxStacks = 2,
+                        },
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.28f, DisplayScale = 0.72f },
+        ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition FireFrontliner = new()
+    {
+        Id = UnitIds.FireFrontliner,
+        DisplayName = "Fire Frontliner",
+        Stats = new UnitStats
+        {
+            MaxHp = 235f,
+            AttackDamage = 17f,
+            AttackRange = 3.2f,
+            AttackSpeed = 0.75f,
+            MoveSpeed = 2.1f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Visual = new VisualConfig { SeparationRadius = 0.72f, DisplayScale = 1.28f },
+        ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition OverheatBrawler = new()
+    {
+        Id = UnitIds.OverheatBrawler,
+        DisplayName = "Overheat Brawler",
+        Stats = new UnitStats
+        {
+            MaxHp = 145f,
+            AttackDamage = 13f,
+            AttackRange = 3.2f,
+            AttackSpeed = 0.9f,
+            MoveSpeed = 3.0f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "overheat_ramp",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3.0f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.DamageBoost,
+                        Value = 0.12f,
+                        DurationSeconds = 5f,
+                        Lifetime = EffectLifetime.Timed(5f),
+                    },
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.AttackSpeedModifier,
+                        Value = 0.10f,
+                        DurationSeconds = 5f,
+                        Lifetime = EffectLifetime.Timed(5f),
+                    },
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 5f,
+                        DamageType = DamageType.True,
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.52f, DisplayScale = 1.08f },
+        ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition FlameChanneler = new()
+    {
+        Id = UnitIds.FlameChanneler,
+        DisplayName = "Flame Channeler",
+        Stats = new UnitStats
+        {
+            MaxHp = 75f,
+            AttackDamage = 6f,
+            AttackRange = 13f,
+            AttackSpeed = 1.65f,
+            MoveSpeed = 2.4f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "channel_burn_tick",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.StatusApply,
+                        DurationSeconds = 3f,
+                        Status = new ProjectileStatusConfig
+                        {
+                            Kind = StatusEffectKind.Burn,
+                            DurationSeconds = 3f,
+                            TickIntervalSeconds = 1f,
+                            PotencyPerStack = 1.6f,
+                            MaxStacks = 6,
+                        },
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.Ember),
+        Visual = new VisualConfig { SeparationRadius = 0.4f, DisplayScale = 0.96f },
+        ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
     };
 
     // =========================================================================
@@ -422,15 +716,23 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "flat_damage_reduction_passive",
-                Kind = UnitAbilityKind.ApplySelfEffect,
+                Trigger = UnitAbilityTrigger.OnSpawn,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 10f,
-                EffectType = EffectType.FlatDamageReduction,
-                Value = 4f,
-                DurationSeconds = -1f,
-                Lifetime = EffectLifetime.Persistent(),
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.FlatDamageReduction,
+                        Value = 4f,
+                        DurationSeconds = -1f,
+                        Lifetime = EffectLifetime.Persistent(),
+                    },
+                ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.75f },
+        Visual = new VisualConfig { SeparationRadius = 0.75f, DisplayScale = 1.22f },
         ScenePath =
             "res://scenes/battle/units/earth_flat_damage_reduction_tank_placeholder_3d.tscn",
     };
@@ -450,8 +752,29 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Ranged,
         TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "impact_slow",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Slow,
+                        Value = 0.20f,
+                        DurationSeconds = 2f,
+                        Lifetime = EffectLifetime.Timed(2f),
+                    },
+                ],
+            },
+        ],
         Ranged = new RangedConfig(ProjectileIds.Rock),
-        Visual = new VisualConfig { SeparationRadius = 0.4f },
+        Visual = new VisualConfig { SeparationRadius = 0.4f, DisplayScale = 0.96f },
         ScenePath = "res://scenes/battle/units/earth_bullet_unit_placeholder_3d.tscn",
     };
 
@@ -475,15 +798,131 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "taunt_pulse",
-                Kind = UnitAbilityKind.TauntPulse,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 3.0f,
                 Radius = 8.0f,
-                DurationSeconds = 2.5f,
                 TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Taunt,
+                        DurationSeconds = 2.5f,
+                    },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.7f },
         ScenePath = "res://scenes/battle/units/stone_ape_3d.tscn",
+    };
+
+    public static readonly UnitDefinition EarthShieldSupport = new()
+    {
+        Id = UnitIds.EarthShieldSupport,
+        DisplayName = "Earth Shield Support",
+        Stats = new UnitStats
+        {
+            MaxHp = 110f,
+            AttackDamage = 7f,
+            AttackRange = 14f,
+            AttackSpeed = 0.6f,
+            MoveSpeed = 2.0f,
+            AggroRadius = 16f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "stone_shield_pulse",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 4f,
+                Radius = 7f,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Shield,
+                        Value = 28f,
+                        DurationSeconds = 4f,
+                        Lifetime = EffectLifetime.Timed(4f),
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.Rock),
+        Visual = new VisualConfig { SeparationRadius = 0.45f, DisplayScale = 0.92f },
+        ScenePath = "res://scenes/battle/units/earth_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition BurrowAmbusher = new()
+    {
+        Id = UnitIds.BurrowAmbusher,
+        DisplayName = "Burrow Ambusher",
+        Stats = new UnitStats
+        {
+            MaxHp = 115f,
+            AttackDamage = 16f,
+            AttackRange = 3.0f,
+            AttackSpeed = 1.05f,
+            MoveSpeed = 2.2f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "burrow_engage",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.CurrentTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 6.5f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.SourceLungeToTarget,
+                        Value = 2.1f,
+                    },
+                ],
+            },
+            new UnitAbilityConfig
+            {
+                AbilityId = "ambush_opening",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 4f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 18f,
+                        DamageType = DamageType.Physical,
+                    },
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Stun,
+                        Value = 1f,
+                        DurationSeconds = 0.75f,
+                        Lifetime = EffectLifetime.Timed(0.75f),
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.5f, DisplayScale = 0.96f },
+        ScenePath = "res://scenes/battle/units/earth_roster_placeholder_3d.tscn",
     };
 
     // =========================================================================
@@ -550,15 +989,23 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "evasion_passive",
-                Kind = UnitAbilityKind.ApplySelfEffect,
+                Trigger = UnitAbilityTrigger.OnSpawn,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 10f,
-                EffectType = EffectType.EvasionModifier,
-                Value = 0.2f,
-                DurationSeconds = -1f,
-                Lifetime = EffectLifetime.Persistent(),
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.EvasionModifier,
+                        Value = 0.2f,
+                        DurationSeconds = -1f,
+                        Lifetime = EffectLifetime.Persistent(),
+                    },
+                ],
             },
         ],
-        Visual = new VisualConfig { SeparationRadius = 0.65f },
+        Visual = new VisualConfig { SeparationRadius = 0.65f, DisplayScale = 1.16f },
         ScenePath = "res://scenes/battle/units/wind_evasion_tank_placeholder_3d.tscn",
     };
 
@@ -582,15 +1029,24 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "targeted_knockback",
-                Kind = UnitAbilityKind.TargetedKnockback,
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.HitTarget,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 0f,
                 Range = 18f,
-                Value = 2.8f,
                 TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Knockback,
+                        Value = 2.8f,
+                    },
+                ],
             },
         ],
         Ranged = new RangedConfig(ProjectileIds.WindPuff),
-        Visual = new VisualConfig { SeparationRadius = 0.5f },
+        Visual = new VisualConfig { SeparationRadius = 0.5f, DisplayScale = 0.98f },
         ScenePath = "res://scenes/battle/units/wind_pushback_unit_placeholder_3d.tscn",
     };
 
@@ -620,8 +1076,183 @@ public static class UnitDefinitions
                 ForwardOffset = 1.5f,
             },
         },
-        Visual = new VisualConfig { SeparationRadius = 0.55f },
+        Visual = new VisualConfig { SeparationRadius = 0.55f, DisplayScale = 1.06f },
         ScenePath = "res://scenes/battle/units/wind_cleave_unit_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindDiver = new()
+    {
+        Id = UnitIds.WindDiver,
+        DisplayName = "Wind Diver",
+        Stats = new UnitStats
+        {
+            MaxHp = 75f,
+            AttackDamage = 17f,
+            AttackRange = 3.0f,
+            AttackSpeed = 1.15f,
+            MoveSpeed = 4.4f,
+            AggroRadius = 22f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        TargetPriority = UnitTargetPriority.PreferRangedOrSupport,
+        Visual = new VisualConfig { SeparationRadius = 0.4f, DisplayScale = 0.84f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindSpeedSupport = new()
+    {
+        Id = UnitIds.WindSpeedSupport,
+        DisplayName = "Wind Speed Support",
+        Stats = new UnitStats
+        {
+            MaxHp = 80f,
+            AttackDamage = 6f,
+            AttackRange = 16f,
+            AttackSpeed = 0.65f,
+            MoveSpeed = 3.0f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "attack_speed_aura",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3f,
+                Radius = 7f,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.AttackSpeedModifier,
+                        Value = 0.18f,
+                        DurationSeconds = 3.5f,
+                        Lifetime = EffectLifetime.Timed(3.5f),
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.WindPuff),
+        Visual = new VisualConfig { SeparationRadius = 0.42f, DisplayScale = 0.9f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindMissSupport = new()
+    {
+        Id = UnitIds.WindMissSupport,
+        DisplayName = "Wind Miss Support",
+        Stats = new UnitStats
+        {
+            MaxHp = 78f,
+            AttackDamage = 5f,
+            AttackRange = 16f,
+            AttackSpeed = 0.65f,
+            MoveSpeed = 3.1f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "accuracy_disrupt_pulse",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3.2f,
+                Radius = 7f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.AccuracyModifier,
+                        Value = -0.18f,
+                        DurationSeconds = 3.5f,
+                        Lifetime = EffectLifetime.Timed(3.5f),
+                    },
+                ],
+            },
+        ],
+        Ranged = new RangedConfig(ProjectileIds.WindPuff),
+        Visual = new VisualConfig { SeparationRadius = 0.42f, DisplayScale = 0.9f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WindSwarmUnit = new()
+    {
+        Id = UnitIds.WindSwarmUnit,
+        DisplayName = "Wind Swarm Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 34f,
+            AttackDamage = 6f,
+            AttackRange = 2.8f,
+            AttackSpeed = 1.6f,
+            MoveSpeed = 4.6f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Visual = new VisualConfig { SeparationRadius = 0.28f, DisplayScale = 0.72f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition DashStriker = new()
+    {
+        Id = UnitIds.DashStriker,
+        DisplayName = "Flow Striker",
+        Stats = new UnitStats
+        {
+            MaxHp = 95f,
+            AttackDamage = 14f,
+            AttackRange = 3.1f,
+            AttackSpeed = 1.25f,
+            MoveSpeed = 4.0f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        TacticalRole = TacticalRole.Flanker,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "strike_flow",
+                Trigger = UnitAbilityTrigger.OnHit,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.EvasionModifier,
+                        Value = 0.20f,
+                        DurationSeconds = 1.5f,
+                        Lifetime = EffectLifetime.Timed(1.5f),
+                    },
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.AttackSpeedModifier,
+                        Value = 0.22f,
+                        DurationSeconds = 1.5f,
+                        Lifetime = EffectLifetime.Timed(1.5f),
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.42f, DisplayScale = 0.88f },
+        ScenePath = "res://scenes/battle/units/wind_roster_placeholder_3d.tscn",
     };
 
     // =========================================================================
@@ -695,7 +1326,7 @@ public static class UnitDefinitions
     public static readonly UnitDefinition WaterBulwark = new()
     {
         Id = UnitIds.WaterBulwark,
-        DisplayName = "Water Bulwark",
+        DisplayName = "Water Frontliner",
         Stats = new UnitStats
         {
             MaxHp = 240f,
@@ -707,14 +1338,14 @@ public static class UnitDefinitions
         },
         UnitType = UnitType.Melee,
         TargetingProfile = UnitTargetingProfile.MeleeGround,
-        Visual = new VisualConfig { SeparationRadius = 0.75f },
+        Visual = new VisualConfig { SeparationRadius = 0.75f, DisplayScale = 1.24f },
         ScenePath = "res://scenes/battle/units/earth_sprite_3d.tscn",
     };
 
     public static readonly UnitDefinition WaterMender = new()
     {
         Id = UnitIds.WaterMender,
-        DisplayName = "Water Mender",
+        DisplayName = "Water Cleanser",
         Stats = new UnitStats
         {
             MaxHp = 85f,
@@ -731,11 +1362,17 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "cleanse_pulse",
-                Kind = UnitAbilityKind.CleansePulse,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 4.2f,
                 Radius = 7f,
-                Value = 18f,
                 TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig { EffectType = EffectType.Cleanse },
+                    new UnitAbilityEffectConfig { EffectType = EffectType.Heal, Value = 18f },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.45f },
@@ -745,7 +1382,7 @@ public static class UnitDefinitions
     public static readonly UnitDefinition WaterSkimmer = new()
     {
         Id = UnitIds.WaterSkimmer,
-        DisplayName = "Water Skimmer",
+        DisplayName = "Flying Water Skirmisher",
         Stats = new UnitStats
         {
             MaxHp = 70f,
@@ -769,6 +1406,164 @@ public static class UnitDefinitions
         ScenePath = "res://scenes/battle/units/puff_3d.tscn",
     };
 
+    public static readonly UnitDefinition WaterRedistributor = new()
+    {
+        Id = UnitIds.WaterRedistributor,
+        DisplayName = "Water Redistributor",
+        Stats = new UnitStats
+        {
+            MaxHp = 95f,
+            AttackDamage = 0f,
+            AttackRange = 12f,
+            AttackSpeed = 0f,
+            MoveSpeed = 2.2f,
+            AggroRadius = 14f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.Passive,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "health_redistribution",
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.HealthRedistributionPool,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 2.6f,
+                Radius = 8f,
+                TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.TransferHealth,
+                        Value = 18f,
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.45f, DisplayScale = 0.88f },
+        ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition SlipperyMelee = new()
+    {
+        Id = UnitIds.SlipperyMelee,
+        DisplayName = "Slippery Melee",
+        Stats = new UnitStats
+        {
+            MaxHp = 105f,
+            AttackDamage = 13f,
+            AttackRange = 3.1f,
+            AttackSpeed = 1.05f,
+            MoveSpeed = 3.6f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "slippery_evasion",
+                Trigger = UnitAbilityTrigger.OnSpawn,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.EvasionModifier,
+                        Value = 0.14f,
+                        DurationSeconds = -1f,
+                        Lifetime = EffectLifetime.Persistent(),
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.45f, DisplayScale = 0.92f },
+        ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WaterRanged = new()
+    {
+        Id = UnitIds.WaterRanged,
+        DisplayName = "Water Ranged",
+        Stats = new UnitStats
+        {
+            MaxHp = 72f,
+            AttackDamage = 13f,
+            AttackRange = 20f,
+            AttackSpeed = 0.85f,
+            MoveSpeed = 2.6f,
+            AggroRadius = 22f,
+        },
+        UnitType = UnitType.Ranged,
+        TargetingProfile = UnitTargetingProfile.RangedGround,
+        Ranged = new RangedConfig(ProjectileIds.WindPuff),
+        Visual = new VisualConfig { SeparationRadius = 0.38f, DisplayScale = 0.86f },
+        ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition BarbedInflator = new()
+    {
+        Id = UnitIds.BarbedInflator,
+        DisplayName = "Barbed Inflator",
+        Stats = new UnitStats
+        {
+            MaxHp = 155f,
+            AttackDamage = 11f,
+            AttackRange = 3.0f,
+            AttackSpeed = 0.75f,
+            MoveSpeed = 2.1f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Abilities =
+        [
+            new UnitAbilityConfig
+            {
+                AbilityId = "barbed_pulse",
+                Trigger = UnitAbilityTrigger.OnDamaged,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 3.2f,
+                Radius = 4.5f,
+                TargetAffinity = AbilityTargetAffinity.Enemies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Damage,
+                        Value = 12f,
+                        DamageType = DamageType.Physical,
+                    },
+                ],
+            },
+            new UnitAbilityConfig
+            {
+                AbilityId = "inflated_guard",
+                Trigger = UnitAbilityTrigger.OnDamaged,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
+                CooldownSeconds = 5.5f,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig
+                    {
+                        EffectType = EffectType.Shield,
+                        Value = 24f,
+                        DurationSeconds = 4f,
+                        Lifetime = EffectLifetime.Timed(4f),
+                    },
+                ],
+            },
+        ],
+        Visual = new VisualConfig { SeparationRadius = 0.6f, DisplayScale = 1.1f },
+        ScenePath = "res://scenes/battle/units/water_roster_placeholder_3d.tscn",
+    };
+
     public static readonly UnitDefinition LifeMedic = new()
     {
         Id = UnitIds.LifeMedic,
@@ -789,12 +1584,17 @@ public static class UnitDefinitions
             new UnitAbilityConfig
             {
                 AbilityId = "healer_bullet",
-                Kind = UnitAbilityKind.HealerProjectile,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.LowestHpAlly,
+                Delivery = UnitAbilityDelivery.Projectile,
                 CooldownSeconds = 1.2f,
                 Range = 18f,
-                Value = 14f,
                 ProjectileId = ProjectileIds.HealingBolt,
                 TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectConfig { EffectType = EffectType.Heal, Value = 14f },
+                ],
             },
         ],
         Visual = new VisualConfig { SeparationRadius = 0.4f },
@@ -877,6 +1677,12 @@ public static class UnitDefinitions
         [UnitIds.FireBoar] = FireBoar,
         [UnitIds.FireWolf] = FireWolf,
         [UnitIds.FireSpider] = FireSpider,
+        [UnitIds.CinderCaster] = CinderCaster,
+        [UnitIds.EmberBombCarrier] = EmberBombCarrier,
+        [UnitIds.KindlingSwarmUnit] = KindlingSwarmUnit,
+        [UnitIds.FireFrontliner] = FireFrontliner,
+        [UnitIds.OverheatBrawler] = OverheatBrawler,
+        [UnitIds.FlameChanneler] = FlameChanneler,
         // Earth
         [UnitIds.EarthSprite] = EarthSprite,
         [UnitIds.EarthKomodoDragon] = EarthKomodoDragon,
@@ -886,11 +1692,18 @@ public static class UnitDefinitions
         [UnitIds.EarthFlatDamageReductionTank] = EarthFlatDamageReductionTank,
         [UnitIds.EarthBulletUnit] = EarthBulletUnit,
         [UnitIds.TauntPulseGuardian] = TauntPulseGuardian,
+        [UnitIds.EarthShieldSupport] = EarthShieldSupport,
+        [UnitIds.BurrowAmbusher] = BurrowAmbusher,
         // Wind
         [UnitIds.Puff] = Puff,
         [UnitIds.WindEvasionTank] = WindEvasionTank,
         [UnitIds.WindPushbackUnit] = WindPushbackUnit,
         [UnitIds.WindCleaveUnit] = WindCleaveUnit,
+        [UnitIds.WindDiver] = WindDiver,
+        [UnitIds.WindSpeedSupport] = WindSpeedSupport,
+        [UnitIds.WindMissSupport] = WindMissSupport,
+        [UnitIds.WindSwarmUnit] = WindSwarmUnit,
+        [UnitIds.DashStriker] = DashStriker,
         // Water
         [UnitIds.WaterFrog] = WaterFrog,
         [UnitIds.MamaDuck] = MamaDuck,
@@ -898,6 +1711,10 @@ public static class UnitDefinitions
         [UnitIds.WaterBulwark] = WaterBulwark,
         [UnitIds.WaterMender] = WaterMender,
         [UnitIds.WaterSkimmer] = WaterSkimmer,
+        [UnitIds.WaterRedistributor] = WaterRedistributor,
+        [UnitIds.SlipperyMelee] = SlipperyMelee,
+        [UnitIds.WaterRanged] = WaterRanged,
+        [UnitIds.BarbedInflator] = BarbedInflator,
         [UnitIds.LifeMedic] = LifeMedic,
         [UnitIds.PoisonNeedler] = PoisonNeedler,
         [UnitIds.PiercingLaser] = PiercingLaser,
@@ -967,7 +1784,9 @@ public static class UnitDefinitions
         template.SoulStrength = stats.SoulStrength;
         template.UnitType = def.UnitType;
         template.TacticalRole = ResolveTacticalRole(def, stats);
+        template.TargetPriority = def.TargetPriority;
         template.MovementLayer = def.MovementLayer;
+        template.CombatTags = def.CombatTags.ToList();
         template.ElementId = (int)(def.DamageProfile.Element ?? Fateforged.Cards.Element.Neutral);
         template.PhysicalDamageRatio = def.DamageProfile.PhysicalRatio;
         template.ElementalDamageRatio = def.DamageProfile.ElementalRatio;
@@ -1196,7 +2015,9 @@ public static class UnitDefinitions
                 new UnitAbilityState
                 {
                     AbilityId = ability.AbilityId,
-                    Kind = ability.Kind,
+                    Trigger = ability.Trigger,
+                    Targeting = ability.Targeting,
+                    Delivery = ability.Delivery,
                     CooldownSeconds = ability.CooldownSeconds,
                     CooldownTimer = 0f,
                     Range = ability.Range,
@@ -1207,9 +2028,60 @@ public static class UnitDefinitions
                     Lifetime = EffectLifetimeResolver.Resolve(ability.Lifetime, ability.DurationSeconds),
                     WindupSeconds = ability.WindupSeconds,
                     WindupTimer = 0f,
+                    DeliveryDelaySeconds = ability.DeliveryDelaySeconds,
+                    RepeatCount = ability.RepeatCount,
+                    RepeatIntervalSeconds = ability.RepeatIntervalSeconds,
                     LockedTargetUnitId = null,
                     ProjectileCatalogId = ability.ProjectileId.Value,
                     TargetAffinity = ability.TargetAffinity,
+                    Effects = BuildAbilityEffectStates(ability),
+                    TagRequirements = ability.TagRequirements.DeepClone(),
+                    CueId = ability.CueId,
+                }
+            );
+        }
+        return result;
+    }
+
+    private static List<UnitAbilityEffectState> BuildAbilityEffectStates(UnitAbilityConfig ability)
+    {
+        var effects = ability.Effects.Length > 0
+            ? ability.Effects
+            :
+            [
+                new UnitAbilityEffectConfig
+                {
+                    EffectType = ability.EffectType,
+                    Value = ability.Value,
+                    DurationSeconds = ability.DurationSeconds,
+                    Lifetime = ability.Lifetime,
+                },
+            ];
+
+        var result = new List<UnitAbilityEffectState>(effects.Length);
+        foreach (var effect in effects)
+        {
+            result.Add(
+                new UnitAbilityEffectState
+                {
+                    EffectType = effect.EffectType,
+                    Value = effect.Value,
+                    DurationSeconds = effect.DurationSeconds,
+                    Lifetime = EffectLifetimeResolver.Resolve(
+                        effect.Lifetime,
+                        effect.DurationSeconds
+                    ),
+                    DamageType = effect.DamageType,
+                    StatusKind = effect.Status?.Kind ?? StatusEffectKind.None,
+                    StatusDuration = effect.Status?.DurationSeconds ?? 0f,
+                    StatusTickInterval = effect.Status?.TickIntervalSeconds ?? 1f,
+                    StatusPotencyPerStack = effect.Status?.PotencyPerStack ?? 0f,
+                    StatusMaxStacks = effect.Status?.MaxStacks ?? 1,
+                    TagRequirements = effect.TagRequirements.DeepClone(),
+                    GrantedTags = effect.GrantedTags.ToList(),
+                    StackPolicy = effect.StackPolicy,
+                    StackKey = effect.StackKey,
+                    CueId = effect.CueId,
                 }
             );
         }

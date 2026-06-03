@@ -8,12 +8,14 @@ public sealed class DebugArenaSpawnerPanelBridge : IDebugArenaSpawnerPanelBridge
     private const string SignalSkipPrepToggled = "skip_prep_toggled";
     private const string SignalEnemyAiToggled = "enemy_ai_toggled";
     private const string SignalPlayerAiToggled = "player_ai_toggled";
+    private const string SignalPlayerHoldAdvanceToggled = "player_hold_advance_toggled";
     private const string SignalClearTeamRequested = "clear_team_requested";
     private const string SignalUndoRequested = "undo_requested";
 
     private const string MethodGetSkipPrepPhase = "get_skip_prep_phase";
     private const string MethodGetEnemyAiEnabled = "get_enemy_ai_enabled";
     private const string MethodGetPlayerAiEnabled = "get_player_ai_enabled";
+    private const string MethodGetPlayerHoldAdvanceEnabled = "get_player_hold_advance_enabled";
     private const string MethodAppendSpawnLog = "append_spawn_log";
     private const string MethodSetDebugDeckEntries = "set_debug_deck_entries";
 
@@ -44,6 +46,11 @@ public sealed class DebugArenaSpawnerPanelBridge : IDebugArenaSpawnerPanelBridge
         return ConnectSignal(SignalPlayerAiToggled, handler, required: false);
     }
 
+    public bool ConnectPlayerHoldAdvanceToggled(Callable handler)
+    {
+        return ConnectSignal(SignalPlayerHoldAdvanceToggled, handler, required: false);
+    }
+
     public bool ConnectClearTeamRequested(Callable handler)
     {
         return ConnectSignal(SignalClearTeamRequested, handler, required: false);
@@ -67,6 +74,11 @@ public sealed class DebugArenaSpawnerPanelBridge : IDebugArenaSpawnerPanelBridge
     public bool GetPlayerAiEnabled()
     {
         return CallBoolMethod(MethodGetPlayerAiEnabled);
+    }
+
+    public bool GetPlayerHoldAdvanceEnabled()
+    {
+        return CallBoolMethod(MethodGetPlayerHoldAdvanceEnabled);
     }
 
     public void AppendSpawnLog(string message)

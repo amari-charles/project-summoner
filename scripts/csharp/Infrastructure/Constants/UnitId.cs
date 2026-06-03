@@ -47,6 +47,12 @@ public static class UnitIds
     public static readonly UnitId FireBoar = new("fire_boar");
     public static readonly UnitId FireWolf = new("fire_wolf");
     public static readonly UnitId FireSpider = new("fire_spider");
+    public static readonly UnitId CinderCaster = new("cinder_caster");
+    public static readonly UnitId EmberBombCarrier = new("ember_bomb_carrier");
+    public static readonly UnitId KindlingSwarmUnit = new("kindling_swarm_unit");
+    public static readonly UnitId FireFrontliner = new("fire_frontliner");
+    public static readonly UnitId OverheatBrawler = new("overheat_brawler");
+    public static readonly UnitId FlameChanneler = new("flame_channeler");
 
     // =========================================================================
     // EARTH ELEMENT UNITS
@@ -62,6 +68,8 @@ public static class UnitIds
         "earth_flat_damage_reduction_tank"
     );
     public static readonly UnitId EarthBulletUnit = new("earth_bullet_unit");
+    public static readonly UnitId EarthShieldSupport = new("earth_shield_support");
+    public static readonly UnitId BurrowAmbusher = new("burrow_ambusher");
 
     // =========================================================================
     // WIND ELEMENT UNITS
@@ -71,6 +79,11 @@ public static class UnitIds
     public static readonly UnitId WindEvasionTank = new("wind_evasion_tank");
     public static readonly UnitId WindPushbackUnit = new("wind_pushback_unit");
     public static readonly UnitId WindCleaveUnit = new("wind_cleave_unit");
+    public static readonly UnitId WindDiver = new("wind_diver");
+    public static readonly UnitId WindSpeedSupport = new("wind_speed_support");
+    public static readonly UnitId WindMissSupport = new("wind_miss_support");
+    public static readonly UnitId WindSwarmUnit = new("wind_swarm_unit");
+    public static readonly UnitId DashStriker = new("dash_striker");
 
     // =========================================================================
     // WATER ELEMENT UNITS
@@ -82,6 +95,10 @@ public static class UnitIds
     public static readonly UnitId WaterBulwark = new("water_bulwark");
     public static readonly UnitId WaterMender = new("water_mender");
     public static readonly UnitId WaterSkimmer = new("water_skimmer");
+    public static readonly UnitId WaterRedistributor = new("water_redistributor");
+    public static readonly UnitId SlipperyMelee = new("slippery_melee");
+    public static readonly UnitId WaterRanged = new("water_ranged");
+    public static readonly UnitId BarbedInflator = new("barbed_inflator");
     public static readonly UnitId LifeMedic = new("life_medic");
     public static readonly UnitId PoisonNeedler = new("poison_needler");
     public static readonly UnitId PiercingLaser = new("piercing_laser");

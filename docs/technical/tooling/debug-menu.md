@@ -20,6 +20,10 @@ Development utility panel for testing and debugging. Only active in debug builds
 
 ### Debug Toggles
 
+#### Test Arena Map
+
+`Open Test Arena Map` switches to the legacy campaign-map chooser with the Test Arena campaign selected. Use that map to choose one of the predefined test battles before entering combat.
+
 #### Grid Lines
 Visualizes the SpatialGrid cells used for unit proximity queries.
 

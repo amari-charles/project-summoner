@@ -3,8 +3,10 @@ using Fateforged.Cards.Formations;
 using Fateforged.Cards.Spawning;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Stats;
+using Fateforged.Units;
 using Fateforged.Vfx;
 
 namespace Fateforged.Cards;
@@ -51,7 +53,6 @@ public static class CardDefinitions
         ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Fire,
-        Flags = CardFlags.Archived,
     };
 
     public static readonly CardDefinition Rally = new()
@@ -328,6 +329,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 6.0f,
         SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -370,6 +372,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 7.0f,
         SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -386,6 +389,673 @@ public static class CardDefinitions
         ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition FireAreaBurn = new()
+    {
+        Id = CardIds.FireAreaBurn,
+        Name = "Fire Area Burn",
+        Description = "Ignites enemies in an area with stacking burn.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.StatusApply,
+                Duration = 4f,
+                Lifetime = EffectLifetime.Timed(4f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Enemies,
+                StatusKind = StatusEffectKind.Burn,
+                StatusTickInterval = 1f,
+                StatusPotencyPerStack = 4f,
+                StatusMaxStacks = 5,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition BurnCashout = new()
+    {
+        Id = CardIds.BurnCashout,
+        Name = "Burn Cashout",
+        Description = "Consumes burn on enemies in an area and deals the remaining burn value at bonus force.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellVfx = VfxIds.SpellAreaBurst,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.StatusConsume,
+                Value = 1.5f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Enemies,
+                StatusKind = StatusEffectKind.Burn,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition Overheat = new()
+    {
+        Id = CardIds.Overheat,
+        Name = "Overheat",
+        Description = "Pushes allied units past their limit with temporary damage and attack speed, then singes them.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.5f,
+        SummonTime = 0.0f,
+        SpellRadius = 6.0f,
+        SpellDuration = 5.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.DamageBoost,
+                Value = 0.28f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 6f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.AttackSpeedModifier,
+                Value = 0.25f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 6f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 12f,
+                DamageType = DamageType.True,
+                RadiusOverride = 6f,
+                Affinity = SpellAffinity.Allies,
+                DelaySeconds = 5f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition IgnitionMark = new()
+    {
+        Id = CardIds.IgnitionMark,
+        Name = "Ignition Mark",
+        Description = "Marks one enemy with a delayed burst and short burn window.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.StatModifier,
+                Duration = 4f,
+                Lifetime = EffectLifetime.Timed(4f),
+                Affinity = SpellAffinity.Enemies,
+                RemovalEffect = new BuffRemovalEffectConfig
+                {
+                    TriggerOnOwnerDeath = true,
+                    EffectType = EffectType.Damage,
+                    Value = 15f,
+                    ScaleValueByOwnerHpAtApply = true,
+                    OwnerHpAtApplyMultiplier = 0.25f,
+                    DamageType = DamageType.Magic,
+                    Radius = 4.5f,
+                    Affinity = SpellAffinity.Enemies,
+                },
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.StatusApply,
+                Duration = 4f,
+                Lifetime = EffectLifetime.Timed(4f),
+                Affinity = SpellAffinity.Enemies,
+                StatusKind = StatusEffectKind.Burn,
+                StatusTickInterval = 1f,
+                StatusPotencyPerStack = 4f,
+                StatusMaxStacks = 4,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition FlareShield = new()
+    {
+        Id = CardIds.FlareShield,
+        Name = "Flare Shield",
+        Description = "Shields allies briefly, then releases a flare at the cast point.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 0.0f,
+        SpellRadius = 5.5f,
+        SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Shield,
+                Value = 35f,
+                Duration = 3f,
+                Lifetime = EffectLifetime.Timed(3f),
+                RadiusOverride = 5.5f,
+                Affinity = SpellAffinity.Allies,
+                RemovalEffect = new BuffRemovalEffectConfig
+                {
+                    TriggerOnExpire = true,
+                    TriggerOnShieldBreak = true,
+                    EffectType = EffectType.Damage,
+                    Value = 28f,
+                    DamageType = DamageType.Magic,
+                    Radius = 5.5f,
+                    Affinity = SpellAffinity.Enemies,
+                },
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition BubbleShield = new()
+    {
+        Id = CardIds.BubbleShield,
+        Name = "Bubble Shield",
+        Description = "Adds a protective shield to allied units in an area.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Shield,
+                Value = 45f,
+                Duration = 4f,
+                Lifetime = EffectLifetime.Timed(4f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition Whirlpool = new()
+    {
+        Id = CardIds.Whirlpool,
+        Name = "Whirlpool",
+        Description = "Pulls enemies toward the center of a water field while wearing them down.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 5,
+        Cooldown = 2.6f,
+        SummonTime = 0.0f,
+        SpellRadius = 8.0f,
+        SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Displacement,
+                Value = -2.2f,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                RepeatCount = 4,
+                RepeatIntervalSeconds = 0.6f,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 7f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                RepeatCount = 4,
+                RepeatIntervalSeconds = 0.6f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition Flow = new()
+    {
+        Id = CardIds.Flow,
+        Name = "Flow",
+        Description = "Allies in the area gain dodge chance and deal more damage for a short time.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.2f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 5.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.EvasionModifier,
+                Value = 0.18f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.DamageBoost,
+                Value = 0.18f,
+                Duration = 5f,
+                Lifetime = EffectLifetime.Timed(5f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Allies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition Quake = new()
+    {
+        Id = CardIds.Quake,
+        Name = "Quake",
+        Description = "Damages and briefly stuns enemies in an earth impact zone.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 5,
+        Cooldown = 2.6f,
+        SummonTime = 0.0f,
+        SpellRadius = 8.0f,
+        SpellDuration = 1.0f,
+        SpellVfx = VfxIds.SpellAreaBurst,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 45f,
+                DamageType = DamageType.Physical,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                TargetLayerFilter = TargetLayer.GroundOnly,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Stun,
+                Value = 1f,
+                Duration = 1f,
+                Lifetime = EffectLifetime.Timed(1f),
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                TargetLayerFilter = TargetLayer.GroundOnly,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition StoneSpike = new()
+    {
+        Id = CardIds.StoneSpike,
+        Name = "Stone Spike",
+        Description = "Deals heavy single-target earth damage.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.2f,
+        SummonTime = 0.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 80f,
+                DamageType = DamageType.Physical,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition GravityWell = new()
+    {
+        Id = CardIds.GravityWell,
+        Name = "Gravity Well",
+        Description = "Pulls enemies inward and makes their attacks slower.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 5,
+        Cooldown = 2.8f,
+        SummonTime = 0.0f,
+        SpellRadius = 8.0f,
+        SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Displacement,
+                Value = -1.4f,
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+                RepeatCount = 3,
+                RepeatIntervalSeconds = 0.8f,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.AttackSpeedModifier,
+                Value = -0.25f,
+                Duration = 4f,
+                Lifetime = EffectLifetime.Timed(4f),
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition ReformEarth = new()
+    {
+        Id = CardIds.ReformEarth,
+        Name = "Reform Earth",
+        Description = "Prepares nearby allied units to revive once at half health if they fall.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 5,
+        Cooldown = 3.0f,
+        SummonTime = 0.0f,
+        SpellRadius = 5.0f,
+        SpellDuration = 6.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.ReviveOnDeath,
+                Value = 0.5f,
+                Duration = 6f,
+                Lifetime = EffectLifetime.Timed(6f),
+                RadiusOverride = 5f,
+                Affinity = SpellAffinity.Allies,
+                RequiredTargetElement = Element.Earth,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition EarthenGrip = new()
+    {
+        Id = CardIds.EarthenGrip,
+        Name = "Earthen Grip",
+        Description = "Roots one enemy in place and deals light damage.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 0.0f,
+        SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Root,
+                Value = 1f,
+                Duration = 3f,
+                Lifetime = EffectLifetime.Timed(3f),
+                Affinity = SpellAffinity.Enemies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 24f,
+                DamageType = DamageType.Physical,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition Tornado = new()
+    {
+        Id = CardIds.Tornado,
+        Name = "Tornado",
+        Description = "Lifts enemies into a wind vortex, carrying them in a circle while dealing repeated damage.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 5,
+        Cooldown = 2.8f,
+        SummonTime = 0.0f,
+        SpellRadius = 7.0f,
+        SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.TornadoCarry,
+                Value = 5.2f,
+                Duration = 0.75f,
+                Lifetime = EffectLifetime.Timed(0.75f),
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Enemies,
+                RepeatCount = 4,
+                RepeatIntervalSeconds = 0.55f,
+                StackPolicy = EffectStackPolicy.RefreshDuration,
+                StackKey = "tornado_carry",
+                CueId = "spell.tornado.carry",
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 8f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 7f,
+                Affinity = SpellAffinity.Enemies,
+                RepeatCount = 4,
+                RepeatIntervalSeconds = 0.55f,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition Crosswind = new()
+    {
+        Id = CardIds.Crosswind,
+        Name = "Crosswind",
+        Description = "A long-lasting wind field that reduces enemy ranged damage.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 0.0f,
+        SpellRadius = 8.0f,
+        SpellDuration = 15.0f,
+        SpellVfx = VfxIds.SpellAreaField,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.RangedDamageModifier,
+                Value = -0.35f,
+                Duration = 15f,
+                Lifetime = EffectLifetime.Timed(15f),
+                RadiusOverride = 8f,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition AirBullet = new()
+    {
+        Id = CardIds.AirBullet,
+        Name = "Air Bullet",
+        Description = "Hits one enemy with wind damage and knocks it away.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 3,
+        Cooldown = 1.8f,
+        SummonTime = 0.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 42f,
+                DamageType = DamageType.Magic,
+                Affinity = SpellAffinity.Enemies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Knockback,
+                Value = 4f,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition Evacuate = new()
+    {
+        Id = CardIds.Evacuate,
+        Name = "Evacuate",
+        Description = "Pushes enemies away from the target point.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.2f,
+        SummonTime = 0.0f,
+        SpellRadius = 6.5f,
+        SpellVfx = VfxIds.SpellAreaBurst,
+        SpellCategory = SpellCategory.None,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Displacement,
+                Value = 5f,
+                RadiusOverride = 6.5f,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition WindShear = new()
+    {
+        Id = CardIds.WindShear,
+        Name = "Wind Shear",
+        Description = "Cuts a line of wind through enemies and pushes them off course.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Spell,
+        ManaCost = 4,
+        Cooldown = 2.2f,
+        SummonTime = 0.0f,
+        SpellRadius = 10.0f,
+        SpellVfx = VfxIds.SpellLine,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.AreaOfEffect,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 42f,
+                DamageType = DamageType.Magic,
+                RadiusOverride = 10f,
+                AreaShape = SpellAreaShape.Line,
+                Affinity = SpellAffinity.Enemies,
+            },
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Displacement,
+                Value = 2.5f,
+                RadiusOverride = 10f,
+                AreaShape = SpellAreaShape.Line,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
     };
 
     // =========================================================================
@@ -738,6 +1408,129 @@ public static class CardDefinitions
         ElementalAffinity = Element.Fire,
     };
 
+    public static readonly CardDefinition CinderCaster = new()
+    {
+        Id = CardIds.CinderCaster,
+        Name = "Cinder Caster",
+        Description = "Ranged fire unit whose attacks build burn stacks on a single target.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.CinderCaster,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition EmberBombCarrier = new()
+    {
+        Id = CardIds.EmberBombCarrier,
+        Name = "Ember Bomb Carrier",
+        Description = "Fast fragile melee unit that bursts on death and punishes clustered enemies.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 2,
+        Cooldown = 1.8f,
+        SummonTime = 0.8f,
+        UnitId = UnitIds.EmberBombCarrier,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition KindlingSwarm = new()
+    {
+        Id = CardIds.KindlingSwarm,
+        Name = "Kindling Swarm",
+        Description = "A group of small, fast fire melee units for early pressure.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.8f,
+        SummonTime = 1.1f,
+        UnitId = UnitIds.KindlingSwarmUnit,
+        SpawnCount = 5,
+        Formation = FormationPresets.TightSwarmGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Swarm | SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition FireFrontliner = new()
+    {
+        Id = CardIds.FireFrontliner,
+        Name = "Fire Frontliner",
+        Description = "Simple fire tank that gives aggressive decks a durable body.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.6f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.FireFrontliner,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Tank,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition OverheatBrawler = new()
+    {
+        Id = CardIds.OverheatBrawler,
+        Name = "Overheat Brawler",
+        Description = "Generalist fire fighter that grows stronger over time while burning itself down.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 1.1f,
+        UnitId = UnitIds.OverheatBrawler,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
+    public static readonly CardDefinition FlameChanneler = new()
+    {
+        Id = CardIds.FlameChanneler,
+        Name = "Flame Channeler",
+        Description = "Shorter-ranged fire attacker that stacks small burns quickly on its current target.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.3f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.FlameChanneler,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Fire,
+    };
+
     // =========================================================================
     // EARTH ELEMENT UNITS
     // =========================================================================
@@ -874,7 +1667,7 @@ public static class CardDefinitions
     {
         Id = CardIds.EarthBulletUnit,
         Name = "Earth Bullet Unit",
-        Description = "Ranged unit that fires dense earth projectiles at long range.",
+        Description = "Ranged unit that fires dense earth projectiles and slows targets on impact.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -886,6 +1679,47 @@ public static class CardDefinitions
         UnitType = UnitType.Ranged,
         IsRanged = true,
         CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition EarthShieldSupport = new()
+    {
+        Id = CardIds.EarthShieldSupport,
+        Name = "Earth Shield Support",
+        Description = "Support unit that periodically grants small shields to nearby allies.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.5f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.EarthShieldSupport,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Earth,
+    };
+
+    public static readonly CardDefinition BurrowAmbusher = new()
+    {
+        Id = CardIds.BurrowAmbusher,
+        Name = "Burrow Ambusher",
+        Description = "Fast earth melee unit with an intermittent stunning opening strike.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.BurrowAmbusher,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Fast,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Earth,
     };
@@ -999,6 +1833,109 @@ public static class CardDefinitions
         ElementalAffinity = Element.Wind,
     };
 
+    public static readonly CardDefinition WindDiver = new()
+    {
+        Id = CardIds.WindDiver,
+        Name = "Wind Diver",
+        Description = "Fast fragile melee unit for backline pressure.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 0.9f,
+        UnitId = UnitIds.WindDiver,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition WindSpeedSupport = new()
+    {
+        Id = CardIds.WindSpeedSupport,
+        Name = "Wind Speed Support",
+        Description = "Support unit that increases nearby allied attack speed.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WindSpeedSupport,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition WindMissSupport = new()
+    {
+        Id = CardIds.WindMissSupport,
+        Name = "Wind Miss Support",
+        Description = "Support unit that makes nearby enemies more likely to miss.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.4f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WindMissSupport,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition WindSwarm = new()
+    {
+        Id = CardIds.WindSwarm,
+        Name = "Wind Swarm",
+        Description = "A cluster of small fast wind melee units.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.7f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WindSwarmUnit,
+        SpawnCount = 5,
+        Formation = FormationPresets.TightSwarmGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
+        Roles = SummonRole.Swarm | SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
+    public static readonly CardDefinition DashStriker = new()
+    {
+        Id = CardIds.DashStriker,
+        Name = "Flow Striker",
+        Description = "Fast melee striker that briefly gains dodge and attack speed after landing hits.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.3f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.DashStriker,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Wind,
+    };
+
     // =========================================================================
     // WATER ELEMENT UNITS
     // =========================================================================
@@ -1066,8 +2003,8 @@ public static class CardDefinitions
     public static readonly CardDefinition WaterBulwark = new()
     {
         Id = CardIds.WaterBulwark,
-        Name = "Water Bulwark",
-        Description = "A heavy frontline water guardian that absorbs pressure for the team.",
+        Name = "Water Frontliner",
+        Description = "Placeholder water tank slot: a heavy frontline unit that absorbs pressure for the team.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -1087,8 +2024,8 @@ public static class CardDefinitions
     public static readonly CardDefinition WaterMender = new()
     {
         Id = CardIds.WaterMender,
-        Name = "Water Mender",
-        Description = "Support caster that periodically cleanses and lightly heals nearby allies.",
+        Name = "Water Cleanser",
+        Description = "Placeholder water support slot: periodically cleanses and lightly heals nearby allies.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 4,
@@ -1107,8 +2044,8 @@ public static class CardDefinitions
     public static readonly CardDefinition WaterSkimmer = new()
     {
         Id = CardIds.WaterSkimmer,
-        Name = "Water Skimmer",
-        Description = "An aerial skirmisher that peppers enemies with rapid water shots.",
+        Name = "Flying Water Skirmisher",
+        Description = "Placeholder water flying slot: an aerial ranged unit that pressures enemies from above.",
         Rarity = Rarity.Common,
         Type = CardType.Summon,
         ManaCost = 3,
@@ -1121,6 +2058,88 @@ public static class CardDefinitions
         IsRanged = true,
         CreatureTypes = CreatureType.Elemental | CreatureType.Aerial,
         Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition WaterRedistributor = new()
+    {
+        Id = CardIds.WaterRedistributor,
+        Name = "Water Redistributor",
+        Description = "Support unit that periodically shifts health among nearby allies toward the same HP percentage.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.5f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WaterRedistributor,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition SlipperyMelee = new()
+    {
+        Id = CardIds.SlipperyMelee,
+        Name = "Slippery Melee",
+        Description = "Mobile melee unit with a persistent dodge bonus.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.SlipperyMelee,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Fast,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition WaterRanged = new()
+    {
+        Id = CardIds.WaterRanged,
+        Name = "Water Ranged",
+        Description = "Straightforward ranged water attacker.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WaterRanged,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Ranged,
+        IsRanged = true,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Water,
+    };
+
+    public static readonly CardDefinition BarbedInflator = new()
+    {
+        Id = CardIds.BarbedInflator,
+        Name = "Barbed Inflator",
+        Description = "Defensive water melee unit that periodically shields itself and damages nearby enemies.",
+        Rarity = Rarity.Rare,
+        Type = CardType.Summon,
+        ManaCost = 4,
+        Cooldown = 2.6f,
+        SummonTime = 1.2f,
+        UnitId = UnitIds.BarbedInflator,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        Roles = SummonRole.Tank,
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Water,
     };
@@ -1232,6 +2251,24 @@ public static class CardDefinitions
         [CardIds.RainField] = RainField,
         [CardIds.TailWind] = TailWind,
         [CardIds.Fortify] = Fortify,
+        [CardIds.FireAreaBurn] = FireAreaBurn,
+        [CardIds.BurnCashout] = BurnCashout,
+        [CardIds.Overheat] = Overheat,
+        [CardIds.IgnitionMark] = IgnitionMark,
+        [CardIds.FlareShield] = FlareShield,
+        [CardIds.BubbleShield] = BubbleShield,
+        [CardIds.Whirlpool] = Whirlpool,
+        [CardIds.Flow] = Flow,
+        [CardIds.Quake] = Quake,
+        [CardIds.StoneSpike] = StoneSpike,
+        [CardIds.GravityWell] = GravityWell,
+        [CardIds.ReformEarth] = ReformEarth,
+        [CardIds.EarthenGrip] = EarthenGrip,
+        [CardIds.Tornado] = Tornado,
+        [CardIds.Crosswind] = Crosswind,
+        [CardIds.AirBullet] = AirBullet,
+        [CardIds.Evacuate] = Evacuate,
+        [CardIds.WindShear] = WindShear,
 
         // Wisps
         [CardIds.FireWisp] = FireWisp,
@@ -1251,6 +2288,12 @@ public static class CardDefinitions
         [CardIds.FireBoar] = FireBoar,
         [CardIds.FireWolf] = FireWolf,
         [CardIds.FireSpider] = FireSpider,
+        [CardIds.CinderCaster] = CinderCaster,
+        [CardIds.EmberBombCarrier] = EmberBombCarrier,
+        [CardIds.KindlingSwarm] = KindlingSwarm,
+        [CardIds.FireFrontliner] = FireFrontliner,
+        [CardIds.OverheatBrawler] = OverheatBrawler,
+        [CardIds.FlameChanneler] = FlameChanneler,
 
         // Earth units
         [CardIds.Pebbloom] = Pebbloom,
@@ -1261,6 +2304,8 @@ public static class CardDefinitions
         [CardIds.EarthFlatDamageReductionTank] = EarthFlatDamageReductionTank,
         [CardIds.EarthBulletUnit] = EarthBulletUnit,
         [CardIds.TauntPulseGuardian] = TauntPulseGuardian,
+        [CardIds.EarthShieldSupport] = EarthShieldSupport,
+        [CardIds.BurrowAmbusher] = BurrowAmbusher,
 
         // Wind units
         [CardIds.Puff] = Puff,
@@ -1268,6 +2313,11 @@ public static class CardDefinitions
         [CardIds.WindEvasionTank] = WindEvasionTank,
         [CardIds.WindPushbackUnit] = WindPushbackUnit,
         [CardIds.WindCleaveUnit] = WindCleaveUnit,
+        [CardIds.WindDiver] = WindDiver,
+        [CardIds.WindSpeedSupport] = WindSpeedSupport,
+        [CardIds.WindMissSupport] = WindMissSupport,
+        [CardIds.WindSwarm] = WindSwarm,
+        [CardIds.DashStriker] = DashStriker,
 
         // Water units
         [CardIds.WaterFrog] = WaterFrog,
@@ -1275,6 +2325,10 @@ public static class CardDefinitions
         [CardIds.WaterBulwark] = WaterBulwark,
         [CardIds.WaterMender] = WaterMender,
         [CardIds.WaterSkimmer] = WaterSkimmer,
+        [CardIds.WaterRedistributor] = WaterRedistributor,
+        [CardIds.SlipperyMelee] = SlipperyMelee,
+        [CardIds.WaterRanged] = WaterRanged,
+        [CardIds.BarbedInflator] = BarbedInflator,
         [CardIds.LifeMedic] = LifeMedic,
         [CardIds.PoisonNeedler] = PoisonNeedler,
         [CardIds.PiercingLaser] = PiercingLaser,

@@ -323,22 +323,28 @@ public static class SimBehavior
     {
         var attackerSummoner = state.Summoners[(int)attacker.Team];
         var targetSummoner = state.Summoners[(int)target.Team];
-        var (damage, isCrit) = SimDamage.Calculate(
+        var (damage, isCrit, wasEvaded) = SimDamage.CalculateAttack(
             baseDamage,
             attacker,
             target,
             attackerSummoner,
             targetSummoner,
-            state.Rng
+            state.Rng,
+            events,
+            state
         );
+        if (wasEvaded)
+            return;
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
+        if (target.CurrentHp > 0f)
+            SimAbilityOrchestrator.TryActivateOnDamagedEffects(state, target, attacker, events);
 
         if (target.CurrentHp <= 0)
         {
-            SimUtils.KillUnit(state, target, attacker.UnitId, events);
-            SimEffects.FireDeathTriggers(state, target, attacker, events);
+            if (SimUtils.KillUnit(state, target, attacker.UnitId, events))
+                SimEffects.FireDeathTriggers(state, target, attacker, events);
         }
     }
 
@@ -358,34 +364,41 @@ public static class SimBehavior
     {
         var attackerSummoner = state.Summoners[(int)attacker.Team];
         var targetSummoner = state.Summoners[(int)target.Team];
-        var (damage, isCrit) = SimDamage.Calculate(
+        var (damage, isCrit, wasEvaded) = SimDamage.CalculateAttack(
             baseDamage,
             attacker,
             target,
             attackerSummoner,
             targetSummoner,
-            state.Rng
+            state.Rng,
+            events,
+            state
         );
+        if (wasEvaded)
+            return;
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, attacker.UnitId, damage, isCrit));
-        if (target.CurrentHp > 0f)
-            SimAbilityOrchestrator.TryActivateOnHitEffects(state, attacker, target, events);
+        SimAbilityOrchestrator.TryActivateOnHitEffects(state, attacker, target, events);
 
         // Fire OnHit triggers on attacker
         SimEffects.FireTriggers(state, attacker, TriggerType.OnHit, target, events);
 
         // Fire OnDamaged triggers on target (if still alive)
-        if (target.IsAlive)
+        if (target.CurrentHp > 0f)
+        {
+            SimAbilityOrchestrator.TryActivateOnDamagedEffects(state, target, attacker, events);
             SimEffects.FireTriggers(state, target, TriggerType.OnDamaged, attacker, events);
+        }
 
         if (target.CurrentHp <= 0)
         {
-            SimUtils.KillUnit(state, target, attacker.UnitId, events);
-
-            // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
-            SimEffects.FireTriggers(state, attacker, TriggerType.OnKill, target, events);
-            SimEffects.FireDeathTriggers(state, target, attacker, events);
+            if (SimUtils.KillUnit(state, target, attacker.UnitId, events))
+            {
+                // Fire OnKill triggers on attacker, OnDeath + LeaderDeath on target
+                SimEffects.FireTriggers(state, attacker, TriggerType.OnKill, target, events);
+                SimEffects.FireDeathTriggers(state, target, attacker, events);
+            }
         }
     }
 

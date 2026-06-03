@@ -31,6 +31,7 @@ public interface ISimEventVisitor
     void Visit(BuffAppliedEvent e);
     void Visit(BuffExpiredEvent e);
     void Visit(AbilityActivatedEvent e);
+    void Visit(EffectCueEvent e);
     void Visit(StatusAppliedEvent e);
     void Visit(DelayedEffectFiredEvent e);
     void Visit(SummonerDamagedEvent e);

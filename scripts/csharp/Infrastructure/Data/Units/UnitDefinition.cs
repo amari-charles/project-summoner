@@ -50,6 +50,9 @@ public record UnitDefinition
     /// <summary>Health scoring weight for target selection.</summary>
     public float TargetingHealthScorerWeight { get; init; } = 10f;
 
+    /// <summary>Optional preference used after normal target filters pass.</summary>
+    public UnitTargetPriority TargetPriority { get; init; } = UnitTargetPriority.Default;
+
     /// <summary>Layer filter for target acquisition.</summary>
     public TargetLayer TargetingLayerFilter { get; init; } = TargetLayer.GroundOnly;
 
@@ -74,6 +77,9 @@ public record UnitDefinition
 
     /// <summary>Optional simulation-owned ability loadout for this unit.</summary>
     public List<UnitAbilityConfig> Abilities { get; init; } = [];
+
+    /// <summary>Combat tags used by effect requirements and immunity rules.</summary>
+    public string[] CombatTags { get; init; } = [];
 
     // =========================================================================
     // RANGED CONFIGURATION (null = not a ranged unit)
@@ -180,6 +186,9 @@ public record VisualConfig
 
     /// <summary>HP bar Y offset override. 0 = auto-calculate.</summary>
     public float HpBarOffsetY { get; init; } = 0f;
+
+    /// <summary>Visual-only scale multiplier for shared placeholder scenes.</summary>
+    public float DisplayScale { get; init; } = 1f;
 
     /// <summary>Offset from center mass for projectile targeting.</summary>
     public Vector3 TargetPointOffset { get; init; } = Vector3.Zero;

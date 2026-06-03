@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Simulation.Effects;
@@ -98,9 +99,23 @@ public class SimCardData
                             AoeRadius = effect.RadiusOverride,
                             AreaShape = effect.AreaShape,
                             Affinity = effect.Affinity,
+                            TargetLayerFilter = effect.TargetLayerFilter,
+                            RequiredTargetElementId = effect.RequiredTargetElement.HasValue
+                                ? (int)effect.RequiredTargetElement.Value
+                                : -1,
                             DelaySeconds = effect.DelaySeconds,
                             RepeatCount = effect.RepeatCount,
                             RepeatIntervalSeconds = effect.RepeatIntervalSeconds,
+                            StatusKind = effect.StatusKind,
+                            StatusTickInterval = effect.StatusTickInterval,
+                            StatusPotencyPerStack = effect.StatusPotencyPerStack,
+                            StatusMaxStacks = effect.StatusMaxStacks,
+                            RemovalEffect = effect.RemovalEffect,
+                            TagRequirements = effect.TagRequirements.DeepClone(),
+                            GrantedTags = effect.GrantedTags.ToList(),
+                            StackPolicy = effect.StackPolicy,
+                            StackKey = effect.StackKey,
+                            CueId = effect.CueId,
                         }
                     );
                 }
@@ -147,8 +162,10 @@ public class SimUnitTemplate
     // Classification
     public UnitType UnitType { get; set; }
     public TacticalRole TacticalRole { get; set; } = TacticalRole.Auto;
+    public UnitTargetPriority TargetPriority { get; set; } = UnitTargetPriority.Default;
     public MovementLayer MovementLayer { get; set; }
     public int ElementId { get; set; }
+    public List<string> CombatTags { get; set; } = new();
 
     // Ranged config
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
@@ -201,7 +218,9 @@ public class SimUnitTemplate
 public sealed class UnitAbilityState
 {
     public string AbilityId { get; set; } = "";
-    public UnitAbilityKind Kind { get; set; }
+    public UnitAbilityTrigger Trigger { get; set; } = UnitAbilityTrigger.Periodic;
+    public UnitAbilityTargeting Targeting { get; set; } = UnitAbilityTargeting.Self;
+    public UnitAbilityDelivery Delivery { get; set; } = UnitAbilityDelivery.Instant;
     public float CooldownSeconds { get; set; } = 1f;
     public float CooldownTimer { get; set; }
     public float Range { get; set; }
@@ -212,17 +231,25 @@ public sealed class UnitAbilityState
     public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
     public float WindupSeconds { get; set; }
     public float WindupTimer { get; set; }
+    public float DeliveryDelaySeconds { get; set; }
+    public int RepeatCount { get; set; }
+    public float RepeatIntervalSeconds { get; set; }
     public int? LockedTargetUnitId { get; set; }
     public bool HasApplied { get; set; }
     public SimProjectileCatalogId ProjectileCatalogId { get; set; } = SimProjectileCatalogId.Empty;
     public AbilityTargetAffinity TargetAffinity { get; set; } = AbilityTargetAffinity.Enemies;
+    public List<UnitAbilityEffectState> Effects { get; set; } = new();
+    public EffectTagRequirements TagRequirements { get; set; } = new();
+    public string CueId { get; set; } = "";
 
     public UnitAbilityState DeepClone()
     {
         return new UnitAbilityState
         {
             AbilityId = AbilityId,
-            Kind = Kind,
+            Trigger = Trigger,
+            Targeting = Targeting,
+            Delivery = Delivery,
             CooldownSeconds = CooldownSeconds,
             CooldownTimer = CooldownTimer,
             Range = Range,
@@ -233,10 +260,60 @@ public sealed class UnitAbilityState
             Lifetime = Lifetime,
             WindupSeconds = WindupSeconds,
             WindupTimer = WindupTimer,
+            DeliveryDelaySeconds = DeliveryDelaySeconds,
+            RepeatCount = RepeatCount,
+            RepeatIntervalSeconds = RepeatIntervalSeconds,
             LockedTargetUnitId = LockedTargetUnitId,
             HasApplied = HasApplied,
             ProjectileCatalogId = ProjectileCatalogId,
             TargetAffinity = TargetAffinity,
+            Effects = Effects.Select(e => e.DeepClone()).ToList(),
+            TagRequirements = TagRequirements.DeepClone(),
+            CueId = CueId,
+        };
+    }
+}
+
+/// <summary>
+/// Runtime simulation state for one effect payload inside a unit ability.
+/// </summary>
+public sealed class UnitAbilityEffectState
+{
+    public EffectType EffectType { get; set; } = EffectType.StatModifier;
+    public float Value { get; set; }
+    public float DurationSeconds { get; set; }
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
+    public DamageType DamageType { get; set; } = DamageType.Magic;
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+    public float StatusDuration { get; set; }
+    public float StatusTickInterval { get; set; } = 1f;
+    public float StatusPotencyPerStack { get; set; }
+    public int StatusMaxStacks { get; set; } = 1;
+    public EffectTagRequirements TagRequirements { get; set; } = new();
+    public List<string> GrantedTags { get; set; } = new();
+    public EffectStackPolicy StackPolicy { get; set; } = EffectStackPolicy.Independent;
+    public string StackKey { get; set; } = "";
+    public string CueId { get; set; } = "";
+
+    public UnitAbilityEffectState DeepClone()
+    {
+        return new UnitAbilityEffectState
+        {
+            EffectType = EffectType,
+            Value = Value,
+            DurationSeconds = DurationSeconds,
+            Lifetime = Lifetime,
+            DamageType = DamageType,
+            StatusKind = StatusKind,
+            StatusDuration = StatusDuration,
+            StatusTickInterval = StatusTickInterval,
+            StatusPotencyPerStack = StatusPotencyPerStack,
+            StatusMaxStacks = StatusMaxStacks,
+            TagRequirements = TagRequirements.DeepClone(),
+            GrantedTags = new List<string>(GrantedTags),
+            StackPolicy = StackPolicy,
+            StackKey = StackKey,
+            CueId = CueId,
         };
     }
 }

@@ -159,6 +159,15 @@ public static class EventIds
     /// <summary>Test Arena: Wind/Earth New Card Set (+ Fire Wisp reference)</summary>
     public static readonly EventId ArenaWindEarthNewCards = new("arena_wind_earth_new_cards");
 
+    /// <summary>Test Arena: All active Fire/Water/Earth/Wind units</summary>
+    public static readonly EventId ArenaAllUnits = new("arena_all_units");
+
+    /// <summary>Test Arena: All active Fire/Water/Earth/Wind cards</summary>
+    public static readonly EventId ArenaAllCards = new("arena_all_cards");
+
+    /// <summary>Test Arena: All active Fire/Water/Earth/Wind spells with a small real-art unit set</summary>
+    public static readonly EventId ArenaAllSpells = new("arena_all_spells");
+
     /// <summary>Test Arena: Debug Arena - Testing sandbox</summary>
     public static readonly EventId DebugArena = new("debug_arena");
 }

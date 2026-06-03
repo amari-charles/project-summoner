@@ -48,7 +48,7 @@ func _on_play() -> void:
 	_ring.visible = true
 	_column.visible = true
 
-	var ring_scale: float = maxf(0.8, _radius * 0.25)
+	var ring_scale: float = maxf(0.8, _radius)
 	_ring.scale = Vector3(ring_scale * 0.6, 1.0, ring_scale * 0.6)
 	_column.scale = Vector3(0.85, 1.0, 0.85)
 

@@ -67,6 +67,15 @@ const DEBUG_ARENA: StringName = &"debug_arena"
 ## Test Arena: Mana Bolt Spell Test
 const ARENA_MANA_BOLT: StringName = &"arena_mana_bolt"
 
+## Test Arena: All active Fire/Water/Earth/Wind units
+const ARENA_ALL_UNITS: StringName = &"arena_all_units"
+
+## Test Arena: All active Fire/Water/Earth/Wind cards
+const ARENA_ALL_CARDS: StringName = &"arena_all_cards"
+
+## Test Arena: All active Fire/Water/Earth/Wind spells with a small real-art unit set
+const ARENA_ALL_SPELLS: StringName = &"arena_all_spells"
+
 # ============================================================================
 # UTILITY ARRAYS
 # ============================================================================
@@ -97,6 +106,9 @@ const ALL_TEST_ARENA_NODES: Array[StringName] = [
 	ARENA_CLOUD_SWARM,
 	DEBUG_ARENA,
 	ARENA_MANA_BOLT,
+	ARENA_ALL_UNITS,
+	ARENA_ALL_CARDS,
+	ARENA_ALL_SPELLS,
 ]
 
 ## All battle IDs (campaign + test arena)

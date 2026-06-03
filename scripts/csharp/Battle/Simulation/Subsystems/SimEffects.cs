@@ -17,6 +17,21 @@ namespace Fateforged.Simulation.Subsystems;
 public static class SimEffects
 {
     private const float KnockbackDurationSeconds = 0.22f;
+    private const float TornadoDefaultCarryDurationSeconds = 0.75f;
+    private const float TornadoDefaultAngularSpeedRadians = 5.2f;
+    private const float TornadoBaseLiftHeight = 2.8f;
+    private const float TornadoHeightTierStep = 0.7f;
+    private const float TornadoBaseOrbitRadius = 1.2f;
+    private const float TornadoOrbitTierStep = 0.65f;
+    private const float TornadoLiftSeconds = 0.25f;
+    private const float TornadoFallSpeed = 6.0f;
+
+    private enum BuffRemovalReason
+    {
+        Expired,
+        ShieldBreak,
+        OwnerDeath,
+    }
 
     // =========================================================================
     // TICK METHODS (called from Simulation.Tick steps 7-8)
@@ -30,11 +45,17 @@ public static class SimEffects
     /// </summary>
     public static void TickBuffs(MatchState state, float fixedDelta, List<SimEvent> events)
     {
-        foreach (var unit in state.GetAliveActiveUnits())
+        var units = new List<UnitData>(state.GetAliveActiveUnits());
+        foreach (var unit in units)
         {
             for (int i = unit.ActiveBuffs.Count - 1; i >= 0; i--)
             {
                 var buff = unit.ActiveBuffs[i];
+
+                if (buff.EffectType == EffectType.TornadoCarry)
+                    TickTornadoCarry(unit, buff, fixedDelta);
+                else if (buff.EffectType == EffectType.TornadoFall)
+                    TickTornadoFall(unit, buff, fixedDelta);
 
                 // Periodic tick (DoT, HoT)
                 if (buff.TickInterval > 0)
@@ -56,8 +77,7 @@ public static class SimEffects
                     buff.Duration -= fixedDelta;
                     if (buff.Duration <= 0)
                     {
-                        events.Add(new BuffExpiredEvent(unit.UnitId, buff.BuffId, buff.EffectType));
-                        unit.ActiveBuffs.RemoveAt(i);
+                        RemoveBuff(state, unit, i, events, BuffRemovalReason.Expired);
                     }
                     else
                     {
@@ -110,78 +130,314 @@ public static class SimEffects
         UnitData target,
         int sourceUnitId,
         Team sourceTeam,
+        List<SimEvent> events,
+        StatusEffectKind statusKind = StatusEffectKind.None,
+        float statusTickInterval = 1f,
+        float statusPotencyPerStack = 0f,
+        int statusMaxStacks = 1,
+        SimVector3? sourcePosition = null,
+        BuffRemovalEffectConfig? removalEffect = null
+    )
+    {
+        var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
+        ApplyEffect(
+            state,
+            new EffectApplicationSpec
+            {
+                EffectType = effectType,
+                Value = value,
+                Duration = duration,
+                Lifetime = lifetime,
+                DamageType = damageType,
+                StatusKind = statusKind,
+                StatusTickInterval = statusTickInterval,
+                StatusPotencyPerStack = statusPotencyPerStack,
+                StatusMaxStacks = statusMaxStacks,
+                RemovalEffect = removalEffect,
+                Context = new EffectApplicationContext
+                {
+                    SourceUnitId = sourceUnitId,
+                    SourceTeam = sourceTeam,
+                    SourcePosition = sourcePosition,
+                },
+            },
+            target,
+            events
+        );
+    }
+
+    /// <summary>
+    /// Apply a fully resolved runtime effect spec to a target unit.
+    /// </summary>
+    public static bool ApplyEffect(
+        MatchState state,
+        EffectApplicationSpec spec,
+        UnitData target,
         List<SimEvent> events
     )
     {
         if (!target.IsAlive)
-            return;
+        {
+            LogEffectSkipped(state, spec, target, "target_dead");
+            return false;
+        }
+        if (!CanApplyEffect(state, spec, target))
+        {
+            LogEffectSkipped(state, spec, target, "requirements_failed");
+            return false;
+        }
 
-        switch (effectType)
+        var context = spec.Context;
+        float duration = spec.ResolvedDuration;
+        var targetBefore = CombatDebugFormatter.Capture(target);
+        switch (spec.EffectType)
         {
             case EffectType.Damage:
-                ApplyDirectDamage(
+                if (!ApplyDirectDamage(
                     state,
                     target,
-                    value,
-                    damageType,
-                    sourceUnitId,
-                    sourceTeam,
-                    events
-                );
+                    spec.Value,
+                    spec.DamageType,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    events,
+                    spec.RemovalEffect,
+                    context.TriggerSourceOnHit,
+                    context.TriggerTargetOnDamaged,
+                    context.UseAttackDamageProfile
+                ))
+                    return false;
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Heal:
-                ApplyHeal(target, value, events);
+                ApplyHeal(target, spec.Value, events);
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Shield:
-                ApplyShield(state, target, value, sourceUnitId, sourceTeam);
-                events.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, value, -1));
+                ApplyShield(
+                    state,
+                    target,
+                    spec.Value,
+                    duration,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    spec.RemovalEffect,
+                    spec,
+                    events
+                );
                 break;
 
             case EffectType.AreaDamage:
                 // AreaDamage is handled by the caller (FireTriggers) which resolves targets
                 // If called directly, treat as single-target damage
-                ApplyDirectDamage(
+                if (!ApplyDirectDamage(
                     state,
                     target,
-                    value,
-                    damageType,
-                    sourceUnitId,
-                    sourceTeam,
-                    events
-                );
+                    spec.Value,
+                    spec.DamageType,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    events,
+                    spec.RemovalEffect,
+                    context.TriggerSourceOnHit,
+                    context.TriggerTargetOnDamaged,
+                    context.UseAttackDamageProfile
+                ))
+                    return false;
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Cleanse:
-                ApplyCleanse(target, events);
+                ApplyCleanse(state, target, events);
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Knockback:
-                ApplyKnockback(state, target, value, sourceUnitId, sourceTeam);
+                ApplyKnockback(
+                    state,
+                    target,
+                    spec.Value,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    context.SourcePosition
+                );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
+                break;
+
+            case EffectType.Displacement:
+                ApplyDisplacement(
+                    state,
+                    target,
+                    spec.Value,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    context.SourcePosition
+                );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
+                break;
+
+            case EffectType.SourceLungeToTarget:
+                ApplySourceLungeToTarget(state, target, spec.Value, context.SourceUnitId);
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
+                break;
+
+            case EffectType.Taunt:
+                ApplyTaunt(target, context.SourceUnitId, duration, events, spec);
+                break;
+
+            case EffectType.StatusApply:
+                ApplyStackingStatus(
+                    state,
+                    target,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    spec.StatusKind,
+                    duration,
+                    spec.StatusTickInterval,
+                    spec.StatusPotencyPerStack > 0f ? spec.StatusPotencyPerStack : spec.Value,
+                    spec.StatusMaxStacks,
+                    spec.DamageType,
+                    events,
+                    spec
+                );
+                break;
+
+            case EffectType.StatusConsume:
+                ConsumeStatus(
+                    state,
+                    target,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    spec.StatusKind == StatusEffectKind.None ? StatusEffectKind.Burn : spec.StatusKind,
+                    spec.Value > 0f ? spec.Value : 1f,
+                    spec.DamageType,
+                    events
+                );
+                EmitCue(spec, target, EffectCuePhase.Executed, events);
                 break;
 
             case EffectType.Slow:
             case EffectType.Stun:
+            case EffectType.Root:
             case EffectType.Haste:
             case EffectType.DamageBoost:
             case EffectType.StatModifier:
             case EffectType.EvasionModifier:
             case EffectType.AttackSpeedModifier:
             case EffectType.FlatDamageReduction:
+            case EffectType.AccuracyModifier:
+            case EffectType.RangedDamageModifier:
+            case EffectType.ReviveOnDeath:
+            case EffectType.TornadoCarry:
+                if (spec.EffectType == EffectType.TornadoCarry)
+                {
+                    ApplyTornadoCarry(
+                        state,
+                        target,
+                        spec,
+                        duration,
+                        context.SourceUnitId,
+                        context.SourceTeam,
+                        context.SourcePosition,
+                        events
+                    );
+                    break;
+                }
+
                 ApplyBuff(
                     state,
                     target,
-                    effectType,
-                    value,
+                    spec.EffectType,
+                    spec.Value,
                     duration,
-                    damageType,
-                    sourceUnitId,
-                    sourceTeam,
-                    events
+                    spec.DamageType,
+                    context.SourceUnitId,
+                    context.SourceTeam,
+                    events,
+                    spec.RemovalEffect,
+                    spec
                 );
                 break;
         }
+
+        LogEffectApplied(state, spec, target, targetBefore);
+        return true;
+    }
+
+    private static bool CanApplyEffect(MatchState state, EffectApplicationSpec spec, UnitData target)
+    {
+        if (spec.RequiredTargetElementId >= 0 && target.ElementId != spec.RequiredTargetElementId)
+            return false;
+
+        var requirements = spec.TagRequirements;
+        if (requirements.IsEmpty)
+            return true;
+
+        state.Units.TryGetValue(spec.Context.SourceUnitId, out var source);
+        var sourceTags = CombatTagSet.GetOwnedTags(source);
+        var targetTags = CombatTagSet.GetOwnedTags(target);
+
+        return CombatTagSet.HasAll(sourceTags, requirements.RequiredSourceTags)
+            && !CombatTagSet.HasAny(sourceTags, requirements.BlockedSourceTags)
+            && CombatTagSet.HasAll(targetTags, requirements.RequiredTargetTags)
+            && !CombatTagSet.HasAny(targetTags, requirements.BlockedTargetTags);
+    }
+
+    private static void EmitCue(
+        EffectApplicationSpec spec,
+        UnitData target,
+        EffectCuePhase phase,
+        List<SimEvent>? events
+    )
+    {
+        if (events == null || string.IsNullOrWhiteSpace(spec.CueId))
+            return;
+
+        events.Add(
+            new EffectCueEvent(
+                spec.CueId,
+                phase,
+                spec.EffectType,
+                spec.Context.SourceUnitId,
+                target.UnitId,
+                spec.Context.SourcePosition ?? target.Position
+            )
+        );
+    }
+
+    private static void LogEffectApplied(
+        MatchState state,
+        EffectApplicationSpec spec,
+        UnitData target,
+        UnitDebugSnapshot targetBefore
+    )
+    {
+        if (!Simulation.DebugAbilityLogsEnabled)
+            return;
+        if (
+            !string.IsNullOrWhiteSpace(spec.Context.AbilityId)
+            || !string.IsNullOrWhiteSpace(spec.Context.CardCatalogId)
+        )
+            return;
+
+        Simulation.DebugAbilityLog(CombatDebugFormatter.FormatEffectApplied(state, spec, target, targetBefore));
+    }
+
+    private static void LogEffectSkipped(
+        MatchState state,
+        EffectApplicationSpec spec,
+        UnitData target,
+        string reason
+    )
+    {
+        if (!Simulation.DebugAbilityLogsEnabled)
+            return;
+        if (!string.IsNullOrWhiteSpace(spec.Context.CardCatalogId))
+            return;
+
+        Simulation.DebugAbilityLog(CombatDebugFormatter.FormatEffectSkipped(state, spec, target, reason));
     }
 
     // =========================================================================
@@ -256,6 +512,8 @@ public static class SimEffects
         List<SimEvent> events
     )
     {
+        SimAbilityOrchestrator.TryActivateOnDeathEffects(state, dyingUnit, killer, events);
+
         // Fire OnDeath triggers on the dying unit
         FireTriggers(state, dyingUnit, TriggerType.OnDeath, killer, events);
 
@@ -322,6 +580,10 @@ public static class SimEffects
         {
             if (buff.EffectType == EffectType.Stun)
                 return true;
+            if (buff.EffectType == EffectType.TornadoCarry)
+                return true;
+            if (buff.EffectType == EffectType.TornadoFall)
+                return true;
         }
         return false;
     }
@@ -341,7 +603,8 @@ public static class SimEffects
         float potencyPerStack,
         int maxStacks,
         DamageType damageType,
-        List<SimEvent> events
+        List<SimEvent> events,
+        EffectApplicationSpec? spec = null
     )
     {
         if (statusKind == StatusEffectKind.None)
@@ -384,6 +647,13 @@ public static class SimEffects
             };
             target.ActiveBuffs.Add(buff);
             stackCount = 1;
+            if (spec != null)
+            {
+                buff.GrantedTags = new List<string>(spec.GrantedTags);
+                buff.StackKey = spec.ResolvedStackKey;
+                buff.CueId = spec.CueId;
+                EmitCue(spec, target, EffectCuePhase.Active, events);
+            }
         }
         else
         {
@@ -403,6 +673,8 @@ public static class SimEffects
             existing.SourceTeam = sourceTeam;
             existing.DamageType = damageType;
             stackCount = existing.StackCount;
+            if (spec != null && string.IsNullOrWhiteSpace(existing.CueId))
+                existing.CueId = spec.CueId;
         }
 
         events.Add(
@@ -427,28 +699,54 @@ public static class SimEffects
         MatchState state,
         UnitData target,
         float shieldHp,
+        float duration,
         int sourceUnitId,
-        Team sourceTeam
+        Team sourceTeam,
+        BuffRemovalEffectConfig? removalEffect = null,
+        EffectApplicationSpec? spec = null,
+        List<SimEvent>? events = null
     )
     {
+        if (TryApplyStackPolicy(target, spec, shieldHp, duration, state, events))
+            return;
+
+        var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
+        float resolvedDuration = lifetime.ToLegacyDuration();
         target.ActiveBuffs.Add(
             new ActiveBuff
             {
                 BuffId = state.NextBuffId(),
                 EffectType = EffectType.Shield,
                 ShieldHp = shieldHp,
-                Duration = -1, // Permanent until consumed
-                Lifetime = EffectLifetime.Persistent(),
+                Duration = resolvedDuration,
+                Lifetime = lifetime,
                 SourceUnitId = sourceUnitId,
                 SourceTeam = sourceTeam,
+                RemovalEffect = removalEffect,
+                OwnerHpAtApply = target.CurrentHp,
+                GrantedTags = spec != null ? new List<string>(spec.GrantedTags) : new List<string>(),
+                StackKey = spec?.ResolvedStackKey ?? "",
+                CueId = spec?.CueId ?? "",
             }
         );
+        events?.Add(new BuffAppliedEvent(target.UnitId, EffectType.Shield, shieldHp, resolvedDuration));
+        if (spec != null)
+            EmitCue(spec, target, EffectCuePhase.Active, events);
     }
+
+    public static void ApplyShield(
+        MatchState state,
+        UnitData target,
+        float shieldHp,
+        int sourceUnitId,
+        Team sourceTeam
+    ) => ApplyShield(state, target, shieldHp, -1f, sourceUnitId, sourceTeam);
 
     /// <summary>
     /// Consume shields on a unit, oldest first. Returns remaining damage after absorption.
     /// </summary>
     public static float AbsorbWithShields(
+        MatchState? state,
         UnitData target,
         float incomingDamage,
         List<SimEvent>? events
@@ -467,7 +765,7 @@ public static class SimEffects
                 // Shield fully consumed
                 remaining -= buff.ShieldHp;
                 buff.ShieldHp = 0;
-                target.ActiveBuffs.RemoveAt(i);
+                RemoveBuff(state, target, i, events, BuffRemovalReason.ShieldBreak);
                 i--; // Adjust index after removal
             }
             else
@@ -481,18 +779,162 @@ public static class SimEffects
         return remaining;
     }
 
+    public static float AbsorbWithShields(
+        UnitData target,
+        float incomingDamage,
+        List<SimEvent>? events
+    ) => AbsorbWithShields(null, target, incomingDamage, events);
+
+    public static void TriggerBuffRemovalEffectsForOwnerDeath(
+        MatchState state,
+        UnitData owner,
+        List<SimEvent> events
+    )
+    {
+        for (int i = owner.ActiveBuffs.Count - 1; i >= 0; i--)
+        {
+            if (ShouldFireRemovalEffect(owner.ActiveBuffs[i], BuffRemovalReason.OwnerDeath))
+                RemoveBuff(state, owner, i, events, BuffRemovalReason.OwnerDeath);
+        }
+    }
+
     // =========================================================================
     // INTERNAL HELPERS
     // =========================================================================
 
-    private static void ApplyDirectDamage(
+    private static void RemoveBuff(
+        MatchState? state,
+        UnitData owner,
+        int buffIndex,
+        List<SimEvent>? events,
+        BuffRemovalReason reason
+    )
+    {
+        if (buffIndex < 0 || buffIndex >= owner.ActiveBuffs.Count)
+            return;
+
+        var buff = owner.ActiveBuffs[buffIndex];
+        owner.ActiveBuffs.RemoveAt(buffIndex);
+        if (buff.EffectType == EffectType.TornadoCarry)
+            StartTornadoFall(state, owner);
+        events?.Add(new BuffExpiredEvent(owner.UnitId, buff.BuffId, buff.EffectType));
+        if (events != null && !string.IsNullOrWhiteSpace(buff.CueId))
+        {
+            events.Add(
+                new EffectCueEvent(
+                    buff.CueId,
+                    EffectCuePhase.Removed,
+                    buff.EffectType,
+                    buff.SourceUnitId,
+                    owner.UnitId,
+                    owner.Position
+                )
+            );
+        }
+
+        if (state != null && events != null && owner.IsAlive)
+            SimAbilityOrchestrator.TryActivateOnBuffRemovedEffects(state, owner, buff, events);
+
+        if (state == null || events == null || !ShouldFireRemovalEffect(buff, reason))
+            return;
+
+        FireRemovalEffect(state, owner, buff, events);
+    }
+
+    private static bool ShouldFireRemovalEffect(ActiveBuff buff, BuffRemovalReason reason)
+    {
+        var removal = buff.RemovalEffect;
+        if (removal == null)
+            return false;
+
+        return reason switch
+        {
+            BuffRemovalReason.Expired => removal.TriggerOnExpire,
+            BuffRemovalReason.ShieldBreak => removal.TriggerOnShieldBreak,
+            BuffRemovalReason.OwnerDeath => removal.TriggerOnOwnerDeath,
+            _ => false,
+        };
+    }
+
+    private static void FireRemovalEffect(
+        MatchState state,
+        UnitData owner,
+        ActiveBuff buff,
+        List<SimEvent> events
+    )
+    {
+        var removal = buff.RemovalEffect;
+        if (removal == null)
+            return;
+
+        float value = removal.Value;
+        if (removal.ScaleValueByOwnerHpAtApply)
+            value += buff.OwnerHpAtApply * removal.OwnerHpAtApplyMultiplier;
+
+        float radius = MathF.Max(0f, removal.Radius);
+        var targets = ResolveRemovalEffectTargets(state, owner, buff.SourceTeam, removal.Affinity, radius);
+        float duration = EffectLifetimeResolver.ResolveDuration(removal.Lifetime, removal.Duration);
+        foreach (var target in targets)
+        {
+            ApplyEffect(
+                state,
+                removal.EffectType,
+                value,
+                duration,
+                removal.DamageType,
+                target,
+                buff.SourceUnitId,
+                buff.SourceTeam,
+                events,
+                sourcePosition: owner.Position
+            );
+        }
+    }
+
+    private static List<UnitData> ResolveRemovalEffectTargets(
+        MatchState state,
+        UnitData owner,
+        Team sourceTeam,
+        SpellAffinity affinity,
+        float radius
+    )
+    {
+        int sourceTeamId = (int)sourceTeam;
+        int? teamFilter = affinity switch
+        {
+            SpellAffinity.Enemies => MatchState.GetEnemyTeam(sourceTeamId),
+            SpellAffinity.Allies => sourceTeamId,
+            _ => null,
+        };
+
+        var targets = new List<UnitData>();
+        foreach (var candidate in state.GetAliveActiveUnits())
+        {
+            if (candidate.UnitId == owner.UnitId)
+                continue;
+            if (teamFilter.HasValue && (int)candidate.Team != teamFilter.Value)
+                continue;
+            if (radius > 0f && owner.Position.DistanceSquaredTo(candidate.Position) > radius * radius)
+                continue;
+            targets.Add(candidate);
+        }
+
+        targets.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+        return targets;
+    }
+
+    private static bool ApplyDirectDamage(
         MatchState state,
         UnitData target,
         float baseDamage,
         DamageType damageType,
         int sourceUnitId,
         Team sourceTeam,
-        List<SimEvent> events
+        List<SimEvent> events,
+        BuffRemovalEffectConfig? removalEffect = null,
+        bool triggerSourceOnHit = false,
+        bool triggerTargetOnDamaged = true,
+        bool useAttackDamageProfile = false
     )
     {
         // Get source unit for attacker stats (may be dead for delayed effects)
@@ -503,32 +945,116 @@ public static class SimEffects
                 ? state.Summoners[(int)target.Team]
                 : null;
 
-        var (damage, isCrit, _) = SimDamage.Calculate(
-            baseDamage,
-            damageType,
-            attacker,
-            target,
-            attackerSummoner,
-            targetSummoner,
-            state.Rng,
-            events: events
-        );
+        var (damage, isCrit, wasEvaded) =
+            useAttackDamageProfile && attacker != null
+                ? SimDamage.CalculateAttack(
+                    baseDamage,
+                    attacker,
+                    target,
+                    attackerSummoner,
+                    targetSummoner,
+                    state.Rng,
+                    events,
+                    state
+                )
+                : SimDamage.Calculate(
+                    baseDamage,
+                    damageType,
+                    attacker,
+                    target,
+                    attackerSummoner,
+                    targetSummoner,
+                    state.Rng,
+                    events: events,
+                    state: state
+                );
+        if (wasEvaded)
+            return false;
 
         target.CurrentHp -= damage;
         events.Add(new UnitDamagedEvent(target.UnitId, sourceUnitId, damage, isCrit));
+        if (triggerSourceOnHit && attacker != null && target.UnitId != sourceUnitId)
+            SimAbilityOrchestrator.TryActivateOnHitEffects(state, attacker, target, events);
+        if (triggerTargetOnDamaged && target.CurrentHp > 0f && target.UnitId != sourceUnitId)
+            SimAbilityOrchestrator.TryActivateOnDamagedEffects(state, target, attacker, events);
 
         if (target.CurrentHp <= 0)
         {
-            SimUtils.KillUnit(state, target, sourceUnitId, events);
-
-            // Fire death triggers on the killed unit
-            FireDeathTriggers(state, target, attacker, events);
+            if (SimUtils.KillUnit(state, target, sourceUnitId, events))
+            {
+                // Fire death triggers on the killed unit
+                FireDeathTriggers(state, target, attacker, events);
+            }
         }
+
+        return true;
     }
 
     private static void ApplyHeal(UnitData target, float amount, List<SimEvent> events)
     {
         target.CurrentHp = MathF.Min(target.CurrentHp + amount, target.MaxHp);
+    }
+
+    private static bool TryApplyStackPolicy(
+        UnitData target,
+        EffectApplicationSpec? spec,
+        float value,
+        float duration,
+        MatchState state,
+        List<SimEvent>? events
+    )
+    {
+        if (spec == null || spec.StackPolicy == EffectStackPolicy.Independent)
+            return false;
+
+        string stackKey = spec.ResolvedStackKey;
+        if (string.IsNullOrWhiteSpace(stackKey))
+            return false;
+
+        foreach (var existing in target.ActiveBuffs)
+        {
+            if (existing.EffectType != spec.EffectType)
+                continue;
+            if (existing.StackKey != stackKey)
+                continue;
+
+            var lifetime = EffectLifetimeResolver.Resolve(existing.Lifetime, existing.Duration);
+            float currentDuration = lifetime.ToLegacyDuration();
+            float refreshedDuration =
+                currentDuration < 0f || duration < 0f ? -1f : MathF.Max(currentDuration, duration);
+
+            if (spec.StackPolicy == EffectStackPolicy.StackAndRefreshDuration)
+            {
+                existing.StackCount = Math.Max(1, existing.StackCount) + 1;
+                existing.Value += value;
+                if (existing.EffectType == EffectType.Shield)
+                    existing.ShieldHp += value;
+            }
+            else
+            {
+                existing.Value = value;
+                if (existing.EffectType == EffectType.Shield)
+                    existing.ShieldHp = MathF.Max(existing.ShieldHp, value);
+            }
+
+            existing.Duration = refreshedDuration;
+            existing.Lifetime = EffectLifetimeResolver.Resolve(
+                refreshedDuration < 0f ? EffectLifetime.Persistent() : EffectLifetime.Timed(refreshedDuration),
+                refreshedDuration
+            );
+            existing.SourceUnitId = spec.Context.SourceUnitId;
+            existing.SourceTeam = spec.Context.SourceTeam;
+            if (existing.GrantedTags.Count == 0 && spec.GrantedTags.Count > 0)
+                existing.GrantedTags = new List<string>(spec.GrantedTags);
+            if (string.IsNullOrWhiteSpace(existing.CueId))
+                existing.CueId = spec.CueId;
+
+            events?.Add(new BuffAppliedEvent(target.UnitId, spec.EffectType, existing.Value, refreshedDuration));
+            EmitCue(spec, target, EffectCuePhase.Active, events);
+            return true;
+        }
+
+        return false;
     }
 
     private static void ApplyBuff(
@@ -540,9 +1066,14 @@ public static class SimEffects
         DamageType damageType,
         int sourceUnitId,
         Team sourceTeam,
-        List<SimEvent> events
+        List<SimEvent> events,
+        BuffRemovalEffectConfig? removalEffect = null,
+        EffectApplicationSpec? spec = null
     )
     {
+        if (TryApplyStackPolicy(target, spec, value, duration, state, events))
+            return;
+
         var lifetime = EffectLifetimeResolver.Resolve(EffectLifetime.Timed(0f), duration);
         float resolvedDuration = lifetime.ToLegacyDuration();
         var buff = new ActiveBuff
@@ -555,9 +1086,208 @@ public static class SimEffects
             DamageType = damageType,
             SourceUnitId = sourceUnitId,
             SourceTeam = sourceTeam,
+            RemovalEffect = removalEffect,
+            OwnerHpAtApply = target.CurrentHp,
+            GrantedTags = spec != null ? new List<string>(spec.GrantedTags) : new List<string>(),
+            StackKey = spec?.ResolvedStackKey ?? "",
+            CueId = spec?.CueId ?? "",
         };
         target.ActiveBuffs.Add(buff);
         events.Add(new BuffAppliedEvent(target.UnitId, effectType, value, resolvedDuration));
+        if (spec != null)
+            EmitCue(spec, target, EffectCuePhase.Active, events);
+    }
+
+    private static void ApplyTornadoCarry(
+        MatchState state,
+        UnitData target,
+        EffectApplicationSpec spec,
+        float duration,
+        int sourceUnitId,
+        Team sourceTeam,
+        SimVector3? sourcePosition,
+        List<SimEvent> events
+    )
+    {
+        float resolvedDuration = duration > 0f ? duration : TornadoDefaultCarryDurationSeconds;
+        var center = sourcePosition ?? target.Position;
+        string stackKey = string.IsNullOrWhiteSpace(spec.StackKey)
+            ? "tornado_carry"
+            : spec.ResolvedStackKey;
+        RemoveTornadoFallState(target);
+
+        for (int i = 0; i < target.ActiveBuffs.Count; i++)
+        {
+            var existing = target.ActiveBuffs[i];
+            if (existing.EffectType != EffectType.TornadoCarry)
+                continue;
+            if (!string.Equals(existing.StackKey, stackKey, StringComparison.Ordinal))
+                continue;
+
+            existing.Duration = resolvedDuration;
+            existing.Lifetime = EffectLifetime.Timed(resolvedDuration);
+            existing.SourceUnitId = sourceUnitId;
+            existing.SourceTeam = sourceTeam;
+            existing.TornadoCenter = center;
+            events.Add(new BuffAppliedEvent(target.UnitId, EffectType.TornadoCarry, existing.Value, resolvedDuration));
+            EmitCue(spec, target, EffectCuePhase.Active, events);
+            return;
+        }
+
+        int tier = Math.Abs(target.UnitId) % 4;
+        float landingY = ResolveTornadoLandingY(target);
+        float liftHeight = TornadoBaseLiftHeight + (tier * TornadoHeightTierStep);
+        float targetHeight = landingY + liftHeight;
+        float orbitRadius = TornadoBaseOrbitRadius + (tier * TornadoOrbitTierStep);
+        float dx = target.Position.X - center.X;
+        float dz = target.Position.Z - center.Z;
+        float distance = MathF.Sqrt(dx * dx + dz * dz);
+        float angle;
+        if (distance <= 0.001f)
+        {
+            angle = (target.UnitId % 12) * (MathF.PI / 6f);
+        }
+        else
+        {
+            angle = MathF.Atan2(dz, dx);
+        }
+
+        var buff = new ActiveBuff
+        {
+            BuffId = state.NextBuffId(),
+            EffectType = EffectType.TornadoCarry,
+            Value = spec.Value,
+            Duration = resolvedDuration,
+            Lifetime = EffectLifetime.Timed(resolvedDuration),
+            DamageType = spec.DamageType,
+            SourceUnitId = sourceUnitId,
+            SourceTeam = sourceTeam,
+            GrantedTags = new List<string>(spec.GrantedTags),
+            StackKey = stackKey,
+            CueId = spec.CueId,
+            TornadoCenter = center,
+            TornadoOrbitRadius = orbitRadius,
+            TornadoOrbitAngleRadians = angle,
+            TornadoOrbitAngularSpeedRadians = spec.Value > 0f
+                ? spec.Value
+                : TornadoDefaultAngularSpeedRadians,
+            TornadoLiftHeight = liftHeight,
+            TornadoBaseLiftHeight = landingY,
+            TornadoHeightOffset = liftHeight - TornadoBaseLiftHeight,
+            TornadoStartHeight = target.Position.Y,
+            TornadoTargetHeight = targetHeight,
+        };
+        target.ActiveBuffs.Add(buff);
+        target.KnockbackRemainingDistance = 0f;
+        target.KnockbackSpeed = 0f;
+        target.KnockbackDirection = SimVector3.Zero;
+        events.Add(new BuffAppliedEvent(target.UnitId, EffectType.TornadoCarry, buff.Value, resolvedDuration));
+        EmitCue(spec, target, EffectCuePhase.Active, events);
+    }
+
+    private static void TickTornadoCarry(UnitData unit, ActiveBuff buff, float fixedDelta)
+    {
+        buff.TornadoOrbitAngleRadians += buff.TornadoOrbitAngularSpeedRadians * fixedDelta;
+        buff.TornadoLiftProgress = MathF.Min(
+            1f,
+            buff.TornadoLiftProgress + fixedDelta / TornadoLiftSeconds
+        );
+
+        float x =
+            buff.TornadoCenter.X
+            + MathF.Cos(buff.TornadoOrbitAngleRadians) * buff.TornadoOrbitRadius;
+        float z =
+            buff.TornadoCenter.Z
+            + MathF.Sin(buff.TornadoOrbitAngleRadians) * buff.TornadoOrbitRadius;
+        float targetHeight = buff.TornadoTargetHeight > 0f
+            ? buff.TornadoTargetHeight
+            : buff.TornadoBaseLiftHeight + buff.TornadoLiftHeight;
+        float startHeight = buff.TornadoStartHeight;
+        float y = startHeight + ((targetHeight - startHeight) * buff.TornadoLiftProgress);
+        unit.Position = new SimVector3(x, y, z);
+        unit.Velocity = SimVector3.Zero;
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
+    }
+
+    private static void RemoveTornadoFallState(UnitData unit)
+    {
+        for (int i = unit.ActiveBuffs.Count - 1; i >= 0; i--)
+        {
+            if (unit.ActiveBuffs[i].EffectType == EffectType.TornadoFall)
+                unit.ActiveBuffs.RemoveAt(i);
+        }
+    }
+
+    private static void StartTornadoFall(MatchState? state, UnitData unit)
+    {
+        float landingY = ResolveTornadoLandingY(unit);
+        if (!unit.IsAlive || unit.Position.Y <= landingY + 0.001f)
+        {
+            unit.Position = new SimVector3(unit.Position.X, landingY, unit.Position.Z);
+            unit.Velocity = SimVector3.Zero;
+            unit.KnockbackRemainingDistance = 0f;
+            unit.KnockbackSpeed = 0f;
+            unit.KnockbackDirection = SimVector3.Zero;
+            return;
+        }
+
+        float fallDuration = MathF.Max(0.05f, (unit.Position.Y - landingY) / TornadoFallSpeed);
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                BuffId = state?.NextBuffId() ?? 0,
+                EffectType = EffectType.TornadoFall,
+                Duration = fallDuration,
+                Lifetime = EffectLifetime.Timed(fallDuration),
+                TornadoFallLandingY = landingY,
+            }
+        );
+        unit.Velocity = SimVector3.Zero;
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
+    }
+
+    private static void TickTornadoFall(UnitData unit, ActiveBuff buff, float fixedDelta)
+    {
+        float landingY = buff.TornadoFallLandingY;
+        if (unit.Position.Y <= landingY + 0.001f || fixedDelta <= 0f)
+        {
+            unit.Position = new SimVector3(unit.Position.X, landingY, unit.Position.Z);
+            unit.Velocity = SimVector3.Zero;
+            unit.KnockbackRemainingDistance = 0f;
+            unit.KnockbackSpeed = 0f;
+            unit.KnockbackDirection = SimVector3.Zero;
+            return;
+        }
+
+        float yBefore = unit.Position.Y;
+        float yAfter = MathF.Max(landingY, yBefore - (TornadoFallSpeed * fixedDelta));
+        unit.Position = new SimVector3(unit.Position.X, yAfter, unit.Position.Z);
+        unit.Velocity = new SimVector3(0f, (yAfter - yBefore) / fixedDelta, 0f);
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
+    }
+
+    private static float ResolveTornadoLandingY(UnitData unit)
+    {
+        if (unit.MovementLayer == MovementLayer.Air)
+            return unit.FlightAltitude;
+
+        return 0f;
+    }
+
+    private static void DropTornadoCarriedUnit(UnitData unit)
+    {
+        float landingY = ResolveTornadoLandingY(unit);
+        unit.Position = new SimVector3(unit.Position.X, landingY, unit.Position.Z);
+        unit.Velocity = SimVector3.Zero;
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
     }
 
     private static void ApplyPeriodicTick(
@@ -590,6 +1320,56 @@ public static class SimEffects
                 ApplyHeal(unit, buff.Value, events);
                 break;
         }
+    }
+
+    private static void ConsumeStatus(
+        MatchState state,
+        UnitData target,
+        int sourceUnitId,
+        Team sourceTeam,
+        StatusEffectKind statusKind,
+        float multiplier,
+        DamageType damageType,
+        List<SimEvent> events
+    )
+    {
+        if (statusKind == StatusEffectKind.None)
+            return;
+
+        float consumedDamage = 0f;
+        for (int i = target.ActiveBuffs.Count - 1; i >= 0; i--)
+        {
+            var buff = target.ActiveBuffs[i];
+            if (
+                buff.EffectType != EffectType.Damage
+                || buff.TickInterval <= 0f
+                || buff.StatusKind != statusKind
+            )
+            {
+                continue;
+            }
+
+            float duration = EffectLifetimeResolver.ResolveDuration(buff.Lifetime, buff.Duration);
+            float remainingTicks = buff.TickInterval > 0f
+                ? MathF.Ceiling(MathF.Max(duration, 0f) / buff.TickInterval)
+                : 0f;
+            consumedDamage += buff.Value * remainingTicks;
+            target.ActiveBuffs.RemoveAt(i);
+            events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
+        }
+
+        if (consumedDamage <= 0f)
+            return;
+
+        ApplyDirectDamage(
+            state,
+            target,
+            consumedDamage * multiplier,
+            damageType,
+            sourceUnitId,
+            sourceTeam,
+            events
+        );
     }
 
     private static void TickPeriodicTriggers(
@@ -704,6 +1484,7 @@ public static class SimEffects
                 DamageType = trigger.DamageType,
                 AoeRadius = trigger.AoeRadius,
                 Position = source.Position,
+                SourcePosition = source.Position,
                 SourceUnitId = source.UnitId,
                 SourceTeam = source.Team,
             }
@@ -717,112 +1498,22 @@ public static class SimEffects
     )
     {
         events.Add(
-            new DelayedEffectFiredEvent(effect.Position, effect.EffectType, effect.AoeRadius)
+            new DelayedEffectFiredEvent(
+                effect.Position,
+                effect.EffectType,
+                effect.AoeRadius,
+                effect.AreaShape,
+                effect.SourcePosition,
+                effect.CardCatalogId
+            )
         );
 
-        var targets = ResolveDelayedTargets(state, effect);
-        foreach (var target in targets)
-        {
-            ApplyEffect(
-                state,
-                effect.EffectType,
-                effect.Value,
-                EffectLifetimeResolver.ResolveDuration(effect.Lifetime, effect.Duration),
-                effect.DamageType,
-                target,
-                effect.SourceUnitId,
-                effect.SourceTeam,
-                events
-            );
-        }
+        var targets = SpellTargetResolver.Resolve(state, effect);
+        var spec = SpellEffectSpecFactory.FromDelayedEffect(effect);
+        SpellEffectExecutor.Apply(state, effect.CardCatalogId, spec, targets, events, delayed: true);
     }
 
-    private static List<UnitData> ResolveDelayedTargets(MatchState state, DelayedEffect effect)
-    {
-        var targets = new List<UnitData>();
-        int sourceTeam = (int)effect.SourceTeam;
-        int? teamFilter = effect.Affinity switch
-        {
-            SpellAffinity.Enemies => MatchState.GetEnemyTeam(sourceTeam),
-            SpellAffinity.Allies => sourceTeam,
-            _ => null,
-        };
-
-        switch (effect.TargetingMode)
-        {
-            case SpellTargetingMode.Position:
-            {
-                float radius = effect.AoeRadius;
-                foreach (var candidate in state.GetAliveActiveUnits())
-                {
-                    if (teamFilter.HasValue && (int)candidate.Team != teamFilter.Value)
-                        continue;
-                    if (
-                        !SpellAreaResolver.IsWithinArea(
-                            effect.AreaShape,
-                            effect.Position,
-                            candidate.Position,
-                            radius
-                        )
-                    )
-                        continue;
-                    targets.Add(candidate);
-                }
-                break;
-            }
-
-            case SpellTargetingMode.NearestEnemy:
-            {
-                if (effect.TargetUnitId.HasValue)
-                {
-                    var pinned = state.GetAliveUnit(effect.TargetUnitId.Value);
-                    if (pinned != null)
-                        targets.Add(pinned);
-                    break;
-                }
-
-                int enemyTeam = MatchState.GetEnemyTeam(sourceTeam);
-                UnitData? best = null;
-                float bestDistSq = float.MaxValue;
-
-                foreach (var candidate in state.GetAliveActiveUnitsForTeam(enemyTeam))
-                {
-                    float distSq = candidate.Position.DistanceSquaredTo(effect.Position);
-                    if (distSq >= bestDistSq)
-                        continue;
-                    best = candidate;
-                    bestDistSq = distSq;
-                }
-
-                if (best != null)
-                    targets.Add(best);
-                break;
-            }
-
-            case SpellTargetingMode.AlliesInRadius:
-            {
-                float radius = effect.AoeRadius;
-                foreach (var candidate in state.GetAliveActiveUnitsForTeam(sourceTeam))
-                {
-                    if (
-                        !SpellAreaResolver.IsWithinArea(
-                            effect.AreaShape,
-                            effect.Position,
-                            candidate.Position,
-                            radius
-                        )
-                    )
-                        continue;
-                    targets.Add(candidate);
-                }
-                break;
-            }
-        }
-
-        return targets;
-    }
-
-    private static void ApplyCleanse(UnitData target, List<SimEvent> events)
+    private static void ApplyCleanse(MatchState state, UnitData target, List<SimEvent> events)
     {
         for (int i = target.ActiveBuffs.Count - 1; i >= 0; i--)
         {
@@ -830,18 +1521,59 @@ public static class SimEffects
             if (!IsNegativeBuffForCleanse(buff))
                 continue;
 
-            target.ActiveBuffs.RemoveAt(i);
-            events.Add(new BuffExpiredEvent(target.UnitId, buff.BuffId, buff.EffectType));
+            RemoveBuff(state, target, i, events, BuffRemovalReason.Expired);
         }
 
         target.Engagement.ForcedTargetUnitId = null;
         target.Engagement.ForcedTargetTimer = 0f;
     }
 
+    private static void ApplyTaunt(
+        UnitData target,
+        int sourceUnitId,
+        float duration,
+        List<SimEvent> events,
+        EffectApplicationSpec? spec = null
+    )
+    {
+        if (sourceUnitId < 0 || duration <= 0f)
+            return;
+        if (!ShouldApplySoftTaunt(target, sourceUnitId))
+            return;
+
+        target.Engagement.ForcedTargetUnitId = sourceUnitId;
+        target.Engagement.ForcedTargetTimer = MathF.Max(
+            target.Engagement.ForcedTargetTimer,
+            duration
+        );
+        events.Add(
+            new StatusAppliedEvent(sourceUnitId, target.UnitId, StatusEffectKind.Taunt, 1, duration)
+        );
+        if (spec != null)
+            EmitCue(spec, target, EffectCuePhase.Active, events);
+    }
+
+    private static bool ShouldApplySoftTaunt(UnitData target, int sourceUnitId)
+    {
+        if (target.Engagement.ForcedTargetTimer <= 0f)
+            return true;
+        if (!target.Engagement.ForcedTargetUnitId.HasValue)
+            return true;
+        return target.Engagement.ForcedTargetUnitId.Value == sourceUnitId;
+    }
+
     private static bool IsNegativeBuffForCleanse(ActiveBuff buff)
     {
-        if (buff.EffectType == EffectType.Slow || buff.EffectType == EffectType.Stun)
+        if (
+            buff.EffectType == EffectType.Slow
+            || buff.EffectType == EffectType.Stun
+            || buff.EffectType == EffectType.Root
+            || buff.EffectType == EffectType.AccuracyModifier
+            || buff.EffectType == EffectType.RangedDamageModifier
+        )
+        {
             return true;
+        }
 
         if (buff.EffectType != EffectType.Damage || buff.TickInterval <= 0f)
             return false;
@@ -854,7 +1586,8 @@ public static class SimEffects
         UnitData target,
         float distance,
         int sourceUnitId,
-        Team sourceTeam
+        Team sourceTeam,
+        SimVector3? sourcePosition
     )
     {
         if (distance <= 0f || !target.IsAlive)
@@ -862,8 +1595,76 @@ public static class SimEffects
         if (target.UnitId == sourceUnitId)
             return;
 
-        var sourcePos = ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
-        var direction = new SimVector3(target.Position.X - sourcePos.X, 0f, target.Position.Z - sourcePos.Z);
+        var sourcePos = sourcePosition ?? ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
+        ApplyForcedDisplacement(target, distance, sourcePos, sourceTeam, pushAway: true);
+    }
+
+    private static void ApplyDisplacement(
+        MatchState state,
+        UnitData target,
+        float distance,
+        int sourceUnitId,
+        Team sourceTeam,
+        SimVector3? sourcePosition
+    )
+    {
+        if (MathF.Abs(distance) <= 0f || !target.IsAlive)
+            return;
+
+        var sourcePos = sourcePosition ?? ResolveSourcePosition(state, sourceUnitId, sourceTeam, target.Position);
+        ApplyForcedDisplacement(target, MathF.Abs(distance), sourcePos, sourceTeam, pushAway: distance >= 0f);
+    }
+
+    private static void ApplySourceLungeToTarget(
+        MatchState state,
+        UnitData target,
+        float standoffDistance,
+        int sourceUnitId
+    )
+    {
+        if (!target.IsAlive)
+            return;
+        if (!state.Units.TryGetValue(sourceUnitId, out var source) || !source.IsAlive)
+            return;
+        if (source.UnitId == target.UnitId)
+            return;
+
+        float desiredStandoff =
+            standoffDistance > 0f ? standoffDistance : MathF.Max(0.6f, source.AttackRange * 0.7f);
+        float dx = target.Position.X - source.Position.X;
+        float dz = target.Position.Z - source.Position.Z;
+        float distanceSq = dx * dx + dz * dz;
+        float closeEnough = MathF.Max(source.AttackRange * 0.85f, desiredStandoff);
+        if (distanceSq <= closeEnough * closeEnough)
+            return;
+
+        if (distanceSq <= 0.0001f)
+        {
+            dx = source.Team == Team.Player ? 1f : -1f;
+            dz = 0f;
+            distanceSq = 1f;
+        }
+
+        float invDistance = 1f / MathF.Sqrt(distanceSq);
+        var direction = new SimVector3(dx * invDistance, 0f, dz * invDistance);
+        source.Position = new SimVector3(
+            target.Position.X - direction.X * desiredStandoff,
+            source.Position.Y,
+            target.Position.Z - direction.Z * desiredStandoff
+        );
+    }
+
+    private static void ApplyForcedDisplacement(
+        UnitData target,
+        float distance,
+        SimVector3 sourcePos,
+        Team sourceTeam,
+        bool pushAway
+    )
+    {
+        var direction = pushAway
+            ? new SimVector3(target.Position.X - sourcePos.X, 0f, target.Position.Z - sourcePos.Z)
+            : new SimVector3(sourcePos.X - target.Position.X, 0f, sourcePos.Z - target.Position.Z);
         float lengthSq = direction.X * direction.X + direction.Z * direction.Z;
 
         if (lengthSq <= 0.0001f)

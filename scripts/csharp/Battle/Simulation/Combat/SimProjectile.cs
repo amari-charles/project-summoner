@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fateforged.Projectiles;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Geometry;
 using Fateforged.Simulation.Subsystems;
@@ -78,7 +79,10 @@ public static class SimProjectile
         float statusDuration = 0f,
         float statusTickInterval = 0f,
         float statusPotencyPerStack = 0f,
-        int statusMaxStacks = 1
+        int statusMaxStacks = 1,
+        DamageType damageType = DamageType.Physical,
+        bool useAttackDamageProfile = true,
+        SimCardCatalogId cardCatalogId = default
     )
     {
         int id = state.NextProjectileId();
@@ -93,8 +97,11 @@ public static class SimProjectile
             SourceUnitId = sourceUnitId,
             TargetUnitId = targetUnitId,
             Team = team,
+            CardCatalogId = cardCatalogId,
             Damage = damage,
+            DamageType = damageType,
             SourceElementId = sourceElementId,
+            UseAttackDamageProfile = useAttackDamageProfile,
             TargetAffinity = targetAffinity,
             ImpactKind = impactKind,
             StatusKind = statusKind,
@@ -203,7 +210,10 @@ public static class SimProjectile
         float statusPotencyPerStack,
         int statusMaxStacks,
         float beamDurationSeconds,
-        List<SimEvent> events
+        List<SimEvent> events,
+        DamageType damageType = DamageType.Physical,
+        bool useAttackDamageProfile = true,
+        SimCardCatalogId cardCatalogId = default
     )
     {
         int id = state.NextProjectileId();
@@ -220,8 +230,11 @@ public static class SimProjectile
             SourceUnitId = sourceUnitId,
             TargetUnitId = targetUnitId,
             Team = team,
+            CardCatalogId = cardCatalogId,
             Damage = damage,
+            DamageType = damageType,
             SourceElementId = sourceElementId,
+            UseAttackDamageProfile = useAttackDamageProfile,
             TargetAffinity = targetAffinity,
             ImpactKind = impactKind,
             StatusKind = statusKind,
@@ -664,10 +677,8 @@ public static class SimProjectile
     }
 
     /// <summary>
-    /// Apply damage to a target unit from a projectile hit.
-    /// Projectile hits intentionally skip OnHit/OnDamaged triggers — projectile damage
-    /// goes through a separate pipeline (SimDamage.Calculate) and does not interact with
-    /// the trigger system. Triggers are reserved for melee combat in SimBehavior.
+    /// Apply a projectile impact to a target unit. Movement and collision stay in
+    /// SimProjectile; gameplay consequences route through the shared effect pipeline.
     /// </summary>
     private static void ApplyHit(
         SimProjectileData proj,
@@ -676,53 +687,29 @@ public static class SimProjectile
         List<SimEvent> events
     )
     {
-        if (proj.ImpactKind == ProjectileImpactKind.Heal)
-        {
-            SimEffects.ApplyEffect(
-                state,
-                EffectType.Heal,
-                proj.Damage,
-                0f,
-                DamageType.Magic,
-                target,
-                proj.SourceUnitId,
-                proj.Team,
-                events
-            );
-
-            proj.HitUnitIds.Add(target.UnitId);
-            proj.PierceRemaining--;
-            events.Add(new ProjectileHitEvent(proj.ProjectileId, target.UnitId));
-            return;
-        }
-
-        var (sourceUnit, attackerSummoner, targetSummoner) = ResolveSourceAndSummoners(
+        var spec = BuildProjectilePrimaryImpactSpec(
             proj,
-            target,
-            state
+            target.Position,
+            triggerSourceOnHit: proj.ImpactKind == ProjectileImpactKind.Damage,
+            triggerTargetOnDamaged: true
         );
-
-        var (damage, isCrit) = SimDamage.Calculate(
-            proj.Damage,
-            sourceUnit,
-            target,
-            attackerSummoner,
-            targetSummoner,
-            state.Rng
-        );
-
-        target.CurrentHp -= damage;
-        events.Add(new UnitDamagedEvent(target.UnitId, proj.SourceUnitId, damage, isCrit));
-        if (target.CurrentHp > 0f && sourceUnit != null)
-            SimAbilityOrchestrator.TryActivateOnHitEffects(state, sourceUnit, target, events);
-
-        if (target.CurrentHp <= 0)
+        var before = CombatDebugFormatter.CaptureUnits([target]);
+        bool applied = SimEffects.ApplyEffect(state, spec, target, events);
+        if (proj.CardCatalogId.HasValue && Simulation.DebugAbilityLogsEnabled)
         {
-            SimUtils.KillUnit(state, target, proj.SourceUnitId, events);
-            SimEffects.FireDeathTriggers(state, target, sourceUnit, events);
+            Simulation.DebugAbilityLog(
+                SpellDebugFormatter.FormatApplication(
+                    state,
+                    proj.CardCatalogId,
+                    spec,
+                    [target],
+                    before,
+                    applied ? 1 : 0
+                )
+            );
         }
 
-        ApplyStatusPayload(proj, target, state, events);
+        ApplyStatusPayload(proj, target, target.Position, state, events);
         proj.HitUnitIds.Add(target.UnitId);
         proj.PierceRemaining--;
         events.Add(new ProjectileHitEvent(proj.ProjectileId, target.UnitId));
@@ -830,9 +817,9 @@ public static class SimProjectile
     }
 
     /// <summary>
-    /// Apply AoE damage to all enemy units within radius.
-    /// AoE effects intentionally skip per-unit OnHit/OnDamaged triggers to avoid
-    /// trigger avalanches when many units are hit simultaneously.
+    /// Apply AoE impact to all valid units within radius.
+    /// AoE intentionally skips per-unit OnHit/OnDamaged triggers to avoid trigger
+    /// avalanches when many units are hit simultaneously.
     /// </summary>
     private static void ApplyAoE(
         SimProjectileData proj,
@@ -841,10 +828,7 @@ public static class SimProjectile
         List<SimEvent> events
     )
     {
-        var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
-        SummonerData? attackerSummoner =
-            sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
-
+        var targets = new List<UnitData>();
         foreach (var kvp in state.Units)
         {
             var unit = kvp.Value;
@@ -859,48 +843,43 @@ public static class SimProjectile
             if (!CanHitUnitInRadius(proj, unit, center, radius))
                 continue;
 
-            if (proj.ImpactKind == ProjectileImpactKind.Heal)
-            {
-                SimEffects.ApplyEffect(
+            targets.Add(unit);
+        }
+
+        var spec = BuildProjectilePrimaryImpactSpec(
+            proj,
+            center,
+            triggerSourceOnHit: false,
+            triggerTargetOnDamaged: false
+        );
+        var before = CombatDebugFormatter.CaptureUnits(targets);
+        int appliedCount = 0;
+        foreach (var unit in targets)
+        {
+            if (SimEffects.ApplyEffect(state, spec, unit, events))
+                appliedCount++;
+            ApplyStatusPayload(proj, unit, center, state, events);
+        }
+
+        if (proj.CardCatalogId.HasValue && Simulation.DebugAbilityLogsEnabled && targets.Count > 0)
+        {
+            Simulation.DebugAbilityLog(
+                SpellDebugFormatter.FormatApplication(
                     state,
-                    EffectType.Heal,
-                    proj.Damage,
-                    0f,
-                    DamageType.Magic,
-                    unit,
-                    proj.SourceUnitId,
-                    proj.Team,
-                    events
-                );
-                continue;
-            }
-
-            var targetSummoner = state.Summoners[(int)unit.Team];
-            var (damage, isCrit) = SimDamage.Calculate(
-                proj.Damage,
-                sourceUnit,
-                unit,
-                attackerSummoner,
-                targetSummoner,
-                state.Rng
+                    proj.CardCatalogId,
+                    spec,
+                    targets,
+                    before,
+                    appliedCount
+                )
             );
-
-            unit.CurrentHp -= damage;
-            events.Add(new UnitDamagedEvent(unit.UnitId, proj.SourceUnitId, damage, isCrit));
-
-            if (unit.CurrentHp <= 0)
-            {
-                SimUtils.KillUnit(state, unit, proj.SourceUnitId, events);
-                SimEffects.FireDeathTriggers(state, unit, sourceUnit, events);
-            }
-
-            ApplyStatusPayload(proj, unit, state, events);
         }
     }
 
     private static void ApplyStatusPayload(
         SimProjectileData proj,
         UnitData target,
+        SimVector3 impactPosition,
         MatchState state,
         List<SimEvent> events
     )
@@ -910,19 +889,79 @@ public static class SimProjectile
         if (proj.StatusDuration <= 0f || proj.StatusTickInterval <= 0f || proj.StatusPotencyPerStack <= 0f)
             return;
 
-        SimEffects.ApplyStackingStatus(
+        SimEffects.ApplyEffect(
             state,
+            new EffectApplicationSpec
+            {
+                EffectType = EffectType.StatusApply,
+                Value = proj.StatusPotencyPerStack,
+                Duration = proj.StatusDuration,
+                Lifetime = EffectLifetime.Timed(proj.StatusDuration),
+                DamageType = DamageType.Magic,
+                StatusKind = proj.StatusKind,
+                StatusTickInterval = proj.StatusTickInterval,
+                StatusPotencyPerStack = proj.StatusPotencyPerStack,
+                StatusMaxStacks = proj.StatusMaxStacks,
+                TargetAffinity = ToSpellAffinity(proj.TargetAffinity),
+                CueId = ResolveProjectileCueId(proj, EffectType.StatusApply),
+                Context = new EffectApplicationContext
+                {
+                    SourceUnitId = proj.SourceUnitId,
+                    SourceTeam = proj.Team,
+                    SourcePosition = impactPosition,
+                },
+            },
             target,
-            proj.SourceUnitId,
-            proj.Team,
-            proj.StatusKind,
-            proj.StatusDuration,
-            proj.StatusTickInterval,
-            proj.StatusPotencyPerStack,
-            proj.StatusMaxStacks,
-            DamageType.Magic,
             events
         );
+    }
+
+    private static EffectApplicationSpec BuildProjectilePrimaryImpactSpec(
+        SimProjectileData proj,
+        SimVector3 impactPosition,
+        bool triggerSourceOnHit,
+        bool triggerTargetOnDamaged
+    )
+    {
+        var effectType = proj.ImpactKind == ProjectileImpactKind.Heal
+            ? EffectType.Heal
+            : EffectType.Damage;
+
+        return new EffectApplicationSpec
+        {
+            EffectType = effectType,
+            Value = proj.Damage,
+            DamageType = effectType == EffectType.Heal ? DamageType.Magic : proj.DamageType,
+            TargetAffinity = ToSpellAffinity(proj.TargetAffinity),
+            CueId = ResolveProjectileCueId(proj, effectType),
+            Context = new EffectApplicationContext
+            {
+                SourceUnitId = proj.SourceUnitId,
+                SourceTeam = proj.Team,
+                SourcePosition = impactPosition,
+                CardCatalogId = proj.CardCatalogId,
+                TriggerSourceOnHit = triggerSourceOnHit,
+                TriggerTargetOnDamaged = triggerTargetOnDamaged,
+                UseAttackDamageProfile = effectType == EffectType.Damage && proj.UseAttackDamageProfile,
+            },
+        };
+    }
+
+    private static string ResolveProjectileCueId(SimProjectileData proj, EffectType effectType)
+    {
+        return proj.ProjectileCatalogId.HasValue
+            ? $"projectile.{proj.ProjectileCatalogId.Value}.{effectType}"
+            : $"projectile.{effectType}";
+    }
+
+    private static SpellAffinity ToSpellAffinity(AbilityTargetAffinity affinity)
+    {
+        return affinity switch
+        {
+            AbilityTargetAffinity.Allies => SpellAffinity.Allies,
+            AbilityTargetAffinity.Both => SpellAffinity.Both,
+            _ => SpellAffinity.Enemies,
+        };
     }
 
     private static bool CanImpactUnit(SimProjectileData proj, UnitData unit)
@@ -938,22 +977,6 @@ public static class SimProjectile
             AbilityTargetAffinity.Both => true,
             _ => candidateTeam != proj.Team,
         };
-    }
-
-    /// <summary>
-    /// Resolve the source unit and both summoners for damage calculation.
-    /// </summary>
-    private static (
-        UnitData? sourceUnit,
-        SummonerData? attackerSummoner,
-        SummonerData? targetSummoner
-    ) ResolveSourceAndSummoners(SimProjectileData proj, UnitData target, MatchState state)
-    {
-        var sourceUnit = state.Units.TryGetValue(proj.SourceUnitId, out var src) ? src : null;
-        SummonerData? attackerSummoner =
-            sourceUnit != null ? state.Summoners[(int)sourceUnit.Team] : null;
-        var targetSummoner = state.Summoners[(int)target.Team];
-        return (sourceUnit, attackerSummoner, targetSummoner);
     }
 
     // =========================================================================

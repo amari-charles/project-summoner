@@ -19,6 +19,7 @@ public partial class DebugArenaSpawnerPanelBridgeTest
         bool skipCalled = false;
         bool enemyAiCalled = false;
         bool playerAiCalled = false;
+        bool playerHoldAdvanceCalled = false;
         bool clearTeamCalled = false;
         bool undoCalled = false;
 
@@ -26,6 +27,7 @@ public partial class DebugArenaSpawnerPanelBridgeTest
         bridge.ConnectSkipPrepToggled(Callable.From<bool>(_ => skipCalled = true));
         bridge.ConnectEnemyAiToggled(Callable.From<bool>(_ => enemyAiCalled = true));
         bridge.ConnectPlayerAiToggled(Callable.From<bool>(_ => playerAiCalled = true));
+        bridge.ConnectPlayerHoldAdvanceToggled(Callable.From<bool>(_ => playerHoldAdvanceCalled = true));
         bridge.ConnectClearTeamRequested(Callable.From<int>(_ => clearTeamCalled = true));
         bridge.ConnectUndoRequested(Callable.From(() => undoCalled = true));
 
@@ -33,6 +35,7 @@ public partial class DebugArenaSpawnerPanelBridgeTest
         panel.EmitSignal("skip_prep_toggled", true);
         panel.EmitSignal("enemy_ai_toggled", true);
         panel.EmitSignal("player_ai_toggled", true);
+        panel.EmitSignal("player_hold_advance_toggled", true);
         panel.EmitSignal("clear_team_requested", 1);
         panel.EmitSignal("undo_requested");
 
@@ -40,6 +43,7 @@ public partial class DebugArenaSpawnerPanelBridgeTest
         AssertThat(skipCalled).IsTrue();
         AssertThat(enemyAiCalled).IsTrue();
         AssertThat(playerAiCalled).IsTrue();
+        AssertThat(playerHoldAdvanceCalled).IsTrue();
         AssertThat(clearTeamCalled).IsTrue();
         AssertThat(undoCalled).IsTrue();
     }
@@ -52,12 +56,14 @@ public partial class DebugArenaSpawnerPanelBridgeTest
             SkipPrepPhase = true,
             EnemyAiEnabled = true,
             PlayerAiEnabled = false,
+            PlayerHoldAdvanceEnabled = true,
         };
         var bridge = new DebugArenaSpawnerPanelBridge(panel);
 
         AssertThat(bridge.GetSkipPrepPhase()).IsTrue();
         AssertThat(bridge.GetEnemyAiEnabled()).IsTrue();
         AssertThat(bridge.GetPlayerAiEnabled()).IsFalse();
+        AssertThat(bridge.GetPlayerHoldAdvanceEnabled()).IsTrue();
 
         bridge.AppendSpawnLog("hello");
         AssertThat(panel.LastLog).IsEqual("hello");
@@ -75,6 +81,7 @@ public partial class DebugArenaSpawnerPanelBridgeTest
         public bool SkipPrepPhase { get; set; }
         public bool EnemyAiEnabled { get; set; }
         public bool PlayerAiEnabled { get; set; }
+        public bool PlayerHoldAdvanceEnabled { get; set; }
         public string LastLog { get; private set; } = "";
         public Godot.Collections.Array LastDeckEntries { get; private set; } = new();
 
@@ -84,6 +91,7 @@ public partial class DebugArenaSpawnerPanelBridgeTest
             AddUserSignal("skip_prep_toggled");
             AddUserSignal("enemy_ai_toggled");
             AddUserSignal("player_ai_toggled");
+            AddUserSignal("player_hold_advance_toggled");
             AddUserSignal("clear_team_requested");
             AddUserSignal("undo_requested");
         }
@@ -93,6 +101,8 @@ public partial class DebugArenaSpawnerPanelBridgeTest
         public bool get_enemy_ai_enabled() => EnemyAiEnabled;
 
         public bool get_player_ai_enabled() => PlayerAiEnabled;
+
+        public bool get_player_hold_advance_enabled() => PlayerHoldAdvanceEnabled;
 
         public void append_spawn_log(string message)
         {

@@ -33,6 +33,7 @@ var _damage_shape_button: Button
 var _navigation_footprint_button: Button
 var _projectile_hit_geometry_button: Button
 var _summoner_bubble_button: Button
+var _ability_logs_button: Button
 var _spawn_boundary_button: Button
 var _camera_overlay_button: Button
 var _camera_auto_log_button: Button
@@ -243,6 +244,21 @@ func _build_quick_tab(vbox: VBoxContainer) -> void:
 	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
 	vbox.add_child(_skip_prep_button)
 
+	var arena_separator: HSeparator = HSeparator.new()
+	vbox.add_child(arena_separator)
+
+	var arena_title: Label = Label.new()
+	arena_title.text = "Test Arena"
+	arena_title.add_theme_font_size_override("font_size", 14)
+	arena_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
+	vbox.add_child(arena_title)
+
+	var open_arena_map_button: Button = Button.new()
+	open_arena_map_button.text = "Open Test Arena Map"
+	open_arena_map_button.custom_minimum_size = Vector2(220, 32)
+	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
+	vbox.add_child(open_arena_map_button)
+
 	var debug_separator: HSeparator = HSeparator.new()
 	vbox.add_child(debug_separator)
 
@@ -300,6 +316,13 @@ func _build_quick_tab(vbox: VBoxContainer) -> void:
 	_summoner_bubble_button.custom_minimum_size = Vector2(200, 32)
 	_summoner_bubble_button.pressed.connect(_on_summoner_bubble_toggle_pressed)
 	vbox.add_child(_summoner_bubble_button)
+
+	# Ability Logs toggle button
+	_ability_logs_button = Button.new()
+	_ability_logs_button.text = "Ability Logs: Off"
+	_ability_logs_button.custom_minimum_size = Vector2(220, 32)
+	_ability_logs_button.pressed.connect(_on_ability_logs_toggle_pressed)
+	vbox.add_child(_ability_logs_button)
 
 	# Spawn Boundary Bypass toggle button
 	_spawn_boundary_button = Button.new()
@@ -461,12 +484,6 @@ func _build_more_tab(vbox: VBoxContainer) -> void:
 	arena_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
 	vbox.add_child(arena_title)
 
-	var open_arena_map_button: Button = Button.new()
-	open_arena_map_button.text = "Open Test Arena Map"
-	open_arena_map_button.custom_minimum_size = Vector2(220, 32)
-	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
-	vbox.add_child(open_arena_map_button)
-
 	var preset_row: HBoxContainer = HBoxContainer.new()
 	preset_row.add_theme_constant_override("separation", 8)
 	vbox.add_child(preset_row)
@@ -535,6 +552,13 @@ func _update_button_states() -> void:
 			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugSummonerBubbleEnabled"), false)
 		var state: String = "On" if enabled else "Off"
 		_summoner_bubble_button.text = "Summoner Bubble: %s" % state
+
+	if _ability_logs_button and _unit_debug:
+		var enabled: bool = false
+		if _unit_debug.has_method("IsDebugAbilityLogsEnabled"):
+			enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugAbilityLogsEnabled"), false)
+		var state: String = "On" if enabled else "Off"
+		_ability_logs_button.text = "Ability Logs: %s" % state
 
 	if _spawn_boundary_button:
 		var debug_service: Node = _get_battlefield_debug_service()
@@ -761,6 +785,20 @@ func _on_summoner_bubble_toggle_pressed() -> void:
 	_unit_debug.call("ToggleDebugSummonerBubble")
 	_update_button_states()
 	_save_settings()
+
+
+func _on_ability_logs_toggle_pressed() -> void:
+	if not _unit_debug:
+		_unit_debug = _get_unit_debug_service()
+	if not _unit_debug or not _unit_debug.has_method("ToggleDebugAbilityLogs"):
+		return
+	_unit_debug.call("ToggleDebugAbilityLogs")
+	_update_button_states()
+	_save_settings()
+	var enabled: bool = false
+	if _unit_debug.has_method("IsDebugAbilityLogsEnabled"):
+		enabled = SafeTypeUtils.bool_val(_unit_debug.call("IsDebugAbilityLogsEnabled"), false)
+	print("[Debug] Ability logs %s" % ("enabled" if enabled else "disabled"))
 
 
 func _on_spawn_boundary_toggle_pressed() -> void:
@@ -1115,7 +1153,7 @@ func _on_open_test_arena_map_pressed() -> void:
 		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
 		return
 
-	_transition_to_scene(SceneManager.SCENE_CAMPAIGN_MAP)
+	_transition_to_scene(SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
 	print("[Debug] Opened Test Arena campaign map")
 
 
@@ -1276,6 +1314,8 @@ func _load_settings() -> void:
 			_unit_debug.call("SetDebugProjectileHitGeometryEnabled", config.get_value("debug_menu", "projectile_hit_geometry", false))
 		if _unit_debug.has_method("SetDebugSummonerBubbleEnabled"):
 			_unit_debug.call("SetDebugSummonerBubbleEnabled", config.get_value("debug_menu", "summoner_bubble", false))
+		if _unit_debug.has_method("SetDebugAbilityLogsEnabled"):
+			_unit_debug.call("SetDebugAbilityLogsEnabled", config.get_value("debug_menu", "ability_logs", false))
 	_bypass_spawn_boundary = config.get_value("debug_menu", "bypass_spawn_boundary", false)
 	_camera_auto_log_enabled = config.get_value("debug_menu", "camera_auto_log", false)
 	_camera_auto_log_elapsed = 0.0
@@ -1315,6 +1355,8 @@ func _save_settings() -> void:
 			config.set_value("debug_menu", "projectile_hit_geometry", _unit_debug.call("IsDebugProjectileHitGeometryEnabled"))
 		if _unit_debug.has_method("IsDebugSummonerBubbleEnabled"):
 			config.set_value("debug_menu", "summoner_bubble", _unit_debug.call("IsDebugSummonerBubbleEnabled"))
+		if _unit_debug.has_method("IsDebugAbilityLogsEnabled"):
+			config.set_value("debug_menu", "ability_logs", _unit_debug.call("IsDebugAbilityLogsEnabled"))
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 	config.set_value("debug_menu", "camera_auto_log", _camera_auto_log_enabled)
 	config.set_value("debug_menu", "arena_preset_id", _arena_preset_id)

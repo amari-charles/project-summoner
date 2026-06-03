@@ -7,6 +7,7 @@ using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Data;
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Movement;
 using Fateforged.Units;
 using Fateforged.View;
 using Fateforged.View.Debug.DeckSources;
@@ -36,6 +37,7 @@ public partial class DebugArenaSceneTest
         }
 
         _createdNodes.Clear();
+        SimMovement.DebugHoldPlayerAdvanceEnabled = false;
     }
 
     [TestCase]
@@ -53,6 +55,18 @@ public partial class DebugArenaSceneTest
 
         arena.OnEnemyAiToggled(false);
         AssertThat(enemySummoner.Ai).IsNull();
+    }
+
+    [TestCase]
+    public void OnPlayerHoldAdvanceToggled_ConfiguresDebugMovementHold()
+    {
+        var arena = CreateArenaNode();
+
+        arena.OnPlayerHoldAdvanceToggled(true);
+        AssertThat(SimMovement.DebugHoldPlayerAdvanceEnabled).IsTrue();
+
+        arena.OnPlayerHoldAdvanceToggled(false);
+        AssertThat(SimMovement.DebugHoldPlayerAdvanceEnabled).IsFalse();
     }
 
     [TestCase]
@@ -483,6 +497,8 @@ public partial class DebugArenaSceneTest
 
         public bool ConnectPlayerAiToggled(Callable handler) => true;
 
+        public bool ConnectPlayerHoldAdvanceToggled(Callable handler) => true;
+
         public bool ConnectClearTeamRequested(Callable handler) => true;
 
         public bool ConnectUndoRequested(Callable handler) => true;
@@ -492,6 +508,8 @@ public partial class DebugArenaSceneTest
         public bool GetEnemyAiEnabled() => false;
 
         public bool GetPlayerAiEnabled() => false;
+
+        public bool GetPlayerHoldAdvanceEnabled() => false;
 
         public void AppendSpawnLog(string message) { }
 

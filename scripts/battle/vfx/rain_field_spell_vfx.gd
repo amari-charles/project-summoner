@@ -56,22 +56,25 @@ func _on_play() -> void:
 		stop()
 		return
 
-	var zone_scale: float = maxf(0.8, _radius * 0.25)
+	var zone_scale: float = maxf(0.8, _radius)
 	_ring.visible = true
 	_ring.scale = Vector3(zone_scale, 1.0, zone_scale)
 
 	_cloud.visible = true
-	_cloud.scale = Vector3(zone_scale * 0.65, 1.0, zone_scale * 0.65)
+	_cloud.scale = Vector3(zone_scale * 0.45, 1.0, zone_scale * 0.45)
 
 	if _rain_a:
 		_rain_a.visible = true
-		_rain_a.scale = Vector3(1.0, 0.6, 1.0)
+		_rain_a.position = Vector3(-zone_scale * 0.45, 1.6, -zone_scale * 0.25)
+		_rain_a.scale = Vector3(1.0, 0.75, 1.0)
 	if _rain_b:
 		_rain_b.visible = true
-		_rain_b.scale = Vector3(1.0, 0.6, 1.0)
+		_rain_b.position = Vector3(zone_scale * 0.1, 1.6, zone_scale * 0.45)
+		_rain_b.scale = Vector3(1.0, 0.75, 1.0)
 	if _rain_c:
 		_rain_c.visible = true
-		_rain_c.scale = Vector3(1.0, 0.6, 1.0)
+		_rain_c.position = Vector3(zone_scale * 0.5, 1.6, -zone_scale * 0.15)
+		_rain_c.scale = Vector3(1.0, 0.75, 1.0)
 
 	if _tween:
 		_tween.kill()

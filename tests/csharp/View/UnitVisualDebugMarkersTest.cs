@@ -490,6 +490,8 @@ public partial class UnitVisualDebugMarkersTest
 
         public void SetFlipH(bool flip) { }
 
+        public void SetBillboardSuppressed(bool suppressed) { }
+
         public void SetRenderPriority(int priority) { }
 
         public bool IsFullyInitialized() => true;

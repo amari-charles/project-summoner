@@ -226,7 +226,24 @@ public static class SimTargeting
             score += (1f - hpPercent) * unit.HealthScorerWeight;
         }
 
+        if (
+            unit.TargetPriority == UnitTargetPriority.PreferRangedOrSupport
+            && IsRangedOrSupportCandidate(candidate)
+        )
+        {
+            score += 18f;
+        }
+
         return score;
+    }
+
+    private static bool IsRangedOrSupportCandidate(UnitData candidate)
+    {
+        if (candidate.UnitType == UnitType.Ranged)
+            return true;
+        if (candidate.AttackDamage <= 0f || candidate.AttackSpeed <= 0f)
+            return true;
+        return candidate.TacticalRole == TacticalRole.Backliner;
     }
 
     private static int ResolvePreferredLane(UnitData unit)

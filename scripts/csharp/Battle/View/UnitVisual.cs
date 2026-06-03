@@ -25,7 +25,6 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private const int RenderPriorityMin = -128;
     private const int RenderPriorityMax = 127;
     private const float SingleTargetDamageShapeDepthScale = 0.62f;
-
     private IGameSession? _session;
     private int _unitId;
     private bool _isAlive = true;
@@ -38,6 +37,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
     private bool _isFacingRight;
     private string _currentMoveAnim = "";
     private EntityManager? _entityManager;
+    private bool _tornadoVisualRotationActive;
 
     // Debug visualization markers (toggleable via BattlefieldDebugService autoload).
     private MeshInstance3D? _debugHurtboxMarker;
@@ -115,6 +115,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             if (!simNode.IsHost)
                 _isFacingRight = !_isFacingRight;
             _visual?.SetFlipH(_isFacingRight);
+            ApplyAuthoredVisualConfig(unitData);
         }
         else
         {
@@ -140,6 +141,22 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         if (unitData.MovementLayer == MovementLayer.Air)
             AddToGroup(GroupIDs.FlyingUnits);
+    }
+
+    private void ApplyAuthoredVisualConfig(UnitData unitData)
+    {
+        if (_visual is not SkeletalVisualComponent skeletal || !unitData.CatalogId.HasValue)
+            return;
+
+        var unitDefinition = UnitDefinitions.Get(unitData.CatalogId.Value);
+        if (unitDefinition == null || unitDefinition.Visual.DisplayScale <= 0f)
+            return;
+
+        float displayScale = unitDefinition.Visual.DisplayScale;
+        if (Mathf.IsEqualApprox(displayScale, 1f))
+            return;
+
+        skeletal.SetScaleFactor(skeletal.ScaleFactor * displayScale);
     }
 
     // --- Self-Sync (continuous, every frame) ---
@@ -199,6 +216,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
             _isFacingRight = localFacing;
             _visual?.SetFlipH(_isFacingRight);
         }
+        ApplyTornadoVisualRotation(unitData);
 
         bool isActive = unitData.ActivationState == ActivationState.Active;
 
@@ -317,6 +335,7 @@ public partial class UnitVisual : Node3D, IDamageableVisual
         _spawnReveal?.Cancel();
 
         CleanupDebugMarkers();
+        ResetTornadoVisualRotation();
         _isAlive = false;
         Visible = false;
         CallDeferred(MethodName.QueueFree);
@@ -341,6 +360,62 @@ public partial class UnitVisual : Node3D, IDamageableVisual
 
         var state = _session.GetState();
         return state.Units.TryGetValue(_unitId, out var unitData) ? unitData : null;
+    }
+
+    private void ApplyTornadoVisualRotation(UnitData unitData)
+    {
+        var visual = _visual;
+        if (visual is not Node3D visualNode)
+            return;
+
+        ActiveBuff? carry = null;
+        foreach (var buff in unitData.ActiveBuffs)
+        {
+            if (buff.EffectType == EffectType.TornadoCarry)
+            {
+                carry = buff;
+                break;
+            }
+        }
+
+        if (carry == null)
+        {
+            ResetTornadoVisualRotation();
+            return;
+        }
+
+        float yaw = ResolveTornadoTangentYaw(carry, SimulationNode.Current);
+        visual.SetBillboardSuppressed(true);
+        visualNode.Rotation = new Vector3(0f, yaw, 0f);
+        _tornadoVisualRotationActive = true;
+    }
+
+    private static float ResolveTornadoTangentYaw(ActiveBuff carry, SimulationNode? simNode)
+    {
+        float spinDirection = carry.TornadoOrbitAngularSpeedRadians >= 0f ? 1f : -1f;
+        float tangentX = -Mathf.Sin(carry.TornadoOrbitAngleRadians) * spinDirection;
+        float tangentZ = Mathf.Cos(carry.TornadoOrbitAngleRadians) * spinDirection;
+
+        if (simNode != null && !simNode.IsHost)
+            tangentX = -tangentX;
+
+        if (Mathf.Abs(tangentX) < 0.0001f && Mathf.Abs(tangentZ) < 0.0001f)
+            return 0f;
+
+        return Mathf.Atan2(-tangentZ, tangentX);
+    }
+
+    private void ResetTornadoVisualRotation()
+    {
+        if (!_tornadoVisualRotationActive)
+            return;
+
+        var visual = _visual;
+        if (visual is Node3D visualNode)
+            visualNode.Rotation = Vector3.Zero;
+        visual?.SetBillboardSuppressed(false);
+
+        _tornadoVisualRotationActive = false;
     }
 
     private void UpdateDebugHurtboxMarker(UnitData unitData)

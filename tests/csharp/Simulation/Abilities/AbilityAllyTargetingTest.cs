@@ -27,12 +27,17 @@ public class AbilityAllyTargetingTest
             new UnitAbilityState
             {
                 AbilityId = "healer_bullet",
-                Kind = UnitAbilityKind.HealerProjectile,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.LowestHpAlly,
+                Delivery = UnitAbilityDelivery.Projectile,
                 CooldownSeconds = 1f,
                 Range = 20f,
-                Value = 12f,
                 ProjectileCatalogId = (string)ProjectileIds.HealingBolt,
                 TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectState { EffectType = EffectType.Heal, Value = 12f },
+                ],
             }
         );
 
@@ -69,11 +74,17 @@ public class AbilityAllyTargetingTest
             new UnitAbilityState
             {
                 AbilityId = "cleanse_pulse",
-                Kind = UnitAbilityKind.CleansePulse,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.AlliesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 2f,
                 Radius = 7f,
-                Value = 12f,
                 TargetAffinity = AbilityTargetAffinity.Allies,
+                Effects =
+                [
+                    new UnitAbilityEffectState { EffectType = EffectType.Cleanse },
+                    new UnitAbilityEffectState { EffectType = EffectType.Heal, Value = 12f },
+                ],
             }
         );
 

@@ -43,6 +43,8 @@ signal skip_prep_toggled(skip: bool)
 signal enemy_ai_toggled(enabled: bool)
 ## Signal emitted when player AI is toggled
 signal player_ai_toggled(enabled: bool)
+## Signal emitted when player objective advance is held
+signal player_hold_advance_toggled(enabled: bool)
 ## Signal emitted when clear team button is pressed
 signal clear_team_requested(team: int)
 ## Signal emitted when undo requested
@@ -53,6 +55,7 @@ var _unit_entries: Array[Dictionary] = []
 var _skip_prep_phase: bool = false
 var _enemy_ai_enabled: bool = false
 var _player_ai_enabled: bool = false
+var _player_hold_advance_enabled: bool = false
 var _enemy_unit_list_container: VBoxContainer
 var _player_unit_list_container: VBoxContainer
 var _search_input: LineEdit
@@ -258,6 +261,13 @@ func _build_advanced_drawer() -> void:
 	player_ai_toggle.toggled.connect(_on_player_ai_toggled)
 	player_ai_toggle.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	_advanced_controls_container.add_child(player_ai_toggle)
+
+	var player_hold_advance_toggle: CheckButton = CheckButton.new()
+	player_hold_advance_toggle.text = "Hold Player Advance"
+	player_hold_advance_toggle.button_pressed = _player_hold_advance_enabled
+	player_hold_advance_toggle.toggled.connect(_on_player_hold_advance_toggled)
+	player_hold_advance_toggle.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	_advanced_controls_container.add_child(player_hold_advance_toggle)
 
 	_advanced_controls_container.add_child(HSeparator.new())
 	_build_spawn_controls(_advanced_controls_container)
@@ -775,6 +785,10 @@ func get_player_ai_enabled() -> bool:
 	return _player_ai_enabled
 
 
+func get_player_hold_advance_enabled() -> bool:
+	return _player_hold_advance_enabled
+
+
 func get_spawn_settings() -> Dictionary:
 	return {
 		"spawn_mode": _spawn_mode,
@@ -942,6 +956,12 @@ func _on_player_ai_toggled(pressed: bool) -> void:
 	player_ai_toggled.emit(pressed)
 
 
+func _on_player_hold_advance_toggled(pressed: bool) -> void:
+	_player_hold_advance_enabled = pressed
+	_save_settings()
+	player_hold_advance_toggled.emit(pressed)
+
+
 func _on_clear_player_pressed() -> void:
 	clear_team_requested.emit(TEAM_PLAYER)
 
@@ -965,6 +985,7 @@ func _load_settings() -> void:
 		_skip_prep_phase = config.get_value("debug_arena", "skip_prep_phase", false)
 		_enemy_ai_enabled = config.get_value("debug_arena", "enemy_ai_enabled", false)
 		_player_ai_enabled = config.get_value("debug_arena", "player_ai_enabled", false)
+		_player_hold_advance_enabled = config.get_value("debug_arena", "player_hold_advance_enabled", false)
 		_spawn_mode = config.get_value("debug_arena", "spawn_mode", SPAWN_MODE_SINGLE)
 		_burst_count = config.get_value("debug_arena", "burst_count", 3)
 		_formation_mode = config.get_value("debug_arena", "formation_mode", FORMATION_STACK)
@@ -976,6 +997,7 @@ func _save_settings() -> void:
 	config.set_value("debug_arena", "skip_prep_phase", _skip_prep_phase)
 	config.set_value("debug_arena", "enemy_ai_enabled", _enemy_ai_enabled)
 	config.set_value("debug_arena", "player_ai_enabled", _player_ai_enabled)
+	config.set_value("debug_arena", "player_hold_advance_enabled", _player_hold_advance_enabled)
 	config.set_value("debug_arena", "spawn_mode", _spawn_mode)
 	config.set_value("debug_arena", "burst_count", _burst_count)
 	config.set_value("debug_arena", "formation_mode", _formation_mode)

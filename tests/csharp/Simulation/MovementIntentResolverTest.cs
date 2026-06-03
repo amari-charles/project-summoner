@@ -19,6 +19,7 @@ public class MovementIntentResolverTest
     public void Setup()
     {
         _state = SimTestHelper.CreateBattleState();
+        SimMovement.DebugHoldPlayerAdvanceEnabled = false;
     }
 
     [TestCase]
@@ -161,5 +162,32 @@ public class MovementIntentResolverTest
 
         AssertThat(unit.Velocity.LengthSquared()).IsGreater(0.0001f);
         AssertThat(unit.Position.X).IsGreater(startPos.X);
+    }
+
+    [TestCase]
+    public void Tick_DebugHoldPlayerAdvanceStopsOnlyPlayerForwardMovement()
+    {
+        var player = SimTestHelper.CreateMeleeUnit(_state, team: 0, x: -12f, z: 0f, moveSpeed: 3f);
+        var enemy = SimTestHelper.CreateMeleeUnit(_state, team: 1, x: 12f, z: 0f, moveSpeed: 3f);
+        var behavior = new SimBehavior.BehaviorResult { Movement = MovementResult.Forward };
+        var playerStart = player.Position;
+        var enemyStart = enemy.Position;
+
+        try
+        {
+            SimMovement.DebugHoldPlayerAdvanceEnabled = true;
+            SimMovement.Tick(player, behavior, _state, Delta);
+            SimMovement.Tick(enemy, behavior, _state, Delta);
+        }
+        finally
+        {
+            SimMovement.DebugHoldPlayerAdvanceEnabled = false;
+        }
+
+        AssertThat(player.Position.X).IsEqual(playerStart.X);
+        AssertThat(player.Position.Z).IsEqual(playerStart.Z);
+        AssertThat(player.Velocity.LengthSquared()).IsEqual(0f);
+        AssertThat(enemy.Position.X).IsLess(enemyStart.X);
+        AssertThat(enemy.Velocity.LengthSquared()).IsGreater(0.0001f);
     }
 }

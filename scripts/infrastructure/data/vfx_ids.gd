@@ -40,6 +40,21 @@ const WATER_JET_SPELL: StringName = &"water_jet_spell"
 ## Rain field spell effect
 const RAIN_FIELD_SPELL: StringName = &"rain_field_spell"
 
+## Reusable exact-radius area field spell visual
+const SPELL_AREA_FIELD: StringName = &"spell_area_field"
+
+## Reusable exact-radius area burst spell visual
+const SPELL_AREA_BURST: StringName = &"spell_area_burst"
+
+## Reusable delayed/repeated area pulse spell visual
+const SPELL_AREA_PULSE: StringName = &"spell_area_pulse"
+
+## Reusable line spell visual
+const SPELL_LINE: StringName = &"spell_line"
+
+## Reusable single-target spell visual
+const SPELL_SINGLE_TARGET: StringName = &"spell_single_target"
+
 # ============================================================================
 # LIGHTNING EFFECTS
 # ============================================================================
@@ -76,6 +91,11 @@ const IMPLEMENTED: Array[StringName] = [
 	CLEANSE_SPELL,
 	WATER_JET_SPELL,
 	RAIN_FIELD_SPELL,
+	SPELL_AREA_FIELD,
+	SPELL_AREA_BURST,
+	SPELL_AREA_PULSE,
+	SPELL_LINE,
+	SPELL_SINGLE_TARGET,
 	LIGHTNING_STRIKE,
 ]
 

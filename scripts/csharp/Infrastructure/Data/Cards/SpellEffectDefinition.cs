@@ -1,4 +1,6 @@
 using Fateforged.Simulation.Enums;
+using Fateforged.Simulation.Effects;
+using Fateforged.Units;
 
 namespace Fateforged.Cards;
 
@@ -35,6 +37,12 @@ public class SpellEffectDefinition
     /// <summary>Which team the effect targets.</summary>
     public SpellAffinity Affinity { get; init; } = SpellAffinity.Enemies;
 
+    /// <summary>Which movement layer this effect can affect.</summary>
+    public TargetLayer TargetLayerFilter { get; init; } = TargetLayer.Both;
+
+    /// <summary>Optional element requirement for valid targets.</summary>
+    public Element? RequiredTargetElement { get; init; }
+
     /// <summary>Delay before first apply.</summary>
     public float DelaySeconds { get; init; }
 
@@ -43,4 +51,34 @@ public class SpellEffectDefinition
 
     /// <summary>Spacing between repeated applications.</summary>
     public float RepeatIntervalSeconds { get; init; }
+
+    /// <summary>Status payload identity for status apply/consume effects.</summary>
+    public StatusEffectKind StatusKind { get; init; } = StatusEffectKind.None;
+
+    /// <summary>Status payload tick interval.</summary>
+    public float StatusTickInterval { get; init; } = 1f;
+
+    /// <summary>Status payload potency per stack.</summary>
+    public float StatusPotencyPerStack { get; init; }
+
+    /// <summary>Status payload max stacks.</summary>
+    public int StatusMaxStacks { get; init; } = 1;
+
+    /// <summary>Optional payload fired when a buff created by this effect is removed.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; init; }
+
+    /// <summary>Tags required/blocked before this effect can affect a target.</summary>
+    public EffectTagRequirements TagRequirements { get; init; } = new();
+
+    /// <summary>Tags granted while a buff created by this effect is active.</summary>
+    public string[] GrantedTags { get; init; } = [];
+
+    /// <summary>Policy used if a matching active buff already exists.</summary>
+    public EffectStackPolicy StackPolicy { get; init; } = EffectStackPolicy.Independent;
+
+    /// <summary>Optional stack key used by non-independent stack policies.</summary>
+    public string StackKey { get; init; } = "";
+
+    /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
+    public string CueId { get; init; } = "";
 }

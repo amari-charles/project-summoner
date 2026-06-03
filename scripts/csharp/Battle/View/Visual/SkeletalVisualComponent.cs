@@ -37,6 +37,12 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     [Export]
     public Vector2 ScaleFactor { get; set; } = new Vector2(0.1f, 0.1f);
 
+    public void SetScaleFactor(Vector2 scaleFactor)
+    {
+        ScaleFactor = scaleFactor;
+        ApplyScaleFactorToRig();
+    }
+
     /// <summary>
     /// Viewport size in pixels. Set this to fit your unit's content.
     /// If zero, uses the default size from the component scene (1200x1200).
@@ -125,6 +131,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     private bool _isFlipped;
     private bool _initializationComplete;
     private bool _underUnitVisual;
+    private BaseMaterial3D.BillboardModeEnum _defaultBillboardMode =
+        BaseMaterial3D.BillboardModeEnum.Disabled;
     private ShadowProfile _shadowProfile = ShadowProfiles
         .FromPreset(ShadowProfilePreset.Default)
         .Sanitize();
@@ -142,6 +150,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         _sprite3D = GetNodeOrNull<Sprite3D>("Sprite3D");
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _modelContainer = GetNodeOrNull<Node2D>("Sprite3D/SubViewport/ModelContainer");
+        if (_sprite3D != null)
+            _defaultBillboardMode = _sprite3D.Billboard;
         _underUnitVisual = IsUnderUnitVisual();
         _shadowProfile = ResolveShadowProfile();
 
@@ -390,29 +400,17 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         if (_skeletalInstance == null || !_initializationComplete || _viewport == null)
             return;
 
-        // Apply scale flip while preserving the display scale
-        float displayScale = ScaleFactor.X;
-        var scale = _skeletalInstance.Scale;
-        scale.X = displayScale * (flip ? -1 : 1);
-        _skeletalInstance.Scale = scale;
+        ApplyScaleFactorToRig();
+    }
 
-        // Adjust position to keep content centered after flip
-        // When flipped, content that was at +contentCenterX from rig origin
-        // is now at -contentCenterX, so we need to adjust rig position
-        float contentCenterX = FeetLocalPosition.X * ScaleFactor.X;
-        var viewportCenter = new Vector2(_viewport.Size.X / 2.0f, _viewport.Size.Y / 2.0f);
-        var pos = _skeletalInstance.Position;
-        if (flip)
-        {
-            // When flipped, content is at -contentCenterX from rig, so move rig right
-            pos.X = viewportCenter.X + contentCenterX;
-        }
-        else
-        {
-            // When not flipped, content is at +contentCenterX from rig, so move rig left
-            pos.X = viewportCenter.X - contentCenterX;
-        }
-        _skeletalInstance.Position = pos;
+    public void SetBillboardSuppressed(bool suppressed)
+    {
+        if (_sprite3D == null)
+            return;
+
+        _sprite3D.Billboard = suppressed
+            ? BaseMaterial3D.BillboardModeEnum.Disabled
+            : _defaultBillboardMode;
     }
 
     public void SetRenderPriority(int priority)
@@ -536,17 +534,7 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         )
             return;
 
-        // Apply scale factor to the rig
-        _skeletalInstance.Scale = ScaleFactor;
-
-        // Position the rig so content center (at FeetLocalPosition.X) is at viewport center
-        // This automatically handles centering without needing a separate ContentOffset parameter
-        float contentCenterX = FeetLocalPosition.X * ScaleFactor.X;
-        var viewportCenter = new Vector2(_viewport.Size.X / 2.0f, _viewport.Size.Y / 2.0f);
-        _skeletalInstance.Position = new Vector2(
-            viewportCenter.X - contentCenterX,
-            viewportCenter.Y
-        );
+        ApplyScaleFactorToRig();
 
         // Mark initialization complete and show sprite
         _initializationComplete = true;
@@ -555,24 +543,28 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             _sprite3D.Visible = true;
         }
 
-        // Apply deferred flip state (if SetFlipH was called before initialization)
-        if (_isFlipped)
-        {
-            var scale = _skeletalInstance.Scale;
-            scale.X = -Mathf.Abs(scale.X);
-            _skeletalInstance.Scale = scale;
-
-            // Also adjust position to keep content centered when flipped
-            var pos = _skeletalInstance.Position;
-            pos.X = viewportCenter.X + contentCenterX; // Flip reverses the offset
-            _skeletalInstance.Position = pos;
-        }
-
         // Start idle animation
         if (_animationPlayer?.HasAnimation("idle") == true)
         {
             _animationPlayer.Play("idle");
         }
+    }
+
+    private void ApplyScaleFactorToRig()
+    {
+        if (_skeletalInstance == null || !IsInstanceValid(_skeletalInstance) || _viewport == null)
+            return;
+
+        _skeletalInstance.Scale = new Vector2(
+            ScaleFactor.X * (_isFlipped ? -1f : 1f),
+            ScaleFactor.Y
+        );
+
+        // Position the rig so content center (at FeetLocalPosition.X) is at viewport center.
+        float contentCenterX = FeetLocalPosition.X * ScaleFactor.X;
+        var viewportCenter = new Vector2(_viewport.Size.X / 2.0f, _viewport.Size.Y / 2.0f);
+        float x = _isFlipped ? viewportCenter.X + contentCenterX : viewportCenter.X - contentCenterX;
+        _skeletalInstance.Position = new Vector2(x, viewportCenter.Y);
     }
 
     private AnimationPlayer? FindAnimationPlayer(Node node)

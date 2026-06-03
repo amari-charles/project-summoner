@@ -1,4 +1,5 @@
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 
 namespace Fateforged.Units;
@@ -11,8 +12,14 @@ public record UnitAbilityConfig
     /// <summary>Stable authoring ID for debug/events.</summary>
     public string AbilityId { get; init; } = "";
 
-    /// <summary>Runtime behavior kind.</summary>
-    public UnitAbilityKind Kind { get; init; }
+    /// <summary>When this ability attempts to activate.</summary>
+    public UnitAbilityTrigger Trigger { get; init; } = UnitAbilityTrigger.Periodic;
+
+    /// <summary>How this ability resolves targets.</summary>
+    public UnitAbilityTargeting Targeting { get; init; } = UnitAbilityTargeting.Self;
+
+    /// <summary>How this ability delivers effects after target resolution.</summary>
+    public UnitAbilityDelivery Delivery { get; init; } = UnitAbilityDelivery.Instant;
 
     /// <summary>Cooldown between ability activations.</summary>
     public float CooldownSeconds { get; init; } = 1f;
@@ -41,11 +48,68 @@ public record UnitAbilityConfig
     /// <summary>Optional windup before resolve.</summary>
     public float WindupSeconds { get; init; }
 
+    /// <summary>Delay used by delayed/repeated delivery after targets are selected.</summary>
+    public float DeliveryDelaySeconds { get; init; }
+
+    /// <summary>Additional delayed applications after the first for repeated delivery.</summary>
+    public int RepeatCount { get; init; }
+
+    /// <summary>Spacing between delayed repeated applications.</summary>
+    public float RepeatIntervalSeconds { get; init; }
+
     /// <summary>Optional projectile used by projectile-delivery abilities.</summary>
     public ProjectileId ProjectileId { get; init; } = ProjectileId.None;
 
     /// <summary>Target affinity filter used by this ability.</summary>
     public AbilityTargetAffinity TargetAffinity { get; init; } = AbilityTargetAffinity.Enemies;
+
+    /// <summary>Effect payloads delivered by the ability.</summary>
+    public UnitAbilityEffectConfig[] Effects { get; init; } = [];
+
+    /// <summary>Tags required/blocked before this ability can affect a target.</summary>
+    public EffectTagRequirements TagRequirements { get; init; } = new();
+
+    /// <summary>Optional cue identity emitted when this ability executes.</summary>
+    public string CueId { get; init; } = "";
+}
+
+/// <summary>
+/// Effect payload used by simulation-owned unit abilities.
+/// </summary>
+public record UnitAbilityEffectConfig
+{
+    /// <summary>Gameplay mutation to apply.</summary>
+    public EffectType EffectType { get; init; } = EffectType.StatModifier;
+
+    /// <summary>Primary scalar value for the effect.</summary>
+    public float Value { get; init; }
+
+    /// <summary>Primary duration value for buffs/debuffs.</summary>
+    public float DurationSeconds { get; init; }
+
+    /// <summary>Typed lifetime payload for buffs/debuffs.</summary>
+    public EffectLifetime Lifetime { get; init; } = EffectLifetime.Timed(0f);
+
+    /// <summary>Damage lane used by damage-class effects.</summary>
+    public DamageType DamageType { get; init; } = DamageType.Magic;
+
+    /// <summary>Optional projectile/status payload for status application.</summary>
+    public ProjectileStatusConfig? Status { get; init; }
+
+    /// <summary>Tags required/blocked before this effect can affect a target.</summary>
+    public EffectTagRequirements TagRequirements { get; init; } = new();
+
+    /// <summary>Tags granted while a buff created by this effect is active.</summary>
+    public string[] GrantedTags { get; init; } = [];
+
+    /// <summary>Policy used if a matching active buff already exists.</summary>
+    public EffectStackPolicy StackPolicy { get; init; } = EffectStackPolicy.Independent;
+
+    /// <summary>Optional stack key used by non-independent stack policies.</summary>
+    public string StackKey { get; init; } = "";
+
+    /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
+    public string CueId { get; init; } = "";
 }
 
 /// <summary>

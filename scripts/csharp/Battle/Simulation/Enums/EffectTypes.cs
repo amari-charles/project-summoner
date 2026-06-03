@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Simulation.Data;
 using Fateforged.Units;
 
 namespace Fateforged.Simulation.Enums;
@@ -51,6 +52,18 @@ public enum EffectType
     EvasionModifier, // Modify evasion chance (+/-)
     AttackSpeedModifier, // Modify attack speed (+/-)
     FlatDamageReduction, // Flat post-mitigation reduction
+    Taunt, // Soft forced-target override toward source unit
+    StatusApply, // Apply a configured status payload
+    StatusConsume, // Consume a configured status and convert remaining value
+    TransferHealth, // Shift HP among allies toward a shared health percentage
+    AccuracyModifier, // Modify attacker's hit chance
+    RangedDamageModifier, // Modify damage from ranged unit attacks
+    Root, // Prevent movement without preventing attacks
+    ReviveOnDeath, // Restore a dying unit once while buff is active
+    Displacement, // Push or pull from an explicit origin
+    SourceLungeToTarget, // Move the source unit next to the target
+    TornadoCarry, // Lift, disable, and orbit a unit around an explicit origin
+    TornadoFall, // Temporary post-tornado falling state until the unit reaches landing height
 }
 
 // =========================================================================
@@ -74,6 +87,8 @@ public enum SpellAreaShape
 {
     Circle = 0,
     Square = 1,
+    Line = 2,
+    Cone = 3,
 }
 
 /// <summary>
@@ -153,6 +168,9 @@ public class SimSpellEffect
     /// <summary>Which team this effect targets.</summary>
     public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
 
+    /// <summary>Which movement layer this effect can affect.</summary>
+    public TargetLayer TargetLayerFilter { get; set; } = TargetLayer.Both;
+
     /// <summary>Delay before first application (0 = immediate).</summary>
     public float DelaySeconds { get; set; }
 
@@ -164,6 +182,40 @@ public class SimSpellEffect
 
     /// <summary>Interval between repeated applications.</summary>
     public float RepeatIntervalSeconds { get; set; }
+
+    /// <summary>Status payload identity for status apply/consume effects.</summary>
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+
+    /// <summary>Status payload tick interval.</summary>
+    public float StatusTickInterval { get; set; } = 1f;
+
+    /// <summary>Status payload potency per stack.</summary>
+    public float StatusPotencyPerStack { get; set; }
+
+    /// <summary>Status payload max stacks.</summary>
+    public int StatusMaxStacks { get; set; } = 1;
+
+    /// <summary>Optional payload fired when a buff created by this effect is removed.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; set; }
+
+    /// <summary>Optional target element requirement (-1 = no requirement).</summary>
+    public int RequiredTargetElementId { get; set; } = -1;
+
+    /// <summary>Tags required/blocked before this effect can affect a target.</summary>
+    public Fateforged.Simulation.Effects.EffectTagRequirements TagRequirements { get; set; } = new();
+
+    /// <summary>Tags granted while a buff created by this effect is active.</summary>
+    public List<string> GrantedTags { get; set; } = new();
+
+    /// <summary>Policy used if a matching active buff already exists.</summary>
+    public Fateforged.Simulation.Effects.EffectStackPolicy StackPolicy { get; set; } =
+        Fateforged.Simulation.Effects.EffectStackPolicy.Independent;
+
+    /// <summary>Optional stack key used by non-independent stack policies.</summary>
+    public string StackKey { get; set; } = "";
+
+    /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
+    public string CueId { get; set; } = "";
 }
 
 /// <summary>
@@ -214,6 +266,74 @@ public class ActiveBuff
 
     /// <summary>Optional stack count for status payload effects.</summary>
     public int StackCount { get; set; } = 1;
+
+    /// <summary>Optional effect fired when this buff is removed for configured reasons.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; set; }
+
+    /// <summary>Owner HP captured when this buff was applied, for scaling removal effects.</summary>
+    public float OwnerHpAtApply { get; set; }
+
+    /// <summary>Tags granted to the owning unit while this buff is active.</summary>
+    public List<string> GrantedTags { get; set; } = new();
+
+    /// <summary>Stacking identity for refresh/stack policies.</summary>
+    public string StackKey { get; set; } = "";
+
+    /// <summary>Visual/audio cue identity for active/removed lifecycle events.</summary>
+    public string CueId { get; set; } = "";
+
+    /// <summary>Center point for tornado-style carried movement.</summary>
+    public SimVector3 TornadoCenter { get; set; } = SimVector3.Zero;
+
+    /// <summary>Horizontal orbit radius for tornado-style carried movement.</summary>
+    public float TornadoOrbitRadius { get; set; }
+
+    /// <summary>Current orbit angle in radians for tornado-style carried movement.</summary>
+    public float TornadoOrbitAngleRadians { get; set; }
+
+    /// <summary>Radians per second for tornado-style carried movement.</summary>
+    public float TornadoOrbitAngularSpeedRadians { get; set; }
+
+    /// <summary>Lift amount above the unit's normal landing height for tornado-style carried movement.</summary>
+    public float TornadoLiftHeight { get; set; }
+
+    /// <summary>Normal landing height for tornado-style carried movement.</summary>
+    public float TornadoBaseLiftHeight { get; set; }
+
+    /// <summary>Additional tier height for tornado-style carried movement.</summary>
+    public float TornadoHeightOffset { get; set; }
+
+    /// <summary>Starting Y for tornado-style carried movement.</summary>
+    public float TornadoStartHeight { get; set; }
+
+    /// <summary>Resolved absolute target Y for tornado-style carried movement.</summary>
+    public float TornadoTargetHeight { get; set; }
+
+    /// <summary>0-1 lift interpolation progress for tornado-style carried movement.</summary>
+    public float TornadoLiftProgress { get; set; }
+
+    /// <summary>Landing height for post-tornado falling movement.</summary>
+    public float TornadoFallLandingY { get; set; }
+}
+
+/// <summary>
+/// Optional payload fired when a buff expires, breaks, or its owner dies.
+/// Used for generic mark/shield-burst style mechanics without content-specific switches.
+/// </summary>
+public class BuffRemovalEffectConfig
+{
+    public bool TriggerOnExpire { get; set; }
+    public bool TriggerOnShieldBreak { get; set; }
+    public bool TriggerOnOwnerDeath { get; set; }
+    public EffectType EffectType { get; set; } = EffectType.Damage;
+    public float Value { get; set; }
+    public bool ScaleValueByOwnerHpAtApply { get; set; }
+    public float OwnerHpAtApplyMultiplier { get; set; }
+    public DamageType DamageType { get; set; } = DamageType.Magic;
+    public float Radius { get; set; }
+    public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
+    public float Duration { get; set; }
+    public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
 }
 
 /// <summary>
@@ -289,6 +409,9 @@ public class DelayedEffect
     /// <summary>Position where the effect originates (for AoE).</summary>
     public SimVector3 Position { get; set; }
 
+    /// <summary>Source/origin position for directional target resolution.</summary>
+    public SimVector3 SourcePosition { get; set; }
+
     /// <summary>Source unit ID (for kill credit).</summary>
     public int SourceUnitId { get; set; }
 
@@ -297,6 +420,9 @@ public class DelayedEffect
 
     /// <summary>Spell affinity filter for delayed spell effects.</summary>
     public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
+
+    /// <summary>Movement layer filter for delayed spell effects.</summary>
+    public TargetLayer TargetLayerFilter { get; set; } = TargetLayer.Both;
 
     /// <summary>Targeting mode for delayed spell effects.</summary>
     public SpellTargetingMode TargetingMode { get; set; } = SpellTargetingMode.Position;
@@ -312,4 +438,41 @@ public class DelayedEffect
     /// Duration remains as a bridge in PASS 2.
     /// </summary>
     public EffectLifetime Lifetime { get; set; } = EffectLifetime.Timed(0f);
+
+    /// <summary>Status payload identity for delayed status apply/consume effects.</summary>
+    public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;
+
+    /// <summary>Status payload tick interval.</summary>
+    public float StatusTickInterval { get; set; } = 1f;
+
+    /// <summary>Status payload potency per stack.</summary>
+    public float StatusPotencyPerStack { get; set; }
+
+    /// <summary>Status payload max stacks.</summary>
+    public int StatusMaxStacks { get; set; } = 1;
+
+    /// <summary>Optional payload fired when a buff created by this delayed effect is removed.</summary>
+    public BuffRemovalEffectConfig? RemovalEffect { get; set; }
+
+    /// <summary>Optional target element requirement (-1 = no requirement).</summary>
+    public int RequiredTargetElementId { get; set; } = -1;
+
+    /// <summary>Tags required/blocked before this effect can affect a target.</summary>
+    public Fateforged.Simulation.Effects.EffectTagRequirements TagRequirements { get; set; } = new();
+
+    /// <summary>Tags granted while a buff created by this effect is active.</summary>
+    public List<string> GrantedTags { get; set; } = new();
+
+    /// <summary>Policy used if a matching active buff already exists.</summary>
+    public Fateforged.Simulation.Effects.EffectStackPolicy StackPolicy { get; set; } =
+        Fateforged.Simulation.Effects.EffectStackPolicy.Independent;
+
+    /// <summary>Optional stack key used by non-independent stack policies.</summary>
+    public string StackKey { get; set; } = "";
+
+    /// <summary>Optional cue identity emitted for this effect's lifecycle.</summary>
+    public string CueId { get; set; } = "";
+
+    /// <summary>Optional card catalog ID for spell-owned delayed effects.</summary>
+    public SimCardCatalogId CardCatalogId { get; set; } = SimCardCatalogId.Empty;
 }

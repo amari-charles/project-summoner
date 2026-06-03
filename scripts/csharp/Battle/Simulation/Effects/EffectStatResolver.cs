@@ -11,6 +11,12 @@ public static class EffectStatResolver
 {
     public static float GetEffectiveMoveSpeed(UnitData unit)
     {
+        foreach (var buff in unit.ActiveBuffs)
+        {
+            if (buff.EffectType == EffectType.Root)
+                return 0f;
+        }
+
         float speed = unit.MoveSpeed;
         foreach (var buff in unit.ActiveBuffs)
         {
@@ -20,6 +26,33 @@ public static class EffectStatResolver
                 speed *= (1f + buff.Value);
         }
         return MathF.Max(speed, 0f);
+    }
+
+    public static float GetEffectiveRangedDamageMultiplier(UnitData unit)
+    {
+        float multiplier = 1f;
+        foreach (var buff in unit.ActiveBuffs)
+        {
+            if (buff.EffectType == EffectType.RangedDamageModifier)
+                multiplier *= 1f + buff.Value;
+        }
+        return MathF.Max(multiplier, 0f);
+    }
+
+    public static float GetEffectiveMissChance(UnitData unit)
+    {
+        float missChance = 0f;
+        foreach (var buff in unit.ActiveBuffs)
+        {
+            if (buff.EffectType == EffectType.AccuracyModifier && buff.Value < 0f)
+                missChance += -buff.Value;
+        }
+
+        if (missChance <= 0f)
+            return 0f;
+        if (missChance >= 1f)
+            return 1f;
+        return missChance;
     }
 
     public static float GetEffectiveAttackDamage(UnitData unit)

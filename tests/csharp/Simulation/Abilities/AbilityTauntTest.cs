@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Subsystems;
 using Fateforged.Tests.Simulation;
 using Fateforged.Units;
@@ -24,10 +25,19 @@ public class AbilityTauntTest
             new UnitAbilityState
             {
                 AbilityId = "taunt_pulse",
-                Kind = UnitAbilityKind.TauntPulse,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 3f,
                 Radius = 8f,
-                DurationSeconds = 2f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.Taunt,
+                        DurationSeconds = 2f,
+                    },
+                ],
             }
         );
 

@@ -173,6 +173,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
     private bool _isAttacking;
     private bool _isWalkCycleActive;
     private bool _isFlipped;
+    private BaseMaterial3D.BillboardModeEnum _defaultBillboardMode =
+        BaseMaterial3D.BillboardModeEnum.Disabled;
     private ShadowProfile _shadowProfile = ShadowProfiles
         .FromPreset(ShadowProfilePreset.Default)
         .Sanitize();
@@ -200,6 +202,8 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         _characterSprite = GetNodeOrNull<AnimatedSprite2D>(
             "Sprite3D/SubViewport/Model2D/CharacterSprite"
         );
+        if (_sprite3D != null)
+            _defaultBillboardMode = _sprite3D.Billboard;
         _shadowProfile = ResolveShadowProfile();
 
         // Only hide/create runtime-only visuals when under UnitVisual.
@@ -546,6 +550,16 @@ public partial class SpriteVisualComponent : Node3D, IVisualComponent
         }
         // Shadow doesn't need flip updates — the viewport texture already
         // contains the flipped content, so the shadow silhouette updates automatically.
+    }
+
+    public void SetBillboardSuppressed(bool suppressed)
+    {
+        if (_sprite3D == null)
+            return;
+
+        _sprite3D.Billboard = suppressed
+            ? BaseMaterial3D.BillboardModeEnum.Disabled
+            : _defaultBillboardMode;
     }
 
     public void SetRenderPriority(int priority)

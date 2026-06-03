@@ -28,7 +28,8 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
-        List<SimEvent>? events = null
+        List<SimEvent>? events = null,
+        MatchState? state = null
     )
     {
         return CalculateInternal(
@@ -40,7 +41,8 @@ public static class SimDamage
             targetSummoner,
             rng,
             allowAttackProfileSplit: false,
-            events
+            events,
+            state
         );
     }
 
@@ -55,7 +57,8 @@ public static class SimDamage
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
         DeterministicRng? rng,
-        List<SimEvent>? events = null
+        List<SimEvent>? events = null,
+        MatchState? state = null
     )
     {
         return CalculateInternal(
@@ -67,7 +70,8 @@ public static class SimDamage
             targetSummoner,
             rng,
             allowAttackProfileSplit: true,
-            events
+            events,
+            state
         );
     }
 
@@ -80,22 +84,38 @@ public static class SimDamage
         SummonerData? targetSummoner,
         DeterministicRng? rng,
         bool allowAttackProfileSplit,
-        List<SimEvent>? events
+        List<SimEvent>? events,
+        MatchState? state
     )
     {
-        // 0. Evasion check (deterministic via RNG)
+        // 0. Attacker miss chance and target evasion checks (deterministic via RNG)
+        if (attacker != null && rng != null)
+        {
+            float missChance = EffectStatResolver.GetEffectiveMissChance(attacker);
+            if (missChance > 0f && rng.NextFloat() < missChance)
+            {
+                events?.Add(new AttackEvadedEvent(target.UnitId, attacker.UnitId));
+                LogAttackAvoided(state, attacker, target, missChance, attackerMissed: true);
+                return (0f, false, true);
+            }
+        }
+
         float effectiveEvasion = EffectStatResolver.GetEffectiveEvasion(target);
         if (effectiveEvasion > 0f && rng != null)
         {
             if (rng.NextFloat() < effectiveEvasion)
             {
                 events?.Add(new AttackEvadedEvent(target.UnitId, attacker?.UnitId ?? -1));
+                LogAttackAvoided(state, attacker, target, effectiveEvasion, attackerMissed: false);
                 return (0f, false, true);
             }
         }
 
         float damage = baseDamage;
         bool isCrit = false;
+
+        if (attacker?.UnitType == Fateforged.Units.UnitType.Ranged)
+            damage *= EffectStatResolver.GetEffectiveRangedDamageMultiplier(attacker);
 
         // 1. Crit check (deterministic via RNG)
         if (attacker != null && attacker.CritChance > 0 && rng != null)
@@ -153,13 +173,29 @@ public static class SimDamage
         // 7. Shield absorption (oldest shield first)
         if (target.ActiveBuffs.Count > 0)
         {
-            damage = SimEffects.AbsorbWithShields(target, damage, events);
+            damage = SimEffects.AbsorbWithShields(state, target, damage, events);
         }
 
         // 8. Round to 1 decimal place (matches DamageSystem)
         damage = SimUtils.RoundToOneDecimal(damage);
 
         return (damage, isCrit, false);
+    }
+
+    private static void LogAttackAvoided(
+        MatchState? state,
+        UnitData? attacker,
+        UnitData target,
+        float chance,
+        bool attackerMissed
+    )
+    {
+        if (state == null || !Simulation.DebugAbilityLogsEnabled)
+            return;
+
+        Simulation.DebugAbilityLog(
+            CombatDebugFormatter.FormatAttackAvoided(state, attacker, target, chance, attackerMissed)
+        );
     }
 
     /// <summary>
@@ -172,7 +208,8 @@ public static class SimDamage
         UnitData target,
         SummonerData? attackerSummoner,
         SummonerData? targetSummoner,
-        DeterministicRng? rng
+        DeterministicRng? rng,
+        MatchState? state = null
     )
     {
         var (damage, isCrit, _) =
@@ -183,7 +220,8 @@ public static class SimDamage
                     target,
                     attackerSummoner,
                     targetSummoner,
-                    rng
+                    rng,
+                    state: state
                 )
                 : Calculate(
                     baseDamage,
@@ -192,7 +230,8 @@ public static class SimDamage
                     target,
                     attackerSummoner,
                     targetSummoner,
-                    rng
+                    rng,
+                    state: state
                 );
         return (damage, isCrit);
     }

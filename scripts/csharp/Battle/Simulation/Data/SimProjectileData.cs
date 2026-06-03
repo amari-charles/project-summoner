@@ -18,10 +18,13 @@ public class SimProjectileData
     public int SourceUnitId { get; set; }
     public int TargetUnitId { get; set; }
     public Team Team { get; set; }
+    public SimCardCatalogId CardCatalogId { get; set; } = SimCardCatalogId.Empty;
 
     // Damage
     public float Damage { get; set; }
+    public DamageType DamageType { get; set; } = DamageType.Physical;
     public int SourceElementId { get; set; }
+    public bool UseAttackDamageProfile { get; set; } = true;
     public AbilityTargetAffinity TargetAffinity { get; set; } = AbilityTargetAffinity.Enemies;
     public ProjectileImpactKind ImpactKind { get; set; } = ProjectileImpactKind.Damage;
     public StatusEffectKind StatusKind { get; set; } = StatusEffectKind.None;

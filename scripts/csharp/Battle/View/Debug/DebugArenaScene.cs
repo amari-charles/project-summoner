@@ -1,6 +1,7 @@
 using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
+using Fateforged.Simulation.Movement;
 using Fateforged.Units;
 using Fateforged.View;
 using Fateforged.View.Debug.DeckSources;
@@ -81,12 +82,22 @@ public partial class DebugArenaScene : TestBattleScene
         _spawnerPanelBridge.ConnectSkipPrepToggled(new Callable(this, MethodName.OnSkipPrepToggled));
         _spawnerPanelBridge.ConnectEnemyAiToggled(new Callable(this, MethodName.OnEnemyAiToggled));
         _spawnerPanelBridge.ConnectPlayerAiToggled(new Callable(this, MethodName.OnPlayerAiToggled));
+        _spawnerPanelBridge.ConnectPlayerHoldAdvanceToggled(
+            new Callable(this, MethodName.OnPlayerHoldAdvanceToggled)
+        );
         _spawnerPanelBridge.ConnectClearTeamRequested(new Callable(this, MethodName.ClearTeamUnits));
         _spawnerPanelBridge.ConnectUndoRequested(new Callable(this, MethodName.UndoLastSpawnBatch));
         SyncSpawnerPanelDeckEntries();
 
         OnEnemyAiToggled(_spawnerPanelBridge.GetEnemyAiEnabled());
         OnPlayerAiToggled(_spawnerPanelBridge.GetPlayerAiEnabled());
+        OnPlayerHoldAdvanceToggled(_spawnerPanelBridge.GetPlayerHoldAdvanceEnabled());
+    }
+
+    public override void _ExitTree()
+    {
+        SimMovement.DebugHoldPlayerAdvanceEnabled = false;
+        base._ExitTree();
     }
 
     public void OnSkipPrepToggled(bool skip)
@@ -103,6 +114,11 @@ public partial class DebugArenaScene : TestBattleScene
     public void OnPlayerAiToggled(bool enabled)
     {
         ConfigureTeamAi(TeamPlayer, enabled);
+    }
+
+    public void OnPlayerHoldAdvanceToggled(bool enabled)
+    {
+        SimMovement.DebugHoldPlayerAdvanceEnabled = enabled;
     }
 
     private static void ConfigureTeamAi(int team, bool enabled)

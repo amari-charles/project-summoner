@@ -97,7 +97,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 	current_mode = BattleMode.CAMPAIGN
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
+	origin_scene = _get_campaign_battle_origin_scene()
 	_battle_id = battle_id
 
 	if debug_mode: print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
@@ -278,6 +278,13 @@ func get_origin_scene() -> String:
 	if origin_scene.is_empty():
 		return SceneManager.SCENE_CAMPAIGN_MAP
 	return origin_scene
+
+
+func _get_campaign_battle_origin_scene() -> String:
+	var current_campaign_id: String = CampaignApi.get_current_campaign_id()
+	if StringName(current_campaign_id) == CampaignIDs.TEST_ARENA:
+		return SceneManager.SCENE_LEGACY_CAMPAIGN_MAP
+	return SceneManager.SCENE_CAMPAIGN_MAP
 
 ## Mark battle as started (called by GameController when battle begins)
 func start_battle() -> void:

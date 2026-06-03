@@ -65,6 +65,24 @@ func test_c21_build_debug_arena_buttons_uses_selected_preset_entries() -> void:
 	assert_eq(labels, ["Fire Wisp", "Wind + Earth New"])
 
 
+func test_c14_quick_tab_exposes_test_arena_map_button() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+	var quick_tab: VBoxContainer = VBoxContainer.new()
+	_track_owned_node(quick_tab)
+
+	menu._build_quick_tab(quick_tab)
+
+	var button_labels: Array[String] = []
+	for child_var: Variant in quick_tab.get_children():
+		if child_var is Button:
+			var button: Button = child_var
+			button_labels.append(button.text)
+
+	assert_true("Open Test Arena Map" in button_labels, "main debug tab should expose the campaign-map chooser")
+	assert_false("Launch Roster Debug Arena" in button_labels, "main debug tab should not force a specific roster battle")
+
+
 func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
 	var menu: Node = _menu_script.new()
 	_track_owned_node(menu)
@@ -76,7 +94,12 @@ func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
 
 	menu._populate_arena_preset_dropdown()
 	menu._build_debug_arena_buttons(menu._arena_button_grid)
-	assert_eq(menu._arena_button_grid.get_child_count(), 7, "all_test_arena should include seven buttons")
+	var all_entries: Array[Dictionary] = DEBUG_ARENA_PRESETS.get_preset_entries("all_test_arena")
+	assert_eq(
+		menu._arena_button_grid.get_child_count(),
+		all_entries.size(),
+		"all_test_arena should render one button per preset entry"
+	)
 
 	var preset_index: int = -1
 	for i: int in menu._arena_preset_dropdown.item_count:
@@ -124,7 +147,7 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 
 	menu._on_open_test_arena_map_pressed()
 	assert_eq(harness.last_campaign_id, String(CampaignIDs.TEST_ARENA))
-	assert_eq(harness.last_transition_scene, SceneManager.SCENE_CAMPAIGN_MAP)
+	assert_eq(harness.last_transition_scene, SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
 
 	menu._on_debug_arena_battle_pressed("arena_fire_wisp")
 	assert_eq(harness.last_profile_battle_id, "arena_fire_wisp")

@@ -114,15 +114,44 @@ public enum StatusEffectKind
 }
 
 /// <summary>
-/// Ability runtime behavior kind.
+/// When a simulation-owned unit ability attempts to activate.
 /// </summary>
-public enum UnitAbilityKind
+public enum UnitAbilityTrigger
 {
-    HealerProjectile = 0,
-    TauntPulse = 1,
-    CleansePulse = 2,
-    ApplySelfEffect = 3,
-    TargetedKnockback = 4,
+    OnSpawn = 0,
+    Periodic = 1,
+    OnHit = 2,
+    OnDamaged = 3,
+    OnDeath = 4,
+    OnBuffRemoved = 5,
+}
+
+/// <summary>
+/// How a simulation-owned unit ability resolves its logical targets.
+/// </summary>
+public enum UnitAbilityTargeting
+{
+    Self = 0,
+    HitTarget = 1,
+    CurrentTarget = 2,
+    AlliesInRadius = 3,
+    EnemiesInRadius = 4,
+    LowestHpAlly = 5,
+    HealthRedistributionPool = 6,
+    AreaAtCastPoint = 7,
+}
+
+/// <summary>
+/// How a simulation-owned unit ability delivers effects after target resolution.
+/// </summary>
+public enum UnitAbilityDelivery
+{
+    Instant = 0,
+    Projectile = 1,
+    Pulse = 2,
+    Aura = 3,
+    Delayed = 4,
+    RepeatedArea = 5,
 }
 
 /// <summary>
@@ -149,6 +178,15 @@ public enum TacticalRole
     /// Safer-range role with reduced cross-lane chase.
     /// </summary>
     Backliner = 3,
+}
+
+/// <summary>
+/// Optional target preference layered on top of normal distance/lane scoring.
+/// </summary>
+public enum UnitTargetPriority
+{
+    Default = 0,
+    PreferRangedOrSupport = 1,
 }
 
 /// <summary>

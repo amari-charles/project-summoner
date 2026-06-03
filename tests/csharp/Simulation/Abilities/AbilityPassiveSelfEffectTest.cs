@@ -25,12 +25,20 @@ public class AbilityPassiveSelfEffectTest
             new UnitAbilityState
             {
                 AbilityId = "evasion_passive",
-                Kind = UnitAbilityKind.ApplySelfEffect,
+                Trigger = UnitAbilityTrigger.OnSpawn,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 2f,
-                EffectType = EffectType.EvasionModifier,
-                Value = 0.2f,
-                Lifetime = EffectLifetime.Persistent(),
-                DurationSeconds = -1f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.EvasionModifier,
+                        Value = 0.2f,
+                        Lifetime = EffectLifetime.Persistent(),
+                        DurationSeconds = -1f,
+                    },
+                ],
             }
         );
 
@@ -52,12 +60,20 @@ public class AbilityPassiveSelfEffectTest
             new UnitAbilityState
             {
                 AbilityId = "flat_reduction_passive",
-                Kind = UnitAbilityKind.ApplySelfEffect,
+                Trigger = UnitAbilityTrigger.OnSpawn,
+                Targeting = UnitAbilityTargeting.Self,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 2f,
-                EffectType = EffectType.FlatDamageReduction,
-                Value = 3f,
-                Lifetime = EffectLifetime.Persistent(),
-                DurationSeconds = -1f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.FlatDamageReduction,
+                        Value = 3f,
+                        Lifetime = EffectLifetime.Persistent(),
+                        DurationSeconds = -1f,
+                    },
+                ],
             }
         );
 

@@ -1049,6 +1049,66 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
+        [EventIds.ArenaAllUnits] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaAllUnits,
+            NameKey = "campaign.battle.arena_all_units.name",
+            DescriptionKey = "campaign.battle.arena_all_units.description",
+            Position = new Vector2(700, 100),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 0,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "none",
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = BuildActiveCoreElementUnitDeck(),
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 3),
+                new(CardIds.Pebbloom, 3),
+                new(CardIds.Puff, 3),
+                new(CardIds.WaterFrog, 3),
+            },
+            EnemyHp = 999999f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
+        [EventIds.ArenaAllCards] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaAllCards,
+            NameKey = "campaign.battle.arena_all_cards.name",
+            DescriptionKey = "campaign.battle.arena_all_cards.description",
+            Position = new Vector2(850, 100),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 0,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "none",
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = BuildActiveCoreElementCardDeck(),
+            EnemyDeck = BuildActiveCoreElementUnitDeck(),
+            EnemyHp = 999999f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
+        [EventIds.ArenaAllSpells] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaAllSpells,
+            NameKey = "campaign.battle.arena_all_spells.name",
+            DescriptionKey = "campaign.battle.arena_all_spells.description",
+            Position = new Vector2(1000, 100),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 0,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "none",
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = BuildActiveCoreElementSpellTestDeck(),
+            EnemyDeck = BuildRealArtSpellTargetDeck(),
+            EnemyHp = 999999f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
         [EventIds.DebugArena] = new BattleEventDefinition
         {
             Id = EventIds.DebugArena,
@@ -1061,15 +1121,8 @@ public static class EventCatalog
             Repeatable = true,
             AiType = "passive",
             ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
-            DevPlayerDeck = new List<DeckEntry>
-            {
-                new(CardIds.FireWisp, 5),
-                new(CardIds.Puff, 5),
-                new(CardIds.Pebbloom, 5),
-                new(CardIds.ManaBolt, 5),
-                new(CardIds.WaterFrog, 5),
-            },
-            EnemyDeck = new List<DeckEntry>(),
+            DevPlayerDeck = BuildActiveCoreElementCardDeck(),
+            EnemyDeck = BuildActiveCoreElementUnitDeck(),
             EnemyHp = 999999f,
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
@@ -1078,6 +1131,63 @@ public static class EventCatalog
     // =========================================================================
     // LOOKUP METHODS
     // =========================================================================
+
+    private static List<DeckEntry> BuildActiveCoreElementUnitDeck()
+    {
+        return BuildActiveCoreElementDeck(CardType.Summon);
+    }
+
+    private static List<DeckEntry> BuildActiveCoreElementCardDeck()
+    {
+        return BuildActiveCoreElementDeck();
+    }
+
+    private static List<DeckEntry> BuildActiveCoreElementSpellTestDeck()
+    {
+        var deck = BuildRealArtSpellTargetDeck();
+        deck.AddRange(BuildActiveCoreElementDeck(CardType.Spell));
+        return deck;
+    }
+
+    private static List<DeckEntry> BuildRealArtSpellTargetDeck()
+    {
+        return new List<DeckEntry>
+        {
+            new(CardIds.FireWisp, 2),
+            new(CardIds.WaterFrog, 2),
+            new(CardIds.Pebbloom, 2),
+            new(CardIds.Puff, 2),
+            new(CardIds.MamaDuck, 1),
+        };
+    }
+
+    private static List<DeckEntry> BuildActiveCoreElementDeck(CardType? cardType = null)
+    {
+        Element[] allowedElements = [Element.Fire, Element.Water, Element.Earth, Element.Wind];
+
+        return CardCatalog
+            .GetAllCards()
+            .Where(card => allowedElements.Contains(card.ElementalAffinity))
+            .Where(card => !cardType.HasValue || card.Type == cardType.Value)
+            .Where(card => (card.Flags & (CardFlags.DevOnly | CardFlags.Archived)) == 0)
+            .OrderBy(card => GetCoreElementSortOrder(card.ElementalAffinity))
+            .ThenBy(card => card.Type == CardType.Summon ? 0 : 1)
+            .ThenBy(card => card.Name)
+            .Select(card => new DeckEntry(card.Id))
+            .ToList();
+    }
+
+    private static int GetCoreElementSortOrder(Element element)
+    {
+        return element switch
+        {
+            Element.Fire => 0,
+            Element.Water => 1,
+            Element.Earth => 2,
+            Element.Wind => 3,
+            _ => 99,
+        };
+    }
 
     /// <summary>Get an event by ID.</summary>
     public static EventDefinition? GetEvent(EventId id)

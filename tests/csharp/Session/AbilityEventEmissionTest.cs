@@ -5,6 +5,7 @@ using System.Linq;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Enums;
 using Fateforged.Tests.Simulation;
 using Fateforged.Units;
 using GdUnit4;
@@ -22,10 +23,19 @@ public class AbilityEventEmissionTest
             new UnitAbilityState
             {
                 AbilityId = "taunt_pulse",
-                Kind = UnitAbilityKind.TauntPulse,
+                Trigger = UnitAbilityTrigger.Periodic,
+                Targeting = UnitAbilityTargeting.EnemiesInRadius,
+                Delivery = UnitAbilityDelivery.Instant,
                 CooldownSeconds = 2.0f,
                 Radius = 8.0f,
-                DurationSeconds = 2.0f,
+                Effects =
+                [
+                    new UnitAbilityEffectState
+                    {
+                        EffectType = EffectType.Taunt,
+                        DurationSeconds = 2.0f,
+                    },
+                ],
             }
         );
         SimTestHelper.CreateMeleeUnit(state, 1, x: 4f, z: 0f, hp: 100f);

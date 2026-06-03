@@ -54,11 +54,15 @@ public class UnitData
     // Classification
     public UnitType UnitType { get; set; }
     public TacticalRole TacticalRole { get; set; } = TacticalRole.Auto;
+    public UnitTargetPriority TargetPriority { get; set; } = UnitTargetPriority.Default;
     public MovementLayer MovementLayer { get; set; }
     public int AssignedLane { get; set; } = -1;
 
     // Element (int cast of Fateforged.Cards.Element enum)
     public int ElementId { get; set; } // 0=Neutral
+
+    // Tags used by the combat effect pipeline for requirements/immunity.
+    public List<string> CombatTags { get; set; } = new();
 
     // Group relationships
     public int? GroupId { get; set; }
