@@ -131,6 +131,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
     private bool _isFlipped;
     private bool _initializationComplete;
     private bool _underUnitVisual;
+    private BaseMaterial3D.BillboardModeEnum _defaultBillboardMode =
+        BaseMaterial3D.BillboardModeEnum.Disabled;
     private ShadowProfile _shadowProfile = ShadowProfiles
         .FromPreset(ShadowProfilePreset.Default)
         .Sanitize();
@@ -148,6 +150,8 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
         _sprite3D = GetNodeOrNull<Sprite3D>("Sprite3D");
         _viewport = GetNodeOrNull<SubViewport>("Sprite3D/SubViewport");
         _modelContainer = GetNodeOrNull<Node2D>("Sprite3D/SubViewport/ModelContainer");
+        if (_sprite3D != null)
+            _defaultBillboardMode = _sprite3D.Billboard;
         _underUnitVisual = IsUnderUnitVisual();
         _shadowProfile = ResolveShadowProfile();
 
@@ -397,6 +401,16 @@ public partial class SkeletalVisualComponent : Node3D, IVisualComponent
             return;
 
         ApplyScaleFactorToRig();
+    }
+
+    public void SetBillboardSuppressed(bool suppressed)
+    {
+        if (_sprite3D == null)
+            return;
+
+        _sprite3D.Billboard = suppressed
+            ? BaseMaterial3D.BillboardModeEnum.Disabled
+            : _defaultBillboardMode;
     }
 
     public void SetRenderPriority(int priority)

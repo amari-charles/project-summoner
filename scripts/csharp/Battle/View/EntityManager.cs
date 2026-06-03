@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Infrastructure.Debug;
 using Fateforged.Infrastructure.Pooling;
@@ -6,9 +7,12 @@ using Fateforged.Projectiles;
 using Fateforged.Session;
 using Fateforged.Simulation;
 using Fateforged.Simulation.Data;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Simulation.Events;
 using Fateforged.Units;
+using Fateforged.Vfx;
+using Fateforged.View.Spells;
 using Godot;
 
 namespace Fateforged.View;
@@ -320,7 +324,33 @@ public partial class EntityManager : Node3D, ISimEventVisitor
     public void Visit(EffectCueEvent e)
     {
         // Buff/status icons are driven by BuffAppliedEvent and StatusAppliedEvent.
-        // Effect cues remain reserved for dedicated VFX so a single effect does not show twice.
+        // Removed cues with authored removal payloads get a pulse at the owner position.
+        if (e.Phase != EffectCuePhase.Removed)
+            return;
+
+        var card = TryResolveCueCard(e.CueId);
+        var removal = card?.SpellEffects.FirstOrDefault(effect => effect.RemovalEffect != null)
+            ?.RemovalEffect;
+        if (card == null || removal == null || removal.Radius <= 0f)
+            return;
+
+        var simNode = SimulationNode.Current;
+        var position = SimToLocal(e.Position, simNode);
+        var metadata = SpellVisualMetadata.FromCardDefinition(card);
+        var customData = new Godot.Collections.Dictionary
+        {
+            ["card_id"] = (string)card.Id,
+            ["element"] = metadata.Element,
+            ["shape"] = SpellVisualMetadata.Circle,
+            ["radius"] = removal.Radius,
+            ["line_width"] = metadata.LineWidth,
+            ["duration"] = 0.5f,
+            ["mode"] = "pulse",
+            ["source_position"] = position,
+            ["target_position"] = position,
+        };
+
+        _vfxService.PlayEffect((string)VfxIds.SpellAreaPulse, position, customData);
     }
 
     public void Visit(StatusAppliedEvent e)
@@ -376,68 +406,50 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
         var customData = new Godot.Collections.Dictionary();
         var effectPosition = localPos;
-        if (card.SpellRadius > 0f)
-            customData["radius"] = card.SpellRadius;
+        var metadata = SpellVisualMetadata.FromCardDefinition(card);
+        customData["card_id"] = (string)card.Id;
+        customData["element"] = metadata.Element;
+        customData["shape"] = metadata.Shape;
+        customData["line_width"] = metadata.LineWidth;
+        if (metadata.Radius > 0f)
+            customData["radius"] = metadata.Radius;
         if (card.SpellDuration > 0f)
             customData["duration"] = card.SpellDuration;
+        customData["mode"] = card.SpellVfx == VfxIds.SpellAreaBurst ? "burst" : "field";
 
-        // Water Jet should read as an emitted stream along the summoner-vs-summoner axis.
-        // Start at summoner origin and keep summoner Z for the full beam path.
-        if (card.Id == CardIds.WaterJet && _session != null)
+        if (_session != null)
         {
             var state = _session.GetState();
             if (e.Team >= 0 && e.Team < state.Summoners.Length)
             {
-                Vector3 summonerLocalPos;
-                if (
-                    _summonerRegistry.TryGetValue(e.Team, out var summonerShell)
-                    && IsInstanceValid(summonerShell)
-                )
-                {
-                    summonerLocalPos = summonerShell.GlobalPosition;
-                }
-                else
-                {
-                    var summonerSimPos = state.Summoners[e.Team].Position;
-                    summonerLocalPos =
-                        simNode != null
-                            ? simNode.SimToLocal(summonerSimPos)
-                            : new Vector3(
-                                summonerSimPos.X,
-                                summonerSimPos.Y,
-                                summonerSimPos.Z
-                            );
-                }
-
-                var sourceLocalPos = new Vector3(
-                    summonerLocalPos.X,
-                    summonerLocalPos.Y,
-                    summonerLocalPos.Z
-                );
-                float targetX = localPos.X;
+                var sourceLocalPos = ResolveSummonerLocalPosition(e.Team, state, simNode);
+                var targetLocalPos = localPos;
 
                 // Prefer explicit sim-resolved target (single-target spell cast).
                 if (e.TargetUnitId.HasValue)
                 {
                     var targetedUnit = state.GetAliveUnit(e.TargetUnitId.Value);
                     if (targetedUnit != null)
-                    {
-                        var targetedLocalPos =
-                            simNode != null
-                                ? simNode.SimToLocal(targetedUnit.Position)
-                                : new Vector3(
-                                    targetedUnit.Position.X,
-                                    targetedUnit.Position.Y,
-                                    targetedUnit.Position.Z
-                                );
-                        targetX = targetedLocalPos.X;
-                    }
+                        targetLocalPos = SimToLocal(targetedUnit.Position, simNode);
                 }
 
-                var targetLocalPos = new Vector3(targetX, summonerLocalPos.Y, summonerLocalPos.Z);
                 customData["source_position"] = sourceLocalPos;
                 customData["target_position"] = targetLocalPos;
-                effectPosition = sourceLocalPos;
+                if (
+                    card.Id == CardIds.WaterJet
+                    || metadata.Shape == SpellVisualMetadata.Line
+                    || card.SpellVfx == VfxIds.SpellLine
+                )
+                {
+                    effectPosition = sourceLocalPos;
+                }
+                else if (
+                    metadata.Shape == SpellVisualMetadata.SingleTarget
+                    || card.SpellVfx == VfxIds.SpellSingleTarget
+                )
+                {
+                    effectPosition = targetLocalPos;
+                }
             }
         }
 
@@ -456,9 +468,64 @@ public partial class EntityManager : Node3D, ISimEventVisitor
 
     public void Visit(DelayedEffectFiredEvent e)
     {
-        GD.Print(
-            $"[EntityManager] DelayedEffectFiredEvent: type={e.EffectType}, radius={e.AoeRadius}"
-        );
+        if (string.IsNullOrEmpty(e.CardCatalogId.Value) || e.AoeRadius <= 0f)
+            return;
+
+        var card = CardCatalog.GetCard(e.CardCatalogId.Value);
+        if (card == null)
+            return;
+
+        var simNode = SimulationNode.Current;
+        var position = SimToLocal(e.Position, simNode);
+        var source = SimToLocal(e.SourcePosition, simNode);
+        var metadata = SpellVisualMetadata.FromCardDefinition(card);
+        var customData = new Godot.Collections.Dictionary
+        {
+            ["card_id"] = (string)card.Id,
+            ["element"] = metadata.Element,
+            ["shape"] = e.AreaShape.ToString().ToLowerInvariant(),
+            ["radius"] = e.AoeRadius,
+            ["line_width"] = metadata.LineWidth,
+            ["duration"] = 0.45f,
+            ["mode"] = "pulse",
+            ["source_position"] = source,
+            ["target_position"] = position,
+        };
+
+        _vfxService.PlayEffect((string)VfxIds.SpellAreaPulse, position, customData);
+    }
+
+    private Vector3 ResolveSummonerLocalPosition(int team, MatchState state, SimulationNode? simNode)
+    {
+        if (
+            _summonerRegistry.TryGetValue(team, out var summonerShell)
+            && IsInstanceValid(summonerShell)
+        )
+        {
+            return summonerShell.GlobalPosition;
+        }
+
+        var summonerSimPos = state.Summoners[team].Position;
+        return SimToLocal(summonerSimPos, simNode);
+    }
+
+    private static Vector3 SimToLocal(SimVector3 position, SimulationNode? simNode)
+    {
+        return simNode != null
+            ? simNode.SimToLocal(position)
+            : new Vector3(position.X, position.Y, position.Z);
+    }
+
+    private static CardDefinition? TryResolveCueCard(string cueId)
+    {
+        if (string.IsNullOrWhiteSpace(cueId))
+            return null;
+
+        int separator = cueId.IndexOf(':');
+        if (separator <= 0)
+            return null;
+
+        return CardCatalog.GetCard(cueId[..separator]);
     }
 
     private void SpawnTransientHitscanBeam(HitscanBeamFiredEvent e)

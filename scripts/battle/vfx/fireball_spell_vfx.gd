@@ -10,7 +10,7 @@ extends VFXInstance
 @export var camera_shake_intensity: float = 0.2  ## Camera shake strength
 @export var camera_shake_duration: float = 0.4  ## Camera shake duration
 @export var indicator_linger_duration: float = 2.0  ## How long the AOE indicator lingers before fading
-@export var indicator_visual_scale: float = 0.125  ## Scale factor for indicator size (visual radius / actual damage radius)
+@export var indicator_visual_scale: float = 1.0  ## Visual radius should match actual damage radius
 
 var target_position: Vector3 = Vector3.ZERO
 var animated_sprite: AnimatedSprite3D = null

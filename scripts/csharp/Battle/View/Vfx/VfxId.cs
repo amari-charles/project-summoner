@@ -49,6 +49,21 @@ public static class VfxIds
     /// <summary>Rain field spell visual.</summary>
     public static readonly VfxId RainFieldSpell = new("rain_field_spell");
 
+    /// <summary>Reusable exact-radius area field spell visual.</summary>
+    public static readonly VfxId SpellAreaField = new("spell_area_field");
+
+    /// <summary>Reusable exact-radius area burst spell visual.</summary>
+    public static readonly VfxId SpellAreaBurst = new("spell_area_burst");
+
+    /// <summary>Reusable delayed/repeated area pulse spell visual.</summary>
+    public static readonly VfxId SpellAreaPulse = new("spell_area_pulse");
+
+    /// <summary>Reusable line spell visual.</summary>
+    public static readonly VfxId SpellLine = new("spell_line");
+
+    /// <summary>Reusable single-target spell visual.</summary>
+    public static readonly VfxId SpellSingleTarget = new("spell_single_target");
+
     // =========================================================================
     // LIGHTNING EFFECTS
     // =========================================================================

@@ -454,7 +454,7 @@ Design and implement additional summon cards to expand unit variety.
 ---
 
 #### Add More Spell Cards
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Content
 **Effort:** Variable (per card)
 
@@ -470,6 +470,7 @@ Design and implement additional spell cards for more strategic variety.
 **Notes:**
 - Consider direct damage, buffs, debuffs, board manipulation
 - Balance mana costs carefully
+- Progress 2026-06-02: Added first-pass Fire/Water/Earth/Wind spell roster runtime coverage, debug arena access, and placeholder/readability VFX. Remaining work includes balance tuning, final art/card presentation, course/loot-pool integration, and any future neutral/expanded-element spell design.
 
 ---
 
@@ -615,7 +616,7 @@ Add a subtle automatic camera intro at battle start (slight zoom-in motion) to i
 ### 🟢 LOW PRIORITY
 
 #### Clean Up Non-Production VFX
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Visual Polish / VFX
 **Effort:** Medium
 
@@ -637,6 +638,7 @@ Audit existing VFX and replace or remove effects that don't meet production qual
 **Notes:**
 - Wind puff impact (wind_puff_impact) can serve as reference for quality bar
 - Consider creating a VFX style guide document
+- Progress 2026-06-02: Added shared placeholder spell VFX/readability conventions for active elemental spells, including exact-radius ground indicators and dedicated line/single-target/area visuals. Remaining work is still production-quality VFX polish and art-direction pass.
 
 ---
 

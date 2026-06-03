@@ -165,6 +165,9 @@ public static class EventIds
     /// <summary>Test Arena: All active Fire/Water/Earth/Wind cards</summary>
     public static readonly EventId ArenaAllCards = new("arena_all_cards");
 
+    /// <summary>Test Arena: All active Fire/Water/Earth/Wind spells with a small real-art unit set</summary>
+    public static readonly EventId ArenaAllSpells = new("arena_all_spells");
+
     /// <summary>Test Arena: Debug Arena - Testing sandbox</summary>
     public static readonly EventId DebugArena = new("debug_arena");
 }

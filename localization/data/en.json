@@ -223,6 +223,10 @@
       "arena_all_cards": {
         "name": "All Cards Test",
         "description": "Debug arena mission with every active Fire, Water, Earth, and Wind card available, plus unit targets."
+      },
+      "arena_all_spells": {
+        "name": "All Spells Test",
+        "description": "Focused debug arena mission with every active Fire, Water, Earth, and Wind spell plus a few real-art units for spell target testing."
       }
     },
     "starter_deck_name": "Starter Deck",

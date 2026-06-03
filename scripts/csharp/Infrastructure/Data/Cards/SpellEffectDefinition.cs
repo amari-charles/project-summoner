@@ -37,6 +37,9 @@ public class SpellEffectDefinition
     /// <summary>Which team the effect targets.</summary>
     public SpellAffinity Affinity { get; init; } = SpellAffinity.Enemies;
 
+    /// <summary>Which movement layer this effect can affect.</summary>
+    public TargetLayer TargetLayerFilter { get; init; } = TargetLayer.Both;
+
     /// <summary>Optional element requirement for valid targets.</summary>
     public Element? RequiredTargetElement { get; init; }
 

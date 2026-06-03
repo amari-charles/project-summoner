@@ -31,11 +31,11 @@ public static class SpellDebugFormatter
 
         if (targets.Count == 0)
         {
-            builder.Append($" but found no {AffinityName(spec)}.");
+            builder.Append($" but found no {TargetFilterName(spec)}.");
             return builder.ToString();
         }
 
-        builder.Append($" to {appliedCount}/{targets.Count} {TargetWord(spec, targets.Count)}.");
+        builder.Append($" to {appliedCount}/{targets.Count} {TargetWord(spec, targets, targets.Count)}.");
         AppendOutcomeLines(builder, state, targets, before, spec);
         return builder.ToString();
     }
@@ -68,7 +68,7 @@ public static class SpellDebugFormatter
             if (shielded > 0)
             {
                 builder.Append('\n');
-                builder.Append($"  Shielded {shielded} {TargetWord(spec, shielded)}.");
+                builder.Append($"  Shielded {shielded} {TargetWord(spec, targets, shielded)}.");
                 wrote = true;
             }
         }
@@ -188,28 +188,50 @@ public static class SpellDebugFormatter
                 or EffectType.FlatDamageReduction
                 or EffectType.AccuracyModifier
                 or EffectType.RangedDamageModifier
-                or EffectType.ReviveOnDeath;
-    }
-
-    private static string AffinityName(EffectApplicationSpec spec)
-    {
-        return spec.Context.SourceTeam == Team.Player ? "valid targets" : "valid targets";
-    }
-
-    private static string TargetWord(EffectApplicationSpec spec, int count)
-    {
-        string baseWord = spec.EffectType
-            is EffectType.Heal
-                or EffectType.Shield
-                or EffectType.Cleanse
-                or EffectType.DamageBoost
-                or EffectType.EvasionModifier
-                or EffectType.AttackSpeedModifier
-                or EffectType.FlatDamageReduction
                 or EffectType.ReviveOnDeath
-            ? "ally"
-            : "enemy";
+                or EffectType.TornadoCarry;
+    }
+
+    private static string TargetFilterName(EffectApplicationSpec spec)
+    {
+        return spec.TargetAffinity switch
+        {
+            SpellAffinity.Allies => "valid allies",
+            SpellAffinity.Enemies => "valid enemies",
+            SpellAffinity.Both => "valid targets",
+            _ => "valid targets",
+        };
+    }
+
+    private static string TargetWord(
+        EffectApplicationSpec spec,
+        IReadOnlyList<UnitData> targets,
+        int count
+    )
+    {
+        string baseWord = ResolveTargetWord(spec, targets);
         return count == 1 ? baseWord : $"{baseWord}s";
+    }
+
+    private static string ResolveTargetWord(EffectApplicationSpec spec, IReadOnlyList<UnitData> targets)
+    {
+        if (targets.Count > 0)
+        {
+            bool hasAlly = targets.Any(target => target.Team == spec.Context.SourceTeam);
+            bool hasEnemy = targets.Any(target => target.Team != spec.Context.SourceTeam);
+            if (hasAlly && !hasEnemy)
+                return "ally";
+            if (hasEnemy && !hasAlly)
+                return "enemy";
+        }
+
+        return spec.TargetAffinity switch
+        {
+            SpellAffinity.Allies => "ally",
+            SpellAffinity.Enemies => "enemy",
+            SpellAffinity.Both => "target",
+            _ => "target",
+        };
     }
 
     private static string CardName(SimCardCatalogId cardCatalogId)
@@ -267,6 +289,7 @@ public static class SpellDebugFormatter
             EffectType.AccuracyModifier => $"accuracy ({Percent(spec.Value)})",
             EffectType.FlatDamageReduction => "flat damage reduction",
             EffectType.ReviveOnDeath => "revive preparation",
+            EffectType.TornadoCarry => "tornado carry",
             _ => Titleize(spec.EffectType.ToString()).ToLowerInvariant(),
         };
     }

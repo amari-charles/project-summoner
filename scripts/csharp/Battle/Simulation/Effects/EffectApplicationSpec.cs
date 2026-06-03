@@ -88,6 +88,8 @@ public sealed class EffectApplicationSpec
     public int StatusMaxStacks { get; init; } = 1;
     public BuffRemovalEffectConfig? RemovalEffect { get; init; }
     public int RequiredTargetElementId { get; init; } = -1;
+    // Authored team filter for no-target/skip logs; applied target labels use target.Team vs SourceTeam.
+    public SpellAffinity TargetAffinity { get; init; } = SpellAffinity.Enemies;
     public EffectTagRequirements TagRequirements { get; init; } = new();
     public List<string> GrantedTags { get; init; } = new();
     public EffectStackPolicy StackPolicy { get; init; } = EffectStackPolicy.Independent;

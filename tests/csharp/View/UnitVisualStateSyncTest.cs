@@ -112,6 +112,48 @@ public partial class UnitVisualStateSyncTest
         AssertThat(visual.CurrentHp).IsEqual(0f);
     }
 
+    [TestCase]
+    public void PhysicsProcess_TornadoCarry_RotatesVisualAndResetsAfterDrop()
+    {
+        const int unitId = 103;
+        var state = new MatchState();
+        state.Units[unitId] = new UnitData
+        {
+            UnitId = unitId,
+            IsAlive = true,
+            Position = new SimVector3(0f, 2f, 0f),
+            ActivationState = ActivationState.Active,
+            CurrentHp = 50f,
+            MaxHp = 100f,
+            ActiveBuffs =
+            [
+                new ActiveBuff
+                {
+                    EffectType = EffectType.TornadoCarry,
+                    TornadoOrbitAngleRadians = 1.4f,
+                    TornadoOrbitAngularSpeedRadians = 5.2f,
+                    Duration = 0.5f,
+                },
+            ],
+        };
+
+        var visual = CreateUnitVisualWithState(state, unitId, out var fakeVisual);
+
+        visual._PhysicsProcess(1.0 / 60.0);
+
+        float expectedYaw = Mathf.Atan2(-Mathf.Cos(1.4f), -Mathf.Sin(1.4f));
+        AssertThat(fakeVisual.Rotation.Y).IsEqualApprox(expectedYaw, 0.0001f);
+        AssertThat(fakeVisual.Rotation.X).IsEqual(0f);
+        AssertThat(fakeVisual.Rotation.Z).IsEqual(0f);
+        AssertThat(fakeVisual.IsBillboardSuppressed).IsTrue();
+
+        state.Units[unitId].ActiveBuffs.Clear();
+        visual._PhysicsProcess(1.0 / 60.0);
+
+        AssertThat(fakeVisual.Rotation).IsEqual(Vector3.Zero);
+        AssertThat(fakeVisual.IsBillboardSuppressed).IsFalse();
+    }
+
     private UnitVisual CreateUnitVisualWithState(
         MatchState state,
         int unitId,
@@ -180,6 +222,7 @@ public partial class UnitVisualStateSyncTest
     private sealed partial class FakeVisualComponent : Node3D, IVisualComponent
     {
         public string LastAnimation { get; private set; } = "";
+        public bool IsBillboardSuppressed { get; private set; }
 
         public void PlayAnimation(string animName)
         {
@@ -210,6 +253,11 @@ public partial class UnitVisualStateSyncTest
         public void FlashWhite() { }
 
         public void SetFlipH(bool flip) { }
+
+        public void SetBillboardSuppressed(bool suppressed)
+        {
+            IsBillboardSuppressed = suppressed;
+        }
 
         public void SetRenderPriority(int priority) { }
 

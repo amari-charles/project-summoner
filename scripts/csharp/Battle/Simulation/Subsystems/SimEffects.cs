@@ -17,6 +17,14 @@ namespace Fateforged.Simulation.Subsystems;
 public static class SimEffects
 {
     private const float KnockbackDurationSeconds = 0.22f;
+    private const float TornadoDefaultCarryDurationSeconds = 0.75f;
+    private const float TornadoDefaultAngularSpeedRadians = 5.2f;
+    private const float TornadoBaseLiftHeight = 2.8f;
+    private const float TornadoHeightTierStep = 0.7f;
+    private const float TornadoBaseOrbitRadius = 1.2f;
+    private const float TornadoOrbitTierStep = 0.65f;
+    private const float TornadoLiftSeconds = 0.25f;
+    private const float TornadoFallSpeed = 6.0f;
 
     private enum BuffRemovalReason
     {
@@ -43,6 +51,11 @@ public static class SimEffects
             for (int i = unit.ActiveBuffs.Count - 1; i >= 0; i--)
             {
                 var buff = unit.ActiveBuffs[i];
+
+                if (buff.EffectType == EffectType.TornadoCarry)
+                    TickTornadoCarry(unit, buff, fixedDelta);
+                else if (buff.EffectType == EffectType.TornadoFall)
+                    TickTornadoFall(unit, buff, fixedDelta);
 
                 // Periodic tick (DoT, HoT)
                 if (buff.TickInterval > 0)
@@ -317,6 +330,22 @@ public static class SimEffects
             case EffectType.AccuracyModifier:
             case EffectType.RangedDamageModifier:
             case EffectType.ReviveOnDeath:
+            case EffectType.TornadoCarry:
+                if (spec.EffectType == EffectType.TornadoCarry)
+                {
+                    ApplyTornadoCarry(
+                        state,
+                        target,
+                        spec,
+                        duration,
+                        context.SourceUnitId,
+                        context.SourceTeam,
+                        context.SourcePosition,
+                        events
+                    );
+                    break;
+                }
+
                 ApplyBuff(
                     state,
                     target,
@@ -551,6 +580,10 @@ public static class SimEffects
         {
             if (buff.EffectType == EffectType.Stun)
                 return true;
+            if (buff.EffectType == EffectType.TornadoCarry)
+                return true;
+            if (buff.EffectType == EffectType.TornadoFall)
+                return true;
         }
         return false;
     }
@@ -782,6 +815,8 @@ public static class SimEffects
 
         var buff = owner.ActiveBuffs[buffIndex];
         owner.ActiveBuffs.RemoveAt(buffIndex);
+        if (buff.EffectType == EffectType.TornadoCarry)
+            StartTornadoFall(state, owner);
         events?.Add(new BuffExpiredEvent(owner.UnitId, buff.BuffId, buff.EffectType));
         if (events != null && !string.IsNullOrWhiteSpace(buff.CueId))
         {
@@ -1063,6 +1098,198 @@ public static class SimEffects
             EmitCue(spec, target, EffectCuePhase.Active, events);
     }
 
+    private static void ApplyTornadoCarry(
+        MatchState state,
+        UnitData target,
+        EffectApplicationSpec spec,
+        float duration,
+        int sourceUnitId,
+        Team sourceTeam,
+        SimVector3? sourcePosition,
+        List<SimEvent> events
+    )
+    {
+        float resolvedDuration = duration > 0f ? duration : TornadoDefaultCarryDurationSeconds;
+        var center = sourcePosition ?? target.Position;
+        string stackKey = string.IsNullOrWhiteSpace(spec.StackKey)
+            ? "tornado_carry"
+            : spec.ResolvedStackKey;
+        RemoveTornadoFallState(target);
+
+        for (int i = 0; i < target.ActiveBuffs.Count; i++)
+        {
+            var existing = target.ActiveBuffs[i];
+            if (existing.EffectType != EffectType.TornadoCarry)
+                continue;
+            if (!string.Equals(existing.StackKey, stackKey, StringComparison.Ordinal))
+                continue;
+
+            existing.Duration = resolvedDuration;
+            existing.Lifetime = EffectLifetime.Timed(resolvedDuration);
+            existing.SourceUnitId = sourceUnitId;
+            existing.SourceTeam = sourceTeam;
+            existing.TornadoCenter = center;
+            events.Add(new BuffAppliedEvent(target.UnitId, EffectType.TornadoCarry, existing.Value, resolvedDuration));
+            EmitCue(spec, target, EffectCuePhase.Active, events);
+            return;
+        }
+
+        int tier = Math.Abs(target.UnitId) % 4;
+        float landingY = ResolveTornadoLandingY(target);
+        float liftHeight = TornadoBaseLiftHeight + (tier * TornadoHeightTierStep);
+        float targetHeight = landingY + liftHeight;
+        float orbitRadius = TornadoBaseOrbitRadius + (tier * TornadoOrbitTierStep);
+        float dx = target.Position.X - center.X;
+        float dz = target.Position.Z - center.Z;
+        float distance = MathF.Sqrt(dx * dx + dz * dz);
+        float angle;
+        if (distance <= 0.001f)
+        {
+            angle = (target.UnitId % 12) * (MathF.PI / 6f);
+        }
+        else
+        {
+            angle = MathF.Atan2(dz, dx);
+        }
+
+        var buff = new ActiveBuff
+        {
+            BuffId = state.NextBuffId(),
+            EffectType = EffectType.TornadoCarry,
+            Value = spec.Value,
+            Duration = resolvedDuration,
+            Lifetime = EffectLifetime.Timed(resolvedDuration),
+            DamageType = spec.DamageType,
+            SourceUnitId = sourceUnitId,
+            SourceTeam = sourceTeam,
+            GrantedTags = new List<string>(spec.GrantedTags),
+            StackKey = stackKey,
+            CueId = spec.CueId,
+            TornadoCenter = center,
+            TornadoOrbitRadius = orbitRadius,
+            TornadoOrbitAngleRadians = angle,
+            TornadoOrbitAngularSpeedRadians = spec.Value > 0f
+                ? spec.Value
+                : TornadoDefaultAngularSpeedRadians,
+            TornadoLiftHeight = liftHeight,
+            TornadoBaseLiftHeight = landingY,
+            TornadoHeightOffset = liftHeight - TornadoBaseLiftHeight,
+            TornadoStartHeight = target.Position.Y,
+            TornadoTargetHeight = targetHeight,
+        };
+        target.ActiveBuffs.Add(buff);
+        target.KnockbackRemainingDistance = 0f;
+        target.KnockbackSpeed = 0f;
+        target.KnockbackDirection = SimVector3.Zero;
+        events.Add(new BuffAppliedEvent(target.UnitId, EffectType.TornadoCarry, buff.Value, resolvedDuration));
+        EmitCue(spec, target, EffectCuePhase.Active, events);
+    }
+
+    private static void TickTornadoCarry(UnitData unit, ActiveBuff buff, float fixedDelta)
+    {
+        buff.TornadoOrbitAngleRadians += buff.TornadoOrbitAngularSpeedRadians * fixedDelta;
+        buff.TornadoLiftProgress = MathF.Min(
+            1f,
+            buff.TornadoLiftProgress + fixedDelta / TornadoLiftSeconds
+        );
+
+        float x =
+            buff.TornadoCenter.X
+            + MathF.Cos(buff.TornadoOrbitAngleRadians) * buff.TornadoOrbitRadius;
+        float z =
+            buff.TornadoCenter.Z
+            + MathF.Sin(buff.TornadoOrbitAngleRadians) * buff.TornadoOrbitRadius;
+        float targetHeight = buff.TornadoTargetHeight > 0f
+            ? buff.TornadoTargetHeight
+            : buff.TornadoBaseLiftHeight + buff.TornadoLiftHeight;
+        float startHeight = buff.TornadoStartHeight;
+        float y = startHeight + ((targetHeight - startHeight) * buff.TornadoLiftProgress);
+        unit.Position = new SimVector3(x, y, z);
+        unit.Velocity = SimVector3.Zero;
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
+    }
+
+    private static void RemoveTornadoFallState(UnitData unit)
+    {
+        for (int i = unit.ActiveBuffs.Count - 1; i >= 0; i--)
+        {
+            if (unit.ActiveBuffs[i].EffectType == EffectType.TornadoFall)
+                unit.ActiveBuffs.RemoveAt(i);
+        }
+    }
+
+    private static void StartTornadoFall(MatchState? state, UnitData unit)
+    {
+        float landingY = ResolveTornadoLandingY(unit);
+        if (!unit.IsAlive || unit.Position.Y <= landingY + 0.001f)
+        {
+            unit.Position = new SimVector3(unit.Position.X, landingY, unit.Position.Z);
+            unit.Velocity = SimVector3.Zero;
+            unit.KnockbackRemainingDistance = 0f;
+            unit.KnockbackSpeed = 0f;
+            unit.KnockbackDirection = SimVector3.Zero;
+            return;
+        }
+
+        float fallDuration = MathF.Max(0.05f, (unit.Position.Y - landingY) / TornadoFallSpeed);
+        unit.ActiveBuffs.Add(
+            new ActiveBuff
+            {
+                BuffId = state?.NextBuffId() ?? 0,
+                EffectType = EffectType.TornadoFall,
+                Duration = fallDuration,
+                Lifetime = EffectLifetime.Timed(fallDuration),
+                TornadoFallLandingY = landingY,
+            }
+        );
+        unit.Velocity = SimVector3.Zero;
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
+    }
+
+    private static void TickTornadoFall(UnitData unit, ActiveBuff buff, float fixedDelta)
+    {
+        float landingY = buff.TornadoFallLandingY;
+        if (unit.Position.Y <= landingY + 0.001f || fixedDelta <= 0f)
+        {
+            unit.Position = new SimVector3(unit.Position.X, landingY, unit.Position.Z);
+            unit.Velocity = SimVector3.Zero;
+            unit.KnockbackRemainingDistance = 0f;
+            unit.KnockbackSpeed = 0f;
+            unit.KnockbackDirection = SimVector3.Zero;
+            return;
+        }
+
+        float yBefore = unit.Position.Y;
+        float yAfter = MathF.Max(landingY, yBefore - (TornadoFallSpeed * fixedDelta));
+        unit.Position = new SimVector3(unit.Position.X, yAfter, unit.Position.Z);
+        unit.Velocity = new SimVector3(0f, (yAfter - yBefore) / fixedDelta, 0f);
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
+    }
+
+    private static float ResolveTornadoLandingY(UnitData unit)
+    {
+        if (unit.MovementLayer == MovementLayer.Air)
+            return unit.FlightAltitude;
+
+        return 0f;
+    }
+
+    private static void DropTornadoCarriedUnit(UnitData unit)
+    {
+        float landingY = ResolveTornadoLandingY(unit);
+        unit.Position = new SimVector3(unit.Position.X, landingY, unit.Position.Z);
+        unit.Velocity = SimVector3.Zero;
+        unit.KnockbackRemainingDistance = 0f;
+        unit.KnockbackSpeed = 0f;
+        unit.KnockbackDirection = SimVector3.Zero;
+    }
+
     private static void ApplyPeriodicTick(
         MatchState state,
         UnitData unit,
@@ -1271,7 +1498,14 @@ public static class SimEffects
     )
     {
         events.Add(
-            new DelayedEffectFiredEvent(effect.Position, effect.EffectType, effect.AoeRadius)
+            new DelayedEffectFiredEvent(
+                effect.Position,
+                effect.EffectType,
+                effect.AoeRadius,
+                effect.AreaShape,
+                effect.SourcePosition,
+                effect.CardCatalogId
+            )
         );
 
         var targets = SpellTargetResolver.Resolve(state, effect);

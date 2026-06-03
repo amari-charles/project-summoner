@@ -1,5 +1,6 @@
 namespace Fateforged.Tests.Simulation.Abilities;
 
+using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Simulation;
@@ -27,9 +28,23 @@ public class AbilityWindEarthSetTest
         var ally = SimTestHelper.CreateMeleeUnit(state, 0, x: 1f, z: 1f, hp: 100f);
         var enemySquareOnly = SimTestHelper.CreateMeleeUnit(state, 1, x: 5.5f, z: 5.5f, hp: 100f);
         var enemyOutside = SimTestHelper.CreateMeleeUnit(state, 1, x: 6.5f, z: 6.5f, hp: 100f);
+        var logs = new List<string>();
+        var oldEnabled = Fateforged.Simulation.Simulation.DebugAbilityLogsEnabled;
+        var oldLog = Fateforged.Simulation.Simulation.Log;
 
-        state.PendingCommandBuffer.Add(new PlayCardCommand(0, 0, new SimVector3(0f, 0f, 0f)));
-        sim.Tick(Simulation.FixedDeltaSeconds);
+        try
+        {
+            Fateforged.Simulation.Simulation.DebugAbilityLogsEnabled = true;
+            Fateforged.Simulation.Simulation.Log = logs.Add;
+
+            state.PendingCommandBuffer.Add(new PlayCardCommand(0, 0, new SimVector3(0f, 0f, 0f)));
+            sim.Tick(Simulation.FixedDeltaSeconds);
+        }
+        finally
+        {
+            Fateforged.Simulation.Simulation.DebugAbilityLogsEnabled = oldEnabled;
+            Fateforged.Simulation.Simulation.Log = oldLog;
+        }
 
         AssertThat(
                 ally.ActiveBuffs.Any(b =>
@@ -47,6 +62,10 @@ public class AbilityWindEarthSetTest
                 enemyOutside.ActiveBuffs.Any(b => b.EffectType == EffectType.AttackSpeedModifier)
             )
             .IsFalse();
+        AssertThat(logs.Any(line => line.Contains("Tail Wind applied attack speed (+25%) to 1/1 ally")))
+            .IsTrue();
+        AssertThat(logs.Any(line => line.Contains("Tail Wind applied attack speed (-25%) to 1/1 enemy")))
+            .IsTrue();
     }
 
     [TestCase]

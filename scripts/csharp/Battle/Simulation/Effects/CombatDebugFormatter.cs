@@ -445,6 +445,7 @@ public static class CombatDebugFormatter
                 ? $"{targetName}'s ranged damage dropped by {Percent(MathF.Abs(effect.Value))}"
                 : $"{targetName}'s ranged damage increased by {Percent(effect.Value)}",
             EffectType.ReviveOnDeath => $"{targetName} will revive once at {Percent(effect.Value > 0f ? effect.Value : 0.5f)} hp",
+            EffectType.TornadoCarry => $"{targetName} was lifted by the tornado",
             EffectType.Taunt => $"{targetName} was taunted",
             _ => $"{targetName} gained {EffectDisplayName(effect)}",
         });

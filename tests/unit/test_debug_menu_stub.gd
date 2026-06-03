@@ -94,7 +94,12 @@ func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
 
 	menu._populate_arena_preset_dropdown()
 	menu._build_debug_arena_buttons(menu._arena_button_grid)
-	assert_eq(menu._arena_button_grid.get_child_count(), 8, "all_test_arena should include eight buttons")
+	var all_entries: Array[Dictionary] = DEBUG_ARENA_PRESETS.get_preset_entries("all_test_arena")
+	assert_eq(
+		menu._arena_button_grid.get_child_count(),
+		all_entries.size(),
+		"all_test_arena should render one button per preset entry"
+	)
 
 	var preset_index: int = -1
 	for i: int in menu._arena_preset_dropdown.item_count:

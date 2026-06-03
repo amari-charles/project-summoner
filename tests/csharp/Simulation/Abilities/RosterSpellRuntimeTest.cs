@@ -113,7 +113,7 @@ public class RosterSpellRuntimeTest
         AssertThat(enemy.KnockbackRemainingDistance).IsGreater(0f);
         AssertThat(enemy.KnockbackDirection.X).IsLess(0f);
 
-        Advance(sim, seconds: 2.8f);
+        Advance(sim, seconds: 2.45f);
 
         AssertThat(enemy.CurrentHp).IsLess(enemyHpBeforeWhirlpool);
     }
@@ -169,11 +169,14 @@ public class RosterSpellRuntimeTest
         var nonEarthAlly = SimTestHelper.CreateMeleeUnit(state, 0, x: 1f, hp: 100f);
         nonEarthAlly.ElementId = (int)Element.Water;
         var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 0f, hp: 150f);
+        var flyingEnemy = SimTestHelper.CreateFlyingUnit(state, 1, x: 0f, hp: 150f);
 
         CastSpell(state, sim, CardDefinitions.Quake, SimVector3.Zero);
 
         AssertThat(enemy.CurrentHp).IsLess(150f);
         AssertThat(enemy.ActiveBuffs.Any(b => b.EffectType == EffectType.Stun)).IsTrue();
+        AssertThat(flyingEnemy.CurrentHp).IsEqual(150f);
+        AssertThat(flyingEnemy.ActiveBuffs.Any(b => b.EffectType == EffectType.Stun)).IsFalse();
 
         CastSpell(state, sim, CardDefinitions.EarthenGrip, SimVector3.Zero, enemy.UnitId);
 
@@ -263,6 +266,8 @@ public class RosterSpellRuntimeTest
         var sim = new Fateforged.Simulation.Simulation(state);
         var ally = SimTestHelper.CreateMeleeUnit(state, 0, x: 0f, hp: 100f);
         var enemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 2f, hp: 160f);
+        var upperEnemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 3f, hp: 160f);
+        var lateEnemy = SimTestHelper.CreateMeleeUnit(state, 1, x: 12f, hp: 160f);
 
         CastSpell(state, sim, CardDefinitions.TailWind, SimVector3.Zero);
 
@@ -280,16 +285,81 @@ public class RosterSpellRuntimeTest
             .IsTrue();
 
         float enemyHpBeforeTornado = enemy.CurrentHp;
+        var positionBeforeTornado = enemy.Position;
         CastSpell(state, sim, CardDefinitions.Tornado, SimVector3.Zero);
-        Advance(sim, seconds: 2.8f);
+        AssertThat(enemy.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoCarry)).IsTrue();
+        AssertThat(upperEnemy.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoCarry))
+            .IsTrue();
+        AssertThat(SimEffects.IsStunned(enemy)).IsTrue();
+
+        lateEnemy.Position = new SimVector3(1f, 0f, 0f);
+        Advance(sim, seconds: 0.65f);
 
         AssertThat(enemy.CurrentHp).IsLess(enemyHpBeforeTornado);
+        AssertThat(enemy.Position.Y).IsGreater(2.5f);
+        AssertThat(upperEnemy.Position.Y).IsGreater(enemy.Position.Y);
+        var enemyCarry = enemy.ActiveBuffs.First(b => b.EffectType == EffectType.TornadoCarry);
+        var upperCarry = upperEnemy.ActiveBuffs.First(b => b.EffectType == EffectType.TornadoCarry);
+        AssertThat(upperCarry.TornadoOrbitRadius).IsGreater(enemyCarry.TornadoOrbitRadius);
+        AssertThat(enemy.Position.X).IsNotEqual(positionBeforeTornado.X);
+        AssertThat(lateEnemy.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoCarry))
+            .IsTrue();
 
+        Advance(sim, seconds: 2.8f);
+
+        AssertThat(enemy.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoCarry)).IsFalse();
+        AssertThat(enemy.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoFall)).IsTrue();
+        AssertThat(SimEffects.IsStunned(enemy)).IsTrue();
+        AssertThat(enemy.Position.Y).IsGreater(0f);
+        AssertThat(enemy.Velocity.Y).IsLess(0.001f);
+
+        Advance(sim, seconds: 1.0f);
+
+        AssertThat(enemy.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoFall)).IsFalse();
+        AssertThat(enemy.Position.Y).IsEqualApprox(0f, 0.001f);
+
+        enemy.Position = new SimVector3(2f, 0f, 0f);
         enemy.KnockbackRemainingDistance = 0f;
         CastSpell(state, sim, CardDefinitions.Evacuate, SimVector3.Zero);
 
         AssertThat(enemy.KnockbackRemainingDistance).IsGreater(0f);
         AssertThat(enemy.KnockbackDirection.X).IsGreater(0f);
+    }
+
+    [TestCase]
+    public void Tornado_FlyingUnit_LiftsAboveAndFallsBackToFlightAltitude()
+    {
+        var state = SimTestHelper.CreateBattleState();
+        var sim = new Fateforged.Simulation.Simulation(state);
+        const float flightAltitude = 2.2f;
+        var flyer = SimTestHelper.CreateFlyingUnit(
+            state,
+            team: 1,
+            x: 2f,
+            hp: 300f,
+            altitude: flightAltitude
+        );
+
+        CastSpell(state, sim, CardDefinitions.Tornado, SimVector3.Zero);
+
+        AssertThat(flyer.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoCarry)).IsTrue();
+        AssertThat(flyer.Position.Y).IsGreater(flightAltitude - 0.001f);
+
+        Advance(sim, seconds: 0.3f);
+
+        AssertThat(flyer.Position.Y).IsGreater(flightAltitude + 2.0f);
+
+        Advance(sim, seconds: 2.8f);
+
+        AssertThat(flyer.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoCarry)).IsFalse();
+        AssertThat(flyer.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoFall)).IsTrue();
+        AssertThat(SimEffects.IsStunned(flyer)).IsTrue();
+        AssertThat(flyer.Position.Y).IsGreater(flightAltitude);
+
+        Advance(sim, seconds: 1.0f);
+
+        AssertThat(flyer.ActiveBuffs.Any(b => b.EffectType == EffectType.TornadoFall)).IsFalse();
+        AssertThat(flyer.Position.Y).IsEqualApprox(flightAltitude, 0.001f);
     }
 
     [TestCase]
@@ -327,7 +397,7 @@ public class RosterSpellRuntimeTest
             .IsTrue();
         AssertThat(logs.Any(line => line.Contains("Rain Field queued damage"))).IsTrue();
         AssertThat(logs.Any(line => line.Contains("Rain Field resolved delayed damage"))).IsTrue();
-        AssertThat(logs.Any(line => line.Contains("Water Jet applied damage but found no valid targets")))
+        AssertThat(logs.Any(line => line.Contains("Water Jet applied damage but found no valid enemies")))
             .IsTrue();
     }
 

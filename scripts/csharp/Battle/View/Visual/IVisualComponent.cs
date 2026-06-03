@@ -93,6 +93,13 @@ public interface IVisualComponent
     void SetFlipH(bool flip);
 
     /// <summary>
+    /// Temporarily suppress camera-facing billboard behavior so world-space visual rotation is visible.
+    /// Used for effects like tornado carry, then restored afterward.
+    /// </summary>
+    /// <param name="suppressed">True to disable billboard until restored.</param>
+    void SetBillboardSuppressed(bool suppressed);
+
+    /// <summary>
     /// Set the render priority for depth ordering.
     /// Higher values render in front, lower values render behind.
     /// Range: -128 to 127.

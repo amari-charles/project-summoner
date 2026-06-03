@@ -17,6 +17,7 @@ public static class SpellEffectAdapter
             AoeRadius = effect.AoeRadius,
             AreaShape = effect.AreaShape,
             Affinity = effect.Affinity,
+            TargetLayerFilter = effect.TargetLayerFilter,
             RequiredTargetElementId = effect.RequiredTargetElementId,
             StatusKind = effect.StatusKind,
             StatusTickInterval = effect.StatusTickInterval,

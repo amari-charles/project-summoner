@@ -902,6 +902,7 @@ public static class SimProjectile
                 StatusTickInterval = proj.StatusTickInterval,
                 StatusPotencyPerStack = proj.StatusPotencyPerStack,
                 StatusMaxStacks = proj.StatusMaxStacks,
+                TargetAffinity = ToSpellAffinity(proj.TargetAffinity),
                 CueId = ResolveProjectileCueId(proj, EffectType.StatusApply),
                 Context = new EffectApplicationContext
                 {
@@ -931,6 +932,7 @@ public static class SimProjectile
             EffectType = effectType,
             Value = proj.Damage,
             DamageType = effectType == EffectType.Heal ? DamageType.Magic : proj.DamageType,
+            TargetAffinity = ToSpellAffinity(proj.TargetAffinity),
             CueId = ResolveProjectileCueId(proj, effectType),
             Context = new EffectApplicationContext
             {
@@ -950,6 +952,16 @@ public static class SimProjectile
         return proj.ProjectileCatalogId.HasValue
             ? $"projectile.{proj.ProjectileCatalogId.Value}.{effectType}"
             : $"projectile.{effectType}";
+    }
+
+    private static SpellAffinity ToSpellAffinity(AbilityTargetAffinity affinity)
+    {
+        return affinity switch
+        {
+            AbilityTargetAffinity.Allies => SpellAffinity.Allies,
+            AbilityTargetAffinity.Both => SpellAffinity.Both,
+            _ => SpellAffinity.Enemies,
+        };
     }
 
     private static bool CanImpactUnit(SimProjectileData proj, UnitData unit)

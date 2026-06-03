@@ -99,6 +99,7 @@ public class SimCardData
                             AoeRadius = effect.RadiusOverride,
                             AreaShape = effect.AreaShape,
                             Affinity = effect.Affinity,
+                            TargetLayerFilter = effect.TargetLayerFilter,
                             RequiredTargetElementId = effect.RequiredTargetElement.HasValue
                                 ? (int)effect.RequiredTargetElement.Value
                                 : -1,

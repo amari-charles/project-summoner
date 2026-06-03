@@ -3,6 +3,7 @@ using Fateforged.Cards.Formations;
 using Fateforged.Cards.Spawning;
 using Fateforged.Constants;
 using Fateforged.Projectiles;
+using Fateforged.Simulation.Effects;
 using Fateforged.Simulation.Enums;
 using Fateforged.Stats;
 using Fateforged.Units;
@@ -328,6 +329,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 6.0f,
         SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -370,6 +372,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 7.0f,
         SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -400,6 +403,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 7.0f,
         SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -432,6 +436,7 @@ public static class CardDefinitions
         Cooldown = 2.4f,
         SummonTime = 0.0f,
         SpellRadius = 7.0f,
+        SpellVfx = VfxIds.SpellAreaBurst,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -462,6 +467,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 6.0f,
         SpellDuration = 5.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -508,6 +514,7 @@ public static class CardDefinitions
         ManaCost = 3,
         Cooldown = 2.0f,
         SummonTime = 0.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
         SpellEffects =
@@ -558,6 +565,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 5.5f,
         SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -598,6 +606,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 7.0f,
         SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -628,6 +637,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 8.0f,
         SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -668,6 +678,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 7.0f,
         SpellDuration = 5.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -707,6 +718,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 8.0f,
         SpellDuration = 1.0f,
+        SpellVfx = VfxIds.SpellAreaBurst,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -718,6 +730,7 @@ public static class CardDefinitions
                 DamageType = DamageType.Physical,
                 RadiusOverride = 8f,
                 Affinity = SpellAffinity.Enemies,
+                TargetLayerFilter = TargetLayer.GroundOnly,
             },
             new SpellEffectDefinition
             {
@@ -727,6 +740,7 @@ public static class CardDefinitions
                 Lifetime = EffectLifetime.Timed(1f),
                 RadiusOverride = 8f,
                 Affinity = SpellAffinity.Enemies,
+                TargetLayerFilter = TargetLayer.GroundOnly,
             },
         ],
         UnlockCondition = UnlockCondition.Default,
@@ -743,6 +757,7 @@ public static class CardDefinitions
         ManaCost = 4,
         Cooldown = 2.2f,
         SummonTime = 0.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
         SpellEffects =
@@ -771,6 +786,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 8.0f,
         SpellDuration = 4.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -810,6 +826,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 5.0f,
         SpellDuration = 6.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -840,6 +857,7 @@ public static class CardDefinitions
         Cooldown = 2.0f,
         SummonTime = 0.0f,
         SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.SingleTarget,
         SpellEffects =
@@ -868,7 +886,7 @@ public static class CardDefinitions
     {
         Id = CardIds.Tornado,
         Name = "Tornado",
-        Description = "Repeatedly shoves and damages enemies caught in a wind vortex.",
+        Description = "Lifts enemies into a wind vortex, carrying them in a circle while dealing repeated damage.",
         Rarity = Rarity.Rare,
         Type = CardType.Spell,
         ManaCost = 5,
@@ -876,18 +894,24 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 7.0f,
         SpellDuration = 3.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
         [
             new SpellEffectDefinition
             {
-                EffectType = EffectType.Displacement,
-                Value = 1.4f,
+                EffectType = EffectType.TornadoCarry,
+                Value = 5.2f,
+                Duration = 0.75f,
+                Lifetime = EffectLifetime.Timed(0.75f),
                 RadiusOverride = 7f,
                 Affinity = SpellAffinity.Enemies,
                 RepeatCount = 4,
                 RepeatIntervalSeconds = 0.55f,
+                StackPolicy = EffectStackPolicy.RefreshDuration,
+                StackKey = "tornado_carry",
+                CueId = "spell.tornado.carry",
             },
             new SpellEffectDefinition
             {
@@ -916,6 +940,7 @@ public static class CardDefinitions
         SummonTime = 0.0f,
         SpellRadius = 8.0f,
         SpellDuration = 15.0f,
+        SpellVfx = VfxIds.SpellAreaField,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -944,6 +969,7 @@ public static class CardDefinitions
         ManaCost = 3,
         Cooldown = 1.8f,
         SummonTime = 0.0f,
+        SpellVfx = VfxIds.SpellSingleTarget,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.SingleTarget,
         SpellEffects =
@@ -977,6 +1003,7 @@ public static class CardDefinitions
         Cooldown = 2.2f,
         SummonTime = 0.0f,
         SpellRadius = 6.5f,
+        SpellVfx = VfxIds.SpellAreaBurst,
         SpellCategory = SpellCategory.None,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =
@@ -1004,6 +1031,7 @@ public static class CardDefinitions
         Cooldown = 2.2f,
         SummonTime = 0.0f,
         SpellRadius = 10.0f,
+        SpellVfx = VfxIds.SpellLine,
         SpellCategory = SpellCategory.Damage,
         SpellTargeting = SpellTargeting.AreaOfEffect,
         SpellEffects =

@@ -62,6 +62,8 @@ public enum EffectType
     ReviveOnDeath, // Restore a dying unit once while buff is active
     Displacement, // Push or pull from an explicit origin
     SourceLungeToTarget, // Move the source unit next to the target
+    TornadoCarry, // Lift, disable, and orbit a unit around an explicit origin
+    TornadoFall, // Temporary post-tornado falling state until the unit reaches landing height
 }
 
 // =========================================================================
@@ -165,6 +167,9 @@ public class SimSpellEffect
 
     /// <summary>Which team this effect targets.</summary>
     public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
+
+    /// <summary>Which movement layer this effect can affect.</summary>
+    public TargetLayer TargetLayerFilter { get; set; } = TargetLayer.Both;
 
     /// <summary>Delay before first application (0 = immediate).</summary>
     public float DelaySeconds { get; set; }
@@ -276,6 +281,39 @@ public class ActiveBuff
 
     /// <summary>Visual/audio cue identity for active/removed lifecycle events.</summary>
     public string CueId { get; set; } = "";
+
+    /// <summary>Center point for tornado-style carried movement.</summary>
+    public SimVector3 TornadoCenter { get; set; } = SimVector3.Zero;
+
+    /// <summary>Horizontal orbit radius for tornado-style carried movement.</summary>
+    public float TornadoOrbitRadius { get; set; }
+
+    /// <summary>Current orbit angle in radians for tornado-style carried movement.</summary>
+    public float TornadoOrbitAngleRadians { get; set; }
+
+    /// <summary>Radians per second for tornado-style carried movement.</summary>
+    public float TornadoOrbitAngularSpeedRadians { get; set; }
+
+    /// <summary>Lift amount above the unit's normal landing height for tornado-style carried movement.</summary>
+    public float TornadoLiftHeight { get; set; }
+
+    /// <summary>Normal landing height for tornado-style carried movement.</summary>
+    public float TornadoBaseLiftHeight { get; set; }
+
+    /// <summary>Additional tier height for tornado-style carried movement.</summary>
+    public float TornadoHeightOffset { get; set; }
+
+    /// <summary>Starting Y for tornado-style carried movement.</summary>
+    public float TornadoStartHeight { get; set; }
+
+    /// <summary>Resolved absolute target Y for tornado-style carried movement.</summary>
+    public float TornadoTargetHeight { get; set; }
+
+    /// <summary>0-1 lift interpolation progress for tornado-style carried movement.</summary>
+    public float TornadoLiftProgress { get; set; }
+
+    /// <summary>Landing height for post-tornado falling movement.</summary>
+    public float TornadoFallLandingY { get; set; }
 }
 
 /// <summary>
@@ -382,6 +420,9 @@ public class DelayedEffect
 
     /// <summary>Spell affinity filter for delayed spell effects.</summary>
     public SpellAffinity Affinity { get; set; } = SpellAffinity.Enemies;
+
+    /// <summary>Movement layer filter for delayed spell effects.</summary>
+    public TargetLayer TargetLayerFilter { get; set; } = TargetLayer.Both;
 
     /// <summary>Targeting mode for delayed spell effects.</summary>
     public SpellTargetingMode TargetingMode { get; set; } = SpellTargetingMode.Position;

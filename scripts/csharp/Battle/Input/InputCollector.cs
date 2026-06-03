@@ -2,6 +2,7 @@ using Fateforged.Cards;
 using Fateforged.Constants;
 using Fateforged.Simulation;
 using Fateforged.View.Debug;
+using Fateforged.View.Spells;
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
@@ -381,6 +382,7 @@ public partial class InputCollector : Control
             return;
 
         _spellPreview.Call("update_position", worldPos);
+        _spellPreview.Call("update_points", GetSpellSourcePosition(), worldPos);
         _spellPreview.Call("set_valid", true);
     }
 
@@ -399,8 +401,17 @@ public partial class InputCollector : Control
         if (root3D != null)
         {
             root3D.AddChild(preview);
-            float radius = card.SpellRadius > 0 ? card.SpellRadius : DefaultSpellRadius;
-            preview.Call("setup", radius);
+            var def = CardCatalog.GetCard(card.CatalogId);
+            var metadata =
+                def != null
+                    ? SpellVisualMetadata.FromCardDefinition(def)
+                    : new SpellVisualMetadata(
+                        SpellVisualMetadata.Circle,
+                        card.SpellRadius > 0 ? card.SpellRadius : DefaultSpellRadius,
+                        SpellAreaLineWidth.FullWidth,
+                        "neutral"
+                    );
+            preview.Call("setup", metadata.Radius, metadata.Shape, metadata.LineWidth, metadata.Element);
             _spellPreview = preview;
         }
         else
@@ -738,6 +749,14 @@ public partial class InputCollector : Control
             return summonerNode.GlobalPosition;
 
         return fallback;
+    }
+
+    private Vector3 GetSpellSourcePosition()
+    {
+        if (_playerSummoner is Node3D summonerNode && IsInstanceValid(summonerNode))
+            return summonerNode.GlobalPosition;
+
+        return Vector3.Zero;
     }
 
     /// <summary>

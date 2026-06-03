@@ -13,6 +13,7 @@
         { "label": "Wind + Earth New", "battle_id": "arena_wind_earth_new_cards" },
         { "label": "All Units", "battle_id": "arena_all_units" },
         { "label": "All Cards", "battle_id": "arena_all_cards" },
+        { "label": "All Spells", "battle_id": "arena_all_spells" },
         { "label": "Debug Arena", "battle_id": "debug_arena" }
       ]
     },

@@ -1091,6 +1091,24 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
+        [EventIds.ArenaAllSpells] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaAllSpells,
+            NameKey = "campaign.battle.arena_all_spells.name",
+            DescriptionKey = "campaign.battle.arena_all_spells.description",
+            Position = new Vector2(1000, 100),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 0,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "none",
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = BuildActiveCoreElementSpellTestDeck(),
+            EnemyDeck = BuildRealArtSpellTargetDeck(),
+            EnemyHp = 999999f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
         [EventIds.DebugArena] = new BattleEventDefinition
         {
             Id = EventIds.DebugArena,
@@ -1122,6 +1140,25 @@ public static class EventCatalog
     private static List<DeckEntry> BuildActiveCoreElementCardDeck()
     {
         return BuildActiveCoreElementDeck();
+    }
+
+    private static List<DeckEntry> BuildActiveCoreElementSpellTestDeck()
+    {
+        var deck = BuildRealArtSpellTargetDeck();
+        deck.AddRange(BuildActiveCoreElementDeck(CardType.Spell));
+        return deck;
+    }
+
+    private static List<DeckEntry> BuildRealArtSpellTargetDeck()
+    {
+        return new List<DeckEntry>
+        {
+            new(CardIds.FireWisp, 2),
+            new(CardIds.WaterFrog, 2),
+            new(CardIds.Pebbloom, 2),
+            new(CardIds.Puff, 2),
+            new(CardIds.MamaDuck, 1),
+        };
     }
 
     private static List<DeckEntry> BuildActiveCoreElementDeck(CardType? cardType = null)

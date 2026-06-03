@@ -160,6 +160,8 @@ public static class SpellTargetResolver
     {
         if (effect.RequiredTargetElementId >= 0 && unit.ElementId != effect.RequiredTargetElementId)
             return false;
+        if (!PassesTargetLayerFilter(unit, effect.TargetLayerFilter))
+            return false;
 
         if (forceAllies)
             return (int)unit.Team == sourceTeam;
@@ -169,6 +171,16 @@ public static class SpellTargetResolver
             SpellAffinity.Allies => (int)unit.Team == sourceTeam,
             SpellAffinity.Both => true,
             _ => (int)unit.Team == MatchState.GetEnemyTeam(sourceTeam),
+        };
+    }
+
+    private static bool PassesTargetLayerFilter(UnitData unit, TargetLayer targetLayerFilter)
+    {
+        return targetLayerFilter switch
+        {
+            TargetLayer.GroundOnly => unit.MovementLayer == MovementLayer.Ground,
+            TargetLayer.AirOnly => unit.MovementLayer == MovementLayer.Air,
+            _ => true,
         };
     }
 

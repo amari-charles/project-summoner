@@ -1011,6 +1011,7 @@ public class Simulation
                 SourceUnitId = context.SourceUnitId,
                 SourceTeam = (Team)context.Team,
                 Affinity = effect.Affinity,
+                TargetLayerFilter = effect.TargetLayerFilter,
                 TargetingMode = context.CardData.SpellTargetingMode,
                 TargetUnitId = context.TargetUnitId,
                 StatusKind = effect.StatusKind,
@@ -1174,10 +1175,21 @@ public class Simulation
             tracking: projectileData.Tracking,
             damageType: effect.DamageType,
             useAttackDamageProfile: false,
-            cardCatalogId: cardData.CatalogId
+            cardCatalogId: cardData.CatalogId,
+            targetAffinity: ToProjectileTargetAffinity(effect.Affinity)
         );
 
         return true;
+    }
+
+    private static AbilityTargetAffinity ToProjectileTargetAffinity(SpellAffinity affinity)
+    {
+        return affinity switch
+        {
+            SpellAffinity.Allies => AbilityTargetAffinity.Allies,
+            SpellAffinity.Both => AbilityTargetAffinity.Both,
+            _ => AbilityTargetAffinity.Enemies,
+        };
     }
 
     /// <summary>
@@ -2011,12 +2023,25 @@ public class DelayedEffectFiredEvent : SimEvent
     public SimVector3 Position { get; }
     public EffectType EffectType { get; }
     public float AoeRadius { get; }
+    public SpellAreaShape AreaShape { get; }
+    public SimVector3 SourcePosition { get; }
+    public SimCardCatalogId CardCatalogId { get; }
 
-    public DelayedEffectFiredEvent(SimVector3 position, EffectType effectType, float aoeRadius)
+    public DelayedEffectFiredEvent(
+        SimVector3 position,
+        EffectType effectType,
+        float aoeRadius,
+        SpellAreaShape areaShape,
+        SimVector3 sourcePosition,
+        SimCardCatalogId cardCatalogId
+    )
     {
         Position = position;
         EffectType = effectType;
         AoeRadius = aoeRadius;
+        AreaShape = areaShape;
+        SourcePosition = sourcePosition;
+        CardCatalogId = cardCatalogId;
     }
 
     public override void Accept(ISimEventVisitor visitor) => visitor.Visit(this);
