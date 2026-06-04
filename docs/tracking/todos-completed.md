@@ -4,7 +4,216 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## 2026-06 Completions
+
+### Add More Spell Cards
+**Completed:** 2026-06-04
+**Category:** Content
+**Effort:** Variable
+
+Closed as an active spell-expansion item by product decision: the current spell roster is enough for now.
+
+**Resolution Summary:**
+- ✅ First-pass Fire/Water/Earth/Wind spell roster runtime coverage exists.
+- ✅ Debug arena access exists for the active spell roster.
+- ✅ Placeholder/readability VFX exist for active elemental spells.
+- ✅ No additional spell-card concepts are needed in the active TODO queue right now.
+
+**Remaining Work Tracked Elsewhere:**
+- Spell balance tuning.
+- Production-quality VFX and art direction.
+- Final card art/presentation.
+- Academy course and loot-pool integration.
+
+**Related Active Tracking:**
+- `Clean Up Non-Production VFX`
+- `Scope Remaining Content, VFX, Items, and Academy Work`
+
+---
+
+### Fix Puff Lateral Movement Near Summoner/Enemy Unit
+**Completed:** 2026-06-04
+**Category:** Units & Combat / Movement
+**Effort:** Small
+
+Closed as stale/fixed by product review after the broader movement and targeting robustness pass.
+
+**Resolution Summary:**
+- ✅ Product review indicates the Puff lateral movement issue no longer appears active.
+- ✅ Completed movement work already added summoner-wrap targeting, local crowd danger masking, objective-advance steering, close-range fallback fixes, and shared summoner melee bubble targeting.
+- ✅ No active repro case remains in the tracker.
+
+**Reopen Criteria:**
+- Reopen as a fresh bug with a current replay/repro if Puff lateral jitter or stall returns.
+
+---
+
+### Per-Summoner Portrait Cropping Configuration
+**Completed:** 2026-06-04
+**Category:** Summoners / UI
+**Effort:** Small
+
+Closed after confirming per-summoner portrait crop tuning exists in runtime config and is consumed by the summoner icon widget.
+
+**Resolution Summary:**
+- ✅ `SummonerConfig` carries `portrait_uv_offset` and `portrait_uv_scale`.
+- ✅ `summoner_icon_widget.gd` applies those values to the circular clip shader.
+- ✅ The scene material still has defaults, but per-summoner config can override them.
+
+**Representative Files:**
+- `scripts/infrastructure/summoner_config.gd`
+- `scripts/meta/components/summoner_icon_widget.gd`
+- `scenes/meta/components/summoner_icon_widget.tscn`
+
+---
+
+### Move Campaign Data Definitions to C#
+**Completed:** 2026-06-04
+**Category:** Architecture / Consistency
+**Effort:** Medium
+
+Closed after confirming the old GDScript campaign data files are gone and current campaign/event definitions live in C# catalogs.
+
+**Resolution Summary:**
+- ✅ `CampaignCatalog.cs` defines the current campaign surfaces.
+- ✅ `EventCatalog.cs` defines campaign battle/event data.
+- ✅ Old `summoners_path_data.gd` and `test_arena_data.gd` files are no longer present.
+
+**Representative Files:**
+- `scripts/csharp/Infrastructure/Data/Events/CampaignCatalog.cs`
+- `scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs`
+
+---
+
 ## 2026-03 Completions
+
+### Shift Puff Attack Angle Downward
+**Completed:** 2026-03-12
+**Category:** Units & Combat / Ranged
+**Effort:** Small
+
+Adjusted Puff's projectile targeting cone downward while preserving its angular spread.
+
+**Resolution Summary:**
+- ✅ Added cone-center offset support (`TargetingConeCenterOffsetDegrees`) through `UnitDefinition -> SimUnitTemplate -> UnitData`.
+- ✅ Set Puff targeting cone center offset to `-20°`.
+- ✅ Validated with deterministic targeting coverage.
+
+---
+
+### Investigate Pathfinding & Targeting System Robustness
+**Completed:** 2026-03-12
+**Category:** Units & Combat / Performance
+**Effort:** Medium
+
+Completed the pathfinding and targeting robustness audit, then closed the highest-risk movement, aggro, forced-target, and dense-swarm follow-ups.
+
+**Resolution Summary:**
+- ✅ Added summoner-wrap movement targeting for occupied fronts.
+- ✅ Added local crowd danger masking, blocked-nav tuning, and ORCA neighbor-search tuning for dense clumps.
+- ✅ Added 60-unit summoner-focus regression coverage and profiled the dense-swarm scenario.
+- ✅ Closed target-switch race and forced-target release/expiry validation.
+- ✅ Added commit-lock aggro chase caps and explicit out-of-aggro retarget diagnostics.
+- ✅ Updated ranged targeting profile defaults for air + ground targeting.
+- ✅ Added summoner soft-lock aggro preempt, no-target objective-advance steering, close-range fallback fixes, and shared summoner melee bubble targeting.
+
+**Representative Files Changed:**
+- `scripts/csharp/Battle/Simulation/Movement/MovementTargetResolver.cs`
+- `scripts/csharp/Battle/Simulation/Movement/ContextSteering.cs`
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
+- `tests/csharp/Simulation/BlockedUnitReproTest.cs`
+
+---
+
+### Improve Hit Flash Feedback for Large Units
+**Completed:** 2026-03-12
+**Category:** Visual Polish
+**Effort:** Small
+
+Improved hit-flash behavior so large, durable units do not appear permanently lit while taking frequent low-impact hits.
+
+**Resolution Summary:**
+- ✅ Added configurable flash rate-limiting in both `SpriteVisualComponent` and `SkeletalVisualComponent`.
+- ✅ Added separate minimum flash interval tuning for large units via width threshold.
+
+**Representative Files Changed:**
+- `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs`
+- `scripts/csharp/Battle/View/Visual/SkeletalVisualComponent.cs`
+
+---
+
+### Audit Summoner Secondary Stats
+**Completed:** 2026-03-12
+**Category:** Summoners / Stats
+**Effort:** Small
+
+Audited whether summoner secondary stats such as `damage_bonus` and `damage_reduction` are active, useful, and documented.
+
+**Resolution Summary:**
+- ✅ Verified `damage_bonus` and `damage_reduction` are consumed by simulation damage paths.
+- ✅ Added clarifying in-code documentation for summoner-vs-unit and summoner-target lane behavior.
+- ✅ Confirmed no dead-field removal is required in the current runtime.
+
+**Representative Files Changed:**
+- `scripts/infrastructure/data/summoner_instance.gd`
+- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs`
+- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinitions.cs`
+
+---
+
+### Create Simulation Spatial Domain
+**Completed:** 2026-03-12
+**Category:** Architecture / Layering
+**Effort:** Small
+
+Created a dedicated simulation-owned spatial namespace for geometry, partition, and lane logic.
+
+**Resolution Summary:**
+- ✅ Moved `VirtualLanes` to `scripts/csharp/Battle/Simulation/Spatial/VirtualLanes.cs`.
+- ✅ Updated simulation movement and combat consumers to `Fateforged.Simulation.Spatial`.
+- ✅ Kept the refactor behavior-preserving.
+
+**Representative Files Changed:**
+- `scripts/csharp/Battle/Simulation/Spatial/VirtualLanes.cs`
+- simulation movement and combat consumers
+
+---
+
+### Consolidate Battlefield Spawn Rules to C# Source-of-Truth
+**Completed:** 2026-03-12
+**Category:** Architecture / Consistency
+**Effort:** Small
+
+Removed mirrored GDScript spawn-rule helpers so spawn validation and clamping remain owned by C# battlefield bounds.
+
+**Resolution Summary:**
+- ✅ Removed mirrored spawn-rule helpers from `battlefield_constants.gd`.
+- ✅ Kept spawn validation/clamping authority in C# `BattlefieldBounds`.
+- ✅ Updated GDScript tests for remaining conversion/constants behavior.
+
+**Representative Files Changed:**
+- `scripts/battle/battlefield/battlefield_constants.gd`
+- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs`
+- `scripts/csharp/Battle/Input/InputCollector.cs`
+
+---
+
+### Add Timeouts to UI Async Waits
+**Completed:** 2026-03-12
+**Category:** Performance / Reliability
+**Effort:** Small
+
+Added timeout and fallback guards to UI async flows so missing signals do not leave screens permanently blocked.
+
+**Resolution Summary:**
+- ✅ Added timeout/fallback behavior to title and event screen async waits.
+- ✅ Improved resilience for slower devices and interrupted UI flows.
+
+**Representative Files Changed:**
+- `scripts/meta/screens/title_screen.gd`
+- `scripts/meta/screens/event_screen.gd`
+
+---
 
 ## 2026-04 Completions
 
