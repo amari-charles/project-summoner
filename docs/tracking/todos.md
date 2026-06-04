@@ -29,6 +29,10 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-11, per-summoner lines):** Simplified per-summoner identity lines to summoner-stat-only V1 (no unit modifiers/triggers) for Cole/Selene/Mei/Teo in `docs/design/summon-traits-v1.md`; remaining trait-curation scope is campaign-facing Ultimate/Oath candidate pass and permanence validation.
 **Tracker Sync (2026-03-11, combat spatial v2):** Updated directional attack, multi-target, and hitbox tracker entries to reflect runtime geometry-channel split + debug overlay progress; engage-shape startup alignment remains open.
 **Tracker Sync (2026-03-12, quick-win wave):** Closed targeted combat redirect/retarget robustness scope; completed simulation spatial namespace + spawn-rule ownership alignment; completed UI async timeout guards, Puff cone-center offset tuning, and large-unit hit-flash throttling; updated summoner stat audit status and recorded upgrade-cost scaffolding progress.
+**Tracker Sync (2026-06-04, production scoping):** Added `docs/tracking/remaining-work-scope.md` as the running scoping roadmap for spell VFX, academy classes, items, upgrades, rewards, and production asset planning.
+**Tracker Sync (2026-06-04, active-tracker cleanup):** Moved completed Puff angle, pathfinding robustness, large-unit hit-flash, summoner secondary-stat audit, simulation spatial-domain, spawn-rule source-of-truth, and UI async timeout entries to `todos-completed.md`.
+**Tracker Sync (2026-06-04, spell roster scope):** Closed `Add More Spell Cards` as an active expansion item; current spell count is sufficient. Remaining spell-related work stays under VFX polish, balance, presentation, academy/course integration, and production scoping.
+**Tracker Sync (2026-06-04, backlog cleanup):** Consolidated premature per-sound audio tasks into one production-audio scoping item, closed stale Puff lateral-movement follow-up by product review, closed completed portrait-cropping and campaign-data migration items, and refreshed stale interop/performance/root-path TODO wording.
 
 ---
 
@@ -38,6 +42,39 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
    Why first: Recent movement/perf fixes landed, but full scale-target optimization plan is not complete yet.
 2. Investigate snapshot system overhaul for deterministic test-state setup
    Why now: Trait/system validation depends on quickly creating exact profile states; current snapshot flow is functional but too indirect and lacks schema/version guarantees.
+
+---
+
+## Production Scoping
+
+### 🔴 HIGH PRIORITY
+
+#### Scope Remaining Content, VFX, Items, and Academy Work
+**Status:** 🔄 In Progress
+**Category:** Planning / Production Scope
+**Effort:** Medium
+
+**Description:**
+Maintain a dedicated scoping roadmap that turns fuzzy remaining production work into counted, grouped, knockable-down tasks. This includes spell VFX needs, reusable VFX kit assumptions, academy class content, items/equipment, upgrades, reward placement, and production asset acquisition.
+
+**Tasks:**
+- [ ] Build current runtime spell/VFX inventory table.
+- [ ] Decide Year 1 spell VFX minimum count and first-pass four-element VFX count.
+- [ ] Assign initial spells to reusable VFX archetypes.
+- [ ] Draft Academy Year 1 course and reward matrix.
+- [ ] Inventory item/equipment catalog gaps and reward placement.
+- [ ] Inventory upgrade/trait catalog gaps and special-resource cost policy.
+- [ ] Convert scoped groups into smaller implementation TODOs.
+
+**Related Docs:**
+- `docs/tracking/remaining-work-scope.md`
+- `docs/design/academy-forging-model.md`
+- `docs/design/academy-forging-implementation-spec.md`
+- `docs/technical/spell-system-audit.md`
+- `docs/features/equipment-system.md`
+
+**Notes:**
+- Product/design docs remain the source of truth for intent. This tracking doc exists to count, group, estimate, and sequence the work.
 
 ---
 
@@ -147,47 +184,6 @@ Current runtime behavior allows some on-hit effects to trigger even when the att
 
 ---
 
-#### Shift Puff Attack Angle Downward
-**Status:** ✅ Completed
-**Category:** Units & Combat / Ranged
-**Effort:** Small
-
-**Description:**
-Rotate Puff's projectile firing angle cone downward. Keep the same angular spread, but offset the center of the cone so it aims lower.
-
-**Example:**
-If current range is -30° to +30° (60° spread centered at 0°), shift to something like -50° to +10° (still 60° spread, but centered at -20°).
-
-**Related Files:**
-- Puff unit scene or ranged attack logic
-- Projectile spawn angle calculations
-
-**Resolution Update (2026-03-12):**
-- ✅ Added cone-center offset support (`TargetingConeCenterOffsetDegrees`) through `UnitDefinition -> SimUnitTemplate -> UnitData`.
-- ✅ Set Puff targeting cone center offset to `-20°` and validated with deterministic targeting coverage.
-
----
-
-#### Fix Puff Lateral Movement Near Summoner/Enemy Unit
-**Status:** ⬜ Not Started
-**Category:** Units & Combat / Movement
-**Effort:** Small
-
-**Description:**
-When Puff is lateral to the enemy summoner or lateral to an enemy unit, movement can become unstable (side-sliding, over-correction, or brief stall). Stabilize lateral movement behavior so Puff maintains clear approach/orbit intent and does not jitter.
-
-**Requirements:**
-- Reproduce and isolate lateral-position cases against both summoner and unit targets.
-- Adjust movement steering/target resolver logic so lateral approach remains smooth and deterministic.
-- Add regression coverage for Puff lateral-to-summoner and lateral-to-unit scenarios.
-
-**Related Files:**
-- `scripts/csharp/Battle/Simulation/Movement/MovementTargetResolver.cs`
-- `scripts/csharp/Battle/Simulation/Movement/ContextSteering.cs`
-- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
-
----
-
 ### 🟢 LOW PRIORITY
 
 #### Refactor Character-Specific Animation Logic to Composition
@@ -225,57 +221,6 @@ Units attach only the components they need.
 ---
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Investigate Pathfinding & Targeting System Robustness
-**Status:** ✅ Completed
-**Category:** Units & Combat / Performance
-**Effort:** Medium
-
-**Description:**
-Audit the current pathfinding and targeting systems for robustness and efficiency. Identify potential issues with edge cases, performance bottlenecks, and areas for improvement.
-
-**Areas to Investigate:**
-- Target acquisition logic (in `SimBehavior.cs` / `SimTargeting.cs`)
-- Target lock timer and re-acquisition behavior
-- Flanking/pathfinding when blocked
-- Performance with large unit counts (N² targeting checks?)
-- Edge cases: targets dying mid-attack, multiple units targeting same enemy
-- Redirect system robustness (forced targets, guard mode)
-
-**Questions to Answer:**
-- How does targeting scale with 50+ units on screen?
-- Are there race conditions in target switching?
-- Is the blocked detection / flanking logic reliable?
-- Should we use spatial partitioning for target queries?
-
-**Progress Update (2026-03-10):**
-- ✅ Added summoner-wrap movement targeting (`MovementTargetResolver`) so blocked units can route around occupied fronts.
-- ✅ Added local crowd danger masking in context steering + tuned blocked-nav and ORCA neighbor search for dense clumps.
-- ✅ Added 60-unit summoner-focus regression coverage to verify broad attacker contribution in dense swarms.
-- ✅ Ran large-battle profiling pass (2026-03-10) via `dotnet test --settings test.runsettings --filter "FullyQualifiedName~BlockedUnitReproTest.SummonerFocus_DenseSwarm_HasBroadAttackerContribution" --logger "console;verbosity=detailed"`:
-  - dense-swarm test case duration: ~1s (`60 units`, `1200` simulation ticks)
-- filtered run total: `2.1013s` (test host + discovery + execution)
-- ✅ Closed target-switch race/forced-target follow-up with deterministic tie-break selection and forced-target expiry/invalid-target release validation.
-
-**Progress Update (2026-03-11, aggro + air targeting):**
-- ✅ Added commit-lock aggro chase cap so units drop non-summoner targets that move beyond max chase distance (`max(aggro radius, attack range)`), preventing infinite far-chase behavior.
-- ✅ Added `RetargetReason.OutOfAggroRange` for explicit retarget diagnostics when chase-cap drops occur.
-- ✅ Updated ranged targeting profile wiring so ranged units default to `TargetLayer.Both` (air + ground) when definitions rely on the shared default filter.
-- ✅ Added regression coverage for commit-lock drop-on-range-exit and ranged profile target-layer mapping.
-- ✅ Added regression coverage for forced-target expiry release, invalid forced-target recovery, and stable tie-break ordering.
-
-**Progress Update (2026-03-12, summoner preempt + objective advance):**
-- ✅ Added summoner soft-lock aggro preempt so committed summoner targets switch to valid in-aggro enemy units within one tick (`RetargetReason.AggroPreempt`), while forced targets and active attack phases remain non-preemptable.
-- ✅ Added no-target objective-advance steering (straight until engage band, then progressive curve toward enemy summoner) and wired it across direct/context movement paths.
-- ✅ Fixed forward-rect close-range fallback for positive forward-offset attackers to prevent standstill/no-swing behavior in Pebloom-like melee profiles.
-- ✅ Added deterministic regression coverage for summoner-preempt contract, objective-advance movement, and forward-rect idle/attack repros.
-- ✅ Added shared summoner melee bubble targeting + direct engage checks/debug controls to reduce ring-around deadlocks in dense melee swarms.
-
-**Notes:**
-- Related to lane-based movement todo (may affect targeting behavior)
-- Re-run this profile if future targeting policy changes alter commit-lock behavior.
-
----
 
 #### Evaluate Non-Hard-Lane Phase 2 Experiments (Post Virtual-Lanes/Roles)
 **Status:** ⬜ Not Started
@@ -453,27 +398,6 @@ Design and implement additional summon cards to expand unit variety.
 
 ---
 
-#### Add More Spell Cards
-**Status:** 🔄 In Progress
-**Category:** Content
-**Effort:** Variable (per card)
-
-**Description:**
-Design and implement additional spell cards for more strategic variety.
-
-**Requirements:**
-- Design spell effects and mechanics
-- Implement spell logic
-- Create VFX for spells
-- Create card art and data
-
-**Notes:**
-- Consider direct damage, buffs, debuffs, board manipulation
-- Balance mana costs carefully
-- Progress 2026-06-02: Added first-pass Fire/Water/Earth/Wind spell roster runtime coverage, debug arena access, and placeholder/readability VFX. Remaining work includes balance tuning, final art/card presentation, course/loot-pool integration, and any future neutral/expanded-element spell design.
-
----
-
 ## Database & Data Layer
 
 ### 🟢 LOW PRIORITY
@@ -546,32 +470,6 @@ Add optional support for upgrade-specific resource costs (essence, fragments, et
 ## Visual Polish
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Improve Hit Flash Feedback for Large Units
-**Status:** ✅ Completed
-**Category:** Visual Polish
-**Effort:** Small
-
-**Description:**
-Large units (like Fire Titan) appear permanently lit up when taking continuous damage from multiple attackers. The hit flash effect doesn't scale well for tanky units.
-
-**Possible Solutions:**
-1. **Threshold-based flashing**: Only show hit flash when damage exceeds a % of max HP (e.g., 5-10%)
-2. **Cooldown-based**: Add minimum time between flashes regardless of hits
-3. **Damage accumulation**: Accumulate damage over a short window, flash once for the total
-4. **Visual variation**: Use different flash intensity based on damage amount
-5. **Alternative feedback**: Replace constant flash with damage numbers, screen shake, or other effects for large units
-
-**Notes:**
-- Current `flash_white()` in `sprite_character_2d5_component.gd` triggers on every hit
-- Problem is most noticeable on high-HP units being attacked by multiple enemies
-- Solution should still provide clear feedback that damage is occurring
-
-**Resolution Update (2026-03-12):**
-- ✅ Added configurable flash rate-limiting in both `SpriteVisualComponent` and `SkeletalVisualComponent`.
-- ✅ Added separate minimum flash interval for large units via width threshold tuning.
-
----
 
 #### Improve Card Visual UI
 **Status:** ⬜ Not Started
@@ -646,162 +544,29 @@ Audit existing VFX and replace or remove effects that don't meet production qual
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Add Victory/Defeat Music
-**Status:** 🟡 Partial (Infrastructure Ready)
-**Category:** Audio
-**Effort:** Small
+#### Scope Production Audio Library and Integration Plan
+**Status:** ⬜ Not Started
+**Category:** Audio / Production Scope
+**Effort:** Medium
+
 **Description:**
-Add musical stings or short tracks for win/loss conditions.
+Plan the production audio pass before adding individual one-off sounds. The goal is to avoid placeholder or low-quality audio churn and define what should be commissioned, sourced, made in-house, or deferred.
 
 **Current State:**
-- AudioManager infrastructure exists with crossfade support
-- Battle music stops on game end
-- 2-second delay after battle end before callback
-- Missing: Actual victory/defeat audio files
+- AudioManager infrastructure exists with battle music and basic UI/card sounds.
+- Battle music stops on game end, but victory/defeat stingers are not sourced.
+- No production library exists yet for unit, spell, projectile, building, or resource feedback.
 
 **Requirements:**
-- Victory fanfare audio file
-- Defeat music audio file
-- Wire up to battle end logic
+- [ ] Define audio categories and priority order: victory/defeat, unit attack, unit movement, unit death, spell cast, projectile impact, structure damage, and mana/resource gain.
+- [ ] Decide source strategy for each category: commission, licensed pack, generated/source-designed, or defer.
+- [ ] Map each category to existing runtime events or identify missing event hooks.
+- [ ] Define mixing/readability rules so frequent sounds do not overwhelm battle clarity.
+- [ ] Convert approved categories into implementation TODOs only after the production direction is chosen.
 
 **Notes:**
-- Should be short and impactful
-- Clear emotional distinction between victory/defeat
-
----
-
-#### Add Unit Attack Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Medium
-
-**Description:**
-Add sound effects for all unit attack actions.
-
-**Requirements:**
-- Source/create attack sounds for each unit type
-- Integrate with attack animations
-- Vary sounds to avoid repetition
-
-**Notes:**
-- Different sounds for melee vs ranged
-- Consider unique sounds per unit type
-
----
-
-#### Add Unit Movement Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Medium
-
-**Description:**
-Add footstep and movement sound effects for units.
-
-**Requirements:**
-- Source/create movement sounds
-- Integrate with movement animations
-- Handle different terrain types (optional)
-
-**Notes:**
-- Should be subtle, not overwhelming
-- Consider speed-based variation
-
----
-
-#### Add Unit Death Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Small
-**Dependencies:** Add Death Animations for Units
-
-**Description:**
-Add sound effects when units are defeated.
-
-**Requirements:**
-- Source/create death sounds for each unit type
-- Integrate with death animations
-- Mix appropriately with other sounds
-
-**Notes:**
-- Should be clear but not overly gory
-- Vary by unit type
-
----
-
-#### Add Spell Cast Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Medium
-
-**Description:**
-Add sound effects for spell casting actions.
-
-**Requirements:**
-- Source/create spell cast sounds
-- Integrate with spell card play
-- Unique sounds for different spell types
-
-**Notes:**
-- Should feel magical and impactful
-- Coordinate with spell VFX
-
----
-
-#### Add Projectile Impact Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Small
-
-**Description:**
-Add sound effects when projectiles hit their targets.
-
-**Requirements:**
-- Source/create impact sounds
-- Integrate with projectile hit detection
-- Vary by projectile type
-
-**Notes:**
-- Should sync with visual impact
-- Consider different sounds for hit vs miss
-
----
-
-#### Add Building Damage Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Small
-**Dependencies:** Add Building Hit/Damage Animation
-
-**Description:**
-Add sound effects when buildings take damage.
-
-**Requirements:**
-- Source/create building impact sounds
-- Integrate with damage events
-- Should feel weighty and important
-
-**Notes:**
-- Should be distinct from unit damage
-- Critical audio feedback for game state
-
----
-
-#### Add Mana Gain Sounds
-**Status:** ⬜ Not Started
-**Category:** Audio
-**Effort:** Small
-
-**Description:**
-Add sound effect for mana regeneration/gain events.
-
-**Requirements:**
-- Source/create mana gain sound
-- Integrate with mana system
-- Should be noticeable but not intrusive
-
-**Notes:**
-- Helps players track mana availability
-- Consider subtle vs prominent sound
+- Supersedes the previous granular audio TODOs until we are ready to source real audio.
+- Do not add throwaway placeholder sounds just to satisfy tracker items.
 
 ---
 
@@ -860,40 +625,6 @@ Redesign settings/options screen for better usability and visual consistency.
 ## Summoner System
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Audit Summoner Secondary Stats (damage_bonus, damage_reduction)
-**Status:** ✅ Completed
-**Category:** Summoners / Stats
-**Effort:** Small
-
-**Description:**
-Summoner secondary stats (`damage_bonus`, `damage_reduction`) are computed internally via the trait system but are no longer displayed in the Summoner Screen UI. Audit whether these stats are:
-1. Actually being applied in combat calculations
-2. Useful for the gameplay design
-3. Documented appropriately
-
-**Context:**
-- These stats were removed from UI display (they cluttered the summoner screen with confusing "Defense: +X%" rows)
-- They exist in `SummonerInstance.get_computed_stats()` and are populated by traits
-- The trait "Fortune Favors the Bold" grants `damage_bonus` as a modifier
-- Unclear if `SimDamage` / `SimBehavior` or other combat code actually uses these values
-
-**Questions to Answer:**
-- Are `damage_bonus` and `damage_reduction` actually applied during damage calculations?
-- Should these remain as internal modifiers or be removed entirely?
-- If kept, should they be surfaced differently (e.g., in trait tooltips)?
-
-**Resolution Update (2026-03-12):**
-- ✅ Verified `damage_bonus`/`damage_reduction` are actively consumed in simulation damage paths.
-- ✅ Added clarifying in-code documentation for summoner-vs-unit and summoner-target lane behavior.
-- ✅ No dead-field removal required in current runtime.
-
-**Related Files:**
-- `scripts/infrastructure/data/summoner_instance.gd` - `get_computed_stats()`
-- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - damage calculations
-- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinitions.cs` - trait definitions
-
----
 
 #### Define Summoner Oaths (Trait-Backed Campaign Choices)
 **Status:** ⬜ Not Started
@@ -976,38 +707,6 @@ Implement the runtime system for summoner active/passive abilities after the cur
 
 ---
 
-### 🟢 LOW PRIORITY
-
-#### Per-Summoner Portrait Cropping Configuration
-**Status:** ⬜ Not Started
-**Category:** Summoners / UI
-**Effort:** Small
-
-**Description:**
-The summoner icon widget uses a circular clip shader with UV offset/scale params to crop and zoom portraits. Currently these params are hardcoded in the scene file and tuned for Terravorn's portrait.
-
-**Current State:**
-- `circular_clip.gdshader` has `uv_offset` and `uv_scale` uniforms
-- Values are set in `summoner_icon_widget.tscn` shader material
-- Works for Terravorn but other portraits may need different cropping
-
-**Future Enhancement:**
-- Add `portrait_uv_offset` and `portrait_uv_scale` fields to `SummonerConfig`
-- Have `summoner_icon_widget.gd` read these values and apply to shader
-- Or create pre-cropped square portrait assets per summoner
-
-**Related Files:**
-- `shaders/ui/circular_clip.gdshader`
-- `scenes/meta/components/summoner_icon_widget.tscn`
-- `scripts/infrastructure/summoner_config.gd`
-
-**Notes:**
-- Low priority until more summoner portraits are added
-- Pre-cropped assets may be simpler than per-summoner shader config
-
----
-
-
 ## Developer Tools
 
 ### 🟢 LOW PRIORITY
@@ -1068,12 +767,16 @@ A UI tool for developers to design and configure campaign battles without touchi
 ### 🟡 MEDIUM PRIORITY
 
 #### Deprecate Command Spells
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Archived from Active Roster)
 **Category:** Card & Spell System / Design
 **Effort:** Medium
 
 **Description:**
 Command spells (spells that give commands/orders to units) should be deprecated and removed from the game design. Evaluate which command spells exist and plan their removal or replacement.
+
+**Progress Update (2026-06-04):**
+- ✅ Rally, Guard, and Charge are archived in the card catalog and not part of the active spell expansion target.
+- 🔄 Remaining work is cleanup: remove or quarantine command-specific schema/UI/docs once no active runtime path needs them.
 
 **Requirements:**
 - Audit existing command spell implementations
@@ -1138,35 +841,6 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 - [ ] Any signal handlers that modify entities they don't own
 - [ ] Any activation/deactivation logic driven by external events rather than self-contained state
 - [ ] Phase transitions that sweep-modify entities vs entities reacting to phase themselves
-
----
-
-#### Create Simulation Spatial Domain (Folder + Namespace Alignment)
-**Status:** ✅ Completed
-**Category:** Architecture / Layering
-**Effort:** Small
-
-**Description:**
-Formalize simulation world-rule ownership by introducing a dedicated `Simulation/Spatial` slice for geometry/partition/zone logic. This prevents cross-cutting world logic from being dropped into arbitrary folders and keeps deterministic runtime ownership clear.
-
-**Initial Scope:**
-- Move `VirtualLanes` from simulation root into `scripts/csharp/Battle/Simulation/Spatial/VirtualLanes.cs`
-- Use `namespace Fateforged.Simulation.Spatial`
-- Update simulation consumers (`Simulation`, `Movement`, `Combat`) to depend on `Spatial` types
-- Keep this refactor behavior-preserving (placement + namespace only)
-
-**Placement Rule (for future files):**
-- `Simulation/Spatial` = world geometry, partitions, lane/zone math, ownership maps
-- `Simulation/Movement` = unit locomotion and steering decisions
-- `Simulation/Combat` = targeting, damage, attack execution
-
-**Likely Follow-up:**
-- Evaluate moving `BattlefieldBounds` to simulation-owned spatial namespace once safe migration plan is defined
-
-**Resolution Update (2026-03-12):**
-- ✅ Moved `VirtualLanes` to `scripts/csharp/Battle/Simulation/Spatial/VirtualLanes.cs`.
-- ✅ Updated simulation movement/combat consumers to `Fateforged.Simulation.Spatial`.
-- ✅ Refactor remained behavior-preserving (namespace + placement only).
 
 ---
 
@@ -1258,116 +932,28 @@ switch (spec)
 
 ### 🟢 LOW PRIORITY
 
-#### Move Campaign Data Definitions to C#
-**Status:** ⬜ Not Started
-**Category:** Architecture / Consistency
-**Effort:** Medium
-**Depends On:** EventCatalog + CampaignCatalog (completed; next step is data-definition migration)
-
-**Description:**
-Once EventCatalog and CampaignCatalog exist, move the actual campaign data definitions from GDScript to C#. This completes the migration to fully typed campaign data.
-
-**Current State:**
-- `summoners_path_data.gd` defines Summoner's Path campaign
-- `test_arena_data.gd` defines Test Arena campaign
-- Data is in GDScript dictionaries, loaded into C# on startup
-
-**Ideal State:**
-```csharp
-// scripts/csharp/Infrastructure/Data/Campaigns/SummonersPathCampaign.cs
-public static class SummonersPathCampaign
-{
-    public static CampaignDefinition Definition => new()
-    {
-        Id = "summoners_path",
-        NameKey = "campaign.summoners_path.name",
-        Nodes = new List<CampaignNode>
-        {
-            new() { EventId = "first_trial", Position = new Vector2(100, 300) },
-            // ...
-        }
-    };
-}
-
-// Events defined separately in EventCatalog
-EventCatalog.Register(new BattleEventDefinition
-{
-    Id = "first_trial",
-    BiomeId = "summer_plains",
-    Difficulty = 1,
-    IsTutorial = true,
-    RequiresDeck = true,
-    // ...
-});
-```
-
-**Benefits:**
-- Full type safety at definition time
-- No GDScript→C# conversion on load
-- IDE refactoring support for event IDs
-
-**Files to Delete (after migration):**
-- `scripts/infrastructure/data/campaigns/summoners_path_data.gd`
-- `scripts/infrastructure/data/campaigns/test_arena_data.gd`
-
-**Files to Create:**
-- `scripts/csharp/Infrastructure/Data/Campaigns/SummonersPathCampaign.cs`
-- `scripts/csharp/Infrastructure/Data/Campaigns/TestArenaCampaign.cs`
-
----
-
-#### Create Property Interop Helper for GDScript/C# Duck Typing
+#### Audit Remaining Dynamic GDScript/C# Property Access
 **Status:** ⬜ Not Started
 **Category:** Architecture / Interop
-**Effort:** Medium
+**Effort:** Small
 
 **Description:**
-The same PascalCase/snake_case property fallback pattern is duplicated in 5+ files when accessing properties on nodes that could be either C# or GDScript. Create a centralized helper to eliminate this duplication.
+The old broad PascalCase/snake_case helper TODO is stale: most referenced files no longer carry that duplicated fallback pattern. Keep a smaller audit item for the few remaining dynamic property reads at interop boundaries.
 
-**Current Pattern (Duplicated):**
-```csharp
-// Check PascalCase (C#)
-var val = node.Get("IsAlive");
-if (val.VariantType == Variant.Type.Nil)
-{
-    // Fallback to snake_case (GDScript)
-    val = node.Get("is_alive");
-}
-```
+**Current State:**
+- The previously listed broad duplication across combat, spell, visual, and GDScript spatial files is no longer present.
+- Remaining dynamic property access appears limited and should be handled case-by-case instead of introducing a broad helper prematurely.
 
-**Proposed Solution:**
-Create `scripts/csharp/Interop/NodePropertyHelper.cs`:
+**Tasks:**
+- [ ] Audit remaining `Node.Get(...)` property reads at GDScript/C# boundaries.
+- [ ] Prefer typed interfaces when the target type is stable.
+- [ ] Add a tiny helper only if at least 3 active call sites need the same fallback behavior.
 
-```csharp
-public static class NodePropertyHelper
-{
-    public static bool IsAlive(Node3D target)
-    {
-        if (target is IDamageable d) return d.IsAlive;
-        return GetBool(target, "IsAlive", "is_alive", true);
-    }
-
-    public static int? GetTeam(Node3D target)
-    {
-        if (target is UnitVisual u) return u.Team;
-        return GetInt(target, "Team", "team");
-    }
-
-    public static T Get<T>(Node3D node, string pascal, string snake, T fallback) { ... }
-}
-```
-
-**Files with Duplicated Pattern:**
-- `scripts/csharp/Battle/Simulation/Combat/SimDamage.cs` - IsAlive, Team checks (formerly DamageSystem.cs)
-- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs` - IsAlive, Team checks (formerly ValidTargetFilter.cs)
-- `scripts/csharp/Spells/Effects/SpellEffect.cs` - IsAlive check
-- `scripts/csharp/Battle/View/UnitVisual.cs` - Target property access (formerly Unit3D.cs)
-- `scripts/gdscript/systems/spatial_grid.gd` - Team access
+**Known Candidate:**
+- `scripts/csharp/Battle/View/Spawning/SpawnPositionCalculator.cs`
 
 **Notes:**
-- Lower priority since current code works, just duplicated
-- Consider when touching these files for other reasons
-- Type-safe accessors prevent typo bugs
+- This should stay small unless new duplication appears.
 
 ---
 
@@ -1405,9 +991,8 @@ Every unit runs targeting + behavior + 3+ spatial grid queries per physics frame
 
 **Current Behavior:**
 - `UnitVisual._PhysicsProcess()` runs every frame for every active unit
-- `SimSteering.CalculateSeparationForce()` queries spatial grid every frame
-- `SimSteering.CalculateFlankForce()` queries spatial grid when blocked
-- `UnitMovement.CorrectOverlaps()` triggers additional steering queries
+- Simulation movement still performs frequent neighbor/avoidance work in dense battles.
+- `UnitMovement.CorrectOverlaps()` and movement-neighbor queries can add extra hot-path work.
 - Render priority recalculates every frame even when position unchanged
 
 **Proposed Fix:**
@@ -1422,8 +1007,10 @@ Every unit runs targeting + behavior + 3+ spatial grid queries per physics frame
 
 **Related Files:**
 - `scripts/csharp/Battle/View/UnitVisual.cs` (visual shell, formerly Unit3D.cs)
-- `scripts/csharp/Battle/Simulation/Movement/SimSteering.cs` (steering logic, formerly UnitSteering.cs)
-- `scripts/csharp/Battle/Simulation/Movement/` (movement logic)
+- `scripts/csharp/Battle/Simulation/Movement/ContextSteering.cs`
+- `scripts/csharp/Battle/Simulation/Movement/MovementNeighborQuery.cs`
+- `scripts/csharp/Battle/Simulation/Movement/OverlapCorrection.cs`
+- `scripts/csharp/Battle/Simulation/Movement/OrcaAvoidance.cs`
 
 ---
 
@@ -1476,38 +1063,13 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 
 ---
 
-#### Consolidate Battlefield Spawn Rules to C# Source-of-Truth
-**Status:** ✅ Completed
-**Category:** Architecture / Consistency
-**Effort:** Small
-
-**Description:**
-`battlefield_constants.gd` still carries spawn-rule helpers (`is_valid_spawn_position_for_team`, `clamp_spawn_position_for_team`) that mirror C# `BattlefieldBounds`. Mirrored rule logic can drift and bypass debug flags.
-
-**Proposed Fix:**
-- Keep visual constants in `battlefield_constants.gd` (overlay offsets, sizes)
-- Remove or deprecate spawn-rule helpers from GDScript
-- Route all spawn validation/clamping through `BattlefieldBounds` in C#
-
-**Related Files:**
-- `scripts/battle/battlefield/battlefield_constants.gd`
-- `scripts/csharp/Infrastructure/Constants/BattlefieldBounds.cs`
-- `scripts/csharp/Battle/Input/InputCollector.cs`
-
-**Resolution Update (2026-03-12):**
-- ✅ Removed mirrored spawn-rule helpers from `battlefield_constants.gd`.
-- ✅ Kept spawn validation/clamping authority in C# `BattlefieldBounds`.
-- ✅ Updated GDScript tests to cover remaining conversion/constants behavior.
-
----
-
-#### Refactor Hard-coded /root/ Paths to Service Locator
+#### Refactor Hard-coded /root/ Paths to Explicit Dependency Access
 **Status:** ⬜ Not Started
 **Category:** Architecture / Maintainability
 **Effort:** Large
 
 **Description:**
-88+ files use hard-coded `/root/...` lookups for autoload services. This is fragile and creates hidden dependencies.
+Hard-coded `/root/...` lookups still appear across runtime, meta, and service wiring. This is fragile and creates hidden dependencies, especially when battle systems pull global services directly.
 
 **Current Behavior:**
 - `get_node("/root/Campaign")`, `get_node("/root/ProfileRepo")`, etc.
@@ -1515,41 +1077,14 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 - If autoloads are renamed, lookups fail silently
 
 **Proposed Fix:**
-- Create `Services` autoload with typed accessors
-- Migrate one service at a time (Campaign, ProfileRepo, etc.)
-- Update callers to use `Services.Campaign` instead of `get_node("/root/Campaign")`
+- For battle runtime code, prefer the composition-root/DI plan above.
+- For meta/UI code, centralize repeated autoload access only where it reduces duplication without creating another global catch-all.
+- Migrate one service area at a time during natural refactors.
 
 **Notes:**
-- Large refactor touching 88+ files
+- Current scan is much smaller than the old 88+ estimate, but still broad enough to defer.
 - Defer until natural refactoring or dedicated cleanup sprint
-- Consider incremental migration during other work
-
----
-
-#### Add Timeouts to UI Async Waits
-**Status:** ✅ Completed
-**Category:** Performance / Reliability
-**Effort:** Small
-
-**Description:**
-UI flow often depends on timers/awaits. If a signal never fires, the UI can hang or block progression.
-
-**Current Behavior:**
-- Title screen waits 0.5s then animation_finished
-- Event screen uses sync `load()` for sequences
-- No timeout or fallback if awaited signal fails
-
-**Proposed Fix:**
-- Add timeout paths or fallback for awaited signals
-- Use explicit state machines that can be interrupted
-- Ensure process_mode is set correctly for async sequences
-
-**Related Files:**
-- `scripts/meta/screens/title_screen.gd`
-- `scripts/meta/screens/event_screen.gd`
-
-**Notes:**
-- Completed with timeout + fallback guards in title/event screen async flows.
+- Keep this aligned with `Introduce Battle Composition Root + Dependency Injection`; avoid replacing `/root/...` with a different global service locator.
 
 ---
 
