@@ -81,11 +81,6 @@ public partial class BattleScene : Node3D
     /// Max frames to wait for a single scene to load (~5 seconds at 60fps)
     private const int SceneLoadTimeoutFrames = 300;
 
-    // Client defaults — host snapshots overwrite within ~100ms
-    private const float DefaultMana = 100f;
-    private const float DefaultMaxMana = 100f;
-    private const float DefaultCastSpeed = 1.0f;
-
     // Emergency fallback deck (test mode only)
     private const string EmergencyDeckCardId = "fire_wisp";
     private const int EmergencyDeckSize = 3;
@@ -160,9 +155,6 @@ public partial class BattleScene : Node3D
         // Phase 2: Initialize summoners
         InitSummoners();
         ConnectSimSignals();
-
-        // Phase 4: Load AI for enemy
-        LoadAiForEnemy();
 
         // Phase 6: Initialize UI
         InitUI();
@@ -607,9 +599,6 @@ public partial class BattleScene : Node3D
             // Initialize player summoner (team 0)
             InitSummonerHost(PlayerSummoner as SummonerVisual, 0, simNode);
 
-            // Apply enemy stats before init
-            ApplyEnemyStats(EnemySummoner as SummonerVisual);
-
             // Initialize enemy summoner (team 1)
             InitSummonerHost(EnemySummoner as SummonerVisual, 1, simNode);
 
@@ -635,20 +624,8 @@ public partial class BattleScene : Node3D
         if (sv == null)
             return;
 
-        // Register with scene defaults to prevent 0/0 HP/mana race
-        // Host snapshots overwrite these values within ~100ms
-        simNode.RegisterSummoner(
-            sv.Team,
-            sv.MaxHpExport,
-            sv.MaxHpExport,
-            DefaultMana,
-            DefaultMaxMana,
-            DefaultCastSpeed,
-            Array.Empty<string>(),
-            sv.MaxHandSize,
-            sv.GlobalPosition,
-            sv.GetTargetPointGlobalPosition()
-        );
+        var side = BattleSideResolver.ClientPlaceholder(sv.Team, sv.MaxHpExport, sv.MaxHandSize);
+        simNode.RegisterBattleSide(side, sv.GlobalPosition, sv.GetTargetPointGlobalPosition());
     }
 
     private void InitSummonerHost(SummonerVisual? sv, int localTeam, SimulationNode simNode)
@@ -656,18 +633,16 @@ public partial class BattleScene : Node3D
         if (sv == null)
             return;
 
-        var result = BattleSessionFactory.LoadSummonerData(
+        var side = BattleSideResolver.Resolve(
             this,
             _config,
             localTeam,
-            sv.DeckLoadStrategy,
             sv.MaxHpExport,
             sv.MaxHandSize,
             sv.StartingDeck
         );
 
-        int totalCards = result.Deck.Count + result.Hand.Count;
-        if (totalCards == 0 && !result.IsDeferred)
+        if (side.Deck.TotalCards == 0 && !side.Deck.IsDeferred)
         {
             if (IsTestMode())
             {
@@ -676,7 +651,7 @@ public partial class BattleScene : Node3D
                 );
                 var emergency = CreateEmergencyDeck();
                 foreach (var c in emergency)
-                    result.Deck.Add(c);
+                    side.Deck.DeckCards.Add(c);
             }
             else
             {
@@ -689,13 +664,10 @@ public partial class BattleScene : Node3D
         // Cache data locally for post-battle rewards
         if (localTeam == 0)
         {
-            if (result.LoadedFromProfile)
+            if (side.Deck.LoadedFromProfile)
             {
-                // Extract instance IDs from hand + deck for XP tracking
                 _deckCardInstanceIds.Clear();
-                var allCards = new Godot.Collections.Array<Resource>(result.Hand);
-                foreach (var c in result.Deck)
-                    allCards.Add(c);
+                var allCards = side.AllCardsForRewards();
                 foreach (var card in allCards)
                 {
                     var go = card as GodotObject;
@@ -711,89 +683,14 @@ public partial class BattleScene : Node3D
                 bc?.Call("store_deck_card_ids", allCards);
             }
 
-            if (result.SummonerStats != null)
+            if (side.SummonerStats != null)
             {
                 var bc = GetNodeOrNull("/root/BattleContext");
-                bc?.Call("set_player_summoner_stats", result.SummonerStats);
+                bc?.Call("set_player_summoner_stats", side.SummonerStats);
             }
         }
 
-        // Register with simulation
-        var deckIds = ExtractCatalogIds(result.Deck);
-        var handIds = ExtractCatalogIds(result.Hand);
-        var deckRefs = ExtractCardRefs(result.Deck);
-        var handRefs = ExtractCardRefs(result.Hand);
-        simNode.RegisterSummoner(
-            localTeam,
-            result.Hp,
-            result.MaxHp,
-            result.Mana,
-            result.MaxMana,
-            result.CastSpeed,
-            deckIds,
-            sv.MaxHandSize,
-            sv.GlobalPosition,
-            sv.GetTargetPointGlobalPosition()
-        );
-        simNode.SetSummonerCombatModifiers(
-            localTeam,
-            result.DamageBonus,
-            result.DamageReduction,
-            result.SoulStrength,
-            result.ElementalDamageBonuses
-        );
-        simNode.SetSummonerHand(localTeam, handIds);
-        simNode.SetSummonerCardRefs(localTeam, deckRefs, handRefs);
-    }
-
-    private void ApplyEnemyStats(SummonerVisual? sv)
-    {
-        if (sv == null)
-            return;
-
-        if (_config.IsMultiplayer)
-        {
-            // MP enemy stats applied via summoner instance bonuses during init
-        }
-        else if (_config.EnemyHp > 0)
-        {
-            sv.MaxHpExport = _config.EnemyHp;
-        }
-    }
-
-    private static string[] ExtractCatalogIds(Godot.Collections.Array<Resource> cards)
-    {
-        var ids = new string[cards.Count];
-        for (int i = 0; i < cards.Count; i++)
-        {
-            var card = cards[i] as GodotObject;
-            if (card != null)
-                ids[i] = card.Get("CatalogId").AsString();
-            else
-                ids[i] = "";
-        }
-        return ids;
-    }
-
-    private static SimCardRuntimeRef[] ExtractCardRefs(Godot.Collections.Array<Resource> cards)
-    {
-        var refs = new SimCardRuntimeRef[cards.Count];
-        for (int i = 0; i < cards.Count; i++)
-        {
-            var card = cards[i] as GodotObject;
-            if (card == null)
-            {
-                refs[i] = new SimCardRuntimeRef();
-                continue;
-            }
-
-            refs[i] = new SimCardRuntimeRef
-            {
-                CatalogId = card.Get("CatalogId").AsString(),
-                InstanceId = card.Get("InstanceId").AsString(),
-            };
-        }
-        return refs;
+        simNode.RegisterBattleSide(side, sv.GlobalPosition, sv.GetTargetPointGlobalPosition());
     }
 
     private Godot.Collections.Array<Resource> CreateEmergencyDeck()
@@ -801,7 +698,7 @@ public partial class BattleScene : Node3D
         var deck = new Godot.Collections.Array<Resource>();
         for (int i = 0; i < EmergencyDeckSize; i++)
         {
-            var card = BattleSessionFactory.CreateCardFromCatalog(EmergencyDeckCardId);
+            var card = BattleSideResolver.CreateCardFromCatalog(EmergencyDeckCardId);
             if (card != null)
                 deck.Add(card);
         }
@@ -851,28 +748,6 @@ public partial class BattleScene : Node3D
             EndGame(1); // ENEMY wins
         else if (summoner == EnemySummoner)
             EndGame(0); // PLAYER wins
-    }
-
-    private void LoadAiForEnemy()
-    {
-        if (EnemySummoner == null)
-            return;
-        if (_config.IsMultiplayer)
-            return;
-
-        var simNode = GetSimNode() as SimulationNode;
-        if (simNode == null)
-            return;
-
-        simNode.ConfigureAi(
-            1,
-            _config.AiType,
-            _config.AiPersonality,
-            _config.AiDifficulty,
-            _config.AiIntervalMin,
-            _config.AiIntervalMax,
-            _config.AiScript
-        );
     }
 
     private void InitUI()

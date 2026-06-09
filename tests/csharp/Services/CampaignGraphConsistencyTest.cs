@@ -93,8 +93,11 @@ public class CampaignGraphConsistencyTest
         AssertThat(secondChallenge.EnemyDeck.Count).IsEqual(2);
 
         var secondDict = EventCatalog.ToDictionary(secondChallenge);
-        AssertThat(secondDict.ContainsKey("ai_difficulty")).IsTrue();
-        AssertThat(secondDict.ContainsKey("ai_config")).IsTrue();
+        AssertThat(secondDict.ContainsKey("enemy_side")).IsTrue();
+        var enemySide = secondDict["enemy_side"].AsGodotDictionary();
+        var controller = enemySide["controller"].AsGodotDictionary();
+        AssertThat(controller.ContainsKey("ai_difficulty")).IsTrue();
+        AssertThat(controller.ContainsKey("ai_config")).IsTrue();
     }
 
     [TestCase]

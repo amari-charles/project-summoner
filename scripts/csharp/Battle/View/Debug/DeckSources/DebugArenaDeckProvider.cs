@@ -1,4 +1,5 @@
 using Fateforged.Cards;
+using Fateforged.Session;
 using Godot;
 
 namespace Fateforged.View.Debug.DeckSources;
@@ -9,8 +10,8 @@ namespace Fateforged.View.Debug.DeckSources;
 public sealed class DebugArenaDeckProvider : IDebugArenaDeckProvider
 {
     private const string DefaultDebugDeckPath = "res://data/debug/debug_deck.json";
-    private const string KeyPlayerDeck = "dev_player_deck";
-    private const string KeyEnemyDeck = "enemy_deck";
+    private const string KeyPlayerSide = "player_side";
+    private const string KeyEnemySide = "enemy_side";
     private const string SourceTagCuratedFallback = "curated_fallback";
     private static readonly CardId[] CuratedFallbackCardIds =
     [
@@ -90,8 +91,8 @@ public sealed class DebugArenaDeckProvider : IDebugArenaDeckProvider
         if (config.Count == 0)
             return false;
 
-        bool hasPlayer = TryGetNonEmptyDeck(config, KeyPlayerDeck, out var playerDeck);
-        bool hasEnemy = TryGetNonEmptyDeck(config, KeyEnemyDeck, out var enemyDeck);
+        bool hasPlayer = TryGetNonEmptyDeck(config, KeyPlayerSide, out var playerDeck);
+        bool hasEnemy = TryGetNonEmptyDeck(config, KeyEnemySide, out var enemyDeck);
         if (!hasPlayer && !hasEnemy)
             return false;
 
@@ -117,10 +118,20 @@ public sealed class DebugArenaDeckProvider : IDebugArenaDeckProvider
             return false;
 
         var value = config[key];
-        if (value.VariantType != Variant.Type.Array)
+        if (value.VariantType != Variant.Type.Dictionary)
             return false;
 
-        var parsed = value.AsGodotArray();
+        var side = value.AsGodotDictionary();
+        var deckVar = side.GetValueOrDefault("deck", default);
+        if (deckVar.VariantType != Variant.Type.Dictionary)
+            return false;
+
+        var deckDict = deckVar.AsGodotDictionary();
+        var cardsVar = deckDict.GetValueOrDefault("cards", default);
+        if (cardsVar.VariantType != Variant.Type.Array)
+            return false;
+
+        var parsed = cardsVar.AsGodotArray();
         if (parsed.Count == 0)
             return false;
 

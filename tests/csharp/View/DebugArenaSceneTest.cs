@@ -188,8 +188,8 @@ public partial class DebugArenaSceneTest
         };
         var config = arena.BuildPracticeConfigPublic();
 
-        var playerDeck = config["dev_player_deck"].AsGodotArray();
-        var enemyDeck = config["enemy_deck"].AsGodotArray();
+        var playerDeck = GetSideDeck(config, "player_side");
+        var enemyDeck = GetSideDeck(config, "enemy_side");
         var expectedDeck = LoadDebugDeckEntries();
 
         AssertThat(playerDeck.Count).IsEqual(expectedDeck.Count);
@@ -215,8 +215,8 @@ public partial class DebugArenaSceneTest
         arena.DeckProviderOverride = provider;
 
         var config = arena.BuildPracticeConfigPublic();
-        var playerDeck = config["dev_player_deck"].AsGodotArray();
-        var enemyDeck = config["enemy_deck"].AsGodotArray();
+        var playerDeck = GetSideDeck(config, "player_side");
+        var enemyDeck = GetSideDeck(config, "enemy_side");
 
         AssertThat(provider.Calls).IsEqual(1);
         AssertThat(GetDeckSignature(playerDeck)).IsEqual("wind_evasion_tank:5");
@@ -237,7 +237,7 @@ public partial class DebugArenaSceneTest
         arena.DeckProviderOverride = provider;
         arena.ContextConfigOverride = new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", BuildDeck("wind_evasion_tank", 2) },
+            { "player_side", BuildSide(BuildDeck("wind_evasion_tank", 2)) },
         };
 
         _ = arena.BuildPracticeConfigPublic();
@@ -262,7 +262,7 @@ public partial class DebugArenaSceneTest
         arena.ContextConfigOverride = new Godot.Collections.Dictionary
         {
             { "debug_arena_deck_source", "context" },
-            { "dev_player_deck", BuildDeck("wind_evasion_tank", 2) },
+            { "player_side", BuildSide(BuildDeck("wind_evasion_tank", 2)) },
         };
 
         _ = arena.BuildPracticeConfigPublic();
@@ -290,7 +290,7 @@ public partial class DebugArenaSceneTest
         var config = arena.BuildPracticeConfigPublic();
         arena.ConnectSpawnerPanelPublic();
 
-        var playerDeck = config["dev_player_deck"].AsGodotArray();
+        var playerDeck = GetSideDeck(config, "player_side");
         AssertThat(bridge.SetDeckEntriesCalls).IsEqual(1);
         AssertThat(DeckSignatures(bridge.LastDeckEntries))
             .ContainsExactly(DeckSignatures(playerDeck).ToArray());
@@ -305,14 +305,14 @@ public partial class DebugArenaSceneTest
         arena.ContextConfigOverride = new Godot.Collections.Dictionary
         {
             { "debug_arena_deck_source", "context" },
-            { "dev_player_deck", BuildDeck("wind_cleave_unit", 4) },
-            { "enemy_deck", BuildDeck("fire_wisp", 1) },
+            { "player_side", BuildSide(BuildDeck("wind_cleave_unit", 4)) },
+            { "enemy_side", BuildSide(BuildDeck("fire_wisp", 1)) },
         };
 
         var config = arena.BuildPracticeConfigPublic();
         arena.ConnectSpawnerPanelPublic();
 
-        var playerDeck = config["dev_player_deck"].AsGodotArray();
+        var playerDeck = GetSideDeck(config, "player_side");
         AssertThat(GetDeckSignature(playerDeck)).IsEqual("wind_cleave_unit:4");
         AssertThat(bridge.SetDeckEntriesCalls).IsEqual(1);
         AssertThat(GetDeckSignature(bridge.LastDeckEntries)).IsEqual("wind_cleave_unit:4");
@@ -421,6 +421,26 @@ public partial class DebugArenaSceneTest
         {
             new Godot.Collections.Dictionary { { "catalog_id", catalogId }, { "count", count } },
         };
+    }
+
+    private static Godot.Collections.Dictionary BuildSide(Godot.Collections.Array deck) =>
+        new()
+        {
+            ["deck"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["cards"] = deck,
+            },
+        };
+
+    private static Godot.Collections.Array GetSideDeck(
+        Godot.Collections.Dictionary config,
+        string sideKey
+    )
+    {
+        var side = config[sideKey].AsGodotDictionary();
+        var deck = side["deck"].AsGodotDictionary();
+        return deck["cards"].AsGodotArray();
     }
 
     private static string GetDeckSignature(Godot.Collections.Array deck)

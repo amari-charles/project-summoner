@@ -57,10 +57,8 @@ public partial class TestBattleScene : BattleScene
     {
         return new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", BuildDeck("fire_wisp", 30) },
-            { "enemy_deck", BuildDeck("fire_wisp", 30) },
-            { "enemy_hp", 999999.0 },
-            { "ai_type", "heuristic" },
+            { "player_side", BuildPlayerSide(BuildDeck("fire_wisp", 30)) },
+            { "enemy_side", BuildEnemySide(BuildDeck("fire_wisp", 30), "heuristic") },
         };
     }
 
@@ -71,6 +69,54 @@ public partial class TestBattleScene : BattleScene
             new Godot.Collections.Dictionary { { "catalog_id", catalogId }, { "count", count } },
         };
     }
+
+    protected static Godot.Collections.Dictionary BuildPlayerSide(Godot.Collections.Array deck) =>
+        new()
+        {
+            ["team"] = 0,
+            ["source"] = "profile",
+            ["summoner"] = new Godot.Collections.Dictionary { ["source"] = "profile" },
+            ["deck"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["cards"] = deck,
+            },
+            ["controller"] = new Godot.Collections.Dictionary { ["kind"] = "player" },
+        };
+
+    protected static Godot.Collections.Dictionary BuildEnemySide(
+        Godot.Collections.Array deck,
+        string aiType
+    ) =>
+        new()
+        {
+            ["team"] = 1,
+            ["source"] = "authored",
+            ["summoner"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["id"] = "debug_enemy",
+                ["display_name"] = "Debug Enemy",
+                ["hp"] = 999999.0,
+                ["max_hp"] = 999999.0,
+                ["mana"] = 100.0,
+                ["max_mana"] = 100.0,
+                ["cast_speed"] = 1.0,
+                ["damage_bonus"] = 0.0,
+                ["damage_reduction"] = 0.0,
+                ["soul_strength"] = 0.0,
+            },
+            ["deck"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["cards"] = deck,
+            },
+            ["controller"] = new Godot.Collections.Dictionary
+            {
+                ["kind"] = "trainer_ai",
+                ["ai_type"] = aiType,
+            },
+        };
 
     public override void _Process(double delta)
     {

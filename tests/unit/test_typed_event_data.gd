@@ -157,7 +157,7 @@ func test_level_cap_returns_value() -> void:
 ## =============================================================================
 
 func test_float_property_returns_value() -> void:
-	var data: Dictionary = {"enemy_hp": 150.5}
+	var data: Dictionary = {"enemy_side": _enemy_side(150.5)}
 	var event := TypedEventData.new(data, "test")
 
 	assert_eq(event.enemy_hp, 150.5)
@@ -170,14 +170,14 @@ func test_float_property_returns_default_when_missing() -> void:
 
 
 func test_float_property_converts_int_to_float() -> void:
-	var data: Dictionary = {"enemy_hp": 100}  # int that should be converted
+	var data: Dictionary = {"enemy_side": _enemy_side(100)}  # int that should be converted
 	var event := TypedEventData.new(data, "test")
 
 	assert_eq(event.enemy_hp, 100.0)
 
 
 func test_float_property_returns_default_when_wrong_type() -> void:
-	var data: Dictionary = {"enemy_hp": "high"}  # Wrong type
+	var data: Dictionary = {"enemy_side": _enemy_side("high")}  # Wrong type
 	var event := TypedEventData.new(data, "test")
 
 	assert_eq(event.enemy_hp, 0.0)
@@ -421,7 +421,7 @@ func test_full_battle_event_data() -> void:
 		"difficulty": 1,
 		"is_tutorial": true,
 		"requires_deck": true,
-		"enemy_hp": 30.0,
+		"enemy_side": _enemy_side(30.0),
 		"reward_type": "flexible",
 		"gold_reward": 30,
 		"summoner_xp_reward": 20,
@@ -494,7 +494,7 @@ func test_elite_event_with_level_cap() -> void:
 		"event_type": "elite",
 		"difficulty": 5,
 		"level_cap": 3,
-		"enemy_hp": 80.0
+		"enemy_side": _enemy_side(80.0)
 	}
 	var event := TypedEventData.new(data, "elite_01")
 
@@ -503,3 +503,12 @@ func test_elite_event_with_level_cap() -> void:
 	assert_false(event.is_battle())  # Elite is not "battle" type
 	assert_eq(event.level_cap, 3)
 	assert_true(event.has_level_cap)
+
+
+func _enemy_side(hp: Variant) -> Dictionary:
+	return {
+		"summoner": {
+			"hp": hp,
+			"max_hp": hp
+		}
+	}

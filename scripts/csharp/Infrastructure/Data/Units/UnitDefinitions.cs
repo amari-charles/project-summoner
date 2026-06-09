@@ -20,6 +20,67 @@ namespace Fateforged.Units;
 public static class UnitDefinitions
 {
     // =========================================================================
+    // ACADEMY PLAYTEST PLACEHOLDERS
+    // =========================================================================
+
+    public static readonly UnitDefinition NeutralStarterUnit = new()
+    {
+        Id = UnitIds.NeutralStarterUnit,
+        DisplayName = "Neutral Starter Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 70f,
+            AttackDamage = 10f,
+            AttackRange = 3.0f,
+            AttackSpeed = 1.0f,
+            MoveSpeed = 3.0f,
+            AggroRadius = 20f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Visual = new VisualConfig { SeparationRadius = 0.5f, DisplayScale = 0.95f },
+        ScenePath = "res://scenes/battle/units/earth_roster_placeholder_3d.tscn",
+    };
+
+    public static readonly UnitDefinition TrainingTarget = new()
+    {
+        Id = UnitIds.TrainingTarget,
+        DisplayName = "Training Target",
+        Stats = new UnitStats
+        {
+            MaxHp = 60f,
+            AttackDamage = 0f,
+            AttackRange = 0f,
+            AttackSpeed = 0f,
+            MoveSpeed = 0f,
+            AggroRadius = 0f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.Passive,
+        Visual = new VisualConfig { SeparationRadius = 0.5f, DisplayScale = 0.75f },
+        ScenePath = "res://scenes/battle/units/rock_3d.tscn",
+    };
+
+    public static readonly UnitDefinition WeakEnemyUnit = new()
+    {
+        Id = UnitIds.WeakEnemyUnit,
+        DisplayName = "Weak Enemy Unit",
+        Stats = new UnitStats
+        {
+            MaxHp = 45f,
+            AttackDamage = 7f,
+            AttackRange = 3.0f,
+            AttackSpeed = 1.0f,
+            MoveSpeed = 3.2f,
+            AggroRadius = 18f,
+        },
+        UnitType = UnitType.Melee,
+        TargetingProfile = UnitTargetingProfile.MeleeGround,
+        Visual = new VisualConfig { SeparationRadius = 0.45f, DisplayScale = 0.85f },
+        ScenePath = "res://scenes/battle/units/fire_roster_placeholder_3d.tscn",
+    };
+
+    // =========================================================================
     // WISPS (Basic melee units for each element)
     // =========================================================================
 
@@ -1662,6 +1723,11 @@ public static class UnitDefinitions
 
     private static readonly Dictionary<UnitId, UnitDefinition> _lookup = new()
     {
+        // Academy playtest placeholders
+        [UnitIds.NeutralStarterUnit] = NeutralStarterUnit,
+        [UnitIds.TrainingTarget] = TrainingTarget,
+        [UnitIds.WeakEnemyUnit] = WeakEnemyUnit,
+
         // Wisps
         [UnitIds.FireWisp] = FireWisp,
         [UnitIds.WaterWisp] = WaterWisp,

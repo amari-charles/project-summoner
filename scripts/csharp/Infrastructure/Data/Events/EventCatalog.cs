@@ -1316,44 +1316,57 @@ public static class EventCatalog
         dict["difficulty"] = battle.Difficulty;
         dict["is_tutorial"] = battle.IsTutorial;
         dict["requires_deck"] = battle.RequiresDeck;
-        dict["enemy_hp"] = battle.EnemyHp;
-        dict["ai_type"] = battle.AiType;
-        dict["ai_difficulty"] = battle.AiDifficulty;
-        dict["ai_config"] = new Godot.Collections.Dictionary
+        dict["enemy_side"] = new Godot.Collections.Dictionary
         {
-            ["play_interval_min"] = battle.AiPlayIntervalMin,
-            ["play_interval_max"] = battle.AiPlayIntervalMax,
-        };
-
-        // Enemy deck
-        var enemyDeck = new Godot.Collections.Array();
-        foreach (var entry in battle.EnemyDeck)
-        {
-            enemyDeck.Add(
-                new Godot.Collections.Dictionary
+            ["team"] = 1,
+            ["source"] = "authored",
+            ["summoner"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["id"] = "campaign_enemy",
+                ["display_name"] = "Campaign Enemy",
+                ["hp"] = battle.EnemyHp,
+                ["max_hp"] = battle.EnemyHp,
+                ["mana"] = 100f,
+                ["max_mana"] = 100f,
+                ["cast_speed"] = 1f,
+                ["damage_bonus"] = 0f,
+                ["damage_reduction"] = 0f,
+                ["soul_strength"] = 0f,
+            },
+            ["deck"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["cards"] = ToDeckEntriesArray(battle.EnemyDeck),
+            },
+            ["controller"] = new Godot.Collections.Dictionary
+            {
+                ["kind"] = "trainer_ai",
+                ["ai_type"] = battle.AiType,
+                ["ai_difficulty"] = battle.AiDifficulty,
+                ["ai_config"] = new Godot.Collections.Dictionary
                 {
-                    ["catalog_id"] = (string)entry.CardId,
-                    ["count"] = entry.Count,
-                }
-            );
-        }
-        dict["enemy_deck"] = enemyDeck;
+                    ["play_interval_min"] = battle.AiPlayIntervalMin,
+                    ["play_interval_max"] = battle.AiPlayIntervalMax,
+                },
+            },
+        };
 
         // Dev player deck
         if (battle.DevPlayerDeck != null)
         {
-            var devDeck = new Godot.Collections.Array();
-            foreach (var entry in battle.DevPlayerDeck)
+            dict["player_side"] = new Godot.Collections.Dictionary
             {
-                devDeck.Add(
-                    new Godot.Collections.Dictionary
-                    {
-                        ["catalog_id"] = (string)entry.CardId,
-                        ["count"] = entry.Count,
-                    }
-                );
-            }
-            dict["dev_player_deck"] = devDeck;
+                ["team"] = 0,
+                ["source"] = "profile",
+                ["summoner"] = new Godot.Collections.Dictionary { ["source"] = "profile" },
+                ["deck"] = new Godot.Collections.Dictionary
+                {
+                    ["source"] = "authored",
+                    ["cards"] = ToDeckEntriesArray(battle.DevPlayerDeck),
+                },
+                ["controller"] = new Godot.Collections.Dictionary { ["kind"] = "player" },
+            };
         }
 
         // Scene path
@@ -1370,6 +1383,22 @@ public static class EventCatalog
 
         // Rewards
         AddRewardFields(dict, battle.Rewards);
+    }
+
+    private static Godot.Collections.Array ToDeckEntriesArray(IEnumerable<DeckEntry> entries)
+    {
+        var deck = new Godot.Collections.Array();
+        foreach (var entry in entries)
+        {
+            deck.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["catalog_id"] = (string)entry.CardId,
+                    ["count"] = entry.Count,
+                }
+            );
+        }
+        return deck;
     }
 
     private static void AddRewardFields(

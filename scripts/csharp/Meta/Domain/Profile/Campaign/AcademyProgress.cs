@@ -27,6 +27,9 @@ public class AcademyProgress
     [JsonPropertyName("official_assessments_completed")]
     public List<string> OfficialAssessmentsCompleted { get; set; } = [];
 
+    [JsonPropertyName("activity_rewards_claimed")]
+    public List<string> ActivityRewardsClaimed { get; set; } = [];
+
     [JsonPropertyName("transcript")]
     public List<AcademyTranscriptEntry> Transcript { get; set; } = [];
 

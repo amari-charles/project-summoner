@@ -117,7 +117,9 @@ func configure_campaign_battle(battle_id: String) -> void:
 		if debug_mode: print("BattleContext: Level cap set to %d" % _level_cap)
 
 	# Get enemy deck size safely
-	var enemy_deck_variant: Variant = battle_config.get("enemy_deck", [])
+	var enemy_side: Dictionary = battle_config.get("enemy_side", {})
+	var enemy_deck: Dictionary = enemy_side.get("deck", {})
+	var enemy_deck_variant: Variant = enemy_deck.get("cards", [])
 	var enemy_deck_size: int = 0
 	if enemy_deck_variant is Array:
 		var enemy_deck_array: Array = enemy_deck_variant
@@ -125,7 +127,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 
 	if debug_mode: print("BattleContext: Configured campaign battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
 		battle_id,
-		battle_config.has("enemy_deck"),
+		enemy_side.has("deck"),
 		enemy_deck_size
 	])
 
@@ -138,9 +140,11 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 
 	# Use provided config or defaults
 	battle_config = config if not config.is_empty() else {
-		"enemy_deck": [{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
-		"enemy_hp": PRACTICE_ENEMY_HP,
-		"ai_type": PRACTICE_AI_TYPE
+		"enemy_side": _build_authored_enemy_side(
+			PRACTICE_ENEMY_HP,
+			[{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
+			PRACTICE_AI_TYPE
+		)
 	}
 
 	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
@@ -162,14 +166,14 @@ func configure_academy_battle(course_id: String, activity_id: String, config: Di
 	academy_activity_id = activity_id
 
 	battle_config = config if not config.is_empty() else {
-		"enemy_deck": [{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
-		"enemy_hp": 20.0,
-		"ai_type": "passive",
-		"ai_difficulty": 0,
-		"ai_config": {
-			"play_interval_min": 999.0,
-			"play_interval_max": 999.0
-		},
+		"enemy_side": _build_authored_enemy_side(
+			20.0,
+			[{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
+			"passive",
+			0,
+			999.0,
+			999.0
+		),
 		"card_xp_reward": 0,
 		"summoner_xp_reward": 0
 	}
@@ -177,6 +181,45 @@ func configure_academy_battle(course_id: String, activity_id: String, config: Di
 	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
 
 	if debug_mode: print("BattleContext: Configured academy battle '%s' for course '%s'" % [activity_id, course_id])
+
+func _build_authored_enemy_side(
+	enemy_hp: float,
+	enemy_deck: Array,
+	ai_type: String,
+	ai_difficulty: int = 3,
+	play_interval_min: float = 3.0,
+	play_interval_max: float = 6.0
+) -> Dictionary:
+	return {
+		"team": 1,
+		"source": "authored",
+		"summoner": {
+			"source": "authored",
+			"id": "authored_enemy",
+			"display_name": "Authored Enemy",
+			"hp": enemy_hp,
+			"max_hp": enemy_hp,
+			"mana": 100.0,
+			"max_mana": 100.0,
+			"cast_speed": 1.0,
+			"damage_bonus": 0.0,
+			"damage_reduction": 0.0,
+			"soul_strength": 0.0
+		},
+		"deck": {
+			"source": "authored",
+			"cards": enemy_deck
+		},
+		"controller": {
+			"kind": "trainer_ai",
+			"ai_type": ai_type,
+			"ai_difficulty": ai_difficulty,
+			"ai_config": {
+				"play_interval_min": play_interval_min,
+				"play_interval_max": play_interval_max
+			}
+		}
+	}
 
 ## Configure for arena battle (future)
 func configure_arena_battle(_difficulty: int) -> void:
@@ -224,10 +267,21 @@ func configure_multiplayer_battle(
 		"battle_seed": battle_seed,
 		"player_summoner_id": player_summoner_id,
 		"opponent_summoner_id": opponent_summoner_id,
-		"player_deck": player_deck,
-		"enemy_deck": opponent_deck,
+		"player_side": {
+			"team": 0,
+			"source": "profile",
+			"summoner": {"source": "profile"},
+			"deck": {"source": "authored", "cards": player_deck},
+			"controller": {"kind": "player"}
+		},
+		"enemy_side": {
+			"team": 1,
+			"source": "multiplayer_opponent",
+			"summoner": {"source": "multiplayer_opponent"},
+			"deck": {"source": "authored", "cards": opponent_deck},
+			"controller": {"kind": "network"}
+		},
 		# Standard battle settings for multiplayer
-		"ai_type": "none",  # No AI - real player opponent
 		"win_condition": "SUMMONER_DESTROYED",
 		"opponent_summoner_data": opponent_summoner_data,
 	}

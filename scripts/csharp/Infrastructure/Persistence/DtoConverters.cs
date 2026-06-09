@@ -395,6 +395,7 @@ public static class DtoConverters
             ["official_assessments_completed"] = ToGodotArray(
                 academy.OfficialAssessmentsCompleted
             ),
+            ["activity_rewards_claimed"] = ToGodotArray(academy.ActivityRewardsClaimed),
         };
 
         var transcript = new Godot.Collections.Array();
@@ -623,6 +624,18 @@ public static class DtoConverters
             }
         }
 
+        var activityRewardsClaimed = new List<string>();
+        if (
+            dict.TryGetValue("activity_rewards_claimed", out var activityRewardsVar)
+            && activityRewardsVar.VariantType == Variant.Type.Array
+        )
+        {
+            foreach (var rewardKey in activityRewardsVar.AsGodotArray())
+            {
+                activityRewardsClaimed.Add(rewardKey.AsString());
+            }
+        }
+
         var enrolledCourses = new List<CourseId>();
         if (
             dict.TryGetValue("enrolled_courses", out var enrolledVar)
@@ -697,6 +710,7 @@ public static class DtoConverters
             CompletedCourses = completedCourses,
             EnrolledCourses = enrolledCourses,
             OfficialAssessmentsCompleted = officialAssessments,
+            ActivityRewardsClaimed = activityRewardsClaimed,
             Transcript = transcript,
             HonorsEligibility = honorsEligibility,
             ShopPurchases = shopPurchases,

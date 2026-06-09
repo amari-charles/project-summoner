@@ -236,6 +236,41 @@ public class CardCatalogTest
     }
 
     [TestCase]
+    public void AcademyPlaceholderCards_ArePresentAndTeachBasicRoles()
+    {
+        var starterUnit = CardCatalog.GetCard(CardIds.NeutralStarterUnit);
+        var magicBolt = CardCatalog.GetCard(CardIds.MagicBolt);
+        var trainingTarget = CardCatalog.GetCard(CardIds.TrainingTarget);
+        var weakEnemy = CardCatalog.GetCard(CardIds.WeakEnemyUnit);
+
+        AssertThat(starterUnit).IsNotNull();
+        AssertThat(starterUnit!.Name).IsEqual("Neutral Starter Unit");
+        AssertThat(starterUnit.Type).IsEqual(CardType.Summon);
+        AssertThat(starterUnit.ManaCost).IsEqual(3);
+        AssertThat(starterUnit.UnitId).IsEqual(UnitIds.NeutralStarterUnit);
+        AssertThat(starterUnit.ElementalAffinity).IsEqual(Element.Neutral);
+
+        AssertThat(magicBolt).IsNotNull();
+        AssertThat(magicBolt!.Name).IsEqual("Magic Bolt");
+        AssertThat(magicBolt.Type).IsEqual(CardType.Spell);
+        AssertThat(magicBolt.ManaCost).IsEqual(2);
+        AssertThat(magicBolt.SpellDamage).IsEqual(35f);
+        AssertThat(magicBolt.SpellEffects).HasSize(1);
+        AssertThat(magicBolt.ElementalAffinity).IsEqual(Element.Neutral);
+
+        AssertThat(trainingTarget).IsNotNull();
+        AssertThat(trainingTarget!.Type).IsEqual(CardType.Summon);
+        AssertThat(trainingTarget.UnitId).IsEqual(UnitIds.TrainingTarget);
+        AssertThat(trainingTarget.ElementalAffinity).IsEqual(Element.Neutral);
+
+        AssertThat(weakEnemy).IsNotNull();
+        AssertThat(weakEnemy!.Name).IsEqual("Weak Enemy Unit");
+        AssertThat(weakEnemy.Type).IsEqual(CardType.Summon);
+        AssertThat(weakEnemy.UnitId).IsEqual(UnitIds.WeakEnemyUnit);
+        AssertThat(weakEnemy.ElementalAffinity).IsEqual(Element.Neutral);
+    }
+
+    [TestCase]
     public void SpellCards_NonCommandRequireExplicitSpellEffects()
     {
         var spellCards = CardCatalog.GetCardsByType(CardType.Spell);

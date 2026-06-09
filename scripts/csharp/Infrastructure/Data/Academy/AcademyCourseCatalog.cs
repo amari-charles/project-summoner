@@ -30,22 +30,8 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Foundation,
             IsRequired = true,
-            Activities = StandardActivities("magic_101"),
-            Rewards =
-            [
-                CardReward(
-                    "academy.reward.neutral_basic_summon",
-                    "neutral",
-                    "summon",
-                    CardIds.Puff
-                ),
-                CardReward(
-                    "academy.reward.neutral_basic_spell",
-                    "neutral",
-                    "spell",
-                    CardIds.ManaBolt
-                ),
-            ],
+            Activities = Magic101Activities(),
+            Rewards = [],
         },
         new()
         {
@@ -235,6 +221,180 @@ public static class AcademyCourseCatalog
             BattleConfig = AssessmentBattleConfig(battleBand),
         },
     ];
+
+    private static List<AcademyCourseActivity> Magic101Activities() =>
+    [
+        new()
+        {
+            Id = "magic_101_summon_practice",
+            Type = AcademyCourseActivityType.PracticeBattle,
+            LabelKey = "academy.activity.magic_101_summon_practice",
+            Repeatable = true,
+            BattleConfig = new AcademyBattleConfig
+            {
+                LoanerPlayerDeck = [new DeckEntry(CardIds.NeutralStarterUnit, 2)],
+                EnemyDeck = [],
+                EnemyHp = 25f,
+                AiType = "none",
+                AiDifficulty = 0,
+                AiPlayIntervalMin = 4.0f,
+                AiPlayIntervalMax = 5.0f,
+                EncounterAi = ScriptedEncounter(
+                    CapRule("magic_101_summon_practice_target_cap", maxAlive: 2),
+                    SpawnEvent(
+                        "magic_101_summon_practice_target_01",
+                        0.75f,
+                        CardIds.TrainingTarget,
+                        [new AcademyEncounterPosition(10f, -2f)]
+                    ),
+                    SpawnEvent(
+                        "magic_101_summon_practice_target_02",
+                        8.0f,
+                        CardIds.TrainingTarget,
+                        [new AcademyEncounterPosition(10f, 2f)]
+                    )
+                ),
+            },
+        },
+        new()
+        {
+            Id = "magic_101_basic_duel",
+            Type = AcademyCourseActivityType.PracticeBattle,
+            LabelKey = "academy.activity.magic_101_basic_duel",
+            Repeatable = true,
+            BattleConfig = new AcademyBattleConfig
+            {
+                LoanerPlayerDeck = [new DeckEntry(CardIds.NeutralStarterUnit, 3)],
+                EnemyDeck = [new DeckEntry(CardIds.WeakEnemyUnit, 2)],
+                EnemyHp = 35f,
+                AiType = "simple",
+                AiDifficulty = 0,
+                AiPlayIntervalMin = 5.0f,
+                AiPlayIntervalMax = 7.0f,
+            },
+            Rewards =
+            [
+                CardReward(
+                    "academy.reward.neutral_starter_unit",
+                    "neutral",
+                    "summon",
+                    CardIds.NeutralStarterUnit
+                ),
+            ],
+        },
+        new()
+        {
+            Id = "magic_101_spell_practice",
+            Type = AcademyCourseActivityType.PracticeBattle,
+            LabelKey = "academy.activity.magic_101_spell_practice",
+            Repeatable = true,
+            BattleConfig = new AcademyBattleConfig
+            {
+                LoanerPlayerDeck =
+                [
+                    new DeckEntry(CardIds.NeutralStarterUnit, 2),
+                    new DeckEntry(CardIds.MagicBolt, 2),
+                ],
+                EnemyDeck = [],
+                EnemyHp = 40f,
+                AiType = "none",
+                AiDifficulty = 0,
+                AiPlayIntervalMin = 5.0f,
+                AiPlayIntervalMax = 7.0f,
+                EncounterAi = ScriptedEncounter(
+                    CapRule("magic_101_spell_practice_enemy_cap", maxAlive: 3),
+                    SpawnEvent(
+                        "magic_101_spell_practice_enemy_01",
+                        0.75f,
+                        CardIds.WeakEnemyUnit,
+                        [new AcademyEncounterPosition(10f, -3f)]
+                    ),
+                    SpawnEvent(
+                        "magic_101_spell_practice_enemy_02",
+                        7.0f,
+                        CardIds.WeakEnemyUnit,
+                        [new AcademyEncounterPosition(10f, 0f)]
+                    ),
+                    SpawnEvent(
+                        "magic_101_spell_practice_enemy_03",
+                        14.0f,
+                        CardIds.WeakEnemyUnit,
+                        [new AcademyEncounterPosition(10f, 3f)]
+                    )
+                ),
+            },
+            Rewards =
+            [
+                CardReward("academy.reward.magic_bolt", "neutral", "spell", CardIds.MagicBolt),
+            ],
+        },
+        new()
+        {
+            Id = "magic_101_assessment",
+            Type = AcademyCourseActivityType.AssessmentBattle,
+            LabelKey = "academy.activity.magic_101_assessment",
+            IsOfficialAssessment = true,
+            Repeatable = false,
+            BattleConfig = new AcademyBattleConfig
+            {
+                LoanerPlayerDeck =
+                [
+                    new DeckEntry(CardIds.NeutralStarterUnit, 3),
+                    new DeckEntry(CardIds.MagicBolt, 2),
+                ],
+                EnemyDeck =
+                [
+                    new DeckEntry(CardIds.WeakEnemyUnit, 3),
+                ],
+                EnemyHp = 50f,
+                AiType = "simple",
+                AiDifficulty = 0,
+                AiPlayIntervalMin = 5.0f,
+                AiPlayIntervalMax = 6.5f,
+            },
+        },
+    ];
+
+    private static AcademyEncounterAiConfig ScriptedEncounter(params AcademyEncounterRule[] rules) =>
+        new()
+        {
+            Preset = "scripted_encounter",
+            UseTrainerAi = false,
+            Rules = [.. rules],
+        };
+
+    private static AcademyEncounterRule CapRule(string id, int maxAlive) =>
+        new()
+        {
+            Id = id,
+            Kind = "cap",
+            MaxAlive = maxAlive,
+        };
+
+    private static AcademyEncounterRule SpawnEvent(
+        string id,
+        float startTime,
+        CardId cardId,
+        List<AcademyEncounterPosition> positions
+    ) =>
+        new()
+        {
+            Id = id,
+            Kind = "event",
+            StartTime = startTime,
+            Actions =
+            [
+                new AcademyEncounterAction
+                {
+                    Kind = "spawn_units",
+                    Source = "encounter",
+                    CardId = cardId,
+                    Positions = positions,
+                    Placement = "neutral",
+                    ActivateImmediately = true,
+                },
+            ],
+        };
 
     private static AcademyBattleConfig PracticeBattleConfig(AcademyBattleBand battleBand) =>
         battleBand switch

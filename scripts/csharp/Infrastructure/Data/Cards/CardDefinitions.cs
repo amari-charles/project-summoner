@@ -144,6 +144,34 @@ public static class CardDefinitions
         ElementalAffinity = Element.Neutral,
     };
 
+    public static readonly CardDefinition MagicBolt = new()
+    {
+        Id = CardIds.MagicBolt,
+        Name = "Magic Bolt",
+        Description = "A simple bolt for teaching basic spell timing.",
+        Rarity = Rarity.Common,
+        Type = CardType.Spell,
+        ManaCost = 2,
+        Cooldown = 1.5f,
+        SummonTime = 0.0f,
+        SpellDamage = 35.0f,
+        ProjectileId = ProjectileIds.ManaBolt,
+        SpellCategory = SpellCategory.Damage,
+        SpellTargeting = SpellTargeting.SingleTarget,
+        SpellEffects =
+        [
+            new SpellEffectDefinition
+            {
+                EffectType = EffectType.Damage,
+                Value = 35f,
+                DamageType = DamageType.Magic,
+                Affinity = SpellAffinity.Enemies,
+            },
+        ],
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Neutral,
+    };
+
     public static readonly CardDefinition WeavingBolt = new()
     {
         Id = CardIds.WeavingBolt,
@@ -1056,6 +1084,70 @@ public static class CardDefinitions
         ],
         UnlockCondition = UnlockCondition.Default,
         ElementalAffinity = Element.Wind,
+    };
+
+    // =========================================================================
+    // ACADEMY PLAYTEST PLACEHOLDERS
+    // =========================================================================
+
+    public static readonly CardDefinition NeutralStarterUnit = new()
+    {
+        Id = CardIds.NeutralStarterUnit,
+        Name = "Neutral Starter Unit",
+        Description = "A simple unit for teaching basic summoning.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.NeutralStarterUnit,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Neutral,
+    };
+
+    public static readonly CardDefinition TrainingTarget = new()
+    {
+        Id = CardIds.TrainingTarget,
+        Name = "Training Target",
+        Description = "A harmless target for teaching basic summoning.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 1,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.TrainingTarget,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.None,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Neutral,
+    };
+
+    public static readonly CardDefinition WeakEnemyUnit = new()
+    {
+        Id = CardIds.WeakEnemyUnit,
+        Name = "Weak Enemy Unit",
+        Description = "A simple enemy unit for early combat practice.",
+        Rarity = Rarity.Common,
+        Type = CardType.Summon,
+        ManaCost = 3,
+        Cooldown = 2.0f,
+        SummonTime = 1.0f,
+        UnitId = UnitIds.WeakEnemyUnit,
+        SpawnCount = 1,
+        Formation = FormationPresets.StandardGrid,
+        UnitType = UnitType.Melee,
+        IsRanged = false,
+        CreatureTypes = CreatureType.Elemental,
+        UnlockCondition = UnlockCondition.Default,
+        ElementalAffinity = Element.Neutral,
     };
 
     // =========================================================================
@@ -2244,6 +2336,7 @@ public static class CardDefinitions
         [CardIds.Guard] = Guard,
         [CardIds.Charge] = Charge,
         [CardIds.ManaBolt] = ManaBolt,
+        [CardIds.MagicBolt] = MagicBolt,
         [CardIds.WeavingBolt] = WeavingBolt,
         [CardIds.HealingField] = HealingField,
         [CardIds.Cleanse] = Cleanse,
@@ -2269,6 +2362,11 @@ public static class CardDefinitions
         [CardIds.AirBullet] = AirBullet,
         [CardIds.Evacuate] = Evacuate,
         [CardIds.WindShear] = WindShear,
+
+        // Academy playtest placeholders
+        [CardIds.NeutralStarterUnit] = NeutralStarterUnit,
+        [CardIds.TrainingTarget] = TrainingTarget,
+        [CardIds.WeakEnemyUnit] = WeakEnemyUnit,
 
         // Wisps
         [CardIds.FireWisp] = FireWisp,

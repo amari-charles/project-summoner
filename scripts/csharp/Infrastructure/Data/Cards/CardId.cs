@@ -41,6 +41,7 @@ public static class CardIds
     public static readonly CardId Guard = new("guard");
     public static readonly CardId Charge = new("charge");
     public static readonly CardId ManaBolt = new("mana_bolt");
+    public static readonly CardId MagicBolt = new("magic_bolt");
     public static readonly CardId WeavingBolt = new("weaving_bolt");
     public static readonly CardId HealingField = new("healing_field");
     public static readonly CardId Cleanse = new("cleanse");
@@ -66,6 +67,14 @@ public static class CardIds
     public static readonly CardId AirBullet = new("air_bullet");
     public static readonly CardId Evacuate = new("evacuate");
     public static readonly CardId WindShear = new("wind_shear");
+
+    // =========================================================================
+    // ACADEMY PLAYTEST PLACEHOLDERS
+    // =========================================================================
+
+    public static readonly CardId NeutralStarterUnit = new("neutral_starter_unit");
+    public static readonly CardId TrainingTarget = new("training_target");
+    public static readonly CardId WeakEnemyUnit = new("weak_enemy_unit");
 
     // =========================================================================
     // WISPS (Basic starter units for each element)
