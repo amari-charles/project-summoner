@@ -65,22 +65,38 @@ func test_configure_practice_marks_as_configured() -> void:
 
 func test_configure_practice_with_custom_config() -> void:
 	var custom_config: Dictionary = {
-		"enemy_deck": [{"catalog_id": "fire_wisp", "count": 3}],
-		"enemy_hp": 500.0,
-		"ai_type": "aggressive"
+		"enemy_side": {
+			"team": 1,
+			"source": "authored",
+			"summoner": {
+				"source": "authored",
+				"hp": 500.0,
+				"max_hp": 500.0
+			},
+			"deck": {
+				"source": "authored",
+				"cards": [{"catalog_id": "fire_wisp", "count": 3}]
+			},
+			"controller": {
+				"kind": "trainer_ai",
+				"ai_type": "aggressive"
+			}
+		}
 	}
 
 	context.configure_practice_battle(custom_config)
 
-	assert_eq(context.battle_config.get("enemy_hp"), 500.0)
-	assert_eq(context.battle_config.get("ai_type"), "aggressive")
+	var enemy_side: Dictionary = context.battle_config.get("enemy_side", {})
+	assert_eq(enemy_side.get("summoner", {}).get("hp"), 500.0)
+	assert_eq(enemy_side.get("controller", {}).get("ai_type"), "aggressive")
 
 
 func test_configure_practice_uses_defaults_when_empty() -> void:
 	context.configure_practice_battle({})
 
 	assert_false(context.battle_config.is_empty())
-	assert_true(context.battle_config.has("enemy_deck"))
+	assert_true(context.battle_config.has("enemy_side"))
+	assert_true(context.battle_config["enemy_side"].has("deck"))
 
 
 ## =============================================================================

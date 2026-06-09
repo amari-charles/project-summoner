@@ -4,8 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Fateforged.Cards;
+using Fateforged.Data.Summoners;
+using Fateforged.Domain.Profile;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Summoner;
 using Fateforged.Session;
 using Fateforged.Simulation;
+using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Enums;
 using Fateforged.View;
 using GdUnit4;
@@ -135,14 +141,14 @@ public class BattleSceneTest
     }
 
     [TestCase]
-    public void LoadSummonerData_OpeningHandContainsOnlySummons()
+    public void BattleSideResolver_OpeningHandContainsOnlySummons()
     {
         var scene = CreateBattleScene();
         var staticDeck = new Godot.Collections.Array<Resource>();
 
-        var spell = BattleSessionFactory.CreateCardFromCatalog("mana_bolt");
-        var summonA = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
-        var summonB = BattleSessionFactory.CreateCardFromCatalog("water_wisp");
+        var spell = BattleSideResolver.CreateCardFromCatalog("mana_bolt");
+        var summonA = BattleSideResolver.CreateCardFromCatalog("fire_wisp");
+        var summonB = BattleSideResolver.CreateCardFromCatalog("puff");
         AssertThat(spell).IsNotNull();
         AssertThat(summonA).IsNotNull();
         AssertThat(summonB).IsNotNull();
@@ -151,25 +157,169 @@ public class BattleSceneTest
         staticDeck.Add((Resource)summonA!);
         staticDeck.Add((Resource)summonB!);
 
-        var result = BattleSessionFactory.LoadSummonerData(
+        var result = BattleSideResolver.Resolve(
             scene,
-            BattleSessionConfig.ForPractice(),
+            new BattleSessionConfig
+            {
+                PlayerSide = new BattleSideDefinition
+                {
+                    Team = 0,
+                    Source = BattleSideSource.Authored,
+                    Summoner = new BattleSummonerDefinition
+                    {
+                        Source = BattleSideSource.SceneDefault,
+                    },
+                    Deck = new BattleDeckDefinition
+                    {
+                        Source = BattleDeckSource.Authored,
+                        Cards =
+                        [
+                            new BattleDeckEntryDefinition { CatalogId = "mana_bolt", Count = 1 },
+                            new BattleDeckEntryDefinition { CatalogId = "fire_wisp", Count = 1 },
+                            new BattleDeckEntryDefinition { CatalogId = "puff", Count = 1 },
+                        ],
+                    },
+                    Controller = new BattleControllerDefinition
+                    {
+                        Kind = BattleControllerKind.Player,
+                    },
+                },
+            },
             localTeam: 0,
-            deckLoadStrategy: DeckLoadStrategy.Static,
-            defaultMaxHp: 100f,
+            sceneDefaultMaxHp: 100f,
             maxHandSize: 2,
-            staticDeck: staticDeck
+            sceneFallbackDeck: staticDeck
         );
 
-        AssertThat(result.Hand.Count).IsEqual(2);
-        var handTypes = result.Hand.OfType<Card>().Select(card => card.Type).ToList();
+        AssertThat(result.Deck.HandCards.Count).IsEqual(2);
+        var handTypes = result.Deck.HandCards.OfType<Card>().Select(card => card.Type).ToList();
         AssertThat(handTypes.Count).IsEqual(2);
         AssertThat(handTypes.All(type => type == (int)CardType.Summon)).IsTrue();
 
-        AssertThat(result.Deck.Count).IsEqual(1);
-        var remainingCard = result.Deck[0] as Card;
+        AssertThat(result.Deck.DeckCards.Count).IsEqual(1);
+        var remainingCard = result.Deck.DeckCards[0] as Card;
         AssertThat(remainingCard).IsNotNull();
         AssertThat(remainingCard!.Type).IsEqual((int)CardType.Spell);
+    }
+
+    [TestCase]
+    public void BattleSideResolver_AuthoredEnemy_UsesConfiguredSummonerStats()
+    {
+        var scene = CreateBattleScene();
+        var staticDeck = new Godot.Collections.Array<Resource>();
+        var starterCard = BattleSideResolver.CreateCardFromCatalog("fire_wisp");
+        AssertThat(starterCard).IsNotNull();
+        staticDeck.Add((Resource)starterCard!);
+
+        var result = BattleSideResolver.Resolve(
+            scene,
+            new BattleSessionConfig
+            {
+                EnemySide = AuthoredEnemySide(hp: 35f, maxMana: 80f, mana: 40f, castSpeed: 1.25f),
+            },
+            localTeam: 1,
+            sceneDefaultMaxHp: 300f,
+            maxHandSize: 4,
+            sceneFallbackDeck: staticDeck
+        );
+
+        AssertThat(result.Summoner.Hp).IsEqual(35f);
+        AssertThat(result.Summoner.MaxHp).IsEqual(35f);
+        AssertThat(result.Summoner.Mana).IsEqual(40f);
+        AssertThat(result.Summoner.MaxMana).IsEqual(80f);
+        AssertThat(result.Summoner.CastSpeed).IsEqual(1.25f);
+    }
+
+    [TestCase]
+    public void BattleSideResolver_AuthoredEnemy_DoesNotUseLocalProfileStats()
+    {
+        var scene = CreateBattleScene();
+        var repo = CreateProfileRepository("battle_scene_enemy_profile_bleed");
+        repo.UnlockSummoner(SummonerIds.ManaTest);
+        repo.UpdateProfileMeta(new MetaUpdate { SelectedSummoner = (string)SummonerIds.ManaTest });
+        CreateSummonerSelection(repo);
+
+        var staticDeck = new Godot.Collections.Array<Resource>();
+        var starterCard = BattleSideResolver.CreateCardFromCatalog("fire_wisp");
+        AssertThat(starterCard).IsNotNull();
+        staticDeck.Add((Resource)starterCard!);
+
+        var result = BattleSideResolver.Resolve(
+            scene,
+            new BattleSessionConfig { EnemySide = AuthoredEnemySide(hp: 300f) },
+            localTeam: 1,
+            sceneDefaultMaxHp: 300f,
+            maxHandSize: 4,
+            sceneFallbackDeck: staticDeck
+        );
+
+        AssertThat(result.Summoner.Hp).IsEqual(300f);
+        AssertThat(result.Summoner.MaxHp).IsEqual(300f);
+        AssertThat(result.Summoner.Mana).IsEqual(100f);
+        AssertThat(result.Summoner.MaxMana).IsEqual(100f);
+        AssertThat(result.Summoner.CastSpeed).IsEqual(1f);
+        AssertThat(result.Summoner.DamageBonus).IsEqual(0f);
+        AssertThat(result.Summoner.DamageReduction).IsEqual(0f);
+        AssertThat(result.Summoner.SoulStrength).IsEqual(0f);
+    }
+
+    [TestCase]
+    public void BattleSideResolver_EncounterSideWithDeferredDeck_StaysDeferred()
+    {
+        var scene = CreateBattleScene();
+        var staticDeck = new Godot.Collections.Array<Resource>();
+        var starterCard = BattleSideResolver.CreateCardFromCatalog("fire_wisp");
+        AssertThat(starterCard).IsNotNull();
+        staticDeck.Add((Resource)starterCard!);
+
+        var result = BattleSideResolver.Resolve(
+            scene,
+            new BattleSessionConfig
+            {
+                EnemySide = AuthoredEnemySide(
+                    hp: 300f,
+                    deferredDeck: true,
+                    controllerKind: BattleControllerKind.EncounterAi
+                ),
+            },
+            localTeam: 1,
+            sceneDefaultMaxHp: 300f,
+            maxHandSize: 4,
+            sceneFallbackDeck: staticDeck
+        );
+
+        AssertThat(result.Deck.IsDeferred).IsTrue();
+        AssertThat(result.Deck.DeckCards).IsEmpty();
+        AssertThat(result.Deck.HandCards).IsEmpty();
+    }
+
+    [TestCase]
+    public void ConfigureEncounterAi_PreloadsEncounterSpawnCards()
+    {
+        var simNode = CreateSimulationNode();
+        var config = EncounterAiConfig.ScriptedEncounter();
+        config.Rules.Add(
+            new EncounterRule
+            {
+                Kind = EncounterRuleKind.EventRule,
+                Actions =
+                [
+                    new EncounterAction
+                    {
+                        Kind = EncounterActionKind.SpawnUnits,
+                        Source = EncounterActionSource.Encounter,
+                        CardId = "training_target",
+                        Position = new SimVector3(10f, 0f, 2f),
+                    },
+                ],
+            }
+        );
+
+        simNode.ConfigureEncounterAi(config);
+
+        AssertThat(simNode.State.EncounterAi).IsEqual(config);
+        AssertThat(simNode.State.CardDataMap.ContainsKey("training_target")).IsTrue();
+        AssertThat(config.Rules[0].Actions[0].Position.HasValue).IsTrue();
     }
 
     [TestCase]
@@ -188,7 +338,7 @@ public class BattleSceneTest
         ((SceneTree)Engine.GetMainLoop()).Root.AddChild(summoner);
         _createdNodes.Add(summoner);
 
-        var starterCard = BattleSessionFactory.CreateCardFromCatalog("fire_wisp");
+        var starterCard = BattleSideResolver.CreateCardFromCatalog("fire_wisp");
         AssertThat(starterCard).IsNotNull();
         summoner.StartingDeck.Add((Resource)starterCard!);
 
@@ -211,35 +361,47 @@ public class BattleSceneTest
             IsMultiplayer = true,
             HasAuthority = true,
             RawConfig = rawConfig,
+            EnemySide = new BattleSideDefinition
+            {
+                Team = 1,
+                Source = BattleSideSource.MultiplayerOpponent,
+                Summoner = new BattleSummonerDefinition
+                {
+                    Source = BattleSideSource.MultiplayerOpponent,
+                },
+                Deck = new BattleDeckDefinition { Source = BattleDeckSource.Authored },
+                Controller = new BattleControllerDefinition { Kind = BattleControllerKind.Network },
+            },
         };
         SetPrivateField(scene, "_config", config);
 
         // Build expected values from the same loader path to avoid brittle hard-coded trait numbers.
-        var expected = BattleSessionFactory.LoadSummonerData(
+        var expected = BattleSideResolver.Resolve(
             scene,
             config,
             1,
-            summoner.DeckLoadStrategy,
-            summoner.MaxHpExport,
-            summoner.MaxHandSize,
-            summoner.StartingDeck
+            sceneDefaultMaxHp: summoner.MaxHpExport,
+            maxHandSize: summoner.MaxHandSize,
+            sceneFallbackDeck: summoner.StartingDeck
         );
 
         InvokePrivateMethod(scene, "InitSummonerHost", summoner, 1, simNode);
 
         var summonerState = simNode.State.Summoners[1];
-        AssertThat(summonerState.DamageBonus).IsEqual(expected.DamageBonus);
-        AssertThat(summonerState.DamageReduction).IsEqual(expected.DamageReduction);
-        AssertThat(summonerState.SoulStrength).IsEqual(expected.SoulStrength);
+        AssertThat(summonerState.DamageBonus).IsEqual(expected.Summoner.DamageBonus);
+        AssertThat(summonerState.DamageReduction).IsEqual(expected.Summoner.DamageReduction);
+        AssertThat(summonerState.SoulStrength).IsEqual(expected.Summoner.SoulStrength);
 
         var actualElementalBonuses = summonerState
             .EnumerateElementalDamageBonuses()
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        AssertThat(actualElementalBonuses.Count).IsEqual(expected.ElementalDamageBonuses.Count);
-        foreach (var (element, bonus) in expected.ElementalDamageBonuses)
+        AssertThat(actualElementalBonuses.Count).IsEqual(
+            expected.Summoner.ElementalDamageBonuses.Count
+        );
+        foreach (var kvp in expected.Summoner.ElementalDamageBonuses)
         {
-            AssertThat(actualElementalBonuses.ContainsKey(element)).IsTrue();
-            AssertThat(actualElementalBonuses[element]).IsEqual(bonus);
+            AssertThat(actualElementalBonuses.ContainsKey(kvp.Key)).IsTrue();
+            AssertThat(actualElementalBonuses[kvp.Key]).IsEqual(kvp.Value);
         }
     }
 
@@ -256,6 +418,52 @@ public class BattleSceneTest
         return scene;
     }
 
+    private static BattleSideDefinition AuthoredEnemySide(
+        float hp,
+        float maxMana = 100f,
+        float? mana = null,
+        float castSpeed = 1f,
+        bool deferredDeck = false,
+        BattleControllerKind controllerKind = BattleControllerKind.TrainerAi
+    ) =>
+        new()
+        {
+            Team = 1,
+            Source = BattleSideSource.Authored,
+            Summoner = new BattleSummonerDefinition
+            {
+                Source = BattleSideSource.Authored,
+                Id = "test_enemy",
+                DisplayName = "Test Enemy",
+                Hp = hp,
+                MaxHp = hp,
+                Mana = mana ?? maxMana,
+                MaxMana = maxMana,
+                CastSpeed = castSpeed,
+            },
+            Deck = new BattleDeckDefinition
+            {
+                Source = BattleDeckSource.Authored,
+                Deferred = deferredDeck,
+                Cards =
+                [
+                    new BattleDeckEntryDefinition
+                    {
+                        CatalogId = "fire_wisp",
+                        Count = deferredDeck ? 0 : 1,
+                    },
+                ],
+            },
+            Controller = new BattleControllerDefinition
+            {
+                Kind = controllerKind,
+                EncounterAi =
+                    controllerKind == BattleControllerKind.EncounterAi
+                        ? EncounterAiConfig.ScriptedEncounter()
+                        : null,
+            },
+        };
+
     private SimulationNode CreateSimulationNode()
     {
         var tree = (SceneTree)Engine.GetMainLoop();
@@ -265,6 +473,29 @@ public class BattleSceneTest
         root.AddChild(simNode);
         _createdNodes.Add(simNode);
         return simNode;
+    }
+
+    private ProfileRepository CreateProfileRepository(string profileId)
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+        var repo = new ProfileRepository { Name = $"ProfileRepositoryTest_{_createdNodes.Count}" };
+        root.AddChild(repo);
+        _createdNodes.Add(repo);
+        repo.LoadProfile(new ProfileId(profileId));
+        repo.ResetProfile();
+        return repo;
+    }
+
+    private SummonerSelectionService CreateSummonerSelection(ProfileRepository repo)
+    {
+        var tree = (SceneTree)Engine.GetMainLoop();
+        var root = tree.Root;
+        var selection = new SummonerSelectionService { Name = "SummonerSelection" };
+        root.AddChild(selection);
+        _createdNodes.Add(selection);
+        selection.InitForTesting(repo);
+        return selection;
     }
 
     private static T GetPrivateField<T>(object target, string fieldName)

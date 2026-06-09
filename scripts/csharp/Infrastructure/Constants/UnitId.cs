@@ -26,6 +26,14 @@ public readonly record struct UnitId(string Value)
 public static class UnitIds
 {
     // =========================================================================
+    // ACADEMY PLAYTEST PLACEHOLDERS
+    // =========================================================================
+
+    public static readonly UnitId NeutralStarterUnit = new("neutral_starter_unit");
+    public static readonly UnitId TrainingTarget = new("training_target");
+    public static readonly UnitId WeakEnemyUnit = new("weak_enemy_unit");
+
+    // =========================================================================
     // WISPS (Basic starter units for each element)
     // =========================================================================
 

@@ -69,8 +69,8 @@ public partial class DebugArenaDeckProviderTest
         var provider = new DebugArenaDeckProvider();
         var contextConfig = new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", BuildDeck("fire_wisp", 2) },
-            { "enemy_deck", BuildDeck("water_jet", 3) },
+            { "player_side", BuildSide(BuildDeck("fire_wisp", 2)) },
+            { "enemy_side", BuildSide(BuildDeck("water_jet", 3)) },
         };
 
         var result = provider.Resolve(
@@ -92,11 +92,11 @@ public partial class DebugArenaDeckProviderTest
         var provider = new DebugArenaDeckProvider();
         var contextConfig = new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", BuildDeck("fire_wisp", 1) },
+            { "player_side", BuildSide(BuildDeck("fire_wisp", 1)) },
         };
         var overrideConfig = new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", BuildDeck("earth_bullet_unit", 4) },
+            { "player_side", BuildSide(BuildDeck("earth_bullet_unit", 4)) },
         };
 
         var result = provider.Resolve(
@@ -146,6 +146,16 @@ public partial class DebugArenaDeckProviderTest
             },
         };
     }
+
+    private static Godot.Collections.Dictionary BuildSide(Godot.Collections.Array deck) =>
+        new()
+        {
+            ["deck"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["cards"] = deck,
+            },
+        };
 
     private static string GetDeckSignature(Godot.Collections.Array deck)
     {

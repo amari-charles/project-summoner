@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Cards;
 using Fateforged.Data.Academy;
+using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Infrastructure.Persistence;
@@ -14,6 +16,7 @@ public class AcademyProgressHandler
     private const int DefaultSemesterEnrollments = 3;
     private const string RewardGrantStateGrantable = "grantable";
     private const string RewardGrantStatePreviewOnly = "preview_only";
+    private const string RewardGrantStateClaimed = "claimed";
 
     private readonly IProfileRepository _profileRepo;
     private readonly Func<SummonerId> _getActiveSummonerFunc;
@@ -131,6 +134,8 @@ public class AcademyProgressHandler
 
         if (!succeeded)
             return false;
+
+        GrantActivityRewards(course, activity, academy);
 
         if (
             activity.IsOfficialAssessment
@@ -345,24 +350,7 @@ public class AcademyProgressHandler
                 reason: GetSemesterRelation(academy, viewedYear, viewedSemester)
             );
 
-        var rewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var reward in course.Rewards)
-        {
-            var grantState = GetRewardGrantState(reward);
-            rewards.Add(
-                new Godot.Collections.Dictionary
-                {
-                    ["kind"] = reward.Kind.ToString(),
-                    ["preview_type"] = reward.PreviewType.ToString(),
-                    ["grant_state"] = grantState,
-                    ["is_grantable"] = grantState == RewardGrantStateGrantable,
-                    ["label_key"] = reward.LabelKey,
-                    ["element"] = reward.Element,
-                    ["card_role"] = reward.CardRole,
-                    ["card_id"] = (string)reward.CardId,
-                }
-            );
-        }
+        var rewards = ToCourseRewardPreviewArray(course, academy);
 
         var activities = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var activity in course.Activities)
@@ -502,20 +490,239 @@ public class AcademyProgressHandler
             ["is_locked"] = isLocked,
             ["can_start"] = canStart,
             ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
+            ["reward_previews"] = ToActivityRewardPreviewArray(course, activity, academy),
         };
     }
 
-    private static Godot.Collections.Dictionary ToBattleConfigDict(
+    internal static Godot.Collections.Dictionary ToBattleConfigDict(
         AcademyBattleConfig? battleConfig
     )
     {
         if (battleConfig == null)
             return new Godot.Collections.Dictionary();
 
-        var enemyDeck = new Godot.Collections.Array();
-        foreach (var entry in battleConfig.EnemyDeck)
+        var dict = new Godot.Collections.Dictionary
         {
-            enemyDeck.Add(
+            ["enemy_side"] = ToEnemySideDict(battleConfig),
+            ["card_xp_reward"] = 0,
+            ["summoner_xp_reward"] = 0,
+        };
+
+        if (battleConfig.LoanerPlayerDeck.Count > 0)
+        {
+            dict["player_side"] = new Godot.Collections.Dictionary
+            {
+                ["team"] = 0,
+                ["source"] = "profile",
+                ["summoner"] = new Godot.Collections.Dictionary { ["source"] = "profile" },
+                ["deck"] = new Godot.Collections.Dictionary
+                {
+                    ["source"] = "authored",
+                    ["cards"] = ToDeckEntriesArray(battleConfig.LoanerPlayerDeck),
+                },
+                ["controller"] = new Godot.Collections.Dictionary { ["kind"] = "player" },
+            };
+        }
+
+        return dict;
+    }
+
+    private static Godot.Collections.Dictionary ToEnemySideDict(AcademyBattleConfig battleConfig)
+    {
+        var controllerKind = battleConfig.EncounterAi != null ? "encounter_ai" : "trainer_ai";
+        var controller = new Godot.Collections.Dictionary
+        {
+            ["kind"] = controllerKind,
+            ["ai_type"] = battleConfig.AiType,
+            ["ai_difficulty"] = battleConfig.AiDifficulty,
+            ["ai_config"] = new Godot.Collections.Dictionary
+            {
+                ["play_interval_min"] = battleConfig.AiPlayIntervalMin,
+                ["play_interval_max"] = battleConfig.AiPlayIntervalMax,
+            },
+        };
+
+        if (battleConfig.EncounterAi != null)
+            controller["encounter_ai"] = ToEncounterAiDict(battleConfig.EncounterAi);
+
+        return new Godot.Collections.Dictionary
+        {
+            ["team"] = 1,
+            ["source"] = "authored",
+            ["summoner"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["id"] = "academy_enemy",
+                ["display_name"] = "Academy Opponent",
+                ["hp"] = battleConfig.EnemyHp,
+                ["max_hp"] = battleConfig.EnemyHp,
+                ["mana"] = 100f,
+                ["max_mana"] = 100f,
+                ["cast_speed"] = 1f,
+                ["damage_bonus"] = 0f,
+                ["damage_reduction"] = 0f,
+                ["soul_strength"] = 0f,
+            },
+            ["deck"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["deferred"] = battleConfig.EnemyDeck.Count == 0 && battleConfig.EncounterAi != null,
+                ["cards"] = ToDeckEntriesArray(battleConfig.EnemyDeck),
+            },
+            ["controller"] = controller,
+        };
+    }
+
+    private static Godot.Collections.Dictionary ToEncounterAiDict(AcademyEncounterAiConfig config)
+    {
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["preset"] = config.Preset,
+            ["team"] = config.Team,
+            ["rules"] = ToEncounterRuleArray(config.Rules),
+        };
+
+        if (config.UseTrainerAi.HasValue)
+            dict["use_trainer_ai"] = config.UseTrainerAi.Value;
+
+        return dict;
+    }
+
+    private static Godot.Collections.Array ToEncounterRuleArray(
+        IEnumerable<AcademyEncounterRule> rules
+    )
+    {
+        var array = new Godot.Collections.Array();
+        foreach (var rule in rules)
+        {
+            var dict = new Godot.Collections.Dictionary
+            {
+                ["id"] = rule.Id,
+                ["kind"] = rule.Kind,
+                ["enabled"] = rule.Enabled,
+                ["start_time"] = rule.StartTime,
+                ["rhythm"] = rule.Rhythm,
+                ["placement"] = rule.Placement,
+                ["source"] = rule.Source,
+                ["actions"] = ToEncounterActionArray(rule.Actions),
+            };
+
+            if (rule.EndTime.HasValue)
+                dict["end_time"] = rule.EndTime.Value;
+            if (rule.IntervalSeconds.HasValue)
+                dict["interval_seconds"] = rule.IntervalSeconds.Value;
+            if (rule.MaxExecutions.HasValue)
+                dict["max_executions"] = rule.MaxExecutions.Value;
+            if (rule.MaxAlive.HasValue)
+                dict["max_alive"] = rule.MaxAlive.Value;
+            if (rule.CardPool.Count > 0)
+                dict["card_pool"] = ToCardIdArray(rule.CardPool);
+            AddEncounterBehaviorFields(
+                dict,
+                rule.AiType,
+                rule.AiPersonality,
+                rule.AiPlayIntervalMin,
+                rule.AiPlayIntervalMax
+            );
+
+            array.Add(dict);
+        }
+        return array;
+    }
+
+    private static Godot.Collections.Array ToEncounterActionArray(
+        IEnumerable<AcademyEncounterAction> actions
+    )
+    {
+        var array = new Godot.Collections.Array();
+        foreach (var action in actions)
+        {
+            var dict = new Godot.Collections.Dictionary
+            {
+                ["kind"] = action.Kind,
+                ["source"] = action.Source,
+                ["team"] = action.Team,
+                ["placement"] = action.Placement,
+                ["activate_immediately"] = action.ActivateImmediately,
+                ["allow_when_overwhelmed"] = action.AllowWhenOverwhelmed,
+                ["ignore_caps"] = action.IgnoreCaps,
+                ["rule_id"] = action.RuleId,
+                ["enabled"] = action.Enabled,
+            };
+
+            if (action.CardId != CardId.None)
+                dict["card_id"] = (string)action.CardId;
+            if (action.CardIds.Count > 0)
+                dict["card_ids"] = ToCardIdArray(action.CardIds);
+            if (action.Position.HasValue)
+                dict["position"] = ToEncounterPositionDict(action.Position.Value);
+            if (action.Positions.Count > 0)
+                dict["positions"] = ToEncounterPositionArray(action.Positions);
+            AddEncounterBehaviorFields(
+                dict,
+                action.AiType,
+                action.AiPersonality,
+                action.AiPlayIntervalMin,
+                action.AiPlayIntervalMax
+            );
+
+            array.Add(dict);
+        }
+        return array;
+    }
+
+    private static void AddEncounterBehaviorFields(
+        Godot.Collections.Dictionary dict,
+        string? aiType,
+        string? aiPersonality,
+        float? aiPlayIntervalMin,
+        float? aiPlayIntervalMax
+    )
+    {
+        if (!string.IsNullOrWhiteSpace(aiType))
+            dict["ai_type"] = aiType;
+        if (!string.IsNullOrWhiteSpace(aiPersonality))
+            dict["ai_personality"] = aiPersonality;
+        if (aiPlayIntervalMin.HasValue || aiPlayIntervalMax.HasValue)
+        {
+            var aiConfig = new Godot.Collections.Dictionary();
+            if (aiPlayIntervalMin.HasValue)
+                aiConfig["play_interval_min"] = aiPlayIntervalMin.Value;
+            if (aiPlayIntervalMax.HasValue)
+                aiConfig["play_interval_max"] = aiPlayIntervalMax.Value;
+            dict["ai_config"] = aiConfig;
+        }
+    }
+
+    private static Godot.Collections.Array ToCardIdArray(IEnumerable<CardId> cardIds)
+    {
+        var array = new Godot.Collections.Array();
+        foreach (var cardId in cardIds)
+            array.Add((string)cardId);
+        return array;
+    }
+
+    private static Godot.Collections.Dictionary ToEncounterPositionDict(
+        AcademyEncounterPosition position
+    ) =>
+        new() { ["x"] = position.X, ["z"] = position.Z };
+
+    private static Godot.Collections.Array ToEncounterPositionArray(
+        IEnumerable<AcademyEncounterPosition> positions
+    )
+    {
+        var array = new Godot.Collections.Array();
+        foreach (var position in positions)
+            array.Add(ToEncounterPositionDict(position));
+        return array;
+    }
+
+    internal static Godot.Collections.Array ToDeckEntriesArray(IEnumerable<DeckEntry> entries)
+    {
+        var deck = new Godot.Collections.Array();
+        foreach (var entry in entries)
+        {
+            deck.Add(
                 new Godot.Collections.Dictionary
                 {
                     ["catalog_id"] = (string)entry.CardId,
@@ -524,20 +731,7 @@ public class AcademyProgressHandler
             );
         }
 
-        return new Godot.Collections.Dictionary
-        {
-            ["enemy_deck"] = enemyDeck,
-            ["enemy_hp"] = battleConfig.EnemyHp,
-            ["ai_type"] = battleConfig.AiType,
-            ["ai_difficulty"] = battleConfig.AiDifficulty,
-            ["ai_config"] = new Godot.Collections.Dictionary
-            {
-                ["play_interval_min"] = battleConfig.AiPlayIntervalMin,
-                ["play_interval_max"] = battleConfig.AiPlayIntervalMax,
-            },
-            ["card_xp_reward"] = 0,
-            ["summoner_xp_reward"] = 0,
-        };
+        return deck;
     }
 
     private static string GetSemesterRelation(AcademyProgress academy, int year, int semester)
@@ -609,10 +803,42 @@ public class AcademyProgressHandler
 
     private void GrantCourseRewards(AcademyCourseDefinition course)
     {
+        GrantRewards(course.Rewards);
+    }
+
+    private void GrantActivityRewards(
+        AcademyCourseDefinition course,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
+    )
+    {
         if (_grantCardFunc == null)
             return;
 
-        foreach (var reward in course.Rewards)
+        for (var index = 0; index < activity.Rewards.Count; index++)
+        {
+            var reward = activity.Rewards[index];
+            if (GetRewardGrantState(reward) != RewardGrantStateGrantable)
+                continue;
+
+            var claimKey = GetActivityRewardClaimKey(course.Id, activity.Id, index, reward);
+            if (academy.ActivityRewardsClaimed.Contains(claimKey))
+                continue;
+
+            var instanceId = _grantCardFunc((string)reward.CardId, reward.Rarity);
+            if (!string.IsNullOrEmpty(instanceId))
+            {
+                academy.ActivityRewardsClaimed.Add(claimKey);
+            }
+        }
+    }
+
+    private void GrantRewards(IEnumerable<AcademyCourseReward> rewards)
+    {
+        if (_grantCardFunc == null)
+            return;
+
+        foreach (var reward in rewards)
         {
             if (GetRewardGrantState(reward) == RewardGrantStateGrantable)
             {
@@ -625,4 +851,83 @@ public class AcademyProgressHandler
         reward.Kind == AcademyRewardKind.Card && reward.CardId.HasValue
             ? RewardGrantStateGrantable
             : RewardGrantStatePreviewOnly;
+
+    private static IEnumerable<(AcademyCourseReward reward, string grantState)> GetCourseRewardPreviews(
+        AcademyCourseDefinition course
+    )
+    {
+        foreach (var reward in course.Rewards)
+        {
+            yield return (reward, GetRewardGrantState(reward));
+        }
+    }
+
+    private static IEnumerable<(AcademyCourseReward reward, string grantState)> GetActivityRewardPreviews(
+        AcademyCourseDefinition course,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
+    )
+    {
+        for (var index = 0; index < activity.Rewards.Count; index++)
+        {
+            var reward = activity.Rewards[index];
+            var claimKey = GetActivityRewardClaimKey(course.Id, activity.Id, index, reward);
+            var grantState = academy.ActivityRewardsClaimed.Contains(claimKey)
+                ? RewardGrantStateClaimed
+                : GetRewardGrantState(reward);
+            yield return (reward, grantState);
+        }
+    }
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> ToCourseRewardPreviewArray(
+        AcademyCourseDefinition course,
+        AcademyProgress academy
+    )
+    {
+        var rewards = GetCourseRewardPreviews(course).ToList();
+        foreach (var activity in course.Activities)
+        {
+            rewards.AddRange(GetActivityRewardPreviews(course, activity, academy));
+        }
+
+        return ToRewardPreviewArray(rewards);
+    }
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> ToActivityRewardPreviewArray(
+        AcademyCourseDefinition course,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
+    ) => ToRewardPreviewArray(GetActivityRewardPreviews(course, activity, academy));
+
+    private static Godot.Collections.Array<Godot.Collections.Dictionary> ToRewardPreviewArray(
+        IEnumerable<(AcademyCourseReward reward, string grantState)> rewards
+    )
+    {
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var (reward, grantState) in rewards)
+        {
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["kind"] = reward.Kind.ToString(),
+                    ["preview_type"] = reward.PreviewType.ToString(),
+                    ["grant_state"] = grantState,
+                    ["is_grantable"] = grantState == RewardGrantStateGrantable,
+                    ["label_key"] = reward.LabelKey,
+                    ["element"] = reward.Element,
+                    ["card_role"] = reward.CardRole,
+                    ["card_id"] = (string)reward.CardId,
+                }
+            );
+        }
+
+        return result;
+    }
+
+    private static string GetActivityRewardClaimKey(
+        CourseId courseId,
+        string activityId,
+        int rewardIndex,
+        AcademyCourseReward reward
+    ) => $"{courseId}:{activityId}:{rewardIndex}:{reward.Kind}:{reward.CardId}";
 }

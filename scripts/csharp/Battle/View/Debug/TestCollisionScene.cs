@@ -25,37 +25,39 @@ public partial class TestCollisionScene : TestBattleScene
             var config = new Godot.Collections.Dictionary
             {
                 {
-                    "enemy_deck",
-                    new Godot.Collections.Array
-                    {
-                        new Godot.Collections.Dictionary
+                    "enemy_side",
+                    BuildEnemySide(
+                        new Godot.Collections.Array
                         {
-                            { "catalog_id", "puff" },
-                            { "count", 6 },
+                            new Godot.Collections.Dictionary
+                            {
+                                { "catalog_id", "puff" },
+                                { "count", 6 },
+                            },
+                            new Godot.Collections.Dictionary
+                            {
+                                { "catalog_id", "fire_wisp" },
+                                { "count", 6 },
+                            },
+                            new Godot.Collections.Dictionary
+                            {
+                                { "catalog_id", "pebbloom" },
+                                { "count", 3 },
+                            },
+                            new Godot.Collections.Dictionary
+                            {
+                                { "catalog_id", "water_frog" },
+                                { "count", 3 },
+                            },
+                            new Godot.Collections.Dictionary
+                            {
+                                { "catalog_id", "mana_bolt" },
+                                { "count", 4 },
+                            },
                         },
-                        new Godot.Collections.Dictionary
-                        {
-                            { "catalog_id", "fire_wisp" },
-                            { "count", 6 },
-                        },
-                        new Godot.Collections.Dictionary
-                        {
-                            { "catalog_id", "pebbloom" },
-                            { "count", 3 },
-                        },
-                        new Godot.Collections.Dictionary
-                        {
-                            { "catalog_id", "water_frog" },
-                            { "count", 3 },
-                        },
-                        new Godot.Collections.Dictionary
-                        {
-                            { "catalog_id", "mana_bolt" },
-                            { "count", 4 },
-                        },
-                    }
+                        "none"
+                    )
                 },
-                { "enemy_hp", 999999.0 },
             };
             battleContext.Call("configure_practice_battle", config);
         }

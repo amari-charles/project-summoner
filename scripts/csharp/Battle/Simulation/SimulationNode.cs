@@ -388,6 +388,36 @@ public partial class SimulationNode : Node, IGameSession
         );
     }
 
+    public void RegisterBattleSide(
+        ResolvedBattleSide side,
+        Vector3 position,
+        Vector3 targetPointPosition
+    )
+    {
+        RegisterSummoner(
+            side.Team,
+            side.Summoner.Hp,
+            side.Summoner.MaxHp,
+            side.Summoner.Mana,
+            side.Summoner.MaxMana,
+            side.Summoner.CastSpeed,
+            side.DeckCatalogIds(),
+            side.MaxHandSize,
+            position,
+            targetPointPosition
+        );
+        SetSummonerCombatModifiers(
+            side.Team,
+            side.Summoner.DamageBonus,
+            side.Summoner.DamageReduction,
+            side.Summoner.SoulStrength,
+            side.Summoner.ElementalDamageBonuses
+        );
+        SetSummonerHand(side.Team, side.HandCatalogIds());
+        SetSummonerCardRefs(side.Team, side.DeckRefs(), side.HandRefs());
+        ConfigureController(side);
+    }
+
     public void RegisterSummoner(
         int team,
         float hp,
@@ -449,6 +479,43 @@ public partial class SimulationNode : Node, IGameSession
         GD.Print(
             $"[SimulationNode] Registered summoner team={networkTeam} (local={team}): HP={maxHp}, Mana={maxMana}, CastSpeed={castSpeed}, Deck={deckCatalogIds.Length} cards, Position={position}, TargetPoint={targetPointPosition}"
         );
+    }
+
+    private void ConfigureController(ResolvedBattleSide side)
+    {
+        switch (side.Controller.Kind)
+        {
+            case BattleControllerKind.TrainerAi:
+                ConfigureAi(
+                    side.Team,
+                    side.Controller.AiType,
+                    side.Controller.AiPersonality,
+                    side.Controller.AiDifficulty,
+                    side.Controller.AiIntervalMin,
+                    side.Controller.AiIntervalMax,
+                    side.Controller.AiScript
+                );
+                ConfigureEncounterAi(EncounterAiConfig.DefaultTrainer(side.Team));
+                break;
+            case BattleControllerKind.EncounterAi:
+                ConfigureAi(
+                    side.Team,
+                    side.Controller.AiType,
+                    side.Controller.AiPersonality,
+                    side.Controller.AiDifficulty,
+                    side.Controller.AiIntervalMin,
+                    side.Controller.AiIntervalMax,
+                    side.Controller.AiScript
+                );
+                ConfigureEncounterAi(
+                    side.Controller.EncounterAi ?? EncounterAiConfig.ScriptedEncounter(side.Team)
+                );
+                break;
+            case BattleControllerKind.Player:
+            case BattleControllerKind.Network:
+            case BattleControllerKind.None:
+                break;
+        }
     }
 
     /// <summary>
@@ -628,7 +695,7 @@ public partial class SimulationNode : Node, IGameSession
             for (int i = 0; i < scriptSteps.Count; i++)
             {
                 var stepDict = scriptSteps[i].AsGodotDictionary();
-                float triggerTime = (float)stepDict.GetValueOrDefault("delay", 0.0f);
+                float triggerTime = GetFloat(stepDict, "delay", 0.0f);
                 string cardId = stepDict.GetValueOrDefault("card_name", "").ToString();
 
                 SimVector3 spawnPos = SimVector3.Zero;
@@ -636,8 +703,8 @@ public partial class SimulationNode : Node, IGameSession
                 if (posVar.VariantType == Variant.Type.Dictionary)
                 {
                     var posDict = posVar.AsGodotDictionary();
-                    float px = (float)posDict.GetValueOrDefault("x", 0.0f);
-                    float pz = (float)posDict.GetValueOrDefault("y", 0.0f);
+                    float px = GetFloat(posDict, "x", 0.0f);
+                    float pz = GetFloat(posDict, "y", 0.0f);
                     spawnPos = ToSimCanonical(new Godot.Vector3(px, 0f, pz));
                 }
                 else if (posVar.VariantType == Variant.Type.Vector2)
@@ -657,6 +724,88 @@ public partial class SimulationNode : Node, IGameSession
         GD.Print(
             $"[SimulationNode] Configured AI: team={networkTeam} type={aiType} personality={personality} difficulty={difficulty} interval=[{intervalMin},{intervalMax}]"
         );
+    }
+
+    private static float GetFloat(
+        Godot.Collections.Dictionary dict,
+        string key,
+        float defaultValue
+    )
+    {
+        if (!dict.TryGetValue(key, out var value))
+            return defaultValue;
+
+        return value.VariantType switch
+        {
+            Variant.Type.Float => (float)value.AsDouble(),
+            Variant.Type.Int => value.AsInt32(),
+            _ => defaultValue,
+        };
+    }
+
+    public void ConfigureEncounterAi(EncounterAiConfig? config)
+    {
+        State.EncounterAi = config;
+        if (config == null)
+            return;
+
+        CanonicalizeEncounterAiPositions(config);
+
+        foreach (var cardId in EnumerateEncounterAiCardIds(config))
+            EnsureCardDataPopulated(cardId);
+
+        GD.Print(
+            $"[SimulationNode] Configured Encounter AI: preset={config.Preset} team={config.Team} rules={config.Rules.Count}"
+        );
+    }
+
+    private void CanonicalizeEncounterAiPositions(EncounterAiConfig config)
+    {
+        if (config.PositionsAreCanonical)
+            return;
+
+        foreach (var rule in config.Rules)
+        {
+            foreach (var action in rule.Actions)
+            {
+                if (action.Position.HasValue)
+                {
+                    var position = action.Position.Value;
+                    action.Position = ToSimCanonical(new Vector3(position.X, 0f, position.Z));
+                }
+
+                for (int i = 0; i < action.Positions.Count; i++)
+                {
+                    var position = action.Positions[i];
+                    action.Positions[i] = ToSimCanonical(new Vector3(position.X, 0f, position.Z));
+                }
+            }
+        }
+
+        config.PositionsAreCanonical = true;
+    }
+
+    private static IEnumerable<string> EnumerateEncounterAiCardIds(EncounterAiConfig config)
+    {
+        foreach (var rule in config.Rules)
+        {
+            foreach (var cardId in rule.CardPool)
+            {
+                if (!string.IsNullOrWhiteSpace(cardId))
+                    yield return cardId;
+            }
+
+            foreach (var action in rule.Actions)
+            {
+                if (!string.IsNullOrWhiteSpace(action.CardId))
+                    yield return action.CardId;
+                foreach (var cardId in action.CardIds)
+                {
+                    if (!string.IsNullOrWhiteSpace(cardId))
+                        yield return cardId;
+                }
+            }
+        }
     }
 
     // =========================================================================

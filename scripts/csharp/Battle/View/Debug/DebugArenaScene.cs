@@ -42,10 +42,8 @@ public partial class DebugArenaScene : TestBattleScene
 
         return new Godot.Collections.Dictionary
         {
-            { "dev_player_deck", deckResolution.PlayerDeck },
-            { "enemy_deck", deckResolution.EnemyDeck },
-            { "enemy_hp", 999999.0 },
-            { "ai_type", "none" },
+            { "player_side", BuildPlayerSide(deckResolution.PlayerDeck) },
+            { "enemy_side", BuildEnemySide(deckResolution.EnemyDeck, "none") },
         };
     }
 

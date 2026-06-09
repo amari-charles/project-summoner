@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fateforged.Simulation;
+using Fateforged.Simulation.AI;
 using Fateforged.Simulation.Commands;
 using Fateforged.Simulation.Enums;
 using Fateforged.Units;
@@ -46,6 +47,10 @@ public class MatchState
             new() { Team = Team.Player },
             new() { Team = Team.Enemy },
         };
+
+    // Unified encounter AI configuration. Scene-registered battles configure this
+    // through battle sides; null is reserved for direct simulation tests.
+    public EncounterAiConfig? EncounterAi { get; set; }
 
     // Units (keyed by MatchState-local unit ID)
     public Dictionary<int, UnitData> Units { get; } = new();

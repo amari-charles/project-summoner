@@ -37,12 +37,40 @@ static func _get_battles() -> Array[Dictionary]:
         {
             "id": BattleIDs.FIRST_TRIAL,
             "event_type": EventTypeIDs.BATTLE,
-            "dev_player_deck": [
-                {"catalog_id": CardIDs.FIRE_WISP, "count": 2},
-            ],
-            "enemy_deck": [
-                {"catalog_id": CardIDs.EARTH_SPRITE, "count": 1},
-            ],
+            "player_side": {
+                "team": 0,
+                "source": "profile",
+                "summoner": {"source": "profile"},
+                "deck": {
+                    "source": "authored",
+                    "cards": [
+                        {"catalog_id": CardIDs.FIRE_WISP, "count": 2},
+                    ],
+                },
+                "controller": {"kind": "player"},
+            },
+            "enemy_side": {
+                "team": 1,
+                "source": "authored",
+                "summoner": {
+                    "source": "authored",
+                    "hp": 30.0,
+                    "max_hp": 30.0,
+                    "mana": 100.0,
+                    "max_mana": 100.0,
+                    "cast_speed": 1.0,
+                },
+                "deck": {
+                    "source": "authored",
+                    "cards": [
+                        {"catalog_id": CardIDs.EARTH_SPRITE, "count": 1},
+                    ],
+                },
+                "controller": {
+                    "kind": "trainer_ai",
+                    "ai_type": "simple",
+                },
+            },
             # ... other battle properties
         },
     ]
@@ -111,13 +139,30 @@ static func _get_battles() -> Array[Dictionary]:
     "gold_reward": 50,
     "card_xp_reward": 15,
     "summoner_xp_reward": 75,
-    "dev_player_deck": [...],  # For battles with requires_deck=false
-    "enemy_deck": [
-        {"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},
-    ],
-    "enemy_hp": 100.0,
+    "player_side": {...},  # Optional loaner/player override
+    "enemy_side": {
+        "team": 1,
+        "source": "authored",
+        "summoner": {
+            "source": "authored",
+            "hp": 100.0,
+            "max_hp": 100.0,
+            "mana": 100.0,
+            "max_mana": 100.0,
+            "cast_speed": 1.0,
+        },
+        "deck": {
+            "source": "authored",
+            "cards": [
+                {"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},
+            ],
+        },
+        "controller": {
+            "kind": "trainer_ai",
+            "ai_type": "heuristic",
+        },
+    },
     "unlock_requirements": [BattleIDs.PREVIOUS_BATTLE],
-    "ai_type": "heuristic",  # or "scripted"
     "event_sequence": "res://resources/sequences/tutorial.tres",  # optional
 }
 ```

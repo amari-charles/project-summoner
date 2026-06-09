@@ -19,13 +19,17 @@ public class AcademyCourseCatalogTest
 
         AssertThat(magic101).IsNotNull();
         AssertThat(magic101!.IsRequired).IsTrue();
-        AssertThat(magic101.Activities).HasSize(3);
+        AssertThat(magic101.Activities).HasSize(4);
+        AssertThat(magic101.Activities.Any(activity => activity.Type == AcademyCourseActivityType.Lesson))
+            .IsFalse();
         AssertThat(magic101.Activities.Any(activity => activity.IsOfficialAssessment)).IsTrue();
-        AssertThat(magic101.Rewards).HasSize(2);
-        AssertThat(magic101.Rewards.Any(reward => reward.CardRole == "summon")).IsTrue();
-        AssertThat(magic101.Rewards.Any(reward => reward.CardRole == "spell")).IsTrue();
-        AssertThat(magic101.Rewards.Select(reward => reward.CardId)).Contains(CardIds.Puff);
-        AssertThat(magic101.Rewards.Select(reward => reward.CardId)).Contains(CardIds.ManaBolt);
+        AssertThat(magic101.Rewards).IsEmpty();
+
+        var activityRewards = magic101.Activities.SelectMany(activity => activity.Rewards).ToArray();
+        AssertThat(activityRewards).HasSize(2);
+        AssertThat(activityRewards.Select(reward => reward.CardId))
+            .Contains(CardIds.NeutralStarterUnit);
+        AssertThat(activityRewards.Select(reward => reward.CardId)).Contains(CardIds.MagicBolt);
     }
 
     [TestCase]
@@ -83,27 +87,70 @@ public class AcademyCourseCatalogTest
     }
 
     [TestCase]
-    public void Year1Activities_HaveGentleBattleTuning()
+    public void Magic101Activities_UseLoanerDecksAndStepUpPressure()
     {
         var magic101 = AcademyCourseCatalog
             .ForSemester(1, 1)
             .First(course => course.Id == CourseIds.IntroductionToMagic101);
-        var practice = magic101.Activities.First(activity =>
-            activity.Type == AcademyCourseActivityType.PracticeBattle
-        );
+        var summonPractice = magic101.Activities[0];
+        var basicDuel = magic101.Activities[1];
+        var spellPractice = magic101.Activities[2];
         var assessment = magic101.Activities.First(activity =>
             activity.Type == AcademyCourseActivityType.AssessmentBattle
         );
 
-        AssertThat(practice.BattleConfig).IsNotNull();
-        AssertThat(practice.BattleConfig!.AiType).IsEqual("passive");
-        AssertThat(practice.BattleConfig.EnemyHp).IsLessEqual(20f);
-        AssertThat(practice.BattleConfig.EnemyDeck).HasSize(1);
+        AssertThat(summonPractice.Id).IsEqual("magic_101_summon_practice");
+        AssertThat(summonPractice.BattleConfig).IsNotNull();
+        AssertThat(summonPractice.BattleConfig!.LoanerPlayerDeck.Select(entry => entry.CardId))
+            .Contains(CardIds.NeutralStarterUnit);
+        AssertThat(summonPractice.BattleConfig.EnemyDeck).IsEmpty();
+        AssertThat(summonPractice.BattleConfig.AiType).IsEqual("none");
+        AssertThat(summonPractice.BattleConfig.EncounterAi).IsNotNull();
+        AssertThat(summonPractice.BattleConfig.EncounterAi!.Preset).IsEqual("scripted_encounter");
+        AssertThat(
+                summonPractice.BattleConfig.EncounterAi.Rules
+                    .SelectMany(rule => rule.Actions)
+                    .Select(action => action.CardId)
+            )
+            .Contains(CardIds.TrainingTarget);
+        AssertThat(summonPractice.Rewards).IsEmpty();
+
+        AssertThat(basicDuel.Id).IsEqual("magic_101_basic_duel");
+        AssertThat(basicDuel.BattleConfig).IsNotNull();
+        AssertThat(basicDuel.BattleConfig!.EnemyDeck.Select(entry => entry.CardId))
+            .Contains(CardIds.WeakEnemyUnit);
+        AssertThat(basicDuel.Rewards.Select(reward => reward.CardId))
+            .Contains(CardIds.NeutralStarterUnit);
+
+        AssertThat(spellPractice.Id).IsEqual("magic_101_spell_practice");
+        AssertThat(spellPractice.BattleConfig).IsNotNull();
+        AssertThat(spellPractice.BattleConfig!.LoanerPlayerDeck.Select(entry => entry.CardId))
+            .Contains(CardIds.MagicBolt);
+        AssertThat(spellPractice.BattleConfig.EnemyDeck).IsEmpty();
+        AssertThat(spellPractice.BattleConfig.EncounterAi).IsNotNull();
+        AssertThat(
+                spellPractice.BattleConfig.EncounterAi!.Rules
+                    .SelectMany(rule => rule.Actions)
+                    .Select(action => action.CardId)
+            )
+            .Contains(CardIds.WeakEnemyUnit);
+        AssertThat(spellPractice.Rewards.Select(reward => reward.CardId))
+            .Contains(CardIds.MagicBolt);
 
         AssertThat(assessment.BattleConfig).IsNotNull();
         AssertThat(assessment.BattleConfig!.AiType).IsEqual("simple");
         AssertThat(assessment.BattleConfig.AiDifficulty).IsEqual(0);
-        AssertThat(assessment.BattleConfig.AiPlayIntervalMin).IsGreaterEqual(8.0f);
+        AssertThat(assessment.BattleConfig.EnemyHp).IsEqual(50f);
+        AssertThat(assessment.BattleConfig.EnemyDeck.Select(entry => entry.CardId))
+            .Contains(CardIds.WeakEnemyUnit);
+        AssertThat(
+                assessment.BattleConfig.EnemyDeck.Any(entry => entry.CardId == CardIds.TrainingTarget)
+            )
+            .IsFalse();
+        AssertThat(assessment.BattleConfig.LoanerPlayerDeck.Select(entry => entry.CardId))
+            .Contains(CardIds.NeutralStarterUnit);
+        AssertThat(assessment.BattleConfig.LoanerPlayerDeck.Select(entry => entry.CardId))
+            .Contains(CardIds.MagicBolt);
     }
 
     [TestCase]

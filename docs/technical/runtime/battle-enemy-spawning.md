@@ -1,131 +1,125 @@
-# Battle Enemy Spawning Patterns
+# Battle Side Spawning Patterns
 
-This document describes the two different ways enemies are spawned in battles.
+Battle runtime now resolves each team from a side definition:
 
-## Pattern 1: Pre-loaded Enemy Deck (Standard Battles)
+```text
+battle_config.player_side / enemy_side
+    -> BattleSideResolver
+    -> ResolvedBattleSide
+    -> SimulationNode.RegisterBattleSide()
+    -> MatchState.Summoners[team]
+```
 
-Most battles use a pre-loaded enemy deck that's configured in `Campaign.cs` (`scripts/csharp/Meta/Services/Campaign.cs`).
+`MatchState` remains pure runtime state. Authoring/profile/multiplayer data is resolved before it is loaded into the simulation.
 
-**Battle Configuration:**
+## Standard Trainer Battle
+
+Most battles use an authored enemy side with a summoner, deck, and trainer AI controller:
+
 ```gdscript
-_battles["first_trial"] = {
-    "id": "first_trial",
-    "enemy_deck": [
-        {"catalog_id": "slime_green", "count": 1}
-    ],
-    "enemy_hp": 30.0,
-    // Optional win condition (defaults to DESTROY_INCARNATION)
-    "win_condition": WinConditionIDs.DESTROY_INCARNATION,
-    "time_limit": 60.0,  // Required for SURVIVE_TIME, TIMED_DESTROY
-    "kill_target": 10,   // Required for KILL_COUNT
-    // ... other config
+{
+    "enemy_side": {
+        "team": 1,
+        "source": "authored",
+        "summoner": {
+            "source": "authored",
+            "id": "first_trial_enemy",
+            "display_name": "First Trial Enemy",
+            "hp": 30.0,
+            "max_hp": 30.0,
+            "mana": 100.0,
+            "max_mana": 100.0,
+            "cast_speed": 1.0,
+            "damage_bonus": 0.0,
+            "damage_reduction": 0.0,
+            "soul_strength": 0.0
+        },
+        "deck": {
+            "source": "authored",
+            "cards": [
+                {"catalog_id": "weak_enemy_unit", "count": 2}
+            ]
+        },
+        "controller": {
+            "kind": "trainer_ai",
+            "ai_type": "simple",
+            "ai_difficulty": 1,
+            "ai_config": {
+                "play_interval_min": 5.0,
+                "play_interval_max": 8.0
+            }
+        }
+    }
 }
 ```
 
-**How it works:**
-1. `EnemyDeckLoader.load_enemy_deck_for_battle()` reads `enemy_deck` from battle config
-2. Creates Card resources for each entry
-3. `Summoner` (enemy) loads these cards using `BATTLE_CONTEXT` strategy
-4. Enemy plays cards from deck according to AI behavior
+Use this for normal opponents that should play legal cards from their authored deck.
 
-**When to use:**
-- Standard battles where enemy has a deck and plays cards like the player
-- Arena battles, endless mode, practice mode
+## Scripted Encounter Battle
 
----
+Special encounters use an authored side with a deferred or empty deck and an encounter AI controller:
 
-## Pattern 2: Event Sequence Spawning (Tutorial/Scripted Battles)
-
-Some battles (especially tutorials) use the event sequence system to spawn enemies at specific moments via dialogue/events.
-
-**Battle Configuration:**
 ```gdscript
-_battles["charge_tutorial"] = {
-    "id": "charge_tutorial",
-    "enemy_deck": [],  // IMPORTANT: Empty array, NOT omitted!
-    "enemy_hp": 50.0,
-    "event_sequence": "res://resources/sequences/charge_tutorial.tres",
-    // ... other config
+{
+    "enemy_side": {
+        "team": 1,
+        "source": "authored",
+        "summoner": {
+            "source": "authored",
+            "id": "training_trial",
+            "display_name": "Training Trial",
+            "hp": 50.0,
+            "max_hp": 50.0,
+            "mana": 100.0,
+            "max_mana": 100.0,
+            "cast_speed": 1.0
+        },
+        "deck": {
+            "source": "authored",
+            "deferred": true,
+            "cards": []
+        },
+        "controller": {
+            "kind": "encounter_ai",
+            "ai_type": "none",
+            "encounter_ai": {
+                "preset": "scripted_encounter",
+                "team": 1,
+                "use_trainer_ai": false,
+                "rules": []
+            }
+        }
+    }
 }
 ```
 
-**How it works:**
-1. `enemy_deck` is intentionally set to `[]` (empty array)
-2. `event_sequence` points to an EventSequence resource
-3. `Summoner` auto-detects this pattern and switches to `DEFERRED` deck loading strategy
-4. `BattleDialogueController` or `EventSequencer` spawns enemies manually via actions
-5. Example: `_spawn_tutorial_enemy()` creates and spawns units directly
+Use this for training props, waves, rituals, objectives, or battles that do not represent a normal trainer deck.
 
-**When to use:**
-- Tutorial battles with scripted enemy spawns
-- Story battles with timed enemy waves
-- Any battle where enemy spawn timing needs to be controlled by dialogue/events
+## Player Loaner Deck
 
----
-
-## Critical Implementation Details
-
-### Auto-Detection in SummonerVisual
-
-The enemy summoner automatically detects event_sequence battles:
+Player summoner stats can still come from profile while the deck is authored:
 
 ```gdscript
-// SummonerVisual detects event_sequence battles
-if team == UnitVisual.Team.ENEMY and deck_load_strategy == DeckLoadStrategy.BATTLE_CONTEXT:
-    if BattleContext.battle_config.has("event_sequence") and
-       BattleContext.battle_config.has("enemy_deck"):
-        var enemy_deck_array: Array = BattleContext.battle_config.get("enemy_deck")
-        if enemy_deck_array.is_empty():
-            // Switch to DEFERRED - no deck needed
-            deck_load_strategy = DeckLoadStrategy.DEFERRED
-```
-
-### Requirements for Event Sequence Battles
-
-**MUST do:**
-- Include `"enemy_deck": []` (empty array) in battle config
-- Include `"event_sequence": "path/to/sequence.tres"` in battle config
-- Spawn enemies manually via event actions
-
-**DO NOT:**
-- Omit the `enemy_deck` key entirely
-- Put cards in `enemy_deck` if using event_sequence
-- Expect enemy to play cards from a deck
-
----
-
-## Common Mistakes to Avoid
-
-❌ **Wrong:** Omitting enemy_deck key
-```gdscript
-_battles["my_battle"] = {
-    "event_sequence": "res://my_sequence.tres",
-    // Missing enemy_deck!
+{
+    "player_side": {
+        "team": 0,
+        "source": "profile",
+        "summoner": {"source": "profile"},
+        "deck": {
+            "source": "authored",
+            "cards": [
+                {"catalog_id": "neutral_starter_unit", "count": 2}
+            ]
+        },
+        "controller": {"kind": "player"}
+    }
 }
 ```
-
-❌ **Wrong:** Having both populated deck and event_sequence
-```gdscript
-_battles["my_battle"] = {
-    "enemy_deck": [{"catalog_id": "slime", "count": 1}],  // Confusing!
-    "event_sequence": "res://my_sequence.tres",
-}
-```
-
-✅ **Correct:** Empty deck with event_sequence
-```gdscript
-_battles["my_battle"] = {
-    "enemy_deck": [],  // Empty - enemies spawned via events
-    "event_sequence": "res://my_sequence.tres",
-}
-```
-
----
 
 ## Related Files
 
-- `scripts/csharp/Meta/Services/Campaign.cs` - Battle definitions
-- `scripts/csharp/Battle/View/SummonerVisual.cs` - Deck loading strategy auto-detection
-- `scripts/csharp/Battle/View/BattleScene.cs` - Deck loading and win condition handling
-- `scripts/battle/battle_dialogue_controller.gd` - Handles event_sequence playback
-- `scripts/infrastructure/data/win_condition_ids.gd` - Win condition type constants
+- `scripts/csharp/Battle/Session/BattleSideConfig.cs`
+- `scripts/csharp/Battle/Session/BattleSideResolver.cs`
+- `scripts/csharp/Battle/Session/BattleSessionConfig.cs`
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
+- `scripts/csharp/Meta/Services/Campaign/Handlers/AcademyProgressHandler.cs`

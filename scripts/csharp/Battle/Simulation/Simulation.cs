@@ -87,8 +87,9 @@ public class Simulation
             events.Add(new MatchTimeUpdatedEvent(_state.MatchTime));
         }
 
-        // Step 1.5: Tick AI (produces PlayCardCommands into PendingCommandBuffer)
-        SimAi.Tick(_state, fixedDelta);
+        // Step 1.5: Tick unified encounter AI. Direct simulation tests without
+        // battle-side setup can still exercise the base SimAi path.
+        EncounterAi.Tick(_state, fixedDelta);
 
         // Step 2: Drain and execute due commands
         DrainCommands(events);

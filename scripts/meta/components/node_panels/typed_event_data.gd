@@ -73,7 +73,14 @@ var is_tutorial: bool:
 
 ## Enemy HP for battle display
 var enemy_hp: float:
-	get: return _float("enemy_hp", 0.0)
+	get:
+		var enemy_side: Variant = _data.get("enemy_side", {})
+		if not enemy_side is Dictionary:
+			return 0.0
+		var summoner: Variant = enemy_side.get("summoner", {})
+		if not summoner is Dictionary:
+			return 0.0
+		return SafeTypeUtils.float_val(summoner.get("hp", 0.0), 0.0)
 
 # =============================================================================
 # REWARD PROPERTIES

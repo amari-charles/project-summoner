@@ -61,7 +61,7 @@ Maintain a dedicated scoping roadmap that turns fuzzy remaining production work 
 - [ ] Build current runtime spell/VFX inventory table.
 - [ ] Decide Year 1 spell VFX minimum count and first-pass four-element VFX count.
 - [ ] Assign initial spells to reusable VFX archetypes.
-- [ ] Draft Academy Year 1 course and reward matrix.
+- [ ] Draft Academy Year 1 course and reward matrix. Progress: Magic 101 playtest structure, rewards, and validation docs are in PR #348; remaining Year 1 courses still need the same treatment.
 - [ ] Inventory item/equipment catalog gaps and reward placement.
 - [ ] Inventory upgrade/trait catalog gaps and special-resource cost policy.
 - [ ] Convert scoped groups into smaller implementation TODOs.
