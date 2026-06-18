@@ -39,6 +39,7 @@ var _is_panning: bool = false
 var _pan_start_position: Vector2 = Vector2.ZERO
 var _last_mouse_position: Vector2 = Vector2.ZERO
 var _pending_activity: Dictionary = {}
+var _scene_transition_override: Callable = Callable()
 
 func _ready() -> void:
 	exit_button.text = Loc.t("academy.location.exit")
@@ -231,11 +232,11 @@ func _start_activity(activity: Dictionary) -> void:
 			activity_modal.visible = true
 			return
 
-		var battle_config: Dictionary = CampaignApi.resolve_academy_activity_battle_config(_course_id, activity_id)
-		if battle_config.is_empty():
-			battle_config = SafeTypeUtils.dict(activity.get("battle_config"))
-		BattleContext.configure_academy_battle(_course_id, activity_id, battle_config)
-		SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+			var battle_config: Dictionary = CampaignApi.resolve_academy_activity_battle_config(_course_id, activity_id)
+			if battle_config.is_empty():
+				battle_config = SafeTypeUtils.dict(activity.get("battle_config"))
+			BattleContext.configure_academy_battle(_course_id, activity_id, battle_config)
+			_transition_to(SceneManager.SCENE_BATTLE_3D)
 	else:
 		var activity_id: String = SafeTypeUtils.string(activity.get("id"))
 		CampaignApi.complete_academy_activity(_course_id, activity_id, true)
@@ -256,7 +257,7 @@ func _build_activity_modal_actions() -> void:
 func _on_edit_deck_pressed() -> void:
 	BattleContext.select_academy_course(_course_id)
 	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_COURSE_PATH)
-	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
+	_transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
 
 func _build_reward_modal() -> void:
 	_reward_modal = Control.new()
@@ -488,4 +489,10 @@ func _clear_children(node: Node) -> void:
 		child.queue_free()
 
 func _on_exit_pressed() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CLASS_HALL)
+	_transition_to(SceneManager.SCENE_ACADEMY_CLASS_HALL)
+
+func _transition_to(scene_path: String) -> void:
+	if _scene_transition_override.is_valid():
+		_scene_transition_override.call(scene_path)
+		return
+	SceneManager.transition_to(scene_path)
