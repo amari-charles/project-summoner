@@ -118,6 +118,9 @@ Major design choices and their rationale.
 - Event/shop rewards = optionally account-wide `[Shared]`
 - Shared content locked for campaign use
 
+### Meta Hub
+- **[Walkable Academy Hub](design/walkable-academy-hub.md)** - Academy moves from a menu screen to a bounded **walkable hub** (not an open world); menu shortcuts to all locations always exist, so walking is optional. Social-first rationale; phased toward shared real-time presence.
+
 ---
 
 ## Content Documentation

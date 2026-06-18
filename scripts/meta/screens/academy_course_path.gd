@@ -15,6 +15,13 @@ class_name AcademyCoursePath
 @onready var modal_cancel_button: Button = %ModalCancelButton
 @onready var modal_continue_button: Button = %ModalContinueButton
 
+var _reward_modal: Control
+var _reward_title_label: Label
+var _reward_body_label: Label
+var _reward_items_container: VBoxContainer
+var _reward_continue_button: Button
+var _modal_edit_deck_button: Button
+
 const NODE_SIZE: Vector2 = Vector2(118, 118)
 const NODE_GAP: float = 230.0
 const MAP_PADDING: Vector2 = Vector2(260.0, 180.0)
@@ -32,6 +39,7 @@ var _is_panning: bool = false
 var _pan_start_position: Vector2 = Vector2.ZERO
 var _last_mouse_position: Vector2 = Vector2.ZERO
 var _pending_activity: Dictionary = {}
+var _scene_transition_override: Callable = Callable()
 
 func _ready() -> void:
 	exit_button.text = Loc.t("academy.location.exit")
@@ -41,6 +49,8 @@ func _ready() -> void:
 	modal_continue_button.text = Loc.t("academy.course_path.continue")
 	modal_cancel_button.pressed.connect(_hide_activity_modal)
 	modal_continue_button.pressed.connect(_on_modal_continue_pressed)
+	_build_activity_modal_actions()
+	_build_reward_modal()
 
 	_course_id = BattleContext.academy_course_id
 	if _course_id.is_empty():
@@ -63,6 +73,7 @@ func _refresh() -> void:
 	rewards_label.text = _reward_preview_text(SafeTypeUtils.array(_course.get("reward_previews")))
 	_render_path()
 	call_deferred("_center_path_view")
+	call_deferred("_show_reward_summary_if_available")
 
 func _render_path() -> void:
 	_clear_children(path_canvas)
@@ -111,7 +122,7 @@ func _path_viewport_size() -> Vector2:
 	return get_viewport_rect().size
 
 func _input(event: InputEvent) -> void:
-	if activity_modal.visible:
+	if activity_modal.visible or (_reward_modal != null and _reward_modal.visible):
 		return
 
 	if event is InputEventMouseButton:
@@ -194,6 +205,8 @@ func _show_activity_modal(activity: Dictionary) -> void:
 	modal_type_label.text = _activity_type_text(activity)
 	modal_body_label.text = _activity_modal_body(activity)
 	modal_continue_button.visible = SafeTypeUtils.bool_val(activity.get("can_start"), false)
+	if _modal_edit_deck_button != null:
+		_modal_edit_deck_button.visible = _activity_uses_battle(activity)
 	activity_modal.visible = true
 
 func _hide_activity_modal() -> void:
@@ -211,13 +224,141 @@ func _start_activity(activity: Dictionary) -> void:
 	var activity_type: String = SafeTypeUtils.string(activity.get("type"))
 	if activity_type == "PracticeBattle" or activity_type == "AssessmentBattle":
 		var activity_id: String = SafeTypeUtils.string(activity.get("id"), _course_id)
-		var battle_config: Dictionary = SafeTypeUtils.dict(activity.get("battle_config"))
+		var launch_state: Dictionary = CampaignApi.get_academy_activity_launch_state(_course_id, activity_id)
+		var deck_validation: Dictionary = SafeTypeUtils.dict(launch_state.get("deck_validation"))
+		if not SafeTypeUtils.bool_val(deck_validation.get("is_valid"), true):
+			_pending_activity = launch_state
+			modal_body_label.text = _activity_modal_body(launch_state)
+			activity_modal.visible = true
+			return
+
+		var battle_config: Dictionary = CampaignApi.resolve_academy_activity_battle_config(_course_id, activity_id)
+		if battle_config.is_empty():
+			battle_config = SafeTypeUtils.dict(activity.get("battle_config"))
 		BattleContext.configure_academy_battle(_course_id, activity_id, battle_config)
-		SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
+		_transition_to(SceneManager.SCENE_BATTLE_3D)
 	else:
 		var activity_id: String = SafeTypeUtils.string(activity.get("id"))
 		CampaignApi.complete_academy_activity(_course_id, activity_id, true)
 		_refresh()
+
+func _build_activity_modal_actions() -> void:
+	_modal_edit_deck_button = Button.new()
+	_modal_edit_deck_button.custom_minimum_size = Vector2(130, 40)
+	_modal_edit_deck_button.text = Loc.t("academy.course_path.edit_deck")
+	_modal_edit_deck_button.visible = false
+	_modal_edit_deck_button.pressed.connect(_on_edit_deck_pressed)
+
+	var action_parent: Node = modal_continue_button.get_parent()
+	if action_parent != null:
+		action_parent.add_child(_modal_edit_deck_button)
+		action_parent.move_child(_modal_edit_deck_button, maxi(0, modal_continue_button.get_index()))
+
+func _on_edit_deck_pressed() -> void:
+	BattleContext.select_academy_course(_course_id)
+	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_COURSE_PATH)
+	_transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
+
+func _build_reward_modal() -> void:
+	_reward_modal = Control.new()
+	_reward_modal.visible = false
+	_reward_modal.mouse_filter = Control.MOUSE_FILTER_STOP
+	_reward_modal.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_reward_modal)
+
+	var scrim: ColorRect = ColorRect.new()
+	scrim.color = Color(0, 0, 0, 0.62)
+	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_reward_modal.add_child(scrim)
+
+	var center: CenterContainer = CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_PASS
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_reward_modal.add_child(center)
+
+	var panel: PanelContainer = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(520, 240)
+	panel.add_theme_stylebox_override("panel", _panel_style(Color(0.105, 0.12, 0.10, 1.0)))
+	center.add_child(panel)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	panel.add_child(margin)
+
+	var root: VBoxContainer = VBoxContainer.new()
+	root.add_theme_constant_override("separation", 14)
+	margin.add_child(root)
+
+	_reward_title_label = Label.new()
+	_reward_title_label.text = Loc.t("academy.course_path.reward_title")
+	_reward_title_label.add_theme_font_size_override("font_size", 30)
+	root.add_child(_reward_title_label)
+
+	_reward_body_label = Label.new()
+	_reward_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reward_body_label.add_theme_font_size_override("font_size", 16)
+	root.add_child(_reward_body_label)
+
+	_reward_items_container = VBoxContainer.new()
+	_reward_items_container.add_theme_constant_override("separation", 6)
+	_reward_items_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(_reward_items_container)
+
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.alignment = BoxContainer.ALIGNMENT_END
+	root.add_child(actions)
+
+	_reward_continue_button = Button.new()
+	_reward_continue_button.custom_minimum_size = Vector2(150, 40)
+	_reward_continue_button.text = Loc.t("academy.course_path.continue")
+	_reward_continue_button.pressed.connect(_hide_reward_modal)
+	actions.add_child(_reward_continue_button)
+
+func _show_reward_summary_if_available() -> void:
+	var summary: Dictionary = CampaignApi.consume_last_academy_completion_summary()
+	if summary.is_empty():
+		return
+
+	var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
+	if rewards.is_empty():
+		return
+
+	_show_reward_modal(summary, rewards)
+
+func _show_reward_modal(summary: Dictionary, rewards: Array) -> void:
+	_clear_children(_reward_items_container)
+	var completed_course: bool = SafeTypeUtils.bool_val(summary.get("completed_course"), false)
+	_reward_body_label.text = Loc.t(
+		"academy.course_path.reward_body_course" if completed_course else "academy.course_path.reward_body_activity"
+	)
+
+	for item: Variant in rewards:
+		var reward: Dictionary = SafeTypeUtils.dict(item)
+		var label: Label = Label.new()
+		label.text = Loc.t("academy.course_path.reward_item", {"reward": _granted_reward_name(reward)})
+		label.add_theme_font_size_override("font_size", 18)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_reward_items_container.add_child(label)
+
+	_reward_modal.visible = true
+
+func _hide_reward_modal() -> void:
+	_reward_modal.visible = false
+
+func _granted_reward_name(reward: Dictionary) -> String:
+	var label_key: String = SafeTypeUtils.string(reward.get("label_key"))
+	if not label_key.is_empty():
+		return Loc.t(label_key)
+
+	var card_id: String = SafeTypeUtils.string(reward.get("card_id"))
+	if not card_id.is_empty():
+		return Loc.t("card.%s.name" % card_id)
+
+	return SafeTypeUtils.string(reward.get("kind"), Loc.t("academy.course_path.reward_fallback"))
 
 func _activity_type_text(activity: Dictionary) -> String:
 	var activity_type: String = SafeTypeUtils.string(activity.get("type"))
@@ -242,12 +383,48 @@ func _activity_modal_body(activity: Dictionary) -> String:
 		return "\n\n".join(parts)
 	if activity_type == "PracticeBattle":
 		parts.append(Loc.t("academy.course_path.practice_body"))
+		_append_activity_limitations(parts, activity)
 		return "\n\n".join(parts)
 	if activity_type == "AssessmentBattle":
 		parts.append(Loc.t("academy.course_path.assessment_body"))
+		_append_activity_limitations(parts, activity)
 		return "\n\n".join(parts)
 	parts.append(Loc.t("academy.course_path.lesson_body"))
+	_append_activity_limitations(parts, activity)
 	return "\n\n".join(parts)
+
+func _append_activity_limitations(parts: Array[String], activity: Dictionary) -> void:
+	var summaries: Array = SafeTypeUtils.array(activity.get("limitation_summary"))
+	if not summaries.is_empty():
+		var summary_lines: Array[String] = []
+		for item: Variant in summaries:
+			var line: String = SafeTypeUtils.string(item)
+			if not line.is_empty():
+				summary_lines.append("- %s" % line)
+		if not summary_lines.is_empty():
+			parts.append("%s\n%s" % [Loc.t("academy.course_path.class_rules"), "\n".join(summary_lines)])
+
+	var deck_validation: Dictionary = SafeTypeUtils.dict(activity.get("deck_validation"))
+	if not deck_validation.is_empty():
+		var limitations: Dictionary = SafeTypeUtils.dict(activity.get("limitations"))
+		var has_rules: bool = SafeTypeUtils.bool_val(limitations.get("has_rules"), false)
+		var validation_message: String = SafeTypeUtils.string(deck_validation.get("message"))
+		var invalid_reasons: Array = SafeTypeUtils.array(deck_validation.get("invalid_reasons"))
+		if not has_rules and invalid_reasons.is_empty():
+			return
+		var status_lines: Array[String] = []
+		if not validation_message.is_empty():
+			status_lines.append(validation_message)
+		for item: Variant in invalid_reasons:
+			var reason: String = SafeTypeUtils.string(item)
+			if not reason.is_empty():
+				status_lines.append("- %s" % reason)
+		if not status_lines.is_empty():
+			parts.append("%s\n%s" % [Loc.t("academy.course_path.deck_status"), "\n".join(status_lines)])
+
+func _activity_uses_battle(activity: Dictionary) -> bool:
+	var activity_type: String = SafeTypeUtils.string(activity.get("type"))
+	return activity_type == "PracticeBattle" or activity_type == "AssessmentBattle"
 
 func _node_state_text(is_done: bool, is_current: bool, is_locked: bool) -> String:
 	if is_done:
@@ -312,4 +489,10 @@ func _clear_children(node: Node) -> void:
 		child.queue_free()
 
 func _on_exit_pressed() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CLASS_HALL)
+	_transition_to(SceneManager.SCENE_ACADEMY_CLASS_HALL)
+
+func _transition_to(scene_path: String) -> void:
+	if _scene_transition_override.is_valid():
+		_scene_transition_override.call(scene_path)
+		return
+	SceneManager.transition_to(scene_path)

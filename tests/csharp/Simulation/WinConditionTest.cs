@@ -54,6 +54,19 @@ public class WinConditionTest
         AssertThat(result!.WinnerTeam).IsEqual(0);
     }
 
+    [TestCase]
+    public void DestroySummoner_Team1ZeroHp_Team0Wins()
+    {
+        _state.Summoners[1].CurrentHp = 0f;
+        _state.Summoners[1].IsAlive = true;
+        var wc = new DestroySummonerWinCondition();
+
+        var result = wc.Evaluate(_state);
+
+        AssertThat(result).IsNotNull();
+        AssertThat(result!.WinnerTeam).IsEqual(0);
+    }
+
     // =========================================================================
     // SurviveTime
     // =========================================================================
@@ -191,6 +204,15 @@ public class WinConditionTest
     public void Parse_DestroyBase_ReturnsDestroySummoner()
     {
         AssertThat(WinConditionFactory.Parse("destroy_base"))
+            .IsEqual(WinConditionType.DestroySummoner);
+    }
+
+    [TestCase]
+    public void Parse_DestroySummonerAliases_ReturnDestroySummoner()
+    {
+        AssertThat(WinConditionFactory.Parse("DESTROY_SUMMONER"))
+            .IsEqual(WinConditionType.DestroySummoner);
+        AssertThat(WinConditionFactory.Parse(" summoner_destroyed "))
             .IsEqual(WinConditionType.DestroySummoner);
     }
 

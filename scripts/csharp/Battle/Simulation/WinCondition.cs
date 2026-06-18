@@ -165,7 +165,7 @@ internal static class WinConditionHelper
     {
         for (int i = 0; i < state.Summoners.Length; i++)
         {
-            if (!state.Summoners[i].IsAlive)
+            if (!state.Summoners[i].IsAlive || state.Summoners[i].CurrentHp <= 0f)
             {
                 int winner = i == (int)Team.Player ? (int)Team.Enemy : (int)Team.Player;
                 return new WinConditionResult(winner, WinReason.SummonerDestroyed);
@@ -204,9 +204,13 @@ public static class WinConditionFactory
     /// </summary>
     public static WinConditionType Parse(string value)
     {
-        return value switch
+        var normalized = (value ?? string.Empty).Trim().ToLowerInvariant();
+        return normalized switch
         {
             "destroy_base" => WinConditionType.DestroySummoner,
+            "destroy_summoner" => WinConditionType.DestroySummoner,
+            "summoner_destroyed" => WinConditionType.DestroySummoner,
+            "summoner_destroyed_win_condition" => WinConditionType.DestroySummoner,
             "survive_time" => WinConditionType.SurviveTime,
             "timed_destroy" => WinConditionType.TimedDestroy,
             "kill_count" => WinConditionType.KillCount,

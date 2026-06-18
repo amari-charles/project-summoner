@@ -8,9 +8,12 @@ using Fateforged.Data.Academy;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Decks;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Campaign.Handlers;
+using Fateforged.Meta.Deck;
 using GdUnit4;
 using Godot;
 using static GdUnit4.Assertions;
@@ -103,6 +106,274 @@ public class AcademyProgressServiceTest
         AssertThat(trackCourse["group_title_key"].AsString())
             .IsEqual("academy.class_hall.track_foundation");
         AssertThat(trackCourse["group_sort_order"].AsInt32()).IsGreater(20);
+    }
+
+    [TestCase]
+    public void GetAcademyCourse_ExposesActivityLimitationViewFields()
+    {
+        var repo = CreateRepo("academy_activity_limitations_stub_fields");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "Spellcraft Deck", CardIds.Charge);
+
+        var course = service.GetAcademyCourse((string)CourseIds.PracticalSpellcraft);
+        var activities = course["activities"].AsGodotArray();
+        var practice = activities
+            .Select(item => item.AsGodotDictionary())
+            .First(activity => activity["id"].AsString() == "practical_spellcraft_practice");
+
+        var limitations = practice["limitations"].AsGodotDictionary();
+        AssertThat(limitations["has_rules"].AsBool()).IsTrue();
+        AssertThat(limitations["min_summons"].AsInt32()).IsEqual(1);
+        AssertThat(limitations["min_spells"].AsInt32()).IsEqual(2);
+        AssertThat(limitations["max_deck_size"].AsInt32()).IsEqual(12);
+        AssertThat(limitations["additional_loaner_cards"].AsGodotArray()).HasSize(2);
+
+        AssertThat(practice["limitation_summary"].AsGodotArray()).IsNotEmpty();
+        var deckValidation = practice["deck_validation"].AsGodotDictionary();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsTrue();
+        AssertThat(deckValidation["status"].AsString()).IsEqual("valid");
+        AssertThat(practice["invalid_reasons"].AsGodotArray()).IsEmpty();
+    }
+
+    [TestCase]
+    public void GetAcademyActivityLaunchState_ReturnsValidityAndDeckSummary()
+    {
+        var repo = CreateRepo("academy_activity_limitations_launch_state");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        var deckId = SetActiveDeck(repo, "Spellcraft Deck", CardIds.Charge);
+
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice"
+        );
+
+        AssertThat(state["id"].AsString()).IsEqual("practical_spellcraft_practice");
+        AssertThat(state["limitations"].AsGodotDictionary()["has_rules"].AsBool()).IsTrue();
+        AssertThat(state["deck_validation"].AsGodotDictionary()["is_valid"].AsBool()).IsTrue();
+        AssertThat(state["selected_deck"].AsGodotDictionary()["id"].AsString()).IsEqual(deckId);
+    }
+
+    [TestCase]
+    public void ResolveAcademyActivityBattleConfig_PreservesExistingLoanerConfigForUnrestrictedBattle()
+    {
+        var repo = CreateRepo("academy_activity_limitations_resolve_stub");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        var config = service.ResolveAcademyActivityBattleConfig(
+            (string)CourseIds.IntroductionToMagic101,
+            "magic_101_spell_practice"
+        );
+
+        AssertThat(config.ContainsKey("enemy_side")).IsTrue();
+        AssertThat(config.ContainsKey("player_side")).IsTrue();
+        var playerSide = config["player_side"].AsGodotDictionary();
+        var deck = playerSide["deck"].AsGodotDictionary();
+        AssertThat(deck["source"].AsString()).IsEqual("authored");
+        AssertThat(deck["cards"].AsGodotArray()).HasSize(2);
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_InvalidDeckReportsSpecificReasonsAndBlocksStart()
+    {
+        var repo = CreateRepo("academy_activity_limitations_invalid_deck");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "No Spell Deck", CardIds.NeutralStarterUnit);
+
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice"
+        );
+
+        var deckValidation = state["deck_validation"].AsGodotDictionary();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
+        AssertThat(deckValidation["status"].AsString()).IsEqual("invalid");
+        AssertThat(state["can_start"].AsBool()).IsFalse();
+
+        var reasons = deckValidation["invalid_reasons"].AsGodotArray();
+        AssertThat(reasons.Select(reason => reason.AsString()).Any(reason =>
+                reason.Contains("spell card")
+            ))
+            .IsTrue();
+        AssertThat(reasons.Select(reason => reason.AsString()).Any(reason =>
+                reason.Contains("required card")
+            ))
+            .IsTrue();
+
+        AssertThat(
+                service.ResolveAcademyActivityBattleConfig(
+                    (string)CourseIds.PracticalSpellcraft,
+                    "practical_spellcraft_practice"
+                )
+            )
+            .IsEmpty();
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_AllowedTypesAndBannedCardsRejectSpellInSummonClass()
+    {
+        var repo = CreateRepo("academy_activity_limitations_summon_only");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "Spell In Summon Class", CardIds.FireWisp, CardIds.MagicBolt);
+
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.SummoningBasics,
+            "summoning_basics_practice"
+        );
+
+        var deckValidation = state["deck_validation"].AsGodotDictionary();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
+
+        var reasons = deckValidation["invalid_reasons"].AsGodotArray()
+            .Select(reason => reason.AsString())
+            .ToArray();
+        AssertThat(reasons.Any(reason => reason.Contains("allowed card type"))).IsTrue();
+        AssertThat(reasons.Any(reason => reason.Contains("banned card"))).IsTrue();
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_RestrictedPlayerDeckRequiresActiveDeck()
+    {
+        var repo = CreateRepo("academy_activity_limitations_missing_active_deck");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.SummoningBasics,
+            "summoning_basics_practice"
+        );
+
+        var deckValidation = state["deck_validation"].AsGodotDictionary();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
+        AssertThat(
+                deckValidation["invalid_reasons"].AsGodotArray()
+                    .Select(reason => reason.AsString())
+                    .Any(reason => reason.Contains("active deck"))
+            )
+            .IsTrue();
+        AssertThat(
+                service.ResolveAcademyActivityBattleConfig(
+                    (string)CourseIds.SummoningBasics,
+                    "summoning_basics_practice"
+                )
+            )
+            .IsEmpty();
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_ElementRulesAllowCourseElementAndNeutralOnly()
+    {
+        var repo = CreateRepo("academy_activity_limitations_element_rule");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "Wrong Element Deck", CardIds.WaterWisp, CardIds.NeutralStarterUnit);
+
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.IntroToFire,
+            "intro_fire_practice"
+        );
+
+        var deckValidation = state["deck_validation"].AsGodotDictionary();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
+
+        var reasons = deckValidation["invalid_reasons"].AsGodotArray()
+            .Select(reason => reason.AsString())
+            .ToArray();
+        AssertThat(reasons.Any(reason => reason.Contains("allowed element"))).IsTrue();
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_MaxDeckSizeCountsPlayerAndLoanerCards()
+    {
+        var repo = CreateRepo("academy_activity_limitations_max_size");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "Oversized Spellcraft Deck", Enumerable.Repeat(CardIds.Charge, 12).ToArray());
+
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice"
+        );
+
+        var deckValidation = state["deck_validation"].AsGodotDictionary();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
+        AssertThat(
+                deckValidation["invalid_reasons"].AsGodotArray()
+                    .Select(reason => reason.AsString())
+                    .Any(reason => reason.Contains("at most 12"))
+            )
+            .IsTrue();
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_PlayerPlusLoanersResolvesStableAuthoredDeck()
+    {
+        var repo = CreateRepo("academy_activity_limitations_composed_deck");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "Mixed Spellcraft Deck", CardIds.FireWisp, CardIds.Charge);
+
+        var config = service.ResolveAcademyActivityBattleConfig(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice"
+        );
+
+        var playerSide = config["player_side"].AsGodotDictionary();
+        var deck = playerSide["deck"].AsGodotDictionary();
+        var cards = deck["cards"].AsGodotArray().Select(item => item.AsGodotDictionary()).ToList();
+
+        AssertThat(deck["source"].AsString()).IsEqual("authored");
+        AssertThat(cards.Select(card => card["catalog_id"].AsString()).ToArray())
+            .Contains((string)CardIds.FireWisp);
+        AssertThat(cards.Select(card => card["catalog_id"].AsString()).ToArray())
+            .Contains((string)CardIds.NeutralStarterUnit);
+        AssertThat(cards.Select(card => card["catalog_id"].AsString()).ToArray())
+            .Contains((string)CardIds.MagicBolt);
+
+        var magicBolt = cards.First(card => card["catalog_id"].AsString() == (string)CardIds.MagicBolt);
+        AssertThat(magicBolt["count"].AsInt32()).IsEqual(1);
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_ComposedDeckOrderIsDeterministic()
+    {
+        var repo = CreateRepo("academy_activity_limitations_deterministic");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "Deterministic Spellcraft Deck", CardIds.FireWisp, CardIds.Charge);
+
+        var first = ResolvedPlayerCardSignature(
+            service.ResolveAcademyActivityBattleConfig(
+                (string)CourseIds.PracticalSpellcraft,
+                "practical_spellcraft_practice"
+            )
+        );
+        var second = ResolvedPlayerCardSignature(
+            service.ResolveAcademyActivityBattleConfig(
+                (string)CourseIds.PracticalSpellcraft,
+                "practical_spellcraft_practice"
+            )
+        );
+
+        AssertThat(first).IsEqual(second);
+        AssertThat(first)
+            .IsEqual("fire_wisp:1|charge:1|neutral_starter_unit:1|magic_bolt:1");
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_FixedClassDeckIgnoresSelectedDeck()
+    {
+        var repo = CreateRepo("academy_activity_limitations_fixed_deck");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        SetActiveDeck(repo, "Ignored Deck", CardIds.FireWisp, CardIds.FireWisp);
+
+        var config = service.ResolveAcademyActivityBattleConfig(
+            (string)CourseIds.IntroductionToMagic101,
+            "magic_101_summon_practice"
+        );
+        var cards = config["player_side"]
+            .AsGodotDictionary()["deck"]
+            .AsGodotDictionary()["cards"]
+            .AsGodotArray()
+            .Select(item => item.AsGodotDictionary()["catalog_id"].AsString())
+            .ToArray();
+
+        AssertThat(cards).Contains((string)CardIds.NeutralStarterUnit);
+        AssertThat(cards).NotContains((string)CardIds.FireWisp);
     }
 
     [TestCase]
@@ -387,6 +658,95 @@ public class AcademyProgressServiceTest
         AssertThat(progress.Transcript).HasSize(1);
         AssertThat(granted).NotContains(CardIds.Puff);
         AssertThat(granted).NotContains(CardIds.ManaBolt);
+
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_assessment"
+                )
+            )
+            .IsFalse();
+        AssertThat(granted.Count(card => card == CardIds.NeutralStarterUnit)).IsEqual(1);
+        AssertThat(granted.Count(card => card == CardIds.MagicBolt)).IsEqual(1);
+    }
+
+    [TestCase]
+    public void CompleteAcademyActivity_RecordsNewRewardsForConsumeOnceSummary()
+    {
+        var repo = CreateRepo("academy_activity_reward_summary");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        service.SetCollectionCallbacks(
+            Callable.From((string catalogId, string _rarity) => $"test_{catalogId}")
+        );
+
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_summon_practice"
+                )
+            )
+            .IsTrue();
+        var emptyRewardSummary = service.GetLastAcademyCompletionSummary();
+        AssertThat(emptyRewardSummary["granted_rewards"].AsGodotArray()).IsEmpty();
+
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_basic_duel"
+                )
+            )
+            .IsTrue();
+
+        var summary = service.GetLastAcademyCompletionSummary();
+        AssertThat(summary["course_id"].AsString())
+            .IsEqual((string)CourseIds.IntroductionToMagic101);
+        AssertThat(summary["activity_id"].AsString()).IsEqual("magic_101_basic_duel");
+        AssertThat(summary["completed_course"].AsBool()).IsFalse();
+
+        var rewards = summary["granted_rewards"].AsGodotArray();
+        AssertThat(rewards).HasSize(1);
+        var reward = rewards[0].AsGodotDictionary();
+        AssertThat(reward["card_id"].AsString()).IsEqual((string)CardIds.NeutralStarterUnit);
+        AssertThat(reward["source_type"].AsString()).IsEqual("activity");
+
+        var consumed = service.ConsumeLastAcademyCompletionSummary();
+        AssertThat(consumed["granted_rewards"].AsGodotArray()).HasSize(1);
+        AssertThat(service.GetLastAcademyCompletionSummary()).IsEmpty();
+
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_basic_duel"
+                )
+            )
+            .IsTrue();
+        AssertThat(service.GetLastAcademyCompletionSummary()).IsEmpty();
+    }
+
+    [TestCase]
+    public void CompleteAcademyCourse_RecordsCourseRewardsForSummary()
+    {
+        var repo = CreateRepo("academy_course_reward_summary");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        CompleteIntroCourse(service);
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+        service.SetCollectionCallbacks(
+            Callable.From((string catalogId, string _rarity) => $"test_{catalogId}")
+        );
+
+        AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+
+        var summary = service.ConsumeLastAcademyCompletionSummary();
+        AssertThat(summary["course_id"].AsString()).IsEqual((string)CourseIds.SummoningBasics);
+        AssertThat(summary["activity_id"].AsString()).IsEmpty();
+        AssertThat(summary["completed_course"].AsBool()).IsTrue();
+
+        var rewards = summary["granted_rewards"].AsGodotArray();
+        AssertThat(rewards).HasSize(1);
+        var reward = rewards[0].AsGodotDictionary();
+        AssertThat(reward["card_id"].AsString()).IsEqual((string)CardIds.FireWisp);
+        AssertThat(reward["source_type"].AsString()).IsEqual("course");
     }
 
     [TestCase]
@@ -488,6 +848,52 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
+    public void CompleteAcademyCourse_ClaimedCourseRewardDoesNotGrantAgainAfterProgressRepair()
+    {
+        var repo = CreateRepo("academy_claimed_course_reward_repair");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        CompleteIntroCourse(service);
+        AssertThat(service.EnrollAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+
+        var granted = new List<CardId>();
+        service.SetCollectionCallbacks(
+            Callable.From(
+                (string catalogId, string _rarity) =>
+                {
+                    granted.Add(CardId.FromString(catalogId));
+                    return $"test_{catalogId}_{granted.Count}";
+                }
+            )
+        );
+
+        AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+        AssertThat(granted.Count(card => card == CardIds.FireWisp)).IsEqual(1);
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole);
+        progress.Academy.CompletedCourses.Remove(CourseIds.SummoningBasics);
+        progress.Academy.EnrolledCourses.Add(CourseIds.SummoningBasics);
+        repo.UpdateCampaignProgress(SummonerIds.Cole, progress);
+
+        AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
+
+        progress = repo.GetCampaignProgress(SummonerIds.Cole);
+        AssertThat(granted.Count(card => card == CardIds.FireWisp)).IsEqual(1);
+        AssertThat(progress.Academy.CourseRewardsClaimed).HasSize(1);
+
+        var course = service.GetAcademyCourse((string)CourseIds.SummoningBasics);
+        var rewardPreviews = course["reward_previews"].AsGodotArray();
+        var fireWispReward = rewardPreviews
+            .Select(item => item.AsGodotDictionary())
+            .First(reward =>
+                reward.TryGetValue("card_id", out var cardId)
+                && cardId.AsString() == (string)CardIds.FireWisp
+            );
+        AssertThat(fireWispReward["grant_state"].AsString()).IsEqual("claimed");
+        AssertThat(fireWispReward["is_grantable"].AsBool()).IsFalse();
+    }
+
+    [TestCase]
     public void CompleteAcademyActivity_PreviewOnlyRewardsCompleteWithoutGrantingCards()
     {
         var repo = CreateRepo("academy_preview_only_rewards");
@@ -547,6 +953,40 @@ public class AcademyProgressServiceTest
         if (!repo.IsSummonerUnlocked(SummonerIds.Cole))
             repo.UnlockSummoner(SummonerIds.Cole);
         return repo;
+    }
+
+    private static string SetActiveDeck(
+        ProfileRepository repo,
+        string deckName,
+        params CardId[] catalogIds
+    )
+    {
+        var granted = repo.GrantCards(catalogIds.Select(cardId => (cardId, "common")));
+        var deckId = repo.UpsertDeck(
+            new Deck
+            {
+                Id = DeckId.None,
+                Name = deckName,
+                SummonerId = SummonerIds.Cole,
+                CardInstanceIds = [.. granted],
+            }
+        );
+        repo.UpdateProfileMeta(new MetaUpdate { SelectedDeck = deckId.Value });
+        return deckId.Value;
+    }
+
+    private static string ResolvedPlayerCardSignature(Godot.Collections.Dictionary config)
+    {
+        var cards = config["player_side"]
+            .AsGodotDictionary()["deck"]
+            .AsGodotDictionary()["cards"]
+            .AsGodotArray()
+            .Select(item =>
+            {
+                var card = item.AsGodotDictionary();
+                return $"{card["catalog_id"].AsString()}:{card["count"].AsInt32()}";
+            });
+        return string.Join("|", cards);
     }
 
     private static void CompleteIntroCourse(CampaignService service)

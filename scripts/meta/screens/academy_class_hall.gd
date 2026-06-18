@@ -295,7 +295,9 @@ func _show_course_modal(course: Dictionary) -> void:
 	course_modal_meta_label.text = _compact_course_meta(course)
 	course_modal_description_label.text = _course_description(course)
 	course_modal_rewards_label.text = _reward_preview_text(SafeTypeUtils.array(course.get("reward_previews")))
-	course_modal_activities_label.text = _activities_preview_text(SafeTypeUtils.array(course.get("activities")))
+	var activities_text: String = _activities_preview_text(SafeTypeUtils.array(course.get("activities")))
+	var next_rules_text: String = _next_activity_rules_text(course)
+	course_modal_activities_label.text = activities_text if next_rules_text.is_empty() else "%s\n\n%s" % [activities_text, next_rules_text]
 
 	course_modal_action_button.visible = true
 	course_modal_action_button.disabled = false
@@ -405,6 +407,23 @@ func _activities_preview_text(activities: Array) -> String:
 		if not label_key.is_empty():
 			labels.append(Loc.t(label_key))
 	return Loc.t("academy.hub.activities", {"activities": " -> ".join(labels)})
+
+func _next_activity_rules_text(course: Dictionary) -> String:
+	var next_activity: Dictionary = SafeTypeUtils.dict(course.get("next_activity"))
+	var summaries: Array = SafeTypeUtils.array(next_activity.get("limitation_summary"))
+	if summaries.is_empty():
+		return ""
+
+	var lines: Array[String] = []
+	for item: Variant in summaries:
+		var summary: String = SafeTypeUtils.string(item)
+		if not summary.is_empty():
+			lines.append("- %s" % summary)
+
+	if lines.is_empty():
+		return ""
+
+	return "%s\n%s" % [Loc.t("academy.course_path.class_rules"), "\n".join(lines)]
 
 func _compact_course_meta(course: Dictionary) -> String:
 	var parts: Array[String] = [

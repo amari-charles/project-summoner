@@ -62,6 +62,7 @@ Maintain a dedicated scoping roadmap that turns fuzzy remaining production work 
 - [ ] Decide Year 1 spell VFX minimum count and first-pass four-element VFX count.
 - [ ] Assign initial spells to reusable VFX archetypes.
 - [ ] Draft Academy Year 1 course and reward matrix. Progress: Magic 101 playtest structure, rewards, and validation docs are in PR #348; remaining Year 1 courses still need the same treatment.
+- [ ] Add a Practical Spellcraft lesson/activity that clearly teaches spells cannot be played during the preparation phase, including UX feedback so players understand why the play is blocked. Progress: PR #349 adds activity-local class rules and a Practical Spellcraft constrained loadout; remaining scope is battle-time prep-phase UX feedback when spell play is blocked.
 - [ ] Inventory item/equipment catalog gaps and reward placement.
 - [ ] Inventory upgrade/trait catalog gaps and special-resource cost policy.
 - [ ] Convert scoped groups into smaller implementation TODOs.

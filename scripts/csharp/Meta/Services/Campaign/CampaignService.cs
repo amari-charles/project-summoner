@@ -569,6 +569,32 @@ public partial class CampaignService : Node
         return _academy?.GetCourse(courseId) ?? [];
     }
 
+    public Godot.Collections.Dictionary GetAcademyActivityLaunchState(
+        string courseId,
+        string activityId
+    )
+    {
+        return _academy?.GetActivityLaunchState(courseId, activityId) ?? [];
+    }
+
+    public Godot.Collections.Dictionary ResolveAcademyActivityBattleConfig(
+        string courseId,
+        string activityId
+    )
+    {
+        return _academy?.ResolveActivityBattleConfig(courseId, activityId) ?? [];
+    }
+
+    public Godot.Collections.Dictionary GetLastAcademyCompletionSummary()
+    {
+        return _academy?.GetLastCompletionSummary() ?? [];
+    }
+
+    public Godot.Collections.Dictionary ConsumeLastAcademyCompletionSummary()
+    {
+        return _academy?.ConsumeLastCompletionSummary() ?? [];
+    }
+
     public bool EnrollAcademyCourse(string courseId)
     {
         var enrolled = _academy?.EnrollCourse(courseId) ?? false;

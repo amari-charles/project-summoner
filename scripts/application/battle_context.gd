@@ -139,7 +139,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
 
 	# Use provided config or defaults
-	battle_config = config if not config.is_empty() else {
+	battle_config = config.duplicate(true) if not config.is_empty() else {
 		"enemy_side": _build_authored_enemy_side(
 			PRACTICE_ENEMY_HP,
 			[{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
@@ -165,7 +165,7 @@ func configure_academy_battle(course_id: String, activity_id: String, config: Di
 	academy_course_id = course_id
 	academy_activity_id = activity_id
 
-	battle_config = config if not config.is_empty() else {
+	battle_config = config.duplicate(true) if not config.is_empty() else {
 		"enemy_side": _build_authored_enemy_side(
 			20.0,
 			[{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],

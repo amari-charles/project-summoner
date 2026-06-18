@@ -284,6 +284,10 @@ public class DtoConvertersTest
                 [
                     "introduction_to_magic_101:magic_101_basic_duel:0:Card:neutral_starter_unit",
                 ],
+                CourseRewardsClaimed =
+                [
+                    "summoning_basics:course:0:Card:fire_wisp",
+                ],
                 Transcript =
                 [
                     new AcademyTranscriptEntry
@@ -321,6 +325,8 @@ public class DtoConvertersTest
             .Contains(
                 "introduction_to_magic_101:magic_101_basic_duel:0:Card:neutral_starter_unit"
             );
+        AssertThat(result.Academy.CourseRewardsClaimed)
+            .Contains("summoning_basics:course:0:Card:fire_wisp");
         AssertThat(result.Academy.Transcript).HasSize(1);
         AssertThat(result.Academy.Transcript[0].CourseId).IsEqual(CourseIds.IntroductionToMagic101);
         AssertThat(result.Academy.Transcript[0].Grade).IsEqual("pass");

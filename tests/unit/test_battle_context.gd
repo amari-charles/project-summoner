@@ -99,6 +99,50 @@ func test_configure_practice_uses_defaults_when_empty() -> void:
 	assert_true(context.battle_config["enemy_side"].has("deck"))
 
 
+func test_configure_academy_preserves_player_side_deck() -> void:
+	var player_cards: Array = [
+		{"catalog_id": "neutral_starter_unit", "count": 2},
+		{"catalog_id": "magic_bolt", "count": 1}
+	]
+	var custom_config: Dictionary = {
+		"player_side": {
+			"team": 0,
+			"source": "profile",
+			"summoner": {"source": "profile"},
+			"deck": {
+				"source": "authored",
+				"cards": player_cards
+			},
+			"controller": {"kind": "player"}
+		},
+		"enemy_side": {
+			"team": 1,
+			"source": "authored",
+			"summoner": {
+				"source": "authored",
+				"hp": 20.0,
+				"max_hp": 20.0
+			},
+			"deck": {
+				"source": "authored",
+				"cards": [{"catalog_id": "weak_enemy_unit", "count": 1}]
+			},
+			"controller": {"kind": "trainer_ai", "ai_type": "none"}
+		}
+	}
+
+	context.configure_academy_battle("introduction_to_magic_101", "magic_101_spell_practice", custom_config)
+	player_cards.clear()
+
+	var player_side: Dictionary = context.battle_config.get("player_side", {})
+	var player_deck: Dictionary = player_side.get("deck", {})
+	var stored_cards: Array = player_deck.get("cards", [])
+	assert_eq(player_deck.get("source"), "authored")
+	assert_eq(stored_cards.size(), 2)
+	assert_eq(stored_cards[0].get("catalog_id"), "neutral_starter_unit")
+	assert_eq(stored_cards[1].get("catalog_id"), "magic_bolt")
+
+
 ## =============================================================================
 ## STATE MACHINE TESTS
 ## =============================================================================
