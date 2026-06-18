@@ -109,7 +109,7 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void GetAcademyCourse_ExposesActivityLimitationStubFields()
+    public void GetAcademyCourse_ExposesActivityLimitationViewFields()
     {
         var repo = CreateRepo("academy_activity_limitations_stub_fields");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
@@ -136,7 +136,7 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void GetAcademyActivityLaunchState_ReturnsStubValidityAndDeckSummary()
+    public void GetAcademyActivityLaunchState_ReturnsValidityAndDeckSummary()
     {
         var repo = CreateRepo("academy_activity_limitations_launch_state");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
@@ -154,7 +154,7 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void ResolveAcademyActivityBattleConfig_PreservesExistingLoanerConfigInPass2()
+    public void ResolveAcademyActivityBattleConfig_PreservesExistingLoanerConfigForUnrestrictedBattle()
     {
         var repo = CreateRepo("academy_activity_limitations_resolve_stub");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
@@ -228,6 +228,34 @@ public class AcademyProgressServiceTest
             .ToArray();
         AssertThat(reasons.Any(reason => reason.Contains("allowed card type"))).IsTrue();
         AssertThat(reasons.Any(reason => reason.Contains("banned card"))).IsTrue();
+    }
+
+    [TestCase]
+    public void AcademyActivityLimitations_RestrictedPlayerDeckRequiresActiveDeck()
+    {
+        var repo = CreateRepo("academy_activity_limitations_missing_active_deck");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.SummoningBasics,
+            "summoning_basics_practice"
+        );
+
+        var deckValidation = state["deck_validation"].AsGodotDictionary();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
+        AssertThat(
+                deckValidation["invalid_reasons"].AsGodotArray()
+                    .Select(reason => reason.AsString())
+                    .Any(reason => reason.Contains("active deck"))
+            )
+            .IsTrue();
+        AssertThat(
+                service.ResolveAcademyActivityBattleConfig(
+                    (string)CourseIds.SummoningBasics,
+                    "summoning_basics_practice"
+                )
+            )
+            .IsEmpty();
     }
 
     [TestCase]

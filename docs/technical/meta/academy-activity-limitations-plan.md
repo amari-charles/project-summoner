@@ -1,9 +1,9 @@
 # Academy Activity Limitations Plan
 
-**Status:** PASS 3 COMPLETE (Implementation + Tests)  
-**Initiative:** `academy-activity-limitations`  
-**Domain:** `meta`  
-**Last Updated:** `2026-06-18`  
+**Status:** PASS 3 COMPLETE (Implementation + Tests)
+**Initiative:** `academy-activity-limitations`
+**Domain:** `meta`
+**Last Updated:** `2026-06-18`
 **Owner:** `Codex + user`
 
 ## Summary
@@ -107,11 +107,10 @@ Current state:
 1. `PASS 1: USE CASES + VALIDATION` (complete)
 2. `PASS 2: STUBS + WIRING` (complete)
 3. `PASS 3: IMPLEMENTATION + TESTS` (complete)
-4. `PR REVIEW: READY` (waiting approval)
+4. `PR REVIEW: READY` (in progress)
 
 Gate note:
 1. Product/design docs were updated to establish limitation philosophy.
 2. PASS 2 added compile-safe limitation/loadout types, service-owned placeholder validity state, launch resolver wiring, Course Path/Class Hall UI surfaces, and the stub checklist.
 3. PASS 3 implemented service-owned deck validation, fixed/player-plus-loaner deck resolution, invalid-start blocking, Practical Spellcraft limitation content, and focused test coverage.
-4. Use explicit approval text to advance to `PR REVIEW: READY`.
-5. blocked waiting approval
+4. Explicit approval was provided to advance to `PR REVIEW: READY`.

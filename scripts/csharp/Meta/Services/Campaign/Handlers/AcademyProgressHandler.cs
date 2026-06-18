@@ -714,16 +714,20 @@ public class AcademyProgressHandler
         if (!limitations.HasRules)
             return AcademyDeckValidationResult.Valid("unrestricted", "No activity-specific deck rules.");
 
-        var effectiveDeck = ResolvePlayerDeckForActivity(activity) ?? [];
         var reasons = new List<string>();
-
-        if (
-            effectiveDeck.Count == 0
-            && limitations.FixedClassDeck.Count == 0
-            && limitations.AdditionalLoanerCards.Count > 0
-        )
+        List<DeckEntry> effectiveDeck;
+        if (limitations.FixedClassDeck.Count > 0)
         {
-            reasons.Add("Select or edit an active deck before starting this activity.");
+            effectiveDeck = CopyDeckEntries(limitations.FixedClassDeck);
+        }
+        else
+        {
+            var activeDeck = ResolveActiveDeckEntries();
+            if (activeDeck.Count == 0)
+                reasons.Add("Select or edit an active deck before starting this activity.");
+
+            effectiveDeck = CopyDeckEntries(activeDeck);
+            AppendDeckEntries(effectiveDeck, limitations.AdditionalLoanerCards);
         }
 
         ValidateDeckRules(effectiveDeck, limitations, reasons);

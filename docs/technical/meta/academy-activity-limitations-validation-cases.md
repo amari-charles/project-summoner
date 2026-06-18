@@ -1,9 +1,9 @@
 # Academy Activity Limitations Validation Cases
 
-**Status:** PASS 3 COMPLETE  
-**Initiative:** `academy-activity-limitations`  
-**Domain:** `meta`  
-**Last Updated:** `2026-06-18`  
+**Status:** PASS 3 COMPLETE
+**Initiative:** `academy-activity-limitations`
+**Domain:** `meta`
+**Last Updated:** `2026-06-18`
 **Companion Plan:** `academy-activity-limitations-plan.md`
 
 ## How To Use
