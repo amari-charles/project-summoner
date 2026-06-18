@@ -64,6 +64,18 @@ static func get_academy_courses_for_semester(year: int, semester: int) -> Array:
 static func get_academy_course(course_id: String) -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("GetAcademyCourse", course_id))
 
+static func get_academy_activity_launch_state(course_id: String, activity_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetAcademyActivityLaunchState", course_id, activity_id))
+
+static func resolve_academy_activity_battle_config(course_id: String, activity_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("ResolveAcademyActivityBattleConfig", course_id, activity_id))
+
+static func get_last_academy_completion_summary() -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetLastAcademyCompletionSummary"))
+
+static func consume_last_academy_completion_summary() -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("ConsumeLastAcademyCompletionSummary"))
+
 static func enroll_academy_course(course_id: String) -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("EnrollAcademyCourse", course_id), false)
 

@@ -64,6 +64,7 @@ A course/class definition should include:
 - Honors requirements if applicable
 - reward preview
 - activity list
+- activity limitations / loadout rules
 - assessment ids
 - repeatable practice flags
 - grade/Honors objective definitions
@@ -161,6 +162,7 @@ Semester 2 uses a broader course catalog. Initial available classes:
 ### Architecture Guardrails
 
 - C# owns academy domain rules: course availability, activity state, completion, reward payloads, grade/Honors outcomes, gold, and persistence.
+- C# owns class activity limitations and should return specific deck-validity results instead of making screens infer rules from raw state.
 - GDScript academy screens render returned view models and send explicit user intents. They should not recreate progression rules from raw state.
 - Course rewards should live with course definitions. Reward previews and reward grants must not be maintained in separate hardcoded maps.
 - Battle completion should identify the exact academy activity being resolved. Avoid generic "complete next" calls that hide state assumptions.
@@ -248,6 +250,8 @@ Class Hall should be the focused course-management screen and should show:
 - Enrollment cost
 - reward preview
 - practice/assessment structure summary
+- current deck validity for the selected course/activity
+- deck selection or deck-editing access close to the classroom flow
 - Honors availability when relevant
 
 ### Battle Launch

@@ -203,6 +203,148 @@ public class BattleSceneTest
     }
 
     [TestCase]
+    public void AcademyBattleContext_ResolvesAuthoredPlayerSideDeck()
+    {
+        var scene = CreateBattleScene();
+        var context = CreateBattleContext();
+        var battleConfig = new Godot.Collections.Dictionary
+        {
+            ["player_side"] = new Godot.Collections.Dictionary
+            {
+                ["team"] = 0,
+                ["source"] = "profile",
+                ["summoner"] = new Godot.Collections.Dictionary { ["source"] = "profile" },
+                ["deck"] = new Godot.Collections.Dictionary
+                {
+                    ["source"] = "authored",
+                    ["cards"] = new Godot.Collections.Array
+                    {
+                        new Godot.Collections.Dictionary
+                        {
+                            ["catalog_id"] = "neutral_starter_unit",
+                            ["count"] = 2,
+                        },
+                        new Godot.Collections.Dictionary
+                        {
+                            ["catalog_id"] = "magic_bolt",
+                            ["count"] = 1,
+                        },
+                    },
+                },
+                ["controller"] = new Godot.Collections.Dictionary { ["kind"] = "player" },
+            },
+            ["enemy_side"] = AuthoredEnemyConfigDict("weak_enemy_unit", count: 1),
+        };
+
+        context.Call(
+            "configure_academy_battle",
+            "introduction_to_magic_101",
+            "magic_101_spell_practice",
+            battleConfig
+        );
+
+        var config = BattleSessionConfig.FromBattleContext(context);
+        var resolved = BattleSideResolver.Resolve(
+            scene,
+            config,
+            localTeam: 0,
+            sceneDefaultMaxHp: 100f,
+            maxHandSize: 4,
+            sceneFallbackDeck: new Godot.Collections.Array<Resource>()
+        );
+
+        var allIds = resolved.Deck.CatalogIds(includeHand: true);
+        AssertThat(allIds).Contains("neutral_starter_unit");
+        AssertThat(allIds).Contains("magic_bolt");
+        AssertThat(resolved.Deck.HandCatalogIds()).Contains("neutral_starter_unit");
+        AssertThat(resolved.Deck.CatalogIds(includeHand: false)).Contains("magic_bolt");
+    }
+
+    [TestCase]
+    public void AcademyBattleContext_DoesNotAllowCallerMutationToChangeStoredDeck()
+    {
+        var context = CreateBattleContext();
+        var cards = new Godot.Collections.Array
+        {
+            new Godot.Collections.Dictionary
+            {
+                ["catalog_id"] = "neutral_starter_unit",
+                ["count"] = 1,
+            },
+        };
+        var battleConfig = new Godot.Collections.Dictionary
+        {
+            ["player_side"] = new Godot.Collections.Dictionary
+            {
+                ["team"] = 0,
+                ["source"] = "profile",
+                ["summoner"] = new Godot.Collections.Dictionary { ["source"] = "profile" },
+                ["deck"] = new Godot.Collections.Dictionary
+                {
+                    ["source"] = "authored",
+                    ["cards"] = cards,
+                },
+                ["controller"] = new Godot.Collections.Dictionary { ["kind"] = "player" },
+            },
+            ["enemy_side"] = AuthoredEnemyConfigDict("weak_enemy_unit", count: 1),
+        };
+
+        context.Call(
+            "configure_academy_battle",
+            "introduction_to_magic_101",
+            "magic_101_summon_practice",
+            battleConfig
+        );
+        cards.Clear();
+
+        var storedConfig = context.Get("battle_config").AsGodotDictionary();
+        var playerSide = storedConfig["player_side"].AsGodotDictionary();
+        var playerDeck = playerSide["deck"].AsGodotDictionary();
+        var storedCards = playerDeck["cards"].AsGodotArray();
+        AssertThat(storedCards).HasSize(1);
+    }
+
+    private Node CreateBattleContext()
+    {
+        var script = GD.Load<GDScript>("res://scripts/application/battle_context.gd");
+        var context = (Node)script.New();
+        _createdNodes.Add(context);
+        return context;
+    }
+
+    private static Godot.Collections.Dictionary AuthoredEnemyConfigDict(string catalogId, int count)
+    {
+        return new Godot.Collections.Dictionary
+        {
+            ["team"] = 1,
+            ["source"] = "authored",
+            ["summoner"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["hp"] = 20f,
+                ["max_hp"] = 20f,
+            },
+            ["deck"] = new Godot.Collections.Dictionary
+            {
+                ["source"] = "authored",
+                ["cards"] = new Godot.Collections.Array
+                {
+                    new Godot.Collections.Dictionary
+                    {
+                        ["catalog_id"] = catalogId,
+                        ["count"] = count,
+                    },
+                },
+            },
+            ["controller"] = new Godot.Collections.Dictionary
+            {
+                ["kind"] = "trainer_ai",
+                ["ai_type"] = "none",
+            },
+        };
+    }
+
+    [TestCase]
     public void BattleSideResolver_AuthoredEnemy_UsesConfiguredSummonerStats()
     {
         var scene = CreateBattleScene();

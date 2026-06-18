@@ -311,6 +311,22 @@ Players can freely edit their deck using any cards and tools they own. The perma
 
 Rewards can still improve deck quality by adding new cards, additional copies, upgrades, traits, equipment, tutoring effects, filtering effects, or other build resources. The reward is the owned tool, not permission to edit the deck.
 
+## Class Limitation Principle
+
+Classes can impose temporary activity limitations that shape how the player must solve a lesson, practice, lab, or assessment. These limitations are not deck-editing rewards or permanent deck locks; they are local academic rules that make a class teach a specific skill.
+
+Examples:
+
+- a spellcraft activity requires at least two spells and at least one summon
+- a summoning activity allows only summon cards
+- an elemental practicum allows only that element plus neutral cards
+- an assessment caps deck size or bans a card category to force focused choices
+- a lab provides a fixed class deck or adds temporary loaner cards
+
+These limitations are a core progression philosophy. A player may own enough cards to build many decks, but still be unable to complete a class until they can satisfy and play within that class's rules. This creates natural progression gates without removing the broader freedom to edit decks outside the activity.
+
+Limitations must be visible before the player starts an activity. The UI should explain the class rules, show whether the current deck satisfies them, and give specific reasons when the deck is invalid.
+
 ## MVP Spine
 
 The first playable academy campaign should focus on the core loop rather than every possible adjacent system.

@@ -30,6 +30,9 @@ public class AcademyProgress
     [JsonPropertyName("activity_rewards_claimed")]
     public List<string> ActivityRewardsClaimed { get; set; } = [];
 
+    [JsonPropertyName("course_rewards_claimed")]
+    public List<string> CourseRewardsClaimed { get; set; } = [];
+
     [JsonPropertyName("transcript")]
     public List<AcademyTranscriptEntry> Transcript { get; set; } = [];
 

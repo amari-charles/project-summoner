@@ -42,7 +42,7 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Binding,
             ChoiceGroupId = FoundationChoiceGroup,
-            Activities = StandardActivities("summoning_basics"),
+            Activities = SummoningBasicsActivities(),
             Rewards =
             [
                 CardReward(
@@ -62,7 +62,7 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Arcana,
             ChoiceGroupId = FoundationChoiceGroup,
-            Activities = StandardActivities("practical_spellcraft"),
+            Activities = PracticalSpellcraftActivities(),
             Rewards =
             [
                 CardReward("academy.reward.basic_spell", "neutral", "spell", CardIds.Charge),
@@ -146,7 +146,7 @@ public static class AcademyCourseCatalog
             Semester = 1,
             Track = AcademyTrack.Affinity,
             ChoiceGroupId = ElementChoiceGroup,
-            Activities = StandardActivities($"intro_{element}"),
+            Activities = IntroElementActivities($"intro_{element}", element),
             Rewards =
             [
                 CardReward(
@@ -222,6 +222,61 @@ public static class AcademyCourseCatalog
         },
     ];
 
+    private static List<AcademyCourseActivity> SummoningBasicsActivities()
+    {
+        var activities = StandardActivities("summoning_basics");
+        var practice = activities.FirstOrDefault(activity => activity.Id == "summoning_basics_practice");
+        if (practice != null)
+        {
+            practice.Limitations = new AcademyActivityLimitations
+            {
+                AllowedCardTypes = [CardType.Summon],
+                BannedCards = [CardIds.MagicBolt],
+            };
+        }
+
+        return activities;
+    }
+
+    private static List<AcademyCourseActivity> IntroElementActivities(string prefix, string element)
+    {
+        var activities = StandardActivities(prefix);
+        var practice = activities.FirstOrDefault(activity => activity.Id == $"{prefix}_practice");
+        if (practice != null)
+        {
+            practice.Limitations = new AcademyActivityLimitations
+            {
+                AllowedElements = [ElementForCourse(element)],
+                AdditionalLoanerCards = [new DeckEntry(ElementSummonCard(element), 1)],
+            };
+        }
+
+        return activities;
+    }
+
+    private static List<AcademyCourseActivity> PracticalSpellcraftActivities()
+    {
+        var activities = StandardActivities("practical_spellcraft");
+        var practice = activities.FirstOrDefault(activity => activity.Id == "practical_spellcraft_practice");
+        if (practice != null)
+        {
+            practice.Limitations = new AcademyActivityLimitations
+            {
+                MinSummons = 1,
+                MinSpells = 2,
+                MaxDeckSize = 12,
+                RequiredCards = [CardIds.Charge],
+                AdditionalLoanerCards =
+                [
+                    new DeckEntry(CardIds.NeutralStarterUnit, 1),
+                    new DeckEntry(CardIds.MagicBolt, 1),
+                ],
+            };
+        }
+
+        return activities;
+    }
+
     private static List<AcademyCourseActivity> Magic101Activities() =>
     [
         new()
@@ -230,6 +285,10 @@ public static class AcademyCourseCatalog
             Type = AcademyCourseActivityType.PracticeBattle,
             LabelKey = "academy.activity.magic_101_summon_practice",
             Repeatable = true,
+            Limitations = new AcademyActivityLimitations
+            {
+                FixedClassDeck = [new DeckEntry(CardIds.NeutralStarterUnit, 2)],
+            },
             BattleConfig = new AcademyBattleConfig
             {
                 LoanerPlayerDeck = [new DeckEntry(CardIds.NeutralStarterUnit, 2)],
@@ -466,6 +525,16 @@ public static class AcademyCourseCatalog
             "earth" => CardIds.EarthWisp,
             "air" => CardIds.WindWisp,
             _ => CardId.None,
+        };
+
+    private static Element ElementForCourse(string element) =>
+        element switch
+        {
+            "fire" => Element.Fire,
+            "water" => Element.Water,
+            "earth" => Element.Earth,
+            "air" => Element.Wind,
+            _ => Element.Neutral,
         };
 
     private static CardId ElementSpellCard(string element) =>

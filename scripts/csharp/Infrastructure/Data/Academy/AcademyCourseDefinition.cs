@@ -85,7 +85,41 @@ public class AcademyCourseActivity
 
     public AcademyBattleConfig? BattleConfig { get; set; }
 
+    public AcademyActivityLimitations Limitations { get; set; } = new();
+
     public List<AcademyCourseReward> Rewards { get; set; } = [];
+}
+
+public class AcademyActivityLimitations
+{
+    public List<DeckEntry> FixedClassDeck { get; set; } = [];
+
+    public List<DeckEntry> AdditionalLoanerCards { get; set; } = [];
+
+    public List<CardType> AllowedCardTypes { get; set; } = [];
+
+    public List<Element> AllowedElements { get; set; } = [];
+
+    public int MinSummons { get; set; }
+
+    public int MinSpells { get; set; }
+
+    public int MaxDeckSize { get; set; }
+
+    public List<CardId> RequiredCards { get; set; } = [];
+
+    public List<CardId> BannedCards { get; set; } = [];
+
+    public bool HasRules =>
+        FixedClassDeck.Count > 0
+        || AdditionalLoanerCards.Count > 0
+        || AllowedCardTypes.Count > 0
+        || AllowedElements.Count > 0
+        || MinSummons > 0
+        || MinSpells > 0
+        || MaxDeckSize > 0
+        || RequiredCards.Count > 0
+        || BannedCards.Count > 0;
 }
 
 public class AcademyBattleConfig

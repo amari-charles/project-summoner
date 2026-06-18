@@ -154,6 +154,25 @@ public class AcademyCourseCatalogTest
     }
 
     [TestCase]
+    public void PracticalSpellcraftPractice_AuthorsSpellPreparationLimitations()
+    {
+        var practicalSpellcraft = AcademyCourseCatalog
+            .ForSemester(1, 1)
+            .First(course => course.Id == CourseIds.PracticalSpellcraft);
+        var practice = practicalSpellcraft.Activities.First(activity =>
+            activity.Id == "practical_spellcraft_practice"
+        );
+
+        AssertThat(practice.Limitations.HasRules).IsTrue();
+        AssertThat(practice.Limitations.MinSummons).IsEqual(1);
+        AssertThat(practice.Limitations.MinSpells).IsEqual(2);
+        AssertThat(practice.Limitations.MaxDeckSize).IsEqual(12);
+        AssertThat(practice.Limitations.RequiredCards).Contains(CardIds.Charge);
+        AssertThat(practice.Limitations.AdditionalLoanerCards.Select(entry => entry.CardId))
+            .Contains(CardIds.MagicBolt);
+    }
+
+    [TestCase]
     public void Semester2Activities_StepUpWithoutUsingNormalAi()
     {
         var foundations2 = AcademyCourseCatalog
