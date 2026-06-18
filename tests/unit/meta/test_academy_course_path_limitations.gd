@@ -62,6 +62,24 @@ func test_edit_deck_routes_to_collection_and_returns_to_course_path() -> void:
 	screen.free()
 
 
+func test_valid_fixed_deck_activity_launches_battle() -> void:
+	var screen: AcademyCoursePath = _build_screen("introduction_to_magic_101")
+	var harness := TransitionHarness.new()
+	screen._scene_transition_override = Callable(harness, "transition_to")
+
+	screen._start_activity({
+		"id": "magic_101_summon_practice",
+		"type": "PracticeBattle"
+	})
+
+	assert_eq(harness.last_transition_scene, SceneManager.SCENE_BATTLE_3D)
+	assert_eq(BattleContext.academy_course_id, "introduction_to_magic_101")
+	assert_eq(BattleContext.academy_activity_id, "magic_101_summon_practice")
+	assert_true(BattleContext.battle_config.has("player_side"), "Fixed class deck should resolve a player_side deck")
+
+	screen.free()
+
+
 func _build_screen(course_id: String) -> AcademyCoursePath:
 	var screen: AcademyCoursePath = AcademyCoursePath.new()
 	screen._course_id = course_id

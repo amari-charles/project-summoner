@@ -232,11 +232,11 @@ func _start_activity(activity: Dictionary) -> void:
 			activity_modal.visible = true
 			return
 
-			var battle_config: Dictionary = CampaignApi.resolve_academy_activity_battle_config(_course_id, activity_id)
-			if battle_config.is_empty():
-				battle_config = SafeTypeUtils.dict(activity.get("battle_config"))
-			BattleContext.configure_academy_battle(_course_id, activity_id, battle_config)
-			_transition_to(SceneManager.SCENE_BATTLE_3D)
+		var battle_config: Dictionary = CampaignApi.resolve_academy_activity_battle_config(_course_id, activity_id)
+		if battle_config.is_empty():
+			battle_config = SafeTypeUtils.dict(activity.get("battle_config"))
+		BattleContext.configure_academy_battle(_course_id, activity_id, battle_config)
+		_transition_to(SceneManager.SCENE_BATTLE_3D)
 	else:
 		var activity_id: String = SafeTypeUtils.string(activity.get("id"))
 		CampaignApi.complete_academy_activity(_course_id, activity_id, true)
