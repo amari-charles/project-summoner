@@ -14,6 +14,7 @@
         { "label": "All Units", "battle_id": "arena_all_units" },
         { "label": "All Cards", "battle_id": "arena_all_cards" },
         { "label": "All Spells", "battle_id": "arena_all_spells" },
+        { "label": "Sprite Units", "battle_id": "arena_sprite_units" },
         { "label": "Debug Arena", "battle_id": "debug_arena" }
       ]
     },
@@ -23,6 +24,13 @@
       "entries": [
         { "label": "Wind + Earth New", "battle_id": "arena_wind_earth_new_cards" },
         { "label": "Fire Wisp", "battle_id": "arena_fire_wisp" }
+      ]
+    },
+    {
+      "id": "sprite_units_only",
+      "label": "Sprite Units Only",
+      "entries": [
+        { "label": "Sprite Units", "battle_id": "arena_sprite_units" }
       ]
     }
   ]
