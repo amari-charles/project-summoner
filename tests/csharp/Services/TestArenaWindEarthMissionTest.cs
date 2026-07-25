@@ -158,7 +158,7 @@ public class TestArenaWindEarthMissionTest
             .ToHashSet();
 
         AssertThat(actualSpells.SetEquals(expectedSpells)).IsTrue();
-        AssertThat(actualSummons.Count).IsEqual(5);
+        AssertThat(actualSummons.Count).IsEqual(6);
         AssertThat(actualSummons.SetEquals(RealArtTargetCards())).IsTrue();
 
         AssertThat(battle.EnemyDeck).IsNotNull();
@@ -170,6 +170,35 @@ public class TestArenaWindEarthMissionTest
             var card = CardCatalog.GetCard(cardId);
             AssertThat(card).IsNotNull();
             var unitDef = UnitDefinitions.Get(card!.UnitId);
+            AssertThat(unitDef).IsNotNull();
+            AssertThat(unitDef!.ScenePath.Contains("placeholder")).IsFalse();
+            AssertThat(Godot.ResourceLoader.Exists(unitDef.ScenePath)).IsTrue();
+        }
+    }
+
+    [TestCase]
+    public void ArenaSpriteUnits_UsesOnlyRealSpriteSummons_ForDebugArena()
+    {
+        var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaSpriteUnits);
+        AssertThat(battle).IsNotNull();
+        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle.AiType).IsEqual("none");
+
+        AssertThat(battle.DevPlayerDeck).IsNotNull();
+        var playerCardIds = battle.DevPlayerDeck!.Select(entry => entry.CardId).ToHashSet();
+        AssertThat(playerCardIds.SetEquals(RealArtTargetCards())).IsTrue();
+
+        AssertThat(battle.EnemyDeck).IsNotNull();
+        var enemyCardIds = battle.EnemyDeck!.Select(entry => entry.CardId).ToHashSet();
+        AssertThat(enemyCardIds.SetEquals(RealArtTargetCards())).IsTrue();
+
+        foreach (var cardId in playerCardIds.Concat(enemyCardIds))
+        {
+            var card = CardCatalog.GetCard(cardId);
+            AssertThat(card).IsNotNull();
+            AssertThat(card!.Type).IsEqual(CardType.Summon);
+
+            var unitDef = UnitDefinitions.Get(card.UnitId);
             AssertThat(unitDef).IsNotNull();
             AssertThat(unitDef!.ScenePath.Contains("placeholder")).IsFalse();
             AssertThat(Godot.ResourceLoader.Exists(unitDef.ScenePath)).IsTrue();
@@ -200,15 +229,24 @@ public class TestArenaWindEarthMissionTest
         AssertThat(campaign!.EventIds.Contains(EventIds.ArenaAllSpells)).IsTrue();
     }
 
+    [TestCase]
+    public void TestArenaCampaign_IncludesArenaSpriteUnitsEvent()
+    {
+        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
+        AssertThat(campaign).IsNotNull();
+        AssertThat(campaign!.EventIds.Contains(EventIds.ArenaSpriteUnits)).IsTrue();
+    }
+
     private static HashSet<CardId> RealArtTargetCards()
     {
         return new HashSet<CardId>
         {
             CardIds.FireWisp,
+            CardIds.FireWolf,
             CardIds.WaterFrog,
             CardIds.Pebbloom,
+            CardIds.EarthKomodoDragon,
             CardIds.Puff,
-            CardIds.MamaDuck,
         };
     }
 }

@@ -227,6 +227,10 @@
       "arena_all_spells": {
         "name": "All Spells Test",
         "description": "Focused debug arena mission with every active Fire, Water, Earth, and Wind spell plus a few real-art units for spell target testing."
+      },
+      "arena_sprite_units": {
+        "name": "Sprite Units Test",
+        "description": "Debug arena mission with only summon cards whose battlefield units use production sprite scenes."
       }
     },
     "starter_deck_name": "Starter Deck",

@@ -1109,6 +1109,24 @@ public static class EventCatalog
             Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
+        [EventIds.ArenaSpriteUnits] = new BattleEventDefinition
+        {
+            Id = EventIds.ArenaSpriteUnits,
+            NameKey = "campaign.battle.arena_sprite_units.name",
+            DescriptionKey = "campaign.battle.arena_sprite_units.description",
+            Position = new Vector2(1150, 100),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 0,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "none",
+            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            DevPlayerDeck = BuildRealArtDebugUnitDeck(),
+            EnemyDeck = BuildRealArtDebugUnitDeck(),
+            EnemyHp = 999999f,
+            Rewards = new BattleRewardConfig { Type = RewardType.None },
+        },
+
         [EventIds.DebugArena] = new BattleEventDefinition
         {
             Id = EventIds.DebugArena,
@@ -1154,10 +1172,24 @@ public static class EventCatalog
         return new List<DeckEntry>
         {
             new(CardIds.FireWisp, 2),
+            new(CardIds.FireWolf, 2),
             new(CardIds.WaterFrog, 2),
             new(CardIds.Pebbloom, 2),
+            new(CardIds.EarthKomodoDragon, 2),
             new(CardIds.Puff, 2),
-            new(CardIds.MamaDuck, 1),
+        };
+    }
+
+    private static List<DeckEntry> BuildRealArtDebugUnitDeck()
+    {
+        return new List<DeckEntry>
+        {
+            new(CardIds.FireWisp, 3),
+            new(CardIds.FireWolf, 3),
+            new(CardIds.WaterFrog, 3),
+            new(CardIds.Pebbloom, 3),
+            new(CardIds.EarthKomodoDragon, 3),
+            new(CardIds.Puff, 3),
         };
     }
 
