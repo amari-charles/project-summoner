@@ -8,11 +8,11 @@
 
 ## Summary
 
-This initiative reshapes the academy into a PC-first hub and course progression model. The target UX is: the campus hub is a navigable painted scene, the Class Hall owns course enrollment and course continuation, and C# academy services remain the source of truth for semester state, required classes, available electives, prerequisites, activity progress, and rewards.
+This initiative reshapes the academy into a PC-first menu hub and course progression model. The target UX is: the campus hub provides fast menu-based access to Academy destinations, the Class Hall owns course enrollment and course continuation, and C# academy services remain the source of truth for semester state, required classes, available electives, prerequisites, activity progress, and rewards.
 
 ## Goals
 
-1. Replace the text-heavy academy entry with a navigable campus hub.
+1. Replace the text-heavy academy entry with a readable menu-based campus hub.
 2. Auto-enroll mandatory first-semester coursework for fresh academy progress.
 3. Present Class Hall courses by meaningful sections instead of one long list.
 4. Move course choice details into a readable popup so the board stays scannable.

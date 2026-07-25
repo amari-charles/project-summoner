@@ -119,7 +119,7 @@ Major design choices and their rationale.
 - Shared content locked for campaign use
 
 ### Meta Hub
-- **[Walkable Academy Hub](design/walkable-academy-hub.md)** - Academy moves from a menu screen to a bounded **walkable hub** (not an open world); menu shortcuts to all locations always exist, so walking is optional. Social-first rationale; phased toward shared real-time presence.
+- **[Walkable Academy Hub (Discontinued)](design/walkable-academy-hub.md)** - Records the rejected walkable-campus direction and confirms that the Academy remains a fast menu-based hub focused on the forging loop.
 
 ---
 
