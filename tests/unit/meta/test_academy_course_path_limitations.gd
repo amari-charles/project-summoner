@@ -80,6 +80,17 @@ func test_valid_fixed_deck_activity_launches_battle() -> void:
 	screen.free()
 
 
+func test_granted_card_reward_uses_catalog_display_name() -> void:
+	var screen: AcademyCoursePath = _build_screen("introduction_to_magic_101")
+
+	assert_eq(
+		screen._granted_reward_name({"kind": "card", "card_id": "magic_bolt"}),
+		"Magic Bolt"
+	)
+
+	screen.free()
+
+
 func _build_screen(course_id: String) -> AcademyCoursePath:
 	var screen: AcademyCoursePath = AcademyCoursePath.new()
 	screen._course_id = course_id

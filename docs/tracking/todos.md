@@ -1022,6 +1022,22 @@ Replace source-specific and dictionary-based reward paths with the universal typ
 
 ### 🟢 LOW PRIORITY
 
+#### Unify Catalog Localization-Key Validation
+**Status:** ⬜ Not Started
+**Category:** Architecture / Localization
+**Effort:** Medium
+
+**Description:**
+Localization validation currently covers literal `Loc.t(...)` calls and event-catalog keys, but it is not a unified contract across authored catalogs. Cards still expose authoritative display strings rather than localization keys, so UI code must not synthesize unsupported `card.<id>.*` keys.
+
+**Tasks:**
+- [ ] Decide which authored catalogs require localization keys instead of authoritative display strings.
+- [ ] Introduce a shared typed localization-key contract for those catalogs.
+- [ ] Validate every authored key against the fallback locale in one catalog-integrity suite.
+- [ ] Enumerate or eliminate remaining dynamically constructed localization-key patterns.
+
+---
+
 #### Audit Remaining Dynamic GDScript/C# Property Access
 **Status:** ⬜ Not Started
 **Category:** Architecture / Interop
