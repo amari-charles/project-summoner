@@ -4,6 +4,31 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ---
 
+## 2026-08 Completions
+
+### Introduce Battle Progression Authority and Migrate Battle Rewards
+**Completed:** 2026-08-05
+**Category:** Architecture / Progression / Rewards
+**Effort:** Large
+**PR:** `#352`
+
+Introduced a provider-neutral progression authority for campaign battle attempts and terminal outcomes, then migrated battle XP and first-clear rewards onto that boundary.
+
+**Resolution Summary:**
+- ✅ Persisted authority-created attempt identity before battle launch and made outcome handling atomic and idempotent.
+- ✅ Awarded XP only for distinct victorious attempts; defeat and abandonment grant nothing.
+- ✅ Made first-clear rewards deterministic per summoner and stable across reloads.
+- ✅ Derived battle cards from authority-owned selected decks and validated campaign membership and unlock state.
+- ✅ Migrated reward presentation to normalized universal offers and removed the legacy battle reward path and old-save compatibility readers.
+- ✅ Passed formal PR review, 1,178 C# tests, and 237 GUT tests with 1,746 assertions.
+
+**Remaining Work Tracked Elsewhere:**
+- Secure ranked results and rating authority.
+- Atomic commerce authority.
+- Incremental authority boundaries for other permanent progression commands.
+
+---
+
 ## 2026-06 Completions
 
 ### Add More Spell Cards

@@ -34,6 +34,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-06-04, spell roster scope):** Closed `Add More Spell Cards` as an active expansion item; current spell count is sufficient. Remaining spell-related work stays under VFX polish, balance, presentation, academy/course integration, and production scoping.
 **Tracker Sync (2026-06-04, backlog cleanup):** Consolidated premature per-sound audio tasks into one production-audio scoping item, closed stale Puff lateral-movement follow-up by product review, closed completed portrait-cropping and campaign-data migration items, and refreshed stale interop/performance/root-path TODO wording.
 **Tracker Sync (2026-08-05, authority-boundary audit):** Started the gated battle-progression-authority initiative and added concrete follow-ups for permanent progression commands, atomic commerce, and authoritative competitive results/loadout validation. Backend provider selection remains intentionally undecided.
+**Tracker Sync (2026-08-05, battle authority completion):** Moved the completed battle-progression-authority initiative to `todos-completed.md` after PR `#352` merged; provider-neutral security follow-ups remain active as separate tasks.
 
 ---
 
@@ -791,36 +792,6 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 ## Architecture & Code Quality
 
 ### 🔴 HIGH PRIORITY
-
-#### Introduce Battle Progression Authority and Migrate Battle Rewards
-**Status:** 🔄 In Progress (PR #352 Open; Local Review Complete)
-**Category:** Architecture / Progression / Rewards
-**Effort:** Large
-**Urgency:** High
-**Ease:** Hard
-**Scope:** Large
-
-**Description:**
-Introduce a provider-neutral `IProgressionAuthority` boundary for campaign battle attempts and terminal outcomes. Implement a local adapter first, persist authority-created attempt IDs before launch, route victorious attempt XP and first-clear rewards through one idempotent durable boundary, then remove the legacy battle reward path.
-
-**Tasks:**
-- [x] Lock attempt, victory, replay, defeat, abandonment, persistence, and backend-migration semantics.
-- [x] Define baseline validation cases and test targets.
-- [x] Complete Pass 2 typed contracts, compile-safe local adapter/coordinator stubs, persistence wiring, and test skeletons after explicit approval.
-- [x] Complete Pass 3 local behavior: victory XP once per attempt, first-clear rewards once per summoner/campaign/battle, and no XP/rewards on defeat or leave.
-- [x] Migrate `RewardScreen` to normalized authority output and delete `BattleRewardSpec`, battle `PendingRewardData`, reward flags, and direct battle XP calls.
-- [x] Run gated PR review and focused/full validation.
-- [ ] Merge PR #352 only after explicit user approval.
-
-**Placement:**
-Pure attempt/outcome records belong in `Meta/Domain/Progression`; use-case ports and coordination belong in `Meta/Services/Progression`; JSON mapping stays in `Infrastructure/Persistence`. Battle/session code carries and reports identity but does not own progression rules.
-
-**Related Docs:**
-- `docs/technical/meta/battle-progression-authority-plan.md`
-- `docs/technical/meta/battle-progression-authority-validation-cases.md`
-- `docs/technical/meta/universal-reward-system-plan.md`
-
----
 
 #### Make Ranked Results and Rating Authoritative
 **Status:** ⬜ Not Started
