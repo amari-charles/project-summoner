@@ -434,7 +434,8 @@ func _granted_reward_name(reward: Dictionary) -> String:
 	if card_id.is_empty() and SafeTypeUtils.string(reward.get("kind")) == "card":
 		card_id = SafeTypeUtils.string(reward.get("id"))
 	if not card_id.is_empty():
-		return Loc.t("card.%s.name" % card_id)
+		var card_data: Dictionary = CardCatalogApi.get_card_as_dict(card_id)
+		return SafeTypeUtils.string(card_data.get("card_name"), card_id)
 
 	return SafeTypeUtils.string(reward.get("kind"), Loc.t("academy.course_path.reward_fallback"))
 
