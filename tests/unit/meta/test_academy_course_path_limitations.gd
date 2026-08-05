@@ -32,7 +32,7 @@ func test_invalid_restricted_activity_start_stays_on_course_path_and_renders_rea
 	)
 
 	var screen: AcademyCoursePath = _build_screen("practical_spellcraft")
-	var harness := TransitionHarness.new()
+	var harness: TransitionHarness = TransitionHarness.new()
 	screen._scene_transition_override = Callable(harness, "transition_to")
 
 	screen._start_activity({
@@ -50,7 +50,7 @@ func test_invalid_restricted_activity_start_stays_on_course_path_and_renders_rea
 
 func test_edit_deck_routes_to_collection_and_returns_to_course_path() -> void:
 	var screen: AcademyCoursePath = _build_screen("summoning_basics")
-	var harness := TransitionHarness.new()
+	var harness: TransitionHarness = TransitionHarness.new()
 	screen._scene_transition_override = Callable(harness, "transition_to")
 
 	screen._on_edit_deck_pressed()
@@ -64,7 +64,7 @@ func test_edit_deck_routes_to_collection_and_returns_to_course_path() -> void:
 
 func test_valid_fixed_deck_activity_launches_battle() -> void:
 	var screen: AcademyCoursePath = _build_screen("introduction_to_magic_101")
-	var harness := TransitionHarness.new()
+	var harness: TransitionHarness = TransitionHarness.new()
 	screen._scene_transition_override = Callable(harness, "transition_to")
 
 	screen._start_activity({
