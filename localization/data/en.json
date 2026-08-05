@@ -345,6 +345,7 @@
       "reward_title": "Rewards gained",
       "reward_body_activity": "Activity complete. These rewards were added to your collection.",
       "reward_body_course": "Course complete. These rewards were added to your collection.",
+      "reward_choose": "Choose your reward before continuing this class.",
       "reward_item": "+ {reward}",
       "reward_fallback": "Reward",
       "lesson_body": "Review this lesson, then continue when ready.",

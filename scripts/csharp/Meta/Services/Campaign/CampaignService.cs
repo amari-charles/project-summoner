@@ -6,6 +6,7 @@ using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign.Handlers;
 using Fateforged.Meta.Cards;
 using Fateforged.Meta.Economy;
+using Fateforged.Meta.Rewards;
 using Fateforged.Meta.Summoner;
 using Godot;
 
@@ -89,7 +90,7 @@ public partial class CampaignService : Node
                     _academy = new AcademyProgressHandler(
                         _profileRepo,
                         GetActiveSummonerId,
-                        _grantCardFunc
+                        GetAcademyRewardRuntime()
                     );
                 }
             }
@@ -157,7 +158,11 @@ public partial class CampaignService : Node
             _grantCardFunc
         );
         _tutorial = new TutorialHandler(_store, _catalog, _progress);
-        _academy = new AcademyProgressHandler(_profileRepo, GetActiveSummonerId, _grantCardFunc);
+        _academy = new AcademyProgressHandler(
+            _profileRepo,
+            GetActiveSummonerId,
+            GetAcademyRewardRuntime()
+        );
     }
 
     public override void _ExitTree()
@@ -192,8 +197,20 @@ public partial class CampaignService : Node
                 GetActiveSummonerId,
                 _grantCardFunc
             );
-            _academy = new AcademyProgressHandler(_profileRepo, GetActiveSummonerId, _grantCardFunc);
+            _academy = new AcademyProgressHandler(
+                _profileRepo,
+                GetActiveSummonerId,
+                GetAcademyRewardRuntime()
+            );
         }
+    }
+
+    private UniversalRewardRuntime? GetAcademyRewardRuntime()
+    {
+        var runtime = RewardService.Instance?.UniversalRuntime;
+        return runtime != null && ReferenceEquals(runtime.ProfileStore, _profileRepo)
+            ? runtime
+            : null;
     }
 
     /// <summary>Set active summoner getter.</summary>
@@ -617,6 +634,17 @@ public partial class CampaignService : Node
         if (completed)
             EmitSignal(SignalName.CampaignProgressChanged);
         return completed;
+    }
+
+    public Godot.Collections.Dictionary ClaimAcademyReward(
+        string claimId,
+        Godot.Collections.Array<string> selectedOptionIds
+    )
+    {
+        var result = _academy?.ClaimReward(claimId, selectedOptionIds) ?? [];
+        if (result.TryGetValue("success", out var success) && success.AsBool())
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return result;
     }
 
     public bool AdvanceAcademySemester()

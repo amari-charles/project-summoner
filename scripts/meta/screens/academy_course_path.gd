@@ -21,6 +21,9 @@ var _reward_body_label: Label
 var _reward_items_container: VBoxContainer
 var _reward_continue_button: Button
 var _modal_edit_deck_button: Button
+var _pending_reward_offer: Dictionary = {}
+var _selected_reward_option_ids: Array[String] = []
+var _reward_option_buttons: Dictionary = {}
 
 const NODE_SIZE: Vector2 = Vector2(118, 118)
 const NODE_GAP: float = 230.0
@@ -40,6 +43,7 @@ var _pan_start_position: Vector2 = Vector2.ZERO
 var _last_mouse_position: Vector2 = Vector2.ZERO
 var _pending_activity: Dictionary = {}
 var _scene_transition_override: Callable = Callable()
+var _claim_reward_override: Callable = Callable()
 
 func _ready() -> void:
 	exit_button.text = Loc.t("academy.location.exit")
@@ -315,21 +319,92 @@ func _build_reward_modal() -> void:
 	_reward_continue_button = Button.new()
 	_reward_continue_button.custom_minimum_size = Vector2(150, 40)
 	_reward_continue_button.text = Loc.t("academy.course_path.continue")
-	_reward_continue_button.pressed.connect(_hide_reward_modal)
+	_reward_continue_button.pressed.connect(_on_reward_continue_pressed)
 	actions.add_child(_reward_continue_button)
 
 func _show_reward_summary_if_available() -> void:
 	var summary: Dictionary = CampaignApi.consume_last_academy_completion_summary()
 	if summary.is_empty():
+		_show_pending_reward_if_available()
 		return
 
 	var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
 	if rewards.is_empty():
+		_show_pending_reward_if_available()
 		return
 
 	_show_reward_modal(summary, rewards)
 
+func _show_pending_reward_if_available() -> void:
+	for item: Variant in SafeTypeUtils.array(_course.get("reward_previews")):
+		var offer: Dictionary = SafeTypeUtils.dict(item)
+		if SafeTypeUtils.string(offer.get("status")) == "pending":
+			_show_pending_reward_offer(offer)
+			return
+
+func _show_pending_reward_offer(offer: Dictionary) -> void:
+	_pending_reward_offer = offer
+	_selected_reward_option_ids.clear()
+	_reward_option_buttons.clear()
+	_clear_children(_reward_items_container)
+	_reward_title_label.text = Loc.t("academy.course_path.reward_title")
+	_reward_body_label.text = Loc.t("academy.course_path.reward_choose")
+	for item: Variant in SafeTypeUtils.array(offer.get("options")):
+		var option: Dictionary = SafeTypeUtils.dict(item)
+		var option_id: String = SafeTypeUtils.string(option.get("option_id"))
+		if option_id.is_empty():
+			continue
+		var button: Button = Button.new()
+		button.toggle_mode = true
+		button.text = _reward_option_name(option)
+		button.pressed.connect(_on_reward_option_toggled.bind(option_id))
+		_reward_items_container.add_child(button)
+		_reward_option_buttons[option_id] = button
+	_reward_continue_button.disabled = true
+	_reward_modal.visible = true
+
+func _reward_option_name(option: Dictionary) -> String:
+	var label_key: String = SafeTypeUtils.string(option.get("label_key"))
+	if not label_key.is_empty():
+		return Loc.t(label_key)
+	var grants: Array = SafeTypeUtils.array(option.get("grants"))
+	if not grants.is_empty():
+		return _granted_reward_name(SafeTypeUtils.dict(grants[0]))
+	return SafeTypeUtils.string(option.get("option_id"))
+
+func _on_reward_option_toggled(option_id: String) -> void:
+	var button: Button = _reward_option_buttons.get(option_id) as Button
+	if button == null:
+		return
+	if button.button_pressed:
+		if not _selected_reward_option_ids.has(option_id):
+			_selected_reward_option_ids.append(option_id)
+	else:
+		_selected_reward_option_ids.erase(option_id)
+	var choose_count: int = SafeTypeUtils.int_val(_pending_reward_offer.get("choose_count"), 1)
+	_reward_continue_button.disabled = _selected_reward_option_ids.size() != choose_count
+
+func _on_reward_continue_pressed() -> void:
+	if _pending_reward_offer.is_empty():
+		_hide_reward_modal()
+		_show_pending_reward_if_available()
+		return
+	var claim_id: String = SafeTypeUtils.string(_pending_reward_offer.get("claim_id"))
+	var result: Dictionary = (
+		SafeTypeUtils.dict(_claim_reward_override.call(claim_id, _selected_reward_option_ids))
+		if _claim_reward_override.is_valid()
+		else CampaignApi.claim_academy_reward(claim_id, _selected_reward_option_ids)
+	)
+	if not SafeTypeUtils.bool_val(result.get("success")):
+		return
+	_pending_reward_offer.clear()
+	_selected_reward_option_ids.clear()
+	_reward_modal.visible = false
+	_refresh()
+
 func _show_reward_modal(summary: Dictionary, rewards: Array) -> void:
+	_pending_reward_offer.clear()
+	_reward_continue_button.disabled = false
 	_clear_children(_reward_items_container)
 	var completed_course: bool = SafeTypeUtils.bool_val(summary.get("completed_course"), false)
 	_reward_body_label.text = Loc.t(
@@ -347,6 +422,7 @@ func _show_reward_modal(summary: Dictionary, rewards: Array) -> void:
 	_reward_modal.visible = true
 
 func _hide_reward_modal() -> void:
+	_pending_reward_offer.clear()
 	_reward_modal.visible = false
 
 func _granted_reward_name(reward: Dictionary) -> String:
@@ -355,6 +431,8 @@ func _granted_reward_name(reward: Dictionary) -> String:
 		return Loc.t(label_key)
 
 	var card_id: String = SafeTypeUtils.string(reward.get("card_id"))
+	if card_id.is_empty() and SafeTypeUtils.string(reward.get("kind")) == "card":
+		card_id = SafeTypeUtils.string(reward.get("id"))
 	if not card_id.is_empty():
 		return Loc.t("card.%s.name" % card_id)
 
@@ -469,9 +547,11 @@ func _reward_preview_text(rewards: Array) -> String:
 	var labels: Array[String] = []
 	for item: Variant in rewards:
 		var reward: Dictionary = SafeTypeUtils.dict(item)
-		if not SafeTypeUtils.bool_val(reward.get("is_grantable")):
+		if SafeTypeUtils.string(reward.get("status")) == "claimed":
 			continue
 		var label_key: String = SafeTypeUtils.string(reward.get("label_key"))
+		if label_key.is_empty():
+			label_key = SafeTypeUtils.string(reward.get("category_key"))
 		if not label_key.is_empty():
 			labels.append(Loc.t(label_key))
 	return Loc.t("academy.hub.rewards", {"rewards": ", ".join(labels)})

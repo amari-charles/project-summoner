@@ -6,6 +6,7 @@ using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
 
@@ -83,6 +84,10 @@ public class ProfileData
     /// <summary>Battle emotes.</summary>
     [JsonPropertyName("emotes")]
     public Emotes Emotes { get; set; } = new();
+
+    /// <summary>Universal resolved offers, pending selections, claim receipts, and seeds.</summary>
+    [JsonPropertyName("rewards")]
+    public RewardProfileState Rewards { get; set; } = new();
 
     /// <summary>Miscellaneous metadata.</summary>
     [JsonPropertyName("meta")]

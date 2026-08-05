@@ -91,12 +91,28 @@ Classes should show reward expectations before enrollment, but the exact reward 
 
 Possible structures:
 
-- **Fixed preview:** The catalog shows the specific reward earned for completing the class.
-- **Choice preview:** The catalog shows a fixed set of rewards and the player chooses one.
-- **Pool preview:** The catalog shows the reward pool or category the class draws from.
+- **Fixed preview:** The catalog shows a specific authored reward.
+- **Choice preview:** The catalog shows a fixed set of authored options and the player chooses one.
+- **Pool preview:** The catalog shows the reward pool or category. When options are rolled from a pool, that resolved option set is persisted and reloading does not reroll it.
 - **Conditional preview:** The catalog shows how grades, Honors, or special objectives can improve the reward options.
 
 The player should understand what kind of permanent value they are spending an Enrollment on, even when the exact final choice depends on performance or a reward pool.
+
+Reward structure and timing are authored class by class:
+
+- Foundational classes may grant fixed rewards.
+- A class may combine fixed rewards, authored choices, and pool-based choices, or grant no immediate reward.
+- Rewards may be attached to individual lessons or activities as well as to overall class completion.
+- A single lesson or activity may issue multiple reward offers, including fixed grants alongside selectable offers. Progression resumes after all required choices from that activity are resolved.
+- Each selectable reward authors how many options are shown and how many the player may choose.
+- Each selectable option may be a bundle containing one or more reward grants.
+- Each pool reward authors whether enrollment preview shows only its pool/category or reveals that summoner's exact resolved options.
+- Exact options shown before enrollment are resolved and persisted at first reveal so later content or pool changes cannot alter the promise. Category-only pools resolve and persist their options when the reward is earned.
+- Each reward authors its own ownership and duplicate filtering rules; some pools may exclude already-owned rewards while others intentionally allow duplicates.
+- If filtering leaves fewer eligible options than `show N`, the reward may show fewer options as long as `choose M` is still possible. If fewer than `choose M` remain, the reward configuration is invalid and must not silently relax its rules.
+- When an activity produces a selectable reward, progression pauses until the persistent choice is resolved.
+- The player may leave and return while a choice is pending; the choice remains available, but later class activities stay locked until it is resolved.
+- Each summoner has a persistent Academy RNG seed. Pool rewards derive deterministic results from that summoner-specific seed and the reward's stable context, then persist the resolved options when earned.
 
 ## Transcript Identity Principle
 

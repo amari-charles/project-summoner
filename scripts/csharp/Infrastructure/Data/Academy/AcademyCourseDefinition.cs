@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Fateforged.Cards;
 using Fateforged.Data.Events;
+using Fateforged.Data.Rewards;
 
 namespace Fateforged.Data.Academy;
 
@@ -13,26 +15,6 @@ public enum AcademyTrack
     Warding,
     Warfare,
     Command,
-}
-
-public enum AcademyRewardKind
-{
-    Card,
-    CardTrait,
-    SummonerTrait,
-    Equipment,
-    ConsistencyTool,
-    TranscriptEligibility,
-    Gold,
-    Status,
-}
-
-public enum AcademyRewardPreviewType
-{
-    Fixed,
-    Choice,
-    Pool,
-    Conditional,
 }
 
 public enum AcademyCourseActivityType
@@ -68,7 +50,7 @@ public class AcademyCourseDefinition
 
     public List<AcademyCourseActivity> Activities { get; set; } = [];
 
-    public List<AcademyCourseReward> Rewards { get; set; } = [];
+    public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
 }
 
 public class AcademyCourseActivity
@@ -87,7 +69,7 @@ public class AcademyCourseActivity
 
     public AcademyActivityLimitations Limitations { get; set; } = new();
 
-    public List<AcademyCourseReward> Rewards { get; set; } = [];
+    public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
 }
 
 public class AcademyActivityLimitations
@@ -227,20 +209,3 @@ public class AcademyEncounterAction
 }
 
 public readonly record struct AcademyEncounterPosition(float X, float Z);
-
-public class AcademyCourseReward
-{
-    public AcademyRewardPreviewType PreviewType { get; set; } = AcademyRewardPreviewType.Fixed;
-
-    public AcademyRewardKind Kind { get; set; } = AcademyRewardKind.Card;
-
-    public string LabelKey { get; set; } = "";
-
-    public string Element { get; set; } = "";
-
-    public string CardRole { get; set; } = "";
-
-    public CardId CardId { get; set; } = CardId.None;
-
-    public string Rarity { get; set; } = "common";
-}

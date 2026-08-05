@@ -85,5 +85,8 @@ static func complete_academy_course(course_id: String, grade: String = "pass", h
 static func complete_academy_activity(course_id: String, activity_id: String, succeeded: bool = true) -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("CompleteAcademyActivity", course_id, activity_id, succeeded), false)
 
+static func claim_academy_reward(claim_id: String, selected_option_ids: Array[String]) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("ClaimAcademyReward", claim_id, selected_option_ids))
+
 static func advance_academy_semester() -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("AdvanceAcademySemester"), false)

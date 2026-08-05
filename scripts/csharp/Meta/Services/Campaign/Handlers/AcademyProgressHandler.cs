@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Events;
+using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Deck;
+using Fateforged.Meta.Rewards;
 using Godot;
 
 namespace Fateforged.Meta.Campaign.Handlers;
@@ -15,24 +19,30 @@ namespace Fateforged.Meta.Campaign.Handlers;
 public class AcademyProgressHandler
 {
     private const int DefaultSemesterEnrollments = 3;
-    private const string RewardGrantStateGrantable = "grantable";
-    private const string RewardGrantStatePreviewOnly = "preview_only";
-    private const string RewardGrantStateClaimed = "claimed";
-
+    private static readonly RewardViewModelFactory RewardViews = new();
     private readonly IProfileRepository _profileRepo;
     private readonly Func<SummonerId> _getActiveSummonerFunc;
-    private readonly Func<string, string, string>? _grantCardFunc;
+    private readonly UniversalRewardRuntime _universalRewards;
+    private readonly IReadOnlyList<AcademyCourseDefinition> _courseCatalog;
     private Godot.Collections.Dictionary _lastCompletionSummary = [];
 
     public AcademyProgressHandler(
         IProfileRepository profileRepo,
         Func<SummonerId> getActiveSummonerFunc,
-        Func<string, string, string>? grantCardFunc
+        UniversalRewardRuntime? universalRewards = null,
+        IReadOnlyList<AcademyCourseDefinition>? courseCatalog = null
     )
     {
         _profileRepo = profileRepo;
         _getActiveSummonerFunc = getActiveSummonerFunc;
-        _grantCardFunc = grantCardFunc;
+        _universalRewards =
+            universalRewards
+            ?? (
+                profileRepo is IRewardProfileStore rewardProfileStore
+                    ? UniversalRewardRuntime.Create(rewardProfileStore)
+                    : UniversalRewardRuntime.CreateUnavailable()
+            );
+        _courseCatalog = courseCatalog ?? AcademyCourseCatalog.All;
     }
 
     public Godot.Collections.Dictionary GetProgress()
@@ -67,7 +77,7 @@ public class AcademyProgressHandler
 
     public Godot.Collections.Dictionary GetCourse(string courseId)
     {
-        var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
+        var course = FindCourse(CourseId.FromString(courseId));
         if (course == null)
             return [];
 
@@ -102,7 +112,7 @@ public class AcademyProgressHandler
 
     public bool EnrollCourse(string courseId)
     {
-        var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
+        var course = FindCourse(CourseId.FromString(courseId));
         if (course == null)
             return false;
 
@@ -133,7 +143,7 @@ public class AcademyProgressHandler
     {
         ClearLastCompletionSummary();
 
-        var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
+        var course = FindCourse(CourseId.FromString(courseId));
         if (course == null)
             return false;
 
@@ -163,7 +173,25 @@ public class AcademyProgressHandler
         if (!succeeded)
             return false;
 
-        var grantedRewards = GrantActivityRewards(course, activity, academy);
+        if (HasPendingRewardForCourse(course.Id))
+            return false;
+
+        if (
+            !TryEarnOffers(
+                course,
+                activity.Id,
+                activity.RewardOffers,
+                out var grantedRewards,
+                out var hasPending
+            )
+        )
+            return false;
+
+        // Reward commits replace the repository's profile snapshot atomically. Refresh
+        // progression before applying the activity state change so targeted campaign
+        // grants are not overwritten by the pre-claim object graph.
+        campaignProgress = GetOrCreateProgress();
+        academy = campaignProgress.Academy;
 
         if (
             activity.IsOfficialAssessment
@@ -179,6 +207,16 @@ public class AcademyProgressHandler
         {
             academy.CourseActivityIndex[key] = nextIndex;
             _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
+            if (hasPending)
+            {
+                SetLastCompletionSummary(
+                    course.Id,
+                    activity.Id,
+                    completedCourse: false,
+                    grantedRewards: grantedRewards
+                );
+                return true;
+            }
             return CompleteCourseInternal(
                 courseId,
                 grade: "pass",
@@ -224,7 +262,7 @@ public class AcademyProgressHandler
         if (resetSummary)
             ClearLastCompletionSummary();
 
-        var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
+        var course = FindCourse(CourseId.FromString(courseId));
         if (course == null)
             return false;
 
@@ -249,6 +287,39 @@ public class AcademyProgressHandler
         if (!academy.EnrolledCourses.Contains(course.Id))
             return false;
 
+        if (HasPendingRewardForCourse(course.Id))
+            return false;
+
+        if (
+            !TryEarnOffers(
+                course,
+                "course_completion",
+                course.RewardOffers,
+                out var courseRewards,
+                out var hasPending
+            )
+        )
+            return false;
+
+        // Course rewards may target this campaign. Continue from the committed
+        // profile snapshot rather than the state captured before the claim.
+        campaignProgress = GetOrCreateProgress();
+        academy = campaignProgress.Academy;
+
+        if (hasPending)
+        {
+            var pendingGrantedRewards = CopyRewardArray(existingRewards);
+            foreach (var reward in courseRewards)
+                pendingGrantedRewards.Add(reward);
+            SetLastCompletionSummary(
+                course.Id,
+                completedActivityId,
+                completedCourse: false,
+                grantedRewards: pendingGrantedRewards
+            );
+            return true;
+        }
+
         academy.CompletedCourses.Add(course.Id);
 
         academy.EnrolledCourses.Remove(course.Id);
@@ -264,7 +335,7 @@ public class AcademyProgressHandler
         );
 
         var grantedRewards = CopyRewardArray(existingRewards);
-        foreach (var reward in GrantCourseRewards(course, academy))
+        foreach (var reward in courseRewards)
         {
             grantedRewards.Add(reward);
         }
@@ -302,7 +373,7 @@ public class AcademyProgressHandler
             return false;
 
         var nextPeriod = GetNextSemester(academy.CurrentYear, academy.CurrentSemester);
-        if (!AcademyCourseCatalog.ForSemester(nextPeriod.year, nextPeriod.semester).Any())
+        if (!ForSemester(nextPeriod.year, nextPeriod.semester).Any())
         {
             GD.PushWarning(
                 $"AcademyProgressHandler: Cannot advance to unauthored academy semester year={nextPeriod.year} semester={nextPeriod.semester}"
@@ -346,7 +417,7 @@ public class AcademyProgressHandler
         return progress;
     }
 
-    private static void EnsureAcademyInitialized(AcademyProgress academy)
+    private void EnsureAcademyInitialized(AcademyProgress academy)
     {
         if (
             academy.CurrentYear == 1
@@ -365,11 +436,10 @@ public class AcademyProgressHandler
     private static int GetDefaultEnrollments(int year, int semester) =>
         year == 1 && semester is 1 or 2 ? DefaultSemesterEnrollments : DefaultSemesterEnrollments;
 
-    private static void AssignRequiredCourses(AcademyProgress academy)
+    private void AssignRequiredCourses(AcademyProgress academy)
     {
         foreach (
-            var course in AcademyCourseCatalog
-                .ForSemester(academy.CurrentYear, academy.CurrentSemester)
+            var course in ForSemester(academy.CurrentYear, academy.CurrentSemester)
                 .Where(course => course.IsRequired)
         )
         {
@@ -405,13 +475,12 @@ public class AcademyProgressHandler
         int semester
     )
     {
-        var candidates = AcademyCourseCatalog.ForSemester(year, semester).ToList();
+        var candidates = ForSemester(year, semester).ToList();
 
         if (year == 1 && semester == 2)
         {
             foreach (
-                var intro in AcademyCourseCatalog
-                    .ForSemester(1, 1)
+                var intro in ForSemester(1, 1)
                     .Where(course =>
                         course.ChoiceGroupId == "year_1_semester_1_element"
                         && !academy.CompletedCourses.Contains(course.Id)
@@ -441,7 +510,22 @@ public class AcademyProgressHandler
                 reason: GetSemesterRelation(academy, viewedYear, viewedSemester)
             );
 
-        var rewards = ToCourseRewardPreviewArray(course, academy);
+        var rewards = ToUniversalOfferPreviewArray(
+            course,
+            "course_completion",
+            course.RewardOffers
+        );
+        foreach (var activity in course.Activities)
+        {
+            foreach (
+                var preview in ToUniversalOfferPreviewArray(
+                    course,
+                    activity.Id,
+                    activity.RewardOffers
+                )
+            )
+                rewards.Add(preview);
+        }
 
         var activities = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var activity in course.Activities)
@@ -483,6 +567,8 @@ public class AcademyProgressHandler
             ["activities"] = activities,
             ["next_activity"] = nextActivity,
             ["reward_previews"] = rewards,
+            ["universal_reward_status"] = _universalRewards
+                .ToStatusDictionary()["status"],
         };
     }
 
@@ -566,11 +652,15 @@ public class AcademyProgressHandler
         var courseEnrolled = academy.EnrolledCourses.Contains(course.Id);
         var isCompleted = courseCompleted || activityIndex < currentIndex;
         var isCurrent = courseEnrolled && activityIndex == currentIndex;
-        var isLocked = !courseCompleted && (!courseEnrolled || activityIndex > currentIndex);
+        var hasPendingReward = HasPendingRewardForCourse(course.Id);
+        var isLocked =
+            !courseCompleted
+            && (!courseEnrolled || activityIndex > currentIndex || hasPendingReward);
         var deckValidation = ValidateDeckForActivity(activity);
         var canStart =
             courseEnrolled
             && (isCurrent || (isCompleted && activity.Repeatable))
+            && !hasPendingReward
             && deckValidation.IsValid;
 
         return new Godot.Collections.Dictionary
@@ -589,7 +679,11 @@ public class AcademyProgressHandler
             ["deck_validation"] = ToDeckValidationDict(deckValidation, activity.Limitations),
             ["invalid_reasons"] = ToStringArray(deckValidation.InvalidReasons),
             ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
-            ["reward_previews"] = ToActivityRewardPreviewArray(course, activity, academy),
+            ["reward_previews"] = ToUniversalOfferPreviewArray(
+                course,
+                activity.Id,
+                activity.RewardOffers
+            ),
         };
     }
 
@@ -610,7 +704,7 @@ public class AcademyProgressHandler
         string activityId
     )
     {
-        var course = AcademyCourseCatalog.Find(CourseId.FromString(courseId));
+        var course = FindCourse(CourseId.FromString(courseId));
         if (course == null)
             return (null, null);
 
@@ -1180,11 +1274,11 @@ public class AcademyProgressHandler
             && course.Semester == academy.CurrentSemester
         )
         {
-            var groupedCompleted = AcademyCourseCatalog.All.Any(other =>
+            var groupedCompleted = _courseCatalog.Any(other =>
                 other.ChoiceGroupId == course.ChoiceGroupId
                 && academy.CompletedCourses.Contains(other.Id)
             );
-            var groupedEnrolled = AcademyCourseCatalog.All.Any(other =>
+            var groupedEnrolled = _courseCatalog.Any(other =>
                 other.ChoiceGroupId == course.ChoiceGroupId
                 && academy.EnrolledCourses.Contains(other.Id)
             );
@@ -1197,8 +1291,10 @@ public class AcademyProgressHandler
 
     private bool CanAdvanceSemester(AcademyProgress academy)
     {
-        var requiredCourses = AcademyCourseCatalog
-            .ForSemester(academy.CurrentYear, academy.CurrentSemester)
+        if (HasAnyPendingAcademyReward())
+            return false;
+
+        var requiredCourses = ForSemester(academy.CurrentYear, academy.CurrentSemester)
             .Where(course => course.IsRequired);
 
         if (requiredCourses.Any(course => !academy.CompletedCourses.Contains(course.Id)))
@@ -1211,166 +1307,371 @@ public class AcademyProgressHandler
         });
     }
 
-    private Godot.Collections.Array<Godot.Collections.Dictionary> GrantCourseRewards(
-        AcademyCourseDefinition course,
-        AcademyProgress academy
+    public Godot.Collections.Dictionary ClaimReward(
+        string claimId,
+        Godot.Collections.Array<string> selectedOptionIds
     )
     {
-        var grantedRewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        if (_grantCardFunc == null)
-            return grantedRewards;
+        var typedClaimId = new RewardClaimId(claimId);
+        var state = _universalRewards.ProfileStore.GetRewardState();
+        if (!state.ResolvedOffers.TryGetValue(claimId, out var snapshot))
+            return ToClaimResultDict(InvalidClaim($"Reward claim '{claimId}' was not found."));
+        if (
+            snapshot.Source.SourceType is not "academy_activity" and not "academy_course"
+            || snapshot.SummonerId != _getActiveSummonerFunc()
+        )
+            return ToClaimResultDict(InvalidClaim("Reward claim does not belong to this summoner."));
 
-        for (var index = 0; index < course.Rewards.Count; index++)
-        {
-            var reward = course.Rewards[index];
-            if (GetRewardGrantState(reward) != RewardGrantStateGrantable)
-                continue;
-
-            var claimKey = GetCourseRewardClaimKey(course.Id, index, reward);
-            if (academy.CourseRewardsClaimed.Contains(claimKey))
-                continue;
-
-            var instanceId = _grantCardFunc((string)reward.CardId, reward.Rarity);
-            if (!string.IsNullOrEmpty(instanceId))
+        var result = _universalRewards.Claims.Claim(
+            new RewardClaimRequest
             {
-                academy.CourseRewardsClaimed.Add(claimKey);
-                grantedRewards.Add(
-                    ToGrantedRewardDict(reward, instanceId, "course", (string)course.Id)
-                );
+                ClaimId = typedClaimId,
+                SelectedOptionIds = selectedOptionIds
+                    .Select(id => new RewardOptionId(id))
+                    .ToImmutableArray(),
+            }
+        );
+
+        if (
+            result.Status is RewardRuntimeStatus.Ready or RewardRuntimeStatus.AlreadyClaimed
+            && !HasPendingRewardForCourse(new CourseId(snapshot.Source.SourceId))
+        )
+        {
+            ResumeCourseAfterReward(snapshot.Source.SourceId);
+        }
+
+        return ToClaimResultDict(result);
+    }
+
+    private bool TryEarnOffers(
+        AcademyCourseDefinition course,
+        string occurrenceId,
+        ImmutableArray<RewardOfferDefinition> offers,
+        out Godot.Collections.Array<Godot.Collections.Dictionary> grantedRewards,
+        out bool hasPending
+    )
+    {
+        grantedRewards = [];
+        hasPending = false;
+        foreach (var offer in offers)
+        {
+            if (!TryEnsureResolved(course, occurrenceId, offer, earned: true, out var snapshot))
+                return false;
+
+            if (snapshot.SelectionMode == RewardSelectionMode.PlayerChoice)
+            {
+                if (
+                    _universalRewards
+                        .ProfileStore.GetRewardState()
+                        .ClaimReceipts.ContainsKey(snapshot.ClaimId.Value)
+                )
+                    continue;
+                hasPending = true;
+                continue;
+            }
+
+            var claim = _universalRewards.Claims.Claim(
+                new RewardClaimRequest { ClaimId = snapshot.ClaimId }
+            );
+            if (
+                claim.Status is not RewardRuntimeStatus.Ready
+                    and not RewardRuntimeStatus.AlreadyClaimed
+                || claim.Receipt == null
+            )
+                return false;
+
+            if (claim.Status == RewardRuntimeStatus.Ready)
+            {
+                foreach (var grant in claim.Receipt.AppliedGrants)
+                {
+                    var granted = ToGrantViewDict(
+                        RewardViewModelFactory.CreateGrant(grant)
+                    );
+                    granted["claim_id"] = claim.Receipt.ClaimId.Value;
+                    granted["source_type"] =
+                        occurrenceId == "course_completion" ? "course" : "activity";
+                    granted["source_id"] = occurrenceId == "course_completion"
+                        ? (string)course.Id
+                        : occurrenceId;
+                    grantedRewards.Add(granted);
+                }
             }
         }
-
-        return grantedRewards;
+        return true;
     }
 
-    private Godot.Collections.Array<Godot.Collections.Dictionary> GrantActivityRewards(
+    private bool TryEnsureResolved(
         AcademyCourseDefinition course,
-        AcademyCourseActivity activity,
-        AcademyProgress academy
+        string occurrenceId,
+        RewardOfferDefinition offer,
+        bool earned,
+        out ResolvedRewardOfferSnapshot snapshot
     )
     {
-        var grantedRewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        if (_grantCardFunc == null)
-            return grantedRewards;
-
-        for (var index = 0; index < activity.Rewards.Count; index++)
+        snapshot = null!;
+        var summonerId = _getActiveSummonerFunc();
+        var source = new RewardSourceContext
         {
-            var reward = activity.Rewards[index];
-            if (GetRewardGrantState(reward) != RewardGrantStateGrantable)
-                continue;
-
-            var claimKey = GetActivityRewardClaimKey(course.Id, activity.Id, index, reward);
-            if (academy.ActivityRewardsClaimed.Contains(claimKey))
-                continue;
-
-            var instanceId = _grantCardFunc((string)reward.CardId, reward.Rarity);
-            if (!string.IsNullOrEmpty(instanceId))
+            SourceType =
+                occurrenceId == "course_completion" ? "academy_course" : "academy_activity",
+            SourceId = (string)course.Id,
+            OccurrenceId = occurrenceId,
+        };
+        var claimId = RewardIdentity.CreateClaimId(summonerId, source, offer.Id);
+        var state = _universalRewards.ProfileStore.GetRewardState();
+        if (state.ResolvedOffers.TryGetValue(claimId.Value, out var existingSnapshot))
+        {
+            snapshot = existingSnapshot;
+            if (state.ClaimReceipts.ContainsKey(claimId.Value))
+                return true;
+            if (earned && snapshot.SelectionMode == RewardSelectionMode.PlayerChoice)
             {
-                academy.ActivityRewardsClaimed.Add(claimKey);
-                grantedRewards.Add(
-                    ToGrantedRewardDict(reward, instanceId, "activity", activity.Id)
+                var existingPending = new PendingRewardSelection
+                {
+                    ClaimId = claimId,
+                    ChooseCount = snapshot.ChooseCount,
+                };
+                return _universalRewards.ProfileStore.TryStoreResolvedOffer(
+                    snapshot,
+                    existingPending,
+                    out _
                 );
             }
+            return true;
         }
 
-        return grantedRewards;
+        ulong seed = 0;
+        if (
+            offer.OptionSource is PoolRewardOptionSourceDefinition
+            && !_universalRewards.ProfileStore.TryGetOrCreateAcademySeed(
+                summonerId,
+                out seed,
+                out _
+            )
+        )
+            return false;
+
+        var result = _universalRewards.Resolver.Resolve(
+            offer,
+            new RewardResolutionContext
+            {
+                SummonerId = summonerId,
+                SummonerSeed = seed,
+                Source = source,
+                Catalog = _universalRewards.Catalog,
+                OwnedRewardKeys = _universalRewards.ProfileStore.GetOwnedRewardKeys(summonerId),
+            }
+        );
+        if (result.Status != RewardRuntimeStatus.Ready || result.Snapshot == null)
+            return false;
+
+        snapshot = result.Snapshot;
+        PendingRewardSelection? pending =
+            earned && offer.Selection.Mode == RewardSelectionMode.PlayerChoice
+                ? new PendingRewardSelection
+                {
+                    ClaimId = snapshot.ClaimId,
+                    ChooseCount = snapshot.ChooseCount,
+                }
+                : null;
+        return _universalRewards.ProfileStore.TryStoreResolvedOffer(
+            snapshot,
+            pending,
+            out _
+        );
     }
 
-    private static string GetRewardGrantState(AcademyCourseReward reward) =>
-        reward.Kind == AcademyRewardKind.Card && reward.CardId.HasValue
-            ? RewardGrantStateGrantable
-            : RewardGrantStatePreviewOnly;
-
-    private static IEnumerable<(AcademyCourseReward reward, string grantState)> GetCourseRewardPreviews(
+    private Godot.Collections.Array<Godot.Collections.Dictionary> ToUniversalOfferPreviewArray(
         AcademyCourseDefinition course,
-        AcademyProgress academy
+        string occurrenceId,
+        ImmutableArray<RewardOfferDefinition> offers
     )
     {
-        for (var index = 0; index < course.Rewards.Count; index++)
+        var previews = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var offer in offers)
         {
-            var reward = course.Rewards[index];
-            var claimKey = GetCourseRewardClaimKey(course.Id, index, reward);
-            var grantState = academy.CourseRewardsClaimed.Contains(claimKey)
-                ? RewardGrantStateClaimed
-                : GetRewardGrantState(reward);
-            yield return (reward, grantState);
+            var source = new RewardSourceContext
+            {
+                SourceType =
+                    occurrenceId == "course_completion"
+                        ? "academy_course"
+                        : "academy_activity",
+                SourceId = (string)course.Id,
+                OccurrenceId = occurrenceId,
+            };
+            var claimId = RewardIdentity.CreateClaimId(
+                _getActiveSummonerFunc(),
+                source,
+                offer.Id
+            );
+            var state = _universalRewards.ProfileStore.GetRewardState();
+            state.ResolvedOffers.TryGetValue(claimId.Value, out var snapshot);
+            if (snapshot == null && offer.PreviewPolicy == RewardPreviewPolicy.Exact)
+            {
+                if (
+                    TryEnsureResolved(
+                        course,
+                        occurrenceId,
+                        offer,
+                        earned: false,
+                        out var resolvedSnapshot
+                    )
+                )
+                    snapshot = resolvedSnapshot;
+            }
+            state = _universalRewards.ProfileStore.GetRewardState();
+            state.PendingSelections.TryGetValue(claimId.Value, out var pending);
+            state.ClaimReceipts.TryGetValue(claimId.Value, out var receipt);
+            previews.Add(
+                ToOfferViewDict(
+                    RewardViews.Create(
+                        offer,
+                        snapshot,
+                        pending,
+                        receipt
+                    ),
+                    offer.Selection.ShowCount
+                )
+            );
         }
+        return previews;
     }
 
-    private static IEnumerable<(AcademyCourseReward reward, string grantState)> GetActivityRewardPreviews(
-        AcademyCourseDefinition course,
-        AcademyCourseActivity activity,
-        AcademyProgress academy
+    private static Godot.Collections.Dictionary ToOfferViewDict(
+        RewardOfferViewModel offer,
+        int showCount
     )
     {
-        for (var index = 0; index < activity.Rewards.Count; index++)
+        var options = new Godot.Collections.Array();
+        foreach (var option in offer.Options)
         {
-            var reward = activity.Rewards[index];
-            var claimKey = GetActivityRewardClaimKey(course.Id, activity.Id, index, reward);
-            var grantState = academy.ActivityRewardsClaimed.Contains(claimKey)
-                ? RewardGrantStateClaimed
-                : GetRewardGrantState(reward);
-            yield return (reward, grantState);
-        }
-    }
-
-    private static Godot.Collections.Array<Godot.Collections.Dictionary> ToCourseRewardPreviewArray(
-        AcademyCourseDefinition course,
-        AcademyProgress academy
-    )
-    {
-        var rewards = GetCourseRewardPreviews(course, academy).ToList();
-        foreach (var activity in course.Activities)
-        {
-            rewards.AddRange(GetActivityRewardPreviews(course, activity, academy));
-        }
-
-        return ToRewardPreviewArray(rewards);
-    }
-
-    private static Godot.Collections.Array<Godot.Collections.Dictionary> ToActivityRewardPreviewArray(
-        AcademyCourseDefinition course,
-        AcademyCourseActivity activity,
-        AcademyProgress academy
-    ) => ToRewardPreviewArray(GetActivityRewardPreviews(course, activity, academy));
-
-    private static Godot.Collections.Array<Godot.Collections.Dictionary> ToRewardPreviewArray(
-        IEnumerable<(AcademyCourseReward reward, string grantState)> rewards
-    )
-    {
-        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-        foreach (var (reward, grantState) in rewards)
-        {
-            result.Add(
+            var grants = new Godot.Collections.Array();
+            foreach (var grant in option.Grants)
+                grants.Add(ToGrantViewDict(grant));
+            options.Add(
                 new Godot.Collections.Dictionary
                 {
-                    ["kind"] = reward.Kind.ToString(),
-                    ["preview_type"] = reward.PreviewType.ToString(),
-                    ["grant_state"] = grantState,
-                    ["is_grantable"] = grantState == RewardGrantStateGrantable,
-                    ["label_key"] = reward.LabelKey,
-                    ["element"] = reward.Element,
-                    ["card_role"] = reward.CardRole,
-                    ["card_id"] = (string)reward.CardId,
+                    ["option_id"] = option.Id.Value,
+                    ["label_key"] = option.LabelKey,
+                    ["description_key"] = option.DescriptionKey,
+                    ["grants"] = grants,
                 }
             );
         }
-
-        return result;
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["offer_id"] = offer.Id.Value,
+            ["preview_policy"] = offer.PreviewPolicy.ToString(),
+            ["selection_mode"] = offer.SelectionMode.ToString(),
+            ["show_count"] = showCount,
+            ["choose_count"] = offer.ChooseCount,
+            ["category_key"] = offer.CategoryKey,
+            ["options"] = options,
+            ["status"] = offer.DisplayState.ToString().ToLowerInvariant(),
+        };
+        if (offer.ClaimId.HasValue)
+            dict["claim_id"] = offer.ClaimId.Value.Value;
+        if (offer.Options.Length > 0)
+            dict["label_key"] = offer.Options[0].LabelKey;
+        return dict;
     }
 
-    private static string GetActivityRewardClaimKey(
-        CourseId courseId,
-        string activityId,
-        int rewardIndex,
-        AcademyCourseReward reward
-    ) => $"{courseId}:{activityId}:{rewardIndex}:{reward.Kind}:{reward.CardId}";
+    private static Godot.Collections.Dictionary ToGrantViewDict(RewardGrantViewModel grant)
+    {
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["kind"] = grant.Kind,
+            ["ownership_scope"] = grant.OwnershipScope.ToString(),
+            ["target_id"] = grant.TargetId,
+            ["id"] = grant.ContentId,
+            ["amount"] = grant.Amount,
+        };
+        if (grant.Kind == "card")
+        {
+            dict["card_id"] = grant.ContentId;
+            dict["rarity"] = grant.Rarity;
+        }
+        return dict;
+    }
 
-    private static string GetCourseRewardClaimKey(
-        CourseId courseId,
-        int rewardIndex,
-        AcademyCourseReward reward
-    ) => $"{courseId}:course:{rewardIndex}:{reward.Kind}:{reward.CardId}";
+    private bool HasAnyPendingAcademyReward()
+    {
+        var state = _universalRewards.ProfileStore.GetRewardState();
+        return state.PendingSelections.Keys.Any(claimId =>
+            state.ResolvedOffers.TryGetValue(claimId, out var snapshot)
+            && snapshot.Source.SourceType.StartsWith("academy_", StringComparison.Ordinal)
+        );
+    }
+
+    private bool HasPendingRewardForCourse(CourseId courseId)
+    {
+        var state = _universalRewards.ProfileStore.GetRewardState();
+        return state.PendingSelections.Keys.Any(claimId =>
+            state.ResolvedOffers.TryGetValue(claimId, out var snapshot)
+            && snapshot.Source.SourceId == (string)courseId
+            && snapshot.Source.SourceType.StartsWith("academy_", StringComparison.Ordinal)
+        );
+    }
+
+    private void ResumeCourseAfterReward(string courseId)
+    {
+        var course = FindCourse(new CourseId(courseId));
+        if (course == null)
+            return;
+        var progress = GetOrCreateProgress().Academy;
+        if (
+            progress.EnrolledCourses.Contains(course.Id)
+            && progress.CourseActivityIndex.GetValueOrDefault(courseId) >= course.Activities.Count
+        )
+        {
+            CompleteCourseInternal(
+                courseId,
+                "pass",
+                false,
+                resetSummary: true,
+                existingRewards: [],
+                completedActivityId: ""
+            );
+        }
+    }
+
+    private static RewardClaimResult InvalidClaim(string error) =>
+        new() { Status = RewardRuntimeStatus.Invalid, Errors = [error] };
+
+    private static Godot.Collections.Dictionary ToClaimResultDict(RewardClaimResult result)
+    {
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["status"] = result.Status.ToString(),
+            ["success"] =
+                result.Status is RewardRuntimeStatus.Ready
+                    or RewardRuntimeStatus.AlreadyClaimed,
+            ["errors"] = ToStringArray(result.Errors),
+        };
+        if (result.Receipt != null)
+            dict["receipt"] = ToReceiptDict(result.Receipt);
+        return dict;
+    }
+
+    private static Godot.Collections.Dictionary ToReceiptDict(RewardClaimReceipt receipt) =>
+        new()
+        {
+            ["claim_id"] = receipt.ClaimId.Value,
+            ["option_ids"] = ToStringArray(
+                receipt.ClaimedOptionIds.Select(id => id.Value)
+            ),
+            ["grants"] = ToGrantViewArray(receipt.AppliedGrants),
+        };
+
+    private static Godot.Collections.Array ToGrantViewArray(
+        ImmutableArray<RewardGrantDefinition> grants
+    )
+    {
+        var result = new Godot.Collections.Array();
+        foreach (var grant in grants)
+            result.Add(ToGrantViewDict(RewardViewModelFactory.CreateGrant(grant)));
+        return result;
+    }
 
     private void ClearLastCompletionSummary()
     {
@@ -1406,22 +1707,9 @@ public class AcademyProgressHandler
         return result;
     }
 
-    private static Godot.Collections.Dictionary ToGrantedRewardDict(
-        AcademyCourseReward reward,
-        string instanceId,
-        string sourceType,
-        string sourceId
-    ) =>
-        new()
-        {
-            ["kind"] = reward.Kind.ToString(),
-            ["label_key"] = reward.LabelKey,
-            ["element"] = reward.Element,
-            ["card_role"] = reward.CardRole,
-            ["card_id"] = (string)reward.CardId,
-            ["rarity"] = reward.Rarity,
-            ["instance_id"] = instanceId,
-            ["source_type"] = sourceType,
-            ["source_id"] = sourceId,
-        };
+    private AcademyCourseDefinition? FindCourse(CourseId courseId) =>
+        _courseCatalog.FirstOrDefault(course => course.Id == courseId);
+
+    private IEnumerable<AcademyCourseDefinition> ForSemester(int year, int semester) =>
+        _courseCatalog.Where(course => course.Year == year && course.Semester == semester);
 }

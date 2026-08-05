@@ -354,9 +354,11 @@ func _compact_rewards(rewards: Array) -> String:
 	var labels: Array[String] = []
 	for item: Variant in rewards:
 		var reward: Dictionary = SafeTypeUtils.dict(item)
-		if not SafeTypeUtils.bool_val(reward.get("is_grantable")):
+		if SafeTypeUtils.string(reward.get("status")) == "claimed":
 			continue
 		var label_key: String = SafeTypeUtils.string(reward.get("label_key"))
+		if label_key.is_empty():
+			label_key = SafeTypeUtils.string(reward.get("category_key"))
 		if not label_key.is_empty():
 			labels.append(Loc.t(label_key))
 	return ", ".join(labels)

@@ -6,6 +6,7 @@ using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Events;
+using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
@@ -596,16 +597,8 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_assessment_rewards");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        var granted = new List<CardId>();
-        service.SetCollectionCallbacks(
-            Callable.From(
-                (string catalogId, string _rarity) =>
-                {
-                    granted.Add(CardId.FromString(catalogId));
-                    return $"test_{catalogId}";
-                }
-            )
-        );
+        var neutralCountBefore = repo.GetCardCount(CardIds.NeutralStarterUnit);
+        var magicBoltCountBefore = repo.GetCardCount(CardIds.MagicBolt);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -614,7 +607,7 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(granted).IsEmpty();
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(neutralCountBefore);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -623,7 +616,7 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(granted).Contains(CardIds.NeutralStarterUnit);
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(neutralCountBefore + 1);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -632,7 +625,7 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(granted.Count(card => card == CardIds.NeutralStarterUnit)).IsEqual(1);
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(neutralCountBefore + 1);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -641,7 +634,7 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(granted).Contains(CardIds.MagicBolt);
+        AssertThat(repo.GetCardCount(CardIds.MagicBolt)).IsEqual(magicBoltCountBefore + 1);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -656,8 +649,8 @@ public class AcademyProgressServiceTest
         AssertThat(progress.EnrolledCourses.Contains(CourseIds.IntroductionToMagic101)).IsFalse();
         AssertThat(progress.OfficialAssessmentsCompleted).Contains("magic_101_assessment");
         AssertThat(progress.Transcript).HasSize(1);
-        AssertThat(granted).NotContains(CardIds.Puff);
-        AssertThat(granted).NotContains(CardIds.ManaBolt);
+        AssertThat(repo.GetCardCount(CardIds.Puff)).IsEqual(0);
+        AssertThat(repo.GetCardCount(CardIds.ManaBolt)).IsEqual(0);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -666,8 +659,8 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsFalse();
-        AssertThat(granted.Count(card => card == CardIds.NeutralStarterUnit)).IsEqual(1);
-        AssertThat(granted.Count(card => card == CardIds.MagicBolt)).IsEqual(1);
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(neutralCountBefore + 1);
+        AssertThat(repo.GetCardCount(CardIds.MagicBolt)).IsEqual(magicBoltCountBefore + 1);
     }
 
     [TestCase]
@@ -754,16 +747,7 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_failed_activity_no_reward");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        var granted = new List<CardId>();
-        service.SetCollectionCallbacks(
-            Callable.From(
-                (string catalogId, string _rarity) =>
-                {
-                    granted.Add(CardId.FromString(catalogId));
-                    return $"test_{catalogId}";
-                }
-            )
-        );
+        var cardCountBefore = repo.GetCardCount(CardIds.NeutralStarterUnit);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -783,8 +767,7 @@ public class AcademyProgressServiceTest
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
         AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101]).IsEqual(1);
-        AssertThat(progress.ActivityRewardsClaimed).IsEmpty();
-        AssertThat(granted).IsEmpty();
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(cardCountBefore);
     }
 
     [TestCase]
@@ -792,16 +775,7 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_claimed_activity_reward_rewind");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        var granted = new List<CardId>();
-        service.SetCollectionCallbacks(
-            Callable.From(
-                (string catalogId, string _rarity) =>
-                {
-                    granted.Add(CardId.FromString(catalogId));
-                    return $"test_{catalogId}_{granted.Count}";
-                }
-            )
-        );
+        var cardCountBefore = repo.GetCardCount(CardIds.NeutralStarterUnit);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -817,7 +791,7 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(granted.Count(card => card == CardIds.NeutralStarterUnit)).IsEqual(1);
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(cardCountBefore + 1);
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole);
         progress.Academy.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101] = 1;
@@ -832,19 +806,17 @@ public class AcademyProgressServiceTest
             .IsTrue();
 
         progress = repo.GetCampaignProgress(SummonerIds.Cole);
-        AssertThat(granted.Count(card => card == CardIds.NeutralStarterUnit)).IsEqual(1);
-        AssertThat(progress.Academy.ActivityRewardsClaimed).HasSize(1);
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(cardCountBefore + 1);
+        AssertThat(repo.GetRewardState().ClaimReceipts).HasSize(1);
 
         var course = service.GetAcademyCourse((string)CourseIds.IntroductionToMagic101);
         var rewardPreviews = course["reward_previews"].AsGodotArray();
         var starterReward = rewardPreviews
             .Select(item => item.AsGodotDictionary())
             .First(reward =>
-                reward.TryGetValue("card_id", out var cardId)
-                && cardId.AsString() == (string)CardIds.NeutralStarterUnit
+                reward["label_key"].AsString() == "academy.reward.neutral_starter_unit"
             );
-        AssertThat(starterReward["grant_state"].AsString()).IsEqual("claimed");
-        AssertThat(starterReward["is_grantable"].AsBool()).IsFalse();
+        AssertThat(starterReward["status"].AsString()).IsEqual("claimed");
     }
 
     [TestCase]
@@ -856,19 +828,10 @@ public class AcademyProgressServiceTest
         CompleteIntroCourse(service);
         AssertThat(service.EnrollAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
 
-        var granted = new List<CardId>();
-        service.SetCollectionCallbacks(
-            Callable.From(
-                (string catalogId, string _rarity) =>
-                {
-                    granted.Add(CardId.FromString(catalogId));
-                    return $"test_{catalogId}_{granted.Count}";
-                }
-            )
-        );
+        var cardCountBefore = repo.GetCardCount(CardIds.FireWisp);
 
         AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
-        AssertThat(granted.Count(card => card == CardIds.FireWisp)).IsEqual(1);
+        AssertThat(repo.GetCardCount(CardIds.FireWisp)).IsEqual(cardCountBefore + 1);
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole);
         progress.Academy.CompletedCourses.Remove(CourseIds.SummoningBasics);
@@ -878,23 +841,27 @@ public class AcademyProgressServiceTest
         AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
 
         progress = repo.GetCampaignProgress(SummonerIds.Cole);
-        AssertThat(granted.Count(card => card == CardIds.FireWisp)).IsEqual(1);
-        AssertThat(progress.Academy.CourseRewardsClaimed).HasSize(1);
+        AssertThat(repo.GetCardCount(CardIds.FireWisp)).IsEqual(cardCountBefore + 1);
+        AssertThat(
+                repo.GetRewardState().ClaimReceipts.Values.Count(receipt =>
+                    receipt.AppliedGrants.OfType<CardRewardGrantDefinition>()
+                        .Any(grant => grant.CardId == CardIds.FireWisp)
+                )
+            )
+            .IsEqual(1);
 
         var course = service.GetAcademyCourse((string)CourseIds.SummoningBasics);
         var rewardPreviews = course["reward_previews"].AsGodotArray();
         var fireWispReward = rewardPreviews
             .Select(item => item.AsGodotDictionary())
             .First(reward =>
-                reward.TryGetValue("card_id", out var cardId)
-                && cardId.AsString() == (string)CardIds.FireWisp
+                reward["label_key"].AsString() == "academy.reward.basic_summon"
             );
-        AssertThat(fireWispReward["grant_state"].AsString()).IsEqual("claimed");
-        AssertThat(fireWispReward["is_grantable"].AsBool()).IsFalse();
+        AssertThat(fireWispReward["status"].AsString()).IsEqual("claimed");
     }
 
     [TestCase]
-    public void CompleteAcademyActivity_PreviewOnlyRewardsCompleteWithoutGrantingCards()
+    public void CompleteAcademyActivity_CourseWithNoImmediateRewardCompletesNormally()
     {
         var repo = CreateRepo("academy_preview_only_rewards");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
@@ -908,23 +875,9 @@ public class AcademyProgressServiceTest
         AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroductionToEmpowerment))
             .IsTrue();
 
-        var granted = new List<CardId>();
-        service.SetCollectionCallbacks(
-            Callable.From(
-                (string catalogId, string _rarity) =>
-                {
-                    granted.Add(CardId.FromString(catalogId));
-                    return $"test_{catalogId}";
-                }
-            )
-        );
-
         var empowerment = service.GetAcademyCourse((string)CourseIds.IntroductionToEmpowerment);
         var rewards = empowerment["reward_previews"].AsGodotArray();
-        var reward = rewards[0].AsGodotDictionary();
-        AssertThat(reward["kind"].AsString()).IsEqual(AcademyRewardKind.CardTrait.ToString());
-        AssertThat(reward["grant_state"].AsString()).IsEqual("preview_only");
-        AssertThat(reward["is_grantable"].AsBool()).IsFalse();
+        AssertThat(rewards).IsEmpty();
 
         CompleteCourseActivities(service, CourseIds.IntroductionToEmpowerment, "empowerment");
 
@@ -933,7 +886,6 @@ public class AcademyProgressServiceTest
         AssertThat(progress.EnrolledCourses).NotContains(CourseIds.IntroductionToEmpowerment);
         AssertThat(progress.Transcript.Select(entry => entry.CourseId))
             .Contains(CourseIds.IntroductionToEmpowerment);
-        AssertThat(granted).IsEmpty();
     }
 
     private CampaignService CreateCampaignService(IProfileRepository repo, SummonerId activeSummoner)

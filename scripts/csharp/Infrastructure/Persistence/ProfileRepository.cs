@@ -10,11 +10,13 @@ using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Shop;
 using Fateforged.Meta.Summoner;
+using Fateforged.Meta.Rewards;
 using Godot;
 using GdArray = Godot.Collections.Array;
 using GdDict = Godot.Collections.Dictionary;
@@ -27,7 +29,7 @@ namespace Fateforged.Infrastructure.Persistence;
 /// Handles JSON persistence via JsonProfileStore, migrations via ProfileMigrator,
 /// and debounced saves via Timer.
 /// </summary>
-public partial class ProfileRepository : Node, IProfileRepository
+public partial class ProfileRepository : Node, IProfileRepository, IRewardProfileStore
 {
     public static ProfileRepository? Instance { get; private set; }
 
@@ -39,6 +41,8 @@ public partial class ProfileRepository : Node, IProfileRepository
     private readonly JsonProfileStore _store = new();
     private Timer? _saveTimer;
     private bool _pendingSave;
+    private readonly object _rewardTransactionLock = new();
+    private int _rewardRevision;
 
     // C# events (for C# consumers)
     public event Action<string>? ProfileLoaded;
@@ -163,6 +167,174 @@ public partial class ProfileRepository : Node, IProfileRepository
     }
 
     public ProfileData? GetProfileMetadata() => _data;
+
+    public RewardProfileState GetRewardState()
+    {
+        lock (_rewardTransactionLock)
+        {
+            return RewardStateMapper.FromDictionary(
+                RewardStateMapper.ToDictionary(_data.Rewards)
+            );
+        }
+    }
+
+    public bool TryGetOrCreateAcademySeed(
+        SummonerId summonerId,
+        out ulong seed,
+        out string error
+    )
+    {
+        lock (_rewardTransactionLock)
+        {
+            var key = (string)summonerId;
+            if (_data.Rewards.AcademySeedBySummoner.TryGetValue(key, out seed))
+            {
+                error = "";
+                return true;
+            }
+
+            seed = BitConverter.ToUInt64(
+                System.Security.Cryptography.RandomNumberGenerator.GetBytes(sizeof(ulong))
+            );
+            if (seed == 0)
+                seed = 1;
+
+            var candidate = CloneProfile(_data);
+            candidate.Rewards.AcademySeedBySummoner[key] = seed;
+            return TryPersistRewardCandidate(candidate, out error);
+        }
+    }
+
+    public IReadOnlySet<string> GetOwnedRewardKeys(SummonerId summonerId)
+    {
+        lock (_rewardTransactionLock)
+        {
+            var keys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var card in _data.Collection)
+                keys.Add($"card:{card.CatalogId}");
+            foreach (var item in _data.Items)
+                keys.Add($"item:{item.CatalogId}");
+            foreach (var unlocked in _data.UnlockedSummoners)
+                keys.Add($"summoner:{unlocked}");
+            foreach (var cosmetic in _data.Cosmetics.Owned)
+                keys.Add($"cosmetic:{cosmetic}");
+            foreach (var emote in _data.Emotes.Owned)
+                keys.Add($"emote:{emote}");
+
+            var summoner = _data.SummonerInstances.FirstOrDefault(instance =>
+                instance.SummonerId == summonerId
+            );
+            if (summoner != null)
+            {
+                foreach (var trait in summoner.AcquiredTraitIds)
+                    keys.Add($"summoner_trait:{trait}");
+            }
+
+            if (_data.CampaignProgressMap.TryGetValue((string)summonerId, out var progress))
+            {
+                foreach (var flag in progress.Academy.RewardFlags.Keys)
+                    keys.Add($"academy_flag:{flag}");
+            }
+            return keys;
+        }
+    }
+
+    public bool TryStoreResolvedOffer(
+        ResolvedRewardOfferSnapshot snapshot,
+        PendingRewardSelection? pending,
+        out string error
+    )
+    {
+        lock (_rewardTransactionLock)
+        {
+            var claimId = snapshot.ClaimId.Value;
+            if (_data.Rewards.ResolvedOffers.ContainsKey(claimId))
+            {
+                if (
+                    pending == null
+                    || _data.Rewards.PendingSelections.ContainsKey(claimId)
+                    || _data.Rewards.ClaimReceipts.ContainsKey(claimId)
+                )
+                {
+                    error = "";
+                    return true;
+                }
+
+                var existingCandidate = CloneProfile(_data);
+                existingCandidate.Rewards.PendingSelections[claimId] = pending;
+                return TryPersistRewardCandidate(existingCandidate, out error);
+            }
+
+            var candidate = CloneProfile(_data);
+            candidate.Rewards.ResolvedOffers[claimId] = snapshot;
+            if (pending != null)
+                candidate.Rewards.PendingSelections[claimId] = pending;
+            return TryPersistRewardCandidate(candidate, out error);
+        }
+    }
+
+    public IRewardGrantTransaction BeginRewardTransaction() =>
+        new ProfileRewardGrantTransaction(this, _rewardRevision);
+
+    internal RewardTransactionCommitResult TryCommitRewardTransaction(
+        int expectedRevision,
+        IReadOnlyList<IRewardGrantMutation> mutations,
+        RewardClaimReceipt receipt
+    )
+    {
+        lock (_rewardTransactionLock)
+        {
+            if (expectedRevision != _rewardRevision)
+            {
+                return RewardTransactionCommitResult.Unavailable(
+                    "Profile changed while the reward claim was being prepared."
+                );
+            }
+
+            if (_data.Rewards.ClaimReceipts.ContainsKey(receipt.ClaimId.Value))
+                return new RewardTransactionCommitResult(true, "");
+
+            var candidate = CloneProfile(_data);
+
+            foreach (var mutation in mutations)
+            {
+                if (!mutation.TryApply(candidate, out var mutationError))
+                    return RewardTransactionCommitResult.Unavailable(mutationError);
+            }
+
+            candidate.Rewards.ClaimReceipts[receipt.ClaimId.Value] = receipt;
+            candidate.Rewards.PendingSelections.Remove(receipt.ClaimId.Value);
+            return TryPersistRewardCandidate(candidate, out var persistenceError)
+                ? new RewardTransactionCommitResult(true, "")
+                : RewardTransactionCommitResult.Unavailable(persistenceError);
+        }
+    }
+
+    private ProfileData CloneProfile(ProfileData profile)
+    {
+        var snapshot = ProfileDataMapper.ToDictionary(profile);
+        return ProfileDataMapper.FromDictionary(snapshot, _currentProfileId);
+    }
+
+    private bool TryPersistRewardCandidate(ProfileData candidate, out string error)
+    {
+        candidate.UpdatedAt = (long)Time.GetUnixTimeFromSystem();
+        var candidateDict = ProfileDataMapper.ToDictionary(candidate);
+        if (!_store.SaveProfile(_currentProfileId, candidateDict))
+        {
+            error = "Failed to persist the reward transaction.";
+            return false;
+        }
+
+        _data = candidate;
+        _rewardRevision++;
+        _pendingSave = false;
+        ProfileSaved?.Invoke(_currentProfileId);
+        EmitSignal(SignalName.ProfileSavedGodot, _currentProfileId);
+        EmitDataChanged();
+        error = "";
+        return true;
+    }
 
     // =========================================================================
     // RESOURCE OPERATIONS

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Constants;
+using Fateforged.Data.Academy;
+using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Enums;
@@ -39,6 +41,9 @@ public partial class RewardService : Node
     private IProfileRepository? _profileRepo;
     private readonly Random _random = new();
 
+    public UniversalRewardRuntime UniversalRuntime { get; private set; } =
+        UniversalRewardRuntime.CreateUnavailable();
+
     // =========================================================================
     // LIFECYCLE
     // =========================================================================
@@ -54,6 +59,7 @@ public partial class RewardService : Node
         GD.Print("RewardService: Initializing...");
 
         _profileRepo = ProfileRepository.Instance;
+        UniversalRuntime = CreateUniversalRuntime(_profileRepo);
 
         if (_profileRepo == null)
         {
@@ -75,6 +81,37 @@ public partial class RewardService : Node
     {
         ArgumentNullException.ThrowIfNull(repo);
         _profileRepo = repo;
+        UniversalRuntime = CreateUniversalRuntime(repo);
+    }
+
+    public Godot.Collections.Dictionary GetUniversalRewardStatus() =>
+        UniversalRuntime.ToStatusDictionary();
+
+    private static UniversalRewardRuntime CreateUniversalRuntime(IProfileRepository? repository)
+    {
+        if (repository is not IRewardProfileStore rewardProfileStore)
+            return UniversalRewardRuntime.CreateUnavailable();
+
+        var validator = new RewardContentValidator(
+            RewardGrantHandlerRegistry.CreateDefault().HandledGrantTypes
+        );
+        var contentRoot = ProjectSettings.GlobalizePath("res://data/rewards");
+        var loaded = new RewardContentLoader(validator).Load(contentRoot);
+        var embeddedOffers = AcademyCourseCatalog.All.SelectMany(course =>
+            course.RewardOffers.Concat(
+                course.Activities.SelectMany(activity => activity.RewardOffers)
+            )
+        );
+        var errors = loaded.Errors.AddRange(
+            validator.Validate(loaded.Catalog, embeddedOffers)
+        );
+        if (!loaded.IsReady || errors.Length > 0)
+        {
+            foreach (var error in errors)
+                GD.PushError($"Reward content: {error}");
+            return UniversalRewardRuntime.CreateInvalid(rewardProfileStore, errors);
+        }
+        return UniversalRewardRuntime.Create(rewardProfileStore, loaded.Catalog);
     }
 
     // =========================================================================

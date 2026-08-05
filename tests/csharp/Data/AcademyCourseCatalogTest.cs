@@ -1,8 +1,10 @@
 namespace Fateforged.Tests.Data;
 
+using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Academy;
+using Fateforged.Data.Rewards;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
@@ -23,9 +25,11 @@ public class AcademyCourseCatalogTest
         AssertThat(magic101.Activities.Any(activity => activity.Type == AcademyCourseActivityType.Lesson))
             .IsFalse();
         AssertThat(magic101.Activities.Any(activity => activity.IsOfficialAssessment)).IsTrue();
-        AssertThat(magic101.Rewards).IsEmpty();
+        AssertThat(magic101.RewardOffers).IsEmpty();
 
-        var activityRewards = magic101.Activities.SelectMany(activity => activity.Rewards).ToArray();
+        var activityRewards = CardGrants(
+            magic101.Activities.SelectMany(activity => activity.RewardOffers)
+        );
         AssertThat(activityRewards).HasSize(2);
         AssertThat(activityRewards.Select(reward => reward.CardId))
             .Contains(CardIds.NeutralStarterUnit);
@@ -63,9 +67,9 @@ public class AcademyCourseCatalogTest
 
         foreach (var course in elementCourses)
         {
-            AssertThat(course.Rewards.Any(reward => reward.CardRole == "summon")).IsTrue();
-            AssertThat(course.Rewards.Any(reward => reward.CardRole == "spell")).IsTrue();
-            AssertThat(course.Rewards.All(reward => reward.CardId.HasValue)).IsTrue();
+            var rewards = CardGrants(course.RewardOffers);
+            AssertThat(rewards).HasSize(2);
+            AssertThat(rewards.All(reward => reward.CardId.HasValue)).IsTrue();
         }
     }
 
@@ -113,13 +117,13 @@ public class AcademyCourseCatalogTest
                     .Select(action => action.CardId)
             )
             .Contains(CardIds.TrainingTarget);
-        AssertThat(summonPractice.Rewards).IsEmpty();
+        AssertThat(summonPractice.RewardOffers).IsEmpty();
 
         AssertThat(basicDuel.Id).IsEqual("magic_101_basic_duel");
         AssertThat(basicDuel.BattleConfig).IsNotNull();
         AssertThat(basicDuel.BattleConfig!.EnemyDeck.Select(entry => entry.CardId))
             .Contains(CardIds.WeakEnemyUnit);
-        AssertThat(basicDuel.Rewards.Select(reward => reward.CardId))
+        AssertThat(CardGrants(basicDuel.RewardOffers).Select(reward => reward.CardId))
             .Contains(CardIds.NeutralStarterUnit);
 
         AssertThat(spellPractice.Id).IsEqual("magic_101_spell_practice");
@@ -134,7 +138,7 @@ public class AcademyCourseCatalogTest
                     .Select(action => action.CardId)
             )
             .Contains(CardIds.WeakEnemyUnit);
-        AssertThat(spellPractice.Rewards.Select(reward => reward.CardId))
+        AssertThat(CardGrants(spellPractice.RewardOffers).Select(reward => reward.CardId))
             .Contains(CardIds.MagicBolt);
 
         AssertThat(assessment.BattleConfig).IsNotNull();
@@ -171,6 +175,17 @@ public class AcademyCourseCatalogTest
         AssertThat(practice.Limitations.AdditionalLoanerCards.Select(entry => entry.CardId))
             .Contains(CardIds.MagicBolt);
     }
+
+    private static CardRewardGrantDefinition[] CardGrants(
+        IEnumerable<RewardOfferDefinition> offers
+    ) =>
+        offers
+            .SelectMany(offer =>
+                ((AuthoredRewardOptionSourceDefinition)offer.OptionSource).Options
+            )
+            .SelectMany(option => option.Grants)
+            .OfType<CardRewardGrantDefinition>()
+            .ToArray();
 
     [TestCase]
     public void Semester2Activities_StepUpWithoutUsingNormalAi()
