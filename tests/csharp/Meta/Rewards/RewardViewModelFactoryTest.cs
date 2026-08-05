@@ -44,11 +44,7 @@ public class RewardViewModelFactoryTest
         {
             ClaimId = claimId,
             OfferId = offer.Id,
-            Source = new RewardSourceContext
-            {
-                SourceType = "test",
-                SourceId = "source",
-            },
+            Source = new RewardSourceContext { SourceType = "test", SourceId = "source" },
             SummonerId = new SummonerId("summoner"),
             SelectionMode = RewardSelectionMode.PlayerChoice,
             ChooseCount = 1,
@@ -83,6 +79,7 @@ public class RewardViewModelFactoryTest
         AssertThat(pendingView.Options[0].Grants[0].Amount).IsEqual(25);
         AssertThat(claimedView.Status).IsEqual(RewardRuntimeStatus.AlreadyClaimed);
         AssertThat(claimedView.DisplayState).IsEqual(RewardOfferDisplayState.Claimed);
+        AssertThat(claimedView.Options[0].IsSelected).IsTrue();
         AssertThat(claimedView.Receipt).IsEqual(receipt);
     }
 }

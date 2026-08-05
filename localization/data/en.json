@@ -238,6 +238,7 @@
       "fixed": "🃏 {cards}",
       "gold": "{amount} Gold",
       "summoner_xp": "{amount} Summoner XP",
+      "card_xp": "{amount} XP per deck card",
       "card_choice": "🃏 1 Card",
       "first_clear_header": "First Clear",
       "every_battle_header": "Every Battle",

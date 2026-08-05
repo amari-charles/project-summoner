@@ -88,11 +88,7 @@ public static class ProfileMigrator
 
         // Initialize shared progress if needed
         if (!data.ContainsKey("shared_campaign_progress"))
-            data["shared_campaign_progress"] = new GdDict
-            {
-                ["completed_battles"] = new GdArray(),
-                ["current_battle"] = new Variant(),
-            };
+            data["shared_campaign_progress"] = new GdDict { ["completed_battles"] = new GdArray() };
 
         var sharedProgress = data["shared_campaign_progress"].AsGodotDictionary();
         var sharedCompletedVar = DictGet(sharedProgress, "completed_battles", new GdArray());
@@ -201,9 +197,7 @@ public static class ProfileMigrator
                 completedVar.VariantType == Variant.Type.Array
                     ? completedVar.AsGodotArray()
                     : new GdArray();
-            var pending = DictGet(summonerDict, "pending_reward", new Variant());
-
-            if (completed.Count > 0 || pending.VariantType != Variant.Type.Nil)
+            if (completed.Count > 0)
             {
                 summonerDict["gold"] = accountGold;
                 progressDict[summonerIdVar] = summonerDict;

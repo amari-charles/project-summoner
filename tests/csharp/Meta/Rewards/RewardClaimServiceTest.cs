@@ -38,10 +38,7 @@ public class RewardClaimServiceTest
                 ),
             }
         );
-        var claims = new RewardClaimService(
-            store,
-            RewardGrantHandlerRegistry.CreateDefault()
-        );
+        var claims = new RewardClaimService(store, RewardGrantHandlerRegistry.CreateDefault());
         var request = new RewardClaimRequest
         {
             ClaimId = new RewardClaimId("claim"),
@@ -140,9 +137,7 @@ public class RewardClaimServiceTest
             SelectedOptionIds = [new RewardOptionId("option")],
         };
 
-    private static InMemoryRewardStore StoreWithChoice(
-        params RewardGrantDefinition[] grants
-    )
+    private static InMemoryRewardStore StoreWithChoice(params RewardGrantDefinition[] grants)
     {
         var store = new InMemoryRewardStore();
         var claimId = new RewardClaimId("claim");
@@ -150,11 +145,7 @@ public class RewardClaimServiceTest
         {
             ClaimId = claimId,
             OfferId = new RewardOfferId("offer"),
-            Source = new RewardSourceContext
-            {
-                SourceType = "test",
-                SourceId = "source",
-            },
+            Source = new RewardSourceContext { SourceType = "test", SourceId = "source" },
             SummonerId = new SummonerId("summoner_cole"),
             SelectionMode = RewardSelectionMode.PlayerChoice,
             ChooseCount = 1,
@@ -189,7 +180,7 @@ public class RewardClaimServiceTest
             {
                 return new RewardProfileState
                 {
-                    AcademySeedBySummoner = new(State.AcademySeedBySummoner),
+                    RewardSeedBySummoner = new(State.RewardSeedBySummoner),
                     ResolvedOffers = new(State.ResolvedOffers),
                     PendingSelections = new(State.PendingSelections),
                     ClaimReceipts = new(State.ClaimReceipts),
@@ -197,7 +188,7 @@ public class RewardClaimServiceTest
             }
         }
 
-        public bool TryGetOrCreateAcademySeed(
+        public bool TryGetOrCreateRewardSeed(
             SummonerId summonerId,
             out ulong seed,
             out string error
@@ -233,6 +224,7 @@ public class RewardClaimServiceTest
             private RewardClaimReceipt? _receipt;
 
             public Transaction(InMemoryRewardStore store) => _store = store;
+
             public bool IsAvailable => true;
 
             public bool TryStage(IRewardGrantMutation mutation, out string error)
@@ -256,9 +248,7 @@ public class RewardClaimServiceTest
                     if (_store.FailCommit)
                         return RewardTransactionCommitResult.Unavailable("simulated failure");
                     if (_store.State.ClaimReceipts.ContainsKey(_receipt!.ClaimId.Value))
-                        return RewardTransactionCommitResult.Unavailable(
-                            "claim already committed"
-                        );
+                        return RewardTransactionCommitResult.Unavailable("claim already committed");
 
                     var candidate = Clone(_store.Profile);
                     foreach (var mutation in _mutations)

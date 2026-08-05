@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Fateforged.Data.Rewards;
 using Fateforged.Meta.Shop;
 using Godot;
 
@@ -54,8 +56,14 @@ public class BattleEventDefinition : EventDefinition
     /// <summary>Enemy summoner HP</summary>
     public float EnemyHp { get; set; } = 100f;
 
-    /// <summary>Reward configuration</summary>
-    public BattleRewardConfig Rewards { get; set; } = new();
+    /// <summary>XP earned for every distinct victorious attempt.</summary>
+    public int CardXpReward { get; set; }
+
+    /// <summary>Summoner XP earned for every distinct victorious attempt.</summary>
+    public int SummonerXpReward { get; set; }
+
+    /// <summary>Universal offers resolved only on this battle's first clear.</summary>
+    public ImmutableArray<RewardOfferDefinition> FirstClearRewardOffers { get; set; } = [];
 
     /// <summary>AI type (heuristic, passive, etc.)</summary>
     public string AiType { get; set; } = "heuristic";

@@ -53,10 +53,8 @@ public class CampaignProgressHandler
         _store.CompletedBattles.AddRange(campaignProgress.CompletedBattles);
 
         // Load choices into ChoiceTracker
-        if (_choiceTracker != null && campaignProgress.Choices.Count > 0)
-        {
+        if (_choiceTracker != null)
             _choiceTracker.LoadChoices(campaignProgress.Choices);
-        }
 
         GD.Print(
             $"CampaignProgressHandler: Loaded progress for '{_store.CurrentCampaignId}' summoner '{summonerId}' - {_store.CompletedBattles.Count} nodes completed, {campaignProgress.Choices.Count} choices"
@@ -166,8 +164,8 @@ public class CampaignProgressHandler
         var progress = _profileRepo.GetCampaignProgress(summonerId);
         progress.CompletedBattles = [];
         progress.Choices = [];
-        progress.CurrentBattle = null;
-        progress.PendingReward = null;
+        progress.ActiveBattleAttempt = null;
+        progress.BattleAttemptCompletions.Clear();
         _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
         GD.Print($"CampaignProgressHandler: Reset progress for summoner '{summonerId}'");

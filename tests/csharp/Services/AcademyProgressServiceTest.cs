@@ -52,7 +52,8 @@ public class AcademyProgressServiceTest
         var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
         AssertThat(progress.RemainingEnrollments).IsEqual(2);
         AssertThat(progress.EnrolledCourses).Contains(CourseIds.IntroductionToMagic101);
-        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101]).IsEqual(0);
+        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101])
+            .IsEqual(0);
 
         var intro = service.GetAcademyCourse((string)CourseIds.IntroductionToMagic101);
         AssertThat(intro["is_enrolled"].AsBool()).IsTrue();
@@ -94,8 +95,7 @@ public class AcademyProgressServiceTest
         AssertThat(required["group_title_key"].AsString()).IsEqual("academy.hub.group_required");
         AssertThat(required["track_title_key"].AsString()).IsEqual("academy.track.foundation");
 
-        AssertThat(foundationChoice["group_id"].AsString())
-            .IsEqual("year_1_semester_1_foundation");
+        AssertThat(foundationChoice["group_id"].AsString()).IsEqual("year_1_semester_1_foundation");
         AssertThat(foundationChoice["group_title_key"].AsString())
             .IsEqual("academy.class_hall.foundation_choice");
 
@@ -191,13 +191,17 @@ public class AcademyProgressServiceTest
         AssertThat(state["can_start"].AsBool()).IsFalse();
 
         var reasons = deckValidation["invalid_reasons"].AsGodotArray();
-        AssertThat(reasons.Select(reason => reason.AsString()).Any(reason =>
-                reason.Contains("spell card")
-            ))
+        AssertThat(
+                reasons
+                    .Select(reason => reason.AsString())
+                    .Any(reason => reason.Contains("spell card"))
+            )
             .IsTrue();
-        AssertThat(reasons.Select(reason => reason.AsString()).Any(reason =>
-                reason.Contains("required card")
-            ))
+        AssertThat(
+                reasons
+                    .Select(reason => reason.AsString())
+                    .Any(reason => reason.Contains("required card"))
+            )
             .IsTrue();
 
         AssertThat(
@@ -224,7 +228,8 @@ public class AcademyProgressServiceTest
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
 
-        var reasons = deckValidation["invalid_reasons"].AsGodotArray()
+        var reasons = deckValidation["invalid_reasons"]
+            .AsGodotArray()
             .Select(reason => reason.AsString())
             .ToArray();
         AssertThat(reasons.Any(reason => reason.Contains("allowed card type"))).IsTrue();
@@ -245,7 +250,8 @@ public class AcademyProgressServiceTest
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
         AssertThat(
-                deckValidation["invalid_reasons"].AsGodotArray()
+                deckValidation["invalid_reasons"]
+                    .AsGodotArray()
                     .Select(reason => reason.AsString())
                     .Any(reason => reason.Contains("active deck"))
             )
@@ -274,7 +280,8 @@ public class AcademyProgressServiceTest
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
 
-        var reasons = deckValidation["invalid_reasons"].AsGodotArray()
+        var reasons = deckValidation["invalid_reasons"]
+            .AsGodotArray()
             .Select(reason => reason.AsString())
             .ToArray();
         AssertThat(reasons.Any(reason => reason.Contains("allowed element"))).IsTrue();
@@ -285,7 +292,11 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_limitations_max_size");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        SetActiveDeck(repo, "Oversized Spellcraft Deck", Enumerable.Repeat(CardIds.Charge, 12).ToArray());
+        SetActiveDeck(
+            repo,
+            "Oversized Spellcraft Deck",
+            Enumerable.Repeat(CardIds.Charge, 12).ToArray()
+        );
 
         var state = service.GetAcademyActivityLaunchState(
             (string)CourseIds.PracticalSpellcraft,
@@ -295,7 +306,8 @@ public class AcademyProgressServiceTest
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
         AssertThat(
-                deckValidation["invalid_reasons"].AsGodotArray()
+                deckValidation["invalid_reasons"]
+                    .AsGodotArray()
                     .Select(reason => reason.AsString())
                     .Any(reason => reason.Contains("at most 12"))
             )
@@ -326,7 +338,9 @@ public class AcademyProgressServiceTest
         AssertThat(cards.Select(card => card["catalog_id"].AsString()).ToArray())
             .Contains((string)CardIds.MagicBolt);
 
-        var magicBolt = cards.First(card => card["catalog_id"].AsString() == (string)CardIds.MagicBolt);
+        var magicBolt = cards.First(card =>
+            card["catalog_id"].AsString() == (string)CardIds.MagicBolt
+        );
         AssertThat(magicBolt["count"].AsInt32()).IsEqual(1);
     }
 
@@ -351,8 +365,7 @@ public class AcademyProgressServiceTest
         );
 
         AssertThat(first).IsEqual(second);
-        AssertThat(first)
-            .IsEqual("fire_wisp:1|charge:1|neutral_starter_unit:1|magic_bolt:1");
+        AssertThat(first).IsEqual("fire_wisp:1|charge:1|neutral_starter_unit:1|magic_bolt:1");
     }
 
     [TestCase]
@@ -436,7 +449,8 @@ public class AcademyProgressServiceTest
             .IsFalse();
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
-        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101]).IsEqual(0);
+        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101])
+            .IsEqual(0);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -483,7 +497,8 @@ public class AcademyProgressServiceTest
             )
             .IsTrue();
         progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
-        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101]).IsEqual(2);
+        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101])
+            .IsEqual(2);
     }
 
     [TestCase]
@@ -491,11 +506,7 @@ public class AcademyProgressServiceTest
     {
         var battleConfig = new AcademyBattleConfig
         {
-            LoanerPlayerDeck =
-            [
-                new DeckEntry(CardIds.Puff, 2),
-                new DeckEntry(CardIds.ManaBolt, 1),
-            ],
+            LoanerPlayerDeck = [new DeckEntry(CardIds.Puff, 2), new DeckEntry(CardIds.ManaBolt, 1)],
             EnemyDeck = [new DeckEntry(CardIds.FireWisp, 1)],
             EnemyHp = 30f,
         };
@@ -668,10 +679,6 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_reward_summary");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        service.SetCollectionCallbacks(
-            Callable.From((string catalogId, string _rarity) => $"test_{catalogId}")
-        );
-
         AssertThat(
                 service.CompleteAcademyActivity(
                     (string)CourseIds.IntroductionToMagic101,
@@ -724,10 +731,6 @@ public class AcademyProgressServiceTest
 
         CompleteIntroCourse(service);
         AssertThat(service.EnrollAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
-        service.SetCollectionCallbacks(
-            Callable.From((string catalogId, string _rarity) => $"test_{catalogId}")
-        );
-
         AssertThat(service.CompleteAcademyCourse((string)CourseIds.SummoningBasics)).IsTrue();
 
         var summary = service.ConsumeLastAcademyCompletionSummary();
@@ -766,7 +769,8 @@ public class AcademyProgressServiceTest
             .IsFalse();
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
-        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101]).IsEqual(1);
+        AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101])
+            .IsEqual(1);
         AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(cardCountBefore);
     }
 
@@ -843,10 +847,12 @@ public class AcademyProgressServiceTest
         progress = repo.GetCampaignProgress(SummonerIds.Cole);
         AssertThat(repo.GetCardCount(CardIds.FireWisp)).IsEqual(cardCountBefore + 1);
         AssertThat(
-                repo.GetRewardState().ClaimReceipts.Values.Count(receipt =>
-                    receipt.AppliedGrants.OfType<CardRewardGrantDefinition>()
-                        .Any(grant => grant.CardId == CardIds.FireWisp)
-                )
+                repo.GetRewardState()
+                    .ClaimReceipts.Values.Count(receipt =>
+                        receipt
+                            .AppliedGrants.OfType<CardRewardGrantDefinition>()
+                            .Any(grant => grant.CardId == CardIds.FireWisp)
+                    )
             )
             .IsEqual(1);
 
@@ -854,9 +860,7 @@ public class AcademyProgressServiceTest
         var rewardPreviews = course["reward_previews"].AsGodotArray();
         var fireWispReward = rewardPreviews
             .Select(item => item.AsGodotDictionary())
-            .First(reward =>
-                reward["label_key"].AsString() == "academy.reward.basic_summon"
-            );
+            .First(reward => reward["label_key"].AsString() == "academy.reward.basic_summon");
         AssertThat(fireWispReward["status"].AsString()).IsEqual("claimed");
     }
 
@@ -888,7 +892,10 @@ public class AcademyProgressServiceTest
             .Contains(CourseIds.IntroductionToEmpowerment);
     }
 
-    private CampaignService CreateCampaignService(IProfileRepository repo, SummonerId activeSummoner)
+    private CampaignService CreateCampaignService(
+        IProfileRepository repo,
+        SummonerId activeSummoner
+    )
     {
         var service = CreateNode<CampaignService>();
         service.InitForTesting(repo);
@@ -979,25 +986,12 @@ public class AcademyProgressServiceTest
         string activityPrefix
     )
     {
-        AssertThat(
-                service.CompleteAcademyActivity(
-                    (string)courseId,
-                    $"{activityPrefix}_lesson"
-                )
-            )
+        AssertThat(service.CompleteAcademyActivity((string)courseId, $"{activityPrefix}_lesson"))
+            .IsTrue();
+        AssertThat(service.CompleteAcademyActivity((string)courseId, $"{activityPrefix}_practice"))
             .IsTrue();
         AssertThat(
-                service.CompleteAcademyActivity(
-                    (string)courseId,
-                    $"{activityPrefix}_practice"
-                )
-            )
-            .IsTrue();
-        AssertThat(
-                service.CompleteAcademyActivity(
-                    (string)courseId,
-                    $"{activityPrefix}_assessment"
-                )
+                service.CompleteAcademyActivity((string)courseId, $"{activityPrefix}_assessment")
             )
             .IsTrue();
     }

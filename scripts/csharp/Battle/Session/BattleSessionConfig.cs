@@ -1,4 +1,5 @@
 using Fateforged.Cards;
+using Fateforged.Domain.Progression;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
 using Godot;
@@ -42,8 +43,7 @@ public class BattleSessionConfig
     public bool IsMultiplayer { get; set; }
     public bool HasAuthority { get; set; } = true;
 
-    public int CardXpReward { get; set; }
-    public int SummonerXpReward { get; set; }
+    public BattleAttemptId BattleAttemptId { get; set; } = BattleAttemptId.None;
     public string OriginScene { get; set; } = "";
     public bool IsRankedMatch { get; set; }
     public Godot.Collections.Dictionary? RankedMatchInfo { get; set; }
@@ -71,8 +71,9 @@ public class BattleSessionConfig
             PreparationDuration = GetFloat(config, "prep_duration", 15.0f),
             IsMultiplayer = (bool)battleContext.Call("is_multiplayer_battle"),
             HasAuthority = (bool)battleContext.Call("has_authority"),
-            CardXpReward = GetInt(config, "card_xp_reward", 0),
-            SummonerXpReward = GetInt(config, "summoner_xp_reward", 0),
+            BattleAttemptId = BattleAttemptId.FromString(
+                battleContext.Call("get_battle_attempt_id").AsString()
+            ),
             OriginScene = battleContext.Get("origin_scene").AsString(),
             IsRankedMatch = (bool)battleContext.Call("is_ranked_match"),
             RankedMatchInfo = battleContext.Call("get_ranked_match_info").AsGodotDictionary(),
@@ -150,7 +151,9 @@ public class BattleSessionConfig
         var side = new BattleSideDefinition
         {
             Team = GetInt(dict, "team", fallback.Team),
-            Source = ParseSideSource(dict.GetValueOrDefault("source", fallback.Source.ToString()).ToString()!),
+            Source = ParseSideSource(
+                dict.GetValueOrDefault("source", fallback.Source.ToString()).ToString()!
+            ),
             Summoner = fallback.Summoner,
             Deck = fallback.Deck,
             Controller = fallback.Controller,
@@ -166,7 +169,10 @@ public class BattleSessionConfig
 
         var controllerVar = dict.GetValueOrDefault("controller", default);
         if (controllerVar.VariantType == Variant.Type.Dictionary)
-            side.Controller = ParseController(controllerVar.AsGodotDictionary(), fallback.Controller);
+            side.Controller = ParseController(
+                controllerVar.AsGodotDictionary(),
+                fallback.Controller
+            );
 
         return side;
     }
@@ -178,9 +184,12 @@ public class BattleSessionConfig
     {
         var summoner = new BattleSummonerDefinition
         {
-            Source = ParseSideSource(dict.GetValueOrDefault("source", fallback.Source.ToString()).ToString()!),
+            Source = ParseSideSource(
+                dict.GetValueOrDefault("source", fallback.Source.ToString()).ToString()!
+            ),
             Id = dict.GetValueOrDefault("id", fallback.Id).ToString() ?? "",
-            DisplayName = dict.GetValueOrDefault("display_name", fallback.DisplayName).ToString() ?? "",
+            DisplayName =
+                dict.GetValueOrDefault("display_name", fallback.DisplayName).ToString() ?? "",
             Hp = GetOptionalFloat(dict, "hp", fallback.Hp),
             MaxHp = GetOptionalFloat(dict, "max_hp", fallback.MaxHp),
             Mana = GetOptionalFloat(dict, "mana", fallback.Mana),
@@ -225,7 +234,9 @@ public class BattleSessionConfig
     {
         var deck = new BattleDeckDefinition
         {
-            Source = ParseDeckSource(dict.GetValueOrDefault("source", fallback.Source.ToString()).ToString()!),
+            Source = ParseDeckSource(
+                dict.GetValueOrDefault("source", fallback.Source.ToString()).ToString()!
+            ),
             Deferred = GetBool(dict, "deferred", fallback.Deferred),
         };
 
@@ -261,10 +272,15 @@ public class BattleSessionConfig
     {
         var controller = new BattleControllerDefinition
         {
-            Kind = ParseControllerKind(dict.GetValueOrDefault("kind", fallback.Kind.ToString()).ToString()!),
-            AiType = ParseAiType(dict.GetValueOrDefault("ai_type", fallback.AiType.ToString()).ToString()!),
+            Kind = ParseControllerKind(
+                dict.GetValueOrDefault("kind", fallback.Kind.ToString()).ToString()!
+            ),
+            AiType = ParseAiType(
+                dict.GetValueOrDefault("ai_type", fallback.AiType.ToString()).ToString()!
+            ),
             AiPersonality = ParseAiPersonality(
-                dict.GetValueOrDefault("ai_personality", fallback.AiPersonality.ToString()).ToString()!
+                dict.GetValueOrDefault("ai_personality", fallback.AiPersonality.ToString())
+                    .ToString()!
             ),
             AiDifficulty = GetInt(dict, "ai_difficulty", fallback.AiDifficulty),
             AiIntervalMin = fallback.AiIntervalMin,
@@ -354,11 +370,7 @@ public class BattleSessionConfig
 
     private static string Normalize(string value) => value.Trim().ToLowerInvariant();
 
-    private static float GetFloat(
-        Godot.Collections.Dictionary dict,
-        string key,
-        float defaultValue
-    )
+    private static float GetFloat(Godot.Collections.Dictionary dict, string key, float defaultValue)
     {
         if (!dict.TryGetValue(key, out var value))
             return defaultValue;
@@ -614,8 +626,10 @@ public class BattleSessionConfig
             "hazard" or "hazard_rule" or "hazardrule" => EncounterRuleKind.HazardRule,
             "objective" or "objective_rule" or "objectiverule" => EncounterRuleKind.ObjectiveRule,
             "dialogue" or "dialogue_rule" or "dialoguerule" => EncounterRuleKind.DialogueRule,
-            "arena_modifier" or "arena_modifier_rule" or "arenamodifierrule" => EncounterRuleKind.ArenaModifierRule,
-            "reward_preview" or "reward_preview_rule" or "rewardpreviewrule" => EncounterRuleKind.RewardPreviewRule,
+            "arena_modifier" or "arena_modifier_rule" or "arenamodifierrule" =>
+                EncounterRuleKind.ArenaModifierRule,
+            "reward_preview" or "reward_preview_rule" or "rewardpreviewrule" =>
+                EncounterRuleKind.RewardPreviewRule,
             _ => EncounterRuleKind.EventRule,
         };
 
@@ -626,12 +640,16 @@ public class BattleSessionConfig
             "set_behavior" or "setbehavior" => EncounterActionKind.SetBehavior,
             "set_rule_enabled" or "setruleenabled" => EncounterActionKind.SetRuleEnabled,
             "spawn_hazard" or "spawnhazard" => EncounterActionKind.SpawnHazard,
-            "apply_arena_modifier" or "applyarenamodifier" => EncounterActionKind.ApplyArenaModifier,
+            "apply_arena_modifier" or "applyarenamodifier" =>
+                EncounterActionKind.ApplyArenaModifier,
             "set_objective_state" or "setobjectivestate" => EncounterActionKind.SetObjectiveState,
-            "grant_temporary_card" or "granttemporarycard" => EncounterActionKind.GrantTemporaryCard,
+            "grant_temporary_card" or "granttemporarycard" =>
+                EncounterActionKind.GrantTemporaryCard,
             "modify_mana_rule" or "modifymanarule" => EncounterActionKind.ModifyManaRule,
-            "trigger_dialogue_beat" or "triggerdialoguebeat" => EncounterActionKind.TriggerDialogueBeat,
-            "set_win_condition_progress" or "setwinconditionprogress" => EncounterActionKind.SetWinConditionProgress,
+            "trigger_dialogue_beat" or "triggerdialoguebeat" =>
+                EncounterActionKind.TriggerDialogueBeat,
+            "set_win_condition_progress" or "setwinconditionprogress" =>
+                EncounterActionKind.SetWinConditionProgress,
             _ => EncounterActionKind.SpawnUnits,
         };
 

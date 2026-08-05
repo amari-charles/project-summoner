@@ -28,9 +28,10 @@ public sealed class UniversalRewardRuntime
         Status = status;
         Errors = errors.IsDefault ? [] : errors;
         Handlers = RewardGrantHandlerRegistry.CreateDefault();
-        Resolver = new RewardResolver(
-            [new AuthoredRewardOptionSource(), new PoolRewardOptionSource()]
-        );
+        Resolver = new RewardResolver([
+            new AuthoredRewardOptionSource(),
+            new PoolRewardOptionSource(),
+        ]);
         Claims = new RewardClaimService(profileStore, Handlers);
     }
 
@@ -49,24 +50,17 @@ public sealed class UniversalRewardRuntime
     public static UniversalRewardRuntime CreateInvalid(
         IRewardProfileStore profileStore,
         IEnumerable<string> errors
-    ) =>
-        new(
-            profileStore,
-            new RewardContentCatalog(),
-            RewardRuntimeStatus.Invalid,
-            [.. errors]
-        );
+    ) => new(profileStore, new RewardContentCatalog(), RewardRuntimeStatus.Invalid, [.. errors]);
 
     public Godot.Collections.Dictionary ToStatusDictionary() =>
         new()
         {
-            ["status"] =
-                Status switch
-                {
-                    RewardRuntimeStatus.Ready => "ready",
-                    RewardRuntimeStatus.Invalid => "invalid",
-                    _ => "unavailable",
-                },
+            ["status"] = Status switch
+            {
+                RewardRuntimeStatus.Ready => "ready",
+                RewardRuntimeStatus.Invalid => "invalid",
+                _ => "unavailable",
+            },
             ["can_resolve"] = Status == RewardRuntimeStatus.Ready,
             ["can_claim"] = Status == RewardRuntimeStatus.Ready,
             ["errors"] = new Godot.Collections.Array<string>(Errors),
@@ -82,7 +76,7 @@ internal sealed class UnavailableRewardProfileStore : IRewardProfileStore
 
     public Fateforged.Domain.Profile.Rewards.RewardProfileState GetRewardState() => _state;
 
-    public bool TryGetOrCreateAcademySeed(
+    public bool TryGetOrCreateRewardSeed(
         Fateforged.Data.Summoners.SummonerId summonerId,
         out ulong seed,
         out string error
@@ -107,8 +101,7 @@ internal sealed class UnavailableRewardProfileStore : IRewardProfileStore
         return false;
     }
 
-    public IRewardGrantTransaction BeginRewardTransaction() =>
-        new UnavailableRewardTransaction();
+    public IRewardGrantTransaction BeginRewardTransaction() => new UnavailableRewardTransaction();
 
     private sealed class UnavailableRewardTransaction : IRewardGrantTransaction
     {
@@ -130,8 +123,6 @@ internal sealed class UnavailableRewardProfileStore : IRewardProfileStore
         }
 
         public RewardTransactionCommitResult Commit() =>
-            RewardTransactionCommitResult.Unavailable(
-                "Reward profile store is unavailable."
-            );
+            RewardTransactionCommitResult.Unavailable("Reward profile store is unavailable.");
     }
 }

@@ -14,8 +14,10 @@ using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Domain.Profile.Inventory;
+using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
+using Fateforged.Domain.Progression;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
 using Godot;
@@ -340,11 +342,9 @@ public static class DtoConverters
         var dict = new Godot.Collections.Dictionary
         {
             ["completed_battles"] = ToGodotArray(progress.CompletedBattles.Select(b => (string)b)),
-            ["current_battle"] = progress.CurrentBattle.HasValue
-                ? (string)progress.CurrentBattle.Value
-                : "",
             ["gold"] = progress.Gold,
             ["academy"] = ToDict(progress.Academy),
+            ["caravan_purchases"] = ToGodotArray(progress.CaravanPurchases),
         };
 
         // Add choices if present
@@ -358,10 +358,15 @@ public static class DtoConverters
             dict["choices"] = choicesDict;
         }
 
-        // Add pending_reward if present
-        if (progress.PendingReward != null)
+        if (progress.ActiveBattleAttempt != null)
+            dict["active_battle_attempt"] = ToDict(progress.ActiveBattleAttempt);
+
+        if (progress.BattleAttemptCompletions.Count > 0)
         {
-            dict["pending_reward"] = ToDict(progress.PendingReward);
+            var completions = new Godot.Collections.Dictionary();
+            foreach (var (attemptId, completion) in progress.BattleAttemptCompletions)
+                completions[attemptId] = ToDict(completion);
+            dict["battle_attempt_completions"] = completions;
         }
 
         // Add story_arcs if present
@@ -392,9 +397,7 @@ public static class DtoConverters
             ["enrolled_courses"] = ToGodotArray(
                 academy.EnrolledCourses.Select(course => (string)course)
             ),
-            ["official_assessments_completed"] = ToGodotArray(
-                academy.OfficialAssessmentsCompleted
-            ),
+            ["official_assessments_completed"] = ToGodotArray(academy.OfficialAssessmentsCompleted),
         };
 
         var transcript = new Godot.Collections.Array();
@@ -447,26 +450,49 @@ public static class DtoConverters
         };
     }
 
-    /// <summary>Convert PendingRewardData to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(PendingRewardData pending)
-    {
-        var dict = new Godot.Collections.Dictionary
+    public static Godot.Collections.Dictionary ToDict(BattleAttempt attempt) =>
+        new()
         {
-            ["battle_id"] = (string)pending.BattleId,
-            ["reward_type"] = pending.RewardType.ToStringId(),
-            ["choice_index"] = pending.ChoiceIndex,
-            ["chosen_catalog_id"] = pending.ChosenCatalogId,
+            ["attempt_id"] = attempt.AttemptId.Value,
+            ["summoner_id"] = (string)attempt.SummonerId,
+            ["campaign_id"] = attempt.CampaignId.Value,
+            ["battle_id"] = attempt.BattleId.Value,
+            ["deck_id"] = attempt.DeckId.Value,
+            ["deck_card_instance_ids"] = CardInstanceIdsToGodotArray(attempt.DeckCardInstanceIds),
+            ["card_xp_reward"] = attempt.CardXpReward,
+            ["summoner_xp_reward"] = attempt.SummonerXpReward,
+            ["first_clear_reward_snapshots"] = ToRewardSnapshotArray(
+                attempt.FirstClearRewardSnapshots
+            ),
+            ["started_at"] = attempt.StartedAtUnixSeconds,
         };
 
-        if (pending.CaravanPurchases.Count > 0)
-        {
-            var arr = new Godot.Collections.Array();
-            foreach (var p in pending.CaravanPurchases)
-                arr.Add(p);
-            dict["caravan_purchases"] = arr;
-        }
+    private static Godot.Collections.Array ToRewardSnapshotArray(
+        IEnumerable<ResolvedRewardOfferSnapshot> snapshots
+    )
+    {
+        var result = new Godot.Collections.Array();
+        foreach (var snapshot in snapshots)
+            result.Add(RewardStateMapper.ToDictionary(snapshot));
+        return result;
+    }
 
-        return dict;
+    public static Godot.Collections.Dictionary ToDict(BattleAttemptCompletion completion)
+    {
+        var claimIds = new Godot.Collections.Array<string>(
+            completion.ClaimIds.Select(id => id.Value)
+        );
+        var pendingClaimIds = new Godot.Collections.Array<string>(
+            completion.PendingClaimIds.Select(id => id.Value)
+        );
+        return new Godot.Collections.Dictionary
+        {
+            ["attempt_id"] = completion.AttemptId.Value,
+            ["outcome"] = completion.Outcome.ToString().ToLowerInvariant(),
+            ["completed_at"] = completion.CompletedAtUnixSeconds,
+            ["claim_ids"] = claimIds,
+            ["pending_claim_ids"] = pendingClaimIds,
+        };
     }
 
     /// <summary>Convert StoryArcProgress to Godot Dictionary for GDScript.</summary>
@@ -509,32 +535,10 @@ public static class DtoConverters
             }
         }
 
-        // Parse pending_reward if present
-        PendingRewardData? pendingReward = null;
-        if (
-            dict.TryGetValue("pending_reward", out var rewardVar)
-            && rewardVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var rewardDict = rewardVar.AsGodotDictionary();
-            pendingReward = new PendingRewardData
-            {
-                BattleId = new BattleId(GetString(rewardDict, "battle_id", "")),
-                RewardType = RewardTypeExtensions.FromStringId(
-                    GetString(rewardDict, "reward_type", "fixed")
-                ),
-                ChoiceIndex = GetInt(rewardDict, "choice_index", -1),
-                ChosenCatalogId = GetString(rewardDict, "chosen_catalog_id", ""),
-            };
-            if (
-                rewardDict.TryGetValue("caravan_purchases", out var purchasesVar)
-                && purchasesVar.VariantType == Variant.Type.Array
-            )
-            {
-                foreach (var p in purchasesVar.AsGodotArray())
-                    pendingReward.CaravanPurchases.Add(p.AsString());
-            }
-        }
+        var caravanPurchases = new List<string>();
+        if (dict.TryGetValue("caravan_purchases", out var caravanVar))
+            foreach (var purchase in caravanVar.AsGodotArray())
+                caravanPurchases.Add(purchase.AsString());
 
         // Parse story_arcs if present
         var storyArcs = new Dictionary<string, StoryArcProgress>();
@@ -573,12 +577,6 @@ public static class DtoConverters
             }
         }
 
-        // Parse current_battle (nullable)
-        var currentBattleStr = GetNullableString(dict, "current_battle");
-        BattleId? currentBattle = string.IsNullOrEmpty(currentBattleStr)
-            ? null
-            : new BattleId(currentBattleStr);
-
         var academy = new AcademyProgress();
         if (
             dict.TryGetValue("academy", out var academyVar)
@@ -588,15 +586,138 @@ public static class DtoConverters
             academy = FromAcademyDict(academyVar.AsGodotDictionary());
         }
 
+        BattleAttempt? activeBattleAttempt = null;
+        if (
+            dict.TryGetValue("active_battle_attempt", out var attemptVar)
+            && attemptVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            activeBattleAttempt = FromBattleAttemptDict(attemptVar.AsGodotDictionary());
+        }
+
+        var attemptCompletions = new Dictionary<string, BattleAttemptCompletion>();
+        if (
+            dict.TryGetValue("battle_attempt_completions", out var completionsVar)
+            && completionsVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var completions = completionsVar.AsGodotDictionary();
+            foreach (var key in completions.Keys)
+            {
+                var completionVar = completions[key];
+                if (completionVar.VariantType != Variant.Type.Dictionary)
+                    continue;
+                var completion = FromBattleAttemptCompletionDict(completionVar.AsGodotDictionary());
+                if (completion != null)
+                    attemptCompletions[key.AsString()] = completion;
+            }
+        }
+
         return new CampaignProgress
         {
             CompletedBattles = completed,
-            CurrentBattle = currentBattle,
             Gold = GetInt(dict, "gold", 0),
-            PendingReward = pendingReward,
+            CaravanPurchases = caravanPurchases,
             StoryArcs = storyArcs,
             Choices = choices,
             Academy = academy,
+            ActiveBattleAttempt = activeBattleAttempt,
+            BattleAttemptCompletions = attemptCompletions,
+        };
+    }
+
+    public static BattleAttempt? FromBattleAttemptDict(Godot.Collections.Dictionary? dict)
+    {
+        if (dict == null)
+            return null;
+        var attemptId = GetString(dict, "attempt_id", "");
+        var summonerId = GetString(dict, "summoner_id", "");
+        var campaignId = GetString(dict, "campaign_id", "");
+        var battleId = GetString(dict, "battle_id", "");
+        if (
+            string.IsNullOrWhiteSpace(attemptId)
+            || string.IsNullOrWhiteSpace(summonerId)
+            || string.IsNullOrWhiteSpace(campaignId)
+            || string.IsNullOrWhiteSpace(battleId)
+        )
+            return null;
+
+        var cardIds = new List<CardInstanceId>();
+        if (dict.TryGetValue("deck_card_instance_ids", out var cardsVar))
+        {
+            foreach (var card in cardsVar.AsGodotArray())
+                cardIds.Add(new CardInstanceId(card.AsString()));
+        }
+
+        var firstClearSnapshots = new List<ResolvedRewardOfferSnapshot>();
+        if (dict.TryGetValue("first_clear_reward_snapshots", out var snapshotsVar))
+        {
+            foreach (var snapshotVar in snapshotsVar.AsGodotArray())
+            {
+                if (snapshotVar.VariantType != Variant.Type.Dictionary)
+                    continue;
+                var snapshot = RewardStateMapper.FromSnapshotDictionary(
+                    snapshotVar.AsGodotDictionary()
+                );
+                if (snapshot != null)
+                    firstClearSnapshots.Add(snapshot);
+            }
+        }
+
+        return new BattleAttempt
+        {
+            AttemptId = new BattleAttemptId(attemptId),
+            SummonerId = new SummonerId(summonerId),
+            CampaignId = new CampaignId(campaignId),
+            BattleId = new BattleId(battleId),
+            DeckId = new Fateforged.Meta.Deck.DeckId(GetString(dict, "deck_id", "")),
+            DeckCardInstanceIds = cardIds,
+            CardXpReward = GetInt(dict, "card_xp_reward", 0),
+            SummonerXpReward = GetInt(dict, "summoner_xp_reward", 0),
+            FirstClearRewardSnapshots = firstClearSnapshots,
+            StartedAtUnixSeconds = GetLong(dict, "started_at", 0),
+        };
+    }
+
+    public static BattleAttemptCompletion? FromBattleAttemptCompletionDict(
+        Godot.Collections.Dictionary? dict
+    )
+    {
+        if (dict == null)
+            return null;
+        var attemptId = GetString(dict, "attempt_id", "");
+        if (string.IsNullOrWhiteSpace(attemptId))
+            return null;
+
+        var outcome = Enum.TryParse<BattleTerminalOutcome>(
+            GetString(dict, "outcome", "abandoned"),
+            true,
+            out var parsedOutcome
+        )
+            ? parsedOutcome
+            : BattleTerminalOutcome.Abandoned;
+
+        var claimIds = new List<RewardClaimId>();
+        if (dict.TryGetValue("claim_ids", out var claimsVar))
+        {
+            foreach (var claim in claimsVar.AsGodotArray())
+                claimIds.Add(new RewardClaimId(claim.AsString()));
+        }
+
+        var pendingClaimIds = new List<RewardClaimId>();
+        if (dict.TryGetValue("pending_claim_ids", out var pendingClaimsVar))
+        {
+            foreach (var claim in pendingClaimsVar.AsGodotArray())
+                pendingClaimIds.Add(new RewardClaimId(claim.AsString()));
+        }
+
+        return new BattleAttemptCompletion
+        {
+            AttemptId = new BattleAttemptId(attemptId),
+            Outcome = outcome,
+            CompletedAtUnixSeconds = GetLong(dict, "completed_at", 0),
+            ClaimIds = claimIds,
+            PendingClaimIds = pendingClaimIds,
         };
     }
 

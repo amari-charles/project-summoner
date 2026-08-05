@@ -270,7 +270,6 @@ public class DtoConvertersTest
         var original = new CampaignProgress
         {
             CompletedBattles = [new BattleId("battle_1"), new BattleId("battle_2")],
-            CurrentBattle = new BattleId("battle_3"),
             Gold = 500,
             Academy = new AcademyProgress
             {
@@ -306,7 +305,6 @@ public class DtoConvertersTest
         AssertThat(result).IsNotNull();
         AssertThat(result!.CompletedBattles).Contains(new BattleId("battle_1"));
         AssertThat(result.CompletedBattles).Contains(new BattleId("battle_2"));
-        AssertThat(result.CurrentBattle).IsEqual(new BattleId("battle_3"));
         AssertThat(result.Gold).IsEqual(500);
         AssertThat(result.Academy.CurrentYear).IsEqual(1);
         AssertThat(result.Academy.CurrentSemester).IsEqual(2);
@@ -348,7 +346,6 @@ public class DtoConvertersTest
         var original = new CampaignProgress
         {
             CompletedBattles = [new BattleId("battle_1")],
-            CurrentBattle = new BattleId("battle_2"),
             Gold = 100,
             Choices = new Dictionary<NodeId, ChoiceId>
             {
@@ -367,85 +364,22 @@ public class DtoConvertersTest
     }
 
     [TestCase]
-    public void CampaignProgress_RoundTrip_PreservesPendingReward()
+    public void CampaignProgress_RoundTrip_PreservesCaravanPurchases()
     {
         var original = new CampaignProgress
         {
             CompletedBattles = [new BattleId("battle_1")],
             Gold = 200,
-            PendingReward = new PendingRewardData
-            {
-                BattleId = new BattleId("boss_fight"),
-                RewardType = RewardType.Flexible,
-                ChoiceIndex = 2,
-                CaravanPurchases = ["offering_sword", "offering_shield"],
-            },
+            CaravanPurchases = ["offering_sword", "offering_shield"],
         };
 
         var dict = DtoConverters.ToDict(original);
         var result = DtoConverters.FromCampaignDict(dict);
 
         AssertThat(result).IsNotNull();
-        AssertThat(result!.PendingReward).IsNotNull();
-        AssertThat((string)result.PendingReward!.BattleId).IsEqual("boss_fight");
-        AssertThat(result.PendingReward.RewardType).IsEqual(RewardType.Flexible);
-        AssertThat(result.PendingReward.ChoiceIndex).IsEqual(2);
-        AssertThat(result.PendingReward.CaravanPurchases).HasSize(2);
-        AssertThat(result.PendingReward.CaravanPurchases).Contains("offering_sword");
-        AssertThat(result.PendingReward.CaravanPurchases).Contains("offering_shield");
-    }
-
-    [TestCase]
-    public void CampaignProgress_RoundTrip_PreservesNullPendingReward()
-    {
-        var original = new CampaignProgress
-        {
-            CompletedBattles = [new BattleId("battle_1")],
-            Gold = 100,
-        };
-
-        var dict = DtoConverters.ToDict(original);
-        var result = DtoConverters.FromCampaignDict(dict);
-
-        AssertThat(result).IsNotNull();
-        AssertThat(result!.PendingReward).IsNull();
-    }
-
-    [TestCase]
-    public void PendingRewardData_ToDict_SerializesAllFields()
-    {
-        var pending = new PendingRewardData
-        {
-            BattleId = new BattleId("first_trial"),
-            RewardType = RewardType.Fixed,
-            ChoiceIndex = -1,
-            ChosenCatalogId = "fire_wisp",
-            CaravanPurchases = ["item_a"],
-        };
-
-        var dict = DtoConverters.ToDict(pending);
-
-        AssertThat(dict["battle_id"].AsString()).IsEqual("first_trial");
-        AssertThat(dict["reward_type"].AsString()).IsEqual("fixed");
-        AssertThat(dict["choice_index"].AsInt32()).IsEqual(-1);
-        AssertThat(dict["chosen_catalog_id"].AsString()).IsEqual("fire_wisp");
-        AssertThat(dict.ContainsKey("caravan_purchases")).IsTrue();
-        AssertThat(dict["caravan_purchases"].AsGodotArray().Count).IsEqual(1);
-    }
-
-    [TestCase]
-    public void PendingRewardData_ToDict_OmitsEmptyCaravanPurchases()
-    {
-        var pending = new PendingRewardData
-        {
-            BattleId = new BattleId("test_battle"),
-            RewardType = RewardType.None,
-            ChoiceIndex = 0,
-        };
-
-        var dict = DtoConverters.ToDict(pending);
-
-        AssertThat(dict.ContainsKey("caravan_purchases")).IsFalse();
+        AssertThat(result!.CaravanPurchases).HasSize(2);
+        AssertThat(result.CaravanPurchases).Contains("offering_sword");
+        AssertThat(result.CaravanPurchases).Contains("offering_shield");
     }
 
     [TestCase]

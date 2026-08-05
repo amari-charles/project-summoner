@@ -86,19 +86,6 @@ var enemy_hp: float:
 # REWARD PROPERTIES
 # =============================================================================
 
-## Reward type (fixed, flexible, none)
-var reward_type: StringName:
-	get:
-		var type_val: Variant = _data.get("reward_type", RewardTypeIDs.FIXED)
-		if type_val is StringName:
-			return type_val
-		var type_str: String = SafeTypeUtils.string(type_val, String(RewardTypeIDs.FIXED))
-		return StringName(type_str)
-
-## Gold reward amount
-var gold_reward: int:
-	get: return _int("gold_reward", 0)
-
 ## Summoner XP reward amount
 var summoner_xp_reward: int:
 	get: return _int("summoner_xp_reward", 0)
@@ -107,13 +94,9 @@ var summoner_xp_reward: int:
 var card_xp_reward: int:
 	get: return _int("card_xp_reward", 0)
 
-## Fixed reward cards (for FIXED reward type)
-var reward_cards: Array:
-	get: return _array("reward_cards")
-
-## Player selects from reward options (for FLEXIBLE reward type)
-var player_selects: bool:
-	get: return _bool("player_selects", true)
+## Universal first-clear offers authored for this battle.
+var first_clear_reward_offers: Array:
+	get: return _array("first_clear_reward_offers")
 
 # =============================================================================
 # CHOICE PROPERTIES

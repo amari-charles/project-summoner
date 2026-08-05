@@ -37,9 +37,9 @@ Replace the parallel Academy, battle, and dictionary-based reward paths with one
 6. Reward definitions contain data only. Each grant type has one registered handler responsible for validating and staging that grant; definitions never call repositories or services.
 7. The initial grant set covers current consumers and approved Academy needs: card, resource, item, summoner unlock, cosmetic, emote, summoner experience, card experience, summoner trait, card trait, and Academy progress flag. Equipment and concrete consistency tools use item grants; transcript eligibility and statuses use typed Academy progress flags.
 8. Every grant contains an explicit ownership scope and target. Handlers do not infer account, current summoner/campaign, card instance, or other ownership from ambient state.
-9. Resolution uses a versioned deterministic random algorithm, a canonical candidate ordering, and a seed derived from the summoner's persistent Academy RNG seed plus stable context IDs. The complete resolved option snapshot is persisted at its resolution boundary.
+9. Resolution uses a versioned deterministic random algorithm, a canonical candidate ordering, and a persistent summoner reward seed plus stable context IDs. The complete resolved option snapshot is persisted at its resolution boundary.
 10. Exact pre-enrollment previews resolve and persist on first reveal. Category-only pool previews resolve and persist when earned. Authored fixed options require no random resolution.
-11. Filtering may reduce the result below `showCount` only when at least `chooseCount` eligible options remain. Fewer eligible options than `chooseCount` is an invalid state and never relaxes ownership or duplicate rules.
+11. Filtering may reduce the result below `showCount` only when at least `chooseCount` eligible options remain. Fewer eligible options than `chooseCount` is invalid by default; a source may explicitly author duplicate fallback when that behavior is part of its reward policy.
 12. A stable, versioned claim ID hashes length-prefixed player/summoner, source occurrence, and offer IDs so delimiter-bearing IDs cannot collide. The claim service validates the entire selection and bundle before staging any mutation.
 13. Grant handlers stage operations into a profile-owned reward transaction. The transaction commits all grants and the claim receipt together and performs one save; validation failure or commit failure leaves both rewards and receipt unapplied.
 14. Retrying a committed claim returns the persisted receipt without applying grants again.
@@ -73,7 +73,7 @@ Replace the parallel Academy, battle, and dictionary-based reward paths with one
    - `ResolvedRewardOfferSnapshot`
    - `PendingRewardSelection`
    - `RewardClaimReceipt`
-   - per-summoner `AcademyRewardSeed`
+   - per-summoner `RewardSeedBySummoner`
 5. Add presentation contracts:
    - `RewardOfferViewModel`
    - `RewardOptionViewModel`
@@ -151,7 +151,7 @@ Remote CI remains to be evaluated after a PR is created.
 ## Assumptions and Defaults
 
 1. The game is pre-release enough to permit breaking reward schema and development-save changes.
-2. The summoner is the Academy randomization owner; an account-only seed is not used for Academy pool resolution.
+2. The summoner is the randomization owner across reward sources; an account-only seed is not used.
 3. Stable context includes source type, source ID, activity/course occurrence, offer ID, and resolution version.
 4. Candidate collections are canonically ordered before deterministic sampling.
 5. Complete snapshots remain valid even if the source offer or pool later changes or is removed.
@@ -166,7 +166,7 @@ Current state:
 1. `PASS 1: USE CASES + VALIDATION` - complete
 2. `PASS 2: STUBS + WIRING` - complete
 3. `PASS 3: IMPLEMENTATION + TESTS` - complete for the universal engine and Academy consumer
-4. `URS-C24` battle migration - deferred pending a stable battle-attempt identity
+4. `URS-C24` battle migration - complete through the `battle-progression-authority` initiative
 5. `URS-C25` shop/event/campaign migration - deferred pending source transaction identities
 
 Gate note:

@@ -9,6 +9,7 @@ namespace Fateforged.Domain.Profile.Rewards;
 public readonly record struct RewardClaimId(string Value)
 {
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
 }
 
@@ -47,8 +48,8 @@ public sealed record RewardClaimReceipt
 
 public sealed class RewardProfileState
 {
-    [JsonPropertyName("academy_seed_by_summoner")]
-    public Dictionary<string, ulong> AcademySeedBySummoner { get; set; } = [];
+    [JsonPropertyName("reward_seed_by_summoner")]
+    public Dictionary<string, ulong> RewardSeedBySummoner { get; set; } = [];
 
     [JsonPropertyName("resolved_offers")]
     public Dictionary<string, ResolvedRewardOfferSnapshot> ResolvedOffers { get; set; } = [];

@@ -10,18 +10,21 @@ namespace Fateforged.Data.Rewards;
 public readonly record struct RewardOfferId(string Value)
 {
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
 }
 
 public readonly record struct RewardOptionId(string Value)
 {
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
 }
 
 public readonly record struct UniversalRewardPoolId(string Value)
 {
     public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
     public override string ToString() => Value;
 }
 
@@ -52,6 +55,12 @@ public enum RewardDuplicatePolicy
     ExcludeExactDuplicates,
 }
 
+public enum CardRewardPlacement
+{
+    CollectionOnly,
+    SelectedDeckIfAvailable,
+}
+
 public readonly record struct RewardOwnershipTarget(
     RewardOwnershipScope Scope,
     string TargetId = ""
@@ -67,6 +76,7 @@ public sealed record RewardSelectionRule
 public sealed record RewardEligibilityDefinition
 {
     public RewardDuplicatePolicy DuplicatePolicy { get; init; } = RewardDuplicatePolicy.Allow;
+    public bool FallbackToDuplicatesWhenInsufficient { get; init; }
 }
 
 public sealed record RewardOfferDefinition
@@ -131,6 +141,7 @@ public sealed record CardRewardGrantDefinition : RewardGrantDefinition
     public required CardId CardId { get; init; }
     public string Rarity { get; init; } = "common";
     public int Count { get; init; } = 1;
+    public CardRewardPlacement Placement { get; init; } = CardRewardPlacement.CollectionOnly;
 }
 
 public sealed record ResourceRewardGrantDefinition : RewardGrantDefinition

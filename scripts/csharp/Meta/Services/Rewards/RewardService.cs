@@ -102,9 +102,7 @@ public partial class RewardService : Node
                 course.Activities.SelectMany(activity => activity.RewardOffers)
             )
         );
-        var errors = loaded.Errors.AddRange(
-            validator.Validate(loaded.Catalog, embeddedOffers)
-        );
+        var errors = loaded.Errors.AddRange(validator.Validate(loaded.Catalog, embeddedOffers));
         if (!loaded.IsReady || errors.Length > 0)
         {
             foreach (var error in errors)
@@ -534,41 +532,6 @@ public partial class RewardService : Node
 
         GD.Print($"RewardService: Granted emote '{emoteId}'");
         return true;
-    }
-
-    // =========================================================================
-    // BATTLE REWARD SPEC
-    // =========================================================================
-
-    /// <summary>
-    /// Get typed reward specification for a battle.
-    /// Filters out owned cards from flexible reward options.
-    /// </summary>
-    /// <param name="battleId">Battle ID to get spec for.</param>
-    /// <param name="isCompleted">Whether the battle is already completed.</param>
-    /// <param name="chosenIndex">Previously chosen option index (-1 if not chosen).</param>
-    /// <returns>Typed BattleRewardSpec.</returns>
-    public BattleRewardSpec GetBattleRewardSpec(
-        string battleId,
-        bool isCompleted = false,
-        int chosenIndex = -1
-    )
-    {
-        var ownedIds = GetOwnedCatalogIds();
-        return BattleRewardSpec.FromBattleId(battleId, isCompleted, chosenIndex, ownedIds);
-    }
-
-    /// <summary>
-    /// Get reward specification as Dictionary for GDScript interop.
-    /// </summary>
-    public Godot.Collections.Dictionary GetBattleRewardSpecAsDict(
-        string battleId,
-        bool isCompleted = false,
-        int chosenIndex = -1
-    )
-    {
-        var spec = GetBattleRewardSpec(battleId, isCompleted, chosenIndex);
-        return spec.ToDictionary();
     }
 
     // =========================================================================

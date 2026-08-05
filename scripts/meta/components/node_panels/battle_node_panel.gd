@@ -137,33 +137,26 @@ func _update_reward_display() -> void:
 
 func _update_first_clear_section(is_completed: bool) -> void:
 	var reward_lines: Array[String] = []
-
-	# Gold reward
-	if event.gold_reward > 0:
-		reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": event.gold_reward}))
-
-	# Card reward based on type
-	match event.reward_type:
-		RewardTypeIDs.FIXED:
-			var reward_cards: Array = event.reward_cards
-			if reward_cards.size() > 0:
-				var card_names: Array[String] = []
-				for reward_item: Variant in reward_cards:
-					var reward: Dictionary = SafeTypeUtils.dict(reward_item)
-					var count: int = SafeTypeUtils.int_val(reward.get("count", 1), 1)
-					var catalog_id: String = SafeTypeUtils.string(reward.get("catalog_id", ""))
-					var card_name: String = _get_card_display_name(catalog_id)
-					if count > 1:
-						card_names.append("%dx %s" % [count, card_name])
-					else:
-						card_names.append(card_name)
-				reward_lines.append(Loc.t("campaign.rewards.fixed", {"cards": ", ".join(card_names)}))
-
-		RewardTypeIDs.FLEXIBLE:
+	var displayed_gold: bool = false
+	for offer_value: Variant in event.first_clear_reward_offers:
+		var offer: Dictionary = SafeTypeUtils.dict(offer_value)
+		var options: Array = SafeTypeUtils.array(offer.get("options", []))
+		if offer.get("selection_mode", "automatic") == "playerchoice":
 			reward_lines.append(Loc.t("campaign.rewards.card_choice"))
-
-		RewardTypeIDs.NONE:
-			pass  # No card reward line
+		for option_value: Variant in options:
+			var option: Dictionary = SafeTypeUtils.dict(option_value)
+			var card_names: Array[String] = []
+			for grant_value: Variant in SafeTypeUtils.array(option.get("grants", [])):
+				var grant: Dictionary = SafeTypeUtils.dict(grant_value)
+				if grant.get("kind", "") == "resource" and not displayed_gold:
+					reward_lines.append(Loc.t("campaign.rewards.gold", {"amount": grant.get("amount", 0)}))
+					displayed_gold = true
+				elif grant.get("kind", "") == "card" and offer.get("selection_mode", "") == "automatic":
+					var count: int = grant.get("amount", 1)
+					var card_name: String = _get_card_display_name(grant.get("content_id", ""))
+					card_names.append("%dx %s" % [count, card_name] if count > 1 else card_name)
+			if not card_names.is_empty():
+				reward_lines.append(Loc.t("campaign.rewards.fixed", {"cards": ", ".join(card_names)}))
 
 	first_clear_rewards.text = "\n".join(reward_lines)
 
@@ -189,8 +182,8 @@ func _update_every_battle_section() -> void:
 	if event.summoner_xp_reward > 0:
 		reward_lines.append(Loc.t("campaign.rewards.summoner_xp", {"amount": event.summoner_xp_reward}))
 
-	# Card XP is always earned but we don't have a fixed amount in event data
-	# For now, just show summoner XP. Card XP is displayed on reward screen.
+	if event.card_xp_reward > 0:
+		reward_lines.append(Loc.t("campaign.rewards.card_xp", {"amount": event.card_xp_reward}))
 
 	every_battle_rewards.text = "\n".join(reward_lines)
 

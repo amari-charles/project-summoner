@@ -1,6 +1,6 @@
 # Universal Reward System Validation Cases
 
-**Status:** PASS 3 IMPLEMENTED (2 CONSUMER MIGRATIONS DEFERRED)
+**Status:** PASS 3 IMPLEMENTED (1 CONSUMER MIGRATION DEFERRED)
 **Initiative:** `universal-reward-system`
 **Domain:** `meta`
 **Last Updated:** `2026-07-25`
@@ -45,7 +45,7 @@ Allowed status values:
 | URS-C21 | GDScript renders and submits a selectable reward. | It renders the normalized options and sends offer/claim/option IDs without resolving, filtering, or granting locally. | GDScript integration | `tests/unit/meta/test_reward_screen.gd` | Implemented |
 | URS-C22 | A lesson reward is claimed before the final course activity. | The lesson grant persists independently and course completion does not grant it again. | integration | `tests/csharp/Services/AcademyRewardIntegrationTest.cs` | Implemented |
 | URS-C23 | A course-completion offer is earned after the final activity. | It uses the same automatic/pending flow as lesson offers and course state reflects unresolved required choices. | integration | `tests/csharp/Services/AcademyRewardIntegrationTest.cs` | Implemented |
-| URS-C24 | A battle reward containing currency, summoner XP, card XP, and a card choice migrates to universal offers. | The first completion grants the same intended values through universal claims; replay uses the receipt and grants nothing twice. | integration | follow-up battle consumer initiative | Deferred |
+| URS-C24 | A battle reward containing currency, summoner XP, card XP, and a card choice migrates to universal offers. | Every distinct victorious attempt grants its XP once, including replays; first-clear currency/cards grant once per summoner/campaign/battle; defeat and abandonment grant nothing. | integration | `tests/csharp/Meta/Progression/LocalProgressionAuthorityTest.cs` | Implemented |
 | URS-C25 | Existing event/shop/campaign consumers migrate to universal grants. | Each uses typed offers/claims and no production call reaches a legacy dictionary or reward-enum path. | structural | follow-up consumer migration initiative | Deferred |
 | URS-C26 | An Academy progress flag, summoner trait, or card trait is granted. | A dedicated typed handler updates only its explicit target and the receipt describes the applied grant. | integration | `tests/csharp/Meta/Rewards/RewardGrantHandlerTest.cs` | Implemented |
 | URS-C27 | Multiple concurrent submissions race for the same pending claim. | At most one transaction commits; all successful responses identify the same receipt and grants appear once. | integration | `tests/csharp/Meta/Rewards/RewardClaimServiceTest.cs` | Implemented |
@@ -66,7 +66,6 @@ Planned determinism test file: `tests/csharp/Meta/Rewards/RewardDeterminismTest.
 
 | Case ID | Reason Deferred | Planned Follow-up |
 |---|---|---|
-| URS-C24 | Battle XP is currently an every-attempt reward while cards/currency are first-clear rewards. A universal claim ID needs an approved stable battle-attempt occurrence identity before those semantics can be combined safely. | Define battle attempt identity and migrate `BattleRewardSpec`, battle pending state, and reward screen in a dedicated consumer pass. |
 | URS-C25 | Shop purchases and non-battle events need source-owned transaction/occurrence IDs so retries are idempotent without collapsing distinct purchases. | Migrate shop/event/campaign consumers after their stable occurrence contracts are documented. |
 
 ## Exit Criteria Mapping

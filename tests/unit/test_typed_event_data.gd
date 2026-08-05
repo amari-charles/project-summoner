@@ -138,11 +138,11 @@ func test_int_property_returns_default_when_wrong_type() -> void:
 	assert_eq(event.difficulty, 0)
 
 
-func test_gold_reward_returns_value() -> void:
-	var data: Dictionary = {"gold_reward": 100}
+func test_first_clear_reward_offers_returns_value() -> void:
+	var data: Dictionary = {"first_clear_reward_offers": [{"id": "offer"}]}
 	var event := TypedEventData.new(data, "test")
 
-	assert_eq(event.gold_reward, 100)
+	assert_eq(event.first_clear_reward_offers.size(), 1)
 
 
 func test_level_cap_returns_value() -> void:
@@ -222,18 +222,18 @@ func test_bool_property_returns_default_when_wrong_type() -> void:
 ## =============================================================================
 
 func test_array_property_returns_value() -> void:
-	var cards: Array = [{"catalog_id": "fire_wisp", "count": 2}]
-	var data: Dictionary = {"reward_cards": cards}
+	var offers: Array = [{"id": "offer", "options": []}]
+	var data: Dictionary = {"first_clear_reward_offers": offers}
 	var event := TypedEventData.new(data, "test")
 
-	assert_eq(event.reward_cards.size(), 1)
-	assert_eq(event.reward_cards[0]["catalog_id"], "fire_wisp")
+	assert_eq(event.first_clear_reward_offers.size(), 1)
+	assert_eq(event.first_clear_reward_offers[0]["id"], "offer")
 
 
 func test_array_property_returns_empty_when_missing() -> void:
 	var event := TypedEventData.new({}, "test")
 
-	assert_eq(event.reward_cards.size(), 0)
+	assert_eq(event.first_clear_reward_offers.size(), 0)
 	assert_eq(event.options.size(), 0)
 
 
@@ -266,13 +266,6 @@ func test_event_type_defaults_to_battle() -> void:
 	var event := TypedEventData.new({}, "test")
 
 	assert_eq(event.event_type, EventTypeIDs.BATTLE)
-
-
-func test_reward_type_returns_stringname() -> void:
-	var data: Dictionary = {"reward_type": "flexible"}
-	var event := TypedEventData.new(data, "test")
-
-	assert_eq(event.reward_type, RewardTypeIDs.FLEXIBLE)
 
 
 ## =============================================================================
@@ -422,11 +415,9 @@ func test_full_battle_event_data() -> void:
 		"is_tutorial": true,
 		"requires_deck": true,
 		"enemy_side": _enemy_side(30.0),
-		"reward_type": "flexible",
-		"gold_reward": 30,
+		"first_clear_reward_offers": [{"id": "first_clear", "selection_mode": "playerchoice"}],
 		"summoner_xp_reward": 20,
 		"card_xp_reward": 15,
-		"player_selects": true,
 		"repeatable": false
 	}
 	var event := TypedEventData.new(data, "first_trial")
@@ -438,11 +429,9 @@ func test_full_battle_event_data() -> void:
 	assert_true(event.is_tutorial)
 	assert_true(event.requires_deck)
 	assert_eq(event.enemy_hp, 30.0)
-	assert_eq(event.reward_type, RewardTypeIDs.FLEXIBLE)
-	assert_eq(event.gold_reward, 30)
+	assert_eq(event.first_clear_reward_offers.size(), 1)
 	assert_eq(event.summoner_xp_reward, 20)
 	assert_eq(event.card_xp_reward, 15)
-	assert_true(event.player_selects)
 	assert_false(event.repeatable)
 	assert_true(event.is_combat())
 	assert_true(event.is_battle())

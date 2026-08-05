@@ -58,12 +58,7 @@ public class AcademyRewardIntegrationTest
             ],
         };
         var runtime = UniversalRewardRuntime.Create(repo);
-        var handler = new AcademyProgressHandler(
-            repo,
-            () => SummonerIds.Cole,
-            runtime,
-            [course]
-        );
+        var handler = new AcademyProgressHandler(repo, () => SummonerIds.Cole, runtime, [course]);
         var goldBefore = repo.GetResources().Gold;
 
         handler.GetProgress();
@@ -90,9 +85,9 @@ public class AcademyRewardIntegrationTest
 
         var courseClaimId = repo.GetRewardState().PendingSelections.Keys.Single();
         AssertThat(
-                handler.ClaimReward(courseClaimId, [OptionId(repo, courseClaimId)])[
-                    "success"
-                ].AsBool()
+                handler
+                    .ClaimReward(courseClaimId, [OptionId(repo, courseClaimId)])["success"]
+                    .AsBool()
             )
             .IsTrue();
 
@@ -116,10 +111,7 @@ public class AcademyRewardIntegrationTest
             RewardPreviewPolicy.CategoryUntilEarned
         );
         var exactCourse = PoolCourse("exact_course", poolId, RewardPreviewPolicy.Exact);
-        var firstRuntime = UniversalRewardRuntime.Create(
-            repo,
-            Catalog(poolId, "a", "b", "c")
-        );
+        var firstRuntime = UniversalRewardRuntime.Create(repo, Catalog(poolId, "a", "b", "c"));
         var handler = new AcademyProgressHandler(
             repo,
             () => SummonerIds.Cole,
@@ -151,7 +143,7 @@ public class AcademyRewardIntegrationTest
 
         AssertThat(originalIds).IsEqual(PreviewOptionIds(afterContentChange));
         AssertThat(originalIds).NotContains("x");
-        AssertThat(repo.GetRewardState().AcademySeedBySummoner).HasSize(1);
+        AssertThat(repo.GetRewardState().RewardSeedBySummoner).HasSize(1);
     }
 
     private ProfileRepository CreateRepo(string profileId)
@@ -218,22 +210,17 @@ public class AcademyRewardIntegrationTest
                     Id = poolId,
                     Options =
                     [
-                        .. optionIds.Select(id =>
-                            new RewardOptionDefinition
-                            {
-                                Id = new RewardOptionId(id),
-                                Grants = [CampaignFlag(id)],
-                            }
-                        ),
+                        .. optionIds.Select(id => new RewardOptionDefinition
+                        {
+                            Id = new RewardOptionId(id),
+                            Grants = [CampaignFlag(id)],
+                        }),
                     ],
                 }
             ),
         };
 
-    private static RewardOfferDefinition Automatic(
-        string id,
-        RewardGrantDefinition grant
-    ) =>
+    private static RewardOfferDefinition Automatic(string id, RewardGrantDefinition grant) =>
         new()
         {
             Id = new RewardOfferId(id),

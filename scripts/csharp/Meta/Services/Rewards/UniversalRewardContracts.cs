@@ -68,9 +68,7 @@ public sealed class AuthoredRewardOptionSource : IRewardOptionSource
     {
         if (source is not AuthoredRewardOptionSourceDefinition authored)
         {
-            return Invalid(
-                $"Authored option source received {source.GetType().Name}."
-            );
+            return Invalid($"Authored option source received {source.GetType().Name}.");
         }
 
         return RewardOptionResolution.ResolveCandidates(
@@ -184,6 +182,17 @@ internal static class RewardOptionResolution
             .Where(option => IsEligible(option, offer.Eligibility, context.OwnedRewardKeys))
             .ToList();
 
+        if (
+            distinct.Count < offer.Selection.ChooseCount
+            && offer.Eligibility.FallbackToDuplicatesWhenInsufficient
+        )
+        {
+            distinct = candidates
+                .GroupBy(option => option.Id.Value, StringComparer.Ordinal)
+                .Select(group => group.First())
+                .ToList();
+        }
+
         if (distinct.Count < offer.Selection.ChooseCount)
         {
             return Invalid(
@@ -194,8 +203,8 @@ internal static class RewardOptionResolution
         var shownCount = Math.Min(offer.Selection.ShowCount, distinct.Count);
         if (randomize)
         {
-            distinct.Sort((left, right) =>
-                StringComparer.Ordinal.Compare(left.Id.Value, right.Id.Value)
+            distinct.Sort(
+                (left, right) => StringComparer.Ordinal.Compare(left.Id.Value, right.Id.Value)
             );
             var random = DeterministicRewardRandom.FromContext(offer.Id, context);
             for (var i = distinct.Count - 1; i > 0; i--)
@@ -205,11 +214,7 @@ internal static class RewardOptionResolution
             }
         }
 
-        var claimId = RewardIdentity.CreateClaimId(
-            context.SummonerId,
-            context.Source,
-            offer.Id
-        );
+        var claimId = RewardIdentity.CreateClaimId(context.SummonerId, context.Source, offer.Id);
         return new RewardResolutionResult
         {
             Status = RewardRuntimeStatus.Ready,
@@ -224,10 +229,9 @@ internal static class RewardOptionResolution
                 ChooseCount = offer.Selection.ChooseCount,
                 Options = distinct
                     .Take(shownCount)
-                    .Select(option => RewardTargetMaterializer.ForSummoner(
-                        option,
-                        context.SummonerId
-                    ))
+                    .Select(option =>
+                        RewardTargetMaterializer.ForSummoner(option, context.SummonerId)
+                    )
                     .ToImmutableArray(),
             },
         };
@@ -261,8 +265,8 @@ internal static class RewardTargetMaterializer
     ) =>
         option with
         {
-            Grants = option.Grants
-                .Select(grant => WithResolvedTarget(grant, summonerId))
+            Grants = option
+                .Grants.Select(grant => WithResolvedTarget(grant, summonerId))
                 .ToImmutableArray(),
         };
 
@@ -308,9 +312,7 @@ public static class RewardIdentity
         AppendField(identity, source.OccurrenceId);
         AppendField(identity, offerId.Value);
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(identity.ToString()));
-        return new RewardClaimId(
-            $"reward:v1:{Convert.ToHexString(hash).ToLowerInvariant()}"
-        );
+        return new RewardClaimId($"reward:v1:{Convert.ToHexString(hash).ToLowerInvariant()}");
     }
 
     private static void AppendField(StringBuilder identity, string value) =>
@@ -360,9 +362,7 @@ public struct DeterministicRewardRandom
             offerId.Value
         );
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-        return new DeterministicRewardRandom(
-            BinaryPrimitives.ReadUInt64LittleEndian(hash)
-        );
+        return new DeterministicRewardRandom(BinaryPrimitives.ReadUInt64LittleEndian(hash));
     }
 
     public int NextInt(int exclusiveMax)
@@ -405,10 +405,7 @@ public interface IRewardGrantHandler
 {
     Type GrantType { get; }
 
-    RewardGrantPreparation Prepare(
-        RewardGrantDefinition grant,
-        RewardGrantContext context
-    );
+    RewardGrantPreparation Prepare(RewardGrantDefinition grant, RewardGrantContext context);
 }
 
 public interface IRewardGrantHandler<in TGrant> : IRewardGrantHandler
@@ -478,10 +475,7 @@ public sealed class RewardClaimService
     private readonly IRewardProfileStore _profileStore;
     private readonly RewardGrantHandlerRegistry _handlers;
 
-    public RewardClaimService(
-        IRewardProfileStore profileStore,
-        RewardGrantHandlerRegistry handlers
-    )
+    public RewardClaimService(IRewardProfileStore profileStore, RewardGrantHandlerRegistry handlers)
     {
         _profileStore = profileStore;
         _handlers = handlers;
@@ -574,11 +568,7 @@ public sealed class RewardClaimService
             return Invalid(commit.Error);
         }
 
-        return new RewardClaimResult
-        {
-            Status = RewardRuntimeStatus.Ready,
-            Receipt = receipt,
-        };
+        return new RewardClaimResult { Status = RewardRuntimeStatus.Ready, Receipt = receipt };
     }
 
     private static RewardClaimResult Invalid(string error) =>

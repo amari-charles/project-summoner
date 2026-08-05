@@ -93,10 +93,17 @@ public class AcademyProgressHandler
             return [];
 
         var campaignProgress = GetOrCreateProgress();
-        return ToActivityLaunchStateDict(located.activity, located.course, campaignProgress.Academy);
+        return ToActivityLaunchStateDict(
+            located.activity,
+            located.course,
+            campaignProgress.Academy
+        );
     }
 
-    public Godot.Collections.Dictionary ResolveActivityBattleConfig(string courseId, string activityId)
+    public Godot.Collections.Dictionary ResolveActivityBattleConfig(
+        string courseId,
+        string activityId
+    )
     {
         var located = FindActivity(courseId, activityId);
         if (located.activity == null)
@@ -505,10 +512,7 @@ public class AcademyProgressHandler
             viewedYear == academy.CurrentYear && viewedSemester == academy.CurrentSemester;
         var validation = isCurrentSemester
             ? ValidateCourseAvailable(course, academy)
-            : (
-                available: false,
-                reason: GetSemesterRelation(academy, viewedYear, viewedSemester)
-            );
+            : (available: false, reason: GetSemesterRelation(academy, viewedYear, viewedSemester));
 
         var rewards = ToUniversalOfferPreviewArray(
             course,
@@ -567,8 +571,7 @@ public class AcademyProgressHandler
             ["activities"] = activities,
             ["next_activity"] = nextActivity,
             ["reward_previews"] = rewards,
-            ["universal_reward_status"] = _universalRewards
-                .ToStatusDictionary()["status"],
+            ["universal_reward_status"] = _universalRewards.ToStatusDictionary()["status"],
         };
     }
 
@@ -727,8 +730,6 @@ public class AcademyProgressHandler
         var dict = new Godot.Collections.Dictionary
         {
             ["enemy_side"] = ToEnemySideDict(battleConfig),
-            ["card_xp_reward"] = 0,
-            ["summoner_xp_reward"] = 0,
         };
 
         var playerDeck = resolvedPlayerDeck ?? battleConfig.LoanerPlayerDeck;
@@ -785,7 +786,9 @@ public class AcademyProgressHandler
         if (limitations.AdditionalLoanerCards.Count > 0)
             summaries.Add("Adds temporary class loaner cards.");
         if (limitations.AllowedCardTypes.Count > 0)
-            summaries.Add($"Allowed card types: {string.Join(", ", limitations.AllowedCardTypes)}.");
+            summaries.Add(
+                $"Allowed card types: {string.Join(", ", limitations.AllowedCardTypes)}."
+            );
         if (limitations.AllowedElements.Count > 0)
             summaries.Add($"Allowed elements: {string.Join(", ", limitations.AllowedElements)}.");
         if (limitations.MinSummons > 0)
@@ -806,7 +809,10 @@ public class AcademyProgressHandler
     {
         var limitations = activity.Limitations;
         if (!limitations.HasRules)
-            return AcademyDeckValidationResult.Valid("unrestricted", "No activity-specific deck rules.");
+            return AcademyDeckValidationResult.Valid(
+                "unrestricted",
+                "No activity-specific deck rules."
+            );
 
         var reasons = new List<string>();
         List<DeckEntry> effectiveDeck;
@@ -828,7 +834,12 @@ public class AcademyProgressHandler
 
         return reasons.Count == 0
             ? AcademyDeckValidationResult.Valid("valid", "Current deck satisfies the class rules.")
-            : new AcademyDeckValidationResult(false, "invalid", "Deck does not satisfy the class rules.", reasons);
+            : new AcademyDeckValidationResult(
+                false,
+                "invalid",
+                "Deck does not satisfy the class rules.",
+                reasons
+            );
     }
 
     private List<DeckEntry>? ResolvePlayerDeckForActivity(AcademyCourseActivity activity)
@@ -945,7 +956,10 @@ public class AcademyProgressHandler
         return result;
     }
 
-    private static void AppendDeckEntries(List<DeckEntry> destination, IEnumerable<DeckEntry> entries)
+    private static void AppendDeckEntries(
+        List<DeckEntry> destination,
+        IEnumerable<DeckEntry> entries
+    )
     {
         foreach (var entry in entries)
             AppendDeckEntry(destination, entry.CardId, entry.Count);
@@ -1062,7 +1076,8 @@ public class AcademyProgressHandler
             ["deck"] = new Godot.Collections.Dictionary
             {
                 ["source"] = "authored",
-                ["deferred"] = battleConfig.EnemyDeck.Count == 0 && battleConfig.EncounterAi != null,
+                ["deferred"] =
+                    battleConfig.EnemyDeck.Count == 0 && battleConfig.EncounterAi != null,
                 ["cards"] = ToDeckEntriesArray(battleConfig.EnemyDeck),
             },
             ["controller"] = controller,
@@ -1208,8 +1223,7 @@ public class AcademyProgressHandler
 
     private static Godot.Collections.Dictionary ToEncounterPositionDict(
         AcademyEncounterPosition position
-    ) =>
-        new() { ["x"] = position.X, ["z"] = position.Z };
+    ) => new() { ["x"] = position.X, ["z"] = position.Z };
 
     private static Godot.Collections.Array ToEncounterPositionArray(
         IEnumerable<AcademyEncounterPosition> positions
@@ -1300,11 +1314,13 @@ public class AcademyProgressHandler
         if (requiredCourses.Any(course => !academy.CompletedCourses.Contains(course.Id)))
             return false;
 
-        return academy.RemainingEnrollments == 0 || !GetCandidateCourses(academy).Any(course =>
-        {
-            var validation = ValidateCourseAvailable(course, academy);
-            return validation.available;
-        });
+        return academy.RemainingEnrollments == 0
+            || !GetCandidateCourses(academy)
+                .Any(course =>
+                {
+                    var validation = ValidateCourseAvailable(course, academy);
+                    return validation.available;
+                });
     }
 
     public Godot.Collections.Dictionary ClaimReward(
@@ -1320,7 +1336,9 @@ public class AcademyProgressHandler
             snapshot.Source.SourceType is not "academy_activity" and not "academy_course"
             || snapshot.SummonerId != _getActiveSummonerFunc()
         )
-            return ToClaimResultDict(InvalidClaim("Reward claim does not belong to this summoner."));
+            return ToClaimResultDict(
+                InvalidClaim("Reward claim does not belong to this summoner.")
+            );
 
         var result = _universalRewards.Claims.Claim(
             new RewardClaimRequest
@@ -1374,8 +1392,9 @@ public class AcademyProgressHandler
                 new RewardClaimRequest { ClaimId = snapshot.ClaimId }
             );
             if (
-                claim.Status is not RewardRuntimeStatus.Ready
-                    and not RewardRuntimeStatus.AlreadyClaimed
+                claim.Status
+                    is not RewardRuntimeStatus.Ready
+                        and not RewardRuntimeStatus.AlreadyClaimed
                 || claim.Receipt == null
             )
                 return false;
@@ -1384,15 +1403,12 @@ public class AcademyProgressHandler
             {
                 foreach (var grant in claim.Receipt.AppliedGrants)
                 {
-                    var granted = ToGrantViewDict(
-                        RewardViewModelFactory.CreateGrant(grant)
-                    );
+                    var granted = ToGrantViewDict(RewardViewModelFactory.CreateGrant(grant));
                     granted["claim_id"] = claim.Receipt.ClaimId.Value;
                     granted["source_type"] =
                         occurrenceId == "course_completion" ? "course" : "activity";
-                    granted["source_id"] = occurrenceId == "course_completion"
-                        ? (string)course.Id
-                        : occurrenceId;
+                    granted["source_id"] =
+                        occurrenceId == "course_completion" ? (string)course.Id : occurrenceId;
                     grantedRewards.Add(granted);
                 }
             }
@@ -1443,11 +1459,7 @@ public class AcademyProgressHandler
         ulong seed = 0;
         if (
             offer.OptionSource is PoolRewardOptionSourceDefinition
-            && !_universalRewards.ProfileStore.TryGetOrCreateAcademySeed(
-                summonerId,
-                out seed,
-                out _
-            )
+            && !_universalRewards.ProfileStore.TryGetOrCreateRewardSeed(summonerId, out seed, out _)
         )
             return false;
 
@@ -1474,11 +1486,7 @@ public class AcademyProgressHandler
                     ChooseCount = snapshot.ChooseCount,
                 }
                 : null;
-        return _universalRewards.ProfileStore.TryStoreResolvedOffer(
-            snapshot,
-            pending,
-            out _
-        );
+        return _universalRewards.ProfileStore.TryStoreResolvedOffer(snapshot, pending, out _);
     }
 
     private Godot.Collections.Array<Godot.Collections.Dictionary> ToUniversalOfferPreviewArray(
@@ -1493,17 +1501,11 @@ public class AcademyProgressHandler
             var source = new RewardSourceContext
             {
                 SourceType =
-                    occurrenceId == "course_completion"
-                        ? "academy_course"
-                        : "academy_activity",
+                    occurrenceId == "course_completion" ? "academy_course" : "academy_activity",
                 SourceId = (string)course.Id,
                 OccurrenceId = occurrenceId,
             };
-            var claimId = RewardIdentity.CreateClaimId(
-                _getActiveSummonerFunc(),
-                source,
-                offer.Id
-            );
+            var claimId = RewardIdentity.CreateClaimId(_getActiveSummonerFunc(), source, offer.Id);
             var state = _universalRewards.ProfileStore.GetRewardState();
             state.ResolvedOffers.TryGetValue(claimId.Value, out var snapshot);
             if (snapshot == null && offer.PreviewPolicy == RewardPreviewPolicy.Exact)
@@ -1524,12 +1526,7 @@ public class AcademyProgressHandler
             state.ClaimReceipts.TryGetValue(claimId.Value, out var receipt);
             previews.Add(
                 ToOfferViewDict(
-                    RewardViews.Create(
-                        offer,
-                        snapshot,
-                        pending,
-                        receipt
-                    ),
+                    RewardViews.Create(offer, snapshot, pending, receipt),
                     offer.Selection.ShowCount
                 )
             );
@@ -1644,8 +1641,7 @@ public class AcademyProgressHandler
         {
             ["status"] = result.Status.ToString(),
             ["success"] =
-                result.Status is RewardRuntimeStatus.Ready
-                    or RewardRuntimeStatus.AlreadyClaimed,
+                result.Status is RewardRuntimeStatus.Ready or RewardRuntimeStatus.AlreadyClaimed,
             ["errors"] = ToStringArray(result.Errors),
         };
         if (result.Receipt != null)
@@ -1657,9 +1653,7 @@ public class AcademyProgressHandler
         new()
         {
             ["claim_id"] = receipt.ClaimId.Value,
-            ["option_ids"] = ToStringArray(
-                receipt.ClaimedOptionIds.Select(id => id.Value)
-            ),
+            ["option_ids"] = ToStringArray(receipt.ClaimedOptionIds.Select(id => id.Value)),
             ["grants"] = ToGrantViewArray(receipt.AppliedGrants),
         };
 

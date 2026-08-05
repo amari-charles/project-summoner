@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fateforged.Data.Events;
+using Fateforged.Domain.Progression;
 using Fateforged.Meta.Campaign;
 
 namespace Fateforged.Domain.Profile.Campaign;
@@ -14,13 +15,17 @@ public class CampaignProgress
     [JsonPropertyName("completed_battles")]
     public List<BattleId> CompletedBattles { get; set; } = [];
 
-    /// <summary>Current battle being played (nullable).</summary>
-    [JsonPropertyName("current_battle")]
-    public BattleId? CurrentBattle { get; set; }
+    /// <summary>Authority-created battle occurrence currently in progress.</summary>
+    [JsonPropertyName("active_battle_attempt")]
+    public BattleAttempt? ActiveBattleAttempt { get; set; }
 
-    /// <summary>Pending reward from last victory (if any).</summary>
-    [JsonPropertyName("pending_reward")]
-    public PendingRewardData? PendingReward { get; set; }
+    /// <summary>Terminal attempt receipts keyed by BattleAttemptId.</summary>
+    [JsonPropertyName("battle_attempt_completions")]
+    public Dictionary<string, BattleAttemptCompletion> BattleAttemptCompletions { get; set; } = [];
+
+    /// <summary>Purchased offering IDs for the active campaign run.</summary>
+    [JsonPropertyName("caravan_purchases")]
+    public List<string> CaravanPurchases { get; set; } = [];
 
     /// <summary>Per-story-arc progress tracking.</summary>
     [JsonPropertyName("story_arcs")]
