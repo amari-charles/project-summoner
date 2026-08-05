@@ -6,6 +6,7 @@ using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Meta.Campaign;
+using Fateforged.Meta.Deck;
 
 namespace Fateforged.Domain.Progression;
 
@@ -19,15 +20,6 @@ public readonly record struct BattleAttemptId(string Value)
     public static BattleAttemptId FromString(string value) => new(value);
 
     public static readonly BattleAttemptId None = new("");
-}
-
-/// <summary>Durable lifecycle state for one campaign battle occurrence.</summary>
-public enum BattleAttemptState
-{
-    Started,
-    Victory,
-    Defeat,
-    Abandoned,
 }
 
 /// <summary>Terminal result accepted by the progression authority.</summary>
@@ -56,6 +48,9 @@ public sealed record BattleAttempt
     [JsonPropertyName("battle_id")]
     public required BattleId BattleId { get; init; }
 
+    [JsonPropertyName("deck_id")]
+    public DeckId DeckId { get; init; } = DeckId.None;
+
     [JsonPropertyName("deck_card_instance_ids")]
     public List<CardInstanceId> DeckCardInstanceIds { get; init; } = [];
 
@@ -68,9 +63,6 @@ public sealed record BattleAttempt
     /// <summary>First-clear offers resolved and frozen before battle launch.</summary>
     [JsonPropertyName("first_clear_reward_snapshots")]
     public List<ResolvedRewardOfferSnapshot> FirstClearRewardSnapshots { get; init; } = [];
-
-    [JsonPropertyName("state")]
-    public BattleAttemptState State { get; init; } = BattleAttemptState.Started;
 
     [JsonPropertyName("started_at")]
     public long StartedAtUnixSeconds { get; init; }

@@ -63,6 +63,15 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
                     $"Battle '{request.BattleId}' was not found."
                 );
 
+            var campaign = CampaignCatalog.GetCampaign(request.CampaignId);
+            if (
+                campaign == null
+                || !campaign.EventIds.Any(eventId => eventId.Value == request.BattleId.Value)
+            )
+                return ProgressionAuthorityResult.Invalid(
+                    "The battle does not belong to the requested campaign."
+                );
+
             var snapshot = _profileStore.GetProgressionSnapshot();
             if (!snapshot.UnlockedSummoners.Contains(request.SummonerId))
                 return ProgressionAuthorityResult.Invalid(
@@ -73,7 +82,32 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
                     $"Summoner '{request.SummonerId}' was not found."
                 );
 
-            var distinctCards = request.DeckCardInstanceIds.Distinct().ToList();
+            var existingProgress = snapshot.CampaignProgressMap.GetValueOrDefault(
+                request.SummonerId.Value
+            );
+            if (
+                !CampaignUnlockPolicy.IsUnlocked(
+                    campaign,
+                    new EventId(request.BattleId.Value),
+                    existingProgress?.CompletedBattles.Select(value => value.Value) ?? [],
+                    existingProgress?.Choices ?? new Dictionary<NodeId, ChoiceId>()
+                )
+            )
+                return ProgressionAuthorityResult.Invalid("The campaign battle is locked.");
+
+            var deck = request.DeckId.HasValue
+                ? snapshot.Decks.FirstOrDefault(value => value.Id == request.DeckId)
+                : null;
+            if (battle.RequiresDeck && deck == null)
+                return ProgressionAuthorityResult.Invalid("The selected deck was not found.");
+            if (deck != null && deck.SummonerId != request.SummonerId)
+                return ProgressionAuthorityResult.Invalid(
+                    "The selected deck does not belong to the battle summoner."
+                );
+
+            var distinctCards = battle.RequiresDeck
+                ? deck!.CardInstanceIds.Distinct().ToList()
+                : [];
             if (distinctCards.Any(id => snapshot.Collection.All(card => card.Id != id)))
                 return ProgressionAuthorityResult.Invalid(
                     "The battle deck contains an unowned card instance."
@@ -111,6 +145,7 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
                 SummonerId = request.SummonerId,
                 CampaignId = request.CampaignId,
                 BattleId = request.BattleId,
+                DeckId = battle.RequiresDeck ? request.DeckId : Fateforged.Meta.Deck.DeckId.None,
                 DeckCardInstanceIds = distinctCards,
                 CardXpReward = battle.CardXpReward,
                 SummonerXpReward = battle.SummonerXpReward,
@@ -121,6 +156,40 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
             {
                 if (!profile.UnlockedSummoners.Contains(request.SummonerId))
                     return Failure("Summoner became unavailable before battle start.");
+                if (
+                    profile.Rewards.RewardSeedBySummoner.TryGetValue(
+                        request.SummonerId.Value,
+                        out var committedSeed
+                    )
+                    && committedSeed != seed
+                )
+                    return Failure("The summoner reward seed changed before battle start.");
+                var committedProgress = profile.CampaignProgressMap.GetValueOrDefault(
+                    request.SummonerId.Value
+                );
+                if (
+                    !CampaignUnlockPolicy.IsUnlocked(
+                        campaign,
+                        new EventId(request.BattleId.Value),
+                        committedProgress?.CompletedBattles.Select(value => value.Value) ?? [],
+                        committedProgress?.Choices ?? new Dictionary<NodeId, ChoiceId>()
+                    )
+                )
+                    return Failure("The campaign battle became locked before battle start.");
+                if (battle.RequiresDeck)
+                {
+                    var committedDeck = profile.Decks.FirstOrDefault(value =>
+                        value.Id == request.DeckId && value.SummonerId == request.SummonerId
+                    );
+                    if (committedDeck == null)
+                        return Failure("The selected deck changed before battle start.");
+                    var committedCards = committedDeck.CardInstanceIds.Distinct().ToHashSet();
+                    if (
+                        committedCards.Count != distinctCards.Count
+                        || !committedCards.SetEquals(distinctCards)
+                    )
+                        return Failure("The selected deck changed before battle start.");
+                }
                 if (distinctCards.Any(id => profile.Collection.All(card => card.Id != id)))
                     return Failure("The battle deck changed before battle start.");
 

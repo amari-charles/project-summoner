@@ -1,7 +1,9 @@
 namespace Fateforged.Tests.Meta.Progression;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Rewards;
@@ -10,11 +12,18 @@ using Fateforged.Meta.Rewards;
 
 internal sealed class InMemoryProgressionProfileStore : IProgressionProfileStore
 {
+    private readonly object _gate = new();
+
     public ProfileData Data { get; set; } = new();
     public int CommitCount { get; private set; }
     public bool FailNextCommit { get; set; }
+    public Action<ProfileData>? BeforeNextCommit { get; set; }
 
-    public ProfileData GetProgressionSnapshot() => Data;
+    public ProfileData GetProgressionSnapshot()
+    {
+        lock (_gate)
+            return Clone(Data);
+    }
 
     public RewardProfileState GetRewardState() => Data.Rewards;
 
@@ -23,18 +32,25 @@ internal sealed class InMemoryProgressionProfileStore : IProgressionProfileStore
         out string error
     )
     {
-        if (FailNextCommit)
+        lock (_gate)
         {
-            FailNextCommit = false;
-            error = "Injected persistence failure.";
-            return false;
-        }
-        foreach (var mutation in mutations)
-            if (!mutation.TryApply(Data, out error))
+            BeforeNextCommit?.Invoke(Data);
+            BeforeNextCommit = null;
+            if (FailNextCommit)
+            {
+                FailNextCommit = false;
+                error = "Injected persistence failure.";
                 return false;
-        CommitCount++;
-        error = "";
-        return true;
+            }
+            var candidate = Clone(Data);
+            foreach (var mutation in mutations)
+                if (!mutation.TryApply(candidate, out error))
+                    return false;
+            Data = candidate;
+            CommitCount++;
+            error = "";
+            return true;
+        }
     }
 
     public bool TryGetOrCreateRewardSeed(SummonerId summonerId, out ulong seed, out string error)
@@ -46,7 +62,10 @@ internal sealed class InMemoryProgressionProfileStore : IProgressionProfileStore
     }
 
     public IReadOnlySet<string> GetOwnedRewardKeys(SummonerId summonerId) =>
-        Data.Collection.Select(card => $"card:{card.CatalogId}").ToHashSet();
+        GetProgressionSnapshot().Collection.Select(card => $"card:{card.CatalogId}").ToHashSet();
+
+    private static ProfileData Clone(ProfileData profile) =>
+        JsonSerializer.Deserialize<ProfileData>(JsonSerializer.Serialize(profile))!;
 
     public bool TryStoreResolvedOffer(
         ResolvedRewardOfferSnapshot snapshot,

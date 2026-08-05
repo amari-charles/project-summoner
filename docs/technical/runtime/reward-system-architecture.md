@@ -21,7 +21,7 @@ Development saves are disposable at this stage. The architecture intentionally h
 ## Runtime Flow
 
 1. Campaign or debug launch asks the authority to start a battle.
-2. The authority creates a random 128-bit attempt ID, freezes the deck identities, XP amounts, and eligible first-clear resolved offers, then persists before navigation.
+2. The authority creates a random 128-bit attempt ID, validates the selected deck owner, derives its card identities from the profile, freezes XP and eligible first-clear resolved offers, then persists before navigation.
 3. Battle runtime reports `Victory`, `Defeat`, or `Abandoned` against that attempt ID.
 4. On victory, one profile transaction records completion, applies XP and automatic grants, and persists selectable offers. Defeat and abandonment create no grants.
 5. The reward screen reads normalized offer state. A selection submits only attempt, claim, and option IDs.

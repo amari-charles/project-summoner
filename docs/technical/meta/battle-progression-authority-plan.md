@@ -1,6 +1,6 @@
 # Battle Progression Authority Initiative Plan
 
-**Status:** PASS 3 COMPLETE — READY FOR PR REVIEW
+**Status:** PR REVIEW COMPLETE — READY FOR MERGE APPROVAL
 **Initiative:** `battle-progression-authority`
 **Domain:** `meta`
 **Last Updated:** `2026-08-05`
@@ -33,7 +33,7 @@ Introduce a backend-neutral authority boundary for campaign battle attempts, out
 2. The initial port is deliberately narrow: start a campaign battle attempt, complete it with a typed terminal outcome, inspect its normalized reward presentation, and submit a reward selection.
 3. `LocalProgressionAuthority` implements the port using the existing profile repository and universal reward runtime. A future remote adapter can implement the same contract over any backend.
 4. The authority creates `BattleAttemptId`. The local adapter uses a cryptographically random 128-bit identifier; a future remote adapter receives an ID created by the server. The identifier provides uniqueness and idempotency, not authorization by itself.
-5. `BattleAttempt` is scoped to account/profile, summoner, campaign, battle, and attempt. It records a lifecycle state (`Started`, `Victory`, `Defeat`, or `Abandoned`) and enough source identity to reproduce claim IDs.
+5. `BattleAttempt` is scoped to account/profile, summoner, campaign, battle, selected deck, and attempt. Its presence represents `Started`; terminal state lives once in `BattleAttemptCompletion`, avoiding two competing lifecycle fields.
 6. Starting an attempt persists `Started` before scene navigation. Starting another attempt abandons any stale active attempt without granting rewards.
 7. A terminal result is recorded when the authoritative session emits game over, not when the player confirms the UI transition. Leaving an unfinished battle records `Abandoned`.
 8. Victory creates an attempt-scoped XP claim. A unique attempt can grant its XP once; a replay uses a new attempt and therefore earns XP again.
@@ -49,7 +49,6 @@ Introduce a backend-neutral authority boundary for campaign battle attempts, out
 1. Add pure typed contracts under `scripts/csharp/Meta/Domain/Progression/`:
    - `BattleAttemptId`
    - `BattleAttempt`
-   - `BattleAttemptState`
    - `BattleTerminalOutcome`
    - start/complete/claim request and result records
 2. Add application coordination under `scripts/csharp/Meta/Services/Progression/`:
@@ -109,7 +108,7 @@ Local settings, UI preferences, debug state, and ordinary deck editing are not a
 3. Reward screen consumes only normalized authority output and all scoped legacy battle reward code is deleted.
 4. All cases are `Implemented` or explicitly `Deferred` with a follow-up target.
 
-### PR REVIEW: READY
+### PR REVIEW: COMPLETE
 
 1. Review confirms pass order, artifact completeness, boundary placement, and no direct battle-to-profile mutation path.
 2. Review confirms local trust limitations are documented and no backend provider leaked into domain/application contracts.
@@ -122,7 +121,7 @@ Local settings, UI preferences, debug state, and ordinary deck editing are not a
 ## Assumptions and Defaults
 
 1. Development saves may be discarded. New architecture takes priority over backward compatibility, and no legacy reader, adapter, or migration shim is required.
-2. Campaign battle XP applies to the active summoner and the exact deck card instances captured at attempt start.
+2. Campaign battle XP applies to the requested summoner and the exact card instances derived by the authority from the selected deck at attempt start. Client-supplied card lists are not accepted.
 3. Victory XP is awarded for every distinct victorious attempt, including replay victories.
 4. Defeat and abandonment award no XP and no first-clear reward.
 5. An interrupted `Started` attempt is abandoned rather than resumed unless battle-resume support is designed later.
@@ -135,10 +134,10 @@ Current state:
 1. `PASS 1: USE CASES + VALIDATION` — complete
 2. `PASS 2: STUBS + WIRING` — complete
 3. `PASS 3: IMPLEMENTATION + TESTS` — complete
-4. `PR REVIEW: READY` — not started
+4. `PR REVIEW` — complete; PR #352 is ready for merge approval
 
 Gate note:
 
 1. Pass 2 approval was explicitly recorded on `2026-08-05`: `oass 2`.
 2. Pass 3 approval was explicitly recorded on `2026-08-05`: `pass 3`.
-3. Pass 3 implementation and full local verification are complete; PR review is the next gate.
+3. Formal local PR review and full verification completed on `2026-08-05`; explicit merge approval is the next gate.

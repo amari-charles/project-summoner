@@ -45,6 +45,6 @@ None.
 
 ## Verification
 
-1. Focused progression/persistence tests: 17 passed.
-2. Full C# suite: 1,174 passed.
+1. Focused progression/persistence tests: 22 passed.
+2. Full C# suite: 1,178 passed.
 3. Full Godot/GUT suite: 237 passed with 1,746 assertions.

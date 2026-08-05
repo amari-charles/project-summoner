@@ -597,7 +597,6 @@ func _on_panel_start_requested() -> void:
 		return
 
 	# Handle battle events through the provider-neutral progression authority.
-	# Pass 2 fails closed until the local atomic implementation is approved.
 	var attempt_result: Dictionary = ProgressionAuthority.StartCampaignBattleAttempt(
 		CampaignApi.get_current_campaign_id(),
 		selected_event_id

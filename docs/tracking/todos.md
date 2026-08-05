@@ -793,7 +793,7 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 ### 🔴 HIGH PRIORITY
 
 #### Introduce Battle Progression Authority and Migrate Battle Rewards
-**Status:** 🔄 In Progress (Pass 3 Complete; PR Review Pending)
+**Status:** 🔄 In Progress (PR #352 Open; Local Review Complete)
 **Category:** Architecture / Progression / Rewards
 **Effort:** Large
 **Urgency:** High
@@ -809,7 +809,8 @@ Introduce a provider-neutral `IProgressionAuthority` boundary for campaign battl
 - [x] Complete Pass 2 typed contracts, compile-safe local adapter/coordinator stubs, persistence wiring, and test skeletons after explicit approval.
 - [x] Complete Pass 3 local behavior: victory XP once per attempt, first-clear rewards once per summoner/campaign/battle, and no XP/rewards on defeat or leave.
 - [x] Migrate `RewardScreen` to normalized authority output and delete `BattleRewardSpec`, battle `PendingRewardData`, reward flags, and direct battle XP calls.
-- [ ] Run gated PR review and merge only after focused/full validation passes.
+- [x] Run gated PR review and focused/full validation.
+- [ ] Merge PR #352 only after explicit user approval.
 
 **Placement:**
 Pure attempt/outcome records belong in `Meta/Domain/Progression`; use-case ports and coordination belong in `Meta/Services/Progression`; JSON mapping stays in `Infrastructure/Persistence`. Battle/session code carries and reports identity but does not own progression rules.

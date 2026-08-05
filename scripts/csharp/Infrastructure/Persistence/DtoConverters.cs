@@ -457,13 +457,13 @@ public static class DtoConverters
             ["summoner_id"] = (string)attempt.SummonerId,
             ["campaign_id"] = attempt.CampaignId.Value,
             ["battle_id"] = attempt.BattleId.Value,
+            ["deck_id"] = attempt.DeckId.Value,
             ["deck_card_instance_ids"] = CardInstanceIdsToGodotArray(attempt.DeckCardInstanceIds),
             ["card_xp_reward"] = attempt.CardXpReward,
             ["summoner_xp_reward"] = attempt.SummonerXpReward,
             ["first_clear_reward_snapshots"] = ToRewardSnapshotArray(
                 attempt.FirstClearRewardSnapshots
             ),
-            ["state"] = attempt.State.ToString().ToLowerInvariant(),
             ["started_at"] = attempt.StartedAtUnixSeconds,
         };
 
@@ -664,25 +664,17 @@ public static class DtoConverters
             }
         }
 
-        var state = Enum.TryParse<BattleAttemptState>(
-            GetString(dict, "state", "started"),
-            true,
-            out var parsedState
-        )
-            ? parsedState
-            : BattleAttemptState.Started;
-
         return new BattleAttempt
         {
             AttemptId = new BattleAttemptId(attemptId),
             SummonerId = new SummonerId(summonerId),
             CampaignId = new CampaignId(campaignId),
             BattleId = new BattleId(battleId),
+            DeckId = new Fateforged.Meta.Deck.DeckId(GetString(dict, "deck_id", "")),
             DeckCardInstanceIds = cardIds,
             CardXpReward = GetInt(dict, "card_xp_reward", 0),
             SummonerXpReward = GetInt(dict, "summoner_xp_reward", 0),
             FirstClearRewardSnapshots = firstClearSnapshots,
-            State = state,
             StartedAtUnixSeconds = GetLong(dict, "started_at", 0),
         };
     }

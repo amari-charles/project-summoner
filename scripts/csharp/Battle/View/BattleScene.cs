@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fateforged.Constants;
 using Fateforged.Domain.Progression;
 using Fateforged.Meta.Progression;
-using Fateforged.Meta.Rewards;
 using Fateforged.Multiplayer.Ranking;
 using Fateforged.Multiplayer.Transport;
 using Fateforged.Session;
@@ -219,6 +217,13 @@ public partial class BattleScene : Node3D
 
     public override void _ExitTree()
     {
+        if (
+            _config != null
+            && _config.Mode == BattleMode.Campaign
+            && CurrentState != GameState.GameOver
+        )
+            ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
+
         var simNode = GetSimNode();
         if (simNode is IGameSession session)
             session.SimEventsEmitted -= OnSimEventsEmitted;
@@ -356,7 +361,7 @@ public partial class BattleScene : Node3D
     /// </summary>
     public void AbandonBattle()
     {
-        if (_config.Mode == BattleMode.Campaign)
+        if (_config.Mode == BattleMode.Campaign && CurrentState != GameState.GameOver)
             _campaignProgressionResult = ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
 
         // Delegate state cleanup to BattleContext
@@ -849,12 +854,7 @@ public partial class BattleScene : Node3D
             return;
         }
 
-        if (
-            winnerTeam == 0
-            && _campaignProgressionResult.RewardOffers.Any(offer =>
-                offer.DisplayState == RewardOfferDisplayState.Pending
-            )
-        )
+        if (winnerTeam == 0 && !_campaignProgressionResult.RewardOffers.IsEmpty)
             NavigateToScene("res://scenes/meta/screens/reward_screen.tscn");
         else
         {

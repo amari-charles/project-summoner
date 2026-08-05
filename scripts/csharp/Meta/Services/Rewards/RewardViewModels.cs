@@ -65,7 +65,9 @@ public sealed class RewardViewModelFactory
             SelectionMode = snapshot.SelectionMode,
             ClaimId = snapshot.ClaimId,
             ChooseCount = snapshot.ChooseCount,
-            Options = snapshot.Options.Select(option => ToView(option, pending)).ToImmutableArray(),
+            Options = snapshot
+                .Options.Select(option => ToView(option, pending, receipt))
+                .ToImmutableArray(),
             Receipt = receipt,
         };
 
@@ -92,21 +94,26 @@ public sealed class RewardViewModelFactory
                 : "",
             ChooseCount = snapshot?.ChooseCount ?? offer.Selection.ChooseCount,
             Options =
-                snapshot?.Options.Select(option => ToView(option, pending)).ToImmutableArray()
+                snapshot
+                    ?.Options.Select(option => ToView(option, pending, receipt))
+                    .ToImmutableArray()
                 ?? [],
             Receipt = receipt,
         };
 
     private static RewardOptionViewModel ToView(
         RewardOptionDefinition option,
-        PendingRewardSelection? pending
+        PendingRewardSelection? pending,
+        RewardClaimReceipt? receipt
     ) =>
         new()
         {
             Id = option.Id,
             LabelKey = option.LabelKey,
             DescriptionKey = option.DescriptionKey,
-            IsSelected = pending?.SelectedOptionIds.Contains(option.Id) == true,
+            IsSelected =
+                pending?.SelectedOptionIds.Contains(option.Id) == true
+                || receipt?.ClaimedOptionIds.Contains(option.Id) == true,
             Grants = option.Grants.Select(CreateGrant).ToImmutableArray(),
         };
 

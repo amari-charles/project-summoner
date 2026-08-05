@@ -58,11 +58,6 @@ public partial class ProgressionAuthorityService : Node
             return ProgressionAuthorityResult.Unavailable("Profile metadata unavailable.");
 
         var summonerId = new SummonerId(profile.Meta.SelectedSummoner);
-        var deck = string.IsNullOrWhiteSpace(profile.Meta.SelectedDeck)
-            ? null
-            : ProfileRepository.Instance?.GetDeck(
-                new Fateforged.Meta.Deck.DeckId(profile.Meta.SelectedDeck)
-            );
 
         return Authority.StartBattleAttempt(
             new StartBattleAttemptRequest
@@ -70,7 +65,7 @@ public partial class ProgressionAuthorityService : Node
                 SummonerId = summonerId,
                 CampaignId = campaignId,
                 BattleId = battleId,
-                DeckCardInstanceIds = deck?.CardInstanceIds.ToImmutableArray() ?? [],
+                DeckId = Fateforged.Meta.Deck.DeckId.FromString(profile.Meta.SelectedDeck),
             }
         );
     }

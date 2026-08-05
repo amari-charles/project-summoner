@@ -1,6 +1,6 @@
 # Battle Progression Authority Delivery Checklist
 
-**Status:** PASS 3 COMPLETE — READY FOR PR REVIEW
+**Status:** PR REVIEW COMPLETE — READY FOR MERGE APPROVAL
 **Initiative:** `battle-progression-authority`
 **Domain:** `meta`
 **Last Updated:** `2026-08-05`
@@ -14,7 +14,7 @@
 ## Implemented Boundary
 
 1. `IProgressionAuthority` owns battle start, terminal completion, reward retrieval, pending retrieval, and reward selection through provider-neutral commands and results.
-2. `LocalProgressionAuthority` persists cryptographically random attempt IDs, one durable summoner reward seed, frozen XP/reward snapshots, terminal receipts, and claim receipts.
+2. `LocalProgressionAuthority` persists cryptographically random attempt IDs, one durable summoner reward seed, authority-derived selected-deck card identities, frozen XP/reward snapshots, terminal receipts, and claim receipts.
 3. `IProgressionProfileStore.TryCommitProgression` stages attempt state, campaign completion, grants, pending selections, and receipts against one cloned profile and performs one save.
 4. Victory awards attempt-scoped card and summoner XP. Defeat and abandonment award nothing. Replays award XP but cannot repeat first-clear rewards.
 5. First-clear offers support automatic, selectable, mixed, and absent rewards through universal reward definitions.
@@ -41,11 +41,11 @@
 ## Verification
 
 1. `dotnet build` — passed with 0 warnings and 0 errors.
-2. Focused progression/persistence suite — 17 passed.
-3. Full C# suite — 1,174 passed.
+2. Focused progression/persistence suite — 22 passed.
+3. Full C# suite — 1,178 passed.
 4. Full Godot/GUT suite — 237 passed with 1,746 assertions.
 5. Validation matrix has no deferred battle-authority cases.
 
 ## Next Gate
 
-Run the formal PR review. Do not include the unrelated untracked art commission notes file in this initiative.
+PR #352 passed local review and full validation. Merge only after explicit user approval. The unrelated untracked art commission notes file is not part of this initiative.

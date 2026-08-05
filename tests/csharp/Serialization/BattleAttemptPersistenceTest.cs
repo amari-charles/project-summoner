@@ -10,6 +10,7 @@ using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Progression;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign;
+using Fateforged.Meta.Deck;
 using GdUnit4;
 using static GdUnit4.Assertions;
 
@@ -28,6 +29,7 @@ public class BattleAttemptPersistenceTest
                 SummonerId = new SummonerId("summoner_cole"),
                 CampaignId = new CampaignId("campaign"),
                 BattleId = new BattleId("battle"),
+                DeckId = new DeckId("deck"),
                 DeckCardInstanceIds = [new CardInstanceId("card-instance")],
                 CardXpReward = 12,
                 SummonerXpReward = 34,
@@ -85,6 +87,7 @@ public class BattleAttemptPersistenceTest
         AssertThat(restored).IsNotNull();
         AssertThat(restored!.ActiveBattleAttempt).IsNotNull();
         AssertThat(restored.ActiveBattleAttempt!.AttemptId.Value).IsEqual("attempt");
+        AssertThat(restored.ActiveBattleAttempt.DeckId.Value).IsEqual("deck");
         AssertThat(restored.ActiveBattleAttempt.DeckCardInstanceIds).HasSize(1);
         AssertThat(restored.ActiveBattleAttempt.FirstClearRewardSnapshots).HasSize(1);
         AssertThat(restored.ActiveBattleAttempt.FirstClearRewardSnapshots[0].Options[0].Id.Value)

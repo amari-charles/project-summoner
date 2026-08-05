@@ -39,7 +39,7 @@ Replace the parallel Academy, battle, and dictionary-based reward paths with one
 8. Every grant contains an explicit ownership scope and target. Handlers do not infer account, current summoner/campaign, card instance, or other ownership from ambient state.
 9. Resolution uses a versioned deterministic random algorithm, a canonical candidate ordering, and a persistent summoner reward seed plus stable context IDs. The complete resolved option snapshot is persisted at its resolution boundary.
 10. Exact pre-enrollment previews resolve and persist on first reveal. Category-only pool previews resolve and persist when earned. Authored fixed options require no random resolution.
-11. Filtering may reduce the result below `showCount` only when at least `chooseCount` eligible options remain. Fewer eligible options than `chooseCount` is an invalid state and never relaxes ownership or duplicate rules.
+11. Filtering may reduce the result below `showCount` only when at least `chooseCount` eligible options remain. Fewer eligible options than `chooseCount` is invalid by default; a source may explicitly author duplicate fallback when that behavior is part of its reward policy.
 12. A stable, versioned claim ID hashes length-prefixed player/summoner, source occurrence, and offer IDs so delimiter-bearing IDs cannot collide. The claim service validates the entire selection and bundle before staging any mutation.
 13. Grant handlers stage operations into a profile-owned reward transaction. The transaction commits all grants and the claim receipt together and performs one save; validation failure or commit failure leaves both rewards and receipt unapplied.
 14. Retrying a committed claim returns the persisted receipt without applying grants again.

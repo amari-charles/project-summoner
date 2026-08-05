@@ -28,6 +28,7 @@ var attempt_id: String = ""
 var claim_id: String = ""
 var options: Array[Dictionary] = []
 var selected_option_id: String = ""
+var claim_required: bool = false
 
 func _ready() -> void:
 	continue_button.pressed.connect(_on_continue_pressed)
@@ -48,19 +49,22 @@ func _load_pending_reward() -> void:
 
 	attempt_id = result.get("attempt_id", attempt_id)
 	var offers: Array = result.get("reward_offers", [])
-	var pending_offer: Dictionary = {}
+	var display_offer: Dictionary = {}
 	for value: Variant in offers:
 		if value is Dictionary and value.get("display_state", "") == "pending":
-			pending_offer = value
+			display_offer = value
 			break
+	if display_offer.is_empty() and not offers.is_empty() and offers[0] is Dictionary:
+		display_offer = offers[0]
 
-	if pending_offer.is_empty():
+	if display_offer.is_empty():
 		_transition_to_map()
 		return
 
-	claim_id = pending_offer.get("claim_id", "")
+	claim_id = display_offer.get("claim_id", "")
+	claim_required = display_offer.get("display_state", "") == "pending"
 	options.clear()
-	for value: Variant in pending_offer.get("options", []):
+	for value: Variant in display_offer.get("options", []):
 		if value is Dictionary:
 			options.append(value)
 
@@ -70,7 +74,19 @@ func _load_pending_reward() -> void:
 	every_battle_section.visible = false
 	gold_reward_label.text = ""
 
-	if options.size() == 1:
+	if not claim_required:
+		var selected_option: Dictionary = options[0] if not options.is_empty() else {}
+		for option: Dictionary in options:
+			if option.get("is_selected", false):
+				selected_option = option
+				break
+		if selected_option.is_empty():
+			_transition_to_map()
+			return
+		selected_option_id = selected_option.get("id", "")
+		_display_option(selected_option)
+		continue_button.disabled = false
+	elif options.size() == 1:
 		selected_option_id = options[0].get("id", "")
 		_display_option(options[0])
 		continue_button.disabled = false
@@ -129,6 +145,9 @@ func _option_label(option: Dictionary) -> String:
 func _on_continue_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if selected_option_id.is_empty():
+		return
+	if not claim_required:
+		_check_summoner_level_up()
 		return
 	var selected: Array[String] = [selected_option_id]
 	var result: Dictionary = ProgressionAuthority.ClaimBattleReward(

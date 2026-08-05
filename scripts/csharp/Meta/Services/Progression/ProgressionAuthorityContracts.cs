@@ -1,11 +1,11 @@
 using System.Collections.Immutable;
-using Fateforged.Cards;
 using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Progression;
 using Fateforged.Meta.Campaign;
+using Fateforged.Meta.Deck;
 using Fateforged.Meta.Rewards;
 
 namespace Fateforged.Meta.Progression;
@@ -23,7 +23,7 @@ public sealed record StartBattleAttemptRequest
     public required SummonerId SummonerId { get; init; }
     public required CampaignId CampaignId { get; init; }
     public required BattleId BattleId { get; init; }
-    public ImmutableArray<CardInstanceId> DeckCardInstanceIds { get; init; } = [];
+    public DeckId DeckId { get; init; } = DeckId.None;
 }
 
 public sealed record CompleteBattleAttemptRequest
