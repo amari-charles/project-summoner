@@ -142,7 +142,7 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	menu._campaign_setter_override = Callable(harness, "set_campaign")
 	menu._campaign_battle_getter_override = Callable(harness, "get_battle")
 	menu._scene_transition_override = Callable(harness, "transition_to")
-	menu._profile_current_battle_setter_override = Callable(harness, "set_profile_battle")
+	menu._progression_start_override = Callable(harness, "start_progression")
 	menu._battle_context_configure_override = Callable(harness, "configure_battle_context")
 
 	menu._on_open_test_arena_map_pressed()
@@ -150,7 +150,7 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	assert_eq(harness.last_transition_scene, SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
 
 	menu._on_debug_arena_battle_pressed("arena_fire_wisp")
-	assert_eq(harness.last_profile_battle_id, "arena_fire_wisp")
+	assert_eq(harness.last_attempt_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_context_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_transition_scene, "res://scenes/battle/battlefield/custom_debug_scene.tscn")
 
@@ -294,7 +294,7 @@ class _FakeGameController extends Node:
 class _DebugMenuHarness extends RefCounted:
 	var last_campaign_id: String = ""
 	var last_transition_scene: String = ""
-	var last_profile_battle_id: String = ""
+	var last_attempt_battle_id: String = ""
 	var last_context_battle_id: String = ""
 	var last_console_command: String = ""
 
@@ -308,8 +308,9 @@ class _DebugMenuHarness extends RefCounted:
 	func transition_to(scene_path: String) -> void:
 		last_transition_scene = scene_path
 
-	func set_profile_battle(battle_id: String) -> void:
-		last_profile_battle_id = battle_id
+	func start_progression(_campaign_id: String, battle_id: String) -> Dictionary:
+		last_attempt_battle_id = battle_id
+		return {"is_success": true, "attempt_id": "debug-attempt"}
 
 	func configure_battle_context(battle_id: String) -> void:
 		last_context_battle_id = battle_id

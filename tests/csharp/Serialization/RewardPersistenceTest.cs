@@ -1,9 +1,9 @@
 namespace Fateforged.Tests.Serialization;
 
 using System.Linq;
-using Fateforged.Data.Rewards;
 using Fateforged.Cards;
 using Fateforged.Data.Items;
+using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile;
@@ -36,7 +36,7 @@ public class RewardPersistenceTest
             Grants = [grant],
         };
         var profile = new ProfileData { ProfileId = new ProfileId("reward_roundtrip") };
-        profile.Rewards.AcademySeedBySummoner["summoner_test"] = 42;
+        profile.Rewards.RewardSeedBySummoner["summoner_test"] = 42;
         profile.Rewards.ResolvedOffers[claimId.Value] = new ResolvedRewardOfferSnapshot
         {
             ClaimId = claimId,
@@ -64,17 +64,14 @@ public class RewardPersistenceTest
             (string)profile.ProfileId
         );
         var restoredSnapshot = restored.Rewards.ResolvedOffers[claimId.Value];
-        var restoredGrant =
-            (ResourceRewardGrantDefinition)restoredSnapshot.Options[0].Grants[0];
+        var restoredGrant = (ResourceRewardGrantDefinition)restoredSnapshot.Options[0].Grants[0];
 
-        AssertThat(restored.Rewards.AcademySeedBySummoner["summoner_test"]).IsEqual(42UL);
+        AssertThat(restored.Rewards.RewardSeedBySummoner["summoner_test"]).IsEqual(42UL);
         AssertThat(restoredSnapshot.Options[0].Id).IsEqual(option.Id);
         AssertThat(restoredGrant.ResourceId).IsEqual("gold");
         AssertThat(restoredGrant.Amount).IsEqual(75);
         AssertThat(restoredGrant.Target.TargetId).IsEqual("summoner_test");
-        AssertThat(
-                restored.Rewards.PendingSelections[claimId.Value].SelectedOptionIds[0]
-            )
+        AssertThat(restored.Rewards.PendingSelections[claimId.Value].SelectedOptionIds[0])
             .IsEqual(option.Id);
     }
 
@@ -86,6 +83,7 @@ public class RewardPersistenceTest
             new CardRewardGrantDefinition
             {
                 CardId = CardIds.FireWisp,
+                Placement = CardRewardPlacement.SelectedDeckIfAvailable,
                 Target = Account(),
             },
             new ResourceRewardGrantDefinition
@@ -94,11 +92,7 @@ public class RewardPersistenceTest
                 Amount = 1,
                 Target = Account(),
             },
-            new ItemRewardGrantDefinition
-            {
-                ItemId = new ItemId("item"),
-                Target = Account(),
-            },
+            new ItemRewardGrantDefinition { ItemId = new ItemId("item"), Target = Account() },
             new SummonerUnlockRewardGrantDefinition
             {
                 SummonerId = SummonerIds.Cole,
@@ -163,6 +157,13 @@ public class RewardPersistenceTest
             .ToArray();
 
         AssertThat(restoredTypes).ContainsExactly(grants.Select(grant => grant.GetType()));
+        AssertThat(
+                (
+                    (CardRewardGrantDefinition)
+                        restored.Rewards.ResolvedOffers["claim"].Options[0].Grants[0]
+                ).Placement
+            )
+            .IsEqual(CardRewardPlacement.SelectedDeckIfAvailable);
     }
 
     [TestCase]
@@ -206,6 +207,5 @@ public class RewardPersistenceTest
         AssertThat(restored.Rewards.ResolvedOffers).IsEmpty();
     }
 
-    private static RewardOwnershipTarget Account() =>
-        new(RewardOwnershipScope.Account);
+    private static RewardOwnershipTarget Account() => new(RewardOwnershipScope.Account);
 }

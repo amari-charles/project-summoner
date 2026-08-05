@@ -166,8 +166,8 @@ public class CampaignProgressHandler
         var progress = _profileRepo.GetCampaignProgress(summonerId);
         progress.CompletedBattles = [];
         progress.Choices = [];
-        progress.CurrentBattle = null;
-        progress.PendingReward = null;
+        progress.ActiveBattleAttempt = null;
+        progress.BattleAttemptCompletions.Clear();
         _profileRepo.UpdateCampaignProgress(summonerId, progress);
 
         GD.Print($"CampaignProgressHandler: Reset progress for summoner '{summonerId}'");

@@ -19,7 +19,7 @@ internal static class RewardStateMapper
     public static GdDict ToDictionary(RewardProfileState state)
     {
         var seeds = new GdDict();
-        foreach (var (summonerId, seed) in state.AcademySeedBySummoner)
+        foreach (var (summonerId, seed) in state.RewardSeedBySummoner)
             seeds[summonerId] = seed.ToString();
 
         var resolved = new GdDict();
@@ -36,7 +36,7 @@ internal static class RewardStateMapper
 
         return new GdDict
         {
-            ["academy_seed_by_summoner"] = seeds,
+            ["reward_seed_by_summoner"] = seeds,
             ["resolved_offers"] = resolved,
             ["pending_selections"] = pending,
             ["claim_receipts"] = receipts,
@@ -49,12 +49,12 @@ internal static class RewardStateMapper
         if (dict == null)
             return state;
 
-        if (TryGetDictionary(dict, "academy_seed_by_summoner", out var seeds))
+        if (TryGetDictionary(dict, "reward_seed_by_summoner", out var seeds))
         {
             foreach (var key in seeds.Keys)
             {
                 if (ulong.TryParse(seeds[key].AsString(), out var seed))
-                    state.AcademySeedBySummoner[key.AsString()] = seed;
+                    state.RewardSeedBySummoner[key.AsString()] = seed;
             }
         }
 
@@ -97,7 +97,7 @@ internal static class RewardStateMapper
         return state;
     }
 
-    private static GdDict ToDictionary(ResolvedRewardOfferSnapshot snapshot) =>
+    internal static GdDict ToDictionary(ResolvedRewardOfferSnapshot snapshot) =>
         new()
         {
             ["claim_id"] = snapshot.ClaimId.Value,
@@ -110,7 +110,7 @@ internal static class RewardStateMapper
             ["options"] = ToOptionArray(snapshot.Options),
         };
 
-    private static ResolvedRewardOfferSnapshot? FromSnapshotDictionary(GdDict dict)
+    internal static ResolvedRewardOfferSnapshot? FromSnapshotDictionary(GdDict dict)
     {
         var claimId = GetString(dict, "claim_id");
         var offerId = GetString(dict, "offer_id");
@@ -175,9 +175,7 @@ internal static class RewardStateMapper
         new()
         {
             ["claim_id"] = receipt.ClaimId.Value,
-            ["claimed_option_ids"] = ToStringArray(
-                receipt.ClaimedOptionIds.Select(id => id.Value)
-            ),
+            ["claimed_option_ids"] = ToStringArray(receipt.ClaimedOptionIds.Select(id => id.Value)),
             ["applied_grants"] = ToGrantArray(receipt.AppliedGrants),
         };
 
@@ -205,10 +203,7 @@ internal static class RewardStateMapper
             ["occurrence_id"] = source.OccurrenceId,
         };
 
-    private static bool TryFromSourceDictionary(
-        GdDict dict,
-        out RewardSourceContext source
-    )
+    private static bool TryFromSourceDictionary(GdDict dict, out RewardSourceContext source)
     {
         source = new RewardSourceContext
         {
@@ -337,6 +332,7 @@ internal static class RewardStateMapper
                 dict["card_id"] = (string)card.CardId;
                 dict["rarity"] = card.Rarity;
                 dict["count"] = card.Count;
+                dict["placement"] = card.Placement.ToString();
                 break;
             case ResourceRewardGrantDefinition resource:
                 dict["kind"] = "resource";
@@ -394,18 +390,10 @@ internal static class RewardStateMapper
 
     private static RewardGrantDefinition? FromGrantDictionary(GdDict dict)
     {
-        if (
-            !Enum.TryParse<RewardOwnershipScope>(
-                GetString(dict, "target_scope"),
-                out var scope
-            )
-        )
+        if (!Enum.TryParse<RewardOwnershipScope>(GetString(dict, "target_scope"), out var scope))
             return null;
 
-        var target = new RewardOwnershipTarget(
-            scope,
-            GetString(dict, "target_id")
-        );
+        var target = new RewardOwnershipTarget(scope, GetString(dict, "target_id"));
         var amount = GetInt(dict, "amount", 0);
 
         return GetString(dict, "kind") switch
@@ -416,6 +404,12 @@ internal static class RewardStateMapper
                 CardId = new CardId(GetString(dict, "card_id")),
                 Rarity = GetString(dict, "rarity", "common"),
                 Count = GetInt(dict, "count", 1),
+                Placement = Enum.TryParse<CardRewardPlacement>(
+                    GetString(dict, "placement"),
+                    out var placement
+                )
+                    ? placement
+                    : CardRewardPlacement.CollectionOnly,
             },
             "resource" => new ResourceRewardGrantDefinition
             {

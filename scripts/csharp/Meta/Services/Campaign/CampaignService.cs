@@ -4,7 +4,6 @@ using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Account;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign.Handlers;
-using Fateforged.Meta.Cards;
 using Fateforged.Meta.Economy;
 using Fateforged.Meta.Rewards;
 using Fateforged.Meta.Summoner;
@@ -13,9 +12,9 @@ using Godot;
 namespace Fateforged.Meta.Campaign;
 
 /// <summary>
-/// Campaign Service - Manages campaign progression and battle rewards.
+/// Campaign Service - Manages campaign catalogs and non-authoritative navigation state.
 ///
-/// Tracks which battles have been completed and handles reward distribution.
+/// Durable battle completion and rewards are owned by IProgressionAuthority.
 /// String-accepting facade for GDScript; delegates to typed handlers internally.
 /// </summary>
 [GlobalClass]
@@ -41,7 +40,6 @@ public partial class CampaignService : Node
     private CampaignDataStore? _store;
     private CampaignCatalogHandler? _catalog;
     private CampaignProgressHandler? _progress;
-    private CampaignRewardHandler? _rewards;
     private TutorialHandler? _tutorial;
     private AcademyProgressHandler? _academy;
 
@@ -51,7 +49,6 @@ public partial class CampaignService : Node
     private ChoiceTracker? _choiceTracker;
 
     // Callbacks for GDScript dependencies
-    private Func<string, string, string>? _grantCardFunc;
     private Func<SummonerId>? _getActiveSummonerFunc;
 
     // =========================================================================
@@ -71,31 +68,6 @@ public partial class CampaignService : Node
     /// </summary>
     private void AutoInitializeDependencies()
     {
-        if (_grantCardFunc == null)
-        {
-            var cardService = GetNodeOrNull<CardService>("/root/CardService");
-            if (cardService != null)
-            {
-                _grantCardFunc = (catalogId, rarity) => cardService.GrantCard(catalogId, rarity);
-
-                // Rebuild rewards handler with the new callback
-                if (_profileRepo != null && _store != null)
-                {
-                    _rewards = new CampaignRewardHandler(
-                        _profileRepo,
-                        _store,
-                        GetActiveSummonerId,
-                        _grantCardFunc
-                    );
-                    _academy = new AcademyProgressHandler(
-                        _profileRepo,
-                        GetActiveSummonerId,
-                        GetAcademyRewardRuntime()
-                    );
-                }
-            }
-        }
-
         if (_getActiveSummonerFunc == null)
         {
             var summonerSelection = GetNodeOrNull<SummonerSelectionService>(
@@ -116,7 +88,7 @@ public partial class CampaignService : Node
     {
         GD.Print("CampaignService: Initializing...");
 
-        _profileRepo = ProfileRepository.Instance;
+        SetProfileRepository(ProfileRepository.Instance);
 
         if (_profileRepo == null)
         {
@@ -151,12 +123,6 @@ public partial class CampaignService : Node
             _graphStore
         );
         _catalog = new CampaignCatalogHandler(_store, _progress);
-        _rewards = new CampaignRewardHandler(
-            _profileRepo,
-            _store,
-            GetActiveSummonerId,
-            _grantCardFunc
-        );
         _tutorial = new TutorialHandler(_store, _catalog, _progress);
         _academy = new AcademyProgressHandler(
             _profileRepo,
@@ -167,6 +133,8 @@ public partial class CampaignService : Node
 
     public override void _ExitTree()
     {
+        if (_profileRepo != null)
+            _profileRepo.DataChanged -= OnProfileDataChanged;
         if (Instance == this)
             Instance = null;
     }
@@ -175,35 +143,29 @@ public partial class CampaignService : Node
     public void InitForTesting(IProfileRepository repo)
     {
         ArgumentNullException.ThrowIfNull(repo);
-        _profileRepo = repo;
+        SetProfileRepository(repo);
         InitializeHandlers();
+    }
+
+    private void SetProfileRepository(IProfileRepository? repo)
+    {
+        if (_profileRepo != null)
+            _profileRepo.DataChanged -= OnProfileDataChanged;
+        _profileRepo = repo;
+        if (_profileRepo != null)
+            _profileRepo.DataChanged += OnProfileDataChanged;
+    }
+
+    private void OnProfileDataChanged()
+    {
+        // The profile is authoritative. Keep navigation/unlock caches synchronized
+        // when progression is committed by IProgressionAuthority or another owner.
+        LoadProgress();
     }
 
     // =========================================================================
     // CALLBACK INJECTION (from GDScript wrapper)
     // =========================================================================
-
-    /// <summary>Set Collection service callbacks.</summary>
-    public void SetCollectionCallbacks(Callable grantCard)
-    {
-        _grantCardFunc = (catalogId, rarity) => grantCard.Call(catalogId, rarity).AsString();
-
-        // Rebuild rewards handler with new callbacks
-        if (_profileRepo != null && _store != null)
-        {
-            _rewards = new CampaignRewardHandler(
-                _profileRepo,
-                _store,
-                GetActiveSummonerId,
-                _grantCardFunc
-            );
-            _academy = new AcademyProgressHandler(
-                _profileRepo,
-                GetActiveSummonerId,
-                GetAcademyRewardRuntime()
-            );
-        }
-    }
 
     private UniversalRewardRuntime? GetAcademyRewardRuntime()
     {
@@ -394,38 +356,6 @@ public partial class CampaignService : Node
     }
 
     // =========================================================================
-    // PENDING REWARD MANAGEMENT (delegates to CampaignRewardHandler)
-    // =========================================================================
-
-    /// <summary>Set a pending reward for a battle.</summary>
-    public void SetPendingReward(string battleId, string rewardType, int choiceIndex = -1)
-    {
-        _rewards?.SetPendingReward(
-            BattleId.FromString(battleId),
-            RewardTypeExtensions.FromStringId(rewardType),
-            choiceIndex
-        );
-    }
-
-    /// <summary>Get the current pending reward.</summary>
-    public Godot.Collections.Dictionary GetPendingReward()
-    {
-        return _rewards?.GetPendingReward() ?? [];
-    }
-
-    /// <summary>Update choice selection for a pending choice reward.</summary>
-    public void UpdatePendingChoice(int choiceIndex, string chosenCatalogId = "")
-    {
-        _rewards?.UpdatePendingChoice(choiceIndex, chosenCatalogId);
-    }
-
-    /// <summary>Clear the pending reward.</summary>
-    public void ClearPendingReward()
-    {
-        _rewards?.ClearPendingReward();
-    }
-
-    // =========================================================================
     // BATTLE COMPLETION & REWARDS
     // =========================================================================
 
@@ -456,41 +386,6 @@ public partial class CampaignService : Node
                 }
             }
         }
-    }
-
-    /// <summary>Complete a battle without granting rewards.</summary>
-    public void CompleteBattleWithoutReward(string battleId)
-    {
-        if (string.IsNullOrEmpty(battleId))
-        {
-            GD.PushError("CampaignService: Invalid battle_id for CompleteBattleWithoutReward");
-            return;
-        }
-
-        CompleteBattle(battleId);
-        ClearPendingReward();
-
-        GD.Print($"CampaignService: Completed battle '{battleId}' (reward granted externally)");
-    }
-
-    /// <summary>Grant battle reward and return granted card info.</summary>
-    public Godot.Collections.Dictionary GrantBattleReward(string battleId, int chosenIndex = 0)
-    {
-        return _rewards?.GrantBattleReward(BattleId.FromString(battleId), chosenIndex) ?? [];
-    }
-
-    /// <summary>Claim the pending reward.</summary>
-    public Godot.Collections.Dictionary ClaimPendingReward()
-    {
-        var (grantedCard, battleId) = _rewards?.ClaimPendingReward() ?? ([], BattleId.None);
-
-        if (battleId.HasValue)
-        {
-            CompleteBattle(battleId.Value);
-            ClearPendingReward();
-        }
-
-        return grantedCard;
     }
 
     // =========================================================================

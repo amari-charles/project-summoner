@@ -596,9 +596,22 @@ func _on_panel_start_requested() -> void:
 		SceneManager.transition_to(SceneManager.SCENE_CARAVAN_SCREEN)
 		return
 
-	# Handle battle events — store selected event in campaign service
-	ProfileRepoApi.update_campaign_progress_dict({"current_battle": selected_event_id}, "")
+	# Handle battle events through the provider-neutral progression authority.
+	# Pass 2 fails closed until the local atomic implementation is approved.
+	var attempt_result: Dictionary = ProgressionAuthority.StartCampaignBattleAttempt(
+		CampaignApi.get_current_campaign_id(),
+		selected_event_id
+	)
+	if not SafeTypeUtils.bool_val(attempt_result.get("is_success"), false):
+		push_warning(
+			"CampaignMap: Battle launch unavailable: %s"
+			% str(attempt_result.get("errors", []))
+		)
+		return
 
+	BattleContext.set_battle_attempt_id(
+		SafeTypeUtils.string(attempt_result.get("attempt_id"), "")
+	)
 	BattleContext.configure_campaign_battle(selected_event_id)
 
 	# Launch battle scene - use custom scene_path if specified in battle config

@@ -2,171 +2,50 @@
 
 ## Overview
 
-Campaign data defines battles, events, and progression structure. Data is defined in GDScript files rather than JSON to enable compile-time validation of card references.
+Campaign structure and event definitions are typed C# content. `CampaignCatalog` owns campaign graphs and `EventCatalog` owns battles and other events. GDScript receives normalized dictionaries through the campaign service; it does not author progression or reward rules.
 
-## File Structure
+## Key Files
 
-```
-scripts/infrastructure/data/campaigns/
-├── onboarding_data.gd      # Tutorial/shared campaign
-├── combat_arena_data.gd    # Dev testing arena
-└── academy_trials_data.gd  # Main per-summoner campaign
-```
+| File | Responsibility |
+|---|---|
+| `scripts/csharp/Infrastructure/Data/Events/CampaignCatalog.cs` | Campaign metadata and graph membership |
+| `scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs` | Typed event and battle definitions |
+| `scripts/csharp/Infrastructure/Data/Events/EventDefinition.cs` | Immutable content shapes |
+| `scripts/csharp/Infrastructure/Data/Events/BattleRewardAuthoring.cs` | Universal battle-offer authoring helpers |
+| `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignCatalogHandler.cs` | Read-only presentation facade |
 
-## Data Pattern
+## Adding a Battle
 
-Each campaign data file follows this pattern:
+1. Add a stable typed event ID.
+2. Add a `BattleEventDefinition` to `EventCatalog` with side configuration, difficulty, tutorial/repeat rules, and any XP or first-clear offers.
+3. Add the event to the appropriate campaign graph in `CampaignCatalog`.
+4. Add localization keys and content-validation coverage.
 
-```gdscript
-class_name OnboardingData
-extends RefCounted
-
-static func get_campaign() -> Dictionary:
-    return {
-        "campaign_id": CampaignIDs.ONBOARDING,
-        "name_key": "campaign.onboarding.name",
-        "description_key": "campaign.onboarding.description",
-        "sort_order": 0,
-        "is_shared": true,  # true = account-wide, false = per-summoner
-        "unlock_requirements": [],
-        "battles": _get_battles(),
-    }
-
-static func _get_battles() -> Array[Dictionary]:
-    return [
-        {
-            "id": BattleIDs.FIRST_TRIAL,
-            "event_type": EventTypeIDs.BATTLE,
-            "player_side": {
-                "team": 0,
-                "source": "profile",
-                "summoner": {"source": "profile"},
-                "deck": {
-                    "source": "authored",
-                    "cards": [
-                        {"catalog_id": CardIDs.FIRE_WISP, "count": 2},
-                    ],
-                },
-                "controller": {"kind": "player"},
-            },
-            "enemy_side": {
-                "team": 1,
-                "source": "authored",
-                "summoner": {
-                    "source": "authored",
-                    "hp": 30.0,
-                    "max_hp": 30.0,
-                    "mana": 100.0,
-                    "max_mana": 100.0,
-                    "cast_speed": 1.0,
-                },
-                "deck": {
-                    "source": "authored",
-                    "cards": [
-                        {"catalog_id": CardIDs.EARTH_SPRITE, "count": 1},
-                    ],
-                },
-                "controller": {
-                    "kind": "trainer_ai",
-                    "ai_type": "simple",
-                },
-            },
-            # ... other battle properties
-        },
-    ]
-```
-
-## Why GDScript Instead of JSON?
-
-**Compile-time validation**: Using `CardIDs.FIRE_WISP` instead of `"fire_wisp"` means:
-- Typos are caught at load time (Godot fails to parse if constant doesn't exist)
-- IDE autocomplete works for card names
-- Refactoring card IDs updates all references automatically
-- No runtime "card not found" errors from campaign data
-
-**Type safety**: `Array[Dictionary]` return types enforce structure.
-
-## ID Constants Used
-
-| Constant Class | Purpose | Example |
-|---------------|---------|---------|
-| `CampaignIDs` | Campaign identifiers | `CampaignIDs.ONBOARDING` |
-| `BattleIDs` | Battle/event identifiers | `BattleIDs.FIRST_TRIAL` |
-| `CardIDs` | Card catalog references | `CardIDs.FIRE_WISP` |
-| `EventTypeIDs` | Event type enum | `EventTypeIDs.BATTLE` |
-| `RewardTypeIDs` | Reward type enum | `RewardTypeIDs.FIXED` |
-| `BiomeIDs` | Battlefield biome | `BiomeIDs.SUMMER_PLAINS` |
-| `RarityIDs` | Card rarity | `RarityIDs.COMMON` |
-
-## Adding a New Campaign
-
-1. Create `scripts/infrastructure/data/campaigns/my_campaign_data.gd`
-2. Follow the pattern above with `get_campaign()` and `_get_battles()`
-3. Add campaign ID to `scripts/infrastructure/data/campaign_ids.gd`
-4. Register in `CampaignService._load_campaigns()`:
-   ```gdscript
-   var campaign_data_sources: Array[Callable] = [
-       OnboardingData.get_campaign,
-       MyCampaignData.get_campaign,  # Add here
-   ]
-   ```
-5. Add localization entries to `localization/data/en.json`
-
-## Adding a New Battle
-
-1. Add battle ID to `scripts/infrastructure/data/battle_ids.gd`
-2. Add battle dictionary to the campaign's `_get_battles()` array
-3. Use `CardIDs` constants for all deck references
-4. Add localization entries for name/description keys
-
-## Battle Properties Reference
-
-```gdscript
+```csharp
+new BattleEventDefinition
 {
-    "id": BattleIDs.MY_BATTLE,
-    "biome_id": BiomeIDs.SUMMER_PLAINS,
-    "name_key": "campaign.battle.my_battle.name",
-    "description_key": "campaign.battle.my_battle.description",
-    "difficulty": 1,
-    "event_type": EventTypeIDs.BATTLE,
-    "requires_deck": true,
-    "repeatable": false,
-    "is_tutorial": false,
-    "reward_type": RewardTypeIDs.FIXED,
-    "reward_cards": [
-        {"catalog_id": CardIDs.CHARGE, "rarity": RarityIDs.COMMON, "count": 1},
-    ],
-    "gold_reward": 50,
-    "card_xp_reward": 15,
-    "summoner_xp_reward": 75,
-    "player_side": {...},  # Optional loaner/player override
-    "enemy_side": {
-        "team": 1,
-        "source": "authored",
-        "summoner": {
-            "source": "authored",
-            "hp": 100.0,
-            "max_hp": 100.0,
-            "mana": 100.0,
-            "max_mana": 100.0,
-            "cast_speed": 1.0,
-        },
-        "deck": {
-            "source": "authored",
-            "cards": [
-                {"catalog_id": CardIDs.EARTH_SPRITE, "count": 2},
-            ],
-        },
-        "controller": {
-            "kind": "trainer_ai",
-            "ai_type": "heuristic",
-        },
-    },
-    "unlock_requirements": [BattleIDs.PREVIOUS_BATTLE],
-    "event_sequence": "res://resources/sequences/tutorial.tres",  # optional
-}
+    Id = EventIds.MyBattle,
+    NameKey = "campaign.battle.my_battle.name",
+    DescriptionKey = "campaign.battle.my_battle.description",
+    Difficulty = 1,
+    CardXpReward = 15,
+    SummonerXpReward = 75,
+    FirstClearRewardOffers = BattleRewardAuthoring.AutomaticCards(
+        EventIds.MyBattle,
+        50,
+        new BattleRewardCard(CardIds.Charge, "common")
+    ),
+    PlayerSide = /* typed side definition */,
+    EnemySide = /* typed side definition */,
+};
 ```
 
----
+`FirstClearRewardOffers` accepts universal offer definitions, so battles may use automatic grants, authored choices, pools, mixed grant bundles, or no offer. XP is separate because it is attempt-scoped and can be earned again on replay; first-clear offers cannot.
 
-*Last Updated: 2026-01-01 - Migrated from JSON to GDScript data files*
+## Runtime Rules
+
+- Campaign launch persists an authority-created battle attempt before scene navigation.
+- The attempt freezes XP and resolved first-clear promises.
+- Victory, defeat, and abandonment are reported to `IProgressionAuthority`.
+- Campaign navigation reads completed state synchronized from the profile authority boundary.
+- Old dictionary reward fields and old save shapes are unsupported; development saves may be discarded.

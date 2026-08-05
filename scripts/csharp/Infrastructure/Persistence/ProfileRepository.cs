@@ -14,9 +14,9 @@ using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Deck;
+using Fateforged.Meta.Rewards;
 using Fateforged.Meta.Shop;
 using Fateforged.Meta.Summoner;
-using Fateforged.Meta.Rewards;
 using Godot;
 using GdArray = Godot.Collections.Array;
 using GdDict = Godot.Collections.Dictionary;
@@ -29,7 +29,11 @@ namespace Fateforged.Infrastructure.Persistence;
 /// Handles JSON persistence via JsonProfileStore, migrations via ProfileMigrator,
 /// and debounced saves via Timer.
 /// </summary>
-public partial class ProfileRepository : Node, IProfileRepository, IRewardProfileStore
+public partial class ProfileRepository
+    : Node,
+        IProfileRepository,
+        IRewardProfileStore,
+        IProgressionProfileStore
 {
     public static ProfileRepository? Instance { get; private set; }
 
@@ -172,22 +176,42 @@ public partial class ProfileRepository : Node, IProfileRepository, IRewardProfil
     {
         lock (_rewardTransactionLock)
         {
-            return RewardStateMapper.FromDictionary(
-                RewardStateMapper.ToDictionary(_data.Rewards)
-            );
+            return RewardStateMapper.FromDictionary(RewardStateMapper.ToDictionary(_data.Rewards));
         }
     }
 
-    public bool TryGetOrCreateAcademySeed(
-        SummonerId summonerId,
-        out ulong seed,
+    public ProfileData GetProgressionSnapshot()
+    {
+        lock (_rewardTransactionLock)
+        {
+            return CloneProfile(_data);
+        }
+    }
+
+    public bool TryCommitProgression(
+        IReadOnlyList<IRewardGrantMutation> mutations,
         out string error
     )
     {
         lock (_rewardTransactionLock)
         {
+            var candidate = CloneProfile(_data);
+            foreach (var mutation in mutations)
+            {
+                if (!mutation.TryApply(candidate, out error))
+                    return false;
+            }
+
+            return TryPersistRewardCandidate(candidate, out error);
+        }
+    }
+
+    public bool TryGetOrCreateRewardSeed(SummonerId summonerId, out ulong seed, out string error)
+    {
+        lock (_rewardTransactionLock)
+        {
             var key = (string)summonerId;
-            if (_data.Rewards.AcademySeedBySummoner.TryGetValue(key, out seed))
+            if (_data.Rewards.RewardSeedBySummoner.TryGetValue(key, out seed))
             {
                 error = "";
                 return true;
@@ -200,7 +224,7 @@ public partial class ProfileRepository : Node, IProfileRepository, IRewardProfil
                 seed = 1;
 
             var candidate = CloneProfile(_data);
-            candidate.Rewards.AcademySeedBySummoner[key] = seed;
+            candidate.Rewards.RewardSeedBySummoner[key] = seed;
             return TryPersistRewardCandidate(candidate, out error);
         }
     }
@@ -637,9 +661,7 @@ public partial class ProfileRepository : Node, IProfileRepository, IRewardProfil
     public string[] GetCaravanPurchases(SummonerId summonerId)
     {
         var progress = GetCampaignProgress(summonerId);
-        if (progress.PendingReward == null)
-            return [];
-        return progress.PendingReward.CaravanPurchases.ToArray();
+        return progress.CaravanPurchases.ToArray();
     }
 
     public void AddCaravanPurchase(string offeringId, SummonerId summonerId)
@@ -653,17 +675,9 @@ public partial class ProfileRepository : Node, IProfileRepository, IRewardProfil
 
         var typedId = new SummonerId(key);
         var progress = GetCampaignProgress(typedId);
-        if (progress.PendingReward == null)
+        if (!progress.CaravanPurchases.Contains(offeringId))
         {
-            GD.PushWarning(
-                "ProfileRepository: AddCaravanPurchase called with no pending reward — creating empty one"
-            );
-            progress.PendingReward = new PendingRewardData();
-        }
-
-        if (!progress.PendingReward.CaravanPurchases.Contains(offeringId))
-        {
-            progress.PendingReward.CaravanPurchases.Add(offeringId);
+            progress.CaravanPurchases.Add(offeringId);
             UpdateCampaignProgress(typedId, progress);
         }
     }
@@ -679,9 +693,9 @@ public partial class ProfileRepository : Node, IProfileRepository, IRewardProfil
 
         var typedId = new SummonerId(key);
         var progress = GetCampaignProgress(typedId);
-        if (progress.PendingReward != null)
+        if (progress.CaravanPurchases.Count > 0)
         {
-            progress.PendingReward.CaravanPurchases.Clear();
+            progress.CaravanPurchases.Clear();
             UpdateCampaignProgress(typedId, progress);
         }
     }

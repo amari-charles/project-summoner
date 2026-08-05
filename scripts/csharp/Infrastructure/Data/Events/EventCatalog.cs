@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
+using Fateforged.Data.Rewards;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Shop;
 using Godot;
@@ -39,16 +40,16 @@ public static class EventCatalog
             AiDifficulty = 0,
             AiPlayIntervalMin = 999f,
             AiPlayIntervalMax = 999f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.Puff, CardIds.Pebbloom },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 30,
-                CardXpReward = 15,
-                SummonerXpReward = 20,
-            },
+            CardXpReward = 15,
+            SummonerXpReward = 20,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCardAndAddToSelectedDeck(
+                EventIds.FirstTrial,
+                30,
+                true,
+                CardIds.FireWisp,
+                CardIds.Puff,
+                CardIds.Pebbloom
+            ),
         },
 
         [EventIds.SecondChallenge] = new BattleEventDefinition
@@ -67,16 +68,16 @@ public static class EventCatalog
             AiDifficulty = 1,
             AiPlayIntervalMin = 7.0f,
             AiPlayIntervalMax = 10.0f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 40,
-                CardXpReward = 18,
-                SummonerXpReward = 25,
-            },
+            CardXpReward = 18,
+            SummonerXpReward = 25,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCardAndAddToSelectedDeck(
+                EventIds.SecondChallenge,
+                40,
+                true,
+                CardIds.Pebbloom,
+                CardIds.Puff,
+                CardIds.FireWisp
+            ),
         },
 
         [EventIds.OpeningDoctrine] = new ChoiceEventDefinition
@@ -116,16 +117,16 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 2), new(CardIds.Puff, 1) },
             EnemyHp = 55f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Puff },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 45,
-                CardXpReward = 20,
-                SummonerXpReward = 28,
-            },
+            CardXpReward = 20,
+            SummonerXpReward = 28,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.AggressivePush,
+                45,
+                true,
+                CardIds.FireWisp,
+                CardIds.ManaBolt,
+                CardIds.Puff
+            ),
         },
 
         [EventIds.ScoutSkirmish] = new BattleEventDefinition
@@ -139,16 +140,16 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.Puff, 2), new(CardIds.FireWisp, 1) },
             EnemyHp = 58f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.Puff, CardIds.Pebbloom, CardIds.ManaBolt },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 45,
-                CardXpReward = 20,
-                SummonerXpReward = 28,
-            },
+            CardXpReward = 20,
+            SummonerXpReward = 28,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.ScoutSkirmish,
+                45,
+                true,
+                CardIds.Puff,
+                CardIds.Pebbloom,
+                CardIds.ManaBolt
+            ),
         },
 
         [EventIds.Caravan01] = new CaravanEventDefinition
@@ -171,16 +172,16 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.Pebbloom, 2), new(CardIds.Puff, 2) },
             EnemyHp = 65f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 50,
-                CardXpReward = 22,
-                SummonerXpReward = 32,
-            },
+            CardXpReward = 22,
+            SummonerXpReward = 32,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.StabilityLine,
+                50,
+                true,
+                CardIds.Pebbloom,
+                CardIds.Puff,
+                CardIds.FireWisp
+            ),
         },
 
         [EventIds.ThirdTrial] = new BattleEventDefinition
@@ -199,21 +200,16 @@ public static class EventCatalog
                 new(CardIds.FireWisp, 1),
             },
             EnemyHp = 78f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.FireWisp,
-                    CardIds.Pebbloom,
-                    CardIds.ManaBolt,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 55,
-                CardXpReward = 24,
-                SummonerXpReward = 36,
-            },
+            CardXpReward = 24,
+            SummonerXpReward = 36,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.ThirdTrial,
+                55,
+                true,
+                CardIds.FireWisp,
+                CardIds.Pebbloom,
+                CardIds.ManaBolt
+            ),
         },
 
         [EventIds.MidlineTrial] = new BattleEventDefinition
@@ -232,21 +228,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 1),
             },
             EnemyHp = 75f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.FireWisp,
-                    CardIds.ManaBolt,
-                    CardIds.Pebbloom,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 55,
-                CardXpReward = 24,
-                SummonerXpReward = 36,
-            },
+            CardXpReward = 24,
+            SummonerXpReward = 36,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.MidlineTrial,
+                55,
+                true,
+                CardIds.FireWisp,
+                CardIds.ManaBolt,
+                CardIds.Pebbloom
+            ),
         },
 
         [EventIds.RouteChoice] = new ChoiceEventDefinition
@@ -286,16 +277,16 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 3), new(CardIds.Puff, 2) },
             EnemyHp = 105f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.FireWisp, CardIds.ManaBolt, CardIds.Puff },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 70,
-                CardXpReward = 28,
-                SummonerXpReward = 46,
-            },
+            CardXpReward = 28,
+            SummonerXpReward = 46,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.RidgeAssault,
+                70,
+                true,
+                CardIds.FireWisp,
+                CardIds.ManaBolt,
+                CardIds.Puff
+            ),
         },
 
         [EventIds.RiverHold] = new BattleEventDefinition
@@ -309,16 +300,16 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.Pebbloom, 3), new(CardIds.Puff, 2) },
             EnemyHp = 90f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.FireWisp },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 60,
-                CardXpReward = 24,
-                SummonerXpReward = 38,
-            },
+            CardXpReward = 24,
+            SummonerXpReward = 38,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.RiverHold,
+                60,
+                true,
+                CardIds.Pebbloom,
+                CardIds.Puff,
+                CardIds.FireWisp
+            ),
         },
 
         [EventIds.GrovePatrol] = new BattleEventDefinition
@@ -332,16 +323,16 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.Pebbloom, 3), new(CardIds.FireWisp, 2) },
             EnemyHp = 98f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.FireWisp, CardIds.Puff },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 65,
-                CardXpReward = 26,
-                SummonerXpReward = 42,
-            },
+            CardXpReward = 26,
+            SummonerXpReward = 42,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.GrovePatrol,
+                65,
+                true,
+                CardIds.Pebbloom,
+                CardIds.FireWisp,
+                CardIds.Puff
+            ),
         },
 
         [EventIds.Caravan02] = new CaravanEventDefinition
@@ -369,21 +360,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 2),
             },
             EnemyHp = 110f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.ManaBolt,
-                    CardIds.FireWisp,
-                    CardIds.Pebbloom,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 70,
-                CardXpReward = 30,
-                SummonerXpReward = 48,
-            },
+            CardXpReward = 30,
+            SummonerXpReward = 48,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.Chokepoint,
+                70,
+                true,
+                CardIds.ManaBolt,
+                CardIds.FireWisp,
+                CardIds.Pebbloom
+            ),
         },
 
         [EventIds.Gatekeeper] = new BossEventDefinition
@@ -402,14 +388,13 @@ public static class EventCatalog
                 new(CardIds.Puff, 2),
             },
             EnemyHp = 125f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Fixed,
-                FixedCards = new List<FixedRewardEntry> { new(CardIds.Charge, "common", 1) },
-                GoldReward = 80,
-                CardXpReward = 35,
-                SummonerXpReward = 55,
-            },
+            CardXpReward = 35,
+            SummonerXpReward = 55,
+            FirstClearRewardOffers = BattleRewardAuthoring.AutomaticCards(
+                EventIds.Gatekeeper,
+                80,
+                new BattleRewardCard(CardIds.Charge, "common", 1)
+            ),
         },
 
         [EventIds.PathFork] = new ChoiceEventDefinition
@@ -450,21 +435,16 @@ public static class EventCatalog
             LevelCap = 4,
             EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 4), new(CardIds.Puff, 3) },
             EnemyHp = 140f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.ManaBolt,
-                    CardIds.FireWisp,
-                    CardIds.Pebbloom,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 95,
-                CardXpReward = 38,
-                SummonerXpReward = 60,
-            },
+            CardXpReward = 38,
+            SummonerXpReward = 60,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.EliteBattle01,
+                95,
+                true,
+                CardIds.ManaBolt,
+                CardIds.FireWisp,
+                CardIds.Pebbloom
+            ),
         },
 
         [EventIds.EliteBattle02] = new EliteEventDefinition
@@ -484,16 +464,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 3),
             },
             EnemyHp = 155f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.Pebbloom, CardIds.Puff },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 105,
-                CardXpReward = 42,
-                SummonerXpReward = 66,
-            },
+            CardXpReward = 42,
+            SummonerXpReward = 66,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.EliteBattle02,
+                105,
+                true,
+                CardIds.ManaBolt,
+                CardIds.Pebbloom,
+                CardIds.Puff
+            ),
         },
 
         [EventIds.EliteBattle03] = new EliteEventDefinition
@@ -513,16 +493,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 3),
             },
             EnemyHp = 170f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Puff },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 115,
-                CardXpReward = 46,
-                SummonerXpReward = 72,
-            },
+            CardXpReward = 46,
+            SummonerXpReward = 72,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.EliteBattle03,
+                115,
+                true,
+                CardIds.ManaBolt,
+                CardIds.FireWisp,
+                CardIds.Puff
+            ),
         },
 
         [EventIds.EliteBattle04] = new EliteEventDefinition
@@ -542,21 +522,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 4),
             },
             EnemyHp = 185f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.ManaBolt,
-                    CardIds.FireWisp,
-                    CardIds.Pebbloom,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 125,
-                CardXpReward = 50,
-                SummonerXpReward = 80,
-            },
+            CardXpReward = 50,
+            SummonerXpReward = 80,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.EliteBattle04,
+                125,
+                true,
+                CardIds.ManaBolt,
+                CardIds.FireWisp,
+                CardIds.Pebbloom
+            ),
         },
 
         [EventIds.StandardBattle01] = new BattleEventDefinition
@@ -570,16 +545,16 @@ public static class EventCatalog
             RequiresDeck = true,
             EnemyDeck = new List<DeckEntry> { new(CardIds.Pebbloom, 4), new(CardIds.Puff, 2) },
             EnemyHp = 120f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.Puff, CardIds.Pebbloom, CardIds.FireWisp },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 75,
-                CardXpReward = 32,
-                SummonerXpReward = 52,
-            },
+            CardXpReward = 32,
+            SummonerXpReward = 52,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.StandardBattle01,
+                75,
+                true,
+                CardIds.Puff,
+                CardIds.Pebbloom,
+                CardIds.FireWisp
+            ),
         },
 
         [EventIds.Caravan03] = new CaravanEventDefinition
@@ -607,16 +582,16 @@ public static class EventCatalog
                 new(CardIds.FireWisp, 2),
             },
             EnemyHp = 135f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.Pebbloom, CardIds.Puff, CardIds.ManaBolt },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 85,
-                CardXpReward = 36,
-                SummonerXpReward = 58,
-            },
+            CardXpReward = 36,
+            SummonerXpReward = 58,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.StandardBattle02,
+                85,
+                true,
+                CardIds.Pebbloom,
+                CardIds.Puff,
+                CardIds.ManaBolt
+            ),
         },
 
         [EventIds.StandardBattle03] = new BattleEventDefinition
@@ -635,21 +610,16 @@ public static class EventCatalog
                 new(CardIds.FireWisp, 2),
             },
             EnemyHp = 150f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.Pebbloom,
-                    CardIds.FireWisp,
-                    CardIds.ManaBolt,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 95,
-                CardXpReward = 40,
-                SummonerXpReward = 64,
-            },
+            CardXpReward = 40,
+            SummonerXpReward = 64,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.StandardBattle03,
+                95,
+                true,
+                CardIds.Pebbloom,
+                CardIds.FireWisp,
+                CardIds.ManaBolt
+            ),
         },
 
         [EventIds.StandardBattle04] = new BattleEventDefinition
@@ -668,21 +638,16 @@ public static class EventCatalog
                 new(CardIds.FireWisp, 3),
             },
             EnemyHp = 168f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.Pebbloom,
-                    CardIds.FireWisp,
-                    CardIds.ManaBolt,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 105,
-                CardXpReward = 44,
-                SummonerXpReward = 72,
-            },
+            CardXpReward = 44,
+            SummonerXpReward = 72,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.StandardBattle04,
+                105,
+                true,
+                CardIds.Pebbloom,
+                CardIds.FireWisp,
+                CardIds.ManaBolt
+            ),
         },
 
         [EventIds.GambitBattle01] = new BattleEventDefinition
@@ -701,16 +666,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 2),
             },
             EnemyHp = 135f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Puff },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 80,
-                CardXpReward = 34,
-                SummonerXpReward = 54,
-            },
+            CardXpReward = 34,
+            SummonerXpReward = 54,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.GambitBattle01,
+                80,
+                true,
+                CardIds.ManaBolt,
+                CardIds.FireWisp,
+                CardIds.Puff
+            ),
         },
 
         [EventIds.GambitBattle02] = new BattleEventDefinition
@@ -729,21 +694,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 3),
             },
             EnemyHp = 175f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.Pebbloom,
-                    CardIds.FireWisp,
-                    CardIds.ManaBolt,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 120,
-                CardXpReward = 46,
-                SummonerXpReward = 72,
-            },
+            CardXpReward = 46,
+            SummonerXpReward = 72,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.GambitBattle02,
+                120,
+                true,
+                CardIds.Pebbloom,
+                CardIds.FireWisp,
+                CardIds.ManaBolt
+            ),
         },
 
         [EventIds.GambitBattle03] = new BattleEventDefinition
@@ -762,16 +722,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 3),
             },
             EnemyHp = 160f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.Puff, CardIds.FireWisp },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 88,
-                CardXpReward = 38,
-                SummonerXpReward = 62,
-            },
+            CardXpReward = 38,
+            SummonerXpReward = 62,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.GambitBattle03,
+                88,
+                true,
+                CardIds.ManaBolt,
+                CardIds.Puff,
+                CardIds.FireWisp
+            ),
         },
 
         [EventIds.GambitBattle04] = new BattleEventDefinition
@@ -790,21 +750,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 4),
             },
             EnemyHp = 200f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.FireWisp,
-                    CardIds.ManaBolt,
-                    CardIds.Pebbloom,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 130,
-                CardXpReward = 52,
-                SummonerXpReward = 84,
-            },
+            CardXpReward = 52,
+            SummonerXpReward = 84,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.GambitBattle04,
+                130,
+                true,
+                CardIds.FireWisp,
+                CardIds.ManaBolt,
+                CardIds.Pebbloom
+            ),
         },
 
         [EventIds.RejoinTrial] = new BattleEventDefinition
@@ -823,21 +778,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 4),
             },
             EnemyHp = 165f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.FireWisp,
-                    CardIds.Pebbloom,
-                    CardIds.ManaBolt,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 120,
-                CardXpReward = 52,
-                SummonerXpReward = 82,
-            },
+            CardXpReward = 52,
+            SummonerXpReward = 82,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.RejoinTrial,
+                120,
+                true,
+                CardIds.FireWisp,
+                CardIds.Pebbloom,
+                CardIds.ManaBolt
+            ),
         },
 
         [EventIds.FinalAnte] = new BattleEventDefinition
@@ -856,16 +806,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 4),
             },
             EnemyHp = 180f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId> { CardIds.ManaBolt, CardIds.FireWisp, CardIds.Puff },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 130,
-                CardXpReward = 56,
-                SummonerXpReward = 88,
-            },
+            CardXpReward = 56,
+            SummonerXpReward = 88,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.FinalAnte,
+                130,
+                true,
+                CardIds.ManaBolt,
+                CardIds.FireWisp,
+                CardIds.Puff
+            ),
         },
 
         [EventIds.StormBreaker] = new BattleEventDefinition
@@ -884,21 +834,16 @@ public static class EventCatalog
                 new(CardIds.Puff, 5),
             },
             EnemyHp = 205f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Flexible,
-                CardOptions = new List<CardId>
-                {
-                    CardIds.ManaBolt,
-                    CardIds.Pebbloom,
-                    CardIds.FireWisp,
-                },
-                PlayerSelects = true,
-                ExcludeOwned = true,
-                GoldReward = 140,
-                CardXpReward = 60,
-                SummonerXpReward = 95,
-            },
+            CardXpReward = 60,
+            SummonerXpReward = 95,
+            FirstClearRewardOffers = BattleRewardAuthoring.ChooseOneCard(
+                EventIds.StormBreaker,
+                140,
+                true,
+                CardIds.ManaBolt,
+                CardIds.Pebbloom,
+                CardIds.FireWisp
+            ),
         },
 
         [EventIds.Act1Boss] = new BossEventDefinition
@@ -917,14 +862,13 @@ public static class EventCatalog
                 new(CardIds.Puff, 6),
             },
             EnemyHp = 240f,
-            Rewards = new BattleRewardConfig
-            {
-                Type = RewardType.Fixed,
-                FixedCards = new List<FixedRewardEntry> { new(CardIds.ManaBolt, "rare", 1) },
-                GoldReward = 180,
-                CardXpReward = 70,
-                SummonerXpReward = 120,
-            },
+            CardXpReward = 70,
+            SummonerXpReward = 120,
+            FirstClearRewardOffers = BattleRewardAuthoring.AutomaticCards(
+                EventIds.Act1Boss,
+                180,
+                new BattleRewardCard(CardIds.ManaBolt, "rare", 1)
+            ),
         },
 
         // =====================================================================
@@ -944,7 +888,6 @@ public static class EventCatalog
             DevPlayerDeck = new List<DeckEntry> { new(CardIds.Pebbloom, 4), new(CardIds.Puff, 2) },
             EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 3), new(CardIds.Puff, 2) },
             EnemyHp = 100f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaPuff] = new BattleEventDefinition
@@ -960,7 +903,6 @@ public static class EventCatalog
             DevPlayerDeck = new List<DeckEntry> { new(CardIds.Puff, 4), new(CardIds.Pebbloom, 2) },
             EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 3), new(CardIds.Pebbloom, 2) },
             EnemyHp = 100f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaFireWisp] = new BattleEventDefinition
@@ -976,7 +918,6 @@ public static class EventCatalog
             DevPlayerDeck = new List<DeckEntry> { new(CardIds.FireWisp, 6) },
             EnemyDeck = new List<DeckEntry> { new(CardIds.Pebbloom, 3), new(CardIds.Puff, 2) },
             EnemyHp = 100f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaCloudSwarm] = new BattleEventDefinition
@@ -992,7 +933,6 @@ public static class EventCatalog
             DevPlayerDeck = new List<DeckEntry> { new(CardIds.Puff, 6) },
             EnemyDeck = new List<DeckEntry> { new(CardIds.FireWisp, 3), new(CardIds.Pebbloom, 2) },
             EnemyHp = 100f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaManaBolt] = new BattleEventDefinition
@@ -1012,7 +952,6 @@ public static class EventCatalog
             },
             EnemyDeck = new List<DeckEntry> { new(CardIds.Pebbloom, 3), new(CardIds.FireWisp, 2) },
             EnemyHp = 100f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaWindEarthNewCards] = new BattleEventDefinition
@@ -1046,7 +985,6 @@ public static class EventCatalog
                 new(CardIds.Fortify, 2),
             },
             EnemyHp = 100f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaAllUnits] = new BattleEventDefinition
@@ -1070,7 +1008,6 @@ public static class EventCatalog
                 new(CardIds.WaterFrog, 3),
             },
             EnemyHp = 999999f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaAllCards] = new BattleEventDefinition
@@ -1088,7 +1025,6 @@ public static class EventCatalog
             DevPlayerDeck = BuildActiveCoreElementCardDeck(),
             EnemyDeck = BuildActiveCoreElementUnitDeck(),
             EnemyHp = 999999f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaAllSpells] = new BattleEventDefinition
@@ -1106,7 +1042,6 @@ public static class EventCatalog
             DevPlayerDeck = BuildActiveCoreElementSpellTestDeck(),
             EnemyDeck = BuildRealArtSpellTargetDeck(),
             EnemyHp = 999999f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.ArenaSpriteUnits] = new BattleEventDefinition
@@ -1124,7 +1059,6 @@ public static class EventCatalog
             DevPlayerDeck = BuildRealArtDebugUnitDeck(),
             EnemyDeck = BuildRealArtDebugUnitDeck(),
             EnemyHp = 999999f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
 
         [EventIds.DebugArena] = new BattleEventDefinition
@@ -1142,7 +1076,6 @@ public static class EventCatalog
             DevPlayerDeck = BuildActiveCoreElementCardDeck(),
             EnemyDeck = BuildActiveCoreElementUnitDeck(),
             EnemyHp = 999999f,
-            Rewards = new BattleRewardConfig { Type = RewardType.None },
         },
     };
 
@@ -1413,8 +1346,9 @@ public static class EventCatalog
             dict["level_cap"] = elite.LevelCap.Value;
         }
 
-        // Rewards
-        AddRewardFields(dict, battle.Rewards);
+        dict["card_xp_reward"] = battle.CardXpReward;
+        dict["summoner_xp_reward"] = battle.SummonerXpReward;
+        dict["first_clear_reward_offers"] = ToRewardOffersArray(battle.FirstClearRewardOffers);
     }
 
     private static Godot.Collections.Array ToDeckEntriesArray(IEnumerable<DeckEntry> entries)
@@ -1433,43 +1367,68 @@ public static class EventCatalog
         return deck;
     }
 
-    private static void AddRewardFields(
-        Godot.Collections.Dictionary dict,
-        BattleRewardConfig rewards
+    private static Godot.Collections.Array ToRewardOffersArray(
+        IEnumerable<RewardOfferDefinition> offers
     )
     {
-        dict["reward_type"] = rewards.Type.ToStringId();
-        dict["gold_reward"] = rewards.GoldReward;
-        dict["card_xp_reward"] = rewards.CardXpReward;
-        dict["summoner_xp_reward"] = rewards.SummonerXpReward;
-        dict["player_selects"] = rewards.PlayerSelects;
-
-        if (rewards.Type == RewardType.Fixed && rewards.FixedCards.Count > 0)
-        {
-            var fixedCards = new Godot.Collections.Array();
-            foreach (var entry in rewards.FixedCards)
-            {
-                fixedCards.Add(
-                    new Godot.Collections.Dictionary
-                    {
-                        ["catalog_id"] = (string)entry.CardId,
-                        ["rarity"] = entry.Rarity,
-                        ["count"] = entry.Count,
-                    }
-                );
-            }
-            dict["reward_cards"] = fixedCards;
-        }
-
-        if (rewards.Type == RewardType.Flexible && rewards.CardOptions.Count > 0)
+        var result = new Godot.Collections.Array();
+        foreach (var offer in offers)
         {
             var options = new Godot.Collections.Array();
-            foreach (var cardId in rewards.CardOptions)
+            if (offer.OptionSource is AuthoredRewardOptionSourceDefinition authored)
             {
-                options.Add((string)cardId);
+                foreach (var option in authored.Options)
+                {
+                    var grants = new Godot.Collections.Array();
+                    foreach (var grant in option.Grants)
+                    {
+                        var grantDict = new Godot.Collections.Dictionary
+                        {
+                            ["ownership_scope"] = grant.Target.Scope.ToString().ToLowerInvariant(),
+                            ["target_id"] = grant.Target.TargetId,
+                        };
+                        switch (grant)
+                        {
+                            case CardRewardGrantDefinition card:
+                                grantDict["kind"] = "card";
+                                grantDict["content_id"] = card.CardId.Value;
+                                grantDict["rarity"] = card.Rarity;
+                                grantDict["amount"] = card.Count;
+                                break;
+                            case ResourceRewardGrantDefinition resource:
+                                grantDict["kind"] = "resource";
+                                grantDict["content_id"] = resource.ResourceId;
+                                grantDict["amount"] = resource.Amount;
+                                break;
+                            default:
+                                grantDict["kind"] = grant.GetType().Name;
+                                grantDict["amount"] = 1;
+                                break;
+                        }
+                        grants.Add(grantDict);
+                    }
+                    options.Add(
+                        new Godot.Collections.Dictionary
+                        {
+                            ["id"] = option.Id.Value,
+                            ["label_key"] = option.LabelKey,
+                            ["description_key"] = option.DescriptionKey,
+                            ["grants"] = grants,
+                        }
+                    );
+                }
             }
-            dict["reward_options"] = options;
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["id"] = offer.Id.Value,
+                    ["selection_mode"] = offer.Selection.Mode.ToString().ToLowerInvariant(),
+                    ["choose_count"] = offer.Selection.ChooseCount,
+                    ["options"] = options,
+                }
+            );
         }
+        return result;
     }
 
     private static void AddChoiceFields(

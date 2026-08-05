@@ -94,12 +94,6 @@ public class CampaignNode
     // CONVENIENCE ACCESSORS FOR COMMON DATA FIELDS
     // =========================================================================
 
-    /// <summary>Get reward type from data (for battle nodes).</summary>
-    public string GetRewardType() => Data.GetValueOrDefault("reward_type", "").AsString();
-
-    /// <summary>Get gold reward from data (for battle nodes).</summary>
-    public int GetGoldReward() => Data.GetValueOrDefault("gold_reward", 0).AsInt32();
-
     /// <summary>Check if this is a tutorial battle.</summary>
     public bool IsTutorial => Data.GetValueOrDefault("is_tutorial", false).AsBool();
 

@@ -36,6 +36,7 @@ TraitTreeService="*res://scripts/csharp/Meta/Services/Traits/TraitTreeService.ts
 SummonerSelection="*res://scripts/csharp/Meta/Services/Summoner/SummonerSelectionService.tscn"
 Decks="*res://scripts/csharp/Meta/Services/Deck/DeckService.tscn"
 RewardService="*res://scripts/csharp/Meta/Services/Rewards/RewardService.tscn"
+ProgressionAuthority="*res://scripts/csharp/Meta/Services/Progression/ProgressionAuthorityService.tscn"
 Items="*res://scripts/csharp/Meta/Services/Items/ItemService.tscn"
 Shop="*res://scripts/csharp/Meta/Services/Shop/ShopService.tscn"
 BillingCatalog="*res://scripts/csharp/Infrastructure/Billing/BillingCatalogService.tscn"

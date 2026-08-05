@@ -37,10 +37,7 @@ public sealed class RewardGrantHandlerRegistry
 
     public IReadOnlySet<Type> HandledGrantTypes => _handlers.Keys.ToHashSet();
 
-    public RewardGrantPreparation Prepare(
-        RewardGrantDefinition grant,
-        RewardGrantContext context
-    )
+    public RewardGrantPreparation Prepare(RewardGrantDefinition grant, RewardGrantContext context)
     {
         if (!_handlers.TryGetValue(grant.GetType(), out var handler))
         {
@@ -55,21 +52,19 @@ public sealed class RewardGrantHandlerRegistry
     }
 
     public static RewardGrantHandlerRegistry CreateDefault() =>
-        new(
-            [
-                new CardRewardGrantHandler(),
-                new ResourceRewardGrantHandler(),
-                new ItemRewardGrantHandler(),
-                new SummonerUnlockRewardGrantHandler(),
-                new CosmeticRewardGrantHandler(),
-                new EmoteRewardGrantHandler(),
-                new SummonerExperienceRewardGrantHandler(),
-                new CardExperienceRewardGrantHandler(),
-                new SummonerTraitRewardGrantHandler(),
-                new CardTraitRewardGrantHandler(),
-                new AcademyProgressFlagRewardGrantHandler(),
-            ]
-        );
+        new([
+            new CardRewardGrantHandler(),
+            new ResourceRewardGrantHandler(),
+            new ItemRewardGrantHandler(),
+            new SummonerUnlockRewardGrantHandler(),
+            new CosmeticRewardGrantHandler(),
+            new EmoteRewardGrantHandler(),
+            new SummonerExperienceRewardGrantHandler(),
+            new CardExperienceRewardGrantHandler(),
+            new SummonerTraitRewardGrantHandler(),
+            new CardTraitRewardGrantHandler(),
+            new AcademyProgressFlagRewardGrantHandler(),
+        ]);
 }
 
 internal sealed class ProfileRewardMutation : IRewardGrantMutation
@@ -89,8 +84,7 @@ internal sealed class ProfileRewardMutation : IRewardGrantMutation
     }
 }
 
-public sealed class CardRewardGrantHandler
-    : RewardGrantHandler<CardRewardGrantDefinition>
+public sealed class CardRewardGrantHandler : RewardGrantHandler<CardRewardGrantDefinition>
 {
     public override RewardGrantPreparation Prepare(
         CardRewardGrantDefinition grant,
@@ -100,7 +94,8 @@ public sealed class CardRewardGrantHandler
         if (!grant.CardId.HasValue || !CardCatalog.HasCard(grant.CardId) || grant.Count <= 0)
             return Invalid($"Invalid card reward '{grant.CardId}' x{grant.Count}.");
         if (
-            grant.Target.Scope is not RewardOwnershipScope.Account
+            grant.Target.Scope
+            is not RewardOwnershipScope.Account
                 and not RewardOwnershipScope.Summoner
         )
             return Invalid("Card rewards must target an account or summoner.");
@@ -110,34 +105,47 @@ public sealed class CardRewardGrantHandler
         )
             return Invalid("Summoner-bound card rewards require a summoner target.");
 
-        return Valid(
-            profile =>
+        return Valid(profile =>
+        {
+            var summonerId =
+                grant.Target.Scope == RewardOwnershipScope.Summoner
+                    ? new SummonerId(grant.Target.TargetId)
+                    : (SummonerId?)null;
+            var createdIds = new List<CardInstanceId>();
+            for (var i = 0; i < grant.Count; i++)
             {
-                var summonerId =
-                    grant.Target.Scope == RewardOwnershipScope.Summoner
-                        ? new SummonerId(grant.Target.TargetId)
-                        : (SummonerId?)null;
-                for (var i = 0; i < grant.Count; i++)
-                {
-                    profile.Collection.Add(
-                        new CardInstance
-                        {
-                            Id = new CardInstanceId(Guid.NewGuid().ToString()),
-                            CatalogId = grant.CardId,
-                            ProfileId = profile.ProfileId,
-                            Rarity = grant.Rarity,
-                            Binding =
-                                summonerId.HasValue
-                                    ? ContentBinding.SummonerBound
-                                    : ContentBinding.AccountWide,
-                            BoundToSummonerId = summonerId,
-                            CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                        }
-                    );
-                }
-                return Success();
+                var instanceId = new CardInstanceId(Guid.NewGuid().ToString());
+                profile.Collection.Add(
+                    new CardInstance
+                    {
+                        Id = instanceId,
+                        CatalogId = grant.CardId,
+                        ProfileId = profile.ProfileId,
+                        Rarity = grant.Rarity,
+                        Binding = summonerId.HasValue
+                            ? ContentBinding.SummonerBound
+                            : ContentBinding.AccountWide,
+                        BoundToSummonerId = summonerId,
+                        CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    }
+                );
+                createdIds.Add(instanceId);
             }
-        );
+
+            if (grant.Placement == CardRewardPlacement.SelectedDeckIfAvailable)
+            {
+                var selectedDeck = profile.Decks.FirstOrDefault(deck =>
+                    deck.Id.Value == profile.Meta.SelectedDeck
+                    && (!summonerId.HasValue || deck.SummonerId == summonerId.Value)
+                );
+                if (selectedDeck != null)
+                {
+                    selectedDeck.CardInstanceIds.AddRange(createdIds);
+                    selectedDeck.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                }
+            }
+            return Success();
+        });
     }
 
     private static RewardGrantPreparation Valid(
@@ -150,8 +158,7 @@ public sealed class CardRewardGrantHandler
     private static (bool, string) Success() => (true, "");
 }
 
-public sealed class ResourceRewardGrantHandler
-    : RewardGrantHandler<ResourceRewardGrantDefinition>
+public sealed class ResourceRewardGrantHandler : RewardGrantHandler<ResourceRewardGrantDefinition>
 {
     public override RewardGrantPreparation Prepare(
         ResourceRewardGrantDefinition grant,
@@ -177,27 +184,25 @@ public sealed class ResourceRewardGrantHandler
         )
             return Invalid($"Unknown account resource '{grant.ResourceId}'.");
 
-        return Valid(
-            profile =>
+        return Valid(profile =>
+        {
+            switch (resourceType)
             {
-                switch (resourceType)
-                {
-                    case ResourceType.Gold:
-                        profile.Resources.Gold += grant.Amount;
-                        break;
-                    case ResourceType.Gems:
-                        profile.Resources.Gems += grant.Amount;
-                        break;
-                    case ResourceType.Essence:
-                        profile.Resources.Essence += grant.Amount;
-                        break;
-                    case ResourceType.Fragments:
-                        profile.Resources.Fragments += grant.Amount;
-                        break;
-                }
-                return (true, "");
+                case ResourceType.Gold:
+                    profile.Resources.Gold += grant.Amount;
+                    break;
+                case ResourceType.Gems:
+                    profile.Resources.Gems += grant.Amount;
+                    break;
+                case ResourceType.Essence:
+                    profile.Resources.Essence += grant.Amount;
+                    break;
+                case ResourceType.Fragments:
+                    profile.Resources.Fragments += grant.Amount;
+                    break;
             }
-        );
+            return (true, "");
+        });
     }
 
     private static RewardGrantPreparation PrepareCampaign(ResourceRewardGrantDefinition grant)
@@ -207,14 +212,12 @@ public sealed class ResourceRewardGrantHandler
         if (string.IsNullOrWhiteSpace(grant.Target.TargetId))
             return Invalid("Campaign resource reward requires a summoner target.");
 
-        return Valid(
-            profile =>
-            {
-                var progress = GetOrCreateCampaign(profile, grant.Target.TargetId);
-                progress.Gold += grant.Amount;
-                return (true, "");
-            }
-        );
+        return Valid(profile =>
+        {
+            var progress = GetOrCreateCampaign(profile, grant.Target.TargetId);
+            progress.Gold += grant.Amount;
+            return (true, "");
+        });
     }
 
     private static RewardGrantPreparation Valid(
@@ -235,8 +238,7 @@ public sealed class ResourceRewardGrantHandler
     }
 }
 
-public sealed class ItemRewardGrantHandler
-    : RewardGrantHandler<ItemRewardGrantDefinition>
+public sealed class ItemRewardGrantHandler : RewardGrantHandler<ItemRewardGrantDefinition>
 {
     public override RewardGrantPreparation Prepare(
         ItemRewardGrantDefinition grant,
@@ -246,34 +248,33 @@ public sealed class ItemRewardGrantHandler
         if (!grant.ItemId.HasValue || !ItemCatalog.HasItem(grant.ItemId) || grant.Count <= 0)
             return Invalid($"Invalid item reward '{grant.ItemId}' x{grant.Count}.");
         if (
-            grant.Target.Scope is not RewardOwnershipScope.Account
+            grant.Target.Scope
+            is not RewardOwnershipScope.Account
                 and not RewardOwnershipScope.Summoner
         )
             return Invalid("Items must target an account or summoner.");
 
-        return Valid(
-            profile =>
+        return Valid(profile =>
+        {
+            SummonerId? boundTo =
+                grant.Target.Scope == RewardOwnershipScope.Summoner
+                    ? new SummonerId(grant.Target.TargetId)
+                    : null;
+            if (boundTo.HasValue && !boundTo.Value.HasValue)
+                return (false, "Summoner-bound item requires a summoner target.");
+            for (var i = 0; i < grant.Count; i++)
             {
-                SummonerId? boundTo =
-                    grant.Target.Scope == RewardOwnershipScope.Summoner
-                        ? new SummonerId(grant.Target.TargetId)
-                        : null;
-                if (boundTo.HasValue && !boundTo.Value.HasValue)
-                    return (false, "Summoner-bound item requires a summoner target.");
-                for (var i = 0; i < grant.Count; i++)
-                {
-                    profile.Items.Add(
-                        new ItemInstance
-                        {
-                            Id = new ItemId(Guid.NewGuid().ToString()),
-                            CatalogId = grant.ItemId,
-                            BoundToSummonerId = boundTo,
-                        }
-                    );
-                }
-                return (true, "");
+                profile.Items.Add(
+                    new ItemInstance
+                    {
+                        Id = new ItemId(Guid.NewGuid().ToString()),
+                        CatalogId = grant.ItemId,
+                        BoundToSummonerId = boundTo,
+                    }
+                );
             }
-        );
+            return (true, "");
+        });
     }
 
     private static RewardGrantPreparation Valid(
@@ -297,24 +298,18 @@ public sealed class SummonerUnlockRewardGrantHandler
         if (grant.Target.Scope != RewardOwnershipScope.Account)
             return Invalid("Summoner unlocks must target the account.");
 
-        return Valid(
-            profile =>
+        return Valid(profile =>
+        {
+            if (!profile.UnlockedSummoners.Contains(grant.SummonerId))
+                profile.UnlockedSummoners.Add(grant.SummonerId);
+            if (profile.SummonerInstances.All(instance => instance.SummonerId != grant.SummonerId))
             {
-                if (!profile.UnlockedSummoners.Contains(grant.SummonerId))
-                    profile.UnlockedSummoners.Add(grant.SummonerId);
-                if (
-                    profile.SummonerInstances.All(instance =>
-                        instance.SummonerId != grant.SummonerId
-                    )
-                )
-                {
-                    profile.SummonerInstances.Add(
-                        new SummonerInstance { SummonerId = grant.SummonerId }
-                    );
-                }
-                return (true, "");
+                profile.SummonerInstances.Add(
+                    new SummonerInstance { SummonerId = grant.SummonerId }
+                );
             }
-        );
+            return (true, "");
+        });
     }
 
     private static RewardGrantPreparation Valid(
@@ -325,8 +320,7 @@ public sealed class SummonerUnlockRewardGrantHandler
         new() { IsValid = false, Errors = [error] };
 }
 
-public sealed class CosmeticRewardGrantHandler
-    : RewardGrantHandler<CosmeticRewardGrantDefinition>
+public sealed class CosmeticRewardGrantHandler : RewardGrantHandler<CosmeticRewardGrantDefinition>
 {
     public override RewardGrantPreparation Prepare(
         CosmeticRewardGrantDefinition grant,
@@ -337,15 +331,13 @@ public sealed class CosmeticRewardGrantHandler
             return Invalid($"Unknown cosmetic '{grant.CosmeticId}'.");
         if (grant.Target.Scope != RewardOwnershipScope.Account)
             return Invalid("Cosmetic unlocks must target the account.");
-        return Valid(
-            profile =>
-            {
-                var id = new CosmeticId(grant.CosmeticId);
-                if (!profile.Cosmetics.Owned.Contains(id))
-                    profile.Cosmetics.Owned.Add(id);
-                return (true, "");
-            }
-        );
+        return Valid(profile =>
+        {
+            var id = new CosmeticId(grant.CosmeticId);
+            if (!profile.Cosmetics.Owned.Contains(id))
+                profile.Cosmetics.Owned.Add(id);
+            return (true, "");
+        });
     }
 
     private static RewardGrantPreparation Valid(
@@ -356,8 +348,7 @@ public sealed class CosmeticRewardGrantHandler
         new() { IsValid = false, Errors = [error] };
 }
 
-public sealed class EmoteRewardGrantHandler
-    : RewardGrantHandler<EmoteRewardGrantDefinition>
+public sealed class EmoteRewardGrantHandler : RewardGrantHandler<EmoteRewardGrantDefinition>
 {
     public override RewardGrantPreparation Prepare(
         EmoteRewardGrantDefinition grant,
@@ -368,15 +359,13 @@ public sealed class EmoteRewardGrantHandler
             return Invalid($"Unknown emote '{grant.EmoteId}'.");
         if (grant.Target.Scope != RewardOwnershipScope.Account)
             return Invalid("Emote unlocks must target the account.");
-        return Valid(
-            profile =>
-            {
-                var id = new EmoteId(grant.EmoteId);
-                if (!profile.Emotes.Owned.Contains(id))
-                    profile.Emotes.Owned.Add(id);
-                return (true, "");
-            }
-        );
+        return Valid(profile =>
+        {
+            var id = new EmoteId(grant.EmoteId);
+            if (!profile.Emotes.Owned.Contains(id))
+                profile.Emotes.Owned.Add(id);
+            return (true, "");
+        });
     }
 
     private static RewardGrantPreparation Valid(
@@ -518,8 +507,7 @@ public sealed class SummonerTraitRewardGrantHandler
     }
 }
 
-public sealed class CardTraitRewardGrantHandler
-    : RewardGrantHandler<CardTraitRewardGrantDefinition>
+public sealed class CardTraitRewardGrantHandler : RewardGrantHandler<CardTraitRewardGrantDefinition>
 {
     public override RewardGrantPreparation Prepare(
         CardTraitRewardGrantDefinition grant,

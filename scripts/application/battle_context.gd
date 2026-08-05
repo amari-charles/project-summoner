@@ -47,6 +47,9 @@ var battle_config: Dictionary = {}
 ## The battle ID for the current configuration
 var _battle_id: String = ""
 
+## Authority-created occurrence identity for campaign progression.
+var _battle_attempt_id: String = ""
+
 ## Academy course/activity IDs for academy battle completion.
 var academy_course_id: String = ""
 var academy_activity_id: String = ""
@@ -75,10 +78,6 @@ var origin_scene: String = ""
 ## Session architecture no longer owns authority here, but C# interop still
 ## reads this property during migration.
 var authority_provider: Object = null
-
-## All deck card instance IDs (for XP rewards on victory)
-## Populated when battle starts via store_deck_card_ids()
-var _deck_card_instance_ids: Array[String] = []
 
 ## Level cap for this battle (0 = uncapped)
 ## When set, player cards are normalized to this level maximum
@@ -173,9 +172,7 @@ func configure_academy_battle(course_id: String, activity_id: String, config: Di
 			0,
 			999.0,
 			999.0
-		),
-		"card_xp_reward": 0,
-		"summoner_xp_reward": 0
+		)
 	}
 
 	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
@@ -314,6 +311,7 @@ func clear() -> void:
 	_cleanup_authority_provider()
 	battle_config = {}
 	_battle_id = ""
+	_battle_attempt_id = ""
 	academy_course_id = ""
 	academy_activity_id = ""
 	biome_id = BiomeIDs.SUMMER_PLAINS
@@ -321,7 +319,6 @@ func clear() -> void:
 	was_configured = false
 	battle_state = BattleState.NONE
 	origin_scene = ""
-	_deck_card_instance_ids.clear()
 	_player_summoner_stats.clear()
 	_level_cap = 0
 
@@ -374,7 +371,6 @@ func abandon_battle() -> void:
 
 	if debug_mode: print("BattleContext: Battle abandoned")
 	battle_state = BattleState.ABANDONED
-	_deck_card_instance_ids.clear()
 
 ## =============================================================================
 ## PLAYER SUMMONER STATS (for DamageSystem)
@@ -399,6 +395,15 @@ func get_player_summoner_stat(stat_name: String, default_value: float = 0.0) -> 
 ## Reset battle context (alias for clear, called between battles)
 func reset() -> void:
 	clear()
+
+
+## Set by the progression authority before campaign scene navigation.
+func set_battle_attempt_id(attempt_id: String) -> void:
+	_battle_attempt_id = attempt_id
+
+
+func get_battle_attempt_id() -> String:
+	return _battle_attempt_id
 
 ## =============================================================================
 ## AUTHORITY ACCESS (C# INTEROP COMPATIBILITY)
@@ -494,31 +499,3 @@ func get_effective_card_upgrades(upgrades: Array) -> Array:
 	if upgrades.size() <= max_upgrades:
 		return upgrades.duplicate()
 	return upgrades.slice(0, max_upgrades)
-
-
-## =============================================================================
-## DECK CARD XP
-## =============================================================================
-
-## Store all deck card instance IDs for XP rewards
-## Called when battle starts (from Summoner initialization)
-func store_deck_card_ids(deck: Array) -> void:
-	_deck_card_instance_ids.clear()
-	for card_var: Variant in deck:
-		var instance_id: String = ""
-		if card_var is Dictionary:
-			var card_dict: Dictionary = card_var
-			instance_id = SafeTypeUtils.string(card_dict.get("InstanceId", card_dict.get("id", "")), "")
-		elif card_var is Object:
-			var card_obj: Object = card_var
-			var instance_id_variant: Variant = card_obj.get("InstanceId")
-			if instance_id_variant == null:
-				instance_id_variant = card_obj.get("id")
-			instance_id = SafeTypeUtils.string(instance_id_variant, "")
-		if not instance_id.is_empty():
-			_deck_card_instance_ids.append(instance_id)
-	if debug_mode: print("BattleContext: Stored %d deck card IDs for XP rewards" % _deck_card_instance_ids.size())
-
-## Get list of all deck card instance IDs
-func get_deck_card_ids() -> Array[String]:
-	return _deck_card_instance_ids.duplicate()

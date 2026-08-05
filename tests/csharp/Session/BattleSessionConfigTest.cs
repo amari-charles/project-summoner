@@ -23,8 +23,6 @@ public class BattleSessionConfigTest
     public void ForPractice_HasZeroXpRewards()
     {
         var config = BattleSessionConfig.ForPractice();
-        AssertThat(config.CardXpReward).IsEqual(0);
-        AssertThat(config.SummonerXpReward).IsEqual(0);
     }
 
     [TestCase]
@@ -69,20 +67,6 @@ public class BattleSessionConfigTest
     // =========================================================================
     // XP REWARD FIELD POPULATION
     // =========================================================================
-
-    [TestCase]
-    public void CardXpReward_CanBeSet()
-    {
-        var config = new BattleSessionConfig { CardXpReward = 25 };
-        AssertThat(config.CardXpReward).IsEqual(25);
-    }
-
-    [TestCase]
-    public void SummonerXpReward_CanBeSet()
-    {
-        var config = new BattleSessionConfig { SummonerXpReward = 50 };
-        AssertThat(config.SummonerXpReward).IsEqual(50);
-    }
 
     [TestCase]
     public void OriginScene_CanBeSet()

@@ -33,6 +33,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-06-04, active-tracker cleanup):** Moved completed Puff angle, pathfinding robustness, large-unit hit-flash, summoner secondary-stat audit, simulation spatial-domain, spawn-rule source-of-truth, and UI async timeout entries to `todos-completed.md`.
 **Tracker Sync (2026-06-04, spell roster scope):** Closed `Add More Spell Cards` as an active expansion item; current spell count is sufficient. Remaining spell-related work stays under VFX polish, balance, presentation, academy/course integration, and production scoping.
 **Tracker Sync (2026-06-04, backlog cleanup):** Consolidated premature per-sound audio tasks into one production-audio scoping item, closed stale Puff lateral-movement follow-up by product review, closed completed portrait-cropping and campaign-data migration items, and refreshed stale interop/performance/root-path TODO wording.
+**Tracker Sync (2026-08-05, authority-boundary audit):** Started the gated battle-progression-authority initiative and added concrete follow-ups for permanent progression commands, atomic commerce, and authoritative competitive results/loadout validation. Backend provider selection remains intentionally undecided.
 
 ---
 
@@ -791,6 +792,136 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 
 ### 🔴 HIGH PRIORITY
 
+#### Introduce Battle Progression Authority and Migrate Battle Rewards
+**Status:** 🔄 In Progress (Pass 3 Complete; PR Review Pending)
+**Category:** Architecture / Progression / Rewards
+**Effort:** Large
+**Urgency:** High
+**Ease:** Hard
+**Scope:** Large
+
+**Description:**
+Introduce a provider-neutral `IProgressionAuthority` boundary for campaign battle attempts and terminal outcomes. Implement a local adapter first, persist authority-created attempt IDs before launch, route victorious attempt XP and first-clear rewards through one idempotent durable boundary, then remove the legacy battle reward path.
+
+**Tasks:**
+- [x] Lock attempt, victory, replay, defeat, abandonment, persistence, and backend-migration semantics.
+- [x] Define baseline validation cases and test targets.
+- [x] Complete Pass 2 typed contracts, compile-safe local adapter/coordinator stubs, persistence wiring, and test skeletons after explicit approval.
+- [x] Complete Pass 3 local behavior: victory XP once per attempt, first-clear rewards once per summoner/campaign/battle, and no XP/rewards on defeat or leave.
+- [x] Migrate `RewardScreen` to normalized authority output and delete `BattleRewardSpec`, battle `PendingRewardData`, reward flags, and direct battle XP calls.
+- [ ] Run gated PR review and merge only after focused/full validation passes.
+
+**Placement:**
+Pure attempt/outcome records belong in `Meta/Domain/Progression`; use-case ports and coordination belong in `Meta/Services/Progression`; JSON mapping stays in `Infrastructure/Persistence`. Battle/session code carries and reports identity but does not own progression rules.
+
+**Related Docs:**
+- `docs/technical/meta/battle-progression-authority-plan.md`
+- `docs/technical/meta/battle-progression-authority-validation-cases.md`
+- `docs/technical/meta/universal-reward-system-plan.md`
+
+---
+
+#### Make Ranked Results and Rating Authoritative
+**Status:** ⬜ Not Started
+**Category:** Architecture / Multiplayer / Security
+**Effort:** Large
+**Urgency:** High before public ranked launch
+**Ease:** Hard
+**Scope:** Large
+
+**Description:**
+`RankingService` currently calculates and saves rating locally, then submits a client-authored result payload. Replace that trust model with a provider-neutral competitive authority whose secure implementation validates match identity/outcome and owns rating, history, and leaderboard writes.
+
+**Tasks:**
+- [ ] Define coarse-grained competitive operations for queue identity, match start, terminal result, and rating result; do not expose arbitrary rating setters.
+- [ ] Make the authoritative match/session record own participants, result, end reason, and deduplication by match ID.
+- [ ] Treat client rating/history as a cache/read model rather than the source of truth.
+- [ ] Validate submitted deck, owned card instances, summoner, traits, and equipment against authoritative ownership at competitive match start.
+- [ ] Remove matchmaking reliance on client-supplied rating once the authoritative adapter exists.
+- [ ] Decide and implement the backend adapter separately; do not couple the domain contract to Nakama.
+
+**Placement:**
+Competitive commands/results belong in a dedicated meta multiplayer/application authority port because match validation and rating policy change together; transport/provider code remains in `Infrastructure/Backend`.
+
+**Likely Files:**
+- `scripts/csharp/Meta/Ranking/RankingService.cs`
+- `scripts/csharp/Meta/Ranking/LeaderboardService.cs`
+- `scripts/csharp/Meta/Matchmaking/MatchmakingService.cs`
+- `scripts/csharp/Battle/Session/HostSession.cs`
+- `scripts/csharp/Infrastructure/Backend/`
+
+---
+
+#### Introduce Atomic Commerce Authority Before Valuable Economy Launch
+**Status:** ⬜ Not Started
+**Category:** Architecture / Economy / Security
+**Effort:** Medium
+**Urgency:** High before real-money or server-valued currency launch
+**Ease:** Hard
+**Scope:** Medium
+
+**Description:**
+Shop purchase flows currently validate balances, spend currency, grant rewards, roll back failures, and increment purchase limits through separate local calls. Introduce a provider-neutral commerce authority that owns the entire purchase transaction and an idempotent purchase receipt.
+
+**Tasks:**
+- [ ] Define a stable purchase/transaction ID and a coarse-grained `PurchaseOffering` command.
+- [ ] Atomically validate price, balance, ownership, purchase limit, currency spend, universal reward grants, and purchase receipt.
+- [ ] Use provider-verified billing receipts for real-money fulfillment; never trust a client completion callback as proof of payment.
+- [ ] Migrate shop rewards from dictionary grants to universal typed offers/claims.
+- [ ] Keep catalog presentation local/cacheable while the authority owns price/version acceptance and valuable mutations.
+- [ ] Remove manual spend/grant/refund sequences after the local transactional adapter is proven.
+
+**Placement:**
+Commerce commands and receipts belong in `Meta/Services/Commerce` and `Meta/Domain/Profile/Commerce`; billing/backend verification stays in `Infrastructure` because provider integration changes independently from purchase policy.
+
+**Likely Files:**
+- `scripts/csharp/Meta/Services/Shop/ShopService.cs`
+- `scripts/csharp/Meta/Services/Economy/EconomyService.cs`
+- `scripts/csharp/Meta/Services/Rewards/RewardService.cs`
+- `scripts/csharp/Infrastructure/Billing/`
+- `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs`
+
+---
+
+### 🟡 MEDIUM PRIORITY
+
+#### Extend Authority Boundaries to Permanent Progression Commands
+**Status:** ⬜ Not Started
+**Category:** Architecture / Progression / Security
+**Effort:** Large
+**Urgency:** Medium; required before secure account progression
+**Ease:** Hard
+**Scope:** Large, execute incrementally by capability
+
+**Description:**
+After the battle authority proves the pattern, migrate other permanent player-value mutations from direct repository/service calls to capability-specific, provider-neutral commands. Keep read models and UI local; move validation and durable mutation behind replaceable local/remote adapters.
+
+**Tasks:**
+- [ ] Academy/campaign: authorize enrollment, activity/course completion, campaign choices, and durable progress flags through typed progression commands.
+- [ ] Levels/upgrades: authorize card/summoner level-up, resource costs, and XP spending atomically.
+- [ ] Traits/Oaths: authorize trait-point spending and irreversible choices against prerequisites/exclusivity.
+- [ ] Items/equipment: authorize ownership-changing item operations; validate equipped configurations wherever they affect secure/competitive play.
+- [ ] Summoner/card unlocks and collection grants: permit mutations only through universal reward or explicit progression commands, not public repository methods.
+- [ ] Split ports by capability when transaction rules differ; do not turn `IProgressionAuthority` into a broad service locator.
+
+**Placement:**
+Each command belongs with the meta domain that owns its rule, while local and future remote adapters sit at the application/infrastructure boundary. Consumers depend on small capability ports rather than `ProfileRepository`.
+
+**Likely Files:**
+- `scripts/csharp/Meta/Services/Campaign/Handlers/AcademyProgressHandler.cs`
+- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignProgressHandler.cs`
+- `scripts/csharp/Meta/Services/Cards/Handlers/CardProgressionHandler.cs`
+- `scripts/csharp/Meta/Services/Summoner/SummonerProgressionService.cs`
+- `scripts/csharp/Meta/Traits/Unified/`
+- `scripts/csharp/Meta/Services/Items/Handlers/ItemEquipmentHandler.cs`
+- `scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs`
+
+**Notes:**
+- Local settings, UI preferences, debug state, and deck-editor interactions do not need remote authority by themselves.
+- Secure modes must validate the final loadout and ownership rather than trusting locally edited profile data.
+
+---
+
 #### Replace Runtime Entity `int` IDs with Typed Value Objects
 **Status:** ⬜ Not Started
 **Category:** Architecture / Type Safety
@@ -854,8 +985,7 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 Replace source-specific and dictionary-based reward paths with the universal typed reward engine. Every consumer should author typed offers and grants, resolve through the shared deterministic runtime, persist universal pending state, and render normalized view models.
 
 **Current Problem:**
-- Academy is migrated, but battle, shop, event, and campaign reward consumers still use legacy contracts.
-- `RewardScreen` still interprets battle-specific flags and pending state.
+- Academy and campaign battles are migrated, but shop and remaining non-battle event/campaign reward consumers still use legacy contracts.
 - The remaining consumers do not yet provide stable source occurrence/transaction identities required for safe universal idempotency.
 
 **Progress Update (2026-03-09):**
@@ -868,9 +998,14 @@ Replace source-specific and dictionary-based reward paths with the universal typ
 - ✅ Added a universal typed reward engine with strict JSON definitions, deterministic per-summoner resolution, persisted previews and pending choices, atomic idempotent claims, and typed grant handlers.
 - ✅ Migrated Academy activity and course rewards to the universal engine, including fixed, choice, pool, mixed, bundled, and no-immediate-reward support.
 - ✅ Replaced Academy reward-specific UI interpretation with normalized reward view models.
-- ⬜ Remaining: Migrate battle rewards and `RewardScreen` after a stable battle-attempt occurrence identity is defined.
+- 🔄 Battle migration is now the gated `battle-progression-authority` initiative. Pass 2 adds the authority contracts, persistence/session wiring, fail-closed local adapter, and mapped test skeletons; behavior implementation awaits Pass 3 approval.
 - ⬜ Remaining: Migrate shop, event, and campaign reward consumers after their source transaction/occurrence identities are defined.
 - ⬜ Remaining: Remove the legacy reward contracts only after all consumers have migrated.
+
+**Progress Update (2026-08-05):**
+- ✅ Migrated campaign battles to universal reward offers with durable attempt identity, attempt-scoped XP, summoner-scoped first-clear rewards, frozen resolved snapshots, and atomic idempotent completion/claim transactions.
+- ✅ Migrated `RewardScreen` to normalized authority output and removed the battle-only reward configuration, spec, handler, pending state, flags, and old save readers.
+- ⬜ Remaining: Migrate shop and non-battle event/campaign sources after their transaction identities are defined.
 
 **Ideal State:**
 - All reward-bearing sources author `RewardOfferDefinition` records with typed option sources and grant bundles.
@@ -880,10 +1015,7 @@ Replace source-specific and dictionary-based reward paths with the universal typ
 - Legacy battle/shop/event/campaign reward models are deleted after their consumers migrate.
 
 **Remaining Files to Refactor:**
-- `scripts/csharp/Meta/Services/Rewards/BattleRewardSpec.cs`
-- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignRewardHandler.cs`
-- `scripts/meta/screens/reward_screen.gd`
-- Shop, event, and campaign source catalogs that still author legacy rewards
+- Shop and non-battle event/campaign source catalogs that still author legacy rewards
 
 ---
 

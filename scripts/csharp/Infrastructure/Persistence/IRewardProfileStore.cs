@@ -8,11 +8,7 @@ namespace Fateforged.Infrastructure.Persistence;
 public interface IRewardProfileStore : IRewardGrantTransactionFactory
 {
     RewardProfileState GetRewardState();
-    bool TryGetOrCreateAcademySeed(
-        SummonerId summonerId,
-        out ulong seed,
-        out string error
-    );
+    bool TryGetOrCreateRewardSeed(SummonerId summonerId, out ulong seed, out string error);
     IReadOnlySet<string> GetOwnedRewardKeys(SummonerId summonerId);
     bool TryStoreResolvedOffer(
         ResolvedRewardOfferSnapshot snapshot,
@@ -82,10 +78,6 @@ public sealed class ProfileRewardGrantTransaction : IRewardGrantTransaction
                 "Reward transaction cannot commit without a claim receipt."
             );
 
-        return _owner.TryCommitRewardTransaction(
-            _expectedRevision,
-            _mutations,
-            _receipt
-        );
+        return _owner.TryCommitRewardTransaction(_expectedRevision, _mutations, _receipt);
     }
 }

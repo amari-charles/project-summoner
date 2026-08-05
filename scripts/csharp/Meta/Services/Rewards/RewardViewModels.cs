@@ -48,6 +48,28 @@ public sealed record RewardOfferViewModel
 public sealed class RewardViewModelFactory
 {
     public RewardOfferViewModel Create(
+        ResolvedRewardOfferSnapshot snapshot,
+        PendingRewardSelection? pending = null,
+        RewardClaimReceipt? receipt = null
+    ) =>
+        new()
+        {
+            Id = snapshot.OfferId,
+            Status =
+                receipt != null ? RewardRuntimeStatus.AlreadyClaimed : RewardRuntimeStatus.Ready,
+            PreviewPolicy = RewardPreviewPolicy.Exact,
+            DisplayState =
+                receipt != null ? RewardOfferDisplayState.Claimed
+                : pending != null ? RewardOfferDisplayState.Pending
+                : RewardOfferDisplayState.Preview,
+            SelectionMode = snapshot.SelectionMode,
+            ClaimId = snapshot.ClaimId,
+            ChooseCount = snapshot.ChooseCount,
+            Options = snapshot.Options.Select(option => ToView(option, pending)).ToImmutableArray(),
+            Receipt = receipt,
+        };
+
+    public RewardOfferViewModel Create(
         RewardOfferDefinition offer,
         ResolvedRewardOfferSnapshot? snapshot,
         PendingRewardSelection? pending = null,
@@ -57,22 +79,17 @@ public sealed class RewardViewModelFactory
         {
             Id = offer.Id,
             Status =
-                receipt != null
-                    ? RewardRuntimeStatus.AlreadyClaimed
-                    : RewardRuntimeStatus.Ready,
+                receipt != null ? RewardRuntimeStatus.AlreadyClaimed : RewardRuntimeStatus.Ready,
             PreviewPolicy = offer.PreviewPolicy,
             DisplayState =
-                receipt != null
-                    ? RewardOfferDisplayState.Claimed
-                    : pending != null
-                        ? RewardOfferDisplayState.Pending
-                        : RewardOfferDisplayState.Preview,
+                receipt != null ? RewardOfferDisplayState.Claimed
+                : pending != null ? RewardOfferDisplayState.Pending
+                : RewardOfferDisplayState.Preview,
             SelectionMode = snapshot?.SelectionMode ?? offer.Selection.Mode,
             ClaimId = snapshot?.ClaimId,
-            CategoryKey =
-                offer.OptionSource is PoolRewardOptionSourceDefinition pool
-                    ? pool.PreviewCategoryKey
-                    : "",
+            CategoryKey = offer.OptionSource is PoolRewardOptionSourceDefinition pool
+                ? pool.PreviewCategoryKey
+                : "",
             ChooseCount = snapshot?.ChooseCount ?? offer.Selection.ChooseCount,
             Options =
                 snapshot?.Options.Select(option => ToView(option, pending)).ToImmutableArray()
@@ -89,8 +106,7 @@ public sealed class RewardViewModelFactory
             Id = option.Id,
             LabelKey = option.LabelKey,
             DescriptionKey = option.DescriptionKey,
-            IsSelected =
-                pending?.SelectedOptionIds.Contains(option.Id) == true,
+            IsSelected = pending?.SelectedOptionIds.Contains(option.Id) == true,
             Grants = option.Grants.Select(CreateGrant).ToImmutableArray(),
         };
 
@@ -98,17 +114,42 @@ public sealed class RewardViewModelFactory
     {
         var (kind, contentId, rarity, amount) = grant switch
         {
-            CardRewardGrantDefinition value => ("card", (string)value.CardId, value.Rarity, value.Count),
+            CardRewardGrantDefinition value => (
+                "card",
+                (string)value.CardId,
+                value.Rarity,
+                value.Count
+            ),
             ResourceRewardGrantDefinition value => ("resource", value.ResourceId, "", value.Amount),
             ItemRewardGrantDefinition value => ("item", (string)value.ItemId, "", value.Count),
-            SummonerUnlockRewardGrantDefinition value => ("summoner_unlock", (string)value.SummonerId, "", 1),
+            SummonerUnlockRewardGrantDefinition value => (
+                "summoner_unlock",
+                (string)value.SummonerId,
+                "",
+                1
+            ),
             CosmeticRewardGrantDefinition value => ("cosmetic", value.CosmeticId, "", 1),
             EmoteRewardGrantDefinition value => ("emote", value.EmoteId, "", 1),
             SummonerExperienceRewardGrantDefinition value => ("summoner_xp", "", "", value.Amount),
             CardExperienceRewardGrantDefinition value => ("card_xp", "", "", value.Amount),
-            SummonerTraitRewardGrantDefinition value => ("summoner_trait", (string)value.TraitId, "", value.Amount),
-            CardTraitRewardGrantDefinition value => ("card_trait", (string)value.TraitId, "", value.Amount),
-            AcademyProgressFlagRewardGrantDefinition value => ("academy_progress_flag", value.FlagId, "", value.Amount),
+            SummonerTraitRewardGrantDefinition value => (
+                "summoner_trait",
+                (string)value.TraitId,
+                "",
+                value.Amount
+            ),
+            CardTraitRewardGrantDefinition value => (
+                "card_trait",
+                (string)value.TraitId,
+                "",
+                value.Amount
+            ),
+            AcademyProgressFlagRewardGrantDefinition value => (
+                "academy_progress_flag",
+                value.FlagId,
+                "",
+                value.Amount
+            ),
             _ => ("unknown", "", "", 0),
         };
         return new RewardGrantViewModel

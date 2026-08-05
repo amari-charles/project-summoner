@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Constants;
+using Fateforged.Domain.Progression;
+using Fateforged.Meta.Progression;
+using Fateforged.Meta.Rewards;
 using Fateforged.Multiplayer.Ranking;
 using Fateforged.Multiplayer.Transport;
 using Fateforged.Session;
@@ -72,11 +76,10 @@ public partial class BattleScene : Node3D
     /// Typed battle config — built once from BattleContext, used throughout.
     private BattleSessionConfig _config = null!;
 
-    /// Deck card instance IDs for XP rewards (stored locally, no longer in BattleContext).
-    private List<string> _deckCardInstanceIds = new();
     private int? _pendingCompletionWinnerTeam;
     private bool _completionHandled;
     private MatchEndReason _matchEndReason = MatchEndReason.SummonerDestroyed;
+    private ProgressionAuthorityResult? _campaignProgressionResult;
 
     /// Max frames to wait for a single scene to load (~5 seconds at 60fps)
     private const int SceneLoadTimeoutFrames = 300;
@@ -311,6 +314,13 @@ public partial class BattleScene : Node3D
         if (_config.IsMultiplayer && _config.HasAuthority)
             BroadcastMatchEnd(winnerTeam);
 
+        if (_config.Mode == BattleMode.Campaign)
+        {
+            var outcome =
+                winnerTeam == 0 ? BattleTerminalOutcome.Victory : BattleTerminalOutcome.Defeat;
+            _campaignProgressionResult = ReportCampaignOutcome(outcome);
+        }
+
         // Update BattleContext state
         var battleContext = GetNodeOrNull("/root/BattleContext");
         if (battleContext != null)
@@ -346,26 +356,12 @@ public partial class BattleScene : Node3D
     /// </summary>
     public void AbandonBattle()
     {
-        var root = GetTree().Root;
-
-        // Clear current_battle from profile to prevent stale state
-        var profileRepo = root.GetNodeOrNull("ProfileRepo");
-        if (profileRepo != null && profileRepo.HasMethod("UpdateCampaignProgressDict"))
-        {
-            var clearDict = new Godot.Collections.Dictionary { { "current_battle", "" } };
-            profileRepo.Call("UpdateCampaignProgressDict", clearDict, "");
-        }
-
-        // Clear any pending reward
-        var campaign = root.GetNodeOrNull("Campaign");
-        if (campaign != null && campaign.HasMethod("ClearPendingReward"))
-            campaign.Call("ClearPendingReward");
+        if (_config.Mode == BattleMode.Campaign)
+            _campaignProgressionResult = ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
 
         // Delegate state cleanup to BattleContext
-        var battleContext = root.GetNodeOrNull("BattleContext");
+        var battleContext = GetTree().Root.GetNodeOrNull("BattleContext");
         battleContext?.Call("abandon_battle");
-
-        _deckCardInstanceIds.Clear();
     }
 
     public void SkipPrepPhase()
@@ -661,28 +657,9 @@ public partial class BattleScene : Node3D
             }
         }
 
-        // Cache data locally for post-battle rewards
+        // Cache presentation/runtime data for the local player.
         if (localTeam == 0)
         {
-            if (side.Deck.LoadedFromProfile)
-            {
-                _deckCardInstanceIds.Clear();
-                var allCards = side.AllCardsForRewards();
-                foreach (var card in allCards)
-                {
-                    var go = card as GodotObject;
-                    if (go == null)
-                        continue;
-                    string instanceId = go.Get("InstanceId").AsString();
-                    if (!string.IsNullOrEmpty(instanceId))
-                        _deckCardInstanceIds.Add(instanceId);
-                }
-
-                // Also store in BattleContext for reward_screen to read
-                var bc = GetNodeOrNull("/root/BattleContext");
-                bc?.Call("store_deck_card_ids", allCards);
-            }
-
             if (side.SummonerStats != null)
             {
                 var bc = GetNodeOrNull("/root/BattleContext");
@@ -863,13 +840,23 @@ public partial class BattleScene : Node3D
 
     private void HandleCampaignCompletion(int winnerTeam)
     {
-        if (winnerTeam == 0) // Player won
+        if (_campaignProgressionResult?.IsSuccess != true)
         {
-            GrantCardXp();
-            GrantSummonerXp();
-            NavigateToScene("res://scenes/meta/screens/reward_screen.tscn");
+            GD.PushWarning(
+                "[BattleScene] Campaign progression unavailable; no XP or rewards were granted."
+            );
+            NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
+            return;
         }
-        else // Player lost
+
+        if (
+            winnerTeam == 0
+            && _campaignProgressionResult.RewardOffers.Any(offer =>
+                offer.DisplayState == RewardOfferDisplayState.Pending
+            )
+        )
+            NavigateToScene("res://scenes/meta/screens/reward_screen.tscn");
+        else
         {
             NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
         }
@@ -883,7 +870,11 @@ public partial class BattleScene : Node3D
             var courseId = battleContext?.Get("academy_course_id").AsString() ?? "";
             var activityId = battleContext?.Get("academy_activity_id").AsString() ?? "";
             var campaign = GetNodeOrNull("/root/Campaign");
-            if (!string.IsNullOrEmpty(courseId) && !string.IsNullOrEmpty(activityId) && campaign != null)
+            if (
+                !string.IsNullOrEmpty(courseId)
+                && !string.IsNullOrEmpty(activityId)
+                && campaign != null
+            )
                 campaign.Call("CompleteAcademyActivity", courseId, activityId, true);
         }
 
@@ -905,46 +896,14 @@ public partial class BattleScene : Node3D
             NavigateToScene("res://scenes/meta/screens/multiplayer_lobby.tscn");
     }
 
-    /// <summary>Grant XP to all deck cards used in battle.</summary>
-    internal void GrantCardXp()
+    private ProgressionAuthorityResult ReportCampaignOutcome(BattleTerminalOutcome outcome)
     {
-        if (_config.CardXpReward <= 0)
-            return;
-        if (_deckCardInstanceIds.Count == 0)
-            return;
-
-        var cardService = GetNodeOrNull("/root/CardService");
-        if (cardService == null || !cardService.HasMethod("GrantXpToCardsArray"))
-        {
-            GD.PushWarning("[BattleScene] CardService.GrantXpToCardsArray not available");
-            return;
-        }
-
-        var idsArray = new Godot.Collections.Array();
-        foreach (var id in _deckCardInstanceIds)
-            idsArray.Add(id);
-
-        GD.Print(
-            $"[BattleScene] Granting {_config.CardXpReward} XP to {_deckCardInstanceIds.Count} deck cards"
-        );
-        cardService.Call("GrantXpToCardsArray", idsArray, _config.CardXpReward);
-    }
-
-    /// <summary>Grant XP to the active summoner.</summary>
-    internal void GrantSummonerXp()
-    {
-        if (_config.SummonerXpReward <= 0)
-            return;
-
-        var summonerProg = GetNodeOrNull("/root/SummonerProgression");
-        if (summonerProg == null || !summonerProg.HasMethod("GrantActiveSummonerXp"))
-        {
-            GD.PushWarning("[BattleScene] SummonerProgression.GrantActiveSummonerXp not available");
-            return;
-        }
-
-        GD.Print($"[BattleScene] Granting {_config.SummonerXpReward} XP to active summoner");
-        summonerProg.Call("GrantActiveSummonerXp", _config.SummonerXpReward);
+        var service = ProgressionAuthorityService.Instance;
+        if (service == null)
+            return ProgressionAuthorityResult.Unavailable(
+                "Progression authority service unavailable."
+            );
+        return service.ReportBattleOutcome(_config.BattleAttemptId, outcome);
     }
 
     private void ReportRankedMatch(bool playerWon)

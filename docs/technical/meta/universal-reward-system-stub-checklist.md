@@ -3,8 +3,8 @@
 > PASS 3 completion note (2026-07-25): the stubs mapped below were replaced by the
 > real resolver, persisted snapshot/claim transaction, grant handlers, strict JSON
 > loading, normalized view models, Academy integration, and choice UI. The map is
-> retained as phase-history evidence. Battle and non-Academy consumer migrations
-> remain explicitly deferred as URS-C24 and URS-C25 in the validation matrix.
+> retained as phase-history evidence. URS-C24 battle migration was completed by the
+> battle progression authority initiative; URS-C25 remains deferred.
 
 **Status:** PASS 2 CHECKLIST
 **Initiative:** `universal-reward-system`

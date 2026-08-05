@@ -55,7 +55,7 @@ var _camera_controller_override: Node
 var _campaign_setter_override: Callable
 var _campaign_battle_getter_override: Callable
 var _scene_transition_override: Callable
-var _profile_current_battle_setter_override: Callable
+var _progression_start_override: Callable
 var _battle_context_configure_override: Callable
 var _console_execute_override: Callable
 var _console_all_commands_override: Callable
@@ -1086,11 +1086,10 @@ func _transition_to_scene(scene_path: String) -> void:
 	SceneManager.transition_to(scene_path)
 
 
-func _set_profile_current_battle(battle_id: String) -> void:
-	if _profile_current_battle_setter_override.is_valid():
-		_profile_current_battle_setter_override.call(battle_id)
-		return
-	ProfileRepoApi.update_campaign_progress_dict({"current_battle": battle_id}, "")
+func _start_debug_battle_attempt(campaign_id: String, battle_id: String) -> Dictionary:
+	if _progression_start_override.is_valid():
+		return SafeTypeUtils.dict(_progression_start_override.call(campaign_id, battle_id))
+	return ProgressionAuthority.StartCampaignBattleAttempt(campaign_id, battle_id)
 
 
 func _configure_campaign_battle_context(battle_id: String) -> void:
@@ -1167,7 +1166,11 @@ func _on_debug_arena_battle_pressed(battle_id: String) -> void:
 		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
 		return
 
-	_set_profile_current_battle(battle_id)
+	var attempt_result: Dictionary = _start_debug_battle_attempt(campaign_id, battle_id)
+	if not attempt_result.get("is_success", false):
+		push_error("Debug battle launch could not persist an attempt: %s" % attempt_result.get("errors", []))
+		return
+	BattleContext.set_battle_attempt_id(attempt_result.get("attempt_id", ""))
 	_configure_campaign_battle_context(battle_id)
 
 	var event_data: Dictionary = _get_campaign_battle(battle_id)

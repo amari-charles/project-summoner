@@ -1,11 +1,15 @@
 namespace Fateforged.Tests.Meta.Rewards;
 
 using System;
-using Fateforged.Data.Rewards;
+using System.Linq;
 using Fateforged.Cards;
+using Fateforged.Data.Rewards;
+using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Collection;
+using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Rewards;
+using Fateforged.Meta.Deck;
 using Fateforged.Meta.Rewards;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -73,19 +77,12 @@ public class RewardGrantHandlerTest
                 new CardExperienceRewardGrantDefinition
                 {
                     Amount = 25,
-                    Target = new RewardOwnershipTarget(
-                        RewardOwnershipScope.CardInstance,
-                        "first"
-                    ),
+                    Target = new RewardOwnershipTarget(RewardOwnershipScope.CardInstance, "first"),
                 },
                 new RewardGrantContext
                 {
                     ClaimId = new RewardClaimId("claim"),
-                    Source = new RewardSourceContext
-                    {
-                        SourceType = "test",
-                        SourceId = "source",
-                    },
+                    Source = new RewardSourceContext { SourceType = "test", SourceId = "source" },
                 }
             );
 
@@ -93,6 +90,51 @@ public class RewardGrantHandlerTest
         AssertThat(preparation.Mutation!.TryApply(profile, out _)).IsTrue();
         AssertThat(first.Xp).IsEqual(25);
         AssertThat(second.Xp).IsEqual(0);
+    }
+
+    [TestCase]
+    public void CardGrantCanExplicitlyPlaceCreatedInstancesInSelectedSummonerDeck()
+    {
+        var summonerId = SummonerIds.Cole;
+        var deckId = new DeckId("selected");
+        var profile = new ProfileData
+        {
+            Meta = new() { SelectedDeck = deckId.Value },
+            Decks =
+            [
+                new Deck
+                {
+                    Id = deckId,
+                    SummonerId = summonerId,
+                    Name = "Tutorial",
+                },
+            ],
+        };
+        var preparation = RewardGrantHandlerRegistry
+            .CreateDefault()
+            .Prepare(
+                new CardRewardGrantDefinition
+                {
+                    CardId = CardIds.FireWisp,
+                    Count = 2,
+                    Placement = CardRewardPlacement.SelectedDeckIfAvailable,
+                    Target = new RewardOwnershipTarget(
+                        RewardOwnershipScope.Summoner,
+                        summonerId.Value
+                    ),
+                },
+                new RewardGrantContext
+                {
+                    ClaimId = new RewardClaimId("claim"),
+                    Source = new RewardSourceContext { SourceType = "test", SourceId = "source" },
+                }
+            );
+
+        AssertThat(preparation.IsValid).IsTrue();
+        AssertThat(preparation.Mutation!.TryApply(profile, out _)).IsTrue();
+        AssertThat(profile.Collection).HasSize(2);
+        AssertThat(profile.Decks[0].CardInstanceIds)
+            .ContainsExactly(profile.Collection.Select(card => card.Id));
     }
 
     [TestCase]
@@ -118,10 +160,7 @@ public class RewardGrantHandlerTest
             new SummonerUnlockRewardGrantDefinition
             {
                 SummonerId = Fateforged.Data.Summoners.SummonerIds.Cole,
-                Target = new RewardOwnershipTarget(
-                    RewardOwnershipScope.Summoner,
-                    "summoner"
-                ),
+                Target = new RewardOwnershipTarget(RewardOwnershipScope.Summoner, "summoner"),
             },
             context
         );
