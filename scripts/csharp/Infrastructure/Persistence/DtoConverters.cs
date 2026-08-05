@@ -395,8 +395,6 @@ public static class DtoConverters
             ["official_assessments_completed"] = ToGodotArray(
                 academy.OfficialAssessmentsCompleted
             ),
-            ["activity_rewards_claimed"] = ToGodotArray(academy.ActivityRewardsClaimed),
-            ["course_rewards_claimed"] = ToGodotArray(academy.CourseRewardsClaimed),
         };
 
         var transcript = new Godot.Collections.Array();
@@ -419,6 +417,13 @@ public static class DtoConverters
             shopPurchases[key] = value;
         }
         dict["shop_purchases"] = shopPurchases;
+
+        var rewardFlags = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in academy.RewardFlags)
+        {
+            rewardFlags[key] = value;
+        }
+        dict["reward_flags"] = rewardFlags;
 
         var activityIndex = new Godot.Collections.Dictionary();
         foreach (var (key, value) in academy.CourseActivityIndex)
@@ -625,18 +630,6 @@ public static class DtoConverters
             }
         }
 
-        var activityRewardsClaimed = new List<string>();
-        if (
-            dict.TryGetValue("activity_rewards_claimed", out var activityRewardsVar)
-            && activityRewardsVar.VariantType == Variant.Type.Array
-        )
-        {
-            foreach (var rewardKey in activityRewardsVar.AsGodotArray())
-            {
-                activityRewardsClaimed.Add(rewardKey.AsString());
-            }
-        }
-
         var enrolledCourses = new List<CourseId>();
         if (
             dict.TryGetValue("enrolled_courses", out var enrolledVar)
@@ -646,18 +639,6 @@ public static class DtoConverters
             foreach (var course in enrolledVar.AsGodotArray())
             {
                 enrolledCourses.Add(new CourseId(course.AsString()));
-            }
-        }
-
-        var courseRewardsClaimed = new List<string>();
-        if (
-            dict.TryGetValue("course_rewards_claimed", out var courseRewardsVar)
-            && courseRewardsVar.VariantType == Variant.Type.Array
-        )
-        {
-            foreach (var item in courseRewardsVar.AsGodotArray())
-            {
-                courseRewardsClaimed.Add(item.AsString());
             }
         }
 
@@ -715,6 +696,17 @@ public static class DtoConverters
             }
         }
 
+        var rewardFlags = new Dictionary<string, int>();
+        if (
+            dict.TryGetValue("reward_flags", out var rewardFlagsVar)
+            && rewardFlagsVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var rewardFlagsDict = rewardFlagsVar.AsGodotDictionary();
+            foreach (var key in rewardFlagsDict.Keys)
+                rewardFlags[key.AsString()] = rewardFlagsDict[key].AsInt32();
+        }
+
         return new AcademyProgress
         {
             CurrentYear = GetInt(dict, "current_year", 1),
@@ -723,11 +715,10 @@ public static class DtoConverters
             CompletedCourses = completedCourses,
             EnrolledCourses = enrolledCourses,
             OfficialAssessmentsCompleted = officialAssessments,
-            ActivityRewardsClaimed = activityRewardsClaimed,
-            CourseRewardsClaimed = courseRewardsClaimed,
             Transcript = transcript,
             HonorsEligibility = honorsEligibility,
             ShopPurchases = shopPurchases,
+            RewardFlags = rewardFlags,
             CourseActivityIndex = courseActivityIndex,
         };
     }

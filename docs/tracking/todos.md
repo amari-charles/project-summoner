@@ -846,88 +846,44 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 ---
 
 #### Refactor Reward System to Typed RewardSpec Classes
-**Status:** 🟡 Partial (Reward Claim + Screen Hardening Landed)
+**Status:** 🟡 Partial (Universal Engine + Academy Consumer Implemented)
 **Category:** Architecture / Flag Proliferation
 **Effort:** Medium
 
 **Description:**
-Replace the dictionary-based reward spec with polymorphic C# classes. The `get_reward_spec()` method returns a unified dictionary with flags (`is_replay`, `requires_choice`, etc.) - these should be type-specific classes.
+Replace source-specific and dictionary-based reward paths with the universal typed reward engine. Every consumer should author typed offers and grants, resolve through the shared deterministic runtime, persist universal pending state, and render normalized view models.
 
 **Current Problem:**
-- `reward_service.gd:85-95` builds spec dictionary with multiple flags
-- `reward_screen.gd:124-173` checks `is_replay` and `requires_choice` flags
-- Flag combinations create complex conditional logic
+- Academy is migrated, but battle, shop, event, and campaign reward consumers still use legacy contracts.
+- `RewardScreen` still interprets battle-specific flags and pending state.
+- The remaining consumers do not yet provide stable source occurrence/transaction identities required for safe universal idempotency.
 
 **Progress Update (2026-03-09):**
 - ✅ Mission completion reward flow now uses `BattleRewardSpec`-derived grants in `CampaignRewardHandler` (flexible rewards + campaign gold included)
 - ✅ Pending flexible choice now persists stable `chosen_catalog_id` to prevent index drift across resume/claim
 - ✅ RewardScreen current-battle resolution hardened for per-summoner campaign progress and pending-reward fallback
 - ✅ Regression coverage added for claim flow, mission completion flow, and choice-drift scenario
-- ⬜ Remaining: Replace dictionary flag checks in `RewardScreen` with typed `RewardSpec` subclasses and eliminate `is_replay`/`requires_choice` branching
-- ⬜ Remaining: Introduce explicit `RewardSpec` class hierarchy + factory (`RewardSpecFactory`) and migrate remaining consumers
+
+**Progress Update (2026-07-25):**
+- ✅ Added a universal typed reward engine with strict JSON definitions, deterministic per-summoner resolution, persisted previews and pending choices, atomic idempotent claims, and typed grant handlers.
+- ✅ Migrated Academy activity and course rewards to the universal engine, including fixed, choice, pool, mixed, bundled, and no-immediate-reward support.
+- ✅ Replaced Academy reward-specific UI interpretation with normalized reward view models.
+- ⬜ Remaining: Migrate battle rewards and `RewardScreen` after a stable battle-attempt occurrence identity is defined.
+- ⬜ Remaining: Migrate shop, event, and campaign reward consumers after their source transaction/occurrence identities are defined.
+- ⬜ Remaining: Remove the legacy reward contracts only after all consumers have migrated.
 
 **Ideal State:**
-```csharp
-// scripts/csharp/Infrastructure/Data/Rewards/RewardSpec.cs
-public abstract class RewardSpec
-{
-    public int GoldReward { get; set; }
-    public int SummonerXp { get; set; }
-    public int CardXp { get; set; }
+- All reward-bearing sources author `RewardOfferDefinition` records with typed option sources and grant bundles.
+- `UniversalRewardRuntime` owns deterministic resolution; profile persistence owns immutable snapshots, pending selections, atomic claims, and receipts.
+- Each grant type has one registered handler and an explicit ownership target.
+- Screens consume normalized reward view models and submit only claim and option IDs.
+- Legacy battle/shop/event/campaign reward models are deleted after their consumers migrate.
 
-    public abstract RewardSpecType Type { get; }
-}
-
-public class FixedRewardSpec : RewardSpec
-{
-    public override RewardSpecType Type => RewardSpecType.Fixed;
-    public string CardId { get; set; }
-}
-
-public class FlexibleRewardSpec : RewardSpec
-{
-    public override RewardSpecType Type => RewardSpecType.Flexible;
-    public List<string> CardOptions { get; set; }
-    public bool PlayerSelects { get; set; }
-    public int? ChosenIndex { get; set; }
-}
-
-public class ReplayRewardSpec : RewardSpec
-{
-    public override RewardSpecType Type => RewardSpecType.Replay;
-    // XP only - no cards or gold
-}
-
-public class NoRewardSpec : RewardSpec
-{
-    public override RewardSpecType Type => RewardSpecType.None;
-}
-```
-
-**Consumer Pattern:**
-```csharp
-// Instead of checking flags:
-switch (spec)
-{
-    case ReplayRewardSpec replay:
-        ShowReplayMessage();
-        break;
-    case FlexibleRewardSpec flexible when flexible.PlayerSelects:
-        ShowChoiceUI(flexible.CardOptions);
-        break;
-    case FixedRewardSpec fixed:
-        ShowFixedReward(fixed.CardId);
-        break;
-}
-```
-
-**Files to Create:**
-- `scripts/csharp/Infrastructure/Data/Rewards/RewardSpec.cs` (base + subclasses)
-- `scripts/csharp/Meta/Services/Rewards/RewardSpecFactory.cs`
-
-**Files to Refactor:**
-- `scripts/csharp/Meta/Services/RewardService.cs` (formerly reward_service.gd)
+**Remaining Files to Refactor:**
+- `scripts/csharp/Meta/Services/Rewards/BattleRewardSpec.cs`
+- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignRewardHandler.cs`
 - `scripts/meta/screens/reward_screen.gd`
+- Shop, event, and campaign source catalogs that still author legacy rewards
 
 ---
 

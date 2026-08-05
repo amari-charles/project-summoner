@@ -162,6 +162,16 @@ Semester 2 uses a broader course catalog. Initial available classes:
 ### Architecture Guardrails
 
 - C# owns academy domain rules: course availability, activity state, completion, reward payloads, grade/Honors outcomes, gold, and persistence.
+- Reward definitions, option resolution, claims, and grant execution belong to one universal typed reward engine shared by Academy, battles, events, shops, and future reward sources. Academy is its first full consumer and owns only when an offer is earned and whether an unresolved choice blocks class progression.
+- Reward grant definitions are immutable serializable data. Each grant type has a separate registered handler that owns its dependencies and execution; grant definitions do not perform their own persistence or service calls. Startup validation and tests require handler coverage for every registered grant type.
+- Reward offers obtain options through a typed option-source strategy. Authored options and pool-resolved options are separate source implementations rather than mutually exclusive fields on one configuration class; future source types extend the same contract.
+- Reward pools contain complete reward-option bundles rather than card IDs or other single-type primitives. Individual pools may constrain their contents, but the universal pool contract supports any registered grant types.
+- Reward offers are authored inline with the activity, class, battle, event, shop entry, or other source that grants them. Reusable reward pools remain centralized and are referenced by stable pool IDs.
+- Reward offers and pools are authored as JSON data and loaded into immutable typed C# models. Loading performs strict schema, reference, handler-coverage, and semantic validation; invalid reward content fails loudly instead of falling back. Adding a new offer or pool is data-only, while adding a new grant or option-source type requires code and its registered implementation.
+- Once reward options are resolved for a summoner, persistence stores the complete immutable option snapshot, including its typed grants, rather than only catalog references. Later reward-data changes cannot alter an exact preview or pending choice already promised to that summoner.
+- Every earned offer receives a stable reward-claim ID. Claiming first validates the complete selection and grant bundle, then applies the grants and claim receipt in one profile transaction and saves once. Retrying an already-committed claim returns its existing receipt without granting again.
+- Every grant explicitly declares its ownership scope or target. Reward sources and handlers do not infer whether a card, resource, item, trait, or other payload belongs to the account, current summoner/campaign, or another supported target.
+- Remove the current parallel reward models and dictionary-based grant paths as consumers migrate; do not preserve competing Academy-specific and battle-specific reward engines.
 - C# owns class activity limitations and should return specific deck-validity results instead of making screens infer rules from raw state.
 - GDScript academy screens render returned view models and send explicit user intents. They should not recreate progression rules from raw state.
 - Course rewards should live with course definitions. Reward previews and reward grants must not be maintained in separate hardcoded maps.

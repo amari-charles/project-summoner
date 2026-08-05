@@ -149,6 +149,10 @@ public static class ProfileDataMapper
         if (TryGetDict(dict, "emotes", out var emotesDict))
             data.Emotes = MapEmotesFromDict(emotesDict);
 
+        // Universal rewards
+        if (TryGetDict(dict, "rewards", out var rewardsDict))
+            data.Rewards = RewardStateMapper.FromDictionary(rewardsDict);
+
         // Meta
         if (TryGetDict(dict, "meta", out var metaDict))
             data.Meta = DtoConverters.FromMetaDict(metaDict);
@@ -253,6 +257,9 @@ public static class ProfileDataMapper
 
         // Emotes
         dict["emotes"] = MapEmotesToDict(data.Emotes);
+
+        // Universal rewards
+        dict["rewards"] = RewardStateMapper.ToDictionary(data.Rewards);
 
         // Meta
         dict["meta"] = DtoConverters.ToDict(data.Meta);

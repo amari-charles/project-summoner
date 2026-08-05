@@ -27,12 +27,6 @@ public class AcademyProgress
     [JsonPropertyName("official_assessments_completed")]
     public List<string> OfficialAssessmentsCompleted { get; set; } = [];
 
-    [JsonPropertyName("activity_rewards_claimed")]
-    public List<string> ActivityRewardsClaimed { get; set; } = [];
-
-    [JsonPropertyName("course_rewards_claimed")]
-    public List<string> CourseRewardsClaimed { get; set; } = [];
-
     [JsonPropertyName("transcript")]
     public List<AcademyTranscriptEntry> Transcript { get; set; } = [];
 
@@ -41,6 +35,9 @@ public class AcademyProgress
 
     [JsonPropertyName("shop_purchases")]
     public Dictionary<string, int> ShopPurchases { get; set; } = [];
+
+    [JsonPropertyName("reward_flags")]
+    public Dictionary<string, int> RewardFlags { get; set; } = [];
 }
 
 public class AcademyTranscriptEntry

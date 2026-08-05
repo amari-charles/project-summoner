@@ -280,14 +280,7 @@ public class DtoConvertersTest
                 CompletedCourses = [CourseIds.IntroductionToMagic101],
                 EnrolledCourses = [CourseIds.PracticalSpellcraft],
                 OfficialAssessmentsCompleted = ["magic_101_exam"],
-                ActivityRewardsClaimed =
-                [
-                    "introduction_to_magic_101:magic_101_basic_duel:0:Card:neutral_starter_unit",
-                ],
-                CourseRewardsClaimed =
-                [
-                    "summoning_basics:course:0:Card:fire_wisp",
-                ],
+                RewardFlags = new Dictionary<string, int> { ["spellcraft_intro"] = 1 },
                 Transcript =
                 [
                     new AcademyTranscriptEntry
@@ -321,12 +314,7 @@ public class DtoConvertersTest
         AssertThat(result.Academy.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
         AssertThat(result.Academy.EnrolledCourses).Contains(CourseIds.PracticalSpellcraft);
         AssertThat(result.Academy.OfficialAssessmentsCompleted).Contains("magic_101_exam");
-        AssertThat(result.Academy.ActivityRewardsClaimed)
-            .Contains(
-                "introduction_to_magic_101:magic_101_basic_duel:0:Card:neutral_starter_unit"
-            );
-        AssertThat(result.Academy.CourseRewardsClaimed)
-            .Contains("summoning_basics:course:0:Card:fire_wisp");
+        AssertThat(result.Academy.RewardFlags["spellcraft_intro"]).IsEqual(1);
         AssertThat(result.Academy.Transcript).HasSize(1);
         AssertThat(result.Academy.Transcript[0].CourseId).IsEqual(CourseIds.IntroductionToMagic101);
         AssertThat(result.Academy.Transcript[0].Grade).IsEqual("pass");
