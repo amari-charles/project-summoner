@@ -105,7 +105,6 @@ layout_mode = 2
 theme_override_constants/separation = 18
 
 [node name="InfoPanel" type="PanelContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content"]
-unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 320)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleInfo")
@@ -189,58 +188,6 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 32
 
-[node name="EditPanel" type="PanelContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content"]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 320)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleInfo")
-
-[node name="EditMargin" type="MarginContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 30
-theme_override_constants/margin_bottom = 24
-
-[node name="EditContent" type="VBoxContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="EditHeader" type="HBoxContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin/EditContent"]
-layout_mode = 2
-
-[node name="AvailableLabel" type="Label" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin/EditContent/EditHeader"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
-text = "Edit Deck"
-
-[node name="CloseEditButton" type="Button" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin/EditContent/EditHeader"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 42)
-layout_mode = 2
-text = "×"
-
-[node name="DeckSelector" type="OptionButton" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin/EditContent"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="AvailableScroll" type="ScrollContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin/EditContent"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="AvailableGrid" type="GridContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin/EditContent/AvailableScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-columns = 5
-
-[node name="SaveButton" type="Button" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditPanel/EditMargin/EditContent"]
-unique_name_in_owner = true
-layout_mode = 2
-
 [node name="ValidationLabel" type="Label" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -265,6 +212,68 @@ theme_override_font_sizes/font_size = 22
 [node name="RightSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/Footer"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="EditPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = -390.0
+offset_right = 600.0
+offset_bottom = 390.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleContent")
+
+[node name="EditMargin" type="MarginContainer" parent="EditPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 24
+
+[node name="EditContent" type="VBoxContainer" parent="EditPanel/EditMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="EditHeader" type="HBoxContainer" parent="EditPanel/EditMargin/EditContent"]
+layout_mode = 2
+
+[node name="AvailableLabel" type="Label" parent="EditPanel/EditMargin/EditContent/EditHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "Edit Deck"
+
+[node name="CloseEditButton" type="Button" parent="EditPanel/EditMargin/EditContent/EditHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 42)
+layout_mode = 2
+text = "×"
+
+[node name="DeckSelector" type="OptionButton" parent="EditPanel/EditMargin/EditContent"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AvailableScroll" type="ScrollContainer" parent="EditPanel/EditMargin/EditContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="AvailableGrid" type="GridContainer" parent="EditPanel/EditMargin/EditContent/AvailableScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 5
+
+[node name="SaveButton" type="Button" parent="EditPanel/EditMargin/EditContent"]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="NarrativePresenter" parent="." instance=ExtResource("2")]
 narrative_context = 0

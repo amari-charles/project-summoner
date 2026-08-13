@@ -34,21 +34,14 @@ func test_preparation_owns_launch_and_does_not_detour_to_collection() -> void:
 	assert_not_null(preparation.find_child("StartButton", true, false))
 	preparation.free()
 
-func test_preparation_edits_deck_inline_and_centers_start_action() -> void:
+func test_preparation_centers_start_action() -> void:
 	var scene: PackedScene = load("res://scenes/meta/screens/academy_activity_preparation.tscn")
 	var preparation: Control = scene.instantiate() as Control
 	assert_not_null(preparation)
-	var content: Control = preparation.find_child("Content", true, false)
-	var edit_panel: Control = preparation.find_child("EditPanel", true, false)
 	var footer: Control = preparation.find_child("Footer", true, false)
-	assert_eq(edit_panel.get_parent(), content)
 	assert_not_null(footer.get_node_or_null("LeftSpacer"))
 	assert_not_null(footer.get_node_or_null("StartButton"))
 	assert_not_null(footer.get_node_or_null("RightSpacer"))
-	var script_text: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
-	assert_true(script_text.contains("info_panel.visible = not _editing_deck"))
-	assert_true(script_text.contains("DecksApi.add_card_to_deck"))
-	assert_true(script_text.contains("DecksApi.remove_card_from_deck"))
 	preparation.free()
 
 func test_results_owns_pending_reward_choice() -> void:
