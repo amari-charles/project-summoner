@@ -56,6 +56,9 @@ public class SummonerInstance
     [JsonPropertyName("unspent_trait_points")]
     public int UnspentTraitPoints { get; set; }
 
+    [JsonPropertyName("narrative_flags")]
+    public Dictionary<string, bool> NarrativeFlags { get; set; } = [];
+
     // =========================================================================
     // STAT COMPUTATION
     // =========================================================================

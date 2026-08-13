@@ -9,6 +9,10 @@ extends GutTest
 const SCRIPTS_DIR: String = "res://scripts"
 const LOCALIZATION_DIR: String = "res://localization"
 const EN_JSON_PATH: String = "res://localization/data/en.json"
+const AUTHORED_CONTENT_PATHS: Array[String] = [
+	"res://data/academy/courses.json",
+	"res://data/narrative/narrative.json",
+]
 
 # Known dynamic key patterns - these are constructed via string concatenation
 # and must be explicitly validated since static analysis can't determine them.
@@ -72,6 +76,21 @@ func test_all_static_loc_t_keys_exist_in_en_json() -> void:
 		fail_test(error_msg)
 
 	assert_true(missing_keys.is_empty(), "All Loc.t() keys should exist in en.json")
+
+func test_all_authored_content_localization_keys_exist() -> void:
+	var missing: Array[String] = []
+	for path: String in AUTHORED_CONTENT_PATHS:
+		var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+		assert_not_null(file, "Should open authored content: %s" % path)
+		var parsed: Variant = JSON.parse_string(file.get_as_text())
+		file.close()
+		assert_true(parsed is Dictionary, "Authored content must be a JSON object: %s" % path)
+		var keys: Array[String] = []
+		_collect_authored_localization_keys(parsed, keys)
+		for key: String in keys:
+			if not key.is_empty() and not _localization_keys.has(key):
+				missing.append("%s: %s" % [path, key])
+	assert_true(missing.is_empty(), "Missing authored localization keys:\n  - %s" % "\n  - ".join(missing))
 
 
 ## =============================================================================
@@ -211,6 +230,16 @@ func _flatten_dictionary(input: Dictionary, prefix: String) -> Dictionary:
 			result[full_key] = str(value)
 
 	return result
+
+func _collect_authored_localization_keys(value: Variant, result: Array[String], field_name: String = "") -> void:
+	if value is Dictionary:
+		for key: Variant in value.keys():
+			_collect_authored_localization_keys(value[key], result, SafeTypeUtils.string(key))
+	elif value is Array:
+		for item: Variant in value:
+			_collect_authored_localization_keys(item, result, field_name)
+	elif value is String and (field_name.ends_with("_key") or field_name.ends_with("_keys")):
+		result.append(value)
 
 
 ## Recursively collect Loc.t() keys from all .gd files in directory

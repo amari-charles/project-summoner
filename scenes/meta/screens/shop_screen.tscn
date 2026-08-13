@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://shop_screen"]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/shop_screen.gd" id="1_shop"]
-[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/shared/dialogue_box.tscn" id="2_dialogue_box"]
+[ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2_narrative_presenter"]
 
 [node name="ShopScreen" type="Control" groups=["shop_screen"]]
 layout_mode = 3
@@ -163,4 +163,4 @@ unique_name_in_owner = true
 title = "Purchase Failed"
 dialog_text = "Not enough gold!"
 
-[node name="DialogueBox" parent="." instance=ExtResource("2_dialogue_box")]
+[node name="NarrativePresenter" parent="." instance=ExtResource("2_narrative_presenter")]

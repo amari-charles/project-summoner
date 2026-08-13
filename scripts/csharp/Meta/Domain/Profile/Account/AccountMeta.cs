@@ -24,6 +24,9 @@ public class AccountMeta
     [JsonPropertyName("tutorial_flags")]
     public Dictionary<string, bool> TutorialFlags { get; set; } = [];
 
+    [JsonPropertyName("narrative_flags")]
+    public Dictionary<string, bool> NarrativeFlags { get; set; } = [];
+
     /// <summary>Achievement progress.</summary>
     [JsonPropertyName("achievements")]
     public Dictionary<string, object> Achievements { get; set; } = [];

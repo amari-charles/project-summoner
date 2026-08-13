@@ -501,6 +501,52 @@
       "water_practice_choice": "Water practice reward",
       "earth_practice_choice": "Earth practice reward",
       "air_practice_choice": "Air practice reward"
+    },
+    "flow": {
+      "course_rewards": "Course rewards",
+      "none": "None",
+      "reward": "Reward",
+      "rewards": "Rewards: {rewards}",
+      "no_special_rules": "No special deck rules",
+      "rules": "Rules: {rules}",
+      "rewards_visible": "{count} visible offer(s)",
+      "loadout_valid": "Loadout valid",
+      "validation_fixed_deck_empty": "The supplied class deck is empty",
+      "validation_owned_deck_required": "Select an owned deck before starting",
+      "validation_max_cards": "Deck has {current} cards; this activity allows at most {count}",
+      "validation_min_summons": "Needs at least {count} summon card(s); currently {current}",
+      "validation_min_spells": "Needs at least {count} spell card(s); currently {current}",
+      "validation_card_type_not_allowed": "{card} is not an allowed card type",
+      "validation_card_element_not_allowed": "{card} is not an allowed element",
+      "validation_required_card_missing": "Missing required card: {card}",
+      "validation_banned_card": "Contains banned card: {card}",
+      "course": "Course",
+      "battle_loadout": "Battle loadout",
+      "owned_cards": "Owned cards",
+      "save_as_deck": "Save as Deck",
+      "start": "Start",
+      "earned_now": "Earned now",
+      "course_progress": "Course progress",
+      "complete": "Complete",
+      "activity_complete": "Activity complete",
+      "no_course_progress": "No course progress",
+      "role_standard": "Standard",
+      "role_practice": "Practice",
+      "role_assessment": "Assessment",
+      "mode_fixed": "Fixed deck",
+      "mode_owned": "Owned deck",
+      "mode_classloadout": "Class loadout",
+      "state_locked": "Locked",
+      "state_available": "Available",
+      "state_active": "Active",
+      "state_completed": "Completed",
+      "allowed_types": "Allowed card types: {values}",
+      "allowed_elements": "Allowed elements: {values}",
+      "min_summons": "At least {count} summon card(s)",
+      "min_spells": "At least {count} spell card(s)",
+      "max_cards": "At most {count} cards",
+      "required_cards": "Required owned cards: {values}",
+      "banned_cards": "Banned cards: {values}"
     }
   },
   "card": {
@@ -589,7 +635,8 @@
       "back": "Back",
       "cancel": "Cancel",
       "confirm": "Confirm",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "continue": "Continue"
     },
     "pause_menu": {
       "resume": "Resume",
@@ -1789,5 +1836,9 @@
       "name": "Traveler's Cloak",
       "description": "A weathered cloak for long journeys. Grants +25 Max Health."
     }
+  },
+  "narrative": {
+    "skip": "Skip",
+    "remembered_choice": "This choice will be remembered."
   }
 }

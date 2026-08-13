@@ -49,6 +49,18 @@ static func get_academy_courses_for_semester(year: int, semester: int) -> Array:
 static func get_academy_course(course_id: String) -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("GetAcademyCourse", course_id))
 
+static func get_academy_course_flow_state(course_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetAcademyCourseFlowState", course_id))
+
+static func get_academy_activity_preparation_state(course_id: String, activity_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetAcademyActivityPreparationState", course_id, activity_id))
+
+static func update_academy_activity_loadout(course_id: String, activity_id: String, slots: Array[Dictionary]) -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("UpdateAcademyActivityLoadout", course_id, activity_id, slots), false)
+
+static func save_academy_activity_loadout_as_deck(course_id: String, activity_id: String) -> String:
+	return SafeTypeUtils.string(Campaign.call("SaveAcademyActivityLoadoutAsDeck", course_id, activity_id), "")
+
 static func get_academy_activity_launch_state(course_id: String, activity_id: String) -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("GetAcademyActivityLaunchState", course_id, activity_id))
 
@@ -67,8 +79,21 @@ static func enroll_academy_course(course_id: String) -> bool:
 static func complete_academy_course(course_id: String, grade: String = "pass", honors: bool = false) -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("CompleteAcademyCourse", course_id, grade, honors), false)
 
-static func complete_academy_activity(course_id: String, activity_id: String, succeeded: bool = true) -> bool:
-	return SafeTypeUtils.bool_val(Campaign.call("CompleteAcademyActivity", course_id, activity_id, succeeded), false)
+enum AcademyActivityOutcome {
+	VICTORY,
+	DEFEAT,
+	ABANDONED,
+}
+
+static func complete_academy_activity(
+	course_id: String,
+	activity_id: String,
+	outcome: AcademyActivityOutcome = AcademyActivityOutcome.VICTORY
+) -> bool:
+	return SafeTypeUtils.bool_val(
+		Campaign.call("CompleteAcademyActivity", course_id, activity_id, int(outcome)),
+		false
+	)
 
 static func claim_academy_reward(claim_id: String, selected_option_ids: Array[String]) -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("ClaimAcademyReward", claim_id, selected_option_ids))

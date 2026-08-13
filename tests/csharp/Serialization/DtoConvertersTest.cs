@@ -278,7 +278,17 @@ public class DtoConvertersTest
                 RemainingEnrollments = 3,
                 CompletedCourses = [CourseIds.IntroductionToMagic101],
                 EnrolledCourses = [CourseIds.PracticalSpellcraft],
-                OfficialAssessmentsCompleted = ["magic_101_exam"],
+                AssessmentOutcomes = new Dictionary<string, AcademyActivityOutcome>
+                {
+                    ["magic_101_exam"] = AcademyActivityOutcome.Victory,
+                },
+                ActivityLoadouts = new Dictionary<string, AcademyActivityLoadoutState>
+                {
+                    ["practical_spellcraft:practice"] = new AcademyActivityLoadoutState
+                    {
+                        SelectedCardInstanceIds = [new CardInstanceId("card_1")],
+                    },
+                },
                 RewardFlags = new Dictionary<string, int> { ["spellcraft_intro"] = 1 },
                 Transcript =
                 [
@@ -311,7 +321,13 @@ public class DtoConvertersTest
         AssertThat(result.Academy.RemainingEnrollments).IsEqual(3);
         AssertThat(result.Academy.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
         AssertThat(result.Academy.EnrolledCourses).Contains(CourseIds.PracticalSpellcraft);
-        AssertThat(result.Academy.OfficialAssessmentsCompleted).Contains("magic_101_exam");
+        AssertThat(result.Academy.AssessmentOutcomes["magic_101_exam"])
+            .IsEqual(AcademyActivityOutcome.Victory);
+        AssertThat(
+                result.Academy.ActivityLoadouts["practical_spellcraft:practice"]
+                    .SelectedCardInstanceIds
+            )
+            .Contains(new CardInstanceId("card_1"));
         AssertThat(result.Academy.RewardFlags["spellcraft_intro"]).IsEqual(1);
         AssertThat(result.Academy.Transcript).HasSize(1);
         AssertThat(result.Academy.Transcript[0].CourseId).IsEqual(CourseIds.IntroductionToMagic101);
@@ -439,6 +455,7 @@ public class DtoConvertersTest
                 ["intro_completed"] = true,
                 ["combat_tutorial"] = false,
             },
+            NarrativeFlags = new Dictionary<string, bool> { ["merlin_intro"] = true },
             Achievements = new Dictionary<string, object>
             {
                 ["kills"] = 42L,
@@ -457,6 +474,7 @@ public class DtoConvertersTest
         AssertThat(result.AnalyticsOptIn).IsTrue();
         AssertThat(result.TutorialFlags["intro_completed"]).IsTrue();
         AssertThat(result.TutorialFlags["combat_tutorial"]).IsFalse();
+        AssertThat(result.NarrativeFlags["merlin_intro"]).IsTrue();
         // Achievement values preserve their types
         AssertThat((long)result.Achievements["kills"]).IsEqual(42L);
         AssertThat((double)result.Achievements["win_rate"]).IsEqual(0.75);

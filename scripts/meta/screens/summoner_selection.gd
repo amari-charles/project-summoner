@@ -48,11 +48,19 @@ func _ready() -> void:
 
 	# Start Merlin's introduction dialogue
 	await get_tree().process_frame
-	DialogueManager.dialogue_ended.connect(_on_merlin_dialogue_ended)
-	DialogueManager.start_dialogue("merlin_summoner_intro")
+	var director: Node = NarrativeDirectorApi.node()
+	if not director.is_connected("CueCompleted", _on_narrative_cue_completed):
+		director.connect("CueCompleted", _on_narrative_cue_completed)
+	NarrativeDirectorApi.publish_event(
+		NarrativeDirectorApi.EventType.META_MOMENT_STARTED,
+		"onboarding.summoner_selection"
+	)
+	if not NarrativeDirectorApi.is_cue_active_or_queued("onboarding_summoner_intro"):
+		_show_summoner_selection()
 
-func _on_merlin_dialogue_ended() -> void:
-	_show_summoner_selection()
+func _on_narrative_cue_completed(cue_id: String) -> void:
+	if cue_id == "onboarding_summoner_intro":
+		_show_summoner_selection()
 
 func _show_summoner_selection() -> void:
 	select_button1.visible = true

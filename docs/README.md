@@ -1,6 +1,6 @@
 # Fateforged Documentation
 
-**Last Updated:** 2026-03-09
+**Last Updated:** 2026-08-05
 
 This is the central index for all Fateforged documentation. Start here to find what you need.
 
@@ -120,6 +120,8 @@ Major design choices and their rationale.
 
 ### Meta Hub
 - **[Walkable Academy Hub (Discontinued)](design/walkable-academy-hub.md)** - Records the rejected walkable-campus direction and confirms that the Academy remains a fast menu-based hub focused on the forging loop.
+- **[Academy Class Flow](design/academy-class-flow.md)** - Canonical course, preparation, deck-mode, reward, and navigation experience.
+- **[Narrative Director and Dialogue System](design/narrative-dialogue-system.md)** - Canonical narrative orchestration, dialogue, choice, and persistence model.
 
 ---
 

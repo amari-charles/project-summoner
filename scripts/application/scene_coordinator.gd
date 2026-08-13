@@ -22,6 +22,7 @@ signal scene_ready(scene_path: String)
 
 ## Current scene tracking
 var _current_scene_path: String = ""
+var _transition_in_progress: bool = false
 
 ## Debug mode for verbose logging
 var debug_mode: bool = false
@@ -30,6 +31,7 @@ var debug_mode: bool = false
 const INIT_TIMEOUT_SECONDS: float = 10.0
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	if debug_mode:
 		print("SceneCoordinator: Initialized")
 
@@ -40,6 +42,19 @@ func _ready() -> void:
 ## Transition to a new scene with proper cleanup and initialization
 ## This is the preferred way to change scenes in the game.
 func transition_to(scene_path: String) -> void:
+	if _transition_in_progress:
+		return
+	_transition_in_progress = true
+	var director: Node = NarrativeDirectorApi.node()
+	while NarrativeDirectorApi.get_pending_cue_count() > 0:
+		await Signal(director, "CueCompleted")
+	_perform_transition(scene_path)
+
+func force_transition_to(scene_path: String) -> void:
+	NarrativeDirectorApi.cancel_active_cue()
+	_perform_transition(scene_path)
+
+func _perform_transition(scene_path: String) -> void:
 	var old_scene: String = _current_scene_path
 
 	if debug_mode:
@@ -64,6 +79,7 @@ func transition_to(scene_path: String) -> void:
 	# 4. Wait for scene's coordinator (if it has one)
 	# Use call_deferred to ensure we're after the scene change
 	call_deferred("_wait_for_scene_coordinator", scene_path)
+	_transition_in_progress = false
 
 ## Get current scene path
 func get_current_scene() -> String:
@@ -77,18 +93,6 @@ func get_current_scene() -> String:
 func _cleanup_persistent_state() -> void:
 	if debug_mode:
 		print("SceneCoordinator: Cleaning up persistent state...")
-
-	# Reset event sequencer (clears any running sequences)
-	if EventSequencer:
-		EventSequencer.reset()
-		if debug_mode:
-			print("  - Reset EventSequencer")
-
-	# Reset dialogue manager (clears UI registration, dialogue state)
-	if DialogueManager:
-		DialogueManager.reset()
-		if debug_mode:
-			print("  - Reset DialogueManager")
 
 	# Note: BattleContext is NOT reset here
 	# It's configured BEFORE scene transition by the caller (CampaignMap, etc.)

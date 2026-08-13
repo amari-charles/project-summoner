@@ -1,10 +1,12 @@
 # Academy Activity Limitations Plan
 
-**Status:** PASS 3 COMPLETE (Implementation + Tests)
+**Status:** SUPERSEDED
 **Initiative:** `academy-activity-limitations`
 **Domain:** `meta`
 **Last Updated:** `2026-06-18`
 **Owner:** `Codex + user`
+
+> Historical plan only. Its layered limitation/loaner model and Course Path UX were replaced by the canonical typed loadout architecture in [academy-class-flow-overhaul-plan.md](academy-class-flow-overhaul-plan.md). Do not use this document as current implementation guidance.
 
 ## Summary
 

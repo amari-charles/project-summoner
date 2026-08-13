@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://event_screen"]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/event_screen.gd" id="1_event"]
-[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/shared/dialogue_box.tscn" id="2_dialogue_box"]
+[ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2_narrative_presenter"]
 
 [node name="EventScreen" type="Control" groups=["event_screen"]]
 layout_mode = 3
@@ -21,4 +21,4 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.1, 0.1, 0.15, 1)
 
-[node name="DialogueBox" parent="." instance=ExtResource("2_dialogue_box")]
+[node name="NarrativePresenter" parent="." instance=ExtResource("2_narrative_presenter")]

@@ -114,7 +114,7 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_limitations_stub_fields");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        SetActiveDeck(repo, "Spellcraft Deck", CardIds.Charge);
+        SetClassLoadout(repo, service, CourseIds.PracticalSpellcraft, "practical_spellcraft_practice", CardIds.Charge);
 
         var course = service.GetAcademyCourse((string)CourseIds.PracticalSpellcraft);
         var activities = course["activities"].AsGodotArray();
@@ -122,18 +122,18 @@ public class AcademyProgressServiceTest
             .Select(item => item.AsGodotDictionary())
             .First(activity => activity["id"].AsString() == "practical_spellcraft_practice");
 
-        var limitations = practice["limitations"].AsGodotDictionary();
-        AssertThat(limitations["has_rules"].AsBool()).IsTrue();
-        AssertThat(limitations["min_summons"].AsInt32()).IsEqual(1);
-        AssertThat(limitations["min_spells"].AsInt32()).IsEqual(2);
-        AssertThat(limitations["max_deck_size"].AsInt32()).IsEqual(12);
-        AssertThat(limitations["additional_loaner_cards"].AsGodotArray()).HasSize(2);
+        var loadout = practice["loadout"].AsGodotDictionary();
+        var rules = loadout["rules"].AsGodotDictionary();
+        AssertThat(rules["has_rules"].AsBool()).IsTrue();
+        AssertThat(rules["min_summons"].AsInt32()).IsEqual(1);
+        AssertThat(rules["min_spells"].AsInt32()).IsEqual(2);
+        AssertThat(rules["max_deck_size"].AsInt32()).IsEqual(12);
+        AssertThat(loadout["supplied_cards"].AsGodotArray()).HasSize(2);
 
-        AssertThat(practice["limitation_summary"].AsGodotArray()).IsNotEmpty();
         var deckValidation = practice["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsTrue();
         AssertThat(deckValidation["status"].AsString()).IsEqual("valid");
-        AssertThat(practice["invalid_reasons"].AsGodotArray()).IsEmpty();
+        AssertThat(deckValidation["issues"].AsGodotArray()).IsEmpty();
     }
 
     [TestCase]
@@ -142,6 +142,13 @@ public class AcademyProgressServiceTest
         var repo = CreateRepo("academy_activity_limitations_launch_state");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
         var deckId = SetActiveDeck(repo, "Spellcraft Deck", CardIds.Charge);
+        SelectActiveDeckAsClassLoadout(
+            repo,
+            service,
+            CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            deckId
+        );
 
         var state = service.GetAcademyActivityLaunchState(
             (string)CourseIds.PracticalSpellcraft,
@@ -149,7 +156,11 @@ public class AcademyProgressServiceTest
         );
 
         AssertThat(state["id"].AsString()).IsEqual("practical_spellcraft_practice");
-        AssertThat(state["limitations"].AsGodotDictionary()["has_rules"].AsBool()).IsTrue();
+        AssertThat(
+                state["loadout"].AsGodotDictionary()["rules"].AsGodotDictionary()["has_rules"]
+                    .AsBool()
+            )
+            .IsTrue();
         AssertThat(state["deck_validation"].AsGodotDictionary()["is_valid"].AsBool()).IsTrue();
         AssertThat(state["selected_deck"].AsGodotDictionary()["id"].AsString()).IsEqual(deckId);
     }
@@ -190,19 +201,9 @@ public class AcademyProgressServiceTest
         AssertThat(deckValidation["status"].AsString()).IsEqual("invalid");
         AssertThat(state["can_start"].AsBool()).IsFalse();
 
-        var reasons = deckValidation["invalid_reasons"].AsGodotArray();
-        AssertThat(
-                reasons
-                    .Select(reason => reason.AsString())
-                    .Any(reason => reason.Contains("spell card"))
-            )
-            .IsTrue();
-        AssertThat(
-                reasons
-                    .Select(reason => reason.AsString())
-                    .Any(reason => reason.Contains("required card"))
-            )
-            .IsTrue();
+        var issueCodes = ValidationIssueCodes(deckValidation);
+        AssertThat(issueCodes).Contains("min_spells");
+        AssertThat(issueCodes).Contains("required_card_missing");
 
         AssertThat(
                 service.ResolveAcademyActivityBattleConfig(
@@ -228,12 +229,9 @@ public class AcademyProgressServiceTest
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
 
-        var reasons = deckValidation["invalid_reasons"]
-            .AsGodotArray()
-            .Select(reason => reason.AsString())
-            .ToArray();
-        AssertThat(reasons.Any(reason => reason.Contains("allowed card type"))).IsTrue();
-        AssertThat(reasons.Any(reason => reason.Contains("banned card"))).IsTrue();
+        var issueCodes = ValidationIssueCodes(deckValidation);
+        AssertThat(issueCodes).Contains("card_type_not_allowed");
+        AssertThat(issueCodes).Contains("banned_card");
     }
 
     [TestCase]
@@ -249,13 +247,7 @@ public class AcademyProgressServiceTest
 
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
-        AssertThat(
-                deckValidation["invalid_reasons"]
-                    .AsGodotArray()
-                    .Select(reason => reason.AsString())
-                    .Any(reason => reason.Contains("active deck"))
-            )
-            .IsTrue();
+        AssertThat(deckValidation["issues"].AsGodotArray()).IsNotEmpty();
         AssertThat(
                 service.ResolveAcademyActivityBattleConfig(
                     (string)CourseIds.SummoningBasics,
@@ -270,7 +262,19 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_limitations_element_rule");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        SetActiveDeck(repo, "Wrong Element Deck", CardIds.WaterWisp, CardIds.NeutralStarterUnit);
+        var wrongElementDeckId = SetActiveDeck(
+            repo,
+            "Wrong Element Deck",
+            CardIds.WaterWisp,
+            CardIds.NeutralStarterUnit
+        );
+        SelectActiveDeckAsClassLoadout(
+            repo,
+            service,
+            CourseIds.IntroToFire,
+            "intro_fire_practice",
+            wrongElementDeckId
+        );
 
         var state = service.GetAcademyActivityLaunchState(
             (string)CourseIds.IntroToFire,
@@ -280,11 +284,7 @@ public class AcademyProgressServiceTest
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
 
-        var reasons = deckValidation["invalid_reasons"]
-            .AsGodotArray()
-            .Select(reason => reason.AsString())
-            .ToArray();
-        AssertThat(reasons.Any(reason => reason.Contains("allowed element"))).IsTrue();
+        AssertThat(ValidationIssueCodes(deckValidation)).Contains("card_element_not_allowed");
     }
 
     [TestCase]
@@ -292,10 +292,17 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_limitations_max_size");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        SetActiveDeck(
+        var oversizedDeckId = SetActiveDeck(
             repo,
             "Oversized Spellcraft Deck",
             Enumerable.Repeat(CardIds.Charge, 12).ToArray()
+        );
+        SelectActiveDeckAsClassLoadout(
+            repo,
+            service,
+            CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            oversizedDeckId
         );
 
         var state = service.GetAcademyActivityLaunchState(
@@ -305,13 +312,7 @@ public class AcademyProgressServiceTest
 
         var deckValidation = state["deck_validation"].AsGodotDictionary();
         AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
-        AssertThat(
-                deckValidation["invalid_reasons"]
-                    .AsGodotArray()
-                    .Select(reason => reason.AsString())
-                    .Any(reason => reason.Contains("at most 12"))
-            )
-            .IsTrue();
+        AssertThat(ValidationIssueCodes(deckValidation)).Contains("max_cards");
     }
 
     [TestCase]
@@ -319,7 +320,7 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_limitations_composed_deck");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        SetActiveDeck(repo, "Mixed Spellcraft Deck", CardIds.FireWisp, CardIds.Charge);
+        SetClassLoadout(repo, service, CourseIds.PracticalSpellcraft, "practical_spellcraft_practice", CardIds.FireWisp, CardIds.Charge);
 
         var config = service.ResolveAcademyActivityBattleConfig(
             (string)CourseIds.PracticalSpellcraft,
@@ -349,7 +350,7 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_limitations_deterministic");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        SetActiveDeck(repo, "Deterministic Spellcraft Deck", CardIds.FireWisp, CardIds.Charge);
+        SetClassLoadout(repo, service, CourseIds.PracticalSpellcraft, "practical_spellcraft_practice", CardIds.FireWisp, CardIds.Charge);
 
         var first = ResolvedPlayerCardSignature(
             service.ResolveAcademyActivityBattleConfig(
@@ -365,7 +366,7 @@ public class AcademyProgressServiceTest
         );
 
         AssertThat(first).IsEqual(second);
-        AssertThat(first).IsEqual("fire_wisp:1|charge:1|neutral_starter_unit:1|magic_bolt:1");
+        AssertThat(first).IsEqual("neutral_starter_unit:1|magic_bolt:1|fire_wisp:1|charge:1");
     }
 
     [TestCase]
@@ -502,30 +503,17 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void AcademyBattleConfig_WhenLoanerDeckAuthored_SerializesPlayerDeckOverride()
+    public void AcademyBattleConfig_WithoutResolvedLoadout_DoesNotSerializePlayerDeck()
     {
         var battleConfig = new AcademyBattleConfig
         {
-            LoanerPlayerDeck = [new DeckEntry(CardIds.Puff, 2), new DeckEntry(CardIds.ManaBolt, 1)],
             EnemyDeck = [new DeckEntry(CardIds.FireWisp, 1)],
             EnemyHp = 30f,
         };
 
         var dict = AcademyProgressHandler.ToBattleConfigDict(battleConfig);
 
-        AssertThat(dict.ContainsKey("player_side")).IsTrue();
-
-        var playerSide = dict["player_side"].AsGodotDictionary();
-        var playerDeck = playerSide["deck"].AsGodotDictionary();
-        var loanerDeck = playerDeck["cards"].AsGodotArray();
-        AssertThat(loanerDeck).HasSize(2);
-
-        var first = loanerDeck[0].AsGodotDictionary();
-        var second = loanerDeck[1].AsGodotDictionary();
-        AssertThat(first["catalog_id"].AsString()).IsEqual((string)CardIds.Puff);
-        AssertThat(first["count"].AsInt32()).IsEqual(2);
-        AssertThat(second["catalog_id"].AsString()).IsEqual((string)CardIds.ManaBolt);
-        AssertThat(second["count"].AsInt32()).IsEqual(1);
+        AssertThat(dict.ContainsKey("player_side")).IsFalse();
     }
 
     [TestCase]
@@ -658,7 +646,8 @@ public class AcademyProgressServiceTest
         var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
         AssertThat(progress.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
         AssertThat(progress.EnrolledCourses.Contains(CourseIds.IntroductionToMagic101)).IsFalse();
-        AssertThat(progress.OfficialAssessmentsCompleted).Contains("magic_101_assessment");
+        AssertThat(progress.AssessmentOutcomes["magic_101_assessment"])
+            .IsEqual(AcademyActivityOutcome.Victory);
         AssertThat(progress.Transcript).HasSize(1);
         AssertThat(repo.GetCardCount(CardIds.Puff)).IsEqual(0);
         AssertThat(repo.GetCardCount(CardIds.ManaBolt)).IsEqual(0);
@@ -720,7 +709,9 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(service.GetLastAcademyCompletionSummary()).IsEmpty();
+        var replaySummary = service.GetLastAcademyCompletionSummary();
+        AssertThat(replaySummary["outcome"].AsString()).IsEqual("Victory");
+        AssertThat(replaySummary["granted_rewards"].AsGodotArray()).IsEmpty();
     }
 
     [TestCase]
@@ -763,15 +754,95 @@ public class AcademyProgressServiceTest
                 service.CompleteAcademyActivity(
                     (string)CourseIds.IntroductionToMagic101,
                     "magic_101_basic_duel",
-                    false
+                    (int)AcademyActivityOutcome.Defeat
                 )
             )
-            .IsFalse();
+            .IsTrue();
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
         AssertThat(progress.CourseActivityIndex[(string)CourseIds.IntroductionToMagic101])
             .IsEqual(1);
         AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(cardCountBefore);
+    }
+
+    [TestCase]
+    public void CompleteAcademyActivity_DefeatedAssessmentRecordsPermanentOutcomeAndAdvances()
+    {
+        var repo = CreateRepo("academy_assessment_defeat");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        CompleteIntroPracticeActivities(service);
+        var neutralBefore = repo.GetCardCount(CardIds.NeutralStarterUnit);
+
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_assessment",
+                    (int)AcademyActivityOutcome.Defeat
+                )
+            )
+            .IsTrue();
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
+        AssertThat(progress.AssessmentOutcomes["magic_101_assessment"])
+            .IsEqual(AcademyActivityOutcome.Defeat);
+        AssertThat(progress.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
+        AssertThat(progress.Transcript[0].Grade).IsEqual("fail");
+        AssertThat(repo.GetCardCount(CardIds.NeutralStarterUnit)).IsEqual(neutralBefore);
+    }
+
+    [TestCase]
+    public void CompleteAcademyActivity_AbandonedAssessmentRecordsPermanentOutcome()
+    {
+        var repo = CreateRepo("academy_assessment_abandoned");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        CompleteIntroPracticeActivities(service);
+
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_assessment",
+                    (int)AcademyActivityOutcome.Abandoned
+                )
+            )
+            .IsTrue();
+        AssertThat(
+                repo.GetCampaignProgress(SummonerIds.Cole)
+                    .Academy.AssessmentOutcomes["magic_101_assessment"]
+            )
+            .IsEqual(AcademyActivityOutcome.Abandoned);
+    }
+
+    [TestCase]
+    public void ClassLoadout_PersistsIndependentlyAndOnlyCreatesDeckOnExplicitSave()
+    {
+        var repo = CreateRepo("academy_class_loadout_persistence");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        var initialDeckCount = repo.ListDecks().Length;
+        var selectedDeck = SetActiveDeck(repo, "Selection Source", CardIds.Charge);
+        SelectActiveDeckAsClassLoadout(
+            repo,
+            service,
+            CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            selectedDeck
+        );
+        AssertThat(repo.ListDecks()).HasSize(initialDeckCount + 1);
+
+        var reloadedService = CreateCampaignService(repo, SummonerIds.Cole);
+        var state = reloadedService.GetAcademyActivityLaunchState(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice"
+        );
+        AssertThat(
+                state["loadout"].AsGodotDictionary()["selected_cards"].AsGodotArray()
+            )
+            .HasSize(1);
+        var savedId = reloadedService.SaveAcademyActivityLoadoutAsDeck(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice"
+        );
+        AssertThat(savedId).IsNotEmpty();
+        AssertThat(repo.ListDecks()).HasSize(initialDeckCount + 2);
     }
 
     [TestCase]
@@ -934,6 +1005,33 @@ public class AcademyProgressServiceTest
         return deckId.Value;
     }
 
+    private static void SetClassLoadout(
+        ProfileRepository repo,
+        CampaignService service,
+        CourseId courseId,
+        string activityId,
+        params CardId[] catalogIds
+    )
+    {
+        var deckId = SetActiveDeck(repo, $"{activityId} cards", catalogIds);
+        SelectActiveDeckAsClassLoadout(repo, service, courseId, activityId, deckId);
+    }
+
+    private static void SelectActiveDeckAsClassLoadout(
+        ProfileRepository repo,
+        CampaignService service,
+        CourseId courseId,
+        string activityId,
+        string deckId
+    )
+    {
+        var slots = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var instanceId in repo.GetDeck(DeckId.FromString(deckId))!.CardInstanceIds)
+            slots.Add(new Godot.Collections.Dictionary { ["card_instance_id"] = instanceId.Value });
+        AssertThat(service.UpdateAcademyActivityLoadout((string)courseId, activityId, slots))
+            .IsTrue();
+    }
+
     private static string ResolvedPlayerCardSignature(Godot.Collections.Dictionary config)
     {
         var cards = config["player_side"]
@@ -948,7 +1046,25 @@ public class AcademyProgressServiceTest
         return string.Join("|", cards);
     }
 
+    private static string[] ValidationIssueCodes(Godot.Collections.Dictionary validation) =>
+        validation["issues"]
+            .AsGodotArray()
+            .Select(issue => issue.AsGodotDictionary()["code"].AsString())
+            .ToArray();
+
     private static void CompleteIntroCourse(CampaignService service)
+    {
+        CompleteIntroPracticeActivities(service);
+        AssertThat(
+                service.CompleteAcademyActivity(
+                    (string)CourseIds.IntroductionToMagic101,
+                    "magic_101_assessment"
+                )
+            )
+            .IsTrue();
+    }
+
+    private static void CompleteIntroPracticeActivities(CampaignService service)
     {
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -971,13 +1087,6 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(
-                service.CompleteAcademyActivity(
-                    (string)CourseIds.IntroductionToMagic101,
-                    "magic_101_assessment"
-                )
-            )
-            .IsTrue();
     }
 
     private static void CompleteCourseActivities(
@@ -986,8 +1095,6 @@ public class AcademyProgressServiceTest
         string activityPrefix
     )
     {
-        AssertThat(service.CompleteAcademyActivity((string)courseId, $"{activityPrefix}_lesson"))
-            .IsTrue();
         AssertThat(service.CompleteAcademyActivity((string)courseId, $"{activityPrefix}_practice"))
             .IsTrue();
         AssertThat(

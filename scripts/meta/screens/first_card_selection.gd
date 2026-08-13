@@ -18,8 +18,10 @@ func _ready() -> void:
 
 	# Start Merlin's introduction dialogue (buttons visible alongside dialogue)
 	await get_tree().process_frame
-	if DialogueManager.has_method("start_dialogue"):
-		DialogueManagerApi.start_dialogue("merlin_first_card_intro")
+	NarrativeDirectorApi.publish_event(
+		NarrativeDirectorApi.EventType.META_MOMENT_STARTED,
+		"onboarding.first_card_selection"
+	)
 
 func _on_card_selected(catalog_id: StringName) -> void:
 	# Grant the chosen card to collection

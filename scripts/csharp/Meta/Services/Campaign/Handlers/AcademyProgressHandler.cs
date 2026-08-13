@@ -8,11 +8,14 @@ using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Rewards;
 using Godot;
+using DeckModel = Fateforged.Domain.Profile.Decks.Deck;
 
 namespace Fateforged.Meta.Campaign.Handlers;
 
@@ -100,20 +103,112 @@ public class AcademyProgressHandler
         );
     }
 
+    public bool UpdateActivityLoadout(
+        string courseId,
+        string activityId,
+        Godot.Collections.Array<Godot.Collections.Dictionary> slots
+    )
+    {
+        var located = FindActivity(courseId, activityId);
+        if (located.activity == null || located.course == null)
+            return false;
+        if (located.activity.Loadout.Mode != AcademyDeckMode.ClassLoadout)
+            return false;
+
+        var summonerId = _getActiveSummonerFunc();
+        if (!summonerId.HasValue)
+            return false;
+
+        var selected = new List<CardInstanceId>();
+        foreach (var slot in slots)
+        {
+            var instanceId = CardInstanceId.FromString(
+                slot.GetValueOrDefault("card_instance_id", "").AsString()
+            );
+            if (!instanceId.HasValue || selected.Contains(instanceId))
+                return false;
+            var card = _profileRepo.GetCard(instanceId);
+            if (
+                card == null
+                || (card.BoundToSummonerId.HasValue && card.BoundToSummonerId != summonerId)
+            )
+                return false;
+            selected.Add(instanceId);
+        }
+
+        var progress = GetOrCreateProgress();
+        progress.Academy.ActivityLoadouts[ActivityLoadoutKey(located.course.Id, activityId)] =
+            new AcademyActivityLoadoutState { SelectedCardInstanceIds = selected };
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+        return true;
+    }
+
+    public string SaveActivityLoadoutAsDeck(string courseId, string activityId)
+    {
+        var located = FindActivity(courseId, activityId);
+        if (located.activity == null || located.course == null)
+            return "";
+        if (located.activity.Loadout.Mode != AcademyDeckMode.ClassLoadout)
+            return "";
+
+        var summonerId = _getActiveSummonerFunc();
+        if (!summonerId.HasValue)
+            return "";
+
+        var progress = GetOrCreateProgress();
+        var selected = GetSelectedInstanceIds(located.course.Id, located.activity, progress.Academy);
+        var available = _profileRepo.ListCards().Where(card =>
+            !card.BoundToSummonerId.HasValue || card.BoundToSummonerId == summonerId
+        );
+        var remaining = available.ToList();
+        foreach (var supplied in located.activity.Loadout.SuppliedCards)
+        {
+            for (var i = 0; i < supplied.Count; i++)
+            {
+                var owned = remaining.FirstOrDefault(card => card.CatalogId == supplied.CardId);
+                if (owned == null)
+                    continue;
+                selected.Add(owned.Id);
+                remaining.Remove(owned);
+            }
+        }
+
+        var id = _profileRepo.UpsertDeck(
+            new DeckModel
+            {
+                Id = DeckId.None,
+                ProfileId = _profileRepo.GetCurrentProfileId(),
+                SummonerId = summonerId,
+                Name = $"{located.course.Id} Loadout",
+                CardInstanceIds = selected,
+                UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            }
+        );
+        if (!id.HasValue)
+            return "";
+        _profileRepo.UpdateProfileMeta(new MetaUpdate { SelectedDeck = id.Value });
+        return id.Value;
+    }
+
     public Godot.Collections.Dictionary ResolveActivityBattleConfig(
         string courseId,
         string activityId
     )
     {
         var located = FindActivity(courseId, activityId);
-        if (located.activity == null)
+        if (located.activity == null || located.course == null)
             return [];
 
-        var validation = ValidateDeckForActivity(located.activity);
+        var academy = GetOrCreateProgress().Academy;
+        var validation = ValidateDeckForActivity(located.course.Id, located.activity, academy);
         if (!validation.IsValid)
             return [];
 
-        var resolvedPlayerDeck = ResolvePlayerDeckForActivity(located.activity);
+        var resolvedPlayerDeck = ResolvePlayerDeckForActivity(
+            located.course.Id,
+            located.activity,
+            academy
+        );
         return ToBattleConfigDict(located.activity.BattleConfig, resolvedPlayerDeck);
     }
 
@@ -146,7 +241,11 @@ public class AcademyProgressHandler
         return true;
     }
 
-    public bool CompleteActivity(string courseId, string activityId, bool succeeded = true)
+    public bool CompleteActivity(
+        string courseId,
+        string activityId,
+        AcademyActivityOutcome outcome = AcademyActivityOutcome.Victory
+    )
     {
         ClearLastCompletionSummary();
 
@@ -175,24 +274,45 @@ public class AcademyProgressHandler
             return false;
 
         if (activityIndex < currentIndex)
-            return succeeded && activity.Repeatable;
+        {
+            if (activity.Role != AcademyActivityRole.Practice)
+                return false;
+            SetLastCompletionSummary(
+                course.Id,
+                activity.Id,
+                outcome,
+                academy.CompletedCourses.Contains(course.Id),
+                []
+            );
+            return true;
+        }
 
-        if (!succeeded)
-            return false;
+        var advances = outcome == AcademyActivityOutcome.Victory
+            || activity.Role == AcademyActivityRole.Assessment;
+        if (!advances)
+        {
+            SetLastCompletionSummary(course.Id, activity.Id, outcome, false, []);
+            return true;
+        }
 
         if (HasPendingRewardForCourse(course.Id))
             return false;
 
-        if (
-            !TryEarnOffers(
-                course,
-                activity.Id,
-                activity.RewardOffers,
-                out var grantedRewards,
-                out var hasPending
+        var grantedRewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        var hasPending = false;
+        if (outcome == AcademyActivityOutcome.Victory)
+        {
+            if (
+                !TryEarnOffers(
+                    course,
+                    activity.Id,
+                    activity.RewardOffers,
+                    out grantedRewards,
+                    out hasPending
+                )
             )
-        )
-            return false;
+                return false;
+        }
 
         // Reward commits replace the repository's profile snapshot atomically. Refresh
         // progression before applying the activity state change so targeted campaign
@@ -200,13 +320,10 @@ public class AcademyProgressHandler
         campaignProgress = GetOrCreateProgress();
         academy = campaignProgress.Academy;
 
-        if (
-            activity.IsOfficialAssessment
-            && !academy.OfficialAssessmentsCompleted.Contains(activity.Id)
-        )
-        {
-            academy.OfficialAssessmentsCompleted.Add(activity.Id);
-        }
+        if (activity.Role == AcademyActivityRole.Assessment)
+            academy.AssessmentOutcomes[activity.Id] = outcome;
+
+        academy.ActivityLoadouts.Remove(ActivityLoadoutKey(course.Id, activity.Id));
 
         var nextIndex = currentIndex + 1;
 
@@ -219,6 +336,7 @@ public class AcademyProgressHandler
                 SetLastCompletionSummary(
                     course.Id,
                     activity.Id,
+                    outcome,
                     completedCourse: false,
                     grantedRewards: grantedRewards
                 );
@@ -226,11 +344,12 @@ public class AcademyProgressHandler
             }
             return CompleteCourseInternal(
                 courseId,
-                grade: "pass",
+                grade: outcome == AcademyActivityOutcome.Victory ? "pass" : "fail",
                 honors: false,
                 resetSummary: false,
                 existingRewards: grantedRewards,
-                completedActivityId: activity.Id
+                completedActivityId: activity.Id,
+                completedActivityOutcome: outcome
             );
         }
 
@@ -239,6 +358,7 @@ public class AcademyProgressHandler
         SetLastCompletionSummary(
             course.Id,
             activity.Id,
+            outcome,
             completedCourse: false,
             grantedRewards: grantedRewards
         );
@@ -253,7 +373,8 @@ public class AcademyProgressHandler
             honors,
             resetSummary: true,
             existingRewards: [],
-            completedActivityId: ""
+            completedActivityId: "",
+            completedActivityOutcome: AcademyActivityOutcome.Victory
         );
     }
 
@@ -263,7 +384,8 @@ public class AcademyProgressHandler
         bool honors,
         bool resetSummary,
         Godot.Collections.Array<Godot.Collections.Dictionary> existingRewards,
-        string completedActivityId
+        string completedActivityId,
+        AcademyActivityOutcome completedActivityOutcome
     )
     {
         if (resetSummary)
@@ -285,6 +407,7 @@ public class AcademyProgressHandler
             SetLastCompletionSummary(
                 course.Id,
                 completedActivityId,
+                completedActivityOutcome,
                 completedCourse: true,
                 grantedRewards: existingRewards
             );
@@ -321,6 +444,7 @@ public class AcademyProgressHandler
             SetLastCompletionSummary(
                 course.Id,
                 completedActivityId,
+                completedActivityOutcome,
                 completedCourse: false,
                 grantedRewards: pendingGrantedRewards
             );
@@ -351,6 +475,7 @@ public class AcademyProgressHandler
         SetLastCompletionSummary(
             course.Id,
             completedActivityId,
+            completedActivityOutcome,
             completedCourse: true,
             grantedRewards: grantedRewards
         );
@@ -659,28 +784,36 @@ public class AcademyProgressHandler
         var isLocked =
             !courseCompleted
             && (!courseEnrolled || activityIndex > currentIndex || hasPendingReward);
-        var deckValidation = ValidateDeckForActivity(activity);
+        var deckValidation = ValidateDeckForActivity(course.Id, activity, academy);
         var canStart =
             courseEnrolled
-            && (isCurrent || (isCompleted && activity.Repeatable))
+            && (isCurrent || (isCompleted && activity.Role == AcademyActivityRole.Practice))
             && !hasPendingReward
             && deckValidation.IsValid;
+        var lifecycleState = isCompleted
+            ? AcademyActivityLifecycleState.Completed
+            : isLocked
+                ? AcademyActivityLifecycleState.Locked
+                : isCurrent
+                    ? AcademyActivityLifecycleState.Active
+                    : AcademyActivityLifecycleState.Available;
 
         return new Godot.Collections.Dictionary
         {
             ["id"] = activity.Id,
-            ["type"] = activity.Type.ToString(),
+            ["execution_kind"] = activity.ExecutionKind.ToString(),
+            ["role"] = activity.Role.ToString(),
+            ["encounter_style"] = activity.EncounterStyle.ToString(),
+            ["deck_mode"] = activity.Loadout.Mode.ToString(),
+            ["lifecycle_state"] = lifecycleState.ToString(),
             ["label_key"] = activity.LabelKey,
-            ["is_official_assessment"] = activity.IsOfficialAssessment,
-            ["repeatable"] = activity.Repeatable,
+            ["repeatable"] = activity.Role == AcademyActivityRole.Practice,
             ["is_completed"] = isCompleted,
             ["is_current"] = isCurrent,
             ["is_locked"] = isLocked,
             ["can_start"] = canStart,
-            ["limitations"] = ToLimitationsDict(activity.Limitations),
-            ["limitation_summary"] = ToLimitationSummaryArray(activity.Limitations),
-            ["deck_validation"] = ToDeckValidationDict(deckValidation, activity.Limitations),
-            ["invalid_reasons"] = ToStringArray(deckValidation.InvalidReasons),
+            ["loadout"] = ToLoadoutDict(course.Id, activity, academy),
+            ["deck_validation"] = ToDeckValidationDict(deckValidation, activity.Loadout.Rules),
             ["battle_config"] = ToBattleConfigDict(activity.BattleConfig),
             ["reward_previews"] = ToUniversalOfferPreviewArray(
                 course,
@@ -732,7 +865,7 @@ public class AcademyProgressHandler
             ["enemy_side"] = ToEnemySideDict(battleConfig),
         };
 
-        var playerDeck = resolvedPlayerDeck ?? battleConfig.LoanerPlayerDeck;
+        var playerDeck = resolvedPlayerDeck ?? [];
         if (playerDeck.Count > 0)
         {
             dict["player_side"] = new Godot.Collections.Dictionary
@@ -752,107 +885,125 @@ public class AcademyProgressHandler
         return dict;
     }
 
-    private static Godot.Collections.Dictionary ToLimitationsDict(
-        AcademyActivityLimitations limitations
-    ) =>
-        new()
-        {
-            ["has_rules"] = limitations.HasRules,
-            ["fixed_class_deck"] = ToDeckEntriesArray(limitations.FixedClassDeck),
-            ["additional_loaner_cards"] = ToDeckEntriesArray(limitations.AdditionalLoanerCards),
-            ["allowed_card_types"] = ToStringArray(
-                limitations.AllowedCardTypes.Select(type => type.ToString())
-            ),
-            ["allowed_elements"] = ToStringArray(
-                limitations.AllowedElements.Select(element => element.ToString())
-            ),
-            ["min_summons"] = limitations.MinSummons,
-            ["min_spells"] = limitations.MinSpells,
-            ["max_deck_size"] = limitations.MaxDeckSize,
-            ["required_cards"] = ToCardIdArray(limitations.RequiredCards),
-            ["banned_cards"] = ToCardIdArray(limitations.BannedCards),
-        };
-
-    private static Godot.Collections.Array<string> ToLimitationSummaryArray(
-        AcademyActivityLimitations limitations
+    private Godot.Collections.Dictionary ToLoadoutDict(
+        CourseId courseId,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
     )
     {
-        var summaries = new Godot.Collections.Array<string>();
-        if (!limitations.HasRules)
-            return summaries;
-
-        if (limitations.FixedClassDeck.Count > 0)
-            summaries.Add("Uses a fixed class deck.");
-        if (limitations.AdditionalLoanerCards.Count > 0)
-            summaries.Add("Adds temporary class loaner cards.");
-        if (limitations.AllowedCardTypes.Count > 0)
-            summaries.Add(
-                $"Allowed card types: {string.Join(", ", limitations.AllowedCardTypes)}."
+        var selectedIds = GetSelectedInstanceIds(courseId, activity, academy);
+        var selectedCards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var instanceId in selectedIds)
+        {
+            var card = _profileRepo.GetCard(instanceId);
+            if (card == null)
+                continue;
+            selectedCards.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["card_instance_id"] = instanceId.Value,
+                    ["card_id"] = card.CatalogId.Value,
+                    ["locked"] = false,
+                }
             );
-        if (limitations.AllowedElements.Count > 0)
-            summaries.Add($"Allowed elements: {string.Join(", ", limitations.AllowedElements)}.");
-        if (limitations.MinSummons > 0)
-            summaries.Add($"Requires at least {limitations.MinSummons} summon card(s).");
-        if (limitations.MinSpells > 0)
-            summaries.Add($"Requires at least {limitations.MinSpells} spell card(s).");
-        if (limitations.MaxDeckSize > 0)
-            summaries.Add($"Deck size cap: {limitations.MaxDeckSize} card(s).");
-        if (limitations.RequiredCards.Count > 0)
-            summaries.Add("Requires specific teaching cards.");
-        if (limitations.BannedCards.Count > 0)
-            summaries.Add("Bans specific cards for this activity.");
+        }
 
-        return summaries;
+        var availableCards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        var summonerId = _getActiveSummonerFunc();
+        foreach (
+            var card in _profileRepo
+                .ListCards()
+                .Where(card =>
+                    !card.BoundToSummonerId.HasValue || card.BoundToSummonerId == summonerId
+                )
+                .OrderBy(card => card.CatalogId.Value, StringComparer.Ordinal)
+                .ThenBy(card => card.Id.Value, StringComparer.Ordinal)
+        )
+        {
+            availableCards.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["card_instance_id"] = card.Id.Value,
+                    ["card_id"] = card.CatalogId.Value,
+                    ["selected"] = selectedIds.Contains(card.Id),
+                }
+            );
+        }
+
+        return new Godot.Collections.Dictionary
+        {
+            ["mode"] = activity.Loadout.Mode.ToString(),
+            ["supplied_cards"] = ToDeckEntriesArray(activity.Loadout.SuppliedCards),
+            ["selected_cards"] = selectedCards,
+            ["available_cards"] = availableCards,
+            ["rules"] = ToRulesDict(activity.Loadout.Rules),
+        };
     }
 
-    private AcademyDeckValidationResult ValidateDeckForActivity(AcademyCourseActivity activity)
-    {
-        var limitations = activity.Limitations;
-        if (!limitations.HasRules)
-            return AcademyDeckValidationResult.Valid(
-                "unrestricted",
-                "No activity-specific deck rules."
-            );
+    private static Godot.Collections.Dictionary ToRulesDict(AcademyDeckRules rules) =>
+        new()
+        {
+            ["has_rules"] = rules.HasRules,
+            ["allowed_card_types"] = ToStringArray(
+                rules.AllowedCardTypes.Select(type => type.ToString())
+            ),
+            ["allowed_elements"] = ToStringArray(
+                rules.AllowedElements.Select(element => element.ToString())
+            ),
+            ["min_summons"] = rules.MinSummons,
+            ["min_spells"] = rules.MinSpells,
+            ["max_deck_size"] = rules.MaxDeckSize,
+            ["required_owned_cards"] = ToCardIdArray(rules.RequiredOwnedCards),
+            ["banned_cards"] = ToCardIdArray(rules.BannedCards),
+        };
 
-        var reasons = new List<string>();
+    private AcademyDeckValidationResult ValidateDeckForActivity(
+        CourseId courseId,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
+    )
+    {
+        var issues = new List<AcademyDeckValidationIssue>();
         List<DeckEntry> effectiveDeck;
-        if (limitations.FixedClassDeck.Count > 0)
+        switch (activity.Loadout.Mode)
         {
-            effectiveDeck = CopyDeckEntries(limitations.FixedClassDeck);
+            case AcademyDeckMode.Fixed:
+                effectiveDeck = CopyDeckEntries(activity.Loadout.SuppliedCards);
+                if (effectiveDeck.Count == 0)
+                    issues.Add(Issue("fixed_deck_empty"));
+                break;
+            case AcademyDeckMode.ClassLoadout:
+                effectiveDeck = CopyDeckEntries(activity.Loadout.SuppliedCards);
+                AppendDeckEntries(
+                    effectiveDeck,
+                    ResolveSelectedActivityEntries(courseId, activity, academy)
+                );
+                break;
+            default:
+                effectiveDeck = ResolveActiveDeckEntries();
+                if (effectiveDeck.Count == 0)
+                    issues.Add(Issue("owned_deck_required"));
+                break;
         }
-        else
-        {
-            var activeDeck = ResolveActiveDeckEntries();
-            if (activeDeck.Count == 0)
-                reasons.Add("Select or edit an active deck before starting this activity.");
 
-            effectiveDeck = CopyDeckEntries(activeDeck);
-            AppendDeckEntries(effectiveDeck, limitations.AdditionalLoanerCards);
-        }
-
-        ValidateDeckRules(effectiveDeck, limitations, reasons);
-
-        return reasons.Count == 0
-            ? AcademyDeckValidationResult.Valid("valid", "Current deck satisfies the class rules.")
-            : new AcademyDeckValidationResult(
-                false,
-                "invalid",
-                "Deck does not satisfy the class rules.",
-                reasons
-            );
+        ValidateDeckRules(effectiveDeck, activity.Loadout.Rules, issues);
+        return issues.Count == 0
+            ? AcademyDeckValidationResult.Valid()
+            : new AcademyDeckValidationResult(false, "invalid", issues);
     }
 
-    private List<DeckEntry>? ResolvePlayerDeckForActivity(AcademyCourseActivity activity)
+    private List<DeckEntry> ResolvePlayerDeckForActivity(
+        CourseId courseId,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
+    )
     {
-        var limitations = activity.Limitations;
-        if (limitations.FixedClassDeck.Count > 0)
-            return CopyDeckEntries(limitations.FixedClassDeck);
+        if (activity.Loadout.Mode == AcademyDeckMode.Owned)
+            return ResolveActiveDeckEntries();
 
-        if (!limitations.HasRules)
-            return null;
-
-        var entries = ResolveActiveDeckEntries();
-        AppendDeckEntries(entries, limitations.AdditionalLoanerCards);
+        var entries = CopyDeckEntries(activity.Loadout.SuppliedCards);
+        if (activity.Loadout.Mode == AcademyDeckMode.ClassLoadout)
+            AppendDeckEntries(entries, ResolveSelectedActivityEntries(courseId, activity, academy));
         return entries;
     }
 
@@ -879,48 +1030,73 @@ public class AcademyProgressHandler
         return entries;
     }
 
+    private List<CardInstanceId> GetSelectedInstanceIds(
+        CourseId courseId,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
+    )
+    {
+        var key = ActivityLoadoutKey(courseId, activity.Id);
+        return academy.ActivityLoadouts.TryGetValue(key, out var state)
+            ? state.SelectedCardInstanceIds.ToList()
+            : [];
+    }
+
+    private List<DeckEntry> ResolveSelectedActivityEntries(
+        CourseId courseId,
+        AcademyCourseActivity activity,
+        AcademyProgress academy
+    )
+    {
+        var entries = new List<DeckEntry>();
+        foreach (var instanceId in GetSelectedInstanceIds(courseId, activity, academy))
+        {
+            var card = _profileRepo.GetCard(instanceId);
+            if (card != null)
+                AppendDeckEntry(entries, card.CatalogId, 1);
+        }
+        return entries;
+    }
+
+    private static string ActivityLoadoutKey(CourseId courseId, string activityId) =>
+        $"{courseId}:{activityId}";
+
     private static void ValidateDeckRules(
         IReadOnlyList<DeckEntry> deck,
-        AcademyActivityLimitations limitations,
-        List<string> reasons
+        AcademyDeckRules rules,
+        List<AcademyDeckValidationIssue> issues
     )
     {
         var totalCards = deck.Sum(entry => entry.Count);
-        if (limitations.MaxDeckSize > 0 && totalCards > limitations.MaxDeckSize)
+        if (rules.MaxDeckSize > 0 && totalCards > rules.MaxDeckSize)
         {
-            reasons.Add(
-                $"Deck has {totalCards} cards; this activity allows at most {limitations.MaxDeckSize}."
-            );
+            issues.Add(Issue("max_cards", ("current", totalCards), ("count", rules.MaxDeckSize)));
         }
 
         var summonCount = CountCardsByType(deck, CardType.Summon);
-        if (limitations.MinSummons > 0 && summonCount < limitations.MinSummons)
+        if (rules.MinSummons > 0 && summonCount < rules.MinSummons)
         {
-            reasons.Add(
-                $"Deck needs {limitations.MinSummons} summon card(s); it currently has {summonCount}."
-            );
+            issues.Add(Issue("min_summons", ("count", rules.MinSummons), ("current", summonCount)));
         }
 
         var spellCount = CountCardsByType(deck, CardType.Spell);
-        if (limitations.MinSpells > 0 && spellCount < limitations.MinSpells)
+        if (rules.MinSpells > 0 && spellCount < rules.MinSpells)
         {
-            reasons.Add(
-                $"Deck needs {limitations.MinSpells} spell card(s); it currently has {spellCount}."
-            );
+            issues.Add(Issue("min_spells", ("count", rules.MinSpells), ("current", spellCount)));
         }
 
-        var allowedTypes = limitations.AllowedCardTypes.ToHashSet();
+        var allowedTypes = rules.AllowedCardTypes.ToHashSet();
         if (allowedTypes.Count > 0)
         {
             foreach (var entry in deck)
             {
                 var card = CardCatalog.GetCard(entry.CardId);
                 if (card != null && !allowedTypes.Contains(card.Type))
-                    reasons.Add($"{card.Name} is not an allowed card type for this activity.");
+                    issues.Add(Issue("card_type_not_allowed", ("card_id", (string)entry.CardId)));
             }
         }
 
-        var allowedElements = limitations.AllowedElements.ToHashSet();
+        var allowedElements = rules.AllowedElements.ToHashSet();
         if (allowedElements.Count > 0)
         {
             allowedElements.Add(Element.Neutral);
@@ -928,21 +1104,21 @@ public class AcademyProgressHandler
             {
                 var card = CardCatalog.GetCard(entry.CardId);
                 if (card != null && !allowedElements.Contains(card.ElementalAffinity))
-                    reasons.Add($"{card.Name} is not an allowed element for this activity.");
+                    issues.Add(Issue("card_element_not_allowed", ("card_id", (string)entry.CardId)));
             }
         }
 
         var counts = deck.ToDictionary(entry => entry.CardId, entry => entry.Count);
-        foreach (var requiredCard in limitations.RequiredCards.Where(cardId => cardId.HasValue))
+        foreach (var requiredCard in rules.RequiredOwnedCards.Where(cardId => cardId.HasValue))
         {
             if (!counts.ContainsKey(requiredCard))
-                reasons.Add($"Deck is missing required card '{requiredCard}'.");
+                issues.Add(Issue("required_card_missing", ("card_id", (string)requiredCard)));
         }
 
-        foreach (var bannedCard in limitations.BannedCards.Where(cardId => cardId.HasValue))
+        foreach (var bannedCard in rules.BannedCards.Where(cardId => cardId.HasValue))
         {
             if (counts.ContainsKey(bannedCard))
-                reasons.Add($"Deck contains banned card '{bannedCard}'.");
+                issues.Add(Issue("banned_card", ("card_id", (string)bannedCard)));
         }
     }
 
@@ -983,26 +1159,57 @@ public class AcademyProgressHandler
 
     private static Godot.Collections.Dictionary ToDeckValidationDict(
         AcademyDeckValidationResult validation,
-        AcademyActivityLimitations limitations
+        AcademyDeckRules rules
     ) =>
         new()
         {
             ["is_valid"] = validation.IsValid,
             ["status"] = validation.Status,
-            ["invalid_reasons"] = ToStringArray(validation.InvalidReasons),
-            ["message"] = validation.Message,
-            ["has_rules"] = limitations.HasRules,
+            ["issues"] = ToValidationIssueArray(validation.Issues),
+            ["has_rules"] = rules.HasRules,
         };
 
     private sealed record AcademyDeckValidationResult(
         bool IsValid,
         string Status,
-        string Message,
-        IReadOnlyList<string> InvalidReasons
+        IReadOnlyList<AcademyDeckValidationIssue> Issues
     )
     {
-        public static AcademyDeckValidationResult Valid(string status, string message) =>
-            new(true, status, message, []);
+        public static AcademyDeckValidationResult Valid() => new(true, "valid", []);
+    }
+
+    private sealed record AcademyDeckValidationIssue(
+        string Code,
+        Godot.Collections.Dictionary Arguments
+    );
+
+    private static AcademyDeckValidationIssue Issue(
+        string code,
+        params (string Key, Variant Value)[] arguments
+    )
+    {
+        var values = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in arguments)
+            values[key] = value;
+        return new AcademyDeckValidationIssue(code, values);
+    }
+
+    private static Godot.Collections.Array ToValidationIssueArray(
+        IReadOnlyList<AcademyDeckValidationIssue> issues
+    )
+    {
+        var result = new Godot.Collections.Array();
+        foreach (var issue in issues)
+        {
+            result.Add(
+                new Godot.Collections.Dictionary
+                {
+                    ["code"] = issue.Code,
+                    ["arguments"] = issue.Arguments.Duplicate(true),
+                }
+            );
+        }
+        return result;
     }
 
     private Godot.Collections.Dictionary GetActiveDeckSummary()
@@ -1350,6 +1557,9 @@ public class AcademyProgressHandler
             }
         );
 
+        if (result.Status == RewardRuntimeStatus.Ready && result.Receipt != null)
+            AppendClaimedRewardsToSummary(result.Receipt, snapshot.Source.SourceType, snapshot.Source.OccurrenceId);
+
         if (
             result.Status is RewardRuntimeStatus.Ready or RewardRuntimeStatus.AlreadyClaimed
             && !HasPendingRewardForCourse(new CourseId(snapshot.Source.SourceId))
@@ -1621,19 +1831,60 @@ public class AcademyProgressHandler
             && progress.CourseActivityIndex.GetValueOrDefault(courseId) >= course.Activities.Count
         )
         {
+            var finalActivity = course.Activities[^1];
+            var finalOutcome = progress.AssessmentOutcomes.GetValueOrDefault(
+                finalActivity.Id,
+                AcademyActivityOutcome.Victory
+            );
             CompleteCourseInternal(
                 courseId,
-                "pass",
+                finalOutcome == AcademyActivityOutcome.Victory ? "pass" : "fail",
                 false,
-                resetSummary: true,
-                existingRewards: [],
-                completedActivityId: ""
+                resetSummary: false,
+                existingRewards: CompletionSummaryRewards(),
+                completedActivityId: finalActivity.Id,
+                completedActivityOutcome: finalOutcome
             );
         }
     }
 
     private static RewardClaimResult InvalidClaim(string error) =>
         new() { Status = RewardRuntimeStatus.Invalid, Errors = [error] };
+
+    private void AppendClaimedRewardsToSummary(
+        RewardClaimReceipt receipt,
+        string sourceType,
+        string sourceId
+    )
+    {
+        if (_lastCompletionSummary.Count == 0)
+            return;
+        var rewards = CompletionSummaryRewards();
+        foreach (var grant in receipt.AppliedGrants)
+        {
+            var view = ToGrantViewDict(RewardViewModelFactory.CreateGrant(grant));
+            view["claim_id"] = receipt.ClaimId.Value;
+            view["source_type"] = sourceType == "academy_course" ? "course" : "activity";
+            view["source_id"] = sourceId;
+            rewards.Add(view);
+        }
+        _lastCompletionSummary["granted_rewards"] = rewards;
+    }
+
+    private Godot.Collections.Array<Godot.Collections.Dictionary> CompletionSummaryRewards()
+    {
+        if (
+            _lastCompletionSummary.TryGetValue("granted_rewards", out var rewardsValue)
+            && rewardsValue.VariantType == Variant.Type.Array
+        )
+        {
+            var rewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+            foreach (var value in rewardsValue.AsGodotArray())
+                rewards.Add(value.AsGodotDictionary());
+            return rewards;
+        }
+        return [];
+    }
 
     private static Godot.Collections.Dictionary ToClaimResultDict(RewardClaimResult result)
     {
@@ -1675,6 +1926,7 @@ public class AcademyProgressHandler
     private void SetLastCompletionSummary(
         CourseId courseId,
         string activityId,
+        AcademyActivityOutcome outcome,
         bool completedCourse,
         Godot.Collections.Array<Godot.Collections.Dictionary> grantedRewards
     )
@@ -1683,6 +1935,7 @@ public class AcademyProgressHandler
         {
             ["course_id"] = (string)courseId,
             ["activity_id"] = activityId,
+            ["outcome"] = outcome.ToString(),
             ["completed_course"] = completedCourse,
             ["granted_rewards"] = CopyRewardArray(grantedRewards),
         };

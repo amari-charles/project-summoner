@@ -64,24 +64,17 @@ func _ready() -> void:
 			# Set up caravan-specific UI
 			_setup_caravan_ui()
 
-			# Play event sequence on top of shop UI (if configured)
-			var sequence_path: String = event_config.get("event_sequence", "")
-			if not sequence_path.is_empty():
-				var sequence: Resource = load(sequence_path)
-				if sequence:
-					# Connect to sequence completion
-					if not EventSequencer.sequence_finished.is_connected(_on_caravan_sequence_complete):
-						EventSequencer.sequence_finished.connect(_on_caravan_sequence_complete)
-
-					# Play sequence (dialogue will appear on top of shop)
-					await get_tree().process_frame  # Wait for shop UI to be ready
-					EventSequencer.play_sequence(sequence)
-				else:
-					# Sequence failed to load - show leave buttons immediately
-					_on_caravan_sequence_complete(null)
-			else:
-				# No sequence configured - show leave buttons immediately
-				_on_caravan_sequence_complete(null)
+			var director: Node = NarrativeDirectorApi.node()
+			if not director.is_connected("CueCompleted", _on_narrative_cue_completed):
+				director.connect("CueCompleted", _on_narrative_cue_completed)
+			await get_tree().process_frame
+			NarrativeDirectorApi.publish_event(
+				NarrativeDirectorApi.EventType.META_MOMENT_STARTED,
+				"event.%s" % event_id,
+				{"summoner_id": SummonerSelectionApi.get_active_summoner_id()}
+			)
+			if not NarrativeDirectorApi.is_cue_active_or_queued("caravan_tutorial_intro"):
+				_on_caravan_narrative_complete()
 
 	# Initialize display
 	_update_gold_display()
@@ -98,9 +91,9 @@ func _exit_tree() -> void:
 	if ProfileRepo.is_connected("DataChangedGodot", _on_data_changed):
 		ProfileRepo.disconnect("DataChangedGodot", _on_data_changed)
 
-	# Disconnect caravan-specific signals
-	if is_caravan_event and EventSequencer.sequence_finished.is_connected(_on_caravan_sequence_complete):
-		EventSequencer.sequence_finished.disconnect(_on_caravan_sequence_complete)
+	var director: Node = NarrativeDirectorApi.node()
+	if director.is_connected("CueCompleted", _on_narrative_cue_completed):
+		director.disconnect("CueCompleted", _on_narrative_cue_completed)
 
 ## =============================================================================
 ## INITIALIZATION
@@ -131,7 +124,7 @@ func _setup_caravan_ui() -> void:
 	leave_complete_popup.confirmed.connect(_on_leave_complete_confirmed)
 	add_child(leave_complete_popup)
 
-## Set the shop ID and reload offerings (called by EventSequencer for caravans)
+## Set the shop ID and reload offerings.
 func set_shop_id(new_shop_id: String) -> void:
 	shop_id = new_shop_id
 	_load_offerings()
@@ -232,8 +225,11 @@ func _on_data_changed() -> void:
 	if not selected_offering.is_empty():
 		_update_detail_panel(selected_offering)
 
-## Handle caravan sequence completion (dialogue finished)
-func _on_caravan_sequence_complete(_sequence: Resource) -> void:
+func _on_narrative_cue_completed(cue_id: String) -> void:
+	if cue_id == "caravan_tutorial_intro":
+		_on_caravan_narrative_complete()
+
+func _on_caravan_narrative_complete() -> void:
 	caravan_sequence_complete = true
 
 	# Show both leave buttons now that dialogue is complete

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://battle_3d"]
+[gd_scene load_steps=9 format=3 uid="uid://battle_3d"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battle/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
 [ext_resource type="Texture2D" uid="uid://e2b28osgxgy4" path="res://assets/summoners/knight/Knight 2D Pixel Art/Sprites/with_outline/IDLE.png" id="17_knight_sprite"]
@@ -6,18 +6,13 @@
 [ext_resource type="Script" path="res://scripts/csharp/Battle/View/SummonerVisual.cs" id="3_summoner"]
 [ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/battle/ui/hand_ui.tscn" id="6_hand_ui"]
 [ext_resource type="PackedScene" uid="uid://battle_hud" path="res://scenes/battle/ui/battle_hud.tscn" id="7_battle_hud"]
-[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/shared/dialogue_box.tscn" id="15_dialogue_box"]
-[ext_resource type="Script" path="res://scripts/battle/battle_dialogue_controller.gd" id="16_battle_dialogue_controller"]
+[ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="8_narrative"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_summoner"]
 height = 0.5
 
 [node name="Battle3D" type="Node3D"]
 script = ExtResource("2_game_controller")
-
-[node name="BattleDialogueController" type="Node" parent="."]
-script = ExtResource("16_battle_dialogue_controller")
-debug_skip_tutorial_intro = false
 
 [node name="BaseBattlefield3D" parent="." instance=ExtResource("1_battlefield")]
 
@@ -60,5 +55,5 @@ shape = SubResource("CylinderShape3D_summoner")
 
 [node name="HandUI" parent="UI" instance=ExtResource("6_hand_ui")]
 
-[node name="DialogueBox" parent="UI" instance=ExtResource("15_dialogue_box")]
-process_mode = 3
+[node name="NarrativePresenter" parent="UI" instance=ExtResource("8_narrative")]
+narrative_context = 1
