@@ -18,6 +18,22 @@ func test_competitive_mode_is_selected_while_casual_is_disabled() -> void:
 	await get_tree().process_frame
 
 
+func test_back_button_is_above_full_screen_layout_input_layer() -> void:
+	var screen: OnlineScreen = ONLINE_SCREEN_SCENE.instantiate() as OnlineScreen
+	add_child_autofree(screen)
+	await get_tree().process_frame
+
+	var margin_container: MarginContainer = screen.get_node("MarginContainer") as MarginContainer
+	assert_gt(
+		screen.back_button.get_index(),
+		margin_container.get_index(),
+		"Back button must be later in the scene tree so the full-screen layout cannot intercept its clicks"
+	)
+
+	screen.queue_free()
+	await get_tree().process_frame
+
+
 func test_rating_panel_shows_tier_relative_league_points() -> void:
 	var screen: OnlineScreen = ONLINE_SCREEN_SCENE.instantiate() as OnlineScreen
 	add_child_autofree(screen)
