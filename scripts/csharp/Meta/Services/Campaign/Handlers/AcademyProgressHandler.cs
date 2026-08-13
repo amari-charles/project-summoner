@@ -893,7 +893,9 @@ public class AcademyProgressHandler
         AcademyProgress academy
     )
     {
-        var selectedIds = GetSelectedInstanceIds(courseId, activity, academy);
+        IReadOnlyList<CardInstanceId> selectedIds = activity.Loadout.Mode == AcademyDeckMode.Owned
+            ? GetActiveDeckInstanceIds()
+            : GetSelectedInstanceIds(courseId, activity, academy);
         var selectedCards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var instanceId in selectedIds)
         {
@@ -1032,6 +1034,15 @@ public class AcademyProgressHandler
         return entries;
     }
 
+    private IReadOnlyList<CardInstanceId> GetActiveDeckInstanceIds()
+    {
+        var selectedDeckId = _profileRepo.GetProfileMetadata()?.Meta.SelectedDeck ?? "";
+        if (string.IsNullOrEmpty(selectedDeckId))
+            return [];
+
+        return _profileRepo.GetDeck(DeckId.FromString(selectedDeckId))?.CardInstanceIds ?? [];
+    }
+
     private List<CardInstanceId> GetSelectedInstanceIds(
         CourseId courseId,
         AcademyCourseActivity activity,
@@ -1070,9 +1081,12 @@ public class AcademyProgressHandler
     )
     {
         var totalCards = deck.Sum(entry => entry.Count);
-        if (rules.MaxDeckSize > 0 && totalCards > rules.MaxDeckSize)
+        var maxDeckSize = rules.MaxDeckSize > 0
+            ? Math.Min(rules.MaxDeckSize, DeckService.MaxDeckSize)
+            : DeckService.MaxDeckSize;
+        if (totalCards > maxDeckSize)
         {
-            issues.Add(Issue("max_cards", ("current", totalCards), ("count", rules.MaxDeckSize)));
+            issues.Add(Issue("max_cards", ("current", totalCards), ("count", maxDeckSize)));
         }
 
         var summonCount = CountCardsByType(deck, CardType.Summon);

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cj8y3vk5nw2qk"]
 
-[ext_resource type="Script" uid="uid://wbnau75lnwbi" path="res://scripts/meta/components/card_widget.gd" id="1_card_widget"]
+[ext_resource type="Script" path="res://scripts/meta/components/card_widget.gd" id="1_card_widget"]
 
 [node name="CardWidget" type="VBoxContainer"]
 script = ExtResource("1_card_widget")

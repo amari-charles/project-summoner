@@ -24,7 +24,7 @@ public partial class DeckService : Node
     public const int MinDeckSize = 1;
 
     /// <summary>Maximum cards allowed in a deck.</summary>
-    public const int MaxDeckSize = 30;
+    public const int MaxDeckSize = 12;
 
     [Signal]
     public delegate void DeckChangedEventHandler(string deckId);

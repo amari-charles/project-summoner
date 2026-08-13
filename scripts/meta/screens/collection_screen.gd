@@ -98,7 +98,7 @@ var last_deck_card_id: String = ""
 var last_deck_click_time: int = 0
 
 ## Constants
-const MAX_DECK_SIZE: int = 30
+const MAX_DECK_SIZE: int = DeckConstants.MAX_DECK_SIZE
 const DECK_PANEL_CARD_SIZE: Vector2 = Vector2(160, 240)  # Standard card size for inline deck view
 
 ## Scenes

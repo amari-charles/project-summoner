@@ -19,9 +19,20 @@ func test_academy_content_has_no_text_only_nodes_or_legacy_loadout_fields() -> v
 
 func test_preparation_owns_launch_and_does_not_detour_to_collection() -> void:
 	var script_text: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
+	var scene_text: String = _read("res://scenes/meta/screens/academy_activity_preparation.tscn")
 	assert_true(script_text.contains("resolve_academy_activity_battle_config"))
 	assert_true(script_text.contains("configure_academy_battle"))
 	assert_false(script_text.contains("SCENE_COLLECTION_SCREEN"))
+	assert_true(scene_text.contains('name="ModalPanel"'))
+	assert_true(scene_text.contains('name="LoadoutScroll"'))
+	assert_true(script_text.contains('mode != "Fixed"'))
+	var scene: PackedScene = load("res://scenes/meta/screens/academy_activity_preparation.tscn")
+	var preparation: Control = scene.instantiate() as Control
+	assert_not_null(preparation)
+	assert_not_null(preparation.find_child("ModalPanel", true, false))
+	assert_not_null(preparation.find_child("EditDeckButton", true, false))
+	assert_not_null(preparation.find_child("StartButton", true, false))
+	preparation.free()
 
 func test_results_owns_pending_reward_choice() -> void:
 	var script_text: String = _read("res://scripts/meta/screens/academy_activity_results.gd")
@@ -82,6 +93,12 @@ func test_activity_graph_renders_linear_icon_nodes_and_locked_nodes_do_not_selec
 	assert_signal_emitted_with_parameters(graph, "activity_selected", ["first"])
 	second.pressed.emit()
 	assert_signal_emit_count(graph, "activity_selected", 1)
+
+func test_standard_deck_maximum_is_twelve_across_gdscript_ui() -> void:
+	assert_eq(DeckConstants.MAX_DECK_SIZE, 12)
+	assert_eq(DeckConstants.STARTER_DECK_AUTO_ADD_THRESHOLD, 12)
+	var collection_script: String = _read("res://scripts/meta/screens/collection_screen.gd")
+	assert_true(collection_script.contains("DeckConstants.MAX_DECK_SIZE"))
 
 func _read(path: String) -> String:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
