@@ -44,6 +44,28 @@ func test_preparation_centers_start_action() -> void:
 	assert_not_null(footer.get_node_or_null("RightSpacer"))
 	preparation.free()
 
+func test_preparation_and_collection_share_deck_editor_interactions() -> void:
+	var preparation_scene: String = _read("res://scenes/meta/screens/academy_activity_preparation.tscn")
+	var collection_scene: String = _read("res://scenes/meta/screens/collection_screen.tscn")
+	var collection_script: String = _read("res://scripts/meta/screens/collection_screen.gd")
+	var editor_script: String = _read("res://scripts/meta/components/deck_editor_panel.gd")
+	assert_true(ResourceLoader.exists("res://scenes/meta/components/deck_editor_panel.tscn"))
+	assert_true(preparation_scene.contains("deck_editor_panel.tscn"))
+	assert_true(collection_scene.contains("deck_editor_panel.tscn"))
+	assert_true(editor_script.contains("DeckDropZone"))
+	assert_true(editor_script.contains("CollectionDropZone"))
+	assert_true(editor_script.contains("DOUBLE_CLICK_THRESHOLD_MS"))
+	assert_true(editor_script.contains("CardActionPopupScene"))
+	assert_false(collection_script.contains("func _on_collection_card_clicked"))
+	assert_false(collection_script.contains("func _on_deck_card_clicked"))
+	var editor_scene: PackedScene = load("res://scenes/meta/components/deck_editor_panel.tscn")
+	var editor: DeckEditorPanel = editor_scene.instantiate() as DeckEditorPanel
+	add_child_autofree(editor)
+	editor.set_available_columns(7)
+	editor.set_active_deck("Active Deck", [], DeckConstants.MAX_DECK_SIZE, true)
+	assert_eq(editor.available_cards.columns, 7)
+	assert_eq(editor.active_deck_count.text, "0/12")
+
 func test_results_owns_pending_reward_choice() -> void:
 	var script_text: String = _read("res://scripts/meta/screens/academy_activity_results.gd")
 	assert_true(script_text.contains("claim_academy_reward"))
