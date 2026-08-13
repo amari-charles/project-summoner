@@ -413,10 +413,10 @@ func _refresh_collection() -> void:
 	var summary_result: Array = CardServiceApi.get_collection_summary_dict()
 	collection_summary = summary_result
 	_filtered_sorted_cards_cache = _get_filtered_sorted_cards()
-	_refresh_available_cards()
+	_refresh_available_cards(true)
 
 
-func _refresh_available_cards() -> void:
+func _refresh_available_cards(update_existing_widgets: bool = false) -> void:
 	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
 	var entries: Array[Dictionary] = []
 	for card_entry: Variant in _filtered_sorted_cards_cache:
@@ -427,7 +427,7 @@ func _refresh_available_cards() -> void:
 		if instance_id in deck_card_ids:
 			continue
 		entries.append(entry)
-	deck_editor.set_available_cards(entries)
+	deck_editor.set_available_cards(entries, update_existing_widgets)
 
 func _get_selected_deck_card_ids() -> Array[String]:
 	var result: Array[String] = []

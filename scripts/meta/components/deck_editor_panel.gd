@@ -36,7 +36,6 @@ var _active_popup: CardActionPopup = null
 var _last_clicked_id: String = ""
 var _last_click_time: int = 0
 var _available_widgets_by_id: Dictionary = {}
-var _available_entry_hashes: Dictionary = {}
 
 
 func _ready() -> void:
@@ -72,9 +71,9 @@ func set_active_deck(
 	_render_active_cards()
 
 
-func set_available_cards(entries: Array[Dictionary]) -> void:
+func set_available_cards(entries: Array[Dictionary], update_existing_widgets: bool = true) -> void:
 	_available_entries = entries
-	_render_available_cards()
+	_render_available_cards(update_existing_widgets)
 
 
 func dismiss_popup() -> void:
@@ -98,7 +97,7 @@ func _render_active_cards() -> void:
 		_add_widget(active_cards, entry, true)
 
 
-func _render_available_cards() -> void:
+func _render_available_cards(update_existing_widgets: bool) -> void:
 	dismiss_popup()
 	var desired_ids: Dictionary = {}
 	var next_index: int = 0
@@ -107,17 +106,14 @@ func _render_available_cards() -> void:
 		if instance_id.is_empty() or instance_id in _active_ids:
 			continue
 		desired_ids[instance_id] = true
-		var entry_hash: int = hash(entry)
 		var widget: CardWidget = _available_widgets_by_id.get(instance_id) as CardWidget
 		if widget == null or not is_instance_valid(widget):
 			widget = _add_widget(available_cards, entry, false)
 			if widget == null:
 				continue
 			_available_widgets_by_id[instance_id] = widget
-			_available_entry_hashes[instance_id] = entry_hash
-		elif SafeTypeUtils.int_val(_available_entry_hashes.get(instance_id), -1) != entry_hash:
+		elif update_existing_widgets:
 			_configure_widget(widget, entry)
-			_available_entry_hashes[instance_id] = entry_hash
 		available_cards.move_child(widget, next_index)
 		next_index += 1
 
@@ -126,7 +122,6 @@ func _render_available_cards() -> void:
 			continue
 		var stale_widget: CardWidget = _available_widgets_by_id[existing_id] as CardWidget
 		_available_widgets_by_id.erase(existing_id)
-		_available_entry_hashes.erase(existing_id)
 		if stale_widget and is_instance_valid(stale_widget):
 			available_cards.remove_child(stale_widget)
 			stale_widget.queue_free()
