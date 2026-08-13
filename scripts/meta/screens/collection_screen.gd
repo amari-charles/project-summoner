@@ -52,6 +52,7 @@ var deck_id_for_action: String = ""
 
 ## Collection data
 var collection_summary: Array = []
+var _filtered_sorted_cards_cache: Array = []
 
 ## Filter state
 var show_summons: bool = true
@@ -280,7 +281,7 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 	selected_deck_id = deck_id
 	_refresh_deck_list()
 	_refresh_deck_panel()
-	_refresh_collection()  # Update in-deck badges
+	_refresh_available_cards()
 
 
 func _on_deck_item_double_clicked(_deck_id: String) -> void:
@@ -411,10 +412,14 @@ func _on_rename_confirmed() -> void:
 func _refresh_collection() -> void:
 	var summary_result: Array = CardServiceApi.get_collection_summary_dict()
 	collection_summary = summary_result
+	_filtered_sorted_cards_cache = _get_filtered_sorted_cards()
+	_refresh_available_cards()
+
+
+func _refresh_available_cards() -> void:
 	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
-	var filtered_cards: Array = _get_filtered_sorted_cards()
 	var entries: Array[Dictionary] = []
-	for card_entry: Variant in filtered_cards:
+	for card_entry: Variant in _filtered_sorted_cards_cache:
 		if not card_entry is Dictionary:
 			continue
 		var entry: Dictionary = card_entry
@@ -489,10 +494,11 @@ func _get_filtered_sorted_cards() -> Array:
 
 			var instance_id: String = instance.get("id", "")
 			var level: int = 1
+			var progression: Dictionary = {}
 			if not instance_id.is_empty():
-				var result_info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
-				if not result_info.is_empty():
-					level = SafeTypeUtils.int_val(result_info.get("level", 1), 1)
+				progression = CardServiceApi.get_card_progression_info_dict(instance_id)
+				if not progression.is_empty():
+					level = SafeTypeUtils.int_val(progression.get("level", 1), 1)
 
 			var rarity: String = SafeTypeUtils.string(catalog_data.get("rarity", "common"), "common").to_lower()
 			result.append({
@@ -506,6 +512,7 @@ func _get_filtered_sorted_cards() -> Array:
 				"rarity_order": RARITY_ORDER.get(rarity, 0),
 				"card_type": catalog_data.get("card_type", 0),
 				"level": level,
+				"progression": progression,
 				"element": card_element
 			})
 
@@ -681,11 +688,7 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 		return
 
 	if Decks.has_method("AddCardToDeck"):
-		var success: Variant = DecksApi.add_card_to_deck(selected_deck_id, card_instance_id)
-		if success is bool and success:
-			_refresh_deck_list()
-			_refresh_deck_panel()
-			_refresh_collection()
+		DecksApi.add_card_to_deck(selected_deck_id, card_instance_id)
 
 
 ## =============================================================================
@@ -759,11 +762,7 @@ func _remove_card_from_deck(card_instance_id: String) -> void:
 		return
 
 	if Decks.has_method("RemoveCardFromDeck"):
-		var success: Variant = DecksApi.remove_card_from_deck(selected_deck_id, card_instance_id)
-		if success is bool and success:
-			_refresh_deck_list()
-			_refresh_deck_panel()
-			_refresh_collection()
+		DecksApi.remove_card_from_deck(selected_deck_id, card_instance_id)
 
 
 func _on_modal_closed(modal: Node) -> void:
@@ -806,7 +805,7 @@ func _on_deck_changed(deck_id: String) -> void:
 	if deck_id == selected_deck_id:
 		_refresh_deck_list()
 		_refresh_deck_panel()
-		_refresh_collection()
+		_refresh_available_cards()
 
 
 func _on_deck_created(deck_id: String) -> void:
@@ -814,7 +813,7 @@ func _on_deck_created(deck_id: String) -> void:
 	selected_deck_id = deck_id
 	_refresh_deck_list()
 	_refresh_deck_panel()
-	_refresh_collection()
+	_refresh_available_cards()
 
 
 func _on_deck_deleted(deck_id: String) -> void:
@@ -822,7 +821,7 @@ func _on_deck_deleted(deck_id: String) -> void:
 		selected_deck_id = ""
 	_refresh_deck_list()
 	_refresh_deck_panel()
-	_refresh_collection()
+	_refresh_available_cards()
 
 
 func _on_collection_changed() -> void:
