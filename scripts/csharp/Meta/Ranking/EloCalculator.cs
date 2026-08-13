@@ -149,6 +149,16 @@ public static class EloCalculator
     }
 
     /// <summary>
+    /// Get league points earned above the floor of the rating's current tier.
+    /// The final Sage tier continues accumulating LP above its floor.
+    /// </summary>
+    public static int GetLeaguePoints(int elo)
+    {
+        var tier = GetTier(elo);
+        return Math.Max(0, elo - GetTierFloor(tier));
+    }
+
+    /// <summary>
     /// Format ELO with tier and division for display.
     /// Example: "Mage II (1250)"
     /// </summary>

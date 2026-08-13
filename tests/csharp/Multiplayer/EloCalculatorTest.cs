@@ -165,6 +165,17 @@ public class EloCalculatorTest
             .IsEqual(EloCalculator.EloCeiling);
     }
 
+    [TestCase(800, 0)]
+    [TestCase(925, 125)]
+    [TestCase(1000, 0)]
+    [TestCase(1050, 50)]
+    [TestCase(1600, 0)]
+    [TestCase(1825, 225)]
+    public void GetLeaguePoints_ReturnsProgressAboveCurrentTierFloor(int rating, int expectedLp)
+    {
+        AssertThat(EloCalculator.GetLeaguePoints(rating)).IsEqual(expectedLp);
+    }
+
     [TestCase]
     public void FormatRating_IncludesTierAndDivision()
     {
