@@ -1,6 +1,6 @@
 # Academy Class Flow Overhaul Stub Checklist
 
-**Status:** PASS 3 COMPLETE
+**Status:** PR REVIEW COMPLETE
 **Initiative:** `academy-class-flow-overhaul`
 **Domain:** `meta`
 **Last Updated:** 2026-08-13
@@ -57,4 +57,4 @@
 
 ## Gate Output Requirement
 
-Pass 3 is complete. The implementation is ready for the PR review gate.
+The implementation and PR review gates are complete. Manual gameplay testing remains before merge approval.

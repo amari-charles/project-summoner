@@ -923,6 +923,111 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
+    public void ClassLoadoutDeckOperations_ReturnSpecificErrorsForInvalidRequests()
+    {
+        var repo = CreateRepo("academy_class_loadout_invalid_deck_requests");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+
+        var missingSource = service.FillAcademyActivityLoadoutFromDeck(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            "missing-deck"
+        );
+        var missingName = service.SaveAcademyActivityLoadoutToDeck(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            "",
+            "  "
+        );
+        var missingTarget = service.SaveAcademyActivityLoadoutToDeck(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            "missing-deck",
+            ""
+        );
+
+        AssertThat(missingSource["error"].AsString()).IsEqual("source_deck_not_found");
+        AssertThat(missingName["error"].AsString()).IsEqual("deck_name_required");
+        AssertThat(missingTarget["error"].AsString()).IsEqual("target_deck_not_found");
+    }
+
+    [TestCase]
+    public void SaveClassLoadoutToDeck_IncludesOwnedCopiesOfSuppliedCards()
+    {
+        var repo = CreateRepo("academy_save_owned_supplied_cards");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        repo.GrantCards(
+            new[]
+            {
+                (CardIds.NeutralStarterUnit, "common"),
+                (CardIds.MagicBolt, "common"),
+            }
+        );
+        var selectedDeckId = SetActiveDeck(repo, "Selection Source", CardIds.Charge);
+        SelectActiveDeckAsClassLoadout(
+            repo,
+            service,
+            CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            selectedDeckId
+        );
+
+        var result = service.SaveAcademyActivityLoadoutToDeck(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            "",
+            "Owned Lesson Cards"
+        );
+
+        AssertThat(result["success"].AsBool()).IsTrue();
+        AssertThat(result["omitted_supplied_card_ids"].AsGodotArray()).IsEmpty();
+        var savedDeck = repo.GetDeck(DeckId.FromString(result["deck_id"].AsString()))!;
+        var savedCatalogIds = savedDeck
+            .CardInstanceIds.Select(instanceId => repo.GetCard(instanceId)!.CatalogId)
+            .ToArray();
+        AssertThat(savedCatalogIds).Contains(CardIds.Charge);
+        AssertThat(savedCatalogIds).Contains(CardIds.NeutralStarterUnit);
+        AssertThat(savedCatalogIds).Contains(CardIds.MagicBolt);
+    }
+
+    [TestCase]
+    public void SaveClassLoadoutToDeck_RejectsDecksAboveTheGlobalMaximum()
+    {
+        var repo = CreateRepo("academy_save_oversized_loadout");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        repo.GrantCards(
+            new[]
+            {
+                (CardIds.NeutralStarterUnit, "common"),
+                (CardIds.MagicBolt, "common"),
+            }
+        );
+        var selectedDeckId = SetActiveDeck(
+            repo,
+            "Oversized Source",
+            Enumerable.Repeat(CardIds.Charge, 11).ToArray()
+        );
+        SelectActiveDeckAsClassLoadout(
+            repo,
+            service,
+            CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            selectedDeckId
+        );
+
+        var result = service.SaveAcademyActivityLoadoutToDeck(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            "",
+            "Too Large"
+        );
+
+        AssertThat(result["success"].AsBool()).IsFalse();
+        AssertThat(result["error"].AsString()).IsEqual("deck_too_large");
+        AssertThat(repo.ListDecks().Select(deck => deck.Name)).NotContains("Too Large");
+    }
+
+    [TestCase]
     public void CompleteAcademyActivity_ClaimedActivityRewardDoesNotGrantAgainAfterProgressRewind()
     {
         var repo = CreateRepo("academy_claimed_activity_reward_rewind");

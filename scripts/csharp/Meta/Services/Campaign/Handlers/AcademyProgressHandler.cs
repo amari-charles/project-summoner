@@ -151,17 +151,17 @@ public class AcademyProgressHandler
     {
         var located = FindActivity(courseId, activityId);
         if (located.activity == null || located.course == null)
-            return OperationFailure();
+            return OperationFailure("activity_not_found");
         if (located.activity.Loadout.Mode != AcademyDeckMode.ClassLoadout)
-            return OperationFailure();
+            return OperationFailure("class_loadout_required");
 
         var summonerId = _getActiveSummonerFunc();
         if (!summonerId.HasValue)
-            return OperationFailure();
+            return OperationFailure("active_summoner_required");
 
         var sourceDeck = _profileRepo.GetDeck(DeckId.FromString(sourceDeckId));
         if (sourceDeck == null || sourceDeck.SummonerId != summonerId)
-            return OperationFailure();
+            return OperationFailure("source_deck_not_found");
 
         var progress = GetOrCreateProgress();
         var selected = GetSelectedInstanceIds(located.course.Id, located.activity, progress.Academy)
@@ -228,13 +228,13 @@ public class AcademyProgressHandler
     {
         var located = FindActivity(courseId, activityId);
         if (located.activity == null || located.course == null)
-            return OperationFailure();
+            return OperationFailure("activity_not_found");
         if (located.activity.Loadout.Mode != AcademyDeckMode.ClassLoadout)
-            return OperationFailure();
+            return OperationFailure("class_loadout_required");
 
         var summonerId = _getActiveSummonerFunc();
         if (!summonerId.HasValue)
-            return OperationFailure();
+            return OperationFailure("active_summoner_required");
 
         var replacing = !string.IsNullOrWhiteSpace(targetDeckId);
         DeckModel? targetDeck = null;
@@ -242,11 +242,11 @@ public class AcademyProgressHandler
         {
             targetDeck = _profileRepo.GetDeck(DeckId.FromString(targetDeckId));
             if (targetDeck == null || targetDeck.SummonerId != summonerId)
-                return OperationFailure();
+                return OperationFailure("target_deck_not_found");
         }
         else if (string.IsNullOrWhiteSpace(newDeckName))
         {
-            return OperationFailure();
+            return OperationFailure("deck_name_required");
         }
 
         var progress = GetOrCreateProgress();
@@ -282,6 +282,9 @@ public class AcademyProgressHandler
             }
         }
 
+        if (selected.Count > DeckService.MaxDeckSize)
+            return OperationFailure("deck_too_large");
+
         var id = _profileRepo.UpsertDeck(
             new DeckModel
             {
@@ -296,7 +299,7 @@ public class AcademyProgressHandler
             }
         );
         if (!id.HasValue)
-            return OperationFailure();
+            return OperationFailure("save_failed");
 
         return new Godot.Collections.Dictionary
         {
@@ -1193,25 +1196,34 @@ public class AcademyProgressHandler
 
     private static bool IsCardAllowedByActivityRules(CardId cardId, AcademyDeckRules rules)
     {
-        if (rules.BannedCards.Contains(cardId))
-            return false;
-
-        var card = CardCatalog.GetCard(cardId);
-        if (card == null)
-            return false;
-        if (rules.AllowedCardTypes.Count > 0 && !rules.AllowedCardTypes.Contains(card.Type))
-            return false;
-        if (
-            rules.AllowedElements.Count > 0
-            && card.ElementalAffinity != Element.Neutral
-            && !rules.AllowedElements.Contains(card.ElementalAffinity)
-        )
-            return false;
-        return true;
+        return !IsCardBanned(cardId, rules)
+            && IsCardTypeAllowed(cardId, rules)
+            && IsCardElementAllowed(cardId, rules);
     }
 
-    private static Godot.Collections.Dictionary OperationFailure() =>
-        new() { ["success"] = false };
+    private static bool IsCardBanned(CardId cardId, AcademyDeckRules rules) =>
+        rules.BannedCards.Contains(cardId);
+
+    private static bool IsCardTypeAllowed(CardId cardId, AcademyDeckRules rules)
+    {
+        var card = CardCatalog.GetCard(cardId);
+        return card != null
+            && (rules.AllowedCardTypes.Count == 0 || rules.AllowedCardTypes.Contains(card.Type));
+    }
+
+    private static bool IsCardElementAllowed(CardId cardId, AcademyDeckRules rules)
+    {
+        var card = CardCatalog.GetCard(cardId);
+        return card != null
+            && (
+                rules.AllowedElements.Count == 0
+                || card.ElementalAffinity == Element.Neutral
+                || rules.AllowedElements.Contains(card.ElementalAffinity)
+            );
+    }
+
+    private static Godot.Collections.Dictionary OperationFailure(string error) =>
+        new() { ["success"] = false, ["error"] = error };
 
     private static Godot.Collections.Array<string> ToCardInstanceIdArray(
         IEnumerable<CardInstanceId> instanceIds
@@ -1250,25 +1262,20 @@ public class AcademyProgressHandler
             issues.Add(Issue("min_spells", ("count", rules.MinSpells), ("current", spellCount)));
         }
 
-        var allowedTypes = rules.AllowedCardTypes.ToHashSet();
-        if (allowedTypes.Count > 0)
+        if (rules.AllowedCardTypes.Count > 0)
         {
             foreach (var entry in deck)
             {
-                var card = CardCatalog.GetCard(entry.CardId);
-                if (card != null && !allowedTypes.Contains(card.Type))
+                if (!IsCardTypeAllowed(entry.CardId, rules))
                     issues.Add(Issue("card_type_not_allowed", ("card_id", (string)entry.CardId)));
             }
         }
 
-        var allowedElements = rules.AllowedElements.ToHashSet();
-        if (allowedElements.Count > 0)
+        if (rules.AllowedElements.Count > 0)
         {
-            allowedElements.Add(Element.Neutral);
             foreach (var entry in deck)
             {
-                var card = CardCatalog.GetCard(entry.CardId);
-                if (card != null && !allowedElements.Contains(card.ElementalAffinity))
+                if (!IsCardElementAllowed(entry.CardId, rules))
                     issues.Add(Issue("card_element_not_allowed", ("card_id", (string)entry.CardId)));
             }
         }
@@ -1280,10 +1287,10 @@ public class AcademyProgressHandler
                 issues.Add(Issue("required_card_missing", ("card_id", (string)requiredCard)));
         }
 
-        foreach (var bannedCard in rules.BannedCards.Where(cardId => cardId.HasValue))
+        foreach (var entry in deck)
         {
-            if (counts.ContainsKey(bannedCard))
-                issues.Add(Issue("banned_card", ("card_id", (string)bannedCard)));
+            if (IsCardBanned(entry.CardId, rules))
+                issues.Add(Issue("banned_card", ("card_id", (string)entry.CardId)));
         }
     }
 
