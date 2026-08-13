@@ -72,14 +72,14 @@ const EARTH_DARK: Color = Color("#8b5a2b")       # Deep clay
 ## UI COLORS
 ## =============================================================================
 
-## Player UI surfaces - warm neutral placeholder theme
-const UI_BACKGROUND: Color = Color("#dad7d0")
-const UI_SURFACE: Color = Color("#e5e1d9")
-const UI_SURFACE_RAISED: Color = Color("#efebe4")
-const UI_SURFACE_ALT: Color = Color("#cbc7be")
-const UI_SURFACE_DISABLED: Color = Color("#c1bdb4")
-const UI_BORDER: Color = Color("#9c978d")
-const UI_BORDER_STRONG: Color = Color("#6f6a62")
+## Player UI surfaces - desaturated light wood placeholder theme
+const UI_BACKGROUND: Color = Color("#b8aea1")
+const UI_SURFACE: Color = Color("#c8bbaa")
+const UI_SURFACE_RAISED: Color = Color("#d6cbbb")
+const UI_SURFACE_ALT: Color = Color("#aa9d8f")
+const UI_SURFACE_DISABLED: Color = Color("#a69e94")
+const UI_BORDER: Color = Color("#817466")
+const UI_BORDER_STRONG: Color = Color("#62574c")
 
 ## Compatibility names for card/gameplay surfaces that still expect depth steps.
 const UI_BG_DARK: Color = UI_SURFACE_ALT
@@ -93,16 +93,16 @@ const TEXT_DISABLED: Color = Color("#8c877f")
 const TEXT_HIGHLIGHT: Color = Color("#8a6420")
 
 ## Button states (generic fallback)
-const BUTTON_NORMAL: Color = Color("#d3cfc6")
-const BUTTON_HOVER: Color = Color("#e7e3dc")
-const BUTTON_PRESSED: Color = Color("#bdb8ae")
+const BUTTON_NORMAL: Color = Color("#c0b3a3")
+const BUTTON_HOVER: Color = Color("#d0c4b5")
+const BUTTON_PRESSED: Color = Color("#a99a89")
 const BUTTON_DISABLED: Color = UI_SURFACE_DISABLED
 
 ## Primary button (gold accent - main actions)
-const BUTTON_PRIMARY_BG: Color = Color("#ded3bd")
-const BUTTON_PRIMARY_BG_HOVER: Color = Color("#e9dfca")
-const BUTTON_PRIMARY_BG_PRESSED: Color = Color("#c9bda6")
-const BUTTON_PRIMARY_BORDER: Color = Color("#9a742d")
+const BUTTON_PRIMARY_BG: Color = Color("#cdb990")
+const BUTTON_PRIMARY_BG_HOVER: Color = Color("#dac9a5")
+const BUTTON_PRIMARY_BG_PRESSED: Color = Color("#b29b73")
+const BUTTON_PRIMARY_BORDER: Color = Color("#80632f")
 
 ## Secondary button (neutral - cancel, back)
 const BUTTON_SECONDARY_BG: Color = BUTTON_NORMAL

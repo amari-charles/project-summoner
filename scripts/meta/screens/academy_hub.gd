@@ -9,11 +9,11 @@ const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/componen
 const SUMMONER_ICON_SIZE: float = 86.0
 const SUMMONER_ICON_MARGIN: float = 18.0
 const LOCATION_BUTTON_SIZE: Vector2 = Vector2(210, 54)
-const COLOR_LOCATION: Color = Color(0.898, 0.882, 0.851, 0.94)
-const COLOR_LOCATION_HOVER: Color = Color(0.937, 0.922, 0.894, 0.98)
-const COLOR_LOCATION_PRESSED: Color = Color(0.788, 0.741, 0.651, 0.98)
-const COLOR_LOCATION_DISABLED: Color = Color(0.757, 0.741, 0.706, 0.88)
-const COLOR_BORDER: Color = Color(0.604, 0.455, 0.176, 1.0)
+const COLOR_LOCATION: Color = Color(0.784, 0.733, 0.667, 0.94)
+const COLOR_LOCATION_HOVER: Color = Color(0.839, 0.796, 0.733, 0.98)
+const COLOR_LOCATION_PRESSED: Color = Color(0.698, 0.608, 0.451, 0.98)
+const COLOR_LOCATION_DISABLED: Color = Color(0.651, 0.620, 0.580, 0.88)
+const COLOR_BORDER: Color = Color(0.502, 0.388, 0.184, 1.0)
 const COLOR_TEXT: Color = Color(0.145, 0.137, 0.122, 1.0)
 const COLOR_TEXT_DISABLED: Color = Color(0.549, 0.529, 0.498, 1.0)
 

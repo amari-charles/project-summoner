@@ -6,21 +6,21 @@
 [ext_resource type="PackedScene" path="res://scenes/meta/components/deck_editor_panel.tscn" id="4_deck_editor"]
 
 [sub_resource type="StyleBoxFlat" id="StyleModal"]
-bg_color = Color(0.796078, 0.780392, 0.745098, 1)
+bg_color = Color(0.666667, 0.615686, 0.560784, 1)
 corner_radius_top_left = 25
 corner_radius_top_right = 25
 corner_radius_bottom_right = 25
 corner_radius_bottom_left = 25
 
 [sub_resource type="StyleBoxFlat" id="StyleContent"]
-bg_color = Color(0.898039, 0.882353, 0.85098, 1)
+bg_color = Color(0.784314, 0.733333, 0.666667, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleInfo"]
-bg_color = Color(0.854902, 0.843137, 0.815686, 1)
+bg_color = Color(0.721569, 0.682353, 0.631373, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6

@@ -1,6 +1,6 @@
 # Player UI Theme
 
-Player-facing interface chrome uses one warm-neutral placeholder theme. This is
+Player-facing interface chrome uses one desaturated light-wood placeholder theme. This is
 an implementation convention, not final art direction: keeping the structural
 colors centralized lets the team evaluate layouts now and retheme them later
 without rewriting individual screens.
