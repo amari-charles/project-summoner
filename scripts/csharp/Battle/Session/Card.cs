@@ -87,7 +87,7 @@ public partial class Card : Resource
     public string InstanceId { get; set; } = "";
 
     /// <summary>
-    /// Stat overrides applied during spawning (set by EventSequencer / debug tools).
+    /// Stat overrides applied during spawning by authored encounter or debug tooling.
     /// Keys: "max_hp", "move_speed", "attack_damage", etc.
     /// </summary>
     public Godot.Collections.Dictionary CustomStatOverrides { get; set; } = new();

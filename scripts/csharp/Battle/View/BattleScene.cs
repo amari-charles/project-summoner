@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fateforged.Application.Narrative;
 using Fateforged.Constants;
 using Fateforged.Domain.Progression;
 using Fateforged.Meta.Progression;
@@ -78,6 +79,8 @@ public partial class BattleScene : Node3D
     private bool _completionHandled;
     private MatchEndReason _matchEndReason = MatchEndReason.SummonerDestroyed;
     private ProgressionAuthorityResult? _campaignProgressionResult;
+    private NarrativeDirector? _narrativeDirector;
+    private string _narrativeSourceId = "";
 
     /// Max frames to wait for a single scene to load (~5 seconds at 60fps)
     private const int SceneLoadTimeoutFrames = 300;
@@ -136,6 +139,17 @@ public partial class BattleScene : Node3D
 
         // Build typed config from BattleContext (one-time read)
         _config = BuildSessionConfig();
+        _narrativeDirector = GetNodeOrNull<NarrativeDirector>("/root/NarrativeDirector");
+        if (_narrativeDirector != null)
+            _narrativeDirector.BlockingStateChanged += OnNarrativeBlockingStateChanged;
+        var narrativeBattleContext = GetNodeOrNull("/root/BattleContext");
+        _narrativeSourceId = narrativeBattleContext?.Call("get_battle_id").AsString() ?? "";
+        if (string.IsNullOrWhiteSpace(_narrativeSourceId))
+            _narrativeSourceId = $"battle:{_config.Mode}:{_config.BattleSeed}";
+        var narrativeAttemptId = _config.BattleAttemptId.HasValue
+            ? _config.BattleAttemptId.Value
+            : "";
+        narrativeAttemptId = _narrativeDirector?.BeginAttempt(narrativeAttemptId) ?? narrativeAttemptId;
         ApplyPreparationDurationOverride();
 
         // Wait one frame for all scene nodes to be in tree
@@ -185,6 +199,15 @@ public partial class BattleScene : Node3D
         MaybeScheduleForcedReport();
         MaybeScheduleAutoContinueAfterGameOver();
         StartGame();
+        _narrativeDirector?.PublishEvent(
+            (int)NarrativeEventType.BattleStarted,
+            _narrativeSourceId,
+            new Godot.Collections.Dictionary
+            {
+                ["attempt_id"] = narrativeAttemptId,
+                ["multiplayer"] = _config.IsMultiplayer.ToString().ToLowerInvariant(),
+            }
+        );
     }
 
     private BattleSessionConfig BuildSessionConfig()
@@ -223,10 +246,14 @@ public partial class BattleScene : Node3D
             && CurrentState != GameState.GameOver
         )
             ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
+        if (_config != null && _config.Mode == BattleMode.Academy && CurrentState != GameState.GameOver)
+            RecordAcademyOutcome(2);
 
         var simNode = GetSimNode();
         if (simNode is IGameSession session)
             session.SimEventsEmitted -= OnSimEventsEmitted;
+        if (_narrativeDirector != null)
+            _narrativeDirector.BlockingStateChanged -= OnNarrativeBlockingStateChanged;
     }
 
     public override void _Process(double delta)
@@ -286,6 +313,16 @@ public partial class BattleScene : Node3D
             GetTree().Paused = false;
             EmitSignal(SignalName.StateChanged, (int)CurrentState);
         }
+    }
+
+    private void OnNarrativeBlockingStateChanged(int context, bool blocked)
+    {
+        if (context != (int)NarrativeContext.Battle || _config.IsMultiplayer)
+            return;
+        if (blocked)
+            PauseGame();
+        else
+            ResumeGame();
     }
 
     public void FreezeGame()
@@ -363,6 +400,8 @@ public partial class BattleScene : Node3D
     {
         if (_config.Mode == BattleMode.Campaign && CurrentState != GameState.GameOver)
             _campaignProgressionResult = ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
+        if (_config.Mode == BattleMode.Academy && CurrentState != GameState.GameOver)
+            RecordAcademyOutcome(2);
 
         // Delegate state cleanup to BattleContext
         var battleContext = GetTree().Root.GetNodeOrNull("BattleContext");
@@ -392,8 +431,23 @@ public partial class BattleScene : Node3D
                 case GameOverEvent e:
                     _matchEndReason = MapEndReason(e.Reason);
                     EndGame(simNode.RemapTeam(e.WinnerTeam));
+                    if (_config.Mode == BattleMode.Campaign)
+                    {
+                        PublishNarrativeBattleEvent(
+                            NarrativeEventType.BattleResolved,
+                            new Godot.Collections.Dictionary
+                            {
+                                ["winner_team"] = e.WinnerTeam,
+                                ["reason"] = e.Reason,
+                            }
+                        );
+                    }
                     break;
                 case PhaseChangedEvent e:
+                    PublishNarrativeBattleEvent(
+                        NarrativeEventType.BattlePhaseChanged,
+                        new Godot.Collections.Dictionary { ["phase"] = (int)e.NewPhase }
+                    );
                     EmitPhaseIfChanged(ToUiPhaseValue(e.NewPhase));
                     break;
                 case PrepTimerUpdatedEvent e:
@@ -405,6 +459,14 @@ public partial class BattleScene : Node3D
                     break;
             }
         }
+    }
+
+    private void PublishNarrativeBattleEvent(
+        NarrativeEventType eventType,
+        Godot.Collections.Dictionary facts
+    )
+    {
+        _narrativeDirector?.PublishEvent((int)eventType, _narrativeSourceId, facts);
     }
 
     // =========================================================================
@@ -864,21 +926,18 @@ public partial class BattleScene : Node3D
 
     private void HandleAcademyCompletion(int winnerTeam)
     {
-        if (winnerTeam == 0)
-        {
-            var battleContext = GetNodeOrNull("/root/BattleContext");
-            var courseId = battleContext?.Get("academy_course_id").AsString() ?? "";
-            var activityId = battleContext?.Get("academy_activity_id").AsString() ?? "";
-            var campaign = GetNodeOrNull("/root/Campaign");
-            if (
-                !string.IsNullOrEmpty(courseId)
-                && !string.IsNullOrEmpty(activityId)
-                && campaign != null
-            )
-                campaign.Call("CompleteAcademyActivity", courseId, activityId, true);
-        }
+        RecordAcademyOutcome(winnerTeam == 0 ? 0 : 1);
+        NavigateToScene("res://scenes/meta/screens/academy_activity_results.tscn");
+    }
 
-        NavigateToScene("res://scenes/meta/screens/academy_course_path.tscn");
+    private void RecordAcademyOutcome(int outcome)
+    {
+        var battleContext = GetNodeOrNull("/root/BattleContext");
+        var courseId = battleContext?.Get("academy_course_id").AsString() ?? "";
+        var activityId = battleContext?.Get("academy_activity_id").AsString() ?? "";
+        var campaign = GetNodeOrNull("/root/Campaign");
+        if (!string.IsNullOrEmpty(courseId) && !string.IsNullOrEmpty(activityId) && campaign != null)
+            campaign.Call("CompleteAcademyActivity", courseId, activityId, outcome);
     }
 
     private void HandleMultiplayerCompletion(int winnerTeam)

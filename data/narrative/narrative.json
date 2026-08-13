@@ -1,0 +1,99 @@
+{
+  "cues": [
+    {
+      "id": "onboarding_summoner_intro",
+      "trigger": "meta_moment_started",
+      "context": "campus",
+      "dialogue_id": "merlin_summoner_intro",
+      "priority": 100,
+      "occurrence": "once_per_account",
+      "conditions": { "source_id": "onboarding.summoner_selection" }
+    },
+    {
+      "id": "onboarding_first_card_intro",
+      "trigger": "meta_moment_started",
+      "context": "campus",
+      "dialogue_id": "merlin_first_card_intro",
+      "priority": 100,
+      "occurrence": "once_per_account",
+      "conditions": { "source_id": "onboarding.first_card_selection" }
+    },
+    {
+      "id": "caravan_tutorial_intro",
+      "trigger": "meta_moment_started",
+      "context": "campus",
+      "dialogue_id": "merriweather_caravan_intro",
+      "priority": 50,
+      "occurrence": "once_per_summoner",
+      "conditions": { "source_id": "event.caravan_01" }
+    },
+    {
+      "id": "first_trial_intro",
+      "trigger": "battle_started",
+      "context": "battle",
+      "dialogue_id": "first_trial_lesson",
+      "priority": 100,
+      "occurrence": "once_per_summoner",
+      "conditions": { "source_id": "first_trial", "multiplayer": "false" }
+    }
+  ],
+  "dialogue": [
+    {
+      "id": "merlin_summoner_intro",
+      "speaker_key": "dialogue.merlin_summoner_intro.speaker",
+      "line_keys": [
+        "dialogue.merlin_summoner_intro.line_1",
+        "dialogue.merlin_summoner_intro.line_2",
+        "dialogue.merlin_summoner_intro.line_3"
+      ]
+    },
+    {
+      "id": "merlin_first_card_intro",
+      "speaker_key": "dialogue.merlin_first_card_intro.speaker",
+      "line_keys": [
+        "dialogue.merlin_first_card_intro.line_1",
+        "dialogue.merlin_first_card_intro.line_2",
+        "dialogue.merlin_first_card_intro.line_3",
+        "dialogue.merlin_first_card_intro.line_4",
+        "dialogue.merlin_first_card_intro.line_5"
+      ]
+    },
+    {
+      "id": "merriweather_caravan_intro",
+      "speaker_key": "dialogue.merriweather_greeting.speaker",
+      "line_keys": [
+        "dialogue.merriweather_greeting.line_1",
+        "dialogue.merriweather_offer.line_1",
+        "dialogue.merriweather_closing.line_1"
+      ]
+    },
+    {
+      "id": "charge_lesson",
+      "speaker_key": "dialogue.charge_intro.speaker",
+      "line_keys": [
+        "dialogue.charge_intro.line_1",
+        "dialogue.charge_tanky_slime.line_1",
+        "dialogue.charge_explain.line_1"
+      ]
+    },
+    {
+      "id": "first_trial_lesson",
+      "speaker_key": "dialogue.first_trial_intro.speaker",
+      "line_keys": [
+        "dialogue.first_trial_intro.line_1",
+        "dialogue.first_trial_intro.line_2",
+        "dialogue.first_trial_intro.line_3",
+        "dialogue.first_trial_intro.line_4",
+        "dialogue.first_trial_enemy_appears.line_1",
+        "dialogue.first_trial_enemy_appears.line_2",
+        "dialogue.first_trial_card_explain.line_1",
+        "dialogue.first_trial_card_explain.line_2",
+        "dialogue.first_trial_card_explain.line_3",
+        "dialogue.first_trial_play_prompt.line_1",
+        "dialogue.first_trial_play_prompt.line_2",
+        "dialogue.first_trial_core_explain.line_1",
+        "dialogue.first_trial_core_explain.line_2"
+      ]
+    }
+  ]
+}

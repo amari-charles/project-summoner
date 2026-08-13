@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fateforged.Data.Academy;
+using Fateforged.Cards;
 
 namespace Fateforged.Domain.Profile.Campaign;
 
@@ -24,8 +25,11 @@ public class AcademyProgress
     [JsonPropertyName("course_activity_index")]
     public Dictionary<string, int> CourseActivityIndex { get; set; } = [];
 
-    [JsonPropertyName("official_assessments_completed")]
-    public List<string> OfficialAssessmentsCompleted { get; set; } = [];
+    [JsonPropertyName("assessment_outcomes")]
+    public Dictionary<string, AcademyActivityOutcome> AssessmentOutcomes { get; set; } = [];
+
+    [JsonPropertyName("activity_loadouts")]
+    public Dictionary<string, AcademyActivityLoadoutState> ActivityLoadouts { get; set; } = [];
 
     [JsonPropertyName("transcript")]
     public List<AcademyTranscriptEntry> Transcript { get; set; } = [];
@@ -38,6 +42,12 @@ public class AcademyProgress
 
     [JsonPropertyName("reward_flags")]
     public Dictionary<string, int> RewardFlags { get; set; } = [];
+}
+
+public class AcademyActivityLoadoutState
+{
+    [JsonPropertyName("selected_card_instance_ids")]
+    public List<CardInstanceId> SelectedCardInstanceIds { get; set; } = [];
 }
 
 public class AcademyTranscriptEntry

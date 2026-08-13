@@ -251,7 +251,7 @@ SummonerVisual:
 ### Edge Cases
 
 - **Multiplayer client init:** Currently `init_as_client()` does lightweight setup. In target: `ClientSession` applies host snapshots to `MatchState.Summoners[]`, `SummonerVisual` reads it. No client-specific init path.
-- **Deferred deck loading:** For event_sequence battles, the session loads the deck when the event triggers, not at construction.
+- **Resolved deck loading:** The owning activity/campaign flow resolves the deck before constructing the battle session.
 
 ---
 

@@ -46,6 +46,10 @@ public static class DtoConverters
                 : "";
         }
 
+        var narrativeFlags = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in instance.NarrativeFlags)
+            narrativeFlags[key] = value;
+
         return new Godot.Collections.Dictionary
         {
             ["summoner_id"] = (string)instance.SummonerId,
@@ -54,6 +58,7 @@ public static class DtoConverters
             ["equipped_items"] = equippedDict,
             ["acquired_trait_ids"] = ToGodotArray(instance.AcquiredTraitIds.Select(t => (string)t)),
             ["unspent_trait_points"] = instance.UnspentTraitPoints,
+            ["narrative_flags"] = narrativeFlags,
         };
     }
 
@@ -115,6 +120,17 @@ public static class DtoConverters
             }
         }
 
+        var narrativeFlags = new Dictionary<string, bool>();
+        if (
+            dict.TryGetValue("narrative_flags", out var narrativeVar)
+            && narrativeVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var narrativeDict = narrativeVar.AsGodotDictionary();
+            foreach (var key in narrativeDict.Keys)
+                narrativeFlags[key.AsString()] = narrativeDict[key].AsBool();
+        }
+
         return new SummonerInstance
         {
             SummonerId = new SummonerId(summonerId),
@@ -123,6 +139,7 @@ public static class DtoConverters
             EquippedItems = equippedItems,
             AcquiredTraitIds = acquiredTraits,
             UnspentTraitPoints = GetInt(dict, "unspent_trait_points", 0),
+            NarrativeFlags = narrativeFlags,
         };
     }
 
@@ -397,8 +414,24 @@ public static class DtoConverters
             ["enrolled_courses"] = ToGodotArray(
                 academy.EnrolledCourses.Select(course => (string)course)
             ),
-            ["official_assessments_completed"] = ToGodotArray(academy.OfficialAssessmentsCompleted),
         };
+
+        var assessmentOutcomes = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in academy.AssessmentOutcomes)
+            assessmentOutcomes[key] = value.ToString();
+        dict["assessment_outcomes"] = assessmentOutcomes;
+
+        var activityLoadouts = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in academy.ActivityLoadouts)
+        {
+            activityLoadouts[key] = new Godot.Collections.Dictionary
+            {
+                ["selected_card_instance_ids"] = CardInstanceIdsToGodotArray(
+                    value.SelectedCardInstanceIds
+                ),
+            };
+        }
+        dict["activity_loadouts"] = activityLoadouts;
 
         var transcript = new Godot.Collections.Array();
         foreach (var entry in academy.Transcript)
@@ -739,15 +772,51 @@ public static class DtoConverters
             }
         }
 
-        var officialAssessments = new List<string>();
+        var assessmentOutcomes = new Dictionary<string, AcademyActivityOutcome>();
         if (
-            dict.TryGetValue("official_assessments_completed", out var assessmentsVar)
-            && assessmentsVar.VariantType == Variant.Type.Array
+            dict.TryGetValue("assessment_outcomes", out var assessmentsVar)
+            && assessmentsVar.VariantType == Variant.Type.Dictionary
         )
         {
-            foreach (var assessment in assessmentsVar.AsGodotArray())
+            var assessmentDict = assessmentsVar.AsGodotDictionary();
+            foreach (var key in assessmentDict.Keys)
             {
-                officialAssessments.Add(assessment.AsString());
+                if (
+                    Enum.TryParse<AcademyActivityOutcome>(
+                        assessmentDict[key].AsString(),
+                        ignoreCase: true,
+                        out var outcome
+                    )
+                )
+                    assessmentOutcomes[key.AsString()] = outcome;
+            }
+        }
+
+        var activityLoadouts = new Dictionary<string, AcademyActivityLoadoutState>();
+        if (
+            dict.TryGetValue("activity_loadouts", out var loadoutsVar)
+            && loadoutsVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var loadoutsDict = loadoutsVar.AsGodotDictionary();
+            foreach (var key in loadoutsDict.Keys)
+            {
+                if (loadoutsDict[key].VariantType != Variant.Type.Dictionary)
+                    continue;
+                var loadoutDict = loadoutsDict[key].AsGodotDictionary();
+                var selectedIds = new List<CardInstanceId>();
+                if (
+                    loadoutDict.TryGetValue("selected_card_instance_ids", out var idsVar)
+                    && idsVar.VariantType == Variant.Type.Array
+                )
+                {
+                    foreach (var id in idsVar.AsGodotArray())
+                        selectedIds.Add(CardInstanceId.FromString(id.AsString()));
+                }
+                activityLoadouts[key.AsString()] = new AcademyActivityLoadoutState
+                {
+                    SelectedCardInstanceIds = selectedIds,
+                };
             }
         }
 
@@ -835,7 +904,8 @@ public static class DtoConverters
             RemainingEnrollments = GetInt(dict, "remaining_enrollments", 0),
             CompletedCourses = completedCourses,
             EnrolledCourses = enrolledCourses,
-            OfficialAssessmentsCompleted = officialAssessments,
+            AssessmentOutcomes = assessmentOutcomes,
+            ActivityLoadouts = activityLoadouts,
             Transcript = transcript,
             HonorsEligibility = honorsEligibility,
             ShopPurchases = shopPurchases,
@@ -1026,6 +1096,10 @@ public static class DtoConverters
             achievementsDict[key] = ObjectToVariant(value);
         }
 
+        var narrativeDict = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in meta.NarrativeFlags)
+            narrativeDict[key] = value;
+
         return new Godot.Collections.Dictionary
         {
             ["selected_deck"] = meta.SelectedDeck,
@@ -1033,6 +1107,7 @@ public static class DtoConverters
             ["selected_campaign"] = meta.SelectedCampaign,
             ["analytics_opt_in"] = meta.AnalyticsOptIn,
             ["tutorial_flags"] = tutorialDict,
+            ["narrative_flags"] = narrativeDict,
             ["achievements"] = achievementsDict,
         };
     }
@@ -1069,6 +1144,17 @@ public static class DtoConverters
                     meta.TutorialFlags[key.AsString()] = value.AsBool();
                 }
             }
+        }
+
+        // Convert achievements if present
+        if (
+            dict.TryGetValue("narrative_flags", out var narrativeVar)
+            && narrativeVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var narrativeDict = narrativeVar.AsGodotDictionary();
+            foreach (var key in narrativeDict.Keys)
+                meta.NarrativeFlags[key.AsString()] = narrativeDict[key].AsBool();
         }
 
         // Convert achievements if present
@@ -1123,6 +1209,14 @@ public static class DtoConverters
             foreach (var (key, value) in update.TutorialFlags)
                 tutorialDict[key] = value;
             dict["tutorial_flags"] = tutorialDict;
+        }
+
+        if (update.NarrativeFlags != null)
+        {
+            var narrativeDict = new Godot.Collections.Dictionary();
+            foreach (var (key, value) in update.NarrativeFlags)
+                narrativeDict[key] = value;
+            dict["narrative_flags"] = narrativeDict;
         }
 
         if (update.Achievements != null)

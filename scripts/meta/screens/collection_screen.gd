@@ -26,15 +26,8 @@ class_name CollectionScreen
 @onready var sort_dropdown: OptionButton = %SortDropdown
 @onready var search_edit: LineEdit = %SearchEdit
 
-## Left panel - Collection
-@onready var collection_scroll: CollectionDropZone = %CollectionScroll
-@onready var card_grid: GridContainer = %CardGrid
-
-## Left panel - Selected Deck Panel (inline deck view with drop zone)
-@onready var selected_deck_panel: DeckDropZone = %SelectedDeckPanel
-@onready var selected_deck_name: Label = %SelectedDeckName
-@onready var selected_deck_count: Label = %SelectedDeckCount
-@onready var deck_cards_container: HBoxContainer = %DeckCardsContainer
+## Left panel - Shared deck editor
+@onready var deck_editor: DeckEditorPanel = %DeckEditorPanel
 
 ## Right panel - Decks
 @onready var decks_list: VBoxContainer = %DecksList
@@ -81,32 +74,15 @@ const RARITY_ORDER: Dictionary = {
 	"legendary": 3
 }
 
-## Currently active action popup
-var active_popup: Control = null
-
-## Widget cache for reuse (instance_id -> CardWidget)
-var _widget_cache: Dictionary = {}
 var _card_service: Node = null
 
-## Double-click tracking for collection cards
-var last_clicked_card_id: String = ""
-var last_click_time: int = 0
-const DOUBLE_CLICK_THRESHOLD_MS: int = 400
-
-## Double-click tracking for deck cards
-var last_deck_card_id: String = ""
-var last_deck_click_time: int = 0
-
 ## Constants
-const MAX_DECK_SIZE: int = 30
-const DECK_PANEL_CARD_SIZE: Vector2 = Vector2(160, 240)  # Standard card size for inline deck view
+const MAX_DECK_SIZE: int = DeckConstants.MAX_DECK_SIZE
 
 ## Scenes
-const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 const CardDetailModalScene: PackedScene = preload("res://scenes/meta/modals/card_detail_modal.tscn")
 const LevelUpPanelScene: PackedScene = preload("res://scenes/meta/modals/card_level_up_panel.tscn")
 const DeckListItemScene: PackedScene = preload("res://scenes/meta/components/deck_list_item.tscn")
-const CardActionPopupScene: PackedScene = preload("res://scenes/meta/components/card_action_popup.tscn")
 
 
 ## =============================================================================
@@ -114,7 +90,7 @@ const CardActionPopupScene: PackedScene = preload("res://scenes/meta/components/
 ## =============================================================================
 
 func _exit_tree() -> void:
-	_widget_cache.clear()
+	deck_editor.dismiss_popup()
 
 
 func _ready() -> void:
@@ -151,13 +127,9 @@ func _ready() -> void:
 	# Connect search
 	search_edit.text_changed.connect(_on_search_changed)
 
-	# Set up deck drop zone
-	selected_deck_panel.can_drop_callback = _can_drop_card_to_deck
-	selected_deck_panel.card_dropped.connect(_on_card_dropped_to_deck)
-
-	# Set up collection drop zone (for removing cards by dragging out of deck)
-	collection_scroll.can_remove_callback = _can_remove_card_from_deck
-	collection_scroll.card_dropped_to_remove.connect(_on_card_dropped_to_remove)
+	deck_editor.add_card_requested.connect(_add_card_to_selected_deck)
+	deck_editor.remove_card_requested.connect(_remove_card_from_deck)
+	deck_editor.card_info_requested.connect(_open_card_detail_modal)
 
 	# Connect to services
 	_connect_services()
@@ -344,14 +316,13 @@ func _on_deck_delete_clicked(deck_id: String) -> void:
 ## =============================================================================
 
 func _refresh_deck_panel() -> void:
-	# Clear existing cards
-	for child: Node in deck_cards_container.get_children():
-		child.queue_free()
-
-	# Update header
 	if selected_deck_id == "":
-		selected_deck_name.text = Loc.t("ui.collection.no_deck_selected")
-		selected_deck_count.text = ""
+		deck_editor.set_active_deck(
+			Loc.t("ui.collection.no_deck_selected"),
+			[],
+			MAX_DECK_SIZE,
+			false
+		)
 		return
 
 	if not Decks.has_method("GetDeckDict"):
@@ -362,96 +333,27 @@ func _refresh_deck_panel() -> void:
 		return
 
 	var deck: Dictionary = deck_result
-	selected_deck_name.text = deck.get("name", Loc.t("ui.collection.unnamed_deck"))
 	var card_ids: Array = deck.get("card_instance_ids", [])
-	selected_deck_count.text = "%d/%d" % [card_ids.size(), MAX_DECK_SIZE]
-
-	# Populate deck cards
+	var entries: Array[Dictionary] = []
 	for card_id: Variant in card_ids:
 		var card_id_str: String = SafeTypeUtils.string(card_id, "")
 		if card_id_str.is_empty():
 			continue
-
 		var card_data: Dictionary = CardServiceApi.get_card_dict(card_id_str)
 		if card_data.is_empty():
 			continue
-
-		var catalog_id: String = card_data.get("catalog_id", "")
-		var catalog_data: Variant = CardCatalogApi.get_card_as_dict(catalog_id)
-		if not catalog_data is Dictionary or catalog_data.is_empty():
-			continue
-
-		var widget: CardWidget = CardWidgetScene.instantiate()
-		deck_cards_container.add_child(widget)
-		widget.set_card(card_data, catalog_data)
-		widget.set_draggable(true)  # Enable dragging to remove
-		widget.custom_minimum_size = DECK_PANEL_CARD_SIZE
-		widget.tooltip_text = Loc.t("ui.collection.deck_card_remove_tooltip")
-
-		# Set progression info for level badge and XP bar
-		var prog_info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_id_str)
-		if not prog_info.is_empty():
-			widget.set_progression(prog_info)
-
-		# Click to show popup, double-click to remove from deck
-		widget.card_clicked.connect(_on_deck_card_clicked.bind(widget, card_id, catalog_id))
-		widget.card_held.connect(_on_card_held.bind(card_id, catalog_id))
-
-
-func _on_deck_card_clicked(_card_data: Dictionary, widget: CardWidget, card_id: String, catalog_id: String) -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	_dismiss_active_popup()
-
-	# Check for double-click
-	var current_time: int = Time.get_ticks_msec()
-	if card_id == last_deck_card_id and current_time - last_deck_click_time < DOUBLE_CLICK_THRESHOLD_MS:
-		# Double-click: remove from deck
-		last_deck_card_id = ""
-		last_deck_click_time = 0
-		_remove_card_from_deck(card_id)
-		return
-
-	# Single click: show popup with Remove option
-	last_deck_card_id = card_id
-	last_deck_click_time = current_time
-	_show_card_action_popup(widget, card_id, catalog_id)
-
-
-## =============================================================================
-## DRAG AND DROP
-## =============================================================================
-
-func _can_drop_card_to_deck(instance_id: String) -> bool:
-	# Don't allow if no deck selected
-	if selected_deck_id == "":
-		return false
-
-	# Don't allow if deck is full
-	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
-	if deck_card_ids.size() >= MAX_DECK_SIZE:
-		return false
-
-	# Don't allow if card is already in deck
-	if instance_id in deck_card_ids:
-		return false
-
-	return true
-
-
-func _on_card_dropped_to_deck(instance_id: String) -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	_add_card_to_selected_deck(instance_id)
-
-
-func _can_remove_card_from_deck(instance_id: String) -> bool:
-	# Check if this card is in the current deck
-	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
-	return instance_id in deck_card_ids
-
-
-func _on_card_dropped_to_remove(instance_id: String) -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	_remove_card_from_deck(instance_id)
+		entries.append({
+			"instance_id": card_id_str,
+			"card_data": card_data,
+			"catalog_id": SafeTypeUtils.string(card_data.get("catalog_id")),
+			"tooltip": Loc.t("ui.collection.deck_card_remove_tooltip"),
+		})
+	deck_editor.set_active_deck(
+		SafeTypeUtils.string(deck.get("name"), Loc.t("ui.collection.unnamed_deck")),
+		entries,
+		MAX_DECK_SIZE,
+		true
+	)
 
 
 ## =============================================================================
@@ -509,69 +411,18 @@ func _on_rename_confirmed() -> void:
 func _refresh_collection() -> void:
 	var summary_result: Array = CardServiceApi.get_collection_summary_dict()
 	collection_summary = summary_result
-
-	# Get deck card IDs
 	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
-
-	# Filter and sort
 	var filtered_cards: Array = _get_filtered_sorted_cards()
-
-	# Build list of instance_ids that should be visible
-	var visible_ids: Array[String] = []
+	var entries: Array[Dictionary] = []
 	for card_entry: Variant in filtered_cards:
 		if not card_entry is Dictionary:
 			continue
-		var instance_id: String = card_entry.get("instance_id", "")
-		if instance_id not in deck_card_ids:
-			visible_ids.append(instance_id)
-
-	# Remove widgets that should no longer be visible
-	var ids_to_remove: Array[String] = []
-	for instance_id: String in _widget_cache.keys():
-		if instance_id not in visible_ids:
-			ids_to_remove.append(instance_id)
-
-	for instance_id: String in ids_to_remove:
-		var widget: CardWidget = _widget_cache[instance_id]
-		if is_instance_valid(widget):
-			widget.queue_free()
-		_widget_cache.erase(instance_id)
-
-	# Create or reuse widgets in the correct order
-	for card_entry: Variant in filtered_cards:
-		if not card_entry is Dictionary:
-			continue
-		var instance_id: String = card_entry.get("instance_id", "")
-
-		# Skip cards in deck
+		var entry: Dictionary = card_entry
+		var instance_id: String = SafeTypeUtils.string(entry.get("instance_id"))
 		if instance_id in deck_card_ids:
 			continue
-
-		var card_data: Dictionary = card_entry.get("card_data", {})
-		var catalog_data: Dictionary = card_entry.get("catalog_data", {})
-		var catalog_id: String = card_data.get("catalog_id", "")
-
-		var widget: CardWidget
-		if _widget_cache.has(instance_id) and is_instance_valid(_widget_cache[instance_id]):
-			# Reuse existing widget
-			widget = _widget_cache[instance_id]
-		else:
-			# Create new widget
-			widget = CardWidgetScene.instantiate()
-			card_grid.add_child(widget)
-			widget.set_card(card_data, catalog_data)
-			widget.set_draggable(true)
-			widget.card_clicked.connect(_on_collection_card_clicked.bind(widget, instance_id, catalog_id))
-			widget.card_held.connect(_on_card_held.bind(instance_id, catalog_id))
-			_widget_cache[instance_id] = widget
-
-		# Set progression info for level badge and XP bar
-		var prog_info: Dictionary = CardServiceApi.get_card_progression_info_dict(instance_id)
-		if not prog_info.is_empty():
-			widget.set_progression(prog_info)
-
-		# Ensure correct order by moving to end (builds order as we iterate)
-		card_grid.move_child(widget, -1)
+		entries.append(entry)
+	deck_editor.set_available_cards(entries)
 
 func _get_selected_deck_card_ids() -> Array[String]:
 	var result: Array[String] = []
@@ -815,88 +666,6 @@ func _on_sort_selected(index: int) -> void:
 func _on_search_changed(new_text: String) -> void:
 	search_text = new_text
 	_refresh_collection()
-
-
-## =============================================================================
-## CARD INTERACTIONS
-## =============================================================================
-
-func _on_collection_card_clicked(_card_data: Dictionary, widget: CardWidget, instance_id: String, catalog_id: String) -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	_dismiss_active_popup()
-
-	# Check for double-click
-	var current_time: int = Time.get_ticks_msec()
-	if instance_id == last_clicked_card_id and current_time - last_click_time < DOUBLE_CLICK_THRESHOLD_MS:
-		# Double-click: add to deck directly
-		last_clicked_card_id = ""
-		last_click_time = 0
-		_add_card_to_selected_deck(instance_id)
-		return
-
-	# Single click: show popup
-	last_clicked_card_id = instance_id
-	last_click_time = current_time
-	_show_card_action_popup(widget, instance_id, catalog_id)
-
-
-func _on_card_held(_card_data: Dictionary, instance_id: String, catalog_id: String) -> void:
-	_dismiss_active_popup()
-	_open_card_detail_modal(instance_id, catalog_id)
-
-
-func _show_card_action_popup(widget: CardWidget, instance_id: String, catalog_id: String) -> void:
-	var popup: Control = CardActionPopupScene.instantiate()
-	if not popup:
-		return
-
-	add_child(popup)
-	active_popup = popup
-
-	# Position below the widget
-	var widget_rect: Rect2 = widget.get_global_rect()
-	var popup_pos: Vector2 = Vector2(
-		widget_rect.position.x + widget_rect.size.x / 2,
-		widget_rect.position.y + widget_rect.size.y + 5
-	)
-
-	if popup.has_method("show_at"):
-		var is_in_deck: bool = instance_id in _get_selected_deck_card_ids()
-		popup.call("show_at", popup_pos, instance_id, catalog_id, is_in_deck, selected_deck_id != "")
-
-	if popup.has_signal("use_pressed"):
-		popup.use_pressed.connect(_on_popup_use_pressed)
-	if popup.has_signal("remove_pressed"):
-		popup.remove_pressed.connect(_on_popup_remove_pressed)
-	if popup.has_signal("info_pressed"):
-		popup.info_pressed.connect(_on_popup_info_pressed)
-	if popup.has_signal("dismissed"):
-		popup.dismissed.connect(_on_popup_dismissed)
-
-
-func _dismiss_active_popup() -> void:
-	if active_popup and is_instance_valid(active_popup):
-		active_popup.queue_free()
-	active_popup = null
-
-
-func _on_popup_use_pressed(instance_id: String, _catalog_id: String) -> void:
-	_dismiss_active_popup()
-	_add_card_to_selected_deck(instance_id)
-
-
-func _on_popup_remove_pressed(instance_id: String, _catalog_id: String) -> void:
-	_dismiss_active_popup()
-	_remove_card_from_deck(instance_id)
-
-
-func _on_popup_info_pressed(instance_id: String, catalog_id: String) -> void:
-	_dismiss_active_popup()
-	_open_card_detail_modal(instance_id, catalog_id)
-
-
-func _on_popup_dismissed() -> void:
-	_dismiss_active_popup()
 
 
 ## =============================================================================

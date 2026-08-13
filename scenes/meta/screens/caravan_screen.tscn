@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://caravan_screen"]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/caravan_screen.gd" id="1_caravan"]
-[ext_resource type="PackedScene" uid="uid://dialogue_box" path="res://scenes/shared/dialogue_box.tscn" id="2_dialogue_box"]
+[ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2_narrative_presenter"]
 
 [node name="CaravanScreen" type="Control" groups=["caravan_screen"]]
 layout_mode = 3
@@ -140,4 +140,4 @@ unique_name_in_owner = true
 [node name="ErrorPopup" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
 
-[node name="DialogueBox" parent="." instance=ExtResource("2_dialogue_box")]
+[node name="NarrativePresenter" parent="." instance=ExtResource("2_narrative_presenter")]

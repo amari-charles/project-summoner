@@ -155,11 +155,15 @@ func select_academy_course(course_id: String) -> void:
 	academy_course_id = course_id
 	academy_activity_id = ""
 
+func select_academy_activity(course_id: String, activity_id: String) -> void:
+	academy_course_id = course_id
+	academy_activity_id = activity_id
+
 func configure_academy_battle(course_id: String, activity_id: String, config: Dictionary = {}) -> void:
 	current_mode = BattleMode.ACADEMY
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_ACADEMY_COURSE_PATH
+	origin_scene = SceneManager.SCENE_ACADEMY_COURSE_FLOW
 	_battle_id = activity_id
 	academy_course_id = course_id
 	academy_activity_id = activity_id
@@ -404,6 +408,9 @@ func set_battle_attempt_id(attempt_id: String) -> void:
 
 func get_battle_attempt_id() -> String:
 	return _battle_attempt_id
+
+func get_battle_id() -> String:
+	return _battle_id
 
 ## =============================================================================
 ## AUTHORITY ACCESS (C# INTEROP COMPATIBILITY)

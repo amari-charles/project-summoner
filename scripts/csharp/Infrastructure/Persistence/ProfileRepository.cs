@@ -903,6 +903,12 @@ public partial class ProfileRepository
                 _data.Meta.TutorialFlags[key] = value;
         }
 
+        if (updates.NarrativeFlags != null)
+        {
+            foreach (var (key, value) in updates.NarrativeFlags)
+                _data.Meta.NarrativeFlags[key] = value;
+        }
+
         if (updates.Achievements != null)
         {
             foreach (var (key, value) in updates.Achievements)

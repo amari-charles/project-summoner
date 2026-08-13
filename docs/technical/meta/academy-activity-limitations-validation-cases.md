@@ -1,10 +1,12 @@
 # Academy Activity Limitations Validation Cases
 
-**Status:** PASS 3 COMPLETE
+**Status:** SUPERSEDED
 **Initiative:** `academy-activity-limitations`
 **Domain:** `meta`
 **Last Updated:** `2026-06-18`
 **Companion Plan:** `academy-activity-limitations-plan.md`
+
+> Historical validation matrix only. The approved fixed/owned/class-loadout model and its current cases live in [academy-class-flow-overhaul-validation-cases.md](academy-class-flow-overhaul-validation-cases.md).
 
 ## How To Use
 

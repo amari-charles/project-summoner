@@ -23,6 +23,8 @@ public class MetaUpdate
     /// <summary>Merge tutorial flags (only specified keys are updated).</summary>
     public Dictionary<string, bool>? TutorialFlags { get; set; }
 
+    public Dictionary<string, bool>? NarrativeFlags { get; set; }
+
     /// <summary>Merge achievement progress (only specified keys are updated).</summary>
     public Dictionary<string, object>? Achievements { get; set; }
 }

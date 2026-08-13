@@ -1,7 +1,7 @@
 # Application Layer
 
 **Status:** CURRENT  
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-08-05
 
 The Application layer orchestrates scene lifecycle and cross-domain handoffs.
 It is above gameplay/meta domain internals and below product-level UX flows.
@@ -47,8 +47,7 @@ Application can **call** those systems, but should not duplicate their logic.
 | `battle_context.gd` | Battle configuration + battle lifecycle state bag |
 | `event_context.gd` | Active event configuration + completion state |
 | `navigation_context.gd` | Return-stack for nested navigation flows |
-| `event_sequencer.gd` | Async event step execution and sequencing |
-| `dialogue_manager.gd` | Dialogue state machine + UI signal orchestration |
+| `NarrativeDirector.cs` | Typed narrative cue matching, deterministic queueing, occurrence policy, and playback orchestration |
 | `capability_manager.gd` | Fine-grained gameplay capability gating |
 
 ## Boundary Contracts
@@ -78,7 +77,7 @@ Application can **call** those systems, but should not duplicate their logic.
 
 1. Screen configures `EventContext`.
 2. Scene transition to event screen.
-3. `EventSequencer` runs scripted steps.
+3. `NarrativeDirector` matches any typed narrative cue; gameplay behavior remains with its authoritative owner.
 4. `EventContext.complete_event()` updates event completion state.
 
 ### Multiplayer Battle Start

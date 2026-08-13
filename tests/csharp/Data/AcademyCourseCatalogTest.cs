@@ -22,9 +22,9 @@ public class AcademyCourseCatalogTest
         AssertThat(magic101).IsNotNull();
         AssertThat(magic101!.IsRequired).IsTrue();
         AssertThat(magic101.Activities).HasSize(4);
-        AssertThat(magic101.Activities.Any(activity => activity.Type == AcademyCourseActivityType.Lesson))
-            .IsFalse();
-        AssertThat(magic101.Activities.Any(activity => activity.IsOfficialAssessment)).IsTrue();
+        AssertThat(magic101.Activities.All(activity => activity.ExecutionKind == AcademyActivityExecutionKind.Battle))
+            .IsTrue();
+        AssertThat(magic101.Activities.Any(activity => activity.Role == AcademyActivityRole.Assessment)).IsTrue();
         AssertThat(magic101.RewardOffers).IsEmpty();
 
         var activityRewards = CardGrants(
@@ -100,14 +100,14 @@ public class AcademyCourseCatalogTest
         var basicDuel = magic101.Activities[1];
         var spellPractice = magic101.Activities[2];
         var assessment = magic101.Activities.First(activity =>
-            activity.Type == AcademyCourseActivityType.AssessmentBattle
+            activity.Role == AcademyActivityRole.Assessment
         );
 
         AssertThat(summonPractice.Id).IsEqual("magic_101_summon_practice");
         AssertThat(summonPractice.BattleConfig).IsNotNull();
-        AssertThat(summonPractice.BattleConfig!.LoanerPlayerDeck.Select(entry => entry.CardId))
+        AssertThat(summonPractice.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.NeutralStarterUnit);
-        AssertThat(summonPractice.BattleConfig.EnemyDeck).IsEmpty();
+        AssertThat(summonPractice.BattleConfig!.EnemyDeck).IsEmpty();
         AssertThat(summonPractice.BattleConfig.AiType).IsEqual("none");
         AssertThat(summonPractice.BattleConfig.EncounterAi).IsNotNull();
         AssertThat(summonPractice.BattleConfig.EncounterAi!.Preset).IsEqual("scripted_encounter");
@@ -128,9 +128,9 @@ public class AcademyCourseCatalogTest
 
         AssertThat(spellPractice.Id).IsEqual("magic_101_spell_practice");
         AssertThat(spellPractice.BattleConfig).IsNotNull();
-        AssertThat(spellPractice.BattleConfig!.LoanerPlayerDeck.Select(entry => entry.CardId))
+        AssertThat(spellPractice.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.MagicBolt);
-        AssertThat(spellPractice.BattleConfig.EnemyDeck).IsEmpty();
+        AssertThat(spellPractice.BattleConfig!.EnemyDeck).IsEmpty();
         AssertThat(spellPractice.BattleConfig.EncounterAi).IsNotNull();
         AssertThat(
                 spellPractice.BattleConfig.EncounterAi!.Rules
@@ -151,9 +151,9 @@ public class AcademyCourseCatalogTest
                 assessment.BattleConfig.EnemyDeck.Any(entry => entry.CardId == CardIds.TrainingTarget)
             )
             .IsFalse();
-        AssertThat(assessment.BattleConfig.LoanerPlayerDeck.Select(entry => entry.CardId))
+        AssertThat(assessment.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.NeutralStarterUnit);
-        AssertThat(assessment.BattleConfig.LoanerPlayerDeck.Select(entry => entry.CardId))
+        AssertThat(assessment.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.MagicBolt);
     }
 
@@ -167,12 +167,12 @@ public class AcademyCourseCatalogTest
             activity.Id == "practical_spellcraft_practice"
         );
 
-        AssertThat(practice.Limitations.HasRules).IsTrue();
-        AssertThat(practice.Limitations.MinSummons).IsEqual(1);
-        AssertThat(practice.Limitations.MinSpells).IsEqual(2);
-        AssertThat(practice.Limitations.MaxDeckSize).IsEqual(12);
-        AssertThat(practice.Limitations.RequiredCards).Contains(CardIds.Charge);
-        AssertThat(practice.Limitations.AdditionalLoanerCards.Select(entry => entry.CardId))
+        AssertThat(practice.Loadout.Rules.HasRules).IsTrue();
+        AssertThat(practice.Loadout.Rules.MinSummons).IsEqual(1);
+        AssertThat(practice.Loadout.Rules.MinSpells).IsEqual(2);
+        AssertThat(practice.Loadout.Rules.MaxDeckSize).IsEqual(12);
+        AssertThat(practice.Loadout.Rules.RequiredOwnedCards).Contains(CardIds.Charge);
+        AssertThat(practice.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.MagicBolt);
     }
 
@@ -194,7 +194,7 @@ public class AcademyCourseCatalogTest
             .ForSemester(1, 2)
             .First(course => course.Id == CourseIds.FoundationsOfMagicII);
         var assessment = foundations2.Activities.First(activity =>
-            activity.Type == AcademyCourseActivityType.AssessmentBattle
+            activity.Role == AcademyActivityRole.Assessment
         );
 
         AssertThat(assessment.BattleConfig).IsNotNull();

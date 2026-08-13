@@ -31,7 +31,7 @@ Two distinct shop systems serving different gameplay purposes:
 
 ### Technical Requirements
 - Defined as campaign events (like battles)
-- Integrated with EventSequencer system
+- Opened directly by the typed caravan event flow; optional merchant dialogue uses Narrative Director
 - Supports pre-shop and post-shop dialogue
 - Can check player state for conditional offerings
 - Purchase history tracked permanently
@@ -292,7 +292,7 @@ _battles["event_caravan_tutorial"] = {
 When a caravan event completes, it returns purchase results to the campaign system:
 
 ```gdscript
-# EventSequencer OPEN_CARAVAN step returns:
+# Caravan shop completion returns:
 {
     "event_completed": true,
     "purchases_made": [
@@ -311,7 +311,7 @@ This allows:
 
 **Note**: `purchases_made` uses the same `offering_id` as in the shop catalog, so it's easy to do follow-up logic without extra mapping.
 
-EventSequencer gains new step type: `OPEN_CARAVAN` which shows shop UI and waits for player to exit.
+The caravan event owner opens the shop and records completion; narrative never executes shop actions.
 
 ---
 
@@ -374,7 +374,7 @@ EventSequencer gains new step type: `OPEN_CARAVAN` which shows shop UI and waits
 ### Phase 2: Caravan Shop (Minimum Viable)
 - [ ] Caravan shop catalog in ShopService
 - [ ] Caravan UI scene
-- [ ] EventSequencer OPEN_CARAVAN step
+- [x] Typed caravan event opens the dedicated shop flow
 - [ ] First tutorial caravan event
 - [ ] Purchase flow testing
 

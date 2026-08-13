@@ -14,17 +14,8 @@
       "activities": [
         {
           "id": "magic_101_summon_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.magic_101_summon_practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [
-              {
-                "card_id": "neutral_starter_unit",
-                "count": 2
-              }
-            ],
             "enemy_deck": [],
             "enemy_hp": 25,
             "ai_type": "none",
@@ -146,38 +137,33 @@
               ]
             }
           },
-          "limitations": {
-            "fixed_class_deck": [
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "fixed",
+            "supplied_cards": [
               {
                 "card_id": "neutral_starter_unit",
                 "count": 2
               }
             ],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": true
-          },
-          "reward_offers": []
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "magic_101_basic_duel",
-          "type": "practice_battle",
           "label_key": "academy.activity.magic_101_basic_duel",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [
-              {
-                "card_id": "neutral_starter_unit",
-                "count": 3
-              }
-            ],
             "enemy_deck": [
               {
                 "card_id": "weak_enemy_unit",
@@ -190,18 +176,6 @@
             "ai_play_interval_min": 5,
             "ai_play_interval_max": 7,
             "encounter_ai": null
-          },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
           },
           "reward_offers": [
             {
@@ -238,25 +212,33 @@
                 ]
               }
             }
-          ]
+          ],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "fixed",
+            "supplied_cards": [
+              {
+                "card_id": "neutral_starter_unit",
+                "count": 3
+              }
+            ],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "magic_101_spell_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.magic_101_spell_practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [
-              {
-                "card_id": "neutral_starter_unit",
-                "count": 2
-              },
-              {
-                "card_id": "magic_bolt",
-                "count": 2
-              }
-            ],
             "enemy_deck": [],
             "enemy_hp": 40,
             "ai_type": "none",
@@ -422,18 +404,6 @@
               ]
             }
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
           "reward_offers": [
             {
               "id": "academy.reward.magic_bolt",
@@ -469,25 +439,37 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "id": "magic_101_assessment",
-          "type": "assessment_battle",
-          "label_key": "academy.activity.magic_101_assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
-          "battle_config": {
-            "loaner_player_deck": [
+          ],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "fixed",
+            "supplied_cards": [
               {
                 "card_id": "neutral_starter_unit",
-                "count": 3
+                "count": 2
               },
               {
                 "card_id": "magic_bolt",
                 "count": 2
               }
             ],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
+        },
+        {
+          "id": "magic_101_assessment",
+          "label_key": "academy.activity.magic_101_assessment",
+          "battle_config": {
             "enemy_deck": [
               {
                 "card_id": "weak_enemy_unit",
@@ -501,19 +483,32 @@
             "ai_play_interval_max": 6.5,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "fixed",
+            "supplied_cards": [
+              {
+                "card_id": "neutral_starter_unit",
+                "count": 3
+              },
+              {
+                "card_id": "magic_bolt",
+                "count": 2
+              }
+            ],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []
@@ -531,34 +526,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "summoning_basics_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "summoning_basics_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -572,32 +542,32 @@
             "ai_play_interval_max": 999,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [
-              "summon"
-            ],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [
-              "magic_bolt"
-            ],
-            "has_rules": true
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [
+                "summon"
+              ],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": [
+                "magic_bolt"
+              ]
+            }
+          }
         },
         {
           "id": "summoning_basics_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -611,19 +581,23 @@
             "ai_play_interval_max": 11,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": [
@@ -676,34 +650,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "practical_spellcraft_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "practical_spellcraft_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -717,9 +666,13 @@
             "ai_play_interval_max": 999,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "class_loadout",
+            "supplied_cards": [
               {
                 "card_id": "neutral_starter_unit",
                 "count": 1
@@ -729,27 +682,23 @@
                 "count": 1
               }
             ],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 1,
-            "min_spells": 2,
-            "max_deck_size": 12,
-            "required_cards": [
-              "charge"
-            ],
-            "banned_cards": [],
-            "has_rules": true
-          },
-          "reward_offers": []
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 1,
+              "min_spells": 2,
+              "max_deck_size": 12,
+              "required_owned_cards": [
+                "charge"
+              ],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "practical_spellcraft_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -763,19 +712,23 @@
             "ai_play_interval_max": 11,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": [
@@ -828,34 +781,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "intro_fire_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "intro_fire_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -869,35 +797,35 @@
             "ai_play_interval_max": 999,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "class_loadout",
+            "supplied_cards": [
               {
                 "card_id": "fire_wisp",
                 "count": 1
               }
             ],
-            "allowed_card_types": [],
-            "allowed_elements": [
-              "fire"
-            ],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": true
-          },
-          "reward_offers": []
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [
+                "fire"
+              ],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "intro_fire_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -911,19 +839,23 @@
             "ai_play_interval_max": 11,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": [
@@ -1010,34 +942,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "intro_water_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "intro_water_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1051,35 +958,35 @@
             "ai_play_interval_max": 999,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "class_loadout",
+            "supplied_cards": [
               {
                 "card_id": "water_wisp",
                 "count": 1
               }
             ],
-            "allowed_card_types": [],
-            "allowed_elements": [
-              "water"
-            ],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": true
-          },
-          "reward_offers": []
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [
+                "water"
+              ],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "intro_water_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1093,19 +1000,23 @@
             "ai_play_interval_max": 11,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": [
@@ -1192,34 +1103,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "intro_earth_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "intro_earth_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1233,35 +1119,35 @@
             "ai_play_interval_max": 999,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "class_loadout",
+            "supplied_cards": [
               {
                 "card_id": "earth_wisp",
                 "count": 1
               }
             ],
-            "allowed_card_types": [],
-            "allowed_elements": [
-              "earth"
-            ],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": true
-          },
-          "reward_offers": []
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [
+                "earth"
+              ],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "intro_earth_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1275,19 +1161,23 @@
             "ai_play_interval_max": 11,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": [
@@ -1374,34 +1264,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "intro_air_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "intro_air_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1415,35 +1280,35 @@
             "ai_play_interval_max": 999,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "class_loadout",
+            "supplied_cards": [
               {
                 "card_id": "wind_wisp",
                 "count": 1
               }
             ],
-            "allowed_card_types": [],
-            "allowed_elements": [
-              "wind"
-            ],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": true
-          },
-          "reward_offers": []
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [
+                "wind"
+              ],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "intro_air_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1457,19 +1322,23 @@
             "ai_play_interval_max": 11,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": [
@@ -1558,34 +1427,9 @@
       ],
       "activities": [
         {
-          "id": "foundations_magic_ii_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "foundations_magic_ii_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1603,28 +1447,28 @@
             "ai_play_interval_max": 10,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "foundations_magic_ii_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1642,19 +1486,23 @@
             "ai_play_interval_max": 9,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []
@@ -1672,34 +1520,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "empowerment_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "empowerment_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1717,28 +1540,28 @@
             "ai_play_interval_max": 10,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "empowerment_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1756,19 +1579,23 @@
             "ai_play_interval_max": 9,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []
@@ -1786,34 +1613,9 @@
       "prerequisites": [],
       "activities": [
         {
-          "id": "mana_channeling_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "mana_channeling_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1831,28 +1633,28 @@
             "ai_play_interval_max": 10,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "mana_channeling_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1870,19 +1672,23 @@
             "ai_play_interval_max": 9,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []
@@ -1902,34 +1708,9 @@
       ],
       "activities": [
         {
-          "id": "fire_practicum_i_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "fire_practicum_i_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1947,28 +1728,28 @@
             "ai_play_interval_max": 10,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "fire_practicum_i_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -1986,19 +1767,23 @@
             "ai_play_interval_max": 9,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []
@@ -2018,34 +1803,9 @@
       ],
       "activities": [
         {
-          "id": "water_practicum_i_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "water_practicum_i_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -2063,28 +1823,28 @@
             "ai_play_interval_max": 10,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "water_practicum_i_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -2102,19 +1862,23 @@
             "ai_play_interval_max": 9,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []
@@ -2134,34 +1898,9 @@
       ],
       "activities": [
         {
-          "id": "earth_practicum_i_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "earth_practicum_i_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -2179,28 +1918,28 @@
             "ai_play_interval_max": 10,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "earth_practicum_i_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -2218,19 +1957,23 @@
             "ai_play_interval_max": 9,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []
@@ -2250,34 +1993,9 @@
       ],
       "activities": [
         {
-          "id": "air_practicum_i_lesson",
-          "type": "lesson",
-          "label_key": "academy.activity.lesson",
-          "is_official_assessment": false,
-          "repeatable": false,
-          "battle_config": null,
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
-        },
-        {
           "id": "air_practicum_i_practice",
-          "type": "practice_battle",
           "label_key": "academy.activity.practice",
-          "is_official_assessment": false,
-          "repeatable": true,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -2295,28 +2013,28 @@
             "ai_play_interval_max": 10,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "practice",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         },
         {
           "id": "air_practicum_i_assessment",
-          "type": "assessment_battle",
           "label_key": "academy.activity.assessment",
-          "is_official_assessment": true,
-          "repeatable": false,
           "battle_config": {
-            "loaner_player_deck": [],
             "enemy_deck": [
               {
                 "card_id": "fire_wisp",
@@ -2334,19 +2052,23 @@
             "ai_play_interval_max": 9,
             "encounter_ai": null
           },
-          "limitations": {
-            "fixed_class_deck": [],
-            "additional_loaner_cards": [],
-            "allowed_card_types": [],
-            "allowed_elements": [],
-            "min_summons": 0,
-            "min_spells": 0,
-            "max_deck_size": 0,
-            "required_cards": [],
-            "banned_cards": [],
-            "has_rules": false
-          },
-          "reward_offers": []
+          "reward_offers": [],
+          "execution_kind": "battle",
+          "role": "assessment",
+          "encounter_style": "standard",
+          "loadout": {
+            "mode": "owned",
+            "supplied_cards": [],
+            "rules": {
+              "allowed_card_types": [],
+              "allowed_elements": [],
+              "min_summons": 0,
+              "min_spells": 0,
+              "max_deck_size": 0,
+              "required_owned_cards": [],
+              "banned_cards": []
+            }
+          }
         }
       ],
       "reward_offers": []

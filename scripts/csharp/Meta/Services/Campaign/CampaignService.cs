@@ -1,4 +1,5 @@
 using System;
+using Fateforged.Data.Academy;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Account;
@@ -481,6 +482,28 @@ public partial class CampaignService : Node
         return _academy?.GetCourse(courseId) ?? [];
     }
 
+    public Godot.Collections.Dictionary GetAcademyCourseFlowState(string courseId)
+    {
+        return _academy?.GetCourse(courseId) ?? [];
+    }
+
+    public Godot.Collections.Dictionary GetAcademyActivityPreparationState(
+        string courseId,
+        string activityId
+    )
+    {
+        return _academy?.GetActivityLaunchState(courseId, activityId) ?? [];
+    }
+
+    public bool UpdateAcademyActivityLoadout(
+        string courseId,
+        string activityId,
+        Godot.Collections.Array<Godot.Collections.Dictionary> slots
+    ) => _academy?.UpdateActivityLoadout(courseId, activityId, slots) ?? false;
+
+    public string SaveAcademyActivityLoadoutAsDeck(string courseId, string activityId) =>
+        _academy?.SaveActivityLoadoutAsDeck(courseId, activityId) ?? "";
+
     public Godot.Collections.Dictionary GetAcademyActivityLaunchState(
         string courseId,
         string activityId
@@ -523,9 +546,17 @@ public partial class CampaignService : Node
         return completed;
     }
 
-    public bool CompleteAcademyActivity(string courseId, string activityId, bool succeeded = true)
+    public bool CompleteAcademyActivity(
+        string courseId,
+        string activityId,
+        int outcome = (int)AcademyActivityOutcome.Victory
+    )
     {
-        var completed = _academy?.CompleteActivity(courseId, activityId, succeeded) ?? false;
+        if (!Enum.IsDefined(typeof(AcademyActivityOutcome), outcome))
+            return false;
+        var completed =
+            _academy?.CompleteActivity(courseId, activityId, (AcademyActivityOutcome)outcome)
+            ?? false;
         if (completed)
             EmitSignal(SignalName.CampaignProgressChanged);
         return completed;

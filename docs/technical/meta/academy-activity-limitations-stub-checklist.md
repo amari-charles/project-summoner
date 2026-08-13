@@ -1,9 +1,11 @@
 # Academy Activity Limitations Stub Checklist
 
-**Status:** PASS 2 CHECKLIST + PASS 3 COMPLETION NOTES
+**Status:** SUPERSEDED
 **Initiative:** `academy-activity-limitations`
 **Domain:** `meta`
 **Last Updated:** `2026-06-18`
+
+> Historical checklist only. Current fields, screens, and validation evidence are documented in [academy-class-flow-overhaul-stub-checklist.md](academy-class-flow-overhaul-stub-checklist.md).
 
 ## Types Created Or Extended
 

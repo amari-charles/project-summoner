@@ -17,13 +17,52 @@ public enum AcademyTrack
     Command,
 }
 
-public enum AcademyCourseActivityType
+public enum AcademyActivityExecutionKind
 {
-    Lesson,
-    PracticeBattle,
-    AssessmentBattle,
-    RewardChoice,
+    Battle,
     Lab,
+}
+
+public enum AcademyActivityRole
+{
+    Standard,
+    Practice,
+    Assessment,
+}
+
+public enum AcademyEncounterStyle
+{
+    Standard,
+    Boss,
+    Challenge,
+}
+
+public enum AcademyDeckMode
+{
+    Fixed,
+    Owned,
+    ClassLoadout,
+}
+
+public enum AcademyActivityLifecycleState
+{
+    Locked,
+    Available,
+    Active,
+    Completed,
+}
+
+public enum AcademyActivityPrerequisiteMode
+{
+    All,
+    Any,
+}
+
+public enum AcademyActivityOutcome
+{
+    Victory,
+    Defeat,
+    Abandoned,
 }
 
 public class AcademyCourseDefinition
@@ -51,32 +90,58 @@ public class AcademyCourseDefinition
     public List<AcademyCourseActivity> Activities { get; set; } = [];
 
     public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
+
+    public IReadOnlyList<string> GetActivityPrerequisites(int activityIndex)
+    {
+        if (activityIndex < 0 || activityIndex >= Activities.Count)
+            return [];
+
+        var authored = Activities[activityIndex].Prerequisites;
+        if (authored != null)
+            return authored;
+
+        return activityIndex == 0 ? [] : [Activities[activityIndex - 1].Id];
+    }
 }
 
 public class AcademyCourseActivity
 {
     public string Id { get; set; } = "";
 
-    public AcademyCourseActivityType Type { get; set; } = AcademyCourseActivityType.Lesson;
+    public AcademyActivityExecutionKind ExecutionKind { get; set; } =
+        AcademyActivityExecutionKind.Battle;
+
+    public AcademyActivityRole Role { get; set; } = AcademyActivityRole.Standard;
+
+    public AcademyEncounterStyle EncounterStyle { get; set; } = AcademyEncounterStyle.Standard;
 
     public string LabelKey { get; set; } = "";
 
-    public bool IsOfficialAssessment { get; set; }
+    // Null preserves the current authored shorthand: the previous activity is the
+    // sole prerequisite. An explicit array enables roots and branching graphs.
+    public List<string>? Prerequisites { get; set; }
 
-    public bool Repeatable { get; set; }
+    public AcademyActivityPrerequisiteMode PrerequisiteMode { get; set; } =
+        AcademyActivityPrerequisiteMode.All;
 
     public AcademyBattleConfig? BattleConfig { get; set; }
 
-    public AcademyActivityLimitations Limitations { get; set; } = new();
+    public AcademyActivityLoadoutDefinition Loadout { get; set; } = new();
 
     public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
 }
 
-public class AcademyActivityLimitations
+public class AcademyActivityLoadoutDefinition
 {
-    public List<DeckEntry> FixedClassDeck { get; set; } = [];
+    public AcademyDeckMode Mode { get; set; } = AcademyDeckMode.Owned;
 
-    public List<DeckEntry> AdditionalLoanerCards { get; set; } = [];
+    public List<DeckEntry> SuppliedCards { get; set; } = [];
+
+    public AcademyDeckRules Rules { get; set; } = new();
+}
+
+public class AcademyDeckRules
+{
 
     public List<CardType> AllowedCardTypes { get; set; } = [];
 
@@ -88,26 +153,22 @@ public class AcademyActivityLimitations
 
     public int MaxDeckSize { get; set; }
 
-    public List<CardId> RequiredCards { get; set; } = [];
+    public List<CardId> RequiredOwnedCards { get; set; } = [];
 
     public List<CardId> BannedCards { get; set; } = [];
 
     public bool HasRules =>
-        FixedClassDeck.Count > 0
-        || AdditionalLoanerCards.Count > 0
-        || AllowedCardTypes.Count > 0
+        AllowedCardTypes.Count > 0
         || AllowedElements.Count > 0
         || MinSummons > 0
         || MinSpells > 0
         || MaxDeckSize > 0
-        || RequiredCards.Count > 0
+        || RequiredOwnedCards.Count > 0
         || BannedCards.Count > 0;
 }
 
 public class AcademyBattleConfig
 {
-    public List<DeckEntry> LoanerPlayerDeck { get; set; } = [];
-
     public List<DeckEntry> EnemyDeck { get; set; } = [];
 
     public float EnemyHp { get; set; } = 35f;

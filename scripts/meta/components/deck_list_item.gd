@@ -48,7 +48,7 @@ func setup(data: Dictionary) -> void:
 	deck_name_label.text = deck_name
 
 	var card_count: int = data.get("card_count", 0)
-	var max_cards: int = data.get("max_cards", 30)
+	var max_cards: int = data.get("max_cards", DeckConstants.MAX_DECK_SIZE)
 	card_count_label.text = "%d/%d" % [card_count, max_cards]
 
 	is_active = data.get("is_active", false)
