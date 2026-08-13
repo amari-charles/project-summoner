@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/battle/ui/pause_menu.tscn" id="6_pause_menu"]
 
 [sub_resource type="StyleBoxFlat" id="game_over_bg"]
-bg_color = Color(0.94902, 0.941176, 0.92549, 0.96)
+bg_color = Color(0.898039, 0.882353, 0.85098, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2

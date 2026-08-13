@@ -37,7 +37,7 @@ offset_right = 200.0
 offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.94902, 0.941176, 0.92549, 1)
+color = Color(0.898039, 0.882353, 0.85098, 1)
 
 [node name="PausePanel" type="NinePatchRect" parent="."]
 layout_mode = 1

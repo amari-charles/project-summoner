@@ -73,11 +73,11 @@ const EARTH_DARK: Color = Color("#8b5a2b")       # Deep clay
 ## =============================================================================
 
 ## Player UI surfaces - warm neutral placeholder theme
-const UI_BACKGROUND: Color = Color("#e8e6e1")
-const UI_SURFACE: Color = Color("#f2f0ec")
-const UI_SURFACE_RAISED: Color = Color("#faf8f4")
-const UI_SURFACE_ALT: Color = Color("#dedbd4")
-const UI_SURFACE_DISABLED: Color = Color("#d2cfc8")
+const UI_BACKGROUND: Color = Color("#dad7d0")
+const UI_SURFACE: Color = Color("#e5e1d9")
+const UI_SURFACE_RAISED: Color = Color("#efebe4")
+const UI_SURFACE_ALT: Color = Color("#cbc7be")
+const UI_SURFACE_DISABLED: Color = Color("#c1bdb4")
 const UI_BORDER: Color = Color("#9c978d")
 const UI_BORDER_STRONG: Color = Color("#6f6a62")
 
@@ -93,15 +93,15 @@ const TEXT_DISABLED: Color = Color("#8c877f")
 const TEXT_HIGHLIGHT: Color = Color("#8a6420")
 
 ## Button states (generic fallback)
-const BUTTON_NORMAL: Color = Color("#e1ded7")
-const BUTTON_HOVER: Color = Color("#f3f0ea")
-const BUTTON_PRESSED: Color = Color("#cbc7be")
+const BUTTON_NORMAL: Color = Color("#d3cfc6")
+const BUTTON_HOVER: Color = Color("#e7e3dc")
+const BUTTON_PRESSED: Color = Color("#bdb8ae")
 const BUTTON_DISABLED: Color = UI_SURFACE_DISABLED
 
 ## Primary button (gold accent - main actions)
-const BUTTON_PRIMARY_BG: Color = Color("#eee6d5")
-const BUTTON_PRIMARY_BG_HOVER: Color = Color("#f7f0df")
-const BUTTON_PRIMARY_BG_PRESSED: Color = Color("#d8cdb7")
+const BUTTON_PRIMARY_BG: Color = Color("#ded3bd")
+const BUTTON_PRIMARY_BG_HOVER: Color = Color("#e9dfca")
+const BUTTON_PRIMARY_BG_PRESSED: Color = Color("#c9bda6")
 const BUTTON_PRIMARY_BORDER: Color = Color("#9a742d")
 
 ## Secondary button (neutral - cancel, back)

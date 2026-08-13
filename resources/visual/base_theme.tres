@@ -10,7 +10,7 @@ content_margin_left = 14.0
 content_margin_top = 9.0
 content_margin_right = 14.0
 content_margin_bottom = 9.0
-bg_color = Color(0.882353, 0.870588, 0.843137, 1)
+bg_color = Color(0.827451, 0.811765, 0.776471, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -26,7 +26,7 @@ content_margin_left = 14.0
 content_margin_top = 9.0
 content_margin_right = 14.0
 content_margin_bottom = 9.0
-bg_color = Color(0.952941, 0.941176, 0.917647, 1)
+bg_color = Color(0.905882, 0.890196, 0.862745, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -42,7 +42,7 @@ content_margin_left = 14.0
 content_margin_top = 9.0
 content_margin_right = 14.0
 content_margin_bottom = 9.0
-bg_color = Color(0.796078, 0.780392, 0.745098, 1)
+bg_color = Color(0.741176, 0.721569, 0.682353, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -58,7 +58,7 @@ content_margin_left = 14.0
 content_margin_top = 9.0
 content_margin_right = 14.0
 content_margin_bottom = 9.0
-bg_color = Color(0.823529, 0.811765, 0.784314, 1)
+bg_color = Color(0.756863, 0.741176, 0.705882, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -70,7 +70,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="ButtonFocus"]
-bg_color = Color(0.952941, 0.941176, 0.917647, 1)
+bg_color = Color(0.905882, 0.890196, 0.862745, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
@@ -82,7 +82,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="PanelSurface"]
-bg_color = Color(0.94902, 0.941176, 0.92549, 1)
+bg_color = Color(0.898039, 0.882353, 0.85098, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -98,7 +98,7 @@ content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.980392, 0.972549, 0.956863, 1)
+bg_color = Color(0.937255, 0.921569, 0.894118, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -114,7 +114,7 @@ content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.980392, 0.972549, 0.956863, 1)
+bg_color = Color(0.937255, 0.921569, 0.894118, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -126,7 +126,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="MenuHover"]
-bg_color = Color(0.882353, 0.870588, 0.843137, 1)
+bg_color = Color(0.827451, 0.811765, 0.776471, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -136,7 +136,7 @@ corner_radius_bottom_left = 5
 bg_color = Color(0.611765, 0.592157, 0.552941, 0.65)
 
 [sub_resource type="StyleBoxFlat" id="ProgressBackground"]
-bg_color = Color(0.823529, 0.811765, 0.784314, 1)
+bg_color = Color(0.756863, 0.741176, 0.705882, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -245,5 +245,5 @@ HSlider/styles/grabber_area = SubResource("ProgressFill")
 HSlider/styles/grabber_area_highlight = SubResource("ProgressFill")
 
 Window/colors/title_color = Color(0.145098, 0.137255, 0.121569, 1)
-Window/colors/title_outline_modulate = Color(0.94902, 0.941176, 0.92549, 1)
+Window/colors/title_outline_modulate = Color(0.898039, 0.882353, 0.85098, 1)
 Window/styles/embedded_border = SubResource("PanelSurface")
