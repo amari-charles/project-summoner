@@ -1576,6 +1576,13 @@
     }
   },
   "shop": {
+    "campus": {
+      "page": "{current} / {total}",
+      "shopkeeper_art_placeholder": "PLACEHOLDER\nSHOPKEEPER ART",
+      "item_art_placeholder": "PLACEHOLDER\nITEM ART",
+      "purchase_success_title": "Purchase Successful",
+      "purchase_failed_title": "Purchase Failed"
+    },
     "general": {
       "name": "General Shop",
       "title": "Shop"

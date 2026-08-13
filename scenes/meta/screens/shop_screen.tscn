@@ -93,19 +93,20 @@ theme_override_font_sizes/font_size = 34
 text = "←"
 flat = true
 
-[node name="Title" type="Label" parent="ScreenMargin/ScreenLayout/Header"]
+[node name="TitleLabel" type="Label" parent="ScreenMargin/ScreenLayout/Header"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 42
-text = "Campus Shop"
+text = ""
 
 [node name="GoldLabel" type="Label" parent="ScreenMargin/ScreenLayout/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.72, 0.26, 1)
 theme_override_font_sizes/font_size = 24
-text = "Gold: 0"
+text = ""
 horizontal_alignment = 2
 vertical_alignment = 1
 
@@ -169,7 +170,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.66, 0.75, 1)
 theme_override_font_sizes/font_size = 16
-text = "1 / 1"
+text = ""
 horizontal_alignment = 1
 
 [node name="ShopkeeperArea" type="PanelContainer" parent="ScreenMargin/ScreenLayout/Content"]
@@ -193,20 +194,14 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleArtPlaceholder")
 
-[node name="PlaceholderLabel" type="Label" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea/KeeperMargin/KeeperLayout/ShopkeeperArtPlaceholder"]
+[node name="ShopkeeperPlaceholderLabel" type="Label" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea/KeeperMargin/KeeperLayout/ShopkeeperArtPlaceholder"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.65, 0.73, 1)
 theme_override_font_sizes/font_size = 24
-text = "SHOPKEEPER\nCHARACTER ART"
+text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="ShopkeeperCaption" type="Label" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea/KeeperMargin/KeeperLayout"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.77, 0.68, 1)
-theme_override_font_sizes/font_size = 16
-text = "Campus shopkeeper"
-horizontal_alignment = 1
 
 [node name="DetailModal" type="Control" parent="."]
 unique_name_in_owner = true
@@ -259,7 +254,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
-text = "Offering"
+text = ""
 autowrap_mode = 3
 
 [node name="ModalCloseButton" type="Button" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalHeader"]
@@ -280,11 +275,12 @@ custom_minimum_size = Vector2(210, 230)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleArtPlaceholder")
 
-[node name="ArtLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/OfferingArtPlaceholder"]
+[node name="ItemArtPlaceholderLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/OfferingArtPlaceholder"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.68, 0.62, 0.72, 1)
 theme_override_font_sizes/font_size = 18
-text = "ITEM ART"
+text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -298,14 +294,14 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.72, 0.26, 1)
 theme_override_font_sizes/font_size = 23
-text = "Price: 0"
+text = ""
 
 [node name="DescriptionLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/DescriptionLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 18
-text = "Description"
+text = ""
 autowrap_mode = 3
 
 [node name="PurchaseButton" type="Button" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout"]
@@ -315,14 +311,10 @@ layout_mode = 2
 size_flags_horizontal = 4
 disabled = true
 theme_override_font_sizes/font_size = 20
-text = "Purchase"
+text = ""
 
 [node name="PurchasePopup" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
-title = "Purchase Successful"
-dialog_text = "Item purchased successfully!"
 
 [node name="ErrorPopup" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
-title = "Purchase Failed"
-dialog_text = "Not enough gold!"
