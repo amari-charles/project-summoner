@@ -18,12 +18,15 @@ const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_
 @onready var edit_deck_button: Button = %EditDeckButton
 @onready var close_edit_button: Button = %CloseEditButton
 @onready var edit_panel: PanelContainer = %EditPanel
+@onready var info_panel: PanelContainer = %InfoPanel
 
 var _state: Dictionary = {}
 var _course_id: String = ""
 var _activity_id: String = ""
+var _editing_deck: bool = false
 
 func _ready() -> void:
+	edit_panel.get_parent().move_child(edit_panel, info_panel.get_index())
 	back_button.text = "←"
 	back_button.tooltip_text = Loc.t("academy.flow.course")
 	back_button.accessibility_name = Loc.t("academy.flow.course")
@@ -78,6 +81,9 @@ func _render_loadout() -> void:
 	var loadout: Dictionary = SafeTypeUtils.dict(_state.get("loadout"))
 	var mode: String = SafeTypeUtils.string(loadout.get("mode"))
 	edit_deck_button.visible = mode != "Fixed"
+	info_panel.visible = not _editing_deck
+	edit_panel.visible = _editing_deck and mode != "Fixed"
+	start_button.visible = not _editing_deck
 	deck_selector.visible = mode == "Owned"
 	save_button.visible = mode == "ClassLoadout"
 	for value: Variant in SafeTypeUtils.array(loadout.get("supplied_cards")):
@@ -85,13 +91,26 @@ func _render_loadout() -> void:
 		_add_card_widgets(loadout_grid, card, true, Callable())
 	for value: Variant in SafeTypeUtils.array(loadout.get("selected_cards")):
 		var card: Dictionary = SafeTypeUtils.dict(value)
-		_add_card_widgets(loadout_grid, card, false, _toggle_class_card.bind(SafeTypeUtils.string(card.get("card_instance_id"))))
+		var selected_action: Callable = Callable()
+		if mode == "ClassLoadout":
+			selected_action = _toggle_class_card.bind(SafeTypeUtils.string(card.get("card_instance_id")))
+		elif mode == "Owned":
+			selected_action = _remove_owned_card.bind(SafeTypeUtils.string(card.get("card_instance_id")))
+		_add_card_widgets(loadout_grid, card, false, selected_action)
 	if mode == "ClassLoadout":
+		available_label.text = Loc.t("academy.flow.owned_cards")
 		for value: Variant in SafeTypeUtils.array(loadout.get("available_cards")):
 			var card: Dictionary = SafeTypeUtils.dict(value)
-			_add_card_widgets(available_grid, card, SafeTypeUtils.bool_val(card.get("selected")), _toggle_class_card.bind(SafeTypeUtils.string(card.get("card_instance_id"))))
+			if not SafeTypeUtils.bool_val(card.get("selected")):
+				_add_card_widgets(available_grid, card, false, _toggle_class_card.bind(SafeTypeUtils.string(card.get("card_instance_id"))))
 	elif mode == "Owned":
+		available_label.text = Loc.t("academy.flow.owned_cards")
 		var active_id: String = DecksApi.get_active_deck_id()
+		for value: Variant in SafeTypeUtils.array(loadout.get("available_cards")):
+			var card: Dictionary = SafeTypeUtils.dict(value)
+			if not SafeTypeUtils.bool_val(card.get("selected")):
+				var instance_id: String = SafeTypeUtils.string(card.get("card_instance_id"))
+				_add_card_widgets(available_grid, card, false, _add_owned_card.bind(instance_id))
 		for value: Variant in DecksApi.list_decks_for_summoner_dict(SummonerSelectionApi.get_active_summoner_id()):
 			var deck: Dictionary = SafeTypeUtils.dict(value)
 			deck_selector.add_item(
@@ -101,7 +120,10 @@ func _render_loadout() -> void:
 			if SafeTypeUtils.string(deck.get("id")) == active_id:
 				deck_selector.select(deck_selector.item_count - 1)
 	if mode == "Fixed":
+		_editing_deck = false
 		edit_panel.visible = false
+		info_panel.visible = true
+		start_button.visible = true
 
 func _add_card_widgets(parent: Control, card: Dictionary, locked: bool, action: Callable) -> void:
 	var card_id: String = SafeTypeUtils.string(card.get("card_id", card.get("catalog_id")))
@@ -122,20 +144,24 @@ func _add_card_widgets(parent: Control, card: Dictionary, locked: bool, action: 
 		widget.tooltip_text = SafeTypeUtils.string(catalog_data.get("card_name"), card_id)
 		if locked:
 			widget.tooltip_text = "%s • %s" % [widget.tooltip_text, Loc.t("academy.flow.class_supplied")]
-		if action.is_valid() and not locked:
+		if action.is_valid() and not locked and _editing_deck:
 			widget.card_clicked.connect(func(_card_data: Dictionary) -> void: action.call())
 
 
 func _show_deck_editor() -> void:
-	edit_panel.visible = true
+	_editing_deck = true
+	_render_loadout()
 	close_edit_button.grab_focus()
 
 
 func _hide_deck_editor() -> void:
-	edit_panel.visible = false
+	_editing_deck = false
+	_render_loadout()
 	edit_deck_button.grab_focus()
 
 func _toggle_class_card(instance_id: String) -> void:
+	if not _editing_deck:
+		return
 	var loadout: Dictionary = SafeTypeUtils.dict(_state.get("loadout"))
 	var selected: Array[Dictionary] = []
 	var found: bool = false
@@ -150,11 +176,24 @@ func _toggle_class_card(instance_id: String) -> void:
 	if CampaignApi.update_academy_activity_loadout(_course_id, _activity_id, selected):
 		_refresh()
 
+func _add_owned_card(instance_id: String) -> void:
+	if not _editing_deck:
+		return
+	var deck_id: String = DecksApi.get_active_deck_id()
+	if not deck_id.is_empty() and DecksApi.add_card_to_deck(deck_id, instance_id):
+		_refresh()
+
+func _remove_owned_card(instance_id: String) -> void:
+	if not _editing_deck:
+		return
+	var deck_id: String = DecksApi.get_active_deck_id()
+	if not deck_id.is_empty() and DecksApi.remove_card_from_deck(deck_id, instance_id):
+		_refresh()
+
 func _select_owned_deck(index: int) -> void:
 	var deck_id: String = SafeTypeUtils.string(deck_selector.get_item_metadata(index))
 	if not deck_id.is_empty() and DecksApi.set_active_deck(deck_id):
 		_refresh()
-		edit_panel.visible = true
 
 func _save_as_deck() -> void:
 	CampaignApi.save_academy_activity_loadout_as_deck(_course_id, _activity_id)
@@ -169,7 +208,7 @@ func _start() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 func _go_back() -> void:
-	if edit_panel.visible:
+	if _editing_deck:
 		_hide_deck_editor()
 		return
 	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_FLOW)
