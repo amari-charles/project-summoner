@@ -153,9 +153,9 @@ func _on_card_clicked(
 	in_active_deck: bool,
 	locked: bool
 ) -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	dismiss_popup()
 	if locked:
+		AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 		card_info_requested.emit(detail_instance_id, catalog_id)
 		return
 	var current_time: int = Time.get_ticks_msec()
@@ -167,6 +167,7 @@ func _on_card_clicked(
 		else:
 			_request_add(instance_id)
 		return
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	_last_clicked_id = instance_id
 	_last_click_time = current_time
 	_show_action_popup(widget, instance_id, catalog_id, in_active_deck)
