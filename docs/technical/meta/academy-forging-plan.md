@@ -8,11 +8,11 @@
 
 ## Summary
 
-This initiative reshapes the academy into a PC-first menu hub and course progression model. The target UX is: the campus hub provides fast menu-based access to Academy destinations, the Class Hall owns course enrollment and course continuation, and C# academy services remain the source of truth for semester state, required classes, available electives, prerequisites, activity progress, and rewards.
+This initiative reshapes the academy into a PC-first course progression model inside a bounded walkable campus. The target UX is: the campus provides both place-based building entrances and fast shortcuts to Academy destinations, the Class Hall owns course enrollment and continuation, and C# academy services remain the source of truth for semester state, required classes, available electives, prerequisites, activity progress, and rewards.
 
 ## Goals
 
-1. Replace the text-heavy academy entry with a readable menu-based campus hub.
+1. Replace the text-heavy academy entry with a bounded campus while preserving direct shortcut access to every destination.
 2. Auto-enroll mandatory first-semester coursework for fresh academy progress.
 3. Present Class Hall courses by meaningful sections instead of one long list.
 4. Move course choice details into a readable popup so the board stays scannable.
@@ -33,7 +33,7 @@ This initiative reshapes the academy into a PC-first menu hub and course progres
 3. Course availability is derived from candidate courses for the active semester, including approved carry-over cases.
 4. Course display grouping metadata is emitted by the C# course view model, not guessed by the Class Hall UI.
 5. The Class Hall board renders compact course cards; clicking a course opens a syllabus popup with description, activities, rewards, and action state.
-6. Campus hub buttons are spatial overlays on the temporary academy image and route to the relevant screens.
+6. Campus destinations are discrete placeable buildings backed by the same routes exposed through the shortcut menu.
 
 ## Public API / Interface / Type Changes
 

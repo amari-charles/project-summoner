@@ -18,7 +18,7 @@
 | A06 | Academy course catalog is loaded. | Year/semester content, rewards, and tuning remain catalog-consistent. | unit | `tests/csharp/Data/AcademyCourseCatalogTest.cs` | Implemented |
 | A07 | Academy progress is persisted through profile conversion. | Academy fields round-trip without losing current semester, enrollments, transcript, or course activity state. | unit | `tests/csharp/Serialization/DtoConvertersTest.cs` | Implemented |
 | A08 | Academy course battle configs are checked for first-pass tuning. | Onboarding and Semester 2 course activities use gentle enemy decks, HP, AI type, and difficulty settings. | unit | `tests/csharp/Data/AcademyCourseCatalogTest.cs` | Implemented |
-| A09 | Academy hub scene loads. | Scene opens headlessly without missing script, asset, or route errors. | smoke | `scenes/meta/screens/academy_hub.tscn` | Implemented |
+| A09 | Academy hub scene loads. | Bounded walkable scene opens headlessly without missing script, asset, or route errors. | smoke | `scenes/meta/screens/walkable_academy_hub.tscn` | Implemented |
 | A10 | Class Hall scene loads. | Scene opens headlessly and can request/render course data. | smoke | `scenes/meta/screens/academy_class_hall.tscn` | Implemented |
 | A11 | Campus Shop scene loads. | Scene opens headlessly after shop UI changes. | smoke | `scenes/meta/screens/shop_screen.tscn` | Implemented |
 | A12 | User clicks a course card in Class Hall. | Details, rewards, activities, and enrollment/continue action appear in a centered opaque popup. | integration | `tests/unit/meta` + manual PR validation | Design-Covered |

@@ -84,6 +84,8 @@ public partial class BattleScene : Node3D
 
     /// Max frames to wait for a single scene to load (~5 seconds at 60fps)
     private const int SceneLoadTimeoutFrames = 300;
+    private const string AcademyHubScenePath =
+        "res://scenes/meta/screens/walkable_academy_hub.tscn";
 
     // Emergency fallback deck (test mode only)
     private const string EmergencyDeckCardId = "fire_wisp";
@@ -912,7 +914,7 @@ public partial class BattleScene : Node3D
             GD.PushWarning(
                 "[BattleScene] Campaign progression unavailable; no XP or rewards were granted."
             );
-            NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
+            NavigateToScene(AcademyHubScenePath);
             return;
         }
 
@@ -920,7 +922,7 @@ public partial class BattleScene : Node3D
             NavigateToScene("res://scenes/meta/screens/reward_screen.tscn");
         else
         {
-            NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
+            NavigateToScene(AcademyHubScenePath);
         }
     }
 

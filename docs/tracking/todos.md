@@ -37,6 +37,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-05, battle authority completion):** Moved the completed battle-progression-authority initiative to `todos-completed.md` after PR `#352` merged; provider-neutral security follow-ups remain active as separate tasks.
 **Tracker Sync (2026-08-13, Campus Shop):** Added high-priority changelog infrastructure work and a scoped deprecation plan for the legacy linear Caravan campaign flow.
 **Tracker Sync (2026-08-13, Online deck selection):** Added a matchmaking-screen follow-up for selecting and confirming the deck used before queueing.
+**Tracker Sync (2026-08-13, Academy hub):** Restored the bounded walkable Academy hub direction with permanent shortcut access; Phase 1 recovery is in progress.
 
 ---
 
@@ -52,6 +53,25 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ## Production Scoping
 
 ### 🔴 HIGH PRIORITY
+
+#### Recover the Bounded Walkable Academy Hub
+**Status:** 🔄 In Progress
+**Category:** Meta Navigation / UI/UX
+**Effort:** Medium
+
+**Description:**
+Restore the contained walkable campus as the Academy's primary entry surface without turning it into an open world or making walking mandatory. Existing feature screens remain the destinations, and a persistent shortcut menu preserves the speed of the former menu hub.
+
+**Tasks:**
+- [x] Recover the bounded campus, player movement, placeable buildings, and entrance interactions on a fresh branch.
+- [x] Route current Class Hall, Campus Shop, Mission Hall, Dorms, Online, Settings, and Summoner screens through one campus destination contract.
+- [x] Preserve the former menu hub as a temporary fallback during recovery.
+- [ ] Complete hands-on UX validation of movement, building entry, back navigation, and shortcuts.
+- [ ] Replace placeholder campus presentation with an approved layout and production asset plan.
+- [ ] Scope real-time presence separately after the single-player hub is proven.
+
+**Related Doc:**
+- `docs/design/walkable-academy-hub.md`
 
 #### Establish a Project Changelog
 **Status:** ⬜ Not Started
