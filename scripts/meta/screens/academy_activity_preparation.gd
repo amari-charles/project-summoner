@@ -13,6 +13,7 @@ const LevelUpPanelScene: PackedScene = preload("res://scenes/meta/modals/card_le
 @onready var loadout_grid: HBoxContainer = %LoadoutGrid
 @onready var loadout_label: Label = %LoadoutLabel
 @onready var deck_selector: OptionButton = %DeckSelector
+@onready var saved_deck_count: Label = %SavedDeckCount
 @onready var save_button: Button = %SaveButton
 @onready var start_button: Button = %StartButton
 @onready var edit_deck_button: Button = %EditDeckButton
@@ -21,12 +22,21 @@ const LevelUpPanelScene: PackedScene = preload("res://scenes/meta/modals/card_le
 @onready var loadout_scroll: ScrollContainer = %LoadoutScroll
 @onready var footer: HBoxContainer = %Footer
 @onready var editor_toolbar: HBoxContainer = %EditorToolbar
+@onready var editor_footer: HBoxContainer = %EditorFooter
 @onready var deck_editor: DeckEditorPanel = %DeckEditorPanel
+@onready var save_choice_dialog: ConfirmationDialog = %SaveChoiceDialog
+@onready var new_deck_dialog: ConfirmationDialog = %NewDeckDialog
+@onready var new_deck_name: LineEdit = %NewDeckName
+@onready var replace_deck_dialog: ConfirmationDialog = %ReplaceDeckDialog
+@onready var replace_deck_selector: OptionButton = %ReplaceDeckSelector
+@onready var save_result_dialog: AcceptDialog = %SaveResultDialog
 
 var _state: Dictionary = {}
 var _course_id: String = ""
 var _activity_id: String = ""
 var _editing_deck: bool = false
+var _saved_decks: Array = []
+var _populating_deck_selector: bool = false
 
 func _ready() -> void:
 	back_button.text = "←"
@@ -34,14 +44,15 @@ func _ready() -> void:
 	back_button.accessibility_name = Loc.t("academy.flow.course")
 	back_button.pressed.connect(_go_back)
 	start_button.text = Loc.t("academy.flow.start")
-	save_button.text = Loc.t("academy.flow.save_as_deck")
+	save_button.text = Loc.t("academy.flow.save_to_my_decks")
 	loadout_label.text = Loc.t("academy.flow.active_deck")
 	edit_deck_button.tooltip_text = Loc.t("academy.flow.edit_deck")
 	edit_deck_button.accessibility_name = Loc.t("academy.flow.edit_deck")
 	start_button.pressed.connect(_start)
-	save_button.pressed.connect(_save_as_deck)
+	save_button.pressed.connect(_open_save_choice)
 	edit_deck_button.pressed.connect(_show_deck_editor)
 	deck_selector.item_selected.connect(_select_owned_deck)
+	_configure_save_dialogs()
 	deck_editor.set_available_columns(7)
 	deck_editor.add_card_requested.connect(_add_editor_card)
 	deck_editor.remove_card_requested.connect(_remove_editor_card)
@@ -80,12 +91,20 @@ func _refresh() -> void:
 
 func _render_loadout() -> void:
 	_clear(loadout_grid)
+	_populating_deck_selector = true
 	deck_selector.clear()
+	_saved_decks = DecksApi.list_decks_for_summoner_dict(
+		SummonerSelectionApi.get_active_summoner_id()
+	)
 	var loadout: Dictionary = SafeTypeUtils.dict(_state.get("loadout"))
 	var mode: String = SafeTypeUtils.string(loadout.get("mode"))
+	loadout_label.text = Loc.t("academy.flow.lesson_loadout") \
+		if mode == "ClassLoadout" else Loc.t("academy.flow.active_deck")
 	edit_deck_button.visible = mode != "Fixed"
-	deck_selector.visible = mode == "Owned"
+	deck_selector.visible = mode != "Fixed"
+	saved_deck_count.visible = mode != "Fixed"
 	save_button.visible = mode == "ClassLoadout"
+	saved_deck_count.text = Loc.t("academy.flow.saved_deck_count", {"count": _saved_decks.size()})
 	for value: Variant in SafeTypeUtils.array(loadout.get("supplied_cards")):
 		var card: Dictionary = SafeTypeUtils.dict(value)
 		_add_card_widgets(loadout_grid, card, true)
@@ -94,7 +113,7 @@ func _render_loadout() -> void:
 		_add_card_widgets(loadout_grid, card, false)
 	if mode == "Owned":
 		var active_id: String = DecksApi.get_active_deck_id()
-		for value: Variant in DecksApi.list_decks_for_summoner_dict(SummonerSelectionApi.get_active_summoner_id()):
+		for value: Variant in _saved_decks:
 			var deck: Dictionary = SafeTypeUtils.dict(value)
 			deck_selector.add_item(
 				SafeTypeUtils.string(deck.get("name"), Loc.t("academy.flow.deck"))
@@ -102,6 +121,18 @@ func _render_loadout() -> void:
 			deck_selector.set_item_metadata(deck_selector.item_count - 1, SafeTypeUtils.string(deck.get("id")))
 			if SafeTypeUtils.string(deck.get("id")) == active_id:
 				deck_selector.select(deck_selector.item_count - 1)
+	elif mode == "ClassLoadout":
+		deck_selector.add_item(Loc.t("academy.flow.fill_from_deck"))
+		deck_selector.set_item_metadata(0, "")
+		for value: Variant in _saved_decks:
+			var deck: Dictionary = SafeTypeUtils.dict(value)
+			deck_selector.add_item(SafeTypeUtils.string(deck.get("name"), Loc.t("academy.flow.deck")))
+			deck_selector.set_item_metadata(
+				deck_selector.item_count - 1,
+				SafeTypeUtils.string(deck.get("id"))
+			)
+		deck_selector.select(0)
+	_populating_deck_selector = false
 	if mode == "Fixed":
 		_editing_deck = false
 	_render_editor(loadout, mode)
@@ -124,8 +155,10 @@ func _render_editor(loadout: Dictionary, mode: String) -> void:
 		if not SafeTypeUtils.bool_val(card.get("selected")):
 			available_entries.append(_to_editor_entry(card, false))
 
+	var editor_title: String = Loc.t("academy.flow.lesson_loadout") \
+		if mode == "ClassLoadout" else _selected_owned_deck_name()
 	deck_editor.set_active_deck(
-		Loc.t("academy.flow.active_deck"),
+		editor_title,
 		active_entries,
 		_editor_max_deck_size(loadout),
 		mode != "Fixed"
@@ -207,6 +240,9 @@ func _set_editor_visibility() -> void:
 	footer.visible = not showing_editor
 	editor_toolbar.visible = showing_editor
 	deck_editor.visible = showing_editor
+	editor_footer.visible = showing_editor and SafeTypeUtils.string(
+		SafeTypeUtils.dict(_state.get("loadout")).get("mode")
+	) == "ClassLoadout"
 
 
 func _add_editor_card(instance_id: String) -> void:
@@ -244,13 +280,129 @@ func _toggle_class_card(instance_id: String) -> void:
 		_refresh()
 
 func _select_owned_deck(index: int) -> void:
+	if _populating_deck_selector:
+		return
 	var deck_id: String = SafeTypeUtils.string(deck_selector.get_item_metadata(index))
-	if not deck_id.is_empty() and DecksApi.set_active_deck(deck_id):
+	if deck_id.is_empty():
+		return
+	var mode: String = SafeTypeUtils.string(SafeTypeUtils.dict(_state.get("loadout")).get("mode"))
+	if mode == "Owned" and DecksApi.set_active_deck(deck_id):
 		_refresh()
+	elif mode == "ClassLoadout":
+		var result: Dictionary = CampaignApi.fill_academy_activity_loadout_from_deck(
+			_course_id, _activity_id, deck_id
+		)
+		if SafeTypeUtils.bool_val(result.get("success")):
+			_refresh()
+		else:
+			_show_save_result(Loc.t("academy.flow.fill_failed"))
 
-func _save_as_deck() -> void:
-	CampaignApi.save_academy_activity_loadout_as_deck(_course_id, _activity_id)
+
+func _selected_owned_deck_name() -> String:
+	var active_id: String = DecksApi.get_active_deck_id()
+	for value: Variant in _saved_decks:
+		var deck: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(deck.get("id")) == active_id:
+			return SafeTypeUtils.string(deck.get("name"), Loc.t("academy.flow.active_deck"))
+	return Loc.t("academy.flow.active_deck")
+
+
+func _configure_save_dialogs() -> void:
+	save_choice_dialog.title = Loc.t("academy.flow.save_to_my_decks")
+	save_choice_dialog.dialog_text = Loc.t("academy.flow.save_choice_prompt")
+	save_choice_dialog.ok_button_text = Loc.t("academy.flow.create_new_deck")
+	save_choice_dialog.add_button(Loc.t("academy.flow.replace_existing_deck"), true, "replace")
+	save_choice_dialog.custom_action.connect(_on_save_choice_action)
+	save_choice_dialog.confirmed.connect(_open_new_deck_dialog)
+	new_deck_dialog.title = Loc.t("academy.flow.create_new_deck")
+	new_deck_dialog.dialog_text = Loc.t("academy.flow.deck_name_prompt")
+	new_deck_dialog.ok_button_text = Loc.t("academy.flow.create_deck")
+	new_deck_dialog.confirmed.connect(_create_new_deck)
+	new_deck_name.text_changed.connect(
+		func(value: String) -> void: new_deck_dialog.get_ok_button().disabled = value.strip_edges().is_empty()
+	)
+	replace_deck_dialog.title = Loc.t("academy.flow.replace_existing_deck")
+	replace_deck_dialog.dialog_text = Loc.t("academy.flow.replace_deck_warning")
+	replace_deck_dialog.ok_button_text = Loc.t("academy.flow.replace_deck")
+	replace_deck_dialog.confirmed.connect(_replace_existing_deck)
+	save_result_dialog.title = Loc.t("academy.flow.save_to_my_decks")
+
+
+func _open_save_choice() -> void:
+	save_choice_dialog.popup_centered()
+
+
+func _on_save_choice_action(action: StringName) -> void:
+	if action == &"replace":
+		save_choice_dialog.hide()
+		_open_replace_deck_dialog()
+
+
+func _open_new_deck_dialog() -> void:
+	new_deck_name.text = Loc.t(
+		"academy.flow.default_lesson_deck_name",
+		{"activity": title_label.text}
+	)
+	new_deck_dialog.get_ok_button().disabled = new_deck_name.text.strip_edges().is_empty()
+	new_deck_dialog.popup_centered()
+	new_deck_name.grab_focus()
+	new_deck_name.select_all()
+
+
+func _open_replace_deck_dialog() -> void:
+	replace_deck_selector.clear()
+	for value: Variant in _saved_decks:
+		var deck: Dictionary = SafeTypeUtils.dict(value)
+		replace_deck_selector.add_item(SafeTypeUtils.string(deck.get("name"), Loc.t("academy.flow.deck")))
+		replace_deck_selector.set_item_metadata(
+			replace_deck_selector.item_count - 1,
+			SafeTypeUtils.string(deck.get("id"))
+		)
+	replace_deck_dialog.get_ok_button().disabled = replace_deck_selector.item_count == 0
+	replace_deck_dialog.popup_centered()
+
+
+func _create_new_deck() -> void:
+	_save_lesson_loadout("", new_deck_name.text.strip_edges())
+
+
+func _replace_existing_deck() -> void:
+	if replace_deck_selector.item_count == 0:
+		return
+	var deck_id: String = SafeTypeUtils.string(
+		replace_deck_selector.get_item_metadata(replace_deck_selector.selected)
+	)
+	_save_lesson_loadout(deck_id, "")
+
+
+func _save_lesson_loadout(target_deck_id: String, new_name: String) -> void:
+	var result: Dictionary = CampaignApi.save_academy_activity_loadout_to_deck(
+		_course_id, _activity_id, target_deck_id, new_name
+	)
+	if not SafeTypeUtils.bool_val(result.get("success")):
+		_show_save_result(Loc.t("academy.flow.save_deck_failed"))
+		return
+	var omitted: Array = SafeTypeUtils.array(result.get("omitted_supplied_card_ids"))
+	var message: String = Loc.t("academy.flow.deck_created") \
+		if SafeTypeUtils.bool_val(result.get("created")) else Loc.t("academy.flow.deck_replaced")
+	if not omitted.is_empty():
+		var card_names: Array[String] = []
+		for value: Variant in omitted:
+			var card_id: String = SafeTypeUtils.string(value)
+			card_names.append(SafeTypeUtils.string(
+				CardCatalogApi.get_card_as_dict(card_id).get("card_name"), card_id
+			))
+		message += "\n\n" + Loc.t(
+			"academy.flow.supplied_cards_omitted",
+			{"cards": ", ".join(card_names)}
+		)
+	_show_save_result(message)
 	_refresh()
+
+
+func _show_save_result(message: String) -> void:
+	save_result_dialog.dialog_text = message
+	save_result_dialog.popup_centered()
 
 func _start() -> void:
 	var config: Dictionary = CampaignApi.resolve_academy_activity_battle_config(_course_id, _activity_id)

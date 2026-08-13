@@ -3,7 +3,7 @@
 **Status:** PASS 3 COMPLETE
 **Initiative:** `academy-class-flow-overhaul`
 **Domain:** `meta`
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-13
 
 ## Types Created
 
@@ -18,8 +18,9 @@
 1. `CampaignService.GetAcademyCourseFlowState` - canonical Course Flow read model boundary.
 2. `CampaignService.GetAcademyActivityPreparationState` - canonical preparation read model boundary.
 3. `UpdateAcademyActivityLoadout` - persists validated activity-local owned-card slots.
-4. `SaveAcademyActivityLoadoutAsDeck` - explicitly copies owned cards into a saved deck.
-5. Matching `CampaignApi` GDScript facade methods.
+4. `FillAcademyActivityLoadoutFromDeck` - copies compatible cards from a saved deck into open activity-local slots without mutating the source deck.
+5. `SaveAcademyActivityLoadoutToDeck` - explicitly creates a named saved deck or replaces a confirmed existing deck while reporting class-supplied cards the player does not own.
+6. Matching `CampaignApi` GDScript facade methods.
 
 ## Wiring Points Updated
 
@@ -51,7 +52,7 @@
 
 | Case IDs | Skeleton Test File | Coverage |
 |---|---|---|
-| ACF-01–ACF-24, ACF-D01 | `tests/unit/meta/test_academy_class_flow.gd`, `tests/csharp/Services/AcademyProgressServiceTest.cs` | Runtime, persistence, outcome, and structural assertions |
+| ACF-01–ACF-25, ACF-D01 | `tests/unit/meta/test_academy_class_flow.gd`, `tests/csharp/Services/AcademyProgressServiceTest.cs` | Runtime, persistence, outcome, and structural assertions |
 | ACF-19, ACF-23 | `tests/csharp/Data/AcademyActivityDefinitionTest.cs` | Executing contract/catalog assertions |
 
 ## Gate Output Requirement

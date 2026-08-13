@@ -58,8 +58,11 @@ static func get_academy_activity_preparation_state(course_id: String, activity_i
 static func update_academy_activity_loadout(course_id: String, activity_id: String, slots: Array[Dictionary]) -> bool:
 	return SafeTypeUtils.bool_val(Campaign.call("UpdateAcademyActivityLoadout", course_id, activity_id, slots), false)
 
-static func save_academy_activity_loadout_as_deck(course_id: String, activity_id: String) -> String:
-	return SafeTypeUtils.string(Campaign.call("SaveAcademyActivityLoadoutAsDeck", course_id, activity_id), "")
+static func fill_academy_activity_loadout_from_deck(course_id: String, activity_id: String, source_deck_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("FillAcademyActivityLoadoutFromDeck", course_id, activity_id, source_deck_id))
+
+static func save_academy_activity_loadout_to_deck(course_id: String, activity_id: String, target_deck_id: String, new_deck_name: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("SaveAcademyActivityLoadoutToDeck", course_id, activity_id, target_deck_id, new_deck_name))
 
 static func get_academy_activity_launch_state(course_id: String, activity_id: String) -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("GetAcademyActivityLaunchState", course_id, activity_id))

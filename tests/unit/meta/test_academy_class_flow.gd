@@ -44,6 +44,22 @@ func test_preparation_centers_start_action() -> void:
 	assert_not_null(footer.get_node_or_null("RightSpacer"))
 	preparation.free()
 
+func test_preparation_exposes_explicit_lesson_loadout_fill_and_save_choices() -> void:
+	var script_text: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
+	var scene: PackedScene = load("res://scenes/meta/screens/academy_activity_preparation.tscn")
+	var preparation: Control = scene.instantiate() as Control
+	assert_not_null(preparation)
+	var editor_footer: Control = preparation.find_child("EditorFooter", true, false)
+	assert_not_null(editor_footer)
+	assert_not_null(editor_footer.get_node_or_null("SaveButton"))
+	assert_not_null(preparation.find_child("DeckSelector", true, false))
+	assert_not_null(preparation.find_child("NewDeckDialog", true, false))
+	assert_not_null(preparation.find_child("ReplaceDeckDialog", true, false))
+	assert_true(script_text.contains("fill_academy_activity_loadout_from_deck"))
+	assert_true(script_text.contains("save_academy_activity_loadout_to_deck"))
+	assert_true(script_text.contains('Loc.t("academy.flow.lesson_loadout")'))
+	preparation.free()
+
 func test_preparation_and_collection_share_deck_editor_interactions() -> void:
 	var preparation_scene: String = _read("res://scenes/meta/screens/academy_activity_preparation.tscn")
 	var collection_scene: String = _read("res://scenes/meta/screens/collection_screen.tscn")

@@ -501,8 +501,19 @@ public partial class CampaignService : Node
         Godot.Collections.Array<Godot.Collections.Dictionary> slots
     ) => _academy?.UpdateActivityLoadout(courseId, activityId, slots) ?? false;
 
-    public string SaveAcademyActivityLoadoutAsDeck(string courseId, string activityId) =>
-        _academy?.SaveActivityLoadoutAsDeck(courseId, activityId) ?? "";
+    public Godot.Collections.Dictionary FillAcademyActivityLoadoutFromDeck(
+        string courseId,
+        string activityId,
+        string sourceDeckId
+    ) => _academy?.FillActivityLoadoutFromDeck(courseId, activityId, sourceDeckId) ?? [];
+
+    public Godot.Collections.Dictionary SaveAcademyActivityLoadoutToDeck(
+        string courseId,
+        string activityId,
+        string targetDeckId,
+        string newDeckName
+    ) =>
+        _academy?.SaveActivityLoadoutToDeck(courseId, activityId, targetDeckId, newDeckName) ?? [];
 
     public Godot.Collections.Dictionary GetAcademyActivityLaunchState(
         string courseId,

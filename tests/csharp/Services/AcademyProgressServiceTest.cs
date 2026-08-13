@@ -813,7 +813,7 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void ClassLoadout_PersistsIndependentlyAndOnlyCreatesDeckOnExplicitSave()
+    public void ClassLoadout_PersistsIndependentlyAndOnlyCreatesNamedDeckOnExplicitSave()
     {
         var repo = CreateRepo("academy_class_loadout_persistence");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
@@ -837,12 +837,89 @@ public class AcademyProgressServiceTest
                 state["loadout"].AsGodotDictionary()["selected_cards"].AsGodotArray()
             )
             .HasSize(1);
-        var savedId = reloadedService.SaveAcademyActivityLoadoutAsDeck(
+        RemoveAllCards(repo, CardIds.NeutralStarterUnit, CardIds.MagicBolt);
+        var saveResult = reloadedService.SaveAcademyActivityLoadoutToDeck(
             (string)CourseIds.PracticalSpellcraft,
-            "practical_spellcraft_practice"
+            "practical_spellcraft_practice",
+            "",
+            "My Lesson Deck"
         );
-        AssertThat(savedId).IsNotEmpty();
+        AssertThat(saveResult["success"].AsBool()).IsTrue();
+        AssertThat(saveResult["created"].AsBool()).IsTrue();
         AssertThat(repo.ListDecks()).HasSize(initialDeckCount + 2);
+        var savedDeck = repo.GetDeck(DeckId.FromString(saveResult["deck_id"].AsString()));
+        AssertThat(savedDeck).IsNotNull();
+        AssertThat(savedDeck!.Name).IsEqual("My Lesson Deck");
+        AssertThat(savedDeck.CardInstanceIds).HasSize(1);
+        AssertThat(repo.GetProfileMetadata()!.Meta.SelectedDeck).IsEqual(selectedDeck);
+        AssertThat(saveResult["omitted_supplied_card_ids"].AsGodotArray()).HasSize(2);
+    }
+
+    [TestCase]
+    public void FillClassLoadoutFromDeck_CopiesInDeckOrderWithoutChangingSource()
+    {
+        var repo = CreateRepo("academy_fill_class_loadout");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        var sourceDeckId = SetActiveDeck(
+            repo,
+            "Fill Source",
+            CardIds.FireWisp,
+            CardIds.WaterWisp,
+            CardIds.Charge
+        );
+        var sourceBefore = repo.GetDeck(DeckId.FromString(sourceDeckId))!.CardInstanceIds.ToArray();
+
+        var result = service.FillAcademyActivityLoadoutFromDeck(
+            (string)CourseIds.IntroToFire,
+            "intro_fire_practice",
+            sourceDeckId
+        );
+
+        AssertThat(result["success"].AsBool()).IsTrue();
+        AssertThat(result["copied_count"].AsInt32()).IsEqual(2);
+        AssertThat(result["skipped_card_instance_ids"].AsGodotArray()).HasSize(1);
+        var state = service.GetAcademyActivityLaunchState(
+            (string)CourseIds.IntroToFire,
+            "intro_fire_practice"
+        );
+        var selectedIds = state["loadout"]
+            .AsGodotDictionary()["selected_cards"]
+            .AsGodotArray()
+            .Select(item => item.AsGodotDictionary()["card_instance_id"].AsString())
+            .ToArray();
+        AssertThat(selectedIds)
+            .ContainsExactly(sourceBefore[0].Value, sourceBefore[2].Value);
+        AssertThat(repo.GetDeck(DeckId.FromString(sourceDeckId))!.CardInstanceIds)
+            .ContainsExactly(sourceBefore);
+    }
+
+    [TestCase]
+    public void SaveClassLoadoutToDeck_ReplacesConfirmedDeckAndPreservesActiveSelection()
+    {
+        var repo = CreateRepo("academy_replace_class_loadout");
+        var service = CreateCampaignService(repo, SummonerIds.Cole);
+        var targetDeckId = SetActiveDeck(repo, "Keep This Name", CardIds.FireWisp);
+        var selectedDeckId = SetActiveDeck(repo, "Selection Source", CardIds.Charge);
+        SelectActiveDeckAsClassLoadout(
+            repo,
+            service,
+            CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            selectedDeckId
+        );
+
+        var result = service.SaveAcademyActivityLoadoutToDeck(
+            (string)CourseIds.PracticalSpellcraft,
+            "practical_spellcraft_practice",
+            targetDeckId,
+            "Ignored New Name"
+        );
+
+        AssertThat(result["success"].AsBool()).IsTrue();
+        AssertThat(result["created"].AsBool()).IsFalse();
+        AssertThat(result["deck_id"].AsString()).IsEqual(targetDeckId);
+        AssertThat(repo.GetDeck(DeckId.FromString(targetDeckId))!.Name).IsEqual("Keep This Name");
+        AssertThat(repo.GetProfileMetadata()!.Meta.SelectedDeck).IsEqual(selectedDeckId);
     }
 
     [TestCase]
@@ -1030,6 +1107,13 @@ public class AcademyProgressServiceTest
             slots.Add(new Godot.Collections.Dictionary { ["card_instance_id"] = instanceId.Value });
         AssertThat(service.UpdateAcademyActivityLoadout((string)courseId, activityId, slots))
             .IsTrue();
+    }
+
+    private static void RemoveAllCards(ProfileRepository repo, params CardId[] catalogIds)
+    {
+        var ids = catalogIds.ToHashSet();
+        foreach (var card in repo.ListCards().Where(card => ids.Contains(card.CatalogId)).ToArray())
+            repo.RemoveCard(card.Id);
     }
 
     private static string ResolvedPlayerCardSignature(Godot.Collections.Dictionary config)
