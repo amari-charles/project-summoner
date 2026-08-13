@@ -18,7 +18,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.1, 0.1, 0.14, 1)
+color = Color(0.909804, 0.901961, 0.882353, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -60,7 +60,7 @@ horizontal_alignment = 1
 [node name="CurrencyLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+theme_override_colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
 theme_override_font_sizes/font_size = 24
 text = "Mana Stones: 0"
 horizontal_alignment = 2
@@ -204,7 +204,7 @@ horizontal_alignment = 1
 [node name="PopupDescriptionLabel" type="Label" parent="DetailPopup/PopupPanel/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 16
 text = "Description goes here"
 horizontal_alignment = 1

@@ -72,8 +72,8 @@ func _apply_variant_styles() -> void:
 
 	# Text colors
 	add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
-	add_theme_color_override("font_hover_color", Color.WHITE)
-	add_theme_color_override("font_pressed_color", GameColorPalette.TEXT_SECONDARY)
+	add_theme_color_override("font_hover_color", GameColorPalette.TEXT_PRIMARY)
+	add_theme_color_override("font_pressed_color", GameColorPalette.TEXT_PRIMARY)
 	add_theme_color_override("font_disabled_color", GameColorPalette.TEXT_DISABLED)
 
 

@@ -10,11 +10,11 @@ class_name OfferingCard
 @onready var type_label: Label = %TypeLabel
 @onready var price_label: Label = %PriceLabel
 
-const COLOR_CARD: Color = Color(0.11, 0.085, 0.13, 0.96)
-const COLOR_CARD_HOVER: Color = Color(0.16, 0.11, 0.18, 0.98)
-const COLOR_CARD_SELECTED: Color = Color(0.20, 0.13, 0.22, 1.0)
-const COLOR_BORDER: Color = Color(0.56, 0.42, 0.22, 0.95)
-const COLOR_BORDER_SELECTED: Color = Color(0.95, 0.68, 0.24, 1.0)
+const COLOR_CARD: Color = GameColorPalette.UI_SURFACE
+const COLOR_CARD_HOVER: Color = GameColorPalette.UI_SURFACE_RAISED
+const COLOR_CARD_SELECTED: Color = GameColorPalette.BUTTON_PRIMARY_BG
+const COLOR_BORDER: Color = GameColorPalette.UI_BORDER
+const COLOR_BORDER_SELECTED: Color = GameColorPalette.BUTTON_PRIMARY_BORDER
 
 ## State
 var offering: Dictionary = {}

@@ -20,7 +20,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.75, 0.75, 0.75, 1)
+color = Color(0.909804, 0.901961, 0.882353, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -64,7 +64,7 @@ offset_right = 5600.0
 offset_bottom = 1800.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.1, 0.1, 0.15, 1)
+color = Color(0.870588, 0.858824, 0.831373, 1)
 
 [node name="DetailPanel" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -90,7 +90,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.7)
+color = Color(0.94902, 0.941176, 0.92549, 1)
 
 [node name="Background" type="NinePatchRect" parent="DetailPanel"]
 unique_name_in_owner = true

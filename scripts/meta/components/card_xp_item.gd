@@ -22,7 +22,7 @@ var can_level_up: bool = false
 
 ## Colors
 const LEVEL_UP_COLOR: Color = Color(0.2, 0.9, 0.3)  ## Green for level up
-const NORMAL_COLOR: Color = Color(0.8, 0.8, 0.8)  ## Gray for normal
+const NORMAL_COLOR: Color = GameColorPalette.TEXT_SECONDARY
 
 ## =============================================================================
 ## LIFECYCLE
@@ -77,7 +77,7 @@ func _truncate_name(name: String, max_length: int) -> String:
 func _apply_level_up_style() -> void:
 	# Highlight border for level-up ready cards
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.15, 0.1)
+	style.bg_color = GameColorPalette.UI_SURFACE
 	style.border_width_left = 2
 	style.border_width_top = 2
 	style.border_width_right = 2
@@ -88,23 +88,23 @@ func _apply_level_up_style() -> void:
 
 func _apply_normal_style() -> void:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.12, 0.15)
+	style.bg_color = GameColorPalette.UI_SURFACE
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1
 	style.border_width_bottom = 1
-	style.border_color = Color(0.3, 0.3, 0.35)
+	style.border_color = GameColorPalette.UI_BORDER
 	style.set_corner_radius_all(6)
 	add_theme_stylebox_override("panel", style)
 
 func _apply_hover_style() -> void:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	if can_level_up:
-		style.bg_color = Color(0.15, 0.2, 0.15)
+		style.bg_color = GameColorPalette.UI_SURFACE_RAISED
 		style.border_color = LEVEL_UP_COLOR.lightened(0.2)
 	else:
-		style.bg_color = Color(0.18, 0.18, 0.22)
-		style.border_color = Color(0.5, 0.5, 0.55)
+		style.bg_color = GameColorPalette.UI_SURFACE_RAISED
+		style.border_color = GameColorPalette.UI_BORDER_STRONG
 	style.border_width_left = 2
 	style.border_width_top = 2
 	style.border_width_right = 2
@@ -118,7 +118,7 @@ func _apply_xp_bar_style() -> void:
 
 	# Background/track style
 	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
-	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.bg_color = GameColorPalette.UI_SURFACE_DISABLED
 	bg_style.set_corner_radius_all(2)
 	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
 

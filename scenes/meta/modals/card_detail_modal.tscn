@@ -178,7 +178,7 @@ columns = 2
 [node name="StatsHintLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/StatsSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 12
 text = "Click stats to view full details"
 horizontal_alignment = 2

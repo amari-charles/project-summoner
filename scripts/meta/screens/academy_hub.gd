@@ -9,13 +9,13 @@ const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/componen
 const SUMMONER_ICON_SIZE: float = 86.0
 const SUMMONER_ICON_MARGIN: float = 18.0
 const LOCATION_BUTTON_SIZE: Vector2 = Vector2(210, 54)
-const COLOR_LOCATION: Color = Color(0.10, 0.075, 0.13, 0.82)
-const COLOR_LOCATION_HOVER: Color = Color(0.18, 0.12, 0.22, 0.92)
-const COLOR_LOCATION_PRESSED: Color = Color(0.25, 0.15, 0.28, 0.94)
-const COLOR_LOCATION_DISABLED: Color = Color(0.08, 0.08, 0.09, 0.62)
-const COLOR_BORDER: Color = Color(0.88, 0.63, 0.22, 0.95)
-const COLOR_TEXT: Color = Color(1.0, 0.92, 0.76, 1.0)
-const COLOR_TEXT_DISABLED: Color = Color(0.62, 0.58, 0.54, 1.0)
+const COLOR_LOCATION: Color = Color(0.949, 0.941, 0.925, 0.94)
+const COLOR_LOCATION_HOVER: Color = Color(0.98, 0.973, 0.957, 0.98)
+const COLOR_LOCATION_PRESSED: Color = Color(0.847, 0.804, 0.718, 0.98)
+const COLOR_LOCATION_DISABLED: Color = Color(0.824, 0.812, 0.784, 0.88)
+const COLOR_BORDER: Color = Color(0.604, 0.455, 0.176, 1.0)
+const COLOR_TEXT: Color = Color(0.145, 0.137, 0.122, 1.0)
+const COLOR_TEXT_DISABLED: Color = Color(0.549, 0.529, 0.498, 1.0)
 
 var summoner_icon: SummonerIconWidget = null
 
@@ -105,7 +105,7 @@ func _add_location(
 	button.add_theme_stylebox_override("normal", _button_style(COLOR_LOCATION, COLOR_BORDER, 2))
 	button.add_theme_stylebox_override("hover", _button_style(COLOR_LOCATION_HOVER, COLOR_BORDER, 3))
 	button.add_theme_stylebox_override("pressed", _button_style(COLOR_LOCATION_PRESSED, COLOR_BORDER, 3))
-	button.add_theme_stylebox_override("disabled", _button_style(COLOR_LOCATION_DISABLED, Color(0.35, 0.34, 0.36, 0.85), 1))
+	button.add_theme_stylebox_override("disabled", _button_style(COLOR_LOCATION_DISABLED, GameColorPalette.UI_BORDER, 1))
 	button.pressed.connect(action)
 	campus_locations.add_child(button)
 
@@ -115,7 +115,7 @@ func _button_style(bg: Color, border: Color, border_width: int) -> StyleBoxFlat:
 	style.border_color = border
 	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(7)
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.38)
+	style.shadow_color = GameColorPalette.BUTTON_SHADOW
 	style.shadow_size = 8
 	style.shadow_offset = Vector2(0, 3)
 	return style

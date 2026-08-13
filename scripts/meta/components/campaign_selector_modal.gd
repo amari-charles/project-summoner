@@ -96,7 +96,7 @@ func _create_campaign_item(campaign: Dictionary, current_campaign_id: String) ->
 	status_label.add_theme_font_size_override("font_size", 20)
 	if not is_unlocked:
 		status_label.text = "[" + Loc.t("campaign.selector.locked") + "]"
-		status_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		status_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	elif is_current:
 		status_label.text = "[" + Loc.t("campaign.selector.current") + "]"
 		status_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
@@ -106,7 +106,7 @@ func _create_campaign_item(campaign: Dictionary, current_campaign_id: String) ->
 	var desc_label: Label = Label.new()
 	desc_label.text = Loc.t(desc_key) if not desc_key.is_empty() else ""
 	desc_label.add_theme_font_size_override("font_size", 16)
-	desc_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	desc_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(desc_label)
 

@@ -71,18 +71,18 @@ func _update_selection_style() -> void:
 	if is_selected:
 		modulate = Color(1.0, 1.0, 1.0)
 		var style: StyleBoxFlat = StyleBoxFlat.new()
-		style.bg_color = Color(0.25, 0.35, 0.5, 0.8)
+		style.bg_color = GameColorPalette.BUTTON_PRIMARY_BG
 		style.set_corner_radius_all(6)
 		style.border_width_left = 2
 		style.border_width_right = 2
 		style.border_width_top = 2
 		style.border_width_bottom = 2
-		style.border_color = Color(0.4, 0.6, 0.9)
+		style.border_color = GameColorPalette.BUTTON_PRIMARY_BORDER
 		add_theme_stylebox_override("panel", style)
 	else:
 		modulate = Color(0.9, 0.9, 0.9)
 		var style: StyleBoxFlat = StyleBoxFlat.new()
-		style.bg_color = Color(0.18, 0.18, 0.22, 0.8)
+		style.bg_color = GameColorPalette.UI_SURFACE
 		style.set_corner_radius_all(6)
 		add_theme_stylebox_override("panel", style)
 

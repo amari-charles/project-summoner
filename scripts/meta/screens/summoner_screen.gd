@@ -206,12 +206,6 @@ func _update_background_for_element(element: ElementTypes.Element) -> void:
 ## PANEL STYLING
 ## =============================================================================
 
-# Warm color constants
-const PANEL_BG_WARM: Color = Color(0.12, 0.10, 0.08, 0.95)  # Warm dark brown
-const PANEL_BORDER_BASE: Color = Color(0.25, 0.20, 0.15, 1.0)  # Warm brown border
-const HEADER_COLOR_WARM: Color = Color(0.95, 0.90, 0.80, 1.0)  # Cream/parchment
-const TEXT_COLOR_WARM: Color = Color(0.85, 0.80, 0.70, 1.0)  # Warm off-white
-
 const SUMMONER_STAT_PLACEHOLDER_ICONS: Dictionary = {
 	"health": "HP",
 	"max_mana": "MN",
@@ -241,15 +235,13 @@ func _style_panels(element_color: Color) -> void:
 	_style_single_panel(traits_panel, traits_header, element_color)
 	_style_single_panel(equipment_panel, equipment_header, element_color)
 
-	# Update text colors to warm tones
-	description_label.add_theme_color_override("font_color", TEXT_COLOR_WARM)
+	description_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 
 
 func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Color) -> void:
-	# Create warm styled panel
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = PANEL_BG_WARM
-	style.border_color = PANEL_BORDER_BASE
+	style.bg_color = GameColorPalette.UI_SURFACE
+	style.border_color = GameColorPalette.UI_BORDER
 	style.set_border_width_all(2)
 	style.border_width_left = 4  # Thicker left border for accent
 	style.set_corner_radius_all(8)
@@ -258,14 +250,13 @@ func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Col
 	style.border_color = accent_color.darkened(0.3)
 
 	# Add shadow for depth
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+	style.shadow_color = GameColorPalette.BUTTON_SHADOW
 	style.shadow_size = 6
 	style.shadow_offset = Vector2(2, 2)
 
 	panel.add_theme_stylebox_override("panel", style)
 
-	# Style header with warm cream color
-	header.add_theme_color_override("font_color", accent_color.lightened(0.2))
+	header.add_theme_color_override("font_color", accent_color.darkened(0.25))
 
 
 ## =============================================================================
@@ -278,12 +269,12 @@ func _update_portrait(element: ElementTypes.Element, gradient_colors: Array[Colo
 
 	# Style the frame with element-themed border - warmer and deeper
 	var frame_style: StyleBoxFlat = StyleBoxFlat.new()
-	frame_style.bg_color = Color(0.08, 0.06, 0.05, 1.0)  # Warm dark
+	frame_style.bg_color = GameColorPalette.UI_SURFACE_RAISED
 	frame_style.border_color = border_color
 	frame_style.set_border_width_all(5)
 	frame_style.set_corner_radius_all(12)
 	# Stronger shadow for depth
-	frame_style.shadow_color = Color(0.0, 0.0, 0.0, 0.6)
+	frame_style.shadow_color = GameColorPalette.BUTTON_SHADOW
 	frame_style.shadow_size = 12
 	frame_style.shadow_offset = Vector2(4, 4)
 	portrait_frame.add_theme_stylebox_override("panel", frame_style)
@@ -408,7 +399,7 @@ func _create_stat_cell(stat_id: String, label_text: String, value_text: String, 
 	var cell: PanelContainer = PanelContainer.new()
 	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var cell_style: StyleBoxFlat = StyleBoxFlat.new()
-	cell_style.bg_color = Color(0.08, 0.06, 0.05, 0.85)
+	cell_style.bg_color = GameColorPalette.UI_SURFACE_RAISED
 	cell_style.border_color = SUMMONER_STAT_ICON_COLORS.get(stat_id, Color(0.4, 0.4, 0.4))
 	cell_style.set_border_width_all(1)
 	cell_style.set_corner_radius_all(6)
@@ -508,7 +499,7 @@ func _refresh_traits(config: SummonerConfig) -> void:
 	if all_trait_ids.is_empty():
 		var no_traits_label: Label = Label.new()
 		no_traits_label.text = Loc.t("ui.summoner_screen.no_traits")
-		no_traits_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.3))
+		no_traits_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 		no_traits_label.add_theme_font_size_override("font_size", 14)
 		traits_container.add_child(no_traits_label)
 
@@ -558,12 +549,12 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 
 	# Style the box
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.06, 0.05, 0.95) if is_empty else Color(0.12, 0.10, 0.08, 0.95)
-	var accent_color: Color = Color(0.4, 0.45, 0.5) if is_empty else Color(0.7, 0.55, 0.3)
+	style.bg_color = GameColorPalette.UI_SURFACE_ALT if is_empty else GameColorPalette.UI_SURFACE_RAISED
+	var accent_color: Color = GameColorPalette.UI_BORDER_STRONG if is_empty else GameColorPalette.BUTTON_PRIMARY_BORDER
 	style.border_color = accent_color
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+	style.shadow_color = GameColorPalette.BUTTON_SHADOW
 	style.shadow_size = 4
 	style.shadow_offset = Vector2(2, 2)
 	panel.add_theme_stylebox_override("panel", style)
@@ -587,7 +578,7 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 	var name_label: Label = Label.new()
 	name_label.text = slot_display_name
 	name_label.add_theme_font_size_override("font_size", 11)
-	name_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.1))
+	name_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(name_label)
 
@@ -595,7 +586,7 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 	var item_label: Label = Label.new()
 	if is_empty:
 		item_label.text = Loc.t("ui.summoner_screen.equipment_empty")
-		item_label.add_theme_color_override("font_color", TEXT_COLOR_WARM.darkened(0.4))
+		item_label.add_theme_color_override("font_color", GameColorPalette.TEXT_DISABLED)
 	else:
 		var items_for_slot: Array[Dictionary] = ItemsApi.list_items_for_slot_dict(slot, _current_summoner_id)
 		var item_name: String = ""
@@ -634,12 +625,12 @@ func _create_trait_icon(trait_id: String, is_innate: bool) -> PanelContainer:
 
 	# Style with warm colors
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.10, 0.08, 0.06, 0.9)
+	style.bg_color = GameColorPalette.UI_SURFACE_RAISED
 	var accent_color: Color = Color(0.85, 0.75, 0.4) if is_innate else Color(0.4, 0.6, 0.9)
 	style.border_color = accent_color
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(5)
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.3)
+	style.shadow_color = GameColorPalette.BUTTON_SHADOW
 	style.shadow_size = 2
 	style.shadow_offset = Vector2(1, 1)
 	panel.add_theme_stylebox_override("panel", style)

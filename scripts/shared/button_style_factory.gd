@@ -1,8 +1,9 @@
 class_name ButtonStyleFactory
 
-## ButtonStyleFactory - Generates StyleBoxTexture resources using Kenny fantasy borders
+## ButtonStyleFactory - Generates consistent placeholder button styles.
 ##
-## Creates consistent button styles using NinePatch-style textures from Kenny assets.
+## NinePatch helpers remain for legacy framed panels, while player actions use
+## palette-driven flat styles so the global placeholder theme is easy to tune.
 
 ## Kenny Fantasy UI Border Variants
 ## DEFAULT: 48x48 textures, 14px margin - thinner borders
@@ -17,7 +18,6 @@ const BASE_PATH: String = "res://assets/ui/kenny/fantasy-ui-borders/PNG/"
 
 ## Content margins for text padding inside buttons
 const CONTENT_MARGIN_H: int = 16
-const CONTENT_MARGIN_V: int = 20
 
 
 ## Get the NinePatch margin for the active variant
@@ -55,78 +55,64 @@ const BUTTON_BORDER_ID: String = "panel-border-028"
 
 
 ## Create a primary button style (main actions)
-static func create_primary_normal() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color.WHITE)
+static func create_primary_normal() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_PRIMARY_BG, GameColorPalette.BUTTON_PRIMARY_BORDER)
 
 
-static func create_primary_hover() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 1.0, 0.85))
+static func create_primary_hover() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_PRIMARY_BG_HOVER, GameColorPalette.BUTTON_PRIMARY_BORDER)
 
 
-static func create_primary_pressed() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.7, 0.7, 0.7))
+static func create_primary_pressed() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_PRIMARY_BG_PRESSED, GameColorPalette.BUTTON_PRIMARY_BORDER)
 
 
-static func create_primary_disabled() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.5, 0.5, 0.5, 0.5))
+static func create_primary_disabled() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_DISABLED, GameColorPalette.UI_BORDER)
 
 
 ## Create a secondary button style (cancel/back)
-static func create_secondary_normal() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.8, 0.8, 0.8))
+static func create_secondary_normal() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_SECONDARY_BG, GameColorPalette.BUTTON_SECONDARY_BORDER)
 
 
-static func create_secondary_hover() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 1.0, 1.0))
+static func create_secondary_hover() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_SECONDARY_BG_HOVER, GameColorPalette.UI_BORDER_STRONG)
 
 
-static func create_secondary_pressed() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.6, 0.6, 0.6))
+static func create_secondary_pressed() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_SECONDARY_BG_PRESSED, GameColorPalette.BUTTON_SECONDARY_BORDER)
 
 
-static func create_secondary_disabled() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.4, 0.4, 0.4, 0.5))
+static func create_secondary_disabled() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_DISABLED, GameColorPalette.UI_BORDER)
 
 
 ## Create a danger button style (destructive actions)
-static func create_danger_normal() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 0.6, 0.6))
+static func create_danger_normal() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_DANGER_BG, GameColorPalette.BUTTON_DANGER_BORDER)
 
 
-static func create_danger_hover() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(1.0, 0.8, 0.8))
+static func create_danger_hover() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_DANGER_BG_HOVER, GameColorPalette.BUTTON_DANGER_BORDER)
 
 
-static func create_danger_pressed() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.8, 0.4, 0.4))
+static func create_danger_pressed() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_DANGER_BG_PRESSED, GameColorPalette.BUTTON_DANGER_BORDER)
 
 
-static func create_danger_disabled() -> StyleBoxTexture:
-	return _create_texture_style(get_border_path(BUTTON_BORDER_ID), Color(0.5, 0.4, 0.4, 0.5))
+static func create_danger_disabled() -> StyleBoxFlat:
+	return _create_flat_style(GameColorPalette.BUTTON_DISABLED, GameColorPalette.UI_BORDER)
 
 
-## Internal helper to create a StyleBoxTexture with NinePatch margins
-static func _create_texture_style(texture_path: String, modulate_color: Color) -> StyleBoxTexture:
-	var style: StyleBoxTexture = StyleBoxTexture.new()
-
-	# Load texture
-	var texture: Texture2D = load(texture_path)
-	style.texture = texture
-
-	# Apply color modulation
-	style.modulate_color = modulate_color
-
-	# Set NinePatch margins (which parts don't stretch)
-	var margin: int = get_patch_margin()
-	style.texture_margin_left = margin
-	style.texture_margin_top = margin
-	style.texture_margin_right = margin
-	style.texture_margin_bottom = margin
-
-	# Content margins for text padding
+static func _create_flat_style(background: Color, border: Color) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
 	style.content_margin_left = CONTENT_MARGIN_H
 	style.content_margin_right = CONTENT_MARGIN_H
-	style.content_margin_top = CONTENT_MARGIN_V
-	style.content_margin_bottom = CONTENT_MARGIN_V
-
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
 	return style

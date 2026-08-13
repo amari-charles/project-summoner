@@ -145,7 +145,7 @@ func _render_empty_state(message: String) -> void:
 	info_label.text = message
 	info_label.position = Vector2(28, 22)
 	info_label.add_theme_font_size_override("font_size", 16)
-	info_label.add_theme_color_override("font_color", Color(0.82, 0.84, 0.90))
+	info_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	tree_canvas.add_child(info_label)
 
 	for child: Node in one_off_container.get_children():
@@ -466,14 +466,14 @@ func _create_progression_trait_node(node_data: Dictionary) -> Button:
 
 	match state:
 		STATUS_OWNED:
-			style.bg_color = Color(0.14, 0.30, 0.22, 0.98)
+			style.bg_color = Color(0.89, 0.94, 0.90, 1.0)
 			style.border_color = Color(0.35, 0.84, 0.52, 1.0)
 		STATUS_AVAILABLE:
-			style.bg_color = Color(0.30, 0.23, 0.10, 0.98)
+			style.bg_color = GameColorPalette.BUTTON_PRIMARY_BG
 			style.border_color = Color(0.96, 0.79, 0.34, 1.0)
 		_:
-			style.bg_color = Color(0.15, 0.15, 0.18, 0.94)
-			style.border_color = Color(0.34, 0.34, 0.40, 1.0)
+			style.bg_color = GameColorPalette.UI_SURFACE_DISABLED
+			style.border_color = GameColorPalette.UI_BORDER
 
 	var hover_style: StyleBoxFlat = style.duplicate()
 	hover_style.border_color = style.border_color.lightened(0.12)
@@ -582,8 +582,8 @@ func _create_one_off_card(node_data: Dictionary) -> PanelContainer:
 	panel.add_theme_stylebox_override(
 		"panel",
 		_make_panel_style(
-			Color(0.15, 0.12, 0.10, 0.94) if is_owned else Color(0.11, 0.11, 0.11, 0.88),
-			color if is_owned else Color(0.34, 0.34, 0.34)
+			GameColorPalette.UI_SURFACE_RAISED if is_owned else GameColorPalette.UI_SURFACE,
+			color if is_owned else GameColorPalette.UI_BORDER
 		)
 	)
 
@@ -613,20 +613,20 @@ func _create_one_off_card(node_data: Dictionary) -> PanelContainer:
 	var name_label: Label = Label.new()
 	name_label.text = _trait_display_name(node_data)
 	name_label.add_theme_font_size_override("font_size", 14)
-	name_label.add_theme_color_override("font_color", Color(0.94, 0.90, 0.84))
+	name_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	text_vbox.add_child(name_label)
 
 	var desc_label: Label = Label.new()
 	desc_label.text = _trait_description(node_data)
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.add_theme_font_size_override("font_size", 12)
-	desc_label.add_theme_color_override("font_color", Color(0.78, 0.74, 0.69))
+	desc_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	text_vbox.add_child(desc_label)
 
 	var status_label: Label = Label.new()
 	status_label.text = Loc.t("ui.trait_tree.one_off_status_unlocked") if is_owned else Loc.t("ui.trait_tree.one_off_status_not_acquired")
 	status_label.add_theme_font_size_override("font_size", 12)
-	status_label.add_theme_color_override("font_color", Color(0.50, 0.88, 0.56) if is_owned else Color(0.76, 0.76, 0.76))
+	status_label.add_theme_color_override("font_color", GameColorPalette.SUCCESS if is_owned else GameColorPalette.TEXT_DISABLED)
 	row.add_child(status_label)
 
 	panel.tooltip_text = _trait_description(node_data)
@@ -666,7 +666,7 @@ func _make_panel_style(bg_color: Color, border_color: Color) -> StyleBoxFlat:
 	style.set_corner_radius_all(7)
 	style.shadow_size = 2
 	style.shadow_offset = Vector2(1, 1)
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	style.shadow_color = GameColorPalette.BUTTON_SHADOW
 	return style
 
 

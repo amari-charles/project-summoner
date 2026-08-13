@@ -126,8 +126,8 @@ func _update_active_display() -> void:
 
 func _create_highlight_style() -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.3, 0.4, 0.8)
-	style.border_color = Color(0.4, 0.6, 0.8)
+	style.bg_color = GameColorPalette.BUTTON_PRIMARY_BG
+	style.border_color = GameColorPalette.BUTTON_PRIMARY_BORDER
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
 	return style

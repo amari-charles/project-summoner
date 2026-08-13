@@ -10,9 +10,9 @@ class_name RaisedPanel
 @export var shadow_offset: Vector2 = Vector2(4, 4)
 
 ## Colors
-@export var main_color: Color = Color("#252530")
-@export var shadow_color: Color = Color("#101015")
-@export var border_color: Color = Color("#454555")
+@export var main_color: Color = GameColorPalette.UI_SURFACE
+@export var shadow_color: Color = GameColorPalette.BUTTON_SHADOW
+@export var border_color: Color = GameColorPalette.UI_BORDER
 
 ## Shape
 @export var corner_radius: int = 12

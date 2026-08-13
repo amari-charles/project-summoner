@@ -64,7 +64,7 @@ text = "Summoner Name"
 [node name="LevelLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoContainer/TopRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.6, 1)
+theme_override_colors/font_color = Color(0.541176, 0.392157, 0.12549, 1)
 theme_override_font_sizes/font_size = 16
 text = "Lv.1"
 
@@ -79,7 +79,7 @@ text = "Active"
 [node name="StatsLabel" type="Label" parent="MarginContainer/HBoxContainer/InfoContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 12
 text = "HP: 1000 | Mana: 100"
 

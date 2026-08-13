@@ -158,27 +158,27 @@ func _make_traits_button_style(bg_color: Color, border_color: Color) -> StyleBox
 
 
 func _apply_traits_button_style(has_unspent_points: bool) -> void:
-	var normal_bg: Color = Color(0.14, 0.18, 0.25)
-	var hover_bg: Color = Color(0.20, 0.25, 0.34)
-	var pressed_bg: Color = Color(0.11, 0.14, 0.20)
-	var border: Color = Color(0.42, 0.52, 0.70)
-	var font: Color = Color(0.90, 0.94, 1.0)
+	var normal_bg: Color = GameColorPalette.BUTTON_SECONDARY_BG
+	var hover_bg: Color = GameColorPalette.BUTTON_SECONDARY_BG_HOVER
+	var pressed_bg: Color = GameColorPalette.BUTTON_SECONDARY_BG_PRESSED
+	var border: Color = GameColorPalette.BUTTON_SECONDARY_BORDER
+	var font: Color = GameColorPalette.TEXT_PRIMARY
 
 	if has_unspent_points:
-		normal_bg = Color(0.30, 0.24, 0.08)
-		hover_bg = Color(0.36, 0.28, 0.10)
-		pressed_bg = Color(0.24, 0.19, 0.07)
-		border = Color(0.95, 0.78, 0.34)
-		font = Color(1.0, 0.90, 0.58)
+		normal_bg = GameColorPalette.BUTTON_PRIMARY_BG
+		hover_bg = GameColorPalette.BUTTON_PRIMARY_BG_HOVER
+		pressed_bg = GameColorPalette.BUTTON_PRIMARY_BG_PRESSED
+		border = GameColorPalette.BUTTON_PRIMARY_BORDER
+		font = GameColorPalette.TEXT_HIGHLIGHT
 
 	traits_button.add_theme_stylebox_override("normal", _make_traits_button_style(normal_bg, border))
 	traits_button.add_theme_stylebox_override("hover", _make_traits_button_style(hover_bg, border.lightened(0.08)))
 	traits_button.add_theme_stylebox_override("pressed", _make_traits_button_style(pressed_bg, border.darkened(0.08)))
-	traits_button.add_theme_stylebox_override("disabled", _make_traits_button_style(Color(0.10, 0.10, 0.12), Color(0.24, 0.24, 0.28)))
+	traits_button.add_theme_stylebox_override("disabled", _make_traits_button_style(GameColorPalette.BUTTON_DISABLED, GameColorPalette.UI_BORDER))
 	traits_button.add_theme_color_override("font_color", font)
 	traits_button.add_theme_color_override("font_hover_color", font.lightened(0.08))
 	traits_button.add_theme_color_override("font_pressed_color", font)
-	traits_button.add_theme_color_override("font_disabled_color", Color(0.42, 0.44, 0.50))
+	traits_button.add_theme_color_override("font_disabled_color", GameColorPalette.TEXT_DISABLED)
 
 
 func _connect_services() -> void:
