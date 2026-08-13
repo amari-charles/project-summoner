@@ -823,7 +823,7 @@ func _setup_campaign_banner() -> void:
 
 	# Dark background
 	var dark_bg: ColorRect = ColorRect.new()
-	dark_bg.color = Color(0.12, 0.1, 0.15, 0.95)
+	dark_bg.color = GameColorPalette.UI_SURFACE
 	dark_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	banner_container.add_child(dark_bg)
 

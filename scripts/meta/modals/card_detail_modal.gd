@@ -298,7 +298,7 @@ func _update_type_icon(catalog_data: Dictionary) -> void:
 	type_icon.visible = true
 
 	var type_style: StyleBoxFlat = StyleBoxFlat.new()
-	type_style.bg_color = GameColorPalette.with_alpha(GameColorPalette.UI_BG_DARK, 0.85)
+	type_style.bg_color = GameColorPalette.with_alpha(GameColorPalette.UI_SURFACE_ALT, 0.85)
 	type_style.border_color = GameColorPalette.TEXT_SECONDARY
 	type_style.set_border_width_all(1)
 	type_style.set_corner_radius_all(5)
@@ -504,7 +504,7 @@ func _create_trait_chip(trait_data: Dictionary) -> PanelContainer:
 	box.custom_minimum_size = Vector2(42, 42)
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = GameColorPalette.with_alpha(GameColorPalette.UI_BG_DARK, 0.8)
+	style.bg_color = GameColorPalette.with_alpha(GameColorPalette.UI_SURFACE_ALT, 0.8)
 	style.set_border_width_all(2)
 	style.border_color = GameColorPalette.SUCCESS
 	style.set_corner_radius_all(4)

@@ -3,45 +3,45 @@
 [ext_resource type="Script" path="res://scripts/meta/screens/shop_screen.gd" id="1_shop"]
 
 [sub_resource type="StyleBoxFlat" id="StyleShopArea"]
-bg_color = Color(0.075, 0.068, 0.09, 0.96)
+bg_color = Color(0.784314, 0.733333, 0.666667, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.32, 0.25, 0.38, 0.8)
+border_color = Color(0.505882, 0.454902, 0.4, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleKeeperArea"]
-bg_color = Color(0.12, 0.095, 0.14, 1)
+bg_color = Color(0.803922, 0.72549, 0.564706, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.55, 0.42, 0.24, 0.9)
+border_color = Color(0.501961, 0.388235, 0.184314, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleModal"]
-bg_color = Color(0.075, 0.06, 0.09, 1)
+bg_color = Color(0.839216, 0.796078, 0.733333, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.9, 0.65, 0.25, 1)
+border_color = Color(0.501961, 0.388235, 0.184314, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
-shadow_color = Color(0, 0, 0, 0.5)
+shadow_color = Color(0.25, 0.23, 0.2, 0.24)
 shadow_size = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleArtPlaceholder"]
-bg_color = Color(0.18, 0.145, 0.21, 1)
+bg_color = Color(0.666667, 0.615686, 0.560784, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -63,7 +63,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.055, 0.052, 0.07, 1)
+color = Color(0.721569, 0.682353, 0.631373, 1)
 
 [node name="ScreenMargin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -104,7 +104,7 @@ text = ""
 [node name="GoldLabel" type="Label" parent="ScreenMargin/ScreenLayout/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.72, 0.26, 1)
+theme_override_colors/font_color = Color(0.541176, 0.392157, 0.12549, 1)
 theme_override_font_sizes/font_size = 24
 text = ""
 horizontal_alignment = 2
@@ -168,7 +168,7 @@ text = "›"
 [node name="PageLabel" type="Label" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin/ShopLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.66, 0.75, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 16
 text = ""
 horizontal_alignment = 1
@@ -197,7 +197,7 @@ theme_override_styles/panel = SubResource("StyleArtPlaceholder")
 [node name="ShopkeeperPlaceholderLabel" type="Label" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea/KeeperMargin/KeeperLayout/ShopkeeperArtPlaceholder"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.73, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 24
 text = ""
 horizontal_alignment = 1
@@ -278,7 +278,7 @@ theme_override_styles/panel = SubResource("StyleArtPlaceholder")
 [node name="ItemArtPlaceholderLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/OfferingArtPlaceholder"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.68, 0.62, 0.72, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 18
 text = ""
 horizontal_alignment = 1
@@ -292,7 +292,7 @@ theme_override_constants/separation = 14
 [node name="PriceLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/DescriptionLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.72, 0.26, 1)
+theme_override_colors/font_color = Color(0.541176, 0.392157, 0.12549, 1)
 theme_override_font_sizes/font_size = 23
 text = ""
 

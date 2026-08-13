@@ -28,13 +28,13 @@ func _ready() -> void:
 	var panel: PanelContainer = popup_container.get_node("PanelContainer")
 	if panel:
 		var style: StyleBoxFlat = StyleBoxFlat.new()
-		style.bg_color = Color(0.12, 0.12, 0.15, 1.0)  # Solid dark background
+		style.bg_color = GameColorPalette.UI_SURFACE_RAISED
 		style.set_corner_radius_all(6)
 		style.border_width_left = 1
 		style.border_width_top = 1
 		style.border_width_right = 1
 		style.border_width_bottom = 1
-		style.border_color = Color(0.3, 0.3, 0.35, 1.0)  # Subtle border
+		style.border_color = GameColorPalette.UI_BORDER
 		panel.add_theme_stylebox_override("panel", style)
 
 	# Dismiss when clicking outside

@@ -13,11 +13,11 @@ signal item_equipped(slot: String, item_instance_id: String)
 signal item_unequipped(slot: String)
 
 ## Colors
-const BG_COLOR: Color = Color(0.08, 0.06, 0.05, 0.98)
-const HEADER_COLOR: Color = Color(0.95, 0.90, 0.80, 1.0)
-const TEXT_COLOR: Color = Color(0.85, 0.80, 0.70, 1.0)
-const ACCENT_COLOR: Color = Color(0.7, 0.55, 0.3)
-const EMPTY_COLOR: Color = Color(0.5, 0.5, 0.5)
+const BG_COLOR: Color = GameColorPalette.UI_SURFACE_RAISED
+const HEADER_COLOR: Color = GameColorPalette.TEXT_PRIMARY
+const TEXT_COLOR: Color = GameColorPalette.TEXT_SECONDARY
+const ACCENT_COLOR: Color = GameColorPalette.BUTTON_PRIMARY_BORDER
+const EMPTY_COLOR: Color = GameColorPalette.TEXT_DISABLED
 
 ## State
 var _current_slot: String = ""
@@ -72,7 +72,7 @@ func _build_ui() -> void:
 	panel_style.border_color = ACCENT_COLOR.darkened(0.2)
 	panel_style.set_border_width_all(3)
 	panel_style.set_corner_radius_all(12)
-	panel_style.shadow_color = Color(0, 0, 0, 0.5)
+	panel_style.shadow_color = GameColorPalette.BUTTON_SHADOW
 	panel_style.shadow_size = 10
 	_panel.add_theme_stylebox_override("panel", panel_style)
 
@@ -214,7 +214,7 @@ func _create_item_card(item: Dictionary, is_equipped: bool) -> PanelContainer:
 
 	# Style
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.10, 0.08, 0.95) if is_equipped else Color(0.10, 0.08, 0.06, 0.9)
+	style.bg_color = GameColorPalette.BUTTON_PRIMARY_BG if is_equipped else GameColorPalette.UI_SURFACE
 	style.border_color = ACCENT_COLOR if is_equipped else ACCENT_COLOR.darkened(0.3)
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(6)

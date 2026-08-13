@@ -19,7 +19,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.07, 0.08, 0.11, 1)
+color = Color(0.721569, 0.682353, 0.631373, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -62,7 +62,7 @@ text = "Card Trait Tree"
 [node name="CardSubtitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderRow/TitleStack"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.79, 0.86, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 15
 text = "No card selected"
 

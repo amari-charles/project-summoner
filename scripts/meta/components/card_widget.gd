@@ -146,7 +146,7 @@ func _update_theme() -> void:
 	# Create theme with element-colored border for the card panel
 	if card_panel:
 		var style: StyleBoxFlat = StyleBoxFlat.new()
-		style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
+		style.bg_color = GameColorPalette.UI_SURFACE_ALT
 		style.border_width_left = border_width
 		style.border_width_top = border_width
 		style.border_width_right = border_width
@@ -219,7 +219,7 @@ func _apply_normal_bar_style() -> void:
 
 	# Background/track style
 	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
-	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.bg_color = GameColorPalette.UI_SURFACE_DISABLED
 	bg_style.set_corner_radius_all(3)
 	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
 
@@ -235,7 +235,7 @@ func _apply_level_up_bar_style() -> void:
 
 	# Background/track style
 	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
-	bg_style.bg_color = Color(0.15, 0.15, 0.18)
+	bg_style.bg_color = GameColorPalette.UI_SURFACE_DISABLED
 	bg_style.set_corner_radius_all(3)
 	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
 

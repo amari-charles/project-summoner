@@ -1,26 +1,249 @@
-[gd_resource type="Theme" load_steps=5 format=3]
+[gd_resource type="Theme" load_steps=17 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/fira_sans/FiraSans-Regular.ttf" id="1_font_regular"]
 [ext_resource type="FontFile" path="res://assets/fonts/fira_sans/FiraSans-SemiBold.ttf" id="2_font_semibold"]
 [ext_resource type="FontFile" path="res://assets/fonts/fira_sans/FiraSans-Bold.ttf" id="3_font_bold"]
 [ext_resource type="FontFile" path="res://assets/fonts/germania_one/GermaniaOne-Regular.ttf" id="4_font_title"]
 
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+content_margin_left = 14.0
+content_margin_top = 9.0
+content_margin_right = 14.0
+content_margin_bottom = 9.0
+bg_color = Color(0.752941, 0.701961, 0.639216, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.505882, 0.454902, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+content_margin_left = 14.0
+content_margin_top = 9.0
+content_margin_right = 14.0
+content_margin_bottom = 9.0
+bg_color = Color(0.815686, 0.768627, 0.709804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.384314, 0.341176, 0.298039, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="ButtonPressed"]
+content_margin_left = 14.0
+content_margin_top = 9.0
+content_margin_right = 14.0
+content_margin_bottom = 9.0
+bg_color = Color(0.662745, 0.603922, 0.537255, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.384314, 0.341176, 0.298039, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="ButtonDisabled"]
+content_margin_left = 14.0
+content_margin_top = 9.0
+content_margin_right = 14.0
+content_margin_bottom = 9.0
+bg_color = Color(0.65098, 0.619608, 0.580392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.505882, 0.454902, 0.4, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="ButtonFocus"]
+bg_color = Color(0.815686, 0.768627, 0.709804, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.541176, 0.392157, 0.12549, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="PanelSurface"]
+bg_color = Color(0.784314, 0.733333, 0.666667, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.505882, 0.454902, 0.4, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="InputNormal"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.839216, 0.796078, 0.733333, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.505882, 0.454902, 0.4, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="InputFocus"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.839216, 0.796078, 0.733333, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.541176, 0.392157, 0.12549, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="MenuHover"]
+bg_color = Color(0.752941, 0.701961, 0.639216, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="Separator"]
+bg_color = Color(0.505882, 0.454902, 0.4, 0.65)
+
+[sub_resource type="StyleBoxFlat" id="ProgressBackground"]
+bg_color = Color(0.65098, 0.619608, 0.580392, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="ProgressFill"]
+bg_color = Color(0.541176, 0.392157, 0.12549, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [resource]
 default_font = ExtResource("1_font_regular")
 default_font_size = 16
 
+Button/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+Button/colors/font_hover_color = Color(0.145098, 0.137255, 0.121569, 1)
+Button/colors/font_pressed_color = Color(0.145098, 0.137255, 0.121569, 1)
+Button/colors/font_focus_color = Color(0.145098, 0.137255, 0.121569, 1)
+Button/colors/font_disabled_color = Color(0.54902, 0.529412, 0.498039, 1)
+Button/styles/normal = SubResource("ButtonNormal")
+Button/styles/hover = SubResource("ButtonHover")
+Button/styles/pressed = SubResource("ButtonPressed")
+Button/styles/disabled = SubResource("ButtonDisabled")
+Button/styles/focus = SubResource("ButtonFocus")
+
 Button/fonts/font = ExtResource("2_font_semibold")
 Button/font_sizes/font_size = 18
 
+Label/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
 Label/fonts/font = ExtResource("1_font_regular")
 Label/font_sizes/font_size = 16
 
+TitleLabel/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
 TitleLabel/fonts/font = ExtResource("4_font_title")
 
+Panel/styles/panel = SubResource("PanelSurface")
+PanelContainer/styles/panel = SubResource("PanelSurface")
+
+LineEdit/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+LineEdit/colors/font_placeholder_color = Color(0.34902, 0.333333, 0.305882, 0.72)
+LineEdit/colors/caret_color = Color(0.145098, 0.137255, 0.121569, 1)
+LineEdit/colors/selection_color = Color(0.541176, 0.392157, 0.12549, 0.28)
+LineEdit/styles/normal = SubResource("InputNormal")
+LineEdit/styles/focus = SubResource("InputFocus")
+LineEdit/styles/read_only = SubResource("ButtonDisabled")
 LineEdit/fonts/font = ExtResource("1_font_regular")
 LineEdit/font_sizes/font_size = 16
 
+OptionButton/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+OptionButton/colors/font_hover_color = Color(0.145098, 0.137255, 0.121569, 1)
+OptionButton/colors/font_pressed_color = Color(0.145098, 0.137255, 0.121569, 1)
+OptionButton/colors/font_disabled_color = Color(0.54902, 0.529412, 0.498039, 1)
+OptionButton/styles/normal = SubResource("ButtonNormal")
+OptionButton/styles/hover = SubResource("ButtonHover")
+OptionButton/styles/pressed = SubResource("ButtonPressed")
+OptionButton/styles/disabled = SubResource("ButtonDisabled")
+OptionButton/styles/focus = SubResource("ButtonFocus")
+
+CheckButton/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+CheckButton/colors/font_hover_color = Color(0.145098, 0.137255, 0.121569, 1)
+CheckButton/colors/font_pressed_color = Color(0.145098, 0.137255, 0.121569, 1)
+CheckButton/colors/font_disabled_color = Color(0.54902, 0.529412, 0.498039, 1)
+
+PopupMenu/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+PopupMenu/colors/font_hover_color = Color(0.145098, 0.137255, 0.121569, 1)
+PopupMenu/colors/font_disabled_color = Color(0.54902, 0.529412, 0.498039, 1)
+PopupMenu/styles/panel = SubResource("PanelSurface")
+PopupMenu/styles/hover = SubResource("MenuHover")
+
+HSeparator/styles/separator = SubResource("Separator")
+VSeparator/styles/separator = SubResource("Separator")
+
+ProgressBar/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+ProgressBar/styles/background = SubResource("ProgressBackground")
+ProgressBar/styles/fill = SubResource("ProgressFill")
+
+RichTextLabel/colors/default_color = Color(0.145098, 0.137255, 0.121569, 1)
 RichTextLabel/fonts/normal_font = ExtResource("1_font_regular")
 RichTextLabel/fonts/bold_font = ExtResource("3_font_bold")
 RichTextLabel/font_sizes/normal_font_size = 16
 RichTextLabel/font_sizes/bold_font_size = 16
+
+ItemList/colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+ItemList/colors/font_selected_color = Color(0.145098, 0.137255, 0.121569, 1)
+ItemList/colors/guide_color = Color(0.505882, 0.454902, 0.4, 0.45)
+ItemList/styles/panel = SubResource("PanelSurface")
+ItemList/styles/cursor = SubResource("ButtonFocus")
+ItemList/styles/cursor_unfocused = SubResource("ButtonHover")
+ItemList/styles/selected = SubResource("MenuHover")
+ItemList/styles/selected_focus = SubResource("ButtonPressed")
+
+TabContainer/colors/font_selected_color = Color(0.145098, 0.137255, 0.121569, 1)
+TabContainer/colors/font_unselected_color = Color(0.34902, 0.333333, 0.305882, 1)
+TabContainer/colors/font_hovered_color = Color(0.145098, 0.137255, 0.121569, 1)
+TabContainer/colors/font_disabled_color = Color(0.54902, 0.529412, 0.498039, 1)
+TabContainer/styles/panel = SubResource("PanelSurface")
+TabContainer/styles/tab_selected = SubResource("ButtonPressed")
+TabContainer/styles/tab_unselected = SubResource("ButtonNormal")
+TabContainer/styles/tab_hovered = SubResource("ButtonHover")
+TabContainer/styles/tab_disabled = SubResource("ButtonDisabled")
+
+HSlider/styles/slider = SubResource("ProgressBackground")
+HSlider/styles/grabber_area = SubResource("ProgressFill")
+HSlider/styles/grabber_area_highlight = SubResource("ProgressFill")
+
+Window/colors/title_color = Color(0.145098, 0.137255, 0.121569, 1)
+Window/colors/title_outline_modulate = Color(0.784314, 0.733333, 0.666667, 1)
+Window/styles/embedded_border = SubResource("PanelSurface")

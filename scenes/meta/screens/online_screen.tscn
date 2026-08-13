@@ -5,38 +5,38 @@
 [sub_resource type="ButtonGroup" id="ModeButtonGroup"]
 
 [sub_resource type="StyleBoxFlat" id="ModePanelStyle"]
-bg_color = Color(0.09, 0.085, 0.115, 1)
+bg_color = Color(0.784314, 0.733333, 0.666667, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.38, 0.31, 0.46, 1)
+border_color = Color(0.505882, 0.454902, 0.4, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="RankPanelStyle"]
-bg_color = Color(0.075, 0.068, 0.09, 0.98)
+bg_color = Color(0.839216, 0.796078, 0.733333, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.55, 0.42, 0.24, 0.95)
+border_color = Color(0.501961, 0.388235, 0.184314, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
-shadow_color = Color(0, 0, 0, 0.35)
+shadow_color = Color(0.25, 0.23, 0.2, 0.22)
 shadow_size = 8
 
 [sub_resource type="StyleBoxFlat" id="StartButtonStyle"]
-bg_color = Color(0.21, 0.14, 0.25, 1)
+bg_color = Color(0.803922, 0.72549, 0.564706, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.85, 0.61, 0.24, 1)
+border_color = Color(0.501961, 0.388235, 0.184314, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -58,7 +58,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.055, 0.052, 0.07, 1)
+color = Color(0.721569, 0.682353, 0.631373, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -152,7 +152,7 @@ horizontal_alignment = 1
 [node name="LeaguePointsLabel" type="Label" parent="MarginContainer/ScreenLayout/RankCenter/RankPanel/RankCenter/RankLayout/RankContent"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.72, 0.26, 1)
+theme_override_colors/font_color = Color(0.541176, 0.392157, 0.12549, 1)
 theme_override_font_sizes/font_size = 30
 text = ""
 horizontal_alignment = 1
@@ -160,7 +160,7 @@ horizontal_alignment = 1
 [node name="StatusLabel" type="Label" parent="MarginContainer/ScreenLayout/RankCenter/RankPanel/RankCenter/RankLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.82, 0.87, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 25
 text = ""
 horizontal_alignment = 1

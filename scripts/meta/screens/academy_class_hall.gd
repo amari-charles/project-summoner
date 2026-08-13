@@ -12,11 +12,11 @@ class_name AcademyClassHall
 @onready var course_groups: VBoxContainer = %CourseGroups
 @onready var advance_semester_dialog: AcceptDialog = %AdvanceSemesterDialog
 
-const COLOR_PANEL: Color = Color(0.13, 0.145, 0.17, 1.0)
-const COLOR_PANEL_SELECTED: Color = Color(0.18, 0.215, 0.25, 1.0)
-const COLOR_PANEL_LOCKED: Color = Color(0.105, 0.112, 0.125, 1.0)
-const COLOR_ACCENT: Color = Color(0.82, 0.68, 0.36, 1.0)
-const COLOR_TEXT_MUTED: Color = Color(0.72, 0.75, 0.78, 1.0)
+const COLOR_PANEL: Color = GameColorPalette.UI_SURFACE
+const COLOR_PANEL_SELECTED: Color = GameColorPalette.BUTTON_PRIMARY_BG
+const COLOR_PANEL_LOCKED: Color = GameColorPalette.UI_SURFACE_DISABLED
+const COLOR_ACCENT: Color = GameColorPalette.TEXT_HIGHLIGHT
+const COLOR_TEXT_MUTED: Color = GameColorPalette.TEXT_SECONDARY
 
 var _current_year: int = 1
 var _current_semester: int = 1
@@ -198,7 +198,7 @@ func _build_course_card(course: Dictionary) -> Control:
 		"panel",
 		_panel_style(
 			COLOR_PANEL_LOCKED if is_locked else COLOR_PANEL,
-			Color(0.24, 0.26, 0.29, 1.0)
+			GameColorPalette.UI_BORDER
 		)
 	)
 
