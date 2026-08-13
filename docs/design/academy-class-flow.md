@@ -1,7 +1,7 @@
 # Academy Class Flow
 
 **Status:** DESIGN SPEC
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-13
 **Related:** [Academy Forging Model](academy-forging-model.md), [Implementation Plan](../technical/meta/academy-class-flow-overhaul-plan.md)
 
 ## Purpose
@@ -51,7 +51,9 @@ Every battle activity declares exactly one explicit deck mode:
 2. **Owned deck:** the player chooses a saved deck and that deck is validated against the activity rules within preparation.
 3. **Class loadout:** the class places required teaching cards into locked slots in the normal deck grid, and the player fills the remaining slots from owned cards within the same preparation screen. A lock treatment and class marker communicate why those cards cannot be changed without requiring a separate card section.
 
-A class loadout belongs to the activity. It persists while that activity is incomplete, but never mutates or overwrites a saved deck. A separate explicit **Save as Deck** action may copy it into the player’s deck collection.
+A class loadout belongs to the activity. It persists while that activity is incomplete, but never mutates or overwrites a saved deck. The editor identifies it as the **Lesson Loadout**. **Fill from Deck** copies compatible owned cards from a selected saved deck into its open slots without changing that saved deck; class-supplied cards remain locked and are not replaced.
+
+A separate explicit **Save to My Decks** action copies the Lesson Loadout into the player’s deck collection. The player must choose either **Create New Deck**, which requires a name, or **Replace Existing Deck**, which requires selecting and confirming the target. Saving does not change the currently active saved deck. Only owned card instances may be stored in a saved deck, so class-supplied cards that the player does not own are omitted and reported after saving.
 
 ## Rewards
 

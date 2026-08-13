@@ -228,14 +228,15 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(320, 48)
 layout_mode = 2
 
+[node name="SavedDeckCount" type="Label" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorToolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.28, 0.3, 1)
+vertical_alignment = 1
+
 [node name="EditorToolbarSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorToolbar"]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="SaveButton" type="Button" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorToolbar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(190, 48)
-layout_mode = 2
 
 [node name="DeckEditorPanel" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content" instance=ExtResource("4_deck_editor")]
 unique_name_in_owner = true
@@ -247,6 +248,44 @@ available_horizontal_separation = 57
 available_vertical_separation = 32
 heading_font_size = 32
 transparent_active_background = true
+
+[node name="EditorFooter" type="HBoxContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="LeftSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorFooter"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SaveButton" type="Button" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorFooter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 52)
+layout_mode = 2
+
+[node name="RightSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorFooter"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SaveChoiceDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+
+[node name="NewDeckDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+
+[node name="NewDeckName" type="LineEdit" parent="NewDeckDialog"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 44)
+
+[node name="ReplaceDeckDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+
+[node name="ReplaceDeckSelector" type="OptionButton" parent="ReplaceDeckDialog"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 44)
+
+[node name="SaveResultDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
 
 [node name="NarrativePresenter" parent="." instance=ExtResource("2")]
 narrative_context = 0

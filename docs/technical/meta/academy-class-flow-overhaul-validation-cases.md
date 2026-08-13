@@ -1,9 +1,9 @@
 # Academy Class Flow Overhaul Validation Cases
 
-**Status:** PASS 3 COMPLETE
+**Status:** PR REVIEW COMPLETE
 **Initiative:** `academy-class-flow-overhaul`
 **Domain:** `meta`
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-13
 **Companion Plan:** [academy-class-flow-overhaul-plan.md](academy-class-flow-overhaul-plan.md)
 
 ## Case Matrix
@@ -16,7 +16,8 @@
 | ACF-04 | Inspect an owned-deck battle | Preparation allows saved-deck selection and shows authoritative rule validity in context | unit + integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
 | ACF-05 | Build a class loadout | Required cards occupy visibly locked slots in the normal deck grid; player fills remaining slots in place; validity and Start update deterministically | unit + integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
 | ACF-06 | Leave and return to an incomplete class loadout | Activity-local choices persist without changing any saved deck | integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
-| ACF-07 | Explicitly save a class loadout | A new/selected saved deck changes only after the explicit Save as Deck action | integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
+| ACF-07 | Explicitly save a class loadout | Save to My Decks explicitly creates a named deck or replaces a confirmed existing deck, preserves the active-deck selection, and reports class-supplied cards omitted because they are not owned | integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
+| ACF-25 | Fill a class loadout from a saved deck | Compatible owned cards copy in saved-deck order into open Lesson Loadout slots; supplied cards remain locked and the source deck is unchanged | integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
 | ACF-08 | Inspect activity rewards before play | Fixed, selectable, and absent rewards are represented accurately in preparation | unit + integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
 | ACF-09 | Win an activity with a fixed reward | Reward is granted once and Results separates Earned now from Course progress | integration | `tests/csharp/Services/AcademyProgressServiceTest.cs` | Implemented |
 | ACF-10 | Win an activity with a selectable reward | Results presents inspectable options in place and progress pauses until a valid selection is authoritatively confirmed | integration | `tests/unit/meta/test_academy_activity_results.gd` | Implemented |

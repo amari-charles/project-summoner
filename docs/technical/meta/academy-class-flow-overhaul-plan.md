@@ -31,7 +31,7 @@ Replace the disjoint Class Hall, Course Path, activity modal, Collection detour,
 2. A full-screen Activity Preparation presenter is the sole battle launch surface for Academy activities.
 3. The Academy domain owns authored activity rules, deck mode, reward preview, and activity-local loadout state.
 4. Deck modes are a required typed discriminated model: fixed deck, owned deck, or class loadout. Behavior is never inferred from non-empty card lists.
-5. Class loadouts persist as activity progress while incomplete and remain separate from saved decks unless explicitly copied.
+5. Class loadouts persist as activity progress while incomplete and remain separate from saved decks. Filling is an additive copy from a selected saved deck; saving explicitly creates a named deck or replaces a confirmed existing deck, does not change the active deck, and reports unowned supplied-card omissions.
 6. Reward eligibility and claiming remain authoritative domain/application operations; UI renders their state.
 7. Narrative is requested with typed context events through the general Narrative Director.
 8. Battle runtime receives a resolved generic deck/config and remains Academy-agnostic.
@@ -44,7 +44,7 @@ Replace the disjoint Class Hall, Course Path, activity modal, Collection detour,
 1. Replace overlapping `LoanerPlayerDeck`, `FixedClassDeck`, and `AdditionalLoanerCards` semantics with one typed activity loadout definition.
 2. Add a Course Flow view model containing enrollment state, ordered activity state, inspectability, reward state, and navigation actions.
 3. Add an Activity Preparation view model containing objective, rules, reward state, deck mode, resolved/editable slots, validity, and start readiness.
-4. Add commands for enroll, inspect activity, update activity loadout, save loadout as deck, start activity, and claim/select reward.
+4. Add commands for enroll, inspect activity, update activity loadout, fill a loadout from a saved deck, create or replace a saved deck from a loadout, start activity, and claim/select reward.
 5. Add typed Academy narrative events at preparation and activity lifecycle boundaries.
 6. Replace `AcademyCourseActivityType` with independent typed execution-kind and activity-role contracts; add typed encounter style and deck mode, while lifecycle state is returned authoritatively in the view model.
 
@@ -116,3 +116,11 @@ Current state:
 4. `PR REVIEW` (complete)
 
 The implementation and PR review gates are complete. Manual gameplay testing is the remaining delivery check.
+
+## PR Review Evidence
+
+Reviewed on 2026-08-13 against the repository PR and structure checklists. The review consolidated fill/validation rule predicates, added explicit operation error results, enforced the global saved-deck maximum, and added rejection and supplied-card ownership coverage.
+
+1. `dotnet build Fateforged.csproj --no-restore` - passed with 0 warnings and 0 errors.
+2. Full C# suite - 1,198 passed.
+3. Unit GUT suite - 246 passed with 1,797 assertions.

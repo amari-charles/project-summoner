@@ -143,51 +143,171 @@ public class AcademyProgressHandler
         return true;
     }
 
-    public string SaveActivityLoadoutAsDeck(string courseId, string activityId)
+    public Godot.Collections.Dictionary FillActivityLoadoutFromDeck(
+        string courseId,
+        string activityId,
+        string sourceDeckId
+    )
     {
         var located = FindActivity(courseId, activityId);
         if (located.activity == null || located.course == null)
-            return "";
+            return OperationFailure("activity_not_found");
         if (located.activity.Loadout.Mode != AcademyDeckMode.ClassLoadout)
-            return "";
+            return OperationFailure("class_loadout_required");
 
         var summonerId = _getActiveSummonerFunc();
         if (!summonerId.HasValue)
-            return "";
+            return OperationFailure("active_summoner_required");
+
+        var sourceDeck = _profileRepo.GetDeck(DeckId.FromString(sourceDeckId));
+        if (sourceDeck == null || sourceDeck.SummonerId != summonerId)
+            return OperationFailure("source_deck_not_found");
 
         var progress = GetOrCreateProgress();
-        var selected = GetSelectedInstanceIds(located.course.Id, located.activity, progress.Academy);
-        var available = _profileRepo.ListCards().Where(card =>
-            !card.BoundToSummonerId.HasValue || card.BoundToSummonerId == summonerId
-        );
-        var remaining = available.ToList();
+        var selected = GetSelectedInstanceIds(located.course.Id, located.activity, progress.Academy)
+            .Where(instanceId =>
+            {
+                var card = _profileRepo.GetCard(instanceId);
+                return card != null
+                    && (!card.BoundToSummonerId.HasValue || card.BoundToSummonerId == summonerId);
+            })
+            .ToList();
+        var selectedSet = selected.ToHashSet();
+        var suppliedCount = located.activity.Loadout.SuppliedCards.Sum(entry => entry.Count);
+        var authoredMax = located.activity.Loadout.Rules.MaxDeckSize;
+        var maxDeckSize = authoredMax > 0
+            ? Math.Min(authoredMax, DeckService.MaxDeckSize)
+            : DeckService.MaxDeckSize;
+        var openSlots = Math.Max(0, maxDeckSize - suppliedCount - selected.Count);
+        var skipped = new Godot.Collections.Array<string>();
+        var copied = 0;
+
+        foreach (var instanceId in sourceDeck.CardInstanceIds)
+        {
+            if (selectedSet.Contains(instanceId))
+                continue;
+
+            var card = _profileRepo.GetCard(instanceId);
+            if (
+                card == null
+                || (card.BoundToSummonerId.HasValue && card.BoundToSummonerId != summonerId)
+                || !IsCardAllowedByActivityRules(card.CatalogId, located.activity.Loadout.Rules)
+                || openSlots <= 0
+            )
+            {
+                skipped.Add(instanceId.Value);
+                continue;
+            }
+
+            selected.Add(instanceId);
+            selectedSet.Add(instanceId);
+            copied++;
+            openSlots--;
+        }
+
+        progress.Academy.ActivityLoadouts[ActivityLoadoutKey(located.course.Id, activityId)] =
+            new AcademyActivityLoadoutState { SelectedCardInstanceIds = selected };
+        _profileRepo.UpdateCampaignProgress(summonerId, progress);
+
+        return new Godot.Collections.Dictionary
+        {
+            ["success"] = true,
+            ["source_deck_id"] = sourceDeck.Id.Value,
+            ["copied_count"] = copied,
+            ["skipped_card_instance_ids"] = skipped,
+            ["selected_card_instance_ids"] = ToCardInstanceIdArray(selected),
+        };
+    }
+
+    public Godot.Collections.Dictionary SaveActivityLoadoutToDeck(
+        string courseId,
+        string activityId,
+        string targetDeckId,
+        string newDeckName
+    )
+    {
+        var located = FindActivity(courseId, activityId);
+        if (located.activity == null || located.course == null)
+            return OperationFailure("activity_not_found");
+        if (located.activity.Loadout.Mode != AcademyDeckMode.ClassLoadout)
+            return OperationFailure("class_loadout_required");
+
+        var summonerId = _getActiveSummonerFunc();
+        if (!summonerId.HasValue)
+            return OperationFailure("active_summoner_required");
+
+        var replacing = !string.IsNullOrWhiteSpace(targetDeckId);
+        DeckModel? targetDeck = null;
+        if (replacing)
+        {
+            targetDeck = _profileRepo.GetDeck(DeckId.FromString(targetDeckId));
+            if (targetDeck == null || targetDeck.SummonerId != summonerId)
+                return OperationFailure("target_deck_not_found");
+        }
+        else if (string.IsNullOrWhiteSpace(newDeckName))
+        {
+            return OperationFailure("deck_name_required");
+        }
+
+        var progress = GetOrCreateProgress();
+        var selected = GetSelectedInstanceIds(located.course.Id, located.activity, progress.Academy)
+            .Where(instanceId =>
+            {
+                var card = _profileRepo.GetCard(instanceId);
+                return card != null
+                    && (!card.BoundToSummonerId.HasValue || card.BoundToSummonerId == summonerId);
+            })
+            .ToList();
+        var selectedSet = selected.ToHashSet();
+        var remaining = _profileRepo
+            .ListCards()
+            .Where(card =>
+                !selectedSet.Contains(card.Id)
+                && (!card.BoundToSummonerId.HasValue || card.BoundToSummonerId == summonerId)
+            )
+            .ToList();
+        var omittedSupplied = new Godot.Collections.Array<string>();
         foreach (var supplied in located.activity.Loadout.SuppliedCards)
         {
             for (var i = 0; i < supplied.Count; i++)
             {
                 var owned = remaining.FirstOrDefault(card => card.CatalogId == supplied.CardId);
                 if (owned == null)
+                {
+                    omittedSupplied.Add(supplied.CardId.Value);
                     continue;
+                }
                 selected.Add(owned.Id);
                 remaining.Remove(owned);
             }
         }
 
+        if (selected.Count > DeckService.MaxDeckSize)
+            return OperationFailure("deck_too_large");
+
         var id = _profileRepo.UpsertDeck(
             new DeckModel
             {
-                Id = DeckId.None,
+                Id = targetDeck?.Id ?? DeckId.None,
                 ProfileId = _profileRepo.GetCurrentProfileId(),
                 SummonerId = summonerId,
-                Name = $"{located.course.Id} Loadout",
+                Name = targetDeck?.Name ?? newDeckName.Trim(),
+                Slot = targetDeck?.Slot ?? 0,
+                IsActive = targetDeck?.IsActive ?? false,
                 CardInstanceIds = selected,
                 UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             }
         );
         if (!id.HasValue)
-            return "";
-        _profileRepo.UpdateProfileMeta(new MetaUpdate { SelectedDeck = id.Value });
-        return id.Value;
+            return OperationFailure("save_failed");
+
+        return new Godot.Collections.Dictionary
+        {
+            ["success"] = true,
+            ["deck_id"] = id.Value,
+            ["created"] = !replacing,
+            ["omitted_supplied_card_ids"] = omittedSupplied,
+        };
     }
 
     public Godot.Collections.Dictionary ResolveActivityBattleConfig(
@@ -1074,6 +1194,47 @@ public class AcademyProgressHandler
     private static string ActivityLoadoutKey(CourseId courseId, string activityId) =>
         $"{courseId}:{activityId}";
 
+    private static bool IsCardAllowedByActivityRules(CardId cardId, AcademyDeckRules rules)
+    {
+        return !IsCardBanned(cardId, rules)
+            && IsCardTypeAllowed(cardId, rules)
+            && IsCardElementAllowed(cardId, rules);
+    }
+
+    private static bool IsCardBanned(CardId cardId, AcademyDeckRules rules) =>
+        rules.BannedCards.Contains(cardId);
+
+    private static bool IsCardTypeAllowed(CardId cardId, AcademyDeckRules rules)
+    {
+        var card = CardCatalog.GetCard(cardId);
+        return card != null
+            && (rules.AllowedCardTypes.Count == 0 || rules.AllowedCardTypes.Contains(card.Type));
+    }
+
+    private static bool IsCardElementAllowed(CardId cardId, AcademyDeckRules rules)
+    {
+        var card = CardCatalog.GetCard(cardId);
+        return card != null
+            && (
+                rules.AllowedElements.Count == 0
+                || card.ElementalAffinity == Element.Neutral
+                || rules.AllowedElements.Contains(card.ElementalAffinity)
+            );
+    }
+
+    private static Godot.Collections.Dictionary OperationFailure(string error) =>
+        new() { ["success"] = false, ["error"] = error };
+
+    private static Godot.Collections.Array<string> ToCardInstanceIdArray(
+        IEnumerable<CardInstanceId> instanceIds
+    )
+    {
+        var result = new Godot.Collections.Array<string>();
+        foreach (var instanceId in instanceIds)
+            result.Add(instanceId.Value);
+        return result;
+    }
+
     private static void ValidateDeckRules(
         IReadOnlyList<DeckEntry> deck,
         AcademyDeckRules rules,
@@ -1101,25 +1262,20 @@ public class AcademyProgressHandler
             issues.Add(Issue("min_spells", ("count", rules.MinSpells), ("current", spellCount)));
         }
 
-        var allowedTypes = rules.AllowedCardTypes.ToHashSet();
-        if (allowedTypes.Count > 0)
+        if (rules.AllowedCardTypes.Count > 0)
         {
             foreach (var entry in deck)
             {
-                var card = CardCatalog.GetCard(entry.CardId);
-                if (card != null && !allowedTypes.Contains(card.Type))
+                if (!IsCardTypeAllowed(entry.CardId, rules))
                     issues.Add(Issue("card_type_not_allowed", ("card_id", (string)entry.CardId)));
             }
         }
 
-        var allowedElements = rules.AllowedElements.ToHashSet();
-        if (allowedElements.Count > 0)
+        if (rules.AllowedElements.Count > 0)
         {
-            allowedElements.Add(Element.Neutral);
             foreach (var entry in deck)
             {
-                var card = CardCatalog.GetCard(entry.CardId);
-                if (card != null && !allowedElements.Contains(card.ElementalAffinity))
+                if (!IsCardElementAllowed(entry.CardId, rules))
                     issues.Add(Issue("card_element_not_allowed", ("card_id", (string)entry.CardId)));
             }
         }
@@ -1131,10 +1287,10 @@ public class AcademyProgressHandler
                 issues.Add(Issue("required_card_missing", ("card_id", (string)requiredCard)));
         }
 
-        foreach (var bannedCard in rules.BannedCards.Where(cardId => cardId.HasValue))
+        foreach (var entry in deck)
         {
-            if (counts.ContainsKey(bannedCard))
-                issues.Add(Issue("banned_card", ("card_id", (string)bannedCard)));
+            if (IsCardBanned(entry.CardId, rules))
+                issues.Add(Issue("banned_card", ("card_id", (string)entry.CardId)));
         }
     }
 
