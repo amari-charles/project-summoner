@@ -36,6 +36,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-05, authority-boundary audit):** Started the gated battle-progression-authority initiative and added concrete follow-ups for permanent progression commands, atomic commerce, and authoritative competitive results/loadout validation. Backend provider selection remains intentionally undecided.
 **Tracker Sync (2026-08-05, battle authority completion):** Moved the completed battle-progression-authority initiative to `todos-completed.md` after PR `#352` merged; provider-neutral security follow-ups remain active as separate tasks.
 **Tracker Sync (2026-08-13, Campus Shop):** Added high-priority changelog infrastructure work and a scoped deprecation plan for the legacy linear Caravan campaign flow.
+**Tracker Sync (2026-08-13, Online deck selection):** Added a matchmaking-screen follow-up for selecting and confirming the deck used before queueing.
 
 ---
 
@@ -160,6 +161,20 @@ Perform a targeted audit for other places where runtime behavior is selected via
 ## Ranked Gameplay
 
 ### 🟡 MEDIUM PRIORITY
+
+#### Add Deck Selection to the Online Matchmaking Screen
+**Status:** ⬜ Not Started
+**Category:** Ranked Gameplay / UI/UX
+**Effort:** Small
+
+**Description:**
+Add a deck-select button to the Online screen so players can see and change which saved deck they will use before entering matchmaking.
+
+**Tasks:**
+- [ ] Add a compact deck-select button without crowding the rank and queue-state layout.
+- [ ] Reuse the existing saved-deck selection flow rather than creating a second deck-management implementation.
+- [ ] Show the currently selected deck and prevent queueing with an invalid or unavailable deck.
+- [ ] Pass the selected deck through matchmaking launch and future authoritative loadout validation.
 
 #### Add Client-Side Prediction
 **Status:** ⬜ Not Started
