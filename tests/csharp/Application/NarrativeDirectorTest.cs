@@ -76,7 +76,7 @@ public class NarrativeDirectorTest
     {
         var command = new NarrativeCommandRequest
         {
-            CommandType = "record_doctrine",
+            CommandType = NarrativeCommandType.RecordNarrativeChoice,
             IdempotencyKey = "doctrine:prepared",
         };
         var content = Content("choice");
@@ -182,6 +182,67 @@ public class NarrativeDirectorTest
     }
 
     [TestCase]
+    public void BeginAttempt_ResetsAttemptScopeOnlyWhenIdentityChanges()
+    {
+        var director = NewDirector(Cue("attempt", occurrence: NarrativeOccurrencePolicy.OncePerAttempt));
+        director.RegisterPresenter(
+            (int)NarrativeContext.Preparation,
+            Callable.From<Godot.Collections.Dictionary>(_ => { })
+        );
+        director.BeginAttempt("attempt-a");
+        director.PublishEvent((int)NarrativeEventType.PreparationOpened, "activity");
+        director.CompleteCue("attempt");
+        director.BeginAttempt("attempt-a");
+        director.PublishEvent((int)NarrativeEventType.PreparationOpened, "activity");
+        AssertThat(director.PendingCueCount).IsEqual(0);
+        director.BeginAttempt("attempt-b");
+        director.PublishEvent((int)NarrativeEventType.PreparationOpened, "activity");
+        AssertThat(director.ActiveCueId).IsEqual("attempt");
+        director.Free();
+    }
+
+    [TestCase]
+    public void ConversationalChoice_ContinuesIntoAuthoredDialogueBranch()
+    {
+        var opening = Content("opening") with
+        {
+            Choices =
+            [
+                new DialogueChoiceDefinition
+                {
+                    Id = "ask_more",
+                    TextKey = "choice.ask_more",
+                    NextDialogueId = "follow_up",
+                },
+            ],
+        };
+        var director = new NarrativeDirector();
+        director.ConfigureForTesting(
+            [Cue("branching", dialogueId: "opening")],
+            [opening, Content("follow_up")]
+        );
+        var dialogueIds = new List<string>();
+        director.RegisterPresenter(
+            (int)NarrativeContext.Preparation,
+            Callable.From<Godot.Collections.Dictionary>(cue =>
+                dialogueIds.Add(cue["dialogue_id"].AsString())
+            )
+        );
+        director.PublishEvent((int)NarrativeEventType.PreparationOpened, "activity");
+        AssertThat(
+                director.CompleteCue(
+                    "branching",
+                    new Godot.Collections.Dictionary { ["choice_id"] = "ask_more" }
+                )
+            )
+            .IsTrue();
+        AssertThat(dialogueIds).ContainsExactly("opening", "follow_up");
+        AssertThat(director.ActiveCueId).IsEqual("branching");
+        AssertThat(director.CompleteCue("branching")).IsTrue();
+        director.Free();
+    }
+
+    [TestCase]
     public void AuthoredCatalog_IsStrictAndContainsMigratedContent()
     {
         AssertThat(NarrativeCatalog.All.Cues).IsNotEmpty();
@@ -234,7 +295,7 @@ public class NarrativeDirectorTest
         public bool TryHandle(NarrativeCommandRequest command)
         {
             Calls++;
-            return command.CommandType == "record_doctrine";
+            return command.CommandType == NarrativeCommandType.RecordNarrativeChoice;
         }
     }
 }

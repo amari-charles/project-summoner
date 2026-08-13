@@ -67,6 +67,13 @@ public static class NarrativeCatalog
             }
             foreach (var choice in content.Choices)
             {
+                if (
+                    !string.IsNullOrWhiteSpace(choice.NextDialogueId)
+                    && !dialogueIds.Contains(choice.NextDialogueId)
+                )
+                    errors.Add(
+                        $"Choice '{content.Id}:{choice.Id}' references missing dialogue '{choice.NextDialogueId}'."
+                    );
                 if (choice.Kind == NarrativeChoiceKind.Consequential && choice.Command == null)
                     errors.Add($"Consequential choice '{content.Id}:{choice.Id}' requires a command.");
                 if (choice.Command is { } command && string.IsNullOrWhiteSpace(command.IdempotencyKey))

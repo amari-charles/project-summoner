@@ -80,6 +80,8 @@ func _finish(result: Dictionary) -> void:
 	var cue_id: String = SafeTypeUtils.string(_cue.get("cue_id"))
 	if cue_id.is_empty() or not NarrativeDirectorApi.complete_cue(cue_id, result):
 		return
+	if NarrativeDirectorApi.is_cue_active_or_queued(cue_id):
+		return
 	_cue = {}
 	panel.visible = false
 	_clear_choices()

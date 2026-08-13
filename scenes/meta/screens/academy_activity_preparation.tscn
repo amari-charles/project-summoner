@@ -50,7 +50,6 @@ layout_mode = 2
 [node name="LoadoutLabel" type="Label" parent="Margin/Root"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Battle loadout"
 
 [node name="LoadoutGrid" type="GridContainer" parent="Margin/Root"]
 unique_name_in_owner = true
@@ -60,7 +59,6 @@ columns = 6
 [node name="AvailableLabel" type="Label" parent="Margin/Root"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Owned cards"
 
 [node name="AvailableScroll" type="ScrollContainer" parent="Margin/Root"]
 layout_mode = 2
@@ -75,7 +73,6 @@ columns = 6
 [node name="SaveButton" type="Button" parent="Margin/Root"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Save as Deck"
 
 [node name="StartButton" type="Button" parent="Margin/Root"]
 unique_name_in_owner = true

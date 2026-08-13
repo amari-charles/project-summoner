@@ -29,6 +29,9 @@ static func publish_event(event_type: EventType, source_id: String, facts: Dicti
 		false
 	)
 
+static func begin_attempt(attempt_id: String = "") -> String:
+	return SafeTypeUtils.string(node().call("BeginAttempt", attempt_id))
+
 static func register_presenter(context: Context, presenter: Callable) -> void:
 	node().call("RegisterPresenter", int(context), presenter)
 

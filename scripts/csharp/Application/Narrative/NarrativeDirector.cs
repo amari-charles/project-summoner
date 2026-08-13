@@ -84,6 +84,21 @@ public partial class NarrativeDirector : Node
         _accountScope = string.IsNullOrWhiteSpace(accountId) ? "account" : accountId;
     }
 
+    public string BeginAttempt(string attemptId = "")
+    {
+        var resolvedAttemptId = string.IsNullOrWhiteSpace(attemptId)
+            ? Guid.NewGuid().ToString("N")
+            : attemptId;
+        if (string.Equals(_attemptScope, resolvedAttemptId, StringComparison.Ordinal))
+            return resolvedAttemptId;
+        if (_occurrences is MemoryNarrativeOccurrenceStore memory)
+            memory.ResetAttempt();
+        if (_occurrences is ProfileNarrativeOccurrenceStore profile)
+            profile.ResetAttempt();
+        _attemptScope = resolvedAttemptId;
+        return resolvedAttemptId;
+    }
+
     public bool PublishEvent(int eventType, string sourceId, Godot.Collections.Dictionary? facts = null)
     {
         if (!Enum.IsDefined(typeof(NarrativeEventType), eventType) || string.IsNullOrWhiteSpace(sourceId))
@@ -145,6 +160,15 @@ public partial class NarrativeDirector : Node
                 return false;
             _deliveredCommands.Add(command.IdempotencyKey);
             EmitSignal(SignalName.DialogueCommandRequested, ToCommandDictionary(command));
+        }
+        if (choice is { NextDialogueId.Length: > 0 })
+        {
+            var nextCue = _active.Cue with { DialogueId = choice.NextDialogueId };
+            _active = new QueuedCue(nextCue, _active.SourceEvent);
+            var view = ToCueDictionary(nextCue, _dialogue[nextCue.DialogueId]);
+            EmitSignal(SignalName.CueReady, view);
+            _presenters[nextCue.Context].Call(view);
+            return true;
         }
         var completedCueId = _active.Cue.Id;
         var completedContext = _active.Cue.Context;
@@ -288,7 +312,7 @@ public partial class NarrativeDirector : Node
             arguments[key] = value;
         return new Godot.Collections.Dictionary
         {
-            ["command_type"] = command.CommandType,
+            ["command_type"] = (int)command.CommandType,
             ["idempotency_key"] = command.IdempotencyKey,
             ["arguments"] = arguments,
         };

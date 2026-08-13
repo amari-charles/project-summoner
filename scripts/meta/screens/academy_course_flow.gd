@@ -84,7 +84,9 @@ func _reward_summary(previews: Array) -> String:
 	var labels: Array[String] = []
 	for value: Variant in previews:
 		var preview: Dictionary = SafeTypeUtils.dict(value)
-		var status: String = SafeTypeUtils.string(preview.get("status"), "available").capitalize()
+		var status: String = Loc.t(
+			"academy.flow.reward_status_%s" % SafeTypeUtils.string(preview.get("status"), "preview")
+		)
 		var options: Array = SafeTypeUtils.array(preview.get("options"))
 		var label: String = Loc.t("academy.flow.reward")
 		if not options.is_empty():
@@ -125,4 +127,7 @@ func _grant_label(grant: Dictionary) -> String:
 	if SafeTypeUtils.string(grant.get("kind")) == "card":
 		var card: Dictionary = CardCatalogApi.get_card_as_dict(SafeTypeUtils.string(grant.get("id")))
 		return SafeTypeUtils.string(card.get("card_name"), SafeTypeUtils.string(grant.get("id")))
-	return SafeTypeUtils.string(grant.get("id"), SafeTypeUtils.string(grant.get("kind"), Loc.t("academy.flow.reward")))
+	if SafeTypeUtils.string(grant.get("kind")).is_empty():
+		return Loc.t("academy.flow.reward")
+	var grant_id: String = SafeTypeUtils.string(grant.get("id"))
+	return Loc.t("academy.reward.%s" % grant_id)

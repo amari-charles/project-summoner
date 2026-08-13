@@ -146,6 +146,10 @@ public partial class BattleScene : Node3D
         _narrativeSourceId = narrativeBattleContext?.Call("get_battle_id").AsString() ?? "";
         if (string.IsNullOrWhiteSpace(_narrativeSourceId))
             _narrativeSourceId = $"battle:{_config.Mode}:{_config.BattleSeed}";
+        var narrativeAttemptId = _config.BattleAttemptId.HasValue
+            ? _config.BattleAttemptId.Value
+            : "";
+        narrativeAttemptId = _narrativeDirector?.BeginAttempt(narrativeAttemptId) ?? narrativeAttemptId;
         ApplyPreparationDurationOverride();
 
         // Wait one frame for all scene nodes to be in tree
@@ -200,9 +204,7 @@ public partial class BattleScene : Node3D
             _narrativeSourceId,
             new Godot.Collections.Dictionary
             {
-                ["attempt_id"] = _config.BattleAttemptId.HasValue
-                    ? _config.BattleAttemptId.Value
-                    : $"seed:{_config.BattleSeed}",
+                ["attempt_id"] = narrativeAttemptId,
                 ["multiplayer"] = _config.IsMultiplayer.ToString().ToLowerInvariant(),
             }
         );

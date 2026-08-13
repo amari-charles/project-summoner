@@ -1,9 +1,9 @@
 # Narrative Director Overhaul Plan
 
-**Status:** PASS 3 COMPLETE — READY FOR PR REVIEW
+**Status:** PR REVIEW COMPLETE — READY FOR MANUAL TESTING
 **Initiative:** `narrative-director-overhaul`
 **Domain:** `infrastructure`
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-13
 **Owner:** Codex + user
 
 ## Summary
@@ -120,5 +120,6 @@ Current state:
 1. `PASS 1: USE CASES + VALIDATION` (complete)
 2. `PASS 2: STUBS + WIRING` (complete)
 3. `PASS 3: IMPLEMENTATION + TESTS` (complete)
+4. `PR REVIEW` (complete)
 
-The implementation gate is complete. PR review is the next required gate.
+The implementation and PR review gates are complete. Manual gameplay testing is the remaining delivery check.

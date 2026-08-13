@@ -10,6 +10,7 @@ class_name AcademyActivityResults
 var _summary: Dictionary = {}
 var _pending_claim_id: String = ""
 var _selected_option_id: String = ""
+var _completion_event_published: bool = false
 
 func _ready() -> void:
 	continue_button.text = Loc.t("ui.common.continue")
@@ -22,7 +23,7 @@ func _refresh() -> void:
 		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_FLOW)
 		return
 	var outcome: String = SafeTypeUtils.string(_summary.get("outcome"), "Victory")
-	title_label.text = outcome
+	title_label.text = Loc.t("academy.flow.outcome_%s" % outcome.to_lower())
 	var earned: Array = SafeTypeUtils.array(_summary.get("granted_rewards"))
 	earned_label.text = "%s\n%s" % [Loc.t("academy.flow.earned_now"), _grant_summary(earned) if not earned.is_empty() else Loc.t("academy.flow.none")]
 	var course_id: String = SafeTypeUtils.string(_summary.get("course_id"))
@@ -34,11 +35,13 @@ func _refresh() -> void:
 		progressed = Loc.t("academy.flow.activity_complete")
 	progress_label.text = "%s\n%s" % [Loc.t("academy.flow.course_progress"), progressed]
 	_render_pending(SafeTypeUtils.array(course.get("reward_previews")))
-	NarrativeDirectorApi.publish_event(
-		NarrativeDirectorApi.EventType.ACTIVITY_COMPLETED,
-		SafeTypeUtils.string(_summary.get("activity_id")),
-		{"course_id": course_id, "outcome": outcome}
-	)
+	if not _completion_event_published:
+		_completion_event_published = true
+		NarrativeDirectorApi.publish_event(
+			NarrativeDirectorApi.EventType.ACTIVITY_COMPLETED,
+			SafeTypeUtils.string(_summary.get("activity_id")),
+			{"course_id": course_id, "outcome": outcome}
+		)
 
 func _render_pending(previews: Array) -> void:
 	for child: Node in choices.get_children():
@@ -53,7 +56,12 @@ func _render_pending(previews: Array) -> void:
 		for option_value: Variant in SafeTypeUtils.array(preview.get("options")):
 			var option: Dictionary = SafeTypeUtils.dict(option_value)
 			var button: Button = Button.new()
-			button.text = _grant_summary(SafeTypeUtils.array(option.get("grants")))
+			var label_key: String = SafeTypeUtils.string(option.get("label_key"))
+			button.text = (
+				Loc.t(label_key)
+				if not label_key.is_empty()
+				else _grant_summary(SafeTypeUtils.array(option.get("grants")))
+			)
 			button.pressed.connect(_select_option.bind(SafeTypeUtils.string(option.get("option_id")), button))
 			choices.add_child(button)
 		break
@@ -86,8 +94,13 @@ func _grant_summary(grants: Array) -> String:
 		var grant: Dictionary = SafeTypeUtils.dict(value)
 		var grant_id: String = SafeTypeUtils.string(grant.get("id"))
 		var label: String = grant_id
-		if SafeTypeUtils.string(grant.get("kind")) == "card":
+		var kind: String = SafeTypeUtils.string(grant.get("kind"))
+		if kind == "card":
 			label = SafeTypeUtils.string(CardCatalogApi.get_card_as_dict(grant_id).get("card_name"), grant_id)
+		elif not kind.is_empty():
+			label = Loc.t("academy.reward.%s" % grant_id)
+		else:
+			label = Loc.t("academy.flow.reward")
 		result.append("%s x%d" % [
 			label,
 			SafeTypeUtils.int_val(grant.get("amount"), 1),

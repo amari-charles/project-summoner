@@ -30,6 +30,7 @@ func _ready() -> void:
 	deck_selector.item_selected.connect(_select_owned_deck)
 	_course_id = BattleContext.academy_course_id
 	_activity_id = BattleContext.academy_activity_id
+	BattleContext.set_battle_attempt_id(NarrativeDirectorApi.begin_attempt())
 	_refresh()
 	if _state.is_empty():
 		_go_back()
@@ -80,14 +81,16 @@ func _render_loadout() -> void:
 		var active_id: String = DecksApi.get_active_deck_id()
 		for value: Variant in DecksApi.list_decks_for_summoner_dict(SummonerSelectionApi.get_active_summoner_id()):
 			var deck: Dictionary = SafeTypeUtils.dict(value)
-			deck_selector.add_item(SafeTypeUtils.string(deck.get("name"), "Deck"))
+			deck_selector.add_item(
+				SafeTypeUtils.string(deck.get("name"), Loc.t("academy.flow.deck"))
+			)
 			deck_selector.set_item_metadata(deck_selector.item_count - 1, SafeTypeUtils.string(deck.get("id")))
 			if SafeTypeUtils.string(deck.get("id")) == active_id:
 				deck_selector.select(deck_selector.item_count - 1)
 
 func _add_card_button(parent: Control, card: Dictionary, locked: bool, action: Callable) -> void:
-			var button: Button = Button.new()
-			button.toggle_mode = true
+	var button: Button = Button.new()
+	button.toggle_mode = true
 	var card_id: String = SafeTypeUtils.string(card.get("card_id", card.get("catalog_id")))
 	var count: int = SafeTypeUtils.int_val(card.get("count"), 1)
 	var card_data: Dictionary = CardCatalogApi.get_card_as_dict(card_id)

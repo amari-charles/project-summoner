@@ -42,6 +42,11 @@ public enum NarrativeChoiceKind
     Consequential,
 }
 
+public enum NarrativeCommandType
+{
+    RecordNarrativeChoice,
+}
+
 public readonly record struct NarrativeEvent(
     NarrativeEventType Type,
     string SourceId,
@@ -83,7 +88,7 @@ public sealed record DialogueContentDefinition
 
 public sealed record NarrativeCommandRequest
 {
-    public required string CommandType { get; init; }
+    public required NarrativeCommandType CommandType { get; init; }
     public required string IdempotencyKey { get; init; }
     public ImmutableDictionary<string, string> Arguments { get; init; } =
         ImmutableDictionary<string, string>.Empty;
