@@ -146,7 +146,7 @@ func _update_theme() -> void:
 	# Create theme with element-colored border for the card panel
 	if card_panel:
 		var style: StyleBoxFlat = StyleBoxFlat.new()
-		style.bg_color = GameColorPalette.UI_BG_DARK  # Dark background
+		style.bg_color = GameColorPalette.UI_SURFACE_ALT
 		style.border_width_left = border_width
 		style.border_width_top = border_width
 		style.border_width_right = border_width

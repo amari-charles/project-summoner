@@ -659,7 +659,7 @@ func _update_availability() -> void:
 			# Playable: normal background
 			if bg_panel:
 				var bg_style: StyleBoxFlat = StyleBoxFlat.new()
-				bg_style.bg_color = GameColorPalette.UI_BG_DARK
+				bg_style.bg_color = GameColorPalette.UI_SURFACE_ALT
 				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
 				bg_style.anti_aliasing = true
 				bg_style.anti_aliasing_size = 1
@@ -673,7 +673,7 @@ func _update_availability() -> void:
 			# Unaffordable: gray out background
 			if bg_panel:
 				var bg_style: StyleBoxFlat = StyleBoxFlat.new()
-				bg_style.bg_color = GameColorPalette.UI_BG_DARK
+				bg_style.bg_color = GameColorPalette.UI_SURFACE_ALT
 				bg_style.set_corner_radius_all(card_visual.corner_radius - card_visual.border_width)
 				bg_style.anti_aliasing = true
 				bg_style.anti_aliasing_size = 1

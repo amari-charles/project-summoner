@@ -8,7 +8,7 @@ func test_player_theme_is_configured_globally() -> void:
 	assert_eq(project_theme_path, PLAYER_THEME_PATH)
 
 
-func test_player_theme_uses_shared_warm_neutral_defaults() -> void:
+func test_player_theme_uses_shared_light_wood_defaults() -> void:
 	var theme: Theme = load(PLAYER_THEME_PATH) as Theme
 	assert_not_null(theme)
 	assert_true(theme.get_color("font_color", "Label").is_equal_approx(GameColorPalette.TEXT_PRIMARY))

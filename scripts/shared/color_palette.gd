@@ -81,11 +81,6 @@ const UI_SURFACE_DISABLED: Color = Color("#a69e94")
 const UI_BORDER: Color = Color("#817466")
 const UI_BORDER_STRONG: Color = Color("#62574c")
 
-## Compatibility names for card/gameplay surfaces that still expect depth steps.
-const UI_BG_DARK: Color = UI_SURFACE_ALT
-const UI_BG_MID: Color = UI_SURFACE
-const UI_BG_LIGHT: Color = UI_SURFACE_RAISED
-
 ## Text colors
 const TEXT_PRIMARY: Color = Color("#25231f")
 const TEXT_SECONDARY: Color = Color("#59554e")
