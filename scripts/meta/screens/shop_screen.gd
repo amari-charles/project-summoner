@@ -1,89 +1,64 @@
 extends Control
 class_name ShopScreen
 
-## ShopScreen - UI for general shop purchases
+## Campus Shop UI for the general shop catalog.
 ##
-## Displays offerings from ShopService and handles purchase flow
+## Offerings are displayed six at a time. Selecting one opens the purchase modal.
 
-## Node references
-@onready var close_button: Button = %CloseButton
-@onready var leave_incomplete_button: Button = %LeaveIncompleteButton
-@onready var leave_complete_button: Button = %LeaveCompleteButton
+const OFFERING_CARD_SCENE: PackedScene = preload("res://scenes/meta/components/offering_card.tscn")
+const OFFERINGS_PER_PAGE: int = 6
+const SHOP_ID: String = "general"
+
+@onready var back_button: Button = %BackButton
+@onready var title_label: Label = %TitleLabel
 @onready var gold_label: Label = %GoldLabel
 @onready var offering_list: GridContainer = %OfferingList
-@onready var detail_panel: PanelContainer = %DetailPanel
+@onready var previous_page_button: Button = %PreviousPageButton
+@onready var next_page_button: Button = %NextPageButton
+@onready var page_label: Label = %PageLabel
+@onready var detail_modal: Control = %DetailModal
+@onready var modal_close_button: Button = %ModalCloseButton
 @onready var offering_name_label: Label = %OfferingNameLabel
 @onready var price_label: Label = %PriceLabel
 @onready var description_label: Label = %DescriptionLabel
 @onready var purchase_button: Button = %PurchaseButton
+@onready var shopkeeper_placeholder_label: Label = %ShopkeeperPlaceholderLabel
+@onready var item_art_placeholder_label: Label = %ItemArtPlaceholderLabel
 @onready var purchase_popup: AcceptDialog = %PurchasePopup
 @onready var error_popup: AcceptDialog = %ErrorPopup
 
-## Offering card scene
-const OFFERING_CARD_SCENE: PackedScene = preload("res://scenes/meta/components/offering_card.tscn")
-const OFFERING_CARD_WIDTH: int = 192
-const OFFERING_GRID_GAP: int = 16
-const DETAIL_PANEL_WIDTH: int = 360
-
-## State
 var current_offerings: Array = []
 var selected_offering: Dictionary = {}
-var shop_id: String = "general"
-var is_caravan_event: bool = false
-var caravan_sequence_complete: bool = false
-var has_purchased: bool = false  # Tracks if player made any purchase this session
-var leave_incomplete_popup: ConfirmationDialog = null
-var leave_complete_popup: ConfirmationDialog = null
+var current_page: int = 0
+
 
 func _ready() -> void:
-	# Connect buttons
-	close_button.pressed.connect(_on_close_pressed)
-	leave_incomplete_button.pressed.connect(_on_leave_incomplete_pressed)
-	leave_complete_button.pressed.connect(_on_leave_complete_pressed)
+	_apply_localized_copy()
+	back_button.pressed.connect(_on_back_pressed)
+	previous_page_button.pressed.connect(_on_previous_page_pressed)
+	next_page_button.pressed.connect(_on_next_page_pressed)
+	modal_close_button.pressed.connect(_close_detail_modal)
 	purchase_button.pressed.connect(_on_purchase_pressed)
 
-	# Connect shop signals
 	Shop.connect("PurchaseCompleted", _on_purchase_completed)
 	Shop.connect("PurchaseFailed", _on_purchase_failed)
-
-	# Connect profile signals for gold updates
 	ProfileRepo.connect("DataChangedGodot", _on_data_changed)
 
-	# Check if this is a caravan event (EventContext is configured)
-	var event_id: String = EventContext.get_current_event_id()
-	if not event_id.is_empty():
-		var event_config: Dictionary = EventContext.get_event_config()
-		var event_shop_id: String = event_config.get("shop_id", "")
-
-		if event_shop_id.is_empty():
-			push_error("ShopScreen: Caravan event '%s' is missing shop_id! Falling back to general shop." % event_id)
-		else:
-			is_caravan_event = true
-			shop_id = event_shop_id
-
-			# Set up caravan-specific UI
-			_setup_caravan_ui()
-
-			var director: Node = NarrativeDirectorApi.node()
-			if not director.is_connected("CueCompleted", _on_narrative_cue_completed):
-				director.connect("CueCompleted", _on_narrative_cue_completed)
-			await get_tree().process_frame
-			NarrativeDirectorApi.publish_event(
-				NarrativeDirectorApi.EventType.META_MOMENT_STARTED,
-				"event.%s" % event_id,
-				{"summoner_id": SummonerSelectionApi.get_active_summoner_id()}
-			)
-			if not NarrativeDirectorApi.is_cue_active_or_queued("caravan_tutorial_intro"):
-				_on_caravan_narrative_complete()
-
-	# Initialize display
 	_update_gold_display()
 	_load_offerings()
-	_clear_detail_panel()
-	_update_offering_grid_columns()
+	_close_detail_modal()
+
+
+func _apply_localized_copy() -> void:
+	title_label.text = Loc.t("academy.campus.shop.name")
+	shopkeeper_placeholder_label.text = Loc.t("shop.campus.shopkeeper_art_placeholder")
+	item_art_placeholder_label.text = Loc.t("shop.campus.item_art_placeholder")
+	purchase_button.text = Loc.t("shop.button.purchase")
+	purchase_popup.title = Loc.t("shop.campus.purchase_success_title")
+	error_popup.title = Loc.t("shop.campus.purchase_failed_title")
+
 
 func _exit_tree() -> void:
-	# Disconnect signals to prevent errors
 	if Shop.is_connected("PurchaseCompleted", _on_purchase_completed):
 		Shop.disconnect("PurchaseCompleted", _on_purchase_completed)
 	if Shop.is_connected("PurchaseFailed", _on_purchase_failed):
@@ -91,217 +66,127 @@ func _exit_tree() -> void:
 	if ProfileRepo.is_connected("DataChangedGodot", _on_data_changed):
 		ProfileRepo.disconnect("DataChangedGodot", _on_data_changed)
 
-	var director: Node = NarrativeDirectorApi.node()
-	if director.is_connected("CueCompleted", _on_narrative_cue_completed):
-		director.disconnect("CueCompleted", _on_narrative_cue_completed)
-
-## =============================================================================
-## INITIALIZATION
-## =============================================================================
-
-## Set up caravan-specific UI elements
-func _setup_caravan_ui() -> void:
-	# Hide close button
-	close_button.visible = false
-
-	# Both leave buttons start hidden, shown after dialogue
-	leave_incomplete_button.visible = false
-	leave_complete_button.visible = false
-
-	# Create "Leave" confirmation popup (exits without completing - can return)
-	leave_incomplete_popup = ConfirmationDialog.new()
-	leave_incomplete_popup.dialog_text = Loc.t("shop.caravan.leave_incomplete_confirmation")
-	leave_incomplete_popup.ok_button_text = Loc.t("shop.caravan.leave_incomplete_button")
-	leave_incomplete_popup.cancel_button_text = Loc.t("shop.caravan.stay_button")
-	leave_incomplete_popup.confirmed.connect(_on_leave_incomplete_confirmed)
-	add_child(leave_incomplete_popup)
-
-	# Create "Leave without purchasing" confirmation popup (completes event - allows progression)
-	leave_complete_popup = ConfirmationDialog.new()
-	leave_complete_popup.dialog_text = Loc.t("shop.caravan.leave_complete_confirmation")
-	leave_complete_popup.ok_button_text = Loc.t("shop.caravan.leave_complete_button")
-	leave_complete_popup.cancel_button_text = Loc.t("shop.caravan.stay_button")
-	leave_complete_popup.confirmed.connect(_on_leave_complete_confirmed)
-	add_child(leave_complete_popup)
-
-## Set the shop ID and reload offerings.
-func set_shop_id(new_shop_id: String) -> void:
-	shop_id = new_shop_id
-	_load_offerings()
-	_update_gold_display()
-	_clear_detail_panel()
 
 func _load_offerings() -> void:
-	# Clear existing offering cards
+	current_offerings = ShopApi.get_shop_offerings(SHOP_ID)
+	current_page = mini(current_page, _last_page_index())
+	_render_current_page()
+
+
+func _render_current_page() -> void:
 	for child: Node in offering_list.get_children():
+		offering_list.remove_child(child)
 		child.queue_free()
 
-	# Load offerings from ShopService
-	current_offerings = ShopApi.get_shop_offerings(shop_id)
-
-	# Create offering cards
-	for offering: Dictionary in current_offerings:
+	var first_index: int = current_page * OFFERINGS_PER_PAGE
+	var end_index: int = mini(first_index + OFFERINGS_PER_PAGE, current_offerings.size())
+	for index: int in range(first_index, end_index):
+		var offering: Dictionary = current_offerings[index]
 		var offering_card: OfferingCard = OFFERING_CARD_SCENE.instantiate()
 		offering_list.add_child(offering_card)
 		offering_card.set_offering(offering)
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
-	_update_offering_grid_columns()
+
+	_update_page_controls()
+
+
+func _update_page_controls() -> void:
+	var page_count: int = maxi(1, int(ceil(float(current_offerings.size()) / OFFERINGS_PER_PAGE)))
+	previous_page_button.disabled = current_page == 0
+	next_page_button.disabled = current_page >= page_count - 1
+	page_label.text = Loc.t("shop.campus.page", {"current": current_page + 1, "total": page_count})
+
+
+func _last_page_index() -> int:
+	if current_offerings.is_empty():
+		return 0
+	return int((current_offerings.size() - 1) / OFFERINGS_PER_PAGE)
+
 
 func _update_gold_display() -> void:
 	var resources: Dictionary = ProfileRepoApi.get_resources_dict()
-	var gold: int = resources.get("gold", 0)
-	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": gold})
+	gold_label.text = Loc.t("ui.shop.gold_label", {"amount": resources.get("gold", 0)})
 
-## =============================================================================
-## DETAIL PANEL
-## =============================================================================
 
-func _clear_detail_panel() -> void:
-	selected_offering = {}
-	offering_name_label.text = Loc.t("ui.shop.select_offering")
-	price_label.text = Loc.t("ui.shop.price_placeholder")
-	description_label.text = Loc.t("ui.shop.description_placeholder")
-	purchase_button.disabled = true
-
-func _update_detail_panel(offering: Dictionary) -> void:
+func _open_detail_modal(offering: Dictionary) -> void:
 	selected_offering = offering
 	offering_name_label.text = offering.get("display_name", "")
-
-	var price: int = offering.get("base_price", 0)
-	price_label.text = Loc.t("ui.shop.price_format", {"price": price})
-
+	price_label.text = Loc.t("ui.shop.price_format", {"price": offering.get("base_price", 0)})
 	description_label.text = offering.get("description", "")
+	_update_purchase_availability()
+	detail_modal.visible = true
+	modal_close_button.grab_focus()
 
-	# Enable/disable purchase button based on affordability
-	var can_result: Dictionary = ShopApi.can_purchase_offering(offering.get("offering_id", ""), shop_id)
+
+func _close_detail_modal() -> void:
+	selected_offering = {}
+	detail_modal.visible = false
+	purchase_button.disabled = true
+
+
+func _update_purchase_availability() -> void:
+	if selected_offering.is_empty():
+		purchase_button.disabled = true
+		return
+	var offering_id: String = selected_offering.get("offering_id", "")
+	var can_result: Dictionary = ShopApi.can_purchase_offering(offering_id, SHOP_ID)
 	purchase_button.disabled = not can_result.get("can_purchase", false)
 
-## =============================================================================
-## PURCHASE FLOW
-## =============================================================================
+
+func _on_offering_card_clicked(offering: Dictionary) -> void:
+	_open_detail_modal(offering)
+
 
 func _on_purchase_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if selected_offering.is_empty():
 		return
+	ShopApi.purchase_offering(selected_offering.get("offering_id", ""), SHOP_ID)
 
-	# Attempt purchase
-	ShopApi.purchase_offering(selected_offering.get("offering_id", ""), shop_id)
 
-	# ShopService will emit PurchaseCompleted or PurchaseFailed signals
-	# which are handled by _on_purchase_completed and _on_purchase_failed
-
-## =============================================================================
-## SIGNAL HANDLERS
-## =============================================================================
-
-func _on_offering_card_clicked(offering: Dictionary) -> void:
-	_update_detail_panel(offering)
-	_sync_offering_selection()
-
-func _on_purchase_completed(offering_id: String, _shop_id: String) -> void:
-	# Track that player made a purchase
-	has_purchased = true
-
-	# Show success popup
+func _on_purchase_completed(offering_id: String, completed_shop_id: String) -> void:
+	if completed_shop_id != SHOP_ID:
+		return
 	purchase_popup.dialog_text = Loc.t("shop.purchased")
 	purchase_popup.popup_centered()
+	if selected_offering.get("offering_id", "") == offering_id:
+		_update_purchase_availability()
 
-	# Refresh detail panel (purchase count may have changed)
-	if not selected_offering.is_empty() and selected_offering.get("offering_id", "") == offering_id:
-		_update_detail_panel(selected_offering)
 
-	# Gold display will update via resources_updated signal
-
-func _on_purchase_failed(offering_id: String, reason: String) -> void:
-	# Show error popup
+func _on_purchase_failed(_offering_id: String, reason: String) -> void:
 	error_popup.dialog_text = reason
 	error_popup.popup_centered()
 
+
 func _on_data_changed() -> void:
 	_update_gold_display()
+	_update_purchase_availability()
 
-	# Update detail panel if an offering is selected (affordability may have changed)
-	if not selected_offering.is_empty():
-		_update_detail_panel(selected_offering)
 
-func _on_narrative_cue_completed(cue_id: String) -> void:
-	if cue_id == "caravan_tutorial_intro":
-		_on_caravan_narrative_complete()
-
-func _on_caravan_narrative_complete() -> void:
-	caravan_sequence_complete = true
-
-	# Show both leave buttons now that dialogue is complete
-	if leave_incomplete_button:
-		leave_incomplete_button.visible = true
-	if leave_complete_button:
-		leave_complete_button.visible = true
-
-## Handle "Leave" button (exit without completing - can return later)
-func _on_leave_incomplete_pressed() -> void:
-	if leave_incomplete_popup:
-		leave_incomplete_popup.popup_centered()
-
-## Handle "Leave without purchasing" button (completes event - allows progression)
-func _on_leave_complete_pressed() -> void:
-	if leave_complete_popup:
-		# Update popup text based on whether player made a purchase
-		if has_purchased:
-			leave_complete_popup.dialog_text = Loc.t("shop.caravan.leave_complete_confirmation_purchased")
-		else:
-			leave_complete_popup.dialog_text = Loc.t("shop.caravan.leave_complete_confirmation")
-		leave_complete_popup.popup_centered()
-
-## Handle leave incomplete confirmation (user wants to leave but can return)
-func _on_leave_incomplete_confirmed() -> void:
-	_leave_shop(false)  # Don't complete the event
-
-## Handle leave complete confirmation (user wants to skip and move on)
-func _on_leave_complete_confirmed() -> void:
-	_leave_shop(true)  # Complete the event
-
-func _on_close_pressed() -> void:
-	# This should only be called for non-caravan shops
-	if is_caravan_event:
-		push_warning("ShopScreen: Close button pressed for caravan event (should be hidden)")
+func _on_previous_page_pressed() -> void:
+	if current_page <= 0:
 		return
+	current_page -= 1
+	_close_detail_modal()
+	_render_current_page()
 
-	_leave_shop()
 
-## Leave the shop and return to previous scene
-## If complete_event is true, marks the caravan event as complete (allows progression)
-## If complete_event is false, leaves the event incomplete (can return later, blocks progression)
-func _leave_shop(complete_event: bool = true) -> void:
-	if is_caravan_event:
-		var event_id: String = EventContext.get_current_event_id()
-		if not event_id.is_empty():
-			if complete_event:
-				EventContext.complete_event()
-			EventContext.clear_event()
+func _on_next_page_pressed() -> void:
+	if current_page >= _last_page_index():
+		return
+	current_page += 1
+	_close_detail_modal()
+	_render_current_page()
 
-	# Check if we have a return destination from NavigationContext
+
+func _unhandled_input(event: InputEvent) -> void:
+	if detail_modal.visible and event.is_action_pressed("ui_cancel"):
+		_close_detail_modal()
+		get_viewport().set_input_as_handled()
+
+
+func _on_back_pressed() -> void:
 	if NavigationContext.has_return():
-		var return_to: String = NavigationContext.pop_return()
-		SceneManager.transition_to(return_to)
+		SceneManager.transition_to(NavigationContext.pop_return())
 	else:
-		# Default: return to campaign map (main hub)
 		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED:
-		_update_offering_grid_columns()
-
-func _update_offering_grid_columns() -> void:
-	if not is_instance_valid(offering_list):
-		return
-	var available_width: float = maxf(420.0, size.x - DETAIL_PANEL_WIDTH - 180.0)
-	var column_width: float = OFFERING_CARD_WIDTH + OFFERING_GRID_GAP
-	offering_list.columns = maxi(2, int(floor((available_width + OFFERING_GRID_GAP) / column_width)))
-
-func _sync_offering_selection() -> void:
-	var selected_id: String = selected_offering.get("offering_id", "")
-	for child: Node in offering_list.get_children():
-		if child is OfferingCard:
-			var card: OfferingCard = child as OfferingCard
-			card.set_selected(card.offering.get("offering_id", "") == selected_id)

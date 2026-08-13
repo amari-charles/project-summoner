@@ -1,7 +1,51 @@
-[gd_scene load_steps=3 format=3 uid="uid://shop_screen"]
+[gd_scene load_steps=6 format=3 uid="uid://shop_screen"]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/shop_screen.gd" id="1_shop"]
-[ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2_narrative_presenter"]
+
+[sub_resource type="StyleBoxFlat" id="StyleShopArea"]
+bg_color = Color(0.075, 0.068, 0.09, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.25, 0.38, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleKeeperArea"]
+bg_color = Color(0.12, 0.095, 0.14, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.42, 0.24, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleModal"]
+bg_color = Color(0.075, 0.06, 0.09, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.65, 0.25, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleArtPlaceholder"]
+bg_color = Color(0.18, 0.145, 0.21, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="ShopScreen" type="Control" groups=["shop_screen"]]
 layout_mode = 3
@@ -21,7 +65,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.055, 0.052, 0.07, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="ScreenMargin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,138 +73,248 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 48
-theme_override_constants/margin_top = 32
+theme_override_constants/margin_top = 28
 theme_override_constants/margin_right = 48
-theme_override_constants/margin_bottom = 40
+theme_override_constants/margin_bottom = 36
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="ScreenLayout" type="VBoxContainer" parent="ScreenMargin"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 20
 
-[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="ScreenMargin/ScreenLayout"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 18
 
-[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+[node name="BackButton" type="Button" parent="ScreenMargin/ScreenLayout/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(56, 52)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "✕"
+theme_override_font_sizes/font_size = 34
+text = "←"
 flat = true
 
-[node name="LeaveIncompleteButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+[node name="TitleLabel" type="Label" parent="ScreenMargin/ScreenLayout/Header"]
 unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Leave"
-
-[node name="LeaveCompleteButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Leave without purchasing"
-
-[node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 44
-text = "SHOP"
-horizontal_alignment = 0
+theme_override_font_sizes/font_size = 42
+text = ""
 
-[node name="GoldLabel" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+[node name="GoldLabel" type="Label" parent="ScreenMargin/ScreenLayout/Header"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.72, 0.26, 1)
 theme_override_font_sizes/font_size = 24
-text = "Gold: 0"
+text = ""
 horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="ContentSplit" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="Content" type="HBoxContainer" parent="ScreenMargin/ScreenLayout"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 28
+theme_override_constants/separation = 34
 
-[node name="LeftPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentSplit"]
+[node name="ShopArea" type="PanelContainer" parent="ScreenMargin/ScreenLayout/Content"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleShopArea")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentSplit/LeftPanel"]
+[node name="ShopMargin" type="MarginContainer" parent="ScreenMargin/ScreenLayout/Content/ShopArea"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="ShopLayout" type="VBoxContainer" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PageContent" type="HBoxContainer" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin/ShopLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PreviousPageButton" type="Button" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin/ShopLayout/PageContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 96)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 34
+text = "‹"
+
+[node name="OfferingCenter" type="CenterContainer" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin/ShopLayout/PageContent"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
 
-[node name="OfferingList" type="GridContainer" parent="MarginContainer/VBoxContainer/ContentSplit/LeftPanel/ScrollContainer"]
+[node name="OfferingList" type="GridContainer" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin/ShopLayout/PageContent/OfferingCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 70
+theme_override_constants/v_separation = 62
+
+[node name="NextPageButton" type="Button" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin/ShopLayout/PageContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 96)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 34
+text = "›"
+
+[node name="PageLabel" type="Label" parent="ScreenMargin/ScreenLayout/Content/ShopArea/ShopMargin/ShopLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.66, 0.75, 1)
+theme_override_font_sizes/font_size = 16
+text = ""
+horizontal_alignment = 1
+
+[node name="ShopkeeperArea" type="PanelContainer" parent="ScreenMargin/ScreenLayout/Content"]
+custom_minimum_size = Vector2(410, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleKeeperArea")
+
+[node name="KeeperMargin" type="MarginContainer" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="KeeperLayout" type="VBoxContainer" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea/KeeperMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ShopkeeperArtPlaceholder" type="PanelContainer" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea/KeeperMargin/KeeperLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleArtPlaceholder")
+
+[node name="ShopkeeperPlaceholderLabel" type="Label" parent="ScreenMargin/ScreenLayout/Content/ShopkeeperArea/KeeperMargin/KeeperLayout/ShopkeeperArtPlaceholder"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.65, 0.73, 1)
+theme_override_font_sizes/font_size = 24
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DetailModal" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dimmer" type="ColorRect" parent="DetailModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.66)
+
+[node name="ModalCenter" type="CenterContainer" parent="DetailModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ModalPanel" type="PanelContainer" parent="DetailModal/ModalCenter"]
+custom_minimum_size = Vector2(620, 470)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleModal")
+
+[node name="ModalMargin" type="MarginContainer" parent="DetailModal/ModalCenter/ModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="ModalLayout" type="VBoxContainer" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ModalHeader" type="HBoxContainer" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout"]
+layout_mode = 2
+
+[node name="OfferingNameLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalHeader"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 4
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
+theme_override_font_sizes/font_size = 30
+text = ""
+autowrap_mode = 3
 
-[node name="DetailPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentSplit"]
+[node name="ModalCloseButton" type="Button" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalHeader"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(360, 0)
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 15
-theme_override_constants/margin_top = 15
-theme_override_constants/margin_right = 15
-theme_override_constants/margin_bottom = 15
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="OfferingNameLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel/MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Select an offering"
-autowrap_mode = 3
+text = "✕"
+flat = true
 
-[node name="PriceLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="ModalBody" type="HBoxContainer" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="OfferingArtPlaceholder" type="PanelContainer" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody"]
+custom_minimum_size = Vector2(210, 230)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleArtPlaceholder")
+
+[node name="ItemArtPlaceholderLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/OfferingArtPlaceholder"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Price: -"
+theme_override_colors/font_color = Color(0.68, 0.62, 0.72, 1)
+theme_override_font_sizes/font_size = 18
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="DescriptionLayout" type="VBoxContainer" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
 
-[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="PriceLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/DescriptionLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.72, 0.26, 1)
+theme_override_font_sizes/font_size = 23
+text = ""
+
+[node name="DescriptionLabel" type="Label" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout/ModalBody/DescriptionLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 16
-text = "Offering description will appear here."
+theme_override_font_sizes/font_size = 18
+text = ""
 autowrap_mode = 3
 
-[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="PurchaseButton" type="Button" parent="MarginContainer/VBoxContainer/ContentSplit/DetailPanel/MarginContainer/VBoxContainer"]
+[node name="PurchaseButton" type="Button" parent="DetailModal/ModalCenter/ModalPanel/ModalMargin/ModalLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(230, 54)
 layout_mode = 2
+size_flags_horizontal = 4
 disabled = true
 theme_override_font_sizes/font_size = 20
-text = "Purchase"
+text = ""
 
 [node name="PurchasePopup" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
-title = "Purchase Successful"
-dialog_text = "Item purchased successfully!"
 
 [node name="ErrorPopup" type="AcceptDialog" parent="."]
 unique_name_in_owner = true
-title = "Purchase Failed"
-dialog_text = "Not enough gold!"
-
-[node name="NarrativePresenter" parent="." instance=ExtResource("2_narrative_presenter")]
