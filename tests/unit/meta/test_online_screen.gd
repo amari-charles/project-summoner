@@ -25,9 +25,9 @@ func test_back_button_is_above_full_screen_layout_input_layer() -> void:
 
 	var margin_container: MarginContainer = screen.get_node("MarginContainer") as MarginContainer
 	assert_gt(
-		screen.back_button.get_index(),
-		margin_container.get_index(),
-		"Back button must be later in the scene tree so the full-screen layout cannot intercept its clicks"
+		screen.back_button.z_index,
+		margin_container.z_index,
+		"Back button must have explicit input priority over the full-screen layout"
 	)
 
 	screen.queue_free()
