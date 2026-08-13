@@ -16,6 +16,7 @@ var _line_index: int = 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	panel.visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	gui_input.connect(_on_gui_input)
 	skip_button.pressed.connect(_skip)
 	skip_button.text = Loc.t("narrative.skip")
@@ -30,6 +31,7 @@ func present(cue: Dictionary) -> void:
 	_cue = cue
 	_line_keys = SafeTypeUtils.array(cue.get("line_keys"))
 	_line_index = 0
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.visible = true
 	speaker_label.text = Loc.t(SafeTypeUtils.string(cue.get("speaker_key")))
 	_render_line()
@@ -84,6 +86,7 @@ func _finish(result: Dictionary) -> void:
 		return
 	_cue = {}
 	panel.visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_clear_choices()
 
 func _clear_choices() -> void:

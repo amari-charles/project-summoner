@@ -30,6 +30,21 @@ func test_presenter_skip_preserves_required_choices() -> void:
 	assert_true(script_text.contains("if not SafeTypeUtils.array(_cue.get(\"choices\")).is_empty()"))
 	assert_true(script_text.contains("consequential"))
 
+func test_hidden_presenter_does_not_block_underlying_screen_controls() -> void:
+	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
+	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter
+	add_child(presenter)
+	assert_eq(presenter.mouse_filter, Control.MOUSE_FILTER_IGNORE)
+	presenter.present({
+		"cue_id": "test",
+		"speaker_key": "dialogue.merlin_summoner_intro.speaker",
+		"line_keys": ["dialogue.merlin_summoner_intro.line_1"],
+		"choices": [],
+	})
+	assert_eq(presenter.mouse_filter, Control.MOUSE_FILTER_STOP)
+	presenter._cue = {}
+	presenter.free()
+
 func _read(path: String) -> String:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	assert_not_null(file)
