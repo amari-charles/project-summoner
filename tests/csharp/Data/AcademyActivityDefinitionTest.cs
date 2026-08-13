@@ -40,4 +40,29 @@ public class AcademyActivityDefinitionTest
             )
             .IsTrue();
     }
+
+    [TestCase]
+    public void ActivityGraph_DefaultsToLinearAndSupportsAuthoredBranchRules()
+    {
+        var course = new AcademyCourseDefinition
+        {
+            Activities =
+            [
+                new AcademyCourseActivity { Id = "root", Prerequisites = [] },
+                new AcademyCourseActivity { Id = "second" },
+                new AcademyCourseActivity
+                {
+                    Id = "branch",
+                    Prerequisites = ["root", "second"],
+                    PrerequisiteMode = AcademyActivityPrerequisiteMode.Any,
+                },
+            ],
+        };
+
+        AssertThat(course.GetActivityPrerequisites(0)).IsEmpty();
+        AssertThat(course.GetActivityPrerequisites(1)).ContainsExactly("root");
+        AssertThat(course.GetActivityPrerequisites(2)).ContainsExactly("root", "second");
+        AssertThat(course.Activities[2].PrerequisiteMode)
+            .IsEqual(AcademyActivityPrerequisiteMode.Any);
+    }
 }

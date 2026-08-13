@@ -52,6 +52,12 @@ public enum AcademyActivityLifecycleState
     Completed,
 }
 
+public enum AcademyActivityPrerequisiteMode
+{
+    All,
+    Any,
+}
+
 public enum AcademyActivityOutcome
 {
     Victory,
@@ -84,6 +90,18 @@ public class AcademyCourseDefinition
     public List<AcademyCourseActivity> Activities { get; set; } = [];
 
     public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
+
+    public IReadOnlyList<string> GetActivityPrerequisites(int activityIndex)
+    {
+        if (activityIndex < 0 || activityIndex >= Activities.Count)
+            return [];
+
+        var authored = Activities[activityIndex].Prerequisites;
+        if (authored != null)
+            return authored;
+
+        return activityIndex == 0 ? [] : [Activities[activityIndex - 1].Id];
+    }
 }
 
 public class AcademyCourseActivity
@@ -98,6 +116,13 @@ public class AcademyCourseActivity
     public AcademyEncounterStyle EncounterStyle { get; set; } = AcademyEncounterStyle.Standard;
 
     public string LabelKey { get; set; } = "";
+
+    // Null preserves the current authored shorthand: the previous activity is the
+    // sole prerequisite. An explicit array enables roots and branching graphs.
+    public List<string>? Prerequisites { get; set; }
+
+    public AcademyActivityPrerequisiteMode PrerequisiteMode { get; set; } =
+        AcademyActivityPrerequisiteMode.All;
 
     public AcademyBattleConfig? BattleConfig { get; set; }
 

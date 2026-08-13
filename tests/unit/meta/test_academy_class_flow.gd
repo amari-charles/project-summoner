@@ -37,6 +37,52 @@ func test_course_and_preparation_use_accessible_back_navigation() -> void:
 	assert_true(preparation_script.contains("back_button.accessibility_name"))
 	assert_true(preparation_script.contains("SCENE_ACADEMY_COURSE_FLOW"))
 
+func test_course_flow_uses_icon_graph_and_guards_locked_activity_selection() -> void:
+	var scene_text: String = _read("res://scenes/meta/screens/academy_course_flow.tscn")
+	var course_script: String = _read("res://scripts/meta/screens/academy_course_flow.gd")
+	var graph_script: String = _read("res://scripts/meta/components/academy_activity_graph.gd")
+	assert_true(scene_text.contains("academy_activity_graph.gd"))
+	assert_true(course_script.contains('activity.get("is_locked")'))
+	assert_true(graph_script.contains('activity.get("prerequisites")'))
+	assert_true(graph_script.contains("tooltip_text = activity_name"))
+	assert_false(graph_script.contains("button.text = activity_name"))
+
+func test_activity_graph_renders_linear_icon_nodes_and_locked_nodes_do_not_select() -> void:
+	var graph: AcademyActivityGraph = AcademyActivityGraph.new()
+	add_child_autofree(graph)
+	graph.size = Vector2(1920.0, 1080.0)
+	watch_signals(graph)
+	graph.set_activities([
+		{
+			"id": "first",
+			"label_key": "academy.activity.practice",
+			"role": "Practice",
+			"lifecycle_state": "Active",
+			"prerequisites": [],
+			"repeatable": true,
+		},
+		{
+			"id": "second",
+			"label_key": "academy.activity.assessment",
+			"role": "Assessment",
+			"lifecycle_state": "Locked",
+			"prerequisites": ["first"],
+			"repeatable": false,
+		},
+	])
+
+	var first: Button = graph.get_node("Activity_first")
+	var second: Button = graph.get_node("Activity_second")
+	assert_eq(first.text, "")
+	assert_eq(second.text, "")
+	assert_eq(first.tooltip_text, Loc.t("academy.activity.practice"))
+	assert_gt(second.position.x, first.position.x)
+
+	first.pressed.emit()
+	assert_signal_emitted_with_parameters(graph, "activity_selected", ["first"])
+	second.pressed.emit()
+	assert_signal_emit_count(graph, "activity_selected", 1)
+
 func _read(path: String) -> String:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	assert_not_null(file)

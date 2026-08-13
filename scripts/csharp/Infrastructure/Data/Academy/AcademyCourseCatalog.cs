@@ -77,9 +77,71 @@ public static class AcademyCourseCatalog
                     .Where(group => group.Count() > 1)
             )
                 errors.Add($"Course '{course.Id}' has duplicate activity ID '{duplicate.Key}'.");
+
+            var activityIds = course
+                .Activities.Select(activity => activity.Id)
+                .ToHashSet(StringComparer.Ordinal);
+            for (var activityIndex = 0; activityIndex < course.Activities.Count; activityIndex++)
+            {
+                var activity = course.Activities[activityIndex];
+                var prerequisites = course.GetActivityPrerequisites(activityIndex);
+                foreach (
+                    var duplicate in prerequisites
+                        .GroupBy(id => id, StringComparer.Ordinal)
+                        .Where(group => group.Count() > 1)
+                )
+                    errors.Add(
+                        $"Course '{course.Id}' activity '{activity.Id}' repeats prerequisite '{duplicate.Key}'."
+                    );
+                foreach (var prerequisite in prerequisites)
+                {
+                    if (prerequisite == activity.Id)
+                        errors.Add(
+                            $"Course '{course.Id}' activity '{activity.Id}' cannot require itself."
+                        );
+                    else if (!activityIds.Contains(prerequisite))
+                        errors.Add(
+                            $"Course '{course.Id}' activity '{activity.Id}' references unknown prerequisite '{prerequisite}'."
+                        );
+                }
+            }
+
+            if (HasActivityPrerequisiteCycle(course))
+                errors.Add($"Course '{course.Id}' activity prerequisites contain a cycle.");
         }
 
         return errors;
+    }
+
+    private static bool HasActivityPrerequisiteCycle(AcademyCourseDefinition course)
+    {
+        var indexById = course
+            .Activities.Select((activity, index) => (activity.Id, index))
+            .ToDictionary(entry => entry.Id, entry => entry.index, StringComparer.Ordinal);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var visiting = new HashSet<string>(StringComparer.Ordinal);
+
+        bool Visit(string activityId)
+        {
+            if (visited.Contains(activityId))
+                return false;
+            if (!visiting.Add(activityId))
+                return true;
+            if (indexById.TryGetValue(activityId, out var activityIndex))
+            {
+                foreach (var prerequisite in course.GetActivityPrerequisites(activityIndex))
+                {
+                    if (indexById.ContainsKey(prerequisite) && Visit(prerequisite))
+                        return true;
+                }
+            }
+
+            visiting.Remove(activityId);
+            visited.Add(activityId);
+            return false;
+        }
+
+        return course.Activities.Any(activity => Visit(activity.Id));
     }
 
     private sealed record AcademyCourseFile

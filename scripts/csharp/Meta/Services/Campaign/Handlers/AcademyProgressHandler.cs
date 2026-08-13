@@ -807,6 +807,8 @@ public class AcademyProgressHandler
             ["deck_mode"] = activity.Loadout.Mode.ToString(),
             ["lifecycle_state"] = lifecycleState.ToString(),
             ["label_key"] = activity.LabelKey,
+            ["prerequisite_mode"] = activity.PrerequisiteMode.ToString(),
+            ["prerequisites"] = ToStringArray(course.GetActivityPrerequisites(activityIndex)),
             ["repeatable"] = activity.Role == AcademyActivityRole.Practice,
             ["is_completed"] = isCompleted,
             ["is_current"] = isCurrent,
