@@ -105,6 +105,11 @@ public partial class RankingService : Node
         return EloCalculator.GetDivision(rating);
     }
 
+    public int GetLeaguePointsForRating(int rating)
+    {
+        return EloCalculator.GetLeaguePoints(rating);
+    }
+
     #endregion
 
     #region Match Recording

@@ -1,13 +1,12 @@
 extends Control
 class_name OnlineScreen
 
-## Online/Ranked Screen - Shows rating, queue status, and leaderboards
+## Online matchmaking screen for competitive play.
 ##
 ## Connects to Nakama services for:
 ## - Authentication
 ## - Matchmaking queue
-## - Rating/ranking display
-## - Leaderboards
+## - Tier and league-point display
 
 enum ScreenState { LOADING, READY, IN_QUEUE, MATCH_FOUND }
 
@@ -26,22 +25,15 @@ const DECK_EXCHANGE_OP_CODE: int = 100
 ## Starting ELO for new players (must match STARTING_ELO in C#)
 const STARTING_ELO: int = 800
 
-## Top 20 threshold for Fateforged tier
-const FATEFORGED_THRESHOLD: int = 20
-
 ## UI References
-@onready var close_button: Button = %CloseButton
-@onready var title_label: Label = $MarginContainer/VBoxContainer/Header/Title
+@onready var back_button: Button = %BackButton
+@onready var casual_button: Button = %CasualButton
+@onready var competitive_button: Button = %CompetitiveButton
+@onready var rank_content: VBoxContainer = %RankContent
 @onready var tier_label: Label = %TierLabel
-@onready var rating_label: Label = %RatingLabel
-@onready var rank_label: Label = %RankLabel
-@onready var wins_value: Label = $MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinsBox/Value
-@onready var losses_value: Label = $MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/LossesBox/Value
-@onready var win_rate_value: Label = $MarginContainer/VBoxContainer/ContentHBox/LeftPanel/StatsPanel/MarginContainer/HBox/WinRateBox/Value
+@onready var league_points_label: Label = %LeaguePointsLabel
 @onready var status_label: Label = %StatusLabel
 @onready var queue_button: Button = %QueueButton
-@onready var leaderboard_header: Label = $MarginContainer/VBoxContainer/ContentHBox/RightPanel/LeaderboardHeader
-@onready var leaderboard_list: VBoxContainer = %LeaderboardList
 @onready var ui_animation_player: AnimationPlayer = $AnimationPlayer
 
 ## State
@@ -69,19 +61,22 @@ func _ready() -> void:
 	_update_ui()
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if _state == ScreenState.IN_QUEUE:
 		_update_queue_time()
 
 
 func _setup_localization() -> void:
-	title_label.text = Loc.t("ui.ranked.title")
-	leaderboard_header.text = Loc.t("ui.ranked.leaderboard_title")
+	casual_button.text = Loc.t("ui.ranked.casual")
+	competitive_button.text = Loc.t("ui.ranked.competitive")
 	queue_button.text = Loc.t("ui.ranked.find_match")
+	# TODO(casual-matchmaking): Enable this mode once casual queue semantics and backend routing exist.
+	casual_button.disabled = true
+	competitive_button.button_pressed = true
 
 
 func _setup_signals() -> void:
-	close_button.pressed.connect(_on_close_pressed)
+	back_button.pressed.connect(_on_close_pressed)
 	queue_button.pressed.connect(_on_queue_pressed)
 
 
@@ -147,6 +142,7 @@ func _set_state(new_state: ScreenState) -> void:
 
 
 func _update_ui() -> void:
+	rank_content.visible = _state == ScreenState.READY
 	match _state:
 		ScreenState.LOADING:
 			queue_button.disabled = true
@@ -176,7 +172,6 @@ func _update_queue_time() -> void:
 
 func _refresh_data() -> void:
 	_refresh_rating_display()
-	_refresh_stats_display()
 	_refresh_leaderboard()
 
 
@@ -186,8 +181,6 @@ func _refresh_local_data() -> void:
 		rating = _ranking_service.GetRating()
 
 	_update_rating_display(rating)
-	_update_stats_display(0, 0)
-	_populate_mock_leaderboard()
 
 
 func _refresh_rating_display() -> void:
@@ -200,24 +193,18 @@ func _refresh_rating_display() -> void:
 
 
 func _update_rating_display(rating: int) -> void:
-	rating_label.text = str(rating)
-
-	# Check if player is Fateforged (top 20)
 	var is_fateforged: bool = _is_player_fateforged()
+	var tier_name: String = _get_tier_name_from_service(rating)
 
 	if is_fateforged:
 		tier_label.text = Loc.t("ui.ranked.tier_fateforged")
 		tier_label.add_theme_color_override("font_color", _get_tier_color("Fateforged"))
 	else:
-		# Get tier name from RankingService (single source of truth)
-		var tier_name: String = _get_tier_name_from_service(rating)
-		var division: int = _get_division_from_service(rating)
-		var division_str: String = _int_to_roman(division)
-		tier_label.text = Loc.t("ui.ranked.tier_" + tier_name.to_lower()) + " " + division_str
+		tier_label.text = Loc.t("ui.ranked.tier_" + tier_name.to_lower())
 		tier_label.add_theme_color_override("font_color", _get_tier_color(tier_name))
 
-	# Rank display (placeholder until we get actual rank from leaderboard)
-	rank_label.text = Loc.t("ui.ranked.your_rank") + ": -"
+	var league_points: int = _get_league_points_from_service(rating)
+	league_points_label.text = Loc.t("ui.ranked.league_points", {"amount": league_points})
 
 
 func _is_player_fateforged() -> bool:
@@ -257,19 +244,10 @@ func _get_tier_name_from_service(rating: int) -> String:
 		return "Unbound"
 
 
-func _get_division_from_service(rating: int) -> int:
-	if _ranking_service and _ranking_service.has_method("GetDivisionForRating"):
-		return _ranking_service.GetDivisionForRating(rating)
-	return 1
-
-
-func _int_to_roman(num: int) -> String:
-	match num:
-		1: return "I"
-		2: return "II"
-		3: return "III"
-		4: return "IV"
-		_: return ""
+func _get_league_points_from_service(rating: int) -> int:
+	if _ranking_service and _ranking_service.has_method("GetLeaguePointsForRating"):
+		return _ranking_service.GetLeaguePointsForRating(rating)
+	return 0
 
 
 func _get_tier_color(tier_name: String) -> Color:
@@ -290,100 +268,12 @@ func _get_tier_color(tier_name: String) -> Color:
 			return Color(0.8, 0.5, 0.3)  # Bronze
 
 
-func _refresh_stats_display() -> void:
-	var wins: int = 0
-	var losses: int = 0
-
-	# Get stats from RankingService
-	if _ranking_service:
-		if _ranking_service.has_method("GetWins"):
-			wins = _ranking_service.GetWins()
-		if _ranking_service.has_method("GetLosses"):
-			losses = _ranking_service.GetLosses()
-
-	_update_stats_display(wins, losses)
-
-
-func _update_stats_display(wins: int, losses: int) -> void:
-	wins_value.text = str(wins)
-	losses_value.text = str(losses)
-
-	var total: int = wins + losses
-	if total > 0:
-		# GetWinRate() returns 0.0-1.0 ratio, multiply by 100 for display
-		var win_rate: float = float(wins) / float(total) * 100.0
-		win_rate_value.text = "%.0f%%" % win_rate
-	else:
-		win_rate_value.text = "-%"
-
-
 func _refresh_leaderboard() -> void:
 	if _leaderboard_service:
 		if _leaderboard_service.has_method("RefreshLeaderboardAndRankAsync"):
 			_leaderboard_service.RefreshLeaderboardAndRankAsync(10)
 		else:
 			_leaderboard_service.RefreshLeaderboard(10)
-	else:
-		_populate_mock_leaderboard()
-
-
-func _populate_leaderboard(entries: Array) -> void:
-	# Clear existing entries
-	for child: Node in leaderboard_list.get_children():
-		child.queue_free()
-
-	# Add new entries
-	for entry: Variant in entries:
-		var row: HBoxContainer = _create_leaderboard_row(entry)
-		leaderboard_list.add_child(row)
-
-
-func _populate_mock_leaderboard() -> void:
-	# Clear existing entries
-	for child: Node in leaderboard_list.get_children():
-		child.queue_free()
-
-	# Create mock entries (placeholder data for offline mode)
-	var mock_data: Array = [
-		{"rank": 1, "name": "PLACEHOLDER_PLAYER_1", "rating": 1850},
-		{"rank": 2, "name": "PLACEHOLDER_PLAYER_2", "rating": 1780},
-		{"rank": 3, "name": "PLACEHOLDER_PLAYER_3", "rating": 1720},
-		{"rank": 4, "name": "PLACEHOLDER_PLAYER_4", "rating": 1680},
-		{"rank": 5, "name": "PLACEHOLDER_PLAYER_5", "rating": 1640},
-	]
-
-	for entry: Dictionary in mock_data:
-		var row: HBoxContainer = _create_leaderboard_row(entry)
-		leaderboard_list.add_child(row)
-
-
-func _create_leaderboard_row(entry: Variant) -> HBoxContainer:
-	# Normalize keys — service returns PascalCase, mock data uses snake_case
-	var rank_val: int = entry.get("Rank", entry.get("rank", 0))
-	var name_val: String = str(entry.get("DisplayName", entry.get("name", Loc.t("ui.ranked.unknown_player"))))
-	var rating_val: int = entry.get("Rating", entry.get("rating", 0))
-
-	var row: HBoxContainer = HBoxContainer.new()
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	var rank_lbl: Label = Label.new()
-	rank_lbl.custom_minimum_size = Vector2(50, 0)
-	rank_lbl.text = "#%d" % rank_val
-	rank_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(rank_lbl)
-
-	var name_lbl: Label = Label.new()
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.text = name_val
-	row.add_child(name_lbl)
-
-	var rating_lbl: Label = Label.new()
-	rating_lbl.custom_minimum_size = Vector2(80, 0)
-	rating_lbl.text = str(rating_val)
-	rating_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	row.add_child(rating_lbl)
-
-	return row
 
 
 ## =============================================================================
@@ -636,30 +526,8 @@ func _on_queue_status_changed(is_in_queue: bool, _queue_time: float) -> void:
 
 
 func _on_leaderboard_refreshed() -> void:
-	if _leaderboard_service:
-		var top_players: Variant = _leaderboard_service.get("TopPlayers")
-		if top_players is Array:
-			_populate_leaderboard(top_players)
-
-	# Update player rank if available
-	var rank_num: int = 0
-	if _leaderboard_service:
-		var player_rank: Variant = _leaderboard_service.get("PlayerRank")
-		if player_rank is Dictionary:
-			rank_num = int(player_rank.get("Rank", 0))
-		elif player_rank is Object:
-			var rank_val: Variant = player_rank.get("Rank")
-			if rank_val != null:
-				rank_num = int(rank_val)
-
-	if rank_num > 0:
-		rank_label.text = Loc.t("ui.ranked.your_rank") + ": #%d" % rank_num
-		print("[RANKED][REPORT] Player rank refreshed: #%d" % rank_num)
-	else:
-		rank_label.text = Loc.t("ui.ranked.your_rank") + ": " + Loc.t("ui.ranked.unranked")
-		print("[RANKED][REPORT] Player rank refreshed: unranked")
-
-	# Re-check Fateforged status after leaderboard refresh
+	# The leaderboard remains authoritative for the top-20 Fateforged tier even
+	# though leaderboard rows are no longer presented on this screen.
 	_refresh_rating_display()
 
 
