@@ -35,6 +35,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-06-04, backlog cleanup):** Consolidated premature per-sound audio tasks into one production-audio scoping item, closed stale Puff lateral-movement follow-up by product review, closed completed portrait-cropping and campaign-data migration items, and refreshed stale interop/performance/root-path TODO wording.
 **Tracker Sync (2026-08-05, authority-boundary audit):** Started the gated battle-progression-authority initiative and added concrete follow-ups for permanent progression commands, atomic commerce, and authoritative competitive results/loadout validation. Backend provider selection remains intentionally undecided.
 **Tracker Sync (2026-08-05, battle authority completion):** Moved the completed battle-progression-authority initiative to `todos-completed.md` after PR `#352` merged; provider-neutral security follow-ups remain active as separate tasks.
+**Tracker Sync (2026-08-13, Campus Shop):** Added high-priority changelog infrastructure work and a scoped deprecation plan for the legacy linear Caravan campaign flow.
 
 ---
 
@@ -50,6 +51,42 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ## Production Scoping
 
 ### 🔴 HIGH PRIORITY
+
+#### Establish a Project Changelog
+**Status:** ⬜ Not Started
+**Category:** Documentation / Release History
+**Effort:** Small
+
+**Description:**
+Create and maintain a changelog so product and engineering decisions can be traced to the release or pull request that introduced them. The project has entered a high-iteration phase, and commit history alone is not an adequate product-facing record.
+
+**Tasks:**
+- [ ] Choose the changelog format and update cadence.
+- [ ] Add a root-level `CHANGELOG.md` with an `Unreleased` section.
+- [ ] Backfill major recent Academy, lesson/activity, deck-loadout, and UI changes from merged pull requests.
+- [ ] Add changelog updates to the pull-request checklist or contributor workflow.
+
+**Priority Note:**
+Treat this as important near-term documentation infrastructure before further large UI and progression iterations accumulate.
+
+#### Deprecate the Legacy Caravan Campaign Flow
+**Status:** ⬜ Not Started
+**Category:** Meta Progression / Legacy Cleanup
+**Effort:** Medium
+
+**Description:**
+Retire the Caravan's campaign-node/event implementation now that Academy navigation and graph-based lessons have replaced the older linear campaign experience. The Campus Shop remains the persistent Academy shop. A future Caravan concept may return as a temporary or visiting vendor, but should not retain dependencies on the legacy campaign route.
+
+**Tasks:**
+- [ ] Inventory Caravan scene routes, event definitions, narrative cues, catalog entries, save fields, and tests.
+- [ ] Decide whether existing Caravan purchase history needs a save migration or can remain ignored legacy data.
+- [ ] Remove the dedicated legacy Caravan screen and campaign-event routing.
+- [ ] Remove Caravan event definitions and graph-consistency requirements.
+- [ ] Remove or archive Caravan-only localization, narrative content, shop catalog entries, and tests.
+- [ ] Reassess the Caravan as a future Academy visiting-vendor feature under a separate design task.
+
+**Scope Note:**
+The current Campus Shop UI pass only removes stale Caravan behavior duplicated inside `ShopScreen`; full deprecation remains a separate reviewed change.
 
 #### Scope Remaining Content, VFX, Items, and Academy Work
 **Status:** 🔄 In Progress
