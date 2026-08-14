@@ -12,8 +12,8 @@ campus. They are not approved final Fateforged art.
   as assets.
 
 Only the building, character, sheep, and terrain PNGs currently used by the
-prototype are stored here. The grass texture is a 128x128 interior crop from
-`Terrain/Tileset/Tilemap_color3.png`; the atlas border and cliff art are not
-used because they encode a different 2D perspective. Filenames and containing
-directories intentionally include `placeholder` so these assets are not
-mistaken for project-owned production art.
+prototype are stored here. The grass center is a 128x128 interior crop from
+`Terrain/Tileset/Tilemap_color3.png`. Eight 64x64 crops from the atlas's first
+ground patch provide its four edges and corners; the cliff faces remain unused.
+Filenames and containing directories intentionally include `placeholder` so
+these assets are not mistaken for project-owned production art.

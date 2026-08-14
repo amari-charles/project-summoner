@@ -12,11 +12,16 @@ const CUTOUT_RENDER_ORDER: Script = preload("res://scripts/meta/components/acade
 @export var placeholder_label_gap: float = 0.25
 @export var name_label_gap: float = 1.0
 @export var label_depth_offset: float = 0.05
+@export_range(0.5, 1.0, 0.05) var collision_width_ratio: float = 0.8
+@export_range(0.5, 3.0, 0.1) var collision_depth: float = 1.4
+@export_range(0.5, 4.0, 0.1) var collision_height: float = 2.4
 
 @onready var name_label: Label3D = %NameLabel
 @onready var placeholder_label: Label3D = %PlaceholderLabel
 @onready var door_area: Area3D = %DoorArea
 @onready var placeholder_art: Sprite3D = %PlaceholderBuildingArt
+@onready var collision_body: StaticBody3D = %CollisionBody
+@onready var collision_shape: CollisionShape3D = %BuildingCollisionShape
 
 var _player_inside: bool = false
 var _transition_started: bool = false
@@ -104,7 +109,15 @@ func _refresh_placeholder_art() -> void:
 	CUTOUT_RENDER_ORDER.apply_from_feet(placeholder_art, global_position.z)
 	var visible_bounds: Rect2i = _placeholder_texture.get_image().get_used_rect()
 	_placeholder_art_height = visible_bounds.size.y * placeholder_art_pixel_size
+	_configure_collision(visible_bounds.size.x * placeholder_art_pixel_size)
 	_refresh_label_positions()
+
+
+func _configure_collision(visible_art_width: float) -> void:
+	var box: BoxShape3D = collision_shape.shape.duplicate() as BoxShape3D
+	box.size = Vector3(visible_art_width * collision_width_ratio, collision_height, collision_depth)
+	collision_shape.shape = box
+	collision_body.position = Vector3(0.0, collision_height * 0.5, -collision_depth * 0.5)
 
 
 func _refresh_label_positions() -> void:

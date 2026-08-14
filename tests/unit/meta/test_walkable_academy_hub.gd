@@ -76,6 +76,9 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 	assert_almost_eq(ground_material.uv1_scale.x, ground_plane.size.x / 9.0, 0.0001)
 	assert_almost_eq(ground_material.uv1_scale.y, ground_plane.size.y / 9.0, 0.0001)
 	assert_eq(ground_material.albedo_color, hub.ground_tint)
+	assert_eq(ground.get_child_count(), 8, "The ground should include four edges and four corners")
+	assert_not_null(ground.get_node_or_null("TopEdge"))
+	assert_not_null(ground.get_node_or_null("BottomRightCorner"))
 
 
 func test_walkable_controls_are_project_actions() -> void:
@@ -144,11 +147,17 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	await get_tree().process_frame
 
 	var art: Sprite3D = building.get_node("PlaceholderBuildingArt") as Sprite3D
+	var collision_shape: CollisionShape3D = building.get_node("CollisionBody/BuildingCollisionShape") as CollisionShape3D
+	var collision_box: BoxShape3D = collision_shape.shape as BoxShape3D
 	var placeholder_label: Label3D = building.get_node("PlaceholderLabel") as Label3D
 	var name_label: Label3D = building.get_node("NameLabel") as Label3D
 	assert_eq(art.texture, texture)
 	assert_eq(art.position.y, 0.0)
 	assert_gt(art.offset.y, 0.0)
+	var visible_width: float = texture.get_image().get_used_rect().size.x * art.pixel_size
+	assert_almost_eq(collision_box.size.x, visible_width * building.collision_width_ratio, 0.0001)
+	assert_almost_eq(collision_box.size.z, building.collision_depth, 0.0001)
+	assert_lt(collision_box.size.x, visible_width)
 	assert_true(placeholder_label.text.begins_with("PLACEHOLDER"))
 	var screen_up: Vector3 = campus_camera.global_basis.y.normalized()
 	var placeholder_offset: Vector3 = placeholder_label.global_position - building.global_position

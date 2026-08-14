@@ -8,6 +8,15 @@ const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/ti
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
 const PLACEHOLDER_DORMS: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png")
 const PLACEHOLDER_ONLINE_ARENA: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png")
+const PLACEHOLDER_GROUND_CENTER: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_color3.png")
+const PLACEHOLDER_GROUND_TOP_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top_left.png")
+const PLACEHOLDER_GROUND_TOP: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top.png")
+const PLACEHOLDER_GROUND_TOP_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top_right.png")
+const PLACEHOLDER_GROUND_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_left.png")
+const PLACEHOLDER_GROUND_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_right.png")
+const PLACEHOLDER_GROUND_BOTTOM_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom_left.png")
+const PLACEHOLDER_GROUND_BOTTOM: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom.png")
+const PLACEHOLDER_GROUND_BOTTOM_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom_right.png")
 
 const DESTINATION_CLASS_HALL: StringName = &"class_hall"
 const DESTINATION_SHOP: StringName = &"shop"
@@ -134,14 +143,140 @@ func _configure_placeholder_ground() -> void:
 	if ground_plane == null or source_material == null:
 		push_error("WalkableAcademyHub: Placeholder ground requires a PlaneMesh and StandardMaterial3D")
 		return
-	var ground_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
-	ground.material_override = ground_material
-	ground_material.albedo_color = ground_tint
-	ground_material.uv1_scale = Vector3(
-		ground_plane.size.x / ground_tile_world_size,
-		ground_plane.size.y / ground_tile_world_size,
-		1.0
+	var ground_size: Vector2 = ground_plane.size
+	var border_size: float = minf(ground_tile_world_size, minf(ground_size.x, ground_size.y) * 0.5)
+	var inner_size: Vector2 = ground_size - Vector2.ONE * border_size * 2.0
+	if inner_size.x <= 0.0 or inner_size.y <= 0.0:
+		push_error("WalkableAcademyHub: Ground is too small for the configured tile size")
+		return
+
+	_clear_ground_border()
+	_configure_ground_piece(
+		ground,
+		inner_size,
+		Vector3.ZERO,
+		PLACEHOLDER_GROUND_CENTER,
+		Vector2(inner_size.x / ground_tile_world_size, inner_size.y / ground_tile_world_size),
+		source_material
 	)
+	_add_ground_piece(
+		"TopEdge",
+		Vector2(inner_size.x, border_size),
+		Vector3(0.0, 0.0, -inner_size.y * 0.5 - border_size * 0.5),
+		PLACEHOLDER_GROUND_TOP,
+		Vector2(inner_size.x / ground_tile_world_size, 1.0),
+		source_material
+	)
+	_add_ground_piece(
+		"BottomEdge",
+		Vector2(inner_size.x, border_size),
+		Vector3(0.0, 0.0, inner_size.y * 0.5 + border_size * 0.5),
+		PLACEHOLDER_GROUND_BOTTOM,
+		Vector2(inner_size.x / ground_tile_world_size, 1.0),
+		source_material
+	)
+	_add_ground_piece(
+		"LeftEdge",
+		Vector2(border_size, inner_size.y),
+		Vector3(-inner_size.x * 0.5 - border_size * 0.5, 0.0, 0.0),
+		PLACEHOLDER_GROUND_LEFT,
+		Vector2(1.0, inner_size.y / ground_tile_world_size),
+		source_material
+	)
+	_add_ground_piece(
+		"RightEdge",
+		Vector2(border_size, inner_size.y),
+		Vector3(inner_size.x * 0.5 + border_size * 0.5, 0.0, 0.0),
+		PLACEHOLDER_GROUND_RIGHT,
+		Vector2(1.0, inner_size.y / ground_tile_world_size),
+		source_material
+	)
+	_add_ground_corner(
+		"TopLeftCorner",
+		Vector3(-inner_size.x * 0.5 - border_size * 0.5, 0.0, -inner_size.y * 0.5 - border_size * 0.5),
+		PLACEHOLDER_GROUND_TOP_LEFT,
+		border_size,
+		source_material
+	)
+	_add_ground_corner(
+		"TopRightCorner",
+		Vector3(inner_size.x * 0.5 + border_size * 0.5, 0.0, -inner_size.y * 0.5 - border_size * 0.5),
+		PLACEHOLDER_GROUND_TOP_RIGHT,
+		border_size,
+		source_material
+	)
+	_add_ground_corner(
+		"BottomLeftCorner",
+		Vector3(-inner_size.x * 0.5 - border_size * 0.5, 0.0, inner_size.y * 0.5 + border_size * 0.5),
+		PLACEHOLDER_GROUND_BOTTOM_LEFT,
+		border_size,
+		source_material
+	)
+	_add_ground_corner(
+		"BottomRightCorner",
+		Vector3(inner_size.x * 0.5 + border_size * 0.5, 0.0, inner_size.y * 0.5 + border_size * 0.5),
+		PLACEHOLDER_GROUND_BOTTOM_RIGHT,
+		border_size,
+		source_material
+	)
+
+
+func _clear_ground_border() -> void:
+	for child: Node in ground.get_children():
+		if child.is_in_group("placeholder_ground_border"):
+			child.queue_free()
+
+
+func _add_ground_corner(
+	piece_name: String,
+	piece_position: Vector3,
+	texture: Texture2D,
+	border_size: float,
+	source_material: StandardMaterial3D
+) -> void:
+	_add_ground_piece(
+		piece_name,
+		Vector2.ONE * border_size,
+		piece_position,
+		texture,
+		Vector2.ONE,
+		source_material
+	)
+
+
+func _add_ground_piece(
+	piece_name: String,
+	piece_size: Vector2,
+	piece_position: Vector3,
+	texture: Texture2D,
+	uv_scale: Vector2,
+	source_material: StandardMaterial3D
+) -> void:
+	var piece: MeshInstance3D = MeshInstance3D.new()
+	piece.name = piece_name
+	piece.add_to_group("placeholder_ground_border")
+	ground.add_child(piece)
+	_configure_ground_piece(piece, piece_size, piece_position, texture, uv_scale, source_material)
+
+
+func _configure_ground_piece(
+	piece: MeshInstance3D,
+	piece_size: Vector2,
+	piece_position: Vector3,
+	texture: Texture2D,
+	uv_scale: Vector2,
+	source_material: StandardMaterial3D
+) -> void:
+	var piece_mesh: PlaneMesh = PlaneMesh.new()
+	piece_mesh.size = piece_size
+	piece.mesh = piece_mesh
+	piece.position = piece_position
+	var piece_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
+	piece_material.albedo_color = ground_tint
+	piece_material.albedo_texture = texture
+	piece_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	piece_material.uv1_scale = Vector3(uv_scale.x, uv_scale.y, 1.0)
+	piece.material_override = piece_material
 
 
 func _process(delta: float) -> void:
