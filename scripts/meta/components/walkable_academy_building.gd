@@ -1,34 +1,44 @@
 extends Node3D
 class_name WalkableAcademyBuilding
 
-const COLOR_DOOR_IDLE: Color = Color(0.22, 0.16, 0.11, 1.0)
-const COLOR_DOOR_READY: Color = Color(0.80, 0.58, 0.24, 1.0)
+const COLOR_ART_IDLE: Color = Color(0.90, 0.90, 0.90, 1.0)
+const COLOR_ART_READY: Color = Color.WHITE
 
 @export var display_name_key: String = ""
 @export var target_scene_path: String = ""
 @export var return_scene_path: String = ""
+@export var placeholder_art_pixel_size: float = 0.035
 
 @onready var name_label: Label3D = %NameLabel
 @onready var placeholder_label: Label3D = %PlaceholderLabel
 @onready var door_area: Area3D = %DoorArea
-@onready var door_material: StandardMaterial3D = %DoorVisual.get_surface_override_material(0) as StandardMaterial3D
+@onready var placeholder_art: Sprite3D = %PlaceholderBuildingArt
 
 var _player_inside: bool = false
 var _transition_started: bool = false
+var _placeholder_texture: Texture2D = null
 
 
 func _ready() -> void:
 	door_area.body_entered.connect(_on_door_body_entered)
 	door_area.body_exited.connect(_on_door_body_exited)
+	_refresh_placeholder_art()
 	_refresh_text()
 	_refresh_door_state()
 
 
-func configure(name_key: String, target_scene: String, return_scene: String) -> void:
+func configure(
+	name_key: String,
+	target_scene: String,
+	return_scene: String,
+	placeholder_texture: Texture2D
+) -> void:
 	display_name_key = name_key
 	target_scene_path = target_scene
 	return_scene_path = return_scene
+	_placeholder_texture = placeholder_texture
 	if is_inside_tree():
+		_refresh_placeholder_art()
 		_refresh_text()
 
 
@@ -69,8 +79,19 @@ func _refresh_text() -> void:
 
 
 func _refresh_door_state() -> void:
-	if door_material:
-		door_material.albedo_color = COLOR_DOOR_READY if _player_inside else COLOR_DOOR_IDLE
+	if placeholder_art:
+		placeholder_art.modulate = COLOR_ART_READY if _player_inside else COLOR_ART_IDLE
+
+
+func _refresh_placeholder_art() -> void:
+	if not placeholder_art or _placeholder_texture == null:
+		return
+	placeholder_art.texture = _placeholder_texture
+	placeholder_art.pixel_size = placeholder_art_pixel_size
+	var art_height: float = _placeholder_texture.get_height() * placeholder_art_pixel_size
+	placeholder_art.position.y = art_height * 0.5
+	placeholder_label.position.y = art_height + 0.2
+	name_label.position.y = art_height + 1.0
 
 
 func _is_interact_pressed() -> bool:

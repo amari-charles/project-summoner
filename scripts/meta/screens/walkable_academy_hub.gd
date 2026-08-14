@@ -11,30 +11,35 @@ const DESTINATIONS: Array[Dictionary] = [
 		"id": &"class_hall",
 		"name_key": "academy.campus.class_hall.name",
 		"description_key": "academy.campus.class_hall.description",
+		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png",
 		"position": Vector3(-24.0, 0.0, -14.0),
 	},
 	{
 		"id": &"shop",
 		"name_key": "academy.campus.shop.name",
 		"description_key": "academy.campus.shop.description",
+		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png",
 		"position": Vector3(24.0, 0.0, -12.0),
 	},
 	{
 		"id": &"mission_hall",
 		"name_key": "academy.campus.mission_hall.name",
 		"description_key": "academy.campus.mission_hall.description",
+		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png",
 		"position": Vector3(-26.0, 0.0, 12.0),
 	},
 	{
 		"id": &"dorms",
 		"name_key": "academy.campus.dorms.name",
 		"description_key": "academy.campus.dorms.description",
+		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png",
 		"position": Vector3(0.0, 0.0, -20.0),
 	},
 	{
 		"id": &"online",
 		"name_key": "academy.campus.online.name",
 		"description_key": "academy.campus.online.description",
+		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png",
 		"position": Vector3(26.0, 0.0, 14.0),
 	},
 	{"id": &"summoner", "name_key": "ui.summoner_screen.title", "description_key": "academy.walkable.summoner_description"},
@@ -242,17 +247,28 @@ func _spawn_buildings() -> void:
 		_add_building(
 			destination["name_key"],
 			_scene_for_destination(destination["id"]),
+			load(destination["placeholder_art_path"]) as Texture2D,
 			destination["position"]
 		)
 
 
-func _add_building(display_name_key: String, target_scene_path: String, map_position: Vector3) -> void:
+func _add_building(
+	display_name_key: String,
+	target_scene_path: String,
+	placeholder_texture: Texture2D,
+	map_position: Vector3
+) -> void:
 	var building: WalkableAcademyBuilding = WalkableAcademyBuildingScene.instantiate()
 	if building == null:
 		push_error("WalkableAcademyHub: Failed to instantiate walkable academy building")
 		return
 	building.position = map_position
-	building.configure(display_name_key, target_scene_path, SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	building.configure(
+		display_name_key,
+		target_scene_path,
+		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		placeholder_texture
+	)
 	buildings.add_child(building)
 
 

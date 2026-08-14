@@ -38,6 +38,10 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 		assert_true(ResourceLoader.exists(hub._scene_for_destination(destination_id)))
 		if destination.has("position"):
 			building_count += 1
+			assert_true(destination.has("placeholder_art_path"))
+			var placeholder_art_path: String = destination["placeholder_art_path"]
+			assert_true(placeholder_art_path.contains("/placeholders/"))
+			assert_true(ResourceLoader.exists(placeholder_art_path))
 
 	assert_eq(building_count, 5)
 	assert_eq(hub._scene_for_destination(&"summoner"), SceneManager.SCENE_SUMMONER_SCREEN)
@@ -49,3 +53,23 @@ func test_walkable_controls_are_project_actions() -> void:
 	for action: StringName in [&"move_left", &"move_right", &"move_up", &"move_down", &"interact"]:
 		assert_true(InputMap.has_action(action), "%s must be configured in project.godot" % action)
 		assert_false(InputMap.action_get_events(action).is_empty(), "%s must have an input binding" % action)
+
+
+func test_building_displays_explicit_placeholder_art() -> void:
+	var destination: Dictionary = WalkableAcademyHub.DESTINATIONS[0]
+	var texture: Texture2D = load(destination["placeholder_art_path"]) as Texture2D
+	var packed_building: PackedScene = load("res://scenes/meta/components/walkable_academy_building.tscn") as PackedScene
+	var building: WalkableAcademyBuilding = packed_building.instantiate() as WalkableAcademyBuilding
+	building.configure(
+		destination["name_key"],
+		SceneManager.SCENE_ACADEMY_CLASS_HALL,
+		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		texture
+	)
+	add_child_autofree(building)
+	await get_tree().process_frame
+
+	var art: Sprite3D = building.get_node("PlaceholderBuildingArt") as Sprite3D
+	var placeholder_label: Label3D = building.get_node("PlaceholderLabel") as Label3D
+	assert_eq(art.texture, texture)
+	assert_true(placeholder_label.text.begins_with("PLACEHOLDER"))
