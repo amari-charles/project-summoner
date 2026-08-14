@@ -149,6 +149,7 @@ Major design choices and their rationale.
 - **[Docs Reorg Audit (2026-03-04)](archive/doc-reorg-2026-03/tracking/docs-reorg-audit-2026-03-04.md)** - Documentation structure audit + archive log
 - **[Changelog](project/changelog.md)** - Release notes
 - **[Development History](project/development-history.md)** - Internal progress log
+- **[Product Direction Log](project/direction-log.md)** - History of approved medium- and large-scale game direction decisions
 
 ---
 

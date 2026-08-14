@@ -38,6 +38,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-13, Campus Shop):** Added high-priority changelog infrastructure work and a scoped deprecation plan for the legacy linear Caravan campaign flow.
 **Tracker Sync (2026-08-13, Online deck selection):** Added a matchmaking-screen follow-up for selecting and confirming the deck used before queueing.
 **Tracker Sync (2026-08-13, Academy hub):** Restored the bounded walkable Academy hub direction with permanent shortcut access; Phase 1 recovery is in progress.
+**Tracker Sync (2026-08-14, product direction history):** Reframed the ambiguous changelog task as a curated product direction log, added its inclusion and authority framework, and left historical backfill pending user review.
 
 ---
 
@@ -73,22 +74,23 @@ Restore the contained walkable campus as the Academy's primary entry surface wit
 **Related Doc:**
 - `docs/design/walkable-academy-hub.md`
 
-#### Establish a Project Changelog
-**Status:** ⬜ Not Started
-**Category:** Documentation / Release History
+#### Establish a Product Direction Log
+**Status:** 🔄 In Progress
+**Category:** Documentation / Product History
 **Effort:** Small
 
 **Description:**
-Create and maintain a changelog so product and engineering decisions can be traced to the release or pull request that introduced them. The project has entered a high-iteration phase, and commit history alone is not an adequate product-facing record.
+Create and maintain an internal direction log for medium- and large-scale game and product decisions. It records what changed, why, and what prior direction was superseded without duplicating public release notes or treating implementation history as product intent.
 
 **Tasks:**
-- [ ] Choose the changelog format and update cadence.
-- [ ] Add a root-level `CHANGELOG.md` with an `Unreleased` section.
+- [x] Define the inclusion threshold, entry format, authority rules, and update cadence.
+- [x] Add `docs/project/direction-log.md` alongside the existing public changelog and technical development history.
+- [x] Add repository guidance so agents update the log only for explicitly approved medium- or large-scale product decisions.
 - [ ] Backfill major recent Academy, lesson/activity, deck-loadout, and UI changes from merged pull requests.
-- [ ] Add changelog updates to the pull-request checklist or contributor workflow.
+- [ ] Review the backfilled entries with the user before treating them as accepted historical interpretation.
 
 **Priority Note:**
-Treat this as important near-term documentation infrastructure before further large UI and progression iterations accumulate.
+The framework is established. Complete the curated, user-reviewed historical backfill before further large UI and progression iterations accumulate.
 
 #### Deprecate the Legacy Caravan Campaign Flow
 **Status:** ⬜ Not Started
