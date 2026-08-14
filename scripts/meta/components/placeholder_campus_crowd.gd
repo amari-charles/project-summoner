@@ -41,6 +41,7 @@ func _ready() -> void:
 		sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		sprite.pixel_size = SHEEP_PIXEL_SIZE if sprite.texture.get_height() == 128 else CHARACTER_PIXEL_SIZE
 		add_child(sprite)
+		CutoutRenderOrder.apply_from_feet(sprite, global_position.z + sprite.position.z)
 		_sprites.append(sprite)
 
 

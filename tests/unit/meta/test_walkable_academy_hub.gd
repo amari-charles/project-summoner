@@ -79,6 +79,19 @@ func test_player_switches_to_visible_run_cycle_during_movement() -> void:
 	assert_true(visual.texture.resource_path.ends_with("placeholder_player_pawn_run.png"))
 	assert_eq(visual.hframes, WalkableAcademyPlayer.RUN_FRAME_COUNT)
 	assert_gt(visual.frame, 0)
+	assert_false(visual.flip_h)
+	player._update_animation(0.0, Vector3.LEFT)
+	assert_true(visual.flip_h)
+	player._update_animation(0.0, Vector3.RIGHT)
+	assert_false(visual.flip_h)
+
+
+func test_cutout_order_uses_feet_depth_instead_of_sprite_center() -> void:
+	assert_lt(CutoutRenderOrder.priority_for_feet(-10.0), CutoutRenderOrder.priority_for_feet(10.0))
+	var sprite: Sprite3D = Sprite3D.new()
+	CutoutRenderOrder.apply_from_feet(sprite, 7.0)
+	assert_eq(sprite.render_priority, CutoutRenderOrder.priority_for_feet(7.0))
+	sprite.free()
 
 
 func test_building_displays_explicit_placeholder_art() -> void:

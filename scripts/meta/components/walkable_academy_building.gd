@@ -91,6 +91,7 @@ func _refresh_placeholder_art() -> void:
 	var art_height: float = _placeholder_texture.get_height() * placeholder_art_pixel_size
 	placeholder_art.position.y = art_height * 0.5
 	placeholder_art.offset = Vector2.ZERO
+	CutoutRenderOrder.apply_from_feet(placeholder_art, global_position.z)
 	placeholder_label.position.y = art_height + 0.2
 	name_label.position.y = art_height + 1.0
 

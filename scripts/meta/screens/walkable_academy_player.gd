@@ -21,6 +21,7 @@ func _ready() -> void:
 	add_to_group("walkable_academy_player")
 	placeholder_label.text = Loc.t("academy.walkable.placeholder_player")
 	_set_animation(false)
+	_update_render_order()
 
 
 func _physics_process(delta: float) -> void:
@@ -30,6 +31,7 @@ func _physics_process(delta: float) -> void:
 	velocity.z = input_vector.z * move_speed
 	_update_animation(delta, input_vector)
 	move_and_slide()
+	_update_render_order()
 
 
 func _read_movement_input() -> Vector3:
@@ -45,7 +47,7 @@ func _update_animation(delta: float, input_vector: Vector3) -> void:
 	var frames_per_second: float = RUN_FRAMES_PER_SECOND if _is_running else IDLE_FRAMES_PER_SECOND
 	player_visual.frame = int(_animation_elapsed * frames_per_second) % player_visual.hframes
 	if not is_zero_approx(input_vector.x):
-		player_visual.flip_h = input_vector.x < 0.0
+		_set_facing_left(input_vector.x < 0.0)
 
 
 func _set_animation(running: bool) -> void:
@@ -54,3 +56,13 @@ func _set_animation(running: bool) -> void:
 	player_visual.texture = PLACEHOLDER_RUN_TEXTURE if running else PLACEHOLDER_IDLE_TEXTURE
 	player_visual.hframes = RUN_FRAME_COUNT if running else IDLE_FRAME_COUNT
 	player_visual.frame = 0
+
+
+func _set_facing_left(facing_left: bool) -> void:
+	# Tiny Swords supplies a single lateral view, so horizontal mirroring is the
+	# complete authored direction set for this placeholder character.
+	player_visual.flip_h = facing_left
+
+
+func _update_render_order() -> void:
+	CutoutRenderOrder.apply_from_feet(player_visual, global_position.z)
