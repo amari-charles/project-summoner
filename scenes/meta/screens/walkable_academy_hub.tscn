@@ -1,0 +1,210 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
+[ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png" id="3_placeholder_player"]
+[ext_resource type="Script" path="res://scripts/meta/components/placeholder_campus_crowd.gd" id="4_placeholder_crowd"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/terrain/placeholder_grass_color3.png" id="5_placeholder_grass"]
+[ext_resource type="Script" path="res://scripts/meta/components/placeholder_campus_scenery.gd" id="6_placeholder_scenery"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+shading_mode = 0
+albedo_color = Color(0.78, 0.8, 0.76, 1)
+albedo_texture = ExtResource("5_placeholder_grass")
+texture_filter = 2
+uv1_scale = Vector3(16, 10.2222, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(72, 46)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_player"]
+size = Vector3(1.4, 2.4, 1.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_horizontal_boundary"]
+size = Vector3(76, 5, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vertical_boundary"]
+size = Vector3(2, 5, 50)
+
+[sub_resource type="Environment" id="Environment_walkable_hub"]
+background_mode = 1
+background_color = Color(0.278431, 0.670588, 0.662745, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.7
+
+[node name="WalkableAcademyHub" type="Node3D"]
+script = ExtResource("1_hub_script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_walkable_hub")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 23.2, 38)
+current = true
+projection = 0
+fov = 46.0
+near = 0.5
+far = 180.0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+unique_name_in_owner = true
+material_override = SubResource("StandardMaterial3D_ground")
+mesh = SubResource("PlaneMesh_ground")
+
+[node name="PlaceholderWater" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="GroundLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.819152, -0.573576, 0, 0.573576, 0.819152, 0, 0.08, 15)
+pixel_size = 0.018
+billboard = 2
+modulate = Color(0.78, 0.86, 0.72, 1)
+outline_size = 8
+outline_modulate = Color(0, 0, 0, 0.65)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Buildings" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="PlaceholderCrowd" type="Node3D" parent="."]
+script = ExtResource("4_placeholder_crowd")
+
+[node name="PlaceholderScenery" type="Node3D" parent="."]
+script = ExtResource("6_placeholder_scenery")
+
+[node name="Boundaries" type="Node3D" parent="."]
+
+[node name="Top" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -24)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/Top"]
+shape = SubResource("BoxShape3D_horizontal_boundary")
+
+[node name="Bottom" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 24)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/Bottom"]
+shape = SubResource("BoxShape3D_horizontal_boundary")
+
+[node name="Left" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38, 2.5, 0)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/Left"]
+shape = SubResource("BoxShape3D_vertical_boundary")
+
+[node name="Right" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 2.5, 0)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/Right"]
+shape = SubResource("BoxShape3D_vertical_boundary")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 16)
+collision_layer = 1
+collision_mask = 4
+script = ExtResource("2_player_script")
+move_speed = 12.0
+
+[node name="PlayerVisual" type="Sprite3D" parent="Player"]
+unique_name_in_owner = true
+position = Vector3(0, -1.2, 0)
+pixel_size = 0.035
+billboard = 1
+texture_filter = 0
+hframes = 8
+texture = ExtResource("3_placeholder_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("BoxShape3D_player")
+
+[node name="PlaceholderPlayerLabel" type="Label3D" parent="Player"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, -1.65, -0.35)
+pixel_size = 0.006
+billboard = 2
+modulate = Color(0.82, 0.9, 1, 1)
+outline_size = 5
+outline_modulate = Color(0, 0, 0, 0.6)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="SummonerSlot" type="Control" parent="Interface"]
+unique_name_in_owner = true
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 150.0
+offset_bottom = 150.0
+
+[node name="ShortcutButton" type="Button" parent="Interface"]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -238.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = 70.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 20
+
+[node name="ShortcutPanel" type="PanelContainer" parent="Interface"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -342.0
+offset_top = 82.0
+offset_right = -18.0
+offset_bottom = 594.0
+grow_horizontal = 0
+
+[node name="Margin" type="MarginContainer" parent="Interface/ShortcutPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="Content" type="VBoxContainer" parent="Interface/ShortcutPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Interface/ShortcutPanel/Margin/Content"]
+layout_mode = 2
+
+[node name="ShortcutTitle" type="Label" parent="Interface/ShortcutPanel/Margin/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+
+[node name="ShortcutCloseButton" type="Button" parent="Interface/ShortcutPanel/Margin/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Separator" type="HSeparator" parent="Interface/ShortcutPanel/Margin/Content"]
+layout_mode = 2
+
+[node name="ShortcutList" type="VBoxContainer" parent="Interface/ShortcutPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8

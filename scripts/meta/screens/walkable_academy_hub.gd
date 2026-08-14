@@ -1,0 +1,665 @@
+extends Node3D
+class_name WalkableAcademyHub
+
+const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
+const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
+const PLACEHOLDER_CLASS_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png")
+const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
+const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
+const PLACEHOLDER_DORMS: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png")
+const PLACEHOLDER_ONLINE_ARENA: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png")
+const PLACEHOLDER_GROUND_CENTER: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_color3.png")
+const PLACEHOLDER_GROUND_TOP_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top_left.png")
+const PLACEHOLDER_GROUND_TOP: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top.png")
+const PLACEHOLDER_GROUND_TOP_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top_right.png")
+const PLACEHOLDER_GROUND_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_left.png")
+const PLACEHOLDER_GROUND_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_right.png")
+const PLACEHOLDER_GROUND_BOTTOM_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom_left.png")
+const PLACEHOLDER_GROUND_BOTTOM: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom.png")
+const PLACEHOLDER_GROUND_BOTTOM_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom_right.png")
+const PLACEHOLDER_CLIFF_MIDDLE_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_left.png")
+const PLACEHOLDER_CLIFF_MIDDLE: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle.png")
+const PLACEHOLDER_CLIFF_MIDDLE_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_right.png")
+const PLACEHOLDER_WATER_BACKGROUND: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_water_background.png")
+const PLACEHOLDER_WATER_FOAM: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_water_foam.png")
+const PLACEHOLDER_WATER_FOAM_SHADER: Shader = preload("res://shaders/meta/placeholder_water_foam.gdshader")
+const WATER_FOAM_FRAME_COUNT: int = 16
+const WATER_FOAM_TILE_SPAN: float = 3.0
+
+const DESTINATION_CLASS_HALL: StringName = &"class_hall"
+const DESTINATION_SHOP: StringName = &"shop"
+const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
+const DESTINATION_DORMS: StringName = &"dorms"
+const DESTINATION_ONLINE: StringName = &"online"
+const DESTINATION_SUMMONER: StringName = &"summoner"
+const DESTINATION_SETTINGS: StringName = &"settings"
+
+## One destination catalog drives both building entrances and fast shortcuts.
+## Entries without a position remain shortcut-only in the current prototype.
+const DESTINATIONS: Array[Dictionary] = [
+	{
+		"id": DESTINATION_CLASS_HALL,
+		"name_key": "academy.campus.class_hall.name",
+		"description_key": "academy.campus.class_hall.description",
+		"target_scene": SceneManagerClass.SCENE_ACADEMY_CLASS_HALL,
+		"placeholder_texture": PLACEHOLDER_CLASS_HALL,
+		"position": Vector3(-12.0, 0.0, -8.0),
+	},
+	{
+		"id": DESTINATION_SHOP,
+		"name_key": "academy.campus.shop.name",
+		"description_key": "academy.campus.shop.description",
+		"target_scene": SceneManagerClass.SCENE_SHOP_SCREEN,
+		"placeholder_texture": PLACEHOLDER_CAMPUS_SHOP,
+		"position": Vector3(12.0, 0.0, -7.0),
+	},
+	{
+		"id": DESTINATION_MISSION_HALL,
+		"name_key": "academy.campus.mission_hall.name",
+		"description_key": "academy.campus.mission_hall.description",
+		"target_scene": SceneManagerClass.SCENE_SPECIAL_EVENTS,
+		"placeholder_texture": PLACEHOLDER_MISSION_HALL,
+		"position": Vector3(-13.0, 0.0, 7.0),
+	},
+	{
+		"id": DESTINATION_DORMS,
+		"name_key": "academy.campus.dorms.name",
+		"description_key": "academy.campus.dorms.description",
+		"target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN,
+		"placeholder_texture": PLACEHOLDER_DORMS,
+		"position": Vector3(0.0, 0.0, -11.0),
+	},
+	{
+		"id": DESTINATION_ONLINE,
+		"name_key": "academy.campus.online.name",
+		"description_key": "academy.campus.online.description",
+		"target_scene": SceneManagerClass.SCENE_ONLINE,
+		"placeholder_texture": PLACEHOLDER_ONLINE_ARENA,
+		"position": Vector3(13.0, 0.0, 8.0),
+	},
+	{"id": DESTINATION_SUMMONER, "name_key": "ui.summoner_screen.title", "description_key": "academy.walkable.summoner_description", "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
+	{"id": DESTINATION_SETTINGS, "name_key": "ui.nav.settings", "description_key": "academy.walkable.settings_description", "target_scene": SceneManagerClass.SCENE_SETTINGS},
+]
+
+@export_category("Placeholder Ground")
+@export_range(0.5, 20.0, 0.25) var ground_tile_world_size: float = 2.25
+@export var ground_tint: Color = Color(0.78, 0.8, 0.76, 1.0)
+
+@export_category("Placeholder Water")
+@export_range(1, 40, 1) var water_margin_tiles: int = 20
+@export_range(1.0, 24.0, 0.5) var water_foam_fps: float = 8.0
+@export var water_tint: Color = Color.WHITE
+
+@export_category("Camera")
+@export var camera_follow_offset: Vector3 = Vector3(0.0, 22.0, 22.0)
+@export var camera_follow_focus_height: float = 2.45
+@export var camera_follow_lerp_speed: float = 8.0
+@export var camera_zoomed_follow_lerp_speed: float = 18.0
+@export var camera_min_fov: float = 32.0
+@export var camera_max_fov: float = 62.0
+@export var camera_zoom_step: float = 4.0
+@export var camera_zoom_lerp_speed: float = 10.0
+@export var camera_zoom_pitch_enabled: bool = true
+@export var camera_zoom_pitch_max_degrees: float = 8.0
+
+@onready var ground: MeshInstance3D = %Ground
+@onready var placeholder_water: Node3D = %PlaceholderWater
+@onready var ground_label: Label3D = %GroundLabel
+@onready var buildings: Node3D = %Buildings
+@onready var camera: Camera3D = %Camera3D
+@onready var player: Node3D = %Player
+@onready var shortcut_button: Button = %ShortcutButton
+@onready var shortcut_panel: PanelContainer = %ShortcutPanel
+@onready var shortcut_title: Label = %ShortcutTitle
+@onready var shortcut_close_button: Button = %ShortcutCloseButton
+@onready var shortcut_list: VBoxContainer = %ShortcutList
+@onready var summoner_slot: Control = %SummonerSlot
+
+var _camera_target_fov: float = 46.0
+var _camera_default_fov: float = 46.0
+var _camera_base_basis: Basis = Basis.IDENTITY
+var _camera_focus_position: Vector3 = Vector3.ZERO
+var _camera_follow_distance: float = 31.0
+var _ground_source_size: Vector2 = Vector2.ZERO
+var _transition_started: bool = false
+
+
+func _ready() -> void:
+	_configure_placeholder_ground()
+	if SummonerSelectionApi.get_active_summoner_id().is_empty():
+		call_deferred("_redirect_to_summoner_selection")
+		return
+
+	ground_label.text = Loc.t("academy.walkable.placeholder_ground")
+	shortcut_button.text = Loc.t("academy.walkable.open_shortcuts")
+	shortcut_title.text = Loc.t("academy.walkable.shortcuts_title")
+	shortcut_close_button.text = Loc.t("ui.common.close")
+	shortcut_button.pressed.connect(_toggle_shortcuts)
+	shortcut_close_button.pressed.connect(_close_shortcuts)
+	_setup_summoner_icon()
+	_populate_shortcuts()
+
+	camera.current = true
+	_camera_target_fov = clampf(camera.fov, camera_min_fov, camera_max_fov)
+	_camera_default_fov = _camera_target_fov
+	_camera_base_basis = camera.transform.basis
+	_camera_follow_distance = camera_follow_offset.length()
+	camera.fov = _camera_target_fov
+	_snap_camera_to_player()
+	_spawn_buildings()
+
+
+func _configure_placeholder_ground() -> void:
+	if ground_tile_world_size <= 0.0:
+		push_error("WalkableAcademyHub: Ground tile world size must be greater than zero")
+		return
+	var ground_plane: PlaneMesh = ground.mesh as PlaneMesh
+	var source_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+	if ground_plane == null or source_material == null:
+		push_error("WalkableAcademyHub: Placeholder ground requires a PlaneMesh and StandardMaterial3D")
+		return
+	if _ground_source_size == Vector2.ZERO:
+		_ground_source_size = ground_plane.size
+	var ground_size: Vector2 = _ground_source_size
+	var column_count: int = floori(ground_size.x / ground_tile_world_size)
+	var row_count: int = floori(ground_size.y / ground_tile_world_size)
+	if column_count < 3 or row_count < 3:
+		push_error("WalkableAcademyHub: Ground is too small for the configured tile size")
+		return
+	var border_size: float = ground_tile_world_size
+	var inner_columns: int = column_count - 2
+	var inner_rows: int = row_count - 2
+	var inner_size: Vector2 = Vector2(
+		inner_columns * ground_tile_world_size,
+		inner_rows * ground_tile_world_size
+	)
+	var rendered_size: Vector2 = Vector2(
+		column_count * ground_tile_world_size,
+		row_count * ground_tile_world_size
+	)
+
+	_clear_ground_border()
+	_configure_ground_piece(
+		ground,
+		inner_size,
+		Vector3.ZERO,
+		PLACEHOLDER_GROUND_CENTER,
+		Vector2(inner_columns, inner_rows),
+		source_material
+	)
+	_add_ground_piece(
+		"TopEdge",
+		Vector2(inner_size.x, border_size),
+		Vector3(0.0, 0.0, -rendered_size.y * 0.5 + border_size * 0.5),
+		PLACEHOLDER_GROUND_TOP,
+		Vector2(inner_columns, 1.0),
+		source_material
+	)
+	_add_ground_piece(
+		"BottomEdge",
+		Vector2(inner_size.x, border_size),
+		Vector3(0.0, 0.0, rendered_size.y * 0.5 - border_size * 0.5),
+		PLACEHOLDER_GROUND_BOTTOM,
+		Vector2(inner_columns, 1.0),
+		source_material
+	)
+	_add_ground_piece(
+		"LeftEdge",
+		Vector2(border_size, inner_size.y),
+		Vector3(-rendered_size.x * 0.5 + border_size * 0.5, 0.0, 0.0),
+		PLACEHOLDER_GROUND_LEFT,
+		Vector2(1.0, inner_rows),
+		source_material
+	)
+	_add_ground_piece(
+		"RightEdge",
+		Vector2(border_size, inner_size.y),
+		Vector3(rendered_size.x * 0.5 - border_size * 0.5, 0.0, 0.0),
+		PLACEHOLDER_GROUND_RIGHT,
+		Vector2(1.0, inner_rows),
+		source_material
+	)
+	_add_ground_corner(
+		"TopLeftCorner",
+		Vector3(
+			-rendered_size.x * 0.5 + border_size * 0.5,
+			0.0,
+			-rendered_size.y * 0.5 + border_size * 0.5
+		),
+		PLACEHOLDER_GROUND_TOP_LEFT,
+		border_size,
+		source_material
+	)
+	_add_ground_corner(
+		"TopRightCorner",
+		Vector3(
+			rendered_size.x * 0.5 - border_size * 0.5,
+			0.0,
+			-rendered_size.y * 0.5 + border_size * 0.5
+		),
+		PLACEHOLDER_GROUND_TOP_RIGHT,
+		border_size,
+		source_material
+	)
+	_add_ground_corner(
+		"BottomLeftCorner",
+		Vector3(
+			-rendered_size.x * 0.5 + border_size * 0.5,
+			0.0,
+			rendered_size.y * 0.5 - border_size * 0.5
+		),
+		PLACEHOLDER_GROUND_BOTTOM_LEFT,
+		border_size,
+		source_material
+	)
+	_add_ground_corner(
+		"BottomRightCorner",
+		Vector3(
+			rendered_size.x * 0.5 - border_size * 0.5,
+			0.0,
+			rendered_size.y * 0.5 - border_size * 0.5
+		),
+		PLACEHOLDER_GROUND_BOTTOM_RIGHT,
+		border_size,
+		source_material
+	)
+	var grass_front_edge: float = rendered_size.y * 0.5
+	_add_ground_cliff_row(
+		"FrontCliff",
+		-border_size * 0.5,
+		grass_front_edge,
+		inner_size.x,
+		border_size,
+		PLACEHOLDER_CLIFF_MIDDLE_LEFT,
+		PLACEHOLDER_CLIFF_MIDDLE,
+		PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
+		source_material
+	)
+	_configure_placeholder_water(rendered_size, column_count, row_count)
+
+
+func _configure_placeholder_water(
+	rendered_size: Vector2,
+	column_count: int,
+	row_count: int
+) -> void:
+	for child: Node in placeholder_water.get_children():
+		child.free()
+
+	var water_level: float = -ground_tile_world_size - 0.05
+	var water_size: Vector2 = rendered_size + Vector2.ONE * ground_tile_world_size * water_margin_tiles * 2.0
+	var surface: MeshInstance3D = MeshInstance3D.new()
+	surface.name = "Surface"
+	var surface_mesh: PlaneMesh = PlaneMesh.new()
+	surface_mesh.size = water_size
+	surface.mesh = surface_mesh
+	surface.position.y = water_level
+	var surface_material: StandardMaterial3D = StandardMaterial3D.new()
+	surface_material.albedo_color = water_tint
+	surface_material.albedo_texture = PLACEHOLDER_WATER_BACKGROUND
+	surface_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	surface_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	surface_material.uv1_scale = Vector3(
+		water_size.x / ground_tile_world_size,
+		water_size.y / ground_tile_world_size,
+		1.0
+	)
+	surface.material_override = surface_material
+	placeholder_water.add_child(surface)
+
+	var foam: Node3D = Node3D.new()
+	foam.name = "Foam"
+	placeholder_water.add_child(foam)
+	# Tiny Swords foam spans three source tiles but is centered on one shoreline
+	# cell. The raised terrain hides its center, leaving the overlapping waves.
+	var foam_index: int = 0
+	var left: float = -rendered_size.x * 0.5 + ground_tile_world_size * 0.5
+	var right: float = rendered_size.x * 0.5 - ground_tile_world_size * 0.5
+	var top: float = -rendered_size.y * 0.5 + ground_tile_world_size * 0.5
+	var bottom: float = rendered_size.y * 0.5 - ground_tile_world_size * 0.5
+	for column: int in column_count:
+		var x_position: float = left + column * ground_tile_world_size
+		_add_water_foam_piece(
+			foam,
+			"Top%d" % column,
+			Vector3(x_position, water_level + 0.02, top),
+			foam_index
+		)
+		foam_index += 1
+		_add_water_foam_piece(
+			foam,
+			"Bottom%d" % column,
+			Vector3(x_position, water_level + 0.02, bottom),
+			foam_index
+		)
+		foam_index += 1
+	for row: int in range(1, row_count - 1):
+		var z_position: float = top + row * ground_tile_world_size
+		_add_water_foam_piece(
+			foam,
+			"Left%d" % row,
+			Vector3(left, water_level + 0.02, z_position),
+			foam_index
+		)
+		foam_index += 1
+		_add_water_foam_piece(
+			foam,
+			"Right%d" % row,
+			Vector3(right, water_level + 0.02, z_position),
+			foam_index
+		)
+		foam_index += 1
+
+
+func _add_water_foam_piece(
+	parent: Node3D,
+	piece_name: String,
+	piece_position: Vector3,
+	animation_offset: int
+) -> void:
+	var piece: MeshInstance3D = MeshInstance3D.new()
+	piece.name = piece_name
+	var piece_mesh: PlaneMesh = PlaneMesh.new()
+	piece_mesh.size = Vector2.ONE * ground_tile_world_size * WATER_FOAM_TILE_SPAN
+	piece.mesh = piece_mesh
+	piece.position = piece_position
+	var piece_material: ShaderMaterial = ShaderMaterial.new()
+	piece_material.shader = PLACEHOLDER_WATER_FOAM_SHADER
+	piece_material.set_shader_parameter("foam_texture", PLACEHOLDER_WATER_FOAM)
+	piece_material.set_shader_parameter("animation_fps", water_foam_fps)
+	piece_material.set_shader_parameter("animation_offset", float(animation_offset % WATER_FOAM_FRAME_COUNT))
+	piece.material_override = piece_material
+	parent.add_child(piece)
+
+
+func _clear_ground_border() -> void:
+	for child: Node in ground.get_children():
+		if child.is_in_group("placeholder_ground_border"):
+			child.queue_free()
+
+
+func _add_ground_corner(
+	piece_name: String,
+	piece_position: Vector3,
+	texture: Texture2D,
+	border_size: float,
+	source_material: StandardMaterial3D
+) -> void:
+	_add_ground_piece(
+		piece_name,
+		Vector2.ONE * border_size,
+		piece_position,
+		texture,
+		Vector2.ONE,
+		source_material
+	)
+
+
+func _add_ground_cliff_row(
+	piece_name: String,
+	y_position: float,
+	z_position: float,
+	inner_width: float,
+	tile_size: float,
+	left_texture: Texture2D,
+	middle_texture: Texture2D,
+	right_texture: Texture2D,
+	source_material: StandardMaterial3D
+) -> void:
+	_add_ground_cliff_piece(
+		piece_name + "Left",
+		Vector2.ONE * tile_size,
+		Vector3(-inner_width * 0.5 - tile_size * 0.5, y_position, z_position),
+		left_texture,
+		Vector2.ONE,
+		source_material
+	)
+	_add_ground_cliff_piece(
+		piece_name + "Center",
+		Vector2(inner_width, tile_size),
+		Vector3(0.0, y_position, z_position),
+		middle_texture,
+		Vector2(inner_width / tile_size, 1.0),
+		source_material
+	)
+	_add_ground_cliff_piece(
+		piece_name + "Right",
+		Vector2.ONE * tile_size,
+		Vector3(inner_width * 0.5 + tile_size * 0.5, y_position, z_position),
+		right_texture,
+		Vector2.ONE,
+		source_material
+	)
+
+
+func _add_ground_cliff_piece(
+	piece_name: String,
+	piece_size: Vector2,
+	piece_position: Vector3,
+	texture: Texture2D,
+	uv_scale: Vector2,
+	source_material: StandardMaterial3D
+) -> void:
+	var piece: MeshInstance3D = MeshInstance3D.new()
+	piece.name = piece_name
+	piece.add_to_group("placeholder_ground_border")
+	ground.add_child(piece)
+	var piece_mesh: QuadMesh = QuadMesh.new()
+	piece_mesh.size = piece_size
+	piece.mesh = piece_mesh
+	piece.position = piece_position
+	var piece_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
+	piece_material.albedo_color = ground_tint
+	piece_material.albedo_texture = texture
+	piece_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	piece_material.alpha_scissor_threshold = 0.5
+	piece_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	piece_material.uv1_scale = Vector3(uv_scale.x, uv_scale.y, 1.0)
+	piece.material_override = piece_material
+
+
+func _add_ground_piece(
+	piece_name: String,
+	piece_size: Vector2,
+	piece_position: Vector3,
+	texture: Texture2D,
+	uv_scale: Vector2,
+	source_material: StandardMaterial3D
+) -> void:
+	var piece: MeshInstance3D = MeshInstance3D.new()
+	piece.name = piece_name
+	piece.add_to_group("placeholder_ground_border")
+	ground.add_child(piece)
+	_configure_ground_piece(piece, piece_size, piece_position, texture, uv_scale, source_material)
+
+
+func _configure_ground_piece(
+	piece: MeshInstance3D,
+	piece_size: Vector2,
+	piece_position: Vector3,
+	texture: Texture2D,
+	uv_scale: Vector2,
+	source_material: StandardMaterial3D
+) -> void:
+	var piece_mesh: PlaneMesh = PlaneMesh.new()
+	piece_mesh.size = piece_size
+	piece.mesh = piece_mesh
+	piece.position = piece_position
+	var piece_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
+	piece_material.albedo_color = ground_tint
+	piece_material.albedo_texture = texture
+	if piece == ground:
+		piece_material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+	else:
+		piece_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		piece_material.alpha_scissor_threshold = 0.5
+	piece_material.uv1_scale = Vector3(uv_scale.x, uv_scale.y, 1.0)
+	piece.material_override = piece_material
+
+
+func _process(delta: float) -> void:
+	_follow_player(delta)
+	_update_camera_zoom(delta)
+	_update_camera_transform()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and shortcut_panel.visible:
+		_close_shortcuts()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event
+		if not mouse_event.pressed:
+			return
+		if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_adjust_camera_zoom(-camera_zoom_step)
+			get_viewport().set_input_as_handled()
+		elif mouse_event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_adjust_camera_zoom(camera_zoom_step)
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMagnifyGesture:
+		var magnify_event: InputEventMagnifyGesture = event
+		_adjust_camera_zoom((1.0 - magnify_event.factor) * camera_zoom_step * 2.0)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventPanGesture:
+		var pan_gesture: InputEventPanGesture = event
+		_adjust_camera_zoom(pan_gesture.delta.y * camera_zoom_step * 0.25)
+		get_viewport().set_input_as_handled()
+
+
+func _setup_summoner_icon() -> void:
+	var summoner_icon: SummonerIconWidget = SummonerIconWidgetScene.instantiate()
+	summoner_slot.add_child(summoner_icon)
+	summoner_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	summoner_icon.icon_clicked.connect(_route_to.bind(DESTINATION_SUMMONER))
+
+
+func _populate_shortcuts() -> void:
+	_clear_children(shortcut_list)
+	for destination: Dictionary in DESTINATIONS:
+		var destination_id: StringName = destination["id"]
+		var button: Button = Button.new()
+		button.text = Loc.t(destination["name_key"])
+		button.tooltip_text = Loc.t(destination["description_key"])
+		button.custom_minimum_size = Vector2(280.0, 48.0)
+		button.pressed.connect(_route_to.bind(destination_id))
+		shortcut_list.add_child(button)
+
+
+func _toggle_shortcuts() -> void:
+	shortcut_panel.visible = not shortcut_panel.visible
+
+
+func _close_shortcuts() -> void:
+	shortcut_panel.hide()
+
+
+func _route_to(destination_id: StringName) -> void:
+	if _transition_started:
+		return
+	var target_scene: String = _scene_for_destination(destination_id)
+	if target_scene.is_empty():
+		push_warning("WalkableAcademyHub: Unknown destination '%s'" % destination_id)
+		return
+	_transition_started = true
+	NavigationContext.push_return(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	SceneManager.transition_to(target_scene)
+
+
+func _scene_for_destination(destination_id: StringName) -> String:
+	for destination: Dictionary in DESTINATIONS:
+		if destination["id"] == destination_id:
+			return destination["target_scene"]
+	return ""
+
+
+func _follow_player(delta: float) -> void:
+	if not is_instance_valid(player):
+		return
+	var target_focus: Vector3 = _get_player_focus_position()
+	var zoom_ratio: float = _get_camera_zoom_pitch_ratio()
+	var follow_speed: float = lerpf(camera_follow_lerp_speed, camera_zoomed_follow_lerp_speed, zoom_ratio)
+	var follow_weight: float = 1.0 - exp(-follow_speed * delta)
+	_camera_focus_position = _camera_focus_position.lerp(target_focus, follow_weight)
+
+
+func _update_camera_zoom(delta: float) -> void:
+	var zoom_weight: float = 1.0 - exp(-camera_zoom_lerp_speed * delta)
+	camera.fov = lerpf(camera.fov, _camera_target_fov, zoom_weight)
+
+
+func _adjust_camera_zoom(fov_delta: float) -> void:
+	_camera_target_fov = clampf(_camera_target_fov + fov_delta, camera_min_fov, camera_max_fov)
+
+
+func _update_camera_transform() -> void:
+	var pitch_radians: float = deg_to_rad(camera_zoom_pitch_max_degrees * _get_camera_zoom_pitch_ratio())
+	var pitched_basis: Basis = Transform3D(_camera_base_basis, Vector3.ZERO).rotated_local(Vector3.RIGHT, pitch_radians).basis
+	var forward: Vector3 = -pitched_basis.z.normalized()
+	camera.global_transform = Transform3D(pitched_basis, _camera_focus_position - forward * _camera_follow_distance)
+
+
+func _get_camera_zoom_pitch_ratio() -> float:
+	if not camera_zoom_pitch_enabled or camera.fov >= _camera_default_fov:
+		return 0.0
+	var zoom_span: float = _camera_default_fov - camera_min_fov
+	if zoom_span <= 0.001:
+		return 0.0
+	return clampf((_camera_default_fov - camera.fov) / zoom_span, 0.0, 1.0)
+
+
+func _snap_camera_to_player() -> void:
+	if not is_instance_valid(player):
+		return
+	_camera_focus_position = _get_player_focus_position()
+	_update_camera_transform()
+
+
+func _get_player_focus_position() -> Vector3:
+	var focus: Vector3 = player.global_position
+	focus.y = camera_follow_focus_height
+	return focus
+
+
+func _spawn_buildings() -> void:
+	_clear_children(buildings)
+	for destination: Dictionary in DESTINATIONS:
+		if not destination.has("position"):
+			continue
+		_add_building(
+			destination["name_key"],
+			destination["target_scene"],
+			destination["placeholder_texture"],
+			destination["position"]
+		)
+
+
+func _add_building(
+	display_name_key: String,
+	target_scene_path: String,
+	placeholder_texture: Texture2D,
+	map_position: Vector3
+) -> void:
+	var building: WalkableAcademyBuilding = WalkableAcademyBuildingScene.instantiate()
+	if building == null:
+		push_error("WalkableAcademyHub: Failed to instantiate walkable academy building")
+		return
+	building.position = map_position
+	building.configure(
+		display_name_key,
+		target_scene_path,
+		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		placeholder_texture,
+		camera
+	)
+	buildings.add_child(building)
+
+
+func _clear_children(node: Node) -> void:
+	for child: Node in node.get_children():
+		child.queue_free()
+
+
+func _redirect_to_summoner_selection() -> void:
+	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SELECTION)

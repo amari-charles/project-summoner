@@ -912,7 +912,7 @@ public partial class BattleScene : Node3D
             GD.PushWarning(
                 "[BattleScene] Campaign progression unavailable; no XP or rewards were granted."
             );
-            NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
+            NavigateToOriginScene();
             return;
         }
 
@@ -920,7 +920,7 @@ public partial class BattleScene : Node3D
             NavigateToScene("res://scenes/meta/screens/reward_screen.tscn");
         else
         {
-            NavigateToScene("res://scenes/meta/screens/academy_hub.tscn");
+            NavigateToOriginScene();
         }
     }
 
@@ -1018,6 +1018,24 @@ public partial class BattleScene : Node3D
             sceneManager.Call("transition_to", scenePath);
         else
             GetTree().ChangeSceneToFile(scenePath);
+    }
+
+    private void NavigateToOriginScene()
+    {
+        var originScene = _config.OriginScene;
+        if (string.IsNullOrWhiteSpace(originScene))
+        {
+            var battleContext = GetTree().Root.GetNodeOrNull("BattleContext");
+            originScene = battleContext?.Call("get_origin_scene").AsString() ?? "";
+        }
+
+        if (string.IsNullOrWhiteSpace(originScene))
+        {
+            GD.PushError("[BattleScene] Cannot navigate after battle: origin scene is missing.");
+            return;
+        }
+
+        NavigateToScene(originScene);
     }
 
     private void MaybeScheduleAutoForfeit()

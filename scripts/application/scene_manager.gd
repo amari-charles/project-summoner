@@ -15,7 +15,9 @@ class_name SceneManagerClass
 const SCENE_TITLE_SCREEN: String = "res://scenes/meta/screens/title_screen.tscn"
 
 ## Campaign Scenes
-const SCENE_CAMPAIGN_MAP: String = "res://scenes/meta/screens/academy_hub.tscn"
+const SCENE_WALKABLE_ACADEMY_HUB: String = "res://scenes/meta/screens/walkable_academy_hub.tscn"
+const SCENE_CAMPAIGN_MAP: String = SCENE_WALKABLE_ACADEMY_HUB
+const SCENE_ACADEMY_MENU_HUB: String = "res://scenes/meta/screens/academy_hub.tscn"
 const SCENE_ACADEMY_CLASS_HALL: String = "res://scenes/meta/screens/academy_class_hall.tscn"
 const SCENE_ACADEMY_COURSE_FLOW: String = "res://scenes/meta/screens/academy_course_flow.tscn"
 const SCENE_ACADEMY_ACTIVITY_PREPARATION: String = "res://scenes/meta/screens/academy_activity_preparation.tscn"

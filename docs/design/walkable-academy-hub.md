@@ -1,46 +1,81 @@
 # Walkable Academy Hub
 
-**Status:** Discontinued
-**Type:** Rejected product direction / decision history
-**Decision reversed:** 2026-07-24
+**Status:** Design accepted — bounded hub recovery in progress (Phase 1)
+**Type:** Product/design intent (source of truth for the Academy hub direction)
+**Decision restored:** 2026-08-13
 
 ---
 
 ## Decision
 
-Fateforged will not pursue a walkable Academy hub. The prototype did not provide
-enough value relative to its implementation, content, navigation, and future
-maintenance costs.
+The Academy's primary entry surface is a **bounded, top-down walkable hub**. The
+player moves around one contained campus and enters discrete buildings to reach
+the existing meta-game screens.
 
-The Academy will continue to use fast menu-based navigation. Development should
-focus on the core forging loop: course enrollment, activities, assessments,
-grades, permanent reward choices, transcript identity, and graduating a
-differentiated summoner into battle.
+**This is a hub, not an open world.** There is no overworld map, stamina,
+exploration grind, or open-world content burden. Its scope is deliberately one
+room-sized shared space.
 
-## Current Product Direction
+## Core Design Facts
 
-- Keep `scripts/meta/screens/academy_hub.gd` as the Academy's primary entry surface.
-- Keep direct access to Class Hall, Campus Shop, Mission Hall, Dorms/Collection,
-  Online, Settings, and the summoner screen.
-- Improve the menu-based hub only when doing so supports clarity or completion of
-  the Academy progression loop.
-- Do not add player movement, door zones, walkable buildings, campus navigation,
-  multiplayer presence, hub instancing, or hub-specific social interaction.
-- Do not treat the abandoned walkable-hub prototype as a dependency for future
-  Academy work.
-
-## Prototype Disposition
-
-The local prototype previously explored a bounded top-down campus with a movable
-avatar and discrete building entrances. That implementation is not part of the
-active product direction and should not be merged into the production line.
-
-Any generally useful work developed alongside it should be separated and evaluated
-on its own merits.
+- **Shortcuts to every location always exist.** Walking is never required to
+  reach a destination. The shortcut menu is the fast path; movement supplies
+  atmosphere and future social presence.
+- **Buildings are discrete placeable objects.** Ground, buildings, and later
+  paths or decorations are separate pieces. A destination can be added or moved
+  without repainting the whole campus.
+- **Existing feature screens remain authoritative.** Entering a building routes
+  to today's Class Hall, Campus Shop, Mission Hall, Dorms, or Online screen; the
+  hub does not reimplement their functionality.
+- **The competitive loop stays fast.** Online play and deck management remain
+  immediately accessible through shortcuts.
+- **The former menu hub remains available as a fallback during recovery.** It is
+  not the target player experience and should not become a second source of
+  routing truth.
 
 ## Rationale
 
-The walkable hub added a new interaction layer without advancing the game's
-fundamental loop enough to justify its cost. Menu navigation is faster and keeps
-development concentrated on the permanent choices and combat outcomes that define
-Fateforged.
+1. **Social is the long-term reason.** The campus can eventually become a shared
+   space where players see one another between matches. A menu cannot provide
+   that sense of presence.
+2. **The Academy becomes a place.** Walking through a magic campus reinforces
+   the student fantasy instead of reducing it to a list of destinations.
+3. **Placeable pieces keep expansion bounded.** New locations can be introduced
+   incrementally without committing to an open-world content model.
+4. **Shortcuts preserve convenience.** The walkable layer never needs to compete
+   with direct menu navigation for speed.
+
+## Phasing
+
+1. **Phase 1 (current): single-player bounded hub.** The avatar moves inside
+   fixed boundaries; placeholder buildings expose interaction zones; entering a
+   building opens its existing screen; the shortcut menu reaches every campus
+   destination. No networking.
+2. **Phase 2: real-time presence (Nakama).** Other players' avatars appear and
+   move in the campus.
+3. **Phase 3: social interaction.** Emotes, chat, and name tags.
+4. **Phase 4: instancing/capacity.** Introduce bounded player populations per
+   campus instance if presence requires it.
+
+Shortcuts remain available through every phase.
+
+## Building-to-Screen Routing
+
+| Building | Target scene constant |
+|---|---|
+| Class Hall | `SCENE_ACADEMY_CLASS_HALL` |
+| Campus Shop | `SCENE_SHOP_SCREEN` |
+| Mission Hall | `SCENE_SPECIAL_EVENTS` |
+| Dorms | `SCENE_COLLECTION_SCREEN` |
+| Online Arena | `SCENE_ONLINE` |
+
+Settings and the summoner screen are shortcut destinations without Phase 1
+building requirements.
+
+## Phase 1 Non-Goals
+
+- Multiplayer presence, chat, emotes, or hub instancing.
+- Final campus art, animation, lighting, or environmental dressing.
+- Navmesh or point-and-click pathfinding.
+- Reimplementing the feature screens behind each destination.
+- Deleting the former menu hub before the recovered route is validated.

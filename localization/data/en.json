@@ -274,6 +274,15 @@
     "location": {
       "exit": "X"
     },
+    "walkable": {
+      "placeholder_ground": "TEMP ACADEMY GROUND",
+      "placeholder_player": "PLACEHOLDER PLAYER",
+      "placeholder_building": "PLACEHOLDER {name}",
+      "open_shortcuts": "Campus Shortcuts",
+      "shortcuts_title": "Campus Shortcuts",
+      "summoner_description": "Review your summoner, equipment, and progression.",
+      "settings_description": "Adjust game settings."
+    },
     "campus": {
       "enter": "Enter",
       "coming_soon": "Coming Soon",

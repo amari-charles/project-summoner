@@ -382,7 +382,8 @@ func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
 	return style
 
 func _on_exit_pressed() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+	var return_scene: String = NavigationContext.pop_return() if NavigationContext.has_return() else ""
+	SceneManager.transition_to(return_scene if not return_scene.is_empty() else SceneManager.SCENE_CAMPAIGN_MAP)
 
 func _on_advance_semester_pressed() -> void:
 	var block_reason: String = _advance_semester_block_reason()

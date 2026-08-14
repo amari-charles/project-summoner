@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/components/walkable_academy_building.gd" id="1_script"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_building"]
+size = Vector3(8, 4, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_door"]
+size = Vector3(3.6, 2, 3)
+
+[node name="WalkableAcademyBuilding" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="PlaceholderBuildingArt" type="Sprite3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 4, -1.55)
+pixel_size = 0.035
+billboard = 1
+texture_filter = 1
+
+[node name="CollisionBody" type="StaticBody3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -1.5)
+collision_layer = 4
+collision_mask = 0
+
+[node name="BuildingCollisionShape" type="CollisionShape3D" parent="CollisionBody"]
+unique_name_in_owner = true
+shape = SubResource("BoxShape3D_building")
+
+[node name="DoorArea" type="Area3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2.25)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DoorArea"]
+shape = SubResource("BoxShape3D_door")
+
+[node name="NameLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 8, -1.4)
+pixel_size = 0.012
+billboard = 2
+modulate = Color(0.98, 0.9, 0.68, 1)
+outline_size = 10
+outline_modulate = Color(0, 0, 0, 0.75)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlaceholderLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 7.2, -1.42)
+pixel_size = 0.006
+billboard = 2
+modulate = Color(0.76, 0.72, 0.78, 1)
+outline_size = 6
+outline_modulate = Color(0, 0, 0, 0.5)
+horizontal_alignment = 1
+vertical_alignment = 1
