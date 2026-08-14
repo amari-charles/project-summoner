@@ -109,6 +109,7 @@ var _camera_default_fov: float = 46.0
 var _camera_base_basis: Basis = Basis.IDENTITY
 var _camera_focus_position: Vector3 = Vector3.ZERO
 var _camera_follow_distance: float = 31.0
+var _ground_source_size: Vector2 = Vector2.ZERO
 var _transition_started: bool = false
 
 
@@ -146,12 +147,25 @@ func _configure_placeholder_ground() -> void:
 	if ground_plane == null or source_material == null:
 		push_error("WalkableAcademyHub: Placeholder ground requires a PlaneMesh and StandardMaterial3D")
 		return
-	var ground_size: Vector2 = ground_plane.size
-	var border_size: float = minf(ground_tile_world_size, minf(ground_size.x, ground_size.y) * 0.5)
-	var inner_size: Vector2 = ground_size - Vector2.ONE * border_size * 2.0
-	if inner_size.x <= 0.0 or inner_size.y <= 0.0:
+	if _ground_source_size == Vector2.ZERO:
+		_ground_source_size = ground_plane.size
+	var ground_size: Vector2 = _ground_source_size
+	var column_count: int = floori(ground_size.x / ground_tile_world_size)
+	var row_count: int = floori(ground_size.y / ground_tile_world_size)
+	if column_count < 3 or row_count < 3:
 		push_error("WalkableAcademyHub: Ground is too small for the configured tile size")
 		return
+	var border_size: float = ground_tile_world_size
+	var inner_columns: int = column_count - 2
+	var inner_rows: int = row_count - 2
+	var inner_size: Vector2 = Vector2(
+		inner_columns * ground_tile_world_size,
+		inner_rows * ground_tile_world_size
+	)
+	var rendered_size: Vector2 = Vector2(
+		column_count * ground_tile_world_size,
+		row_count * ground_tile_world_size
+	)
 
 	_clear_ground_border()
 	_configure_ground_piece(
@@ -159,73 +173,88 @@ func _configure_placeholder_ground() -> void:
 		inner_size,
 		Vector3.ZERO,
 		PLACEHOLDER_GROUND_CENTER,
-		Vector2(inner_size.x / ground_tile_world_size, inner_size.y / ground_tile_world_size),
+		Vector2(inner_columns, inner_rows),
 		source_material
 	)
 	_add_ground_piece(
 		"TopEdge",
 		Vector2(inner_size.x, border_size),
-		Vector3(0.0, 0.0, -inner_size.y * 0.5 - border_size * 0.5),
+		Vector3(0.0, 0.0, -rendered_size.y * 0.5 + border_size * 0.5),
 		PLACEHOLDER_GROUND_TOP,
-		Vector2(inner_size.x / ground_tile_world_size, 1.0),
+		Vector2(inner_columns, 1.0),
 		source_material
 	)
 	_add_ground_piece(
 		"BottomEdge",
 		Vector2(inner_size.x, border_size),
-		Vector3(0.0, 0.0, inner_size.y * 0.5 + border_size * 0.5),
+		Vector3(0.0, 0.0, rendered_size.y * 0.5 - border_size * 0.5),
 		PLACEHOLDER_GROUND_BOTTOM,
-		Vector2(inner_size.x / ground_tile_world_size, 1.0),
+		Vector2(inner_columns, 1.0),
 		source_material
 	)
 	_add_ground_piece(
 		"LeftEdge",
 		Vector2(border_size, inner_size.y),
-		Vector3(-inner_size.x * 0.5 - border_size * 0.5, 0.0, 0.0),
+		Vector3(-rendered_size.x * 0.5 + border_size * 0.5, 0.0, 0.0),
 		PLACEHOLDER_GROUND_LEFT,
-		Vector2(1.0, inner_size.y / ground_tile_world_size),
+		Vector2(1.0, inner_rows),
 		source_material
 	)
 	_add_ground_piece(
 		"RightEdge",
 		Vector2(border_size, inner_size.y),
-		Vector3(inner_size.x * 0.5 + border_size * 0.5, 0.0, 0.0),
+		Vector3(rendered_size.x * 0.5 - border_size * 0.5, 0.0, 0.0),
 		PLACEHOLDER_GROUND_RIGHT,
-		Vector2(1.0, inner_size.y / ground_tile_world_size),
+		Vector2(1.0, inner_rows),
 		source_material
 	)
 	_add_ground_corner(
 		"TopLeftCorner",
-		Vector3(-inner_size.x * 0.5 - border_size * 0.5, 0.0, -inner_size.y * 0.5 - border_size * 0.5),
+		Vector3(
+			-rendered_size.x * 0.5 + border_size * 0.5,
+			0.0,
+			-rendered_size.y * 0.5 + border_size * 0.5
+		),
 		PLACEHOLDER_GROUND_TOP_LEFT,
 		border_size,
 		source_material
 	)
 	_add_ground_corner(
 		"TopRightCorner",
-		Vector3(inner_size.x * 0.5 + border_size * 0.5, 0.0, -inner_size.y * 0.5 - border_size * 0.5),
+		Vector3(
+			rendered_size.x * 0.5 - border_size * 0.5,
+			0.0,
+			-rendered_size.y * 0.5 + border_size * 0.5
+		),
 		PLACEHOLDER_GROUND_TOP_RIGHT,
 		border_size,
 		source_material
 	)
 	_add_ground_corner(
 		"BottomLeftCorner",
-		Vector3(-inner_size.x * 0.5 - border_size * 0.5, 0.0, inner_size.y * 0.5 + border_size * 0.5),
+		Vector3(
+			-rendered_size.x * 0.5 + border_size * 0.5,
+			0.0,
+			rendered_size.y * 0.5 - border_size * 0.5
+		),
 		PLACEHOLDER_GROUND_BOTTOM_LEFT,
 		border_size,
 		source_material
 	)
 	_add_ground_corner(
 		"BottomRightCorner",
-		Vector3(inner_size.x * 0.5 + border_size * 0.5, 0.0, inner_size.y * 0.5 + border_size * 0.5),
+		Vector3(
+			rendered_size.x * 0.5 - border_size * 0.5,
+			0.0,
+			rendered_size.y * 0.5 - border_size * 0.5
+		),
 		PLACEHOLDER_GROUND_BOTTOM_RIGHT,
 		border_size,
 		source_material
 	)
-	var grass_front_edge: float = inner_size.y * 0.5 + border_size
+	var grass_front_edge: float = rendered_size.y * 0.5
 	_add_ground_cliff_row(
-		"CliffMiddle",
-		-border_size * 0.5,
+		"FrontCliff",
 		grass_front_edge,
 		inner_size.x,
 		border_size,
@@ -261,7 +290,6 @@ func _add_ground_corner(
 
 func _add_ground_cliff_row(
 	piece_name: String,
-	y_position: float,
 	z_position: float,
 	inner_width: float,
 	tile_size: float,
@@ -270,56 +298,30 @@ func _add_ground_cliff_row(
 	right_texture: Texture2D,
 	source_material: StandardMaterial3D
 ) -> void:
-	_add_ground_cliff_piece(
+	_add_ground_piece(
 		piece_name + "Left",
 		Vector2.ONE * tile_size,
-		Vector3(-inner_width * 0.5 - tile_size * 0.5, y_position, z_position),
+		Vector3(-inner_width * 0.5 - tile_size * 0.5, 0.0, z_position + tile_size * 0.5),
 		left_texture,
 		Vector2.ONE,
 		source_material
 	)
-	_add_ground_cliff_piece(
+	_add_ground_piece(
 		piece_name + "Center",
 		Vector2(inner_width, tile_size),
-		Vector3(0.0, y_position, z_position),
+		Vector3(0.0, 0.0, z_position + tile_size * 0.5),
 		middle_texture,
-		Vector2(inner_width / ground_tile_world_size, 1.0),
+		Vector2(inner_width / tile_size, 1.0),
 		source_material
 	)
-	_add_ground_cliff_piece(
+	_add_ground_piece(
 		piece_name + "Right",
 		Vector2.ONE * tile_size,
-		Vector3(inner_width * 0.5 + tile_size * 0.5, y_position, z_position),
+		Vector3(inner_width * 0.5 + tile_size * 0.5, 0.0, z_position + tile_size * 0.5),
 		right_texture,
 		Vector2.ONE,
 		source_material
 	)
-
-
-func _add_ground_cliff_piece(
-	piece_name: String,
-	piece_size: Vector2,
-	piece_position: Vector3,
-	texture: Texture2D,
-	uv_scale: Vector2,
-	source_material: StandardMaterial3D
-) -> void:
-	var piece: MeshInstance3D = MeshInstance3D.new()
-	piece.name = piece_name
-	piece.add_to_group("placeholder_ground_border")
-	ground.add_child(piece)
-	var piece_mesh: QuadMesh = QuadMesh.new()
-	piece_mesh.size = piece_size
-	piece.mesh = piece_mesh
-	piece.position = piece_position
-	var piece_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
-	piece_material.albedo_color = ground_tint
-	piece_material.albedo_texture = texture
-	piece_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-	piece_material.alpha_scissor_threshold = 0.5
-	piece_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	piece_material.uv1_scale = Vector3(uv_scale.x, uv_scale.y, 1.0)
-	piece.material_override = piece_material
 
 
 func _add_ground_piece(
