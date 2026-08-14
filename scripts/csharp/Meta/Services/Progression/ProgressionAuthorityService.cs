@@ -9,6 +9,7 @@ using Fateforged.Domain.Progression;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Rewards;
+using Fateforged.Meta.Summoner;
 using Godot;
 using GdDict = Godot.Collections.Dictionary;
 
@@ -57,7 +58,12 @@ public partial class ProgressionAuthorityService : Node
         if (profile == null)
             return ProgressionAuthorityResult.Unavailable("Profile metadata unavailable.");
 
-        var summonerId = new SummonerId(profile.Meta.SelectedSummoner);
+        var activeSummonerId = SummonerSelectionService.Instance?.GetActiveSummonerId();
+        var summonerId = new SummonerId(
+            string.IsNullOrEmpty(activeSummonerId)
+                ? profile.Meta.SelectedSummoner
+                : activeSummonerId
+        );
 
         return Authority.StartBattleAttempt(
             new StartBattleAttemptRequest
