@@ -10,6 +10,7 @@ const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/componen
 const HamburgerButtonScene: PackedScene = preload("res://scenes/shared/hamburger_button.tscn")
 const NavDrawerScene: PackedScene = preload("res://scenes/meta/components/nav_drawer.tscn")
 const CampaignSelectorModalScene: PackedScene = preload("res://scenes/meta/components/campaign_selector_modal.tscn")
+const BATTLE_SURFACE_ROUTER = preload("res://scripts/application/battle_surface_router.gd")
 
 ## Node references
 @onready var locator_button: TextureButton = %LocatorButton
@@ -613,13 +614,7 @@ func _on_panel_start_requested() -> void:
 	)
 	BattleContext.configure_campaign_battle(selected_event_id)
 
-	# Launch battle scene - use custom scene_path if specified in battle config
-	var battle_scene: String = SceneManager.SCENE_BATTLE_3D
-	if BattleContext.battle_config.has("scene_path"):
-		var custom_scene: String = BattleContext.battle_config.get("scene_path", "")
-		if not custom_scene.is_empty():
-			battle_scene = custom_scene
-	SceneManager.transition_to(battle_scene)
+	SceneManager.transition_to(BATTLE_SURFACE_ROUTER.resolve_scene(BattleContext.battle_config))
 
 
 ## Handle choice made from choice panel

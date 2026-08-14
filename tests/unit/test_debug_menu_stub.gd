@@ -181,7 +181,7 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	assert_eq(harness.last_attempt_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_context_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_biome_id, String(BiomeIDs.ISLAND_WATER))
-	assert_eq(harness.last_transition_scene, "res://scenes/battle/battlefield/custom_debug_scene.tscn")
+	assert_eq(harness.last_transition_scene, SceneManager.SCENE_DEBUG_ARENA)
 
 
 func test_c15_visualization_toggles_and_persistence_round_trip() -> void:
@@ -333,7 +333,7 @@ class _DebugMenuHarness extends RefCounted:
 		return true
 
 	func get_battle(_battle_id: String) -> Dictionary:
-		return {"scene_path": "res://scenes/battle/battlefield/custom_debug_scene.tscn"}
+		return {"runtime_surface": "debug_arena"}
 
 	func transition_to(scene_path: String) -> void:
 		last_transition_scene = scene_path
