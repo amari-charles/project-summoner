@@ -108,14 +108,12 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 	assert_not_null(cliff_middle)
 	assert_not_null(cliff_left)
 	assert_not_null(cliff_right)
-	assert_true(cliff_middle.mesh is PlaneMesh, "Tiny Swords cliffs use the horizontal tilemap plane")
-	assert_eq(cliff_middle.position.y, 0.0)
+	assert_true(cliff_middle.mesh is QuadMesh, "The illustrated stone should retain its vertical presentation")
+	assert_lt(cliff_middle.position.y, 0.0)
 	var bottom_edge: MeshInstance3D = ground.get_node("BottomEdge") as MeshInstance3D
 	var bottom_edge_plane: PlaneMesh = bottom_edge.mesh as PlaneMesh
-	var cliff_plane: PlaneMesh = cliff_middle.mesh as PlaneMesh
 	var grass_front: float = bottom_edge.position.z + bottom_edge_plane.size.y * 0.5
-	var cliff_back: float = cliff_middle.position.z - cliff_plane.size.y * 0.5
-	assert_almost_eq(cliff_back, grass_front, 0.0001, "The cliff row must begin on the next complete grid cell")
+	assert_almost_eq(cliff_middle.position.z, grass_front, 0.0001, "The cliff must hang directly beneath the front grass edge")
 	assert_eq((cliff_left.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT)
 	assert_eq((cliff_right.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT)
 	assert_null(ground.get_node_or_null("CliffBottomCenter"))

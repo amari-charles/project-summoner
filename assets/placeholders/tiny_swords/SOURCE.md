@@ -14,11 +14,11 @@ campus. They are not approved final Fateforged art.
 Only the building, character, sheep, and terrain PNGs currently used by the
 prototype are stored here. The flat-ground and elevated-ground regions of
 `Terrain/Tileset/Tilemap_color3.png` provide the repeatable center, perimeter,
-and one stone row beneath the front grass edge. The prototype follows the
-pack's tilemap guide: the illustrated cliff occupies the next horizontal grid
-row toward the camera rather than wrapping the art around vertical 3D geometry.
-The cliff's left, center, and right cells come from the same authored atlas row.
-Every crop remains on the pack's documented 64x64 grid to preserve a consistent
-pixel density.
+and one stone row beneath the front grass edge. All perimeter crops come from
+the atlas's right-hand elevated-ground block; the left-hand flat-ground block
+is intended for grass surrounded by water. The cliff's left, center, and right
+cells come from the same elevated-ground atlas row. The stone art is displayed
+vertically in this 3D prototype, while every crop remains on the pack's
+documented 64x64 grid to preserve a consistent pixel density.
 Filenames and containing directories intentionally include `placeholder` so
 these assets are not mistaken for project-owned production art.
