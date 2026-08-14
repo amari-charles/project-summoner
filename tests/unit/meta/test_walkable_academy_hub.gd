@@ -63,6 +63,20 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 
 
 func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
+	var ground_textures: Array[Texture2D] = [
+		WalkableAcademyHub.PLACEHOLDER_GROUND_CENTER,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP_LEFT,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP_RIGHT,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_LEFT,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_RIGHT,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_LEFT,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM,
+		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_RIGHT,
+	]
+	for texture: Texture2D in ground_textures:
+		assert_eq(texture.get_size(), Vector2(64.0, 64.0), "Ground regions must share the source pack's 64px grid")
+
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	hub.ground_tile_world_size = 9.0
