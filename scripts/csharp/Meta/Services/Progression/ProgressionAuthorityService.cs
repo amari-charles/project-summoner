@@ -57,13 +57,8 @@ public partial class ProgressionAuthorityService : Node
         var profile = ProfileRepository.Instance?.GetProfileMetadata();
         if (profile == null)
             return ProgressionAuthorityResult.Unavailable("Profile metadata unavailable.");
-
-        var activeSummonerId = SummonerSelectionService.Instance?.GetActiveSummonerId();
-        var summonerId = new SummonerId(
-            string.IsNullOrEmpty(activeSummonerId)
-                ? profile.Meta.SelectedSummoner
-                : activeSummonerId
-        );
+        if (!TryGetActiveSummonerId(out var summonerId))
+            return ProgressionAuthorityResult.Unavailable("Active summoner unavailable.");
 
         return Authority.StartBattleAttempt(
             new StartBattleAttemptRequest
@@ -103,8 +98,10 @@ public partial class ProgressionAuthorityService : Node
 
     public GdDict GetPendingBattleRewards()
     {
-        var profile = ProfileRepository.Instance?.GetProfileMetadata();
-        var summonerId = new SummonerId(profile?.Meta.SelectedSummoner ?? "");
+        if (!TryGetActiveSummonerId(out var summonerId))
+            return ToDictionary(
+                ProgressionAuthorityResult.Unavailable("Active summoner unavailable.")
+            );
         return ToDictionary(Authority.GetPendingBattleRewards(summonerId));
     }
 
@@ -130,6 +127,13 @@ public partial class ProgressionAuthorityService : Node
     {
         Authority = authority;
         OutcomeCoordinator = new BattleOutcomeCoordinator(authority);
+    }
+
+    private static bool TryGetActiveSummonerId(out SummonerId summonerId)
+    {
+        var activeSummonerId = SummonerSelectionService.Instance?.GetActiveSummonerId() ?? "";
+        summonerId = new SummonerId(activeSummonerId);
+        return summonerId.HasValue;
     }
 
     private static GdDict ToDictionary(ProgressionAuthorityResult result)

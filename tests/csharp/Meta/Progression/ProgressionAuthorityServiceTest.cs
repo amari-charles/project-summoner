@@ -55,10 +55,15 @@ public class ProgressionAuthorityServiceTest
         var service = CreateNode<ProgressionAuthorityService>();
         service.InitForTesting(authority);
 
-        service.BeginCampaignBattleAttempt(CampaignIds.TestArena, new BattleId("debug_arena"));
+        service.BeginCampaignBattleAttempt(
+            CampaignIds.TestArena,
+            new BattleId(EventIds.DebugArena.Value)
+        );
+        service.GetPendingBattleRewards();
 
         AssertThat(authority.LastStartRequest).IsNotNull();
         AssertThat(authority.LastStartRequest!.SummonerId).IsEqual(SummonerIds.Mei);
+        AssertThat(authority.LastPendingRewardsSummonerId).IsEqual(SummonerIds.Mei);
     }
 
     private T CreateNode<T>()
@@ -74,6 +79,7 @@ public class ProgressionAuthorityServiceTest
     private sealed class RecordingAuthority : IProgressionAuthority
     {
         public StartBattleAttemptRequest? LastStartRequest { get; private set; }
+        public SummonerId LastPendingRewardsSummonerId { get; private set; } = SummonerId.None;
 
         public ProgressionAuthorityResult StartBattleAttempt(StartBattleAttemptRequest request)
         {
@@ -88,8 +94,11 @@ public class ProgressionAuthorityServiceTest
         public ProgressionAuthorityResult GetBattleRewards(BattleAttemptId attemptId) =>
             ProgressionAuthorityResult.Unavailable("stub");
 
-        public ProgressionAuthorityResult GetPendingBattleRewards(SummonerId summonerId) =>
-            ProgressionAuthorityResult.Unavailable("stub");
+        public ProgressionAuthorityResult GetPendingBattleRewards(SummonerId summonerId)
+        {
+            LastPendingRewardsSummonerId = summonerId;
+            return ProgressionAuthorityResult.Unavailable("stub");
+        }
 
         public ProgressionAuthorityResult ClaimBattleReward(BattleRewardClaimRequest request) =>
             ProgressionAuthorityResult.Unavailable("stub");
