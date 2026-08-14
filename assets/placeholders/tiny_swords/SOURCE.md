@@ -11,6 +11,6 @@ campus. They are not approved final Fateforged art.
   credit is optional; the assets may not be redistributed, resold, or repackaged
   as assets.
 
-Only the five building PNGs currently used by the prototype are stored here.
-Their filenames and containing directory intentionally include `placeholder` so
-they are not mistaken for project-owned production art.
+Only the building, character, and sheep PNGs currently used by the prototype
+are stored here. Their filenames and containing directory intentionally include
+`placeholder` so they are not mistaken for project-owned production art.

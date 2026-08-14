@@ -24,6 +24,7 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Boundaries/Right/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
+	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
 	hub.free()
 
 
@@ -56,6 +57,13 @@ func test_walkable_controls_are_project_actions() -> void:
 	for action: StringName in [&"move_left", &"move_right", &"move_up", &"move_down", &"interact"]:
 		assert_true(InputMap.has_action(action), "%s must be configured in project.godot" % action)
 		assert_false(InputMap.action_get_events(action).is_empty(), "%s must have an input binding" % action)
+
+
+func test_placeholder_crowd_is_visual_only_and_deterministic() -> void:
+	assert_eq(PlaceholderCampusCrowd.PLACEMENTS.size(), 8)
+	for placement: Dictionary in PlaceholderCampusCrowd.PLACEMENTS:
+		assert_not_null(placement["texture"])
+		assert_gt(int(placement["frames"]), 1)
 
 
 func test_building_displays_explicit_placeholder_art() -> void:
