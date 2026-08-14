@@ -84,6 +84,7 @@ public partial class BattleScene : Node3D
 
     /// Max frames to wait for a single scene to load (~5 seconds at 60fps)
     private const int SceneLoadTimeoutFrames = 300;
+
     // Emergency fallback deck (test mode only)
     private const string EmergencyDeckCardId = "fire_wisp";
     private const int EmergencyDeckSize = 3;

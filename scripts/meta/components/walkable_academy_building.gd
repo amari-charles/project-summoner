@@ -146,9 +146,7 @@ func _refresh_label_positions() -> void:
 
 
 func _is_interact_pressed() -> bool:
-	if InputMap.has_action("interact") and Input.is_action_just_pressed("interact"):
-		return true
-	return Input.is_action_just_pressed("ui_accept")
+	return Input.is_action_just_pressed("interact")
 
 
 func _enter_target_scene() -> void:
