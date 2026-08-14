@@ -64,6 +64,8 @@ func test_placeholder_crowd_is_visual_only_and_deterministic() -> void:
 	for placement: Dictionary in PlaceholderCampusCrowd.PLACEMENTS:
 		assert_not_null(placement["texture"])
 		assert_gt(int(placement["frames"]), 1)
+		var position: Vector3 = placement["position"]
+		assert_eq(position.y, 0.0)
 
 
 func test_player_switches_to_visible_run_cycle_during_movement() -> void:
@@ -79,6 +81,8 @@ func test_player_switches_to_visible_run_cycle_during_movement() -> void:
 	assert_true(visual.texture.resource_path.ends_with("placeholder_player_pawn_run.png"))
 	assert_eq(visual.hframes, WalkableAcademyPlayer.RUN_FRAME_COUNT)
 	assert_gt(visual.frame, 0)
+	assert_almost_eq(visual.position.y, -1.2, 0.0001)
+	assert_gt(visual.offset.y, 0.0)
 	assert_false(visual.flip_h)
 	player._update_animation(0.0, Vector3.LEFT)
 	assert_true(visual.flip_h)
@@ -111,5 +115,6 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	var art: Sprite3D = building.get_node("PlaceholderBuildingArt") as Sprite3D
 	var placeholder_label: Label3D = building.get_node("PlaceholderLabel") as Label3D
 	assert_eq(art.texture, texture)
-	assert_eq(art.offset, Vector2.ZERO)
+	assert_eq(art.position.y, 0.0)
+	assert_gt(art.offset.y, 0.0)
 	assert_true(placeholder_label.text.begins_with("PLACEHOLDER"))

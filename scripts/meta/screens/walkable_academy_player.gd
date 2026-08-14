@@ -56,6 +56,7 @@ func _set_animation(running: bool) -> void:
 	player_visual.texture = PLACEHOLDER_RUN_TEXTURE if running else PLACEHOLDER_IDLE_TEXTURE
 	player_visual.hframes = RUN_FRAME_COUNT if running else IDLE_FRAME_COUNT
 	player_visual.frame = 0
+	CutoutRenderOrder.anchor_visible_bottom(player_visual, player_visual.texture)
 
 
 func _set_facing_left(facing_left: bool) -> void:

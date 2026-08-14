@@ -110,8 +110,8 @@ move_speed = 12.0
 
 [node name="PlayerVisual" type="Sprite3D" parent="Player"]
 unique_name_in_owner = true
+position = Vector3(0, -1.2, 0)
 pixel_size = 0.035
-offset = Vector2(0, 34)
 billboard = 1
 texture_filter = 0
 hframes = 8

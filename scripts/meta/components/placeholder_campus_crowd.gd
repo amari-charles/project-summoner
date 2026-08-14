@@ -10,14 +10,14 @@ const STUDENT_IDLE: Texture2D = preload("res://assets/placeholders/tiny_swords/c
 const GUARD_IDLE: Texture2D = preload("res://assets/placeholders/tiny_swords/characters/placeholder_guard_idle.png")
 
 const PLACEMENTS: Array[Dictionary] = [
-	{"texture": SHEEP_IDLE, "frames": 6, "fps": 4.0, "position": Vector3(-8.0, 0.65, 5.0), "flip": false},
-	{"texture": SHEEP_GRAZE, "frames": 12, "fps": 5.0, "position": Vector3(8.0, 0.65, 6.0), "flip": true},
-	{"texture": SHEEP_IDLE, "frames": 6, "fps": 3.5, "position": Vector3(11.0, 0.65, -2.0), "flip": true},
-	{"texture": SHEEP_GRAZE, "frames": 12, "fps": 4.5, "position": Vector3(-5.0, 0.65, -6.0), "flip": false},
-	{"texture": STUDENT_IDLE, "frames": 8, "fps": 5.0, "position": Vector3(-10.0, 1.4, -1.0), "flip": false},
-	{"texture": STUDENT_IDLE, "frames": 8, "fps": 4.5, "position": Vector3(5.0, 1.4, 2.0), "flip": true},
-	{"texture": GUARD_IDLE, "frames": 8, "fps": 5.0, "position": Vector3(12.0, 1.4, -12.0), "flip": true},
-	{"texture": GUARD_IDLE, "frames": 8, "fps": 4.0, "position": Vector3(-13.0, 1.4, 11.0), "flip": false},
+	{"texture": SHEEP_IDLE, "frames": 6, "fps": 4.0, "position": Vector3(-8.0, 0.0, 5.0), "flip": false},
+	{"texture": SHEEP_GRAZE, "frames": 12, "fps": 5.0, "position": Vector3(8.0, 0.0, 6.0), "flip": true},
+	{"texture": SHEEP_IDLE, "frames": 6, "fps": 3.5, "position": Vector3(11.0, 0.0, -2.0), "flip": true},
+	{"texture": SHEEP_GRAZE, "frames": 12, "fps": 4.5, "position": Vector3(-5.0, 0.0, -6.0), "flip": false},
+	{"texture": STUDENT_IDLE, "frames": 8, "fps": 5.0, "position": Vector3(-10.0, 0.0, -1.0), "flip": false},
+	{"texture": STUDENT_IDLE, "frames": 8, "fps": 4.5, "position": Vector3(5.0, 0.0, 2.0), "flip": true},
+	{"texture": GUARD_IDLE, "frames": 8, "fps": 5.0, "position": Vector3(12.0, 0.0, -12.0), "flip": true},
+	{"texture": GUARD_IDLE, "frames": 8, "fps": 4.0, "position": Vector3(-13.0, 0.0, 11.0), "flip": false},
 ]
 
 const CHARACTER_PIXEL_SIZE: float = 0.028
@@ -40,6 +40,7 @@ func _ready() -> void:
 		sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		sprite.pixel_size = SHEEP_PIXEL_SIZE if sprite.texture.get_height() == 128 else CHARACTER_PIXEL_SIZE
+		CutoutRenderOrder.anchor_visible_bottom(sprite, sprite.texture)
 		add_child(sprite)
 		CutoutRenderOrder.apply_from_feet(sprite, global_position.z + sprite.position.z)
 		_sprites.append(sprite)
