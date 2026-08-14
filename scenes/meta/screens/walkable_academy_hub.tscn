@@ -27,7 +27,7 @@ size = Vector3(2, 5, 50)
 
 [sub_resource type="Environment" id="Environment_walkable_hub"]
 background_mode = 1
-background_color = Color(0.09, 0.105, 0.12, 1)
+background_color = Color(0.278431, 0.670588, 0.662745, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.7
@@ -54,6 +54,9 @@ far = 180.0
 unique_name_in_owner = true
 material_override = SubResource("StandardMaterial3D_ground")
 mesh = SubResource("PlaneMesh_ground")
+
+[node name="PlaceholderWater" type="Node3D" parent="."]
+unique_name_in_owner = true
 
 [node name="GroundLabel" type="Label3D" parent="."]
 unique_name_in_owner = true

@@ -20,6 +20,11 @@ const PLACEHOLDER_GROUND_BOTTOM_RIGHT: Texture2D = preload("res://assets/placeho
 const PLACEHOLDER_CLIFF_MIDDLE_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_left.png")
 const PLACEHOLDER_CLIFF_MIDDLE: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle.png")
 const PLACEHOLDER_CLIFF_MIDDLE_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_right.png")
+const PLACEHOLDER_WATER_BACKGROUND: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_water_background.png")
+const PLACEHOLDER_WATER_FOAM: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_water_foam.png")
+const PLACEHOLDER_WATER_FOAM_SHADER: Shader = preload("res://shaders/meta/placeholder_water_foam.gdshader")
+const WATER_FOAM_FRAME_COUNT: int = 16
+const WATER_FOAM_TILE_SPAN: float = 3.0
 
 const DESTINATION_CLASS_HALL: StringName = &"class_hall"
 const DESTINATION_SHOP: StringName = &"shop"
@@ -80,6 +85,11 @@ const DESTINATIONS: Array[Dictionary] = [
 @export_range(0.5, 20.0, 0.25) var ground_tile_world_size: float = 2.25
 @export var ground_tint: Color = Color(0.78, 0.8, 0.76, 1.0)
 
+@export_category("Placeholder Water")
+@export_range(1, 40, 1) var water_margin_tiles: int = 20
+@export_range(1.0, 24.0, 0.5) var water_foam_fps: float = 8.0
+@export var water_tint: Color = Color.WHITE
+
 @export_category("Camera")
 @export var camera_follow_offset: Vector3 = Vector3(0.0, 22.0, 22.0)
 @export var camera_follow_focus_height: float = 2.45
@@ -93,6 +103,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @export var camera_zoom_pitch_max_degrees: float = 8.0
 
 @onready var ground: MeshInstance3D = %Ground
+@onready var placeholder_water: Node3D = %PlaceholderWater
 @onready var ground_label: Label3D = %GroundLabel
 @onready var buildings: Node3D = %Buildings
 @onready var camera: Camera3D = %Camera3D
@@ -264,6 +275,101 @@ func _configure_placeholder_ground() -> void:
 		PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
 		source_material
 	)
+	_configure_placeholder_water(rendered_size, column_count, row_count)
+
+
+func _configure_placeholder_water(
+	rendered_size: Vector2,
+	column_count: int,
+	row_count: int
+) -> void:
+	for child: Node in placeholder_water.get_children():
+		child.free()
+
+	var water_level: float = -ground_tile_world_size - 0.05
+	var water_size: Vector2 = rendered_size + Vector2.ONE * ground_tile_world_size * water_margin_tiles * 2.0
+	var surface: MeshInstance3D = MeshInstance3D.new()
+	surface.name = "Surface"
+	var surface_mesh: PlaneMesh = PlaneMesh.new()
+	surface_mesh.size = water_size
+	surface.mesh = surface_mesh
+	surface.position.y = water_level
+	var surface_material: StandardMaterial3D = StandardMaterial3D.new()
+	surface_material.albedo_color = water_tint
+	surface_material.albedo_texture = PLACEHOLDER_WATER_BACKGROUND
+	surface_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	surface_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	surface_material.uv1_scale = Vector3(
+		water_size.x / ground_tile_world_size,
+		water_size.y / ground_tile_world_size,
+		1.0
+	)
+	surface.material_override = surface_material
+	placeholder_water.add_child(surface)
+
+	var foam: Node3D = Node3D.new()
+	foam.name = "Foam"
+	placeholder_water.add_child(foam)
+	# Tiny Swords foam spans three source tiles but is centered on one shoreline
+	# cell. The raised terrain hides its center, leaving the overlapping waves.
+	var foam_index: int = 0
+	var left: float = -rendered_size.x * 0.5 + ground_tile_world_size * 0.5
+	var right: float = rendered_size.x * 0.5 - ground_tile_world_size * 0.5
+	var top: float = -rendered_size.y * 0.5 + ground_tile_world_size * 0.5
+	var bottom: float = rendered_size.y * 0.5 - ground_tile_world_size * 0.5
+	for column: int in column_count:
+		var x_position: float = left + column * ground_tile_world_size
+		_add_water_foam_piece(
+			foam,
+			"Top%d" % column,
+			Vector3(x_position, water_level + 0.02, top),
+			foam_index
+		)
+		foam_index += 1
+		_add_water_foam_piece(
+			foam,
+			"Bottom%d" % column,
+			Vector3(x_position, water_level + 0.02, bottom),
+			foam_index
+		)
+		foam_index += 1
+	for row: int in range(1, row_count - 1):
+		var z_position: float = top + row * ground_tile_world_size
+		_add_water_foam_piece(
+			foam,
+			"Left%d" % row,
+			Vector3(left, water_level + 0.02, z_position),
+			foam_index
+		)
+		foam_index += 1
+		_add_water_foam_piece(
+			foam,
+			"Right%d" % row,
+			Vector3(right, water_level + 0.02, z_position),
+			foam_index
+		)
+		foam_index += 1
+
+
+func _add_water_foam_piece(
+	parent: Node3D,
+	piece_name: String,
+	piece_position: Vector3,
+	animation_offset: int
+) -> void:
+	var piece: MeshInstance3D = MeshInstance3D.new()
+	piece.name = piece_name
+	var piece_mesh: PlaneMesh = PlaneMesh.new()
+	piece_mesh.size = Vector2.ONE * ground_tile_world_size * WATER_FOAM_TILE_SPAN
+	piece.mesh = piece_mesh
+	piece.position = piece_position
+	var piece_material: ShaderMaterial = ShaderMaterial.new()
+	piece_material.shader = PLACEHOLDER_WATER_FOAM_SHADER
+	piece_material.set_shader_parameter("foam_texture", PLACEHOLDER_WATER_FOAM)
+	piece_material.set_shader_parameter("animation_fps", water_foam_fps)
+	piece_material.set_shader_parameter("animation_offset", float(animation_offset % WATER_FOAM_FRAME_COUNT))
+	piece.material_override = piece_material
+	parent.add_child(piece)
 
 
 func _clear_ground_border() -> void:

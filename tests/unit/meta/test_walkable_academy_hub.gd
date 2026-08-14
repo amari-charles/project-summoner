@@ -26,6 +26,7 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
 	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
+	assert_not_null(hub.get_node_or_null("PlaceholderWater"))
 	var ground: MeshInstance3D = hub.get_node("Ground") as MeshInstance3D
 	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
 	assert_not_null(ground_material)
@@ -117,6 +118,28 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 	assert_eq((cliff_left.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT)
 	assert_eq((cliff_right.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT)
 	assert_null(ground.get_node_or_null("CliffBottomCenter"))
+	var water_surface: MeshInstance3D = hub.get_node("PlaceholderWater/Surface") as MeshInstance3D
+	var water_material: StandardMaterial3D = water_surface.material_override as StandardMaterial3D
+	assert_eq(water_material.albedo_texture, WalkableAcademyHub.PLACEHOLDER_WATER_BACKGROUND)
+	assert_eq(water_material.albedo_color, hub.water_tint)
+	assert_lt(water_surface.position.y, cliff_middle.position.y)
+	var foam: Node3D = hub.get_node("PlaceholderWater/Foam") as Node3D
+	assert_eq(foam.get_child_count(), 22, "Every shoreline cell should receive one foam animation")
+	var foam_piece: MeshInstance3D = foam.get_child(0) as MeshInstance3D
+	var foam_mesh: PlaneMesh = foam_piece.mesh as PlaneMesh
+	assert_eq(
+		foam_mesh.size,
+		Vector2.ONE * hub.ground_tile_world_size * WalkableAcademyHub.WATER_FOAM_TILE_SPAN
+	)
+	var foam_material: ShaderMaterial = foam_piece.material_override as ShaderMaterial
+	assert_eq(foam_material.get_shader_parameter("foam_texture"), WalkableAcademyHub.PLACEHOLDER_WATER_FOAM)
+	var next_foam_piece: MeshInstance3D = foam.get_child(1) as MeshInstance3D
+	var next_foam_material: ShaderMaterial = next_foam_piece.material_override as ShaderMaterial
+	assert_ne(
+		foam_material.get_shader_parameter("animation_offset"),
+		next_foam_material.get_shader_parameter("animation_offset"),
+		"Neighboring foam animations should start on different frames"
+	)
 
 
 func test_walkable_controls_are_project_actions() -> void:
