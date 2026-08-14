@@ -107,8 +107,11 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 	var cliff_bottom: MeshInstance3D = ground.get_node_or_null("CliffBottomCenter") as MeshInstance3D
 	assert_not_null(cliff_middle)
 	assert_not_null(cliff_bottom)
-	assert_gt(cliff_middle.position.z, (ground.mesh as PlaneMesh).size.y * 0.5)
-	assert_gt(cliff_bottom.position.z, cliff_middle.position.z)
+	assert_true(cliff_middle.mesh is QuadMesh, "The cliff must descend on vertical geometry")
+	assert_true(cliff_bottom.mesh is QuadMesh, "The cliff must descend on vertical geometry")
+	assert_almost_eq(cliff_bottom.position.z, cliff_middle.position.z, 0.0001)
+	assert_lt(cliff_middle.position.y, 0.0)
+	assert_lt(cliff_bottom.position.y, cliff_middle.position.y)
 
 
 func test_walkable_controls_are_project_actions() -> void:

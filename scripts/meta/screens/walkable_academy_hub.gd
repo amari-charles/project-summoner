@@ -80,7 +80,7 @@ const DESTINATIONS: Array[Dictionary] = [
 ]
 
 @export_category("Placeholder Ground")
-@export_range(0.5, 20.0, 0.25) var ground_tile_world_size: float = 4.5
+@export_range(0.5, 20.0, 0.25) var ground_tile_world_size: float = 2.25
 @export var ground_tint: Color = Color(0.78, 0.8, 0.76, 1.0)
 
 @export_category("Camera")
@@ -228,7 +228,8 @@ func _configure_placeholder_ground() -> void:
 	var grass_front_edge: float = inner_size.y * 0.5 + border_size
 	_add_ground_cliff_row(
 		"CliffMiddle",
-		grass_front_edge + border_size * 0.5,
+		-border_size * 0.5,
+		grass_front_edge,
 		inner_size.x,
 		border_size,
 		PLACEHOLDER_CLIFF_MIDDLE_LEFT,
@@ -238,7 +239,8 @@ func _configure_placeholder_ground() -> void:
 	)
 	_add_ground_cliff_row(
 		"CliffBottom",
-		grass_front_edge + border_size * 1.5,
+		-border_size * 1.5,
+		grass_front_edge,
 		inner_size.x,
 		border_size,
 		PLACEHOLDER_CLIFF_BOTTOM_LEFT,
@@ -273,6 +275,7 @@ func _add_ground_corner(
 
 func _add_ground_cliff_row(
 	piece_name: String,
+	y_position: float,
 	z_position: float,
 	inner_width: float,
 	tile_size: float,
@@ -281,30 +284,56 @@ func _add_ground_cliff_row(
 	right_texture: Texture2D,
 	source_material: StandardMaterial3D
 ) -> void:
-	_add_ground_piece(
+	_add_ground_cliff_piece(
 		piece_name + "Left",
 		Vector2.ONE * tile_size,
-		Vector3(-inner_width * 0.5 - tile_size * 0.5, 0.0, z_position),
+		Vector3(-inner_width * 0.5 - tile_size * 0.5, y_position, z_position),
 		left_texture,
 		Vector2.ONE,
 		source_material
 	)
-	_add_ground_piece(
+	_add_ground_cliff_piece(
 		piece_name + "Center",
 		Vector2(inner_width, tile_size),
-		Vector3(0.0, 0.0, z_position),
+		Vector3(0.0, y_position, z_position),
 		middle_texture,
 		Vector2(inner_width / ground_tile_world_size, 1.0),
 		source_material
 	)
-	_add_ground_piece(
+	_add_ground_cliff_piece(
 		piece_name + "Right",
 		Vector2.ONE * tile_size,
-		Vector3(inner_width * 0.5 + tile_size * 0.5, 0.0, z_position),
+		Vector3(inner_width * 0.5 + tile_size * 0.5, y_position, z_position),
 		right_texture,
 		Vector2.ONE,
 		source_material
 	)
+
+
+func _add_ground_cliff_piece(
+	piece_name: String,
+	piece_size: Vector2,
+	piece_position: Vector3,
+	texture: Texture2D,
+	uv_scale: Vector2,
+	source_material: StandardMaterial3D
+) -> void:
+	var piece: MeshInstance3D = MeshInstance3D.new()
+	piece.name = piece_name
+	piece.add_to_group("placeholder_ground_border")
+	ground.add_child(piece)
+	var piece_mesh: QuadMesh = QuadMesh.new()
+	piece_mesh.size = piece_size
+	piece.mesh = piece_mesh
+	piece.position = piece_position
+	var piece_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
+	piece_material.albedo_color = ground_tint
+	piece_material.albedo_texture = texture
+	piece_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	piece_material.alpha_scissor_threshold = 0.5
+	piece_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	piece_material.uv1_scale = Vector3(uv_scale.x, uv_scale.y, 1.0)
+	piece.material_override = piece_material
 
 
 func _add_ground_piece(
