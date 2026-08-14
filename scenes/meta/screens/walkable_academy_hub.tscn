@@ -128,14 +128,6 @@ vertical_alignment = 1
 
 [node name="Interface" type="CanvasLayer" parent="."]
 
-[node name="ControlHint" type="Label" parent="Interface"]
-unique_name_in_owner = true
-offset_left = 18.0
-offset_top = 174.0
-offset_right = 410.0
-offset_bottom = 208.0
-theme_override_font_sizes/font_size = 18
-
 [node name="SummonerSlot" type="Control" parent="Interface"]
 unique_name_in_owner = true
 offset_left = 18.0

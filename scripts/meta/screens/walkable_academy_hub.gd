@@ -66,7 +66,6 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var shortcut_title: Label = %ShortcutTitle
 @onready var shortcut_close_button: Button = %ShortcutCloseButton
 @onready var shortcut_list: VBoxContainer = %ShortcutList
-@onready var control_hint: Label = %ControlHint
 @onready var summoner_slot: Control = %SummonerSlot
 
 var _camera_target_fov: float = 46.0
@@ -86,7 +85,6 @@ func _ready() -> void:
 	shortcut_button.text = Loc.t("academy.walkable.open_shortcuts")
 	shortcut_title.text = Loc.t("academy.walkable.shortcuts_title")
 	shortcut_close_button.text = Loc.t("ui.common.close")
-	control_hint.text = Loc.t("academy.walkable.controls_hint")
 	shortcut_button.pressed.connect(_toggle_shortcuts)
 	shortcut_close_button.pressed.connect(_close_shortcuts)
 	_setup_summoner_icon()
