@@ -66,6 +66,21 @@ func test_placeholder_crowd_is_visual_only_and_deterministic() -> void:
 		assert_gt(int(placement["frames"]), 1)
 
 
+func test_player_switches_to_visible_run_cycle_during_movement() -> void:
+	var packed_hub: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_hub.instantiate() as WalkableAcademyHub
+	var player: WalkableAcademyPlayer = hub.get_node("Player") as WalkableAcademyPlayer
+	add_child_autofree(hub)
+	await get_tree().process_frame
+
+	player._set_animation(true)
+	player._update_animation(0.2, Vector3.RIGHT)
+	var visual: Sprite3D = player.get_node("PlayerVisual") as Sprite3D
+	assert_true(visual.texture.resource_path.ends_with("placeholder_player_pawn_run.png"))
+	assert_eq(visual.hframes, WalkableAcademyPlayer.RUN_FRAME_COUNT)
+	assert_gt(visual.frame, 0)
+
+
 func test_building_displays_explicit_placeholder_art() -> void:
 	var destination: Dictionary = WalkableAcademyHub.DESTINATIONS[0]
 	var texture: Texture2D = load(destination["placeholder_art_path"]) as Texture2D

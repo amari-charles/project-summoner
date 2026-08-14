@@ -1,10 +1,10 @@
 extends CharacterBody3D
 class_name WalkableAcademyPlayer
 
-const PLACEHOLDER_IDLE_TEXTURE: Texture2D = preload("res://assets/placeholders/tiny_swords/characters/placeholder_player_monk_idle.png")
-const PLACEHOLDER_RUN_TEXTURE: Texture2D = preload("res://assets/placeholders/tiny_swords/characters/placeholder_player_monk_run.png")
-const IDLE_FRAME_COUNT: int = 6
-const RUN_FRAME_COUNT: int = 4
+const PLACEHOLDER_IDLE_TEXTURE: Texture2D = preload("res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png")
+const PLACEHOLDER_RUN_TEXTURE: Texture2D = preload("res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_run.png")
+const IDLE_FRAME_COUNT: int = 8
+const RUN_FRAME_COUNT: int = 6
 const IDLE_FRAMES_PER_SECOND: float = 5.0
 const RUN_FRAMES_PER_SECOND: float = 9.0
 

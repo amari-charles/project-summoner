@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b2u7yicidn586"
-path="res://.godot/imported/placeholder_player_monk_run.png-ce2dfb407b7a29ad7ae59b7f56ee1854.ctex"
+uid="uid://cmh7d3qeghqqd"
+path="res://.godot/imported/placeholder_player_pawn_idle.png-eb3b7c974b7d595e96483db387e6c136.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/placeholders/tiny_swords/characters/placeholder_player_monk_run.png"
-dest_files=["res://.godot/imported/placeholder_player_monk_run.png-ce2dfb407b7a29ad7ae59b7f56ee1854.ctex"]
+source_file="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png"
+dest_files=["res://.godot/imported/placeholder_player_pawn_idle.png-eb3b7c974b7d595e96483db387e6c136.ctex"]
 
 [params]
 
