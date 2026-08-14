@@ -33,10 +33,13 @@ simulation rules, collision policy, or activity-specific behavior.
 - `island_water`: Tiny Swords grass-and-water placeholder used by
   `magic_101_summon_practice` for visual testing.
 
-The island arena adapts the campus placeholder construction to the battle
-camera's opposite viewing direction. Its single cliff row therefore belongs on
-the negative-Z edge; the left and right edges remain flat edge tiles rather
-than repeated vertical stone walls.
+The island arena independently follows the same placeholder construction rules
+as the campus island: directional grass edges and corners, one local positive-Z
+cliff row, and animated foam on the lowered water plane. Because the battle
+camera views the arena from the opposite direction, the completed visual root
+is rotated 180 degrees. This places the cliff on global negative Z without
+remapping individual tiles. The left and right edges remain flat edge tiles
+rather than repeated vertical stone walls.
 
 ## Adding a Biome
 

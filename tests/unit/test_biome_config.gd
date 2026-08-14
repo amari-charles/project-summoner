@@ -106,12 +106,22 @@ func test_custom_arena_visual_replaces_rendered_ground_but_preserves_logical_siz
 		"Island/FrontCliffCenter"
 	) as MeshInstance3D
 	assert_not_null(front_cliff, "Front cliff should be built")
-	assert_lt(front_cliff.position.z, 0.0, "Cliff should face the battle camera's near edge")
+	assert_almost_eq(visuals.rotation.y, PI, 0.001, "Visual should face the battle camera")
+	assert_gt(front_cliff.position.z, 0.0, "Cliff should retain the proven local arrangement")
+	assert_lt(front_cliff.global_position.z, 0.0, "Rotated cliff should face the battle camera")
 	assert_null(visuals.get_node_or_null("Island/LeftCliff"), "Side walls should not be tiled")
 	assert_null(visuals.get_node_or_null("Island/RightCliff"), "Side walls should not be tiled")
 	assert_not_null(visuals.get_node_or_null("Water/Surface"), "Water surface should be built")
+	var water_surface: MeshInstance3D = visuals.get_node("Water/Surface") as MeshInstance3D
 	var foam: Node3D = visuals.get_node("Water/Foam") as Node3D
 	assert_eq(foam.get_child_count(), 128, "Foam should cover the full 44x22 island perimeter")
+	var top_foam: MeshInstance3D = foam.get_node("Top0") as MeshInstance3D
+	var bottom_foam: MeshInstance3D = foam.get_node("Bottom0") as MeshInstance3D
+	var side_foam: MeshInstance3D = foam.get_node("Left1") as MeshInstance3D
+	var foam_y: float = water_surface.position.y + IslandWaterArenaVisual.WATER_FOAM_HEIGHT_OFFSET
+	assert_almost_eq(top_foam.position.y, foam_y, 0.001, "Top foam should sit on the water")
+	assert_almost_eq(bottom_foam.position.y, foam_y, 0.001, "Bottom foam should sit on the water")
+	assert_almost_eq(side_foam.position.y, foam_y, 0.001, "Side foam should sit on the water")
 
 
 func test_all_registered_biomes_have_matching_resources() -> void:
