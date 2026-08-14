@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 
 namespace Fateforged.Data.Academy;
@@ -84,6 +85,25 @@ public static class AcademyCourseCatalog
             for (var activityIndex = 0; activityIndex < course.Activities.Count; activityIndex++)
             {
                 var activity = course.Activities[activityIndex];
+                if (
+                    activity.ExecutionKind == AcademyActivityExecutionKind.Battle
+                    && activity.BattleConfig == null
+                )
+                {
+                    errors.Add(
+                        $"Course '{course.Id}' battle activity '{activity.Id}' requires battle config."
+                    );
+                }
+                else if (
+                    activity.BattleConfig != null
+                    && !BiomeIds.IsValid(activity.BattleConfig.Biome)
+                )
+                {
+                    errors.Add(
+                        $"Course '{course.Id}' activity '{activity.Id}' references unknown biome '{activity.BattleConfig.Biome}'."
+                    );
+                }
+
                 var prerequisites = course.GetActivityPrerequisites(activityIndex);
                 foreach (
                     var duplicate in prerequisites

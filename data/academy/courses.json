@@ -16,6 +16,7 @@
           "id": "magic_101_summon_practice",
           "label_key": "academy.activity.magic_101_summon_practice",
           "battle_config": {
+            "biome": "island_water",
             "enemy_deck": [],
             "enemy_hp": 25,
             "ai_type": "none",

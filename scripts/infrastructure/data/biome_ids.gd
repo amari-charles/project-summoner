@@ -24,12 +24,15 @@ class_name BiomeIDs
 ## Starting biome - grassy plains environment
 const SUMMER_PLAINS: StringName = &"summer_plains"
 
+## Grass island surrounded by animated water
+const ISLAND_WATER: StringName = &"island_water"
+
 # ============================================================================
 # UTILITY
 # ============================================================================
 
 ## All available biomes
-const ALL_BIOMES: Array[StringName] = [SUMMER_PLAINS]
+const ALL_BIOMES: Array[StringName] = [SUMMER_PLAINS, ISLAND_WATER]
 
 ## Default biome used as fallback
 const DEFAULT: StringName = SUMMER_PLAINS

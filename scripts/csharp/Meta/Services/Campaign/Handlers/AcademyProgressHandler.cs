@@ -984,6 +984,7 @@ public class AcademyProgressHandler
 
         var dict = new Godot.Collections.Dictionary
         {
+            ["biome_id"] = (string)battleConfig.Biome,
             ["enemy_side"] = ToEnemySideDict(battleConfig),
         };
 

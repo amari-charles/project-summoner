@@ -514,6 +514,21 @@ public class AcademyProgressServiceTest
         var dict = AcademyProgressHandler.ToBattleConfigDict(battleConfig);
 
         AssertThat(dict.ContainsKey("player_side")).IsFalse();
+        AssertThat(dict["biome_id"].AsString()).IsEqual((string)BiomeIds.Default);
+    }
+
+    [TestCase]
+    public void AcademyBattleConfig_WithAuthoredBiome_SerializesBiomeId()
+    {
+        var battleConfig = new AcademyBattleConfig
+        {
+            Biome = BiomeIds.IslandWater,
+            EnemyDeck = [],
+        };
+
+        var dict = AcademyProgressHandler.ToBattleConfigDict(battleConfig);
+
+        AssertThat(dict["biome_id"].AsString()).IsEqual("island_water");
     }
 
     [TestCase]

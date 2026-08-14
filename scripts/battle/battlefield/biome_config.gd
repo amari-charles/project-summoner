@@ -6,6 +6,7 @@ class_name BiomeConfig
 const CHECKER_PILLARS_NODE_NAME: StringName = &"CheckerPillars"
 const CHECKER_PILLARS_SIDES_NODE_NAME: StringName = &"Sides"
 const CHECKER_PILLARS_TOPS_NODE_NAME: StringName = &"Tops"
+const BIOME_VISUALS_NODE_NAME: StringName = &"BiomeVisuals"
 const TOP_SURFACE_Y_OFFSET: float = 0.005
 const MAX_CHECKER_TILES_PER_AXIS: int = 128
 
@@ -17,6 +18,9 @@ const MAX_CHECKER_TILES_PER_AXIS: int = 128
 @export var ground_texture: Texture2D
 @export var ground_size: Vector2 = Vector2(100, 80)
 @export var ground_uv_scale: Vector3 = Vector3(17, 14, 1)
+## Optional visual-only scene for biomes that need more than a flat/checker surface.
+## The Background mesh remains the source of truth for arena bounds.
+@export var arena_visual_scene: PackedScene
 ## Render the arena as per-checker tile pillars instead of a single flat mesh.
 @export var use_checker_tile_pillars: bool = true
 ## Tile pillar height as a fraction of checker tile width.
@@ -54,6 +58,23 @@ func _apply_ground(battlefield: Node3D) -> void:
 	if background.mesh is PlaneMesh:
 		var plane_mesh: PlaneMesh = background.mesh
 		plane_mesh.size = ground_size
+
+	_clear_checker_tile_pillars(battlefield)
+	_clear_biome_visuals(battlefield)
+	if arena_visual_scene:
+		var visual: Node = arena_visual_scene.instantiate()
+		if visual is Node3D:
+			visual.name = String(BIOME_VISUALS_NODE_NAME)
+			if visual.has_method("configure"):
+				visual.call("configure", ground_size)
+			var ground_layer_node: Node = battlefield.get_node_or_null("GroundLayer")
+			var parent: Node = ground_layer_node if ground_layer_node else battlefield
+			parent.add_child(visual)
+			background.visible = false
+			background.set_surface_override_material(0, null)
+			return
+		visual.free()
+		push_warning("BiomeConfig: Arena visual scene root must inherit Node3D")
 
 	if use_checker_tile_pillars and _build_checker_tile_pillars(battlefield):
 		background.visible = false
@@ -173,6 +194,11 @@ func _build_checker_tile_pillars(battlefield: Node3D) -> bool:
 
 func _clear_checker_tile_pillars(battlefield: Node3D) -> void:
 	var existing: Node = battlefield.find_child(String(CHECKER_PILLARS_NODE_NAME), true, false)
+	if existing and is_instance_valid(existing):
+		existing.free()
+
+func _clear_biome_visuals(battlefield: Node3D) -> void:
+	var existing: Node = battlefield.find_child(String(BIOME_VISUALS_NODE_NAME), true, false)
 	if existing and is_instance_valid(existing):
 		existing.free()
 
