@@ -88,25 +88,11 @@ func _refresh_placeholder_art() -> void:
 		return
 	placeholder_art.texture = _placeholder_texture
 	placeholder_art.pixel_size = placeholder_art_pixel_size
-	var visible_bounds: Rect2i = _get_visible_alpha_bounds(_placeholder_texture)
-	var bottom_padding: float = _placeholder_texture.get_height() - visible_bounds.end.y
-	# Anchor the lowest visible pixel to this building's world-space ground point.
-	# The pivot remains stable when full billboarding rotates the painted cutout.
-	placeholder_art.position.y = 0.0
-	placeholder_art.offset = Vector2(0.0, -_placeholder_texture.get_height() * 0.5 + bottom_padding)
-	var art_height: float = visible_bounds.size.y * placeholder_art_pixel_size
+	var art_height: float = _placeholder_texture.get_height() * placeholder_art_pixel_size
+	placeholder_art.position.y = art_height * 0.5
+	placeholder_art.offset = Vector2.ZERO
 	placeholder_label.position.y = art_height + 0.2
 	name_label.position.y = art_height + 1.0
-
-
-func _get_visible_alpha_bounds(texture: Texture2D) -> Rect2i:
-	var image: Image = texture.get_image()
-	if image == null or image.is_empty():
-		return Rect2i(Vector2i.ZERO, Vector2i(texture.get_size()))
-	var used_rect: Rect2i = image.get_used_rect()
-	if used_rect.size == Vector2i.ZERO:
-		return Rect2i(Vector2i.ZERO, Vector2i(texture.get_size()))
-	return used_rect
 
 
 func _is_interact_pressed() -> bool:

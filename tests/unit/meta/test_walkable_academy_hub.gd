@@ -72,8 +72,5 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	var art: Sprite3D = building.get_node("PlaceholderBuildingArt") as Sprite3D
 	var placeholder_label: Label3D = building.get_node("PlaceholderLabel") as Label3D
 	assert_eq(art.texture, texture)
-	assert_eq(art.position.y, 0.0)
-	var visible_bounds: Rect2i = texture.get_image().get_used_rect()
-	var bottom_padding: float = texture.get_height() - visible_bounds.end.y
-	assert_eq(art.offset.y, -texture.get_height() * 0.5 + bottom_padding)
+	assert_eq(art.offset, Vector2.ZERO)
 	assert_true(placeholder_label.text.begins_with("PLACEHOLDER"))
