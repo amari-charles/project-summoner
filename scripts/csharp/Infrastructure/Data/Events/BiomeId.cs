@@ -28,6 +28,13 @@ public static class BiomeIds
     /// <summary>Starting biome - grassy plains environment</summary>
     public static readonly BiomeId SummerPlains = new("summer_plains");
 
+    /// <summary>Grass island surrounded by animated water.</summary>
+    public static readonly BiomeId IslandWater = new("island_water");
+
     /// <summary>Default biome used as fallback</summary>
     public static readonly BiomeId Default = SummerPlains;
+
+    /// <summary>Returns whether the biome has a corresponding authored resource.</summary>
+    public static bool IsValid(BiomeId biome) =>
+        biome == SummerPlains || biome == IslandWater;
 }

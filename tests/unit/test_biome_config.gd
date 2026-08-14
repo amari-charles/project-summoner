@@ -82,3 +82,42 @@ func test_checker_tile_count_is_clamped_for_large_textures_or_uv_scales() -> voi
 	var sides: MultiMeshInstance3D = battlefield.get_node("GroundLayer/CheckerPillars/Sides") as MultiMeshInstance3D
 	assert_not_null(sides, "Sides multimesh should exist after generation")
 	assert_eq(sides.multimesh.instance_count, 16384, "Tile count should clamp to 128x128")
+
+
+func test_custom_arena_visual_replaces_rendered_ground_but_preserves_logical_size() -> void:
+	var battlefield: Node3D = _make_battlefield_root()
+	_host.add_child(battlefield)
+
+	var biome: BiomeConfig = BiomeConfig.new()
+	biome.ground_size = Vector2(100.0, 50.0)
+	biome.arena_visual_scene = load(
+		"res://scenes/battle/battlefield/biomes/island_water_arena_visual.tscn"
+	) as PackedScene
+
+	biome._apply_ground(battlefield)
+
+	var background: MeshInstance3D = battlefield.get_node("Background") as MeshInstance3D
+	assert_false(background.visible, "Logical background should be hidden behind a custom visual")
+	assert_eq((background.mesh as PlaneMesh).size, Vector2(100.0, 50.0))
+	var visuals: Node3D = battlefield.get_node("GroundLayer/BiomeVisuals") as Node3D
+	assert_not_null(visuals, "Custom visual should be mounted under GroundLayer")
+	assert_not_null(visuals.get_node_or_null("Island/Center"), "Island ground should be built")
+	var front_cliff: MeshInstance3D = visuals.get_node(
+		"Island/FrontCliffCenter"
+	) as MeshInstance3D
+	assert_not_null(front_cliff, "Front cliff should be built")
+	assert_lt(front_cliff.position.z, 0.0, "Cliff should face the battle camera's near edge")
+	assert_null(visuals.get_node_or_null("Island/LeftCliff"), "Side walls should not be tiled")
+	assert_null(visuals.get_node_or_null("Island/RightCliff"), "Side walls should not be tiled")
+	assert_not_null(visuals.get_node_or_null("Water/Surface"), "Water surface should be built")
+	var foam: Node3D = visuals.get_node("Water/Foam") as Node3D
+	assert_eq(foam.get_child_count(), 128, "Foam should cover the full 44x22 island perimeter")
+
+
+func test_all_registered_biomes_have_matching_resources() -> void:
+	for biome_id: StringName in BiomeIDs.ALL_BIOMES:
+		var resource_path: String = BiomeIDs.get_resource_path(biome_id)
+		assert_true(ResourceLoader.exists(resource_path), "%s should exist" % resource_path)
+		var biome: BiomeConfig = load(resource_path) as BiomeConfig
+		assert_not_null(biome, "%s should load as BiomeConfig" % resource_path)
+		assert_eq(StringName(biome.biome_id), biome_id, "%s should declare its registered ID" % resource_path)

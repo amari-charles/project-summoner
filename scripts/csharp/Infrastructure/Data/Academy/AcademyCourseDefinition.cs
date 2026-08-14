@@ -169,6 +169,8 @@ public class AcademyDeckRules
 
 public class AcademyBattleConfig
 {
+    public BiomeId Biome { get; set; } = BiomeIds.Default;
+
     public List<DeckEntry> EnemyDeck { get; set; } = [];
 
     public float EnemyHp { get; set; } = 35f;

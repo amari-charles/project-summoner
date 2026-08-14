@@ -9,6 +9,7 @@ using Fateforged.Cards;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Cosmetics;
 using Fateforged.Data.Emotes;
+using Fateforged.Data.Events;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
@@ -314,6 +315,7 @@ internal static class RewardJson
         options.Converters.Add(new TraitIdConverter());
         options.Converters.Add(new CardTraitIdConverter());
         options.Converters.Add(new CourseIdConverter());
+        options.Converters.Add(new BiomeIdConverter());
         return options;
     }
 
@@ -360,6 +362,12 @@ internal static class RewardJson
     {
         protected override CourseId Create(string value) => new(value);
         protected override string GetValue(CourseId value) => value.Value;
+    }
+
+    private sealed class BiomeIdConverter : StringIdConverter<BiomeId>
+    {
+        protected override BiomeId Create(string value) => new(value);
+        protected override string GetValue(BiomeId value) => value.Value;
     }
 
     private sealed class ItemIdConverter : StringIdConverter<ItemId>

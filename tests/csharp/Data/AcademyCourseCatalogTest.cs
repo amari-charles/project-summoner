@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Academy;
+using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -105,9 +106,10 @@ public class AcademyCourseCatalogTest
 
         AssertThat(summonPractice.Id).IsEqual("magic_101_summon_practice");
         AssertThat(summonPractice.BattleConfig).IsNotNull();
+        AssertThat(summonPractice.BattleConfig!.Biome).IsEqual(BiomeIds.IslandWater);
         AssertThat(summonPractice.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.NeutralStarterUnit);
-        AssertThat(summonPractice.BattleConfig!.EnemyDeck).IsEmpty();
+        AssertThat(summonPractice.BattleConfig.EnemyDeck).IsEmpty();
         AssertThat(summonPractice.BattleConfig.AiType).IsEqual("none");
         AssertThat(summonPractice.BattleConfig.EncounterAi).IsNotNull();
         AssertThat(summonPractice.BattleConfig.EncounterAi!.Preset).IsEqual("scripted_encounter");
@@ -155,6 +157,22 @@ public class AcademyCourseCatalogTest
             .Contains(CardIds.NeutralStarterUnit);
         AssertThat(assessment.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.MagicBolt);
+    }
+
+    [TestCase]
+    public void BattleActivities_AlwaysHaveAValidAuthoredBattleSpecification()
+    {
+        var battleActivities = AcademyCourseCatalog
+            .All.SelectMany(course => course.Activities)
+            .Where(activity => activity.ExecutionKind == AcademyActivityExecutionKind.Battle)
+            .ToArray();
+
+        AssertThat(battleActivities).IsNotEmpty();
+        AssertThat(battleActivities.All(activity => activity.BattleConfig != null)).IsTrue();
+        AssertThat(
+                battleActivities.All(activity => BiomeIds.IsValid(activity.BattleConfig!.Biome))
+            )
+            .IsTrue();
     }
 
     [TestCase]

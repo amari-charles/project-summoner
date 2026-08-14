@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BiomeConfig" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battlefield/biome_config.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/battle/battlefield/biomes/island_water_arena_visual.tscn" id="2_visual"]
+
+[resource]
+script = ExtResource("1_script")
+biome_id = "island_water"
+biome_name = "PLACEHOLDER - Island Water"
+ground_size = Vector2(100, 50)
+arena_visual_scene = ExtResource("2_visual")
+use_checker_tile_pillars = false
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.6
+directional_light_rotation_degrees = Vector3(-30, 45, 0)
+directional_light_color = Color(1, 1, 1, 1)
+directional_light_energy = 1
+background_color = Color(0.278431, 0.670588, 0.662745, 1)
+fog_enabled = false
+fog_color = Color(0.8, 0.8, 0.9, 1)
