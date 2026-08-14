@@ -274,7 +274,11 @@ func _configure_ground_piece(
 	var piece_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
 	piece_material.albedo_color = ground_tint
 	piece_material.albedo_texture = texture
-	piece_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	if piece == ground:
+		piece_material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+	else:
+		piece_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		piece_material.alpha_scissor_threshold = 0.5
 	piece_material.uv1_scale = Vector3(uv_scale.x, uv_scale.y, 1.0)
 	piece.material_override = piece_material
 

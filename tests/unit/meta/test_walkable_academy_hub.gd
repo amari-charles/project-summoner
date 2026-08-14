@@ -90,8 +90,12 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 	assert_almost_eq(ground_material.uv1_scale.x, ground_plane.size.x / 9.0, 0.0001)
 	assert_almost_eq(ground_material.uv1_scale.y, ground_plane.size.y / 9.0, 0.0001)
 	assert_eq(ground_material.albedo_color, hub.ground_tint)
+	assert_eq(ground_material.transparency, BaseMaterial3D.TRANSPARENCY_DISABLED)
 	assert_eq(ground.get_child_count(), 8, "The ground should include four edges and four corners")
-	assert_not_null(ground.get_node_or_null("TopEdge"))
+	var top_edge: MeshInstance3D = ground.get_node_or_null("TopEdge") as MeshInstance3D
+	assert_not_null(top_edge)
+	var top_edge_material: StandardMaterial3D = top_edge.material_override as StandardMaterial3D
+	assert_eq(top_edge_material.transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
 	assert_not_null(ground.get_node_or_null("BottomRightCorner"))
 
 
