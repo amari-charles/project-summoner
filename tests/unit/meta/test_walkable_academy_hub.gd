@@ -26,6 +26,7 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
 	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
+	assert_not_null(hub.get_node_or_null("PlaceholderScenery"))
 	assert_not_null(hub.get_node_or_null("PlaceholderWater"))
 	var ground: MeshInstance3D = hub.get_node("Ground") as MeshInstance3D
 	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
@@ -156,6 +157,43 @@ func test_placeholder_crowd_is_visual_only_and_deterministic() -> void:
 		assert_gt(float(placement["pixel_size"]), 0.0)
 		var position: Vector3 = placement["position"]
 		assert_eq(position.y, 0.0)
+
+
+func test_placeholder_scenery_frames_the_island_and_keeps_water_props_off_land() -> void:
+	assert_eq(PlaceholderCampusScenery.LAND_PLACEMENTS.size(), 28)
+	assert_eq(PlaceholderCampusScenery.WATER_PLACEMENTS.size(), 12)
+	for placement: Dictionary in PlaceholderCampusScenery.LAND_PLACEMENTS:
+		assert_not_null(placement["texture"])
+		assert_gt(int(placement["frames"]), 1)
+		var position: Vector3 = placement["position"]
+		assert_eq(position.y, 0.0)
+		assert_true(
+			absf(position.x) >= 18.0 or absf(position.z) >= 16.0,
+			"Land scenery should leave the central campus open"
+		)
+		assert_lt(absf(position.x), 36.0)
+		assert_lt(absf(position.z), 22.5)
+	for placement: Dictionary in PlaceholderCampusScenery.WATER_PLACEMENTS:
+		assert_not_null(placement["texture"])
+		assert_gt(int(placement["frames"]), 1)
+		var position: Vector3 = placement["position"]
+		assert_true(
+			absf(position.x) > 36.0 or absf(position.z) > 22.5,
+			"Water scenery must remain outside the island shoreline"
+		)
+
+	var scenery: PlaceholderCampusScenery = PlaceholderCampusScenery.new()
+	add_child(scenery)
+	await get_tree().process_frame
+	assert_eq(scenery.get_child_count(), 40)
+	var conifer: Sprite3D = scenery.get_node("NorthwestConifer") as Sprite3D
+	var duck: Sprite3D = scenery.get_node("FrontLeftDuck") as Sprite3D
+	assert_eq(conifer.hframes, 8, "Conifer sheets use eight 192px-wide frames")
+	assert_eq(duck.hframes, 3)
+	assert_eq(conifer.billboard, BaseMaterial3D.BILLBOARD_ENABLED)
+	assert_eq(duck.billboard, BaseMaterial3D.BILLBOARD_ENABLED)
+	remove_child(scenery)
+	scenery.free()
 
 
 func test_player_switches_to_visible_run_cycle_during_movement() -> void:

@@ -11,8 +11,8 @@ campus. They are not approved final Fateforged art.
   credit is optional; the assets may not be redistributed, resold, or repackaged
   as assets.
 
-Only the building, character, sheep, terrain, and water PNGs currently used by
-the prototype are stored here. The right-hand elevated-ground region of
+Only the building, character, sheep, scenery, terrain, and water PNGs currently
+used by the prototype are stored here. The right-hand elevated-ground region of
 `Terrain/Tileset/Tilemap_color3.png` provides the repeatable center, complete
 perimeter, and one stone row beneath the front grass edge. Do not substitute
 the corresponding cells from the atlas's left-hand flat-ground block; those are
@@ -22,5 +22,8 @@ grid to preserve a consistent pixel density. `Water Background color.png`
 fills the prototype's surrounding water plane, and the 16-frame
 `Water Foam.png` strip supplies the oversized shoreline waves described in the
 [official tilemap guide](https://pixelfrog-assets.itch.io/tiny-swords/devlog/1138989/tilemap-guide).
+Trees, bushes, animated water rocks, and rubber ducks are deterministic,
+visual-only set dressing used to evaluate the composition; they do not define
+final art direction or gameplay collision.
 Filenames and containing directories intentionally include `placeholder` so
 these assets are not mistaken for project-owned production art.
