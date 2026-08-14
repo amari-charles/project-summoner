@@ -48,7 +48,9 @@ var _camera_auto_log_enabled: bool = false
 var _camera_auto_log_elapsed: float = 0.0
 var _menu_enabled: bool = false
 var _arena_preset_id: String = DEFAULT_ARENA_PRESET_ID
+var _arena_biome_id: StringName = BiomeIDs.DEFAULT
 var _arena_preset_dropdown: OptionButton
+var _arena_biome_dropdown: OptionButton
 var _arena_button_grid: GridContainer
 var _battlefield_debug_service_override: Node
 var _camera_controller_override: Node
@@ -57,6 +59,7 @@ var _campaign_battle_getter_override: Callable
 var _scene_transition_override: Callable
 var _progression_start_override: Callable
 var _battle_context_configure_override: Callable
+var _battle_context_biome_setter_override: Callable
 var _console_execute_override: Callable
 var _console_all_commands_override: Callable
 var _console_matching_commands_override: Callable
@@ -499,6 +502,21 @@ func _build_more_tab(vbox: VBoxContainer) -> void:
 	preset_row.add_child(_arena_preset_dropdown)
 	_populate_arena_preset_dropdown()
 
+	var biome_row: HBoxContainer = HBoxContainer.new()
+	biome_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(biome_row)
+
+	var biome_label: Label = Label.new()
+	biome_label.text = "Biome"
+	biome_label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75))
+	biome_row.add_child(biome_label)
+
+	_arena_biome_dropdown = OptionButton.new()
+	_arena_biome_dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_arena_biome_dropdown.item_selected.connect(_on_arena_biome_selected)
+	biome_row.add_child(_arena_biome_dropdown)
+	_populate_arena_biome_dropdown()
+
 	_arena_button_grid = GridContainer.new()
 	_arena_button_grid.columns = 2
 	_arena_button_grid.add_theme_constant_override("h_separation", 8)
@@ -672,6 +690,44 @@ func _on_arena_preset_selected(index: int) -> void:
 	_save_settings()
 	if _arena_button_grid:
 		_build_debug_arena_buttons(_arena_button_grid)
+
+
+func _populate_arena_biome_dropdown() -> void:
+	if not _arena_biome_dropdown:
+		return
+
+	_arena_biome_dropdown.clear()
+	var selected_index: int = -1
+	for biome_id: StringName in BiomeIDs.ALL_BIOMES:
+		_arena_biome_dropdown.add_item(String(biome_id).capitalize())
+		var item_index: int = _arena_biome_dropdown.item_count - 1
+		_arena_biome_dropdown.set_item_metadata(item_index, String(biome_id))
+		if biome_id == _arena_biome_id:
+			selected_index = item_index
+
+	if selected_index < 0:
+		selected_index = 0
+		_arena_biome_id = BiomeIDs.DEFAULT
+	_arena_biome_dropdown.select(selected_index)
+
+
+func _on_arena_biome_selected(index: int) -> void:
+	if not _arena_biome_dropdown:
+		return
+	if index < 0 or index >= _arena_biome_dropdown.item_count:
+		return
+
+	var selected_id: String = SafeTypeUtils.string(
+		_arena_biome_dropdown.get_item_metadata(index),
+		String(BiomeIDs.DEFAULT)
+	)
+	if not BiomeIDs.is_valid(selected_id):
+		return
+	if _arena_biome_id == StringName(selected_id):
+		return
+
+	_arena_biome_id = StringName(selected_id)
+	_save_settings()
 
 
 ## =============================================================================
@@ -1099,6 +1155,13 @@ func _configure_campaign_battle_context(battle_id: String) -> void:
 	BattleContext.configure_campaign_battle(battle_id)
 
 
+func _set_debug_arena_biome(biome_id: StringName) -> void:
+	if _battle_context_biome_setter_override.is_valid():
+		_battle_context_biome_setter_override.call(String(biome_id))
+		return
+	BattleContext.biome_id = biome_id
+
+
 func _execute_console_command(command: String) -> bool:
 	if _console_execute_override.is_valid():
 		return SafeTypeUtils.bool_val(_console_execute_override.call(command), false)
@@ -1172,6 +1235,7 @@ func _on_debug_arena_battle_pressed(battle_id: String) -> void:
 		return
 	BattleContext.set_battle_attempt_id(attempt_result.get("attempt_id", ""))
 	_configure_campaign_battle_context(battle_id)
+	_set_debug_arena_biome(_arena_biome_id)
 
 	var event_data: Dictionary = _get_campaign_battle(battle_id)
 	var battle_scene: String = SceneManager.SCENE_BATTLE_3D
@@ -1180,7 +1244,10 @@ func _on_debug_arena_battle_pressed(battle_id: String) -> void:
 		battle_scene = custom_scene
 
 	_transition_to_scene(battle_scene)
-	print("[Debug] Launched test arena battle '%s'" % battle_id)
+	print(
+		"[Debug] Launched test arena battle '%s' with biome '%s'"
+		% [battle_id, String(_arena_biome_id)]
+	)
 
 
 func _on_snapshots_pressed() -> void:
@@ -1329,6 +1396,11 @@ func _load_settings() -> void:
 	_arena_preset_id = config.get_value("debug_menu", "arena_preset_id", preset_default)
 	if not DEBUG_ARENA_PRESETS.has_preset(_arena_preset_id):
 		_arena_preset_id = preset_default
+	var saved_biome_id: String = SafeTypeUtils.string(
+		config.get_value("debug_menu", "arena_biome_id", String(BiomeIDs.DEFAULT)),
+		String(BiomeIDs.DEFAULT)
+	)
+	_arena_biome_id = StringName(saved_biome_id) if BiomeIDs.is_valid(saved_biome_id) else BiomeIDs.DEFAULT
 
 	print("[Debug] Loaded settings from %s" % SETTINGS_PATH)
 
@@ -1363,5 +1435,6 @@ func _save_settings() -> void:
 	config.set_value("debug_menu", "bypass_spawn_boundary", _bypass_spawn_boundary)
 	config.set_value("debug_menu", "camera_auto_log", _camera_auto_log_enabled)
 	config.set_value("debug_menu", "arena_preset_id", _arena_preset_id)
+	config.set_value("debug_menu", "arena_biome_id", String(_arena_biome_id))
 
 	config.save(SETTINGS_PATH)
