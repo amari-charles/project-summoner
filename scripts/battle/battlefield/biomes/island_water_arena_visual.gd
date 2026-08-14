@@ -25,12 +25,17 @@ const WATER_MARGIN_TILES: int = 20
 const WATER_FOAM_FRAME_COUNT: int = 16
 const WATER_FOAM_TILE_SPAN: float = 3.0
 const WATER_FOAM_FPS: float = 8.0
+const WATER_FOAM_HEIGHT_OFFSET: float = 0.02
 const GRASS_TINT: Color = Color(0.78, 0.8, 0.76, 1.0)
 
 
 func configure(requested_ground_size: Vector2) -> void:
 	for child: Node in get_children():
 		child.free()
+	# Tiny Swords terrain is authored with its cliff on local positive Z.
+	# Rotate the complete visual for the battle camera so tile UVs and corners
+	# retain their intended orientation.
+	rotation.y = PI
 
 	var column_count: int = maxi(floori(requested_ground_size.x / TILE_SIZE), 3)
 	var row_count: int = maxi(floori(requested_ground_size.y / TILE_SIZE), 3)
@@ -112,9 +117,7 @@ func _add_plane(
 
 func _build_front_cliff(parent: Node3D, rendered_size: Vector2, inner_width: float) -> void:
 	var y: float = -TILE_SIZE * 0.5
-	# The battle camera faces the opposite Z direction from the campus camera,
-	# so its visible front edge is the island's negative-Z (top-texture) edge.
-	var front_z: float = -rendered_size.y * 0.5
+	var front_z: float = rendered_size.y * 0.5
 	_add_cliff_piece(parent, "FrontCliffLeft", Vector2.ONE * TILE_SIZE, Vector3(-inner_width * 0.5 - TILE_SIZE * 0.5, y, front_z), CLIFF_LEFT, Vector2.ONE)
 	_add_cliff_piece(parent, "FrontCliffCenter", Vector2(inner_width, TILE_SIZE), Vector3(0.0, y, front_z), CLIFF_MIDDLE, Vector2(inner_width / TILE_SIZE, 1.0))
 	_add_cliff_piece(parent, "FrontCliffRight", Vector2.ONE * TILE_SIZE, Vector3(inner_width * 0.5 + TILE_SIZE * 0.5, y, front_z), CLIFF_RIGHT, Vector2.ONE)
@@ -171,15 +174,15 @@ func _build_water(rendered_size: Vector2, column_count: int, row_count: int) -> 
 	var bottom: float = rendered_size.y * 0.5 - TILE_SIZE * 0.5
 	for column: int in column_count:
 		var x: float = left + column * TILE_SIZE
-		_add_foam_piece(foam, "Top%d" % column, Vector3(x, water_level + 0.02, top), foam_index)
+		_add_foam_piece(foam, "Top%d" % column, Vector3(x, water_level + WATER_FOAM_HEIGHT_OFFSET, top), foam_index)
 		foam_index += 1
-		_add_foam_piece(foam, "Bottom%d" % column, Vector3(x, water_level + 0.02, bottom), foam_index)
+		_add_foam_piece(foam, "Bottom%d" % column, Vector3(x, water_level + WATER_FOAM_HEIGHT_OFFSET, bottom), foam_index)
 		foam_index += 1
 	for row: int in range(1, row_count - 1):
 		var z: float = top + row * TILE_SIZE
-		_add_foam_piece(foam, "Left%d" % row, Vector3(left, water_level + 0.02, z), foam_index)
+		_add_foam_piece(foam, "Left%d" % row, Vector3(left, water_level + WATER_FOAM_HEIGHT_OFFSET, z), foam_index)
 		foam_index += 1
-		_add_foam_piece(foam, "Right%d" % row, Vector3(right, water_level + 0.02, z), foam_index)
+		_add_foam_piece(foam, "Right%d" % row, Vector3(right, water_level + WATER_FOAM_HEIGHT_OFFSET, z), foam_index)
 		foam_index += 1
 
 
