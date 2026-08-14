@@ -40,8 +40,8 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 		if destination.has("position"):
 			building_count += 1
 			var position: Vector3 = destination["position"]
-			assert_true(absf(position.x) <= 18.0)
-			assert_true(absf(position.z) <= 15.0)
+			assert_true(absf(position.x) <= 13.0)
+			assert_true(absf(position.z) <= 11.0)
 			assert_true(destination.has("placeholder_art_path"))
 			var placeholder_art_path: String = destination["placeholder_art_path"]
 			assert_true(placeholder_art_path.contains("/placeholders/"))
