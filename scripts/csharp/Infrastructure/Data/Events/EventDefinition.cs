@@ -80,8 +80,8 @@ public class BattleEventDefinition : EventDefinition
     /// <summary>Dev-only player deck override (for test battles)</summary>
     public List<DeckEntry>? DevPlayerDeck { get; set; }
 
-    /// <summary>Custom scene path (for special battles like debug arena)</summary>
-    public string? ScenePath { get; set; }
+    /// <summary>Application runtime surface used to present this battle.</summary>
+    public BattleRuntimeSurface RuntimeSurface { get; set; } = BattleRuntimeSurface.Standard;
 }
 
 /// <summary>

@@ -18,7 +18,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaWindEarthNewCards);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
 
         var expected = new HashSet<CardId>
         {
@@ -50,7 +50,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaAllUnits);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
 
         var allowedElements = new HashSet<Element>
         {
@@ -84,7 +84,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaAllCards);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
 
         var allowedElements = new HashSet<Element>
         {
@@ -130,7 +130,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaAllSpells);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
         AssertThat(battle.AiType).IsEqual("none");
 
         var allowedElements = new HashSet<Element>
@@ -181,7 +181,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaSpriteUnits);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
         AssertThat(battle.AiType).IsEqual("none");
 
         AssertThat(battle.DevPlayerDeck).IsNotNull();

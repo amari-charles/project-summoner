@@ -47,6 +47,7 @@ const SCENE_ONLINE: String = "res://scenes/meta/screens/online_screen.tscn"
 
 ## Battle Scenes
 const SCENE_BATTLE_3D: String = "res://scenes/battle/battlefield/battle_3d.tscn"
+const SCENE_DEBUG_ARENA: String = "res://scenes/battle/battlefield/dev/debug_arena.tscn"
 const SCENE_REWARD_SCREEN: String = "res://scenes/meta/screens/reward_screen.tscn"
 
 ## Multiplayer Scenes
