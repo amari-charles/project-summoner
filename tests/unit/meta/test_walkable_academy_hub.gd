@@ -73,6 +73,12 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_LEFT,
 		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM,
 		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_RIGHT,
+		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT,
+		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE,
+		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
+		WalkableAcademyHub.PLACEHOLDER_CLIFF_BOTTOM_LEFT,
+		WalkableAcademyHub.PLACEHOLDER_CLIFF_BOTTOM,
+		WalkableAcademyHub.PLACEHOLDER_CLIFF_BOTTOM_RIGHT,
 	]
 	for texture: Texture2D in ground_textures:
 		assert_eq(texture.get_size(), Vector2(64.0, 64.0), "Ground regions must share the source pack's 64px grid")
@@ -91,12 +97,18 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 	assert_almost_eq(ground_material.uv1_scale.y, ground_plane.size.y / 9.0, 0.0001)
 	assert_eq(ground_material.albedo_color, hub.ground_tint)
 	assert_eq(ground_material.transparency, BaseMaterial3D.TRANSPARENCY_DISABLED)
-	assert_eq(ground.get_child_count(), 8, "The ground should include four edges and four corners")
+	assert_eq(ground.get_child_count(), 14, "The ground should include its perimeter and two three-piece cliff rows")
 	var top_edge: MeshInstance3D = ground.get_node_or_null("TopEdge") as MeshInstance3D
 	assert_not_null(top_edge)
 	var top_edge_material: StandardMaterial3D = top_edge.material_override as StandardMaterial3D
 	assert_eq(top_edge_material.transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
 	assert_not_null(ground.get_node_or_null("BottomRightCorner"))
+	var cliff_middle: MeshInstance3D = ground.get_node_or_null("CliffMiddleCenter") as MeshInstance3D
+	var cliff_bottom: MeshInstance3D = ground.get_node_or_null("CliffBottomCenter") as MeshInstance3D
+	assert_not_null(cliff_middle)
+	assert_not_null(cliff_bottom)
+	assert_gt(cliff_middle.position.z, (ground.mesh as PlaneMesh).size.y * 0.5)
+	assert_gt(cliff_bottom.position.z, cliff_middle.position.z)
 
 
 func test_walkable_controls_are_project_actions() -> void:

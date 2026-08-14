@@ -57,7 +57,7 @@ mesh = SubResource("PlaneMesh_ground")
 
 [node name="GroundLabel" type="Label3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 0.819152, -0.573576, 0, 0.573576, 0.819152, 0, 0.08, 20)
+transform = Transform3D(1, 0, 0, 0, 0.819152, -0.573576, 0, 0.573576, 0.819152, 0, 0.08, 15)
 pixel_size = 0.018
 billboard = 2
 modulate = Color(0.78, 0.86, 0.72, 1)

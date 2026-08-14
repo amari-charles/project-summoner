@@ -17,6 +17,12 @@ const PLACEHOLDER_GROUND_RIGHT: Texture2D = preload("res://assets/placeholders/t
 const PLACEHOLDER_GROUND_BOTTOM_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom_left.png")
 const PLACEHOLDER_GROUND_BOTTOM: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom.png")
 const PLACEHOLDER_GROUND_BOTTOM_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_bottom_right.png")
+const PLACEHOLDER_CLIFF_MIDDLE_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_left.png")
+const PLACEHOLDER_CLIFF_MIDDLE: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle.png")
+const PLACEHOLDER_CLIFF_MIDDLE_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_right.png")
+const PLACEHOLDER_CLIFF_BOTTOM_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_bottom_left.png")
+const PLACEHOLDER_CLIFF_BOTTOM: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_bottom.png")
+const PLACEHOLDER_CLIFF_BOTTOM_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_bottom_right.png")
 
 const DESTINATION_CLASS_HALL: StringName = &"class_hall"
 const DESTINATION_SHOP: StringName = &"shop"
@@ -219,6 +225,27 @@ func _configure_placeholder_ground() -> void:
 		border_size,
 		source_material
 	)
+	var grass_front_edge: float = inner_size.y * 0.5 + border_size
+	_add_ground_cliff_row(
+		"CliffMiddle",
+		grass_front_edge + border_size * 0.5,
+		inner_size.x,
+		border_size,
+		PLACEHOLDER_CLIFF_MIDDLE_LEFT,
+		PLACEHOLDER_CLIFF_MIDDLE,
+		PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
+		source_material
+	)
+	_add_ground_cliff_row(
+		"CliffBottom",
+		grass_front_edge + border_size * 1.5,
+		inner_size.x,
+		border_size,
+		PLACEHOLDER_CLIFF_BOTTOM_LEFT,
+		PLACEHOLDER_CLIFF_BOTTOM,
+		PLACEHOLDER_CLIFF_BOTTOM_RIGHT,
+		source_material
+	)
 
 
 func _clear_ground_border() -> void:
@@ -239,6 +266,42 @@ func _add_ground_corner(
 		Vector2.ONE * border_size,
 		piece_position,
 		texture,
+		Vector2.ONE,
+		source_material
+	)
+
+
+func _add_ground_cliff_row(
+	piece_name: String,
+	z_position: float,
+	inner_width: float,
+	tile_size: float,
+	left_texture: Texture2D,
+	middle_texture: Texture2D,
+	right_texture: Texture2D,
+	source_material: StandardMaterial3D
+) -> void:
+	_add_ground_piece(
+		piece_name + "Left",
+		Vector2.ONE * tile_size,
+		Vector3(-inner_width * 0.5 - tile_size * 0.5, 0.0, z_position),
+		left_texture,
+		Vector2.ONE,
+		source_material
+	)
+	_add_ground_piece(
+		piece_name + "Center",
+		Vector2(inner_width, tile_size),
+		Vector3(0.0, 0.0, z_position),
+		middle_texture,
+		Vector2(inner_width / ground_tile_world_size, 1.0),
+		source_material
+	)
+	_add_ground_piece(
+		piece_name + "Right",
+		Vector2.ONE * tile_size,
+		Vector3(inner_width * 0.5 + tile_size * 0.5, 0.0, z_position),
+		right_texture,
 		Vector2.ONE,
 		source_material
 	)
