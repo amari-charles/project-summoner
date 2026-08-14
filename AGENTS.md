@@ -10,6 +10,17 @@ Product/design docs in `docs/design/`, lore docs, and user-authored implementati
 - Only change product/design intent docs when the user explicitly asks to revise the design decision itself.
 - Technical validation docs may be corrected for factual metadata, such as test paths or command names, but must not rewrite product intent.
 
+### Record Meaningful Product Direction Changes
+
+`docs/project/direction-log.md` records the history of medium- and large-scale product direction decisions. It complements the design docs; it does not replace them.
+
+- Add or update an entry when the user explicitly approves a decision that changes the player experience, feature ownership, progression structure, a cross-feature constraint, or the existence of a major flow.
+- Do not add entries for routine implementation choices, isolated bug fixes, small visual adjustments, refactors that preserve behavior, or unapproved prototypes and ideas.
+- Do not infer product intent from code changes alone. If the product decision was not explicitly approved, ask before recording it as accepted direction.
+- Update the direction log in the same work when an approved decision is introduced, revised, superseded, or retired, provided the documentation change is safely in scope.
+- Preserve history: add a new entry that references the earlier decision instead of rewriting an old entry to make it appear that the direction never changed.
+- Product/design docs remain the source of truth for the current intended behavior. Direction-log entries explain when and why that intent changed.
+
 ## Skills
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
 
