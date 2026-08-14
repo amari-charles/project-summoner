@@ -15,7 +15,7 @@ script = ExtResource("1_script")
 unique_name_in_owner = true
 position = Vector3(0, 4, -1.55)
 pixel_size = 0.035
-billboard = 2
+billboard = 1
 texture_filter = 1
 
 [node name="CollisionBody" type="StaticBody3D" parent="."]
