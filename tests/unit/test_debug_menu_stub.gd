@@ -120,6 +120,32 @@ func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
 	assert_eq(reloaded._arena_preset_id, "new_cards_only", "selected preset should persist in settings")
 
 
+func test_debug_arena_biome_dropdown_lists_registered_biomes_and_persists_selection() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+	menu._arena_biome_dropdown = OptionButton.new()
+	_track_owned_node(menu._arena_biome_dropdown)
+
+	menu._populate_arena_biome_dropdown()
+	assert_eq(menu._arena_biome_dropdown.item_count, BiomeIDs.ALL_BIOMES.size())
+
+	var island_index: int = -1
+	for i: int in menu._arena_biome_dropdown.item_count:
+		var biome_id: String = str(menu._arena_biome_dropdown.get_item_metadata(i))
+		if biome_id == String(BiomeIDs.ISLAND_WATER):
+			island_index = i
+			break
+
+	assert_true(island_index != -1, "island water should be available in the biome dropdown")
+	menu._on_arena_biome_selected(island_index)
+	assert_eq(menu._arena_biome_id, BiomeIDs.ISLAND_WATER)
+
+	var reloaded: Node = _menu_script.new()
+	_track_owned_node(reloaded)
+	reloaded._load_settings()
+	assert_eq(reloaded._arena_biome_id, BiomeIDs.ISLAND_WATER, "selected biome should persist")
+
+
 func test_c14_skip_win_lose_controls_trigger_game_controller_methods() -> void:
 	var menu: Node = _menu_script.new()
 	_add_root_node(menu)
@@ -144,6 +170,8 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	menu._scene_transition_override = Callable(harness, "transition_to")
 	menu._progression_start_override = Callable(harness, "start_progression")
 	menu._battle_context_configure_override = Callable(harness, "configure_battle_context")
+	menu._battle_context_biome_setter_override = Callable(harness, "set_battle_context_biome")
+	menu._arena_biome_id = BiomeIDs.ISLAND_WATER
 
 	menu._on_open_test_arena_map_pressed()
 	assert_eq(harness.last_campaign_id, String(CampaignIDs.TEST_ARENA))
@@ -152,6 +180,7 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	menu._on_debug_arena_battle_pressed("arena_fire_wisp")
 	assert_eq(harness.last_attempt_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_context_battle_id, "arena_fire_wisp")
+	assert_eq(harness.last_biome_id, String(BiomeIDs.ISLAND_WATER))
 	assert_eq(harness.last_transition_scene, "res://scenes/battle/battlefield/custom_debug_scene.tscn")
 
 
@@ -296,6 +325,7 @@ class _DebugMenuHarness extends RefCounted:
 	var last_transition_scene: String = ""
 	var last_attempt_battle_id: String = ""
 	var last_context_battle_id: String = ""
+	var last_biome_id: String = ""
 	var last_console_command: String = ""
 
 	func set_campaign(campaign_id: String) -> bool:
@@ -314,6 +344,9 @@ class _DebugMenuHarness extends RefCounted:
 
 	func configure_battle_context(battle_id: String) -> void:
 		last_context_battle_id = battle_id
+
+	func set_battle_context_biome(biome_id: String) -> void:
+		last_biome_id = biome_id
 
 	func execute_console(command: String) -> bool:
 		last_console_command = command

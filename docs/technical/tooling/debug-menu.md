@@ -24,6 +24,8 @@ Development utility panel for testing and debugging. Only active in debug builds
 
 `Open Test Arena Map` switches to the legacy campaign-map chooser with the Test Arena campaign selected. Use that map to choose one of the predefined test battles before entering combat.
 
+The `Debug Arena Battles` section launches those battles directly. Its `Arena List` selector filters the available launch buttons, while its `Biome` selector overrides the authored biome for the next direct launch. The selected list and biome persist in `user://debug_menu_settings.cfg`; authored event data is not changed.
+
 #### Grid Lines
 Visualizes the SpatialGrid cells used for unit proximity queries.
 
