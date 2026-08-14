@@ -1,12 +1,17 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
 [ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png" id="3_placeholder_player"]
 [ext_resource type="Script" path="res://scripts/meta/components/placeholder_campus_crowd.gd" id="4_placeholder_crowd"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/terrain/placeholder_grass_color3.png" id="5_placeholder_grass"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
-albedo_color = Color(0.17, 0.26, 0.2, 1)
+shading_mode = 0
+albedo_color = Color(0.78, 0.8, 0.76, 1)
+albedo_texture = ExtResource("5_placeholder_grass")
+texture_filter = 2
+uv1_scale = Vector3(16, 10.2222, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(72, 46)

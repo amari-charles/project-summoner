@@ -11,6 +11,9 @@ campus. They are not approved final Fateforged art.
   credit is optional; the assets may not be redistributed, resold, or repackaged
   as assets.
 
-Only the building, character, and sheep PNGs currently used by the prototype
-are stored here. Their filenames and containing directory intentionally include
-`placeholder` so they are not mistaken for project-owned production art.
+Only the building, character, sheep, and terrain PNGs currently used by the
+prototype are stored here. The grass texture is a 128x128 interior crop from
+`Terrain/Tileset/Tilemap_color3.png`; the atlas border and cliff art are not
+used because they encode a different 2D perspective. Filenames and containing
+directories intentionally include `placeholder` so these assets are not
+mistaken for project-owned production art.

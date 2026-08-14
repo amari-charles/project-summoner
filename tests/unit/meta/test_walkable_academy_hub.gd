@@ -26,6 +26,12 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
 	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
+	var ground: MeshInstance3D = hub.get_node("Ground") as MeshInstance3D
+	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+	assert_not_null(ground_material)
+	assert_true(ground_material.albedo_texture.resource_path.contains("/placeholders/tiny_swords/terrain/"))
+	assert_gt(ground_material.uv1_scale.x, 1.0)
+	assert_gt(ground_material.uv1_scale.y, 1.0)
 	hub.free()
 
 
