@@ -84,9 +84,6 @@ public partial class BattleScene : Node3D
 
     /// Max frames to wait for a single scene to load (~5 seconds at 60fps)
     private const int SceneLoadTimeoutFrames = 300;
-    private const string AcademyHubScenePath =
-        "res://scenes/meta/screens/walkable_academy_hub.tscn";
-
     // Emergency fallback deck (test mode only)
     private const string EmergencyDeckCardId = "fire_wisp";
     private const int EmergencyDeckSize = 3;
@@ -914,7 +911,7 @@ public partial class BattleScene : Node3D
             GD.PushWarning(
                 "[BattleScene] Campaign progression unavailable; no XP or rewards were granted."
             );
-            NavigateToScene(AcademyHubScenePath);
+            NavigateToOriginScene();
             return;
         }
 
@@ -922,7 +919,7 @@ public partial class BattleScene : Node3D
             NavigateToScene("res://scenes/meta/screens/reward_screen.tscn");
         else
         {
-            NavigateToScene(AcademyHubScenePath);
+            NavigateToOriginScene();
         }
     }
 
@@ -1020,6 +1017,24 @@ public partial class BattleScene : Node3D
             sceneManager.Call("transition_to", scenePath);
         else
             GetTree().ChangeSceneToFile(scenePath);
+    }
+
+    private void NavigateToOriginScene()
+    {
+        var originScene = _config.OriginScene;
+        if (string.IsNullOrWhiteSpace(originScene))
+        {
+            var battleContext = GetTree().Root.GetNodeOrNull("BattleContext");
+            originScene = battleContext?.Call("get_origin_scene").AsString() ?? "";
+        }
+
+        if (string.IsNullOrWhiteSpace(originScene))
+        {
+            GD.PushError("[BattleScene] Cannot navigate after battle: origin scene is missing.");
+            return;
+        }
+
+        NavigateToScene(originScene);
     }
 
     private void MaybeScheduleAutoForfeit()

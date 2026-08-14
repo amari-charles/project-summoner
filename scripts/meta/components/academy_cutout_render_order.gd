@@ -1,7 +1,6 @@
 extends RefCounted
-class_name CutoutRenderOrder
 
-## Shared painter ordering for camera-facing 2D cutouts in the Academy's 3D world.
+## Painter ordering for camera-facing 2D cutouts in the walkable Academy hub.
 ## The campus camera looks from positive Z toward negative Z, so cutouts whose
 ## feet have a greater world Z render later and appear in front as a whole.
 
@@ -11,6 +10,10 @@ const MAX_RENDER_PRIORITY: int = 127
 
 
 static func apply_from_feet(sprite: GeometryInstance3D, feet_world_z: float) -> void:
+	# SpriteBase3D render priority only controls transparent ordering when alpha
+	# cutout mode is disabled. Keep the helper's ordering contract explicit.
+	if sprite is SpriteBase3D:
+		(sprite as SpriteBase3D).alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
 	sprite.render_priority = priority_for_feet(feet_world_z)
 
 

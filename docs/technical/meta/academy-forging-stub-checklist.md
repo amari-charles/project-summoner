@@ -3,14 +3,14 @@
 **Status:** PASS 2 CHECKLIST
 **Initiative:** `academy-forging-model`
 **Domain:** `meta`
-**Last Updated:** `2026-05-18`
+**Last Updated:** `2026-08-13`
 
 ## Types Created Or Extended
 
 1. `AcademyProgressHandler` - academy progress initialization, enrollment validation, activity completion, reward grants, semester advancement, and course view-model dictionaries.
 2. `AcademyCourseCatalog` - early academy course definitions, activities, rewards, prerequisites, and choice groups.
 3. `AcademyClassHall` (`scripts/meta/screens/academy_class_hall.gd`) - Class Hall board, tabs, period picker, course cards, and course popup.
-4. `AcademyHub` (`scripts/meta/screens/academy_hub.gd`) - spatial campus hub routing over temporary academy art.
+4. `WalkableAcademyHub` (`scripts/meta/screens/walkable_academy_hub.gd`) - bounded campus movement, building entrances, and shortcut routing over explicit placeholder art.
 5. `ShopScreen` (`scripts/meta/screens/shop_screen.gd`) - campus shop layout revisions.
 
 ## Interfaces Created Or Extended
@@ -23,7 +23,7 @@
 ## Wiring Points Updated
 
 1. Scene manager routes for academy hub, Class Hall, academy course path, and shop.
-2. Campus hub overlay buttons route to Class Hall, Campus Shop, Mission Hall, Dorms, and Online Arena placeholders or screens.
+2. One campus destination catalog routes both building entrances and shortcuts to Class Hall, Campus Shop, Mission Hall, Dorms, Online, Settings, and Summoner screens.
 3. Class Hall course cards open a popup instead of relying on a persistent right-hand detail panel.
 4. Class Hall tabs split `My Classes` from `Open Classes`.
 5. Academy progress changes refresh screens through campaign progress signals.
@@ -38,7 +38,7 @@
 
 ## Compile-Safe Stub Behavior Checks
 
-1. Academy hub, Class Hall, and shop scenes load headlessly.
+1. The bounded walkable Academy hub, Class Hall, and shop scenes load headlessly.
 2. Course popup remains bounded to a percentage of viewport height and uses opaque readable panel styling.
 3. Mandatory first-semester course assignment happens during progress initialization.
 4. Enrollment validation rejects future semester courses through service logic.

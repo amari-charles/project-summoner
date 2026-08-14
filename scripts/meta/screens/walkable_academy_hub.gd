@@ -3,47 +3,65 @@ class_name WalkableAcademyHub
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
+const PLACEHOLDER_CLASS_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png")
+const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
+const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
+const PLACEHOLDER_DORMS: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png")
+const PLACEHOLDER_ONLINE_ARENA: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png")
+
+const DESTINATION_CLASS_HALL: StringName = &"class_hall"
+const DESTINATION_SHOP: StringName = &"shop"
+const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
+const DESTINATION_DORMS: StringName = &"dorms"
+const DESTINATION_ONLINE: StringName = &"online"
+const DESTINATION_SUMMONER: StringName = &"summoner"
+const DESTINATION_SETTINGS: StringName = &"settings"
 
 ## One destination catalog drives both building entrances and fast shortcuts.
 ## Entries without a position remain shortcut-only in the current prototype.
 const DESTINATIONS: Array[Dictionary] = [
 	{
-		"id": &"class_hall",
+		"id": DESTINATION_CLASS_HALL,
 		"name_key": "academy.campus.class_hall.name",
 		"description_key": "academy.campus.class_hall.description",
-		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png",
+		"target_scene": SceneManagerClass.SCENE_ACADEMY_CLASS_HALL,
+		"placeholder_texture": PLACEHOLDER_CLASS_HALL,
 		"position": Vector3(-12.0, 0.0, -8.0),
 	},
 	{
-		"id": &"shop",
+		"id": DESTINATION_SHOP,
 		"name_key": "academy.campus.shop.name",
 		"description_key": "academy.campus.shop.description",
-		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png",
+		"target_scene": SceneManagerClass.SCENE_SHOP_SCREEN,
+		"placeholder_texture": PLACEHOLDER_CAMPUS_SHOP,
 		"position": Vector3(12.0, 0.0, -7.0),
 	},
 	{
-		"id": &"mission_hall",
+		"id": DESTINATION_MISSION_HALL,
 		"name_key": "academy.campus.mission_hall.name",
 		"description_key": "academy.campus.mission_hall.description",
-		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png",
+		"target_scene": SceneManagerClass.SCENE_SPECIAL_EVENTS,
+		"placeholder_texture": PLACEHOLDER_MISSION_HALL,
 		"position": Vector3(-13.0, 0.0, 7.0),
 	},
 	{
-		"id": &"dorms",
+		"id": DESTINATION_DORMS,
 		"name_key": "academy.campus.dorms.name",
 		"description_key": "academy.campus.dorms.description",
-		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png",
+		"target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN,
+		"placeholder_texture": PLACEHOLDER_DORMS,
 		"position": Vector3(0.0, 0.0, -11.0),
 	},
 	{
-		"id": &"online",
+		"id": DESTINATION_ONLINE,
 		"name_key": "academy.campus.online.name",
 		"description_key": "academy.campus.online.description",
-		"placeholder_art_path": "res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png",
+		"target_scene": SceneManagerClass.SCENE_ONLINE,
+		"placeholder_texture": PLACEHOLDER_ONLINE_ARENA,
 		"position": Vector3(13.0, 0.0, 8.0),
 	},
-	{"id": &"summoner", "name_key": "ui.summoner_screen.title", "description_key": "academy.walkable.summoner_description"},
-	{"id": &"settings", "name_key": "ui.nav.settings", "description_key": "academy.walkable.settings_description"},
+	{"id": DESTINATION_SUMMONER, "name_key": "ui.summoner_screen.title", "description_key": "academy.walkable.summoner_description", "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
+	{"id": DESTINATION_SETTINGS, "name_key": "ui.nav.settings", "description_key": "academy.walkable.settings_description", "target_scene": SceneManagerClass.SCENE_SETTINGS},
 ]
 
 @export var camera_follow_offset: Vector3 = Vector3(0.0, 22.0, 22.0)
@@ -135,7 +153,7 @@ func _setup_summoner_icon() -> void:
 	var summoner_icon: SummonerIconWidget = SummonerIconWidgetScene.instantiate()
 	summoner_slot.add_child(summoner_icon)
 	summoner_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	summoner_icon.icon_clicked.connect(_route_to.bind(&"summoner"))
+	summoner_icon.icon_clicked.connect(_route_to.bind(DESTINATION_SUMMONER))
 
 
 func _populate_shortcuts() -> void:
@@ -171,21 +189,9 @@ func _route_to(destination_id: StringName) -> void:
 
 
 func _scene_for_destination(destination_id: StringName) -> String:
-	match destination_id:
-		&"class_hall":
-			return SceneManager.SCENE_ACADEMY_CLASS_HALL
-		&"shop":
-			return SceneManager.SCENE_SHOP_SCREEN
-		&"mission_hall":
-			return SceneManager.SCENE_SPECIAL_EVENTS
-		&"dorms":
-			return SceneManager.SCENE_COLLECTION_SCREEN
-		&"online":
-			return SceneManager.SCENE_ONLINE
-		&"summoner":
-			return SceneManager.SCENE_SUMMONER_SCREEN
-		&"settings":
-			return SceneManager.SCENE_SETTINGS
+	for destination: Dictionary in DESTINATIONS:
+		if destination["id"] == destination_id:
+			return destination["target_scene"]
 	return ""
 
 
@@ -244,8 +250,8 @@ func _spawn_buildings() -> void:
 			continue
 		_add_building(
 			destination["name_key"],
-			_scene_for_destination(destination["id"]),
-			load(destination["placeholder_art_path"]) as Texture2D,
+			destination["target_scene"],
+			destination["placeholder_texture"],
 			destination["position"]
 		)
 

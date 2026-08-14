@@ -2,6 +2,7 @@ extends GutTest
 
 const HUB_SCENE_PATH: String = "res://scenes/meta/screens/walkable_academy_hub.tscn"
 const MENU_HUB_SCENE_PATH: String = "res://scenes/meta/screens/academy_hub.tscn"
+const CUTOUT_RENDER_ORDER: Script = preload("res://scripts/meta/components/academy_cutout_render_order.gd")
 
 
 func test_walkable_hub_is_primary_route_and_menu_hub_remains_available() -> void:
@@ -42,14 +43,16 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 			var position: Vector3 = destination["position"]
 			assert_true(absf(position.x) <= 13.0)
 			assert_true(absf(position.z) <= 11.0)
-			assert_true(destination.has("placeholder_art_path"))
-			var placeholder_art_path: String = destination["placeholder_art_path"]
+			assert_true(destination.has("placeholder_texture"))
+			var placeholder_texture: Texture2D = destination["placeholder_texture"]
+			assert_not_null(placeholder_texture)
+			var placeholder_art_path: String = placeholder_texture.resource_path
 			assert_true(placeholder_art_path.contains("/placeholders/"))
 			assert_true(ResourceLoader.exists(placeholder_art_path))
 
 	assert_eq(building_count, 5)
-	assert_eq(hub._scene_for_destination(&"summoner"), SceneManager.SCENE_SUMMONER_SCREEN)
-	assert_eq(hub._scene_for_destination(&"settings"), SceneManager.SCENE_SETTINGS)
+	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
+	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SETTINGS), SceneManager.SCENE_SETTINGS)
 	hub.free()
 
 
@@ -64,6 +67,7 @@ func test_placeholder_crowd_is_visual_only_and_deterministic() -> void:
 	for placement: Dictionary in PlaceholderCampusCrowd.PLACEMENTS:
 		assert_not_null(placement["texture"])
 		assert_gt(int(placement["frames"]), 1)
+		assert_gt(float(placement["pixel_size"]), 0.0)
 		var position: Vector3 = placement["position"]
 		assert_eq(position.y, 0.0)
 
@@ -91,16 +95,17 @@ func test_player_switches_to_visible_run_cycle_during_movement() -> void:
 
 
 func test_cutout_order_uses_feet_depth_instead_of_sprite_center() -> void:
-	assert_lt(CutoutRenderOrder.priority_for_feet(-10.0), CutoutRenderOrder.priority_for_feet(10.0))
+	assert_lt(CUTOUT_RENDER_ORDER.priority_for_feet(-10.0), CUTOUT_RENDER_ORDER.priority_for_feet(10.0))
 	var sprite: Sprite3D = Sprite3D.new()
-	CutoutRenderOrder.apply_from_feet(sprite, 7.0)
-	assert_eq(sprite.render_priority, CutoutRenderOrder.priority_for_feet(7.0))
+	CUTOUT_RENDER_ORDER.apply_from_feet(sprite, 7.0)
+	assert_eq(sprite.render_priority, CUTOUT_RENDER_ORDER.priority_for_feet(7.0))
+	assert_eq(sprite.alpha_cut, SpriteBase3D.ALPHA_CUT_DISABLED)
 	sprite.free()
 
 
 func test_building_displays_explicit_placeholder_art() -> void:
 	var destination: Dictionary = WalkableAcademyHub.DESTINATIONS[0]
-	var texture: Texture2D = load(destination["placeholder_art_path"]) as Texture2D
+	var texture: Texture2D = destination["placeholder_texture"]
 	var packed_building: PackedScene = load("res://scenes/meta/components/walkable_academy_building.tscn") as PackedScene
 	var building: WalkableAcademyBuilding = packed_building.instantiate() as WalkableAcademyBuilding
 	building.configure(

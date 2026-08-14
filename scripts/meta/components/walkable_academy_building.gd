@@ -3,6 +3,7 @@ class_name WalkableAcademyBuilding
 
 const COLOR_ART_IDLE: Color = Color(0.90, 0.90, 0.90, 1.0)
 const COLOR_ART_READY: Color = Color.WHITE
+const CUTOUT_RENDER_ORDER: Script = preload("res://scripts/meta/components/academy_cutout_render_order.gd")
 
 @export var display_name_key: String = ""
 @export var target_scene_path: String = ""
@@ -89,8 +90,8 @@ func _refresh_placeholder_art() -> void:
 	placeholder_art.texture = _placeholder_texture
 	placeholder_art.pixel_size = placeholder_art_pixel_size
 	placeholder_art.position.y = 0.0
-	CutoutRenderOrder.anchor_visible_bottom(placeholder_art, _placeholder_texture)
-	CutoutRenderOrder.apply_from_feet(placeholder_art, global_position.z)
+	CUTOUT_RENDER_ORDER.anchor_visible_bottom(placeholder_art, _placeholder_texture)
+	CUTOUT_RENDER_ORDER.apply_from_feet(placeholder_art, global_position.z)
 	var visible_bounds: Rect2i = _placeholder_texture.get_image().get_used_rect()
 	var art_height: float = visible_bounds.size.y * placeholder_art_pixel_size
 	placeholder_label.position.y = art_height + 0.2

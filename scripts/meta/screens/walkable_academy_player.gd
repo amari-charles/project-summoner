@@ -7,6 +7,7 @@ const IDLE_FRAME_COUNT: int = 8
 const RUN_FRAME_COUNT: int = 6
 const IDLE_FRAMES_PER_SECOND: float = 5.0
 const RUN_FRAMES_PER_SECOND: float = 9.0
+const CUTOUT_RENDER_ORDER: Script = preload("res://scripts/meta/components/academy_cutout_render_order.gd")
 
 @export var move_speed: float = 12.0
 
@@ -56,7 +57,7 @@ func _set_animation(running: bool) -> void:
 	player_visual.texture = PLACEHOLDER_RUN_TEXTURE if running else PLACEHOLDER_IDLE_TEXTURE
 	player_visual.hframes = RUN_FRAME_COUNT if running else IDLE_FRAME_COUNT
 	player_visual.frame = 0
-	CutoutRenderOrder.anchor_visible_bottom(player_visual, player_visual.texture)
+	CUTOUT_RENDER_ORDER.anchor_visible_bottom(player_visual, player_visual.texture)
 
 
 func _set_facing_left(facing_left: bool) -> void:
@@ -66,4 +67,4 @@ func _set_facing_left(facing_left: bool) -> void:
 
 
 func _update_render_order() -> void:
-	CutoutRenderOrder.apply_from_feet(player_visual, global_position.z)
+	CUTOUT_RENDER_ORDER.apply_from_feet(player_visual, global_position.z)
