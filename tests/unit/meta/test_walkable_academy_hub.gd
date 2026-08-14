@@ -62,6 +62,22 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 	hub.free()
 
 
+func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	hub.ground_tile_world_size = 9.0
+	hub.ground_tint = Color(0.5, 0.6, 0.7, 1.0)
+	add_child_autofree(hub)
+	await get_tree().process_frame
+
+	var ground: MeshInstance3D = hub.get_node("Ground") as MeshInstance3D
+	var ground_plane: PlaneMesh = ground.mesh as PlaneMesh
+	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+	assert_almost_eq(ground_material.uv1_scale.x, ground_plane.size.x / 9.0, 0.0001)
+	assert_almost_eq(ground_material.uv1_scale.y, ground_plane.size.y / 9.0, 0.0001)
+	assert_eq(ground_material.albedo_color, hub.ground_tint)
+
+
 func test_walkable_controls_are_project_actions() -> void:
 	for action: StringName in [&"move_left", &"move_right", &"move_up", &"move_down", &"interact"]:
 		assert_true(InputMap.has_action(action), "%s must be configured in project.godot" % action)

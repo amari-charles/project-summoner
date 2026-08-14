@@ -64,6 +64,11 @@ const DESTINATIONS: Array[Dictionary] = [
 	{"id": DESTINATION_SETTINGS, "name_key": "ui.nav.settings", "description_key": "academy.walkable.settings_description", "target_scene": SceneManagerClass.SCENE_SETTINGS},
 ]
 
+@export_category("Placeholder Ground")
+@export_range(0.5, 20.0, 0.25) var ground_tile_world_size: float = 4.5
+@export var ground_tint: Color = Color(0.78, 0.8, 0.76, 1.0)
+
+@export_category("Camera")
 @export var camera_follow_offset: Vector3 = Vector3(0.0, 22.0, 22.0)
 @export var camera_follow_focus_height: float = 2.45
 @export var camera_follow_lerp_speed: float = 8.0
@@ -75,6 +80,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @export var camera_zoom_pitch_enabled: bool = true
 @export var camera_zoom_pitch_max_degrees: float = 8.0
 
+@onready var ground: MeshInstance3D = %Ground
 @onready var ground_label: Label3D = %GroundLabel
 @onready var buildings: Node3D = %Buildings
 @onready var camera: Camera3D = %Camera3D
@@ -95,6 +101,7 @@ var _transition_started: bool = false
 
 
 func _ready() -> void:
+	_configure_placeholder_ground()
 	if SummonerSelectionApi.get_active_summoner_id().is_empty():
 		call_deferred("_redirect_to_summoner_selection")
 		return
@@ -116,6 +123,25 @@ func _ready() -> void:
 	camera.fov = _camera_target_fov
 	_snap_camera_to_player()
 	_spawn_buildings()
+
+
+func _configure_placeholder_ground() -> void:
+	if ground_tile_world_size <= 0.0:
+		push_error("WalkableAcademyHub: Ground tile world size must be greater than zero")
+		return
+	var ground_plane: PlaneMesh = ground.mesh as PlaneMesh
+	var source_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+	if ground_plane == null or source_material == null:
+		push_error("WalkableAcademyHub: Placeholder ground requires a PlaneMesh and StandardMaterial3D")
+		return
+	var ground_material: StandardMaterial3D = source_material.duplicate() as StandardMaterial3D
+	ground.material_override = ground_material
+	ground_material.albedo_color = ground_tint
+	ground_material.uv1_scale = Vector3(
+		ground_plane.size.x / ground_tile_world_size,
+		ground_plane.size.y / ground_tile_world_size,
+		1.0
+	)
 
 
 func _process(delta: float) -> void:
