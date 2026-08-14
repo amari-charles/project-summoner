@@ -20,9 +20,6 @@ const PLACEHOLDER_GROUND_BOTTOM_RIGHT: Texture2D = preload("res://assets/placeho
 const PLACEHOLDER_CLIFF_MIDDLE_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_left.png")
 const PLACEHOLDER_CLIFF_MIDDLE: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle.png")
 const PLACEHOLDER_CLIFF_MIDDLE_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_middle_right.png")
-const PLACEHOLDER_CLIFF_BOTTOM_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_bottom_left.png")
-const PLACEHOLDER_CLIFF_BOTTOM: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_bottom.png")
-const PLACEHOLDER_CLIFF_BOTTOM_RIGHT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_cliff_bottom_right.png")
 
 const DESTINATION_CLASS_HALL: StringName = &"class_hall"
 const DESTINATION_SHOP: StringName = &"shop"
@@ -235,17 +232,6 @@ func _configure_placeholder_ground() -> void:
 		PLACEHOLDER_CLIFF_MIDDLE_LEFT,
 		PLACEHOLDER_CLIFF_MIDDLE,
 		PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
-		source_material
-	)
-	_add_ground_cliff_row(
-		"CliffBottom",
-		-border_size * 1.5,
-		grass_front_edge,
-		inner_size.x,
-		border_size,
-		PLACEHOLDER_CLIFF_BOTTOM_LEFT,
-		PLACEHOLDER_CLIFF_BOTTOM,
-		PLACEHOLDER_CLIFF_BOTTOM_RIGHT,
 		source_material
 	)
 

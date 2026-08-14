@@ -76,9 +76,6 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT,
 		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE,
 		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_BOTTOM_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_BOTTOM,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_BOTTOM_RIGHT,
 	]
 	for texture: Texture2D in ground_textures:
 		assert_eq(texture.get_size(), Vector2(64.0, 64.0), "Ground regions must share the source pack's 64px grid")
@@ -97,21 +94,23 @@ func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
 	assert_almost_eq(ground_material.uv1_scale.y, ground_plane.size.y / 9.0, 0.0001)
 	assert_eq(ground_material.albedo_color, hub.ground_tint)
 	assert_eq(ground_material.transparency, BaseMaterial3D.TRANSPARENCY_DISABLED)
-	assert_eq(ground.get_child_count(), 14, "The ground should include its perimeter and front cliff face")
+	assert_eq(ground.get_child_count(), 11, "The ground should include its perimeter and one front cliff row")
 	var top_edge: MeshInstance3D = ground.get_node_or_null("TopEdge") as MeshInstance3D
 	assert_not_null(top_edge)
 	var top_edge_material: StandardMaterial3D = top_edge.material_override as StandardMaterial3D
 	assert_eq(top_edge_material.transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
 	assert_not_null(ground.get_node_or_null("BottomRightCorner"))
 	var cliff_middle: MeshInstance3D = ground.get_node_or_null("CliffMiddleCenter") as MeshInstance3D
-	var cliff_bottom: MeshInstance3D = ground.get_node_or_null("CliffBottomCenter") as MeshInstance3D
+	var cliff_left: MeshInstance3D = ground.get_node_or_null("CliffMiddleLeft") as MeshInstance3D
+	var cliff_right: MeshInstance3D = ground.get_node_or_null("CliffMiddleRight") as MeshInstance3D
 	assert_not_null(cliff_middle)
-	assert_not_null(cliff_bottom)
+	assert_not_null(cliff_left)
+	assert_not_null(cliff_right)
 	assert_true(cliff_middle.mesh is QuadMesh, "The cliff must descend on vertical geometry")
-	assert_true(cliff_bottom.mesh is QuadMesh, "The cliff must descend on vertical geometry")
-	assert_almost_eq(cliff_bottom.position.z, cliff_middle.position.z, 0.0001)
 	assert_lt(cliff_middle.position.y, 0.0)
-	assert_lt(cliff_bottom.position.y, cliff_middle.position.y)
+	assert_eq((cliff_left.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT)
+	assert_eq((cliff_right.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT)
+	assert_null(ground.get_node_or_null("CliffBottomCenter"))
 
 
 func test_walkable_controls_are_project_actions() -> void:
