@@ -271,7 +271,8 @@ func _add_building(
 		display_name_key,
 		target_scene_path,
 		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
-		placeholder_texture
+		placeholder_texture,
+		camera
 	)
 	buildings.add_child(building)
 

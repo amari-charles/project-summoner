@@ -21,6 +21,18 @@ static func priority_for_feet(feet_world_z: float) -> int:
 	return clampi(roundi(feet_world_z * PRIORITY_SCALE), MIN_RENDER_PRIORITY, MAX_RENDER_PRIORITY)
 
 
+static func point_above_visible_art(
+	feet_world_position: Vector3,
+	camera_basis: Basis,
+	visible_art_height: float,
+	gap: float,
+	depth_offset: float
+) -> Vector3:
+	var screen_up: Vector3 = camera_basis.y.normalized()
+	var toward_camera: Vector3 = camera_basis.z.normalized()
+	return feet_world_position + screen_up * (visible_art_height + gap) + toward_camera * depth_offset
+
+
 static func anchor_visible_bottom(sprite: SpriteBase3D, texture: Texture2D) -> void:
 	var image: Image = texture.get_image()
 	var bottom_padding: float = 0.0

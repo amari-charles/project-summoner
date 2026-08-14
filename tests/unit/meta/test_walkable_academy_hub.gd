@@ -108,18 +108,31 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	var texture: Texture2D = destination["placeholder_texture"]
 	var packed_building: PackedScene = load("res://scenes/meta/components/walkable_academy_building.tscn") as PackedScene
 	var building: WalkableAcademyBuilding = packed_building.instantiate() as WalkableAcademyBuilding
+	var campus_camera: Camera3D = Camera3D.new()
+	campus_camera.rotation_degrees.x = -45.0
+	add_child_autofree(campus_camera)
 	building.configure(
 		destination["name_key"],
 		SceneManager.SCENE_ACADEMY_CLASS_HALL,
 		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
-		texture
+		texture,
+		campus_camera
 	)
 	add_child_autofree(building)
 	await get_tree().process_frame
 
 	var art: Sprite3D = building.get_node("PlaceholderBuildingArt") as Sprite3D
 	var placeholder_label: Label3D = building.get_node("PlaceholderLabel") as Label3D
+	var name_label: Label3D = building.get_node("NameLabel") as Label3D
 	assert_eq(art.texture, texture)
 	assert_eq(art.position.y, 0.0)
 	assert_gt(art.offset.y, 0.0)
 	assert_true(placeholder_label.text.begins_with("PLACEHOLDER"))
+	var screen_up: Vector3 = campus_camera.global_basis.y.normalized()
+	var placeholder_offset: Vector3 = placeholder_label.global_position - building.global_position
+	var name_offset: Vector3 = name_label.global_position - building.global_position
+	assert_gt(placeholder_offset.dot(screen_up), building._placeholder_art_height)
+	assert_gt(name_offset.dot(screen_up), placeholder_offset.dot(screen_up))
+	assert_ne(placeholder_label.global_position.z, building.global_position.z)
+	assert_eq(placeholder_label.render_priority, art.render_priority + 1)
+	assert_eq(name_label.render_priority, art.render_priority + 1)
