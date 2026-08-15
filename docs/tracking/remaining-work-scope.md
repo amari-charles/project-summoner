@@ -4,6 +4,8 @@ This document is a living scoping checklist for production work that cuts across
 
 Design intent still lives in `docs/design/` and element docs. This file is for counting, grouping, estimating, and converting fuzzy remaining work into tracked implementation tasks.
 
+The broader sequencing from product-foundation definition through content production is maintained in [Completion Roadmap](completion-roadmap.md).
+
 ## Source References
 
 - `docs/tracking/todos.md`

@@ -130,6 +130,7 @@ Maintain a dedicated scoping roadmap that turns fuzzy remaining production work 
 - [ ] Convert scoped groups into smaller implementation TODOs.
 
 **Related Docs:**
+- `docs/tracking/completion-roadmap.md`
 - `docs/tracking/remaining-work-scope.md`
 - `docs/design/academy-forging-model.md`
 - `docs/design/academy-forging-implementation-spec.md`
