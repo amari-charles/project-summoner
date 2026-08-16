@@ -414,6 +414,10 @@ public static class DtoConverters
             ["enrolled_courses"] = ToGodotArray(
                 academy.EnrolledCourses.Select(course => (string)course)
             ),
+            ["discovered_courses"] = ToGodotArray(
+                academy.DiscoveredCourses.Select(course => (string)course)
+            ),
+            ["tracked_quest_id"] = academy.TrackedQuestId,
         };
 
         var assessmentOutcomes = new Godot.Collections.Dictionary();
@@ -832,6 +836,16 @@ public static class DtoConverters
             }
         }
 
+        var discoveredCourses = new List<CourseId>();
+        if (
+            dict.TryGetValue("discovered_courses", out var discoveredVar)
+            && discoveredVar.VariantType == Variant.Type.Array
+        )
+        {
+            foreach (var course in discoveredVar.AsGodotArray())
+                discoveredCourses.Add(CourseId.FromString(course.AsString()));
+        }
+
         var transcript = new List<AcademyTranscriptEntry>();
         if (
             dict.TryGetValue("transcript", out var transcriptVar)
@@ -904,6 +918,8 @@ public static class DtoConverters
             RemainingEnrollments = GetInt(dict, "remaining_enrollments", 0),
             CompletedCourses = completedCourses,
             EnrolledCourses = enrolledCourses,
+            DiscoveredCourses = discoveredCourses,
+            TrackedQuestId = GetString(dict, "tracked_quest_id", ""),
             AssessmentOutcomes = assessmentOutcomes,
             ActivityLoadouts = activityLoadouts,
             Transcript = transcript,

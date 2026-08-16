@@ -66,43 +66,104 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 vertical_alignment = 1
 
-[node name="Tabs" type="HBoxContainer" parent="Margin/Root"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="ActiveButton" type="Button" parent="Margin/Root/Tabs"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 46)
-layout_mode = 2
-toggle_mode = true
-
-[node name="OpportunitiesButton" type="Button" parent="Margin/Root/Tabs"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 46)
-layout_mode = 2
-toggle_mode = true
-
-[node name="CompletedButton" type="Button" parent="Margin/Root/Tabs"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 46)
-layout_mode = 2
-toggle_mode = true
-
 [node name="Separator" type="HSeparator" parent="Margin/Root"]
 layout_mode = 2
 
-[node name="EmptyLabel" type="Label" parent="Margin/Root"]
+[node name="Body" type="HSplitContainer" parent="Margin/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 360
+
+[node name="QuestListScroll" type="ScrollContainer" parent="Margin/Root/Body"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+
+[node name="QuestLists" type="VBoxContainer" parent="Margin/Root/Body/QuestListScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ActiveHeading" type="Label" parent="Margin/Root/Body/QuestListScroll/QuestLists"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Active"
+
+[node name="ActiveList" type="VBoxContainer" parent="Margin/Root/Body/QuestListScroll/QuestLists"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.76, 0.84, 1)
-theme_override_font_sizes/font_size = 20
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/Root"]
+[node name="OpportunitiesHeading" type="Label" parent="Margin/Root/Body/QuestListScroll/QuestLists"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Opportunities"
+
+[node name="OpportunitiesList" type="VBoxContainer" parent="Margin/Root/Body/QuestListScroll/QuestLists"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CompletedHeading" type="Label" parent="Margin/Root/Body/QuestListScroll/QuestLists"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Completed"
+
+[node name="CompletedList" type="VBoxContainer" parent="Margin/Root/Body/QuestListScroll/QuestLists"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DetailPanel" type="PanelContainer" parent="Margin/Root/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DetailMargin" type="MarginContainer" parent="Margin/Root/Body/DetailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="DetailEmpty" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DetailContent" type="VBoxContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="DetailTitle" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+autowrap_mode = 2
+
+[node name="DetailStatus" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+
+[node name="DetailSeparator" type="HSeparator" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
+layout_mode = 2
+
+[node name="DetailDescription" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 2
+
+[node name="DetailObjective" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 2
+
+[node name="Spacer" type="Control" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="EntryList" type="VBoxContainer" parent="Margin/Root/Scroll"]
+[node name="TrackButton" type="Button" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 12

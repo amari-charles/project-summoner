@@ -469,6 +469,32 @@ public partial class CampaignService : Node
         return _academy?.GetQuestJournalState() ?? [];
     }
 
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetProfessorQuestStates()
+    {
+        return _academy?.GetProfessorQuestStates() ?? [];
+    }
+
+    public Godot.Collections.Dictionary GetProfessorQuestState(string professorId)
+    {
+        return _academy?.GetProfessorQuestState(professorId) ?? [];
+    }
+
+    public bool TrackQuest(string questId)
+    {
+        var tracked = _academy?.TrackQuest(questId) ?? false;
+        if (tracked)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return tracked;
+    }
+
+    public bool DiscoverAcademyCourse(string courseId)
+    {
+        var discovered = _academy?.DiscoverCourse(courseId) ?? false;
+        if (discovered)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return discovered;
+    }
+
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableAcademyCourses()
     {
         return _academy?.GetAvailableCourses() ?? [];

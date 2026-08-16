@@ -25,6 +25,9 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Boundaries/Right/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
+	assert_not_null(hub.get_node_or_null("Interface/JournalButton"))
+	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestButton"))
+	assert_not_null(hub.get_node_or_null("Professors"))
 	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
 	assert_not_null(hub.get_node_or_null("PlaceholderScenery"))
 	assert_not_null(hub.get_node_or_null("PlaceholderWater"))
@@ -70,10 +73,21 @@ func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
 	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
 	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
 	assert_not_null(journal)
-	assert_not_null(journal.get_node_or_null("Margin/Root/Tabs/ActiveButton"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Tabs/OpportunitiesButton"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Tabs/CompletedButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/QuestListScroll/QuestLists/ActiveList"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/QuestListScroll/QuestLists/OpportunitiesList"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/QuestListScroll/QuestLists/CompletedList"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel"))
 	journal.free()
+
+
+func test_professor_component_has_marker_and_player_interaction_area() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/academy_professor.tscn") as PackedScene
+	var professor: AcademyProfessor = packed_scene.instantiate() as AcademyProfessor
+	assert_not_null(professor)
+	assert_not_null(professor.get_node_or_null("ProfessorVisual"))
+	assert_not_null(professor.get_node_or_null("MarkerLabel"))
+	assert_not_null(professor.get_node_or_null("InteractionArea/CollisionShape3D"))
+	professor.free()
 
 
 func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:

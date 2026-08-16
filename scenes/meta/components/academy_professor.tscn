@@ -1,0 +1,49 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/components/academy_professor.gd" id="1_professor"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_student_idle.png" id="2_student"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_interaction"]
+height = 2.5
+radius = 2.2
+
+[node name="AcademyProfessor" type="Node3D"]
+script = ExtResource("1_professor")
+
+[node name="ProfessorVisual" type="Sprite3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 0, 0)
+pixel_size = 0.035
+billboard = 1
+texture_filter = 0
+hframes = 8
+texture = ExtResource("2_student")
+
+[node name="NameLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 2.75, 0)
+pixel_size = 0.007
+billboard = 2
+outline_size = 6
+outline_modulate = Color(0, 0, 0, 0.75)
+horizontal_alignment = 1
+
+[node name="MarkerLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 4.2, 0)
+pixel_size = 0.018
+billboard = 2
+modulate = Color(1, 0.82, 0.16, 1)
+outline_size = 8
+outline_modulate = Color(0, 0, 0, 0.85)
+theme_override_font_sizes/font_size = 38
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 1.25, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+shape = SubResource("CylinderShape3D_interaction")

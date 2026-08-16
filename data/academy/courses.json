@@ -4,6 +4,8 @@
       "id": "introduction_to_magic_101",
       "name_key": "academy.course.introduction_to_magic_101.name",
       "description_key": "academy.course.introduction_to_magic_101.description",
+      "professor_id": "general_magic",
+      "location_key": "academy.location.general_grounds",
       "year": 1,
       "semester": 1,
       "track": "foundation",
@@ -518,13 +520,17 @@
       "id": "summoning_basics",
       "name_key": "academy.course.summoning_basics.name",
       "description_key": "academy.course.summoning_basics.description",
+      "professor_id": "general_magic",
+      "location_key": "academy.location.general_grounds",
       "year": 1,
       "semester": 1,
       "track": "binding",
       "enrollment_cost": 1,
       "is_required": false,
       "choice_group_id": "year_1_semester_1_foundation",
-      "prerequisites": [],
+      "prerequisites": [
+        "introduction_to_magic_101"
+      ],
       "activities": [
         {
           "id": "summoning_basics_practice",
@@ -642,13 +648,17 @@
       "id": "practical_spellcraft",
       "name_key": "academy.course.practical_spellcraft.name",
       "description_key": "academy.course.practical_spellcraft.description",
+      "professor_id": "general_magic",
+      "location_key": "academy.location.general_grounds",
       "year": 1,
       "semester": 1,
       "track": "arcana",
       "enrollment_cost": 1,
       "is_required": false,
       "choice_group_id": "year_1_semester_1_foundation",
-      "prerequisites": [],
+      "prerequisites": [
+        "introduction_to_magic_101"
+      ],
       "activities": [
         {
           "id": "practical_spellcraft_practice",
@@ -773,13 +783,19 @@
       "id": "intro_to_fire",
       "name_key": "academy.course.intro_to_fire.name",
       "description_key": "academy.course.intro_to_fire.description",
+      "professor_id": "fire",
+      "location_key": "academy.location.fire_grounds",
       "year": 1,
       "semester": 1,
       "track": "affinity",
       "enrollment_cost": 1,
       "is_required": false,
       "choice_group_id": "year_1_semester_1_element",
-      "prerequisites": [],
+      "prerequisites": [
+        "summoning_basics",
+        "practical_spellcraft"
+      ],
+      "prerequisite_mode": "any",
       "activities": [
         {
           "id": "intro_fire_practice",
@@ -934,13 +950,19 @@
       "id": "intro_to_water",
       "name_key": "academy.course.intro_to_water.name",
       "description_key": "academy.course.intro_to_water.description",
+      "professor_id": "water",
+      "location_key": "academy.location.water_grounds",
       "year": 1,
       "semester": 1,
       "track": "affinity",
       "enrollment_cost": 1,
       "is_required": false,
       "choice_group_id": "year_1_semester_1_element",
-      "prerequisites": [],
+      "prerequisites": [
+        "summoning_basics",
+        "practical_spellcraft"
+      ],
+      "prerequisite_mode": "any",
       "activities": [
         {
           "id": "intro_water_practice",
@@ -1095,13 +1117,19 @@
       "id": "intro_to_earth",
       "name_key": "academy.course.intro_to_earth.name",
       "description_key": "academy.course.intro_to_earth.description",
+      "professor_id": "earth",
+      "location_key": "academy.location.earth_grounds",
       "year": 1,
       "semester": 1,
       "track": "affinity",
       "enrollment_cost": 1,
       "is_required": false,
       "choice_group_id": "year_1_semester_1_element",
-      "prerequisites": [],
+      "prerequisites": [
+        "summoning_basics",
+        "practical_spellcraft"
+      ],
+      "prerequisite_mode": "any",
       "activities": [
         {
           "id": "intro_earth_practice",
@@ -1256,13 +1284,19 @@
       "id": "intro_to_air",
       "name_key": "academy.course.intro_to_air.name",
       "description_key": "academy.course.intro_to_air.description",
+      "professor_id": "wind",
+      "location_key": "academy.location.wind_grounds",
       "year": 1,
       "semester": 1,
       "track": "affinity",
       "enrollment_cost": 1,
       "is_required": false,
       "choice_group_id": "year_1_semester_1_element",
-      "prerequisites": [],
+      "prerequisites": [
+        "summoning_basics",
+        "practical_spellcraft"
+      ],
+      "prerequisite_mode": "any",
       "activities": [
         {
           "id": "intro_air_practice",

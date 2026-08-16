@@ -43,6 +43,18 @@ static func get_academy_progress() -> Dictionary:
 static func get_quest_journal_state() -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("GetQuestJournalState"))
 
+static func get_professor_quest_states() -> Array:
+	return SafeTypeUtils.array(Campaign.call("GetProfessorQuestStates"))
+
+static func get_professor_quest_state(professor_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetProfessorQuestState", professor_id))
+
+static func track_quest(quest_id: String) -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("TrackQuest", quest_id), false)
+
+static func discover_academy_course(course_id: String) -> bool:
+	return SafeTypeUtils.bool_val(Campaign.call("DiscoverAcademyCourse", course_id), false)
+
 static func get_available_academy_courses() -> Array:
 	return SafeTypeUtils.array(Campaign.call("GetAvailableAcademyCourses"))
 

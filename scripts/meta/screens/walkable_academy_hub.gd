@@ -3,6 +3,7 @@ class_name WalkableAcademyHub
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
+const AcademyProfessorScene: PackedScene = preload("res://scenes/meta/components/academy_professor.tscn")
 const PLACEHOLDER_CLASS_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png")
 const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
@@ -34,6 +35,14 @@ const DESTINATION_ONLINE: StringName = &"online"
 const DESTINATION_SUMMONER: StringName = &"summoner"
 const DESTINATION_SETTINGS: StringName = &"settings"
 const DESTINATION_JOURNAL: StringName = &"journal"
+
+const PROFESSOR_POSITIONS: Dictionary = {
+	"general_magic": Vector3(-2.0, 0.0, 1.0),
+	"fire": Vector3(-25.0, 0.0, -14.0),
+	"water": Vector3(25.0, 0.0, 11.0),
+	"earth": Vector3(-27.0, 0.0, 13.0),
+	"wind": Vector3(25.0, 0.0, -15.0),
+}
 
 ## One destination catalog drives both building entrances and fast shortcuts.
 ## Entries without a position remain shortcut-only in the current prototype.
@@ -108,6 +117,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var placeholder_water: Node3D = %PlaceholderWater
 @onready var ground_label: Label3D = %GroundLabel
 @onready var buildings: Node3D = %Buildings
+@onready var professors: Node3D = %Professors
 @onready var camera: Camera3D = %Camera3D
 @onready var player: Node3D = %Player
 @onready var shortcut_button: Button = %ShortcutButton
@@ -116,6 +126,9 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var shortcut_close_button: Button = %ShortcutCloseButton
 @onready var shortcut_list: VBoxContainer = %ShortcutList
 @onready var summoner_slot: Control = %SummonerSlot
+@onready var tracked_quest_button: Button = %TrackedQuestButton
+@onready var journal_button: Button = %JournalButton
+@onready var professor_dialog: ConfirmationDialog = %ProfessorDialog
 
 var _camera_target_fov: float = 46.0
 var _camera_default_fov: float = 46.0
@@ -124,6 +137,7 @@ var _camera_focus_position: Vector3 = Vector3.ZERO
 var _camera_follow_distance: float = 31.0
 var _ground_source_size: Vector2 = Vector2.ZERO
 var _transition_started: bool = false
+var _dialog_course_id: String = ""
 
 
 func _ready() -> void:
@@ -138,6 +152,12 @@ func _ready() -> void:
 	shortcut_close_button.text = Loc.t("ui.common.close")
 	shortcut_button.pressed.connect(_toggle_shortcuts)
 	shortcut_close_button.pressed.connect(_close_shortcuts)
+	journal_button.text = Loc.t("academy.journal.title")
+	journal_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
+	tracked_quest_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
+	professor_dialog.confirmed.connect(_accept_dialogue_quest)
+	if Campaign.has_signal("CampaignProgressChanged"):
+		Campaign.connect("CampaignProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
 	_populate_shortcuts()
 
@@ -149,6 +169,8 @@ func _ready() -> void:
 	camera.fov = _camera_target_fov
 	_snap_camera_to_player()
 	_spawn_buildings()
+	_spawn_professors()
+	_refresh_quest_presentation()
 
 
 func _configure_placeholder_ground() -> void:
@@ -635,6 +657,90 @@ func _spawn_buildings() -> void:
 			destination["placeholder_texture"],
 			destination["position"]
 		)
+
+
+func _spawn_professors() -> void:
+	_clear_children(professors)
+	for value: Variant in CampaignApi.get_professor_quest_states():
+		var state: Dictionary = SafeTypeUtils.dict(value)
+		var professor_id: String = SafeTypeUtils.string(state.get("id"))
+		if not PROFESSOR_POSITIONS.has(professor_id):
+			continue
+		var professor: AcademyProfessor = AcademyProfessorScene.instantiate()
+		professor.position = PROFESSOR_POSITIONS[professor_id]
+		professor.interacted.connect(_on_professor_interacted)
+		professors.add_child(professor)
+		professor.configure(state)
+
+
+func _refresh_quest_presentation() -> void:
+	var state_by_id: Dictionary = {}
+	for value: Variant in CampaignApi.get_professor_quest_states():
+		var state: Dictionary = SafeTypeUtils.dict(value)
+		state_by_id[SafeTypeUtils.string(state.get("id"))] = state
+	for child: Node in professors.get_children():
+		var professor: AcademyProfessor = child as AcademyProfessor
+		if professor != null and state_by_id.has(professor.professor_id):
+			professor.configure(state_by_id[professor.professor_id])
+
+	var journal: Dictionary = CampaignApi.get_quest_journal_state()
+	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
+	tracked_quest_button.visible = not tracked_id.is_empty()
+	if tracked_id.is_empty():
+		return
+	for value: Variant in SafeTypeUtils.array(journal.get("active")):
+		var quest: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(quest.get("id")) != tracked_id:
+			continue
+		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
+		var objective: String = Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))
+		tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
+		return
+
+
+func _on_professor_interacted(professor_id: String) -> void:
+	var state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)
+	var professor_name: String = Loc.t(SafeTypeUtils.string(state.get("name_key")))
+	var opportunities: Array = SafeTypeUtils.array(state.get("opportunities"))
+	_dialog_course_id = ""
+	professor_dialog.title = professor_name
+	professor_dialog.get_ok_button().text = Loc.t("ui.common.close")
+	professor_dialog.get_cancel_button().hide()
+
+	if not opportunities.is_empty():
+		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
+		_dialog_course_id = SafeTypeUtils.string(quest.get("source_id"))
+		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
+		var overview: String = Loc.t(SafeTypeUtils.string(quest.get("description_key")))
+		var cost: int = SafeTypeUtils.int_val(quest.get("curriculum_cost"), 0)
+		professor_dialog.dialog_text = "%s\n\n%s\n\n%s" % [
+			title,
+			overview,
+			Loc.t("academy.quest.permanent_cost", {"cost": cost}),
+		]
+		professor_dialog.get_ok_button().text = Loc.t("academy.quest.accept")
+		professor_dialog.get_cancel_button().text = Loc.t("academy.quest.not_yet")
+		professor_dialog.get_cancel_button().show()
+	else:
+		var active: Array = SafeTypeUtils.array(state.get("active"))
+		if active.is_empty():
+			professor_dialog.dialog_text = Loc.t("academy.quest.no_assignment")
+		else:
+			var quest: Dictionary = SafeTypeUtils.dict(active[0])
+			professor_dialog.dialog_text = Loc.t(
+				"academy.quest.active_reminder",
+				{"objective": Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))},
+			)
+
+	professor_dialog.popup_centered(Vector2i(620, 320))
+
+
+func _accept_dialogue_quest() -> void:
+	if _dialog_course_id.is_empty():
+		return
+	if not CampaignApi.enroll_academy_course(_dialog_course_id):
+		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % _dialog_course_id)
+	_dialog_course_id = ""
 
 
 func _add_building(

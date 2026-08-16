@@ -272,7 +272,12 @@
   },
   "academy": {
     "location": {
-      "exit": "X"
+      "exit": "X",
+      "general_grounds": "Central Practice Grounds",
+      "fire_grounds": "Ember Practice Grounds",
+      "water_grounds": "Lakeside Grounds",
+      "earth_grounds": "Mountain Grounds",
+      "wind_grounds": "High Terrace"
     },
     "walkable": {
       "placeholder_ground": "TEMP ACADEMY GROUND",
@@ -351,7 +356,40 @@
       "progress": "Progress: {current}/{total}",
       "current_objective": "Current objective: {objective}",
       "known_opportunity": "Known academic opportunity",
-      "completed_status": "Completed academic chain"
+      "completed_status": "Completed academic chain",
+      "empty": "Select a quest to review its details.",
+      "track": "Track Quest",
+      "tracked": "Tracked"
+    },
+    "professor": {
+      "general_magic": {
+        "name": "Professor Rowan",
+        "role": "General Magic"
+      },
+      "fire": {
+        "name": "Professor Ash",
+        "role": "Fire Magic"
+      },
+      "water": {
+        "name": "Professor Brook",
+        "role": "Water Magic"
+      },
+      "earth": {
+        "name": "Professor Flint",
+        "role": "Earth Magic"
+      },
+      "wind": {
+        "name": "Professor Gale",
+        "role": "Wind Magic"
+      }
+    },
+    "quest": {
+      "talk_prompt": "Press Interact to talk",
+      "accept": "Accept",
+      "not_yet": "Not Yet",
+      "permanent_cost": "Permanently commits {cost} curriculum capacity.",
+      "no_assignment": "I have no new assignment for you right now.",
+      "active_reminder": "Your current assignment: {objective}"
     },
     "course_modal": {
       "syllabus": "Syllabus",

@@ -205,7 +205,9 @@ public sealed class RewardContentValidator : IRewardContentValidator
             errors.Add($"{location}: {grant.Target.Scope} target ID is required.");
         }
         if (!SupportsTarget(grant))
-            errors.Add($"{location}: {grant.GetType().Name} does not support {grant.Target.Scope} ownership.");
+            errors.Add(
+                $"{location}: {grant.GetType().Name} does not support {grant.Target.Scope} ownership."
+            );
 
         switch (grant)
         {
@@ -272,19 +274,23 @@ public sealed class RewardContentValidator : IRewardContentValidator
         grant switch
         {
             CardRewardGrantDefinition => grant.Target.Scope
-                is RewardOwnershipScope.Account or RewardOwnershipScope.Summoner,
+                is RewardOwnershipScope.Account
+                    or RewardOwnershipScope.Summoner,
             ResourceRewardGrantDefinition => grant.Target.Scope
-                is RewardOwnershipScope.Account or RewardOwnershipScope.SummonerCampaign,
+                is RewardOwnershipScope.Account
+                    or RewardOwnershipScope.SummonerCampaign,
             ItemRewardGrantDefinition => grant.Target.Scope
-                is RewardOwnershipScope.Account or RewardOwnershipScope.Summoner,
+                is RewardOwnershipScope.Account
+                    or RewardOwnershipScope.Summoner,
             SummonerUnlockRewardGrantDefinition
             or CosmeticRewardGrantDefinition
             or EmoteRewardGrantDefinition => grant.Target.Scope == RewardOwnershipScope.Account,
-            SummonerExperienceRewardGrantDefinition
-            or SummonerTraitRewardGrantDefinition => grant.Target.Scope
-                == RewardOwnershipScope.Summoner,
-            CardExperienceRewardGrantDefinition or CardTraitRewardGrantDefinition =>
-                grant.Target.Scope == RewardOwnershipScope.CardInstance,
+            SummonerExperienceRewardGrantDefinition or SummonerTraitRewardGrantDefinition => grant
+                .Target
+                .Scope == RewardOwnershipScope.Summoner,
+            CardExperienceRewardGrantDefinition or CardTraitRewardGrantDefinition => grant
+                .Target
+                .Scope == RewardOwnershipScope.CardInstance,
             AcademyProgressFlagRewardGrantDefinition => grant.Target.Scope
                 == RewardOwnershipScope.SummonerCampaign,
             _ => false,
@@ -315,6 +321,7 @@ internal static class RewardJson
         options.Converters.Add(new TraitIdConverter());
         options.Converters.Add(new CardTraitIdConverter());
         options.Converters.Add(new CourseIdConverter());
+        options.Converters.Add(new ProfessorIdConverter());
         options.Converters.Add(new BiomeIdConverter());
         return options;
     }
@@ -337,60 +344,77 @@ internal static class RewardJson
     private sealed class RewardOfferIdConverter : StringIdConverter<RewardOfferId>
     {
         protected override RewardOfferId Create(string value) => new(value);
+
         protected override string GetValue(RewardOfferId value) => value.Value;
     }
 
     private sealed class RewardOptionIdConverter : StringIdConverter<RewardOptionId>
     {
         protected override RewardOptionId Create(string value) => new(value);
+
         protected override string GetValue(RewardOptionId value) => value.Value;
     }
 
     private sealed class RewardPoolIdConverter : StringIdConverter<UniversalRewardPoolId>
     {
         protected override UniversalRewardPoolId Create(string value) => new(value);
+
         protected override string GetValue(UniversalRewardPoolId value) => value.Value;
     }
 
     private sealed class CardIdConverter : StringIdConverter<CardId>
     {
         protected override CardId Create(string value) => new(value);
+
         protected override string GetValue(CardId value) => value.Value;
     }
 
     private sealed class CourseIdConverter : StringIdConverter<CourseId>
     {
         protected override CourseId Create(string value) => new(value);
+
         protected override string GetValue(CourseId value) => value.Value;
+    }
+
+    private sealed class ProfessorIdConverter : StringIdConverter<ProfessorId>
+    {
+        protected override ProfessorId Create(string value) => new(value);
+
+        protected override string GetValue(ProfessorId value) => value.Value;
     }
 
     private sealed class BiomeIdConverter : StringIdConverter<BiomeId>
     {
         protected override BiomeId Create(string value) => new(value);
+
         protected override string GetValue(BiomeId value) => value.Value;
     }
 
     private sealed class ItemIdConverter : StringIdConverter<ItemId>
     {
         protected override ItemId Create(string value) => new(value);
+
         protected override string GetValue(ItemId value) => value.Value;
     }
 
     private sealed class SummonerIdConverter : StringIdConverter<SummonerId>
     {
         protected override SummonerId Create(string value) => new(value);
+
         protected override string GetValue(SummonerId value) => value.Value;
     }
 
     private sealed class TraitIdConverter : StringIdConverter<TraitId>
     {
         protected override TraitId Create(string value) => new(value);
+
         protected override string GetValue(TraitId value) => value.Value;
     }
 
     private sealed class CardTraitIdConverter : StringIdConverter<CardTraitId>
     {
         protected override CardTraitId Create(string value) => new(value);
+
         protected override string GetValue(CardTraitId value) => value.Value;
     }
 }

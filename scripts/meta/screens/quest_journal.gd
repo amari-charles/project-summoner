@@ -1,8 +1,6 @@
 extends Control
 class_name QuestJournal
 
-const COLOR_PANEL: Color = GameColorPalette.UI_SURFACE
-const COLOR_BORDER: Color = GameColorPalette.UI_BORDER
 const COLOR_MUTED: Color = GameColorPalette.TEXT_SECONDARY
 const COLOR_HIGHLIGHT: Color = GameColorPalette.TEXT_HIGHLIGHT
 
@@ -10,14 +8,20 @@ const COLOR_HIGHLIGHT: Color = GameColorPalette.TEXT_HIGHLIGHT
 @onready var title_label: Label = %TitleLabel
 @onready var term_label: Label = %TermLabel
 @onready var capacity_label: Label = %CapacityLabel
-@onready var active_button: Button = %ActiveButton
-@onready var opportunities_button: Button = %OpportunitiesButton
-@onready var completed_button: Button = %CompletedButton
-@onready var entry_list: VBoxContainer = %EntryList
-@onready var empty_label: Label = %EmptyLabel
+@onready var active_list: VBoxContainer = %ActiveList
+@onready var opportunities_list: VBoxContainer = %OpportunitiesList
+@onready var completed_list: VBoxContainer = %CompletedList
+@onready var detail_empty: Label = %DetailEmpty
+@onready var detail_content: VBoxContainer = %DetailContent
+@onready var detail_title: Label = %DetailTitle
+@onready var detail_status: Label = %DetailStatus
+@onready var detail_description: Label = %DetailDescription
+@onready var detail_objective: Label = %DetailObjective
+@onready var track_button: Button = %TrackButton
 
 var _journal_state: Dictionary = {}
-var _section: String = "active"
+var _selected_quest_id: String = ""
+var _entries_by_id: Dictionary = {}
 
 
 func _ready() -> void:
@@ -26,9 +30,7 @@ func _ready() -> void:
 	back_button.accessibility_name = Loc.t("academy.hub.title")
 	title_label.text = Loc.t("academy.journal.title")
 	back_button.pressed.connect(_go_back)
-	active_button.pressed.connect(_select_section.bind("active"))
-	opportunities_button.pressed.connect(_select_section.bind("opportunities"))
-	completed_button.pressed.connect(_select_section.bind("completed"))
+	track_button.pressed.connect(_track_selected)
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh)
 	_refresh()
@@ -46,98 +48,103 @@ func _refresh() -> void:
 		"academy.journal.capacity",
 		{"committed": committed, "completed": completed, "total": total}
 	)
-	_refresh_tabs()
-	_render_entries()
+
+	_entries_by_id.clear()
+	_render_section(active_list, "active")
+	_render_section(opportunities_list, "opportunities")
+	_render_section(completed_list, "completed")
+	_select_initial_entry()
+	_render_detail()
 
 
-func _select_section(section: String) -> void:
-	_section = section
-	_refresh_tabs()
-	_render_entries()
-
-
-func _refresh_tabs() -> void:
-	var active_count: int = SafeTypeUtils.array(_journal_state.get("active")).size()
-	var opportunity_count: int = SafeTypeUtils.array(_journal_state.get("opportunities")).size()
-	var completed_count: int = SafeTypeUtils.array(_journal_state.get("completed")).size()
-	active_button.text = "%s (%d)" % [Loc.t("academy.journal.active"), active_count]
-	opportunities_button.text = "%s (%d)" % [
-		Loc.t("academy.journal.opportunities"), opportunity_count
-	]
-	completed_button.text = "%s (%d)" % [Loc.t("academy.journal.completed"), completed_count]
-	active_button.button_pressed = _section == "active"
-	opportunities_button.button_pressed = _section == "opportunities"
-	completed_button.button_pressed = _section == "completed"
-
-
-func _render_entries() -> void:
-	_clear_children(entry_list)
-	var entries: Array = SafeTypeUtils.array(_journal_state.get(_section))
-	empty_label.visible = entries.is_empty()
-	empty_label.text = Loc.t("academy.journal.empty_%s" % _section)
-	for value: Variant in entries:
+func _render_section(container: VBoxContainer, section: String) -> void:
+	_clear_children(container)
+	for value: Variant in SafeTypeUtils.array(_journal_state.get(section)):
 		var entry: Dictionary = SafeTypeUtils.dict(value)
-		if not entry.is_empty():
-			entry_list.add_child(_build_entry(entry))
+		var quest_id: String = SafeTypeUtils.string(entry.get("id"))
+		if quest_id.is_empty():
+			continue
+		_entries_by_id[quest_id] = entry
+		var button: Button = Button.new()
+		button.text = Loc.t(SafeTypeUtils.string(entry.get("title_key")))
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.custom_minimum_size = Vector2(0.0, 46.0)
+		button.toggle_mode = true
+		button.button_pressed = quest_id == _selected_quest_id
+		button.set_meta("quest_id", quest_id)
+		button.pressed.connect(_select_entry.bind(quest_id))
+		container.add_child(button)
 
 
-func _build_entry(entry: Dictionary) -> Control:
-	var panel: PanelContainer = PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = COLOR_PANEL
-	style.border_color = COLOR_BORDER
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
-	panel.add_theme_stylebox_override("panel", style)
+func _select_initial_entry() -> void:
+	if _entries_by_id.has(_selected_quest_id):
+		return
+	var tracked_id: String = SafeTypeUtils.string(_journal_state.get("tracked_quest_id"))
+	if _entries_by_id.has(tracked_id):
+		_selected_quest_id = tracked_id
+		return
+	for section: String in ["active", "opportunities", "completed"]:
+		var entries: Array = SafeTypeUtils.array(_journal_state.get(section))
+		if not entries.is_empty():
+			_selected_quest_id = SafeTypeUtils.string(SafeTypeUtils.dict(entries[0]).get("id"))
+			return
+	_selected_quest_id = ""
 
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 18)
-	margin.add_theme_constant_override("margin_top", 14)
-	margin.add_theme_constant_override("margin_right", 18)
-	margin.add_theme_constant_override("margin_bottom", 14)
-	panel.add_child(margin)
 
-	var content: VBoxContainer = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 7)
-	margin.add_child(content)
+func _select_entry(quest_id: String) -> void:
+	_selected_quest_id = quest_id
+	_refresh_selection_buttons(active_list)
+	_refresh_selection_buttons(opportunities_list)
+	_refresh_selection_buttons(completed_list)
+	_render_detail()
 
-	var title: Label = Label.new()
-	title.text = Loc.t(SafeTypeUtils.string(entry.get("title_key")))
-	title.add_theme_font_size_override("font_size", 22)
-	title.add_theme_color_override("font_color", COLOR_HIGHLIGHT)
-	content.add_child(title)
 
-	var details: Label = Label.new()
-	details.text = _entry_details(entry)
-	details.add_theme_color_override("font_color", COLOR_MUTED)
-	content.add_child(details)
+func _refresh_selection_buttons(container: VBoxContainer) -> void:
+	for child: Node in container.get_children():
+		var button: Button = child as Button
+		if button != null:
+			button.button_pressed = SafeTypeUtils.string(button.get_meta("quest_id")) == _selected_quest_id
 
-	var description: Label = Label.new()
-	description.text = Loc.t(SafeTypeUtils.string(entry.get("description_key")))
-	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(description)
 
+func _render_detail() -> void:
+	var entry: Dictionary = SafeTypeUtils.dict(_entries_by_id.get(_selected_quest_id))
+	var has_entry: bool = not entry.is_empty()
+	detail_empty.visible = not has_entry
+	detail_content.visible = has_entry
+	if not has_entry:
+		detail_empty.text = Loc.t("academy.journal.empty")
+		return
+
+	detail_title.text = Loc.t(SafeTypeUtils.string(entry.get("title_key")))
+	detail_title.add_theme_color_override("font_color", COLOR_HIGHLIGHT)
+	detail_status.text = _entry_status(entry)
+	detail_status.add_theme_color_override("font_color", COLOR_MUTED)
+	detail_description.text = Loc.t(SafeTypeUtils.string(entry.get("description_key")))
 	var objective_key: String = SafeTypeUtils.string(entry.get("current_objective_key"))
+	detail_objective.visible = not objective_key.is_empty()
 	if not objective_key.is_empty():
-		var objective: Label = Label.new()
-		objective.text = Loc.t(
+		detail_objective.text = Loc.t(
 			"academy.journal.current_objective",
 			{"objective": Loc.t(objective_key)}
 		)
-		objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		content.add_child(objective)
 
-	return panel
+	var is_active: bool = SafeTypeUtils.string(entry.get("state")) == "active"
+	track_button.visible = is_active
+	track_button.disabled = SafeTypeUtils.bool_val(entry.get("is_tracked"), false)
+	track_button.text = (
+		Loc.t("academy.journal.tracked")
+		if track_button.disabled
+		else Loc.t("academy.journal.track")
+	)
 
 
-func _entry_details(entry: Dictionary) -> String:
+func _entry_status(entry: Dictionary) -> String:
 	var state: String = SafeTypeUtils.string(entry.get("state"))
 	var cost: int = SafeTypeUtils.int_val(entry.get("curriculum_cost"), 0)
 	if state == "opportunity":
 		return "%s • %s" % [
 			Loc.t("academy.journal.known_opportunity"),
-			Loc.t("academy.journal.cost", {"cost": cost})
+			Loc.t("academy.journal.cost", {"cost": cost}),
 		]
 	if state == "completed":
 		return Loc.t("academy.journal.completed_status")
@@ -148,9 +155,14 @@ func _entry_details(entry: Dictionary) -> String:
 			{
 				"current": SafeTypeUtils.int_val(entry.get("progress_current"), 0),
 				"total": SafeTypeUtils.int_val(entry.get("progress_total"), 0),
-			}
-		)
+			},
+		),
 	]
+
+
+func _track_selected() -> void:
+	if not _selected_quest_id.is_empty():
+		CampaignApi.track_quest(_selected_quest_id)
 
 
 func _go_back() -> void:

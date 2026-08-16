@@ -58,6 +58,12 @@ public enum AcademyActivityPrerequisiteMode
     Any,
 }
 
+public enum AcademyOpportunityVisibility
+{
+    Announced,
+    Hidden,
+}
+
 public enum AcademyActivityOutcome
 {
     Victory,
@@ -73,6 +79,13 @@ public class AcademyCourseDefinition
 
     public string DescriptionKey { get; set; } = "";
 
+    public ProfessorId ProfessorId { get; set; } = ProfessorId.None;
+
+    public string LocationKey { get; set; } = "";
+
+    public AcademyOpportunityVisibility OpportunityVisibility { get; set; } =
+        AcademyOpportunityVisibility.Announced;
+
     public int Year { get; set; } = 1;
 
     public int Semester { get; set; } = 1;
@@ -86,6 +99,9 @@ public class AcademyCourseDefinition
     public string ChoiceGroupId { get; set; } = "";
 
     public List<CourseId> Prerequisites { get; set; } = [];
+
+    public AcademyActivityPrerequisiteMode PrerequisiteMode { get; set; } =
+        AcademyActivityPrerequisiteMode.All;
 
     public List<AcademyCourseActivity> Activities { get; set; } = [];
 
@@ -142,7 +158,6 @@ public class AcademyActivityLoadoutDefinition
 
 public class AcademyDeckRules
 {
-
     public List<CardType> AllowedCardTypes { get; set; } = [];
 
     public List<Element> AllowedElements { get; set; } = [];
