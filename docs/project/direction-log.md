@@ -144,6 +144,68 @@ the world prematurely.
 - `docs/design/walkable-academy-hub.md`
 - `docs/tracking/completion-roadmap.md`
 
+## 2026-08-16 — Define the classical professor-led quest experience
+
+**Status:** Accepted
+**Areas:** Quests, Professors, Campus, Courses, UI, Progression
+
+### Decision
+
+Implement quests through a classical character-led flow. Known available quests
+use `!`, character turn-ins use `?`, and other character states have no quest
+marker. Acceptance and completion happen naturally through dialogue. Academic
+acceptance must state exact curriculum cost and permanence; remaining capacity
+is optional when already clear elsewhere.
+
+One tracked quest appears as a one-line banner beneath the profile icon in
+walkable spaces. Clicking it opens a full-screen two-pane Journal with a quest
+list on the left and selected details on the right. Persistent Journal access
+lives in the top-right or right-edge exploration navigation. Neither surface
+appears during battles.
+
+Begin with five persistent placeholder professors on one continuous campus: one
+general professor and one for each element. Use the dependency sequence
+Introduction to Magic, then Summoning Basics or Practical Spellcraft, then the
+four elemental opportunities. All professors exist from the beginning at their
+own campus landmarks, but only available content receives markers.
+
+### Context
+
+The earlier direction established professor-led academic chains and a Journal
+but intentionally left their actual player-facing language unresolved. The
+accepted experience preserves familiar quest readability without requiring a
+minimap, dedicated course-selection tree, classroom interiors, or a detailed
+contract screen. Landscape landmarks give professors memorable physical homes,
+while limited curriculum capacity preserves the permanent tradeoff.
+
+### Consequences
+
+- Introduction to Magic is fixed but begins as an offered quest rather than an
+  auto-enrolled course.
+- The Journal must be redesigned from its stacked-card graybox into the accepted
+  two-pane layout.
+- Side quests have no hard active-count limit; only one quest is tracked.
+- Fixed rewards resolve through dialogue with a compact received notification;
+  a focused choice UI appears only for selectable rewards.
+- A hidden-opportunity field belongs in the model, but hidden-discovery UX and
+  magical trails are deferred.
+- The first vertical slice must prove offer, acceptance, tracking, battle-driven
+  progress, return dialogue, completion, and dependency unlocking.
+
+### Supersedes
+
+The earlier requirement that remaining curriculum capacity must always appear
+inside the acceptance interaction. Exact cost and permanence remain mandatory;
+remaining capacity may instead be supplied by persistent surrounding UI.
+
+### References
+
+- `docs/design/quest-system.md`
+- `docs/design/academy-class-flow.md`
+- `docs/design/walkable-academy-hub.md`
+- `docs/technical/meta/quest-system-foundation-plan.md`
+- `docs/tracking/completion-roadmap.md`
+
 ## 2026-08-16 — Make card cracking illicit and secret
 
 **Status:** Accepted

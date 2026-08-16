@@ -4,6 +4,10 @@
 **Last Updated:** 2026-08-13
 **Related:** [Academy Forging Model](academy-forging-model.md), [Implementation Plan](../technical/meta/academy-class-flow-overhaul-plan.md)
 
+The professor-led quest experience and Journal responsibilities are defined in
+[Quest System](quest-system.md). Where this document's older screen flow
+conflicts with that source, the Quest System direction takes precedence.
+
 ## Purpose
 
 Academy classes should feel like one coherent learning journey rather than a collection of unrelated nodes, modals, deck screens, and reward screens. This document is the product source of truth for the class-facing experience. It intentionally replaces the current UI flow; compatibility with existing Academy screens or save data is not a requirement.

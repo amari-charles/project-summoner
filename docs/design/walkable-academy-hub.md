@@ -76,6 +76,17 @@ quest events, but those are opportunities rather than requirements. Combat is
 not assumed merely because the area is underground. A small reusable tunnel kit
 and bounded layout are preferred over requiring a full black-market district.
 
+## Professor Landmarks
+
+The five initial professors exist on the central campus from the beginning. The
+general professor occupies a prominent foundational area. Fire, Water, Earth,
+and Wind professors occupy compact subject-appropriate campus landmarks rather
+than separate maps, dedicated classroom interiors, or a grouped selection area.
+
+Their authoritative quest-marker, interaction, and Journal behavior is defined
+in [Quest System](quest-system.md). Final landmark composition remains map-design
+work.
+
 ## Phasing
 
 1. **Phase 1 (current): single-player bounded hub.** The avatar moves inside

@@ -39,6 +39,14 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
   Announced opportunities appear automatically; hidden opportunities appear
   only after world discovery. The Journal always exposes current year and
   committed-versus-completed academic capacity.
+- Known quest opportunities use classical `!` markers; authored character
+  turn-ins use `?`. One tracked objective appears beneath the profile icon in
+  walkable spaces, and the two-pane Journal is available from persistent
+  exploration navigation but not during battles.
+- The opening academic dependency is Introduction to Magic, followed by a
+  Summoning Basics versus Practical Spellcraft fork, followed by the four
+  elemental opportunities. The five placeholder professors exist on the
+  central campus from the beginning at distinct landmarks.
 - Cracked cards are planned as risky variations of normal cards whose twist can enable unusual synergies without being strictly beneficial.
 - Card cracking is an illicit, secret activity rather than an ordinary public
   Academy service. Its physical location and discovery path remain part of the
@@ -226,7 +234,8 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 
 - `docs/design/academy-class-flow.md`
 - `docs/design/narrative-dialogue-system.md`
-- a future quest-and-curriculum design document
+- `docs/design/quest-system.md`
+- `docs/technical/meta/quest-system-foundation-plan.md`
 
 ### Overall Player-Power Model
 
