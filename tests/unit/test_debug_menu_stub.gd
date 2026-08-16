@@ -25,6 +25,7 @@ func test_c14_c17_debug_menu_contract_surface_exists() -> void:
 	assert_true(menu.has_method("_on_win_pressed"), "C14: win hook")
 	assert_true(menu.has_method("_on_lose_pressed"), "C14: lose hook")
 	assert_true(menu.has_method("_on_open_test_arena_map_pressed"), "C14: arena map launch hook")
+	assert_true(menu.has_method("_on_open_experimental_rooms_pressed"), "experimental room list hook")
 	assert_true(menu.has_method("_on_debug_arena_battle_pressed"), "C14: arena quick launch hook")
 	assert_true(menu.has_method("_on_hurtbox_toggle_pressed"), "C15: visualization toggle hook")
 	assert_true(menu.has_method("_on_projectile_hit_geometry_toggle_pressed"), "C15: projectile toggle hook")
@@ -80,7 +81,34 @@ func test_c14_quick_tab_exposes_test_arena_map_button() -> void:
 			button_labels.append(button.text)
 
 	assert_true("Open Test Arena Map" in button_labels, "main debug tab should expose the campaign-map chooser")
+	assert_true("Experimental Rooms" in button_labels, "main debug tab should expose experimental prototypes")
 	assert_false("Launch Roster Debug Arena" in button_labels, "main debug tab should not force a specific roster battle")
+
+
+func test_experimental_rooms_button_opens_dedicated_room_list() -> void:
+	var menu: Node = _menu_script.new()
+	_add_root_node(menu)
+	menu._tabs = TabContainer.new()
+	menu.add_child(menu._tabs)
+	var quick_tab: Control = Control.new()
+	quick_tab.name = "Quick"
+	menu._tabs.add_child(quick_tab)
+	var more_tab: Control = Control.new()
+	more_tab.name = "More"
+	menu._tabs.add_child(more_tab)
+	menu._arena_preset_dropdown = OptionButton.new()
+	more_tab.add_child(menu._arena_preset_dropdown)
+	menu._arena_button_grid = GridContainer.new()
+	more_tab.add_child(menu._arena_button_grid)
+
+	menu._on_open_experimental_rooms_pressed()
+
+	assert_eq(menu._arena_preset_id, "experimental_rooms")
+	assert_eq(menu._tabs.current_tab, 1, "experimental room button should reveal the arena launcher")
+	assert_eq(menu._arena_button_grid.get_child_count(), 1)
+	var room_button: Button = menu._arena_button_grid.get_child(0) as Button
+	assert_not_null(room_button)
+	assert_eq(room_button.text, "Compact Ruin")
 
 
 func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:

@@ -41,6 +41,9 @@ enum OversizeClampMode {
 ## while still clamping pan/footprint to the live map_rect_xz.
 @export var zoom_limit_rect_xz: Rect2 = Rect2(Vector2(-50, -40), Vector2(100, 80))
 @export var use_zoom_limit_rect_override: bool = false
+## If false, zoom uses the configured FOV range without shrinking it to fit map bounds.
+## Intended for fixed-camera experiments where seeing beyond the playable floor is acceptable.
+@export var zoom_respects_map_bounds: bool = true
 ## Ground plane Y value (most 2.5D maps use y=0)
 @export var ground_y: float = 0.0
 ## Oversize clamp policy for horizontal axis when camera view is wider than map width.
@@ -149,6 +152,9 @@ func _on_viewport_size_changed() -> void:
 
 func _refresh_zoom_limits() -> void:
 	var configured_max_fov: float = _max_fov_ceiling if _max_fov_ceiling > 0.0 else max_fov
+	if not zoom_respects_map_bounds:
+		max_fov = max(min_fov, configured_max_fov)
+		return
 	var solved_max_fov: float = _solve_max_fov(configured_max_fov)
 	max_fov = max(min_fov, min(configured_max_fov, solved_max_fov))
 
@@ -820,14 +826,15 @@ func _apply_zoom(delta: float) -> void:
 	var anchor_before: Vector3 = get_ground_point_for_screen_uv(_get_zoom_anchor_screen_uv())
 	var current_fov: float = fov
 	var requested_fov: float = clamp(fov + delta, min_fov, max_fov)
-	if delta > 0.0 and requested_fov > current_fov + CLAMP_EPSILON:
+	if zoom_respects_map_bounds and delta > 0.0 and requested_fov > current_fov + CLAMP_EPSILON:
 		requested_fov = _solve_stable_zoom_out_fov(requested_fov, anchor_before)
 	fov = requested_fov
 	_apply_zoom_pitch_from_current_fov()
 	_stabilize_zoom_anchor(anchor_before)
 	var pre_clamp_offset: Vector2 = _get_required_clamp_offset_for_current_state()
-	# Clamp after zoom to adjust for new view size
-	clamp_to_map()
+	# Bound-aware battle cameras re-clamp after zoom to keep the map covered.
+	if zoom_respects_map_bounds:
+		clamp_to_map()
 	var post_clamp_offset: Vector2 = _get_required_clamp_offset_for_current_state()
 	_log_zoom_solver_step(
 		delta,

@@ -187,10 +187,12 @@ public class Simulation
                 // Extract team for ordering
                 int teamA =
                     a is PlayCardCommand pcA ? pcA.Team
+                    : a is MoveSummonerCommand msA ? msA.Team
                     : a is SpawnUnitCommand suA ? suA.Team
                     : (a is ForfeitCommand fcA ? fcA.Team : 0);
                 int teamB =
                     b is PlayCardCommand pcB ? pcB.Team
+                    : b is MoveSummonerCommand msB ? msB.Team
                     : b is SpawnUnitCommand suB ? suB.Team
                     : (b is ForfeitCommand fcB ? fcB.Team : 0);
                 cmp = teamA.CompareTo(teamB);
@@ -226,6 +228,10 @@ public class Simulation
                 ExecuteSpawnUnit(spawn, events);
                 break;
 
+            case MoveSummonerCommand moveSummoner:
+                ExecuteMoveSummoner(moveSummoner);
+                break;
+
             case ForfeitCommand forfeit:
                 int winnerTeam = MatchState.GetEnemyTeam(forfeit.Team);
                 _state.WinnerTeam = winnerTeam;
@@ -237,6 +243,14 @@ public class Simulation
                 Log?.Invoke($"[Simulation] Unknown command type: {cmd.GetType().Name}");
                 break;
         }
+    }
+
+    private void ExecuteMoveSummoner(MoveSummonerCommand cmd)
+    {
+        var summoner = _state.Summoners[cmd.Team];
+        var targetPointOffset = summoner.TargetPointPosition - summoner.Position;
+        summoner.Position = cmd.TargetPosition;
+        summoner.TargetPointPosition = cmd.TargetPosition + targetPointOffset;
     }
 
     /// <summary>

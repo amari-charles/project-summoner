@@ -58,6 +58,17 @@ public static class SimpleAiStrategy
         if (state.Rng == null)
             return summoner.Position;
 
+        if (
+            state.SummonPlacementMode == SummonPlacementMode.CardRangeFromSummoner
+            && state.CardDataMap.TryGetValue(catalogId, out var rangeCard)
+            && !rangeCard.IsSpell
+        )
+            return SummonPlacementRules.SelectRandomPositionWithinCardRange(
+                state,
+                summoner,
+                rangeCard
+            );
+
         float halfWidth = BattlefieldBounds.HalfWidth;
         int team = (int)summoner.Team;
 

@@ -231,6 +231,10 @@
       "arena_sprite_units": {
         "name": "Sprite Units Test",
         "description": "Debug arena mission with only summon cards whose battlefield units use production sprite scenes."
+      },
+      "compact_ruin_skirmish": {
+        "name": "Compact Ruin Skirmish",
+        "description": "Compare stationary and WASD-controlled summoner combat inside one compact fixed-camera greybox room."
       }
     },
     "starter_deck_name": "Starter Deck",

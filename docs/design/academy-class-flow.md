@@ -8,17 +8,46 @@
 
 Academy classes should feel like one coherent learning journey rather than a collection of unrelated nodes, modals, deck screens, and reward screens. This document is the product source of truth for the class-facing experience. It intentionally replaces the current UI flow; compatibility with existing Academy screens or save data is not a requirement.
 
-## Course Flow
+## Physical Classroom Boundary
 
-1. The Class Hall is a course browser, not a second course-details experience.
-2. Selecting a course always opens one canonical full-screen Course Flow screen.
-3. The same screen has three states:
-   - **Preview:** shows the real path, activity rules, deck modes, and rewards before enrollment. Activities are inspectable but cannot be started. The primary action is Enroll.
-   - **Active:** shows progress, the current activity, future activities, and earned or remaining rewards.
-   - **Completed:** remains available for reviewing completed activities, rewards, and replayable practice.
-4. There are no text-only activity nodes. Information is delivered through contextual dialogue while the player is preparing for or performing a meaningful activity.
-5. Navigation uses a consistent back-arrow icon in the top-left. It has an accessible destination label and tooltip; it is not a text button named “Campus.”
-6. Locked future activities reveal their activity type, title, deck mode, relevant rules, and possible rewards. Story-specific surprises may remain hidden. The exact visual density is a playtest-tunable presentation choice.
+Courses primarily organize quests, battles, and their progression. Attending a
+classroom is not itself a foundational recurring activity, so the base world
+plan does not require a unique classroom or interior for every course. A shared
+or bespoke teaching space should be added only when a designed playable activity
+uses the room in a way that cannot be provided by a professor interaction,
+course flow, preparation screen, battle, or excursion.
+
+## Academic Quest and Journal Flow
+
+Courses are experienced as academic quest chains rather than rows of activities
+launched from a course tree. One Journal is the authoritative organizer and has
+three sections:
+
+1. **Active:** every accepted quest, its current objectives, and its relevant
+   destination or turn-in character.
+2. **Opportunities:** known but unaccepted quest chains, including their
+   professor or source, location, curriculum cost, and other authored preview
+   information.
+3. **Completed:** finished quests and their recorded outcomes.
+
+The Journal header shows the current year, committed curriculum capacity, and
+completed academic progress against that year's requirement.
+
+Some opportunities are announced and added automatically. Secret opportunities
+do not appear in the Journal until the player discovers the relevant NPC, place,
+object, or prerequisite. Discovery moves them into **Opportunities** under the
+same rules as announced chains.
+
+Accepting an academic chain must show its curriculum cost, the capacity before
+and after acceptance, and the permanence of the commitment. Acceptance moves it
+to **Active** and exposes the current actionable quest. Later parts of the chain
+become actionable through quest progression rather than manual selection from a
+node tree.
+
+The existing Class Hall and full-screen Course Flow implementation are
+provisional infrastructure and are not the accepted final quest-management
+experience. Their eventual retained responsibilities, if any, remain interface
+and world-blueprint work.
 
 ## Activity Preparation
 
@@ -38,7 +67,7 @@ Practice and assessment are roles within the same activity and preparation syste
 
 1. Practice uses lighter milestone styling and clearly communicates that it is replayable learning.
 2. Assessment uses stronger milestone styling and clearly communicates that its official outcome is permanent.
-3. Both use the same Course Flow, Activity Preparation, battle launch, and results components.
+3. Both use the same quest flow, Activity Preparation, battle launch, and results components.
 4. Assessment performance follows the existing Academy grading rules: objectives drive grades, Honors, and reward upside; failure usually removes upside rather than blocking the summoner's overall progression.
 5. Assessment is an explicit typed activity role so its stakes are never inferred from labels or UI. In the first implementation, an assessment defeat or abandonment records the official poor outcome and advances the course; it grants neither XP nor victory rewards.
 6. The permanent-assessment model must be evaluated through playtesting and may be revised if its stakes do not produce good play.

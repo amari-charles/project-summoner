@@ -13,7 +13,7 @@ public class PlayCardCommand : ICommand
 {
     public int Team { get; }
     public int CardIndex { get; }
-    public SimVector3 SpawnPosition { get; }
+    public SimVector3 SpawnPosition { get; set; }
     public int NetworkId { get; }
     public int? TargetUnitId { get; set; }
     public int Sequence { get; set; }

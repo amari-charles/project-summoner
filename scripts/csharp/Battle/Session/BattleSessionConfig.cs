@@ -1,4 +1,5 @@
 using Fateforged.Cards;
+using Fateforged.Constants;
 using Fateforged.Domain.Progression;
 using Fateforged.Simulation;
 using Fateforged.Simulation.AI;
@@ -33,6 +34,8 @@ public class BattleSessionConfig
     public float TimeLimit { get; set; }
     public int KillTarget { get; set; }
     public float PreparationDuration { get; set; } = 15f;
+    public SummonPlacementMode SummonPlacementMode { get; set; } = SummonPlacementMode.TeamHalf;
+    public SummonPlacementBounds? SummonPlacementBounds { get; set; }
 
     public BattleSideDefinition PlayerSide { get; set; } = BattleSideDefinition.ProfilePlayer();
     public BattleSideDefinition EnemySide { get; set; } = BattleSideDefinition.AuthoredEnemy();
@@ -69,6 +72,9 @@ public class BattleSessionConfig
             TimeLimit = GetFloat(config, "time_limit", 0.0f),
             KillTarget = GetInt(config, "kill_target", 0),
             PreparationDuration = GetFloat(config, "prep_duration", 15.0f),
+            SummonPlacementMode = ParseSummonPlacementMode(
+                config.GetValueOrDefault("summon_placement_mode", "team_half").ToString() ?? ""
+            ),
             IsMultiplayer = (bool)battleContext.Call("is_multiplayer_battle"),
             HasAuthority = (bool)battleContext.Call("has_authority"),
             BattleAttemptId = BattleAttemptId.FromString(
@@ -86,6 +92,9 @@ public class BattleSessionConfig
         cfg.EnemySide = ParseSide(
             config.GetValueOrDefault("enemy_side", default),
             cfg.IsMultiplayer ? MultiplayerEnemySide() : BattleSideDefinition.AuthoredEnemy()
+        );
+        cfg.SummonPlacementBounds = ParseSummonPlacementBounds(
+            config.GetValueOrDefault("summon_placement_bounds", default)
         );
 
         return cfg;
@@ -141,6 +150,29 @@ public class BattleSessionConfig
             Deck = new BattleDeckDefinition { Source = BattleDeckSource.Authored },
             Controller = new BattleControllerDefinition { Kind = BattleControllerKind.Network },
         };
+
+    private static SummonPlacementMode ParseSummonPlacementMode(string value) =>
+        value.Trim().ToLowerInvariant() switch
+        {
+            "card_range" or "card_range_from_summoner" =>
+                SummonPlacementMode.CardRangeFromSummoner,
+            _ => SummonPlacementMode.TeamHalf,
+        };
+
+    private static SummonPlacementBounds? ParseSummonPlacementBounds(Variant value)
+    {
+        if (value.VariantType != Variant.Type.Dictionary)
+            return null;
+
+        var bounds = value.AsGodotDictionary();
+        float minX = GetFloat(bounds, "min_x", BattlefieldBounds.MinX);
+        float maxX = GetFloat(bounds, "max_x", BattlefieldBounds.MaxX);
+        float minZ = GetFloat(bounds, "min_z", BattlefieldBounds.MinZ);
+        float maxZ = GetFloat(bounds, "max_z", BattlefieldBounds.MaxZ);
+        return maxX >= minX && maxZ >= minZ
+            ? new SummonPlacementBounds(minX, maxX, minZ, maxZ)
+            : null;
+    }
 
     private static BattleSideDefinition ParseSide(Variant value, BattleSideDefinition fallback)
     {

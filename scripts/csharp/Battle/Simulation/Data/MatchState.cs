@@ -16,6 +16,9 @@ namespace Fateforged.Simulation.Data;
 /// </summary>
 public class MatchState
 {
+    public SummonPlacementMode SummonPlacementMode { get; set; } = SummonPlacementMode.TeamHalf;
+    public SummonPlacementBounds? SummonPlacementBounds { get; set; }
+
     // Frame tracking
     public long FrameNumber { get; set; }
     public float MatchTime { get; set; }

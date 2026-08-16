@@ -15,7 +15,8 @@
         { "label": "All Cards", "battle_id": "arena_all_cards" },
         { "label": "All Spells", "battle_id": "arena_all_spells" },
         { "label": "Sprite Units", "battle_id": "arena_sprite_units" },
-        { "label": "Debug Arena", "battle_id": "debug_arena" }
+        { "label": "Debug Arena", "battle_id": "debug_arena" },
+        { "label": "Compact Ruin", "battle_id": "compact_ruin_skirmish" }
       ]
     },
     {
@@ -31,6 +32,13 @@
       "label": "Sprite Units Only",
       "entries": [
         { "label": "Sprite Units", "battle_id": "arena_sprite_units" }
+      ]
+    },
+    {
+      "id": "experimental_rooms",
+      "label": "Experimental Rooms",
+      "entries": [
+        { "label": "Compact Ruin", "battle_id": "compact_ruin_skirmish" }
       ]
     }
   ]

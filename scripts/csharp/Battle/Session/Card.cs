@@ -51,6 +51,9 @@ public partial class Card : Resource
     public float SummonTime { get; set; } = 1.0f;
 
     [Export]
+    public float SummonRange { get; set; } = 14.0f;
+
+    [Export]
     public int SpawnCount { get; set; } = 1;
 
     // =========================================================================
@@ -224,6 +227,7 @@ public partial class Card : Resource
             ManaCost = def.ManaCost,
             Cooldown = def.Cooldown,
             SummonTime = def.Summon?.SummonTime ?? def.SummonTime,
+            SummonRange = def.SummonRange,
             SpawnCount = def.Summon?.TotalUnitCount ?? def.SpawnCount,
             SpellDamage = def.SpellDamage,
             SpellRadius = def.SpellRadius,

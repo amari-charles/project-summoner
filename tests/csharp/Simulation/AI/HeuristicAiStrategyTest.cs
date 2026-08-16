@@ -222,6 +222,27 @@ public class HeuristicAiStrategyTest
         AssertThat(pos.X).IsLess(0f);
     }
 
+    [TestCase]
+    public void SelectSpawnPosition_AuthoredBounds_StaysInsideCompactEncounter()
+    {
+        var summoner = _state.Summoners[1];
+        summoner.Ai = new AiConfig
+        {
+            Type = AiType.Heuristic,
+            SpawnMinX = 3f,
+            SpawnMaxX = 22f,
+            SpawnMinZ = -10f,
+            SpawnMaxZ = 10f,
+        };
+
+        for (int i = 0; i < 50; i++)
+        {
+            var pos = HeuristicAiStrategy.SelectSpawnPosition(_state, summoner, "test");
+            AssertThat(pos.X >= 3f && pos.X <= 22f).IsTrue();
+            AssertThat(pos.Z >= -10f && pos.Z <= 10f).IsTrue();
+        }
+    }
+
     // =========================================================================
     // Spawn Zone Selection
     // =========================================================================

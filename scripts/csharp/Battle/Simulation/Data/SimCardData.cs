@@ -22,6 +22,7 @@ public class SimCardData
     public SimCardCatalogId CatalogId { get; set; } = SimCardCatalogId.Empty;
     public int ManaCost { get; set; }
     public float SummonTime { get; set; }
+    public float SummonRange { get; set; } = 14.0f;
     public bool IsSpell { get; set; }
     public int ElementId { get; set; }
 
@@ -66,6 +67,7 @@ public class SimCardData
             CatalogId = (string)card.Id,
             ManaCost = card.ManaCost,
             SummonTime = card.Summon?.SummonTime ?? card.SummonTime,
+            SummonRange = card.SummonRange,
             IsSpell = card.Type == CardType.Spell,
             ElementId = (int)card.ElementalAffinity,
         };

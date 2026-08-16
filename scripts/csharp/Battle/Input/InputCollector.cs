@@ -179,10 +179,11 @@ public partial class InputCollector : Control
         if (card.Type == (int)CardType.Summon)
         {
             CleanupSpellPreview();
-            bool isValidZone = IsValidSpawnPosition(worldPos, TeamPlayer);
-            var clampedPos = ClampSpawnPosition(worldPos, TeamPlayer);
-            UpdateSpawnPreview(clampedPos, card, isValidZone);
-            ShowSpawnZoneOverlay();
+            var previewPos = UsesCardRangePlacement()
+                ? ResolvePlayerSummonPosition(worldPos, card)
+                : ClampSpawnPosition(worldPos, TeamPlayer);
+            UpdateSpawnPreview(previewPos, card, isValidZone: true);
+            ShowSpawnZoneOverlay(card);
         }
         else if (card.Type == (int)CardType.Spell)
         {
@@ -222,9 +223,15 @@ public partial class InputCollector : Control
         // Submit via SimulationNode.QueuePlayCard (handles team remap + coordinate conversion)
         var worldPos = ScreenToWorld3D(atPosition);
 
-        // Clamp summon cards to valid spawn zone
+        // Standard battles preserve half-map clamping. Card-range battles snap
+        // out-of-range aiming to the closest point on the card's radius.
         if (card.Type == (int)CardType.Summon)
-            worldPos = ClampSpawnPosition(worldPos, TeamPlayer);
+        {
+            if (UsesCardRangePlacement())
+                worldPos = ResolvePlayerSummonPosition(worldPos, card);
+            else
+                worldPos = ClampSpawnPosition(worldPos, TeamPlayer);
+        }
         else if (card.Type == (int)CardType.Spell && IsAutoTargetSpell(card))
             worldPos = GetAutoTargetSpellPosition(worldPos);
 
@@ -272,6 +279,33 @@ public partial class InputCollector : Control
     {
         return BattlefieldBounds.ClampToValidSpawnZone(pos, team);
     }
+
+    private bool UsesCardRangePlacement()
+    {
+        var sim = GetSimNode();
+        return sim?.GetState().SummonPlacementMode == SummonPlacementMode.CardRangeFromSummoner;
+    }
+
+    private Vector3 ResolvePlayerSummonPosition(Vector3 position, Card card)
+    {
+        if (_playerSummoner is not Node3D summoner)
+            return position;
+
+        var state = GetSimNode()?.GetState();
+        if (state == null)
+            return position;
+
+        var clampedToRadius = SummonPlacementRules.ClampToCardRange(
+            ToSimVector(summoner.GlobalPosition),
+            ToSimVector(position),
+            card.SummonRange
+        );
+        var resolved = SummonPlacementRules.ClampToBattlefield(state, clampedToRadius);
+        return new Vector3(resolved.X, resolved.Y, resolved.Z);
+    }
+
+    private static SimVector3 ToSimVector(Vector3 position) =>
+        new(position.X, position.Y, position.Z);
 
     // =========================================================================
     // SUMMON PREVIEW
@@ -337,6 +371,14 @@ public partial class InputCollector : Control
         int team
     )
     {
+        if (UsesCardRangePlacement())
+        {
+            var rangedPositions = new Godot.Collections.Array<Vector3>();
+            for (int i = 0; i < card.SpawnCount; i++)
+                rangedPositions.Add(centerPos + card.GetFormationOffset(i));
+            return rangedPositions;
+        }
+
         var battlefield = GetNodeOrNull("/root/Main/Battlefield");
         battlefield ??= GetTree().CurrentScene;
 
@@ -431,7 +473,7 @@ public partial class InputCollector : Control
     // SPAWN ZONE OVERLAY (GDScript interop)
     // =========================================================================
 
-    private void ShowSpawnZoneOverlay()
+    private void ShowSpawnZoneOverlay(Card card)
     {
         if (BattlefieldBounds.IsDebugBypassSpawnBoundaryEnabled())
         {
@@ -440,7 +482,10 @@ public partial class InputCollector : Control
         }
 
         if (_spawnZoneOverlay != null && IsInstanceValid(_spawnZoneOverlay))
+        {
+            ConfigureSpawnZoneOverlay(card);
             return;
+        }
 
         var script = GD.Load<Script>("res://scripts/battle/ui/spawn_zone_overlay.gd");
         if (script == null)
@@ -454,10 +499,30 @@ public partial class InputCollector : Control
         {
             root3D.AddChild(overlay);
             _spawnZoneOverlay = overlay;
+            ConfigureSpawnZoneOverlay(card);
         }
         else
         {
             overlay.Free();
+        }
+    }
+
+    private void ConfigureSpawnZoneOverlay(Card card)
+    {
+        if (_spawnZoneOverlay == null || !IsInstanceValid(_spawnZoneOverlay))
+            return;
+
+        if (UsesCardRangePlacement() && _playerSummoner is Node3D summoner)
+        {
+            _spawnZoneOverlay.Call(
+                "show_card_range",
+                summoner.GlobalPosition,
+                card.SummonRange
+            );
+        }
+        else
+        {
+            _spawnZoneOverlay.Call("show_team_half");
         }
     }
 

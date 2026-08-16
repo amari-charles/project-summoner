@@ -8,6 +8,8 @@ class_name BaseBattlefield3D
 @export var sky_color: Color = Color(0.53, 0.81, 0.98, 1.0)
 @export var ambient_light_color: Color = Color.WHITE
 @export var ambient_light_energy: float = 0.5
+## Dev or authored rooms can opt out when their geometry/materials define the space.
+@export var apply_biome_from_context: bool = true
 
 # Battlefield layout
 @export_group("Layout")
@@ -48,7 +50,8 @@ class_name BaseBattlefield3D
 @onready var effects_layer: Node3D = $EffectsLayer
 
 func _ready() -> void:
-	_apply_biome_from_context()
+	if apply_biome_from_context:
+		_apply_biome_from_context()
 	_configure_camera_bounds()
 	_apply_spawn_positions()
 

@@ -1,0 +1,130 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/battle/battlefield/dev/compact_ruin_room.tscn" id="1_room"]
+[ext_resource type="Script" path="res://scripts/csharp/Battle/View/Debug/CompactRuinSkirmishScene.cs" id="2_controller"]
+[ext_resource type="Script" path="res://scripts/csharp/Battle/View/SummonerVisual.cs" id="3_summoner"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png" id="4_player_sprite"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_run.png" id="7_player_run_sprite"]
+[ext_resource type="PackedScene" path="res://scenes/battle/ui/battle_hud.tscn" id="5_hud"]
+[ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/battle/ui/hand_ui.tscn" id="6_hand_ui"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape_summoner"]
+height = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Material_core_stone"]
+albedo_color = Color(0.27, 0.28, 0.32, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Material_core_energy"]
+albedo_color = Color(0.32, 0.12, 0.48, 1)
+emission_enabled = true
+emission = Color(0.55, 0.18, 0.9, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_core_pedestal"]
+material = SubResource("Material_core_stone")
+top_radius = 1.7
+bottom_radius = 2.5
+height = 3.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_core"]
+material = SubResource("Material_core_energy")
+radius = 1.5
+height = 3.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_movement"]
+bg_color = Color(0.08, 0.09, 0.12, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.58, 0.66, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="CompactRuinSkirmish" type="Node3D"]
+script = ExtResource("2_controller")
+
+[node name="Battlefield3D" parent="." instance=ExtResource("1_room")]
+
+[node name="PlayerSummoner" type="Node3D" parent="." groups=["player_summoners", "summoners"]]
+position = Vector3(-29, 0, 0)
+script = ExtResource("3_summoner")
+DeckLoadStrategy = 1
+ShowWorldHpBar = true
+MovementIdleTexture = ExtResource("4_player_sprite")
+MovementRunTexture = ExtResource("7_player_run_sprite")
+MovementIdleFrameCount = 8
+MovementRunFrameCount = 6
+
+[node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
+pixel_size = 0.075
+offset = Vector2(0, 39)
+texture_filter = 0
+hframes = 8
+texture = ExtResource("4_player_sprite")
+
+[node name="CollisionBody" type="StaticBody3D" parent="PlayerSummoner"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerSummoner/CollisionBody"]
+shape = SubResource("CylinderShape_summoner")
+
+[node name="RuinCore" type="Node3D" parent="." groups=["enemy_summoners", "summoners"]]
+position = Vector3(29, 0, 0)
+script = ExtResource("3_summoner")
+Team = 1
+DeckLoadStrategy = 1
+ShowWorldHpBar = true
+
+[node name="Pedestal" type="MeshInstance3D" parent="RuinCore"]
+position = Vector3(0, 1.5, 0)
+mesh = SubResource("CylinderMesh_core_pedestal")
+
+[node name="Core" type="MeshInstance3D" parent="RuinCore"]
+position = Vector3(0, 4.25, 0)
+mesh = SubResource("SphereMesh_core")
+
+[node name="TargetPoint" type="Marker3D" parent="RuinCore"]
+position = Vector3(0, 4.25, 0)
+
+[node name="Label" type="Label3D" parent="RuinCore"]
+position = Vector3(0, 6.4, 0)
+text = "RUIN DEFENSE CORE"
+font_size = 28
+outline_size = 6
+billboard = 1
+
+[node name="CollisionBody" type="StaticBody3D" parent="RuinCore"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RuinCore/CollisionBody"]
+shape = SubResource("CylinderShape_summoner")
+
+[node name="UI" parent="." instance=ExtResource("5_hud")]
+
+[node name="HandUI" parent="UI" instance=ExtResource("6_hand_ui")]
+
+[node name="MovementPanel" type="PanelContainer" parent="UI"]
+offset_left = 20.0
+offset_top = 108.0
+offset_right = 286.0
+offset_bottom = 208.0
+theme_override_styles/panel = SubResource("StyleBox_movement")
+
+[node name="VBox" type="VBoxContainer" parent="UI/MovementPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="UI/MovementPanel/VBox"]
+layout_mode = 2
+text = "COMPACT RUIN TEST"
+
+[node name="MovementToggle" type="CheckButton" parent="UI/MovementPanel/VBox"]
+layout_mode = 2
+button_pressed = true
+text = "Player movement"
+
+[node name="MovementStatus" type="Label" parent="UI/MovementPanel/VBox"]
+layout_mode = 2
+text = "WASD moves the summoner"

@@ -170,9 +170,29 @@ public static class HeuristicAiStrategy
         if (summoner.Ai == null || state.Rng == null)
             return summoner.Position;
 
+        if (
+            state.SummonPlacementMode == SummonPlacementMode.CardRangeFromSummoner
+            && state.CardDataMap.TryGetValue(catalogId, out var rangeCard)
+            && !rangeCard.IsSpell
+        )
+            return SummonPlacementRules.SelectRandomPositionWithinCardRange(
+                state,
+                summoner,
+                rangeCard
+            );
+
         int team = (int)summoner.Team;
         var battleState = EvaluateBattlefieldState(state, team, summoner);
         var zone = SelectSpawnZone(summoner.Ai.Personality, battleState);
+
+        if (summoner.Ai.HasSpawnBounds)
+        {
+            return new SimVector3(
+                state.Rng.RangeFloat(summoner.Ai.SpawnMinX!.Value, summoner.Ai.SpawnMaxX!.Value),
+                0f,
+                state.Rng.RangeFloat(summoner.Ai.SpawnMinZ!.Value, summoner.Ai.SpawnMaxZ!.Value)
+            );
+        }
 
         return GetRandomPositionInZone(zone, team, state.Rng);
     }

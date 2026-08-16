@@ -114,6 +114,21 @@ func test_zoom_adjusts_fov_and_clamps_limits() -> void:
 	assert_almost_eq(_camera.fov, _camera.max_fov, 0.001, "Zoom out should clamp to max_fov")
 
 
+func test_fixed_camera_zoom_can_ignore_map_fit_limit() -> void:
+	_camera.map_rect_xz = Rect2(Vector2(-5, -5), Vector2(10, 10))
+	_camera.min_fov = 32.0
+	_camera.max_fov = 58.0
+	_camera._max_fov_ceiling = 58.0
+	_camera.zoom_respects_map_bounds = false
+	_camera._refresh_zoom_limits()
+	_camera.fov = 58.0
+
+	_camera._apply_zoom(-2.0)
+	assert_almost_eq(_camera.fov, 56.0, 0.001, "Fixed camera should zoom in")
+	_camera._apply_zoom(2.0)
+	assert_almost_eq(_camera.fov, 58.0, 0.001, "Fixed camera should zoom back out")
+
+
 func test_zoom_in_applies_backward_pitch_when_enabled() -> void:
 	_camera.zoom_pitch_enabled = true
 	_camera.zoom_pitch_max_degrees = 8.0

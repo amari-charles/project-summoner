@@ -46,6 +46,12 @@ public class CardDefinition
     /// <summary>Time in seconds for summon animation before units appear.</summary>
     public float SummonTime { get; init; } = 1.0f;
 
+    /// <summary>
+    /// Maximum distance from the summoner at which this card can be placed when
+    /// the battle uses card-range placement. Ignored by standard team-half battles.
+    /// </summary>
+    public float SummonRange { get; init; } = 14.0f;
+
     // =========================================================================
     // SUMMON PROPERTIES
     // =========================================================================

@@ -46,4 +46,21 @@ public class AiConfig
     public float PlayIntervalMin { get; set; } = 3.0f;
     public float PlayIntervalMax { get; set; } = 6.0f;
     public ScriptedAiStep[]? Script { get; set; }
+
+    /// <summary>
+    /// Optional authored spawn rectangle for compact or unusual encounters.
+    /// Standard battles leave this unset and use the global battlefield zones.
+    /// </summary>
+    public float? SpawnMinX { get; set; }
+    public float? SpawnMaxX { get; set; }
+    public float? SpawnMinZ { get; set; }
+    public float? SpawnMaxZ { get; set; }
+
+    public bool HasSpawnBounds =>
+        SpawnMinX.HasValue
+        && SpawnMaxX.HasValue
+        && SpawnMinZ.HasValue
+        && SpawnMaxZ.HasValue
+        && SpawnMaxX.Value >= SpawnMinX.Value
+        && SpawnMaxZ.Value >= SpawnMinZ.Value;
 }

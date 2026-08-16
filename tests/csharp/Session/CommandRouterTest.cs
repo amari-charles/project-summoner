@@ -135,6 +135,52 @@ public class CommandRouterTest
     }
 
     [TestCase]
+    public void PlayCard_CardRangeMode_AllowsEitherSideWithinCardRange()
+    {
+        _state.SummonPlacementMode = SummonPlacementMode.CardRangeFromSummoner;
+        _state.Summoners[0].Position = new SimVector3(-5f, 0f, 0f);
+        _state.CardDataMap["test_unit"].SummonRange = 12f;
+
+        var result = _router.Validate(
+            new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f)),
+            _state
+        );
+
+        AssertThat(result.IsValid).IsTrue();
+    }
+
+    [TestCase]
+    public void PlayCard_CardRangeMode_SnapsBeyondThisCardsRangeToCircle()
+    {
+        _state.SummonPlacementMode = SummonPlacementMode.CardRangeFromSummoner;
+        _state.Summoners[0].Position = new SimVector3(-5f, 0f, 0f);
+        _state.CardDataMap["test_unit"].SummonRange = 8f;
+
+        var command = new PlayCardCommand(0, 0, new SimVector3(5f, 0f, 0f));
+        var result = _router.Validate(command, _state);
+
+        AssertThat(result.IsValid).IsTrue();
+        AssertThat(command.SpawnPosition.X).IsEqualApprox(3f, 0.001f);
+        AssertThat(command.SpawnPosition.Z).IsEqualApprox(0f, 0.001f);
+    }
+
+    [TestCase]
+    public void PlayCard_CardRangeMode_SnapsToEncounterBoundsAfterRadius()
+    {
+        _state.SummonPlacementMode = SummonPlacementMode.CardRangeFromSummoner;
+        _state.SummonPlacementBounds = new SummonPlacementBounds(-36f, 36f, -21f, 21f);
+        _state.Summoners[0].Position = new SimVector3(34f, 0f, 0f);
+        _state.CardDataMap["test_unit"].SummonRange = 10f;
+
+        var command = new PlayCardCommand(0, 0, new SimVector3(50f, 0f, 0f));
+        var result = _router.Validate(command, _state);
+
+        AssertThat(result.IsValid).IsTrue();
+        AssertThat(command.SpawnPosition.X).IsEqualApprox(36f, 0.001f);
+        AssertThat(command.SpawnPosition.Z).IsEqualApprox(0f, 0.001f);
+    }
+
+    [TestCase]
     public void PlayCard_Spell_AllowsEnemySideTarget()
     {
         _state.CardDataMap.Clear();

@@ -1,0 +1,91 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battlefield/base_battlefield_3d.gd" id="1_battlefield"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield/camera_controller_3d.gd" id="2_camera"]
+[ext_resource type="Resource" path="res://resources/camera_profiles/compact_ruin_skirmish.tres" id="3_profile"]
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.28, 0.29, 0.31, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.43, 0.44, 0.47, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+material = SubResource("Material_floor")
+size = Vector2(84, 48)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pillar"]
+material = SubResource("Material_wall")
+size = Vector3(2, 4, 2)
+
+[sub_resource type="Environment" id="Environment_room"]
+background_mode = 1
+background_color = Color(0.075, 0.08, 0.095, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.78, 0.82, 0.9, 1)
+ambient_light_energy = 0.8
+
+[node name="CompactRuinRoom" type="Node3D" groups=["battlefield"]]
+script = ExtResource("1_battlefield")
+apply_biome_from_context = false
+player_spawn_position = Vector3(-29, 0, 0)
+enemy_spawn_position = Vector3(29, 0, 0)
+include_startup_camera_footprint_in_bounds_z = false
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.819152, 0.573576, 0, 0.573576, -0.819152, 0, 56, -89)
+current = true
+projection = 0
+keep_aspect = 0
+fov = 58.0
+near = 0.5
+far = 160.0
+script = ExtResource("2_camera")
+keyboard_pan_enabled = false
+mouse_pan_enabled = false
+touch_pan_enabled = false
+zoom_enabled = true
+edge_pan_enabled = false
+zoom_respects_map_bounds = false
+perspective_camera_profile = ExtResource("3_profile")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 7, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_room")
+
+[node name="Background" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_floor")
+
+[node name="GroundLayer" type="Node3D" parent="."]
+
+[node name="NorthWestPillar" type="MeshInstance3D" parent="GroundLayer"]
+position = Vector3(-22, 2, 15)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="SouthWestPillar" type="MeshInstance3D" parent="GroundLayer"]
+position = Vector3(-22, 2, -15)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="NorthEastPillar" type="MeshInstance3D" parent="GroundLayer"]
+position = Vector3(22, 2, 15)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="SouthEastPillar" type="MeshInstance3D" parent="GroundLayer"]
+position = Vector3(22, 2, -15)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="GameplayLayer" type="Node3D" parent="."]
+
+[node name="EffectsLayer" type="Node3D" parent="."]
+
+[node name="PlayerSpawnMarker" type="Marker3D" parent="."]
+position = Vector3(-29, 0, 0)
+
+[node name="EnemySpawnMarker" type="Marker3D" parent="."]
+position = Vector3(29, 0, 0)

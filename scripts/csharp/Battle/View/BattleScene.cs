@@ -619,6 +619,8 @@ public partial class BattleScene : Node3D
             _config.KillTarget,
             _config.BattleSeed
         );
+        simNode.GetState().SummonPlacementMode = _config.SummonPlacementMode;
+        simNode.GetState().SummonPlacementBounds = _config.SummonPlacementBounds;
     }
 
     private void InitEntityManager()

@@ -173,4 +173,7 @@ public static class EventIds
 
     /// <summary>Test Arena: Debug Arena - Testing sandbox</summary>
     public static readonly EventId DebugArena = new("debug_arena");
+
+    /// <summary>Test Arena: Compact fixed-camera ruin skirmish prototype</summary>
+    public static readonly EventId CompactRuinSkirmish = new("compact_ruin_skirmish");
 }

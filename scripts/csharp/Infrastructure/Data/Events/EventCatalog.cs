@@ -1077,6 +1077,40 @@ public static class EventCatalog
             EnemyDeck = BuildActiveCoreElementUnitDeck(),
             EnemyHp = 999999f,
         },
+
+        [EventIds.CompactRuinSkirmish] = new BattleEventDefinition
+        {
+            Id = EventIds.CompactRuinSkirmish,
+            NameKey = "campaign.battle.compact_ruin_skirmish.name",
+            DescriptionKey = "campaign.battle.compact_ruin_skirmish.description",
+            Position = new Vector2(550, 250),
+            Biome = BiomeIds.SummerPlains,
+            Difficulty = 1,
+            RequiresDeck = false,
+            Repeatable = true,
+            AiType = "heuristic",
+            ScenePath = "res://scenes/battle/battlefield/dev/compact_ruin_skirmish.tscn",
+            DevPlayerDeck = new List<DeckEntry>
+            {
+                new(CardIds.Pebbloom, 2),
+                new(CardIds.WaterFrog, 2),
+                new(CardIds.WindDiver, 1),
+                new(CardIds.EarthRockThrower, 1),
+                new(CardIds.ManaBolt, 2),
+                new(CardIds.TailWind, 1),
+                new(CardIds.HealingField, 1),
+                new(CardIds.StoneSpike, 2),
+            },
+            EnemyDeck = new List<DeckEntry>
+            {
+                new(CardIds.FireWisp, 2),
+                new(CardIds.Pebbloom, 2),
+                new(CardIds.FireWolf, 1),
+                new(CardIds.CinderCaster, 1),
+                new(CardIds.Fireball, 2),
+            },
+            EnemyHp = 120f,
+        },
     };
 
     // =========================================================================

@@ -157,6 +157,7 @@ public static class CardCatalog
             ["mana_cost"] = card.ManaCost,
             ["cooldown"] = card.Cooldown,
             ["summon_time"] = card.SummonTime,
+            ["summon_range"] = card.SummonRange,
             ["unit_id"] = (string)card.UnitId, // Convert to string for GDScript
             ["unit_scene_path"] = scenePath,
             ["spawn_count"] = card.SpawnCount,

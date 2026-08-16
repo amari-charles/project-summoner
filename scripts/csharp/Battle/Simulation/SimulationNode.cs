@@ -117,6 +117,8 @@ public partial class SimulationNode : Node, IGameSession
 
     public MatchState GetState() => _session?.GetState() ?? State;
 
+    public int GetSummonPlacementMode() => (int)GetState().SummonPlacementMode;
+
     public event Action<IReadOnlyList<SimEvent>>? SimEventsEmitted;
 
     public void SubmitCommand(ICommand cmd)

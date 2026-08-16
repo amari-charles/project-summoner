@@ -102,6 +102,13 @@ Reward structure and timing are authored class by class:
 
 - Foundational classes may grant fixed rewards.
 - A class may combine fixed rewards, authored choices, and pool-based choices, or grant no immediate reward.
+- Quests and activities do not need one uniform card-acquisition presentation. A
+  quest may grant one authored card, conclude with a small exclusive choice, or
+  make an earlier course, route, or quest decision determine the card obtained.
+- Card acquisition may be presented through the world and the quest itself—for
+  example, bonding with a creature—rather than always appearing as an abstract
+  post-battle card grant. The authored reward rules and permanent exclusivity
+  still apply regardless of presentation.
 - Rewards may be attached to individual lessons or activities as well as to overall class completion.
 - A single lesson or activity may issue multiple reward offers, including fixed grants alongside selectable offers. Progression resumes after all required choices from that activity are resolved.
 - Each selectable reward authors how many options are shown and how many the player may choose.
@@ -135,9 +142,20 @@ Target feel:
 
 Most classes should cost **1 Enrollment**. Larger, rarer, or unusually valuable classes can cost **2+ Enrollments** when the increased commitment is clear before enrollment.
 
+- The cost is permanently committed when the player accepts the academic quest
+  chain, not when the chain is completed.
+- An accepted chain reserves its curriculum capacity even if it is unfinished;
+  the player cannot accept every opportunity and abandon unwanted chains later
+  to recover the resource.
+- Completion converts that commitment into completed academic progress toward
+  the current year's requirement. The final player-facing names for committed
+  capacity and earned progress must remain distinct from spendable gold.
 - Honors does not automatically cost extra.
 - Higher cost should represent broader scope, stronger opportunity, or unusual access, not just a hidden tax on good options.
-- Class cost must be previewed clearly in the catalog.
+- The acceptance interaction must show the chain's cost, current committed and
+  remaining capacity, and permanence before confirmation. This requirement does
+  not depend on whether acceptance ultimately occurs through a catalog,
+  professor conversation, or another approved presentation.
 
 ## Campus Shop Principle
 

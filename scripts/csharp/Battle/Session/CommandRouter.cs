@@ -32,10 +32,28 @@ public class CommandRouter
         return command switch
         {
             PlayCardCommand play => ValidatePlayCard(play, state),
+            MoveSummonerCommand move => ValidateMoveSummoner(move, state),
             SpawnUnitCommand spawn => ValidateSpawnUnit(spawn, state),
             ForfeitCommand forfeit => ValidateForfeit(forfeit, state),
             _ => new ValidationResult(false, $"Unknown command type: {command.GetType().Name}"),
         };
+    }
+
+    private static ValidationResult ValidateMoveSummoner(
+        MoveSummonerCommand move,
+        MatchState state
+    )
+    {
+        if (move.Team < 0 || move.Team >= state.Summoners.Length)
+            return new ValidationResult(false, "Invalid player index");
+
+        if (state.Phase == GamePhase.GameOver)
+            return new ValidationResult(false, "Cannot move summoner after game over");
+
+        if (!BattlefieldBounds.IsInBounds(move.TargetPosition))
+            return new ValidationResult(false, "Summoner position out of battlefield bounds");
+
+        return Valid;
     }
 
     private ValidationResult ValidatePlayCard(PlayCardCommand play, MatchState state)
@@ -61,14 +79,29 @@ public class CommandRouter
         if (summoner.Mana < cardData.ManaCost)
             return new ValidationResult(false, "Not enough mana");
 
-        if (!BattlefieldBounds.IsInBounds(play.SpawnPosition))
-            return new ValidationResult(false, "Spawn position out of battlefield bounds");
-
         if (
             !cardData.IsSpell
-            && !BattlefieldBounds.IsValidSpawnPositionForTeam(play.SpawnPosition, play.Team)
+            && state.SummonPlacementMode == SummonPlacementMode.CardRangeFromSummoner
         )
-            return new ValidationResult(false, "Spawn position outside team spawn zone");
+        {
+            play.SpawnPosition = SummonPlacementRules.ResolveCardRangePosition(
+                state,
+                play.Team,
+                cardData,
+                play.SpawnPosition
+            );
+        }
+
+        if (!SummonPlacementRules.IsWithinBattlefield(state, play.SpawnPosition))
+            return new ValidationResult(false, "Spawn position out of battlefield bounds");
+
+        if (!cardData.IsSpell && !SummonPlacementRules.IsValid(state, play.Team, cardData, play.SpawnPosition))
+        {
+            string reason = state.SummonPlacementMode == SummonPlacementMode.CardRangeFromSummoner
+                ? "Spawn position outside card summon range"
+                : "Spawn position outside team spawn zone";
+            return new ValidationResult(false, reason);
+        }
 
         if (IsRateLimited(play.Team, state.FrameNumber))
             return new ValidationResult(false, "Command rate limit exceeded");

@@ -18,10 +18,12 @@ const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
 const ENABLE_FLAG: String = "--enable-debug-menu"
 const DISABLE_FLAG: String = "--disable-debug-menu"
 const DEFAULT_ARENA_PRESET_ID: String = "all_test_arena"
+const EXPERIMENTAL_ROOMS_PRESET_ID: String = "experimental_rooms"
 const DEBUG_ARENA_PRESETS = preload("res://scripts/debug/debug_arena_menu_presets.gd")
 
 ## UI references
 var _panel: PanelContainer
+var _tabs: TabContainer
 var _fps_label: Label
 var _target_label: Label
 var _buttons: Dictionary = {}  # fps -> Button
@@ -207,20 +209,20 @@ func _create_ui() -> void:
 	var separator: HSeparator = HSeparator.new()
 	vbox.add_child(separator)
 
-	var tabs: TabContainer = TabContainer.new()
-	vbox.add_child(tabs)
+	_tabs = TabContainer.new()
+	vbox.add_child(_tabs)
 
 	var quick_vbox: VBoxContainer = VBoxContainer.new()
 	quick_vbox.name = "Quick"
 	quick_vbox.add_theme_constant_override("separation", 8)
 	quick_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tabs.add_child(quick_vbox)
+	_tabs.add_child(quick_vbox)
 
 	var more_vbox: VBoxContainer = VBoxContainer.new()
 	more_vbox.name = "More"
 	more_vbox.add_theme_constant_override("separation", 8)
 	more_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tabs.add_child(more_vbox)
+	_tabs.add_child(more_vbox)
 
 	_build_quick_tab(quick_vbox)
 	_build_more_tab(more_vbox)
@@ -261,6 +263,12 @@ func _build_quick_tab(vbox: VBoxContainer) -> void:
 	open_arena_map_button.custom_minimum_size = Vector2(220, 32)
 	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
 	vbox.add_child(open_arena_map_button)
+
+	var experimental_rooms_button: Button = Button.new()
+	experimental_rooms_button.text = "Experimental Rooms"
+	experimental_rooms_button.custom_minimum_size = Vector2(220, 32)
+	experimental_rooms_button.pressed.connect(_on_open_experimental_rooms_pressed)
+	vbox.add_child(experimental_rooms_button)
 
 	var debug_separator: HSeparator = HSeparator.new()
 	vbox.add_child(debug_separator)
@@ -690,6 +698,21 @@ func _on_arena_preset_selected(index: int) -> void:
 	_save_settings()
 	if _arena_button_grid:
 		_build_debug_arena_buttons(_arena_button_grid)
+
+
+func _on_open_experimental_rooms_pressed() -> void:
+	if not DEBUG_ARENA_PRESETS.has_preset(EXPERIMENTAL_ROOMS_PRESET_ID):
+		push_warning("DebugMenu: Experimental rooms preset is missing")
+		return
+
+	_arena_preset_id = EXPERIMENTAL_ROOMS_PRESET_ID
+	_save_settings()
+	if _arena_preset_dropdown:
+		_populate_arena_preset_dropdown()
+	if _arena_button_grid:
+		_build_debug_arena_buttons(_arena_button_grid)
+	if _tabs:
+		_tabs.current_tab = 1
 
 
 func _populate_arena_biome_dropdown() -> void:

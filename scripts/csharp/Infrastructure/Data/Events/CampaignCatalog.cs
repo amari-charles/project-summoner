@@ -157,6 +157,7 @@ public static class CampaignCatalog
                 EventIds.ArenaAllSpells,
                 EventIds.ArenaSpriteUnits,
                 EventIds.DebugArena,
+                EventIds.CompactRuinSkirmish,
             },
             Edges = new List<CampaignEdge>(), // No edges - all nodes independently accessible
         },

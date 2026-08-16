@@ -70,6 +70,25 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     [Export]
     public bool ShowWorldHpBar { get; set; } = false;
 
+    [ExportGroup("Movement Animation")]
+    [Export]
+    public Texture2D? MovementIdleTexture { get; set; }
+
+    [Export]
+    public Texture2D? MovementRunTexture { get; set; }
+
+    [Export(PropertyHint.Range, "1,64,1")]
+    public int MovementIdleFrameCount { get; set; } = 1;
+
+    [Export(PropertyHint.Range, "1,64,1")]
+    public int MovementRunFrameCount { get; set; } = 1;
+
+    [Export(PropertyHint.Range, "0.1,60,0.1")]
+    public float MovementIdleFps { get; set; } = 5f;
+
+    [Export(PropertyHint.Range, "0.1,60,0.1")]
+    public float MovementRunFps { get; set; } = 9f;
+
     // =========================================================================
     // SIGNALS (PascalCase for GDScript consumers)
     // =========================================================================
@@ -123,6 +142,12 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     private Color _originalColor = Colors.White;
     private Vector3 _originalVisualPosition;
     private Tween? _activeFeedbackTween;
+    private bool _hasLastAnimationPosition;
+    private Vector3 _lastAnimationPosition;
+    private bool _isRunningAnimation;
+    private double _movementAnimationElapsed;
+
+    private const float MovementPositionEpsilonSquared = 0.000001f;
 
     // Hit feedback animation constants
     private const float DefaultFlashDuration = 0.3f;
@@ -231,6 +256,7 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
         {
             _originalColor = _sprite.Modulate;
             _originalVisualPosition = _sprite.Position;
+            SetMovementAnimation(running: false);
         }
 
         // Configure collision shape
@@ -303,6 +329,26 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
 
         var state = _session.GetState();
         var summoner = state.Summoners[_teamIndex];
+
+        var simNode = SimulationNode.Current;
+        if (simNode != null)
+        {
+            var nextPosition = simNode.SimToLocal(summoner.Position);
+            var moved = false;
+            if (_hasLastAnimationPosition)
+            {
+                var movement = nextPosition - _lastAnimationPosition;
+                moved = new Vector2(movement.X, movement.Z).LengthSquared()
+                    > MovementPositionEpsilonSquared;
+                if (moved && !Mathf.IsZeroApprox(movement.X) && _sprite != null)
+                    _sprite.FlipH = movement.X < 0f;
+            }
+
+            _lastAnimationPosition = nextPosition;
+            _hasLastAnimationPosition = true;
+            GlobalPosition = nextPosition;
+            UpdateMovementAnimation(delta, moved);
+        }
 
         // Update HP bar
         _hpBar?.UpdateHp(summoner.CurrentHp, summoner.MaxHp);
@@ -413,6 +459,50 @@ public partial class SummonerVisual : Node3D, IDamageableVisual
     // =========================================================================
     // VISUAL FEEDBACK
     // =========================================================================
+
+    private void UpdateMovementAnimation(double delta, bool running)
+    {
+        if (_sprite == null || MovementIdleTexture == null || MovementRunTexture == null)
+            return;
+
+        if (running != _isRunningAnimation)
+            SetMovementAnimation(running);
+
+        _movementAnimationElapsed += delta;
+        var fps = _isRunningAnimation ? MovementRunFps : MovementIdleFps;
+        _sprite.Frame = (int)(_movementAnimationElapsed * fps) % _sprite.Hframes;
+    }
+
+    private void SetMovementAnimation(bool running)
+    {
+        if (_sprite == null || MovementIdleTexture == null || MovementRunTexture == null)
+            return;
+
+        _isRunningAnimation = running;
+        _movementAnimationElapsed = 0;
+        _sprite.Texture = running ? MovementRunTexture : MovementIdleTexture;
+        _sprite.Hframes = running ? MovementRunFrameCount : MovementIdleFrameCount;
+        _sprite.Frame = 0;
+        AnchorSpriteVisibleBottom(_sprite);
+    }
+
+    private static void AnchorSpriteVisibleBottom(Sprite3D sprite)
+    {
+        var texture = sprite.Texture;
+        if (texture == null)
+            return;
+
+        var image = texture.GetImage();
+        var bottomPadding = 0f;
+        if (image != null && !image.IsEmpty())
+        {
+            var usedRect = image.GetUsedRect();
+            if (usedRect.Size != Vector2I.Zero)
+                bottomPadding = texture.GetHeight() - usedRect.End.Y;
+        }
+
+        sprite.Offset = new Vector2(sprite.Offset.X, texture.GetHeight() * 0.5f - bottomPadding);
+    }
 
     public void FlashDamage()
     {
