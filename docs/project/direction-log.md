@@ -144,6 +144,53 @@ the world prematurely.
 - `docs/design/walkable-academy-hub.md`
 - `docs/tracking/completion-roadmap.md`
 
+## 2026-08-16 — Separate character dialogue from quest UI and adopt the three-region Journal
+
+**Status:** Accepted
+**Areas:** Quests, Dialogue, Professors, UI
+
+### Decision
+
+Use separate authored text for character dialogue, Journal descriptions and
+objectives, and internal activity labels. NPCs speak in their own voice rather
+than reciting system labels. Concise mechanical callouts may appear in an accent
+color inside dialogue when the player must recognize an assignment, objective,
+cost, or permanent commitment.
+
+Structure the Journal as a category rail for Active, Open, and Completed; a list
+containing only the selected category; and a detail region showing the selected
+quest's source portrait/name, location, description, objective, and known
+rewards. Begin the general professor as a supportive mentor; the other
+professors' personalities remain content decisions.
+
+### Context
+
+The initial dialogue exposed internal wording such as `Practice` directly to the
+player and felt like a quest database rather than a conversation. The first
+stacked-card and later two-pane Journal descriptions also did not match the
+approved mockup's clearer separation between navigation, selection, and detail.
+
+### Consequences
+
+- Quest data needs explicit dialogue fields for offer, accepted, active/reminder,
+  and turn-in states rather than deriving speech from objective labels.
+- The reusable NPC component remains role-agnostic; personality belongs to
+  authored character content.
+- Journal projections expose source identity, location, and reward previews.
+- Final visual skinning may evolve without collapsing the three information
+  regions.
+
+### Supersedes
+
+The two-pane Journal layout and generic-dialogue portions of the earlier
+classical professor-led quest decision. Its progression, markers, acceptance,
+tracking, and curriculum-commitment decisions remain accepted.
+
+### References
+
+- `docs/design/quest-system.md`
+- `docs/technical/meta/quest-system-foundation-plan.md`
+
 ## 2026-08-16 — Define the classical professor-led quest experience
 
 **Status:** Accepted

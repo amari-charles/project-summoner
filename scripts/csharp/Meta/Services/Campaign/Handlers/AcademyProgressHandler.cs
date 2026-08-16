@@ -1055,6 +1055,31 @@ public class AcademyProgressHandler
         var currentObjectiveKey = "";
         if (state == "active" && activityIndex >= 0 && activityIndex < course.Activities.Count)
             currentObjectiveKey = course.Activities[activityIndex].LabelKey;
+        var activeDialogueKeys =
+            state == "active" && activityIndex >= 0 && activityIndex < course.Activities.Count
+                ? course.Activities[activityIndex].ReminderDialogueKeys
+                : [];
+
+        var rewards = ToUniversalOfferPreviewArray(
+            course,
+            "course_completion",
+            course.RewardOffers
+        );
+        foreach (var activity in course.Activities)
+        {
+            foreach (
+                var preview in ToUniversalOfferPreviewArray(
+                    course,
+                    activity.Id,
+                    activity.RewardOffers
+                )
+            )
+                rewards.Add(preview);
+        }
+
+        var professor = _professorCatalog.FirstOrDefault(candidate =>
+            candidate.Id == course.ProfessorId
+        );
 
         return new Godot.Collections.Dictionary
         {
@@ -1065,14 +1090,20 @@ public class AcademyProgressHandler
             ["title_key"] = course.NameKey,
             ["description_key"] = course.DescriptionKey,
             ["current_objective_key"] = currentObjectiveKey,
+            ["offer_dialogue_keys"] = ToStringArray(course.QuestDialogue.OfferLineKeys),
+            ["accepted_dialogue_keys"] = ToStringArray(course.QuestDialogue.AcceptedLineKeys),
+            ["active_dialogue_keys"] = ToStringArray(activeDialogueKeys),
+            ["turn_in_dialogue_keys"] = ToStringArray(course.QuestDialogue.TurnInLineKeys),
             ["curriculum_cost"] = course.EnrollmentCost,
             ["progress_current"] = Math.Min(activityIndex, course.Activities.Count),
             ["progress_total"] = course.Activities.Count,
             ["is_required"] = course.IsRequired,
             ["is_tracked"] = academy.TrackedQuestId == QuestId(course.Id),
             ["professor_id"] = (string)course.ProfessorId,
+            ["professor_name_key"] = professor?.NameKey ?? "",
             ["location_key"] = course.LocationKey,
             ["opportunity_visibility"] = course.OpportunityVisibility.ToString().ToSnakeCase(),
+            ["reward_previews"] = rewards,
         };
     }
 

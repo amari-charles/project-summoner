@@ -347,6 +347,7 @@
       "term": "Year {year}, Semester {semester}",
       "capacity": "Curriculum: {committed}/{total} committed • {completed}/{total} completed",
       "active": "Active",
+      "open": "Open",
       "opportunities": "Opportunities",
       "completed": "Completed",
       "empty_active": "No active quests.",
@@ -359,7 +360,8 @@
       "completed_status": "Completed academic chain",
       "empty": "Select a quest to review its details.",
       "track": "Track Quest",
-      "tracked": "Tracked"
+      "tracked": "Tracked",
+      "rewards": "Rewards"
     },
     "professor": {
       "general_magic": {
@@ -390,7 +392,18 @@
       "not_yet": "Not Yet",
       "permanent_cost": "Permanently commits {cost} curriculum capacity.",
       "no_assignment": "I have no new assignment for you right now.",
-      "active_reminder": "Your current assignment: {objective}"
+      "active_reminder": "Your current assignment: {objective}",
+      "assignment_callout": "Assignment: {title}",
+      "objective_callout": "Objective: {objective}"
+    },
+    "dialogue": {
+      "introduction_to_magic": {
+        "offer_1": "You do not need to know what kind of summoner you are yet. That is what your first year is for.",
+        "offer_2": "Let us begin somewhere simple. Call a creature, keep it under control, and show me how you respond when the field changes.",
+        "accepted": "Good. Take your time, and pay attention to what the creature needs from you.",
+        "summon_practice_reminder": "There is no rush. The practice grounds are ready when you are—focus on keeping control of the creature you summon.",
+        "turn_in": "You kept your focus when the exercise pushed back. That matters more than making it look effortless."
+      }
     },
     "course_modal": {
       "syllabus": "Syllabus",
@@ -481,7 +494,7 @@
       "lesson": "Lesson",
       "practice": "Practice",
       "assessment": "Assessment",
-      "magic_101_summon_practice": "Summon Practice",
+      "magic_101_summon_practice": "Complete the summoning exercise",
       "magic_101_basic_duel": "Basic Duel",
       "magic_101_spell_practice": "Spell Practice",
       "magic_101_assessment": "Magic 101 Assessment"

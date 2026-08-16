@@ -1,29 +1,40 @@
 extends Control
 class_name QuestJournal
 
-const COLOR_MUTED: Color = GameColorPalette.TEXT_SECONDARY
-const COLOR_HIGHLIGHT: Color = GameColorPalette.TEXT_HIGHLIGHT
+const SECTION_ACTIVE: String = "active"
+const SECTION_OPEN: String = "opportunities"
+const SECTION_COMPLETED: String = "completed"
 
-@onready var back_button: Button = %BackButton
 @onready var background: ColorRect = %Background
+@onready var back_button: Button = %BackButton
 @onready var title_label: Label = %TitleLabel
 @onready var term_label: Label = %TermLabel
 @onready var capacity_label: Label = %CapacityLabel
-@onready var active_list: VBoxContainer = %ActiveList
-@onready var opportunities_list: VBoxContainer = %OpportunitiesList
-@onready var completed_list: VBoxContainer = %CompletedList
-@onready var detail_empty: Label = %DetailEmpty
+@onready var category_panel: PanelContainer = %CategoryPanel
+@onready var list_panel: PanelContainer = %ListPanel
 @onready var detail_panel: PanelContainer = %DetailPanel
+@onready var active_button: Button = %ActiveButton
+@onready var open_button: Button = %OpenButton
+@onready var completed_button: Button = %CompletedButton
+@onready var quest_list: VBoxContainer = %QuestList
+@onready var list_empty: Label = %ListEmpty
+@onready var detail_empty: Label = %DetailEmpty
 @onready var detail_content: VBoxContainer = %DetailContent
+@onready var professor_name: Label = %ProfessorName
+@onready var location_label: Label = %LocationLabel
 @onready var detail_title: Label = %DetailTitle
 @onready var detail_status: Label = %DetailStatus
 @onready var detail_description: Label = %DetailDescription
 @onready var detail_objective: Label = %DetailObjective
+@onready var rewards_heading: Label = %RewardsHeading
+@onready var rewards_list: VBoxContainer = %RewardsList
 @onready var track_button: Button = %TrackButton
 
 var _journal_state: Dictionary = {}
+var _section: String = SECTION_ACTIVE
 var _selected_quest_id: String = ""
-var _entries_by_id: Dictionary = {}
+var _section_entries: Array = []
+var _has_initialized_selection: bool = false
 
 
 func _ready() -> void:
@@ -32,7 +43,11 @@ func _ready() -> void:
 	back_button.tooltip_text = Loc.t("academy.hub.title")
 	back_button.accessibility_name = Loc.t("academy.hub.title")
 	title_label.text = Loc.t("academy.journal.title")
+	rewards_heading.text = Loc.t("academy.journal.rewards")
 	back_button.pressed.connect(_go_back)
+	active_button.pressed.connect(_select_section.bind(SECTION_ACTIVE))
+	open_button.pressed.connect(_select_section.bind(SECTION_OPEN))
+	completed_button.pressed.connect(_select_section.bind(SECTION_COMPLETED))
 	track_button.pressed.connect(_track_selected)
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh)
@@ -51,66 +66,93 @@ func _refresh() -> void:
 		"academy.journal.capacity",
 		{"committed": committed, "completed": completed, "total": total}
 	)
-
-	_entries_by_id.clear()
-	_render_section(active_list, "active")
-	_render_section(opportunities_list, "opportunities")
-	_render_section(completed_list, "completed")
-	_select_initial_entry()
-	_render_detail()
+	_refresh_category_buttons()
+	if not _has_initialized_selection:
+		_select_tracked_section_if_needed()
+		_has_initialized_selection = true
+	_render_quest_list()
 
 
-func _render_section(container: VBoxContainer, section: String) -> void:
-	_clear_children(container)
-	for value: Variant in SafeTypeUtils.array(_journal_state.get(section)):
+func _select_section(section: String) -> void:
+	_section = section
+	_selected_quest_id = ""
+	_refresh_category_buttons()
+	_render_quest_list()
+
+
+func _refresh_category_buttons() -> void:
+	active_button.text = "%s (%d)" % [
+		Loc.t("academy.journal.active"),
+		SafeTypeUtils.array(_journal_state.get(SECTION_ACTIVE)).size(),
+	]
+	open_button.text = "%s (%d)" % [
+		Loc.t("academy.journal.open"),
+		SafeTypeUtils.array(_journal_state.get(SECTION_OPEN)).size(),
+	]
+	completed_button.text = "%s (%d)" % [
+		Loc.t("academy.journal.completed"),
+		SafeTypeUtils.array(_journal_state.get(SECTION_COMPLETED)).size(),
+	]
+	active_button.button_pressed = _section == SECTION_ACTIVE
+	open_button.button_pressed = _section == SECTION_OPEN
+	completed_button.button_pressed = _section == SECTION_COMPLETED
+
+
+func _select_tracked_section_if_needed() -> void:
+	var tracked_id: String = SafeTypeUtils.string(_journal_state.get("tracked_quest_id"))
+	if tracked_id.is_empty():
+		return
+	for section: String in [SECTION_ACTIVE, SECTION_OPEN, SECTION_COMPLETED]:
+		for value: Variant in SafeTypeUtils.array(_journal_state.get(section)):
+			var entry: Dictionary = SafeTypeUtils.dict(value)
+			if SafeTypeUtils.string(entry.get("id")) == tracked_id:
+				_section = section
+				_selected_quest_id = tracked_id
+				_refresh_category_buttons()
+				return
+
+
+func _render_quest_list() -> void:
+	_clear_children(quest_list)
+	_section_entries = SafeTypeUtils.array(_journal_state.get(_section))
+	list_empty.visible = _section_entries.is_empty()
+	list_empty.text = Loc.t("academy.journal.empty_%s" % _section)
+	if _section_entries.is_empty():
+		_selected_quest_id = ""
+		_render_detail({})
+		return
+
+	if not _section_contains(_selected_quest_id):
+		_selected_quest_id = SafeTypeUtils.string(
+			SafeTypeUtils.dict(_section_entries[0]).get("id")
+		)
+
+	for value: Variant in _section_entries:
 		var entry: Dictionary = SafeTypeUtils.dict(value)
 		var quest_id: String = SafeTypeUtils.string(entry.get("id"))
-		if quest_id.is_empty():
-			continue
-		_entries_by_id[quest_id] = entry
 		var button: Button = Button.new()
 		button.text = Loc.t(SafeTypeUtils.string(entry.get("title_key")))
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.custom_minimum_size = Vector2(0.0, 46.0)
+		button.custom_minimum_size = Vector2(0.0, 68.0)
 		button.toggle_mode = true
 		button.button_pressed = quest_id == _selected_quest_id
 		button.set_meta("quest_id", quest_id)
 		button.pressed.connect(_select_entry.bind(quest_id))
-		container.add_child(button)
+		quest_list.add_child(button)
 
-
-func _select_initial_entry() -> void:
-	if _entries_by_id.has(_selected_quest_id):
-		return
-	var tracked_id: String = SafeTypeUtils.string(_journal_state.get("tracked_quest_id"))
-	if _entries_by_id.has(tracked_id):
-		_selected_quest_id = tracked_id
-		return
-	for section: String in ["active", "opportunities", "completed"]:
-		var entries: Array = SafeTypeUtils.array(_journal_state.get(section))
-		if not entries.is_empty():
-			_selected_quest_id = SafeTypeUtils.string(SafeTypeUtils.dict(entries[0]).get("id"))
-			return
-	_selected_quest_id = ""
+	_render_detail(_selected_entry())
 
 
 func _select_entry(quest_id: String) -> void:
 	_selected_quest_id = quest_id
-	_refresh_selection_buttons(active_list)
-	_refresh_selection_buttons(opportunities_list)
-	_refresh_selection_buttons(completed_list)
-	_render_detail()
-
-
-func _refresh_selection_buttons(container: VBoxContainer) -> void:
-	for child: Node in container.get_children():
+	for child: Node in quest_list.get_children():
 		var button: Button = child as Button
 		if button != null:
-			button.button_pressed = SafeTypeUtils.string(button.get_meta("quest_id")) == _selected_quest_id
+			button.button_pressed = SafeTypeUtils.string(button.get_meta("quest_id")) == quest_id
+	_render_detail(_selected_entry())
 
 
-func _render_detail() -> void:
-	var entry: Dictionary = SafeTypeUtils.dict(_entries_by_id.get(_selected_quest_id))
+func _render_detail(entry: Dictionary) -> void:
 	var has_entry: bool = not entry.is_empty()
 	detail_empty.visible = not has_entry
 	detail_content.visible = has_entry
@@ -119,10 +161,11 @@ func _render_detail() -> void:
 		return
 
 	detail_title.text = Loc.t(SafeTypeUtils.string(entry.get("title_key")))
-	detail_title.add_theme_color_override("font_color", COLOR_HIGHLIGHT)
 	detail_status.text = _entry_status(entry)
-	detail_status.add_theme_color_override("font_color", COLOR_MUTED)
 	detail_description.text = Loc.t(SafeTypeUtils.string(entry.get("description_key")))
+	professor_name.text = Loc.t(SafeTypeUtils.string(entry.get("professor_name_key")))
+	location_label.text = Loc.t(SafeTypeUtils.string(entry.get("location_key")))
+
 	var objective_key: String = SafeTypeUtils.string(entry.get("current_objective_key"))
 	detail_objective.visible = not objective_key.is_empty()
 	if not objective_key.is_empty():
@@ -131,7 +174,8 @@ func _render_detail() -> void:
 			{"objective": Loc.t(objective_key)}
 		)
 
-	var is_active: bool = SafeTypeUtils.string(entry.get("state")) == "active"
+	_render_rewards(SafeTypeUtils.array(entry.get("reward_previews")))
+	var is_active: bool = SafeTypeUtils.string(entry.get("state")) == SECTION_ACTIVE
 	track_button.visible = is_active
 	track_button.disabled = SafeTypeUtils.bool_val(entry.get("is_tracked"), false)
 	track_button.text = (
@@ -141,15 +185,78 @@ func _render_detail() -> void:
 	)
 
 
+func _render_rewards(reward_previews: Array) -> void:
+	_clear_children(rewards_list)
+	rewards_heading.visible = not reward_previews.is_empty()
+	rewards_list.visible = not reward_previews.is_empty()
+	for value: Variant in reward_previews:
+		var offer: Dictionary = SafeTypeUtils.dict(value)
+		var options: Array = SafeTypeUtils.array(offer.get("options"))
+		if options.is_empty():
+			var category: Label = Label.new()
+			category.text = Loc.t(SafeTypeUtils.string(offer.get("category_key")))
+			category.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+			rewards_list.add_child(category)
+			continue
+		for option_value: Variant in options:
+			var option: Dictionary = SafeTypeUtils.dict(option_value)
+			for grant_value: Variant in SafeTypeUtils.array(option.get("grants")):
+				var grant: Dictionary = SafeTypeUtils.dict(grant_value)
+				rewards_list.add_child(_build_reward(grant))
+
+
+func _build_reward(grant: Dictionary) -> Control:
+	if SafeTypeUtils.string(grant.get("kind")) == "card":
+		return _build_card_reward(grant)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	var icon: Label = Label.new()
+	icon.text = "◆"
+	icon.add_theme_color_override("font_color", GameColorPalette.TEXT_HIGHLIGHT)
+	row.add_child(icon)
+	var label: Label = Label.new()
+	label.text = "%s ×%d" % [
+		SafeTypeUtils.string(grant.get("id")).capitalize(),
+		SafeTypeUtils.int_val(grant.get("amount"), 1),
+	]
+	label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	row.add_child(label)
+	return row
+
+
+func _build_card_reward(grant: Dictionary) -> Control:
+	var card: PanelContainer = PanelContainer.new()
+	card.custom_minimum_size = Vector2(156.0, 122.0)
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = GameColorPalette.UI_SURFACE_ALT
+	style.border_color = GameColorPalette.UI_BORDER
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(9)
+	card.add_theme_stylebox_override("panel", style)
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	card.add_child(margin)
+	var card_id: String = SafeTypeUtils.string(grant.get("card_id"))
+	var card_data: Dictionary = CardCatalogApi.get_card_as_dict(card_id)
+	var label: Label = Label.new()
+	label.text = SafeTypeUtils.string(card_data.get("card_name"), card_id.capitalize())
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	margin.add_child(label)
+	return card
+
+
 func _entry_status(entry: Dictionary) -> String:
 	var state: String = SafeTypeUtils.string(entry.get("state"))
 	var cost: int = SafeTypeUtils.int_val(entry.get("curriculum_cost"), 0)
-	if state == "opportunity":
-		return "%s • %s" % [
-			Loc.t("academy.journal.known_opportunity"),
-			Loc.t("academy.journal.cost", {"cost": cost}),
-		]
-	if state == "completed":
+	if state == SECTION_OPEN:
+		return Loc.t("academy.journal.cost", {"cost": cost})
+	if state == SECTION_COMPLETED:
 		return Loc.t("academy.journal.completed_status")
 	return "%s • %s" % [
 		Loc.t("academy.journal.cost", {"cost": cost}),
@@ -168,22 +275,47 @@ func _track_selected() -> void:
 		CampaignApi.track_quest(_selected_quest_id)
 
 
+func _section_contains(quest_id: String) -> bool:
+	for value: Variant in _section_entries:
+		if SafeTypeUtils.string(SafeTypeUtils.dict(value).get("id")) == quest_id:
+			return true
+	return false
+
+
+func _selected_entry() -> Dictionary:
+	for value: Variant in _section_entries:
+		var entry: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(entry.get("id")) == _selected_quest_id:
+			return entry
+	return {}
+
+
 func _apply_palette() -> void:
 	background.color = GameColorPalette.UI_BACKGROUND
-	var detail_style: StyleBoxFlat = StyleBoxFlat.new()
-	detail_style.bg_color = GameColorPalette.UI_SURFACE
-	detail_style.border_color = GameColorPalette.UI_BORDER
-	detail_style.set_border_width_all(1)
-	detail_style.set_corner_radius_all(8)
-	detail_panel.add_theme_stylebox_override("panel", detail_style)
+	_apply_panel_style(category_panel, GameColorPalette.UI_SURFACE_ALT)
+	_apply_panel_style(list_panel, GameColorPalette.UI_SURFACE)
+	_apply_panel_style(detail_panel, GameColorPalette.UI_SURFACE_RAISED)
 	title_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	term_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	capacity_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	list_empty.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	detail_empty.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	professor_name.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	location_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	detail_title.add_theme_color_override("font_color", GameColorPalette.TEXT_HIGHLIGHT)
 	detail_status.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
 	detail_description.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	detail_objective.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	rewards_heading.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+
+
+func _apply_panel_style(panel: PanelContainer, color: Color) -> void:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = color
+	style.border_color = GameColorPalette.UI_BORDER
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(8)
+	panel.add_theme_stylebox_override("panel", style)
 
 
 func _go_back() -> void:

@@ -83,6 +83,11 @@ public class AcademyProgressServiceTest
         AssertThat(intro["source_id"].AsString()).IsEqual((string)CourseIds.IntroductionToMagic101);
         AssertThat(intro["state"].AsString()).IsEqual("opportunity");
         AssertThat(intro["professor_id"].AsString()).IsEqual("general_magic");
+        AssertThat(intro["professor_name_key"].AsString()).IsNotEmpty();
+        AssertThat(intro["location_key"].AsString()).IsNotEmpty();
+        AssertThat(intro["offer_dialogue_keys"].AsGodotArray()).IsNotEmpty();
+        AssertThat(intro["accepted_dialogue_keys"].AsGodotArray()).IsNotEmpty();
+        AssertThat(intro["reward_previews"].AsGodotArray()).IsNotEmpty();
 
         var opportunityIds = journal["opportunities"]
             .AsGodotArray()

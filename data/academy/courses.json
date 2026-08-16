@@ -13,10 +13,25 @@
       "is_required": true,
       "choice_group_id": "",
       "prerequisites": [],
+      "quest_dialogue": {
+        "offer_line_keys": [
+          "academy.dialogue.introduction_to_magic.offer_1",
+          "academy.dialogue.introduction_to_magic.offer_2"
+        ],
+        "accepted_line_keys": [
+          "academy.dialogue.introduction_to_magic.accepted"
+        ],
+        "turn_in_line_keys": [
+          "academy.dialogue.introduction_to_magic.turn_in"
+        ]
+      },
       "activities": [
         {
           "id": "magic_101_summon_practice",
           "label_key": "academy.activity.magic_101_summon_practice",
+          "reminder_dialogue_keys": [
+            "academy.dialogue.introduction_to_magic.summon_practice_reminder"
+          ],
           "battle_config": {
             "biome": "island_water",
             "enemy_deck": [],

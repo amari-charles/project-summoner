@@ -19,7 +19,8 @@ curriculum behavior behind explicit quest boundaries.
 - The current Course Flow launches activities from a node graph.
 - A first `GetQuestJournalState` projection and stacked-card Journal graybox
   exist on `feature/professor-led-quest-model`; their data boundary is reusable,
-  but the accepted Journal layout is now two-pane.
+  but the accepted Journal layout is now a three-region category/list/detail
+  composition.
 
 ## Implementation Boundary
 
@@ -51,15 +52,20 @@ curriculum behavior behind explicit quest boundaries.
 - Render `!`, `?`, or no marker from authoritative quest state.
 - Add a reusable dialogue interaction for overview, Accept/Not Yet, active state,
   and natural turn-in.
+- Keep authored character dialogue separate from activity labels and Journal
+  objectives. Use the general professor's initial supportive-mentor voice for
+  the introductory quest.
 - Add the one-line tracked quest banner below the profile icon.
 - Keep the Journal in persistent right-side navigation.
 
 ### 4. Journal presentation
 
-- Replace stacked cards with the accepted two-pane list-and-detail layout.
-- Keep Active, Opportunities, and Completed categories.
+- Replace stacked cards with the accepted category rail, selected-category
+  quest list, and quest-detail layout.
+- Keep Active, Open, and Completed categories.
 - Select the tracked or first relevant quest on entry.
 - Clicking the HUD banner opens the tracked quest details.
+- Show quest source identity/location and known reward previews in details.
 
 ### 5. Introductory battle loop
 
@@ -72,7 +78,8 @@ curriculum behavior behind explicit quest boundaries.
 
 ## Explicit Non-Goals
 
-- Finished professor characters or dialogue writing.
+- Finished professor characters or complete dialogue writing beyond the initial
+  supportive-mentor proof.
 - Hidden quest discovery gameplay.
 - Magical trails or a minimap.
 - Final campus landmark art.

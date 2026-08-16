@@ -138,6 +138,8 @@ var _camera_follow_distance: float = 31.0
 var _ground_source_size: Vector2 = Vector2.ZERO
 var _transition_started: bool = false
 var _dialog_course_id: String = ""
+var _dialog_speaker: String = ""
+var _dialog_accepted_lines: Array[String] = []
 
 
 func _ready() -> void:
@@ -706,20 +708,29 @@ func _on_professor_interacted(professor_id: String) -> void:
 	var professor_name: String = Loc.t(SafeTypeUtils.string(state.get("name_key")))
 	var opportunities: Array = SafeTypeUtils.array(state.get("opportunities"))
 	_dialog_course_id = ""
+	_dialog_speaker = professor_name
+	_dialog_accepted_lines.clear()
 
 	if not opportunities.is_empty():
 		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
 		_dialog_course_id = SafeTypeUtils.string(quest.get("source_id"))
 		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
-		var overview: String = Loc.t(SafeTypeUtils.string(quest.get("description_key")))
 		var cost: int = SafeTypeUtils.int_val(quest.get("curriculum_cost"), 0)
+		var offer_lines: Array[String] = _localized_dialogue_lines(
+			SafeTypeUtils.array(quest.get("offer_dialogue_keys"))
+		)
+		if offer_lines.is_empty():
+			offer_lines.append(Loc.t("academy.quest.offer_intro"))
+		offer_lines.append(
+			_accent_text(Loc.t("academy.quest.assignment_callout", {"title": title}))
+		)
+		offer_lines.append(_accent_text(Loc.t("academy.quest.permanent_cost", {"cost": cost})))
+		_dialog_accepted_lines = _localized_dialogue_lines(
+			SafeTypeUtils.array(quest.get("accepted_dialogue_keys"))
+		)
 		dialogue_box.present(
 			professor_name,
-			[
-				Loc.t("academy.quest.offer_intro"),
-				"%s\n%s" % [_accent_text(title), overview],
-				_accent_text(Loc.t("academy.quest.permanent_cost", {"cost": cost})),
-			],
+			offer_lines,
 			[
 				{"id": "not_yet", "text": Loc.t("academy.quest.not_yet")},
 				{"id": "accept", "text": Loc.t("academy.quest.accept")},
@@ -731,18 +742,22 @@ func _on_professor_interacted(professor_id: String) -> void:
 			dialogue_box.present(professor_name, [Loc.t("academy.quest.no_assignment")])
 		else:
 			var quest: Dictionary = SafeTypeUtils.dict(active[0])
+			var reminder_lines: Array[String] = _localized_dialogue_lines(
+				SafeTypeUtils.array(quest.get("active_dialogue_keys"))
+			)
+			var objective: String = Loc.t(
+				SafeTypeUtils.string(quest.get("current_objective_key"))
+			)
+			if reminder_lines.is_empty():
+				reminder_lines.append(
+					Loc.t("academy.quest.active_reminder", {"objective": objective})
+				)
+			reminder_lines.append(
+				_accent_text(Loc.t("academy.quest.objective_callout", {"objective": objective}))
+			)
 			dialogue_box.present(
 				professor_name,
-				[
-					Loc.t(
-						"academy.quest.active_reminder",
-						{
-							"objective": _accent_text(
-								Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))
-							)
-						},
-					)
-				]
+				reminder_lines
 			)
 
 
@@ -752,6 +767,9 @@ func _on_dialogue_choice(choice_id: String) -> void:
 		return
 	if not CampaignApi.enroll_academy_course(_dialog_course_id):
 		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % _dialog_course_id)
+	elif not _dialog_accepted_lines.is_empty():
+		player.set_physics_process(false)
+		dialogue_box.present(_dialog_speaker, _dialog_accepted_lines)
 	_dialog_course_id = ""
 
 
@@ -772,6 +790,15 @@ func _accent_text(text: String) -> String:
 		GameColorPalette.TEXT_HIGHLIGHT.to_html(false),
 		text,
 	]
+
+
+func _localized_dialogue_lines(keys: Array) -> Array[String]:
+	var lines: Array[String] = []
+	for value: Variant in keys:
+		var key: String = SafeTypeUtils.string(value)
+		if not key.is_empty():
+			lines.append(Loc.t(key))
+	return lines
 
 
 func _add_building(

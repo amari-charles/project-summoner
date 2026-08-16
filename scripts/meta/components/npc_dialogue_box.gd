@@ -76,8 +76,8 @@ func _advance() -> void:
 
 
 func _choose(choice_id: String) -> void:
-	choice_selected.emit(choice_id)
 	dismiss()
+	choice_selected.emit(choice_id)
 
 
 func _apply_palette() -> void:

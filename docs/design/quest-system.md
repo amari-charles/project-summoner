@@ -68,6 +68,13 @@ Quest acceptance occurs naturally within character dialogue:
 There is no required standalone quest-contract screen. The player does not need
 to see every quest step, exact reward, or future consequence before accepting.
 
+Character dialogue, Journal copy, and internal activity labels are separate
+authoring layers. A professor speaks in their own voice about the situation and
+the player's role; internal labels such as `Practice` are never substituted for
+spoken lines. Short mechanical callouts such as the assignment title, objective,
+curriculum cost, and permanence may appear in an accent color inside the
+conversation so their gameplay significance remains unmistakable.
+
 For an academic chain, the final dialogue choices must communicate:
 
 - the exact curriculum cost on the **Accept** choice;
@@ -94,16 +101,18 @@ of the walkable-world UI. The Journal is available there and through a hotkey.
 ## Journal
 
 The Journal is available from any walkable exploration space. Its accepted
-structural layout is a full-screen two-pane quest log:
+structural layout is a full-screen three-region quest log:
 
-- **Left pane:** categorized quest list with Active, Opportunities, and
-  Completed sections.
-- **Right pane:** selected quest overview, current objective when active,
-  professor or source, named location, and curriculum cost when applicable.
+- **Category rail:** Active, Open, and Completed, with one category selected at
+  a time.
+- **Quest list:** only the quests in the selected category.
+- **Quest detail:** the selected quest's title, description, current objective
+  when active, professor or source portrait and name, named location,
+  curriculum cost when applicable, and known rewards.
 - **Header:** current year and curriculum-capacity status.
 
 The visual skin may become an Academy folio or magical notebook, but that styling
-must preserve the two-pane information structure. The initial stacked-card
+must preserve the three-region information structure. The initial stacked-card
 Journal is graybox scaffolding, not the accepted final layout.
 
 Some announced opportunities are added automatically and produce a small
@@ -136,8 +145,10 @@ The initial graybox faculty contains five persistent campus professors:
 - one professor for Wind.
 
 All five physically exist from the beginning. Only currently available quests
-receive markers. Their long-term character identities and final art are content
-work, not prerequisites for the system proof.
+receive markers. The general professor begins as a supportive mentor: reassuring
+without removing the student's responsibility, attentive to learning rather
+than performance, and clear about the assignment. The other professors'
+personalities and all final art remain later content work.
 
 The accepted opening dependency is:
 
@@ -179,7 +190,8 @@ content.
 
 ## Deferred Decisions and Work
 
-- Final professor names, personalities, visual designs, and dialogue.
+- Final professor names, the four elemental professors' personalities, visual
+  designs, and full dialogue passes.
 - Final elemental-landmark layout and campus art.
 - Hidden quest discovery presentation and content.
 - Magical-trail implementation.

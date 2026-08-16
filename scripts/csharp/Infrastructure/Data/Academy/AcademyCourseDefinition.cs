@@ -103,6 +103,8 @@ public class AcademyCourseDefinition
     public AcademyActivityPrerequisiteMode PrerequisiteMode { get; set; } =
         AcademyActivityPrerequisiteMode.All;
 
+    public AcademyQuestDialogueDefinition QuestDialogue { get; set; } = new();
+
     public List<AcademyCourseActivity> Activities { get; set; } = [];
 
     public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
@@ -133,6 +135,8 @@ public class AcademyCourseActivity
 
     public string LabelKey { get; set; } = "";
 
+    public List<string> ReminderDialogueKeys { get; set; } = [];
+
     // Null preserves the current authored shorthand: the previous activity is the
     // sole prerequisite. An explicit array enables roots and branching graphs.
     public List<string>? Prerequisites { get; set; }
@@ -145,6 +149,19 @@ public class AcademyCourseActivity
     public AcademyActivityLoadoutDefinition Loadout { get; set; } = new();
 
     public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
+}
+
+/// <summary>
+/// Authored character dialogue associated with quest states. These lines are
+/// deliberately separate from activity labels and Journal objective copy.
+/// </summary>
+public class AcademyQuestDialogueDefinition
+{
+    public List<string> OfferLineKeys { get; set; } = [];
+
+    public List<string> AcceptedLineKeys { get; set; } = [];
+
+    public List<string> TurnInLineKeys { get; set; } = [];
 }
 
 public class AcademyActivityLoadoutDefinition

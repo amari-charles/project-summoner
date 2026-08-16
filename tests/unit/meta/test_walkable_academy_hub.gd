@@ -75,10 +75,13 @@ func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
 	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
 	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
 	assert_not_null(journal)
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/QuestListScroll/QuestLists/ActiveList"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/QuestListScroll/QuestLists/OpportunitiesList"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/QuestListScroll/QuestLists/CompletedList"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/ActiveButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/OpenButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/CompletedButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/ListPanel/ListMargin/ListRoot/QuestScroll/QuestList"))
 	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/ProfessorRow/ProfessorPortrait"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/RewardsScroll/RewardsList"))
 	journal.free()
 
 
