@@ -41,7 +41,7 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	var building_count: int = 0
-	assert_eq(WalkableAcademyHub.DESTINATIONS.size(), 7)
+	assert_eq(WalkableAcademyHub.DESTINATIONS.size(), 8)
 	for destination: Dictionary in WalkableAcademyHub.DESTINATIONS:
 		var destination_id: StringName = destination["id"]
 		assert_false(hub._scene_for_destination(destination_id).is_empty())
@@ -60,8 +60,20 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 
 	assert_eq(building_count, 5)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
+	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL), SceneManager.SCENE_QUEST_JOURNAL)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SETTINGS), SceneManager.SCENE_SETTINGS)
 	hub.free()
+
+
+func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
+	assert_true(ResourceLoader.exists(SceneManager.SCENE_QUEST_JOURNAL))
+	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
+	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
+	assert_not_null(journal)
+	assert_not_null(journal.get_node_or_null("Margin/Root/Tabs/ActiveButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Tabs/OpportunitiesButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Tabs/CompletedButton"))
+	journal.free()
 
 
 func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:

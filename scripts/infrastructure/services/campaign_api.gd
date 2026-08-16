@@ -40,6 +40,9 @@ static func get_all_campaigns() -> Array:
 static func get_academy_progress() -> Dictionary:
 	return SafeTypeUtils.dict(Campaign.call("GetAcademyProgress"))
 
+static func get_quest_journal_state() -> Dictionary:
+	return SafeTypeUtils.dict(Campaign.call("GetQuestJournalState"))
+
 static func get_available_academy_courses() -> Array:
 	return SafeTypeUtils.array(Campaign.call("GetAvailableAcademyCourses"))
 

@@ -464,6 +464,11 @@ public partial class CampaignService : Node
         return _academy?.GetProgress() ?? [];
     }
 
+    public Godot.Collections.Dictionary GetQuestJournalState()
+    {
+        return _academy?.GetQuestJournalState() ?? [];
+    }
+
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableAcademyCourses()
     {
         return _academy?.GetAvailableCourses() ?? [];
@@ -512,8 +517,7 @@ public partial class CampaignService : Node
         string activityId,
         string targetDeckId,
         string newDeckName
-    ) =>
-        _academy?.SaveActivityLoadoutToDeck(courseId, activityId, targetDeckId, newDeckName) ?? [];
+    ) => _academy?.SaveActivityLoadoutToDeck(courseId, activityId, targetDeckId, newDeckName) ?? [];
 
     public Godot.Collections.Dictionary GetAcademyActivityLaunchState(
         string courseId,

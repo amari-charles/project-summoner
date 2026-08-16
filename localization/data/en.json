@@ -336,6 +336,23 @@
       "track_warfare": "Warfare Track",
       "track_command": "Command Track"
     },
+    "journal": {
+      "title": "Quest Journal",
+      "description": "Review active quests, known opportunities, and completed work.",
+      "term": "Year {year}, Semester {semester}",
+      "capacity": "Curriculum: {committed}/{total} committed • {completed}/{total} completed",
+      "active": "Active",
+      "opportunities": "Opportunities",
+      "completed": "Completed",
+      "empty_active": "No active quests.",
+      "empty_opportunities": "No known opportunities.",
+      "empty_completed": "No completed quests yet.",
+      "cost": "Curriculum cost: {cost}",
+      "progress": "Progress: {current}/{total}",
+      "current_objective": "Current objective: {objective}",
+      "known_opportunity": "Known academic opportunity",
+      "completed_status": "Completed academic chain"
+    },
     "course_modal": {
       "syllabus": "Syllabus",
       "close": "Close",

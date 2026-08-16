@@ -33,6 +33,7 @@ const DESTINATION_DORMS: StringName = &"dorms"
 const DESTINATION_ONLINE: StringName = &"online"
 const DESTINATION_SUMMONER: StringName = &"summoner"
 const DESTINATION_SETTINGS: StringName = &"settings"
+const DESTINATION_JOURNAL: StringName = &"journal"
 
 ## One destination catalog drives both building entrances and fast shortcuts.
 ## Entries without a position remain shortcut-only in the current prototype.
@@ -78,6 +79,7 @@ const DESTINATIONS: Array[Dictionary] = [
 		"position": Vector3(13.0, 0.0, 8.0),
 	},
 	{"id": DESTINATION_SUMMONER, "name_key": "ui.summoner_screen.title", "description_key": "academy.walkable.summoner_description", "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
+	{"id": DESTINATION_JOURNAL, "name_key": "academy.journal.title", "description_key": "academy.journal.description", "target_scene": SceneManagerClass.SCENE_QUEST_JOURNAL},
 	{"id": DESTINATION_SETTINGS, "name_key": "ui.nav.settings", "description_key": "academy.walkable.settings_description", "target_scene": SceneManagerClass.SCENE_SETTINGS},
 ]
 
