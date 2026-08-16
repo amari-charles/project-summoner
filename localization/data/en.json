@@ -385,6 +385,7 @@
     },
     "quest": {
       "talk_prompt": "Press Interact to talk",
+      "offer_intro": "I have an assignment that may suit you.",
       "accept": "Accept",
       "not_yet": "Not Yet",
       "permanent_cost": "Permanently commits {cost} curriculum capacity.",

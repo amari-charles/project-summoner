@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/meta/components/placeholder_campus_crowd.gd" id="4_placeholder_crowd"]
 [ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/terrain/placeholder_grass_color3.png" id="5_placeholder_grass"]
 [ext_resource type="Script" path="res://scripts/meta/components/placeholder_campus_scenery.gd" id="6_placeholder_scenery"]
+[ext_resource type="PackedScene" path="res://scenes/meta/components/npc_dialogue_box.tscn" id="7_dialogue"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 shading_mode = 0
@@ -234,6 +235,5 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ProfessorDialog" type="ConfirmationDialog" parent="Interface"]
+[node name="NpcDialogueBox" parent="Interface" instance=ExtResource("7_dialogue")]
 unique_name_in_owner = true
-exclusive = true

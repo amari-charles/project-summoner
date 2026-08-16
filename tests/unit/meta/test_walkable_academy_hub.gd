@@ -27,6 +27,8 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
 	assert_not_null(hub.get_node_or_null("Interface/JournalButton"))
 	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestButton"))
+	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
+	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
 	assert_not_null(hub.get_node_or_null("Professors"))
 	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
 	assert_not_null(hub.get_node_or_null("PlaceholderScenery"))
@@ -80,14 +82,35 @@ func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
 	journal.free()
 
 
-func test_professor_component_has_marker_and_player_interaction_area() -> void:
-	var packed_scene: PackedScene = load("res://scenes/meta/components/academy_professor.tscn") as PackedScene
-	var professor: AcademyProfessor = packed_scene.instantiate() as AcademyProfessor
-	assert_not_null(professor)
-	assert_not_null(professor.get_node_or_null("ProfessorVisual"))
-	assert_not_null(professor.get_node_or_null("MarkerLabel"))
-	assert_not_null(professor.get_node_or_null("InteractionArea/CollisionShape3D"))
-	professor.free()
+func test_interactive_npc_component_is_role_agnostic() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/interactive_npc.tscn") as PackedScene
+	var npc: InteractiveNpc = packed_scene.instantiate() as InteractiveNpc
+	assert_not_null(npc)
+	assert_not_null(npc.get_node_or_null("CharacterVisual"))
+	assert_not_null(npc.get_node_or_null("MarkerLabel"))
+	assert_not_null(npc.get_node_or_null("InteractionArea/CollisionShape3D"))
+	npc.free()
+
+
+func test_npc_dialogue_uses_bottom_screen_rich_text_and_inline_choices() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn") as PackedScene
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	assert_not_null(dialogue)
+	var panel: PanelContainer = dialogue.get_node("Panel") as PanelContainer
+	var line: RichTextLabel = dialogue.get_node("Panel/Margin/Content/LineLabel") as RichTextLabel
+	assert_eq(panel.anchor_top, 1.0)
+	assert_true(line.bbcode_enabled)
+	assert_not_null(dialogue.get_node_or_null("Panel/Margin/Content/Choices"))
+	dialogue.free()
+
+
+func test_quest_journal_uses_readable_neutral_background() -> void:
+	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
+	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
+	var background: ColorRect = journal.get_node("Background") as ColorRect
+	assert_gt(background.color.r, background.color.b)
+	assert_gt(background.color.get_luminance(), 0.5)
+	journal.free()
 
 
 func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:

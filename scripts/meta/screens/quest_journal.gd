@@ -5,6 +5,7 @@ const COLOR_MUTED: Color = GameColorPalette.TEXT_SECONDARY
 const COLOR_HIGHLIGHT: Color = GameColorPalette.TEXT_HIGHLIGHT
 
 @onready var back_button: Button = %BackButton
+@onready var background: ColorRect = %Background
 @onready var title_label: Label = %TitleLabel
 @onready var term_label: Label = %TermLabel
 @onready var capacity_label: Label = %CapacityLabel
@@ -12,6 +13,7 @@ const COLOR_HIGHLIGHT: Color = GameColorPalette.TEXT_HIGHLIGHT
 @onready var opportunities_list: VBoxContainer = %OpportunitiesList
 @onready var completed_list: VBoxContainer = %CompletedList
 @onready var detail_empty: Label = %DetailEmpty
+@onready var detail_panel: PanelContainer = %DetailPanel
 @onready var detail_content: VBoxContainer = %DetailContent
 @onready var detail_title: Label = %DetailTitle
 @onready var detail_status: Label = %DetailStatus
@@ -25,6 +27,7 @@ var _entries_by_id: Dictionary = {}
 
 
 func _ready() -> void:
+	_apply_palette()
 	back_button.text = "←"
 	back_button.tooltip_text = Loc.t("academy.hub.title")
 	back_button.accessibility_name = Loc.t("academy.hub.title")
@@ -163,6 +166,24 @@ func _entry_status(entry: Dictionary) -> String:
 func _track_selected() -> void:
 	if not _selected_quest_id.is_empty():
 		CampaignApi.track_quest(_selected_quest_id)
+
+
+func _apply_palette() -> void:
+	background.color = GameColorPalette.UI_BACKGROUND
+	var detail_style: StyleBoxFlat = StyleBoxFlat.new()
+	detail_style.bg_color = GameColorPalette.UI_SURFACE
+	detail_style.border_color = GameColorPalette.UI_BORDER
+	detail_style.set_border_width_all(1)
+	detail_style.set_corner_radius_all(8)
+	detail_panel.add_theme_stylebox_override("panel", detail_style)
+	title_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	term_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	capacity_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	detail_empty.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	detail_title.add_theme_color_override("font_color", GameColorPalette.TEXT_HIGHLIGHT)
+	detail_status.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+	detail_description.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	detail_objective.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 
 
 func _go_back() -> void:

@@ -3,7 +3,7 @@ class_name WalkableAcademyHub
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
-const AcademyProfessorScene: PackedScene = preload("res://scenes/meta/components/academy_professor.tscn")
+const InteractiveNpcScene: PackedScene = preload("res://scenes/meta/components/interactive_npc.tscn")
 const PLACEHOLDER_CLASS_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png")
 const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
@@ -128,7 +128,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var summoner_slot: Control = %SummonerSlot
 @onready var tracked_quest_button: Button = %TrackedQuestButton
 @onready var journal_button: Button = %JournalButton
-@onready var professor_dialog: ConfirmationDialog = %ProfessorDialog
+@onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 
 var _camera_target_fov: float = 46.0
 var _camera_default_fov: float = 46.0
@@ -155,7 +155,8 @@ func _ready() -> void:
 	journal_button.text = Loc.t("academy.journal.title")
 	journal_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
 	tracked_quest_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
-	professor_dialog.confirmed.connect(_accept_dialogue_quest)
+	dialogue_box.choice_selected.connect(_on_dialogue_choice)
+	dialogue_box.closed.connect(_on_dialogue_closed)
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
@@ -666,11 +667,11 @@ func _spawn_professors() -> void:
 		var professor_id: String = SafeTypeUtils.string(state.get("id"))
 		if not PROFESSOR_POSITIONS.has(professor_id):
 			continue
-		var professor: AcademyProfessor = AcademyProfessorScene.instantiate()
+		var professor: InteractiveNpc = InteractiveNpcScene.instantiate()
 		professor.position = PROFESSOR_POSITIONS[professor_id]
 		professor.interacted.connect(_on_professor_interacted)
 		professors.add_child(professor)
-		professor.configure(state)
+		_configure_professor(professor, state)
 
 
 func _refresh_quest_presentation() -> void:
@@ -679,9 +680,9 @@ func _refresh_quest_presentation() -> void:
 		var state: Dictionary = SafeTypeUtils.dict(value)
 		state_by_id[SafeTypeUtils.string(state.get("id"))] = state
 	for child: Node in professors.get_children():
-		var professor: AcademyProfessor = child as AcademyProfessor
-		if professor != null and state_by_id.has(professor.professor_id):
-			professor.configure(state_by_id[professor.professor_id])
+		var professor: InteractiveNpc = child as InteractiveNpc
+		if professor != null and state_by_id.has(professor.npc_id):
+			_configure_professor(professor, state_by_id[professor.npc_id])
 
 	var journal: Dictionary = CampaignApi.get_quest_journal_state()
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
@@ -699,13 +700,12 @@ func _refresh_quest_presentation() -> void:
 
 
 func _on_professor_interacted(professor_id: String) -> void:
+	player.velocity = Vector3.ZERO
+	player.set_physics_process(false)
 	var state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)
 	var professor_name: String = Loc.t(SafeTypeUtils.string(state.get("name_key")))
 	var opportunities: Array = SafeTypeUtils.array(state.get("opportunities"))
 	_dialog_course_id = ""
-	professor_dialog.title = professor_name
-	professor_dialog.get_ok_button().text = Loc.t("ui.common.close")
-	professor_dialog.get_cancel_button().hide()
 
 	if not opportunities.is_empty():
 		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
@@ -713,34 +713,65 @@ func _on_professor_interacted(professor_id: String) -> void:
 		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
 		var overview: String = Loc.t(SafeTypeUtils.string(quest.get("description_key")))
 		var cost: int = SafeTypeUtils.int_val(quest.get("curriculum_cost"), 0)
-		professor_dialog.dialog_text = "%s\n\n%s\n\n%s" % [
-			title,
-			overview,
-			Loc.t("academy.quest.permanent_cost", {"cost": cost}),
-		]
-		professor_dialog.get_ok_button().text = Loc.t("academy.quest.accept")
-		professor_dialog.get_cancel_button().text = Loc.t("academy.quest.not_yet")
-		professor_dialog.get_cancel_button().show()
+		dialogue_box.present(
+			professor_name,
+			[
+				Loc.t("academy.quest.offer_intro"),
+				"%s\n%s" % [_accent_text(title), overview],
+				_accent_text(Loc.t("academy.quest.permanent_cost", {"cost": cost})),
+			],
+			[
+				{"id": "not_yet", "text": Loc.t("academy.quest.not_yet")},
+				{"id": "accept", "text": Loc.t("academy.quest.accept")},
+			]
+		)
 	else:
 		var active: Array = SafeTypeUtils.array(state.get("active"))
 		if active.is_empty():
-			professor_dialog.dialog_text = Loc.t("academy.quest.no_assignment")
+			dialogue_box.present(professor_name, [Loc.t("academy.quest.no_assignment")])
 		else:
 			var quest: Dictionary = SafeTypeUtils.dict(active[0])
-			professor_dialog.dialog_text = Loc.t(
-				"academy.quest.active_reminder",
-				{"objective": Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))},
+			dialogue_box.present(
+				professor_name,
+				[
+					Loc.t(
+						"academy.quest.active_reminder",
+						{
+							"objective": _accent_text(
+								Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))
+							)
+						},
+					)
+				]
 			)
 
-	professor_dialog.popup_centered(Vector2i(620, 320))
 
-
-func _accept_dialogue_quest() -> void:
-	if _dialog_course_id.is_empty():
+func _on_dialogue_choice(choice_id: String) -> void:
+	if choice_id != "accept" or _dialog_course_id.is_empty():
+		_dialog_course_id = ""
 		return
 	if not CampaignApi.enroll_academy_course(_dialog_course_id):
 		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % _dialog_course_id)
 	_dialog_course_id = ""
+
+
+func _on_dialogue_closed() -> void:
+	player.set_physics_process(true)
+
+
+func _configure_professor(professor: InteractiveNpc, state: Dictionary) -> void:
+	professor.configure(
+		SafeTypeUtils.string(state.get("id")),
+		Loc.t(SafeTypeUtils.string(state.get("name_key"))),
+		SafeTypeUtils.string(state.get("quest_marker"))
+	)
+
+
+func _accent_text(text: String) -> String:
+	return "[color=#%s][b]%s[/b][/color]" % [
+		GameColorPalette.TEXT_HIGHLIGHT.to_html(false),
+		text,
+	]
 
 
 func _add_building(
