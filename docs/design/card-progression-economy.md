@@ -58,6 +58,30 @@ See [Campaign Structure](../features/campaign/structure.md) for full path system
 - If the player lacks the required resources for a specific upgrade, that upgrade remains locked, even if XP for that level is earned
 - This makes resource collection part of build identity
 
+### 2.5 Permanent Behavioral Branches
+
+Card upgrade trees may contain mutually exclusive branches that change how the
+card functions rather than only increasing its statistics. Choosing one branch
+permanently closes its sibling branch and any descendants owned by that sibling.
+The player cannot eventually unlock both branches and swap between them.
+
+Behavioral branches should begin with the creature or spell identity and express
+different strategic uses of that identity. For example, a segmented worm summon
+could choose between:
+
+- a fission branch where killing the worm creates two smaller worms; or
+- a segmented-survival branch where an otherwise lethal hit removes one body
+  segment and the shortened worm survives.
+
+Some branches may require an authored ritual in addition to reaching the required
+card level. A ritual can consume materials gathered through battles, quests,
+excursions, shops, or other approved sources. The ritual is the unlock method for
+that branch, not a separate stackable power layer.
+
+Requiring rarer materials does not automatically justify a stronger branch. The
+branches should remain meaningful specializations or sidegrades unless the wider
+player-power model explicitly budgets a power difference.
+
 ---
 
 ## 3. Resource Model
@@ -264,4 +288,4 @@ Players can **replay completed battles** with the following rules:
 
 ---
 
-*Last Updated: 2026-01-19*
+*Last Updated: 2026-08-16*

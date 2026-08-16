@@ -18,6 +18,14 @@ room-sized shared space.
 
 ## Core Design Facts
 
+- **The campus is the recurring home base.** The usual player rhythm begins at
+  the campus with preparation and activity selection, continues into an
+  excursion, and returns to campus for progression and the next choice.
+- **An excursion can contain connected sub-locations.** Leaving campus does not
+  imply that every forest, ruin, or other site is a separate destination. When
+  the geography and quest make sense, the player can continue from one bounded
+  area into another—for example, from a forest into ruins located within it—
+  before returning to campus.
 - **Shortcuts to every location always exist.** Walking is never required to
   reach a destination. The shortcut menu is the fast path; movement supplies
   atmosphere and future social presence.
@@ -44,6 +52,29 @@ room-sized shared space.
    incrementally without committing to an open-world content model.
 4. **Shortcuts preserve convenience.** The walkable layer never needs to compete
    with direct menu navigation for speed.
+
+The campus being a hub does not require all world locations to connect directly
+to it or require a campus return between every quest stage. Exact departure,
+unlocking, and fast-travel rules follow from the approved world roster rather
+than being imposed before that roster exists.
+
+## Hidden Underground Layer
+
+The Academy can contain a persistent, bounded underground tunnel area that
+functions like a small secondary hub rather than a default combat excursion. It
+is reached through interaction with a covert campus contact, not through a
+permanent shortcut or additional destination UI. This preserves secrecy, keeps
+the interface lean, and makes the player engage with a character to enter.
+
+Its minimum justified functions are:
+
+- an illicit card-cracking operator or room;
+- a dedicated room for card-progression rituals.
+
+The tunnel environment can later support secret NPCs, discoveries, or authored
+quest events, but those are opportunities rather than requirements. Combat is
+not assumed merely because the area is underground. A small reusable tunnel kit
+and bounded layout are preferred over requiring a full black-market district.
 
 ## Phasing
 

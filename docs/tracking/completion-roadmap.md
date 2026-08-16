@@ -19,8 +19,38 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 - The exact number and naming of progression stages are not foundational decisions. Years, semesters, terms, ranks, or another structure can be chosen during progression design.
 - The bounded walkable campus creates opportunities beyond static menu navigation.
 - Quests should connect lessons, characters, locations, battles, rewards, shops, and discoveries rather than exist as an isolated side system.
+- The first excursion should use movement and interaction between recognizable Fateforged battles. More experimental combat formats remain an intentional innovation track, not a prerequisite for beginning excursion work.
+- Summoners remain stationary during combat across excursions and standard 1v1.
+  Walkable exploration transitions into the same horizontal battle format; the
+  moving-summoner greybox remains research evidence rather than production scope.
+- Encounters found in bounded exploration spaces transition to separate,
+  excursion-themed horizontal battlefields, then return the player to the
+  exploration state with persistent outcomes. Battlefields do not need to fit
+  literally inside the exploration map geometry.
+- The campus is the recurring home base, but an excursion may continue through
+  physically connected sub-locations before returning there.
+- Courses primarily structure quests and battles. Dedicated classroom interiors
+  are not foundational map requirements and must be justified by gameplay rather
+  than by the existence of a course.
+- Accepting an academic quest chain permanently commits its stated share of the
+  player's limited curriculum capacity. Completion turns that commitment into
+  earned yearly progress; abandonment cannot be used to reclaim the capacity.
+- One Journal owns accepted quests, known opportunities, and completed history.
+  Announced opportunities appear automatically; hidden opportunities appear
+  only after world discovery. The Journal always exposes current year and
+  committed-versus-completed academic capacity.
 - Cracked cards are planned as risky variations of normal cards whose twist can enable unusual synergies without being strictly beneficial.
+- Card cracking is an illicit, secret activity rather than an ordinary public
+  Academy service. Its physical location and discovery path remain part of the
+  world blueprint.
+- A covert campus contact provides access to a persistent bounded tunnel area
+  beneath the Academy. Its minimum world roles are cracking and ritual rooms;
+  it is a small secondary hub, not a required black-market district or combat
+  excursion.
 - Elemental and summon design should begin with the creature's identity, then derive its abilities, stats, and upgrades.
+- Card upgrade trees can contain permanently exclusive behavioral branches. Some
+  branches may require gathered materials and an authored ritual, but ritual
+  gating is an acquisition requirement rather than an independent power layer.
 - The roadmap's near-term purpose is to complete reusable foundations so later work is primarily content authoring, tuning, and asset replacement.
 
 ## Planning Rules
@@ -68,17 +98,17 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 - `docs/design/academy-forging-model.md`
 - a future current progression design document
 
-### Summoner Movement and Expedition-Combat Feasibility
+### Excursion Combat Format and Innovation Feasibility
 
 **Urgency:** High
-**Ease:** Hard
-**Scope:** Large
+**Ease:** Medium
+**Scope:** Medium
 
-**Purpose:** Determine whether controllable summoner movement during combat creates enough reusable value to justify its control, simulation, camera, encounter, and content costs.
+**Purpose:** Build the first excursion around exploration between recognizable Fateforged battles while investigating whether more experimental combat formats create enough distinctive, reusable value to justify their cost.
 
 **Representative prototypes:**
 
-- Current stationary army battle as the control case.
+- Exploration and world interaction leading into the standard battle format as the implementation baseline.
 - Bounded movement with spell-only combat.
 - Bounded movement with limited summons.
 - A room- or encounter-bounded structure as one containment strategy, not an accepted final design.
@@ -93,11 +123,11 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 - Compatibility with Fateforged's army-battle identity.
 - Engineering cost, asset cost, and reusable quest/content value.
 
-**Exit result:** Choose movement outside combat, movement in specific expedition activities, or movement as part of the broader combat model. The result must also define the supported encounter boundary and summon-lifecycle model.
+**Exit result:** The baseline excursion format is playable using standard combat encounters. Any additional combat format is either accepted with a defined encounter boundary and summon-lifecycle model, kept experimental, or rejected based on evidence.
 
 **Likely files:**
 
-- a future exploration-combat design document
+- `docs/design/excursion-combat-format.md`
 - battle input, session, simulation, camera, and navigation systems if prototyping is approved
 - reusable prototype scenes under battle or exploration ownership, chosen after the experience boundary is defined
 
@@ -116,7 +146,7 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 - Role of navigation, discovery, and physical presence.
 - Boundary between authored, reusable, recombinable, and repeatable content.
 - How activities feed cards, gold, items, relationships, exclusivity, and graduation.
-- Results from the expedition-combat feasibility effort where movement affects the activity model.
+- Results from excursion-format experiments where they affect the activity model.
 
 **Exit result:** A small, approved set of activity archetypes that can support the intended experience and justify downstream systems.
 
@@ -209,6 +239,8 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 **Required outputs:**
 
 - Roles of base cards, card levels, upgrades, summoner growth, equipment, cracked variants, and any expedition-specific resources.
+- Relationship between card XP thresholds, permanently exclusive behavioral
+  branches, ritual materials, and other transformation systems.
 - Ownership and persistence boundaries for each power source.
 - Expected magnitude, specialization, tradeoff, and stacking behavior.
 - Guardrails preventing one system from making the others irrelevant.
@@ -311,7 +343,7 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 - Presentation that makes altered behavior and risk understandable.
 - Interaction with synergies, balance budgets, items, quests, and online play.
 
-**Exit result:** An approved cracked-card design and authoring model built on stable normal cards. A black market or underground source is one possible presentation, not an accepted requirement.
+**Exit result:** An approved cracked-card design and authoring model built on stable normal cards. Its presentation must support the accepted illicit, secret character of cracking without assuming that this requires a dedicated district or map.
 
 **Likely files:**
 
@@ -382,7 +414,7 @@ Detailed implementation scope follows the Phase 1 product decisions; this placem
 - Acceptable performance at representative army sizes.
 - Adequate controls and readability on the target platforms.
 - The intended preparation, autonomous army clash, on-field summoners, and in-battle card play remain the baseline 1v1 format unless validation produces a reason to reopen it.
-- The summoner-movement rule is decided and implemented consistently across 1v1 and any other combat experience.
+- The standard 1v1 movement rule is coherent; optional excursion experiments do not block this baseline.
 - Focused regression coverage for the accepted baseline.
 
 **Exit result:** The core army battle is accepted as content-ready, or specific failed criteria return to Phase 2 as bounded foundation work.
@@ -435,7 +467,7 @@ The complete catalog for a system can remain content-filling work unless a stric
 ### 1v1 and online play
 
 - The local core battle proves the intended 1v1 format.
-- The consistent combat-movement decision is implemented before the gate.
+- The first excursion can enter this standard format without requiring a second combat-control model.
 - Production networking and online-service hardening can be completed later.
 
 ### Explicit later work
@@ -459,7 +491,7 @@ The project has substantial reusable infrastructure, but much of the Academy exp
 | Track | Current foundation | Content-readiness gap | Ratings |
 | --- | --- | --- | --- |
 | Player experience, progression, quests, and world/maps | Walkable campus, Academy progression, course screens, narrative runtime, rewards, and persistence exist. The Academy catalog contains 14 courses and 30 battle activities. | No quest domain exists. The engagement model, revised curriculum experience, map blueprint, and any representative excursion remain undefined. Existing course screens and the activity graph are provisional infrastructure. | Urgency High / Ease Hard / Scope Large |
-| Core combat and movement | Deterministic simulation/session/view architecture and extensive combat coverage exist. | No player-controlled summoner movement command exists. The global movement decision, damage outcomes, remaining baseline attack geometry, representative-scale performance, and platform controls require closure. | Urgency High / Ease Hard / Scope Large |
+| Core combat and excursion format | Deterministic simulation/session/view architecture and extensive combat coverage exist. | Standard battles are not yet connected to a playable excursion. Damage outcomes, remaining baseline attack geometry, representative-scale performance, and platform controls require closure. Controllable combat movement remains an optional discovery track. | Urgency High / Ease Hard / Scope Large |
 | Cards, creatures, upgrades, and cracked cards | 87 card definitions, 54 unit definitions, traits, upgrades, modifiers, stat calculation, and catalog tests exist. | No approved balance framework, creature-first production standard, functionally diverse accepted sample, or cracked-card domain exists. | Urgency High / Ease Medium / Scope Large |
 | Player power, gold, items, and shops | Account/campaign gold services, functional card/pack shops, item ownership/equipment, persistence, stat modifiers, four equipment slots, and eight placeholder items exist. | Gold has no approved economic job. Current shops do not sell equipment, item-category coverage lacks focused tests, and purchase flows still require safe universal transaction integration. | Urgency High / Ease Medium / Scope Large |
 | Content authoring, validation, and production tooling | Academy, reward, and narrative catalogs have meaningful validation; debug arena presets and a strong automated suite exist. | Authoring is fragmented between JSON and static C# catalogs. Quest authoring is absent, typed battle routing is unfinished, shop/event reward migration is incomplete, and deterministic direct-state tooling remains limited. | Urgency High / Ease Hard / Scope Large |
@@ -471,7 +503,7 @@ The project has substantial reusable infrastructure, but much of the Academy exp
 - Battle environments: 2 biome resources (`summer_plains` and `island_water`).
 - Quest-domain implementation: none found.
 - Cracked-card implementation: none found.
-- Player-controlled summoner movement command: none found.
+- Player-controlled summoner movement command: none found; no longer required for the first excursion baseline.
 - Item catalog: 8 placeholder stat-modifier items; focused item-service tests were not found.
 - Current general shop: sells cards and card packs rather than equipment.
 
@@ -485,7 +517,7 @@ This routing supersedes tracker priority labels only for roadmap sequencing. It 
 - Replace `scene_path`-driven battle launch with typed runtime routing.
 - Formalize damage-outcome semantics.
 - Finish only the attack-geometry and hitbox behavior required by the accepted representative combat sample.
-- Validate the control/input portion of mobile and desktop compatibility, especially after the global movement decision.
+- Validate the control/input portion of mobile and desktop compatibility for the standard battle baseline and for any experimental format promoted beyond discovery.
 - Complete universal reward migration for foundation consumers, including shop and quest-facing rewards.
 - Provide safe local atomic purchase behavior for the approved gold/item economy; remote/provider authority remains later.
 - Complete the hot-path performance work required to pass representative-scale core-battle validation.
@@ -511,7 +543,7 @@ This routing supersedes tracker priority labels only for roadmap sequencing. It 
 
 ### World and engagement
 
-`Expedition-combat feasibility → Player engagement model → Scope/reuse strategy → World/map blueprint → Quest and content foundations`
+`Baseline excursion format + optional combat experiments → Player engagement model → Scope/reuse strategy → World/map blueprint → Quest and content foundations`
 
 Quest-and-curriculum design can develop alongside the engagement work, but its final interface and system boundaries depend on the accepted activity and world models.
 
@@ -552,7 +584,7 @@ Discovery results can add, remove, or reshape later certainty-lane work. Multipl
 
 The initial approved discovery efforts are:
 
-- global combat-movement feasibility;
+- excursion-combat innovation experiments;
 - player journey and engagement model;
 - overall player-power model.
 
