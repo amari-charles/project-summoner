@@ -85,6 +85,14 @@ func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
 	journal.free()
 
 
+func test_quest_journal_uses_the_shared_card_widget_for_card_rewards() -> void:
+	assert_not_null(QuestJournal.CardWidgetScene)
+	var card_widget: CardWidget = QuestJournal.CardWidgetScene.instantiate() as CardWidget
+	assert_not_null(card_widget)
+	assert_not_null(card_widget.get_node_or_null("CardPanel/ContentContainer/ArtContainer"))
+	card_widget.free()
+
+
 func test_interactive_npc_component_is_role_agnostic() -> void:
 	var packed_scene: PackedScene = load("res://scenes/meta/components/interactive_npc.tscn") as PackedScene
 	var npc: InteractiveNpc = packed_scene.instantiate() as InteractiveNpc

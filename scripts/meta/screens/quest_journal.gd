@@ -1,6 +1,7 @@
 extends Control
 class_name QuestJournal
 
+const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 const SECTION_ACTIVE: String = "active"
 const SECTION_OPEN: String = "opportunities"
 const SECTION_COMPLETED: String = "completed"
@@ -225,30 +226,15 @@ func _build_reward(grant: Dictionary) -> Control:
 
 
 func _build_card_reward(grant: Dictionary) -> Control:
-	var card: PanelContainer = PanelContainer.new()
-	card.custom_minimum_size = Vector2(156.0, 122.0)
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = GameColorPalette.UI_SURFACE_ALT
-	style.border_color = GameColorPalette.UI_BORDER
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(9)
-	card.add_theme_stylebox_override("panel", style)
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	card.add_child(margin)
 	var card_id: String = SafeTypeUtils.string(grant.get("card_id"))
 	var card_data: Dictionary = CardCatalogApi.get_card_as_dict(card_id)
-	var label: Label = Label.new()
-	label.text = SafeTypeUtils.string(card_data.get("card_name"), card_id.capitalize())
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
-	margin.add_child(label)
-	return card
+	var card_widget: CardWidget = CardWidgetScene.instantiate() as CardWidget
+	card_widget.set_draggable(false)
+	card_widget.ready.connect(
+		func() -> void: card_widget.set_card({"catalog_id": card_id}, card_data),
+		CONNECT_ONE_SHOT
+	)
+	return card_widget
 
 
 func _entry_status(entry: Dictionary) -> String:
