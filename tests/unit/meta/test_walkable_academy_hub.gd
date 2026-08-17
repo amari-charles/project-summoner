@@ -28,7 +28,7 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/JournalButton"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/InventoryButton"))
-	assert_not_null(hub.get_node_or_null("Interface/LeftActionRail/SpellbookButton"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/SpellbookButton"))
 	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestBanner/TrackedQuestButton"))
 	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
 	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
@@ -51,30 +51,33 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	var rail: VBoxContainer = hub.get_node("Interface/RightActionRail") as VBoxContainer
 	var journal: Button = rail.get_node("JournalButton") as Button
+	var spellbook: Button = rail.get_node("SpellbookButton") as Button
 	var inventory: Button = rail.get_node("InventoryButton") as Button
 	var shortcuts: Button = rail.get_node("ShortcutButton") as Button
-	assert_eq(rail.get_child_count(), 3)
+	assert_eq(rail.get_child_count(), 4)
 	assert_eq(rail.anchor_top, 0.5)
 	assert_eq(rail.anchor_bottom, 0.5)
 	assert_almost_eq(absf(rail.offset_top), rail.offset_bottom, 0.01)
 	assert_not_null(journal.icon)
+	assert_not_null(spellbook.icon)
 	assert_not_null(inventory.icon)
 	assert_not_null(shortcuts.icon)
 	assert_true(journal.text.is_empty())
+	assert_true(spellbook.text.is_empty())
 	assert_true(inventory.text.is_empty())
 	assert_true(shortcuts.text.is_empty())
 	assert_true(inventory.disabled)
 	hub.free()
 
 
-func test_spellbook_is_a_persistent_left_side_action_instead_of_a_building() -> void:
+func test_spellbook_is_a_persistent_right_side_action_instead_of_a_building() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
-	var rail: VBoxContainer = hub.get_node("Interface/LeftActionRail") as VBoxContainer
+	var rail: VBoxContainer = hub.get_node("Interface/RightActionRail") as VBoxContainer
 	var button: Button = rail.get_node("SpellbookButton") as Button
 	assert_eq(rail.anchor_top, 0.5)
 	assert_eq(rail.anchor_bottom, 0.5)
-	assert_eq(rail.offset_left, 18.0)
+	assert_lt(rail.offset_left, 0.0)
 	assert_not_null(button.icon)
 	assert_true(button.text.is_empty())
 	assert_eq(

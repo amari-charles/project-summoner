@@ -1052,3 +1052,35 @@ hub decision.
 ### References
 
 - `docs/design/walkable-academy-hub.md`
+
+## 2026-08-16 — Group the Spellbook with the right-side campus actions
+
+**Status:** Accepted
+**Areas:** Campus, Collection, Decks, Navigation, UI
+
+### Decision
+
+Place the persistent Spellbook button in the right-side campus action rail with
+the Journal, Inventory, and shortcut menu rather than on a separate left-side
+rail.
+
+### Context
+
+The Spellbook is one of the player's persistent meta tools. Grouping those tools
+in one action rail is more coherent than dividing them across both screen edges.
+
+### Consequences
+
+- The campus has one persistent action rail rather than separate left and right
+  rails.
+- The Spellbook continues to replace the Dorms as the collection/deck entrance.
+
+### Supersedes
+
+Only the left-side placement specified by `Make the Spellbook a persistent
+campus action`; the persistent access and removal of the Dorms route remain in
+force.
+
+### References
+
+- `docs/design/walkable-academy-hub.md`

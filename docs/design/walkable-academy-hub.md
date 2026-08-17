@@ -112,11 +112,11 @@ Shortcuts remain available through every phase.
 | Mission Hall | `SCENE_SPECIAL_EVENTS` |
 | Online Arena | `SCENE_ONLINE` |
 
-The Spellbook (`SCENE_COLLECTION_SCREEN`) is a persistent left-side HUD action
-and has no physical campus building requirement. The Journal, settings, and the
-summoner screen are shortcut destinations without Phase 1 building
-requirements. The physical Class Hall may be repurposed later, but it is not
-currently a feature-screen destination.
+The Spellbook (`SCENE_COLLECTION_SCREEN`) is part of the persistent right-side
+HUD action rail and has no physical campus building requirement. The Journal,
+settings, and the summoner screen are shortcut destinations without Phase 1
+building requirements. The physical Class Hall may be repurposed later, but it
+is not currently a feature-screen destination.
 
 ## Phase 1 Non-Goals
 
