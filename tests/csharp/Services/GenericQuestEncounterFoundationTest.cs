@@ -159,11 +159,20 @@ public class GenericQuestEncounterFoundationTest
                     .AsString()
             )
             .IsEqual("intro_summoning_practice");
+        AssertThat(completionSummary["granted_rewards"].AsGodotArray()).IsEmpty();
+        AssertThat(repo.GetCardCount(CardIds.MagicBolt)).IsEqual(0);
 
         var npcState = campaign.GetNpcQuestState("general_magic");
         AssertThat(npcState["quest_marker"].AsString()).IsEqual("?");
         var completion = campaign.RecordQuestNpcInteraction("general_magic");
         AssertThat(completion["completed"].AsBool()).IsTrue();
+        var questCompletionRewards = campaign
+            .GetLastAcademyCompletionSummary()["granted_rewards"]
+            .AsGodotArray();
+        AssertThat(questCompletionRewards).HasSize(1);
+        AssertThat(questCompletionRewards[0].AsGodotDictionary()["card_id"].AsString())
+            .IsEqual((string)CardIds.MagicBolt);
+        AssertThat(repo.GetCardCount(CardIds.MagicBolt)).IsEqual(1);
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole);
         AssertThat(progress.Quests.CompletedQuestIds).Contains("introduction_to_magic");

@@ -33,15 +33,17 @@ public class AcademyCourseCatalogTest
                 magic101.Activities.Any(activity => activity.Role == AcademyActivityRole.Assessment)
             )
             .IsTrue();
-        AssertThat(magic101.RewardOffers).IsEmpty();
+        var courseRewards = CardGrants(magic101.RewardOffers);
+        AssertThat(courseRewards).HasSize(1);
+        AssertThat(courseRewards[0].CardId).IsEqual(CardIds.MagicBolt);
 
         var activityRewards = CardGrants(
             magic101.Activities.SelectMany(activity => activity.RewardOffers)
         );
-        AssertThat(activityRewards).HasSize(2);
+        AssertThat(activityRewards).HasSize(1);
         AssertThat(activityRewards.Select(reward => reward.CardId))
             .Contains(CardIds.NeutralStarterUnit);
-        AssertThat(activityRewards.Select(reward => reward.CardId)).Contains(CardIds.MagicBolt);
+        AssertThat(activityRewards.Select(reward => reward.CardId)).NotContains(CardIds.MagicBolt);
     }
 
     [TestCase]
@@ -160,8 +162,7 @@ public class AcademyCourseCatalogTest
                     .Select(action => action.CardId)
             )
             .Contains(CardIds.WeakEnemyUnit);
-        AssertThat(CardGrants(spellPractice.RewardOffers).Select(reward => reward.CardId))
-            .Contains(CardIds.MagicBolt);
+        AssertThat(CardGrants(spellPractice.RewardOffers)).IsEmpty();
 
         AssertThat(assessment.BattleConfig).IsNotNull();
         AssertThat(assessment.BattleConfig!.AiType).IsEqual("simple");

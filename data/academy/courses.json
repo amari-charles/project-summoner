@@ -422,42 +422,7 @@
               ]
             }
           },
-          "reward_offers": [
-            {
-              "id": "academy.reward.magic_bolt",
-              "selection": {
-                "mode": "automatic",
-                "show_count": 1,
-                "choose_count": 1
-              },
-              "preview_policy": "exact",
-              "eligibility": {
-                "duplicate_policy": "allow"
-              },
-              "option_source": {
-                "kind": "authored",
-                "options": [
-                  {
-                    "id": "academy.reward.magic_bolt.option",
-                    "label_key": "academy.reward.magic_bolt",
-                    "description_key": "",
-                    "grants": [
-                      {
-                        "kind": "card",
-                        "card_id": "magic_bolt",
-                        "rarity": "common",
-                        "count": 1,
-                        "target": {
-                          "scope": "account",
-                          "target_id": ""
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ],
+          "reward_offers": [],
           "execution_kind": "battle",
           "role": "practice",
           "encounter_style": "standard",
@@ -529,7 +494,42 @@
           }
         }
       ],
-      "reward_offers": []
+      "reward_offers": [
+        {
+          "id": "academy.reward.magic_bolt",
+          "selection": {
+            "mode": "automatic",
+            "show_count": 1,
+            "choose_count": 1
+          },
+          "preview_policy": "exact",
+          "eligibility": {
+            "duplicate_policy": "allow"
+          },
+          "option_source": {
+            "kind": "authored",
+            "options": [
+              {
+                "id": "academy.reward.magic_bolt.option",
+                "label_key": "academy.reward.magic_bolt",
+                "description_key": "",
+                "grants": [
+                  {
+                    "kind": "card",
+                    "card_id": "magic_bolt",
+                    "rarity": "common",
+                    "count": 1,
+                    "target": {
+                      "scope": "account",
+                      "target_id": ""
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "id": "summoning_basics",
