@@ -777,7 +777,7 @@
                 "grants": [
                   {
                     "kind": "card",
-                    "card_id": "charge",
+                    "card_id": "mana_bolt",
                     "rarity": "common",
                     "count": 1,
                     "target": {

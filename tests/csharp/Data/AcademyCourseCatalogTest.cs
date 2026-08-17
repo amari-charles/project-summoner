@@ -57,6 +57,19 @@ public class AcademyCourseCatalogTest
             .Contains(CourseIds.SummoningBasics);
         AssertThat(foundationChoices.Select(course => course.Id))
             .Contains(CourseIds.PracticalSpellcraft);
+
+        var practicalSpellcraft = foundationChoices.First(course =>
+            course.Id == CourseIds.PracticalSpellcraft
+        );
+        var spellcraftRewards = CardGrants(practicalSpellcraft.RewardOffers);
+        AssertThat(spellcraftRewards).HasSize(1);
+        AssertThat(spellcraftRewards[0].CardId).IsEqual(CardIds.ManaBolt);
+        AssertThat(
+                foundationChoices
+                    .SelectMany(course => CardGrants(course.RewardOffers))
+                    .Any(reward => reward.CardId == CardIds.Charge)
+            )
+            .IsFalse();
     }
 
     [TestCase]
