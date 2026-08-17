@@ -27,6 +27,10 @@ public sealed class QuestDefinition
 
     public QuestVisibility Visibility { get; init; } = QuestVisibility.Announced;
 
+    public ImmutableArray<string> PrerequisiteQuestIds { get; init; } = [];
+
+    public string ExclusiveGroupId { get; init; } = "";
+
     public QuestSourceDefinition Source { get; init; } = new();
 
     public QuestDialogueDefinition Dialogue { get; init; } = new();

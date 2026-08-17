@@ -36,6 +36,7 @@ public sealed class QuestProgressHandler
         var progress = GetProgress();
         if (
             definition == null
+            || !IsAvailable(definition, progress)
             || progress.Quests.ActiveQuestIds.Contains(questId)
             || progress.Quests.CompletedQuestIds.Contains(questId)
             || definition.AcceptanceRequirements.Any(rule => !_rules.CanApply(rule))
@@ -108,8 +109,11 @@ public sealed class QuestProgressHandler
             else if (progress.Quests.ActiveQuestIds.Contains(definition.Id))
                 active.Add(ToEntry(definition, progress, "active"));
             else if (
-                definition.Visibility == QuestVisibility.Announced
-                || progress.Quests.DiscoveredQuestIds.Contains(definition.Id)
+                IsAvailable(definition, progress)
+                && (
+                    definition.Visibility == QuestVisibility.Announced
+                    || progress.Quests.DiscoveredQuestIds.Contains(definition.Id)
+                )
             )
                 opportunities.Add(ToEntry(definition, progress, "opportunity"));
         }
@@ -133,7 +137,8 @@ public sealed class QuestProgressHandler
             if (progress.Quests.ActiveQuestIds.Contains(definition.Id))
                 active.Add(ToEntry(definition, progress, "active"));
             else if (
-                !progress.Quests.CompletedQuestIds.Contains(definition.Id)
+                IsAvailable(definition, progress)
+                && !progress.Quests.CompletedQuestIds.Contains(definition.Id)
                 && (
                     definition.Visibility == QuestVisibility.Announced
                     || progress.Quests.DiscoveredQuestIds.Contains(definition.Id)
@@ -157,6 +162,26 @@ public sealed class QuestProgressHandler
             ["opportunities"] = opportunities,
             ["active"] = active,
         };
+    }
+
+    private bool IsAvailable(QuestDefinition definition, CampaignProgress progress)
+    {
+        if (
+            definition.PrerequisiteQuestIds.Any(prerequisite =>
+                !progress.Quests.CompletedQuestIds.Contains(prerequisite)
+            )
+        )
+            return false;
+        if (string.IsNullOrWhiteSpace(definition.ExclusiveGroupId))
+            return true;
+        return !_catalog.Any(other =>
+            other.Id != definition.Id
+            && other.ExclusiveGroupId == definition.ExclusiveGroupId
+            && (
+                progress.Quests.ActiveQuestIds.Contains(other.Id)
+                || progress.Quests.CompletedQuestIds.Contains(other.Id)
+            )
+        );
     }
 
     private Dictionary AdvanceMatchingStep(

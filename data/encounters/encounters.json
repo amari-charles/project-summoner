@@ -8,6 +8,42 @@
         "migration_source": "academy:introduction_to_magic_101:magic_101_summon_practice"
       },
       "reward_offers": []
+    },
+    {
+      "id": "summoning_basics_practice",
+      "name_key": "academy.course.summoning_basics.name",
+      "execution_kind": "battle",
+      "configuration": {
+        "migration_source": "academy:summoning_basics:summoning_basics_practice"
+      },
+      "reward_offers": []
+    },
+    {
+      "id": "summoning_basics_assessment",
+      "name_key": "academy.course.summoning_basics.name",
+      "execution_kind": "battle",
+      "configuration": {
+        "migration_source": "academy:summoning_basics:summoning_basics_assessment"
+      },
+      "reward_offers": []
+    },
+    {
+      "id": "practical_spellcraft_practice",
+      "name_key": "academy.course.practical_spellcraft.name",
+      "execution_kind": "battle",
+      "configuration": {
+        "migration_source": "academy:practical_spellcraft:practical_spellcraft_practice"
+      },
+      "reward_offers": []
+    },
+    {
+      "id": "practical_spellcraft_assessment",
+      "name_key": "academy.course.practical_spellcraft.name",
+      "execution_kind": "battle",
+      "configuration": {
+        "migration_source": "academy:practical_spellcraft:practical_spellcraft_assessment"
+      },
+      "reward_offers": []
     }
   ]
 }

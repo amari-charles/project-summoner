@@ -118,6 +118,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var shortcut_close_button: Button = %ShortcutCloseButton
 @onready var shortcut_list: VBoxContainer = %ShortcutList
 @onready var summoner_slot: Control = %SummonerSlot
+@onready var tracked_quest_banner: Control = %TrackedQuestBanner
 @onready var tracked_quest_button: Button = %TrackedQuestButton
 @onready var journal_button: Button = %JournalButton
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
@@ -131,9 +132,11 @@ var _ground_source_size: Vector2 = Vector2.ZERO
 var _transition_started: bool = false
 var _dialog_quest_id: String = ""
 var _dialog_speaker: String = ""
+var _dialog_npc_id: String = ""
 var _dialog_accepted_lines: Array[String] = []
 var _dialog_turn_in_npc_id: String = ""
 var _dialog_response_actions: Dictionary = {}
+var _dialog_response_quest_ids: Dictionary = {}
 
 
 func _ready() -> void:
@@ -712,7 +715,7 @@ func _refresh_quest_presentation() -> void:
 		if target != null:
 			target.set_current_objective(target.target_id == current_target_id)
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
-	tracked_quest_button.visible = not tracked_id.is_empty()
+	tracked_quest_banner.visible = not tracked_id.is_empty()
 	if tracked_id.is_empty():
 		return
 	for value: Variant in SafeTypeUtils.array(journal.get("active")):
@@ -737,9 +740,11 @@ func _on_professor_interacted(professor_id: String) -> void:
 	var opportunities: Array = SafeTypeUtils.array(state.get("opportunities"))
 	_dialog_quest_id = ""
 	_dialog_speaker = professor_name
+	_dialog_npc_id = professor_id
 	_dialog_accepted_lines.clear()
 	_dialog_turn_in_npc_id = ""
 	_dialog_response_actions.clear()
+	_dialog_response_quest_ids.clear()
 
 	if not opportunities.is_empty():
 		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
@@ -749,13 +754,17 @@ func _on_professor_interacted(professor_id: String) -> void:
 		)
 		if offer_lines.is_empty():
 			offer_lines.append(Loc.t("academy.quest.offer_intro"))
-		_dialog_accepted_lines = _localized_dialogue_lines(
-			SafeTypeUtils.array(quest.get("accepted_dialogue_keys"))
-		)
+		var responses: Array[Dictionary] = []
+		for opportunity_value: Variant in opportunities:
+			var opportunity: Dictionary = SafeTypeUtils.dict(opportunity_value)
+			responses.append_array(_dialogue_responses(
+				SafeTypeUtils.array(opportunity.get("response_choices")),
+				SafeTypeUtils.string(opportunity.get("id"))
+			))
 		dialogue_box.present(
 			professor_name,
 			offer_lines,
-			_dialogue_responses(SafeTypeUtils.array(quest.get("response_choices")))
+			responses
 		)
 	else:
 		var active: Array = SafeTypeUtils.array(state.get("active"))
@@ -791,12 +800,18 @@ func _on_professor_interacted(professor_id: String) -> void:
 
 func _on_dialogue_choice(choice_id: String) -> void:
 	var action: String = SafeTypeUtils.string(_dialog_response_actions.get(choice_id))
+	var selected_quest_id: String = SafeTypeUtils.string(
+		_dialog_response_quest_ids.get(choice_id),
+		_dialog_quest_id
+	)
 	_dialog_response_actions.clear()
-	if action != "accept_quest" or _dialog_quest_id.is_empty():
+	_dialog_response_quest_ids.clear()
+	if action != "accept_quest" or selected_quest_id.is_empty():
 		_dialog_quest_id = ""
 		return
-	if not CampaignApi.accept_quest(_dialog_quest_id):
-		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % _dialog_quest_id)
+	_dialog_accepted_lines = _accepted_lines_for_quest(_dialog_npc_id, selected_quest_id)
+	if not CampaignApi.accept_quest(selected_quest_id):
+		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % selected_quest_id)
 	elif not _dialog_accepted_lines.is_empty():
 		player.set_physics_process(false)
 		dialogue_box.present(_dialog_speaker, _dialog_accepted_lines)
@@ -845,7 +860,10 @@ func _localized_dialogue_lines(keys: Array) -> Array[String]:
 	return lines
 
 
-func _dialogue_responses(authored_responses: Array) -> Array[Dictionary]:
+func _dialogue_responses(
+	authored_responses: Array,
+	quest_id: String
+) -> Array[Dictionary]:
 	var responses: Array[Dictionary] = []
 	for value: Variant in authored_responses:
 		var response: Dictionary = SafeTypeUtils.dict(value)
@@ -854,11 +872,23 @@ func _dialogue_responses(authored_responses: Array) -> Array[Dictionary]:
 			continue
 		var response_id: String = SafeTypeUtils.string(response.get("id"))
 		_dialog_response_actions[response_id] = action
+		_dialog_response_quest_ids[response_id] = quest_id
 		responses.append({
 			"id": response_id,
 			"text": Loc.t(SafeTypeUtils.string(response.get("text_key"))),
 		})
 	return responses
+
+
+func _accepted_lines_for_quest(professor_id: String, quest_id: String) -> Array[String]:
+	var state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+	for value: Variant in SafeTypeUtils.array(state.get("opportunities")):
+		var quest: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(quest.get("id")) == quest_id:
+			return _localized_dialogue_lines(
+				SafeTypeUtils.array(quest.get("accepted_dialogue_keys"))
+			)
+	return []
 
 
 func _add_building(

@@ -68,6 +68,14 @@ public static class QuestCatalog
             if (quest.Steps.IsDefaultOrEmpty)
                 errors.Add($"Quest '{quest.Id}' requires at least one step.");
 
+            foreach (var prerequisiteId in quest.PrerequisiteQuestIds)
+            {
+                if (!quests.Any(candidate => candidate.Id == prerequisiteId))
+                    errors.Add(
+                        $"Quest '{quest.Id}' references unknown prerequisite quest '{prerequisiteId}'."
+                    );
+            }
+
             foreach (var response in quest.Dialogue.Responses)
             {
                 if (

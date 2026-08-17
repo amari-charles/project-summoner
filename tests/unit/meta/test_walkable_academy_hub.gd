@@ -26,7 +26,7 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
 	assert_not_null(hub.get_node_or_null("Interface/JournalButton"))
-	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestButton"))
+	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestBanner/TrackedQuestButton"))
 	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
 	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
 	assert_not_null(hub.get_node_or_null("Professors"))
@@ -125,6 +125,7 @@ func test_npc_dialogue_uses_bottom_screen_rich_text_and_inline_choices() -> void
 	assert_eq(panel.anchor_top, 1.0)
 	assert_true(line.bbcode_enabled)
 	assert_not_null(dialogue.get_node_or_null("Panel/Margin/Content/Choices"))
+	assert_not_null(dialogue.get_node_or_null("Panel/Margin/Content/AdvanceIndicator"))
 	dialogue.free()
 
 
@@ -187,7 +188,7 @@ func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -
 	assert_not_null(quest_file)
 	var quest_text: String = quest_file.get_as_text()
 	quest_file.close()
-	assert_true(script_text.contains('quest.get("response_choices")'))
+	assert_true(script_text.contains('opportunity.get("response_choices")'))
 	assert_false(script_text.contains('Loc.t("academy.quest.permanent_cost"'))
 	assert_false(script_text.contains('Loc.t("academy.quest.assignment_callout"'))
 	assert_true(quest_text.contains('"action": "accept_quest"'))
@@ -197,12 +198,13 @@ func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -
 func test_tracked_quest_is_a_wide_semitransparent_banner() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH)
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
-	var banner: Button = hub.get_node("Interface/TrackedQuestButton") as Button
-	var normal_style: StyleBoxFlat = banner.get_theme_stylebox("normal") as StyleBoxFlat
-	assert_not_null(normal_style)
-	assert_lt(normal_style.bg_color.a, 1.0)
+	var banner: Control = hub.get_node("Interface/TrackedQuestBanner") as Control
+	var background: ColorRect = banner.get_node("Background") as ColorRect
+	var button: Button = banner.get_node("TrackedQuestButton") as Button
+	assert_true(background.material is ShaderMaterial)
 	assert_gt(banner.size.x, banner.size.y * 5.0)
-	assert_lte(normal_style.corner_radius_top_left, 8)
+	assert_gt(banner.position.y, 168.0)
+	assert_true(button.flat)
 	hub.free()
 
 

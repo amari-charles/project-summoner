@@ -1,6 +1,7 @@
 namespace Fateforged.Tests.Services;
 
 using System.Collections.Generic;
+using System.Linq;
 using Fateforged.Data.Encounters;
 using Fateforged.Data.Quests;
 using Fateforged.Data.Summoners;
@@ -167,6 +168,53 @@ public class GenericQuestEncounterFoundationTest
         AssertThat(progress.Quests.CompletedQuestIds).Contains("introduction_to_magic");
         AssertThat(progress.Academy.CompletedCourses)
             .Contains(Fateforged.Data.Academy.CourseIds.IntroductionToMagic101);
+
+        var followUpState = campaign.GetNpcQuestState("general_magic");
+        var followUpOpportunities = followUpState["opportunities"].AsGodotArray();
+        AssertThat(followUpOpportunities).HasSize(2);
+        AssertThat(
+                followUpOpportunities
+                    .Select(value => value.AsGodotDictionary()["id"].AsString())
+                    .ToArray()
+            )
+            .Contains("summoning_basics")
+            .Contains("practical_spellcraft");
+    }
+
+    [TestCase]
+    public void FoundationFocus_UnlocksAfterIntroductionAndCommitsToOneExclusivePath()
+    {
+        var repo = CreateNode<ProfileRepository>();
+        repo.LoadProfile(new ProfileId("generic_quest_foundation_focus"));
+        repo.ResetProfile();
+        if (!repo.IsSummonerUnlocked(SummonerIds.Cole))
+            repo.UnlockSummoner(SummonerIds.Cole);
+
+        var progress = repo.GetCampaignProgress(SummonerIds.Cole);
+        progress.Quests.CompletedQuestIds.Add("introduction_to_magic");
+        progress.Academy.CompletedCourses.Add(
+            Fateforged.Data.Academy.CourseIds.IntroductionToMagic101
+        );
+        progress.Academy.RemainingEnrollments = 2;
+        repo.UpdateCampaignProgress(SummonerIds.Cole, progress);
+
+        var campaign = CreateNode<CampaignService>();
+        campaign.InitForTesting(repo);
+        campaign.SetActiveSummonerGetter(Callable.From(() => (string)SummonerIds.Cole));
+
+        AssertThat(campaign.AcceptQuest("summoning_basics")).IsTrue();
+        AssertThat(campaign.AcceptQuest("practical_spellcraft")).IsFalse();
+
+        var npcState = campaign.GetNpcQuestState("general_magic");
+        AssertThat(npcState["opportunities"].AsGodotArray()).IsEmpty();
+        var active = npcState["active"].AsGodotArray();
+        AssertThat(active).HasSize(1);
+        AssertThat(active[0].AsGodotDictionary()["id"].AsString()).IsEqual("summoning_basics");
+
+        var worldResult = campaign.RecordQuestWorldInteraction("practice_grounds");
+        AssertThat(worldResult["current_step"].AsGodotDictionary()["encounter_id"].AsString())
+            .IsEqual("summoning_basics_practice");
+        AssertThat(campaign.GetEncounterPreparationState("summoning_basics_practice")).IsNotEmpty();
     }
 
     private T CreateNode<T>()

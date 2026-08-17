@@ -8,6 +8,7 @@ signal closed
 @onready var speaker_label: Label = %SpeakerLabel
 @onready var line_label: RichTextLabel = %LineLabel
 @onready var choices: Container = %Choices
+@onready var advance_indicator: Label = %AdvanceIndicator
 
 var _lines: Array[String] = []
 var _line_index: int = 0
@@ -46,8 +47,10 @@ func _render_line() -> void:
 	_clear_choices()
 	if _line_index < _lines.size():
 		line_label.text = _lines[_line_index]
+		advance_indicator.visible = true
 		return
 	line_label.text = ""
+	advance_indicator.visible = false
 	if _authored_choices.is_empty():
 		dismiss()
 		return
