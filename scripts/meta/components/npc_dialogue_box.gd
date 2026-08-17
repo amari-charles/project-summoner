@@ -7,7 +7,7 @@ signal closed
 @onready var panel: PanelContainer = %Panel
 @onready var speaker_label: Label = %SpeakerLabel
 @onready var line_label: RichTextLabel = %LineLabel
-@onready var choices: VBoxContainer = %Choices
+@onready var choices: Container = %Choices
 
 var _lines: Array[String] = []
 var _line_index: int = 0
