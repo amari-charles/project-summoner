@@ -823,8 +823,15 @@ func _on_dialogue_choice(choice_id: String) -> void:
 
 func _on_dialogue_closed() -> void:
 	if not _dialog_turn_in_npc_id.is_empty():
-		CampaignApi.record_quest_npc_interaction(_dialog_turn_in_npc_id)
+		var turn_in_npc_id: String = _dialog_turn_in_npc_id
 		_dialog_turn_in_npc_id = ""
+		var result: Dictionary = CampaignApi.record_quest_npc_interaction(turn_in_npc_id)
+		if SafeTypeUtils.bool_val(result.get("completed"), false):
+			var summary: Dictionary = CampaignApi.consume_last_academy_completion_summary()
+			var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
+			if not rewards.is_empty():
+				dialogue_box.present(_dialog_speaker, [_reward_received_line(rewards)])
+				return
 	player.set_physics_process(true)
 
 
@@ -852,6 +859,26 @@ func _accent_text(text: String) -> String:
 		GameColorPalette.TEXT_HIGHLIGHT.to_html(false),
 		text,
 	]
+
+
+func _reward_received_line(rewards: Array) -> String:
+	var labels: Array[String] = []
+	for value: Variant in rewards:
+		var reward: Dictionary = SafeTypeUtils.dict(value)
+		var reward_id: String = SafeTypeUtils.string(
+			reward.get("card_id", reward.get("id"))
+		)
+		var label: String = reward_id.capitalize()
+		if SafeTypeUtils.string(reward.get("kind")) == "card":
+			label = SafeTypeUtils.string(
+				CardCatalogApi.get_card_as_dict(reward_id).get("card_name"),
+				label
+			)
+		var amount: int = SafeTypeUtils.int_val(reward.get("amount"), 1)
+		labels.append(label if amount == 1 else "%s ×%d" % [label, amount])
+	return _accent_text(Loc.t("academy.quest.rewards_received", {
+		"rewards": ", ".join(labels),
+	}))
 
 
 func _localized_dialogue_lines(keys: Array) -> Array[String]:

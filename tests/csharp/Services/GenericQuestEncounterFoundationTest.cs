@@ -242,14 +242,18 @@ public class GenericQuestEncounterFoundationTest
             "summoning_basics_assessment",
             (int)EncounterOutcome.Victory
         );
-        var rewards = assessmentSummary["granted_rewards"].AsGodotArray();
+        AssertThat(assessmentSummary["granted_rewards"].AsGodotArray()).IsEmpty();
+        AssertThat(assessmentSummary["completed_course"].AsBool()).IsFalse();
+        AssertThat(repo.GetCardCount(CardIds.FireWisp)).IsEqual(0);
+
+        var turnIn = campaign.RecordQuestNpcInteraction("general_magic");
+        AssertThat(turnIn["completed"].AsBool()).IsTrue();
+        var questCompletionSummary = campaign.GetLastAcademyCompletionSummary();
+        var rewards = questCompletionSummary["granted_rewards"].AsGodotArray();
         AssertThat(rewards).HasSize(1);
         AssertThat(rewards[0].AsGodotDictionary()["card_id"].AsString())
             .IsEqual((string)CardIds.FireWisp);
         AssertThat(repo.GetCardCount(CardIds.FireWisp)).IsEqual(1);
-
-        var turnIn = campaign.RecordQuestNpcInteraction("general_magic");
-        AssertThat(turnIn["completed"].AsBool()).IsTrue();
         AssertThat(repo.GetCampaignProgress(SummonerIds.Cole).Quests.CompletedQuestIds)
             .Contains("summoning_basics");
     }

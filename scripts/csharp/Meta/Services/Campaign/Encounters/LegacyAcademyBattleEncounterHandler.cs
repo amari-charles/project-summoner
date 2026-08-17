@@ -61,7 +61,14 @@ public sealed class LegacyAcademyBattleEncounterHandler : IEncounterExecutionHan
             EncounterOutcome.Abandoned => AcademyActivityOutcome.Abandoned,
             _ => throw new ArgumentOutOfRangeException(nameof(outcome)),
         };
-        return _academy.CompleteActivity(courseId, activityId, academyOutcome)
+        // Quest-backed encounters advance their activity here, but the quest's
+        // final turn-in owns course completion and its permanent reward.
+        return _academy.CompleteActivity(
+            courseId,
+            activityId,
+            academyOutcome,
+            finalizeCourseWhenFinished: false
+        )
             ? _academy.GetLastCompletionSummary()
             : [];
     }

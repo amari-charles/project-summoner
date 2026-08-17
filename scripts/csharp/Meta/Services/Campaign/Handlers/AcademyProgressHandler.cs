@@ -495,7 +495,8 @@ public class AcademyProgressHandler
     public bool CompleteActivity(
         string courseId,
         string activityId,
-        AcademyActivityOutcome outcome = AcademyActivityOutcome.Victory
+        AcademyActivityOutcome outcome = AcademyActivityOutcome.Victory,
+        bool finalizeCourseWhenFinished = true
     )
     {
         ClearLastCompletionSummary();
@@ -584,6 +585,17 @@ public class AcademyProgressHandler
             academy.CourseActivityIndex[key] = nextIndex;
             _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
             if (hasPending)
+            {
+                SetLastCompletionSummary(
+                    course.Id,
+                    activity.Id,
+                    outcome,
+                    completedCourse: false,
+                    grantedRewards: grantedRewards
+                );
+                return true;
+            }
+            if (!finalizeCourseWhenFinished)
             {
                 SetLastCompletionSummary(
                     course.Id,

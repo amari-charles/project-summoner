@@ -395,7 +395,8 @@
       "no_assignment": "I have no new assignment for you right now.",
       "active_reminder": "Your current assignment: {objective}",
       "assignment_callout": "Assignment: {title}",
-      "objective_callout": "Objective: {objective}"
+      "objective_callout": "Objective: {objective}",
+      "rewards_received": "Received: {rewards}"
     },
     "dialogue": {
       "introduction_to_magic": {
