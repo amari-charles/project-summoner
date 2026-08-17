@@ -71,13 +71,16 @@ public sealed class QuestProgressHandler
         return true;
     }
 
-    public Dictionary RecordWorldInteraction(string targetId) =>
-        AdvanceMatchingStep(
+    public Dictionary RecordWorldInteraction(string targetId)
+    {
+        var advanced = AdvanceMatchingStep(
             step =>
                 step.Kind == QuestStepKind.InteractWithWorldTarget
                 && string.Equals(step.TargetId, targetId, StringComparison.Ordinal),
             "world_interaction"
         );
+        return advanced.Count > 0 ? advanced : GetLaunchableEncounter(targetId);
+    }
 
     public Dictionary RecordNpcInteraction(string npcId) =>
         AdvanceMatchingStep(
@@ -182,6 +185,34 @@ public sealed class QuestProgressHandler
                 || progress.Quests.CompletedQuestIds.Contains(other.Id)
             )
         );
+    }
+
+    private Dictionary GetLaunchableEncounter(string targetId)
+    {
+        var progress = GetProgress();
+        foreach (var questId in progress.Quests.ActiveQuestIds)
+        {
+            var definition = Find(questId);
+            var stepIndex = progress.Quests.CurrentStepByQuestId.GetValueOrDefault(questId, 0);
+            if (definition == null || stepIndex < 0 || stepIndex >= definition.Steps.Length)
+                continue;
+            var step = definition.Steps[stepIndex];
+            if (
+                step.Kind != QuestStepKind.CompleteEncounter
+                || !string.Equals(step.TargetId, targetId, StringComparison.Ordinal)
+            )
+                continue;
+            return new Dictionary
+            {
+                ["advanced"] = false,
+                ["completed"] = false,
+                ["event_kind"] = "world_interaction",
+                ["quest_id"] = questId,
+                ["current_step"] = ToStep(step),
+            };
+        }
+
+        return [];
     }
 
     private Dictionary AdvanceMatchingStep(

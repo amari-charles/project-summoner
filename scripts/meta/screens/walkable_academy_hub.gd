@@ -709,7 +709,8 @@ func _refresh_quest_presentation() -> void:
 	var current_target_id: String = ""
 	for value: Variant in SafeTypeUtils.array(journal.get("active")):
 		var active_quest: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(active_quest.get("current_step_kind")) == "interact_with_world_target":
+		var step_kind: String = SafeTypeUtils.string(active_quest.get("current_step_kind"))
+		if step_kind in ["interact_with_world_target", "complete_encounter"]:
 			current_target_id = SafeTypeUtils.string(active_quest.get("current_target_id"))
 			break
 	for child: Node in quest_targets.get_children():

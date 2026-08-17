@@ -2,6 +2,7 @@ namespace Fateforged.Tests.Services;
 
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Cards;
 using Fateforged.Data.Encounters;
 using Fateforged.Data.Quests;
 using Fateforged.Data.Summoners;
@@ -215,6 +216,42 @@ public class GenericQuestEncounterFoundationTest
         AssertThat(worldResult["current_step"].AsGodotDictionary()["encounter_id"].AsString())
             .IsEqual("summoning_basics_practice");
         AssertThat(campaign.GetEncounterPreparationState("summoning_basics_practice")).IsNotEmpty();
+
+        var practiceRetry = campaign.RecordQuestWorldInteraction("practice_grounds");
+        AssertThat(practiceRetry["advanced"].AsBool()).IsFalse();
+        AssertThat(practiceRetry["current_step"].AsGodotDictionary()["encounter_id"].AsString())
+            .IsEqual("summoning_basics_practice");
+
+        AssertThat(
+                campaign.CompleteEncounter(
+                    "summoning_basics_practice",
+                    (int)EncounterOutcome.Victory
+                )
+            )
+            .IsNotEmpty();
+        var assessmentLaunch = campaign.RecordQuestWorldInteraction("practice_grounds");
+        AssertThat(assessmentLaunch["current_step"].AsGodotDictionary()["encounter_id"].AsString())
+            .IsEqual("summoning_basics_assessment");
+
+        var assessmentRetry = campaign.RecordQuestWorldInteraction("practice_grounds");
+        AssertThat(assessmentRetry["advanced"].AsBool()).IsFalse();
+        AssertThat(assessmentRetry["current_step"].AsGodotDictionary()["encounter_id"].AsString())
+            .IsEqual("summoning_basics_assessment");
+
+        var assessmentSummary = campaign.CompleteEncounter(
+            "summoning_basics_assessment",
+            (int)EncounterOutcome.Victory
+        );
+        var rewards = assessmentSummary["granted_rewards"].AsGodotArray();
+        AssertThat(rewards).HasSize(1);
+        AssertThat(rewards[0].AsGodotDictionary()["card_id"].AsString())
+            .IsEqual((string)CardIds.FireWisp);
+        AssertThat(repo.GetCardCount(CardIds.FireWisp)).IsEqual(1);
+
+        var turnIn = campaign.RecordQuestNpcInteraction("general_magic");
+        AssertThat(turnIn["completed"].AsBool()).IsTrue();
+        AssertThat(repo.GetCampaignProgress(SummonerIds.Cole).Quests.CompletedQuestIds)
+            .Contains("summoning_basics");
     }
 
     private T CreateNode<T>()

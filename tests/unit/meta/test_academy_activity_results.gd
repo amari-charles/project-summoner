@@ -6,9 +6,15 @@ func test_encounter_results_is_context_agnostic_and_returns_to_campus() -> void:
 	assert_true(script_text.contains("class_name EncounterResults"))
 	assert_true(script_text.contains("get_encounter_completion_summary"))
 	assert_true(script_text.contains("consume_encounter_completion_summary"))
+	assert_true(script_text.contains("CardWidgetScene"))
+	assert_true(script_text.contains("_render_reward_reveals"))
 	assert_true(script_text.contains("SCENE_WALKABLE_ACADEMY_HUB"))
 	assert_false(script_text.contains("get_academy_course_flow_state"))
 	assert_false(script_text.contains("SCENE_ACADEMY_COURSE_FLOW"))
+	var packed_scene: PackedScene = load("res://scenes/meta/screens/academy_activity_results.tscn")
+	var results: EncounterResults = packed_scene.instantiate() as EncounterResults
+	assert_not_null(results.get_node_or_null("Center/Root/RewardReveals"))
+	results.free()
 
 
 func _read(path: String) -> String:

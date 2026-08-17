@@ -36,6 +36,13 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 
+[node name="RewardReveals" type="HBoxContainer" parent="Center/Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 190)
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
 [node name="ProgressLabel" type="Label" parent="Center/Root"]
 unique_name_in_owner = true
 layout_mode = 2

@@ -56,6 +56,7 @@
           "id": "complete_summoning_practice",
           "kind": "complete_encounter",
           "objective_key": "quest.introduction_to_magic.complete_summoning_practice",
+          "target_id": "practice_grounds",
           "encounter_id": "intro_summoning_practice",
           "required_outcome": "victory"
         },
@@ -128,6 +129,7 @@
           "id": "complete_summoning_practice",
           "kind": "complete_encounter",
           "objective_key": "quest.summoning_basics.complete_practice",
+          "target_id": "practice_grounds",
           "encounter_id": "summoning_basics_practice",
           "required_outcome": "victory"
         },
@@ -141,6 +143,7 @@
           "id": "complete_summoning_assessment",
           "kind": "complete_encounter",
           "objective_key": "quest.summoning_basics.complete_assessment",
+          "target_id": "practice_grounds",
           "encounter_id": "summoning_basics_assessment",
           "required_outcome": "victory"
         },
@@ -213,6 +216,7 @@
           "id": "complete_spellcraft_practice",
           "kind": "complete_encounter",
           "objective_key": "quest.practical_spellcraft.complete_practice",
+          "target_id": "practice_grounds",
           "encounter_id": "practical_spellcraft_practice",
           "required_outcome": "victory"
         },
@@ -226,6 +230,7 @@
           "id": "complete_spellcraft_assessment",
           "kind": "complete_encounter",
           "objective_key": "quest.practical_spellcraft.complete_assessment",
+          "target_id": "practice_grounds",
           "encounter_id": "practical_spellcraft_assessment",
           "required_outcome": "victory"
         },
