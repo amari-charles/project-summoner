@@ -241,7 +241,7 @@ public class AcademyProgressServiceTest
             service,
             CourseIds.PracticalSpellcraft,
             "practical_spellcraft_practice",
-            CardIds.Charge
+            CardIds.MagicBolt
         );
 
         var course = service.GetAcademyCourse((string)CourseIds.PracticalSpellcraft);
@@ -269,7 +269,7 @@ public class AcademyProgressServiceTest
     {
         var repo = CreateRepo("academy_activity_limitations_launch_state");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
-        var deckId = SetActiveDeck(repo, "Spellcraft Deck", CardIds.Charge);
+        var deckId = SetActiveDeck(repo, "Spellcraft Deck", CardIds.MagicBolt);
         SelectActiveDeckAsClassLoadout(
             repo,
             service,
@@ -333,7 +333,7 @@ public class AcademyProgressServiceTest
 
         var issueCodes = ValidationIssueCodes(deckValidation);
         AssertThat(issueCodes).Contains("min_spells");
-        AssertThat(issueCodes).Contains("required_card_missing");
+        AssertThat(issueCodes.Contains("required_card_missing")).IsFalse();
 
         AssertThat(
                 service.ResolveAcademyActivityBattleConfig(

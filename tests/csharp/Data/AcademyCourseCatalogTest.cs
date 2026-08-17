@@ -23,9 +23,16 @@ public class AcademyCourseCatalogTest
         AssertThat(magic101).IsNotNull();
         AssertThat(magic101!.IsRequired).IsTrue();
         AssertThat(magic101.Activities).HasSize(4);
-        AssertThat(magic101.Activities.All(activity => activity.ExecutionKind == AcademyActivityExecutionKind.Battle))
+        AssertThat(
+                magic101.Activities.All(activity =>
+                    activity.ExecutionKind == AcademyActivityExecutionKind.Battle
+                )
+            )
             .IsTrue();
-        AssertThat(magic101.Activities.Any(activity => activity.Role == AcademyActivityRole.Assessment)).IsTrue();
+        AssertThat(
+                magic101.Activities.Any(activity => activity.Role == AcademyActivityRole.Assessment)
+            )
+            .IsTrue();
         AssertThat(magic101.RewardOffers).IsEmpty();
 
         var activityRewards = CardGrants(
@@ -114,8 +121,8 @@ public class AcademyCourseCatalogTest
         AssertThat(summonPractice.BattleConfig.EncounterAi).IsNotNull();
         AssertThat(summonPractice.BattleConfig.EncounterAi!.Preset).IsEqual("scripted_encounter");
         AssertThat(
-                summonPractice.BattleConfig.EncounterAi.Rules
-                    .SelectMany(rule => rule.Actions)
+                summonPractice
+                    .BattleConfig.EncounterAi.Rules.SelectMany(rule => rule.Actions)
                     .Select(action => action.CardId)
             )
             .Contains(CardIds.TrainingTarget);
@@ -135,8 +142,8 @@ public class AcademyCourseCatalogTest
         AssertThat(spellPractice.BattleConfig!.EnemyDeck).IsEmpty();
         AssertThat(spellPractice.BattleConfig.EncounterAi).IsNotNull();
         AssertThat(
-                spellPractice.BattleConfig.EncounterAi!.Rules
-                    .SelectMany(rule => rule.Actions)
+                spellPractice
+                    .BattleConfig.EncounterAi!.Rules.SelectMany(rule => rule.Actions)
                     .Select(action => action.CardId)
             )
             .Contains(CardIds.WeakEnemyUnit);
@@ -150,7 +157,9 @@ public class AcademyCourseCatalogTest
         AssertThat(assessment.BattleConfig.EnemyDeck.Select(entry => entry.CardId))
             .Contains(CardIds.WeakEnemyUnit);
         AssertThat(
-                assessment.BattleConfig.EnemyDeck.Any(entry => entry.CardId == CardIds.TrainingTarget)
+                assessment.BattleConfig.EnemyDeck.Any(entry =>
+                    entry.CardId == CardIds.TrainingTarget
+                )
             )
             .IsFalse();
         AssertThat(assessment.Loadout.SuppliedCards.Select(entry => entry.CardId))
@@ -169,9 +178,7 @@ public class AcademyCourseCatalogTest
 
         AssertThat(battleActivities).IsNotEmpty();
         AssertThat(battleActivities.All(activity => activity.BattleConfig != null)).IsTrue();
-        AssertThat(
-                battleActivities.All(activity => BiomeIds.IsValid(activity.BattleConfig!.Biome))
-            )
+        AssertThat(battleActivities.All(activity => BiomeIds.IsValid(activity.BattleConfig!.Biome)))
             .IsTrue();
     }
 
@@ -189,7 +196,7 @@ public class AcademyCourseCatalogTest
         AssertThat(practice.Loadout.Rules.MinSummons).IsEqual(1);
         AssertThat(practice.Loadout.Rules.MinSpells).IsEqual(2);
         AssertThat(practice.Loadout.Rules.MaxDeckSize).IsEqual(12);
-        AssertThat(practice.Loadout.Rules.RequiredOwnedCards).Contains(CardIds.Charge);
+        AssertThat(practice.Loadout.Rules.RequiredOwnedCards).IsEmpty();
         AssertThat(practice.Loadout.SuppliedCards.Select(entry => entry.CardId))
             .Contains(CardIds.MagicBolt);
     }
@@ -198,9 +205,7 @@ public class AcademyCourseCatalogTest
         IEnumerable<RewardOfferDefinition> offers
     ) =>
         offers
-            .SelectMany(offer =>
-                ((AuthoredRewardOptionSourceDefinition)offer.OptionSource).Options
-            )
+            .SelectMany(offer => ((AuthoredRewardOptionSourceDefinition)offer.OptionSource).Options)
             .SelectMany(option => option.Grants)
             .OfType<CardRewardGrantDefinition>()
             .ToArray();

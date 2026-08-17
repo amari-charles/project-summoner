@@ -714,9 +714,7 @@
               "min_summons": 1,
               "min_spells": 2,
               "max_deck_size": 12,
-              "required_owned_cards": [
-                "charge"
-              ],
+              "required_owned_cards": [],
               "banned_cards": []
             }
           }
