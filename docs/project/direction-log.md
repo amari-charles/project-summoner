@@ -144,6 +144,56 @@ the world prematurely.
 - `docs/design/walkable-academy-hub.md`
 - `docs/tracking/completion-roadmap.md`
 
+## 2026-08-16 — Use generic quest and encounter systems across every context
+
+**Status:** Accepted
+**Areas:** Quests, Encounters, Battles, Academy, Excursions, Architecture
+
+### Decision
+
+Build one generic quest system and one generic encounter system that are applied
+to Academy, wilderness, underground, side-quest, and future contexts. A battle
+is a reusable encounter referenced by a quest step; it is not an Academy
+activity owned by a special academic progression pipeline.
+
+Academic courses use the same quest definitions, typed steps, encounter launch,
+and encounter-completion events as every other quest. Curriculum capacity,
+grades, and transcript effects attach through explicit typed quest rules. The
+quest and encounter cores do not contain professor-, course-, semester-, or
+Academy-specific branching.
+
+### Context
+
+The first rearchitecture proposal correctly separated quest sequencing from
+academic records, but still assigned battle preparation and execution to an
+`AcademyProgressHandler`. That boundary would force a forest quest or another
+non-Academy source involving a battle either to depend on Academy code or to
+create a second battle-quest pipeline.
+
+### Consequences
+
+- `QuestProgressHandler` is the sole quest state authority in every context.
+- Generic encounter definitions own reusable battle configuration and
+  preparation requirements and emit generic completion events.
+- Current Academy activity definitions migrate into encounter definitions.
+- Current Academy preparation/results screens migrate to generic encounter
+  screens rather than remaining Academy-owned infrastructure.
+- Domain-specific behavior is added through typed rule handlers, not generic
+  script hooks or context checks inside quest/encounter cores.
+- The rearchitecture proposal is revised before implementation.
+
+### Supersedes
+
+The `AcademyProgressHandler` / Academy-activity execution boundary in the prior
+quest-step rearchitecture proposal. It does not change the accepted curriculum,
+professor, or Course Flow deprecation decisions.
+
+### References
+
+- `docs/design/quest-system.md`
+- `docs/design/academy-class-flow.md`
+- `docs/technical/meta/quest-step-rearchitecture-proposal.md`
+
 ## 2026-08-16 — Replace the old Course Flow with authoritative typed quest steps
 
 **Status:** Accepted

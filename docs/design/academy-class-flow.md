@@ -54,9 +54,12 @@ activity-selection, launch, progression, or return paths. The physical Class
 Hall building may remain as a campus landmark only if a later designed world use
 justifies it; it does not preserve the old screen.
 
-## Activity Preparation
+## Encounter Preparation
 
-Every battle activity opens a dedicated full-screen Activity Preparation state. It keeps the course and activity context visible while showing:
+Every battle step opens the game's generic full-screen Encounter Preparation
+state. Academy context may affect its presentation and rules, but the screen and
+launch contract are shared with battles received from non-Academy quests. It
+shows:
 
 1. Objective and relevant rules.
 2. Available and already-earned rewards.
@@ -64,7 +67,8 @@ Every battle activity opens a dedicated full-screen Activity Preparation state. 
 4. Loadout validity and actionable correction controls when player input is required.
 5. The Start action.
 
-This is part of the canonical flow, not a small modal and not a detour to the general Collection screen.
+This is part of the canonical flow, not a small modal and not a detour to the
+general Collection screen.
 
 ## Practice And Assessment Presentation
 

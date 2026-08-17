@@ -124,12 +124,15 @@ contains all active side quests; only HUD tracking is limited to one.
 Every quest progresses through an ordered set of typed steps. A step identifies
 one player-facing objective and the authoritative event that completes it, such
 as talking to a particular NPC, interacting with a world location, completing
-an Academy battle activity, or returning to a quest giver. The Journal and HUD
+a reusable encounter, or returning to a quest giver. The Journal and HUD
 show the current step; they do not expose or launch a parallel course-node flow.
 
-Academy battle activities remain reusable gameplay definitions for battle
-configuration, preparation, rules, loadouts, and rewards. They are referenced
-by quest steps rather than acting as the quest progression model themselves.
+Playable battles use generic encounter definitions for configuration,
+preparation, rules, loadouts, and results. Any quest source may reference an
+encounter; the encounter does not know whether it came from a professor, a
+wilderness NPC, the underground, or another context. Academy-specific
+curriculum requirements and outcomes attach to academic quests through typed
+rules rather than creating an Academy-specific quest or battle pipeline.
 
 Quest objectives advance from authoritative gameplay events. Returning to a
 character is required only when dialogue, a decision, a reward, or narrative
@@ -191,7 +194,7 @@ battle content as scaffolding:
    quest.
 4. The current step directs the player to a physical Practice Grounds
    interaction on campus.
-5. Interacting there opens Activity Preparation for one basic training battle.
+5. Interacting there opens Encounter Preparation for one basic training battle.
 6. Completing the battle returns the player to campus and advances the current
    step to the general professor.
 7. The general professor gains `?`.
@@ -204,8 +207,9 @@ content.
 
 The old Class Hall enrollment browser and full-screen Course Flow are deprecated
 in their entirety. They must not remain as alternate enrollment, activity
-selection, launch, progression, or return paths. Activity Preparation and battle
-results remain reusable, but they enter and exit through the active quest step.
+selection, launch, progression, or return paths. Their preparation and results
+capabilities migrate into generic encounter screens entered and exited through
+the active quest step.
 
 ## Deferred Decisions and Work
 
