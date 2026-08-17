@@ -123,6 +123,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var journal_button: Button = %JournalButton
 @onready var inventory_button: Button = %InventoryButton
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
+@onready var reward_modal: RewardGrantModal = %RewardGrantModal
 
 var _camera_target_fov: float = 46.0
 var _camera_default_fov: float = 46.0
@@ -158,6 +159,7 @@ func _ready() -> void:
 	tracked_quest_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
 	dialogue_box.closed.connect(_on_dialogue_closed)
+	reward_modal.closed.connect(_on_reward_modal_closed)
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
@@ -830,8 +832,12 @@ func _on_dialogue_closed() -> void:
 			var summary: Dictionary = CampaignApi.consume_last_academy_completion_summary()
 			var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
 			if not rewards.is_empty():
-				dialogue_box.present(_dialog_speaker, [_reward_received_line(rewards)])
+				reward_modal.present(rewards, Loc.t("academy.quest.complete"))
 				return
+	player.set_physics_process(true)
+
+
+func _on_reward_modal_closed() -> void:
 	player.set_physics_process(true)
 
 
@@ -859,26 +865,6 @@ func _accent_text(text: String) -> String:
 		GameColorPalette.TEXT_HIGHLIGHT.to_html(false),
 		text,
 	]
-
-
-func _reward_received_line(rewards: Array) -> String:
-	var labels: Array[String] = []
-	for value: Variant in rewards:
-		var reward: Dictionary = SafeTypeUtils.dict(value)
-		var reward_id: String = SafeTypeUtils.string(
-			reward.get("card_id", reward.get("id"))
-		)
-		var label: String = reward_id.capitalize()
-		if SafeTypeUtils.string(reward.get("kind")) == "card":
-			label = SafeTypeUtils.string(
-				CardCatalogApi.get_card_as_dict(reward_id).get("card_name"),
-				label
-			)
-		var amount: int = SafeTypeUtils.int_val(reward.get("amount"), 1)
-		labels.append(label if amount == 1 else "%s ×%d" % [label, amount])
-	return _accent_text(Loc.t("academy.quest.rewards_received", {
-		"rewards": ", ".join(labels),
-	}))
 
 
 func _localized_dialogue_lines(keys: Array) -> Array[String]:

@@ -218,11 +218,15 @@ func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -
 	assert_false(quest_text.contains('"action": "decline_quest"'))
 
 
-func test_quest_turn_in_surfaces_rewards_inside_dialogue() -> void:
+func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	var script_text: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
 	assert_true(script_text.contains("consume_last_academy_completion_summary"))
-	assert_true(script_text.contains("_reward_received_line"))
-	assert_true(script_text.contains("academy.quest.rewards_received"))
+	assert_true(script_text.contains("reward_modal.present"))
+	assert_true(script_text.contains("academy.quest.complete"))
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	assert_not_null(hub.get_node_or_null("Interface/RewardGrantModal"))
+	hub.free()
 
 
 func test_tracked_quest_is_a_wide_semitransparent_banner() -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Books_Manual_Codex_Instructions_Tutorial_Documentation.png" id="9_journal_icon"]
 [ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Backpack_Bag_School.png" id="10_inventory_icon"]
 [ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Travel_Map_Folded.png" id="11_shortcuts_icon"]
+[ext_resource type="PackedScene" path="res://scenes/meta/components/reward_grant_modal.tscn" id="12_reward_modal"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 shading_mode = 0
@@ -293,4 +294,7 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="NpcDialogueBox" parent="Interface" instance=ExtResource("7_dialogue")]
+unique_name_in_owner = true
+
+[node name="RewardGrantModal" parent="Interface" instance=ExtResource("12_reward_modal")]
 unique_name_in_owner = true

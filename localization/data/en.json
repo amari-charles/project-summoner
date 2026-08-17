@@ -396,7 +396,7 @@
       "active_reminder": "Your current assignment: {objective}",
       "assignment_callout": "Assignment: {title}",
       "objective_callout": "Objective: {objective}",
-      "rewards_received": "Received: {rewards}"
+      "complete": "Quest Complete"
     },
     "dialogue": {
       "introduction_to_magic": {
@@ -758,6 +758,9 @@
       "confirm": "Confirm",
       "unknown": "Unknown",
       "continue": "Continue"
+    },
+    "reward_modal": {
+      "title": "Rewards Earned"
     },
     "pause_menu": {
       "resume": "Resume",
