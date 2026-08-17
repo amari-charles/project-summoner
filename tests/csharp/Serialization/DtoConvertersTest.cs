@@ -278,6 +278,8 @@ public class DtoConvertersTest
                 RemainingEnrollments = 3,
                 CompletedCourses = [CourseIds.IntroductionToMagic101],
                 EnrolledCourses = [CourseIds.PracticalSpellcraft],
+                DiscoveredCourses = [CourseIds.IntroToFire],
+                TrackedQuestId = "academy:practical_spellcraft",
                 AssessmentOutcomes = new Dictionary<string, AcademyActivityOutcome>
                 {
                     ["magic_101_exam"] = AcademyActivityOutcome.Victory,
@@ -321,10 +323,14 @@ public class DtoConvertersTest
         AssertThat(result.Academy.RemainingEnrollments).IsEqual(3);
         AssertThat(result.Academy.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
         AssertThat(result.Academy.EnrolledCourses).Contains(CourseIds.PracticalSpellcraft);
+        AssertThat(result.Academy.DiscoveredCourses).Contains(CourseIds.IntroToFire);
+        AssertThat(result.Academy.TrackedQuestId).IsEqual("academy:practical_spellcraft");
         AssertThat(result.Academy.AssessmentOutcomes["magic_101_exam"])
             .IsEqual(AcademyActivityOutcome.Victory);
         AssertThat(
-                result.Academy.ActivityLoadouts["practical_spellcraft:practice"]
+                result
+                    .Academy
+                    .ActivityLoadouts["practical_spellcraft:practice"]
                     .SelectedCardInstanceIds
             )
             .Contains(new CardInstanceId("card_1"));

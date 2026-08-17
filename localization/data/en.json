@@ -272,7 +272,12 @@
   },
   "academy": {
     "location": {
-      "exit": "X"
+      "exit": "X",
+      "general_grounds": "Central Practice Grounds",
+      "fire_grounds": "Ember Practice Grounds",
+      "water_grounds": "Lakeside Grounds",
+      "earth_grounds": "Mountain Grounds",
+      "wind_grounds": "High Terrace"
     },
     "walkable": {
       "placeholder_ground": "TEMP ACADEMY GROUND",
@@ -280,6 +285,7 @@
       "placeholder_building": "PLACEHOLDER {name}",
       "open_shortcuts": "Campus Shortcuts",
       "shortcuts_title": "Campus Shortcuts",
+      "inventory_unavailable": "Inventory (coming soon)",
       "summoner_description": "Review your summoner, equipment, and progression.",
       "settings_description": "Adjust game settings."
     },
@@ -301,6 +307,10 @@
       "dorms": {
         "name": "Dorms",
         "description": "Manage decks, equipment, owned cards, and personal summoner tools."
+      },
+      "spellbook": {
+        "name": "Spellbook",
+        "description": "Review your card collection and manage your decks."
       },
       "online": {
         "name": "Online Arena",
@@ -335,6 +345,87 @@
       "track_warding": "Warding Track",
       "track_warfare": "Warfare Track",
       "track_command": "Command Track"
+    },
+    "journal": {
+      "title": "Quest Journal",
+      "description": "Review active quests, known opportunities, and completed work.",
+      "term": "Year {year}, Semester {semester}",
+      "capacity": "Curriculum: {committed}/{total} committed • {completed}/{total} completed",
+      "active": "Active",
+      "open": "Open",
+      "opportunities": "Opportunities",
+      "completed": "Completed",
+      "empty_active": "No active quests.",
+      "empty_opportunities": "No known opportunities.",
+      "empty_completed": "No completed quests yet.",
+      "cost": "Curriculum cost: {cost}",
+      "progress": "Progress: {current}/{total}",
+      "current_objective": "Current objective: {objective}",
+      "known_opportunity": "Known academic opportunity",
+      "completed_status": "Completed academic chain",
+      "empty": "Select a quest to review its details.",
+      "track": "Track Quest",
+      "tracked": "Tracked",
+      "rewards": "Rewards"
+    },
+    "professor": {
+      "general_magic": {
+        "name": "Professor Rowan",
+        "role": "General Magic"
+      },
+      "fire": {
+        "name": "Professor Ash",
+        "role": "Fire Magic"
+      },
+      "water": {
+        "name": "Professor Brook",
+        "role": "Water Magic"
+      },
+      "earth": {
+        "name": "Professor Flint",
+        "role": "Earth Magic"
+      },
+      "wind": {
+        "name": "Professor Gale",
+        "role": "Wind Magic"
+      }
+    },
+    "quest": {
+      "talk_prompt": "Press Interact to talk",
+      "offer_intro": "I have an assignment that may suit you.",
+      "accept": "Accept",
+      "not_yet": "Not Yet",
+      "permanent_cost": "Permanently commits {cost} curriculum capacity.",
+      "no_assignment": "I have no new assignment for you right now.",
+      "active_reminder": "Your current assignment: {objective}",
+      "assignment_callout": "Assignment: {title}",
+      "objective_callout": "Objective: {objective}",
+      "complete": "Quest Complete",
+      "reward_unknown": "Reward details unknown"
+    },
+    "dialogue": {
+      "introduction_to_magic": {
+        "offer_1": "You do not need to know what kind of summoner you are yet. That is what your first year is for.",
+        "offer_2": "Let us begin somewhere simple. Call a creature, keep it under control, and show me how you respond when the field changes.",
+        "accept_response": "I'm ready. I'll commit one of my first-year course places to this.",
+        "accepted": "Good. Take your time, and pay attention to what the creature needs from you.",
+        "summon_practice_reminder": "There is no rush. The practice grounds are ready when you are—focus on keeping control of the creature you summon.",
+        "turn_in": "You kept your focus when the exercise pushed back. That matters more than making it look effortless."
+      },
+      "foundation_focus": {
+        "offer_1": "You have the beginning of control. Now you need to decide where to place your attention.",
+        "offer_2": "You may study how to bind creatures more deliberately, or focus on shaping spells under pressure. You cannot commit to both paths this term."
+      },
+      "summoning_basics": {
+        "accept_response": "I want to understand the creatures I summon—and how to keep control of them.",
+        "accepted": "Then begin at the practice grounds. Control matters more than calling something impressive.",
+        "turn_in": "You treated the creature as something to understand, not merely a weapon. Continue that way."
+      },
+      "practical_spellcraft": {
+        "accept_response": "I want to learn how to shape spells when the field is fighting back.",
+        "accepted": "Then take your working deck to the practice grounds. Precision first; power follows.",
+        "turn_in": "Your spellwork held together under pressure. That discipline will carry into every element."
+      }
     },
     "course_modal": {
       "syllabus": "Syllabus",
@@ -425,7 +516,7 @@
       "lesson": "Lesson",
       "practice": "Practice",
       "assessment": "Assessment",
-      "magic_101_summon_practice": "Summon Practice",
+      "magic_101_summon_practice": "Complete the summoning exercise",
       "magic_101_basic_duel": "Basic Duel",
       "magic_101_spell_practice": "Spell Practice",
       "magic_101_assessment": "Magic 101 Assessment"
@@ -672,6 +763,9 @@
       "confirm": "Confirm",
       "unknown": "Unknown",
       "continue": "Continue"
+    },
+    "reward_modal": {
+      "title": "Rewards Earned"
     },
     "pause_menu": {
       "resume": "Resume",
@@ -1880,6 +1974,31 @@
     "travelers_cloak": {
       "name": "Traveler's Cloak",
       "description": "A weathered cloak for long journeys. Grants +25 Max Health."
+    }
+  },
+  "quest": {
+    "world": {
+      "practice_grounds": "Practice Grounds",
+      "interact_prompt": "Press Interact to begin"
+    },
+    "introduction_to_magic": {
+      "go_to_practice_grounds": "Go to the Practice Grounds",
+      "complete_summoning_practice": "Complete the summoning exercise",
+      "return_to_professor": "Return to the general professor"
+    },
+    "summoning_basics": {
+      "go_to_practice": "Go to the Practice Grounds for summoning practice",
+      "complete_practice": "Complete the summoning practice encounter",
+      "go_to_assessment": "Return to the Practice Grounds for assessment",
+      "complete_assessment": "Complete the summoning assessment",
+      "return_to_professor": "Return to the general professor"
+    },
+    "practical_spellcraft": {
+      "go_to_practice": "Go to the Practice Grounds for spellcraft practice",
+      "complete_practice": "Complete the spellcraft practice encounter",
+      "go_to_assessment": "Return to the Practice Grounds for assessment",
+      "complete_assessment": "Complete the spellcraft assessment",
+      "return_to_professor": "Return to the general professor"
     }
   },
   "narrative": {

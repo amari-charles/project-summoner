@@ -7,8 +7,8 @@ using Fateforged.Data.Academy;
 using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
-using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Domain.Profile.Account;
+using Fateforged.Domain.Profile.Campaign;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Infrastructure.Persistence;
@@ -27,13 +27,15 @@ public class AcademyProgressHandler
     private readonly Func<SummonerId> _getActiveSummonerFunc;
     private readonly UniversalRewardRuntime _universalRewards;
     private readonly IReadOnlyList<AcademyCourseDefinition> _courseCatalog;
+    private readonly IReadOnlyList<AcademyProfessorDefinition> _professorCatalog;
     private Godot.Collections.Dictionary _lastCompletionSummary = [];
 
     public AcademyProgressHandler(
         IProfileRepository profileRepo,
         Func<SummonerId> getActiveSummonerFunc,
         UniversalRewardRuntime? universalRewards = null,
-        IReadOnlyList<AcademyCourseDefinition>? courseCatalog = null
+        IReadOnlyList<AcademyCourseDefinition>? courseCatalog = null,
+        IReadOnlyList<AcademyProfessorDefinition>? professorCatalog = null
     )
     {
         _profileRepo = profileRepo;
@@ -46,6 +48,7 @@ public class AcademyProgressHandler
                     : UniversalRewardRuntime.CreateUnavailable()
             );
         _courseCatalog = courseCatalog ?? AcademyCourseCatalog.All;
+        _professorCatalog = professorCatalog ?? AcademyProfessorCatalog.All;
     }
 
     public Godot.Collections.Dictionary GetProgress()
@@ -59,6 +62,89 @@ public class AcademyProgressHandler
         var campaignProgress = GetOrCreateProgress();
         var academy = campaignProgress.Academy;
         return GetCoursesForSemester(academy.CurrentYear, academy.CurrentSemester);
+    }
+
+    public Godot.Collections.Dictionary GetQuestJournalState()
+    {
+        var academy = GetOrCreateProgress().Academy;
+        var active = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        var opportunities = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        var completed = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+        foreach (var course in _courseCatalog)
+        {
+            if (academy.CompletedCourses.Contains(course.Id))
+                completed.Add(ToQuestJournalEntry(course, academy, "completed"));
+        }
+
+        foreach (var courseId in academy.EnrolledCourses)
+        {
+            var course = FindCourse(courseId);
+            if (course != null && !academy.CompletedCourses.Contains(course.Id))
+                active.Add(ToQuestJournalEntry(course, academy, "active"));
+        }
+
+        foreach (var course in GetCandidateCourses(academy))
+        {
+            if (
+                academy.EnrolledCourses.Contains(course.Id)
+                || academy.CompletedCourses.Contains(course.Id)
+            )
+                continue;
+
+            if (
+                course.OpportunityVisibility == AcademyOpportunityVisibility.Hidden
+                && !academy.DiscoveredCourses.Contains(course.Id)
+            )
+                continue;
+
+            var availability = ValidateCourseAvailable(course, academy);
+            if (availability.available)
+                opportunities.Add(ToQuestJournalEntry(course, academy, "opportunity"));
+        }
+
+        var currentTermKey = $"year_{academy.CurrentYear}_semester_{academy.CurrentSemester}";
+        var completedCapacity = academy
+            .Transcript.Where(entry => entry.SemesterKey == currentTermKey)
+            .Select(entry => FindCourse(entry.CourseId)?.EnrollmentCost ?? 0)
+            .Sum();
+        var activeCapacity = academy
+            .EnrolledCourses.Select(courseId => FindCourse(courseId)?.EnrollmentCost ?? 0)
+            .Sum();
+        var committedCapacity = completedCapacity + activeCapacity;
+
+        return new Godot.Collections.Dictionary
+        {
+            ["current_year"] = academy.CurrentYear,
+            ["current_semester"] = academy.CurrentSemester,
+            ["capacity_total"] = academy.RemainingEnrollments + committedCapacity,
+            ["capacity_committed"] = committedCapacity,
+            ["capacity_completed"] = completedCapacity,
+            ["capacity_remaining"] = academy.RemainingEnrollments,
+            ["tracked_quest_id"] = academy.TrackedQuestId,
+            ["active"] = active,
+            ["opportunities"] = opportunities,
+            ["completed"] = completed,
+        };
+    }
+
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetProfessorQuestStates()
+    {
+        var academy = GetOrCreateProgress().Academy;
+        var result = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var professor in _professorCatalog)
+            result.Add(ToProfessorQuestState(professor, academy));
+        return result;
+    }
+
+    public Godot.Collections.Dictionary GetProfessorQuestState(string professorId)
+    {
+        var professor = _professorCatalog.FirstOrDefault(candidate =>
+            candidate.Id == ProfessorId.FromString(professorId)
+        );
+        return professor == null
+            ? []
+            : ToProfessorQuestState(professor, GetOrCreateProgress().Academy);
     }
 
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetCoursesForSemester(
@@ -175,9 +261,10 @@ public class AcademyProgressHandler
         var selectedSet = selected.ToHashSet();
         var suppliedCount = located.activity.Loadout.SuppliedCards.Sum(entry => entry.Count);
         var authoredMax = located.activity.Loadout.Rules.MaxDeckSize;
-        var maxDeckSize = authoredMax > 0
-            ? Math.Min(authoredMax, DeckService.MaxDeckSize)
-            : DeckService.MaxDeckSize;
+        var maxDeckSize =
+            authoredMax > 0
+                ? Math.Min(authoredMax, DeckService.MaxDeckSize)
+                : DeckService.MaxDeckSize;
         var openSlots = Math.Max(0, maxDeckSize - suppliedCount - selected.Count);
         var skipped = new Godot.Collections.Array<string>();
         var copied = 0;
@@ -356,6 +443,50 @@ public class AcademyProgressHandler
         academy.RemainingEnrollments -= course.EnrollmentCost;
         academy.EnrolledCourses.Add(course.Id);
         academy.CourseActivityIndex[(string)course.Id] = 0;
+        academy.TrackedQuestId = QuestId(course.Id);
+
+        _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
+        return true;
+    }
+
+    public bool TrackQuest(string questId)
+    {
+        var summonerId = _getActiveSummonerFunc();
+        if (!summonerId.HasValue)
+            return false;
+
+        var campaignProgress = GetOrCreateProgress();
+        var academy = campaignProgress.Academy;
+        if (!string.IsNullOrEmpty(questId))
+        {
+            const string academyPrefix = "academy:";
+            if (!questId.StartsWith(academyPrefix, StringComparison.Ordinal))
+                return false;
+
+            var courseId = CourseId.FromString(questId[academyPrefix.Length..]);
+            if (
+                !academy.EnrolledCourses.Contains(courseId)
+                || academy.CompletedCourses.Contains(courseId)
+            )
+                return false;
+        }
+
+        academy.TrackedQuestId = questId;
+        _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
+        return true;
+    }
+
+    public bool DiscoverCourse(string courseId)
+    {
+        var course = FindCourse(CourseId.FromString(courseId));
+        var summonerId = _getActiveSummonerFunc();
+        if (course == null || !summonerId.HasValue)
+            return false;
+
+        var campaignProgress = GetOrCreateProgress();
+        var academy = campaignProgress.Academy;
+        if (!academy.DiscoveredCourses.Contains(course.Id))
+            academy.DiscoveredCourses.Add(course.Id);
 
         _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
         return true;
@@ -364,7 +495,8 @@ public class AcademyProgressHandler
     public bool CompleteActivity(
         string courseId,
         string activityId,
-        AcademyActivityOutcome outcome = AcademyActivityOutcome.Victory
+        AcademyActivityOutcome outcome = AcademyActivityOutcome.Victory,
+        bool finalizeCourseWhenFinished = true
     )
     {
         ClearLastCompletionSummary();
@@ -407,7 +539,8 @@ public class AcademyProgressHandler
             return true;
         }
 
-        var advances = outcome == AcademyActivityOutcome.Victory
+        var advances =
+            outcome == AcademyActivityOutcome.Victory
             || activity.Role == AcademyActivityRole.Assessment;
         if (!advances)
         {
@@ -452,6 +585,17 @@ public class AcademyProgressHandler
             academy.CourseActivityIndex[key] = nextIndex;
             _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
             if (hasPending)
+            {
+                SetLastCompletionSummary(
+                    course.Id,
+                    activity.Id,
+                    outcome,
+                    completedCourse: false,
+                    grantedRewards: grantedRewards
+                );
+                return true;
+            }
+            if (!finalizeCourseWhenFinished)
             {
                 SetLastCompletionSummary(
                     course.Id,
@@ -574,6 +718,8 @@ public class AcademyProgressHandler
         academy.CompletedCourses.Add(course.Id);
 
         academy.EnrolledCourses.Remove(course.Id);
+        if (academy.TrackedQuestId == QuestId(course.Id))
+            academy.TrackedQuestId = "";
         academy.CourseActivityIndex.Remove((string)course.Id);
         academy.Transcript.Add(
             new AcademyTranscriptEntry
@@ -648,7 +794,7 @@ public class AcademyProgressHandler
             academy.CurrentSemester
         );
         academy.EnrolledCourses.Clear();
-        AssignRequiredCourses(academy);
+        academy.TrackedQuestId = "";
 
         _profileRepo.UpdateCampaignProgress(summonerId, campaignProgress);
         return true;
@@ -681,42 +827,10 @@ public class AcademyProgressHandler
         {
             academy.RemainingEnrollments = GetDefaultEnrollments(1, 1);
         }
-
-        AssignRequiredCourses(academy);
     }
 
     private static int GetDefaultEnrollments(int year, int semester) =>
         year == 1 && semester is 1 or 2 ? DefaultSemesterEnrollments : DefaultSemesterEnrollments;
-
-    private void AssignRequiredCourses(AcademyProgress academy)
-    {
-        foreach (
-            var course in ForSemester(academy.CurrentYear, academy.CurrentSemester)
-                .Where(course => course.IsRequired)
-        )
-        {
-            if (academy.CompletedCourses.Contains(course.Id))
-                continue;
-
-            if (
-                course.Prerequisites.Any(prerequisite =>
-                    !academy.CompletedCourses.Contains(prerequisite)
-                )
-            )
-                continue;
-
-            if (!academy.EnrolledCourses.Contains(course.Id))
-            {
-                academy.RemainingEnrollments = Math.Max(
-                    0,
-                    academy.RemainingEnrollments - course.EnrollmentCost
-                );
-                academy.EnrolledCourses.Add(course.Id);
-            }
-
-            academy.CourseActivityIndex.TryAdd((string)course.Id, 0);
-        }
-    }
 
     private IEnumerable<AcademyCourseDefinition> GetCandidateCourses(AcademyProgress academy) =>
         GetCandidateCoursesForSemester(academy, academy.CurrentYear, academy.CurrentSemester);
@@ -759,11 +873,14 @@ public class AcademyProgressHandler
             ? ValidateCourseAvailable(course, academy)
             : (available: false, reason: GetSemesterRelation(academy, viewedYear, viewedSemester));
 
-        var rewards = ToUniversalOfferPreviewArray(
+        var completionRewards = ToUniversalOfferPreviewArray(
             course,
             "course_completion",
             course.RewardOffers
         );
+        var rewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var preview in completionRewards)
+            rewards.Add(preview);
         foreach (var activity in course.Activities)
         {
             foreach (
@@ -815,6 +932,7 @@ public class AcademyProgressHandler
             ["activity_index"] = activityIndex,
             ["activities"] = activities,
             ["next_activity"] = nextActivity,
+            ["completion_reward_previews"] = completionRewards,
             ["reward_previews"] = rewards,
             ["universal_reward_status"] = _universalRewards.ToStatusDictionary()["status"],
         };
@@ -910,13 +1028,11 @@ public class AcademyProgressHandler
             && (isCurrent || (isCompleted && activity.Role == AcademyActivityRole.Practice))
             && !hasPendingReward
             && deckValidation.IsValid;
-        var lifecycleState = isCompleted
-            ? AcademyActivityLifecycleState.Completed
-            : isLocked
-                ? AcademyActivityLifecycleState.Locked
-                : isCurrent
-                    ? AcademyActivityLifecycleState.Active
-                    : AcademyActivityLifecycleState.Available;
+        var lifecycleState =
+            isCompleted ? AcademyActivityLifecycleState.Completed
+            : isLocked ? AcademyActivityLifecycleState.Locked
+            : isCurrent ? AcademyActivityLifecycleState.Active
+            : AcademyActivityLifecycleState.Available;
 
         return new Godot.Collections.Dictionary
         {
@@ -942,6 +1058,115 @@ public class AcademyProgressHandler
                 activity.Id,
                 activity.RewardOffers
             ),
+        };
+    }
+
+    private Godot.Collections.Dictionary ToQuestJournalEntry(
+        AcademyCourseDefinition course,
+        AcademyProgress academy,
+        string state
+    )
+    {
+        var activityIndex = academy.CourseActivityIndex.GetValueOrDefault((string)course.Id, 0);
+        var currentObjectiveKey = "";
+        if (state == "active" && activityIndex >= 0 && activityIndex < course.Activities.Count)
+            currentObjectiveKey = course.Activities[activityIndex].LabelKey;
+        var activeDialogueKeys =
+            state == "active" && activityIndex >= 0 && activityIndex < course.Activities.Count
+                ? course.Activities[activityIndex].ReminderDialogueKeys
+                : [];
+
+        var rewards = ToUniversalOfferPreviewArray(
+            course,
+            "course_completion",
+            course.RewardOffers
+        );
+        foreach (var activity in course.Activities)
+        {
+            foreach (
+                var preview in ToUniversalOfferPreviewArray(
+                    course,
+                    activity.Id,
+                    activity.RewardOffers
+                )
+            )
+                rewards.Add(preview);
+        }
+
+        var professor = _professorCatalog.FirstOrDefault(candidate =>
+            candidate.Id == course.ProfessorId
+        );
+
+        return new Godot.Collections.Dictionary
+        {
+            ["id"] = $"academy:{course.Id}",
+            ["source_kind"] = "academy_course",
+            ["source_id"] = (string)course.Id,
+            ["state"] = state,
+            ["title_key"] = course.NameKey,
+            ["description_key"] = course.DescriptionKey,
+            ["current_objective_key"] = currentObjectiveKey,
+            ["offer_dialogue_keys"] = ToStringArray(course.QuestDialogue.OfferLineKeys),
+            ["accepted_dialogue_keys"] = ToStringArray(course.QuestDialogue.AcceptedLineKeys),
+            ["active_dialogue_keys"] = ToStringArray(activeDialogueKeys),
+            ["turn_in_dialogue_keys"] = ToStringArray(course.QuestDialogue.TurnInLineKeys),
+            ["curriculum_cost"] = course.EnrollmentCost,
+            ["progress_current"] = Math.Min(activityIndex, course.Activities.Count),
+            ["progress_total"] = course.Activities.Count,
+            ["is_required"] = course.IsRequired,
+            ["is_tracked"] = academy.TrackedQuestId == QuestId(course.Id),
+            ["professor_id"] = (string)course.ProfessorId,
+            ["professor_name_key"] = professor?.NameKey ?? "",
+            ["location_key"] = course.LocationKey,
+            ["opportunity_visibility"] = course.OpportunityVisibility.ToString().ToSnakeCase(),
+            ["reward_previews"] = rewards,
+        };
+    }
+
+    private static string QuestId(CourseId courseId) => $"academy:{courseId}";
+
+    private Godot.Collections.Dictionary ToProfessorQuestState(
+        AcademyProfessorDefinition professor,
+        AcademyProgress academy
+    )
+    {
+        var active = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        var opportunities = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+
+        foreach (var courseId in professor.CourseIds)
+        {
+            var course = FindCourse(courseId);
+            if (course == null || course.ProfessorId != professor.Id)
+                continue;
+
+            if (
+                academy.EnrolledCourses.Contains(course.Id)
+                && !academy.CompletedCourses.Contains(course.Id)
+            )
+            {
+                active.Add(ToQuestJournalEntry(course, academy, "active"));
+                continue;
+            }
+
+            if (
+                course.OpportunityVisibility == AcademyOpportunityVisibility.Hidden
+                && !academy.DiscoveredCourses.Contains(course.Id)
+            )
+                continue;
+
+            if (ValidateCourseAvailable(course, academy).available)
+                opportunities.Add(ToQuestJournalEntry(course, academy, "opportunity"));
+        }
+
+        return new Godot.Collections.Dictionary
+        {
+            ["id"] = (string)professor.Id,
+            ["name_key"] = professor.NameKey,
+            ["role_key"] = professor.RoleKey,
+            ["landmark_key"] = professor.LandmarkKey,
+            ["quest_marker"] = opportunities.Count > 0 ? "!" : "",
+            ["active"] = active,
+            ["opportunities"] = opportunities,
         };
     }
 
@@ -1014,9 +1239,10 @@ public class AcademyProgressHandler
         AcademyProgress academy
     )
     {
-        IReadOnlyList<CardInstanceId> selectedIds = activity.Loadout.Mode == AcademyDeckMode.Owned
-            ? GetActiveDeckInstanceIds()
-            : GetSelectedInstanceIds(courseId, activity, academy);
+        IReadOnlyList<CardInstanceId> selectedIds =
+            activity.Loadout.Mode == AcademyDeckMode.Owned
+                ? GetActiveDeckInstanceIds()
+                : GetSelectedInstanceIds(courseId, activity, academy);
         var selectedCards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         foreach (var instanceId in selectedIds)
         {
@@ -1243,9 +1469,10 @@ public class AcademyProgressHandler
     )
     {
         var totalCards = deck.Sum(entry => entry.Count);
-        var maxDeckSize = rules.MaxDeckSize > 0
-            ? Math.Min(rules.MaxDeckSize, DeckService.MaxDeckSize)
-            : DeckService.MaxDeckSize;
+        var maxDeckSize =
+            rules.MaxDeckSize > 0
+                ? Math.Min(rules.MaxDeckSize, DeckService.MaxDeckSize)
+                : DeckService.MaxDeckSize;
         if (totalCards > maxDeckSize)
         {
             issues.Add(Issue("max_cards", ("current", totalCards), ("count", maxDeckSize)));
@@ -1277,7 +1504,9 @@ public class AcademyProgressHandler
             foreach (var entry in deck)
             {
                 if (!IsCardElementAllowed(entry.CardId, rules))
-                    issues.Add(Issue("card_element_not_allowed", ("card_id", (string)entry.CardId)));
+                    issues.Add(
+                        Issue("card_element_not_allowed", ("card_id", (string)entry.CardId))
+                    );
             }
         }
 
@@ -1656,11 +1885,15 @@ public class AcademyProgressHandler
         if (academy.RemainingEnrollments < course.EnrollmentCost)
             return (false, "not_enough_enrollments");
 
-        foreach (var prerequisite in course.Prerequisites)
-        {
-            if (!academy.CompletedCourses.Contains(prerequisite))
-                return (false, "missing_prerequisite");
-        }
+        var prerequisitesMet =
+            course.Prerequisites.Count == 0
+            || (
+                course.PrerequisiteMode == AcademyActivityPrerequisiteMode.All
+                    ? course.Prerequisites.All(academy.CompletedCourses.Contains)
+                    : course.Prerequisites.Any(academy.CompletedCourses.Contains)
+            );
+        if (!prerequisitesMet)
+            return (false, "missing_prerequisite");
 
         if (
             !string.IsNullOrEmpty(course.ChoiceGroupId)
@@ -1731,7 +1964,11 @@ public class AcademyProgressHandler
         );
 
         if (result.Status == RewardRuntimeStatus.Ready && result.Receipt != null)
-            AppendClaimedRewardsToSummary(result.Receipt, snapshot.Source.SourceType, snapshot.Source.OccurrenceId);
+            AppendClaimedRewardsToSummary(
+                result.Receipt,
+                snapshot.Source.SourceType,
+                snapshot.Source.OccurrenceId
+            );
 
         if (
             result.Status is RewardRuntimeStatus.Ready or RewardRuntimeStatus.AlreadyClaimed

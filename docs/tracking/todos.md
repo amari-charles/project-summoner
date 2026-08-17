@@ -39,6 +39,152 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-13, Online deck selection):** Added a matchmaking-screen follow-up for selecting and confirming the deck used before queueing.
 **Tracker Sync (2026-08-13, Academy hub):** Restored the bounded walkable Academy hub direction with permanent shortcut access; Phase 1 recovery is in progress.
 **Tracker Sync (2026-08-14, product direction history):** Reframed the ambiguous changelog task as a curated product direction log, added its inclusion and authority framework, and left historical backfill pending user review.
+**Tracker Sync (2026-08-16, designer readiness):** Added an immediate high-priority UI readiness queue covering the summoner progression pass, automatic-level/XP presentation contract, reusable reward acquisition flow, first-quest reward slice, and canonical screen/state inventory needed before external UI design begins.
+
+---
+
+## Designer Readiness — Immediate Queue
+
+### 🔴 HIGH PRIORITY
+
+#### Rework the Summoner Screen Around Automatic Levels and Banked Upgrade Choices
+**Status:** ⬜ Not Started
+**Category:** Meta Progression / UI/UX
+**Urgency:** High — designer handoff dependency
+**Ease:** Medium
+**Scope:** Medium
+
+**Description:**
+Run a second product and information-architecture pass on the summoner screen. Treat the current screen as functional prototype evidence, not a visual constraint. Remove the manual-level-up assumption and clearly separate automatic numerical growth, banked summoner upgrade choices, permanent traits, equipment, and descriptive identity.
+
+**Tasks:**
+- [ ] Confirm automatic summoner leveling as product direction and define how multiple levels resolve.
+- [ ] Replace the persistent `Level Up` action with an `Upgrades` entry and unspent-point state.
+- [ ] Decide which current sections remain primary, secondary, tabbed, or removed: identity, stats, XP, upgrades, earned traits, and equipment.
+- [ ] Define the minimum states the designer must cover: ordinary progress, newly leveled, unspent points, max level, locked upgrade, and permanent branch confirmation.
+- [ ] Reconcile player-facing terminology (`level`, `XP`, `upgrade point`, `trait`, `doctrine`, or other authored labels).
+- [ ] Mark current placeholder portrait, stat icons, stat ladders, and panel layout as replaceable presentation.
+
+**Likely Files:**
+- `docs/design/trait-tree-screen-flow-spec.md`
+- `docs/design/academy-forging-model.md`
+- `scenes/meta/screens/summoner_screen.tscn`
+- `scripts/meta/screens/summoner_screen.gd`
+- `scenes/meta/screens/trait_tree_screen.tscn`
+
+#### Define Summoner XP Visibility Across the Persistent HUD and Progression Surfaces
+**Status:** ⬜ Not Started
+**Category:** Meta Progression / HUD / UI/UX
+**Urgency:** High — designer handoff dependency
+**Ease:** Easy
+**Scope:** Small
+
+**Description:**
+Establish one explicit XP presentation contract so the designer does not omit progression state or add redundant bars to every screen. Decide where summoner level, XP progress, and unspent upgrade points are persistent, contextual, or intentionally hidden.
+
+**Tasks:**
+- [ ] Decide whether the walkable-campus profile widget shows a compact XP bar or ring, current level, and unspent-point badge.
+- [ ] Keep summoner XP out of the battle HUD unless a separate in-battle use is explicitly approved.
+- [ ] Require prominent before/after XP presentation in post-battle results.
+- [ ] Define summoner-screen XP presentation, max-level state, rollover animation, and multi-level behavior.
+- [ ] Define where participating-card XP appears without placing card XP in the global HUD.
+
+**Likely Files:**
+- `scenes/meta/components/summoner_icon_widget.tscn`
+- `scenes/meta/screens/walkable_academy_hub.tscn`
+- `scenes/meta/screens/summoner_screen.tscn`
+- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+
+#### Build One Reusable Reward and Progression Reveal Flow
+**Status:** 🔄 In Progress
+**Category:** Rewards / Progression / UI Architecture
+**Urgency:** High — major missing player-feedback screen
+**Ease:** Hard
+**Scope:** Large
+
+**Description:**
+Replace the fragmented campaign reward screen, encounter results screen, and optional level-up modals with one clear post-battle flow backed by reusable acquisition/reveal components. The same acquisition presentation must also support rewards granted outside battle, including quest turn-ins.
+
+**Progress:** Quest turn-ins now use a reusable reward-grant modal fed by the
+generic quest-completion result. The unified post-battle report, XP/level
+sequence, reward-choice handling, and retirement of competing result screens
+remain open.
+
+**Tasks:**
+- [ ] Approve the unified post-battle sequence: outcome, summoner/card XP, level reveals, acquired rewards, contextual quest/rating progress, and continue destination.
+- [ ] Define reusable reveal components for a card, item/equipment, gold/resource, summoner/card upgrade point, and special trait or eligibility reward.
+- [ ] Define automatic grants versus required reward choices without inventing source-specific UI contracts.
+- [ ] Show both victory and defeat results when progression or contextual feedback exists.
+- [ ] Deprecate `RewardScreen` and `EncounterResults` as competing end destinations once the unified route is complete.
+- [ ] Preserve authoritative reward/progression mutation outside the presentation layer; the screen consumes a typed post-battle report and submits only explicit pending choices.
+
+**Placement Rationale:**
+The report builder belongs in the meta/application progression boundary because reward, XP, quest, and competitive results change independently but are consumed together after battle. Reusable reveal views belong under meta UI components; battle simulation must not own meta progression presentation.
+
+**Related Doc:**
+- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+
+**Likely Files:**
+- `scripts/csharp/Battle/View/BattleScene.cs`
+- `scenes/meta/screens/reward_screen.tscn`
+- `scenes/meta/screens/academy_activity_results.tscn`
+- `scenes/meta/modals/summoner_level_up_panel.tscn`
+- `scenes/meta/modals/card_level_up_panel.tscn`
+
+#### Give the First Quest a Real Reward and Prove the Complete Acquisition Loop
+**Status:** 🔄 In Progress
+**Category:** Quests / Rewards / Vertical Slice
+**Urgency:** High — complete the generic reward contract proven by the first slice
+**Ease:** Medium
+**Scope:** Medium
+
+**Description:**
+Author an intentional reward for `Introduction to Magic`, grant it through the universal reward system when the quest is completed, and present it through the reusable acquisition flow. This is the first proof that NPC conversation, quest tracking, battle completion, return dialogue, permanent progression, and reward presentation form one coherent loop.
+
+**Tasks:**
+- [x] Decide the first quest's exact reward and why it matters to the player's next choice (Magic Bolt).
+- [ ] Add a generic quest-completion reward contract rather than a professor- or Academy-specific grant path.
+- [x] Commit automatic grants before presentation and persist any required reward choice.
+- [x] Show the actual card or item visual when that type is awarded.
+- [x] Update the Journal's reward preview and completed state from the same normalized reward data.
+- [x] Validate idempotency so repeating dialogue or reloading cannot duplicate the reward.
+
+**Remaining Scope:** The Academy curriculum adapter currently produces the
+normalized completion summary. Add a generic quest reward-effect handler so
+non-academic quests can author and grant rewards without Academy involvement.
+
+**Placement Rationale:**
+Quest completion may originate from any character or activity, so quest-to-reward orchestration belongs at the generic meta quest/reward boundary. The universal reward authority owns permanent grants; dialogue and Journal views only render normalized state.
+
+**Likely Files:**
+- `data/quests/quests.json`
+- `scripts/csharp/Meta/Services/Campaign/Quests/`
+- `scripts/csharp/Meta/Services/Rewards/`
+- `scripts/meta/screens/quest_journal.gd`
+
+#### Produce a Canonical Player-Facing Screen and State Inventory for Design Handoff
+**Status:** ⬜ Not Started
+**Category:** UI/UX / Product Architecture
+**Urgency:** High — prevents designing obsolete or duplicate flows
+**Ease:** Easy
+**Scope:** Small
+
+**Description:**
+Inventory every currently reachable player-facing screen and overlay, then label each one `retain`, `redesign`, `merge`, `deprecate`, or `prototype-only`. Include required states and the canonical route between screens so the designer works from the intended game rather than legacy implementation accidents.
+
+**Tasks:**
+- [ ] Map onboarding, summoner selection, campus HUD, dialogue, Journal, quest preparation, battle, results/rewards, summoner, upgrades, equipment, shop, collection/deck, settings, and online flows.
+- [ ] Identify duplicate victory, reward, level-up, course, and navigation surfaces.
+- [ ] Define persistent HUD safe zones for profile/XP, tracked quest, and global actions before individual screens are composed.
+- [ ] Record empty, locked, loading, error, confirmation, newly-unlocked, and unspent-choice states for each retained surface.
+- [ ] State the primary target viewport, supported aspect-ratio range, and input assumptions the designer should use.
+- [ ] Link existing Figma references and distinguish approved layouts from exploratory mockups.
+
+**Likely Files:**
+- `docs/design/`
+- `docs/technical/meta/`
+- `scenes/meta/screens/`
+- `scenes/meta/components/`
 
 ---
 

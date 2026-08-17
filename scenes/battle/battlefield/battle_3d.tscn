@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://battle_3d"]
+[gd_scene load_steps=10 format=3 uid="uid://battle_3d"]
 
 [ext_resource type="PackedScene" uid="uid://cm2j43v0j4iiv" path="res://scenes/battle/battlefield/components/base_battlefield_3d.tscn" id="1_battlefield"]
-[ext_resource type="Texture2D" uid="uid://e2b28osgxgy4" path="res://assets/summoners/knight/Knight 2D Pixel Art/Sprites/with_outline/IDLE.png" id="17_knight_sprite"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png" id="17_player_sprite"]
+[ext_resource type="Texture2D" uid="uid://e2b28osgxgy4" path="res://assets/summoners/knight/Knight 2D Pixel Art/Sprites/with_outline/IDLE.png" id="18_knight_sprite"]
 [ext_resource type="Script" path="res://scripts/csharp/Battle/View/BattleScene.cs" id="2_game_controller"]
 [ext_resource type="Script" path="res://scripts/csharp/Battle/View/SummonerVisual.cs" id="3_summoner"]
 [ext_resource type="PackedScene" uid="uid://hand_ui" path="res://scenes/battle/ui/hand_ui.tscn" id="6_hand_ui"]
@@ -22,11 +23,11 @@ script = ExtResource("3_summoner")
 Team = 0
 
 [node name="Visual" type="Sprite3D" parent="PlayerSummoner"]
-pixel_size = 0.15
-offset = Vector2(0, 19)
+pixel_size = 0.075
+offset = Vector2(0, 39)
 texture_filter = 0
 hframes = 8
-texture = ExtResource("17_knight_sprite")
+texture = ExtResource("17_player_sprite")
 
 [node name="CollisionBody" type="StaticBody3D" parent="PlayerSummoner"]
 
@@ -44,7 +45,7 @@ offset = Vector2(0, 19)
 texture_filter = 0
 flip_h = true
 hframes = 8
-texture = ExtResource("17_knight_sprite")
+texture = ExtResource("18_knight_sprite")
 
 [node name="CollisionBody" type="StaticBody3D" parent="EnemySummoner"]
 

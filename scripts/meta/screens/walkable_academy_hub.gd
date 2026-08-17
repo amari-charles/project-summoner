@@ -3,10 +3,10 @@ class_name WalkableAcademyHub
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
-const PLACEHOLDER_CLASS_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png")
+const InteractiveNpcScene: PackedScene = preload("res://scenes/meta/components/interactive_npc.tscn")
+const QuestWorldTargetScene: PackedScene = preload("res://scenes/meta/components/quest_world_target.tscn")
 const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
-const PLACEHOLDER_DORMS: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png")
 const PLACEHOLDER_ONLINE_ARENA: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png")
 const PLACEHOLDER_GROUND_CENTER: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_color3.png")
 const PLACEHOLDER_GROUND_TOP_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top_left.png")
@@ -26,25 +26,25 @@ const PLACEHOLDER_WATER_FOAM_SHADER: Shader = preload("res://shaders/meta/placeh
 const WATER_FOAM_FRAME_COUNT: int = 16
 const WATER_FOAM_TILE_SPAN: float = 3.0
 
-const DESTINATION_CLASS_HALL: StringName = &"class_hall"
 const DESTINATION_SHOP: StringName = &"shop"
 const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
-const DESTINATION_DORMS: StringName = &"dorms"
+const DESTINATION_SPELLBOOK: StringName = &"spellbook"
 const DESTINATION_ONLINE: StringName = &"online"
 const DESTINATION_SUMMONER: StringName = &"summoner"
 const DESTINATION_SETTINGS: StringName = &"settings"
+const DESTINATION_JOURNAL: StringName = &"journal"
+
+const PROFESSOR_POSITIONS: Dictionary = {
+	"general_magic": Vector3(-2.0, 0.0, 1.0),
+	"fire": Vector3(-25.0, 0.0, -14.0),
+	"water": Vector3(25.0, 0.0, 11.0),
+	"earth": Vector3(-27.0, 0.0, 13.0),
+	"wind": Vector3(25.0, 0.0, -15.0),
+}
 
 ## One destination catalog drives both building entrances and fast shortcuts.
 ## Entries without a position remain shortcut-only in the current prototype.
 const DESTINATIONS: Array[Dictionary] = [
-	{
-		"id": DESTINATION_CLASS_HALL,
-		"name_key": "academy.campus.class_hall.name",
-		"description_key": "academy.campus.class_hall.description",
-		"target_scene": SceneManagerClass.SCENE_ACADEMY_CLASS_HALL,
-		"placeholder_texture": PLACEHOLDER_CLASS_HALL,
-		"position": Vector3(-12.0, 0.0, -8.0),
-	},
 	{
 		"id": DESTINATION_SHOP,
 		"name_key": "academy.campus.shop.name",
@@ -62,12 +62,10 @@ const DESTINATIONS: Array[Dictionary] = [
 		"position": Vector3(-13.0, 0.0, 7.0),
 	},
 	{
-		"id": DESTINATION_DORMS,
-		"name_key": "academy.campus.dorms.name",
-		"description_key": "academy.campus.dorms.description",
+		"id": DESTINATION_SPELLBOOK,
+		"name_key": "academy.campus.spellbook.name",
+		"description_key": "academy.campus.spellbook.description",
 		"target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN,
-		"placeholder_texture": PLACEHOLDER_DORMS,
-		"position": Vector3(0.0, 0.0, -11.0),
 	},
 	{
 		"id": DESTINATION_ONLINE,
@@ -78,6 +76,7 @@ const DESTINATIONS: Array[Dictionary] = [
 		"position": Vector3(13.0, 0.0, 8.0),
 	},
 	{"id": DESTINATION_SUMMONER, "name_key": "ui.summoner_screen.title", "description_key": "academy.walkable.summoner_description", "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
+	{"id": DESTINATION_JOURNAL, "name_key": "academy.journal.title", "description_key": "academy.journal.description", "target_scene": SceneManagerClass.SCENE_QUEST_JOURNAL},
 	{"id": DESTINATION_SETTINGS, "name_key": "ui.nav.settings", "description_key": "academy.walkable.settings_description", "target_scene": SceneManagerClass.SCENE_SETTINGS},
 ]
 
@@ -106,6 +105,8 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var placeholder_water: Node3D = %PlaceholderWater
 @onready var ground_label: Label3D = %GroundLabel
 @onready var buildings: Node3D = %Buildings
+@onready var professors: Node3D = %Professors
+@onready var quest_targets: Node3D = %QuestTargets
 @onready var camera: Camera3D = %Camera3D
 @onready var player: Node3D = %Player
 @onready var shortcut_button: Button = %ShortcutButton
@@ -114,6 +115,14 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var shortcut_close_button: Button = %ShortcutCloseButton
 @onready var shortcut_list: VBoxContainer = %ShortcutList
 @onready var summoner_slot: Control = %SummonerSlot
+@onready var tracked_quest_banner: Control = %TrackedQuestBanner
+@onready var tracked_quest_button: Button = %TrackedQuestButton
+@onready var spellbook_button: Button = %SpellbookButton
+@onready var journal_button: Button = %JournalButton
+@onready var inventory_button: Button = %InventoryButton
+@onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
+@onready var reward_modal: RewardGrantModal = %RewardGrantModal
+@onready var quest_offer_modal: QuestOfferModal = %QuestOfferModal
 
 var _camera_target_fov: float = 46.0
 var _camera_default_fov: float = 46.0
@@ -122,6 +131,16 @@ var _camera_focus_position: Vector3 = Vector3.ZERO
 var _camera_follow_distance: float = 31.0
 var _ground_source_size: Vector2 = Vector2.ZERO
 var _transition_started: bool = false
+var _dialog_quest_id: String = ""
+var _dialog_speaker: String = ""
+var _dialog_npc_id: String = ""
+var _dialog_accepted_lines: Array[String] = []
+var _dialog_turn_in_npc_id: String = ""
+var _dialog_response_actions: Dictionary = {}
+var _dialog_response_quest_ids: Dictionary = {}
+var _dialog_opportunities_by_id: Dictionary = {}
+var _dialog_offer_lines: Array[String] = []
+var _dialog_offer_responses: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -131,11 +150,24 @@ func _ready() -> void:
 		return
 
 	ground_label.text = Loc.t("academy.walkable.placeholder_ground")
-	shortcut_button.text = Loc.t("academy.walkable.open_shortcuts")
+	shortcut_button.tooltip_text = Loc.t("academy.walkable.open_shortcuts")
 	shortcut_title.text = Loc.t("academy.walkable.shortcuts_title")
 	shortcut_close_button.text = Loc.t("ui.common.close")
 	shortcut_button.pressed.connect(_toggle_shortcuts)
 	shortcut_close_button.pressed.connect(_close_shortcuts)
+	journal_button.tooltip_text = Loc.t("academy.journal.title")
+	spellbook_button.tooltip_text = Loc.t("academy.campus.spellbook.name")
+	inventory_button.tooltip_text = Loc.t("academy.walkable.inventory_unavailable")
+	spellbook_button.pressed.connect(_route_to.bind(DESTINATION_SPELLBOOK))
+	journal_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
+	tracked_quest_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
+	dialogue_box.choice_selected.connect(_on_dialogue_choice)
+	dialogue_box.closed.connect(_on_dialogue_closed)
+	reward_modal.closed.connect(_on_reward_modal_closed)
+	quest_offer_modal.accepted.connect(_on_quest_offer_accepted)
+	quest_offer_modal.backed.connect(_on_quest_offer_backed)
+	if Campaign.has_signal("CampaignProgressChanged"):
+		Campaign.connect("CampaignProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
 	_populate_shortcuts()
 
@@ -147,6 +179,9 @@ func _ready() -> void:
 	camera.fov = _camera_target_fov
 	_snap_camera_to_player()
 	_spawn_buildings()
+	_spawn_professors()
+	_spawn_quest_targets()
+	_refresh_quest_presentation()
 
 
 func _configure_placeholder_ground() -> void:
@@ -633,6 +668,279 @@ func _spawn_buildings() -> void:
 			destination["placeholder_texture"],
 			destination["position"]
 		)
+
+
+func _spawn_professors() -> void:
+	_clear_children(professors)
+	for value: Variant in CampaignApi.get_professor_quest_states():
+		var state: Dictionary = SafeTypeUtils.dict(value)
+		var professor_id: String = SafeTypeUtils.string(state.get("id"))
+		if not PROFESSOR_POSITIONS.has(professor_id):
+			continue
+		var quest_state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+		if not quest_state.is_empty():
+			state["quest_marker"] = quest_state.get("quest_marker", "")
+		var professor: InteractiveNpc = InteractiveNpcScene.instantiate()
+		professor.position = PROFESSOR_POSITIONS[professor_id]
+		professor.interacted.connect(_on_professor_interacted)
+		professors.add_child(professor)
+		_configure_professor(professor, state)
+
+
+func _spawn_quest_targets() -> void:
+	_clear_children(quest_targets)
+	var practice_grounds: QuestWorldTarget = QuestWorldTargetScene.instantiate() as QuestWorldTarget
+	practice_grounds.position = Vector3(6.0, 0.0, 8.0)
+	practice_grounds.configure(
+		"practice_grounds",
+		Loc.t("quest.world.practice_grounds")
+	)
+	practice_grounds.interacted.connect(_on_quest_world_target_interacted)
+	quest_targets.add_child(practice_grounds)
+
+
+func _refresh_quest_presentation() -> void:
+	var state_by_id: Dictionary = {}
+	for value: Variant in CampaignApi.get_professor_quest_states():
+		var state: Dictionary = SafeTypeUtils.dict(value)
+		state_by_id[SafeTypeUtils.string(state.get("id"))] = state
+	for child: Node in professors.get_children():
+		var professor: InteractiveNpc = child as InteractiveNpc
+		if professor != null and state_by_id.has(professor.npc_id):
+			var professor_state: Dictionary = state_by_id[professor.npc_id]
+			var quest_state: Dictionary = CampaignApi.get_npc_quest_state(professor.npc_id)
+			if not quest_state.is_empty():
+				professor_state["quest_marker"] = quest_state.get("quest_marker", "")
+			_configure_professor(professor, professor_state)
+
+	var journal: Dictionary = CampaignApi.get_generic_quest_journal_state()
+	var current_target_id: String = ""
+	for value: Variant in SafeTypeUtils.array(journal.get("active")):
+		var active_quest: Dictionary = SafeTypeUtils.dict(value)
+		var step_kind: String = SafeTypeUtils.string(active_quest.get("current_step_kind"))
+		if step_kind in ["interact_with_world_target", "complete_encounter"]:
+			current_target_id = SafeTypeUtils.string(active_quest.get("current_target_id"))
+			break
+	for child: Node in quest_targets.get_children():
+		var target: QuestWorldTarget = child as QuestWorldTarget
+		if target != null:
+			target.set_current_objective(target.target_id == current_target_id)
+	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
+	tracked_quest_banner.visible = not tracked_id.is_empty()
+	if tracked_id.is_empty():
+		return
+	for value: Variant in SafeTypeUtils.array(journal.get("active")):
+		var quest: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(quest.get("id")) != tracked_id:
+			continue
+		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
+		var objective: String = Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))
+		tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
+		tracked_quest_button.tooltip_text = tracked_quest_button.text
+		return
+
+
+func _on_professor_interacted(professor_id: String) -> void:
+	player.velocity = Vector3.ZERO
+	player.set_physics_process(false)
+	var professor_state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)
+	var state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+	var professor_name: String = Loc.t(
+		SafeTypeUtils.string(professor_state.get("name_key"))
+	)
+	var opportunities: Array = SafeTypeUtils.array(state.get("opportunities"))
+	_dialog_quest_id = ""
+	_dialog_speaker = professor_name
+	_dialog_npc_id = professor_id
+	_dialog_accepted_lines.clear()
+	_dialog_turn_in_npc_id = ""
+	_dialog_response_actions.clear()
+	_dialog_response_quest_ids.clear()
+	_dialog_opportunities_by_id.clear()
+	_dialog_offer_lines.clear()
+	_dialog_offer_responses.clear()
+
+	if not opportunities.is_empty():
+		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
+		_dialog_quest_id = SafeTypeUtils.string(quest.get("id"))
+		var offer_lines: Array[String] = _localized_dialogue_lines(
+			SafeTypeUtils.array(quest.get("offer_dialogue_keys"))
+		)
+		if offer_lines.is_empty():
+			offer_lines.append(Loc.t("academy.quest.offer_intro"))
+		var responses: Array[Dictionary] = []
+		for opportunity_value: Variant in opportunities:
+			var opportunity: Dictionary = SafeTypeUtils.dict(opportunity_value)
+			_dialog_opportunities_by_id[SafeTypeUtils.string(opportunity.get("id"))] = opportunity
+			responses.append_array(_dialogue_responses(
+				SafeTypeUtils.array(opportunity.get("response_choices")),
+				SafeTypeUtils.string(opportunity.get("id"))
+			))
+		_dialog_offer_lines = offer_lines
+		_dialog_offer_responses = responses
+		_present_quest_opportunity_dialogue()
+	else:
+		var active: Array = SafeTypeUtils.array(state.get("active"))
+		if active.is_empty():
+			dialogue_box.present(professor_name, [Loc.t("academy.quest.no_assignment")])
+		else:
+			var quest: Dictionary = SafeTypeUtils.dict(active[0])
+			var is_turn_in: bool = (
+				SafeTypeUtils.string(quest.get("current_step_kind")) == "talk_to_npc"
+				and SafeTypeUtils.string(quest.get("current_target_id")) == professor_id
+			)
+			var reminder_lines: Array[String] = _localized_dialogue_lines(
+				SafeTypeUtils.array(quest.get("active_dialogue_keys"))
+			)
+			var objective: String = Loc.t(
+				SafeTypeUtils.string(quest.get("current_objective_key"))
+			)
+			if reminder_lines.is_empty() and not is_turn_in:
+				reminder_lines.append(
+					Loc.t("academy.quest.active_reminder", {"objective": objective})
+				)
+			if not is_turn_in:
+				reminder_lines.append(
+					_accent_text(Loc.t("academy.quest.objective_callout", {"objective": objective}))
+				)
+			else:
+				_dialog_turn_in_npc_id = professor_id
+			dialogue_box.present(
+				professor_name,
+				reminder_lines
+			)
+
+
+func _on_dialogue_choice(choice_id: String) -> void:
+	var action: String = SafeTypeUtils.string(_dialog_response_actions.get(choice_id))
+	var selected_quest_id: String = SafeTypeUtils.string(
+		_dialog_response_quest_ids.get(choice_id),
+		_dialog_quest_id
+	)
+	if action != "accept_quest" or selected_quest_id.is_empty():
+		_dialog_response_actions.clear()
+		_dialog_response_quest_ids.clear()
+		_dialog_quest_id = ""
+		return
+	var quest: Dictionary = SafeTypeUtils.dict(
+		_dialog_opportunities_by_id.get(selected_quest_id)
+	)
+	if quest.is_empty():
+		push_warning("WalkableAcademyHub: Missing offer data for quest '%s'" % selected_quest_id)
+		return
+	player.set_physics_process(false)
+	quest_offer_modal.present(quest)
+
+
+func _on_quest_offer_accepted(selected_quest_id: String) -> void:
+	_dialog_accepted_lines = _accepted_lines_for_quest(_dialog_npc_id, selected_quest_id)
+	if not CampaignApi.accept_quest(selected_quest_id):
+		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % selected_quest_id)
+		_on_quest_offer_backed()
+		return
+	_dialog_response_actions.clear()
+	_dialog_response_quest_ids.clear()
+	if not _dialog_accepted_lines.is_empty():
+		player.set_physics_process(false)
+		dialogue_box.present(_dialog_speaker, _dialog_accepted_lines)
+	_dialog_quest_id = ""
+
+
+func _on_quest_offer_backed() -> void:
+	player.set_physics_process(false)
+	_present_quest_opportunity_dialogue()
+
+
+func _present_quest_opportunity_dialogue() -> void:
+	dialogue_box.present(
+		_dialog_speaker,
+		_dialog_offer_lines,
+		_dialog_offer_responses
+	)
+
+
+func _on_dialogue_closed() -> void:
+	if not _dialog_turn_in_npc_id.is_empty():
+		var turn_in_npc_id: String = _dialog_turn_in_npc_id
+		_dialog_turn_in_npc_id = ""
+		var result: Dictionary = CampaignApi.record_quest_npc_interaction(turn_in_npc_id)
+		if SafeTypeUtils.bool_val(result.get("completed"), false):
+			var summary: Dictionary = SafeTypeUtils.dict(result.get("completion_summary"))
+			var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
+			if not rewards.is_empty():
+				reward_modal.present(rewards, Loc.t("academy.quest.complete"))
+				return
+	player.set_physics_process(true)
+
+
+func _on_reward_modal_closed() -> void:
+	player.set_physics_process(true)
+
+
+func _on_quest_world_target_interacted(target_id: String) -> void:
+	var result: Dictionary = CampaignApi.record_quest_world_interaction(target_id)
+	var step: Dictionary = SafeTypeUtils.dict(result.get("current_step"))
+	var encounter_id: String = SafeTypeUtils.string(step.get("encounter_id"))
+	if encounter_id.is_empty():
+		return
+	BattleContext.select_encounter(encounter_id)
+	NavigationContext.push_return(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	SceneManager.transition_to(SceneManager.SCENE_ENCOUNTER_PREPARATION)
+
+
+func _configure_professor(professor: InteractiveNpc, state: Dictionary) -> void:
+	professor.configure(
+		SafeTypeUtils.string(state.get("id")),
+		Loc.t(SafeTypeUtils.string(state.get("name_key"))),
+		SafeTypeUtils.string(state.get("quest_marker"))
+	)
+
+
+func _accent_text(text: String) -> String:
+	return "[color=#%s][b]%s[/b][/color]" % [
+		GameColorPalette.TEXT_HIGHLIGHT.to_html(false),
+		text,
+	]
+
+
+func _localized_dialogue_lines(keys: Array) -> Array[String]:
+	var lines: Array[String] = []
+	for value: Variant in keys:
+		var key: String = SafeTypeUtils.string(value)
+		if not key.is_empty():
+			lines.append(Loc.t(key))
+	return lines
+
+
+func _dialogue_responses(
+	authored_responses: Array,
+	quest_id: String
+) -> Array[Dictionary]:
+	var responses: Array[Dictionary] = []
+	for value: Variant in authored_responses:
+		var response: Dictionary = SafeTypeUtils.dict(value)
+		var action: String = SafeTypeUtils.string(response.get("action"))
+		if action not in ["accept_quest", "decline_quest"]:
+			continue
+		var response_id: String = SafeTypeUtils.string(response.get("id"))
+		_dialog_response_actions[response_id] = action
+		_dialog_response_quest_ids[response_id] = quest_id
+		responses.append({
+			"id": response_id,
+			"text": Loc.t(SafeTypeUtils.string(response.get("text_key"))),
+		})
+	return responses
+
+
+func _accepted_lines_for_quest(professor_id: String, quest_id: String) -> Array[String]:
+	var state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+	for value: Variant in SafeTypeUtils.array(state.get("opportunities")):
+		var quest: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(quest.get("id")) == quest_id:
+			return _localized_dialogue_lines(
+				SafeTypeUtils.array(quest.get("accepted_dialogue_keys"))
+			)
+	return []
 
 
 func _add_building(

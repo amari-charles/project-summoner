@@ -58,6 +58,12 @@ public enum AcademyActivityPrerequisiteMode
     Any,
 }
 
+public enum AcademyOpportunityVisibility
+{
+    Announced,
+    Hidden,
+}
+
 public enum AcademyActivityOutcome
 {
     Victory,
@@ -73,6 +79,13 @@ public class AcademyCourseDefinition
 
     public string DescriptionKey { get; set; } = "";
 
+    public ProfessorId ProfessorId { get; set; } = ProfessorId.None;
+
+    public string LocationKey { get; set; } = "";
+
+    public AcademyOpportunityVisibility OpportunityVisibility { get; set; } =
+        AcademyOpportunityVisibility.Announced;
+
     public int Year { get; set; } = 1;
 
     public int Semester { get; set; } = 1;
@@ -86,6 +99,11 @@ public class AcademyCourseDefinition
     public string ChoiceGroupId { get; set; } = "";
 
     public List<CourseId> Prerequisites { get; set; } = [];
+
+    public AcademyActivityPrerequisiteMode PrerequisiteMode { get; set; } =
+        AcademyActivityPrerequisiteMode.All;
+
+    public AcademyQuestDialogueDefinition QuestDialogue { get; set; } = new();
 
     public List<AcademyCourseActivity> Activities { get; set; } = [];
 
@@ -117,6 +135,8 @@ public class AcademyCourseActivity
 
     public string LabelKey { get; set; } = "";
 
+    public List<string> ReminderDialogueKeys { get; set; } = [];
+
     // Null preserves the current authored shorthand: the previous activity is the
     // sole prerequisite. An explicit array enables roots and branching graphs.
     public List<string>? Prerequisites { get; set; }
@@ -131,6 +151,19 @@ public class AcademyCourseActivity
     public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
 }
 
+/// <summary>
+/// Authored character dialogue associated with quest states. These lines are
+/// deliberately separate from activity labels and Journal objective copy.
+/// </summary>
+public class AcademyQuestDialogueDefinition
+{
+    public List<string> OfferLineKeys { get; set; } = [];
+
+    public List<string> AcceptedLineKeys { get; set; } = [];
+
+    public List<string> TurnInLineKeys { get; set; } = [];
+}
+
 public class AcademyActivityLoadoutDefinition
 {
     public AcademyDeckMode Mode { get; set; } = AcademyDeckMode.Owned;
@@ -142,7 +175,6 @@ public class AcademyActivityLoadoutDefinition
 
 public class AcademyDeckRules
 {
-
     public List<CardType> AllowedCardTypes { get; set; } = [];
 
     public List<Element> AllowedElements { get; set; } = [];

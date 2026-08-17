@@ -62,6 +62,7 @@ public class AcademyRewardIntegrationTest
         var goldBefore = repo.GetResources().Gold;
 
         handler.GetProgress();
+        AssertThat(handler.EnrollCourse((string)course.Id)).IsTrue();
         AssertThat(handler.CompleteActivity((string)course.Id, "reward_lesson")).IsTrue();
         AssertThat(repo.GetResources().Gold).IsEqual(goldBefore + 10);
         AssertThat(repo.GetRewardState().PendingSelections).HasSize(2);
@@ -124,6 +125,7 @@ public class AcademyRewardIntegrationTest
         AssertThat(repo.GetRewardState().ResolvedOffers).IsEmpty();
 
         handler.GetProgress();
+        AssertThat(handler.EnrollCourse((string)categoryCourse.Id)).IsTrue();
         AssertThat(handler.CompleteActivity((string)categoryCourse.Id, "lesson")).IsTrue();
         AssertThat(repo.GetRewardState().ResolvedOffers).HasSize(1);
         AssertThat(repo.GetRewardState().PendingSelections).HasSize(1);

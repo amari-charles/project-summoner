@@ -1,10 +1,13 @@
 using System;
 using Fateforged.Data.Academy;
+using Fateforged.Data.Encounters;
 using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Account;
 using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Campaign.Encounters;
 using Fateforged.Meta.Campaign.Handlers;
+using Fateforged.Meta.Campaign.Quests;
 using Fateforged.Meta.Economy;
 using Fateforged.Meta.Rewards;
 using Fateforged.Meta.Summoner;
@@ -43,6 +46,8 @@ public partial class CampaignService : Node
     private CampaignProgressHandler? _progress;
     private TutorialHandler? _tutorial;
     private AcademyProgressHandler? _academy;
+    private QuestProgressHandler? _quests;
+    private EncounterService? _encounters;
 
     // Graph handlers (for node-based campaigns)
     private CampaignGraphStore? _graphStore;
@@ -130,6 +135,38 @@ public partial class CampaignService : Node
             GetActiveSummonerId,
             GetAcademyRewardRuntime()
         );
+        var questRules = new QuestRuleRegistry();
+        questRules.Register(
+            new CurriculumQuestRuleHandler(
+                CurriculumQuestRuleHandler.CommitKind,
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_available")
+                    || IsAcademyCourseState(courseId, "is_enrolled"),
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_enrolled")
+                    || (_academy?.EnrollCourse(courseId) ?? false)
+            )
+        );
+        questRules.Register(
+            new CurriculumQuestRuleHandler(
+                CurriculumQuestRuleHandler.CreditKind,
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_enrolled")
+                    || IsAcademyCourseState(courseId, "is_completed"),
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_completed")
+                    || (_academy?.CompleteCourse(courseId) ?? false)
+            )
+        );
+        _quests = new QuestProgressHandler(_profileRepo, GetActiveSummonerId, questRules);
+        _encounters = new EncounterService();
+        _encounters.Register(new LegacyAcademyBattleEncounterHandler(_academy));
+    }
+
+    private bool IsAcademyCourseState(string courseId, string stateKey)
+    {
+        var course = _academy?.GetCourse(courseId);
+        return course != null && course.TryGetValue(stateKey, out var state) && state.AsBool();
     }
 
     public override void _ExitTree()
@@ -464,6 +501,191 @@ public partial class CampaignService : Node
         return _academy?.GetProgress() ?? [];
     }
 
+    public Godot.Collections.Dictionary GetQuestJournalState()
+    {
+        return _academy?.GetQuestJournalState() ?? [];
+    }
+
+    public Godot.Collections.Dictionary GetGenericQuestJournalState()
+    {
+        var journal = _quests?.GetJournalState() ?? [];
+        EnrichAcademicQuestEntries(journal);
+        var academy = _academy?.GetProgress() ?? [];
+        journal["current_year"] = academy.TryGetValue("current_year", out var year) ? year : 1;
+        journal["current_semester"] = academy.TryGetValue("current_semester", out var semester)
+            ? semester
+            : 1;
+        var remaining = academy.TryGetValue("remaining_enrollments", out var capacity)
+            ? capacity.AsInt32()
+            : 0;
+        journal["capacity_total"] = 3;
+        journal["capacity_remaining"] = remaining;
+        journal["capacity_committed"] = 3 - remaining;
+        journal["capacity_completed"] = academy.TryGetValue("completed_courses", out var completed)
+            ? completed.AsGodotArray().Count
+            : 0;
+        return journal;
+    }
+
+    public Godot.Collections.Dictionary GetNpcQuestState(string npcId)
+    {
+        var state = _quests?.GetNpcState(npcId) ?? [];
+        EnrichAcademicQuestEntries(state);
+        return state;
+    }
+
+    private void EnrichAcademicQuestEntries(Godot.Collections.Dictionary state)
+    {
+        if (_academy == null)
+            return;
+        foreach (var section in new[] { "active", "opportunities", "completed" })
+        {
+            if (
+                !state.TryGetValue(section, out var value)
+                || value.VariantType != Variant.Type.Array
+            )
+                continue;
+            foreach (var item in value.AsGodotArray())
+            {
+                var entry = item.AsGodotDictionary();
+                if (
+                    !entry.TryGetValue("acceptance_previews", out var previewsValue)
+                    || previewsValue.VariantType != Variant.Type.Array
+                )
+                    continue;
+                foreach (var previewValue in previewsValue.AsGodotArray())
+                {
+                    var preview = previewValue.AsGodotDictionary();
+                    if (preview["kind"].AsString() != CurriculumQuestRuleHandler.CommitKind)
+                        continue;
+                    var course = _academy.GetCourse(preview["course_id"].AsString());
+                    if (course.Count == 0)
+                        continue;
+                    entry["curriculum_cost"] = preview["amount"];
+                    entry["reward_previews"] = course["completion_reward_previews"];
+                    break;
+                }
+            }
+        }
+    }
+
+    public bool AcceptQuest(string questId)
+    {
+        var accepted = _quests?.Accept(questId) ?? false;
+        if (accepted)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return accepted;
+    }
+
+    public Godot.Collections.Dictionary RecordQuestWorldInteraction(string targetId)
+    {
+        var result = _quests?.RecordWorldInteraction(targetId) ?? [];
+        if (result.Count > 0)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return result;
+    }
+
+    public Godot.Collections.Dictionary RecordQuestNpcInteraction(string npcId)
+    {
+        var result = _quests?.RecordNpcInteraction(npcId) ?? [];
+        if (
+            result.TryGetValue("completed", out var completed)
+            && completed.AsBool()
+            && _academy != null
+        )
+        {
+            var completionSummary = _academy.ConsumeLastCompletionSummary();
+            if (completionSummary.Count > 0)
+                result["completion_summary"] = completionSummary;
+        }
+        if (result.Count > 0)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return result;
+    }
+
+    public Godot.Collections.Dictionary RecordQuestEncounterCompleted(
+        string encounterId,
+        string outcome
+    )
+    {
+        var result = _quests?.RecordEncounterCompleted(encounterId, outcome) ?? [];
+        if (result.Count > 0)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return result;
+    }
+
+    public Godot.Collections.Dictionary GetEncounterPreparationState(string encounterId) =>
+        _encounters?.GetPreparationState(encounterId) ?? [];
+
+    public Godot.Collections.Dictionary ResolveEncounterBattleConfig(string encounterId) =>
+        _encounters?.ResolveBattleConfig(encounterId) ?? [];
+
+    public bool UpdateEncounterLoadout(
+        string encounterId,
+        Godot.Collections.Array<Godot.Collections.Dictionary> slots
+    ) => _encounters?.UpdateLoadout(encounterId, slots) ?? false;
+
+    public Godot.Collections.Dictionary FillEncounterLoadoutFromDeck(
+        string encounterId,
+        string sourceDeckId
+    ) => _encounters?.FillLoadoutFromDeck(encounterId, sourceDeckId) ?? [];
+
+    public Godot.Collections.Dictionary SaveEncounterLoadoutToDeck(
+        string encounterId,
+        string targetDeckId,
+        string newDeckName
+    ) => _encounters?.SaveLoadoutToDeck(encounterId, targetDeckId, newDeckName) ?? [];
+
+    public Godot.Collections.Dictionary CompleteEncounter(
+        string encounterId,
+        int outcome = (int)EncounterOutcome.Victory
+    )
+    {
+        if (!Enum.IsDefined(typeof(EncounterOutcome), outcome))
+            return [];
+        var result = _encounters?.Complete(encounterId, (EncounterOutcome)outcome) ?? [];
+        if (result.Count == 0)
+            return result;
+        _quests?.RecordEncounterCompleted(
+            encounterId,
+            ((EncounterOutcome)outcome).ToString().ToSnakeCase()
+        );
+        EmitSignal(SignalName.CampaignProgressChanged);
+        return result;
+    }
+
+    public Godot.Collections.Dictionary ConsumeEncounterCompletionSummary(string encounterId) =>
+        _encounters?.ConsumeCompletionSummary(encounterId) ?? [];
+
+    public Godot.Collections.Dictionary GetEncounterCompletionSummary(string encounterId) =>
+        _encounters?.GetCompletionSummary(encounterId) ?? [];
+
+    public Godot.Collections.Array<Godot.Collections.Dictionary> GetProfessorQuestStates()
+    {
+        return _academy?.GetProfessorQuestStates() ?? [];
+    }
+
+    public Godot.Collections.Dictionary GetProfessorQuestState(string professorId)
+    {
+        return _academy?.GetProfessorQuestState(professorId) ?? [];
+    }
+
+    public bool TrackQuest(string questId)
+    {
+        var tracked = _quests?.Track(questId) ?? false;
+        if (tracked)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return tracked;
+    }
+
+    public bool DiscoverAcademyCourse(string courseId)
+    {
+        var discovered = _academy?.DiscoverCourse(courseId) ?? false;
+        if (discovered)
+            EmitSignal(SignalName.CampaignProgressChanged);
+        return discovered;
+    }
+
     public Godot.Collections.Array<Godot.Collections.Dictionary> GetAvailableAcademyCourses()
     {
         return _academy?.GetAvailableCourses() ?? [];
@@ -512,8 +734,7 @@ public partial class CampaignService : Node
         string activityId,
         string targetDeckId,
         string newDeckName
-    ) =>
-        _academy?.SaveActivityLoadoutToDeck(courseId, activityId, targetDeckId, newDeckName) ?? [];
+    ) => _academy?.SaveActivityLoadoutToDeck(courseId, activityId, targetDeckId, newDeckName) ?? [];
 
     public Godot.Collections.Dictionary GetAcademyActivityLaunchState(
         string courseId,

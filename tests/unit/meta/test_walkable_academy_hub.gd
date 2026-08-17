@@ -23,8 +23,17 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Boundaries/Bottom/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Boundaries/Left/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Boundaries/Right/CollisionShape3D"))
-	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/JournalButton"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/InventoryButton"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/SpellbookButton"))
+	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestBanner/TrackedQuestButton"))
+	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
+	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
+	assert_not_null(hub.get_node_or_null("Professors"))
+	assert_not_null(hub.get_node_or_null("QuestTargets"))
 	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
 	assert_not_null(hub.get_node_or_null("PlaceholderScenery"))
 	assert_not_null(hub.get_node_or_null("PlaceholderWater"))
@@ -34,6 +43,54 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_true(ground_material.albedo_texture.resource_path.contains("/placeholders/tiny_swords/terrain/"))
 	assert_gt(ground_material.uv1_scale.x, 1.0)
 	assert_gt(ground_material.uv1_scale.y, 1.0)
+	hub.free()
+
+
+func test_hub_uses_a_vertical_icon_action_rail() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	var rail: VBoxContainer = hub.get_node("Interface/RightActionRail") as VBoxContainer
+	var journal: Button = rail.get_node("JournalButton") as Button
+	var spellbook: Button = rail.get_node("SpellbookButton") as Button
+	var inventory: Button = rail.get_node("InventoryButton") as Button
+	var shortcuts: Button = rail.get_node("ShortcutButton") as Button
+	assert_eq(rail.get_child_count(), 4)
+	assert_eq(rail.anchor_top, 0.5)
+	assert_eq(rail.anchor_bottom, 0.5)
+	assert_almost_eq(absf(rail.offset_top), rail.offset_bottom, 0.01)
+	assert_not_null(journal.icon)
+	assert_not_null(spellbook.icon)
+	assert_not_null(inventory.icon)
+	assert_not_null(shortcuts.icon)
+	assert_true(journal.text.is_empty())
+	assert_true(spellbook.text.is_empty())
+	assert_true(inventory.text.is_empty())
+	assert_true(shortcuts.text.is_empty())
+	assert_true(inventory.disabled)
+	hub.free()
+
+
+func test_spellbook_is_a_persistent_right_side_action_instead_of_a_building() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	var rail: VBoxContainer = hub.get_node("Interface/RightActionRail") as VBoxContainer
+	var button: Button = rail.get_node("SpellbookButton") as Button
+	assert_eq(rail.anchor_top, 0.5)
+	assert_eq(rail.anchor_bottom, 0.5)
+	assert_lt(rail.offset_left, 0.0)
+	assert_not_null(button.icon)
+	assert_true(button.text.is_empty())
+	assert_eq(
+		hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SPELLBOOK),
+		SceneManager.SCENE_COLLECTION_SCREEN
+	)
+	var spellbook_destination: Dictionary = {}
+	for destination: Dictionary in WalkableAcademyHub.DESTINATIONS:
+		if destination["id"] == WalkableAcademyHub.DESTINATION_SPELLBOOK:
+			spellbook_destination = destination
+			break
+	assert_false(spellbook_destination.is_empty())
+	assert_false(spellbook_destination.has("position"))
 	hub.free()
 
 
@@ -58,10 +115,250 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 			assert_true(placeholder_art_path.contains("/placeholders/"))
 			assert_true(ResourceLoader.exists(placeholder_art_path))
 
-	assert_eq(building_count, 5)
+	assert_eq(building_count, 3)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
+	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL), SceneManager.SCENE_QUEST_JOURNAL)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SETTINGS), SceneManager.SCENE_SETTINGS)
 	hub.free()
+
+
+func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
+	assert_true(ResourceLoader.exists(SceneManager.SCENE_QUEST_JOURNAL))
+	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
+	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
+	assert_not_null(journal)
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/ActiveButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/OpenButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/CompletedButton"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/ListPanel/ListMargin/ListRoot/QuestScroll/QuestList"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel/DetailContent/ProfessorRow/ProfessorPortrait"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel/DetailContent/RewardsScroll/RewardsList"))
+	journal.free()
+
+
+func test_quest_journal_uses_the_shared_card_widget_for_card_rewards() -> void:
+	assert_not_null(QuestDetailPanel.CardWidgetScene)
+	var card_widget: CardWidget = QuestDetailPanel.CardWidgetScene.instantiate() as CardWidget
+	assert_not_null(card_widget)
+	assert_not_null(card_widget.get_node_or_null("CardPanel/ContentContainer/ArtContainer"))
+	card_widget.free()
+
+
+func test_interactive_npc_component_is_role_agnostic() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/interactive_npc.tscn") as PackedScene
+	var npc: InteractiveNpc = packed_scene.instantiate() as InteractiveNpc
+	assert_not_null(npc)
+	assert_not_null(npc.get_node_or_null("CharacterVisual"))
+	assert_not_null(npc.get_node_or_null("MarkerLabel"))
+	assert_not_null(npc.get_node_or_null("InteractionArea/CollisionShape3D"))
+	npc.free()
+
+
+func test_quest_world_target_component_is_generic_and_interactable() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/quest_world_target.tscn")
+	var target: QuestWorldTarget = packed_scene.instantiate() as QuestWorldTarget
+	assert_not_null(target)
+	target.configure("practice_grounds", "Practice Grounds")
+	target.set_current_objective(true)
+	assert_eq(target.target_id, "practice_grounds")
+	assert_true((target.get_node("MarkerLabel") as Label3D).visible)
+	assert_not_null(target.get_node_or_null("InteractionArea/CollisionShape3D"))
+	target.free()
+
+
+func test_npc_dialogue_uses_bottom_screen_rich_text_and_inline_choices() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn") as PackedScene
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	assert_not_null(dialogue)
+	var panel: PanelContainer = dialogue.get_node("Panel") as PanelContainer
+	var line: RichTextLabel = dialogue.get_node("Panel/Margin/Content/LineLabel") as RichTextLabel
+	assert_eq(panel.anchor_top, 1.0)
+	assert_true(line.bbcode_enabled)
+	assert_not_null(dialogue.get_node_or_null("Panel/Margin/Content/Choices"))
+	assert_not_null(dialogue.get_node_or_null("Panel/Margin/Content/AdvanceIndicator"))
+	dialogue.free()
+
+
+func test_npc_dialogue_renders_player_responses_as_full_width_spoken_lines() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present("Professor", [], [{"id": "accept", "text": "I'm ready."}])
+	var responses: VBoxContainer = dialogue.get_node("Panel/Margin/Content/Choices")
+	assert_eq(responses.get_child_count(), 1)
+	var response: Button = responses.get_child(0) as Button
+	assert_true(response.text.contains("I'm ready."))
+	assert_eq(response.alignment, HORIZONTAL_ALIGNMENT_LEFT)
+	assert_eq(response.size_flags_horizontal, Control.SIZE_EXPAND_FILL)
+
+
+func test_clicking_visible_dialogue_panel_advances_to_next_line() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present("Professor", ["First line", "Second line"])
+	var panel: PanelContainer = dialogue.get_node("Panel") as PanelContainer
+	var line: RichTextLabel = dialogue.get_node("Panel/Margin/Content/LineLabel")
+	assert_eq(line.text, "First line")
+	var click: InputEventMouseButton = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_RIGHT
+	click.pressed = true
+	panel.gui_input.emit(click)
+	assert_eq(line.text, "First line")
+	click = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	panel.gui_input.emit(click)
+	assert_eq(line.text, "Second line")
+
+
+func test_skipping_dialogue_stops_at_required_player_response() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present(
+		"Professor",
+		["First line", "Second line"],
+		[{"id": "accept", "text": "I'm ready."}]
+	)
+	dialogue._skip_to_choices_or_dismiss()
+	var responses: VBoxContainer = dialogue.get_node("Panel/Margin/Content/Choices")
+	assert_true(dialogue.visible)
+	assert_eq(responses.get_child_count(), 1)
+	await get_tree().process_frame
+	assert_eq(get_viewport().gui_get_focus_owner(), responses.get_child(0))
+
+
+func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -> void:
+	var script_text: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	var quest_file: FileAccess = FileAccess.open("res://data/quests/quests.json", FileAccess.READ)
+	assert_not_null(quest_file)
+	var quest_text: String = quest_file.get_as_text()
+	quest_file.close()
+	assert_true(script_text.contains('opportunity.get("response_choices")'))
+	assert_false(script_text.contains('Loc.t("academy.quest.permanent_cost"'))
+	assert_false(script_text.contains('Loc.t("academy.quest.assignment_callout"'))
+	assert_true(quest_text.contains('"action": "accept_quest"'))
+	assert_false(quest_text.contains('"action": "decline_quest"'))
+
+
+func test_quest_turn_in_opens_generic_reward_modal() -> void:
+	var script_text: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	assert_false(script_text.contains("consume_last_academy_completion_summary"))
+	assert_true(script_text.contains('result.get("completion_summary")'))
+	assert_true(script_text.contains("reward_modal.present"))
+	assert_true(script_text.contains("academy.quest.complete"))
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	assert_not_null(hub.get_node_or_null("Interface/RewardGrantModal"))
+	hub.free()
+
+
+func test_quest_offer_and_journal_share_the_same_detail_component() -> void:
+	var hub_script: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	assert_true(hub_script.contains("quest_offer_modal.present"))
+	assert_true(hub_script.contains("_on_quest_offer_backed"))
+	assert_true(hub_script.contains("_on_quest_offer_accepted"))
+	var journal_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
+	var journal: QuestJournal = journal_scene.instantiate() as QuestJournal
+	var journal_detail: QuestDetailPanel = journal.get_node(
+		"Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel"
+	) as QuestDetailPanel
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	var offer_detail: QuestDetailPanel = offer.get_node(
+		"Center/Panel/Margin/Content/QuestDetailPanel"
+	) as QuestDetailPanel
+	assert_not_null(journal_detail)
+	assert_not_null(offer_detail)
+	assert_not_null(offer.get_node_or_null("Center/Panel/Margin/Content/Actions/BackButton"))
+	assert_not_null(offer.get_node_or_null("Center/Panel/Margin/Content/Actions/AcceptButton"))
+	journal.free()
+	offer.free()
+
+
+func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	add_child_autofree(offer)
+	await get_tree().process_frame
+	offer.present({
+		"id": "introduction_to_magic",
+		"title_key": "academy.course.introduction_to_magic_101.name",
+		"description_key": "academy.course.introduction_to_magic_101.description",
+		"source_name_key": "academy.professor.general_magic.name",
+		"location_key": "academy.location.general_grounds",
+		"curriculum_cost": 1,
+		"reward_previews": [{
+			"options": [{
+				"grants": [{"kind": "card", "card_id": "magic_bolt", "amount": 1}],
+			}],
+		}],
+	})
+	assert_true(offer.visible)
+	var detail: QuestDetailPanel = offer.get_node(
+		"Center/Panel/Margin/Content/QuestDetailPanel"
+	) as QuestDetailPanel
+	assert_eq(detail.rewards_list.get_child_count(), 1)
+	assert_true(detail.rewards_list.get_child(0) is CardWidget)
+	offer._back()
+	assert_false(offer.visible)
+
+
+func test_non_academic_quest_offer_does_not_invent_curriculum_cost() -> void:
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	add_child_autofree(offer)
+	await get_tree().process_frame
+	offer.present({
+		"id": "side_quest",
+		"title_key": "academy.journal.title",
+		"description_key": "academy.journal.description",
+	})
+	var detail: QuestDetailPanel = offer.get_node(
+		"Center/Panel/Margin/Content/QuestDetailPanel"
+	) as QuestDetailPanel
+	assert_false(detail.detail_status.visible)
+
+
+func test_tracked_quest_is_a_wide_semitransparent_banner() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH)
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	var banner: Control = hub.get_node("Interface/TrackedQuestBanner") as Control
+	var background: ColorRect = banner.get_node("Background") as ColorRect
+	var button: Button = banner.get_node("TrackedQuestButton") as Button
+	assert_true(background.material is ShaderMaterial)
+	assert_gt(banner.size.x, banner.size.y * 5.0)
+	assert_gt(banner.position.y, 168.0)
+	assert_true(button.flat)
+	hub.free()
+
+
+func test_quest_journal_uses_readable_neutral_background() -> void:
+	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
+	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
+	var background: ColorRect = journal.get_node("Background") as ColorRect
+	assert_gt(background.color.r, background.color.b)
+	assert_gt(background.color.get_luminance(), 0.5)
+	journal.free()
+
+
+func _read(path: String) -> String:
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	assert_not_null(file)
+	var contents: String = file.get_as_text()
+	file.close()
+	return contents
 
 
 func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
@@ -237,7 +534,7 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	add_child_autofree(campus_camera)
 	building.configure(
 		destination["name_key"],
-		SceneManager.SCENE_ACADEMY_CLASS_HALL,
+		SafeTypeUtils.string(destination["target_scene"]),
 		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
 		texture,
 		campus_camera

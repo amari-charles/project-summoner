@@ -17,7 +17,7 @@ public enum BattleMode
     Tutorial = 3,
     Practice = 4,
     Multiplayer = 5,
-    Academy = 6,
+    Encounter = 6,
 }
 
 /// <summary>

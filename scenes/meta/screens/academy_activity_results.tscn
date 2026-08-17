@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/meta/screens/academy_activity_results.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2"]
 
-[node name="AcademyActivityResults" type="Control"]
+[node name="EncounterResults" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -21,33 +21,19 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Root" type="VBoxContainer" parent="Center"]
-custom_minimum_size = Vector2(720, 520)
+custom_minimum_size = Vector2(720, 200)
 layout_mode = 2
 theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="Center/Root"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 48
 horizontal_alignment = 1
-
-[node name="EarnedLabel" type="Label" parent="Center/Root"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-
-[node name="ProgressLabel" type="Label" parent="Center/Root"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-
-[node name="Choices" type="VBoxContainer" parent="Center/Root"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
 
 [node name="ContinueButton" type="Button" parent="Center/Root"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 
 [node name="NarrativePresenter" parent="." instance=ExtResource("2")]
