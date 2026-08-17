@@ -144,6 +144,61 @@ the world prematurely.
 - `docs/design/walkable-academy-hub.md`
 - `docs/tracking/completion-roadmap.md`
 
+## 2026-08-16 — Replace the old Course Flow with authoritative typed quest steps
+
+**Status:** Accepted
+**Areas:** Quests, Courses, Campus, Progression, UI, Architecture
+
+### Decision
+
+Deprecate the old Class Hall enrollment browser and full-screen Course Flow in
+their entirety. They must not survive as alternate ways to enroll, select or
+launch activities, advance course progression, or receive post-battle routing.
+The physical Class Hall building may be repurposed later, but does not justify
+retaining its current screen.
+
+Represent quests as ordered typed steps completed by authoritative world or
+gameplay events. Academy battle activities remain reusable definitions for
+preparation, battle configuration, loadouts, and rewards, and are referenced by
+quest steps instead of owning the overall progression flow.
+
+The introductory proof follows: accept from the general professor, interact
+with the campus Practice Grounds, complete its training battle, return to
+campus, and close the quest with the professor.
+
+### Context
+
+The professor-led flow could accept and display the introductory quest but had
+no route into its first battle. The only working launcher remained the old
+Course Flow, while its activity index could represent only a sequence of
+battles—not talk, world interaction, battle, and return as one coherent quest.
+Patching a direct link to that screen would preserve the superseded experience
+and leave two progression models.
+
+### Consequences
+
+- The Journal and HUD expose the current quest step but do not become generic
+  activity launchers.
+- NPCs and world interaction points advance only steps targeting them.
+- Activity Preparation and Results are retained, with quest-owned entry and
+  campus return routing.
+- Course-node scenes, routes, APIs, and tests are deleted after their quest-step
+  replacements are wired.
+- The exact architecture and migration sequence are proposed in
+  `docs/technical/meta/quest-step-rearchitecture-proposal.md`.
+
+### Supersedes
+
+Any remaining interpretation that the old Class Hall or Course Flow might keep
+responsibility for enrollment, activity selection, activity launch, or course
+progression.
+
+### References
+
+- `docs/design/quest-system.md`
+- `docs/design/academy-class-flow.md`
+- `docs/technical/meta/quest-step-rearchitecture-proposal.md`
+
 ## 2026-08-16 — Separate character dialogue from quest UI and adopt the three-region Journal
 
 **Status:** Accepted

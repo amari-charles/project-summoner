@@ -121,6 +121,16 @@ contains all active side quests; only HUD tracking is limited to one.
 
 ## Progression and Completion
 
+Every quest progresses through an ordered set of typed steps. A step identifies
+one player-facing objective and the authoritative event that completes it, such
+as talking to a particular NPC, interacting with a world location, completing
+an Academy battle activity, or returning to a quest giver. The Journal and HUD
+show the current step; they do not expose or launch a parallel course-node flow.
+
+Academy battle activities remain reusable gameplay definitions for battle
+configuration, preparation, rules, loadouts, and rewards. They are referenced
+by quest steps rather than acting as the quest progression model themselves.
+
 Quest objectives advance from authoritative gameplay events. Returning to a
 character is required only when dialogue, a decision, a reward, or narrative
 closure adds value. Routine objectives may advance automatically.
@@ -179,14 +189,23 @@ battle content as scaffolding:
 2. Dialogue supplies a general overview and inline Accept/Not Yet choices.
 3. Acceptance permanently commits the displayed curriculum cost and tracks the
    quest.
-4. The player completes one basic training battle.
-5. The general professor gains `?`.
-6. Closing dialogue completes the chain and unlocks the first foundation fork.
+4. The current step directs the player to a physical Practice Grounds
+   interaction on campus.
+5. Interacting there opens Activity Preparation for one basic training battle.
+6. Completing the battle returns the player to campus and advances the current
+   step to the general professor.
+7. The general professor gains `?`.
+8. Closing dialogue completes the chain and unlocks the first foundation fork.
 
 The slice must prove NPC interaction, markers, acceptance, persistence, Journal
 projection, HUD tracking, battle-driven objective advancement, turn-in, and
 dependency unlocking. It does not establish final quest writing or course
 content.
+
+The old Class Hall enrollment browser and full-screen Course Flow are deprecated
+in their entirety. They must not remain as alternate enrollment, activity
+selection, launch, progression, or return paths. Activity Preparation and battle
+results remain reusable, but they enter and exit through the active quest step.
 
 ## Deferred Decisions and Work
 

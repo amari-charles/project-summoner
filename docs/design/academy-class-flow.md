@@ -48,10 +48,11 @@ to **Active** and exposes the current actionable quest. Later parts of the chain
 become actionable through quest progression rather than manual selection from a
 node tree.
 
-The existing Class Hall and full-screen Course Flow implementation are
-provisional infrastructure and are not the accepted final quest-management
-experience. Their eventual retained responsibilities, if any, remain interface
-and world-blueprint work.
+The existing Class Hall enrollment browser and full-screen Course Flow are
+deprecated in their entirety. They are not retained as alternate enrollment,
+activity-selection, launch, progression, or return paths. The physical Class
+Hall building may remain as a campus landmark only if a later designed world use
+justifies it; it does not preserve the old screen.
 
 ## Activity Preparation
 
