@@ -53,6 +53,9 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	var inventory: Button = rail.get_node("InventoryButton") as Button
 	var shortcuts: Button = rail.get_node("ShortcutButton") as Button
 	assert_eq(rail.get_child_count(), 3)
+	assert_eq(rail.anchor_top, 0.5)
+	assert_eq(rail.anchor_bottom, 0.5)
+	assert_almost_eq(absf(rail.offset_top), rail.offset_bottom, 0.01)
 	assert_not_null(journal.icon)
 	assert_not_null(inventory.icon)
 	assert_not_null(shortcuts.icon)
