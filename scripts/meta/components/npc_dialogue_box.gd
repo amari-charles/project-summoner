@@ -19,6 +19,7 @@ func _ready() -> void:
 	hide()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	gui_input.connect(_on_gui_input)
+	panel.gui_input.connect(_on_gui_input)
 	_apply_palette()
 
 

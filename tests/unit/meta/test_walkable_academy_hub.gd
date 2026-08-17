@@ -142,6 +142,22 @@ func test_npc_dialogue_renders_player_responses_as_full_width_spoken_lines() -> 
 	assert_eq(response.size_flags_horizontal, Control.SIZE_EXPAND_FILL)
 
 
+func test_clicking_visible_dialogue_panel_advances_to_next_line() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present("Professor", ["First line", "Second line"])
+	var panel: PanelContainer = dialogue.get_node("Panel") as PanelContainer
+	var line: RichTextLabel = dialogue.get_node("Panel/Margin/Content/LineLabel")
+	assert_eq(line.text, "First line")
+	var click: InputEventMouseButton = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	panel.gui_input.emit(click)
+	assert_eq(line.text, "Second line")
+
+
 func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -> void:
 	var script_text: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
 	var quest_file: FileAccess = FileAccess.open("res://data/quests/quests.json", FileAccess.READ)
