@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -33,6 +33,48 @@ background_color = Color(0.278431, 0.670588, 0.662745, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.7
+
+[sub_resource type="StyleBoxFlat" id="StyleTrackedQuestNormal"]
+bg_color = Color(0.105882, 0.0941176, 0.0784314, 0.72)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.803922, 0.72549, 0.564706, 0.82)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_right = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleTrackedQuestHover"]
+bg_color = Color(0.105882, 0.0941176, 0.0784314, 0.84)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.858824, 0.788235, 0.647059, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_right = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleTrackedQuestPressed"]
+bg_color = Color(0.0705882, 0.0627451, 0.0509804, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.690196, 0.584314, 0.372549, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_right = 16.0
 
 [node name="WalkableAcademyHub" type="Node3D"]
 script = ExtResource("1_hub_script")
@@ -165,8 +207,17 @@ unique_name_in_owner = true
 visible = false
 offset_left = 18.0
 offset_top = 158.0
-offset_right = 430.0
-offset_bottom = 204.0
+offset_right = 480.0
+offset_bottom = 216.0
+focus_mode = 1
+theme_override_colors/font_color = Color(0.956863, 0.92549, 0.858824, 1)
+theme_override_colors/font_hover_color = Color(1, 0.968627, 0.901961, 1)
+theme_override_colors/font_pressed_color = Color(0.901961, 0.839216, 0.713726, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleTrackedQuestNormal")
+theme_override_styles/hover = SubResource("StyleTrackedQuestHover")
+theme_override_styles/pressed = SubResource("StyleTrackedQuestPressed")
+theme_override_styles/focus = SubResource("StyleTrackedQuestHover")
 text_overrun_behavior = 3
 alignment = 0
 

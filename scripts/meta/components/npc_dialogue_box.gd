@@ -51,6 +51,7 @@ func _render_line() -> void:
 	if _authored_choices.is_empty():
 		dismiss()
 		return
+	var first_button: Button = null
 	for choice: Dictionary in _authored_choices:
 		var button: Button = Button.new()
 		button.text = "› %s" % SafeTypeUtils.string(choice.get("text"))
@@ -60,15 +61,27 @@ func _render_line() -> void:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_choose.bind(SafeTypeUtils.string(choice.get("id"))))
 		choices.add_child(button)
+		if first_button == null:
+			first_button = button
+	if first_button != null:
+		first_button.call_deferred("grab_focus")
 
 
 func _on_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
+	if (
+		event is InputEventMouseButton
+		and event.pressed
+		and event.button_index == MOUSE_BUTTON_LEFT
+	):
 		_advance()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if visible and event.pressed and (event.is_action("ui_accept") or event.is_action("ui_select")):
+	if not visible or not event.pressed or event.echo:
+		return
+	if event.is_action("ui_cancel"):
+		_skip_to_choices_or_dismiss()
+	elif event.is_action("ui_accept") or event.is_action("ui_select"):
 		_advance()
 
 
@@ -77,6 +90,14 @@ func _advance() -> void:
 		return
 	_line_index += 1
 	_render_line()
+
+
+func _skip_to_choices_or_dismiss() -> void:
+	if not _authored_choices.is_empty():
+		_line_index = _lines.size()
+		_render_line()
+	else:
+		dismiss()
 
 
 func _choose(choice_id: String) -> void:

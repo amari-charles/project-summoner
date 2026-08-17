@@ -722,6 +722,7 @@ func _refresh_quest_presentation() -> void:
 		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
 		var objective: String = Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))
 		tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
+		tracked_quest_button.tooltip_text = tracked_quest_button.text
 		return
 
 

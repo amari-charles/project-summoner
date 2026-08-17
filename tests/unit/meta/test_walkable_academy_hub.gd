@@ -152,10 +152,33 @@ func test_clicking_visible_dialogue_panel_advances_to_next_line() -> void:
 	var line: RichTextLabel = dialogue.get_node("Panel/Margin/Content/LineLabel")
 	assert_eq(line.text, "First line")
 	var click: InputEventMouseButton = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_RIGHT
+	click.pressed = true
+	panel.gui_input.emit(click)
+	assert_eq(line.text, "First line")
+	click = InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
 	panel.gui_input.emit(click)
 	assert_eq(line.text, "Second line")
+
+
+func test_skipping_dialogue_stops_at_required_player_response() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present(
+		"Professor",
+		["First line", "Second line"],
+		[{"id": "accept", "text": "I'm ready."}]
+	)
+	dialogue._skip_to_choices_or_dismiss()
+	var responses: VBoxContainer = dialogue.get_node("Panel/Margin/Content/Choices")
+	assert_true(dialogue.visible)
+	assert_eq(responses.get_child_count(), 1)
+	await get_tree().process_frame
+	assert_eq(get_viewport().gui_get_focus_owner(), responses.get_child(0))
 
 
 func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -> void:
@@ -169,6 +192,18 @@ func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -
 	assert_false(script_text.contains('Loc.t("academy.quest.assignment_callout"'))
 	assert_true(quest_text.contains('"action": "accept_quest"'))
 	assert_false(quest_text.contains('"action": "decline_quest"'))
+
+
+func test_tracked_quest_is_a_wide_semitransparent_banner() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH)
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	var banner: Button = hub.get_node("Interface/TrackedQuestButton") as Button
+	var normal_style: StyleBoxFlat = banner.get_theme_stylebox("normal") as StyleBoxFlat
+	assert_not_null(normal_style)
+	assert_lt(normal_style.bg_color.a, 1.0)
+	assert_gt(banner.size.x, banner.size.y * 5.0)
+	assert_lte(normal_style.corner_radius_top_left, 8)
+	hub.free()
 
 
 func test_quest_journal_uses_readable_neutral_background() -> void:
