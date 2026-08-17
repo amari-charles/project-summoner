@@ -712,7 +712,7 @@
               "allowed_card_types": [],
               "allowed_elements": [],
               "min_summons": 1,
-              "min_spells": 2,
+              "min_spells": 1,
               "max_deck_size": 12,
               "required_owned_cards": [],
               "banned_cards": []

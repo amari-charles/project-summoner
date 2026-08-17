@@ -254,7 +254,7 @@ public class AcademyProgressServiceTest
         var rules = loadout["rules"].AsGodotDictionary();
         AssertThat(rules["has_rules"].AsBool()).IsTrue();
         AssertThat(rules["min_summons"].AsInt32()).IsEqual(1);
-        AssertThat(rules["min_spells"].AsInt32()).IsEqual(2);
+        AssertThat(rules["min_spells"].AsInt32()).IsEqual(1);
         AssertThat(rules["max_deck_size"].AsInt32()).IsEqual(12);
         AssertThat(loadout["supplied_cards"].AsGodotArray()).HasSize(2);
 
@@ -315,7 +315,7 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void AcademyActivityLimitations_InvalidDeckReportsSpecificReasonsAndBlocksStart()
+    public void AcademyActivityLimitations_InitialSpellcraftLoadoutIsValidWithoutOwnedSpell()
     {
         var repo = CreateRepo("academy_activity_limitations_invalid_deck");
         var service = CreateCampaignService(repo, SummonerIds.Cole);
@@ -327,12 +327,11 @@ public class AcademyProgressServiceTest
         );
 
         var deckValidation = state["deck_validation"].AsGodotDictionary();
-        AssertThat(deckValidation["is_valid"].AsBool()).IsFalse();
-        AssertThat(deckValidation["status"].AsString()).IsEqual("invalid");
-        AssertThat(state["can_start"].AsBool()).IsFalse();
+        AssertThat(deckValidation["is_valid"].AsBool()).IsTrue();
+        AssertThat(deckValidation["status"].AsString()).IsEqual("valid");
 
         var issueCodes = ValidationIssueCodes(deckValidation);
-        AssertThat(issueCodes).Contains("min_spells");
+        AssertThat(issueCodes.Contains("min_spells")).IsFalse();
         AssertThat(issueCodes.Contains("required_card_missing")).IsFalse();
 
         AssertThat(
@@ -341,7 +340,7 @@ public class AcademyProgressServiceTest
                     "practical_spellcraft_practice"
                 )
             )
-            .IsEmpty();
+            .IsNotEmpty();
     }
 
     [TestCase]

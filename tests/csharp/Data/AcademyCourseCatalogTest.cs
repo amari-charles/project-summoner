@@ -207,7 +207,7 @@ public class AcademyCourseCatalogTest
 
         AssertThat(practice.Loadout.Rules.HasRules).IsTrue();
         AssertThat(practice.Loadout.Rules.MinSummons).IsEqual(1);
-        AssertThat(practice.Loadout.Rules.MinSpells).IsEqual(2);
+        AssertThat(practice.Loadout.Rules.MinSpells).IsEqual(1);
         AssertThat(practice.Loadout.Rules.MaxDeckSize).IsEqual(12);
         AssertThat(practice.Loadout.Rules.RequiredOwnedCards).IsEmpty();
         AssertThat(practice.Loadout.SuppliedCards.Select(entry => entry.CardId))
