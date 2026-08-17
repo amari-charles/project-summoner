@@ -104,14 +104,14 @@ func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
 	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/CompletedButton"))
 	assert_not_null(journal.get_node_or_null("Margin/Root/Body/ListPanel/ListMargin/ListRoot/QuestScroll/QuestList"))
 	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/ProfessorRow/ProfessorPortrait"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/RewardsScroll/RewardsList"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel/DetailContent/ProfessorRow/ProfessorPortrait"))
+	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel/DetailContent/RewardsScroll/RewardsList"))
 	journal.free()
 
 
 func test_quest_journal_uses_the_shared_card_widget_for_card_rewards() -> void:
-	assert_not_null(QuestJournal.CardWidgetScene)
-	var card_widget: CardWidget = QuestJournal.CardWidgetScene.instantiate() as CardWidget
+	assert_not_null(QuestDetailPanel.CardWidgetScene)
+	var card_widget: CardWidget = QuestDetailPanel.CardWidgetScene.instantiate() as CardWidget
 	assert_not_null(card_widget)
 	assert_not_null(card_widget.get_node_or_null("CardPanel/ContentContainer/ArtContainer"))
 	card_widget.free()
@@ -227,6 +227,61 @@ func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	assert_not_null(hub.get_node_or_null("Interface/RewardGrantModal"))
 	hub.free()
+
+
+func test_quest_offer_and_journal_share_the_same_detail_component() -> void:
+	var hub_script: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	assert_true(hub_script.contains("quest_offer_modal.present"))
+	assert_true(hub_script.contains("_on_quest_offer_backed"))
+	assert_true(hub_script.contains("_on_quest_offer_accepted"))
+	var journal_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
+	var journal: QuestJournal = journal_scene.instantiate() as QuestJournal
+	var journal_detail: QuestDetailPanel = journal.get_node(
+		"Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel"
+	) as QuestDetailPanel
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	var offer_detail: QuestDetailPanel = offer.get_node(
+		"Center/Panel/Margin/Content/QuestDetailPanel"
+	) as QuestDetailPanel
+	assert_not_null(journal_detail)
+	assert_not_null(offer_detail)
+	assert_not_null(offer.get_node_or_null("Center/Panel/Margin/Content/Actions/BackButton"))
+	assert_not_null(offer.get_node_or_null("Center/Panel/Margin/Content/Actions/AcceptButton"))
+	journal.free()
+	offer.free()
+
+
+func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	add_child_autofree(offer)
+	await get_tree().process_frame
+	offer.present({
+		"id": "introduction_to_magic",
+		"title_key": "academy.course.introduction_to_magic_101.name",
+		"description_key": "academy.course.introduction_to_magic_101.description",
+		"source_name_key": "academy.professor.general_magic.name",
+		"location_key": "academy.location.general_grounds",
+		"curriculum_cost": 1,
+		"reward_previews": [{
+			"options": [{
+				"grants": [{"kind": "card", "card_id": "magic_bolt", "amount": 1}],
+			}],
+		}],
+	})
+	assert_true(offer.visible)
+	var detail: QuestDetailPanel = offer.get_node(
+		"Center/Panel/Margin/Content/QuestDetailPanel"
+	) as QuestDetailPanel
+	assert_eq(detail.rewards_list.get_child_count(), 1)
+	assert_true(detail.rewards_list.get_child(0) is CardWidget)
+	offer._back()
+	assert_false(offer.visible)
 
 
 func test_tracked_quest_is_a_wide_semitransparent_banner() -> void:

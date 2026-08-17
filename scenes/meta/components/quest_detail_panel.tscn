@@ -1,0 +1,93 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/components/quest_detail_panel.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_student_idle.png" id="2_professor"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_professor"]
+atlas = ExtResource("2_professor")
+region = Rect2(0, 0, 192, 192)
+
+[node name="QuestDetailPanel" type="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("1_script")
+
+[node name="DetailEmpty" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DetailContent" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="ProfessorRow" type="HBoxContainer" parent="DetailContent"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ProfessorPortrait" type="TextureRect" parent="DetailContent/ProfessorRow"]
+custom_minimum_size = Vector2(88, 88)
+layout_mode = 2
+texture = SubResource("AtlasTexture_professor")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ProfessorText" type="VBoxContainer" parent="DetailContent/ProfessorRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="ProfessorName" type="Label" parent="DetailContent/ProfessorRow/ProfessorText"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+
+[node name="LocationLabel" type="Label" parent="DetailContent/ProfessorRow/ProfessorText"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+
+[node name="DetailTitle" type="Label" parent="DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+autowrap_mode = 2
+
+[node name="DetailStatus" type="Label" parent="DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
+
+[node name="DetailDescription" type="Label" parent="DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 2
+
+[node name="DetailObjective" type="Label" parent="DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 2
+
+[node name="RewardsHeading" type="Label" parent="DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+
+[node name="RewardsScroll" type="ScrollContainer" parent="DetailContent"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RewardsList" type="VBoxContainer" parent="DetailContent/RewardsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12

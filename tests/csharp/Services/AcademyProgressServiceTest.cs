@@ -789,7 +789,7 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
-        AssertThat(repo.GetCardCount(CardIds.MagicBolt)).IsEqual(magicBoltCountBefore + 1);
+        AssertThat(repo.GetCardCount(CardIds.MagicBolt)).IsEqual(magicBoltCountBefore);
 
         AssertThat(
                 service.CompleteAcademyActivity(
@@ -798,6 +798,7 @@ public class AcademyProgressServiceTest
                 )
             )
             .IsTrue();
+        AssertThat(repo.GetCardCount(CardIds.MagicBolt)).IsEqual(magicBoltCountBefore + 1);
 
         var progress = repo.GetCampaignProgress(SummonerIds.Cole).Academy;
         AssertThat(progress.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);

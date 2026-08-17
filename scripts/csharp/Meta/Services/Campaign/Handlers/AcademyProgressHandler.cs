@@ -873,11 +873,14 @@ public class AcademyProgressHandler
             ? ValidateCourseAvailable(course, academy)
             : (available: false, reason: GetSemesterRelation(academy, viewedYear, viewedSemester));
 
-        var rewards = ToUniversalOfferPreviewArray(
+        var completionRewards = ToUniversalOfferPreviewArray(
             course,
             "course_completion",
             course.RewardOffers
         );
+        var rewards = new Godot.Collections.Array<Godot.Collections.Dictionary>();
+        foreach (var preview in completionRewards)
+            rewards.Add(preview);
         foreach (var activity in course.Activities)
         {
             foreach (
@@ -929,6 +932,7 @@ public class AcademyProgressHandler
             ["activity_index"] = activityIndex,
             ["activities"] = activities,
             ["next_activity"] = nextActivity,
+            ["completion_reward_previews"] = completionRewards,
             ["reward_previews"] = rewards,
             ["universal_reward_status"] = _universalRewards.ToStatusDictionary()["status"],
         };

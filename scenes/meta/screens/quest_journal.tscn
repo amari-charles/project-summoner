@@ -1,11 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/quest_journal.gd" id="1_journal"]
-[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_student_idle.png" id="2_professor"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_professor"]
-atlas = ExtResource("2_professor")
-region = Rect2(0, 0, 192, 192)
+[ext_resource type="PackedScene" path="res://scenes/meta/components/quest_detail_panel.tscn" id="2_detail"]
 
 [node name="QuestJournal" type="Control"]
 layout_mode = 3
@@ -157,83 +153,14 @@ theme_override_constants/margin_top = 34
 theme_override_constants/margin_right = 34
 theme_override_constants/margin_bottom = 28
 
-[node name="DetailEmpty" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="DetailContent" type="VBoxContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin"]
-unique_name_in_owner = true
+[node name="DetailLayout" type="VBoxContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ProfessorRow" type="HBoxContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="ProfessorPortrait" type="TextureRect" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/ProfessorRow"]
-custom_minimum_size = Vector2(88, 88)
-layout_mode = 2
-texture = SubResource("AtlasTexture_professor")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="ProfessorText" type="VBoxContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/ProfessorRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="ProfessorName" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/ProfessorRow/ProfessorText"]
+[node name="QuestDetailPanel" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout" instance=ExtResource("2_detail")]
 unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
 
-[node name="LocationLabel" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/ProfessorRow/ProfessorText"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 17
-
-[node name="DetailTitle" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-autowrap_mode = 2
-
-[node name="DetailStatus" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-
-[node name="DetailDescription" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-autowrap_mode = 2
-
-[node name="DetailObjective" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-autowrap_mode = 2
-
-[node name="RewardsHeading" type="Label" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 21
-
-[node name="RewardsScroll" type="ScrollContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="RewardsList" type="VBoxContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent/RewardsScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 12
-
-[node name="TrackButton" type="Button" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailContent"]
+[node name="TrackButton" type="Button" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2

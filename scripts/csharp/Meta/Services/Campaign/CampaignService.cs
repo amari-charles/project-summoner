@@ -509,6 +509,7 @@ public partial class CampaignService : Node
     public Godot.Collections.Dictionary GetGenericQuestJournalState()
     {
         var journal = _quests?.GetJournalState() ?? [];
+        EnrichAcademicQuestEntries(journal);
         var academy = _academy?.GetProgress() ?? [];
         journal["current_year"] = academy.TryGetValue("current_year", out var year) ? year : 1;
         journal["current_semester"] = academy.TryGetValue("current_semester", out var semester)
@@ -526,8 +527,47 @@ public partial class CampaignService : Node
         return journal;
     }
 
-    public Godot.Collections.Dictionary GetNpcQuestState(string npcId) =>
-        _quests?.GetNpcState(npcId) ?? [];
+    public Godot.Collections.Dictionary GetNpcQuestState(string npcId)
+    {
+        var state = _quests?.GetNpcState(npcId) ?? [];
+        EnrichAcademicQuestEntries(state);
+        return state;
+    }
+
+    private void EnrichAcademicQuestEntries(Godot.Collections.Dictionary state)
+    {
+        if (_academy == null)
+            return;
+        foreach (var section in new[] { "active", "opportunities", "completed" })
+        {
+            if (
+                !state.TryGetValue(section, out var value)
+                || value.VariantType != Variant.Type.Array
+            )
+                continue;
+            foreach (var item in value.AsGodotArray())
+            {
+                var entry = item.AsGodotDictionary();
+                if (
+                    !entry.TryGetValue("acceptance_previews", out var previewsValue)
+                    || previewsValue.VariantType != Variant.Type.Array
+                )
+                    continue;
+                foreach (var previewValue in previewsValue.AsGodotArray())
+                {
+                    var preview = previewValue.AsGodotDictionary();
+                    if (preview["kind"].AsString() != CurriculumQuestRuleHandler.CommitKind)
+                        continue;
+                    var course = _academy.GetCourse(preview["course_id"].AsString());
+                    if (course.Count == 0)
+                        continue;
+                    entry["curriculum_cost"] = preview["amount"];
+                    entry["reward_previews"] = course["completion_reward_previews"];
+                    break;
+                }
+            }
+        }
+    }
 
     public bool AcceptQuest(string questId)
     {

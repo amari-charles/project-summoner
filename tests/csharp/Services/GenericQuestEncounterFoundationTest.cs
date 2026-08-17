@@ -125,6 +125,15 @@ public class GenericQuestEncounterFoundationTest
 
         var initial = campaign.GetGenericQuestJournalState();
         AssertThat(initial["opportunities"].AsGodotArray()).HasSize(1);
+        var introOffer = campaign
+            .GetNpcQuestState("general_magic")["opportunities"]
+            .AsGodotArray()[0]
+            .AsGodotDictionary();
+        AssertThat(introOffer["curriculum_cost"].AsInt32()).IsEqual(1);
+        var introRewardPreviews = introOffer["reward_previews"].AsGodotArray();
+        AssertThat(introRewardPreviews).HasSize(1);
+        AssertThat(introRewardPreviews[0].AsGodotDictionary()["label_key"].AsString())
+            .IsEqual("academy.reward.magic_bolt");
         AssertThat(campaign.AcceptQuest("introduction_to_magic")).IsTrue();
 
         var accepted = campaign.GetGenericQuestJournalState();

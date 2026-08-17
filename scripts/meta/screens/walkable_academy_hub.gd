@@ -124,6 +124,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var inventory_button: Button = %InventoryButton
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 @onready var reward_modal: RewardGrantModal = %RewardGrantModal
+@onready var quest_offer_modal: QuestOfferModal = %QuestOfferModal
 
 var _camera_target_fov: float = 46.0
 var _camera_default_fov: float = 46.0
@@ -139,6 +140,9 @@ var _dialog_accepted_lines: Array[String] = []
 var _dialog_turn_in_npc_id: String = ""
 var _dialog_response_actions: Dictionary = {}
 var _dialog_response_quest_ids: Dictionary = {}
+var _dialog_opportunities_by_id: Dictionary = {}
+var _dialog_offer_lines: Array[String] = []
+var _dialog_offer_responses: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -160,6 +164,8 @@ func _ready() -> void:
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
 	dialogue_box.closed.connect(_on_dialogue_closed)
 	reward_modal.closed.connect(_on_reward_modal_closed)
+	quest_offer_modal.accepted.connect(_on_quest_offer_accepted)
+	quest_offer_modal.backed.connect(_on_quest_offer_backed)
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
@@ -750,6 +756,9 @@ func _on_professor_interacted(professor_id: String) -> void:
 	_dialog_turn_in_npc_id = ""
 	_dialog_response_actions.clear()
 	_dialog_response_quest_ids.clear()
+	_dialog_opportunities_by_id.clear()
+	_dialog_offer_lines.clear()
+	_dialog_offer_responses.clear()
 
 	if not opportunities.is_empty():
 		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
@@ -762,15 +771,14 @@ func _on_professor_interacted(professor_id: String) -> void:
 		var responses: Array[Dictionary] = []
 		for opportunity_value: Variant in opportunities:
 			var opportunity: Dictionary = SafeTypeUtils.dict(opportunity_value)
+			_dialog_opportunities_by_id[SafeTypeUtils.string(opportunity.get("id"))] = opportunity
 			responses.append_array(_dialogue_responses(
 				SafeTypeUtils.array(opportunity.get("response_choices")),
 				SafeTypeUtils.string(opportunity.get("id"))
 			))
-		dialogue_box.present(
-			professor_name,
-			offer_lines,
-			responses
-		)
+		_dialog_offer_lines = offer_lines
+		_dialog_offer_responses = responses
+		_present_quest_opportunity_dialogue()
 	else:
 		var active: Array = SafeTypeUtils.array(state.get("active"))
 		if active.is_empty():
@@ -809,18 +817,46 @@ func _on_dialogue_choice(choice_id: String) -> void:
 		_dialog_response_quest_ids.get(choice_id),
 		_dialog_quest_id
 	)
-	_dialog_response_actions.clear()
-	_dialog_response_quest_ids.clear()
 	if action != "accept_quest" or selected_quest_id.is_empty():
+		_dialog_response_actions.clear()
+		_dialog_response_quest_ids.clear()
 		_dialog_quest_id = ""
 		return
+	var quest: Dictionary = SafeTypeUtils.dict(
+		_dialog_opportunities_by_id.get(selected_quest_id)
+	)
+	if quest.is_empty():
+		push_warning("WalkableAcademyHub: Missing offer data for quest '%s'" % selected_quest_id)
+		return
+	player.set_physics_process(false)
+	quest_offer_modal.present(quest)
+
+
+func _on_quest_offer_accepted(selected_quest_id: String) -> void:
 	_dialog_accepted_lines = _accepted_lines_for_quest(_dialog_npc_id, selected_quest_id)
 	if not CampaignApi.accept_quest(selected_quest_id):
 		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % selected_quest_id)
-	elif not _dialog_accepted_lines.is_empty():
+		_on_quest_offer_backed()
+		return
+	_dialog_response_actions.clear()
+	_dialog_response_quest_ids.clear()
+	if not _dialog_accepted_lines.is_empty():
 		player.set_physics_process(false)
 		dialogue_box.present(_dialog_speaker, _dialog_accepted_lines)
 	_dialog_quest_id = ""
+
+
+func _on_quest_offer_backed() -> void:
+	player.set_physics_process(false)
+	_present_quest_opportunity_dialogue()
+
+
+func _present_quest_opportunity_dialogue() -> void:
+	dialogue_box.present(
+		_dialog_speaker,
+		_dialog_offer_lines,
+		_dialog_offer_responses
+	)
 
 
 func _on_dialogue_closed() -> void:
