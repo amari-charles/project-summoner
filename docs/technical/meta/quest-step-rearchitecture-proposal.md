@@ -1,6 +1,6 @@
 # Generic Quest and Encounter Rearchitecture Proposal
 
-**Status:** Proposed
+**Status:** Partially implemented; migration status below is authoritative
 **Product source:** `docs/design/quest-system.md`
 
 ## Goal

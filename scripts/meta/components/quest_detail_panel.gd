@@ -37,13 +37,15 @@ func present(
 	detail_status.text = status_text
 	detail_status.visible = not status_text.is_empty()
 	detail_description.text = Loc.t(SafeTypeUtils.string(entry.get("description_key")))
-	professor_name.text = Loc.t(
-		SafeTypeUtils.string(
-			entry.get("source_name_key"),
-			SafeTypeUtils.string(entry.get("professor_name_key"))
-		)
+	var source_name_key: String = SafeTypeUtils.string(
+		entry.get("source_name_key"),
+		SafeTypeUtils.string(entry.get("professor_name_key"))
 	)
-	location_label.text = Loc.t(SafeTypeUtils.string(entry.get("location_key")))
+	professor_name.text = Loc.t(source_name_key) if not source_name_key.is_empty() else ""
+	professor_name.visible = not source_name_key.is_empty()
+	var location_key: String = SafeTypeUtils.string(entry.get("location_key"))
+	location_label.text = Loc.t(location_key) if not location_key.is_empty() else ""
+	location_label.visible = not location_key.is_empty()
 
 	var objective_key: String = SafeTypeUtils.string(entry.get("current_objective_key"))
 	detail_objective.visible = not objective_key.is_empty()

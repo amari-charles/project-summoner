@@ -248,7 +248,8 @@ func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -
 
 func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	var script_text: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
-	assert_true(script_text.contains("consume_last_academy_completion_summary"))
+	assert_false(script_text.contains("consume_last_academy_completion_summary"))
+	assert_true(script_text.contains('result.get("completion_summary")'))
 	assert_true(script_text.contains("reward_modal.present"))
 	assert_true(script_text.contains("academy.quest.complete"))
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
@@ -310,6 +311,24 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 	assert_true(detail.rewards_list.get_child(0) is CardWidget)
 	offer._back()
 	assert_false(offer.visible)
+
+
+func test_non_academic_quest_offer_does_not_invent_curriculum_cost() -> void:
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	add_child_autofree(offer)
+	await get_tree().process_frame
+	offer.present({
+		"id": "side_quest",
+		"title_key": "academy.journal.title",
+		"description_key": "academy.journal.description",
+	})
+	var detail: QuestDetailPanel = offer.get_node(
+		"Center/Panel/Margin/Content/QuestDetailPanel"
+	) as QuestDetailPanel
+	assert_false(detail.detail_status.visible)
 
 
 func test_tracked_quest_is_a_wide_semitransparent_banner() -> void:

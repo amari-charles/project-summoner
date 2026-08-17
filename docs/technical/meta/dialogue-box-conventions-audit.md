@@ -1,7 +1,7 @@
 # Dialogue Box Conventions Audit
 
-**Status:** Research and implementation audit  
-**Date:** 2026-08-16  
+**Status:** Research and implementation audit
+**Date:** 2026-08-16
 **Scope:** Campus NPC dialogue presentation; this does not replace the
 [Narrative Director and Dialogue System](../../design/narrative-dialogue-system.md).
 

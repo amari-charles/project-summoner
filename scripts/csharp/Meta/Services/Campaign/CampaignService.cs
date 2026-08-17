@@ -588,6 +588,16 @@ public partial class CampaignService : Node
     public Godot.Collections.Dictionary RecordQuestNpcInteraction(string npcId)
     {
         var result = _quests?.RecordNpcInteraction(npcId) ?? [];
+        if (
+            result.TryGetValue("completed", out var completed)
+            && completed.AsBool()
+            && _academy != null
+        )
+        {
+            var completionSummary = _academy.ConsumeLastCompletionSummary();
+            if (completionSummary.Count > 0)
+                result["completion_summary"] = completionSummary;
+        }
         if (result.Count > 0)
             EmitSignal(SignalName.CampaignProgressChanged);
         return result;

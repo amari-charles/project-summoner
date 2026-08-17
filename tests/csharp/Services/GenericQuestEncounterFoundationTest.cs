@@ -175,8 +175,8 @@ public class GenericQuestEncounterFoundationTest
         AssertThat(npcState["quest_marker"].AsString()).IsEqual("?");
         var completion = campaign.RecordQuestNpcInteraction("general_magic");
         AssertThat(completion["completed"].AsBool()).IsTrue();
-        var questCompletionRewards = campaign
-            .GetLastAcademyCompletionSummary()["granted_rewards"]
+        var questCompletionRewards = completion["completion_summary"]
+            .AsGodotDictionary()["granted_rewards"]
             .AsGodotArray();
         AssertThat(questCompletionRewards).HasSize(1);
         AssertThat(questCompletionRewards[0].AsGodotDictionary()["card_id"].AsString())
@@ -266,7 +266,7 @@ public class GenericQuestEncounterFoundationTest
 
         var turnIn = campaign.RecordQuestNpcInteraction("general_magic");
         AssertThat(turnIn["completed"].AsBool()).IsTrue();
-        var questCompletionSummary = campaign.GetLastAcademyCompletionSummary();
+        var questCompletionSummary = turnIn["completion_summary"].AsGodotDictionary();
         var rewards = questCompletionSummary["granted_rewards"].AsGodotArray();
         AssertThat(rewards).HasSize(1);
         AssertThat(rewards[0].AsGodotDictionary()["card_id"].AsString())

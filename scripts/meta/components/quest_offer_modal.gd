@@ -23,10 +23,13 @@ func _ready() -> void:
 
 func present(quest: Dictionary) -> void:
 	_quest_id = SafeTypeUtils.string(quest.get("id"))
-	var cost: int = SafeTypeUtils.int_val(quest.get("curriculum_cost"), 0)
+	var commitment_text: String = ""
+	if quest.has("curriculum_cost"):
+		var cost: int = SafeTypeUtils.int_val(quest.get("curriculum_cost"), 0)
+		commitment_text = Loc.t("academy.quest.permanent_cost", {"cost": cost})
 	quest_detail.present(
 		quest,
-		Loc.t("academy.quest.permanent_cost", {"cost": cost}),
+		commitment_text,
 		"",
 		true
 	)

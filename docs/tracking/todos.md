@@ -96,7 +96,7 @@ Establish one explicit XP presentation contract so the designer does not omit pr
 - `docs/technical/meta/unified-post-battle-flow-proposal.md`
 
 #### Build One Reusable Reward and Progression Reveal Flow
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Rewards / Progression / UI Architecture
 **Urgency:** High — major missing player-feedback screen
 **Ease:** Hard
@@ -104,6 +104,11 @@ Establish one explicit XP presentation contract so the designer does not omit pr
 
 **Description:**
 Replace the fragmented campaign reward screen, encounter results screen, and optional level-up modals with one clear post-battle flow backed by reusable acquisition/reveal components. The same acquisition presentation must also support rewards granted outside battle, including quest turn-ins.
+
+**Progress:** Quest turn-ins now use a reusable reward-grant modal fed by the
+generic quest-completion result. The unified post-battle report, XP/level
+sequence, reward-choice handling, and retirement of competing result screens
+remain open.
 
 **Tasks:**
 - [ ] Approve the unified post-battle sequence: outcome, summoner/card XP, level reveals, acquired rewards, contextual quest/rating progress, and continue destination.
@@ -127,9 +132,9 @@ The report builder belongs in the meta/application progression boundary because 
 - `scenes/meta/modals/card_level_up_panel.tscn`
 
 #### Give the First Quest a Real Reward and Prove the Complete Acquisition Loop
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Quests / Rewards / Vertical Slice
-**Urgency:** High — current first quest ends without a meaningful payoff
+**Urgency:** High — complete the generic reward contract proven by the first slice
 **Ease:** Medium
 **Scope:** Medium
 
@@ -137,12 +142,16 @@ The report builder belongs in the meta/application progression boundary because 
 Author an intentional reward for `Introduction to Magic`, grant it through the universal reward system when the quest is completed, and present it through the reusable acquisition flow. This is the first proof that NPC conversation, quest tracking, battle completion, return dialogue, permanent progression, and reward presentation form one coherent loop.
 
 **Tasks:**
-- [ ] Decide the first quest's exact reward and why it matters to the player's next choice.
+- [x] Decide the first quest's exact reward and why it matters to the player's next choice (Magic Bolt).
 - [ ] Add a generic quest-completion reward contract rather than a professor- or Academy-specific grant path.
-- [ ] Commit automatic grants before presentation and persist any required reward choice.
-- [ ] Show the actual card or item visual when that type is awarded.
-- [ ] Update the Journal's reward preview and completed state from the same normalized reward data.
-- [ ] Validate idempotency so repeating dialogue or reloading cannot duplicate the reward.
+- [x] Commit automatic grants before presentation and persist any required reward choice.
+- [x] Show the actual card or item visual when that type is awarded.
+- [x] Update the Journal's reward preview and completed state from the same normalized reward data.
+- [x] Validate idempotency so repeating dialogue or reloading cannot duplicate the reward.
+
+**Remaining Scope:** The Academy curriculum adapter currently produces the
+normalized completion summary. Add a generic quest reward-effect handler so
+non-academic quests can author and grant rewards without Academy involvement.
 
 **Placement Rationale:**
 Quest completion may originate from any character or activity, so quest-to-reward orchestration belongs at the generic meta quest/reward boundary. The universal reward authority owns permanent grants; dialogue and Journal views only render normalized state.

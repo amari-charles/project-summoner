@@ -865,7 +865,7 @@ func _on_dialogue_closed() -> void:
 		_dialog_turn_in_npc_id = ""
 		var result: Dictionary = CampaignApi.record_quest_npc_interaction(turn_in_npc_id)
 		if SafeTypeUtils.bool_val(result.get("completed"), false):
-			var summary: Dictionary = CampaignApi.consume_last_academy_completion_summary()
+			var summary: Dictionary = SafeTypeUtils.dict(result.get("completion_summary"))
 			var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
 			if not rewards.is_empty():
 				reward_modal.present(rewards, Loc.t("academy.quest.complete"))

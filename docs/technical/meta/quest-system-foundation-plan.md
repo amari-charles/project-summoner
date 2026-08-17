@@ -1,6 +1,6 @@
 # Quest System Foundation Plan
 
-**Status:** Active
+**Status:** Implemented for the first introductory slice; follow-up generic reward and encounter extraction remains
 **Product source:** `docs/design/quest-system.md`
 
 ## Objective
