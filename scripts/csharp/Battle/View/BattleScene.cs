@@ -246,8 +246,8 @@ public partial class BattleScene : Node3D
             && CurrentState != GameState.GameOver
         )
             ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
-        if (_config != null && _config.Mode == BattleMode.Academy && CurrentState != GameState.GameOver)
-            RecordAcademyOutcome(2);
+        if (_config != null && _config.Mode == BattleMode.Encounter && CurrentState != GameState.GameOver)
+            RecordEncounterOutcome(2);
 
         var simNode = GetSimNode();
         if (simNode is IGameSession session)
@@ -400,8 +400,8 @@ public partial class BattleScene : Node3D
     {
         if (_config.Mode == BattleMode.Campaign && CurrentState != GameState.GameOver)
             _campaignProgressionResult = ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
-        if (_config.Mode == BattleMode.Academy && CurrentState != GameState.GameOver)
-            RecordAcademyOutcome(2);
+        if (_config.Mode == BattleMode.Encounter && CurrentState != GameState.GameOver)
+            RecordEncounterOutcome(2);
 
         // Delegate state cleanup to BattleContext
         var battleContext = GetTree().Root.GetNodeOrNull("BattleContext");
@@ -899,8 +899,8 @@ public partial class BattleScene : Node3D
             case BattleMode.Multiplayer:
                 HandleMultiplayerCompletion(winnerTeam);
                 break;
-            case BattleMode.Academy:
-                HandleAcademyCompletion(winnerTeam);
+            case BattleMode.Encounter:
+                HandleEncounterCompletion(winnerTeam);
                 break;
         }
     }
@@ -924,20 +924,19 @@ public partial class BattleScene : Node3D
         }
     }
 
-    private void HandleAcademyCompletion(int winnerTeam)
+    private void HandleEncounterCompletion(int winnerTeam)
     {
-        RecordAcademyOutcome(winnerTeam == 0 ? 0 : 1);
+        RecordEncounterOutcome(winnerTeam == 0 ? 0 : 1);
         NavigateToScene("res://scenes/meta/screens/academy_activity_results.tscn");
     }
 
-    private void RecordAcademyOutcome(int outcome)
+    private void RecordEncounterOutcome(int outcome)
     {
         var battleContext = GetNodeOrNull("/root/BattleContext");
-        var courseId = battleContext?.Get("academy_course_id").AsString() ?? "";
-        var activityId = battleContext?.Get("academy_activity_id").AsString() ?? "";
+        var encounterId = battleContext?.Get("encounter_id").AsString() ?? "";
         var campaign = GetNodeOrNull("/root/Campaign");
-        if (!string.IsNullOrEmpty(courseId) && !string.IsNullOrEmpty(activityId) && campaign != null)
-            campaign.Call("CompleteAcademyActivity", courseId, activityId, outcome);
+        if (!string.IsNullOrEmpty(encounterId) && campaign != null)
+            campaign.Call("CompleteEncounter", encounterId, outcome);
     }
 
     private void HandleMultiplayerCompletion(int winnerTeam)

@@ -45,7 +45,7 @@ func _check_battle_mode() -> void:
 		BattleContext.BattleMode.CAMPAIGN,
 		BattleContext.BattleMode.TUTORIAL,
 		BattleContext.BattleMode.PRACTICE,  # Enable for debug arena
-		BattleContext.BattleMode.ACADEMY
+		BattleContext.BattleMode.ENCOUNTER
 	]
 
 	disabled = not is_speed_enabled

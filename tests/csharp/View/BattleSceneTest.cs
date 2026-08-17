@@ -236,12 +236,7 @@ public class BattleSceneTest
             ["enemy_side"] = AuthoredEnemyConfigDict("weak_enemy_unit", count: 1),
         };
 
-        context.Call(
-            "configure_academy_battle",
-            "introduction_to_magic_101",
-            "magic_101_spell_practice",
-            battleConfig
-        );
+        context.Call("configure_encounter_battle", "intro_spell_practice", battleConfig);
 
         var config = BattleSessionConfig.FromBattleContext(context);
         var resolved = BattleSideResolver.Resolve(
@@ -261,7 +256,7 @@ public class BattleSceneTest
     }
 
     [TestCase]
-    public void AcademyBattleContext_DoesNotAllowCallerMutationToChangeStoredDeck()
+    public void EncounterBattleContext_DoesNotAllowCallerMutationToChangeStoredDeck()
     {
         var context = CreateBattleContext();
         var cards = new Godot.Collections.Array
@@ -289,12 +284,7 @@ public class BattleSceneTest
             ["enemy_side"] = AuthoredEnemyConfigDict("weak_enemy_unit", count: 1),
         };
 
-        context.Call(
-            "configure_academy_battle",
-            "introduction_to_magic_101",
-            "magic_101_summon_practice",
-            battleConfig
-        );
+        context.Call("configure_encounter_battle", "intro_summoning_practice", battleConfig);
         cards.Clear();
 
         var storedConfig = context.Get("battle_config").AsGodotDictionary();
@@ -537,9 +527,8 @@ public class BattleSceneTest
         var actualElementalBonuses = summonerState
             .EnumerateElementalDamageBonuses()
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        AssertThat(actualElementalBonuses.Count).IsEqual(
-            expected.Summoner.ElementalDamageBonuses.Count
-        );
+        AssertThat(actualElementalBonuses.Count)
+            .IsEqual(expected.Summoner.ElementalDamageBonuses.Count);
         foreach (var kvp in expected.Summoner.ElementalDamageBonuses)
         {
             AssertThat(actualElementalBonuses.ContainsKey(kvp.Key)).IsTrue();

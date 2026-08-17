@@ -131,7 +131,7 @@ func test_configure_academy_preserves_player_side_deck() -> void:
 		}
 	}
 
-	context.configure_academy_battle("introduction_to_magic_101", "magic_101_spell_practice", custom_config)
+	context.configure_encounter_battle("intro_spell_practice", custom_config)
 	player_cards.clear()
 
 	var player_side: Dictionary = context.battle_config.get("player_side", {})

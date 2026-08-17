@@ -4,7 +4,7 @@ class_name WalkableAcademyHub
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
 const InteractiveNpcScene: PackedScene = preload("res://scenes/meta/components/interactive_npc.tscn")
-const PLACEHOLDER_CLASS_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_class_hall.png")
+const QuestWorldTargetScene: PackedScene = preload("res://scenes/meta/components/quest_world_target.tscn")
 const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
 const PLACEHOLDER_DORMS: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png")
@@ -27,7 +27,6 @@ const PLACEHOLDER_WATER_FOAM_SHADER: Shader = preload("res://shaders/meta/placeh
 const WATER_FOAM_FRAME_COUNT: int = 16
 const WATER_FOAM_TILE_SPAN: float = 3.0
 
-const DESTINATION_CLASS_HALL: StringName = &"class_hall"
 const DESTINATION_SHOP: StringName = &"shop"
 const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
 const DESTINATION_DORMS: StringName = &"dorms"
@@ -47,14 +46,6 @@ const PROFESSOR_POSITIONS: Dictionary = {
 ## One destination catalog drives both building entrances and fast shortcuts.
 ## Entries without a position remain shortcut-only in the current prototype.
 const DESTINATIONS: Array[Dictionary] = [
-	{
-		"id": DESTINATION_CLASS_HALL,
-		"name_key": "academy.campus.class_hall.name",
-		"description_key": "academy.campus.class_hall.description",
-		"target_scene": SceneManagerClass.SCENE_ACADEMY_CLASS_HALL,
-		"placeholder_texture": PLACEHOLDER_CLASS_HALL,
-		"position": Vector3(-12.0, 0.0, -8.0),
-	},
 	{
 		"id": DESTINATION_SHOP,
 		"name_key": "academy.campus.shop.name",
@@ -118,6 +109,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var ground_label: Label3D = %GroundLabel
 @onready var buildings: Node3D = %Buildings
 @onready var professors: Node3D = %Professors
+@onready var quest_targets: Node3D = %QuestTargets
 @onready var camera: Camera3D = %Camera3D
 @onready var player: Node3D = %Player
 @onready var shortcut_button: Button = %ShortcutButton
@@ -137,9 +129,10 @@ var _camera_focus_position: Vector3 = Vector3.ZERO
 var _camera_follow_distance: float = 31.0
 var _ground_source_size: Vector2 = Vector2.ZERO
 var _transition_started: bool = false
-var _dialog_course_id: String = ""
+var _dialog_quest_id: String = ""
 var _dialog_speaker: String = ""
 var _dialog_accepted_lines: Array[String] = []
+var _dialog_turn_in_npc_id: String = ""
 
 
 func _ready() -> void:
@@ -173,6 +166,7 @@ func _ready() -> void:
 	_snap_camera_to_player()
 	_spawn_buildings()
 	_spawn_professors()
+	_spawn_quest_targets()
 	_refresh_quest_presentation()
 
 
@@ -669,11 +663,26 @@ func _spawn_professors() -> void:
 		var professor_id: String = SafeTypeUtils.string(state.get("id"))
 		if not PROFESSOR_POSITIONS.has(professor_id):
 			continue
+		var quest_state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+		if not quest_state.is_empty():
+			state["quest_marker"] = quest_state.get("quest_marker", "")
 		var professor: InteractiveNpc = InteractiveNpcScene.instantiate()
 		professor.position = PROFESSOR_POSITIONS[professor_id]
 		professor.interacted.connect(_on_professor_interacted)
 		professors.add_child(professor)
 		_configure_professor(professor, state)
+
+
+func _spawn_quest_targets() -> void:
+	_clear_children(quest_targets)
+	var practice_grounds: QuestWorldTarget = QuestWorldTargetScene.instantiate() as QuestWorldTarget
+	practice_grounds.position = Vector3(6.0, 0.0, 8.0)
+	practice_grounds.configure(
+		"practice_grounds",
+		Loc.t("quest.world.practice_grounds")
+	)
+	practice_grounds.interacted.connect(_on_quest_world_target_interacted)
+	quest_targets.add_child(practice_grounds)
 
 
 func _refresh_quest_presentation() -> void:
@@ -684,9 +693,23 @@ func _refresh_quest_presentation() -> void:
 	for child: Node in professors.get_children():
 		var professor: InteractiveNpc = child as InteractiveNpc
 		if professor != null and state_by_id.has(professor.npc_id):
-			_configure_professor(professor, state_by_id[professor.npc_id])
+			var professor_state: Dictionary = state_by_id[professor.npc_id]
+			var quest_state: Dictionary = CampaignApi.get_npc_quest_state(professor.npc_id)
+			if not quest_state.is_empty():
+				professor_state["quest_marker"] = quest_state.get("quest_marker", "")
+			_configure_professor(professor, professor_state)
 
-	var journal: Dictionary = CampaignApi.get_quest_journal_state()
+	var journal: Dictionary = CampaignApi.get_generic_quest_journal_state()
+	var current_target_id: String = ""
+	for value: Variant in SafeTypeUtils.array(journal.get("active")):
+		var active_quest: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(active_quest.get("current_step_kind")) == "interact_with_world_target":
+			current_target_id = SafeTypeUtils.string(active_quest.get("current_target_id"))
+			break
+	for child: Node in quest_targets.get_children():
+		var target: QuestWorldTarget = child as QuestWorldTarget
+		if target != null:
+			target.set_current_objective(target.target_id == current_target_id)
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
 	tracked_quest_button.visible = not tracked_id.is_empty()
 	if tracked_id.is_empty():
@@ -704,18 +727,22 @@ func _refresh_quest_presentation() -> void:
 func _on_professor_interacted(professor_id: String) -> void:
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(false)
-	var state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)
-	var professor_name: String = Loc.t(SafeTypeUtils.string(state.get("name_key")))
+	var professor_state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)
+	var state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+	var professor_name: String = Loc.t(
+		SafeTypeUtils.string(professor_state.get("name_key"))
+	)
 	var opportunities: Array = SafeTypeUtils.array(state.get("opportunities"))
-	_dialog_course_id = ""
+	_dialog_quest_id = ""
 	_dialog_speaker = professor_name
 	_dialog_accepted_lines.clear()
+	_dialog_turn_in_npc_id = ""
 
 	if not opportunities.is_empty():
 		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
-		_dialog_course_id = SafeTypeUtils.string(quest.get("source_id"))
+		_dialog_quest_id = SafeTypeUtils.string(quest.get("id"))
 		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
-		var cost: int = SafeTypeUtils.int_val(quest.get("curriculum_cost"), 0)
+		var cost: int = _curriculum_cost(quest)
 		var offer_lines: Array[String] = _localized_dialogue_lines(
 			SafeTypeUtils.array(quest.get("offer_dialogue_keys"))
 		)
@@ -742,19 +769,26 @@ func _on_professor_interacted(professor_id: String) -> void:
 			dialogue_box.present(professor_name, [Loc.t("academy.quest.no_assignment")])
 		else:
 			var quest: Dictionary = SafeTypeUtils.dict(active[0])
+			var is_turn_in: bool = (
+				SafeTypeUtils.string(quest.get("current_step_kind")) == "talk_to_npc"
+				and SafeTypeUtils.string(quest.get("current_target_id")) == professor_id
+			)
 			var reminder_lines: Array[String] = _localized_dialogue_lines(
 				SafeTypeUtils.array(quest.get("active_dialogue_keys"))
 			)
 			var objective: String = Loc.t(
 				SafeTypeUtils.string(quest.get("current_objective_key"))
 			)
-			if reminder_lines.is_empty():
+			if reminder_lines.is_empty() and not is_turn_in:
 				reminder_lines.append(
 					Loc.t("academy.quest.active_reminder", {"objective": objective})
 				)
-			reminder_lines.append(
-				_accent_text(Loc.t("academy.quest.objective_callout", {"objective": objective}))
-			)
+			if not is_turn_in:
+				reminder_lines.append(
+					_accent_text(Loc.t("academy.quest.objective_callout", {"objective": objective}))
+				)
+			else:
+				_dialog_turn_in_npc_id = professor_id
 			dialogue_box.present(
 				professor_name,
 				reminder_lines
@@ -762,19 +796,41 @@ func _on_professor_interacted(professor_id: String) -> void:
 
 
 func _on_dialogue_choice(choice_id: String) -> void:
-	if choice_id != "accept" or _dialog_course_id.is_empty():
-		_dialog_course_id = ""
+	if choice_id != "accept" or _dialog_quest_id.is_empty():
+		_dialog_quest_id = ""
 		return
-	if not CampaignApi.enroll_academy_course(_dialog_course_id):
-		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % _dialog_course_id)
+	if not CampaignApi.accept_quest(_dialog_quest_id):
+		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % _dialog_quest_id)
 	elif not _dialog_accepted_lines.is_empty():
 		player.set_physics_process(false)
 		dialogue_box.present(_dialog_speaker, _dialog_accepted_lines)
-	_dialog_course_id = ""
+	_dialog_quest_id = ""
 
 
 func _on_dialogue_closed() -> void:
+	if not _dialog_turn_in_npc_id.is_empty():
+		CampaignApi.record_quest_npc_interaction(_dialog_turn_in_npc_id)
+		_dialog_turn_in_npc_id = ""
 	player.set_physics_process(true)
+
+
+func _on_quest_world_target_interacted(target_id: String) -> void:
+	var result: Dictionary = CampaignApi.record_quest_world_interaction(target_id)
+	var step: Dictionary = SafeTypeUtils.dict(result.get("current_step"))
+	var encounter_id: String = SafeTypeUtils.string(step.get("encounter_id"))
+	if encounter_id.is_empty():
+		return
+	BattleContext.select_encounter(encounter_id)
+	NavigationContext.push_return(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	SceneManager.transition_to(SceneManager.SCENE_ENCOUNTER_PREPARATION)
+
+
+func _curriculum_cost(quest: Dictionary) -> int:
+	for value: Variant in SafeTypeUtils.array(quest.get("acceptance_previews")):
+		var preview: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(preview.get("kind")) == "commit_curriculum_capacity":
+			return SafeTypeUtils.int_val(preview.get("amount"), 0)
+	return 0
 
 
 func _configure_professor(professor: InteractiveNpc, state: Dictionary) -> void:

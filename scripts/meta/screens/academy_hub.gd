@@ -32,12 +32,13 @@ func _ready() -> void:
 func _refresh() -> void:
 	_clear_children(campus_locations)
 	_add_location(
-		"academy.campus.class_hall.name",
-		"academy.campus.class_hall.description",
+		"academy.journal.title",
+		"academy.journal.description",
 		false,
 		Vector2(0.50, 0.33),
 		func() -> void:
-			SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CLASS_HALL)
+			NavigationContext.push_return(SceneManager.SCENE_CAMPAIGN_MAP)
+			SceneManager.transition_to(SceneManager.SCENE_QUEST_JOURNAL)
 	)
 	_add_location(
 		"academy.campus.shop.name",

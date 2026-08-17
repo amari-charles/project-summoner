@@ -195,14 +195,14 @@ compatibility adapter or hidden fallback route remains.
 | Node | Status |
 |---|---|
 | CampaignService facade | Implemented; orchestration change planned |
-| QuestProgressHandler | Planned |
-| EncounterService | Planned from existing Academy/battle-flow logic |
-| QuestRuleRegistry | Planned |
+| QuestProgressHandler | Implemented |
+| EncounterService | Implemented with a temporary Academy battle adapter |
+| QuestRuleRegistry | Implemented |
 | RewardService | Implemented; retained |
-| Typed quest and encounter definitions | Planned |
-| Journal/HUD/NPC projections | Partial implementation; replacement planned |
-| Practice Grounds interaction | Planned |
-| Generic Encounter Preparation and Results | Planned from existing Academy screens |
+| Typed quest and encounter definitions | Implemented for the intro slice |
+| Journal/HUD/NPC projections | Implemented on the generic quest projection |
+| Practice Grounds interaction | Implemented as a generic world target |
+| Generic Encounter Preparation and Results | Implemented; file-path cleanup remains |
 | Academy record and curriculum rule handlers | Existing data; extraction planned |
-| Course Flow | Replaced; deletion planned |
-| Current Class Hall screen | Replaced; deletion planned |
+| Course Flow | Deleted |
+| Current Class Hall screen | Deleted |

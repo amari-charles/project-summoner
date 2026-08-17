@@ -39,6 +39,10 @@ public class CampaignProgress
     [JsonPropertyName("academy")]
     public AcademyProgress Academy { get; set; } = new();
 
+    /// <summary>Generic quest state shared by every quest context.</summary>
+    [JsonPropertyName("quests")]
+    public QuestProgress Quests { get; set; } = new();
+
     /// <summary>Choices made at choice nodes (node_id -> choice_id).</summary>
     [JsonPropertyName("choices")]
     public Dictionary<NodeId, ChoiceId> Choices { get; set; } = [];

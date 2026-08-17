@@ -77,6 +77,9 @@ unique_name_in_owner = true
 [node name="Professors" type="Node3D" parent="."]
 unique_name_in_owner = true
 
+[node name="QuestTargets" type="Node3D" parent="."]
+unique_name_in_owner = true
+
 [node name="PlaceholderCrowd" type="Node3D" parent="."]
 script = ExtResource("4_placeholder_crowd")
 

@@ -1,0 +1,67 @@
+{
+  "quests": [
+    {
+      "id": "introduction_to_magic",
+      "title_key": "academy.course.introduction_to_magic_101.name",
+      "description_key": "academy.course.introduction_to_magic_101.description",
+      "visibility": "announced",
+      "source": {
+        "kind": "npc",
+        "id": "general_magic",
+        "name_key": "academy.professor.general_magic.name",
+        "location_key": "academy.location.general_grounds"
+      },
+      "dialogue": {
+        "offer_line_keys": [
+          "academy.dialogue.introduction_to_magic.offer_1",
+          "academy.dialogue.introduction_to_magic.offer_2"
+        ],
+        "accepted_line_keys": [
+          "academy.dialogue.introduction_to_magic.accepted"
+        ]
+      },
+      "acceptance_requirements": [],
+      "acceptance_effects": [
+        {
+          "kind": "commit_curriculum_capacity",
+          "parameters": {
+            "course_id": "introduction_to_magic_101",
+            "amount": 1
+          }
+        }
+      ],
+      "completion_effects": [
+        {
+          "kind": "record_academic_credit",
+          "parameters": {
+            "course_id": "introduction_to_magic_101"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "id": "go_to_practice_grounds",
+          "kind": "interact_with_world_target",
+          "objective_key": "quest.introduction_to_magic.go_to_practice_grounds",
+          "target_id": "practice_grounds"
+        },
+        {
+          "id": "complete_summoning_practice",
+          "kind": "complete_encounter",
+          "objective_key": "quest.introduction_to_magic.complete_summoning_practice",
+          "encounter_id": "intro_summoning_practice",
+          "required_outcome": "victory"
+        },
+        {
+          "id": "return_to_general_professor",
+          "kind": "talk_to_npc",
+          "objective_key": "quest.introduction_to_magic.return_to_professor",
+          "target_id": "general_magic",
+          "dialogue_keys": [
+            "academy.dialogue.introduction_to_magic.turn_in"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1951,6 +1951,17 @@
       "description": "A weathered cloak for long journeys. Grants +25 Max Health."
     }
   },
+  "quest": {
+    "world": {
+      "practice_grounds": "Practice Grounds",
+      "interact_prompt": "Press Interact to begin"
+    },
+    "introduction_to_magic": {
+      "go_to_practice_grounds": "Go to the Practice Grounds",
+      "complete_summoning_practice": "Complete the summoning exercise",
+      "return_to_professor": "Return to the general professor"
+    }
+  },
   "narrative": {
     "skip": "Skip",
     "remembered_choice": "This choice will be remembered."

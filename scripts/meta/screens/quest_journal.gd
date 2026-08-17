@@ -56,7 +56,7 @@ func _ready() -> void:
 
 
 func _refresh() -> void:
-	_journal_state = CampaignApi.get_quest_journal_state()
+	_journal_state = CampaignApi.get_generic_quest_journal_state()
 	var year: int = SafeTypeUtils.int_val(_journal_state.get("current_year"), 1)
 	var semester: int = SafeTypeUtils.int_val(_journal_state.get("current_semester"), 1)
 	var total: int = SafeTypeUtils.int_val(_journal_state.get("capacity_total"), 0)
@@ -164,7 +164,12 @@ func _render_detail(entry: Dictionary) -> void:
 	detail_title.text = Loc.t(SafeTypeUtils.string(entry.get("title_key")))
 	detail_status.text = _entry_status(entry)
 	detail_description.text = Loc.t(SafeTypeUtils.string(entry.get("description_key")))
-	professor_name.text = Loc.t(SafeTypeUtils.string(entry.get("professor_name_key")))
+	professor_name.text = Loc.t(
+		SafeTypeUtils.string(
+			entry.get("source_name_key"),
+			SafeTypeUtils.string(entry.get("professor_name_key"))
+		)
+	)
 	location_label.text = Loc.t(SafeTypeUtils.string(entry.get("location_key")))
 
 	var objective_key: String = SafeTypeUtils.string(entry.get("current_objective_key"))
@@ -239,7 +244,7 @@ func _build_card_reward(grant: Dictionary) -> Control:
 
 func _entry_status(entry: Dictionary) -> String:
 	var state: String = SafeTypeUtils.string(entry.get("state"))
-	var cost: int = SafeTypeUtils.int_val(entry.get("curriculum_cost"), 0)
+	var cost: int = _curriculum_cost(entry)
 	if state == SECTION_OPEN:
 		return Loc.t("academy.journal.cost", {"cost": cost})
 	if state == SECTION_COMPLETED:
@@ -254,6 +259,14 @@ func _entry_status(entry: Dictionary) -> String:
 			},
 		),
 	]
+
+
+func _curriculum_cost(entry: Dictionary) -> int:
+	for value: Variant in SafeTypeUtils.array(entry.get("acceptance_previews")):
+		var preview: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(preview.get("kind")) == "commit_curriculum_capacity":
+			return SafeTypeUtils.int_val(preview.get("amount"), 0)
+	return SafeTypeUtils.int_val(entry.get("curriculum_cost"), 0)
 
 
 func _track_selected() -> void:

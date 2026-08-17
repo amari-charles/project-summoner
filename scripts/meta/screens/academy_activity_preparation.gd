@@ -1,5 +1,5 @@
 extends Control
-class_name AcademyActivityPreparation
+class_name EncounterPreparation
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 const CardDetailModalScene: PackedScene = preload("res://scenes/meta/modals/card_detail_modal.tscn")
@@ -32,16 +32,15 @@ const LevelUpPanelScene: PackedScene = preload("res://scenes/meta/modals/card_le
 @onready var save_result_dialog: AcceptDialog = %SaveResultDialog
 
 var _state: Dictionary = {}
-var _course_id: String = ""
-var _activity_id: String = ""
+var _encounter_id: String = ""
 var _editing_deck: bool = false
 var _saved_decks: Array = []
 var _populating_deck_selector: bool = false
 
 func _ready() -> void:
 	back_button.text = "←"
-	back_button.tooltip_text = Loc.t("academy.flow.course")
-	back_button.accessibility_name = Loc.t("academy.flow.course")
+	back_button.tooltip_text = Loc.t("academy.hub.title")
+	back_button.accessibility_name = Loc.t("academy.hub.title")
 	back_button.pressed.connect(_go_back)
 	start_button.text = Loc.t("academy.flow.start")
 	save_button.text = Loc.t("academy.flow.save_to_my_decks")
@@ -57,8 +56,7 @@ func _ready() -> void:
 	deck_editor.add_card_requested.connect(_add_editor_card)
 	deck_editor.remove_card_requested.connect(_remove_editor_card)
 	deck_editor.card_info_requested.connect(_open_card_detail_modal)
-	_course_id = BattleContext.academy_course_id
-	_activity_id = BattleContext.academy_activity_id
+	_encounter_id = BattleContext.encounter_id
 	BattleContext.set_battle_attempt_id(NarrativeDirectorApi.begin_attempt())
 	_refresh()
 	if _state.is_empty():
@@ -66,12 +64,12 @@ func _ready() -> void:
 		return
 	NarrativeDirectorApi.publish_event(
 		NarrativeDirectorApi.EventType.PREPARATION_OPENED,
-		_activity_id,
-		{"course_id": _course_id}
+		_encounter_id,
+		{"encounter_id": _encounter_id}
 	)
 
 func _refresh() -> void:
-	_state = CampaignApi.get_academy_activity_preparation_state(_course_id, _activity_id)
+	_state = CampaignApi.get_encounter_preparation_state(_encounter_id)
 	if _state.is_empty():
 		return
 	title_label.text = Loc.t(SafeTypeUtils.string(_state.get("label_key")))
@@ -172,7 +170,7 @@ func _to_editor_entry(card: Dictionary, locked: bool, copy_index: int = 0) -> Di
 	var detail_instance_id: String = instance_id
 	var card_data: Dictionary = CardServiceApi.get_card_dict(instance_id) if not instance_id.is_empty() else {}
 	if instance_id.is_empty():
-		instance_id = "__academy_supplied_%s_%d" % [catalog_id, copy_index]
+		instance_id = "__encounter_supplied_%s_%d" % [catalog_id, copy_index]
 		card_data = {"id": instance_id, "catalog_id": catalog_id}
 	var tooltip: String = SafeTypeUtils.string(
 		CardCatalogApi.get_card_as_dict(catalog_id).get("card_name"),
@@ -276,7 +274,7 @@ func _toggle_class_card(instance_id: String) -> void:
 			selected.append({"card_instance_id": SafeTypeUtils.string(card.get("card_instance_id"))})
 	if not found:
 		selected.append({"card_instance_id": instance_id})
-	if CampaignApi.update_academy_activity_loadout(_course_id, _activity_id, selected):
+	if CampaignApi.update_encounter_loadout(_encounter_id, selected):
 		_refresh()
 
 func _select_owned_deck(index: int) -> void:
@@ -289,8 +287,8 @@ func _select_owned_deck(index: int) -> void:
 	if mode == "Owned" and DecksApi.set_active_deck(deck_id):
 		_refresh()
 	elif mode == "ClassLoadout":
-		var result: Dictionary = CampaignApi.fill_academy_activity_loadout_from_deck(
-			_course_id, _activity_id, deck_id
+		var result: Dictionary = CampaignApi.fill_encounter_loadout_from_deck(
+			_encounter_id, deck_id
 		)
 		if SafeTypeUtils.bool_val(result.get("success")):
 			_refresh()
@@ -376,8 +374,8 @@ func _replace_existing_deck() -> void:
 
 
 func _save_lesson_loadout(target_deck_id: String, new_name: String) -> void:
-	var result: Dictionary = CampaignApi.save_academy_activity_loadout_to_deck(
-		_course_id, _activity_id, target_deck_id, new_name
+	var result: Dictionary = CampaignApi.save_encounter_loadout_to_deck(
+		_encounter_id, target_deck_id, new_name
 	)
 	if not SafeTypeUtils.bool_val(result.get("success")):
 		_show_save_result(Loc.t("academy.flow.save_deck_failed"))
@@ -405,18 +403,18 @@ func _show_save_result(message: String) -> void:
 	save_result_dialog.popup_centered()
 
 func _start() -> void:
-	var config: Dictionary = CampaignApi.resolve_academy_activity_battle_config(_course_id, _activity_id)
+	var config: Dictionary = CampaignApi.resolve_encounter_battle_config(_encounter_id)
 	if config.is_empty():
 		_refresh()
 		return
-	BattleContext.configure_academy_battle(_course_id, _activity_id, config)
+	BattleContext.configure_encounter_battle(_encounter_id, config)
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 func _go_back() -> void:
 	if _editing_deck:
 		_hide_deck_editor()
 		return
-	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_COURSE_FLOW)
+	SceneManager.transition_to(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
 
 
 func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
@@ -429,7 +427,7 @@ func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
 		if SafeTypeUtils.string(SafeTypeUtils.dict(value).get("card_instance_id")) == instance_id:
 			selected = true
 			break
-	modal.set_deck_context("academy_activity" if not instance_id.is_empty() else "", selected)
+	modal.set_deck_context("encounter" if not instance_id.is_empty() else "", selected)
 	modal.deck_action_requested.connect(_on_card_detail_deck_action)
 	modal.level_up_requested.connect(_on_card_detail_level_up)
 	modal.traits_requested.connect(_on_card_detail_traits)
@@ -452,7 +450,7 @@ func _on_card_detail_level_up(instance_id: String) -> void:
 
 func _on_card_detail_traits(instance_id: String) -> void:
 	NavigationContext.set_value("trait_tree_card_instance_id", instance_id)
-	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_ACTIVITY_PREPARATION)
+	NavigationContext.push_return(SceneManager.SCENE_ENCOUNTER_PREPARATION)
 	SceneManager.transition_to(SceneManager.SCENE_CARD_TRAIT_TREE_SCREEN)
 
 

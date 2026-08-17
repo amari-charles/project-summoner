@@ -361,6 +361,7 @@ public static class DtoConverters
             ["completed_battles"] = ToGodotArray(progress.CompletedBattles.Select(b => (string)b)),
             ["gold"] = progress.Gold,
             ["academy"] = ToDict(progress.Academy),
+            ["quests"] = ToDict(progress.Quests),
             ["caravan_purchases"] = ToGodotArray(progress.CaravanPurchases),
         };
 
@@ -398,6 +399,23 @@ public static class DtoConverters
         }
 
         return dict;
+    }
+
+    /// <summary>Convert generic quest progress to a Godot Dictionary.</summary>
+    public static Godot.Collections.Dictionary ToDict(QuestProgress quests)
+    {
+        var stepIndices = new Godot.Collections.Dictionary();
+        foreach (var (questId, stepIndex) in quests.CurrentStepByQuestId)
+            stepIndices[questId] = stepIndex;
+
+        return new Godot.Collections.Dictionary
+        {
+            ["discovered_quest_ids"] = ToGodotArray(quests.DiscoveredQuestIds),
+            ["active_quest_ids"] = ToGodotArray(quests.ActiveQuestIds),
+            ["completed_quest_ids"] = ToGodotArray(quests.CompletedQuestIds),
+            ["current_step_by_quest_id"] = stepIndices,
+            ["tracked_quest_id"] = quests.TrackedQuestId,
+        };
     }
 
     /// <summary>Convert AcademyProgress to Godot Dictionary for GDScript.</summary>
@@ -623,6 +641,15 @@ public static class DtoConverters
             academy = FromAcademyDict(academyVar.AsGodotDictionary());
         }
 
+        var quests = new QuestProgress();
+        if (
+            dict.TryGetValue("quests", out var questsVar)
+            && questsVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            quests = FromQuestDict(questsVar.AsGodotDictionary());
+        }
+
         BattleAttempt? activeBattleAttempt = null;
         if (
             dict.TryGetValue("active_battle_attempt", out var attemptVar)
@@ -658,8 +685,48 @@ public static class DtoConverters
             StoryArcs = storyArcs,
             Choices = choices,
             Academy = academy,
+            Quests = quests,
             ActiveBattleAttempt = activeBattleAttempt,
             BattleAttemptCompletions = attemptCompletions,
+        };
+    }
+
+    /// <summary>Convert a Godot Dictionary to generic quest progress.</summary>
+    public static QuestProgress FromQuestDict(Godot.Collections.Dictionary? dict)
+    {
+        if (dict == null || dict.Count == 0)
+            return new QuestProgress();
+
+        static List<string> ReadIds(Godot.Collections.Dictionary source, string key)
+        {
+            var ids = new List<string>();
+            if (source.TryGetValue(key, out var value) && value.VariantType == Variant.Type.Array)
+            {
+                foreach (var item in value.AsGodotArray())
+                    ids.Add(item.AsString());
+            }
+
+            return ids;
+        }
+
+        var stepIndices = new Dictionary<string, int>();
+        if (
+            dict.TryGetValue("current_step_by_quest_id", out var indicesVar)
+            && indicesVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            var indices = indicesVar.AsGodotDictionary();
+            foreach (var key in indices.Keys)
+                stepIndices[key.AsString()] = indices[key].AsInt32();
+        }
+
+        return new QuestProgress
+        {
+            DiscoveredQuestIds = ReadIds(dict, "discovered_quest_ids"),
+            ActiveQuestIds = ReadIds(dict, "active_quest_ids"),
+            CompletedQuestIds = ReadIds(dict, "completed_quest_ids"),
+            CurrentStepByQuestId = stepIndices,
+            TrackedQuestId = GetString(dict, "tracked_quest_id", ""),
         };
     }
 

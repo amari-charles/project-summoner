@@ -1,0 +1,45 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/components/quest_world_target.gd" id="1_target"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_target"]
+size = Vector3(3.5, 0.35, 3.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_interaction"]
+size = Vector3(5, 2.5, 5)
+
+[node name="QuestWorldTarget" type="Node3D"]
+script = ExtResource("1_target")
+
+[node name="GroundMarker" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.175, 0)
+mesh = SubResource("BoxMesh_target")
+
+[node name="NameLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 1.25, 0)
+pixel_size = 0.007
+billboard = 2
+outline_size = 6
+outline_modulate = Color(0, 0, 0, 0.75)
+horizontal_alignment = 1
+
+[node name="MarkerLabel" type="Label3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 2.5, 0)
+pixel_size = 0.018
+billboard = 2
+modulate = Color(1, 0.82, 0.16, 1)
+outline_size = 8
+outline_modulate = Color(0, 0, 0, 0.85)
+theme_override_font_sizes/font_size = 38
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area3D" parent="."]
+unique_name_in_owner = true
+position = Vector3(0, 1.25, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+shape = SubResource("BoxShape3D_interaction")

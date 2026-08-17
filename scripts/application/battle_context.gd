@@ -16,7 +16,7 @@ enum BattleMode {
 	TUTORIAL,   ## Guided learning battles
 	PRACTICE,   ## Free play / testing
 	MULTIPLAYER, ## P2P or online multiplayer
-	ACADEMY ## Academy class activity battle
+	ENCOUNTER ## Reusable quest or world encounter battle
 }
 
 ## Battle lifecycle state machine
@@ -50,9 +50,8 @@ var _battle_id: String = ""
 ## Authority-created occurrence identity for campaign progression.
 var _battle_attempt_id: String = ""
 
-## Academy course/activity IDs for academy battle completion.
-var academy_course_id: String = ""
-var academy_activity_id: String = ""
+## Generic encounter identity for quest and world battle completion.
+var encounter_id: String = ""
 
 ## Typed event accessor for battle_config
 ## Provides type-safe access to event properties
@@ -150,38 +149,19 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 
 	if debug_mode: print("BattleContext: Configured practice battle")
 
-## Configure for academy course activity battle
-func select_academy_course(course_id: String) -> void:
-	academy_course_id = course_id
-	academy_activity_id = ""
+func select_encounter(selected_encounter_id: String) -> void:
+	encounter_id = selected_encounter_id
 
-func select_academy_activity(course_id: String, activity_id: String) -> void:
-	academy_course_id = course_id
-	academy_activity_id = activity_id
-
-func configure_academy_battle(course_id: String, activity_id: String, config: Dictionary = {}) -> void:
-	current_mode = BattleMode.ACADEMY
+func configure_encounter_battle(selected_encounter_id: String, config: Dictionary = {}) -> void:
+	current_mode = BattleMode.ENCOUNTER
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_ACADEMY_COURSE_FLOW
-	_battle_id = activity_id
-	academy_course_id = course_id
-	academy_activity_id = activity_id
-
-	battle_config = config.duplicate(true) if not config.is_empty() else {
-		"enemy_side": _build_authored_enemy_side(
-			20.0,
-			[{"catalog_id": PRACTICE_ENEMY_CATALOG_ID, "count": 1}],
-			"passive",
-			0,
-			999.0,
-			999.0
-		)
-	}
-
+	origin_scene = SceneManager.SCENE_WALKABLE_ACADEMY_HUB
+	_battle_id = selected_encounter_id
+	encounter_id = selected_encounter_id
+	battle_config = config.duplicate(true)
 	biome_id = config.get("biome_id", BiomeIDs.SUMMER_PLAINS)
-
-	if debug_mode: print("BattleContext: Configured academy battle '%s' for course '%s'" % [activity_id, course_id])
+	if debug_mode: print("BattleContext: Configured encounter battle '%s'" % selected_encounter_id)
 
 func _build_authored_enemy_side(
 	enemy_hp: float,
@@ -316,8 +296,7 @@ func clear() -> void:
 	battle_config = {}
 	_battle_id = ""
 	_battle_attempt_id = ""
-	academy_course_id = ""
-	academy_activity_id = ""
+	encounter_id = ""
 	biome_id = BiomeIDs.SUMMER_PLAINS
 	_ranked_match_info = {}
 	was_configured = false

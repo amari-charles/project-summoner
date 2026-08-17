@@ -32,9 +32,11 @@ room-sized shared space.
 - **Buildings are discrete placeable objects.** Ground, buildings, and later
   paths or decorations are separate pieces. A destination can be added or moved
   without repainting the whole campus.
-- **Existing feature screens remain authoritative.** Entering a building routes
-  to today's Class Hall, Campus Shop, Mission Hall, Dorms, or Online screen; the
-  hub does not reimplement their functionality.
+- **Existing non-quest feature screens remain authoritative.** Entering a
+  building routes to the Campus Shop, Mission Hall, Dorms, or Online screen;
+  the hub does not reimplement their functionality. Quest acceptance and
+  progression happen through NPCs, world targets, the Journal, and generic
+  encounter screens rather than the retired Class Hall/Course Flow UI.
 - **The competitive loop stays fast.** Online play and deck management remain
   immediately accessible through shortcuts.
 - **The former menu hub remains available as a fallback during recovery.** It is
@@ -105,14 +107,14 @@ Shortcuts remain available through every phase.
 
 | Building | Target scene constant |
 |---|---|
-| Class Hall | `SCENE_ACADEMY_CLASS_HALL` |
 | Campus Shop | `SCENE_SHOP_SCREEN` |
 | Mission Hall | `SCENE_SPECIAL_EVENTS` |
 | Dorms | `SCENE_COLLECTION_SCREEN` |
 | Online Arena | `SCENE_ONLINE` |
 
-Settings and the summoner screen are shortcut destinations without Phase 1
-building requirements.
+The Journal, settings, and the summoner screen are shortcut destinations
+without Phase 1 building requirements. The physical Class Hall may be
+repurposed later, but it is not currently a feature-screen destination.
 
 ## Phase 1 Non-Goals
 

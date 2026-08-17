@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/meta/screens/academy_activity_results.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2"]
 
-[node name="AcademyActivityResults" type="Control"]
+[node name="EncounterResults" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

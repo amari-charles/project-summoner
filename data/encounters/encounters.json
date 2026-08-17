@@ -1,0 +1,13 @@
+{
+  "encounters": [
+    {
+      "id": "intro_summoning_practice",
+      "name_key": "academy.activity.magic_101_summon_practice",
+      "execution_kind": "battle",
+      "configuration": {
+        "migration_source": "academy:introduction_to_magic_101:magic_101_summon_practice"
+      },
+      "reward_offers": []
+    }
+  ]
+}

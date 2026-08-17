@@ -183,19 +183,6 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void TrackQuest_OnlyAcceptsActiveAcademicQuestIds()
-    {
-        var repo = CreateRepo("academy_manual_quest_tracking");
-        var service = CreateCampaignService(repo, SummonerIds.Cole);
-
-        AssertThat(service.TrackQuest("academy:introduction_to_magic_101")).IsFalse();
-        AssertThat(service.EnrollAcademyCourse((string)CourseIds.IntroductionToMagic101)).IsTrue();
-        AssertThat(service.TrackQuest("academy:introduction_to_magic_101")).IsTrue();
-        AssertThat(service.TrackQuest("")).IsTrue();
-        AssertThat(service.GetQuestJournalState()["tracked_quest_id"].AsString()).IsEmpty();
-    }
-
-    [TestCase]
     public void EnrollAcademyCourse_RejectsFutureSemesterCourse()
     {
         var repo = CreateRepo("academy_reject_future_course");

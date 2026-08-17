@@ -30,6 +30,7 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
 	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
 	assert_not_null(hub.get_node_or_null("Professors"))
+	assert_not_null(hub.get_node_or_null("QuestTargets"))
 	assert_not_null(hub.get_node_or_null("PlaceholderCrowd"))
 	assert_not_null(hub.get_node_or_null("PlaceholderScenery"))
 	assert_not_null(hub.get_node_or_null("PlaceholderWater"))
@@ -46,7 +47,7 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	var building_count: int = 0
-	assert_eq(WalkableAcademyHub.DESTINATIONS.size(), 8)
+	assert_eq(WalkableAcademyHub.DESTINATIONS.size(), 7)
 	for destination: Dictionary in WalkableAcademyHub.DESTINATIONS:
 		var destination_id: StringName = destination["id"]
 		assert_false(hub._scene_for_destination(destination_id).is_empty())
@@ -63,7 +64,7 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 			assert_true(placeholder_art_path.contains("/placeholders/"))
 			assert_true(ResourceLoader.exists(placeholder_art_path))
 
-	assert_eq(building_count, 5)
+	assert_eq(building_count, 4)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL), SceneManager.SCENE_QUEST_JOURNAL)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SETTINGS), SceneManager.SCENE_SETTINGS)
@@ -101,6 +102,18 @@ func test_interactive_npc_component_is_role_agnostic() -> void:
 	assert_not_null(npc.get_node_or_null("MarkerLabel"))
 	assert_not_null(npc.get_node_or_null("InteractionArea/CollisionShape3D"))
 	npc.free()
+
+
+func test_quest_world_target_component_is_generic_and_interactable() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/quest_world_target.tscn")
+	var target: QuestWorldTarget = packed_scene.instantiate() as QuestWorldTarget
+	assert_not_null(target)
+	target.configure("practice_grounds", "Practice Grounds")
+	target.set_current_objective(true)
+	assert_eq(target.target_id, "practice_grounds")
+	assert_true((target.get_node("MarkerLabel") as Label3D).visible)
+	assert_not_null(target.get_node_or_null("InteractionArea/CollisionShape3D"))
+	target.free()
 
 
 func test_npc_dialogue_uses_bottom_screen_rich_text_and_inline_choices() -> void:
@@ -297,7 +310,7 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	add_child_autofree(campus_camera)
 	building.configure(
 		destination["name_key"],
-		SceneManager.SCENE_ACADEMY_CLASS_HALL,
+		SafeTypeUtils.string(destination["target_scene"]),
 		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
 		texture,
 		campus_camera
