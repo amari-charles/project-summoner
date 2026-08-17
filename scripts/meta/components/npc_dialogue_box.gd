@@ -7,7 +7,7 @@ signal closed
 @onready var panel: PanelContainer = %Panel
 @onready var speaker_label: Label = %SpeakerLabel
 @onready var line_label: RichTextLabel = %LineLabel
-@onready var choices: HBoxContainer = %Choices
+@onready var choices: VBoxContainer = %Choices
 
 var _lines: Array[String] = []
 var _line_index: int = 0
@@ -52,8 +52,11 @@ func _render_line() -> void:
 		return
 	for choice: Dictionary in _authored_choices:
 		var button: Button = Button.new()
-		button.text = SafeTypeUtils.string(choice.get("text"))
-		button.custom_minimum_size = Vector2(150.0, 44.0)
+		button.text = "› %s" % SafeTypeUtils.string(choice.get("text"))
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.custom_minimum_size = Vector2(0.0, 48.0)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_choose.bind(SafeTypeUtils.string(choice.get("id"))))
 		choices.add_child(button)
 

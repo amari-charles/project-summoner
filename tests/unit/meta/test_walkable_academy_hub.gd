@@ -128,6 +128,33 @@ func test_npc_dialogue_uses_bottom_screen_rich_text_and_inline_choices() -> void
 	dialogue.free()
 
 
+func test_npc_dialogue_renders_player_responses_as_full_width_spoken_lines() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present("Professor", [], [{"id": "accept", "text": "I'm ready."}])
+	var responses: VBoxContainer = dialogue.get_node("Panel/Margin/Content/Choices")
+	assert_eq(responses.get_child_count(), 1)
+	var response: Button = responses.get_child(0) as Button
+	assert_true(response.text.contains("I'm ready."))
+	assert_eq(response.alignment, HORIZONTAL_ALIGNMENT_LEFT)
+	assert_eq(response.size_flags_horizontal, Control.SIZE_EXPAND_FILL)
+
+
+func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -> void:
+	var script_text: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	var quest_file: FileAccess = FileAccess.open("res://data/quests/quests.json", FileAccess.READ)
+	assert_not_null(quest_file)
+	var quest_text: String = quest_file.get_as_text()
+	quest_file.close()
+	assert_true(script_text.contains('quest.get("response_choices")'))
+	assert_false(script_text.contains('Loc.t("academy.quest.permanent_cost"'))
+	assert_false(script_text.contains('Loc.t("academy.quest.assignment_callout"'))
+	assert_true(quest_text.contains('"action": "accept_quest"'))
+	assert_false(quest_text.contains('"action": "decline_quest"'))
+
+
 func test_quest_journal_uses_readable_neutral_background() -> void:
 	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
 	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
@@ -135,6 +162,14 @@ func test_quest_journal_uses_readable_neutral_background() -> void:
 	assert_gt(background.color.r, background.color.b)
 	assert_gt(background.color.get_luminance(), 0.5)
 	journal.free()
+
+
+func _read(path: String) -> String:
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	assert_not_null(file)
+	var contents: String = file.get_as_text()
+	file.close()
+	return contents
 
 
 func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:

@@ -189,7 +189,12 @@ The first playable proof uses placeholder professor identities and existing
 battle content as scaffolding:
 
 1. The general professor offers Introduction to Magic with `!`.
-2. Dialogue supplies a general overview and inline Accept/Not Yet choices.
+2. Dialogue supplies a general overview followed by authored player-spoken
+   responses inside the dialogue box. This mandatory opening chain offers only
+   an affirmative response; later quests may offer multiple responses, including
+   acceptance or refusal, when the player truly has that choice. Curriculum
+   commitment is communicated naturally in the response rather than as a
+   detached rules line.
 3. Acceptance permanently commits the displayed curriculum cost and tracks the
    quest.
 4. The current step directs the player to a physical Practice Grounds

@@ -139,15 +139,23 @@ public partial class CampaignService : Node
         questRules.Register(
             new CurriculumQuestRuleHandler(
                 CurriculumQuestRuleHandler.CommitKind,
-                courseId => IsAcademyCourseState(courseId, "is_available"),
-                courseId => _academy?.EnrollCourse(courseId) ?? false
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_available")
+                    || IsAcademyCourseState(courseId, "is_enrolled"),
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_enrolled")
+                    || (_academy?.EnrollCourse(courseId) ?? false)
             )
         );
         questRules.Register(
             new CurriculumQuestRuleHandler(
                 CurriculumQuestRuleHandler.CreditKind,
-                courseId => IsAcademyCourseState(courseId, "is_enrolled"),
-                courseId => _academy?.CompleteCourse(courseId) ?? false
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_enrolled")
+                    || IsAcademyCourseState(courseId, "is_completed"),
+                courseId =>
+                    IsAcademyCourseState(courseId, "is_completed")
+                    || (_academy?.CompleteCourse(courseId) ?? false)
             )
         );
         _quests = new QuestProgressHandler(_profileRepo, GetActiveSummonerId, questRules);

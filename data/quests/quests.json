@@ -18,6 +18,13 @@
         ],
         "accepted_line_keys": [
           "academy.dialogue.introduction_to_magic.accepted"
+        ],
+        "responses": [
+          {
+            "id": "accept",
+            "text_key": "academy.dialogue.introduction_to_magic.accept_response",
+            "action": "accept_quest"
+          }
         ]
       },
       "acceptance_requirements": [],

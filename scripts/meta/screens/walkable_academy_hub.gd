@@ -133,6 +133,7 @@ var _dialog_quest_id: String = ""
 var _dialog_speaker: String = ""
 var _dialog_accepted_lines: Array[String] = []
 var _dialog_turn_in_npc_id: String = ""
+var _dialog_response_actions: Dictionary = {}
 
 
 func _ready() -> void:
@@ -737,31 +738,23 @@ func _on_professor_interacted(professor_id: String) -> void:
 	_dialog_speaker = professor_name
 	_dialog_accepted_lines.clear()
 	_dialog_turn_in_npc_id = ""
+	_dialog_response_actions.clear()
 
 	if not opportunities.is_empty():
 		var quest: Dictionary = SafeTypeUtils.dict(opportunities[0])
 		_dialog_quest_id = SafeTypeUtils.string(quest.get("id"))
-		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
-		var cost: int = _curriculum_cost(quest)
 		var offer_lines: Array[String] = _localized_dialogue_lines(
 			SafeTypeUtils.array(quest.get("offer_dialogue_keys"))
 		)
 		if offer_lines.is_empty():
 			offer_lines.append(Loc.t("academy.quest.offer_intro"))
-		offer_lines.append(
-			_accent_text(Loc.t("academy.quest.assignment_callout", {"title": title}))
-		)
-		offer_lines.append(_accent_text(Loc.t("academy.quest.permanent_cost", {"cost": cost})))
 		_dialog_accepted_lines = _localized_dialogue_lines(
 			SafeTypeUtils.array(quest.get("accepted_dialogue_keys"))
 		)
 		dialogue_box.present(
 			professor_name,
 			offer_lines,
-			[
-				{"id": "not_yet", "text": Loc.t("academy.quest.not_yet")},
-				{"id": "accept", "text": Loc.t("academy.quest.accept")},
-			]
+			_dialogue_responses(SafeTypeUtils.array(quest.get("response_choices")))
 		)
 	else:
 		var active: Array = SafeTypeUtils.array(state.get("active"))
@@ -796,7 +789,9 @@ func _on_professor_interacted(professor_id: String) -> void:
 
 
 func _on_dialogue_choice(choice_id: String) -> void:
-	if choice_id != "accept" or _dialog_quest_id.is_empty():
+	var action: String = SafeTypeUtils.string(_dialog_response_actions.get(choice_id))
+	_dialog_response_actions.clear()
+	if action != "accept_quest" or _dialog_quest_id.is_empty():
 		_dialog_quest_id = ""
 		return
 	if not CampaignApi.accept_quest(_dialog_quest_id):
@@ -825,14 +820,6 @@ func _on_quest_world_target_interacted(target_id: String) -> void:
 	SceneManager.transition_to(SceneManager.SCENE_ENCOUNTER_PREPARATION)
 
 
-func _curriculum_cost(quest: Dictionary) -> int:
-	for value: Variant in SafeTypeUtils.array(quest.get("acceptance_previews")):
-		var preview: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(preview.get("kind")) == "commit_curriculum_capacity":
-			return SafeTypeUtils.int_val(preview.get("amount"), 0)
-	return 0
-
-
 func _configure_professor(professor: InteractiveNpc, state: Dictionary) -> void:
 	professor.configure(
 		SafeTypeUtils.string(state.get("id")),
@@ -855,6 +842,22 @@ func _localized_dialogue_lines(keys: Array) -> Array[String]:
 		if not key.is_empty():
 			lines.append(Loc.t(key))
 	return lines
+
+
+func _dialogue_responses(authored_responses: Array) -> Array[Dictionary]:
+	var responses: Array[Dictionary] = []
+	for value: Variant in authored_responses:
+		var response: Dictionary = SafeTypeUtils.dict(value)
+		var action: String = SafeTypeUtils.string(response.get("action"))
+		if action not in ["accept_quest", "decline_quest"]:
+			continue
+		var response_id: String = SafeTypeUtils.string(response.get("id"))
+		_dialog_response_actions[response_id] = action
+		responses.append({
+			"id": response_id,
+			"text": Loc.t(SafeTypeUtils.string(response.get("text_key"))),
+		})
+	return responses
 
 
 func _add_building(

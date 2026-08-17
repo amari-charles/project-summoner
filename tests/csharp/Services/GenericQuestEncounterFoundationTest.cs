@@ -43,10 +43,43 @@ public class GenericQuestEncounterFoundationTest
         AssertThat(quest.Steps[1].Kind).IsEqual(QuestStepKind.CompleteEncounter);
         AssertThat(quest.Steps[1].EncounterId).IsEqual("intro_summoning_practice");
         AssertThat(quest.Steps[2].Kind).IsEqual(QuestStepKind.TalkToNpc);
+        AssertThat(quest.Dialogue.Responses).HasSize(1);
+        AssertThat(quest.Dialogue.Responses[0].Action).IsEqual("accept_quest");
 
         var encounter = EncounterCatalog.Find(quest.Steps[1].EncounterId);
         AssertThat(encounter).IsNotNull();
         AssertThat(encounter!.ExecutionKind).IsEqual(EncounterExecutionKind.Battle);
+    }
+
+    [TestCase]
+    public void IntroductionQuest_CanAdoptExistingAcademyEnrollmentWithoutChargingTwice()
+    {
+        var repo = CreateNode<ProfileRepository>();
+        repo.LoadProfile(new ProfileId("generic_quest_existing_enrollment"));
+        repo.ResetProfile();
+        if (!repo.IsSummonerUnlocked(SummonerIds.Cole))
+            repo.UnlockSummoner(SummonerIds.Cole);
+
+        var campaign = CreateNode<CampaignService>();
+        campaign.InitForTesting(repo);
+        campaign.SetActiveSummonerGetter(Callable.From(() => (string)SummonerIds.Cole));
+
+        AssertThat(
+                campaign.EnrollAcademyCourse(
+                    (string)Fateforged.Data.Academy.CourseIds.IntroductionToMagic101
+                )
+            )
+            .IsTrue();
+        AssertThat(repo.GetCampaignProgress(SummonerIds.Cole).Academy.RemainingEnrollments)
+            .IsEqual(2);
+
+        AssertThat(campaign.AcceptQuest("introduction_to_magic")).IsTrue();
+        AssertThat(repo.GetCampaignProgress(SummonerIds.Cole).Academy.RemainingEnrollments)
+            .IsEqual(2);
+        var active = campaign.GetGenericQuestJournalState()["active"].AsGodotArray();
+        AssertThat(active).HasSize(1);
+        AssertThat(active[0].AsGodotDictionary()["current_target_id"].AsString())
+            .IsEqual("practice_grounds");
     }
 
     [TestCase]

@@ -76,6 +76,44 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-16 — Treat quest decisions as authored player dialogue
+
+**Status:** Accepted
+**Areas:** Quests, Dialogue, Academy, UI
+
+### Decision
+
+Quest acceptance and refusal are player-spoken responses inside the ongoing
+dialogue, not detached confirmation controls. Each quest authors the responses
+that actually exist. Mandatory quests may offer only an affirmative response;
+quests with genuine choice may offer acceptance, refusal, or other contextual
+responses. Important commitment information should be expressed naturally in
+the relevant response instead of appearing as a separate rules line.
+
+### Context
+
+The first implementation exposed generic Accept and Not Yet buttons and appended
+the assignment title and curriculum cost as isolated callouts. This made the
+conversation feel like a modal transaction and falsely implied that the fixed
+opening course could be declined.
+
+### Consequences
+
+- Quest data owns response text and the action attached to each response.
+- Dialogue UI must support one or several full-width spoken responses.
+- A refusal option is shown only when refusal is a real authored choice.
+- Mechanical consequences remain clear, but their presentation belongs within
+  the conversation when the player makes the decision.
+
+### Supersedes
+
+The generic Accept/Not Yet presentation within “Define the classical
+professor-led quest experience.”
+
+### References
+
+- [Quest System](../design/quest-system.md)
+
 ## 2026-08-15 — Preserve standard combat as the first excursion baseline
 
 **Status:** Accepted

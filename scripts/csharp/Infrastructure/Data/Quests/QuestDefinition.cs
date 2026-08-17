@@ -45,6 +45,17 @@ public sealed class QuestDialogueDefinition
     public ImmutableArray<string> OfferLineKeys { get; init; } = [];
 
     public ImmutableArray<string> AcceptedLineKeys { get; init; } = [];
+
+    public ImmutableArray<QuestDialogueResponseDefinition> Responses { get; init; } = [];
+}
+
+public sealed class QuestDialogueResponseDefinition
+{
+    public string Id { get; init; } = "";
+
+    public string TextKey { get; init; } = "";
+
+    public string Action { get; init; } = "";
 }
 
 public sealed class QuestSourceDefinition

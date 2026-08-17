@@ -400,6 +400,7 @@
       "introduction_to_magic": {
         "offer_1": "You do not need to know what kind of summoner you are yet. That is what your first year is for.",
         "offer_2": "Let us begin somewhere simple. Call a creature, keep it under control, and show me how you respond when the field changes.",
+        "accept_response": "I'm ready. I'll commit one of my first-year course places to this.",
         "accepted": "Good. Take your time, and pay attention to what the creature needs from you.",
         "summon_practice_reminder": "There is no rush. The practice grounds are ready when you are—focus on keeping control of the creature you summon.",
         "turn_in": "You kept your focus when the exercise pushed back. That matters more than making it look effortless."

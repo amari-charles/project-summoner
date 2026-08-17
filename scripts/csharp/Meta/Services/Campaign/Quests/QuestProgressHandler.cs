@@ -246,6 +246,7 @@ public sealed class QuestProgressHandler
             ["is_tracked"] = progress.Quests.TrackedQuestId == definition.Id,
             ["offer_dialogue_keys"] = ToArray(definition.Dialogue.OfferLineKeys),
             ["accepted_dialogue_keys"] = ToArray(definition.Dialogue.AcceptedLineKeys),
+            ["response_choices"] = ToResponses(definition.Dialogue.Responses),
             ["active_dialogue_keys"] = ToArray(step?.DialogueKeys ?? []),
             ["acceptance_previews"] = previews,
         };
@@ -266,6 +267,25 @@ public sealed class QuestProgressHandler
         var result = new Array<string>();
         foreach (var value in values)
             result.Add(value);
+        return result;
+    }
+
+    private static Array<Dictionary> ToResponses(
+        IEnumerable<QuestDialogueResponseDefinition> responses
+    )
+    {
+        var result = new Array<Dictionary>();
+        foreach (var response in responses)
+        {
+            result.Add(
+                new Dictionary
+                {
+                    ["id"] = response.Id,
+                    ["text_key"] = response.TextKey,
+                    ["action"] = response.Action,
+                }
+            );
+        }
         return result;
     }
 

@@ -68,6 +68,16 @@ public static class QuestCatalog
             if (quest.Steps.IsDefaultOrEmpty)
                 errors.Add($"Quest '{quest.Id}' requires at least one step.");
 
+            foreach (var response in quest.Dialogue.Responses)
+            {
+                if (
+                    string.IsNullOrWhiteSpace(response.Id)
+                    || string.IsNullOrWhiteSpace(response.TextKey)
+                    || response.Action is not ("accept_quest" or "decline_quest")
+                )
+                    errors.Add($"Quest '{quest.Id}' contains an invalid dialogue response.");
+            }
+
             foreach (
                 var duplicate in quest
                     .Steps.GroupBy(step => step.Id)
