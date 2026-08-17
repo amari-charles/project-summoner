@@ -1014,3 +1014,41 @@ capstone remain in force.
 - `docs/design/academy-forging-model.md`
 - `docs/design/walkable-academy-hub.md`
 - `docs/tracking/completion-roadmap.md`
+
+## 2026-08-16 — Make the Spellbook a persistent campus action
+
+**Status:** Accepted
+**Areas:** Campus, Collection, Decks, Navigation, UI
+
+### Decision
+
+Expose card collection and deck management through a persistent Spellbook button
+on the left side of the walkable-campus HUD. This replaces the Dorms as the
+physical entrance to the collection/deck screen.
+
+### Context
+
+The collection and active deck are frequently used player tools rather than a
+place-specific campus activity. Requiring the player to locate or shortcut to a
+Dorms building adds navigation without strengthening the campus fantasy. A
+Spellbook action communicates the feature more directly and keeps it available
+while the player is exploring the campus.
+
+### Consequences
+
+- The Dorms are removed from the current campus destination roster.
+- The collection/deck screen remains authoritative; the campus HUD only routes
+  to it.
+- The Spellbook is visible during campus exploration and remains available in
+  the general shortcut list.
+- Future Dorms content requires a separate purpose rather than inheriting card
+  and deck management by default.
+
+### Supersedes
+
+The Dorms-to-`SCENE_COLLECTION_SCREEN` routing in the bounded walkable Academy
+hub decision.
+
+### References
+
+- `docs/design/walkable-academy-hub.md`

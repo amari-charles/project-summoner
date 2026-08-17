@@ -33,10 +33,11 @@ room-sized shared space.
   paths or decorations are separate pieces. A destination can be added or moved
   without repainting the whole campus.
 - **Existing non-quest feature screens remain authoritative.** Entering a
-  building routes to the Campus Shop, Mission Hall, Dorms, or Online screen;
-  the hub does not reimplement their functionality. Quest acceptance and
-  progression happen through NPCs, world targets, the Journal, and generic
-  encounter screens rather than the retired Class Hall/Course Flow UI.
+  building routes to the Campus Shop, Mission Hall, or Online screen. The
+  persistent Spellbook HUD action routes directly to collection and deck
+  management; the hub does not reimplement their functionality. Quest
+  acceptance and progression happen through NPCs, world targets, the Journal,
+  and generic encounter screens rather than the retired Class Hall/Course Flow UI.
 - **The competitive loop stays fast.** Online play and deck management remain
   immediately accessible through shortcuts.
 - **The former menu hub remains available as a fallback during recovery.** It is
@@ -109,12 +110,13 @@ Shortcuts remain available through every phase.
 |---|---|
 | Campus Shop | `SCENE_SHOP_SCREEN` |
 | Mission Hall | `SCENE_SPECIAL_EVENTS` |
-| Dorms | `SCENE_COLLECTION_SCREEN` |
 | Online Arena | `SCENE_ONLINE` |
 
-The Journal, settings, and the summoner screen are shortcut destinations
-without Phase 1 building requirements. The physical Class Hall may be
-repurposed later, but it is not currently a feature-screen destination.
+The Spellbook (`SCENE_COLLECTION_SCREEN`) is a persistent left-side HUD action
+and has no physical campus building requirement. The Journal, settings, and the
+summoner screen are shortcut destinations without Phase 1 building
+requirements. The physical Class Hall may be repurposed later, but it is not
+currently a feature-screen destination.
 
 ## Phase 1 Non-Goals
 

@@ -308,6 +308,10 @@
         "name": "Dorms",
         "description": "Manage decks, equipment, owned cards, and personal summoner tools."
       },
+      "spellbook": {
+        "name": "Spellbook",
+        "description": "Review your card collection and manage your decks."
+      },
       "online": {
         "name": "Online Arena",
         "description": "Take a forged summoner into battles against other players."

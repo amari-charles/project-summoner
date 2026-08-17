@@ -28,6 +28,7 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/JournalButton"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/InventoryButton"))
+	assert_not_null(hub.get_node_or_null("Interface/LeftActionRail/SpellbookButton"))
 	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestBanner/TrackedQuestButton"))
 	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
 	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
@@ -66,6 +67,30 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	hub.free()
 
 
+func test_spellbook_is_a_persistent_left_side_action_instead_of_a_building() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	var rail: VBoxContainer = hub.get_node("Interface/LeftActionRail") as VBoxContainer
+	var button: Button = rail.get_node("SpellbookButton") as Button
+	assert_eq(rail.anchor_top, 0.5)
+	assert_eq(rail.anchor_bottom, 0.5)
+	assert_eq(rail.offset_left, 18.0)
+	assert_not_null(button.icon)
+	assert_true(button.text.is_empty())
+	assert_eq(
+		hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SPELLBOOK),
+		SceneManager.SCENE_COLLECTION_SCREEN
+	)
+	var spellbook_destination: Dictionary = {}
+	for destination: Dictionary in WalkableAcademyHub.DESTINATIONS:
+		if destination["id"] == WalkableAcademyHub.DESTINATION_SPELLBOOK:
+			spellbook_destination = destination
+			break
+	assert_false(spellbook_destination.is_empty())
+	assert_false(spellbook_destination.has("position"))
+	hub.free()
+
+
 func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
@@ -87,7 +112,7 @@ func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
 			assert_true(placeholder_art_path.contains("/placeholders/"))
 			assert_true(ResourceLoader.exists(placeholder_art_path))
 
-	assert_eq(building_count, 4)
+	assert_eq(building_count, 3)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL), SceneManager.SCENE_QUEST_JOURNAL)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SETTINGS), SceneManager.SCENE_SETTINGS)

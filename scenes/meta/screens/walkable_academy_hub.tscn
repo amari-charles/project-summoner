@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Travel_Map_Folded.png" id="11_shortcuts_icon"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/reward_grant_modal.tscn" id="12_reward_modal"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/quest_offer_modal.tscn" id="13_quest_offer_modal"]
+[ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Books_Library.png" id="14_spellbook_icon"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 shading_mode = 0
@@ -205,6 +206,25 @@ theme_override_colors/font_pressed_color = Color(0.901961, 0.839216, 0.713726, 1
 theme_override_font_sizes/font_size = 18
 text_overrun_behavior = 3
 alignment = 0
+
+[node name="LeftActionRail" type="VBoxContainer" parent="Interface"]
+unique_name_in_owner = true
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 18.0
+offset_top = -32.0
+offset_right = 82.0
+offset_bottom = 32.0
+grow_vertical = 2
+
+[node name="SpellbookButton" type="Button" parent="Interface/LeftActionRail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("14_spellbook_icon")
+expand_icon = true
+icon_max_width = 34
 
 [node name="RightActionRail" type="VBoxContainer" parent="Interface"]
 unique_name_in_owner = true

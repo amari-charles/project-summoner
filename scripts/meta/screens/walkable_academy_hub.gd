@@ -7,7 +7,6 @@ const InteractiveNpcScene: PackedScene = preload("res://scenes/meta/components/i
 const QuestWorldTargetScene: PackedScene = preload("res://scenes/meta/components/quest_world_target.tscn")
 const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
-const PLACEHOLDER_DORMS: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_dorms.png")
 const PLACEHOLDER_ONLINE_ARENA: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png")
 const PLACEHOLDER_GROUND_CENTER: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_color3.png")
 const PLACEHOLDER_GROUND_TOP_LEFT: Texture2D = preload("res://assets/placeholders/tiny_swords/terrain/placeholder_grass_top_left.png")
@@ -29,7 +28,7 @@ const WATER_FOAM_TILE_SPAN: float = 3.0
 
 const DESTINATION_SHOP: StringName = &"shop"
 const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
-const DESTINATION_DORMS: StringName = &"dorms"
+const DESTINATION_SPELLBOOK: StringName = &"spellbook"
 const DESTINATION_ONLINE: StringName = &"online"
 const DESTINATION_SUMMONER: StringName = &"summoner"
 const DESTINATION_SETTINGS: StringName = &"settings"
@@ -63,12 +62,10 @@ const DESTINATIONS: Array[Dictionary] = [
 		"position": Vector3(-13.0, 0.0, 7.0),
 	},
 	{
-		"id": DESTINATION_DORMS,
-		"name_key": "academy.campus.dorms.name",
-		"description_key": "academy.campus.dorms.description",
+		"id": DESTINATION_SPELLBOOK,
+		"name_key": "academy.campus.spellbook.name",
+		"description_key": "academy.campus.spellbook.description",
 		"target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN,
-		"placeholder_texture": PLACEHOLDER_DORMS,
-		"position": Vector3(0.0, 0.0, -11.0),
 	},
 	{
 		"id": DESTINATION_ONLINE,
@@ -120,6 +117,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var summoner_slot: Control = %SummonerSlot
 @onready var tracked_quest_banner: Control = %TrackedQuestBanner
 @onready var tracked_quest_button: Button = %TrackedQuestButton
+@onready var spellbook_button: Button = %SpellbookButton
 @onready var journal_button: Button = %JournalButton
 @onready var inventory_button: Button = %InventoryButton
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
@@ -158,7 +156,9 @@ func _ready() -> void:
 	shortcut_button.pressed.connect(_toggle_shortcuts)
 	shortcut_close_button.pressed.connect(_close_shortcuts)
 	journal_button.tooltip_text = Loc.t("academy.journal.title")
+	spellbook_button.tooltip_text = Loc.t("academy.campus.spellbook.name")
 	inventory_button.tooltip_text = Loc.t("academy.walkable.inventory_unavailable")
+	spellbook_button.pressed.connect(_route_to.bind(DESTINATION_SPELLBOOK))
 	journal_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
 	tracked_quest_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
