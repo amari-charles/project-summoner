@@ -285,6 +285,7 @@
       "placeholder_building": "PLACEHOLDER {name}",
       "open_shortcuts": "Campus Shortcuts",
       "shortcuts_title": "Campus Shortcuts",
+      "inventory_unavailable": "Inventory (coming soon)",
       "summoner_description": "Review your summoner, equipment, and progression.",
       "settings_description": "Adjust game settings."
     },

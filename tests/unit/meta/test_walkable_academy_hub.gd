@@ -23,9 +23,11 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Boundaries/Bottom/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Boundaries/Left/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Boundaries/Right/CollisionShape3D"))
-	assert_not_null(hub.get_node_or_null("Interface/ShortcutButton"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/ShortcutButton"))
 	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
-	assert_not_null(hub.get_node_or_null("Interface/JournalButton"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/JournalButton"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/InventoryButton"))
 	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestBanner/TrackedQuestButton"))
 	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
 	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
@@ -40,6 +42,24 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_true(ground_material.albedo_texture.resource_path.contains("/placeholders/tiny_swords/terrain/"))
 	assert_gt(ground_material.uv1_scale.x, 1.0)
 	assert_gt(ground_material.uv1_scale.y, 1.0)
+	hub.free()
+
+
+func test_hub_uses_a_vertical_icon_action_rail() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	var rail: VBoxContainer = hub.get_node("Interface/RightActionRail") as VBoxContainer
+	var journal: Button = rail.get_node("JournalButton") as Button
+	var inventory: Button = rail.get_node("InventoryButton") as Button
+	var shortcuts: Button = rail.get_node("ShortcutButton") as Button
+	assert_eq(rail.get_child_count(), 3)
+	assert_not_null(journal.icon)
+	assert_not_null(inventory.icon)
+	assert_not_null(shortcuts.icon)
+	assert_true(journal.text.is_empty())
+	assert_true(inventory.text.is_empty())
+	assert_true(shortcuts.text.is_empty())
+	assert_true(inventory.disabled)
 	hub.free()
 
 

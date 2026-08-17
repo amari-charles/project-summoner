@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -8,6 +8,9 @@
 [ext_resource type="Script" path="res://scripts/meta/components/placeholder_campus_scenery.gd" id="6_placeholder_scenery"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/npc_dialogue_box.tscn" id="7_dialogue"]
 [ext_resource type="Shader" path="res://shaders/ui/tracked_quest_banner.gdshader" id="8_quest_banner"]
+[ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Books_Manual_Codex_Instructions_Tutorial_Documentation.png" id="9_journal_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Travel_Backpack_Bag_School.png" id="10_inventory_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Map_Markers_Travel_Map_Folded.png" id="11_shortcuts_icon"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 shading_mode = 0
@@ -201,29 +204,43 @@ theme_override_font_sizes/font_size = 18
 text_overrun_behavior = 3
 alignment = 0
 
-[node name="JournalButton" type="Button" parent="Interface"]
+[node name="RightActionRail" type="VBoxContainer" parent="Interface"]
 unique_name_in_owner = true
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -458.0
-offset_top = 18.0
-offset_right = -248.0
-offset_bottom = 70.0
-grow_horizontal = 0
-theme_override_font_sizes/font_size = 20
-
-[node name="ShortcutButton" type="Button" parent="Interface"]
-unique_name_in_owner = true
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -238.0
+offset_left = -82.0
 offset_top = 18.0
 offset_right = -18.0
-offset_bottom = 70.0
+offset_bottom = 222.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 20
+theme_override_constants/separation = 6
+
+[node name="JournalButton" type="Button" parent="Interface/RightActionRail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("9_journal_icon")
+expand_icon = true
+icon_max_width = 34
+
+[node name="InventoryButton" type="Button" parent="Interface/RightActionRail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+disabled = true
+theme_override_colors/icon_disabled_color = Color(1, 1, 1, 0.82)
+icon = ExtResource("10_inventory_icon")
+expand_icon = true
+icon_max_width = 34
+
+[node name="ShortcutButton" type="Button" parent="Interface/RightActionRail"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+icon = ExtResource("11_shortcuts_icon")
+expand_icon = true
+icon_max_width = 34
 
 [node name="ShortcutPanel" type="PanelContainer" parent="Interface"]
 unique_name_in_owner = true
@@ -231,9 +248,9 @@ visible = false
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -342.0
-offset_top = 82.0
-offset_right = -18.0
+offset_left = -418.0
+offset_top = 18.0
+offset_right = -94.0
 offset_bottom = 594.0
 grow_horizontal = 0
 

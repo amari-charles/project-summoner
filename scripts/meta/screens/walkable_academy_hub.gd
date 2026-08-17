@@ -121,6 +121,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var tracked_quest_banner: Control = %TrackedQuestBanner
 @onready var tracked_quest_button: Button = %TrackedQuestButton
 @onready var journal_button: Button = %JournalButton
+@onready var inventory_button: Button = %InventoryButton
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 
 var _camera_target_fov: float = 46.0
@@ -146,12 +147,13 @@ func _ready() -> void:
 		return
 
 	ground_label.text = Loc.t("academy.walkable.placeholder_ground")
-	shortcut_button.text = Loc.t("academy.walkable.open_shortcuts")
+	shortcut_button.tooltip_text = Loc.t("academy.walkable.open_shortcuts")
 	shortcut_title.text = Loc.t("academy.walkable.shortcuts_title")
 	shortcut_close_button.text = Loc.t("ui.common.close")
 	shortcut_button.pressed.connect(_toggle_shortcuts)
 	shortcut_close_button.pressed.connect(_close_shortcuts)
-	journal_button.text = Loc.t("academy.journal.title")
+	journal_button.tooltip_text = Loc.t("academy.journal.title")
+	inventory_button.tooltip_text = Loc.t("academy.walkable.inventory_unavailable")
 	journal_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
 	tracked_quest_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
