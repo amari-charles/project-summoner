@@ -195,7 +195,6 @@ func _update_progression_display() -> void:
 
 	var level: int = progression_info.get("level", 1)
 	var xp_progress: float = progression_info.get("xp_progress", 0.0)
-	var can_level_up: bool = progression_info.get("can_level_up", false)
 
 	# Show progression container
 	if progression_container:
@@ -209,11 +208,7 @@ func _update_progression_display() -> void:
 	if xp_progress_bar:
 		xp_progress_bar.value = xp_progress * 100.0
 
-		# Apply appropriate bar style
-		if can_level_up:
-			_apply_level_up_bar_style()
-		else:
-			_apply_normal_bar_style()
+		_apply_normal_bar_style()
 
 func _apply_normal_bar_style() -> void:
 	if not xp_progress_bar:
@@ -228,22 +223,6 @@ func _apply_normal_bar_style() -> void:
 	# Fill style - use element color
 	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
 	fill_style.bg_color = element_color.darkened(0.1)
-	fill_style.set_corner_radius_all(3)
-	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
-
-func _apply_level_up_bar_style() -> void:
-	if not xp_progress_bar:
-		return
-
-	# Background/track style
-	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
-	bg_style.bg_color = GameColorPalette.UI_SURFACE_DISABLED
-	bg_style.set_corner_radius_all(3)
-	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
-
-	# Fill style - bright green/gold for level-up ready
-	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
-	fill_style.bg_color = Color(0.2, 0.9, 0.3)  # Bright green
 	fill_style.set_corner_radius_all(3)
 	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
 

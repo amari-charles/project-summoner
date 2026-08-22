@@ -291,72 +291,6 @@ public partial class CardService : Node
     }
 
     // =========================================================================
-    // PROGRESSION - LEVEL-UP
-    // =========================================================================
-
-    /// <summary>Check if card can level up (has enough XP).</summary>
-    public bool CanLevelUp(string cardInstanceId)
-    {
-        var typedId = CardInstanceId.FromString(cardInstanceId);
-        if (!(_progression?.CanLevelUp(typedId) ?? false))
-            return false;
-
-        var levelUpCost = _progression?.GetLevelUpResourceCost(typedId) ?? [];
-        if (levelUpCost.Count == 0)
-            return true;
-
-        var economy = EconomyService.Instance;
-        return economy != null && economy.CanAfford(levelUpCost);
-    }
-
-    /// <summary>Level up a card (XP + optional configured resource cost). Trait spend is deferred.</summary>
-    public bool LevelUpCard(string cardInstanceId)
-    {
-        var typedId = CardInstanceId.FromString(cardInstanceId);
-        var levelUpCost = _progression?.GetLevelUpResourceCost(typedId) ?? [];
-        bool spentResources = false;
-
-        if (levelUpCost.Count > 0)
-        {
-            var economy = EconomyService.Instance;
-            if (economy == null)
-            {
-                GD.PushWarning(
-                    $"CardService: Level-up blocked for '{cardInstanceId}' because EconomyService is unavailable"
-                );
-                return false;
-            }
-
-            if (!economy.Spend(levelUpCost))
-                return false;
-
-            spentResources = true;
-        }
-
-        var success = _progression?.LevelUpCard(typedId) ?? false;
-        if (!success && spentResources && EconomyService.Instance != null)
-            EconomyService.Instance.GrantRewards(levelUpCost);
-
-        if (success)
-        {
-            var card = GetCard(cardInstanceId);
-            EmitSignal(SignalName.CardLeveledUp, cardInstanceId, card?.Level ?? 1);
-        }
-        return success;
-    }
-
-    /// <summary>Get optional level-up resource cost for the card's next level.</summary>
-    public Godot.Collections.Dictionary GetLevelUpResourceCostDict(string cardInstanceId)
-    {
-        var typedId = CardInstanceId.FromString(cardInstanceId);
-        var cost = _progression?.GetLevelUpResourceCost(typedId) ?? [];
-        var result = new Godot.Collections.Dictionary();
-        foreach (var (resourceType, amount) in cost)
-            result[resourceType.ToKey()] = amount;
-        return result;
-    }
-
-    // =========================================================================
     // PROGRESSION - UNIFIED TRAIT LEDGER (Pass 2 stubs)
     // =========================================================================
 
@@ -535,12 +469,6 @@ public partial class CardService : Node
         foreach (var t in info.Traits)
             traitsArray.Add(t);
 
-        var levelUpResourceCost = new Godot.Collections.Dictionary();
-        foreach (var (resourceType, amount) in info.LevelUpResourceCost)
-            levelUpResourceCost[resourceType] = amount;
-
-        bool canLevelUp = CanLevelUp(cardInstanceId);
-
         return new Godot.Collections.Dictionary
         {
             ["card_instance_id"] = info.CardInstanceId,
@@ -552,12 +480,9 @@ public partial class CardService : Node
             ["xp"] = info.Xp,
             ["xp_for_next_level"] = info.XpForNextLevel,
             ["xp_progress"] = info.XpProgress,
-            ["can_level_up"] = canLevelUp,
             ["traits"] = traitsArray,
             ["is_max_level"] = info.IsMaxLevel,
             ["unspent_trait_points"] = info.UnspentTraitPoints,
-            ["level_up_resource_cost"] = levelUpResourceCost,
-            ["has_level_up_resource_cost"] = info.HasLevelUpResourceCost,
         };
     }
 
@@ -573,11 +498,6 @@ public partial class CardService : Node
         return key;
     }
 
-    /// <summary>Get all cards that can level up.</summary>
-    public CardInstance[] GetCardsReadyToLevelUp()
-    {
-        return _progression?.GetCardsReadyToLevelUp() ?? [];
-    }
 
     // =========================================================================
     // GODOT INTEROP

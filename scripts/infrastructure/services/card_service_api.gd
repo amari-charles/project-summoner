@@ -75,20 +75,6 @@ static func get_card_trait_dict(trait_id: String) -> Dictionary:
 		return {}
 	return SafeTypeUtils.dict(service.call("GetCardTraitDict", trait_id))
 
-static func level_up_card(instance_id: String) -> bool:
-	var service: Node = _require_service("level_up_card")
-	if service == null:
-		return false
-	return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id), false)
-
-static func get_level_up_resource_cost_dict(instance_id: String) -> Dictionary:
-	var service: Node = _require_service("get_level_up_resource_cost_dict")
-	if service == null:
-		return {}
-	if not service.has_method("GetLevelUpResourceCostDict"):
-		return {}
-	return SafeTypeUtils.dict(service.call("GetLevelUpResourceCostDict", instance_id))
-
 static func get_unspent_trait_points(instance_id: String) -> int:
 	var service: Node = _require_service("get_unspent_trait_points")
 	if service == null:

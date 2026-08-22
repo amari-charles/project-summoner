@@ -82,7 +82,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 36
-text = "TERRAVORN"
+text = ""
 horizontal_alignment = 1
 
 [node name="ProgressRow" type="HBoxContainer" parent="MarginContainer/ScreenVBox/Header/HeaderCenter"]
@@ -94,20 +94,20 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-text = "Earth"
+text = ""
 
 [node name="LevelLabel" type="Label" parent="MarginContainer/ScreenVBox/Header/HeaderCenter/ProgressRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.972549, 0.913725, 1)
 theme_override_font_sizes/font_size = 16
-text = "Lv.5"
+text = ""
 
 [node name="XPLabel" type="Label" parent="MarginContainer/ScreenVBox/Header/HeaderCenter/ProgressRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "XP: 75 / 100"
+text = ""
 
 [node name="XPProgressBar" type="ProgressBar" parent="MarginContainer/ScreenVBox/Header/HeaderCenter"]
 unique_name_in_owner = true
@@ -126,7 +126,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "Switch Summoner"
+text = ""
 
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/ScreenVBox"]
 layout_mode = 2
@@ -210,7 +210,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 15
-text = "EQUIPPED"
+text = ""
 
 [node name="EquipmentContainer" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/EquipmentPanel/EquipmentMargin/EquipmentVBox"]
 unique_name_in_owner = true
@@ -248,14 +248,14 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 15
-text = "IDENTITY"
+text = ""
 
 [node name="DescriptionLabel" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/DescriptionPanel/DescriptionMargin/DescriptionVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 13
-text = "Guardian of stability and endurance."
+text = ""
 autowrap_mode = 2
 
 [node name="StatsPanel" type="PanelContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow"]
@@ -279,7 +279,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 15
-text = "STATS"
+text = ""
 
 [node name="StatsContainer" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/StatsPanel/StatsMargin/StatsVBox"]
 unique_name_in_owner = true
@@ -311,13 +311,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 15
-text = "TRAITS"
+text = ""
 
 [node name="UpgradePointsLabel" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsHeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "0 points"
+text = ""
 
 [node name="TraitsScroll" type="ScrollContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
 layout_mode = 2
@@ -353,7 +353,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 15
-text = "INVENTORY"
+text = ""
 
 [node name="InventoryGrid" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/InventoryPanel/InventoryMargin/InventoryVBox" instance=ExtResource("3_inventory")]
 unique_name_in_owner = true

@@ -46,6 +46,7 @@ func _ready() -> void:
 	close_button.pressed.connect(close)
 	action_button.pressed.connect(_on_action_pressed)
 	unlock_confirmation.confirmed.connect(_on_unlock_confirmed)
+	unlock_confirmation.title = Loc.t("ui.trait_tree.acquire_title")
 	shade.gui_input.connect(_on_shade_gui_input)
 	tree_canvas.gui_input.connect(_on_tree_canvas_gui_input)
 	_style_surface()
@@ -93,9 +94,11 @@ func _refresh() -> void:
 		_visible_nodes = _connected_trait_family(_anchor_trait_id, _node_lookup)
 
 	if _visible_nodes.is_empty():
-		var fallback: Dictionary = _build_owned_fallback(_anchor_trait_id)
-		_node_lookup[_anchor_trait_id] = fallback
-		_visible_nodes = [fallback]
+		push_error("TraitDevelopmentOverlay: No path data for %s owner '%s', path '%s'" % [
+			_owner_type, _owner_id, _anchor_trait_id
+		])
+		close()
+		return
 
 	if _owner_type == "card" and _anchor_trait_id == CARD_CORE_PATH_ID:
 		title_label.text = Loc.t("ui.collection.core_path_name")
@@ -165,38 +168,6 @@ func _connected_trait_family(anchor_id: String, lookup: Dictionary) -> Array:
 	for trait_id_var: Variant in included.keys():
 		family.append(lookup[str(trait_id_var)])
 	return family
-
-
-func _build_owned_fallback(trait_id: String) -> Dictionary:
-	if trait_id == CARD_CORE_PATH_ID:
-		return {
-			"id": trait_id,
-			"name": Loc.t("ui.collection.core_path_name"),
-			"description": "",
-			"depth": 0,
-			"prerequisites": [],
-			"state": STATUS_OWNED,
-			"is_owned": true,
-			"is_unlockable": false,
-			"can_unlock": false,
-		}
-	var trait_name: String = TraitCatalogApi.get_trait_name(trait_id)
-	var trait_description: String = TraitCatalogApi.get_trait_description(trait_id)
-	if trait_name.begins_with("trait."):
-		trait_name = Loc.t(trait_name)
-	if trait_description.begins_with("trait."):
-		trait_description = Loc.t(trait_description)
-	return {
-		"id": trait_id,
-		"name": trait_name if not trait_name.is_empty() else trait_id,
-		"description": trait_description,
-		"depth": 0,
-		"prerequisites": [],
-		"state": STATUS_OWNED,
-		"is_owned": true,
-		"is_unlockable": false,
-		"can_unlock": false,
-	}
 
 
 func _render_graph() -> void:
@@ -343,7 +314,7 @@ func _show_node_detail(trait_id: String) -> void:
 	var show_action: bool = SafeTypeUtils.bool_val(detail.get("unlock_button_visible", false), false)
 	action_button.visible = show_action
 	action_button.disabled = not SafeTypeUtils.bool_val(detail.get("unlock_button_enabled", false), false)
-	action_button.text = str(detail.get("unlock_button_text", Loc.t("ui.trait_tree.unlock_button")))
+	action_button.text = Loc.t("ui.trait_tree.unlock_button")
 	node_detail_popover.visible = true
 	call_deferred("_position_popover", trait_id)
 
@@ -393,7 +364,10 @@ func _on_action_pressed() -> void:
 	if _active_detail_trait_id.is_empty():
 		return
 	_pending_unlock_trait_id = _active_detail_trait_id
-	unlock_confirmation.dialog_text = "Spend the listed cost to acquire %s?" % detail_name.text
+	unlock_confirmation.dialog_text = Loc.t(
+		"ui.trait_tree.acquire_confirmation",
+		{"name": detail_name.text}
+	)
 	unlock_confirmation.popup_centered(Vector2i(470, 180))
 
 

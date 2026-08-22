@@ -84,7 +84,7 @@ public class TraitSpendValidationTest
     }
 
     [TestCase]
-    public void CardService_RollCardTraitOffers_ProvidesEligibleOptionsForPendingLevelUp()
+    public void CardService_RollCardTraitOffers_ProvidesOptionsEligibleAtCurrentLevel()
     {
         var repo = CreateRepo("trait_spend_validation_card_roll");
         var cardService = CreateNode<CardService>();
@@ -97,8 +97,8 @@ public class TraitSpendValidationTest
                     CardInstanceId.FromString(instanceId),
                     new CardUpdate
                     {
-                        Level = 1,
-                        Xp = 999,
+                        Level = 2,
+                        Xp = 0,
                         UnspentTraitPoints = 0,
                     }
                 )

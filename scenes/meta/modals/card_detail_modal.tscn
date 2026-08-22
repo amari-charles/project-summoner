@@ -213,13 +213,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 15
-text = "TRAITS"
+text = ""
 
 [node name="TraitPointsLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/TraitsSection/TraitsHeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "0 Card Points"
+text = ""
 
 [node name="TraitsScroll" type="ScrollContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/TraitsSection"]
 custom_minimum_size = Vector2(0, 82)

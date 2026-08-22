@@ -28,7 +28,8 @@ is generalized across the catalog.
   state and optional closed-path inspection are not yet implemented.
 - Card XP now applies every earned level automatically, carries remainder XP,
   and banks globally configured Card Points per level. The obsolete manual
-  level-up service surface still needs final technical removal.
+  level-up UI, service methods, resource-cost hooks, and ready-to-level display
+  state have been removed.
 
 ## Required UI Changes
 
@@ -59,7 +60,7 @@ is generalized across the catalog.
 
 - [x] Show card level, XP progress, banked Card Points, and acquired-trait icons in
   Card detail/Collection.
-- Replace manual card-level purchase UI with automatic level/point feedback.
+- [x] Replace manual card-level purchase UI with automatic level/point feedback.
 - [x] Present `Core` as the first selectable circle beside acquired trait circles;
   clicking any circle opens the same large tree overlay focused on that path.
 - [ ] Show which unique card instance is being developed when the player owns
@@ -120,8 +121,8 @@ revealed, and acquisition-provenance states remain in later bundles.
 
 ### 1. Representative content and growth contract
 
-**Urgency:** High  
-**Ease:** Medium  
+**Urgency:** High
+**Ease:** Medium
 **Scope:** Medium
 
 **Included work:**
@@ -158,8 +159,8 @@ Building generic infrastructure first would encode another speculative tree.
 
 ### 2. Development opportunity domain and persistence
 
-**Urgency:** High  
-**Ease:** Hard  
+**Urgency:** High
+**Ease:** Hard
 **Scope:** Large
 
 **Included work:**
@@ -197,8 +198,8 @@ own their rules.
 
 ### 3. Authoritative level, point, and acquisition operations
 
-**Urgency:** High  
-**Ease:** Hard  
+**Urgency:** High
+**Ease:** Hard
 **Scope:** Large
 
 **Included work:**
@@ -232,8 +233,8 @@ results.
 
 ### 4. Modular development UI replacement
 
-**Urgency:** High  
-**Ease:** Medium  
+**Urgency:** High
+**Ease:** Medium
 **Scope:** Large
 
 **Included work:**
@@ -274,8 +275,8 @@ change independently.
 
 ### 5. Quest, ritual, reward, and result integration
 
-**Urgency:** High  
-**Ease:** Hard  
+**Urgency:** High
+**Ease:** Hard
 **Scope:** Medium
 
 **Included work:**
@@ -305,8 +306,8 @@ not own permanent mutation.
 
 ### 6. Battle integration, migration, and cleanup
 
-**Urgency:** Medium  
-**Ease:** Hard  
+**Urgency:** Medium
+**Ease:** Hard
 **Scope:** Medium
 
 **Included work:**
@@ -319,9 +320,9 @@ not own permanent mutation.
 - Validate unique Card-instance progression in deck, save/load, and competitive
   loadout paths.
 - [x] Remove the manual Card level-up modal from normal player-facing flows.
-- Remove the obsolete manual level-up service methods and
-  level-up-resource-cost purchase hooks after callers and compatibility needs
-  are audited.
+- [x] Remove the obsolete manual level-up service methods,
+  level-up-resource-cost purchase hooks, ready-to-level payload fields, and
+  orphaned Card XP item presentation.
 - Retire the fixed global-tree and separate one-off-tab routes after all callers
   use the modular replacement.
 - Update debug commands and discard obsolete save compatibility rather than

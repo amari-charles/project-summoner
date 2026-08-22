@@ -359,7 +359,6 @@ public partial class TraitTreeService : Node
                 : ReadString(node, "unlock_blocked_reason", ReadString(node, "locked_reason")),
             ["unlock_button_visible"] = unlockButtonVisible,
             ["unlock_button_enabled"] = unlockButtonEnabled,
-            ["unlock_button_text"] = "Unlock (1)",
             ["unspent_trait_points"] = unspentTraitPoints,
         };
     }

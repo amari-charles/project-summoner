@@ -60,7 +60,7 @@ Run a second product and information-architecture pass on the summoner screen. T
 
 **Tasks:**
 - [x] Confirm automatic summoner leveling as product direction; apply every affordable level and carry remaining XP forward.
-- [x] Replace the persistent `Level Up` action with an `Upgrades` entry and unspent-point state.
+- [x] Replace the persistent `Level Up` action with owned-trait development entry points and an unspent-point state.
 - [x] Establish the current information hierarchy: portrait and equipped items;
   level and XP; compact identity and stats; owned-trait summary plus Upgrades;
   and the reusable owned-item inventory grid.
@@ -70,9 +70,9 @@ Run a second product and information-architecture pass on the summoner screen. T
 
 **Progress (2026-08-17):** Automatic multi-level processing and banked points are
 implemented. The Summoner screen now serves as the combined build-management and
-inventory surface, shows owned traits, and reaches the existing trait tree through
-`Upgrades`. Remaining work is the designer-state specification, final terminology
-pass, and presentation design.
+inventory surface, shows owned traits, and opens development by selecting a trait.
+Remaining work is the designer-state specification, final terminology pass, and
+presentation design.
 
 **Likely Files:**
 - `docs/design/trait-tree-screen-flow-spec.md`
@@ -83,7 +83,7 @@ pass, and presentation design.
 - `scenes/meta/screens/trait_tree_screen.tscn`
 
 #### Define the Discovery-Driven Summoner and Card Development Slice
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Summoner Progression / Card Progression / World Systems
 **Urgency:** High — replaces the default-tree assumptions used by progression UI
 **Ease:** Hard
@@ -124,10 +124,10 @@ acquire, or transform with optional points, materials, or other costs.
 - [x] Show Trait Points in both the Summoner Traits header and open overlay; show
   Card `Core` as the first circle beside acquired Card traits and use the same
   overlay interaction for every selection.
-- [x] Hide permanently closed paths by default with an optional display toggle;
-  keep unaffordable access-unlocked nodes available, and mark newly revealed or
-  unlocked nodes until inspected.
-- [x] Use toast notifications for reveal/unlock feedback and the generic reward
+- [x] Hide permanently closed Card Core paths by default.
+- [ ] Add optional closed-path inspection, preserve available-but-unaffordable
+  state, and mark newly revealed or unlocked nodes until inspected.
+- [ ] Use toast notifications for reveal/unlock feedback and the generic reward
   presentation for acquisition/transformation.
 - [x] Keep the tree dominant and use a contextual node detail/action popover on
   hover, focus, or pinned selection; communicate branch closure through the tree
@@ -135,8 +135,17 @@ acquire, or transform with optional points, materials, or other costs.
   acquisition outside the tree overlay.
 - [ ] Exercise both preferred content patterns and exceptions: quest unlocks,
   ritual acquisition, quest acquisition, and ritual unlocks.
-- [ ] Prototype the replacement development interface only after the examples
-  establish its required information architecture.
+- [x] Prototype the selected-path development interface for Summoner traits,
+  Card Core, and acquired Card traits.
+
+**Progress (2026-08-22):** Automatic levels and banked owner-bound points are
+implemented for Summoners and Cards. The shared selected-path overlay is wired
+into both owner surfaces. Fire Wisp proves explicit Card Core membership, a
+single inherent root, a behavioral permanent fork, supporting stat nodes, and
+authoritative closure. Summoner representative world-driven development,
+durable discovery/provenance state, configurable material transactions,
+closed-path inspection, notification feedback, and capped-battle projection
+remain incomplete.
 
 **Related Doc:**
 - `docs/design/discovery-driven-development.md`
@@ -728,34 +737,38 @@ Review the current game setup to ensure compatibility with both mobile and deskt
 ### 🟢 LOW PRIORITY
 
 #### Support Upgrade-Specific Resource Costs (Future)
-**Status:** 🟡 Partial (Scaffolding Added)
+**Status:** 🟠 Superseded by Discovery-Driven Development
 **Category:** Core Game Systems / Progression
 **Effort:** Small
-**Dependencies:** Card Level System (implemented)
+**Dependencies:** Discovery-driven trait acquisition (in progress)
 
 **Description:**
-Add optional support for upgrade-specific resource costs (essence, fragments, etc.) defined in CardUpgradeCatalog.
+Add optional support for trait-specific resource costs (essence, fragments, etc.)
+through the generic acquisition transaction used by Summoners and Cards.
 
 **Current Behavior:**
 - Card/summoner level-ups require only XP (no gold cost)
 - Gold is campaign-scoped and used only for Caravan shop purchases
 
 **Future Enhancement:**
-- Individual upgrades can optionally specify resource costs (essence, fragments, etc.)
-- CardUpgradeCatalog already has structure to support this
+- Individual trait nodes can optionally specify points, material costs, or both.
+- The shared trait-tree transaction contract owns validation and spending.
 - Would allow rare/powerful upgrades to require special resources from events
 
-**Progress Update (2026-03-12):**
-- ✅ Added optional level-up resource-cost contract in card progression info (`level_up_resource_cost`, `has_level_up_resource_cost`).
-- ✅ Added CardService-level spend/refund wiring + API bridge accessor.
-- ⬜ Remaining: author real catalog-defined costs and UI affordability display/UX.
+**Progress Update (2026-08-22):**
+- ✅ Retired the manual Card level-up resource contract and mutation API; XP
+  now applies levels automatically.
+- ✅ Trait acquisition supports configurable point and material requirements
+  through the shared transaction path.
+- ⬜ Remaining: author representative material-gated nodes and complete
+  affordability/presentation UX.
 
 **Related Code:**
-- `scripts/csharp/Meta/Services/Cards/Handlers/CardProgressionHandler.cs` - card progression
-- `scripts/infrastructure/data/card_upgrade_catalog.gd` - upgrade definitions
+- `scripts/csharp/Meta/Services/Traits/TraitTreeService.cs` - acquisition transaction
+- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinition.cs` - node requirements
 
 **Notes:**
-- Low priority - XP-only system is the core design
+- Low priority - automatic XP levels are separate from development spending
 - Resources add optional depth for specific powerful upgrades
 
 ---

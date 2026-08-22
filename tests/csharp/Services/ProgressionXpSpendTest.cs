@@ -63,7 +63,6 @@ public partial class ProgressionXpSpendTest
 
         var progression = new CardProgressionHandler(repo);
         AssertThat(progression.GrantXp(instanceId, 30)).IsEqual(0);
-        AssertThat(progression.CanLevelUp(instanceId)).IsFalse();
 
         var card = repo.GetCard(instanceId);
         AssertThat(card).IsNotNull();
@@ -98,7 +97,6 @@ public partial class ProgressionXpSpendTest
 
         var progression = new CardProgressionHandler(repo);
         AssertThat(progression.GrantXp(instanceId, 80)).IsEqual(5); // -30, -45 => 5
-        AssertThat(progression.CanLevelUp(instanceId)).IsFalse();
 
         var card = repo.GetCard(instanceId);
         AssertThat(card).IsNotNull();
@@ -187,60 +185,6 @@ public partial class ProgressionXpSpendTest
         AssertThat(updated!.Level).IsEqual(2);
         AssertThat(updated.Xp).IsEqual(0);
         AssertThat(updated.UnspentTraitPoints).IsEqual(1);
-    }
-
-    [TestCase]
-    public void CardLevelUp_FailurePaths_DoNotMutateStateOrGrantTraitPoints()
-    {
-        var repo = CreateRepo("progression_xp_spend_card_failures");
-        var cardService = CreateNode<CardService>();
-        cardService.InitForTesting(repo);
-
-        var instanceId = CardInstanceId.FromString(
-            cardService.GrantCard(CardIds.FireWisp, "common")
-        );
-        AssertThat(instanceId).IsNotEqual(CardInstanceId.None);
-        AssertThat(
-                repo.UpdateCard(
-                    instanceId,
-                    new CardUpdate
-                    {
-                        Level = 1,
-                        Xp = 29,
-                        UnspentTraitPoints = 0,
-                    }
-                )
-            )
-            .IsTrue();
-
-        var progression = new CardProgressionHandler(repo);
-        AssertThat(progression.LevelUpCard(instanceId)).IsFalse();
-
-        var beforeMax = repo.GetCard(instanceId);
-        AssertThat(beforeMax).IsNotNull();
-        AssertThat(beforeMax!.Level).IsEqual(1);
-        AssertThat(beforeMax.Xp).IsEqual(29);
-        AssertThat(beforeMax.UnspentTraitPoints).IsEqual(0);
-
-        AssertThat(
-                repo.UpdateCard(
-                    instanceId,
-                    new CardUpdate
-                    {
-                        Level = CardProgressionHandler.MaxLevel,
-                        Xp = 999,
-                        UnspentTraitPoints = 3,
-                    }
-                )
-            )
-            .IsTrue();
-        AssertThat(progression.LevelUpCard(instanceId)).IsFalse();
-
-        var afterMax = repo.GetCard(instanceId);
-        AssertThat(afterMax).IsNotNull();
-        AssertThat(afterMax!.Level).IsEqual(CardProgressionHandler.MaxLevel);
-        AssertThat(afterMax.Xp).IsEqual(999);
-        AssertThat(afterMax.UnspentTraitPoints).IsEqual(3);
     }
 
     [TestCase]

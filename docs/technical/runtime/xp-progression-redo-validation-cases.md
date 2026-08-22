@@ -1,6 +1,6 @@
 # XP Progression Redo Validation Cases
 
-**Status:** PASS 3 COMPLETE
+**Status:** PASS 3 COMPLETE; application cases updated for automatic leveling
 **Initiative:** `xp-progression-redo`
 **Domain:** `runtime`
 **Last Updated:** `2026-03-09`
@@ -21,15 +21,15 @@ Allowed status values:
 
 | Case ID | Scenario | Expected Result | Test Type | Test File | Status |
 |---|---|---|---|---|---|
-| XP-C01 | Card single level-up consumes exact XP cost | Level increments by 1, `xp` decreases by exact cost, `can_level_up` becomes false when leftover is insufficient | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
-| XP-C02 | Card multi-level carryover | Repeated level-up calls consume per-level costs and preserve carryover `xp` | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
-| XP-C03 | Summoner single level-up consumes exact XP cost | Level increments by 1, XP consumed exactly, trait points +1 | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
-| XP-C04 | Summoner multi-level carryover | Repeated successful calls level multiple times while XP remains sufficient | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
-| XP-C05 | Max-level no-op behavior (both domains) | `can_level_up=false`, level-up returns false, `xp_for_next_level=0`, `xp_progress=1` | unit | `tests/csharp/Services/CardProgressionContractTest.cs`, `tests/csharp/Services/SummonerProgressionServiceTest.cs` | Implemented |
+| XP-C01 | Card XP crosses one threshold | XP grant applies the level automatically, consumes exact XP, and banks configured Card Points | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
+| XP-C02 | Card XP crosses multiple thresholds | One XP grant applies every affordable level and preserves remainder XP | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
+| XP-C03 | Summoner XP crosses one threshold | XP grant applies the level automatically, consumes exact XP, and banks one Trait Point | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
+| XP-C04 | Summoner XP crosses multiple thresholds | One XP grant applies every affordable level and preserves remainder XP | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
+| XP-C05 | Max-level no-op behavior (both domains) | XP grant preserves max-level state; `xp_for_next_level=0` and `xp_progress=1` | unit | `tests/csharp/Services/CardProgressionContractTest.cs`, `tests/csharp/Services/SummonerProgressionServiceTest.cs` | Implemented |
 | XP-C06 | Deterministic parity for same inputs | Shared engine returns identical outputs for repeated identical input state/curve | unit | `tests/csharp/Services/ProgressionCoreTest.cs` | Implemented |
-| XP-C07 | UI contract: card payload fields | `GetCardProgressionInfoDict` includes correct `xp`, `xp_for_next_level`, `xp_progress`, `can_level_up` values | integration | `tests/csharp/Services/CardProgressionContractTest.cs` | Implemented |
-| XP-C08 | UI contract: summoner payload fields | `GetSummonerProgressionInfo` includes correct `xp`, `xp_for_next_level`, `xp_progress`, `can_level_up` values | integration | `tests/csharp/Services/SummonerProgressionServiceTest.cs` | Implemented |
-| XP-C09 | Failure: insufficient XP | Level-up returns false, no XP/level/trait-point mutation | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs`, `tests/csharp/Services/ProgressionCoreTest.cs` | Implemented |
+| XP-C07 | UI contract: card payload fields | `GetCardProgressionInfoDict` includes correct `xp`, `xp_for_next_level`, and `xp_progress`, without retired manual-level fields | integration | `tests/csharp/Services/CardProgressionContractTest.cs` | Implemented |
+| XP-C08 | UI contract: summoner payload fields | `GetSummonerProgressionInfo` includes correct `xp`, `xp_for_next_level`, and `xp_progress`, without `can_level_up` | integration | `tests/csharp/Services/SummonerProgressionServiceTest.cs` | Implemented |
+| XP-C09 | XP below threshold | XP is retained, level and point balance do not change, and no manual action becomes available | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs`, `tests/csharp/Services/ProgressionCoreTest.cs` | Implemented |
 | XP-C10 | Failure: invalid progression state | Invalid state (level < 1, level > max, negative xp) returns explicit failure/no-op result deterministically | unit | `tests/csharp/Services/ProgressionCoreTest.cs` | Implemented |
 | XP-C11 | Trait-point grant per successful level-up | Exactly +1 trait point for each successful level-up and never on failed attempts | unit | `tests/csharp/Services/ProgressionXpSpendTest.cs` | Implemented |
 | XP-C12 | No drift between card and summoner math for equivalent curves | Given equivalent curve policies and same state, engine outputs identical progression results regardless of adapter domain | unit | `tests/csharp/Services/ProgressionCoreParityTest.cs` | Implemented |
@@ -40,7 +40,7 @@ Allowed status values:
 
 | Case ID | Seed | Inputs | Checkpoints | Hash/State Assertions | Status |
 |---|---|---|---|---|---|
-| XP-D01 | `N/A` | Fixed progression state + curve policy + repeated operation sequence | pre-level-up, post-level-up, post-second-call | State snapshot tuple `(level, xp, can_level_up, xp_progress)` is identical across repetitions | Implemented |
+| XP-D01 | `N/A` | Fixed progression state + curve policy + repeated operation sequence | before and after deterministic apply calls | State snapshot tuple `(level, xp, xp_progress)` is identical across repetitions | Implemented |
 | XP-D02 | `N/A` | Equivalent card/summoner curve definitions with same state | same checkpoints in both adapters | Shared engine output metadata and final state are byte-for-byte equivalent in assertions | Implemented |
 
 ## Deferred Cases

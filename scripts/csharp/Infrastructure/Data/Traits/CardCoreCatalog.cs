@@ -30,9 +30,12 @@ public static class CardCoreCatalog
 
     public static TraitDefinition[] GetCoreTraits(CardId cardCatalogId) =>
         GetCoreTraitIds(cardCatalogId)
-            .Select(TraitCatalog.GetTrait)
-            .Where(definition => definition != null)
-            .Cast<TraitDefinition>()
+            .Select(traitId =>
+                TraitCatalog.GetTrait(traitId)
+                    ?? throw new InvalidOperationException(
+                        $"Card Core for '{cardCatalogId}' references unknown trait '{traitId}'"
+                    )
+            )
             .ToArray();
 
     public static bool Contains(CardId cardCatalogId, TraitId traitId) =>

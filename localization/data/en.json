@@ -956,6 +956,8 @@
       "reason_not_currently_available": "Not currently available.",
       "no_description": "No description.",
       "unlock_button": "Unlock (1)",
+      "acquire_title": "Acquire Trait",
+      "acquire_confirmation": "Spend the listed cost to acquire {name}?",
       "close_button": "Close",
       "unlock_failed_title": "Unlock Failed",
       "unlock_failed_reason": "Requirements were not met."
