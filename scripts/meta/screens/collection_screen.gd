@@ -15,7 +15,6 @@ class_name CollectionScreen
 @onready var close_button: Button = %CloseButton
 @onready var traits_button: Button = %TraitsButton
 @onready var traits_badge: Label = %TraitsBadge
-@onready var gold_label: Label = %GoldLabel
 
 ## Left panel - Filters
 @onready var all_button: Button = %AllButton
@@ -138,7 +137,6 @@ func _ready() -> void:
 	_refresh_deck_list()
 	_refresh_deck_panel()
 	_refresh_collection()
-	_refresh_gold_display()
 
 
 func _make_traits_button_style(bg_color: Color, border_color: Color) -> StyleBoxFlat:
@@ -735,16 +733,6 @@ func _remove_card_from_deck(card_instance_id: String) -> void:
 func _on_modal_closed(modal: Node) -> void:
 	if modal and is_instance_valid(modal):
 		modal.queue_free()
-
-
-## =============================================================================
-## GOLD DISPLAY
-## =============================================================================
-
-func _refresh_gold_display() -> void:
-	var resources: Dictionary = ProfileRepoApi.get_resources_dict()
-	var gold: int = resources.get("gold", 0)
-	gold_label.text = str(gold)
 
 
 ## =============================================================================

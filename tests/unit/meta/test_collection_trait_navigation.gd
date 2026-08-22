@@ -43,3 +43,13 @@ func test_case_c03_card_development_stays_in_the_card_detail_surface() -> void:
 	assert_true(modal.visible, "Opening development should not navigate away from card details")
 	assert_true(modal.trait_development_overlay.visible, "Selected card path should open as an overlay")
 	assert_false(NavigationContext.has_return(), "Card development should not push a separate screen route")
+
+
+func test_collection_screen_does_not_show_gold() -> void:
+	var scene: PackedScene = load("res://scenes/meta/screens/collection_screen.tscn")
+	var screen: Control = scene.instantiate() as Control
+	add_child_autofree(screen)
+	await get_tree().process_frame
+
+	assert_null(screen.find_child("GoldContainer", true, false))
+	assert_null(screen.find_child("GoldLabel", true, false))
