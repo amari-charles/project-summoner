@@ -8,6 +8,12 @@ class_name PostBattleResults
 const CardVisualScene: PackedScene = preload("res://scenes/shared/card_visual.tscn")
 const RESULT_CARD_SIZE: Vector2 = Vector2(200, 300)
 const REWARD_CHOICE_BUTTON_SIZE: Vector2 = Vector2(180, 64)
+const GRANT_KIND_CARD: String = "card"
+const GRANT_KIND_CARD_XP: String = "card_xp"
+const GRANT_KIND_SUMMONER_XP: String = "summoner_xp"
+const OFFER_STATE_PENDING: String = "pending"
+const OUTCOME_DEFEAT: String = "defeat"
+const OUTCOME_VICTORY: String = "victory"
 
 @onready var background: ColorRect = %Background
 @onready var panel: PanelContainer = %Panel
@@ -81,7 +87,7 @@ func _present_campaign_result(result: Dictionary) -> void:
 	var pending_offer: Dictionary = {}
 	for value: Variant in SafeTypeUtils.array(result.get("reward_offers")):
 		var offer: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(offer.get("display_state")) == "pending" and pending_offer.is_empty():
+		if SafeTypeUtils.string(offer.get("display_state")) == OFFER_STATE_PENDING and pending_offer.is_empty():
 			pending_offer = offer
 			continue
 		for option_value: Variant in SafeTypeUtils.array(offer.get("options")):
@@ -122,16 +128,16 @@ func _render() -> void:
 	_clear_children(choice_buttons)
 	_selected_option_id = ""
 	_pending_claim_id = ""
-	var outcome: String = SafeTypeUtils.string(_report.get("outcome"), "defeat").to_lower()
+	var outcome: String = SafeTypeUtils.string(_report.get("outcome"), OUTCOME_DEFEAT).to_lower()
 	outcome_label.text = Loc.t("ui.post_battle.%s" % outcome)
 	outcome_label.add_theme_color_override(
-		"font_color", GameColorPalette.SUCCESS if outcome == "victory" else GameColorPalette.ERROR
+		"font_color", GameColorPalette.SUCCESS if outcome == OUTCOME_VICTORY else GameColorPalette.ERROR
 	)
 	var grants: Array[Dictionary] = []
 	_append_grants(grants, _report.get("grants", []))
 	_base_reward_grants.clear()
 	for grant: Dictionary in grants:
-		if SafeTypeUtils.string(grant.get("kind")) not in ["summoner_xp", "card_xp"]:
+		if SafeTypeUtils.string(grant.get("kind")) not in [GRANT_KIND_SUMMONER_XP, GRANT_KIND_CARD_XP]:
 			_base_reward_grants.append(grant)
 	_render_summoner_progression(grants)
 	_render_card_progression(grants)
@@ -143,7 +149,7 @@ func _render_summoner_progression(grants: Array[Dictionary]) -> void:
 	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
 	var summoner: Dictionary = SummonerSelectionApi.get_summoner_instance_dict(summoner_id)
 	var info: Dictionary = SummonerProgressionApi.get_summoner_progression_info(summoner_id)
-	var gained: int = _sum_grants(grants, "summoner_xp")
+	var gained: int = _sum_grants(grants, GRANT_KIND_SUMMONER_XP)
 	summoner_name_label.text = SafeTypeUtils.string(
 		summoner.get("name", summoner.get("summoner_name")),
 		Loc.t("ui.post_battle.summoner")
@@ -163,7 +169,7 @@ func _render_summoner_progression(grants: Array[Dictionary]) -> void:
 func _render_card_progression(grants: Array[Dictionary]) -> void:
 	var card_xp: Dictionary = {}
 	for grant: Dictionary in grants:
-		if SafeTypeUtils.string(grant.get("kind")) != "card_xp":
+		if SafeTypeUtils.string(grant.get("kind")) != GRANT_KIND_CARD_XP:
 			continue
 		var instance_id: String = SafeTypeUtils.string(grant.get("target_id"))
 		var gained: int = SafeTypeUtils.int_val(grant.get("amount"), 0)
@@ -196,7 +202,7 @@ func _render_card_progression(grants: Array[Dictionary]) -> void:
 func _render_rewards(grants: Array[Dictionary]) -> void:
 	for grant: Dictionary in grants:
 		var kind: String = SafeTypeUtils.string(grant.get("kind"))
-		if kind in ["summoner_xp", "card_xp"]:
+		if kind in [GRANT_KIND_SUMMONER_XP, GRANT_KIND_CARD_XP]:
 			continue
 		_add_reward_view(grant)
 	rewards_section.visible = rewards.get_child_count() > 0
@@ -235,7 +241,7 @@ func _select_reward(option: Dictionary) -> void:
 
 func _add_reward_view(grant: Dictionary) -> void:
 	var kind: String = SafeTypeUtils.string(grant.get("kind"))
-	if kind == "card":
+	if kind == GRANT_KIND_CARD:
 		var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("content_id", grant.get("id"))))
 		var card_visual: CardVisual = CardVisualScene.instantiate() as CardVisual
 		card_visual.custom_minimum_size = RESULT_CARD_SIZE
@@ -266,7 +272,7 @@ func _option_label(option: Dictionary) -> String:
 		return Loc.t(key)
 	for value: Variant in SafeTypeUtils.array(option.get("grants")):
 		var grant: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(grant.get("kind")) == "card":
+		if SafeTypeUtils.string(grant.get("kind")) == GRANT_KIND_CARD:
 			var card_id: String = SafeTypeUtils.string(grant.get("content_id", grant.get("id")))
 			return SafeTypeUtils.string(CardCatalogApi.get_card_as_dict(card_id).get("card_name"), card_id)
 	return Loc.t("ui.post_battle.choose_reward")
@@ -291,7 +297,7 @@ func _continue() -> void:
 
 
 func _battle_context_outcome() -> String:
-	return "victory" if BattleContext.battle_state == BattleContext.BattleState.VICTORY else "defeat"
+	return OUTCOME_VICTORY if BattleContext.battle_state == BattleContext.BattleState.VICTORY else OUTCOME_DEFEAT
 
 
 func _sum_grants(grants: Array[Dictionary], kind: String) -> int:
@@ -305,7 +311,7 @@ func _sum_grants(grants: Array[Dictionary], kind: String) -> int:
 func _has_pending_offer(result: Dictionary) -> bool:
 	for value: Variant in SafeTypeUtils.array(result.get("reward_offers")):
 		var offer: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(offer.get("display_state")) == "pending":
+		if SafeTypeUtils.string(offer.get("display_state")) == OFFER_STATE_PENDING:
 			return true
 	return false
 
