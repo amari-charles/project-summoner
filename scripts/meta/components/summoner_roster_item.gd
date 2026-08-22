@@ -3,11 +3,10 @@ class_name SummonerRosterItem
 
 ## SummonerRosterItem - Individual summoner row in the management panel
 ##
-## Displays summoner info with Select and Level Up actions.
+## Displays summoner info with automatic XP progress and a Select action.
 
 ## Signals
 signal select_pressed(summoner_id: String)
-signal level_up_pressed(summoner_id: String)
 
 ## Node references
 @onready var portrait_rect: ColorRect = %PortraitRect
@@ -18,7 +17,6 @@ signal level_up_pressed(summoner_id: String)
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
 @onready var select_button: Button = %SelectButton
-@onready var level_up_button: Button = %LevelUpButton
 @onready var active_indicator: Label = %ActiveIndicator
 
 ## State
@@ -31,7 +29,6 @@ var _is_active: bool = false
 
 func _ready() -> void:
 	select_button.pressed.connect(_on_select_pressed)
-	level_up_button.pressed.connect(_on_level_up_pressed)
 
 ## =============================================================================
 ## PUBLIC API
@@ -64,7 +61,6 @@ func refresh() -> void:
 	var current_xp: int = info.get("xp", 0)
 	var xp_for_next: int = info.get("xp_for_next_level", 0)
 	var xp_progress: float = info.get("xp_progress", 0.0)
-	var can_level_up: bool = info.get("can_level_up", false)
 	var is_max_level: bool = info.get("is_max_level", false)
 
 	# Get element
@@ -91,18 +87,6 @@ func refresh() -> void:
 	else:
 		xp_label.text = Loc.t("ui.summoner_panel.xp_progress", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
-
-	# Level up button state (XP-only, no gold cost)
-	if is_max_level:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_max")
-		level_up_button.disabled = true
-	elif not can_level_up:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_locked")
-		level_up_button.disabled = true
-	else:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button_simple")
-		level_up_button.disabled = false
-		level_up_button.remove_theme_color_override("font_color")
 
 	_update_active_display()
 
@@ -138,6 +122,3 @@ func _create_highlight_style() -> StyleBoxFlat:
 
 func _on_select_pressed() -> void:
 	select_pressed.emit(_summoner_id)
-
-func _on_level_up_pressed() -> void:
-	level_up_pressed.emit(_summoner_id)

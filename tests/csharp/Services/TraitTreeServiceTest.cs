@@ -93,7 +93,7 @@ public class TraitTreeServiceTest
     }
 
     [TestCase]
-    public void CardTreeViewModel_RespectsOwnerTypeFiltering()
+    public void CardTreeViewModel_UsesExplicitNativeCoreInsteadOfGlobalStatPool()
     {
         var repo = CreateRepo("trait_tree_service_card_owner_filter");
         var cardService = CreateNode<CardService>();
@@ -123,9 +123,36 @@ public class TraitTreeServiceTest
 
         var summonVm = traitTree.GetCardTreeViewModel(summonCardId);
         var spellVm = traitTree.GetCardTreeViewModel(spellCardId);
+        const string fireWispRootId = "__card_core_root__:fire_wisp";
 
-        AssertThat(FindNode(summonVm, "progression_nodes", TraitIds.Power)).IsNotNull();
+        var coreRoot = FindNode(summonVm, "progression_nodes", fireWispRootId);
+        AssertThat(coreRoot).IsNotNull();
+        var coreRootNode = coreRoot!;
+        AssertThat(ReadBool(coreRootNode, "is_owned")).IsTrue();
+        AssertThat(ReadInt(coreRootNode, "depth")).IsEqual(0);
+
+        var twinFlame = FindNode(
+            summonVm,
+            "progression_nodes",
+            TraitIds.FireWispTwinFlame
+        );
+        AssertThat(twinFlame).IsNotNull();
+        var twinFlameNode = twinFlame!;
+        AssertThat(ReadInt(twinFlameNode, "depth")).IsEqual(1);
+        AssertThat(ReadStringArrayContains(twinFlameNode, "prerequisites", fireWispRootId))
+            .IsTrue();
+        AssertThat(
+                FindNode(summonVm, "progression_nodes", TraitIds.FireWispCondensedFlame)
+            )
+            .IsNotNull();
+        AssertThat(FindNode(summonVm, "progression_nodes", TraitIds.Power)).IsNull();
+        AssertThat(FindNode(summonVm, "progression_nodes", TraitIds.Fortitude)).IsNull();
         AssertThat(FindNode(spellVm, "progression_nodes", TraitIds.Power)).IsNull();
+        AssertThat(ReadNodeCount(spellVm, "progression_nodes")).IsEqual(1);
+        AssertThat(
+                FindNode(spellVm, "progression_nodes", "__card_core_root__:mana_bolt")
+            )
+            .IsNotNull();
     }
 
     [TestCase]
@@ -147,7 +174,7 @@ public class TraitTreeServiceTest
             )
             .IsTrue();
 
-        var detail = traitTree.GetTraitNodeDetail("card", cardId, TraitIds.Power);
+        var detail = traitTree.GetTraitNodeDetail("card", cardId, TraitIds.FireWispTwinFlame);
         AssertThat(detail.Count).IsGreater(0);
         AssertThat(ReadString(detail, "name")).IsNotEmpty();
         AssertThat(ReadString(detail, "description")).IsNotEmpty();
@@ -175,16 +202,106 @@ public class TraitTreeServiceTest
             )
             .IsTrue();
 
-        var result = traitTree.TryUnlockTrait("card", cardId, TraitIds.Power);
+        var result = traitTree.TryUnlockTrait("card", cardId, TraitIds.FireWispTwinFlame);
         AssertThat(ReadBool(result, "success")).IsTrue();
 
         var card = repo.GetCard(CardInstanceId.FromString(cardId));
         AssertThat(card).IsNotNull();
         AssertThat(card!.UnspentTraitPoints).IsEqual(0);
-        AssertThat(card.Traits.Contains(CardTraitId.FromString(TraitIds.Power))).IsTrue();
+        AssertThat(
+                card.Traits.Contains(CardTraitId.FromString(TraitIds.FireWispTwinFlame))
+            )
+            .IsTrue();
+        AssertThat(cardService.GetTraitSpawnCountBonus(cardId)).IsEqual(1);
+        var statModifiers = cardService.GetTraitStatModifiers(cardId);
+        AssertThat(statModifiers["max_hp"]).IsEqualApprox(0.65f, 0.001f);
+        AssertThat(statModifiers["attack_damage"]).IsEqualApprox(0.65f, 0.001f);
 
-        var detail = traitTree.GetTraitNodeDetail("card", cardId, TraitIds.Power);
+        var detail = traitTree.GetTraitNodeDetail(
+            "card",
+            cardId,
+            TraitIds.FireWispTwinFlame
+        );
         AssertThat(ReadString(detail, "state")).IsEqual("owned");
+    }
+
+    [TestCase]
+    public void CardCoreChoice_PermanentlyClosesAndHidesAlternativeBranch()
+    {
+        var repo = CreateRepo("trait_tree_service_card_core_exclusivity");
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+        var traitTree = CreateNode<TraitTreeService>();
+
+        var cardId = cardService.GrantCard(CardIds.FireWisp, "common");
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(cardId),
+                    new CardUpdate { Level = 4, UnspentTraitPoints = 2 }
+                )
+            )
+            .IsTrue();
+
+        var before = traitTree.GetCardTreeViewModel(cardId);
+        AssertThat(
+                FindNode(before, "progression_nodes", TraitIds.FireWispTwinFlame)
+            )
+            .IsNotNull();
+        AssertThat(
+                FindNode(before, "progression_nodes", TraitIds.FireWispCondensedFlame)
+            )
+            .IsNotNull();
+
+        var result = traitTree.TryUnlockTrait("card", cardId, TraitIds.FireWispTwinFlame);
+        AssertThat(ReadBool(result, "success")).IsTrue();
+
+        var after = traitTree.GetCardTreeViewModel(cardId);
+        AssertThat(
+                FindNode(after, "progression_nodes", TraitIds.FireWispTwinFlame)
+            )
+            .IsNotNull();
+        AssertThat(
+                FindNode(after, "progression_nodes", TraitIds.FireWispDancingEmbers)
+            )
+            .IsNotNull();
+        AssertThat(
+                FindNode(after, "progression_nodes", TraitIds.FireWispCondensedFlame)
+            )
+            .IsNull();
+        AssertThat(
+                FindNode(after, "progression_nodes", TraitIds.FireWispBlazingCore)
+            )
+            .IsNull();
+
+        var rejected = traitTree.TryUnlockTrait(
+            "card",
+            cardId,
+            TraitIds.FireWispCondensedFlame
+        );
+        AssertThat(ReadBool(rejected, "success")).IsFalse();
+    }
+
+    [TestCase]
+    public void CardProgression_RejectsGenericStatTraitOutsideAuthoredCore()
+    {
+        var repo = CreateRepo("trait_tree_service_card_rejects_generic_stat");
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+
+        var cardId = cardService.GrantCard(CardIds.FireWisp, "common");
+        AssertThat(
+                repo.UpdateCard(
+                    CardInstanceId.FromString(cardId),
+                    new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                )
+            )
+            .IsTrue();
+
+        AssertThat(cardService.SpendCardTraitPoint(cardId, TraitIds.Power)).IsFalse();
+        var card = repo.GetCard(CardInstanceId.FromString(cardId));
+        AssertThat(card).IsNotNull();
+        AssertThat(card!.UnspentTraitPoints).IsEqual(1);
+        AssertThat(card.Traits).IsEmpty();
     }
 
     private ProfileRepository CreateRepo(string profileId)
@@ -243,6 +360,40 @@ public class TraitTreeServiceTest
         }
 
         return null;
+    }
+
+    private static int ReadNodeCount(Godot.Collections.Dictionary viewModel, string key)
+    {
+        return viewModel.TryGetValue(key, out var nodesVar)
+            && nodesVar.VariantType == Variant.Type.Array
+            ? nodesVar.AsGodotArray().Count
+            : 0;
+    }
+
+    private static bool ReadStringArrayContains(
+        Godot.Collections.Dictionary dict,
+        string key,
+        string expected
+    )
+    {
+        if (
+            !dict.TryGetValue(key, out var value)
+            || value.VariantType != Variant.Type.Array
+        )
+            return false;
+
+        return value.AsGodotArray().Any(item => item.AsString() == expected);
+    }
+
+    private static int ReadInt(
+        Godot.Collections.Dictionary dict,
+        string key,
+        int fallback = 0
+    )
+    {
+        return dict.TryGetValue(key, out var value) && value.VariantType == Variant.Type.Int
+            ? value.AsInt32()
+            : fallback;
     }
 
     private static string ReadString(

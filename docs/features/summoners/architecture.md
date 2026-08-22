@@ -22,7 +22,7 @@ Summoners are deck leaders that provide passive bonuses and define core battle p
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    UI Layer                                  │
-│  - SummonerScreen (full-screen summoner roster, level-up, traits)│
+│  - SummonerScreen (identity, XP, stats, equipment, upgrades)     │
 │  - SummonerIconWidget (persistent summoner button on screens) │
 │  - SummonerRosterItem (individual summoner display in roster) │
 └─────────────────────┬───────────────────────────────────────┘
@@ -32,8 +32,8 @@ Summoners are deck leaders that provide passive bonuses and define core battle p
 │                                                              │
 │  SummonerSelection      SummonerProgression   TraitCatalog   │
 │  - get_active_summoner_id - grant_xp         - get_trait     │
-│  - switch_summoner      - level_up_summoner  - get_modifiers │
-│  - get_unlocked_ids     - can_level_up       - has_trait     │
+│  - switch_summoner      - grant_xp           - get_modifiers │
+│  - get_unlocked_ids     - spend_trait_point  - has_trait     │
 └─────────────────────┬───────────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────────┐
@@ -67,20 +67,19 @@ var ids: Array[String] = SummonerSelection.get_unlocked_summoner_ids()
 - `summoner_changed(old_summoner_id, new_summoner_id)` - Emitted when active summoner changes
 
 #### SummonerProgression (autoload: `/root/SummonerProgression`)
-Manages XP and level-up mechanics.
+Manages XP, automatic levels, and banked upgrade points.
 
 ```gdscript
 # Grant XP
 SummonerProgression.grant_summoner_xp("summoner_cole", 50)
 SummonerProgression.grant_active_summoner_xp(100)
 
-# Level up
-if SummonerProgression.can_level_up("summoner_cole"):
-    SummonerProgression.level_up_summoner("summoner_cole")
+# Level thresholds crossed by an XP grant resolve automatically. Each gained
+# level banks one upgrade point for later use in the Upgrades screen.
 
 # Query progression
 var info: Dictionary = SummonerProgression.get_summoner_progression_info("summoner_cole")
-# Returns: {level, xp, xp_for_next_level, xp_progress, can_level_up, ...}
+# Returns: {level, xp, xp_for_next_level, xp_progress, unspent_trait_points, ...}
 ```
 
 **Signals:**

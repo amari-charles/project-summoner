@@ -147,7 +147,7 @@ func _on_continue_pressed() -> void:
 	if selected_option_id.is_empty():
 		return
 	if not claim_required:
-		_check_summoner_level_up()
+		_transition_to_map()
 		return
 	var selected: Array[String] = [selected_option_id]
 	var result: Dictionary = ProgressionAuthority.ClaimBattleReward(
@@ -161,27 +161,7 @@ func _on_continue_pressed() -> void:
 			selected_option_id = ""
 			_load_pending_reward()
 			return
-	_check_summoner_level_up()
-
-func _check_summoner_level_up() -> void:
-	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
-	if not summoner_id.is_empty() and SummonerProgressionApi.can_level_up(summoner_id):
-		var modal: SummonerLevelUpPanel = preload(
-			"res://scenes/meta/modals/summoner_level_up_panel.tscn"
-		).instantiate() as SummonerLevelUpPanel
-		if modal:
-			add_child(modal)
-			modal.open_for_summoner(summoner_id)
-			modal.level_up_completed.connect(_on_summoner_level_up_completed)
-			modal.cancelled.connect(_transition_to_map)
-			return
 	_transition_to_map()
-
-func _on_summoner_level_up_completed(summoner_id: String, _trait_id: String) -> void:
-	if SummonerProgressionApi.can_level_up(summoner_id):
-		_check_summoner_level_up()
-	else:
-		_transition_to_map()
 
 func _transition_to_map() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)

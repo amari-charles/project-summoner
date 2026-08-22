@@ -89,6 +89,10 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 theme/custom="res://resources/visual/base_theme.tres"
 
+[progression]
+
+card_points_per_level=1
+
 [input]
 
 move_left={

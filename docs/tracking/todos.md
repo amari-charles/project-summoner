@@ -40,6 +40,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-13, Academy hub):** Restored the bounded walkable Academy hub direction with permanent shortcut access; Phase 1 recovery is in progress.
 **Tracker Sync (2026-08-14, product direction history):** Reframed the ambiguous changelog task as a curated product direction log, added its inclusion and authority framework, and left historical backfill pending user review.
 **Tracker Sync (2026-08-16, designer readiness):** Added an immediate high-priority UI readiness queue covering the summoner progression pass, automatic-level/XP presentation contract, reusable reward acquisition flow, first-quest reward slice, and canonical screen/state inventory needed before external UI design begins.
+**Tracker Sync (2026-08-18, discovery-driven development):** Replaced the fully exposed default-tree assumption with shared summoner/card opportunity states, configurable costs, and world actions that can reveal, unlock, acquire, or transform; added the representative design slice and UI/implementation work plan required before replacement progression UI is committed.
 
 ---
 
@@ -48,7 +49,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ### 🔴 HIGH PRIORITY
 
 #### Rework the Summoner Screen Around Automatic Levels and Banked Upgrade Choices
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** Meta Progression / UI/UX
 **Urgency:** High — designer handoff dependency
 **Ease:** Medium
@@ -58,19 +59,88 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 Run a second product and information-architecture pass on the summoner screen. Treat the current screen as functional prototype evidence, not a visual constraint. Remove the manual-level-up assumption and clearly separate automatic numerical growth, banked summoner upgrade choices, permanent traits, equipment, and descriptive identity.
 
 **Tasks:**
-- [ ] Confirm automatic summoner leveling as product direction and define how multiple levels resolve.
-- [ ] Replace the persistent `Level Up` action with an `Upgrades` entry and unspent-point state.
-- [ ] Decide which current sections remain primary, secondary, tabbed, or removed: identity, stats, XP, upgrades, earned traits, and equipment.
+- [x] Confirm automatic summoner leveling as product direction; apply every affordable level and carry remaining XP forward.
+- [x] Replace the persistent `Level Up` action with an `Upgrades` entry and unspent-point state.
+- [x] Establish the current information hierarchy: portrait and equipped items;
+  level and XP; compact identity and stats; owned-trait summary plus Upgrades;
+  and the reusable owned-item inventory grid.
 - [ ] Define the minimum states the designer must cover: ordinary progress, newly leveled, unspent points, max level, locked upgrade, and permanent branch confirmation.
 - [ ] Reconcile player-facing terminology (`level`, `XP`, `upgrade point`, `trait`, `doctrine`, or other authored labels).
 - [ ] Mark current placeholder portrait, stat icons, stat ladders, and panel layout as replaceable presentation.
 
+**Progress (2026-08-17):** Automatic multi-level processing and banked points are
+implemented. The Summoner screen now serves as the combined build-management and
+inventory surface, shows owned traits, and reaches the existing trait tree through
+`Upgrades`. Remaining work is the designer-state specification, final terminology
+pass, and presentation design.
+
 **Likely Files:**
 - `docs/design/trait-tree-screen-flow-spec.md`
+- `docs/design/discovery-driven-development.md`
 - `docs/design/academy-forging-model.md`
 - `scenes/meta/screens/summoner_screen.tscn`
 - `scripts/meta/screens/summoner_screen.gd`
 - `scenes/meta/screens/trait_tree_screen.tscn`
+
+#### Define the Discovery-Driven Summoner and Card Development Slice
+**Status:** ⬜ Not Started
+**Category:** Summoner Progression / Card Progression / World Systems
+**Urgency:** High — replaces the default-tree assumptions used by progression UI
+**Ease:** Hard
+**Scope:** Large
+
+**Description:**
+Prove the shared discovery-driven development model with one representative
+summoner trait and one representative card. Levels provide banked, entity-bound
+points; quests, rituals, and other world actions configurably reveal, unlock,
+acquire, or transform with optional points, materials, or other costs.
+
+**Tasks:**
+- [ ] Author one summoner trait with ordinary and ritual-driven development.
+- [ ] Author one card with mutually exclusive behavioral branches and at least
+  one world-gated opportunity.
+- [ ] Walk both examples through hidden, known-locked, available, acquired, and
+  permanently closed states.
+- [ ] Store per-upgrade acquisition metadata on each owner, including path,
+  acquisition source/occurrence, card or summoner level at acquisition,
+  acquisition sequence, and configured cost snapshot.
+- [ ] Define a non-destructive effective-state projection for capped battles;
+  cap effective Card level and automatic level-scaled stats while preserving all
+  acquired upgrades, and never downgrade or rewrite the permanent Card instance.
+- [ ] Define configurable acquisition costs, including free, point-only,
+  material-only, and combined transactions.
+- [x] Confirm one banked owner-bound point per level plus modest automatic base
+  stat growth; exact curves and affected stats remain to be tuned.
+- [x] Keep Summoner health and maximum mana in automatic growth; configure Card
+  growth per Card and defer exact growth/mana-cost tuning.
+- [x] Confirm no separate Summoner Core tree; Summoner points are spent across
+  acquired traits, while Cards expose Core plus acquired trait paths.
+- [x] Confirm owned trait circles as the primary Summoner development entry;
+  remove the separate global `Upgrades` button.
+- [x] Give the Traits section more vertical height, wrap icons across multiple
+  rows, and scroll after the visible grid is full; do not add `+N / View All`.
+- [x] Confirm a large selected-trait overlay, no embedded trait switcher for the
+  first version, and one-node trees for atomic traits.
+- [x] Show Trait Points in both the Summoner Traits header and open overlay; show
+  Card `Core` as the first circle beside acquired Card traits and use the same
+  overlay interaction for every selection.
+- [x] Hide permanently closed paths by default with an optional display toggle;
+  keep unaffordable access-unlocked nodes available, and mark newly revealed or
+  unlocked nodes until inspected.
+- [x] Use toast notifications for reveal/unlock feedback and the generic reward
+  presentation for acquisition/transformation.
+- [x] Keep the tree dominant and use a contextual node detail/action popover on
+  hover, focus, or pinned selection; communicate branch closure through the tree
+  instead of repeating alternatives in confirmation, and keep physical ritual
+  acquisition outside the tree overlay.
+- [ ] Exercise both preferred content patterns and exceptions: quest unlocks,
+  ritual acquisition, quest acquisition, and ritual unlocks.
+- [ ] Prototype the replacement development interface only after the examples
+  establish its required information architecture.
+
+**Related Doc:**
+- `docs/design/discovery-driven-development.md`
+- `docs/tracking/discovery-driven-development-work-plan.md`
 
 #### Define Summoner XP Visibility Across the Persistent HUD and Progression Surfaces
 **Status:** ⬜ Not Started
@@ -128,8 +198,7 @@ The report builder belongs in the meta/application progression boundary because 
 - `scripts/csharp/Battle/View/BattleScene.cs`
 - `scenes/meta/screens/reward_screen.tscn`
 - `scenes/meta/screens/academy_activity_results.tscn`
-- `scenes/meta/modals/summoner_level_up_panel.tscn`
-- `scenes/meta/modals/card_level_up_panel.tscn`
+- reusable summoner level-reveal component (not yet created)
 
 #### Give the First Quest a Real Reward and Prove the Complete Acquisition Loop
 **Status:** 🔄 In Progress
@@ -989,6 +1058,24 @@ A UI tool for developers to design and configure campaign battles without touchi
 ## Card & Spell System
 
 ### 🟡 MEDIUM PRIORITY
+
+#### Revisit the Card Rarity Concept
+**Status:** ⬜ Not Started
+**Category:** Card System / Rewards / Product Design
+**Effort:** Medium
+
+**Description:**
+Decide whether card rarity still has a meaningful job in a game where scarcity
+and prestige primarily come from exclusive choices, discovery, quests, and
+permanently unavailable alternatives. Rarity and tactical-role badges are no
+longer shown on card inspection surfaces, but the underlying metadata remains.
+
+**Tasks:**
+- [ ] Audit every place rarity currently affects card data, visuals, rewards,
+  shops, progression, trait eligibility, and balance overrides.
+- [ ] Decide whether rarity is removed, retained for a narrower mechanical job,
+  or replaced by a concept that better expresses intentional scarcity.
+- [ ] Plan migration of rarity-dependent behavior before removing its data.
 
 #### Deprecate Command Spells
 **Status:** 🟡 Partial (Archived from Active Roster)

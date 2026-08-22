@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name ShopScreen
 
 ## Campus Shop UI for the general shop catalog.
@@ -190,3 +190,10 @@ func _on_back_pressed() -> void:
 		SceneManager.transition_to(NavigationContext.pop_return())
 	else:
 		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+
+
+func _request_back_navigation() -> void:
+	if detail_modal.visible:
+		_close_detail_modal()
+		return
+	_on_back_pressed()

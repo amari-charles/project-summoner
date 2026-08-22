@@ -223,11 +223,15 @@ public partial class CardService : Node
     public int GrantXp(string cardInstanceId, int amount)
     {
         var typedId = CardInstanceId.FromString(cardInstanceId);
+        var before = _ownership?.GetCard(typedId);
+        var previousLevel = before?.Level ?? 0;
         var newXp = _progression?.GrantXp(typedId, amount) ?? 0;
-        if (newXp > 0)
+        var card = _ownership?.GetCard(typedId);
+        if (amount > 0 && card != null)
         {
-            var card = _ownership?.GetCard(typedId);
-            EmitSignal(SignalName.CardXpChanged, cardInstanceId, newXp, card?.Level ?? 1);
+            EmitSignal(SignalName.CardXpChanged, cardInstanceId, newXp, card.Level);
+            for (var level = previousLevel + 1; level <= card.Level; level++)
+                EmitSignal(SignalName.CardLeveledUp, cardInstanceId, level);
         }
         return newXp;
     }
@@ -235,9 +239,10 @@ public partial class CardService : Node
     /// <summary>Grant XP to multiple cards.</summary>
     public Dictionary<string, int> GrantXpToCards(IEnumerable<string> cardInstanceIds, int amount)
     {
-        var typedIds = cardInstanceIds.Select(CardInstanceId.FromString);
-        var typedResults = _progression?.GrantXpToCards(typedIds, amount) ?? [];
-        return typedResults.ToDictionary(kvp => (string)kvp.Key, kvp => kvp.Value);
+        var results = new Dictionary<string, int>();
+        foreach (var cardInstanceId in cardInstanceIds)
+            results[cardInstanceId] = GrantXp(cardInstanceId, amount);
+        return results;
     }
 
     /// <summary>Grant XP to multiple cards (GDScript-friendly).</summary>

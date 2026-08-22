@@ -49,9 +49,6 @@ public partial class SummonerProgressionService : Node
     [Signal]
     public delegate void SummonerLeveledUpEventHandler(string summonerId, int newLevel);
 
-    [Signal]
-    public delegate void SummonerReadyToLevelUpEventHandler(string summonerId);
-
     private IProfileRepository? _profileRepo;
     private static readonly SummonerProgressionCurve SharedProgressionCurve = new();
 
@@ -144,21 +141,44 @@ public partial class SummonerProgressionService : Node
             return 0;
         }
 
-        var currentLevel = summoner.Level;
-        var newXp = summoner.Xp + amount;
+        if (summoner.Level >= MaxLevel)
+            return summoner.Xp;
 
-        summoner.Xp = newXp;
-        _profileRepo.SaveSummonerInstance(summoner);
+        var originalLevel = summoner.Level;
+        var originalXp = summoner.Xp;
+        var originalTraitPoints = summoner.UnspentTraitPoints;
+        summoner.Xp += amount;
 
-        EmitSignal(SignalName.SummonerXpChanged, summonerId.Value, newXp, currentLevel);
-
-        // Check if summoner can now level up
-        if (CanLevelUp(summonerId))
+        var gainedLevels = new List<int>();
+        var state = BuildProgressionState(summoner);
+        while (true)
         {
-            EmitSignal(SignalName.SummonerReadyToLevelUp, summonerId.Value);
+            var applyResult = ProgressionEngine.ApplyLevelUp(state, SharedProgressionCurve);
+            if (!applyResult.Success)
+                break;
+
+            state = applyResult.NextState;
+            gainedLevels.Add(state.Level);
         }
 
-        return newXp;
+        summoner.Level = state.Level;
+        summoner.Xp = state.XpTowardNext;
+        summoner.UnspentTraitPoints += gainedLevels.Count;
+
+        if (!_profileRepo.SaveSummonerInstance(summoner))
+        {
+            summoner.Level = originalLevel;
+            summoner.Xp = originalXp;
+            summoner.UnspentTraitPoints = originalTraitPoints;
+            GD.PushError("SummonerProgressionService: Failed to save summoner XP grant");
+            return 0;
+        }
+
+        EmitSignal(SignalName.SummonerXpChanged, summonerId.Value, summoner.Xp, summoner.Level);
+        foreach (var gainedLevel in gainedLevels)
+            EmitSignal(SignalName.SummonerLeveledUp, summonerId.Value, gainedLevel);
+
+        return summoner.Xp;
     }
 
     /// <summary>
@@ -222,82 +242,6 @@ public partial class SummonerProgressionService : Node
     }
 
     // =========================================================================
-    // LEVEL-UP OPERATIONS
-    // =========================================================================
-
-    /// <summary>Check if a summoner can level up (string overload for GDScript boundary).</summary>
-    public bool CanLevelUp(string summonerId) => CanLevelUp(SummonerId.FromString(summonerId));
-
-    /// <summary>Check if a summoner has enough XP to level up.</summary>
-    public bool CanLevelUp(SummonerId summonerId)
-    {
-        if (_profileRepo == null)
-            return false;
-
-        var summoner = _profileRepo.GetSummonerInstance(summonerId);
-        if (summoner == null)
-            return false;
-
-        var state = BuildProgressionState(summoner);
-        return ProgressionEngine.CanLevelUp(state, SharedProgressionCurve);
-    }
-
-    /// <summary>Level up a summoner (string overload for GDScript boundary).</summary>
-    public bool LevelUpSummoner(string summonerId) =>
-        LevelUpSummoner(SummonerId.FromString(summonerId));
-
-    /// <summary>
-    /// Level up a summoner (requires only XP threshold met - no gold cost).
-    /// Returns true if successful.
-    /// </summary>
-    public bool LevelUpSummoner(SummonerId summonerId)
-    {
-        if (_profileRepo == null)
-            return false;
-
-        var summoner = _profileRepo.GetSummonerInstance(summonerId);
-        if (summoner == null)
-        {
-            GD.PushWarning($"SummonerProgressionService: Summoner not found: {summonerId}");
-            return false;
-        }
-
-        var state = BuildProgressionState(summoner);
-        var applyResult = ProgressionEngine.ApplyLevelUp(state, SharedProgressionCurve);
-        if (!applyResult.Success)
-        {
-            if (applyResult.Status == ProgressionApplyStatus.InsufficientXp)
-            {
-                // Preserve long-standing warning contract used by existing GUT assertions.
-                GD.PushWarning(
-                    "SummonerProgressionService: Summoner does not have enough XP to level up"
-                );
-            }
-            else
-            {
-                GD.PushWarning(
-                    $"SummonerProgressionService: Level up rejected ({applyResult.Status})"
-                );
-            }
-            return false;
-        }
-
-        summoner.Xp = applyResult.NextState.XpTowardNext;
-        summoner.Level = applyResult.NextState.Level;
-        summoner.UnspentTraitPoints += 1;
-        var saveSuccess = _profileRepo.SaveSummonerInstance(summoner);
-
-        if (!saveSuccess)
-        {
-            GD.PushError("SummonerProgressionService: Failed to save summoner instance");
-            return false;
-        }
-
-        EmitSignal(SignalName.SummonerLeveledUp, summonerId.Value, applyResult.NextState.Level);
-        return true;
-    }
-
-    // =========================================================================
     // QUERY HELPERS
     // =========================================================================
 
@@ -330,7 +274,6 @@ public partial class SummonerProgressionService : Node
             ),
             ["xp_to_next_level"] = GetXpToNextLevel(summonerId),
             ["xp_progress"] = GetLevelProgress(summonerId),
-            ["can_level_up"] = CanLevelUp(summonerId),
             ["is_max_level"] = summoner.Level >= MaxLevel,
             ["unspent_trait_points"] = summoner.UnspentTraitPoints,
         };
@@ -343,25 +286,6 @@ public partial class SummonerProgressionService : Node
         if (string.IsNullOrEmpty(activeSummonerId))
             return [];
         return GetSummonerProgressionInfo(activeSummonerId);
-    }
-
-    /// <summary>Get all summoners that can level up.</summary>
-    public Godot.Collections.Array<string> GetSummonersReadyToLevelUp()
-    {
-        var result = new Godot.Collections.Array<string>();
-
-        if (_profileRepo == null)
-            return result;
-
-        foreach (var summoner in _profileRepo.GetAllSummonerInstances())
-        {
-            if (CanLevelUp(summoner.SummonerId))
-            {
-                result.Add(summoner.SummonerId);
-            }
-        }
-
-        return result;
     }
 
     // =========================================================================
@@ -421,8 +345,6 @@ public partial class SummonerProgressionService : Node
             return result;
 
         var evaluationLevel = summoner.Level;
-        if (summoner.UnspentTraitPoints <= 0 && CanLevelUp(typedSummonerId))
-            evaluationLevel = Math.Min(MaxLevel, summoner.Level + 1);
 
         var context = BuildTraitOwnerContext(summoner, summonerDef);
         var eligible = TraitTreeEvaluator.GetEligibleProgressionTraits(

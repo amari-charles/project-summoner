@@ -1,6 +1,6 @@
 extends GutTest
 
-const CARD_TRAIT_TREE_SCREEN_SCENE: PackedScene = preload("res://scenes/meta/screens/card_trait_tree_screen.tscn")
+const CARD_DETAIL_MODAL_SCENE: PackedScene = preload("res://scenes/meta/modals/card_detail_modal.tscn")
 
 var _original_profile_id: String = ""
 
@@ -22,7 +22,7 @@ func after_all() -> void:
 		ProfileRepo.LoadProfile(_original_profile_id)
 
 
-func test_case_c03_collection_opens_card_instance_trait_tree() -> void:
+func test_case_c03_card_development_stays_in_the_card_detail_surface() -> void:
 	var card_instance_id: String = CardServiceApi.grant_card("fire_wisp", "common")
 	assert_false(card_instance_id.is_empty(), "Expected granted card instance id")
 	assert_true(ProfileRepo.UpdateCardFromDict(card_instance_id, {
@@ -30,14 +30,16 @@ func test_case_c03_collection_opens_card_instance_trait_tree() -> void:
 		"unspent_trait_points": 1
 	}))
 
-	NavigationContext.set_value("trait_tree_card_instance_id", card_instance_id)
-
-	var screen: CardTraitTreeScreen = CARD_TRAIT_TREE_SCREEN_SCENE.instantiate() as CardTraitTreeScreen
-	assert_true(screen != null, "Expected card trait tree screen scene")
-	add_child(screen)
-	await get_tree().process_frame
+	var modal: CardDetailModal = CARD_DETAIL_MODAL_SCENE.instantiate() as CardDetailModal
+	assert_true(modal != null, "Expected card detail modal scene")
+	add_child(modal)
+	modal.open_for_card(card_instance_id, "fire_wisp")
 	await get_tree().process_frame
 
-	assert_eq(screen._card_instance_id, card_instance_id, "Card trait tree should resolve navigation context card instance id")
-	assert_false(screen.card_subtitle_label.text == Loc.t("ui.trait_tree.no_card_selected"), "Card subtitle should resolve selected card metadata")
-	assert_true(screen._progression_nodes.size() > 0, "Card trait tree should render progression node data")
+	var core_circle: Button = modal.traits_container.get_child(0) as Button
+	core_circle.pressed.emit()
+	await get_tree().process_frame
+
+	assert_true(modal.visible, "Opening development should not navigate away from card details")
+	assert_true(modal.trait_development_overlay.visible, "Selected card path should open as an overlay")
+	assert_false(NavigationContext.has_return(), "Card development should not push a separate screen route")

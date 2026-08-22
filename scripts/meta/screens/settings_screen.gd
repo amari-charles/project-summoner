@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name SettingsScreen
 
 ## Settings Screen - Audio volume controls and future settings
@@ -66,3 +66,7 @@ func _on_close_pressed() -> void:
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
 	SceneManager.transition_to(return_scene)
+
+
+func _request_back_navigation() -> void:
+	_on_close_pressed()

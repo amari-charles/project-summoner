@@ -18,29 +18,62 @@ The entire progression system supports those pillars.
 
 ## 2. Card Progression Model
 
-Cards do not gain power automatically. All power comes from player-selected upgrades.
+Cards gain modest baseline stat growth automatically with level. Meaningful
+specialization and behavioral change come from player-selected upgrades.
+
+Card progression now follows the shared discovery-driven development model in
+[Discovery-Driven Development](discovery-driven-development.md). Card levels
+provide reliable, card-bound development capacity, while quests, rituals,
+materials, and other discoveries can determine which branches are available.
+The older assumption that every level automatically exposes a complete choice
+set is superseded.
 
 ### 2.1 Card Levels
 
 - Each card has a small number of upgrade levels, capped at 10
-- Reaching each level unlocks a choice of upgrades
+- Reaching each level awards bankable development capacity for that card
+- Reaching each level also applies modest configured baseline stat growth
 - Upgrades may include core stat increases and/or identity-flavored effects, depending on the card
-- Players pick exactly one upgrade per level
+- Each level grants a globally configured number of bankable Card Points;
+  spending is not forced at level-up
+
+Each owned card instance has its own XP, level, Card Points, acquired traits,
+and chosen upgrades. A card development surface contains the card's native Core
+path and a collection of acquired trait paths; it renders one selected path at a
+time rather than one unbounded dynamically growing graph.
+
+The native Core is an explicitly authored path for that Card, visible from the
+time the Card is acquired. It is not a shared menu of generic health, damage, or
+speed purchases. Core branches begin with behavior that changes the Card's role
+or use; smaller stat developments may support the identity established by the
+branch. Hidden or discovered development normally arrives as an acquired trait
+path beside Core rather than being concealed inside the Card's natural path.
+The Card itself is the Core's single already-owned root node; all native branches
+connect outward from it.
+
+Automatic growth is configured per Card rather than forced through one universal
+formula. Stronger Cards may also become more mana-intensive, using mana cost as
+part of the tradeoff against their increased effectiveness. Exact curves and
+cost changes are tuning work, not a prerequisite for the progression foundation.
 
 ### 2.2 XP-Based Unlocking
 
 - Cards gain XP from battles and events
 - **Only cards IN YOUR DECK gain XP** — cards not in your active deck receive no XP
-- XP progression unlocks the ability to choose an upgrade at the next level
+- XP progression awards card-bound development capacity; discovery and authored
+  requirements determine which upgrades are available
 - XP cannot be purchased directly for power; it must be primarily earned through gameplay
-- Optional: XP boosters or pass progress can exist, but they only accelerate access to choice tiers, not grant upgrades directly
+- Optional: XP boosters or pass progress can exist, but they only accelerate
+  level and point acquisition, not grant a specific upgrade directly
 
 ### 2.3 Battle Level Caps
 
 All battles have a **level cap** that normalizes card power:
 
 - **Cards are floored to the cap**: If your card is above the cap, it's treated as the cap level. If below, it's treated as the cap level (floored up).
-- **Upgrades are capped too**: Only upgrades from levels 1 through the cap apply. A level 8 card in a cap-5 battle only has upgrades 1-5 active.
+- **Acquired build is preserved**: The cap limits the Card's effective level and
+  automatic level-scaled stats. It does not disable acquired Core or trait
+  upgrades based on acquisition order.
 - **Standard path exception**: Standard path battles have NO level cap — players can grind infinitely to overlevel and trivialize standard content. This is the escape valve for stuck players.
 - **Elite path maintains caps**: Elite battles keep their level caps as skill checks.
 
@@ -53,9 +86,10 @@ See [Campaign Structure](../features/campaign/structure.md) for full path system
 
 ### 2.4 Resource Gating
 
-- Unlocking the chosen upgrade at a level also requires resources
+- Acquiring a configured upgrade may also require resources
 - Resources act as an additional gating mechanism, shaping which upgrade directions are available
-- If the player lacks the required resources for a specific upgrade, that upgrade remains locked, even if XP for that level is earned
+- If the player lacks the configured costs for a specific upgrade, that upgrade
+  remains unavailable even when the card has an unspent point
 - This makes resource collection part of build identity
 
 ### 2.5 Permanent Behavioral Branches
@@ -64,6 +98,11 @@ Card upgrade trees may contain mutually exclusive branches that change how the
 card functions rather than only increasing its statistics. Choosing one branch
 permanently closes its sibling branch and any descendants owned by that sibling.
 The player cannot eventually unlock both branches and swap between them.
+
+The first decision in a Core fork should establish the branch's mechanical
+identity. Later numerical nodes are valid when they strengthen that authored
+play pattern, but the Core must not collapse into direct investment in generic
+stats already covered by automatic level growth.
 
 Behavioral branches should begin with the creature or spell identity and express
 different strategic uses of that identity. For example, a segmented worm summon
@@ -178,10 +217,12 @@ This mirrors proven fair monetization patterns used by Pokemon Go raids, TFT lab
 
 ## 6. Progression Gating
 
-Progression toward advanced upgrade tiers is gated by:
+Progression toward advanced development is governed by:
 
-1. **XP** — earned primarily from battles/events
-2. **Resources** — required to unlock specific upgrade choices (future feature)
+1. **XP and levels** — award Card Points and modest automatic baseline growth
+2. **Discovery and access** — determine which paths are available
+3. **Configured costs** — may require points, resources, other sacrifices, or
+   nothing further
 
 This ensures:
 - Players must play to progress
@@ -213,9 +254,11 @@ See [Campaign Structure](../features/campaign/structure.md#gold-economy) for ful
 
 ## 7. Philosophy Summary
 
-### 7.1 Power Must Come From Choices
+### 7.1 Identity Must Come From Choices
 
-All player power is acquired through scoped, meaningful choices, not randomness, not duplicates, not infinite grinding.
+Levels provide modest reliable baseline growth. Meaningful differentiation and
+behavioral power come through scoped, permanent choices rather than convergence
+through infinite grinding.
 
 ### 7.2 Uniqueness Must Be Preserved
 
@@ -237,7 +280,13 @@ What you collect determines which stat upgrades you can afford — giving identi
 
 ## One-Paragraph Summary
 
-Fateforged uses a choice-driven progression system where cards gain levels capped at 10, and each level unlocks a meaningful upgrade chosen by the player. Upgrades require only XP (earned through gameplay) and optionally themed resources for specific upgrade choices. Resources come primarily from events, trials, and gauntlets—optional modes outside the main campaign—while the campaign itself stays simple. Campaign-scoped gold is used for Caravan shop purchases, not for leveling. A two-shop system separates run-bound decisions (Caravan) from long-term monetization (Meta Shop). Monetization revolves around selling extra attempts at events that yield XP, resources, and scoped upgrade-choice opportunities, ensuring paying players never buy power directly and all progression remains earned. This preserves deck uniqueness, fairness, and long-term engagement while keeping development scope low.
+Fateforged uses discovery-driven Card progression. Each unique Card instance gains
+XP, levels automatically, receives modest baseline growth, and banks the globally
+configured number of Card Points per level. The card spends those points across its native Core path and
+acquired trait paths, while quests, rituals, events, materials, and other
+authored requirements determine which opportunities are available and what they
+cost. Paths are permanent and may include behavioral sidegrades or mutually
+exclusive transformations. Campaign-scoped gold remains separate from leveling.
 
 ---
 
@@ -282,10 +331,11 @@ Players can **replay completed battles** with the following rules:
 - Standard path (uncapped) + XP replays = escape valve for stuck players
 
 ### Upgrade Choices
-- 2-3 upgrade options per level
-- Each upgrade has different resource requirements
-- Player picks exactly ONE per level
+- Card Points bank until the player chooses to spend them
+- Core and acquired-trait paths expose only known opportunities
+- Each opportunity defines its own access, costs, and acquisition action
+- Permanent branch choices may close sibling opportunities
 
 ---
 
-*Last Updated: 2026-08-16*
+*Last Updated: 2026-08-22*

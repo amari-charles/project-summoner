@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fateforged.Cards;
 using Fateforged.Stats;
 
 namespace Fateforged.Data.Traits;
@@ -718,6 +719,113 @@ public static class TraitDefinitions
         modifierType: ModifierType.Flat,
         value: 4.0f
     );
+
+    // =========================================================================
+    // CARD-NATIVE CORE - Fire Wisp
+    // =========================================================================
+
+    private const string FireWispCoreFormGroup = "fire_wisp_core_form";
+    private const string FireWispTwinOption = "twin_flame";
+    private const string FireWispCondensedOption = "condensed_flame";
+
+    public static readonly TraitDefinition FireWispTwinFlame = new()
+    {
+        Id = TraitIds.FireWispTwinFlame,
+        NameKey = "trait.fire_wisp_twin_flame.name",
+        DescriptionKey = "trait.fire_wisp_twin_flame.description",
+        Category = TraitCategory.Special,
+        Tags = [TraitTags.Summon, TraitTags.Fire],
+        AllowedCardCatalogIds = [CardIds.FireWisp.Value],
+        MinLevel = 2,
+        ExclusiveGroupId = FireWispCoreFormGroup,
+        ExclusiveOptionId = FireWispTwinOption,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FireWispTwinFlame,
+                StatAdds = new() { [StatKey.UnitCount] = 1f },
+                StatMults = new() { [StatKey.MaxHp] = 0.65f, [StatKey.AttackDamage] = 0.65f },
+            },
+        ],
+    };
+
+    public static readonly TraitDefinition FireWispDancingEmbers = new()
+    {
+        Id = TraitIds.FireWispDancingEmbers,
+        NameKey = "trait.fire_wisp_dancing_embers.name",
+        DescriptionKey = "trait.fire_wisp_dancing_embers.description",
+        Category = TraitCategory.Combat,
+        Tags = [TraitTags.Summon, TraitTags.Fire],
+        AllowedCardCatalogIds = [CardIds.FireWisp.Value],
+        MinLevel = 4,
+        Prerequisites = [TraitIds.FireWispTwinFlame],
+        ExclusiveGroupId = FireWispCoreFormGroup,
+        ExclusiveOptionId = FireWispTwinOption,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FireWispDancingEmbers,
+                StatMults = new()
+                {
+                    [StatKey.AttackSpeed] = 1.10f,
+                    [StatKey.MoveSpeed] = 1.08f,
+                },
+            },
+        ],
+    };
+
+    public static readonly TraitDefinition FireWispCondensedFlame = new()
+    {
+        Id = TraitIds.FireWispCondensedFlame,
+        NameKey = "trait.fire_wisp_condensed_flame.name",
+        DescriptionKey = "trait.fire_wisp_condensed_flame.description",
+        Category = TraitCategory.Special,
+        Tags = [TraitTags.Summon, TraitTags.Fire],
+        AllowedCardCatalogIds = [CardIds.FireWisp.Value],
+        MinLevel = 2,
+        ExclusiveGroupId = FireWispCoreFormGroup,
+        ExclusiveOptionId = FireWispCondensedOption,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FireWispCondensedFlame,
+                StatMults = new() { [StatKey.MaxHp] = 1.20f, [StatKey.AttackDamage] = 1.15f },
+            },
+        ],
+    };
+
+    public static readonly TraitDefinition FireWispBlazingCore = new()
+    {
+        Id = TraitIds.FireWispBlazingCore,
+        NameKey = "trait.fire_wisp_blazing_core.name",
+        DescriptionKey = "trait.fire_wisp_blazing_core.description",
+        Category = TraitCategory.Combat,
+        Tags = [TraitTags.Summon, TraitTags.Fire],
+        AllowedCardCatalogIds = [CardIds.FireWisp.Value],
+        MinLevel = 4,
+        Prerequisites = [TraitIds.FireWispCondensedFlame],
+        ExclusiveGroupId = FireWispCoreFormGroup,
+        ExclusiveOptionId = FireWispCondensedOption,
+        Modifiers =
+        [
+            new TraitModifier
+            {
+                Target = "unit",
+                Source = TraitIds.FireWispBlazingCore,
+                StatMults = new()
+                {
+                    [StatKey.MaxHp] = 1.08f,
+                    [StatKey.AttackDamage] = 1.12f,
+                },
+            },
+        ],
+    };
 
     // =========================================================================
     // SUMMON TRAITS - Global Pool (available to all summons)
@@ -1691,6 +1799,12 @@ public static class TraitDefinitions
         [TraitIds.TeoSoulStrengthII] = TeoSoulStrengthII,
         [TraitIds.TeoSoulStrengthIII] = TeoSoulStrengthIII,
         [TraitIds.TeoSoulStrengthIV] = TeoSoulStrengthIV,
+
+        // Card-native Core - Fire Wisp
+        [TraitIds.FireWispTwinFlame] = FireWispTwinFlame,
+        [TraitIds.FireWispDancingEmbers] = FireWispDancingEmbers,
+        [TraitIds.FireWispCondensedFlame] = FireWispCondensedFlame,
+        [TraitIds.FireWispBlazingCore] = FireWispBlazingCore,
 
         // Summon Traits
         [TraitIds.Fortitude] = Fortitude,

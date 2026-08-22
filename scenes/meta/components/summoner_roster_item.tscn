@@ -111,9 +111,3 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 35)
 layout_mode = 2
 text = "SELECT"
-
-[node name="LevelUpButton" type="Button" parent="MarginContainer/HBoxContainer/ButtonContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 35)
-layout_mode = 2
-text = "LEVEL UP"

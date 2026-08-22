@@ -86,9 +86,11 @@ Your cards:
 - Level 3 card → treated as Level 5 (floored up)
 ```
 
-### Upgrades Capped Too
+### Acquired Build Is Preserved
 
-Only upgrades from levels 1 through the cap apply. If your card is level 8 but cap is 5, only upgrades from levels 1-5 are active for that battle.
+The cap limits effective Card level and automatic level-scaled stats while
+preserving the Card's acquired Core and trait upgrades. It does not select or
+disable upgrades by acquisition order.
 
 ### Standard Path Exception
 

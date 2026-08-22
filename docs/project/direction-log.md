@@ -76,6 +76,264 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-22 — Make Card Core visible, card-native, and behavior-led
+
+**Status:** Accepted
+**Areas:** Cards, Progression, Traits, UI
+
+### Decision
+
+Each Card has an explicitly authored Core representing its natural development.
+The Core is visible when the Card is acquired, although its nodes may remain
+locked by level, prerequisites, or cost. Its branches begin with meaningful
+behavioral or strategic changes; supporting stat upgrades may reinforce a
+chosen branch, but a global catalog of direct stat purchases is not Card Core.
+
+Hidden and discovered Card development normally appears as acquired trait paths
+beside Core. Core choices may permanently close alternatives.
+
+### Context
+
+The provisional Card detail flow labeled the existing global level-up offer
+pool as `Core`. That made the choice of card largely incidental: investing in
+generic stats was more legible than developing the creature's identity. The
+approved progression model instead treats levels as reliable baseline growth
+and uses authored development choices for build identity.
+
+### Consequences
+
+- Core membership must be declared per Card; broad tags cannot silently add
+  global upgrades to it.
+- Core is knowable from acquisition, while acquired traits own most hidden and
+  world-discovered possibilities.
+- Permanent branch closure is an intentional source of exclusivity.
+- Each catalog Card still requires authored Core content; an empty unauthored
+  Core is preferable to presenting the old global stat pool as finished design.
+
+### Supersedes
+
+The provisional classification of the current global level-up graph as Card
+Core in `Make summoner and card development discovery-driven` (2026-08-18).
+
+### References
+
+- [Discovery-Driven Development](../design/discovery-driven-development.md)
+- [Card Progression, Resources & Economy](../design/card-progression-economy.md)
+- [Discovery-Driven Development Work Plan](../tracking/discovery-driven-development-work-plan.md)
+
+## 2026-08-19 — Inspect trait nodes contextually instead of reserving a side panel
+
+**Status:** Accepted
+**Areas:** Summoners, Cards, Traits, UI
+
+### Decision
+
+Keep the selected development tree as the dominant surface of its overlay.
+Remove the permanent right-side node inspector. Hovering or focusing a node
+shows a contextual popover beside it; clicking or tapping pins that popover so
+the player can inspect requirements and use an available action. Clicking
+elsewhere dismisses it, and the popover changes sides when needed to preserve
+the selected node and readable branch relationships.
+
+Keyboard and controller focus expose the same information, so node effects and
+requirements are not dependent on mouse hover.
+
+### Context
+
+The first selected-trait prototype reserved a large right column for node
+details. It compressed small trait paths and made the screen read as a management
+dashboard. Reference review of established skill-tree interfaces showed that
+node-local tooltips and contextual inspection better preserve the tree as the
+primary decision surface.
+
+### Consequences
+
+- The overlay header retains only persistent path context, available points,
+  and navigation.
+- Node details contain the effect, relevant rank, cost, unmet requirements, and
+  contextual action without permanently occupying canvas width.
+- Irreversible acquisition may still use a concise confirmation after the
+  contextual action is chosen.
+- Final visual styling remains part of the external design pass.
+
+### Supersedes
+
+The fixed right-side details/action-panel decision in `Make summoner and card
+development discovery-driven` (2026-08-18).
+
+### References
+
+- `docs/design/discovery-driven-development.md`
+- `docs/design/trait-tree-screen-flow-spec.md`
+
+## 2026-08-19 — Apply card levels automatically and bank configurable Card Points
+
+**Status:** Accepted
+**Areas:** Cards, Progression, UI
+
+### Decision
+
+Card levels apply automatically whenever an XP grant crosses a threshold. One
+grant may resolve multiple levels and carries unused XP toward the next level.
+Every gained level banks Card Points on that owned card instance; the amount per
+level is one globally configurable progression value rather than being embedded
+in individual cards or screens.
+
+Card Point spending remains a separate player choice. Card inspection shows
+level, XP, and banked points but does not offer a manual level-up action.
+
+### Context
+
+Leveling has no decision of its own once enough XP exists. Requiring a modal or
+button delayed an inevitable state change and made XP behavior depend on which
+screen the player visited.
+
+### Consequences
+
+- XP mutation, not UI, owns all earned level resolution and point awards.
+- Exact-threshold and multi-level grants work without player confirmation.
+- The global Card-Points-per-level setting can be tuned without editing card
+  definitions.
+- Point spending and world-driven opportunity acquisition remain deliberate,
+  separately presented choices.
+
+### References
+
+- `docs/design/discovery-driven-development.md`
+- `docs/design/card-progression-economy.md`
+
+## 2026-08-18 — Make summoner and card development discovery-driven
+
+**Status:** Accepted
+**Areas:** Summoners, Cards, Traits, Quests, Rituals, Progression
+
+### Decision
+
+Keep XP and levels as reliable progression pacing, but decouple leveling from a
+fully exposed default upgrade tree. Levels award bankable, entity-bound
+development points. Quests, exploration, rituals, and other authored world
+actions determine which summoner-trait and card-development opportunities become
+available.
+
+Levels also provide modest automatic base-stat growth. Summoners have no
+separate default Core tree; they spend Trait Points across acquired trait paths.
+Cards retain a native Core path and may acquire additional trait paths, with all
+Card progression scoped to the unique owned card instance.
+
+Undiscovered opportunities are hidden by default, while content may configure
+hidden, visible-locked, available, acquired, and permanently closed states.
+Quests commonly unlock access and rituals commonly acquire or transform, but
+these are content guidelines rather than source restrictions. Either may reveal,
+unlock, acquire, or transform when configured for the authored situation. An
+acquisition may be free or atomically consume points, materials, and other costs.
+
+### Context
+
+The default loop of repeating battles, gaining XP, and choosing from a known
+upgrade tree underused the game's world, quests, rituals, and exclusivity. The
+new model preserves dependable advancement while making discovery determine the
+player's actual build possibilities.
+
+### Consequences
+
+- Access and investment are separate: the world controls availability while
+  points constrain commitment.
+- Costs are per-opportunity and may combine points, materials, sacrifices, or no
+  additional cost.
+- A ritual that costs a point spends it within the ritual flow and grants the
+  result there when that ritual is configured to acquire; it does not require a
+  later duplicate purchase.
+- Permanent spending may leave a player unable to develop a better trait found
+  later. That consequence under hidden information is intentional.
+- Not every trait must have upgrades, and rare free or sideways developments are
+  allowed outside the point budget.
+- Summoners and cards share state and acquisition rules without requiring the
+  same screen topology or content structure.
+- Development UI renders one selected path at a time instead of requiring an
+  unbounded dynamic graph: Summoners select a trait, while Cards select Core or
+  an acquired trait.
+- Owned trait circles on the Summoner overview are the primary entry into trait
+  development. The separate global `Upgrades` button and tree route are retired.
+  The Traits section uses more vertical space, wraps icons across multiple rows,
+  and scrolls only after its visible grid is full rather than adding a separate
+  overflow route.
+- A selected Summoner trait opens its tree in a large overlay. The initial
+  overlay does not duplicate trait switching, and an atomic trait remains a
+  consistent one-node tree rather than using a special presentation.
+- Trait Points are visible both in the Summoner Traits header and in the open
+  overlay. Card `Core` is the first selectable circle beside acquired Card traits,
+  and every selection opens the same tree-overlay pattern.
+- Exact automatic-growth values, affected stats, point cadence, and final visual
+  composition remain open design work.
+- Card battle caps limit effective level and automatic level-scaled stats, not
+  the Card's acquired upgrades. The exact temporary projection remains a TODO;
+  the permanent Card instance must never be downgraded or rewritten.
+- Closed branches remain permanent in progression state but disappear from the
+  default tree; an optional toggle can reveal them. Available opportunities stay
+  available when unaffordable, with costs communicating the blocker, and newly
+  revealed/unlocked nodes receive an attention treatment until inspected.
+- Summoner levels grow both health and maximum mana; stronger Cards may become
+  more mana-intensive as part of that power tradeoff. Automatic Card growth is
+  configured per Card. Exact values remain tuning work.
+- Reveals and unlocks use compact toast feedback, while actual acquisitions and
+  transformations use the larger generic reward presentation.
+- Node selection uses a fixed right-side details/action panel in the tree
+  overlay. The tree itself communicates branch closure; confirmations do not
+  enumerate rejected alternatives. Ritual acquisitions cannot be performed
+  remotely from the tree.
+
+### Supersedes
+
+The fixed, fully exposed default-tree assumptions in the earlier summoner trait
+tree flow and card level-up offer model.
+
+### References
+
+- `docs/design/discovery-driven-development.md`
+- `docs/design/trait-tree-screen-flow-spec.md`
+- `docs/design/card-progression-economy.md`
+
+## 2026-08-17 — Combine summoner build management and player inventory
+
+**Status:** Accepted
+**Areas:** Summoners, Inventory, Equipment, Traits, UI
+
+### Decision
+
+Use the Summoner screen as the current build-management and inventory surface.
+It shows the active summoner's portrait, level and XP, compact identity, stats,
+equipped items, owned traits, banked upgrade points, and the player's owned item
+inventory. The Traits area both summarizes owned traits and provides the entry
+for spending points through `Upgrades`.
+
+The campus Inventory action opens this combined surface. The inventory grid is
+implemented as a reusable component so it can move to a dedicated screen later
+if inventory develops enough independent complexity to justify one.
+
+### Context
+
+Equipment choices make the most sense beside the summoner they modify, and a
+separate inventory screen would currently duplicate navigation while leaving
+the Summoner screen underused. The earlier reorganization also separated related
+information into cramped panels and failed to expose the player's owned items.
+
+### Consequences
+
+- Equipped slots and owned items are visible together.
+- Selecting equippable inventory routes into the existing slot-management flow.
+- Materials may be visible here while remaining usable only in their proper world context.
+- A dedicated Inventory screen remains a future option, not a current requirement.
+- Owned traits are summarized here; the trait tree remains the authoritative spend surface.
+
+### Supersedes
+
+The requirement in `Apply summoner levels automatically and bank upgrade choices`
+that Inventory remain a separate system and the first compact panel reorganization.
+
+### References
+
+- `docs/design/trait-tree-screen-flow-spec.md`
+
 ## 2026-08-16 — Treat quest decisions as authored player dialogue
 
 **Status:** Accepted
@@ -180,6 +438,50 @@ the world prematurely.
 ### References
 
 - `docs/design/walkable-academy-hub.md`
+
+## 2026-08-16 — Apply summoner levels automatically and bank upgrade choices
+
+**Status:** Accepted
+**Areas:** Summoners, Progression, Equipment, UI
+
+### Decision
+
+Summoner levels apply automatically whenever earned XP crosses a threshold. A
+single XP grant may resolve multiple levels and carries leftover XP toward the
+next threshold. Each level banks an upgrade point; spending that point remains
+a separate, optional action through `Upgrades`.
+
+The Summoner screen is an overview and management surface for identity, level
+and XP, core stats, equipped items, and the entry into Upgrades. Inventory
+remains a separate system, while equipment slots on the Summoner screen may open
+a filtered equipment selector. Gold, a manual Level Up action, stat previews,
+and a duplicate full trait list do not belong on the overview.
+
+### Context
+
+Manual level confirmation adds a click without a meaningful decision, while
+forcing an upgrade choice at the moment of leveling interrupts the player's
+current activity. Banking the choice preserves agency and lets the player make
+permanent build decisions deliberately. Separating Inventory from the Summoner
+screen also keeps item ownership distinct from the currently equipped build.
+
+### Consequences
+
+- XP mutation owns level resolution; presentation does not execute level-ups.
+- One XP award can emit multiple level events and grants one banked point per level.
+- Post-battle presentation may reveal a level gain but cannot require immediate spending.
+- `Upgrades` is the player-facing term for entering the existing summoner trait tree.
+- The final visual design and precise level-up reveal treatment remain designer work.
+
+### Supersedes
+
+The manual `Level Up` plus `Traits` two-button flow in the original trait-tree
+screen specification and the manual summoner level-up modal.
+
+### References
+
+- `docs/design/trait-tree-screen-flow-spec.md`
+- `docs/design/academy-forging-model.md`
 - `docs/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Use generic quest and encounter systems across every context

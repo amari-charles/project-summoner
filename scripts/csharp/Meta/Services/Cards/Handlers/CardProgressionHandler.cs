@@ -27,6 +27,8 @@ public class CardProgressionHandler
     // =========================================================================
 
     public const int MaxLevel = 10;
+    public const string CardPointsPerLevelSetting = "progression/card_points_per_level";
+    public const int DefaultCardPointsPerLevel = 1;
 
     private static readonly int[] XpThresholds = [0, 30, 75, 150, 300, 500, 800, 1200, 1800, 2500];
 
@@ -54,7 +56,11 @@ public class CardProgressionHandler
     // XP OPERATIONS
     // =========================================================================
 
-    /// <summary>Grant XP to a card. Returns the new XP total.</summary>
+    /// <summary>
+    /// Grant XP to a card, automatically apply every earned level, and bank the
+    /// globally configured number of Card Points for each level gained.
+    /// Returns the remaining XP toward the next level.
+    /// </summary>
     public int GrantXp(CardInstanceId cardInstanceId, int amount)
     {
         if (amount <= 0)
@@ -67,13 +73,53 @@ public class CardProgressionHandler
             return 0;
         }
 
-        var newXp = card.Xp + amount;
-        _profileRepo.UpdateCard(cardInstanceId, new CardUpdate { Xp = newXp });
+        if (card.Level >= MaxLevel)
+            return card.Xp;
+
+        var state = BuildProgressionState(card) with { XpTowardNext = card.Xp + amount };
+        var curve = BuildProgressionCurve(card);
+        var levelsGained = 0;
+        while (true)
+        {
+            var applyResult = ProgressionEngine.ApplyLevelUp(state, curve);
+            if (!applyResult.Success)
+                break;
+
+            state = applyResult.NextState;
+            levelsGained++;
+        }
+
+        var pointsGranted = levelsGained * GetConfiguredCardPointsPerLevel();
+        var saveSuccess = _profileRepo.UpdateCard(
+            cardInstanceId,
+            new CardUpdate
+            {
+                Level = state.Level,
+                Xp = state.XpTowardNext,
+                UnspentTraitPoints = card.UnspentTraitPoints + pointsGranted,
+            }
+        );
+        if (!saveSuccess)
+        {
+            GD.PushError($"CardProgressionHandler: Failed to persist XP grant for card: {cardInstanceId}");
+            return 0;
+        }
 
         GD.Print(
-            $"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' (now: {newXp})"
+            $"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' "
+                + $"(level: {state.Level}, remaining XP: {state.XpTowardNext}, "
+                + $"Card Points granted: {pointsGranted})"
         );
-        return newXp;
+        return state.XpTowardNext;
+    }
+
+    public static int GetConfiguredCardPointsPerLevel()
+    {
+        var configured = ProjectSettings.GetSetting(
+            CardPointsPerLevelSetting,
+            DefaultCardPointsPerLevel
+        );
+        return Math.Max(0, configured.AsInt32());
     }
 
     /// <summary>Grant XP to multiple cards.</summary>
@@ -271,7 +317,7 @@ public class CardProgressionHandler
 
         var evaluationLevel = ResolveOfferEvaluationLevel(cardInstanceId, card);
         var eligibleTraits = TraitTreeEvaluator.GetEligibleProgressionTraits(
-            TraitCatalog.GetAllTraits(),
+            CardCoreCatalog.GetCoreTraits(card.CatalogId),
             context,
             evaluationLevel
         );
@@ -320,6 +366,12 @@ public class CardProgressionHandler
 
         var traitDef = TraitCatalog.GetTrait(normalizedTraitId.Value);
         if (traitDef == null)
+            return false;
+
+        // Card Points can develop only the Card's explicitly authored natural
+        // Core here. Externally acquired traits use their own authored paths and
+        // acquisition operations rather than leaking in from a global stat pool.
+        if (!CardCoreCatalog.Contains(card.CatalogId, traitDef.Id))
             return false;
 
         var cardDef = CardCatalog.GetCard(card.CatalogId);

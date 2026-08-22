@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name MultiplayerLobby
 
 ## Multiplayer lobby screen for creating and joining P2P matches
@@ -501,3 +501,7 @@ func _exit_tree() -> void:
 		return
 
 	_cleanup_transport()
+
+
+func _request_back_navigation() -> void:
+	_on_back_pressed()

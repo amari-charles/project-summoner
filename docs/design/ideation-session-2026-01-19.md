@@ -109,6 +109,10 @@ Your cards:
 
 ### ✅ DECIDED: Upgrades Capped Too
 
+> **Superseded 2026-08-18:** Card caps now limit effective level and automatic
+> level-scaled stats while preserving acquired upgrades. See
+> [Discovery-Driven Development](discovery-driven-development.md).
+
 Only upgrades from levels 1 through the cap apply. If your card is level 8 but cap is 5, only upgrades from levels 1-5 are active for that battle.
 
 ### ✅ DECIDED: Standard Path Exception

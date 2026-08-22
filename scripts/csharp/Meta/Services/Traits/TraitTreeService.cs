@@ -17,6 +17,8 @@ namespace Fateforged.Meta.Services.Traits;
 [GlobalClass]
 public partial class TraitTreeService : Node
 {
+    private const string CardCoreRootPrefix = "__card_core_root__:";
+
     public static TraitTreeService? Instance { get; private set; }
 
     private IProfileRepository? _profileRepo;
@@ -38,7 +40,7 @@ public partial class TraitTreeService : Node
         if (!TryBuildSummonerSnapshot(summonerId, out var snapshot))
             return new GDict();
 
-        return BuildTreeViewModel("summoner", summonerId, snapshot.Context);
+        return BuildTreeViewModel("summoner", summonerId, snapshot.Context, null);
     }
 
     public GDict GetCardTreeViewModel(string cardInstanceId)
@@ -46,7 +48,16 @@ public partial class TraitTreeService : Node
         if (!TryBuildCardSnapshot(cardInstanceId, out var snapshot))
             return new GDict();
 
-        return BuildTreeViewModel("card", cardInstanceId, snapshot.Context);
+        var viewModel = BuildTreeViewModel(
+            "card",
+            cardInstanceId,
+            snapshot.Context,
+            CardCoreCatalog.GetCoreTraitIds(snapshot.Instance.CatalogId)
+                .Select(id => id.Value)
+                .ToHashSet(StringComparer.Ordinal)
+        );
+        AddCardCoreRoot(viewModel, snapshot.Instance.CatalogId);
+        return viewModel;
     }
 
     public GDict GetTraitNodeDetail(string ownerType, string ownerId, string traitId)
@@ -171,12 +182,14 @@ public partial class TraitTreeService : Node
     private GDict BuildTreeViewModel(
         string ownerType,
         string ownerId,
-        TraitTreeOwnerContext context
+        TraitTreeOwnerContext context,
+        IReadOnlySet<string>? cardCoreTraitIds
     )
     {
         var progressionTraits = TraitCatalog
             .GetTraitsByAcquisitionMode(TraitAcquisitionMode.LevelUpOffer)
             .Where(trait => !trait.IsInnate)
+            .Where(trait => cardCoreTraitIds == null || cardCoreTraitIds.Contains(trait.Id.Value))
             .Where(trait =>
                 context.OwnedTraitIds.Contains(trait.Id.Value)
                 || TraitTreeEvaluator.MatchesOwnerTags(trait, context)
@@ -203,6 +216,11 @@ public partial class TraitTreeService : Node
         )
         {
             var evaluation = TraitTreeEvaluator.EvaluateProgressionTrait(trait, context);
+            // Permanent alternative branches remain in save state but disappear
+            // from the normal Core view after the player commits elsewhere.
+            if (evaluation.IsPermanentlyClosed)
+                continue;
+
             var depth = depthById.GetValueOrDefault(trait.Id.Value, 0);
             maxDepth = Math.Max(maxDepth, depth);
 
@@ -227,6 +245,7 @@ public partial class TraitTreeService : Node
                     ["is_owned"] = evaluation.IsOwned,
                     ["is_unlockable"] = evaluation.IsEligibleWithoutPoints,
                     ["can_unlock"] = evaluation.CanUnlockNow,
+                    ["is_closed"] = evaluation.IsPermanentlyClosed,
                     ["locked_reason"] = lockedReason,
                     ["unlock_blocked_reason"] = unlockBlockedReason,
                 }
@@ -275,9 +294,14 @@ public partial class TraitTreeService : Node
         }
 
         var edges = new Godot.Collections.Array<GDict>();
-        var progressionIdSet = progressionById.Keys.ToHashSet(StringComparer.Ordinal);
+        var progressionIdSet = progressionNodes
+            .Select(node => ReadString(node, "id"))
+            .Where(id => !string.IsNullOrEmpty(id))
+            .ToHashSet(StringComparer.Ordinal);
         foreach (var trait in progressionTraits)
         {
+            if (!progressionIdSet.Contains(trait.Id.Value))
+                continue;
             foreach (var prereqId in trait.Prerequisites)
             {
                 if (string.IsNullOrWhiteSpace(prereqId) || !progressionIdSet.Contains(prereqId))
@@ -338,6 +362,72 @@ public partial class TraitTreeService : Node
             ["unlock_button_text"] = "Unlock (1)",
             ["unspent_trait_points"] = unspentTraitPoints,
         };
+    }
+
+    private static void AddCardCoreRoot(GDict viewModel, CardId cardCatalogId)
+    {
+        if (
+            !viewModel.TryGetValue("progression_nodes", out var nodesValue)
+            || nodesValue.VariantType != Variant.Type.Array
+        )
+            return;
+
+        var cardDefinition = CardCatalog.GetCard(cardCatalogId);
+        if (cardDefinition == null)
+            return;
+
+        var progressionNodes = nodesValue.AsGodotArray<GDict>();
+        var rootId = CardCoreRootPrefix + cardCatalogId.Value;
+        var rootNode = new GDict
+        {
+            ["id"] = rootId,
+            ["name"] = cardDefinition.Name,
+            ["description"] = cardDefinition.Description,
+            ["category"] = "core",
+            ["acquisition_mode"] = "inherent",
+            ["depth"] = 0,
+            ["prerequisites"] = new Godot.Collections.Array<string>(),
+            ["state"] = TraitTreeNodeState.Owned.ToStringValue(),
+            ["is_owned"] = true,
+            ["is_unlockable"] = false,
+            ["can_unlock"] = false,
+            ["is_closed"] = false,
+            ["is_core_root"] = true,
+            ["locked_reason"] = "",
+            ["unlock_blocked_reason"] = "",
+        };
+
+        var rootChildren = new List<string>();
+        foreach (var node in progressionNodes)
+        {
+            var prerequisites = node.TryGetValue("prerequisites", out var prerequisitesValue)
+                && prerequisitesValue.VariantType == Variant.Type.Array
+                ? prerequisitesValue.AsGodotArray<string>()
+                : new Godot.Collections.Array<string>();
+
+            node["depth"] = ReadInt(node, "depth") + 1;
+            if (prerequisites.Count != 0)
+                continue;
+
+            node["prerequisites"] = new Godot.Collections.Array<string> { rootId };
+            rootChildren.Add(ReadString(node, "id"));
+        }
+
+        progressionNodes.Insert(0, rootNode);
+
+        if (rootChildren.Count > 0)
+        {
+            viewModel["max_depth"] = ReadInt(viewModel, "max_depth") + 1;
+            if (
+                viewModel.TryGetValue("edges", out var edgesValue)
+                && edgesValue.VariantType == Variant.Type.Array
+            )
+            {
+                var edges = edgesValue.AsGodotArray<GDict>();
+                foreach (var childId in rootChildren)
+                    edges.Add(new GDict { ["from"] = rootId, ["to"] = childId });
+            }
+        }
     }
 
     private bool TryBuildSummonerSnapshot(string summonerId, out SummonerSnapshot snapshot)

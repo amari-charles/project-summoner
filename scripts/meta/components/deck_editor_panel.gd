@@ -6,8 +6,6 @@ signal remove_card_requested(instance_id: String)
 signal card_info_requested(instance_id: String, catalog_id: String)
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
-const CardActionPopupScene: PackedScene = preload("res://scenes/meta/components/card_action_popup.tscn")
-const DOUBLE_CLICK_THRESHOLD_MS: int = 400
 
 @export var card_size: Vector2 = Vector2(160, 240)
 @export var active_card_separation: int = 6
@@ -32,9 +30,6 @@ var _active_ids: Array[String] = []
 var _locked_ids: Array[String] = []
 var _max_deck_size: int = DeckConstants.MAX_DECK_SIZE
 var _has_editable_deck: bool = false
-var _active_popup: CardActionPopup = null
-var _last_clicked_id: String = ""
-var _last_click_time: int = 0
 var _available_widgets_by_id: Dictionary = {}
 
 
@@ -77,9 +72,9 @@ func set_available_cards(entries: Array[Dictionary], update_existing_widgets: bo
 
 
 func dismiss_popup() -> void:
-	if _active_popup and is_instance_valid(_active_popup):
-		_active_popup.queue_free()
-	_active_popup = null
+	# Kept as a stable cleanup hook for screens that previously hosted a card
+	# action popup. Card actions now live in the card detail view.
+	pass
 
 
 func _render_active_cards() -> void:
@@ -150,10 +145,13 @@ func _add_widget(parent: Control, entry: Dictionary, in_active_deck: bool) -> Ca
 		func(_card_data: Dictionary) -> void:
 			_on_card_clicked(widget, instance_id, detail_instance_id, catalog_id, in_active_deck, locked)
 	)
+	widget.card_inspected.connect(
+		func(_card_data: Dictionary) -> void:
+			_request_card_info(detail_instance_id, catalog_id)
+	)
 	widget.card_held.connect(
 		func(_card_data: Dictionary) -> void:
-			dismiss_popup()
-			card_info_requested.emit(detail_instance_id, catalog_id)
+			_request_card_info(detail_instance_id, catalog_id)
 	)
 	return widget
 
@@ -184,7 +182,12 @@ func _configure_widget(
 	widget.custom_minimum_size = card_size
 	widget.tooltip_text = SafeTypeUtils.string(entry.get("tooltip"))
 	if widget.tooltip_text.is_empty():
-		widget.tooltip_text = SafeTypeUtils.string(catalog_data.get("card_name"), catalog_id)
+		var card_name: String = SafeTypeUtils.string(catalog_data.get("card_name"), catalog_id)
+		var is_locked: bool = SafeTypeUtils.bool_val(entry.get("locked"))
+		var interaction_hint: String = Loc.t("ui.collection.card_inspect_tooltip")
+		if _has_editable_deck and not is_locked:
+			interaction_hint = Loc.t("ui.collection.deck_card_inspect_tooltip")
+		widget.tooltip_text = "%s\n%s" % [card_name, interaction_hint]
 
 	var detail_instance_id: String = SafeTypeUtils.string(entry.get("detail_instance_id", instance_id))
 	var progression: Dictionary = SafeTypeUtils.dict(entry.get("progression"))
@@ -194,58 +197,29 @@ func _configure_widget(
 
 
 func _on_card_clicked(
-	widget: CardWidget,
-	instance_id: String,
+	_widget: CardWidget,
+	_instance_id: String,
 	detail_instance_id: String,
 	catalog_id: String,
-	in_active_deck: bool,
-	locked: bool
+	_in_active_deck: bool,
+	_locked: bool
 ) -> void:
-	dismiss_popup()
-	if locked:
-		AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-		card_info_requested.emit(detail_instance_id, catalog_id)
+	if not _has_editable_deck:
+		_request_card_info(detail_instance_id, catalog_id)
 		return
-	var current_time: int = Time.get_ticks_msec()
-	if instance_id == _last_clicked_id and current_time - _last_click_time < DOUBLE_CLICK_THRESHOLD_MS:
-		_last_clicked_id = ""
-		_last_click_time = 0
-		if in_active_deck:
-			_request_remove(instance_id)
-		else:
-			_request_add(instance_id)
-		return
+
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	_last_clicked_id = instance_id
-	_last_click_time = current_time
-	_show_action_popup(widget, instance_id, catalog_id, in_active_deck)
+	if _in_active_deck:
+		if not _locked:
+			_request_remove(_instance_id)
+	else:
+		_request_add(_instance_id)
 
 
-func _show_action_popup(
-	widget: CardWidget,
-	instance_id: String,
-	catalog_id: String,
-	in_active_deck: bool
-) -> void:
-	var popup: CardActionPopup = CardActionPopupScene.instantiate()
-	add_child(popup)
-	_active_popup = popup
-	var widget_rect: Rect2 = widget.get_global_rect()
-	popup.show_at(
-		Vector2(widget_rect.position.x + widget_rect.size.x / 2.0, widget_rect.end.y + 5.0),
-		instance_id,
-		catalog_id,
-		in_active_deck,
-		_has_editable_deck
-	)
-	popup.use_pressed.connect(func(card_id: String, _catalog_id: String) -> void: _request_add(card_id))
-	popup.remove_pressed.connect(func(card_id: String, _catalog_id: String) -> void: _request_remove(card_id))
-	popup.info_pressed.connect(
-		func(card_id: String, card_catalog_id: String) -> void:
-			dismiss_popup()
-			card_info_requested.emit(card_id, card_catalog_id)
-	)
-	popup.dismissed.connect(dismiss_popup)
+func _request_card_info(detail_instance_id: String, catalog_id: String) -> void:
+	dismiss_popup()
+	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	card_info_requested.emit(detail_instance_id, catalog_id)
 
 
 func _can_add_card(instance_id: String) -> bool:

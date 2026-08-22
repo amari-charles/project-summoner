@@ -285,7 +285,7 @@
       "placeholder_building": "PLACEHOLDER {name}",
       "open_shortcuts": "Campus Shortcuts",
       "shortcuts_title": "Campus Shortcuts",
-      "inventory_unavailable": "Inventory (coming soon)",
+      "inventory": "Inventory",
       "summoner_description": "Review your summoner, equipment, and progression.",
       "settings_description": "Adjust game settings."
     },
@@ -910,6 +910,9 @@
       "card_action_remove": "Remove",
       "card_action_info": "Info",
       "unspent_trait_points_label": "Unspent Trait Points: {count}",
+      "card_points_count": "{count} Card Points",
+      "core_path_name": "Core",
+      "core_path_tooltip": "The card's native development path.",
       "trait_offers_header": "Available Trait Offers",
       "apply_trait_button": "APPLY TRAIT",
       "no_trait_offers": "No eligible traits are available right now.",
@@ -923,7 +926,9 @@
       "already_in_deck": "Already in deck",
       "unnamed_deck": "Unnamed",
       "new_deck_default": "New Deck",
-      "deck_card_remove_tooltip": "Drag out or double-click to remove"
+      "deck_card_remove_tooltip": "Drag out or double-click to remove",
+      "deck_card_inspect_tooltip": "Left-click to add or remove • Right-click or hold to inspect",
+      "card_inspect_tooltip": "Click or hold to inspect"
     },
     "trait_tree": {
       "title_summoner": "Trait Tree",
@@ -1051,6 +1056,18 @@
       "trait_innate": "Innate",
       "trait_acquired": "Acquired",
       "switch_summoner": "Switch Summoner",
+      "open_upgrades": "Open Upgrades",
+      "open_upgrades_tooltip": "Review summoner upgrade paths",
+      "no_upgrade_points": "No upgrade points available. Leveling happens automatically as you earn XP.",
+      "upgrade_points_available": "{count} upgrade point(s) ready to spend.",
+      "upgrade_points_count": "{count} upgrade points",
+      "identity_header": "IDENTITY",
+      "stats_header": "STATS",
+      "traits_header": "TRAITS",
+      "equipped_header": "EQUIPPED",
+      "inventory_header": "INVENTORY",
+      "inventory_empty": "No items owned",
+      "inventory_equipped": "Equipped",
       "no_description": "No description available.",
       "empty_trait_slot": "Empty Slot",
       "stats_hp": "HP",
@@ -1405,6 +1422,22 @@
     "tactical_mind": {
       "name": "Tactical Mind",
       "description": "Superior planning grants strategic advantage. Draw 1 extra card at battle start."
+    },
+    "fire_wisp_twin_flame": {
+      "name": "Twin Flame",
+      "description": "Summons one additional Fire Wisp. Each has 35% less health and attack damage. Permanently closes the Condensed Flame branch."
+    },
+    "fire_wisp_dancing_embers": {
+      "name": "Dancing Embers",
+      "description": "+10% attack speed and +8% move speed."
+    },
+    "fire_wisp_condensed_flame": {
+      "name": "Condensed Flame",
+      "description": "+20% health and +15% attack damage. Permanently closes the Twin Flame branch."
+    },
+    "fire_wisp_blazing_core": {
+      "name": "Blazing Core",
+      "description": "+8% health and +12% attack damage."
     },
     "fortitude": {
       "name": "Fortitude",

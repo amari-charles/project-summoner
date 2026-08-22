@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name TraitTreeScreen
 
 const STATUS_OWNED: String = "owned"
@@ -794,3 +794,7 @@ func _on_back_pressed() -> void:
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_SUMMONER_SCREEN
 	SceneManager.transition_to(return_scene)
+
+
+func _request_back_navigation() -> void:
+	_on_back_pressed()

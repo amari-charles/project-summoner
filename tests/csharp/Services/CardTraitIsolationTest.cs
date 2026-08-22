@@ -62,17 +62,24 @@ public class CardTraitIsolationTest
             )
             .IsTrue();
 
-        AssertThat(cardService.SpendCardTraitPoint(firstInstanceId, TraitIds.Power)).IsTrue();
+        AssertThat(cardService.SpendCardTraitPoint(firstInstanceId, TraitIds.FireWispTwinFlame))
+            .IsTrue();
 
         var firstCard = repo.GetCard(CardInstanceId.FromString(firstInstanceId));
         var secondCard = repo.GetCard(CardInstanceId.FromString(secondInstanceId));
         AssertThat(firstCard).IsNotNull();
         AssertThat(secondCard).IsNotNull();
 
-        AssertThat(firstCard!.Traits.Contains(CardTraitId.FromString(TraitIds.Power))).IsTrue();
+        AssertThat(
+                firstCard!.Traits.Contains(CardTraitId.FromString(TraitIds.FireWispTwinFlame))
+            )
+            .IsTrue();
         AssertThat(firstCard.UnspentTraitPoints).IsEqual(0);
 
-        AssertThat(secondCard!.Traits.Contains(CardTraitId.FromString(TraitIds.Power))).IsFalse();
+        AssertThat(
+                secondCard!.Traits.Contains(CardTraitId.FromString(TraitIds.FireWispTwinFlame))
+            )
+            .IsFalse();
         AssertThat(secondCard.UnspentTraitPoints).IsEqual(1);
     }
 

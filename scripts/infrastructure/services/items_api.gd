@@ -7,6 +7,9 @@ static func list_items_for_slot_dict(slot: String, summoner_id: String) -> Array
 static func get_equipped_items_dict(summoner_id: String) -> Dictionary:
 	return SafeTypeUtils.dict(Items.call("GetEquippedItemsDict", summoner_id))
 
+static func get_owned_items_dict(summoner_id: String) -> Array:
+	return SafeTypeUtils.array(Items.call("GetOwnedItemsDict", summoner_id))
+
 static func grant_item(item_id: String) -> String:
 	return SafeTypeUtils.string(Items.call("GrantItem", item_id), "")
 

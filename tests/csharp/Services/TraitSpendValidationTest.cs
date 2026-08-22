@@ -78,7 +78,8 @@ public class TraitSpendValidationTest
             .IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(2);
 
-        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Power)).IsTrue();
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.FireWispTwinFlame))
+            .IsTrue();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(1);
     }
 
@@ -109,16 +110,8 @@ public class TraitSpendValidationTest
 
         var allowedTraitIds = new HashSet<string>
         {
-            TraitIds.Fortitude,
-            TraitIds.Power,
-            TraitIds.Swiftness,
-            TraitIds.Agility,
-            TraitIds.Reach,
-            TraitIds.Plating,
-            TraitIds.Warding,
-            TraitIds.Soulforce,
-            TraitIds.Arcana,
-            TraitIds.Legion,
+            TraitIds.FireWispTwinFlame,
+            TraitIds.FireWispCondensedFlame,
         };
 
         foreach (var offer in offers)
@@ -192,19 +185,20 @@ public class TraitSpendValidationTest
         AssertThat(baselineStats.ContainsKey("attack_damage")).IsTrue();
         var baseDamage = (float)baselineStats["attack_damage"].AsDouble();
 
-        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Power)).IsTrue();
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.FireWispCondensedFlame))
+            .IsTrue();
 
         var effectiveStats = cardService.GetEffectiveStatsDict(instanceId);
         AssertThat(effectiveStats.ContainsKey("attack_damage")).IsTrue();
 
         var effectiveDamage = (float)effectiveStats["attack_damage"].AsDouble();
-        var expectedDamage = baseDamage * 1.06f;
+        var expectedDamage = baseDamage * 1.15f;
 
         AssertThat(Math.Abs(effectiveDamage - expectedDamage)).IsLess(0.01f);
     }
 
     [TestCase]
-    public void CardService_GetEffectiveStatsDict_AppliesTraitAdds_WhenNoMultipliers()
+    public void CardService_GetTraitSpawnCountBonus_AppliesCoreSpawnCountAdd()
     {
         var repo = CreateRepo("trait_spend_validation_effective_stats_adds");
         var cardService = CreateNode<CardService>();
@@ -220,16 +214,12 @@ public class TraitSpendValidationTest
             )
             .IsTrue();
 
-        var baselineStats = cardService.GetEffectiveStatsDict(instanceId);
-        AssertThat(baselineStats.ContainsKey("armor")).IsFalse();
+        AssertThat(cardService.GetTraitSpawnCountBonus(instanceId)).IsEqual(0);
 
-        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.Plating)).IsTrue();
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.FireWispTwinFlame))
+            .IsTrue();
 
-        var effectiveStats = cardService.GetEffectiveStatsDict(instanceId);
-        AssertThat(effectiveStats.ContainsKey("armor")).IsTrue();
-
-        var effectiveArmor = (float)effectiveStats["armor"].AsDouble();
-        AssertThat(Math.Abs(effectiveArmor - 4f)).IsLess(0.01f);
+        AssertThat(cardService.GetTraitSpawnCountBonus(instanceId)).IsEqual(1);
     }
 
     [TestCase]
@@ -270,17 +260,21 @@ public class TraitSpendValidationTest
         AssertThat(
                 repo.UpdateCard(
                     CardInstanceId.FromString(instanceId),
-                    new CardUpdate { Level = 3, UnspentTraitPoints = 1 }
+                    new CardUpdate { Level = 4, UnspentTraitPoints = 1 }
                 )
             )
             .IsTrue();
 
-        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.PowerII)).IsFalse();
+        AssertThat(cardService.SpendCardTraitPoint(instanceId, TraitIds.FireWispDancingEmbers))
+            .IsFalse();
         AssertThat(cardService.GetCardUnspentTraitPoints(instanceId)).IsEqual(1);
 
         var card = repo.GetCard(CardInstanceId.FromString(instanceId));
         AssertThat(card).IsNotNull();
-        AssertThat(card!.Traits.Contains(CardTraitId.FromString(TraitIds.PowerII))).IsFalse();
+        AssertThat(
+                card!.Traits.Contains(CardTraitId.FromString(TraitIds.FireWispDancingEmbers))
+            )
+            .IsFalse();
     }
 
     [TestCase]

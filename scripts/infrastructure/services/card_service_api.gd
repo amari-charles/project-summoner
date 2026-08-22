@@ -43,6 +43,12 @@ static func get_card_progression_info_dict(instance_id: String) -> Dictionary:
 		return {}
 	return SafeTypeUtils.dict(service.call("GetCardProgressionInfoDict", instance_id))
 
+static func grant_xp(instance_id: String, amount: int) -> int:
+	var service: Node = _require_service("grant_xp")
+	if service == null:
+		return 0
+	return SafeTypeUtils.int_val(service.call("GrantXp", instance_id, amount), 0)
+
 static func get_card_dict(instance_id: String) -> Dictionary:
 	var service: Node = _require_service("get_card_dict")
 	if service == null:

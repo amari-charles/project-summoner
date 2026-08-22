@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/modals/card_detail_modal.gd" id="1_detail_modal"]
 [ext_resource type="PackedScene" path="res://scenes/shared/card_visual.tscn" id="2_card_visual"]
+[ext_resource type="PackedScene" path="res://scenes/meta/components/trait_development_overlay.tscn" id="3_trait_overlay"]
 
 [node name="CardDetailModal" type="Control"]
 layout_mode = 3
@@ -31,7 +32,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(760, 560)
+custom_minimum_size = Vector2(840, 680)
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
@@ -109,36 +110,9 @@ layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RarityBadge" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
-layout_mode = 2
-
-[node name="RarityBadgeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner/RarityBadge"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "COMMON"
-vertical_alignment = 1
-
-[node name="RoleBadge" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
-layout_mode = 2
-
-[node name="RoleBadgeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner/RoleBadge"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "FRONTLINER"
-vertical_alignment = 1
-
 [node name="MetaSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/MetaBanner"]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="RarityLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Rarity: Common"
 
 [node name="TypeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
@@ -184,12 +158,10 @@ text = "Click stats to view full details"
 horizontal_alignment = 2
 
 [node name="HSeparator2" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
-visible = false
 layout_mode = 2
 
 [node name="DescriptionLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Card description goes here."
@@ -223,75 +195,45 @@ max_value = 100.0
 value = 50.0
 show_percentage = false
 
-[node name="ActionRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="LevelUpButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer/ActionRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-text = "LEVEL UP"
-
-[node name="TraitsButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer/ActionRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "TRAITS"
-
-[node name="TraitPointsLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Unspent Trait Points: 0"
-
-[node name="TraitOfferHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Available Trait Offers"
-
-[node name="TraitOffersContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="ApplyTraitButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "APPLY TRAIT"
-
-[node name="ProgressionStatusLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/ProgressionContainer"]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 24)
-layout_mode = 2
-theme_override_font_sizes/font_size = 15
-autowrap_mode = 3
-
 [node name="HSeparator4" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
-visible = false
 layout_mode = 2
 
-[node name="UpgradesSection" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
+[node name="TraitsSection" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="UpgradesHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/UpgradesSection"]
-unique_name_in_owner = true
+[node name="TraitsHeaderRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/TraitsSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Upgrades"
+theme_override_constants/separation = 12
 
-[node name="UpgradesContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/UpgradesSection"]
+[node name="TraitsHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/TraitsSection/TraitsHeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 6
+size_flags_horizontal = 3
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 15
+text = "TRAITS"
+
+[node name="TraitPointsLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/TraitsSection/TraitsHeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "0 Card Points"
+
+[node name="TraitsScroll" type="ScrollContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/TraitsSection"]
+custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="TraitsContainer" type="HFlowContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel/TraitsSection/TraitsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 
 [node name="Spacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/InfoPanel"]
 layout_mode = 2
@@ -303,3 +245,7 @@ visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "ADD TO DECK"
+
+[node name="TraitDevelopmentOverlay" parent="." instance=ExtResource("3_trait_overlay")]
+unique_name_in_owner = true
+layout_mode = 1
