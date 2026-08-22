@@ -47,6 +47,7 @@ func _render_line() -> void:
 		_finish({})
 		return
 	line_label.text = ""
+	_release_dialogue_focus()
 	for value: Variant in authored_choices:
 		var choice: Dictionary = SafeTypeUtils.dict(value)
 		var button: Button = Button.new()
@@ -108,3 +109,8 @@ func _finish(result: Dictionary) -> void:
 func _clear_choices() -> void:
 	for child: Node in choices.get_children():
 		child.queue_free()
+
+func _release_dialogue_focus() -> void:
+	var focus_owner: Control = get_viewport().gui_get_focus_owner()
+	if focus_owner != null:
+		focus_owner.release_focus()

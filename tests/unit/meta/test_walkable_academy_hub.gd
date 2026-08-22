@@ -239,7 +239,7 @@ func test_space_advances_visible_npc_dialogue() -> void:
 	assert_eq(dialogue._line_index, 1)
 
 
-func test_skipping_dialogue_stops_at_required_player_response() -> void:
+func test_required_player_response_starts_unselected() -> void:
 	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
 	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
 	add_child_autofree(dialogue)
@@ -254,7 +254,14 @@ func test_skipping_dialogue_stops_at_required_player_response() -> void:
 	assert_true(dialogue.visible)
 	assert_eq(responses.get_child_count(), 1)
 	await get_tree().process_frame
-	assert_eq(get_viewport().gui_get_focus_owner(), responses.get_child(0))
+	assert_null(get_viewport().gui_get_focus_owner())
+
+	var space: InputEventKey = InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	dialogue._input(space)
+	assert_true(dialogue.visible)
+	assert_eq(responses.get_child_count(), 1)
 
 
 func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -> void:
