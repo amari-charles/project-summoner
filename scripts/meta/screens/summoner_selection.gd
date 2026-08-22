@@ -94,8 +94,13 @@ func _on_summoner_selected(summoner_id: String) -> void:
 	_create_starter_deck(final_summoner_id)
 
 	# Preserve the exact result for the character-focused confirmation screen.
-	NavigationContext.set_value(SummonerReveal.NAV_KEY_SUMMONER_ID, final_summoner_id)
-	NavigationContext.set_value(SummonerReveal.NAV_KEY_WAS_RANDOM, chosen_random)
+	NavigationContext.set_value(
+		SummonerReveal.NAV_KEY_REVEAL_RESULT,
+		{
+			"summoner_id": final_summoner_id,
+			"was_random": chosen_random,
+		}
+	)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_REVEAL)
 
 ## Create starter deck with summoner's starter card

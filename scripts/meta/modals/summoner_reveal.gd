@@ -3,8 +3,7 @@ class_name SummonerReveal
 
 ## Character-focused confirmation after the starting summoner choice.
 
-const NAV_KEY_SUMMONER_ID: String = "summoner_reveal.summoner_id"
-const NAV_KEY_WAS_RANDOM: String = "summoner_reveal.was_random"
+const NAV_KEY_REVEAL_RESULT: String = "summoner_reveal.result"
 
 @onready var background: ColorRect = %Background
 @onready var reveal_content: VBoxContainer = %RevealContent
@@ -19,16 +18,17 @@ func _ready() -> void:
 	continue_button.text = Loc.t("ui.common.continue")
 	continue_button.pressed.connect(_on_continue_pressed)
 
-	var summoner_id: String = SafeTypeUtils.string(
-		NavigationContext.consume_value(NAV_KEY_SUMMONER_ID, ""),
-		""
+	var reveal_result: Dictionary = SafeTypeUtils.dict(
+		NavigationContext.consume_value(NAV_KEY_REVEAL_RESULT, {})
 	)
-	var was_random: bool = SafeTypeUtils.bool_val(
-		NavigationContext.consume_value(NAV_KEY_WAS_RANDOM, false),
-		false
-	)
-	if summoner_id.is_empty():
-		summoner_id = SummonerSelectionApi.get_active_summoner_id()
+	if not reveal_result.has("summoner_id") or not reveal_result.has("was_random"):
+		push_error("SummonerReveal: Missing required selection result")
+		_populate_result("", false)
+		_animate_result()
+		return
+
+	var summoner_id: String = SafeTypeUtils.string(reveal_result["summoner_id"], "")
+	var was_random: bool = SafeTypeUtils.bool_val(reveal_result["was_random"], false)
 
 	_populate_result(summoner_id, was_random)
 	_animate_result()

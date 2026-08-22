@@ -41,6 +41,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-14, product direction history):** Reframed the ambiguous changelog task as a curated product direction log, added its inclusion and authority framework, and left historical backfill pending user review.
 **Tracker Sync (2026-08-16, designer readiness):** Added an immediate high-priority UI readiness queue covering the summoner progression pass, automatic-level/XP presentation contract, reusable reward acquisition flow, first-quest reward slice, and canonical screen/state inventory needed before external UI design begins.
 **Tracker Sync (2026-08-18, discovery-driven development):** Replaced the fully exposed default-tree assumption with shared summoner/card opportunity states, configurable costs, and world actions that can reveal, unlock, acquire, or transform; added the representative design slice and UI/implementation work plan required before replacement progression UI is committed.
+**Tracker Sync (2026-08-22, UI flow consolidation):** Replaced the redundant click-through battlefield victory/defeat modal with a brief automatic conclusion overlay before the combined Results screen. Began the canonical screen inventory by resolving this duplicate outcome surface; the broader reward, level-up, course, and navigation inventory remains open.
 
 ---
 
@@ -187,7 +188,9 @@ Replace the fragmented campaign reward screen, encounter results screen, and opt
 **Progress:** Quest turn-ins use a reusable reward-grant modal fed by the generic
 quest-completion result. Campaign and encounter battles now route through a
 shared combined Results prototype that reads committed XP/rewards and supports
-a campaign reward choice. The typed report builder, exact before/after level
+a campaign reward choice. The battlefield conclusion now advances automatically
+into Results rather than requiring a redundant outcome confirmation. The typed
+report builder, exact before/after level
 snapshots, contextual progress rows, reusable reveal components, and deletion of
 the legacy screens remain open.
 
@@ -243,7 +246,7 @@ Quest completion may originate from any character or activity, so quest-to-rewar
 - `scripts/meta/screens/quest_journal.gd`
 
 #### Produce a Canonical Player-Facing Screen and State Inventory for Design Handoff
-**Status:** ⬜ Not Started
+**Status:** 🔄 In Progress
 **Category:** UI/UX / Product Architecture
 **Urgency:** High — prevents designing obsolete or duplicate flows
 **Ease:** Easy
@@ -251,6 +254,11 @@ Quest completion may originate from any character or activity, so quest-to-rewar
 
 **Description:**
 Inventory every currently reachable player-facing screen and overlay, then label each one `retain`, `redesign`, `merge`, `deprecate`, or `prototype-only`. Include required states and the canonical route between screens so the designer works from the intended game rather than legacy implementation accidents.
+
+**Progress:** The redundant interactive battlefield outcome surface has been
+consolidated into a brief automatic overlay followed by the canonical combined
+Results screen. The remaining reward, level-up, course, and navigation surface
+inventory is still open.
 
 **Tasks:**
 - [ ] Map onboarding, summoner selection, campus HUD, dialogue, Journal, quest preparation, battle, results/rewards, summoner, upgrades, equipment, shop, collection/deck, settings, and online flows.

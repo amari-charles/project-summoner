@@ -27,8 +27,9 @@ func test_starting_selection_omits_traits_stats_and_summoner_cards() -> void:
 	assert_false(script_text.contains("base_health"))
 	assert_false(script_text.contains("max_mana"))
 	assert_true(script_text.contains("SCENE_SUMMONER_REVEAL"))
-	assert_true(script_text.contains("NAV_KEY_SUMMONER_ID"))
-	assert_true(script_text.contains("NAV_KEY_WAS_RANDOM"))
+	assert_true(script_text.contains("NAV_KEY_REVEAL_RESULT"))
+	assert_true(script_text.contains("\"summoner_id\": final_summoner_id"))
+	assert_true(script_text.contains("\"was_random\": chosen_random"))
 	assert_true(FileAccess.file_exists("res://scenes/meta/modals/summoner_reveal.tscn"))
 	assert_true(FileAccess.file_exists("res://scripts/meta/modals/summoner_reveal.gd"))
 
@@ -48,6 +49,8 @@ func test_post_selection_reveal_is_character_focused_for_direct_and_random_choic
 	var reveal_source: String = _read("res://scripts/meta/modals/summoner_reveal.gd")
 	assert_true(reveal_source.contains("ui.summoner_reveal.chosen_title"))
 	assert_true(reveal_source.contains("ui.summoner_reveal.random_title"))
+	assert_true(reveal_source.contains("Missing required selection result"))
+	assert_false(reveal_source.contains("get_active_summoner_id"))
 	assert_false(reveal_source.contains("SummonerCard"))
 
 
