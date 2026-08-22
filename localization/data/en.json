@@ -767,6 +767,20 @@
     "reward_modal": {
       "title": "Rewards Earned"
     },
+    "post_battle": {
+      "victory": "VICTORY",
+      "defeat": "DEFEAT",
+      "progression": "PROGRESSION",
+      "summoner": "Summoner",
+      "level": "Level {level}",
+      "xp_progress": "{current} / {required} XP   +{gained}",
+      "participating_cards": "PARTICIPATING CARDS",
+      "card_progress": "Level {level}   +{gained} XP",
+      "rewards": "REWARDS",
+      "choose_one": "CHOOSE ONE REWARD",
+      "choose_reward": "Choose reward",
+      "reward_amount": "{name} ×{amount}"
+    },
     "pause_menu": {
       "resume": "Resume",
       "settings": "Settings",

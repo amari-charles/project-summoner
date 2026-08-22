@@ -34,7 +34,7 @@ mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(640, 500)
+custom_minimum_size = Vector2(760, 700)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
@@ -59,7 +59,7 @@ layout_mode = 2
 
 [node name="Rewards" type="HBoxContainer" parent="Center/Panel/Margin/Content"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 300)
+custom_minimum_size = Vector2(0, 390)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 18

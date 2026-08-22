@@ -184,16 +184,18 @@ Establish one explicit XP presentation contract so the designer does not omit pr
 **Description:**
 Replace the fragmented campaign reward screen, encounter results screen, and optional level-up modals with one clear post-battle flow backed by reusable acquisition/reveal components. The same acquisition presentation must also support rewards granted outside battle, including quest turn-ins.
 
-**Progress:** Quest turn-ins now use a reusable reward-grant modal fed by the
-generic quest-completion result. The unified post-battle report, XP/level
-sequence, reward-choice handling, and retirement of competing result screens
-remain open.
+**Progress:** Quest turn-ins use a reusable reward-grant modal fed by the generic
+quest-completion result. Campaign and encounter battles now route through a
+shared combined Results prototype that reads committed XP/rewards and supports
+a campaign reward choice. The typed report builder, exact before/after level
+snapshots, contextual progress rows, reusable reveal components, and deletion of
+the legacy screens remain open.
 
 **Tasks:**
-- [ ] Approve the unified post-battle sequence: outcome, summoner/card XP, level reveals, acquired rewards, contextual quest/rating progress, and continue destination.
+- [x] Approve the unified post-battle sequence: battlefield conclusion, then one combined Results surface for summoner/card XP, level reveals, acquired rewards, contextual quest/rating progress, and continue destination.
 - [ ] Define reusable reveal components for a card, item/equipment, gold/resource, summoner/card upgrade point, and special trait or eligibility reward.
 - [ ] Define automatic grants versus required reward choices without inventing source-specific UI contracts.
-- [ ] Show both victory and defeat results when progression or contextual feedback exists.
+- [x] Route both campaign and encounter victory/defeat outcomes through the shared Results prototype.
 - [ ] Deprecate `RewardScreen` and `EncounterResults` as competing end destinations once the unified route is complete.
 - [ ] Preserve authoritative reward/progression mutation outside the presentation layer; the screen consumes a typed post-battle report and submits only explicit pending choices.
 
