@@ -78,6 +78,29 @@ func test_clicking_visible_dialogue_text_advances_the_narrative() -> void:
 	assert_eq(presenter._line_index, 1)
 	presenter._cue = {}
 
+func test_space_advances_visible_dialogue_text() -> void:
+	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
+	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter
+	add_child_autofree(presenter)
+	await get_tree().process_frame
+	presenter.present({
+		"cue_id": "test_space_advance",
+		"speaker_key": "dialogue.merlin_summoner_intro.speaker",
+		"line_keys": [
+			"dialogue.merlin_summoner_intro.line_1",
+			"dialogue.merlin_summoner_intro.line_2",
+		],
+		"choices": [],
+	})
+
+	var space: InputEventKey = InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	presenter._input(space)
+
+	assert_eq(presenter._line_index, 1)
+	presenter._cue = {}
+
 func _read(path: String) -> String:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	assert_not_null(file)

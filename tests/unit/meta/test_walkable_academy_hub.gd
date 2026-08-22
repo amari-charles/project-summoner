@@ -224,6 +224,21 @@ func test_clicking_visible_dialogue_panel_advances_to_next_line() -> void:
 	assert_eq(line.text, "Second line")
 
 
+func test_space_advances_visible_npc_dialogue() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present("Professor", ["First line", "Second line"])
+
+	var space: InputEventKey = InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	dialogue._input(space)
+
+	assert_eq(dialogue._line_index, 1)
+
+
 func test_skipping_dialogue_stops_at_required_player_response() -> void:
 	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
 	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox

@@ -84,8 +84,22 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if event.is_action("ui_cancel"):
 		_skip_to_choices_or_dismiss()
-	elif event.is_action("ui_accept") or event.is_action("ui_select"):
+
+
+func _input(event: InputEvent) -> void:
+	if (
+		visible
+		and event.is_pressed()
+		and not event.is_echo()
+		and _line_index < _lines.size()
+		and (
+			event.is_action("interact")
+			or event.is_action("ui_accept")
+			or event.is_action("ui_select")
+		)
+	):
 		_advance()
+		get_viewport().set_input_as_handled()
 
 
 func _advance() -> void:
