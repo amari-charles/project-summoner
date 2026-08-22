@@ -915,19 +915,13 @@ public partial class BattleScene : Node3D
             NavigateToOriginScene();
             return;
         }
-
-        if (winnerTeam == 0 && !_campaignProgressionResult.RewardOffers.IsEmpty)
-            NavigateToScene("res://scenes/meta/screens/reward_screen.tscn");
-        else
-        {
-            NavigateToOriginScene();
-        }
+        NavigateToScene("res://scenes/meta/screens/post_battle_results.tscn");
     }
 
     private void HandleEncounterCompletion(int winnerTeam)
     {
         RecordEncounterOutcome(winnerTeam == 0 ? 0 : 1);
-        NavigateToScene("res://scenes/meta/screens/academy_activity_results.tscn");
+        NavigateToScene("res://scenes/meta/screens/post_battle_results.tscn");
     }
 
     private void RecordEncounterOutcome(int outcome)

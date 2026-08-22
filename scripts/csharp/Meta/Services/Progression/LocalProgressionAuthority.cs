@@ -756,8 +756,23 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
         {
             Status = status,
             Completion = completion,
+            ProgressionGrants = BuildProgressionGrants(profile, completion),
             RewardOffers = BuildOffers(profile, completion),
         };
+
+    private static ImmutableArray<RewardGrantViewModel> BuildProgressionGrants(
+        ProfileData profile,
+        BattleAttemptCompletion completion
+    ) =>
+        completion
+            .ClaimIds.Where(id =>
+                profile.Rewards.ResolvedOffers.TryGetValue(id.Value, out var value)
+                && value.Source.SourceType == BattleXpSource
+                && profile.Rewards.ClaimReceipts.ContainsKey(id.Value)
+            )
+            .SelectMany(id => profile.Rewards.ClaimReceipts[id.Value].AppliedGrants)
+            .Select(RewardViewModelFactory.CreateGrant)
+            .ToImmutableArray();
 
     private ImmutableArray<RewardOfferViewModel> BuildOffers(
         ProfileData profile,

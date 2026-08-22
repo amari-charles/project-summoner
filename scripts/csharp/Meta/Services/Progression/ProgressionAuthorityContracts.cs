@@ -45,6 +45,7 @@ public sealed record ProgressionAuthorityResult
     public required ProgressionAuthorityStatus Status { get; init; }
     public BattleAttempt? Attempt { get; init; }
     public BattleAttemptCompletion? Completion { get; init; }
+    public ImmutableArray<RewardGrantViewModel> ProgressionGrants { get; init; } = [];
     public ImmutableArray<RewardOfferViewModel> RewardOffers { get; init; } = [];
     public RewardClaimReceipt? ClaimReceipt { get; init; }
     public ImmutableArray<string> Errors { get; init; } = [];

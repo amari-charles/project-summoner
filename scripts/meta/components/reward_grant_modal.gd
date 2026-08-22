@@ -3,7 +3,8 @@ class_name RewardGrantModal
 
 signal closed
 
-const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
+const CardVisualScene: PackedScene = preload("res://scenes/shared/card_visual.tscn")
+const REWARD_CARD_SIZE: Vector2 = Vector2(240, 360)
 
 @onready var panel: PanelContainer = %Panel
 @onready var title_label: Label = %TitleLabel
@@ -35,13 +36,14 @@ func present(grants: Array, title: String = "") -> void:
 func _add_card_reward(grant: Dictionary) -> void:
 	var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("id")))
 	var card_data: Dictionary = CardCatalogApi.get_card_as_dict(card_id)
-	var card_widget: CardWidget = CardWidgetScene.instantiate() as CardWidget
-	card_widget.set_draggable(false)
-	card_widget.ready.connect(
-		func() -> void: card_widget.set_card({"catalog_id": card_id}, card_data),
-		CONNECT_ONE_SHOT
-	)
-	rewards.add_child(card_widget)
+	var card_visual: CardVisual = CardVisualScene.instantiate() as CardVisual
+	card_visual.custom_minimum_size = REWARD_CARD_SIZE
+	card_visual.show_description = true
+	card_visual.cost_font_size = 32
+	card_visual.name_font_size = 18
+	card_visual.description_font_size = 12
+	card_visual.set_card_data(card_data, true)
+	rewards.add_child(card_visual)
 
 
 func _add_text_reward(grant: Dictionary) -> void:

@@ -93,6 +93,8 @@ public class LocalProgressionAuthorityTest
         AssertThat(store.CommitCount).IsEqual(commitsBefore + 1);
         AssertThat(store.Data.SummonerInstances.Single().Xp).IsEqual(attempt.SummonerXpReward);
         AssertThat(store.Data.Collection.Single().Xp).IsEqual(attempt.CardXpReward);
+        AssertThat(result.ProgressionGrants.Select(grant => grant.Kind))
+            .ContainsExactlyInAnyOrder("summoner_xp", "card_xp");
         AssertThat(result.RewardOffers).HasSize(1);
         AssertThat(result.RewardOffers[0].DisplayState).IsEqual(RewardOfferDisplayState.Pending);
         AssertThat(result.Completion!.PendingClaimIds).HasSize(1);

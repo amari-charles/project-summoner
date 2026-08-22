@@ -439,6 +439,48 @@ the world prematurely.
 
 - `docs/design/walkable-academy-hub.md`
 
+## 2026-08-22 — Use one combined Results screen after battle conclusion
+
+**Status:** Accepted
+**Areas:** Battle, Progression, Rewards, UI
+
+### Decision
+
+End meaningful battles with two presentation surfaces: first, a clickable
+victory or defeat conclusion over the battlefield; second, one combined Results
+screen containing relevant summoner XP, participating-card XP, automatic level
+reveals, acquired rewards, reward choices, and contextual progress.
+
+The Results sections may reveal automatically but do not require separate
+clicks. Cards with no XP gain are omitted, while summoner progression remains
+visible. Automatic leveling does not pause for confirmation. A required reward
+choice is the only interaction beyond continuing from each of the two surfaces.
+
+### Context
+
+The prior flow split immediate battle outcome, campaign rewards, and Academy
+encounter results across competing screens. It could skip progression feedback,
+repeat victory messaging, and force future UI work to reconcile several
+source-specific flows. A single Results surface gives the UI designer one
+complete contract without turning every result category into its own page.
+
+### Consequences
+
+- Campaign and quest encounter battles share the same post-battle destination.
+- Victory and defeat use the same structure, omitting irrelevant empty sections.
+- Progression and reward services remain authoritative; Results only presents
+  committed facts and submits explicit reward choices.
+- A typed report with exact before/after snapshots remains required for polished
+  XP rollover and multi-level animation.
+- Legacy `RewardScreen` and `EncounterResults` should be deleted after all
+  remaining battle modes and pending Academy reward choices use the canonical
+  route.
+
+### References
+
+- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+- `docs/tracking/todos.md`
+
 ## 2026-08-16 — Apply summoner levels automatically and bank upgrade choices
 
 **Status:** Accepted

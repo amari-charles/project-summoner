@@ -139,6 +139,19 @@ public partial class ProgressionAuthorityService : Node
     private static GdDict ToDictionary(ProgressionAuthorityResult result)
     {
         var attemptId = result.Attempt?.AttemptId.Value ?? result.Completion?.AttemptId.Value ?? "";
+        var progressionGrants = new Godot.Collections.Array<GdDict>();
+        foreach (var grant in result.ProgressionGrants)
+            progressionGrants.Add(
+                new GdDict
+                {
+                    ["kind"] = grant.Kind,
+                    ["ownership_scope"] = grant.OwnershipScope.ToString().ToLowerInvariant(),
+                    ["target_id"] = grant.TargetId,
+                    ["content_id"] = grant.ContentId,
+                    ["rarity"] = grant.Rarity,
+                    ["amount"] = grant.Amount,
+                }
+            );
         var offers = new Godot.Collections.Array<GdDict>();
         foreach (var offer in result.RewardOffers)
         {
@@ -188,6 +201,8 @@ public partial class ProgressionAuthorityService : Node
             ["is_success"] = result.IsSuccess,
             ["status"] = result.Status.ToString().ToLowerInvariant(),
             ["attempt_id"] = attemptId,
+            ["outcome"] = result.Completion?.Outcome.ToString().ToLowerInvariant() ?? "",
+            ["progression_grants"] = progressionGrants,
             ["reward_offers"] = offers,
             ["errors"] = new Godot.Collections.Array<string>(result.Errors),
         };
