@@ -31,7 +31,7 @@ func test_case_c02_card_points_and_core_path_are_visible() -> void:
 
 	var modal: CardDetailModal = CARD_DETAIL_MODAL_SCENE.instantiate() as CardDetailModal
 	assert_true(modal != null, "Expected card detail modal scene")
-	add_child(modal)
+	add_child_autofree(modal)
 	modal.open_for_card(card_instance_id, "fire_wisp")
 	await get_tree().process_frame
 
@@ -55,7 +55,7 @@ func test_core_circle_opens_card_path_in_shared_overlay() -> void:
 	await get_tree().process_frame
 
 	var modal: CardDetailModal = CARD_DETAIL_MODAL_SCENE.instantiate() as CardDetailModal
-	add_child(modal)
+	add_child_autofree(modal)
 	modal.open_for_card(card_instance_id, "fire_wisp")
 	await get_tree().process_frame
 

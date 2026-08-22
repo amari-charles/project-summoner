@@ -32,7 +32,7 @@ func test_case_c03_card_development_stays_in_the_card_detail_surface() -> void:
 
 	var modal: CardDetailModal = CARD_DETAIL_MODAL_SCENE.instantiate() as CardDetailModal
 	assert_true(modal != null, "Expected card detail modal scene")
-	add_child(modal)
+	add_child_autofree(modal)
 	modal.open_for_card(card_instance_id, "fire_wisp")
 	await get_tree().process_frame
 
