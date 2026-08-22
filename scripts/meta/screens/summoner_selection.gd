@@ -13,7 +13,6 @@ const _DeckConstants: GDScript = preload("res://scripts/infrastructure/data/deck
 const RANDOM_SUMMONER_TRAIT_ID: String = "trait_fortune_favors_the_bold"
 
 @onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel
-@onready var subtitle_label: Label = $CenterContainer/VBoxContainer/SubtitleLabel
 @onready var select_button1: Button = %SelectButton1
 @onready var select_button2: Button = %SelectButton2
 @onready var select_button3: Button = %SelectButton3
@@ -25,9 +24,8 @@ const SUMMONER_RANDOM: String = "random"
 
 func _ready() -> void:
 
-	# Set localized title and subtitle
+	# Set localized title
 	title_label.text = Loc.t("summoner.selection_title").to_upper()
-	subtitle_label.text = Loc.t("summoner.selection_subtitle")
 
 	# Hide summoner buttons initially - will show after Merlin's dialogue
 	select_button1.visible = false
@@ -95,7 +93,9 @@ func _on_summoner_selected(summoner_id: String) -> void:
 	# Create starter deck with summoner's starter card
 	_create_starter_deck(final_summoner_id)
 
-	# Transition to reveal scene (summoner data already saved in ProfileRepo)
+	# Preserve the exact result for the character-focused confirmation screen.
+	NavigationContext.set_value(SummonerReveal.NAV_KEY_SUMMONER_ID, final_summoner_id)
+	NavigationContext.set_value(SummonerReveal.NAV_KEY_WAS_RANDOM, chosen_random)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_REVEAL)
 
 ## Create starter deck with summoner's starter card
@@ -153,27 +153,27 @@ func _populate_summoner_buttons() -> void:
 func _set_button_content(button: Button, config: SummonerConfig) -> void:
 	var name_label: Label = button.find_child("SummonerName", true, false)
 	var element_label: Label = button.find_child("SummonerElement", true, false)
-	var desc_label: Label = button.find_child("SummonerDescription", true, false)
+	var placeholder_label: Label = button.find_child("CharacterPlaceholder", true, false)
 
 	if name_label:
 		name_label.text = config.summoner_name.to_upper()
 	if element_label:
 		element_label.text = Loc.t("summoner.element_affinity", {"element": ElementTypes.get_display_name(config.get_element())})
-	if desc_label:
-		desc_label.text = config.description
+	if placeholder_label:
+		placeholder_label.text = Loc.t("summoner.character_art_placeholder")
 
 
 func _set_random_button_content(button: Button) -> void:
 	var name_label: Label = button.find_child("SummonerName", true, false)
 	var element_label: Label = button.find_child("SummonerElement", true, false)
-	var desc_label: Label = button.find_child("SummonerDescription", true, false)
+	var placeholder_label: Label = button.find_child("CharacterPlaceholder", true, false)
 
 	if name_label:
 		name_label.text = Loc.t("summoner.random_summoner").to_upper()
 	if element_label:
 		element_label.text = Loc.t("summoner.element_affinity_unknown")
-	if desc_label:
-		desc_label.text = Loc.t("summoner.random_summoner_description")
+	if placeholder_label:
+		placeholder_label.text = Loc.t("summoner.character_art_placeholder")
 
 
 ## Create and save SummonerInstance for the selected summoner

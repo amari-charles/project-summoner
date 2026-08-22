@@ -45,6 +45,39 @@ func test_hidden_presenter_does_not_block_underlying_screen_controls() -> void:
 	presenter._cue = {}
 	presenter.free()
 
+func test_clicking_visible_dialogue_text_advances_the_narrative() -> void:
+	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
+	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter
+	var host: Control = Control.new()
+	host.size = Vector2(1152, 648)
+	add_child_autofree(host)
+	host.add_child(presenter)
+	await get_tree().process_frame
+	presenter.present({
+		"cue_id": "test_click_advance",
+		"speaker_key": "dialogue.merlin_summoner_intro.speaker",
+		"line_keys": [
+			"dialogue.merlin_summoner_intro.line_1",
+			"dialogue.merlin_summoner_intro.line_2",
+		],
+		"choices": [],
+	})
+	await get_tree().process_frame
+
+	var line_label: Label = presenter.get_node("Panel/Margin/Root/LineLabel") as Label
+	var first_line: String = line_label.text
+	var click: InputEventMouseButton = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	click.position = line_label.get_global_rect().get_center()
+	click.global_position = click.position
+	get_viewport().push_input(click, true)
+	await get_tree().process_frame
+
+	assert_ne(line_label.text, first_line)
+	assert_eq(presenter._line_index, 1)
+	presenter._cue = {}
+
 func _read(path: String) -> String:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	assert_not_null(file)

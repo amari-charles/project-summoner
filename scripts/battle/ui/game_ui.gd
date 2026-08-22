@@ -3,6 +3,10 @@ class_name GameUI
 
 ## Manages all UI updates for the match
 
+signal battle_conclusion_finished
+
+const GAME_OVER_DISPLAY_DURATION: float = 1.0
+
 ## Prep timer UI constants
 const PREP_TIMER_FONT_SIZE: int = 72
 const PREP_TIMER_OUTLINE_SIZE: int = 4
@@ -23,7 +27,6 @@ const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
 @export var timer_label: Label = null
 @export var game_over_modal: PanelContainer = null
 @export var game_over_label: Label = null
-@export var continue_button: Button = null
 
 ## Stat bars for both players (HP = red, Mana = blue)
 @export var player_hp_bar: StatBar = null
@@ -43,6 +46,7 @@ var game_controller: Node = null
 var player_summoner: Node3D = null
 var enemy_summoner: Node3D = null
 var _initialized: bool = false  # Track initialization state
+var _game_over_transition_scheduled: bool = false
 
 ## Stat bar colors
 const HP_BAR_COLOR: Color = Color(0.85, 0.25, 0.25)
@@ -56,8 +60,6 @@ func _ready() -> void:
 		game_over_modal = get_node_or_null("GameOverModal")
 	if game_over_label == null:
 		game_over_label = get_node_or_null("GameOverModal/Content/GameOverLabel")
-	if continue_button == null:
-		continue_button = get_node_or_null("GameOverModal/Content/ContinueButton")
 
 	# Stat bars (all use StatBar now) - look in HUDContainer
 	if player_hp_bar == null:
@@ -76,9 +78,6 @@ func _ready() -> void:
 	# Create prep timer label dynamically (large, center-top)
 	_create_prep_timer_label()
 	_create_reconnect_label()
-
-	if continue_button:
-		continue_button.pressed.connect(_on_continue_pressed)
 
 ## Initialize GameUI with controller and summoner references
 ## Called by BattleCoordinator after summoners are ready
@@ -204,19 +203,32 @@ func _on_mana_changed(current: float, maximum: float) -> void:
 		player_mana_bar.update_value(current, maximum)
 
 func _on_game_ended(winner: UnitConstants.Team) -> void:
-	if game_over_label:
-		var winner_text: String = Loc.t("ui.battle.player_wins") if winner == UnitConstants.Team.PLAYER else Loc.t("ui.battle.enemy_wins")
-		game_over_label.text = winner_text
+	if _game_over_transition_scheduled:
+		return
+	_game_over_transition_scheduled = true
 
-	if continue_button:
-		continue_button.text = Loc.t("campaign.map.button_continue")
+	if game_over_label:
+		game_over_label.text = (
+			Loc.t("ui.post_battle.victory")
+			if winner == UnitConstants.Team.PLAYER
+			else Loc.t("ui.post_battle.defeat")
+		)
 
 	if game_over_modal:
 		game_over_modal.visible = true
 
-func _on_continue_pressed() -> void:
+	get_tree().create_timer(
+		GAME_OVER_DISPLAY_DURATION,
+		true,
+		false,
+		true
+	).timeout.connect(_finish_game_over_conclusion)
+
+
+func _finish_game_over_conclusion() -> void:
 	if game_over_modal:
 		game_over_modal.visible = false
+	battle_conclusion_finished.emit()
 	if game_controller and game_controller.has_method("ContinueAfterGameOver"):
 		game_controller.call("ContinueAfterGameOver")
 

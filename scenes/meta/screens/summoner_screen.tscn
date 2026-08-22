@@ -1,19 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://beelkm0j8osqm"]
+[gd_scene load_steps=6 format=3 uid="uid://beelkm0j8osqm"]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/summoner_screen.gd" id="1_summoner_screen"]
-[ext_resource type="Shader" path="res://shaders/ui/element_energy_waves.gdshader" id="2_energy_waves"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/inventory_grid.tscn" id="3_inventory"]
 [ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png" id="4_placeholder_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/trait_development_overlay.tscn" id="5_trait_overlay"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_background"]
-shader = ExtResource("2_energy_waves")
-shader_parameter/color_primary = Color(1, 0.478, 0.165, 1)
-shader_parameter/color_secondary = Color(0.722, 0.188, 0.125, 1)
-shader_parameter/gradient_angle = 135.0
-shader_parameter/gradient_smoothness = 1.0
-shader_parameter/vignette_strength = 0.4
-shader_parameter/vignette_softness = 0.5
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_placeholder_summoner"]
 atlas = ExtResource("4_placeholder_summoner")
@@ -36,8 +26,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-material = SubResource("ShaderMaterial_background")
-color = Color(0.12, 0.12, 0.16, 1)
+color = Color(0.721569, 0.682353, 0.631373, 1)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -77,10 +66,7 @@ theme_override_constants/separation = 3
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
-theme_override_colors/font_color = Color(1, 0.972549, 0.913725, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
+theme_override_colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
 theme_override_font_sizes/font_size = 36
 text = ""
 horizontal_alignment = 1
@@ -99,7 +85,7 @@ text = ""
 [node name="LevelLabel" type="Label" parent="MarginContainer/ScreenVBox/Header/HeaderCenter/ProgressRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.972549, 0.913725, 1)
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 16
 text = ""
 

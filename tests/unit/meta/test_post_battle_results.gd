@@ -5,6 +5,11 @@ func test_combined_results_scene_exposes_progression_rewards_and_choice_regions(
 	var packed_scene: PackedScene = load("res://scenes/meta/screens/post_battle_results.tscn")
 	var results: PostBattleResults = packed_scene.instantiate() as PostBattleResults
 	assert_not_null(results)
+	assert_not_null(results.get_node_or_null("Center/Panel/Margin/Content/ResultsHeader/ResultsTitleLabel"))
+	var outcome_label: Label = results.get_node(
+		"Center/Panel/Margin/Content/ResultsHeader/OutcomeLabel"
+	) as Label
+	assert_eq(outcome_label.get_theme_font_size("font_size"), 24)
 	assert_not_null(results.get_node_or_null("Center/Panel/Margin/Content/ProgressionSection"))
 	assert_not_null(results.get_node_or_null("Center/Panel/Margin/Content/ProgressionSection/SummonerRow/SummonerXPBar"))
 	assert_not_null(results.get_node_or_null("Center/Panel/Margin/Content/ProgressionSection/CardProgressionSection/CardProgressionRows"))

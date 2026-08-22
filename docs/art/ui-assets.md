@@ -29,7 +29,7 @@ NinePatch textures for scaling
 | **Modal Panel** | Card Detail, Card Level Up, Summoner Management, Pause Menu, Snapshot Manager, confirmations |
 | **Content Panel** | Deck Builder panels, Collection grid, Campaign detail panel, Shop detail |
 | **Card Frame** | CardWidget, CardVisual, OfferingCard, First Card Selection, Reward cards |
-| **Summoner Frame** | SummonerCard, SummonerRosterItem portrait, SummonerIconWidget |
+| **Summoner Frame** | SummonerRosterItem portrait, SummonerIconWidget |
 | **Tooltip/Info Panel** | Hover tooltips, stat displays, descriptions |
 
 ---
@@ -52,7 +52,7 @@ NinePatch textures for scaling
 
 | Asset | Reuse Locations |
 |-------|-----------------|
-| **Fire** | CardWidget badge, SummonerCard label, Summoner Icon, Collection filters |
+| **Fire** | CardWidget badge, Summoner Icon, Collection filters |
 | **Water** | Same as above |
 | **Earth** | Same as above |
 | **Air** | Same as above |
@@ -133,7 +133,7 @@ NinePatch textures for scaling
 
 | Asset | Size | Reuse Locations |
 |-------|------|-----------------|
-| **Full Portrait** | 150x150+ | SummonerCard, Summoner Management Panel |
+| **Full Portrait** | 150x150+ | Summoner Management Panel |
 | **Icon Portrait** | 50x50 | SummonerIconWidget (4+ screens) |
 | **List Portrait** | 60x60 | SummonerRosterItem |
 

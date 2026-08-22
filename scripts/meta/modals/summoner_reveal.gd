@@ -1,95 +1,72 @@
 extends Control
 class_name SummonerReveal
 
-## SummonerReveal - Animated reveal of selected summoner
-##
-## Shows the full summoner card with stats after selection.
-## Animates the card in with a dramatic reveal.
+## Character-focused confirmation after the starting summoner choice.
 
+const NAV_KEY_SUMMONER_ID: String = "summoner_reveal.summoner_id"
+const NAV_KEY_WAS_RANDOM: String = "summoner_reveal.was_random"
+
+@onready var background: ColorRect = %Background
+@onready var reveal_content: VBoxContainer = %RevealContent
 @onready var title_label: Label = %TitleLabel
-@onready var card_container: CenterContainer = %CardContainer
+@onready var character_placeholder: Label = %CharacterPlaceholder
+@onready var element_label: Label = %ElementLabel
 @onready var continue_button: Button = %ContinueButton
-@onready var animation_player: AnimationPlayer = %AnimationPlayer
 
-const SummonerCardScene: PackedScene = preload("res://scenes/meta/components/summoner_card.tscn")
-
-var summoner_id: String = ""
-var was_random: bool = false
 
 func _ready() -> void:
-	# Hide continue button initially
-	if continue_button:
-		continue_button.visible = false
-		continue_button.pressed.connect(_on_continue_pressed)
+	background.color = GameColorPalette.UI_BACKGROUND
+	continue_button.text = Loc.t("ui.common.continue")
+	continue_button.pressed.connect(_on_continue_pressed)
 
-	# Read summoner data from ProfileRepo (just saved by summoner_selection)
-	var unlocked: Array = SummonerSelectionApi.get_unlocked_summoner_ids_array()
-	if not unlocked.is_empty():
-		summoner_id = unlocked[0]  # Starting summoner is first unlocked
+	var summoner_id: String = SafeTypeUtils.string(
+		NavigationContext.consume_value(NAV_KEY_SUMMONER_ID, ""),
+		""
+	)
+	var was_random: bool = SafeTypeUtils.bool_val(
+		NavigationContext.consume_value(NAV_KEY_WAS_RANDOM, false),
+		false
+	)
+	if summoner_id.is_empty():
+		summoner_id = SummonerSelectionApi.get_active_summoner_id()
 
-	# Check WAL for whether random was chosen (for title text)
-	# For now, just use default title
-	# TODO: Add get_was_random_chosen() to ProfileRepo if needed
+	_populate_result(summoner_id, was_random)
+	_animate_result()
 
-	# Update title for random selection
-	if was_random and title_label:
-		title_label.text = Loc.t("ui.summoner_reveal.random_title")
 
-	# Create and add summoner card
-	_create_summoner_card()
-
-	# Start reveal animation
-	_animate_reveal()
-
-## Create the summoner card
-func _create_summoner_card() -> void:
-	if not card_container:
+func _populate_result(summoner_id: String, was_random: bool) -> void:
+	var config: SummonerConfig = SummonerConfig.from_dict(
+		SummonerCatalogApi.get_summoner(summoner_id)
+	)
+	if not config:
+		push_error("SummonerReveal: Invalid summoner ID '%s'" % summoner_id)
+		title_label.text = Loc.t("ui.summoner_reveal.fallback_title")
+		element_label.text = ""
 		return
 
-	var card: SummonerCard = SummonerCardScene.instantiate()
-	card_container.add_child(card)
-	card.set_summoner(summoner_id)
+	var title_key: String = (
+		"ui.summoner_reveal.random_title"
+		if was_random
+		else "ui.summoner_reveal.chosen_title"
+	)
+	title_label.text = Loc.t(title_key, {"name": config.summoner_name}).to_upper()
+	element_label.text = Loc.t(
+		"summoner.element_affinity",
+		{"element": ElementTypes.get_display_name(config.get_element())}
+	)
+	character_placeholder.text = Loc.t("summoner.character_art_placeholder")
 
-	# Hide card initially for animation
-	card.modulate = Color(1, 1, 1, 0)
-	card.scale = Vector2(0.5, 0.5)
 
-## Animate the reveal
-func _animate_reveal() -> void:
-	await get_tree().create_timer(0.5).timeout
+func _animate_result() -> void:
+	reveal_content.modulate = Color(1, 1, 1, 0)
+	reveal_content.scale = Vector2(0.94, 0.94)
+	reveal_content.pivot_offset = reveal_content.size / 2.0
 
-	# Get the card
-	if not card_container or card_container.get_child_count() == 0:
-		_show_continue_button()
-		return
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(reveal_content, "modulate", Color.WHITE, 0.45)
+	tween.tween_property(reveal_content, "scale", Vector2.ONE, 0.45)
 
-	var card: Node = card_container.get_child(0)
 
-	# Fade in and scale up
-	var tween: Tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(card, "modulate", Color.WHITE, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(card, "scale", Vector2.ONE, 1.0).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-	# Show glow effect on card
-	if card.has_method("show_glow"):
-		await tween.finished
-		card.call("show_glow")
-
-	# Show continue button after animation
-	await get_tree().create_timer(0.5).timeout
-	_show_continue_button()
-
-## Show the continue button
-func _show_continue_button() -> void:
-	if not continue_button:
-		return
-
-	continue_button.visible = true
-	var tween: Tween = create_tween()
-	continue_button.modulate = Color(1, 1, 1, 0)
-	tween.tween_property(continue_button, "modulate", Color.WHITE, 0.5)
-
-## Continue to campaign map
 func _on_continue_pressed() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)

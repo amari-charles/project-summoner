@@ -12,6 +12,7 @@ grow_vertical = 2
 script = ExtResource("1_script")
 
 [node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,29 +29,53 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+[node name="RevealContent" type="VBoxContainer" parent="CenterContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 24
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="CenterContainer/RevealContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 48
-text = "YOUR CHAMPION EMERGES"
+theme_override_colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+theme_override_font_sizes/font_size = 44
+text = "NAME JOINS YOU"
 horizontal_alignment = 1
 
-[node name="CardContainer" type="CenterContainer" parent="CenterContainer/VBoxContainer"]
-unique_name_in_owner = true
+[node name="CharacterFrame" type="ColorRect" parent="CenterContainer/RevealContent"]
+custom_minimum_size = Vector2(420, 380)
 layout_mode = 2
-size_flags_vertical = 3
+color = Color(0.32, 0.31, 0.29, 0.3)
 
-[node name="ContinueButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="CharacterPlaceholder" type="Label" parent="CenterContainer/RevealContent/CharacterFrame"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
+theme_override_font_sizes/font_size = 16
+text = "CHARACTER ART PLACEHOLDER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ElementLabel" type="Label" parent="CenterContainer/RevealContent"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
+theme_override_font_sizes/font_size = 18
+text = "Favors Element"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="CenterContainer/RevealContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 52)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
 text = "Continue"
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-unique_name_in_owner = true

@@ -76,6 +76,157 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-22 — Make the battlefield conclusion automatic
+
+**Status:** Accepted
+**Areas:** Battle, Progression, Rewards, UI
+
+### Decision
+
+The battlefield displays a brief, non-interactive Victory or Defeat overlay
+after combat ends, then automatically transitions to the combined Battle
+Results screen. Results is the only click-through post-battle screen and owns
+XP, level changes, rewards, reward choices, and Continue.
+
+### Context
+
+Requiring the player to click through “Player Wins” and then arrive at another
+screen led by “Victory” duplicated the outcome without adding a decision. The
+battle still needs a short visual beat so its ending does not feel abrupt, but
+that beat does not need to become a separate screen interaction.
+
+### Consequences
+
+- The frozen battlefield remains visible beneath the timed outcome overlay.
+- No Continue button appears on the battlefield conclusion.
+- Battle Results uses a results title and retains Victory or Defeat as smaller
+  context rather than presenting a second victory screen.
+- Required reward selection remains the only post-battle interaction beyond the
+  Results Continue action.
+
+### Supersedes
+
+The clickable battlefield-conclusion requirement within
+`2026-08-22 — Use one combined Results screen after battle conclusion`.
+
+### References
+
+- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+- `docs/tracking/todos.md`
+
+## 2026-08-22 — Confirm the starting summoner with a character reveal
+
+**Status:** Accepted
+**Areas:** Onboarding, Summoners, Navigation, UI
+
+### Decision
+
+Every starting-summoner choice is followed by a single character-focused reveal
+before the player enters the walkable Academy hub. A direct choice confirms that
+the named summoner joins the player; Random explicitly identifies the character
+fate selected.
+
+### Context
+
+Going directly from selection to campus made the commitment feel underwhelming,
+and Random did not give the player a clear moment to understand its resolved
+result. The earlier reveal's problem was its summoner-card presentation and
+redundant mechanical information, not the confirmation beat itself.
+
+### Consequences
+
+- Direct and Random choices use the same one-click reveal flow.
+- The screen shows character art or a character-art placeholder, name, elemental
+  theme, and Continue—without stats, traits, rarity, or card framing.
+- Random-specific language clearly names the resolved summoner.
+- Continue enters the walkable Academy hub.
+
+### Supersedes
+
+`2026-08-22 — Remove the post-selection summoner reveal screen`
+
+### References
+
+- `docs/features/summoners/README.md`
+- `docs/tracking/todos.md`
+
+## 2026-08-22 — Remove the post-selection summoner reveal screen
+
+**Status:** Accepted
+**Areas:** Onboarding, Summoners, Navigation, UI
+
+### Decision
+
+Confirming the starting summoner completes that onboarding choice and returns
+the player directly to the walkable Academy hub. There is no separate “Your
+Champion Emerges” screen between selection and play.
+
+### Context
+
+The reveal repeated the choice using a legacy summoner-card presentation and
+required another click without adding information. The selection screen already
+owns the meaningful decision and confirmation moment.
+
+### Consequences
+
+- The legacy reveal scene, animation, localization, and route are removed.
+- Starting-summoner setup still commits the summoner and starter deck before
+  navigation.
+- Any future celebratory treatment should occur within the selection transition
+  rather than introducing another required screen.
+
+### Supersedes
+
+The legacy summoner-selection-to-reveal-to-campaign-map sequence.
+
+### References
+
+- `docs/tracking/todos.md`
+
+## 2026-08-22 — Present starting summoners as characters rather than cards
+
+**Status:** Accepted
+**Areas:** Onboarding, Summoners, Progression, UI
+
+### Decision
+
+The starting-summoner choice presents the complete starting roster together as
+characters. It does not use collectible-card framing or compare base stat lines.
+Each option communicates the summoner's name and elemental theme without
+turning the overview into a mechanical or temporary-copy comparison screen.
+
+### Context
+
+Summoners are the persistent characters through whom players experience the
+Academy journey; presenting them as cards blurred that distinction. Their base
+stats are not the meaningful onboarding choice and are expected to share a
+common baseline. The choice should instead explain character fantasy and the
+identity that meaningfully differentiates each path. Showing the whole roster
+at once also makes the elemental choices and random option clear.
+
+### Consequences
+
+- Starting-summoner selection uses character-focused portraits or figures.
+- All starting options, including Random, remain visible for comparison.
+- Innate traits remain part of summoner identity mechanically, but their names
+  and descriptions are not shown on the starting overview.
+- Temporary personality descriptions are omitted until the characters have
+  intentionally authored identities worth presenting.
+- Base-stat comparison, rarity, mana cost, and card-frame language do not belong
+  on this selection surface.
+- Summoner Switch uses the character roster presentation; the legacy
+  `SummonerCard` component is retired rather than retained as an alternate
+  representation of summoners.
+
+### Supersedes
+
+The collectible-card presentation used by the legacy summoner selection flow.
+
+### References
+
+- `docs/features/summoners/README.md`
+- `docs/tracking/todos.md`
+
 ## 2026-08-22 — Make Card Core visible, card-native, and behavior-led
 
 **Status:** Accepted

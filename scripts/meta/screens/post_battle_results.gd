@@ -17,6 +17,7 @@ const OUTCOME_VICTORY: String = "victory"
 
 @onready var background: ColorRect = %Background
 @onready var panel: PanelContainer = %Panel
+@onready var results_title_label: Label = %ResultsTitleLabel
 @onready var outcome_label: Label = %OutcomeLabel
 @onready var progression_heading: Label = %ProgressionHeading
 @onready var summoner_name_label: Label = %SummonerNameLabel
@@ -47,6 +48,7 @@ var _base_reward_grants: Array[Dictionary] = []
 func _ready() -> void:
 	continue_button.pressed.connect(_continue)
 	continue_button.text = Loc.t("ui.common.continue")
+	results_title_label.text = Loc.t("ui.post_battle.title")
 	progression_heading.text = Loc.t("ui.post_battle.progression")
 	card_progression_heading.text = Loc.t("ui.post_battle.participating_cards")
 	rewards_heading.text = Loc.t("ui.post_battle.rewards")

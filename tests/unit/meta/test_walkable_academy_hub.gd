@@ -318,6 +318,12 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 	) as QuestDetailPanel
 	assert_eq(detail.rewards_list.get_child_count(), 1)
 	assert_true(detail.rewards_list.get_child(0) is CardWidget)
+	await get_tree().process_frame
+	var card_widget: CardWidget = detail.rewards_list.get_child(0) as CardWidget
+	var card_panel: PanelContainer = card_widget.get_node("CardPanel") as PanelContainer
+	assert_eq(card_widget.size_flags_horizontal, Control.SIZE_SHRINK_CENTER)
+	assert_eq(card_panel.size, QuestDetailPanel.CARD_REWARD_PREVIEW_SIZE)
+	assert_almost_eq(card_panel.size.x / card_panel.size.y, 2.0 / 3.0, 0.001)
 	offer._back()
 	assert_false(offer.visible)
 

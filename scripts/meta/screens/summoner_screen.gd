@@ -74,6 +74,7 @@ var _equipment_modal: EquipmentSlotModal = null
 ## =============================================================================
 
 func _ready() -> void:
+	background.color = GameColorPalette.UI_BACKGROUND
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
@@ -139,9 +140,6 @@ func _refresh_all() -> void:
 	element_label.visible = false  # Summoners are associated with elements, not defined by them
 	level_label.text = Loc.t("ui.summoner_panel.level_display", {"level": level})
 
-	# Update background with element-themed energy waves
-	_update_background_for_element(element)
-
 	# Style the info panels with element accents
 	_style_panels(element_color)
 
@@ -167,25 +165,6 @@ func _refresh_all() -> void:
 	# Update build and item management surfaces
 	_refresh_traits(config)
 	_refresh_equipment()
-
-
-## =============================================================================
-## BACKGROUND
-## =============================================================================
-
-func _update_background_for_element(element: ElementTypes.Element) -> void:
-	var gradient_colors: Array[Color] = CardVisualHelper.get_element_gradient_colors(element.id)
-	var material: ShaderMaterial = background.material as ShaderMaterial
-	if not material:
-		return
-
-	# Primary is the brighter color (gradient[1]), secondary is darker (gradient[0])
-	if gradient_colors.size() >= 2:
-		material.set_shader_parameter("color_primary", gradient_colors[1])
-		material.set_shader_parameter("color_secondary", gradient_colors[0])
-	elif gradient_colors.size() == 1:
-		material.set_shader_parameter("color_primary", gradient_colors[0])
-		material.set_shader_parameter("color_secondary", gradient_colors[0].darkened(0.3))
 
 
 ## =============================================================================

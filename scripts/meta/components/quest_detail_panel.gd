@@ -2,6 +2,7 @@ extends VBoxContainer
 class_name QuestDetailPanel
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
+const CARD_REWARD_PREVIEW_SIZE: Vector2 = Vector2(200, 300)
 
 @onready var detail_empty: Label = %DetailEmpty
 @onready var detail_content: VBoxContainer = %DetailContent
@@ -110,6 +111,11 @@ func _build_reward(grant: Dictionary) -> Control:
 func _build_card_reward(grant: Dictionary) -> Control:
 	var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("id")))
 	var card_widget: CardWidget = CardWidgetScene.instantiate() as CardWidget
+	var card_panel: PanelContainer = card_widget.get_node("CardPanel") as PanelContainer
+	card_panel.custom_minimum_size = CARD_REWARD_PREVIEW_SIZE
+	card_widget.custom_minimum_size = CARD_REWARD_PREVIEW_SIZE
+	card_widget.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	card_widget.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	card_widget.set_draggable(false)
 	card_widget.ready.connect(
 		func() -> void:

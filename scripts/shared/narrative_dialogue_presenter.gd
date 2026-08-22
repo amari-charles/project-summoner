@@ -18,6 +18,7 @@ func _ready() -> void:
 	panel.visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	gui_input.connect(_on_gui_input)
+	panel.gui_input.connect(_on_gui_input)
 	skip_button.pressed.connect(_skip)
 	skip_button.text = Loc.t("narrative.skip")
 	NarrativeDirectorApi.register_presenter(narrative_context, present)
@@ -58,7 +59,11 @@ func _render_line() -> void:
 		choices.add_child(button)
 
 func _on_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
+	if (
+		event is InputEventMouseButton
+		and event.pressed
+		and event.button_index == MOUSE_BUTTON_LEFT
+	):
 		_advance()
 
 func _unhandled_key_input(event: InputEvent) -> void:
