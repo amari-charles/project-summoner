@@ -44,12 +44,23 @@ theme_override_constants/margin_bottom = 34
 layout_mode = 2
 theme_override_constants/separation = 22
 
-[node name="OutcomeLabel" type="Label" parent="Center/Panel/Margin/Content"]
+[node name="ResultsHeader" type="HBoxContainer" parent="Center/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="ResultsTitleLabel" type="Label" parent="Center/Panel/Margin/Content/ResultsHeader"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 46
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 36
+text = "BATTLE RESULTS"
+
+[node name="OutcomeLabel" type="Label" parent="Center/Panel/Margin/Content/ResultsHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "VICTORY"
-horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Separator" type="HSeparator" parent="Center/Panel/Margin/Content"]
 layout_mode = 2

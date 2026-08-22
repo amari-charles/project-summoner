@@ -54,7 +54,6 @@ signal closed()
 @onready var trait_development_overlay: TraitDevelopmentOverlay = %TraitDevelopmentOverlay
 
 @onready var equipment_panel: PanelContainer = %EquipmentPanel
-@onready var equipment_header: Label = %EquipmentHeader
 @onready var equipment_container: VBoxContainer = %EquipmentContainer
 
 @onready var inventory_panel: PanelContainer = %InventoryPanel
@@ -74,6 +73,7 @@ var _equipment_modal: EquipmentSlotModal = null
 ## =============================================================================
 
 func _ready() -> void:
+	background.color = GameColorPalette.UI_BACKGROUND
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
@@ -95,7 +95,6 @@ func _ready() -> void:
 	description_header.text = Loc.t("ui.summoner_screen.identity_header")
 	stats_header.text = Loc.t("ui.summoner_screen.stats_header")
 	traits_header.text = Loc.t("ui.summoner_screen.traits_header")
-	equipment_header.text = Loc.t("ui.summoner_screen.equipped_header")
 	inventory_header.text = Loc.t("ui.summoner_screen.inventory_header")
 
 	# Load active summoner
@@ -139,9 +138,6 @@ func _refresh_all() -> void:
 	element_label.visible = false  # Summoners are associated with elements, not defined by them
 	level_label.text = Loc.t("ui.summoner_panel.level_display", {"level": level})
 
-	# Update background with element-themed energy waves
-	_update_background_for_element(element)
-
 	# Style the info panels with element accents
 	_style_panels(element_color)
 
@@ -167,25 +163,6 @@ func _refresh_all() -> void:
 	# Update build and item management surfaces
 	_refresh_traits(config)
 	_refresh_equipment()
-
-
-## =============================================================================
-## BACKGROUND
-## =============================================================================
-
-func _update_background_for_element(element: ElementTypes.Element) -> void:
-	var gradient_colors: Array[Color] = CardVisualHelper.get_element_gradient_colors(element.id)
-	var material: ShaderMaterial = background.material as ShaderMaterial
-	if not material:
-		return
-
-	# Primary is the brighter color (gradient[1]), secondary is darker (gradient[0])
-	if gradient_colors.size() >= 2:
-		material.set_shader_parameter("color_primary", gradient_colors[1])
-		material.set_shader_parameter("color_secondary", gradient_colors[0])
-	elif gradient_colors.size() == 1:
-		material.set_shader_parameter("color_primary", gradient_colors[0])
-		material.set_shader_parameter("color_secondary", gradient_colors[0].darkened(0.3))
 
 
 ## =============================================================================
@@ -219,7 +196,7 @@ func _style_panels(element_color: Color) -> void:
 	_style_single_panel(description_panel, description_header, element_color)
 	_style_single_panel(stats_panel, stats_header, element_color)
 	_style_single_panel(traits_panel, traits_header, element_color)
-	_style_single_panel(equipment_panel, equipment_header, element_color)
+	_style_single_panel(equipment_panel, null, element_color)
 	_style_single_panel(inventory_panel, inventory_header, element_color)
 
 	description_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
@@ -232,7 +209,8 @@ func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Col
 
 	panel.add_theme_stylebox_override("panel", style)
 
-	header.add_theme_color_override("font_color", accent_color.darkened(0.25))
+	if header != null:
+		header.add_theme_color_override("font_color", accent_color.darkened(0.25))
 
 
 ## =============================================================================

@@ -18,6 +18,7 @@ func _ready() -> void:
 	panel.visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	gui_input.connect(_on_gui_input)
+	panel.gui_input.connect(_on_gui_input)
 	skip_button.pressed.connect(_skip)
 	skip_button.text = Loc.t("narrative.skip")
 	NarrativeDirectorApi.register_presenter(narrative_context, present)
@@ -46,6 +47,7 @@ func _render_line() -> void:
 		_finish({})
 		return
 	line_label.text = ""
+	_release_dialogue_focus()
 	for value: Variant in authored_choices:
 		var choice: Dictionary = SafeTypeUtils.dict(value)
 		var button: Button = Button.new()
@@ -58,12 +60,27 @@ func _render_line() -> void:
 		choices.add_child(button)
 
 func _on_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
+	if (
+		event is InputEventMouseButton
+		and event.pressed
+		and event.button_index == MOUSE_BUTTON_LEFT
+	):
 		_advance()
 
-func _unhandled_key_input(event: InputEvent) -> void:
-	if panel.visible and event.pressed and (event.is_action("ui_accept") or event.is_action("ui_select")):
+func _input(event: InputEvent) -> void:
+	if (
+		panel.visible
+		and event.is_pressed()
+		and not event.is_echo()
+		and _line_index < _line_keys.size()
+		and (
+			event.is_action("interact")
+			or event.is_action("ui_accept")
+			or event.is_action("ui_select")
+		)
+	):
 		_advance()
+		get_viewport().set_input_as_handled()
 
 func _advance() -> void:
 	if _cue.is_empty() or _line_index >= _line_keys.size():
@@ -92,3 +109,8 @@ func _finish(result: Dictionary) -> void:
 func _clear_choices() -> void:
 	for child: Node in choices.get_children():
 		child.queue_free()
+
+func _release_dialogue_focus() -> void:
+	var focus_owner: Control = get_viewport().gui_get_focus_owner()
+	if focus_owner != null:
+		focus_owner.release_focus()

@@ -224,7 +224,22 @@ func test_clicking_visible_dialogue_panel_advances_to_next_line() -> void:
 	assert_eq(line.text, "Second line")
 
 
-func test_skipping_dialogue_stops_at_required_player_response() -> void:
+func test_space_advances_visible_npc_dialogue() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	await get_tree().process_frame
+	dialogue.present("Professor", ["First line", "Second line"])
+
+	var space: InputEventKey = InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	dialogue._input(space)
+
+	assert_eq(dialogue._line_index, 1)
+
+
+func test_required_player_response_starts_unselected() -> void:
 	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
 	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
 	add_child_autofree(dialogue)
@@ -239,7 +254,14 @@ func test_skipping_dialogue_stops_at_required_player_response() -> void:
 	assert_true(dialogue.visible)
 	assert_eq(responses.get_child_count(), 1)
 	await get_tree().process_frame
-	assert_eq(get_viewport().gui_get_focus_owner(), responses.get_child(0))
+	assert_null(get_viewport().gui_get_focus_owner())
+
+	var space: InputEventKey = InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	dialogue._input(space)
+	assert_true(dialogue.visible)
+	assert_eq(responses.get_child_count(), 1)
 
 
 func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -> void:
@@ -318,6 +340,12 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 	) as QuestDetailPanel
 	assert_eq(detail.rewards_list.get_child_count(), 1)
 	assert_true(detail.rewards_list.get_child(0) is CardWidget)
+	await get_tree().process_frame
+	var card_widget: CardWidget = detail.rewards_list.get_child(0) as CardWidget
+	var card_panel: PanelContainer = card_widget.get_node("CardPanel") as PanelContainer
+	assert_eq(card_widget.size_flags_horizontal, Control.SIZE_SHRINK_CENTER)
+	assert_eq(card_panel.size, QuestDetailPanel.CARD_REWARD_PREVIEW_SIZE)
+	assert_almost_eq(card_panel.size.x / card_panel.size.y, 2.0 / 3.0, 0.001)
 	offer._back()
 	assert_false(offer.visible)
 

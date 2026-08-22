@@ -54,7 +54,7 @@ func _render_line() -> void:
 	if _authored_choices.is_empty():
 		dismiss()
 		return
-	var first_button: Button = null
+	_release_dialogue_focus()
 	for choice: Dictionary in _authored_choices:
 		var button: Button = Button.new()
 		button.text = "› %s" % SafeTypeUtils.string(choice.get("text"))
@@ -64,10 +64,6 @@ func _render_line() -> void:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_choose.bind(SafeTypeUtils.string(choice.get("id"))))
 		choices.add_child(button)
-		if first_button == null:
-			first_button = button
-	if first_button != null:
-		first_button.call_deferred("grab_focus")
 
 
 func _on_gui_input(event: InputEvent) -> void:
@@ -84,8 +80,22 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if event.is_action("ui_cancel"):
 		_skip_to_choices_or_dismiss()
-	elif event.is_action("ui_accept") or event.is_action("ui_select"):
+
+
+func _input(event: InputEvent) -> void:
+	if (
+		visible
+		and event.is_pressed()
+		and not event.is_echo()
+		and _line_index < _lines.size()
+		and (
+			event.is_action("interact")
+			or event.is_action("ui_accept")
+			or event.is_action("ui_select")
+		)
+	):
 		_advance()
+		get_viewport().set_input_as_handled()
 
 
 func _advance() -> void:
@@ -122,3 +132,9 @@ func _apply_palette() -> void:
 func _clear_choices() -> void:
 	for child: Node in choices.get_children():
 		child.queue_free()
+
+
+func _release_dialogue_focus() -> void:
+	var focus_owner: Control = get_viewport().gui_get_focus_owner()
+	if focus_owner != null:
+		focus_owner.release_focus()

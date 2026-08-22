@@ -768,6 +768,7 @@
       "title": "Rewards Earned"
     },
     "post_battle": {
+      "title": "BATTLE RESULTS",
       "victory": "VICTORY",
       "defeat": "DEFEAT",
       "progression": "PROGRESSION",
@@ -822,8 +823,6 @@
       "gold_lost_on_end": "Unspent gold will be lost when the campaign ends"
     },
     "battle": {
-      "player_wins": "PLAYER WINS!",
-      "enemy_wins": "ENEMY WINS!",
       "phase_preparation": "PREPARATION",
       "phase_battle": "BATTLE!",
       "level_cap": "Level Cap: {level}",
@@ -1027,13 +1026,6 @@
       "type_special": "Type: Special",
       "price_format": "Price: {price} gold"
     },
-    "summoner_card": {
-      "hp_label": "HP: {value}",
-      "mana_label": "Mana: {value}"
-    },
-    "summoner_reveal": {
-      "random_title": "FATE HAS CHOSEN YOUR CHAMPION"
-    },
     "mana_bar": {
       "format": "Mana: {current}/{max}",
       "tier_multiplier": "x{tier}"
@@ -1080,7 +1072,6 @@
       "identity_header": "IDENTITY",
       "stats_header": "STATS",
       "traits_header": "TRAITS",
-      "equipped_header": "EQUIPPED",
       "inventory_header": "INVENTORY",
       "inventory_empty": "No items owned",
       "inventory_equipped": "Equipped",
@@ -1115,6 +1106,11 @@
     "summoner_switch": {
       "title": "CHOOSE SUMMONER",
       "confirm": "Confirm Selection"
+    },
+    "summoner_reveal": {
+      "chosen_title": "{name} joins you",
+      "random_title": "Fate chose {name}",
+      "fallback_title": "Your summoner is ready"
     },
     "title": {
       "game_name": "FateForged"
@@ -1878,9 +1874,8 @@
     "stat_health": "Health: {value}",
     "stat_mana": "Mana: {value}",
     "selection_title": "Choose Your Summoner",
-    "selection_subtitle": "Each summoner has unique abilities that shape your playstyle",
+    "character_art_placeholder": "CHARACTER ART PLACEHOLDER",
     "random_summoner": "Random",
-    "random_summoner_description": "Let fate choose your summoner",
     "element_affinity": "Favors {element}",
     "element_affinity_unknown": "Favors ???",
     "trait_fortune_favors_bold": "Fortune Favors the Bold",

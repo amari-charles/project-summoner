@@ -8,12 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/battle/ui/pause_menu.tscn" id="6_pause_menu"]
 
 [sub_resource type="StyleBoxFlat" id="game_over_bg"]
-bg_color = Color(0.784314, 0.733333, 0.666667, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.505882, 0.454902, 0.4, 1)
+bg_color = Color(0.08, 0.07, 0.06, 0.55)
 
 [node name="BattleHUD" type="CanvasLayer"]
 script = ExtResource("1_game_ui")
@@ -119,18 +114,14 @@ theme_override_styles/panel = SubResource("game_over_bg")
 [node name="Content" type="VBoxContainer" parent="GameOverModal"]
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 32
 
 [node name="GameOverLabel" type="Label" parent="GameOverModal/Content"]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.972549, 0.913725, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.07, 0.06, 0.9)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 72
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="ContinueButton" type="Button" parent="GameOverModal/Content"]
-layout_mode = 2
-size_flags_horizontal = 4
-custom_minimum_size = Vector2(220, 46)
-theme_override_font_sizes/font_size = 20
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]

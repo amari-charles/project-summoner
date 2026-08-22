@@ -14,7 +14,9 @@ Other battle modes return directly or have mode-specific behavior. A campaign vi
 
 ## Proposed ownership
 
-Retain the in-battle conclusion overlay only as immediate feedback and the pause before leaving the battlefield. Its Continue action should always hand meaningful battles to one post-battle flow.
+Retain the in-battle conclusion overlay only as brief immediate feedback before
+leaving the battlefield. It advances automatically into the post-battle flow so
+the player does not acknowledge the same outcome twice.
 
 Introduce a typed `PostBattleReport` assembled from authoritative results that were already committed by progression, reward, quest, and competitive services. The report should contain only presentation-ready facts:
 
@@ -39,10 +41,9 @@ sequence, but they remain on one screen. Cards that gained no XP are omitted;
 the summoner progression row remains visible. Level-ups happen automatically
 and receive stronger presentation rather than requiring confirmation.
 
-The normal post-battle flow therefore has two deliberate advances:
-
-1. Continue from the victory or defeat conclusion over the battlefield.
-2. Continue from the combined Results screen.
+The normal post-battle flow therefore has one deliberate advance: Continue from
+the combined Results screen. The victory or defeat conclusion over the
+battlefield is a short, non-interactive transition.
 
 A required reward choice is the only additional interaction. Victory and defeat
 use the same structure, with sections omitted when they have no relevant facts.

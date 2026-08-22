@@ -22,6 +22,7 @@ signal select_pressed(summoner_id: String)
 ## State
 var _summoner_id: String = ""
 var _is_active: bool = false
+var _is_pending: bool = false
 
 ## =============================================================================
 ## LIFECYCLE
@@ -39,9 +40,19 @@ func set_summoner_data(summoner_id: String) -> void:
 	_summoner_id = summoner_id
 	refresh()
 
+func get_summoner_id() -> String:
+	return _summoner_id
+
 ## Mark this summoner as active (currently selected)
 func set_active(is_active: bool) -> void:
 	_is_active = is_active
+	if is_active:
+		_is_pending = false
+	_update_active_display()
+
+## Mark this summoner as the pending switch choice.
+func set_pending(is_pending: bool) -> void:
+	_is_pending = is_pending and not _is_active
 	_update_active_display()
 
 ## Refresh display from services
@@ -100,6 +111,11 @@ func _update_active_display() -> void:
 		select_button.text = Loc.t("ui.summoner_panel.selected_button")
 		select_button.disabled = true
 		# Highlight panel
+		add_theme_stylebox_override("panel", _create_highlight_style())
+	elif _is_pending:
+		active_indicator.visible = false
+		select_button.text = Loc.t("ui.summoner_panel.selected_button")
+		select_button.disabled = true
 		add_theme_stylebox_override("panel", _create_highlight_style())
 	else:
 		active_indicator.visible = false
