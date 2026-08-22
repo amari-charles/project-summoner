@@ -99,6 +99,19 @@ public static class TraitTreeEvaluator
             return Locked("Granted from events or rewards", canUnlockNow: false);
         }
 
+        var selectedExclusiveOption = ResolveSelectedExclusiveOption(trait, context);
+        if (
+            !string.IsNullOrEmpty(selectedExclusiveOption)
+            && !string.Equals(
+                selectedExclusiveOption,
+                trait.ExclusiveOptionId,
+                StringComparison.Ordinal
+            )
+        )
+        {
+            return Closed("Closed by a permanent Core branch choice");
+        }
+
         var matchesTags = MatchesOwnerTags(trait, context);
         if (!matchesTags)
         {
@@ -195,6 +208,7 @@ public static class TraitTreeEvaluator
             LockedReason = "",
             UnlockBlockedReason = hasTraitPoint ? "" : "Need 1 trait point",
             MissingPrerequisiteIds = [],
+            IsPermanentlyClosed = false,
         };
     }
 
@@ -289,6 +303,54 @@ public static class TraitTreeEvaluator
             LockedReason = reason,
             UnlockBlockedReason = reason,
             MissingPrerequisiteIds = [],
+            IsPermanentlyClosed = false,
         };
+    }
+
+    private static TraitUnlockEvaluation Closed(string reason)
+    {
+        return new TraitUnlockEvaluation
+        {
+            IsOwned = false,
+            IsAcquirableTrait = true,
+            MatchesTags = true,
+            MeetsLevelRequirements = false,
+            MeetsPrerequisites = false,
+            HasTraitPoint = false,
+            IsEligibleWithoutPoints = false,
+            CanUnlockNow = false,
+            LockedReason = reason,
+            UnlockBlockedReason = reason,
+            MissingPrerequisiteIds = [],
+            IsPermanentlyClosed = true,
+        };
+    }
+
+    private static string ResolveSelectedExclusiveOption(
+        TraitDefinition trait,
+        TraitTreeOwnerContext context
+    )
+    {
+        if (string.IsNullOrEmpty(trait.ExclusiveGroupId))
+            return "";
+
+        foreach (var ownedTraitId in context.OwnedTraitIds)
+        {
+            var ownedDefinition = TraitCatalog.GetTrait(ownedTraitId);
+            if (
+                ownedDefinition != null
+                && string.Equals(
+                    ownedDefinition.ExclusiveGroupId,
+                    trait.ExclusiveGroupId,
+                    StringComparison.Ordinal
+                )
+                && !string.IsNullOrEmpty(ownedDefinition.ExclusiveOptionId)
+            )
+            {
+                return ownedDefinition.ExclusiveOptionId;
+            }
+        }
+
+        return "";
     }
 }

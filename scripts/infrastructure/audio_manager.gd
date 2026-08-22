@@ -21,6 +21,10 @@ const BUS_MASTER: String = "Master"
 const BUS_MUSIC: String = "Music"
 const BUS_SFX: String = "SFX"
 
+## Temporary project-wide kill switch. This mutes the SFX bus without changing
+## the player's saved volume, so restoring sound only requires setting it true.
+const SOUND_EFFECTS_ENABLED: bool = false
+
 ## Default crossfade duration in seconds
 const DEFAULT_CROSSFADE: float = 1.0
 
@@ -69,6 +73,7 @@ func _ready() -> void:
 	_create_ui_player()
 	_preload_ui_sounds()
 	_apply_settings_volume()
+	_apply_sound_effects_switch()
 
 
 ## =============================================================================
@@ -323,6 +328,11 @@ func _apply_settings_volume() -> void:
 		AudioServer.set_bus_volume_db(_music_bus_idx, _linear_to_db(music_vol))
 	if _sfx_bus_idx >= 0:
 		AudioServer.set_bus_volume_db(_sfx_bus_idx, _linear_to_db(sfx_vol))
+
+
+func _apply_sound_effects_switch() -> void:
+	if _sfx_bus_idx >= 0:
+		AudioServer.set_bus_mute(_sfx_bus_idx, not SOUND_EFFECTS_ENABLED)
 
 
 ## =============================================================================

@@ -21,7 +21,7 @@ Allowed status values:
 
 | Case ID | Scenario | Expected Result | Test Type | Test File | Status |
 |---|---|---|---|---|---|
-| C01 | Player levels up a card with no trait spend action taken yet. | Trait points increase; no immediate trait-choice modal is forced. | integration | `tests/unit/meta/test_card_level_up_flow.gd` | Implemented |
+| C01 | Card XP crosses a level threshold with no trait spend action taken. | The level applies automatically, Card Points increase, and no immediate trait choice is forced. | integration | `tests/unit/meta/test_card_level_up_flow.gd` | Implemented |
 | C02 | Card has unspent points after level up. | Traits entry button shows spend-available indicator (`!`, `n`, `9+` rules). | integration | `tests/unit/meta/test_card_detail_modal_trait_button.gd` | Implemented |
 | C03 | Player opens traits from collection card detail. | Card trait tree opens with selected `card_instance_id`; no collection-global spending path is used. | integration | `tests/unit/meta/test_collection_trait_navigation.gd` | Implemented |
 | C04 | Player opens summoner traits. | Summoner traits render in tree visualization (not list-only fallback). | integration | `tests/unit/meta/test_summoner_trait_tree_screen.gd` | Implemented |

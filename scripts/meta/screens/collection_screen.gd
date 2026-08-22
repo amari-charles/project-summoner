@@ -1,11 +1,11 @@
-extends Control
+extends BackNavigableScreen
 class_name CollectionScreen
 
 ## CollectionScreen - Side-by-side layout for collection and decks
 ##
 ## Left panel (2/3): Collection grid with filters and search
 ## Right panel (1/3): Deck list - click to select, double-click to open details
-## Click card → shows action popup ("Use" / "Info")
+## Click card → opens details; deck membership actions live inside that view.
 
 ## =============================================================================
 ## NODE REFERENCES
@@ -15,7 +15,6 @@ class_name CollectionScreen
 @onready var close_button: Button = %CloseButton
 @onready var traits_button: Button = %TraitsButton
 @onready var traits_badge: Label = %TraitsBadge
-@onready var gold_label: Label = %GoldLabel
 
 ## Left panel - Filters
 @onready var all_button: Button = %AllButton
@@ -82,7 +81,6 @@ const MAX_DECK_SIZE: int = DeckConstants.MAX_DECK_SIZE
 
 ## Scenes
 const CardDetailModalScene: PackedScene = preload("res://scenes/meta/modals/card_detail_modal.tscn")
-const LevelUpPanelScene: PackedScene = preload("res://scenes/meta/modals/card_level_up_panel.tscn")
 const DeckListItemScene: PackedScene = preload("res://scenes/meta/components/deck_list_item.tscn")
 
 
@@ -139,7 +137,6 @@ func _ready() -> void:
 	_refresh_deck_list()
 	_refresh_deck_panel()
 	_refresh_collection()
-	_refresh_gold_display()
 
 
 func _make_traits_button_style(bg_color: Color, border_color: Color) -> StyleBoxFlat:
@@ -711,43 +708,11 @@ func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
 		modal.call("set_deck_context", selected_deck_id, is_in_deck)
 
 	# Connect signals
-	if modal.has_signal("level_up_requested"):
-		modal.level_up_requested.connect(_on_level_up_from_modal)
-
-	if modal.has_signal("traits_requested"):
-		modal.traits_requested.connect(_on_traits_from_modal)
-
 	if modal.has_signal("deck_action_requested"):
 		modal.deck_action_requested.connect(_on_deck_action_from_modal)
 
 	if modal.has_signal("closed"):
 		modal.closed.connect(_on_modal_closed.bind(modal))
-
-
-func _on_level_up_from_modal(instance_id: String) -> void:
-	var panel: Node = LevelUpPanelScene.instantiate()
-	if not panel:
-		return
-
-	add_child(panel)
-
-	if panel.has_method("open_for_card"):
-		panel.call("open_for_card", instance_id)
-
-	if panel.has_signal("level_up_completed"):
-		panel.level_up_completed.connect(_on_level_up_completed)
-
-
-func _on_level_up_completed(_card_instance_id: String) -> void:
-	_refresh_collection()
-	_refresh_deck_list()
-	_refresh_deck_panel()
-
-
-func _on_traits_from_modal(instance_id: String) -> void:
-	NavigationContext.set_value("trait_tree_card_instance_id", instance_id)
-	NavigationContext.push_return(SceneManager.SCENE_COLLECTION_SCREEN)
-	SceneManager.transition_to(SceneManager.SCENE_CARD_TRAIT_TREE_SCREEN)
 
 
 func _on_deck_action_from_modal(instance_id: String, action: String) -> void:
@@ -768,16 +733,6 @@ func _remove_card_from_deck(card_instance_id: String) -> void:
 func _on_modal_closed(modal: Node) -> void:
 	if modal and is_instance_valid(modal):
 		modal.queue_free()
-
-
-## =============================================================================
-## GOLD DISPLAY
-## =============================================================================
-
-func _refresh_gold_display() -> void:
-	var resources: Dictionary = ProfileRepoApi.get_resources_dict()
-	var gold: int = resources.get("gold", 0)
-	gold_label.text = str(gold)
 
 
 ## =============================================================================
@@ -827,3 +782,7 @@ func _on_deck_deleted(deck_id: String) -> void:
 func _on_collection_changed() -> void:
 	_refresh_collection()
 	_refresh_deck_panel()
+
+
+func _request_back_navigation() -> void:
+	_on_close_pressed()

@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name SnapshotManager
 
 ## Snapshot Manager - UI for managing profile snapshots
@@ -219,3 +219,7 @@ func _extract_name_from_display(display_text: String) -> String:
 	if parts.size() > 0:
 		return parts[0].strip_edges()
 	return display_text
+
+
+func _request_back_navigation() -> void:
+	_on_close_pressed()

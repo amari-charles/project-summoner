@@ -1,64 +1,75 @@
 # Trait Tree Screen Flow Spec
 
-**Status:** Draft for implementation  
+**Status:** Partially superseded; interface topology under reconsideration
 **Date:** 2026-03-09  
 **Owner:** Meta UX / Progression
 
+> The default-tree and separate one-off-tab assumptions in this document are no
+> longer current direction. See
+> [Discovery-Driven Development](discovery-driven-development.md). Automatic
+> levels, banked points, the spend-available indicator, and the compact owned
+> trait summary remain applicable while the replacement interface is designed.
+> The former global `Upgrades` button is also superseded: owned trait circles are
+> now the primary entry into the selected trait's development view.
+
 ## 1. Goal
 
-Define the canonical player flow for:
-
-1. `Level Up` (grants trait points)
-2. `Traits` (spends trait points in the tree)
+Define the canonical player flow for automatic summoner levels and banked,
+player-chosen upgrades.
 
 This spec is intentionally icon-first and low-text.
 
 ## 2. Core Decisions
 
-1. `Level Up` never forces trait selection immediately.
-2. `Level Up` grants points only.
-3. `Traits` is the only spend surface for progression traits.
-4. A spend-available indicator appears on the `Traits` button when unspent points > 0.
-5. One-off traits live in a separate tab inside the trait screen.
+1. Summoner levels apply automatically when XP crosses a threshold.
+2. Each gained level grants an upgrade point without forcing an immediate choice.
+3. The selected-trait development interface spends points for opportunities whose
+   configured acquisition method is direct point spending.
+4. Spend availability is indicated in the Traits area without a separate global
+   `Upgrades` button.
+5. Traits are not divided into a mandatory `Progression Tree` and `One-Off`
+   interface. The replacement organization remains to be designed.
+6. The Summoner screen shows owned traits as clickable build-summary icons; it
+   does not reproduce every trait's full development path.
 
 ## 3. Primary Navigation Flow
 
-1. Player sees two persistent actions: `Level Up` and `Traits`.
-2. Player presses `Level Up`.
-3. System applies level increase and grants trait points.
-4. `Traits` button enters alert state (badge).
-5. Player can continue playing or press `Traits`.
-6. Pressing `Traits` opens `Trait Tree Screen`.
-7. Player spends points on available nodes.
-8. Badge clears when unspent points reaches 0.
+1. Player earns enough XP to cross one or more level thresholds.
+2. The system applies every affordable level, carries remaining XP forward, and
+   banks one upgrade point per level.
+3. The Summoner Traits area enters its spend-available state.
+4. Player can continue playing or select an owned trait from the Summoner screen.
+5. Selecting an owned trait circle opens that trait's development surface.
+6. Player selects an available opportunity and completes its configured
+   acquisition action.
+7. Badge clears when unspent points reaches 0.
 
-## 4. Button State Rules
+## 4. Traits-Area State Rules
 
-## 4.1 Level Up Button
+## 4.1 Spend-Availability Indicator
 
-1. `Disabled`: cannot level up yet.
-2. `Ready`: can level up now.
-3. `Pressed`: executes level-up transaction; on success updates points and badge.
+1. `Default`: no badge, normal trait presentation.
+2. `Spend Available`: point badge shown in the Traits area.
+3. `No Unlock Available` (optional): the badge may remain with a muted warning
+   treatment if points exist but nothing currently unlockable is known.
 
-## 4.2 Traits Button
-
-1. `Default`: no badge, normal icon.
-2. `Spend Available`: badge shown.
-3. `No Unlock Available` (optional): badge can remain but button tint is muted warning if points exist but nothing currently unlockable.
-
-## 4.3 Badge Logic
+## 4.2 Badge Logic
 
 1. If unspent points == 0: no badge.
 2. If unspent points == 1: show `!` badge.
 3. If unspent points >= 2: show numeric badge (`2`, `3`, ...).
 4. Badge clamps display at `9+`.
 
-## 5. Trait Tree Screen IA
+## 5. Historical Trait Tree IA
+
+This IA is retained as reference for the earlier prototype. It is not a current
+requirement. A replacement must support the shared opportunity states and
+configurable acquisition methods before its final topology is chosen.
 
 ## 5.1 Top Bar
 
 1. `Back`
-2. `Trait Points` chip (icon + number)
+2. `Upgrade Points` chip (icon + number)
 3. Tabs:
 4. `Progression Tree`
 5. `One-Off Traits`
@@ -94,7 +105,8 @@ Connector rules:
 
 1. Use icons for category and state before words.
 2. Keep always-visible node text to name only.
-3. Keep body descriptions in right-side detail panel only.
+3. Keep body descriptions in contextual node popovers rather than permanently
+   occupying tree space.
 4. Avoid repeated explanatory paragraphs in main tree canvas.
 
 Copy limits:
@@ -103,7 +115,26 @@ Copy limits:
 2. Short trait summary: <= 60 chars.
 3. Locked reason line: one sentence, <= 70 chars.
 
-## 8. Data Contract Hooks
+## 7.1 Current Node Inspection Pattern
+
+1. The selected path owns the overlay; no permanent side inspector compresses
+   the tree canvas.
+2. Mouse hover and keyboard/controller focus preview a contextual popover beside
+   the node.
+3. Clicking or tapping pins the popover so its action can be used.
+4. Clicking elsewhere dismisses it.
+5. The popover contains the node name, effect, rank when relevant, cost,
+   unmet requirement, and contextual action.
+6. It opens on whichever side has room and must not cover the selected node or
+   the branch relationship the player is evaluating.
+7. The overlay header contains trait identity and available points only. It does
+   not attempt to summarize the combined effects of acquired nodes.
+
+## 8. Legacy Data Contract Hooks
+
+The existing acquisition modes below describe the current catalog bridge, not
+the final player-facing organization. They must not force future content into a
+default-tree versus one-off-tab split.
 
 Use existing trait metadata:
 
@@ -138,20 +169,28 @@ Otherwise it is `Locked`.
 5. Very large trees:
 6. Enable zoom + pan; preserve last camera position per summoner.
 
-## 11. MVP Implementation Slices
+## 11. Revised MVP Implementation Slices
 
-1. Add `Traits` button badge state driven by unspent points.
-2. Add `Trait Tree Screen` shell with two tabs.
-3. Implement `Progression Tree` using static layout first (no auto-layout).
-4. Implement node states and unlock interaction.
-5. Implement `One-Off Traits` list from `granted_only`.
+1. Preserve the Upgrades badge state driven by unspent points.
+2. Preserve the compact owned-trait summary on the Summoner screen.
+3. Define the shared hidden, known-locked, available, acquired, and closed states
+   in data before committing to a replacement tree or collection layout.
+4. Support configurable access, costs, and acquisition actions without hard
+   source rules for quests, rituals, or other world actions.
+5. Prototype the replacement development surface with representative summoner
+   and card examples before scaling content.
 6. Replace temporary icon placeholders with final art later.
 
 ## 12. Acceptance Criteria
 
-1. Leveling up increases unspent trait points and updates `Traits` badge immediately.
-2. Trait spending only occurs in the `Traits` screen.
-3. Progression tab excludes `granted_only` traits.
-4. One-off tab excludes `level_up_offer` traits.
-5. Badge clears when unspent points is zero.
-6. Player can understand why any locked trait is locked in one interaction.
+1. An XP grant can apply multiple levels and banks one upgrade point for each.
+2. No player-facing manual level-up action remains.
+3. Direct point spending occurs in the development surface, while a ritual that
+   costs a point commits it inside the ritual flow.
+4. Hidden opportunities do not appear unless their content configuration says
+   otherwise.
+5. Opportunity costs can be free or combine points, materials, and other
+   authored requirements.
+6. Badge clears when unspent points is zero.
+7. Player can understand why any visible locked trait is locked in one
+   interaction.

@@ -22,7 +22,7 @@
 1. Scene routes added for trait trees in `scripts/application/scene_manager.gd`.
 2. Card flow wiring from collection/card detail into card trait tree in `scripts/meta/screens/collection_screen.gd` and `scripts/meta/modals/card_detail_modal.gd`.
 3. Summoner traits navigation wired to tree screen in `scripts/meta/screens/summoner_screen.gd`.
-4. Level-up panel copy/flow updated to points-only and external traits spend path in `scripts/meta/modals/card_level_up_panel.gd`.
+4. Superseded: Card XP now levels automatically and the manual level-up panel has been removed.
 5. Acquisition-mode filtering exposed in `scripts/infrastructure/services/trait_catalog_api.gd` and `scripts/csharp/Infrastructure/Data/Traits/TraitCatalogBridge.cs`.
 
 ## Legacy Paths Removed or Disabled

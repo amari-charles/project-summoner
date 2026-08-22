@@ -1,7 +1,5 @@
 extends GutTest
 
-const CARD_LEVEL_UP_PANEL_SCENE: PackedScene = preload("res://scenes/meta/modals/card_level_up_panel.tscn")
-
 var _original_profile_id: String = ""
 
 
@@ -20,13 +18,13 @@ func after_all() -> void:
 		ProfileRepo.LoadProfile(_original_profile_id)
 
 
-func test_case_c01_level_up_grants_points_without_forced_trait_choice() -> void:
+func test_case_c01_xp_auto_levels_and_banks_points_without_forced_trait_choice() -> void:
 	var card_instance_id: String = CardServiceApi.grant_card("fire_wisp", "common")
 	assert_false(card_instance_id.is_empty(), "Expected granted card instance id")
 
 	assert_true(ProfileRepo.UpdateCardFromDict(card_instance_id, {
 		"level": 1,
-		"xp": 180,
+		"xp": 0,
 		"unspent_trait_points": 0
 	}))
 	await get_tree().process_frame
@@ -35,18 +33,7 @@ func test_case_c01_level_up_grants_points_without_forced_trait_choice() -> void:
 	var before_points: int = SafeTypeUtils.int_val(before_info.get("unspent_trait_points", 0), 0)
 	var before_traits: Array = CardServiceApi.get_applied_traits(card_instance_id)
 
-	var panel: CardLevelUpPanel = CARD_LEVEL_UP_PANEL_SCENE.instantiate() as CardLevelUpPanel
-	assert_true(panel != null, "Expected card level-up panel scene")
-	add_child(panel)
-	panel.open_for_card(card_instance_id)
-	await get_tree().process_frame
-
-	assert_true(panel.trait_container.get_child_count() > 0, "Trait status section should be informational labels only")
-	for child: Node in panel.trait_container.get_children():
-		assert_true(child is Label, "Level-up flow should not force immediate trait choice controls")
-
-	panel._on_confirm_pressed()
-	await get_tree().process_frame
+	CardServiceApi.grant_xp(card_instance_id, 30)
 	await get_tree().process_frame
 
 	var after_info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_instance_id)
@@ -54,4 +41,6 @@ func test_case_c01_level_up_grants_points_without_forced_trait_choice() -> void:
 	var after_traits: Array = CardServiceApi.get_applied_traits(card_instance_id)
 
 	assert_eq(after_points, before_points + 1, "Level-up should grant one trait point")
+	assert_eq(SafeTypeUtils.int_val(after_info.get("level", 0), 0), 2, "XP should apply the level automatically")
+	assert_eq(SafeTypeUtils.int_val(after_info.get("xp", -1), -1), 0, "Exact threshold XP should be consumed")
 	assert_eq(after_traits, before_traits, "Level-up should not auto-spend or auto-apply a trait")

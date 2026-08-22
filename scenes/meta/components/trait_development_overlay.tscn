@@ -1,0 +1,153 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/components/trait_development_overlay.gd" id="1_overlay"]
+[ext_resource type="Script" path="res://scripts/meta/components/trait_tree_canvas.gd" id="2_canvas"]
+
+[node name="TraitDevelopmentOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_overlay")
+
+[node name="Shade" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.035, 0.03, 0.045, 0.82)
+
+[node name="PanelCenter" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="PanelCenter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1120, 700)
+layout_mode = 2
+mouse_filter = 0
+
+[node name="Margin" type="MarginContainer" parent="PanelCenter/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="PanelCenter/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="PanelCenter/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="PanelCenter/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = ""
+
+[node name="PointsLabel" type="Label" parent="PanelCenter/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = ""
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="PanelCenter/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 40)
+layout_mode = 2
+text = "X"
+flat = true
+
+[node name="Separator" type="HSeparator" parent="PanelCenter/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Body" type="HBoxContainer" parent="PanelCenter/Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="TreeScroll" type="ScrollContainer" parent="PanelCenter/Panel/Margin/VBox/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TreeCanvas" type="Control" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(940, 500)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_canvas")
+
+[node name="NodeDetailPopover" type="PanelContainer" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(320, 0)
+offset_right = 320.0
+offset_bottom = 250.0
+mouse_filter = 0
+z_index = 20
+
+[node name="DetailMargin" type="MarginContainer" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="DetailVBox" type="VBoxContainer" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DetailName" type="Label" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = ""
+autowrap_mode = 2
+
+[node name="DetailStatus" type="Label" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = ""
+
+[node name="DetailDescription" type="Label" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 2
+
+[node name="DetailRequirements" type="Label" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 2
+
+[node name="ActionButton" type="Button" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = ""
+
+[node name="UnlockConfirmation" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = ""
+dialog_text = ""

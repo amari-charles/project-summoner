@@ -5,6 +5,10 @@
 **Domain:** `runtime`
 **Last Updated:** `2026-03-09`
 
+> Historical wiring record. The shared core remains active, while the manual
+> adapter methods and `can_level_up` UI contract were superseded by automatic
+> multi-level application on XP grant on 2026-08-22.
+
 ## Types Created
 
 1. `ProgressionState` - Canonical shared progression state (`level`, `xp_toward_next`, `max_level`).

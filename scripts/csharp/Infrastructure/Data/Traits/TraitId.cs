@@ -122,6 +122,17 @@ public static class TraitIds
     public static readonly TraitId TeoSoulStrengthIV = new("trait_teo_soul_strength_iv");
 
     // =========================================================================
+    // CARD-NATIVE CORE - Fire Wisp
+    // =========================================================================
+
+    public static readonly TraitId FireWispTwinFlame = new("trait_fire_wisp_twin_flame");
+    public static readonly TraitId FireWispDancingEmbers = new("trait_fire_wisp_dancing_embers");
+    public static readonly TraitId FireWispCondensedFlame = new(
+        "trait_fire_wisp_condensed_flame"
+    );
+    public static readonly TraitId FireWispBlazingCore = new("trait_fire_wisp_blazing_core");
+
+    // =========================================================================
     // UNIT TRAITS - Global Pool (available to all units/cards)
     // =========================================================================
 

@@ -166,7 +166,8 @@ Spell mechanics:
 - **One Campaign**: All summoners play the same campaign structure
 - **Elite Path**: Level-capped, skill check, better rewards
 - **Standard Path**: No level cap, escape valve for stuck players
-- **Level Cap**: Cards floored to cap (up or down), upgrades also capped
+- **Level Cap**: Effective Card level/stat scaling is capped while acquired
+  upgrades remain active
 
 ### Customization Layers
 | Layer | Permanence | Purpose |

@@ -3,12 +3,11 @@ class_name CardDetailModal
 
 ## Card Detail Modal - Popup for viewing card details and progression.
 ##
-## Level-up is delegated to CardLevelUpPanel so trait selection remains coupled.
+## XP levels cards automatically; this view exposes progression and lets the
+## player decide when to spend banked Card Points.
 
 ## Signals
 signal closed()
-signal level_up_requested(instance_id: String)
-signal traits_requested(instance_id: String)
 signal deck_action_requested(instance_id: String, action: String)  ## "add" or "remove"
 
 ## UI Node References
@@ -17,26 +16,18 @@ signal deck_action_requested(instance_id: String, action: String)  ## "add" or "
 @onready var card_name_label: Label = %CardNameLabel
 @onready var meta_banner: HBoxContainer = %MetaBanner
 @onready var type_icon: TextureRect = %TypeIcon
-@onready var rarity_badge: Label = %RarityBadgeLabel
-@onready var role_badge: Label = %RoleBadgeLabel
-@onready var rarity_label: Label = %RarityLabel
 @onready var type_label: Label = %TypeLabel
 @onready var cost_label: Label = %CostLabel
 @onready var description_label: Label = %DescriptionLabel
 @onready var level_label: Label = %LevelLabel
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
-@onready var level_up_button: Button = %LevelUpButton
-@onready var traits_button: Button = %TraitsButton
 @onready var trait_points_label: Label = %TraitPointsLabel
-@onready var trait_offer_header: Label = %TraitOfferHeader
-@onready var trait_offers_container: VBoxContainer = %TraitOffersContainer
-@onready var apply_trait_button: Button = %ApplyTraitButton
-@onready var progression_status_label: Label = %ProgressionStatusLabel
 @onready var close_button: Button = %CloseButton
-@onready var traits_section: VBoxContainer = %UpgradesSection
-@onready var traits_header: Label = %UpgradesHeader
-@onready var traits_container: VBoxContainer = %UpgradesContainer
+@onready var traits_section: VBoxContainer = %TraitsSection
+@onready var traits_header: Label = %TraitsHeader
+@onready var traits_container: HFlowContainer = %TraitsContainer
+@onready var trait_development_overlay: TraitDevelopmentOverlay = %TraitDevelopmentOverlay
 @onready var stats_section: VBoxContainer = %StatsSection
 @onready var stats_header: Label = %StatsHeader
 @onready var stats_container: GridContainer = %StatsContainer
@@ -61,9 +52,8 @@ var is_card_in_deck: bool = false
 func _ready() -> void:
 	# Connect buttons
 	close_button.pressed.connect(_close)
-	level_up_button.pressed.connect(_on_level_up_pressed)
-	traits_button.pressed.connect(_on_traits_pressed)
 	deck_action_button.pressed.connect(_on_deck_action_pressed)
+	trait_development_overlay.trait_acquired.connect(_on_trait_acquired)
 	stats_container.columns = 2
 	stats_section.gui_input.connect(_on_stats_section_input)
 	stats_section.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -73,10 +63,9 @@ func _ready() -> void:
 	stats_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stats_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Primary view is summary-only.
-	description_label.visible = false
+	# A card inspection must expose both its rules text and acquired development.
+	description_label.visible = true
 	traits_section.visible = false
-	rarity_label.visible = false
 	type_label.visible = false
 	cost_label.visible = false
 
@@ -95,8 +84,8 @@ func open_for_card(instance_id: String, catalog_id: String) -> void:
 	_load_card_data()
 	_update_stats_display()
 	_update_progression_display()
+	_update_traits_display()
 	_update_deck_action_button()
-	_hide_inline_trait_offer_controls()
 
 	show()
 
@@ -122,12 +111,6 @@ func _load_card_data() -> void:
 	# Update info labels
 	var card_name_val: Variant = catalog_data.get("card_name", Loc.t("ui.common.unknown"))
 	card_name_label.text = SafeTypeUtils.string(card_name_val, Loc.t("ui.common.unknown"))
-
-	var rarity_val: StringName = catalog_data.get("rarity", RarityIDs.COMMON)
-	rarity_label.text = Loc.t("ui.collection.rarity_label", {"rarity": String(rarity_val).capitalize()})
-	_update_rarity_badge(String(rarity_val))
-	var tactical_role: String = SafeTypeUtils.string(catalog_data.get("tactical_role", ""), "")
-	_update_role_badge(tactical_role)
 
 	var card_type_val: Variant = catalog_data.get("card_type", UnitConstants.CardType.SUMMON)
 	var card_type: int = int(card_type_val)
@@ -306,75 +289,6 @@ func _update_type_icon(catalog_data: Dictionary) -> void:
 	type_badge.add_theme_stylebox_override("panel", type_style)
 
 
-func _update_rarity_badge(rarity: String) -> void:
-	var rarity_text: String = rarity.strip_edges().to_upper()
-	if rarity_text.is_empty():
-		rarity_text = String(RarityIDs.COMMON).to_upper()
-	rarity_badge.text = rarity_text
-
-	var rarity_color: Color = GameColorPalette.get_rarity_color(rarity.to_lower())
-	var badge_style: StyleBoxFlat = StyleBoxFlat.new()
-	badge_style.bg_color = rarity_color.darkened(0.7)
-	badge_style.border_color = rarity_color
-	badge_style.set_border_width_all(1)
-	badge_style.set_corner_radius_all(6)
-	var rarity_panel: PanelContainer = rarity_badge.get_parent()
-	rarity_panel.add_theme_stylebox_override("panel", badge_style)
-	rarity_badge.add_theme_color_override("font_color", rarity_color.lightened(0.35))
-	rarity_badge.add_theme_constant_override("outline_size", 1)
-	rarity_badge.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
-
-
-func _update_role_badge(tactical_role: String) -> void:
-	var role_panel: PanelContainer = role_badge.get_parent()
-	var role_id: String = tactical_role.strip_edges().to_lower()
-	if role_id.is_empty():
-		role_panel.visible = false
-		return
-
-	role_panel.visible = true
-	role_badge.text = _get_role_display_name(role_id).to_upper()
-
-	var role_color: Color = _get_role_color(role_id)
-	var badge_style: StyleBoxFlat = StyleBoxFlat.new()
-	badge_style.bg_color = role_color.darkened(0.7)
-	badge_style.border_color = role_color
-	badge_style.set_border_width_all(1)
-	badge_style.set_corner_radius_all(6)
-	role_panel.add_theme_stylebox_override("panel", badge_style)
-	role_badge.add_theme_color_override("font_color", role_color.lightened(0.35))
-	role_badge.add_theme_constant_override("outline_size", 1)
-	role_badge.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
-
-
-func _get_role_display_name(role_id: String) -> String:
-	match role_id:
-		"frontliner":
-			return Loc.t("ui.collection.role_frontliner")
-		"flanker":
-			return Loc.t("ui.collection.role_flanker")
-		"backliner":
-			return Loc.t("ui.collection.role_backliner")
-		"mixed":
-			return Loc.t("ui.collection.role_mixed")
-		_:
-			return Loc.t("ui.collection.role_unknown")
-
-
-func _get_role_color(role_id: String) -> Color:
-	match role_id:
-		"frontliner":
-			return GameColorPalette.WARNING
-		"flanker":
-			return GameColorPalette.INFO
-		"backliner":
-			return GameColorPalette.SUCCESS
-		"mixed":
-			return GameColorPalette.TEXT_SECONDARY
-		_:
-			return GameColorPalette.TEXT_SECONDARY
-
-
 ## =============================================================================
 ## PROGRESSION DISPLAY
 ## =============================================================================
@@ -394,7 +308,6 @@ func _update_progression_display() -> void:
 	var current_xp: int = SafeTypeUtils.int_val(info.get("xp", 0), 0)
 	var xp_for_next: int = SafeTypeUtils.int_val(info.get("xp_for_next_level", 0), 0)
 	var xp_progress: float = float(info.get("xp_progress", 0.0))
-	var can_level_up_val: bool = SafeTypeUtils.bool_val(info.get("can_level_up", false), false)
 	var is_max_level: bool = SafeTypeUtils.bool_val(info.get("is_max_level", false), false)
 	var unspent_trait_points: int = SafeTypeUtils.int_val(info.get("unspent_trait_points", 0), 0)
 
@@ -409,57 +322,23 @@ func _update_progression_display() -> void:
 		xp_label.text = Loc.t("ui.collection.xp_label", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
 
-	# Update level-up button
-	if is_max_level:
-		level_up_button.visible = false
-	elif can_level_up_val:
-		level_up_button.visible = true
-		level_up_button.text = Loc.t("ui.collection.level_up_button_simple")
-		level_up_button.disabled = false
-	else:
-		level_up_button.visible = true
-		level_up_button.text = Loc.t("ui.collection.level_up_button_locked")
-		level_up_button.disabled = true
-
-	traits_button.visible = true
-	traits_button.disabled = false
-	if unspent_trait_points <= 0:
-		traits_button.text = "TRAITS"
-		traits_button.tooltip_text = "Open trait tree for this card"
-		traits_button.remove_theme_color_override("font_color")
-	else:
-		var badge_text: String = "!" if unspent_trait_points == 1 else ("9+" if unspent_trait_points > 9 else str(unspent_trait_points))
-		traits_button.text = "TRAITS %s" % badge_text
-		traits_button.tooltip_text = "You have %d unspent trait point(s)" % unspent_trait_points
-		traits_button.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
-
 	trait_points_label.visible = true
-	trait_points_label.text = Loc.t("ui.collection.unspent_trait_points_label", {"count": unspent_trait_points})
-
-	_hide_inline_trait_offer_controls()
+	trait_points_label.text = Loc.t("ui.collection.card_points_count", {"count": unspent_trait_points})
+	trait_points_label.remove_theme_color_override("font_color")
+	if unspent_trait_points > 0:
+		trait_points_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
 
 func _hide_progression() -> void:
 	level_label.text = ""
 	xp_label.text = ""
 	xp_progress_bar.value = 0
-	level_up_button.visible = false
-	traits_button.visible = false
 	trait_points_label.visible = false
-	_hide_inline_trait_offer_controls()
-
-func _hide_inline_trait_offer_controls() -> void:
-	trait_offer_header.visible = false
-	apply_trait_button.visible = false
-	progression_status_label.visible = false
-	for child: Node in trait_offers_container.get_children():
-		child.queue_free()
 
 ## =============================================================================
 ## TRAITS DISPLAY
 ## =============================================================================
 
 func _update_traits_display() -> void:
-	# Clear existing trait boxes
 	for child: Node in traits_container.get_children():
 		child.queue_free()
 
@@ -467,66 +346,57 @@ func _update_traits_display() -> void:
 		traits_section.visible = false
 		return
 
-	var trait_ids: Array = CardServiceApi.get_applied_traits(card_instance_id)
-	if trait_ids.is_empty():
+	var view_model: Dictionary = TraitTreeApi.get_card_tree_view_model(card_instance_id)
+	if view_model.is_empty():
 		traits_section.visible = false
 		return
 
-	# Update header with localization
 	traits_header.text = Loc.t("ui.collection.traits_header")
+	traits_container.add_child(_create_path_circle(
+		TraitDevelopmentOverlay.CARD_CORE_PATH_ID,
+		Loc.t("ui.collection.core_path_name"),
+		Loc.t("ui.collection.core_path_tooltip"),
+		true
+	))
 
-	var flow: HFlowContainer = HFlowContainer.new()
-	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	flow.add_theme_constant_override("h_separation", 8)
-	flow.add_theme_constant_override("v_separation", 8)
-	traits_container.add_child(flow)
-
-	# Create icon chip for each applied trait
-	var rendered_count: int = 0
-	for trait_id: Variant in trait_ids:
-		var trait_id_str: String = SafeTypeUtils.string(trait_id, "")
-		if trait_id_str.is_empty():
+	for node_var: Variant in SafeTypeUtils.array(view_model.get("one_off_nodes", [])):
+		if not node_var is Dictionary:
 			continue
-
-		var trait_data: Dictionary = CardServiceApi.get_card_trait_dict(trait_id_str)
-		if trait_data.is_empty():
+		var trait_data: Dictionary = node_var
+		if not SafeTypeUtils.bool_val(trait_data.get("is_owned", false), false):
 			continue
+		var trait_id: String = SafeTypeUtils.string(trait_data.get("id", ""), "")
+		if trait_id.is_empty():
+			continue
+		var trait_name: String = SafeTypeUtils.string(trait_data.get("name", trait_id), trait_id)
+		var description: String = SafeTypeUtils.string(trait_data.get("description", ""), "")
+		traits_container.add_child(_create_path_circle(trait_id, trait_name, description, false))
 
-		var icon_chip: PanelContainer = _create_trait_chip(trait_data)
-		flow.add_child(icon_chip)
-		rendered_count += 1
-
-	traits_section.visible = rendered_count > 0
+	traits_section.visible = true
 
 
-func _create_trait_chip(trait_data: Dictionary) -> PanelContainer:
-	var box: PanelContainer = PanelContainer.new()
-	box.custom_minimum_size = Vector2(42, 42)
+func _create_path_circle(path_id: String, path_name: String, description: String, is_core: bool) -> Button:
+	var circle: Button = Button.new()
+	circle.custom_minimum_size = Vector2(58, 58)
+	circle.text = "C" if is_core else _abbreviate_trait_name(path_name)
+	circle.tooltip_text = _build_trait_tooltip(path_name, "", description)
+	circle.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	circle.pressed.connect(_on_trait_path_pressed.bind(path_id))
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = GameColorPalette.with_alpha(GameColorPalette.UI_SURFACE_ALT, 0.8)
+	var accent: Color = Color(0.82, 0.70, 0.35) if is_core else Color(0.38, 0.58, 0.88)
+	style.bg_color = accent.darkened(0.35)
 	style.set_border_width_all(2)
-	style.border_color = GameColorPalette.SUCCESS
-	style.set_corner_radius_all(4)
-	box.add_theme_stylebox_override("panel", style)
-
-	var trait_name: String = SafeTypeUtils.string(trait_data.get("name", Loc.t("ui.common.unknown")), Loc.t("ui.common.unknown"))
-	var compact_summary: String = SafeTypeUtils.string(trait_data.get("summary_short", ""), "")
-	if compact_summary.is_empty():
-		compact_summary = SafeTypeUtils.string(trait_data.get("description", ""), "")
-
-	var abbr: Label = Label.new()
-	abbr.text = _abbreviate_trait_name(trait_name)
-	abbr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	abbr.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	abbr.add_theme_font_size_override("font_size", 12)
-	abbr.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
-	box.add_child(abbr)
-
-	var description: String = SafeTypeUtils.string(trait_data.get("description", ""), "")
-	box.tooltip_text = _build_trait_tooltip(trait_name, compact_summary, description)
-
-	return box
+	style.border_color = accent
+	style.set_corner_radius_all(29)
+	circle.add_theme_stylebox_override("normal", style)
+	var hover_style: StyleBoxFlat = style.duplicate()
+	hover_style.bg_color = style.bg_color.lightened(0.14)
+	circle.add_theme_stylebox_override("hover", hover_style)
+	var pressed_style: StyleBoxFlat = style.duplicate()
+	pressed_style.bg_color = style.bg_color.darkened(0.12)
+	circle.add_theme_stylebox_override("pressed", pressed_style)
+	return circle
 
 
 func _abbreviate_trait_name(name: String) -> String:
@@ -580,15 +450,6 @@ func _on_deck_action_pressed() -> void:
 ## EVENT HANDLERS
 ## =============================================================================
 
-func _on_level_up_pressed() -> void:
-	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-	if card_instance_id.is_empty():
-		return
-
-	level_up_requested.emit(card_instance_id)
-	_close()
-
-
 func _on_stats_section_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
@@ -609,19 +470,35 @@ func _open_full_stats_modal() -> void:
 		modal.call("open_for_card", card_instance_id, card_catalog_id)
 
 
-func _on_traits_pressed() -> void:
+func _on_trait_path_pressed(path_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if card_instance_id.is_empty():
 		return
+	if path_id == TraitDevelopmentOverlay.CARD_CORE_PATH_ID:
+		trait_development_overlay.open_for_card_core(card_instance_id)
+	else:
+		trait_development_overlay.open_for_card_trait(card_instance_id, path_id)
 
-	traits_requested.emit(card_instance_id)
-	_close()
+
+func _on_trait_acquired(_trait_id: String) -> void:
+	_update_progression_display()
+	_update_traits_display()
 
 func _on_background_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
 			_close()
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not is_visible_in_tree() or not event.is_action_pressed("ui_cancel") or event.is_echo():
+		return
+	get_viewport().set_input_as_handled()
+	if trait_development_overlay.visible:
+		trait_development_overlay.close()
+		return
+	_close()
 
 func _close() -> void:
 	closed.emit()

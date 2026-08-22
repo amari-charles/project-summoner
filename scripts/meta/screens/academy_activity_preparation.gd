@@ -1,9 +1,8 @@
-extends Control
+extends BackNavigableScreen
 class_name EncounterPreparation
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 const CardDetailModalScene: PackedScene = preload("res://scenes/meta/modals/card_detail_modal.tscn")
-const LevelUpPanelScene: PackedScene = preload("res://scenes/meta/modals/card_level_up_panel.tscn")
 
 @onready var back_button: Button = %BackButton
 @onready var title_label: Label = %TitleLabel
@@ -429,8 +428,6 @@ func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
 			break
 	modal.set_deck_context("encounter" if not instance_id.is_empty() else "", selected)
 	modal.deck_action_requested.connect(_on_card_detail_deck_action)
-	modal.level_up_requested.connect(_on_card_detail_level_up)
-	modal.traits_requested.connect(_on_card_detail_traits)
 	modal.closed.connect(func() -> void: modal.queue_free())
 
 
@@ -439,19 +436,6 @@ func _on_card_detail_deck_action(instance_id: String, action: String) -> void:
 		_add_editor_card(instance_id)
 	elif action == "remove":
 		_remove_editor_card(instance_id)
-
-
-func _on_card_detail_level_up(instance_id: String) -> void:
-	var panel: CardLevelUpPanel = LevelUpPanelScene.instantiate()
-	add_child(panel)
-	panel.open_for_card(instance_id)
-	panel.level_up_completed.connect(func(_card_id: String) -> void: _refresh())
-
-
-func _on_card_detail_traits(instance_id: String) -> void:
-	NavigationContext.set_value("trait_tree_card_instance_id", instance_id)
-	NavigationContext.push_return(SceneManager.SCENE_ENCOUNTER_PREPARATION)
-	SceneManager.transition_to(SceneManager.SCENE_CARD_TRAIT_TREE_SCREEN)
 
 
 func _reward_summary(previews: Array) -> String:
@@ -522,3 +506,7 @@ func _clear(parent: Control) -> void:
 	for child: Node in parent.get_children():
 		parent.remove_child(child)
 		child.queue_free()
+
+
+func _request_back_navigation() -> void:
+	_go_back()

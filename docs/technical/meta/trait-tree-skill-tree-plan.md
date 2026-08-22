@@ -1,12 +1,19 @@
 # Trait Tree Skill Tree Plan
 
-**Status:** PASS 3 COMPLETE (Implementation + Tests)  
+**Status:** Historical implementation record; product topology superseded
 **Initiative:** `trait-tree-skill-tree`  
 **Domain:** `meta`  
 **Last Updated:** `2026-03-10`  
 **Owner:** `Meta UX / Progression`
 
 ## Summary
+
+> The fixed global-tree and one-off-tab product assumptions below are no longer
+> current. The implemented service and canvas remain useful prototype
+> infrastructure, but replacement work follows
+> [Discovery-Driven Development](../../design/discovery-driven-development.md):
+> Summoners select an acquired trait path, Cards select Core or an acquired
+> trait path, and world actions/configurable costs control opportunity state.
 
 This initiative defines the approved architecture and validation scope for the new trait-tree-based progression flow. The target UX is: `Level Up` grants trait points only, and all spending happens in a dedicated trait tree surface. Card upgrades are card-instance scoped and must not be treated as collection-global progression. Summoner, card, and spell trees should use one shared tree UI/service pattern with C# progression validation as the authority.
 

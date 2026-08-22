@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name OnlineScreen
 
 ## Online matchmaking screen for competitive play.
@@ -628,3 +628,7 @@ func _update_ui_animation(state: ScreenState) -> void:
 			ui_animation_player.play("queue_active")
 		ScreenState.MATCH_FOUND:
 			ui_animation_player.play("match_found_reveal")
+
+
+func _request_back_navigation() -> void:
+	_on_close_pressed()

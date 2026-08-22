@@ -101,21 +101,6 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="GoldContainer" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="GoldIcon" type="Label" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/GoldContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Gold:"
-
-[node name="GoldLabel" type="Label" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/GoldContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "0"
-
 [node name="FilterBar" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10

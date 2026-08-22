@@ -7,6 +7,7 @@ public enum TraitTreeNodeState
     Owned,
     Available,
     Locked,
+    Closed,
 }
 
 public static class TraitTreeNodeStateExtensions
@@ -16,6 +17,7 @@ public static class TraitTreeNodeStateExtensions
         {
             TraitTreeNodeState.Owned => "owned",
             TraitTreeNodeState.Available => "available",
+            TraitTreeNodeState.Closed => "closed",
             _ => "locked",
         };
 }
@@ -44,9 +46,11 @@ public sealed class TraitUnlockEvaluation
     public required string LockedReason { get; init; }
     public required string UnlockBlockedReason { get; init; }
     public required List<string> MissingPrerequisiteIds { get; init; }
+    public bool IsPermanentlyClosed { get; init; }
 
     public TraitTreeNodeState NodeState =>
         IsOwned ? TraitTreeNodeState.Owned
+        : IsPermanentlyClosed ? TraitTreeNodeState.Closed
         : IsEligibleWithoutPoints ? TraitTreeNodeState.Available
         : TraitTreeNodeState.Locked;
 }

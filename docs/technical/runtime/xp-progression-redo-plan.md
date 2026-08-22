@@ -1,6 +1,6 @@
 # XP Progression System Redo Plan (Cards + Summoners)
 
-**Status:** PASS 3 COMPLETE (Implementation + Tests), PR REVIEW: READY
+**Status:** Historical shared-core implementation record; manual application flow superseded
 **Initiative:** `xp-progression-redo`
 **Domain:** `runtime`
 **Last Updated:** `2026-03-09`
@@ -9,6 +9,13 @@
 ## Summary
 
 Refactor card and summoner progression into one deterministic shared progression core while keeping gameplay behavior stable.
+
+> **Current application contract (2026-08-22):** The shared deterministic core
+> remains authoritative, but manual level-up calls and `can_level_up` UI state
+> have been retired. Granting XP now repeatedly applies every affordable level,
+> carries remaining XP, banks owner-bound development points, and emits each
+> level gained. See
+> [Discovery-Driven Development](../../design/discovery-driven-development.md).
 
 Current code duplicates progression math in two places:
 1. Card math in `CardProgressionHandler` (`scripts/csharp/Meta/Services/Cards/Handlers/CardProgressionHandler.cs`)
@@ -68,12 +75,14 @@ Both currently model stored XP as XP carried toward next level (non-cumulative),
 ## Public API / Interface / Type Changes (Target)
 
 1. Internal C# progression internals will use explicit names (`xp_toward_next` semantics via type fields) to remove ambiguity around cumulative vs banked XP.
-2. Existing UI payload keys remain stable unless approved otherwise:
+2. Historical UI payload keys for the manual flow were:
 1. `xp`
 2. `xp_for_next_level`
 3. `xp_progress`
 4. `can_level_up`
-3. Optional internal cleanup:
+3. The current automatic flow exposes `xp`, `xp_for_next_level`, and
+   `xp_progress`; it no longer exposes `can_level_up` or a manual mutation API.
+4. Optional internal cleanup:
 1. deprecate/rename misleading `GetXpForLevel` comments that imply cumulative-only semantics when used as per-level delta source.
 
 ## Legacy Removal Scope

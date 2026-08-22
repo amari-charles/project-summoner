@@ -60,11 +60,9 @@ public class SummonerProgressionServiceTest
         AssertThat(info.ContainsKey("xp")).IsTrue();
         AssertThat(info.ContainsKey("xp_for_next_level")).IsTrue();
         AssertThat(info.ContainsKey("xp_progress")).IsTrue();
-        AssertThat(info.ContainsKey("can_level_up")).IsTrue();
 
         AssertThat(info["xp"].AsInt32()).IsEqual(60);
         AssertThat(info["xp_for_next_level"].AsInt32()).IsEqual(100);
-        AssertThat(info["can_level_up"].AsBool()).IsFalse();
 
         var progress = (float)info["xp_progress"].AsDouble();
         AssertThat(Math.Abs(progress - 0.6f)).IsLess(0.001f);
@@ -104,12 +102,10 @@ public class SummonerProgressionServiceTest
         summoner.UnspentTraitPoints = 3;
         AssertThat(repo.SaveSummonerInstance(summoner)).IsTrue();
 
-        AssertThat(service.CanLevelUp(summonerId)).IsFalse();
-        AssertThat(service.LevelUpSummoner(summonerId)).IsFalse();
+        AssertThat(service.GrantSummonerXp(summonerId, 100)).IsEqual(999);
 
         var info = service.GetSummonerProgressionInfo(summonerId);
         AssertThat(info["xp_for_next_level"].AsInt32()).IsEqual(0);
-        AssertThat(info["can_level_up"].AsBool()).IsFalse();
         AssertThat((float)info["xp_progress"].AsDouble()).IsEqual(1f);
 
         var updated = repo.GetSummonerInstance(summonerId);

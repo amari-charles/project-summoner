@@ -60,6 +60,16 @@ public class TraitDefinition
     /// </summary>
     public string[] Prerequisites { get; init; } = [];
 
+    /// <summary>
+    /// Optional permanent-choice group for authored branches. Once an owner has
+    /// a trait in one option, traits assigned to another option in the same
+    /// group are permanently closed.
+    /// </summary>
+    public string ExclusiveGroupId { get; init; } = "";
+
+    /// <summary>Option identity within <see cref="ExclusiveGroupId"/>.</summary>
+    public string ExclusiveOptionId { get; init; } = "";
+
     // =========================================================================
     // TAG-BASED ELIGIBILITY SYSTEM
     // =========================================================================

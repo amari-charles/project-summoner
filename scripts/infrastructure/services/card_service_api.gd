@@ -43,6 +43,12 @@ static func get_card_progression_info_dict(instance_id: String) -> Dictionary:
 		return {}
 	return SafeTypeUtils.dict(service.call("GetCardProgressionInfoDict", instance_id))
 
+static func grant_xp(instance_id: String, amount: int) -> int:
+	var service: Node = _require_service("grant_xp")
+	if service == null:
+		return 0
+	return SafeTypeUtils.int_val(service.call("GrantXp", instance_id, amount), 0)
+
 static func get_card_dict(instance_id: String) -> Dictionary:
 	var service: Node = _require_service("get_card_dict")
 	if service == null:
@@ -68,20 +74,6 @@ static func get_card_trait_dict(trait_id: String) -> Dictionary:
 	if service == null:
 		return {}
 	return SafeTypeUtils.dict(service.call("GetCardTraitDict", trait_id))
-
-static func level_up_card(instance_id: String) -> bool:
-	var service: Node = _require_service("level_up_card")
-	if service == null:
-		return false
-	return SafeTypeUtils.bool_val(service.call("LevelUpCard", instance_id), false)
-
-static func get_level_up_resource_cost_dict(instance_id: String) -> Dictionary:
-	var service: Node = _require_service("get_level_up_resource_cost_dict")
-	if service == null:
-		return {}
-	if not service.has_method("GetLevelUpResourceCostDict"):
-		return {}
-	return SafeTypeUtils.dict(service.call("GetLevelUpResourceCostDict", instance_id))
 
 static func get_unspent_trait_points(instance_id: String) -> int:
 	var service: Node = _require_service("get_unspent_trait_points")

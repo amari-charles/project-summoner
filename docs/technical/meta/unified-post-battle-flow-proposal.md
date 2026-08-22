@@ -40,7 +40,7 @@ The screen must not infer rewards from battle mode or write unrelated progressio
 
 - Retain and rename the in-battle `GameOverModal` concept as a battle conclusion overlay.
 - Replace `RewardScreen` and `EncounterResults` as independent navigation destinations.
-- Adapt the visual portions of `SummonerLevelUpPanel` and `CardLevelUpPanel` into reusable progression reveal components.
+- Build reusable summoner/card level reveal components; summoner leveling itself is automatic and never requires confirmation.
 - Route campaign and encounter battles through the unified screen first, then add competitive and repeatable modes as their report fields are defined.
 
 ## Decision required

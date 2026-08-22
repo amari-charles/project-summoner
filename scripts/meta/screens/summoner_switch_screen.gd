@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name SummonerSwitchScreen
 
 ## SummonerSwitchScreen - Animated carousel for switching between unlocked summoners
@@ -335,3 +335,7 @@ func _update_background() -> void:
 	if gradient_colors.size() >= 2:
 		material.set_shader_parameter("color_primary", gradient_colors[1])
 		material.set_shader_parameter("color_secondary", gradient_colors[0])
+
+
+func _request_back_navigation() -> void:
+	_on_close_pressed()

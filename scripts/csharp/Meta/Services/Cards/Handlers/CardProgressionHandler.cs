@@ -4,7 +4,6 @@ using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile.Collection;
-using Fateforged.Domain.Profile.Enums;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Progression.Core;
 using Fateforged.Meta.Services.Traits;
@@ -27,6 +26,8 @@ public class CardProgressionHandler
     // =========================================================================
 
     public const int MaxLevel = 10;
+    public const string CardPointsPerLevelSetting = "progression/card_points_per_level";
+    public const int DefaultCardPointsPerLevel = 1;
 
     private static readonly int[] XpThresholds = [0, 30, 75, 150, 300, 500, 800, 1200, 1800, 2500];
 
@@ -38,13 +39,6 @@ public class CardProgressionHandler
         ["legendary"] = 3.0f,
     };
 
-    // Future-facing hook: optional per-card/per-level resource costs in addition to XP.
-    // Empty by default to preserve current XP-only leveling behavior.
-    private static readonly Dictionary<
-        string,
-        Dictionary<int, Dictionary<ResourceType, int>>
-    > LevelUpResourceCosts = new(StringComparer.Ordinal);
-
     public CardProgressionHandler(IProfileRepository profileRepo)
     {
         _profileRepo = profileRepo;
@@ -54,7 +48,11 @@ public class CardProgressionHandler
     // XP OPERATIONS
     // =========================================================================
 
-    /// <summary>Grant XP to a card. Returns the new XP total.</summary>
+    /// <summary>
+    /// Grant XP to a card, automatically apply every earned level, and bank the
+    /// globally configured number of Card Points for each level gained.
+    /// Returns the remaining XP toward the next level.
+    /// </summary>
     public int GrantXp(CardInstanceId cardInstanceId, int amount)
     {
         if (amount <= 0)
@@ -67,13 +65,53 @@ public class CardProgressionHandler
             return 0;
         }
 
-        var newXp = card.Xp + amount;
-        _profileRepo.UpdateCard(cardInstanceId, new CardUpdate { Xp = newXp });
+        if (card.Level >= MaxLevel)
+            return card.Xp;
+
+        var state = BuildProgressionState(card) with { XpTowardNext = card.Xp + amount };
+        var curve = BuildProgressionCurve(card);
+        var levelsGained = 0;
+        while (true)
+        {
+            var applyResult = ProgressionEngine.ApplyLevelUp(state, curve);
+            if (!applyResult.Success)
+                break;
+
+            state = applyResult.NextState;
+            levelsGained++;
+        }
+
+        var pointsGranted = levelsGained * GetConfiguredCardPointsPerLevel();
+        var saveSuccess = _profileRepo.UpdateCard(
+            cardInstanceId,
+            new CardUpdate
+            {
+                Level = state.Level,
+                Xp = state.XpTowardNext,
+                UnspentTraitPoints = card.UnspentTraitPoints + pointsGranted,
+            }
+        );
+        if (!saveSuccess)
+        {
+            GD.PushError($"CardProgressionHandler: Failed to persist XP grant for card: {cardInstanceId}");
+            return 0;
+        }
 
         GD.Print(
-            $"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' (now: {newXp})"
+            $"CardProgressionHandler: Granted {amount} XP to card '{cardInstanceId}' "
+                + $"(level: {state.Level}, remaining XP: {state.XpTowardNext}, "
+                + $"Card Points granted: {pointsGranted})"
         );
-        return newXp;
+        return state.XpTowardNext;
+    }
+
+    public static int GetConfiguredCardPointsPerLevel()
+    {
+        var configured = ProjectSettings.GetSetting(
+            CardPointsPerLevelSetting,
+            DefaultCardPointsPerLevel
+        );
+        return Math.Max(0, configured.AsInt32());
     }
 
     /// <summary>Grant XP to multiple cards.</summary>
@@ -135,92 +173,6 @@ public class CardProgressionHandler
         return ProgressionEngine.GetProgress01(state, curve);
     }
 
-    // =========================================================================
-    // LEVEL-UP OPERATIONS
-    // =========================================================================
-
-    /// <summary>Check if card has enough XP to level up.</summary>
-    public bool CanLevelUp(CardInstanceId cardInstanceId)
-    {
-        var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null)
-            return false;
-
-        var state = BuildProgressionState(card);
-        var curve = BuildProgressionCurve(card);
-        return ProgressionEngine.CanLevelUp(state, curve);
-    }
-
-    /// <summary>Get optional resource cost for the next level-up (in addition to XP).</summary>
-    public Dictionary<ResourceType, int> GetLevelUpResourceCost(CardInstanceId cardInstanceId)
-    {
-        var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null || card.Level >= MaxLevel)
-            return [];
-
-        var nextLevel = card.Level + 1;
-        if (!LevelUpResourceCosts.TryGetValue(card.CatalogId.Value, out var perLevelCosts))
-            return [];
-        if (!perLevelCosts.TryGetValue(nextLevel, out var configuredCost))
-            return [];
-
-        var result = new Dictionary<ResourceType, int>();
-        foreach (var (resourceType, amount) in configuredCost)
-        {
-            if (amount > 0)
-                result[resourceType] = amount;
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// Level up a card. Pass 2 unified flow grants a trait point and defers selection.
-    /// Requires XP; optional resource costs can be layered by CardService if configured.
-    /// Returns true if successful.
-    /// </summary>
-    public bool LevelUpCard(CardInstanceId cardInstanceId)
-    {
-        var card = _profileRepo.GetCard(cardInstanceId);
-        if (card == null)
-        {
-            GD.PushError($"CardProgressionHandler: Card not found: {cardInstanceId}");
-            return false;
-        }
-
-        var state = BuildProgressionState(card);
-        var curve = BuildProgressionCurve(card);
-        var applyResult = ProgressionEngine.ApplyLevelUp(state, curve);
-        if (!applyResult.Success)
-        {
-            GD.PushWarning(
-                $"CardProgressionHandler: Level up rejected ({applyResult.Status}) for card: {cardInstanceId}"
-            );
-            return false;
-        }
-
-        var saveSuccess = _profileRepo.UpdateCard(
-            cardInstanceId,
-            new CardUpdate
-            {
-                Level = applyResult.NextState.Level,
-                Xp = applyResult.NextState.XpTowardNext,
-                UnspentTraitPoints = card.UnspentTraitPoints + 1,
-            }
-        );
-        if (!saveSuccess)
-        {
-            GD.PushError(
-                $"CardProgressionHandler: Failed to persist level-up for card: {cardInstanceId}"
-            );
-            return false;
-        }
-
-        GD.Print(
-            $"CardProgressionHandler: Leveled up card '{cardInstanceId}' to level {applyResult.NextState.Level}, consumed {applyResult.XpCostSpent} XP (remaining: {applyResult.NextState.XpTowardNext}), and granted 1 trait point"
-        );
-        return true;
-    }
-
     public int GetCardUnspentTraitPoints(CardInstanceId cardInstanceId)
     {
         return _profileRepo.GetCard(cardInstanceId)?.UnspentTraitPoints ?? 0;
@@ -269,11 +221,10 @@ public class CardProgressionHandler
         if (context == null)
             return [];
 
-        var evaluationLevel = ResolveOfferEvaluationLevel(cardInstanceId, card);
         var eligibleTraits = TraitTreeEvaluator.GetEligibleProgressionTraits(
-            TraitCatalog.GetAllTraits(),
+            CardCoreCatalog.GetCoreTraits(card.CatalogId),
             context,
-            evaluationLevel
+            card.Level
         );
 
         if (eligibleTraits.Count == 0)
@@ -281,7 +232,7 @@ public class CardProgressionHandler
 
         var orderedTraits = eligibleTraits
             .OrderBy(trait =>
-                ComputeStableOfferOrder($"{cardInstanceId.Value}|{evaluationLevel}", trait.Id)
+                ComputeStableOfferOrder($"{cardInstanceId.Value}|{card.Level}", trait.Id)
             )
             .ThenBy(trait => trait.Id.Value, StringComparer.Ordinal)
             .Take(count);
@@ -320,6 +271,12 @@ public class CardProgressionHandler
 
         var traitDef = TraitCatalog.GetTrait(normalizedTraitId.Value);
         if (traitDef == null)
+            return false;
+
+        // Card Points can develop only the Card's explicitly authored natural
+        // Core here. Externally acquired traits use their own authored paths and
+        // acquisition operations rather than leaking in from a global stat pool.
+        if (!CardCoreCatalog.Contains(card.CatalogId, traitDef.Id))
             return false;
 
         var cardDef = CardCatalog.GetCard(card.CatalogId);
@@ -456,17 +413,6 @@ public class CardProgressionHandler
         return total;
     }
 
-    private int ResolveOfferEvaluationLevel(CardInstanceId cardInstanceId, CardInstance card)
-    {
-        if (card.UnspentTraitPoints > 0)
-            return card.Level;
-
-        if (CanLevelUp(cardInstanceId))
-            return Math.Min(MaxLevel, card.Level + 1);
-
-        return card.Level;
-    }
-
     private static int ComputeStableOfferOrder(string context, TraitId traitId)
     {
         return DeterministicStringHash($"{context}|{traitId.Value}");
@@ -521,11 +467,6 @@ public class CardProgressionHandler
         if (card == null)
             return null;
 
-        var levelUpResourceCost = GetLevelUpResourceCost(cardInstanceId);
-        var levelUpResourceCostDict = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var (resourceType, amount) in levelUpResourceCost)
-            levelUpResourceCostDict[resourceType.ToKey()] = amount;
-
         return new CardProgressionInfo
         {
             CardInstanceId = cardInstanceId.Value,
@@ -540,30 +481,10 @@ public class CardProgressionHandler
                 BuildProgressionCurve(card)
             ),
             XpProgress = GetLevelProgress(cardInstanceId),
-            CanLevelUp = CanLevelUp(cardInstanceId),
             Traits = card.Traits.ConvertAll(t => t.Value),
             IsMaxLevel = card.Level >= MaxLevel,
             UnspentTraitPoints = card.UnspentTraitPoints,
-            LevelUpResourceCost = levelUpResourceCostDict,
-            HasLevelUpResourceCost = levelUpResourceCostDict.Count > 0,
         };
-    }
-
-    /// <summary>Get all cards that can level up.</summary>
-    public CardInstance[] GetCardsReadyToLevelUp()
-    {
-        var cards = _profileRepo.ListCards();
-        var ready = new List<CardInstance>();
-
-        foreach (var card in cards)
-        {
-            var state = BuildProgressionState(card);
-            var curve = BuildProgressionCurve(card);
-            if (ProgressionEngine.CanLevelUp(state, curve))
-                ready.Add(card);
-        }
-
-        return [.. ready];
     }
 
     private static ProgressionState BuildProgressionState(CardInstance card)
@@ -598,14 +519,11 @@ public class CardProgressionHandler
         }
     }
 
-    // =========================================================================
-    // LEGACY BLOCK REMOVED BELOW
-    // =========================================================================
 }
 
 /// <summary>
 /// Card progression info for UI display.
-/// Default behavior is XP-only; optional resource costs may be present per card/level.
+/// XP is applied automatically; this model exposes current progress and banked Card Points.
 /// </summary>
 public class CardProgressionInfo
 {
@@ -618,10 +536,7 @@ public class CardProgressionInfo
     public int Xp { get; set; } = 0;
     public int XpForNextLevel { get; set; } = 0;
     public float XpProgress { get; set; } = 0f;
-    public bool CanLevelUp { get; set; } = false;
     public List<string> Traits { get; set; } = [];
     public bool IsMaxLevel { get; set; } = false;
     public int UnspentTraitPoints { get; set; } = 0;
-    public Dictionary<string, int> LevelUpResourceCost { get; set; } = [];
-    public bool HasLevelUpResourceCost { get; set; } = false;
 }

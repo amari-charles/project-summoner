@@ -5,6 +5,19 @@ Summoner Leveling (1-10), Traits (Story + Level + Ultimate), Items, and Global E
 **Date:** 2026-01-19
 **Status:** DESIGN SPEC (Phase 2 Foundation Implemented)
 
+> **Current direction override (2026-08-18):** The fixed default Level Trait
+> tree described below is being replaced by discovery-driven trait development.
+> Levels and banked points remain, while quests, rituals, and other world actions
+> determine which traits and upgrades become available. See
+> [Discovery-Driven Development](../../design/discovery-driven-development.md).
+> Historical sections below remain useful context but are not authoritative
+> where they require a fully exposed default tree or level-up offer list.
+> Levels provide modest automatic base-stat growth plus a banked Trait Point.
+> Summoners do not use a separate default Core tree: universal growth belongs to
+> levels, while chosen development belongs to the summoner's acquired traits.
+> Automatic growth includes health and maximum mana; exact values remain balance
+> work, with stronger Cards expected to use mana cost as part of their tradeoff.
+
 ---
 
 ## Implementation Status

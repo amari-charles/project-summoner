@@ -10,6 +10,7 @@ class_name CardWidget
 ## Signals
 signal card_clicked(card_data: Dictionary)
 signal card_held(card_data: Dictionary)
+signal card_inspected(card_data: Dictionary)
 
 ## Layout configuration (editable in scene editor)
 @export_group("Layout")
@@ -33,6 +34,7 @@ var hover_tween: Tween = null
 
 ## Drag state
 var _hidden_for_drag: bool = false
+var _drag_in_progress: bool = false
 
 ## Node references - Card visual
 @onready var card_panel: PanelContainer = %CardPanel
@@ -193,7 +195,6 @@ func _update_progression_display() -> void:
 
 	var level: int = progression_info.get("level", 1)
 	var xp_progress: float = progression_info.get("xp_progress", 0.0)
-	var can_level_up: bool = progression_info.get("can_level_up", false)
 
 	# Show progression container
 	if progression_container:
@@ -207,11 +208,7 @@ func _update_progression_display() -> void:
 	if xp_progress_bar:
 		xp_progress_bar.value = xp_progress * 100.0
 
-		# Apply appropriate bar style
-		if can_level_up:
-			_apply_level_up_bar_style()
-		else:
-			_apply_normal_bar_style()
+		_apply_normal_bar_style()
 
 func _apply_normal_bar_style() -> void:
 	if not xp_progress_bar:
@@ -226,22 +223,6 @@ func _apply_normal_bar_style() -> void:
 	# Fill style - use element color
 	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
 	fill_style.bg_color = element_color.darkened(0.1)
-	fill_style.set_corner_radius_all(3)
-	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
-
-func _apply_level_up_bar_style() -> void:
-	if not xp_progress_bar:
-		return
-
-	# Background/track style
-	var bg_style: StyleBoxFlat = StyleBoxFlat.new()
-	bg_style.bg_color = GameColorPalette.UI_SURFACE_DISABLED
-	bg_style.set_corner_radius_all(3)
-	xp_progress_bar.add_theme_stylebox_override("background", bg_style)
-
-	# Fill style - bright green/gold for level-up ready
-	var fill_style: StyleBoxFlat = StyleBoxFlat.new()
-	fill_style.bg_color = Color(0.2, 0.9, 0.3)  # Bright green
 	fill_style.set_corner_radius_all(3)
 	xp_progress_bar.add_theme_stylebox_override("fill", fill_style)
 
@@ -270,6 +251,10 @@ func _on_mouse_exited() -> void:
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_RIGHT and mouse_event.pressed:
+			card_inspected.emit(card_data)
+			accept_event()
+			return
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT:
 			if mouse_event.pressed:
 				# Mouse button pressed - start hold timer
@@ -277,6 +262,10 @@ func _gui_input(event: InputEvent) -> void:
 					hold_timer.start(HOLD_DURATION)
 			else:
 				# Mouse button released
+				if _drag_in_progress:
+					if hold_timer:
+						hold_timer.stop()
+					return
 				if hold_timer and hold_timer.time_left > 0:
 					# Released before hold duration - it's a quick click
 					hold_timer.stop()
@@ -303,6 +292,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	# Make this card invisible while dragging (but keep space in grid)
 	modulate.a = 0.0
 	_hidden_for_drag = true
+	_drag_in_progress = true
 
 	# Create physics-enabled drag preview
 	# Pass at_position so the card appears held where clicked
@@ -323,6 +313,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_DRAG_END:
+		_drag_in_progress = false
 		# Drag ended (successful or cancelled) - show card again
 		# If successfully added to deck, collection refresh will remove it
 		if _hidden_for_drag:

@@ -1,10 +1,10 @@
-extends Control
+extends BackNavigableScreen
 class_name SummonerScreen
 
 ## SummonerScreen - Full-screen summoner info and management interface
 ##
-## Displays the active summoner's portrait, description, stats, and traits.
-## Allows leveling up and navigating to summoner selection screen.
+## Displays the active summoner's identity, automatic XP progress, stats,
+## equipment, and trait development entry points.
 
 ## =============================================================================
 ## SIGNALS
@@ -22,7 +22,6 @@ signal closed()
 @onready var element_label: Label = %ElementLabel
 @onready var level_label: Label = %LevelLabel
 @onready var switch_summoner_button: Button = %SwitchSummonerButton
-@onready var gold_label: Label = %GoldLabel
 
 ## =============================================================================
 ## NODE REFERENCES - Portrait Section (Left Column)
@@ -30,16 +29,11 @@ signal closed()
 
 @onready var portrait_container: CenterContainer = %PortraitContainer
 @onready var portrait_frame: PanelContainer = %PortraitFrame
-@onready var portrait_background: ColorRect = %PortraitBackground
-@onready var portrait_glow: ColorRect = %PortraitGlow
+@onready var portrait_texture: TextureRect = %PortraitTexture
 @onready var portrait_symbol: Label = %PortraitSymbol
 
 @onready var xp_label: Label = %XPLabel
 @onready var xp_progress_bar: ProgressBar = %XPProgressBar
-@onready var level_up_button: Button = %LevelUpButton
-@onready var traits_button: Button = %TraitsButton
-@onready var traits_badge: Label = %TraitsBadge
-@onready var level_up_preview: Label = %LevelUpPreview
 
 ## =============================================================================
 ## NODE REFERENCES - Right Half Panels
@@ -55,18 +49,23 @@ signal closed()
 
 @onready var traits_panel: PanelContainer = %TraitsPanel
 @onready var traits_header: Label = %TraitsHeader
-@onready var traits_container: VBoxContainer = %TraitsContainer
+@onready var traits_container: HFlowContainer = %TraitsContainer
+@onready var upgrade_points_label: Label = %UpgradePointsLabel
+@onready var trait_development_overlay: TraitDevelopmentOverlay = %TraitDevelopmentOverlay
 
 @onready var equipment_panel: PanelContainer = %EquipmentPanel
 @onready var equipment_header: Label = %EquipmentHeader
 @onready var equipment_container: VBoxContainer = %EquipmentContainer
+
+@onready var inventory_panel: PanelContainer = %InventoryPanel
+@onready var inventory_header: Label = %InventoryHeader
+@onready var inventory_grid: InventoryGrid = %InventoryGrid
 
 ## =============================================================================
 ## STATE
 ## =============================================================================
 
 var _current_summoner_id: String = ""
-var _portrait_tween: Tween = null
 var _equipment_modal: EquipmentSlotModal = null
 
 
@@ -77,15 +76,13 @@ var _equipment_modal: EquipmentSlotModal = null
 func _ready() -> void:
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
-	level_up_button.pressed.connect(_on_level_up_pressed)
-	traits_button.pressed.connect(_on_traits_pressed)
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
+	inventory_grid.item_selected.connect(_on_inventory_item_selected)
+	trait_development_overlay.trait_acquired.connect(_on_trait_acquired)
 
 	# Connect to service signals
 	if SummonerSelection.has_signal("SummonerChanged"):
 		SummonerSelection.connect("SummonerChanged", _on_summoner_changed)
-
-	Economy.connect("CampaignGoldChanged", _on_campaign_gold_changed)
 
 	# Setup equipment modal
 	_equipment_modal = EquipmentSlotModal.new()
@@ -95,25 +92,17 @@ func _ready() -> void:
 
 	# Set static localized text
 	switch_summoner_button.text = Loc.t("ui.summoner_screen.switch_summoner")
-	traits_button.text = "Traits"
-
-	# Initial data load
-	_refresh_gold_display()
+	description_header.text = Loc.t("ui.summoner_screen.identity_header")
+	stats_header.text = Loc.t("ui.summoner_screen.stats_header")
+	traits_header.text = Loc.t("ui.summoner_screen.traits_header")
+	equipment_header.text = Loc.t("ui.summoner_screen.equipped_header")
+	inventory_header.text = Loc.t("ui.summoner_screen.inventory_header")
 
 	# Load active summoner
 	var active_id: String = SummonerSelectionApi.get_active_summoner_id()
 	if not active_id.is_empty():
 		_current_summoner_id = active_id
 		_refresh_all()
-
-
-## =============================================================================
-## GOLD DISPLAY
-## =============================================================================
-
-func _refresh_gold_display() -> void:
-	var gold: int = EconomyApi.get_campaign_gold()
-	gold_label.text = Loc.t("ui.summoner_screen.gold_display", {"gold": gold})
 
 
 ## =============================================================================
@@ -137,7 +126,6 @@ func _refresh_all() -> void:
 	var current_xp: int = info.get("xp", 0)
 	var xp_for_next: int = info.get("xp_for_next_level", 100)
 	var xp_progress: float = info.get("xp_progress", 0.0)
-	var can_level_up: bool = info.get("can_level_up", false)
 	var is_max_level: bool = info.get("is_max_level", false)
 	var unspent_trait_points: int = info.get("unspent_trait_points", 0)
 
@@ -171,14 +159,12 @@ func _refresh_all() -> void:
 		xp_label.text = Loc.t("ui.summoner_panel.xp_progress", {"current": current_xp, "required": xp_for_next})
 		xp_progress_bar.value = xp_progress * 100.0
 
-	# Update level up button
-	_update_level_up_display(is_max_level, can_level_up, config)
-	_refresh_traits_button_state(unspent_trait_points)
+	_refresh_upgrades_state(unspent_trait_points)
 
 	# Update stats
 	_refresh_stats(config)
 
-	# Update traits and equipment
+	# Update build and item management surfaces
 	_refresh_traits(config)
 	_refresh_equipment()
 
@@ -234,25 +220,15 @@ func _style_panels(element_color: Color) -> void:
 	_style_single_panel(stats_panel, stats_header, element_color)
 	_style_single_panel(traits_panel, traits_header, element_color)
 	_style_single_panel(equipment_panel, equipment_header, element_color)
+	_style_single_panel(inventory_panel, inventory_header, element_color)
 
 	description_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 
 
 func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Color) -> void:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = GameColorPalette.UI_SURFACE
-	style.border_color = GameColorPalette.UI_BORDER
-	style.set_border_width_all(2)
-	style.border_width_left = 4  # Thicker left border for accent
-	style.set_corner_radius_all(8)
-
-	# Add element-colored left accent
-	style.border_color = accent_color.darkened(0.3)
-
-	# Add shadow for depth
-	style.shadow_color = GameColorPalette.BUTTON_SHADOW
-	style.shadow_size = 6
-	style.shadow_offset = Vector2(2, 2)
+	style.bg_color = Color.TRANSPARENT
+	style.set_border_width_all(0)
 
 	panel.add_theme_stylebox_override("panel", style)
 
@@ -263,106 +239,34 @@ func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Col
 ## PORTRAIT
 ## =============================================================================
 
-func _update_portrait(element: ElementTypes.Element, gradient_colors: Array[Color]) -> void:
+func _update_portrait(element: ElementTypes.Element, _gradient_colors: Array[Color]) -> void:
 	var element_color: Color = ElementTypes.get_color(element)
-	var border_color: Color = CardVisualHelper.get_element_border_color(element.id)
 
-	# Style the frame with element-themed border - warmer and deeper
+	# The summoner is a character, not a card. Keep the portrait area transparent
+	# so the sprite belongs to the screen rather than a collectible frame.
 	var frame_style: StyleBoxFlat = StyleBoxFlat.new()
-	frame_style.bg_color = GameColorPalette.UI_SURFACE_RAISED
-	frame_style.border_color = border_color
-	frame_style.set_border_width_all(5)
-	frame_style.set_corner_radius_all(12)
-	# Stronger shadow for depth
-	frame_style.shadow_color = GameColorPalette.BUTTON_SHADOW
-	frame_style.shadow_size = 12
-	frame_style.shadow_offset = Vector2(4, 4)
+	frame_style.bg_color = Color.TRANSPARENT
+	frame_style.set_border_width_all(0)
 	portrait_frame.add_theme_stylebox_override("panel", frame_style)
+	portrait_texture.visible = true
 
-	# Set background color (darker gradient color) with warmer tone
-	var bg_color: Color = gradient_colors[0] if gradient_colors.size() > 0 else element_color
-	bg_color = bg_color.darkened(0.1)
-	portrait_background.color = bg_color
-
-	# Set glow color (lighter/brighter) - more prominent
-	var glow_color: Color = CardVisualHelper.get_element_glow_color(element.id)
-	glow_color.a = 0.6
-	portrait_glow.color = glow_color
-
-	# Set symbol with element color tint
+	# Keep the element-symbol fallback available for missing portrait resources.
+	portrait_symbol.visible = portrait_texture.texture == null
 	portrait_symbol.text = ElementTypes.get_symbol(element)
 	portrait_symbol.add_theme_color_override("font_color", element_color.lightened(0.3))
 
-	# Start breathing animation
-	_start_portrait_breathing()
-
-
-func _start_portrait_breathing() -> void:
-	if _portrait_tween and _portrait_tween.is_valid():
-		_portrait_tween.kill()
-
-	_portrait_tween = create_tween()
-	_portrait_tween.set_loops()
-
-	var original_alpha: float = portrait_glow.color.a
-	var pulse_alpha: float = original_alpha + 0.15
-
-	_portrait_tween.tween_property(portrait_glow, "color:a", pulse_alpha, 1.5).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-	_portrait_tween.tween_property(portrait_glow, "color:a", original_alpha, 1.5).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-
-
-func _exit_tree() -> void:
-	if _portrait_tween and _portrait_tween.is_valid():
-		_portrait_tween.kill()
 
 
 ## =============================================================================
-## LEVEL UP
+## UPGRADES
 ## =============================================================================
 
-func _update_level_up_display(is_max: bool, can_level: bool, config: SummonerConfig) -> void:
-	if is_max:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_max")
-		level_up_button.disabled = true
-		level_up_preview.text = ""
-	elif not can_level:
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_locked")
-		level_up_button.disabled = true
-		level_up_preview.text = ""
+func _refresh_upgrades_state(unspent_trait_points: int) -> void:
+	upgrade_points_label.text = Loc.t("ui.summoner_screen.upgrade_points_count", {"count": unspent_trait_points})
+	if unspent_trait_points > 0:
+		upgrade_points_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
 	else:
-		# XP-only leveling - no gold cost check needed
-		level_up_button.text = Loc.t("ui.summoner_panel.level_up_button_simple")
-		level_up_button.disabled = false
-		level_up_button.remove_theme_color_override("font_color")
-		level_up_preview.text = _get_level_up_preview(config)
-
-
-func _get_level_up_preview(config: SummonerConfig) -> String:
-	var hp_bonus: int = int(config.base_health * 0.05)
-	var mana_bonus: float = config.max_mana * 0.05
-	return Loc.t("ui.summoner_panel.level_up_preview", {
-		"hp": hp_bonus,
-		"mana": "%.1f" % mana_bonus
-	})
-
-
-func _refresh_traits_button_state(unspent_trait_points: int) -> void:
-	traits_button.disabled = _current_summoner_id.is_empty()
-
-	if unspent_trait_points <= 0:
-		traits_badge.visible = false
-		traits_button.tooltip_text = "Open trait tree"
-		traits_button.remove_theme_color_override("font_color")
-		return
-
-	traits_badge.visible = true
-	if unspent_trait_points == 1:
-		traits_badge.text = "!"
-	else:
-		traits_badge.text = "9+" if unspent_trait_points > 9 else str(unspent_trait_points)
-
-	traits_button.tooltip_text = "You have %d unspent trait point(s)" % unspent_trait_points
-	traits_button.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
+		upgrade_points_label.remove_theme_color_override("font_color")
 
 
 ## =============================================================================
@@ -462,53 +366,70 @@ func _get_computed_stats(summoner_id: String) -> Dictionary:
 
 
 ## =============================================================================
-## TRAITS
+## OWNED TRAITS
 ## =============================================================================
 
 func _refresh_traits(config: SummonerConfig) -> void:
-	# Clear existing
 	for child: Node in traits_container.get_children():
 		child.queue_free()
 
-	# Get all trait IDs (innate + acquired) from C# service
 	var service_trait_ids: Array = SummonerProgressionApi.get_all_trait_ids_for_summoner(_current_summoner_id)
 	var all_trait_ids: Array[String] = []
-
-	if service_trait_ids.size() > 0:
-		for trait_id: Variant in service_trait_ids:
-			all_trait_ids.append(str(trait_id))
+	if service_trait_ids.is_empty():
+		all_trait_ids.assign(config.innate_trait_ids)
 	else:
-		# Fallback to innate only if no instance
-		for trait_id: String in config.innate_trait_ids:
-			all_trait_ids.append(trait_id)
+		for value: Variant in service_trait_ids:
+			all_trait_ids.append(SafeTypeUtils.string(value, ""))
 
-	var flow: HFlowContainer = HFlowContainer.new()
-	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	flow.add_theme_constant_override("h_separation", 8)
-	flow.add_theme_constant_override("v_separation", 8)
-	traits_container.add_child(flow)
-
-	# Show all traits
-	for trait_id: String in all_trait_ids:
-		var is_innate: bool = trait_id in config.innate_trait_ids
-		var trait_icon: PanelContainer = _create_trait_icon(trait_id, is_innate)
-		if trait_icon:
-			flow.add_child(trait_icon)
-
-	# Show message if no traits
 	if all_trait_ids.is_empty():
-		var no_traits_label: Label = Label.new()
-		no_traits_label.text = Loc.t("ui.summoner_screen.no_traits")
-		no_traits_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
-		no_traits_label.add_theme_font_size_override("font_size", 14)
-		traits_container.add_child(no_traits_label)
+		var empty_label: Label = Label.new()
+		empty_label.text = Loc.t("ui.summoner_screen.no_traits")
+		empty_label.add_theme_color_override("font_color", GameColorPalette.TEXT_SECONDARY)
+		traits_container.add_child(empty_label)
+		return
+
+	for trait_id: String in all_trait_ids:
+		if not trait_id.is_empty():
+			traits_container.add_child(_create_trait_chip(trait_id, trait_id in config.innate_trait_ids))
+
+
+func _create_trait_chip(trait_id: String, is_innate: bool) -> Button:
+	var trait_name: String = TraitCatalogApi.get_trait_name(trait_id)
+	var trait_description: String = TraitCatalogApi.get_trait_description(trait_id)
+	if trait_name.begins_with("trait."):
+		trait_name = Loc.t(trait_name)
+	if trait_description.begins_with("trait."):
+		trait_description = Loc.t(trait_description)
+	if trait_name.is_empty():
+		trait_name = trait_id
+
+	var chip: Button = Button.new()
+	chip.custom_minimum_size = Vector2(58, 58)
+	chip.text = ""
+	chip.tooltip_text = trait_name if trait_description.is_empty() else "%s\n%s" % [trait_name, trait_description]
+	chip.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	chip.pressed.connect(_on_trait_pressed.bind(trait_id))
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	var accent: Color = Color(0.82, 0.70, 0.35) if is_innate else Color(0.38, 0.58, 0.88)
+	style.bg_color = accent.darkened(0.35)
+	style.border_color = accent
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(29)
+	chip.add_theme_stylebox_override("normal", style)
+	var hover_style: StyleBoxFlat = style.duplicate()
+	hover_style.bg_color = style.bg_color.lightened(0.14)
+	chip.add_theme_stylebox_override("hover", hover_style)
+	var pressed_style: StyleBoxFlat = style.duplicate()
+	pressed_style.bg_color = style.bg_color.darkened(0.12)
+	chip.add_theme_stylebox_override("pressed", pressed_style)
+	return chip
 
 
 ## =============================================================================
 ## EQUIPMENT
 ## =============================================================================
 
-const EQUIPMENT_BOX_SIZE: Vector2 = Vector2(100, 100)
+const EQUIPMENT_BOX_SIZE: Vector2 = Vector2(82, 86)
 
 func _refresh_equipment() -> void:
 	# Clear existing
@@ -517,15 +438,16 @@ func _refresh_equipment() -> void:
 
 	# Get equipped items from Items service
 	var equipped: Dictionary = ItemsApi.get_equipped_items_dict(_current_summoner_id)
+	inventory_grid.set_summoner(_current_summoner_id, equipped)
 
 	# Create horizontal box for 4 slots
 	var hbox: HBoxContainer = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
+	hbox.add_theme_constant_override("separation", 8)
 	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	equipment_container.add_child(hbox)
 
 	# Show all 4 equipment slots as boxes
-	for slot: String in ["wand", "ring1", "ring2", "robes"]:
+	for slot: String in ["robes", "ring1", "ring2", "wand"]:
 		var item_instance_id: String = equipped.get(slot, "")
 		var slot_box: PanelContainer = _create_equipment_slot_box(slot, item_instance_id)
 		hbox.add_child(slot_box)
@@ -569,7 +491,7 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 	var icon_label: Label = Label.new()
 	const SLOT_ICONS: Dictionary = {"wand": "W", "ring1": "R", "ring2": "R", "robes": "C"}
 	icon_label.text = SLOT_ICONS.get(slot, "?")
-	icon_label.add_theme_font_size_override("font_size", 28)
+	icon_label.add_theme_font_size_override("font_size", 22)
 	icon_label.add_theme_color_override("font_color", accent_color.lightened(0.2) if is_empty else accent_color.lightened(0.3))
 	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(icon_label)
@@ -612,58 +534,6 @@ func _create_equipment_slot_box(slot: String, item_instance_id: String) -> Panel
 	return panel
 
 
-func _create_trait_icon(trait_id: String, is_innate: bool) -> PanelContainer:
-	var trait_name: String = TraitCatalogApi.get_trait_name(trait_id)
-	var trait_desc: String = TraitCatalogApi.get_trait_description(trait_id)
-
-	if trait_name.is_empty():
-		trait_name = trait_id
-
-	# Create icon chip
-	var panel: PanelContainer = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(42, 42)
-
-	# Style with warm colors
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = GameColorPalette.UI_SURFACE_RAISED
-	var accent_color: Color = Color(0.85, 0.75, 0.4) if is_innate else Color(0.4, 0.6, 0.9)
-	style.border_color = accent_color
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(5)
-	style.shadow_color = GameColorPalette.BUTTON_SHADOW
-	style.shadow_size = 2
-	style.shadow_offset = Vector2(1, 1)
-	panel.add_theme_stylebox_override("panel", style)
-
-	var abbr: Label = Label.new()
-	abbr.text = _abbreviate_trait_name(trait_name)
-	abbr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	abbr.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	abbr.add_theme_font_size_override("font_size", 12)
-	abbr.add_theme_color_override("font_color", accent_color.lightened(0.2))
-	panel.add_child(abbr)
-
-	var type_label: String = Loc.t("ui.summoner_screen.trait_innate") if is_innate else Loc.t("ui.summoner_screen.trait_acquired")
-	panel.tooltip_text = "%s (%s)\n%s" % [trait_name, type_label, trait_desc]
-
-	return panel
-
-
-func _abbreviate_trait_name(name: String) -> String:
-	var normalized: String = name.strip_edges()
-	if normalized.is_empty():
-		return "??"
-
-	var words: PackedStringArray = normalized.split(" ", false)
-	if words.size() >= 2:
-		var first: String = words[0]
-		var second: String = words[1]
-		if not first.is_empty() and not second.is_empty():
-			return (first.left(1) + second.left(1)).to_upper()
-
-	return normalized.left(2).to_upper()
-
-
 ## =============================================================================
 ## NO SUMMONER STATE
 ## =============================================================================
@@ -673,17 +543,12 @@ func _show_no_summoner() -> void:
 	element_label.text = ""
 	level_label.text = ""
 	description_label.text = ""
-	portrait_background.color = ElementTypes.get_color("neutral")
-	portrait_glow.color = Color(0.5, 0.5, 0.5, 0.2)
+	portrait_texture.visible = false
+	portrait_symbol.visible = true
 	portrait_symbol.text = "?"
 	xp_label.text = ""
 	xp_progress_bar.value = 0
-	level_up_button.disabled = true
-	level_up_button.text = "-"
-	traits_button.disabled = true
-	traits_button.tooltip_text = ""
-	traits_badge.visible = false
-	level_up_preview.text = ""
+	upgrade_points_label.text = ""
 
 	# Clear containers
 	for child: Node in stats_container.get_children():
@@ -692,6 +557,7 @@ func _show_no_summoner() -> void:
 		child.queue_free()
 	for child: Node in equipment_container.get_children():
 		child.queue_free()
+	inventory_grid.set_summoner("")
 
 
 ## =============================================================================
@@ -702,22 +568,12 @@ func _on_close_pressed() -> void:
 	_close()
 
 
-func _on_level_up_pressed() -> void:
-	if _current_summoner_id.is_empty():
-		return
-
-	var success: bool = SummonerProgressionApi.level_up_summoner(_current_summoner_id)
-	if success:
-		_refresh_all()
-		_refresh_gold_display()
+func _on_trait_pressed(trait_id: String) -> void:
+	trait_development_overlay.open_for_summoner(_current_summoner_id, trait_id)
 
 
-func _on_traits_pressed() -> void:
-	if _current_summoner_id.is_empty():
-		return
-
-	NavigationContext.push_return(SceneManager.SCENE_SUMMONER_SCREEN)
-	SceneManager.transition_to(SceneManager.SCENE_TRAIT_TREE_SCREEN)
+func _on_trait_acquired(_trait_id: String) -> void:
+	_refresh_all()
 
 
 func _on_switch_summoner_pressed() -> void:
@@ -730,11 +586,6 @@ func _on_summoner_changed(_old_summoner_id: String, new_summoner_id: String) -> 
 	_refresh_all()
 
 
-func _on_campaign_gold_changed(_summoner_id: String, _gold: int) -> void:
-	_refresh_gold_display()
-	_refresh_all()
-
-
 func _on_equipment_slot_clicked(event: InputEvent, slot: String) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
@@ -744,11 +595,18 @@ func _on_equipment_slot_clicked(event: InputEvent, slot: String) -> void:
 
 
 func _on_equipment_changed(_slot: String, _item_instance_id: String) -> void:
-	_refresh_equipment()
+	_refresh_all()
 
 
 func _on_equipment_slot_cleared(_slot: String) -> void:
-	_refresh_equipment()
+	_refresh_all()
+
+
+func _on_inventory_item_selected(item: Dictionary) -> void:
+	var slot: String = SafeTypeUtils.string(item.get("slot", ""), "")
+	if slot.is_empty() or not _equipment_modal or _current_summoner_id.is_empty():
+		return
+	_equipment_modal.open(slot, _current_summoner_id)
 
 
 ## =============================================================================
@@ -761,3 +619,7 @@ func _close() -> void:
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
 	SceneManager.transition_to(return_scene)
+
+
+func _request_back_navigation() -> void:
+	_on_close_pressed()

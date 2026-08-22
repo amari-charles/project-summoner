@@ -31,7 +31,7 @@ func after_all() -> void:
 func test_case_c05_locked_node_popup_shows_details_and_disabled_unlock() -> void:
 	var screen: TraitTreeScreen = SUMMONER_TRAIT_TREE_SCREEN_SCENE.instantiate() as TraitTreeScreen
 	assert_true(screen != null, "Expected summoner trait tree screen scene")
-	add_child(screen)
+	add_child_autofree(screen)
 	await get_tree().process_frame
 	await get_tree().process_frame
 

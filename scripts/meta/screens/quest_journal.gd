@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name QuestJournal
 
 const SECTION_ACTIVE: String = "active"
@@ -233,3 +233,7 @@ func _go_back() -> void:
 func _clear_children(parent: Node) -> void:
 	for child: Node in parent.get_children():
 		child.queue_free()
+
+
+func _request_back_navigation() -> void:
+	_go_back()

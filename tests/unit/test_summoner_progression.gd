@@ -2,7 +2,7 @@ extends GutTest
 
 ## Unit Tests for Summoner Progression Service
 ##
-## Tests XP granting and level-up checks.
+## Tests XP granting and automatic level application.
 ## Uses the actual autoloads (ProfileRepo, SummonerProgression) for integration-style testing.
 
 var _original_profile_id: String = ""
@@ -31,7 +31,7 @@ func after_all() -> void:
 ## HELPERS
 ## =============================================================================
 
-## Create a summoner instance with XP ready to level up
+## Create a summoner instance with a chosen starting XP value.
 func _create_summoner_with_xp(summoner_id: String, xp: int) -> void:
 	# Create a summoner instance directly in the profile
 	var summoner_data: Dictionary = {
@@ -44,63 +44,34 @@ func _create_summoner_with_xp(summoner_id: String, xp: int) -> void:
 
 
 ## =============================================================================
-## CAN_LEVEL_UP TESTS
+## AUTOMATIC LEVEL TESTS
 ## =============================================================================
 
-func test_can_level_up_returns_false_when_no_xp() -> void:
+func test_grant_xp_automatically_levels_summoner() -> void:
 	await _create_summoner_with_xp("summoner_cole", 0)
 
-	assert_false(SummonerProgression.CanLevelUp("summoner_cole"))
-
-
-func test_can_level_up_returns_true_when_enough_xp() -> void:
-	# Level 1 -> 2 requires 100 XP
-	await _create_summoner_with_xp("summoner_cole", 100)
-
-	assert_true(SummonerProgression.CanLevelUp("summoner_cole"))
-
-
-func test_can_level_up_returns_false_when_just_under_threshold() -> void:
-	# Level 1 -> 2 requires 100 XP
-	await _create_summoner_with_xp("summoner_cole", 99)
-
-	assert_false(SummonerProgression.CanLevelUp("summoner_cole"))
-
-
-## =============================================================================
-## LEVEL_UP_SUMMONER TESTS
-## =============================================================================
-
-func test_level_up_summoner_succeeds_when_valid() -> void:
-	# Set up summoner with enough XP
-	await _create_summoner_with_xp("summoner_cole", 100)
-
-	var success: bool = SummonerProgression.LevelUpSummoner("summoner_cole")
-
-	assert_true(success, "Level-up should succeed with enough XP")
+	SummonerProgression.GrantSummonerXp("summoner_cole", 100)
 
 	# Verify level increased
 	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo("summoner_cole")
 	assert_eq(info.get("level"), 2, "Summoner should be level 2")
 
 
-func test_level_up_summoner_fails_when_not_enough_xp() -> void:
-	# Set up summoner without enough XP
-	await _create_summoner_with_xp("summoner_cole", 50)
+func test_grant_xp_below_threshold_preserves_level() -> void:
+	await _create_summoner_with_xp("summoner_cole", 0)
 
-	var success: bool = SummonerProgression.LevelUpSummoner("summoner_cole")
+	SummonerProgression.GrantSummonerXp("summoner_cole", 50)
 
-	assert_false(success, "Level-up should fail without enough XP")
-	# Expect the warning from the C# service
-	assert_engine_error("not have enough XP")
+	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo("summoner_cole")
+	assert_eq(info.get("level"), 1)
+	assert_eq(info.get("xp"), 50)
 
 
-func test_level_up_summoner_updates_level_correctly() -> void:
-	await _create_summoner_with_xp("summoner_cole", 100)
+func test_grant_xp_banks_upgrade_point() -> void:
+	await _create_summoner_with_xp("summoner_cole", 0)
 
-	var success: bool = SummonerProgression.LevelUpSummoner("summoner_cole")
-	assert_true(success, "Level-up should succeed")
+	SummonerProgression.GrantSummonerXp("summoner_cole", 100)
 
-	# Verify level was updated
 	var info: Dictionary = SummonerProgression.GetSummonerProgressionInfo("summoner_cole")
 	assert_eq(info.get("level"), 2, "Level should be updated to 2")
+	assert_eq(info.get("unspent_trait_points"), 1)

@@ -66,7 +66,7 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	assert_true(spellbook.text.is_empty())
 	assert_true(inventory.text.is_empty())
 	assert_true(shortcuts.text.is_empty())
-	assert_true(inventory.disabled)
+	assert_false(inventory.disabled)
 	hub.free()
 
 
@@ -92,6 +92,15 @@ func test_spellbook_is_a_persistent_right_side_action_instead_of_a_building() ->
 	assert_false(spellbook_destination.is_empty())
 	assert_false(spellbook_destination.has("position"))
 	hub.free()
+
+
+func test_inventory_action_opens_the_combined_summoner_build_screen() -> void:
+	var source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/walkable_academy_hub.gd"
+	)
+	assert_true(
+		source.contains("inventory_button.pressed.connect(_route_to.bind(DESTINATION_SUMMONER))")
+	)
 
 
 func test_every_building_destination_has_a_shortcut_and_current_route() -> void:

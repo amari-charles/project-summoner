@@ -1,4 +1,4 @@
-extends Control
+extends BackNavigableScreen
 class_name PremiumStoreScreen
 
 ## PremiumStoreScreen - Unified store UI for account-level premium purchases
@@ -277,3 +277,10 @@ func _on_data_changed() -> void:
 	# Update popup if visible (affordability may have changed)
 	if detail_popup.visible and not selected_offering.is_empty():
 		_show_popup(selected_offering)
+
+
+func _request_back_navigation() -> void:
+	if detail_popup.visible:
+		_on_popup_close_pressed()
+		return
+	_on_close_pressed()
