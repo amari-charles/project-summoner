@@ -29,6 +29,7 @@ func test_summoner_screens_use_shared_readable_background() -> void:
 	)
 	assert_false(profile_scene.contains("element_energy_waves"))
 	assert_false(switch_scene.contains("element_energy_waves"))
+	assert_false(profile_scene.contains("EquipmentHeader"))
 
 
 func test_summoner_switch_uses_a_scrollable_roster_instead_of_a_carousel() -> void:

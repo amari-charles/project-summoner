@@ -1072,7 +1072,6 @@
       "identity_header": "IDENTITY",
       "stats_header": "STATS",
       "traits_header": "TRAITS",
-      "equipped_header": "EQUIPPED",
       "inventory_header": "INVENTORY",
       "inventory_empty": "No items owned",
       "inventory_equipped": "Equipped",

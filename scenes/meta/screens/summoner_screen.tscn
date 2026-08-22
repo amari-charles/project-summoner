@@ -191,13 +191,6 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="EquipmentHeader" type="Label" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/EquipmentPanel/EquipmentMargin/EquipmentVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 15
-text = ""
-
 [node name="EquipmentContainer" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/EquipmentPanel/EquipmentMargin/EquipmentVBox"]
 unique_name_in_owner = true
 layout_mode = 2

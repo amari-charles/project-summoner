@@ -54,7 +54,6 @@ signal closed()
 @onready var trait_development_overlay: TraitDevelopmentOverlay = %TraitDevelopmentOverlay
 
 @onready var equipment_panel: PanelContainer = %EquipmentPanel
-@onready var equipment_header: Label = %EquipmentHeader
 @onready var equipment_container: VBoxContainer = %EquipmentContainer
 
 @onready var inventory_panel: PanelContainer = %InventoryPanel
@@ -96,7 +95,6 @@ func _ready() -> void:
 	description_header.text = Loc.t("ui.summoner_screen.identity_header")
 	stats_header.text = Loc.t("ui.summoner_screen.stats_header")
 	traits_header.text = Loc.t("ui.summoner_screen.traits_header")
-	equipment_header.text = Loc.t("ui.summoner_screen.equipped_header")
 	inventory_header.text = Loc.t("ui.summoner_screen.inventory_header")
 
 	# Load active summoner
@@ -198,7 +196,7 @@ func _style_panels(element_color: Color) -> void:
 	_style_single_panel(description_panel, description_header, element_color)
 	_style_single_panel(stats_panel, stats_header, element_color)
 	_style_single_panel(traits_panel, traits_header, element_color)
-	_style_single_panel(equipment_panel, equipment_header, element_color)
+	_style_single_panel(equipment_panel, null, element_color)
 	_style_single_panel(inventory_panel, inventory_header, element_color)
 
 	description_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
@@ -211,7 +209,8 @@ func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Col
 
 	panel.add_theme_stylebox_override("panel", style)
 
-	header.add_theme_color_override("font_color", accent_color.darkened(0.25))
+	if header != null:
+		header.add_theme_color_override("font_color", accent_color.darkened(0.25))
 
 
 ## =============================================================================
