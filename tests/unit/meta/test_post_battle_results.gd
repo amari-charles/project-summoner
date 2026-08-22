@@ -26,6 +26,24 @@ func test_results_presents_authoritative_grants_without_mutating_xp() -> void:
 	assert_false(script_text.contains("GrantXp"))
 
 
+func test_pending_offer_detection_supports_sequential_reward_choices() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/screens/post_battle_results.tscn")
+	var results: PostBattleResults = packed_scene.instantiate() as PostBattleResults
+	assert_true(results._has_pending_offer({
+		"reward_offers": [
+			{"display_state": "claimed"},
+			{"display_state": "pending"},
+		]
+	}))
+	assert_false(results._has_pending_offer({
+		"reward_offers": [
+			{"display_state": "claimed"},
+			{"display_state": "forfeited"},
+		]
+	}))
+	results.free()
+
+
 func _read(path: String) -> String:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	assert_not_null(file)

@@ -6,6 +6,8 @@ class_name PostBattleResults
 ## completion data and only submits an explicit pending reward choice.
 
 const CardVisualScene: PackedScene = preload("res://scenes/shared/card_visual.tscn")
+const RESULT_CARD_SIZE: Vector2 = Vector2(200, 300)
+const REWARD_CHOICE_BUTTON_SIZE: Vector2 = Vector2(180, 64)
 
 @onready var background: ColorRect = %Background
 @onready var panel: PanelContainer = %Panel
@@ -65,6 +67,10 @@ func _load_authoritative_report() -> void:
 func _load_campaign_report() -> void:
 	_attempt_id = BattleContext.get_battle_attempt_id()
 	var result: Dictionary = ProgressionAuthority.GetBattleRewards(_attempt_id)
+	_present_campaign_result(result)
+
+
+func _present_campaign_result(result: Dictionary) -> void:
 	if not SafeTypeUtils.bool_val(result.get("is_success"), false):
 		push_error("PostBattleResults: completion unavailable: %s" % str(result.get("errors", [])))
 		SceneManager.transition_to(BattleContext.get_origin_scene())
@@ -206,8 +212,10 @@ func _render_pending_choice(offer: Dictionary) -> void:
 	for value: Variant in SafeTypeUtils.array(offer.get("options")):
 		var option: Dictionary = SafeTypeUtils.dict(value)
 		var button: Button = Button.new()
-		button.custom_minimum_size = Vector2(180, 64)
+		button.custom_minimum_size = REWARD_CHOICE_BUTTON_SIZE
 		button.text = _option_label(option)
+		button.toggle_mode = true
+		button.set_meta("option_id", SafeTypeUtils.string(option.get("id")))
 		button.pressed.connect(_select_reward.bind(option))
 		choice_buttons.add_child(button)
 
@@ -215,7 +223,7 @@ func _render_pending_choice(offer: Dictionary) -> void:
 func _select_reward(option: Dictionary) -> void:
 	_selected_option_id = SafeTypeUtils.string(option.get("id"))
 	for button: Button in choice_buttons.get_children():
-		button.disabled = true
+		button.button_pressed = SafeTypeUtils.string(button.get_meta("option_id")) == _selected_option_id
 	_clear_children(rewards)
 	var selected_grants: Array[Dictionary] = []
 	_append_grants(selected_grants, option.get("grants", []))
@@ -230,7 +238,7 @@ func _add_reward_view(grant: Dictionary) -> void:
 	if kind == "card":
 		var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("content_id", grant.get("id"))))
 		var card_visual: CardVisual = CardVisualScene.instantiate() as CardVisual
-		card_visual.custom_minimum_size = Vector2(200, 300)
+		card_visual.custom_minimum_size = RESULT_CARD_SIZE
 		card_visual.show_description = true
 		card_visual.cost_font_size = 30
 		card_visual.name_font_size = 17
@@ -274,6 +282,9 @@ func _continue() -> void:
 		if not SafeTypeUtils.bool_val(result.get("is_success"), false):
 			push_error("PostBattleResults: reward claim failed: %s" % str(result.get("errors", [])))
 			return
+		if _has_pending_offer(result):
+			_present_campaign_result(result)
+			return
 	if not _encounter_id.is_empty():
 		CampaignApi.consume_encounter_completion_summary(_encounter_id)
 	SceneManager.transition_to(_destination)
@@ -289,6 +300,14 @@ func _sum_grants(grants: Array[Dictionary], kind: String) -> int:
 		if SafeTypeUtils.string(grant.get("kind")) == kind:
 			total += SafeTypeUtils.int_val(grant.get("amount"), 0)
 	return total
+
+
+func _has_pending_offer(result: Dictionary) -> bool:
+	for value: Variant in SafeTypeUtils.array(result.get("reward_offers")):
+		var offer: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(offer.get("display_state")) == "pending":
+			return true
+	return false
 
 
 func _append_grants(target: Array[Dictionary], source: Variant) -> void:
