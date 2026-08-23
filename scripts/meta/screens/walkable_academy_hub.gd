@@ -31,7 +31,6 @@ const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
 const DESTINATION_SPELLBOOK: StringName = &"spellbook"
 const DESTINATION_ONLINE: StringName = &"online"
 const DESTINATION_SUMMONER: StringName = &"summoner"
-const DESTINATION_SETTINGS: StringName = &"settings"
 const DESTINATION_JOURNAL: StringName = &"journal"
 
 const PROFESSOR_POSITIONS: Dictionary = {
@@ -42,9 +41,9 @@ const PROFESSOR_POSITIONS: Dictionary = {
 	"wind": Vector3(25.0, 0.0, -15.0),
 }
 
-## One destination catalog drives both building entrances and fast shortcuts.
-## Entries without a position remain shortcut-only in the current prototype.
-const DESTINATIONS: Array[Dictionary] = [
+## Physical world locations own both their building interaction and arrival
+## waypoint. Persistent UI actions intentionally live outside this catalog.
+const WORLD_LOCATIONS: Array[Dictionary] = [
 	{
 		"id": DESTINATION_SHOP,
 		"name_key": "academy.campus.shop.name",
@@ -52,6 +51,7 @@ const DESTINATIONS: Array[Dictionary] = [
 		"target_scene": SceneManagerClass.SCENE_SHOP_SCREEN,
 		"placeholder_texture": PLACEHOLDER_CAMPUS_SHOP,
 		"position": Vector3(12.0, 0.0, -7.0),
+		"travel_position": Vector3(12.0, 1.2, -2.5),
 	},
 	{
 		"id": DESTINATION_MISSION_HALL,
@@ -60,12 +60,7 @@ const DESTINATIONS: Array[Dictionary] = [
 		"target_scene": SceneManagerClass.SCENE_SPECIAL_EVENTS,
 		"placeholder_texture": PLACEHOLDER_MISSION_HALL,
 		"position": Vector3(-13.0, 0.0, 7.0),
-	},
-	{
-		"id": DESTINATION_SPELLBOOK,
-		"name_key": "academy.campus.spellbook.name",
-		"description_key": "academy.campus.spellbook.description",
-		"target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN,
+		"travel_position": Vector3(-13.0, 1.2, 11.5),
 	},
 	{
 		"id": DESTINATION_ONLINE,
@@ -74,10 +69,14 @@ const DESTINATIONS: Array[Dictionary] = [
 		"target_scene": SceneManagerClass.SCENE_ONLINE,
 		"placeholder_texture": PLACEHOLDER_ONLINE_ARENA,
 		"position": Vector3(13.0, 0.0, 8.0),
+		"travel_position": Vector3(13.0, 1.2, 12.5),
 	},
-	{"id": DESTINATION_SUMMONER, "name_key": "ui.summoner_screen.title", "description_key": "academy.walkable.summoner_description", "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
-	{"id": DESTINATION_JOURNAL, "name_key": "academy.journal.title", "description_key": "academy.journal.description", "target_scene": SceneManagerClass.SCENE_QUEST_JOURNAL},
-	{"id": DESTINATION_SETTINGS, "name_key": "ui.nav.settings", "description_key": "academy.walkable.settings_description", "target_scene": SceneManagerClass.SCENE_SETTINGS},
+]
+
+const DIRECT_UI_DESTINATIONS: Array[Dictionary] = [
+	{"id": DESTINATION_SPELLBOOK, "target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN},
+	{"id": DESTINATION_SUMMONER, "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
+	{"id": DESTINATION_JOURNAL, "target_scene": SceneManagerClass.SCENE_QUEST_JOURNAL},
 ]
 
 @export_category("Placeholder Ground")
@@ -109,11 +108,11 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var quest_targets: Node3D = %QuestTargets
 @onready var camera: Camera3D = %Camera3D
 @onready var player: Node3D = %Player
-@onready var shortcut_button: Button = %ShortcutButton
-@onready var shortcut_panel: PanelContainer = %ShortcutPanel
-@onready var shortcut_title: Label = %ShortcutTitle
-@onready var shortcut_close_button: Button = %ShortcutCloseButton
-@onready var shortcut_list: VBoxContainer = %ShortcutList
+@onready var travel_button: Button = %TravelButton
+@onready var travel_panel: PanelContainer = %TravelPanel
+@onready var travel_title: Label = %TravelTitle
+@onready var travel_close_button: Button = %TravelCloseButton
+@onready var travel_list: VBoxContainer = %TravelList
 @onready var summoner_slot: Control = %SummonerSlot
 @onready var tracked_quest_banner: Control = %TrackedQuestBanner
 @onready var tracked_quest_button: Button = %TrackedQuestButton
@@ -151,11 +150,11 @@ func _ready() -> void:
 		return
 
 	ground_label.text = Loc.t("academy.walkable.placeholder_ground")
-	shortcut_button.tooltip_text = Loc.t("academy.walkable.open_shortcuts")
-	shortcut_title.text = Loc.t("academy.walkable.shortcuts_title")
-	shortcut_close_button.text = Loc.t("ui.common.close")
-	shortcut_button.pressed.connect(_toggle_shortcuts)
-	shortcut_close_button.pressed.connect(_close_shortcuts)
+	travel_button.tooltip_text = Loc.t("academy.walkable.open_travel")
+	travel_title.text = Loc.t("academy.walkable.travel_title")
+	travel_close_button.text = Loc.t("ui.common.close")
+	travel_button.pressed.connect(_toggle_travel)
+	travel_close_button.pressed.connect(_close_travel)
 	journal_button.tooltip_text = Loc.t("academy.journal.title")
 	spellbook_button.tooltip_text = Loc.t("academy.campus.spellbook.name")
 	inventory_button.tooltip_text = Loc.t("academy.walkable.inventory")
@@ -171,7 +170,7 @@ func _ready() -> void:
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
-	_populate_shortcuts()
+	_populate_travel_points()
 
 	camera.current = true
 	_camera_target_fov = clampf(camera.fov, camera_min_fov, camera_max_fov)
@@ -541,8 +540,8 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and shortcut_panel.visible:
-		_close_shortcuts()
+	if event.is_action_pressed("ui_cancel") and travel_panel.visible:
+		_close_travel()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_cancel"):
@@ -576,30 +575,104 @@ func _setup_summoner_icon() -> void:
 	summoner_icon.icon_clicked.connect(_route_to.bind(DESTINATION_SUMMONER))
 
 
-func _populate_shortcuts() -> void:
-	_clear_children(shortcut_list)
-	for destination: Dictionary in DESTINATIONS:
-		var destination_id: StringName = destination["id"]
+func _populate_travel_points() -> void:
+	_clear_children(travel_list)
+	var objective_travel: Dictionary = _tracked_objective_travel()
+	if not objective_travel.is_empty():
+		var objective_waypoint_id: StringName = objective_travel["waypoint_id"]
+		var objective_button: Button = Button.new()
+		objective_button.text = Loc.t("academy.walkable.current_objective", {
+			"objective": SafeTypeUtils.string(objective_travel.get("objective")),
+		})
+		objective_button.custom_minimum_size = Vector2(280.0, 52.0)
+		objective_button.pressed.connect(_travel_to_world_location.bind(objective_waypoint_id))
+		travel_list.add_child(objective_button)
+	for location: Dictionary in WORLD_LOCATIONS:
+		var destination_id: StringName = location["id"]
 		var button: Button = Button.new()
-		button.text = Loc.t(destination["name_key"])
-		button.tooltip_text = Loc.t(destination["description_key"])
+		button.text = Loc.t(location["name_key"])
+		button.tooltip_text = Loc.t(location["description_key"])
 		button.custom_minimum_size = Vector2(280.0, 48.0)
-		button.pressed.connect(_route_to.bind(destination_id))
-		shortcut_list.add_child(button)
+		button.pressed.connect(_travel_to_world_location.bind(destination_id))
+		travel_list.add_child(button)
 
 
-func _toggle_shortcuts() -> void:
-	shortcut_panel.visible = not shortcut_panel.visible
+func _toggle_travel() -> void:
+	if not travel_panel.visible:
+		_populate_travel_points()
+	travel_panel.visible = not travel_panel.visible
 
 
-func _close_shortcuts() -> void:
-	shortcut_panel.hide()
+func _close_travel() -> void:
+	travel_panel.hide()
+
+
+func _travel_to_world_location(destination_id: StringName) -> void:
+	var location: Dictionary = _world_location(destination_id)
+	if location.is_empty() or not location.has("travel_position"):
+		push_warning("WalkableAcademyHub: Unknown travel point '%s'" % destination_id)
+		return
+	player.velocity = Vector3.ZERO
+	player.global_position = SafeTypeUtils.vector3(
+		location.get("travel_position"), player.global_position
+	)
+	_close_travel()
+	_snap_camera_to_player()
+
+
+func _tracked_objective_travel() -> Dictionary:
+	var journal: Dictionary = CampaignApi.get_generic_quest_journal_state()
+	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
+	if tracked_id.is_empty():
+		return {}
+	for value: Variant in SafeTypeUtils.array(journal.get("active")):
+		var quest: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(quest.get("id")) != tracked_id:
+			continue
+		var target_position: Variant = _quest_target_position(
+			SafeTypeUtils.string(quest.get("current_target_id"))
+		)
+		if target_position is Vector3:
+			return {
+				"waypoint_id": _nearest_world_location_id(target_position),
+				"objective": Loc.t(SafeTypeUtils.string(quest.get("current_objective_key"))),
+			}
+	return {}
+
+
+func _quest_target_position(target_id: String) -> Variant:
+	if PROFESSOR_POSITIONS.has(target_id):
+		return PROFESSOR_POSITIONS[target_id]
+	for child: Node in quest_targets.get_children():
+		var target: QuestWorldTarget = child as QuestWorldTarget
+		if target != null and target.target_id == target_id:
+			return target.global_position
+	var location: Dictionary = _world_location(StringName(target_id))
+	if not location.is_empty():
+		return location.get("position")
+	return null
+
+
+func _nearest_world_location_id(target_position: Vector3) -> StringName:
+	var nearest_id: StringName = &""
+	var nearest_distance: float = INF
+	for location: Dictionary in WORLD_LOCATIONS:
+		var anchor: Vector3 = SafeTypeUtils.vector3(location.get("travel_position"))
+		var distance: float = anchor.distance_squared_to(target_position)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest_id = location["id"]
+	return nearest_id
+
+
+func _world_location(destination_id: StringName) -> Dictionary:
+	for location: Dictionary in WORLD_LOCATIONS:
+		if location["id"] == destination_id:
+			return location
+	return {}
 
 
 func _route_to(destination_id: StringName) -> void:
-	if destination_id == DESTINATION_SETTINGS:
-		campus_system_menu.open_settings()
-		return
 	if _transition_started:
 		return
 	var target_scene: String = _scene_for_destination(destination_id)
@@ -612,7 +685,10 @@ func _route_to(destination_id: StringName) -> void:
 
 
 func _scene_for_destination(destination_id: StringName) -> String:
-	for destination: Dictionary in DESTINATIONS:
+	for destination: Dictionary in WORLD_LOCATIONS:
+		if destination["id"] == destination_id:
+			return destination["target_scene"]
+	for destination: Dictionary in DIRECT_UI_DESTINATIONS:
 		if destination["id"] == destination_id:
 			return destination["target_scene"]
 	return ""
@@ -668,9 +744,7 @@ func _get_player_focus_position() -> Vector3:
 
 func _spawn_buildings() -> void:
 	_clear_children(buildings)
-	for destination: Dictionary in DESTINATIONS:
-		if not destination.has("position"):
-			continue
+	for destination: Dictionary in WORLD_LOCATIONS:
 		_add_building(
 			destination["name_key"],
 			destination["target_scene"],

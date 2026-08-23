@@ -454,6 +454,11 @@ public class DtoConvertersTest
         var original = new AccountMeta
         {
             SelectedDeck = "deck_001",
+            RankedDecksBySummoner = new Dictionary<string, string>
+            {
+                ["summoner_cole"] = "ranked_deck_001",
+                ["summoner_selene"] = "ranked_deck_002",
+            },
             SelectedSummoner = "summoner_cole",
             AnalyticsOptIn = true,
             TutorialFlags = new Dictionary<string, bool>
@@ -476,6 +481,8 @@ public class DtoConvertersTest
 
         AssertThat(result).IsNotNull();
         AssertThat(result.SelectedDeck).IsEqual("deck_001");
+        AssertThat(result.RankedDecksBySummoner["summoner_cole"]).IsEqual("ranked_deck_001");
+        AssertThat(result.RankedDecksBySummoner["summoner_selene"]).IsEqual("ranked_deck_002");
         AssertThat(result.SelectedSummoner).IsEqual("summoner_cole");
         AssertThat(result.AnalyticsOptIn).IsTrue();
         AssertThat(result.TutorialFlags["intro_completed"]).IsTrue();
@@ -609,6 +616,10 @@ public class DtoConvertersTest
         var update = new MetaUpdate
         {
             SelectedDeck = "deck_002",
+            RankedDecksBySummoner = new Dictionary<string, string>
+            {
+                ["summoner_cole"] = "ranked_deck_003",
+            },
             SelectedSummoner = "summoner_cole",
             AnalyticsOptIn = true,
             TutorialFlags = new Dictionary<string, bool> { ["flag1"] = true },
@@ -619,10 +630,17 @@ public class DtoConvertersTest
 
         AssertThat(dict.ContainsKey("selected_deck")).IsTrue();
         AssertThat(dict.ContainsKey("selected_summoner")).IsTrue();
+        AssertThat(dict.ContainsKey("ranked_decks_by_summoner")).IsTrue();
         AssertThat(dict.ContainsKey("analytics_opt_in")).IsTrue();
         AssertThat(dict.ContainsKey("tutorial_flags")).IsTrue();
         AssertThat(dict.ContainsKey("achievements")).IsTrue();
         AssertThat(dict["selected_deck"].AsString()).IsEqual("deck_002");
+        AssertThat(
+                dict["ranked_decks_by_summoner"]
+                    .AsGodotDictionary()["summoner_cole"]
+                    .AsString()
+            )
+            .IsEqual("ranked_deck_003");
         AssertThat(dict["analytics_opt_in"].AsBool()).IsTrue();
     }
 

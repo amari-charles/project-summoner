@@ -6,6 +6,24 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-08 Completions
 
+### Add Ranked Loadout Selection to Online Matchmaking
+**Completed:** 2026-08-23
+**Category:** Ranked Gameplay / UI/UX
+**Effort:** Small
+**PR:** `#375`
+
+Added a visible, per-summoner ranked loadout to the Online screen without
+changing the deck selected for offline activities.
+
+**Resolution Summary:**
+- ✅ Persisted one ranked deck selection per summoner.
+- ✅ Reused the collection/deck-management flow for ranked confirmation.
+- ✅ Prevented queueing with a missing or invalid ranked deck.
+- ✅ Routed matchmaking deck exchange and battle launch through ranked selection.
+- ✅ Presented the active summoner and actual selected cards before queueing.
+
+---
+
 ### Introduce Battle Progression Authority and Migrate Battle Rewards
 **Completed:** 2026-08-05
 **Category:** Architecture / Progression / Rewards

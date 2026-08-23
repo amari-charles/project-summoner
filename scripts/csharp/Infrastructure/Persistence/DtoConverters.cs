@@ -1205,9 +1205,14 @@ public static class DtoConverters
         foreach (var (key, value) in meta.NarrativeFlags)
             narrativeDict[key] = value;
 
+        var rankedDecksDict = new Godot.Collections.Dictionary();
+        foreach (var (summonerId, deckId) in meta.RankedDecksBySummoner)
+            rankedDecksDict[summonerId] = deckId;
+
         return new Godot.Collections.Dictionary
         {
             ["selected_deck"] = meta.SelectedDeck,
+            ["ranked_decks_by_summoner"] = rankedDecksDict,
             ["selected_summoner"] = meta.SelectedSummoner,
             ["selected_campaign"] = meta.SelectedCampaign,
             ["analytics_opt_in"] = meta.AnalyticsOptIn,
@@ -1233,6 +1238,20 @@ public static class DtoConverters
             SelectedCampaign = GetString(dict, "selected_campaign", ""),
             AnalyticsOptIn = GetBool(dict, "analytics_opt_in", false),
         };
+
+        if (
+            dict.TryGetValue("ranked_decks_by_summoner", out var rankedDecksVar)
+            && rankedDecksVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            foreach (var key in rankedDecksVar.AsGodotDictionary().Keys)
+            {
+                var summonerId = key.AsString();
+                var deckId = rankedDecksVar.AsGodotDictionary()[key].AsString();
+                if (!string.IsNullOrEmpty(summonerId) && !string.IsNullOrEmpty(deckId))
+                    meta.RankedDecksBySummoner[summonerId] = deckId;
+            }
+        }
 
         // Convert tutorial_flags if present
         if (
@@ -1298,6 +1317,14 @@ public static class DtoConverters
 
         if (update.SelectedDeck != null)
             dict["selected_deck"] = update.SelectedDeck;
+
+        if (update.RankedDecksBySummoner != null)
+        {
+            var rankedDecksDict = new Godot.Collections.Dictionary();
+            foreach (var (summonerId, deckId) in update.RankedDecksBySummoner)
+                rankedDecksDict[summonerId] = deckId;
+            dict["ranked_decks_by_summoner"] = rankedDecksDict;
+        }
 
         if (update.SelectedSummoner != null)
             dict["selected_summoner"] = update.SelectedSummoner;

@@ -21,6 +21,24 @@ Product/design docs in `docs/design/`, lore docs, and user-authored implementati
 - Preserve history: add a new entry that references the earlier decision instead of rewriting an old entry to make it appear that the direction never changed.
 - Product/design docs remain the source of truth for the current intended behavior. Direction-log entries explain when and why that intent changed.
 
+### Preserve Artwork Dimensions In UI Layouts
+
+Character art, card art, portraits, icons, and other authored imagery must not be
+silently stretched or resized to whatever space a parent `Container` happens to
+allocate.
+
+- Give artwork an explicit display size or aspect-ratio wrapper appropriate to
+  the surface. `custom_minimum_size` alone is not a fixed-size guarantee.
+- Set container size flags so the artwork slot shrinks or centers instead of
+  expanding with sibling content.
+- Use an aspect-preserving texture mode (`keep aspect centered` or `keep aspect
+  covered`, according to the design) when the real asset is present.
+- If art is not available yet, use a fixed-dimension placeholder representing
+  the eventual art slot. Do not make the placeholder responsive in a way the
+  final asset should not be.
+- Do not add decorative panels, borders, or nested boxes merely to group nearby
+  information. A visible container needs a clear interaction or hierarchy job.
+
 ## Skills
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
 

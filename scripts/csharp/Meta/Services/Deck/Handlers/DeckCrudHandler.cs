@@ -76,6 +76,35 @@ public class DeckCrudHandler
         return true;
     }
 
+    public string GetRankedDeckId(SummonerId summonerId)
+    {
+        var profile = _profileRepo.GetProfileMetadata();
+        if (
+            profile == null
+            || !profile.Meta.RankedDecksBySummoner.TryGetValue(summonerId.Value, out var deckId)
+        )
+            return "";
+
+        var deck = GetDeck(DeckId.FromString(deckId));
+        return deck?.SummonerId == summonerId ? deckId : "";
+    }
+
+    public bool SetRankedDeck(SummonerId summonerId, DeckId deckId)
+    {
+        var deck = GetDeck(deckId);
+        if (!summonerId.HasValue || deck == null || deck.SummonerId != summonerId)
+            return false;
+
+        var selections = new System.Collections.Generic.Dictionary<string, string>(
+            _profileRepo.GetProfileMetadata()?.Meta.RankedDecksBySummoner ?? []
+        )
+        {
+            [summonerId.Value] = deckId.Value,
+        };
+        _profileRepo.UpdateProfileMeta(new MetaUpdate { RankedDecksBySummoner = selections });
+        return true;
+    }
+
     // =========================================================================
     // CREATE / UPDATE / DELETE
     // =========================================================================
@@ -179,10 +208,16 @@ public class DeckCrudHandler
     /// <summary>Delete a deck. Returns true if successful.</summary>
     public bool DeleteDeck(DeckId deckId)
     {
+        var rankedSelections = new System.Collections.Generic.Dictionary<string, string>(
+            _profileRepo.GetProfileMetadata()?.Meta.RankedDecksBySummoner ?? []
+        );
         var success = _profileRepo.DeleteDeck(deckId);
 
         if (success)
         {
+            foreach (var summonerId in rankedSelections.Where(pair => pair.Value == deckId.Value).Select(pair => pair.Key).ToArray())
+                rankedSelections.Remove(summonerId);
+            _profileRepo.UpdateProfileMeta(new MetaUpdate { RankedDecksBySummoner = rankedSelections });
             GD.Print($"DeckCrudHandler: Deleted deck '{deckId}'");
         }
         else

@@ -890,6 +890,10 @@ public partial class ProfileRepository
     {
         if (updates.SelectedDeck != null)
             _data.Meta.SelectedDeck = updates.SelectedDeck;
+        if (updates.RankedDecksBySummoner != null)
+            _data.Meta.RankedDecksBySummoner = new Dictionary<string, string>(
+                updates.RankedDecksBySummoner
+            );
         if (updates.SelectedSummoner != null)
             _data.Meta.SelectedSummoner = updates.SelectedSummoner;
         if (updates.SelectedCampaign != null)
@@ -1011,6 +1015,17 @@ public partial class ProfileRepository
         var update = new MetaUpdate();
         if (metaDict.ContainsKey("selected_deck"))
             update.SelectedDeck = metaDict["selected_deck"].AsString();
+        if (
+            metaDict.ContainsKey("ranked_decks_by_summoner")
+            && metaDict["ranked_decks_by_summoner"].VariantType == Variant.Type.Dictionary
+        )
+        {
+            update.RankedDecksBySummoner = [];
+            foreach (var key in metaDict["ranked_decks_by_summoner"].AsGodotDictionary().Keys)
+                update.RankedDecksBySummoner[key.AsString()] = metaDict[
+                    "ranked_decks_by_summoner"
+                ].AsGodotDictionary()[key].AsString();
+        }
         if (metaDict.ContainsKey("selected_summoner"))
             update.SelectedSummoner = metaDict["selected_summoner"].AsString();
         if (metaDict.ContainsKey("selected_campaign"))
@@ -1077,11 +1092,16 @@ public partial class ProfileRepository
     /// <summary>Get active deck as array of {catalog_id, count} for multiplayer.</summary>
     public GdArray GetActiveDeckArray()
     {
-        var selectedDeckId = _data.Meta.SelectedDeck;
-        if (string.IsNullOrEmpty(selectedDeckId))
+        return GetDeckArray(_data.Meta.SelectedDeck);
+    }
+
+    /// <summary>Get a deck as {catalog_id, count} entries for battle configuration.</summary>
+    public GdArray GetDeckArray(string deckId)
+    {
+        if (string.IsNullOrEmpty(deckId))
             return [];
 
-        var deck = _data.Decks.FirstOrDefault(d => (string)d.Id == selectedDeckId);
+        var deck = _data.Decks.FirstOrDefault(d => (string)d.Id == deckId);
         if (deck == null)
             return [];
 

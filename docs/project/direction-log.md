@@ -590,6 +590,45 @@ the world prematurely.
 
 - `docs/design/walkable-academy-hub.md`
 
+## 2026-08-23 — Separate owned Inventory from the Summoner overview
+
+**Status:** Accepted; implementation is the next UI slice
+**Areas:** Summoners, Inventory, Equipment, Navigation, UI
+
+### Decision
+
+Give owned-item Inventory a dedicated screen reached by the campus bag action.
+Keep the Summoner screen focused on character identity, level and XP, core stats,
+traits and trait development, and currently equipped items. The Summoner screen
+may later open Inventory filtered to compatible equipment from an equipped slot,
+but it does not own the full item collection.
+
+### Context
+
+The bag icon currently opens a screen whose primary identity is the summoner,
+which does not match the player's navigation expectation. Retaining the full
+owned-item grid merely to fill layout space overloads the Summoner screen; its
+remaining space can instead support stronger character presentation and clearer
+progression hierarchy.
+
+### Consequences
+
+- The bag icon and profile/summoner access no longer route to the same purpose.
+- Equipped items remain visible on the Summoner screen because they describe the
+  active build.
+- Cards and decks remain owned by the Spellbook, not Inventory.
+- Inventory layout, item categories, and filtering are the next dedicated design
+  and implementation task.
+
+### Supersedes
+
+The 2026-08-17 decision to use the Summoner screen as the combined build and
+owned-inventory surface.
+
+### References
+
+- `docs/tracking/todos.md`
+
 ## 2026-08-22 — Replace the audio-only placeholder with shared game settings
 
 **Status:** Accepted
@@ -1684,4 +1723,77 @@ design should not make the later social system awkward to introduce.
 ### References
 
 - `docs/design/friends-and-shared-presence.md`
+- `docs/design/walkable-academy-hub.md`
+
+## 2026-08-23 — Remember a separate ranked deck for each summoner
+
+**Status:** Accepted
+**Areas:** Online, Ranked, Summoners, Decks, UI
+
+### Decision
+
+The Online screen shows the globally active summoner and a separately persisted
+ranked deck before queueing. Ranked deck choice is remembered per summoner and
+does not change the deck selected for offline activities. A summoner without a
+valid ranked deck cannot enter matchmaking and must choose one through the
+existing collection/deck-management flow.
+
+### Context
+
+Cards and decks belong to individual summoners, while players may prepare a
+different deck for offline encounters. A global ranked selection or reuse of the
+offline active deck would either cross summoner ownership boundaries or make one
+mode unexpectedly alter another.
+
+### Consequences
+
+- Changing summoners from Online still changes the global active summoner.
+- Returning to Online restores that summoner's last ranked deck.
+- Ranked matchmaking and deck exchange use ranked selection exclusively.
+- The collection screen gains a contextual confirmation state instead of a
+  second deck-management implementation.
+
+### References
+
+- `docs/design/ranked-loadout-flow.md`
+
+## 2026-08-23 — Separate world travel from persistent UI actions
+
+**Status:** Accepted
+**Areas:** Campus, Excursions, Quests, Navigation, UI
+
+### Decision
+
+Replace the broad campus shortcut menu with a Travel/Wayfinder action for
+physical navigation. Travel can span campus landmarks and future excursion
+regions. Persistent tools such as Journal, Spellbook, Inventory/Summoner, and
+Settings retain their existing UI homes and do not appear as travel entries.
+
+When a tracked quest has an eligible physical destination, Travel may surface
+its nearest valid waypoint. Selecting it moves the player to the waypoint—not
+directly onto the quest objective—so travel cannot bypass traversal, encounters,
+locked paths, or discoveries.
+
+### Context
+
+The existing shortcut catalog conflates direct screen routing with movement
+through the world. That duplicates persistent buttons and weakens the meaning of
+the walkable campus. A quest-aware waypoint system preserves convenience while
+scaling to forests, ruins, underground areas, and other bounded locations.
+
+### Consequences
+
+- Physical buildings remain interaction points for the screens they represent.
+- Waypoints may be initially available or discovery-gated according to authored
+  context.
+- Secret locations are not automatically exposed as travel destinations.
+- The Travel control can expand beyond campus without becoming a universal menu.
+
+### Supersedes
+
+The shortcut-menu rule that every screen and campus destination must appear in
+one direct-routing list.
+
+### References
+
 - `docs/design/walkable-academy-hub.md`

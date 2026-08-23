@@ -51,6 +51,9 @@ static func get_active_profile_dict() -> Dictionary:
 static func get_active_deck_array() -> Array:
 	return SafeTypeUtils.array(_call_first(["GetActiveDeckArray", "get_active_deck_array"]))
 
+static func get_deck_array(deck_id: String) -> Array:
+	return SafeTypeUtils.array(_call_first(["GetDeckArray", "get_deck_array"], [deck_id]))
+
 static func update_settings_dict(settings_updates: Dictionary) -> void:
 	_call_first(["UpdateSettingsDict", "update_settings_dict"], [settings_updates])
 
