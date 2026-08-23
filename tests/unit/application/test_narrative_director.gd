@@ -60,6 +60,27 @@ func test_hidden_presenter_does_not_block_underlying_screen_controls() -> void:
 	presenter._cue = {}
 	presenter.free()
 
+
+func test_presenting_dialogue_releases_stale_world_ui_focus() -> void:
+	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
+	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter
+	var world_ui_button: Button = Button.new()
+	add_child_autofree(world_ui_button)
+	add_child_autofree(presenter)
+	await get_tree().process_frame
+	world_ui_button.grab_focus()
+	assert_eq(get_viewport().gui_get_focus_owner(), world_ui_button)
+
+	presenter.present({
+		"cue_id": "test_dialogue_clears_focus",
+		"speaker_key": "dialogue.merlin_summoner_intro.speaker",
+		"line_keys": ["dialogue.merlin_summoner_intro.line_1"],
+		"choices": [],
+	})
+
+	assert_null(get_viewport().gui_get_focus_owner())
+	presenter._cue = {}
+
 func test_clicking_visible_dialogue_text_advances_the_narrative() -> void:
 	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
 	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter

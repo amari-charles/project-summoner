@@ -65,6 +65,9 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	var spellbook: Button = rail.get_node("SpellbookButton") as Button
 	var inventory: Button = rail.get_node("InventoryButton") as Button
 	var travel: Button = rail.get_node("TravelButton") as Button
+	var tracked_quest: Button = hub.get_node(
+		"Interface/TrackedQuestBanner/TrackedQuestButton"
+	) as Button
 	assert_eq(rail.get_child_count(), 4)
 	assert_eq(rail.anchor_top, 0.5)
 	assert_eq(rail.anchor_bottom, 0.5)
@@ -73,6 +76,8 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	assert_not_null(spellbook.icon)
 	assert_not_null(inventory.icon)
 	assert_not_null(travel.icon)
+	for world_hud_button: Button in [journal, spellbook, inventory, travel, tracked_quest]:
+		assert_eq(world_hud_button.focus_mode, Control.FOCUS_NONE)
 	assert_true(journal.text.is_empty())
 	assert_true(spellbook.text.is_empty())
 	assert_true(inventory.text.is_empty())

@@ -30,6 +30,9 @@ func _present_dialogue(lines: Array, response_choices: Array[Dictionary]) -> voi
 	_lines = lines.duplicate()
 	_line_index = 0
 	_authored_choices = response_choices.duplicate(true)
+	# Dialogue owns the interaction keys while it is visible. Clear focus left by
+	# world HUD controls so Space cannot activate one behind the conversation.
+	_release_dialogue_focus()
 	show()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_render_dialogue_state()
