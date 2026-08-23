@@ -59,10 +59,13 @@ func configure(
 
 func _process(_delta: float) -> void:
 	_refresh_label_positions()
-	if not _player_inside:
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _player_inside or not event.is_action_pressed("interact"):
 		return
-	if _is_interact_pressed():
-		_enter_target_scene()
+	get_viewport().set_input_as_handled()
+	_enter_target_scene()
 
 
 func _on_door_body_entered(body: Node3D) -> void:
@@ -143,10 +146,6 @@ func _refresh_label_positions() -> void:
 	)
 	placeholder_label.render_priority = label_priority
 	name_label.render_priority = label_priority
-
-
-func _is_interact_pressed() -> bool:
-	return Input.is_action_just_pressed("interact")
 
 
 func _enter_target_scene() -> void:

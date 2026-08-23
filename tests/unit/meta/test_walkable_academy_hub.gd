@@ -234,8 +234,38 @@ func test_space_advances_visible_npc_dialogue() -> void:
 	var space: InputEventKey = InputEventKey.new()
 	space.keycode = KEY_SPACE
 	space.pressed = true
-	dialogue._input(space)
+	get_viewport().push_input(space, true)
+	await get_tree().process_frame
 
+	assert_eq(dialogue._line_index, 1)
+
+
+func test_space_does_not_retrigger_npc_after_advancing_hub_dialogue() -> void:
+	var dialogue_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = dialogue_scene.instantiate() as NpcDialogueBox
+	add_child_autofree(dialogue)
+	var npc_scene: PackedScene = load("res://scenes/meta/components/interactive_npc.tscn")
+	var npc: InteractiveNpc = npc_scene.instantiate() as InteractiveNpc
+	add_child_autofree(npc)
+	await get_tree().process_frame
+	npc._player_inside = true
+	npc.interacted.connect(func(_npc_id: String) -> void:
+		dialogue.present("Professor", ["First line", "Second line"])
+	)
+
+	var space: InputEventKey = InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	get_viewport().push_input(space, true)
+	await get_tree().process_frame
+	assert_true(dialogue.visible)
+	assert_eq(dialogue._line_index, 0)
+
+	space = InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	get_viewport().push_input(space, true)
+	await get_tree().process_frame
 	assert_eq(dialogue._line_index, 1)
 
 
