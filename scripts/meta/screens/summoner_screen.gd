@@ -205,6 +205,7 @@ func _style_panels(element_color: Color) -> void:
 	_style_single_panel(traits_panel, traits_header, element_color)
 	_style_single_panel(equipment_panel, null, element_color)
 
+	stats_header.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 	traits_header.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 
 

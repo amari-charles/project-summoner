@@ -229,10 +229,12 @@ theme_override_constants/separation = 7
 
 [node name="StatsHeader" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/StatsPanel/StatsMargin/StatsVBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 15
-text = ""
+theme_override_colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+theme_override_font_sizes/font_size = 20
+text = "Stats"
 
 [node name="StatsContainer" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/StatsPanel/StatsMargin/StatsVBox"]
 unique_name_in_owner = true

@@ -54,12 +54,16 @@ func test_summoner_profile_labels_traits_and_opens_an_owned_trait() -> void:
 	await get_tree().process_frame
 
 	var traits_header: Label = screen.find_child("TraitsHeader", true, false) as Label
+	var stats_header: Label = screen.find_child("StatsHeader", true, false) as Label
 	var traits_container: HFlowContainer = (
 		screen.find_child("TraitsContainer", true, false) as HFlowContainer
 	)
 	var trait_overlay: TraitDevelopmentOverlay = (
 		screen.find_child("TraitDevelopmentOverlay", true, false) as TraitDevelopmentOverlay
 	)
+	assert_eq(stats_header.text, "Stats")
+	assert_gte(stats_header.custom_minimum_size.y, 28.0)
+	assert_eq(stats_header.get_theme_color("font_color"), GameColorPalette.TEXT_PRIMARY)
 	assert_eq(traits_header.text, "Traits")
 	assert_gte(traits_header.custom_minimum_size.y, 28.0)
 	assert_eq(traits_header.get_theme_color("font_color"), GameColorPalette.TEXT_PRIMARY)

@@ -1080,7 +1080,7 @@
       "no_upgrade_points": "No upgrade points available. Leveling happens automatically as you earn XP.",
       "upgrade_points_available": "{count} upgrade point(s) ready to spend.",
       "upgrade_points_count": "{count} upgrade points",
-      "stats_header": "STATS",
+      "stats_header": "Stats",
       "traits_header": "Traits",
       "inventory_header": "INVENTORY",
       "inventory_empty": "No items owned",
