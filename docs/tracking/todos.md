@@ -271,6 +271,7 @@ navigation, online confirmation, and legacy-surface inventory is still open.
 - [ ] Record empty, locked, loading, error, confirmation, newly-unlocked, and unspent-choice states for each retained surface.
 - [ ] State the primary target viewport, supported aspect-ratio range, and input assumptions the designer should use.
 - [ ] Link existing Figma references and distinguish approved layouts from exploratory mockups.
+- [ ] Reserve conceptual capacity for a future Friends panel in the campus HUD's right-side action rail without shipping a nonfunctional control.
 
 **Likely Files:**
 - `docs/design/`

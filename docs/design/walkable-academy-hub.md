@@ -56,6 +56,9 @@ room-sized shared space.
 4. **Shortcuts preserve convenience.** The walkable layer never needs to compete
    with direct menu navigation for speed.
 
+The future relationship between the campus, friends, parties, and shared player
+presence is defined in [Friends and Shared Presence](friends-and-shared-presence.md).
+
 The campus being a hub does not require all world locations to connect directly
 to it or require a campus return between every quest stage. Exact departure,
 unlocking, and fast-travel rules follow from the approved world roster rather

@@ -1650,3 +1650,38 @@ return destination, so Quit Game exits the application.
 
 - `scenes/meta/components/campus_system_menu.tscn`
 - `scenes/shared/settings_panel.tscn`
+
+## 2026-08-23 — Place future Friends access in the persistent campus HUD
+
+**Status:** Accepted placement; implementation deferred
+**Areas:** Campus, Social, Online, Quests, UI
+
+### Decision
+
+Treat Friends as a future global social system and reserve its entry point in
+the walkable campus HUD's right-side action rail. It is a contextual panel, not
+a physical campus destination or a Settings category. Do not ship a dead button
+solely to reserve the position.
+
+### Context
+
+Friends may eventually support relationship management, battle and joint-quest
+invitations, shared-map parties, gifting, and player presence in a populated
+Academy hub. Much of that scope may arrive after release, but the current HUD
+design should not make the later social system awkward to introduce.
+
+### Consequences
+
+- The current designer handoff reserves conceptual rail capacity but does not
+  require Friends screens or functionality.
+- Social capabilities can be introduced in independent slices rather than as
+  one monolithic feature.
+- Shared Academy presence remains an instanced, bounded-hub direction rather
+  than implying an unrestricted open world.
+- Gifting and cooperative rewards must preserve exclusivity and progression
+  constraints.
+
+### References
+
+- `docs/design/friends-and-shared-presence.md`
+- `docs/design/walkable-academy-hub.md`
