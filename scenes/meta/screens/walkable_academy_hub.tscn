@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -15,6 +15,10 @@
 [ext_resource type="PackedScene" path="res://scenes/meta/components/quest_offer_modal.tscn" id="13_quest_offer_modal"]
 [ext_resource type="Texture2D" path="res://assets/icons/1bit_pixel_icons/Sprites_Cropped/Tools_Crafting_Books_Library.png" id="14_spellbook_icon"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/campus_system_menu.tscn" id="15_system_menu"]
+[ext_resource type="PackedScene" path="res://scenes/meta/components/inventory_overlay.tscn" id="16_inventory_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/meta/screens/summoner_screen.tscn" id="17_summoner_profile"]
+[ext_resource type="PackedScene" path="res://scenes/meta/screens/collection_screen.tscn" id="18_collection_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/meta/screens/quest_journal.tscn" id="19_journal_overlay"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 shading_mode = 0
@@ -318,4 +322,22 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 
 [node name="CampusSystemMenu" parent="Interface" instance=ExtResource("15_system_menu")]
+unique_name_in_owner = true
+
+[node name="SummonerProfile" parent="Interface" instance=ExtResource("17_summoner_profile")]
+unique_name_in_owner = true
+visible = false
+embedded_overlay = true
+
+[node name="CollectionOverlay" parent="Interface" instance=ExtResource("18_collection_overlay")]
+unique_name_in_owner = true
+visible = false
+embedded_overlay = true
+
+[node name="JournalOverlay" parent="Interface" instance=ExtResource("19_journal_overlay")]
+unique_name_in_owner = true
+visible = false
+embedded_overlay = true
+
+[node name="InventoryOverlay" parent="." instance=ExtResource("16_inventory_overlay")]
 unique_name_in_owner = true

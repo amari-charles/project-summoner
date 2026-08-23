@@ -1,11 +1,16 @@
 extends BackNavigableScreen
 class_name QuestJournal
 
+signal closed()
+
+@export var embedded_overlay: bool = false
+
 const SECTION_ACTIVE: String = "active"
 const SECTION_OPEN: String = "opportunities"
 const SECTION_COMPLETED: String = "completed"
 
-@onready var background: ColorRect = %Background
+@onready var dimmer: ColorRect = %Dimmer
+@onready var window: PanelContainer = %Window
 @onready var back_button: Button = %BackButton
 @onready var title_label: Label = %TitleLabel
 @onready var term_label: Label = %TermLabel
@@ -30,9 +35,9 @@ var _has_initialized_selection: bool = false
 
 func _ready() -> void:
 	_apply_palette()
-	back_button.text = "←"
-	back_button.tooltip_text = Loc.t("academy.hub.title")
-	back_button.accessibility_name = Loc.t("academy.hub.title")
+	back_button.text = "X"
+	back_button.tooltip_text = Loc.t("ui.common.close")
+	back_button.accessibility_name = Loc.t("ui.common.close")
 	title_label.text = Loc.t("academy.journal.title")
 	back_button.pressed.connect(_go_back)
 	active_button.pressed.connect(_select_section.bind(SECTION_ACTIVE))
@@ -41,6 +46,13 @@ func _ready() -> void:
 	track_button.pressed.connect(_track_selected)
 	if Campaign.has_signal("CampaignProgressChanged"):
 		Campaign.connect("CampaignProgressChanged", _refresh)
+	_refresh()
+	if embedded_overlay:
+		visible = false
+
+
+func open_journal() -> void:
+	visible = true
 	_refresh()
 
 
@@ -204,7 +216,15 @@ func _selected_entry() -> Dictionary:
 
 
 func _apply_palette() -> void:
-	background.color = GameColorPalette.UI_BACKGROUND
+	dimmer.color = Color(0.0, 0.0, 0.0, 0.62)
+	var window_style: StyleBoxFlat = StyleBoxFlat.new()
+	window_style.bg_color = GameColorPalette.UI_BACKGROUND
+	window_style.border_color = GameColorPalette.UI_BORDER_STRONG
+	window_style.set_border_width_all(2)
+	window_style.set_corner_radius_all(12)
+	window_style.shadow_color = GameColorPalette.BUTTON_SHADOW
+	window_style.shadow_size = 14
+	window.add_theme_stylebox_override("panel", window_style)
 	_apply_panel_style(category_panel, GameColorPalette.UI_SURFACE_ALT)
 	_apply_panel_style(list_panel, GameColorPalette.UI_SURFACE)
 	_apply_panel_style(detail_panel, GameColorPalette.UI_SURFACE_RAISED)
@@ -224,6 +244,10 @@ func _apply_panel_style(panel: PanelContainer, color: Color) -> void:
 
 
 func _go_back() -> void:
+	if embedded_overlay:
+		visible = false
+		closed.emit()
+		return
 	var return_scene: String = NavigationContext.pop_return() if NavigationContext.has_return() else ""
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_WALKABLE_ACADEMY_HUB

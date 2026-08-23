@@ -12,7 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_journal")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Dimmer" type="ColorRect" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -20,147 +20,156 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.721569, 0.682353, 0.631373, 1)
+mouse_filter = 0
+color = Color(0, 0, 0, 0.62)
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 34.0
-offset_top = 28.0
-offset_right = -34.0
-offset_bottom = -28.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Root" type="VBoxContainer" parent="Margin"]
+[node name="Window" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1500, 820)
+layout_mode = 2
+
+[node name="WindowMargin" type="MarginContainer" parent="Center/Window"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 26
+
+[node name="Root" type="VBoxContainer" parent="Center/Window/WindowMargin"]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Header" type="HBoxContainer" parent="Margin/Root"]
+[node name="Header" type="HBoxContainer" parent="Center/Window/WindowMargin/Root"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="BackButton" type="Button" parent="Margin/Root/Header"]
+[node name="BackButton" type="Button" parent="Center/Window/WindowMargin/Root/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(54, 48)
 layout_mode = 2
 
-[node name="TitleBlock" type="VBoxContainer" parent="Margin/Root/Header"]
+[node name="TitleBlock" type="VBoxContainer" parent="Center/Window/WindowMargin/Root/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TitleLabel" type="Label" parent="Margin/Root/Header/TitleBlock"]
+[node name="TitleLabel" type="Label" parent="Center/Window/WindowMargin/Root/Header/TitleBlock"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 
-[node name="TermLabel" type="Label" parent="Margin/Root/Header/TitleBlock"]
+[node name="TermLabel" type="Label" parent="Center/Window/WindowMargin/Root/Header/TitleBlock"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 
-[node name="CapacityLabel" type="Label" parent="Margin/Root/Header"]
+[node name="CapacityLabel" type="Label" parent="Center/Window/WindowMargin/Root/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 vertical_alignment = 1
 
-[node name="Body" type="HBoxContainer" parent="Margin/Root"]
+[node name="Body" type="HBoxContainer" parent="Center/Window/WindowMargin/Root"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="CategoryPanel" type="PanelContainer" parent="Margin/Root/Body"]
+[node name="CategoryPanel" type="PanelContainer" parent="Center/Window/WindowMargin/Root/Body"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(186, 0)
 layout_mode = 2
 
-[node name="CategoryMargin" type="MarginContainer" parent="Margin/Root/Body/CategoryPanel"]
+[node name="CategoryMargin" type="MarginContainer" parent="Center/Window/WindowMargin/Root/Body/CategoryPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 84
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 18
 
-[node name="Categories" type="VBoxContainer" parent="Margin/Root/Body/CategoryPanel/CategoryMargin"]
+[node name="Categories" type="VBoxContainer" parent="Center/Window/WindowMargin/Root/Body/CategoryPanel/CategoryMargin"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ActiveButton" type="Button" parent="Margin/Root/Body/CategoryPanel/CategoryMargin/Categories"]
+[node name="ActiveButton" type="Button" parent="Center/Window/WindowMargin/Root/Body/CategoryPanel/CategoryMargin/Categories"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 toggle_mode = true
 alignment = 0
 
-[node name="OpenButton" type="Button" parent="Margin/Root/Body/CategoryPanel/CategoryMargin/Categories"]
+[node name="OpenButton" type="Button" parent="Center/Window/WindowMargin/Root/Body/CategoryPanel/CategoryMargin/Categories"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 toggle_mode = true
 alignment = 0
 
-[node name="CompletedButton" type="Button" parent="Margin/Root/Body/CategoryPanel/CategoryMargin/Categories"]
+[node name="CompletedButton" type="Button" parent="Center/Window/WindowMargin/Root/Body/CategoryPanel/CategoryMargin/Categories"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 toggle_mode = true
 alignment = 0
 
-[node name="ListPanel" type="PanelContainer" parent="Margin/Root/Body"]
+[node name="ListPanel" type="PanelContainer" parent="Center/Window/WindowMargin/Root/Body"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ListMargin" type="MarginContainer" parent="Margin/Root/Body/ListPanel"]
+[node name="ListMargin" type="MarginContainer" parent="Center/Window/WindowMargin/Root/Body/ListPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 24
 theme_override_constants/margin_top = 58
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 24
 
-[node name="ListRoot" type="VBoxContainer" parent="Margin/Root/Body/ListPanel/ListMargin"]
+[node name="ListRoot" type="VBoxContainer" parent="Center/Window/WindowMargin/Root/Body/ListPanel/ListMargin"]
 layout_mode = 2
 
-[node name="ListEmpty" type="Label" parent="Margin/Root/Body/ListPanel/ListMargin/ListRoot"]
+[node name="ListEmpty" type="Label" parent="Center/Window/WindowMargin/Root/Body/ListPanel/ListMargin/ListRoot"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 
-[node name="QuestScroll" type="ScrollContainer" parent="Margin/Root/Body/ListPanel/ListMargin/ListRoot"]
+[node name="QuestScroll" type="ScrollContainer" parent="Center/Window/WindowMargin/Root/Body/ListPanel/ListMargin/ListRoot"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="QuestList" type="VBoxContainer" parent="Margin/Root/Body/ListPanel/ListMargin/ListRoot/QuestScroll"]
+[node name="QuestList" type="VBoxContainer" parent="Center/Window/WindowMargin/Root/Body/ListPanel/ListMargin/ListRoot/QuestScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
-[node name="DetailPanel" type="PanelContainer" parent="Margin/Root/Body"]
+[node name="DetailPanel" type="PanelContainer" parent="Center/Window/WindowMargin/Root/Body"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="DetailMargin" type="MarginContainer" parent="Margin/Root/Body/DetailPanel"]
+[node name="DetailMargin" type="MarginContainer" parent="Center/Window/WindowMargin/Root/Body/DetailPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 34
 theme_override_constants/margin_top = 34
 theme_override_constants/margin_right = 34
 theme_override_constants/margin_bottom = 28
 
-[node name="DetailLayout" type="VBoxContainer" parent="Margin/Root/Body/DetailPanel/DetailMargin"]
+[node name="DetailLayout" type="VBoxContainer" parent="Center/Window/WindowMargin/Root/Body/DetailPanel/DetailMargin"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="QuestDetailPanel" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout" instance=ExtResource("2_detail")]
+[node name="QuestDetailPanel" parent="Center/Window/WindowMargin/Root/Body/DetailPanel/DetailMargin/DetailLayout" instance=ExtResource("2_detail")]
 unique_name_in_owner = true
 
-[node name="TrackButton" type="Button" parent="Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout"]
+[node name="TrackButton" type="Button" parent="Center/Window/WindowMargin/Root/Body/DetailPanel/DetailMargin/DetailLayout"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2

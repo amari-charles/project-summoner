@@ -6,7 +6,7 @@ class_name PostBattleResults
 ## completion data and only submits an explicit pending reward choice.
 
 const CardVisualScene: PackedScene = preload("res://scenes/shared/card_visual.tscn")
-const RESULT_CARD_SIZE: Vector2 = Vector2(200, 300)
+const RESULT_CARD_SIZE: Vector2 = CardVisualHelper.CARD_SIZE_LARGE
 const REWARD_CHOICE_BUTTON_SIZE: Vector2 = Vector2(180, 64)
 const GRANT_KIND_CARD: String = "card"
 const GRANT_KIND_CARD_XP: String = "card_xp"
@@ -246,7 +246,7 @@ func _add_reward_view(grant: Dictionary) -> void:
 	if kind == GRANT_KIND_CARD:
 		var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("content_id", grant.get("id"))))
 		var card_visual: CardVisual = CardVisualScene.instantiate() as CardVisual
-		card_visual.custom_minimum_size = RESULT_CARD_SIZE
+		card_visual.set_display_size(RESULT_CARD_SIZE)
 		card_visual.show_description = true
 		card_visual.cost_font_size = 30
 		card_visual.name_font_size = 17

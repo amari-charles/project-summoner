@@ -26,6 +26,10 @@
 3. Battlefield no longer instances `BattleDialogueController` or legacy `DialogueBox`.
 4. C# autoload paths expose Narrative Director.
 5. `BattleScene` adapts BattleStarted, PhaseChanged, and BattleResolved facts into typed Narrative Director events without changing simulation.
+6. `DialogueBoxBase` owns shared line advancement, choice-state focus and input
+   capture, click advancement, skipping, and cleanup for both Narrative Director
+   presentation and campus NPC/quest dialogue. The two context components remain
+   thin adapters for their distinct data and completion contracts.
 
 ## Legacy Paths Removed or Disabled
 

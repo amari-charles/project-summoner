@@ -254,7 +254,12 @@ public partial class TraitTreeService : Node
 
         var oneOffNodes = new Godot.Collections.Array<GDict>();
         var oneOffTraits = TraitCatalog
-            .GetTraitsByAcquisitionMode(TraitAcquisitionMode.GrantedOnly)
+            .GetAllTraits()
+            .Where(trait => !progressionById.ContainsKey(trait.Id.Value))
+            .Where(trait =>
+                trait.AcquisitionMode == TraitAcquisitionMode.GrantedOnly
+                || context.OwnedTraitIds.Contains(trait.Id.Value)
+            )
             .Where(trait =>
                 context.OwnedTraitIds.Contains(trait.Id.Value)
                 || TraitTreeEvaluator.MatchesOwnerTags(trait, context)

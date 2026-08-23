@@ -100,8 +100,10 @@ of the walkable-world UI. The Journal is available there and through a hotkey.
 
 ## Journal
 
-The Journal is available from any walkable exploration space. Its accepted
-structural layout is a full-screen three-region quest log:
+The Journal is available from any walkable exploration space. It opens as a
+large fixed overlay over that space, preserving and dimming the world context
+while traversal pauses. Its accepted structural layout is a three-region quest
+log within that overlay:
 
 - **Category rail:** Active, Open, and Completed, with one category selected at
   a time.

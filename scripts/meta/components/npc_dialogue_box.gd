@@ -1,4 +1,4 @@
-extends Control
+extends DialogueBoxBase
 class_name NpcDialogueBox
 
 signal choice_selected(choice_id: String)
@@ -10,52 +10,31 @@ signal closed
 @onready var choices: Container = %Choices
 @onready var advance_indicator: Label = %AdvanceIndicator
 
-var _lines: Array[String] = []
-var _line_index: int = 0
-var _authored_choices: Array[Dictionary] = []
-
-
 func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	hide()
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	gui_input.connect(_on_gui_input)
-	panel.gui_input.connect(_on_gui_input)
+	_initialize_dialogue_box(panel, choices)
 	_apply_palette()
 
 
 func present(speaker: String, lines: Array[String], response_choices: Array[Dictionary] = []) -> void:
 	speaker_label.text = speaker
-	_lines = lines
-	_line_index = 0
-	_authored_choices = response_choices
-	show()
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	_render_line()
+	_present_dialogue(lines, response_choices)
 
 
 func dismiss() -> void:
-	_lines.clear()
-	_authored_choices.clear()
-	_clear_choices()
-	hide()
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hide_dialogue()
 	closed.emit()
 
 
-func _render_line() -> void:
-	_clear_choices()
-	if _line_index < _lines.size():
-		line_label.text = _lines[_line_index]
-		advance_indicator.visible = true
-		return
-	line_label.text = ""
-	advance_indicator.visible = false
-	if _authored_choices.is_empty():
-		dismiss()
-		return
-	_release_dialogue_focus()
-	for choice: Dictionary in _authored_choices:
+func _display_dialogue_line(line: String) -> void:
+	line_label.text = line
+
+
+func _set_dialogue_advance_visible(is_visible: bool) -> void:
+	advance_indicator.visible = is_visible
+
+
+func _render_dialogue_choices(response_choices: Array[Dictionary]) -> void:
+	for choice: Dictionary in response_choices:
 		var button: Button = Button.new()
 		button.text = "› %s" % SafeTypeUtils.string(choice.get("text"))
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -66,59 +45,20 @@ func _render_line() -> void:
 		choices.add_child(button)
 
 
-func _on_gui_input(event: InputEvent) -> void:
-	if (
-		event is InputEventMouseButton
-		and event.pressed
-		and event.button_index == MOUSE_BUTTON_LEFT
-	):
-		_advance()
-
-
-func _unhandled_key_input(event: InputEvent) -> void:
-	if not visible or not event.pressed or event.echo:
-		return
-	if event.is_action("ui_cancel"):
-		_skip_to_choices_or_dismiss()
-
-
-func _input(event: InputEvent) -> void:
-	if (
-		visible
-		and event.is_pressed()
-		and not event.is_echo()
-		and _line_index < _lines.size()
-		and _is_dialogue_advance_event(event)
-	):
-		_advance()
-		get_viewport().set_input_as_handled()
-
-
-func _is_dialogue_advance_event(event: InputEvent) -> bool:
-	if event is InputEventKey:
-		var key_event: InputEventKey = event as InputEventKey
-		if key_event.keycode == KEY_SPACE or key_event.physical_keycode == KEY_SPACE:
-			return true
-	return (
-		event.is_action("interact")
-		or event.is_action("ui_accept")
-		or event.is_action("ui_select")
-	)
-
-
-func _advance() -> void:
-	if not visible or _line_index >= _lines.size():
-		return
-	_line_index += 1
-	_render_line()
-
-
 func _skip_to_choices_or_dismiss() -> void:
-	if not _authored_choices.is_empty():
-		_line_index = _lines.size()
-		_render_line()
-	else:
-		dismiss()
+	_skip_to_dialogue_choices_or_finish()
+
+
+func _on_dialogue_exhausted() -> void:
+	dismiss()
+
+
+func _on_dialogue_skipped() -> void:
+	dismiss()
+
+
+func _on_dialogue_cancelled() -> void:
+	dismiss()
 
 
 func _choose(choice_id: String) -> void:
@@ -135,14 +75,3 @@ func _apply_palette() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	speaker_label.add_theme_color_override("font_color", GameColorPalette.TEXT_HIGHLIGHT)
 	line_label.add_theme_color_override("default_color", GameColorPalette.TEXT_PRIMARY)
-
-
-func _clear_choices() -> void:
-	for child: Node in choices.get_children():
-		child.queue_free()
-
-
-func _release_dialogue_focus() -> void:
-	var focus_owner: Control = get_viewport().gui_get_focus_owner()
-	if focus_owner != null:
-		focus_owner.release_focus()

@@ -39,6 +39,27 @@ allocate.
 - Do not add decorative panels, borders, or nested boxes merely to group nearby
   information. A visible container needs a clear interaction or hierarchy job.
 
+### Size UI In Design Space, Not As Viewport Percentages
+
+The project uses a 1920x1080 logical design resolution and lets Godot scale that
+design to the player's display. Do not size authored UI surfaces by multiplying
+or anchoring against a percentage of the runtime viewport.
+
+- Give modals, cards, artwork slots, icons, buttons, and inventory cells explicit
+  design-space dimensions. Center or place them with `Container` nodes and anchors.
+- Use fractional anchors for placement, fullscreen coverage, and proportional
+  layout inside an already fixed-size component, not to determine the component's
+  display dimensions.
+- Full-screen screens may fill the viewport. Use fixed design-space margins when
+  their content needs an inset instead of percentage-based outer bounds.
+- HUD elements may anchor to viewport edges, and drawers may read viewport bounds
+  when needed to enter or leave the visible screen.
+- Functional canvases such as maps, trait graphs, cameras, and scroll regions may
+  use their available viewport or container size for centering, clipping, or
+  navigation. This exception does not permit viewport-sized authored artwork.
+- Prefer a stable configured row/column count for fixed inventory grids. Use
+  scrolling for overflow rather than changing the composition by resolution.
+
 ## Skills
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.
 

@@ -15,8 +15,9 @@ the deck is battle-ready.
   summoner rather than a shared account collection.
 - A summoner with no remembered ranked deck must choose one explicitly. The game
   does not silently use the first deck or overwrite the offline selection.
-- Changing the ranked deck reuses the collection/deck-management screen in a
-  ranked-selection context. Confirming a valid deck returns to Online.
+- Changing the ranked deck opens the shared collection/deck-management overlay
+  in a ranked-selection context. Online remains visible and dimmed behind it;
+  confirming a valid deck closes the overlay and resumes the same Online screen.
 - Matchmaking and deck exchange use the remembered ranked deck, not the offline
   active deck.
 

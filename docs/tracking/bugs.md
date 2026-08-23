@@ -15,7 +15,52 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 ---
 
 ## Active Bugs
-- None currently tracked.
+
+#### Item Debug Grant Command Calls a Missing Runtime Method
+**Status:** Open
+**Reported:** 2026-08-23
+**Component:** Developer Tools / Item Service Interop
+
+**Description:**
+The developer-console item grant flow reaches `ItemsApi.grant_item()`, but the
+adapter dynamically calls an item-service method that Godot does not expose
+under the expected callable contract.
+
+**Expected Behavior:**
+Running `/items_grant <item_id>` grants a test item and returns its instance ID,
+allowing the Inventory and equipment flows to be inspected with representative
+data.
+
+**Current Behavior:**
+The command fails with:
+`Invalid call. Nonexistent function 'GrantItem (via call)' in base 'Node (ItemService)'.`
+
+**Impact:**
+The Inventory prototype cannot be validated with item data through its intended
+developer workflow. The same untested dynamic boundary is also used by the
+item list, equip, unequip, and clear commands, so this should not be closed by
+patching only the observed grant call.
+
+**Reproduction Steps:**
+1. Launch a debug build with an active summoner.
+2. Open the developer console.
+3. Run `/items_grant item_training_blade`.
+4. Observe the invalid-call error instead of a granted item instance.
+
+**Proposed Solution:**
+Complete the linked item developer-tooling contract audit. Inventory every item
+debug operation, verify the actual Godot-exposed signatures, and then either
+repair the adapter as a tested boundary or replace the obsolete command path.
+
+**Related Files:**
+- `scripts/debug/dev_console.gd`
+- `scripts/infrastructure/services/items_api.gd`
+- `scripts/csharp/Meta/Services/Items/ItemService.cs`
+
+**Notes:**
+Keep this separate from the planned account-wide-to-summoner item ownership
+migration. That migration changes product/runtime ownership; this bug concerns
+broken developer tooling and an unverified interop contract.
 
 ---
 
@@ -56,4 +101,4 @@ Additional context
 ```
 
 ---
-*Last Updated: 2026-03-12 - Headless leak issue moved to resolved archive after validation pass*
+*Last Updated: 2026-08-23 - Added broken item debug grant/service interop bug*

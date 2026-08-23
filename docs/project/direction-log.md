@@ -76,6 +76,39 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-23 — Standardize full cards on the gameplay proportion
+
+**Status:** Accepted
+**Areas:** Cards, Battles, Decks, Rewards, UI
+
+### Decision
+
+Use the battle card's 3:4 proportion for every full-card presentation. Screens
+select from shared Compact, Standard, or Large design-space sizes rather than
+authoring independent dimensions or transforming a differently sized card.
+
+### Context
+
+Battle, Online, deck building, quests, inspection, and reward surfaces had
+drifted across both 3:4 and 2:3 cards with locally defined dimensions. This made
+the same card change shape between otherwise connected player flows.
+
+### Consequences
+
+- Battle remains the authority for the canonical card proportion.
+- Collection and deck-building cards move from 2:3 to the shared 3:4 format.
+- Context may change a card's named size tier, but not its proportion.
+- Bespoke legacy card-like panels must migrate to the shared presentation or
+  stop presenting themselves as full cards.
+
+### Supersedes
+
+None.
+
+### References
+
+- `docs/design/card-presentation.md`
+
 ## 2026-08-22 — Make the battlefield conclusion automatic
 
 **Status:** Accepted
@@ -627,6 +660,73 @@ owned-inventory surface.
 
 ### References
 
+- `docs/tracking/todos.md`
+
+## 2026-08-23 — Bind gameplay Inventory to individual summoners
+
+**Status:** Accepted; UI scoped, persistence migration pending
+**Areas:** Inventory, Equipment, Summoners, Persistence, Rewards
+
+### Decision
+
+Gameplay items belong to the summoner who acquires them. They are not shared
+across the player's roster. The bag opens Inventory for the active summoner, and
+equipment selection only considers that summoner's compatible owned items.
+
+### Context
+
+Inventory contributes to each summoner's distinct collection and build, matching
+the existing per-summoner card and deck model. Sharing gameplay equipment across
+the account would weaken that separation and make the bag's ownership context
+ambiguous.
+
+### Consequences
+
+- The reusable Inventory overlay always has an explicit summoner context.
+- Account-level cosmetics or purchases are separate from gameplay Inventory.
+- The legacy `AccountWide` gameplay-item definitions, grant paths, and saved data
+  require a dedicated migration before persistence fully matches this decision.
+
+### References
+
+- `docs/features/equipment-system.md`
+- `docs/tracking/todos.md`
+
+## 2026-08-23 — Make Inventory a passive category browser
+
+**Status:** Accepted; container treatment remains under evaluation
+**Areas:** Inventory, Items, Equipment, World Interaction, UI
+
+### Decision
+
+Make the normal bag Inventory primarily a large grid with `All`, `Equipment`,
+`Materials`, `Consumables`, and `Quest Items` filters. Selecting an item opens a
+smaller inspection modal rather than reserving permanent detail space. The bag
+supports browsing and inspection; meaningful item use remains with the relevant
+world location or character.
+
+Equipment is the contextual exception. Opening Inventory through a summoner's
+equipment slot filters the same collection to compatible items and adds equip or
+unequip actions to inspection.
+
+### Context
+
+Inventory needs to accommodate likely item categories for external UI design
+even if a provisional category is removed later. Keeping rituals, cracking,
+quest delivery, and commerce out of the bag also preserves the purpose of the
+campus and its dedicated interactions.
+
+### Consequences
+
+- The item grid occupies nearly all of the Inventory surface.
+- Category tabs and their empty states are part of the designer handoff.
+- Consumables remain a provisional supported category, not a commitment that
+  portable consumables must exist.
+- The final choice between a large overlay and a dedicated screen is still open.
+
+### References
+
+- `docs/features/equipment-system.md`
 - `docs/tracking/todos.md`
 
 ## 2026-08-22 — Replace the audio-only placeholder with shared game settings
@@ -1793,6 +1893,116 @@ scaling to forests, ruins, underground areas, and other bounded locations.
 
 The shortcut-menu rule that every screen and campus destination must appear in
 one direct-routing list.
+
+### References
+
+- `docs/design/walkable-academy-hub.md`
+
+## 2026-08-23 — Present the Summoner Profile over the active world
+
+**Status:** Accepted
+**Areas:** Summoners, Campus, Navigation, Progression UI
+
+### Decision
+
+Present the Summoner Profile as a fixed-size centered character-sheet overlay
+instead of an edge-to-edge destination screen. When opened from the walkable
+campus, the campus remains visible and dimmed behind the profile. Identity and
+build management remain equally important: character art, level and XP, equipped
+items, stats, and owned traits share the profile without restoring the full
+Inventory grid merely to fill space.
+
+### Context
+
+Removing owned Inventory left the full-screen composition with unused space.
+Adding unrelated information would overload the feature, while stretching the
+remaining sections would make the hierarchy weaker. A large overlay gives the
+character and progression information enough room without pretending they need
+an entire viewport or disconnecting the player from the campus context.
+
+### Consequences
+
+- Campus profile access opens and closes in place rather than performing a scene
+  transition.
+- The world pauses player movement while the profile is open and resumes it on
+  close.
+- Trait development and equipment selection can open above the profile.
+- Legacy routes may host the same reusable profile surface; they do not own a
+  duplicate layout.
+- Final art, typography, and information styling remain designer work.
+
+### References
+
+- `docs/design/walkable-academy-hub.md`
+- `docs/design/discovery-driven-development.md`
+
+## 2026-08-23 — Reuse distinct utility overlays across player contexts
+
+**Status:** Accepted
+**Areas:** Campus, Navigation, Quests, Cards, Inventory, Online UI
+
+### Decision
+
+Present the Summoner Profile, Spellbook/Deck manager, Journal, and Inventory as
+four distinct utility overlays rather than full-screen destinations or sections
+of one combined modal. When invoked from a walkable space, the host remains
+visible and dimmed while traversal pauses. The same Spellbook/Deck overlay may
+also be hosted over Online for ranked deck selection.
+
+Online remains a full destination screen. Encounter preparation retains its
+activity-specific embedded loadout editor because that surface owns encounter
+constraints and supplied cards; it is not interchangeable with general
+collection management.
+
+### Context
+
+These utilities support inspecting or changing persistent player state without
+requiring the player to mentally leave the current place. Reusing each utility
+across hosts avoids duplicate layouts, while keeping them separate preserves
+their different information needs. Not every major game surface benefits from
+this treatment: Online and activity preparation each own context that warrants
+a dedicated composition.
+
+### Consequences
+
+- Each utility uses a fixed, centered surface with dimming and a clear close or
+  Escape path.
+- Closing a utility resumes the exact host context that opened it.
+- Ranked deck selection and ordinary deck management share one implementation
+  with context-specific confirmation behavior.
+- Standalone utility routes may remain as compatibility fallbacks, but do not
+  define alternate UI designs.
+
+### References
+
+- `docs/design/walkable-academy-hub.md`
+- `docs/design/quest-system.md`
+- `docs/design/ranked-loadout-flow.md`
+
+## 2026-08-23 — Remove prose description from the Summoner Profile
+
+**Status:** Accepted
+**Areas:** Summoners, Progression UI
+
+### Decision
+
+Remove the separate identity/description panel from the Summoner Profile. The
+summoner's portrait and name communicate immediate character identity, while
+Stats occupy the full upper region of the build-information column. Traits and
+equipped items remain the other build-defining sections.
+
+### Context
+
+The temporary character description did not justify a permanent profile region
+and competed with information the player uses to understand the active build.
+Character writing can be authored as content without reserving structural space
+for it on this management surface.
+
+### Consequences
+
+- The profile contains no prose description or `IDENTITY` heading.
+- Stats are no longer constrained to half of the upper right column.
+- Summoner configuration descriptions remain valid content for other contexts.
 
 ### References
 

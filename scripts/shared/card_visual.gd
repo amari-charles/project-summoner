@@ -62,12 +62,15 @@ class_name CardVisual
 
 var card_data: Dictionary = {}
 var element_color: Color = Color.GRAY
+var _display_size_explicitly_set: bool = false
 
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
 func _ready() -> void:
+	if not _display_size_explicitly_set:
+		set_display_size(CardVisualHelper.CARD_SIZE_STANDARD)
 	# Initial setup
 	if card_data:
 		_apply_visual_styling()
@@ -91,6 +94,16 @@ func set_card_data(data: Dictionary, show_desc: bool = false) -> void:
 	_update_type_icon()
 	_update_art()
 	_update_description()
+
+
+## Apply one of the shared full-card display sizes without using Control.scale.
+func set_display_size(display_size: Vector2) -> void:
+	_display_size_explicitly_set = true
+	custom_minimum_size = display_size
+	size = display_size
+	scale = Vector2.ONE
+	size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 ## Update just the element color (useful for theme switching)
 func set_element_color(color: Color) -> void:

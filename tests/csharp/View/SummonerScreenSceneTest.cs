@@ -9,7 +9,7 @@ using static GdUnit4.Assertions;
 public class SummonerScreenSceneTest
 {
     [TestCase]
-    public void SummonerScreen_CombinesBuildProgressionAndInventory()
+    public void SummonerScreen_PresentsCharacterBuildWithoutOwnedInventory()
     {
         var packed = GD.Load<PackedScene>("res://scenes/meta/screens/summoner_screen.tscn");
         AssertThat(packed).IsNotNull();
@@ -17,8 +17,14 @@ public class SummonerScreenSceneTest
         var screen = packed!.Instantiate<Control>();
         try
         {
+            var window = screen.FindChild("Window", true, false) as Control;
+            AssertThat(window).IsNotNull();
+            AssertThat(window!.CustomMinimumSize).IsEqual(new Vector2(1200, 720));
+            AssertThat(screen.FindChild("Dimmer", true, false)).IsNotNull();
             AssertThat(screen.FindChild("XPProgressBar", true, false)).IsNotNull();
             AssertThat(screen.FindChild("StatsPanel", true, false)).IsNotNull();
+            AssertThat(screen.FindChild("DescriptionPanel", true, false)).IsNull();
+            AssertThat(screen.FindChild("DescriptionLabel", true, false)).IsNull();
             AssertThat(screen.FindChild("EquipmentPanel", true, false)).IsNotNull();
             AssertThat(screen.FindChild("TraitsPanel", true, false)).IsNotNull();
             AssertThat(screen.FindChild("UpgradesButton", true, false)).IsNull();
@@ -31,7 +37,8 @@ public class SummonerScreenSceneTest
             AssertThat(traitsScroll).IsNotNull();
             AssertThat(traitsScroll!.VerticalScrollMode)
                 .IsEqual(ScrollContainer.ScrollMode.Auto);
-            AssertThat(screen.FindChild("InventoryPanel", true, false)).IsNotNull();
+            AssertThat(screen.FindChild("InventoryPanel", true, false)).IsNull();
+            AssertThat(screen.FindChild("InventoryOverlay", true, false)).IsNotNull();
             AssertThat(screen.FindChild("InventoryGrid", true, false)).IsNotNull();
             var leftColumn = screen.FindChild("LeftColumn", true, false) as Control;
             var rightColumn = screen.FindChild("RightColumn", true, false) as Control;
@@ -39,9 +46,14 @@ public class SummonerScreenSceneTest
             AssertThat(rightColumn).IsNotNull();
             AssertThat(leftColumn!.SizeFlagsStretchRatio).IsEqual(1.0f);
             AssertThat(rightColumn!.SizeFlagsStretchRatio).IsEqual(1.0f);
+            var statsPanel = screen.FindChild("StatsPanel", true, false) as Control;
+            AssertThat(statsPanel!.GetParent()).IsEqual(rightColumn);
             var portrait = screen.FindChild("PortraitTexture", true, false) as TextureRect;
             AssertThat(portrait).IsNotNull();
             AssertThat(portrait!.Texture).IsNotNull();
+            var portraitStack = screen.FindChild("PortraitStack", true, false) as Control;
+            AssertThat(portraitStack).IsNotNull();
+            AssertThat(portraitStack!.CustomMinimumSize).IsEqual(new Vector2(390, 400));
 
             AssertThat(screen.FindChild("LevelUpButton", true, false)).IsNull();
             AssertThat(screen.FindChild("GoldLabel", true, false)).IsNull();
@@ -50,6 +62,43 @@ public class SummonerScreenSceneTest
         finally
         {
             screen.Free();
+        }
+    }
+
+    [TestCase]
+    public void InventoryOverlay_ReusesLargeGridAndDetailsForBrowsingAndEquipment()
+    {
+        var packed = GD.Load<PackedScene>(
+            "res://scenes/meta/components/inventory_overlay.tscn"
+        );
+        AssertThat(packed).IsNotNull();
+
+        var overlay = packed!.Instantiate<CanvasLayer>();
+        try
+        {
+            AssertThat(overlay.Visible).IsFalse();
+            var window = overlay.FindChild("Window", true, false) as Control;
+            AssertThat(window).IsNotNull();
+            AssertThat(window!.CustomMinimumSize).IsEqual(new Vector2(1240, 700));
+            AssertThat(overlay.FindChild("Center", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("InventoryGrid", true, false)).IsNotNull();
+            var itemFlow = overlay.FindChild("ItemFlow", true, false) as GridContainer;
+            AssertThat(itemFlow).IsNotNull();
+            AssertThat(itemFlow!.Columns).IsEqual(12);
+            AssertThat(overlay.FindChild("CategoryTabs", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("AllTab", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("EquipmentTab", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("MaterialsTab", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("ConsumablesTab", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("QuestItemsTab", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("Details", true, false)).IsNull();
+            AssertThat(overlay.FindChild("ItemDetailModal", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("EquipButton", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("UnequipButton", true, false)).IsNotNull();
+        }
+        finally
+        {
+            overlay.Free();
         }
     }
 

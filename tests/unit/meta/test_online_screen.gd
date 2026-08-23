@@ -105,8 +105,9 @@ func test_deck_rail_renders_fixed_size_card_art_without_resizing_the_source_card
 	var slot: Control = screen.deck_rail.get_child(0) as Control
 	var card_visual: CardVisual = slot.get_child(0) as CardVisual
 	assert_eq(slot.custom_minimum_size, OnlineScreen.DECK_CARD_SIZE)
-	assert_eq(card_visual.custom_minimum_size, OnlineScreen.DECK_CARD_RENDER_SIZE)
-	assert_eq(card_visual.scale, Vector2(1.125, 1.125))
+	assert_eq(card_visual.custom_minimum_size, OnlineScreen.DECK_CARD_SIZE)
+	assert_eq(card_visual.size, OnlineScreen.DECK_CARD_SIZE)
+	assert_eq(card_visual.scale, Vector2.ONE)
 
 	screen.queue_free()
 	await get_tree().process_frame
@@ -131,6 +132,27 @@ func test_empty_deck_is_a_visible_selector_and_mode_menu_uses_noninteractive_pla
 	assert_true(placeholder_b is Label)
 	assert_false(placeholder_a is BaseButton)
 	assert_false(placeholder_b is BaseButton)
+
+	screen.queue_free()
+	await get_tree().process_frame
+
+
+func test_ranked_deck_selection_opens_the_shared_collection_overlay() -> void:
+	var screen: OnlineScreen = ONLINE_SCREEN_SCENE.instantiate() as OnlineScreen
+	add_child_autofree(screen)
+	await get_tree().process_frame
+
+	assert_true(screen.collection_overlay.embedded_overlay)
+	assert_false(screen.collection_overlay.visible)
+	screen._on_change_deck_pressed()
+	assert_true(screen.collection_overlay.visible)
+	assert_true(screen.collection_overlay._ranked_selection_mode)
+	assert_eq(
+		screen.collection_overlay._ranked_summoner_id,
+		SummonerSelectionApi.get_active_summoner_id()
+	)
+	screen.collection_overlay._on_close_pressed()
+	assert_false(screen.collection_overlay.visible)
 
 	screen.queue_free()
 	await get_tree().process_frame

@@ -4,11 +4,9 @@ class_name HandUI
 ## Displays player's hand of cards at bottom of screen
 ## Shows card name, cost, and availability based on mana
 
-## Card display size constants
-## These must match the CardVisual scene dimensions to ensure proper rendering
-## Changing these requires updating both this file and card_visual.tscn
-const CARD_WIDTH: int = 120   ## Width of each card in pixels (matches CardVisual width)
-const CARD_HEIGHT: int = 160  ## Height of each card in pixels (matches CardVisual height)
+## Gameplay uses the authoritative standard full-card presentation size.
+const CARD_WIDTH: int = int(CardVisualHelper.CARD_SIZE_STANDARD.x)
+const CARD_HEIGHT: int = int(CardVisualHelper.CARD_SIZE_STANDARD.y)
 const CARD_SPACING: int = 10  ## Horizontal spacing between cards in hand
 const CARD_VISUAL_SCENE: PackedScene = preload("res://scenes/shared/card_visual.tscn")
 
@@ -562,8 +560,7 @@ func _create_card_display(card: Card, index: int) -> CardDisplay:
 		return container
 
 	# Configure card visual for in-hand display
-	card_visual.size = Vector2(CARD_WIDTH, CARD_HEIGHT)
-	card_visual.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+	card_visual.set_display_size(CardVisualHelper.CARD_SIZE_STANDARD)
 	card_visual.border_width = 3
 	card_visual.corner_radius = 8
 	card_visual.cost_font_size = 20

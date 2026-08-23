@@ -58,6 +58,11 @@ public class TraitTreeServiceTest
         var vm = traitTree.GetSummonerTreeViewModel(summonerId);
         AssertThat(vm.Count).IsGreater(0);
 
+        foreach (var innateTraitId in SummonerCatalog.GetSummoner(summonerId)!.InnateTraitIds)
+        {
+            AssertThat(FindNode(vm, "one_off_nodes", innateTraitId)).IsNotNull();
+        }
+
         var coleSoulStrength = FindNode(vm, "progression_nodes", TraitIds.ColeSoulStrengthI);
         AssertThat(coleSoulStrength).IsNotNull();
         var coleSoulStrengthNode = coleSoulStrength!;

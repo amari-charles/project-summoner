@@ -1,10 +1,12 @@
 extends BackNavigableScreen
 class_name SummonerScreen
 
-## SummonerScreen - Full-screen summoner info and management interface
+## SummonerScreen - Reusable summoner profile and management overlay
 ##
 ## Displays the active summoner's identity, automatic XP progress, stats,
 ## equipment, and trait development entry points.
+
+@export var embedded_overlay: bool = false
 
 ## =============================================================================
 ## SIGNALS
@@ -16,7 +18,8 @@ signal closed()
 ## NODE REFERENCES - Header
 ## =============================================================================
 
-@onready var background: ColorRect = %Background
+@onready var dimmer: ColorRect = %Dimmer
+@onready var window: PanelContainer = %Window
 @onready var close_button: Button = %CloseButton
 @onready var summoner_name_label: Label = %SummonerNameLabel
 @onready var element_label: Label = %ElementLabel
@@ -39,10 +42,6 @@ signal closed()
 ## NODE REFERENCES - Right Half Panels
 ## =============================================================================
 
-@onready var description_panel: PanelContainer = %DescriptionPanel
-@onready var description_header: Label = %DescriptionHeader
-@onready var description_label: Label = %DescriptionLabel
-
 @onready var stats_panel: PanelContainer = %StatsPanel
 @onready var stats_header: Label = %StatsHeader
 @onready var stats_container: VBoxContainer = %StatsContainer
@@ -55,53 +54,65 @@ signal closed()
 
 @onready var equipment_panel: PanelContainer = %EquipmentPanel
 @onready var equipment_container: VBoxContainer = %EquipmentContainer
-
-@onready var inventory_panel: PanelContainer = %InventoryPanel
-@onready var inventory_header: Label = %InventoryHeader
-@onready var inventory_grid: InventoryGrid = %InventoryGrid
+@onready var inventory_overlay: InventoryOverlay = %InventoryOverlay
 
 ## =============================================================================
 ## STATE
 ## =============================================================================
 
 var _current_summoner_id: String = ""
-var _equipment_modal: EquipmentSlotModal = null
-
-
 ## =============================================================================
 ## LIFECYCLE
 ## =============================================================================
 
 func _ready() -> void:
-	background.color = GameColorPalette.UI_BACKGROUND
+	_configure_overlay_style()
 	# Connect header buttons
 	close_button.pressed.connect(_on_close_pressed)
 	switch_summoner_button.pressed.connect(_on_switch_summoner_pressed)
-	inventory_grid.item_selected.connect(_on_inventory_item_selected)
 	trait_development_overlay.trait_acquired.connect(_on_trait_acquired)
 
 	# Connect to service signals
 	if SummonerSelection.has_signal("SummonerChanged"):
 		SummonerSelection.connect("SummonerChanged", _on_summoner_changed)
 
-	# Setup equipment modal
-	_equipment_modal = EquipmentSlotModal.new()
-	_equipment_modal.item_equipped.connect(_on_equipment_changed)
-	_equipment_modal.item_unequipped.connect(_on_equipment_slot_cleared)
-	add_child(_equipment_modal)
+	inventory_overlay.item_equipped.connect(_on_equipment_changed)
+	inventory_overlay.item_unequipped.connect(_on_equipment_slot_cleared)
 
 	# Set static localized text
 	switch_summoner_button.text = Loc.t("ui.summoner_screen.switch_summoner")
-	description_header.text = Loc.t("ui.summoner_screen.identity_header")
 	stats_header.text = Loc.t("ui.summoner_screen.stats_header")
 	traits_header.text = Loc.t("ui.summoner_screen.traits_header")
-	inventory_header.text = Loc.t("ui.summoner_screen.inventory_header")
 
 	# Load active summoner
 	var active_id: String = SummonerSelectionApi.get_active_summoner_id()
 	if not active_id.is_empty():
 		_current_summoner_id = active_id
 		_refresh_all()
+	if embedded_overlay:
+		visible = false
+
+
+func open_profile(summoner_id: String = "") -> void:
+	_current_summoner_id = (
+		summoner_id
+		if not summoner_id.is_empty()
+		else SummonerSelectionApi.get_active_summoner_id()
+	)
+	visible = true
+	_refresh_all()
+
+
+func _configure_overlay_style() -> void:
+	dimmer.color = Color(0.0, 0.0, 0.0, 0.62)
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = GameColorPalette.UI_BACKGROUND
+	style.border_color = GameColorPalette.UI_BORDER_STRONG
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.shadow_color = GameColorPalette.BUTTON_SHADOW
+	style.shadow_size = 14
+	window.add_theme_stylebox_override("panel", style)
 
 
 ## =============================================================================
@@ -143,9 +154,6 @@ func _refresh_all() -> void:
 
 	# Update portrait
 	_update_portrait(element, gradient_colors)
-
-	# Update description
-	description_label.text = config.description if not config.description.is_empty() else Loc.t("ui.summoner_screen.no_description")
 
 	# Update XP
 	if is_max_level:
@@ -193,13 +201,11 @@ const SUMMONER_STAT_TOOLTIP_KEYS: Dictionary = {
 
 func _style_panels(element_color: Color) -> void:
 	# Style each panel with warm colors and element accent
-	_style_single_panel(description_panel, description_header, element_color)
 	_style_single_panel(stats_panel, stats_header, element_color)
 	_style_single_panel(traits_panel, traits_header, element_color)
 	_style_single_panel(equipment_panel, null, element_color)
-	_style_single_panel(inventory_panel, inventory_header, element_color)
 
-	description_label.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
+	traits_header.add_theme_color_override("font_color", GameColorPalette.TEXT_PRIMARY)
 
 
 func _style_single_panel(panel: PanelContainer, header: Label, accent_color: Color) -> void:
@@ -416,7 +422,6 @@ func _refresh_equipment() -> void:
 
 	# Get equipped items from Items service
 	var equipped: Dictionary = ItemsApi.get_equipped_items_dict(_current_summoner_id)
-	inventory_grid.set_summoner(_current_summoner_id, equipped)
 
 	# Create horizontal box for 4 slots
 	var hbox: HBoxContainer = HBoxContainer.new()
@@ -520,7 +525,6 @@ func _show_no_summoner() -> void:
 	summoner_name_label.text = Loc.t("ui.summoner_icon.no_summoner")
 	element_label.text = ""
 	level_label.text = ""
-	description_label.text = ""
 	portrait_texture.visible = false
 	portrait_symbol.visible = true
 	portrait_symbol.text = "?"
@@ -535,7 +539,6 @@ func _show_no_summoner() -> void:
 		child.queue_free()
 	for child: Node in equipment_container.get_children():
 		child.queue_free()
-	inventory_grid.set_summoner("")
 
 
 ## =============================================================================
@@ -555,7 +558,11 @@ func _on_trait_acquired(_trait_id: String) -> void:
 
 
 func _on_switch_summoner_pressed() -> void:
-	NavigationContext.push_return(SceneManager.SCENE_SUMMONER_SCREEN)
+	NavigationContext.push_return(
+		SceneManager.SCENE_WALKABLE_ACADEMY_HUB
+		if embedded_overlay
+		else SceneManager.SCENE_SUMMONER_SCREEN
+	)
 	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SWITCH)
 
 
@@ -568,8 +575,8 @@ func _on_equipment_slot_clicked(event: InputEvent, slot: String) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
-			if _equipment_modal and not _current_summoner_id.is_empty():
-				_equipment_modal.open(slot, _current_summoner_id)
+			if not _current_summoner_id.is_empty():
+				inventory_overlay.open_equipment_slot(_current_summoner_id, slot)
 
 
 func _on_equipment_changed(_slot: String, _item_instance_id: String) -> void:
@@ -580,18 +587,15 @@ func _on_equipment_slot_cleared(_slot: String) -> void:
 	_refresh_all()
 
 
-func _on_inventory_item_selected(item: Dictionary) -> void:
-	var slot: String = SafeTypeUtils.string(item.get("slot", ""), "")
-	if slot.is_empty() or not _equipment_modal or _current_summoner_id.is_empty():
-		return
-	_equipment_modal.open(slot, _current_summoner_id)
-
-
 ## =============================================================================
 ## NAVIGATION
 ## =============================================================================
 
 func _close() -> void:
+	if embedded_overlay:
+		visible = false
+		closed.emit()
+		return
 	closed.emit()
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():

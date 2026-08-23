@@ -4,6 +4,13 @@ const HUB_SCENE_PATH: String = "res://scenes/meta/screens/walkable_academy_hub.t
 const MENU_HUB_SCENE_PATH: String = "res://scenes/meta/screens/academy_hub.tscn"
 const CUTOUT_RENDER_ORDER: Script = preload("res://scripts/meta/components/academy_cutout_render_order.gd")
 
+class UnhandledCancelSpy extends Node:
+	var cancel_presses: int = 0
+
+	func _unhandled_input(event: InputEvent) -> void:
+		if event.is_action_pressed("ui_cancel"):
+			cancel_presses += 1
+
 
 func test_walkable_hub_is_primary_route_and_menu_hub_remains_available() -> void:
 	assert_eq(SceneManager.SCENE_CAMPAIGN_MAP, HUB_SCENE_PATH)
@@ -28,9 +35,13 @@ func test_hub_scene_contains_player_boundaries_and_travel_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Interface/TravelPanel"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/JournalButton"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/InventoryButton"))
+	assert_not_null(hub.get_node_or_null("InventoryOverlay"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/SpellbookButton"))
 	assert_not_null(hub.get_node_or_null("Interface/TrackedQuestBanner/TrackedQuestButton"))
 	assert_not_null(hub.get_node_or_null("Interface/NpcDialogueBox"))
+	assert_not_null(hub.get_node_or_null("Interface/SummonerProfile"))
+	assert_not_null(hub.get_node_or_null("Interface/CollectionOverlay"))
+	assert_not_null(hub.get_node_or_null("Interface/JournalOverlay"))
 	assert_null(hub.get_node_or_null("Interface/ProfessorDialog"))
 	assert_not_null(hub.get_node_or_null("Professors"))
 	assert_not_null(hub.get_node_or_null("QuestTargets"))
@@ -80,27 +91,103 @@ func test_spellbook_is_a_persistent_right_side_action_instead_of_a_building() ->
 	assert_lt(rail.offset_left, 0.0)
 	assert_not_null(button.icon)
 	assert_true(button.text.is_empty())
-	assert_eq(
-		hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SPELLBOOK),
-		SceneManager.SCENE_COLLECTION_SCREEN
-	)
-	var spellbook_destination: Dictionary = {}
-	for destination: Dictionary in WalkableAcademyHub.DIRECT_UI_DESTINATIONS:
-		if destination["id"] == WalkableAcademyHub.DESTINATION_SPELLBOOK:
-			spellbook_destination = destination
-			break
-	assert_false(spellbook_destination.is_empty())
-	assert_false(spellbook_destination.has("position"))
+	assert_true(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SPELLBOOK).is_empty())
+	var collection_overlay: Control = hub.get_node("Interface/CollectionOverlay") as Control
+	assert_true(collection_overlay.embedded_overlay)
 	hub.free()
 
 
-func test_inventory_action_opens_the_combined_summoner_build_screen() -> void:
+func test_inventory_action_opens_the_summoner_scoped_inventory_overlay() -> void:
 	var source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/screens/walkable_academy_hub.gd"
 	)
-	assert_true(
-		source.contains("inventory_button.pressed.connect(_route_to.bind(DESTINATION_SUMMONER))")
+	assert_true(source.contains("inventory_button.pressed.connect(_open_inventory)"))
+	assert_true(source.contains("inventory_overlay.open_inventory(summoner_id)"))
+
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	add_child_autofree(hub)
+	await get_tree().process_frame
+	hub.inventory_overlay.open_inventory("summoner_mei")
+	assert_true(hub.inventory_overlay.visible)
+	assert_eq(hub.inventory_overlay._summoner_id, "summoner_mei")
+	assert_true(hub.inventory_overlay.category_tabs.visible)
+	assert_true(hub.inventory_overlay.all_tab.button_pressed)
+	assert_false(hub.inventory_overlay.item_detail_modal.visible)
+	hub.inventory_overlay._select_category("materials")
+	await get_tree().process_frame
+	assert_true(hub.inventory_overlay.materials_tab.button_pressed)
+	assert_true(hub.inventory_overlay.inventory_grid.item_flow.visible)
+	assert_eq(
+		hub.inventory_overlay.inventory_grid.item_flow.get_child_count(),
+		InventoryGrid.VISIBLE_SLOT_CAPACITY
 	)
+	assert_true(
+		hub.inventory_overlay.inventory_grid._matches_category(
+			{"category": "materials", "slot": ""}
+		)
+	)
+	assert_false(
+		hub.inventory_overlay.inventory_grid._matches_category(
+			{"category": "consumables", "slot": ""}
+		)
+	)
+	hub.inventory_overlay.open_equipment_slot("summoner_mei", "wand")
+	assert_false(hub.inventory_overlay.category_tabs.visible)
+	assert_eq(hub.inventory_overlay._category_filter, "equipment")
+	hub.inventory_overlay.close()
+	assert_false(hub.inventory_overlay.visible)
+
+
+func test_summoner_profile_opens_over_the_hub_without_a_scene_transition() -> void:
+	var source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/walkable_academy_hub.gd"
+	)
+	assert_true(source.contains("summoner_icon.icon_clicked.connect(_open_summoner_profile)"))
+	assert_true(source.contains("summoner_profile.open_profile(summoner_id)"))
+
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	add_child_autofree(hub)
+	await get_tree().process_frame
+	assert_true(hub.summoner_profile.embedded_overlay)
+	assert_false(hub.summoner_profile.visible)
+	hub._open_summoner_profile()
+	assert_true(hub.summoner_profile.visible)
+	assert_false(hub.player.is_physics_processing())
+	hub.summoner_profile._close()
+	assert_false(hub.summoner_profile.visible)
+	assert_true(hub.player.is_physics_processing())
+
+
+func test_spellbook_and_journal_open_as_separate_campus_utility_overlays() -> void:
+	var source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/walkable_academy_hub.gd"
+	)
+	assert_true(source.contains("spellbook_button.pressed.connect(_open_collection)"))
+	assert_true(source.contains("journal_button.pressed.connect(_open_journal)"))
+	assert_true(source.contains("tracked_quest_button.pressed.connect(_open_journal)"))
+
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	add_child_autofree(hub)
+	await get_tree().process_frame
+
+	hub._open_collection()
+	assert_true(hub.collection_overlay.visible)
+	assert_false(hub.journal_overlay.visible)
+	assert_false(hub.player.is_physics_processing())
+	hub.collection_overlay._on_close_pressed()
+	assert_false(hub.collection_overlay.visible)
+	assert_true(hub.player.is_physics_processing())
+
+	hub._open_journal()
+	assert_true(hub.journal_overlay.visible)
+	assert_false(hub.collection_overlay.visible)
+	assert_false(hub.player.is_physics_processing())
+	hub.journal_overlay._go_back()
+	assert_false(hub.journal_overlay.visible)
+	assert_true(hub.player.is_physics_processing())
 
 
 func test_world_locations_are_physical_travel_points_and_ui_routes_stay_separate() -> void:
@@ -129,8 +216,8 @@ func test_world_locations_are_physical_travel_points_and_ui_routes_stay_separate
 	assert_false(WalkableAcademyHub.DESTINATION_SPELLBOOK in travel_ids)
 	assert_false(WalkableAcademyHub.DESTINATION_JOURNAL in travel_ids)
 	assert_false(WalkableAcademyHub.DESTINATION_SUMMONER in travel_ids)
-	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
-	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL), SceneManager.SCENE_QUEST_JOURNAL)
+	assert_true(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER).is_empty())
+	assert_true(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL).is_empty())
 	var direct_ui_scenes: Array[String] = []
 	for destination: Dictionary in WalkableAcademyHub.DIRECT_UI_DESTINATIONS:
 		direct_ui_scenes.append(str(destination.get("target_scene", "")))
@@ -162,13 +249,14 @@ func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
 	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
 	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
 	assert_not_null(journal)
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/ActiveButton"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/OpenButton"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/CategoryPanel/CategoryMargin/Categories/CompletedButton"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/ListPanel/ListMargin/ListRoot/QuestScroll/QuestList"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel/DetailContent/ProfessorRow/ProfessorPortrait"))
-	assert_not_null(journal.get_node_or_null("Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel/DetailContent/RewardsScroll/RewardsList"))
+	assert_not_null(journal.find_child("Window", true, false))
+	assert_not_null(journal.find_child("ActiveButton", true, false))
+	assert_not_null(journal.find_child("OpenButton", true, false))
+	assert_not_null(journal.find_child("CompletedButton", true, false))
+	assert_not_null(journal.find_child("QuestList", true, false))
+	assert_not_null(journal.find_child("DetailPanel", true, false))
+	assert_not_null(journal.find_child("ProfessorPortrait", true, false))
+	assert_not_null(journal.find_child("RewardsList", true, false))
 	journal.free()
 
 
@@ -299,7 +387,18 @@ func test_required_player_response_starts_unselected() -> void:
 	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
 	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
 	add_child_autofree(dialogue)
+	var npc_scene: PackedScene = load("res://scenes/meta/components/interactive_npc.tscn")
+	var npc: InteractiveNpc = npc_scene.instantiate() as InteractiveNpc
+	add_child_autofree(npc)
 	await get_tree().process_frame
+	npc._player_inside = true
+	npc.interacted.connect(func(_npc_id: String) -> void:
+			dialogue.present(
+				"Professor",
+				["First line", "Second line"],
+				[{"id": "accept", "text": "I'm ready."}]
+			)
+	)
 	dialogue.present(
 		"Professor",
 		["First line", "Second line"],
@@ -315,9 +414,39 @@ func test_required_player_response_starts_unselected() -> void:
 	var space: InputEventKey = InputEventKey.new()
 	space.keycode = KEY_SPACE
 	space.pressed = true
-	dialogue._input(space)
+	get_viewport().push_input(space, true)
+	await get_tree().process_frame
 	assert_true(dialogue.visible)
 	assert_eq(responses.get_child_count(), 1)
+	assert_eq(dialogue._line_index, 2)
+
+
+func test_escape_closes_npc_dialogue_before_world_menu_can_handle_it() -> void:
+	var packed_scene: PackedScene = load("res://scenes/meta/components/npc_dialogue_box.tscn")
+	var dialogue: NpcDialogueBox = packed_scene.instantiate() as NpcDialogueBox
+	var input_spy: UnhandledCancelSpy = UnhandledCancelSpy.new()
+	add_child_autofree(dialogue)
+	add_child_autofree(input_spy)
+	await get_tree().process_frame
+	dialogue.present(
+		"Professor",
+		["Choose carefully."],
+		[
+			{"id": "first", "text": "First response"},
+			{"id": "second", "text": "Second response"},
+		]
+	)
+	dialogue._skip_to_choices_or_dismiss()
+	assert_true(dialogue.visible)
+
+	var escape: InputEventKey = InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	get_viewport().push_input(escape, true)
+	await get_tree().process_frame
+
+	assert_false(dialogue.visible)
+	assert_eq(input_spy.cancel_presses, 0)
 
 
 func test_intro_offer_uses_authored_player_response_instead_of_rule_callouts() -> void:
@@ -352,8 +481,8 @@ func test_quest_offer_and_journal_share_the_same_detail_component() -> void:
 	assert_true(hub_script.contains("_on_quest_offer_accepted"))
 	var journal_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
 	var journal: QuestJournal = journal_scene.instantiate() as QuestJournal
-	var journal_detail: QuestDetailPanel = journal.get_node(
-		"Margin/Root/Body/DetailPanel/DetailMargin/DetailLayout/QuestDetailPanel"
+	var journal_detail: QuestDetailPanel = journal.find_child(
+		"QuestDetailPanel", true, false
 	) as QuestDetailPanel
 	var offer_scene: PackedScene = load(
 		"res://scenes/meta/components/quest_offer_modal.tscn"
@@ -395,13 +524,24 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 		"Center/Panel/Margin/Content/QuestDetailPanel"
 	) as QuestDetailPanel
 	assert_eq(detail.rewards_list.get_child_count(), 1)
-	assert_true(detail.rewards_list.get_child(0) is CardWidget)
+	var reward_slot: CenterContainer = detail.rewards_list.get_child(0) as CenterContainer
+	assert_not_null(reward_slot)
+	assert_eq(detail.card_size_preset, CardVisualHelper.CardSize.STANDARD)
+	var display_size: Vector2 = CardVisualHelper.CARD_SIZE_STANDARD
+	assert_eq(reward_slot.custom_minimum_size, display_size)
 	await get_tree().process_frame
-	var card_widget: CardWidget = detail.rewards_list.get_child(0) as CardWidget
+	var card_widget: CardWidget = reward_slot.get_child(0) as CardWidget
+	assert_not_null(card_widget)
 	var card_panel: PanelContainer = card_widget.get_node("CardPanel") as PanelContainer
 	assert_eq(card_widget.size_flags_horizontal, Control.SIZE_SHRINK_CENTER)
-	assert_eq(card_panel.size, QuestDetailPanel.CARD_REWARD_PREVIEW_SIZE)
-	assert_almost_eq(card_panel.size.x / card_panel.size.y, 2.0 / 3.0, 0.001)
+	assert_eq(card_widget.size, display_size)
+	assert_eq(card_panel.size, display_size)
+	assert_almost_eq(
+		card_panel.size.x / card_panel.size.y,
+		CardVisualHelper.CARD_ASPECT_RATIO,
+		0.001
+	)
+	assert_false(detail.rewards_scroll.get_v_scroll_bar().visible)
 	offer._back()
 	assert_false(offer.visible)
 
@@ -437,12 +577,15 @@ func test_tracked_quest_is_a_wide_semitransparent_banner() -> void:
 	hub.free()
 
 
-func test_quest_journal_uses_readable_neutral_background() -> void:
+func test_quest_journal_uses_a_readable_fixed_overlay() -> void:
 	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene
 	var journal: QuestJournal = packed_scene.instantiate() as QuestJournal
-	var background: ColorRect = journal.get_node("Background") as ColorRect
-	assert_gt(background.color.r, background.color.b)
-	assert_gt(background.color.get_luminance(), 0.5)
+	var dimmer: ColorRect = journal.find_child("Dimmer", true, false) as ColorRect
+	var window: Control = journal.find_child("Window", true, false) as Control
+	assert_not_null(dimmer)
+	assert_not_null(window)
+	assert_eq(window.custom_minimum_size, Vector2(1500, 820))
+	assert_lt(dimmer.color.a, 1.0)
 	journal.free()
 
 
