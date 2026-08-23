@@ -46,6 +46,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-23, ranked loadouts):** Implemented the Online loadout scaffold, separate per-summoner ranked-deck persistence, contextual selection through the collection screen, queue validation, and ranked battle wiring.
 **Tracker Sync (2026-08-23, item developer tooling):** Added a bounded audit of the broken item debug-command/service contract after `/items_grant` exposed a nonexistent runtime method call. Repair versus replacement remains an audit outcome rather than a preselected implementation.
 **Tracker Sync (2026-08-23, utility overlays):** Standardized Summoner Profile, Spellbook/Deck, Journal, and Inventory as distinct reusable overlays over their invoking context. Online remains a destination and now hosts the shared Spellbook overlay for ranked-deck changes; encounter preparation retains its activity-specific loadout editor.
+**Tracker Sync (2026-08-23, designer-readiness reconciliation):** Reconciled the active UI queue after PR `#376`. Summoner Profile, Inventory, Collection/Decks, Journal, quest offers, dialogue, campus HUD/Travel, battle HUD, Settings, Online loadout, summoner selection, and the combined Results direction now have accepted structural scaffolds. Removed stale Inventory and XP assumptions, recorded the remaining state matrices and legacy cleanup, and split generic Activity Preparation into the next explicit core-loop UI review.
 
 ---
 
@@ -64,6 +65,61 @@ The superseded `first_card_selection` route is a bespoke button-based choice
 screen rather than a shared full-card presentation. Remove the route with the
 legacy onboarding path or rebuild it from the canonical 3:4 card surface; do
 not treat a ratio-only change to its outer buttons as a completed migration.
+
+#### Review the Generic Activity Preparation Screen
+**Status:** 🟡 Partial (Functional Scaffold)
+**Category:** Quests / Activities / Decks / UI/UX
+**Urgency:** High — remaining core quest-to-battle handoff
+**Ease:** Easy
+**Scope:** Small
+
+The generic Activity Preparation surface is reachable and supports encounter
+rules, deck validation, fixed or editable loadouts, reward preview, and battle
+launch. It has not received the same product/information-architecture review as
+the quest offer, Journal, battle HUD, and Results surfaces.
+
+**Tasks:**
+- [ ] Confirm the minimum hierarchy: activity identity and objective, authored
+  rules, loadout/deck validity, reward expectation, and Start/Back actions.
+- [ ] Review owned-deck, class-loadout, and fixed-loadout variants without
+  restoring course-specific UI ownership.
+- [ ] Define valid, invalid, missing-deck, fixed-loadout, loading, and blocked
+  states for designer handoff.
+- [ ] Confirm the screen remains an activity-specific preparation surface rather
+  than another general-purpose Collection/Deck overlay.
+
+**Likely Files:**
+- `scenes/meta/screens/academy_activity_preparation.tscn`
+- `scripts/meta/screens/academy_activity_preparation.gd`
+- `docs/design/quest-system.md`
+
+#### Review the Campus Shop and Purchase Surface After Economy Scope
+**Status:** 🟡 Partial (Functional Scaffold; Product Dependencies Open)
+**Category:** Shop / Items / Economy / UI/UX
+**Urgency:** Medium — designer handoff needs the states, but product rules lead
+**Ease:** Medium
+**Scope:** Medium
+
+The Campus Shop has a reachable offer grid and purchase-detail scaffold, but its
+final information hierarchy depends on the accepted jobs for gold, item types,
+ownership, purchase limits, and universal reward grants. Do not polish around
+legacy Caravan assumptions.
+
+**Tasks:**
+- [ ] Define the purchase-state contract after gold and item-system planning:
+  balance, price, affordability, ownership, purchase limit, confirmation,
+  success, and actionable failure.
+- [ ] Reuse canonical Card and item inspection surfaces rather than inventing
+  shop-only reward visuals.
+- [ ] Confirm how services such as card cracking or ritual costs differ from
+  ordinary purchasable offerings and keep their world interactions distinct.
+- [ ] Give the designer the minimum empty, loading, unavailable, affordable,
+  unaffordable, owned, and sold-out states.
+
+**Dependencies:**
+- Gold's defined economic job
+- Gameplay item ownership and catalog scope
+- Universal reward/commerce contracts
 
 #### Rework the Summoner Screen Around Automatic Levels and Banked Upgrade Choices
 **Status:** 🔄 In Progress
@@ -84,20 +140,23 @@ Run a second product and information-architecture pass on the summoner screen. T
   a reusable Inventory prototype while retaining equipped slots on Summoner.
 - [x] Convert campus Summoner Profile access to a fixed centered overlay that
   retains the dimmed campus context and pauses traversal while open.
-- [ ] Evaluate the current large-overlay presentation against a dedicated
-  Inventory screen before accepting the final navigation and layout treatment.
+- [x] Accept Summoner Profile and Inventory as distinct fixed overlays over the
+  invoking context; do not merge Inventory into the profile or route it through
+  a separate full-screen destination.
 - [ ] Migrate gameplay-item definitions, grant call sites, saved instances, and
   ownership queries from the legacy account-wide path to summoner ownership.
 - [ ] Define the minimum states the designer must cover: ordinary progress, newly leveled, unspent points, max level, locked upgrade, and permanent branch confirmation.
-- [ ] Reconcile player-facing terminology (`level`, `XP`, `upgrade point`, `trait`, `doctrine`, or other authored labels).
-- [ ] Mark current placeholder portrait, stat icons, stat ladders, and panel layout as replaceable presentation.
+- [x] Use `Level`, `XP`, `Trait Points`, `Card Points`, and `Traits` as the current
+  structural terminology; final copy and authored trait names may still change.
+- [x] Treat the current portrait, stat icons, stat ladders, typography, and panel
+  styling as replaceable designer-facing scaffolding.
 
 **Progress (2026-08-17):** Automatic multi-level processing and banked points are
-implemented. The Summoner prototype now keeps build management separate from a
-large reusable Inventory overlay, while equipped slots open that overlay in a
-compatible-item context. Remaining work includes the gameplay-item ownership
-migration, designer-state specification, final terminology pass, and presentation
-design.
+implemented. The accepted profile is a fixed overlay containing identity, Level
+and XP, stats, equipped items, and clickable owned Traits. Inventory is a separate
+summoner-scoped overlay, and equipped slots reopen it in a compatible-item
+context. Remaining work is the gameplay-item ownership migration, explicit
+designer state coverage, and final visual design.
 
 **Likely Files:**
 - `docs/design/trait-tree-screen-flow-spec.md`
@@ -177,7 +236,7 @@ remain incomplete.
 - `docs/tracking/discovery-driven-development-work-plan.md`
 
 #### Define Summoner XP Visibility Across the Persistent HUD and Progression Surfaces
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Placement Contract Accepted)
 **Category:** Meta Progression / HUD / UI/UX
 **Urgency:** High — designer handoff dependency
 **Ease:** Easy
@@ -187,11 +246,18 @@ remain incomplete.
 Establish one explicit XP presentation contract so the designer does not omit progression state or add redundant bars to every screen. Decide where summoner level, XP progress, and unspent upgrade points are persistent, contextual, or intentionally hidden.
 
 **Tasks:**
-- [ ] Decide whether the walkable-campus profile widget shows a compact XP bar or ring, current level, and unspent-point badge.
-- [ ] Keep summoner XP out of the battle HUD unless a separate in-battle use is explicitly approved.
-- [ ] Require prominent before/after XP presentation in post-battle results.
-- [ ] Define summoner-screen XP presentation, max-level state, rollover animation, and multi-level behavior.
-- [ ] Define where participating-card XP appears without placing card XP in the global HUD.
+- [x] Keep a persistent XP bar/ring out of the walkable-campus profile widget;
+  the compact widget may show Level and an unspent-choice badge without becoming
+  a second progression screen.
+- [x] Keep summoner XP out of the battle HUD unless a separate in-battle use is explicitly approved.
+- [ ] Specify the exact before/after, rollover, multi-level, and max-level states
+  the designer must support in the combined Results surface.
+- [x] Show current Summoner Level and XP progress prominently on the Summoner Profile.
+- [x] Show participating-card XP in Results and Card progression/details rather
+  than in the global HUD.
+
+**Remaining Scope:** This is no longer a placement decision. Only the Results
+animation/state contract and the optional unspent-choice badge treatment remain.
 
 **Likely Files:**
 - `scenes/meta/components/summoner_icon_widget.tscn`
@@ -210,18 +276,20 @@ Establish one explicit XP presentation contract so the designer does not omit pr
 Replace the fragmented campaign reward screen, encounter results screen, and optional level-up modals with one clear post-battle flow backed by reusable acquisition/reveal components. The same acquisition presentation must also support rewards granted outside battle, including quest turn-ins.
 
 **Progress:** Quest turn-ins use a reusable reward-grant modal fed by the generic
-quest-completion result. Campaign and encounter battles now route through a
-shared combined Results prototype that reads committed XP/rewards and supports
-a campaign reward choice. The battlefield conclusion now advances automatically
-into Results rather than requiring a redundant outcome confirmation. The typed
-report builder, exact before/after level
-snapshots, contextual progress rows, reusable reveal components, and deletion of
-the legacy screens remain open.
+quest-completion result. Campaign and encounter battles route through one
+combined Results prototype after a brief automatic battlefield conclusion. Card
+rewards use the canonical full-card surface, and required choices remain distinct
+from automatic grants. The typed report builder, exact before/after snapshots,
+non-card reveal treatments, contextual progress rows, and deletion of legacy
+result/reward destinations remain open.
 
 **Tasks:**
 - [x] Approve the unified post-battle sequence: battlefield conclusion, then one combined Results surface for summoner/card XP, level reveals, acquired rewards, contextual quest/rating progress, and continue destination.
-- [ ] Define reusable reveal components for a card, item/equipment, gold/resource, summoner/card upgrade point, and special trait or eligibility reward.
-- [ ] Define automatic grants versus required reward choices without inventing source-specific UI contracts.
+- [x] Reuse canonical card presentation for card previews and card reward reveals.
+- [ ] Define reusable reveal treatments for item/equipment, gold/resource,
+  Summoner/Card points, and special trait or eligibility rewards.
+- [x] Keep automatic grants distinct from persistent required reward choices and
+  use the same normalized reward contract regardless of source.
 - [x] Route both campaign and encounter victory/defeat outcomes through the shared Results prototype.
 - [ ] Deprecate `RewardScreen` and `EncounterResults` as competing end destinations once the unified route is complete.
 - [ ] Preserve authoritative reward/progression mutation outside the presentation layer; the screen consumes a typed post-battle report and submits only explicit pending choices.
@@ -279,22 +347,26 @@ Quest completion may originate from any character or activity, so quest-to-rewar
 **Description:**
 Inventory every currently reachable player-facing screen and overlay, then label each one `retain`, `redesign`, `merge`, `deprecate`, or `prototype-only`. Include required states and the canonical route between screens so the designer works from the intended game rather than legacy implementation accidents.
 
-**Progress:** The redundant interactive battlefield outcome surface has been
-consolidated into a brief automatic overlay followed by the canonical combined
-Results screen. The battle HUD now has a functional information scaffold and
-mode-aware pause/forfeit behavior. Settings now use one shared categorized
-surface from the campus, battle, and standalone routes, and Escape on campus
-opens the canonical system menu. The remaining reward, level-up, course,
-navigation, online confirmation, and legacy-surface inventory is still open.
+**Progress:** Structural review is complete for Summoner selection/reveal,
+walkable campus HUD and Travel, dialogue, quest offer, Journal, Summoner Profile,
+Trait development, Inventory, Collection/Decks, battle HUD and pause, Settings,
+Online ranked loadout, and the combined Results direction. These remain
+designer-facing scaffolds rather than final art. Generic Activity Preparation,
+the obsolete first-card choice route, the Results state matrix, Shop/purchase
+states, and legacy destination removal are the remaining major UI decisions.
 
 **Tasks:**
 - [ ] Map onboarding, summoner selection, campus HUD, dialogue, Journal, quest preparation, battle, results/rewards, summoner, upgrades, equipment, shop, collection/deck, settings, and online flows.
 - [ ] Identify duplicate victory, reward, level-up, course, and navigation surfaces.
-- [ ] Define persistent HUD safe zones for profile/XP, tracked quest, and global actions before individual screens are composed.
+- [x] Define persistent campus HUD ownership: profile at upper left, tracked quest
+  beneath it, utility actions on the center-right rail, and conceptual future
+  Friends capacity without a dead control.
 - [ ] Record empty, locked, loading, error, confirmation, newly-unlocked, and unspent-choice states for each retained surface.
-- [ ] State the primary target viewport, supported aspect-ratio range, and input assumptions the designer should use.
+- [x] State the 1920x1080 logical design viewport and current desktop
+  mouse/keyboard assumptions.
+- [ ] Define and validate the supported aspect-ratio range.
 - [ ] Link existing Figma references and distinguish approved layouts from exploratory mockups.
-- [ ] Reserve conceptual capacity for a future Friends panel in the campus HUD's right-side action rail without shipping a nonfunctional control.
+- [x] Reserve conceptual capacity for a future Friends panel in the campus HUD's right-side action rail without shipping a nonfunctional control.
 
 **Likely Files:**
 - `docs/design/`
@@ -762,62 +834,30 @@ Review the current game setup to ensure compatibility with both mobile and deskt
 ---
 
 
-### 🟢 LOW PRIORITY
-
-#### Support Upgrade-Specific Resource Costs (Future)
-**Status:** 🟠 Superseded by Discovery-Driven Development
-**Category:** Core Game Systems / Progression
-**Effort:** Small
-**Dependencies:** Discovery-driven trait acquisition (in progress)
-
-**Description:**
-Add optional support for trait-specific resource costs (essence, fragments, etc.)
-through the generic acquisition transaction used by Summoners and Cards.
-
-**Current Behavior:**
-- Card/summoner level-ups require only XP (no gold cost)
-- Gold is campaign-scoped and used only for Caravan shop purchases
-
-**Future Enhancement:**
-- Individual trait nodes can optionally specify points, material costs, or both.
-- The shared trait-tree transaction contract owns validation and spending.
-- Would allow rare/powerful upgrades to require special resources from events
-
-**Progress Update (2026-08-22):**
-- ✅ Retired the manual Card level-up resource contract and mutation API; XP
-  now applies levels automatically.
-- ✅ Trait acquisition supports configurable point and material requirements
-  through the shared transaction path.
-- ⬜ Remaining: author representative material-gated nodes and complete
-  affordability/presentation UX.
-
-**Related Code:**
-- `scripts/csharp/Meta/Services/Traits/TraitTreeService.cs` - acquisition transaction
-- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinition.cs` - node requirements
-
-**Notes:**
-- Low priority - automatic XP levels are separate from development spending
-- Resources add optional depth for specific powerful upgrades
-
----
-
 ## Visual Polish
 
 ### 🟡 MEDIUM PRIORITY
 
 #### Improve Card Visual UI
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Structural Standardization Complete)
 **Category:** UI/UX
 **Effort:** Medium
 
 **Description:**
 Enhance the visual design of card display including layout, typography, and effects.
 
-**Requirements:**
-- Refine card frame and borders
-- Improve text readability
-- Add card hover effects
-- Polish card animations
+**Current State:**
+- Full cards use one 3:4 presentation contract with Compact, Standard, and Large
+  design-space tiers across battle, deck, quest, and reward contexts.
+- Card inspection no longer exposes rarity or tactical-role badges.
+- Card details expose Level, XP, Card Points, Core, and acquired Trait paths.
+
+**Remaining Work:**
+- Apply designer-authored frame, typography, icon, and spacing treatments.
+- Validate long names, descriptions, costs, locked cards, max Level, unspent Card
+  Points, and newly acquired Traits at every canonical size.
+- Refine hover/selection feedback and card transition animations without
+  introducing screen-specific card proportions.
 
 **Notes:**
 - Should work with existing 3D tilt effect
@@ -1532,26 +1572,6 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 - Team decision: use lightweight, feature-scoped DI (small interfaces + explicit `Init(...)` injection from `BattleScene`).
 - Team decision: avoid a large global `GameServices` container; it can become another service locator.
 - Team decision: apply DI first to high fan-out battle services (`VFX`, `Audio`, session-related adapters), then expand only when it reduces duplication.
-
----
-
-#### Move Tutorial Dialogue Triggers to Sim Events
-**Status:** ⬜ Not Started
-**Category:** Architecture / Battle Flow
-**Effort:** Medium
-
-**Description:**
-`battle_dialogue_controller.gd` still evaluates gameplay proximity conditions from scene nodes in `_process`. This is high-level orchestration logic, but trigger criteria are gameplay-derived and should come from simulation events/state to avoid visual/sim drift.
-
-**Proposed Fix:**
-- Emit explicit sim-side event(s) for tutorial trigger conditions (example: enemy entered base threat radius)
-- Consume those events in battle dialogue controller (or a dedicated bridge)
-- Remove per-frame node-group distance scans from GDScript
-
-**Related Files:**
-- `scripts/battle/battle_dialogue_controller.gd`
-- `scripts/csharp/Battle/Simulation/Simulation.cs`
-- `scripts/csharp/Battle/View/EntityManager.cs`
 
 ---
 

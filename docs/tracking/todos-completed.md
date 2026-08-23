@@ -6,6 +6,54 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-08 Completions
 
+### Move Tutorial Dialogue Triggers to Simulation Events
+**Completed:** 2026-08-23
+**Category:** Architecture / Battle Flow
+**Effort:** Medium
+
+Closed by the Narrative Director replacement. The legacy GDScript battle
+dialogue controller and its per-frame scene-node proximity scans were removed;
+battle narrative now receives typed gameplay facts from the battle/simulation
+bridge.
+
+**Resolution Summary:**
+- ✅ Removed `battle_dialogue_controller.gd` and its polling path.
+- ✅ Adapted battle start, phase change, and battle resolution facts into the
+  typed Narrative Director contract.
+- ✅ Kept presentation in the shared narrative presenter rather than deriving
+  gameplay conditions from visual nodes.
+- ✅ Future proximity-driven cues must add an explicit simulation fact instead
+  of restoring scene-tree polling.
+
+**Representative Files:**
+- `scripts/csharp/Battle/View/BattleScene.cs`
+- `scripts/csharp/Battle/Simulation/Simulation.cs`
+- `scripts/shared/narrative_dialogue_presenter.gd`
+
+---
+
+### Support Upgrade-Specific Resource Costs
+**Completed:** 2026-08-23
+**Category:** Core Game Systems / Progression
+**Effort:** Small
+
+The generic trait-acquisition transaction now supports optional point and
+material requirements without coupling those costs to automatic XP leveling.
+
+**Resolution Summary:**
+- ✅ Card and Summoner XP apply automatic levels without spending gold or materials.
+- ✅ Trait definitions can configure point costs, material costs, or both.
+- ✅ The shared transaction validates and spends configured requirements.
+- ✅ Representative material-gated authoring and affordability presentation
+  remain tracked by the discovery-driven development slice rather than by a
+  duplicate future-cost task.
+
+**Representative Files:**
+- `scripts/csharp/Meta/Services/Traits/TraitTreeService.cs`
+- `scripts/csharp/Infrastructure/Data/Traits/TraitDefinition.cs`
+
+---
+
 ### Add Ranked Loadout Selection to Online Matchmaking
 **Completed:** 2026-08-23
 **Category:** Ranked Gameplay / UI/UX
