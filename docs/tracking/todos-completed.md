@@ -6,6 +6,29 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-08 Completions
 
+### Review the Generic Activity Preparation Screen
+**Completed:** 2026-08-23
+**Category:** Quests / Activities / Decks / UI/UX
+**Effort:** Small
+
+Accepted the existing Start Battle modal as the current functional scaffold.
+It already owns the activity objective and rules, loadout/deck validity, reward
+expectation, and Start/Back actions without duplicating general Collection
+management.
+
+**Resolution Summary:**
+- ✅ Retained the current generic Activity Preparation surface.
+- ✅ Kept activity-specific constraints and supplied/fixed loadouts in this flow.
+- ✅ Kept general deck ownership and management in the Collection/Deck overlay.
+- ✅ Deferred final typography, art, spacing, and edge-state treatment to the
+  designer rather than reopening the product flow.
+
+**Representative Files:**
+- `scenes/meta/screens/academy_activity_preparation.tscn`
+- `scripts/meta/screens/academy_activity_preparation.gd`
+
+---
+
 ### Move Tutorial Dialogue Triggers to Simulation Events
 **Completed:** 2026-08-23
 **Category:** Architecture / Battle Flow

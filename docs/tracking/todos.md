@@ -66,33 +66,6 @@ screen rather than a shared full-card presentation. Remove the route with the
 legacy onboarding path or rebuild it from the canonical 3:4 card surface; do
 not treat a ratio-only change to its outer buttons as a completed migration.
 
-#### Review the Generic Activity Preparation Screen
-**Status:** 🟡 Partial (Functional Scaffold)
-**Category:** Quests / Activities / Decks / UI/UX
-**Urgency:** High — remaining core quest-to-battle handoff
-**Ease:** Easy
-**Scope:** Small
-
-The generic Activity Preparation surface is reachable and supports encounter
-rules, deck validation, fixed or editable loadouts, reward preview, and battle
-launch. It has not received the same product/information-architecture review as
-the quest offer, Journal, battle HUD, and Results surfaces.
-
-**Tasks:**
-- [ ] Confirm the minimum hierarchy: activity identity and objective, authored
-  rules, loadout/deck validity, reward expectation, and Start/Back actions.
-- [ ] Review owned-deck, class-loadout, and fixed-loadout variants without
-  restoring course-specific UI ownership.
-- [ ] Define valid, invalid, missing-deck, fixed-loadout, loading, and blocked
-  states for designer handoff.
-- [ ] Confirm the screen remains an activity-specific preparation surface rather
-  than another general-purpose Collection/Deck overlay.
-
-**Likely Files:**
-- `scenes/meta/screens/academy_activity_preparation.tscn`
-- `scripts/meta/screens/academy_activity_preparation.gd`
-- `docs/design/quest-system.md`
-
 #### Review the Campus Shop and Purchase Surface After Economy Scope
 **Status:** 🟡 Partial (Functional Scaffold; Product Dependencies Open)
 **Category:** Shop / Items / Economy / UI/UX
