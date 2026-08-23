@@ -27,7 +27,7 @@ public static class EventTypeExtensions
     public static bool IsCombat(this EventType type) =>
         type is EventType.Battle or EventType.Elite or EventType.Boss;
 
-    /// <summary>Convert to string ID matching GDScript NodeTypeIDs</summary>
+    /// <summary>Convert to the serialized event-type identifier.</summary>
     public static string ToStringId(this EventType type) =>
         type switch
         {

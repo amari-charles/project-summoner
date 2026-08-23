@@ -52,6 +52,16 @@ physical-world role. Their obsolete course-screen ownership was removed.
 
 ## Validation commands
 
-Final command output and exact counts are recorded in the pull-request report
-after the complete C#, GUT, build/type, catalog, structural, and headless-loading
-checks have run on the final commit.
+- `./tools/run_tests.sh`: passed. GDScript type/parse check passed; C# passed
+  1,233/1,233; GUT passed 322/322 with 2,624 assertions.
+- `dotnet build Fateforged.csproj --no-restore`: passed with zero warnings and
+  zero errors.
+- Catalog/content integrity runs inside the complete C# and GUT suites, including
+  Academy, event, reward, test-arena, localization, and biome catalogs.
+- Retained player-facing scenes are loaded or instantiated by the headless GUT
+  route tests for Summoner selection/reveal, Academy campus, professor/Journal,
+  encounter preparation and deck overlay, Results, Online, Settings/pause, and
+  the battle HUD.
+- Post-deletion searches find no active legacy route, scene, autoload, event,
+  shop, localization, or narrative reference. The only runtime-source occurrence
+  of `caravan_purchases` is the documented persistence round-trip boundary.
