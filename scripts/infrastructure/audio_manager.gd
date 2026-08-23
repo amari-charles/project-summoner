@@ -63,6 +63,7 @@ var _sfx_bus_idx: int = -1
 ## UI sound player and cache
 var _ui_player: AudioStreamPlayer = null
 var _ui_sound_cache: Dictionary = {}
+var _mute_when_unfocused: bool = false
 
 
 func _ready() -> void:
@@ -74,6 +75,7 @@ func _ready() -> void:
 	_preload_ui_sounds()
 	_apply_settings_volume()
 	_apply_sound_effects_switch()
+	GameSettings.setting_changed.connect(_on_game_setting_changed)
 
 
 ## =============================================================================
@@ -308,6 +310,15 @@ func get_volume(bus_name: String) -> float:
 	return 1.0
 
 
+func set_mute_when_unfocused(enabled: bool) -> void:
+	_mute_when_unfocused = enabled
+	GameSettings.set_value(&"mute_when_unfocused", enabled)
+
+
+func get_mute_when_unfocused() -> bool:
+	return _mute_when_unfocused
+
+
 ## Format volume as percentage string (e.g., "75%")
 func format_volume_percent(volume: float) -> String:
 	return "%d%%" % int(volume * 100)
@@ -316,6 +327,12 @@ func format_volume_percent(volume: float) -> String:
 ## Apply volume from profile settings to audio buses
 func _apply_settings_volume() -> void:
 	var settings: Dictionary = ProfileRepoApi.get_settings_dict()
+	_mute_when_unfocused = SafeTypeUtils.bool_val(
+		settings.get("mute_when_unfocused", false),
+		false
+	)
+
+	var master_vol: float = SafeTypeUtils.float_val(settings.get("master_volume", 1.0), 1.0)
 
 	var music_vol_val: Variant = settings.get("music_volume", 1.0)
 	var music_vol: float = SafeTypeUtils.float_val(music_vol_val, 1.0)
@@ -324,6 +341,9 @@ func _apply_settings_volume() -> void:
 	var sfx_vol: float = SafeTypeUtils.float_val(sfx_vol_val, 1.0)
 
 	# Apply without persisting (already in settings)
+	var master_bus_idx: int = AudioServer.get_bus_index(BUS_MASTER)
+	if master_bus_idx >= 0:
+		AudioServer.set_bus_volume_db(master_bus_idx, _linear_to_db(master_vol))
 	if _music_bus_idx >= 0:
 		AudioServer.set_bus_volume_db(_music_bus_idx, _linear_to_db(music_vol))
 	if _sfx_bus_idx >= 0:
@@ -333,6 +353,18 @@ func _apply_settings_volume() -> void:
 func _apply_sound_effects_switch() -> void:
 	if _sfx_bus_idx >= 0:
 		AudioServer.set_bus_mute(_sfx_bus_idx, not SOUND_EFFECTS_ENABLED)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and _mute_when_unfocused:
+		AudioServer.set_bus_mute(AudioServer.get_bus_index(BUS_MASTER), true)
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN and _mute_when_unfocused:
+		AudioServer.set_bus_mute(AudioServer.get_bus_index(BUS_MASTER), false)
+
+
+func _on_game_setting_changed(key: StringName, value: Variant) -> void:
+	if key == &"mute_when_unfocused":
+		_mute_when_unfocused = SafeTypeUtils.bool_val(value, false)
 
 
 ## =============================================================================
@@ -361,6 +393,8 @@ func _set_player_volume(linear: float, player: AudioStreamPlayer) -> void:
 ## Map bus name to ProfileRepo setting key
 func _bus_to_setting_key(bus_name: String) -> String:
 	match bus_name:
+		BUS_MASTER:
+			return "master_volume"
 		BUS_MUSIC:
 			return "music_volume"
 		BUS_SFX:

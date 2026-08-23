@@ -123,6 +123,7 @@ const DESTINATIONS: Array[Dictionary] = [
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 @onready var reward_modal: RewardGrantModal = %RewardGrantModal
 @onready var quest_offer_modal: QuestOfferModal = %QuestOfferModal
+@onready var campus_system_menu: CampusSystemMenu = %CampusSystemMenu
 
 var _camera_target_fov: float = 46.0
 var _camera_default_fov: float = 46.0
@@ -544,6 +545,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close_shortcuts()
 		get_viewport().set_input_as_handled()
 		return
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		campus_system_menu.open_menu()
+		return
 	if event is InputEventMouseButton:
 		var mouse_event: InputEventMouseButton = event
 		if not mouse_event.pressed:
@@ -592,6 +597,9 @@ func _close_shortcuts() -> void:
 
 
 func _route_to(destination_id: StringName) -> void:
+	if destination_id == DESTINATION_SETTINGS:
+		campus_system_menu.open_settings()
+		return
 	if _transition_started:
 		return
 	var target_scene: String = _scene_for_destination(destination_id)

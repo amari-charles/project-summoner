@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/battle/ui/game_ui.gd" id="1_game_ui"]
 [ext_resource type="Script" path="res://scripts/csharp/Battle/Input/InputCollector.cs" id="2_drop_zone"]
-[ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/battle/ui/stat_bar.tscn" id="3_stat_bar"]
+[ext_resource type="PackedScene" path="res://scenes/battle/ui/battle_summoner_status.tscn" id="3_summoner_status"]
 [ext_resource type="Script" path="res://scripts/battle/ui/speed_button.gd" id="4_speed_button"]
 [ext_resource type="Script" path="res://scripts/battle/ui/pause_button.gd" id="5_pause_button"]
 [ext_resource type="PackedScene" uid="uid://pause_menu" path="res://scenes/battle/ui/pause_menu.tscn" id="6_pause_menu"]
@@ -12,10 +12,15 @@ bg_color = Color(0.08, 0.07, 0.06, 0.55)
 
 [node name="BattleHUD" type="CanvasLayer"]
 script = ExtResource("1_game_ui")
-player_hp_bar = NodePath("HUDContainer/PlayerHPBar")
-player_mana_bar = NodePath("HUDContainer/PlayerManaBar")
-enemy_hp_bar = NodePath("HUDContainer/EnemyHPBar")
-enemy_mana_bar = NodePath("HUDContainer/EnemyManaBar")
+player_status = NodePath("HUDContainer/PlayerStatus")
+enemy_status = NodePath("HUDContainer/EnemyStatus")
+player_hp_bar = NodePath("HUDContainer/PlayerStatus/Details/HPBar")
+player_mana_bar = NodePath("HUDContainer/PlayerStatus/Details/ManaBar")
+enemy_hp_bar = NodePath("HUDContainer/EnemyStatus/Details/HPBar")
+enemy_mana_bar = NodePath("HUDContainer/EnemyStatus/Details/ManaBar")
+timer_label = NodePath("TimerLabel")
+phase_label = NodePath("PhaseLabel")
+prep_timer_label = NodePath("PrepTimerLabel")
 
 [node name="InputCollector" type="Control" parent="."]
 layout_mode = 3
@@ -35,41 +40,78 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="PlayerHPBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
+[node name="PlayerStatus" parent="HUDContainer" instance=ExtResource("3_summoner_status")]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 520.0
-offset_bottom = 52.0
+offset_right = 460.0
+offset_bottom = 112.0
 
-[node name="PlayerManaBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
-layout_mode = 1
-offset_left = 20.0
-offset_top = 60.0
-offset_right = 420.0
-offset_bottom = 92.0
-
-[node name="EnemyHPBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
+[node name="EnemyStatus" parent="HUDContainer" instance=ExtResource("3_summoner_status")]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 layout_mode = 1
-offset_left = -520.0
+offset_left = -460.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 52.0
+offset_bottom = 112.0
 grow_horizontal = 0
+mirrored = true
 
-[node name="EnemyManaBar" parent="HUDContainer" instance=ExtResource("3_stat_bar")]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-layout_mode = 1
-offset_left = -420.0
-offset_top = 60.0
-offset_right = -20.0
-offset_bottom = 92.0
-grow_horizontal = 0
+[node name="TimerLabel" type="Label" parent="."]
+visible = false
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 58.0
+offset_right = 80.0
+offset_bottom = 98.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.972549, 0.913725, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.07, 0.06, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 28
+text = "03:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PhaseLabel" type="Label" parent="."]
+visible = false
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 124.0
+offset_right = 220.0
+offset_bottom = 160.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.972549, 0.913725, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.07, 0.06, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 28
+text = "Prepare Your Field"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PrepTimerLabel" type="Label" parent="."]
+visible = false
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 158.0
+offset_right = 100.0
+offset_bottom = 238.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 64
+text = "15"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="SpeedButton" type="Button" parent="."]
 anchors_preset = 3

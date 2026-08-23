@@ -49,6 +49,7 @@ func _check_battle_mode() -> void:
 	]
 
 	disabled = not is_speed_enabled
+	visible = is_speed_enabled
 
 	if disabled:
 		text = "▶ 1x"

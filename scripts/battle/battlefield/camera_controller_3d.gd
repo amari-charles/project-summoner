@@ -125,6 +125,17 @@ var _debug_overlay_material: StandardMaterial3D
 func _ready() -> void:
 	# Set process mode to ALWAYS so camera panning works during dialogues
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	edge_pan_enabled = edge_pan_enabled and SafeTypeUtils.bool_val(
+		GameSettings.get_value(&"edge_pan_enabled"),
+		true
+	)
+	pan_speed *= clampf(
+		SafeTypeUtils.float_val(GameSettings.get_value(&"camera_speed"), 1.0),
+		0.5,
+		2.0
+	)
+	if SafeTypeUtils.bool_val(GameSettings.get_value(&"reduce_camera_motion"), false):
+		zoom_pitch_enabled = false
 
 	# Wait one frame for transform initialization
 	await get_tree().process_frame

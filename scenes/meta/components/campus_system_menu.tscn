@@ -1,0 +1,119 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/components/campus_system_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://scenes/shared/settings_panel.tscn" id="2_settings"]
+
+[node name="CampusSystemMenu" type="Control"]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.68)
+
+[node name="MenuCenter" type="CenterContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MenuPanel" type="PanelContainer" parent="MenuCenter"]
+custom_minimum_size = Vector2(420, 360)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="MenuCenter/MenuPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 42
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 42
+theme_override_constants/margin_bottom = 36
+
+[node name="Buttons" type="VBoxContainer" parent="MenuCenter/MenuPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="TitleLabel" type="Label" parent="MenuCenter/MenuPanel/Margin/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="MenuCenter/MenuPanel/Margin/Buttons"]
+layout_mode = 2
+
+[node name="ResumeButton" type="Button" parent="MenuCenter/MenuPanel/Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+
+[node name="SettingsButton" type="Button" parent="MenuCenter/MenuPanel/Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+
+[node name="QuitButton" type="Button" parent="MenuCenter/MenuPanel/Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+
+[node name="SettingsOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SettingsBackground" type="ColorRect" parent="SettingsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0)
+
+[node name="SettingsCenter" type="CenterContainer" parent="SettingsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SettingsLayout" type="VBoxContainer" parent="SettingsOverlay/SettingsCenter"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SettingsPanel" parent="SettingsOverlay/SettingsCenter/SettingsLayout" instance=ExtResource("2_settings")]
+layout_mode = 2
+
+[node name="SettingsBackButton" type="Button" parent="SettingsOverlay/SettingsCenter/SettingsLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="QuitConfirmation" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+visible = false
