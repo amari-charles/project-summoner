@@ -1,7 +1,7 @@
 # Item System
 
 **Status:** CURRENT
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-08-23
 
 ## Overview
 
@@ -43,23 +43,24 @@ Each slot can hold one item. Players own many items but equip only 4 at a time.
 
 ## Item Binding
 
-Items have different binding rules based on how they're acquired:
+Normal gameplay items are owned by the summoner who acquires them. Event-exclusive
+content is the deliberate exception: each event-exclusive item may be authored as
+either summoner-bound or account-wide according to that event's reward design.
 
 | Source | Binding | UI Indicator |
 |--------|---------|--------------|
-| Campaign reward | Summoner-bound | (none) |
-| Event reward | Account-wide | `[Shared]` tag |
-| Shop purchase | Account-wide | `[Shared]` tag |
+| Quest, campaign, shop, or ordinary world reward | Summoner-bound | (none) |
+| Event-exclusive reward | Configurable: summoner-bound or account-wide | `[Shared]` only when account-wide |
 
 ### Summoner-Bound Items
-- Acquired through campaign progression
+- Default for all normal gameplay-item acquisition
 - Part of that summoner's forged fate
 - Cannot be used by other summoners
 
 ### Account-Wide (Shared) Items
-- Acquired from events, shop, or other non-campaign sources
+- Reserved for event-exclusive items explicitly authored as shared
 - Any summoner on the account can equip them
-- Prevents forcing players to grind events X times for X summoners
+- Can prevent an event-exclusive reward from requiring duplicate acquisition for every summoner
 
 ---
 
@@ -69,10 +70,12 @@ Items have different binding rules based on how they're acquired:
 Items can be offered as rewards during campaign progression. These become summoner-bound.
 
 ### Event Rewards
-Events and trials can drop items. These are account-wide and tagged `[Shared]`.
+Events and trials can drop exclusive items. Their authored reward definition
+decides whether each item is summoner-bound or account-wide. Account-wide event
+items are tagged `[Shared]`.
 
 ### Shop
-The meta shop may sell items. These are account-wide and tagged `[Shared]`.
+Ordinary purchased gameplay items belong to the active summoner.
 
 ---
 
@@ -82,7 +85,7 @@ The item system exists to provide:
 
 1. **Tactical flexibility** - Adapt loadout to different opponents/situations
 2. **Horizontal progression** - Own many items, equip few, choose based on strategy
-3. **Accessible farming** - Account-wide items mean one grind benefits all summoners
+3. **Intentional event reach** - Specific event-exclusive items may be shared when repeating that event for every summoner would undermine the event design
 4. **Build expression** - Items + Traits + Cards = unique summoner identity
 
 ---

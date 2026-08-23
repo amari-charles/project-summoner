@@ -116,8 +116,10 @@ Run a second product and information-architecture pass on the summoner screen. T
 - [x] Accept Summoner Profile and Inventory as distinct fixed overlays over the
   invoking context; do not merge Inventory into the profile or route it through
   a separate full-screen destination.
-- [ ] Migrate gameplay-item definitions, grant call sites, saved instances, and
-  ownership queries from the legacy account-wide path to summoner ownership.
+- [ ] Migrate normal gameplay-item definitions, grant call sites, saved
+  instances, and ownership queries from the legacy blanket-account-wide path to
+  summoner ownership while preserving explicit account-wide support for
+  authored event-exclusive items.
 - [ ] Define the minimum states the designer must cover: ordinary progress, newly leveled, unspent points, max level, locked upgrade, and permanent branch confirmation.
 - [x] Use `Level`, `XP`, `Trait Points`, `Card Points`, and `Traits` as the current
   structural terminology; final copy and authored trait names may still change.

@@ -2007,3 +2007,41 @@ for it on this management surface.
 ### References
 
 - `docs/design/walkable-academy-hub.md`
+
+## 2026-08-23 — Reserve account-wide item ownership for authored event exclusives
+
+**Status:** Accepted; clarifies the earlier Inventory-binding decision
+**Areas:** Items, Inventory, Events, Summoners, Persistence, Rewards
+
+### Decision
+
+All normal gameplay items are owned by the summoner who acquires them. An
+event-exclusive item may be authored as either summoner-bound or account-wide;
+event provenance alone does not force either ownership mode. Ordinary Shop,
+quest, campaign, and world-acquired gameplay items are not account-wide.
+
+### Context
+
+Summoner ownership preserves distinct builds and collection choices. Some
+limited event rewards may still need account-wide reach so the event does not
+require repetitive acquisition for every summoner, but that is an explicit
+content choice rather than the default item rule.
+
+### Consequences
+
+- The normal item grant path requires an active summoner and binds the item to it.
+- Event-exclusive reward definitions must declare their ownership target.
+- Shared event items remain visible to eligible summoners and require a clear
+  shared-state presentation.
+- The persistence migration must convert legacy blanket-account-wide gameplay
+  items without removing support for explicitly shared event exclusives.
+
+### Supersedes
+
+This clarifies the 2026-08-23 gameplay-Inventory binding entry, whose wording
+could be read as forbidding every account-wide gameplay exception.
+
+### References
+
+- `docs/features/items/system.md`
+- `docs/features/equipment-system.md`

@@ -19,9 +19,10 @@ The equipment system allows summoners to equip items that provide stat modifiers
 
 ## Ownership
 
-Gameplay Inventory is summoner-scoped. An item acquired by one summoner is not
-available to another summoner. Account-level cosmetics and purchases may still
-exist, but they are not gameplay items in this Inventory.
+Gameplay Inventory is summoner-scoped. Normal items acquired by one summoner are
+not available to another summoner. Event-exclusive items are the only gameplay
+exception: an authored event reward may be either summoner-bound or account-wide.
+Account-level cosmetics and purchases remain separate from gameplay Inventory.
 
 The current persistence layer still contains the older `AccountWide` item-binding
 path. Migrating existing definitions, grant call sites, and saved instances to the
@@ -51,7 +52,7 @@ public class ItemInstanceData
 // ContentBinding enum
 public enum ContentBinding
 {
-    AccountWide,      // Legacy gameplay-item path pending migration
+    AccountWide,      // Explicitly shared event-exclusive items
     SummonerBound     // Intended ownership for gameplay items
 }
 ```
