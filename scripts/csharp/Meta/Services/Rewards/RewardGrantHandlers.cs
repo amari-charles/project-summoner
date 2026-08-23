@@ -247,12 +247,28 @@ public sealed class ItemRewardGrantHandler : RewardGrantHandler<ItemRewardGrantD
     {
         if (!grant.ItemId.HasValue || !ItemCatalog.HasItem(grant.ItemId) || grant.Count <= 0)
             return Invalid($"Invalid item reward '{grant.ItemId}' x{grant.Count}.");
+        var definition = ItemCatalog.GetItem(grant.ItemId)!;
         if (
             grant.Target.Scope
             is not RewardOwnershipScope.Account
                 and not RewardOwnershipScope.Summoner
         )
             return Invalid("Items must target an account or summoner.");
+        if (
+            definition.Binding == ItemBinding.SummonerBound
+            && (
+                grant.Target.Scope != RewardOwnershipScope.Summoner
+                || string.IsNullOrWhiteSpace(grant.Target.TargetId)
+            )
+        )
+            return Invalid("Normal item rewards require an explicit summoner target.");
+        if (
+            definition.Binding == ItemBinding.AccountWide
+            && (!definition.IsEventExclusive || grant.Target.Scope != RewardOwnershipScope.Account)
+        )
+            return Invalid(
+                "Account-wide item rewards must be explicitly authored event-exclusive rewards."
+            );
 
         return Valid(profile =>
         {
@@ -260,8 +276,6 @@ public sealed class ItemRewardGrantHandler : RewardGrantHandler<ItemRewardGrantD
                 grant.Target.Scope == RewardOwnershipScope.Summoner
                     ? new SummonerId(grant.Target.TargetId)
                     : null;
-            if (boundTo.HasValue && !boundTo.Value.HasValue)
-                return (false, "Summoner-bound item requires a summoner target.");
             for (var i = 0; i < grant.Count; i++)
             {
                 profile.Items.Add(

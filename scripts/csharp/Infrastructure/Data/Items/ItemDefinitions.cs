@@ -21,6 +21,7 @@ public static class ItemDefinitions
         DescriptionKey = "item.veterans_medal.description",
         Slot = ItemSlot.Robes,
         Binding = ItemBinding.AccountWide,
+        IsEventExclusive = true,
         Rarity = "rare",
         Modifiers =
         [
@@ -39,7 +40,7 @@ public static class ItemDefinitions
         NameKey = "item.battle_hardened_badge.name",
         DescriptionKey = "item.battle_hardened_badge.description",
         Slot = ItemSlot.Wand,
-        Binding = ItemBinding.AccountWide,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "rare",
         Modifiers =
         [
@@ -58,7 +59,7 @@ public static class ItemDefinitions
         NameKey = "item.fortunes_charm.name",
         DescriptionKey = "item.fortunes_charm.description",
         Slot = ItemSlot.Ring1,
-        Binding = ItemBinding.AccountWide,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "uncommon",
         Modifiers =
         [
@@ -77,7 +78,7 @@ public static class ItemDefinitions
         NameKey = "item.bold_fortune_amulet.name",
         DescriptionKey = "item.bold_fortune_amulet.description",
         Slot = ItemSlot.Robes,
-        Binding = ItemBinding.AccountWide,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "uncommon",
         Modifiers =
         [
@@ -102,7 +103,7 @@ public static class ItemDefinitions
         NameKey = "item.training_blade.name",
         DescriptionKey = "item.training_blade.description",
         Slot = ItemSlot.Wand,
-        Binding = ItemBinding.AccountWide,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "common",
         Modifiers =
         [
@@ -121,7 +122,7 @@ public static class ItemDefinitions
         NameKey = "item.simple_ring.name",
         DescriptionKey = "item.simple_ring.description",
         Slot = ItemSlot.Ring1,
-        Binding = ItemBinding.AccountWide,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "common",
         Modifiers =
         [
@@ -140,7 +141,7 @@ public static class ItemDefinitions
         NameKey = "item.lucky_band.name",
         DescriptionKey = "item.lucky_band.description",
         Slot = ItemSlot.Ring2,
-        Binding = ItemBinding.AccountWide,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "common",
         Modifiers =
         [
@@ -159,7 +160,7 @@ public static class ItemDefinitions
         NameKey = "item.travelers_cloak.name",
         DescriptionKey = "item.travelers_cloak.description",
         Slot = ItemSlot.Robes,
-        Binding = ItemBinding.AccountWide,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "common",
         Modifiers =
         [

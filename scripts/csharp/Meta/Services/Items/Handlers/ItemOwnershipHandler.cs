@@ -28,7 +28,7 @@ public class ItemOwnershipHandler
     /// Grant an item to the player's inventory.
     /// Returns the new item instance ID, or null if failed.
     /// </summary>
-    public string? GrantItem(string catalogId, string? boundToSummonerId = null)
+    public string? GrantItem(string catalogId, string? boundToSummonerId)
     {
         var definition = ItemCatalog.GetItem(catalogId);
         if (definition == null)
@@ -37,10 +37,27 @@ public class ItemOwnershipHandler
             return null;
         }
 
+        if (definition.Binding == ItemBinding.SummonerBound && string.IsNullOrWhiteSpace(boundToSummonerId))
+        {
+            GD.PushError($"ItemOwnershipHandler: Summoner-owned item '{catalogId}' requires a target summoner");
+            return null;
+        }
+        if (definition.Binding == ItemBinding.AccountWide && !definition.IsEventExclusive)
+        {
+            GD.PushError($"ItemOwnershipHandler: Account-wide item '{catalogId}' must be explicitly event-exclusive");
+            return null;
+        }
+
         // Check if player already owns this item type
         var existingItems = _profileRepo.ListItems();
         var typedCatalogId = new ItemId(catalogId);
-        var existingItem = existingItems.FirstOrDefault(i => i.CatalogId == typedCatalogId);
+        var typedOwner = string.IsNullOrWhiteSpace(boundToSummonerId)
+            ? (SummonerId?)null
+            : new SummonerId(boundToSummonerId);
+        var existingItem = existingItems.FirstOrDefault(i =>
+            i.CatalogId == typedCatalogId
+            && (definition.Binding == ItemBinding.AccountWide || i.BoundToSummonerId == typedOwner)
+        );
         if (existingItem != null)
         {
             GD.Print(
@@ -55,10 +72,7 @@ public class ItemOwnershipHandler
         {
             Id = new ItemId(instanceId),
             CatalogId = typedCatalogId,
-            BoundToSummonerId =
-                definition.Binding == ItemBinding.SummonerBound && boundToSummonerId != null
-                    ? new SummonerId(boundToSummonerId)
-                    : null,
+            BoundToSummonerId = definition.Binding == ItemBinding.SummonerBound ? typedOwner : null,
             EquippedBySummonerId = null,
             EquippedSlot = null,
         };
@@ -119,6 +133,12 @@ public class ItemOwnershipHandler
     /// <summary>Clear all items from inventory (for testing/debugging).</summary>
     public void ClearAllItems()
     {
+        foreach (var summoner in _profileRepo.GetAllSummonerInstances())
+        {
+            foreach (var slot in summoner.EquippedItems.Keys.ToArray())
+                summoner.EquippedItems[slot] = null;
+            _profileRepo.SaveSummonerInstance(summoner);
+        }
         _profileRepo.SaveItems([]);
         GD.Print("ItemOwnershipHandler: Cleared all items from inventory");
     }

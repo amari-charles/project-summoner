@@ -81,6 +81,7 @@ public static class ItemCatalog
             ["description_key"] = item.DescriptionKey,
             ["slot"] = item.Slot.ToString().ToLowerInvariant(),
             ["binding"] = item.Binding.ToString(),
+            ["is_event_exclusive"] = item.IsEventExclusive,
             ["rarity"] = item.Rarity,
             ["modifiers"] = modifiersArray,
         };

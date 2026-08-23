@@ -19,7 +19,7 @@ namespace Fateforged.Domain.Profile;
 public class ProfileData
 {
     /// <summary>Current save version for migrations.</summary>
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     /// <summary>Save data version.</summary>
     [JsonPropertyName("version")]

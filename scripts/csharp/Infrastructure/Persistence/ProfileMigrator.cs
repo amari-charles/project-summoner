@@ -1,4 +1,5 @@
 using Godot;
+using Fateforged.Data.Items;
 using GdArray = Godot.Collections.Array;
 using GdDict = Godot.Collections.Dictionary;
 
@@ -11,7 +12,7 @@ namespace Fateforged.Infrastructure.Persistence;
 /// </summary>
 public static class ProfileMigrator
 {
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     /// <summary>
     /// Safe dictionary access — Godot.Collections.Dictionary lacks GetValueOrDefault.
@@ -45,6 +46,8 @@ public static class ProfileMigrator
         if (version < 5)
             MigrateV4ToV5(data);
         // v5 → v6: no data changes (version bump only)
+        if (version < 7)
+            MigrateV6ToV7(data);
 
         data["version"] = CurrentVersion;
     }
@@ -217,5 +220,34 @@ public static class ProfileMigrator
         resources["gold"] = 0;
         data["resources"] = resources;
         data["campaign_progress"] = progressDict;
+    }
+
+    /// <summary>
+    /// V6→V7: recover summoner ownership for normal items when persisted equipment
+    /// provenance identifies the owner. Ambiguous unbound instances remain inert and
+    /// preserved; runtime ownership queries intentionally do not expose them.
+    /// </summary>
+    private static void MigrateV6ToV7(GdDict data)
+    {
+        var itemsVar = DictGet(data, "items", new GdArray());
+        if (itemsVar.VariantType != Variant.Type.Array)
+            return;
+
+        foreach (var itemVar in itemsVar.AsGodotArray())
+        {
+            if (itemVar.VariantType != Variant.Type.Dictionary)
+                continue;
+            var item = itemVar.AsGodotDictionary();
+            var catalogId = DictGet(item, "catalog_id", "").AsString();
+            var definition = ItemCatalog.GetItem(catalogId);
+            if (definition?.Binding != ItemBinding.SummonerBound)
+                continue;
+            var boundTo = DictGet(item, "bound_to", "").AsString();
+            if (!string.IsNullOrWhiteSpace(boundTo))
+                continue;
+            var equippedBy = DictGet(item, "equipped_by", "").AsString();
+            if (!string.IsNullOrWhiteSpace(equippedBy))
+                item["bound_to"] = equippedBy;
+        }
     }
 }

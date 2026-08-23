@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Rewards;
+using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Collection;
@@ -167,5 +168,45 @@ public class RewardGrantHandlerTest
 
         AssertThat(undefinedResource.IsValid).IsFalse();
         AssertThat(wrongUnlockScope.IsValid).IsFalse();
+    }
+
+    [TestCase]
+    public void ItemRewardsEnforceDefinitionOwnershipTargets()
+    {
+        var registry = RewardGrantHandlerRegistry.CreateDefault();
+        var context = new RewardGrantContext
+        {
+            ClaimId = new RewardClaimId("claim"),
+            Source = new RewardSourceContext { SourceType = "test", SourceId = "source" },
+        };
+
+        var missingOwner = registry.Prepare(
+            new ItemRewardGrantDefinition
+            {
+                ItemId = ItemIds.TrainingBlade,
+                Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
+            },
+            context
+        );
+        var normal = registry.Prepare(
+            new ItemRewardGrantDefinition
+            {
+                ItemId = ItemIds.TrainingBlade,
+                Target = new RewardOwnershipTarget(RewardOwnershipScope.Summoner, SummonerIds.Cole.Value),
+            },
+            context
+        );
+        var sharedEvent = registry.Prepare(
+            new ItemRewardGrantDefinition
+            {
+                ItemId = ItemIds.VeteransMedal,
+                Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
+            },
+            context
+        );
+
+        AssertThat(missingOwner.IsValid).IsFalse();
+        AssertThat(normal.IsValid).IsTrue();
+        AssertThat(sharedEvent.IsValid).IsTrue();
     }
 }

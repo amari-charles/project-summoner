@@ -92,8 +92,8 @@ public partial class ItemService : Node
     // ITEM GRANTING (delegates to ItemOwnershipHandler)
     // =========================================================================
 
-    /// <summary>Grant an item to the player's inventory.</summary>
-    public string? GrantItem(string catalogId, string? boundToSummonerId = null)
+    /// <summary>Grant an item using an explicit ownership target.</summary>
+    public string? GrantItem(string catalogId, string? boundToSummonerId)
     {
         var instanceId = _ownership?.GrantItem(catalogId, boundToSummonerId);
         if (instanceId != null)
@@ -101,6 +101,30 @@ public partial class ItemService : Node
             EmitSignal(SignalName.ItemGranted, instanceId, catalogId);
         }
         return instanceId;
+    }
+
+    /// <summary>Godot boundary for normal summoner-owned item grants.</summary>
+    public string GrantItemToSummoner(string catalogId, string summonerId)
+    {
+        var definition = ItemCatalog.GetItem(catalogId);
+        if (definition is not { Binding: ItemBinding.SummonerBound })
+        {
+            GD.PushError($"ItemService: '{catalogId}' is not a normal summoner-owned item");
+            return "";
+        }
+        return GrantItem(catalogId, summonerId) ?? "";
+    }
+
+    /// <summary>Godot boundary for explicitly shared event-exclusive item grants.</summary>
+    public string GrantSharedEventItem(string catalogId)
+    {
+        var definition = ItemCatalog.GetItem(catalogId);
+        if (definition is not { Binding: ItemBinding.AccountWide, IsEventExclusive: true })
+        {
+            GD.PushError($"ItemService: '{catalogId}' is not an account-wide event-exclusive item");
+            return "";
+        }
+        return GrantItem(catalogId, null) ?? "";
     }
 
     // =========================================================================
