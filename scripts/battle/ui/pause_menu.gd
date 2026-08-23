@@ -86,6 +86,13 @@ func toggle_menu() -> void:
 	if not visible:
 		settings_panel.hide_panel()
 
+
+func close_settings_if_open() -> bool:
+	if not settings_panel.visible:
+		return false
+	settings_panel.hide_panel()
+	return true
+
 ## Resume button - unpause game
 func _on_resume_pressed() -> void:
 	if _is_online_menu:

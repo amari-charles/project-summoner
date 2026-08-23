@@ -57,6 +57,7 @@ func _build_category_buttons() -> void:
 		button.name = "%sButton" % String(category).capitalize().replace(" ", "")
 		button.custom_minimum_size = Vector2(210, 48)
 		button.text = Loc.t("ui.settings.category_%s" % category)
+		button.set_meta(&"settings_category", category)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.pressed.connect(_show_category.bind(category))
 		category_buttons.add_child(button)
@@ -358,10 +359,6 @@ func _load_input_bindings() -> void:
 
 func _on_reset_pressed() -> void:
 	GameSettings.reset_to_defaults()
-	AudioManager.set_volume(AudioManager.BUS_MASTER, 1.0)
-	AudioManager.set_volume(AudioManager.BUS_MUSIC, 1.0)
-	AudioManager.set_volume(AudioManager.BUS_SFX, 1.0)
-	AudioManager.set_mute_when_unfocused(false)
 	InputMap.load_from_project_settings()
 	var config: ConfigFile = ConfigFile.new()
 	config.save(INPUT_BINDINGS_PATH)
@@ -377,4 +374,4 @@ func _update_category_button_states() -> void:
 	for child: Node in category_buttons.get_children():
 		if child is Button:
 			var button: Button = child as Button
-			button.disabled = button.text == Loc.t("ui.settings.category_%s" % _active_category)
+			button.disabled = button.get_meta(&"settings_category", &"") == _active_category

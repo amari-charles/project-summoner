@@ -285,21 +285,15 @@ func get_current_music() -> String:
 ## Automatically persists to ProfileRepo settings
 func set_volume(bus_name: String, volume: float) -> void:
 	volume = clampf(volume, 0.0, 1.0)
-
-	# Apply to AudioServer
-	var bus_idx: int = AudioServer.get_bus_index(bus_name)
-	if bus_idx >= 0:
-		AudioServer.set_bus_volume_db(bus_idx, _linear_to_db(volume))
-	else:
+	if AudioServer.get_bus_index(bus_name) < 0:
 		push_warning("AudioManager: Unknown bus '%s'" % bus_name)
 		return
 
-	# Persist to settings
 	var setting_key: String = _bus_to_setting_key(bus_name)
-	if not setting_key.is_empty():
-		ProfileRepoApi.update_settings_dict({setting_key: volume})
-
-	volume_changed.emit(bus_name, volume)
+	if setting_key.is_empty():
+		push_warning("AudioManager: Bus '%s' has no persistent setting" % bus_name)
+		return
+	GameSettings.set_value(StringName(setting_key), volume)
 
 
 ## Get current volume for a bus (0.0 to 1.0)
@@ -363,13 +357,29 @@ func _notification(what: int) -> void:
 
 
 func _on_game_setting_changed(key: StringName, value: Variant) -> void:
-	if key == &"mute_when_unfocused":
-		_mute_when_unfocused = SafeTypeUtils.bool_val(value, false)
+	match key:
+		&"master_volume":
+			_apply_bus_volume(BUS_MASTER, value)
+		&"music_volume":
+			_apply_bus_volume(BUS_MUSIC, value)
+		&"sfx_volume":
+			_apply_bus_volume(BUS_SFX, value)
+		&"mute_when_unfocused":
+			_mute_when_unfocused = SafeTypeUtils.bool_val(value, false)
 
 
 ## =============================================================================
 ## INTERNAL HELPERS
 ## =============================================================================
+
+func _apply_bus_volume(bus_name: String, value: Variant) -> void:
+	var bus_idx: int = AudioServer.get_bus_index(bus_name)
+	if bus_idx < 0:
+		push_warning("AudioManager: Unknown bus '%s'" % bus_name)
+		return
+	var volume: float = clampf(SafeTypeUtils.float_val(value, 1.0), 0.0, 1.0)
+	AudioServer.set_bus_volume_db(bus_idx, _linear_to_db(volume))
+	volume_changed.emit(bus_name, volume)
 
 ## Convert linear volume (0.0-1.0) to decibels
 func _linear_to_db(linear: float) -> float:

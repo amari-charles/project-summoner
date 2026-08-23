@@ -72,6 +72,30 @@ func test_online_menu_opens_without_pausing_and_offers_confirmed_forfeit() -> vo
 	assert_false(get_tree().paused)
 
 
+func test_cancel_from_battle_settings_returns_to_menu_without_resuming() -> void:
+	BattleContext.current_mode = BattleContext.BattleMode.ENCOUNTER
+	var controller: FakeGameController = FakeGameController.new()
+	controller.add_to_group(GroupIDs.GAME_CONTROLLER)
+	add_child_autofree(controller)
+	var menu: PauseMenu = _instantiate_menu()
+	await get_tree().process_frame
+	var pause_button: PauseButton = PauseButton.new()
+	pause_button.game_controller = controller
+	pause_button.battle_menu = menu
+
+	controller.PauseGame()
+	menu._on_settings_pressed()
+	assert_true(menu.settings_panel.visible)
+	pause_button._toggle_pause()
+
+	assert_false(menu.settings_panel.visible)
+	assert_true(menu.visible)
+	assert_true(get_tree().paused)
+	assert_eq(controller.CurrentState, int(UnitConstants.GameState.PAUSED))
+	pause_button.free()
+	controller.ResumeGame()
+
+
 func _instantiate_menu() -> PauseMenu:
 	var scene: PackedScene = load("res://scenes/battle/ui/pause_menu.tscn")
 	var menu: PauseMenu = scene.instantiate() as PauseMenu

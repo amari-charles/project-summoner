@@ -933,7 +933,7 @@ Redesign settings/options screen for better usability and visual consistency.
 - Audio supports master, music, and SFX volume plus mute while unfocused.
 - Display supports window mode, resolution, VSync, and frame-rate limit.
 - Controls support rebindable camera actions, edge-pan behavior, and camera speed.
-- Gameplay and accessibility expose only settings backed by runtime behavior, including reduced camera motion, UI scale, and language selection.
+- Gameplay and accessibility expose only settings backed by runtime behavior, including reduced camera motion and UI scale.
 - Profile-backed settings merge safely with existing values; input remaps persist locally.
 - Escape on campus opens a paused system menu with Resume, Settings, and confirmed Quit Game. Battle menu behavior remains mode-aware.
 

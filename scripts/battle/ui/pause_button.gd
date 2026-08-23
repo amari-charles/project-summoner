@@ -51,6 +51,8 @@ func _on_pressed() -> void:
 func _toggle_pause() -> void:
 	if not game_controller:
 		return
+	if battle_menu != null and battle_menu.close_settings_if_open():
+		return
 	if BattleContext.is_multiplayer_battle():
 		if battle_menu != null:
 			battle_menu.toggle_menu()
