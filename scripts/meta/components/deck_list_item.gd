@@ -54,6 +54,10 @@ func setup(data: Dictionary) -> void:
 	is_active = data.get("is_active", false)
 	is_selected = data.get("is_selected", false)
 	var is_valid: bool = data.get("is_valid", true)
+	var management_enabled: bool = data.get("management_enabled", true)
+	star_button.visible = management_enabled
+	rename_button.visible = management_enabled
+	delete_button.visible = management_enabled
 
 	# Update star button (filled star if active, outline if not)
 	star_button.text = "★" if is_active else "☆"

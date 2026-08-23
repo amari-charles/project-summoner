@@ -630,6 +630,7 @@
       "class_supplied": "Class supplied",
       "owned_cards": "Owned cards",
       "fill_from_deck": "Fill from Deck…",
+      "fill_from_my_decks": "FILL FROM MY DECKS",
       "fill_failed": "Could not fill the Lesson Loadout from that deck.",
       "saved_deck_count": "{count} saved deck(s)",
       "save_to_my_decks": "Save to My Decks",
