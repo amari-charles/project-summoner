@@ -70,7 +70,7 @@ var was_configured: bool = false
 ## Set to true to enable verbose logging
 var debug_mode: bool = false
 
-## Scene to return to after battle (campaign map, arena menu, etc.)
+## Scene to return to after battle (Academy campus, arena caller, etc.)
 var origin_scene: String = ""
 
 ## Optional legacy authority provider bridge for multiplayer.
@@ -156,7 +156,7 @@ func configure_encounter_battle(selected_encounter_id: String, config: Dictionar
 	current_mode = BattleMode.ENCOUNTER
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_WALKABLE_ACADEMY_HUB
+	origin_scene = SceneManager.SCENE_ACADEMY_CAMPUS
 	_battle_id = selected_encounter_id
 	encounter_id = selected_encounter_id
 	battle_config = config.duplicate(true)

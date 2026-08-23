@@ -52,7 +52,7 @@
 
 | Case IDs | Skeleton Test File | Coverage |
 |---|---|---|
-| ACF-01–ACF-25, ACF-D01 | `tests/unit/meta/test_academy_class_flow.gd`, `tests/csharp/Services/AcademyProgressServiceTest.cs` | Runtime, persistence, outcome, and structural assertions |
+| ACF-01–ACF-25, ACF-D01 | Historical matrix; retained generic encounter coverage is in `tests/unit/meta/test_encounter_flow.gd` and domain coverage remains in `tests/csharp/Services/AcademyProgressServiceTest.cs` | Runtime, persistence, outcome, and structural assertions |
 | ACF-19, ACF-23 | `tests/csharp/Data/AcademyActivityDefinitionTest.cs` | Executing contract/catalog assertions |
 
 ## Gate Output Requirement

@@ -16,7 +16,7 @@ public class CampaignNode
     /// <summary>Node type (battle, elite, boss, or choice).</summary>
     public string Type { get; set; } = "";
 
-    /// <summary>Position on the campaign map for rendering.</summary>
+    /// <summary>Position in the authored progression graph.</summary>
     public Vector2 Position { get; set; } = Vector2.Zero;
 
     /// <summary>Type-specific data (enemy deck, reward options, etc.).</summary>

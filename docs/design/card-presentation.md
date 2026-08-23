@@ -29,9 +29,8 @@ invent another display size.
 Card icons, cropped artwork, and deliberately non-card reward rows are not full
 card presentations and do not need to use these dimensions.
 
-## Legacy Exception
+## Retired Legacy Exception
 
-`first_card_selection.tscn` is a bespoke legacy choice screen made from large
-buttons rather than either shared card presentation. It must be removed with the
-superseded onboarding path or rebuilt from the shared card surface; changing only
-its button ratio would not constitute a real migration.
+The bespoke `first_card_selection.tscn` button screen was removed with its
+superseded onboarding route. Any future card choice must use the shared card
+surface and the named presentation tiers above.

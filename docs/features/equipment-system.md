@@ -24,9 +24,9 @@ not available to another summoner. Event-exclusive items are the only gameplay
 exception: an authored event reward may be either summoner-bound or account-wide.
 Account-level cosmetics and purchases remain separate from gameplay Inventory.
 
-The current persistence layer still contains the older `AccountWide` item-binding
-path. Migrating existing definitions, grant call sites, and saved instances to the
-summoner-owned rule is tracked separately from the Inventory UI prototype.
+The persistence schema defaults normal definitions and new grants to
+`SummonerBound`. `AccountWide` remains valid only for definitions explicitly
+marked event-exclusive and shared.
 
 ## Architecture
 
@@ -62,8 +62,11 @@ public enum ContentBinding
 ### GDScript (UI Code)
 
 ```gdscript
-# Grant an item
-var instance_id = Items.grant_item("item_training_blade")
+# Grant a normal item to an explicit summoner
+var instance_id = ItemsApi.grant_item_to_summoner("item_training_blade", summoner_id)
+
+# Grant an explicitly shared event-exclusive item
+var shared_id = ItemsApi.grant_shared_event_item("item_veterans_medal")
 
 # Equip to summoner
 Items.equip_item(summoner_id, instance_id, "wand")
@@ -120,11 +123,13 @@ dedicated screen remains under evaluation.
 ## Console Commands (Debug)
 
 ```
-/items_grant <item_id>   - Grant an item to inventory
-/items_grant_all         - Grant all starter items
-/items_list              - List player's items and equipment
-/items_equip <slot> <id> - Equip an item to a summoner
-/items_clear             - Clear all items from inventory
+/items_grant <item_id>          - Grant a normal item to the active Summoner
+/items_grant_shared <item_id>   - Grant an explicitly shared event item
+/items_grant_all                - Grant all normal test items to the active Summoner
+/items_list                     - List accessible items and equipment
+/items_equip <slot> <id>        - Equip an accessible item to the active Summoner
+/items_unequip <slot>           - Unequip the active Summoner's slot
+/items_clear                    - Clear item test state and equipped references
 ```
 
 ## Migration from Boons
@@ -139,6 +144,12 @@ The v5 to v6 profile migration converts legacy boons to items:
 Removed items (no longer in catalog):
 - `mana_well_orb` (Grimoire slot removed)
 - `apprentice_grimoire` (Grimoire slot removed)
+
+The v6 to v7 migration recovers Summoner ownership from an item's existing
+`equipped_by_summoner_id` provenance. An ambiguous legacy normal item is retained
+without an owner rather than assigned arbitrarily; it remains inert until a
+future explicit recovery policy can identify its owner. Explicitly shared
+event-exclusive items remain account-wide.
 
 ## Item Modifiers and Unit Stats (Phase 4 - ✅ Complete)
 

@@ -25,8 +25,8 @@ management.
   designer rather than reopening the product flow.
 
 **Representative Files:**
-- `scenes/meta/screens/academy_activity_preparation.tscn`
-- `scripts/meta/screens/academy_activity_preparation.gd`
+- `scenes/meta/screens/encounter_preparation.tscn`
+- `scripts/meta/screens/encounter_preparation.gd`
 
 ---
 

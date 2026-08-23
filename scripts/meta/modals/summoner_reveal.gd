@@ -69,4 +69,4 @@ func _animate_result() -> void:
 
 
 func _on_continue_pressed() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)

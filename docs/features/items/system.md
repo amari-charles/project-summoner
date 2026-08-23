@@ -66,6 +66,11 @@ either summoner-bound or account-wide according to that event's reward design.
 
 ## Item Acquisition
 
+Normal grant APIs require the target Summoner explicitly. Missing ownership
+context fails without creating an account-wide item. Inventory queries combine
+that Summoner's items with explicitly shared event-exclusive items, and equip
+validation applies the same accessibility rule.
+
 ### Campaign Rewards
 Items can be offered as rewards during campaign progression. These become summoner-bound.
 

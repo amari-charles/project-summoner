@@ -47,6 +47,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-23, item developer tooling):** Added a bounded audit of the broken item debug-command/service contract after `/items_grant` exposed a nonexistent runtime method call. Repair versus replacement remains an audit outcome rather than a preselected implementation.
 **Tracker Sync (2026-08-23, utility overlays):** Standardized Summoner Profile, Spellbook/Deck, Journal, and Inventory as distinct reusable overlays over their invoking context. Online remains a destination and now hosts the shared Spellbook overlay for ranked-deck changes; encounter preparation opens that same overlay in an activity-loadout context instead of maintaining a second editor.
 **Tracker Sync (2026-08-23, designer-readiness reconciliation):** Reconciled the active UI queue after PR `#376`. Summoner Profile, Inventory, Collection/Decks, Journal, quest offers, dialogue, campus HUD/Travel, battle HUD, Settings, Online loadout, summoner selection, and the combined Results direction now have accepted structural scaffolds. Removed stale Inventory and XP assumptions, recorded the remaining state matrices and legacy cleanup, and split generic Activity Preparation into the next explicit core-loop UI review.
+**Tracker Sync (2026-08-23, legacy cleanup):** Retired the obsolete first-card route, static Academy/menu and Caravan campaign surfaces, competing reward/result destinations, and raw battle-surface selection. Completed Summoner item ownership and item developer-tool migration; the inert `caravan_purchases` save payload remains solely to avoid destructive legacy-save loss.
 
 ---
 
@@ -55,16 +56,15 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 ### 🔴 HIGH PRIORITY
 
 #### Remove or Rebuild the Legacy First-Card Choice Screen
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed (Route Removed)
 **Category:** Onboarding / Cards / UI/UX
 **Urgency:** High — canonical card-presentation follow-up
 **Ease:** Medium
 **Scope:** Medium
 
-The superseded `first_card_selection` route is a bespoke button-based choice
-screen rather than a shared full-card presentation. Remove the route with the
-legacy onboarding path or rebuild it from the canonical 3:4 card surface; do
-not treat a ratio-only change to its outer buttons as a completed migration.
+The superseded `first_card_selection` route and its bespoke button-based choice
+screen were removed after the reachability audit confirmed accepted onboarding
+proceeds from Summoner selection and reveal directly to the walkable campus.
 
 #### Review the Campus Shop and Purchase Surface After Economy Scope
 **Status:** 🟡 Partial (Functional Scaffold; Product Dependencies Open)
@@ -116,7 +116,7 @@ Run a second product and information-architecture pass on the summoner screen. T
 - [x] Accept Summoner Profile and Inventory as distinct fixed overlays over the
   invoking context; do not merge Inventory into the profile or route it through
   a separate full-screen destination.
-- [ ] Migrate normal gameplay-item definitions, grant call sites, saved
+- [x] Migrate normal gameplay-item definitions, grant call sites, saved
   instances, and ownership queries from the legacy blanket-account-wide path to
   summoner ownership while preserving explicit account-wide support for
   authored event-exclusive items.
@@ -130,8 +130,8 @@ Run a second product and information-architecture pass on the summoner screen. T
 implemented. The accepted profile is a fixed overlay containing identity, Level
 and XP, stats, equipped items, and clickable owned Traits. Inventory is a separate
 summoner-scoped overlay, and equipped slots reopen it in a compatible-item
-context. Remaining work is the gameplay-item ownership migration, explicit
-designer state coverage, and final visual design.
+context. The gameplay-item ownership migration is complete. Remaining work is
+explicit designer state coverage and final visual design.
 
 **Likely Files:**
 - `docs/design/trait-tree-screen-flow-spec.md`
@@ -254,9 +254,9 @@ Replace the fragmented campaign reward screen, encounter results screen, and opt
 quest-completion result. Campaign and encounter battles route through one
 combined Results prototype after a brief automatic battlefield conclusion. Card
 rewards use the canonical full-card surface, and required choices remain distinct
-from automatic grants. The typed report builder, exact before/after snapshots,
-non-card reveal treatments, contextual progress rows, and deletion of legacy
-result/reward destinations remain open.
+from automatic grants. The typed report builder and deletion of legacy
+result/reward destinations are complete. Exact before/after snapshots, non-card
+reveal treatments, and contextual progress rows remain open.
 
 **Tasks:**
 - [x] Approve the unified post-battle sequence: battlefield conclusion, then one combined Results surface for summoner/card XP, level reveals, acquired rewards, contextual quest/rating progress, and continue destination.
@@ -266,8 +266,8 @@ result/reward destinations remain open.
 - [x] Keep automatic grants distinct from persistent required reward choices and
   use the same normalized reward contract regardless of source.
 - [x] Route both campaign and encounter victory/defeat outcomes through the shared Results prototype.
-- [ ] Deprecate `RewardScreen` and `EncounterResults` as competing end destinations once the unified route is complete.
-- [ ] Preserve authoritative reward/progression mutation outside the presentation layer; the screen consumes a typed post-battle report and submits only explicit pending choices.
+- [x] Deprecate `RewardScreen` and `EncounterResults` as competing end destinations once the unified route is complete.
+- [x] Preserve authoritative reward/progression mutation outside the presentation layer; the screen consumes a typed post-battle report and submits only explicit pending choices.
 
 **Placement Rationale:**
 The report builder belongs in the meta/application progression boundary because reward, XP, quest, and competitive results change independently but are consumed together after battle. Reusable reveal views belong under meta UI components; battle simulation must not own meta progression presentation.
@@ -277,8 +277,7 @@ The report builder belongs in the meta/application progression boundary because 
 
 **Likely Files:**
 - `scripts/csharp/Battle/View/BattleScene.cs`
-- `scenes/meta/screens/reward_screen.tscn`
-- `scenes/meta/screens/academy_activity_results.tscn`
+- `scenes/meta/screens/post_battle_results.tscn`
 - reusable summoner level-reveal component (not yet created)
 
 #### Give the First Quest a Real Reward and Prove the Complete Acquisition Loop
@@ -326,9 +325,9 @@ Inventory every currently reachable player-facing screen and overlay, then label
 walkable campus HUD and Travel, dialogue, quest offer, Journal, Summoner Profile,
 Trait development, Inventory, Collection/Decks, battle HUD and pause, Settings,
 Online ranked loadout, and the combined Results direction. These remain
-designer-facing scaffolds rather than final art. Generic Activity Preparation,
-the obsolete first-card choice route, the Results state matrix, Shop/purchase
-states, and legacy destination removal are the remaining major UI decisions.
+designer-facing scaffolds rather than final art. Generic Encounter Preparation,
+the Results state matrix, and Shop/purchase states are the remaining major UI
+decisions. Obsolete first-card and legacy destination decisions are closed by removal.
 
 **Tasks:**
 - [ ] Map onboarding, summoner selection, campus HUD, dialogue, Journal, quest preparation, battle, results/rewards, summoner, upgrades, equipment, shop, collection/deck, settings, and online flows.
@@ -406,7 +405,7 @@ Create and maintain an internal direction log for medium- and large-scale game a
 The framework is established. Complete the curated, user-reviewed historical backfill before further large UI and progression iterations accumulate.
 
 #### Deprecate the Legacy Caravan Campaign Flow
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Meta Progression / Legacy Cleanup
 **Effort:** Medium
 
@@ -414,15 +413,17 @@ The framework is established. Complete the curated, user-reviewed historical bac
 Retire the Caravan's campaign-node/event implementation now that Academy navigation and graph-based lessons have replaced the older linear campaign experience. The Campus Shop remains the persistent Academy shop. A future Caravan concept may return as a temporary or visiting vendor, but should not retain dependencies on the legacy campaign route.
 
 **Tasks:**
-- [ ] Inventory Caravan scene routes, event definitions, narrative cues, catalog entries, save fields, and tests.
-- [ ] Decide whether existing Caravan purchase history needs a save migration or can remain ignored legacy data.
-- [ ] Remove the dedicated legacy Caravan screen and campaign-event routing.
-- [ ] Remove Caravan event definitions and graph-consistency requirements.
-- [ ] Remove or archive Caravan-only localization, narrative content, shop catalog entries, and tests.
-- [ ] Reassess the Caravan as a future Academy visiting-vendor feature under a separate design task.
+- [x] Inventory Caravan scene routes, event definitions, narrative cues, catalog entries, save fields, and tests.
+- [x] Preserve existing Caravan purchase history as inert read-only compatibility data; it has no runtime readers.
+- [x] Remove the dedicated legacy Caravan screen and campaign-event routing.
+- [x] Remove Caravan event definitions and graph-consistency requirements.
+- [x] Remove Caravan-only localization, narrative content, shop catalog entries, and tests.
+- [x] Leave any future visiting merchant to a separate ordinary-vendor feature; no Caravan runtime architecture remains.
 
-**Scope Note:**
-The current Campus Shop UI pass only removes stale Caravan behavior duplicated inside `ShopScreen`; full deprecation remains a separate reviewed change.
+**Compatibility Note:**
+The serialized `caravan_purchases` list is retained only so old profiles round-trip
+without silent data loss. It is not exposed by the repository service and cannot
+control shops, navigation, events, or progression.
 
 #### Scope Remaining Content, VFX, Items, and Academy Work
 **Status:** 🔄 In Progress
@@ -460,7 +461,7 @@ Maintain a dedicated scoping roadmap that turns fuzzy remaining production work 
 ### 🔴 HIGH PRIORITY
 
 #### Replace `scene_path`-driven battle launch with typed runtime routing
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Architecture / Application
 **Effort:** Medium
 
@@ -468,10 +469,10 @@ Maintain a dedicated scoping roadmap that turns fuzzy remaining production work 
 Battle launch surface selection (standard battle vs debug arena) is currently selected via ad-hoc `scene_path` overrides in event data. Move this decision into typed application-level routing so launch behavior is explicit, consistent, and testable.
 
 **Tasks:**
-- [ ] Add a typed battle runtime surface contract (for example `Standard`, `DebugArena`, `CustomScene`).
-- [ ] Add a single application-layer router/policy used by campaign map + debug menu launch paths.
-- [ ] Remove duplicated caller-side `scene_path` branching logic.
-- [ ] Add regression tests for launch-surface resolution.
+- [x] Add a typed battle runtime surface contract (`Standard` and `DebugArena`).
+- [x] Add a single application-layer router/policy used by Academy/quest and debug launch paths.
+- [x] Remove duplicated caller-side `scene_path` branching logic.
+- [x] Add regression tests for launch-surface resolution.
 
 **Related Files:**
 - `scripts/meta/screens/campaign_map.gd`
@@ -1070,7 +1071,7 @@ Implement the runtime system for summoner active/passive abilities after the cur
 ### 🔴 HIGH PRIORITY
 
 #### Audit and Restore the Item Developer-Tooling Contract
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Developer Tools / Items / Interop
 **Urgency:** High — blocks representative Inventory UI validation
 **Ease:** Medium
@@ -1085,22 +1086,22 @@ repairing or should be replaced with a fresh item-test fixture/tool; do not
 accumulate one-off callable-name patches.
 
 **Tasks:**
-- [ ] Inventory every item developer command and map it to the actual
+- [x] Inventory every item developer command and map it to the actual
   Godot-exposed service method and argument contract.
-- [ ] Reproduce and explain why `GrantItem` is not callable through the current
+- [x] Reproduce and explain why `GrantItem` is not callable through the current
   adapter, including whether its optional binding parameter caused contract
   drift.
-- [ ] Check grant, grant-all, list, equip, unequip, and clear independently so
+- [x] Check grant, grant-all, list, equip, unequip, and clear independently so
   the first repaired command does not mask other broken operations.
-- [ ] Choose and document the smallest maintainable surface: retain the console
+- [x] Choose and document the smallest maintainable surface: retain the console
   commands behind one verified adapter, or replace them with a focused item-test
   fixture/tool.
-- [ ] Add contract/smoke coverage for every retained operation and fail with a
+- [x] Add contract/smoke coverage for every retained operation and fail with a
   useful developer-facing message when its service is unavailable.
-- [ ] Prove the completed workflow by granting a catalog item, seeing it in the
+- [x] Prove the completed workflow by granting a catalog item, seeing it in the
   Inventory overlay, equipping it to the active summoner, and clearing the test
   state.
-- [ ] Keep the separate gameplay ownership migration visible; do not silently
+- [x] Keep the separate gameplay ownership migration visible; do not silently
   redefine account-wide versus summoner-bound behavior as part of this audit.
 
 **Placement Rationale:**
@@ -1121,9 +1122,9 @@ commands.
 
 **Execution Order:**
 Run this before further item-modal visual review that requires populated data.
-Complete the audit and contract tests first, then make the repair/rebuild choice,
-then use the restored tool to validate Inventory. The summoner-ownership
-migration remains a later, larger implementation task.
+The retained adapter uses explicit normal and shared-event grant calls. The
+Summoner-ownership migration was completed in the same reviewed cleanup so the
+tool exercises the canonical ownership rules rather than a compatibility path.
 
 ### 🟢 LOW PRIORITY
 

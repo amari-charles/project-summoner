@@ -93,11 +93,11 @@ func _load_encounter_report() -> void:
 	_encounter_id = BattleContext.encounter_id
 	var summary: Dictionary = CampaignApi.get_encounter_completion_summary(_encounter_id)
 	if summary.is_empty():
-		SceneManager.transition_to(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 		return
 	present(PostBattleReport.from_encounter_summary(
 		summary,
-		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		SceneManager.SCENE_ACADEMY_CAMPUS,
 		_battle_context_outcome()
 	))
 	if not _completion_event_published:

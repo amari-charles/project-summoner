@@ -20,7 +20,7 @@ public abstract class EventDefinition
     /// <summary>Localization key for event description</summary>
     public string DescriptionKey { get; set; } = "";
 
-    /// <summary>Position on campaign map</summary>
+    /// <summary>Position in the authored progression graph.</summary>
     public Vector2 Position { get; set; }
 
     /// <summary>Whether the event can be replayed after completion</summary>

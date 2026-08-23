@@ -13,8 +13,7 @@ class UnhandledCancelSpy extends Node:
 
 func test_walkable_hub_is_the_only_academy_home_route() -> void:
 	assert_eq(SceneManager.SCENE_ACADEMY_CAMPUS, HUB_SCENE_PATH)
-	assert_eq(SceneManager.SCENE_WALKABLE_ACADEMY_HUB, HUB_SCENE_PATH)
-	assert_true(ResourceLoader.exists(SceneManager.SCENE_WALKABLE_ACADEMY_HUB))
+	assert_true(ResourceLoader.exists(SceneManager.SCENE_ACADEMY_CAMPUS))
 	assert_false(ResourceLoader.exists("res://scenes/meta/screens/academy_hub.tscn"))
 
 
@@ -837,7 +836,7 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	building.configure(
 		destination["name_key"],
 		SafeTypeUtils.string(destination["target_scene"]),
-		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		SceneManager.SCENE_ACADEMY_CAMPUS,
 		texture,
 		campus_camera
 	)

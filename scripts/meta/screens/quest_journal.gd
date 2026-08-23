@@ -250,7 +250,7 @@ func _go_back() -> void:
 		return
 	var return_scene: String = NavigationContext.pop_return() if NavigationContext.has_return() else ""
 	if return_scene.is_empty():
-		return_scene = SceneManager.SCENE_WALKABLE_ACADEMY_HUB
+		return_scene = SceneManager.SCENE_ACADEMY_CAMPUS
 	SceneManager.transition_to(return_scene)
 
 

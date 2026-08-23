@@ -1,10 +1,10 @@
 # Unified Post-Battle Flow
 
-Status: accepted product direction; canonical report migration is in progress.
+Status: accepted product direction; canonical routing and report foundation implemented.
 
-## Problem
+## Historical problem
 
-Battle completion currently has three competing presentation paths:
+Battle completion previously had three competing presentation paths:
 
 - `GameOverModal` gives immediate victory or defeat feedback inside every battle.
 - `RewardScreen` handles campaign reward choices and may open the summoner level-up panel.
@@ -59,8 +59,13 @@ The screen must not infer rewards from battle mode or write unrelated progressio
 
 ## Current implementation boundary
 
-Campaign and encounter battles now route to the shared Results prototype. The
-prototype reads committed XP and reward grants and can submit a pending campaign
-reward choice. A fully typed `PostBattleReport`, before/after snapshots needed
-for exact level-crossing animation, contextual quest/rating rows, and deletion
-of the legacy screens remain migration work.
+Campaign and encounter battles route to the shared Results surface. A typed
+`PostBattleReport` normalizes committed progression and reward grants, required
+choices, outcome, and destination before presentation. `RewardScreen` and the
+separate encounter/Academy results destination have been deleted. Results owns
+no permanent XP or automatic reward mutation and only submits an explicit
+pending choice.
+
+Exact before/after snapshots needed for level-crossing animation, richer
+non-card reveal treatments, and contextual quest/rating rows remain presentation
+enhancements; they are not alternate progression or navigation authorities.

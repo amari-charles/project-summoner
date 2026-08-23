@@ -731,7 +731,7 @@ func _route_to(destination_id: StringName) -> void:
 		push_warning("WalkableAcademyHub: Unknown destination '%s'" % destination_id)
 		return
 	_transition_started = true
-	NavigationContext.push_return(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_CAMPUS)
 	SceneManager.transition_to(target_scene)
 
 
@@ -1019,7 +1019,7 @@ func _on_quest_world_target_interacted(target_id: String) -> void:
 	if encounter_id.is_empty():
 		return
 	BattleContext.select_encounter(encounter_id)
-	NavigationContext.push_return(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_CAMPUS)
 	SceneManager.transition_to(SceneManager.SCENE_ENCOUNTER_PREPARATION)
 
 
@@ -1092,7 +1092,7 @@ func _add_building(
 	building.configure(
 		display_name_key,
 		target_scene_path,
-		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		SceneManager.SCENE_ACADEMY_CAMPUS,
 		placeholder_texture,
 		camera
 	)

@@ -316,7 +316,7 @@ func test_get_origin_scene_returns_set_value() -> void:
 func test_get_origin_scene_returns_default_when_empty() -> void:
 	context.origin_scene = ""
 
-	# Should return campaign map as default
+	# Should return the canonical Academy campus as the default.
 	assert_false(context.get_origin_scene().is_empty())
 
 

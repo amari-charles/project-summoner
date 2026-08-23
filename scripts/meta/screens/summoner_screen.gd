@@ -560,7 +560,7 @@ func _on_trait_acquired(_trait_id: String) -> void:
 
 func _on_switch_summoner_pressed() -> void:
 	NavigationContext.push_return(
-		SceneManager.SCENE_WALKABLE_ACADEMY_HUB
+		SceneManager.SCENE_ACADEMY_CAMPUS
 		if embedded_overlay
 		else SceneManager.SCENE_SUMMONER_SCREEN
 	)

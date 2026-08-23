@@ -9,7 +9,7 @@ class_name PremiumStoreScreen
 ## - Cosmetics
 ## - Emotes
 ##
-## Accessed from campaign map as meta-progression store
+## Meta-progression store reached from persistent player navigation.
 
 ## Node references
 @onready var close_button: Button = %CloseButton

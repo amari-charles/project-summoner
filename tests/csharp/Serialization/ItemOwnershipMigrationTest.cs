@@ -6,6 +6,7 @@ using Godot.Collections;
 using static GdUnit4.Assertions;
 
 [TestSuite]
+[RequireGodotRuntime]
 public class ItemOwnershipMigrationTest
 {
     [TestCase]

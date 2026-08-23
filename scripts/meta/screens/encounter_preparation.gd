@@ -228,7 +228,7 @@ func _start() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 func _go_back() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 
 
 func _reward_summary(previews: Array) -> String:
