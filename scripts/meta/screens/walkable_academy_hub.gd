@@ -31,7 +31,6 @@ const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
 const DESTINATION_SPELLBOOK: StringName = &"spellbook"
 const DESTINATION_ONLINE: StringName = &"online"
 const DESTINATION_SUMMONER: StringName = &"summoner"
-const DESTINATION_SETTINGS: StringName = &"settings"
 const DESTINATION_JOURNAL: StringName = &"journal"
 
 const PROFESSOR_POSITIONS: Dictionary = {
@@ -78,7 +77,6 @@ const DIRECT_UI_DESTINATIONS: Array[Dictionary] = [
 	{"id": DESTINATION_SPELLBOOK, "target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN},
 	{"id": DESTINATION_SUMMONER, "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
 	{"id": DESTINATION_JOURNAL, "target_scene": SceneManagerClass.SCENE_QUEST_JOURNAL},
-	{"id": DESTINATION_SETTINGS, "target_scene": SceneManagerClass.SCENE_SETTINGS},
 ]
 
 @export_category("Placeholder Ground")
@@ -675,9 +673,6 @@ func _world_location(destination_id: StringName) -> Dictionary:
 
 
 func _route_to(destination_id: StringName) -> void:
-	if destination_id == DESTINATION_SETTINGS:
-		campus_system_menu.open_settings()
-		return
 	if _transition_started:
 		return
 	var target_scene: String = _scene_for_destination(destination_id)

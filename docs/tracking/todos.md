@@ -65,16 +65,18 @@ Run a second product and information-architecture pass on the summoner screen. T
 - [x] Confirm automatic summoner leveling as product direction; apply every affordable level and carry remaining XP forward.
 - [x] Replace the persistent `Level Up` action with owned-trait development entry points and an unspent-point state.
 - [x] Establish the current information hierarchy: portrait and equipped items;
-  level and XP; compact identity and stats; owned-trait summary plus Upgrades;
-  and the reusable owned-item inventory grid.
+  level and XP; compact identity and stats; and owned-trait summary plus Upgrades.
+- [ ] Move the reusable owned-item grid to a dedicated Inventory screen and route
+  the campus bag action there while retaining equipped slots on Summoner.
 - [ ] Define the minimum states the designer must cover: ordinary progress, newly leveled, unspent points, max level, locked upgrade, and permanent branch confirmation.
 - [ ] Reconcile player-facing terminology (`level`, `XP`, `upgrade point`, `trait`, `doctrine`, or other authored labels).
 - [ ] Mark current placeholder portrait, stat icons, stat ladders, and panel layout as replaceable presentation.
 
 **Progress (2026-08-17):** Automatic multi-level processing and banked points are
-implemented. The Summoner screen now serves as the combined build-management and
-inventory surface, shows owned traits, and opens development by selecting a trait.
-Remaining work is the designer-state specification, final terminology pass, and
+implemented. The current prototype still combines build management and owned
+inventory, but the accepted direction now separates the dedicated Inventory
+screen from the Summoner overview while retaining equipped-item context. Remaining
+work is that split, the designer-state specification, final terminology pass, and
 presentation design.
 
 **Likely Files:**
@@ -428,21 +430,6 @@ Perform a targeted audit for other places where runtime behavior is selected via
 ## Ranked Gameplay
 
 ### 🟡 MEDIUM PRIORITY
-
-#### Add Deck Selection to the Online Matchmaking Screen
-**Status:** ✅ Completed
-**Category:** Ranked Gameplay / UI/UX
-**Effort:** Small
-
-**Description:**
-Add a deck-select button to the Online screen so players can see and change which saved deck they will use before entering matchmaking.
-
-**Tasks:**
-- [x] Add a compact loadout summary and change actions without replacing the existing rank and queue structure.
-- [x] Reuse the existing saved-deck management flow in a ranked-selection context.
-- [x] Show the selected ranked deck and prevent queueing with an invalid or unavailable deck.
-- [x] Persist one ranked deck per summoner without changing the offline active deck.
-- [x] Pass the ranked deck through matchmaking deck exchange and battle launch.
 
 #### Add Client-Side Prediction
 **Status:** ⬜ Not Started

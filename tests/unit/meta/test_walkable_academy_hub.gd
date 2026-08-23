@@ -129,10 +129,12 @@ func test_world_locations_are_physical_travel_points_and_ui_routes_stay_separate
 	assert_false(WalkableAcademyHub.DESTINATION_SPELLBOOK in travel_ids)
 	assert_false(WalkableAcademyHub.DESTINATION_JOURNAL in travel_ids)
 	assert_false(WalkableAcademyHub.DESTINATION_SUMMONER in travel_ids)
-	assert_false(WalkableAcademyHub.DESTINATION_SETTINGS in travel_ids)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL), SceneManager.SCENE_QUEST_JOURNAL)
-	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SETTINGS), SceneManager.SCENE_SETTINGS)
+	var direct_ui_scenes: Array[String] = []
+	for destination: Dictionary in WalkableAcademyHub.DIRECT_UI_DESTINATIONS:
+		direct_ui_scenes.append(str(destination.get("target_scene", "")))
+	assert_false(SceneManager.SCENE_SETTINGS in direct_ui_scenes)
 	hub.free()
 
 

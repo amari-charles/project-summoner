@@ -125,7 +125,7 @@ Travel remains available through every phase.
 | Mission Hall | `SCENE_SPECIAL_EVENTS` |
 | Online Arena | `SCENE_ONLINE` |
 
-The Spellbook (`SCENE_COLLECTION_SCREEN`), Journal, and Inventory/Summoner tools
+The Spellbook (`SCENE_COLLECTION_SCREEN`), Journal, Inventory, and Summoner tools
 remain persistent UI actions rather than Travel entries. Settings belongs in the
 Escape/system menu. The physical Class Hall may be repurposed later, but it is
 not currently a feature-screen destination.

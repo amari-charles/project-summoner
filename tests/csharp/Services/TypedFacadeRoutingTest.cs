@@ -103,6 +103,10 @@ public class TypedFacadeRoutingTest
         AssertThat(deckService.GetRankedDeckId(cole.Value)).IsEqual(coleRanked);
         AssertThat(deckService.GetRankedDeckId(selene.Value)).IsEqual(seleneRanked);
         AssertThat(deckService.SetRankedDeck(cole.Value, seleneRanked)).IsFalse();
+
+        AssertThat(deckService.DeleteDeck(coleRanked)).IsTrue();
+        AssertThat(deckService.GetRankedDeckId(cole.Value)).IsEmpty();
+        AssertThat(deckService.GetRankedDeckId(selene.Value)).IsEqual(seleneRanked);
     }
 
     private ProfileRepository CreateRepo(string profileId)

@@ -25,8 +25,9 @@ the deck is battle-ready.
 The functional scaffold contains:
 
 - current competitive tier and league points;
-- compact active-summoner artwork and ranked-deck summary;
-- Change Summoner and Change Deck actions;
+- centered active-summoner artwork that acts as the change-summoner control;
+- the selected deck's actual cards, with the deck rail acting as the
+  deck-management control;
 - one queue action with a clear missing/invalid-loadout state.
 
 This specifies information and behavior for design handoff, not final art,

@@ -590,6 +590,45 @@ the world prematurely.
 
 - `docs/design/walkable-academy-hub.md`
 
+## 2026-08-23 — Separate owned Inventory from the Summoner overview
+
+**Status:** Accepted; implementation is the next UI slice
+**Areas:** Summoners, Inventory, Equipment, Navigation, UI
+
+### Decision
+
+Give owned-item Inventory a dedicated screen reached by the campus bag action.
+Keep the Summoner screen focused on character identity, level and XP, core stats,
+traits and trait development, and currently equipped items. The Summoner screen
+may later open Inventory filtered to compatible equipment from an equipped slot,
+but it does not own the full item collection.
+
+### Context
+
+The bag icon currently opens a screen whose primary identity is the summoner,
+which does not match the player's navigation expectation. Retaining the full
+owned-item grid merely to fill layout space overloads the Summoner screen; its
+remaining space can instead support stronger character presentation and clearer
+progression hierarchy.
+
+### Consequences
+
+- The bag icon and profile/summoner access no longer route to the same purpose.
+- Equipped items remain visible on the Summoner screen because they describe the
+  active build.
+- Cards and decks remain owned by the Spellbook, not Inventory.
+- Inventory layout, item categories, and filtering are the next dedicated design
+  and implementation task.
+
+### Supersedes
+
+The 2026-08-17 decision to use the Summoner screen as the combined build and
+owned-inventory surface.
+
+### References
+
+- `docs/tracking/todos.md`
+
 ## 2026-08-22 — Replace the audio-only placeholder with shared game settings
 
 **Status:** Accepted
