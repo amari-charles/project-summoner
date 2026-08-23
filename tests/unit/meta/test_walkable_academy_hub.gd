@@ -249,6 +249,20 @@ func test_travel_moves_player_to_world_arrival_without_opening_the_feature_scree
 	)
 
 
+func test_starting_professor_dialogue_closes_the_travel_panel() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	add_child_autofree(hub)
+	await get_tree().process_frame
+	var professor: InteractiveNpc = hub.professors.get_child(0) as InteractiveNpc
+	hub.travel_panel.show()
+
+	hub._on_professor_interacted(professor.npc_id)
+
+	assert_false(hub.travel_panel.visible)
+	assert_true(hub.dialogue_box.visible)
+
+
 func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
 	assert_true(ResourceLoader.exists(SceneManager.SCENE_QUEST_JOURNAL))
 	var packed_scene: PackedScene = load(SceneManager.SCENE_QUEST_JOURNAL) as PackedScene

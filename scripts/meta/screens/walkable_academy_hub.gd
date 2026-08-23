@@ -875,6 +875,7 @@ func _refresh_quest_presentation() -> void:
 
 
 func _on_professor_interacted(professor_id: String) -> void:
+	_close_travel()
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(false)
 	var professor_state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)
