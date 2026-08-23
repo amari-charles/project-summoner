@@ -51,6 +51,7 @@ theme_override_constants/separation = 16
 
 [node name="QuestDetailPanel" parent="Center/Panel/Margin/Content" instance=ExtResource("2_detail")]
 unique_name_in_owner = true
+card_size_preset = 1
 
 [node name="Actions" type="HBoxContainer" parent="Center/Panel/Margin/Content"]
 layout_mode = 2

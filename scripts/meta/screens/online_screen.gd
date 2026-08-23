@@ -11,8 +11,7 @@ class_name OnlineScreen
 enum ScreenState { LOADING, READY, IN_QUEUE, MATCH_FOUND }
 
 const CARD_VISUAL_SCENE: PackedScene = preload("res://scenes/shared/card_visual.tscn")
-const DECK_CARD_SIZE: Vector2 = Vector2(135, 180)
-const DECK_CARD_RENDER_SIZE: Vector2 = Vector2(120, 160)
+const DECK_CARD_SIZE: Vector2 = CardVisualHelper.CARD_SIZE_STANDARD
 
 ## Timing constants
 ## Delay after match found to show UI feedback before connecting
@@ -48,6 +47,7 @@ const STARTING_ELO: int = 800
 @onready var placeholder_mode_a: Label = %PlaceholderModeA
 @onready var placeholder_mode_b: Label = %PlaceholderModeB
 @onready var ui_animation_player: AnimationPlayer = $AnimationPlayer
+@onready var collection_overlay: CollectionScreen = %CollectionOverlay
 
 ## State
 var _state: ScreenState = ScreenState.LOADING
@@ -94,6 +94,7 @@ func _setup_signals() -> void:
 	mode_title_button.pressed.connect(_on_mode_title_pressed)
 	character_art.pressed.connect(_on_change_summoner_pressed)
 	deck_rail_button.pressed.connect(_on_change_deck_pressed)
+	collection_overlay.closed.connect(_on_collection_overlay_closed)
 
 
 func _connect_services() -> void:
@@ -323,9 +324,14 @@ func _on_change_summoner_pressed() -> void:
 
 
 func _on_change_deck_pressed() -> void:
-	NavigationContext.set_value(CollectionScreen.NAV_KEY_MODE, CollectionScreen.MODE_RANKED_DECK)
-	NavigationContext.push_return(SceneManager.SCENE_ONLINE)
-	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
+	collection_overlay.open_collection(
+		CollectionScreen.MODE_RANKED_DECK,
+		_get_active_summoner_id()
+	)
+
+
+func _on_collection_overlay_closed() -> void:
+	_update_ui()
 
 
 func _on_mode_title_pressed() -> void:
@@ -601,9 +607,7 @@ func _add_deck_card(catalog_data: Dictionary) -> void:
 	slot.custom_minimum_size = DECK_CARD_SIZE
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var card_visual: CardVisual = CARD_VISUAL_SCENE.instantiate() as CardVisual
-	card_visual.custom_minimum_size = DECK_CARD_RENDER_SIZE
-	card_visual.size = DECK_CARD_RENDER_SIZE
-	card_visual.scale = DECK_CARD_SIZE / DECK_CARD_RENDER_SIZE
+	card_visual.set_display_size(DECK_CARD_SIZE)
 	card_visual.show_description = false
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.set_card_data(catalog_data, false)

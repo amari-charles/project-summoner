@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://beelkm0j8osqm"]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/summoner_screen.gd" id="1_summoner_screen"]
-[ext_resource type="PackedScene" path="res://scenes/meta/components/inventory_grid.tscn" id="3_inventory"]
 [ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png" id="4_placeholder_summoner"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/trait_development_overlay.tscn" id="5_trait_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/meta/components/inventory_overlay.tscn" id="6_inventory_overlay"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_placeholder_summoner"]
 atlas = ExtResource("4_placeholder_summoner")
@@ -18,7 +18,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_summoner_screen")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Dimmer" type="ColorRect" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -26,29 +26,38 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.721569, 0.682353, 0.631373, 1)
+mouse_filter = 0
+color = Color(0, 0, 0, 0.62)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 30
-theme_override_constants/margin_bottom = 22
 
-[node name="ScreenVBox" type="VBoxContainer" parent="MarginContainer"]
+[node name="Window" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1200, 720)
+layout_mode = 2
+
+[node name="WindowMargin" type="MarginContainer" parent="Center/Window"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 26
+
+[node name="ScreenVBox" type="VBoxContainer" parent="Center/Window/WindowMargin"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="HBoxContainer" parent="MarginContainer/ScreenVBox"]
+[node name="Header" type="HBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="CloseButton" type="Button" parent="MarginContainer/ScreenVBox/Header"]
+[node name="CloseButton" type="Button" parent="Center/Window/WindowMargin/ScreenVBox/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
@@ -56,13 +65,13 @@ theme_override_font_sizes/font_size = 28
 text = "X"
 flat = true
 
-[node name="HeaderCenter" type="VBoxContainer" parent="MarginContainer/ScreenVBox/Header"]
+[node name="HeaderCenter" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
 theme_override_constants/separation = 3
 
-[node name="SummonerNameLabel" type="Label" parent="MarginContainer/ScreenVBox/Header/HeaderCenter"]
+[node name="SummonerNameLabel" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/Header/HeaderCenter"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
@@ -71,31 +80,31 @@ theme_override_font_sizes/font_size = 36
 text = ""
 horizontal_alignment = 1
 
-[node name="ProgressRow" type="HBoxContainer" parent="MarginContainer/ScreenVBox/Header/HeaderCenter"]
+[node name="ProgressRow" type="HBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/Header/HeaderCenter"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 12
 
-[node name="ElementLabel" type="Label" parent="MarginContainer/ScreenVBox/Header/HeaderCenter/ProgressRow"]
+[node name="ElementLabel" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/Header/HeaderCenter/ProgressRow"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = ""
 
-[node name="LevelLabel" type="Label" parent="MarginContainer/ScreenVBox/Header/HeaderCenter/ProgressRow"]
+[node name="LevelLabel" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/Header/HeaderCenter/ProgressRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
 theme_override_font_sizes/font_size = 16
 text = ""
 
-[node name="XPLabel" type="Label" parent="MarginContainer/ScreenVBox/Header/HeaderCenter/ProgressRow"]
+[node name="XPLabel" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/Header/HeaderCenter/ProgressRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = ""
 
-[node name="XPProgressBar" type="ProgressBar" parent="MarginContainer/ScreenVBox/Header/HeaderCenter"]
+[node name="XPProgressBar" type="ProgressBar" parent="Center/Window/WindowMargin/ScreenVBox/Header/HeaderCenter"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(420, 12)
 layout_mode = 2
@@ -103,49 +112,49 @@ size_flags_horizontal = 4
 value = 75.0
 show_percentage = false
 
-[node name="HeaderRight" type="VBoxContainer" parent="MarginContainer/ScreenVBox/Header"]
+[node name="HeaderRight" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/Header"]
 layout_mode = 2
 alignment = 1
 
-[node name="SwitchSummonerButton" type="Button" parent="MarginContainer/ScreenVBox/Header/HeaderRight"]
+[node name="SwitchSummonerButton" type="Button" parent="Center/Window/WindowMargin/ScreenVBox/Header/HeaderRight"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = ""
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/ScreenVBox"]
+[node name="HSeparator" type="HSeparator" parent="Center/Window/WindowMargin/ScreenVBox"]
 layout_mode = 2
 
-[node name="MainContent" type="HBoxContainer" parent="MarginContainer/ScreenVBox"]
+[node name="MainContent" type="HBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 22
 
-[node name="LeftColumn" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent"]
+[node name="LeftColumn" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent"]
 custom_minimum_size = Vector2(470, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 theme_override_constants/separation = 14
 
-[node name="PortraitContainer" type="CenterContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn"]
+[node name="PortraitContainer" type="CenterContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="PortraitFrame" type="PanelContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/PortraitContainer"]
+[node name="PortraitFrame" type="PanelContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/PortraitContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="PortraitMargin" type="MarginContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame"]
+[node name="PortraitMargin" type="MarginContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame"]
 layout_mode = 2
 
-[node name="PortraitStack" type="Control" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin"]
-custom_minimum_size = Vector2(430, 570)
+[node name="PortraitStack" type="Control" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin"]
+custom_minimum_size = Vector2(390, 400)
 layout_mode = 2
 
-[node name="PortraitTexture" type="TextureRect" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+[node name="PortraitTexture" type="TextureRect" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -158,7 +167,7 @@ texture = SubResource("AtlasTexture_placeholder_summoner")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="PortraitSymbol" type="Label" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
+[node name="PortraitSymbol" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/PortraitContainer/PortraitFrame/PortraitMargin/PortraitStack"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -176,169 +185,114 @@ text = "E"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EquipmentPanel" type="PanelContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn"]
+[node name="EquipmentPanel" type="PanelContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="EquipmentMargin" type="MarginContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/EquipmentPanel"]
+[node name="EquipmentMargin" type="MarginContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/EquipmentPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 10
 
-[node name="EquipmentVBox" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/EquipmentPanel/EquipmentMargin"]
+[node name="EquipmentVBox" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/EquipmentPanel/EquipmentMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="EquipmentContainer" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/LeftColumn/EquipmentPanel/EquipmentMargin/EquipmentVBox"]
+[node name="EquipmentContainer" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/LeftColumn/EquipmentPanel/EquipmentMargin/EquipmentVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="RightColumn" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent"]
+[node name="RightColumn" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 theme_override_constants/separation = 14
 
-[node name="TopRow" type="HBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn"]
+[node name="StatsPanel" type="PanelContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 135)
 layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="DescriptionPanel" type="PanelContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow"]
-unique_name_in_owner = true
-layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="DescriptionMargin" type="MarginContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/DescriptionPanel"]
+[node name="StatsMargin" type="MarginContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/StatsPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 10
 
-[node name="DescriptionVBox" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/DescriptionPanel/DescriptionMargin"]
+[node name="StatsVBox" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/StatsPanel/StatsMargin"]
 layout_mode = 2
 theme_override_constants/separation = 7
 
-[node name="DescriptionHeader" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/DescriptionPanel/DescriptionMargin/DescriptionVBox"]
+[node name="StatsHeader" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/StatsPanel/StatsMargin/StatsVBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 15
-text = ""
+theme_override_colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+theme_override_font_sizes/font_size = 20
+text = "Stats"
 
-[node name="DescriptionLabel" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/DescriptionPanel/DescriptionMargin/DescriptionVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 13
-text = ""
-autowrap_mode = 2
-
-[node name="StatsPanel" type="PanelContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="StatsMargin" type="MarginContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/StatsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 10
-
-[node name="StatsVBox" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/StatsPanel/StatsMargin"]
-layout_mode = 2
-theme_override_constants/separation = 7
-
-[node name="StatsHeader" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/StatsPanel/StatsMargin/StatsVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 15
-text = ""
-
-[node name="StatsContainer" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TopRow/StatsPanel/StatsMargin/StatsVBox"]
+[node name="StatsContainer" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/StatsPanel/StatsMargin/StatsVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="TraitsPanel" type="PanelContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn"]
+[node name="TraitsPanel" type="PanelContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 245)
 layout_mode = 2
+size_flags_vertical = 3
 
-[node name="TraitsMargin" type="MarginContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel"]
+[node name="TraitsMargin" type="MarginContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/TraitsPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 10
 
-[node name="TraitsVBox" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin"]
+[node name="TraitsVBox" type="VBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TraitsHeaderRow" type="HBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
+[node name="TraitsHeaderRow" type="HBoxContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TraitsHeader" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsHeaderRow"]
+[node name="TraitsHeader" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsHeaderRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 15
-text = ""
+theme_override_colors/font_color = Color(0.145098, 0.137255, 0.121569, 1)
+theme_override_font_sizes/font_size = 20
+text = "Traits"
 
-[node name="UpgradePointsLabel" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsHeaderRow"]
+[node name="UpgradePointsLabel" type="Label" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsHeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = ""
 
-[node name="TraitsScroll" type="ScrollContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
+[node name="TraitsScroll" type="ScrollContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 1
 
-[node name="TraitsContainer" type="HFlowContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsScroll"]
+[node name="TraitsContainer" type="HFlowContainer" parent="Center/Window/WindowMargin/ScreenVBox/MainContent/RightColumn/TraitsPanel/TraitsMargin/TraitsVBox/TraitsScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="InventoryPanel" type="PanelContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="InventoryMargin" type="MarginContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/InventoryPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 10
-
-[node name="InventoryVBox" type="VBoxContainer" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/InventoryPanel/InventoryMargin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="InventoryHeader" type="Label" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/InventoryPanel/InventoryMargin/InventoryVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_override = "TitleLabel"
-theme_override_font_sizes/font_size = 15
-text = ""
-
-[node name="InventoryGrid" parent="MarginContainer/ScreenVBox/MainContent/RightColumn/InventoryPanel/InventoryMargin/InventoryVBox" instance=ExtResource("3_inventory")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-
 [node name="TraitDevelopmentOverlay" parent="." instance=ExtResource("5_trait_overlay")]
 unique_name_in_owner = true
 layout_mode = 1
+
+[node name="InventoryOverlay" parent="." instance=ExtResource("6_inventory_overlay")]
+unique_name_in_owner = true

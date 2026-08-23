@@ -207,7 +207,7 @@ func _add_card_widgets(parent: Control, card: Dictionary, locked: bool) -> void:
 		parent.add_child(widget)
 		widget.set_card(card_data, catalog_data)
 		widget.set_draggable(false)
-		widget.custom_minimum_size = Vector2(160.0, 240.0)
+		widget.set_display_size(CardVisualHelper.CARD_SIZE_LARGE)
 		widget.tooltip_text = SafeTypeUtils.string(catalog_data.get("card_name"), card_id)
 		if locked:
 			widget.tooltip_text = "%s • %s" % [widget.tooltip_text, Loc.t("academy.flow.class_supplied")]

@@ -125,10 +125,21 @@ Travel remains available through every phase.
 | Mission Hall | `SCENE_SPECIAL_EVENTS` |
 | Online Arena | `SCENE_ONLINE` |
 
-The Spellbook (`SCENE_COLLECTION_SCREEN`), Journal, Inventory, and Summoner tools
-remain persistent UI actions rather than Travel entries. Settings belongs in the
-Escape/system menu. The physical Class Hall may be repurposed later, but it is
-not currently a feature-screen destination.
+The Spellbook (`SCENE_COLLECTION_SCREEN`), Journal, Inventory, and Summoner
+Profile remain persistent UI actions rather than Travel entries. Each is a
+separate utility overlay with its own information architecture; they are not
+sections of one combined modal. Opening one keeps the campus visible and dimmed
+behind it, pauses traversal, and closes back to the same world context. Settings
+belongs in the Escape/system menu. The physical Class Hall may be repurposed
+later, but it is not currently a feature-screen destination.
+
+The Summoner Profile owns portrait/name identity, level and XP, stats, equipped
+items, and entry into trait development. It does not show a separate prose
+description panel; stats use the full upper build-information region. The
+Spellbook owns collection inspection and deck management. The Journal owns
+quest discovery and progress, while Inventory owns item browsing. The same
+surfaces may be hosted by non-campus contexts when necessary, but those hosts do
+not define duplicate versions of the tools.
 
 ## Phase 1 Non-Goals
 

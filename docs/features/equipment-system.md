@@ -6,7 +6,7 @@ The equipment system allows summoners to equip items that provide stat modifiers
 
 - **Replaced**: The previous "boons" system has been replaced with a proper equipment slot system
 - **Slots**: Each summoner has 4 equipment slots: Wand, Ring1, Ring2, Robes
-- **Ownership**: Items use content binding (AccountWide vs SummonerBound) to control access
+- **Ownership**: Gameplay items belong to one summoner and are not shared across the roster
 
 ## Equipment Slots
 
@@ -17,18 +17,15 @@ The equipment system allows summoners to equip items that provide stat modifiers
 | Ring2 | Utility items | Lucky Band |
 | Robes | Defense/survivability | Traveler's Cloak, Veteran's Medal |
 
-## Content Binding
+## Ownership
 
-Items and cards use a binding system to determine ownership:
+Gameplay Inventory is summoner-scoped. An item acquired by one summoner is not
+available to another summoner. Account-level cosmetics and purchases may still
+exist, but they are not gameplay items in this Inventory.
 
-- **AccountWide**: Any summoner on the account can use the item (e.g., cosmetics, premium purchases)
-- **SummonerBound**: Only the bound summoner can use it (e.g., caravan card purchases, progression rewards)
-
-### How Binding Works
-
-1. Items purchased from the **Premium Store** are `AccountWide`
-2. Cards purchased from the **Caravan** (in-campaign shop) are `SummonerBound` to the active summoner
-3. Starter items are `AccountWide`
+The current persistence layer still contains the older `AccountWide` item-binding
+path. Migrating existing definitions, grant call sites, and saved instances to the
+summoner-owned rule is tracked separately from the Inventory UI prototype.
 
 ## Architecture
 
@@ -54,8 +51,8 @@ public class ItemInstanceData
 // ContentBinding enum
 public enum ContentBinding
 {
-    AccountWide,      // Any summoner can use
-    SummonerBound     // Only bound summoner can use
+    AccountWide,      // Legacy gameplay-item path pending migration
+    SummonerBound     // Intended ownership for gameplay items
 }
 ```
 
@@ -97,7 +94,27 @@ Items.SLOT_ICONS          # {"wand": "🪄", "ring1": "💍", ...}
 ## UI Components
 
 - **SummonerScreen**: Shows equipped items in a 4-slot horizontal layout
-- **EquipmentSlotModal**: Click a slot to view available items and equip/unequip
+- **InventoryOverlay (prototype)**: The bag opens owned items; selecting an
+  equipment slot opens the same large overlay filtered to compatible items. The
+  large-modal presentation remains subject to user evaluation.
+
+### Inventory Presentation
+
+The Inventory surface is primarily a large item grid with horizontal filters for
+`All`, `Equipment`, `Materials`, `Consumables`, and `Quest Items`. Selecting an
+item opens a smaller inspection modal for its icon, quantity, description,
+effects, and equipped state. The normal bag context is browse-only; an equipment
+slot context adds equip and unequip actions. Empty inventories and empty category
+filters retain the square slot field rather than replacing it with a blank-state
+message. The prototype uses a fixed 12-column by 5-row visible field of 88x88
+design-space slots. Additional owned items continue in the scroll area; display
+resolution does not change the grid composition or imply an inventory cap.
+
+Transformative item actions belong to their associated world experiences rather
+than the bag: rituals happen in the ritual space, card cracking through the
+underground contact, quest delivery through its objective or NPC, and commerce
+through a merchant. Whether Inventory ultimately uses a large overlay or a
+dedicated screen remains under evaluation.
 
 ## Console Commands (Debug)
 

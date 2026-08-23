@@ -1,5 +1,12 @@
 extends GutTest
 
+class UnhandledSpaceSpy extends Node:
+	var space_presses: int = 0
+
+	func _unhandled_input(event: InputEvent) -> void:
+		if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
+			space_presses += 1
+
 const LEGACY_PATHS: Array[String] = [
 	"res://scripts/application/dialogue_manager.gd",
 	"res://scripts/application/event_sequencer.gd",
@@ -27,9 +34,16 @@ func test_legacy_narrative_runtime_is_fully_removed() -> void:
 
 func test_presenter_skip_preserves_required_choices() -> void:
 	var script_text: String = _read("res://scripts/shared/narrative_dialogue_presenter.gd")
-	assert_true(script_text.contains("if not SafeTypeUtils.array(_cue.get(\"choices\")).is_empty()"))
+	var base_text: String = _read("res://scripts/shared/dialogue_box_base.gd")
+	var npc_text: String = _read("res://scripts/meta/components/npc_dialogue_box.gd")
 	assert_true(script_text.contains("consequential"))
-	assert_true(script_text.contains("_release_dialogue_focus"))
+	assert_true(script_text.contains("_skip_to_dialogue_choices_or_finish"))
+	assert_true(script_text.contains("extends DialogueBoxBase"))
+	assert_true(npc_text.contains("extends DialogueBoxBase"))
+	assert_true(base_text.contains("_release_dialogue_focus"))
+	assert_true(base_text.contains("_dialogue_choice_has_focus"))
+	assert_false(script_text.contains("func _input"))
+	assert_false(npc_text.contains("func _input"))
 
 func test_hidden_presenter_does_not_block_underlying_screen_controls() -> void:
 	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
@@ -45,6 +59,27 @@ func test_hidden_presenter_does_not_block_underlying_screen_controls() -> void:
 	assert_eq(presenter.mouse_filter, Control.MOUSE_FILTER_STOP)
 	presenter._cue = {}
 	presenter.free()
+
+
+func test_presenting_dialogue_releases_stale_world_ui_focus() -> void:
+	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
+	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter
+	var world_ui_button: Button = Button.new()
+	add_child_autofree(world_ui_button)
+	add_child_autofree(presenter)
+	await get_tree().process_frame
+	world_ui_button.grab_focus()
+	assert_eq(get_viewport().gui_get_focus_owner(), world_ui_button)
+
+	presenter.present({
+		"cue_id": "test_dialogue_clears_focus",
+		"speaker_key": "dialogue.merlin_summoner_intro.speaker",
+		"line_keys": ["dialogue.merlin_summoner_intro.line_1"],
+		"choices": [],
+	})
+
+	assert_null(get_viewport().gui_get_focus_owner())
+	presenter._cue = {}
 
 func test_clicking_visible_dialogue_text_advances_the_narrative() -> void:
 	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
@@ -106,7 +141,9 @@ func test_space_advances_visible_dialogue_text() -> void:
 func test_space_spam_does_not_select_an_unfocused_response() -> void:
 	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
 	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter
+	var input_spy: UnhandledSpaceSpy = UnhandledSpaceSpy.new()
 	add_child_autofree(presenter)
+	add_child_autofree(input_spy)
 	await get_tree().process_frame
 	presenter.present({
 		"cue_id": "test_space_choice_guard",
@@ -127,9 +164,34 @@ func test_space_spam_does_not_select_an_unfocused_response() -> void:
 	var choices: VBoxContainer = presenter.get_node("Panel/Margin/Root/Choices") as VBoxContainer
 	assert_eq(choices.get_child_count(), 1)
 	assert_null(get_viewport().gui_get_focus_owner())
-	presenter._input(space)
+	get_viewport().push_input(space, true)
+	await get_tree().process_frame
 	assert_false(presenter._cue.is_empty())
+	assert_eq(presenter._line_index, 1)
+	assert_eq(input_spy.space_presses, 0)
 	presenter._cue = {}
+
+
+func test_escape_closes_and_cancels_narrative_dialogue() -> void:
+	var scene: PackedScene = load("res://scenes/shared/narrative_dialogue_presenter.tscn")
+	var presenter: NarrativeDialoguePresenter = scene.instantiate() as NarrativeDialoguePresenter
+	add_child_autofree(presenter)
+	await get_tree().process_frame
+	presenter.present({
+		"cue_id": "test_escape_close",
+		"speaker_key": "dialogue.merlin_summoner_intro.speaker",
+		"line_keys": ["dialogue.merlin_summoner_intro.line_1"],
+		"choices": [],
+	})
+
+	var escape: InputEventKey = InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	get_viewport().push_input(escape, true)
+	await get_tree().process_frame
+
+	assert_false(presenter.visible)
+	assert_true(presenter._cue.is_empty())
 
 func _read(path: String) -> String:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)

@@ -51,8 +51,12 @@ func test_generic_reward_modal_renders_a_full_size_card_reward() -> void:
 	assert_not_null(card)
 	assert_eq(SafeTypeUtils.string(card.card_data.get("catalog_id")), "magic_bolt")
 	assert_true(card.show_description)
-	assert_gte(card.size.x, 240.0)
-	assert_gte(card.size.y, 360.0)
+	assert_eq(card.size, CardVisualHelper.CARD_SIZE_LARGE)
+	assert_almost_eq(
+		card.size.x / card.size.y,
+		CardVisualHelper.CARD_ASPECT_RATIO,
+		0.001
+	)
 
 
 func _read(path: String) -> String:

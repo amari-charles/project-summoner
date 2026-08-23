@@ -44,12 +44,26 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-22, UI flow consolidation):** Replaced the redundant click-through battlefield victory/defeat modal with a brief automatic conclusion overlay before the combined Results screen. Began the canonical screen inventory by resolving this duplicate outcome surface; the broader reward, level-up, course, and navigation inventory remains open.
 **Tracker Sync (2026-08-23, battle HUD and settings foundations):** Recorded the functional battle HUD scaffold, mode-aware pause/forfeit flow, shared categorized settings surface, and campus Escape menu. These surfaces are ready for designer treatment, while final visual language, responsive layout validation, and the broader canonical screen inventory remain open.
 **Tracker Sync (2026-08-23, ranked loadouts):** Implemented the Online loadout scaffold, separate per-summoner ranked-deck persistence, contextual selection through the collection screen, queue validation, and ranked battle wiring.
+**Tracker Sync (2026-08-23, item developer tooling):** Added a bounded audit of the broken item debug-command/service contract after `/items_grant` exposed a nonexistent runtime method call. Repair versus replacement remains an audit outcome rather than a preselected implementation.
+**Tracker Sync (2026-08-23, utility overlays):** Standardized Summoner Profile, Spellbook/Deck, Journal, and Inventory as distinct reusable overlays over their invoking context. Online remains a destination and now hosts the shared Spellbook overlay for ranked-deck changes; encounter preparation retains its activity-specific loadout editor.
 
 ---
 
 ## Designer Readiness — Immediate Queue
 
 ### 🔴 HIGH PRIORITY
+
+#### Remove or Rebuild the Legacy First-Card Choice Screen
+**Status:** ⬜ Not Started
+**Category:** Onboarding / Cards / UI/UX
+**Urgency:** High — canonical card-presentation follow-up
+**Ease:** Medium
+**Scope:** Medium
+
+The superseded `first_card_selection` route is a bespoke button-based choice
+screen rather than a shared full-card presentation. Remove the route with the
+legacy onboarding path or rebuild it from the canonical 3:4 card surface; do
+not treat a ratio-only change to its outer buttons as a completed migration.
 
 #### Rework the Summoner Screen Around Automatic Levels and Banked Upgrade Choices
 **Status:** 🔄 In Progress
@@ -66,18 +80,24 @@ Run a second product and information-architecture pass on the summoner screen. T
 - [x] Replace the persistent `Level Up` action with owned-trait development entry points and an unspent-point state.
 - [x] Establish the current information hierarchy: portrait and equipped items;
   level and XP; compact identity and stats; and owned-trait summary plus Upgrades.
-- [ ] Move the reusable owned-item grid to a dedicated Inventory screen and route
-  the campus bag action there while retaining equipped slots on Summoner.
+- [x] Remove the owned-item grid from Summoner and route the campus bag action to
+  a reusable Inventory prototype while retaining equipped slots on Summoner.
+- [x] Convert campus Summoner Profile access to a fixed centered overlay that
+  retains the dimmed campus context and pauses traversal while open.
+- [ ] Evaluate the current large-overlay presentation against a dedicated
+  Inventory screen before accepting the final navigation and layout treatment.
+- [ ] Migrate gameplay-item definitions, grant call sites, saved instances, and
+  ownership queries from the legacy account-wide path to summoner ownership.
 - [ ] Define the minimum states the designer must cover: ordinary progress, newly leveled, unspent points, max level, locked upgrade, and permanent branch confirmation.
 - [ ] Reconcile player-facing terminology (`level`, `XP`, `upgrade point`, `trait`, `doctrine`, or other authored labels).
 - [ ] Mark current placeholder portrait, stat icons, stat ladders, and panel layout as replaceable presentation.
 
 **Progress (2026-08-17):** Automatic multi-level processing and banked points are
-implemented. The current prototype still combines build management and owned
-inventory, but the accepted direction now separates the dedicated Inventory
-screen from the Summoner overview while retaining equipped-item context. Remaining
-work is that split, the designer-state specification, final terminology pass, and
-presentation design.
+implemented. The Summoner prototype now keeps build management separate from a
+large reusable Inventory overlay, while equipped slots open that overlay in a
+compatible-item context. Remaining work includes the gameplay-item ownership
+migration, designer-state specification, final terminology pass, and presentation
+design.
 
 **Likely Files:**
 - `docs/design/trait-tree-screen-flow-spec.md`
@@ -1031,6 +1051,64 @@ Implement the runtime system for summoner active/passive abilities after the cur
 ---
 
 ## Developer Tools
+
+### 🔴 HIGH PRIORITY
+
+#### Audit and Restore the Item Developer-Tooling Contract
+**Status:** ⬜ Not Started
+**Category:** Developer Tools / Items / Interop
+**Urgency:** High — blocks representative Inventory UI validation
+**Ease:** Medium
+**Scope:** Medium
+
+**Description:**
+Audit the item debug commands and their GDScript-to-C# adapter as one bounded
+tooling surface. The current `/items_grant` command calls a nonexistent runtime
+method, while the same untested adapter also owns list, equip, unequip, and clear
+operations. Decide from the audit whether the existing console surface is worth
+repairing or should be replaced with a fresh item-test fixture/tool; do not
+accumulate one-off callable-name patches.
+
+**Tasks:**
+- [ ] Inventory every item developer command and map it to the actual
+  Godot-exposed service method and argument contract.
+- [ ] Reproduce and explain why `GrantItem` is not callable through the current
+  adapter, including whether its optional binding parameter caused contract
+  drift.
+- [ ] Check grant, grant-all, list, equip, unequip, and clear independently so
+  the first repaired command does not mask other broken operations.
+- [ ] Choose and document the smallest maintainable surface: retain the console
+  commands behind one verified adapter, or replace them with a focused item-test
+  fixture/tool.
+- [ ] Add contract/smoke coverage for every retained operation and fail with a
+  useful developer-facing message when its service is unavailable.
+- [ ] Prove the completed workflow by granting a catalog item, seeing it in the
+  Inventory overlay, equipping it to the active summoner, and clearing the test
+  state.
+- [ ] Keep the separate gameplay ownership migration visible; do not silently
+  redefine account-wide versus summoner-bound behavior as part of this audit.
+
+**Placement Rationale:**
+The item service owns inventory rules and mutation; its infrastructure adapter
+owns GDScript/C# translation; debug tooling only invokes those capabilities.
+Callable names, argument coercion, and fallback errors therefore belong at the
+adapter boundary rather than inside the Inventory UI or scattered console
+commands.
+
+**Likely Files:**
+- `scripts/debug/dev_console.gd`
+- `scripts/infrastructure/services/items_api.gd`
+- `scripts/csharp/Meta/Services/Items/ItemService.cs`
+- item-service adapter and developer-command tests (new or extended)
+
+**Related Bug:**
+- `docs/tracking/bugs.md` — Item Debug Grant Command Calls a Missing Runtime Method
+
+**Execution Order:**
+Run this before further item-modal visual review that requires populated data.
+Complete the audit and contract tests first, then make the repair/rebuild choice,
+then use the restored tool to validate Inventory. The summoner-ownership
+migration remains a later, larger implementation task.
 
 ### 🟢 LOW PRIORITY
 

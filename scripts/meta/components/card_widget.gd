@@ -35,6 +35,7 @@ var hover_tween: Tween = null
 ## Drag state
 var _hidden_for_drag: bool = false
 var _drag_in_progress: bool = false
+var _display_size_explicitly_set: bool = false
 
 ## Node references - Card visual
 @onready var card_panel: PanelContainer = %CardPanel
@@ -61,6 +62,8 @@ var progression_info: Dictionary = {}
 ## =============================================================================
 
 func _ready() -> void:
+	if not _display_size_explicitly_set:
+		set_display_size(CardVisualHelper.CARD_SIZE_LARGE)
 	# Create hold timer
 	hold_timer = Timer.new()
 	hold_timer.one_shot = true
@@ -95,6 +98,19 @@ func set_card(p_card_data: Dictionary, p_catalog_data: Dictionary) -> void:
 	card_data = p_card_data
 	catalog_data = p_catalog_data
 	_update_display()
+
+
+## Apply one of the shared full-card display sizes to both the widget and its
+## authored card face.
+func set_display_size(display_size: Vector2) -> void:
+	_display_size_explicitly_set = true
+	custom_minimum_size = display_size
+	size = display_size
+	size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	var panel: PanelContainer = card_panel if is_instance_valid(card_panel) else get_node_or_null("CardPanel") as PanelContainer
+	if panel:
+		panel.custom_minimum_size = display_size
 
 ## Enable/disable drag support
 func set_draggable(p_draggable: bool) -> void:

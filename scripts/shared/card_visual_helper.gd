@@ -1,6 +1,26 @@
 extends Node
 class_name CardVisualHelper
 
+## Authoritative full-card presentation sizes. Every full card keeps the 3:4
+## gameplay aspect ratio; screens select a named presentation tier rather than
+## authoring their own dimensions.
+enum CardSize { COMPACT, STANDARD, LARGE }
+
+const CARD_ASPECT_RATIO: float = 3.0 / 4.0
+const CARD_SIZE_COMPACT: Vector2 = Vector2(90, 120)
+const CARD_SIZE_STANDARD: Vector2 = Vector2(120, 160)
+const CARD_SIZE_LARGE: Vector2 = Vector2(180, 240)
+
+
+static func get_display_size(size_preset: int) -> Vector2:
+	match size_preset:
+		CardSize.COMPACT:
+			return CARD_SIZE_COMPACT
+		CardSize.LARGE:
+			return CARD_SIZE_LARGE
+		_:
+			return CARD_SIZE_STANDARD
+
 ## CardVisualHelper - Utility functions for card visual presentation
 ##
 ## Provides element-to-color mappings and visual styling helpers for cards

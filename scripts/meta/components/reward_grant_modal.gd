@@ -4,7 +4,7 @@ class_name RewardGrantModal
 signal closed
 
 const CardVisualScene: PackedScene = preload("res://scenes/shared/card_visual.tscn")
-const REWARD_CARD_SIZE: Vector2 = Vector2(240, 360)
+const REWARD_CARD_SIZE: Vector2 = CardVisualHelper.CARD_SIZE_LARGE
 
 @onready var panel: PanelContainer = %Panel
 @onready var title_label: Label = %TitleLabel
@@ -37,7 +37,7 @@ func _add_card_reward(grant: Dictionary) -> void:
 	var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("id")))
 	var card_data: Dictionary = CardCatalogApi.get_card_as_dict(card_id)
 	var card_visual: CardVisual = CardVisualScene.instantiate() as CardVisual
-	card_visual.custom_minimum_size = REWARD_CARD_SIZE
+	card_visual.set_display_size(REWARD_CARD_SIZE)
 	card_visual.show_description = true
 	card_visual.cost_font_size = 32
 	card_visual.name_font_size = 18

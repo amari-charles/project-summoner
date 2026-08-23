@@ -8,7 +8,6 @@ theme_override_constants/separation = 2
 
 [node name="CardPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 240)
 layout_mode = 2
 size_flags_vertical = 0
 

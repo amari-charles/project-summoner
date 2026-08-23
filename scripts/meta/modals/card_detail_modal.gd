@@ -50,6 +50,7 @@ var is_card_in_deck: bool = false
 ## =============================================================================
 
 func _ready() -> void:
+	card_visual.set_display_size(CardVisualHelper.CARD_SIZE_LARGE)
 	# Connect buttons
 	close_button.pressed.connect(_close)
 	deck_action_button.pressed.connect(_on_deck_action_pressed)

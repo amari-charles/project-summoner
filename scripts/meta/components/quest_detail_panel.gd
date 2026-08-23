@@ -2,7 +2,7 @@ extends VBoxContainer
 class_name QuestDetailPanel
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
-const CARD_REWARD_PREVIEW_SIZE: Vector2 = Vector2(200, 300)
+@export_enum("Compact", "Standard", "Large") var card_size_preset: int = CardVisualHelper.CardSize.LARGE
 
 @onready var detail_empty: Label = %DetailEmpty
 @onready var detail_content: VBoxContainer = %DetailContent
@@ -110,22 +110,28 @@ func _build_reward(grant: Dictionary) -> Control:
 
 func _build_card_reward(grant: Dictionary) -> Control:
 	var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("id")))
+	var display_size: Vector2 = CardVisualHelper.get_display_size(card_size_preset)
+	var reward_slot: CenterContainer = CenterContainer.new()
+	reward_slot.name = "CardRewardSlot"
+	reward_slot.custom_minimum_size = display_size
+	reward_slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	reward_slot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+
 	var card_widget: CardWidget = CardWidgetScene.instantiate() as CardWidget
-	var card_panel: PanelContainer = card_widget.get_node("CardPanel") as PanelContainer
-	card_panel.custom_minimum_size = CARD_REWARD_PREVIEW_SIZE
-	card_widget.custom_minimum_size = CARD_REWARD_PREVIEW_SIZE
+	card_widget.set_display_size(display_size)
 	card_widget.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	card_widget.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	card_widget.set_draggable(false)
+	reward_slot.add_child(card_widget)
 	card_widget.ready.connect(
 		func() -> void:
 			card_widget.set_card(
 				{"catalog_id": card_id},
 				CardCatalogApi.get_card_as_dict(card_id)
-			),
+		),
 		CONNECT_ONE_SHOT
 	)
-	return card_widget
+	return reward_slot
 
 
 func _apply_palette() -> void:

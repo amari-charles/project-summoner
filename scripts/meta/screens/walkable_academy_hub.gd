@@ -73,11 +73,7 @@ const WORLD_LOCATIONS: Array[Dictionary] = [
 	},
 ]
 
-const DIRECT_UI_DESTINATIONS: Array[Dictionary] = [
-	{"id": DESTINATION_SPELLBOOK, "target_scene": SceneManagerClass.SCENE_COLLECTION_SCREEN},
-	{"id": DESTINATION_SUMMONER, "target_scene": SceneManagerClass.SCENE_SUMMONER_SCREEN},
-	{"id": DESTINATION_JOURNAL, "target_scene": SceneManagerClass.SCENE_QUEST_JOURNAL},
-]
+const DIRECT_UI_DESTINATIONS: Array[Dictionary] = []
 
 @export_category("Placeholder Ground")
 @export_range(0.5, 20.0, 0.25) var ground_tile_world_size: float = 2.25
@@ -119,6 +115,10 @@ const DIRECT_UI_DESTINATIONS: Array[Dictionary] = [
 @onready var spellbook_button: Button = %SpellbookButton
 @onready var journal_button: Button = %JournalButton
 @onready var inventory_button: Button = %InventoryButton
+@onready var inventory_overlay: InventoryOverlay = %InventoryOverlay
+@onready var summoner_profile: SummonerScreen = %SummonerProfile
+@onready var collection_overlay: CollectionScreen = %CollectionOverlay
+@onready var journal_overlay: QuestJournal = %JournalOverlay
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 @onready var reward_modal: RewardGrantModal = %RewardGrantModal
 @onready var quest_offer_modal: QuestOfferModal = %QuestOfferModal
@@ -158,10 +158,14 @@ func _ready() -> void:
 	journal_button.tooltip_text = Loc.t("academy.journal.title")
 	spellbook_button.tooltip_text = Loc.t("academy.campus.spellbook.name")
 	inventory_button.tooltip_text = Loc.t("academy.walkable.inventory")
-	spellbook_button.pressed.connect(_route_to.bind(DESTINATION_SPELLBOOK))
-	journal_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
-	inventory_button.pressed.connect(_route_to.bind(DESTINATION_SUMMONER))
-	tracked_quest_button.pressed.connect(_route_to.bind(DESTINATION_JOURNAL))
+	spellbook_button.pressed.connect(_open_collection)
+	journal_button.pressed.connect(_open_journal)
+	inventory_button.pressed.connect(_open_inventory)
+	summoner_profile.closed.connect(_on_utility_overlay_closed)
+	collection_overlay.closed.connect(_on_utility_overlay_closed)
+	journal_overlay.closed.connect(_on_utility_overlay_closed)
+	inventory_overlay.closed.connect(_on_utility_overlay_closed)
+	tracked_quest_button.pressed.connect(_open_journal)
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
 	dialogue_box.closed.connect(_on_dialogue_closed)
 	reward_modal.closed.connect(_on_reward_modal_closed)
@@ -540,6 +544,8 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _utility_overlay_visible():
+		return
 	if event.is_action_pressed("ui_cancel") and travel_panel.visible:
 		_close_travel()
 		get_viewport().set_input_as_handled()
@@ -572,7 +578,52 @@ func _setup_summoner_icon() -> void:
 	var summoner_icon: SummonerIconWidget = SummonerIconWidgetScene.instantiate()
 	summoner_slot.add_child(summoner_icon)
 	summoner_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	summoner_icon.icon_clicked.connect(_route_to.bind(DESTINATION_SUMMONER))
+	summoner_icon.icon_clicked.connect(_open_summoner_profile)
+
+
+func _open_summoner_profile() -> void:
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	if summoner_id.is_empty():
+		return
+	_pause_world_for_utility()
+	summoner_profile.open_profile(summoner_id)
+
+
+func _open_collection() -> void:
+	_pause_world_for_utility()
+	collection_overlay.open_collection()
+
+
+func _open_journal() -> void:
+	_pause_world_for_utility()
+	journal_overlay.open_journal()
+
+
+func _pause_world_for_utility() -> void:
+	_close_travel()
+	player.velocity = Vector3.ZERO
+	player.set_physics_process(false)
+
+
+func _on_utility_overlay_closed() -> void:
+	if not _utility_overlay_visible():
+		player.set_physics_process(true)
+
+
+func _utility_overlay_visible() -> bool:
+	return (
+		summoner_profile.visible
+		or collection_overlay.visible
+		or journal_overlay.visible
+		or inventory_overlay.visible
+	)
+
+
+func _open_inventory() -> void:
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	if not summoner_id.is_empty():
+		_pause_world_for_utility()
+		inventory_overlay.open_inventory(summoner_id)
 
 
 func _populate_travel_points() -> void:
@@ -824,6 +875,7 @@ func _refresh_quest_presentation() -> void:
 
 
 func _on_professor_interacted(professor_id: String) -> void:
+	_close_travel()
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(false)
 	var professor_state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)

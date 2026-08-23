@@ -86,8 +86,7 @@ func setup(card_data: Dictionary, catalog_data: Dictionary, card_size: Vector2, 
 	# Create the actual card widget as a child
 	var CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 	_card_widget = CardWidgetScene.instantiate()
-	_card_widget.custom_minimum_size = card_size
-	_card_widget.size = card_size
+	_card_widget.set_display_size(card_size)
 	add_child(_card_widget)
 
 	# Set card data

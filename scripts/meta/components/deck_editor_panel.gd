@@ -7,7 +7,7 @@ signal card_info_requested(instance_id: String, catalog_id: String)
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 
-@export var card_size: Vector2 = Vector2(160, 240)
+@export_enum("Compact", "Standard", "Large") var card_size_preset: int = CardVisualHelper.CardSize.LARGE
 @export var active_card_separation: int = 6
 @export var available_horizontal_separation: int = 10
 @export var available_vertical_separation: int = 10
@@ -179,7 +179,7 @@ func _configure_widget(
 
 	widget.set_card(card_data, catalog_data)
 	widget.set_draggable(_has_editable_deck and not SafeTypeUtils.bool_val(entry.get("locked")))
-	widget.custom_minimum_size = card_size
+	widget.set_display_size(CardVisualHelper.get_display_size(card_size_preset))
 	widget.tooltip_text = SafeTypeUtils.string(entry.get("tooltip"))
 	if widget.tooltip_text.is_empty():
 		var card_name: String = SafeTypeUtils.string(catalog_data.get("card_name"), catalog_id)

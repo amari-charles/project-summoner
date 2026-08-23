@@ -1080,13 +1080,11 @@
       "no_upgrade_points": "No upgrade points available. Leveling happens automatically as you earn XP.",
       "upgrade_points_available": "{count} upgrade point(s) ready to spend.",
       "upgrade_points_count": "{count} upgrade points",
-      "identity_header": "IDENTITY",
-      "stats_header": "STATS",
-      "traits_header": "TRAITS",
+      "stats_header": "Stats",
+      "traits_header": "Traits",
       "inventory_header": "INVENTORY",
       "inventory_empty": "No items owned",
       "inventory_equipped": "Equipped",
-      "no_description": "No description available.",
       "empty_trait_slot": "Empty Slot",
       "stats_hp": "HP",
       "stats_mana": "Mana",
@@ -1105,14 +1103,19 @@
       "equipment_empty": "Empty",
       "equipment_unknown": "Unknown Item"
     },
-    "equipment_modal": {
-      "equipped": "EQUIPPED",
-      "available_items": "AVAILABLE ITEMS",
-      "unequip": "Unequip",
-      "no_item_equipped": "No item equipped",
-      "no_items_available": "No other items available",
-      "close": "Close",
-      "slot_title": "{slot} SLOT"
+    "inventory_overlay": {
+      "title": "INVENTORY",
+      "slot_title": "CHOOSE {slot}",
+      "tab_all": "All",
+      "tab_equipment": "Equipment",
+      "tab_materials": "Materials",
+      "tab_consumables": "Consumables",
+      "tab_quest_items": "Quest Items",
+      "item_type_equipment": "Equipment · {slot}",
+      "quantity": "Quantity: {count}",
+      "equip": "Equip",
+      "equipped": "Equipped",
+      "unequip": "Unequip current item"
     },
     "summoner_switch": {
       "title": "CHOOSE SUMMONER",

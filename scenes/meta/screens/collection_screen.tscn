@@ -12,51 +12,61 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_collection")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Dimmer" type="ColorRect" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.721569, 0.682353, 0.631373, 1)
+mouse_filter = 0
+color = Color(0, 0, 0, 0.62)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="Window" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1500, 820)
+layout_mode = 2
+
+[node name="WindowMargin" type="MarginContainer" parent="Center/Window"]
+layout_mode = 2
 theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 15
+theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 15
+theme_override_constants/margin_bottom = 20
 
-[node name="MainSplit" type="HBoxContainer" parent="MarginContainer"]
+[node name="MainSplit" type="HBoxContainer" parent="Center/Window/WindowMargin"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="LeftPanel" type="PanelContainer" parent="MarginContainer/MainSplit"]
+[node name="LeftPanel" type="PanelContainer" parent="Center/Window/WindowMargin/MainSplit"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 2.0
+size_flags_stretch_ratio = 3.0
 
-[node name="LeftMargin" type="MarginContainer" parent="MarginContainer/MainSplit/LeftPanel"]
+[node name="LeftMargin" type="MarginContainer" parent="Center/Window/WindowMargin/MainSplit/LeftPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_top = 15
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 15
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
 layout_mode = 2
 
-[node name="CloseButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
+[node name="CloseButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
@@ -64,11 +74,11 @@ theme_override_font_sizes/font_size = 24
 text = "X"
 flat = true
 
-[node name="TraitsButtonWrap" type="Control" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
+[node name="TraitsButtonWrap" type="Control" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
 layout_mode = 2
 custom_minimum_size = Vector2(64, 44)
 
-[node name="TraitsButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/TraitsButtonWrap"]
+[node name="TraitsButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/TraitsButtonWrap"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -80,7 +90,7 @@ theme_override_font_sizes/font_size = 22
 text = "T"
 tooltip_text = "Open trait tree"
 
-[node name="TraitsBadge" type="Label" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/TraitsButtonWrap"]
+[node name="TraitsBadge" type="Label" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header/TraitsButtonWrap"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 1
@@ -97,15 +107,15 @@ text = "!"
 horizontal_alignment = 1
 visible = false
 
-[node name="Spacer" type="Control" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
+[node name="Spacer" type="Control" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="FilterBar" type="HBoxContainer" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
+[node name="FilterBar" type="HBoxContainer" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="AllButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="AllButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
@@ -113,7 +123,7 @@ button_pressed = true
 theme_override_font_sizes/font_size = 14
 text = "ALL"
 
-[node name="SummonButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="SummonButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
@@ -121,7 +131,7 @@ button_pressed = true
 theme_override_font_sizes/font_size = 14
 text = "SUMMONS"
 
-[node name="SpellButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="SpellButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
@@ -129,26 +139,26 @@ button_pressed = true
 theme_override_font_sizes/font_size = 14
 text = "SPELLS"
 
-[node name="ElementFilterButton" type="Button" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="ElementFilterButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "All Elements"
 
-[node name="ElementPopup" type="PopupMenu" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="ElementPopup" type="PopupMenu" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 unique_name_in_owner = true
 hide_on_checkable_item_selection = false
 
-[node name="Spacer" type="Control" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="Spacer" type="Control" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SortDropdown" type="OptionButton" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="SortDropdown" type="OptionButton" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 
-[node name="SearchEdit" type="LineEdit" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
+[node name="SearchEdit" type="LineEdit" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer/FilterBar"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
@@ -156,49 +166,50 @@ theme_override_font_sizes/font_size = 14
 placeholder_text = "Search cards..."
 clear_button_enabled = true
 
-[node name="DeckEditorPanel" parent="MarginContainer/MainSplit/LeftPanel/LeftMargin/VBoxContainer" instance=ExtResource("2_deck_editor")]
+[node name="DeckEditorPanel" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer" instance=ExtResource("2_deck_editor")]
 unique_name_in_owner = true
 layout_mode = 2
+card_size_preset = 1
 
-[node name="RightPanel" type="PanelContainer" parent="MarginContainer/MainSplit"]
+[node name="RightPanel" type="PanelContainer" parent="Center/Window/WindowMargin/MainSplit"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 
-[node name="RightMargin" type="MarginContainer" parent="MarginContainer/MainSplit/RightPanel"]
+[node name="RightMargin" type="MarginContainer" parent="Center/Window/WindowMargin/MainSplit/RightPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 15
 theme_override_constants/margin_top = 15
 theme_override_constants/margin_right = 15
 theme_override_constants/margin_bottom = 15
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/MainSplit/RightPanel/RightMargin"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Center/Window/WindowMargin/MainSplit/RightPanel/RightMargin"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="DecksHeader" type="Label" parent="MarginContainer/MainSplit/RightPanel/RightMargin/VBoxContainer"]
+[node name="DecksHeader" type="Label" parent="Center/Window/WindowMargin/MainSplit/RightPanel/RightMargin/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "MY DECKS"
 
-[node name="DecksScroll" type="ScrollContainer" parent="MarginContainer/MainSplit/RightPanel/RightMargin/VBoxContainer"]
+[node name="DecksScroll" type="ScrollContainer" parent="Center/Window/WindowMargin/MainSplit/RightPanel/RightMargin/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="DecksList" type="VBoxContainer" parent="MarginContainer/MainSplit/RightPanel/RightMargin/VBoxContainer/DecksScroll"]
+[node name="DecksList" type="VBoxContainer" parent="Center/Window/WindowMargin/MainSplit/RightPanel/RightMargin/VBoxContainer/DecksScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="NewDeckButton" type="Button" parent="MarginContainer/MainSplit/RightPanel/RightMargin/VBoxContainer"]
+[node name="NewDeckButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/RightPanel/RightMargin/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "+ New Deck"
 
-[node name="ConfirmSelectionButton" type="Button" parent="MarginContainer/MainSplit/RightPanel/RightMargin/VBoxContainer"]
+[node name="ConfirmSelectionButton" type="Button" parent="Center/Window/WindowMargin/MainSplit/RightPanel/RightMargin/VBoxContainer"]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 52)

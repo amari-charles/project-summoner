@@ -70,10 +70,7 @@ layout_mode = 2
 
 [node name="CardVisual" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ContentHBox/CardContainer" instance=ExtResource("2_card_visual")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 300)
 layout_mode = 2
-offset_right = 200.0
-offset_bottom = 300.0
 border_width = 4
 corner_radius = 10
 cost_font_size = 32

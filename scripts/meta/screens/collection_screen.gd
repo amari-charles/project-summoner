@@ -7,11 +7,17 @@ class_name CollectionScreen
 ## Right panel (1/3): Deck list - click to select, double-click to open details
 ## Click card → opens details; deck membership actions live inside that view.
 
+signal closed()
+
+@export var embedded_overlay: bool = false
+
 ## =============================================================================
 ## NODE REFERENCES
 ## =============================================================================
 
 ## Left panel - Header
+@onready var dimmer: ColorRect = %Dimmer
+@onready var window: PanelContainer = %Window
 @onready var close_button: Button = %CloseButton
 @onready var traits_button: Button = %TraitsButton
 @onready var traits_badge: Label = %TraitsBadge
@@ -99,12 +105,13 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
-	_ranked_selection_mode = SafeTypeUtils.string(
-		NavigationContext.consume_value(NAV_KEY_MODE, ""), ""
-	) == MODE_RANKED_DECK
-	if _ranked_selection_mode:
-		_ranked_summoner_id = SummonerSelectionApi.get_active_summoner_id()
-		selected_deck_id = DecksApi.get_ranked_deck_id(_ranked_summoner_id)
+	_configure_overlay_style()
+	var initial_mode: String = ""
+	if not embedded_overlay:
+		initial_mode = SafeTypeUtils.string(
+			NavigationContext.consume_value(NAV_KEY_MODE, ""), ""
+		)
+	_configure_open_mode(initial_mode)
 	_card_service = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 
 	# Connect header buttons
@@ -153,6 +160,45 @@ func _ready() -> void:
 	_refresh_deck_list()
 	_refresh_deck_panel()
 	_refresh_collection()
+	if embedded_overlay:
+		visible = false
+
+
+func open_collection(mode: String = "", summoner_id: String = "") -> void:
+	_configure_open_mode(mode, summoner_id)
+	visible = true
+	_refresh_deck_list()
+	_refresh_deck_panel()
+	_refresh_collection()
+
+
+func _configure_open_mode(mode: String, summoner_id: String = "") -> void:
+	_ranked_selection_mode = mode == MODE_RANKED_DECK
+	_ranked_summoner_id = ""
+	if _ranked_selection_mode:
+		_ranked_summoner_id = (
+			summoner_id
+			if not summoner_id.is_empty()
+			else SummonerSelectionApi.get_active_summoner_id()
+		)
+		selected_deck_id = DecksApi.get_ranked_deck_id(_ranked_summoner_id)
+	else:
+		selected_deck_id = DecksApi.get_active_deck_id()
+	confirm_selection_button.visible = _ranked_selection_mode if is_node_ready() else false
+	if is_node_ready():
+		_update_ranked_selection_button()
+
+
+func _configure_overlay_style() -> void:
+	dimmer.color = Color(0.0, 0.0, 0.0, 0.62)
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = GameColorPalette.UI_BACKGROUND
+	style.border_color = GameColorPalette.UI_BORDER_STRONG
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.shadow_color = GameColorPalette.BUTTON_SHADOW
+	style.shadow_size = 14
+	window.add_theme_stylebox_override("panel", style)
 
 
 func _make_traits_button_style(bg_color: Color, border_color: Color) -> StyleBoxFlat:
@@ -776,6 +822,11 @@ func _on_modal_closed(modal: Node) -> void:
 ## =============================================================================
 
 func _on_close_pressed() -> void:
+	deck_editor.dismiss_popup()
+	if embedded_overlay:
+		visible = false
+		closed.emit()
+		return
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():
 		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
