@@ -97,7 +97,8 @@ func test_space_advances_visible_dialogue_text() -> void:
 	var space: InputEventKey = InputEventKey.new()
 	space.keycode = KEY_SPACE
 	space.pressed = true
-	presenter._input(space)
+	get_viewport().push_input(space, true)
+	await get_tree().process_frame
 
 	assert_eq(presenter._line_index, 1)
 	presenter._cue = {}

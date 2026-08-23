@@ -234,7 +234,8 @@ func test_space_advances_visible_npc_dialogue() -> void:
 	var space: InputEventKey = InputEventKey.new()
 	space.keycode = KEY_SPACE
 	space.pressed = true
-	dialogue._input(space)
+	get_viewport().push_input(space, true)
+	await get_tree().process_frame
 
 	assert_eq(dialogue._line_index, 1)
 

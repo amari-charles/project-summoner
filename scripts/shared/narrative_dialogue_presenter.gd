@@ -73,14 +73,22 @@ func _input(event: InputEvent) -> void:
 		and event.is_pressed()
 		and not event.is_echo()
 		and _line_index < _line_keys.size()
-		and (
-			event.is_action("interact")
-			or event.is_action("ui_accept")
-			or event.is_action("ui_select")
-		)
+		and _is_dialogue_advance_event(event)
 	):
 		_advance()
 		get_viewport().set_input_as_handled()
+
+
+func _is_dialogue_advance_event(event: InputEvent) -> bool:
+	if event is InputEventKey:
+		var key_event: InputEventKey = event as InputEventKey
+		if key_event.keycode == KEY_SPACE or key_event.physical_keycode == KEY_SPACE:
+			return true
+	return (
+		event.is_action("interact")
+		or event.is_action("ui_accept")
+		or event.is_action("ui_select")
+	)
 
 func _advance() -> void:
 	if _cue.is_empty() or _line_index >= _line_keys.size():
