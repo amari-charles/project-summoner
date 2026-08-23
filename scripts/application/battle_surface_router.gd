@@ -2,6 +2,7 @@ class_name BattleSurfaceRouter
 extends RefCounted
 
 ## Resolves the typed battle runtime-surface contract to an application scene.
+## Mirrors scripts/csharp/Infrastructure/Data/Events/BattleRuntimeSurface.cs.
 
 enum BattleRuntimeSurface {
 	STANDARD,
@@ -29,5 +30,8 @@ static func resolve_surface(battle_config: Dictionary) -> BattleRuntimeSurface:
 	match surface_id:
 		DEBUG_ARENA_ID:
 			return BattleRuntimeSurface.DEBUG_ARENA
+		STANDARD_ID:
+			return BattleRuntimeSurface.STANDARD
 		_:
+			push_error("BattleSurfaceRouter: Unknown runtime surface '%s'" % surface_id)
 			return BattleRuntimeSurface.STANDARD

@@ -28,3 +28,4 @@ func test_debug_arena_surface_resolves_to_debug_arena() -> void:
 func test_unknown_surface_falls_back_to_standard_battle() -> void:
 	var config: Dictionary = {"runtime_surface": "unsupported"}
 	assert_eq(BATTLE_SURFACE_ROUTER.resolve_scene(config), SceneManager.SCENE_BATTLE_3D)
+	assert_push_error("BattleSurfaceRouter: Unknown runtime surface 'unsupported'")

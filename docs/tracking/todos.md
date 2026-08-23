@@ -55,17 +55,6 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 
 ### 🔴 HIGH PRIORITY
 
-#### Remove or Rebuild the Legacy First-Card Choice Screen
-**Status:** ✅ Completed (Route Removed)
-**Category:** Onboarding / Cards / UI/UX
-**Urgency:** High — canonical card-presentation follow-up
-**Ease:** Medium
-**Scope:** Medium
-
-The superseded `first_card_selection` route and its bespoke button-based choice
-screen were removed after the reachability audit confirmed accepted onboarding
-proceeds from Summoner selection and reveal directly to the walkable campus.
-
 #### Review the Campus Shop and Purchase Surface After Economy Scope
 **Status:** 🟡 Partial (Functional Scaffold; Product Dependencies Open)
 **Category:** Shop / Items / Economy / UI/UX
@@ -404,27 +393,6 @@ Create and maintain an internal direction log for medium- and large-scale game a
 **Priority Note:**
 The framework is established. Complete the curated, user-reviewed historical backfill before further large UI and progression iterations accumulate.
 
-#### Deprecate the Legacy Caravan Campaign Flow
-**Status:** ✅ Completed
-**Category:** Meta Progression / Legacy Cleanup
-**Effort:** Medium
-
-**Description:**
-Retire the Caravan's campaign-node/event implementation now that Academy navigation and graph-based lessons have replaced the older linear campaign experience. The Campus Shop remains the persistent Academy shop. A future Caravan concept may return as a temporary or visiting vendor, but should not retain dependencies on the legacy campaign route.
-
-**Tasks:**
-- [x] Inventory Caravan scene routes, event definitions, narrative cues, catalog entries, save fields, and tests.
-- [x] Preserve existing Caravan purchase history as inert read-only compatibility data; it has no runtime readers.
-- [x] Remove the dedicated legacy Caravan screen and campaign-event routing.
-- [x] Remove Caravan event definitions and graph-consistency requirements.
-- [x] Remove Caravan-only localization, narrative content, shop catalog entries, and tests.
-- [x] Leave any future visiting merchant to a separate ordinary-vendor feature; no Caravan runtime architecture remains.
-
-**Compatibility Note:**
-The serialized `caravan_purchases` list is retained only so old profiles round-trip
-without silent data loss. It is not exposed by the repository service and cannot
-control shops, navigation, events, or progression.
-
 #### Scope Remaining Content, VFX, Items, and Academy Work
 **Status:** 🔄 In Progress
 **Category:** Planning / Production Scope
@@ -459,26 +427,6 @@ Maintain a dedicated scoping roadmap that turns fuzzy remaining production work 
 ## Architecture & Launch Routing
 
 ### 🔴 HIGH PRIORITY
-
-#### Replace `scene_path`-driven battle launch with typed runtime routing
-**Status:** ✅ Completed
-**Category:** Architecture / Application
-**Effort:** Medium
-
-**Description:**
-Battle launch surface selection (standard battle vs debug arena) is currently selected via ad-hoc `scene_path` overrides in event data. Move this decision into typed application-level routing so launch behavior is explicit, consistent, and testable.
-
-**Tasks:**
-- [x] Add a typed battle runtime surface contract (`Standard` and `DebugArena`).
-- [x] Add a single application-layer router/policy used by Academy/quest and debug launch paths.
-- [x] Remove duplicated caller-side `scene_path` branching logic.
-- [x] Add regression tests for launch-surface resolution.
-
-**Related Files:**
-- `scripts/meta/screens/campaign_map.gd`
-- `scripts/debug/debug_menu.gd`
-- `scripts/csharp/Infrastructure/Data/Events/EventDefinition.cs`
-- `scripts/csharp/Infrastructure/Data/Events/EventCatalog.cs`
 
 #### Audit for similar stringly-typed runtime routing/policy decisions
 **Status:** ⬜ Not Started
@@ -1069,62 +1017,6 @@ Implement the runtime system for summoner active/passive abilities after the cur
 ## Developer Tools
 
 ### 🔴 HIGH PRIORITY
-
-#### Audit and Restore the Item Developer-Tooling Contract
-**Status:** ✅ Completed
-**Category:** Developer Tools / Items / Interop
-**Urgency:** High — blocks representative Inventory UI validation
-**Ease:** Medium
-**Scope:** Medium
-
-**Description:**
-Audit the item debug commands and their GDScript-to-C# adapter as one bounded
-tooling surface. The current `/items_grant` command calls a nonexistent runtime
-method, while the same untested adapter also owns list, equip, unequip, and clear
-operations. Decide from the audit whether the existing console surface is worth
-repairing or should be replaced with a fresh item-test fixture/tool; do not
-accumulate one-off callable-name patches.
-
-**Tasks:**
-- [x] Inventory every item developer command and map it to the actual
-  Godot-exposed service method and argument contract.
-- [x] Reproduce and explain why `GrantItem` is not callable through the current
-  adapter, including whether its optional binding parameter caused contract
-  drift.
-- [x] Check grant, grant-all, list, equip, unequip, and clear independently so
-  the first repaired command does not mask other broken operations.
-- [x] Choose and document the smallest maintainable surface: retain the console
-  commands behind one verified adapter, or replace them with a focused item-test
-  fixture/tool.
-- [x] Add contract/smoke coverage for every retained operation and fail with a
-  useful developer-facing message when its service is unavailable.
-- [x] Prove the completed workflow by granting a catalog item, seeing it in the
-  Inventory overlay, equipping it to the active summoner, and clearing the test
-  state.
-- [x] Keep the separate gameplay ownership migration visible; do not silently
-  redefine account-wide versus summoner-bound behavior as part of this audit.
-
-**Placement Rationale:**
-The item service owns inventory rules and mutation; its infrastructure adapter
-owns GDScript/C# translation; debug tooling only invokes those capabilities.
-Callable names, argument coercion, and fallback errors therefore belong at the
-adapter boundary rather than inside the Inventory UI or scattered console
-commands.
-
-**Likely Files:**
-- `scripts/debug/dev_console.gd`
-- `scripts/infrastructure/services/items_api.gd`
-- `scripts/csharp/Meta/Services/Items/ItemService.cs`
-- item-service adapter and developer-command tests (new or extended)
-
-**Related Bug:**
-- `docs/tracking/bugs.md` — Item Debug Grant Command Calls a Missing Runtime Method
-
-**Execution Order:**
-Run this before further item-modal visual review that requires populated data.
-The retained adapter uses explicit normal and shared-event grant calls. The
-Summoner-ownership migration was completed in the same reviewed cleanup so the
-tool exercises the canonical ownership rules rather than a compatibility path.
 
 ### 🟢 LOW PRIORITY
 

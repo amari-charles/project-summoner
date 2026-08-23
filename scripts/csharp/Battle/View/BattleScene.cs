@@ -23,6 +23,8 @@ namespace Fateforged.View;
 [GlobalClass]
 public partial class BattleScene : Node3D
 {
+    private const string PostBattleResultsScene = "res://scenes/meta/screens/post_battle_results.tscn";
+
     // =========================================================================
     // ENUMS (GDScript consumers reference these via BattleScene.GameState.*)
     // =========================================================================
@@ -915,13 +917,13 @@ public partial class BattleScene : Node3D
             NavigateToOriginScene();
             return;
         }
-        NavigateToScene("res://scenes/meta/screens/post_battle_results.tscn");
+        NavigateToScene(PostBattleResultsScene);
     }
 
     private void HandleEncounterCompletion(int winnerTeam)
     {
         RecordEncounterOutcome(winnerTeam == 0 ? 0 : 1);
-        NavigateToScene("res://scenes/meta/screens/post_battle_results.tscn");
+        NavigateToScene(PostBattleResultsScene);
     }
 
     private void RecordEncounterOutcome(int outcome)

@@ -6,6 +6,30 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-08 Completions
 
+### Complete the Legacy-System Cleanup Migration
+**Completed:** 2026-08-23
+**Category:** Architecture / Meta / Items / Developer Tools
+
+Completed one dependency-audited migration onto the accepted Academy, quest,
+Results, reward, item-ownership, and activity-routing foundations.
+
+**Resolution Summary:**
+- ✅ Removed the obsolete first-card route, static Academy hub, course-node UI,
+  dedicated Caravan campaign runtime, and competing reward/result destinations.
+- ✅ Preserved physical campus landmarks while removing their old screen/system ownership.
+- ✅ Added typed battle runtime-surface routing and one normalized post-battle report.
+- ✅ Made normal gameplay items Summoner-owned, retained explicitly shared
+  event-exclusive items, and added a conservative profile v7 migration.
+- ✅ Restored and tested the full item developer command contract.
+- ✅ Retained `caravan_purchases` only as inert save round-trip data; no runtime
+  repository API or reader remains.
+
+**Representative Files:**
+- `scripts/application/battle_surface_router.gd`
+- `scripts/application/post_battle_report.gd`
+- `scripts/csharp/Meta/Services/Items/ItemService.cs`
+- `docs/technical/meta/legacy-system-cleanup-validation.md`
+
 ### Review the Generic Activity Preparation Screen
 **Completed:** 2026-08-23
 **Category:** Quests / Activities / Decks / UI/UX
