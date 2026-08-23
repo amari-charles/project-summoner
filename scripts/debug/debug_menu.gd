@@ -19,6 +19,7 @@ const ENABLE_FLAG: String = "--enable-debug-menu"
 const DISABLE_FLAG: String = "--disable-debug-menu"
 const DEFAULT_ARENA_PRESET_ID: String = "all_test_arena"
 const DEBUG_ARENA_PRESETS = preload("res://scripts/debug/debug_arena_menu_presets.gd")
+const BATTLE_SURFACE_ROUTER = preload("res://scripts/application/battle_surface_router.gd")
 
 ## UI references
 var _panel: PanelContainer
@@ -1238,12 +1239,7 @@ func _on_debug_arena_battle_pressed(battle_id: String) -> void:
 	_set_debug_arena_biome(_arena_biome_id)
 
 	var event_data: Dictionary = _get_campaign_battle(battle_id)
-	var battle_scene: String = SceneManager.SCENE_BATTLE_3D
-	var custom_scene: String = SafeTypeUtils.string(event_data.get("scene_path", ""), "")
-	if not custom_scene.is_empty():
-		battle_scene = custom_scene
-
-	_transition_to_scene(battle_scene)
+	_transition_to_scene(BATTLE_SURFACE_ROUTER.resolve_scene(event_data))
 	print(
 		"[Debug] Launched test arena battle '%s' with biome '%s'"
 		% [battle_id, String(_arena_biome_id)]

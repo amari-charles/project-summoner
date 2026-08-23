@@ -964,7 +964,7 @@ public static class EventCatalog
             Difficulty = 1,
             RequiresDeck = false,
             Repeatable = true,
-            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            RuntimeSurface = BattleRuntimeSurface.DebugArena,
             DevPlayerDeck = new List<DeckEntry>
             {
                 new(CardIds.FireWisp, 4),
@@ -998,7 +998,7 @@ public static class EventCatalog
             RequiresDeck = false,
             Repeatable = true,
             AiType = "none",
-            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            RuntimeSurface = BattleRuntimeSurface.DebugArena,
             DevPlayerDeck = BuildActiveCoreElementUnitDeck(),
             EnemyDeck = new List<DeckEntry>
             {
@@ -1021,7 +1021,7 @@ public static class EventCatalog
             RequiresDeck = false,
             Repeatable = true,
             AiType = "none",
-            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            RuntimeSurface = BattleRuntimeSurface.DebugArena,
             DevPlayerDeck = BuildActiveCoreElementCardDeck(),
             EnemyDeck = BuildActiveCoreElementUnitDeck(),
             EnemyHp = 999999f,
@@ -1038,7 +1038,7 @@ public static class EventCatalog
             RequiresDeck = false,
             Repeatable = true,
             AiType = "none",
-            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            RuntimeSurface = BattleRuntimeSurface.DebugArena,
             DevPlayerDeck = BuildActiveCoreElementSpellTestDeck(),
             EnemyDeck = BuildRealArtSpellTargetDeck(),
             EnemyHp = 999999f,
@@ -1055,7 +1055,7 @@ public static class EventCatalog
             RequiresDeck = false,
             Repeatable = true,
             AiType = "none",
-            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            RuntimeSurface = BattleRuntimeSurface.DebugArena,
             DevPlayerDeck = BuildRealArtDebugUnitDeck(),
             EnemyDeck = BuildRealArtDebugUnitDeck(),
             EnemyHp = 999999f,
@@ -1072,7 +1072,7 @@ public static class EventCatalog
             RequiresDeck = false,
             Repeatable = true,
             AiType = "passive",
-            ScenePath = "res://scenes/battle/battlefield/dev/debug_arena.tscn",
+            RuntimeSurface = BattleRuntimeSurface.DebugArena,
             DevPlayerDeck = BuildActiveCoreElementCardDeck(),
             EnemyDeck = BuildActiveCoreElementUnitDeck(),
             EnemyHp = 999999f,
@@ -1334,11 +1334,7 @@ public static class EventCatalog
             };
         }
 
-        // Scene path
-        if (!string.IsNullOrEmpty(battle.ScenePath))
-        {
-            dict["scene_path"] = battle.ScenePath;
-        }
+        dict["runtime_surface"] = battle.RuntimeSurface.ToStringId();
 
         // Elite-specific
         if (battle is EliteEventDefinition elite && elite.LevelCap.HasValue)
