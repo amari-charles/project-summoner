@@ -36,6 +36,7 @@ signal closed()
 
 ## Right panel - Decks
 @onready var decks_list: VBoxContainer = %DecksList
+@onready var decks_header: Label = %DecksHeader
 @onready var new_deck_button: Button = %NewDeckButton
 @onready var confirm_selection_button: Button = %ConfirmSelectionButton
 
@@ -45,6 +46,7 @@ signal closed()
 @onready var confirm_delete_dialog: ConfirmationDialog = %ConfirmDeleteDialog
 @onready var rename_dialog: AcceptDialog = %RenameDialog
 @onready var rename_input: LineEdit = %RenameInput
+@onready var loadout_error_dialog: AcceptDialog = %LoadoutErrorDialog
 
 ## =============================================================================
 ## STATE
@@ -59,11 +61,23 @@ var deck_id_for_action: String = ""
 ## Collection data
 var collection_summary: Array = []
 var _filtered_sorted_cards_cache: Array = []
-var _ranked_selection_mode: bool = false
 var _ranked_summoner_id: String = ""
+var _encounter_id: String = ""
+var _encounter_source_deck_id: String = ""
+var _encounter_state: Dictionary = {}
 
 const NAV_KEY_MODE: String = "collection_mode"
 const MODE_RANKED_DECK: String = "ranked_deck"
+const MODE_ENCOUNTER_LOADOUT: String = "encounter_loadout"
+const ENCOUNTER_DECK_CONTEXT_ID: String = "__encounter_loadout__"
+
+enum OpenMode {
+	COLLECTION,
+	RANKED_DECK,
+	ENCOUNTER_LOADOUT,
+}
+
+var _open_mode: OpenMode = OpenMode.COLLECTION
 
 ## Filter state
 var show_summons: bool = true
@@ -121,8 +135,9 @@ func _ready() -> void:
 
 	# Connect deck management
 	new_deck_button.pressed.connect(_on_new_deck_pressed)
-	confirm_selection_button.visible = _ranked_selection_mode
+	confirm_selection_button.visible = _open_mode == OpenMode.RANKED_DECK
 	confirm_selection_button.text = Loc.t("ui.collection.use_for_ranked")
+	loadout_error_dialog.title = Loc.t("academy.flow.fill_failed_title")
 	confirm_selection_button.pressed.connect(_on_confirm_ranked_selection_pressed)
 	_update_ranked_selection_button()
 
@@ -172,21 +187,58 @@ func open_collection(mode: String = "", summoner_id: String = "") -> void:
 	_refresh_collection()
 
 
+func open_encounter_loadout(encounter_id: String) -> void:
+	if encounter_id.is_empty():
+		push_error("CollectionScreen.open_encounter_loadout requires an encounter ID")
+		return
+	_encounter_id = encounter_id
+	_configure_open_mode(MODE_ENCOUNTER_LOADOUT)
+	if not _refresh_encounter_state():
+		return
+	visible = true
+	_refresh_deck_list()
+	_refresh_deck_panel()
+	_refresh_collection()
+
+
 func _configure_open_mode(mode: String, summoner_id: String = "") -> void:
-	_ranked_selection_mode = mode == MODE_RANKED_DECK
+	match mode:
+		MODE_RANKED_DECK:
+			_open_mode = OpenMode.RANKED_DECK
+		MODE_ENCOUNTER_LOADOUT:
+			_open_mode = OpenMode.ENCOUNTER_LOADOUT
+		_:
+			_open_mode = OpenMode.COLLECTION
+	if _open_mode != OpenMode.ENCOUNTER_LOADOUT:
+		_encounter_id = ""
+		_encounter_source_deck_id = ""
+		_encounter_state = {}
 	_ranked_summoner_id = ""
-	if _ranked_selection_mode:
+	if _open_mode == OpenMode.RANKED_DECK:
 		_ranked_summoner_id = (
 			summoner_id
 			if not summoner_id.is_empty()
 			else SummonerSelectionApi.get_active_summoner_id()
 		)
 		selected_deck_id = DecksApi.get_ranked_deck_id(_ranked_summoner_id)
-	else:
+	elif _open_mode == OpenMode.COLLECTION:
 		selected_deck_id = DecksApi.get_active_deck_id()
-	confirm_selection_button.visible = _ranked_selection_mode if is_node_ready() else false
+	else:
+		selected_deck_id = ""
+	confirm_selection_button.visible = _open_mode == OpenMode.RANKED_DECK if is_node_ready() else false
 	if is_node_ready():
+		decks_header.text = Loc.t("academy.flow.fill_from_my_decks") \
+			if _open_mode == OpenMode.ENCOUNTER_LOADOUT else Loc.t("ui.collection.my_decks")
+		new_deck_button.visible = _open_mode != OpenMode.ENCOUNTER_LOADOUT
 		_update_ranked_selection_button()
+
+
+func _refresh_encounter_state() -> bool:
+	_encounter_state = CampaignApi.get_encounter_preparation_state(_encounter_id)
+	if _encounter_state.is_empty():
+		push_error("CollectionScreen could not load encounter '%s'" % _encounter_id)
+		return false
+	return true
 
 
 func _configure_overlay_style() -> void:
@@ -280,7 +332,7 @@ func _refresh_deck_list() -> void:
 		if not deck_item is Dictionary:
 			continue
 		var deck: Dictionary = deck_item
-		if _ranked_selection_mode and SafeTypeUtils.string(deck.get("summoner_id", ""), "") != _ranked_summoner_id:
+		if _open_mode == OpenMode.RANKED_DECK and SafeTypeUtils.string(deck.get("summoner_id", ""), "") != _ranked_summoner_id:
 			continue
 		var deck_id: String = deck.get("id", "")
 		if deck_id == "":
@@ -305,8 +357,12 @@ func _refresh_deck_list() -> void:
 				"card_count": card_count,
 				"max_cards": MAX_DECK_SIZE,
 				"is_active": deck_id == active_deck_id,
-				"is_selected": deck_id == selected_deck_id,
-				"is_valid": is_valid
+				"is_selected": deck_id == (
+					_encounter_source_deck_id \
+					if _open_mode == OpenMode.ENCOUNTER_LOADOUT else selected_deck_id
+				),
+				"is_valid": is_valid,
+				"management_enabled": _open_mode != OpenMode.ENCOUNTER_LOADOUT,
 			})
 
 		# Connect signals
@@ -332,7 +388,7 @@ func _refresh_deck_list() -> void:
 		return
 
 	# Auto-select first deck if none selected
-	if selected_deck_id == "" and not first_eligible_deck_id.is_empty():
+	if _open_mode != OpenMode.ENCOUNTER_LOADOUT and selected_deck_id == "" and not first_eligible_deck_id.is_empty():
 		selected_deck_id = first_eligible_deck_id
 		_refresh_deck_list()
 	_update_ranked_selection_button()
@@ -340,6 +396,20 @@ func _refresh_deck_list() -> void:
 
 func _on_deck_item_clicked(deck_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
+	if _open_mode == OpenMode.ENCOUNTER_LOADOUT:
+		var result: Dictionary = CampaignApi.fill_encounter_loadout_from_deck(
+			_encounter_id, deck_id
+		)
+		if SafeTypeUtils.bool_val(result.get("success")):
+			_encounter_source_deck_id = deck_id
+			_refresh_encounter_state()
+			_refresh_deck_list()
+			_refresh_deck_panel()
+			_refresh_available_cards()
+		else:
+			loadout_error_dialog.dialog_text = Loc.t("academy.flow.fill_failed")
+			loadout_error_dialog.popup_centered()
+		return
 	if deck_id == selected_deck_id:
 		return
 	selected_deck_id = deck_id
@@ -361,13 +431,13 @@ func _on_deck_star_clicked(deck_id: String) -> void:
 
 
 func _update_ranked_selection_button() -> void:
-	if not _ranked_selection_mode:
+	if _open_mode != OpenMode.RANKED_DECK:
 		return
 	confirm_selection_button.disabled = selected_deck_id.is_empty() or not DecksApi.validate_deck(selected_deck_id)
 
 
 func _on_confirm_ranked_selection_pressed() -> void:
-	if not _ranked_selection_mode or confirm_selection_button.disabled:
+	if _open_mode != OpenMode.RANKED_DECK or confirm_selection_button.disabled:
 		return
 	if not DecksApi.set_ranked_deck(_ranked_summoner_id, selected_deck_id):
 		return
@@ -396,6 +466,9 @@ func _on_deck_delete_clicked(deck_id: String) -> void:
 ## =============================================================================
 
 func _refresh_deck_panel() -> void:
+	if _open_mode == OpenMode.ENCOUNTER_LOADOUT:
+		_refresh_encounter_deck_panel()
+		return
 	if selected_deck_id == "":
 		deck_editor.set_active_deck(
 			Loc.t("ui.collection.no_deck_selected"),
@@ -434,6 +507,51 @@ func _refresh_deck_panel() -> void:
 		MAX_DECK_SIZE,
 		true
 	)
+
+
+func _refresh_encounter_deck_panel() -> void:
+	var loadout: Dictionary = SafeTypeUtils.dict(_encounter_state.get("loadout"))
+	var entries: Array[Dictionary] = []
+	for value: Variant in SafeTypeUtils.array(loadout.get("supplied_cards")):
+		var supplied: Dictionary = SafeTypeUtils.dict(value)
+		var count: int = maxi(SafeTypeUtils.int_val(supplied.get("count"), 1), 1)
+		for copy_index: int in range(count):
+			entries.append(_encounter_editor_entry(supplied, true, copy_index))
+	for value: Variant in SafeTypeUtils.array(loadout.get("selected_cards")):
+		entries.append(_encounter_editor_entry(SafeTypeUtils.dict(value), false))
+	var rules: Dictionary = SafeTypeUtils.dict(loadout.get("rules"))
+	var authored_max: int = SafeTypeUtils.int_val(rules.get("max_deck_size"))
+	var max_size: int = mini(authored_max, MAX_DECK_SIZE) if authored_max > 0 else MAX_DECK_SIZE
+	deck_editor.set_active_deck(
+		Loc.t("academy.flow.lesson_loadout"),
+		entries,
+		max_size,
+		true
+	)
+
+
+func _encounter_editor_entry(card: Dictionary, locked: bool, copy_index: int = 0) -> Dictionary:
+	var catalog_id: String = SafeTypeUtils.string(card.get("card_id", card.get("catalog_id")))
+	var instance_id: String = SafeTypeUtils.string(card.get("card_instance_id"))
+	var detail_instance_id: String = instance_id
+	var card_data: Dictionary = CardServiceApi.get_card_dict(instance_id) \
+		if not instance_id.is_empty() else {}
+	if instance_id.is_empty():
+		instance_id = "__encounter_supplied_%s_%d" % [catalog_id, copy_index]
+		card_data = {"id": instance_id, "catalog_id": catalog_id}
+	var tooltip: String = SafeTypeUtils.string(
+		CardCatalogApi.get_card_as_dict(catalog_id).get("card_name"), catalog_id
+	)
+	if locked:
+		tooltip = "%s • %s" % [tooltip, Loc.t("academy.flow.class_supplied")]
+	return {
+		"instance_id": instance_id,
+		"detail_instance_id": detail_instance_id,
+		"catalog_id": catalog_id,
+		"card_data": card_data,
+		"locked": locked,
+		"tooltip": tooltip,
+	}
 
 
 ## =============================================================================
@@ -497,12 +615,22 @@ func _refresh_collection() -> void:
 
 func _refresh_available_cards(update_existing_widgets: bool = false) -> void:
 	var deck_card_ids: Array[String] = _get_selected_deck_card_ids()
+	var encounter_available_ids: Dictionary = {}
+	if _open_mode == OpenMode.ENCOUNTER_LOADOUT:
+		var loadout: Dictionary = SafeTypeUtils.dict(_encounter_state.get("loadout"))
+		for value: Variant in SafeTypeUtils.array(loadout.get("available_cards")):
+			var available: Dictionary = SafeTypeUtils.dict(value)
+			var available_id: String = SafeTypeUtils.string(available.get("card_instance_id"))
+			if not available_id.is_empty():
+				encounter_available_ids[available_id] = true
 	var entries: Array[Dictionary] = []
 	for card_entry: Variant in _filtered_sorted_cards_cache:
 		if not card_entry is Dictionary:
 			continue
 		var entry: Dictionary = card_entry
 		var instance_id: String = SafeTypeUtils.string(entry.get("instance_id"))
+		if _open_mode == OpenMode.ENCOUNTER_LOADOUT and not encounter_available_ids.has(instance_id):
+			continue
 		if instance_id in deck_card_ids:
 			continue
 		entries.append(entry)
@@ -510,6 +638,14 @@ func _refresh_available_cards(update_existing_widgets: bool = false) -> void:
 
 func _get_selected_deck_card_ids() -> Array[String]:
 	var result: Array[String] = []
+	if _open_mode == OpenMode.ENCOUNTER_LOADOUT:
+		var loadout: Dictionary = SafeTypeUtils.dict(_encounter_state.get("loadout"))
+		for value: Variant in SafeTypeUtils.array(loadout.get("selected_cards")):
+			var selected: Dictionary = SafeTypeUtils.dict(value)
+			var selected_id: String = SafeTypeUtils.string(selected.get("card_instance_id"))
+			if not selected_id.is_empty():
+				result.append(selected_id)
+		return result
 	if selected_deck_id == "":
 		return result
 
@@ -759,6 +895,9 @@ func _on_search_changed(new_text: String) -> void:
 ## =============================================================================
 
 func _add_card_to_selected_deck(card_instance_id: String) -> void:
+	if _open_mode == OpenMode.ENCOUNTER_LOADOUT:
+		_toggle_encounter_card(card_instance_id)
+		return
 	if selected_deck_id == "":
 		return
 
@@ -787,7 +926,12 @@ func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
 	# Set deck context so modal shows add/remove button
 	var is_in_deck: bool = instance_id in _get_selected_deck_card_ids()
 	if modal.has_method("set_deck_context"):
-		modal.call("set_deck_context", selected_deck_id, is_in_deck)
+		modal.call(
+			"set_deck_context",
+			ENCOUNTER_DECK_CONTEXT_ID \
+			if _open_mode == OpenMode.ENCOUNTER_LOADOUT else selected_deck_id,
+			is_in_deck
+		)
 
 	# Connect signals
 	if modal.has_signal("deck_action_requested"):
@@ -805,11 +949,37 @@ func _on_deck_action_from_modal(instance_id: String, action: String) -> void:
 
 
 func _remove_card_from_deck(card_instance_id: String) -> void:
+	if _open_mode == OpenMode.ENCOUNTER_LOADOUT:
+		_toggle_encounter_card(card_instance_id)
+		return
 	if selected_deck_id == "":
 		return
 
 	if Decks.has_method("RemoveCardFromDeck"):
 		DecksApi.remove_card_from_deck(selected_deck_id, card_instance_id)
+
+
+func _toggle_encounter_card(card_instance_id: String) -> void:
+	var selected: Array[Dictionary] = []
+	var found: bool = false
+	var loadout: Dictionary = SafeTypeUtils.dict(_encounter_state.get("loadout"))
+	for value: Variant in SafeTypeUtils.array(loadout.get("selected_cards")):
+		var card: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(card.get("card_instance_id")) == card_instance_id:
+			found = true
+		else:
+			selected.append({
+				"card_instance_id": SafeTypeUtils.string(card.get("card_instance_id"))
+			})
+	if not found:
+		selected.append({"card_instance_id": card_instance_id})
+	if CampaignApi.update_encounter_loadout(_encounter_id, selected):
+		_refresh_encounter_state()
+		_refresh_deck_panel()
+		_refresh_available_cards()
+	else:
+		loadout_error_dialog.dialog_text = Loc.t("academy.flow.update_loadout_failed")
+		loadout_error_dialog.popup_centered()
 
 
 func _on_modal_closed(modal: Node) -> void:

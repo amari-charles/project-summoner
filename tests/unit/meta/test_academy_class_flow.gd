@@ -11,35 +11,52 @@ func test_generic_encounter_screens_exist_and_old_course_flow_is_not_reachable()
 
 func test_preparation_uses_generic_encounter_contracts() -> void:
 	var script_text: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
+	var collection_script: String = _read("res://scripts/meta/screens/collection_screen.gd")
 	var scene: PackedScene = load(SceneManager.SCENE_ENCOUNTER_PREPARATION)
 	var preparation: EncounterPreparation = scene.instantiate() as EncounterPreparation
 	assert_not_null(preparation)
 	assert_true(script_text.contains("get_encounter_preparation_state"))
 	assert_true(script_text.contains("resolve_encounter_battle_config"))
 	assert_true(script_text.contains("configure_encounter_battle"))
-	assert_true(script_text.contains("update_encounter_loadout"))
-	assert_true(script_text.contains("fill_encounter_loadout_from_deck"))
+	assert_true(collection_script.contains("update_encounter_loadout"))
+	assert_true(collection_script.contains("fill_encounter_loadout_from_deck"))
 	assert_true(script_text.contains("save_encounter_loadout_to_deck"))
 	assert_false(script_text.contains("get_academy_activity"))
 	assert_false(script_text.contains("configure_academy_battle"))
 	assert_not_null(preparation.find_child("ModalPanel", true, false))
-	assert_not_null(preparation.find_child("DeckEditorPanel", true, false))
+	assert_not_null(preparation.find_child("CollectionOverlay", true, false))
 	assert_not_null(preparation.find_child("StartButton", true, false))
 	preparation.free()
 
 
-func test_preparation_and_collection_share_deck_editor_interactions() -> void:
+func test_preparation_reuses_collection_overlay_for_deck_editing() -> void:
 	var preparation_scene: String = _read("res://scenes/meta/screens/academy_activity_preparation.tscn")
 	var collection_scene: String = _read("res://scenes/meta/screens/collection_screen.tscn")
-	assert_true(preparation_scene.contains("deck_editor_panel.tscn"))
+	var preparation_script: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
+	var collection_script: String = _read("res://scripts/meta/screens/collection_screen.gd")
+	assert_true(preparation_scene.contains("collection_screen.tscn"))
+	assert_false(preparation_scene.contains("deck_editor_panel.tscn"))
 	assert_true(collection_scene.contains("deck_editor_panel.tscn"))
-	var editor_scene: PackedScene = load("res://scenes/meta/components/deck_editor_panel.tscn")
-	var editor: DeckEditorPanel = editor_scene.instantiate() as DeckEditorPanel
-	add_child_autofree(editor)
-	editor.set_available_columns(7)
-	editor.set_active_deck("Active Deck", [], DeckConstants.MAX_DECK_SIZE, true)
-	assert_eq(editor.available_cards.columns, 7)
-	assert_eq(editor.active_deck_count.text, "0/12")
+	assert_true(preparation_script.contains("open_encounter_loadout"))
+	assert_true(preparation_script.contains("open_collection"))
+	assert_false(preparation_script.contains("_editing_deck"))
+	assert_false(collection_script.contains("_encounter_loadout_mode"))
+	assert_true(collection_scene.contains("LoadoutErrorDialog"))
+
+
+func test_activity_deck_sources_hide_saved_deck_management_actions() -> void:
+	var item_scene: PackedScene = load("res://scenes/meta/components/deck_list_item.tscn")
+	var item: DeckListItem = item_scene.instantiate() as DeckListItem
+	add_child_autofree(item)
+	await get_tree().process_frame
+	item.setup({
+		"id": "test_deck",
+		"name": "Test Deck",
+		"management_enabled": false,
+	})
+	assert_false(item.star_button.visible)
+	assert_false(item.rename_button.visible)
+	assert_false(item.delete_button.visible)
 
 
 func _read(path: String) -> String:

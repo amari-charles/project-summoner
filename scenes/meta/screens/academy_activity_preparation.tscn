@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/meta/screens/academy_activity_preparation.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/meta/components/deck_editor_panel.tscn" id="4_deck_editor"]
+[ext_resource type="PackedScene" path="res://scenes/meta/screens/collection_screen.tscn" id="4_collection"]
 
 [sub_resource type="StyleBoxFlat" id="StyleModal"]
 bg_color = Color(0.666667, 0.615686, 0.560784, 1)
@@ -206,6 +206,12 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="SaveButton" type="Button" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/Footer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(240, 52)
+layout_mode = 2
+
 [node name="StartButton" type="Button" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/Footer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(210, 56)
@@ -213,55 +219,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 22
 
 [node name="RightSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/Footer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="EditorToolbar" type="HBoxContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-
-[node name="DeckSelector" type="OptionButton" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorToolbar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(320, 48)
-layout_mode = 2
-
-[node name="SavedDeckCount" type="Label" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorToolbar"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.28, 0.28, 0.3, 1)
-vertical_alignment = 1
-
-[node name="EditorToolbarSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorToolbar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="DeckEditorPanel" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content" instance=ExtResource("4_deck_editor")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-card_size_preset = 2
-active_card_separation = 57
-available_horizontal_separation = 57
-available_vertical_separation = 32
-heading_font_size = 32
-transparent_active_background = true
-
-[node name="EditorFooter" type="HBoxContainer" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-
-[node name="LeftSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorFooter"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SaveButton" type="Button" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorFooter"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 52)
-layout_mode = 2
-
-[node name="RightSpacer" type="Control" parent="ModalPanel/ModalMargin/Root/ContentPanel/ContentMargin/Content/EditorFooter"]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -287,3 +244,7 @@ unique_name_in_owner = true
 
 [node name="NarrativePresenter" parent="." instance=ExtResource("2")]
 narrative_context = 0
+
+[node name="CollectionOverlay" parent="." instance=ExtResource("4_collection")]
+unique_name_in_owner = true
+embedded_overlay = true
