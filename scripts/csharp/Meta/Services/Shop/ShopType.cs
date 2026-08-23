@@ -8,9 +8,6 @@ public enum ShopType
     /// <summary>General shop - cards are account-wide.</summary>
     General,
 
-    /// <summary>Caravan shop - cards are bound to active summoner.</summary>
-    Caravan,
-
     /// <summary>Premium store - summoners, cosmetics, emotes.</summary>
     Premium,
 }
@@ -25,7 +22,6 @@ public static class ShopTypeExtensions
         type switch
         {
             ShopType.General => "general",
-            ShopType.Caravan => "caravan",
             ShopType.Premium => "premium",
             _ => "general",
         };
@@ -35,7 +31,6 @@ public static class ShopTypeExtensions
         value switch
         {
             "general" => ShopType.General,
-            "caravan" => ShopType.Caravan,
             "premium" => ShopType.Premium,
             _ => ShopType.General,
         };

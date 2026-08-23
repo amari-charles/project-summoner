@@ -201,37 +201,6 @@ public class AcademyProgressServiceTest
     }
 
     [TestCase]
-    public void GetAcademyCourse_ExposesDisplayGroupMetadata()
-    {
-        var repo = CreateRepo("academy_course_display_groups");
-        var service = CreateCampaignService(repo, SummonerIds.Cole);
-
-        service.GetAcademyProgress();
-
-        var required = service.GetAcademyCourse((string)CourseIds.IntroductionToMagic101);
-        var foundationChoice = service.GetAcademyCourse((string)CourseIds.SummoningBasics);
-        var elementElective = service.GetAcademyCourse((string)CourseIds.IntroToFire);
-        var trackCourse = service.GetAcademyCourse((string)CourseIds.IntroductionToEmpowerment);
-
-        AssertThat(required["group_id"].AsString()).IsEqual("required");
-        AssertThat(required["group_title_key"].AsString()).IsEqual("academy.hub.group_required");
-        AssertThat(required["track_title_key"].AsString()).IsEqual("academy.track.foundation");
-
-        AssertThat(foundationChoice["group_id"].AsString()).IsEqual("year_1_semester_1_foundation");
-        AssertThat(foundationChoice["group_title_key"].AsString())
-            .IsEqual("academy.class_hall.foundation_choice");
-
-        AssertThat(elementElective["group_id"].AsString()).IsEqual("year_1_semester_1_element");
-        AssertThat(elementElective["group_title_key"].AsString())
-            .IsEqual("academy.class_hall.element_elective");
-
-        AssertThat(trackCourse["group_id"].AsString()).IsEqual("track_foundation");
-        AssertThat(trackCourse["group_title_key"].AsString())
-            .IsEqual("academy.class_hall.track_foundation");
-        AssertThat(trackCourse["group_sort_order"].AsInt32()).IsGreater(20);
-    }
-
-    [TestCase]
     public void GetAcademyCourse_ExposesActivityLimitationViewFields()
     {
         var repo = CreateRepo("academy_activity_limitations_stub_fields");

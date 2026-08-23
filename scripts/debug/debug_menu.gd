@@ -257,12 +257,6 @@ func _build_quick_tab(vbox: VBoxContainer) -> void:
 	arena_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
 	vbox.add_child(arena_title)
 
-	var open_arena_map_button: Button = Button.new()
-	open_arena_map_button.text = "Open Test Arena Map"
-	open_arena_map_button.custom_minimum_size = Vector2(220, 32)
-	open_arena_map_button.pressed.connect(_on_open_test_arena_map_pressed)
-	vbox.add_child(open_arena_map_button)
-
 	var debug_separator: HSeparator = HSeparator.new()
 	vbox.add_child(debug_separator)
 
@@ -1207,17 +1201,6 @@ func _on_lose_pressed() -> void:
 		print("[Debug] Triggered instant LOSE")
 	else:
 		print("[Debug] No game controller found - not in battle?")
-
-
-func _on_open_test_arena_map_pressed() -> void:
-	var campaign_id: String = String(CampaignIDs.TEST_ARENA)
-	var success: bool = _set_current_campaign(campaign_id)
-	if not success:
-		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
-		return
-
-	_transition_to_scene(SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
-	print("[Debug] Opened Test Arena campaign map")
 
 
 func _on_debug_arena_battle_pressed(battle_id: String) -> void:

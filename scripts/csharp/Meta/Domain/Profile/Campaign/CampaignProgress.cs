@@ -24,8 +24,12 @@ public class CampaignProgress
     public Dictionary<string, BattleAttemptCompletion> BattleAttemptCompletions { get; set; } = [];
 
     /// <summary>Purchased offering IDs for the active campaign run.</summary>
+    /// <summary>
+    /// Inert compatibility data retained so older saves round-trip without data loss.
+    /// No runtime system reads or mutates these retired purchase IDs.
+    /// </summary>
     [JsonPropertyName("caravan_purchases")]
-    public List<string> CaravanPurchases { get; set; } = [];
+    public List<string> LegacyCaravanPurchaseIds { get; set; } = [];
 
     /// <summary>Per-story-arc progress tracking.</summary>
     [JsonPropertyName("story_arcs")]

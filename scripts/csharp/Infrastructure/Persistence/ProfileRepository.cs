@@ -655,52 +655,6 @@ public partial class ProfileRepository
     }
 
     // =========================================================================
-    // CARAVAN PURCHASE TRACKING
-    // =========================================================================
-
-    public string[] GetCaravanPurchases(SummonerId summonerId)
-    {
-        var progress = GetCampaignProgress(summonerId);
-        return progress.CaravanPurchases.ToArray();
-    }
-
-    public void AddCaravanPurchase(string offeringId, SummonerId summonerId)
-    {
-        var key = (string)summonerId;
-        if (string.IsNullOrEmpty(key))
-            key = GetActiveSummonerId();
-
-        if (string.IsNullOrEmpty(key))
-            return;
-
-        var typedId = new SummonerId(key);
-        var progress = GetCampaignProgress(typedId);
-        if (!progress.CaravanPurchases.Contains(offeringId))
-        {
-            progress.CaravanPurchases.Add(offeringId);
-            UpdateCampaignProgress(typedId, progress);
-        }
-    }
-
-    public void ClearCaravanPurchases(SummonerId summonerId)
-    {
-        var key = (string)summonerId;
-        if (string.IsNullOrEmpty(key))
-            key = GetActiveSummonerId();
-
-        if (string.IsNullOrEmpty(key))
-            return;
-
-        var typedId = new SummonerId(key);
-        var progress = GetCampaignProgress(typedId);
-        if (progress.CaravanPurchases.Count > 0)
-        {
-            progress.CaravanPurchases.Clear();
-            UpdateCampaignProgress(typedId, progress);
-        }
-    }
-
-    // =========================================================================
     // COSMETIC OPERATIONS
     // =========================================================================
 
@@ -995,20 +949,6 @@ public partial class ProfileRepository
     public GdDict GetShopRefreshStateDict(string shopId) =>
         DtoConverters.ToDict(GetShopRefreshState(new ShopId(shopId)));
 
-    /// <summary>Get caravan purchases as array for GDScript.</summary>
-    public GdArray GetCaravanPurchasesArray(string summonerId)
-    {
-        var purchases = GetCaravanPurchases(
-            string.IsNullOrEmpty(summonerId)
-                ? new SummonerId(GetActiveSummonerId())
-                : new SummonerId(summonerId)
-        );
-        var arr = new GdArray();
-        foreach (var p in purchases)
-            arr.Add(p);
-        return arr;
-    }
-
     /// <summary>Update profile meta from GDScript dictionary.</summary>
     public void UpdateProfileMetaDict(GdDict metaDict)
     {
@@ -1079,14 +1019,6 @@ public partial class ProfileRepository
         EmitSignal(SignalName.ProfileLoadedGodot, _currentProfileId);
         EmitDataChanged();
         GD.Print("ProfileRepository: Profile data loaded successfully");
-    }
-
-    /// <summary>Check if onboarding is complete.</summary>
-    public bool IsOnboardingComplete()
-    {
-        return _data.SharedCampaignProgress.CompletedBattles.Any(b =>
-            (string)b == "event_caravan_tutorial"
-        );
     }
 
     /// <summary>Get active deck as array of {catalog_id, count} for multiplayer.</summary>

@@ -13,7 +13,7 @@ public class CampaignNode
     /// <summary>Unique identifier for this node (references an event).</summary>
     public EventId Id { get; set; } = EventId.None;
 
-    /// <summary>Node type (battle, elite, boss, choice, caravan).</summary>
+    /// <summary>Node type (battle, elite, boss, or choice).</summary>
     public string Type { get; set; } = "";
 
     /// <summary>Position on the campaign map for rendering.</summary>

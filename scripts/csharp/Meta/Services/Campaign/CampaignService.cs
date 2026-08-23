@@ -704,11 +704,6 @@ public partial class CampaignService : Node
         return _academy?.GetCourse(courseId) ?? [];
     }
 
-    public Godot.Collections.Dictionary GetAcademyCourseFlowState(string courseId)
-    {
-        return _academy?.GetCourse(courseId) ?? [];
-    }
-
     public Godot.Collections.Dictionary GetAcademyActivityPreparationState(
         string courseId,
         string activityId

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Fateforged.Data.Rewards;
-using Fateforged.Meta.Shop;
 using Godot;
 
 namespace Fateforged.Data.Events;
@@ -112,15 +111,4 @@ public class ChoiceEventDefinition : EventDefinition
 
     /// <summary>Available choices at this node</summary>
     public List<ChoiceOption> Options { get; set; } = new();
-}
-
-/// <summary>
-/// Caravan event definition - traveling merchant shop.
-/// </summary>
-public class CaravanEventDefinition : EventDefinition
-{
-    public override EventType Type => EventType.Caravan;
-
-    /// <summary>Shop configuration ID</summary>
-    public ShopId ShopId { get; set; } = Fateforged.Meta.Shop.ShopId.None;
 }

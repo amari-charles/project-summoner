@@ -86,7 +86,6 @@ public static class ProfileMigrator
             "event_first_summon",
             "first_trial",
             "charge_tutorial",
-            "event_caravan_tutorial",
         ];
 
         // Initialize shared progress if needed

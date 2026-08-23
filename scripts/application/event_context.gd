@@ -6,13 +6,13 @@ extends Node
 ## similar to how BattleContext manages battle state.
 ##
 ## Architecture:
-## - CampaignMap/UI calls configure_event() when starting an event
+## - Event launchers call configure_event() before entering a narrative event
 ## - EventScreen manages the event lifecycle and sequence execution
-## - OPEN_CARAVAN and other steps can pause/resume using this context
+## - Narrative event screens can pause/resume using this context
 ## - complete_event() marks the event complete in Campaign service
 ##
 ## Usage:
-##   EventContext.configure_event("event_caravan_tutorial")
+##   EventContext.configure_event("event_story_moment")
 ##   # ... event runs ...
 ##   EventContext.complete_event()
 

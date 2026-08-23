@@ -1,7 +1,6 @@
 extends GutTest
 
 const HUB_SCENE_PATH: String = "res://scenes/meta/screens/walkable_academy_hub.tscn"
-const MENU_HUB_SCENE_PATH: String = "res://scenes/meta/screens/academy_hub.tscn"
 const CUTOUT_RENDER_ORDER: Script = preload("res://scripts/meta/components/academy_cutout_render_order.gd")
 
 class UnhandledCancelSpy extends Node:
@@ -12,12 +11,11 @@ class UnhandledCancelSpy extends Node:
 			cancel_presses += 1
 
 
-func test_walkable_hub_is_primary_route_and_menu_hub_remains_available() -> void:
-	assert_eq(SceneManager.SCENE_CAMPAIGN_MAP, HUB_SCENE_PATH)
+func test_walkable_hub_is_the_only_academy_home_route() -> void:
+	assert_eq(SceneManager.SCENE_ACADEMY_CAMPUS, HUB_SCENE_PATH)
 	assert_eq(SceneManager.SCENE_WALKABLE_ACADEMY_HUB, HUB_SCENE_PATH)
-	assert_eq(SceneManager.SCENE_ACADEMY_MENU_HUB, MENU_HUB_SCENE_PATH)
 	assert_true(ResourceLoader.exists(SceneManager.SCENE_WALKABLE_ACADEMY_HUB))
-	assert_true(ResourceLoader.exists(SceneManager.SCENE_ACADEMY_MENU_HUB))
+	assert_false(ResourceLoader.exists("res://scenes/meta/screens/academy_hub.tscn"))
 
 
 func test_hub_scene_contains_player_boundaries_and_travel_interface() -> void:

@@ -16,9 +16,6 @@ public enum EventType
 
     /// <summary>Path branching decision point</summary>
     Choice,
-
-    /// <summary>Traveling merchant shop</summary>
-    Caravan,
 }
 
 /// <summary>
@@ -38,7 +35,6 @@ public static class EventTypeExtensions
             EventType.Elite => "elite",
             EventType.Boss => "boss",
             EventType.Choice => "choice",
-            EventType.Caravan => "caravan",
             _ => "battle",
         };
 
@@ -50,7 +46,6 @@ public static class EventTypeExtensions
             "elite" => EventType.Elite,
             "boss" => EventType.Boss,
             "choice" => EventType.Choice,
-            "caravan" => EventType.Caravan,
             _ => EventType.Battle,
         };
 }

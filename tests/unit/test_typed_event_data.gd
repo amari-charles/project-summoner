@@ -107,13 +107,6 @@ func test_string_property_returns_default_when_missing() -> void:
 	assert_eq(event.biome_id, String(BiomeIDs.DEFAULT))
 
 
-func test_string_property_returns_default_when_wrong_type() -> void:
-	var data: Dictionary = {"shop_id": 123}  # Wrong type: int instead of String
-	var event := TypedEventData.new(data, "test")
-
-	assert_eq(event.shop_id, "")  # Default for shop_id
-
-
 ## =============================================================================
 ## TYPE COERCION TESTS - INT
 ## =============================================================================
@@ -256,10 +249,10 @@ func test_event_type_returns_stringname() -> void:
 
 
 func test_event_type_handles_stringname_input() -> void:
-	var data: Dictionary = {"event_type": &"caravan"}
+	var data: Dictionary = {"event_type": &"choice"}
 	var event := TypedEventData.new(data, "test")
 
-	assert_eq(event.event_type, EventTypeIDs.CARAVAN)
+	assert_eq(event.event_type, EventTypeIDs.CHOICE)
 
 
 func test_event_type_defaults_to_battle() -> void:
@@ -317,27 +310,12 @@ func test_is_combat_true_for_boss() -> void:
 	assert_true(event.is_combat())
 
 
-func test_is_combat_false_for_caravan() -> void:
-	var data: Dictionary = {"event_type": "caravan"}
-	var event := TypedEventData.new(data, "test")
-
-	assert_false(event.is_combat())
-
-
 func test_is_battle_true_only_for_battle() -> void:
 	var battle := TypedEventData.new({"event_type": "battle"}, "test")
 	var elite := TypedEventData.new({"event_type": "elite"}, "test")
 
 	assert_true(battle.is_battle())
 	assert_false(elite.is_battle())
-
-
-func test_is_caravan_true_for_caravan() -> void:
-	var data: Dictionary = {"event_type": "caravan"}
-	var event := TypedEventData.new(data, "test")
-
-	assert_true(event.is_caravan())
-	assert_false(event.is_battle())
 
 
 func test_is_choice_true_for_choice() -> void:
@@ -435,27 +413,6 @@ func test_full_battle_event_data() -> void:
 	assert_false(event.repeatable)
 	assert_true(event.is_combat())
 	assert_true(event.is_battle())
-	assert_false(event.is_caravan())
-
-
-func test_full_caravan_event_data() -> void:
-	var data: Dictionary = {
-		"id": "caravan_01",
-		"event_type": "caravan",
-		"name_key": "campaign.event.caravan_01.name",
-		"description_key": "campaign.event.caravan_01.description",
-		"shop_id": "caravan_tutorial",
-		"repeatable": false
-	}
-	var event := TypedEventData.new(data, "caravan_01")
-
-	assert_eq(event.id, "caravan_01")
-	assert_eq(event.event_type, EventTypeIDs.CARAVAN)
-	assert_eq(event.shop_id, "caravan_tutorial")
-	assert_true(event.is_caravan())
-	assert_false(event.is_combat())
-
-
 func test_full_choice_event_data() -> void:
 	var options: Array = [
 		{"id": "elite", "label_key": "path.elite", "description_key": "path.elite.desc"},

@@ -600,7 +600,7 @@ func _close() -> void:
 	closed.emit()
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():
-		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
+		return_scene = SceneManager.SCENE_ACADEMY_CAMPUS
 	SceneManager.transition_to(return_scene)
 
 

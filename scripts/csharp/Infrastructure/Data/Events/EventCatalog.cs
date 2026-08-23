@@ -3,7 +3,6 @@ using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Rewards;
 using Fateforged.Meta.Campaign;
-using Fateforged.Meta.Shop;
 using Godot;
 
 namespace Fateforged.Data.Events;
@@ -150,15 +149,6 @@ public static class EventCatalog
                 CardIds.Pebbloom,
                 CardIds.ManaBolt
             ),
-        },
-
-        [EventIds.Caravan01] = new CaravanEventDefinition
-        {
-            Id = EventIds.Caravan01,
-            NameKey = "campaign.event.caravan_01.name",
-            DescriptionKey = "campaign.event.caravan_01.description",
-            Position = new Vector2(560, 460),
-            ShopId = ShopIds.CaravanTutorial,
         },
 
         [EventIds.StabilityLine] = new BattleEventDefinition
@@ -333,15 +323,6 @@ public static class EventCatalog
                 CardIds.FireWisp,
                 CardIds.Puff
             ),
-        },
-
-        [EventIds.Caravan02] = new CaravanEventDefinition
-        {
-            Id = EventIds.Caravan02,
-            NameKey = "campaign.event.caravan_02.name",
-            DescriptionKey = "campaign.event.caravan_02.description",
-            Position = new Vector2(1500, 350),
-            ShopId = ShopIds.CaravanTutorial,
         },
 
         [EventIds.Chokepoint] = new BattleEventDefinition
@@ -555,15 +536,6 @@ public static class EventCatalog
                 CardIds.Pebbloom,
                 CardIds.FireWisp
             ),
-        },
-
-        [EventIds.Caravan03] = new CaravanEventDefinition
-        {
-            Id = EventIds.Caravan03,
-            NameKey = "campaign.event.caravan_03.name",
-            DescriptionKey = "campaign.event.caravan_03.description",
-            Position = new Vector2(2280, 530),
-            ShopId = ShopIds.CaravanTutorial,
         },
 
         [EventIds.StandardBattle02] = new BattleEventDefinition
@@ -1263,9 +1235,6 @@ public static class EventCatalog
                 break;
             case ChoiceEventDefinition choice:
                 AddChoiceFields(dict, choice);
-                break;
-            case CaravanEventDefinition caravan:
-                dict["shop_id"] = (string)caravan.ShopId;
                 break;
         }
 

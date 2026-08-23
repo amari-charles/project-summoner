@@ -35,7 +35,6 @@ public static class CampaignCatalog
                 EventIds.OpeningDoctrine,
                 EventIds.AggressivePush,
                 EventIds.ScoutSkirmish,
-                EventIds.Caravan01,
                 EventIds.StabilityLine,
                 EventIds.ThirdTrial,
                 EventIds.MidlineTrial,
@@ -43,7 +42,6 @@ public static class CampaignCatalog
                 EventIds.RidgeAssault,
                 EventIds.RiverHold,
                 EventIds.GrovePatrol,
-                EventIds.Caravan02,
                 EventIds.Chokepoint,
                 EventIds.Gatekeeper,
                 EventIds.PathFork,
@@ -52,7 +50,6 @@ public static class CampaignCatalog
                 EventIds.EliteBattle03,
                 EventIds.EliteBattle04,
                 EventIds.StandardBattle01,
-                EventIds.Caravan03,
                 EventIds.StandardBattle02,
                 EventIds.StandardBattle03,
                 EventIds.StandardBattle04,
@@ -76,7 +73,7 @@ public static class CampaignCatalog
                 ),
                 new(
                     EventIds.OpeningDoctrine,
-                    EventIds.Caravan01,
+                    EventIds.StabilityLine,
                     new EdgeCondition(ChoiceIds.Prepared)
                 ),
                 new(
@@ -84,9 +81,8 @@ public static class CampaignCatalog
                     EventIds.ScoutSkirmish,
                     new EdgeCondition(ChoiceIds.Insight)
                 ),
-                new(EventIds.AggressivePush, EventIds.Caravan01),
-                new(EventIds.ScoutSkirmish, EventIds.Caravan01),
-                new(EventIds.Caravan01, EventIds.StabilityLine),
+                new(EventIds.AggressivePush, EventIds.StabilityLine),
+                new(EventIds.ScoutSkirmish, EventIds.StabilityLine),
                 new(EventIds.StabilityLine, EventIds.ThirdTrial),
                 new(EventIds.ThirdTrial, EventIds.MidlineTrial),
                 new(EventIds.MidlineTrial, EventIds.RouteChoice),
@@ -97,10 +93,9 @@ public static class CampaignCatalog
                 ),
                 new(EventIds.RouteChoice, EventIds.RiverHold, new EdgeCondition(ChoiceIds.River)),
                 new(EventIds.RouteChoice, EventIds.GrovePatrol, new EdgeCondition(ChoiceIds.Grove)),
-                new(EventIds.RidgeAssault, EventIds.Caravan02),
-                new(EventIds.RiverHold, EventIds.Caravan02),
-                new(EventIds.GrovePatrol, EventIds.Caravan02),
-                new(EventIds.Caravan02, EventIds.Chokepoint),
+                new(EventIds.RidgeAssault, EventIds.Chokepoint),
+                new(EventIds.RiverHold, EventIds.Chokepoint),
+                new(EventIds.GrovePatrol, EventIds.Chokepoint),
                 new(EventIds.Chokepoint, EventIds.Gatekeeper),
                 new(EventIds.Gatekeeper, EventIds.PathFork),
                 new(EventIds.PathFork, EventIds.EliteBattle01, new EdgeCondition(ChoiceIds.Elite)),
@@ -118,8 +113,7 @@ public static class CampaignCatalog
                 new(EventIds.EliteBattle02, EventIds.EliteBattle03),
                 new(EventIds.EliteBattle03, EventIds.EliteBattle04),
                 new(EventIds.EliteBattle04, EventIds.RejoinTrial),
-                new(EventIds.StandardBattle01, EventIds.Caravan03),
-                new(EventIds.Caravan03, EventIds.StandardBattle02),
+                new(EventIds.StandardBattle01, EventIds.StandardBattle02),
                 new(EventIds.StandardBattle02, EventIds.StandardBattle03),
                 new(EventIds.StandardBattle03, EventIds.StandardBattle04),
                 new(EventIds.StandardBattle04, EventIds.RejoinTrial),
@@ -330,7 +324,6 @@ public static class CampaignCatalog
         type switch
         {
             EventType.Battle or EventType.Elite or EventType.Boss => "battle",
-            EventType.Caravan => "caravan",
             EventType.Choice => "choice",
             _ => "battle",
         };

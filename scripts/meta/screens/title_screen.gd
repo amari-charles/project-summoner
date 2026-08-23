@@ -56,7 +56,7 @@ func _on_progress_updated(progress: float) -> void:
 func _get_preload_paths() -> PackedStringArray:
 	if _should_goto_online():
 		return PackedStringArray([SceneManager.SCENE_ONLINE])
-	return PackedStringArray([SceneManager.SCENE_CAMPAIGN_MAP])
+	return PackedStringArray([SceneManager.SCENE_ACADEMY_CAMPUS])
 
 func _input(event: InputEvent) -> void:
 	# Debug: F11 to reset profile
@@ -76,7 +76,7 @@ func _proceed_to_online() -> void:
 func _proceed_to_campaign() -> void:
 	animation_player.play("fade_out")
 	await _await_animation_with_timeout(animation_player, FADE_OUT_TIMEOUT_SECONDS)
-	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 
 ## Await animation completion with timeout protection to prevent hangs
 ## Uses is_playing() check to avoid race conditions with signal connection

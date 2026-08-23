@@ -76,7 +76,6 @@ public static class ShopCatalog
         return new Dictionary<string, ShopDefinition>
         {
             ["general"] = BuildGeneralShop(),
-            ["caravan_tutorial"] = BuildCaravanTutorialShop(),
             ["premium_store"] = BuildPremiumStore(),
         };
     }
@@ -140,65 +139,6 @@ public static class ShopCatalog
                         new PackCardEntry { CatalogId = FireWisp, Count = 1 },
                     ],
                     BasePrice = 70,
-                },
-            ],
-        };
-
-    private static ShopDefinition BuildCaravanTutorialShop() =>
-        new()
-        {
-            Id = "caravan_tutorial",
-            ShopType = ShopType.Caravan,
-            NameKey = "shop.caravan.merriweather.name",
-            Offerings =
-            [
-                new OfferingDefinition
-                {
-                    OfferingId = "caravan_fire_wisp",
-                    OfferingType = OfferingType.Card,
-                    NameKey = "shop.offering.fire_wisp.name",
-                    DescriptionKey = "shop.offering.fire_wisp.description",
-                    CardCatalogId = FireWisp,
-                    CardCount = 1,
-                    BasePrice = 25,
-                    PurchaseLimitType = PurchaseLimitType.Account,
-                    PurchaseLimit = 1,
-                },
-                new OfferingDefinition
-                {
-                    OfferingId = "caravan_pebbloom",
-                    OfferingType = OfferingType.Card,
-                    NameKey = "shop.offering.pebbloom.name",
-                    DescriptionKey = "shop.offering.pebbloom.description",
-                    CardCatalogId = Pebbloom,
-                    CardCount = 1,
-                    BasePrice = 20,
-                    PurchaseLimitType = PurchaseLimitType.Account,
-                    PurchaseLimit = 1,
-                },
-                new OfferingDefinition
-                {
-                    OfferingId = "caravan_puff",
-                    OfferingType = OfferingType.Card,
-                    NameKey = "shop.offering.puff.name",
-                    DescriptionKey = "shop.offering.puff.description",
-                    CardCatalogId = Puff,
-                    CardCount = 1,
-                    BasePrice = 30,
-                    PurchaseLimitType = PurchaseLimitType.Account,
-                    PurchaseLimit = 1,
-                },
-                new OfferingDefinition
-                {
-                    OfferingId = "caravan_mana_bolt",
-                    OfferingType = OfferingType.Card,
-                    NameKey = "shop.offering.mana_bolt.name",
-                    DescriptionKey = "shop.offering.mana_bolt.description",
-                    CardCatalogId = ManaBolt,
-                    CardCount = 1,
-                    BasePrice = 35,
-                    PurchaseLimitType = PurchaseLimitType.Account,
-                    PurchaseLimit = 1,
                 },
             ],
         };

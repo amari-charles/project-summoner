@@ -41,9 +41,6 @@ public static class EventIds
     /// <summary>Battle: Second Challenge - Test 2-card combos</summary>
     public static readonly EventId SecondChallenge = new("second_challenge");
 
-    /// <summary>Event: Caravan - First shop visit</summary>
-    public static readonly EventId Caravan01 = new("caravan_01");
-
     /// <summary>Battle: Third Trial - Medium difficulty</summary>
     public static readonly EventId ThirdTrial = new("third_trial");
 
@@ -74,9 +71,6 @@ public static class EventIds
     /// <summary>Battle: Wide flank route encounter</summary>
     public static readonly EventId GrovePatrol = new("grove_patrol");
 
-    /// <summary>Event: Caravan - Mid-act shop visit</summary>
-    public static readonly EventId Caravan02 = new("caravan_02");
-
     /// <summary>Battle: Chokepoint encounter</summary>
     public static readonly EventId Chokepoint = new("chokepoint");
 
@@ -100,9 +94,6 @@ public static class EventIds
 
     /// <summary>Battle: Standard Path Battle 1 - Normal difficulty</summary>
     public static readonly EventId StandardBattle01 = new("standard_battle_01");
-
-    /// <summary>Event: Caravan - Standard branch shop visit</summary>
-    public static readonly EventId Caravan03 = new("caravan_03");
 
     /// <summary>Battle: Standard Path Battle 2</summary>
     public static readonly EventId StandardBattle02 = new("standard_battle_02");

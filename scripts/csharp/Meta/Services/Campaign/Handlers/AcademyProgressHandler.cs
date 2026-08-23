@@ -921,9 +921,6 @@ public class AcademyProgressHandler
             ["enrollment_cost"] = course.EnrollmentCost,
             ["is_required"] = course.IsRequired,
             ["choice_group_id"] = course.ChoiceGroupId,
-            ["group_id"] = GetCourseGroupId(course),
-            ["group_title_key"] = GetCourseGroupTitleKey(course),
-            ["group_sort_order"] = GetCourseGroupSortOrder(course),
             ["is_available"] = validation.available,
             ["unavailable_reason"] = validation.reason,
             ["is_current_semester"] = isCurrentSemester,
@@ -937,58 +934,6 @@ public class AcademyProgressHandler
             ["universal_reward_status"] = _universalRewards.ToStatusDictionary()["status"],
         };
     }
-
-    private static string GetCourseGroupId(AcademyCourseDefinition course)
-    {
-        if (course.IsRequired)
-            return "required";
-
-        if (!string.IsNullOrEmpty(course.ChoiceGroupId))
-            return course.ChoiceGroupId;
-
-        return $"track_{GetTrackKey(course.Track)}";
-    }
-
-    private static string GetCourseGroupTitleKey(AcademyCourseDefinition course)
-    {
-        if (course.IsRequired)
-            return "academy.hub.group_required";
-
-        return course.ChoiceGroupId switch
-        {
-            "year_1_semester_1_foundation" => "academy.class_hall.foundation_choice",
-            "year_1_semester_1_element" => "academy.class_hall.element_elective",
-            "" => $"academy.class_hall.track_{GetTrackKey(course.Track)}",
-            _ => "academy.class_hall.choice_group",
-        };
-    }
-
-    private static int GetCourseGroupSortOrder(AcademyCourseDefinition course)
-    {
-        if (course.IsRequired)
-            return 0;
-
-        return course.ChoiceGroupId switch
-        {
-            "year_1_semester_1_foundation" => 10,
-            "year_1_semester_1_element" => 20,
-            "" => 30 + (GetTrackSortOrder(course.Track) * 10),
-            _ => 900,
-        };
-    }
-
-    private static int GetTrackSortOrder(AcademyTrack track) =>
-        track switch
-        {
-            AcademyTrack.Foundation => 0,
-            AcademyTrack.Binding => 1,
-            AcademyTrack.Arcana => 2,
-            AcademyTrack.Affinity => 3,
-            AcademyTrack.Warding => 4,
-            AcademyTrack.Warfare => 5,
-            AcademyTrack.Command => 6,
-            _ => 99,
-        };
 
     private static string GetTrackTitleKey(AcademyTrack track) =>
         $"academy.track.{GetTrackKey(track)}";

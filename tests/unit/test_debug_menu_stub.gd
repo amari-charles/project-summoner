@@ -24,7 +24,6 @@ func test_c14_c17_debug_menu_contract_surface_exists() -> void:
 	assert_true(menu.has_method("_on_skip_prep_pressed"), "C14: battle utility hook")
 	assert_true(menu.has_method("_on_win_pressed"), "C14: win hook")
 	assert_true(menu.has_method("_on_lose_pressed"), "C14: lose hook")
-	assert_true(menu.has_method("_on_open_test_arena_map_pressed"), "C14: arena map launch hook")
 	assert_true(menu.has_method("_on_debug_arena_battle_pressed"), "C14: arena quick launch hook")
 	assert_true(menu.has_method("_on_hurtbox_toggle_pressed"), "C15: visualization toggle hook")
 	assert_true(menu.has_method("_on_projectile_hit_geometry_toggle_pressed"), "C15: projectile toggle hook")
@@ -65,7 +64,7 @@ func test_c21_build_debug_arena_buttons_uses_selected_preset_entries() -> void:
 	assert_eq(labels, ["Fire Wisp", "Wind + Earth New"])
 
 
-func test_c14_quick_tab_exposes_test_arena_map_button() -> void:
+func test_c14_quick_tab_omits_legacy_test_arena_map_button() -> void:
 	var menu: Node = _menu_script.new()
 	_track_owned_node(menu)
 	var quick_tab: VBoxContainer = VBoxContainer.new()
@@ -79,7 +78,7 @@ func test_c14_quick_tab_exposes_test_arena_map_button() -> void:
 			var button: Button = child_var
 			button_labels.append(button.text)
 
-	assert_true("Open Test Arena Map" in button_labels, "main debug tab should expose the campaign-map chooser")
+	assert_false("Open Test Arena Map" in button_labels, "legacy campaign-map chooser must stay removed")
 	assert_false("Launch Roster Debug Arena" in button_labels, "main debug tab should not force a specific roster battle")
 
 
@@ -161,7 +160,7 @@ func test_c14_skip_win_lose_controls_trigger_game_controller_methods() -> void:
 	assert_eq(controller.end_calls.size(), 2, "win and lose should each call EndGame")
 
 
-func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
+func test_c14_battle_launch_uses_expected_routing_hooks() -> void:
 	var menu: Node = _menu_script.new()
 	_track_owned_node(menu)
 	var harness: _DebugMenuHarness = _DebugMenuHarness.new()
@@ -173,11 +172,8 @@ func test_c14_open_map_and_battle_launch_use_expected_routing_hooks() -> void:
 	menu._battle_context_biome_setter_override = Callable(harness, "set_battle_context_biome")
 	menu._arena_biome_id = BiomeIDs.ISLAND_WATER
 
-	menu._on_open_test_arena_map_pressed()
-	assert_eq(harness.last_campaign_id, String(CampaignIDs.TEST_ARENA))
-	assert_eq(harness.last_transition_scene, SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
-
 	menu._on_debug_arena_battle_pressed("arena_fire_wisp")
+	assert_eq(harness.last_campaign_id, String(CampaignIDs.TEST_ARENA))
 	assert_eq(harness.last_attempt_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_context_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_biome_id, String(BiomeIDs.ISLAND_WATER))

@@ -57,7 +57,6 @@ public class CampaignCatalogHandler
         type switch
         {
             EventType.Battle or EventType.Elite or EventType.Boss => "battle",
-            EventType.Caravan => "caravan",
             EventType.Choice => "choice",
             _ => "battle",
         };

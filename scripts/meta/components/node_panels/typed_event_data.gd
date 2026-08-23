@@ -38,7 +38,7 @@ var description: String:
 		var key: String = _str("description_key", "")
 		return Loc.t(key) if not key.is_empty() else ""
 
-## Event type ID (battle, caravan, choice, etc.)
+## Event type ID (battle, elite, boss, or choice)
 var event_type: StringName:
 	get:
 		var type_val: Variant = _data.get("event_type", EventTypeIDs.BATTLE)
@@ -105,14 +105,6 @@ var first_clear_reward_offers: Array:
 ## Choice options (for choice events)
 var options: Array:
 	get: return _array("options")
-
-# =============================================================================
-# CARAVAN PROPERTIES
-# =============================================================================
-
-## Shop ID for caravan events
-var shop_id: String:
-	get: return _str("shop_id", "")
 
 # =============================================================================
 # ELITE/BOSS PROPERTIES
@@ -214,11 +206,6 @@ func is_combat() -> bool:
 ## Check if this is a battle event
 func is_battle() -> bool:
 	return event_type == EventTypeIDs.BATTLE
-
-
-## Check if this is a caravan/shop event
-func is_caravan() -> bool:
-	return event_type == EventTypeIDs.CARAVAN
 
 
 ## Check if this is a choice event

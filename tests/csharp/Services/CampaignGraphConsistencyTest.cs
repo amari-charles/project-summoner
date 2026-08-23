@@ -131,7 +131,7 @@ public class CampaignGraphConsistencyTest
         var gambitChain = GetLinearChain(adjacency, gambitStart, EventIds.RejoinTrial);
 
         AssertThat(eliteChain.Count).IsEqual(5);
-        AssertThat(standardChain.Count).IsEqual(6);
+        AssertThat(standardChain.Count).IsEqual(5);
         AssertThat(gambitChain.Count).IsEqual(5);
 
         foreach (var eventId in eliteChain.Take(eliteChain.Count - 1))
@@ -141,20 +141,12 @@ public class CampaignGraphConsistencyTest
             AssertThat(((EliteEventDefinition)evt!).LevelCap.HasValue).IsTrue();
         }
 
-        AssertThat(standardChain.Contains(EventIds.Caravan03)).IsTrue();
         AssertThat(
                 standardChain
                     .Take(standardChain.Count - 1)
-                    .Any(eventId => EventCatalog.GetEvent(eventId) is CaravanEventDefinition)
+                    .All(eventId => EventCatalog.GetEvent(eventId) is BattleEventDefinition)
             )
             .IsTrue();
-
-        AssertThat(
-                gambitChain
-                    .Take(gambitChain.Count - 1)
-                    .Any(eventId => EventCatalog.GetEvent(eventId) is CaravanEventDefinition)
-            )
-            .IsFalse();
 
         var gambitDifficulties = gambitChain
             .Take(gambitChain.Count - 1)

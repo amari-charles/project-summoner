@@ -13,20 +13,6 @@
       "locked": "LOCKED",
       "current": "CURRENT"
     },
-    "event": {
-      "caravan_01": {
-        "name": "Traveling Merchant",
-        "description": "A cheerful merchant has set up camp along the path. Browse wares and spend your hard-earned gold on new cards and supplies."
-      },
-      "caravan_02": {
-        "name": "Waystation Caravan",
-        "description": "A second caravan appears at the crossroads. Restock and prepare for the steeper trials ahead."
-      },
-      "caravan_03": {
-        "name": "Last Chance Caravan",
-        "description": "A final merchant outpost before the end of the act. Spend wisely before the final gauntlet."
-      }
-    },
     "choice": {
       "opening_doctrine": {
         "name": "Set Your Doctrine",
@@ -72,11 +58,11 @@
       },
       "standard": {
         "label": "Standard Path",
-        "description": "Steady battles with no level caps and a late caravan safety stop."
+        "description": "Steady battles with no level caps and a predictable difficulty curve."
       },
       "gambit": {
         "label": "Gambit Path",
-        "description": "No caravan support and volatile encounter spikes. Higher risk with swingy payouts."
+        "description": "Volatile encounter spikes with higher risk and swingy payouts."
       }
     },
     "battle": {
@@ -317,35 +303,6 @@
         "name": "Online Arena",
         "description": "Take a forged summoner into battles against other players."
       }
-    },
-    "class_hall": {
-      "title": "Class Hall",
-      "back_to_campus": "Campus",
-      "current_term": "Current Term: Year {year}, Semester {semester}",
-      "open_classes": "Open Classes",
-      "my_classes": "My Classes",
-      "approvals": "Enrollment Approvals: {count}",
-      "approvals_left": "Enrollment Approvals Left: {count}",
-      "advance_blocked_title": "Semester Not Ready",
-      "advance_blocked_required": "Complete your required class before advancing to the next term.",
-      "advance_blocked_picks": "Use your remaining enrollment approvals before advancing. You still have {count}.",
-      "advance_blocked_next_term": "The next term is not available yet.",
-      "no_open_classes": "No open classes for this semester.",
-      "no_my_classes": "No classes on record for this semester.",
-      "show_details": "Show Details",
-      "hide_details": "Hide Details",
-      "current_schedule": "Current Schedule",
-      "completed_courses": "Completed Courses",
-      "foundation_choice": "Foundation Choice",
-      "element_elective": "Element Elective",
-      "choice_group": "Course Choice",
-      "track_foundation": "Foundation Track",
-      "track_affinity": "Affinity Track",
-      "track_binding": "Binding Track",
-      "track_arcana": "Arcana Track",
-      "track_warding": "Warding Track",
-      "track_warfare": "Warfare Track",
-      "track_command": "Command Track"
     },
     "journal": {
       "title": "Quest Journal",
@@ -1715,31 +1672,11 @@
       "speaker": "Merlin",
       "line_1": "Use your Charge card! Command a unit to rush past the slime to the enemy core. Sometimes victory isn't about fighting—it's about strategy."
     },
-    "merriweather_greeting": {
-      "speaker": "Mr. Merriweather",
-      "line_1": "Why, hello there, young summoner! What wonderful timing! I'm Mr. Merriweather, traveling merchant and purveyor of fine magical goods. I've journeyed far to bring these quality wares to aspiring summoners such as yourself!"
-    },
-    "merriweather_offer": {
-      "speaker": "Mr. Merriweather",
-      "line_1": "Please, take your time browsing! Every item in my collection has been carefully curated. I pride myself on offering only the finest selections at fair prices. After all, helping young summoners succeed is its own reward!"
-    },
-    "merriweather_closing": {
-      "speaker": "Mr. Merriweather",
-      "line_1": "Do let me know if anything catches your eye! I'll be in the area for a while—there are several other summoners I'm hoping to assist today. Such a joy to support the next generation of summoners!"
-    },
     "merlin_summoner_intro": {
       "speaker": "Merlin",
       "line_1": "The time has come, Initiate. Step into the circle.",
       "line_2": "Every summoner carries an elemental spark. Yours is about to ignite.",
       "line_3": "Choose your path wisely... though fate does favor the bold."
-    },
-    "merlin_first_card_intro": {
-      "speaker": "Merlin",
-      "line_1": "Welcome to the Academy, Initiate. I am Merlin, your Headmaster.",
-      "line_2": "You stand at the beginning of your journey as a summoner—a path of great power and greater responsibility.",
-      "line_3": "Here at the Academy, we teach one principle above all: choices have consequences. What you bind, stays bound.",
-      "line_4": "Your first choice lies before you. Select your starting companion—Fire Elemental or Earth Sprite.",
-      "line_5": "Choose with intention, Initiate. This decision is permanent, as all true summoning must be."
     },
     "first_trial_intro": {
       "speaker": "Headmaster Merlin",
@@ -1817,24 +1754,6 @@
       "owned": "Owned",
       "equip": "Equip",
       "equipped": "Equipped"
-    },
-    "caravan": {
-      "merriweather": {
-        "name": "Mr. Merriweather's Caravan"
-      },
-      "title": "CARAVAN",
-      "leave_button": "Leave",
-      "purchase_button": "Purchase",
-      "purchase_success_title": "Purchase Successful",
-      "purchase_success_message": "Item purchased successfully!",
-      "purchase_failed_title": "Purchase Failed",
-      "purchase_failed_message": "Not enough gold!",
-      "leave_incomplete_confirmation": "Leave for now?\n\nYou can return to this caravan later, but you won't be able to continue to the next area until you complete this stop.",
-      "leave_incomplete_button": "Leave for Now",
-      "leave_complete_confirmation": "Leave without purchasing?\n\nThe caravan will move on and you won't be able to return, but you can continue your journey.",
-      "leave_complete_confirmation_purchased": "Ready to continue?\n\nThe caravan will move on and you won't be able to return.",
-      "leave_complete_button": "Leave & Continue",
-      "stay_button": "Stay"
     },
     "offering": {
       "fire_wisp": {

@@ -362,7 +362,7 @@ public static class DtoConverters
             ["gold"] = progress.Gold,
             ["academy"] = ToDict(progress.Academy),
             ["quests"] = ToDict(progress.Quests),
-            ["caravan_purchases"] = ToGodotArray(progress.CaravanPurchases),
+            ["caravan_purchases"] = ToGodotArray(progress.LegacyCaravanPurchaseIds),
         };
 
         // Add choices if present
@@ -681,7 +681,7 @@ public static class DtoConverters
         {
             CompletedBattles = completed,
             Gold = GetInt(dict, "gold", 0),
-            CaravanPurchases = caravanPurchases,
+            LegacyCaravanPurchaseIds = caravanPurchases,
             StoryArcs = storyArcs,
             Choices = choices,
             Academy = academy,

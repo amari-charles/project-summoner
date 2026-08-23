@@ -42,4 +42,4 @@ func _return_to_campaign() -> void:
 	_returning = true
 	var return_to: String = EventContext.get_return_scene()
 	EventContext.clear_event()
-	SceneManager.transition_to(return_to if not return_to.is_empty() else SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(return_to if not return_to.is_empty() else SceneManager.SCENE_ACADEMY_CAMPUS)

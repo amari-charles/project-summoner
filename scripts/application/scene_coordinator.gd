@@ -95,7 +95,7 @@ func _cleanup_persistent_state() -> void:
 		print("SceneCoordinator: Cleaning up persistent state...")
 
 	# Note: BattleContext is NOT reset here
-	# It's configured BEFORE scene transition by the caller (CampaignMap, etc.)
+	# It's configured BEFORE scene transition by the caller.
 
 	# Note: EventContext, NavigationContext are NOT reset here
 	# They carry state needed by the destination scene

@@ -320,11 +320,11 @@ func test_get_origin_scene_returns_default_when_empty() -> void:
 	assert_false(context.get_origin_scene().is_empty())
 
 
-func test_campaign_battle_origin_uses_legacy_map_for_test_arena() -> void:
+func test_campaign_battle_origin_uses_academy_hub_for_test_arena() -> void:
 	var previous_campaign_id: String = CampaignApi.get_current_campaign_id()
 	CampaignApi.set_current_campaign(String(CampaignIDs.TEST_ARENA))
 
-	assert_eq(context._get_campaign_battle_origin_scene(), SceneManager.SCENE_LEGACY_CAMPAIGN_MAP)
+	assert_eq(context._get_campaign_battle_origin_scene(), SceneManager.SCENE_ACADEMY_CAMPUS)
 
 	if not previous_campaign_id.is_empty():
 		CampaignApi.set_current_campaign(previous_campaign_id)
@@ -334,7 +334,7 @@ func test_campaign_battle_origin_uses_academy_hub_for_main_campaign() -> void:
 	var previous_campaign_id: String = CampaignApi.get_current_campaign_id()
 	CampaignApi.set_current_campaign(String(CampaignIDs.SUMMONERS_PATH))
 
-	assert_eq(context._get_campaign_battle_origin_scene(), SceneManager.SCENE_CAMPAIGN_MAP)
+	assert_eq(context._get_campaign_battle_origin_scene(), SceneManager.SCENE_ACADEMY_CAMPUS)
 
 	if not previous_campaign_id.is_empty():
 		CampaignApi.set_current_campaign(previous_campaign_id)

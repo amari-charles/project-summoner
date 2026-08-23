@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3]
 
-[ext_resource type="Script" path="res://scripts/meta/screens/academy_activity_preparation.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/meta/screens/encounter_preparation.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/shared/narrative_dialogue_presenter.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/meta/screens/collection_screen.tscn" id="4_collection"]
 

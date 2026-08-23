@@ -27,9 +27,6 @@ const FIRST_TRIAL: StringName = &"first_trial"
 ## Battle: Second Challenge - Test 2-card combos
 const SECOND_CHALLENGE: StringName = &"second_challenge"
 
-## Event: Caravan - First shop visit
-const CARAVAN_01: StringName = &"caravan_01"
-
 ## Battle: Third Trial - Medium difficulty
 const THIRD_TRIAL: StringName = &"third_trial"
 
@@ -90,7 +87,6 @@ const ARENA_SPRITE_UNITS: StringName = &"arena_sprite_units"
 const ALL_ACT1_NODES: Array[StringName] = [
 	FIRST_TRIAL,
 	SECOND_CHALLENGE,
-	CARAVAN_01,
 	THIRD_TRIAL,
 	PATH_FORK,
 	ELITE_BATTLE_01,

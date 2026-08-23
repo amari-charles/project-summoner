@@ -3,14 +3,14 @@ extends GutTest
 
 func test_generic_encounter_screens_exist_and_old_course_flow_is_not_reachable() -> void:
 	assert_true(ResourceLoader.exists(SceneManager.SCENE_ENCOUNTER_PREPARATION))
-	assert_true(ResourceLoader.exists(SceneManager.SCENE_ENCOUNTER_RESULTS))
+	assert_true(ResourceLoader.exists(SceneManager.SCENE_POST_BATTLE_RESULTS))
 	var hub_script: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
 	assert_false(hub_script.contains("SCENE_ACADEMY_CLASS_HALL"))
 	assert_false(hub_script.contains("DESTINATION_CLASS_HALL"))
 
 
 func test_preparation_uses_generic_encounter_contracts() -> void:
-	var script_text: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
+	var script_text: String = _read("res://scripts/meta/screens/encounter_preparation.gd")
 	var collection_script: String = _read("res://scripts/meta/screens/collection_screen.gd")
 	var scene: PackedScene = load(SceneManager.SCENE_ENCOUNTER_PREPARATION)
 	var preparation: EncounterPreparation = scene.instantiate() as EncounterPreparation
@@ -30,9 +30,9 @@ func test_preparation_uses_generic_encounter_contracts() -> void:
 
 
 func test_preparation_reuses_collection_overlay_for_deck_editing() -> void:
-	var preparation_scene: String = _read("res://scenes/meta/screens/academy_activity_preparation.tscn")
+	var preparation_scene: String = _read("res://scenes/meta/screens/encounter_preparation.tscn")
 	var collection_scene: String = _read("res://scenes/meta/screens/collection_screen.tscn")
-	var preparation_script: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
+	var preparation_script: String = _read("res://scripts/meta/screens/encounter_preparation.gd")
 	var collection_script: String = _read("res://scripts/meta/screens/collection_screen.gd")
 	assert_true(preparation_scene.contains("collection_screen.tscn"))
 	assert_false(preparation_scene.contains("deck_editor_panel.tscn"))

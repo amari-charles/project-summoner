@@ -134,7 +134,7 @@ func configure_practice_battle(config: Dictionary = {}) -> void:
 	current_mode = BattleMode.PRACTICE
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
+	origin_scene = SceneManager.SCENE_ACADEMY_CAMPUS
 
 	# Use provided config or defaults
 	battle_config = config.duplicate(true) if not config.is_empty() else {
@@ -207,7 +207,7 @@ func configure_arena_battle(_difficulty: int) -> void:
 	current_mode = BattleMode.ARENA
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
+	origin_scene = SceneManager.SCENE_ACADEMY_CAMPUS
 
 	# TODO: ArenaService would generate random battle config
 	push_warning("BattleContext: Arena mode not yet implemented")
@@ -219,7 +219,7 @@ func configure_endless_wave(_wave_number: int) -> void:
 	current_mode = BattleMode.ENDLESS
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = SceneManager.SCENE_CAMPAIGN_MAP
+	origin_scene = SceneManager.SCENE_ACADEMY_CAMPUS
 
 	# TODO: EndlessService would provide wave config
 	push_warning("BattleContext: Endless mode not yet implemented")
@@ -310,15 +310,12 @@ func clear() -> void:
 ## Get the scene to return to after battle
 func get_origin_scene() -> String:
 	if origin_scene.is_empty():
-		return SceneManager.SCENE_CAMPAIGN_MAP
+		return SceneManager.SCENE_ACADEMY_CAMPUS
 	return origin_scene
 
 
 func _get_campaign_battle_origin_scene() -> String:
-	var current_campaign_id: String = CampaignApi.get_current_campaign_id()
-	if StringName(current_campaign_id) == CampaignIDs.TEST_ARENA:
-		return SceneManager.SCENE_LEGACY_CAMPAIGN_MAP
-	return SceneManager.SCENE_CAMPAIGN_MAP
+	return SceneManager.SCENE_ACADEMY_CAMPUS
 
 ## Mark battle as started (called by GameController when battle begins)
 func start_battle() -> void:
