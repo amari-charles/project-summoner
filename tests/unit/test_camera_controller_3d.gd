@@ -49,6 +49,27 @@ func test_camera_uses_perspective_projection() -> void:
 	)
 
 
+func test_runtime_player_settings_update_camera_without_compounding_speed() -> void:
+	_camera._configured_pan_speed = 20.0
+	_camera._configured_edge_pan_enabled = true
+	_camera._configured_zoom_pitch_enabled = true
+
+	_camera._on_game_setting_changed(&"camera_speed", 1.5)
+	assert_almost_eq(_camera.pan_speed, 30.0, 0.001)
+	_camera._on_game_setting_changed(&"camera_speed", 0.5)
+	assert_almost_eq(_camera.pan_speed, 10.0, 0.001)
+
+	_camera._on_game_setting_changed(&"edge_pan_enabled", false)
+	assert_false(_camera.edge_pan_enabled)
+	_camera._on_game_setting_changed(&"edge_pan_enabled", true)
+	assert_true(_camera.edge_pan_enabled)
+
+	_camera._on_game_setting_changed(&"reduce_camera_motion", true)
+	assert_false(_camera.zoom_pitch_enabled)
+	_camera._on_game_setting_changed(&"reduce_camera_motion", false)
+	assert_true(_camera.zoom_pitch_enabled)
+
+
 func test_perspective_profile_applies_transform_zoom_and_clamp_settings() -> void:
 	_camera.map_rect_xz = Rect2(Vector2(-10000, -10000), Vector2(20000, 20000))
 

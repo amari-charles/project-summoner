@@ -42,6 +42,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-16, designer readiness):** Added an immediate high-priority UI readiness queue covering the summoner progression pass, automatic-level/XP presentation contract, reusable reward acquisition flow, first-quest reward slice, and canonical screen/state inventory needed before external UI design begins.
 **Tracker Sync (2026-08-18, discovery-driven development):** Replaced the fully exposed default-tree assumption with shared summoner/card opportunity states, configurable costs, and world actions that can reveal, unlock, acquire, or transform; added the representative design slice and UI/implementation work plan required before replacement progression UI is committed.
 **Tracker Sync (2026-08-22, UI flow consolidation):** Replaced the redundant click-through battlefield victory/defeat modal with a brief automatic conclusion overlay before the combined Results screen. Began the canonical screen inventory by resolving this duplicate outcome surface; the broader reward, level-up, course, and navigation inventory remains open.
+**Tracker Sync (2026-08-23, battle HUD and settings foundations):** Recorded the functional battle HUD scaffold, mode-aware pause/forfeit flow, shared categorized settings surface, and campus Escape menu. These surfaces are ready for designer treatment, while final visual language, responsive layout validation, and the broader canonical screen inventory remain open.
 
 ---
 
@@ -257,8 +258,11 @@ Inventory every currently reachable player-facing screen and overlay, then label
 
 **Progress:** The redundant interactive battlefield outcome surface has been
 consolidated into a brief automatic overlay followed by the canonical combined
-Results screen. The remaining reward, level-up, course, and navigation surface
-inventory is still open.
+Results screen. The battle HUD now has a functional information scaffold and
+mode-aware pause/forfeit behavior. Settings now use one shared categorized
+surface from the campus, battle, and standalone routes, and Escape on campus
+opens the canonical system menu. The remaining reward, level-up, course,
+navigation, online confirmation, and legacy-surface inventory is still open.
 
 **Tasks:**
 - [ ] Map onboarding, summoner selection, campus HUD, dialogue, Journal, quest preparation, battle, results/rewards, summoner, upgrades, equipment, shop, collection/deck, settings, and online flows.
@@ -891,18 +895,24 @@ Plan the production audio pass before adding individual one-off sounds. The goal
 ### 🟡 MEDIUM PRIORITY
 
 #### Revamp Battle HUD
-**Status:** ⬜ Not Started
+**Status:** 🟡 Partial (Functional Scaffold)
 **Category:** UI/UX
 **Effort:** Medium
 
 **Description:**
 Redesign the in-battle HUD elements for better clarity and visual appeal.
 
-**Requirements:**
-- Improve HP display for summoners
-- Better resource (mana) visibility
-- Turn indicator clarity
-- Proper information hierarchy
+**Current State:**
+- Mirrored player and opponent status surfaces show portrait, name, HP, and mana.
+- The four-card hand remains anchored at the bottom center with battlefield transparency preserved.
+- Preparation shows a field-preparation heading and countdown, followed by a brief battle-start transition.
+- A battle timer is visible as a designer-facing scaffold; ordinary destroy-the-summoner battles do not currently end on timeout.
+- Offline battles expose pause and speed controls. Online battles remain live, hide speed controls, and provide a confirmed forfeit action; offline battles also provide confirmed forfeit.
+
+**Remaining Work:**
+- Apply the approved visual language, production icons/frames, typography, and spacing.
+- Confirm responsive safe zones and supported aspect-ratio behavior with the wider canonical screen inventory.
+- Decide whether any battle mode uses an actual time limit before giving the timer gameplay authority.
 
 **Notes:**
 - Must not obstruct battlefield
@@ -911,7 +921,7 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 ---
 
 #### Revamp Settings Screen UI
-**Status:** 🟡 Partial (Functional)
+**Status:** 🟡 Partial (Functional Scaffold)
 **Category:** UI/UX
 **Effort:** Small
 
@@ -919,15 +929,18 @@ Redesign the in-battle HUD elements for better clarity and visual appeal.
 Redesign settings/options screen for better usability and visual consistency.
 
 **Current State:**
-- Basic settings screen exists with audio volume sliders
-- Music and SFX sliders with value labels
-- "Coming soon" placeholder for future settings
-- Settings persist via ProfileRepo
+- One shared categorized settings panel serves the standalone screen, campus system-menu overlay, and battle pause-menu overlay.
+- Audio supports master, music, and SFX volume plus mute while unfocused.
+- Display supports window mode, resolution, VSync, and frame-rate limit.
+- Controls support rebindable camera actions, edge-pan behavior, and camera speed.
+- Gameplay and accessibility expose only settings backed by runtime behavior, including reduced camera motion and UI scale.
+- Profile-backed settings merge safely with existing values; input remaps persist locally.
+- Escape on campus opens a paused system menu with Resume, Settings, and confirmed Quit Game. Battle menu behavior remains mode-aware.
 
 **Remaining Work:**
-- Visual polish to match other UI screens
-- Add more setting categories (graphics, controls, accessibility)
-- Consider accessibility options
+- Apply final visual polish and designer-authored information hierarchy.
+- Expand accessibility options only alongside real runtime support.
+- Validate layout at the final target viewport and supported aspect-ratio range.
 
 **Notes:**
 - Functional but visually basic

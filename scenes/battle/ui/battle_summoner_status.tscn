@@ -1,0 +1,88 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/ui/battle_summoner_status.gd" id="1_status"]
+[ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/battle/ui/stat_bar.tscn" id="2_stat_bar"]
+[ext_resource type="Shader" path="res://shaders/ui/circular_clip.gdshader" id="3_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_portrait"]
+shader = ExtResource("3_shader")
+shader_parameter/uv_offset = Vector2(0.2, 0.05)
+shader_parameter/uv_scale = Vector2(0.6, 0.45)
+
+[node name="BattleSummonerStatus" type="HBoxContainer"]
+custom_minimum_size = Vector2(440, 92)
+offset_right = 440.0
+offset_bottom = 92.0
+theme_override_constants/separation = 12
+script = ExtResource("1_status")
+
+[node name="PortraitFrame" type="Control" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+
+[node name="PortraitRect" type="ColorRect" parent="PortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.35, 0.35, 0.38, 1)
+
+[node name="ElementLabel" type="Label" parent="PortraitFrame/PortraitRect"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.07, 0.06, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 36
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PortraitTexture" type="TextureRect" parent="PortraitFrame"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_portrait")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Details" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.972549, 0.913725, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.07, 0.06, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+
+[node name="HPBar" parent="Details" instance=ExtResource("2_stat_bar")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ManaBar" parent="Details" instance=ExtResource("2_stat_bar")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_horizontal = 3

@@ -590,6 +590,46 @@ the world prematurely.
 
 - `docs/design/walkable-academy-hub.md`
 
+## 2026-08-22 — Replace the audio-only placeholder with shared game settings
+
+**Status:** Accepted
+**Areas:** Settings, Battle UI, Accessibility, Controls
+
+### Decision
+
+Treat Settings as a complete, scalable player surface rather than an audio-only
+placeholder. Use a left-side category list for Audio, Display, Controls,
+Gameplay, and Accessibility, with one shared settings component available from
+both the standalone screen and the battle menu.
+
+### Context
+
+The existing screen exposed only music and sound-effect volume, leaving the UI
+designer without the categories and states required for a credible PC settings
+experience. The shared categorized model keeps navigation predictable, prevents
+the standalone and in-battle versions from drifting, and lets new settings be
+added without redesigning the screen.
+
+### Consequences
+
+- Supported settings apply immediately and persist.
+- The current surface includes volume controls, focus muting, window/display
+  options, keyboard bindings, camera preferences, reduced camera motion, and UI
+  scale.
+- Offline and online battle menus open the same settings component; an online
+  battle continues behind it.
+- Unsupported capabilities are not represented as working controls merely to
+  fill categories.
+
+### Supersedes
+
+The standalone audio-only settings screen and the separate audio-only battle
+settings panel.
+
+### References
+
+- `scenes/shared/settings_panel.tscn`
+
 ## 2026-08-22 — Use one combined Results screen after battle conclusion
 
 **Status:** Accepted
@@ -1579,3 +1619,34 @@ force.
 ### References
 
 - `docs/design/walkable-academy-hub.md`
+
+## 2026-08-23 — Use Escape for the campus system menu
+
+**Status:** Accepted
+**Areas:** Campus, Settings, Navigation, UI
+
+### Decision
+
+On the walkable campus, Escape opens a modal system menu instead of routing
+directly to Settings. The menu pauses campus activity and offers Resume,
+Settings, and Quit Game. Quit Game requires confirmation and exits the
+application.
+
+### Context
+
+Settings must remain quickly accessible, but opening it directly from Escape
+does not provide the conventional resume-or-exit choices expected from a game
+system menu. The title screen is currently a loading splash rather than a usable
+return destination, so Quit Game exits the application.
+
+### Consequences
+
+- Escape within the system menu resumes campus play.
+- Escape from its Settings surface returns to the system menu.
+- The system menu reuses the shared categorized settings component.
+- Dialogue, quest, and reward overlays retain first priority for Escape.
+
+### References
+
+- `scenes/meta/components/campus_system_menu.tscn`
+- `scenes/shared/settings_panel.tscn`

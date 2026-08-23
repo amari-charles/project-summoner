@@ -75,6 +75,7 @@ layout_mode = 2
 theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="PausePanel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_override = "TitleLabel"
 text = "GAME PAUSED"
@@ -103,4 +104,8 @@ script = ExtResource("4_styled_button")
 variant = 2
 
 [node name="SettingsPanel" parent="." instance=ExtResource("3_settings_panel")]
+visible = false
+
+[node name="ForfeitConfirmation" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
 visible = false

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/settings_screen.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/shared/settings_panel.tscn" id="2_settings_panel"]
 
 [node name="SettingsScreen" type="Control"]
 layout_mode = 3
@@ -20,7 +21,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.721569, 0.682353, 0.631373, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,131 +29,40 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 40
+theme_override_constants/margin_top = 30
 theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 40
+theme_override_constants/margin_bottom = 30
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="Layout" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Header" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="Margin/Layout"]
 layout_mode = 2
 
-[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/Header"]
+[node name="CloseButton" type="Button" parent="Margin/Layout/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(52, 52)
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "X"
+text = "←"
 flat = true
 
-[node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+[node name="Title" type="Label" parent="Margin/Layout/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_override = "TitleLabel"
 theme_override_font_sizes/font_size = 36
-text = ""
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/Header"]
-custom_minimum_size = Vector2(48, 0)
+[node name="HeaderSpacer" type="Control" parent="Margin/Layout/Header"]
+custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
 
-[node name="Separator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="ContentCenter" type="CenterContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ContentCenter" type="CenterContainer" parent="Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="SettingsPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentCenter"]
-custom_minimum_size = Vector2(600, 0)
+[node name="SettingsPanel" parent="Margin/Layout/ContentCenter" instance=ExtResource("2_settings_panel")]
 layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 40
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 24
-
-[node name="AudioHeader" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = ""
-
-[node name="MusicRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="MusicLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer/MusicRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = ""
-
-[node name="MusicSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer/MusicRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(250, 24)
-layout_mode = 2
-size_flags_vertical = 1
-min_value = 0.0
-max_value = 1.0
-step = 0.05
-value = 1.0
-
-[node name="MusicValueLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer/MusicRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = ""
-horizontal_alignment = 2
-
-[node name="SFXRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="SFXLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer/SFXRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = ""
-
-[node name="SFXSlider" type="HSlider" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer/SFXRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(250, 24)
-layout_mode = 2
-size_flags_vertical = 1
-min_value = 0.0
-max_value = 1.0
-step = 0.05
-value = 1.0
-
-[node name="SFXValueLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer/SFXRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = ""
-horizontal_alignment = 2
-
-[node name="Separator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="ComingSoonLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentCenter/SettingsPanel/MarginContainer/VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.34902, 0.333333, 0.305882, 1)
-text = ""
-horizontal_alignment = 1

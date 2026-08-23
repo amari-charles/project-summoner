@@ -10,9 +10,8 @@ const GAME_OVER_DISPLAY_DURATION: float = 1.0
 ## Prep timer UI constants
 const PREP_TIMER_FONT_SIZE: int = 72
 const PREP_TIMER_OUTLINE_SIZE: int = 4
-const PREP_TIMER_OFFSET_TOP: float = 60.0
-const PREP_TIMER_OFFSET_BOTTOM: float = 150.0
-const PREP_TIMER_OFFSET_HORIZONTAL: float = 100.0
+const BATTLE_PHASE_TITLE_DURATION: float = 0.8
+const BATTLE_PHASE_TITLE_FADE_DURATION: float = 0.25
 
 ## Prep timer color thresholds (seconds remaining)
 const PREP_TIMER_WARNING_THRESHOLD: int = 10  ## Orange warning
@@ -28,6 +27,10 @@ const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
 @export var game_over_modal: PanelContainer = null
 @export var game_over_label: Label = null
 
+## Mirrored identity and resource groups
+@export var player_status: BattleSummonerStatus = null
+@export var enemy_status: BattleSummonerStatus = null
+
 ## Stat bars for both players (HP = red, Mana = blue)
 @export var player_hp_bar: StatBar = null
 @export var player_mana_bar: StatBar = null
@@ -36,11 +39,12 @@ const PREP_TIMER_OUTLINE_COLOR: Color = Color(0, 0, 0, 0.9)
 
 ## Two-phase battle system UI elements
 @export var phase_label: Label = null
+@export var prep_timer_label: Label = null
 
 ## Dynamically created UI elements
-var prep_timer_label: Label = null
 var reconnect_label: Label = null
 var _reconnect_reason: String = ""
+var _phase_title_tween: Tween = null
 
 var game_controller: Node = null
 var player_summoner: Node3D = null
@@ -60,23 +64,27 @@ func _ready() -> void:
 		game_over_modal = get_node_or_null("GameOverModal")
 	if game_over_label == null:
 		game_over_label = get_node_or_null("GameOverModal/Content/GameOverLabel")
+	if player_status == null:
+		player_status = get_node_or_null("HUDContainer/PlayerStatus")
+	if enemy_status == null:
+		enemy_status = get_node_or_null("HUDContainer/EnemyStatus")
 
 	# Stat bars (all use StatBar now) - look in HUDContainer
 	if player_hp_bar == null:
-		player_hp_bar = get_node_or_null("HUDContainer/PlayerHPBar")
+		player_hp_bar = get_node_or_null("HUDContainer/PlayerStatus/Details/HPBar")
 	if player_mana_bar == null:
-		player_mana_bar = get_node_or_null("HUDContainer/PlayerManaBar")
+		player_mana_bar = get_node_or_null("HUDContainer/PlayerStatus/Details/ManaBar")
 	if enemy_hp_bar == null:
-		enemy_hp_bar = get_node_or_null("HUDContainer/EnemyHPBar")
+		enemy_hp_bar = get_node_or_null("HUDContainer/EnemyStatus/Details/HPBar")
 	if enemy_mana_bar == null:
-		enemy_mana_bar = get_node_or_null("HUDContainer/EnemyManaBar")
+		enemy_mana_bar = get_node_or_null("HUDContainer/EnemyStatus/Details/ManaBar")
 
 	# Two-phase battle system UI elements
 	if phase_label == null:
 		phase_label = get_node_or_null("PhaseLabel")
+	if prep_timer_label == null:
+		prep_timer_label = get_node_or_null("PrepTimerLabel")
 
-	# Create prep timer label dynamically (large, center-top)
-	_create_prep_timer_label()
 	_create_reconnect_label()
 
 ## Initialize GameUI with controller and summoner references
@@ -89,6 +97,7 @@ func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 	game_controller = controller
 	player_summoner = summoner
 	enemy_summoner = enemy
+	_configure_summoner_statuses()
 
 	# Connect to game controller signals (BattleScene uses PascalCase C# signal names)
 	if game_controller:
@@ -121,6 +130,40 @@ func init(controller: Node, summoner: Node, enemy: Node = null) -> void:
 
 	# Initialize HP bar colors
 	_setup_hp_bars()
+
+
+func _configure_summoner_statuses() -> void:
+	var config: Dictionary = BattleContext.battle_config
+	var player_side: Dictionary = SafeTypeUtils.dict(config.get("player_side", {}))
+	var player_definition: Dictionary = SafeTypeUtils.dict(player_side.get("summoner", {}))
+	var enemy_side: Dictionary = SafeTypeUtils.dict(config.get("enemy_side", {}))
+	var enemy_definition: Dictionary = SafeTypeUtils.dict(enemy_side.get("summoner", {}))
+
+	var active_summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	var player_summoner_id: String = SafeTypeUtils.string(
+		config.get("player_summoner_id", player_definition.get("id", active_summoner_id)),
+		active_summoner_id
+	)
+	var opponent_summoner_id: String = SafeTypeUtils.string(
+		config.get("opponent_summoner_id", enemy_definition.get("id", "")),
+		""
+	)
+	var player_fallback_name: String = SafeTypeUtils.string(
+		player_definition.get("display_name", Loc.t("ui.battle.player_fallback")),
+		Loc.t("ui.battle.player_fallback")
+	)
+	var opponent_fallback_name: String = SafeTypeUtils.string(
+		enemy_definition.get(
+			"display_name",
+			config.get("opponent_username", Loc.t("ui.battle.opponent_fallback"))
+		),
+		Loc.t("ui.battle.opponent_fallback")
+	)
+
+	if player_status != null:
+		player_status.configure(player_summoner_id, player_fallback_name)
+	if enemy_status != null:
+		enemy_status.configure(opponent_summoner_id, opponent_fallback_name)
 
 ## Connect to summoner mana signals (PascalCase C# signals)
 func _connect_to_summoner(summoner: Node) -> void:
@@ -194,8 +237,9 @@ func _on_enemy_hp_changed(current: float, maximum: float) -> void:
 
 func _on_time_updated(remaining: float) -> void:
 	if timer_label:
-		var minutes: int = floori(remaining / 60.0)
-		var seconds: int = int(remaining) % 60
+		var clamped_remaining: float = maxf(remaining, 0.0)
+		var minutes: int = floori(clamped_remaining / 60.0)
+		var seconds: int = int(clamped_remaining) % 60
 		timer_label.text = "%02d:%02d" % [minutes, seconds]
 
 func _on_mana_changed(current: float, maximum: float) -> void:
@@ -235,35 +279,6 @@ func _finish_game_over_conclusion() -> void:
 ## =============================================================================
 ## TWO-PHASE BATTLE SYSTEM HANDLERS
 ## =============================================================================
-
-## Create the preparation phase timer label
-func _create_prep_timer_label() -> void:
-	prep_timer_label = Label.new()
-	prep_timer_label.name = "PrepTimerLabel"
-
-	# Large, bold font for visibility
-	prep_timer_label.add_theme_font_size_override("font_size", PREP_TIMER_FONT_SIZE)
-	prep_timer_label.add_theme_color_override("font_color", PREP_TIMER_COLOR_NORMAL)
-	prep_timer_label.add_theme_color_override("font_outline_color", PREP_TIMER_OUTLINE_COLOR)
-	prep_timer_label.add_theme_constant_override("outline_size", PREP_TIMER_OUTLINE_SIZE)
-
-	# Center horizontally at top of screen
-	prep_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	prep_timer_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	prep_timer_label.anchors_preset = Control.PRESET_CENTER_TOP
-	prep_timer_label.anchor_top = 0.0
-	prep_timer_label.anchor_bottom = 0.0
-	prep_timer_label.anchor_left = 0.5
-	prep_timer_label.anchor_right = 0.5
-	prep_timer_label.offset_top = PREP_TIMER_OFFSET_TOP
-	prep_timer_label.offset_bottom = PREP_TIMER_OFFSET_BOTTOM
-	prep_timer_label.offset_left = -PREP_TIMER_OFFSET_HORIZONTAL
-	prep_timer_label.offset_right = PREP_TIMER_OFFSET_HORIZONTAL
-	prep_timer_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-
-	prep_timer_label.visible = false
-	add_child(prep_timer_label)
-
 
 func _create_reconnect_label() -> void:
 	reconnect_label = Label.new()
@@ -331,12 +346,30 @@ func _exit_tree() -> void:
 
 
 func _on_phase_changed(new_phase: int) -> void:
+	if _phase_title_tween != null:
+		_phase_title_tween.kill()
+		_phase_title_tween = null
+
+	if timer_label:
+		timer_label.visible = new_phase == UnitConstants.BattlePhase.BATTLE
+
 	if phase_label:
+		phase_label.modulate.a = 1.0
 		if new_phase == UnitConstants.BattlePhase.PREPARATION:
-			phase_label.text = Loc.t("ui.battle.phase_preparation")
+			phase_label.text = Loc.t("ui.battle.prepare_your_field")
+			phase_label.visible = true
 		else:
 			phase_label.text = Loc.t("ui.battle.phase_battle")
-		phase_label.visible = true
+			phase_label.visible = true
+			_phase_title_tween = create_tween()
+			_phase_title_tween.tween_interval(BATTLE_PHASE_TITLE_DURATION)
+			_phase_title_tween.tween_property(
+				phase_label,
+				"modulate:a",
+				0.0,
+				BATTLE_PHASE_TITLE_FADE_DURATION
+			)
+			_phase_title_tween.tween_callback(phase_label.hide)
 
 	# Hide prep timer when entering battle phase
 	if prep_timer_label and new_phase == UnitConstants.BattlePhase.BATTLE:

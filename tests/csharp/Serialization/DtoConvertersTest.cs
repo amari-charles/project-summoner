@@ -538,6 +538,49 @@ public class DtoConvertersTest
     }
 
     // =========================================================================
+    // Settings Tests
+    // =========================================================================
+
+    [TestCase]
+    public void Settings_RoundTrip_PreservesSupportedValues()
+    {
+        var original = new Settings
+        {
+            MasterVolume = 0.8f,
+            MusicVolume = 0.7f,
+            SfxVolume = 0.6f,
+            MuteWhenUnfocused = true,
+            WindowMode = "windowed",
+            ResolutionWidth = 1600,
+            ResolutionHeight = 900,
+            VsyncEnabled = false,
+            FpsLimit = 120,
+            EdgePanEnabled = false,
+            CameraSpeed = 1.5f,
+            ReduceCameraMotion = true,
+            UiScale = 1.15f,
+            Lang = "en",
+        };
+
+        var result = DtoConverters.FromSettingsDict(DtoConverters.ToDict(original));
+
+        AssertThat(result.MasterVolume).IsEqual(0.8f);
+        AssertThat(result.MusicVolume).IsEqual(0.7f);
+        AssertThat(result.SfxVolume).IsEqual(0.6f);
+        AssertThat(result.MuteWhenUnfocused).IsTrue();
+        AssertThat(result.WindowMode).IsEqual("windowed");
+        AssertThat(result.ResolutionWidth).IsEqual(1600);
+        AssertThat(result.ResolutionHeight).IsEqual(900);
+        AssertThat(result.VsyncEnabled).IsFalse();
+        AssertThat(result.FpsLimit).IsEqual(120);
+        AssertThat(result.EdgePanEnabled).IsFalse();
+        AssertThat(result.CameraSpeed).IsEqual(1.5f);
+        AssertThat(result.ReduceCameraMotion).IsTrue();
+        AssertThat(result.UiScale).IsEqual(1.15f);
+        AssertThat(result.Lang).IsEqual("en");
+    }
+
+    // =========================================================================
     // MetaUpdate Tests
     // =========================================================================
 

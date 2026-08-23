@@ -1107,8 +1107,19 @@ public static class DtoConverters
     {
         return new Godot.Collections.Dictionary
         {
+            ["master_volume"] = settings.MasterVolume,
             ["sfx_volume"] = settings.SfxVolume,
             ["music_volume"] = settings.MusicVolume,
+            ["mute_when_unfocused"] = settings.MuteWhenUnfocused,
+            ["window_mode"] = settings.WindowMode,
+            ["resolution_width"] = settings.ResolutionWidth,
+            ["resolution_height"] = settings.ResolutionHeight,
+            ["vsync_enabled"] = settings.VsyncEnabled,
+            ["fps_limit"] = settings.FpsLimit,
+            ["edge_pan_enabled"] = settings.EdgePanEnabled,
+            ["camera_speed"] = settings.CameraSpeed,
+            ["reduce_camera_motion"] = settings.ReduceCameraMotion,
+            ["ui_scale"] = settings.UiScale,
             ["lang"] = settings.Lang,
         };
     }
@@ -1124,8 +1135,19 @@ public static class DtoConverters
 
         return new Settings
         {
+            MasterVolume = GetFloat(dict, "master_volume", 1.0f),
             SfxVolume = GetFloat(dict, "sfx_volume", 1.0f),
             MusicVolume = GetFloat(dict, "music_volume", 1.0f),
+            MuteWhenUnfocused = GetBool(dict, "mute_when_unfocused", false),
+            WindowMode = GetString(dict, "window_mode", "fullscreen"),
+            ResolutionWidth = GetInt(dict, "resolution_width", 1920),
+            ResolutionHeight = GetInt(dict, "resolution_height", 1080),
+            VsyncEnabled = GetBool(dict, "vsync_enabled", true),
+            FpsLimit = GetInt(dict, "fps_limit", 60),
+            EdgePanEnabled = GetBool(dict, "edge_pan_enabled", true),
+            CameraSpeed = GetFloat(dict, "camera_speed", 1.0f),
+            ReduceCameraMotion = GetBool(dict, "reduce_camera_motion", false),
+            UiScale = GetFloat(dict, "ui_scale", 1.0f),
             Lang = GetString(dict, "lang", "en"),
         };
     }

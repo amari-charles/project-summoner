@@ -121,10 +121,18 @@ var arena_floor_rect_xz: Rect2 = Rect2()
 var _debug_overlay_mesh: MeshInstance3D
 var _debug_overlay_lines: ImmediateMesh
 var _debug_overlay_material: StandardMaterial3D
+var _configured_pan_speed: float
+var _configured_edge_pan_enabled: bool
+var _configured_zoom_pitch_enabled: bool
 
 func _ready() -> void:
 	# Set process mode to ALWAYS so camera panning works during dialogues
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_configured_pan_speed = pan_speed
+	_configured_edge_pan_enabled = edge_pan_enabled
+	_configured_zoom_pitch_enabled = zoom_pitch_enabled
+	if not GameSettings.setting_changed.is_connected(_on_game_setting_changed):
+		GameSettings.setting_changed.connect(_on_game_setting_changed)
 
 	# Wait one frame for transform initialization
 	await get_tree().process_frame
@@ -183,6 +191,12 @@ func set_arena_floor_bounds(bounds_xz: Rect2) -> void:
 func apply_perspective_profile(reset_zoom: bool = true) -> void:
 	projection = PROJECTION_PERSPECTIVE
 	_apply_perspective_profile()
+	_configured_zoom_pitch_enabled = (
+		perspective_camera_profile.zoom_pitch_enabled
+		if perspective_camera_profile != null
+		else _configured_zoom_pitch_enabled
+	)
+	_apply_player_camera_settings()
 	near = perspective_near_clip
 	far = perspective_far_clip
 
@@ -190,6 +204,46 @@ func apply_perspective_profile(reset_zoom: bool = true) -> void:
 	_apply_zoom_limits(reset_zoom)
 	_ensure_camera_faces_map_center()
 	clamp_to_map()
+
+
+func _apply_player_camera_settings() -> void:
+	edge_pan_enabled = _configured_edge_pan_enabled and SafeTypeUtils.bool_val(
+		GameSettings.get_value(&"edge_pan_enabled"),
+		true
+	)
+	pan_speed = _configured_pan_speed * clampf(
+		SafeTypeUtils.float_val(GameSettings.get_value(&"camera_speed"), 1.0),
+		0.5,
+		2.0
+	)
+	zoom_pitch_enabled = (
+		_configured_zoom_pitch_enabled
+		and not SafeTypeUtils.bool_val(
+			GameSettings.get_value(&"reduce_camera_motion"),
+			false
+		)
+	)
+
+
+func _on_game_setting_changed(key: StringName, value: Variant) -> void:
+	match key:
+		&"edge_pan_enabled":
+			edge_pan_enabled = (
+				_configured_edge_pan_enabled
+				and SafeTypeUtils.bool_val(value, true)
+			)
+		&"camera_speed":
+			pan_speed = _configured_pan_speed * clampf(
+				SafeTypeUtils.float_val(value, 1.0),
+				0.5,
+				2.0
+			)
+		&"reduce_camera_motion":
+			zoom_pitch_enabled = (
+				_configured_zoom_pitch_enabled
+				and not SafeTypeUtils.bool_val(value, false)
+			)
+			_apply_zoom_pitch_from_current_fov()
 
 func _apply_perspective_profile() -> void:
 	var profile: BattleCameraProjectionProfile = perspective_camera_profile

@@ -5,6 +5,7 @@ class_name PauseButton
 ## Always visible, allows pausing via button or ESC key
 
 var game_controller: Node = null
+var battle_menu: PauseMenu = null
 
 func _ready() -> void:
 	# Always process input (not affected by pause state)
@@ -23,6 +24,7 @@ func _exit_tree() -> void:
 
 func _find_game_controller() -> void:
 	game_controller = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
+	battle_menu = get_node_or_null("../PauseMenu") as PauseMenu
 
 	if not game_controller:
 		push_error("PauseButton: Could not find game controller")
@@ -30,6 +32,7 @@ func _find_game_controller() -> void:
 
 	# Hide button when game ends
 	game_controller.connect("GameEnded", _on_game_ended)
+	text = Loc.t("ui.pause_menu.menu") if BattleContext.is_multiplayer_battle() else Loc.t("ui.pause_menu.pause")
 
 func _on_game_ended(_winner: UnitConstants.Team) -> void:
 	visible = false
@@ -47,6 +50,12 @@ func _on_pressed() -> void:
 
 func _toggle_pause() -> void:
 	if not game_controller:
+		return
+	if battle_menu != null and battle_menu.close_settings_if_open():
+		return
+	if BattleContext.is_multiplayer_battle():
+		if battle_menu != null:
+			battle_menu.toggle_menu()
 		return
 
 	var current_state: int = SafeTypeUtils.int_val(game_controller.get("CurrentState"), int(UnitConstants.GameState.PLAYING))

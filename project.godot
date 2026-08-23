@@ -28,6 +28,7 @@ CosmeticsCatalog="*res://scripts/csharp/Infrastructure/Data/Cosmetics/CosmeticsC
 EmotesCatalog="*res://scripts/csharp/Infrastructure/Data/Emotes/EmotesCatalogBridge.tscn"
 VFXManager="*res://scripts/battle/vfx/vfx_manager.gd"
 ProfileRepo="*res://scripts/csharp/Infrastructure/Persistence/ProfileRepository.tscn"
+GameSettings="*res://scripts/infrastructure/game_settings.gd"
 AudioManager="*res://scripts/infrastructure/audio_manager.gd"
 Economy="*res://scripts/csharp/Meta/Services/Economy/EconomyService.tscn"
 CardService="*res://scripts/csharp/Meta/Services/Cards/CardService.tscn"

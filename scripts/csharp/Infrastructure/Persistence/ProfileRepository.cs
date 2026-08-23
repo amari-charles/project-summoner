@@ -935,7 +935,10 @@ public partial class ProfileRepository
 
     public void UpdateSettingsDict(GdDict settingsDict)
     {
-        _data.Settings = DtoConverters.FromSettingsDict(settingsDict);
+        var merged = DtoConverters.ToDict(_data.Settings);
+        foreach (var key in settingsDict.Keys)
+            merged[key] = settingsDict[key];
+        _data.Settings = DtoConverters.FromSettingsDict(merged);
         SaveProfile(immediate: true);
         EmitDataChanged();
     }

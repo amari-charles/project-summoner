@@ -483,6 +483,55 @@ func test_walkable_controls_are_project_actions() -> void:
 		assert_false(InputMap.action_get_events(action).is_empty(), "%s must have an input binding" % action)
 
 
+func test_unhandled_escape_opens_campus_system_menu_before_any_scene_transition() -> void:
+	var source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/walkable_academy_hub.gd"
+	)
+	var handle_position: int = source.find(
+		"get_viewport().set_input_as_handled()\n\t\tcampus_system_menu.open_menu()"
+	)
+	assert_true(
+		handle_position >= 0,
+		"Campus Escape should open its system menu after higher-priority overlays decline it"
+	)
+
+
+func test_campus_system_menu_pauses_and_reuses_shared_settings() -> void:
+	var scene: PackedScene = load("res://scenes/meta/components/campus_system_menu.tscn")
+	var menu: CampusSystemMenu = scene.instantiate() as CampusSystemMenu
+	add_child_autofree(menu)
+	await get_tree().process_frame
+
+	menu.open_menu()
+	assert_true(menu.visible)
+	assert_true(get_tree().paused)
+	assert_not_null(menu.get_node(
+		"SettingsOverlay/SettingsCenter/SettingsLayout/SettingsPanel"
+	) as SettingsPanel)
+	menu.open_settings()
+	assert_true(menu.settings_overlay.visible)
+	assert_false(menu.menu_center.visible)
+	menu._close_settings()
+	assert_false(menu.settings_overlay.visible)
+	assert_true(menu.menu_center.visible)
+	menu.close_menu()
+	assert_false(menu.visible)
+	assert_false(get_tree().paused)
+
+
+func test_campus_system_menu_quit_requires_confirmation() -> void:
+	var scene: PackedScene = load("res://scenes/meta/components/campus_system_menu.tscn")
+	var menu: CampusSystemMenu = scene.instantiate() as CampusSystemMenu
+	add_child_autofree(menu)
+	await get_tree().process_frame
+
+	menu.open_menu()
+	menu._show_quit_confirmation()
+	assert_true(menu.quit_confirmation.visible)
+	menu.quit_confirmation.hide()
+	menu.close_menu()
+
+
 func test_placeholder_crowd_is_visual_only_and_deterministic() -> void:
 	assert_eq(PlaceholderCampusCrowd.PLACEMENTS.size(), 8)
 	for placement: Dictionary in PlaceholderCampusCrowd.PLACEMENTS:
