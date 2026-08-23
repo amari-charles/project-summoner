@@ -83,6 +83,28 @@ public class TypedFacadeRoutingTest
         AssertThat(deckService.ValidateDeck(deckId)).IsTrue();
     }
 
+    [TestCase]
+    public void RankedDeckSelectionsAreSeparatePerSummonerAndFromOfflineDeck()
+    {
+        var repo = CreateRepo("typed_facade_ranked_decks");
+        var deckService = CreateNode<DeckService>();
+        deckService.InitForTesting(repo);
+        var cole = EnsureUnlockedSummoner(repo, SummonerIds.Cole);
+        var selene = EnsureUnlockedSummoner(repo, SummonerIds.Selene);
+        var coleOffline = deckService.CreateDeck("Cole Offline", [], cole);
+        var coleRanked = deckService.CreateDeck("Cole Ranked", [], cole);
+        var seleneRanked = deckService.CreateDeck("Selene Ranked", [], selene);
+
+        AssertThat(deckService.SetActiveDeck(coleOffline)).IsTrue();
+        AssertThat(deckService.SetRankedDeck(cole.Value, coleRanked)).IsTrue();
+        AssertThat(deckService.SetRankedDeck(selene.Value, seleneRanked)).IsTrue();
+
+        AssertThat(deckService.GetActiveDeckId()).IsEqual(coleOffline);
+        AssertThat(deckService.GetRankedDeckId(cole.Value)).IsEqual(coleRanked);
+        AssertThat(deckService.GetRankedDeckId(selene.Value)).IsEqual(seleneRanked);
+        AssertThat(deckService.SetRankedDeck(cole.Value, seleneRanked)).IsFalse();
+    }
+
     private ProfileRepository CreateRepo(string profileId)
     {
         var repo = CreateNode<ProfileRepository>();

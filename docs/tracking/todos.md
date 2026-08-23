@@ -43,6 +43,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-18, discovery-driven development):** Replaced the fully exposed default-tree assumption with shared summoner/card opportunity states, configurable costs, and world actions that can reveal, unlock, acquire, or transform; added the representative design slice and UI/implementation work plan required before replacement progression UI is committed.
 **Tracker Sync (2026-08-22, UI flow consolidation):** Replaced the redundant click-through battlefield victory/defeat modal with a brief automatic conclusion overlay before the combined Results screen. Began the canonical screen inventory by resolving this duplicate outcome surface; the broader reward, level-up, course, and navigation inventory remains open.
 **Tracker Sync (2026-08-23, battle HUD and settings foundations):** Recorded the functional battle HUD scaffold, mode-aware pause/forfeit flow, shared categorized settings surface, and campus Escape menu. These surfaces are ready for designer treatment, while final visual language, responsive layout validation, and the broader canonical screen inventory remain open.
+**Tracker Sync (2026-08-23, ranked loadouts):** Implemented the Online loadout scaffold, separate per-summoner ranked-deck persistence, contextual selection through the collection screen, queue validation, and ranked battle wiring.
 
 ---
 
@@ -300,12 +301,16 @@ navigation, online confirmation, and legacy-surface inventory is still open.
 **Effort:** Medium
 
 **Description:**
-Restore the contained walkable campus as the Academy's primary entry surface without turning it into an open world or making walking mandatory. Existing feature screens remain the destinations, and a persistent shortcut menu preserves the speed of the former menu hub.
+Restore the contained walkable campus as the Academy's primary entry surface without turning it into an open world. Existing feature screens remain authoritative, persistent UI actions stay separate from physical navigation, and a Travel/Wayfinder control reaches eligible world waypoints without bypassing objectives or traversal.
 
 **Tasks:**
 - [x] Recover the bounded campus, player movement, placeable buildings, and entrance interactions on a fresh branch.
 - [x] Route current Class Hall, Campus Shop, Mission Hall, Dorms, Online, Settings, and Summoner screens through one campus destination contract.
 - [x] Preserve the former menu hub as a temporary fallback during recovery.
+- [x] Replace the broad shortcut list with a Travel/Wayfinder panel backed by physical waypoint data.
+- [x] Surface the tracked quest's nearest eligible waypoint without teleporting directly onto its objective.
+- [x] Remove Journal, Spellbook, Inventory/Summoner, and Settings from physical travel destinations.
+- [ ] Add authored initial availability and persisted discovery rules before the travel roster expands beyond the current graybox landmarks.
 - [ ] Complete hands-on UX validation of movement, building entry, back navigation, and shortcuts.
 - [ ] Replace placeholder campus presentation with an approved layout and production asset plan.
 - [ ] Scope real-time presence separately after the single-player hub is proven.
@@ -425,7 +430,7 @@ Perform a targeted audit for other places where runtime behavior is selected via
 ### 🟡 MEDIUM PRIORITY
 
 #### Add Deck Selection to the Online Matchmaking Screen
-**Status:** ⬜ Not Started
+**Status:** ✅ Completed
 **Category:** Ranked Gameplay / UI/UX
 **Effort:** Small
 
@@ -433,10 +438,11 @@ Perform a targeted audit for other places where runtime behavior is selected via
 Add a deck-select button to the Online screen so players can see and change which saved deck they will use before entering matchmaking.
 
 **Tasks:**
-- [ ] Add a compact deck-select button without crowding the rank and queue-state layout.
-- [ ] Reuse the existing saved-deck selection flow rather than creating a second deck-management implementation.
-- [ ] Show the currently selected deck and prevent queueing with an invalid or unavailable deck.
-- [ ] Pass the selected deck through matchmaking launch and future authoritative loadout validation.
+- [x] Add a compact loadout summary and change actions without replacing the existing rank and queue structure.
+- [x] Reuse the existing saved-deck management flow in a ranked-selection context.
+- [x] Show the selected ranked deck and prevent queueing with an invalid or unavailable deck.
+- [x] Persist one ranked deck per summoner without changing the offline active deck.
+- [x] Pass the ranked deck through matchmaking deck exchange and battle launch.
 
 #### Add Client-Side Prediction
 **Status:** ⬜ Not Started

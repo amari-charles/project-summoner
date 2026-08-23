@@ -11,6 +11,9 @@ public class MetaUpdate
     /// <summary>Update the selected deck ID.</summary>
     public string? SelectedDeck { get; set; }
 
+    /// <summary>Replace ranked deck selections keyed by summoner ID.</summary>
+    public Dictionary<string, string>? RankedDecksBySummoner { get; set; }
+
     /// <summary>Update the selected summoner ID.</summary>
     public string? SelectedSummoner { get; set; }
 

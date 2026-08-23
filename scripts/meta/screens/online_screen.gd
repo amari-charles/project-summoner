@@ -10,6 +10,10 @@ class_name OnlineScreen
 
 enum ScreenState { LOADING, READY, IN_QUEUE, MATCH_FOUND }
 
+const CARD_VISUAL_SCENE: PackedScene = preload("res://scenes/shared/card_visual.tscn")
+const DECK_CARD_SIZE: Vector2 = Vector2(135, 180)
+const DECK_CARD_RENDER_SIZE: Vector2 = Vector2(120, 160)
+
 ## Timing constants
 ## Delay after match found to show UI feedback before connecting
 const MATCH_FOUND_FEEDBACK_DELAY: float = 1.0
@@ -27,13 +31,22 @@ const STARTING_ELO: int = 800
 
 ## UI References
 @onready var back_button: Button = %BackButton
-@onready var casual_button: Button = %CasualButton
-@onready var competitive_button: Button = %CompetitiveButton
 @onready var rank_content: VBoxContainer = %RankContent
+@onready var rank_details: HBoxContainer = %RankDetails
 @onready var tier_label: Label = %TierLabel
 @onready var league_points_label: Label = %LeaguePointsLabel
 @onready var status_label: Label = %StatusLabel
 @onready var queue_button: Button = %QueueButton
+@onready var character_art: Button = %CharacterArt
+@onready var deck_name_label: Label = %DeckNameLabel
+@onready var deck_rail_button: Button = %DeckRailButton
+@onready var deck_rail: HBoxContainer = %DeckRail
+@onready var mode_title_button: Button = %ModeTitleButton
+@onready var mode_selector: PopupPanel = %ModeSelector
+@onready var mode_selector_title: Label = %Title
+@onready var current_mode_label: Label = %CurrentMode
+@onready var placeholder_mode_a: Label = %PlaceholderModeA
+@onready var placeholder_mode_b: Label = %PlaceholderModeB
 @onready var ui_animation_player: AnimationPlayer = $AnimationPlayer
 
 ## State
@@ -67,17 +80,20 @@ func _process(_delta: float) -> void:
 
 
 func _setup_localization() -> void:
-	casual_button.text = Loc.t("ui.ranked.casual")
-	competitive_button.text = Loc.t("ui.ranked.competitive")
 	queue_button.text = Loc.t("ui.ranked.find_match")
-	# TODO(casual-matchmaking): Enable this mode once casual queue semantics and backend routing exist.
-	casual_button.disabled = true
-	competitive_button.button_pressed = true
+	mode_title_button.text = "%s  ▾" % Loc.t("ui.ranked.mode_ranked_1v1")
+	mode_selector_title.text = Loc.t("ui.ranked.choose_mode")
+	current_mode_label.text = "✓ %s" % Loc.t("ui.ranked.mode_ranked_1v1")
+	placeholder_mode_a.text = Loc.t("ui.ranked.mode_placeholder_a")
+	placeholder_mode_b.text = Loc.t("ui.ranked.mode_placeholder_b")
 
 
 func _setup_signals() -> void:
 	back_button.pressed.connect(_on_close_pressed)
 	queue_button.pressed.connect(_on_queue_pressed)
+	mode_title_button.pressed.connect(_on_mode_title_pressed)
+	character_art.pressed.connect(_on_change_summoner_pressed)
+	deck_rail_button.pressed.connect(_on_change_deck_pressed)
 
 
 func _connect_services() -> void:
@@ -142,15 +158,16 @@ func _set_state(new_state: ScreenState) -> void:
 
 
 func _update_ui() -> void:
+	_refresh_loadout_display()
 	rank_content.visible = _state == ScreenState.READY
 	match _state:
 		ScreenState.LOADING:
 			queue_button.disabled = true
 			queue_button.text = Loc.t("ui.ranked.find_match")
 		ScreenState.READY:
-			queue_button.disabled = not _is_authenticated
+			queue_button.disabled = not _is_authenticated or not _has_valid_ranked_deck()
 			queue_button.text = Loc.t("ui.ranked.find_match")
-			status_label.text = ""
+			status_label.text = _get_loadout_issue()
 		ScreenState.IN_QUEUE:
 			queue_button.disabled = false
 			queue_button.text = Loc.t("ui.ranked.cancel_queue")
@@ -293,7 +310,6 @@ func _on_close_pressed() -> void:
 
 func _on_queue_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
-
 	match _state:
 		ScreenState.READY:
 			_join_queue()
@@ -301,7 +317,25 @@ func _on_queue_pressed() -> void:
 			_leave_queue()
 
 
+func _on_change_summoner_pressed() -> void:
+	NavigationContext.push_return(SceneManager.SCENE_ONLINE)
+	SceneManager.transition_to(SceneManager.SCENE_SUMMONER_SWITCH)
+
+
+func _on_change_deck_pressed() -> void:
+	NavigationContext.set_value(CollectionScreen.NAV_KEY_MODE, CollectionScreen.MODE_RANKED_DECK)
+	NavigationContext.push_return(SceneManager.SCENE_ONLINE)
+	SceneManager.transition_to(SceneManager.SCENE_COLLECTION_SCREEN)
+
+
+func _on_mode_title_pressed() -> void:
+	mode_selector.popup_centered(Vector2i(460, 300))
+
+
 func _join_queue() -> void:
+	if not _has_valid_ranked_deck():
+		status_label.text = _get_loadout_issue()
+		return
 	if _matchmaking_service:
 		_queue_start_time = Time.get_ticks_msec() / 1000.0
 		_set_state(ScreenState.IN_QUEUE)
@@ -339,7 +373,6 @@ func _on_authentication_failed(_error: String) -> void:
 	if ui_animation_player:
 		ui_animation_player.play("error_reset")
 	_set_state(ScreenState.READY)
-	status_label.text = Loc.t("ui.ranked.authentication_failed")
 	_refresh_local_data()
 
 
@@ -498,7 +531,92 @@ func _get_active_summoner_id() -> String:
 
 
 func _get_player_deck() -> Array:
-	return ProfileRepoApi.get_active_deck_array()
+	return ProfileRepoApi.get_deck_array(_get_ranked_deck_id())
+
+
+func _get_ranked_deck_id() -> String:
+	return DecksApi.get_ranked_deck_id(_get_active_summoner_id())
+
+
+func _has_valid_ranked_deck() -> bool:
+	var deck_id: String = _get_ranked_deck_id()
+	return not deck_id.is_empty() and DecksApi.validate_deck(deck_id)
+
+
+func _get_loadout_issue() -> String:
+	var deck_id: String = _get_ranked_deck_id()
+	if deck_id.is_empty():
+		return Loc.t("ui.ranked.choose_deck_prompt")
+	if not DecksApi.validate_deck(deck_id):
+		return Loc.t("ui.ranked.invalid_deck_prompt")
+	return ""
+
+
+func _refresh_loadout_display() -> void:
+	if not character_art or not deck_name_label or not deck_rail:
+		return
+	var summoner_id: String = _get_active_summoner_id()
+	var config: SummonerConfig = SummonerConfig.from_dict(SummonerCatalogApi.get_summoner(summoner_id))
+	var summoner_name: String = config.summoner_name if not config.summoner_name.is_empty() else summoner_id.capitalize()
+	character_art.text = Loc.t("ui.ranked.character_art_placeholder")
+	character_art.tooltip_text = "%s\n%s" % [summoner_name, Loc.t("ui.ranked.change_summoner")]
+
+	var deck_id: String = _get_ranked_deck_id()
+	var deck: Dictionary = DecksApi.get_deck_dict(deck_id) if not deck_id.is_empty() else {}
+	_clear_deck_rail()
+	if deck.is_empty():
+		_show_empty_deck_state()
+		return
+	var deck_name: String = SafeTypeUtils.string(
+		deck.get("name", ""), Loc.t("ui.collection.unnamed_deck")
+	)
+	deck_name_label.text = deck_name
+	deck_rail_button.text = ""
+	deck_rail_button.flat = true
+	deck_rail_button.tooltip_text = "%s\n%s" % [deck_name, Loc.t("ui.ranked.change_deck")]
+	for card_instance_id_value: Variant in SafeTypeUtils.array(deck.get("card_instance_ids", [])):
+		var card_instance_id: String = SafeTypeUtils.string(card_instance_id_value)
+		var card_instance: Dictionary = CardServiceApi.get_card_dict(card_instance_id)
+		var catalog_id: String = SafeTypeUtils.string(card_instance.get("catalog_id"))
+		var catalog_data: Dictionary = CardCatalogApi.get_card_as_dict(catalog_id)
+		if not catalog_data.is_empty():
+			_add_deck_card(catalog_data)
+
+
+func _show_empty_deck_state() -> void:
+	deck_name_label.text = Loc.t("ui.ranked.no_deck_selected")
+	deck_rail_button.text = Loc.t("ui.ranked.choose_ranked_deck")
+	deck_rail_button.flat = false
+	deck_rail_button.tooltip_text = Loc.t("ui.ranked.choose_ranked_deck")
+
+
+func _clear_deck_rail() -> void:
+	for child: Node in deck_rail.get_children():
+		deck_rail.remove_child(child)
+		child.queue_free()
+
+
+func _add_deck_card(catalog_data: Dictionary) -> void:
+	var slot: Control = Control.new()
+	slot.custom_minimum_size = DECK_CARD_SIZE
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var card_visual: CardVisual = CARD_VISUAL_SCENE.instantiate() as CardVisual
+	card_visual.custom_minimum_size = DECK_CARD_RENDER_SIZE
+	card_visual.size = DECK_CARD_RENDER_SIZE
+	card_visual.scale = DECK_CARD_SIZE / DECK_CARD_RENDER_SIZE
+	card_visual.show_description = false
+	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_visual.set_card_data(catalog_data, false)
+	_set_mouse_filter_ignored(card_visual)
+	slot.add_child(card_visual)
+	deck_rail.add_child(slot)
+
+
+func _set_mouse_filter_ignored(node: Node) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child: Node in node.get_children():
+		_set_mouse_filter_ignored(child)
 
 
 func _on_matchmaking_cancelled(reason: String) -> void:
@@ -544,7 +662,7 @@ func _on_socket_connected() -> void:
 	print("[RANKED][RECONNECT] Socket connected")
 	_is_authenticated = true
 	if _state == ScreenState.READY:
-		queue_button.disabled = false
+		queue_button.disabled = not _has_valid_ranked_deck()
 
 
 func _should_auto_queue() -> bool:

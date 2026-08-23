@@ -12,6 +12,10 @@ public class AccountMeta
     [JsonPropertyName("selected_deck")]
     public string SelectedDeck { get; set; } = "";
 
+    /// <summary>Ranked deck selection keyed by summoner ID.</summary>
+    [JsonPropertyName("ranked_decks_by_summoner")]
+    public Dictionary<string, string> RankedDecksBySummoner { get; set; } = [];
+
     /// <summary>Currently selected summoner ID.</summary>
     [JsonPropertyName("selected_summoner")]
     public string SelectedSummoner { get; set; } = "";

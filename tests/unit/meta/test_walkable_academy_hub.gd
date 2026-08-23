@@ -13,7 +13,7 @@ func test_walkable_hub_is_primary_route_and_menu_hub_remains_available() -> void
 	assert_true(ResourceLoader.exists(SceneManager.SCENE_ACADEMY_MENU_HUB))
 
 
-func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
+func test_hub_scene_contains_player_boundaries_and_travel_interface() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	assert_not_null(packed_scene)
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
@@ -24,8 +24,8 @@ func test_hub_scene_contains_player_boundaries_and_shortcut_interface() -> void:
 	assert_not_null(hub.get_node_or_null("Boundaries/Left/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Boundaries/Right/CollisionShape3D"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail"))
-	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/ShortcutButton"))
-	assert_not_null(hub.get_node_or_null("Interface/ShortcutPanel"))
+	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/TravelButton"))
+	assert_not_null(hub.get_node_or_null("Interface/TravelPanel"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/JournalButton"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/InventoryButton"))
 	assert_not_null(hub.get_node_or_null("Interface/RightActionRail/SpellbookButton"))
@@ -53,7 +53,7 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	var journal: Button = rail.get_node("JournalButton") as Button
 	var spellbook: Button = rail.get_node("SpellbookButton") as Button
 	var inventory: Button = rail.get_node("InventoryButton") as Button
-	var shortcuts: Button = rail.get_node("ShortcutButton") as Button
+	var travel: Button = rail.get_node("TravelButton") as Button
 	assert_eq(rail.get_child_count(), 4)
 	assert_eq(rail.anchor_top, 0.5)
 	assert_eq(rail.anchor_bottom, 0.5)
@@ -61,11 +61,11 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	assert_not_null(journal.icon)
 	assert_not_null(spellbook.icon)
 	assert_not_null(inventory.icon)
-	assert_not_null(shortcuts.icon)
+	assert_not_null(travel.icon)
 	assert_true(journal.text.is_empty())
 	assert_true(spellbook.text.is_empty())
 	assert_true(inventory.text.is_empty())
-	assert_true(shortcuts.text.is_empty())
+	assert_true(travel.text.is_empty())
 	assert_false(inventory.disabled)
 	hub.free()
 
@@ -85,7 +85,7 @@ func test_spellbook_is_a_persistent_right_side_action_instead_of_a_building() ->
 		SceneManager.SCENE_COLLECTION_SCREEN
 	)
 	var spellbook_destination: Dictionary = {}
-	for destination: Dictionary in WalkableAcademyHub.DESTINATIONS:
+	for destination: Dictionary in WalkableAcademyHub.DIRECT_UI_DESTINATIONS:
 		if destination["id"] == WalkableAcademyHub.DESTINATION_SPELLBOOK:
 			spellbook_destination = destination
 			break
@@ -103,32 +103,56 @@ func test_inventory_action_opens_the_combined_summoner_build_screen() -> void:
 	)
 
 
-func test_every_building_destination_has_a_shortcut_and_current_route() -> void:
+func test_world_locations_are_physical_travel_points_and_ui_routes_stay_separate() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
-	var building_count: int = 0
-	assert_eq(WalkableAcademyHub.DESTINATIONS.size(), 7)
-	for destination: Dictionary in WalkableAcademyHub.DESTINATIONS:
+	assert_eq(WalkableAcademyHub.WORLD_LOCATIONS.size(), 3)
+	for destination: Dictionary in WalkableAcademyHub.WORLD_LOCATIONS:
 		var destination_id: StringName = destination["id"]
 		assert_false(hub._scene_for_destination(destination_id).is_empty())
 		assert_true(ResourceLoader.exists(hub._scene_for_destination(destination_id)))
-		if destination.has("position"):
-			building_count += 1
-			var position: Vector3 = destination["position"]
-			assert_true(absf(position.x) <= 13.0)
-			assert_true(absf(position.z) <= 11.0)
-			assert_true(destination.has("placeholder_texture"))
-			var placeholder_texture: Texture2D = destination["placeholder_texture"]
-			assert_not_null(placeholder_texture)
-			var placeholder_art_path: String = placeholder_texture.resource_path
-			assert_true(placeholder_art_path.contains("/placeholders/"))
-			assert_true(ResourceLoader.exists(placeholder_art_path))
+		assert_true(destination.has("position"))
+		assert_true(destination.has("travel_position"))
+		var position: Vector3 = destination["position"]
+		assert_true(absf(position.x) <= 13.0)
+		assert_true(absf(position.z) <= 11.0)
+		assert_true(destination.has("placeholder_texture"))
+		var placeholder_texture: Texture2D = destination["placeholder_texture"]
+		assert_not_null(placeholder_texture)
+		var placeholder_art_path: String = placeholder_texture.resource_path
+		assert_true(placeholder_art_path.contains("/placeholders/"))
+		assert_true(ResourceLoader.exists(placeholder_art_path))
 
-	assert_eq(building_count, 3)
+	var travel_ids: Array[StringName] = []
+	for location: Dictionary in WalkableAcademyHub.WORLD_LOCATIONS:
+		travel_ids.append(location["id"])
+	assert_false(WalkableAcademyHub.DESTINATION_SPELLBOOK in travel_ids)
+	assert_false(WalkableAcademyHub.DESTINATION_JOURNAL in travel_ids)
+	assert_false(WalkableAcademyHub.DESTINATION_SUMMONER in travel_ids)
+	assert_false(WalkableAcademyHub.DESTINATION_SETTINGS in travel_ids)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SUMMONER), SceneManager.SCENE_SUMMONER_SCREEN)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_JOURNAL), SceneManager.SCENE_QUEST_JOURNAL)
 	assert_eq(hub._scene_for_destination(WalkableAcademyHub.DESTINATION_SETTINGS), SceneManager.SCENE_SETTINGS)
 	hub.free()
+
+
+func test_travel_moves_player_to_world_arrival_without_opening_the_feature_screen() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	add_child_autofree(hub)
+	await get_tree().process_frame
+	var shop: Dictionary = hub._world_location(WalkableAcademyHub.DESTINATION_SHOP)
+	var expected_arrival: Vector3 = SafeTypeUtils.vector3(shop.get("travel_position"))
+	hub.travel_panel.show()
+
+	hub._travel_to_world_location(WalkableAcademyHub.DESTINATION_SHOP)
+
+	assert_eq(hub.player.global_position, expected_arrival)
+	assert_false(hub.travel_panel.visible)
+	assert_eq(
+		hub._nearest_world_location_id(SafeTypeUtils.vector3(shop.get("position"))),
+		WalkableAcademyHub.DESTINATION_SHOP
+	)
 
 
 func test_quest_journal_scene_exposes_three_authoritative_sections() -> void:
@@ -641,7 +665,7 @@ func test_cutout_order_uses_feet_depth_instead_of_sprite_center() -> void:
 
 
 func test_building_displays_explicit_placeholder_art() -> void:
-	var destination: Dictionary = WalkableAcademyHub.DESTINATIONS[0]
+	var destination: Dictionary = WalkableAcademyHub.WORLD_LOCATIONS[0]
 	var texture: Texture2D = destination["placeholder_texture"]
 	var packed_building: PackedScene = load("res://scenes/meta/components/walkable_academy_building.tscn") as PackedScene
 	var building: WalkableAcademyBuilding = packed_building.instantiate() as WalkableAcademyBuilding

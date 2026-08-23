@@ -31,6 +31,7 @@ class_name CollectionScreen
 ## Right panel - Decks
 @onready var decks_list: VBoxContainer = %DecksList
 @onready var new_deck_button: Button = %NewDeckButton
+@onready var confirm_selection_button: Button = %ConfirmSelectionButton
 
 ## Dialogs
 @onready var new_deck_dialog: AcceptDialog = %NewDeckDialog
@@ -52,6 +53,11 @@ var deck_id_for_action: String = ""
 ## Collection data
 var collection_summary: Array = []
 var _filtered_sorted_cards_cache: Array = []
+var _ranked_selection_mode: bool = false
+var _ranked_summoner_id: String = ""
+
+const NAV_KEY_MODE: String = "collection_mode"
+const MODE_RANKED_DECK: String = "ranked_deck"
 
 ## Filter state
 var show_summons: bool = true
@@ -93,6 +99,12 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
+	_ranked_selection_mode = SafeTypeUtils.string(
+		NavigationContext.consume_value(NAV_KEY_MODE, ""), ""
+	) == MODE_RANKED_DECK
+	if _ranked_selection_mode:
+		_ranked_summoner_id = SummonerSelectionApi.get_active_summoner_id()
+		selected_deck_id = DecksApi.get_ranked_deck_id(_ranked_summoner_id)
 	_card_service = get_node_or_null(CSharpAutoloads.CARD_SERVICE)
 
 	# Connect header buttons
@@ -102,6 +114,10 @@ func _ready() -> void:
 
 	# Connect deck management
 	new_deck_button.pressed.connect(_on_new_deck_pressed)
+	confirm_selection_button.visible = _ranked_selection_mode
+	confirm_selection_button.text = Loc.t("ui.collection.use_for_ranked")
+	confirm_selection_button.pressed.connect(_on_confirm_ranked_selection_pressed)
+	_update_ranked_selection_button()
 
 	# Connect dialogs
 	new_deck_dialog.confirmed.connect(_on_new_deck_confirmed)
@@ -213,13 +229,18 @@ func _refresh_deck_list() -> void:
 		active_deck_id = SafeTypeUtils.string(active_id, "")
 
 	# Create deck items
+	var first_eligible_deck_id: String = ""
 	for deck_item: Variant in deck_list_result:
 		if not deck_item is Dictionary:
 			continue
 		var deck: Dictionary = deck_item
+		if _ranked_selection_mode and SafeTypeUtils.string(deck.get("summoner_id", ""), "") != _ranked_summoner_id:
+			continue
 		var deck_id: String = deck.get("id", "")
 		if deck_id == "":
 			continue
+		if first_eligible_deck_id.is_empty():
+			first_eligible_deck_id = deck_id
 
 		var item: Control = DeckListItemScene.instantiate()
 		decks_list.add_child(item)
@@ -265,10 +286,10 @@ func _refresh_deck_list() -> void:
 		return
 
 	# Auto-select first deck if none selected
-	if selected_deck_id == "" and deck_list_result.size() > 0:
-		var first_deck: Dictionary = deck_list_result[0]
-		selected_deck_id = first_deck.get("id", "")
+	if selected_deck_id == "" and not first_eligible_deck_id.is_empty():
+		selected_deck_id = first_eligible_deck_id
 		_refresh_deck_list()
+	_update_ranked_selection_button()
 
 
 func _on_deck_item_clicked(deck_id: String) -> void:
@@ -276,6 +297,7 @@ func _on_deck_item_clicked(deck_id: String) -> void:
 	if deck_id == selected_deck_id:
 		return
 	selected_deck_id = deck_id
+	_update_ranked_selection_button()
 	_refresh_deck_list()
 	_refresh_deck_panel()
 	_refresh_available_cards()
@@ -290,6 +312,20 @@ func _on_deck_star_clicked(deck_id: String) -> void:
 	if Decks.has_method("SetActiveDeck"):
 		DecksApi.set_active_deck(deck_id)
 		_refresh_deck_list()
+
+
+func _update_ranked_selection_button() -> void:
+	if not _ranked_selection_mode:
+		return
+	confirm_selection_button.disabled = selected_deck_id.is_empty() or not DecksApi.validate_deck(selected_deck_id)
+
+
+func _on_confirm_ranked_selection_pressed() -> void:
+	if not _ranked_selection_mode or confirm_selection_button.disabled:
+		return
+	if not DecksApi.set_ranked_deck(_ranked_summoner_id, selected_deck_id):
+		return
+	_on_close_pressed()
 
 
 func _on_deck_rename_clicked(deck_id: String) -> void:
@@ -761,6 +797,7 @@ func _on_deck_changed(deck_id: String) -> void:
 		_refresh_deck_list()
 		_refresh_deck_panel()
 		_refresh_available_cards()
+		_update_ranked_selection_button()
 
 
 func _on_deck_created(deck_id: String) -> void:

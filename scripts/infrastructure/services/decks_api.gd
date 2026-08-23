@@ -34,5 +34,11 @@ static func get_validation_errors_array(deck_id: String) -> Array:
 static func get_active_deck_id() -> String:
 	return SafeTypeUtils.string(Decks.call("GetActiveDeckId"), "")
 
+static func get_ranked_deck_id(summoner_id: String) -> String:
+	return SafeTypeUtils.string(Decks.call("GetRankedDeckId", summoner_id), "")
+
+static func set_ranked_deck(summoner_id: String, deck_id: String) -> bool:
+	return SafeTypeUtils.bool_val(Decks.call("SetRankedDeck", summoner_id, deck_id), false)
+
 static func delete_deck(deck_id: String) -> bool:
 	return SafeTypeUtils.bool_val(Decks.call("DeleteDeck", deck_id), false)

@@ -26,9 +26,17 @@ room-sized shared space.
   the geography and quest make sense, the player can continue from one bounded
   area into another—for example, from a forest into ruins located within it—
   before returning to campus.
-- **Shortcuts to every location always exist.** Walking is never required to
-  reach a destination. The shortcut menu is the fast path; movement supplies
-  atmosphere and future social presence.
+- **Travel is a physical navigation system, not a duplicate screen menu.** The
+  persistent Travel action reaches eligible world waypoints across the campus
+  and future excursion regions. It does not list Journal, Spellbook, Inventory,
+  Settings, or other direct UI actions.
+- **Tracked quests can participate in Travel.** When the current objective has
+  an eligible destination, Travel can surface the nearest valid waypoint. It
+  moves the player to that waypoint rather than directly onto the objective, so
+  it cannot bypass a ruin, encounter, locked path, or other authored traversal.
+- **Waypoint eligibility is authored.** A point may be initially available or
+  require the player to discover it first. Secret spaces such as the underground
+  tunnels do not become Travel entries merely because they have a position.
 - **Buildings are discrete placeable objects.** Ground, buildings, and later
   paths or decorations are separate pieces. A destination can be added or moved
   without repainting the whole campus.
@@ -38,8 +46,9 @@ room-sized shared space.
   management; the hub does not reimplement their functionality. Quest
   acceptance and progression happen through NPCs, world targets, the Journal,
   and generic encounter screens rather than the retired Class Hall/Course Flow UI.
-- **The competitive loop stays fast.** Online play and deck management remain
-  immediately accessible through shortcuts.
+- **The competitive loop stays fast.** Online play remains represented by a
+  physical Arena waypoint/building, while deck management remains immediately
+  accessible through the persistent Spellbook action.
 - **The former menu hub remains available as a fallback during recovery.** It is
   not the target player experience and should not become a second source of
   routing truth.
@@ -53,8 +62,9 @@ room-sized shared space.
    the student fantasy instead of reducing it to a list of destinations.
 3. **Placeable pieces keep expansion bounded.** New locations can be introduced
    incrementally without committing to an open-world content model.
-4. **Shortcuts preserve convenience.** The walkable layer never needs to compete
-   with direct menu navigation for speed.
+4. **Travel preserves convenience without erasing place.** Repeat traversal can
+   be shortened through eligible waypoints while the player still arrives in the
+   world and interacts with the destination.
 
 The future relationship between the campus, friends, parties, and shared player
 presence is defined in [Friends and Shared Presence](friends-and-shared-presence.md).
@@ -97,15 +107,15 @@ work.
 
 1. **Phase 1 (current): single-player bounded hub.** The avatar moves inside
    fixed boundaries; placeholder buildings expose interaction zones; entering a
-   building opens its existing screen; the shortcut menu reaches every campus
-   destination. No networking.
+   building opens its existing screen; the Travel action reaches eligible campus
+   waypoints. No networking.
 2. **Phase 2: real-time presence (Nakama).** Other players' avatars appear and
    move in the campus.
 3. **Phase 3: social interaction.** Emotes, chat, and name tags.
 4. **Phase 4: instancing/capacity.** Introduce bounded player populations per
    campus instance if presence requires it.
 
-Shortcuts remain available through every phase.
+Travel remains available through every phase.
 
 ## Building-to-Screen Routing
 
@@ -115,11 +125,10 @@ Shortcuts remain available through every phase.
 | Mission Hall | `SCENE_SPECIAL_EVENTS` |
 | Online Arena | `SCENE_ONLINE` |
 
-The Spellbook (`SCENE_COLLECTION_SCREEN`) is part of the persistent right-side
-HUD action rail and has no physical campus building requirement. The Journal,
-settings, and the summoner screen are shortcut destinations without Phase 1
-building requirements. The physical Class Hall may be repurposed later, but it
-is not currently a feature-screen destination.
+The Spellbook (`SCENE_COLLECTION_SCREEN`), Journal, and Inventory/Summoner tools
+remain persistent UI actions rather than Travel entries. Settings belongs in the
+Escape/system menu. The physical Class Hall may be repurposed later, but it is
+not currently a feature-screen destination.
 
 ## Phase 1 Non-Goals
 

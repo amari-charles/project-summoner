@@ -247,7 +247,7 @@ icon = ExtResource("10_inventory_icon")
 expand_icon = true
 icon_max_width = 34
 
-[node name="ShortcutButton" type="Button" parent="Interface/RightActionRail"]
+[node name="TravelButton" type="Button" parent="Interface/RightActionRail"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
@@ -255,7 +255,7 @@ icon = ExtResource("11_shortcuts_icon")
 expand_icon = true
 icon_max_width = 34
 
-[node name="ShortcutPanel" type="PanelContainer" parent="Interface"]
+[node name="TravelPanel" type="PanelContainer" parent="Interface"]
 unique_name_in_owner = true
 visible = false
 anchors_preset = 6
@@ -270,36 +270,42 @@ offset_bottom = 256.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="Interface/ShortcutPanel"]
+[node name="Margin" type="MarginContainer" parent="Interface/TravelPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 18
 
-[node name="Content" type="VBoxContainer" parent="Interface/ShortcutPanel/Margin"]
+[node name="Content" type="VBoxContainer" parent="Interface/TravelPanel/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Header" type="HBoxContainer" parent="Interface/ShortcutPanel/Margin/Content"]
+[node name="Header" type="HBoxContainer" parent="Interface/TravelPanel/Margin/Content"]
 layout_mode = 2
 
-[node name="ShortcutTitle" type="Label" parent="Interface/ShortcutPanel/Margin/Content/Header"]
+[node name="TravelTitle" type="Label" parent="Interface/TravelPanel/Margin/Content/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 
-[node name="ShortcutCloseButton" type="Button" parent="Interface/ShortcutPanel/Margin/Content/Header"]
+[node name="TravelCloseButton" type="Button" parent="Interface/TravelPanel/Margin/Content/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Separator" type="HSeparator" parent="Interface/ShortcutPanel/Margin/Content"]
+[node name="Separator" type="HSeparator" parent="Interface/TravelPanel/Margin/Content"]
 layout_mode = 2
 
-[node name="ShortcutList" type="VBoxContainer" parent="Interface/ShortcutPanel/Margin/Content"]
+[node name="TravelScroll" type="ScrollContainer" parent="Interface/TravelPanel/Margin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TravelList" type="VBoxContainer" parent="Interface/TravelPanel/Margin/Content/TravelScroll"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="NpcDialogueBox" parent="Interface" instance=ExtResource("7_dialogue")]

@@ -394,6 +394,22 @@ public partial class DeckService : Node
             );
     }
 
+    public string GetRankedDeckId(string summonerId)
+    {
+        return _isInitialized
+            ? _crud.GetRankedDeckId(SummonerId.FromString(summonerId))
+            : "";
+    }
+
+    public bool SetRankedDeck(string summonerId, string deckId)
+    {
+        return _isInitialized
+            && _crud.SetRankedDeck(
+                SummonerId.FromString(summonerId),
+                DeckId.FromString(deckId)
+            );
+    }
+
     /// <summary>
     /// Get validation errors for a deck (for UI display).
     /// </summary>

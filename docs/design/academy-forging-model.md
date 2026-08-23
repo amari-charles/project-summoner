@@ -28,6 +28,73 @@ The player progresses through an academy curriculum rather than a geographical r
 - Completing a class grants exclusive reward choices: the player chooses one reward and permanently loses access to the others.
 - The summoner's final PvP identity is shaped by classes taken, classes skipped, Honors eligibility earned, Honors classes completed, and reward choices made.
 
+## Summoner Identity and Commercial Model
+
+The current authored-summoner direction has strategic advantages beyond story
+or elemental theme, but the alternative of a generated, player-customized
+summoner remains worth evaluating. This section records the tradeoff; it does
+not settle the long-term character model by itself.
+
+### Authored, Bespoke Summoners
+
+An authored summoner is a recognizable character sold or unlocked as a distinct
+starting point. That character can also support character-specific skins and
+other cosmetics.
+
+Advantages:
+
+- each new summoner is a clear purchasable or earnable product;
+- recognizable characters create straightforward skin and cosmetic lines;
+- summoner-bound traits give the character mechanical identity rather than
+  making a new purchase feel like a visually different blank reset;
+- a new campaign begins from a different trait foundation while later Academy
+  choices still make two copies of the same summoner diverge;
+- fixed identity makes the character easier to communicate, balance, market,
+  and attach to authored relationships or story content.
+
+Costs:
+
+- players cannot fully create a personal avatar or freely combine every body,
+  identity, and appearance option;
+- character-specific art, animation, traits, presentation, and cosmetics raise
+  the production cost of expanding the roster;
+- strongly authored innate traits may reduce the range of builds that feel
+  natural for a particular character.
+
+### Generated or Player-Customized Summoners
+
+An alternative is to generate a summoner from a configured trait pool, then let
+the player select or purchase the visual skin independently. Character creation
+could roll or offer a subset of innate traits so that a fresh summoner is still
+mechanically distinct without requiring every identity to have a wholly bespoke
+trait package.
+
+Advantages:
+
+- stronger avatar ownership and visual self-expression;
+- more combinations can be produced from a reusable trait library;
+- generation can reinforce discovery, exclusivity, and replay variation;
+- visual skins can be chosen independently of a specific mechanical character.
+
+Risks and costs:
+
+- random generation can encourage rerolling, perceived bad starts, or pressure
+  to discard a summoner before the Academy journey begins;
+- trait combinations are harder to balance, explain, and validate than a
+  curated character foundation;
+- characters become less recognizable as products and personalities, making
+  direct character sales and character-specific cosmetic lines less clear;
+- separating appearance from mechanics requires additional avatar, body,
+  equipment, portrait, and cosmetic compatibility systems;
+- a generated trait package may compete with the Academy's intended role as the
+  place where the summoner's identity is forged through permanent choices.
+
+A hybrid remains possible: recognizable authored summoners could retain a small
+innate identity while receiving one generated or chosen starting trait from a
+shared pool. This should not be adopted merely as a compromise; it needs to
+demonstrate a cleaner player experience and commercial model than either pure
+approach.
+
 ## Semester / Class Structure
 
 The academy is paced through semesters. A semester gives the player a fixed Enrollment budget, and the player enrolls sequentially rather than planning the entire semester upfront.
