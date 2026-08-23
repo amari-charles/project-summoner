@@ -33,11 +33,30 @@ func test_preparation_reuses_collection_overlay_for_deck_editing() -> void:
 	var preparation_scene: String = _read("res://scenes/meta/screens/academy_activity_preparation.tscn")
 	var collection_scene: String = _read("res://scenes/meta/screens/collection_screen.tscn")
 	var preparation_script: String = _read("res://scripts/meta/screens/academy_activity_preparation.gd")
+	var collection_script: String = _read("res://scripts/meta/screens/collection_screen.gd")
 	assert_true(preparation_scene.contains("collection_screen.tscn"))
 	assert_false(preparation_scene.contains("deck_editor_panel.tscn"))
 	assert_true(collection_scene.contains("deck_editor_panel.tscn"))
 	assert_true(preparation_script.contains("open_encounter_loadout"))
 	assert_true(preparation_script.contains("open_collection"))
+	assert_false(preparation_script.contains("_editing_deck"))
+	assert_false(collection_script.contains("_encounter_loadout_mode"))
+	assert_true(collection_scene.contains("LoadoutErrorDialog"))
+
+
+func test_activity_deck_sources_hide_saved_deck_management_actions() -> void:
+	var item_scene: PackedScene = load("res://scenes/meta/components/deck_list_item.tscn")
+	var item: DeckListItem = item_scene.instantiate() as DeckListItem
+	add_child_autofree(item)
+	await get_tree().process_frame
+	item.setup({
+		"id": "test_deck",
+		"name": "Test Deck",
+		"management_enabled": false,
+	})
+	assert_false(item.star_button.visible)
+	assert_false(item.rename_button.visible)
+	assert_false(item.delete_button.visible)
 
 
 func _read(path: String) -> String:

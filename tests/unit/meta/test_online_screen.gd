@@ -146,7 +146,10 @@ func test_ranked_deck_selection_opens_the_shared_collection_overlay() -> void:
 	assert_false(screen.collection_overlay.visible)
 	screen._on_change_deck_pressed()
 	assert_true(screen.collection_overlay.visible)
-	assert_true(screen.collection_overlay._ranked_selection_mode)
+	assert_eq(
+		screen.collection_overlay._open_mode,
+		CollectionScreen.OpenMode.RANKED_DECK
+	)
 	assert_eq(
 		screen.collection_overlay._ranked_summoner_id,
 		SummonerSelectionApi.get_active_summoner_id()

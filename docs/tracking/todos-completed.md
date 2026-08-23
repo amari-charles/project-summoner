@@ -19,7 +19,8 @@ management.
 **Resolution Summary:**
 - ✅ Retained the current generic Activity Preparation surface.
 - ✅ Kept activity-specific constraints and supplied/fixed loadouts in this flow.
-- ✅ Kept general deck ownership and management in the Collection/Deck overlay.
+- ✅ Routed editable saved and activity-specific loadouts through the shared
+  Collection/Deck overlay instead of maintaining a second editor.
 - ✅ Deferred final typography, art, spacing, and edge-state treatment to the
   designer rather than reopening the product flow.
 
