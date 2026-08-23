@@ -24,8 +24,13 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_update_render_order()
-	if _player_inside and Input.is_action_just_pressed("interact"):
-		interacted.emit(npc_id)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _player_inside or not event.is_action_pressed("interact"):
+		return
+	get_viewport().set_input_as_handled()
+	interacted.emit(npc_id)
 
 
 func configure(

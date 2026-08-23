@@ -19,9 +19,15 @@ func _ready() -> void:
 	_refresh()
 
 
-func _process(_delta: float) -> void:
-	if _is_current_objective and _player_inside and Input.is_action_just_pressed("interact"):
-		interacted.emit(target_id)
+func _unhandled_input(event: InputEvent) -> void:
+	if (
+		not _is_current_objective
+		or not _player_inside
+		or not event.is_action_pressed("interact")
+	):
+		return
+	get_viewport().set_input_as_handled()
+	interacted.emit(target_id)
 
 
 func configure(world_target_id: String, display_name: String) -> void:
