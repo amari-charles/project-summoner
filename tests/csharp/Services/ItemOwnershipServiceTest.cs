@@ -31,6 +31,18 @@ public class ItemOwnershipServiceTest
     }
 
     [TestCase]
+    public void AccountWideDefinitionsAreExplicitlyEventExclusive()
+    {
+        foreach (var definition in ItemCatalog.GetAllItems())
+        {
+            if (definition.Binding == ItemBinding.AccountWide)
+                AssertThat(definition.IsEventExclusive).IsTrue();
+        }
+        AssertThat(ItemCatalog.GetItem(ItemIds.VeteransMedal)!.Binding)
+            .IsEqual(ItemBinding.SummonerBound);
+    }
+
+    [TestCase]
     public void NormalGrantRequiresOwnerAndEquipmentIsIsolated()
     {
         var (repo, service) = CreateSubject();
@@ -38,6 +50,8 @@ public class ItemOwnershipServiceTest
         EnsureSummoner(repo, SummonerIds.Selene);
 
         AssertThat(service.GrantItem(ItemIds.TrainingBlade, null)).IsNull();
+        AssertThat(service.GrantItemToSummoner(ItemIds.TrainingBlade, "summoner_missing"))
+            .IsEmpty();
         var instanceId = service.GrantItemToSummoner(ItemIds.TrainingBlade, SummonerIds.Cole);
 
         AssertThat(instanceId).IsNotEmpty();
@@ -54,7 +68,7 @@ public class ItemOwnershipServiceTest
         EnsureSummoner(repo, SummonerIds.Cole);
         EnsureSummoner(repo, SummonerIds.Selene);
 
-        var instanceId = service.GrantSharedEventItem(ItemIds.VeteransMedal);
+        var instanceId = service.GrantSharedEventItem(ItemIds.TestSharedEventItem);
 
         AssertThat(instanceId).IsNotEmpty();
         AssertThat(service.GetOwnedItems(SummonerIds.Cole)).HasSize(1);

@@ -45,4 +45,10 @@ public static class ItemIds
     public static readonly ItemId SimpleRing = new("item_simple_ring");
     public static readonly ItemId LuckyBand = new("item_lucky_band");
     public static readonly ItemId TravelersCloak = new("item_travelers_cloak");
+
+    // =========================================================================
+    // DEVELOPER FIXTURES
+    // =========================================================================
+
+    public static readonly ItemId TestSharedEventItem = new("item_test_shared_event");
 }

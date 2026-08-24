@@ -1974,6 +1974,10 @@
     "unequip": "Unequip"
   },
   "item": {
+    "test_shared_event": {
+      "name": "TEST SHARED EVENT ITEM",
+      "description": "Developer-only fixture for validating explicitly shared event ownership."
+    },
     "veterans_medal": {
       "name": "Veteran's Medal",
       "description": "A medal awarded to seasoned warriors. Grants +100 Max Health."

@@ -54,6 +54,16 @@ public class ItemOwnershipHandler
         var typedOwner = string.IsNullOrWhiteSpace(boundToSummonerId)
             ? (SummonerId?)null
             : new SummonerId(boundToSummonerId);
+        if (
+            typedOwner.HasValue
+            && _profileRepo.GetSummonerInstance(typedOwner.Value) == null
+        )
+        {
+            GD.PushError(
+                $"ItemOwnershipHandler: Target summoner '{boundToSummonerId}' does not exist"
+            );
+            return null;
+        }
         var existingItem = existingItems.FirstOrDefault(i =>
             i.CatalogId == typedCatalogId
             && (definition.Binding == ItemBinding.AccountWide || i.BoundToSummonerId == typedOwner)

@@ -276,6 +276,11 @@ public sealed class ItemRewardGrantHandler : RewardGrantHandler<ItemRewardGrantD
                 grant.Target.Scope == RewardOwnershipScope.Summoner
                     ? new SummonerId(grant.Target.TargetId)
                     : null;
+            if (
+                boundTo.HasValue
+                && profile.SummonerInstances.All(instance => instance.SummonerId != boundTo.Value)
+            )
+                return (false, $"Target summoner '{grant.Target.TargetId}' does not exist.");
             for (var i = 0; i < grant.Count; i++)
             {
                 profile.Items.Add(

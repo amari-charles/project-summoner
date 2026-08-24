@@ -66,7 +66,7 @@ public enum ContentBinding
 var instance_id = ItemsApi.grant_item_to_summoner("item_training_blade", summoner_id)
 
 # Grant an explicitly shared event-exclusive item
-var shared_id = ItemsApi.grant_shared_event_item("item_veterans_medal")
+var shared_id = ItemsApi.grant_shared_event_item("item_test_shared_event")
 
 # Equip to summoner
 Items.equip_item(summoner_id, instance_id, "wand")

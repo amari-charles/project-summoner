@@ -903,7 +903,7 @@ const TEST_ITEMS: Array[String] = [
 	"item_bold_fortune_amulet"
 ]
 
-const TEST_SHARED_EVENT_ITEM: String = "item_veterans_medal"
+const TEST_SHARED_EVENT_ITEM: String = "item_test_shared_event"
 
 
 func _cmd_items_grant(args: PackedStringArray) -> bool:

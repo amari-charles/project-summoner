@@ -20,8 +20,7 @@ public static class ItemDefinitions
         NameKey = "item.veterans_medal.name",
         DescriptionKey = "item.veterans_medal.description",
         Slot = ItemSlot.Robes,
-        Binding = ItemBinding.AccountWide,
-        IsEventExclusive = true,
+        Binding = ItemBinding.SummonerBound,
         Rarity = "rare",
         Modifiers =
         [
@@ -174,6 +173,21 @@ public static class ItemDefinitions
     };
 
     // =========================================================================
+    // DEVELOPER FIXTURES
+    // =========================================================================
+
+    public static readonly ItemDefinition TestSharedEventItem = new()
+    {
+        Id = ItemIds.TestSharedEventItem,
+        NameKey = "item.test_shared_event.name",
+        DescriptionKey = "item.test_shared_event.description",
+        Slot = ItemSlot.Ring2,
+        Binding = ItemBinding.AccountWide,
+        IsEventExclusive = true,
+        Rarity = "test",
+    };
+
+    // =========================================================================
     // LOOKUP
     // =========================================================================
 
@@ -187,6 +201,7 @@ public static class ItemDefinitions
         [ItemIds.SimpleRing] = SimpleRing,
         [ItemIds.LuckyBand] = LuckyBand,
         [ItemIds.TravelersCloak] = TravelersCloak,
+        [ItemIds.TestSharedEventItem] = TestSharedEventItem,
     };
 
     /// <summary>Get an item definition by ID. Returns null if not found.</summary>

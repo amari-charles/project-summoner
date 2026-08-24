@@ -52,7 +52,7 @@ public class ItemOwnershipMigrationTest
         var item = new Dictionary
         {
             ["id"] = "legacy_shared",
-            ["catalog_id"] = "item_veterans_medal",
+            ["catalog_id"] = "item_test_shared_event",
             ["equipped_by"] = "",
             ["bound_to"] = "",
         };

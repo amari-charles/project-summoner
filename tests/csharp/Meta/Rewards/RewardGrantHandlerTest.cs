@@ -10,6 +10,7 @@ using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Rewards;
+using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Rewards;
 using GdUnit4;
@@ -199,7 +200,7 @@ public class RewardGrantHandlerTest
         var sharedEvent = registry.Prepare(
             new ItemRewardGrantDefinition
             {
-                ItemId = ItemIds.VeteransMedal,
+                ItemId = ItemIds.TestSharedEventItem,
                 Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
             },
             context
@@ -208,5 +209,17 @@ public class RewardGrantHandlerTest
         AssertThat(missingOwner.IsValid).IsFalse();
         AssertThat(normal.IsValid).IsTrue();
         AssertThat(sharedEvent.IsValid).IsTrue();
+
+        var ownedProfile = new ProfileData
+        {
+            SummonerInstances = [new SummonerInstance { SummonerId = SummonerIds.Cole }],
+        };
+        AssertThat(normal.Mutation!.TryApply(ownedProfile, out _)).IsTrue();
+        AssertThat(ownedProfile.Items).HasSize(1);
+
+        var missingProfile = new ProfileData();
+        AssertThat(normal.Mutation!.TryApply(missingProfile, out var error)).IsFalse();
+        AssertThat(error).Contains("does not exist");
+        AssertThat(missingProfile.Items).IsEmpty();
     }
 }
