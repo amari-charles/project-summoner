@@ -1,5 +1,18 @@
 # The World of Fateforged
 
+## Setting Foundation
+
+Fateforged is a high-fantasy world with a mystical tone and a broadly
+pre-industrial material culture. It is not constrained to a historically exact
+medieval period. Magic is an established part of society and can support
+sophisticated institutions, craft, and infrastructure without requiring modern
+industrial technology, while retaining a sense of age, mystery, and
+significance.
+
+The wider world is shaped by powerful elemental forces. Regions can be defined
+by extreme biomes and weather, including frozen plains and volcanic landscapes
+filled with fire and magma.
+
 ## The Academy of Summoning Arts
 
 The Academy is a bright, welcoming magical institution that outwardly treats every student with warmth and encouragement, yet quietly operates on a ruthless meritocratic truth: only the strongest are nurtured and valued, while others are left to slip through the cracks.

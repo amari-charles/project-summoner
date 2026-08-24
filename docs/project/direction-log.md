@@ -133,6 +133,117 @@ already been superseded.
 - `docs/tracking/todos.md`
 - PR `#379`
 
+## 2026-08-23 — Establish a high-fantasy world with pre-industrial material culture
+
+**Status:** Accepted
+**Areas:** Worldbuilding, Academy, Environments, Art Direction, UI
+
+### Decision
+
+Fateforged is a high-fantasy world with a mystical tone and a broadly
+pre-industrial material culture rather than a strictly historical medieval
+setting. Magic is an established part of society while retaining a sense of
+age, mystery, and significance, and the wider world contains regions shaped by
+extreme elemental biomes and weather.
+
+### Context
+
+Defining the setting as merely fantasy left its technology, infrastructure, and
+environmental language unclear. A pre-industrial material culture lets the
+Academy support sophisticated engineered and magical infrastructure, including
+drainage and underground service spaces, without making the world modern or
+requiring strict medieval accuracy.
+
+### Consequences
+
+- Future environments, props, clothing, and UI may draw from multiple
+  pre-industrial periods rather than one exact historical culture.
+- Magic may perform functions that would otherwise require modern technology.
+- Academy underworks, drainage systems, and similar infrastructure fit the
+  setting when presented through its engineered and magical culture.
+- Wider-world regions may be defined by strong elemental conditions, such as
+  frozen plains or volcanic landscapes.
+
+### Supersedes
+
+None.
+
+### References
+
+- [The World of Fateforged](../lore/world.md)
+- [UI Design Questionnaire Response](../art/commissions/ui-design-questionnaire-response.md)
+
+## 2026-08-23 — Restore the carousel for switching summoners
+
+**Status:** Accepted
+**Areas:** Summoners, UI, Art Direction
+
+### Decision
+
+Unlocked summoners are switched through an animated, wrap-around carousel. The
+focused summoner is presented at full size with neighboring summoners visible
+at reduced scale and opacity, and the player confirms the summoner they want to
+make active.
+
+### Context
+
+The roster list was readable and reusable, but could be assembled largely from
+generic UI assets. The original carousel provides a more distinctive character
+showcase and gives the commissioned UI artist meaningful room to establish the
+presentation.
+
+### Consequences
+
+- Summoner Switch is a carousel rather than a scrollable roster.
+- The carousel uses character-focused displays and does not change the separate
+  starting-summoner selection requirements.
+- Switching wraps in both directions and keeps the adjacent choices visible.
+
+### Supersedes
+
+The Summoner Switch roster consequence recorded in
+`2026-08-22 — Present starting summoners as characters rather than cards`.
+
+### References
+
+- `docs/features/summoners/README.md`
+- `docs/art/commissions/ui-design-handoff/README.md`
+
+## 2026-08-23 — Cap player-built decks at 12 cards
+
+**Status:** Accepted
+**Areas:** Cards, Decks, Battles, UI
+
+### Decision
+
+Player-built decks contain no more than 12 cards. Authored enemy decks and fixed
+encounter loadouts may continue to define their own composition rules.
+
+### Context
+
+Earlier project material described decks of up to 30 cards. The smaller cap
+makes deck construction more selective and better supports the single-use-card
+model, where every inclusion and deployment should matter.
+
+### Consequences
+
+- Deck creation, editing, validation, and count displays use 12 as the standard
+  player maximum.
+- Collection and preparation screens must not present 30 cards as a valid
+  player deck.
+- An authored activity may impose a lower cap without changing the global
+  player maximum.
+
+### Supersedes
+
+The 30-card player-deck direction in the project brief and vision.
+
+### References
+
+- `docs/features/cards/system.md`
+- `docs/project/brief.md`
+- `docs/project/vision.md`
+
 ## 2026-08-23 — Standardize full cards on the gameplay proportion
 
 **Status:** Accepted

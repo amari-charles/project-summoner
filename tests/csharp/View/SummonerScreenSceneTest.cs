@@ -120,6 +120,8 @@ public class SummonerScreenSceneTest
             AssertThat(overlay.FindChild("DetailName", true, false)).IsNotNull();
             AssertThat(overlay.FindChild("DetailRequirements", true, false)).IsNotNull();
             AssertThat(overlay.FindChild("ActionButton", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("CancelButton", true, false)).IsNotNull();
+            AssertThat(overlay.FindChild("UnlockConfirmation", true, false)).IsNull();
             AssertThat(overlay.FindChild("CloseButton", true, false)).IsNotNull();
         }
         finally

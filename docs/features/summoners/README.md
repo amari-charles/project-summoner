@@ -101,6 +101,13 @@ A Fire-themed summoner can use Earth cards, Water cards, or any other element. T
 
 But it does NOT restrict what cards can be equipped or played.
 
+### Summoner Switching Carousel
+
+Unlocked summoners are switched through an animated, wrap-around carousel. The
+current choice is presented at full size, with the neighboring choices visible
+at reduced scale and opacity. The player browses in either direction and
+confirms the summoner they want to make active.
+
 ### Item System
 
 Summoners have **4 item slots** for equippable gear:

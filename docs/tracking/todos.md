@@ -49,10 +49,58 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-23, designer-readiness reconciliation):** Reconciled the active UI queue after PR `#376`. Summoner Profile, Inventory, Collection/Decks, Journal, quest offers, dialogue, campus HUD/Travel, battle HUD, Settings, Online loadout, summoner selection, and the combined Results direction now have accepted structural scaffolds. Removed stale Inventory and XP assumptions, recorded the remaining state matrices and legacy cleanup, and split generic Activity Preparation into the next explicit core-loop UI review.
 **Tracker Sync (2026-08-23, legacy cleanup):** Retired the obsolete first-card route, static Academy/menu and Caravan campaign surfaces, competing reward/result destinations, and raw battle-surface selection. Completed Summoner item ownership and item developer-tool migration; no Caravan runtime or persistence contract remains.
 **Tracker Sync (2026-08-24, campaign ownership):** Recorded the accepted campaign-map → Academy courses → professor-led quests transition, confirmed the Merriweathers as Campus Shop owners, and added a bounded architecture review to decompose the stale `CampaignService` ownership and archive superseded guidance.
+**Tracker Sync (2026-08-23, post-cleanup product sequence):** The consolidated legacy-cleanup initiative is the current implementation work. Once it lands, the next product task is to sketch representative opening content through the accepted player-facing structures. Remaining UI state coverage, responsive validation, visual design, and polish stay active follow-ups rather than reasons to reopen foundational UI decisions.
 
 ---
 
-## Designer Readiness — Immediate Queue
+## Current Product Sequence
+
+1. Land the consolidated legacy-cleanup initiative already underway without
+   expanding it into a new product-design pass.
+2. Sketch representative opening content as the next product task.
+3. Convert the accepted sketch into bounded implementation and validation work;
+   reopen an accepted foundation only when the content exposes a concrete gap.
+
+### 🔴 NEXT PRODUCT TASK
+
+#### Sketch Representative Opening Content
+**Status:** ⬜ Not Started — begins after consolidated legacy cleanup lands
+**Category:** Opening / Quests / Characters / Content Design
+**Urgency:** Next — exercise the accepted foundations with authored experience
+**Ease:** Medium
+**Scope:** Medium
+
+Sketch one representative opening path from starting-summoner confirmation into
+the Academy's first meaningful quest, battle, reward, and next choice. The
+sketch should make the opening feel intentional while remaining light enough to
+revise before broad content production.
+
+**Tasks:**
+- [ ] Define the representative sequence of character, dialogue, campus
+  interaction, quest, preparation, battle, return, reward, and follow-on choice.
+- [ ] Use the accepted opening dependency—`Introduction to Magic`, then the
+  `Summoning Basics` versus `Practical Spellcraft` fork—as the current content
+  spine unless the sketch exposes a specific contradiction.
+- [ ] Identify the minimum authored characters, motivations, dialogue beats,
+  encounter premise, reward meaning, and placeholder assets needed to make the
+  sequence representative.
+- [ ] Separate content gaps from reusable-system gaps so the follow-up
+  implementation bundle does not turn into another broad foundation pass.
+- [ ] Validate the sketch against accepted UI ownership and routing; record a
+  UI follow-up only for a concrete content need that the current structures
+  cannot express.
+
+**Dependencies:**
+- Consolidated legacy-cleanup initiative landed
+- Existing opening, quest, reward, preparation, battle, and Results scaffolds
+
+---
+
+## Accepted UI Follow-ups — Not the Current Product Sequence
+
+These items remain useful implementation, validation, and designer-handoff
+work. Their presence does not make broad foundational UI review the next
+product task or reopen the accepted surface structure.
 
 ### 🔴 HIGH PRIORITY
 
@@ -302,9 +350,9 @@ Quest completion may originate from any character or activity, so quest-to-rewar
 - `scripts/meta/screens/quest_journal.gd`
 
 #### Produce a Canonical Player-Facing Screen and State Inventory for Design Handoff
-**Status:** 🔄 In Progress
+**Status:** 🟡 Partial (Structural Decisions Accepted; Follow-up Validation Open)
 **Category:** UI/UX / Product Architecture
-**Urgency:** High — prevents designing obsolete or duplicate flows
+**Urgency:** Follow-up — complete state and validation coverage when needed
 **Ease:** Easy
 **Scope:** Small
 
@@ -315,9 +363,11 @@ Inventory every currently reachable player-facing screen and overlay, then label
 walkable campus HUD and Travel, dialogue, quest offer, Journal, Summoner Profile,
 Trait development, Inventory, Collection/Decks, battle HUD and pause, Settings,
 Online ranked loadout, and the combined Results direction. These remain
-designer-facing scaffolds rather than final art. Generic Encounter Preparation,
-the Results state matrix, and Shop/purchase states are the remaining major UI
-decisions. Obsolete first-card and legacy destination decisions are closed by removal.
+designer-facing scaffolds rather than final art. Generic Activity Preparation
+has also been accepted as the functional scaffold. The obsolete first-card
+choice route and legacy destinations are closed by removal. Results and
+Shop/purchase state matrices, aspect-ratio validation, and Figma reference
+curation remain follow-up coverage rather than foundational product decisions.
 
 **Tasks:**
 - [ ] Map onboarding, summoner selection, campus HUD, dialogue, Journal, quest preparation, battle, results/rewards, summoner, upgrades, equipment, shop, collection/deck, settings, and online flows.

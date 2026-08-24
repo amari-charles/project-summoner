@@ -7,7 +7,8 @@ class_name PostBattleResults
 
 const CardVisualScene: PackedScene = preload("res://scenes/shared/card_visual.tscn")
 const RESULT_CARD_SIZE: Vector2 = CardVisualHelper.CARD_SIZE_LARGE
-const REWARD_CHOICE_BUTTON_SIZE: Vector2 = Vector2(180, 64)
+const REWARD_CHOICE_CARD_SIZE: Vector2 = CardVisualHelper.CARD_SIZE_STANDARD
+const REWARD_CHOICE_FALLBACK_SIZE: Vector2 = Vector2(180, 64)
 const GRANT_KIND_CARD: String = "card"
 const GRANT_KIND_CARD_XP: String = "card_xp"
 const GRANT_KIND_SUMMONER_XP: String = "summoner_xp"
@@ -205,11 +206,20 @@ func _render_pending_choice(offer: Dictionary) -> void:
 	for value: Variant in SafeTypeUtils.array(offer.get("options")):
 		var option: Dictionary = SafeTypeUtils.dict(value)
 		var button: Button = Button.new()
-		button.custom_minimum_size = REWARD_CHOICE_BUTTON_SIZE
-		button.text = _option_label(option)
 		button.toggle_mode = true
 		button.set_meta("option_id", SafeTypeUtils.string(option.get("id")))
 		button.pressed.connect(_select_reward.bind(option))
+		var card_grant: Dictionary = _card_grant_from_option(option)
+		if card_grant.is_empty():
+			button.custom_minimum_size = REWARD_CHOICE_FALLBACK_SIZE
+			button.text = _option_label(option)
+		else:
+			button.custom_minimum_size = REWARD_CHOICE_CARD_SIZE
+			button.flat = true
+			button.tooltip_text = _option_label(option)
+			var card_visual: CardVisual = _create_reward_card(card_grant, REWARD_CHOICE_CARD_SIZE)
+			_set_mouse_filter_recursive(card_visual, Control.MOUSE_FILTER_IGNORE)
+			button.add_child(card_visual)
 		choice_buttons.add_child(button)
 
 
@@ -229,15 +239,7 @@ func _select_reward(option: Dictionary) -> void:
 func _add_reward_view(grant: Dictionary) -> void:
 	var kind: String = SafeTypeUtils.string(grant.get("kind"))
 	if kind == GRANT_KIND_CARD:
-		var card_id: String = SafeTypeUtils.string(grant.get("card_id", grant.get("content_id", grant.get("id"))))
-		var card_visual: CardVisual = CardVisualScene.instantiate() as CardVisual
-		card_visual.set_display_size(RESULT_CARD_SIZE)
-		card_visual.show_description = true
-		card_visual.cost_font_size = 30
-		card_visual.name_font_size = 17
-		card_visual.description_font_size = 11
-		card_visual.set_card_data(CardCatalogApi.get_card_as_dict(card_id), true)
-		rewards.add_child(card_visual)
+		rewards.add_child(_create_reward_card(grant, RESULT_CARD_SIZE))
 		return
 	var label: Label = Label.new()
 	var reward_id: String = SafeTypeUtils.string(grant.get("content_id", grant.get("id", kind)))
@@ -253,6 +255,14 @@ func _add_reward_view(grant: Dictionary) -> void:
 	rewards.add_child(label)
 
 
+func _card_grant_from_option(option: Dictionary) -> Dictionary:
+	for value: Variant in SafeTypeUtils.array(option.get("grants")):
+		var grant: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(grant.get("kind")) == GRANT_KIND_CARD:
+			return grant
+	return {}
+
+
 func _option_label(option: Dictionary) -> String:
 	var key: String = SafeTypeUtils.string(option.get("label_key"))
 	if not key.is_empty():
@@ -260,9 +270,35 @@ func _option_label(option: Dictionary) -> String:
 	for value: Variant in SafeTypeUtils.array(option.get("grants")):
 		var grant: Dictionary = SafeTypeUtils.dict(value)
 		if SafeTypeUtils.string(grant.get("kind")) == GRANT_KIND_CARD:
-			var card_id: String = SafeTypeUtils.string(grant.get("content_id", grant.get("id")))
-			return SafeTypeUtils.string(CardCatalogApi.get_card_as_dict(card_id).get("card_name"), card_id)
+			var card_id: String = SafeTypeUtils.string(
+				grant.get("card_id", grant.get("content_id", grant.get("id")))
+			)
+			return SafeTypeUtils.string(
+				CardCatalogApi.get_card_as_dict(card_id).get("card_name"), card_id
+			)
 	return Loc.t("ui.post_battle.choose_reward")
+
+
+func _create_reward_card(grant: Dictionary, display_size: Vector2) -> CardVisual:
+	var card_id: String = SafeTypeUtils.string(
+		grant.get("card_id", grant.get("content_id", grant.get("id")))
+	)
+	var card_visual: CardVisual = CardVisualScene.instantiate() as CardVisual
+	card_visual.set_display_size(display_size)
+	card_visual.show_description = false
+	card_visual.name_font_size = 17 if display_size == RESULT_CARD_SIZE else 12
+	card_visual.set_card_data(CardCatalogApi.get_card_as_dict(card_id), false)
+	var cost_label: Label = card_visual.get_node_or_null("CostLabel") as Label
+	if cost_label:
+		cost_label.visible = false
+	return card_visual
+
+
+func _set_mouse_filter_recursive(node: Node, filter: Control.MouseFilter) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = filter
+	for child: Node in node.get_children():
+		_set_mouse_filter_recursive(child, filter)
 
 
 func _continue() -> void:

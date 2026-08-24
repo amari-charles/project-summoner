@@ -2,7 +2,7 @@
 
 **Status:** Collaborative working draft
 **Created:** 2026-08-14
-**Current focus:** Define the product foundation before decomposing medium-scope implementation work
+**Current focus:** Land consolidated legacy cleanup, then sketch representative opening content through the accepted foundations
 
 ## Purpose
 
@@ -60,6 +60,23 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
   branches may require gathered materials and an authored ritual, but ritual
   gating is an acquisition requirement rather than an independent power layer.
 - The roadmap's near-term purpose is to complete reusable foundations so later work is primarily content authoring, tuning, and asset replacement.
+- The accepted player-facing UI ownership and routing are stable enough to
+  support representative opening-content work. Do not reopen them as a general
+  prerequisite; revise a foundation only when authored content exposes a
+  concrete unmet need.
+
+## Near-Term Product Sequence
+
+1. Complete the consolidated legacy-cleanup initiative already underway.
+2. Sketch a representative opening sequence using the accepted starting-
+   summoner, campus, quest, preparation, battle, Results, reward, and progression
+   structures.
+3. Use that sketch to select bounded implementation and validation work before
+   expanding into broader content production.
+
+Remaining UI state matrices, responsive validation, visual design, and polish
+remain legitimate follow-ups, but broad foundational UI review is not the next
+product task.
 
 ## Planning Rules
 
@@ -74,9 +91,9 @@ Product intent remains in `docs/design/`, `docs/lore/`, and `docs/project/`. Thi
 
 | Phase | Outcome | Planning maturity |
 | --- | --- | --- |
-| 1. Define the Product Foundation | The intended engagement, progression, power, economy, content, and world models are coherent enough to scope. | Active; initiatives defined below. |
+| 1. Define the Product Foundation | The intended engagement, progression, power, economy, content, and world models are coherent enough to scope. | Player-facing structural foundations are accepted for the opening sketch; other product-model initiatives remain tracked without blocking that next task. |
 | 2. Build Reusable Foundations | Required shared systems, authoring and validation tools, greybox spaces, and content contracts are implemented. | Authoring pipeline committed; remaining detail follows Phase 1. |
-| 3. Prove Representative Experiences | A small number of end-to-end experiences validate the systems, production model, and core battle baseline. | Core-battle validation gate committed; representative slices remain to be selected. |
+| 3. Prove Representative Experiences | A small number of end-to-end experiences validate the systems, production model, and core battle baseline. | Representative opening-content sketch is next after legacy cleanup; its implementation slice follows review. |
 | 4. Reach Content-Production Readiness | Ordinary quests, lessons, encounters, creatures, items, maps, and variants can be added without redesigning shared foundations. | Gate criteria agreed and recorded below. |
 | 5. Fill, Balance, and Finish | Planned gameplay content, characters, lore, quests, and presentation are authored; placeholders are replaced; and the complete product is balanced and hardened. | Planning package. |
 
@@ -533,9 +550,11 @@ This routing supersedes tracker priority labels only for roadmap sequencing. It 
 - Add catalog/localization validation where it is required by the approved content-authoring pipeline.
 - Improve deterministic direct-state and content-launch tooling enough to validate representative content efficiently.
 
-### Conditional work after Phase 1 decisions
+### Foundation migration and conditional work
 
-- Deprecate the legacy Caravan and superseded Academy/course-flow paths only after the replacement journey is approved and wired.
+- Complete the consolidated legacy-cleanup initiative according to its reviewed
+  scope. Preserve separately tracked migration or persistence decisions rather
+  than guessing through them or broadening the initiative opportunistically.
 - Complete remaining directional, multi-target, telegraph, hitbox, upgrade-resource, Oath, trait, and summoner-ability work only where the accepted power model and representative sample require it.
 - Move tutorial dialogue triggers, remove remaining BattleContext compatibility, or build a campaign/content editor only where the approved quest and authoring boundaries justify the work.
 - Continue additional non-hard-lane experiments only if core-battle validation fails for a spatial reason.

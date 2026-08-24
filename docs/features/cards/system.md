@@ -68,7 +68,7 @@ Example: If you own 3 Fire Elementals, you have 3 separate card instances. Each 
 | **Instance Uniqueness** | Each card instance can only appear **once** per deck |
 | **Cross-Deck Sharing** | The same card instance **can** be in multiple decks |
 | **No Copy Limits** | No restrictions on how many cards of the same type you can put in a deck (limited only by what you own) |
-| **Deck Size** | 1-30 cards per deck |
+| **Deck Size** | 1-12 cards per player-built deck |
 
 ### Example
 
