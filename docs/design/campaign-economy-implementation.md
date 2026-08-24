@@ -1,5 +1,10 @@
 # Campaign Economy & Systems Implementation
 
+> **Status: HISTORICAL / SUPERSEDED.** Campaign-run gold and the Caravan are
+> retired. Current economy decisions belong to the Academy Campus Shop and
+> current progression documents. This implementation record will move to
+> `docs/archive/`.
+
 **Status:** In Progress
 **Started:** 2026-01-21
 

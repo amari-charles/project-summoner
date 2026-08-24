@@ -1,5 +1,11 @@
 # High-Level Design: Shop & Caravan System
 
+> **Status: SUPERSEDED.** The Caravan and campaign-scoped shop model are
+> retired. Mr. and Mrs. Merriweather own the permanent Campus Shop. This mixed
+> historical specification is not current implementation guidance and will move
+> to `docs/archive/`; current shop requirements must be authored from the Campus
+> Shop and universal commerce/reward contracts.
+
 ## Overview
 
 Two distinct shop systems serving different gameplay purposes:

@@ -1,6 +1,6 @@
-# Mrs. Merriweather — Caravan Merchant
+# Mrs. Merriweather — Campus Shop Owner
 
-**Role:** Traveling merchant, caravan co-proprietor
+**Role:** Campus Shop co-owner and operations lead
 **Partner:** Mr. Merriweather
 
 ---
@@ -44,7 +44,7 @@ Gentle, measured, reassuring. Speaks less than her husband but every word matter
 *To be developed with artist*
 
 **Direction:**
-- Practical traveling clothes
+- Practical Academy shopkeeper clothes
 - More grounded than her husband
 - Organized, everything in its place
 - Warm but observant eyes
@@ -68,7 +68,10 @@ When Mr. Merriweather is being especially theatrical, she'll share a fond, exasp
 
 ## Role in Story
 
-Present at Caravan nodes alongside her husband. Often working in the background, occasionally stepping in when customers need "something specific." Handles the transactions while Mr. Merriweather makes conversation.
+Runs the permanent Campus Shop alongside her husband. She handles its
+transactions, inventory, and less-official sourcing while Mr. Merriweather
+leads customer conversation. There is no traveling Caravan or campaign-map
+role.
 
 ---
 

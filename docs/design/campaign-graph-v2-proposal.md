@@ -1,5 +1,9 @@
 # Campaign Graph V4 (Implemented Scaffold)
 
+> **Status: RETIRED.** Fateforged no longer has a campaign map or campaign
+> progression model. Professor-led quests and reusable encounters are current.
+> This historical scaffold will move to `docs/archive/`.
+
 **Date:** 2026-03-11
 **Status:** Implemented (single-act, expanded)
 **Scope:** `summoners_path` Act I graph only

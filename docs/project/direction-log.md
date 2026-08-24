@@ -76,6 +76,63 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-24 — Retire campaign and Caravan progression in favor of quests
+
+**Status:** Accepted
+**Areas:** Player Journey, Academy, Quests, Encounters, Shop, Architecture
+
+### Decision
+
+Fateforged has no player-facing campaign, campaign map, or campaign-run
+progression model. The Caravan is retired as a shop and progression concept.
+Mr. and Mrs. Merriweather remain in the world as the owners of the permanent
+Campus Shop; they are not traveling Caravan merchants.
+
+The progression history is explicit: the campaign map and Caravan were replaced
+by an Academy course structure, and the Course Flow was then replaced by
+professor-led quests and reusable generic encounters. Academic subjects may
+still provide quest content, but a course system does not own enrollment,
+progression, activity launch, rewards, or navigation.
+
+### Context
+
+The move to the Academy first made the campaign graph and run-bound Caravan
+obsolete. The later quest rearchitecture removed the Course Flow as the
+replacement progression owner, but the retirement of the original campaign and
+Caravan was not recorded clearly. That gap left old design documents and
+internal `Campaign` names looking authoritative after their product model had
+already been superseded.
+
+### Consequences
+
+- Runtime routes, catalogs, events, UI, localization, narrative hooks, and save
+  fields that exist only for the campaign map or Caravan are deleted without a
+  compatibility path.
+- The Campus Shop is the sole current shop location owned by the Merriweathers.
+- Live quest and encounter capabilities currently housed under
+  `CampaignService` remain behaviorally necessary, but the mixed service name
+  and ownership are architecture debt. A bounded review must separate live
+  quest/encounter responsibilities from obsolete campaign/course APIs before
+  the services receive canonical names.
+- Wholly superseded campaign, Caravan, and Course Flow documents move under
+  `docs/archive/`; mixed documents are revised so active guidance contains only
+  current intent. Historical direction-log entries remain in place and are
+  superseded by this entry rather than rewritten.
+
+### Supersedes
+
+- The campaign-map and visible-Caravan direction recorded in the 2026-01-19
+  ideation session and campaign structure documents.
+- The Course Flow as the successor progression owner; see
+  `2026-08-16 — Replace the old Course Flow with authoritative typed quest steps`.
+
+### References
+
+- `docs/design/quest-system.md`
+- `docs/design/academy-forging-model.md`
+- `docs/tracking/todos.md`
+- PR `#379`
+
 ## 2026-08-23 — Standardize full cards on the gameplay proportion
 
 **Status:** Accepted

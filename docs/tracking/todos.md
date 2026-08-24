@@ -47,7 +47,8 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-23, item developer tooling):** Added a bounded audit of the broken item debug-command/service contract after `/items_grant` exposed a nonexistent runtime method call. Repair versus replacement remains an audit outcome rather than a preselected implementation.
 **Tracker Sync (2026-08-23, utility overlays):** Standardized Summoner Profile, Spellbook/Deck, Journal, and Inventory as distinct reusable overlays over their invoking context. Online remains a destination and now hosts the shared Spellbook overlay for ranked-deck changes; encounter preparation opens that same overlay in an activity-loadout context instead of maintaining a second editor.
 **Tracker Sync (2026-08-23, designer-readiness reconciliation):** Reconciled the active UI queue after PR `#376`. Summoner Profile, Inventory, Collection/Decks, Journal, quest offers, dialogue, campus HUD/Travel, battle HUD, Settings, Online loadout, summoner selection, and the combined Results direction now have accepted structural scaffolds. Removed stale Inventory and XP assumptions, recorded the remaining state matrices and legacy cleanup, and split generic Activity Preparation into the next explicit core-loop UI review.
-**Tracker Sync (2026-08-23, legacy cleanup):** Retired the obsolete first-card route, static Academy/menu and Caravan campaign surfaces, competing reward/result destinations, and raw battle-surface selection. Completed Summoner item ownership and item developer-tool migration; the inert `caravan_purchases` save payload remains solely to avoid destructive legacy-save loss.
+**Tracker Sync (2026-08-23, legacy cleanup):** Retired the obsolete first-card route, static Academy/menu and Caravan campaign surfaces, competing reward/result destinations, and raw battle-surface selection. Completed Summoner item ownership and item developer-tool migration; no Caravan runtime or persistence contract remains.
+**Tracker Sync (2026-08-24, campaign ownership):** Recorded the accepted campaign-map → Academy courses → professor-led quests transition, confirmed the Merriweathers as Campus Shop owners, and added a bounded architecture review to decompose the stale `CampaignService` ownership and archive superseded guidance.
 
 ---
 
@@ -1116,6 +1117,63 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 ## Architecture & Code Quality
 
 ### 🔴 HIGH PRIORITY
+
+#### Decompose Retired Campaign/Course Ownership into Quest and Encounter Services
+**Status:** ⬜ Not Started
+**Category:** Architecture / Quests / Encounters / Legacy Cleanup
+**Urgency:** High — complete before representative opening content adds dependencies
+**Ease:** Hard
+**Scope:** Large
+
+**Description:**
+`CampaignService`, `CampaignApi`, and their handlers still mix live
+professor-quest, Journal, world-interaction, encounter preparation/completion,
+and reward behavior with APIs and state named for the retired campaign map and
+Course Flow. The live capabilities are required, so deleting the service as one
+unit is unsafe; merely renaming the monolith would preserve incorrect ownership.
+
+Run a bounded architecture review, then decompose the service around the
+accepted quest and generic-encounter domains. Delete campaign-map, run-gold,
+graph-choice, Course Flow, and other unreachable APIs/state rather than carrying
+them into the renamed services.
+
+**Tasks:**
+- [ ] Map every non-test caller and classify each API/state field as live quest,
+  live encounter, shared progression, or retired campaign/course behavior.
+- [ ] Prove the professor, Journal, world-interaction, preparation, battle,
+  completion, reward, and return-to-campus flows without campaign ownership.
+- [ ] Define focused service boundaries and canonical names for quest and
+  encounter responsibilities; keep reward and persistence authority behind
+  their existing dedicated contracts.
+- [ ] Delete unreachable campaign graph, campaign-run gold, node choice, course
+  enrollment/activity, and compatibility APIs after callers are migrated.
+- [ ] Rename the `Campaign` autoload and GDScript adapter only after the focused
+  boundaries are established; do not replace one mixed global with another.
+- [ ] Migrate persistence keys/types where they encode retired product concepts;
+  development saves may be discarded and no compatibility reader is required.
+- [ ] Move wholly superseded campaign, Caravan, and Course Flow documents to a
+  clearly named `docs/archive/` subtree, update inbound links, and keep only
+  current quest/encounter guidance in active documentation.
+- [ ] Add structural and integration tests that reject retired APIs/routes and
+  cover the retained quest/encounter contracts under their canonical names.
+
+**Placement:**
+Quest sequencing and Journal state belong in `Meta/Services/Quests`; reusable
+encounter preparation and completion belong in `Meta/Services/Encounters`.
+Persistence adapters remain in `Infrastructure/Persistence`, and battle runtime
+routing remains in the application/battle boundary.
+
+**Likely Files:**
+- `scripts/csharp/Meta/Services/Campaign/CampaignService.cs`
+- `scripts/csharp/Meta/Services/Campaign/Handlers/`
+- `scripts/infrastructure/services/campaign_api.gd`
+- `scripts/csharp/Meta/Domain/Profile/Campaign/`
+- `project.godot`
+- `tests/csharp/Services/GenericQuestEncounterFoundationTest.cs`
+- `tests/csharp/Services/AcademyProgressServiceTest.cs`
+- `docs/design/`, `docs/features/`, and `docs/archive/`
+
+---
 
 #### Make Ranked Results and Rating Authoritative
 **Status:** ⬜ Not Started

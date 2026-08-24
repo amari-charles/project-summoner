@@ -21,8 +21,8 @@ Results, reward, item-ownership, and activity-routing foundations.
 - ✅ Made normal gameplay items Summoner-owned, retained explicitly shared
   event-exclusive items, and added a conservative profile v7 migration.
 - ✅ Restored and tested the full item developer command contract.
-- ✅ Retained `caravan_purchases` only as inert save round-trip data; no runtime
-  repository API or reader remains.
+- ✅ Removed the retired Caravan purchase payload with the obsolete runtime; no
+  compatibility data, repository API, or reader remains.
 
 **Representative Files:**
 - `scripts/application/battle_surface_router.gd`

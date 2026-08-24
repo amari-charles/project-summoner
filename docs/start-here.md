@@ -14,13 +14,13 @@ Welcome to Fateforged! This document will help you get oriented with the project
 | Understand the project vision | [Design Vision](project/vision.md) |
 | See what's currently implemented | [Current State](project/current-state.md) |
 | Learn the core game systems | [Features Index](features/README.md) |
-| Understand campaign structure | [Campaign Structure](features/campaign/structure.md) |
+| Understand progression structure | [Quest System](design/quest-system.md) |
 | Learn the summoner system | [Summoner README](features/summoners/README.md) |
 | Create a new card | [Card System](features/cards/system.md) |
 | Add a new unit type | [Combat System](features/combat/system.md) |
 | Find art asset specs | [UI Assets](art/ui-assets.md) |
 | Check known bugs | [Bug Tracker](tracking/bugs.md) |
-| See latest design decisions | [Ideation Session](design/ideation-session-2026-01-19.md) |
+| See latest design decisions | [Product Direction Log](project/direction-log.md) |
 | Plan major work in gated passes | [Approval-Gated Delivery](workflows/approval-gated-delivery.md) |
 
 ## Project Overview
@@ -136,11 +136,11 @@ docs/
 2. **[Features Index](features/README.md)** - Overview of all game systems
 3. **[Card System](features/cards/system.md)** - How cards and units work
 4. **[Combat System](features/combat/system.md)** - Unit AI and battle mechanics
-5. **[Campaign Structure](features/campaign/structure.md)** - Paths, level caps, grinding
+5. **[Quest System](design/quest-system.md)** - Professor-led progression and reusable encounters
 
 ### For Understanding Recent Design
 
-1. **[Ideation Session](design/ideation-session-2026-01-19.md)** - All finalized design decisions
+1. **[Product Direction Log](project/direction-log.md)** - Approved current and superseding decisions
 2. **[Vision](project/vision.md)** - Core game identity and pillars
 3. **[Summoner README](features/summoners/README.md)** - Summoner system overview
 
@@ -153,7 +153,7 @@ docs/
 ### For Designers
 
 1. **[Design Vision](project/vision.md)** - Project goals and philosophy
-2. **[Campaign Structure](features/campaign/structure.md)** - Path system, level caps
+2. **[Quest System](design/quest-system.md)** - Quest and encounter progression
 3. **[Item System](features/items/system.md)** - Equippable gear
 
 ### For Writers

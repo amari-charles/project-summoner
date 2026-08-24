@@ -2,6 +2,12 @@
 
 > High-Level Design Document (Premise-Only Version)
 
+> **Current-scope notice:** The campaign map, campaign-run gold, and Caravan
+> sections below are superseded and retained only until the documentation
+> archive audit moves their historical material. Fateforged now uses
+> professor-led quests, reusable encounters, and a permanent Campus Shop owned
+> by Mr. and Mrs. Merriweather. Do not implement the retired campaign sections.
+
 ## 1. Core Goal of Progression
 
 Fateforged's progression must emphasize:

@@ -12,7 +12,7 @@ This index lists all feature documentation for Fateforged. Each document describ
 |------------------------------|---------|
 | How cards work | [Card System](cards/system.md) |
 | How combat works | [Combat System](combat/system.md) |
-| How the campaign is structured | [Campaign Structure](campaign/structure.md) |
+| How progression is structured | [Quest System](../design/quest-system.md) |
 | How summoners progress | [Summoner README](summoners/README.md) |
 | How items work | [Item System](items/system.md) |
 
@@ -60,15 +60,14 @@ Map layout and spatial systems:
 
 ## Progression Systems
 
-### [Campaign Structure](campaign/structure.md)
-**Status:** CURRENT (New - 2026-01-19)
+### [Quest System](../design/quest-system.md)
+**Status:** CURRENT
 
-Full campaign mechanics:
-- **One campaign, all summoners** (different offers by element)
-- **Path system** (Elite vs Standard)
-- **Level cap system** (cards floored to cap)
-- **Decision types** (Major, Minor, Filler)
-- **Grinding rules** (replay for XP only)
+Professor-led progression and reusable encounter mechanics:
+- Typed quest steps and Journal state
+- Campus/world interactions
+- Generic encounter preparation and completion
+- No campaign map, Course Flow, or Caravan progression owner
 
 ### [Campaign Narrative](campaign/narrative.md)
 **Status:** CURRENT

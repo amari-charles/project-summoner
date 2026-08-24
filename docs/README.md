@@ -29,15 +29,10 @@ These define what the game IS. Read these first to understand Fateforged.
 - **[Brief](project/brief.md)** - Studio-ready pitch document
 - **[Current State](project/current-state.md)** - What's actually implemented
 
-### Recent Design Decisions (2026-01-19)
-- **[Ideation Session](design/ideation-session-2026-01-19.md)** - All finalized decisions from latest session
-
-Key decisions captured:
-- One campaign for all summoners (different offers by element)
-- Elite vs Standard path system with level caps
-- Items replace boons (4 slots: Grimoire, Weapon/Staff, Ring, Vestments)
-- XP only for cards in deck; replay battles for XP only
-- Shared content is a lever, not a blanket rule
+### Current Design Decisions
+- **[Product Direction Log](project/direction-log.md)** - Approved direction changes and the decisions they supersede
+- **[Quest System](design/quest-system.md)** - Current professor-led quest and reusable encounter model
+- **[Walkable Academy Hub](design/walkable-academy-hub.md)** - Current player home and navigation model
 
 ---
 
@@ -55,8 +50,8 @@ Complete system specifications. See [Features Index](features/README.md) for ful
 ### Progression Systems
 | System | Description | Status |
 |--------|-------------|--------|
-| [Campaign Structure](features/campaign/structure.md) | Paths, level caps, grinding | Current |
-| [Campaign Narrative](features/campaign/narrative.md) | Story, writing guidelines | Current |
+| [Quest System](design/quest-system.md) | Professor-led progression and reusable encounters | Current |
+| [Walkable Academy Hub](design/walkable-academy-hub.md) | Campus home and navigation | Current |
 | [Summoner System](features/summoners/README.md) | Summoner architecture & progression | Current |
 | [Item System](features/items/system.md) | Equippable gear (replaces boons) | Current |
 | [Card Progression](design/card-progression-economy.md) | XP, leveling, resources | Current |
@@ -66,8 +61,8 @@ Complete system specifications. See [Features Index](features/README.md) for ful
 |--------|-------------|--------|
 | [Elemental System](features/elemental-system.md) | Elements and affinities | Reference |
 | [Modifier System](features/modifier-system.md) | Stat modifications | Implemented |
-| [Events](features/events/architecture.md) | Campaign events | In Progress |
-| [Shop](features/shop/architecture.md) | Caravan & meta shop | Reference |
+| [Events](features/events/architecture.md) | Narrative and world events | In Progress |
+| [Shop](features/shop/architecture.md) | Historical refactor reference; Caravan sections retired | Archived/Review |
 
 ---
 
@@ -192,7 +187,7 @@ docs/
 
 When working with this codebase:
 
-1. **Start with recent decisions**: Check [ideation-session-2026-01-19.md](design/ideation-session-2026-01-19.md) for latest finalized design
+1. **Start with current decisions**: Check the [Product Direction Log](project/direction-log.md), then the linked current design documents. The January 2026 ideation session is historical and includes the retired campaign/Caravan model.
 2. **Feature docs are canonical**: The `features/` folder contains authoritative system specs
 3. **Check "Status" headers**: Documents marked "CURRENT" or "IMPLEMENTED" are reliable
 4. **Items replaced boons**: Any "boon" references are outdated; use "items" instead

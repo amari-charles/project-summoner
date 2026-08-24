@@ -1,5 +1,10 @@
 # Campaign Structure
 
+> **Status: RETIRED.** Fateforged no longer has a campaign, campaign map,
+> campaign-run economy, or Caravan. The progression sequence moved from this
+> model to Academy courses and then to professor-led quests plus reusable
+> encounters. This document is historical and will move to `docs/archive/`.
+
 **Status:** CURRENT
 **Last Updated:** 2026-01-19
 

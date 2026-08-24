@@ -386,25 +386,6 @@ public class DtoConvertersTest
     }
 
     [TestCase]
-    public void CampaignProgress_RoundTrip_PreservesInertLegacyCaravanPurchases()
-    {
-        var original = new CampaignProgress
-        {
-            CompletedBattles = [new BattleId("battle_1")],
-            Gold = 200,
-            LegacyCaravanPurchaseIds = ["offering_sword", "offering_shield"],
-        };
-
-        var dict = DtoConverters.ToDict(original);
-        var result = DtoConverters.FromCampaignDict(dict);
-
-        AssertThat(result).IsNotNull();
-        AssertThat(result!.LegacyCaravanPurchaseIds).HasSize(2);
-        AssertThat(result.LegacyCaravanPurchaseIds).Contains("offering_sword");
-        AssertThat(result.LegacyCaravanPurchaseIds).Contains("offering_shield");
-    }
-
-    [TestCase]
     public void CampaignProgress_RoundTrip_HandlesEmptyChoices()
     {
         var original = new CampaignProgress

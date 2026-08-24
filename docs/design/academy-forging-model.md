@@ -226,7 +226,9 @@ Most classes should cost **1 Enrollment**. Larger, rarer, or unusually valuable 
 
 ## Campus Shop Principle
 
-The old merchant/caravan role becomes a campus shop or equivalent academy service. It is part of campus life rather than a campaign-map stop.
+The old merchant/caravan role is retired. Mr. and Mrs. Merriweather own the
+permanent Campus Shop, which is part of campus life rather than a campaign-map
+stop. There is no current Caravan system or campaign progression model.
 
 - The shop can be accessed at any time from the Academy Hub.
 - The offering can change by semester.

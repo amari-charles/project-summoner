@@ -1,5 +1,10 @@
 # Implementation Plan: Shop System Refactor
 
+> **Status: HISTORICAL / PARTIALLY SUPERSEDED.** Caravan-specific ownership,
+> events, purchase history, and UI are retired. Use the current Campus Shop,
+> `ShopService`, universal reward, and commerce-authority documentation for
+> active work. This refactor record will be reviewed for `docs/archive/`.
+
 ## Current State & Problems
 
 ### What Was Built

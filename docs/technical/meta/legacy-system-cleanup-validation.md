@@ -17,10 +17,6 @@ physical-world role. Their obsolete course-screen ownership was removed.
 
 ## Compatibility retained intentionally
 
-- The serialized JSON key `caravan_purchases` is retained as
-  `LegacyCaravanPurchaseIds` so old profiles round-trip without silent data
-  loss. It has no repository service API or runtime reader and cannot control
-  shops, routes, events, or progression.
 - Profile schema v7 recovers ownership of a legacy normal item only when its
   existing equipped-Summoner provenance identifies the owner. Ambiguous normal
   instances are preserved unassigned and inaccessible instead of being granted
@@ -47,8 +43,7 @@ physical-world role. Their obsolete course-screen ownership was removed.
 - Results tests cover victory/defeat normalization, Summoner/Card XP grants,
   card rewards, no-reward results, required choices, selected grants, and
   presentation-only ownership.
-- Persistence tests cover profile v7 item migration and inert Caravan payload
-  round-tripping.
+- Persistence tests cover profile v7 item migration.
 
 ## Validation commands
 
@@ -63,5 +58,4 @@ physical-world role. Their obsolete course-screen ownership was removed.
   encounter preparation and deck overlay, Results, Online, Settings/pause, and
   the battle HUD.
 - Post-deletion searches find no active legacy route, scene, autoload, event,
-  shop, localization, or narrative reference. The only runtime-source occurrence
-  of `caravan_purchases` is the documented persistence round-trip boundary.
+  shop, localization, narrative, or Caravan persistence reference.

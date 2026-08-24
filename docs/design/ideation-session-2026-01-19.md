@@ -1,5 +1,10 @@
 # Design Ideation Session - January 19, 2026
 
+> **Status: HISTORICAL / SUPERSEDED.** This session records the retired campaign
+> map, Caravan, and related progression model. It is not current product
+> guidance. See `docs/project/direction-log.md` and the current quest/Academy
+> design documents. It will move to `docs/archive/` in the documentation audit.
+
 **Status:** FINALIZED
 **Purpose:** Capture design decisions from ideation session - now integrated into official docs
 

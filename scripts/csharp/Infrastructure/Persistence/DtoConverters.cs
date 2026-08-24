@@ -362,7 +362,6 @@ public static class DtoConverters
             ["gold"] = progress.Gold,
             ["academy"] = ToDict(progress.Academy),
             ["quests"] = ToDict(progress.Quests),
-            ["caravan_purchases"] = ToGodotArray(progress.LegacyCaravanPurchaseIds),
         };
 
         // Add choices if present
@@ -590,11 +589,6 @@ public static class DtoConverters
             }
         }
 
-        var caravanPurchases = new List<string>();
-        if (dict.TryGetValue("caravan_purchases", out var caravanVar))
-            foreach (var purchase in caravanVar.AsGodotArray())
-                caravanPurchases.Add(purchase.AsString());
-
         // Parse story_arcs if present
         var storyArcs = new Dictionary<string, StoryArcProgress>();
         if (
@@ -681,7 +675,6 @@ public static class DtoConverters
         {
             CompletedBattles = completed,
             Gold = GetInt(dict, "gold", 0),
-            LegacyCaravanPurchaseIds = caravanPurchases,
             StoryArcs = storyArcs,
             Choices = choices,
             Academy = academy,
