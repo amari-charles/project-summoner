@@ -53,7 +53,7 @@ physical-world role. Their obsolete course-screen ownership was removed.
 ## Validation commands
 
 - `./tools/run_tests.sh`: passed. GDScript type/parse check passed; C# passed
-  1,233/1,233; GUT passed 322/322 with 2,624 assertions.
+  1,234/1,234; GUT passed 322/322 with 2,624 assertions.
 - `dotnet build Fateforged.csproj --no-restore`: passed with zero warnings and
   zero errors.
 - Catalog/content integrity runs inside the complete C# and GUT suites, including
