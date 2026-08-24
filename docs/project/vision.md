@@ -65,7 +65,7 @@ You win not by outspending, but by **out-summoning**: using timing, positioning,
 ### 2. Every Card Counts
 
 - Single-use cards — every deployment matters
-- Decks up to 30 cards, creating pacing from skirmish to all-out war
+- Player-built decks contain up to 12 cards, keeping every inclusion and deployment consequential
 - Fixed mana pool forces upfront strategic decisions
 
 ### 3. Army Hierarchy Through Rarity

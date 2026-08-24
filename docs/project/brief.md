@@ -23,7 +23,7 @@ Collect → Build → Battle → Reward → Evolve
 ```
 
 1. **Collect** cards through campaign events and rewards
-2. **Build** a 30-card deck around your chosen summoner
+2. **Build** a deck of up to 12 cards around your chosen summoner
 3. **Battle** in 3-5 minute real-time matches
 4. **Reward** with gold, cards, and progression
 5. **Evolve** your summoner and cards through meaningful choices

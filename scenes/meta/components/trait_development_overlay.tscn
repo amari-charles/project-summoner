@@ -141,13 +141,21 @@ layout_mode = 2
 text = ""
 autowrap_mode = 2
 
-[node name="ActionButton" type="Button" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox"]
+[node name="ActionRow" type="HBoxContainer" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox/ActionRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel"
+
+[node name="ActionButton" type="Button" parent="PanelCenter/Panel/Margin/VBox/Body/TreeScroll/TreeCanvas/NodeDetailPopover/DetailMargin/DetailVBox/ActionRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+size_flags_horizontal = 3
 text = ""
-
-[node name="UnlockConfirmation" type="ConfirmationDialog" parent="."]
-unique_name_in_owner = true
-title = ""
-dialog_text = ""

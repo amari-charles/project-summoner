@@ -27,8 +27,8 @@ const CANVAS_PADDING: Vector2 = Vector2(70, 60)
 @onready var detail_status: Label = %DetailStatus
 @onready var detail_description: Label = %DetailDescription
 @onready var detail_requirements: Label = %DetailRequirements
+@onready var cancel_button: Button = %CancelButton
 @onready var action_button: Button = %ActionButton
-@onready var unlock_confirmation: ConfirmationDialog = %UnlockConfirmation
 
 var _owner_type: String = ""
 var _owner_id: String = ""
@@ -40,13 +40,13 @@ var _tree_controls: Dictionary = {}
 var _pending_unlock_trait_id: String = ""
 var _active_detail_trait_id: String = ""
 var _popover_pinned: bool = false
+var _is_confirming_unlock: bool = false
 
 
 func _ready() -> void:
 	close_button.pressed.connect(close)
+	cancel_button.pressed.connect(_on_cancel_unlock_pressed)
 	action_button.pressed.connect(_on_action_pressed)
-	unlock_confirmation.confirmed.connect(_on_unlock_confirmed)
-	unlock_confirmation.title = Loc.t("ui.trait_tree.acquire_title")
 	shade.gui_input.connect(_on_shade_gui_input)
 	tree_canvas.gui_input.connect(_on_tree_canvas_gui_input)
 	_style_surface()
@@ -67,7 +67,7 @@ func open_for_card_trait(card_instance_id: String, trait_id: String) -> void:
 
 func close() -> void:
 	visible = false
-	_pending_unlock_trait_id = ""
+	_reset_unlock_confirmation()
 	_active_detail_trait_id = ""
 	_popover_pinned = false
 	node_detail_popover.visible = false
@@ -109,6 +109,7 @@ func _refresh() -> void:
 	var points_key: String = "ui.collection.card_points_count" if _owner_type == "card" else "ui.summoner_screen.upgrade_points_count"
 	points_label.text = Loc.t(points_key, {"count": int(view_model.get("unspent_trait_points", 0))})
 	node_detail_popover.visible = false
+	_reset_unlock_confirmation()
 	_active_detail_trait_id = ""
 	_render_graph()
 
@@ -299,6 +300,7 @@ func _on_node_focus_exited(trait_id: String) -> void:
 func _show_node_detail(trait_id: String) -> void:
 	if not _node_lookup.has(trait_id):
 		return
+	_reset_unlock_confirmation()
 	_active_detail_trait_id = trait_id
 	var node_data: Dictionary = _node_lookup[trait_id]
 	var detail: Dictionary = TraitTreeApi.get_trait_node_detail(_owner_type, _owner_id, trait_id)
@@ -315,6 +317,7 @@ func _show_node_detail(trait_id: String) -> void:
 	action_button.visible = show_action
 	action_button.disabled = not SafeTypeUtils.bool_val(detail.get("unlock_button_enabled", false), false)
 	action_button.text = Loc.t("ui.trait_tree.unlock_button")
+	cancel_button.visible = false
 	node_detail_popover.visible = true
 	call_deferred("_position_popover", trait_id)
 
@@ -363,25 +366,45 @@ func _requirement_label(detail: Dictionary) -> String:
 func _on_action_pressed() -> void:
 	if _active_detail_trait_id.is_empty():
 		return
+	if _is_confirming_unlock:
+		_confirm_pending_unlock()
+		return
 	_pending_unlock_trait_id = _active_detail_trait_id
-	unlock_confirmation.dialog_text = Loc.t(
+	_is_confirming_unlock = true
+	detail_requirements.text = Loc.t(
 		"ui.trait_tree.acquire_confirmation",
 		{"name": detail_name.text}
 	)
-	unlock_confirmation.popup_centered(Vector2i(470, 180))
+	action_button.text = Loc.t("ui.common.confirm")
+	cancel_button.text = Loc.t("ui.common.cancel")
+	cancel_button.visible = true
+	call_deferred("_position_popover", _active_detail_trait_id)
 
 
-func _on_unlock_confirmed() -> void:
+func _on_cancel_unlock_pressed() -> void:
+	if _active_detail_trait_id.is_empty():
+		return
+	_show_node_detail(_active_detail_trait_id)
+
+
+func _confirm_pending_unlock() -> void:
 	if _pending_unlock_trait_id.is_empty():
 		return
 	var trait_id: String = _pending_unlock_trait_id
-	_pending_unlock_trait_id = ""
+	_reset_unlock_confirmation()
 	var result: Dictionary = TraitTreeApi.try_unlock_trait(_owner_type, _owner_id, trait_id)
 	if not SafeTypeUtils.bool_val(result.get("success", false), false):
 		detail_requirements.text = str(result.get("reason", Loc.t("ui.trait_tree.unlock_failed_reason")))
 		return
 	trait_acquired.emit(trait_id)
 	_refresh()
+
+
+func _reset_unlock_confirmation() -> void:
+	_pending_unlock_trait_id = ""
+	_is_confirming_unlock = false
+	if is_instance_valid(cancel_button):
+		cancel_button.visible = false
 
 
 func _on_shade_gui_input(event: InputEvent) -> void:

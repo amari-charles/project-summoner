@@ -1,14 +1,18 @@
 extends GutTest
 
 
-func test_legacy_summoner_card_component_is_retired() -> void:
-	assert_false(FileAccess.file_exists("res://scenes/meta/components/summoner_card.tscn"))
-	assert_false(FileAccess.file_exists("res://scripts/meta/components/summoner_card.gd"))
+func test_summoner_switch_uses_character_carousel_items() -> void:
+	assert_true(FileAccess.file_exists("res://scenes/meta/components/summoner_carousel_item.tscn"))
+	assert_true(FileAccess.file_exists("res://scripts/meta/components/summoner_carousel_item.gd"))
 	var switch_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/screens/summoner_switch_screen.gd"
 	)
-	assert_false(switch_source.contains("SummonerCard"))
-	assert_true(switch_source.contains("SummonerRosterItem"))
+	var item_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/summoner_carousel_item.gd"
+	)
+	assert_true(switch_source.contains("SummonerCarouselItem"))
+	assert_false(switch_source.contains("SummonerRosterItem"))
+	assert_true(item_source.contains('Loc.t("ui.summoner_panel.active_indicator")'))
 
 
 func test_summoner_profile_uses_a_fixed_overlay_and_switch_keeps_a_readable_background() -> void:
@@ -34,16 +38,19 @@ func test_summoner_profile_uses_a_fixed_overlay_and_switch_keeps_a_readable_back
 	assert_false(profile_scene.contains("EquipmentHeader"))
 
 
-func test_summoner_switch_uses_a_scrollable_roster_instead_of_a_carousel() -> void:
+func test_summoner_switch_uses_a_wraparound_carousel() -> void:
 	var packed_scene: PackedScene = load("res://scenes/meta/screens/summoner_switch_screen.tscn")
 	var screen: Control = packed_scene.instantiate() as Control
 	assert_not_null(screen)
-	assert_not_null(screen.find_child("RosterScroll", true, false))
-	assert_not_null(screen.find_child("SummonerList", true, false))
+	assert_not_null(screen.find_child("CarouselArea", true, false))
 	assert_not_null(screen.find_child("ConfirmButton", true, false))
-	assert_null(screen.find_child("CardArea", true, false))
-	assert_null(screen.find_child("LeftArrow", true, false))
-	assert_null(screen.find_child("RightArrow", true, false))
+	assert_not_null(screen.find_child("LeftArrow", true, false))
+	assert_not_null(screen.find_child("RightArrow", true, false))
+	var switch_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/summoner_switch_screen.gd"
+	)
+	assert_true(switch_source.contains("wrapi"))
+	assert_true(switch_source.contains("ANIMATION_DURATION"))
 	screen.free()
 
 
