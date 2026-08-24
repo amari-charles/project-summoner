@@ -89,8 +89,8 @@ public partial class UnitVisual : Node3D
     // Sub-components (already exist in codebase)
     // IVisualComponent  — scripts/csharp/Battle/View/Visual/IVisualComponent.cs
     //   (shadows handled internally by IVisualComponent implementations via ShadowHelper)
-    // SpawnRevealComponent — scripts/csharp/Units/Components/SpawnRevealComponent.cs
-    // FloatingHPBar via HPBarService — scripts/csharp/Meta/Services/HPBarService.cs
+    // SpawnRevealComponent — scripts/csharp/Battle/View/SpawnRevealComponent.cs
+    // FloatingHPBar — scripts/csharp/Battle/View/UI/FloatingHPBar.cs
 
     public void Initialize(IGameSession session, int unitId) { throw new NotImplementedException(); }
 

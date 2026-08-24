@@ -10,7 +10,7 @@ Unit stats go through a 6-stage pipeline before being applied to a spawned unit.
 
 ```mermaid
 flowchart TD
-    UC[UnitCatalog<br/>Base stats per unit TYPE]
+    UC[UnitDefinitions<br/>Base stats per unit type]
     UC --> CD[CardDefinition<br/>Optional StatModifier]
     CD --> CU[Card Upgrades<br/>Player progression multipliers]
     CU --> ST[Summoner Traits<br/>Element bonuses, items]
@@ -24,11 +24,11 @@ flowchart TD
 
 ## Pipeline Stages
 
-### 1. UnitCatalog (Base Stats)
+### 1. UnitDefinitions (Base Stats)
 
 Defines intrinsic stats for each unit TYPE. This is the single source of truth for "what is a Fire Wisp?"
 
-**Location:** `scripts/csharp/Units/UnitCatalog.cs`
+**Location:** `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs`
 
 ```csharp
 UnitCatalog["fire_wisp"] = {
@@ -151,9 +151,9 @@ public static UnitStats Calculate(
 
 ## Related Files
 
-- `scripts/csharp/Units/UnitCatalog.cs` - Base stats registry
-- `scripts/csharp/Cards/CardCatalog.cs` - Card definitions with optional modifiers
+- `scripts/csharp/Infrastructure/Data/Units/UnitDefinitions.cs` - Base stats registry
+- `scripts/csharp/Infrastructure/Data/Cards/CardCatalog.cs` - Card definitions with optional modifiers
 - `scripts/csharp/Battle/Simulation/Stats/UnitStatCalculator.cs` - Pipeline implementation
 - `scripts/csharp/Battle/Simulation/Stats/UnitStats.cs` - Stat container with modification methods
 - `scripts/csharp/Battle/Simulation/Stats/StatModifier.cs` - Modifier definition
-- `scripts/csharp/Battle/Simulation/Combat/SimEffects.cs` - Buff/debuff system and modifier application
+- `scripts/csharp/Battle/Simulation/Subsystems/SimEffects.cs` - Runtime buff/debuff application

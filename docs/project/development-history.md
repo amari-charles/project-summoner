@@ -100,10 +100,10 @@
 ### Files Added
 - `docs/lore/README.md` - Index of lore documentation
 - `docs/lore/world.md` - Academy setting and worldbuilding
-- `docs/lore/elements.md` - Elemental mythology
+- `docs/lore/world.md` - World and elemental mythology
 - `docs/lore/narrative-arc.md` - Campaign story structure
 - `docs/lore/summoners/*.md` - Templates for summoner bios
-- `docs/lore/characters/merlin.md` - Headmaster character doc
+- `docs/lore/characters/npcs/merlin.md` - Headmaster character doc
 - `docs/project/brief.md` - Game pitch document
 
 ---

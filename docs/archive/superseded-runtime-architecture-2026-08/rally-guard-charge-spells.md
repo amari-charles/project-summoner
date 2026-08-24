@@ -1,5 +1,11 @@
 # Rally, Guard, and Charge Tactical Spell Cards
 
+> **Archived historical document (2026-08-24):** Rally, Guard, and Charge are
+> archived catalog entries and command spells are being removed from the active
+> design. This file preserves their former behavior and deleted GDScript wiring;
+> it is not current implementation guidance. Remaining schema and catalog cleanup
+> is tracked in `docs/tracking/todos.md` under **Deprecate Command Spells**.
+
 ## Overview
 
 Rally, Guard, and Charge are **0-mana neutral tactical spell cards** that provide unit control without resource cost. They replaced the old redirect button system, making tactical commands opt-in rather than innate abilities.

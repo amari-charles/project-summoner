@@ -1,8 +1,12 @@
 # View & Input Layer — Design Specs
 
+> **Historical document:** This decomposition plan describes the pre-migration
+> classes and stubs used to reach the typed View/Input runtime. It is retained
+> for implementation history, not current file or wiring guidance.
+
 Decomposition plans for existing components that span View and Input boundaries. Each section covers what stays, what moves, the migration sequence, and edge cases.
 
-For the View layer overview, see [README.md](README.md). For the Input layer overview, see [../input/README.md](../input/README.md). For Session specs that View/Input interact with, see [../session/design-specs.md](../session/design-specs.md).
+The current layer overview lives under `docs/architecture/gameplay/`.
 
 ---
 

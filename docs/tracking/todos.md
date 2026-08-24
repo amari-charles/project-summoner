@@ -25,13 +25,13 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-10, attack vectors):** Updated `Implement Single Target vs Multi Target Attack System` to partial after runtime V1 delivery (vector recipient resolution + tests); visual telegraphs and balance pass remain.
 **Tracker Sync (2026-03-11, attack vector target-limit semantics):** Recorded follow-up fix preserving explicit `TargetLimit` values across presets (`1` single-target, `0` unlimited) while keeping preset defaults when unset; remaining scope for this initiative is still visual telegraphs + balance tuning.
 **Tracker Sync (2026-03-10, summoner design):** Added Summoner Oaths planning item (trait-backed permanent choices) and split trait work to prioritize curated, intentional trait design over placeholder AI-generated traits.
-**Tracker Sync (2026-03-11, summon traits runtime):** Updated trait-curation item to reflect shipped summon stat-tree runtime (shared trait IDs, per-card/per-rarity overrides, additive + spawn-count hooks, rarity-gated Legion tiers, coverage); remaining scope narrowed to per-summoner identity lines and campaign-level ultimate/oath design validation.
-**Tracker Sync (2026-03-11, per-summoner lines):** Simplified per-summoner identity lines to summoner-stat-only V1 (no unit modifiers/triggers) for Cole/Selene/Mei/Teo in `docs/design/summon-traits-v1.md`; remaining trait-curation scope is campaign-facing Ultimate/Oath candidate pass and permanence validation.
+**Tracker Sync (2026-03-11, summon traits runtime):** Updated trait-curation item to reflect shipped summon stat-tree runtime (shared trait IDs, per-card/per-rarity overrides, additive + spawn-count hooks, rarity-gated Legion tiers, coverage); remaining scope narrowed to per-summoner identity lines and quest-progression ultimate/oath design validation.
+**Tracker Sync (2026-03-11, per-summoner lines):** Simplified per-summoner identity lines to summoner-stat-only V1 (no unit modifiers/triggers) for Cole/Selene/Mei/Teo in `docs/design/summon-traits-v1.md`; remaining trait-curation scope is quest-facing Ultimate/Oath candidate review and permanence validation.
 **Tracker Sync (2026-03-11, combat spatial v2):** Updated directional attack, multi-target, and hitbox tracker entries to reflect runtime geometry-channel split + debug overlay progress; engage-shape startup alignment remains open.
 **Tracker Sync (2026-03-12, quick-win wave):** Closed targeted combat redirect/retarget robustness scope; completed simulation spatial namespace + spawn-rule ownership alignment; completed UI async timeout guards, Puff cone-center offset tuning, and large-unit hit-flash throttling; updated summoner stat audit status and recorded upgrade-cost scaffolding progress.
 **Tracker Sync (2026-06-04, production scoping):** Added the now-archived `docs/archive/suspended-progression-models-2026-08/tracking/remaining-work-scope.md` roadmap for spell VFX, Academy content, items, upgrades, rewards, and production asset planning.
 **Tracker Sync (2026-06-04, active-tracker cleanup):** Moved completed Puff angle, pathfinding robustness, large-unit hit-flash, summoner secondary-stat audit, simulation spatial-domain, spawn-rule source-of-truth, and UI async timeout entries to `todos-completed.md`.
-**Tracker Sync (2026-06-04, spell roster scope):** Closed `Add More Spell Cards` as an active expansion item; current spell count is sufficient. Remaining spell-related work stays under VFX polish, balance, presentation, academy/course integration, and production scoping.
+**Tracker Sync (2026-06-04, spell roster scope):** Closed `Add More Spell Cards` as an active expansion item; current spell count is sufficient. Remaining spell-related work stays under VFX polish, balance, presentation, professor-led quest integration, and production scoping.
 **Tracker Sync (2026-06-04, backlog cleanup):** Consolidated premature per-sound audio tasks into one production-audio scoping item, closed stale Puff lateral-movement follow-up by product review, closed completed portrait-cropping and campaign-data migration items, and refreshed stale interop/performance/root-path TODO wording.
 **Tracker Sync (2026-08-05, authority-boundary audit):** Started the gated battle-progression-authority initiative and added concrete follow-ups for permanent progression commands, atomic commerce, and authoritative competitive results/loadout validation. Backend provider selection remains intentionally undecided.
 **Tracker Sync (2026-08-05, battle authority completion):** Moved the completed battle-progression-authority initiative to `todos-completed.md` after PR `#352` merged; provider-neutral security follow-ups remain active as separate tasks.
@@ -41,14 +41,14 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-14, product direction history):** Reframed the ambiguous changelog task as a curated product direction log, added its inclusion and authority framework, and left historical backfill pending user review.
 **Tracker Sync (2026-08-16, designer readiness):** Added an immediate high-priority UI readiness queue covering the summoner progression pass, automatic-level/XP presentation contract, reusable reward acquisition flow, first-quest reward slice, and canonical screen/state inventory needed before external UI design begins.
 **Tracker Sync (2026-08-18, discovery-driven development):** Replaced the fully exposed default-tree assumption with shared summoner/card opportunity states, configurable costs, and world actions that can reveal, unlock, acquire, or transform; added the representative design slice and UI/implementation work plan required before replacement progression UI is committed.
-**Tracker Sync (2026-08-22, UI flow consolidation):** Replaced the redundant click-through battlefield victory/defeat modal with a brief automatic conclusion overlay before the combined Results screen. Began the canonical screen inventory by resolving this duplicate outcome surface; the broader reward, level-up, course, and navigation inventory remains open.
+**Tracker Sync (2026-08-22, UI flow consolidation):** Replaced the redundant click-through battlefield victory/defeat modal with a brief automatic conclusion overlay before the combined Results screen. Began the canonical screen inventory by resolving this duplicate outcome surface; the broader reward, level-up, quest, and navigation inventory remains open.
 **Tracker Sync (2026-08-23, battle HUD and settings foundations):** Recorded the functional battle HUD scaffold, mode-aware pause/forfeit flow, shared categorized settings surface, and campus Escape menu. These surfaces are ready for designer treatment, while final visual language, responsive layout validation, and the broader canonical screen inventory remain open.
 **Tracker Sync (2026-08-23, ranked loadouts):** Implemented the Online loadout scaffold, separate per-summoner ranked-deck persistence, contextual selection through the collection screen, queue validation, and ranked battle wiring.
 **Tracker Sync (2026-08-23, item developer tooling):** Added a bounded audit of the broken item debug-command/service contract after `/items_grant` exposed a nonexistent runtime method call. Repair versus replacement remains an audit outcome rather than a preselected implementation.
 **Tracker Sync (2026-08-23, utility overlays):** Standardized Summoner Profile, Spellbook/Deck, Journal, and Inventory as distinct reusable overlays over their invoking context. Online remains a destination and now hosts the shared Spellbook overlay for ranked-deck changes; encounter preparation opens that same overlay in an activity-loadout context instead of maintaining a second editor.
 **Tracker Sync (2026-08-23, designer-readiness reconciliation):** Reconciled the active UI queue after PR `#376`. Summoner Profile, Inventory, Collection/Decks, Journal, quest offers, dialogue, campus HUD/Travel, battle HUD, Settings, Online loadout, summoner selection, and the combined Results direction now have accepted structural scaffolds. Removed stale Inventory and XP assumptions, recorded the remaining state matrices and legacy cleanup, and split generic Activity Preparation into the next explicit core-loop UI review.
 **Tracker Sync (2026-08-23, legacy cleanup):** Retired the obsolete first-card route, static Academy/menu and Caravan campaign surfaces, competing reward/result destinations, and raw battle-surface selection. Completed Summoner item ownership and item developer-tool migration; no Caravan runtime or persistence contract remains.
-**Tracker Sync (2026-08-24, campaign ownership):** Recorded the accepted campaign-map → Academy courses → professor-led quests transition, confirmed the Merriweathers as Campus Shop owners, and added a bounded architecture review to decompose the stale `CampaignService` ownership and archive superseded guidance.
+**Tracker Sync (2026-08-24, progression ownership):** Recorded the accepted campaign-map → Academy courses → professor-led quests transition, confirmed the Merriweathers as Campus Shop owners, and completed the bounded architecture review that decomposed the retired mixed progression service into Quest and Encounter ownership.
 **Tracker Sync (2026-08-23, post-cleanup product sequence):** The consolidated legacy-cleanup initiative is the current implementation work. Once it lands, the next product task is to sketch representative opening content through the accepted player-facing structures. Remaining UI state coverage, responsive validation, visual design, and polish stay active follow-ups rather than reasons to reopen foundational UI decisions.
 
 ---
@@ -174,7 +174,6 @@ explicit designer state coverage and final visual design.
 **Likely Files:**
 - `docs/design/trait-tree-screen-flow-spec.md`
 - `docs/design/discovery-driven-development.md`
-- `docs/design/discovery-driven-development.md`
 - `scenes/meta/screens/summoner_screen.tscn`
 - `scripts/meta/screens/summoner_screen.gd`
 - `scenes/meta/screens/trait_tree_screen.tscn`
@@ -246,7 +245,7 @@ remain incomplete.
 
 **Related Doc:**
 - `docs/design/discovery-driven-development.md`
-- `docs/tracking/discovery-driven-development-work-plan.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/discovery-driven-development-work-plan.md`
 
 #### Define Summoner XP Visibility Across the Persistent HUD and Progression Surfaces
 **Status:** 🟡 Partial (Placement Contract Accepted)
@@ -660,8 +659,10 @@ Add support for melee attacks that only hit in a forward cone/arc instead of a f
 - Standard melee: full circle (current behavior, AttackConeAngle = 0)
 
 **Related Files:**
-- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs` - attack range, behavior logic (formerly in Unit3D/MeleeUnit3D)
-- `scripts/csharp/Battle/Simulation/Combat/Hitbox/HitboxComponent.cs` - CreateBoxShape already exists
+- `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs` - attack startup and behavior logic
+- `scripts/csharp/Battle/Simulation/Combat/Targeting/SimTargeting.cs` - typed engage-shape checks
+- `scripts/csharp/Battle/Simulation/Combat/AttackRecipientResolver.cs` - typed damage-shape recipient resolution
+- `scripts/csharp/Infrastructure/Data/Units/AttackVectorConfig.cs` - area shape and size authoring
 
 ---
 
@@ -1153,6 +1154,9 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 
 **Progress Update (2026-06-04):**
 - ✅ Rally, Guard, and Charge are archived in the card catalog and not part of the active spell expansion target.
+- ✅ Moved their legacy implementation document to
+  `docs/archive/superseded-runtime-architecture-2026-08/rally-guard-charge-spells.md`
+  so deleted GDScript wiring is not presented as current architecture.
 - 🔄 Remaining work is cleanup: remove or quarantine command-specific schema/UI/docs once no active runtime path needs them.
 
 **Requirements:**
@@ -1292,7 +1296,7 @@ Migrate runtime IDs to strongly typed value objects (for example `UnitInstanceId
 - `scripts/csharp/Battle/Simulation/Data/MatchState.cs`
 - `scripts/csharp/Battle/Simulation/Data/UnitData.cs`
 - `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
-- `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- `scripts/csharp/Battle/Simulation/Combat/Targeting/SimTargeting.cs`
 - `scripts/csharp/Battle/Simulation/Simulation.cs`
 - Session protocol/snapshot builders (`scripts/csharp/Battle/Session/...`)
 
@@ -1385,7 +1389,7 @@ The old broad PascalCase/snake_case helper TODO is stale: most referenced files 
 
 ---
 
-#### Remove Remaining Legacy Compatibility Paths (EventSequencer/Dialogue/BattleContext)
+#### Remove Remaining Legacy Compatibility Paths
 **Status:** 🟨 Partially Complete
 **Category:** Architecture / Cleanup
 **Effort:** Medium
@@ -1396,11 +1400,47 @@ Remove compatibility-only runtime paths that preserve deprecated behavior and ar
 **Tasks:**
 - [x] Removed EventSequencer entirely with the Narrative Director replacement (2026-08-05).
 - [x] Removed DialogueManager and all deprecated UI registration flows (2026-08-05).
+- [x] Removed the unused legacy GDScript dictionary input/output path from `SummonerConfig` (2026-08-24).
 - [ ] Remove `BattleContext` authority/level-cap compatibility bridges and service-fallback paths that exist only for legacy wiring.
+- [ ] Review whether `UnitStatCalculator` still needs its direct `CardDefinition`
+  stat fallback, then reconcile the current stat/effect pipeline with
+  `docs/features/modifier-system.md` without changing its approved capability
+  requirements.
 
 **Related Files:**
-- Narrative compatibility paths are gone; the remaining BattleContext bridge audit keeps this item open.
+- Narrative and SummonerConfig compatibility paths are gone; the remaining
+  BattleContext and stat/modifier ownership reviews keep this item open.
 - `scripts/application/battle_context.gd`
+- `scripts/csharp/Battle/Simulation/Stats/UnitStatCalculator.cs`
+- `docs/features/modifier-system.md`
+
+---
+
+#### Reconcile Gameplay View/Input Architecture Documentation
+**Status:** ⬜ Not Started
+**Category:** Architecture / Documentation / Battle Runtime
+**Effort:** Small
+
+**Description:**
+Run a bounded architecture review of the still-relevant View/Input component
+documents. Preserve their accepted layer boundaries, but replace pre-migration
+“Today” descriptions, throw-only stubs, and retired class names with the actual
+typed runtime wiring. Archive a component page only when its responsibility no
+longer exists.
+
+**Tasks:**
+- [ ] Verify `BattleScene`, `EntityManager`, `UnitVisual`, `ProjectileVisual`,
+  `SummonerVisual`, Battle HUD, VFX, and gesture-feedback ownership against code.
+- [ ] Replace stale stubs with concise current APIs and file paths.
+- [ ] Remove references to retired `GameController3D`, `Summoner.gd`,
+  `SimEventSignalEmitter`, `SpellTargetingManager`, and `HPBarService` paths.
+- [ ] Keep boundary invariants separate from implementation-history notes.
+
+**Related Files:**
+- `docs/architecture/gameplay/view/`
+- `docs/architecture/gameplay/input/`
+- `scripts/csharp/Battle/View/`
+- `scripts/csharp/Battle/Input/`
 
 ---
 
@@ -1460,7 +1500,7 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 **Related Files:**
 - `scripts/csharp/Battle/View/BattleScene.cs`
 - `scripts/csharp/Battle/View/EntityManager.cs`
-- `scripts/csharp/Battle/Session/BattleSessionFactory.cs`
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
 
 **Notes:**
 - Do this incrementally during normal battle refactors, not as one large rewrite.

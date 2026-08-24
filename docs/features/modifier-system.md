@@ -1,5 +1,11 @@
 # Modifier System Architecture
 
+> **Architecture review required:** The capability requirements in this
+> document remain relevant, but its provider/service map predates the
+> simulation-owned stat and effect pipelines. Do not treat the referenced
+> `ModifierService` or provider classes as current implementation. The bounded
+> reconciliation task is tracked in `docs/tracking/todos.md`.
+
 ## Overview
 
 The modifier system provides a flexible, data-driven framework for applying bonuses, penalties, and behaviors to cards, units, heroes, and other game entities. It supports:
@@ -727,18 +733,17 @@ var fire_mods = ModifierSystem.query() \
 
 ---
 
-*Last Updated: 2026-01-31*
-*Status: Implemented in C# - SimEffects in simulation layer (replaces former ModifierService autoload)*
+*Last Reviewed: 2026-08-24*
+*Status: Capability intent retained; implementation ownership requires reconciliation*
 
 ## Current Implementation Files
 
-- `scripts/csharp/Battle/Simulation/Combat/SimEffects.cs` - Buff/debuff/trigger system (replaces former ModifierService)
+- `scripts/csharp/Battle/Simulation/Subsystems/SimEffects.cs` - Runtime buff/debuff application
 - `scripts/csharp/Battle/Simulation/Stats/StatModifier.cs` - Typed modifier class
-- `scripts/csharp/Systems/Modifiers/ModifierContext.cs` - Query context
-- `scripts/csharp/Systems/Modifiers/IModifierProvider.cs` - Provider interface
-- `scripts/csharp/Systems/Modifiers/CardModifierProvider.cs` - Card upgrade modifiers
-- `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs` - Summoner trait modifiers
-- `scripts/csharp/Systems/Modifiers/ItemModifierProvider.cs` - Equipped item modifiers
+- `scripts/csharp/Battle/Simulation/Stats/UnitStatCalculator.cs` - Pre-battle stat composition
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs` - Card-trait runtime projection
+- `scripts/csharp/Meta/Services/Cards/CardService.cs` - Card trait modifiers
+- `scripts/csharp/Meta/Services/Items/ItemService.cs` - Equipped item modifiers
 - `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs` - Trigger condition enum
 
 ---

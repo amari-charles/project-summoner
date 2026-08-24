@@ -49,54 +49,22 @@ func get_element() -> ElementTypes.Element:
 func get_element_key() -> StringName:
 	return ElementRegistry.get_key_from_id(element_id)
 
-## Create from dictionary (for data-driven config from C# bridge or JSON)
-##
-## Accepts the C# SummonerCatalogBridge dictionary format:
+## Create from the canonical C# SummonerCatalogBridge dictionary format:
 ##   name_key / description_key  (localization keys, translated via Loc.t())
 ##   element_id                  (int matching ElementRegistry.ElementId)
-## Also accepts the legacy GDScript format:
-##   summoner_name / description (already-translated strings)
-##   element                     (StringName key or Element object)
 static func from_dict(data: Dictionary) -> SummonerConfig:
 	var config: SummonerConfig = SummonerConfig.new()
 
 	# Identity
 	config.summoner_id = data.get("summoner_id", "")
-
-	# Name: prefer name_key (C# bridge) over summoner_name (legacy)
-	if data.has("name_key"):
-		var name_key: String = SafeTypeUtils.string(data.get("name_key", ""), "")
-		config.summoner_name = Loc.t(name_key)
-	else:
-		config.summoner_name = SafeTypeUtils.string(data.get("summoner_name", ""), "")
-
-	# Description: prefer description_key (C# bridge) over description (legacy)
-	if data.has("description_key"):
-		var description_key: String = SafeTypeUtils.string(data.get("description_key", ""), "")
-		config.description = Loc.t(description_key)
-	else:
-		config.description = SafeTypeUtils.string(data.get("description", ""), "")
-
-	# Element: prefer element_id int (C# bridge) over element key/object (legacy)
-	if data.has("element_id"):
-		config.element_id = data.get("element_id", ElementRegistry.ElementId.NEUTRAL)
-	else:
-		var element_var: Variant = data.get("element", &"neutral")
-		if element_var is ElementTypes.Element:
-			var elem: ElementTypes.Element = element_var
-			var elem_key: String = SafeTypeUtils.string(elem.id, "neutral")
-			var key: StringName = StringName(elem_key)
-			config.element_id = ElementRegistry.get_id_from_key(key)
-		elif element_var is StringName or element_var is String:
-			var element_key: String = SafeTypeUtils.string(element_var, "neutral")
-			var key: StringName = StringName(element_key)
-			if ElementRegistry.is_valid_key(key):
-				config.element_id = ElementRegistry.get_id_from_key(key)
-			else:
-				push_warning("SummonerConfig.from_dict: Unknown element key '%s', using NEUTRAL" % key)
-				config.element_id = ElementRegistry.ElementId.NEUTRAL
-		else:
-			config.element_id = ElementRegistry.ElementId.NEUTRAL
+	var name_key: String = SafeTypeUtils.string(data.get("name_key", ""), "")
+	config.summoner_name = Loc.t(name_key) if not name_key.is_empty() else ""
+	var description_key: String = SafeTypeUtils.string(data.get("description_key", ""), "")
+	config.description = Loc.t(description_key) if not description_key.is_empty() else ""
+	config.element_id = SafeTypeUtils.int_val(
+		data.get("element_id"),
+		ElementRegistry.ElementId.NEUTRAL
+	)
 
 	# Base Stats
 	config.base_health = data.get("base_health", DEFAULT_BASE_HEALTH)
@@ -125,26 +93,6 @@ static func from_dict(data: Dictionary) -> SummonerConfig:
 	config.starter_card_id = data.get("starter_card_id", CardIDs.FIRE_WISP)
 
 	return config
-
-## Convert to dictionary (for saving/debugging)
-func to_dict() -> Dictionary:
-	return {
-		"summoner_id": summoner_id,
-		"summoner_name": summoner_name,
-		"description": description,
-		"element": get_element_key(),
-		"base_health": base_health,
-		"max_mana": max_mana,
-		"base_cast_speed": base_cast_speed,
-		"summoner_icon_path": summoner_icon_path,
-		"card_frame_style": card_frame_style,
-		"portrait_uv_offset": portrait_uv_offset,
-		"portrait_uv_scale": portrait_uv_scale,
-		"unlock_condition": unlock_condition,
-		"innate_trait_ids": innate_trait_ids,
-		"starter_card_id": starter_card_id
-	}
-
 ## Validation
 func is_valid() -> bool:
 	if summoner_id.is_empty():

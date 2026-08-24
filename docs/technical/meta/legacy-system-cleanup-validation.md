@@ -33,6 +33,8 @@ The accepted transition is recorded in `docs/project/direction-log.md`. Wholly
 superseded guidance is isolated under
 `docs/archive/suspended-progression-models-2026-08/`; active architecture,
 current-state, quest, shop, and summoner documents describe the retained model.
+Superseded runtime implementation plans are isolated under
+`docs/archive/superseded-runtime-architecture-2026-08/`.
 
 ## Required Validation
 
@@ -46,3 +48,15 @@ dotnet test --settings test.runsettings
 The structural scan must find no retired product vocabulary in active runtime
 code or content. Historical records and the explicitly suspended archive are
 excluded from that assertion.
+
+## Latest Validation
+
+The 2026-08-24 final audit passed all phases of `./tools/run_tests.sh`:
+
+- GDScript type/parse check: passed;
+- .NET: 1,156 passed, 0 failed;
+- GUT: 277 passed, 0 failed (2,588 assertions).
+
+The runtime terminology scan found campaign/course references only in negative
+regression assertions that verify their former files remain absent. No Caravan,
+CampaignService, EventContext, campaign map, or course runtime remains.

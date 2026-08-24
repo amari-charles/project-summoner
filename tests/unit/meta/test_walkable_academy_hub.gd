@@ -562,6 +562,57 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 	assert_false(offer.visible)
 
 
+func test_escape_cancels_quest_offer_instead_of_reopening_dialogue() -> void:
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	add_child_autofree(offer)
+	await get_tree().process_frame
+	var backed_count: Array[int] = [0]
+	var cancelled_count: Array[int] = [0]
+	offer.backed.connect(func() -> void: backed_count[0] += 1)
+	offer.cancelled.connect(func() -> void: cancelled_count[0] += 1)
+	offer.present({
+		"id": "side_quest",
+		"title_key": "academy.quest.introduction_to_magic_101.name",
+		"description_key": "academy.journal.description",
+	})
+
+	var escape: InputEventKey = InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	get_viewport().push_input(escape, true)
+	await get_tree().process_frame
+
+	assert_false(offer.visible)
+	assert_eq(cancelled_count[0], 1)
+	assert_eq(backed_count[0], 0)
+	var hub_script: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	assert_true(hub_script.contains("quest_offer_modal.cancelled.connect"))
+	assert_true(hub_script.contains("func _on_quest_offer_cancelled()"))
+
+
+func test_cancelled_quest_offer_clears_dialogue_and_restores_walking() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	add_child_autofree(hub)
+	await get_tree().process_frame
+	hub._dialog_quest_id = "side_quest"
+	hub._dialog_speaker = "Professor"
+	hub._dialog_offer_lines.assign(["An offer"])
+	hub._dialog_offer_responses.assign([{"id": "accept", "text": "Accept"}])
+	hub.player.set_physics_process(false)
+
+	hub._on_quest_offer_cancelled()
+
+	assert_true(hub.player.is_physics_processing())
+	assert_false(hub.dialogue_box.visible)
+	assert_true(hub._dialog_quest_id.is_empty())
+	assert_true(hub._dialog_offer_lines.is_empty())
+	assert_true(hub._dialog_offer_responses.is_empty())
+
+
 func test_non_academic_quest_offer_does_not_invent_curriculum_cost() -> void:
 	var offer_scene: PackedScene = load(
 		"res://scenes/meta/components/quest_offer_modal.tscn"

@@ -18,6 +18,11 @@ Development-only scenes for testing, debugging, and iteration.
 
 ## Current Dev Scenes
 
+- `debug_arena.tscn` — interactive authored-battle and unit-debug surface.
+- `test_battle_abilities.tscn` — focused ability testing.
+- `test_battle_vfx.tscn` — focused card and VFX testing.
+- `test_collision.tscn` — collision and movement diagnostics.
+
 ### test_battle_vfx.tscn
 VFX and card testing sandbox. Extends the main battle scene with special test conditions:
 
@@ -26,7 +31,7 @@ VFX and card testing sandbox. Extends the main battle scene with special test co
 - **Infinite HP**: `enemy_hp = 999999.0` (unkillable enemy)
 - **Hardcoded Test Deck**: Predefined cards for testing specific interactions
 - **Custom Labels**: Shows FPS, unit count, active card count
-- **Fast Iteration**: Test VFX without playing through campaign
+- **Fast Iteration**: Test VFX without entering the quest or preparation flow
 
 **Usage:**
 1. Open `dev/test_battle_vfx.tscn` in Godot

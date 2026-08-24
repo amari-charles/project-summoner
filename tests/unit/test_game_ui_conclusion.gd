@@ -83,6 +83,20 @@ func test_battle_hud_presents_mirrored_summoner_identity_groups() -> void:
 	assert_true(enemy_status.mirrored)
 	assert_eq(player_status.get_child(0), player_status.portrait_frame)
 	assert_eq(enemy_status.get_child(enemy_status.get_child_count() - 1), enemy_status.portrait_frame)
+	assert_eq(player_status.portrait_frame.size, Vector2(72, 72))
+	assert_eq(enemy_status.portrait_frame.size, Vector2(72, 72))
+	var portrait_material: ShaderMaterial = (
+		player_status.portrait_texture.material as ShaderMaterial
+	)
+	assert_not_null(portrait_material)
+	assert_eq(
+		portrait_material.shader.resource_path,
+		"res://shaders/ui/portrait_crop.gdshader"
+	)
+	assert_eq(
+		player_status.portrait_texture.stretch_mode,
+		TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	)
 
 	var summoner_id: String = String(SummonerIDs.COLE)
 	var config: SummonerConfig = SummonerConfig.from_dict(

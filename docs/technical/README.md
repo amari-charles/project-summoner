@@ -1,7 +1,7 @@
 # Technical Docs Index
 
 **Status:** CURRENT  
-**Last Updated:** 2026-03-08
+**Last Updated:** 2026-08-24
 
 This folder is for implementation references.
 
@@ -29,7 +29,6 @@ This folder is for implementation references.
 - [runtime/hit-geometry-v1.md](runtime/hit-geometry-v1.md)
 - [runtime/projectile-targeting.md](runtime/projectile-targeting.md)
 - [runtime/targeting-system.md](runtime/targeting-system.md)
-- [runtime/ability-system.md](runtime/ability-system.md)
 - [runtime/trait-system-architecture.md](runtime/trait-system-architecture.md)
 - [runtime/unified-trait-system-plan.md](runtime/unified-trait-system-plan.md)
 - [runtime/unified-trait-system-validation-cases.md](runtime/unified-trait-system-validation-cases.md)
@@ -40,7 +39,6 @@ This folder is for implementation references.
 
 ### Infrastructure / Platform
 
-- [runtime/reward-system-architecture.md](runtime/reward-system-architecture.md)
 - [infrastructure/save-system.md](infrastructure/save-system.md)
 - [infrastructure/audio-system.md](infrastructure/audio-system.md)
 - [infrastructure/dialogue-system.md](infrastructure/dialogue-system.md)

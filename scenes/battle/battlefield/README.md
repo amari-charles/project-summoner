@@ -6,7 +6,7 @@ This directory contains all battlefield-related scenes for Fateforged.
 
 ```
 battlefield/
-├── battle_3d.tscn              # Main battle scene (campaign/arena/practice)
+├── battle_3d.tscn              # Shared production battle scene
 ├── components/                 # Reusable battlefield building blocks
 │   └── base_battlefield_3d.tscn
 └── dev/                        # Development and testing scenes
@@ -25,7 +25,9 @@ battlefield/
 - Test scenes (those go in `dev/`)
 
 ### battle_3d.tscn
-The main battle scene used by Campaign, Arena, and Practice modes. Configured via the `BattleContext` singleton before loading. Contains:
+The main battle scene used by encounter, authored, practice, and multiplayer
+battles. It is configured through the `BattleContext` singleton before loading.
+It contains:
 - GameController3D (battle logic)
 - Player and enemy summoners
 - UI layer (hand, labels, drop zone)
@@ -44,20 +46,20 @@ Development-only scenes for testing and debugging. See `dev/README.md` for detai
 All battle scenes are configured through the `BattleContext` singleton (autoload). Before loading a battle:
 
 ```gdscript
-# Configure for campaign mode
-var battle_context = get_node("/root/BattleContext")
-battle_context.configure_campaign_battle("battle_00")
-get_tree().change_scene_to_file("res://scenes/battle/battlefield/battle_3d.tscn")
+# Configure a quest/world encounter after EncounterApi resolves its authored data
+var encounter_id := "intro_spell_practice"
+var config := EncounterApi.resolve_battle_config(encounter_id)
+BattleContext.configure_encounter_battle(encounter_id, config)
+SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
-# Configure for practice mode
-battle_context.configure_practice_battle({
-    "enemy_deck": [...],
-    "enemy_hp": 150.0
-})
-get_tree().change_scene_to_file("res://scenes/battle/battlefield/battle_3d.tscn")
+# Configure the default practice battle
+BattleContext.configure_practice_battle()
+SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 ```
 
-This allows a single battle scene to work across all game modes.
+Direct authored debug battles use `configure_authored_battle()`. Multiplayer
+uses `configure_multiplayer_battle()`. This keeps one production battle scene
+behind explicit, mode-specific configuration entry points.
 
 ## Biome System
 

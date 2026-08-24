@@ -171,6 +171,7 @@ func _ready() -> void:
 	reward_modal.closed.connect(_on_reward_modal_closed)
 	quest_offer_modal.accepted.connect(_on_quest_offer_accepted)
 	quest_offer_modal.backed.connect(_on_quest_offer_backed)
+	quest_offer_modal.cancelled.connect(_on_quest_offer_cancelled)
 	if Quests.has_signal("ProgressChanged"):
 		Quests.connect("ProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
@@ -986,12 +987,30 @@ func _on_quest_offer_backed() -> void:
 	_present_quest_opportunity_dialogue()
 
 
+func _on_quest_offer_cancelled() -> void:
+	_clear_quest_dialogue_context()
+	player.set_physics_process(true)
+
+
 func _present_quest_opportunity_dialogue() -> void:
 	dialogue_box.present(
 		_dialog_speaker,
 		_dialog_offer_lines,
 		_dialog_offer_responses
 	)
+
+
+func _clear_quest_dialogue_context() -> void:
+	_dialog_quest_id = ""
+	_dialog_speaker = ""
+	_dialog_npc_id = ""
+	_dialog_accepted_lines.clear()
+	_dialog_turn_in_npc_id = ""
+	_dialog_response_actions.clear()
+	_dialog_response_quest_ids.clear()
+	_dialog_opportunities_by_id.clear()
+	_dialog_offer_lines.clear()
+	_dialog_offer_responses.clear()
 
 
 func _on_dialogue_closed() -> void:

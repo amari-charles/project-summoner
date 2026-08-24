@@ -30,7 +30,7 @@ cd project-summoner
 ```
 
 Open the project in Godot 4.5 and run the VFX test scene:
-- `scenes/battle/battlefield/test_battle_vfx.tscn` - Sandbox for testing abilities and combat
+- `scenes/battle/battlefield/dev/test_battle_vfx.tscn` - Sandbox for testing abilities and combat
 
 ## Documentation
 

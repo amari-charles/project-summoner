@@ -2,7 +2,12 @@
 
 *Last Updated: 2026-02-01*
 
-**Status:** Documentation complete. Ready for implementation after current PR merge.
+> **Archived historical proposal (2026-08-24):** The `SummonSpec` data model was
+> implemented in the typed C# card catalog. This file preserves the proposal and
+> its pre-implementation `CardFactory` examples; it is not current wiring
+> guidance.
+
+**Status:** Implemented and archived.
 
 ---
 

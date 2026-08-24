@@ -104,27 +104,27 @@ Settled decisions and open questions from architecture discussions. Each decisio
 
 ### 13. BattleContext: Typed BattleConfig Passed to Session
 
-**Decision:** `BattleContext` autoload builds a typed `BattleConfig` data object that is passed to session constructors. Sessions receive everything they need at construction time.
+**Decision:** `BattleContext` remains the transition-time configuration holder. `BattleScene` converts it once into a typed `BattleSessionConfig`, which is then passed into session setup.
 
-**Reasoning:** Session should own its configuration after init, not reach into a global autoload mid-battle. A typed config object (`BattleConfig`) codifies the contract — decks, summoners, biome, game mode — and is passed to `LocalSession(config)`, `HostSession(config)`, etc. The `BattleContext` autoload remains as the builder/holder during scene transition, but sessions don't depend on it after construction.
+**Reasoning:** Session should own its configuration after init, not reach into a global autoload mid-battle. The typed configuration codifies the contract — decks, summoners, biome, and battle mode — while `BattleContext` remains the handoff point during scene transition.
 
-**Affects:** `scripts/application/battle_context.gd` stays as autoload but becomes a `BattleConfig` builder. Session constructors take `BattleConfig` as a required parameter.
+**Affects:** `scripts/application/battle_context.gd`, `scripts/csharp/Battle/Session/BattleSessionConfig.cs`, and `scripts/csharp/Battle/View/BattleScene.cs`.
 
-### 14. CardFactory: Cross-Cutting Utility (Base Stats Only)
+### 14. Card Creation: Cross-Cutting Utility (Base Stats Only)
 
-**Decision:** CardFactory stays as a cross-cutting utility that creates cards with base stats from definitions. Stat modifications (player upgrades, card levels, traits, summoner bonuses, items) are applied separately during session initialization.
+**Decision:** Card creation stays a cross-cutting utility that creates runtime cards from catalog definitions. Stat modifications (player upgrades, card levels, traits, summoner bonuses, items) are applied separately during session initialization.
 
-**Reasoning:** Clean separation: CardFactory does one thing (definition → card instance). The modifier pipeline is a separate concern owned by session init, where player-specific data is available. This keeps CardFactory pure and testable — it doesn't need to know about player profiles or progression systems.
+**Reasoning:** Clean separation: definition-to-card conversion does one thing. The modifier pipeline is a separate concern owned by session initialization, where player-specific data is available.
 
-**Affects:** `scripts/csharp/Cards/CardFactory.cs` stays as autoload, cross-cutting layer. Stat modification pipeline is a session-init concern (designed in Phase 5).
+**Affects:** `scripts/csharp/Battle/Session/Card.cs`, `scripts/csharp/Battle/Session/BattleSideResolver.cs`, and the stat/modifier pipeline.
 
-### 15. GameStateEvents: Keep for Non-Battle, Revisit in Phase 6
+### 15. GameStateEvents: Retired After Meta-Game Migration
 
-**Decision:** Battle events flow through `IGameSession.SimEventsEmitted`. `GameStateEvents` stays for meta-game signals (quest progression, shop purchases, profile updates). Full reassessment during Phase 6 meta-game migration.
+**Decision:** Battle events flow through the session/simulation event boundary. The former global `GameStateEvents` autoload was retired during the meta-game migration; quest, shop, and profile changes now use their owning APIs and coordinators.
 
-**Reasoning:** Two separate event domains: battle events are high-frequency, typed, and session-scoped. Meta-game events are infrequent, global, and cross-scene. Collapsing them into one system would force meta-game code to depend on `IGameSession`. Keeping them separate is cleaner. May be renamed or restructured in Phase 6.
+**Reasoning:** Battle events are high-frequency, typed, and session-scoped. Meta-game changes belong to their feature owners rather than a global compatibility bus.
 
-**Affects:** `scripts/services/game_state_events.gd` stays as autoload for now. Battle code migrates to `SimEventsEmitted`.
+**Affects:** No `GameStateEvents` autoload remains. Battle events remain session-scoped; meta-game state changes are routed through feature APIs.
 
 ### 16. Battle RNG: Isolated Sim RNG + Separate View RNG
 
@@ -132,7 +132,7 @@ Settled decisions and open questions from architecture discussions. Each decisio
 
 **Reasoning:** The sim's RNG sequence must be identical on host and client for deterministic simulation. If View code calls the sim's RNG, it advances the sequence unpredictably (different machines render different numbers of particles), causing desync. A separate View RNG instance preserves visual consistency across machines without affecting sim determinism. The GDScript `BattleRNG` autoload is retired for gameplay use.
 
-**Affects:** `DeterministicRng` stays in sim layer. View layer creates its own `DeterministicRng` with a separate seed. `scripts/multiplayer/rng/battle_rng.gd` retired for gameplay RNG.
+**Affects:** `scripts/csharp/Battle/Simulation/DeterministicRng.cs` owns gameplay randomness. Any future view-only randomness must use separate state and must not consume the simulation RNG.
 
 ---
 

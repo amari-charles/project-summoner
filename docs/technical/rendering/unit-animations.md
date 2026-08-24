@@ -8,25 +8,27 @@ Floating units (spirits, elementals, ghosts) can use a bobbing animation to simu
 
 ### Enabling Bobbing
 
-In your unit scene (`.tscn`), set these properties on the `UnitVisual` node:
+In your unit scene (`.tscn`), set this property on the
+`SpriteVisualComponent` node:
 
 ```
-enable_bobbing = true
+EnableBobbing = true
 ```
 
-Or configure via `unit_3d.gd` exports:
+The exports are defined by
+`scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs`:
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `enable_bobbing` | bool | false | Enable the bobbing animation |
+| `EnableBobbing` | bool | false | Enable the bobbing animation |
 
-The bobbing parameters can be tuned in `sprite_character_2d5_component.gd`:
+The bobbing parameters can be tuned on the same component:
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `bob_speed` | 8.0 | Speed of walk cycle (higher = faster steps) |
-| `bob_amplitude` | 6.0 | Vertical bounce in pixels |
-| `bob_rotation_amplitude` | 4.0 | Side-to-side tilt in degrees |
+| `BobSpeed` | 8.0 | Speed of walk cycle (higher = faster steps) |
+| `BobAmplitude` | 6.0 | Vertical bounce in pixels |
+| `BobRotationAmplitude` | 4.0 | Side-to-side tilt in degrees |
 
 ### How It Works
 

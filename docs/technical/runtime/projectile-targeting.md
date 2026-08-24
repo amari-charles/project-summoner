@@ -202,7 +202,7 @@ With deceleration, actual flight time is longer than predicted, causing consiste
 | `scripts/csharp/Battle/View/UnitVisual.cs` | `get_projectile_target_position()`, `GetProjectileSpawnPosition()` (ranged spawn logic merged here) |
 | `scripts/csharp/Battle/View/ProjectileVisual.cs` | Path movement, tracking, collision |
 | `scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs` | Simulation-layer projectile ticking, hit detection, damage application |
-| `scripts/csharp/Projectiles/ProjectileData.cs` | Projectile configuration data class |
+| `scripts/csharp/Infrastructure/Data/Projectiles/ProjectileData.cs` | Projectile configuration data class |
 | `scripts/csharp/Infrastructure/Data/Projectiles/ProjectileDefinitions.cs` | Static projectile definitions |
 | `scripts/csharp/Battle/View/Visual/SpriteVisualComponent.cs` | `GetSpriteHeight()`, sprite positioning |
 | `scenes/battle/projectiles/base_projectile_3d.tscn` | Base scene with collision shape |

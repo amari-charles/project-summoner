@@ -1,5 +1,9 @@
 # Ability System Architecture
 
+> **Historical document:** This Godot-node component architecture was replaced
+> by typed ability configuration and deterministic `SimAbilityOrchestrator`
+> execution. It is not current implementation guidance.
+
 ## Design Rationale
 
 ### Why Component-Based?

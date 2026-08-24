@@ -34,6 +34,9 @@ There is no map graph, run-scoped currency, academic enrollment browser, or
 parallel activity-node flow. Debug battles are direct authored battles selected
 from the Debug Arena catalog.
 
+The battle HUD uses fixed square summoner portraits. Portrait art keeps its
+authored crop without circular clipping or container-driven stretching.
+
 ## Persistence
 
 `ProfileData` version 8 stores quest and authored-battle state in

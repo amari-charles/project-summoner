@@ -111,7 +111,9 @@ flowchart LR
 | File | Change |
 |------|--------|
 | `scripts/csharp/Meta/Services/Shop/ShopService.cs` | Removed `_purchaseCache`, delegates to `IProfileRepository` |
-| `scripts/services/shop_service.gd` | Removed `LoadPurchaseCache()` call |
+
+The former GDScript ShopService adapter was subsequently retired; the C#
+service is the authoritative runtime boundary.
 
 ## Future Pattern
 

@@ -95,7 +95,6 @@ Displays real-time metrics (only when panel is visible):
 - `scripts/csharp/Battle/View/UnitVisual.cs` - Unit debug markers (hurtbox, target point, attack range, separation radius)
 - `scripts/csharp/Battle/View/ProjectileVisual.cs` - Projectile hit geometry debug markers
 - `scripts/csharp/Debug/BattlefieldDebugService.cs` - C# autoload bridge for debug flags used by GDScript + C#
-- `scripts/csharp/Battle/Simulation/Subsystems/SimSpatialGrid.cs` - Grid visualization and perf counters
 - `scripts/battle/battlefield/camera_controller_3d.gd` - Camera clamp math + pan bounds overlay
 
 ## Architecture Notes

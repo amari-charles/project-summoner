@@ -33,7 +33,8 @@ marked event-exclusive and shared.
 ### Services
 
 - **ItemService (C#)**: `scripts/csharp/Meta/Services/Items/ItemService.cs` - Core item logic
-- **ItemService (GDScript)**: `scripts/services/item_service.gd` - GDScript wrapper, autoloaded as `Items`
+- **ItemService (C#)**: `scripts/csharp/Meta/Services/Items/ItemService.cs` - authoritative service, autoloaded as `Items`
+- **ItemsApi (GDScript)**: `scripts/infrastructure/services/items_api.gd` - thin UI/interoperability adapter
 - **ItemCatalog**: Static item definitions with slots, modifiers, and binding types
 
 ### Data Structures

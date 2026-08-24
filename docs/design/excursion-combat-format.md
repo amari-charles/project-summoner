@@ -136,7 +136,9 @@ Current test setup:
 - enemy creature placement constrained to the compact encounter space.
 - effectively unlimited mana for both the player and ruin defense core so this isolated test measures combat interactions rather than resource tuning; this is test scaffolding, not the intended excursion economy.
 
-Launch it with **F12 → Experimental Rooms → Compact Ruin**, or run `res://scenes/battle/battlefield/dev/compact_ruin_skirmish.tscn` directly in Godot.
+The prototype is preserved on the `feat/compact-ruin-skirmish-prototype`
+branch as research evidence. It is not shipped or launchable from the current
+runtime.
 
 The prototype should answer:
 
