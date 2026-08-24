@@ -10,21 +10,21 @@ public static class BattleRewardAuthoring
 {
     public static ImmutableArray<RewardOfferDefinition> ChooseOneCard(
         EventId battleId,
-        int campaignGold,
+        int gold,
         bool excludeOwned,
         params CardId[] cardIds
-    ) => ChooseOneCard(battleId, campaignGold, excludeOwned, false, cardIds);
+    ) => ChooseOneCard(battleId, gold, excludeOwned, false, cardIds);
 
     public static ImmutableArray<RewardOfferDefinition> ChooseOneCardAndAddToSelectedDeck(
         EventId battleId,
-        int campaignGold,
+        int gold,
         bool excludeOwned,
         params CardId[] cardIds
-    ) => ChooseOneCard(battleId, campaignGold, excludeOwned, true, cardIds);
+    ) => ChooseOneCard(battleId, gold, excludeOwned, true, cardIds);
 
     private static ImmutableArray<RewardOfferDefinition> ChooseOneCard(
         EventId battleId,
-        int campaignGold,
+        int gold,
         bool excludeOwned,
         bool addToSelectedDeck,
         params CardId[] cardIds
@@ -35,7 +35,7 @@ public static class BattleRewardAuthoring
             {
                 Id = new RewardOptionId(cardId.Value),
                 LabelKey = cardId.Value,
-                Grants = BuildCommonGrants(campaignGold)
+                Grants = BuildCommonGrants(gold)
                     .Add(
                         new CardRewardGrantDefinition
                         {
@@ -76,11 +76,11 @@ public static class BattleRewardAuthoring
 
     public static ImmutableArray<RewardOfferDefinition> AutomaticCards(
         EventId battleId,
-        int campaignGold,
+        int gold,
         params BattleRewardCard[] cards
     )
     {
-        var grants = BuildCommonGrants(campaignGold).ToBuilder();
+        var grants = BuildCommonGrants(gold).ToBuilder();
         foreach (var card in cards)
             grants.Add(
                 new CardRewardGrantDefinition
@@ -125,19 +125,16 @@ public static class BattleRewardAuthoring
                 },
             ];
 
-    private static ImmutableArray<RewardGrantDefinition> BuildCommonGrants(int campaignGold) =>
-        campaignGold <= 0
+    private static ImmutableArray<RewardGrantDefinition> BuildCommonGrants(int gold) =>
+        gold <= 0
             ? []
             :
             [
                 new ResourceRewardGrantDefinition
                 {
-                    Target = new RewardOwnershipTarget(
-                        RewardOwnershipScope.SummonerCampaign,
-                        "$summoner"
-                    ),
+                    Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
                     ResourceId = "gold",
-                    Amount = campaignGold,
+                    Amount = gold,
                 },
             ];
 

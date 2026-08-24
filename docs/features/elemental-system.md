@@ -16,7 +16,7 @@ This document defines the elemental structure for Fateforged. It organizes all k
 
 ## Overview
 
-The elemental system in Fateforged consists of **13 distinct element types** organized into tiers based on their narrative and gameplay roles. Each tier serves a specific purpose in campaign progression, worldbuilding, and mechanical design.
+The elemental system in Fateforged consists of **13 distinct element types** organized into tiers based on their narrative and gameplay roles. Each tier serves a specific purpose in Academy progression, worldbuilding, and mechanical design.
 
 **Important:** Variants (Ash, Coldfire, Mist, Smoke, Crystal, etc.) and Hybrids (Magma) are **NOT** separate element types. They are thematic card flavors that use their parent element's affinity.
 
@@ -26,7 +26,7 @@ The elemental system in Fateforged consists of **13 distinct element types** org
 
 ### Core Elements (4)
 
-The four primary campaign elements — the foundation of the world and the player's main path of progression. Each Core Element will receive a full campaign at launch.
+The four primary elements are the foundation of the world and the player's main path of progression. Each Core Element receives professor-led quests and encounters.
 
 | Element | Description | Gameplay Identity |
 |---------|-------------|-------------------|
@@ -61,7 +61,7 @@ ElementTypes.EARTH   # "earth"
 
 ### Outer Elements (5)
 
-Outer Elements exist alongside the Core but are not part of the initial campaign set. They enrich the world and add complexity to future updates, advanced content, or special units.
+Outer Elements exist alongside the Core but are not part of the initial launch set. They enrich the world and add complexity to future updates, advanced content, or special units.
 
 | Element | Description |
 |---------|-------------|
@@ -71,7 +71,7 @@ Outer Elements exist alongside the Core but are not part of the initial campaign
 | **Life** | The element of growth, restoration, and empathy. Represents vitality and connection. |
 | **Death** | The element of endings and transition. Represents inevitability and silence. |
 
-**Design Purpose:** Outer Elements expand the world beyond the Core campaigns. They are ideal for future story arcs, late-game unlocks, or unique event cards. They provide design flexibility without overextending launch scope.
+**Design Purpose:** Outer Elements expand the world beyond the Core roster. They are ideal for future story arcs, late-game unlocks, or unique event cards. They provide design flexibility without overextending launch scope.
 
 **Technical Implementation:**
 ```gdscript
@@ -129,7 +129,7 @@ if ElementTypes.can_elevate(ElementTypes.FIRE):
 
 ### Variants (Empowered Subtypes)
 
-Variants are slightly stronger, reward-tier versions of base elemental cards. They appear as rare campaign rewards, achievement bonuses, or post-battle upgrades. **Variants maintain their parent element's typing** but feature enhanced effects or unique passives.
+Variants are slightly stronger, reward-tier versions of base elemental cards. They appear as rare quest or encounter rewards, achievement bonuses, or post-battle upgrades. **Variants maintain their parent element's typing** but feature enhanced effects or unique passives.
 
 | Element | Variants | Status |
 |---------|----------|--------|
@@ -154,7 +154,7 @@ var card_def = {
 var modifiers = ModifierSystem.get_modifiers_for("unit", {"elemental_affinity": "fire"}, {})
 ```
 
-**Design Purpose:** Variants extend replayability and offer progression incentives. They make campaigns feel rewarding while preserving overall balance by staying within the same elemental synergy framework.
+**Design Purpose:** Variants extend replayability and offer progression incentives while preserving overall balance by staying within the same elemental synergy framework.
 
 ---
 
@@ -306,10 +306,10 @@ bool hasAdvantage = ElementMatchups.HasAdvantage(attackerElement, defenderElemen
 
 ### Future Expansion
 
-- **Core Elements:** Main campaign content, always available
+- **Core Elements:** Main launch content, always available
 - **Outer Elements:** Expansion packs, late-game unlocks, special events
 - **Elevated Elements:** Endgame transformations, mythological content
-- **Occultist:** Antagonist campaigns, corruption mechanics
+- **Occultist:** Antagonist content, corruption mechanics
 
 ---
 

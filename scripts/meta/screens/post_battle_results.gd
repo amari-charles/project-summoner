@@ -64,26 +64,26 @@ func present(report: PostBattleReport) -> void:
 
 
 func _load_authoritative_report() -> void:
-	if BattleContext.current_mode == BattleContext.BattleMode.CAMPAIGN:
-		_load_campaign_report()
+	if BattleContext.current_mode == BattleContext.BattleMode.AUTHORED:
+		_load_authored_battle_report()
 	elif BattleContext.current_mode == BattleContext.BattleMode.ENCOUNTER:
 		_load_encounter_report()
 	else:
 		present(PostBattleReport.basic(_battle_context_outcome(), BattleContext.get_origin_scene()))
 
 
-func _load_campaign_report() -> void:
+func _load_authored_battle_report() -> void:
 	_attempt_id = BattleContext.get_battle_attempt_id()
 	var result: Dictionary = ProgressionAuthority.GetBattleRewards(_attempt_id)
-	_present_campaign_result(result)
+	_present_authored_battle_result(result)
 
 
-func _present_campaign_result(result: Dictionary) -> void:
+func _present_authored_battle_result(result: Dictionary) -> void:
 	if not SafeTypeUtils.bool_val(result.get("is_success"), false):
 		push_error("PostBattleResults: completion unavailable: %s" % str(result.get("errors", [])))
 		SceneManager.transition_to(BattleContext.get_origin_scene())
 		return
-	present(PostBattleReport.from_campaign_result(
+	present(PostBattleReport.from_authored_battle_result(
 		result,
 		BattleContext.get_origin_scene(),
 		_battle_context_outcome()
@@ -92,7 +92,7 @@ func _present_campaign_result(result: Dictionary) -> void:
 
 func _load_encounter_report() -> void:
 	_encounter_id = BattleContext.encounter_id
-	var summary: Dictionary = CampaignApi.get_encounter_completion_summary(_encounter_id)
+	var summary: Dictionary = EncounterApi.get_completion_summary(_encounter_id)
 	if summary.is_empty():
 		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 		return
@@ -311,11 +311,11 @@ func _continue() -> void:
 		if not SafeTypeUtils.bool_val(result.get("is_success"), false):
 			push_error("PostBattleResults: reward claim failed: %s" % str(result.get("errors", [])))
 			return
-		if PostBattleReport.from_campaign_result(result, _destination, _battle_context_outcome()).has_pending_offer():
-			_present_campaign_result(result)
+		if PostBattleReport.from_authored_battle_result(result, _destination, _battle_context_outcome()).has_pending_offer():
+			_present_authored_battle_result(result)
 			return
 	if not _encounter_id.is_empty():
-		CampaignApi.consume_encounter_completion_summary(_encounter_id)
+		EncounterApi.consume_completion_summary(_encounter_id)
 	SceneManager.transition_to(_destination)
 
 

@@ -9,7 +9,7 @@ namespace Fateforged.Session;
 /// <summary>
 /// Singleplayer session. Validates commands via CommandRouter, feeds them to
 /// the Simulation, and ticks locally. The only session type needed for
-/// campaign, tutorial, and AI battles.
+/// authored, tutorial, and AI battles.
 /// </summary>
 public class LocalSession : IGameSession
 {

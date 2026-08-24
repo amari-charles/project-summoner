@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Fateforged.Data.Events;
-using Fateforged.Meta.Campaign;
 using GdUnit4;
 using Godot;
 using static GdUnit4.Assertions;
@@ -17,21 +16,22 @@ public class TestArenaCatalogConsistencyTest
     private const string PresetCatalogPath = "res://data/debug/debug_arena_menu_presets.json";
 
     [TestCase]
-    public void TestArenaCampaign_AllTestArenaPreset_MatchesCampaignEventIds()
+    public void DebugArena_AllTestArenaPreset_MatchesAuthoredDebugBattles()
     {
-        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
-        AssertThat(campaign).IsNotNull();
-
-        var campaignEventIds = campaign!.EventIds.Select(id => id.Value).ToHashSet();
+        var authoredBattleIds = EventCatalog
+            .GetEventsByType<BattleEventDefinition>()
+            .Where(battle => battle.RuntimeSurface == BattleRuntimeSurface.DebugArena)
+            .Select(battle => battle.Id.Value)
+            .ToHashSet();
         var presetEntries = LoadPresetEntries("all_test_arena");
         var presetBattleIds = presetEntries.Select(entry => entry.BattleId).ToHashSet();
 
-        AssertThat(presetBattleIds.Count).IsEqual(campaignEventIds.Count);
-        AssertThat(presetBattleIds.SetEquals(campaignEventIds)).IsTrue();
+        AssertThat(presetBattleIds.Count).IsEqual(authoredBattleIds.Count);
+        AssertThat(presetBattleIds.SetEquals(authoredBattleIds)).IsTrue();
     }
 
     [TestCase]
-    public void TestArenaCampaign_AllPresetBattleIds_ResolveEventCatalog()
+    public void DebugArena_AllPresetBattleIds_ResolveEventCatalog()
     {
         var entries = LoadPresetEntries("all_test_arena");
         AssertThat(entries.Count).IsGreater(0);
@@ -44,7 +44,7 @@ public class TestArenaCatalogConsistencyTest
     }
 
     [TestCase]
-    public void TestArenaCampaign_NewCardsOnlyPreset_ContainsExpectedStableSubset()
+    public void DebugArena_NewCardsOnlyPreset_ContainsExpectedStableSubset()
     {
         var entries = LoadPresetEntries("new_cards_only");
         var ids = entries.Select(entry => entry.BattleId).ToHashSet();

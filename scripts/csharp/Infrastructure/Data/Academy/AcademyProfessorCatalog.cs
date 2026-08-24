@@ -73,12 +73,8 @@ public static class AcademyProfessorCatalog
                 errors.Add($"Professor '{professor.Id}' requires a name key.");
             if (string.IsNullOrWhiteSpace(professor.LandmarkKey))
                 errors.Add($"Professor '{professor.Id}' requires a landmark key.");
-            foreach (
-                var duplicate in professor
-                    .CourseIds.GroupBy(id => id)
-                    .Where(group => group.Count() > 1)
-            )
-                errors.Add($"Professor '{professor.Id}' repeats course '{duplicate.Key}'.");
+            foreach (var duplicate in professor.QuestIds.GroupBy(id => id).Where(group => group.Count() > 1))
+                errors.Add($"Professor '{professor.Id}' repeats quest '{duplicate.Key}'.");
         }
 
         return errors;

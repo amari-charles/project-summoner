@@ -46,12 +46,11 @@ public class RewardGrantHandlerTest
             typeof(CardExperienceRewardGrantDefinition),
             typeof(SummonerTraitRewardGrantDefinition),
             typeof(CardTraitRewardGrantDefinition),
-            typeof(AcademyProgressFlagRewardGrantDefinition),
         ];
 
-        AssertThat(grantTypes.Length).IsEqual(11);
+        AssertThat(grantTypes.Length).IsEqual(10);
         var handled = RewardGrantHandlerRegistry.CreateDefault().HandledGrantTypes;
-        AssertThat(handled).HasSize(11);
+        AssertThat(handled).HasSize(10);
         foreach (var grantType in grantTypes)
         {
             AssertThat(grantType.IsSubclassOf(typeof(RewardGrantDefinition))).IsTrue();

@@ -120,7 +120,7 @@ Settled decisions and open questions from architecture discussions. Each decisio
 
 ### 15. GameStateEvents: Keep for Non-Battle, Revisit in Phase 6
 
-**Decision:** Battle events flow through `IGameSession.SimEventsEmitted`. `GameStateEvents` stays for meta-game signals (campaign progression, shop purchases, profile updates). Full reassessment during Phase 6 meta-game migration.
+**Decision:** Battle events flow through `IGameSession.SimEventsEmitted`. `GameStateEvents` stays for meta-game signals (quest progression, shop purchases, profile updates). Full reassessment during Phase 6 meta-game migration.
 
 **Reasoning:** Two separate event domains: battle events are high-frequency, typed, and session-scoped. Meta-game events are infrequent, global, and cross-scene. Collapsing them into one system would force meta-game code to depend on `IGameSession`. Keeping them separate is cleaner. May be renamed or restructured in Phase 6.
 

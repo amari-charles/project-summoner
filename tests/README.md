@@ -8,7 +8,7 @@ This directory contains the unit testing infrastructure for Fateforged using the
 tests/
 ├── unit/              # Unit tests for individual services
 │   ├── test_economy_service.gd
-│   ├── test_campaign_service.gd
+│   ├── meta/test_encounter_flow.gd
 │   └── test_battle_context.gd
 ├── integration/       # Integration tests (future)
 ├── mocks/             # Mock implementations for testing
@@ -95,7 +95,7 @@ Current test coverage:
 | Service | Coverage | Notes |
 |---------|----------|-------|
 | EconomyService | High | Resource operations, signals, affordability |
-| CampaignService | High | Progress tracking, unlocks, rewards |
+| Quest/Encounter services | High | Acceptance, objectives, loadouts, rewards |
 | BattleContext | Medium | State machine, card tracking, hero stats |
 
 ## Adding New Tests

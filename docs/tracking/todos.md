@@ -29,7 +29,7 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-03-11, per-summoner lines):** Simplified per-summoner identity lines to summoner-stat-only V1 (no unit modifiers/triggers) for Cole/Selene/Mei/Teo in `docs/design/summon-traits-v1.md`; remaining trait-curation scope is campaign-facing Ultimate/Oath candidate pass and permanence validation.
 **Tracker Sync (2026-03-11, combat spatial v2):** Updated directional attack, multi-target, and hitbox tracker entries to reflect runtime geometry-channel split + debug overlay progress; engage-shape startup alignment remains open.
 **Tracker Sync (2026-03-12, quick-win wave):** Closed targeted combat redirect/retarget robustness scope; completed simulation spatial namespace + spawn-rule ownership alignment; completed UI async timeout guards, Puff cone-center offset tuning, and large-unit hit-flash throttling; updated summoner stat audit status and recorded upgrade-cost scaffolding progress.
-**Tracker Sync (2026-06-04, production scoping):** Added `docs/tracking/remaining-work-scope.md` as the running scoping roadmap for spell VFX, academy classes, items, upgrades, rewards, and production asset planning.
+**Tracker Sync (2026-06-04, production scoping):** Added the now-archived `docs/archive/suspended-progression-models-2026-08/tracking/remaining-work-scope.md` roadmap for spell VFX, Academy content, items, upgrades, rewards, and production asset planning.
 **Tracker Sync (2026-06-04, active-tracker cleanup):** Moved completed Puff angle, pathfinding robustness, large-unit hit-flash, summoner secondary-stat audit, simulation spatial-domain, spawn-rule source-of-truth, and UI async timeout entries to `todos-completed.md`.
 **Tracker Sync (2026-06-04, spell roster scope):** Closed `Add More Spell Cards` as an active expansion item; current spell count is sufficient. Remaining spell-related work stays under VFX polish, balance, presentation, academy/course integration, and production scoping.
 **Tracker Sync (2026-06-04, backlog cleanup):** Consolidated premature per-sound audio tasks into one production-audio scoping item, closed stale Puff lateral-movement follow-up by product review, closed completed portrait-cropping and campaign-data migration items, and refreshed stale interop/performance/root-path TODO wording.
@@ -114,7 +114,7 @@ product task or reopen the accepted surface structure.
 The Campus Shop has a reachable offer grid and purchase-detail scaffold, but its
 final information hierarchy depends on the accepted jobs for gold, item types,
 ownership, purchase limits, and universal reward grants. Do not polish around
-legacy Caravan assumptions.
+obsolete transient-shop assumptions.
 
 **Tasks:**
 - [ ] Define the purchase-state contract after gold and item-system planning:
@@ -174,7 +174,7 @@ explicit designer state coverage and final visual design.
 **Likely Files:**
 - `docs/design/trait-tree-screen-flow-spec.md`
 - `docs/design/discovery-driven-development.md`
-- `docs/design/academy-forging-model.md`
+- `docs/design/discovery-driven-development.md`
 - `scenes/meta/screens/summoner_screen.tscn`
 - `scripts/meta/screens/summoner_screen.gd`
 - `scenes/meta/screens/trait_tree_screen.tscn`
@@ -276,7 +276,7 @@ animation/state contract and the optional unspent-choice badge treatment remain.
 - `scenes/meta/components/summoner_icon_widget.tscn`
 - `scenes/meta/screens/walkable_academy_hub.tscn`
 - `scenes/meta/screens/summoner_screen.tscn`
-- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+- `docs/technical/runtime/reward-system-architecture.md`
 
 #### Build One Reusable Reward and Progression Reveal Flow
 **Status:** 🔄 In Progress
@@ -286,10 +286,10 @@ animation/state contract and the optional unspent-choice badge treatment remain.
 **Scope:** Large
 
 **Description:**
-Replace the fragmented campaign reward screen, encounter results screen, and optional level-up modals with one clear post-battle flow backed by reusable acquisition/reveal components. The same acquisition presentation must also support rewards granted outside battle, including quest turn-ins.
+Replace fragmented legacy reward/results screens and optional level-up modals with one clear post-battle flow backed by reusable acquisition/reveal components. The same acquisition presentation must also support rewards granted outside battle, including quest turn-ins.
 
 **Progress:** Quest turn-ins use a reusable reward-grant modal fed by the generic
-quest-completion result. Campaign and encounter battles route through one
+quest-completion result. Authored and encounter battles route through one
 combined Results prototype after a brief automatic battlefield conclusion. Card
 rewards use the canonical full-card surface, and required choices remain distinct
 from automatic grants. The typed report builder and deletion of legacy
@@ -303,7 +303,7 @@ reveal treatments, and contextual progress rows remain open.
   Summoner/Card points, and special trait or eligibility rewards.
 - [x] Keep automatic grants distinct from persistent required reward choices and
   use the same normalized reward contract regardless of source.
-- [x] Route both campaign and encounter victory/defeat outcomes through the shared Results prototype.
+- [x] Route both authored and encounter victory/defeat outcomes through the shared Results prototype.
 - [x] Deprecate `RewardScreen` and `EncounterResults` as competing end destinations once the unified route is complete.
 - [x] Preserve authoritative reward/progression mutation outside the presentation layer; the screen consumes a typed post-battle report and submits only explicit pending choices.
 
@@ -311,7 +311,7 @@ reveal treatments, and contextual progress rows remain open.
 The report builder belongs in the meta/application progression boundary because reward, XP, quest, and competitive results change independently but are consumed together after battle. Reusable reveal views belong under meta UI components; battle simulation must not own meta progression presentation.
 
 **Related Doc:**
-- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+- `docs/technical/runtime/reward-system-architecture.md`
 
 **Likely Files:**
 - `scripts/csharp/Battle/View/BattleScene.cs`
@@ -345,7 +345,7 @@ Quest completion may originate from any character or activity, so quest-to-rewar
 
 **Likely Files:**
 - `data/quests/quests.json`
-- `scripts/csharp/Meta/Services/Campaign/Quests/`
+- `scripts/csharp/Meta/Services/Quests/`
 - `scripts/csharp/Meta/Services/Rewards/`
 - `scripts/meta/screens/quest_journal.gd`
 
@@ -371,7 +371,7 @@ curation remain follow-up coverage rather than foundational product decisions.
 
 **Tasks:**
 - [ ] Map onboarding, summoner selection, campus HUD, dialogue, Journal, quest preparation, battle, results/rewards, summoner, upgrades, equipment, shop, collection/deck, settings, and online flows.
-- [ ] Identify duplicate victory, reward, level-up, course, and navigation surfaces.
+- [ ] Identify duplicate victory, reward, level-up, quest, and navigation surfaces.
 - [x] Define persistent campus HUD ownership: profile at upper left, tracked quest
   beneath it, utility actions on the center-right rail, and conceptual future
   Friends capacity without a dead control.
@@ -450,23 +450,22 @@ The framework is established. Complete the curated, user-reviewed historical bac
 **Effort:** Medium
 
 **Description:**
-Maintain a dedicated scoping roadmap that turns fuzzy remaining production work into counted, grouped, knockable-down tasks. This includes spell VFX needs, reusable VFX kit assumptions, academy class content, items/equipment, upgrades, reward placement, and production asset acquisition.
+Maintain a dedicated scoping roadmap that turns fuzzy remaining production work into counted, grouped, knockable-down tasks. This includes spell VFX needs, reusable VFX kit assumptions, Academy quest content, items/equipment, upgrades, reward placement, and production asset acquisition.
 
 **Tasks:**
 - [ ] Build current runtime spell/VFX inventory table.
 - [ ] Decide Year 1 spell VFX minimum count and first-pass four-element VFX count.
 - [ ] Assign initial spells to reusable VFX archetypes.
-- [ ] Draft Academy Year 1 course and reward matrix. Progress: Magic 101 playtest structure, rewards, and validation docs are in PR #348; remaining Year 1 courses still need the same treatment.
-- [ ] Add a Practical Spellcraft lesson/activity that clearly teaches spells cannot be played during the preparation phase, including UX feedback so players understand why the play is blocked. Progress: PR #349 adds activity-local class rules and a Practical Spellcraft constrained loadout; remaining scope is battle-time prep-phase UX feedback when spell play is blocked.
+- [ ] Draft the Academy Year 1 professor-quest and reward matrix.
+- [ ] Add a Practical Spellcraft quest encounter that clearly teaches spells cannot be played during the preparation phase, including UX feedback so players understand why the play is blocked.
 - [ ] Inventory item/equipment catalog gaps and reward placement.
 - [ ] Inventory upgrade/trait catalog gaps and special-resource cost policy.
 - [ ] Convert scoped groups into smaller implementation TODOs.
 
 **Related Docs:**
-- `docs/tracking/completion-roadmap.md`
-- `docs/tracking/remaining-work-scope.md`
-- `docs/design/academy-forging-model.md`
-- `docs/design/academy-forging-implementation-spec.md`
+- `docs/design/quest-system.md`
+- `data/quests/quests.json`
+- `data/encounters/encounters.json`
 - `docs/technical/spell-system-audit.md`
 - `docs/features/equipment-system.md`
 
@@ -984,7 +983,7 @@ Redesign settings/options screen for better usability and visual consistency.
 
 ### 🟡 MEDIUM PRIORITY
 
-#### Define Summoner Oaths (Trait-Backed Campaign Choices)
+#### Define Summoner Oaths (Trait-Backed Permanent Choices)
 **Status:** ⬜ Not Started
 **Category:** Summoners / Identity
 **Effort:** Medium
@@ -1007,7 +1006,7 @@ Add summoner Oaths as explicit, high-impact choices shown to the player in progr
 
 **Notes:**
 - Oaths should be irreversible per summoner to reinforce Fateforged's permanent-choice identity.
-- Deferred until campaign-fleshing pass; trait curation remains the active priority now.
+- Deferred until professor-quest content is fleshed out; trait curation remains the active priority now.
 
 ---
 
@@ -1029,7 +1028,7 @@ Replace placeholder AI-generated trait content in the current workstream with cu
 - [x] Add deterministic coverage for evaluator gating, override resolution, and spawn-count/runtime behavior
 - [x] Produce summon-focused curated trait draft: `docs/design/summon-traits-v1.md`
 - [x] Define non-summon per-summoner identity trait lines (doctrine/tradeoff focus)
-- [ ] Author campaign-facing Ultimate/Oath trait candidates and validate permanence/exclusivity interactions
+- [ ] Author quest-facing Ultimate/Oath trait candidates and validate permanence/exclusivity interactions
 - [ ] Evaluate simplifying the base trait tree: if traits are non-interconnected, represent each series stage with a single swappable UI element and add a clear progression display model
 
 **Related Files:**
@@ -1041,7 +1040,7 @@ Replace placeholder AI-generated trait content in the current workstream with cu
 **Notes:**
 - This replaces generic placeholder trait generation as the active trait work item.
 - Favor mechanics that create visible doctrine changes over flat stat inflation.
-- Summon stat-tree foundation is now implemented; remaining design scope is identity/campaign-layer trait work.
+- Summon stat-tree foundation is now implemented; remaining design scope is identity and quest-context trait work.
 
 ---
 
@@ -1091,16 +1090,16 @@ The Debug Menu (`scripts/debug/debug_menu.gd`) is hidden by default but can be s
 
 ---
 
-#### Campaign Level Editor (Dev-Only Tool)
+#### Authored Battle Editor (Dev-Only Tool)
 **Status:** ⬜ Not Started
 **Category:** Developer Tools
 **Effort:** Large
 
 **Description:**
-A UI tool for developers to design and configure campaign battles without touching code.
+A UI tool for developers to design and configure authored debug or encounter battles without touching code.
 
 **Purpose:**
-- Allow designers to create/edit campaign battles without touching code
+- Allow designers to create/edit authored battles without touching code
 - Configure enemy decks, AI behavior, rewards, difficulty
 - Test battles directly from the editor
 
@@ -1112,12 +1111,12 @@ A UI tool for developers to design and configure campaign battles without touchi
 - Configure AI behavior (aggression, card priority, play speed)
 - Set battle metadata (name, description, difficulty)
 - Define reward structure (fixed/choice/random cards)
-- Set unlock requirements (which battles must be completed first)
+- Select whether the definition belongs to a reusable encounter or the Debug Arena
 - Preview/test battle
-- Save battle definitions to `campaign_service.gd` or separate JSON files
+- Save encounter definitions to `data/encounters/` or generate typed Debug Arena catalog entries
 
 **Notes:**
-- Hardcoded decks in `campaign_service.gd` work fine for now
+- Typed Debug Arena catalog entries and encounter JSON work fine for now
 - Only needed when managing 20+ battles becomes cumbersome
 
 ---
@@ -1167,63 +1166,6 @@ Command spells (spells that give commands/orders to units) should be deprecated 
 ## Architecture & Code Quality
 
 ### 🔴 HIGH PRIORITY
-
-#### Decompose Retired Campaign/Course Ownership into Quest and Encounter Services
-**Status:** ⬜ Not Started
-**Category:** Architecture / Quests / Encounters / Legacy Cleanup
-**Urgency:** High — complete before representative opening content adds dependencies
-**Ease:** Hard
-**Scope:** Large
-
-**Description:**
-`CampaignService`, `CampaignApi`, and their handlers still mix live
-professor-quest, Journal, world-interaction, encounter preparation/completion,
-and reward behavior with APIs and state named for the retired campaign map and
-Course Flow. The live capabilities are required, so deleting the service as one
-unit is unsafe; merely renaming the monolith would preserve incorrect ownership.
-
-Run a bounded architecture review, then decompose the service around the
-accepted quest and generic-encounter domains. Delete campaign-map, run-gold,
-graph-choice, Course Flow, and other unreachable APIs/state rather than carrying
-them into the renamed services.
-
-**Tasks:**
-- [ ] Map every non-test caller and classify each API/state field as live quest,
-  live encounter, shared progression, or retired campaign/course behavior.
-- [ ] Prove the professor, Journal, world-interaction, preparation, battle,
-  completion, reward, and return-to-campus flows without campaign ownership.
-- [ ] Define focused service boundaries and canonical names for quest and
-  encounter responsibilities; keep reward and persistence authority behind
-  their existing dedicated contracts.
-- [ ] Delete unreachable campaign graph, campaign-run gold, node choice, course
-  enrollment/activity, and compatibility APIs after callers are migrated.
-- [ ] Rename the `Campaign` autoload and GDScript adapter only after the focused
-  boundaries are established; do not replace one mixed global with another.
-- [ ] Migrate persistence keys/types where they encode retired product concepts;
-  development saves may be discarded and no compatibility reader is required.
-- [ ] Move wholly superseded campaign, Caravan, and Course Flow documents to a
-  clearly named `docs/archive/` subtree, update inbound links, and keep only
-  current quest/encounter guidance in active documentation.
-- [ ] Add structural and integration tests that reject retired APIs/routes and
-  cover the retained quest/encounter contracts under their canonical names.
-
-**Placement:**
-Quest sequencing and Journal state belong in `Meta/Services/Quests`; reusable
-encounter preparation and completion belong in `Meta/Services/Encounters`.
-Persistence adapters remain in `Infrastructure/Persistence`, and battle runtime
-routing remains in the application/battle boundary.
-
-**Likely Files:**
-- `scripts/csharp/Meta/Services/Campaign/CampaignService.cs`
-- `scripts/csharp/Meta/Services/Campaign/Handlers/`
-- `scripts/infrastructure/services/campaign_api.gd`
-- `scripts/csharp/Meta/Domain/Profile/Campaign/`
-- `project.godot`
-- `tests/csharp/Services/GenericQuestEncounterFoundationTest.cs`
-- `tests/csharp/Services/AcademyProgressServiceTest.cs`
-- `docs/design/`, `docs/features/`, and `docs/archive/`
-
----
 
 #### Make Ranked Results and Rating Authoritative
 **Status:** ⬜ Not Started
@@ -1301,7 +1243,7 @@ Commerce commands and receipts belong in `Meta/Services/Commerce` and `Meta/Doma
 After the battle authority proves the pattern, migrate other permanent player-value mutations from direct repository/service calls to capability-specific, provider-neutral commands. Keep read models and UI local; move validation and durable mutation behind replaceable local/remote adapters.
 
 **Tasks:**
-- [ ] Academy/campaign: authorize enrollment, activity/course completion, campaign choices, and durable progress flags through typed progression commands.
+- [ ] Quests/encounters: authorize quest acceptance, objective completion, curriculum-capacity changes, and durable progress flags through typed progression commands.
 - [ ] Levels/upgrades: authorize card/summoner level-up, resource costs, and XP spending atomically.
 - [ ] Traits/Oaths: authorize trait-point spending and irreversible choices against prerequisites/exclusivity.
 - [ ] Items/equipment: authorize ownership-changing item operations; validate equipped configurations wherever they affect secure/competitive play.
@@ -1312,8 +1254,8 @@ After the battle authority proves the pattern, migrate other permanent player-va
 Each command belongs with the meta domain that owns its rule, while local and future remote adapters sit at the application/infrastructure boundary. Consumers depend on small capability ports rather than `ProfileRepository`.
 
 **Likely Files:**
-- `scripts/csharp/Meta/Services/Campaign/Handlers/AcademyProgressHandler.cs`
-- `scripts/csharp/Meta/Services/Campaign/Handlers/CampaignProgressHandler.cs`
+- `scripts/csharp/Meta/Services/Quests/QuestProgressHandler.cs`
+- `scripts/csharp/Meta/Services/Encounters/BattleEncounterHandler.cs`
 - `scripts/csharp/Meta/Services/Cards/Handlers/CardProgressionHandler.cs`
 - `scripts/csharp/Meta/Services/Summoner/SummonerProgressionService.cs`
 - `scripts/csharp/Meta/Traits/Unified/`
@@ -1380,46 +1322,23 @@ Units needed to stay inactive during spawn reveal. Instead of giving each UnitDa
 
 ---
 
-#### Refactor Reward System to Typed RewardSpec Classes
-**Status:** 🟡 Partial (Universal Engine + Academy Consumer Implemented)
-**Category:** Architecture / Flag Proliferation
+#### Finish Universal Reward Adoption for Remaining Sources
+**Status:** 🟡 Partial
+**Category:** Architecture / Rewards
 **Effort:** Medium
 
 **Description:**
-Replace source-specific and dictionary-based reward paths with the universal typed reward engine. Every consumer should author typed offers and grants, resolve through the shared deterministic runtime, persist universal pending state, and render normalized view models.
+Quest completion, reusable encounters, and direct authored battles now use typed
+universal reward offers, deterministic resolution, normalized view models, and
+idempotent claims. Finish the same contract for any remaining shop or standalone
+world-event grants after each source has a stable transaction or occurrence ID.
 
-**Current Problem:**
-- Academy and campaign battles are migrated, but shop and remaining non-battle event/campaign reward consumers still use legacy contracts.
-- The remaining consumers do not yet provide stable source occurrence/transaction identities required for safe universal idempotency.
-
-**Progress Update (2026-03-09):**
-- ✅ Mission completion reward flow now uses `BattleRewardSpec`-derived grants in `CampaignRewardHandler` (flexible rewards + campaign gold included)
-- ✅ Pending flexible choice now persists stable `chosen_catalog_id` to prevent index drift across resume/claim
-- ✅ RewardScreen current-battle resolution hardened for per-summoner campaign progress and pending-reward fallback
-- ✅ Regression coverage added for claim flow, mission completion flow, and choice-drift scenario
-
-**Progress Update (2026-07-25):**
-- ✅ Added a universal typed reward engine with strict JSON definitions, deterministic per-summoner resolution, persisted previews and pending choices, atomic idempotent claims, and typed grant handlers.
-- ✅ Migrated Academy activity and course rewards to the universal engine, including fixed, choice, pool, mixed, bundled, and no-immediate-reward support.
-- ✅ Replaced Academy reward-specific UI interpretation with normalized reward view models.
-- 🔄 Battle migration is now the gated `battle-progression-authority` initiative. Pass 2 adds the authority contracts, persistence/session wiring, fail-closed local adapter, and mapped test skeletons; behavior implementation awaits Pass 3 approval.
-- ⬜ Remaining: Migrate shop, event, and campaign reward consumers after their source transaction/occurrence identities are defined.
-- ⬜ Remaining: Remove the legacy reward contracts only after all consumers have migrated.
-
-**Progress Update (2026-08-05):**
-- ✅ Migrated campaign battles to universal reward offers with durable attempt identity, attempt-scoped XP, summoner-scoped first-clear rewards, frozen resolved snapshots, and atomic idempotent completion/claim transactions.
-- ✅ Migrated `RewardScreen` to normalized authority output and removed the battle-only reward configuration, spec, handler, pending state, flags, and old save readers.
-- ⬜ Remaining: Migrate shop and non-battle event/campaign sources after their transaction identities are defined.
-
-**Ideal State:**
-- All reward-bearing sources author `RewardOfferDefinition` records with typed option sources and grant bundles.
-- `UniversalRewardRuntime` owns deterministic resolution; profile persistence owns immutable snapshots, pending selections, atomic claims, and receipts.
-- Each grant type has one registered handler and an explicit ownership target.
-- Screens consume normalized reward view models and submit only claim and option IDs.
-- Legacy battle/shop/event/campaign reward models are deleted after their consumers migrate.
-
-**Remaining Files to Refactor:**
-- Shop and non-battle event/campaign source catalogs that still author legacy rewards
+**Tasks:**
+- [ ] Inventory remaining reward mutations outside `UniversalRewardRuntime`.
+- [ ] Define stable source identity before migrating each remaining consumer.
+- [ ] Route each grant type through its single registered handler.
+- [ ] Delete superseded source-specific reward shapes once no caller remains.
+- [ ] Keep screens read-only except for submitting explicit claim and option IDs.
 
 ---
 
@@ -1560,7 +1479,7 @@ Battle systems still rely on service-locator style autoload lookups (`/root/...`
 Hard-coded `/root/...` lookups still appear across runtime, meta, and service wiring. This is fragile and creates hidden dependencies, especially when battle systems pull global services directly.
 
 **Current Behavior:**
-- `get_node("/root/Campaign")`, `get_node("/root/ProfileRepo")`, etc.
+- `get_node("/root/Quests")`, `get_node("/root/ProfileRepo")`, etc.
 - Dynamic path construction: `get_node_or_null("/root/" + signal_source)`
 - If autoloads are renamed, lookups fail silently
 

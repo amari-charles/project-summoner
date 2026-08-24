@@ -11,7 +11,7 @@ namespace Fateforged.Session;
 /// </summary>
 public enum BattleMode
 {
-    Campaign = 0,
+    Authored = 0,
     Arena = 1,
     Endless = 2,
     Tutorial = 3,

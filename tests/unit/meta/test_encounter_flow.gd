@@ -1,7 +1,7 @@
 extends GutTest
 
 
-func test_generic_encounter_screens_exist_and_old_course_flow_is_not_reachable() -> void:
+func test_generic_encounter_screens_exist_and_old_academic_flow_is_not_reachable() -> void:
 	assert_true(ResourceLoader.exists(SceneManager.SCENE_ENCOUNTER_PREPARATION))
 	assert_true(ResourceLoader.exists(SceneManager.SCENE_POST_BATTLE_RESULTS))
 	var hub_script: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
@@ -15,12 +15,12 @@ func test_preparation_uses_generic_encounter_contracts() -> void:
 	var scene: PackedScene = load(SceneManager.SCENE_ENCOUNTER_PREPARATION)
 	var preparation: EncounterPreparation = scene.instantiate() as EncounterPreparation
 	assert_not_null(preparation)
-	assert_true(script_text.contains("get_encounter_preparation_state"))
-	assert_true(script_text.contains("resolve_encounter_battle_config"))
+	assert_true(script_text.contains("EncounterApi.get_preparation_state"))
+	assert_true(script_text.contains("EncounterApi.resolve_battle_config"))
 	assert_true(script_text.contains("configure_encounter_battle"))
-	assert_true(collection_script.contains("update_encounter_loadout"))
-	assert_true(collection_script.contains("fill_encounter_loadout_from_deck"))
-	assert_true(script_text.contains("save_encounter_loadout_to_deck"))
+	assert_true(collection_script.contains("EncounterApi.update_loadout"))
+	assert_true(collection_script.contains("EncounterApi.fill_loadout_from_deck"))
+	assert_true(script_text.contains("EncounterApi.save_loadout_to_deck"))
 	assert_false(script_text.contains("get_academy_activity"))
 	assert_false(script_text.contains("configure_academy_battle"))
 	assert_not_null(preparation.find_child("ModalPanel", true, false))

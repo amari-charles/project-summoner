@@ -86,7 +86,7 @@ public partial class CardConfig : Resource
     public Godot.Collections.Array<string> Tags { get; set; } = new();
 
     /// <summary>
-    /// Unlock condition for progression system (e.g., "default", "campaign_1", "dev_only").
+    /// Unlock condition for progression system (e.g., "default", "quest_reward", "dev_only").
     /// </summary>
     [Export]
     public string UnlockCondition { get; set; } = "default";

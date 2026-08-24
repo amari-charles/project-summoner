@@ -171,7 +171,7 @@ None.
 ### References
 
 - [The World of Fateforged](../lore/world.md)
-- [UI Design Questionnaire Response](../art/commissions/ui-design-questionnaire-response.md)
+- [UI Design Questionnaire Response](../archive/suspended-progression-models-2026-08/art/commissions/ui-design-questionnaire-response.md)
 
 ## 2026-08-23 — Restore the carousel for switching summoners
 
@@ -471,7 +471,7 @@ Core in `Make summoner and card development discovery-driven` (2026-08-18).
 
 - [Discovery-Driven Development](../design/discovery-driven-development.md)
 - [Card Progression, Resources & Economy](../design/card-progression-economy.md)
-- [Discovery-Driven Development Work Plan](../tracking/discovery-driven-development-work-plan.md)
+- [Discovery-Driven Development Work Plan](../archive/suspended-progression-models-2026-08/tracking/discovery-driven-development-work-plan.md)
 
 ## 2026-08-19 — Inspect trait nodes contextually instead of reserving a side panel
 

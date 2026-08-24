@@ -1671,7 +1671,7 @@ public static class TraitDefinitions
 
     /// <summary>
     /// Fortune Favors the Bold: +10% damage to all attacks.
-    /// Granted when the player selects random summoner at campaign start.
+    /// Granted when the player selects random summoner at profile setup.
     /// </summary>
     public static readonly TraitDefinition FortuneFavorsTheBold = new()
     {

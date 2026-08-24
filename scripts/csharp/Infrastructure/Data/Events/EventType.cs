@@ -1,7 +1,7 @@
 namespace Fateforged.Data.Events;
 
 /// <summary>
-/// Event type enum - categorizes campaign node types.
+/// Categories of authored battle content.
 /// </summary>
 public enum EventType
 {
@@ -14,8 +14,6 @@ public enum EventType
     /// <summary>Major boss encounter</summary>
     Boss,
 
-    /// <summary>Path branching decision point</summary>
-    Choice,
 }
 
 /// <summary>
@@ -34,7 +32,6 @@ public static class EventTypeExtensions
             EventType.Battle => "battle",
             EventType.Elite => "elite",
             EventType.Boss => "boss",
-            EventType.Choice => "choice",
             _ => "battle",
         };
 
@@ -45,7 +42,6 @@ public static class EventTypeExtensions
             "battle" => EventType.Battle,
             "elite" => EventType.Elite,
             "boss" => EventType.Boss,
-            "choice" => EventType.Choice,
             _ => EventType.Battle,
         };
 }

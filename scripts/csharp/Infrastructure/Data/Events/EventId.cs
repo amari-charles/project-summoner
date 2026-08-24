@@ -27,109 +27,12 @@ public readonly record struct EventId(string Value)
 
 /// <summary>
 /// All known event IDs. Use these instead of raw strings.
-/// Example: EventIds.FirstTrial instead of "first_trial"
+/// Example: EventIds.ArenaEarthSprite instead of "arena_earth_sprite"
 /// </summary>
 public static class EventIds
 {
     // =========================================================================
-    // ACT 1: THE INITIATE'S PATH
-    // =========================================================================
-
-    /// <summary>Battle: First Trial - Learn basics with 1 card</summary>
-    public static readonly EventId FirstTrial = new("first_trial");
-
-    /// <summary>Battle: Second Challenge - Test 2-card combos</summary>
-    public static readonly EventId SecondChallenge = new("second_challenge");
-
-    /// <summary>Battle: Third Trial - Medium difficulty</summary>
-    public static readonly EventId ThirdTrial = new("third_trial");
-
-    /// <summary>Choice: Opening doctrine (aggressive vs prepared vs insight)</summary>
-    public static readonly EventId OpeningDoctrine = new("opening_doctrine");
-
-    /// <summary>Battle: Aggressive branch opener</summary>
-    public static readonly EventId AggressivePush = new("aggressive_push");
-
-    /// <summary>Battle: Scouting branch opener</summary>
-    public static readonly EventId ScoutSkirmish = new("scout_skirmish");
-
-    /// <summary>Battle: Stability branch follow-up</summary>
-    public static readonly EventId StabilityLine = new("stability_line");
-
-    /// <summary>Battle: Midline reconvergence test</summary>
-    public static readonly EventId MidlineTrial = new("midline_trial");
-
-    /// <summary>Choice: Mid-act route split</summary>
-    public static readonly EventId RouteChoice = new("route_choice");
-
-    /// <summary>Battle: Upper route encounter</summary>
-    public static readonly EventId RidgeAssault = new("ridge_assault");
-
-    /// <summary>Battle: Lower route encounter</summary>
-    public static readonly EventId RiverHold = new("river_hold");
-
-    /// <summary>Battle: Wide flank route encounter</summary>
-    public static readonly EventId GrovePatrol = new("grove_patrol");
-
-    /// <summary>Battle: Chokepoint encounter</summary>
-    public static readonly EventId Chokepoint = new("chokepoint");
-
-    /// <summary>Boss: Mini-boss gate encounter</summary>
-    public static readonly EventId Gatekeeper = new("gatekeeper");
-
-    /// <summary>Choice: Elite vs Standard vs Gambit Path Fork</summary>
-    public static readonly EventId PathFork = new("path_fork");
-
-    /// <summary>Battle: Elite Path Battle 1 - Higher difficulty with level cap</summary>
-    public static readonly EventId EliteBattle01 = new("elite_battle_01");
-
-    /// <summary>Battle: Elite Path Battle 2</summary>
-    public static readonly EventId EliteBattle02 = new("elite_battle_02");
-
-    /// <summary>Battle: Elite Path Battle 3</summary>
-    public static readonly EventId EliteBattle03 = new("elite_battle_03");
-
-    /// <summary>Battle: Elite Path Battle 4</summary>
-    public static readonly EventId EliteBattle04 = new("elite_battle_04");
-
-    /// <summary>Battle: Standard Path Battle 1 - Normal difficulty</summary>
-    public static readonly EventId StandardBattle01 = new("standard_battle_01");
-
-    /// <summary>Battle: Standard Path Battle 2</summary>
-    public static readonly EventId StandardBattle02 = new("standard_battle_02");
-
-    /// <summary>Battle: Standard Path Battle 3</summary>
-    public static readonly EventId StandardBattle03 = new("standard_battle_03");
-
-    /// <summary>Battle: Standard Path Battle 4</summary>
-    public static readonly EventId StandardBattle04 = new("standard_battle_04");
-
-    /// <summary>Battle: Gambit Path Battle 1</summary>
-    public static readonly EventId GambitBattle01 = new("gambit_battle_01");
-
-    /// <summary>Battle: Gambit Path Battle 2</summary>
-    public static readonly EventId GambitBattle02 = new("gambit_battle_02");
-
-    /// <summary>Battle: Gambit Path Battle 3</summary>
-    public static readonly EventId GambitBattle03 = new("gambit_battle_03");
-
-    /// <summary>Battle: Gambit Path Battle 4</summary>
-    public static readonly EventId GambitBattle04 = new("gambit_battle_04");
-
-    /// <summary>Battle: Branch reconvergence trial</summary>
-    public static readonly EventId RejoinTrial = new("rejoin_trial");
-
-    /// <summary>Battle: Final approach before boss</summary>
-    public static readonly EventId FinalAnte = new("final_ante");
-
-    /// <summary>Battle: Penultimate stormline encounter</summary>
-    public static readonly EventId StormBreaker = new("storm_breaker");
-
-    /// <summary>Boss: Act 1 Boss - First major boss</summary>
-    public static readonly EventId Act1Boss = new("act1_boss");
-
-    // =========================================================================
-    // TEST ARENA (Debug/test battles with fixed decks)
+    // DEBUG BATTLES (Debug/test battles with fixed decks)
     // =========================================================================
 
     /// <summary>Test Arena: Earth Sprite Test</summary>

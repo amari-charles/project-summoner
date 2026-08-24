@@ -70,8 +70,8 @@ The perfect partnership. He handles the charm and customer relations; she handle
 
 Runs the permanent Campus Shop with Mrs. Merriweather. He is the welcoming face
 of the business, always has something worth considering, and may know how to
-source goods outside the official inventory. There is no traveling Caravan or
-campaign-map role.
+source goods outside the official inventory. He remains rooted in the Academy
+and its community.
 
 ---
 

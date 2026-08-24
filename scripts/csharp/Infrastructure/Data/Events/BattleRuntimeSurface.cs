@@ -5,7 +5,7 @@ namespace Fateforged.Data.Events;
 /// </summary>
 public enum BattleRuntimeSurface
 {
-    /// <summary>Production battle surface used by campaign combat.</summary>
+    /// <summary>Production authored-battle surface.</summary>
     Standard,
 
     /// <summary>Developer arena surface with battle debugging tools.</summary>

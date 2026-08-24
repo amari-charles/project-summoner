@@ -1,6 +1,6 @@
 class_name EventTypeIDs
 
-## Event Type ID Constants - Type-Safe Campaign Event References
+## Event Type ID Constants - Type-Safe Authored Battle References
 ##
 ## Mirrors C# EventType enum in scripts/csharp/Infrastructure/Data/Events/EventType.cs
 ## Keep these in sync when adding new event types.
@@ -9,9 +9,8 @@ class_name EventTypeIDs
 ## This provides compile-time validation and autocomplete support.
 ##
 ## Usage:
-##   event.event_type = EventTypeIDs.BATTLE
+##   battle.event_type = EventTypeIDs.BATTLE
 ##   match event_type:
-##       EventTypeIDs.AFFINITY: _handle_affinity_selection()
 ##       EventTypeIDs.BATTLE: _start_battle()
 ##
 ## Note: StringName (&"text") is faster than String ("text") for dictionary lookups
@@ -29,15 +28,12 @@ const ELITE: StringName = &"elite"
 ## Major boss encounter
 const BOSS: StringName = &"boss"
 
-## Path choice/branching event
-const CHOICE: StringName = &"choice"
-
 # ============================================================================
 # UTILITY
 # ============================================================================
 
 ## All event types
-const ALL_TYPES: Array[StringName] = [BATTLE, ELITE, BOSS, CHOICE]
+const ALL_TYPES: Array[StringName] = [BATTLE, ELITE, BOSS]
 
 ## Default event type used as fallback
 const DEFAULT: StringName = BATTLE

@@ -122,4 +122,4 @@ Player summoner stats can still come from profile while the deck is authored:
 - `scripts/csharp/Battle/Session/BattleSideResolver.cs`
 - `scripts/csharp/Battle/Session/BattleSessionConfig.cs`
 - `scripts/csharp/Battle/Simulation/SimulationNode.cs`
-- `scripts/csharp/Meta/Services/Campaign/Handlers/AcademyProgressHandler.cs`
+- `scripts/csharp/Meta/Services/Encounters/BattleEncounterHandler.cs`

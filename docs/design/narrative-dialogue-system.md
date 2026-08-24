@@ -1,8 +1,7 @@
 # Narrative Director and Dialogue System
 
-**Status:** DESIGN SPEC
-**Last Updated:** 2026-08-05
-**Related:** [Technical Plan](../technical/infrastructure/narrative-director-overhaul-plan.md)
+**Status:** CURRENT DESIGN SPEC
+**Last Updated:** 2026-08-24
 
 ## Purpose
 
@@ -70,7 +69,7 @@ Choices are explicitly one of two kinds:
 2. The first implementation supports blocking dialogue. Non-blocking banter is a later extension and must use an explicit playback mode rather than implicit timing behavior.
 3. Durable gameplay outcomes are committed before aftermath dialogue begins. For example, a boss victory is recorded before post-battle lore is shown, so quitting during dialogue cannot erase the win.
 4. Every cue explicitly declares one occurrence policy: Always, Once per attempt, Once per summoner, or Once per account. Attempt state is ephemeral; summoner and account completion are durable. Reloading does not replay a completed durable cue or reroll narrative eligibility.
-5. Narrative state is not authoritative for battle results, rewards, inventory, or course completion.
+5. Narrative state is not authoritative for battle results, rewards, inventory, or quest completion.
 6. Planned scene transitions wait for blocking dialogue to finish. A forced scene transition cancels visible playback without marking the cue completed, allowing it to become eligible again later. Confirmed choices are never applied twice, and authoritative gameplay outcomes are already durable before either case.
 7. In single-player battle, blocking dialogue pauses the authoritative battle session and player input through an explicit session boundary. Preparation and Results block their own navigation/actions. Blocking narrative is prohibited in multiplayer; future multiplayer narrative must use an explicit non-blocking mode.
 8. A queued cue's conditions are revalidated immediately before playback. A stale cue is discarded without being marked completed so an irrelevant moment is never forced on the player.

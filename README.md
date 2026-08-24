@@ -4,11 +4,16 @@ A 1v1 real-time tactical battler built in Godot 4.5.
 
 ## Overview
 
-Fateforged is a 1v1 real-time tactical battler where players summon elemental creatures to fight for them. Throughout the campaign, players encounter finite, non-replayable events that offer small sets of cards. Choosing one card permanently closes off the others for that summoner's campaign journey, and because the campaign has only a limited number of these junctions, every player's deck naturally diverges in composition and strategy.
+Fateforged is a 1v1 real-time tactical battler where players summon elemental
+creatures, cast spells, and shape persistent summoners. Between battles, players
+explore a walkable Academy campus, accept professor-led quests, prepare reusable
+encounters, and build their collection through permanent, legible choices.
 
 This asymmetry — and the player's responsibility for shaping it — is the core of the game's identity and the reason it's called Fateforged: your fate is literally forged by the choices you make at each branching point.
 
-Each summoner's campaign is a one-time forging journey whose results carry into online battles. PvP is not designed to erase campaign outcomes into perfect symmetry: stronger campaign choices and earned upgrades can produce stronger online summoners, while poor or cautious campaign paths can leave a summoner weaker. The design goal is intentional, legible permanence rather than perfectly equalized competitive templates.
+Each summoner's earned traits, items, cards, and quest outcomes carry into online
+battles. PvP is not designed to erase those outcomes into perfectly symmetrical
+templates; the design goal is intentional, understandable permanence.
 
 The game features a 2.5D perspective with an angled perspective battle camera, creating a modern take on tactical card battlers.
 
@@ -33,9 +38,9 @@ Open the project in Godot 4.5 and run the VFX test scene:
 - [📘 Getting Started](docs/start-here.md) - Comprehensive introduction for new developers
 
 **Core Documentation:**
-- [📊 Current State](docs/current-state.md) - Complete project overview and architecture
-- [📜 Development History](docs/development-history.md) - Progress tracking, decisions, and context
-- [📝 Changelog](docs/changelog.md) - Public release notes (for future versions)
+- [📊 Current State](docs/project/current-state.md) - Complete project overview and architecture
+- [📜 Development History](docs/project/development-history.md) - Progress tracking and context
+- [🧭 Direction Log](docs/project/direction-log.md) - Accepted product-direction history
 
 **Developer Guides:**
 - [Feature Documentation](docs/features/) - Card, combat, battlefield, and coordinate systems
@@ -58,7 +63,7 @@ project-summoner/
 - **Card-Based Combat** - Summon units using a deck of cards with mana costs
 - **Real-Time Strategy** - Units move and attack autonomously with smart AI
 - **Multiple Unit Types** - Melee, ranged, and special ability units
-- **Campaign Mode** - Progress through battles with varying difficulty
+- **Quest-Driven Academy** - Explore campus, accept quests, and enter authored encounters
 - **Pannable Camera** - Explore the battlefield with mouse, touch, or keyboard
 
 ## Development
@@ -69,24 +74,19 @@ project-summoner/
 - UI/UX improvements
 - Camera and battlefield systems
 
-**Status:** Active development - Alpha stage
+**Status:** Active development — pre-alpha
 
 ## Contributing
 
 This is a personal project, but feedback and suggestions are welcome! Please see:
 - [Technical Documentation](docs/technical/) - Integration status and bug tracking
-- [Art Specifications](docs/art/asset-specifications.md) - Asset requirements and guidelines
 
 ## Tech Stack
 
 - **Engine:** Godot 4.5
-- **Language:** GDScript
+- **Language:** C# and GDScript
 - **Art Style:** Pixel art with 2.5D perspective
 - **Target Platforms:** Desktop (PC/Mac), Mobile (iOS/Android)
-
-## License
-
-See [LICENSE](LICENSE) file for details.
 
 ## Links
 
@@ -96,4 +96,4 @@ See [LICENSE](LICENSE) file for details.
 
 ---
 
-**Built with Godot 4.5** | **Last Updated:** 2025-12-11
+**Built with Godot 4.5** | **Last Updated:** 2026-08-24

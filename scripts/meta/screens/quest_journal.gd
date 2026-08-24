@@ -44,8 +44,8 @@ func _ready() -> void:
 	open_button.pressed.connect(_select_section.bind(SECTION_OPEN))
 	completed_button.pressed.connect(_select_section.bind(SECTION_COMPLETED))
 	track_button.pressed.connect(_track_selected)
-	if Campaign.has_signal("CampaignProgressChanged"):
-		Campaign.connect("CampaignProgressChanged", _refresh)
+	if Quests.has_signal("ProgressChanged"):
+		Quests.connect("ProgressChanged", _refresh)
 	_refresh()
 	if embedded_overlay:
 		visible = false
@@ -57,7 +57,7 @@ func open_journal() -> void:
 
 
 func _refresh() -> void:
-	_journal_state = CampaignApi.get_generic_quest_journal_state()
+	_journal_state = QuestApi.get_journal_state()
 	var year: int = SafeTypeUtils.int_val(_journal_state.get("current_year"), 1)
 	var semester: int = SafeTypeUtils.int_val(_journal_state.get("current_semester"), 1)
 	var total: int = SafeTypeUtils.int_val(_journal_state.get("capacity_total"), 0)
@@ -197,7 +197,7 @@ func _curriculum_cost(entry: Dictionary) -> int:
 
 func _track_selected() -> void:
 	if not _selected_quest_id.is_empty():
-		CampaignApi.track_quest(_selected_quest_id)
+		QuestApi.track_quest(_selected_quest_id)
 
 
 func _section_contains(quest_id: String) -> bool:

@@ -20,7 +20,7 @@ Players don't care about story, lore, or mechanics before they're invested in th
    - Merlin introduces the ceremony
    - Player selects their elemental affinity (summoner)
    - Random option rewards bold players with "Fortune Favors the Bold" trait
-3. Campaign begins
+3. Player enters the Academy campus
 
 ---
 
@@ -37,7 +37,7 @@ Players don't care about story, lore, or mechanics before they're invested in th
    - Sets the bar for what the player can aspire to
 3. Transition: "Years later..." or similar
 4. Awakening Ceremony (player as initiate, picking their summoner)
-5. Campaign begins with starter deck
+5. Academy quest play begins with the starter deck
 
 **Why this works:**
 - Players experience the "endgame fantasy" immediately

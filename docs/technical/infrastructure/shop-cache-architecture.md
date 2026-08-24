@@ -56,7 +56,7 @@ flowchart TB
     subgraph "Profile Reset"
         G[User resets profile] -->|"Clears"| F
         F -->|"Emits"| H((data_changed))
-        H -.->|"Other services react"| I[CampaignService, etc.]
+        H -.->|"Other services react"| I[Quest, encounter, and UI consumers]
     end
 
     subgraph "Next Query"

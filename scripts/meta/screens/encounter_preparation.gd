@@ -52,7 +52,7 @@ func _ready() -> void:
 	)
 
 func _refresh() -> void:
-	_state = CampaignApi.get_encounter_preparation_state(_encounter_id)
+	_state = EncounterApi.get_preparation_state(_encounter_id)
 	if _state.is_empty():
 		return
 	title_label.text = Loc.t(SafeTypeUtils.string(_state.get("label_key")))
@@ -77,10 +77,10 @@ func _render_loadout() -> void:
 	)
 	var loadout: Dictionary = SafeTypeUtils.dict(_state.get("loadout"))
 	var mode: String = SafeTypeUtils.string(loadout.get("mode"))
-	loadout_label.text = Loc.t("academy.flow.lesson_loadout") \
-		if mode == "ClassLoadout" else Loc.t("academy.flow.active_deck")
+	loadout_label.text = Loc.t("academy.flow.encounter_loadout") \
+		if mode == "Flexible" else Loc.t("academy.flow.active_deck")
 	edit_deck_button.visible = mode != "Fixed"
-	save_button.visible = mode == "ClassLoadout"
+	save_button.visible = mode == "Flexible"
 	for value: Variant in SafeTypeUtils.array(loadout.get("supplied_cards")):
 		var card: Dictionary = SafeTypeUtils.dict(value)
 		_add_card_widgets(loadout_grid, card, true)
@@ -106,12 +106,12 @@ func _add_card_widgets(parent: Control, card: Dictionary, locked: bool) -> void:
 		widget.set_display_size(CardVisualHelper.CARD_SIZE_LARGE)
 		widget.tooltip_text = SafeTypeUtils.string(catalog_data.get("card_name"), card_id)
 		if locked:
-			widget.tooltip_text = "%s • %s" % [widget.tooltip_text, Loc.t("academy.flow.class_supplied")]
+			widget.tooltip_text = "%s • %s" % [widget.tooltip_text, Loc.t("academy.flow.encounter_supplied")]
 
 
 func _show_deck_editor() -> void:
 	var mode: String = SafeTypeUtils.string(SafeTypeUtils.dict(_state.get("loadout")).get("mode"))
-	if mode == "ClassLoadout":
+	if mode == "Flexible":
 		collection_overlay.open_encounter_loadout(_encounter_id)
 	else:
 		collection_overlay.open_collection()
@@ -155,7 +155,7 @@ func _on_save_choice_action(action: StringName) -> void:
 
 func _open_new_deck_dialog() -> void:
 	new_deck_name.text = Loc.t(
-		"academy.flow.default_lesson_deck_name",
+		"academy.flow.default_encounter_deck_name",
 		{"activity": title_label.text}
 	)
 	new_deck_dialog.get_ok_button().disabled = new_deck_name.text.strip_edges().is_empty()
@@ -178,7 +178,7 @@ func _open_replace_deck_dialog() -> void:
 
 
 func _create_new_deck() -> void:
-	_save_lesson_loadout("", new_deck_name.text.strip_edges())
+	_save_encounter_loadout("", new_deck_name.text.strip_edges())
 
 
 func _replace_existing_deck() -> void:
@@ -187,11 +187,11 @@ func _replace_existing_deck() -> void:
 	var deck_id: String = SafeTypeUtils.string(
 		replace_deck_selector.get_item_metadata(replace_deck_selector.selected)
 	)
-	_save_lesson_loadout(deck_id, "")
+	_save_encounter_loadout(deck_id, "")
 
 
-func _save_lesson_loadout(target_deck_id: String, new_name: String) -> void:
-	var result: Dictionary = CampaignApi.save_encounter_loadout_to_deck(
+func _save_encounter_loadout(target_deck_id: String, new_name: String) -> void:
+	var result: Dictionary = EncounterApi.save_loadout_to_deck(
 		_encounter_id, target_deck_id, new_name
 	)
 	if not SafeTypeUtils.bool_val(result.get("success")):
@@ -220,7 +220,7 @@ func _show_save_result(message: String) -> void:
 	save_result_dialog.popup_centered()
 
 func _start() -> void:
-	var config: Dictionary = CampaignApi.resolve_encounter_battle_config(_encounter_id)
+	var config: Dictionary = EncounterApi.resolve_battle_config(_encounter_id)
 	if config.is_empty():
 		_refresh()
 		return

@@ -38,4 +38,4 @@ When replacing direct calls:
 
 ## Current Scope
 
-The wrapper layer currently covers high-traffic services used by UI/meta/battle orchestration (for example: campaign, profile repo, decks, card service, reward, economy, items, summoner services, shop, catalogs).
+The wrapper layer currently covers high-traffic services used by UI/meta/battle orchestration (for example: quests, encounters, profile repo, decks, card service, reward, economy, items, summoner services, shop, and catalogs).

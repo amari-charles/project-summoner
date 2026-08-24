@@ -4,46 +4,293 @@
       "id": "intro_summoning_practice",
       "name_key": "academy.activity.magic_101_summon_practice",
       "execution_kind": "battle",
-      "configuration": {
-        "migration_source": "academy:introduction_to_magic_101:magic_101_summon_practice"
+      "role": "practice",
+      "battle_config": {
+        "biome": "island_water",
+        "enemy_deck": [],
+        "enemy_hp": 25,
+        "ai_type": "none",
+        "ai_difficulty": 0,
+        "ai_play_interval_min": 4,
+        "ai_play_interval_max": 5,
+        "encounter_ai": {
+          "preset": "scripted_encounter",
+          "team": 1,
+          "use_trainer_ai": false,
+          "rules": [
+            {
+              "id": "magic_101_summon_practice_target_cap",
+              "kind": "cap",
+              "enabled": true,
+              "start_time": 0,
+              "end_time": null,
+              "rhythm": "steady",
+              "interval_seconds": null,
+              "max_executions": null,
+              "max_alive": 2,
+              "placement": "neutral",
+              "source": "encounter",
+              "ai_type": null,
+              "ai_personality": null,
+              "ai_play_interval_min": null,
+              "ai_play_interval_max": null,
+              "card_pool": [],
+              "actions": []
+            },
+            {
+              "id": "magic_101_summon_practice_target_01",
+              "kind": "event",
+              "enabled": true,
+              "start_time": 0.75,
+              "end_time": null,
+              "rhythm": "steady",
+              "interval_seconds": null,
+              "max_executions": null,
+              "max_alive": null,
+              "placement": "neutral",
+              "source": "encounter",
+              "ai_type": null,
+              "ai_personality": null,
+              "ai_play_interval_min": null,
+              "ai_play_interval_max": null,
+              "card_pool": [],
+              "actions": [
+                {
+                  "kind": "spawn_units",
+                  "source": "encounter",
+                  "team": 1,
+                  "card_id": "training_target",
+                  "card_ids": [],
+                  "position": null,
+                  "positions": [
+                    {
+                      "x": 10,
+                      "z": -2
+                    }
+                  ],
+                  "placement": "neutral",
+                  "activate_immediately": true,
+                  "ai_type": null,
+                  "ai_personality": null,
+                  "ai_play_interval_min": null,
+                  "ai_play_interval_max": null,
+                  "allow_when_overwhelmed": false,
+                  "ignore_caps": false,
+                  "rule_id": "",
+                  "enabled": true
+                }
+              ]
+            },
+            {
+              "id": "magic_101_summon_practice_target_02",
+              "kind": "event",
+              "enabled": true,
+              "start_time": 8,
+              "end_time": null,
+              "rhythm": "steady",
+              "interval_seconds": null,
+              "max_executions": null,
+              "max_alive": null,
+              "placement": "neutral",
+              "source": "encounter",
+              "ai_type": null,
+              "ai_personality": null,
+              "ai_play_interval_min": null,
+              "ai_play_interval_max": null,
+              "card_pool": [],
+              "actions": [
+                {
+                  "kind": "spawn_units",
+                  "source": "encounter",
+                  "team": 1,
+                  "card_id": "training_target",
+                  "card_ids": [],
+                  "position": null,
+                  "positions": [
+                    {
+                      "x": 10,
+                      "z": 2
+                    }
+                  ],
+                  "placement": "neutral",
+                  "activate_immediately": true,
+                  "ai_type": null,
+                  "ai_personality": null,
+                  "ai_play_interval_min": null,
+                  "ai_play_interval_max": null,
+                  "allow_when_overwhelmed": false,
+                  "ignore_caps": false,
+                  "rule_id": "",
+                  "enabled": true
+                }
+              ]
+            }
+          ]
+        }
       },
-      "reward_offers": []
+      "loadout": {
+        "mode": "fixed",
+        "supplied_cards": [
+          {
+            "card_id": "neutral_starter_unit",
+            "count": 2
+          }
+        ],
+        "rules": {
+          "allowed_card_types": [],
+          "allowed_elements": [],
+          "min_summons": 0,
+          "min_spells": 0,
+          "max_deck_size": 0,
+          "required_owned_cards": [],
+          "banned_cards": []
+        }
+      }
     },
     {
       "id": "summoning_basics_practice",
-      "name_key": "academy.course.summoning_basics.name",
+      "name_key": "academy.activity.practice",
       "execution_kind": "battle",
-      "configuration": {
-        "migration_source": "academy:summoning_basics:summoning_basics_practice"
+      "role": "practice",
+      "battle_config": {
+        "enemy_deck": [
+          {
+            "card_id": "fire_wisp",
+            "count": 1
+          }
+        ],
+        "enemy_hp": 20,
+        "ai_type": "passive",
+        "ai_difficulty": 0,
+        "ai_play_interval_min": 999,
+        "ai_play_interval_max": 999,
+        "encounter_ai": null
       },
-      "reward_offers": []
+      "loadout": {
+        "mode": "owned",
+        "supplied_cards": [],
+        "rules": {
+          "allowed_card_types": [
+            "summon"
+          ],
+          "allowed_elements": [],
+          "min_summons": 0,
+          "min_spells": 0,
+          "max_deck_size": 0,
+          "required_owned_cards": [],
+          "banned_cards": [
+            "magic_bolt"
+          ]
+        }
+      }
     },
     {
       "id": "summoning_basics_assessment",
-      "name_key": "academy.course.summoning_basics.name",
+      "name_key": "academy.activity.assessment",
       "execution_kind": "battle",
-      "configuration": {
-        "migration_source": "academy:summoning_basics:summoning_basics_assessment"
+      "role": "assessment",
+      "battle_config": {
+        "enemy_deck": [
+          {
+            "card_id": "fire_wisp",
+            "count": 1
+          }
+        ],
+        "enemy_hp": 35,
+        "ai_type": "simple",
+        "ai_difficulty": 0,
+        "ai_play_interval_min": 8,
+        "ai_play_interval_max": 11,
+        "encounter_ai": null
       },
-      "reward_offers": []
+      "loadout": {
+        "mode": "owned",
+        "supplied_cards": [],
+        "rules": {
+          "allowed_card_types": [],
+          "allowed_elements": [],
+          "min_summons": 0,
+          "min_spells": 0,
+          "max_deck_size": 0,
+          "required_owned_cards": [],
+          "banned_cards": []
+        }
+      }
     },
     {
       "id": "practical_spellcraft_practice",
-      "name_key": "academy.course.practical_spellcraft.name",
+      "name_key": "academy.activity.practice",
       "execution_kind": "battle",
-      "configuration": {
-        "migration_source": "academy:practical_spellcraft:practical_spellcraft_practice"
+      "role": "practice",
+      "battle_config": {
+        "enemy_deck": [
+          {
+            "card_id": "fire_wisp",
+            "count": 1
+          }
+        ],
+        "enemy_hp": 20,
+        "ai_type": "passive",
+        "ai_difficulty": 0,
+        "ai_play_interval_min": 999,
+        "ai_play_interval_max": 999,
+        "encounter_ai": null
       },
-      "reward_offers": []
+      "loadout": {
+        "mode": "flexible",
+        "supplied_cards": [
+          {
+            "card_id": "neutral_starter_unit",
+            "count": 1
+          },
+          {
+            "card_id": "magic_bolt",
+            "count": 1
+          }
+        ],
+        "rules": {
+          "allowed_card_types": [],
+          "allowed_elements": [],
+          "min_summons": 1,
+          "min_spells": 1,
+          "max_deck_size": 12,
+          "required_owned_cards": [],
+          "banned_cards": []
+        }
+      }
     },
     {
       "id": "practical_spellcraft_assessment",
-      "name_key": "academy.course.practical_spellcraft.name",
+      "name_key": "academy.activity.assessment",
       "execution_kind": "battle",
-      "configuration": {
-        "migration_source": "academy:practical_spellcraft:practical_spellcraft_assessment"
+      "role": "assessment",
+      "battle_config": {
+        "enemy_deck": [
+          {
+            "card_id": "fire_wisp",
+            "count": 1
+          }
+        ],
+        "enemy_hp": 35,
+        "ai_type": "simple",
+        "ai_difficulty": 0,
+        "ai_play_interval_min": 8,
+        "ai_play_interval_max": 11,
+        "encounter_ai": null
       },
-      "reward_offers": []
+      "loadout": {
+        "mode": "owned",
+        "supplied_cards": [],
+        "rules": {
+          "allowed_card_types": [],
+          "allowed_elements": [],
+          "min_summons": 0,
+          "min_spells": 0,
+          "max_deck_size": 0,
+          "required_owned_cards": [],
+          "banned_cards": []
+        }
+      }
     }
   ]
 }

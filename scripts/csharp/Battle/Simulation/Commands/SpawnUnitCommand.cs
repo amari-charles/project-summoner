@@ -11,7 +11,7 @@ namespace Fateforged.Simulation.Commands;
 /// Models scenarios where units enter the battlefield outside of a summoner
 /// playing a card:
 ///   - Tutorial sequences placing training dummies or scripted enemies
-///   - Campaign events spawning reinforcements or boss adds mid-battle
+///   - Authored battles spawning reinforcements or boss adds mid-battle
 ///   - Debug arena drag-and-drop placement
 ///   - Environmental spawns (traps, hazards, summoning circles)
 ///

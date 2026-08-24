@@ -6,6 +6,35 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-08 Completions
 
+### Decompose Retired Progression Ownership into Quest and Encounter Services
+**Completed:** 2026-08-24
+**Category:** Architecture / Quests / Encounters / Legacy Cleanup
+
+Completed the bounded architecture review and implementation pass.
+
+**Resolution Summary:**
+
+- ✅ Split quest lifecycle, Journal, professors, capacity, and quest rewards into
+  `QuestService` and `QuestApi`.
+- ✅ Split reusable preparation, loadouts, authored configuration, and completion
+  into `EncounterService` and `EncounterApi`.
+- ✅ Replaced the old save aggregate with per-summoner `SummonerProgress` and
+  explicitly unsupported pre-quest progression schemas.
+- ✅ Removed graph nodes, route choices, run-scoped gold, academic enrollment and
+  activity state, dead event screens, obsolete debug routing, and compatibility APIs.
+- ✅ Routed developer battles directly through authored battle authority.
+- ✅ Moved wholly superseded guidance into
+  `docs/archive/suspended-progression-models-2026-08/` and updated current docs.
+- ✅ Added structural validation through the old-name scan, typed build, Godot
+  parse/import, and focused quest/encounter tests.
+
+**Representative Files:**
+
+- `scripts/csharp/Meta/Services/Quests/`
+- `scripts/csharp/Meta/Services/Encounters/`
+- `scripts/csharp/Meta/Domain/Profile/Progression/`
+- `docs/technical/meta/legacy-system-cleanup-validation.md`
+
 ### Complete the Legacy-System Cleanup Migration
 **Completed:** 2026-08-23
 **Category:** Architecture / Meta / Items / Developer Tools

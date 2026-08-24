@@ -48,7 +48,7 @@ public class RewardDeterminismTest
             new RewardSourceContext
             {
                 SourceType = "academy:activity",
-                SourceId = "course",
+                SourceId = "quest",
                 OccurrenceId = "lesson",
             },
             offerId
@@ -58,7 +58,7 @@ public class RewardDeterminismTest
             new RewardSourceContext
             {
                 SourceType = "academy",
-                SourceId = "activity:course",
+                SourceId = "activity:quest",
                 OccurrenceId = "lesson",
             },
             offerId
@@ -101,7 +101,7 @@ public class RewardDeterminismTest
             Source = new RewardSourceContext
             {
                 SourceType = "academy_activity",
-                SourceId = "course",
+                SourceId = "quest",
                 OccurrenceId = occurrence,
             },
             Catalog = new RewardContentCatalog

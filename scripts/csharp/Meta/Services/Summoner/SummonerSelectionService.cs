@@ -12,7 +12,7 @@ namespace Fateforged.Meta.Summoner;
 ///
 /// The active summoner affects:
 /// - Which decks are visible (summoner-bound decks)
-/// - Which campaign progress loads (per-summoner progress)
+/// - Which quest and authored-battle progress loads
 /// - Who receives XP from battles
 /// </summary>
 [GlobalClass]

@@ -1,61 +1,48 @@
-# Legacy System Cleanup Validation
+# Retired Progression Cleanup Validation
 
-Date: 2026-08-23
+**Updated:** 2026-08-24
 
-## Scope and replacements
+## Canonical Boundaries
 
-| Removed legacy owner | Canonical replacement | Reachability result |
-|---|---|---|
-| Static Academy hub, campaign map, course-node panels, and first-card selection | Walkable Academy campus, professor dialogue, generic quests/Journal, generic encounter preparation | Opening flow already routes Summoner selection → reveal → campus; no accepted onboarding caller requires first-card selection |
-| Caravan screen, events, campaign nodes, shop catalog, narrative, and localization | Campus Shop plus ordinary Academy/world interaction and shop services | No runtime route, event, catalog, or repository API remains |
-| `RewardScreen` and Academy/encounter-specific result destination | Typed `PostBattleReport` rendered by `PostBattleResults` | Battle conclusion remains automatic; campaign and encounter outcomes share one Results destination |
-| Caller-authored battle `scene_path` selection | `BattleRuntimeSurface` plus application `BattleSurfaceRouter` | Academy/quest and debug callers resolve through one typed policy |
-| Blanket account-wide normal items | Summoner-owned normal items plus explicitly shared event-exclusive items | Grants, queries, equipment, rewards, persistence, and developer tools use the same item-domain rules |
+| Capability | Owner |
+|---|---|
+| Quest acceptance, capacity, Journal, professors, ordered objectives, completion rewards | `QuestService` / `QuestApi` |
+| Reusable preparation, loadout rules, battle configuration, completion summaries | `EncounterService` / `EncounterApi` |
+| Direct authored debug battles, XP, first-clear rewards, durable attempt completion | `ProgressionAuthorityService` |
+| Per-summoner quest and authored-battle persistence | `SummonerProgress` through `ProfileRepository` |
+| Campus purchases | `ShopService`, using account resources; the Merriweathers own the Campus Shop |
 
-Named campus landmarks such as Class Hall remain where they still serve a
-physical-world role. Their obsolete course-screen ownership was removed.
+## Removed
 
-## Compatibility retained intentionally
+- graph catalogs, nodes, edges, route choices, unlock policy, and graph progress;
+- the mixed progression service and its GDScript adapter/autoload;
+- academic enrollment/activity catalogs and persistence;
+- run-scoped gold and its reward/economy contracts;
+- shared progression blobs and pre-quest compatibility adapters;
+- dead event context/screen routing;
+- indirect Debug Arena launch through a graph owner;
+- obsolete background shader and traveling-merchant icon assets;
+- tests that asserted removed behavior.
 
-- Profile schema v7 recovers ownership of a legacy normal item only when its
-  existing equipped-Summoner provenance identifies the owner. Ambiguous normal
-  instances are preserved unassigned and inaccessible instead of being granted
-  to an arbitrary Summoner.
-- Explicit account-wide binding remains supported only for definitions authored
-  as event-exclusive and shared.
-- `BattleContext` remains as the accepted session compatibility boundary; this
-  pass changed its destination vocabulary but did not attempt the excluded broad
-  authority rewrite.
+Pre-version-8 development saves receive empty `summoner_progress`. No reader or
+translation layer preserves the retired progression schema.
 
-## Regression coverage
+## Documentation
 
-- Item-domain tests cover normal grant context, per-Summoner inventory filtering,
-  cross-Summoner equip rejection, explicitly shared event items, reward target
-  validation, migration provenance, and ambiguous-data preservation.
-- Item adapter coverage verifies every retained developer operation is exposed:
-  grant, shared grant, grant all, list, equip, unequip, and clear.
-- Route tests cover standard and debug-arena surface selection and reject raw
-  custom scene policy.
-- Campus/quest tests load the walkable campus, professor interaction, Journal
-  sections, quest offer and tracking surfaces, encounter preparation, shared
-  Spellbook/deck editing, Online, Settings, pause, battlefield conclusion, and
-  combined Results.
-- Results tests cover victory/defeat normalization, Summoner/Card XP grants,
-  card rewards, no-reward results, required choices, selected grants, and
-  presentation-only ownership.
-- Persistence tests cover profile v7 item migration.
+The accepted transition is recorded in `docs/project/direction-log.md`. Wholly
+superseded guidance is isolated under
+`docs/archive/suspended-progression-models-2026-08/`; active architecture,
+current-state, quest, shop, and summoner documents describe the retained model.
 
-## Validation commands
+## Required Validation
 
-- `./tools/run_tests.sh`: passed. GDScript type/parse check passed; C# passed
-  1,234/1,234; GUT passed 322/322 with 2,624 assertions.
-- `dotnet build Fateforged.csproj --no-restore`: passed with zero warnings and
-  zero errors.
-- Catalog/content integrity runs inside the complete C# and GUT suites, including
-  Academy, event, reward, test-arena, localization, and biome catalogs.
-- Retained player-facing scenes are loaded or instantiated by the headless GUT
-  route tests for Summoner selection/reveal, Academy campus, professor/Journal,
-  encounter preparation and deck overlay, Results, Online, Settings/pause, and
-  the battle HUD.
-- Post-deletion searches find no active legacy route, scene, autoload, event,
-  shop, localization, narrative, or Caravan persistence reference.
+```bash
+dotnet build --no-restore
+godot --headless --path . --editor --quit
+dotnet test --settings test.runsettings
+./tools/run_tests.sh
+```
+
+The structural scan must find no retired product vocabulary in active runtime
+code or content. Historical records and the explicitly suspended archive are
+excluded from that assertion.

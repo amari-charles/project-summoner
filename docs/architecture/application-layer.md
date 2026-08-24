@@ -62,11 +62,11 @@ Application can **call** those systems, but should not duplicate their logic.
 
 - scene changes to `SceneManager` / active scene nodes;
 - context config consumed by gameplay (`BattleSessionConfig.FromBattleContext()`);
-- service calls to meta systems (`Campaign`, etc.) when orchestrating completion.
+- service calls to meta systems (`Quests`, `Encounters`, etc.) when orchestrating completion.
 
 ## Common Flows
 
-### Campaign Battle Start
+### Authored Battle Start
 
 1. Screen configures `BattleContext`.
 2. Screen calls `SceneManager.transition_to(SCENE_BATTLE_3D)`.

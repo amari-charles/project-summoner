@@ -14,12 +14,11 @@ class_name SceneManagerClass
 ## Main UI Scenes
 const SCENE_TITLE_SCREEN: String = "res://scenes/meta/screens/title_screen.tscn"
 
-## Campaign Scenes
+## Academy, quest, and encounter scenes
 const SCENE_ACADEMY_CAMPUS: String = "res://scenes/meta/screens/walkable_academy_hub.tscn"
 const SCENE_QUEST_JOURNAL: String = "res://scenes/meta/screens/quest_journal.tscn"
 const SCENE_ENCOUNTER_PREPARATION: String = "res://scenes/meta/screens/encounter_preparation.tscn"
 const SCENE_POST_BATTLE_RESULTS: String = "res://scenes/meta/screens/post_battle_results.tscn"
-const SCENE_EVENT_SCREEN: String = "res://scenes/meta/screens/event_screen.tscn"
 const SCENE_SUMMONER_SELECTION: String = "res://scenes/meta/screens/summoner_selection.tscn"
 const SCENE_SUMMONER_REVEAL: String = "res://scenes/meta/modals/summoner_reveal.tscn"
 const SCENE_SUMMONER_SCREEN: String = "res://scenes/meta/screens/summoner_screen.tscn"

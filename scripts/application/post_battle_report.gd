@@ -12,7 +12,7 @@ var pending_offer: Dictionary = {}
 var destination: String = ""
 
 
-static func from_campaign_result(
+static func from_authored_battle_result(
 	result: Dictionary,
 	destination_scene: String,
 	fallback_outcome: String

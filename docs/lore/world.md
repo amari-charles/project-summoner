@@ -42,7 +42,7 @@ Where the **Trial of Affinities** takes place. Ancient stones measure a summoner
 Where initiates prove their combat prowess in controlled trials. The first battles of every summoner's journey occur here.
 
 ### Beyond the Academy
-*To be expanded as campaign develops*
+*To be expanded as the world develops*
 
 - What threats exist outside the Academy walls?
 - What regions can summoners explore?
@@ -55,7 +55,7 @@ Where initiates prove their combat prowess in controlled trials. The first battl
 | Rank | Description |
 |------|-------------|
 | **Initiate** | New students, just tested for affinities |
-| *Future ranks* | To be established as campaign expands |
+| *Future ranks* | To be established as Academy content expands |
 
 ---
 

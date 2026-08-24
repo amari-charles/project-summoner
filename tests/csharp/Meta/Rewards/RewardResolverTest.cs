@@ -142,7 +142,7 @@ public class RewardResolverTest
             Source = new RewardSourceContext
             {
                 SourceType = "academy_activity",
-                SourceId = "test_course",
+                SourceId = "test_quest",
                 OccurrenceId = "lesson_1",
             },
         };

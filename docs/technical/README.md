@@ -40,7 +40,7 @@ This folder is for implementation references.
 
 ### Infrastructure / Platform
 
-- [infrastructure/campaign-data.md](infrastructure/campaign-data.md)
+- [runtime/reward-system-architecture.md](runtime/reward-system-architecture.md)
 - [infrastructure/save-system.md](infrastructure/save-system.md)
 - [infrastructure/audio-system.md](infrastructure/audio-system.md)
 - [infrastructure/dialogue-system.md](infrastructure/dialogue-system.md)

@@ -70,8 +70,7 @@ When Mr. Merriweather is being especially theatrical, she'll share a fond, exasp
 
 Runs the permanent Campus Shop alongside her husband. She handles its
 transactions, inventory, and less-official sourcing while Mr. Merriweather
-leads customer conversation. There is no traveling Caravan or campaign-map
-role.
+leads customer conversation. The shop is their permanent place in Academy life.
 
 ---
 

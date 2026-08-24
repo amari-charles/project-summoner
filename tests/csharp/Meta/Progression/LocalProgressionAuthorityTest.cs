@@ -7,12 +7,11 @@ using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Domain.Progression;
-using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Progression;
 using Fateforged.Meta.Rewards;
@@ -23,8 +22,7 @@ using static GdUnit4.Assertions;
 public class LocalProgressionAuthorityTest
 {
     private static readonly SummonerId SummonerId = SummonerIds.Cole;
-    private static readonly CampaignId CampaignId = CampaignIds.SummonersPath;
-    private static readonly BattleId BattleId = new(EventIds.FirstTrial.Value);
+    private static readonly BattleId BattleId = new(EventIds.ArenaEarthSprite.Value);
     private static readonly CardInstanceId CardInstanceId = new("owned-fire-wisp");
     private static readonly DeckId DeckId = new("cole-deck");
 
@@ -41,7 +39,7 @@ public class LocalProgressionAuthorityTest
         AssertThat(result.Attempt.DeckCardInstanceIds).ContainsExactly(CardInstanceId);
         AssertThat(result.Attempt.CardXpReward).IsGreater(0);
         AssertThat(store.Data.Rewards.RewardSeedBySummoner[SummonerId.Value]).IsGreater(0UL);
-        AssertThat(store.Data.CampaignProgressMap[SummonerId.Value].ActiveBattleAttempt)
+        AssertThat(store.Data.SummonerProgressMap[SummonerId.Value].ActiveBattleAttempt)
             .IsEqual(result.Attempt);
         AssertThat(store.CommitCount).IsEqual(1);
     }
@@ -54,7 +52,7 @@ public class LocalProgressionAuthorityTest
 
         var second = Start(authority).Attempt!;
 
-        var progress = store.Data.CampaignProgressMap[SummonerId.Value];
+        var progress = store.Data.SummonerProgressMap[SummonerId.Value];
         AssertThat(second.AttemptId).IsNotEqual(first.AttemptId);
         AssertThat(progress.BattleAttemptCompletions[first.AttemptId.Value].Outcome)
             .IsEqual(BattleTerminalOutcome.Abandoned);
@@ -77,7 +75,7 @@ public class LocalProgressionAuthorityTest
         AssertThat(result.RewardOffers).IsEmpty();
         AssertThat(store.Data.SummonerInstances.Single().Xp).IsEqual(0);
         AssertThat(store.Data.Collection.Single().Xp).IsEqual(0);
-        AssertThat(store.Data.CampaignProgressMap[SummonerId.Value].CompletedBattles).IsEmpty();
+        AssertThat(store.Data.SummonerProgressMap[SummonerId.Value].CompletedBattles).IsEmpty();
     }
 
     [TestCase]
@@ -98,7 +96,7 @@ public class LocalProgressionAuthorityTest
         AssertThat(result.RewardOffers).HasSize(1);
         AssertThat(result.RewardOffers[0].DisplayState).IsEqual(RewardOfferDisplayState.Pending);
         AssertThat(result.Completion!.PendingClaimIds).HasSize(1);
-        AssertThat(store.Data.CampaignProgressMap[SummonerId.Value].CompletedBattles)
+        AssertThat(store.Data.SummonerProgressMap[SummonerId.Value].CompletedBattles)
             .Contains(BattleId);
     }
 
@@ -138,7 +136,7 @@ public class LocalProgressionAuthorityTest
         var result = Start(authority);
 
         AssertThat(result.Status).IsEqual(ProgressionAuthorityStatus.Unavailable);
-        AssertThat(store.Data.CampaignProgressMap).IsEmpty();
+        AssertThat(store.Data.SummonerProgressMap).IsEmpty();
         AssertThat(store.Data.Rewards.RewardSeedBySummoner[SummonerId.Value])
             .IsEqual(ulong.MaxValue);
     }
@@ -152,35 +150,7 @@ public class LocalProgressionAuthorityTest
         var result = Start(authority);
 
         AssertThat(result.Status).IsEqual(ProgressionAuthorityStatus.Invalid);
-        AssertThat(store.Data.CampaignProgressMap).IsEmpty();
-    }
-
-    [TestCase]
-    public void StartRejectsCampaignMismatchAndLockedBattle()
-    {
-        var (store, authority) = CreateAuthority();
-        var wrongCampaign = authority.StartBattleAttempt(
-            new StartBattleAttemptRequest
-            {
-                SummonerId = SummonerId,
-                CampaignId = CampaignIds.TestArena,
-                BattleId = BattleId,
-                DeckId = DeckId,
-            }
-        );
-        var lockedBattle = authority.StartBattleAttempt(
-            new StartBattleAttemptRequest
-            {
-                SummonerId = SummonerId,
-                CampaignId = CampaignId,
-                BattleId = new BattleId(EventIds.SecondChallenge.Value),
-                DeckId = DeckId,
-            }
-        );
-
-        AssertThat(wrongCampaign.Status).IsEqual(ProgressionAuthorityStatus.Invalid);
-        AssertThat(lockedBattle.Status).IsEqual(ProgressionAuthorityStatus.Invalid);
-        AssertThat(store.Data.CampaignProgressMap).IsEmpty();
+        AssertThat(store.Data.SummonerProgressMap).IsEmpty();
     }
 
     [TestCase]
@@ -211,7 +181,7 @@ public class LocalProgressionAuthorityTest
 
         AssertThat(claim.Status).IsEqual(ProgressionAuthorityStatus.Ready);
         AssertThat(retry.Status).IsEqual(ProgressionAuthorityStatus.AlreadyCompleted);
-        AssertThat(store.Data.CampaignProgressMap[SummonerId.Value].Gold).IsEqual(30);
+        AssertThat(store.Data.Resources.Gold).IsEqual(30);
         AssertThat(store.Data.Collection.Count).IsEqual(2);
         AssertThat(store.Data.Rewards.PendingSelections).IsEmpty();
     }
@@ -237,16 +207,15 @@ public class LocalProgressionAuthorityTest
     public void AutomaticFirstClearGrantReturnsClaimedPresentation()
     {
         var (store, authority) = CreateAuthority();
-        var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.Gatekeeper)!;
-        store.Data.CampaignProgressMap[SummonerId.Value] = new CampaignProgress
+        var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaPuff)!;
+        store.Data.SummonerProgressMap[SummonerId.Value] = new SummonerProgress
         {
-            CompletedBattles = [new BattleId(EventIds.Chokepoint.Value)],
+            CompletedBattles = [new BattleId(EventIds.ArenaEarthSprite.Value)],
         };
         var started = authority.StartBattleAttempt(
             new StartBattleAttemptRequest
             {
                 SummonerId = SummonerId,
-                CampaignId = CampaignId,
                 BattleId = new BattleId(battle.Id.Value),
                 DeckId = DeckId,
             }
@@ -287,7 +256,7 @@ public class LocalProgressionAuthorityTest
         var result = Start(authority);
 
         AssertThat(result.Status).IsEqual(ProgressionAuthorityStatus.Unavailable);
-        AssertThat(store.Data.CampaignProgressMap).IsEmpty();
+        AssertThat(store.Data.SummonerProgressMap).IsEmpty();
     }
 
     [TestCase]
@@ -302,9 +271,9 @@ public class LocalProgressionAuthorityTest
         AssertThat(result.Status).IsEqual(ProgressionAuthorityStatus.Unavailable);
         AssertThat(store.Data.SummonerInstances.Single().Xp).IsEqual(0);
         AssertThat(store.Data.Collection.Single().Xp).IsEqual(0);
-        AssertThat(store.Data.CampaignProgressMap[SummonerId.Value].ActiveBattleAttempt)
+        AssertThat(store.Data.SummonerProgressMap[SummonerId.Value].ActiveBattleAttempt)
             .IsNotNull();
-        AssertThat(store.Data.CampaignProgressMap[SummonerId.Value].CompletedBattles).IsEmpty();
+        AssertThat(store.Data.SummonerProgressMap[SummonerId.Value].CompletedBattles).IsEmpty();
     }
 
     [TestCase]
@@ -340,7 +309,6 @@ public class LocalProgressionAuthorityTest
                 new StartBattleAttemptRequest
                 {
                     SummonerId = otherSummoner,
-                    CampaignId = CampaignId,
                     BattleId = BattleId,
                     DeckId = otherDeckId,
                 }
@@ -349,7 +317,7 @@ public class LocalProgressionAuthorityTest
         var secondResult = Complete(authority, second, BattleTerminalOutcome.Victory);
 
         AssertThat(secondResult.RewardOffers).HasSize(1);
-        AssertThat(store.Data.CampaignProgressMap).HasSize(2);
+        AssertThat(store.Data.SummonerProgressMap).HasSize(2);
         AssertThat(store.Data.SummonerInstances.Single(value => value.SummonerId == SummonerId).Xp)
             .IsEqual(first.SummonerXpReward);
         AssertThat(
@@ -398,7 +366,6 @@ public class LocalProgressionAuthorityTest
             new StartBattleAttemptRequest
             {
                 SummonerId = SummonerId,
-                CampaignId = CampaignId,
                 BattleId = BattleId,
                 DeckId = DeckId,
             }

@@ -11,15 +11,15 @@ using static GdUnit4.Assertions;
 public class BattleRuntimeSurfaceTest
 {
     [TestCase]
-    public void StandardBattle_SerializesTypedStandardSurfaceWithoutScenePath()
+    public void AuthoredBattle_SerializesTypedSurfaceWithoutScenePath()
     {
-        var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.FirstTrial);
+        var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaEarthSprite);
 
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.Standard);
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
 
         var config = EventCatalog.ToDictionary(battle);
-        AssertThat(config["runtime_surface"].AsString()).IsEqual("standard");
+        AssertThat(config["runtime_surface"].AsString()).IsEqual("debug_arena");
         AssertThat(config.ContainsKey("scene_path")).IsFalse();
     }
 
@@ -30,15 +30,7 @@ public class BattleRuntimeSurfaceTest
             .GetAllBattles()
             .Where(battle => battle.RuntimeSurface == BattleRuntimeSurface.DebugArena)
             .ToArray();
-        var expectedArenaIds = new HashSet<EventId>
-        {
-            EventIds.ArenaWindEarthNewCards,
-            EventIds.ArenaAllUnits,
-            EventIds.ArenaAllCards,
-            EventIds.ArenaAllSpells,
-            EventIds.ArenaSpriteUnits,
-            EventIds.DebugArena,
-        };
+        var expectedArenaIds = EventCatalog.GetAllEventIds().ToHashSet();
 
         AssertThat(arenaBattles.Select(battle => battle.Id).ToHashSet().SetEquals(expectedArenaIds))
             .IsTrue();

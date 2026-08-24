@@ -1,7 +1,11 @@
-# Event Architecture
+# Authored Battle and Encounter Architecture
 
-**Status:** CURRENT
+Quest content launches reusable encounter definitions from `data/encounters/`.
+The encounter owns preparation, loadout mode, battle configuration, and its
+completion summary; the quest owns sequencing and reward intent.
 
-Campaign events are typed domain definitions owned by `EventCatalog`. Their gameplay action is handled by the relevant authoritative screen or service. Narrative attached to an event is a separate typed `MetaMomentStarted`, battle, or activity event consumed by the [Narrative Director](../../design/narrative-dialogue-system.md).
+Developer-only battles are selected directly from the Debug Arena authored
+battle catalog. They use `ProgressionAuthority` for attempts, XP, first-clear
+rewards, and idempotent completion without participating in quest sequencing.
 
-Narrative is not a general event scripting engine. Shops, battle spawning, rewards, choices, and navigation remain with their dedicated owners. The removed EventSequencer format and arbitrary step execution are not supported.
+Both routes enter the same battle runtime and shared Results screen.

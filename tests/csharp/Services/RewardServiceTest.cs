@@ -243,9 +243,9 @@ public class RewardServiceTest
     [TestCase]
     public void RewardOption_GoldType_HasCorrectProperties()
     {
-        var option = new RewardOption { Type = RewardType.CampaignGold, Amount = 100 };
+        var option = new RewardOption { Type = RewardType.Gold, Amount = 100 };
 
-        AssertThat(option.Type).IsEqual(RewardType.CampaignGold);
+        AssertThat(option.Type).IsEqual(RewardType.Gold);
         AssertThat(option.Amount).IsEqual(100);
         AssertThat(option.Id).IsEqual("");
     }
@@ -266,9 +266,8 @@ public class RewardServiceTest
     public void RewardType_HasExpectedValues()
     {
         AssertThat((int)RewardType.Card).IsEqual(0);
-        AssertThat((int)RewardType.CampaignGold).IsEqual(1);
-        AssertThat((int)RewardType.Gold).IsEqual(2);
-        AssertThat((int)RewardType.Gems).IsEqual(3);
+        AssertThat((int)RewardType.Gold).IsEqual(1);
+        AssertThat((int)RewardType.Gems).IsEqual(2);
     }
 
     // =============================================================================

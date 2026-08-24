@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Fateforged.Data.Rewards;
-using Godot;
 
 namespace Fateforged.Data.Events;
 
 /// <summary>
-/// Base class for all event definitions in the campaign system.
+/// Base class for authored battle definitions.
 /// Subclasses provide type-specific properties for each event type.
 /// </summary>
 public abstract class EventDefinition
@@ -19,9 +18,6 @@ public abstract class EventDefinition
 
     /// <summary>Localization key for event description</summary>
     public string DescriptionKey { get; set; } = "";
-
-    /// <summary>Position in the authored progression graph.</summary>
-    public Vector2 Position { get; set; }
 
     /// <summary>Whether the event can be replayed after completion</summary>
     public bool Repeatable { get; set; }
@@ -100,15 +96,4 @@ public class EliteEventDefinition : BattleEventDefinition
 public class BossEventDefinition : BattleEventDefinition
 {
     public override EventType Type => EventType.Boss;
-}
-
-/// <summary>
-/// Choice event definition - path branching decision points.
-/// </summary>
-public class ChoiceEventDefinition : EventDefinition
-{
-    public override EventType Type => EventType.Choice;
-
-    /// <summary>Available choices at this node</summary>
-    public List<ChoiceOption> Options { get; set; } = new();
 }

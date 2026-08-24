@@ -55,8 +55,7 @@ var _arena_biome_dropdown: OptionButton
 var _arena_button_grid: GridContainer
 var _battlefield_debug_service_override: Node
 var _camera_controller_override: Node
-var _campaign_setter_override: Callable
-var _campaign_battle_getter_override: Callable
+var _battle_getter_override: Callable
 var _scene_transition_override: Callable
 var _progression_start_override: Callable
 var _battle_context_configure_override: Callable
@@ -1118,16 +1117,10 @@ func _select_autocomplete_item(index: int) -> void:
 	_hide_autocomplete()
 
 
-func _set_current_campaign(campaign_id: String) -> bool:
-	if _campaign_setter_override.is_valid():
-		return SafeTypeUtils.bool_val(_campaign_setter_override.call(campaign_id), false)
-	return CampaignApi.set_current_campaign(campaign_id)
-
-
-func _get_campaign_battle(battle_id: String) -> Dictionary:
-	if _campaign_battle_getter_override.is_valid():
-		return SafeTypeUtils.dict(_campaign_battle_getter_override.call(battle_id))
-	return CampaignApi.get_battle(battle_id)
+func _get_authored_battle(battle_id: String) -> Dictionary:
+	if _battle_getter_override.is_valid():
+		return SafeTypeUtils.dict(_battle_getter_override.call(battle_id))
+	return SafeTypeUtils.dict(ProgressionAuthority.GetBattle(battle_id))
 
 
 func _transition_to_scene(scene_path: String) -> void:
@@ -1137,17 +1130,17 @@ func _transition_to_scene(scene_path: String) -> void:
 	SceneManager.transition_to(scene_path)
 
 
-func _start_debug_battle_attempt(campaign_id: String, battle_id: String) -> Dictionary:
+func _start_debug_battle_attempt(battle_id: String) -> Dictionary:
 	if _progression_start_override.is_valid():
-		return SafeTypeUtils.dict(_progression_start_override.call(campaign_id, battle_id))
-	return ProgressionAuthority.StartCampaignBattleAttempt(campaign_id, battle_id)
+		return SafeTypeUtils.dict(_progression_start_override.call(battle_id))
+	return ProgressionAuthority.StartBattleAttempt(battle_id)
 
 
-func _configure_campaign_battle_context(battle_id: String) -> void:
+func _configure_authored_battle_context(battle_id: String) -> void:
 	if _battle_context_configure_override.is_valid():
 		_battle_context_configure_override.call(battle_id)
 		return
-	BattleContext.configure_campaign_battle(battle_id)
+	BattleContext.configure_authored_battle(battle_id)
 
 
 func _set_debug_arena_biome(biome_id: StringName) -> void:
@@ -1207,21 +1200,15 @@ func _on_debug_arena_battle_pressed(battle_id: String) -> void:
 	if battle_id.is_empty():
 		return
 
-	var campaign_id: String = String(CampaignIDs.TEST_ARENA)
-	var campaign_set: bool = _set_current_campaign(campaign_id)
-	if not campaign_set:
-		print("[Debug] Failed to switch campaign to '%s'" % campaign_id)
-		return
-
-	var attempt_result: Dictionary = _start_debug_battle_attempt(campaign_id, battle_id)
+	var attempt_result: Dictionary = _start_debug_battle_attempt(battle_id)
 	if not attempt_result.get("is_success", false):
 		push_error("Debug battle launch could not persist an attempt: %s" % attempt_result.get("errors", []))
 		return
 	BattleContext.set_battle_attempt_id(attempt_result.get("attempt_id", ""))
-	_configure_campaign_battle_context(battle_id)
+	_configure_authored_battle_context(battle_id)
 	_set_debug_arena_biome(_arena_biome_id)
 
-	var event_data: Dictionary = _get_campaign_battle(battle_id)
+	var event_data: Dictionary = _get_authored_battle(battle_id)
 	_transition_to_scene(BATTLE_SURFACE_ROUTER.resolve_scene(event_data))
 	print(
 		"[Debug] Launched test arena battle '%s' with biome '%s'"

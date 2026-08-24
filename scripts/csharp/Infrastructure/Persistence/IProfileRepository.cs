@@ -4,7 +4,7 @@ using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
@@ -95,14 +95,11 @@ public interface IProfileRepository
     Deck? GetDeck(DeckId deckId);
 
     // =========================================================================
-    // CAMPAIGN OPERATIONS
+    // SUMMONER PROGRESSION OPERATIONS
     // =========================================================================
 
-    CampaignProgress GetCampaignProgress(SummonerId summonerId);
-    void UpdateCampaignProgress(SummonerId summonerId, CampaignProgress progress);
-    CampaignProgress GetSharedCampaignProgress();
-    void UpdateSharedCampaignProgress(CampaignProgress progress);
-
+    SummonerProgress GetSummonerProgress(SummonerId summonerId);
+    void UpdateSummonerProgress(SummonerId summonerId, SummonerProgress progress);
     // =========================================================================
     // COSMETIC OPERATIONS
     // =========================================================================

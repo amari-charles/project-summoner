@@ -151,12 +151,6 @@ public sealed class RewardViewModelFactory
                 "",
                 value.Amount
             ),
-            AcademyProgressFlagRewardGrantDefinition value => (
-                "academy_progress_flag",
-                value.FlagId,
-                "",
-                value.Amount
-            ),
             _ => ("unknown", "", "", 0),
         };
         return new RewardGrantViewModel

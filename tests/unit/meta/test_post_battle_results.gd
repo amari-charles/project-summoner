@@ -24,7 +24,7 @@ func test_results_presents_authoritative_grants_without_mutating_xp() -> void:
 	var report_text: String = _read("res://scripts/application/post_battle_report.gd")
 	assert_true(report_text.contains("progression_grants"))
 	assert_true(script_text.contains("GetBattleRewards"))
-	assert_true(script_text.contains("get_encounter_completion_summary"))
+	assert_true(script_text.contains("EncounterApi.get_completion_summary"))
 	assert_true(script_text.contains("ClaimBattleReward"))
 	assert_true(script_text.contains("CardVisualScene"))
 	assert_true(script_text.contains("_create_reward_card(card_grant, REWARD_CHOICE_CARD_SIZE)"))
@@ -36,18 +36,18 @@ func test_results_presents_authoritative_grants_without_mutating_xp() -> void:
 	assert_false(script_text.contains("grant_xp("))
 	assert_false(script_text.contains("GrantXp"))
 	assert_true(report_text.contains("class_name PostBattleReport"))
-	assert_true(script_text.contains("PostBattleReport.from_campaign_result"))
+	assert_true(script_text.contains("PostBattleReport.from_authored_battle_result"))
 	assert_true(script_text.contains("PostBattleReport.from_encounter_summary"))
 
 
 func test_pending_offer_detection_supports_sequential_reward_choices() -> void:
-	var pending: PostBattleReport = PostBattleReport.from_campaign_result({
+	var pending: PostBattleReport = PostBattleReport.from_authored_battle_result({
 		"reward_offers": [
 			{"display_state": "claimed"},
 			{"display_state": "pending"},
 		]
 	}, "res://destination.tscn", "victory")
-	var complete: PostBattleReport = PostBattleReport.from_campaign_result({
+	var complete: PostBattleReport = PostBattleReport.from_authored_battle_result({
 		"reward_offers": [
 			{"display_state": "claimed"},
 			{"display_state": "forfeited"},
@@ -58,7 +58,7 @@ func test_pending_offer_detection_supports_sequential_reward_choices() -> void:
 
 
 func test_typed_report_normalizes_no_reward_and_selected_grants() -> void:
-	var report: PostBattleReport = PostBattleReport.from_campaign_result({
+	var report: PostBattleReport = PostBattleReport.from_authored_battle_result({
 		"outcome": "victory",
 		"progression_grants": [{"kind": "summoner_xp", "amount": 25}],
 		"reward_offers": [{

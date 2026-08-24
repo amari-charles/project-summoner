@@ -2,8 +2,8 @@
   "quests": [
     {
       "id": "introduction_to_magic",
-      "title_key": "academy.course.introduction_to_magic_101.name",
-      "description_key": "academy.course.introduction_to_magic_101.description",
+      "title_key": "academy.quest.introduction_to_magic_101.name",
+      "description_key": "academy.quest.introduction_to_magic_101.description",
       "visibility": "announced",
       "source": {
         "kind": "npc",
@@ -27,24 +27,6 @@
           }
         ]
       },
-      "acceptance_requirements": [],
-      "acceptance_effects": [
-        {
-          "kind": "commit_curriculum_capacity",
-          "parameters": {
-            "course_id": "introduction_to_magic_101",
-            "amount": 1
-          }
-        }
-      ],
-      "completion_effects": [
-        {
-          "kind": "record_academic_credit",
-          "parameters": {
-            "course_id": "introduction_to_magic_101"
-          }
-        }
-      ],
       "steps": [
         {
           "id": "go_to_practice_grounds",
@@ -69,14 +51,53 @@
             "academy.dialogue.introduction_to_magic.turn_in"
           ]
         }
+      ],
+      "curriculum_cost": 1,
+      "reward_offers": [
+        {
+          "id": "academy.reward.magic_bolt",
+          "selection": {
+            "mode": "automatic",
+            "show_count": 1,
+            "choose_count": 1
+          },
+          "preview_policy": "exact",
+          "eligibility": {
+            "duplicate_policy": "allow"
+          },
+          "option_source": {
+            "kind": "authored",
+            "options": [
+              {
+                "id": "academy.reward.magic_bolt.option",
+                "label_key": "academy.reward.magic_bolt",
+                "description_key": "",
+                "grants": [
+                  {
+                    "kind": "card",
+                    "card_id": "magic_bolt",
+                    "rarity": "common",
+                    "count": 1,
+                    "target": {
+                      "scope": "account",
+                      "target_id": ""
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
       ]
     },
     {
       "id": "summoning_basics",
-      "title_key": "academy.course.summoning_basics.name",
-      "description_key": "academy.course.summoning_basics.description",
+      "title_key": "academy.quest.summoning_basics.name",
+      "description_key": "academy.quest.summoning_basics.description",
       "visibility": "announced",
-      "prerequisite_quest_ids": ["introduction_to_magic"],
+      "prerequisite_quest_ids": [
+        "introduction_to_magic"
+      ],
       "exclusive_group_id": "year_1_foundation_focus",
       "source": {
         "kind": "npc",
@@ -100,24 +121,6 @@
           }
         ]
       },
-      "acceptance_requirements": [],
-      "acceptance_effects": [
-        {
-          "kind": "commit_curriculum_capacity",
-          "parameters": {
-            "course_id": "summoning_basics",
-            "amount": 1
-          }
-        }
-      ],
-      "completion_effects": [
-        {
-          "kind": "record_academic_credit",
-          "parameters": {
-            "course_id": "summoning_basics"
-          }
-        }
-      ],
       "steps": [
         {
           "id": "go_to_summoning_practice",
@@ -156,14 +159,53 @@
             "academy.dialogue.summoning_basics.turn_in"
           ]
         }
+      ],
+      "curriculum_cost": 1,
+      "reward_offers": [
+        {
+          "id": "academy.reward.basic_summon",
+          "selection": {
+            "mode": "automatic",
+            "show_count": 1,
+            "choose_count": 1
+          },
+          "preview_policy": "exact",
+          "eligibility": {
+            "duplicate_policy": "allow"
+          },
+          "option_source": {
+            "kind": "authored",
+            "options": [
+              {
+                "id": "academy.reward.basic_summon.option",
+                "label_key": "academy.reward.basic_summon",
+                "description_key": "",
+                "grants": [
+                  {
+                    "kind": "card",
+                    "card_id": "fire_wisp",
+                    "rarity": "common",
+                    "count": 1,
+                    "target": {
+                      "scope": "account",
+                      "target_id": ""
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
       ]
     },
     {
       "id": "practical_spellcraft",
-      "title_key": "academy.course.practical_spellcraft.name",
-      "description_key": "academy.course.practical_spellcraft.description",
+      "title_key": "academy.quest.practical_spellcraft.name",
+      "description_key": "academy.quest.practical_spellcraft.description",
       "visibility": "announced",
-      "prerequisite_quest_ids": ["introduction_to_magic"],
+      "prerequisite_quest_ids": [
+        "introduction_to_magic"
+      ],
       "exclusive_group_id": "year_1_foundation_focus",
       "source": {
         "kind": "npc",
@@ -187,24 +229,6 @@
           }
         ]
       },
-      "acceptance_requirements": [],
-      "acceptance_effects": [
-        {
-          "kind": "commit_curriculum_capacity",
-          "parameters": {
-            "course_id": "practical_spellcraft",
-            "amount": 1
-          }
-        }
-      ],
-      "completion_effects": [
-        {
-          "kind": "record_academic_credit",
-          "parameters": {
-            "course_id": "practical_spellcraft"
-          }
-        }
-      ],
       "steps": [
         {
           "id": "go_to_spellcraft_practice",
@@ -242,6 +266,43 @@
           "dialogue_keys": [
             "academy.dialogue.practical_spellcraft.turn_in"
           ]
+        }
+      ],
+      "curriculum_cost": 1,
+      "reward_offers": [
+        {
+          "id": "academy.reward.basic_spell",
+          "selection": {
+            "mode": "automatic",
+            "show_count": 1,
+            "choose_count": 1
+          },
+          "preview_policy": "exact",
+          "eligibility": {
+            "duplicate_policy": "allow"
+          },
+          "option_source": {
+            "kind": "authored",
+            "options": [
+              {
+                "id": "academy.reward.basic_spell.option",
+                "label_key": "academy.reward.basic_spell",
+                "description_key": "",
+                "grants": [
+                  {
+                    "kind": "card",
+                    "card_id": "mana_bolt",
+                    "rarity": "common",
+                    "count": 1,
+                    "target": {
+                      "scope": "account",
+                      "target_id": ""
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         }
       ]
     }

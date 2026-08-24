@@ -78,7 +78,7 @@ func test_c14_quick_tab_omits_legacy_test_arena_map_button() -> void:
 			var button: Button = child_var
 			button_labels.append(button.text)
 
-	assert_false("Open Test Arena Map" in button_labels, "legacy campaign-map chooser must stay removed")
+	assert_false("Open Test Arena Map" in button_labels, "obsolete map chooser must stay removed")
 	assert_false("Launch Roster Debug Arena" in button_labels, "main debug tab should not force a specific roster battle")
 
 
@@ -164,8 +164,7 @@ func test_c14_battle_launch_uses_expected_routing_hooks() -> void:
 	var menu: Node = _menu_script.new()
 	_track_owned_node(menu)
 	var harness: _DebugMenuHarness = _DebugMenuHarness.new()
-	menu._campaign_setter_override = Callable(harness, "set_campaign")
-	menu._campaign_battle_getter_override = Callable(harness, "get_battle")
+	menu._battle_getter_override = Callable(harness, "get_battle")
 	menu._scene_transition_override = Callable(harness, "transition_to")
 	menu._progression_start_override = Callable(harness, "start_progression")
 	menu._battle_context_configure_override = Callable(harness, "configure_battle_context")
@@ -173,7 +172,6 @@ func test_c14_battle_launch_uses_expected_routing_hooks() -> void:
 	menu._arena_biome_id = BiomeIDs.ISLAND_WATER
 
 	menu._on_debug_arena_battle_pressed("arena_fire_wisp")
-	assert_eq(harness.last_campaign_id, String(CampaignIDs.TEST_ARENA))
 	assert_eq(harness.last_attempt_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_context_battle_id, "arena_fire_wisp")
 	assert_eq(harness.last_biome_id, String(BiomeIDs.ISLAND_WATER))
@@ -317,16 +315,11 @@ class _FakeGameController extends Node:
 
 
 class _DebugMenuHarness extends RefCounted:
-	var last_campaign_id: String = ""
 	var last_transition_scene: String = ""
 	var last_attempt_battle_id: String = ""
 	var last_context_battle_id: String = ""
 	var last_biome_id: String = ""
 	var last_console_command: String = ""
-
-	func set_campaign(campaign_id: String) -> bool:
-		last_campaign_id = campaign_id
-		return true
 
 	func get_battle(_battle_id: String) -> Dictionary:
 		return {"runtime_surface": "debug_arena"}
@@ -334,7 +327,7 @@ class _DebugMenuHarness extends RefCounted:
 	func transition_to(scene_path: String) -> void:
 		last_transition_scene = scene_path
 
-	func start_progression(_campaign_id: String, battle_id: String) -> Dictionary:
+	func start_progression(battle_id: String) -> Dictionary:
 		last_attempt_battle_id = battle_id
 		return {"is_success": true, "attempt_id": "debug-attempt"}
 

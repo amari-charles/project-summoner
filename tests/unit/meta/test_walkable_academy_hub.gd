@@ -524,8 +524,8 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 	await get_tree().process_frame
 	offer.present({
 		"id": "introduction_to_magic",
-		"title_key": "academy.course.introduction_to_magic_101.name",
-		"description_key": "academy.course.introduction_to_magic_101.description",
+		"title_key": "academy.quest.introduction_to_magic_101.name",
+		"description_key": "academy.quest.introduction_to_magic_101.description",
 		"source_name_key": "academy.professor.general_magic.name",
 		"location_key": "academy.location.general_grounds",
 		"curriculum_cost": 1,

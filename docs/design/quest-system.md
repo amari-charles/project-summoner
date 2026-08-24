@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Quests are the connective structure between professors, courses, campus life,
+Quests are the connective structure between professors, campus life,
 excursions, battles, rewards, shops, discoveries, and progression. They should
 make the Academy feel physically inhabited without obscuring the measurable
 four-year curriculum or turning every interaction into a menu.
@@ -19,7 +19,7 @@ the walkable-world HUD, and one Journal organizes the complete quest record.
 
 - **Opportunity:** A quest or quest chain the player knows about but has not
   accepted.
-- **Academic chain:** A course expressed through connected quests. Accepting it
+- **Academic chain:** A connected sequence of academic quests. Accepting it
   permanently commits curriculum capacity.
 - **Side quest:** A non-academic quest. Side quests do not consume curriculum
   capacity and have no hard active-count limit.
@@ -127,7 +127,7 @@ Every quest progresses through an ordered set of typed steps. A step identifies
 one player-facing objective and the authoritative event that completes it, such
 as talking to a particular NPC, interacting with a world location, completing
 a reusable encounter, or returning to a quest giver. The Journal and HUD
-show the current step; they do not expose or launch a parallel course-node flow.
+show the current step; they do not expose or launch a parallel activity-node flow.
 
 Playable battles use generic encounter definitions for configuration,
 preparation, rules, loadouts, and results. Any quest source may reference an
@@ -209,14 +209,8 @@ battle content as scaffolding:
 
 The slice must prove NPC interaction, markers, acceptance, persistence, Journal
 projection, HUD tracking, battle-driven objective advancement, turn-in, and
-dependency unlocking. It does not establish final quest writing or course
+dependency unlocking. It does not establish final quest writing or later-year
 content.
-
-The old Class Hall enrollment browser and full-screen Course Flow are deprecated
-in their entirety. They must not remain as alternate enrollment, activity
-selection, launch, progression, or return paths. Their preparation and results
-capabilities migrate into generic encounter screens entered and exited through
-the active quest step.
 
 ## Deferred Decisions and Work
 
@@ -226,6 +220,6 @@ the active quest step.
 - Hidden quest discovery presentation and content.
 - Magical-trail implementation.
 - Final marker art and Journal/folio styling.
-- Exact yearly curriculum budgets and final course costs.
+- Exact yearly curriculum budgets and final academic-chain costs.
 - Final side-quest roster and authoring policy.
 - Final introductory battle and reward content.

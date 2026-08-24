@@ -8,7 +8,6 @@ using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Domain.Progression;
 using Fateforged.Infrastructure.Persistence;
-using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Progression;
 using Fateforged.Meta.Summoner;
 using GdUnit4;
@@ -38,7 +37,7 @@ public class ProgressionAuthorityServiceTest
     }
 
     [TestCase]
-    public void BeginCampaignBattleAttempt_UsesResolvedSummonerWhenPersistedSelectionIsEmpty()
+    public void BeginBattleAttempt_UsesResolvedSummonerWhenPersistedSelectionIsEmpty()
     {
         var repo = CreateNode<ProfileRepository>();
         repo.LoadProfile(new ProfileId($"progression_authority_resolved_summoner_{Guid.NewGuid():N}"));
@@ -55,10 +54,7 @@ public class ProgressionAuthorityServiceTest
         var service = CreateNode<ProgressionAuthorityService>();
         service.InitForTesting(authority);
 
-        service.BeginCampaignBattleAttempt(
-            CampaignIds.TestArena,
-            new BattleId(EventIds.DebugArena.Value)
-        );
+        service.BeginBattleAttempt(new BattleId(EventIds.DebugArena.Value));
         service.GetPendingBattleRewards();
 
         AssertThat(authority.LastStartRequest).IsNotNull();

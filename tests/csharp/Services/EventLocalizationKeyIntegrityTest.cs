@@ -16,7 +16,7 @@ public class EventLocalizationKeyIntegrityTest
     public void AllEventNameAndDescriptionKeys_ResolveLocalizationEntries()
     {
         // PASS 2 skeleton for C19.
-        // PASS 3 can expand this to campaign-level key validation too.
+        // PASS 3 can expand this to authored-battle key validation too.
         var flattenedKeys = LoadFlattenedLocalizationKeys();
         var allEvents = EventCatalog.GetAllEvents();
 

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Account;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Inventory;
@@ -19,7 +19,7 @@ namespace Fateforged.Domain.Profile;
 public class ProfileData
 {
     /// <summary>Current save version for migrations.</summary>
-    public const int CurrentVersion = 7;
+    public const int CurrentVersion = 8;
 
     /// <summary>Save data version.</summary>
     [JsonPropertyName("version")]
@@ -61,13 +61,9 @@ public class ProfileData
     [JsonPropertyName("decks")]
     public List<Deck> Decks { get; set; } = [];
 
-    /// <summary>Per-summoner campaign progress.</summary>
-    [JsonPropertyName("campaign_progress")]
-    public Dictionary<string, CampaignProgress> CampaignProgressMap { get; set; } = [];
-
-    /// <summary>Shared (account-wide) campaign progress.</summary>
-    [JsonPropertyName("shared_campaign_progress")]
-    public CampaignProgress SharedCampaignProgress { get; set; } = new();
+    /// <summary>Per-summoner quest and authored-battle progress.</summary>
+    [JsonPropertyName("summoner_progress")]
+    public Dictionary<string, SummonerProgress> SummonerProgressMap { get; set; } = [];
 
     /// <summary>Shop purchase tracking ("shop_id::offering_id::refresh_epoch" -> count).</summary>
     [JsonPropertyName("shop_purchases")]

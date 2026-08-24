@@ -10,7 +10,7 @@ extends Node
 ##   3. BattleScene owns post-battle completion logic
 
 enum BattleMode {
-	CAMPAIGN,   ## Story progression battles
+	AUTHORED,   ## Direct authored battles
 	ARENA,      ## Random battles for rewards
 	ENDLESS,    ## Wave-based survival mode
 	TUTORIAL,   ## Guided learning battles
@@ -47,7 +47,7 @@ var battle_config: Dictionary = {}
 ## The battle ID for the current configuration
 var _battle_id: String = ""
 
-## Authority-created occurrence identity for campaign progression.
+## Authority-created occurrence identity for authored battle progression.
 var _battle_attempt_id: String = ""
 
 ## Generic encounter identity for quest and world battle completion.
@@ -55,11 +55,11 @@ var encounter_id: String = ""
 
 ## Typed event accessor for battle_config
 ## Provides type-safe access to event properties
-var battle_event: TypedEventData:
+var battle_definition: TypedBattleData:
 	get:
 		if battle_config.is_empty():
-			return TypedEventData.new({}, "")
-		return TypedEventData.new(battle_config, _battle_id)
+			return TypedBattleData.new({}, "")
+		return TypedBattleData.new(battle_config, _battle_id)
 
 ## Biome ID for visual theme
 var biome_id: StringName = BiomeIDs.SUMMER_PLAINS
@@ -90,27 +90,27 @@ var _ranked_match_info: Dictionary = {}
 ## Set by Summoner._apply_summoner_bonuses(), read by DamageSystem
 var _player_summoner_stats: Dictionary = {}
 
-## Configure for campaign battle
-func configure_campaign_battle(battle_id: String) -> void:
-	current_mode = BattleMode.CAMPAIGN
+## Configure for authored battle
+func configure_authored_battle(battle_id: String) -> void:
+	current_mode = BattleMode.AUTHORED
 	battle_state = BattleState.CONFIGURED
 	was_configured = true
-	origin_scene = _get_campaign_battle_origin_scene()
+	origin_scene = _get_authored_battle_origin_scene()
 	_battle_id = battle_id
 
-	if debug_mode: print("BattleContext: configure_campaign_battle() called with battle_id='%s'" % battle_id)
+	if debug_mode: print("BattleContext: configure_authored_battle() called with battle_id='%s'" % battle_id)
 
-	# Campaign is an autoload, access it directly
-	battle_config = CampaignApi.get_battle(battle_id)
+	# ProgressionAuthority exposes the authored debug battle catalog
+	battle_config = ProgressionAuthority.GetBattle(battle_id)
 
 	if battle_config.is_empty():
 		push_error("BattleContext: CRITICAL - Cannot configure battle '%s', battle_config is empty!" % battle_id)
 		push_error("BattleContext: This will cause enemy deck loading to fail")
 
-	biome_id = StringName(battle_event.biome_id) if not battle_event.biome_id.is_empty() else BiomeIDs.SUMMER_PLAINS
+	biome_id = StringName(battle_definition.biome_id) if not battle_definition.biome_id.is_empty() else BiomeIDs.SUMMER_PLAINS
 
 	# Set level cap if configured (use typed accessor)
-	_level_cap = battle_event.level_cap
+	_level_cap = battle_definition.level_cap
 	if _level_cap > 0:
 		if debug_mode: print("BattleContext: Level cap set to %d" % _level_cap)
 
@@ -123,7 +123,7 @@ func configure_campaign_battle(battle_id: String) -> void:
 		var enemy_deck_array: Array = enemy_deck_variant
 		enemy_deck_size = enemy_deck_array.size()
 
-	if debug_mode: print("BattleContext: Configured campaign battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
+	if debug_mode: print("BattleContext: Configured authored battle '%s' (has enemy_deck: %s, enemy_deck size: %d)" % [
 		battle_id,
 		enemy_side.has("deck"),
 		enemy_deck_size
@@ -314,7 +314,7 @@ func get_origin_scene() -> String:
 	return origin_scene
 
 
-func _get_campaign_battle_origin_scene() -> String:
+func _get_authored_battle_origin_scene() -> String:
 	return SceneManager.SCENE_ACADEMY_CAMPUS
 
 ## Mark battle as started (called by GameController when battle begins)
@@ -343,7 +343,7 @@ func end_battle_defeat() -> void:
 	if debug_mode: print("BattleContext: Battle ended - DEFEAT")
 
 ## Abandon battle (called when player quits mid-battle)
-## Sets state and clears local tracking. Service cleanup (profile, campaign)
+## Sets state and clears local tracking. Service cleanup (profile and authored battle)
 ## is handled by BattleScene.AbandonBattle().
 func abandon_battle() -> void:
 	if battle_state == BattleState.NONE:
@@ -377,7 +377,7 @@ func reset() -> void:
 	clear()
 
 
-## Set by the progression authority before campaign scene navigation.
+## Set by the progression authority before authored-battle navigation.
 func set_battle_attempt_id(attempt_id: String) -> void:
 	_battle_attempt_id = attempt_id
 

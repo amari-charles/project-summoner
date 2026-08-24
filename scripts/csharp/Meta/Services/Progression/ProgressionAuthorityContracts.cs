@@ -4,7 +4,6 @@ using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Progression;
-using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Rewards;
 
@@ -21,7 +20,6 @@ public enum ProgressionAuthorityStatus
 public sealed record StartBattleAttemptRequest
 {
     public required SummonerId SummonerId { get; init; }
-    public required CampaignId CampaignId { get; init; }
     public required BattleId BattleId { get; init; }
     public DeckId DeckId { get; init; } = DeckId.None;
 }

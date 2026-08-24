@@ -5,11 +5,10 @@ using Fateforged.Cards;
 using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Progression;
 using Fateforged.Infrastructure.Persistence;
-using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -21,13 +20,12 @@ public class BattleAttemptPersistenceTest
     [TestCase]
     public void BPA_C08_D01_D03_AttemptAndCompletionShapesRoundTrip()
     {
-        var progress = new CampaignProgress
+        var progress = new SummonerProgress
         {
             ActiveBattleAttempt = new BattleAttempt
             {
                 AttemptId = new BattleAttemptId("attempt"),
                 SummonerId = new SummonerId("summoner_cole"),
-                CampaignId = new CampaignId("campaign"),
                 BattleId = new BattleId("battle"),
                 DeckId = new DeckId("deck"),
                 DeckCardInstanceIds = [new CardInstanceId("card-instance")],
@@ -41,8 +39,8 @@ public class BattleAttemptPersistenceTest
                         OfferId = new RewardOfferId("first-clear-offer"),
                         Source = new RewardSourceContext
                         {
-                            SourceType = "campaign_battle_first_clear",
-                            SourceId = "campaign/battle",
+                            SourceType = "authored_battle_first_clear",
+                            SourceId = "battle",
                         },
                         SummonerId = new SummonerId("summoner_cole"),
                         SelectionMode = RewardSelectionMode.PlayerChoice,
@@ -82,7 +80,7 @@ public class BattleAttemptPersistenceTest
             },
         };
 
-        var restored = DtoConverters.FromCampaignDict(DtoConverters.ToDict(progress));
+        var restored = DtoConverters.FromSummonerProgressDict(DtoConverters.ToDict(progress));
 
         AssertThat(restored).IsNotNull();
         AssertThat(restored!.ActiveBattleAttempt).IsNotNull();

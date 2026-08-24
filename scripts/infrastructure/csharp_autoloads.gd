@@ -16,7 +16,6 @@ const SUMMONER_SELECTION: String = "/root/SummonerSelection"
 const TRAIT_TREE_SERVICE: String = "/root/TraitTreeService"
 const ITEMS: String = "/root/Items"
 const REWARD_SERVICE: String = "/root/RewardService"
-const CAMPAIGN: String = "/root/Campaign"
 const PROGRESSION_AUTHORITY: String = "/root/ProgressionAuthority"
 const NARRATIVE_DIRECTOR: String = "/root/NarrativeDirector"
 

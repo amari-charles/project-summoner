@@ -374,11 +374,6 @@ internal static class RewardStateMapper
                 dict["trait_id"] = (string)cardTrait.TraitId;
                 dict["amount"] = cardTrait.Amount;
                 break;
-            case AcademyProgressFlagRewardGrantDefinition flag:
-                dict["kind"] = "academy_progress_flag";
-                dict["flag_id"] = flag.FlagId;
-                dict["amount"] = flag.Amount;
-                break;
             default:
                 throw new InvalidOperationException(
                     $"Unsupported persisted reward grant type {grant.GetType().Name}."
@@ -458,12 +453,6 @@ internal static class RewardStateMapper
             {
                 Target = target,
                 TraitId = new CardTraitId(GetString(dict, "trait_id")),
-                Amount = amount,
-            },
-            "academy_progress_flag" => new AcademyProgressFlagRewardGrantDefinition
-            {
-                Target = target,
-                FlagId = GetString(dict, "flag_id"),
                 Amount = amount,
             },
             _ => null,

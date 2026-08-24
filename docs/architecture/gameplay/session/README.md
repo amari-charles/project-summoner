@@ -6,7 +6,7 @@ The session decides **how** simulation is run: locally or over network. It valid
 
 ```
 IGameSession                  <- Input + View talk to this only
-+-- LocalSession              <- Singleplayer/campaign/tutorial/practice
++-- LocalSession              <- Singleplayer/quest/tutorial/practice
 +-- NetworkSession (abstract) <- Shared multiplayer transport/message plumbing
     +-- HostSession           <- Authoritative tick + remote command validation + snapshot broadcast
     +-- ClientSession         <- Command send + snapshot apply

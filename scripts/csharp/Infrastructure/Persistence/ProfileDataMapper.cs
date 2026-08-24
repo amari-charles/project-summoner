@@ -6,14 +6,14 @@ using Fateforged.Data.Events;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Domain.Profile.Inventory;
 using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
-using Fateforged.Meta.Campaign;
+using Fateforged.Domain.Progression;
 using Fateforged.Meta.Deck;
 using Godot;
 using GdArray = Godot.Collections.Array;
@@ -99,27 +99,22 @@ public static class ProfileDataMapper
         // Decks + deck_cards junction table → inline CardInstanceIds
         MapDecksFromDict(dict, data);
 
-        // Campaign progress (per-summoner map)
-        if (TryGetDict(dict, "campaign_progress", out var campaignDict))
+        // Quest and authored-battle progress (per-summoner map)
+        if (TryGetDict(dict, "summoner_progress", out var progressDict))
         {
-            foreach (var key in campaignDict.Keys)
+            foreach (var key in progressDict.Keys)
             {
                 var keyStr = key.AsString();
                 if (keyStr.StartsWith("_"))
                     continue; // Skip legacy keys
-                var val = campaignDict[key];
+                var val = progressDict[key];
                 if (val.VariantType != Variant.Type.Dictionary)
                     continue;
-                var progress = DtoConverters.FromCampaignDict(val.AsGodotDictionary());
+                var progress = DtoConverters.FromSummonerProgressDict(val.AsGodotDictionary());
                 if (progress != null)
-                    data.CampaignProgressMap[keyStr] = progress;
+                    data.SummonerProgressMap[keyStr] = progress;
             }
         }
-
-        // Shared campaign progress
-        if (TryGetDict(dict, "shared_campaign_progress", out var sharedDict))
-            data.SharedCampaignProgress =
-                DtoConverters.FromCampaignDict(sharedDict) ?? new CampaignProgress();
 
         // Shop purchases
         if (TryGetDict(dict, "shop_purchases", out var purchasesDict))
@@ -231,14 +226,11 @@ public static class ProfileDataMapper
         // Decks + deck_cards junction table (normalized format)
         MapDecksToDict(data, dict);
 
-        // Campaign progress (per-summoner)
-        var campaignDict = new GdDict();
-        foreach (var (summonerId, progress) in data.CampaignProgressMap)
-            campaignDict[summonerId] = DtoConverters.ToDict(progress);
-        dict["campaign_progress"] = campaignDict;
-
-        // Shared campaign progress
-        dict["shared_campaign_progress"] = DtoConverters.ToDict(data.SharedCampaignProgress);
+        // Quest and authored-battle progress (per-summoner)
+        var progressDict = new GdDict();
+        foreach (var (summonerId, progress) in data.SummonerProgressMap)
+            progressDict[summonerId] = DtoConverters.ToDict(progress);
+        dict["summoner_progress"] = progressDict;
 
         // Shop purchases
         var purchasesDict = new GdDict();

@@ -97,8 +97,7 @@ func _cleanup_persistent_state() -> void:
 	# Note: BattleContext is NOT reset here
 	# It's configured BEFORE scene transition by the caller.
 
-	# Note: EventContext, NavigationContext are NOT reset here
-	# They carry state needed by the destination scene
+	# NavigationContext carries state needed by the destination scene.
 
 	if debug_mode:
 		print("SceneCoordinator: Persistent state cleanup complete")
@@ -116,8 +115,10 @@ func _verify_services_ready() -> void:
 
 	if not ProfileRepo:
 		missing_services.append("ProfileRepo")
-	if not Campaign:
-		missing_services.append("Campaign")
+	if not Quests:
+		missing_services.append("Quests")
+	if not Encounters:
+		missing_services.append("Encounters")
 	if not CardCatalog:
 		missing_services.append("CardCatalog")
 	if not SceneManager:

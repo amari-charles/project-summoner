@@ -59,7 +59,7 @@ These are not required for Pass 3 acceptance, but architecture should remain ope
 | F07 | Server-authored trait packs | Externalized content control | Design-Covered |
 | F08 | Telemetry for pick rates and offer entropy | Balance iteration | Design-Covered |
 | F09 | Versioned trait definitions | Hotfix safety and auditability | Design-Covered |
-| F10 | Rule-pack switching by game mode | Campaign vs arena separation | Design-Covered |
+| F10 | Rule-pack switching by game mode | Quest encounter vs arena separation | Design-Covered |
 
 ## 4. Determinism Validation Requirements
 
@@ -149,17 +149,17 @@ Determinism note for selection-based cases:
 
 ## 8. Availability and Distribution Gating Cases
 
-These validate that traits can be gated by campaign, mission, character, and external entitlement rules.
+These validate that traits can be gated by quest, encounter, character, and external entitlement rules.
 
 | ID | Gate Type | Example Rule | Expected Result | Status |
 |---|---|---|---|---|
-| A01 | Campaign gate | Trait is only eligible in campaign `campaign_main_01` | Trait never appears outside allowed campaign | Design-Covered |
+| A01 | Quest gate | Trait is only eligible in quest `academy_magic_101` | Trait never appears outside the allowed quest | Design-Covered |
 | A02 | Mission gate | Trait can only be offered in mission `mission_03_boss` | Offer/spend path blocks trait in other missions | Design-Covered |
 | A03 | Character gate | Trait only valid for summoner `Cole` | Non-Cole summoners cannot roll or spend this trait | Design-Covered |
 | A04 | Character blacklist | Trait valid for all except `Mei` | Mei is excluded while others remain eligible | Design-Covered |
 | A05 | Promo code entitlement | Trait unlocks when promo code `FOUNDER2026` is redeemed | Trait pool includes it only after entitlement is present | Design-Covered |
 | A06 | Promo expiration | Promo trait entitlement expires at configured date/time | Trait becomes unavailable after expiry by deterministic rule | Design-Covered |
-| A07 | Campaign branch gate | Trait available only on specific narrative branch flag | Branch mismatch blocks offer/spend deterministically | Design-Covered |
+| A07 | Quest branch gate | Trait available only on a specific narrative branch flag | Branch mismatch blocks offer/spend deterministically | Design-Covered |
 | A08 | Mission completion prerequisite | Trait unlocks only after mission `M12` completed | Trait unavailable before completion and available after | Design-Covered |
 
 ## 9. Offer-Time vs Spend-Time Gating Conflict Cases
@@ -169,7 +169,7 @@ Current design default is roll-at-spend-time, but conflict policy still matters 
 
 | ID | Conflict Type | Example | Deterministic Resolution | Status |
 |---|---|---|---|---|
-| V01 | Campaign changed | Trait previewed in Campaign A, player enters Campaign B before spending | Re-evaluate at spend; if now ineligible, spend fails with reason `campaign_gate` | Design-Covered |
+| V01 | Quest context changed | Trait previewed in Quest A, player enters Quest B before spending | Re-evaluate at spend; if now ineligible, spend fails with reason `quest_gate` | Design-Covered |
 | V02 | Mission changed | Trait shown in mission lobby, mission switched before confirm | Re-evaluate at spend; ineligible trait rejected | Design-Covered |
 | V03 | Character switched | Trait previewed for Cole, player switches active summoner to Mei | Re-evaluate at spend using current owner identity | Design-Covered |
 | V04 | Promo expired | Promo trait was visible while entitlement active, expires before spend | Spend-time entitlement check fails with reason `entitlement_expired` | Design-Covered |
