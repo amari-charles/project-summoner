@@ -36,6 +36,7 @@ func set_summoner(value: String, is_active: bool) -> void:
 		"ui.summoner_panel.level_display",
 		{"level": SafeTypeUtils.int_val(progression.get("level"), 1)}
 	)
+	active_label.text = Loc.t("ui.summoner_panel.active_indicator")
 	active_label.visible = _is_active
 	_refresh_style(false)
 

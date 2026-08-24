@@ -7,8 +7,12 @@ func test_summoner_switch_uses_character_carousel_items() -> void:
 	var switch_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/screens/summoner_switch_screen.gd"
 	)
+	var item_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/summoner_carousel_item.gd"
+	)
 	assert_true(switch_source.contains("SummonerCarouselItem"))
 	assert_false(switch_source.contains("SummonerRosterItem"))
+	assert_true(item_source.contains('Loc.t("ui.summoner_panel.active_indicator")'))
 
 
 func test_summoner_profile_uses_a_fixed_overlay_and_switch_keeps_a_readable_background() -> void:
