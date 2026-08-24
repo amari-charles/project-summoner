@@ -1,0 +1,70 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/meta/components/summoner_carousel_item.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/placeholders/tiny_swords/characters/placeholder_player_pawn_idle.png" id="2_character"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_character"]
+atlas = ExtResource("2_character")
+region = Rect2(54, 45, 84, 110)
+
+[node name="SummonerCarouselItem" type="Control"]
+custom_minimum_size = Vector2(300, 480)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_override = "TitleLabel"
+theme_override_font_sizes/font_size = 28
+text = "Summoner"
+horizontal_alignment = 1
+
+[node name="CharacterCenter" type="CenterContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CharacterTexture" type="TextureRect" parent="VBox/CharacterCenter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 340)
+layout_mode = 2
+texture_filter = 1
+texture = SubResource("AtlasTexture_character")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="StatusRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="LevelLabel" type="Label" parent="VBox/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Lv.1"
+
+[node name="ActiveLabel" type="Label" parent="VBox/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.65, 0.3, 1)
+text = "Active"
+
+[node name="SelectButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
