@@ -56,7 +56,7 @@ flowchart TB
     subgraph "Profile Reset"
         G[User resets profile] -->|"Clears"| F
         F -->|"Emits"| H((data_changed))
-        H -.->|"Other services react"| I[CampaignService, etc.]
+        H -.->|"Other services react"| I[Quest, encounter, and UI consumers]
     end
 
     subgraph "Next Query"
@@ -111,7 +111,9 @@ flowchart LR
 | File | Change |
 |------|--------|
 | `scripts/csharp/Meta/Services/Shop/ShopService.cs` | Removed `_purchaseCache`, delegates to `IProfileRepository` |
-| `scripts/services/shop_service.gd` | Removed `LoadPurchaseCache()` call |
+
+The former GDScript ShopService adapter was subsequently retired; the C#
+service is the authoritative runtime boundary.
 
 ## Future Pattern
 

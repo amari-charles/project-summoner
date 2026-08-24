@@ -5,7 +5,7 @@ using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Rewards;
-using Fateforged.Meta.Campaign;
+using Fateforged.Domain.Progression;
 using Fateforged.Meta.Deck;
 
 namespace Fateforged.Domain.Progression;
@@ -41,9 +41,6 @@ public sealed record BattleAttempt
 
     [JsonPropertyName("summoner_id")]
     public required SummonerId SummonerId { get; init; }
-
-    [JsonPropertyName("campaign_id")]
-    public required CampaignId CampaignId { get; init; }
 
     [JsonPropertyName("battle_id")]
     public required BattleId BattleId { get; init; }

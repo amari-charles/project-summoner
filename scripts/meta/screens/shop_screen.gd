@@ -189,7 +189,7 @@ func _on_back_pressed() -> void:
 	if NavigationContext.has_return():
 		SceneManager.transition_to(NavigationContext.pop_return())
 	else:
-		SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 
 
 func _request_back_navigation() -> void:

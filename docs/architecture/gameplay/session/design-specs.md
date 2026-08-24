@@ -203,7 +203,7 @@ Each session type reads what it needs from `BattleConfig` at construction. `Loca
 ### BattleContext Role After Migration
 
 `BattleContext` autoload stays but becomes a `BattleConfig` builder:
-1. `configure_campaign_battle()` → builds `BattleConfig` from campaign event data
+1. `configure_authored_battle()` → builds `BattleConfig` from direct authored-battle data
 2. `configure_multiplayer_battle()` → builds `BattleConfig` from match start data
 3. `configure_practice_battle()` → builds `BattleConfig` with test defaults
 4. Stores the built `BattleConfig` for the battle scene to read at init
@@ -218,11 +218,11 @@ New component that reacts to battle completion:
 BattleResultHandler:
   - Watches IGameSession for GamePhase.Victory/Defeat
   - On victory: grant card XP, grant summoner XP, report ranked match
-  - Transitions to appropriate scene (reward screen, campaign map, lobby)
+  - Transitions to the appropriate Results, campus, debug, or lobby destination
   - Reads BattleContext.Mode to determine which aftermath to run
 ```
 
-This replaces the completion callbacks currently scattered across `BattleContext._handle_campaign_completion()`, `_handle_multiplayer_completion()`, etc.
+This replaces completion callbacks scattered across activity-specific battle setup code.
 
 ---
 

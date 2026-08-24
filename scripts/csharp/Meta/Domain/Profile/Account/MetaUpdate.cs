@@ -17,9 +17,6 @@ public class MetaUpdate
     /// <summary>Update the selected summoner ID.</summary>
     public string? SelectedSummoner { get; set; }
 
-    /// <summary>Update the selected campaign ID.</summary>
-    public string? SelectedCampaign { get; set; }
-
     /// <summary>Update the analytics opt-in flag.</summary>
     public bool? AnalyticsOptIn { get; set; }
 

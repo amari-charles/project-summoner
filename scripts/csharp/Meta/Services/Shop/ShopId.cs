@@ -31,9 +31,6 @@ public static class ShopIds
     /// <summary>General shop (persistent UI shop).</summary>
     public static readonly ShopId General = new("general");
 
-    /// <summary>Tutorial caravan shop.</summary>
-    public static readonly ShopId CaravanTutorial = new("caravan_tutorial");
-
     /// <summary>Premium store (gems, summoners, cosmetics).</summary>
     public static readonly ShopId PremiumStore = new("premium_store");
 }

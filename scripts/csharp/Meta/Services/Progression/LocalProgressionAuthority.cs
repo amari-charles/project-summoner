@@ -7,11 +7,10 @@ using Fateforged.Cards;
 using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 using Fateforged.Domain.Profile;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Progression;
 using Fateforged.Infrastructure.Persistence;
-using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Rewards;
 
 namespace Fateforged.Meta.Progression;
@@ -23,8 +22,8 @@ namespace Fateforged.Meta.Progression;
 /// </summary>
 public sealed class LocalProgressionAuthority : IProgressionAuthority
 {
-    private const string BattleXpSource = "campaign_battle_xp";
-    private const string FirstClearSource = "campaign_battle_first_clear";
+    private const string BattleXpSource = "authored_battle_xp";
+    private const string FirstClearSource = "authored_battle_first_clear";
     private readonly object _gate = new();
     private readonly IProgressionProfileStore _profileStore;
     private readonly RewardViewModelFactory _viewModels = new();
@@ -46,14 +45,8 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
         {
             if (RewardRuntime.Status != RewardRuntimeStatus.Ready)
                 return ProgressionAuthorityResult.Unavailable("Reward runtime is unavailable.");
-            if (
-                !request.SummonerId.HasValue
-                || !request.CampaignId.HasValue
-                || !request.BattleId.HasValue
-            )
-                return ProgressionAuthorityResult.Invalid(
-                    "Summoner, campaign, and battle IDs are required."
-                );
+            if (!request.SummonerId.HasValue || !request.BattleId.HasValue)
+                return ProgressionAuthorityResult.Invalid("Summoner and battle IDs are required.");
 
             var battle = EventCatalog.GetEvent<BattleEventDefinition>(
                 new EventId(request.BattleId.Value)
@@ -61,15 +54,6 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
             if (battle == null)
                 return ProgressionAuthorityResult.Invalid(
                     $"Battle '{request.BattleId}' was not found."
-                );
-
-            var campaign = CampaignCatalog.GetCampaign(request.CampaignId);
-            if (
-                campaign == null
-                || !campaign.EventIds.Any(eventId => eventId.Value == request.BattleId.Value)
-            )
-                return ProgressionAuthorityResult.Invalid(
-                    "The battle does not belong to the requested campaign."
                 );
 
             var snapshot = _profileStore.GetProgressionSnapshot();
@@ -81,19 +65,6 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
                 return ProgressionAuthorityResult.Invalid(
                     $"Summoner '{request.SummonerId}' was not found."
                 );
-
-            var existingProgress = snapshot.CampaignProgressMap.GetValueOrDefault(
-                request.SummonerId.Value
-            );
-            if (
-                !CampaignUnlockPolicy.IsUnlocked(
-                    campaign,
-                    new EventId(request.BattleId.Value),
-                    existingProgress?.CompletedBattles.Select(value => value.Value) ?? [],
-                    existingProgress?.Choices ?? new Dictionary<NodeId, ChoiceId>()
-                )
-            )
-                return ProgressionAuthorityResult.Invalid("The campaign battle is locked.");
 
             var deck = request.DeckId.HasValue
                 ? snapshot.Decks.FirstOrDefault(value => value.Id == request.DeckId)
@@ -121,13 +92,13 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
                 : NewNonZeroSeed();
             var firstClearSnapshots = new List<ResolvedRewardOfferSnapshot>();
             var alreadyCompleted =
-                snapshot.CampaignProgressMap.TryGetValue(
+                snapshot.SummonerProgressMap.TryGetValue(
                     request.SummonerId.Value,
                     out var progressSnapshot
                 ) && progressSnapshot.CompletedBattles.Contains(request.BattleId);
             if (!alreadyCompleted)
             {
-                var source = FirstClearContext(request.CampaignId, request.BattleId);
+                var source = FirstClearContext(request.BattleId);
                 foreach (var offer in battle.FirstClearRewardOffers)
                 {
                     var resolved = Resolve(snapshot, offer, request.SummonerId, source, seed);
@@ -143,7 +114,6 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
             {
                 AttemptId = CreateAttemptId(),
                 SummonerId = request.SummonerId,
-                CampaignId = request.CampaignId,
                 BattleId = request.BattleId,
                 DeckId = battle.RequiresDeck ? request.DeckId : Fateforged.Meta.Deck.DeckId.None,
                 DeckCardInstanceIds = distinctCards,
@@ -164,18 +134,6 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
                     && committedSeed != seed
                 )
                     return Failure("The summoner reward seed changed before battle start.");
-                var committedProgress = profile.CampaignProgressMap.GetValueOrDefault(
-                    request.SummonerId.Value
-                );
-                if (
-                    !CampaignUnlockPolicy.IsUnlocked(
-                        campaign,
-                        new EventId(request.BattleId.Value),
-                        committedProgress?.CompletedBattles.Select(value => value.Value) ?? [],
-                        committedProgress?.Choices ?? new Dictionary<NodeId, ChoiceId>()
-                    )
-                )
-                    return Failure("The campaign battle became locked before battle start.");
                 if (battle.RequiresDeck)
                 {
                     var committedDeck = profile.Decks.FirstOrDefault(value =>
@@ -405,8 +363,8 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
             if (RewardRuntime.Status != RewardRuntimeStatus.Ready)
                 return ProgressionAuthorityResult.Unavailable("Reward runtime is unavailable.");
             var profile = _profileStore.GetProgressionSnapshot();
-            if (!profile.CampaignProgressMap.TryGetValue(summonerId.Value, out var progress))
-                return ProgressionAuthorityResult.Invalid("Campaign progress was not found.");
+            if (!profile.SummonerProgressMap.TryGetValue(summonerId.Value, out var progress))
+                return ProgressionAuthorityResult.Invalid("Summoner progress was not found.");
             var completion = progress
                 .BattleAttemptCompletions.Values.Where(value => value.PendingClaimIds.Count > 0)
                 .OrderByDescending(value => value.CompletedAtUnixSeconds)
@@ -564,7 +522,7 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
         var source = new RewardSourceContext
         {
             SourceType = BattleXpSource,
-            SourceId = $"{attempt.CampaignId.Value}/{attempt.BattleId.Value}",
+            SourceId = attempt.BattleId.Value,
             OccurrenceId = attempt.AttemptId.Value,
         };
         return TryResolveAutomatic(
@@ -692,10 +650,8 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
             }
         );
 
-    private static RewardSourceContext FirstClearContext(
-        CampaignId campaignId,
-        BattleId battleId
-    ) => new() { SourceType = FirstClearSource, SourceId = $"{campaignId.Value}/{battleId.Value}" };
+    private static RewardSourceContext FirstClearContext(BattleId battleId) =>
+        new() { SourceType = FirstClearSource, SourceId = battleId.Value };
 
     private static RewardOfferDefinition? BuildXpOffer(BattleAttempt attempt)
     {
@@ -826,10 +782,10 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
         ProfileData profile,
         BattleAttemptId attemptId,
         out BattleAttempt? attempt,
-        out CampaignProgress? progress
+        out SummonerProgress? progress
     )
     {
-        foreach (var value in profile.CampaignProgressMap.Values)
+        foreach (var value in profile.SummonerProgressMap.Values)
             if (value.ActiveBattleAttempt?.AttemptId == attemptId)
             {
                 attempt = value.ActiveBattleAttempt;
@@ -845,10 +801,10 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
         ProfileData profile,
         BattleAttemptId attemptId,
         out BattleAttemptCompletion? completion,
-        out CampaignProgress? progress
+        out SummonerProgress? progress
     )
     {
-        foreach (var value in profile.CampaignProgressMap.Values)
+        foreach (var value in profile.SummonerProgressMap.Values)
             if (value.BattleAttemptCompletions.TryGetValue(attemptId.Value, out completion))
             {
                 progress = value;
@@ -859,13 +815,13 @@ public sealed class LocalProgressionAuthority : IProgressionAuthority
         return false;
     }
 
-    private static CampaignProgress GetOrCreateProgress(
+    private static SummonerProgress GetOrCreateProgress(
         ProfileData profile,
         Fateforged.Data.Summoners.SummonerId summonerId
     )
     {
-        if (!profile.CampaignProgressMap.TryGetValue(summonerId.Value, out var progress))
-            profile.CampaignProgressMap[summonerId.Value] = progress = new CampaignProgress();
+        if (!profile.SummonerProgressMap.TryGetValue(summonerId.Value, out var progress))
+            profile.SummonerProgressMap[summonerId.Value] = progress = new SummonerProgress();
         return progress;
     }
 

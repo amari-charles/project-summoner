@@ -14,32 +14,23 @@ class_name SceneManagerClass
 ## Main UI Scenes
 const SCENE_TITLE_SCREEN: String = "res://scenes/meta/screens/title_screen.tscn"
 
-## Campaign Scenes
-const SCENE_WALKABLE_ACADEMY_HUB: String = "res://scenes/meta/screens/walkable_academy_hub.tscn"
-const SCENE_CAMPAIGN_MAP: String = SCENE_WALKABLE_ACADEMY_HUB
-const SCENE_ACADEMY_MENU_HUB: String = "res://scenes/meta/screens/academy_hub.tscn"
+## Academy, quest, and encounter scenes
+const SCENE_ACADEMY_CAMPUS: String = "res://scenes/meta/screens/walkable_academy_hub.tscn"
 const SCENE_QUEST_JOURNAL: String = "res://scenes/meta/screens/quest_journal.tscn"
-const SCENE_ACADEMY_ACTIVITY_PREPARATION: String = "res://scenes/meta/screens/academy_activity_preparation.tscn"
-const SCENE_ACADEMY_ACTIVITY_RESULTS: String = "res://scenes/meta/screens/academy_activity_results.tscn"
+const SCENE_ENCOUNTER_PREPARATION: String = "res://scenes/meta/screens/encounter_preparation.tscn"
 const SCENE_POST_BATTLE_RESULTS: String = "res://scenes/meta/screens/post_battle_results.tscn"
-const SCENE_ENCOUNTER_PREPARATION: String = SCENE_ACADEMY_ACTIVITY_PREPARATION
-const SCENE_ENCOUNTER_RESULTS: String = SCENE_POST_BATTLE_RESULTS
-const SCENE_LEGACY_CAMPAIGN_MAP: String = "res://scenes/meta/screens/campaign_map.tscn"
-const SCENE_EVENT_SCREEN: String = "res://scenes/meta/screens/event_screen.tscn"
 const SCENE_SUMMONER_SELECTION: String = "res://scenes/meta/screens/summoner_selection.tscn"
 const SCENE_SUMMONER_REVEAL: String = "res://scenes/meta/modals/summoner_reveal.tscn"
 const SCENE_SUMMONER_SCREEN: String = "res://scenes/meta/screens/summoner_screen.tscn"
 const SCENE_TRAIT_TREE_SCREEN: String = "res://scenes/meta/screens/trait_tree_screen.tscn"
 const SCENE_CARD_TRAIT_TREE_SCREEN: String = "res://scenes/meta/screens/card_trait_tree_screen.tscn"
 const SCENE_SUMMONER_SWITCH: String = "res://scenes/meta/screens/summoner_switch_screen.tscn"
-const SCENE_FIRST_CARD_SELECTION: String = "res://scenes/meta/screens/first_card_selection.tscn"
 
 ## Collection Scenes
 const SCENE_COLLECTION_SCREEN: String = "res://scenes/meta/screens/collection_screen.tscn"
 
 ## Shop Scenes
 const SCENE_SHOP_SCREEN: String = "res://scenes/meta/screens/shop_screen.tscn"
-const SCENE_CARAVAN_SCREEN: String = "res://scenes/meta/screens/caravan_screen.tscn"
 const SCENE_PREMIUM_STORE: String = "res://scenes/meta/screens/premium_store_screen.tscn"
 
 ## Special Events & Settings
@@ -49,7 +40,7 @@ const SCENE_ONLINE: String = "res://scenes/meta/screens/online_screen.tscn"
 
 ## Battle Scenes
 const SCENE_BATTLE_3D: String = "res://scenes/battle/battlefield/battle_3d.tscn"
-const SCENE_REWARD_SCREEN: String = "res://scenes/meta/screens/reward_screen.tscn"
+const SCENE_DEBUG_ARENA: String = "res://scenes/battle/battlefield/dev/debug_arena.tscn"
 
 ## Multiplayer Scenes
 const SCENE_MULTIPLAYER_LOBBY: String = "res://scenes/meta/screens/multiplayer_lobby.tscn"

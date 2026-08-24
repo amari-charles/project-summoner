@@ -49,7 +49,7 @@ either summoner-bound or account-wide according to that event's reward design.
 
 | Source | Binding | UI Indicator |
 |--------|---------|--------------|
-| Quest, campaign, shop, or ordinary world reward | Summoner-bound | (none) |
+| Quest, encounter, shop, or ordinary world reward | Summoner-bound | (none) |
 | Event-exclusive reward | Configurable: summoner-bound or account-wide | `[Shared]` only when account-wide |
 
 ### Summoner-Bound Items
@@ -66,8 +66,13 @@ either summoner-bound or account-wide according to that event's reward design.
 
 ## Item Acquisition
 
-### Campaign Rewards
-Items can be offered as rewards during campaign progression. These become summoner-bound.
+Normal grant APIs require the target Summoner explicitly. Missing ownership
+context fails without creating an account-wide item. Inventory queries combine
+that Summoner's items with explicitly shared event-exclusive items, and equip
+validation applies the same accessibility rule.
+
+### Quest and Encounter Rewards
+Items offered through quest or encounter progression become summoner-bound.
 
 ### Event Rewards
 Events and trials can drop exclusive items. Their authored reward definition

@@ -48,10 +48,8 @@ public enum RewardType
     /// <summary>A card to add to the collection.</summary>
     Card,
 
-    /// <summary>Campaign-scoped gold.</summary>
-    CampaignGold,
-
-    /// <summary>Account-wide gold (deprecated, use CampaignGold).</summary>
+    /// <summary>Account gold.</summary>
+    /// <summary>Account-wide gold.</summary>
     Gold,
 
     /// <summary>Gems (premium currency).</summary>

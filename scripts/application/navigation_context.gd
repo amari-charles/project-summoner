@@ -12,7 +12,7 @@ extends Node
 ##
 ## Usage:
 ##   # Before navigating to shop from event
-##   NavigationContext.push_return(SceneManager.SCENE_EVENT_SCREEN)
+##   NavigationContext.push_return(SceneManager.SCENE_QUEST_JOURNAL)
 ##   SceneManager.transition_to(SceneManager.SCENE_SHOP_SCREEN)
 ##
 ##   # In shop back button

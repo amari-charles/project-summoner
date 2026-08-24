@@ -124,7 +124,7 @@ From a game perspective, this should make combat feel fair and readable in 2.5D 
 5. `scripts/csharp/Battle/Simulation/Simulation.cs`
 6. `scripts/csharp/Battle/Simulation/Combat/SimProjectile.cs`
 7. `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
-8. `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+8. `scripts/csharp/Battle/Simulation/Combat/Targeting/SimTargeting.cs`
 9. `scripts/csharp/Battle/Simulation/Movement/OrcaAvoidance.cs`
 10. `scripts/csharp/Battle/Simulation/Movement/OverlapCorrection.cs`
 11. `scripts/csharp/Battle/Simulation/Movement/MovementTargetResolver.cs`

@@ -76,6 +76,63 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-24 — Retire campaign and Caravan progression in favor of quests
+
+**Status:** Accepted
+**Areas:** Player Journey, Academy, Quests, Encounters, Shop, Architecture
+
+### Decision
+
+Fateforged has no player-facing campaign, campaign map, or campaign-run
+progression model. The Caravan is retired as a shop and progression concept.
+Mr. and Mrs. Merriweather remain in the world as the owners of the permanent
+Campus Shop; they are not traveling Caravan merchants.
+
+The progression history is explicit: the campaign map and Caravan were replaced
+by an Academy course structure, and the Course Flow was then replaced by
+professor-led quests and reusable generic encounters. Academic subjects may
+still provide quest content, but a course system does not own enrollment,
+progression, activity launch, rewards, or navigation.
+
+### Context
+
+The move to the Academy first made the campaign graph and run-bound Caravan
+obsolete. The later quest rearchitecture removed the Course Flow as the
+replacement progression owner, but the retirement of the original campaign and
+Caravan was not recorded clearly. That gap left old design documents and
+internal `Campaign` names looking authoritative after their product model had
+already been superseded.
+
+### Consequences
+
+- Runtime routes, catalogs, events, UI, localization, narrative hooks, and save
+  fields that exist only for the campaign map or Caravan are deleted without a
+  compatibility path.
+- The Campus Shop is the sole current shop location owned by the Merriweathers.
+- Live quest and encounter capabilities currently housed under
+  `CampaignService` remain behaviorally necessary, but the mixed service name
+  and ownership are architecture debt. A bounded review must separate live
+  quest/encounter responsibilities from obsolete campaign/course APIs before
+  the services receive canonical names.
+- Wholly superseded campaign, Caravan, and Course Flow documents move under
+  `docs/archive/`; mixed documents are revised so active guidance contains only
+  current intent. Historical direction-log entries remain in place and are
+  superseded by this entry rather than rewritten.
+
+### Supersedes
+
+- The campaign-map and visible-Caravan direction recorded in the 2026-01-19
+  ideation session and campaign structure documents.
+- The Course Flow as the successor progression owner; see
+  `2026-08-16 — Replace the old Course Flow with authoritative typed quest steps`.
+
+### References
+
+- `docs/design/quest-system.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-forging-model.md`
+- `docs/tracking/todos.md`
+- PR `#379`
+
 ## 2026-08-23 — Establish a high-fantasy world with pre-industrial material culture
 
 **Status:** Accepted
@@ -114,7 +171,7 @@ None.
 ### References
 
 - [The World of Fateforged](../lore/world.md)
-- [UI Design Questionnaire Response](../art/commissions/ui-design-questionnaire-response.md)
+- [UI Design Questionnaire Response](../archive/suspended-progression-models-2026-08/art/commissions/ui-design-questionnaire-response.md)
 
 ## 2026-08-23 — Restore the carousel for switching summoners
 
@@ -150,7 +207,7 @@ The Summoner Switch roster consequence recorded in
 ### References
 
 - `docs/features/summoners/README.md`
-- `docs/art/commissions/ui-design-handoff/README.md`
+- `docs/archive/suspended-progression-models-2026-08/art/commissions/ui-design-handoff/README.md`
 
 ## 2026-08-23 — Cap player-built decks at 12 cards
 
@@ -255,7 +312,7 @@ The clickable battlefield-conclusion requirement within
 
 ### References
 
-- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+- `docs/archive/suspended-progression-models-2026-08/technical/meta/unified-post-battle-flow-proposal.md`
 - `docs/tracking/todos.md`
 
 ## 2026-08-22 — Confirm the starting summoner with a character reveal
@@ -414,7 +471,7 @@ Core in `Make summoner and card development discovery-driven` (2026-08-18).
 
 - [Discovery-Driven Development](../design/discovery-driven-development.md)
 - [Card Progression, Resources & Economy](../design/card-progression-economy.md)
-- [Discovery-Driven Development Work Plan](../tracking/discovery-driven-development-work-plan.md)
+- [Discovery-Driven Development Work Plan](../archive/suspended-progression-models-2026-08/tracking/discovery-driven-development-work-plan.md)
 
 ## 2026-08-19 — Inspect trait nodes contextually instead of reserving a side panel
 
@@ -697,7 +754,7 @@ The roadmap assumption that one global combat-movement decision must be implemen
 ### References
 
 - `docs/design/excursion-combat-format.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Use campus as home base without flattening excursions into separate trips
 
@@ -919,7 +976,7 @@ complete contract without turning every result category into its own page.
 
 ### References
 
-- `docs/technical/meta/unified-post-battle-flow-proposal.md`
+- `docs/archive/suspended-progression-models-2026-08/technical/meta/unified-post-battle-flow-proposal.md`
 - `docs/tracking/todos.md`
 
 ## 2026-08-16 — Apply summoner levels automatically and bank upgrade choices
@@ -964,8 +1021,8 @@ screen specification and the manual summoner level-up modal.
 ### References
 
 - `docs/design/trait-tree-screen-flow-spec.md`
-- `docs/design/academy-forging-model.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-forging-model.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Use generic quest and encounter systems across every context
 
@@ -1014,8 +1071,8 @@ professor, or Course Flow deprecation decisions.
 ### References
 
 - `docs/design/quest-system.md`
-- `docs/design/academy-class-flow.md`
-- `docs/technical/meta/quest-step-rearchitecture-proposal.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-class-flow.md`
+- `docs/archive/suspended-progression-models-2026-08/technical/meta/quest-step-rearchitecture-proposal.md`
 
 ## 2026-08-16 — Replace the old Course Flow with authoritative typed quest steps
 
@@ -1058,7 +1115,7 @@ and leave two progression models.
 - Course-node scenes, routes, APIs, and tests are deleted after their quest-step
   replacements are wired.
 - The exact architecture and migration sequence are proposed in
-  `docs/technical/meta/quest-step-rearchitecture-proposal.md`.
+  `docs/archive/suspended-progression-models-2026-08/technical/meta/quest-step-rearchitecture-proposal.md`.
 
 ### Supersedes
 
@@ -1069,8 +1126,8 @@ progression.
 ### References
 
 - `docs/design/quest-system.md`
-- `docs/design/academy-class-flow.md`
-- `docs/technical/meta/quest-step-rearchitecture-proposal.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-class-flow.md`
+- `docs/archive/suspended-progression-models-2026-08/technical/meta/quest-step-rearchitecture-proposal.md`
 
 ## 2026-08-16 — Separate character dialogue from quest UI and adopt the three-region Journal
 
@@ -1117,7 +1174,7 @@ tracking, and curriculum-commitment decisions remain accepted.
 ### References
 
 - `docs/design/quest-system.md`
-- `docs/technical/meta/quest-system-foundation-plan.md`
+- `docs/archive/suspended-progression-models-2026-08/technical/meta/quest-system-foundation-plan.md`
 
 ## 2026-08-16 — Define the classical professor-led quest experience
 
@@ -1176,10 +1233,10 @@ remaining capacity may instead be supplied by persistent surrounding UI.
 ### References
 
 - `docs/design/quest-system.md`
-- `docs/design/academy-class-flow.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-class-flow.md`
 - `docs/design/walkable-academy-hub.md`
-- `docs/technical/meta/quest-system-foundation-plan.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/technical/meta/quest-system-foundation-plan.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Make card cracking illicit and secret
 
@@ -1217,7 +1274,7 @@ specific black-market location is still not required.
 
 ### References
 
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Place cracking and rituals in a contact-gated Academy underground
 
@@ -1254,7 +1311,7 @@ with the world.
 ### References
 
 - `docs/design/walkable-academy-hub.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Do not require physical classrooms for every course
 
@@ -1288,8 +1345,8 @@ the cost of building a unique room for every subject.
 
 ### References
 
-- `docs/design/academy-class-flow.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-class-flow.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Commit curriculum capacity when an academic quest chain is accepted
 
@@ -1332,8 +1389,8 @@ recovered by abandoning an accepted course.
 
 ### References
 
-- `docs/design/academy-forging-model.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-forging-model.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Manage academic chains and world quests through one Journal
 
@@ -1379,9 +1436,9 @@ launching.
 
 ### References
 
-- `docs/design/academy-class-flow.md`
-- `docs/design/academy-forging-model.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-class-flow.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-forging-model.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-14 — Design elemental summons creature-first
 
@@ -1408,7 +1465,7 @@ The ability-first working approach used during early elemental ideation; no prio
 
 ### References
 
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 - `docs/design/fire-content-working-notes.md`
 - `docs/design/water-content-working-notes.md`
 - `docs/design/earth-content-working-notes.md`
@@ -1440,7 +1497,7 @@ None.
 
 ### References
 
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-14 — Use quests to connect the expanded Academy experience
 
@@ -1470,8 +1527,8 @@ The assumption that the Academy curriculum is experienced primarily through stat
 ### References
 
 - `docs/design/walkable-academy-hub.md`
-- `docs/design/academy-class-flow.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-class-flow.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 ## 2026-08-16 — Use card-specific summon radii in moving-summoner encounters
 
 **Status:** Accepted
@@ -1568,7 +1625,7 @@ card reward to use the same explicit multi-option presentation.
 
 ### References
 
-- `docs/design/academy-forging-model.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-forging-model.md`
 
 ## 2026-08-16 — Use permanent behavioral branches in card upgrade trees
 
@@ -1613,7 +1670,7 @@ can all remain available across later levels.
 ### References
 
 - `docs/design/card-progression-economy.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Require one coherent summoner-control model across combat
 
@@ -1655,7 +1712,7 @@ while standard 1v1 remained a separate stationary format.
 ### References
 
 - `docs/design/excursion-combat-format.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Keep summoners stationary during combat
 
@@ -1700,7 +1757,7 @@ the production baseline while preserving their prototype history.
 ### References
 
 - `docs/design/excursion-combat-format.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Transition exploration encounters into separate battlefields
 
@@ -1742,7 +1799,7 @@ walkable location where the encounter was discovered.
 ### References
 
 - `docs/design/excursion-combat-format.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Move from catalog-first enrollment to professor-led academic quest chains
 
@@ -1795,10 +1852,10 @@ capstone remain in force.
 
 ### References
 
-- `docs/design/academy-class-flow.md`
-- `docs/design/academy-forging-model.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-class-flow.md`
+- `docs/archive/suspended-progression-models-2026-08/design/academy-forging-model.md`
 - `docs/design/walkable-academy-hub.md`
-- `docs/tracking/completion-roadmap.md`
+- `docs/archive/suspended-progression-models-2026-08/tracking/completion-roadmap.md`
 
 ## 2026-08-16 — Make the Spellbook a persistent campus action
 

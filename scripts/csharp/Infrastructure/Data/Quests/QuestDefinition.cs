@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text.Json;
+using Fateforged.Data.Rewards;
 
 namespace Fateforged.Data.Quests;
 
@@ -31,6 +32,8 @@ public sealed class QuestDefinition
 
     public string ExclusiveGroupId { get; init; } = "";
 
+    public int CurriculumCost { get; init; }
+
     public QuestSourceDefinition Source { get; init; } = new();
 
     public QuestDialogueDefinition Dialogue { get; init; } = new();
@@ -40,6 +43,8 @@ public sealed class QuestDefinition
     public ImmutableArray<QuestRuleDefinition> AcceptanceEffects { get; init; } = [];
 
     public ImmutableArray<QuestRuleDefinition> CompletionEffects { get; init; } = [];
+
+    public ImmutableArray<RewardOfferDefinition> RewardOffers { get; init; } = [];
 
     public ImmutableArray<QuestStepDefinition> Steps { get; init; } = [];
 }

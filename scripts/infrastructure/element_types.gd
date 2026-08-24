@@ -69,7 +69,7 @@ class Element:
 ## Neutral - No elemental affinity
 var NEUTRAL: Element = null
 
-## Core Elements - Foundation of the world and main campaign pillars
+## Core Elements - Foundation of the world and core elemental pillars
 var FIRE: Element = null
 var WATER: Element = null
 var WIND: Element = null

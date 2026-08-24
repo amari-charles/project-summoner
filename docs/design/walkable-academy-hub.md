@@ -45,7 +45,7 @@ room-sized shared space.
   persistent Spellbook HUD action routes directly to collection and deck
   management; the hub does not reimplement their functionality. Quest
   acceptance and progression happen through NPCs, world targets, the Journal,
-  and generic encounter screens rather than the retired Class Hall/Course Flow UI.
+  and generic encounter screens rather than superseded node-based progression UI.
 - **The competitive loop stays fast.** Online play remains represented by a
   physical Arena waypoint/building, while deck management remains immediately
   accessible through the persistent Spellbook action.

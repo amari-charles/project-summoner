@@ -8,10 +8,10 @@ class_name PostBattleResults
 const CardVisualScene: PackedScene = preload("res://scenes/shared/card_visual.tscn")
 const RESULT_CARD_SIZE: Vector2 = CardVisualHelper.CARD_SIZE_LARGE
 const REWARD_CHOICE_CARD_SIZE: Vector2 = CardVisualHelper.CARD_SIZE_STANDARD
+const REWARD_CHOICE_FALLBACK_SIZE: Vector2 = Vector2(180, 64)
 const GRANT_KIND_CARD: String = "card"
 const GRANT_KIND_CARD_XP: String = "card_xp"
 const GRANT_KIND_SUMMONER_XP: String = "summoner_xp"
-const OFFER_STATE_PENDING: String = "pending"
 const OUTCOME_DEFEAT: String = "defeat"
 const OUTCOME_VICTORY: String = "victory"
 
@@ -35,13 +35,14 @@ const OUTCOME_VICTORY: String = "victory"
 @onready var choice_buttons: HFlowContainer = %ChoiceButtons
 @onready var continue_button: Button = %ContinueButton
 
-var _report: Dictionary = {}
+var _report: PostBattleReport = PostBattleReport.new()
 var _encounter_id: String = ""
 var _attempt_id: String = ""
 var _pending_claim_id: String = ""
 var _selected_option_id: String = ""
 var _destination: String = ""
 var _completion_event_published: bool = false
+var _base_reward_grants: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -56,70 +57,56 @@ func _ready() -> void:
 	_load_authoritative_report()
 
 
-func present(report: Dictionary) -> void:
-	_report = report.duplicate(true)
+func present(report: PostBattleReport) -> void:
+	_report = report
+	_destination = report.destination
 	_render()
 
 
 func _load_authoritative_report() -> void:
-	if BattleContext.current_mode == BattleContext.BattleMode.CAMPAIGN:
-		_load_campaign_report()
+	if BattleContext.current_mode == BattleContext.BattleMode.AUTHORED:
+		_load_authored_battle_report()
 	elif BattleContext.current_mode == BattleContext.BattleMode.ENCOUNTER:
 		_load_encounter_report()
 	else:
-		_destination = BattleContext.get_origin_scene()
-		present({"outcome": _battle_context_outcome(), "grants": []})
+		present(PostBattleReport.basic(_battle_context_outcome(), BattleContext.get_origin_scene()))
 
 
-func _load_campaign_report() -> void:
+func _load_authored_battle_report() -> void:
 	_attempt_id = BattleContext.get_battle_attempt_id()
 	var result: Dictionary = ProgressionAuthority.GetBattleRewards(_attempt_id)
-	_present_campaign_result(result)
+	_present_authored_battle_result(result)
 
 
-func _present_campaign_result(result: Dictionary) -> void:
+func _present_authored_battle_result(result: Dictionary) -> void:
 	if not SafeTypeUtils.bool_val(result.get("is_success"), false):
 		push_error("PostBattleResults: completion unavailable: %s" % str(result.get("errors", [])))
 		SceneManager.transition_to(BattleContext.get_origin_scene())
 		return
-	_destination = BattleContext.get_origin_scene()
-	var grants: Array[Dictionary] = []
-	_append_grants(grants, result.get("progression_grants", []))
-	var pending_offer: Dictionary = {}
-	for value: Variant in SafeTypeUtils.array(result.get("reward_offers")):
-		var offer: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(offer.get("display_state")) == OFFER_STATE_PENDING and pending_offer.is_empty():
-			pending_offer = offer
-			continue
-		for option_value: Variant in SafeTypeUtils.array(offer.get("options")):
-			var option: Dictionary = SafeTypeUtils.dict(option_value)
-			if SafeTypeUtils.bool_val(option.get("is_selected"), false):
-				_append_grants(grants, option.get("grants", []))
-	_report = {
-		"outcome": SafeTypeUtils.string(result.get("outcome"), _battle_context_outcome()),
-		"grants": grants,
-		"pending_offer": pending_offer,
-	}
-	present(_report)
+	present(PostBattleReport.from_authored_battle_result(
+		result,
+		BattleContext.get_origin_scene(),
+		_battle_context_outcome()
+	))
 
 
 func _load_encounter_report() -> void:
 	_encounter_id = BattleContext.encounter_id
-	var summary: Dictionary = CampaignApi.get_encounter_completion_summary(_encounter_id)
+	var summary: Dictionary = EncounterApi.get_completion_summary(_encounter_id)
 	if summary.is_empty():
-		SceneManager.transition_to(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 		return
-	_destination = SceneManager.SCENE_WALKABLE_ACADEMY_HUB
-	present({
-		"outcome": SafeTypeUtils.string(summary.get("outcome"), _battle_context_outcome()),
-		"grants": SafeTypeUtils.array(summary.get("granted_rewards")),
-	})
+	present(PostBattleReport.from_encounter_summary(
+		summary,
+		SceneManager.SCENE_ACADEMY_CAMPUS,
+		_battle_context_outcome()
+	))
 	if not _completion_event_published:
 		_completion_event_published = true
 		NarrativeDirectorApi.publish_event(
 			NarrativeDirectorApi.EventType.ACTIVITY_COMPLETED,
 			_encounter_id,
-			{"encounter_id": _encounter_id, "outcome": _report.get("outcome", "")}
+			{"encounter_id": _encounter_id, "outcome": String(_report.outcome)}
 		)
 
 
@@ -129,17 +116,21 @@ func _render() -> void:
 	_clear_children(choice_buttons)
 	_selected_option_id = ""
 	_pending_claim_id = ""
-	var outcome: String = SafeTypeUtils.string(_report.get("outcome"), OUTCOME_DEFEAT).to_lower()
+	var outcome: String = String(_report.outcome).to_lower()
 	outcome_label.text = Loc.t("ui.post_battle.%s" % outcome)
 	outcome_label.add_theme_color_override(
 		"font_color", GameColorPalette.SUCCESS if outcome == OUTCOME_VICTORY else GameColorPalette.ERROR
 	)
 	var grants: Array[Dictionary] = []
-	_append_grants(grants, _report.get("grants", []))
+	_append_grants(grants, _report.grants)
+	_base_reward_grants.clear()
+	for grant: Dictionary in grants:
+		if SafeTypeUtils.string(grant.get("kind")) not in [GRANT_KIND_SUMMONER_XP, GRANT_KIND_CARD_XP]:
+			_base_reward_grants.append(grant)
 	_render_summoner_progression(grants)
 	_render_card_progression(grants)
 	_render_rewards(grants)
-	_render_pending_choice(SafeTypeUtils.dict(_report.get("pending_offer")))
+	_render_pending_choice(_report.pending_offer)
 
 
 func _render_summoner_progression(grants: Array[Dictionary]) -> void:
@@ -214,19 +205,21 @@ func _render_pending_choice(offer: Dictionary) -> void:
 	continue_button.disabled = true
 	for value: Variant in SafeTypeUtils.array(offer.get("options")):
 		var option: Dictionary = SafeTypeUtils.dict(value)
-		var card_grant: Dictionary = _card_grant_from_option(option)
-		if card_grant.is_empty():
-			push_warning("PostBattleResults: reward choice option has no card grant")
-			continue
 		var button: Button = Button.new()
-		button.custom_minimum_size = REWARD_CHOICE_CARD_SIZE
-		button.flat = true
 		button.toggle_mode = true
 		button.set_meta("option_id", SafeTypeUtils.string(option.get("id")))
 		button.pressed.connect(_select_reward.bind(option))
-		var card_visual: CardVisual = _create_reward_card(card_grant, REWARD_CHOICE_CARD_SIZE)
-		_set_mouse_filter_recursive(card_visual, Control.MOUSE_FILTER_IGNORE)
-		button.add_child(card_visual)
+		var card_grant: Dictionary = _card_grant_from_option(option)
+		if card_grant.is_empty():
+			button.custom_minimum_size = REWARD_CHOICE_FALLBACK_SIZE
+			button.text = _option_label(option)
+		else:
+			button.custom_minimum_size = REWARD_CHOICE_CARD_SIZE
+			button.flat = true
+			button.tooltip_text = _option_label(option)
+			var card_visual: CardVisual = _create_reward_card(card_grant, REWARD_CHOICE_CARD_SIZE)
+			_set_mouse_filter_recursive(card_visual, Control.MOUSE_FILTER_IGNORE)
+			button.add_child(card_visual)
 		choice_buttons.add_child(button)
 
 
@@ -234,6 +227,12 @@ func _select_reward(option: Dictionary) -> void:
 	_selected_option_id = SafeTypeUtils.string(option.get("id"))
 	for button: Button in choice_buttons.get_children():
 		button.button_pressed = SafeTypeUtils.string(button.get_meta("option_id")) == _selected_option_id
+	_clear_children(rewards)
+	var selected_grants: Array[Dictionary] = []
+	_append_grants(selected_grants, option.get("grants", []))
+	var displayed_grants: Array[Dictionary] = _base_reward_grants.duplicate(true)
+	displayed_grants.append_array(selected_grants)
+	_render_rewards(displayed_grants)
 	continue_button.disabled = false
 
 
@@ -262,6 +261,22 @@ func _card_grant_from_option(option: Dictionary) -> Dictionary:
 		if SafeTypeUtils.string(grant.get("kind")) == GRANT_KIND_CARD:
 			return grant
 	return {}
+
+
+func _option_label(option: Dictionary) -> String:
+	var key: String = SafeTypeUtils.string(option.get("label_key"))
+	if not key.is_empty():
+		return Loc.t(key)
+	for value: Variant in SafeTypeUtils.array(option.get("grants")):
+		var grant: Dictionary = SafeTypeUtils.dict(value)
+		if SafeTypeUtils.string(grant.get("kind")) == GRANT_KIND_CARD:
+			var card_id: String = SafeTypeUtils.string(
+				grant.get("card_id", grant.get("content_id", grant.get("id")))
+			)
+			return SafeTypeUtils.string(
+				CardCatalogApi.get_card_as_dict(card_id).get("card_name"), card_id
+			)
+	return Loc.t("ui.post_battle.choose_reward")
 
 
 func _create_reward_card(grant: Dictionary, display_size: Vector2) -> CardVisual:
@@ -296,11 +311,11 @@ func _continue() -> void:
 		if not SafeTypeUtils.bool_val(result.get("is_success"), false):
 			push_error("PostBattleResults: reward claim failed: %s" % str(result.get("errors", [])))
 			return
-		if _has_pending_offer(result):
-			_present_campaign_result(result)
+		if PostBattleReport.from_authored_battle_result(result, _destination, _battle_context_outcome()).has_pending_offer():
+			_present_authored_battle_result(result)
 			return
 	if not _encounter_id.is_empty():
-		CampaignApi.consume_encounter_completion_summary(_encounter_id)
+		EncounterApi.consume_completion_summary(_encounter_id)
 	SceneManager.transition_to(_destination)
 
 
@@ -314,14 +329,6 @@ func _sum_grants(grants: Array[Dictionary], kind: String) -> int:
 		if SafeTypeUtils.string(grant.get("kind")) == kind:
 			total += SafeTypeUtils.int_val(grant.get("amount"), 0)
 	return total
-
-
-func _has_pending_offer(result: Dictionary) -> bool:
-	for value: Variant in SafeTypeUtils.array(result.get("reward_offers")):
-		var offer: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(offer.get("display_state")) == OFFER_STATE_PENDING:
-			return true
-	return false
 
 
 func _append_grants(target: Array[Dictionary], source: Variant) -> void:

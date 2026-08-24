@@ -7,7 +7,6 @@ using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Progression;
 using Fateforged.Infrastructure.Persistence;
-using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Rewards;
 using Fateforged.Meta.Summoner;
 using Godot;
@@ -49,10 +48,7 @@ public partial class ProgressionAuthorityService : Node
 
     public void InitForTesting(IProgressionAuthority authority) => SetAuthority(authority);
 
-    public ProgressionAuthorityResult BeginCampaignBattleAttempt(
-        CampaignId campaignId,
-        BattleId battleId
-    )
+    public ProgressionAuthorityResult BeginBattleAttempt(BattleId battleId)
     {
         var profile = ProfileRepository.Instance?.GetProfileMetadata();
         if (profile == null)
@@ -64,7 +60,6 @@ public partial class ProgressionAuthorityService : Node
             new StartBattleAttemptRequest
             {
                 SummonerId = summonerId,
-                CampaignId = campaignId,
                 BattleId = battleId,
                 DeckId = Fateforged.Meta.Deck.DeckId.FromString(profile.Meta.SelectedDeck),
             }
@@ -76,14 +71,15 @@ public partial class ProgressionAuthorityService : Node
         BattleTerminalOutcome outcome
     ) => OutcomeCoordinator.Report(attemptId, outcome);
 
-    /// <summary>GDScript boundary used by campaign launch.</summary>
-    public GdDict StartCampaignBattleAttempt(string campaignId, string battleId) =>
-        ToDictionary(
-            BeginCampaignBattleAttempt(
-                CampaignId.FromString(campaignId),
-                BattleId.FromString(battleId)
-            )
-        );
+    /// <summary>GDScript boundary used by authored battle launchers.</summary>
+    public GdDict StartBattleAttempt(string battleId) =>
+        ToDictionary(BeginBattleAttempt(BattleId.FromString(battleId)));
+
+    public GdDict GetBattle(string battleId)
+    {
+        var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventId.FromString(battleId));
+        return battle == null ? [] : EventCatalog.ToDictionary(battle);
+    }
 
     public GdDict GetProgressionAuthorityStatus() =>
         new()

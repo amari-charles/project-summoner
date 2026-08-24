@@ -234,7 +234,7 @@ func _configure_open_mode(mode: String, summoner_id: String = "") -> void:
 
 
 func _refresh_encounter_state() -> bool:
-	_encounter_state = CampaignApi.get_encounter_preparation_state(_encounter_id)
+	_encounter_state = EncounterApi.get_preparation_state(_encounter_id)
 	if _encounter_state.is_empty():
 		push_error("CollectionScreen could not load encounter '%s'" % _encounter_id)
 		return false
@@ -397,7 +397,7 @@ func _refresh_deck_list() -> void:
 func _on_deck_item_clicked(deck_id: String) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	if _open_mode == OpenMode.ENCOUNTER_LOADOUT:
-		var result: Dictionary = CampaignApi.fill_encounter_loadout_from_deck(
+		var result: Dictionary = EncounterApi.fill_loadout_from_deck(
 			_encounter_id, deck_id
 		)
 		if SafeTypeUtils.bool_val(result.get("success")):
@@ -523,7 +523,7 @@ func _refresh_encounter_deck_panel() -> void:
 	var authored_max: int = SafeTypeUtils.int_val(rules.get("max_deck_size"))
 	var max_size: int = mini(authored_max, MAX_DECK_SIZE) if authored_max > 0 else MAX_DECK_SIZE
 	deck_editor.set_active_deck(
-		Loc.t("academy.flow.lesson_loadout"),
+		Loc.t("academy.flow.encounter_loadout"),
 		entries,
 		max_size,
 		true
@@ -543,7 +543,7 @@ func _encounter_editor_entry(card: Dictionary, locked: bool, copy_index: int = 0
 		CardCatalogApi.get_card_as_dict(catalog_id).get("card_name"), catalog_id
 	)
 	if locked:
-		tooltip = "%s • %s" % [tooltip, Loc.t("academy.flow.class_supplied")]
+		tooltip = "%s • %s" % [tooltip, Loc.t("academy.flow.encounter_supplied")]
 	return {
 		"instance_id": instance_id,
 		"detail_instance_id": detail_instance_id,
@@ -973,7 +973,7 @@ func _toggle_encounter_card(card_instance_id: String) -> void:
 			})
 	if not found:
 		selected.append({"card_instance_id": card_instance_id})
-	if CampaignApi.update_encounter_loadout(_encounter_id, selected):
+	if EncounterApi.update_loadout(_encounter_id, selected):
 		_refresh_encounter_state()
 		_refresh_deck_panel()
 		_refresh_available_cards()
@@ -999,7 +999,7 @@ func _on_close_pressed() -> void:
 		return
 	var return_scene: String = NavigationContext.pop_return()
 	if return_scene.is_empty():
-		return_scene = SceneManager.SCENE_CAMPAIGN_MAP
+		return_scene = SceneManager.SCENE_ACADEMY_CAMPUS
 	SceneManager.transition_to(return_scene)
 
 

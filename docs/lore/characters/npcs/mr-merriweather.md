@@ -1,6 +1,6 @@
-# Mr. Merriweather — Caravan Merchant
+# Mr. Merriweather — Campus Shop Owner
 
-**Role:** Traveling merchant, caravan proprietor
+**Role:** Campus Shop co-owner and customer-facing proprietor
 **Partner:** Mrs. Merriweather
 
 ---
@@ -46,10 +46,10 @@ Warm, enthusiastic, slightly theatrical. Uses lots of exclamations and terms of 
 *To be developed with artist*
 
 **Direction:**
-- Traveling merchant aesthetic
+- Established Academy shopkeeper aesthetic
 - Warm, approachable appearance
-- Well-maintained but road-worn clothes
-- Perhaps slightly too put-together for a wandering merchant
+- Well-maintained clothes suited to a permanent campus business
+- Perhaps slightly too polished for an ordinary school shopkeeper
 - Genuine smile that reaches his eyes
 
 ---
@@ -68,7 +68,10 @@ The perfect partnership. He handles the charm and customer relations; she handle
 
 ## Role in Story
 
-Appears at Caravan nodes throughout the campaign. Always has what you need. Always happy to see you. Always profitable.
+Runs the permanent Campus Shop with Mrs. Merriweather. He is the welcoming face
+of the business, always has something worth considering, and may know how to
+source goods outside the official inventory. He remains rooted in the Academy
+and its community.
 
 ---
 

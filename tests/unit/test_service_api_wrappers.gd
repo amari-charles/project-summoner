@@ -29,3 +29,17 @@ func test_bpa_c01_progression_authority_reports_ready() -> void:
 	var status: Dictionary = ProgressionAuthority.GetProgressionAuthorityStatus()
 	assert_eq(status.get("status"), "ready")
 	assert_true(status.get("can_start_battle", false))
+
+
+func test_item_adapter_contract_exposes_every_retained_developer_operation() -> void:
+	for method_name: String in [
+		"GrantItemToSummoner",
+		"GrantSharedEventItem",
+		"GetOwnedItemsDict",
+		"GetEquippedItemsDict",
+		"ListItemsForSlotDict",
+		"EquipItemStr",
+		"UnequipItemStr",
+		"ClearAllItems",
+	]:
+		assert_true(Items.has_method(method_name), "Missing item adapter method: %s" % method_name)

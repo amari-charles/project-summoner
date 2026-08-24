@@ -3,7 +3,7 @@ namespace Fateforged.Tests.Meta.Progression;
 using System.Linq;
 using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
-using Fateforged.Meta.Campaign;
+using Fateforged.Domain.Progression;
 using Fateforged.Meta.Progression;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -12,9 +12,9 @@ using static GdUnit4.Assertions;
 public class BattleRewardAuthorityTest
 {
     [TestCase]
-    public void BPA_C15_LegacyAuthoredBattleRewardsNormalizeToUniversalOffers()
+    public void BPA_C15_AuthoredBattleRewardsNormalizeToUniversalOffers()
     {
-        var flexibleBattle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.FirstTrial)!;
+        var flexibleBattle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaEarthSprite)!;
         var flexible = flexibleBattle.FirstClearRewardOffers.Single();
         var fixedBattle = EventCatalog
             .GetAllBattles()

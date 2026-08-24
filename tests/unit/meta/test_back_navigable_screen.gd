@@ -2,7 +2,7 @@ extends GutTest
 
 const BACK_SCREEN_SCRIPT: Script = preload("res://scripts/meta/screens/back_navigable_screen.gd")
 const SCREEN_SCRIPTS_WITH_BACK_CONTROLS: PackedStringArray = [
-	"res://scripts/meta/screens/academy_activity_preparation.gd",
+	"res://scripts/meta/screens/encounter_preparation.gd",
 	"res://scripts/meta/screens/card_trait_tree_screen.gd",
 	"res://scripts/meta/screens/collection_screen.gd",
 	"res://scripts/meta/screens/multiplayer_lobby.gd",

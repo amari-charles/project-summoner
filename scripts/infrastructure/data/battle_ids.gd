@@ -1,49 +1,18 @@
 class_name BattleIDs
 
-## Battle/Node ID Constants - Type-Safe Campaign Node References
+## Stable IDs for direct authored debug battles.
 ##
-## Use these constants instead of string literals when referencing nodes in code.
-## This provides compile-time validation and autocomplete support.
+## Use these constants instead of string literals at GDScript boundaries.
 ##
 ## Usage:
-##   CampaignApi.start_battle(BattleIDs.FIRST_TRIAL)
-##   if current_node == BattleIDs.PATH_FORK:
-##       # Show path choice
+##   ProgressionAuthority.StartBattleAttempt(BattleIDs.ARENA_EARTH_SPRITE)
 ##
 ## When adding new nodes:
-##   1. Add node definition to campaign data file in scripts/infrastructure/data/campaigns/
+##   1. Add node definition to authored battle catalog in scripts/csharp/Infrastructure/Data/Events/
 ##   2. Add constant here matching the node's "id" field
-##   3. Add to appropriate category array (ACT1_NODES, TEST_ARENA_NODES, etc.)
+##   3. Add it to ALL_DEBUG_BATTLES.
 ##
 ## Note: StringName (&"text") is faster than String ("text") for dictionary lookups
-
-# ============================================================================
-# ACT 1: THE INITIATE'S PATH
-# ============================================================================
-
-## Battle: First Trial - Learn basics with 1 card
-const FIRST_TRIAL: StringName = &"first_trial"
-
-## Battle: Second Challenge - Test 2-card combos
-const SECOND_CHALLENGE: StringName = &"second_challenge"
-
-## Event: Caravan - First shop visit
-const CARAVAN_01: StringName = &"caravan_01"
-
-## Battle: Third Trial - Medium difficulty
-const THIRD_TRIAL: StringName = &"third_trial"
-
-## Choice: Elite vs Standard Path Fork
-const PATH_FORK: StringName = &"path_fork"
-
-## Battle: Elite Path Battle 1 - Higher difficulty with level cap
-const ELITE_BATTLE_01: StringName = &"elite_battle_01"
-
-## Battle: Standard Path Battle 1 - Normal difficulty
-const STANDARD_BATTLE_01: StringName = &"standard_battle_01"
-
-## Boss: Act 1 Boss - First major boss
-const ACT1_BOSS: StringName = &"act1_boss"
 
 # ============================================================================
 # TEST ARENA (Debug/test battles with fixed decks)
@@ -87,25 +56,8 @@ const ARENA_SPRITE_UNITS: StringName = &"arena_sprite_units"
 # ============================================================================
 
 ## All Act 1 node IDs (Summoner's Path)
-const ALL_ACT1_NODES: Array[StringName] = [
-	FIRST_TRIAL,
-	SECOND_CHALLENGE,
-	CARAVAN_01,
-	THIRD_TRIAL,
-	PATH_FORK,
-	ELITE_BATTLE_01,
-	STANDARD_BATTLE_01,
-	ACT1_BOSS,
-]
-
-## All tutorial battle IDs (battles with is_tutorial: true)
-const ALL_TUTORIALS: Array[StringName] = [
-	FIRST_TRIAL,
-	SECOND_CHALLENGE,
-]
-
-## All test arena battle IDs
-const ALL_TEST_ARENA_NODES: Array[StringName] = [
+## All direct debug battle IDs.
+const ALL_DEBUG_BATTLES: Array[StringName] = [
 	ARENA_EARTH_SPRITE,
 	ARENA_PUFF,
 	ARENA_FIRE_WISP,
@@ -119,24 +71,16 @@ const ALL_TEST_ARENA_NODES: Array[StringName] = [
 	ARENA_SPRITE_UNITS,
 ]
 
-## All battle IDs (campaign + test arena)
+## All battle IDs (debug arena)
 static func all_ids() -> Array[StringName]:
-	var result: Array[StringName] = []
-	result.append_array(ALL_ACT1_NODES)
-	result.append_array(ALL_TEST_ARENA_NODES)
-	return result
+	return ALL_DEBUG_BATTLES.duplicate()
 
 ## Check if a battle ID is valid
 ## Accepts String or StringName
 static func is_valid(battle_id: String) -> bool:
 	return StringName(battle_id) in all_ids()
 
-## Check if a battle ID is a tutorial battle
-## Accepts String or StringName
-static func is_tutorial(battle_id: String) -> bool:
-	return StringName(battle_id) in ALL_TUTORIALS
-
 ## Check if a battle ID is a test arena battle
 ## Accepts String or StringName
 static func is_test_arena(battle_id: String) -> bool:
-	return StringName(battle_id) in ALL_TEST_ARENA_NODES
+	return StringName(battle_id) in ALL_DEBUG_BATTLES

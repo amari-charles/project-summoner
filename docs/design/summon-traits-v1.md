@@ -29,7 +29,7 @@ This pass is intentionally scoped to the **existing unified trait runtime** (no 
 ### Out of Scope (Later)
 
 - New trait acquisition surfaces.
-- Oaths (campaign-level irreversible choices).
+- Oaths (quest- or summoner-level irreversible choices).
 - New runtime trigger types or new stat keys.
 - New trait IDs (candidate for V2).
 
@@ -129,7 +129,7 @@ Proposed gating:
 - Line capstone (IV): level 7
 - `agility`: level 3 or 4, independent utility node
 
-This keeps meaningful differentiation before late-campaign power spikes.
+This keeps meaningful differentiation before late-progression power spikes.
 
 ## 5.1 Candidate Numeric Package (First Tuning Pass)
 

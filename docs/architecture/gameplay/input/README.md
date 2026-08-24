@@ -1,5 +1,9 @@
 # Input Layer
 
+> **Implementation-detail review pending:** The boundary and gesture-ownership
+> rules remain current. The former decomposition plan and throw-only stubs are
+> historical; current implementation is under `scripts/csharp/Battle/Input/`.
+
 Captures player intent and converts it into Commands. Doesn't validate, doesn't execute — just packages what the player wants to do and calls `IGameSession.SubmitCommand()`.
 
 ## Overview
@@ -38,12 +42,10 @@ For the full design, see [target-architecture.md &sect;5](../../target-architect
 
 Input knows nothing about View. It only talks to `IGameSession`.
 
-## Decomposition Specs
+## Historical Decomposition Plan
 
-Detailed migration plans for how each current file's Input responsibilities consolidate into InputCollector:
-[../view/design-specs.md](../view/design-specs.md)
-
-Covers: HandUI drag gesture, SpellTargetingManager state machine, RedirectManager gesture handling, BattlefieldDropZone drop logic, Summoner command production.
+The completed migration plan is archived at
+`docs/archive/superseded-runtime-architecture-2026-08/view-input-decomposition-specs.md`.
 
 ## Today
 

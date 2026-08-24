@@ -9,7 +9,7 @@ using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
@@ -18,7 +18,6 @@ using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Domain.Profile.Shop;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Domain.Progression;
-using Fateforged.Meta.Campaign;
 using Fateforged.Meta.Deck;
 using Godot;
 using ItemSlot = Fateforged.Domain.Profile.Inventory.ItemSlot;
@@ -350,31 +349,17 @@ public static class DtoConverters
     }
 
     // =========================================================================
-    // CampaignProgress
+    // SummonerProgress
     // =========================================================================
 
-    /// <summary>Convert CampaignProgress to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(CampaignProgress progress)
+    /// <summary>Convert SummonerProgress to Godot Dictionary for GDScript.</summary>
+    public static Godot.Collections.Dictionary ToDict(SummonerProgress progress)
     {
         var dict = new Godot.Collections.Dictionary
         {
             ["completed_battles"] = ToGodotArray(progress.CompletedBattles.Select(b => (string)b)),
-            ["gold"] = progress.Gold,
-            ["academy"] = ToDict(progress.Academy),
             ["quests"] = ToDict(progress.Quests),
-            ["caravan_purchases"] = ToGodotArray(progress.CaravanPurchases),
         };
-
-        // Add choices if present
-        if (progress.Choices.Count > 0)
-        {
-            var choicesDict = new Godot.Collections.Dictionary();
-            foreach (var (nodeId, choiceId) in progress.Choices)
-            {
-                choicesDict[(string)nodeId] = (string)choiceId;
-            }
-            dict["choices"] = choicesDict;
-        }
 
         if (progress.ActiveBattleAttempt != null)
             dict["active_battle_attempt"] = ToDict(progress.ActiveBattleAttempt);
@@ -385,17 +370,6 @@ public static class DtoConverters
             foreach (var (attemptId, completion) in progress.BattleAttemptCompletions)
                 completions[attemptId] = ToDict(completion);
             dict["battle_attempt_completions"] = completions;
-        }
-
-        // Add story_arcs if present
-        if (progress.StoryArcs.Count > 0)
-        {
-            var arcsDict = new Godot.Collections.Dictionary();
-            foreach (var (arcId, arcProgress) in progress.StoryArcs)
-            {
-                arcsDict[arcId] = ToDict(arcProgress);
-            }
-            dict["story_arcs"] = arcsDict;
         }
 
         return dict;
@@ -410,99 +384,29 @@ public static class DtoConverters
 
         return new Godot.Collections.Dictionary
         {
+            ["curriculum_capacity"] = quests.CurriculumCapacity,
             ["discovered_quest_ids"] = ToGodotArray(quests.DiscoveredQuestIds),
             ["active_quest_ids"] = ToGodotArray(quests.ActiveQuestIds),
             ["completed_quest_ids"] = ToGodotArray(quests.CompletedQuestIds),
             ["current_step_by_quest_id"] = stepIndices,
             ["tracked_quest_id"] = quests.TrackedQuestId,
+            ["encounter_loadouts"] = ToEncounterLoadouts(quests.EncounterLoadouts),
         };
     }
 
-    /// <summary>Convert AcademyProgress to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(AcademyProgress academy)
+    private static Godot.Collections.Dictionary ToEncounterLoadouts(
+        Dictionary<string, EncounterLoadoutState> loadouts
+    )
     {
-        var dict = new Godot.Collections.Dictionary
-        {
-            ["current_year"] = academy.CurrentYear,
-            ["current_semester"] = academy.CurrentSemester,
-            ["remaining_enrollments"] = academy.RemainingEnrollments,
-            ["completed_courses"] = ToGodotArray(
-                academy.CompletedCourses.Select(course => (string)course)
-            ),
-            ["enrolled_courses"] = ToGodotArray(
-                academy.EnrolledCourses.Select(course => (string)course)
-            ),
-            ["discovered_courses"] = ToGodotArray(
-                academy.DiscoveredCourses.Select(course => (string)course)
-            ),
-            ["tracked_quest_id"] = academy.TrackedQuestId,
-        };
-
-        var assessmentOutcomes = new Godot.Collections.Dictionary();
-        foreach (var (key, value) in academy.AssessmentOutcomes)
-            assessmentOutcomes[key] = value.ToString();
-        dict["assessment_outcomes"] = assessmentOutcomes;
-
-        var activityLoadouts = new Godot.Collections.Dictionary();
-        foreach (var (key, value) in academy.ActivityLoadouts)
-        {
-            activityLoadouts[key] = new Godot.Collections.Dictionary
+        var result = new Godot.Collections.Dictionary();
+        foreach (var (encounterId, loadout) in loadouts)
+            result[encounterId] = new Godot.Collections.Dictionary
             {
                 ["selected_card_instance_ids"] = CardInstanceIdsToGodotArray(
-                    value.SelectedCardInstanceIds
+                    loadout.SelectedCardInstanceIds
                 ),
             };
-        }
-        dict["activity_loadouts"] = activityLoadouts;
-
-        var transcript = new Godot.Collections.Array();
-        foreach (var entry in academy.Transcript)
-        {
-            transcript.Add(ToDict(entry));
-        }
-        dict["transcript"] = transcript;
-
-        var honors = new Godot.Collections.Dictionary();
-        foreach (var (key, value) in academy.HonorsEligibility)
-        {
-            honors[key] = value;
-        }
-        dict["honors_eligibility"] = honors;
-
-        var shopPurchases = new Godot.Collections.Dictionary();
-        foreach (var (key, value) in academy.ShopPurchases)
-        {
-            shopPurchases[key] = value;
-        }
-        dict["shop_purchases"] = shopPurchases;
-
-        var rewardFlags = new Godot.Collections.Dictionary();
-        foreach (var (key, value) in academy.RewardFlags)
-        {
-            rewardFlags[key] = value;
-        }
-        dict["reward_flags"] = rewardFlags;
-
-        var activityIndex = new Godot.Collections.Dictionary();
-        foreach (var (key, value) in academy.CourseActivityIndex)
-        {
-            activityIndex[key] = value;
-        }
-        dict["course_activity_index"] = activityIndex;
-
-        return dict;
-    }
-
-    /// <summary>Convert AcademyTranscriptEntry to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(AcademyTranscriptEntry entry)
-    {
-        return new Godot.Collections.Dictionary
-        {
-            ["course_id"] = (string)entry.CourseId,
-            ["grade"] = entry.Grade,
-            ["honors"] = entry.Honors,
-            ["semester_key"] = entry.SemesterKey,
-        };
+        return result;
     }
 
     public static Godot.Collections.Dictionary ToDict(BattleAttempt attempt) =>
@@ -510,7 +414,6 @@ public static class DtoConverters
         {
             ["attempt_id"] = attempt.AttemptId.Value,
             ["summoner_id"] = (string)attempt.SummonerId,
-            ["campaign_id"] = attempt.CampaignId.Value,
             ["battle_id"] = attempt.BattleId.Value,
             ["deck_id"] = attempt.DeckId.Value,
             ["deck_card_instance_ids"] = CardInstanceIdsToGodotArray(attempt.DeckCardInstanceIds),
@@ -550,35 +453,16 @@ public static class DtoConverters
         };
     }
 
-    /// <summary>Convert StoryArcProgress to Godot Dictionary for GDScript.</summary>
-    public static Godot.Collections.Dictionary ToDict(StoryArcProgress arcProgress)
-    {
-        var flagsDict = new Godot.Collections.Dictionary();
-        foreach (var (key, value) in arcProgress.Flags)
-        {
-            flagsDict[key] = ObjectToVariant(value);
-        }
-
-        return new Godot.Collections.Dictionary
-        {
-            ["completed_events"] = ToGodotArray(arcProgress.CompletedEvents.Select(e => (string)e)),
-            ["current_event"] = arcProgress.CurrentEvent.HasValue
-                ? (string)arcProgress.CurrentEvent.Value
-                : "",
-            ["flags"] = flagsDict,
-        };
-    }
-
     /// <summary>
-    /// Convert Godot Dictionary to CampaignProgress.
+    /// Convert Godot Dictionary to SummonerProgress.
     /// Returns null if dict is null (but empty dict returns default data).
     /// </summary>
-    public static CampaignProgress? FromCampaignDict(Godot.Collections.Dictionary? dict)
+    public static SummonerProgress? FromSummonerProgressDict(Godot.Collections.Dictionary? dict)
     {
         if (dict == null)
             return null;
         if (dict.Count == 0)
-            return new CampaignProgress();
+            return new SummonerProgress();
 
         var completed = new List<BattleId>();
         if (dict.TryGetValue("completed_battles", out var completedVar))
@@ -588,57 +472,6 @@ public static class DtoConverters
             {
                 completed.Add(new BattleId(c.AsString()));
             }
-        }
-
-        var caravanPurchases = new List<string>();
-        if (dict.TryGetValue("caravan_purchases", out var caravanVar))
-            foreach (var purchase in caravanVar.AsGodotArray())
-                caravanPurchases.Add(purchase.AsString());
-
-        // Parse story_arcs if present
-        var storyArcs = new Dictionary<string, StoryArcProgress>();
-        if (
-            dict.TryGetValue("story_arcs", out var arcsVar)
-            && arcsVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var arcsDict = arcsVar.AsGodotDictionary();
-            foreach (var key in arcsDict.Keys)
-            {
-                var arcDict = arcsDict[key].AsGodotDictionary();
-                var arcProgress = FromStoryArcDict(arcDict);
-                if (arcProgress != null)
-                {
-                    storyArcs[key.AsString()] = arcProgress;
-                }
-            }
-        }
-
-        // Parse choices if present
-        var choices = new Dictionary<NodeId, ChoiceId>();
-        if (
-            dict.TryGetValue("choices", out var choicesVar)
-            && choicesVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var choicesDict = choicesVar.AsGodotDictionary();
-            foreach (var key in choicesDict.Keys)
-            {
-                var choiceValue = choicesDict[key];
-                if (choiceValue.VariantType != Variant.Type.Nil)
-                {
-                    choices[new NodeId(key.AsString())] = new ChoiceId(choiceValue.AsString());
-                }
-            }
-        }
-
-        var academy = new AcademyProgress();
-        if (
-            dict.TryGetValue("academy", out var academyVar)
-            && academyVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            academy = FromAcademyDict(academyVar.AsGodotDictionary());
         }
 
         var quests = new QuestProgress();
@@ -677,14 +510,9 @@ public static class DtoConverters
             }
         }
 
-        return new CampaignProgress
+        return new SummonerProgress
         {
             CompletedBattles = completed,
-            Gold = GetInt(dict, "gold", 0),
-            CaravanPurchases = caravanPurchases,
-            StoryArcs = storyArcs,
-            Choices = choices,
-            Academy = academy,
             Quests = quests,
             ActiveBattleAttempt = activeBattleAttempt,
             BattleAttemptCompletions = attemptCompletions,
@@ -720,13 +548,38 @@ public static class DtoConverters
                 stepIndices[key.AsString()] = indices[key].AsInt32();
         }
 
+        var loadouts = new Dictionary<string, EncounterLoadoutState>();
+        if (
+            dict.TryGetValue("encounter_loadouts", out var loadoutsVar)
+            && loadoutsVar.VariantType == Variant.Type.Dictionary
+        )
+        {
+            foreach (var key in loadoutsVar.AsGodotDictionary().Keys)
+            {
+                var value = loadoutsVar.AsGodotDictionary()[key];
+                if (value.VariantType != Variant.Type.Dictionary)
+                    continue;
+                var ids = new List<CardInstanceId>();
+                var loadout = value.AsGodotDictionary();
+                if (loadout.TryGetValue("selected_card_instance_ids", out var idsVar))
+                    foreach (var id in idsVar.AsGodotArray())
+                        ids.Add(new CardInstanceId(id.AsString()));
+                loadouts[key.AsString()] = new EncounterLoadoutState
+                {
+                    SelectedCardInstanceIds = ids,
+                };
+            }
+        }
+
         return new QuestProgress
         {
+            CurriculumCapacity = GetInt(dict, "curriculum_capacity", 3),
             DiscoveredQuestIds = ReadIds(dict, "discovered_quest_ids"),
             ActiveQuestIds = ReadIds(dict, "active_quest_ids"),
             CompletedQuestIds = ReadIds(dict, "completed_quest_ids"),
             CurrentStepByQuestId = stepIndices,
             TrackedQuestId = GetString(dict, "tracked_quest_id", ""),
+            EncounterLoadouts = loadouts,
         };
     }
 
@@ -736,12 +589,10 @@ public static class DtoConverters
             return null;
         var attemptId = GetString(dict, "attempt_id", "");
         var summonerId = GetString(dict, "summoner_id", "");
-        var campaignId = GetString(dict, "campaign_id", "");
         var battleId = GetString(dict, "battle_id", "");
         if (
             string.IsNullOrWhiteSpace(attemptId)
             || string.IsNullOrWhiteSpace(summonerId)
-            || string.IsNullOrWhiteSpace(campaignId)
             || string.IsNullOrWhiteSpace(battleId)
         )
             return null;
@@ -772,7 +623,6 @@ public static class DtoConverters
         {
             AttemptId = new BattleAttemptId(attemptId),
             SummonerId = new SummonerId(summonerId),
-            CampaignId = new CampaignId(campaignId),
             BattleId = new BattleId(battleId),
             DeckId = new Fateforged.Meta.Deck.DeckId(GetString(dict, "deck_id", "")),
             DeckCardInstanceIds = cardIds,
@@ -822,237 +672,6 @@ public static class DtoConverters
             CompletedAtUnixSeconds = GetLong(dict, "completed_at", 0),
             ClaimIds = claimIds,
             PendingClaimIds = pendingClaimIds,
-        };
-    }
-
-    /// <summary>Convert Godot Dictionary to AcademyProgress.</summary>
-    public static AcademyProgress FromAcademyDict(Godot.Collections.Dictionary? dict)
-    {
-        if (dict == null || dict.Count == 0)
-            return new AcademyProgress();
-
-        var completedCourses = new List<CourseId>();
-        if (
-            dict.TryGetValue("completed_courses", out var coursesVar)
-            && coursesVar.VariantType == Variant.Type.Array
-        )
-        {
-            foreach (var course in coursesVar.AsGodotArray())
-            {
-                completedCourses.Add(new CourseId(course.AsString()));
-            }
-        }
-
-        var assessmentOutcomes = new Dictionary<string, AcademyActivityOutcome>();
-        if (
-            dict.TryGetValue("assessment_outcomes", out var assessmentsVar)
-            && assessmentsVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var assessmentDict = assessmentsVar.AsGodotDictionary();
-            foreach (var key in assessmentDict.Keys)
-            {
-                if (
-                    Enum.TryParse<AcademyActivityOutcome>(
-                        assessmentDict[key].AsString(),
-                        ignoreCase: true,
-                        out var outcome
-                    )
-                )
-                    assessmentOutcomes[key.AsString()] = outcome;
-            }
-        }
-
-        var activityLoadouts = new Dictionary<string, AcademyActivityLoadoutState>();
-        if (
-            dict.TryGetValue("activity_loadouts", out var loadoutsVar)
-            && loadoutsVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var loadoutsDict = loadoutsVar.AsGodotDictionary();
-            foreach (var key in loadoutsDict.Keys)
-            {
-                if (loadoutsDict[key].VariantType != Variant.Type.Dictionary)
-                    continue;
-                var loadoutDict = loadoutsDict[key].AsGodotDictionary();
-                var selectedIds = new List<CardInstanceId>();
-                if (
-                    loadoutDict.TryGetValue("selected_card_instance_ids", out var idsVar)
-                    && idsVar.VariantType == Variant.Type.Array
-                )
-                {
-                    foreach (var id in idsVar.AsGodotArray())
-                        selectedIds.Add(CardInstanceId.FromString(id.AsString()));
-                }
-                activityLoadouts[key.AsString()] = new AcademyActivityLoadoutState
-                {
-                    SelectedCardInstanceIds = selectedIds,
-                };
-            }
-        }
-
-        var enrolledCourses = new List<CourseId>();
-        if (
-            dict.TryGetValue("enrolled_courses", out var enrolledVar)
-            && enrolledVar.VariantType == Variant.Type.Array
-        )
-        {
-            foreach (var course in enrolledVar.AsGodotArray())
-            {
-                enrolledCourses.Add(new CourseId(course.AsString()));
-            }
-        }
-
-        var discoveredCourses = new List<CourseId>();
-        if (
-            dict.TryGetValue("discovered_courses", out var discoveredVar)
-            && discoveredVar.VariantType == Variant.Type.Array
-        )
-        {
-            foreach (var course in discoveredVar.AsGodotArray())
-                discoveredCourses.Add(CourseId.FromString(course.AsString()));
-        }
-
-        var transcript = new List<AcademyTranscriptEntry>();
-        if (
-            dict.TryGetValue("transcript", out var transcriptVar)
-            && transcriptVar.VariantType == Variant.Type.Array
-        )
-        {
-            foreach (var entryVar in transcriptVar.AsGodotArray())
-            {
-                if (entryVar.VariantType == Variant.Type.Dictionary)
-                {
-                    transcript.Add(FromAcademyTranscriptDict(entryVar.AsGodotDictionary()));
-                }
-            }
-        }
-
-        var honorsEligibility = new Dictionary<string, bool>();
-        if (
-            dict.TryGetValue("honors_eligibility", out var honorsVar)
-            && honorsVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var honorsDict = honorsVar.AsGodotDictionary();
-            foreach (var key in honorsDict.Keys)
-            {
-                honorsEligibility[key.AsString()] = honorsDict[key].AsBool();
-            }
-        }
-
-        var shopPurchases = new Dictionary<string, int>();
-        if (
-            dict.TryGetValue("shop_purchases", out var shopVar)
-            && shopVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var shopDict = shopVar.AsGodotDictionary();
-            foreach (var key in shopDict.Keys)
-            {
-                shopPurchases[key.AsString()] = shopDict[key].AsInt32();
-            }
-        }
-
-        var courseActivityIndex = new Dictionary<string, int>();
-        if (
-            dict.TryGetValue("course_activity_index", out var activityVar)
-            && activityVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var activityDict = activityVar.AsGodotDictionary();
-            foreach (var key in activityDict.Keys)
-            {
-                courseActivityIndex[key.AsString()] = activityDict[key].AsInt32();
-            }
-        }
-
-        var rewardFlags = new Dictionary<string, int>();
-        if (
-            dict.TryGetValue("reward_flags", out var rewardFlagsVar)
-            && rewardFlagsVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var rewardFlagsDict = rewardFlagsVar.AsGodotDictionary();
-            foreach (var key in rewardFlagsDict.Keys)
-                rewardFlags[key.AsString()] = rewardFlagsDict[key].AsInt32();
-        }
-
-        return new AcademyProgress
-        {
-            CurrentYear = GetInt(dict, "current_year", 1),
-            CurrentSemester = GetInt(dict, "current_semester", 1),
-            RemainingEnrollments = GetInt(dict, "remaining_enrollments", 0),
-            CompletedCourses = completedCourses,
-            EnrolledCourses = enrolledCourses,
-            DiscoveredCourses = discoveredCourses,
-            TrackedQuestId = GetString(dict, "tracked_quest_id", ""),
-            AssessmentOutcomes = assessmentOutcomes,
-            ActivityLoadouts = activityLoadouts,
-            Transcript = transcript,
-            HonorsEligibility = honorsEligibility,
-            ShopPurchases = shopPurchases,
-            RewardFlags = rewardFlags,
-            CourseActivityIndex = courseActivityIndex,
-        };
-    }
-
-    /// <summary>Convert Godot Dictionary to AcademyTranscriptEntry.</summary>
-    public static AcademyTranscriptEntry FromAcademyTranscriptDict(
-        Godot.Collections.Dictionary dict
-    )
-    {
-        return new AcademyTranscriptEntry
-        {
-            CourseId = new CourseId(GetString(dict, "course_id", "")),
-            Grade = GetString(dict, "grade", ""),
-            Honors = GetBool(dict, "honors", false),
-            SemesterKey = GetString(dict, "semester_key", ""),
-        };
-    }
-
-    /// <summary>
-    /// Convert Godot Dictionary to StoryArcProgress.
-    /// </summary>
-    public static StoryArcProgress? FromStoryArcDict(Godot.Collections.Dictionary? dict)
-    {
-        if (dict == null || dict.Count == 0)
-            return null;
-
-        var completedEvents = new List<EventId>();
-        if (dict.TryGetValue("completed_events", out var eventsVar))
-        {
-            var eventsArr = eventsVar.AsGodotArray();
-            foreach (var e in eventsArr)
-            {
-                completedEvents.Add(new EventId(e.AsString()));
-            }
-        }
-
-        var flags = new Dictionary<string, object>();
-        if (
-            dict.TryGetValue("flags", out var flagsVar)
-            && flagsVar.VariantType == Variant.Type.Dictionary
-        )
-        {
-            var flagsDict = flagsVar.AsGodotDictionary();
-            foreach (var key in flagsDict.Keys)
-            {
-                flags[key.AsString()] = flagsDict[key].Obj ?? flagsDict[key].AsString();
-            }
-        }
-
-        // Parse current_event (nullable)
-        var currentEventStr = GetNullableString(dict, "current_event");
-        EventId? currentEvent = string.IsNullOrEmpty(currentEventStr)
-            ? null
-            : new EventId(currentEventStr);
-
-        return new StoryArcProgress
-        {
-            CompletedEvents = completedEvents,
-            CurrentEvent = currentEvent,
-            Flags = flags,
         };
     }
 
@@ -1214,7 +833,6 @@ public static class DtoConverters
             ["selected_deck"] = meta.SelectedDeck,
             ["ranked_decks_by_summoner"] = rankedDecksDict,
             ["selected_summoner"] = meta.SelectedSummoner,
-            ["selected_campaign"] = meta.SelectedCampaign,
             ["analytics_opt_in"] = meta.AnalyticsOptIn,
             ["tutorial_flags"] = tutorialDict,
             ["narrative_flags"] = narrativeDict,
@@ -1235,7 +853,6 @@ public static class DtoConverters
         {
             SelectedDeck = GetString(dict, "selected_deck", ""),
             SelectedSummoner = GetString(dict, "selected_summoner", ""),
-            SelectedCampaign = GetString(dict, "selected_campaign", ""),
             AnalyticsOptIn = GetBool(dict, "analytics_opt_in", false),
         };
 
@@ -1328,9 +945,6 @@ public static class DtoConverters
 
         if (update.SelectedSummoner != null)
             dict["selected_summoner"] = update.SelectedSummoner;
-
-        if (update.SelectedCampaign != null)
-            dict["selected_campaign"] = update.SelectedCampaign;
 
         if (update.AnalyticsOptIn.HasValue)
             dict["analytics_opt_in"] = update.AnalyticsOptIn.Value;

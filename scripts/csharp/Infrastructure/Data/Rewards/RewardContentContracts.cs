@@ -263,10 +263,6 @@ public sealed class RewardContentValidator : IRewardContentValidator
             case CardExperienceRewardGrantDefinition xp when xp.Amount <= 0:
                 errors.Add($"{location}: card XP must be positive.");
                 break;
-            case AcademyProgressFlagRewardGrantDefinition flag
-                when string.IsNullOrWhiteSpace(flag.FlagId):
-                errors.Add($"{location}: Academy flag ID is required.");
-                break;
         }
     }
 
@@ -276,9 +272,7 @@ public sealed class RewardContentValidator : IRewardContentValidator
             CardRewardGrantDefinition => grant.Target.Scope
                 is RewardOwnershipScope.Account
                     or RewardOwnershipScope.Summoner,
-            ResourceRewardGrantDefinition => grant.Target.Scope
-                is RewardOwnershipScope.Account
-                    or RewardOwnershipScope.SummonerCampaign,
+            ResourceRewardGrantDefinition => grant.Target.Scope == RewardOwnershipScope.Account,
             ItemRewardGrantDefinition => grant.Target.Scope
                 is RewardOwnershipScope.Account
                     or RewardOwnershipScope.Summoner,
@@ -291,8 +285,6 @@ public sealed class RewardContentValidator : IRewardContentValidator
             CardExperienceRewardGrantDefinition or CardTraitRewardGrantDefinition => grant
                 .Target
                 .Scope == RewardOwnershipScope.CardInstance,
-            AcademyProgressFlagRewardGrantDefinition => grant.Target.Scope
-                == RewardOwnershipScope.SummonerCampaign,
             _ => false,
         };
 }
@@ -320,9 +312,8 @@ internal static class RewardJson
         options.Converters.Add(new SummonerIdConverter());
         options.Converters.Add(new TraitIdConverter());
         options.Converters.Add(new CardTraitIdConverter());
-        options.Converters.Add(new CourseIdConverter());
-        options.Converters.Add(new ProfessorIdConverter());
         options.Converters.Add(new BiomeIdConverter());
+        options.Converters.Add(new ProfessorIdConverter());
         return options;
     }
 
@@ -369,11 +360,12 @@ internal static class RewardJson
         protected override string GetValue(CardId value) => value.Value;
     }
 
-    private sealed class CourseIdConverter : StringIdConverter<CourseId>
-    {
-        protected override CourseId Create(string value) => new(value);
 
-        protected override string GetValue(CourseId value) => value.Value;
+    private sealed class BiomeIdConverter : StringIdConverter<BiomeId>
+    {
+        protected override BiomeId Create(string value) => new(value);
+
+        protected override string GetValue(BiomeId value) => value.Value;
     }
 
     private sealed class ProfessorIdConverter : StringIdConverter<ProfessorId>
@@ -381,13 +373,6 @@ internal static class RewardJson
         protected override ProfessorId Create(string value) => new(value);
 
         protected override string GetValue(ProfessorId value) => value.Value;
-    }
-
-    private sealed class BiomeIdConverter : StringIdConverter<BiomeId>
-    {
-        protected override BiomeId Create(string value) => new(value);
-
-        protected override string GetValue(BiomeId value) => value.Value;
     }
 
     private sealed class ItemIdConverter : StringIdConverter<ItemId>

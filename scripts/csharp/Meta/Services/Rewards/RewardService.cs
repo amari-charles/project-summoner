@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Constants;
-using Fateforged.Data.Academy;
+using Fateforged.Data.Quests;
 using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
@@ -97,11 +97,7 @@ public partial class RewardService : Node
         );
         var contentRoot = ProjectSettings.GlobalizePath("res://data/rewards");
         var loaded = new RewardContentLoader(validator).Load(contentRoot);
-        var embeddedOffers = AcademyCourseCatalog.All.SelectMany(course =>
-            course.RewardOffers.Concat(
-                course.Activities.SelectMany(activity => activity.RewardOffers)
-            )
-        );
+        var embeddedOffers = QuestCatalog.All.SelectMany(quest => quest.RewardOffers);
         var errors = loaded.Errors.AddRange(validator.Validate(loaded.Catalog, embeddedOffers));
         if (!loaded.IsReady || errors.Length > 0)
         {
@@ -140,7 +136,6 @@ public partial class RewardService : Node
         return option.Type switch
         {
             RewardType.Card => GrantCardReward(option.Id, option.Rarity, option.Amount),
-            RewardType.CampaignGold => GrantCampaignGoldReward(option.Amount),
             RewardType.Gold => GrantGoldReward(option.Amount),
             RewardType.Gems => GrantGemsReward(option.Amount),
             RewardType.Essence => GrantEssenceReward(option.Amount),
@@ -174,36 +169,9 @@ public partial class RewardService : Node
             var gold = (int)goldVar;
             if (gold != 0)
             {
-                // For now, gold goes to resources. Campaign gold should use "campaign_gold" key.
                 _profileRepo.UpdateResources(
                     new Dictionary<ResourceType, int> { { ResourceType.Gold, gold } }
                 );
-            }
-        }
-
-        // Grant campaign gold
-        if (rewards.TryGetValue("campaign_gold", out var campaignGoldVar))
-        {
-            var campaignGold = (int)campaignGoldVar;
-            if (campaignGold > 0)
-            {
-                // Get active summoner for campaign gold
-                var summonerSelection = GetTree()?.Root?.GetNodeOrNull("/root/SummonerSelection");
-                var summonerId = "";
-                if (summonerSelection != null)
-                {
-                    var result = summonerSelection.Call("get_active_summoner_id");
-                    if (result.VariantType == Variant.Type.String)
-                        summonerId = result.AsString();
-                }
-
-                if (!string.IsNullOrEmpty(summonerId))
-                {
-                    var typedSummonerId = new SummonerId(summonerId);
-                    var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
-                    progress.Gold += campaignGold;
-                    _profileRepo.UpdateCampaignProgress(typedSummonerId, progress);
-                }
             }
         }
 
@@ -390,35 +358,6 @@ public partial class RewardService : Node
             );
 
         return success;
-    }
-
-    private bool GrantCampaignGoldReward(int amount)
-    {
-        if (_profileRepo == null || amount <= 0)
-            return false;
-
-        var summonerSelection = GetTree()?.Root?.GetNodeOrNull("/root/SummonerSelection");
-        var summonerId = "";
-        if (summonerSelection != null)
-        {
-            var result = summonerSelection.Call("get_active_summoner_id");
-            if (result.VariantType == Variant.Type.String)
-                summonerId = result.AsString();
-        }
-
-        if (string.IsNullOrEmpty(summonerId))
-        {
-            GD.PushWarning("RewardService: Cannot grant campaign gold - no active summoner");
-            return false;
-        }
-
-        var typedSummonerId = new SummonerId(summonerId);
-        var progress = _profileRepo.GetCampaignProgress(typedSummonerId);
-        progress.Gold += amount;
-        _profileRepo.UpdateCampaignProgress(typedSummonerId, progress);
-
-        GD.Print($"RewardService: Granted {amount} campaign gold");
-        return true;
     }
 
     private bool GrantGoldReward(int amount)

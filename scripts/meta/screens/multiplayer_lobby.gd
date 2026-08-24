@@ -492,7 +492,7 @@ func _on_cancel_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 
 
 func _exit_tree() -> void:

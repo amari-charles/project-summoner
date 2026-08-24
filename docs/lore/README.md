@@ -8,7 +8,7 @@ This directory contains worldbuilding, narrative, and character documentation fo
 - **[world.md](world.md)** - The Academy of Summoning Arts, magic system, regions, threats
 
 ### Story
-- **[narrative-arc.md](narrative-arc.md)** - Campaign story progression and themes
+- **[narrative-arc.md](narrative-arc.md)** - Academy story progression and themes
 
 ### Characters
 
@@ -21,15 +21,15 @@ This directory contains worldbuilding, narrative, and character documentation fo
 
 #### NPCs
 - **[Merlin](characters/npcs/merlin.md)** - Headmaster of the Academy
-- **[Mr. Merriweather](characters/npcs/mr-merriweather.md)** - Caravan merchant (husband)
-- **[Mrs. Merriweather](characters/npcs/mrs-merriweather.md)** - Caravan merchant (wife)
+- **[Mr. Merriweather](characters/npcs/mr-merriweather.md)** - Campus Shop co-owner (husband)
+- **[Mrs. Merriweather](characters/npcs/mrs-merriweather.md)** - Campus Shop co-owner (wife)
 
 ---
 
 ## Related Documentation
 
 - **[Elements](../elements/)** - All element-specific content (philosophy, summons, spells)
-- **[Campaign Narrative Guide](../features/campaign/narrative.md)** - Writing guidelines for campaign content
+- **[Quest System](../design/quest-system.md)** - Current progression and quest structure
 - **[Elemental System](../features/elemental-system.md)** - Technical implementation of elements
 
 ---

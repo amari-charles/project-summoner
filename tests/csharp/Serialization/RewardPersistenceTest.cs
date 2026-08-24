@@ -19,15 +19,12 @@ public class RewardPersistenceTest
     [TestCase]
     public void URS_C07_C10_D05_ResolvedPromisePendingChoiceAndSeedRoundTripUnchanged()
     {
-        var claimId = new RewardClaimId("summoner:course:lesson:offer");
+        var claimId = new RewardClaimId("summoner:quest:encounter:offer");
         var grant = new ResourceRewardGrantDefinition
         {
             ResourceId = "gold",
             Amount = 75,
-            Target = new RewardOwnershipTarget(
-                RewardOwnershipScope.SummonerCampaign,
-                "summoner_test"
-            ),
+            Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
         };
         var option = new RewardOptionDefinition
         {
@@ -43,9 +40,9 @@ public class RewardPersistenceTest
             OfferId = new RewardOfferId("offer"),
             Source = new RewardSourceContext
             {
-                SourceType = "academy_activity",
-                SourceId = "course",
-                OccurrenceId = "lesson",
+                SourceType = "encounter",
+                SourceId = "quest",
+                OccurrenceId = "encounter",
             },
             SummonerId = new SummonerId("summoner_test"),
             SelectionMode = RewardSelectionMode.PlayerChoice,
@@ -70,7 +67,7 @@ public class RewardPersistenceTest
         AssertThat(restoredSnapshot.Options[0].Id).IsEqual(option.Id);
         AssertThat(restoredGrant.ResourceId).IsEqual("gold");
         AssertThat(restoredGrant.Amount).IsEqual(75);
-        AssertThat(restoredGrant.Target.TargetId).IsEqual("summoner_test");
+        AssertThat(restoredGrant.Target.Scope).IsEqual(RewardOwnershipScope.Account);
         AssertThat(restored.Rewards.PendingSelections[claimId.Value].SelectedOptionIds[0])
             .IsEqual(option.Id);
     }
@@ -119,14 +116,6 @@ public class RewardPersistenceTest
             {
                 TraitId = new CardTraitId("card_trait"),
                 Target = new RewardOwnershipTarget(RewardOwnershipScope.CardInstance, "card"),
-            },
-            new AcademyProgressFlagRewardGrantDefinition
-            {
-                FlagId = "flag",
-                Target = new RewardOwnershipTarget(
-                    RewardOwnershipScope.SummonerCampaign,
-                    "summoner"
-                ),
             },
         ];
         var profile = new ProfileData();

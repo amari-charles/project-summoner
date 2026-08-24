@@ -291,7 +291,6 @@ internal static class RewardTargetMaterializer
             CardExperienceRewardGrantDefinition value => value with { Target = target },
             SummonerTraitRewardGrantDefinition value => value with { Target = target },
             CardTraitRewardGrantDefinition value => value with { Target = target },
-            AcademyProgressFlagRewardGrantDefinition value => value with { Target = target },
             _ => grant,
         };
     }
@@ -331,7 +330,6 @@ public static class RewardOwnershipKey
             EmoteRewardGrantDefinition emote => $"emote:{emote.EmoteId}",
             SummonerTraitRewardGrantDefinition trait => $"summoner_trait:{trait.TraitId}",
             CardTraitRewardGrantDefinition trait => $"card_trait:{trait.TraitId}",
-            AcademyProgressFlagRewardGrantDefinition flag => $"academy_flag:{flag.FlagId}",
             _ => "",
         };
 }

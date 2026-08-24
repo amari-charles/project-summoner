@@ -1,7 +1,7 @@
 # Application Layer
 
 **Status:** CURRENT  
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-24
 
 The Application layer orchestrates scene lifecycle and cross-domain handoffs.
 It is above gameplay/meta domain internals and below product-level UX flows.
@@ -45,16 +45,21 @@ Application can **call** those systems, but should not duplicate their logic.
 | `scene_manager.gd` | Canonical scene path registry + raw/coordinated transition API |
 | `scene_coordinator.gd` | Transition orchestration: cleanup, service checks, readiness wait |
 | `battle_context.gd` | Battle configuration + battle lifecycle state bag |
-| `event_context.gd` | Active event configuration + completion state |
+| `typed_battle_data.gd` | Typed GDScript projection of authored battle definitions |
+| `battle_surface_router.gd` | Chooses the standard or Debug Arena runtime surface from authored data |
+| `post_battle_report.gd` | Normalizes encounter and authored-battle outcomes for the shared Results screen |
 | `navigation_context.gd` | Return-stack for nested navigation flows |
-| `NarrativeDirector.cs` | Typed narrative cue matching, deterministic queueing, occurrence policy, and playback orchestration |
 | `capability_manager.gd` | Fine-grained gameplay capability gating |
+
+`scripts/csharp/Application/Narrative/NarrativeDirector.cs` owns typed narrative
+cue matching, deterministic queueing, occurrence policy, and playback
+orchestration at the same application boundary.
 
 ## Boundary Contracts
 
 ### Inbound (from UI/screens)
 
-- "start battle/event" intents;
+- quest, encounter, and direct authored-battle launch intents;
 - scene transition requests;
 - dialogue/sequence progression requests.
 
@@ -62,23 +67,23 @@ Application can **call** those systems, but should not duplicate their logic.
 
 - scene changes to `SceneManager` / active scene nodes;
 - context config consumed by gameplay (`BattleSessionConfig.FromBattleContext()`);
-- service calls to meta systems (`Campaign`, etc.) when orchestrating completion.
+- service calls to meta systems (`Quests`, `Encounters`, etc.) when orchestrating completion.
 
 ## Common Flows
 
-### Campaign Battle Start
+### Authored Battle Start
 
 1. Screen configures `BattleContext`.
 2. Screen calls `SceneManager.transition_to(SCENE_BATTLE_3D)`.
 3. `SceneCoordinator` performs cleanup + service verification.
 4. `BattleScene` reads typed config and initializes gameplay.
 
-### Event Flow
+### Quest Encounter Flow
 
-1. Screen configures `EventContext`.
-2. Scene transition to event screen.
-3. `NarrativeDirector` matches any typed narrative cue; gameplay behavior remains with its authoritative owner.
-4. `EventContext.complete_event()` updates event completion state.
+1. A professor or world interaction selects an encounter referenced by a quest step.
+2. Encounter Preparation asks `EncounterService` for the loadout and authored battle configuration.
+3. The screen configures `BattleContext` in `ENCOUNTER` mode and transitions to the battle scene.
+4. Battle completion returns one normalized report to the shared Results screen; `EncounterService` advances the quest-owned encounter state.
 
 ### Multiplayer Battle Start
 

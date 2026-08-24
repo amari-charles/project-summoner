@@ -3,7 +3,7 @@ class_name SpeedButton
 
 ## Speed control button for battle UI
 ## Toggles between 1x and 2x game speed
-## Only enabled for campaign mode (disabled for online/arena)
+## Only enabled for authored-battle mode (disabled for online/arena)
 
 var game_controller: Node = null
 var current_speed: float = 1.0
@@ -42,7 +42,7 @@ func _setup() -> void:
 func _check_battle_mode() -> void:
 	var current_mode: BattleContext.BattleMode = BattleContext.current_mode
 	var is_speed_enabled: bool = current_mode in [
-		BattleContext.BattleMode.CAMPAIGN,
+		BattleContext.BattleMode.AUTHORED,
 		BattleContext.BattleMode.TUTORIAL,
 		BattleContext.BattleMode.PRACTICE,  # Enable for debug arena
 		BattleContext.BattleMode.ENCOUNTER

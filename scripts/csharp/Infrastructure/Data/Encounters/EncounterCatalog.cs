@@ -64,8 +64,13 @@ public static class EncounterCatalog
                 errors.Add("Encounter ID is required.");
             if (string.IsNullOrWhiteSpace(encounter.NameKey))
                 errors.Add($"Encounter '{encounter.Id}' requires a name key.");
-            if (encounter.Configuration.ValueKind != JsonValueKind.Object)
-                errors.Add($"Encounter '{encounter.Id}' requires configuration.");
+            if (encounter.BattleConfig == null)
+                errors.Add($"Encounter '{encounter.Id}' requires battle configuration.");
+            if (
+                encounter.Loadout.Mode == EncounterDeckMode.Fixed
+                && encounter.Loadout.SuppliedCards.Count == 0
+            )
+                errors.Add($"Fixed encounter '{encounter.Id}' requires supplied cards.");
         }
 
         return errors;

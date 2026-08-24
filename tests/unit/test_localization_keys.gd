@@ -10,7 +10,6 @@ const SCRIPTS_DIR: String = "res://scripts"
 const LOCALIZATION_DIR: String = "res://localization"
 const EN_JSON_PATH: String = "res://localization/data/en.json"
 const AUTHORED_CONTENT_PATHS: Array[String] = [
-	"res://data/academy/courses.json",
 	"res://data/narrative/narrative.json",
 ]
 

@@ -7,7 +7,7 @@ using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Rewards;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Rewards;
@@ -27,15 +27,6 @@ public class RewardClaimServiceTest
                 ResourceId = "gold",
                 Amount = 40,
                 Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
-            },
-            new AcademyProgressFlagRewardGrantDefinition
-            {
-                FlagId = "lesson_complete",
-                Amount = 1,
-                Target = new RewardOwnershipTarget(
-                    RewardOwnershipScope.SummonerCampaign,
-                    "summoner_cole"
-                ),
             }
         );
         var claims = new RewardClaimService(store, RewardGrantHandlerRegistry.CreateDefault());
@@ -52,12 +43,6 @@ public class RewardClaimServiceTest
         AssertThat(retry.Status).IsEqual(RewardRuntimeStatus.AlreadyClaimed);
         AssertThat(retry.Receipt).IsEqual(first.Receipt);
         AssertThat(store.Profile.Resources.Gold).IsEqual(40);
-        AssertThat(
-                store.Profile.CampaignProgressMap["summoner_cole"].Academy.RewardFlags[
-                    "lesson_complete"
-                ]
-            )
-            .IsEqual(1);
         AssertThat(store.CommitCount).IsEqual(1);
         AssertThat(store.State.PendingSelections).IsEmpty();
     }
@@ -274,18 +259,9 @@ public class RewardClaimServiceTest
                         Essence = source.Resources.Essence,
                         Fragments = source.Resources.Fragments,
                     },
-                    CampaignProgressMap = source.CampaignProgressMap.ToDictionary(
+                    SummonerProgressMap = source.SummonerProgressMap.ToDictionary(
                         pair => pair.Key,
-                        pair => new CampaignProgress
-                        {
-                            Gold = pair.Value.Gold,
-                            Academy = new AcademyProgress
-                            {
-                                RewardFlags = new Dictionary<string, int>(
-                                    pair.Value.Academy.RewardFlags
-                                ),
-                            },
-                        }
+                        pair => new SummonerProgress { Quests = pair.Value.Quests }
                     ),
                 };
         }

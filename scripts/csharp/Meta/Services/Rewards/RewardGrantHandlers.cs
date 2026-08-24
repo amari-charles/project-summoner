@@ -10,7 +10,7 @@ using Fateforged.Data.Rewards;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
 using Fateforged.Domain.Profile;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Domain.Profile.Inventory;
@@ -63,7 +63,6 @@ public sealed class RewardGrantHandlerRegistry
             new CardExperienceRewardGrantHandler(),
             new SummonerTraitRewardGrantHandler(),
             new CardTraitRewardGrantHandler(),
-            new AcademyProgressFlagRewardGrantHandler(),
         ]);
 }
 
@@ -168,12 +167,9 @@ public sealed class ResourceRewardGrantHandler : RewardGrantHandler<ResourceRewa
         if (grant.Amount <= 0)
             return Invalid("Resource reward amount must be positive.");
 
-        return grant.Target.Scope switch
-        {
-            RewardOwnershipScope.Account => PrepareAccount(grant),
-            RewardOwnershipScope.SummonerCampaign => PrepareCampaign(grant),
-            _ => Invalid("Resources must target an account or summoner campaign."),
-        };
+        return grant.Target.Scope == RewardOwnershipScope.Account
+            ? PrepareAccount(grant)
+            : Invalid("Resources must target an account.");
     }
 
     private static RewardGrantPreparation PrepareAccount(ResourceRewardGrantDefinition grant)
@@ -205,21 +201,6 @@ public sealed class ResourceRewardGrantHandler : RewardGrantHandler<ResourceRewa
         });
     }
 
-    private static RewardGrantPreparation PrepareCampaign(ResourceRewardGrantDefinition grant)
-    {
-        if (!grant.ResourceId.Equals("gold", StringComparison.OrdinalIgnoreCase))
-            return Invalid($"Unknown campaign resource '{grant.ResourceId}'.");
-        if (string.IsNullOrWhiteSpace(grant.Target.TargetId))
-            return Invalid("Campaign resource reward requires a summoner target.");
-
-        return Valid(profile =>
-        {
-            var progress = GetOrCreateCampaign(profile, grant.Target.TargetId);
-            progress.Gold += grant.Amount;
-            return (true, "");
-        });
-    }
-
     private static RewardGrantPreparation Valid(
         Func<ProfileData, (bool success, string error)> apply
     ) => new() { IsValid = true, Mutation = new ProfileRewardMutation(apply) };
@@ -227,15 +208,6 @@ public sealed class ResourceRewardGrantHandler : RewardGrantHandler<ResourceRewa
     private static RewardGrantPreparation Invalid(string error) =>
         new() { IsValid = false, Errors = [error] };
 
-    internal static CampaignProgress GetOrCreateCampaign(ProfileData profile, string summonerId)
-    {
-        if (!profile.CampaignProgressMap.TryGetValue(summonerId, out var progress))
-        {
-            progress = new CampaignProgress();
-            profile.CampaignProgressMap[summonerId] = progress;
-        }
-        return progress;
-    }
 }
 
 public sealed class ItemRewardGrantHandler : RewardGrantHandler<ItemRewardGrantDefinition>
@@ -247,12 +219,28 @@ public sealed class ItemRewardGrantHandler : RewardGrantHandler<ItemRewardGrantD
     {
         if (!grant.ItemId.HasValue || !ItemCatalog.HasItem(grant.ItemId) || grant.Count <= 0)
             return Invalid($"Invalid item reward '{grant.ItemId}' x{grant.Count}.");
+        var definition = ItemCatalog.GetItem(grant.ItemId)!;
         if (
             grant.Target.Scope
             is not RewardOwnershipScope.Account
                 and not RewardOwnershipScope.Summoner
         )
             return Invalid("Items must target an account or summoner.");
+        if (
+            definition.Binding == ItemBinding.SummonerBound
+            && (
+                grant.Target.Scope != RewardOwnershipScope.Summoner
+                || string.IsNullOrWhiteSpace(grant.Target.TargetId)
+            )
+        )
+            return Invalid("Normal item rewards require an explicit summoner target.");
+        if (
+            definition.Binding == ItemBinding.AccountWide
+            && (!definition.IsEventExclusive || grant.Target.Scope != RewardOwnershipScope.Account)
+        )
+            return Invalid(
+                "Account-wide item rewards must be explicitly authored event-exclusive rewards."
+            );
 
         return Valid(profile =>
         {
@@ -260,8 +248,11 @@ public sealed class ItemRewardGrantHandler : RewardGrantHandler<ItemRewardGrantD
                 grant.Target.Scope == RewardOwnershipScope.Summoner
                     ? new SummonerId(grant.Target.TargetId)
                     : null;
-            if (boundTo.HasValue && !boundTo.Value.HasValue)
-                return (false, "Summoner-bound item requires a summoner target.");
+            if (
+                boundTo.HasValue
+                && profile.SummonerInstances.All(instance => instance.SummonerId != boundTo.Value)
+            )
+                return (false, $"Target summoner '{grant.Target.TargetId}' does not exist.");
             for (var i = 0; i < grant.Count; i++)
             {
                 profile.Items.Add(
@@ -536,44 +527,5 @@ public sealed class CardTraitRewardGrantHandler : RewardGrantHandler<CardTraitRe
             },
             "card trait"
         );
-    }
-}
-
-public sealed class AcademyProgressFlagRewardGrantHandler
-    : RewardGrantHandler<AcademyProgressFlagRewardGrantDefinition>
-{
-    public override RewardGrantPreparation Prepare(
-        AcademyProgressFlagRewardGrantDefinition grant,
-        RewardGrantContext context
-    )
-    {
-        if (
-            grant.Target.Scope != RewardOwnershipScope.SummonerCampaign
-            || string.IsNullOrWhiteSpace(grant.Target.TargetId)
-            || string.IsNullOrWhiteSpace(grant.FlagId)
-            || grant.Amount <= 0
-        )
-        {
-            return new RewardGrantPreparation
-            {
-                IsValid = false,
-                Errors = ["Academy progress flag requires a summoner campaign target."],
-            };
-        }
-
-        return new RewardGrantPreparation
-        {
-            IsValid = true,
-            Mutation = new ProfileRewardMutation(profile =>
-            {
-                var progress = ResourceRewardGrantHandler.GetOrCreateCampaign(
-                    profile,
-                    grant.Target.TargetId
-                );
-                progress.Academy.RewardFlags[grant.FlagId] =
-                    progress.Academy.RewardFlags.GetValueOrDefault(grant.FlagId) + grant.Amount;
-                return (true, "");
-            }),
-        };
     }
 }

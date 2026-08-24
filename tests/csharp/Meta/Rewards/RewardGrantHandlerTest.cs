@@ -4,11 +4,13 @@ using System;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Rewards;
+using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Rewards;
+using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Meta.Deck;
 using Fateforged.Meta.Rewards;
 using GdUnit4;
@@ -44,12 +46,11 @@ public class RewardGrantHandlerTest
             typeof(CardExperienceRewardGrantDefinition),
             typeof(SummonerTraitRewardGrantDefinition),
             typeof(CardTraitRewardGrantDefinition),
-            typeof(AcademyProgressFlagRewardGrantDefinition),
         ];
 
-        AssertThat(grantTypes.Length).IsEqual(11);
+        AssertThat(grantTypes.Length).IsEqual(10);
         var handled = RewardGrantHandlerRegistry.CreateDefault().HandledGrantTypes;
-        AssertThat(handled).HasSize(11);
+        AssertThat(handled).HasSize(10);
         foreach (var grantType in grantTypes)
         {
             AssertThat(grantType.IsSubclassOf(typeof(RewardGrantDefinition))).IsTrue();
@@ -167,5 +168,57 @@ public class RewardGrantHandlerTest
 
         AssertThat(undefinedResource.IsValid).IsFalse();
         AssertThat(wrongUnlockScope.IsValid).IsFalse();
+    }
+
+    [TestCase]
+    public void ItemRewardsEnforceDefinitionOwnershipTargets()
+    {
+        var registry = RewardGrantHandlerRegistry.CreateDefault();
+        var context = new RewardGrantContext
+        {
+            ClaimId = new RewardClaimId("claim"),
+            Source = new RewardSourceContext { SourceType = "test", SourceId = "source" },
+        };
+
+        var missingOwner = registry.Prepare(
+            new ItemRewardGrantDefinition
+            {
+                ItemId = ItemIds.TrainingBlade,
+                Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
+            },
+            context
+        );
+        var normal = registry.Prepare(
+            new ItemRewardGrantDefinition
+            {
+                ItemId = ItemIds.TrainingBlade,
+                Target = new RewardOwnershipTarget(RewardOwnershipScope.Summoner, SummonerIds.Cole.Value),
+            },
+            context
+        );
+        var sharedEvent = registry.Prepare(
+            new ItemRewardGrantDefinition
+            {
+                ItemId = ItemIds.TestSharedEventItem,
+                Target = new RewardOwnershipTarget(RewardOwnershipScope.Account),
+            },
+            context
+        );
+
+        AssertThat(missingOwner.IsValid).IsFalse();
+        AssertThat(normal.IsValid).IsTrue();
+        AssertThat(sharedEvent.IsValid).IsTrue();
+
+        var ownedProfile = new ProfileData
+        {
+            SummonerInstances = [new SummonerInstance { SummonerId = SummonerIds.Cole }],
+        };
+        AssertThat(normal.Mutation!.TryApply(ownedProfile, out _)).IsTrue();
+        AssertThat(ownedProfile.Items).HasSize(1);
+
+        var missingProfile = new ProfileData();
+        AssertThat(normal.Mutation!.TryApply(missingProfile, out var error)).IsFalse();
+        AssertThat(error).Contains("does not exist");
+        AssertThat(missingProfile.Items).IsEmpty();
     }
 }

@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Fateforged.Data.Rewards;
-using Fateforged.Meta.Shop;
-using Godot;
 
 namespace Fateforged.Data.Events;
 
 /// <summary>
-/// Base class for all event definitions in the campaign system.
+/// Base class for authored battle definitions.
 /// Subclasses provide type-specific properties for each event type.
 /// </summary>
 public abstract class EventDefinition
@@ -20,9 +18,6 @@ public abstract class EventDefinition
 
     /// <summary>Localization key for event description</summary>
     public string DescriptionKey { get; set; } = "";
-
-    /// <summary>Position on campaign map</summary>
-    public Vector2 Position { get; set; }
 
     /// <summary>Whether the event can be replayed after completion</summary>
     public bool Repeatable { get; set; }
@@ -80,8 +75,8 @@ public class BattleEventDefinition : EventDefinition
     /// <summary>Dev-only player deck override (for test battles)</summary>
     public List<DeckEntry>? DevPlayerDeck { get; set; }
 
-    /// <summary>Custom scene path (for special battles like debug arena)</summary>
-    public string? ScenePath { get; set; }
+    /// <summary>Application runtime surface used to present this battle.</summary>
+    public BattleRuntimeSurface RuntimeSurface { get; set; } = BattleRuntimeSurface.Standard;
 }
 
 /// <summary>
@@ -101,26 +96,4 @@ public class EliteEventDefinition : BattleEventDefinition
 public class BossEventDefinition : BattleEventDefinition
 {
     public override EventType Type => EventType.Boss;
-}
-
-/// <summary>
-/// Choice event definition - path branching decision points.
-/// </summary>
-public class ChoiceEventDefinition : EventDefinition
-{
-    public override EventType Type => EventType.Choice;
-
-    /// <summary>Available choices at this node</summary>
-    public List<ChoiceOption> Options { get; set; } = new();
-}
-
-/// <summary>
-/// Caravan event definition - traveling merchant shop.
-/// </summary>
-public class CaravanEventDefinition : EventDefinition
-{
-    public override EventType Type => EventType.Caravan;
-
-    /// <summary>Shop configuration ID</summary>
-    public ShopId ShopId { get; set; } = Fateforged.Meta.Shop.ShopId.None;
 }

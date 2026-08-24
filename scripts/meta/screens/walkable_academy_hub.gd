@@ -171,8 +171,9 @@ func _ready() -> void:
 	reward_modal.closed.connect(_on_reward_modal_closed)
 	quest_offer_modal.accepted.connect(_on_quest_offer_accepted)
 	quest_offer_modal.backed.connect(_on_quest_offer_backed)
-	if Campaign.has_signal("CampaignProgressChanged"):
-		Campaign.connect("CampaignProgressChanged", _refresh_quest_presentation)
+	quest_offer_modal.cancelled.connect(_on_quest_offer_cancelled)
+	if Quests.has_signal("ProgressChanged"):
+		Quests.connect("ProgressChanged", _refresh_quest_presentation)
 	_setup_summoner_icon()
 	_populate_travel_points()
 
@@ -672,7 +673,7 @@ func _travel_to_world_location(destination_id: StringName) -> void:
 
 
 func _tracked_objective_travel() -> Dictionary:
-	var journal: Dictionary = CampaignApi.get_generic_quest_journal_state()
+	var journal: Dictionary = QuestApi.get_journal_state()
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
 	if tracked_id.is_empty():
 		return {}
@@ -731,7 +732,7 @@ func _route_to(destination_id: StringName) -> void:
 		push_warning("WalkableAcademyHub: Unknown destination '%s'" % destination_id)
 		return
 	_transition_started = true
-	NavigationContext.push_return(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_CAMPUS)
 	SceneManager.transition_to(target_scene)
 
 
@@ -806,12 +807,12 @@ func _spawn_buildings() -> void:
 
 func _spawn_professors() -> void:
 	_clear_children(professors)
-	for value: Variant in CampaignApi.get_professor_quest_states():
+	for value: Variant in QuestApi.get_professor_quest_states():
 		var state: Dictionary = SafeTypeUtils.dict(value)
 		var professor_id: String = SafeTypeUtils.string(state.get("id"))
 		if not PROFESSOR_POSITIONS.has(professor_id):
 			continue
-		var quest_state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+		var quest_state: Dictionary = QuestApi.get_npc_quest_state(professor_id)
 		if not quest_state.is_empty():
 			state["quest_marker"] = quest_state.get("quest_marker", "")
 		var professor: InteractiveNpc = InteractiveNpcScene.instantiate()
@@ -835,19 +836,19 @@ func _spawn_quest_targets() -> void:
 
 func _refresh_quest_presentation() -> void:
 	var state_by_id: Dictionary = {}
-	for value: Variant in CampaignApi.get_professor_quest_states():
+	for value: Variant in QuestApi.get_professor_quest_states():
 		var state: Dictionary = SafeTypeUtils.dict(value)
 		state_by_id[SafeTypeUtils.string(state.get("id"))] = state
 	for child: Node in professors.get_children():
 		var professor: InteractiveNpc = child as InteractiveNpc
 		if professor != null and state_by_id.has(professor.npc_id):
 			var professor_state: Dictionary = state_by_id[professor.npc_id]
-			var quest_state: Dictionary = CampaignApi.get_npc_quest_state(professor.npc_id)
+			var quest_state: Dictionary = QuestApi.get_npc_quest_state(professor.npc_id)
 			if not quest_state.is_empty():
 				professor_state["quest_marker"] = quest_state.get("quest_marker", "")
 			_configure_professor(professor, professor_state)
 
-	var journal: Dictionary = CampaignApi.get_generic_quest_journal_state()
+	var journal: Dictionary = QuestApi.get_journal_state()
 	var current_target_id: String = ""
 	for value: Variant in SafeTypeUtils.array(journal.get("active")):
 		var active_quest: Dictionary = SafeTypeUtils.dict(value)
@@ -878,8 +879,8 @@ func _on_professor_interacted(professor_id: String) -> void:
 	_close_travel()
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(false)
-	var professor_state: Dictionary = CampaignApi.get_professor_quest_state(professor_id)
-	var state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+	var professor_state: Dictionary = QuestApi.get_professor_quest_state(professor_id)
+	var state: Dictionary = QuestApi.get_npc_quest_state(professor_id)
 	var professor_name: String = Loc.t(
 		SafeTypeUtils.string(professor_state.get("name_key"))
 	)
@@ -969,7 +970,7 @@ func _on_dialogue_choice(choice_id: String) -> void:
 
 func _on_quest_offer_accepted(selected_quest_id: String) -> void:
 	_dialog_accepted_lines = _accepted_lines_for_quest(_dialog_npc_id, selected_quest_id)
-	if not CampaignApi.accept_quest(selected_quest_id):
+	if not QuestApi.accept_quest(selected_quest_id):
 		push_warning("WalkableAcademyHub: Failed to accept quest '%s'" % selected_quest_id)
 		_on_quest_offer_backed()
 		return
@@ -986,6 +987,11 @@ func _on_quest_offer_backed() -> void:
 	_present_quest_opportunity_dialogue()
 
 
+func _on_quest_offer_cancelled() -> void:
+	_clear_quest_dialogue_context()
+	player.set_physics_process(true)
+
+
 func _present_quest_opportunity_dialogue() -> void:
 	dialogue_box.present(
 		_dialog_speaker,
@@ -994,11 +1000,24 @@ func _present_quest_opportunity_dialogue() -> void:
 	)
 
 
+func _clear_quest_dialogue_context() -> void:
+	_dialog_quest_id = ""
+	_dialog_speaker = ""
+	_dialog_npc_id = ""
+	_dialog_accepted_lines.clear()
+	_dialog_turn_in_npc_id = ""
+	_dialog_response_actions.clear()
+	_dialog_response_quest_ids.clear()
+	_dialog_opportunities_by_id.clear()
+	_dialog_offer_lines.clear()
+	_dialog_offer_responses.clear()
+
+
 func _on_dialogue_closed() -> void:
 	if not _dialog_turn_in_npc_id.is_empty():
 		var turn_in_npc_id: String = _dialog_turn_in_npc_id
 		_dialog_turn_in_npc_id = ""
-		var result: Dictionary = CampaignApi.record_quest_npc_interaction(turn_in_npc_id)
+		var result: Dictionary = QuestApi.record_npc_interaction(turn_in_npc_id)
 		if SafeTypeUtils.bool_val(result.get("completed"), false):
 			var summary: Dictionary = SafeTypeUtils.dict(result.get("completion_summary"))
 			var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
@@ -1013,13 +1032,13 @@ func _on_reward_modal_closed() -> void:
 
 
 func _on_quest_world_target_interacted(target_id: String) -> void:
-	var result: Dictionary = CampaignApi.record_quest_world_interaction(target_id)
+	var result: Dictionary = QuestApi.record_world_interaction(target_id)
 	var step: Dictionary = SafeTypeUtils.dict(result.get("current_step"))
 	var encounter_id: String = SafeTypeUtils.string(step.get("encounter_id"))
 	if encounter_id.is_empty():
 		return
 	BattleContext.select_encounter(encounter_id)
-	NavigationContext.push_return(SceneManager.SCENE_WALKABLE_ACADEMY_HUB)
+	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_CAMPUS)
 	SceneManager.transition_to(SceneManager.SCENE_ENCOUNTER_PREPARATION)
 
 
@@ -1068,7 +1087,7 @@ func _dialogue_responses(
 
 
 func _accepted_lines_for_quest(professor_id: String, quest_id: String) -> Array[String]:
-	var state: Dictionary = CampaignApi.get_npc_quest_state(professor_id)
+	var state: Dictionary = QuestApi.get_npc_quest_state(professor_id)
 	for value: Variant in SafeTypeUtils.array(state.get("opportunities")):
 		var quest: Dictionary = SafeTypeUtils.dict(value)
 		if SafeTypeUtils.string(quest.get("id")) == quest_id:
@@ -1092,7 +1111,7 @@ func _add_building(
 	building.configure(
 		display_name_key,
 		target_scene_path,
-		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		SceneManager.SCENE_ACADEMY_CAMPUS,
 		placeholder_texture,
 		camera
 	)

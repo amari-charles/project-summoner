@@ -2,7 +2,7 @@
 
 ## Overview
 
-Campaign battle progression is an authority-owned use case built on the universal reward runtime. Battle content authors XP and zero or more universal first-clear offers. No battle-specific reward enum, spec, pending shape, or grant service exists.
+Direct authored-battle progression is an authority-owned use case built on the universal reward runtime. Battle content authors XP and zero or more universal first-clear offers. No battle-specific reward enum, spec, pending shape, or grant service exists.
 
 Development saves are disposable at this stage. The architecture intentionally has no reader or adapter for the superseded battle reward schema.
 
@@ -20,7 +20,7 @@ Development saves are disposable at this stage. The architecture intentionally h
 
 ## Runtime Flow
 
-1. Campaign or debug launch asks the authority to start a battle.
+1. A direct authored-battle launch asks the authority to start an attempt.
 2. The authority creates a random 128-bit attempt ID, validates the selected deck owner, derives its card identities from the profile, freezes XP and eligible first-clear resolved offers, then persists before navigation.
 3. Battle runtime reports `Victory`, `Defeat`, or `Abandoned` against that attempt ID.
 4. On victory, one profile transaction records completion, applies XP and automatic grants, and persists selectable offers. Defeat and abandonment create no grants.
@@ -30,7 +30,7 @@ Development saves are disposable at this stage. The architecture intentionally h
 ## Identity and Determinism
 
 - Attempt identity scopes replayable XP: each distinct victorious attempt earns XP once.
-- First-clear identity is stable per summoner, campaign, and battle: replay attempts cannot repeat it.
+- First-clear identity is stable per summoner and authored battle: replay attempts cannot repeat it.
 - Each summoner owns a persistent randomization seed.
 - Resolved offers are frozen into the attempt at start, so reloads and later catalog edits cannot reroll a promise.
 - Claim and completion guards run before grant mutations, preventing competing callers from applying value twice.
@@ -44,8 +44,8 @@ new BattleEventDefinition
     SummonerXpReward = 20,
     FirstClearRewardOffers =
     [
-        BattleRewardAuthoring.ChooseOneCard(
-            EventIds.FirstTrial,
+        BattleRewardAuthoring.ChooseOneCardAndAddToSelectedDeck(
+            EventIds.ArenaEarthSprite,
             30,
             true,
             CardIds.Charge,

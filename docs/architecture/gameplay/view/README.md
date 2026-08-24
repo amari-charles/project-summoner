@@ -1,5 +1,10 @@
 # View Layer
 
+> **Implementation-detail review pending:** The boundary rules and component
+> ownership in this document remain current. Some linked component pages still
+> contain pre-implementation “Today” and stub sections; their reconciliation is
+> tracked in `docs/tracking/todos.md`.
+
 Reads game state and renders it. No game logic, no mutation — purely visual.
 
 For the boundary-level contract (graph position, edge types, invariants), read [layer-contract.md](layer-contract.md) first.
@@ -97,12 +102,10 @@ BattleScene (top-level facade, wires everything to IGameSession)
 7. **Event dispatch is centralized.** SimEvent-to-visual routing goes through EntityManager. Shells don't subscribe to `SimEventsEmitted` directly. (BattleHUD is the exception for HUD events.)
 8. **Naming follows role.** No `3D` suffix. Names describe what the component does.
 
-## Decomposition Specs
+## Historical Decomposition Plan
 
-Detailed migration plans for existing components that span View/Input boundaries:
-[design-specs.md](design-specs.md)
-
-Covers: HandUI split, SpellTargetingManager retirement, RedirectManager→Command, SummonPreview, Summoner decomposition, GameController3D decomposition, SimEventSignalEmitter retirement, BattlefieldDropZone, GameUI→BattleHUD, SpawnZoneOverlay.
+The completed View/Input migration plan is archived at
+`docs/archive/superseded-runtime-architecture-2026-08/view-input-decomposition-specs.md`.
 
 ## Supporting Services
 

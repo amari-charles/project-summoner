@@ -43,7 +43,6 @@ public enum RewardPreviewPolicy
 public enum RewardOwnershipScope
 {
     Account,
-    SummonerCampaign,
     Summoner,
     CardInstance,
 }
@@ -130,7 +129,6 @@ public sealed record PoolRewardOptionSourceDefinition : RewardOptionSourceDefini
 [JsonDerivedType(typeof(CardExperienceRewardGrantDefinition), "card_xp")]
 [JsonDerivedType(typeof(SummonerTraitRewardGrantDefinition), "summoner_trait")]
 [JsonDerivedType(typeof(CardTraitRewardGrantDefinition), "card_trait")]
-[JsonDerivedType(typeof(AcademyProgressFlagRewardGrantDefinition), "academy_progress_flag")]
 public abstract record RewardGrantDefinition
 {
     public required RewardOwnershipTarget Target { get; init; }
@@ -190,11 +188,5 @@ public sealed record SummonerTraitRewardGrantDefinition : RewardGrantDefinition
 public sealed record CardTraitRewardGrantDefinition : RewardGrantDefinition
 {
     public required CardTraitId TraitId { get; init; }
-    public int Amount { get; init; } = 1;
-}
-
-public sealed record AcademyProgressFlagRewardGrantDefinition : RewardGrantDefinition
-{
-    public required string FlagId { get; init; }
     public int Amount { get; init; } = 1;
 }

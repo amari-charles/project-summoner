@@ -220,14 +220,13 @@ public enum TriggerCondition
 
 ## File Locations
 
-### Provider Classes
-- `scripts/csharp/Systems/Modifiers/IModifierProvider.cs`
-- `scripts/csharp/Systems/Modifiers/SummonerModifierProvider.cs`
-- `scripts/csharp/Systems/Modifiers/CardModifierProvider.cs`
-- `scripts/csharp/Systems/Modifiers/ItemModifierProvider.cs`
+### Projection and Service Boundaries
+- `scripts/csharp/Battle/Simulation/SimulationNode.cs`
+- `scripts/csharp/Meta/Services/Cards/CardService.cs`
+- `scripts/csharp/Meta/Services/Items/ItemService.cs`
 
 ### Service
-- `scripts/csharp/Battle/Simulation/Combat/SimEffects.cs`
+- `scripts/csharp/Battle/Simulation/Subsystems/SimEffects.cs`
 - `scripts/csharp/Battle/Simulation/Stats/StatModifier.cs`
 - `scripts/csharp/Battle/Simulation/Stats/TriggerCondition.cs`
 
@@ -330,7 +329,7 @@ godot --headless --script res://addons/gdUnit4/bin/GdUnitCmdTool.gd -- \
 ```
 
 Test files:
-- `tests/csharp/Battle/Simulation/Stats/StatModifierTest.cs`
-- `tests/csharp/Battle/Simulation/Stats/TriggerConditionTest.cs`
-- `tests/csharp/Battle/Simulation/Combat/SimEffectsTest.cs`
+- `tests/csharp/Stats/StatModifierTest.cs`
+- `tests/csharp/Stats/TriggerConditionTest.cs`
+- `tests/csharp/Simulation/SimEffectsTest.cs`
 - `tests/csharp/Traits/TraitCatalogTest.cs` (includes triggered trait tests)

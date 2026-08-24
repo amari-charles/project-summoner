@@ -421,11 +421,11 @@ private void RecordChoiceInternal(NodeId nodeId, ChoiceId choiceId)
 
 **Repository pattern:** Convert at the boundary when calling GDScript.
 ```csharp
-public CampaignProgress GetCampaignProgress(SummonerId summonerId)
+public SummonerProgress GetSummonerProgress(SummonerId summonerId)
 {
     // Convert to string only when crossing to GDScript
-    var dict = _gdRepo.Call("get_campaign_progress", (string)summonerId);
-    return DtoConverters.FromCampaignDict(dict);
+    var dict = _gdRepo.Call("get_summoner_progress", (string)summonerId);
+    return DtoConverters.FromSummonerProgressDict(dict);
 }
 ```
 
@@ -446,7 +446,7 @@ public static class CardIds
 
 Organize ID types by domain:
 - **Cards:** `CardId`, `CardInstanceId`, `CardTraitId`
-- **Campaign:** `CampaignId`, `EventId`, `BattleId`, `NodeId`, `ChoiceId`
+- **Progression:** `QuestId`, `EncounterId`, `BattleId`
 - **Profile:** `ProfileId`, `DeckId`, `SummonerId`
 - **Cosmetics:** `CosmeticId`, `EmoteId`, `SkinId`
 - **Shop:** `ShopId`, `OfferingId`

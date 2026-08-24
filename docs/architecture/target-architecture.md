@@ -142,7 +142,7 @@ IGameSession                  ← Input + View talk to this only
     └── ClientSession         ← Sends commands + applies snapshots
 ```
 
-**`LocalSession`** — Singleplayer. Validates the command via CommandRouter, feeds it to the Simulation, ticks locally. Simple and self-contained. This is the only session type needed for campaign, tutorial, and AI battles.
+**`LocalSession`** — Singleplayer. Validates the command via CommandRouter, feeds it to the Simulation, ticks locally. Simple and self-contained. This is the only session type needed for quest, tutorial, debug, and AI battles.
 
 **`NetworkSession`** (abstract base) — Shared multiplayer concerns that both host and client need:
 

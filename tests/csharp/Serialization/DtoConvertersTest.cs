@@ -8,14 +8,14 @@ using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
 using Fateforged.Domain.Profile.Inventory;
 using Fateforged.Domain.Profile.Summoners;
 using Fateforged.Infrastructure.Persistence;
-using Fateforged.Meta.Campaign;
+using Fateforged.Domain.Progression;
 using Fateforged.Meta.Deck;
 using GdUnit4;
 using Godot;
@@ -258,167 +258,6 @@ public class DtoConvertersTest
         // Missing summoner_id
         dict = new Godot.Collections.Dictionary { ["id"] = "deck_001" };
         AssertThat(DtoConverters.FromDeckDict(dict)).IsNull();
-    }
-
-    // =========================================================================
-    // CampaignProgress Tests
-    // =========================================================================
-
-    [TestCase]
-    public void CampaignProgress_RoundTrip_PreservesAllFields()
-    {
-        var original = new CampaignProgress
-        {
-            CompletedBattles = [new BattleId("battle_1"), new BattleId("battle_2")],
-            Gold = 500,
-            Academy = new AcademyProgress
-            {
-                CurrentYear = 1,
-                CurrentSemester = 2,
-                RemainingEnrollments = 3,
-                CompletedCourses = [CourseIds.IntroductionToMagic101],
-                EnrolledCourses = [CourseIds.PracticalSpellcraft],
-                DiscoveredCourses = [CourseIds.IntroToFire],
-                TrackedQuestId = "academy:practical_spellcraft",
-                AssessmentOutcomes = new Dictionary<string, AcademyActivityOutcome>
-                {
-                    ["magic_101_exam"] = AcademyActivityOutcome.Victory,
-                },
-                ActivityLoadouts = new Dictionary<string, AcademyActivityLoadoutState>
-                {
-                    ["practical_spellcraft:practice"] = new AcademyActivityLoadoutState
-                    {
-                        SelectedCardInstanceIds = [new CardInstanceId("card_1")],
-                    },
-                },
-                RewardFlags = new Dictionary<string, int> { ["spellcraft_intro"] = 1 },
-                Transcript =
-                [
-                    new AcademyTranscriptEntry
-                    {
-                        CourseId = CourseIds.IntroductionToMagic101,
-                        Grade = "pass",
-                        Honors = false,
-                        SemesterKey = "year_1_semester_1",
-                    },
-                ],
-                HonorsEligibility = new Dictionary<string, bool> { ["affinity_fire"] = true },
-                ShopPurchases = new Dictionary<string, int> { ["starter_reagent"] = 1 },
-                CourseActivityIndex = new Dictionary<string, int>
-                {
-                    [(string)CourseIds.PracticalSpellcraft] = 2,
-                },
-            },
-        };
-
-        var dict = DtoConverters.ToDict(original);
-        var result = DtoConverters.FromCampaignDict(dict);
-
-        AssertThat(result).IsNotNull();
-        AssertThat(result!.CompletedBattles).Contains(new BattleId("battle_1"));
-        AssertThat(result.CompletedBattles).Contains(new BattleId("battle_2"));
-        AssertThat(result.Gold).IsEqual(500);
-        AssertThat(result.Academy.CurrentYear).IsEqual(1);
-        AssertThat(result.Academy.CurrentSemester).IsEqual(2);
-        AssertThat(result.Academy.RemainingEnrollments).IsEqual(3);
-        AssertThat(result.Academy.CompletedCourses).Contains(CourseIds.IntroductionToMagic101);
-        AssertThat(result.Academy.EnrolledCourses).Contains(CourseIds.PracticalSpellcraft);
-        AssertThat(result.Academy.DiscoveredCourses).Contains(CourseIds.IntroToFire);
-        AssertThat(result.Academy.TrackedQuestId).IsEqual("academy:practical_spellcraft");
-        AssertThat(result.Academy.AssessmentOutcomes["magic_101_exam"])
-            .IsEqual(AcademyActivityOutcome.Victory);
-        AssertThat(
-                result
-                    .Academy
-                    .ActivityLoadouts["practical_spellcraft:practice"]
-                    .SelectedCardInstanceIds
-            )
-            .Contains(new CardInstanceId("card_1"));
-        AssertThat(result.Academy.RewardFlags["spellcraft_intro"]).IsEqual(1);
-        AssertThat(result.Academy.Transcript).HasSize(1);
-        AssertThat(result.Academy.Transcript[0].CourseId).IsEqual(CourseIds.IntroductionToMagic101);
-        AssertThat(result.Academy.Transcript[0].Grade).IsEqual("pass");
-        AssertThat(result.Academy.HonorsEligibility["affinity_fire"]).IsTrue();
-        AssertThat(result.Academy.ShopPurchases["starter_reagent"]).IsEqual(1);
-        AssertThat(result.Academy.CourseActivityIndex[(string)CourseIds.PracticalSpellcraft])
-            .IsEqual(2);
-    }
-
-    [TestCase]
-    public void CampaignProgress_FromDict_ReturnsDefaultForEmptyDict()
-    {
-        var result = DtoConverters.FromCampaignDict(new Godot.Collections.Dictionary());
-        AssertThat(result).IsNotNull();
-        AssertThat(result!.CompletedBattles).IsEmpty();
-        AssertThat(result.Gold).IsEqual(0);
-        AssertThat(result.Academy.CurrentYear).IsEqual(1);
-        AssertThat(result.Academy.CurrentSemester).IsEqual(1);
-    }
-
-    [TestCase]
-    public void CampaignProgress_FromDict_ReturnsNullForNullDict()
-    {
-        var result = DtoConverters.FromCampaignDict(null);
-        AssertThat(result).IsNull();
-    }
-
-    [TestCase]
-    public void CampaignProgress_RoundTrip_PreservesChoices()
-    {
-        var original = new CampaignProgress
-        {
-            CompletedBattles = [new BattleId("battle_1")],
-            Gold = 100,
-            Choices = new Dictionary<NodeId, ChoiceId>
-            {
-                [new NodeId("node_choice_1")] = new ChoiceId("option_a"),
-                [new NodeId("node_choice_2")] = new ChoiceId("option_b"),
-            },
-        };
-
-        var dict = DtoConverters.ToDict(original);
-        var result = DtoConverters.FromCampaignDict(dict);
-
-        AssertThat(result).IsNotNull();
-        AssertThat(result!.Choices).HasSize(2);
-        AssertThat(result.Choices[new NodeId("node_choice_1")]).IsEqual(new ChoiceId("option_a"));
-        AssertThat(result.Choices[new NodeId("node_choice_2")]).IsEqual(new ChoiceId("option_b"));
-    }
-
-    [TestCase]
-    public void CampaignProgress_RoundTrip_PreservesCaravanPurchases()
-    {
-        var original = new CampaignProgress
-        {
-            CompletedBattles = [new BattleId("battle_1")],
-            Gold = 200,
-            CaravanPurchases = ["offering_sword", "offering_shield"],
-        };
-
-        var dict = DtoConverters.ToDict(original);
-        var result = DtoConverters.FromCampaignDict(dict);
-
-        AssertThat(result).IsNotNull();
-        AssertThat(result!.CaravanPurchases).HasSize(2);
-        AssertThat(result.CaravanPurchases).Contains("offering_sword");
-        AssertThat(result.CaravanPurchases).Contains("offering_shield");
-    }
-
-    [TestCase]
-    public void CampaignProgress_RoundTrip_HandlesEmptyChoices()
-    {
-        var original = new CampaignProgress
-        {
-            CompletedBattles = [new BattleId("battle_1")],
-            Gold = 50,
-            Choices = [],
-        };
-
-        var dict = DtoConverters.ToDict(original);
-        var result = DtoConverters.FromCampaignDict(dict);
-
-        AssertThat(result).IsNotNull();
-        AssertThat(result!.Choices).IsEmpty();
     }
 
     // =========================================================================

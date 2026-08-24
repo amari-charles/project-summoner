@@ -16,5 +16,5 @@ public sealed class AcademyProfessorDefinition
 
     public string LandmarkKey { get; set; } = "";
 
-    public List<CourseId> CourseIds { get; set; } = [];
+    public List<string> QuestIds { get; set; } = [];
 }

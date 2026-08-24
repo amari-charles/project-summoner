@@ -22,7 +22,13 @@ public class ItemDefinition
     public required ItemSlot Slot { get; init; }
 
     /// <summary>Binding type - determines if item can be shared between summoners.</summary>
-    public ItemBinding Binding { get; init; } = ItemBinding.AccountWide;
+    public ItemBinding Binding { get; init; } = ItemBinding.SummonerBound;
+
+    /// <summary>
+    /// Whether this definition belongs to explicitly authored event-exclusive content.
+    /// Account-wide gameplay ownership is rejected unless this is true.
+    /// </summary>
+    public bool IsEventExclusive { get; init; }
 
     /// <summary>Rarity tier for display purposes.</summary>
     public string Rarity { get; init; } = "common";

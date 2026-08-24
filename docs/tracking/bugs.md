@@ -11,58 +11,11 @@ For resolved bugs, see [bugs-resolved.md](bugs-resolved.md).
 **Tracker Sync (2026-03-08, late):** Added resolved biome/checkerboard regression caused by StringName coercion mismatch to `bugs-resolved.md` (PR `#290`).
 **Tracker Sync (2026-03-08, final):** Closed blocked-idle bug after manual signoff; moved full entry to `bugs-resolved.md`.
 **Tracker Sync (2026-03-12, quick-win wave):** Moved headless leak item to `bugs-resolved.md` after `JsonProfileStore` disposal fixes (`DirAccess`/`Json`) and validation runs with no `Leaked unsafe reference` / `ObjectDB instances leaked` shutdown signatures in the specified headless GUT command.
+**Tracker Sync (2026-08-23, item tooling):** Moved the item debug grant/service interop bug to resolved after the complete retained item command contract was repaired and tested.
 
 ---
 
 ## Active Bugs
-
-#### Item Debug Grant Command Calls a Missing Runtime Method
-**Status:** Open
-**Reported:** 2026-08-23
-**Component:** Developer Tools / Item Service Interop
-
-**Description:**
-The developer-console item grant flow reaches `ItemsApi.grant_item()`, but the
-adapter dynamically calls an item-service method that Godot does not expose
-under the expected callable contract.
-
-**Expected Behavior:**
-Running `/items_grant <item_id>` grants a test item and returns its instance ID,
-allowing the Inventory and equipment flows to be inspected with representative
-data.
-
-**Current Behavior:**
-The command fails with:
-`Invalid call. Nonexistent function 'GrantItem (via call)' in base 'Node (ItemService)'.`
-
-**Impact:**
-The Inventory prototype cannot be validated with item data through its intended
-developer workflow. The same untested dynamic boundary is also used by the
-item list, equip, unequip, and clear commands, so this should not be closed by
-patching only the observed grant call.
-
-**Reproduction Steps:**
-1. Launch a debug build with an active summoner.
-2. Open the developer console.
-3. Run `/items_grant item_training_blade`.
-4. Observe the invalid-call error instead of a granted item instance.
-
-**Proposed Solution:**
-Complete the linked item developer-tooling contract audit. Inventory every item
-debug operation, verify the actual Godot-exposed signatures, and then either
-repair the adapter as a tested boundary or replace the obsolete command path.
-
-**Related Files:**
-- `scripts/debug/dev_console.gd`
-- `scripts/infrastructure/services/items_api.gd`
-- `scripts/csharp/Meta/Services/Items/ItemService.cs`
-
-**Notes:**
-Keep this separate from the planned account-wide-to-summoner item ownership
-migration. That migration changes product/runtime ownership; this bug concerns
-broken developer tooling and an unverified interop contract.
-
----
 
 ## Bug Report Template
 

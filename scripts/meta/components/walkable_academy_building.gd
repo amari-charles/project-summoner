@@ -159,6 +159,6 @@ func _enter_target_scene() -> void:
 	set_process(false)
 	var destination: String = return_scene_path
 	if destination.is_empty():
-		destination = SceneManager.SCENE_WALKABLE_ACADEMY_HUB
+		destination = SceneManager.SCENE_ACADEMY_CAMPUS
 	NavigationContext.push_return(destination)
 	SceneManager.transition_to(target_scene_path)

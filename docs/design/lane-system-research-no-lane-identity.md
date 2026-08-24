@@ -34,7 +34,7 @@ This section is intentionally concrete and tied to current runtime behavior.
 - Out-of-range behavior then chases that selected target.
 
 **Code evidence**
-- `SimTargeting` filters/score-based acquire: `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- `SimTargeting` filters/score-based acquire: `scripts/csharp/Battle/Simulation/Combat/Targeting/SimTargeting.cs`
 - Chase fallback in behavior tick: `scripts/csharp/Battle/Simulation/Combat/SimBehavior.cs`
 
 ### 2.2 Midline Vortex (user-reported)
@@ -75,7 +75,7 @@ This section is intentionally concrete and tied to current runtime behavior.
 
 **Code evidence**
 - Per-tick unit processing sequence: `scripts/csharp/Battle/Simulation/Simulation.cs`
-- Target score and acquisition loop: `scripts/csharp/Battle/Simulation/Combat/SimTargeting.cs`
+- Target score and acquisition loop: `scripts/csharp/Battle/Simulation/Combat/Targeting/SimTargeting.cs`
 
 ### 2.5 Formation Half-Life
 

@@ -9,7 +9,7 @@ class_name PremiumStoreScreen
 ## - Cosmetics
 ## - Emotes
 ##
-## Accessed from campaign map as meta-progression store
+## Meta-progression store reached from persistent player navigation.
 
 ## Node references
 @onready var close_button: Button = %CloseButton
@@ -233,7 +233,7 @@ func _update_currency_display() -> void:
 ## =============================================================================
 
 func _on_close_pressed() -> void:
-	SceneManager.transition_to(SceneManager.SCENE_CAMPAIGN_MAP)
+	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 
 func _on_offering_item_clicked(offering: Dictionary) -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)

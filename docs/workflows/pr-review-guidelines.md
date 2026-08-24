@@ -184,7 +184,7 @@ Examples of violations:
 Check that:
 - All UI text uses `Loc.t("key.path")` pattern
 - Corresponding entries exist in `localization/data/en.json`
-- Keys follow naming convention: `category.subcategory.item` (e.g., `campaign.event.event_id.name`)
+- Keys follow naming convention: `category.subcategory.item` (e.g., `academy.quest.quest_id.name`)
 - No hardcoded user-facing strings in GDScript files
 
 Hard-coded node paths / root lookups
@@ -192,12 +192,12 @@ Hard-coded node paths / root lookups
 Direct `/root/...` lookups and string node paths are fragile and create hidden dependencies. If the tree changes, lookups fail silently.
 
 Examples of violations:
-- `var campaign: Node = get_node("/root/Campaign")` instead of just `Campaign`
+- `var quests: Node = get_node("/root/Quests")` instead of just `Quests`
 - `get_node_or_null("/root/DevConsole")` instead of just `DevConsole`
 - Passing `/root/X` to helper functions when just `X` works
 
 For Node-based scripts:
-- Use autoload globals directly: `Campaign`, `ProfileRepo`, `CardCatalog`, etc.
+- Use autoload globals directly: `Quests`, `Encounters`, `ProfileRepo`, `CardCatalog`, etc.
 - These are registered in `project.godot` under `[autoload]` and available globally
 
 For non-Node classes (RefCounted, Resource, static functions):
@@ -271,7 +271,7 @@ class BattleNodeModal extends NodeDetailModal:
     func _get_sections() -> Array[Control]:
         return [info_section, deck_section, rewards_section]
 
-class CaravanNodeModal extends NodeDetailModal:
+class ShopOfferModal extends NodeDetailModal:
     func _get_sections() -> Array[Control]:
         return [info_section, shop_preview_section]
 ```

@@ -6,6 +6,59 @@ This document archives TODOs that have been completed. For active tasks, see [to
 
 ## 2026-08 Completions
 
+### Decompose Retired Progression Ownership into Quest and Encounter Services
+**Completed:** 2026-08-24
+**Category:** Architecture / Quests / Encounters / Legacy Cleanup
+
+Completed the bounded architecture review and implementation pass.
+
+**Resolution Summary:**
+
+- ✅ Split quest lifecycle, Journal, professors, capacity, and quest rewards into
+  `QuestService` and `QuestApi`.
+- ✅ Split reusable preparation, loadouts, authored configuration, and completion
+  into `EncounterService` and `EncounterApi`.
+- ✅ Replaced the old save aggregate with per-summoner `SummonerProgress` and
+  explicitly unsupported pre-quest progression schemas.
+- ✅ Removed graph nodes, route choices, run-scoped gold, academic enrollment and
+  activity state, dead event screens, obsolete debug routing, and compatibility APIs.
+- ✅ Routed developer battles directly through authored battle authority.
+- ✅ Moved wholly superseded guidance into
+  `docs/archive/suspended-progression-models-2026-08/` and updated current docs.
+- ✅ Added structural validation through the old-name scan, typed build, Godot
+  parse/import, and focused quest/encounter tests.
+
+**Representative Files:**
+
+- `scripts/csharp/Meta/Services/Quests/`
+- `scripts/csharp/Meta/Services/Encounters/`
+- `scripts/csharp/Meta/Domain/Profile/Progression/`
+- `docs/technical/meta/legacy-system-cleanup-validation.md`
+
+### Complete the Legacy-System Cleanup Migration
+**Completed:** 2026-08-23
+**Category:** Architecture / Meta / Items / Developer Tools
+
+Completed one dependency-audited migration onto the accepted Academy, quest,
+Results, reward, item-ownership, and activity-routing foundations.
+
+**Resolution Summary:**
+- ✅ Removed the obsolete first-card route, static Academy hub, course-node UI,
+  dedicated Caravan campaign runtime, and competing reward/result destinations.
+- ✅ Preserved physical campus landmarks while removing their old screen/system ownership.
+- ✅ Added typed battle runtime-surface routing and one normalized post-battle report.
+- ✅ Made normal gameplay items Summoner-owned, retained explicitly shared
+  event-exclusive items, and added a conservative profile v7 migration.
+- ✅ Restored and tested the full item developer command contract.
+- ✅ Removed the retired Caravan purchase payload with the obsolete runtime; no
+  compatibility data, repository API, or reader remains.
+
+**Representative Files:**
+- `scripts/application/battle_surface_router.gd`
+- `scripts/application/post_battle_report.gd`
+- `scripts/csharp/Meta/Services/Items/ItemService.cs`
+- `docs/technical/meta/legacy-system-cleanup-validation.md`
+
 ### Review the Generic Activity Preparation Screen
 **Completed:** 2026-08-23
 **Category:** Quests / Activities / Decks / UI/UX
@@ -25,8 +78,8 @@ management.
   designer rather than reopening the product flow.
 
 **Representative Files:**
-- `scenes/meta/screens/academy_activity_preparation.tscn`
-- `scripts/meta/screens/academy_activity_preparation.gd`
+- `scenes/meta/screens/encounter_preparation.tscn`
+- `scripts/meta/screens/encounter_preparation.gd`
 
 ---
 

@@ -33,9 +33,11 @@ extends Node
 ##   /traits_spend_card <card_instance_id> <trait_id> - Spend a card trait point
 ##   /traits_runtime_status - Print simulation trait runtime status
 ##   /items_grant <item_id> - Grant an item to inventory
+##   /items_grant_shared <item_id> - Grant an explicitly shared event item
 ##   /items_grant_all - Grant all starter items
 ##   /items_list - List player's items and equipment
 ##   /items_equip <slot> <instance_id> - Equip an item to a summoner
+##   /items_unequip <slot> - Unequip an item from the active summoner
 ##   /items_clear - Clear all items from inventory
 ##   /debug_projectile_hit_radius [on|off|toggle] - Toggle projectile hit-radius visualization
 ##   /debug_projectile_hit_radius_status - Print projectile radius debug runtime status
@@ -83,9 +85,11 @@ const COMMANDS: Array[Dictionary] = [
 	{"cmd": "/traits_units_snapshot", "args": "[team]", "desc": "Print live spawned unit stats from simulation"},
 	# Items
 	{"cmd": "/items_grant", "args": "<item_id>", "desc": "Grant an item"},
+	{"cmd": "/items_grant_shared", "args": "<item_id>", "desc": "Grant a shared event item"},
 	{"cmd": "/items_grant_all", "desc": "Grant all starter items"},
 	{"cmd": "/items_list", "desc": "List player's items"},
 	{"cmd": "/items_equip", "args": "<slot> <id>", "desc": "Equip an item"},
+	{"cmd": "/items_unequip", "args": "<slot>", "desc": "Unequip an item"},
 	{"cmd": "/items_clear", "desc": "Clear all items"},
 	{"cmd": "/debug_projectile_hit_radius", "args": "[on|off|toggle]", "desc": "Toggle projectile hit-radius visualization"},
 	{"cmd": "/debug_projectile_hit_radius_status", "desc": "Show projectile radius debug runtime status"},
@@ -219,12 +223,16 @@ func execute_command(command: String) -> bool:
 			return _cmd_traits_units_snapshot(args)
 		"/items_grant":
 			return _cmd_items_grant(args)
+		"/items_grant_shared":
+			return _cmd_items_grant_shared(args)
 		"/items_grant_all":
 			return _cmd_items_grant_all()
 		"/items_list":
 			return _cmd_items_list()
 		"/items_equip":
 			return _cmd_items_equip(args)
+		"/items_unequip":
+			return _cmd_items_unequip(args)
 		"/items_clear":
 			return _cmd_items_clear()
 		"/debug_projectile_hit_radius":
@@ -890,11 +898,12 @@ const TEST_ITEMS: Array[String] = [
 	"item_simple_ring",
 	"item_lucky_band",
 	"item_travelers_cloak",
-	"item_veterans_medal",
 	"item_battle_hardened_badge",
 	"item_fortunes_charm",
 	"item_bold_fortune_amulet"
 ]
+
+const TEST_SHARED_EVENT_ITEM: String = "item_test_shared_event"
 
 
 func _cmd_items_grant(args: PackedStringArray) -> bool:
@@ -908,7 +917,11 @@ func _cmd_items_grant(args: PackedStringArray) -> bool:
 	var item_id: String = args[0]
 	print("DevConsole: Granting item '%s'..." % item_id)
 
-	var instance_id: String = ItemsApi.grant_item(item_id)
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	if summoner_id.is_empty():
+		print("DevConsole: No active summoner - select a summoner first")
+		return false
+	var instance_id: String = ItemsApi.grant_item_to_summoner(item_id, summoner_id)
 	if instance_id.is_empty():
 		print("DevConsole: Failed to grant item (invalid item_id?)")
 		return false
@@ -919,10 +932,14 @@ func _cmd_items_grant(args: PackedStringArray) -> bool:
 
 func _cmd_items_grant_all() -> bool:
 	print("DevConsole: Granting all starter items...")
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	if summoner_id.is_empty():
+		print("DevConsole: No active summoner - select a summoner first")
+		return false
 
 	var granted_count: int = 0
 	for item_id: String in TEST_ITEMS:
-		var instance_id: String = ItemsApi.grant_item(item_id)
+		var instance_id: String = ItemsApi.grant_item_to_summoner(item_id, summoner_id)
 		if not instance_id.is_empty():
 			print("  Granted: %s -> %s" % [item_id, instance_id])
 			granted_count += 1
@@ -930,6 +947,16 @@ func _cmd_items_grant_all() -> bool:
 			print("  FAILED: %s" % item_id)
 
 	print("DevConsole: Granted %d items!" % granted_count)
+	return true
+
+
+func _cmd_items_grant_shared(args: PackedStringArray) -> bool:
+	var item_id: String = args[0] if not args.is_empty() else TEST_SHARED_EVENT_ITEM
+	var instance_id: String = ItemsApi.grant_shared_event_item(item_id)
+	if instance_id.is_empty():
+		print("DevConsole: Failed to grant shared event item")
+		return false
+	print("DevConsole: Granted shared event item! Instance ID: %s" % instance_id)
 	return true
 
 
@@ -990,6 +1017,19 @@ func _cmd_items_equip(args: PackedStringArray) -> bool:
 	else:
 		print("DevConsole: Failed to equip item (check slot/instance_id)")
 
+	return success
+
+
+func _cmd_items_unequip(args: PackedStringArray) -> bool:
+	if args.is_empty():
+		print("DevConsole: Usage: /items_unequip <slot>")
+		return false
+	var summoner_id: String = SummonerSelectionApi.get_active_summoner_id()
+	if summoner_id.is_empty():
+		print("DevConsole: No active summoner - select a summoner first")
+		return false
+	var success: bool = ItemsApi.unequip_item_str(summoner_id, args[0].to_lower())
+	print("DevConsole: Item unequipped." if success else "DevConsole: Failed to unequip item")
 	return success
 
 

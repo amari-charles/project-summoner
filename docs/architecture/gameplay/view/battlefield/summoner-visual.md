@@ -93,7 +93,7 @@ public partial class SummonerVisual : Node3D
 
     // Sub-components
     private Sprite3D? _sprite;
-    // FloatingHPBar via HPBarService (width 1.5, offset Y 2.5, always visible)
+    // FloatingHPBar (width 1.5, offset Y 2.5, always visible)
     // HurtboxComponent (capsule radius 2.0, height 6.25)
 
     public void Initialize(IGameSession session, int teamIndex) { throw new NotImplementedException(); }

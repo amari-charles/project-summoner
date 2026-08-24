@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Track Wind content decisions while we brainstorm the initial academy roster. This is not yet a polished implementation spec. Once the roster is stable, decisions from this note can be promoted into the formal element docs, course design, and runtime implementation plans.
+Track Wind content decisions while we brainstorm the initial Academy roster. This is not yet a polished implementation spec. Once the roster is stable, decisions from this note can be promoted into the formal element docs, quest design, and runtime implementation plans.
 
 ## Initial Pass Context
 

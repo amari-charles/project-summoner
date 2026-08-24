@@ -73,9 +73,10 @@ public class BattleSessionConfigTest
     {
         var config = new BattleSessionConfig
         {
-            OriginScene = "res://scenes/meta/screens/campaign_map.tscn",
+            OriginScene = "res://scenes/meta/screens/walkable_academy_hub.tscn",
         };
-        AssertThat(config.OriginScene).IsEqual("res://scenes/meta/screens/campaign_map.tscn");
+        AssertThat(config.OriginScene)
+            .IsEqual("res://scenes/meta/screens/walkable_academy_hub.tscn");
     }
 
     [TestCase]

@@ -125,7 +125,7 @@ The simulation stores all positions in **canonical (network) space**:
 - `X < 0` is the host's spawn zone
 - `X > 0` is the client's spawn zone
 
-`CoordinateTransform` (`scripts/csharp/Multiplayer/Core/CoordinateTransform.cs`) converts between canonical and **local space** (each player always sees their own spawn zone on the negative-X side):
+`CoordinateTransform` (`scripts/csharp/Battle/View/CoordinateTransform.cs`) converts between canonical and **local space** (each player always sees their own spawn zone on the negative-X side):
 - For the host, canonical and local are identical (no transform)
 - For the client, `LocalToCanonical` and `CanonicalToLocal` both mirror the X axis (`-v.X`)
 

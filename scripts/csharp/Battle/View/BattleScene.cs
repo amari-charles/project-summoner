@@ -23,6 +23,8 @@ namespace Fateforged.View;
 [GlobalClass]
 public partial class BattleScene : Node3D
 {
+    private const string PostBattleResultsScene = "res://scenes/meta/screens/post_battle_results.tscn";
+
     // =========================================================================
     // ENUMS (GDScript consumers reference these via BattleScene.GameState.*)
     // =========================================================================
@@ -78,7 +80,7 @@ public partial class BattleScene : Node3D
     private int? _pendingCompletionWinnerTeam;
     private bool _completionHandled;
     private MatchEndReason _matchEndReason = MatchEndReason.SummonerDestroyed;
-    private ProgressionAuthorityResult? _campaignProgressionResult;
+    private ProgressionAuthorityResult? _authoredProgressionResult;
     private NarrativeDirector? _narrativeDirector;
     private string _narrativeSourceId = "";
 
@@ -242,10 +244,10 @@ public partial class BattleScene : Node3D
     {
         if (
             _config != null
-            && _config.Mode == BattleMode.Campaign
+            && _config.Mode == BattleMode.Authored
             && CurrentState != GameState.GameOver
         )
-            ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
+            ReportAuthoredOutcome(BattleTerminalOutcome.Abandoned);
         if (_config != null && _config.Mode == BattleMode.Encounter && CurrentState != GameState.GameOver)
             RecordEncounterOutcome(2);
 
@@ -356,11 +358,11 @@ public partial class BattleScene : Node3D
         if (_config.IsMultiplayer && _config.HasAuthority)
             BroadcastMatchEnd(winnerTeam);
 
-        if (_config.Mode == BattleMode.Campaign)
+        if (_config.Mode == BattleMode.Authored)
         {
             var outcome =
                 winnerTeam == 0 ? BattleTerminalOutcome.Victory : BattleTerminalOutcome.Defeat;
-            _campaignProgressionResult = ReportCampaignOutcome(outcome);
+            _authoredProgressionResult = ReportAuthoredOutcome(outcome);
         }
 
         // Update BattleContext state
@@ -394,12 +396,12 @@ public partial class BattleScene : Node3D
 
     /// <summary>
     /// Abandon the current battle — called by pause menu when player quits.
-    /// Handles service cleanup (profile state, campaign) then delegates state cleanup to BattleContext.
+    /// Handles service cleanup (profile state and authored battle) then delegates state cleanup to BattleContext.
     /// </summary>
     public void AbandonBattle()
     {
-        if (_config.Mode == BattleMode.Campaign && CurrentState != GameState.GameOver)
-            _campaignProgressionResult = ReportCampaignOutcome(BattleTerminalOutcome.Abandoned);
+        if (_config.Mode == BattleMode.Authored && CurrentState != GameState.GameOver)
+            _authoredProgressionResult = ReportAuthoredOutcome(BattleTerminalOutcome.Abandoned);
         if (_config.Mode == BattleMode.Encounter && CurrentState != GameState.GameOver)
             RecordEncounterOutcome(2);
 
@@ -431,7 +433,7 @@ public partial class BattleScene : Node3D
                 case GameOverEvent e:
                     _matchEndReason = MapEndReason(e.Reason);
                     EndGame(simNode.RemapTeam(e.WinnerTeam));
-                    if (_config.Mode == BattleMode.Campaign)
+                    if (_config.Mode == BattleMode.Authored)
                     {
                         PublishNarrativeBattleEvent(
                             NarrativeEventType.BattleResolved,
@@ -884,8 +886,8 @@ public partial class BattleScene : Node3D
     {
         switch (_config.Mode)
         {
-            case BattleMode.Campaign:
-                HandleCampaignCompletion(winnerTeam);
+            case BattleMode.Authored:
+                HandleAuthoredCompletion(winnerTeam);
                 break;
             case BattleMode.Arena:
                 GD.Print($"[BattleScene] Arena battle ended, winner: {winnerTeam}");
@@ -905,32 +907,32 @@ public partial class BattleScene : Node3D
         }
     }
 
-    private void HandleCampaignCompletion(int winnerTeam)
+    private void HandleAuthoredCompletion(int winnerTeam)
     {
-        if (_campaignProgressionResult?.IsSuccess != true)
+        if (_authoredProgressionResult?.IsSuccess != true)
         {
             GD.PushWarning(
-                "[BattleScene] Campaign progression unavailable; no XP or rewards were granted."
+                "[BattleScene] Authored battle progression unavailable; no XP or rewards were granted."
             );
             NavigateToOriginScene();
             return;
         }
-        NavigateToScene("res://scenes/meta/screens/post_battle_results.tscn");
+        NavigateToScene(PostBattleResultsScene);
     }
 
     private void HandleEncounterCompletion(int winnerTeam)
     {
         RecordEncounterOutcome(winnerTeam == 0 ? 0 : 1);
-        NavigateToScene("res://scenes/meta/screens/post_battle_results.tscn");
+        NavigateToScene(PostBattleResultsScene);
     }
 
     private void RecordEncounterOutcome(int outcome)
     {
         var battleContext = GetNodeOrNull("/root/BattleContext");
         var encounterId = battleContext?.Get("encounter_id").AsString() ?? "";
-        var campaign = GetNodeOrNull("/root/Campaign");
-        if (!string.IsNullOrEmpty(encounterId) && campaign != null)
-            campaign.Call("CompleteEncounter", encounterId, outcome);
+        var encounters = GetNodeOrNull("/root/Encounters");
+        if (!string.IsNullOrEmpty(encounterId) && encounters != null)
+            encounters.Call("Complete", encounterId, outcome);
     }
 
     private void HandleMultiplayerCompletion(int winnerTeam)
@@ -948,7 +950,7 @@ public partial class BattleScene : Node3D
             NavigateToScene("res://scenes/meta/screens/multiplayer_lobby.tscn");
     }
 
-    private ProgressionAuthorityResult ReportCampaignOutcome(BattleTerminalOutcome outcome)
+    private ProgressionAuthorityResult ReportAuthoredOutcome(BattleTerminalOutcome outcome)
     {
         var service = ProgressionAuthorityService.Instance;
         if (service == null)

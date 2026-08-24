@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Fateforged.Cards;
 using Fateforged.Data.Events;
-using Fateforged.Meta.Campaign;
 using Fateforged.Units;
 using GdUnit4;
 using static GdUnit4.Assertions;
@@ -18,7 +17,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaWindEarthNewCards);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
 
         var expected = new HashSet<CardId>
         {
@@ -38,19 +37,11 @@ public class TestArenaWindEarthMissionTest
     }
 
     [TestCase]
-    public void TestArenaCampaign_IncludesArenaWindEarthNewCardsEvent()
-    {
-        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
-        AssertThat(campaign).IsNotNull();
-        AssertThat(campaign!.EventIds.Contains(EventIds.ArenaWindEarthNewCards)).IsTrue();
-    }
-
-    [TestCase]
     public void ArenaAllUnits_UsesEveryActiveCoreElementUnit()
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaAllUnits);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
 
         var allowedElements = new HashSet<Element>
         {
@@ -84,7 +75,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaAllCards);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
 
         var allowedElements = new HashSet<Element>
         {
@@ -130,7 +121,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaAllSpells);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
         AssertThat(battle.AiType).IsEqual("none");
 
         var allowedElements = new HashSet<Element>
@@ -181,7 +172,7 @@ public class TestArenaWindEarthMissionTest
     {
         var battle = EventCatalog.GetEvent<BattleEventDefinition>(EventIds.ArenaSpriteUnits);
         AssertThat(battle).IsNotNull();
-        AssertThat(battle!.ScenePath).IsEqual("res://scenes/battle/battlefield/dev/debug_arena.tscn");
+        AssertThat(battle!.RuntimeSurface).IsEqual(BattleRuntimeSurface.DebugArena);
         AssertThat(battle.AiType).IsEqual("none");
 
         AssertThat(battle.DevPlayerDeck).IsNotNull();
@@ -203,38 +194,6 @@ public class TestArenaWindEarthMissionTest
             AssertThat(unitDef!.ScenePath.Contains("placeholder")).IsFalse();
             AssertThat(Godot.ResourceLoader.Exists(unitDef.ScenePath)).IsTrue();
         }
-    }
-
-    [TestCase]
-    public void TestArenaCampaign_IncludesArenaAllUnitsEvent()
-    {
-        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
-        AssertThat(campaign).IsNotNull();
-        AssertThat(campaign!.EventIds.Contains(EventIds.ArenaAllUnits)).IsTrue();
-    }
-
-    [TestCase]
-    public void TestArenaCampaign_IncludesArenaAllCardsEvent()
-    {
-        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
-        AssertThat(campaign).IsNotNull();
-        AssertThat(campaign!.EventIds.Contains(EventIds.ArenaAllCards)).IsTrue();
-    }
-
-    [TestCase]
-    public void TestArenaCampaign_IncludesArenaAllSpellsEvent()
-    {
-        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
-        AssertThat(campaign).IsNotNull();
-        AssertThat(campaign!.EventIds.Contains(EventIds.ArenaAllSpells)).IsTrue();
-    }
-
-    [TestCase]
-    public void TestArenaCampaign_IncludesArenaSpriteUnitsEvent()
-    {
-        var campaign = CampaignCatalog.GetCampaign(CampaignIds.TestArena);
-        AssertThat(campaign).IsNotNull();
-        AssertThat(campaign!.EventIds.Contains(EventIds.ArenaSpriteUnits)).IsTrue();
     }
 
     private static HashSet<CardId> RealArtTargetCards()

@@ -4,6 +4,33 @@ This document archives bugs that have been fixed. For active bugs, see [bugs.md]
 
 ---
 
+## 2026-08 Fixes
+
+### Item Debug Grant Command Calls a Missing Runtime Method
+**Resolved:** 2026-08-23
+**Component:** Developer Tools / Item Service Interop
+
+**Root Cause:**
+The adapter dynamically called a C# method name that was not part of the
+Godot-exposed service contract. The same unverified boundary covered list,
+equip, unequip, and clear operations.
+
+**Solution Implemented:**
+- Added explicit `GrantItemToSummoner` and `GrantSharedEventItem` service calls.
+- Made the console require an active Summoner for normal grants and added a
+  separate shared-event command for explicitly account-wide event items.
+- Verified grant, grant-all, shared grant, list, equip, unequip, and clear at
+  the adapter boundary; clear also removes equipped references.
+- Added ownership regressions proving another Summoner cannot equip the normal
+  item while an explicitly shared event item remains accessible.
+
+**Related Files:**
+- `scripts/debug/dev_console.gd`
+- `scripts/infrastructure/services/items_api.gd`
+- `scripts/csharp/Meta/Services/Items/ItemService.cs`
+- `tests/unit/test_service_api_wrappers.gd`
+- `tests/csharp/Services/ItemOwnershipServiceTest.cs`
+
 ## 2026-03 Fixes
 
 ### Headless GUT Shutdown Logs `material is null` After Pass Summary

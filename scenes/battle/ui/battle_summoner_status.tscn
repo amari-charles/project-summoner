@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/battle/ui/battle_summoner_status.gd" id="1_status"]
 [ext_resource type="PackedScene" uid="uid://stat_bar" path="res://scenes/battle/ui/stat_bar.tscn" id="2_stat_bar"]
-[ext_resource type="Shader" path="res://shaders/ui/circular_clip.gdshader" id="3_shader"]
+[ext_resource type="Shader" path="res://shaders/ui/portrait_crop.gdshader" id="3_shader"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_portrait"]
 shader = ExtResource("3_shader")
@@ -20,6 +20,7 @@ script = ExtResource("1_status")
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
+size_flags_vertical = 4
 
 [node name="PortraitRect" type="ColorRect" parent="PortraitFrame"]
 unique_name_in_owner = true
@@ -60,7 +61,7 @@ grow_vertical = 2
 mouse_filter = 2
 material = SubResource("ShaderMaterial_portrait")
 expand_mode = 1
-stretch_mode = 0
+stretch_mode = 6
 
 [node name="Details" type="VBoxContainer" parent="."]
 layout_mode = 2

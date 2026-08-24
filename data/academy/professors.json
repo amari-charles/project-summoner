@@ -5,8 +5,8 @@
       "name_key": "academy.professor.general_magic.name",
       "role_key": "academy.professor.general_magic.role",
       "landmark_key": "academy.location.general_grounds",
-      "course_ids": [
-        "introduction_to_magic_101",
+      "quest_ids": [
+        "introduction_to_magic",
         "summoning_basics",
         "practical_spellcraft"
       ]
@@ -16,28 +16,28 @@
       "name_key": "academy.professor.fire.name",
       "role_key": "academy.professor.fire.role",
       "landmark_key": "academy.location.fire_grounds",
-      "course_ids": ["intro_to_fire"]
+      "quest_ids": []
     },
     {
       "id": "water",
       "name_key": "academy.professor.water.name",
       "role_key": "academy.professor.water.role",
       "landmark_key": "academy.location.water_grounds",
-      "course_ids": ["intro_to_water"]
+      "quest_ids": []
     },
     {
       "id": "earth",
       "name_key": "academy.professor.earth.name",
       "role_key": "academy.professor.earth.role",
       "landmark_key": "academy.location.earth_grounds",
-      "course_ids": ["intro_to_earth"]
+      "quest_ids": []
     },
     {
       "id": "wind",
       "name_key": "academy.professor.wind.name",
       "role_key": "academy.professor.wind.role",
       "landmark_key": "academy.location.wind_grounds",
-      "course_ids": ["intro_to_air"]
+      "quest_ids": []
     }
   ]
 }

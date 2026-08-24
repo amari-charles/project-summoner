@@ -57,8 +57,8 @@ static func get_deck_array(deck_id: String) -> Array:
 static func update_settings_dict(settings_updates: Dictionary) -> void:
 	_call_first(["UpdateSettingsDict", "update_settings_dict"], [settings_updates])
 
-static func update_campaign_progress_dict(progress_updates: Dictionary, summoner_id: String) -> void:
-	_call_first(["UpdateCampaignProgressDict", "update_campaign_progress_dict"], [progress_updates, summoner_id])
+static func update_summoner_progress_dict(progress_updates: Dictionary, summoner_id: String) -> void:
+	_call_first(["UpdateSummonerProgressDict", "update_summoner_progress_dict"], [progress_updates, summoner_id])
 
 static func get_settings_dict() -> Dictionary:
 	return SafeTypeUtils.dict(_call_first(["GetSettingsDict", "get_settings_dict"]))

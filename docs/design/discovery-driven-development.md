@@ -121,7 +121,7 @@ rituals can fail remain implementation-design questions.
 ## 7. Summoner and Card Differences
 
 Summoner development begins with acquired traits. Innate traits, quests,
-courses, exploration, choices, and rituals can add traits or make their
+quests, exploration, choices, and rituals can add traits or make their
 development available. Trait Points constrain how deeply the player can invest
 across the traits available to that summoner.
 

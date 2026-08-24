@@ -5,7 +5,7 @@ using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
 using Fateforged.Domain.Profile.Account;
-using Fateforged.Domain.Profile.Campaign;
+using Fateforged.Domain.Profile.Progression;
 using Fateforged.Domain.Profile.Collection;
 using Fateforged.Domain.Profile.Decks;
 using Fateforged.Domain.Profile.Enums;
@@ -254,11 +254,6 @@ public partial class ProfileRepository
                     keys.Add($"summoner_trait:{trait}");
             }
 
-            if (_data.CampaignProgressMap.TryGetValue((string)summonerId, out var progress))
-            {
-                foreach (var flag in progress.Academy.RewardFlags.Keys)
-                    keys.Add($"academy_flag:{flag}");
-            }
             return keys;
         }
     }
@@ -607,24 +602,24 @@ public partial class ProfileRepository
     public Deck? GetDeck(DeckId deckId) => _data.Decks.FirstOrDefault(d => d.Id == deckId);
 
     // =========================================================================
-    // CAMPAIGN OPERATIONS
+    // SUMMONER PROGRESSION OPERATIONS
     // =========================================================================
 
-    public CampaignProgress GetCampaignProgress(SummonerId summonerId)
+    public SummonerProgress GetSummonerProgress(SummonerId summonerId)
     {
         var key = (string)summonerId;
         if (string.IsNullOrEmpty(key))
             key = GetActiveSummonerId();
 
         if (string.IsNullOrEmpty(key))
-            return new CampaignProgress();
+            return new SummonerProgress();
 
-        return _data.CampaignProgressMap.TryGetValue(key, out var progress)
+        return _data.SummonerProgressMap.TryGetValue(key, out var progress)
             ? progress
-            : new CampaignProgress();
+            : new SummonerProgress();
     }
 
-    public void UpdateCampaignProgress(SummonerId summonerId, CampaignProgress progress)
+    public void UpdateSummonerProgress(SummonerId summonerId, SummonerProgress progress)
     {
         var key = (string)summonerId;
         if (string.IsNullOrEmpty(key))
@@ -633,71 +628,15 @@ public partial class ProfileRepository
         if (string.IsNullOrEmpty(key))
         {
             GD.PushWarning(
-                "ProfileRepository: Cannot update campaign progress - no active summoner"
+                "ProfileRepository: Cannot update summoner progress - no active summoner"
             );
             return;
         }
 
-        _data.CampaignProgressMap[key] = progress;
-        AppendToWal("update_campaign_progress", new { summoner_id = key });
+        _data.SummonerProgressMap[key] = progress;
+        AppendToWal("update_summoner_progress", new { summoner_id = key });
         SaveProfile(immediate: true);
         EmitDataChanged();
-    }
-
-    public CampaignProgress GetSharedCampaignProgress() => _data.SharedCampaignProgress;
-
-    public void UpdateSharedCampaignProgress(CampaignProgress progress)
-    {
-        _data.SharedCampaignProgress = progress;
-        AppendToWal("update_shared_campaign_progress", null);
-        SaveProfile(immediate: true);
-        EmitDataChanged();
-    }
-
-    // =========================================================================
-    // CARAVAN PURCHASE TRACKING
-    // =========================================================================
-
-    public string[] GetCaravanPurchases(SummonerId summonerId)
-    {
-        var progress = GetCampaignProgress(summonerId);
-        return progress.CaravanPurchases.ToArray();
-    }
-
-    public void AddCaravanPurchase(string offeringId, SummonerId summonerId)
-    {
-        var key = (string)summonerId;
-        if (string.IsNullOrEmpty(key))
-            key = GetActiveSummonerId();
-
-        if (string.IsNullOrEmpty(key))
-            return;
-
-        var typedId = new SummonerId(key);
-        var progress = GetCampaignProgress(typedId);
-        if (!progress.CaravanPurchases.Contains(offeringId))
-        {
-            progress.CaravanPurchases.Add(offeringId);
-            UpdateCampaignProgress(typedId, progress);
-        }
-    }
-
-    public void ClearCaravanPurchases(SummonerId summonerId)
-    {
-        var key = (string)summonerId;
-        if (string.IsNullOrEmpty(key))
-            key = GetActiveSummonerId();
-
-        if (string.IsNullOrEmpty(key))
-            return;
-
-        var typedId = new SummonerId(key);
-        var progress = GetCampaignProgress(typedId);
-        if (progress.CaravanPurchases.Count > 0)
-        {
-            progress.CaravanPurchases.Clear();
-            UpdateCampaignProgress(typedId, progress);
-        }
     }
 
     // =========================================================================
@@ -896,8 +835,6 @@ public partial class ProfileRepository
             );
         if (updates.SelectedSummoner != null)
             _data.Meta.SelectedSummoner = updates.SelectedSummoner;
-        if (updates.SelectedCampaign != null)
-            _data.Meta.SelectedCampaign = updates.SelectedCampaign;
         if (updates.AnalyticsOptIn.HasValue)
             _data.Meta.AnalyticsOptIn = updates.AnalyticsOptIn.Value;
 
@@ -995,20 +932,6 @@ public partial class ProfileRepository
     public GdDict GetShopRefreshStateDict(string shopId) =>
         DtoConverters.ToDict(GetShopRefreshState(new ShopId(shopId)));
 
-    /// <summary>Get caravan purchases as array for GDScript.</summary>
-    public GdArray GetCaravanPurchasesArray(string summonerId)
-    {
-        var purchases = GetCaravanPurchases(
-            string.IsNullOrEmpty(summonerId)
-                ? new SummonerId(GetActiveSummonerId())
-                : new SummonerId(summonerId)
-        );
-        var arr = new GdArray();
-        foreach (var p in purchases)
-            arr.Add(p);
-        return arr;
-    }
-
     /// <summary>Update profile meta from GDScript dictionary.</summary>
     public void UpdateProfileMetaDict(GdDict metaDict)
     {
@@ -1028,32 +951,30 @@ public partial class ProfileRepository
         }
         if (metaDict.ContainsKey("selected_summoner"))
             update.SelectedSummoner = metaDict["selected_summoner"].AsString();
-        if (metaDict.ContainsKey("selected_campaign"))
-            update.SelectedCampaign = metaDict["selected_campaign"].AsString();
         if (metaDict.ContainsKey("analytics_opt_in"))
             update.AnalyticsOptIn = metaDict["analytics_opt_in"].AsBool();
         UpdateProfileMeta(update);
     }
 
-    /// <summary>Update campaign progress from GDScript dictionary.</summary>
-    public void UpdateCampaignProgressDict(GdDict progressDict, string summonerId = "")
+    /// <summary>Update summoner progression from a GDScript dictionary.</summary>
+    public void UpdateSummonerProgressDict(GdDict progressDict, string summonerId = "")
     {
         var key = string.IsNullOrEmpty(summonerId) ? GetActiveSummonerId() : summonerId;
         if (string.IsNullOrEmpty(key))
         {
-            GD.PushWarning("ProfileRepository: Cannot update campaign progress - no summoner");
+            GD.PushWarning("ProfileRepository: Cannot update summoner progress - no summoner");
             return;
         }
 
-        var existing = GetCampaignProgress(new SummonerId(key));
+        var existing = GetSummonerProgress(new SummonerId(key));
         var existingDict = DtoConverters.ToDict(existing);
 
         // Merge fields from progressDict into existing
         foreach (var dictKey in progressDict.Keys)
             existingDict[dictKey] = progressDict[dictKey];
 
-        var merged = DtoConverters.FromCampaignDict(existingDict) ?? new CampaignProgress();
-        UpdateCampaignProgress(new SummonerId(key), merged);
+        var merged = DtoConverters.FromSummonerProgressDict(existingDict) ?? new SummonerProgress();
+        UpdateSummonerProgress(new SummonerId(key), merged);
     }
 
     /// <summary>Get full profile data snapshot as dictionary.</summary>
@@ -1079,14 +1000,6 @@ public partial class ProfileRepository
         EmitSignal(SignalName.ProfileLoadedGodot, _currentProfileId);
         EmitDataChanged();
         GD.Print("ProfileRepository: Profile data loaded successfully");
-    }
-
-    /// <summary>Check if onboarding is complete.</summary>
-    public bool IsOnboardingComplete()
-    {
-        return _data.SharedCampaignProgress.CompletedBattles.Any(b =>
-            (string)b == "event_caravan_tutorial"
-        );
     }
 
     /// <summary>Get active deck as array of {catalog_id, count} for multiplayer.</summary>
@@ -1369,29 +1282,15 @@ public partial class ProfileRepository
         return arr;
     }
 
-    /// <summary>Get campaign progress as dictionary for GDScript.</summary>
-    public GdDict GetCampaignProgressDict(string summonerId = "")
+    /// <summary>Get summoner progression as a dictionary for GDScript.</summary>
+    public GdDict GetSummonerProgressDict(string summonerId = "")
     {
-        var progress = GetCampaignProgress(
+        var progress = GetSummonerProgress(
             string.IsNullOrEmpty(summonerId)
                 ? new SummonerId(GetActiveSummonerId())
                 : new SummonerId(summonerId)
         );
         return DtoConverters.ToDict(progress);
-    }
-
-    /// <summary>Get shared campaign progress as dictionary for GDScript.</summary>
-    public GdDict GetSharedCampaignProgressDict() =>
-        DtoConverters.ToDict(_data.SharedCampaignProgress);
-
-    /// <summary>Update shared campaign progress from GDScript dictionary.</summary>
-    public void UpdateSharedCampaignProgressDict(GdDict progressDict)
-    {
-        var existing = DtoConverters.ToDict(_data.SharedCampaignProgress);
-        foreach (var key in progressDict.Keys)
-            existing[key] = progressDict[key];
-        var merged = DtoConverters.FromCampaignDict(existing) ?? new CampaignProgress();
-        UpdateSharedCampaignProgress(merged);
     }
 
     // =========================================================================

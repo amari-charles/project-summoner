@@ -3,6 +3,7 @@ class_name QuestOfferModal
 
 signal accepted(quest_id: String)
 signal backed
+signal cancelled
 
 @onready var panel: PanelContainer = %Panel
 @onready var quest_detail: QuestDetailPanel = %QuestDetailPanel
@@ -48,9 +49,14 @@ func _accept() -> void:
 	accepted.emit(quest_id)
 
 
+func _cancel() -> void:
+	hide()
+	cancelled.emit()
+
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if visible and event.pressed and not event.echo and event.is_action("ui_cancel"):
-		_back()
+		_cancel()
 		get_viewport().set_input_as_handled()
 
 

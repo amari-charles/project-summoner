@@ -33,7 +33,7 @@ Switch dispatch is acceptable only at this primitive layer. It should not grow b
 
 This initiative implements Fire, Water, Earth, and Wind planned rosters from the working notes in `docs/design/*-content-working-notes.md`.
 
-Neutral content, course loot pools, and difficulty structure are explicitly deferred.
+Neutral content, academic quest loot pools, and difficulty structure are explicitly deferred.
 
 ## Validation
 

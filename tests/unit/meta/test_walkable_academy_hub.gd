@@ -1,7 +1,6 @@
 extends GutTest
 
 const HUB_SCENE_PATH: String = "res://scenes/meta/screens/walkable_academy_hub.tscn"
-const MENU_HUB_SCENE_PATH: String = "res://scenes/meta/screens/academy_hub.tscn"
 const CUTOUT_RENDER_ORDER: Script = preload("res://scripts/meta/components/academy_cutout_render_order.gd")
 
 class UnhandledCancelSpy extends Node:
@@ -12,12 +11,10 @@ class UnhandledCancelSpy extends Node:
 			cancel_presses += 1
 
 
-func test_walkable_hub_is_primary_route_and_menu_hub_remains_available() -> void:
-	assert_eq(SceneManager.SCENE_CAMPAIGN_MAP, HUB_SCENE_PATH)
-	assert_eq(SceneManager.SCENE_WALKABLE_ACADEMY_HUB, HUB_SCENE_PATH)
-	assert_eq(SceneManager.SCENE_ACADEMY_MENU_HUB, MENU_HUB_SCENE_PATH)
-	assert_true(ResourceLoader.exists(SceneManager.SCENE_WALKABLE_ACADEMY_HUB))
-	assert_true(ResourceLoader.exists(SceneManager.SCENE_ACADEMY_MENU_HUB))
+func test_walkable_hub_is_the_only_academy_home_route() -> void:
+	assert_eq(SceneManager.SCENE_ACADEMY_CAMPUS, HUB_SCENE_PATH)
+	assert_true(ResourceLoader.exists(SceneManager.SCENE_ACADEMY_CAMPUS))
+	assert_false(ResourceLoader.exists("res://scenes/meta/screens/academy_hub.tscn"))
 
 
 func test_hub_scene_contains_player_boundaries_and_travel_interface() -> void:
@@ -527,8 +524,8 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 	await get_tree().process_frame
 	offer.present({
 		"id": "introduction_to_magic",
-		"title_key": "academy.course.introduction_to_magic_101.name",
-		"description_key": "academy.course.introduction_to_magic_101.description",
+		"title_key": "academy.quest.introduction_to_magic_101.name",
+		"description_key": "academy.quest.introduction_to_magic_101.description",
 		"source_name_key": "academy.professor.general_magic.name",
 		"location_key": "academy.location.general_grounds",
 		"curriculum_cost": 1,
@@ -563,6 +560,57 @@ func test_quest_offer_previews_card_and_back_closes_without_accepting() -> void:
 	assert_false(detail.rewards_scroll.get_v_scroll_bar().visible)
 	offer._back()
 	assert_false(offer.visible)
+
+
+func test_escape_cancels_quest_offer_instead_of_reopening_dialogue() -> void:
+	var offer_scene: PackedScene = load(
+		"res://scenes/meta/components/quest_offer_modal.tscn"
+	) as PackedScene
+	var offer: QuestOfferModal = offer_scene.instantiate() as QuestOfferModal
+	add_child_autofree(offer)
+	await get_tree().process_frame
+	var backed_count: Array[int] = [0]
+	var cancelled_count: Array[int] = [0]
+	offer.backed.connect(func() -> void: backed_count[0] += 1)
+	offer.cancelled.connect(func() -> void: cancelled_count[0] += 1)
+	offer.present({
+		"id": "side_quest",
+		"title_key": "academy.quest.introduction_to_magic_101.name",
+		"description_key": "academy.journal.description",
+	})
+
+	var escape: InputEventKey = InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	get_viewport().push_input(escape, true)
+	await get_tree().process_frame
+
+	assert_false(offer.visible)
+	assert_eq(cancelled_count[0], 1)
+	assert_eq(backed_count[0], 0)
+	var hub_script: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	assert_true(hub_script.contains("quest_offer_modal.cancelled.connect"))
+	assert_true(hub_script.contains("func _on_quest_offer_cancelled()"))
+
+
+func test_cancelled_quest_offer_clears_dialogue_and_restores_walking() -> void:
+	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
+	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
+	add_child_autofree(hub)
+	await get_tree().process_frame
+	hub._dialog_quest_id = "side_quest"
+	hub._dialog_speaker = "Professor"
+	hub._dialog_offer_lines.assign(["An offer"])
+	hub._dialog_offer_responses.assign([{"id": "accept", "text": "Accept"}])
+	hub.player.set_physics_process(false)
+
+	hub._on_quest_offer_cancelled()
+
+	assert_true(hub.player.is_physics_processing())
+	assert_false(hub.dialogue_box.visible)
+	assert_true(hub._dialog_quest_id.is_empty())
+	assert_true(hub._dialog_offer_lines.is_empty())
+	assert_true(hub._dialog_offer_responses.is_empty())
 
 
 func test_non_academic_quest_offer_does_not_invent_curriculum_cost() -> void:
@@ -839,7 +887,7 @@ func test_building_displays_explicit_placeholder_art() -> void:
 	building.configure(
 		destination["name_key"],
 		SafeTypeUtils.string(destination["target_scene"]),
-		SceneManager.SCENE_WALKABLE_ACADEMY_HUB,
+		SceneManager.SCENE_ACADEMY_CAMPUS,
 		texture,
 		campus_camera
 	)

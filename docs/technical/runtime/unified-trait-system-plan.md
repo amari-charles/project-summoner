@@ -189,7 +189,7 @@ These are not required for V1 implementation, but the design should accommodate 
 3. Multi-offer persistence modes (roll-now vs lock-at-point-grant).
 4. Trait quality tiers/rarities and dynamic weighting by season.
 5. Cross-entity conditions (`if summoner has X and card has Y`).
-6. Mode-specific pool overlays (campaign/arena/event ladders).
+6. Context-specific pool overlays (quest, encounter, arena, or event ladders).
 7. Server-authoritative remote trait content loading.
 8. Telemetry hooks for offer rates and spend decisions.
 9. AI policy integration for deterministic auto-spend.
