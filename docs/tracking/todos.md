@@ -77,14 +77,18 @@ legacy and graybox names as candidates rather than canon.
 **Tasks:**
 - [ ] Settle the Academy's geographic premise and relationship to the wider world.
 - [ ] Settle its age, scale, population, arrival routes, and institutional identity.
-- [ ] Approve an interactable-place roster based on player and world functions.
+- [ ] Approve an interactable-place roster based on player and world functions,
+  including the Campus Shop and four elemental teaching homes.
 - [ ] Define districts, adjacencies, circulation, hidden edges, and excursion exits.
+- [ ] Decide how Fire, Water, Earth, and Wind biomes relate to the hub after the
+  hub's internal organization is stable.
 - [ ] Produce a campus map only after the place relationships are accepted.
 - [ ] Reconcile accepted places with the bounded hub without treating graybox
   positions or names as canon.
 
 **Dependencies:**
 - `docs/design/academy-world-definition.md`
+- `docs/design/academy-world-explorations.md`
 - Existing bounded walkable-hub constraints
 
 ### Deferred Product Task

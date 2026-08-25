@@ -76,6 +76,49 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-24 — Give each elemental teacher a campus teaching home
+
+**Status:** Accepted
+**Areas:** Academy, Campus, Professors, Elements, World
+
+### Decision
+
+The central campus includes a permanent Campus Shop and a recognizable teaching
+place for each Fire, Water, Earth, and Wind teacher. Each teacher uses their
+place to meet students and hold classes; these are functioning Academy places,
+not merely quest-marker positions.
+
+Each core element also needs a biome or field environment for later world and
+gameplay content. The hub is designed first. Biome placement and connections are
+settled afterward rather than forcing four miniature biomes into the campus.
+
+### Context
+
+The campus needs a credible everyday structure before its broader elemental
+regions are attached. Teacher locations and biome locations serve different
+scales and should not be collapsed automatically.
+
+### Consequences
+
+- The hub pass prioritizes the Shop, four teaching anchors, circulation, and
+  ordinary campus life.
+- A teaching place may be indoors or outdoors and need not be a conventional
+  classroom.
+- Campus planning reserves plausible outward connections without deciding the
+  final biome topology yet.
+- Candidate names and layouts remain non-canon until separately approved.
+
+### Supersedes
+
+The loose professor-landmark assumption that did not require places capable of
+hosting classes.
+
+### References
+
+- `docs/design/academy-world-definition.md`
+- `docs/design/academy-world-explorations.md`
+- `docs/design/walkable-academy-hub.md`
+
 ## 2026-08-24 — Retire the affinity trial and Crystal Chamber
 
 **Status:** Accepted
