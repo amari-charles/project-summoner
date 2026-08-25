@@ -59,7 +59,6 @@ defined them as places. They must not be treated as required campus canon.
 
 | Working name | What currently exists | Status |
 |---|---|---|
-| Crystal Chamber | One old sentence about affinity-revealing stones | Provisional; keep, replace, combine, or delete |
 | Training Grounds | Generic label for controlled early battles | Provisional; the gameplay need may survive under another place or name |
 | Mission Hall | Current graybox route to the special-events screen | Implementation label, not accepted worldbuilding |
 | Class Hall | Physical graybox building with no current authoritative screen | Unassigned shell; repurpose or remove |
@@ -151,7 +150,6 @@ When they are, define the campus through relationships before exact coordinates:
 
 - No caldera, island, mountain, city, valley, or other geographic proposal is
   accepted yet.
-- The Crystal Chamber is not a required place.
 - The Training Grounds, Mission Hall, Class Hall, and Dorms are not settled
   names or required buildings.
 - The first playable introduction does not determine the campus layout.

@@ -76,6 +76,43 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-24 — Retire the affinity trial and Crystal Chamber
+
+**Status:** Accepted
+**Areas:** Summoners, Affinity, Academy, World, Opening
+
+### Decision
+
+A summoner's elemental affinity is inherent to that summoner. The Academy does
+not reveal, grant, select, awaken, or unlock affinities. The former Trial of
+Affinities and its Crystal Chamber location are retired rather than carried into
+the Academy's world design.
+
+### Context
+
+The Trial and chamber survived as thin remnants of an older opening in which
+the player selected an affinity. The current game selects among established
+summoner characters who already have their elemental identities.
+
+### Consequences
+
+- No affinity test or affinity-unlock location belongs in the campus roster.
+- Merlin does not administer an affinity trial.
+- Selection language refers to choosing a summoner, not choosing or awakening
+  an element.
+- Academy instruction develops an existing affinity and does not confer one.
+
+### Supersedes
+
+The affinity-selection event in the earlier narrative arc and opening concept.
+
+### References
+
+- `docs/lore/world.md`
+- `docs/lore/narrative-arc.md`
+- `docs/features/opening-sequence.md`
+- `docs/design/academy-world-definition.md`
+
 ## 2026-08-24 — Define the Academy as a world before authoring the opening
 
 **Status:** Accepted
@@ -87,8 +124,8 @@ Defer detailed opening-sequence work. The next product-design focus is the
 Academy as a physical place: its location in the wider world, history, scale,
 interactable-place roster, districts, and layout.
 
-Existing graybox and legacy labels—including Crystal Chamber, Training Grounds,
-Mission Hall, Class Hall, and Dorms—are fungible. They do not become required
+Existing graybox and legacy labels—including Training Grounds, Mission Hall,
+Class Hall, and Dorms—are fungible. They do not become required
 world canon merely because a document or scene already names them.
 
 ### Context
