@@ -33,13 +33,17 @@ See: [Merlin Character Bio](characters/npcs/merlin.md)
 
 ---
 
-## Key Locations
+## Academy Geography and Places
 
-### Crystal Chamber
-Where the **Trial of Affinities** takes place. Ancient stones measure a summoner's connection to elemental forces, revealing their true nature.
+The Academy's geographic location, physical history, campus organization, and
+interactable-place roster are intentionally being designed before they become
+canon. Earlier labels such as **Training Grounds** were undeveloped working
+ideas, not required locations.
 
-### Training Grounds
-Where initiates prove their combat prowess in controlled trials. The first battles of every summoner's journey occur here.
+Current working questions and accepted physical constraints live in
+[Academy World Definition](../design/academy-world-definition.md). Non-canon
+possibilities live separately in
+[Academy World Explorations](../design/academy-world-explorations.md).
 
 ### Beyond the Academy
 *To be expanded as the world develops*
@@ -54,7 +58,7 @@ Where initiates prove their combat prowess in controlled trials. The first battl
 
 | Rank | Description |
 |------|-------------|
-| **Initiate** | New students, just tested for affinities |
+| **Initiate** | New students beginning formal Academy training |
 | *Future ranks* | To be established as Academy content expands |
 
 ---
@@ -66,7 +70,8 @@ Summoning is not mere magic—it is a learned art requiring discipline, understa
 **Key Concepts:**
 - "What you bind, stays bound"
 - "All choices endure"
-- Elemental affinity is personal and defining
+- Elemental affinity is inherent to a summoner and personally defining; the
+  Academy does not reveal, grant, or unlock it
 
 ---
 

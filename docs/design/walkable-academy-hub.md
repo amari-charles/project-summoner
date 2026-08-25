@@ -74,6 +74,13 @@ to it or require a campus return between every quest stage. Exact departure,
 unlocking, and fast-travel rules follow from the approved world roster rather
 than being imposed before that roster exists.
 
+This document owns hub behavior, not the campus's fictional geography or final
+place roster. Those decisions are developed in
+[Academy World Definition](academy-world-definition.md). Candidate layouts and
+places belong in [Academy World Explorations](academy-world-explorations.md).
+Existing graybox names and positions are implementation scaffolding unless the
+definition document records them as accepted.
+
 ## Hidden Underground Layer
 
 The Academy can contain a persistent, bounded underground tunnel area that

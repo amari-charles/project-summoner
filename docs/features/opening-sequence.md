@@ -18,7 +18,7 @@ Players don't care about story, lore, or mechanics before they're invested in th
 1. Title Screen -> Loading
 2. Awakening Ceremony (Summoner Selection)
    - Merlin introduces the ceremony
-   - Player selects their elemental affinity (summoner)
+   - Player selects a summoner whose elemental affinity is already inherent
    - Random option rewards bold players with "Fortune Favors the Bold" trait
 3. Player enters the Academy campus
 
@@ -69,7 +69,7 @@ Players don't care about story, lore, or mechanics before they're invested in th
 The dialogue is intentionally short and punchy (3 lines):
 
 1. "The time has come, Initiate. Step into the circle."
-2. "Every summoner carries an elemental spark. Yours is about to ignite."
+2. "Each summoner brings an elemental nature already their own."
 3. "Choose your path wisely... though fate does favor the bold."
 
 The final line directly references the trait name. Players who choose random will see "Fortune Favors the Bold" in their traits and connect the dots.
