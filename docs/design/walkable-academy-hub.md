@@ -76,9 +76,10 @@ than being imposed before that roster exists.
 
 This document owns hub behavior, not the campus's fictional geography or final
 place roster. Those decisions are developed in
-[Academy World Definition](academy-world-definition.md). Existing graybox names
-and positions are implementation scaffolding unless that document records them
-as accepted.
+[Academy World Definition](academy-world-definition.md). Candidate layouts and
+places belong in [Academy World Explorations](academy-world-explorations.md).
+Existing graybox names and positions are implementation scaffolding unless the
+definition document records them as accepted.
 
 ## Hidden Underground Layer
 

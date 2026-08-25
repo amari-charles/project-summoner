@@ -41,7 +41,9 @@ canon. Earlier labels such as **Training Grounds** were undeveloped working
 ideas, not required locations.
 
 Current working questions and accepted physical constraints live in
-[Academy World Definition](../design/academy-world-definition.md).
+[Academy World Definition](../design/academy-world-definition.md). Non-canon
+possibilities live separately in
+[Academy World Explorations](../design/academy-world-explorations.md).
 
 ### Beyond the Academy
 *To be expanded as the world develops*
