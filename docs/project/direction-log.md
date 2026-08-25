@@ -76,6 +76,49 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-24 — Define the Academy as a world before authoring the opening
+
+**Status:** Accepted
+**Areas:** World, Academy, Campus, Content Sequence, Quests
+
+### Decision
+
+Defer detailed opening-sequence work. The next product-design focus is the
+Academy as a physical place: its location in the wider world, history, scale,
+interactable-place roster, districts, and layout.
+
+Existing graybox and legacy labels—including Crystal Chamber, Training Grounds,
+Mission Hall, Class Hall, and Dorms—are fungible. They do not become required
+world canon merely because a document or scene already names them.
+
+### Context
+
+The runtime now provides a bounded walkable campus and the systems needed to
+host characters and content, but the world those systems inhabit has not been
+defined. Designing an introduction against provisional geography would allow a
+temporary sequence to dictate the larger Academy by accident.
+
+### Consequences
+
+- Academy geography and place functions are settled before a final campus map.
+- Interactable places must earn their physical presence instead of duplicating
+  persistent UI tools.
+- The opening remains deferred and will later be authored against accepted
+  world details.
+- Placeholder scene placement and inherited building names are not canon.
+
+### Supersedes
+
+The prior sequencing decision that made representative opening content the next
+product task. It does not reject the accepted quest foundation or require its
+current placeholder opening content to be removed.
+
+### References
+
+- `docs/design/academy-world-definition.md`
+- `docs/design/walkable-academy-hub.md`
+- `docs/tracking/todos.md`
+
 ## 2026-08-24 — Retire campaign and Caravan progression in favor of quests
 
 **Status:** Accepted

@@ -8,6 +8,7 @@ Start with the current product and architecture sources:
 - [Product Direction Log](project/direction-log.md)
 - [Quest System](design/quest-system.md)
 - [Walkable Academy Hub](design/walkable-academy-hub.md)
+- [Academy World Definition](design/academy-world-definition.md)
 - [System Architecture](architecture/system-architecture.md)
 - [Gameplay Architecture](architecture/gameplay/README.md)
 - [Active TODOs](tracking/todos.md)

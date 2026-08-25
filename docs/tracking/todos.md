@@ -49,50 +49,53 @@ For completed tasks, see [todos-completed.md](todos-completed.md).
 **Tracker Sync (2026-08-23, designer-readiness reconciliation):** Reconciled the active UI queue after PR `#376`. Summoner Profile, Inventory, Collection/Decks, Journal, quest offers, dialogue, campus HUD/Travel, battle HUD, Settings, Online loadout, summoner selection, and the combined Results direction now have accepted structural scaffolds. Removed stale Inventory and XP assumptions, recorded the remaining state matrices and legacy cleanup, and split generic Activity Preparation into the next explicit core-loop UI review.
 **Tracker Sync (2026-08-23, legacy cleanup):** Retired the obsolete first-card route, static Academy/menu and Caravan campaign surfaces, competing reward/result destinations, and raw battle-surface selection. Completed Summoner item ownership and item developer-tool migration; no Caravan runtime or persistence contract remains.
 **Tracker Sync (2026-08-24, progression ownership):** Recorded the accepted campaign-map → Academy courses → professor-led quests transition, confirmed the Merriweathers as Campus Shop owners, and completed the bounded architecture review that decomposed the retired mixed progression service into Quest and Encounter ownership.
-**Tracker Sync (2026-08-23, post-cleanup product sequence):** The consolidated legacy-cleanup initiative is the current implementation work. Once it lands, the next product task is to sketch representative opening content through the accepted player-facing structures. Remaining UI state coverage, responsive validation, visual design, and polish stay active follow-ups rather than reasons to reopen foundational UI decisions.
+**Tracker Sync (2026-08-24, Academy world definition):** Deferred opening-sequence design. The next product task is to settle the Academy's geography, physical identity, interactable-place roster, and layout before authoring the opening against it.
 
 ---
 
 ## Current Product Sequence
 
-1. Land the consolidated legacy-cleanup initiative already underway without
-   expanding it into a new product-design pass.
-2. Sketch representative opening content as the next product task.
-3. Convert the accepted sketch into bounded implementation and validation work;
-   reopen an accepted foundation only when the content exposes a concrete gap.
+1. Define the Academy's location in the wider world and its physical identity.
+2. Approve interactable places by function, then settle districts, adjacency,
+   circulation, and the campus map.
+3. Author characters, quests, and the deferred opening against the accepted
+   world rather than allowing placeholder content to define it accidentally.
 
 ### 🔴 NEXT PRODUCT TASK
 
-#### Sketch Representative Opening Content
-**Status:** ⬜ Not Started — begins after consolidated legacy cleanup lands
-**Category:** Opening / Quests / Characters / Content Design
-**Urgency:** Next — exercise the accepted foundations with authored experience
+#### Define the Academy World and Campus
+**Status:** 🔄 In Progress — working decisions not yet accepted
+**Category:** World / Academy / Campus / Content Design
+**Urgency:** Next — establish the physical world before authored content
 **Ease:** Medium
 **Scope:** Medium
 
-Sketch one representative opening path from starting-summoner confirmation into
-the Academy's first meaningful quest, battle, reward, and next choice. The
-sketch should make the opening feel intentional while remaining light enough to
-revise before broad content production.
+Define where the Academy is, why it exists there, how large it is, what places
+the player can interact with, and how those places relate spatially. Treat
+legacy and graybox names as candidates rather than canon.
 
 **Tasks:**
-- [ ] Define the representative sequence of character, dialogue, campus
-  interaction, quest, preparation, battle, return, reward, and follow-on choice.
-- [ ] Use the accepted opening dependency—`Introduction to Magic`, then the
-  `Summoning Basics` versus `Practical Spellcraft` fork—as the current content
-  spine unless the sketch exposes a specific contradiction.
-- [ ] Identify the minimum authored characters, motivations, dialogue beats,
-  encounter premise, reward meaning, and placeholder assets needed to make the
-  sequence representative.
-- [ ] Separate content gaps from reusable-system gaps so the follow-up
-  implementation bundle does not turn into another broad foundation pass.
-- [ ] Validate the sketch against accepted UI ownership and routing; record a
-  UI follow-up only for a concrete content need that the current structures
-  cannot express.
+- [ ] Settle the Academy's geographic premise and relationship to the wider world.
+- [ ] Settle its age, scale, population, arrival routes, and institutional identity.
+- [ ] Approve an interactable-place roster based on player and world functions.
+- [ ] Define districts, adjacencies, circulation, hidden edges, and excursion exits.
+- [ ] Produce a campus map only after the place relationships are accepted.
+- [ ] Reconcile accepted places with the bounded hub without treating graybox
+  positions or names as canon.
 
 **Dependencies:**
-- Consolidated legacy-cleanup initiative landed
-- Existing opening, quest, reward, preparation, battle, and Results scaffolds
+- `docs/design/academy-world-definition.md`
+- Existing bounded walkable-hub constraints
+
+### Deferred Product Task
+
+#### Sketch Representative Opening Content
+**Status:** ⏸ Deferred until the Academy world and campus are defined
+**Category:** Opening / Quests / Characters / Content Design
+
+Author the opening only after its physical setting is accepted. Preserve the
+existing quest/runtime scaffold in the meantime; it is not the current design
+priority and does not define canon geography.
 
 ---
 
