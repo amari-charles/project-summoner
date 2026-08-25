@@ -33,13 +33,15 @@ See: [Merlin Character Bio](characters/npcs/merlin.md)
 
 ---
 
-## Key Locations
+## Academy Geography and Places
 
-### Crystal Chamber
-Where the **Trial of Affinities** takes place. Ancient stones measure a summoner's connection to elemental forces, revealing their true nature.
+The Academy's geographic location, physical history, campus organization, and
+interactable-place roster are intentionally being designed before they become
+canon. Earlier labels such as **Crystal Chamber** and **Training Grounds** were
+undeveloped working ideas, not required locations.
 
-### Training Grounds
-Where initiates prove their combat prowess in controlled trials. The first battles of every summoner's journey occur here.
+Current working questions and accepted physical constraints live in
+[Academy World Definition](../design/academy-world-definition.md).
 
 ### Beyond the Academy
 *To be expanded as the world develops*
