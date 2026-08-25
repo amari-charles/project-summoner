@@ -1286,13 +1286,13 @@
     "merlin_summoner_intro": {
       "speaker": "Merlin",
       "line_1": "The time has come, Initiate. Step into the circle.",
-      "line_2": "Every summoner carries an elemental spark. Yours is about to ignite.",
+      "line_2": "Each summoner brings an elemental nature already their own.",
       "line_3": "Choose your path wisely... though fate does favor the bold."
     },
     "first_trial_intro": {
       "speaker": "Headmaster Merlin",
       "line_1": "Welcome to the training grounds, Initiate.",
-      "line_2": "Your affinity chosen, your companion bound—now we put theory into practice.",
+      "line_2": "Your affinity was always yours. Now we put theory into practice.",
       "line_3": "Before you lies a simple trial. A single slime awaits beyond.",
       "line_4": "Show me you understand the fundamentals. Victory here earns your place among the Academy's summoners."
     },
