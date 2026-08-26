@@ -73,8 +73,8 @@ Dignified, knowing expression. Eyes that have seen much and judge wisely. Should
 
 ### Act 1: The Initiate's Path
 - Welcomes player to the Academy
-- Administers the Trial of Affinities
-- Guides first summoning and binding
+- Helps new summoners understand the responsibilities of their existing affinity
+- Guides early summoning and binding
 - Oversees early trials
 - Provides context and stakes for challenges
 

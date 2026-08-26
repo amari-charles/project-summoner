@@ -76,6 +76,168 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-25 — Place a dangerous dungeon portal at the Academy's center
+
+**Status:** Accepted
+**Areas:** Academy, Campus, Dungeons, World, Progression
+
+### Decision
+
+A large dark spherical portal is a central Academy landmark. It leads to a real,
+separate dungeon realm rather than to chambers physically contained within the
+Academy's landmass. The realm offers exceptional opportunities alongside risks
+serious enough to threaten durable combat viability; it is not simply another
+ordinary excursion.
+
+### Context
+
+The Academy's paradise-like setting needs a visible counterforce tied to the
+game's dangerous fate-forging choices. Making the portal part of everyday
+campus geography establishes that contrast immediately and makes confronting
+the dungeon a core institutional concern rather than an unrelated sewer or
+hidden side room.
+
+### Consequences
+
+- The hub must reserve strong visual and navigational space for the portal.
+- Ordinary elemental excursions can remain the safer curriculum path while the
+  dungeon supports unusually consequential choices.
+- The portal's history, access rules, exact curriculum role, and dungeon
+  society remain open design work.
+- Its exact physical presentation and surrounding campus layout remain open.
+
+### Supersedes
+
+None.
+
+### References
+
+- `docs/design/academy-world-definition.md`
+- `docs/design/academy-world-explorations.md`
+
+## 2026-08-24 — Give each elemental teacher a campus teaching home
+
+**Status:** Accepted
+**Areas:** Academy, Campus, Professors, Elements, World
+
+### Decision
+
+The central campus includes a permanent Campus Shop and a recognizable teaching
+place for each Fire, Water, Earth, and Wind teacher. Each teacher uses their
+place to meet students and hold classes; these are functioning Academy places,
+not merely quest-marker positions.
+
+Each core element also needs a biome or field environment for later world and
+gameplay content. The hub is designed first. Biome placement and connections are
+settled afterward rather than forcing four miniature biomes into the campus.
+
+### Context
+
+The campus needs a credible everyday structure before its broader elemental
+regions are attached. Teacher locations and biome locations serve different
+scales and should not be collapsed automatically.
+
+### Consequences
+
+- The hub pass prioritizes the Shop, four teaching anchors, circulation, and
+  ordinary campus life.
+- A teaching place may be indoors or outdoors and need not be a conventional
+  classroom.
+- Campus planning reserves plausible outward connections without deciding the
+  final biome topology yet.
+- Candidate names and layouts remain non-canon until separately approved.
+
+### Supersedes
+
+The loose professor-landmark assumption that did not require places capable of
+hosting classes.
+
+### References
+
+- `docs/design/academy-world-definition.md`
+- `docs/design/academy-world-explorations.md`
+- `docs/design/walkable-academy-hub.md`
+
+## 2026-08-24 — Retire the affinity trial and Crystal Chamber
+
+**Status:** Accepted
+**Areas:** Summoners, Affinity, Academy, World, Opening
+
+### Decision
+
+A summoner's elemental affinity is inherent to that summoner. The Academy does
+not reveal, grant, select, awaken, or unlock affinities. The former Trial of
+Affinities and its Crystal Chamber location are retired rather than carried into
+the Academy's world design.
+
+### Context
+
+The Trial and chamber survived as thin remnants of an older opening in which
+the player selected an affinity. The current game selects among established
+summoner characters who already have their elemental identities.
+
+### Consequences
+
+- No affinity test or affinity-unlock location belongs in the campus roster.
+- Merlin does not administer an affinity trial.
+- Selection language refers to choosing a summoner, not choosing or awakening
+  an element.
+- Academy instruction develops an existing affinity and does not confer one.
+
+### Supersedes
+
+The affinity-selection event in the earlier narrative arc and opening concept.
+
+### References
+
+- `docs/lore/world.md`
+- `docs/lore/narrative-arc.md`
+- `docs/features/opening-sequence.md`
+- `docs/design/academy-world-definition.md`
+
+## 2026-08-24 — Define the Academy as a world before authoring the opening
+
+**Status:** Accepted
+**Areas:** World, Academy, Campus, Content Sequence, Quests
+
+### Decision
+
+Defer detailed opening-sequence work. The next product-design focus is the
+Academy as a physical place: its location in the wider world, history, scale,
+interactable-place roster, districts, and layout.
+
+Existing graybox and legacy labels—including Training Grounds, Mission Hall,
+Class Hall, and Dorms—are fungible. They do not become required
+world canon merely because a document or scene already names them.
+
+### Context
+
+The runtime now provides a bounded walkable campus and the systems needed to
+host characters and content, but the world those systems inhabit has not been
+defined. Designing an introduction against provisional geography would allow a
+temporary sequence to dictate the larger Academy by accident.
+
+### Consequences
+
+- Academy geography and place functions are settled before a final campus map.
+- Interactable places must earn their physical presence instead of duplicating
+  persistent UI tools.
+- The opening remains deferred and will later be authored against accepted
+  world details.
+- Placeholder scene placement and inherited building names are not canon.
+
+### Supersedes
+
+The prior sequencing decision that made representative opening content the next
+product task. It does not reject the accepted quest foundation or require its
+current placeholder opening content to be removed.
+
+### References
+
+- `docs/design/academy-world-definition.md`
+- `docs/design/walkable-academy-hub.md`
+- `docs/tracking/todos.md`
+
 ## 2026-08-24 — Retire campaign and Caravan progression in favor of quests
 
 **Status:** Accepted
