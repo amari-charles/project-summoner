@@ -7,6 +7,7 @@ Start with the current product and architecture sources:
 - [Product Vision](project/vision.md)
 - [Product Direction Log](project/direction-log.md)
 - [Quest System](design/quest-system.md)
+- [Quest and World Activity Ideas](design/quest-ideas.md)
 - [Walkable Academy Hub](design/walkable-academy-hub.md)
 - [Academy World Definition](design/academy-world-definition.md)
 - [Academy World Explorations](design/academy-world-explorations.md)
