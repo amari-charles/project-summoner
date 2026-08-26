@@ -15,6 +15,9 @@ The intended experience is classical and readable: characters visibly offer
 known quests, dialogue begins and resolves them, one objective can be tracked in
 the walkable-world HUD, and one Journal organizes the complete quest record.
 
+Unapproved content concepts and possible map activities are recorded separately
+in [Quest and World Activity Ideas](quest-ideas.md).
+
 ## Quest Vocabulary
 
 - **Opportunity:** A quest or quest chain the player knows about but has not
