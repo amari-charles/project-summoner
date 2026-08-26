@@ -76,6 +76,45 @@ Link to an earlier direction-log entry when applicable, or write `None`.
 
 Entries are newest first. Historical backfill should include only decisions that can be supported by explicit user direction or authoritative product/design documentation.
 
+## 2026-08-25 — Place a dangerous dungeon portal at the Academy's center
+
+**Status:** Accepted
+**Areas:** Academy, Campus, Dungeons, World, Progression
+
+### Decision
+
+A large dark spherical portal is a central Academy landmark. It leads to a real,
+separate dungeon realm rather than to chambers physically contained within the
+Academy's landmass. The realm offers exceptional opportunities alongside risks
+serious enough to threaten durable combat viability; it is not simply another
+ordinary excursion.
+
+### Context
+
+The Academy's paradise-like setting needs a visible counterforce tied to the
+game's dangerous fate-forging choices. Making the portal part of everyday
+campus geography establishes that contrast immediately and makes confronting
+the dungeon a core institutional concern rather than an unrelated sewer or
+hidden side room.
+
+### Consequences
+
+- The hub must reserve strong visual and navigational space for the portal.
+- Ordinary elemental excursions can remain the safer curriculum path while the
+  dungeon supports unusually consequential choices.
+- The portal's history, access rules, exact curriculum role, and dungeon
+  society remain open design work.
+- Its exact physical presentation and surrounding campus layout remain open.
+
+### Supersedes
+
+None.
+
+### References
+
+- `docs/design/academy-world-definition.md`
+- `docs/design/academy-world-explorations.md`
+
 ## 2026-08-24 — Give each elemental teacher a campus teaching home
 
 **Status:** Accepted

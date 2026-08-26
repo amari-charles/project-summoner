@@ -2,7 +2,7 @@
 
 **Status:** Accepted product and worldbuilding decisions
 **Type:** Source of truth for locked Academy-world facts
-**Last Updated:** 2026-08-24
+**Last Updated:** 2026-08-25
 
 ## Purpose
 
@@ -63,6 +63,18 @@ there does not make it canon.
   decided.
 - Campus layout work must leave room to connect these biomes coherently later;
   it must not assume they are all embedded inside the central campus.
+
+### Central Dungeon Portal
+
+- A large, dark spherical portal is a central Academy landmark.
+- The portal leads to a separate, genuinely dangerous dungeon realm. The
+  dungeon is not physically contained inside the Academy's landmass.
+- Entering that realm represents an exceptional risk-and-opportunity path,
+  distinct from ordinary Academy excursions.
+- The portal's name, origin, access rules, and exact relationship to the
+  Academy curriculum are not yet decided.
+- Its exact physical presentation and surrounding campus layout are not yet
+  decided.
 
 ### Other Accepted Functions
 

@@ -11,6 +11,14 @@ may contain conflicting ideas. Approved decisions are promoted to
 [Academy World Definition](academy-world-definition.md); rejected ideas may be
 deleted or retained here with a short rejection note when the history is useful.
 
+Visual research is collected separately in
+[Academy Visual Inspiration](academy-visual-inspiration.md). References in that
+library are not proposals or accepted art direction.
+
+Likely production needs for a lively bounded campus are tracked in the
+[Academy Hub Asset Inventory](../art/academy-hub-asset-inventory.md). That list
+is exploratory and does not lock its working assumptions as world decisions.
+
 ## Wider-World Story Seed: Merlin and Nilrem
 
 At some point in the past, Headmaster Merlin descended into the deepest depths
@@ -60,6 +68,18 @@ Useful qualities to explore:
 - reserved edges or thresholds where elemental biomes can connect later;
 - restricted or hidden routes that contrast with the welcoming public campus;
 - convenient Arena access without making competitive play the Academy's center.
+
+## Central Dungeon Portal Questions
+
+- Does the sphere feel like the campus's defining danger without making the
+  Academy itself feel evil?
+- Is the portal appropriately prominent from the normal 2.5D camera?
+- Should students routinely cross to the center, or should access visibly be
+  controlled?
+- How much ordinary campus activity can surround the portal without weakening
+  its danger?
+- Where does a secret society meet if it needs covert access to the portal or
+  knowledge of the dungeon?
 
 ## Hub Organization Models
 
@@ -231,4 +251,3 @@ These are candidate functions, not a required building list:
    which reveals its harsher reality?
 8. Which buildings are visible but not enterable, and what essential campus
    functions do they explain?
-
