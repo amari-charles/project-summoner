@@ -82,6 +82,51 @@ func test_c14_quick_tab_omits_legacy_test_arena_map_button() -> void:
 	assert_false("Launch Roster Debug Arena" in button_labels, "main debug tab should not force a specific roster battle")
 
 
+func test_debug_menu_groups_controls_into_task_based_scrollable_tabs() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+	var tabs: TabContainer = TabContainer.new()
+	_track_owned_node(tabs)
+
+	var quick: VBoxContainer = menu._create_tab(tabs, "Quick")
+	var arena: VBoxContainer = menu._create_tab(tabs, "Arena")
+	var visuals: VBoxContainer = menu._create_tab(tabs, "Visuals")
+	var tools: VBoxContainer = menu._create_tab(tabs, "Tools")
+	menu._build_quick_tab(quick)
+	menu._build_arena_tab(arena)
+	menu._build_visuals_tab(visuals)
+	menu._build_tools_tab(tools)
+
+	assert_eq(tabs.get_child_count(), 4)
+	assert_eq(tabs.get_child(0).name, "Quick")
+	assert_eq(tabs.get_child(1).name, "Arena")
+	assert_eq(tabs.get_child(2).name, "Visuals")
+	assert_eq(tabs.get_child(3).name, "Tools")
+	for child: Node in tabs.get_children():
+		assert_true(child is ScrollContainer, "%s should scroll instead of growing the panel" % child.name)
+
+	var quick_labels: Array[String] = _button_labels_below(quick)
+	assert_true("Skip Prep Phase" in quick_labels)
+	assert_true("Win" in quick_labels)
+	assert_true("30 FPS (F5)" in quick_labels)
+	assert_false("Hurtboxes: Off" in quick_labels)
+
+	var arena_labels: Array[String] = _button_labels_below(arena)
+	assert_true("Fire Wisp" in arena_labels)
+	assert_not_null(menu._arena_preset_dropdown)
+	assert_not_null(menu._arena_biome_dropdown)
+
+	var visual_labels: Array[String] = _button_labels_below(visuals)
+	assert_true("Hurtboxes: Off" in visual_labels)
+	assert_true("Camera Overlay: N/A" in visual_labels)
+	assert_false("Manage Snapshots" in visual_labels)
+
+	var tool_labels: Array[String] = _button_labels_below(tools)
+	assert_true("Manage Snapshots" in tool_labels)
+	assert_not_null(menu._command_input)
+	assert_not_null(menu._autocomplete_list)
+
+
 func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
 	var menu: Node = _menu_script.new()
 	_track_owned_node(menu)
@@ -301,6 +346,13 @@ func _add_root_node(node: Node) -> void:
 
 func _track_owned_node(node: Node) -> void:
 	autoqfree(node)
+
+
+func _button_labels_below(root: Node) -> Array[String]:
+	var labels: Array[String] = []
+	for child: Node in root.find_children("*", "Button", true, false):
+		labels.append((child as Button).text)
+	return labels
 
 
 class _FakeGameController extends Node:

@@ -9,6 +9,15 @@ Development utility panel for testing and debugging. Only active in debug builds
 
 ## Features
 
+The panel is grouped by task and each tab scrolls independently:
+
+| Tab | Purpose |
+|-----|---------|
+| Quick | Battle flow controls and frame-rate targets used repeatedly during playtesting |
+| Arena | Curated debug battle lists, biome override, and direct battle launch |
+| Visuals | Unit, projectile, rules, logging, and camera diagnostics |
+| Tools | Command console, autocomplete, output, and profile snapshots |
+
 ### FPS Controls
 
 | Button | Hotkey | Description |
