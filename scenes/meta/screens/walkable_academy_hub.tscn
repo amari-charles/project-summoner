@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" path="res://scenes/meta/screens/collection_screen.tscn" id="18_collection_overlay"]
 [ext_resource type="PackedScene" path="res://scenes/meta/screens/quest_journal.tscn" id="19_journal_overlay"]
 [ext_resource type="Script" path="res://scripts/meta/components/academy_city_graybox.gd" id="20_city_graybox"]
+[ext_resource type="PackedScene" path="res://scenes/meta/components/showcase_message_modal.tscn" id="21_showcase_message"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 shading_mode = 0
@@ -329,13 +330,8 @@ unique_name_in_owner = true
 [node name="RewardGrantModal" parent="Interface" instance=ExtResource("12_reward_modal")]
 unique_name_in_owner = true
 
-[node name="ShowcaseCompleteDialog" type="AcceptDialog" parent="Interface"]
+[node name="ShowcaseMessageModal" parent="Interface" instance=ExtResource("21_showcase_message")]
 unique_name_in_owner = true
-title = "UI Showcase Complete"
-initial_position = 2
-size = Vector2i(680, 260)
-exclusive = true
-dialog_text = "You have completed the guided UI showcase."
 
 [node name="QuestOfferModal" parent="Interface" instance=ExtResource("13_quest_offer_modal")]
 unique_name_in_owner = true

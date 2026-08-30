@@ -487,14 +487,37 @@ func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	assert_not_null(hub.get_node_or_null("Interface/RewardGrantModal"))
-	var complete_dialog: AcceptDialog = hub.get_node_or_null(
-		"Interface/ShowcaseCompleteDialog"
-	) as AcceptDialog
-	assert_not_null(complete_dialog)
-	assert_eq(complete_dialog.size, Vector2i(680, 260))
+	var message_modal: ShowcaseMessageModal = hub.get_node_or_null(
+		"Interface/ShowcaseMessageModal"
+	) as ShowcaseMessageModal
+	assert_not_null(message_modal)
+	assert_eq(message_modal.get_node("Center/Panel").custom_minimum_size, Vector2(860, 560))
 	assert_true(script_text.contains("_show_showcase_complete_popup"))
 	assert_true(script_text.contains("UI_SHOWCASE_QUEST_ID"))
+	assert_true(script_text.contains("_show_showcase_welcome_if_needed"))
+	assert_true(script_text.contains("UI_SHOWCASE_WELCOME_FLAG"))
 	hub.free()
+
+
+func test_showcase_message_modal_uses_a_high_contrast_readable_palette() -> void:
+	var packed_scene: PackedScene = load(
+		"res://scenes/meta/components/showcase_message_modal.tscn"
+	) as PackedScene
+	var modal: ShowcaseMessageModal = packed_scene.instantiate() as ShowcaseMessageModal
+	add_child_autofree(modal)
+	await get_tree().process_frame
+	modal.present("Welcome", "[b]Interact[/b] with Space or E.", "Begin Tour")
+
+	var panel_style: StyleBoxFlat = modal.panel.get_theme_stylebox("panel") as StyleBoxFlat
+	var button_style: StyleBoxFlat = (
+		modal.continue_button.get_theme_stylebox("normal") as StyleBoxFlat
+	)
+	assert_true(modal.visible)
+	assert_eq(panel_style.bg_color, Color("17140f"))
+	assert_eq(panel_style.border_color, Color("ffd45a"))
+	assert_eq(modal.message_label.get_theme_color("default_color"), Color("fffaf0"))
+	assert_eq(button_style.bg_color, Color("f4c84a"))
+	assert_eq(modal.continue_button.get_theme_color("font_color"), Color("211805"))
 
 
 func test_quest_offer_and_journal_share_the_same_detail_component() -> void:

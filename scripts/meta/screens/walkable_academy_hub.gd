@@ -2,6 +2,7 @@ extends Node3D
 class_name WalkableAcademyHub
 
 const UI_SHOWCASE_QUEST_ID: String = "introduction_to_magic"
+const UI_SHOWCASE_WELCOME_FLAG: String = "ui_showcase_welcome_seen"
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
@@ -126,7 +127,7 @@ const DIRECT_UI_DESTINATIONS: Array[Dictionary] = []
 @onready var journal_overlay: QuestJournal = %JournalOverlay
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 @onready var reward_modal: RewardGrantModal = %RewardGrantModal
-@onready var showcase_complete_dialog: AcceptDialog = %ShowcaseCompleteDialog
+@onready var showcase_message_modal: ShowcaseMessageModal = %ShowcaseMessageModal
 @onready var quest_offer_modal: QuestOfferModal = %QuestOfferModal
 @onready var campus_system_menu: CampusSystemMenu = %CampusSystemMenu
 
@@ -180,11 +181,7 @@ func _ready() -> void:
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
 	dialogue_box.closed.connect(_on_dialogue_closed)
 	reward_modal.closed.connect(_on_reward_modal_closed)
-	showcase_complete_dialog.title = Loc.t("academy.quest.ui_showcase.complete_title")
-	showcase_complete_dialog.dialog_text = Loc.t("academy.quest.ui_showcase.complete_message")
-	showcase_complete_dialog.ok_button_text = Loc.t("academy.quest.ui_showcase.complete_action")
-	showcase_complete_dialog.confirmed.connect(_on_showcase_complete_dialog_closed)
-	showcase_complete_dialog.canceled.connect(_on_showcase_complete_dialog_closed)
+	showcase_message_modal.closed.connect(_on_showcase_message_closed)
 	quest_offer_modal.accepted.connect(_on_quest_offer_accepted)
 	quest_offer_modal.backed.connect(_on_quest_offer_backed)
 	quest_offer_modal.cancelled.connect(_on_quest_offer_cancelled)
@@ -205,6 +202,24 @@ func _ready() -> void:
 	_spawn_quest_targets()
 	_setup_objective_path_trail()
 	_refresh_quest_presentation()
+	call_deferred("_show_showcase_welcome_if_needed")
+
+
+func _show_showcase_welcome_if_needed() -> void:
+	var profile: Dictionary = ProfileRepoApi.get_profile_data()
+	var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
+	var tutorial_flags: Dictionary = SafeTypeUtils.dict(meta.get("tutorial_flags"))
+	if SafeTypeUtils.bool_val(tutorial_flags.get(UI_SHOWCASE_WELCOME_FLAG), false):
+		return
+	ProfileRepoApi.update_profile_meta_dict(
+		{"tutorial_flags": {UI_SHOWCASE_WELCOME_FLAG: true}}
+	)
+	player.set_physics_process(false)
+	showcase_message_modal.present(
+		Loc.t("academy.quest.ui_showcase.welcome_title"),
+		Loc.t("academy.quest.ui_showcase.welcome_message"),
+		Loc.t("academy.quest.ui_showcase.welcome_action")
+	)
 
 
 func _configure_city_graybox_ground() -> void:
@@ -1131,11 +1146,14 @@ func _on_reward_modal_closed() -> void:
 
 func _show_showcase_complete_popup() -> void:
 	_show_showcase_complete_after_rewards = false
-	showcase_complete_dialog.popup_centered()
-	showcase_complete_dialog.get_ok_button().call_deferred("grab_focus")
+	showcase_message_modal.present(
+		Loc.t("academy.quest.ui_showcase.complete_title"),
+		Loc.t("academy.quest.ui_showcase.complete_message"),
+		Loc.t("academy.quest.ui_showcase.complete_action")
+	)
 
 
-func _on_showcase_complete_dialog_closed() -> void:
+func _on_showcase_message_closed() -> void:
 	player.set_physics_process(true)
 
 

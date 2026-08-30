@@ -106,8 +106,11 @@
       "ui_showcase": {
         "name": "Academy Orientation — UI Showcase",
         "description": "A temporary guided tour of the current interface, campus, battle, progression, and reward flows.",
+        "welcome_title": "Welcome to the Academy",
+        "welcome_message": "[b]Move[/b] with WASD or the arrow keys.\n\n[b]Interact[/b] with professors, buildings, and marked objectives using Space or E.\n\n[b]Inspect cards[/b] with right-click when prompted.\n\n[b]Open the menu[/b] with Escape.\n\nFollow the glowing path and yellow markers; you do not need to hunt through the interface.",
+        "welcome_action": "Begin Tour",
         "complete_title": "UI Showcase Complete",
-        "complete_message": "You have completed the guided interface tour. This is the end of the review path; you are now free to revisit any screen or explore the Academy.",
+        "complete_message": "[b]The guided interface tour is complete.[/b]\n\nYou have reached the end of the review path. You may now revisit any screen or explore the Academy freely.",
         "complete_action": "Finish Tour"
       },
       "summoning_basics": {

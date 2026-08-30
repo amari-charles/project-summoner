@@ -953,6 +953,17 @@ public partial class ProfileRepository
             update.SelectedSummoner = metaDict["selected_summoner"].AsString();
         if (metaDict.ContainsKey("analytics_opt_in"))
             update.AnalyticsOptIn = metaDict["analytics_opt_in"].AsBool();
+        if (
+            metaDict.ContainsKey("tutorial_flags")
+            && metaDict["tutorial_flags"].VariantType == Variant.Type.Dictionary
+        )
+        {
+            update.TutorialFlags = [];
+            foreach (var key in metaDict["tutorial_flags"].AsGodotDictionary().Keys)
+                update.TutorialFlags[key.AsString()] = metaDict["tutorial_flags"]
+                    .AsGodotDictionary()[key]
+                    .AsBool();
+        }
         UpdateProfileMeta(update);
     }
 
