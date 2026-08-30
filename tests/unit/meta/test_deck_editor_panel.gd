@@ -115,6 +115,24 @@ func test_showcase_guidance_marks_the_exact_right_click_card_yellow() -> void:
 	assert_true(widget._quest_highlighted)
 	assert_eq(style.border_color, Color(1.0, 0.78, 0.16, 1.0))
 	assert_eq(style.border_width_left, 8)
+	assert_eq(style.shadow_color, Color(1.0, 0.78, 0.16, 0.9))
+	assert_eq(style.shadow_size, 18)
+
+	# Service-driven deck refreshes rebuild the active row. The quest highlight
+	# must follow the replacement widget instead of disappearing with the old one.
+	editor.set_active_deck(
+		"Active Deck",
+		[_test_entry("instance-two", "Replacement")],
+		DeckConstants.MAX_DECK_SIZE,
+		true
+	)
+	await get_tree().process_frame
+	var replacement: CardWidget = editor.active_cards.get_child(0) as CardWidget
+	assert_true(replacement._quest_highlighted)
+	var replacement_style: StyleBoxFlat = replacement.card_panel.get_theme_stylebox(
+		"panel"
+	) as StyleBoxFlat
+	assert_eq(replacement_style.border_color, Color(1.0, 0.78, 0.16, 1.0))
 
 
 func test_left_click_inspects_when_deck_is_read_only() -> void:

@@ -31,6 +31,7 @@ var _locked_ids: Array[String] = []
 var _max_deck_size: int = DeckConstants.MAX_DECK_SIZE
 var _has_editable_deck: bool = false
 var _available_widgets_by_id: Dictionary = {}
+var _card_inspection_guidance_enabled: bool = false
 
 
 func _ready() -> void:
@@ -86,13 +87,18 @@ func get_first_card_control() -> Control:
 
 
 func set_card_inspection_guidance(enabled: bool) -> void:
+	_card_inspection_guidance_enabled = enabled
+	_apply_card_inspection_guidance()
+
+
+func _apply_card_inspection_guidance() -> void:
 	for child: Node in active_cards.get_children():
 		if child is CardWidget:
 			(child as CardWidget).set_quest_highlighted(false)
 	for child: Node in available_cards.get_children():
 		if child is CardWidget:
 			(child as CardWidget).set_quest_highlighted(false)
-	if not enabled:
+	if not _card_inspection_guidance_enabled:
 		return
 	var first_card: Control = get_first_card_control()
 	if first_card is CardWidget:
@@ -112,6 +118,7 @@ func _render_active_cards() -> void:
 		if SafeTypeUtils.bool_val(entry.get("locked")):
 			_locked_ids.append(instance_id)
 		_add_widget(active_cards, entry, true)
+	call_deferred("_apply_card_inspection_guidance")
 
 
 func _render_available_cards(update_existing_widgets: bool) -> void:
@@ -142,6 +149,7 @@ func _render_available_cards(update_existing_widgets: bool) -> void:
 		if stale_widget and is_instance_valid(stale_widget):
 			available_cards.remove_child(stale_widget)
 			stale_widget.queue_free()
+	call_deferred("_apply_card_inspection_guidance")
 
 
 func _add_widget(parent: Control, entry: Dictionary, in_active_deck: bool) -> CardWidget:

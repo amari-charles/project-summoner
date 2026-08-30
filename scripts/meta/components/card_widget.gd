@@ -174,6 +174,9 @@ func _update_theme() -> void:
 		style.border_width_bottom = active_border_width
 		style.border_color = Color(1.0, 0.78, 0.16, 1.0) \
 			if _quest_highlighted else element_color
+		if _quest_highlighted:
+			style.shadow_color = Color(1.0, 0.78, 0.16, 0.9)
+			style.shadow_size = 18
 		style.set_corner_radius_all(corner_radius)
 		style.anti_aliasing = true
 		style.anti_aliasing_size = 1

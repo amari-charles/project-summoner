@@ -144,6 +144,7 @@ func _ready() -> void:
 
 	# Connect dialogs
 	new_deck_dialog.confirmed.connect(_on_new_deck_confirmed)
+	new_deck_dialog.visibility_changed.connect(_on_new_deck_dialog_visibility_changed)
 	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
 	rename_dialog.confirmed.connect(_on_rename_confirmed)
 
@@ -599,6 +600,11 @@ func _on_new_deck_confirmed() -> void:
 	if Decks.has_method("CreateDeckFromDict"):
 		DecksApi.create_deck_from_dict(deck_name, [], "")
 	call_deferred("_refresh_quest_guidance")
+
+
+func _on_new_deck_dialog_visibility_changed() -> void:
+	if not new_deck_dialog.visible:
+		call_deferred("_refresh_quest_guidance")
 
 
 func _on_delete_confirmed() -> void:
