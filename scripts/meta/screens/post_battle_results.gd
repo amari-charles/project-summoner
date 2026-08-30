@@ -55,7 +55,6 @@ func _ready() -> void:
 	choice_heading.text = Loc.t("ui.post_battle.choose_one")
 	_apply_palette()
 	_load_authoritative_report()
-	QuestGuidance.show_for(continue_button, "online")
 
 
 func present(report: PostBattleReport) -> void:

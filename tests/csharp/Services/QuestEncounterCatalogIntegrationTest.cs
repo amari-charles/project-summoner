@@ -2,6 +2,7 @@ namespace Fateforged.Tests.Services;
 
 using System.IO;
 using System.Linq;
+using Fateforged.Application.UiTutorial;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Encounters;
 using Fateforged.Data.Events;
@@ -22,7 +23,11 @@ public class QuestEncounterCatalogIntegrationTest
         AssertThat(QuestCatalog.All.Count).IsGreater(0);
         AssertThat(AcademyProfessorCatalog.All.Count).IsEqual(5);
         AssertThat(AcademyProfessorCatalog.Find(ProfessorIds.GeneralMagic)).IsNotNull();
-        var showcase = QuestCatalog.Find("introduction_to_magic");
+        var introduction = QuestCatalog.Find("introduction_to_magic");
+        AssertThat(introduction).IsNotNull();
+        AssertThat(introduction!.Steps.Any(step => step.Kind == QuestStepKind.OpenUiSurface))
+            .IsFalse();
+        var showcase = QuestCatalog.Find("ui_showcase_orientation");
         AssertThat(showcase).IsNotNull();
         AssertThat(showcase!.Steps.Any(step => step.Kind == QuestStepKind.OpenUiSurface))
             .IsTrue();
@@ -36,6 +41,27 @@ public class QuestEncounterCatalogIntegrationTest
         AssertThat(showcaseTargets.Contains("online")).IsFalse();
         var battleSettingsStep = showcase.Steps.Single(step => step.TargetId == "battle_settings");
         AssertThat(battleSettingsStep.EncounterId).IsEqual("intro_summoning_practice");
+
+        var normalIds = QuestCatalog
+            .ForRuntimeMode(QuestRuntimeModes.Normal)
+            .Select(quest => quest.Id)
+            .ToArray();
+        var tutorialIds = QuestCatalog
+            .ForRuntimeMode(QuestRuntimeModes.UiTutorial)
+            .Select(quest => quest.Id)
+            .ToArray();
+        AssertThat(normalIds).Contains("introduction_to_magic");
+        AssertThat(normalIds.Contains("ui_showcase_orientation")).IsFalse();
+        AssertThat(tutorialIds).Contains("ui_showcase_orientation");
+        AssertThat(tutorialIds.Contains("introduction_to_magic")).IsFalse();
+    }
+
+    [TestCase]
+    public void UiTutorialMode_EnablesForReviewFeatureOrExplicitArgument()
+    {
+        AssertThat(UiTutorialModeService.ResolveEnabled(false, [])).IsFalse();
+        AssertThat(UiTutorialModeService.ResolveEnabled(false, ["--ui-tutorial"])).IsTrue();
+        AssertThat(UiTutorialModeService.ResolveEnabled(true, [])).IsTrue();
     }
 
     [TestCase]

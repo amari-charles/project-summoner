@@ -94,9 +94,10 @@ func _on_summoner_selected(summoner_id: String) -> void:
 	# Create starter deck with summoner's starter card
 	_create_starter_deck(final_summoner_id)
 
-	# Give the showcase flow one real item so Inventory, item details, and
-	# equipment are meaningful on a brand-new review profile.
-	ItemsApi.grant_item_to_summoner(REVIEW_STARTER_ITEM_ID, final_summoner_id)
+	if UiTutorialMode.IsEnabled():
+		# Give the showcase flow one real item so Inventory, item details, and
+		# equipment are meaningful on a brand-new review profile.
+		ItemsApi.grant_item_to_summoner(REVIEW_STARTER_ITEM_ID, final_summoner_id)
 
 	# Preserve the exact result for the character-focused confirmation screen.
 	NavigationContext.set_value(
@@ -130,12 +131,13 @@ func _create_starter_deck(summoner_id: String) -> void:
 		push_error("SummonerSelection: Failed to grant starter card '%s'" % starter_card_id)
 		return
 
-	# The review tour includes the real trait tree and confirmation before its
-	# first battle. Start at the first upgrade tier with one legitimate choice.
-	ProfileRepoApi.update_card_from_dict(card_instance_id, {
-		"level": 2,
-		"unspent_trait_points": 1,
-	})
+	if UiTutorialMode.IsEnabled():
+		# The review tour includes the real trait tree and confirmation before its
+		# first battle. Start at the first upgrade tier with one legitimate choice.
+		ProfileRepoApi.update_card_from_dict(card_instance_id, {
+			"level": 2,
+			"unspent_trait_points": 1,
+		})
 
 	# Create Starter Deck with the card
 	var card_ids: Array[String] = [card_instance_id]

@@ -10,6 +10,7 @@
     },
     "walkable": {
       "placeholder_ground": "TEMP ACADEMY GROUND",
+      "city_graybox": "TEMP ACADEMY CITY GRAYBOX",
       "placeholder_player": "PLACEHOLDER PLAYER",
       "placeholder_building": "PLACEHOLDER {name}",
       "open_travel": "Travel",

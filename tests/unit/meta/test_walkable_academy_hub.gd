@@ -832,16 +832,28 @@ func test_objective_path_trail_builds_visible_layered_wisps() -> void:
 	assert_not_null(first_wisp.get_node_or_null("Sparkle"))
 
 
-func test_review_build_defaults_master_volume_to_zero_and_uses_layered_white_wisps() -> void:
+func test_ui_tutorial_mode_owns_muted_default_and_layered_white_wisps() -> void:
+	var export_presets_source: String = FileAccess.get_file_as_string(
+		"res://export_presets.cfg"
+	)
+	assert_true(export_presets_source.contains('name="UI Designer Review"'))
+	assert_true(export_presets_source.contains('custom_features="ui_tutorial"'))
+
 	var audio_source: String = FileAccess.get_file_as_string(
 		"res://scripts/infrastructure/audio_manager.gd"
 	)
-	assert_true(audio_source.contains('settings.get("master_volume", 0.0), 0.0'))
+	assert_true(audio_source.contains('settings.get("master_volume", 1.0), 1.0'))
 	assert_false(audio_source.contains("MUSIC_ENABLED"))
 	var settings_source: String = FileAccess.get_file_as_string(
 		"res://scripts/infrastructure/game_settings.gd"
 	)
-	assert_true(settings_source.contains('"master_volume": 0.0'))
+	assert_true(settings_source.contains('"master_volume": 1.0'))
+	var profile_source: String = FileAccess.get_file_as_string(
+		"res://scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs"
+	)
+	assert_true(profile_source.contains(
+		"UiTutorialModeService.EnabledForCurrentRun ? 0.0f : 1.0f"
+	))
 
 	var trail_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/components/objective_path_trail.gd"
@@ -883,7 +895,11 @@ func test_campus_system_menu_pauses_and_reuses_shared_settings() -> void:
 	assert_not_null(menu.get_node(
 		"SettingsOverlay/SettingsCenter/SettingsLayout/SettingsPanel"
 	) as SettingsPanel)
-	assert_not_null(menu.get_node("MenuCenter/MenuPanel/Margin/Buttons/RestartButton"))
+	var restart_button: Button = menu.get_node(
+		"MenuCenter/MenuPanel/Margin/Buttons/RestartButton"
+	) as Button
+	assert_not_null(restart_button)
+	assert_false(restart_button.visible)
 	assert_not_null(menu.get_node("RestartConfirmation"))
 	menu.open_settings()
 	assert_true(menu.settings_overlay.visible)

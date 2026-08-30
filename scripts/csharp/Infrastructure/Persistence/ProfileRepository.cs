@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Application.UiTutorial;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
@@ -1371,7 +1372,7 @@ public partial class ProfileRepository
             },
             Settings = new Settings
             {
-                MasterVolume = 0.0f,
+                MasterVolume = UiTutorialModeService.EnabledForCurrentRun ? 0.0f : 1.0f,
                 SfxVolume = 1.0f,
                 MusicVolume = 1.0f,
                 Lang = "en",

@@ -29,6 +29,12 @@ public sealed class QuestDefinition
 
     public QuestVisibility Visibility { get; init; } = QuestVisibility.Announced;
 
+    /// <summary>
+    /// Runtime modes in which this quest can be offered and progressed.
+    /// An empty list makes the quest available in every mode.
+    /// </summary>
+    public ImmutableArray<string> RuntimeModes { get; init; } = [];
+
     public ImmutableArray<string> PrerequisiteQuestIds { get; init; } = [];
 
     public string ExclusiveGroupId { get; init; } = "";

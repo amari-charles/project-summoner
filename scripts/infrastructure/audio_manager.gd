@@ -326,7 +326,7 @@ func _apply_settings_volume() -> void:
 		false
 	)
 
-	var master_vol: float = SafeTypeUtils.float_val(settings.get("master_volume", 0.0), 0.0)
+	var master_vol: float = SafeTypeUtils.float_val(settings.get("master_volume", 1.0), 1.0)
 
 	var music_vol_val: Variant = settings.get("music_volume", 1.0)
 	var music_vol: float = SafeTypeUtils.float_val(music_vol_val, 1.0)

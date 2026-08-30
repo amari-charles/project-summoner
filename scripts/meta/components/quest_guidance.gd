@@ -8,6 +8,8 @@ const QuestObjectiveIndicatorScript: Script = preload(
 
 
 static func current_target_id() -> String:
+	if not UiTutorialMode.IsEnabled():
+		return ""
 	var journal: Dictionary = QuestApi.get_journal_state()
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
 	for value: Variant in SafeTypeUtils.array(journal.get("active")):
@@ -23,6 +25,8 @@ static func is_target_active(target_id: String) -> bool:
 
 
 static func show_for(target: Control, target_id: String, action_key: String = "") -> void:
+	if not UiTutorialMode.IsEnabled():
+		return
 	if not is_instance_valid(target) or not is_target_active(target_id):
 		return
 	var tree: SceneTree = target.get_tree()

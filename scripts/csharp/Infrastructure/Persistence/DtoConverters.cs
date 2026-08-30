@@ -754,7 +754,7 @@ public static class DtoConverters
 
         return new Settings
         {
-            MasterVolume = GetFloat(dict, "master_volume", 0.0f),
+            MasterVolume = GetFloat(dict, "master_volume", 1.0f),
             SfxVolume = GetFloat(dict, "sfx_volume", 1.0f),
             MusicVolume = GetFloat(dict, "music_volume", 1.0f),
             MuteWhenUnfocused = GetBool(dict, "mute_when_unfocused", false),

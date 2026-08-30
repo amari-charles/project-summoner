@@ -21,6 +21,7 @@ func _ready() -> void:
 	resume_button.text = Loc.t("ui.system_menu.resume")
 	settings_button.text = Loc.t("ui.system_menu.settings")
 	restart_button.text = Loc.t("ui.system_menu.restart_showcase")
+	restart_button.visible = UiTutorialMode.IsEnabled()
 	quit_button.text = Loc.t("ui.system_menu.quit_game")
 	settings_back_button.text = Loc.t("ui.system_menu.back_to_menu")
 	quit_confirmation.title = Loc.t("ui.system_menu.quit_confirm_title")
@@ -33,11 +34,13 @@ func _ready() -> void:
 	restart_confirmation.cancel_button_text = Loc.t("ui.common.cancel")
 	resume_button.pressed.connect(close_menu)
 	settings_button.pressed.connect(open_settings)
-	restart_button.pressed.connect(_show_restart_confirmation)
+	if UiTutorialMode.IsEnabled():
+		restart_button.pressed.connect(_show_restart_confirmation)
 	quit_button.pressed.connect(_show_quit_confirmation)
 	settings_back_button.pressed.connect(_close_settings)
 	quit_confirmation.confirmed.connect(_quit_game)
-	restart_confirmation.confirmed.connect(_restart_showcase)
+	if UiTutorialMode.IsEnabled():
+		restart_confirmation.confirmed.connect(_restart_showcase)
 
 
 func _exit_tree() -> void:

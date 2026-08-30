@@ -1,7 +1,7 @@
 extends Node3D
 class_name WalkableAcademyHub
 
-const UI_SHOWCASE_QUEST_ID: String = "introduction_to_magic"
+const UI_SHOWCASE_QUEST_ID: String = "ui_showcase_orientation"
 const UI_SHOWCASE_WELCOME_FLAG: String = "ui_showcase_welcome_seen"
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
@@ -161,7 +161,7 @@ func _ready() -> void:
 		call_deferred("_redirect_to_summoner_selection")
 		return
 
-	ground_label.text = "ACADEMY CITY GRAYBOX"
+	ground_label.text = Loc.t("academy.walkable.city_graybox")
 	travel_button.tooltip_text = Loc.t("academy.walkable.open_travel")
 	travel_title.text = Loc.t("academy.walkable.travel_title")
 	travel_close_button.text = Loc.t("ui.common.close")
@@ -200,12 +200,16 @@ func _ready() -> void:
 	_spawn_buildings()
 	_spawn_professors()
 	_spawn_quest_targets()
-	_setup_objective_path_trail()
+	if UiTutorialMode.IsEnabled():
+		_setup_objective_path_trail()
 	_refresh_quest_presentation()
-	call_deferred("_show_showcase_welcome_if_needed")
+	if UiTutorialMode.IsEnabled():
+		call_deferred("_show_showcase_welcome_if_needed")
 
 
 func _show_showcase_welcome_if_needed() -> void:
+	if not UiTutorialMode.IsEnabled():
+		return
 	var profile: Dictionary = ProfileRepoApi.get_profile_data()
 	var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
 	var tutorial_flags: Dictionary = SafeTypeUtils.dict(meta.get("tutorial_flags"))
@@ -1146,6 +1150,9 @@ func _on_reward_modal_closed() -> void:
 
 func _show_showcase_complete_popup() -> void:
 	_show_showcase_complete_after_rewards = false
+	if not UiTutorialMode.IsEnabled():
+		player.set_physics_process(true)
+		return
 	showcase_message_modal.present(
 		Loc.t("academy.quest.ui_showcase.complete_title"),
 		Loc.t("academy.quest.ui_showcase.complete_message"),

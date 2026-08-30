@@ -2,6 +2,102 @@
   "quests": [
     {
       "id": "introduction_to_magic",
+      "title_key": "academy.quest.introduction_to_magic_101.name",
+      "description_key": "academy.quest.introduction_to_magic_101.description",
+      "visibility": "announced",
+      "source": {
+        "kind": "npc",
+        "id": "general_magic",
+        "name_key": "academy.professor.general_magic.name",
+        "location_key": "academy.location.general_grounds"
+      },
+      "dialogue": {
+        "offer_line_keys": [
+          "academy.dialogue.introduction_to_magic.offer_1",
+          "academy.dialogue.introduction_to_magic.offer_2"
+        ],
+        "accepted_line_keys": [
+          "academy.dialogue.introduction_to_magic.accepted"
+        ],
+        "responses": [
+          {
+            "id": "accept",
+            "text_key": "academy.dialogue.introduction_to_magic.accept_response",
+            "action": "accept_quest"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "go_to_practice_grounds",
+          "kind": "interact_with_world_target",
+          "objective_key": "quest.introduction_to_magic.go_to_practice_grounds",
+          "target_id": "practice_grounds"
+        },
+        {
+          "id": "complete_summoning_practice",
+          "kind": "complete_encounter",
+          "objective_key": "quest.introduction_to_magic.complete_summoning_practice",
+          "target_id": "practice_grounds",
+          "encounter_id": "intro_summoning_practice",
+          "required_outcome": "victory"
+        },
+        {
+          "id": "return_to_general_professor",
+          "kind": "talk_to_npc",
+          "objective_key": "quest.introduction_to_magic.return_to_professor",
+          "target_id": "general_magic",
+          "dialogue_keys": [
+            "academy.dialogue.introduction_to_magic.turn_in"
+          ]
+        }
+      ],
+      "curriculum_cost": 1,
+      "reward_offers": [
+        {
+          "id": "academy.reward.magic_bolt",
+          "selection": {
+            "mode": "automatic",
+            "show_count": 1,
+            "choose_count": 1
+          },
+          "preview_policy": "exact",
+          "eligibility": {
+            "duplicate_policy": "allow"
+          },
+          "option_source": {
+            "kind": "authored",
+            "options": [
+              {
+                "id": "academy.reward.magic_bolt.option",
+                "label_key": "academy.reward.magic_bolt",
+                "description_key": "",
+                "grants": [
+                  {
+                    "kind": "card",
+                    "card_id": "magic_bolt",
+                    "rarity": "common",
+                    "count": 1,
+                    "target": {
+                      "scope": "account",
+                      "target_id": ""
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "runtime_modes": [
+        "normal"
+      ]
+    },
+    {
+      "id": "ui_showcase_orientation",
+      "runtime_modes": [
+        "ui_tutorial"
+      ],
       "title_key": "academy.quest.ui_showcase.name",
       "description_key": "academy.quest.ui_showcase.description",
       "visibility": "announced",

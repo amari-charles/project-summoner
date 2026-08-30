@@ -7,6 +7,7 @@
       "landmark_key": "academy.location.general_grounds",
       "quest_ids": [
         "introduction_to_magic",
+        "ui_showcase_orientation",
         "summoning_basics",
         "practical_spellcraft"
       ]

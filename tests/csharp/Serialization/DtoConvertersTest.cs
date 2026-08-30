@@ -388,11 +388,11 @@ public class DtoConvertersTest
     // =========================================================================
 
     [TestCase]
-    public void Settings_DefaultMasterVolume_IsMutedForReviewBuild()
+    public void Settings_DefaultMasterVolume_IsAudibleForNormalBuild()
     {
         var defaults = DtoConverters.FromSettingsDict(new Godot.Collections.Dictionary());
 
-        AssertThat(defaults.MasterVolume).IsEqual(0.0f);
+        AssertThat(defaults.MasterVolume).IsEqual(1.0f);
     }
 
     [TestCase]

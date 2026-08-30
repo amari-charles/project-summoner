@@ -21,13 +21,16 @@ public sealed class QuestProgressHandler
         IProfileRepository profileRepo,
         Func<SummonerId> getActiveSummoner,
         QuestRewardProcessor rewards,
-        IReadOnlyList<QuestDefinition>? catalog = null
+        IReadOnlyList<QuestDefinition>? catalog = null,
+        string runtimeMode = QuestRuntimeModes.Normal
     )
     {
         _profileRepo = profileRepo;
         _getActiveSummoner = getActiveSummoner;
         _rewards = rewards;
-        _catalog = catalog ?? QuestCatalog.All;
+        _catalog = (catalog ?? QuestCatalog.All)
+            .Where(quest => QuestCatalog.IsAvailableInRuntimeMode(quest, runtimeMode))
+            .ToArray();
     }
 
     public bool Accept(string questId)

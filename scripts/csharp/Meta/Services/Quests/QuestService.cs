@@ -1,4 +1,5 @@
 using System;
+using Fateforged.Application.UiTutorial;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
@@ -144,7 +145,8 @@ public partial class QuestService : Node
         _quests = new QuestProgressHandler(
             _profileRepo,
             _getActiveSummoner,
-            new QuestRewardProcessor(runtime, _getActiveSummoner)
+            new QuestRewardProcessor(runtime, _getActiveSummoner),
+            runtimeMode: UiTutorialModeService.CurrentRuntimeMode
         );
     }
 
