@@ -122,7 +122,8 @@
           "id": "open_battle_settings",
           "kind": "open_ui_surface",
           "objective_key": "quest.ui_showcase.open_battle_settings",
-          "target_id": "battle_settings"
+          "target_id": "battle_settings",
+          "encounter_id": "intro_summoning_practice"
         },
         {
           "id": "complete_summoning_practice",

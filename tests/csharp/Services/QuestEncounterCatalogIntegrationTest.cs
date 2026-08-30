@@ -34,6 +34,8 @@ public class QuestEncounterCatalogIntegrationTest
                  })
             AssertThat(showcaseTargets).Contains(target);
         AssertThat(showcaseTargets.Contains("online")).IsFalse();
+        var battleSettingsStep = showcase.Steps.Single(step => step.TargetId == "battle_settings");
+        AssertThat(battleSettingsStep.EncounterId).IsEqual("intro_summoning_practice");
     }
 
     [TestCase]

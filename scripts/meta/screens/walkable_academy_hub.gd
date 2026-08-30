@@ -881,6 +881,8 @@ func _refresh_quest_presentation() -> void:
 		if step_kind in ["interact_with_world_target", "complete_encounter"]:
 			current_target_id = SafeTypeUtils.string(active_quest.get("current_target_id"))
 			break
+	if current_target_id.is_empty() and QuestGuidance.is_target_active("battle_settings"):
+		current_target_id = "practice_grounds"
 	for child: Node in quest_targets.get_children():
 		var target: QuestWorldTarget = child as QuestWorldTarget
 		if target != null:
@@ -943,6 +945,8 @@ func _refresh_objective_path(target_id: String) -> void:
 
 func _world_guidance_target_id() -> String:
 	var active_target_id: String = QuestGuidance.current_target_id()
+	if active_target_id == "battle_settings":
+		return "practice_grounds"
 	if not active_target_id.is_empty():
 		return active_target_id
 	var general_state: Dictionary = QuestApi.get_npc_quest_state("general_magic")
@@ -1111,11 +1115,26 @@ func _on_quest_world_target_interacted(target_id: String) -> void:
 	var result: Dictionary = QuestApi.record_world_interaction(target_id)
 	var step: Dictionary = SafeTypeUtils.dict(result.get("current_step"))
 	var encounter_id: String = SafeTypeUtils.string(step.get("encounter_id"))
+	if encounter_id.is_empty() and target_id == "practice_grounds":
+		encounter_id = _guided_battle_settings_encounter_id()
 	if encounter_id.is_empty():
 		return
 	BattleContext.select_encounter(encounter_id)
 	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_CAMPUS)
 	SceneManager.transition_to(SceneManager.SCENE_ENCOUNTER_PREPARATION)
+
+
+func _guided_battle_settings_encounter_id() -> String:
+	var journal: Dictionary = QuestApi.get_journal_state()
+	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
+	for value: Variant in SafeTypeUtils.array(journal.get("active")):
+		var quest: Dictionary = SafeTypeUtils.dict(value)
+		if not tracked_id.is_empty() and SafeTypeUtils.string(quest.get("id")) != tracked_id:
+			continue
+		if SafeTypeUtils.string(quest.get("current_target_id")) != "battle_settings":
+			continue
+		return SafeTypeUtils.string(quest.get("current_encounter_id"))
+	return ""
 
 
 func _configure_professor(professor: InteractiveNpc, state: Dictionary) -> void:

@@ -42,6 +42,11 @@ func test_battle_pause_settings_advances_and_guides_the_showcase() -> void:
 	assert_true(pause_menu_source.contains(
 		'QuestGuidance.show_for(settings_button, "battle_settings")'
 	))
+	var hub_source: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	assert_true(hub_source.contains("_guided_battle_settings_encounter_id"))
+	assert_true(hub_source.contains(
+		'if active_target_id == "battle_settings":'
+	))
 
 
 func test_encounter_results_read_authoritative_progression_when_configured() -> void:
