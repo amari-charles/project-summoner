@@ -76,6 +76,13 @@ func refresh() -> void:
 		item_flow.add_child(_create_empty_slot())
 
 
+func get_first_item_button() -> Button:
+	for child: Node in item_flow.get_children():
+		if child is Button:
+			return child as Button
+	return null
+
+
 func _matches_category(item: Dictionary) -> bool:
 	if _category_filter == "all":
 		return true

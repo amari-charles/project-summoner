@@ -61,27 +61,32 @@ func open_menu() -> void:
 	visible = true
 	get_tree().paused = true
 	resume_button.grab_focus()
+	QuestGuidance.show_for(settings_button, "settings")
 
 
 func close_menu() -> void:
 	settings_overlay.visible = false
 	visible = false
 	get_tree().paused = false
+	QuestGuidance.clear()
 
 
 func open_settings() -> void:
 	QuestApi.record_ui_surface_opened("settings")
+	QuestGuidance.clear()
 	if not visible:
 		open_menu()
 	menu_center.visible = false
 	settings_overlay.visible = true
 	settings_back_button.grab_focus()
+	QuestGuidance.show_for(settings_back_button, "practice_grounds")
 
 
 func _close_settings() -> void:
 	settings_overlay.visible = false
 	menu_center.visible = true
 	settings_button.grab_focus()
+	QuestGuidance.show_for(resume_button, "practice_grounds")
 
 
 func _show_quit_confirmation() -> void:

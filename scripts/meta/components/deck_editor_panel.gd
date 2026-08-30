@@ -77,6 +77,14 @@ func dismiss_popup() -> void:
 	pass
 
 
+func get_first_card_control() -> Control:
+	if active_cards.get_child_count() > 0:
+		return active_cards.get_child(0) as Control
+	if available_cards.get_child_count() > 0:
+		return available_cards.get_child(0) as Control
+	return null
+
+
 func _render_active_cards() -> void:
 	dismiss_popup()
 	_clear(active_cards)

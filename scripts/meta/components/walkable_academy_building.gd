@@ -28,6 +28,8 @@ var _transition_started: bool = false
 var _placeholder_texture: Texture2D = null
 var _campus_camera: Camera3D = null
 var _placeholder_art_height: float = 0.0
+var destination_id: String = ""
+var _is_current_objective: bool = false
 
 
 func _ready() -> void:
@@ -50,6 +52,7 @@ func configure(
 	return_scene_path = return_scene
 	_placeholder_texture = placeholder_texture
 	_campus_camera = campus_camera
+	destination_id = target_scene.get_file().get_basename().trim_suffix("_screen")
 	if not is_instance_valid(_campus_camera):
 		push_error("WalkableAcademyBuilding: A campus camera is required for billboard label placement")
 	if is_inside_tree():
@@ -57,8 +60,20 @@ func configure(
 		_refresh_text()
 
 
+func set_destination_id(value: String) -> void:
+	destination_id = value
+
+
+func set_current_objective(value: bool) -> void:
+	_is_current_objective = value
+	_refresh_text()
+
+
 func _process(_delta: float) -> void:
 	_refresh_label_positions()
+	if _is_current_objective:
+		var pulse: float = (sin(Time.get_ticks_msec() * 0.006) + 1.0) * 0.5
+		name_label.modulate.a = lerpf(0.62, 1.0, pulse)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -91,7 +106,8 @@ func _refresh_text() -> void:
 		return
 
 	var display_name: String = Loc.t(display_name_key)
-	name_label.text = display_name
+	name_label.text = ("▼  %s  ▼" % display_name) if _is_current_objective else display_name
+	name_label.modulate = Color(1.0, 0.78, 0.16, 1.0) if _is_current_objective else Color(0.98, 0.9, 0.68, 1.0)
 	if _player_inside:
 		name_label.text = "%s\n%s" % [display_name, Loc.t("academy.campus.enter")]
 	placeholder_label.text = Loc.t("academy.walkable.placeholder_building", {"name": display_name.to_upper()})

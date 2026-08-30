@@ -6,6 +6,7 @@ class_name TraitDevelopmentOverlay
 ## the overlay.
 
 signal trait_acquired(trait_id: String)
+signal closed()
 
 const STATUS_OWNED: String = "owned"
 const STATUS_AVAILABLE: String = "available"
@@ -71,12 +72,14 @@ func close() -> void:
 	_active_detail_trait_id = ""
 	_popover_pinned = false
 	node_detail_popover.visible = false
+	closed.emit()
 
 
 func _open(owner_type: String, owner_id: String, trait_id: String) -> void:
 	if owner_id.is_empty() or trait_id.is_empty():
 		return
 	QuestApi.record_ui_surface_opened("trait_development")
+	QuestGuidance.clear()
 	_owner_type = owner_type
 	_owner_id = owner_id
 	_anchor_trait_id = trait_id
@@ -84,6 +87,7 @@ func _open(owner_type: String, owner_id: String, trait_id: String) -> void:
 	_popover_pinned = false
 	visible = true
 	_refresh()
+	QuestGuidance.show_for(close_button, "shop")
 
 
 func _refresh() -> void:

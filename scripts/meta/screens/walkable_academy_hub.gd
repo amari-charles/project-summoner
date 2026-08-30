@@ -117,6 +117,7 @@ const DIRECT_UI_DESTINATIONS: Array[Dictionary] = []
 @onready var spellbook_button: Button = %SpellbookButton
 @onready var journal_button: Button = %JournalButton
 @onready var inventory_button: Button = %InventoryButton
+@onready var menu_button: Button = %MenuButton
 @onready var inventory_overlay: InventoryOverlay = %InventoryOverlay
 @onready var summoner_profile: SummonerScreen = %SummonerProfile
 @onready var collection_overlay: CollectionScreen = %CollectionOverlay
@@ -159,6 +160,8 @@ func _ready() -> void:
 	travel_title.text = Loc.t("academy.walkable.travel_title")
 	travel_close_button.text = Loc.t("ui.common.close")
 	travel_button.pressed.connect(_toggle_travel)
+	menu_button.pressed.connect(campus_system_menu.open_menu)
+	menu_button.tooltip_text = Loc.t("ui.system_menu.title")
 	travel_close_button.pressed.connect(_close_travel)
 	journal_button.tooltip_text = Loc.t("academy.journal.title")
 	spellbook_button.tooltip_text = Loc.t("academy.campus.spellbook.name")
@@ -627,6 +630,7 @@ func _pause_world_for_utility() -> void:
 func _on_utility_overlay_closed() -> void:
 	if not _utility_overlay_visible():
 		player.set_physics_process(true)
+		_refresh_quest_presentation()
 
 
 func _utility_overlay_visible() -> bool:
@@ -816,6 +820,7 @@ func _spawn_buildings() -> void:
 	_clear_children(buildings)
 	for destination: Dictionary in WORLD_LOCATIONS:
 		_add_building(
+			SafeTypeUtils.string(destination["id"]),
 			destination["name_key"],
 			destination["target_scene"],
 			destination["placeholder_texture"],
@@ -854,6 +859,7 @@ func _spawn_quest_targets() -> void:
 
 
 func _refresh_quest_presentation() -> void:
+	QuestGuidance.clear()
 	var state_by_id: Dictionary = {}
 	for value: Variant in QuestApi.get_professor_quest_states():
 		var state: Dictionary = SafeTypeUtils.dict(value)
@@ -879,6 +885,13 @@ func _refresh_quest_presentation() -> void:
 		var target: QuestWorldTarget = child as QuestWorldTarget
 		if target != null:
 			target.set_current_objective(target.target_id == current_target_id)
+	for child: Node in buildings.get_children():
+		var building: WalkableAcademyBuilding = child as WalkableAcademyBuilding
+		if building != null:
+			building.set_current_objective(
+				building.destination_id == QuestGuidance.current_target_id()
+			)
+	_show_current_ui_guidance(QuestGuidance.current_target_id())
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
 	tracked_quest_banner.visible = not tracked_id.is_empty()
 	if tracked_id.is_empty():
@@ -892,6 +905,15 @@ func _refresh_quest_presentation() -> void:
 		tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
 		tracked_quest_button.tooltip_text = tracked_quest_button.text
 		return
+
+
+func _show_current_ui_guidance(target_id: String) -> void:
+	match target_id:
+		"journal": QuestGuidance.show_for(journal_button, target_id)
+		"summoner_profile": QuestGuidance.show_for(summoner_slot, target_id)
+		"inventory": QuestGuidance.show_for(inventory_button, target_id)
+		"spellbook": QuestGuidance.show_for(spellbook_button, target_id)
+		"settings": QuestGuidance.show_for(menu_button, target_id)
 
 
 func _on_professor_interacted(professor_id: String) -> void:
@@ -1117,6 +1139,7 @@ func _accepted_lines_for_quest(professor_id: String, quest_id: String) -> Array[
 
 
 func _add_building(
+	destination_id: String,
 	display_name_key: String,
 	target_scene_path: String,
 	placeholder_texture: Texture2D,
@@ -1134,6 +1157,7 @@ func _add_building(
 		placeholder_texture,
 		camera
 	)
+	building.set_destination_id(destination_id)
 	buildings.add_child(building)
 
 

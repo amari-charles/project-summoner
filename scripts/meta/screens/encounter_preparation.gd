@@ -45,6 +45,7 @@ func _ready() -> void:
 	if _state.is_empty():
 		_go_back()
 		return
+	QuestGuidance.show_for(start_button, "practice_grounds")
 	NarrativeDirectorApi.publish_event(
 		NarrativeDirectorApi.EventType.PREPARATION_OPENED,
 		_encounter_id,

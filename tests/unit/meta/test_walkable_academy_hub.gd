@@ -62,10 +62,11 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	var spellbook: Button = rail.get_node("SpellbookButton") as Button
 	var inventory: Button = rail.get_node("InventoryButton") as Button
 	var travel: Button = rail.get_node("TravelButton") as Button
+	var menu: Button = rail.get_node("MenuButton") as Button
 	var tracked_quest: Button = hub.get_node(
 		"Interface/TrackedQuestBanner/TrackedQuestButton"
 	) as Button
-	assert_eq(rail.get_child_count(), 4)
+	assert_eq(rail.get_child_count(), 5)
 	assert_eq(rail.anchor_top, 0.5)
 	assert_eq(rail.anchor_bottom, 0.5)
 	assert_almost_eq(absf(rail.offset_top), rail.offset_bottom, 0.01)
@@ -73,12 +74,13 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	assert_not_null(spellbook.icon)
 	assert_not_null(inventory.icon)
 	assert_not_null(travel.icon)
-	for world_hud_button: Button in [journal, spellbook, inventory, travel, tracked_quest]:
+	for world_hud_button: Button in [journal, spellbook, inventory, travel, menu, tracked_quest]:
 		assert_eq(world_hud_button.focus_mode, Control.FOCUS_NONE)
 	assert_true(journal.text.is_empty())
 	assert_true(spellbook.text.is_empty())
 	assert_true(inventory.text.is_empty())
 	assert_true(travel.text.is_empty())
+	assert_false(menu.text.is_empty())
 	assert_false(inventory.disabled)
 	hub.free()
 
@@ -707,6 +709,31 @@ func test_showcase_surfaces_publish_generic_quest_progress_events() -> void:
 		assert_true(source.contains(
 			'QuestApi.record_ui_surface_opened("%s")' % expected_calls[path]
 		))
+
+
+func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
+	var indicator_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/quest_objective_indicator.gd"
+	)
+	assert_true(indicator_source.contains("draw_style_box"))
+	assert_true(indicator_source.contains("draw_colored_polygon"))
+
+	var hub_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/walkable_academy_hub.gd"
+	)
+	for target_id: String in ["journal", "summoner_profile", "inventory", "spellbook", "settings"]:
+		assert_true(hub_source.contains('"%s": QuestGuidance.show_for' % target_id))
+	assert_true(hub_source.contains("building.set_current_objective"))
+
+	var guided_sources: Array[String] = [
+		"res://scripts/meta/components/inventory_overlay.gd",
+		"res://scripts/meta/screens/collection_screen.gd",
+		"res://scripts/meta/modals/card_detail_modal.gd",
+		"res://scripts/meta/screens/shop_screen.gd",
+		"res://scripts/meta/components/campus_system_menu.gd",
+	]
+	for path: String in guided_sources:
+		assert_true(FileAccess.get_file_as_string(path).contains("QuestGuidance"), path)
 
 
 func test_walkable_controls_are_project_actions() -> void:

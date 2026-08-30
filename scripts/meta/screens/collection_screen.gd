@@ -181,11 +181,19 @@ func _ready() -> void:
 
 func open_collection(mode: String = "", summoner_id: String = "") -> void:
 	QuestApi.record_ui_surface_opened("spellbook")
+	QuestGuidance.clear()
 	_configure_open_mode(mode, summoner_id)
 	visible = true
 	_refresh_deck_list()
 	_refresh_deck_panel()
 	_refresh_collection()
+	call_deferred("_refresh_quest_guidance")
+
+
+func _refresh_quest_guidance() -> void:
+	var first_card: Control = deck_editor.get_first_card_control()
+	if first_card != null:
+		QuestGuidance.show_for(first_card, "card_detail")
 
 
 func open_encounter_loadout(encounter_id: String) -> void:
@@ -916,6 +924,7 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 
 func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
 	QuestApi.record_ui_surface_opened("card_detail")
+	QuestGuidance.clear()
 	var modal: Node = CardDetailModalScene.instantiate()
 	if not modal:
 		return
@@ -987,6 +996,7 @@ func _toggle_encounter_card(card_instance_id: String) -> void:
 func _on_modal_closed(modal: Node) -> void:
 	if modal and is_instance_valid(modal):
 		modal.queue_free()
+	QuestGuidance.show_for(close_button, "shop")
 
 
 ## =============================================================================
