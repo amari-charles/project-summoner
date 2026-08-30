@@ -33,6 +33,7 @@ var current_page: int = 0
 
 
 func _ready() -> void:
+	QuestApi.record_ui_surface_opened("shop")
 	_apply_localized_copy()
 	back_button.pressed.connect(_on_back_pressed)
 	previous_page_button.pressed.connect(_on_previous_page_pressed)
@@ -134,6 +135,7 @@ func _update_purchase_availability() -> void:
 
 
 func _on_offering_card_clicked(offering: Dictionary) -> void:
+	QuestApi.record_ui_surface_opened("shop_item_detail")
 	_open_detail_modal(offering)
 
 

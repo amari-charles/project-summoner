@@ -358,7 +358,10 @@ public partial class BattleScene : Node3D
         if (_config.IsMultiplayer && _config.HasAuthority)
             BroadcastMatchEnd(winnerTeam);
 
-        if (_config.Mode == BattleMode.Authored)
+        if (
+            _config.Mode == BattleMode.Authored
+            || (_config.Mode == BattleMode.Encounter && _config.BattleAttemptId.HasValue)
+        )
         {
             var outcome =
                 winnerTeam == 0 ? BattleTerminalOutcome.Victory : BattleTerminalOutcome.Defeat;
@@ -400,7 +403,11 @@ public partial class BattleScene : Node3D
     /// </summary>
     public void AbandonBattle()
     {
-        if (_config.Mode == BattleMode.Authored && CurrentState != GameState.GameOver)
+        if (
+            (_config.Mode == BattleMode.Authored || _config.Mode == BattleMode.Encounter)
+            && _config.BattleAttemptId.HasValue
+            && CurrentState != GameState.GameOver
+        )
             _authoredProgressionResult = ReportAuthoredOutcome(BattleTerminalOutcome.Abandoned);
         if (_config.Mode == BattleMode.Encounter && CurrentState != GameState.GameOver)
             RecordEncounterOutcome(2);

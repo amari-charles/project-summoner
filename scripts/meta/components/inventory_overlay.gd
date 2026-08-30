@@ -70,6 +70,7 @@ func _ready() -> void:
 
 
 func open_inventory(summoner_id: String) -> void:
+	QuestApi.record_ui_surface_opened("inventory")
 	_open(summoner_id, "")
 
 
@@ -111,6 +112,7 @@ func _refresh_grid() -> void:
 
 
 func _on_item_selected(item: Dictionary) -> void:
+	QuestApi.record_ui_surface_opened("inventory_item_detail")
 	_selected_item = item.duplicate()
 	item_detail_dimmer.visible = true
 	item_detail_modal.visible = true

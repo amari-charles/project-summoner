@@ -96,11 +96,32 @@ func _load_encounter_report() -> void:
 	if summary.is_empty():
 		SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 		return
-	present(PostBattleReport.from_encounter_summary(
-		summary,
-		SceneManager.SCENE_ACADEMY_CAMPUS,
-		_battle_context_outcome()
-	))
+	_attempt_id = BattleContext.get_battle_attempt_id()
+	if not _attempt_id.is_empty():
+		var result: Dictionary = SafeTypeUtils.dict(
+			ProgressionAuthority.GetBattleRewards(_attempt_id)
+		)
+		if SafeTypeUtils.bool_val(result.get("is_success"), false):
+			present(PostBattleReport.from_authored_battle_result(
+				result,
+				SceneManager.SCENE_ACADEMY_CAMPUS,
+				_battle_context_outcome()
+			))
+		else:
+			push_error("PostBattleResults: Encounter progression unavailable: %s" % str(
+				result.get("errors", [])
+			))
+			present(PostBattleReport.from_encounter_summary(
+				summary,
+				SceneManager.SCENE_ACADEMY_CAMPUS,
+				_battle_context_outcome()
+			))
+	else:
+		present(PostBattleReport.from_encounter_summary(
+			summary,
+			SceneManager.SCENE_ACADEMY_CAMPUS,
+			_battle_context_outcome()
+		))
 	if not _completion_event_published:
 		_completion_event_published = true
 		NarrativeDirectorApi.publish_event(

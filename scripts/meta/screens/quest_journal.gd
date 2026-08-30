@@ -52,6 +52,7 @@ func _ready() -> void:
 
 
 func open_journal() -> void:
+	QuestApi.record_ui_surface_opened("journal")
 	visible = true
 	_refresh()
 

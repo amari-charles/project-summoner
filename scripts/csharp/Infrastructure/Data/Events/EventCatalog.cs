@@ -18,6 +18,24 @@ public static class EventCatalog
 
     private static readonly Dictionary<EventId, EventDefinition> _events = new()
     {
+        [EventIds.IntroSummoningPractice] = new BattleEventDefinition
+        {
+            Id = EventIds.IntroSummoningPractice,
+            NameKey = "academy.activity.magic_101_summon_practice",
+            DescriptionKey = "academy.quest.introduction_to_magic_101.description",
+            Biome = BiomeIds.IslandWater,
+            Difficulty = 0,
+            IsTutorial = true,
+            RequiresDeck = true,
+            Repeatable = true,
+            CardXpReward = 15,
+            SummonerXpReward = 25,
+            FirstClearRewardOffers = BattleRewardAuthoring.AutomaticCards(
+                EventIds.IntroSummoningPractice,
+                50
+            ),
+        },
+
         // =====================================================================
         // TEST ARENA
         // =====================================================================

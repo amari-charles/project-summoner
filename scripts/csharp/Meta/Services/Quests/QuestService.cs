@@ -111,6 +111,13 @@ public partial class QuestService : Node
         return result;
     }
 
+    public Godot.Collections.Dictionary RecordUiSurfaceOpened(string surfaceId)
+    {
+        var result = _quests?.RecordUiSurfaceOpened(surfaceId) ?? [];
+        NotifyIfChanged(result);
+        return result;
+    }
+
     private void Initialize(IProfileRepository? repository)
     {
         _profileRepo = repository;

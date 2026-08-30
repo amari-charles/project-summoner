@@ -36,6 +36,11 @@ public sealed class BattleEncounterHandler : IEncounterExecutionHandler
     public Dictionary GetPreparationState(EncounterDefinition encounter)
     {
         var validation = Validate(encounter);
+        var progressionBattle = string.IsNullOrWhiteSpace(encounter.ProgressionBattleId)
+            ? null
+            : EventCatalog.GetEvent<BattleEventDefinition>(
+                EventId.FromString(encounter.ProgressionBattleId)
+            );
         return new Dictionary
         {
             ["label_key"] = encounter.NameKey,
@@ -47,6 +52,9 @@ public sealed class BattleEncounterHandler : IEncounterExecutionHandler
             ["deck_validation"] = ToValidation(validation, encounter.Loadout.Rules),
             ["battle_config"] = ToBattleConfig(encounter.BattleConfig, ResolvePlayerDeck(encounter)),
             ["reward_previews"] = new GdArray(),
+            ["progression_battle_id"] = encounter.ProgressionBattleId,
+            ["summoner_xp_reward"] = progressionBattle?.SummonerXpReward ?? 0,
+            ["card_xp_reward"] = progressionBattle?.CardXpReward ?? 0,
             ["selected_deck"] = GetActiveDeckSummary(),
         };
     }

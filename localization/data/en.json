@@ -103,6 +103,10 @@
         "name": "Introduction to Magic 101",
         "description": "Core battle flow, basic summoning, and basic spellcasting."
       },
+      "ui_showcase": {
+        "name": "Academy Orientation — UI Showcase",
+        "description": "A temporary guided tour of the current interface, campus, battle, progression, and reward flows."
+      },
       "summoning_basics": {
         "name": "Summoning Basics",
         "description": "Early unit and conjuration fundamentals."
@@ -113,6 +117,13 @@
       }
     },
     "dialogue": {
+      "ui_showcase": {
+        "offer_1": "Before we begin formal lessons, I want you to learn where the Academy keeps the tools every summoner relies on.",
+        "offer_2": "Review your records and equipment, prepare your spellbook, visit the campus services, and then meet me at the practice grounds.",
+        "accept_response": "Show me around. I am ready to begin the orientation.",
+        "accepted": "Start with your Journal. Its tracked assignment will guide you through each stop.",
+        "turn_in": "Good. You have seen the full rhythm: prepare, fight, grow, and return. The rest of the Academy can wait for another day."
+      },
       "introduction_to_magic": {
         "offer_1": "You do not need to know what kind of summoner you are yet. That is what your first year is for.",
         "offer_2": "Let us begin somewhere simple. Call a creature, keep it under control, and show me how you respond when the field changes.",
@@ -184,6 +195,8 @@
       "none": "None",
       "reward": "Reward",
       "rewards": "Rewards: {rewards}",
+      "summoner_xp_reward": "Summoner XP +{amount}",
+      "card_xp_reward": "Each participating card +{amount} XP",
       "no_special_rules": "No special deck rules",
       "rules": "Rules: {rules}",
       "rewards_visible": "{count} visible offer(s)",
@@ -743,6 +756,9 @@
       "title": "SYSTEM MENU",
       "resume": "Resume",
       "settings": "Settings",
+      "restart_showcase": "Restart UI Showcase",
+      "restart_showcase_confirm_title": "Restart the UI showcase?",
+      "restart_showcase_confirm_message": "This clears the current review profile and returns to summoner selection.",
       "quit_game": "Quit Game",
       "back_to_menu": "Back to Menu",
       "quit_confirm_title": "Quit Fateforged?",
@@ -1672,6 +1688,22 @@
     "introduction_to_magic": {
       "go_to_practice_grounds": "Go to the Practice Grounds",
       "complete_summoning_practice": "Complete the summoning exercise",
+      "return_to_professor": "Return to the general professor"
+    },
+    "ui_showcase": {
+      "open_journal": "Open the Journal from the campus action rail",
+      "open_summoner_profile": "Open your Summoner Profile by selecting your portrait",
+      "open_inventory": "Open Inventory from the campus action rail",
+      "inspect_inventory_item": "Select the training item to inspect its details",
+      "open_spellbook": "Open the Spellbook from the campus action rail",
+      "inspect_card": "Select a card to inspect its details",
+      "open_trait_development": "Open that card's Core Path from its details",
+      "visit_shop": "Enter the Campus Shop",
+      "inspect_shop_offer": "Select a shop offer to inspect its details",
+      "open_settings": "Open Settings from the Escape menu",
+      "go_to_practice_grounds": "Go to the Practice Grounds",
+      "complete_summoning_practice": "Complete the summoning exercise",
+      "visit_online": "Visit the Online Arena",
       "return_to_professor": "Return to the general professor"
     },
     "summoning_basics": {

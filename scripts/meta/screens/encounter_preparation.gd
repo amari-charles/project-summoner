@@ -63,7 +63,7 @@ func _refresh() -> void:
 		Loc.t("academy.flow.mode_%s" % SafeTypeUtils.string(_state.get("deck_mode")).to_lower()),
 		Loc.t("academy.flow.rules", {"rules": _rule_summary(SafeTypeUtils.dict(_state.get("loadout")))}),
 	]
-	rewards_label.text = _reward_summary(SafeTypeUtils.array(_state.get("reward_previews")))
+	rewards_label.text = _reward_summary(_state)
 	validation_label.text = Loc.t("academy.flow.loadout_valid") \
 		if SafeTypeUtils.bool_val(validation.get("is_valid")) \
 		else _validation_issue_summary(issues)
@@ -225,16 +225,44 @@ func _start() -> void:
 		_refresh()
 		return
 	BattleContext.configure_encounter_battle(_encounter_id, config)
+	var progression_battle_id: String = SafeTypeUtils.string(
+		_state.get("progression_battle_id")
+	)
+	if not progression_battle_id.is_empty():
+		var attempt: Dictionary = SafeTypeUtils.dict(
+			ProgressionAuthority.StartBattleAttempt(progression_battle_id)
+		)
+		if not SafeTypeUtils.bool_val(attempt.get("is_success"), false):
+			push_error(
+				"EncounterPreparation: Could not start progression attempt: %s"
+				% str(attempt.get("errors", []))
+			)
+			_refresh()
+			return
+		BattleContext.set_battle_attempt_id(SafeTypeUtils.string(attempt.get("attempt_id")))
 	SceneManager.transition_to(SceneManager.SCENE_BATTLE_3D)
 
 func _go_back() -> void:
 	SceneManager.transition_to(SceneManager.SCENE_ACADEMY_CAMPUS)
 
 
-func _reward_summary(previews: Array) -> String:
-	if previews.is_empty():
-		return Loc.t("academy.flow.none")
+func _reward_summary(state: Dictionary) -> String:
 	var labels: Array[String] = []
+	var summoner_xp: int = SafeTypeUtils.int_val(state.get("summoner_xp_reward"))
+	var card_xp: int = SafeTypeUtils.int_val(state.get("card_xp_reward"))
+	if summoner_xp > 0:
+		labels.append("• %s" % Loc.t(
+			"academy.flow.summoner_xp_reward",
+			{"amount": summoner_xp}
+		))
+	if card_xp > 0:
+		labels.append("• %s" % Loc.t(
+			"academy.flow.card_xp_reward",
+			{"amount": card_xp}
+		))
+	var previews: Array = SafeTypeUtils.array(state.get("reward_previews"))
+	if previews.is_empty() and labels.is_empty():
+		return Loc.t("academy.flow.none")
 	for value: Variant in previews:
 		var preview: Dictionary = SafeTypeUtils.dict(value)
 		var status: String = Loc.t(

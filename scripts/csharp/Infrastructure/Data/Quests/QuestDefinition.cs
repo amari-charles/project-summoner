@@ -16,6 +16,7 @@ public enum QuestStepKind
     TalkToNpc,
     InteractWithWorldTarget,
     CompleteEncounter,
+    OpenUiSurface,
 }
 
 public sealed class QuestDefinition

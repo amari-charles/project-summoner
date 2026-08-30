@@ -44,6 +44,13 @@ public sealed class EncounterDefinition
 
     public EncounterLoadoutDefinition Loadout { get; init; } = new();
 
+    /// <summary>
+    /// Optional authored-battle identity used by the progression authority.
+    /// Encounter configuration still owns the battle setup; this identity only
+    /// supplies authoritative XP and first-clear rewards.
+    /// </summary>
+    public string ProgressionBattleId { get; init; } = "";
+
 }
 
 public sealed class EncounterLoadoutDefinition

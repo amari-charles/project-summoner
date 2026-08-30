@@ -94,6 +94,7 @@ func _ready() -> void:
 
 
 func open_profile(summoner_id: String = "") -> void:
+	QuestApi.record_ui_surface_opened("summoner_profile")
 	_current_summoner_id = (
 		summoner_id
 		if not summoner_id.is_empty()

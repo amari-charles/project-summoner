@@ -34,7 +34,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MenuPanel" type="PanelContainer" parent="MenuCenter"]
-custom_minimum_size = Vector2(420, 360)
+custom_minimum_size = Vector2(420, 430)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="MenuCenter/MenuPanel"]
@@ -64,6 +64,11 @@ custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 
 [node name="SettingsButton" type="Button" parent="MenuCenter/MenuPanel/Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+
+[node name="RestartButton" type="Button" parent="MenuCenter/MenuPanel/Margin/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
@@ -115,5 +120,9 @@ layout_mode = 2
 size_flags_horizontal = 4
 
 [node name="QuitConfirmation" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+visible = false
+
+[node name="RestartConfirmation" type="ConfirmationDialog" parent="."]
 unique_name_in_owner = true
 visible = false

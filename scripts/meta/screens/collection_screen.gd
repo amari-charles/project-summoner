@@ -180,6 +180,7 @@ func _ready() -> void:
 
 
 func open_collection(mode: String = "", summoner_id: String = "") -> void:
+	QuestApi.record_ui_surface_opened("spellbook")
 	_configure_open_mode(mode, summoner_id)
 	visible = true
 	_refresh_deck_list()
@@ -914,6 +915,7 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 ## =============================================================================
 
 func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
+	QuestApi.record_ui_surface_opened("card_detail")
 	var modal: Node = CardDetailModalScene.instantiate()
 	if not modal:
 		return

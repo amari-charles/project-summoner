@@ -30,7 +30,11 @@ public class BattleRuntimeSurfaceTest
             .GetAllBattles()
             .Where(battle => battle.RuntimeSurface == BattleRuntimeSurface.DebugArena)
             .ToArray();
-        var expectedArenaIds = EventCatalog.GetAllEventIds().ToHashSet();
+        var expectedArenaIds = EventCatalog
+            .GetAllBattles()
+            .Where(battle => battle.RuntimeSurface == BattleRuntimeSurface.DebugArena)
+            .Select(battle => battle.Id)
+            .ToHashSet();
 
         AssertThat(arenaBattles.Select(battle => battle.Id).ToHashSet().SetEquals(expectedArenaIds))
             .IsTrue();

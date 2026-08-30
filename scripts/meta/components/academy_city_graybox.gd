@@ -97,7 +97,9 @@ func _build_buildings(definitions: Array[Dictionary], usable: bool) -> void:
 		var root: StaticBody3D = StaticBody3D.new()
 		root.name = building_name.replace(" ", "").replace("/", "")
 		root.position = SafeTypeUtils.vector3(definition.get("position"))
-		root.collision_layer = 4
+		# Routed buildings add their own precise collision and interaction shell in
+		# the hub. Graybox blocks remain visual massing for those usable places.
+		root.collision_layer = 0 if usable else 4
 		root.collision_mask = 0
 		root.set_meta("usable", usable)
 		add_child(root)

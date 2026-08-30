@@ -76,6 +76,7 @@ func close() -> void:
 func _open(owner_type: String, owner_id: String, trait_id: String) -> void:
 	if owner_id.is_empty() or trait_id.is_empty():
 		return
+	QuestApi.record_ui_surface_opened("trait_development")
 	_owner_type = owner_type
 	_owner_id = owner_id
 	_anchor_trait_id = trait_id

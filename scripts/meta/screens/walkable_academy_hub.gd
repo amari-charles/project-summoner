@@ -52,8 +52,8 @@ const WORLD_LOCATIONS: Array[Dictionary] = [
 		"description_key": "academy.campus.shop.description",
 		"target_scene": SceneManagerClass.SCENE_SHOP_SCREEN,
 		"placeholder_texture": PLACEHOLDER_CAMPUS_SHOP,
-		"position": Vector3(12.0, 0.0, -7.0),
-		"travel_position": Vector3(12.0, 1.2, -2.5),
+		"position": Vector3(-21.0, 0.0, 42.0),
+		"travel_position": Vector3(-21.0, 1.2, 47.0),
 	},
 	{
 		"id": DESTINATION_MISSION_HALL,
@@ -61,8 +61,8 @@ const WORLD_LOCATIONS: Array[Dictionary] = [
 		"description_key": "academy.campus.mission_hall.description",
 		"target_scene": SceneManagerClass.SCENE_SPECIAL_EVENTS,
 		"placeholder_texture": PLACEHOLDER_MISSION_HALL,
-		"position": Vector3(-13.0, 0.0, 7.0),
-		"travel_position": Vector3(-13.0, 1.2, 11.5),
+		"position": Vector3(-34.0, 0.0, -32.0),
+		"travel_position": Vector3(-34.0, 1.2, -27.0),
 	},
 	{
 		"id": DESTINATION_ONLINE,
@@ -70,8 +70,8 @@ const WORLD_LOCATIONS: Array[Dictionary] = [
 		"description_key": "academy.campus.online.description",
 		"target_scene": SceneManagerClass.SCENE_ONLINE,
 		"placeholder_texture": PLACEHOLDER_ONLINE_ARENA,
-		"position": Vector3(13.0, 0.0, 8.0),
-		"travel_position": Vector3(13.0, 1.2, 12.5),
+		"position": Vector3(58.0, 0.0, 43.0),
+		"travel_position": Vector3(58.0, 1.2, 48.0),
 	},
 ]
 
@@ -189,8 +189,7 @@ func _ready() -> void:
 	_camera_follow_distance = camera_follow_offset.length()
 	camera.fov = _camera_target_fov
 	_snap_camera_to_player()
-	if not CITY_GRAYBOX_ENABLED:
-		_spawn_buildings()
+	_spawn_buildings()
 	_spawn_professors()
 	_spawn_quest_targets()
 	_refresh_quest_presentation()

@@ -67,6 +67,7 @@ var _pending_match_info: Dictionary = {}
 
 
 func _ready() -> void:
+	QuestApi.record_ui_surface_opened("online")
 	_ensure_ui_animations()
 	_setup_localization()
 	_setup_signals()

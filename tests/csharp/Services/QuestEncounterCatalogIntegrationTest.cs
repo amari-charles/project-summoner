@@ -1,8 +1,10 @@
 namespace Fateforged.Tests.Services;
 
 using System.IO;
+using System.Linq;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Encounters;
+using Fateforged.Data.Events;
 using Fateforged.Data.Quests;
 using Fateforged.Infrastructure.Persistence;
 using GdUnit4;
@@ -20,6 +22,27 @@ public class QuestEncounterCatalogIntegrationTest
         AssertThat(QuestCatalog.All.Count).IsGreater(0);
         AssertThat(AcademyProfessorCatalog.All.Count).IsEqual(5);
         AssertThat(AcademyProfessorCatalog.Find(ProfessorIds.GeneralMagic)).IsNotNull();
+        var showcase = QuestCatalog.Find("introduction_to_magic");
+        AssertThat(showcase).IsNotNull();
+        AssertThat(showcase!.Steps.Any(step => step.Kind == QuestStepKind.OpenUiSurface))
+            .IsTrue();
+    }
+
+    [TestCase]
+    public void IntroEncounter_UsesAuthoritativeBattleProgressionRewards()
+    {
+        var encounter = EncounterCatalog.Find("intro_summoning_practice");
+        AssertThat(encounter).IsNotNull();
+        AssertThat(encounter!.ProgressionBattleId).IsEqual(EventIds.IntroSummoningPractice.Value);
+        AssertThat(encounter.Loadout.Mode).IsEqual(EncounterDeckMode.Owned);
+
+        var progression = EventCatalog.GetEvent<BattleEventDefinition>(
+            EventIds.IntroSummoningPractice
+        );
+        AssertThat(progression).IsNotNull();
+        AssertThat(progression!.SummonerXpReward).IsGreater(0);
+        AssertThat(progression.CardXpReward).IsGreater(0);
+        AssertThat(progression.FirstClearRewardOffers).IsNotEmpty();
     }
 
     [TestCase]

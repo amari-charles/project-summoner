@@ -203,8 +203,8 @@ func test_world_locations_are_physical_travel_points_and_ui_routes_stay_separate
 		assert_true(destination.has("position"))
 		assert_true(destination.has("travel_position"))
 		var position: Vector3 = destination["position"]
-		assert_true(absf(position.x) <= 13.0)
-		assert_true(absf(position.z) <= 11.0)
+		assert_true(absf(position.x) <= WalkableAcademyHub.CITY_GRAYBOX_SIZE.x * 0.5)
+		assert_true(absf(position.z) <= WalkableAcademyHub.CITY_GRAYBOX_SIZE.y * 0.5)
 		assert_true(destination.has("placeholder_texture"))
 		var placeholder_texture: Texture2D = destination["placeholder_texture"]
 		assert_not_null(placeholder_texture)
@@ -688,6 +688,25 @@ func test_city_graybox_replaces_the_placeholder_island_when_enabled() -> void:
 	assert_true(city_graybox.get_node("CampusShop").get_meta("usable"))
 	assert_not_null(city_graybox.get_node_or_null("WestResidences"))
 	assert_false(city_graybox.get_node("WestResidences").get_meta("usable"))
+	assert_eq(hub.buildings.get_child_count(), WalkableAcademyHub.WORLD_LOCATIONS.size())
+
+
+func test_showcase_surfaces_publish_generic_quest_progress_events() -> void:
+	var expected_calls: Dictionary = {
+		"res://scripts/meta/screens/quest_journal.gd": "journal",
+		"res://scripts/meta/screens/summoner_screen.gd": "summoner_profile",
+		"res://scripts/meta/components/inventory_overlay.gd": "inventory_item_detail",
+		"res://scripts/meta/screens/collection_screen.gd": "card_detail",
+		"res://scripts/meta/components/trait_development_overlay.gd": "trait_development",
+		"res://scripts/meta/screens/shop_screen.gd": "shop_item_detail",
+		"res://scripts/meta/components/campus_system_menu.gd": "settings",
+		"res://scripts/meta/screens/online_screen.gd": "online",
+	}
+	for path: String in expected_calls:
+		var source: String = FileAccess.get_file_as_string(path)
+		assert_true(source.contains(
+			'QuestApi.record_ui_surface_opened("%s")' % expected_calls[path]
+		))
 
 
 func test_walkable_controls_are_project_actions() -> void:
@@ -721,6 +740,8 @@ func test_campus_system_menu_pauses_and_reuses_shared_settings() -> void:
 	assert_not_null(menu.get_node(
 		"SettingsOverlay/SettingsCenter/SettingsLayout/SettingsPanel"
 	) as SettingsPanel)
+	assert_not_null(menu.get_node("MenuCenter/MenuPanel/Margin/Buttons/RestartButton"))
+	assert_not_null(menu.get_node("RestartConfirmation"))
 	menu.open_settings()
 	assert_true(menu.settings_overlay.visible)
 	assert_false(menu.menu_center.visible)

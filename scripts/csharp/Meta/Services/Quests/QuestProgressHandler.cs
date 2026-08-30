@@ -89,6 +89,14 @@ public sealed class QuestProgressHandler
             "encounter_completed"
         );
 
+    public Dictionary RecordUiSurfaceOpened(string surfaceId) =>
+        AdvanceMatchingStep(
+            step =>
+                step.Kind == QuestStepKind.OpenUiSurface
+                && string.Equals(step.TargetId, surfaceId, StringComparison.Ordinal),
+            "ui_surface_opened"
+        );
+
     public Dictionary GetJournalState()
     {
         var progress = GetProgress();

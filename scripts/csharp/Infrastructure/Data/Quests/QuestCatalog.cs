@@ -101,7 +101,10 @@ public static class QuestCatalog
                 )
                     errors.Add($"Quest '{quest.Id}' contains an incomplete step.");
                 if (
-                    step.Kind is QuestStepKind.TalkToNpc or QuestStepKind.InteractWithWorldTarget
+                    step.Kind
+                        is QuestStepKind.TalkToNpc
+                            or QuestStepKind.InteractWithWorldTarget
+                            or QuestStepKind.OpenUiSurface
                     && string.IsNullOrWhiteSpace(step.TargetId)
                 )
                     errors.Add($"Quest '{quest.Id}' step '{step.Id}' requires a target ID.");
