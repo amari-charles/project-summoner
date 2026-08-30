@@ -491,7 +491,7 @@ func test_quest_turn_in_opens_generic_reward_modal() -> void:
 		"Interface/ShowcaseMessageModal"
 	) as ShowcaseMessageModal
 	assert_not_null(message_modal)
-	assert_eq(message_modal.get_node("Center/Panel").custom_minimum_size, Vector2(860, 560))
+	assert_eq(message_modal.get_node("Center/Panel").custom_minimum_size, Vector2(760, 520))
 	assert_true(script_text.contains("_show_showcase_complete_popup"))
 	assert_true(script_text.contains("UI_SHOWCASE_QUEST_ID"))
 	assert_true(script_text.contains("_show_showcase_welcome_if_needed"))
@@ -499,7 +499,7 @@ func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	hub.free()
 
 
-func test_showcase_message_modal_uses_a_high_contrast_readable_palette() -> void:
+func test_showcase_message_modal_uses_the_shared_modal_palette() -> void:
 	var packed_scene: PackedScene = load(
 		"res://scenes/meta/components/showcase_message_modal.tscn"
 	) as PackedScene
@@ -509,15 +509,32 @@ func test_showcase_message_modal_uses_a_high_contrast_readable_palette() -> void
 	modal.present("Welcome", "[b]Interact[/b] with Space or E.", "Begin Tour")
 
 	var panel_style: StyleBoxFlat = modal.panel.get_theme_stylebox("panel") as StyleBoxFlat
-	var button_style: StyleBoxFlat = (
-		modal.continue_button.get_theme_stylebox("normal") as StyleBoxFlat
-	)
 	assert_true(modal.visible)
-	assert_eq(panel_style.bg_color, Color("17140f"))
-	assert_eq(panel_style.border_color, Color("ffd45a"))
-	assert_eq(modal.message_label.get_theme_color("default_color"), Color("fffaf0"))
-	assert_eq(button_style.bg_color, Color("f4c84a"))
-	assert_eq(modal.continue_button.get_theme_color("font_color"), Color("211805"))
+	assert_eq(panel_style.bg_color, GameColorPalette.UI_SURFACE_RAISED)
+	assert_eq(panel_style.border_color, GameColorPalette.UI_BORDER)
+	assert_eq(
+		modal.message_label.get_theme_color("default_color"),
+		GameColorPalette.TEXT_PRIMARY
+	)
+	assert_eq(
+		modal.title_label.get_theme_color("font_color"),
+		GameColorPalette.TEXT_HIGHLIGHT
+	)
+	assert_false(modal.continue_button.has_theme_stylebox_override("normal"))
+
+
+func test_tracked_quest_banner_requires_an_active_tracked_quest() -> void:
+	var hub: WalkableAcademyHub = WalkableAcademyHub.new()
+	autoqfree(hub)
+	assert_true(hub._tracked_active_quest({
+		"tracked_quest_id": "completed_quest",
+		"active": [],
+	}).is_empty())
+	var active_quest: Dictionary = {"id": "active_quest", "title_key": "quest.title"}
+	assert_eq(hub._tracked_active_quest({
+		"tracked_quest_id": "active_quest",
+		"active": [active_quest],
+	}), active_quest)
 
 
 func test_quest_offer_and_journal_share_the_same_detail_component() -> void:

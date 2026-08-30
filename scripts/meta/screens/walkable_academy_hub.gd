@@ -923,19 +923,29 @@ func _refresh_quest_presentation() -> void:
 			)
 	_show_current_ui_guidance(QuestGuidance.current_target_id())
 	_refresh_objective_path(_world_guidance_target_id())
-	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
-	tracked_quest_banner.visible = not tracked_id.is_empty()
-	if tracked_id.is_empty():
+	var tracked_quest: Dictionary = _tracked_active_quest(journal)
+	tracked_quest_banner.visible = not tracked_quest.is_empty()
+	if tracked_quest.is_empty():
+		tracked_quest_button.text = ""
+		tracked_quest_button.tooltip_text = ""
 		return
+	var title: String = Loc.t(SafeTypeUtils.string(tracked_quest.get("title_key")))
+	var objective: String = Loc.t(
+		SafeTypeUtils.string(tracked_quest.get("current_objective_key"))
+	)
+	tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
+	tracked_quest_button.tooltip_text = tracked_quest_button.text
+
+
+func _tracked_active_quest(journal: Dictionary) -> Dictionary:
+	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
+	if tracked_id.is_empty():
+		return {}
 	for value: Variant in SafeTypeUtils.array(journal.get("active")):
 		var quest: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(quest.get("id")) != tracked_id:
-			continue
-		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
-		var objective: String = Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))
-		tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
-		tracked_quest_button.tooltip_text = tracked_quest_button.text
-		return
+		if SafeTypeUtils.string(quest.get("id")) == tracked_id:
+			return quest
+	return {}
 
 
 func _show_current_ui_guidance(target_id: String) -> void:
