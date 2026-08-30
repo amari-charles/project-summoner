@@ -3,6 +3,9 @@
 The UI designer review build enables the guided UI walkthrough without changing
 the behavior of normal editor sessions or player builds.
 
+For the canonical packaging, Windows validation, Google Drive destination, and
+current downloadable build, see [UI Designer Handoff](ui-designer-handoff.md).
+
 ## Runtime mode ownership
 
 `UiTutorialModeService` resolves the runtime mode once at process startup. It is
@@ -30,9 +33,9 @@ dotnet build
   --export-release "UI Designer Review"
 ```
 
-Distribute `Fateforged-UI-Review.exe`, its console wrapper, and the matching .NET
-data directory together. Normal releases continue to use the `Windows Desktop`
-preset.
+Distribute the complete review ZIP described in the handoff guide. Its
+`Fateforged-UI-Review.exe` and matching .NET data directory must remain together.
+Normal releases continue to use the `Windows Desktop` preset.
 
 ## Local walkthrough testing
 
