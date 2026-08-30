@@ -717,6 +717,12 @@ func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
 	)
 	assert_true(indicator_source.contains("draw_style_box"))
 	assert_true(indicator_source.contains("draw_colored_polygon"))
+	assert_true(indicator_source.contains("action_text"))
+	var guidance_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/quest_guidance.gd"
+	)
+	assert_true(guidance_source.contains('target_id == "card_detail"'))
+	assert_true(guidance_source.contains('"quest.guidance.right_click"'))
 
 	var hub_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/screens/walkable_academy_hub.gd"

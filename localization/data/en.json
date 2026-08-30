@@ -1681,9 +1681,14 @@
     }
   },
   "quest": {
+    "guidance": {
+      "click": "CLICK",
+      "right_click": "RIGHT-CLICK",
+      "press_e": "PRESS E"
+    },
     "world": {
       "practice_grounds": "Practice Grounds",
-      "interact_prompt": "Press Interact to begin"
+      "interact_prompt": "PRESS E"
     },
     "introduction_to_magic": {
       "go_to_practice_grounds": "Go to the Practice Grounds",
@@ -1696,7 +1701,7 @@
       "open_inventory": "Open Inventory from the campus action rail",
       "inspect_inventory_item": "Select the training item to inspect its details",
       "open_spellbook": "Open the Spellbook from the campus action rail",
-      "inspect_card": "Select a card to inspect its details",
+      "inspect_card": "Right-click any card to inspect its details",
       "open_trait_development": "Open that card's Core Path from its details",
       "visit_shop": "Enter the Campus Shop",
       "inspect_shop_offer": "Select a shop offer to inspect its details",

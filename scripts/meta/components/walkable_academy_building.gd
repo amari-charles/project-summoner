@@ -109,7 +109,10 @@ func _refresh_text() -> void:
 	name_label.text = ("▼  %s  ▼" % display_name) if _is_current_objective else display_name
 	name_label.modulate = Color(1.0, 0.78, 0.16, 1.0) if _is_current_objective else Color(0.98, 0.9, 0.68, 1.0)
 	if _player_inside:
-		name_label.text = "%s\n%s" % [display_name, Loc.t("academy.campus.enter")]
+		name_label.text = "%s\n%s" % [
+			display_name,
+			Loc.t("quest.guidance.press_e") if _is_current_objective else Loc.t("academy.campus.enter"),
+		]
 	placeholder_label.text = Loc.t("academy.walkable.placeholder_building", {"name": display_name.to_upper()})
 
 

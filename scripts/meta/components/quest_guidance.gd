@@ -22,7 +22,7 @@ static func is_target_active(target_id: String) -> bool:
 	return not target_id.is_empty() and current_target_id() == target_id
 
 
-static func show_for(target: Control, target_id: String) -> void:
+static func show_for(target: Control, target_id: String, action_key: String = "") -> void:
 	if not is_instance_valid(target) or not is_target_active(target_id):
 		return
 	var tree: SceneTree = target.get_tree()
@@ -39,7 +39,16 @@ static func show_for(target: Control, target_id: String) -> void:
 		layer.add_child(indicator)
 	var active_indicator: QuestObjectiveIndicator = layer.get_node("Indicator") as QuestObjectiveIndicator
 	active_indicator.target = target
+	active_indicator.set_action_text(Loc.t(
+		action_key if not action_key.is_empty() else _default_action_key(target_id)
+	))
 	active_indicator.visible = true
+
+
+static func _default_action_key(target_id: String) -> String:
+	if target_id == "card_detail":
+		return "quest.guidance.right_click"
+	return "quest.guidance.click"
 
 
 static func clear() -> void:
