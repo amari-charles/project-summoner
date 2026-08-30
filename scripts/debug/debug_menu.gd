@@ -215,7 +215,6 @@ func _create_ui() -> void:
 
 	_build_quick_tab(_create_tab(tabs, "Quick"))
 	_build_arena_tab(_create_tab(tabs, "Arena"))
-	_build_visuals_tab(_create_tab(tabs, "Visuals"))
 	_build_tools_tab(_create_tab(tabs, "Tools"))
 
 	# Start hidden by default (press ` or F12 to show)
@@ -256,6 +255,13 @@ func _add_separator(vbox: VBoxContainer) -> void:
 
 
 func _build_quick_tab(vbox: VBoxContainer) -> void:
+	var snapshots_button: Button = Button.new()
+	snapshots_button.text = "Manage Snapshots"
+	snapshots_button.custom_minimum_size = Vector2(0, 40)
+	snapshots_button.pressed.connect(_on_snapshots_pressed)
+	vbox.add_child(snapshots_button)
+
+	_add_separator(vbox)
 	_add_section_title(vbox, "Battle Controls", Color(1.0, 0.65, 0.5))
 
 	_skip_prep_button = Button.new()
@@ -305,7 +311,7 @@ func _build_quick_tab(vbox: VBoxContainer) -> void:
 	vbox.add_child(instructions)
 
 
-func _build_visuals_tab(vbox: VBoxContainer) -> void:
+func _build_arena_diagnostics(vbox: VBoxContainer) -> void:
 	_add_section_title(vbox, "Unit & Combat", Color(0.7, 0.9, 1.0))
 
 	_hurtbox_button = Button.new()
@@ -413,15 +419,6 @@ func _build_tools_tab(vbox: VBoxContainer) -> void:
 	_command_output.custom_minimum_size = Vector2(0, 48)
 	vbox.add_child(_command_output)
 
-	_add_separator(vbox)
-	_add_section_title(vbox, "Profile Snapshots", Color(0.8, 0.8, 1.0))
-
-	var snapshots_button: Button = Button.new()
-	snapshots_button.text = "Manage Snapshots"
-	snapshots_button.custom_minimum_size = Vector2(0, 32)
-	snapshots_button.pressed.connect(_on_snapshots_pressed)
-	vbox.add_child(snapshots_button)
-
 
 func _build_arena_tab(vbox: VBoxContainer) -> void:
 	_add_section_title(vbox, "Debug Arena Battles", Color(0.7, 0.9, 1.0))
@@ -463,6 +460,8 @@ func _build_arena_tab(vbox: VBoxContainer) -> void:
 	vbox.add_child(_arena_button_grid)
 
 	_build_debug_arena_buttons(_arena_button_grid)
+	_add_separator(vbox)
+	_build_arena_diagnostics(vbox)
 
 
 func _update_button_states() -> void:

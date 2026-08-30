@@ -13,10 +13,9 @@ The panel is grouped by task and each tab scrolls independently:
 
 | Tab | Purpose |
 |-----|---------|
-| Quick | Battle flow controls and frame-rate targets used repeatedly during playtesting |
-| Arena | Curated debug battle lists, biome override, and direct battle launch |
-| Visuals | Unit, projectile, rules, logging, and camera diagnostics |
-| Tools | Command console, autocomplete, output, and profile snapshots |
+| Quick | Immediate snapshot access, battle flow controls, and frame-rate targets |
+| Arena | Battle launch plus unit, projectile, rules, logging, and camera diagnostics |
+| Tools | Command console, autocomplete, and command output |
 
 ### FPS Controls
 

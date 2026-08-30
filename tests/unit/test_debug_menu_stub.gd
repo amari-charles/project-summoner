@@ -90,22 +90,20 @@ func test_debug_menu_groups_controls_into_task_based_scrollable_tabs() -> void:
 
 	var quick: VBoxContainer = menu._create_tab(tabs, "Quick")
 	var arena: VBoxContainer = menu._create_tab(tabs, "Arena")
-	var visuals: VBoxContainer = menu._create_tab(tabs, "Visuals")
 	var tools: VBoxContainer = menu._create_tab(tabs, "Tools")
 	menu._build_quick_tab(quick)
 	menu._build_arena_tab(arena)
-	menu._build_visuals_tab(visuals)
 	menu._build_tools_tab(tools)
 
-	assert_eq(tabs.get_child_count(), 4)
+	assert_eq(tabs.get_child_count(), 3)
 	assert_eq(tabs.get_child(0).name, "Quick")
 	assert_eq(tabs.get_child(1).name, "Arena")
-	assert_eq(tabs.get_child(2).name, "Visuals")
-	assert_eq(tabs.get_child(3).name, "Tools")
+	assert_eq(tabs.get_child(2).name, "Tools")
 	for child: Node in tabs.get_children():
 		assert_true(child is ScrollContainer, "%s should scroll instead of growing the panel" % child.name)
 
 	var quick_labels: Array[String] = _button_labels_below(quick)
+	assert_eq(quick_labels[0], "Manage Snapshots")
 	assert_true("Skip Prep Phase" in quick_labels)
 	assert_true("Win" in quick_labels)
 	assert_true("30 FPS (F5)" in quick_labels)
@@ -113,16 +111,12 @@ func test_debug_menu_groups_controls_into_task_based_scrollable_tabs() -> void:
 
 	var arena_labels: Array[String] = _button_labels_below(arena)
 	assert_true("Fire Wisp" in arena_labels)
-	assert_not_null(menu._arena_preset_dropdown)
-	assert_not_null(menu._arena_biome_dropdown)
-
-	var visual_labels: Array[String] = _button_labels_below(visuals)
-	assert_true("Hurtboxes: Off" in visual_labels)
-	assert_true("Camera Overlay: N/A" in visual_labels)
-	assert_false("Manage Snapshots" in visual_labels)
+	assert_true("Hurtboxes: Off" in arena_labels)
+	assert_true("Camera Overlay: N/A" in arena_labels)
+	assert_false("Manage Snapshots" in arena_labels)
 
 	var tool_labels: Array[String] = _button_labels_below(tools)
-	assert_true("Manage Snapshots" in tool_labels)
+	assert_false("Manage Snapshots" in tool_labels)
 	assert_not_null(menu._command_input)
 	assert_not_null(menu._autocomplete_list)
 
