@@ -521,6 +521,8 @@ func test_showcase_message_modal_uses_the_shared_modal_palette() -> void:
 		modal.title_label.get_theme_color("font_color"),
 		GameColorPalette.TEXT_HIGHLIGHT
 	)
+	assert_false(modal.message_label.fit_content)
+	assert_eq(modal.panel.size, Vector2(760, 520))
 	assert_false(modal.continue_button.has_theme_stylebox_override("normal"))
 
 

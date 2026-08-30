@@ -68,7 +68,6 @@ theme_override_font_sizes/normal_font_size = 20
 theme_override_font_sizes/bold_font_size = 21
 bbcode_enabled = true
 text = "Message"
-fit_content = true
 scroll_active = false
 
 [node name="ContinueButton" type="Button" parent="Center/Panel/Margin/Content"]
