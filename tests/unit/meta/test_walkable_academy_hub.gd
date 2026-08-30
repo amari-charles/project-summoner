@@ -495,7 +495,8 @@ func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	assert_true(script_text.contains("_show_showcase_complete_popup"))
 	assert_true(script_text.contains("UI_SHOWCASE_QUEST_ID"))
 	assert_true(script_text.contains("_show_showcase_welcome_if_needed"))
-	assert_true(script_text.contains("UI_SHOWCASE_WELCOME_FLAG"))
+	assert_true(script_text.contains("_showcase_welcome_shown_this_run"))
+	assert_false(script_text.contains("ui_showcase_welcome_seen"))
 	hub.free()
 
 
@@ -521,6 +522,15 @@ func test_showcase_message_modal_uses_the_shared_modal_palette() -> void:
 		GameColorPalette.TEXT_HIGHLIGHT
 	)
 	assert_false(modal.continue_button.has_theme_stylebox_override("normal"))
+
+
+func test_showcase_welcome_is_once_per_run_instead_of_permanently_saved() -> void:
+	WalkableAcademyHub.reset_showcase_welcome_for_run()
+	assert_true(WalkableAcademyHub._claim_showcase_welcome_for_run())
+	assert_false(WalkableAcademyHub._claim_showcase_welcome_for_run())
+	WalkableAcademyHub.reset_showcase_welcome_for_run()
+	assert_true(WalkableAcademyHub._claim_showcase_welcome_for_run())
+	WalkableAcademyHub.reset_showcase_welcome_for_run()
 
 
 func test_tracked_quest_banner_requires_an_active_tracked_quest() -> void:

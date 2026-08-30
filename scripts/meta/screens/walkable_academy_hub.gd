@@ -2,7 +2,8 @@ extends Node3D
 class_name WalkableAcademyHub
 
 const UI_SHOWCASE_QUEST_ID: String = "ui_showcase_orientation"
-const UI_SHOWCASE_WELCOME_FLAG: String = "ui_showcase_welcome_seen"
+
+static var _showcase_welcome_shown_this_run: bool = false
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
@@ -210,20 +211,25 @@ func _ready() -> void:
 func _show_showcase_welcome_if_needed() -> void:
 	if not UiTutorialMode.IsEnabled():
 		return
-	var profile: Dictionary = ProfileRepoApi.get_profile_data()
-	var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
-	var tutorial_flags: Dictionary = SafeTypeUtils.dict(meta.get("tutorial_flags"))
-	if SafeTypeUtils.bool_val(tutorial_flags.get(UI_SHOWCASE_WELCOME_FLAG), false):
+	if not _claim_showcase_welcome_for_run():
 		return
-	ProfileRepoApi.update_profile_meta_dict(
-		{"tutorial_flags": {UI_SHOWCASE_WELCOME_FLAG: true}}
-	)
 	player.set_physics_process(false)
 	showcase_message_modal.present(
 		Loc.t("academy.quest.ui_showcase.welcome_title"),
 		Loc.t("academy.quest.ui_showcase.welcome_message"),
 		Loc.t("academy.quest.ui_showcase.welcome_action")
 	)
+
+
+static func _claim_showcase_welcome_for_run() -> bool:
+	if _showcase_welcome_shown_this_run:
+		return false
+	_showcase_welcome_shown_this_run = true
+	return true
+
+
+static func reset_showcase_welcome_for_run() -> void:
+	_showcase_welcome_shown_this_run = false
 
 
 func _configure_city_graybox_ground() -> void:
