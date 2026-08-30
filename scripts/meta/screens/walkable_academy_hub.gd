@@ -1,6 +1,8 @@
 extends Node3D
 class_name WalkableAcademyHub
 
+const UI_SHOWCASE_QUEST_ID: String = "introduction_to_magic"
+
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
 const InteractiveNpcScene: PackedScene = preload("res://scenes/meta/components/interactive_npc.tscn")
@@ -124,6 +126,7 @@ const DIRECT_UI_DESTINATIONS: Array[Dictionary] = []
 @onready var journal_overlay: QuestJournal = %JournalOverlay
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 @onready var reward_modal: RewardGrantModal = %RewardGrantModal
+@onready var showcase_complete_dialog: AcceptDialog = %ShowcaseCompleteDialog
 @onready var quest_offer_modal: QuestOfferModal = %QuestOfferModal
 @onready var campus_system_menu: CampusSystemMenu = %CampusSystemMenu
 
@@ -145,6 +148,7 @@ var _dialog_opportunities_by_id: Dictionary = {}
 var _dialog_offer_lines: Array[String] = []
 var _dialog_offer_responses: Array[Dictionary] = []
 var _objective_path_trail: ObjectivePathTrail = null
+var _show_showcase_complete_after_rewards: bool = false
 
 
 func _ready() -> void:
@@ -176,6 +180,11 @@ func _ready() -> void:
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
 	dialogue_box.closed.connect(_on_dialogue_closed)
 	reward_modal.closed.connect(_on_reward_modal_closed)
+	showcase_complete_dialog.title = Loc.t("academy.quest.ui_showcase.complete_title")
+	showcase_complete_dialog.dialog_text = Loc.t("academy.quest.ui_showcase.complete_message")
+	showcase_complete_dialog.ok_button_text = Loc.t("academy.quest.ui_showcase.complete_action")
+	showcase_complete_dialog.confirmed.connect(_on_showcase_complete_dialog_closed)
+	showcase_complete_dialog.canceled.connect(_on_showcase_complete_dialog_closed)
 	quest_offer_modal.accepted.connect(_on_quest_offer_accepted)
 	quest_offer_modal.backed.connect(_on_quest_offer_backed)
 	quest_offer_modal.cancelled.connect(_on_quest_offer_cancelled)
@@ -1099,15 +1108,34 @@ func _on_dialogue_closed() -> void:
 		_dialog_turn_in_npc_id = ""
 		var result: Dictionary = QuestApi.record_npc_interaction(turn_in_npc_id)
 		if SafeTypeUtils.bool_val(result.get("completed"), false):
+			_show_showcase_complete_after_rewards = (
+				SafeTypeUtils.string(result.get("quest_id")) == UI_SHOWCASE_QUEST_ID
+			)
 			var summary: Dictionary = SafeTypeUtils.dict(result.get("completion_summary"))
 			var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
 			if not rewards.is_empty():
 				reward_modal.present(rewards, Loc.t("academy.quest.complete"))
 				return
+			if _show_showcase_complete_after_rewards:
+				_show_showcase_complete_popup()
+				return
 	player.set_physics_process(true)
 
 
 func _on_reward_modal_closed() -> void:
+	if _show_showcase_complete_after_rewards:
+		_show_showcase_complete_popup()
+		return
+	player.set_physics_process(true)
+
+
+func _show_showcase_complete_popup() -> void:
+	_show_showcase_complete_after_rewards = false
+	showcase_complete_dialog.popup_centered()
+	showcase_complete_dialog.get_ok_button().call_deferred("grab_focus")
+
+
+func _on_showcase_complete_dialog_closed() -> void:
 	player.set_physics_process(true)
 
 

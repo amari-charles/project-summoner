@@ -105,7 +105,10 @@
       },
       "ui_showcase": {
         "name": "Academy Orientation — UI Showcase",
-        "description": "A temporary guided tour of the current interface, campus, battle, progression, and reward flows."
+        "description": "A temporary guided tour of the current interface, campus, battle, progression, and reward flows.",
+        "complete_title": "UI Showcase Complete",
+        "complete_message": "You have completed the guided interface tour. This is the end of the review path; you are now free to revisit any screen or explore the Academy.",
+        "complete_action": "Finish Tour"
       },
       "summoning_basics": {
         "name": "Summoning Basics",

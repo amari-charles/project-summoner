@@ -487,6 +487,13 @@ func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	assert_not_null(hub.get_node_or_null("Interface/RewardGrantModal"))
+	var complete_dialog: AcceptDialog = hub.get_node_or_null(
+		"Interface/ShowcaseCompleteDialog"
+	) as AcceptDialog
+	assert_not_null(complete_dialog)
+	assert_eq(complete_dialog.size, Vector2i(680, 260))
+	assert_true(script_text.contains("_show_showcase_complete_popup"))
+	assert_true(script_text.contains("UI_SHOWCASE_QUEST_ID"))
 	hub.free()
 
 

@@ -329,6 +329,14 @@ unique_name_in_owner = true
 [node name="RewardGrantModal" parent="Interface" instance=ExtResource("12_reward_modal")]
 unique_name_in_owner = true
 
+[node name="ShowcaseCompleteDialog" type="AcceptDialog" parent="Interface"]
+unique_name_in_owner = true
+title = "UI Showcase Complete"
+initial_position = 2
+size = Vector2i(680, 260)
+exclusive = true
+dialog_text = "You have completed the guided UI showcase."
+
 [node name="QuestOfferModal" parent="Interface" instance=ExtResource("13_quest_offer_modal")]
 unique_name_in_owner = true
 
