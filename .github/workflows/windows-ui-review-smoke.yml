@@ -1,0 +1,103 @@
+name: Windows UI Review Smoke Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - refactor/organize-debug-panel
+    paths:
+      - .github/workflows/windows-ui-review-smoke.yml
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Godot 4.5.1 Mono and export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $godotDirectory = Join-Path $env:RUNNER_TEMP "godot"
+          $editorArchive = Join-Path $env:RUNNER_TEMP "godot-editor.zip"
+          $templateArchive = Join-Path $env:RUNNER_TEMP "godot-templates.tpz"
+          $templateExtract = Join-Path $env:RUNNER_TEMP "godot-template-extract"
+          $templateDirectory = Join-Path $env:APPDATA "Godot\export_templates\4.5.1.stable"
+
+          curl.exe --fail --location --retry 3 `
+            --output $editorArchive `
+            "https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_mono_win64.zip"
+          curl.exe --fail --location --retry 3 `
+            --output $templateArchive `
+            "https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_mono_export_templates.tpz"
+
+          Expand-Archive -Path $editorArchive -DestinationPath $godotDirectory
+          7z x $templateArchive "-o$templateExtract" -y
+          New-Item -ItemType Directory -Force -Path $templateDirectory | Out-Null
+          Copy-Item -Recurse -Force (Join-Path $templateExtract "templates\*") $templateDirectory
+
+          $godotExecutable = Get-ChildItem $godotDirectory -Recurse -Filter "Godot*_mono_win64.exe" |
+            Select-Object -First 1 -ExpandProperty FullName
+          if (-not $godotExecutable) {
+            throw "Godot Mono executable was not found after extraction."
+          }
+          "GODOT_EXECUTABLE=$godotExecutable" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Export Windows UI review build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path "build\ui-review" | Out-Null
+          & $env:GODOT_EXECUTABLE --headless --path . --export-release `
+            "UI Designer Review" "build\ui-review\Fateforged-UI-Review.exe"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Godot export failed with exit code $LASTEXITCODE."
+          }
+
+          $requiredFiles = @(
+            "build\ui-review\Fateforged-UI-Review.exe",
+            "build\ui-review\data_Fateforged_windows_x86_64\Fateforged.dll",
+            "build\ui-review\data_Fateforged_windows_x86_64\coreclr.dll"
+          )
+          foreach ($requiredFile in $requiredFiles) {
+            if (-not (Test-Path $requiredFile)) {
+              throw "Required export file is missing: $requiredFile"
+            }
+          }
+
+      - name: Launch Windows build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $executable = Resolve-Path "build\ui-review\Fateforged-UI-Review.exe"
+          $process = Start-Process -FilePath $executable `
+            -ArgumentList "--headless", "--quit-after", "120" `
+            -PassThru
+
+          if (-not $process.WaitForExit(120000)) {
+            $process.Kill($true)
+            throw "Windows UI review build did not exit within two minutes."
+          }
+          if ($process.ExitCode -ne 0) {
+            throw "Windows UI review build exited with code $($process.ExitCode)."
+          }
+
+      - name: Upload verified Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fateforged-UI-Review-Windows
+          path: build/ui-review/
+          compression-level: 9
+          retention-days: 7
+          if-no-files-found: error
