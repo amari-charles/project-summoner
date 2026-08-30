@@ -117,7 +117,6 @@ const DIRECT_UI_DESTINATIONS: Array[Dictionary] = []
 @onready var spellbook_button: Button = %SpellbookButton
 @onready var journal_button: Button = %JournalButton
 @onready var inventory_button: Button = %InventoryButton
-@onready var menu_button: Button = %MenuButton
 @onready var inventory_overlay: InventoryOverlay = %InventoryOverlay
 @onready var summoner_profile: SummonerScreen = %SummonerProfile
 @onready var collection_overlay: CollectionScreen = %CollectionOverlay
@@ -160,8 +159,6 @@ func _ready() -> void:
 	travel_title.text = Loc.t("academy.walkable.travel_title")
 	travel_close_button.text = Loc.t("ui.common.close")
 	travel_button.pressed.connect(_toggle_travel)
-	menu_button.pressed.connect(campus_system_menu.open_menu)
-	menu_button.tooltip_text = Loc.t("ui.system_menu.title")
 	travel_close_button.pressed.connect(_close_travel)
 	journal_button.tooltip_text = Loc.t("academy.journal.title")
 	spellbook_button.tooltip_text = Loc.t("academy.campus.spellbook.name")
@@ -913,7 +910,11 @@ func _show_current_ui_guidance(target_id: String) -> void:
 		"summoner_profile": QuestGuidance.show_for(summoner_slot, target_id)
 		"inventory": QuestGuidance.show_for(inventory_button, target_id)
 		"spellbook": QuestGuidance.show_for(spellbook_button, target_id)
-		"settings": QuestGuidance.show_for(menu_button, target_id)
+		"settings": QuestGuidance.show_for(
+			tracked_quest_banner,
+			target_id,
+			"quest.guidance.press_escape"
+		)
 
 
 func _on_professor_interacted(professor_id: String) -> void:

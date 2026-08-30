@@ -62,11 +62,10 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	var spellbook: Button = rail.get_node("SpellbookButton") as Button
 	var inventory: Button = rail.get_node("InventoryButton") as Button
 	var travel: Button = rail.get_node("TravelButton") as Button
-	var menu: Button = rail.get_node("MenuButton") as Button
 	var tracked_quest: Button = hub.get_node(
 		"Interface/TrackedQuestBanner/TrackedQuestButton"
 	) as Button
-	assert_eq(rail.get_child_count(), 5)
+	assert_eq(rail.get_child_count(), 4)
 	assert_eq(rail.anchor_top, 0.5)
 	assert_eq(rail.anchor_bottom, 0.5)
 	assert_almost_eq(absf(rail.offset_top), rail.offset_bottom, 0.01)
@@ -74,13 +73,12 @@ func test_hub_uses_a_vertical_icon_action_rail() -> void:
 	assert_not_null(spellbook.icon)
 	assert_not_null(inventory.icon)
 	assert_not_null(travel.icon)
-	for world_hud_button: Button in [journal, spellbook, inventory, travel, menu, tracked_quest]:
+	for world_hud_button: Button in [journal, spellbook, inventory, travel, tracked_quest]:
 		assert_eq(world_hud_button.focus_mode, Control.FOCUS_NONE)
 	assert_true(journal.text.is_empty())
 	assert_true(spellbook.text.is_empty())
 	assert_true(inventory.text.is_empty())
 	assert_true(travel.text.is_empty())
-	assert_false(menu.text.is_empty())
 	assert_false(inventory.disabled)
 	hub.free()
 
@@ -721,8 +719,12 @@ func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
 	var guidance_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/components/quest_guidance.gd"
 	)
-	assert_true(guidance_source.contains('target_id == "card_detail"'))
-	assert_true(guidance_source.contains('"quest.guidance.right_click"'))
+	assert_true(guidance_source.contains('"quest.guidance.click"'))
+	var deck_editor_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/deck_editor_panel.gd"
+	)
+	assert_true(deck_editor_source.contains('QuestGuidance.is_target_active("card_detail")'))
+	assert_true(deck_editor_source.contains("_request_card_info(detail_instance_id, catalog_id)"))
 
 	var hub_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/screens/walkable_academy_hub.gd"

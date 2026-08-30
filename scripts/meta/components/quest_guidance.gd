@@ -46,8 +46,6 @@ static func show_for(target: Control, target_id: String, action_key: String = ""
 
 
 static func _default_action_key(target_id: String) -> String:
-	if target_id == "card_detail":
-		return "quest.guidance.right_click"
 	return "quest.guidance.click"
 
 

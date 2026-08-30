@@ -212,6 +212,9 @@ func _on_card_clicked(
 	_in_active_deck: bool,
 	_locked: bool
 ) -> void:
+	if QuestGuidance.is_target_active("card_detail"):
+		_request_card_info(detail_instance_id, catalog_id)
+		return
 	if not _has_editable_deck:
 		_request_card_info(detail_instance_id, catalog_id)
 		return

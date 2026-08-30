@@ -1683,7 +1683,7 @@
   "quest": {
     "guidance": {
       "click": "CLICK",
-      "right_click": "RIGHT-CLICK",
+      "press_escape": "PRESS ESC",
       "press_e": "PRESS E"
     },
     "world": {
@@ -1701,11 +1701,11 @@
       "open_inventory": "Open Inventory from the campus action rail",
       "inspect_inventory_item": "Select the training item to inspect its details",
       "open_spellbook": "Open the Spellbook from the campus action rail",
-      "inspect_card": "Right-click any card to inspect its details",
+      "inspect_card": "Select any card to inspect its details",
       "open_trait_development": "Open that card's Core Path from its details",
       "visit_shop": "Enter the Campus Shop",
       "inspect_shop_offer": "Select a shop offer to inspect its details",
-      "open_settings": "Open Settings from the Escape menu",
+      "open_settings": "Press Escape and open Settings",
       "go_to_practice_grounds": "Go to the Practice Grounds",
       "complete_summoning_practice": "Complete the summoning exercise",
       "visit_online": "Visit the Online Arena",
