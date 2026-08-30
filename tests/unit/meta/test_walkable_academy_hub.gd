@@ -742,6 +742,31 @@ func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
 	]
 	for path: String in guided_sources:
 		assert_true(FileAccess.get_file_as_string(path).contains("QuestGuidance"), path)
+	assert_true(hub_source.contains("ObjectivePathTrail"))
+	assert_true(hub_source.contains("_refresh_objective_path"))
+
+
+func test_objective_path_trail_routes_around_building_footprints() -> void:
+	var trail := ObjectivePathTrail.new()
+	var player := Node3D.new()
+	var obstacles: Array[Dictionary] = [{
+		"position": Vector3.ZERO,
+		"size": Vector3(8.0, 4.0, 8.0),
+	}]
+	trail.configure(player, obstacles)
+	var route: PackedVector3Array = trail.build_route(
+		Vector3(-14.0, 0.0, 0.0),
+		Vector3(14.0, 0.0, 0.0)
+	)
+	assert_gt(route.size(), 2)
+	var routed_around_obstacle: bool = false
+	for point: Vector3 in route:
+		assert_false(absf(point.x) <= 5.5 and absf(point.z) <= 5.5)
+		if absf(point.z) > 5.5:
+			routed_around_obstacle = true
+	assert_true(routed_around_obstacle)
+	trail.free()
+	player.free()
 
 
 func test_walkable_controls_are_project_actions() -> void:

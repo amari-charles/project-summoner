@@ -5,6 +5,7 @@ const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/com
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
 const InteractiveNpcScene: PackedScene = preload("res://scenes/meta/components/interactive_npc.tscn")
 const QuestWorldTargetScene: PackedScene = preload("res://scenes/meta/components/quest_world_target.tscn")
+const ObjectivePathTrailScript: Script = preload("res://scripts/meta/components/objective_path_trail.gd")
 const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
 const PLACEHOLDER_ONLINE_ARENA: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png")
@@ -143,6 +144,7 @@ var _dialog_response_quest_ids: Dictionary = {}
 var _dialog_opportunities_by_id: Dictionary = {}
 var _dialog_offer_lines: Array[String] = []
 var _dialog_offer_responses: Array[Dictionary] = []
+var _objective_path_trail: ObjectivePathTrail = null
 
 
 func _ready() -> void:
@@ -192,6 +194,7 @@ func _ready() -> void:
 	_spawn_buildings()
 	_spawn_professors()
 	_spawn_quest_targets()
+	_setup_objective_path_trail()
 	_refresh_quest_presentation()
 
 
@@ -889,6 +892,7 @@ func _refresh_quest_presentation() -> void:
 				building.destination_id == QuestGuidance.current_target_id()
 			)
 	_show_current_ui_guidance(QuestGuidance.current_target_id())
+	_refresh_objective_path(QuestGuidance.current_target_id())
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
 	tracked_quest_banner.visible = not tracked_id.is_empty()
 	if tracked_id.is_empty():
@@ -915,6 +919,26 @@ func _show_current_ui_guidance(target_id: String) -> void:
 			target_id,
 			"quest.guidance.press_escape"
 		)
+
+
+func _setup_objective_path_trail() -> void:
+	_objective_path_trail = ObjectivePathTrailScript.new() as ObjectivePathTrail
+	_objective_path_trail.name = "ObjectivePathTrail"
+	add_child(_objective_path_trail)
+	var obstacles: Array[Dictionary] = []
+	obstacles.append_array(AcademyCityGraybox.USABLE_BUILDINGS)
+	obstacles.append_array(AcademyCityGraybox.BACKGROUND_BUILDINGS)
+	_objective_path_trail.configure(player, obstacles)
+
+
+func _refresh_objective_path(target_id: String) -> void:
+	if _objective_path_trail == null:
+		return
+	var location: Dictionary = _world_location(StringName(target_id))
+	if not location.is_empty():
+		_objective_path_trail.set_target(location.get("travel_position"))
+		return
+	_objective_path_trail.set_target(_quest_target_position(target_id))
 
 
 func _on_professor_interacted(professor_id: String) -> void:
