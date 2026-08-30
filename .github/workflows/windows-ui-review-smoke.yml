@@ -33,7 +33,7 @@ jobs:
           $editorArchive = Join-Path $env:RUNNER_TEMP "godot-editor.zip"
           $templateArchive = Join-Path $env:RUNNER_TEMP "godot-templates.tpz"
           $templateExtract = Join-Path $env:RUNNER_TEMP "godot-template-extract"
-          $templateDirectory = Join-Path $env:APPDATA "Godot\export_templates\4.5.1.stable"
+          $templateDirectory = Join-Path $env:APPDATA "Godot\export_templates\4.5.1.stable.mono"
 
           curl.exe --fail --location --retry 3 `
             --output $editorArchive `
@@ -59,6 +59,12 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path "build\ui-review" | Out-Null
+
+          # Godot discovers C# global classes from the built assembly.
+          dotnet build Fateforged.csproj --configuration Debug
+          if ($LASTEXITCODE -ne 0) {
+            throw ".NET build failed with exit code $LASTEXITCODE."
+          }
 
           # A clean CI checkout has no imported resources. Finish the initial
           # import before exporting so fonts and textures exist in `.godot`.
