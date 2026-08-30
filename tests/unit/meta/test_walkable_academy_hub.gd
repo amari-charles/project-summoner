@@ -664,83 +664,30 @@ func _read(path: String) -> String:
 	return contents
 
 
-func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
-	var ground_textures: Array[Texture2D] = [
-		WalkableAcademyHub.PLACEHOLDER_GROUND_CENTER,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP_RIGHT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_RIGHT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_RIGHT,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
-	]
-	for texture: Texture2D in ground_textures:
-		assert_eq(texture.get_size(), Vector2(64.0, 64.0), "Ground regions must share the source pack's 64px grid")
-
+func test_city_graybox_replaces_the_placeholder_island_when_enabled() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
-	hub.ground_tile_world_size = 9.0
-	hub.ground_tint = Color(0.5, 0.6, 0.7, 1.0)
 	add_child_autofree(hub)
 	await get_tree().process_frame
 
 	var ground: MeshInstance3D = hub.get_node("Ground") as MeshInstance3D
 	var ground_plane: PlaneMesh = ground.mesh as PlaneMesh
 	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
-	assert_almost_eq(ground_material.uv1_scale.x, ground_plane.size.x / 9.0, 0.0001)
-	assert_almost_eq(ground_material.uv1_scale.y, ground_plane.size.y / 9.0, 0.0001)
-	assert_eq(ground_material.albedo_color, hub.ground_tint)
-	assert_eq(ground_material.transparency, BaseMaterial3D.TRANSPARENCY_DISABLED)
-	assert_eq(ground.get_child_count(), 11, "The ground should include its perimeter and one front cliff row")
-	assert_eq(ground_plane.size.x, 6.0 * hub.ground_tile_world_size)
-	assert_eq(ground_plane.size.y, 3.0 * hub.ground_tile_world_size)
-	var top_edge: MeshInstance3D = ground.get_node_or_null("TopEdge") as MeshInstance3D
-	assert_not_null(top_edge)
-	var top_edge_material: StandardMaterial3D = top_edge.material_override as StandardMaterial3D
-	assert_eq(top_edge_material.transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
-	assert_not_null(ground.get_node_or_null("BottomRightCorner"))
-	var cliff_middle: MeshInstance3D = ground.get_node_or_null("FrontCliffCenter") as MeshInstance3D
-	var cliff_left: MeshInstance3D = ground.get_node_or_null("FrontCliffLeft") as MeshInstance3D
-	var cliff_right: MeshInstance3D = ground.get_node_or_null("FrontCliffRight") as MeshInstance3D
-	assert_not_null(cliff_middle)
-	assert_not_null(cliff_left)
-	assert_not_null(cliff_right)
-	assert_true(cliff_middle.mesh is QuadMesh, "The illustrated stone should retain its vertical presentation")
-	assert_lt(cliff_middle.position.y, 0.0)
-	var bottom_edge: MeshInstance3D = ground.get_node("BottomEdge") as MeshInstance3D
-	var bottom_edge_plane: PlaneMesh = bottom_edge.mesh as PlaneMesh
-	var grass_front: float = bottom_edge.position.z + bottom_edge_plane.size.y * 0.5
-	assert_almost_eq(cliff_middle.position.z, grass_front, 0.0001, "The cliff must hang directly beneath the front grass edge")
-	assert_eq((cliff_left.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT)
-	assert_eq((cliff_right.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT)
-	assert_null(ground.get_node_or_null("CliffBottomCenter"))
-	var water_surface: MeshInstance3D = hub.get_node("PlaceholderWater/Surface") as MeshInstance3D
-	var water_material: StandardMaterial3D = water_surface.material_override as StandardMaterial3D
-	assert_eq(water_material.albedo_texture, WalkableAcademyHub.PLACEHOLDER_WATER_BACKGROUND)
-	assert_eq(water_material.albedo_color, hub.water_tint)
-	assert_lt(water_surface.position.y, cliff_middle.position.y)
-	var foam: Node3D = hub.get_node("PlaceholderWater/Foam") as Node3D
-	assert_eq(foam.get_child_count(), 22, "Every shoreline cell should receive one foam animation")
-	var foam_piece: MeshInstance3D = foam.get_child(0) as MeshInstance3D
-	var foam_mesh: PlaneMesh = foam_piece.mesh as PlaneMesh
-	assert_eq(
-		foam_mesh.size,
-		Vector2.ONE * hub.ground_tile_world_size * WalkableAcademyHub.WATER_FOAM_TILE_SPAN
-	)
-	var foam_material: ShaderMaterial = foam_piece.material_override as ShaderMaterial
-	assert_eq(foam_material.get_shader_parameter("foam_texture"), WalkableAcademyHub.PLACEHOLDER_WATER_FOAM)
-	var next_foam_piece: MeshInstance3D = foam.get_child(1) as MeshInstance3D
-	var next_foam_material: ShaderMaterial = next_foam_piece.material_override as ShaderMaterial
-	assert_ne(
-		foam_material.get_shader_parameter("animation_offset"),
-		next_foam_material.get_shader_parameter("animation_offset"),
-		"Neighboring foam animations should start on different frames"
-	)
+	assert_true(WalkableAcademyHub.CITY_GRAYBOX_ENABLED)
+	assert_eq(ground_plane.size, WalkableAcademyHub.CITY_GRAYBOX_SIZE)
+	assert_eq(ground_material.albedo_color, Color(0.34, 0.34, 0.36, 1.0))
+	assert_null(ground_material.albedo_texture)
+	assert_eq(ground_material.shading_mode, BaseMaterial3D.SHADING_MODE_UNSHADED)
+	assert_false(hub.get_node("PlaceholderWater").visible)
+	assert_false(hub.get_node("PlaceholderCrowd").visible)
+	assert_false(hub.get_node("PlaceholderScenery").visible)
+
+	var city_graybox: AcademyCityGraybox = hub.get_node("CityGraybox") as AcademyCityGraybox
+	assert_not_null(city_graybox)
+	assert_not_null(city_graybox.get_node_or_null("CampusShop"))
+	assert_true(city_graybox.get_node("CampusShop").get_meta("usable"))
+	assert_not_null(city_graybox.get_node_or_null("WestResidences"))
+	assert_false(city_graybox.get_node("WestResidences").get_meta("usable"))
 
 
 func test_walkable_controls_are_project_actions() -> void:

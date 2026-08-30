@@ -25,6 +25,8 @@ const PLACEHOLDER_WATER_FOAM: Texture2D = preload("res://assets/placeholders/tin
 const PLACEHOLDER_WATER_FOAM_SHADER: Shader = preload("res://shaders/meta/placeholder_water_foam.gdshader")
 const WATER_FOAM_FRAME_COUNT: int = 16
 const WATER_FOAM_TILE_SPAN: float = 3.0
+const CITY_GRAYBOX_ENABLED: bool = true
+const CITY_GRAYBOX_SIZE: Vector2 = Vector2(160.0, 120.0)
 
 const DESTINATION_SHOP: StringName = &"shop"
 const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
@@ -34,11 +36,11 @@ const DESTINATION_SUMMONER: StringName = &"summoner"
 const DESTINATION_JOURNAL: StringName = &"journal"
 
 const PROFESSOR_POSITIONS: Dictionary = {
-	"general_magic": Vector3(-2.0, 0.0, 1.0),
-	"fire": Vector3(-25.0, 0.0, -14.0),
-	"water": Vector3(25.0, 0.0, 11.0),
-	"earth": Vector3(-27.0, 0.0, 13.0),
-	"wind": Vector3(25.0, 0.0, -15.0),
+	"general_magic": Vector3(0.0, 0.0, -38.0),
+	"fire": Vector3(-43.0, 0.0, 4.0),
+	"water": Vector3(43.0, 0.0, -17.0),
+	"earth": Vector3(-52.0, 0.0, -12.0),
+	"wind": Vector3(42.0, 0.0, -41.0),
 }
 
 ## Physical world locations own both their building interaction and arrival
@@ -144,12 +146,15 @@ var _dialog_offer_responses: Array[Dictionary] = []
 
 
 func _ready() -> void:
-	_configure_placeholder_ground()
+	if CITY_GRAYBOX_ENABLED:
+		_configure_city_graybox_ground()
+	else:
+		_configure_placeholder_ground()
 	if SummonerSelectionApi.get_active_summoner_id().is_empty():
 		call_deferred("_redirect_to_summoner_selection")
 		return
 
-	ground_label.text = Loc.t("academy.walkable.placeholder_ground")
+	ground_label.text = "ACADEMY CITY GRAYBOX"
 	travel_button.tooltip_text = Loc.t("academy.walkable.open_travel")
 	travel_title.text = Loc.t("academy.walkable.travel_title")
 	travel_close_button.text = Loc.t("ui.common.close")
@@ -184,10 +189,24 @@ func _ready() -> void:
 	_camera_follow_distance = camera_follow_offset.length()
 	camera.fov = _camera_target_fov
 	_snap_camera_to_player()
-	_spawn_buildings()
+	if not CITY_GRAYBOX_ENABLED:
+		_spawn_buildings()
 	_spawn_professors()
 	_spawn_quest_targets()
 	_refresh_quest_presentation()
+
+
+func _configure_city_graybox_ground() -> void:
+	var ground_plane: PlaneMesh = ground.mesh as PlaneMesh
+	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+	if ground_plane == null or ground_material == null:
+		push_error("WalkableAcademyHub: City graybox requires a plane and standard material")
+		return
+	ground_plane.size = CITY_GRAYBOX_SIZE
+	ground_material.albedo_color = Color(0.34, 0.34, 0.36, 1.0)
+	ground_material.albedo_texture = null
+	ground_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	placeholder_water.visible = false
 
 
 func _configure_placeholder_ground() -> void:
@@ -825,7 +844,8 @@ func _spawn_professors() -> void:
 func _spawn_quest_targets() -> void:
 	_clear_children(quest_targets)
 	var practice_grounds: QuestWorldTarget = QuestWorldTargetScene.instantiate() as QuestWorldTarget
-	practice_grounds.position = Vector3(6.0, 0.0, 8.0)
+	practice_grounds.position = Vector3(-44.0, 0.0, 20.0) \
+		if CITY_GRAYBOX_ENABLED else Vector3(6.0, 0.0, 8.0)
 	practice_grounds.configure(
 		"practice_grounds",
 		Loc.t("quest.world.practice_grounds")
