@@ -15,17 +15,6 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT_DIR))
 	await get_tree().process_frame
 	ProfileRepoApi.load_profile("ui_capture")
-	if "--welcome-only" in OS.get_cmdline_user_args():
-		_seed_capture_profile()
-		WalkableAcademyHub.reset_showcase_welcome_for_run()
-		var welcome_screen: Node = _add_scene(
-			"res://scenes/meta/screens/walkable_academy_hub.tscn"
-		)
-		await _settle(8)
-		await _save_viewport("walkthrough-welcome.png")
-		await _remove_scene(welcome_screen)
-		get_tree().quit()
-		return
 	if "--summoner-switch-only" in OS.get_cmdline_user_args():
 		await _settle()
 		await _capture_summoner_switch_carousel()
