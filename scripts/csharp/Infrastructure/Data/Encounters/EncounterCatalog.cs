@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
 
 namespace Fateforged.Data.Encounters;
@@ -66,6 +67,15 @@ public static class EncounterCatalog
                 errors.Add($"Encounter '{encounter.Id}' requires a name key.");
             if (encounter.BattleConfig == null)
                 errors.Add($"Encounter '{encounter.Id}' requires battle configuration.");
+            if (
+                !string.IsNullOrWhiteSpace(encounter.ProgressionBattleId)
+                && EventCatalog.GetEvent<BattleEventDefinition>(
+                    EventId.FromString(encounter.ProgressionBattleId)
+                ) == null
+            )
+                errors.Add(
+                    $"Encounter '{encounter.Id}' references unknown progression battle '{encounter.ProgressionBattleId}'."
+                );
             if (
                 encounter.Loadout.Mode == EncounterDeckMode.Fixed
                 && encounter.Loadout.SuppliedCards.Count == 0

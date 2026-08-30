@@ -67,11 +67,14 @@ var _pending_match_info: Dictionary = {}
 
 
 func _ready() -> void:
+	QuestApi.record_ui_surface_opened("online")
+	QuestGuidance.clear()
 	_ensure_ui_animations()
 	_setup_localization()
 	_setup_signals()
 	_connect_services()
 	_update_ui()
+	QuestGuidance.show_for(back_button, "general_magic")
 
 
 func _process(_delta: float) -> void:

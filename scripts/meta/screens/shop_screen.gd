@@ -33,6 +33,8 @@ var current_page: int = 0
 
 
 func _ready() -> void:
+	QuestApi.record_ui_surface_opened("shop")
+	QuestGuidance.clear()
 	_apply_localized_copy()
 	back_button.pressed.connect(_on_back_pressed)
 	previous_page_button.pressed.connect(_on_previous_page_pressed)
@@ -88,6 +90,15 @@ func _render_current_page() -> void:
 		offering_card.card_clicked.connect(_on_offering_card_clicked.bind(offering))
 
 	_update_page_controls()
+	call_deferred("_refresh_quest_guidance")
+
+
+func _refresh_quest_guidance() -> void:
+	if offering_list.get_child_count() == 0:
+		return
+	var first_offering: Control = offering_list.get_child(0) as Control
+	if first_offering != null:
+		QuestGuidance.show_for(first_offering, "shop_item_detail")
 
 
 func _update_page_controls() -> void:
@@ -122,6 +133,7 @@ func _close_detail_modal() -> void:
 	selected_offering = {}
 	detail_modal.visible = false
 	purchase_button.disabled = true
+	QuestGuidance.show_for(back_button, "settings")
 
 
 func _update_purchase_availability() -> void:
@@ -134,7 +146,10 @@ func _update_purchase_availability() -> void:
 
 
 func _on_offering_card_clicked(offering: Dictionary) -> void:
+	QuestApi.record_ui_surface_opened("shop_item_detail")
+	QuestGuidance.clear()
 	_open_detail_modal(offering)
+	QuestGuidance.show_for(modal_close_button, "settings")
 
 
 func _on_purchase_pressed() -> void:

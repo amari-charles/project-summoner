@@ -1,4 +1,5 @@
 using System;
+using Fateforged.Application.UiTutorial;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
@@ -111,6 +112,13 @@ public partial class QuestService : Node
         return result;
     }
 
+    public Godot.Collections.Dictionary RecordUiSurfaceOpened(string surfaceId)
+    {
+        var result = _quests?.RecordUiSurfaceOpened(surfaceId) ?? [];
+        NotifyIfChanged(result);
+        return result;
+    }
+
     private void Initialize(IProfileRepository? repository)
     {
         _profileRepo = repository;
@@ -137,7 +145,8 @@ public partial class QuestService : Node
         _quests = new QuestProgressHandler(
             _profileRepo,
             _getActiveSummoner,
-            new QuestRewardProcessor(runtime, _getActiveSummoner)
+            new QuestRewardProcessor(runtime, _getActiveSummoner),
+            runtimeMode: UiTutorialModeService.CurrentRuntimeMode
         );
     }
 

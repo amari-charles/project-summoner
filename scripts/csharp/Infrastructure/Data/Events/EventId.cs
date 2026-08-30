@@ -31,6 +31,9 @@ public readonly record struct EventId(string Value)
 /// </summary>
 public static class EventIds
 {
+    /// <summary>First Academy practice encounter used by the UI showcase flow.</summary>
+    public static readonly EventId IntroSummoningPractice = new("intro_summoning_practice");
+
     // =========================================================================
     // DEBUG BATTLES (Debug/test battles with fixed decks)
     // =========================================================================

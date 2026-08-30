@@ -16,6 +16,7 @@ public enum QuestStepKind
     TalkToNpc,
     InteractWithWorldTarget,
     CompleteEncounter,
+    OpenUiSurface,
 }
 
 public sealed class QuestDefinition
@@ -27,6 +28,12 @@ public sealed class QuestDefinition
     public string DescriptionKey { get; init; } = "";
 
     public QuestVisibility Visibility { get; init; } = QuestVisibility.Announced;
+
+    /// <summary>
+    /// Runtime modes in which this quest can be offered and progressed.
+    /// An empty list makes the quest available in every mode.
+    /// </summary>
+    public ImmutableArray<string> RuntimeModes { get; init; } = [];
 
     public ImmutableArray<string> PrerequisiteQuestIds { get; init; } = [];
 

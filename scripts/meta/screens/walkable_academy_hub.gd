@@ -1,10 +1,14 @@
 extends Node3D
 class_name WalkableAcademyHub
 
+const UI_SHOWCASE_QUEST_ID: String = "ui_showcase_orientation"
+const UI_SHOWCASE_WELCOME_FLAG: String = "ui_showcase_welcome_seen"
+
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
 const InteractiveNpcScene: PackedScene = preload("res://scenes/meta/components/interactive_npc.tscn")
 const QuestWorldTargetScene: PackedScene = preload("res://scenes/meta/components/quest_world_target.tscn")
+const ObjectivePathTrailScript: Script = preload("res://scripts/meta/components/objective_path_trail.gd")
 const PLACEHOLDER_CAMPUS_SHOP: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_campus_shop.png")
 const PLACEHOLDER_MISSION_HALL: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_mission_hall.png")
 const PLACEHOLDER_ONLINE_ARENA: Texture2D = preload("res://assets/placeholders/tiny_swords/buildings/placeholder_online_arena.png")
@@ -25,6 +29,8 @@ const PLACEHOLDER_WATER_FOAM: Texture2D = preload("res://assets/placeholders/tin
 const PLACEHOLDER_WATER_FOAM_SHADER: Shader = preload("res://shaders/meta/placeholder_water_foam.gdshader")
 const WATER_FOAM_FRAME_COUNT: int = 16
 const WATER_FOAM_TILE_SPAN: float = 3.0
+const CITY_GRAYBOX_ENABLED: bool = true
+const CITY_GRAYBOX_SIZE: Vector2 = Vector2(160.0, 120.0)
 
 const DESTINATION_SHOP: StringName = &"shop"
 const DESTINATION_MISSION_HALL: StringName = &"mission_hall"
@@ -34,11 +40,11 @@ const DESTINATION_SUMMONER: StringName = &"summoner"
 const DESTINATION_JOURNAL: StringName = &"journal"
 
 const PROFESSOR_POSITIONS: Dictionary = {
-	"general_magic": Vector3(-2.0, 0.0, 1.0),
-	"fire": Vector3(-25.0, 0.0, -14.0),
-	"water": Vector3(25.0, 0.0, 11.0),
-	"earth": Vector3(-27.0, 0.0, 13.0),
-	"wind": Vector3(25.0, 0.0, -15.0),
+	"general_magic": Vector3(0.0, 0.0, -38.0),
+	"fire": Vector3(-43.0, 0.0, 4.0),
+	"water": Vector3(43.0, 0.0, -17.0),
+	"earth": Vector3(-52.0, 0.0, -12.0),
+	"wind": Vector3(42.0, 0.0, -41.0),
 }
 
 ## Physical world locations own both their building interaction and arrival
@@ -50,8 +56,8 @@ const WORLD_LOCATIONS: Array[Dictionary] = [
 		"description_key": "academy.campus.shop.description",
 		"target_scene": SceneManagerClass.SCENE_SHOP_SCREEN,
 		"placeholder_texture": PLACEHOLDER_CAMPUS_SHOP,
-		"position": Vector3(12.0, 0.0, -7.0),
-		"travel_position": Vector3(12.0, 1.2, -2.5),
+		"position": Vector3(-21.0, 0.0, 42.0),
+		"travel_position": Vector3(-21.0, 1.2, 47.0),
 	},
 	{
 		"id": DESTINATION_MISSION_HALL,
@@ -59,8 +65,8 @@ const WORLD_LOCATIONS: Array[Dictionary] = [
 		"description_key": "academy.campus.mission_hall.description",
 		"target_scene": SceneManagerClass.SCENE_SPECIAL_EVENTS,
 		"placeholder_texture": PLACEHOLDER_MISSION_HALL,
-		"position": Vector3(-13.0, 0.0, 7.0),
-		"travel_position": Vector3(-13.0, 1.2, 11.5),
+		"position": Vector3(-34.0, 0.0, -32.0),
+		"travel_position": Vector3(-34.0, 1.2, -27.0),
 	},
 	{
 		"id": DESTINATION_ONLINE,
@@ -68,8 +74,8 @@ const WORLD_LOCATIONS: Array[Dictionary] = [
 		"description_key": "academy.campus.online.description",
 		"target_scene": SceneManagerClass.SCENE_ONLINE,
 		"placeholder_texture": PLACEHOLDER_ONLINE_ARENA,
-		"position": Vector3(13.0, 0.0, 8.0),
-		"travel_position": Vector3(13.0, 1.2, 12.5),
+		"position": Vector3(58.0, 0.0, 43.0),
+		"travel_position": Vector3(58.0, 1.2, 48.0),
 	},
 ]
 
@@ -121,6 +127,7 @@ const DIRECT_UI_DESTINATIONS: Array[Dictionary] = []
 @onready var journal_overlay: QuestJournal = %JournalOverlay
 @onready var dialogue_box: NpcDialogueBox = %NpcDialogueBox
 @onready var reward_modal: RewardGrantModal = %RewardGrantModal
+@onready var showcase_message_modal: ShowcaseMessageModal = %ShowcaseMessageModal
 @onready var quest_offer_modal: QuestOfferModal = %QuestOfferModal
 @onready var campus_system_menu: CampusSystemMenu = %CampusSystemMenu
 
@@ -141,15 +148,20 @@ var _dialog_response_quest_ids: Dictionary = {}
 var _dialog_opportunities_by_id: Dictionary = {}
 var _dialog_offer_lines: Array[String] = []
 var _dialog_offer_responses: Array[Dictionary] = []
+var _objective_path_trail: ObjectivePathTrail = null
+var _show_showcase_complete_after_rewards: bool = false
 
 
 func _ready() -> void:
-	_configure_placeholder_ground()
+	if CITY_GRAYBOX_ENABLED:
+		_configure_city_graybox_ground()
+	else:
+		_configure_placeholder_ground()
 	if SummonerSelectionApi.get_active_summoner_id().is_empty():
 		call_deferred("_redirect_to_summoner_selection")
 		return
 
-	ground_label.text = Loc.t("academy.walkable.placeholder_ground")
+	ground_label.text = Loc.t("academy.walkable.city_graybox")
 	travel_button.tooltip_text = Loc.t("academy.walkable.open_travel")
 	travel_title.text = Loc.t("academy.walkable.travel_title")
 	travel_close_button.text = Loc.t("ui.common.close")
@@ -169,6 +181,7 @@ func _ready() -> void:
 	dialogue_box.choice_selected.connect(_on_dialogue_choice)
 	dialogue_box.closed.connect(_on_dialogue_closed)
 	reward_modal.closed.connect(_on_reward_modal_closed)
+	showcase_message_modal.closed.connect(_on_showcase_message_closed)
 	quest_offer_modal.accepted.connect(_on_quest_offer_accepted)
 	quest_offer_modal.backed.connect(_on_quest_offer_backed)
 	quest_offer_modal.cancelled.connect(_on_quest_offer_cancelled)
@@ -187,7 +200,43 @@ func _ready() -> void:
 	_spawn_buildings()
 	_spawn_professors()
 	_spawn_quest_targets()
+	if UiTutorialMode.IsEnabled():
+		_setup_objective_path_trail()
 	_refresh_quest_presentation()
+	if UiTutorialMode.IsEnabled():
+		call_deferred("_show_showcase_welcome_if_needed")
+
+
+func _show_showcase_welcome_if_needed() -> void:
+	if not UiTutorialMode.IsEnabled():
+		return
+	var profile: Dictionary = ProfileRepoApi.get_profile_data()
+	var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
+	var tutorial_flags: Dictionary = SafeTypeUtils.dict(meta.get("tutorial_flags"))
+	if SafeTypeUtils.bool_val(tutorial_flags.get(UI_SHOWCASE_WELCOME_FLAG), false):
+		return
+	ProfileRepoApi.update_profile_meta_dict(
+		{"tutorial_flags": {UI_SHOWCASE_WELCOME_FLAG: true}}
+	)
+	player.set_physics_process(false)
+	showcase_message_modal.present(
+		Loc.t("academy.quest.ui_showcase.welcome_title"),
+		Loc.t("academy.quest.ui_showcase.welcome_message"),
+		Loc.t("academy.quest.ui_showcase.welcome_action")
+	)
+
+
+func _configure_city_graybox_ground() -> void:
+	var ground_plane: PlaneMesh = ground.mesh as PlaneMesh
+	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+	if ground_plane == null or ground_material == null:
+		push_error("WalkableAcademyHub: City graybox requires a plane and standard material")
+		return
+	ground_plane.size = CITY_GRAYBOX_SIZE
+	ground_material.albedo_color = Color(0.34, 0.34, 0.36, 1.0)
+	ground_material.albedo_texture = null
+	ground_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	placeholder_water.visible = false
 
 
 func _configure_placeholder_ground() -> void:
@@ -609,6 +658,7 @@ func _pause_world_for_utility() -> void:
 func _on_utility_overlay_closed() -> void:
 	if not _utility_overlay_visible():
 		player.set_physics_process(true)
+		_refresh_quest_presentation()
 
 
 func _utility_overlay_visible() -> bool:
@@ -798,6 +848,7 @@ func _spawn_buildings() -> void:
 	_clear_children(buildings)
 	for destination: Dictionary in WORLD_LOCATIONS:
 		_add_building(
+			SafeTypeUtils.string(destination["id"]),
 			destination["name_key"],
 			destination["target_scene"],
 			destination["placeholder_texture"],
@@ -825,7 +876,8 @@ func _spawn_professors() -> void:
 func _spawn_quest_targets() -> void:
 	_clear_children(quest_targets)
 	var practice_grounds: QuestWorldTarget = QuestWorldTargetScene.instantiate() as QuestWorldTarget
-	practice_grounds.position = Vector3(6.0, 0.0, 8.0)
+	practice_grounds.position = Vector3(-44.0, 0.0, 20.0) \
+		if CITY_GRAYBOX_ENABLED else Vector3(6.0, 0.0, 8.0)
 	practice_grounds.configure(
 		"practice_grounds",
 		Loc.t("quest.world.practice_grounds")
@@ -835,6 +887,7 @@ func _spawn_quest_targets() -> void:
 
 
 func _refresh_quest_presentation() -> void:
+	QuestGuidance.clear()
 	var state_by_id: Dictionary = {}
 	for value: Variant in QuestApi.get_professor_quest_states():
 		var state: Dictionary = SafeTypeUtils.dict(value)
@@ -856,10 +909,20 @@ func _refresh_quest_presentation() -> void:
 		if step_kind in ["interact_with_world_target", "complete_encounter"]:
 			current_target_id = SafeTypeUtils.string(active_quest.get("current_target_id"))
 			break
+	if current_target_id.is_empty() and QuestGuidance.is_target_active("battle_settings"):
+		current_target_id = "practice_grounds"
 	for child: Node in quest_targets.get_children():
 		var target: QuestWorldTarget = child as QuestWorldTarget
 		if target != null:
 			target.set_current_objective(target.target_id == current_target_id)
+	for child: Node in buildings.get_children():
+		var building: WalkableAcademyBuilding = child as WalkableAcademyBuilding
+		if building != null:
+			building.set_current_objective(
+				building.destination_id == QuestGuidance.current_target_id()
+			)
+	_show_current_ui_guidance(QuestGuidance.current_target_id())
+	_refresh_objective_path(_world_guidance_target_id())
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
 	tracked_quest_banner.visible = not tracked_id.is_empty()
 	if tracked_id.is_empty():
@@ -873,6 +936,51 @@ func _refresh_quest_presentation() -> void:
 		tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
 		tracked_quest_button.tooltip_text = tracked_quest_button.text
 		return
+
+
+func _show_current_ui_guidance(target_id: String) -> void:
+	match target_id:
+		"journal": QuestGuidance.show_for(journal_button, target_id)
+		"summoner_profile": QuestGuidance.show_for(summoner_slot, target_id)
+		"inventory": QuestGuidance.show_for(inventory_button, target_id)
+		"spellbook": QuestGuidance.show_for(spellbook_button, target_id)
+		"settings": QuestGuidance.show_for(
+			tracked_quest_banner,
+			target_id,
+			"quest.guidance.press_escape"
+		)
+
+
+func _setup_objective_path_trail() -> void:
+	_objective_path_trail = ObjectivePathTrailScript.new() as ObjectivePathTrail
+	_objective_path_trail.name = "ObjectivePathTrail"
+	add_child(_objective_path_trail)
+	var obstacles: Array[Dictionary] = []
+	obstacles.append_array(AcademyCityGraybox.USABLE_BUILDINGS)
+	obstacles.append_array(AcademyCityGraybox.BACKGROUND_BUILDINGS)
+	_objective_path_trail.configure(player, obstacles)
+
+
+func _refresh_objective_path(target_id: String) -> void:
+	if _objective_path_trail == null:
+		return
+	var location: Dictionary = _world_location(StringName(target_id))
+	if not location.is_empty():
+		_objective_path_trail.set_target(location.get("travel_position"))
+		return
+	_objective_path_trail.set_target(_quest_target_position(target_id))
+
+
+func _world_guidance_target_id() -> String:
+	var active_target_id: String = QuestGuidance.current_target_id()
+	if active_target_id == "battle_settings":
+		return "practice_grounds"
+	if not active_target_id.is_empty():
+		return active_target_id
+	var general_state: Dictionary = QuestApi.get_npc_quest_state("general_magic")
+	if not SafeTypeUtils.array(general_state.get("opportunities")).is_empty():
+		return "general_magic"
+	return ""
 
 
 func _on_professor_interacted(professor_id: String) -> void:
@@ -1019,15 +1127,40 @@ func _on_dialogue_closed() -> void:
 		_dialog_turn_in_npc_id = ""
 		var result: Dictionary = QuestApi.record_npc_interaction(turn_in_npc_id)
 		if SafeTypeUtils.bool_val(result.get("completed"), false):
+			_show_showcase_complete_after_rewards = (
+				SafeTypeUtils.string(result.get("quest_id")) == UI_SHOWCASE_QUEST_ID
+			)
 			var summary: Dictionary = SafeTypeUtils.dict(result.get("completion_summary"))
 			var rewards: Array = SafeTypeUtils.array(summary.get("granted_rewards"))
 			if not rewards.is_empty():
 				reward_modal.present(rewards, Loc.t("academy.quest.complete"))
 				return
+			if _show_showcase_complete_after_rewards:
+				_show_showcase_complete_popup()
+				return
 	player.set_physics_process(true)
 
 
 func _on_reward_modal_closed() -> void:
+	if _show_showcase_complete_after_rewards:
+		_show_showcase_complete_popup()
+		return
+	player.set_physics_process(true)
+
+
+func _show_showcase_complete_popup() -> void:
+	_show_showcase_complete_after_rewards = false
+	if not UiTutorialMode.IsEnabled():
+		player.set_physics_process(true)
+		return
+	showcase_message_modal.present(
+		Loc.t("academy.quest.ui_showcase.complete_title"),
+		Loc.t("academy.quest.ui_showcase.complete_message"),
+		Loc.t("academy.quest.ui_showcase.complete_action")
+	)
+
+
+func _on_showcase_message_closed() -> void:
 	player.set_physics_process(true)
 
 
@@ -1035,11 +1168,26 @@ func _on_quest_world_target_interacted(target_id: String) -> void:
 	var result: Dictionary = QuestApi.record_world_interaction(target_id)
 	var step: Dictionary = SafeTypeUtils.dict(result.get("current_step"))
 	var encounter_id: String = SafeTypeUtils.string(step.get("encounter_id"))
+	if encounter_id.is_empty() and target_id == "practice_grounds":
+		encounter_id = _guided_battle_settings_encounter_id()
 	if encounter_id.is_empty():
 		return
 	BattleContext.select_encounter(encounter_id)
 	NavigationContext.push_return(SceneManager.SCENE_ACADEMY_CAMPUS)
 	SceneManager.transition_to(SceneManager.SCENE_ENCOUNTER_PREPARATION)
+
+
+func _guided_battle_settings_encounter_id() -> String:
+	var journal: Dictionary = QuestApi.get_journal_state()
+	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
+	for value: Variant in SafeTypeUtils.array(journal.get("active")):
+		var quest: Dictionary = SafeTypeUtils.dict(value)
+		if not tracked_id.is_empty() and SafeTypeUtils.string(quest.get("id")) != tracked_id:
+			continue
+		if SafeTypeUtils.string(quest.get("current_target_id")) != "battle_settings":
+			continue
+		return SafeTypeUtils.string(quest.get("current_encounter_id"))
+	return ""
 
 
 func _configure_professor(professor: InteractiveNpc, state: Dictionary) -> void:
@@ -1098,6 +1246,7 @@ func _accepted_lines_for_quest(professor_id: String, quest_id: String) -> Array[
 
 
 func _add_building(
+	destination_id: String,
 	display_name_key: String,
 	target_scene_path: String,
 	placeholder_texture: Texture2D,
@@ -1115,6 +1264,7 @@ func _add_building(
 		placeholder_texture,
 		camera
 	)
+	building.set_destination_id(destination_id)
 	buildings.add_child(building)
 
 

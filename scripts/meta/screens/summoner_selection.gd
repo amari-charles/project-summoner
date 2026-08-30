@@ -11,6 +11,7 @@ const _DeckConstants: GDScript = preload("res://scripts/infrastructure/data/deck
 
 ## Trait granted when player chooses the random summoner option
 const RANDOM_SUMMONER_TRAIT_ID: String = "trait_fortune_favors_the_bold"
+const REVIEW_STARTER_ITEM_ID: String = "item_training_blade"
 
 @onready var title_label: Label = $CenterContainer/VBoxContainer/TitleLabel
 @onready var select_button1: Button = %SelectButton1
@@ -93,6 +94,11 @@ func _on_summoner_selected(summoner_id: String) -> void:
 	# Create starter deck with summoner's starter card
 	_create_starter_deck(final_summoner_id)
 
+	if UiTutorialMode.IsEnabled():
+		# Give the showcase flow one real item so Inventory, item details, and
+		# equipment are meaningful on a brand-new review profile.
+		ItemsApi.grant_item_to_summoner(REVIEW_STARTER_ITEM_ID, final_summoner_id)
+
 	# Preserve the exact result for the character-focused confirmation screen.
 	NavigationContext.set_value(
 		SummonerReveal.NAV_KEY_REVEAL_RESULT,
@@ -124,6 +130,14 @@ func _create_starter_deck(summoner_id: String) -> void:
 	if card_instance_id.is_empty():
 		push_error("SummonerSelection: Failed to grant starter card '%s'" % starter_card_id)
 		return
+
+	if UiTutorialMode.IsEnabled():
+		# The review tour includes the real trait tree and confirmation before its
+		# first battle. Start at the first upgrade tier with one legitimate choice.
+		ProfileRepoApi.update_card_from_dict(card_instance_id, {
+			"level": 2,
+			"unspent_trait_points": 1,
+		})
 
 	# Create Starter Deck with the card
 	var card_ids: Array[String] = [card_instance_id]

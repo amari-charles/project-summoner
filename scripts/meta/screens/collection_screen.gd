@@ -30,6 +30,7 @@ signal closed()
 @onready var element_popup: PopupMenu = %ElementPopup
 @onready var sort_dropdown: OptionButton = %SortDropdown
 @onready var search_edit: LineEdit = %SearchEdit
+@onready var inspection_hint: Label = %InspectionHint
 
 ## Left panel - Shared deck editor
 @onready var deck_editor: DeckEditorPanel = %DeckEditorPanel
@@ -143,6 +144,7 @@ func _ready() -> void:
 
 	# Connect dialogs
 	new_deck_dialog.confirmed.connect(_on_new_deck_confirmed)
+	new_deck_dialog.visibility_changed.connect(_on_new_deck_dialog_visibility_changed)
 	confirm_delete_dialog.confirmed.connect(_on_delete_confirmed)
 	rename_dialog.confirmed.connect(_on_rename_confirmed)
 
@@ -167,6 +169,9 @@ func _ready() -> void:
 	deck_editor.add_card_requested.connect(_add_card_to_selected_deck)
 	deck_editor.remove_card_requested.connect(_remove_card_from_deck)
 	deck_editor.card_info_requested.connect(_open_card_detail_modal)
+	deck_editor.card_inspection_guidance_target_changed.connect(
+		_on_card_inspection_guidance_target_changed
+	)
 
 	# Connect to services
 	_connect_services()
@@ -180,11 +185,34 @@ func _ready() -> void:
 
 
 func open_collection(mode: String = "", summoner_id: String = "") -> void:
+	QuestApi.record_ui_surface_opened("spellbook")
+	QuestGuidance.clear()
 	_configure_open_mode(mode, summoner_id)
 	visible = true
 	_refresh_deck_list()
 	_refresh_deck_panel()
 	_refresh_collection()
+	call_deferred("_refresh_quest_guidance")
+
+
+func _refresh_quest_guidance() -> void:
+	if QuestGuidance.is_target_active("new_deck_dialog"):
+		inspection_hint.visible = false
+		deck_editor.set_card_inspection_guidance(false)
+		QuestGuidance.show_for(new_deck_button, "new_deck_dialog")
+		return
+	var show_inspection_guidance: bool = QuestGuidance.is_target_active("card_detail")
+	inspection_hint.visible = show_inspection_guidance
+	inspection_hint.text = Loc.t("ui.collection.showcase_inspect_hint")
+	deck_editor.set_card_inspection_guidance(show_inspection_guidance)
+
+
+func _on_card_inspection_guidance_target_changed(target: Control) -> void:
+	QuestGuidance.show_for(
+		target,
+		"card_detail",
+		"quest.guidance.right_click"
+	)
 
 
 func open_encounter_loadout(encounter_id: String) -> void:
@@ -562,6 +590,9 @@ func _on_new_deck_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	deck_name_input.text = ""
 	new_deck_dialog.popup_centered()
+	QuestApi.record_ui_surface_opened("new_deck_dialog")
+	QuestGuidance.clear()
+	QuestGuidance.show_for(new_deck_dialog.get_ok_button(), "card_detail")
 
 
 func _on_new_deck_confirmed() -> void:
@@ -572,6 +603,12 @@ func _on_new_deck_confirmed() -> void:
 
 	if Decks.has_method("CreateDeckFromDict"):
 		DecksApi.create_deck_from_dict(deck_name, [], "")
+	call_deferred("_refresh_quest_guidance")
+
+
+func _on_new_deck_dialog_visibility_changed() -> void:
+	if not new_deck_dialog.visible:
+		call_deferred("_refresh_quest_guidance")
 
 
 func _on_delete_confirmed() -> void:
@@ -914,6 +951,8 @@ func _add_card_to_selected_deck(card_instance_id: String) -> void:
 ## =============================================================================
 
 func _open_card_detail_modal(instance_id: String, catalog_id: String) -> void:
+	QuestApi.record_ui_surface_opened("card_detail")
+	QuestGuidance.clear()
 	var modal: Node = CardDetailModalScene.instantiate()
 	if not modal:
 		return
@@ -985,6 +1024,7 @@ func _toggle_encounter_card(card_instance_id: String) -> void:
 func _on_modal_closed(modal: Node) -> void:
 	if modal and is_instance_valid(modal):
 		modal.queue_free()
+	QuestGuidance.show_for(close_button, "shop")
 
 
 ## =============================================================================

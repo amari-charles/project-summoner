@@ -4,6 +4,7 @@ class_name DeckEditorPanel
 signal add_card_requested(instance_id: String)
 signal remove_card_requested(instance_id: String)
 signal card_info_requested(instance_id: String, catalog_id: String)
+signal card_inspection_guidance_target_changed(target: Control)
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 
@@ -31,6 +32,7 @@ var _locked_ids: Array[String] = []
 var _max_deck_size: int = DeckConstants.MAX_DECK_SIZE
 var _has_editable_deck: bool = false
 var _available_widgets_by_id: Dictionary = {}
+var _card_inspection_guidance_enabled: bool = false
 
 
 func _ready() -> void:
@@ -77,6 +79,37 @@ func dismiss_popup() -> void:
 	pass
 
 
+func get_first_card_control() -> Control:
+	if active_cards.get_child_count() > 0:
+		return active_cards.get_child(0) as Control
+	if available_cards.get_child_count() > 0:
+		return available_cards.get_child(0) as Control
+	return null
+
+
+func set_card_inspection_guidance(enabled: bool) -> void:
+	_card_inspection_guidance_enabled = enabled
+	_apply_card_inspection_guidance()
+
+
+func _apply_card_inspection_guidance() -> void:
+	for child: Node in active_cards.get_children():
+		if child is CardWidget:
+			(child as CardWidget).set_quest_highlighted(false)
+	for child: Node in available_cards.get_children():
+		if child is CardWidget:
+			(child as CardWidget).set_quest_highlighted(false)
+	if not _card_inspection_guidance_enabled:
+		return
+	var first_card: Control = get_first_card_control()
+	if first_card is CardWidget:
+		var widget: CardWidget = first_card as CardWidget
+		widget.set_quest_highlighted(true)
+		var exact_target: Control = widget.card_panel \
+			if is_instance_valid(widget.card_panel) else widget
+		card_inspection_guidance_target_changed.emit(exact_target)
+
+
 func _render_active_cards() -> void:
 	dismiss_popup()
 	_clear(active_cards)
@@ -90,6 +123,7 @@ func _render_active_cards() -> void:
 		if SafeTypeUtils.bool_val(entry.get("locked")):
 			_locked_ids.append(instance_id)
 		_add_widget(active_cards, entry, true)
+	call_deferred("_apply_card_inspection_guidance")
 
 
 func _render_available_cards(update_existing_widgets: bool) -> void:
@@ -120,6 +154,7 @@ func _render_available_cards(update_existing_widgets: bool) -> void:
 		if stale_widget and is_instance_valid(stale_widget):
 			available_cards.remove_child(stale_widget)
 			stale_widget.queue_free()
+	call_deferred("_apply_card_inspection_guidance")
 
 
 func _add_widget(parent: Control, entry: Dictionary, in_active_deck: bool) -> CardWidget:
@@ -260,4 +295,5 @@ func _on_card_dropped_to_remove(instance_id: String) -> void:
 
 func _clear(parent: Control) -> void:
 	for child: Node in parent.get_children():
+		parent.remove_child(child)
 		child.queue_free()

@@ -70,6 +70,8 @@ func _ready() -> void:
 
 
 func open_inventory(summoner_id: String) -> void:
+	QuestApi.record_ui_surface_opened("inventory")
+	QuestGuidance.clear()
 	_open(summoner_id, "")
 
 
@@ -108,9 +110,19 @@ func _open(summoner_id: String, slot_filter: String) -> void:
 func _refresh_grid() -> void:
 	var equipped: Dictionary = ItemsApi.get_equipped_items_dict(_summoner_id)
 	inventory_grid.set_context(_summoner_id, equipped, _slot_filter, _category_filter)
+	call_deferred("_refresh_quest_guidance")
+
+
+func _refresh_quest_guidance() -> void:
+	var first_item: Button = inventory_grid.get_first_item_button()
+	if first_item != null:
+		QuestGuidance.show_for(first_item, "inventory_item_detail")
 
 
 func _on_item_selected(item: Dictionary) -> void:
+	QuestApi.record_ui_surface_opened("inventory_item_detail")
+	QuestGuidance.clear()
+	QuestGuidance.show_for(detail_close_button, "spellbook")
 	_selected_item = item.duplicate()
 	item_detail_dimmer.visible = true
 	item_detail_modal.visible = true
@@ -179,6 +191,7 @@ func _reset_details() -> void:
 
 func _close_item_details() -> void:
 	_reset_details()
+	QuestGuidance.show_for(close_button, "spellbook")
 
 
 func _select_category(category: String) -> void:

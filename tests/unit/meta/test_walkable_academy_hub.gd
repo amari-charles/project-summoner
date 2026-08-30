@@ -203,8 +203,8 @@ func test_world_locations_are_physical_travel_points_and_ui_routes_stay_separate
 		assert_true(destination.has("position"))
 		assert_true(destination.has("travel_position"))
 		var position: Vector3 = destination["position"]
-		assert_true(absf(position.x) <= 13.0)
-		assert_true(absf(position.z) <= 11.0)
+		assert_true(absf(position.x) <= WalkableAcademyHub.CITY_GRAYBOX_SIZE.x * 0.5)
+		assert_true(absf(position.z) <= WalkableAcademyHub.CITY_GRAYBOX_SIZE.y * 0.5)
 		assert_true(destination.has("placeholder_texture"))
 		var placeholder_texture: Texture2D = destination["placeholder_texture"]
 		assert_not_null(placeholder_texture)
@@ -487,7 +487,37 @@ func test_quest_turn_in_opens_generic_reward_modal() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
 	assert_not_null(hub.get_node_or_null("Interface/RewardGrantModal"))
+	var message_modal: ShowcaseMessageModal = hub.get_node_or_null(
+		"Interface/ShowcaseMessageModal"
+	) as ShowcaseMessageModal
+	assert_not_null(message_modal)
+	assert_eq(message_modal.get_node("Center/Panel").custom_minimum_size, Vector2(860, 560))
+	assert_true(script_text.contains("_show_showcase_complete_popup"))
+	assert_true(script_text.contains("UI_SHOWCASE_QUEST_ID"))
+	assert_true(script_text.contains("_show_showcase_welcome_if_needed"))
+	assert_true(script_text.contains("UI_SHOWCASE_WELCOME_FLAG"))
 	hub.free()
+
+
+func test_showcase_message_modal_uses_a_high_contrast_readable_palette() -> void:
+	var packed_scene: PackedScene = load(
+		"res://scenes/meta/components/showcase_message_modal.tscn"
+	) as PackedScene
+	var modal: ShowcaseMessageModal = packed_scene.instantiate() as ShowcaseMessageModal
+	add_child_autofree(modal)
+	await get_tree().process_frame
+	modal.present("Welcome", "[b]Interact[/b] with Space or E.", "Begin Tour")
+
+	var panel_style: StyleBoxFlat = modal.panel.get_theme_stylebox("panel") as StyleBoxFlat
+	var button_style: StyleBoxFlat = (
+		modal.continue_button.get_theme_stylebox("normal") as StyleBoxFlat
+	)
+	assert_true(modal.visible)
+	assert_eq(panel_style.bg_color, Color("17140f"))
+	assert_eq(panel_style.border_color, Color("ffd45a"))
+	assert_eq(modal.message_label.get_theme_color("default_color"), Color("fffaf0"))
+	assert_eq(button_style.bg_color, Color("f4c84a"))
+	assert_eq(modal.continue_button.get_theme_color("font_color"), Color("211805"))
 
 
 func test_quest_offer_and_journal_share_the_same_detail_component() -> void:
@@ -664,83 +694,174 @@ func _read(path: String) -> String:
 	return contents
 
 
-func test_placeholder_ground_tile_scale_and_tint_are_configurable() -> void:
-	var ground_textures: Array[Texture2D] = [
-		WalkableAcademyHub.PLACEHOLDER_GROUND_CENTER,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_TOP_RIGHT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_RIGHT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM,
-		WalkableAcademyHub.PLACEHOLDER_GROUND_BOTTOM_RIGHT,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE,
-		WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT,
-	]
-	for texture: Texture2D in ground_textures:
-		assert_eq(texture.get_size(), Vector2(64.0, 64.0), "Ground regions must share the source pack's 64px grid")
-
+func test_city_graybox_replaces_the_placeholder_island_when_enabled() -> void:
 	var packed_scene: PackedScene = load(HUB_SCENE_PATH) as PackedScene
 	var hub: WalkableAcademyHub = packed_scene.instantiate() as WalkableAcademyHub
-	hub.ground_tile_world_size = 9.0
-	hub.ground_tint = Color(0.5, 0.6, 0.7, 1.0)
 	add_child_autofree(hub)
 	await get_tree().process_frame
 
 	var ground: MeshInstance3D = hub.get_node("Ground") as MeshInstance3D
 	var ground_plane: PlaneMesh = ground.mesh as PlaneMesh
 	var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
-	assert_almost_eq(ground_material.uv1_scale.x, ground_plane.size.x / 9.0, 0.0001)
-	assert_almost_eq(ground_material.uv1_scale.y, ground_plane.size.y / 9.0, 0.0001)
-	assert_eq(ground_material.albedo_color, hub.ground_tint)
-	assert_eq(ground_material.transparency, BaseMaterial3D.TRANSPARENCY_DISABLED)
-	assert_eq(ground.get_child_count(), 11, "The ground should include its perimeter and one front cliff row")
-	assert_eq(ground_plane.size.x, 6.0 * hub.ground_tile_world_size)
-	assert_eq(ground_plane.size.y, 3.0 * hub.ground_tile_world_size)
-	var top_edge: MeshInstance3D = ground.get_node_or_null("TopEdge") as MeshInstance3D
-	assert_not_null(top_edge)
-	var top_edge_material: StandardMaterial3D = top_edge.material_override as StandardMaterial3D
-	assert_eq(top_edge_material.transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
-	assert_not_null(ground.get_node_or_null("BottomRightCorner"))
-	var cliff_middle: MeshInstance3D = ground.get_node_or_null("FrontCliffCenter") as MeshInstance3D
-	var cliff_left: MeshInstance3D = ground.get_node_or_null("FrontCliffLeft") as MeshInstance3D
-	var cliff_right: MeshInstance3D = ground.get_node_or_null("FrontCliffRight") as MeshInstance3D
-	assert_not_null(cliff_middle)
-	assert_not_null(cliff_left)
-	assert_not_null(cliff_right)
-	assert_true(cliff_middle.mesh is QuadMesh, "The illustrated stone should retain its vertical presentation")
-	assert_lt(cliff_middle.position.y, 0.0)
-	var bottom_edge: MeshInstance3D = ground.get_node("BottomEdge") as MeshInstance3D
-	var bottom_edge_plane: PlaneMesh = bottom_edge.mesh as PlaneMesh
-	var grass_front: float = bottom_edge.position.z + bottom_edge_plane.size.y * 0.5
-	assert_almost_eq(cliff_middle.position.z, grass_front, 0.0001, "The cliff must hang directly beneath the front grass edge")
-	assert_eq((cliff_left.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_LEFT)
-	assert_eq((cliff_right.material_override as StandardMaterial3D).albedo_texture, WalkableAcademyHub.PLACEHOLDER_CLIFF_MIDDLE_RIGHT)
-	assert_null(ground.get_node_or_null("CliffBottomCenter"))
-	var water_surface: MeshInstance3D = hub.get_node("PlaceholderWater/Surface") as MeshInstance3D
-	var water_material: StandardMaterial3D = water_surface.material_override as StandardMaterial3D
-	assert_eq(water_material.albedo_texture, WalkableAcademyHub.PLACEHOLDER_WATER_BACKGROUND)
-	assert_eq(water_material.albedo_color, hub.water_tint)
-	assert_lt(water_surface.position.y, cliff_middle.position.y)
-	var foam: Node3D = hub.get_node("PlaceholderWater/Foam") as Node3D
-	assert_eq(foam.get_child_count(), 22, "Every shoreline cell should receive one foam animation")
-	var foam_piece: MeshInstance3D = foam.get_child(0) as MeshInstance3D
-	var foam_mesh: PlaneMesh = foam_piece.mesh as PlaneMesh
-	assert_eq(
-		foam_mesh.size,
-		Vector2.ONE * hub.ground_tile_world_size * WalkableAcademyHub.WATER_FOAM_TILE_SPAN
+	assert_true(WalkableAcademyHub.CITY_GRAYBOX_ENABLED)
+	assert_eq(ground_plane.size, WalkableAcademyHub.CITY_GRAYBOX_SIZE)
+	assert_eq(ground_material.albedo_color, Color(0.34, 0.34, 0.36, 1.0))
+	assert_null(ground_material.albedo_texture)
+	assert_eq(ground_material.shading_mode, BaseMaterial3D.SHADING_MODE_UNSHADED)
+	assert_false(hub.get_node("PlaceholderWater").visible)
+	assert_false(hub.get_node("PlaceholderCrowd").visible)
+	assert_false(hub.get_node("PlaceholderScenery").visible)
+
+	var city_graybox: AcademyCityGraybox = hub.get_node("CityGraybox") as AcademyCityGraybox
+	assert_not_null(city_graybox)
+	assert_not_null(city_graybox.get_node_or_null("CampusShop"))
+	assert_true(city_graybox.get_node("CampusShop").get_meta("usable"))
+	assert_not_null(city_graybox.get_node_or_null("WestResidences"))
+	assert_false(city_graybox.get_node("WestResidences").get_meta("usable"))
+	assert_eq(hub.buildings.get_child_count(), WalkableAcademyHub.WORLD_LOCATIONS.size())
+
+
+func test_showcase_surfaces_publish_generic_quest_progress_events() -> void:
+	var expected_calls: Dictionary = {
+		"res://scripts/meta/screens/quest_journal.gd": "journal",
+		"res://scripts/meta/screens/summoner_screen.gd": "summoner_profile",
+		"res://scripts/meta/screens/summoner_switch_screen.gd": "summoner_switch",
+		"res://scripts/meta/components/inventory_overlay.gd": "inventory_item_detail",
+		"res://scripts/meta/screens/collection_screen.gd": "card_detail",
+		"res://scripts/meta/components/trait_development_overlay.gd": "trait_development",
+		"res://scripts/meta/screens/shop_screen.gd": "shop_item_detail",
+		"res://scripts/meta/components/campus_system_menu.gd": "settings",
+		"res://scripts/battle/ui/pause_menu.gd": "battle_settings",
+	}
+	for path: String in expected_calls:
+		var source: String = FileAccess.get_file_as_string(path)
+		assert_true(source.contains(
+			'QuestApi.record_ui_surface_opened("%s")' % expected_calls[path]
+		))
+
+
+func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
+	var indicator_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/quest_objective_indicator.gd"
 	)
-	var foam_material: ShaderMaterial = foam_piece.material_override as ShaderMaterial
-	assert_eq(foam_material.get_shader_parameter("foam_texture"), WalkableAcademyHub.PLACEHOLDER_WATER_FOAM)
-	var next_foam_piece: MeshInstance3D = foam.get_child(1) as MeshInstance3D
-	var next_foam_material: ShaderMaterial = next_foam_piece.material_override as ShaderMaterial
-	assert_ne(
-		foam_material.get_shader_parameter("animation_offset"),
-		next_foam_material.get_shader_parameter("animation_offset"),
-		"Neighboring foam animations should start on different frames"
+	assert_true(indicator_source.contains("draw_style_box"))
+	assert_true(indicator_source.contains("draw_colored_polygon"))
+	assert_true(indicator_source.contains("action_text"))
+	var guidance_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/quest_guidance.gd"
 	)
+	assert_true(guidance_source.contains('"quest.guidance.click"'))
+	var deck_editor_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/deck_editor_panel.gd"
+	)
+	assert_true(deck_editor_source.contains("set_card_inspection_guidance"))
+	assert_true(deck_editor_source.contains("set_quest_highlighted(true)"))
+	var collection_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/collection_screen.gd"
+	)
+	assert_true(collection_source.contains("showcase_inspect_hint"))
+	assert_true(collection_source.contains('"quest.guidance.right_click"'))
+	assert_true(collection_source.contains('"new_deck_dialog"'))
+	var trait_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/trait_development_overlay.gd"
+	)
+	assert_true(trait_source.contains('"trait_node_detail"'))
+	assert_true(trait_source.contains('"trait_confirmation"'))
+	var quest_source: String = FileAccess.get_file_as_string(
+		"res://data/quests/quests.json"
+	)
+	assert_false(quest_source.contains('"target_id": "online"'))
+
+	var hub_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/walkable_academy_hub.gd"
+	)
+	for target_id: String in ["journal", "summoner_profile", "inventory", "spellbook", "settings"]:
+		assert_true(hub_source.contains('"%s": QuestGuidance.show_for' % target_id))
+	assert_true(hub_source.contains("building.set_current_objective"))
+
+	var guided_sources: Array[String] = [
+		"res://scripts/meta/components/inventory_overlay.gd",
+		"res://scripts/meta/screens/collection_screen.gd",
+		"res://scripts/meta/modals/card_detail_modal.gd",
+		"res://scripts/meta/screens/shop_screen.gd",
+		"res://scripts/meta/components/campus_system_menu.gd",
+	]
+	for path: String in guided_sources:
+		assert_true(FileAccess.get_file_as_string(path).contains("QuestGuidance"), path)
+	assert_true(hub_source.contains("ObjectivePathTrail"))
+	assert_true(hub_source.contains("_refresh_objective_path"))
+	assert_true(hub_source.contains("_world_guidance_target_id"))
+
+
+func test_objective_path_trail_routes_around_building_footprints() -> void:
+	var trail := ObjectivePathTrail.new()
+	var player := Node3D.new()
+	var obstacles: Array[Dictionary] = [{
+		"position": Vector3.ZERO,
+		"size": Vector3(8.0, 4.0, 8.0),
+	}]
+	trail.configure(player, obstacles)
+	var route: PackedVector3Array = trail.build_route(
+		Vector3(-14.0, 0.0, 0.0),
+		Vector3(14.0, 0.0, 0.0)
+	)
+	assert_gt(route.size(), 2)
+	var routed_around_obstacle: bool = false
+	for point: Vector3 in route:
+		assert_false(absf(point.x) <= 5.5 and absf(point.z) <= 5.5)
+		if absf(point.z) > 5.5:
+			routed_around_obstacle = true
+	assert_true(routed_around_obstacle)
+	trail.free()
+	player.free()
+
+
+func test_objective_path_trail_builds_visible_layered_wisps() -> void:
+	var trail := ObjectivePathTrail.new()
+	var player := Node3D.new()
+	add_child_autofree(player)
+	add_child_autofree(trail)
+	trail.configure(player, [])
+	trail.set_target(Vector3(20.0, 0.0, 0.0))
+
+	assert_gt(trail.get_child_count(), 0)
+	var first_wisp: Node3D = trail.get_child(0) as Node3D
+	assert_true(first_wisp.visible)
+	assert_not_null(first_wisp.get_node_or_null("Halo"))
+	assert_not_null(first_wisp.get_node_or_null("Core"))
+	assert_not_null(first_wisp.get_node_or_null("Sparkle"))
+
+
+func test_ui_tutorial_mode_owns_muted_default_and_layered_white_wisps() -> void:
+	var export_presets_source: String = FileAccess.get_file_as_string(
+		"res://export_presets.cfg"
+	)
+	assert_true(export_presets_source.contains('name="UI Designer Review"'))
+	assert_true(export_presets_source.contains('custom_features="ui_tutorial"'))
+
+	var audio_source: String = FileAccess.get_file_as_string(
+		"res://scripts/infrastructure/audio_manager.gd"
+	)
+	assert_true(audio_source.contains('settings.get("master_volume", 1.0), 1.0'))
+	assert_false(audio_source.contains("MUSIC_ENABLED"))
+	var settings_source: String = FileAccess.get_file_as_string(
+		"res://scripts/infrastructure/game_settings.gd"
+	)
+	assert_true(settings_source.contains('"master_volume": 1.0'))
+	var profile_source: String = FileAccess.get_file_as_string(
+		"res://scripts/csharp/Infrastructure/Persistence/ProfileRepository.cs"
+	)
+	assert_true(profile_source.contains(
+		"UiTutorialModeService.EnabledForCurrentRun ? 0.0f : 1.0f"
+	))
+
+	var trail_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/objective_path_trail.gd"
+	)
+	assert_true(trail_source.contains("WISP_CORE_COLOR"))
+	assert_true(trail_source.contains('"Halo"'))
+	assert_true(trail_source.contains('"Core"'))
+	assert_true(trail_source.contains('"Sparkle"'))
 
 
 func test_walkable_controls_are_project_actions() -> void:
@@ -774,6 +895,12 @@ func test_campus_system_menu_pauses_and_reuses_shared_settings() -> void:
 	assert_not_null(menu.get_node(
 		"SettingsOverlay/SettingsCenter/SettingsLayout/SettingsPanel"
 	) as SettingsPanel)
+	var restart_button: Button = menu.get_node(
+		"MenuCenter/MenuPanel/Margin/Buttons/RestartButton"
+	) as Button
+	assert_not_null(restart_button)
+	assert_false(restart_button.visible)
+	assert_not_null(menu.get_node("RestartConfirmation"))
 	menu.open_settings()
 	assert_true(menu.settings_overlay.visible)
 	assert_false(menu.menu_center.visible)

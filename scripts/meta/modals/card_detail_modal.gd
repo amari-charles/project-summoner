@@ -55,6 +55,7 @@ func _ready() -> void:
 	close_button.pressed.connect(_close)
 	deck_action_button.pressed.connect(_on_deck_action_pressed)
 	trait_development_overlay.trait_acquired.connect(_on_trait_acquired)
+	trait_development_overlay.closed.connect(_on_trait_development_closed)
 	stats_container.columns = 2
 	stats_section.gui_input.connect(_on_stats_section_input)
 	stats_section.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -89,6 +90,18 @@ func open_for_card(instance_id: String, catalog_id: String) -> void:
 	_update_deck_action_button()
 
 	show()
+	call_deferred("_refresh_quest_guidance")
+
+
+func _refresh_quest_guidance() -> void:
+	for child: Node in traits_container.get_children():
+		if child is Button:
+			QuestGuidance.show_for(child as Button, "trait_development")
+			return
+
+
+func _on_trait_development_closed() -> void:
+	QuestGuidance.show_for(close_button, "shop")
 
 ## Set deck context for the modal (call after open_for_card if deck actions needed)
 func set_deck_context(deck_id: String, card_in_deck: bool) -> void:

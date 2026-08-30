@@ -349,6 +349,8 @@ func _apply_sound_effects_switch() -> void:
 		AudioServer.set_bus_mute(_sfx_bus_idx, not SOUND_EFFECTS_ENABLED)
 
 
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and _mute_when_unfocused:
 		AudioServer.set_bus_mute(AudioServer.get_bus_index(BUS_MASTER), true)

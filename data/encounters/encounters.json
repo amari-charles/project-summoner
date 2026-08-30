@@ -5,6 +5,7 @@
       "name_key": "academy.activity.magic_101_summon_practice",
       "execution_kind": "battle",
       "role": "practice",
+      "progression_battle_id": "intro_summoning_practice",
       "battle_config": {
         "biome": "island_water",
         "enemy_deck": [],
@@ -129,13 +130,8 @@
         }
       },
       "loadout": {
-        "mode": "fixed",
-        "supplied_cards": [
-          {
-            "card_id": "neutral_starter_unit",
-            "count": 2
-          }
-        ],
+        "mode": "owned",
+        "supplied_cards": [],
         "rules": {
           "allowed_card_types": [],
           "allowed_elements": [],

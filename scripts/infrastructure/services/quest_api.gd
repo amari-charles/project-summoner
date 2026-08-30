@@ -16,6 +16,9 @@ static func record_world_interaction(target_id: String) -> Dictionary:
 static func record_npc_interaction(npc_id: String) -> Dictionary:
 	return SafeTypeUtils.dict(Quests.call("RecordNpcInteraction", npc_id))
 
+static func record_ui_surface_opened(surface_id: String) -> Dictionary:
+	return SafeTypeUtils.dict(Quests.call("RecordUiSurfaceOpened", surface_id))
+
 static func get_professor_quest_states() -> Array:
 	return SafeTypeUtils.array(Quests.call("GetProfessorQuestStates"))
 

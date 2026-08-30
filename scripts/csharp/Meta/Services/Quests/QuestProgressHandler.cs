@@ -21,13 +21,16 @@ public sealed class QuestProgressHandler
         IProfileRepository profileRepo,
         Func<SummonerId> getActiveSummoner,
         QuestRewardProcessor rewards,
-        IReadOnlyList<QuestDefinition>? catalog = null
+        IReadOnlyList<QuestDefinition>? catalog = null,
+        string runtimeMode = QuestRuntimeModes.Normal
     )
     {
         _profileRepo = profileRepo;
         _getActiveSummoner = getActiveSummoner;
         _rewards = rewards;
-        _catalog = catalog ?? QuestCatalog.All;
+        _catalog = (catalog ?? QuestCatalog.All)
+            .Where(quest => QuestCatalog.IsAvailableInRuntimeMode(quest, runtimeMode))
+            .ToArray();
     }
 
     public bool Accept(string questId)
@@ -87,6 +90,14 @@ public sealed class QuestProgressHandler
                 && string.Equals(step.EncounterId, encounterId, StringComparison.Ordinal)
                 && string.Equals(step.RequiredOutcome, outcome, StringComparison.OrdinalIgnoreCase),
             "encounter_completed"
+        );
+
+    public Dictionary RecordUiSurfaceOpened(string surfaceId) =>
+        AdvanceMatchingStep(
+            step =>
+                step.Kind == QuestStepKind.OpenUiSurface
+                && string.Equals(step.TargetId, surfaceId, StringComparison.Ordinal),
+            "ui_surface_opened"
         );
 
     public Dictionary GetJournalState()

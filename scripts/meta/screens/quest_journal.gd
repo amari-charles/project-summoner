@@ -52,8 +52,11 @@ func _ready() -> void:
 
 
 func open_journal() -> void:
+	QuestApi.record_ui_surface_opened("journal")
+	QuestGuidance.clear()
 	visible = true
 	_refresh()
+	QuestGuidance.show_for(back_button, "summoner_profile")
 
 
 func _refresh() -> void:

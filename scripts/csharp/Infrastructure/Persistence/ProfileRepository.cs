@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fateforged.Application.UiTutorial;
 using Fateforged.Cards;
 using Fateforged.Data.Summoners;
 using Fateforged.Domain.Profile;
@@ -953,6 +954,17 @@ public partial class ProfileRepository
             update.SelectedSummoner = metaDict["selected_summoner"].AsString();
         if (metaDict.ContainsKey("analytics_opt_in"))
             update.AnalyticsOptIn = metaDict["analytics_opt_in"].AsBool();
+        if (
+            metaDict.ContainsKey("tutorial_flags")
+            && metaDict["tutorial_flags"].VariantType == Variant.Type.Dictionary
+        )
+        {
+            update.TutorialFlags = [];
+            foreach (var key in metaDict["tutorial_flags"].AsGodotDictionary().Keys)
+                update.TutorialFlags[key.AsString()] = metaDict["tutorial_flags"]
+                    .AsGodotDictionary()[key]
+                    .AsBool();
+        }
         UpdateProfileMeta(update);
     }
 
@@ -1360,6 +1372,7 @@ public partial class ProfileRepository
             },
             Settings = new Settings
             {
+                MasterVolume = UiTutorialModeService.EnabledForCurrentRun ? 0.0f : 1.0f,
                 SfxVolume = 1.0f,
                 MusicVolume = 1.0f,
                 Lang = "en",

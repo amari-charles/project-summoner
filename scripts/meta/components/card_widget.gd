@@ -36,6 +36,7 @@ var hover_tween: Tween = null
 var _hidden_for_drag: bool = false
 var _drag_in_progress: bool = false
 var _display_size_explicitly_set: bool = false
+var _quest_highlighted: bool = false
 
 ## Node references - Card visual
 @onready var card_panel: PanelContainer = %CardPanel
@@ -164,12 +165,18 @@ func _update_theme() -> void:
 	# Create theme with element-colored border for the card panel
 	if card_panel:
 		var style: StyleBoxFlat = StyleBoxFlat.new()
-		style.bg_color = GameColorPalette.UI_SURFACE_ALT
-		style.border_width_left = border_width
-		style.border_width_top = border_width
-		style.border_width_right = border_width
-		style.border_width_bottom = border_width
-		style.border_color = element_color
+		style.bg_color = Color(0.23, 0.19, 0.07, 1.0) \
+			if _quest_highlighted else GameColorPalette.UI_SURFACE_ALT
+		var active_border_width: int = 8 if _quest_highlighted else border_width
+		style.border_width_left = active_border_width
+		style.border_width_top = active_border_width
+		style.border_width_right = active_border_width
+		style.border_width_bottom = active_border_width
+		style.border_color = Color(1.0, 0.78, 0.16, 1.0) \
+			if _quest_highlighted else element_color
+		if _quest_highlighted:
+			style.shadow_color = Color(1.0, 0.78, 0.16, 0.9)
+			style.shadow_size = 18
 		style.set_corner_radius_all(corner_radius)
 		style.anti_aliasing = true
 		style.anti_aliasing_size = 1
@@ -187,6 +194,11 @@ func _update_theme() -> void:
 		badge_style.anti_aliasing = true
 		badge_style.anti_aliasing_size = 1
 		element_badge.add_theme_stylebox_override("panel", badge_style)
+
+
+func set_quest_highlighted(value: bool) -> void:
+	_quest_highlighted = value
+	_update_theme()
 
 func _update_in_deck_visual() -> void:
 	if in_deck_badge:

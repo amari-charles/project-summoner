@@ -18,6 +18,14 @@ public static class QuestCatalog
     public static QuestDefinition? Find(string id) =>
         All.FirstOrDefault(quest => string.Equals(quest.Id, id, StringComparison.Ordinal));
 
+    public static IReadOnlyList<QuestDefinition> ForRuntimeMode(string runtimeMode) =>
+        All.Where(quest => IsAvailableInRuntimeMode(quest, runtimeMode)).ToArray();
+
+    public static bool IsAvailableInRuntimeMode(
+        QuestDefinition quest,
+        string runtimeMode
+    ) => quest.RuntimeModes.IsDefaultOrEmpty || quest.RuntimeModes.Contains(runtimeMode);
+
     private static IReadOnlyList<QuestDefinition> Load()
     {
         var path = ResolveCatalogPath();
@@ -67,6 +75,13 @@ public static class QuestCatalog
                 errors.Add($"Quest '{quest.Id}' requires a source ID.");
             if (quest.Steps.IsDefaultOrEmpty)
                 errors.Add($"Quest '{quest.Id}' requires at least one step.");
+            foreach (var runtimeMode in quest.RuntimeModes)
+            {
+                if (!QuestRuntimeModes.IsKnown(runtimeMode))
+                    errors.Add(
+                        $"Quest '{quest.Id}' references unknown runtime mode '{runtimeMode}'."
+                    );
+            }
 
             foreach (var prerequisiteId in quest.PrerequisiteQuestIds)
             {
@@ -101,7 +116,10 @@ public static class QuestCatalog
                 )
                     errors.Add($"Quest '{quest.Id}' contains an incomplete step.");
                 if (
-                    step.Kind is QuestStepKind.TalkToNpc or QuestStepKind.InteractWithWorldTarget
+                    step.Kind
+                        is QuestStepKind.TalkToNpc
+                            or QuestStepKind.InteractWithWorldTarget
+                            or QuestStepKind.OpenUiSurface
                     && string.IsNullOrWhiteSpace(step.TargetId)
                 )
                     errors.Add($"Quest '{quest.Id}' step '{step.Id}' requires a target ID.");

@@ -18,6 +18,8 @@ func test_preparation_uses_generic_encounter_contracts() -> void:
 	assert_true(script_text.contains("EncounterApi.get_preparation_state"))
 	assert_true(script_text.contains("EncounterApi.resolve_battle_config"))
 	assert_true(script_text.contains("configure_encounter_battle"))
+	assert_true(script_text.contains("ProgressionAuthority.StartBattleAttempt"))
+	assert_true(script_text.contains("progression_battle_id"))
 	assert_true(collection_script.contains("EncounterApi.update_loadout"))
 	assert_true(collection_script.contains("EncounterApi.fill_loadout_from_deck"))
 	assert_true(script_text.contains("EncounterApi.save_loadout_to_deck"))
@@ -26,7 +28,33 @@ func test_preparation_uses_generic_encounter_contracts() -> void:
 	assert_not_null(preparation.find_child("ModalPanel", true, false))
 	assert_not_null(preparation.find_child("CollectionOverlay", true, false))
 	assert_not_null(preparation.find_child("StartButton", true, false))
+	assert_true(script_text.contains('QuestGuidance.show_for(start_button, "battle_settings")'))
 	preparation.free()
+
+
+func test_battle_pause_settings_advances_and_guides_the_showcase() -> void:
+	var pause_button_source: String = _read("res://scripts/battle/ui/pause_button.gd")
+	var pause_menu_source: String = _read("res://scripts/battle/ui/pause_menu.gd")
+	assert_true(pause_button_source.contains('QuestGuidance.show_for(self, "battle_settings")'))
+	assert_true(pause_menu_source.contains(
+		'QuestApi.record_ui_surface_opened("battle_settings")'
+	))
+	assert_true(pause_menu_source.contains(
+		'QuestGuidance.show_for(settings_button, "battle_settings")'
+	))
+	var hub_source: String = _read("res://scripts/meta/screens/walkable_academy_hub.gd")
+	assert_true(hub_source.contains("_guided_battle_settings_encounter_id"))
+	assert_true(hub_source.contains(
+		'if active_target_id == "battle_settings":'
+	))
+
+
+func test_encounter_results_read_authoritative_progression_when_configured() -> void:
+	var results_script: String = _read("res://scripts/meta/screens/post_battle_results.gd")
+	var battle_script: String = _read("res://scripts/csharp/Battle/View/BattleScene.cs")
+	assert_true(results_script.contains("ProgressionAuthority.GetBattleRewards"))
+	assert_true(results_script.contains("PostBattleReport.from_authored_battle_result"))
+	assert_true(battle_script.contains("BattleMode.Encounter && _config.BattleAttemptId.HasValue"))
 
 
 func test_preparation_reuses_collection_overlay_for_deck_editing() -> void:

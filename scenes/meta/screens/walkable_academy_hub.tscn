@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_hub.gd" id="1_hub_script"]
 [ext_resource type="Script" path="res://scripts/meta/screens/walkable_academy_player.gd" id="2_player_script"]
@@ -19,6 +19,8 @@
 [ext_resource type="PackedScene" path="res://scenes/meta/screens/summoner_screen.tscn" id="17_summoner_profile"]
 [ext_resource type="PackedScene" path="res://scenes/meta/screens/collection_screen.tscn" id="18_collection_overlay"]
 [ext_resource type="PackedScene" path="res://scenes/meta/screens/quest_journal.tscn" id="19_journal_overlay"]
+[ext_resource type="Script" path="res://scripts/meta/components/academy_city_graybox.gd" id="20_city_graybox"]
+[ext_resource type="PackedScene" path="res://scenes/meta/components/showcase_message_modal.tscn" id="21_showcase_message"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 shading_mode = 0
@@ -28,20 +30,20 @@ texture_filter = 2
 uv1_scale = Vector3(16, 10.2222, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(72, 46)
+size = Vector2(160, 120)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_player"]
 size = Vector3(1.4, 2.4, 1.0)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_horizontal_boundary"]
-size = Vector3(76, 5, 2)
+size = Vector3(164, 5, 2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_vertical_boundary"]
-size = Vector3(2, 5, 50)
+size = Vector3(2, 5, 124)
 
 [sub_resource type="Environment" id="Environment_walkable_hub"]
 background_mode = 1
-background_color = Color(0.278431, 0.670588, 0.662745, 1)
+background_color = Color(0.16, 0.16, 0.18, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.7
@@ -95,16 +97,22 @@ unique_name_in_owner = true
 [node name="QuestTargets" type="Node3D" parent="."]
 unique_name_in_owner = true
 
+[node name="CityGraybox" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("20_city_graybox")
+
 [node name="PlaceholderCrowd" type="Node3D" parent="."]
+visible = false
 script = ExtResource("4_placeholder_crowd")
 
 [node name="PlaceholderScenery" type="Node3D" parent="."]
+visible = false
 script = ExtResource("6_placeholder_scenery")
 
 [node name="Boundaries" type="Node3D" parent="."]
 
 [node name="Top" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -62)
 collision_layer = 4
 collision_mask = 0
 
@@ -112,7 +120,7 @@ collision_mask = 0
 shape = SubResource("BoxShape3D_horizontal_boundary")
 
 [node name="Bottom" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 62)
 collision_layer = 4
 collision_mask = 0
 
@@ -120,7 +128,7 @@ collision_mask = 0
 shape = SubResource("BoxShape3D_horizontal_boundary")
 
 [node name="Left" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38, 2.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -82, 2.5, 0)
 collision_layer = 4
 collision_mask = 0
 
@@ -128,7 +136,7 @@ collision_mask = 0
 shape = SubResource("BoxShape3D_vertical_boundary")
 
 [node name="Right" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 2.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 82, 2.5, 0)
 collision_layer = 4
 collision_mask = 0
 
@@ -137,7 +145,7 @@ shape = SubResource("BoxShape3D_vertical_boundary")
 
 [node name="Player" type="CharacterBody3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 53)
 collision_layer = 1
 collision_mask = 4
 script = ExtResource("2_player_script")
@@ -320,6 +328,9 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 
 [node name="RewardGrantModal" parent="Interface" instance=ExtResource("12_reward_modal")]
+unique_name_in_owner = true
+
+[node name="ShowcaseMessageModal" parent="Interface" instance=ExtResource("21_showcase_message")]
 unique_name_in_owner = true
 
 [node name="QuestOfferModal" parent="Interface" instance=ExtResource("13_quest_offer_modal")]

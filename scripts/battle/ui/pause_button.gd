@@ -25,6 +25,7 @@ func _exit_tree() -> void:
 func _find_game_controller() -> void:
 	game_controller = get_tree().get_first_node_in_group(GroupIDs.GAME_CONTROLLER)
 	battle_menu = get_node_or_null("../PauseMenu") as PauseMenu
+	QuestGuidance.show_for(self, "battle_settings")
 
 	if not game_controller:
 		push_error("PauseButton: Could not find game controller")

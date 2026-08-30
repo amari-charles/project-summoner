@@ -10,6 +10,7 @@
     },
     "walkable": {
       "placeholder_ground": "TEMP ACADEMY GROUND",
+      "city_graybox": "TEMP ACADEMY CITY GRAYBOX",
       "placeholder_player": "PLACEHOLDER PLAYER",
       "placeholder_building": "PLACEHOLDER {name}",
       "open_travel": "Travel",
@@ -103,6 +104,16 @@
         "name": "Introduction to Magic 101",
         "description": "Core battle flow, basic summoning, and basic spellcasting."
       },
+      "ui_showcase": {
+        "name": "Academy Orientation — UI Showcase",
+        "description": "A temporary guided tour of the current interface, campus, battle, progression, and reward flows.",
+        "welcome_title": "Welcome to the Academy",
+        "welcome_message": "[b]Move[/b] with WASD or the arrow keys.\n\n[b]Interact[/b] with professors, buildings, and marked objectives using Space or E.\n\n[b]Inspect cards[/b] with right-click when prompted.\n\n[b]Open the menu[/b] with Escape.\n\nFollow the glowing path and yellow markers; you do not need to hunt through the interface.",
+        "welcome_action": "Begin Tour",
+        "complete_title": "UI Showcase Complete",
+        "complete_message": "[b]The guided interface tour is complete.[/b]\n\nYou have reached the end of the review path. You may now revisit any screen or explore the Academy freely.",
+        "complete_action": "Finish Tour"
+      },
       "summoning_basics": {
         "name": "Summoning Basics",
         "description": "Early unit and conjuration fundamentals."
@@ -113,6 +124,13 @@
       }
     },
     "dialogue": {
+      "ui_showcase": {
+        "offer_1": "Before we begin formal lessons, I want you to learn where the Academy keeps the tools every summoner relies on.",
+        "offer_2": "Review your records and equipment, prepare your spellbook, visit the campus services, and then meet me at the practice grounds.",
+        "accept_response": "Show me around. I am ready to begin the orientation.",
+        "accepted": "Start with your Journal. Its tracked assignment will guide you through each stop.",
+        "turn_in": "Good. You have seen the full rhythm: prepare, fight, grow, and return. The rest of the Academy can wait for another day."
+      },
       "introduction_to_magic": {
         "offer_1": "You do not need to know what kind of summoner you are yet. That is what your first year is for.",
         "offer_2": "Let us begin somewhere simple. Call a creature, keep it under control, and show me how you respond when the field changes.",
@@ -184,6 +202,8 @@
       "none": "None",
       "reward": "Reward",
       "rewards": "Rewards: {rewards}",
+      "summoner_xp_reward": "Summoner XP +{amount}",
+      "card_xp_reward": "Each participating card +{amount} XP",
       "no_special_rules": "No special deck rules",
       "rules": "Rules: {rules}",
       "rewards_visible": "{count} visible offer(s)",
@@ -523,7 +543,8 @@
       "new_deck_default": "New Deck",
       "deck_card_remove_tooltip": "Drag out or double-click to remove",
       "deck_card_inspect_tooltip": "Left-click to add or remove • Right-click or hold to inspect",
-      "card_inspect_tooltip": "Click or hold to inspect"
+      "card_inspect_tooltip": "Click or hold to inspect",
+      "showcase_inspect_hint": "RIGHT-CLICK THE YELLOW CARD TO INSPECT"
     },
     "trait_tree": {
       "title_summoner": "Trait Tree",
@@ -743,6 +764,9 @@
       "title": "SYSTEM MENU",
       "resume": "Resume",
       "settings": "Settings",
+      "restart_showcase": "Restart UI Showcase",
+      "restart_showcase_confirm_title": "Restart the UI showcase?",
+      "restart_showcase_confirm_message": "This clears the current review profile and returns to summoner selection.",
       "quit_game": "Quit Game",
       "back_to_menu": "Back to Menu",
       "quit_confirm_title": "Quit Fateforged?",
@@ -1665,12 +1689,38 @@
     }
   },
   "quest": {
+    "guidance": {
+      "click": "CLICK",
+      "right_click": "RIGHT-CLICK",
+      "press_escape": "PRESS ESC",
+      "press_e": "PRESS E"
+    },
     "world": {
       "practice_grounds": "Practice Grounds",
-      "interact_prompt": "Press Interact to begin"
+      "interact_prompt": "PRESS E"
     },
     "introduction_to_magic": {
       "go_to_practice_grounds": "Go to the Practice Grounds",
+      "complete_summoning_practice": "Complete the summoning exercise",
+      "return_to_professor": "Return to the general professor"
+    },
+    "ui_showcase": {
+      "open_journal": "Open the Journal from the campus action rail",
+      "open_summoner_profile": "Open your Summoner Profile by selecting your portrait",
+      "open_summoner_switch": "Open the summoner-switching carousel",
+      "open_inventory": "Open Inventory from the campus action rail",
+      "inspect_inventory_item": "Select the training item to inspect its details",
+      "open_spellbook": "Open the Spellbook from the campus action rail",
+      "open_new_deck_dialog": "Open the New Deck dialog",
+      "inspect_card": "Right-click the highlighted card to inspect its details",
+      "open_trait_development": "Open that card's Core Path from its details",
+      "inspect_trait_node": "Select the highlighted Core Path node",
+      "open_trait_confirmation": "Open the trait unlock confirmation",
+      "visit_shop": "Enter the Campus Shop",
+      "inspect_shop_offer": "Select a shop offer to inspect its details",
+      "open_settings": "Press Escape and open Settings",
+      "go_to_practice_grounds": "Go to the Practice Grounds",
+      "open_battle_settings": "Start the practice battle, then pause and open Settings",
       "complete_summoning_practice": "Complete the summoning exercise",
       "return_to_professor": "Return to the general professor"
     },

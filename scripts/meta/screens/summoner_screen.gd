@@ -94,6 +94,8 @@ func _ready() -> void:
 
 
 func open_profile(summoner_id: String = "") -> void:
+	QuestApi.record_ui_surface_opened("summoner_profile")
+	QuestGuidance.clear()
 	_current_summoner_id = (
 		summoner_id
 		if not summoner_id.is_empty()
@@ -101,6 +103,10 @@ func open_profile(summoner_id: String = "") -> void:
 	)
 	visible = true
 	_refresh_all()
+	if QuestGuidance.is_target_active("summoner_switch"):
+		QuestGuidance.show_for(switch_summoner_button, "summoner_switch")
+	else:
+		QuestGuidance.show_for(close_button, "inventory")
 
 
 func _configure_overlay_style() -> void:

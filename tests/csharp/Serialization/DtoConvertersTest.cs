@@ -388,6 +388,14 @@ public class DtoConvertersTest
     // =========================================================================
 
     [TestCase]
+    public void Settings_DefaultMasterVolume_IsAudibleForNormalBuild()
+    {
+        var defaults = DtoConverters.FromSettingsDict(new Godot.Collections.Dictionary());
+
+        AssertThat(defaults.MasterVolume).IsEqual(1.0f);
+    }
+
+    [TestCase]
     public void Settings_RoundTrip_PreservesSupportedValues()
     {
         var original = new Settings

@@ -88,6 +88,193 @@
             ]
           }
         }
+      ],
+      "runtime_modes": [
+        "normal"
+      ]
+    },
+    {
+      "id": "ui_showcase_orientation",
+      "runtime_modes": [
+        "ui_tutorial"
+      ],
+      "title_key": "academy.quest.ui_showcase.name",
+      "description_key": "academy.quest.ui_showcase.description",
+      "visibility": "announced",
+      "source": {
+        "kind": "npc",
+        "id": "general_magic",
+        "name_key": "academy.professor.general_magic.name",
+        "location_key": "academy.location.general_grounds"
+      },
+      "dialogue": {
+        "offer_line_keys": [
+          "academy.dialogue.ui_showcase.offer_1",
+          "academy.dialogue.ui_showcase.offer_2"
+        ],
+        "accepted_line_keys": [
+          "academy.dialogue.ui_showcase.accepted"
+        ],
+        "responses": [
+          {
+            "id": "accept",
+            "text_key": "academy.dialogue.ui_showcase.accept_response",
+            "action": "accept_quest"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "open_journal",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_journal",
+          "target_id": "journal"
+        },
+        {
+          "id": "open_summoner_profile",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_summoner_profile",
+          "target_id": "summoner_profile"
+        },
+        {
+          "id": "open_summoner_switch",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_summoner_switch",
+          "target_id": "summoner_switch"
+        },
+        {
+          "id": "open_inventory",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_inventory",
+          "target_id": "inventory"
+        },
+        {
+          "id": "inspect_inventory_item",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.inspect_inventory_item",
+          "target_id": "inventory_item_detail"
+        },
+        {
+          "id": "open_spellbook",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_spellbook",
+          "target_id": "spellbook"
+        },
+        {
+          "id": "open_new_deck_dialog",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_new_deck_dialog",
+          "target_id": "new_deck_dialog"
+        },
+        {
+          "id": "inspect_card",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.inspect_card",
+          "target_id": "card_detail"
+        },
+        {
+          "id": "open_trait_development",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_trait_development",
+          "target_id": "trait_development"
+        },
+        {
+          "id": "inspect_trait_node",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.inspect_trait_node",
+          "target_id": "trait_node_detail"
+        },
+        {
+          "id": "open_trait_confirmation",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_trait_confirmation",
+          "target_id": "trait_confirmation"
+        },
+        {
+          "id": "visit_shop",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.visit_shop",
+          "target_id": "shop"
+        },
+        {
+          "id": "inspect_shop_offer",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.inspect_shop_offer",
+          "target_id": "shop_item_detail"
+        },
+        {
+          "id": "open_settings",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_settings",
+          "target_id": "settings"
+        },
+        {
+          "id": "go_to_practice_grounds",
+          "kind": "interact_with_world_target",
+          "objective_key": "quest.ui_showcase.go_to_practice_grounds",
+          "target_id": "practice_grounds"
+        },
+        {
+          "id": "open_battle_settings",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_battle_settings",
+          "target_id": "battle_settings",
+          "encounter_id": "intro_summoning_practice"
+        },
+        {
+          "id": "complete_summoning_practice",
+          "kind": "complete_encounter",
+          "objective_key": "quest.ui_showcase.complete_summoning_practice",
+          "target_id": "practice_grounds",
+          "encounter_id": "intro_summoning_practice",
+          "required_outcome": "victory"
+        },
+        {
+          "id": "return_to_general_professor",
+          "kind": "talk_to_npc",
+          "objective_key": "quest.ui_showcase.return_to_professor",
+          "target_id": "general_magic",
+          "dialogue_keys": [
+            "academy.dialogue.ui_showcase.turn_in"
+          ]
+        }
+      ],
+      "curriculum_cost": 1,
+      "reward_offers": [
+        {
+          "id": "academy.reward.magic_bolt",
+          "selection": {
+            "mode": "automatic",
+            "show_count": 1,
+            "choose_count": 1
+          },
+          "preview_policy": "exact",
+          "eligibility": {
+            "duplicate_policy": "allow"
+          },
+          "option_source": {
+            "kind": "authored",
+            "options": [
+              {
+                "id": "academy.reward.magic_bolt.option",
+                "label_key": "academy.reward.magic_bolt",
+                "description_key": "",
+                "grants": [
+                  {
+                    "kind": "card",
+                    "card_id": "magic_bolt",
+                    "rarity": "common",
+                    "count": 1,
+                    "target": {
+                      "scope": "account",
+                      "target_id": ""
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
       ]
     },
     {
