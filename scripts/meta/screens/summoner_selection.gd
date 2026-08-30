@@ -130,9 +130,12 @@ func _create_starter_deck(summoner_id: String) -> void:
 		push_error("SummonerSelection: Failed to grant starter card '%s'" % starter_card_id)
 		return
 
-	# The review tour includes the real trait confirmation flow before its first
-	# battle, so the starter card needs one point it can legitimately spend.
-	ProfileRepoApi.update_card_from_dict(card_instance_id, {"unspent_trait_points": 1})
+	# The review tour includes the real trait tree and confirmation before its
+	# first battle. Start at the first upgrade tier with one legitimate choice.
+	ProfileRepoApi.update_card_from_dict(card_instance_id, {
+		"level": 2,
+		"unspent_trait_points": 1,
+	})
 
 	# Create Starter Deck with the card
 	var card_ids: Array[String] = [card_instance_id]

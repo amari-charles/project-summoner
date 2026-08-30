@@ -59,11 +59,28 @@ func open_for_summoner(summoner_id: String, trait_id: String) -> void:
 
 
 func open_for_card_core(card_instance_id: String) -> void:
+	_ensure_guided_card_has_upgrade_choice(card_instance_id)
 	_open("card", card_instance_id, CARD_CORE_PATH_ID)
 
 
 func open_for_card_trait(card_instance_id: String, trait_id: String) -> void:
 	_open("card", card_instance_id, trait_id)
+
+
+func _ensure_guided_card_has_upgrade_choice(card_instance_id: String) -> void:
+	var target_id: String = QuestGuidance.current_target_id()
+	if target_id not in ["trait_development", "trait_node_detail", "trait_confirmation"]:
+		return
+	var info: Dictionary = CardServiceApi.get_card_progression_info_dict(card_instance_id)
+	if info.is_empty():
+		return
+	var updates: Dictionary = {}
+	if SafeTypeUtils.int_val(info.get("level"), 1) < 2:
+		updates["level"] = 2
+	if SafeTypeUtils.int_val(info.get("unspent_trait_points"), 0) < 1:
+		updates["unspent_trait_points"] = 1
+	if not updates.is_empty():
+		ProfileRepoApi.update_card_from_dict(card_instance_id, updates)
 
 
 func close() -> void:

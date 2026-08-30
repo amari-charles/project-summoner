@@ -23,6 +23,39 @@ public static class CardCoreCatalog
             TraitIds.FireWispCondensedFlame,
             TraitIds.FireWispBlazingCore,
         ],
+        [CardIds.WaterWisp.Value] =
+        [
+            TraitIds.Fortitude,
+            TraitIds.FortitudeII,
+            TraitIds.FortitudeIII,
+            TraitIds.FortitudeIV,
+            TraitIds.Warding,
+            TraitIds.WardingII,
+            TraitIds.WardingIII,
+            TraitIds.WardingIV,
+        ],
+        [CardIds.WindWisp.Value] =
+        [
+            TraitIds.Swiftness,
+            TraitIds.SwiftnessII,
+            TraitIds.SwiftnessIII,
+            TraitIds.SwiftnessIV,
+            TraitIds.Agility,
+            TraitIds.AgilityII,
+            TraitIds.AgilityIII,
+            TraitIds.AgilityIV,
+        ],
+        [CardIds.EarthWisp.Value] =
+        [
+            TraitIds.Fortitude,
+            TraitIds.FortitudeII,
+            TraitIds.FortitudeIII,
+            TraitIds.FortitudeIV,
+            TraitIds.Plating,
+            TraitIds.PlatingII,
+            TraitIds.PlatingIII,
+            TraitIds.PlatingIV,
+        ],
     };
 
     public static IReadOnlyList<TraitId> GetCoreTraitIds(CardId cardCatalogId) =>

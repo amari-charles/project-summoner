@@ -189,6 +189,45 @@ public class TraitTreeServiceTest
     }
 
     [TestCase]
+    public void EveryStarterWisp_ShowsMultipleCoreUpgradeOptionsAtReviewStart()
+    {
+        var repo = CreateRepo("trait_tree_service_starter_paths");
+        var cardService = CreateNode<CardService>();
+        cardService.InitForTesting(repo);
+        var traitTree = CreateNode<TraitTreeService>();
+
+        foreach (
+            var catalogId in new[]
+            {
+                CardIds.FireWisp,
+                CardIds.WaterWisp,
+                CardIds.WindWisp,
+                CardIds.EarthWisp,
+            }
+        )
+        {
+            var cardId = cardService.GrantCard(catalogId, "common");
+            AssertThat(
+                    repo.UpdateCard(
+                        CardInstanceId.FromString(cardId),
+                        new CardUpdate { Level = 2, UnspentTraitPoints = 1 }
+                    )
+                )
+                .IsTrue();
+
+            var vm = traitTree.GetCardTreeViewModel(cardId);
+            AssertThat(ReadNodeCount(vm, "progression_nodes")).IsGreaterEqual(5);
+            var availableCount = vm["progression_nodes"]
+                .AsGodotArray()
+                .Count(entry =>
+                    entry.VariantType == Variant.Type.Dictionary
+                    && ReadString(entry.AsGodotDictionary(), "state") == "available"
+                );
+            AssertThat(availableCount).IsGreaterEqual(2);
+        }
+    }
+
+    [TestCase]
     public void TryUnlockTrait_CardFlow_SpendsPointAndAppliesTrait()
     {
         var repo = CreateRepo("trait_tree_service_card_unlock");
