@@ -4,18 +4,19 @@ class_name ObjectivePathTrail
 const WORLD_MIN: Vector2 = Vector2(-80.0, -60.0)
 const WORLD_MAX: Vector2 = Vector2(80.0, 60.0)
 const CELL_SIZE: float = 2.5
-const TRAIL_SPACING: float = 2.6
+const TRAIL_SPACING: float = 2.3
 const OBSTACLE_PADDING: float = 1.8
-const MAX_WISPS: int = 64
+const MAX_WISPS: int = 72
 const REPATH_INTERVAL: float = 0.35
 const REPATH_DISTANCE: float = 1.5
-const WISP_COLOR: Color = Color(0.32, 0.86, 1.0, 0.92)
+const WISP_CORE_COLOR: Color = Color(1.0, 0.98, 0.90, 1.0)
+const WISP_HALO_COLOR: Color = Color(0.96, 0.97, 1.0, 0.34)
 
 var _player: Node3D = null
 var _target_position: Vector3 = Vector3.ZERO
 var _has_target: bool = false
 var _grid: AStarGrid2D = null
-var _wisps: Array[MeshInstance3D] = []
+var _wisps: Array[Node3D] = []
 var _last_path_origin: Vector3 = Vector3(INF, INF, INF)
 var _repath_time: float = 0.0
 var _animation_time: float = 0.0
@@ -136,32 +137,52 @@ func _sample_route(route: PackedVector3Array) -> PackedVector3Array:
 
 func _set_visible_wisp_count(count: int) -> void:
 	while _wisps.size() < count:
-		var wisp: MeshInstance3D = _create_wisp()
+		var wisp: Node3D = _create_wisp()
 		_wisps.append(wisp)
 		add_child(wisp)
 	for index: int in _wisps.size():
 		_wisps[index].visible = index < count
 
 
-func _create_wisp() -> MeshInstance3D:
-	var wisp: MeshInstance3D = MeshInstance3D.new()
-	var mesh: SphereMesh = SphereMesh.new()
-	mesh.radius = 0.16
-	mesh.height = 0.32
-	mesh.radial_segments = 12
-	mesh.rings = 6
-	mesh.material = _wisp_material()
-	wisp.mesh = mesh
-	wisp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+func _create_wisp() -> Node3D:
+	var wisp: Node3D = Node3D.new()
+	wisp.add_child(_create_sphere("Halo", 0.34, WISP_HALO_COLOR, 2.0))
+	wisp.add_child(_create_sphere("Core", 0.13, WISP_CORE_COLOR, 5.5))
+	var sparkle: MeshInstance3D = _create_sphere(
+		"Sparkle",
+		0.055,
+		WISP_CORE_COLOR,
+		6.5
+	)
+	wisp.add_child(sparkle)
 	return wisp
 
 
-func _wisp_material() -> StandardMaterial3D:
+func _create_sphere(
+	sphere_name: String,
+	radius: float,
+	color: Color,
+	emission_energy: float
+) -> MeshInstance3D:
+	var sphere: MeshInstance3D = MeshInstance3D.new()
+	sphere.name = sphere_name
+	var mesh: SphereMesh = SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	mesh.radial_segments = 12
+	mesh.rings = 6
+	mesh.material = _wisp_material(color, emission_energy)
+	sphere.mesh = mesh
+	sphere.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return sphere
+
+
+func _wisp_material(color: Color, emission_energy: float) -> StandardMaterial3D:
 	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.albedo_color = WISP_COLOR
+	material.albedo_color = color
 	material.emission_enabled = true
-	material.emission = WISP_COLOR
-	material.emission_energy_multiplier = 3.2
+	material.emission = color
+	material.emission_energy_multiplier = emission_energy
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	return material
@@ -169,14 +190,28 @@ func _wisp_material() -> StandardMaterial3D:
 
 func _animate_wisps() -> void:
 	for index: int in _wisps.size():
-		var wisp: MeshInstance3D = _wisps[index]
+		var wisp: Node3D = _wisps[index]
 		if not wisp.visible:
 			continue
 		var phase: float = _animation_time * 3.2 - index * 0.48
 		var pulse: float = (sin(phase) + 1.0) * 0.5
-		wisp.position.y = 0.16 + pulse * 0.22
-		wisp.scale = Vector3.ONE * lerpf(0.72, 1.25, pulse)
-		wisp.transparency = lerpf(0.42, 0.02, pulse)
+		var size_variation: float = 0.88 + fmod(float(index) * 0.137, 0.24)
+		wisp.position.y = 0.14 + pulse * 0.28
+		wisp.rotation.y = phase * 0.35
+		wisp.scale = Vector3.ONE * size_variation
+		var halo: MeshInstance3D = wisp.get_node("Halo") as MeshInstance3D
+		var core: MeshInstance3D = wisp.get_node("Core") as MeshInstance3D
+		var sparkle: MeshInstance3D = wisp.get_node("Sparkle") as MeshInstance3D
+		halo.scale = Vector3.ONE * lerpf(0.82, 1.32, pulse)
+		halo.transparency = lerpf(0.64, 0.22, pulse)
+		core.scale = Vector3.ONE * lerpf(0.78, 1.12, pulse)
+		core.transparency = lerpf(0.20, 0.0, pulse)
+		sparkle.position = Vector3(
+			cos(phase * 1.3) * 0.30,
+			0.10 + sin(phase * 1.9) * 0.16,
+			sin(phase * 1.3) * 0.30
+		)
+		sparkle.transparency = lerpf(0.55, 0.04, pulse)
 
 
 func _world_to_grid(world: Vector3) -> Vector2i:

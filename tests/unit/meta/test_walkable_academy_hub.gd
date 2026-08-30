@@ -769,6 +769,22 @@ func test_objective_path_trail_routes_around_building_footprints() -> void:
 	player.free()
 
 
+func test_review_build_disables_music_and_uses_layered_white_wisps() -> void:
+	var audio_source: String = FileAccess.get_file_as_string(
+		"res://scripts/infrastructure/audio_manager.gd"
+	)
+	assert_true(audio_source.contains("const MUSIC_ENABLED: bool = false"))
+	assert_true(audio_source.contains("AudioServer.set_bus_mute(_music_bus_idx, not MUSIC_ENABLED)"))
+
+	var trail_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/objective_path_trail.gd"
+	)
+	assert_true(trail_source.contains("WISP_CORE_COLOR"))
+	assert_true(trail_source.contains('"Halo"'))
+	assert_true(trail_source.contains('"Core"'))
+	assert_true(trail_source.contains('"Sparkle"'))
+
+
 func test_walkable_controls_are_project_actions() -> void:
 	for action: StringName in [&"move_left", &"move_right", &"move_up", &"move_down", &"interact"]:
 		assert_true(InputMap.has_action(action), "%s must be configured in project.godot" % action)
