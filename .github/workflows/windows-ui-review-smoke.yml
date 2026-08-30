@@ -47,7 +47,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $templateDirectory | Out-Null
           Copy-Item -Recurse -Force (Join-Path $templateExtract "templates\*") $templateDirectory
 
-          $godotExecutable = Get-ChildItem $godotDirectory -Recurse -Filter "Godot*_mono_win64.exe" |
+          $godotExecutable = Get-ChildItem $godotDirectory -Recurse -Filter "Godot*_mono_win64_console.exe" |
             Select-Object -First 1 -ExpandProperty FullName
           if (-not $godotExecutable) {
             throw "Godot Mono executable was not found after extraction."
@@ -59,6 +59,14 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path "build\ui-review" | Out-Null
+
+          # A clean CI checkout has no imported resources. Finish the initial
+          # import before exporting so fonts and textures exist in `.godot`.
+          & $env:GODOT_EXECUTABLE --headless --path . --import
+          if ($LASTEXITCODE -ne 0) {
+            throw "Godot resource import failed with exit code $LASTEXITCODE."
+          }
+
           & $env:GODOT_EXECUTABLE --headless --path . --export-release `
             "UI Designer Review" "build\ui-review\Fateforged-UI-Review.exe"
           if ($LASTEXITCODE -ne 0) {
