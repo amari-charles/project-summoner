@@ -21,10 +21,6 @@ const BUS_MASTER: String = "Master"
 const BUS_MUSIC: String = "Music"
 const BUS_SFX: String = "SFX"
 
-## Temporary review-build kill switch. It leaves the saved music volume alone,
-## so music can be restored without migrating player settings.
-const MUSIC_ENABLED: bool = false
-
 ## Temporary project-wide kill switch. This mutes the SFX bus without changing
 ## the player's saved volume, so restoring sound only requires setting it true.
 const SOUND_EFFECTS_ENABLED: bool = false
@@ -78,7 +74,6 @@ func _ready() -> void:
 	_create_ui_player()
 	_preload_ui_sounds()
 	_apply_settings_volume()
-	_apply_music_switch()
 	_apply_sound_effects_switch()
 	GameSettings.setting_changed.connect(_on_game_setting_changed)
 
@@ -172,11 +167,6 @@ func play_ui_sound(sound_id: String) -> void:
 ## track_path: Path to the audio resource (empty string to stop)
 ## crossfade: Duration of crossfade in seconds (0 = immediate switch)
 func play_music(track_path: String, crossfade: float = DEFAULT_CROSSFADE) -> void:
-	if not MUSIC_ENABLED:
-		_music_player_a.stop()
-		_music_player_b.stop()
-		_current_music_path = ""
-		return
 	# Skip if already playing this track
 	if track_path == _current_music_path and not track_path.is_empty():
 		return
@@ -336,7 +326,7 @@ func _apply_settings_volume() -> void:
 		false
 	)
 
-	var master_vol: float = SafeTypeUtils.float_val(settings.get("master_volume", 1.0), 1.0)
+	var master_vol: float = SafeTypeUtils.float_val(settings.get("master_volume", 0.0), 0.0)
 
 	var music_vol_val: Variant = settings.get("music_volume", 1.0)
 	var music_vol: float = SafeTypeUtils.float_val(music_vol_val, 1.0)
@@ -359,9 +349,6 @@ func _apply_sound_effects_switch() -> void:
 		AudioServer.set_bus_mute(_sfx_bus_idx, not SOUND_EFFECTS_ENABLED)
 
 
-func _apply_music_switch() -> void:
-	if _music_bus_idx >= 0:
-		AudioServer.set_bus_mute(_music_bus_idx, not MUSIC_ENABLED)
 
 
 func _notification(what: int) -> void:

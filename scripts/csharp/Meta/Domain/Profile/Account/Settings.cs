@@ -8,7 +8,7 @@ namespace Fateforged.Domain.Profile.Account;
 public class Settings
 {
     [JsonPropertyName("master_volume")]
-    public float MasterVolume { get; set; } = 1.0f;
+    public float MasterVolume { get; set; } = 0.0f;
 
     /// <summary>Sound effects volume (0.0 - 1.0).</summary>
     [JsonPropertyName("sfx_volume")]

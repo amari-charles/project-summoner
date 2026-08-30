@@ -769,12 +769,16 @@ func test_objective_path_trail_routes_around_building_footprints() -> void:
 	player.free()
 
 
-func test_review_build_disables_music_and_uses_layered_white_wisps() -> void:
+func test_review_build_defaults_master_volume_to_zero_and_uses_layered_white_wisps() -> void:
 	var audio_source: String = FileAccess.get_file_as_string(
 		"res://scripts/infrastructure/audio_manager.gd"
 	)
-	assert_true(audio_source.contains("const MUSIC_ENABLED: bool = false"))
-	assert_true(audio_source.contains("AudioServer.set_bus_mute(_music_bus_idx, not MUSIC_ENABLED)"))
+	assert_true(audio_source.contains('settings.get("master_volume", 0.0), 0.0'))
+	assert_false(audio_source.contains("MUSIC_ENABLED"))
+	var settings_source: String = FileAccess.get_file_as_string(
+		"res://scripts/infrastructure/game_settings.gd"
+	)
+	assert_true(settings_source.contains('"master_volume": 0.0'))
 
 	var trail_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/components/objective_path_trail.gd"

@@ -9,7 +9,7 @@ const WINDOW_MODE_BORDERLESS: String = "borderless"
 const WINDOW_MODE_FULLSCREEN: String = "fullscreen"
 
 const DEFAULTS: Dictionary = {
-	"master_volume": 1.0,
+	"master_volume": 0.0,
 	"music_volume": 1.0,
 	"sfx_volume": 1.0,
 	"mute_when_unfocused": false,

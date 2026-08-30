@@ -1360,6 +1360,7 @@ public partial class ProfileRepository
             },
             Settings = new Settings
             {
+                MasterVolume = 0.0f,
                 SfxVolume = 1.0f,
                 MusicVolume = 1.0f,
                 Lang = "en",
