@@ -695,12 +695,13 @@ func test_showcase_surfaces_publish_generic_quest_progress_events() -> void:
 	var expected_calls: Dictionary = {
 		"res://scripts/meta/screens/quest_journal.gd": "journal",
 		"res://scripts/meta/screens/summoner_screen.gd": "summoner_profile",
+		"res://scripts/meta/screens/summoner_switch_screen.gd": "summoner_switch",
 		"res://scripts/meta/components/inventory_overlay.gd": "inventory_item_detail",
 		"res://scripts/meta/screens/collection_screen.gd": "card_detail",
 		"res://scripts/meta/components/trait_development_overlay.gd": "trait_development",
 		"res://scripts/meta/screens/shop_screen.gd": "shop_item_detail",
 		"res://scripts/meta/components/campus_system_menu.gd": "settings",
-		"res://scripts/meta/screens/online_screen.gd": "online",
+		"res://scripts/battle/ui/pause_menu.gd": "battle_settings",
 	}
 	for path: String in expected_calls:
 		var source: String = FileAccess.get_file_as_string(path)
@@ -730,6 +731,16 @@ func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
 	)
 	assert_true(collection_source.contains("showcase_inspect_hint"))
 	assert_true(collection_source.contains('"quest.guidance.right_click"'))
+	assert_true(collection_source.contains('"new_deck_dialog"'))
+	var trait_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/components/trait_development_overlay.gd"
+	)
+	assert_true(trait_source.contains('"trait_node_detail"'))
+	assert_true(trait_source.contains('"trait_confirmation"'))
+	var quest_source: String = FileAccess.get_file_as_string(
+		"res://data/quests/quests.json"
+	)
+	assert_false(quest_source.contains('"target_id": "online"'))
 
 	var hub_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/screens/walkable_academy_hub.gd"

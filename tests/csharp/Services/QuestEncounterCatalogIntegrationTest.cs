@@ -26,6 +26,14 @@ public class QuestEncounterCatalogIntegrationTest
         AssertThat(showcase).IsNotNull();
         AssertThat(showcase!.Steps.Any(step => step.Kind == QuestStepKind.OpenUiSurface))
             .IsTrue();
+        var showcaseTargets = showcase.Steps.Select(step => step.TargetId).ToArray();
+        foreach (var target in new[]
+                 {
+                     "summoner_switch", "new_deck_dialog", "trait_node_detail",
+                     "trait_confirmation", "battle_settings",
+                 })
+            AssertThat(showcaseTargets).Contains(target);
+        AssertThat(showcaseTargets.Contains("online")).IsFalse();
     }
 
     [TestCase]

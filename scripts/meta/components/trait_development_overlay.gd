@@ -87,7 +87,7 @@ func _open(owner_type: String, owner_id: String, trait_id: String) -> void:
 	_popover_pinned = false
 	visible = true
 	_refresh()
-	QuestGuidance.show_for(close_button, "shop")
+	_show_guidance_for_first_available_node()
 
 
 func _refresh() -> void:
@@ -280,6 +280,10 @@ func _on_node_pressed(trait_id: String) -> void:
 	_selected_trait_id = trait_id
 	_show_node_detail(trait_id)
 	_refresh_node_selection_styles()
+	if action_button.visible and not action_button.disabled:
+		QuestApi.record_ui_surface_opened("trait_node_detail")
+		QuestGuidance.clear()
+		QuestGuidance.show_for(action_button, "trait_confirmation")
 
 
 func _on_node_hovered(trait_id: String) -> void:
@@ -384,12 +388,31 @@ func _on_action_pressed() -> void:
 	cancel_button.text = Loc.t("ui.common.cancel")
 	cancel_button.visible = true
 	call_deferred("_position_popover", _active_detail_trait_id)
+	QuestApi.record_ui_surface_opened("trait_confirmation")
+	QuestGuidance.clear()
+	QuestGuidance.show_for(cancel_button, "shop")
 
 
 func _on_cancel_unlock_pressed() -> void:
 	if _active_detail_trait_id.is_empty():
 		return
 	_show_node_detail(_active_detail_trait_id)
+	QuestGuidance.show_for(close_button, "shop")
+
+
+func _show_guidance_for_first_available_node() -> void:
+	if not QuestGuidance.is_target_active("trait_node_detail"):
+		QuestGuidance.show_for(close_button, "shop")
+		return
+	for node_var: Variant in _visible_nodes:
+		var node_data: Dictionary = SafeTypeUtils.dict(node_var)
+		if SafeTypeUtils.string(node_data.get("state")) != STATUS_AVAILABLE:
+			continue
+		var trait_id: String = SafeTypeUtils.string(node_data.get("id"))
+		var node_button: Button = _tree_controls.get(trait_id) as Button
+		if node_button != null:
+			QuestGuidance.show_for(node_button, "trait_node_detail")
+			return
 
 
 func _confirm_pending_unlock() -> void:
@@ -400,9 +423,11 @@ func _confirm_pending_unlock() -> void:
 	var result: Dictionary = TraitTreeApi.try_unlock_trait(_owner_type, _owner_id, trait_id)
 	if not SafeTypeUtils.bool_val(result.get("success", false), false):
 		detail_requirements.text = str(result.get("reason", Loc.t("ui.trait_tree.unlock_failed_reason")))
+		QuestGuidance.show_for(close_button, "shop")
 		return
 	trait_acquired.emit(trait_id)
 	_refresh()
+	QuestGuidance.show_for(close_button, "shop")
 
 
 func _reset_unlock_confirmation() -> void:

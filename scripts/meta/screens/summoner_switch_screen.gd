@@ -31,6 +31,8 @@ var _is_animating: bool = false
 
 
 func _ready() -> void:
+	QuestApi.record_ui_surface_opened("summoner_switch")
+	QuestGuidance.clear()
 	background.color = GameColorPalette.UI_BACKGROUND
 	close_button.pressed.connect(_on_close_pressed)
 	left_arrow.pressed.connect(_on_left_arrow_pressed)
@@ -40,6 +42,7 @@ func _ready() -> void:
 	confirm_button.text = Loc.t("ui.summoner_switch.confirm")
 	_active_summoner_id = SummonerSelectionApi.get_active_summoner_id()
 	_load_carousel()
+	QuestGuidance.show_for(close_button, "inventory")
 
 
 func _load_carousel() -> void:

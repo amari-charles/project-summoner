@@ -192,6 +192,11 @@ func open_collection(mode: String = "", summoner_id: String = "") -> void:
 
 
 func _refresh_quest_guidance() -> void:
+	if QuestGuidance.is_target_active("new_deck_dialog"):
+		inspection_hint.visible = false
+		deck_editor.set_card_inspection_guidance(false)
+		QuestGuidance.show_for(new_deck_button, "new_deck_dialog")
+		return
 	var show_inspection_guidance: bool = QuestGuidance.is_target_active("card_detail")
 	inspection_hint.visible = show_inspection_guidance
 	inspection_hint.text = Loc.t("ui.collection.showcase_inspect_hint")
@@ -580,6 +585,9 @@ func _on_new_deck_pressed() -> void:
 	AudioManager.play_ui_sound(AudioManager.SFX_UI_CLICK)
 	deck_name_input.text = ""
 	new_deck_dialog.popup_centered()
+	QuestApi.record_ui_surface_opened("new_deck_dialog")
+	QuestGuidance.clear()
+	QuestGuidance.show_for(new_deck_dialog.get_ok_button(), "card_detail")
 
 
 func _on_new_deck_confirmed() -> void:
@@ -590,6 +598,7 @@ func _on_new_deck_confirmed() -> void:
 
 	if Decks.has_method("CreateDeckFromDict"):
 		DecksApi.create_deck_from_dict(deck_name, [], "")
+	call_deferred("_refresh_quest_guidance")
 
 
 func _on_delete_confirmed() -> void:

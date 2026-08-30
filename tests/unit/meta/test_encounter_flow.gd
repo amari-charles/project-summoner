@@ -28,7 +28,20 @@ func test_preparation_uses_generic_encounter_contracts() -> void:
 	assert_not_null(preparation.find_child("ModalPanel", true, false))
 	assert_not_null(preparation.find_child("CollectionOverlay", true, false))
 	assert_not_null(preparation.find_child("StartButton", true, false))
+	assert_true(script_text.contains('QuestGuidance.show_for(start_button, "battle_settings")'))
 	preparation.free()
+
+
+func test_battle_pause_settings_advances_and_guides_the_showcase() -> void:
+	var pause_button_source: String = _read("res://scripts/battle/ui/pause_button.gd")
+	var pause_menu_source: String = _read("res://scripts/battle/ui/pause_menu.gd")
+	assert_true(pause_button_source.contains('QuestGuidance.show_for(self, "battle_settings")'))
+	assert_true(pause_menu_source.contains(
+		'QuestApi.record_ui_surface_opened("battle_settings")'
+	))
+	assert_true(pause_menu_source.contains(
+		'QuestGuidance.show_for(settings_button, "battle_settings")'
+	))
 
 
 func test_encounter_results_read_authoritative_progression_when_configured() -> void:

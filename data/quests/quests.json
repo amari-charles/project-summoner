@@ -41,6 +41,12 @@
           "target_id": "summoner_profile"
         },
         {
+          "id": "open_summoner_switch",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_summoner_switch",
+          "target_id": "summoner_switch"
+        },
+        {
           "id": "open_inventory",
           "kind": "open_ui_surface",
           "objective_key": "quest.ui_showcase.open_inventory",
@@ -59,6 +65,12 @@
           "target_id": "spellbook"
         },
         {
+          "id": "open_new_deck_dialog",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_new_deck_dialog",
+          "target_id": "new_deck_dialog"
+        },
+        {
           "id": "inspect_card",
           "kind": "open_ui_surface",
           "objective_key": "quest.ui_showcase.inspect_card",
@@ -69,6 +81,18 @@
           "kind": "open_ui_surface",
           "objective_key": "quest.ui_showcase.open_trait_development",
           "target_id": "trait_development"
+        },
+        {
+          "id": "inspect_trait_node",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.inspect_trait_node",
+          "target_id": "trait_node_detail"
+        },
+        {
+          "id": "open_trait_confirmation",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_trait_confirmation",
+          "target_id": "trait_confirmation"
         },
         {
           "id": "visit_shop",
@@ -95,18 +119,18 @@
           "target_id": "practice_grounds"
         },
         {
+          "id": "open_battle_settings",
+          "kind": "open_ui_surface",
+          "objective_key": "quest.ui_showcase.open_battle_settings",
+          "target_id": "battle_settings"
+        },
+        {
           "id": "complete_summoning_practice",
           "kind": "complete_encounter",
           "objective_key": "quest.ui_showcase.complete_summoning_practice",
           "target_id": "practice_grounds",
           "encounter_id": "intro_summoning_practice",
           "required_outcome": "victory"
-        },
-        {
-          "id": "visit_online_arena",
-          "kind": "open_ui_surface",
-          "objective_key": "quest.ui_showcase.visit_online",
-          "target_id": "online"
         },
         {
           "id": "return_to_general_professor",

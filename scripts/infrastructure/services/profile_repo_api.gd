@@ -60,5 +60,11 @@ static func update_settings_dict(settings_updates: Dictionary) -> void:
 static func update_summoner_progress_dict(progress_updates: Dictionary, summoner_id: String) -> void:
 	_call_first(["UpdateSummonerProgressDict", "update_summoner_progress_dict"], [progress_updates, summoner_id])
 
+static func update_card_from_dict(card_instance_id: String, updates: Dictionary) -> bool:
+	return SafeTypeUtils.bool_val(_call_first(
+		["UpdateCardFromDict", "update_card_from_dict"],
+		[card_instance_id, updates]
+	), false)
+
 static func get_settings_dict() -> Dictionary:
 	return SafeTypeUtils.dict(_call_first(["GetSettingsDict", "get_settings_dict"]))

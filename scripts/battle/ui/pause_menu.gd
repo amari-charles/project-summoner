@@ -77,6 +77,9 @@ func _on_game_state_changed(new_state: Variant) -> void:
 		return
 	var state: int = SafeTypeUtils.int_val(new_state, int(UnitConstants.GameState.PLAYING))
 	visible = (state == int(UnitConstants.GameState.PAUSED))
+	if visible:
+		QuestGuidance.clear()
+		QuestGuidance.show_for(settings_button, "battle_settings")
 
 
 func toggle_menu() -> void:
@@ -111,11 +114,15 @@ func _on_settings_pressed() -> void:
 	pause_panel.visible = false
 	panel_fill.visible = false
 	settings_panel.show_panel()
+	QuestApi.record_ui_surface_opened("battle_settings")
+	QuestGuidance.clear()
+	QuestGuidance.show_for(settings_panel.close_button, "practice_grounds")
 
 
 func _on_settings_closed() -> void:
 	pause_panel.visible = true
 	panel_fill.visible = true
+	QuestGuidance.show_for(resume_button, "practice_grounds")
 
 ## Set up the panel border texture and margins from ButtonStyleFactory
 func _setup_panel_border() -> void:
