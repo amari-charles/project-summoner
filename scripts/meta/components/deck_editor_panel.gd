@@ -4,6 +4,7 @@ class_name DeckEditorPanel
 signal add_card_requested(instance_id: String)
 signal remove_card_requested(instance_id: String)
 signal card_info_requested(instance_id: String, catalog_id: String)
+signal card_inspection_guidance_target_changed(target: Control)
 
 const CardWidgetScene: PackedScene = preload("res://scenes/meta/components/card_widget.tscn")
 
@@ -102,7 +103,11 @@ func _apply_card_inspection_guidance() -> void:
 		return
 	var first_card: Control = get_first_card_control()
 	if first_card is CardWidget:
-		(first_card as CardWidget).set_quest_highlighted(true)
+		var widget: CardWidget = first_card as CardWidget
+		widget.set_quest_highlighted(true)
+		var exact_target: Control = widget.card_panel \
+			if is_instance_valid(widget.card_panel) else widget
+		card_inspection_guidance_target_changed.emit(exact_target)
 
 
 func _render_active_cards() -> void:
@@ -290,4 +295,5 @@ func _on_card_dropped_to_remove(instance_id: String) -> void:
 
 func _clear(parent: Control) -> void:
 	for child: Node in parent.get_children():
+		parent.remove_child(child)
 		child.queue_free()

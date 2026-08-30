@@ -107,6 +107,10 @@ func test_showcase_guidance_marks_the_exact_right_click_card_yellow() -> void:
 	add_child_autofree(editor)
 	editor.set_active_deck("Active Deck", [], DeckConstants.MAX_DECK_SIZE, true)
 	editor.set_available_cards([_test_entry("instance-one", "First")])
+	var marker_targets: Array[Control] = []
+	editor.card_inspection_guidance_target_changed.connect(
+		func(target: Control) -> void: marker_targets.append(target)
+	)
 
 	editor.set_card_inspection_guidance(true)
 
@@ -117,6 +121,7 @@ func test_showcase_guidance_marks_the_exact_right_click_card_yellow() -> void:
 	assert_eq(style.border_width_left, 8)
 	assert_eq(style.shadow_color, Color(1.0, 0.78, 0.16, 0.9))
 	assert_eq(style.shadow_size, 18)
+	assert_eq(marker_targets.back(), widget.card_panel)
 
 	# Service-driven deck refreshes rebuild the active row. The quest highlight
 	# must follow the replacement widget instead of disappearing with the old one.
@@ -129,6 +134,7 @@ func test_showcase_guidance_marks_the_exact_right_click_card_yellow() -> void:
 	await get_tree().process_frame
 	var replacement: CardWidget = editor.active_cards.get_child(0) as CardWidget
 	assert_true(replacement._quest_highlighted)
+	assert_eq(marker_targets.back(), replacement.card_panel)
 	var replacement_style: StyleBoxFlat = replacement.card_panel.get_theme_stylebox(
 		"panel"
 	) as StyleBoxFlat
