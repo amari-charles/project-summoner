@@ -1,7 +1,23 @@
-[gd_scene load_steps=3 format=3 uid="uid://bw7j2k5nq3xlm"]
+[gd_scene load_steps=4 format=3 uid="uid://bw7j2k5nq3xlm"]
 
 [ext_resource type="Script" path="res://scripts/meta/screens/collection_screen.gd" id="1_collection"]
 [ext_resource type="PackedScene" path="res://scenes/meta/components/deck_editor_panel.tscn" id="2_deck_editor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxInspectionHint"]
+bg_color = Color(0.105, 0.085, 0.025, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.78, 0.16, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
 
 [node name="CollectionScreen" type="Control"]
 layout_mode = 3
@@ -165,6 +181,18 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 placeholder_text = "Search cards..."
 clear_button_enabled = true
+
+[node name="InspectionHint" type="Label" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.48, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxInspectionHint")
+text = "RIGHT-CLICK THE YELLOW CARD TO INSPECT"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="DeckEditorPanel" parent="Center/Window/WindowMargin/MainSplit/LeftPanel/LeftMargin/VBoxContainer" instance=ExtResource("2_deck_editor")]
 unique_name_in_owner = true

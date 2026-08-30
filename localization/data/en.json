@@ -536,7 +536,8 @@
       "new_deck_default": "New Deck",
       "deck_card_remove_tooltip": "Drag out or double-click to remove",
       "deck_card_inspect_tooltip": "Left-click to add or remove • Right-click or hold to inspect",
-      "card_inspect_tooltip": "Click or hold to inspect"
+      "card_inspect_tooltip": "Click or hold to inspect",
+      "showcase_inspect_hint": "RIGHT-CLICK THE YELLOW CARD TO INSPECT"
     },
     "trait_tree": {
       "title_summoner": "Trait Tree",
@@ -1683,6 +1684,7 @@
   "quest": {
     "guidance": {
       "click": "CLICK",
+      "right_click": "RIGHT-CLICK",
       "press_escape": "PRESS ESC",
       "press_e": "PRESS E"
     },
@@ -1701,7 +1703,7 @@
       "open_inventory": "Open Inventory from the campus action rail",
       "inspect_inventory_item": "Select the training item to inspect its details",
       "open_spellbook": "Open the Spellbook from the campus action rail",
-      "inspect_card": "Select any card to inspect its details",
+      "inspect_card": "Right-click the highlighted card to inspect its details",
       "open_trait_development": "Open that card's Core Path from its details",
       "visit_shop": "Enter the Campus Shop",
       "inspect_shop_offer": "Select a shop offer to inspect its details",

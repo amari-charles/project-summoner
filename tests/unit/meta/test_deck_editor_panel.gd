@@ -101,6 +101,22 @@ func test_right_click_inspects_without_changing_deck() -> void:
 	assert_eq(state["added_id"], "")
 
 
+func test_showcase_guidance_marks_the_exact_right_click_card_yellow() -> void:
+	var editor_scene: PackedScene = load("res://scenes/meta/components/deck_editor_panel.tscn")
+	var editor: DeckEditorPanel = editor_scene.instantiate() as DeckEditorPanel
+	add_child_autofree(editor)
+	editor.set_active_deck("Active Deck", [], DeckConstants.MAX_DECK_SIZE, true)
+	editor.set_available_cards([_test_entry("instance-one", "First")])
+
+	editor.set_card_inspection_guidance(true)
+
+	var widget: CardWidget = editor.available_cards.get_child(0) as CardWidget
+	var style: StyleBoxFlat = widget.card_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	assert_true(widget._quest_highlighted)
+	assert_eq(style.border_color, Color(1.0, 0.78, 0.16, 1.0))
+	assert_eq(style.border_width_left, 8)
+
+
 func test_left_click_inspects_when_deck_is_read_only() -> void:
 	var editor_scene: PackedScene = load("res://scenes/meta/components/deck_editor_panel.tscn")
 	var editor: DeckEditorPanel = editor_scene.instantiate() as DeckEditorPanel

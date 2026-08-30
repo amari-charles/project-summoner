@@ -723,8 +723,13 @@ func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
 	var deck_editor_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/components/deck_editor_panel.gd"
 	)
-	assert_true(deck_editor_source.contains('QuestGuidance.is_target_active("card_detail")'))
-	assert_true(deck_editor_source.contains("_request_card_info(detail_instance_id, catalog_id)"))
+	assert_true(deck_editor_source.contains("set_card_inspection_guidance"))
+	assert_true(deck_editor_source.contains("set_quest_highlighted(true)"))
+	var collection_source: String = FileAccess.get_file_as_string(
+		"res://scripts/meta/screens/collection_screen.gd"
+	)
+	assert_true(collection_source.contains("showcase_inspect_hint"))
+	assert_true(collection_source.contains('"quest.guidance.right_click"'))
 
 	var hub_source: String = FileAccess.get_file_as_string(
 		"res://scripts/meta/screens/walkable_academy_hub.gd"
@@ -744,6 +749,7 @@ func test_showcase_objectives_have_visual_click_and_world_guidance() -> void:
 		assert_true(FileAccess.get_file_as_string(path).contains("QuestGuidance"), path)
 	assert_true(hub_source.contains("ObjectivePathTrail"))
 	assert_true(hub_source.contains("_refresh_objective_path"))
+	assert_true(hub_source.contains("_world_guidance_target_id"))
 
 
 func test_objective_path_trail_routes_around_building_footprints() -> void:
@@ -767,6 +773,22 @@ func test_objective_path_trail_routes_around_building_footprints() -> void:
 	assert_true(routed_around_obstacle)
 	trail.free()
 	player.free()
+
+
+func test_objective_path_trail_builds_visible_layered_wisps() -> void:
+	var trail := ObjectivePathTrail.new()
+	var player := Node3D.new()
+	add_child_autofree(player)
+	add_child_autofree(trail)
+	trail.configure(player, [])
+	trail.set_target(Vector3(20.0, 0.0, 0.0))
+
+	assert_gt(trail.get_child_count(), 0)
+	var first_wisp: Node3D = trail.get_child(0) as Node3D
+	assert_true(first_wisp.visible)
+	assert_not_null(first_wisp.get_node_or_null("Halo"))
+	assert_not_null(first_wisp.get_node_or_null("Core"))
+	assert_not_null(first_wisp.get_node_or_null("Sparkle"))
 
 
 func test_review_build_defaults_master_volume_to_zero_and_uses_layered_white_wisps() -> void:

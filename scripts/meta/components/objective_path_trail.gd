@@ -9,8 +9,8 @@ const OBSTACLE_PADDING: float = 1.8
 const MAX_WISPS: int = 72
 const REPATH_INTERVAL: float = 0.35
 const REPATH_DISTANCE: float = 1.5
-const WISP_CORE_COLOR: Color = Color(1.0, 0.98, 0.90, 1.0)
-const WISP_HALO_COLOR: Color = Color(0.96, 0.97, 1.0, 0.34)
+const WISP_CORE_COLOR: Color = Color(1.0, 0.99, 0.94, 1.0)
+const WISP_HALO_COLOR: Color = Color(1.0, 1.0, 1.0, 0.82)
 
 var _player: Node3D = null
 var _target_position: Vector3 = Vector3.ZERO
@@ -146,13 +146,13 @@ func _set_visible_wisp_count(count: int) -> void:
 
 func _create_wisp() -> Node3D:
 	var wisp: Node3D = Node3D.new()
-	wisp.add_child(_create_sphere("Halo", 0.34, WISP_HALO_COLOR, 2.0))
-	wisp.add_child(_create_sphere("Core", 0.13, WISP_CORE_COLOR, 5.5))
+	wisp.add_child(_create_sphere("Halo", 0.48, WISP_HALO_COLOR, 3.8))
+	wisp.add_child(_create_sphere("Core", 0.21, WISP_CORE_COLOR, 8.0))
 	var sparkle: MeshInstance3D = _create_sphere(
 		"Sparkle",
-		0.055,
+		0.075,
 		WISP_CORE_COLOR,
-		6.5
+		9.0
 	)
 	wisp.add_child(sparkle)
 	return wisp
@@ -196,16 +196,16 @@ func _animate_wisps() -> void:
 		var phase: float = _animation_time * 3.2 - index * 0.48
 		var pulse: float = (sin(phase) + 1.0) * 0.5
 		var size_variation: float = 0.88 + fmod(float(index) * 0.137, 0.24)
-		wisp.position.y = 0.14 + pulse * 0.28
+		wisp.position.y = 0.34 + pulse * 0.34
 		wisp.rotation.y = phase * 0.35
 		wisp.scale = Vector3.ONE * size_variation
 		var halo: MeshInstance3D = wisp.get_node("Halo") as MeshInstance3D
 		var core: MeshInstance3D = wisp.get_node("Core") as MeshInstance3D
 		var sparkle: MeshInstance3D = wisp.get_node("Sparkle") as MeshInstance3D
 		halo.scale = Vector3.ONE * lerpf(0.82, 1.32, pulse)
-		halo.transparency = lerpf(0.64, 0.22, pulse)
+		halo.transparency = lerpf(0.42, 0.08, pulse)
 		core.scale = Vector3.ONE * lerpf(0.78, 1.12, pulse)
-		core.transparency = lerpf(0.20, 0.0, pulse)
+		core.transparency = lerpf(0.10, 0.0, pulse)
 		sparkle.position = Vector3(
 			cos(phase * 1.3) * 0.30,
 			0.10 + sin(phase * 1.9) * 0.16,

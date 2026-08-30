@@ -85,6 +85,20 @@ func get_first_card_control() -> Control:
 	return null
 
 
+func set_card_inspection_guidance(enabled: bool) -> void:
+	for child: Node in active_cards.get_children():
+		if child is CardWidget:
+			(child as CardWidget).set_quest_highlighted(false)
+	for child: Node in available_cards.get_children():
+		if child is CardWidget:
+			(child as CardWidget).set_quest_highlighted(false)
+	if not enabled:
+		return
+	var first_card: Control = get_first_card_control()
+	if first_card is CardWidget:
+		(first_card as CardWidget).set_quest_highlighted(true)
+
+
 func _render_active_cards() -> void:
 	dismiss_popup()
 	_clear(active_cards)
@@ -212,9 +226,6 @@ func _on_card_clicked(
 	_in_active_deck: bool,
 	_locked: bool
 ) -> void:
-	if QuestGuidance.is_target_active("card_detail"):
-		_request_card_info(detail_instance_id, catalog_id)
-		return
 	if not _has_editable_deck:
 		_request_card_info(detail_instance_id, catalog_id)
 		return

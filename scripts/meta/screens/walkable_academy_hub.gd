@@ -892,7 +892,7 @@ func _refresh_quest_presentation() -> void:
 				building.destination_id == QuestGuidance.current_target_id()
 			)
 	_show_current_ui_guidance(QuestGuidance.current_target_id())
-	_refresh_objective_path(QuestGuidance.current_target_id())
+	_refresh_objective_path(_world_guidance_target_id())
 	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
 	tracked_quest_banner.visible = not tracked_id.is_empty()
 	if tracked_id.is_empty():
@@ -939,6 +939,16 @@ func _refresh_objective_path(target_id: String) -> void:
 		_objective_path_trail.set_target(location.get("travel_position"))
 		return
 	_objective_path_trail.set_target(_quest_target_position(target_id))
+
+
+func _world_guidance_target_id() -> String:
+	var active_target_id: String = QuestGuidance.current_target_id()
+	if not active_target_id.is_empty():
+		return active_target_id
+	var general_state: Dictionary = QuestApi.get_npc_quest_state("general_magic")
+	if not SafeTypeUtils.array(general_state.get("opportunities")).is_empty():
+		return "general_magic"
+	return ""
 
 
 func _on_professor_interacted(professor_id: String) -> void:

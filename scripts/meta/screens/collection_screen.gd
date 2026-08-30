@@ -30,6 +30,7 @@ signal closed()
 @onready var element_popup: PopupMenu = %ElementPopup
 @onready var sort_dropdown: OptionButton = %SortDropdown
 @onready var search_edit: LineEdit = %SearchEdit
+@onready var inspection_hint: Label = %InspectionHint
 
 ## Left panel - Shared deck editor
 @onready var deck_editor: DeckEditorPanel = %DeckEditorPanel
@@ -191,9 +192,17 @@ func open_collection(mode: String = "", summoner_id: String = "") -> void:
 
 
 func _refresh_quest_guidance() -> void:
+	var show_inspection_guidance: bool = QuestGuidance.is_target_active("card_detail")
+	inspection_hint.visible = show_inspection_guidance
+	inspection_hint.text = Loc.t("ui.collection.showcase_inspect_hint")
+	deck_editor.set_card_inspection_guidance(show_inspection_guidance)
 	var first_card: Control = deck_editor.get_first_card_control()
 	if first_card != null:
-		QuestGuidance.show_for(first_card, "card_detail")
+		QuestGuidance.show_for(
+			first_card,
+			"card_detail",
+			"quest.guidance.right_click"
+		)
 
 
 func open_encounter_loadout(encounter_id: String) -> void:
