@@ -102,6 +102,7 @@ func _show_restart_confirmation() -> void:
 
 func _restart_showcase() -> void:
 	get_tree().paused = false
+	WalkableAcademyHub.reset_showcase_welcome_for_run()
 	ProfileRepoApi.reset_profile()
 	SceneManager.transition_to(SceneManager.SCENE_TITLE_SCREEN)
 

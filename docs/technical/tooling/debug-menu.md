@@ -1,13 +1,23 @@
 # Debug Menu
 
-Development utility panel for testing and debugging. Only active in debug builds.
+Development utility panel for testing and debugging. It is active in debug
+builds and in the dedicated `ui_tutorial` UI designer review export. It remains
+disabled in normal release builds.
 
 ## Access
 
-- **Toggle UI**: ` (backtick) or F12
+- **Toggle UI**: ` (backtick), ~ (tilde), or F12
 - **Autoload**: `DebugMenu` (scripts/debug/debug_menu.gd)
 
 ## Features
+
+The panel is grouped by task and each tab scrolls independently:
+
+| Tab | Purpose |
+|-----|---------|
+| Quick | Immediate snapshot access, battle flow controls, and frame-rate targets |
+| Arena | Battle launch plus unit, projectile, rules, logging, and camera diagnostics |
+| Tools | Command console, autocomplete, and command output |
 
 ### FPS Controls
 

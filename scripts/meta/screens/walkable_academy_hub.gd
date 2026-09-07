@@ -2,7 +2,8 @@ extends Node3D
 class_name WalkableAcademyHub
 
 const UI_SHOWCASE_QUEST_ID: String = "ui_showcase_orientation"
-const UI_SHOWCASE_WELCOME_FLAG: String = "ui_showcase_welcome_seen"
+
+static var _showcase_welcome_shown_this_run: bool = false
 
 const WalkableAcademyBuildingScene: PackedScene = preload("res://scenes/meta/components/walkable_academy_building.tscn")
 const SummonerIconWidgetScene: PackedScene = preload("res://scenes/meta/components/summoner_icon_widget.tscn")
@@ -210,20 +211,25 @@ func _ready() -> void:
 func _show_showcase_welcome_if_needed() -> void:
 	if not UiTutorialMode.IsEnabled():
 		return
-	var profile: Dictionary = ProfileRepoApi.get_profile_data()
-	var meta: Dictionary = SafeTypeUtils.dict(profile.get("meta"))
-	var tutorial_flags: Dictionary = SafeTypeUtils.dict(meta.get("tutorial_flags"))
-	if SafeTypeUtils.bool_val(tutorial_flags.get(UI_SHOWCASE_WELCOME_FLAG), false):
+	if not _claim_showcase_welcome_for_run():
 		return
-	ProfileRepoApi.update_profile_meta_dict(
-		{"tutorial_flags": {UI_SHOWCASE_WELCOME_FLAG: true}}
-	)
 	player.set_physics_process(false)
 	showcase_message_modal.present(
 		Loc.t("academy.quest.ui_showcase.welcome_title"),
 		Loc.t("academy.quest.ui_showcase.welcome_message"),
 		Loc.t("academy.quest.ui_showcase.welcome_action")
 	)
+
+
+static func _claim_showcase_welcome_for_run() -> bool:
+	if _showcase_welcome_shown_this_run:
+		return false
+	_showcase_welcome_shown_this_run = true
+	return true
+
+
+static func reset_showcase_welcome_for_run() -> void:
+	_showcase_welcome_shown_this_run = false
 
 
 func _configure_city_graybox_ground() -> void:
@@ -923,19 +929,29 @@ func _refresh_quest_presentation() -> void:
 			)
 	_show_current_ui_guidance(QuestGuidance.current_target_id())
 	_refresh_objective_path(_world_guidance_target_id())
-	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
-	tracked_quest_banner.visible = not tracked_id.is_empty()
-	if tracked_id.is_empty():
+	var tracked_quest: Dictionary = _tracked_active_quest(journal)
+	tracked_quest_banner.visible = not tracked_quest.is_empty()
+	if tracked_quest.is_empty():
+		tracked_quest_button.text = ""
+		tracked_quest_button.tooltip_text = ""
 		return
+	var title: String = Loc.t(SafeTypeUtils.string(tracked_quest.get("title_key")))
+	var objective: String = Loc.t(
+		SafeTypeUtils.string(tracked_quest.get("current_objective_key"))
+	)
+	tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
+	tracked_quest_button.tooltip_text = tracked_quest_button.text
+
+
+func _tracked_active_quest(journal: Dictionary) -> Dictionary:
+	var tracked_id: String = SafeTypeUtils.string(journal.get("tracked_quest_id"))
+	if tracked_id.is_empty():
+		return {}
 	for value: Variant in SafeTypeUtils.array(journal.get("active")):
 		var quest: Dictionary = SafeTypeUtils.dict(value)
-		if SafeTypeUtils.string(quest.get("id")) != tracked_id:
-			continue
-		var title: String = Loc.t(SafeTypeUtils.string(quest.get("title_key")))
-		var objective: String = Loc.t(SafeTypeUtils.string(quest.get("current_objective_key")))
-		tracked_quest_button.text = title if objective.is_empty() else "%s — %s" % [title, objective]
-		tracked_quest_button.tooltip_text = tracked_quest_button.text
-		return
+		if SafeTypeUtils.string(quest.get("id")) == tracked_id:
+			return quest
+	return {}
 
 
 func _show_current_ui_guidance(target_id: String) -> void:

@@ -45,6 +45,40 @@ func test_c21_debug_menu_preset_catalog_contract_exists() -> void:
 	assert_true(entries.size() > 0, "C21: default preset should have at least one entry")
 
 
+func test_debug_menu_runtime_access_is_limited_to_debug_and_ui_review_builds() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+
+	assert_true(menu._is_allowed_runtime(true, false), "debug builds should expose the menu")
+	assert_true(menu._is_allowed_runtime(false, true), "UI review releases should expose the menu")
+	assert_false(menu._is_allowed_runtime(false, false), "normal releases should hide the menu")
+
+
+func test_debug_menu_toggle_accepts_f12_backtick_tilde_and_physical_backtick() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+
+	var f12_event: InputEventKey = InputEventKey.new()
+	f12_event.keycode = KEY_F12
+	assert_true(menu._is_toggle_event(f12_event))
+
+	var backtick_event: InputEventKey = InputEventKey.new()
+	backtick_event.keycode = KEY_QUOTELEFT
+	assert_true(menu._is_toggle_event(backtick_event))
+
+	var tilde_event: InputEventKey = InputEventKey.new()
+	tilde_event.keycode = KEY_ASCIITILDE
+	assert_true(menu._is_toggle_event(tilde_event))
+
+	var localized_event: InputEventKey = InputEventKey.new()
+	localized_event.physical_keycode = KEY_QUOTELEFT
+	assert_true(menu._is_toggle_event(localized_event))
+
+	var unrelated_event: InputEventKey = InputEventKey.new()
+	unrelated_event.keycode = KEY_A
+	assert_false(menu._is_toggle_event(unrelated_event))
+
+
 func test_c21_build_debug_arena_buttons_uses_selected_preset_entries() -> void:
 	var menu: Node = _menu_script.new()
 	_track_owned_node(menu)
@@ -80,6 +114,45 @@ func test_c14_quick_tab_omits_legacy_test_arena_map_button() -> void:
 
 	assert_false("Open Test Arena Map" in button_labels, "obsolete map chooser must stay removed")
 	assert_false("Launch Roster Debug Arena" in button_labels, "main debug tab should not force a specific roster battle")
+
+
+func test_debug_menu_groups_controls_into_task_based_scrollable_tabs() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+	var tabs: TabContainer = TabContainer.new()
+	_track_owned_node(tabs)
+
+	var quick: VBoxContainer = menu._create_tab(tabs, "Quick")
+	var arena: VBoxContainer = menu._create_tab(tabs, "Arena")
+	var tools: VBoxContainer = menu._create_tab(tabs, "Tools")
+	menu._build_quick_tab(quick)
+	menu._build_arena_tab(arena)
+	menu._build_tools_tab(tools)
+
+	assert_eq(tabs.get_child_count(), 3)
+	assert_eq(tabs.get_child(0).name, "Quick")
+	assert_eq(tabs.get_child(1).name, "Arena")
+	assert_eq(tabs.get_child(2).name, "Tools")
+	for child: Node in tabs.get_children():
+		assert_true(child is ScrollContainer, "%s should scroll instead of growing the panel" % child.name)
+
+	var quick_labels: Array[String] = _button_labels_below(quick)
+	assert_eq(quick_labels[0], "Manage Snapshots")
+	assert_true("Skip Prep Phase" in quick_labels)
+	assert_true("Win" in quick_labels)
+	assert_true("30 FPS (F5)" in quick_labels)
+	assert_false("Hurtboxes: Off" in quick_labels)
+
+	var arena_labels: Array[String] = _button_labels_below(arena)
+	assert_true("Fire Wisp" in arena_labels)
+	assert_true("Hurtboxes: Off" in arena_labels)
+	assert_true("Camera Overlay: N/A" in arena_labels)
+	assert_false("Manage Snapshots" in arena_labels)
+
+	var tool_labels: Array[String] = _button_labels_below(tools)
+	assert_false("Manage Snapshots" in tool_labels)
+	assert_not_null(menu._command_input)
+	assert_not_null(menu._autocomplete_list)
 
 
 func test_c21_selecting_preset_rebuilds_button_list_and_persists() -> void:
@@ -301,6 +374,13 @@ func _add_root_node(node: Node) -> void:
 
 func _track_owned_node(node: Node) -> void:
 	autoqfree(node)
+
+
+func _button_labels_below(root: Node) -> Array[String]:
+	var labels: Array[String] = []
+	for child: Node in root.find_children("*", "Button", true, false):
+		labels.append((child as Button).text)
+	return labels
 
 
 class _FakeGameController extends Node:

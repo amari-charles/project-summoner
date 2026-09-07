@@ -9,10 +9,18 @@
     <NoWarn>NU1605</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' != 'ExportRelease'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="gdUnit4.api" Version="5.0.0" />
     <PackageReference Include="gdUnit4.test.adapter" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
+    <Compile Remove="tests/csharp/**/*.cs" />
+    <Compile Remove="gdunit4_testadapter_v5/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NakamaClient" Version="3.21.1" />
   </ItemGroup>
 </Project>
