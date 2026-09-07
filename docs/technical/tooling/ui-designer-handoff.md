@@ -15,12 +15,12 @@ new build.
 
 ## Current playable build
 
-- File: [\[DEBUG\] Fateforged UI Review - Windows - 2026-09-06.zip](https://drive.google.com/file/d/1Gwyn4csL0EOmHNyrARAdX0w0ydh4fU9C/view?usp=drivesdk)
-- Uploaded: September 6, 2026
-- Size: 87,644,967 bytes (87.6 MB)
-- SHA-256: `27465c2508c23cec58660d020faf1fe0399ec143f3384dade8f8fffbaad9d03b`
+- File: [\[DEBUG\] Fateforged UI Review - FIXED - Windows - 2026-09-07.zip](https://drive.google.com/file/d/19wMy894ZS3IfNF5NbRlTAdGnyV8wMHfZ/view?usp=drivesdk)
+- Uploaded: September 7, 2026
+- Size: 89,569,159 bytes (89.6 MB)
+- SHA-256: `cbb23e9bcd0f4a7b0f5689ee50c9ebbbcd4f3b316e63f09252bf85e652566aea`
 - Export preset: `UI Designer Review`
-- Windows validation: [successful GitHub Actions run](https://github.com/amari-charles/project-summoner/actions/runs/34072365699)
+- Windows validation: [successful GitHub Actions run](https://github.com/amari-charles/project-summoner/actions/runs/34141675449)
 
 The recipient must download and extract the entire ZIP, then run
 `Fateforged-UI-Review.exe`. The adjacent
