@@ -5,13 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Fateforged.Data.Rewards;
+using Fateforged.Infrastructure.Data;
 
 namespace Fateforged.Data.Academy;
 
 /// <summary>Strict JSON-backed catalog of the five professor quest stewards.</summary>
 public static class AcademyProfessorCatalog
 {
-    private const string CatalogPath = "data/academy/professors.json";
+    private const string CatalogPath = "res://data/academy/professors.json";
 
     public static IReadOnlyList<AcademyProfessorDefinition> All { get; } = Load();
 
@@ -20,13 +21,9 @@ public static class AcademyProfessorCatalog
 
     private static IReadOnlyList<AcademyProfessorDefinition> Load()
     {
-        var path = ResolveCatalogPath();
-        if (!File.Exists(path))
-            throw new InvalidDataException($"Academy professor catalog was not found at '{path}'.");
-
         var file =
             JsonSerializer.Deserialize<AcademyProfessorFile>(
-                File.ReadAllText(path),
+                GodotJsonResource.ReadAllText(CatalogPath),
                 RewardJson.Options
             ) ?? throw new InvalidDataException("Academy professor catalog was empty.");
 
@@ -39,17 +36,6 @@ public static class AcademyProfessorCatalog
         }
 
         return file.Professors;
-    }
-
-    private static string ResolveCatalogPath()
-    {
-        var workingPath = Path.Combine(Directory.GetCurrentDirectory(), CatalogPath);
-        if (File.Exists(workingPath))
-            return workingPath;
-
-        return Path.GetFullPath(
-            Path.Combine(AppContext.BaseDirectory, "../../../../", CatalogPath)
-        );
     }
 
     private static List<string> Validate(ImmutableArray<AcademyProfessorDefinition> professors)

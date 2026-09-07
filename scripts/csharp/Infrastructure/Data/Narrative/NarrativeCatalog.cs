@@ -8,10 +8,11 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Fateforged.Application.Narrative;
+using Fateforged.Infrastructure.Data;
 
 public static class NarrativeCatalog
 {
-    private const string CatalogPath = "data/narrative/narrative.json";
+    private const string CatalogPath = "res://data/narrative/narrative.json";
 
     public static NarrativeCatalogDefinition All { get; } = Load();
 
@@ -85,11 +86,6 @@ public static class NarrativeCatalog
 
     private static NarrativeCatalogDefinition Load()
     {
-        var path = Path.Combine(Directory.GetCurrentDirectory(), CatalogPath);
-        if (!File.Exists(path))
-            path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../", CatalogPath));
-        if (!File.Exists(path))
-            throw new InvalidDataException($"Narrative catalog was not found at '{path}'.");
-        return LoadFromJson(File.ReadAllText(path));
+        return LoadFromJson(GodotJsonResource.ReadAllText(CatalogPath));
     }
 }

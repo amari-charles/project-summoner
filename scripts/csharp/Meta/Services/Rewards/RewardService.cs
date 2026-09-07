@@ -95,7 +95,7 @@ public partial class RewardService : Node
         var validator = new RewardContentValidator(
             RewardGrantHandlerRegistry.CreateDefault().HandledGrantTypes
         );
-        var contentRoot = ProjectSettings.GlobalizePath("res://data/rewards");
+        const string contentRoot = "res://data/rewards";
         var loaded = new RewardContentLoader(validator).Load(contentRoot);
         var embeddedOffers = QuestCatalog.All.SelectMany(quest => quest.RewardOffers);
         var errors = loaded.Errors.AddRange(validator.Validate(loaded.Catalog, embeddedOffers));

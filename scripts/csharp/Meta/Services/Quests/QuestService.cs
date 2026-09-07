@@ -1,6 +1,7 @@
 using System;
 using Fateforged.Application.UiTutorial;
 using Fateforged.Data.Academy;
+using Fateforged.Data.Quests;
 using Fateforged.Data.Summoners;
 using Fateforged.Infrastructure.Persistence;
 using Fateforged.Meta.Rewards;
@@ -63,6 +64,10 @@ public partial class QuestService : Node
 
     public Godot.Collections.Dictionary GetJournalState() =>
         _quests?.GetJournalState() ?? [];
+
+    public int GetQuestDefinitionCount() => QuestCatalog.All.Count;
+
+    public int GetProfessorDefinitionCount() => AcademyProfessorCatalog.All.Count;
 
     public Godot.Collections.Dictionary GetNpcQuestState(string npcId)
     {

@@ -12,6 +12,8 @@ const PRELOAD_TIMEOUT_SECONDS: float = 20.0
 ## Max time to wait for fade_out animation before proceeding anyway
 const FADE_OUT_TIMEOUT_SECONDS: float = 2.0
 
+const UI_REVIEW_SMOKE_ARGUMENT: String = "--ui-review-smoke"
+
 @onready var title_label: Label = $CenterContainer/VBoxContainer/Title
 @onready var loading_bar: ProgressBar = $CenterContainer/VBoxContainer/LoadingBar
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
@@ -22,6 +24,9 @@ func _ready() -> void:
 	title_label.text = Loc.t("ui.title.game_name")
 	loading_bar.value = 0.0
 	_start_time_ms = Time.get_ticks_msec()
+	if UI_REVIEW_SMOKE_ARGUMENT in OS.get_cmdline_user_args():
+		_run_ui_review_smoke_check()
+		return
 
 	# Preload the target scene with real resource loading
 	var preloader: ThreadedPreloader = ThreadedPreloader.new()
@@ -52,6 +57,46 @@ func _ready() -> void:
 
 func _on_progress_updated(progress: float) -> void:
 	loading_bar.value = progress * 100.0
+
+func _run_ui_review_smoke_check() -> void:
+	var failures: Array[String] = []
+	var narrative_director: Node = get_node("/root/NarrativeDirector")
+	_check_smoke_value("quests", Quests.call("GetQuestDefinitionCount"), 4, failures)
+	_check_smoke_value("professors", Quests.call("GetProfessorDefinitionCount"), 5, failures)
+	_check_smoke_value("encounters", Encounters.call("GetEncounterDefinitionCount"), 5, failures)
+	_check_smoke_value("narrative cues", narrative_director.call("GetConfiguredCueCount"), 2, failures)
+	_check_smoke_value(
+		"narrative dialogue",
+		narrative_director.call("GetConfiguredDialogueCount"),
+		3,
+		failures
+	)
+	var reward_status: Dictionary = SafeTypeUtils.dict(
+		RewardService.call("GetUniversalRewardStatus")
+	)
+	if SafeTypeUtils.string(reward_status.get("status")) != "ready":
+		failures.append("reward content is not ready: %s" % reward_status)
+	if not UiTutorialMode.IsEnabled():
+		failures.append("UI tutorial feature is not enabled")
+
+	if failures.is_empty():
+		print("[UI REVIEW SMOKE] PASS: packaged runtime content loaded")
+		get_tree().quit(0)
+		return
+
+	for failure: String in failures:
+		push_error("[UI REVIEW SMOKE] %s" % failure)
+	get_tree().quit(1)
+
+func _check_smoke_value(
+	label: String,
+	actual_value: Variant,
+	expected: int,
+	failures: Array[String]
+) -> void:
+	var actual: int = SafeTypeUtils.int_val(actual_value, -1)
+	if actual != expected:
+		failures.append("%s: expected %d, got %d" % [label, expected, actual])
 
 func _get_preload_paths() -> PackedStringArray:
 	if _should_goto_online():

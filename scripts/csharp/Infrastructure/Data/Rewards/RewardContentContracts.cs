@@ -13,6 +13,7 @@ using Fateforged.Data.Events;
 using Fateforged.Data.Items;
 using Fateforged.Data.Summoners;
 using Fateforged.Data.Traits;
+using Fateforged.Infrastructure.Data;
 
 namespace Fateforged.Data.Rewards;
 
@@ -53,7 +54,8 @@ public sealed class RewardContentLoader : IRewardContentLoader
 
     public RewardContentLoadResult Load(string contentRoot)
     {
-        if (!Directory.Exists(contentRoot))
+        var resourceBacked = contentRoot.StartsWith("res://", StringComparison.Ordinal);
+        if (!resourceBacked && !Directory.Exists(contentRoot))
         {
             return new RewardContentLoadResult
             {
@@ -68,12 +70,28 @@ public sealed class RewardContentLoader : IRewardContentLoader
         >();
         var errors = ImmutableArray.CreateBuilder<string>();
 
-        foreach (var path in Directory.GetFiles(contentRoot, "*.json").Order())
+        IReadOnlyList<string> paths;
+        try
+        {
+            paths = resourceBacked
+                ? GodotJsonResource.ListJsonFiles(contentRoot)
+                : Directory.GetFiles(contentRoot, "*.json").Order().ToArray();
+        }
+        catch (Exception exception)
+        {
+            return new RewardContentLoadResult
+            {
+                IsReady = false,
+                Errors = [exception.Message],
+            };
+        }
+
+        foreach (var path in paths)
         {
             try
             {
                 var file = JsonSerializer.Deserialize<RewardPoolFile>(
-                    File.ReadAllText(path),
+                    resourceBacked ? GodotJsonResource.ReadAllText(path) : File.ReadAllText(path),
                     RewardJson.Options
                 );
                 if (file == null)

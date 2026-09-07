@@ -50,6 +50,10 @@ public partial class NarrativeDirector : Node
 
     public int GetPendingCueCount() => PendingCueCount;
 
+    public int GetConfiguredCueCount() => _cues.Length;
+
+    public int GetConfiguredDialogueCount() => _dialogue.Count;
+
     public override void _Ready()
     {
         ConfigureCatalog(NarrativeCatalog.All);
