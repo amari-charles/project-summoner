@@ -6,8 +6,12 @@ using Fateforged.Application.UiTutorial;
 using Fateforged.Data.Academy;
 using Fateforged.Data.Encounters;
 using Fateforged.Data.Events;
+using Fateforged.Data.Narrative;
 using Fateforged.Data.Quests;
+using Fateforged.Data.Rewards;
+using Fateforged.Infrastructure.Data;
 using Fateforged.Infrastructure.Persistence;
+using Fateforged.Meta.Rewards;
 using GdUnit4;
 using Godot;
 using static GdUnit4.Assertions;
@@ -54,6 +58,25 @@ public class QuestEncounterCatalogIntegrationTest
         AssertThat(normalIds.Contains("ui_showcase_orientation")).IsFalse();
         AssertThat(tutorialIds).Contains("ui_showcase_orientation");
         AssertThat(tutorialIds.Contains("introduction_to_magic")).IsFalse();
+    }
+
+    [TestCase]
+    public void RuntimeCatalogs_LoadThroughPackAwareResourcePaths()
+    {
+        AssertThat(GodotJsonResource.ReadAllText("res://data/quests/quests.json")).IsNotEmpty();
+        AssertThat(GodotJsonResource.ReadAllText("res://data/academy/professors.json"))
+            .IsNotEmpty();
+        AssertThat(GodotJsonResource.ReadAllText("res://data/encounters/encounters.json"))
+            .IsNotEmpty();
+        AssertThat(NarrativeCatalog.All.Cues).IsNotEmpty();
+
+        var rewards = new RewardContentLoader(
+            new RewardContentValidator(
+                RewardGrantHandlerRegistry.CreateDefault().HandledGrantTypes
+            )
+        ).Load("res://data/rewards");
+        AssertThat(rewards.IsReady).IsTrue();
+        AssertThat(rewards.Errors).IsEmpty();
     }
 
     [TestCase]

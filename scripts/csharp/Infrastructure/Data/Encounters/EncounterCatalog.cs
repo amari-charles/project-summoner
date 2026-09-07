@@ -6,12 +6,13 @@ using System.Linq;
 using System.Text.Json;
 using Fateforged.Data.Events;
 using Fateforged.Data.Rewards;
+using Fateforged.Infrastructure.Data;
 
 namespace Fateforged.Data.Encounters;
 
 public static class EncounterCatalog
 {
-    private const string CatalogPath = "data/encounters/encounters.json";
+    private const string CatalogPath = "res://data/encounters/encounters.json";
 
     public static IReadOnlyList<EncounterDefinition> All { get; } = Load();
 
@@ -20,12 +21,11 @@ public static class EncounterCatalog
 
     private static IReadOnlyList<EncounterDefinition> Load()
     {
-        var path = ResolveCatalogPath();
-        if (!File.Exists(path))
-            throw new InvalidDataException($"Encounter catalog was not found at '{path}'.");
-
         var file =
-            JsonSerializer.Deserialize<EncounterFile>(File.ReadAllText(path), RewardJson.Options)
+            JsonSerializer.Deserialize<EncounterFile>(
+                GodotJsonResource.ReadAllText(CatalogPath),
+                RewardJson.Options
+            )
             ?? throw new InvalidDataException("Encounter catalog was empty.");
         var errors = Validate(file.Encounters);
         if (errors.Count > 0)
@@ -36,14 +36,6 @@ public static class EncounterCatalog
         }
 
         return file.Encounters;
-    }
-
-    private static string ResolveCatalogPath()
-    {
-        var workingPath = Path.Combine(Directory.GetCurrentDirectory(), CatalogPath);
-        return File.Exists(workingPath)
-            ? workingPath
-            : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../", CatalogPath));
     }
 
     private static List<string> Validate(ImmutableArray<EncounterDefinition> encounters)

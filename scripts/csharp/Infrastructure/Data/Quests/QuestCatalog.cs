@@ -6,12 +6,13 @@ using System.Linq;
 using System.Text.Json;
 using Fateforged.Data.Encounters;
 using Fateforged.Data.Rewards;
+using Fateforged.Infrastructure.Data;
 
 namespace Fateforged.Data.Quests;
 
 public static class QuestCatalog
 {
-    private const string CatalogPath = "data/quests/quests.json";
+    private const string CatalogPath = "res://data/quests/quests.json";
 
     public static IReadOnlyList<QuestDefinition> All { get; } = Load();
 
@@ -28,12 +29,11 @@ public static class QuestCatalog
 
     private static IReadOnlyList<QuestDefinition> Load()
     {
-        var path = ResolveCatalogPath();
-        if (!File.Exists(path))
-            throw new InvalidDataException($"Quest catalog was not found at '{path}'.");
-
         var file =
-            JsonSerializer.Deserialize<QuestFile>(File.ReadAllText(path), RewardJson.Options)
+            JsonSerializer.Deserialize<QuestFile>(
+                GodotJsonResource.ReadAllText(CatalogPath),
+                RewardJson.Options
+            )
             ?? throw new InvalidDataException("Quest catalog was empty.");
         var errors = Validate(file.Quests);
         if (errors.Count > 0)
@@ -44,14 +44,6 @@ public static class QuestCatalog
         }
 
         return file.Quests;
-    }
-
-    private static string ResolveCatalogPath()
-    {
-        var workingPath = Path.Combine(Directory.GetCurrentDirectory(), CatalogPath);
-        return File.Exists(workingPath)
-            ? workingPath
-            : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../", CatalogPath));
     }
 
     private static List<string> Validate(ImmutableArray<QuestDefinition> quests)

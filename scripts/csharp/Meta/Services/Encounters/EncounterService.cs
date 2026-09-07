@@ -59,6 +59,8 @@ public partial class EncounterService : Node
         return state;
     }
 
+    public int GetEncounterDefinitionCount() => _catalog.Count;
+
     public Dictionary ResolveBattleConfig(string encounterId)
     {
         var encounter = Find(encounterId);

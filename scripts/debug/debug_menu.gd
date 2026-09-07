@@ -4,9 +4,10 @@ extends Node
 ## Debug Menu - Development utility panel for testing and debugging
 ##
 ## Provides on-screen controls for debugging and testing.
-## Only active in debug builds - automatically disabled in release.
+## Active in debug builds and the dedicated UI designer review build.
+## Automatically disabled in normal release builds.
 ##
-## Toggle UI: ` (backtick) or F12
+## Toggle UI: ` (backtick), ~ (tilde), or F12
 ## FPS Hotkeys (work even when UI hidden):
 ##   F5 - Set to 30 FPS (low-end mobile simulation)
 ##   F6 - Set to 60 FPS (standard)
@@ -17,6 +18,7 @@ extends Node
 const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
 const ENABLE_FLAG: String = "--enable-debug-menu"
 const DISABLE_FLAG: String = "--disable-debug-menu"
+const UI_TUTORIAL_FEATURE: String = "ui_tutorial"
 const DEFAULT_ARENA_PRESET_ID: String = "all_test_arena"
 const DEBUG_ARENA_PRESETS = preload("res://scripts/debug/debug_arena_menu_presets.gd")
 const BATTLE_SURFACE_ROUTER = preload("res://scripts/application/battle_surface_router.gd")
@@ -71,7 +73,7 @@ const CAMERA_AUTO_LOG_INTERVAL_SECONDS: float = 5.0
 ## =============================================================================
 
 func _ready() -> void:
-	if not OS.is_debug_build():
+	if not _is_allowed_runtime(OS.is_debug_build(), OS.has_feature(UI_TUTORIAL_FEATURE)):
 		queue_free()
 		return
 
@@ -94,7 +96,7 @@ func _ready() -> void:
 
 	# Create UI after a frame to ensure tree is ready
 	call_deferred("_create_ui")
-	print("[Debug] Ready - Press ` or F12 to toggle panel, F5-F8 for quick FPS change")
+	print("[Debug] Ready - Press `, ~, or F12 to toggle panel, F5-F8 for quick FPS change")
 
 
 func _process(_delta: float) -> void:
@@ -125,9 +127,11 @@ func _input(event: InputEvent) -> void:
 	if not key_event.pressed or key_event.echo:
 		return
 
+	if _is_toggle_event(key_event):
+		_toggle_panel()
+		return
+
 	match key_event.keycode:
-		KEY_QUOTELEFT, KEY_F12:  # Backtick (`) or F12 to toggle
-			_toggle_panel()
 		KEY_F5:
 			_set_fps(30)
 		KEY_F6:
@@ -138,6 +142,19 @@ func _input(event: InputEvent) -> void:
 			_set_fps(0)
 		KEY_F9:
 			_on_projectile_hit_geometry_toggle_pressed()
+
+
+func _is_allowed_runtime(is_debug_build: bool, is_ui_tutorial: bool) -> bool:
+	return is_debug_build or is_ui_tutorial
+
+
+func _is_toggle_event(key_event: InputEventKey) -> bool:
+	return (
+		key_event.keycode == KEY_F12
+		or key_event.keycode == KEY_QUOTELEFT
+		or key_event.keycode == KEY_ASCIITILDE
+		or key_event.physical_keycode == KEY_QUOTELEFT
+	)
 
 
 func _compute_menu_enabled() -> bool:
@@ -162,6 +179,7 @@ func _create_ui() -> void:
 	# Main panel
 	_panel = PanelContainer.new()
 	_panel.position = Vector2(10, 10)
+	_panel.custom_minimum_size = Vector2(380, 680)
 	canvas_layer.add_child(_panel)
 
 	# Style the panel
@@ -208,22 +226,13 @@ func _create_ui() -> void:
 	vbox.add_child(separator)
 
 	var tabs: TabContainer = TabContainer.new()
+	tabs.custom_minimum_size = Vector2(350, 520)
+	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(tabs)
 
-	var quick_vbox: VBoxContainer = VBoxContainer.new()
-	quick_vbox.name = "Quick"
-	quick_vbox.add_theme_constant_override("separation", 8)
-	quick_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tabs.add_child(quick_vbox)
-
-	var more_vbox: VBoxContainer = VBoxContainer.new()
-	more_vbox.name = "More"
-	more_vbox.add_theme_constant_override("separation", 8)
-	more_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tabs.add_child(more_vbox)
-
-	_build_quick_tab(quick_vbox)
-	_build_more_tab(more_vbox)
+	_build_quick_tab(_create_tab(tabs, "Quick"))
+	_build_arena_tab(_create_tab(tabs, "Arena"))
+	_build_tools_tab(_create_tab(tabs, "Tools"))
 
 	# Start hidden by default (press ` or F12 to show)
 	_panel.visible = false
@@ -233,253 +242,203 @@ func _create_ui() -> void:
 	_apply_spawn_boundary_bypass()
 
 
+func _create_tab(tabs: TabContainer, tab_name: String) -> VBoxContainer:
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.name = tab_name
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tabs.add_child(scroll)
+
+	var content: VBoxContainer = VBoxContainer.new()
+	content.custom_minimum_size = Vector2(326, 0)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 8)
+	scroll.add_child(content)
+	return content
+
+
+func _add_section_title(vbox: VBoxContainer, text: String, color: Color) -> void:
+	var title: Label = Label.new()
+	title.text = text
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_color", color)
+	vbox.add_child(title)
+
+
+func _add_separator(vbox: VBoxContainer) -> void:
+	vbox.add_child(HSeparator.new())
+
+
 func _build_quick_tab(vbox: VBoxContainer) -> void:
-	var flow_title: Label = Label.new()
-	flow_title.text = "Battle Flow"
-	flow_title.add_theme_font_size_override("font_size", 14)
-	flow_title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.5))
-	vbox.add_child(flow_title)
-
-	# Skip Prep Phase button
-	_skip_prep_button = Button.new()
-	_skip_prep_button.text = "Skip Prep Phase"
-	_skip_prep_button.custom_minimum_size = Vector2(220, 32)
-	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
-	vbox.add_child(_skip_prep_button)
-
-	var arena_separator: HSeparator = HSeparator.new()
-	vbox.add_child(arena_separator)
-
-	var arena_title: Label = Label.new()
-	arena_title.text = "Test Arena"
-	arena_title.add_theme_font_size_override("font_size", 14)
-	arena_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
-	vbox.add_child(arena_title)
-
-	var debug_separator: HSeparator = HSeparator.new()
-	vbox.add_child(debug_separator)
-
-	var toggles_title: Label = Label.new()
-	toggles_title.text = "Debug Toggles"
-	toggles_title.add_theme_font_size_override("font_size", 14)
-	toggles_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
-	vbox.add_child(toggles_title)
-
-	# Hurtbox toggle button
-	_hurtbox_button = Button.new()
-	_hurtbox_button.text = "Hurtboxes: Off"
-	_hurtbox_button.custom_minimum_size = Vector2(220, 32)
-	_hurtbox_button.pressed.connect(_on_hurtbox_toggle_pressed)
-	vbox.add_child(_hurtbox_button)
-
-	# Target Point toggle button
-	_target_point_button = Button.new()
-	_target_point_button.text = "Target Points: Off"
-	_target_point_button.custom_minimum_size = Vector2(220, 32)
-	_target_point_button.pressed.connect(_on_target_point_toggle_pressed)
-	vbox.add_child(_target_point_button)
-
-	# Attack Range toggle button
-	_attack_range_button = Button.new()
-	_attack_range_button.text = "Engage Range: Off"
-	_attack_range_button.custom_minimum_size = Vector2(220, 32)
-	_attack_range_button.pressed.connect(_on_attack_range_toggle_pressed)
-	vbox.add_child(_attack_range_button)
-
-	# Damage Shape toggle button
-	_damage_shape_button = Button.new()
-	_damage_shape_button.text = "Damage Shapes: Off"
-	_damage_shape_button.custom_minimum_size = Vector2(220, 32)
-	_damage_shape_button.pressed.connect(_on_damage_shape_toggle_pressed)
-	vbox.add_child(_damage_shape_button)
-
-	# Navigation Footprint toggle button
-	_navigation_footprint_button = Button.new()
-	_navigation_footprint_button.text = "Navigation Footprint: Off"
-	_navigation_footprint_button.custom_minimum_size = Vector2(220, 32)
-	_navigation_footprint_button.pressed.connect(_on_navigation_footprint_toggle_pressed)
-	vbox.add_child(_navigation_footprint_button)
-
-	# Projectile Hit Geometry toggle button
-	_projectile_hit_geometry_button = Button.new()
-	_projectile_hit_geometry_button.text = "Projectile Hit Radius: Off"
-	_projectile_hit_geometry_button.custom_minimum_size = Vector2(220, 32)
-	_projectile_hit_geometry_button.pressed.connect(_on_projectile_hit_geometry_toggle_pressed)
-	vbox.add_child(_projectile_hit_geometry_button)
-
-	# Summoner Bubble toggle button
-	_summoner_bubble_button = Button.new()
-	_summoner_bubble_button.text = "Summoner Bubble: Off"
-	_summoner_bubble_button.custom_minimum_size = Vector2(200, 32)
-	_summoner_bubble_button.pressed.connect(_on_summoner_bubble_toggle_pressed)
-	vbox.add_child(_summoner_bubble_button)
-
-	# Ability Logs toggle button
-	_ability_logs_button = Button.new()
-	_ability_logs_button.text = "Ability Logs: Off"
-	_ability_logs_button.custom_minimum_size = Vector2(220, 32)
-	_ability_logs_button.pressed.connect(_on_ability_logs_toggle_pressed)
-	vbox.add_child(_ability_logs_button)
-
-	# Spawn Boundary Bypass toggle button
-	_spawn_boundary_button = Button.new()
-	_spawn_boundary_button.text = "Spawn Boundary: On"
-	_spawn_boundary_button.custom_minimum_size = Vector2(220, 32)
-	_spawn_boundary_button.pressed.connect(_on_spawn_boundary_toggle_pressed)
-	vbox.add_child(_spawn_boundary_button)
-
-	var camera_separator: HSeparator = HSeparator.new()
-	vbox.add_child(camera_separator)
-
-	var camera_title: Label = Label.new()
-	camera_title.text = "Camera Debug"
-	camera_title.add_theme_font_size_override("font_size", 14)
-	camera_title.add_theme_color_override("font_color", Color(0.6, 1.0, 0.8))
-	vbox.add_child(camera_title)
-
-	# Camera bounds overlay toggle button
-	_camera_overlay_button = Button.new()
-	_camera_overlay_button.text = "Camera Overlay: N/A"
-	_camera_overlay_button.custom_minimum_size = Vector2(220, 32)
-	_camera_overlay_button.pressed.connect(_on_camera_overlay_toggle_pressed)
-	vbox.add_child(_camera_overlay_button)
-
-	# Camera auto-log toggle button
-	_camera_auto_log_button = Button.new()
-	_camera_auto_log_button.text = "Camera Auto-Log: Off"
-	_camera_auto_log_button.custom_minimum_size = Vector2(220, 32)
-	_camera_auto_log_button.pressed.connect(_on_camera_auto_log_toggle_pressed)
-	vbox.add_child(_camera_auto_log_button)
-
-	# Camera zoom solver log toggle button
-	_camera_zoom_solver_log_button = Button.new()
-	_camera_zoom_solver_log_button.text = "Zoom Solver Logs: N/A"
-	_camera_zoom_solver_log_button.custom_minimum_size = Vector2(220, 32)
-	_camera_zoom_solver_log_button.pressed.connect(_on_camera_zoom_solver_log_toggle_pressed)
-	vbox.add_child(_camera_zoom_solver_log_button)
-
-	# Console command separator
-	var console_separator: HSeparator = HSeparator.new()
-	vbox.add_child(console_separator)
-
-	# Console command title
-	var console_title: Label = Label.new()
-	console_title.text = "Console Commands"
-	console_title.add_theme_font_size_override("font_size", 14)
-	console_title.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
-	vbox.add_child(console_title)
-
-	# Command input
-	_command_input = LineEdit.new()
-	_command_input.placeholder_text = "Type / for commands"
-	_command_input.custom_minimum_size = Vector2(220, 32)
-	_command_input.text_submitted.connect(_on_command_submitted)
-	_command_input.text_changed.connect(_on_command_text_changed)
-	_command_input.gui_input.connect(_on_command_input_gui_input)
-	vbox.add_child(_command_input)
-
-	# Autocomplete list
-	_autocomplete_list = ItemList.new()
-	_autocomplete_list.custom_minimum_size = Vector2(220, 150)
-	_autocomplete_list.select_mode = ItemList.SELECT_SINGLE
-	_autocomplete_list.item_selected.connect(_on_autocomplete_item_selected)
-	_autocomplete_list.visible = false
-	vbox.add_child(_autocomplete_list)
-
-	# Command output
-	_command_output = Label.new()
-	_command_output.text = ""
-	_command_output.add_theme_font_size_override("font_size", 11)
-	_command_output.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
-	_command_output.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_command_output.custom_minimum_size = Vector2(220, 0)
-	vbox.add_child(_command_output)
-
-	# Snapshots separator
-	var snapshot_separator: HSeparator = HSeparator.new()
-	vbox.add_child(snapshot_separator)
-
-	var snapshot_title: Label = Label.new()
-	snapshot_title.text = "Snapshots"
-	snapshot_title.add_theme_font_size_override("font_size", 14)
-	snapshot_title.add_theme_color_override("font_color", Color(0.8, 0.8, 1.0))
-	vbox.add_child(snapshot_title)
-
-	# Manage Snapshots button
 	var snapshots_button: Button = Button.new()
 	snapshots_button.text = "Manage Snapshots"
-	snapshots_button.custom_minimum_size = Vector2(220, 32)
+	snapshots_button.custom_minimum_size = Vector2(0, 40)
 	snapshots_button.pressed.connect(_on_snapshots_pressed)
 	vbox.add_child(snapshots_button)
 
+	_add_separator(vbox)
+	_add_section_title(vbox, "Battle Controls", Color(1.0, 0.65, 0.5))
 
-func _build_more_tab(vbox: VBoxContainer) -> void:
-	# Frame-rate controls
-	var fps_title: Label = Label.new()
-	fps_title.text = "Frame Rate"
-	fps_title.add_theme_font_size_override("font_size", 14)
-	fps_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
-	vbox.add_child(fps_title)
+	_skip_prep_button = Button.new()
+	_skip_prep_button.text = "Skip Prep Phase"
+	_skip_prep_button.custom_minimum_size = Vector2(0, 32)
+	_skip_prep_button.pressed.connect(_on_skip_prep_pressed)
+	vbox.add_child(_skip_prep_button)
 
-	var grid: GridContainer = GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 6)
-	vbox.add_child(grid)
-
-	_buttons.clear()
-	_create_fps_button(grid, 30, "30 FPS", "F5")
-	_create_fps_button(grid, 60, "60 FPS", "F6")
-	_create_fps_button(grid, 120, "120 FPS", "F7")
-	_create_fps_button(grid, 0, "Uncapped", "F8")
-
-	var instructions: Label = Label.new()
-	instructions.text = "` or F12 to hide"
-	instructions.add_theme_font_size_override("font_size", 11)
-	instructions.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(instructions)
-
-	# Battle Control separator
-	var battle_separator: HSeparator = HSeparator.new()
-	vbox.add_child(battle_separator)
-
-	# Battle Control title
-	var battle_title: Label = Label.new()
-	battle_title.text = "Battle Control"
-	battle_title.add_theme_font_size_override("font_size", 14)
-	battle_title.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5))
-	vbox.add_child(battle_title)
-
-	# Win/Lose button container
 	var battle_grid: GridContainer = GridContainer.new()
 	battle_grid.columns = 2
 	battle_grid.add_theme_constant_override("h_separation", 8)
 	vbox.add_child(battle_grid)
 
-	# Win button
 	var win_button: Button = Button.new()
 	win_button.text = "Win"
-	win_button.custom_minimum_size = Vector2(96, 32)
+	win_button.custom_minimum_size = Vector2(156, 32)
 	win_button.pressed.connect(_on_win_pressed)
 	battle_grid.add_child(win_button)
 
-	# Lose button
 	var lose_button: Button = Button.new()
 	lose_button.text = "Lose"
-	lose_button.custom_minimum_size = Vector2(96, 32)
+	lose_button.custom_minimum_size = Vector2(156, 32)
 	lose_button.pressed.connect(_on_lose_pressed)
 	battle_grid.add_child(lose_button)
 
-	# Debug arena quick launch
-	var arena_separator: HSeparator = HSeparator.new()
-	vbox.add_child(arena_separator)
+	_add_separator(vbox)
+	_add_section_title(vbox, "Frame Rate", Color(0.7, 0.9, 1.0))
 
-	var arena_title: Label = Label.new()
-	arena_title.text = "Debug Arena Battles"
-	arena_title.add_theme_font_size_override("font_size", 14)
-	arena_title.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
-	vbox.add_child(arena_title)
+	var fps_grid: GridContainer = GridContainer.new()
+	fps_grid.columns = 2
+	fps_grid.add_theme_constant_override("h_separation", 8)
+	fps_grid.add_theme_constant_override("v_separation", 6)
+	vbox.add_child(fps_grid)
+
+	_buttons.clear()
+	_create_fps_button(fps_grid, 30, "30 FPS", "F5")
+	_create_fps_button(fps_grid, 60, "60 FPS", "F6")
+	_create_fps_button(fps_grid, 120, "120 FPS", "F7")
+	_create_fps_button(fps_grid, 0, "Uncapped", "F8")
+
+	var instructions: Label = Label.new()
+	instructions.text = "` / ~ or F12 to hide · F9 toggles projectile hit radius"
+	instructions.add_theme_font_size_override("font_size", 11)
+	instructions.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	instructions.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(instructions)
+
+
+func _build_arena_diagnostics(vbox: VBoxContainer) -> void:
+	_add_section_title(vbox, "Unit & Combat", Color(0.7, 0.9, 1.0))
+
+	_hurtbox_button = Button.new()
+	_hurtbox_button.text = "Hurtboxes: Off"
+	_hurtbox_button.custom_minimum_size = Vector2(0, 32)
+	_hurtbox_button.pressed.connect(_on_hurtbox_toggle_pressed)
+	vbox.add_child(_hurtbox_button)
+
+	_target_point_button = Button.new()
+	_target_point_button.text = "Target Points: Off"
+	_target_point_button.custom_minimum_size = Vector2(0, 32)
+	_target_point_button.pressed.connect(_on_target_point_toggle_pressed)
+	vbox.add_child(_target_point_button)
+
+	_attack_range_button = Button.new()
+	_attack_range_button.text = "Engage Range: Off"
+	_attack_range_button.custom_minimum_size = Vector2(0, 32)
+	_attack_range_button.pressed.connect(_on_attack_range_toggle_pressed)
+	vbox.add_child(_attack_range_button)
+
+	_damage_shape_button = Button.new()
+	_damage_shape_button.text = "Damage Shapes: Off"
+	_damage_shape_button.custom_minimum_size = Vector2(0, 32)
+	_damage_shape_button.pressed.connect(_on_damage_shape_toggle_pressed)
+	vbox.add_child(_damage_shape_button)
+
+	_navigation_footprint_button = Button.new()
+	_navigation_footprint_button.text = "Navigation Footprint: Off"
+	_navigation_footprint_button.custom_minimum_size = Vector2(0, 32)
+	_navigation_footprint_button.pressed.connect(_on_navigation_footprint_toggle_pressed)
+	vbox.add_child(_navigation_footprint_button)
+
+	_projectile_hit_geometry_button = Button.new()
+	_projectile_hit_geometry_button.text = "Projectile Hit Radius: Off"
+	_projectile_hit_geometry_button.custom_minimum_size = Vector2(0, 32)
+	_projectile_hit_geometry_button.pressed.connect(_on_projectile_hit_geometry_toggle_pressed)
+	vbox.add_child(_projectile_hit_geometry_button)
+
+	_summoner_bubble_button = Button.new()
+	_summoner_bubble_button.text = "Summoner Bubble: Off"
+	_summoner_bubble_button.custom_minimum_size = Vector2(0, 32)
+	_summoner_bubble_button.pressed.connect(_on_summoner_bubble_toggle_pressed)
+	vbox.add_child(_summoner_bubble_button)
+
+	_add_separator(vbox)
+	_add_section_title(vbox, "Rules & Logging", Color(0.9, 0.8, 0.5))
+
+	_ability_logs_button = Button.new()
+	_ability_logs_button.text = "Ability Logs: Off"
+	_ability_logs_button.custom_minimum_size = Vector2(0, 32)
+	_ability_logs_button.pressed.connect(_on_ability_logs_toggle_pressed)
+	vbox.add_child(_ability_logs_button)
+
+	_spawn_boundary_button = Button.new()
+	_spawn_boundary_button.text = "Spawn Boundary: On"
+	_spawn_boundary_button.custom_minimum_size = Vector2(0, 32)
+	_spawn_boundary_button.pressed.connect(_on_spawn_boundary_toggle_pressed)
+	vbox.add_child(_spawn_boundary_button)
+
+	_add_separator(vbox)
+	_add_section_title(vbox, "Camera", Color(0.6, 1.0, 0.8))
+
+	_camera_overlay_button = Button.new()
+	_camera_overlay_button.text = "Camera Overlay: N/A"
+	_camera_overlay_button.custom_minimum_size = Vector2(0, 32)
+	_camera_overlay_button.pressed.connect(_on_camera_overlay_toggle_pressed)
+	vbox.add_child(_camera_overlay_button)
+
+	_camera_auto_log_button = Button.new()
+	_camera_auto_log_button.text = "Camera Auto-Log: Off"
+	_camera_auto_log_button.custom_minimum_size = Vector2(0, 32)
+	_camera_auto_log_button.pressed.connect(_on_camera_auto_log_toggle_pressed)
+	vbox.add_child(_camera_auto_log_button)
+
+	_camera_zoom_solver_log_button = Button.new()
+	_camera_zoom_solver_log_button.text = "Zoom Solver Logs: N/A"
+	_camera_zoom_solver_log_button.custom_minimum_size = Vector2(0, 32)
+	_camera_zoom_solver_log_button.pressed.connect(_on_camera_zoom_solver_log_toggle_pressed)
+	vbox.add_child(_camera_zoom_solver_log_button)
+
+
+func _build_tools_tab(vbox: VBoxContainer) -> void:
+	_add_section_title(vbox, "Console", Color(0.3, 0.8, 1.0))
+
+	_command_input = LineEdit.new()
+	_command_input.placeholder_text = "Type / for commands"
+	_command_input.custom_minimum_size = Vector2(0, 32)
+	_command_input.text_submitted.connect(_on_command_submitted)
+	_command_input.text_changed.connect(_on_command_text_changed)
+	_command_input.gui_input.connect(_on_command_input_gui_input)
+	vbox.add_child(_command_input)
+
+	_autocomplete_list = ItemList.new()
+	_autocomplete_list.custom_minimum_size = Vector2(0, 180)
+	_autocomplete_list.select_mode = ItemList.SELECT_SINGLE
+	_autocomplete_list.item_selected.connect(_on_autocomplete_item_selected)
+	_autocomplete_list.visible = false
+	vbox.add_child(_autocomplete_list)
+
+	_command_output = Label.new()
+	_command_output.text = ""
+	_command_output.add_theme_font_size_override("font_size", 11)
+	_command_output.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
+	_command_output.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_command_output.custom_minimum_size = Vector2(0, 48)
+	vbox.add_child(_command_output)
+
+
+func _build_arena_tab(vbox: VBoxContainer) -> void:
+	_add_section_title(vbox, "Debug Arena Battles", Color(0.7, 0.9, 1.0))
 
 	var preset_row: HBoxContainer = HBoxContainer.new()
 	preset_row.add_theme_constant_override("separation", 8)
@@ -518,6 +477,8 @@ func _build_more_tab(vbox: VBoxContainer) -> void:
 	vbox.add_child(_arena_button_grid)
 
 	_build_debug_arena_buttons(_arena_button_grid)
+	_add_separator(vbox)
+	_build_arena_diagnostics(vbox)
 
 
 func _update_button_states() -> void:
