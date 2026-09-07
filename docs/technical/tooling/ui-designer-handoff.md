@@ -15,7 +15,7 @@ new build.
 
 ## Current playable build
 
-- File: [Fateforged-UI-Review-Debug-Access-Windows-2026-09-06.zip](https://drive.google.com/file/d/1Gwyn4csL0EOmHNyrARAdX0w0ydh4fU9C/view?usp=drivesdk)
+- File: [\[DEBUG\] Fateforged UI Review - Windows - 2026-09-06.zip](https://drive.google.com/file/d/1Gwyn4csL0EOmHNyrARAdX0w0ydh4fU9C/view?usp=drivesdk)
 - Uploaded: September 6, 2026
 - Size: 87,644,967 bytes (87.6 MB)
 - SHA-256: `27465c2508c23cec58660d020faf1fe0399ec143f3384dade8f8fffbaad9d03b`
