@@ -98,7 +98,7 @@ jobs:
           $stdout = Join-Path $env:RUNNER_TEMP "ui-review-stdout.log"
           $stderr = Join-Path $env:RUNNER_TEMP "ui-review-stderr.log"
           $process = Start-Process -FilePath $executable `
-            -ArgumentList "--headless", "--ui-review-smoke", "--quit-after", "120" `
+            -ArgumentList "--headless", "--quit-after", "120", "--", "--ui-review-smoke" `
             -RedirectStandardOutput $stdout `
             -RedirectStandardError $stderr `
             -PassThru
