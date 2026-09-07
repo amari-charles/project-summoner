@@ -25,7 +25,9 @@ new build.
 The recipient must download and extract the entire ZIP, then run
 `Fateforged-UI-Review.exe`. The adjacent
 `data_Fateforged_windows_x86_64` directory must remain next to the executable.
-The preset enables the guided UI walkthrough automatically.
+The preset enables the guided UI walkthrough automatically. Press F12,
+backtick (`), or tilde (~) to open the debug panel; the Arena tab launches a
+battle directly.
 
 ## Producing a handoff build
 

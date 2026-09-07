@@ -4,9 +4,10 @@ extends Node
 ## Debug Menu - Development utility panel for testing and debugging
 ##
 ## Provides on-screen controls for debugging and testing.
-## Only active in debug builds - automatically disabled in release.
+## Active in debug builds and the dedicated UI designer review build.
+## Automatically disabled in normal release builds.
 ##
-## Toggle UI: ` (backtick) or F12
+## Toggle UI: ` (backtick), ~ (tilde), or F12
 ## FPS Hotkeys (work even when UI hidden):
 ##   F5 - Set to 30 FPS (low-end mobile simulation)
 ##   F6 - Set to 60 FPS (standard)
@@ -17,6 +18,7 @@ extends Node
 const SETTINGS_PATH: String = "user://debug_menu_settings.cfg"
 const ENABLE_FLAG: String = "--enable-debug-menu"
 const DISABLE_FLAG: String = "--disable-debug-menu"
+const UI_TUTORIAL_FEATURE: String = "ui_tutorial"
 const DEFAULT_ARENA_PRESET_ID: String = "all_test_arena"
 const DEBUG_ARENA_PRESETS = preload("res://scripts/debug/debug_arena_menu_presets.gd")
 const BATTLE_SURFACE_ROUTER = preload("res://scripts/application/battle_surface_router.gd")
@@ -71,7 +73,7 @@ const CAMERA_AUTO_LOG_INTERVAL_SECONDS: float = 5.0
 ## =============================================================================
 
 func _ready() -> void:
-	if not OS.is_debug_build():
+	if not _is_allowed_runtime(OS.is_debug_build(), OS.has_feature(UI_TUTORIAL_FEATURE)):
 		queue_free()
 		return
 
@@ -94,7 +96,7 @@ func _ready() -> void:
 
 	# Create UI after a frame to ensure tree is ready
 	call_deferred("_create_ui")
-	print("[Debug] Ready - Press ` or F12 to toggle panel, F5-F8 for quick FPS change")
+	print("[Debug] Ready - Press `, ~, or F12 to toggle panel, F5-F8 for quick FPS change")
 
 
 func _process(_delta: float) -> void:
@@ -125,9 +127,11 @@ func _input(event: InputEvent) -> void:
 	if not key_event.pressed or key_event.echo:
 		return
 
+	if _is_toggle_event(key_event):
+		_toggle_panel()
+		return
+
 	match key_event.keycode:
-		KEY_QUOTELEFT, KEY_F12:  # Backtick (`) or F12 to toggle
-			_toggle_panel()
 		KEY_F5:
 			_set_fps(30)
 		KEY_F6:
@@ -138,6 +142,19 @@ func _input(event: InputEvent) -> void:
 			_set_fps(0)
 		KEY_F9:
 			_on_projectile_hit_geometry_toggle_pressed()
+
+
+func _is_allowed_runtime(is_debug_build: bool, is_ui_tutorial: bool) -> bool:
+	return is_debug_build or is_ui_tutorial
+
+
+func _is_toggle_event(key_event: InputEventKey) -> bool:
+	return (
+		key_event.keycode == KEY_F12
+		or key_event.keycode == KEY_QUOTELEFT
+		or key_event.keycode == KEY_ASCIITILDE
+		or key_event.physical_keycode == KEY_QUOTELEFT
+	)
 
 
 func _compute_menu_enabled() -> bool:
@@ -303,7 +320,7 @@ func _build_quick_tab(vbox: VBoxContainer) -> void:
 	_create_fps_button(fps_grid, 0, "Uncapped", "F8")
 
 	var instructions: Label = Label.new()
-	instructions.text = "` or F12 to hide · F9 toggles projectile hit radius"
+	instructions.text = "` / ~ or F12 to hide · F9 toggles projectile hit radius"
 	instructions.add_theme_font_size_override("font_size", 11)
 	instructions.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 	instructions.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

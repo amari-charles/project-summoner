@@ -45,6 +45,40 @@ func test_c21_debug_menu_preset_catalog_contract_exists() -> void:
 	assert_true(entries.size() > 0, "C21: default preset should have at least one entry")
 
 
+func test_debug_menu_runtime_access_is_limited_to_debug_and_ui_review_builds() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+
+	assert_true(menu._is_allowed_runtime(true, false), "debug builds should expose the menu")
+	assert_true(menu._is_allowed_runtime(false, true), "UI review releases should expose the menu")
+	assert_false(menu._is_allowed_runtime(false, false), "normal releases should hide the menu")
+
+
+func test_debug_menu_toggle_accepts_f12_backtick_tilde_and_physical_backtick() -> void:
+	var menu: Node = _menu_script.new()
+	_track_owned_node(menu)
+
+	var f12_event: InputEventKey = InputEventKey.new()
+	f12_event.keycode = KEY_F12
+	assert_true(menu._is_toggle_event(f12_event))
+
+	var backtick_event: InputEventKey = InputEventKey.new()
+	backtick_event.keycode = KEY_QUOTELEFT
+	assert_true(menu._is_toggle_event(backtick_event))
+
+	var tilde_event: InputEventKey = InputEventKey.new()
+	tilde_event.keycode = KEY_ASCIITILDE
+	assert_true(menu._is_toggle_event(tilde_event))
+
+	var localized_event: InputEventKey = InputEventKey.new()
+	localized_event.physical_keycode = KEY_QUOTELEFT
+	assert_true(menu._is_toggle_event(localized_event))
+
+	var unrelated_event: InputEventKey = InputEventKey.new()
+	unrelated_event.keycode = KEY_A
+	assert_false(menu._is_toggle_event(unrelated_event))
+
+
 func test_c21_build_debug_arena_buttons_uses_selected_preset_entries() -> void:
 	var menu: Node = _menu_script.new()
 	_track_owned_node(menu)

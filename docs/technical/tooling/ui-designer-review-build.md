@@ -3,6 +3,11 @@
 The UI designer review build enables the guided UI walkthrough without changing
 the behavior of normal editor sessions or player builds.
 
+The review build also exposes the debug panel so the designer can launch any
+authored debug battle without completing the walkthrough first. Press F12,
+backtick (`), or tilde (~), then use the Arena tab. Normal release builds keep
+the panel disabled.
+
 For the canonical packaging, Windows validation, Google Drive destination, and
 current downloadable build, see [UI Designer Handoff](ui-designer-handoff.md).
 
