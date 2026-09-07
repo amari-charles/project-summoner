@@ -15,12 +15,12 @@ new build.
 
 ## Current playable build
 
-- File: [Fateforged-UI-Review-Windows.zip](https://drive.google.com/file/d/1YiWdaszFIFJ1zUyjabfyZUDEVKXfntLK/view?usp=drivesdk)
-- Uploaded: August 30, 2026
-- Size: 87,706,576 bytes (87.7 MB)
-- SHA-256: `15abe1c1a53c1d5a5417798b4a5871652267e07d2e67bcf7650627ddd1133c61`
+- File: [Fateforged-UI-Review-Debug-Access-Windows-2026-09-06.zip](https://drive.google.com/file/d/1Gwyn4csL0EOmHNyrARAdX0w0ydh4fU9C/view?usp=drivesdk)
+- Uploaded: September 6, 2026
+- Size: 87,644,967 bytes (87.6 MB)
+- SHA-256: `27465c2508c23cec58660d020faf1fe0399ec143f3384dade8f8fffbaad9d03b`
 - Export preset: `UI Designer Review`
-- Windows validation: [successful GitHub Actions run](https://github.com/amari-charles/project-summoner/actions/runs/33323966761)
+- Windows validation: [successful GitHub Actions run](https://github.com/amari-charles/project-summoner/actions/runs/34072365699)
 
 The recipient must download and extract the entire ZIP, then run
 `Fateforged-UI-Review.exe`. The adjacent
@@ -79,18 +79,19 @@ battle directly.
 
 ## Updating the Drive handoff
 
-Replace the contents of the existing
-`Fateforged-UI-Review-Windows.zip` Drive file in place. Preserving its Drive file
-ID keeps the link in this guide and any messages to the designer valid.
+Upload each replacement as a clearly named new ZIP in the existing commission
+folder. Keep the prior verified build as a fallback, and update the current-build
+link above to the new file.
 
-After replacement:
+After upload:
 
-1. Verify the file is still inside the UI Design Commission folder.
-2. Record its new upload date, byte size, and SHA-256 above.
+1. Verify the file is inside the UI Design Commission folder.
+2. Record its upload date, byte size, and SHA-256 above.
 3. Replace the Windows validation-run link above with the successful run for
    that revision.
-4. Download the shared file once and confirm the archive extracts correctly.
-5. Tell the designer what changed and whether they should restart the
+4. Verify the designer inherits access from the commission folder.
+5. Download the shared file once and confirm the archive extracts correctly.
+6. Tell the designer what changed and whether they should restart the
    walkthrough from a fresh profile.
 
 Do not upload source-art directories, repository tests, project documentation,
